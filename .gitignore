@@ -145,4 +145,5 @@ vite.config.ts.timestamp-*
 # agents config files
 .agents/
 .claude/
+.codegraph/
 skills-lock.json
