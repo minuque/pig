@@ -13,7 +13,8 @@ export function problem(
     instance: "gateway",
     code,
     requestId,
-    retryable: status >= 500,
+    retryable: status >= 500 || code === "run.process_capacity",
+    ...(code === "run.process_capacity" ? { retryAfterMs: 250 } : {}),
     ...(details ? { details } : {}),
   };
 }

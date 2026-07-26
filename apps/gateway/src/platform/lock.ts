@@ -50,6 +50,24 @@ async function removeLock(path: string): Promise<void> {
     retryDelay: 50,
   });
 }
+export async function readMarkerStatus(
+  path: string,
+): Promise<"running" | "clean" | "invalid" | "missing"> {
+  let raw: string;
+  try {
+    raw = await readFile(path, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return "missing";
+    return "invalid";
+  }
+  try {
+    const marker = JSON.parse(raw) as { status?: unknown };
+    return marker.status === "running" || marker.status === "clean" ? marker.status : "invalid";
+  } catch {
+    return "invalid";
+  }
+}
+
 export async function writeMarker(
   path: string,
   status: "running" | "clean",

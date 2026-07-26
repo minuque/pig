@@ -134,10 +134,7 @@ export class RuntimeCoordinator {
     );
   }
 
-  createRun(principalId: string, sessionId: string, body: any) {
-    if (!this.admission) throw new Error("command.admission_closed");
-    const commandPayload = { operation: "createRun", sessionId, body };
-    const hash = payloadHash(commandPayload);
+  replayCreateRun(principalId: string, sessionId: string, body: any) {
     const command = this.store.row<{
       payload_hash: string;
       result_json: string;
@@ -146,40 +143,68 @@ export class RuntimeCoordinator {
       principalId,
       body.commandId,
     );
-    if (command) {
-      if (command.payload_hash !== hash) throw new Error("command.idempotency_conflict");
-      return JSON.parse(command.result_json);
+    if (!command) return undefined;
+    const hash = payloadHash({ operation: "createRun", sessionId, body });
+    if (command.payload_hash !== hash) {
+      throw new Error("command.idempotency_conflict");
     }
-    const queued = Number(
-      this.store.row<{ n: number }>(
-        "SELECT count(*) AS n FROM runs WHERE session_id=? AND state='queued'",
-        sessionId,
-      )?.n ?? 0,
-    );
-    if (queued >= 32) throw new Error("run.queue_full");
+    return JSON.parse(command.result_json);
+  }
 
-    const now = this.store.now();
-    const row: RunRow = {
-      run_id: randomUUID().replaceAll("-", "_"),
-      session_id: sessionId,
-      command_id: body.commandId,
-      prompt: body.prompt,
-      // Admission freezes the complete profile in the durable Run row.
-      profile_json: JSON.stringify({
-        modelId: body.executionProfile.modelId,
-        thinkingLevel: body.executionProfile.thinkingLevel,
-      }),
-      state: "queued",
-      ordinal: ++this.nextOrdinal,
-      retry_of_run_id: body.retryOfRunId ?? null,
-      failure_code: null,
-      revision: 1,
-      run_seq: 1,
-      created_at: now,
-      updated_at: now,
-    };
-    const result = this.summary(row);
-    this.store.transaction(() => {
+  createRun(principalId: string, sessionId: string, body: any) {
+    if (!this.admission) throw new Error("command.admission_closed");
+    const commandPayload = { operation: "createRun", sessionId, body };
+    const hash = payloadHash(commandPayload);
+    let admitted: RunRow | undefined;
+    const result = this.store.transaction(() => {
+      const command = this.store.row<{
+        payload_hash: string;
+        result_json: string;
+      }>(
+        "SELECT payload_hash,result_json FROM commands WHERE principal_id=? AND command_id=?",
+        principalId,
+        body.commandId,
+      );
+      if (command) {
+        if (command.payload_hash !== hash) {
+          throw new Error("command.idempotency_conflict");
+        }
+        return JSON.parse(command.result_json);
+      }
+      const queued = Number(
+        this.store.row<{ n: number }>(
+          "SELECT count(*) AS n FROM runs WHERE session_id=? AND state='queued'",
+          sessionId,
+        )?.n ?? 0,
+      );
+      if (queued >= 32) throw new Error("run.queue_full");
+      const processCount = Number(
+        this.store.row<{ n: number }>(
+          "SELECT count(*) AS n FROM runs WHERE state NOT IN ('completed','failed','cancelled','interrupted')",
+        )?.n ?? 0,
+      );
+      if (processCount >= 128) throw new Error("run.process_capacity");
+
+      const now = this.store.now();
+      const row: RunRow = {
+        run_id: randomUUID().replaceAll("-", "_"),
+        session_id: sessionId,
+        command_id: body.commandId,
+        prompt: body.prompt,
+        profile_json: JSON.stringify({
+          modelId: body.executionProfile.modelId,
+          thinkingLevel: body.executionProfile.thinkingLevel,
+        }),
+        state: "queued",
+        ordinal: ++this.nextOrdinal,
+        retry_of_run_id: body.retryOfRunId ?? null,
+        failure_code: null,
+        revision: 1,
+        run_seq: 1,
+        created_at: now,
+        updated_at: now,
+      };
+      const summary = this.summary(row);
       this.store.run(
         "INSERT INTO runs(run_id,session_id,command_id,prompt,profile_json,state,ordinal,retry_of_run_id,failure_code,revision,run_seq,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
         row.run_id,
@@ -201,12 +226,16 @@ export class RuntimeCoordinator {
         principalId,
         body.commandId,
         hash,
-        JSON.stringify(result),
+        JSON.stringify(summary),
         now,
       );
+      admitted = row;
+      return summary;
     });
-    this.emitState(this.scoped(row));
-    this.pump();
+    if (admitted) {
+      this.emitState(this.scoped(admitted));
+      this.pump();
+    }
     return result;
   }
 

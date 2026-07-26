@@ -149,9 +149,9 @@ export class GatewayAccess {
       name: string;
       revision: number;
     }>(
-      "SELECT workspace_id,canonical_root,name,revision FROM workspaces WHERE workspace_id=? AND principal_id=? AND active=1",
-      id,
+      "SELECT w.workspace_id,w.canonical_root,w.name,w.revision FROM workspaces w JOIN workspace_grants g ON g.workspace_id=w.workspace_id AND g.principal_id=? AND g.active=1 WHERE w.workspace_id=? AND w.active=1",
       principalId,
+      id,
     );
     if (!row) throw new AccessError("workspace.not_found", 404);
     return row;

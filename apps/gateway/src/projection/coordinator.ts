@@ -42,7 +42,12 @@ export class SessionProjectionCoordinator {
             info.created.toISOString(),
             now,
           );
-        } else if (existing.workspace_id !== workspace.workspace_id || existing.active !== 1) {
+        } else if (
+          existing.workspace_id !== workspace.workspace_id ||
+          existing.active !== 1 ||
+          existing.availability === "quarantined" ||
+          existing.availability === "unavailable"
+        ) {
           continue;
         }
         await projectSession(this.store, info.id, info.path);

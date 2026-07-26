@@ -1,13 +1,14 @@
 #!/usr/bin/env node
-import { mkdir, open } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { createServer, type Server } from "node:http";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { capabilityAdapterFromEnvironment } from "./capabilities.js";
 import { listBackups, openDatabase, restoreBackup } from "./db/migrations.js";
 import { Store } from "./db/store.js";
 import { Health } from "./diagnostics/health.js";
 import { DiagnosticSink } from "./diagnostics/sink.js";
-import { acquireLock, writeMarker } from "./platform/lock.js";
+import { acquireLock, readMarkerStatus, writeMarker } from "./platform/lock.js";
 import { ensureRoots, resolveDataRoots } from "./platform/paths.js";
 import { createHttpGateway } from "./server.js";
 
@@ -86,13 +87,18 @@ function startHealthServer(health: Health): Promise<Server> {
   });
 }
 
+export function isSupportedNodeVersion(version: string): boolean {
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
+  if (!match) return false;
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  return (major === 22 && minor >= 19) || major === 24;
+}
+
 async function main() {
-  if (
-    Number(process.versions.node.split(".")[0]) < 22 ||
-    (Number(process.versions.node.split(".")[0]) === 22 &&
-      Number(process.versions.node.split(".")[1]) < 19)
-  )
-    throw new Error("server.unavailable");
+  if (!isSupportedNodeVersion(process.versions.node)) {
+    throw new Error("node.unsupported: requires >=22.19.0 <23 or >=24.0.0 <25");
+  }
   const a = args(process.argv.slice(2)),
     roots = resolveDataRoots(a.dataDir);
   await ensureRoots(roots);
@@ -113,17 +119,15 @@ async function main() {
       await release();
     }
   }
-  const marker = await (async () => {
-    try {
-      return await open(roots.marker, "r");
-    } catch {
-      return undefined;
-    }
-  })();
-  if (marker) {
-    await marker.close();
-    new DiagnosticSink(roots.logs).emit({
+  const markerStatus = await readMarkerStatus(roots.marker);
+  if (markerStatus === "running") {
+    await new DiagnosticSink(roots.logs).emit({
       code: "process.previous_unclean",
+      severity: "warn",
+    });
+  } else if (markerStatus === "invalid") {
+    await new DiagnosticSink(roots.logs).emit({
+      code: "process.marker_invalid",
       severity: "warn",
     });
   }
@@ -191,7 +195,9 @@ async function main() {
   process.once("SIGINT", () => void close());
   process.once("SIGTERM", () => void close());
 }
-main().catch((e) => {
-  console.error(e instanceof Error ? e.message : "server.internal");
-  process.exitCode = 1;
-});
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : "server.internal");
+    process.exitCode = 1;
+  });
+}

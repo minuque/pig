@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { projectSession } from "../src/projection/projector.js";
@@ -121,6 +121,77 @@ describe("session projection", () => {
           "SELECT availability FROM sessions WHERE session_id='session_1'",
         )?.availability,
       ).toBe("unavailable");
+    } finally {
+      db.close();
+    }
+  });
+
+  it("publishes append shadows atomically and preserves the last generation on divergence", async () => {
+    const dir = await tempDir();
+    cleanups.push(dir);
+    const source = join(dir, "session.jsonl");
+    const first = line({
+      type: "message",
+      id: "first",
+      message: { role: "user", content: "first searchable" },
+    });
+    const second = line({
+      type: "message",
+      id: "second",
+      message: { role: "assistant", content: "second searchable" },
+    });
+    const base = `${line(header)}\n${first}\n`;
+    await writeFile(source, base);
+    const { db, store } = await openStore(join(dir, "app.sqlite3"));
+    addPrincipalWorkspaceSession(store, source);
+    try {
+      await projectSession(store, "session_1", source);
+      expect(
+        store.row<{ projection_generation: number }>(
+          "SELECT projection_generation FROM sessions WHERE session_id='session_1'",
+        )?.projection_generation,
+      ).toBe(1);
+
+      await writeFile(source, `${base}{\"type\":\"message\",\"id\":\"second\"`);
+      expect((await projectSession(store, "session_1", source)).health).toBe("dirty_tail");
+      expect(
+        store.row<{ projection_generation: number }>(
+          "SELECT projection_generation FROM sessions WHERE session_id='session_1'",
+        )?.projection_generation,
+      ).toBe(2);
+
+      await writeFile(source, `${base}${second}\n`);
+      expect((await projectSession(store, "session_1", source)).items).toHaveLength(2);
+      const accepted = store.row<{
+        projection_generation: number;
+        text: string;
+      }>(
+        "SELECT s.projection_generation,f.text FROM sessions s JOIN session_search f ON f.session_id=s.session_id WHERE s.session_id='session_1'",
+      );
+      expect(accepted).toMatchObject({
+        projection_generation: 3,
+        text: expect.stringContaining("second searchable"),
+      });
+
+      await writeFile(source, base);
+      expect((await projectSession(store, "session_1", source)).health).toBe("quarantined");
+      expect(
+        store.row<{ projection_generation: number }>(
+          "SELECT projection_generation FROM sessions WHERE session_id='session_1'",
+        )?.projection_generation,
+      ).toBe(3);
+      expect(
+        store.row<{ text: string }>("SELECT text FROM session_search WHERE session_id='session_1'")
+          ?.text,
+      ).toContain("second searchable");
+
+      await rm(source);
+      expect((await projectSession(store, "session_1", source)).health).toBe("unavailable");
+      expect(
+        store.row<{ projection_generation: number }>(
+          "SELECT projection_generation FROM sessions WHERE session_id='session_1'",
+        )?.projection_generation,
+      ).toBe(3);
     } finally {
       db.close();
     }

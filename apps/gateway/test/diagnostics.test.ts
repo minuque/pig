@@ -1,7 +1,8 @@
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { DiagnosticSink } from "../src/diagnostics/sink.js";
+import { readMarkerStatus } from "../src/platform/lock.js";
 import { removeTempDir, tempDir } from "./helpers.js";
 
 const cleanups: string[] = [];
@@ -54,5 +55,20 @@ describe("DiagnosticSink", () => {
     const sizes = await Promise.all(files.map((name) => stat(join(dir, name))));
     expect(files.length).toBeGreaterThan(1);
     expect(sizes.reduce((sum, item) => sum + item.size, 0)).toBeLessThanOrEqual(300);
+  });
+
+  it("classifies only allowlisted clean and running crash markers", async () => {
+    const dir = await tempDir();
+    cleanups.push(dir);
+    const marker = join(dir, "marker.json");
+    expect(await readMarkerStatus(marker)).toBe("missing");
+    await writeFile(marker, JSON.stringify({ status: "clean", raw: "canary" }));
+    expect(await readMarkerStatus(marker)).toBe("clean");
+    await writeFile(marker, JSON.stringify({ status: "running" }));
+    expect(await readMarkerStatus(marker)).toBe("running");
+    await writeFile(marker, "credential-canary-not-json");
+    expect(await readMarkerStatus(marker)).toBe("invalid");
+    await writeFile(marker, JSON.stringify({ status: "future", raw: "secret" }));
+    expect(await readMarkerStatus(marker)).toBe("invalid");
   });
 });

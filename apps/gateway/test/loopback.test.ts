@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { isSupportedNodeVersion } from "../src/cli.js";
 import { createHttpGateway } from "../src/server.js";
 import { openStore, removeTempDir, rootsFor, tempDir } from "./helpers.js";
 
@@ -93,5 +94,14 @@ describe("real loopback gateway", () => {
     } finally {
       await gateway.close();
     }
+  });
+
+  it("accepts only the Node release-support ranges before startup", () => {
+    expect(isSupportedNodeVersion("22.18.9")).toBe(false);
+    expect(isSupportedNodeVersion("22.19.0")).toBe(true);
+    expect(isSupportedNodeVersion("23.0.0")).toBe(false);
+    expect(isSupportedNodeVersion("24.0.0")).toBe(true);
+    expect(isSupportedNodeVersion("25.0.0")).toBe(false);
+    expect(isSupportedNodeVersion("invalid")).toBe(false);
   });
 });

@@ -414,4 +414,59 @@ describe("RuntimeCoordinator", () => {
       db.close();
     }
   });
+
+  it("bounds process-wide admission at 128, replays first, and releases terminal capacity", async () => {
+    const dir = await tempDir();
+    cleanups.push(dir);
+    const source = join(dir, "session.jsonl");
+    await writeFile(source, "");
+    const { db, store } = await openStore(join(dir, "app.sqlite3"));
+    addPrincipalWorkspaceSession(store, source);
+    store.run(
+      "INSERT INTO sessions(session_id,workspace_id,source_path,name,created_at,updated_at) VALUES(?,?,?,?,?,?)",
+      "session_2",
+      "workspace_1",
+      source,
+      "Second",
+      store.now(),
+      store.now(),
+    );
+    try {
+      const coordinator = new RuntimeCoordinator(
+        store,
+        new EventHub(),
+        dir,
+        0,
+        new ControlledAdapter(),
+      );
+      const admitted = coordinator.createRun("principal_1", "session_1", body("global_0", "first"));
+      for (let index = 1; index < 128; index += 1) {
+        store.run(
+          "INSERT INTO runs(run_id,session_id,command_id,prompt,profile_json,state,ordinal,retry_of_run_id,failure_code,revision,run_seq,created_at,updated_at) VALUES(?,?,?,?,?,'queued',?,NULL,NULL,1,1,?,?)",
+          `seed_${index}`,
+          "session_1",
+          `seed_command_${index}`,
+          "seed",
+          JSON.stringify({ modelId: "model_1", thinkingLevel: "off" }),
+          index + 1,
+          store.now(),
+          store.now(),
+        );
+      }
+      expect(coordinator.createRun("principal_1", "session_1", body("global_0", "first"))).toEqual(
+        admitted,
+      );
+      expect(() =>
+        coordinator.createRun("principal_1", "session_2", body("global_overflow", "overflow")),
+      ).toThrow("run.process_capacity");
+      store.run("UPDATE runs SET state='completed' WHERE run_id='seed_1'");
+      expect(
+        coordinator.createRun("principal_1", "session_2", body("global_released", "released"))
+          .state,
+      ).toBe("queued");
+      await coordinator.close();
+    } finally {
+      db.close();
+    }
+  });
 });

@@ -85,4 +85,57 @@ describe("capability coordination", () => {
       db.close();
     }
   });
+
+  it("admits only an available model and one of its thinking levels from one snapshot", async () => {
+    const dir = await tempDir();
+    cleanups.push(dir);
+    const { db, store } = await openStore(join(dir, "app.sqlite3"));
+    let reads = 0;
+    const adapter: CapabilityAdapter = {
+      async models() {
+        reads += 1;
+        return [
+          {
+            modelId: "model_1",
+            providerId: "provider_1",
+            name: "Model",
+            available: true,
+            thinkingLevels: ["off", "high"],
+          },
+        ];
+      },
+      async providerAuth() {
+        return [];
+      },
+      async setApiKey() {
+        return status;
+      },
+      async deleteCredential() {
+        return status;
+      },
+      async login() {},
+    };
+    try {
+      const coordinator = new CapabilityCoordinator(store, Promise.resolve(adapter));
+      await coordinator.validateExecutionProfile({
+        modelId: "model_1",
+        thinkingLevel: "high",
+      });
+      expect(reads).toBe(1);
+      await expect(
+        coordinator.validateExecutionProfile({
+          modelId: "model_1",
+          thinkingLevel: "max",
+        }),
+      ).rejects.toThrow("model.thinking_unsupported");
+      await expect(
+        coordinator.validateExecutionProfile({
+          modelId: "missing",
+          thinkingLevel: "off",
+        }),
+      ).rejects.toThrow("model.unavailable");
+    } finally {
+      db.close();
+    }
+  });
 });

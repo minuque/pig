@@ -1,12 +1,5 @@
 import { randomUUID } from "node:crypto";
-import {
-  access as accessFile,
-  readdir,
-  readFile,
-  realpath,
-  rename,
-  writeFile,
-} from "node:fs/promises";
+import { access as accessFile, readdir, readFile, realpath, rename, writeFile } from "node:fs/promises";
 import type { Server } from "node:http";
 import { createServer } from "node:http";
 import { join } from "node:path";
@@ -91,10 +84,12 @@ export async function createHttpGateway(
       "run.not_found",
       "run.invalid_state",
       "run.queue_full",
+      "run.process_capacity",
       "command.admission_closed",
       "command.idempotency_conflict",
       "model.not_found",
       "model.unavailable",
+      "model.thinking_unsupported",
       "provider_auth.required",
       "auth_flow.not_found",
       "auth_flow.invalid_state",
@@ -132,10 +127,12 @@ export async function createHttpGateway(
       "run.not_found": 404,
       "run.invalid_state": 409,
       "run.queue_full": 409,
+      "run.process_capacity": 429,
       "command.admission_closed": 409,
       "command.idempotency_conflict": 409,
       "model.not_found": 404,
       "model.unavailable": 409,
+      "model.thinking_unsupported": 409,
       "provider_auth.required": 409,
       "auth_flow.not_found": 404,
       "auth_flow.invalid_state": 409,
@@ -214,7 +211,8 @@ export async function createHttpGateway(
         providerAuth: await capabilities.providerAuth(),
         nonterminalRuns: store
           .all<any>(
-            "SELECT * FROM runs WHERE state NOT IN ('completed','failed','cancelled','interrupted')",
+            "SELECT r.* FROM runs r JOIN sessions s ON s.session_id=r.session_id JOIN workspaces w ON w.workspace_id=s.workspace_id JOIN workspace_grants g ON g.workspace_id=w.workspace_id AND g.principal_id=? AND g.active=1 WHERE r.state NOT IN ('completed','failed','cancelled','interrupted') AND s.active=1 AND w.active=1",
+            a.principalId,
           )
           .map((r) => runtime.summary(r)),
         capturedEventCursor,
@@ -317,14 +315,23 @@ export async function createHttpGateway(
         );
       const id = randomUUID().replaceAll("-", "_"),
         now = new Date().toISOString();
-      store.run(
-        "INSERT INTO workspaces(workspace_id,principal_id,name,canonical_root,revision,active,updated_at) VALUES(?,?,?,?,1,1,?)",
-        id,
-        a.principalId,
-        (b as any).name,
-        root,
-        now,
-      );
+      store.transaction(() => {
+        store.run(
+          "INSERT INTO workspaces(workspace_id,principal_id,name,canonical_root,revision,active,updated_at) VALUES(?,?,?,?,1,1,?)",
+          id,
+          a.principalId,
+          (b as any).name,
+          root,
+          now,
+        );
+        store.run(
+          "INSERT INTO workspace_grants(principal_id,workspace_id,active,created_at,updated_at) VALUES(?,?,1,?,?)",
+          a.principalId,
+          id,
+          now,
+          now,
+        );
+      });
       const detail = {
         workspaceId: id,
         name: (b as any).name,
@@ -641,6 +648,13 @@ export async function createHttpGateway(
       if (replay) return c.json(replay, 202);
       const s = awaitSession(store, access, a.principalId, sessionId);
       if (s.revision !== b.expectedRevision) throw new Error("session.revision_conflict");
+      const priorDelete = store.row<{ state: string }>(
+        "SELECT state FROM session_delete_ops WHERE session_id=?",
+        s.session_id,
+      );
+      if (priorDelete?.state === "conflict") {
+        throw new Error("session.unavailable");
+      }
       const busy = store.row<any>(
         "SELECT 1 AS x FROM runs WHERE session_id=? AND state NOT IN ('completed','failed','cancelled','interrupted') LIMIT 1",
         s.session_id,
@@ -663,7 +677,11 @@ export async function createHttpGateway(
         now,
         now,
       );
-      await rename(s.source_path, recyclePath);
+      try {
+        await rename(s.source_path, recyclePath);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
       const result = {
         receipt: {
           commandId: b.commandId,
@@ -773,7 +791,11 @@ export async function createHttpGateway(
       if (!b || b instanceof Response) return b;
       const s = awaitSession(store, access, a.principalId, c.req.param("sessionId"));
       if (s.availability !== "healthy") throw new Error("session.unavailable");
-      const row = runtime.createRun(a.principalId, s.session_id, b);
+      let row = runtime.replayCreateRun(a.principalId, s.session_id, b);
+      if (!row) {
+        await capabilities.validateExecutionProfile(b.executionProfile);
+        row = runtime.createRun(a.principalId, s.session_id, b);
+      }
       return c.json(
         {
           receipt: {
@@ -792,12 +814,7 @@ export async function createHttpGateway(
   app.get("/api/v1/runs/:runId", (c) => {
     try {
       const a = auth(c);
-      const r = store.row<any>(
-        "SELECT r.*,s.workspace_id FROM runs r JOIN sessions s ON s.session_id=r.session_id WHERE r.run_id=?",
-        c.req.param("runId"),
-      );
-      if (!r) throw new Error("run.not_found");
-      awaitWorkspace(store, access, a.principalId, r.workspace_id);
+      const r = awaitRun(store, a.principalId, c.req.param("runId"));
       return c.json({
         ...runtime.summary(r),
         prompt: r.prompt,
@@ -812,12 +829,7 @@ export async function createHttpGateway(
       const a = auth(c, true),
         b = await parse(c, CancelRunSchema);
       if (!b || b instanceof Response) return b;
-      const r = store.row<any>(
-        "SELECT r.*,s.workspace_id FROM runs r JOIN sessions s ON s.session_id=r.session_id WHERE r.run_id=?",
-        c.req.param("runId"),
-      );
-      if (!r) throw new Error("run.not_found");
-      awaitWorkspace(store, access, a.principalId, r.workspace_id);
+      const r = awaitRun(store, a.principalId, c.req.param("runId"));
       await runtime.cancel(r.run_id, a.principalId, (b as any).commandId);
       return c.json(
         {
@@ -839,12 +851,7 @@ export async function createHttpGateway(
       const a = auth(c, true),
         b = await parse(c, SteerRunSchema);
       if (!b || b instanceof Response) return b;
-      const r = store.row<any>(
-        "SELECT r.*,s.workspace_id FROM runs r JOIN sessions s ON s.session_id=r.session_id WHERE r.run_id=?",
-        c.req.param("runId"),
-      );
-      if (!r) throw new Error("run.not_found");
-      awaitWorkspace(store, access, a.principalId, r.workspace_id);
+      const r = awaitRun(store, a.principalId, c.req.param("runId"));
       await runtime.steer(r.run_id, (b as any).instruction, a.principalId, (b as any).commandId);
       return c.json(
         {
@@ -1221,16 +1228,23 @@ async function recoverSessionDeletes(store: Store): Promise<void> {
           op.session_id,
         );
         store.run(
-          "UPDATE sessions SET availability='quarantined',updated_at=? WHERE session_id=?",
+          "UPDATE sessions SET availability='quarantined',revision=revision+1,updated_at=? WHERE session_id=?",
           store.now(),
           op.session_id,
         );
       } else {
-        store.run(
-          "UPDATE session_delete_ops SET state='missing',updated_at=? WHERE session_id=?",
-          store.now(),
-          op.session_id,
-        );
+        store.transaction(() => {
+          store.run(
+            "UPDATE session_delete_ops SET state='missing',updated_at=? WHERE session_id=?",
+            store.now(),
+            op.session_id,
+          );
+          store.run(
+            "UPDATE sessions SET availability='unavailable',revision=revision+1,updated_at=? WHERE session_id=?",
+            store.now(),
+            op.session_id,
+          );
+        });
       }
     } catch {
       store.run(
@@ -1281,10 +1295,19 @@ function awaitWorkspace(store: Store, access: GatewayAccess, p: string, id: stri
 }
 function awaitSession(store: Store, access: GatewayAccess, p: string, id: string): any {
   const s = store.row<any>(
-    "SELECT s.* FROM sessions s JOIN workspaces w ON w.workspace_id=s.workspace_id WHERE s.session_id=? AND s.active=1 AND w.active=1",
+    "SELECT s.* FROM sessions s JOIN workspaces w ON w.workspace_id=s.workspace_id JOIN workspace_grants g ON g.workspace_id=w.workspace_id AND g.principal_id=? AND g.active=1 WHERE s.session_id=? AND s.active=1 AND w.active=1",
+    p,
     id,
   );
   if (!s) throw new Error("session.not_found");
-  access.authorizeWorkspace(p, s.workspace_id);
   return s;
+}
+function awaitRun(store: Store, principalId: string, runId: string): any {
+  const run = store.row<any>(
+    "SELECT r.*,s.workspace_id FROM runs r JOIN sessions s ON s.session_id=r.session_id JOIN workspaces w ON w.workspace_id=s.workspace_id JOIN workspace_grants g ON g.workspace_id=w.workspace_id AND g.principal_id=? AND g.active=1 WHERE r.run_id=? AND s.active=1 AND w.active=1",
+    principalId,
+    runId,
+  );
+  if (!run) throw new Error("run.not_found");
+  return run;
 }

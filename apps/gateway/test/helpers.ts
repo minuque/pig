@@ -35,12 +35,12 @@ export function rootsFor(path: string): DataRoots {
 
 export async function openSchemaDatabase(path: string): Promise<DatabaseSync> {
   const db = new DatabaseSync(path);
-  const migration = await readFile(
-    fileURLToPath(new URL("../migrations/001-initial.sql", import.meta.url)),
-    "utf8",
-  );
-  db.exec(migration);
-  db.exec("PRAGMA application_id=0x4e504e47; PRAGMA user_version=1;");
+  for (const name of ["001-initial.sql", "002-gateway-release-safety.sql"]) {
+    db.exec(
+      await readFile(fileURLToPath(new URL(`../migrations/${name}`, import.meta.url)), "utf8"),
+    );
+  }
+  db.exec("PRAGMA application_id=0x4e504e47; PRAGMA user_version=2;");
   return db;
 }
 
@@ -63,6 +63,13 @@ export function addPrincipalWorkspaceSession(store: Store, sourcePath: string) {
     "principal_1",
     "Workspace",
     sourcePath,
+    now,
+  );
+  store.run(
+    "INSERT INTO workspace_grants(principal_id,workspace_id,active,created_at,updated_at) VALUES(?,?,1,?,?)",
+    "principal_1",
+    "workspace_1",
+    now,
     now,
   );
   store.run(

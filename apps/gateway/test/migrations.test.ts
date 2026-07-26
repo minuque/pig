@@ -22,8 +22,12 @@ async function migrationFixture() {
   const roots = rootsFor(dir);
   const migrationDir = join(dir, "migrations");
   await mkdir(migrationDir, { recursive: true });
-  const sql = await readFile(new URL("../migrations/001-initial.sql", import.meta.url), "utf8");
-  await writeFile(join(migrationDir, "001-initial.sql"), sql);
+  for (const name of ["001-initial.sql", "002-gateway-release-safety.sql"]) {
+    await writeFile(
+      join(migrationDir, name),
+      await readFile(new URL(`../migrations/${name}`, import.meta.url), "utf8"),
+    );
+  }
   await mkdir(roots.data, { recursive: true });
   return { dir, roots, migrationDir };
 }
@@ -34,12 +38,12 @@ describe("SQLite migrations", () => {
     const db = await openDatabase(roots, migrationDir);
     expect(
       Number((db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version),
-    ).toBe(1);
+    ).toBe(2);
     db.close();
     const backups = await listBackups(roots);
     expect(backups).toHaveLength(1);
     expect(backups[0]!.valid).toBe(true);
-    await restoreBackup(roots, backups[0]!.id);
+    await restoreBackup(roots, backups[0]!.id, migrationDir);
     const restored = new DatabaseSync(roots.database, { readOnly: true });
     expect(
       Number(
@@ -62,10 +66,10 @@ describe("SQLite migrations", () => {
     restored.close();
   });
 
-  it("fails closed for foreign databases and migration checksum changes", async () => {
+  it("fails closed for app-id-zero foreign databases and migration checksum changes", async () => {
     const fixture = await migrationFixture();
     const foreign = new DatabaseSync(fixture.roots.database);
-    foreign.exec("PRAGMA application_id=99;");
+    foreign.exec("CREATE TABLE foreign_data(value TEXT);");
     foreign.close();
     await expect(
       openDatabase(fixture.roots, fixture.migrationDir),

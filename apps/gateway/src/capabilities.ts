@@ -175,6 +175,10 @@ type Pending = {
   rejecters: Map<string, (error: Error) => void>;
 };
 
+export interface ExecutionProfileAdmission {
+  validateExecutionProfile(profile: { modelId: string; thinkingLevel: string }): Promise<void>;
+}
+
 /** Gateway-owned auth orchestration. Credential values never enter Store or a public object. */
 export class CapabilityCoordinator {
   private pending = new Map<string, Pending>();
@@ -190,6 +194,19 @@ export class CapabilityCoordinator {
   }
   async models() {
     return (await this.adapterPromise).models();
+  }
+  async validateExecutionProfile(profile: {
+    modelId: string;
+    thinkingLevel: string;
+  }): Promise<void> {
+    const snapshot = await (await this.adapterPromise).models();
+    const model = snapshot.find(
+      (candidate) => candidate.modelId === profile.modelId && candidate.available,
+    );
+    if (!model) throw new Error("model.unavailable");
+    if (!model.thinkingLevels.includes(profile.thinkingLevel)) {
+      throw new Error("model.thinking_unsupported");
+    }
   }
   async providerAuth() {
     const result = await (await this.adapterPromise).providerAuth();
