@@ -9,11 +9,7 @@ const gateway = join(root, "apps", "gateway");
 
 function npmRun(script, workspace) {
   const npmCli = process.env.npm_execpath;
-  const command = npmCli
-    ? process.execPath
-    : process.platform === "win32"
-      ? "cmd.exe"
-      : "npm";
+  const command = npmCli ? process.execPath : process.platform === "win32" ? "cmd.exe" : "npm";
   const args = npmCli
     ? [npmCli, "run", script, "--workspace", workspace]
     : process.platform === "win32"

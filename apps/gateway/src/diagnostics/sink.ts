@@ -14,16 +14,9 @@ export type SafeDiagnosticEvent = {
   fingerprint?: string;
 };
 
-const stringFields = [
-  "requestId",
-  "commandId",
-  "component",
-  "state",
-  "fingerprint",
-] as const;
+const stringFields = ["requestId", "commandId", "component", "state", "fingerprint"] as const;
 const numberFields = ["status", "count"] as const;
-const clean = (value: string): string =>
-  value.replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, 160);
+const clean = (value: string): string => value.replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, 160);
 
 export class DiagnosticSink {
   private current = "";
@@ -47,20 +40,13 @@ export class DiagnosticSink {
     }
     for (const field of numberFields) {
       const value = event[field];
-      if (typeof value === "number" && Number.isFinite(value))
-        safe[field] = value;
+      if (typeof value === "number" && Number.isFinite(value)) safe[field] = value;
     }
     const line = `${JSON.stringify(safe)}\n`;
     try {
       await mkdir(this.dir, { recursive: true });
-      if (
-        !this.current ||
-        this.bytes + Buffer.byteLength(line) > this.segmentBytes
-      ) {
-        this.current = join(
-          this.dir,
-          `gateway-${Date.now()}-${randomUUID()}.jsonl`,
-        );
+      if (!this.current || this.bytes + Buffer.byteLength(line) > this.segmentBytes) {
+        this.current = join(this.dir, `gateway-${Date.now()}-${randomUUID()}.jsonl`);
         this.bytes = 0;
       }
       await appendFile(this.current, line, { mode: 0o600 });

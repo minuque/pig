@@ -1,8 +1,6 @@
 import { open, readFile, rm, writeFile } from "node:fs/promises";
 import type { DataRoots } from "../types.js";
-export async function acquireLock(
-  roots: DataRoots,
-): Promise<() => Promise<void>> {
+export async function acquireLock(roots: DataRoots): Promise<() => Promise<void>> {
   const create = async () => {
     const handle = await open(roots.lock, "wx");
     try {
@@ -57,9 +55,7 @@ export async function writeMarker(
   status: "running" | "clean",
   epoch: string,
 ): Promise<void> {
-  await writeFile(
-    path,
-    JSON.stringify({ status, epoch, startedAt: new Date().toISOString() }),
-    { mode: 0o600 },
-  );
+  await writeFile(path, JSON.stringify({ status, epoch, startedAt: new Date().toISOString() }), {
+    mode: 0o600,
+  });
 }

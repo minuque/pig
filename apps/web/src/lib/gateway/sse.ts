@@ -9,10 +9,7 @@ import {
   type GatewayStreamItem,
   type StreamControlEvent,
 } from "@no-pi-no-gang/contracts";
-import {
-  GatewayRequestError,
-  GatewayStreamOpenError,
-} from "@/lib/gateway/errors";
+import { GatewayRequestError, GatewayStreamOpenError } from "@/lib/gateway/errors";
 import { ProblemDetailsSchema } from "@no-pi-no-gang/contracts";
 
 /** A future event type this client does not know yet. Cursor-relevant only. */
@@ -22,8 +19,7 @@ export interface UnknownGatewayEvent {
   gatewaySeq: number;
 }
 
-export type WebStreamItem =
-  GatewayStreamItem | { kind: "event"; event: UnknownGatewayEvent };
+export type WebStreamItem = GatewayStreamItem | { kind: "event"; event: UnknownGatewayEvent };
 
 const UnknownEventEnvelopeSchema = z.object({
   type: z.string().min(1),
@@ -66,20 +62,14 @@ export function decodeStreamEventData(
     try {
       return StreamControlEventSchema.parse(parsed);
     } catch {
-      throw new GatewayRequestError(
-        "decode",
-        `Stream control event failed contract validation`,
-      );
+      throw new GatewayRequestError("decode", `Stream control event failed contract validation`);
     }
   }
   if (knownEventTypes.has(type)) {
     try {
       return GatewayEventSchema.parse(parsed) as GatewayEvent;
     } catch {
-      throw new GatewayRequestError(
-        "decode",
-        `Gateway event "${type}" failed contract validation`,
-      );
+      throw new GatewayRequestError("decode", `Gateway event "${type}" failed contract validation`);
     }
   }
   const unknown = UnknownEventEnvelopeSchema.safeParse(parsed);
@@ -93,9 +83,7 @@ interface SseFrame {
 }
 
 /** Parse an SSE byte stream into frames. */
-export async function* readSseFrames(
-  body: ReadableStream<Uint8Array>,
-): AsyncIterable<SseFrame> {
+export async function* readSseFrames(body: ReadableStream<Uint8Array>): AsyncIterable<SseFrame> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
@@ -166,9 +154,7 @@ export interface OpenSseOptions {
  * problem responses (auth, cursor, protocol) throw GatewayStreamOpenError for
  * the Sync Controller to resolve semantically.
  */
-export async function* openEventStream(
-  options: OpenSseOptions,
-): AsyncIterable<WebStreamItem> {
+export async function* openEventStream(options: OpenSseOptions): AsyncIterable<WebStreamItem> {
   const fetchFn = options.fetchFn ?? fetch;
   let after: EventCursor | undefined = options.after;
   let attempt = 0;
@@ -177,9 +163,7 @@ export async function* openEventStream(
     if (options.signal.aborted) return;
     let streamOpened = false;
     try {
-      const url = after
-        ? `/api/v1/events?after=${encodeURIComponent(after)}`
-        : "/api/v1/events";
+      const url = after ? `/api/v1/events?after=${encodeURIComponent(after)}` : "/api/v1/events";
       const response = await fetchFn(url, {
         headers: { accept: "text/event-stream" },
         credentials: "same-origin",
@@ -231,9 +215,7 @@ export async function* openEventStream(
       if (error instanceof GatewayRequestError) throw error;
       attempt += 1;
       yield { kind: "connection", state: "reconnecting" };
-      await sleep(Math.min(500 * attempt, 4000), options.signal).catch(
-        () => {},
-      );
+      await sleep(Math.min(500 * attempt, 4000), options.signal).catch(() => {});
       if (options.signal.aborted) return;
     }
   }

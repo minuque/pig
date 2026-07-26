@@ -1,11 +1,6 @@
 import { z } from "zod";
 import { InstantSchema, RevisionSchema } from "./common.js";
-import {
-  AuthFlowIdSchema,
-  CommandIdSchema,
-  ModelIdSchema,
-  ProviderIdSchema,
-} from "./ids.js";
+import { AuthFlowIdSchema, CommandIdSchema, ModelIdSchema, ProviderIdSchema } from "./ids.js";
 import { ThinkingLevelSchema } from "./run.js";
 
 export const ModelSchema = z.object({
@@ -53,14 +48,7 @@ export const AuthFlowSchema = z.object({
   flowId: AuthFlowIdSchema,
   providerId: ProviderIdSchema,
   revision: RevisionSchema,
-  state: z.enum([
-    "pending",
-    "succeeded",
-    "failed",
-    "cancelled",
-    "expired",
-    "interrupted",
-  ]),
+  state: z.enum(["pending", "succeeded", "failed", "cancelled", "expired", "interrupted"]),
   interaction: AuthInteractionSchema.optional(),
   expiresAt: InstantSchema,
 });

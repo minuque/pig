@@ -44,9 +44,7 @@ export const ProblemDetailsSchema = z.object({
   requestId: z.string().min(1).max(128),
   retryable: z.boolean(),
   retryAfterMs: z.number().int().nonnegative().optional(),
-  details: z
-    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-    .optional(),
+  details: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
 });
 
 export type ProblemCode = z.infer<typeof ProblemCodeSchema>;

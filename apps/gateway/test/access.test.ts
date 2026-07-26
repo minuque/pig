@@ -15,17 +15,10 @@ describe("GatewayAccess", () => {
     cleanups.push(dir);
     const { db, store } = await openStore(join(dir, "app.sqlite3"));
     try {
-      const access = new GatewayAccess(
-        store,
-        "http://127.0.0.1:1234",
-        undefined,
-        () => 1_000,
-      );
+      const access = new GatewayAccess(store, "http://127.0.0.1:1234", undefined, () => 1_000);
       const csrf = access.exchange(access.bootstrapSecret);
       expect(csrf).toHaveLength(43);
-      expect(access.cookie()).toMatch(
-        /^npng_session=.+; HttpOnly; SameSite=Strict; Path=\/api$/,
-      );
+      expect(access.cookie()).toMatch(/^npng_session=.+; HttpOnly; SameSite=Strict; Path=\/api$/);
       expect(() => access.cookie()).toThrow("auth_unavailable");
       expect(() => access.exchange(access.bootstrapSecret)).toThrowError(
         expect.objectContaining({ code: "auth.bootstrap_invalid" }),
@@ -49,9 +42,7 @@ describe("GatewayAccess", () => {
       expect(await access.contains(root, child)).toBe(true);
       expect(await access.contains(root, join(root, "child", ".."))).toBe(true);
       expect(await access.contains(root, outside)).toBe(false);
-      await expect(
-        access.canonical(join(dir, "missing")),
-      ).rejects.toMatchObject({
+      await expect(access.canonical(join(dir, "missing"))).rejects.toMatchObject({
         code: "workspace.path_invalid",
       });
     } finally {

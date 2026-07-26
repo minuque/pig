@@ -1,12 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import {
-  access,
-  mkdtemp,
-  mkdir,
-  readFile,
-  rm,
-  writeFile,
-} from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -34,9 +27,7 @@ function run(command, args, options = {}) {
   });
   if (result.error) throw result.error;
   if (result.status !== 0) {
-    throw new Error(
-      `${command} ${args.join(" ")} failed\n${result.stderr || result.stdout}`,
-    );
+    throw new Error(`${command} ${args.join(" ")} failed\n${result.stderr || result.stdout}`);
   }
   return result.stdout;
 }
@@ -47,14 +38,7 @@ function runNpm(args, options = {}) {
 }
 
 function pack(workspace) {
-  const output = runNpm([
-    "pack",
-    "--json",
-    "--pack-destination",
-    temp,
-    "--workspace",
-    workspace,
-  ]);
+  const output = runNpm(["pack", "--json", "--pack-destination", temp, "--workspace", workspace]);
   const report = JSON.parse(output);
   if (!Array.isArray(report) || report.length !== 1 || report[0].error) {
     throw new Error(`Unexpected npm pack report for ${workspace}`);
@@ -63,13 +47,7 @@ function pack(workspace) {
 }
 
 function assertGatewayFiles(files) {
-  const allowedFiles = new Set([
-    "package.json",
-    "README",
-    "README.md",
-    "LICENSE",
-    "LICENSE.md",
-  ]);
+  const allowedFiles = new Set(["package.json", "README", "README.md", "LICENSE", "LICENSE.md"]);
   for (const { path } of files) {
     const allowed = allowedFiles.has(path) || path.startsWith("dist/");
     if (!allowed) throw new Error(`Unexpected gateway package file: ${path}`);
@@ -91,9 +69,7 @@ function assertGatewayFiles(files) {
   }
   for (const forbiddenPrefix of ["migrations/", "public/"]) {
     if (files.some(({ path }) => path.startsWith(forbiddenPrefix))) {
-      throw new Error(
-        `Gateway package duplicates runtime assets at ${forbiddenPrefix}`,
-      );
+      throw new Error(`Gateway package duplicates runtime assets at ${forbiddenPrefix}`);
     }
   }
 }
@@ -121,9 +97,7 @@ function waitForReady(child) {
     }, 15_000);
     const consume = (chunk) => {
       output += chunk.toString();
-      const origin = /no-pi-no-gang listening at (https?:\/\/[^/#\s]+)/.exec(
-        output,
-      )?.[1];
+      const origin = /no-pi-no-gang listening at (https?:\/\/[^/#\s]+)/.exec(output)?.[1];
       if (origin !== undefined) {
         clearTimeout(timer);
         resolveReady(origin);
@@ -175,14 +149,7 @@ try {
     JSON.stringify({ name: "pack-check", version: "1.0.0", private: true }),
   );
   runNpm(
-    [
-      "install",
-      gateway.tarball,
-      contracts.tarball,
-      "--ignore-scripts",
-      "--no-audit",
-      "--no-fund",
-    ],
+    ["install", gateway.tarball, contracts.tarball, "--ignore-scripts", "--no-audit", "--no-fund"],
     { cwd: project },
   );
 
@@ -195,11 +162,10 @@ try {
   }
 
   const dataDir = join(temp, "smoke-data");
-  const child = spawn(
-    process.execPath,
-    [cli, "--no-open", "--data-dir", dataDir],
-    { cwd: project, stdio: ["ignore", "pipe", "pipe"] },
-  );
+  const child = spawn(process.execPath, [cli, "--no-open", "--data-dir", dataDir], {
+    cwd: project,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
   const origin = await waitForReady(child);
   const indexResponse = await fetch(origin);
   const indexHtml = await indexResponse.text();
@@ -213,14 +179,7 @@ try {
   }
   const lock = join(dataDir, "State", "run", "instance.lock");
   const lockModule = pathToFileURL(
-    join(
-      project,
-      "node_modules",
-      "no-pi-no-gang",
-      "dist",
-      "platform",
-      "lock.js",
-    ),
+    join(project, "node_modules", "no-pi-no-gang", "dist", "platform", "lock.js"),
   ).href;
   run(
     process.execPath,

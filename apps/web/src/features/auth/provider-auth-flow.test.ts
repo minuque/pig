@@ -28,9 +28,7 @@ function passwordInput(wrapper: VueWrapper) {
 }
 
 function startButton(wrapper: VueWrapper) {
-  return wrapper
-    .findAll("button")
-    .find((button) => button.text() === "开始授权");
+  return wrapper.findAll("button").find((button) => button.text() === "开始授权");
 }
 
 describe("ProviderAuthFlow secrets", () => {
@@ -74,13 +72,9 @@ describe("ProviderAuthFlow secrets", () => {
         sensitive: true,
       },
     });
-    vi.mocked(client.authFlows.create).mockResolvedValue(
-      mockMutationResult(flow),
-    );
+    vi.mocked(client.authFlows.create).mockResolvedValue(mockMutationResult(flow));
     vi.mocked(client.authFlows.get).mockResolvedValue(flow);
-    vi.mocked(client.authFlows.respond).mockResolvedValue(
-      mockMutationResult(flow),
-    );
+    vi.mocked(client.authFlows.respond).mockResolvedValue(mockMutationResult(flow));
     const wrapper = mountFlow(client);
     await flushPromises();
 
@@ -100,9 +94,7 @@ describe("ProviderAuthFlow secrets", () => {
         response: "my-secret-answer",
       }),
     );
-    expect(
-      (wrapper.find("#auth-prompt-response").element as HTMLInputElement).value,
-    ).toBe("");
+    expect((wrapper.find("#auth-prompt-response").element as HTMLInputElement).value).toBe("");
     wrapper.unmount();
   });
 
@@ -119,9 +111,7 @@ describe("ProviderAuthFlow secrets", () => {
         sensitive: true,
       },
     });
-    vi.mocked(client.authFlows.create).mockResolvedValue(
-      mockMutationResult(flow),
-    );
+    vi.mocked(client.authFlows.create).mockResolvedValue(mockMutationResult(flow));
     vi.mocked(client.authFlows.get).mockResolvedValue(flow);
     vi.mocked(client.authFlows.cancel).mockResolvedValue(
       mockMutationResult(mockAuthFlow({ state: "cancelled" })),
@@ -132,9 +122,7 @@ describe("ProviderAuthFlow secrets", () => {
     await startButton(wrapper)!.trigger("click");
     await flushPromises();
     await wrapper.find("#auth-prompt-response").setValue("half-typed");
-    const cancelButton = wrapper
-      .findAll("button")
-      .find((button) => button.text() === "取消授权");
+    const cancelButton = wrapper.findAll("button").find((button) => button.text() === "取消授权");
     expect(cancelButton).toBeDefined();
     await cancelButton!.trigger("click");
     await flushPromises();
@@ -158,9 +146,7 @@ describe("ProviderAuthFlow secrets", () => {
         label: "打开授权页",
       },
     });
-    vi.mocked(client.authFlows.create).mockResolvedValue(
-      mockMutationResult(flow),
-    );
+    vi.mocked(client.authFlows.create).mockResolvedValue(mockMutationResult(flow));
     vi.mocked(client.authFlows.get).mockResolvedValue(flow);
     vi.mocked(client.authFlows.cancel).mockResolvedValue(
       mockMutationResult(mockAuthFlow({ state: "cancelled" })),
@@ -170,9 +156,7 @@ describe("ProviderAuthFlow secrets", () => {
 
     await startButton(wrapper)!.trigger("click");
     await flushPromises();
-    expect(wrapper.find('a[href="https://example.com/auth"]').exists()).toBe(
-      true,
-    );
+    expect(wrapper.find('a[href="https://example.com/auth"]').exists()).toBe(true);
 
     await wrapper.setProps({ open: false });
     await flushPromises();
@@ -197,9 +181,7 @@ describe("ProviderAuthFlow interactions", () => {
         expiresAt: "2025-01-02T04:04:05.000Z",
       },
     });
-    vi.mocked(client.authFlows.create).mockResolvedValue(
-      mockMutationResult(flow),
-    );
+    vi.mocked(client.authFlows.create).mockResolvedValue(mockMutationResult(flow));
     vi.mocked(client.authFlows.get).mockResolvedValue(flow);
     const wrapper = mountFlow(client);
     await flushPromises();
@@ -208,9 +190,7 @@ describe("ProviderAuthFlow interactions", () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain("ABCD-1234");
-    expect(wrapper.find('a[href="https://example.com/device"]').exists()).toBe(
-      true,
-    );
+    expect(wrapper.find('a[href="https://example.com/device"]').exists()).toBe(true);
     wrapper.unmount();
   });
 
@@ -230,13 +210,9 @@ describe("ProviderAuthFlow interactions", () => {
         ],
       },
     });
-    vi.mocked(client.authFlows.create).mockResolvedValue(
-      mockMutationResult(flow),
-    );
+    vi.mocked(client.authFlows.create).mockResolvedValue(mockMutationResult(flow));
     vi.mocked(client.authFlows.get).mockResolvedValue(flow);
-    vi.mocked(client.authFlows.respond).mockResolvedValue(
-      mockMutationResult(flow),
-    );
+    vi.mocked(client.authFlows.respond).mockResolvedValue(mockMutationResult(flow));
     const wrapper = mountFlow(client);
     await flushPromises();
 

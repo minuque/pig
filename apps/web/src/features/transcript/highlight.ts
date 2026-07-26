@@ -103,9 +103,7 @@ function getHighlighter(): Promise<HighlighterCore> {
   return highlighterPromise;
 }
 
-export type HighlightedRoot = Awaited<
-  ReturnType<HighlighterCore["codeToHast"]>
->;
+export type HighlightedRoot = Awaited<ReturnType<HighlighterCore["codeToHast"]>>;
 
 /**
  * Highlight code into a HAST tree with dual light/dark CSS variables.

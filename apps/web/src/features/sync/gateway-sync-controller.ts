@@ -1,10 +1,5 @@
 import type { QueryClient } from "@tanstack/vue-query";
-import type {
-  EventCursor,
-  GatewayEvent,
-  RunId,
-  SessionId,
-} from "@no-pi-no-gang/contracts";
+import type { EventCursor, GatewayEvent, RunId, SessionId } from "@no-pi-no-gang/contracts";
 import type { WebGatewayClient } from "@/lib/gateway/client";
 import { setCsrfToken } from "@/lib/gateway/csrf";
 import { gatewayKeys } from "@/lib/gateway/keys";
@@ -57,17 +52,14 @@ export class GatewaySyncController {
   constructor(deps: GatewaySyncControllerDeps) {
     this.#deps = deps;
     this.#overlayState = deps.store.overlay;
-    this.#coalescer = new StreamCoalescer<LiveOverlayState>(
-      deps.coalesceMs ?? 75,
-      (state) => deps.store.commit(state),
+    this.#coalescer = new StreamCoalescer<LiveOverlayState>(deps.coalesceMs ?? 75, (state) =>
+      deps.store.commit(state),
     );
   }
 
   start(cursor: EventCursor): void {
     if (this.#started) {
-      throw new Error(
-        "GatewaySyncController is unique per application; start() was called twice",
-      );
+      throw new Error("GatewaySyncController is unique per application; start() was called twice");
     }
     this.#started = true;
     void this.#run(cursor, ++this.#loopId);
@@ -89,10 +81,9 @@ export class GatewaySyncController {
     const abort = new AbortController();
     this.#streamAbort = abort;
     try {
-      const stream = this.#deps.client.events.open(
-        after === undefined ? {} : { after },
-        { signal: abort.signal },
-      );
+      const stream = this.#deps.client.events.open(after === undefined ? {} : { after }, {
+        signal: abort.signal,
+      });
       for await (const item of stream) {
         if (this.#stopped || loopId !== this.#loopId) return;
         if (item.kind === "connection") {
@@ -132,21 +123,15 @@ export class GatewaySyncController {
     this.#overlayState = result.next;
     this.#coalescer.offer(
       result.next,
-      effect.kind === "applied" && event.type === "run.output.delta"
-        ? "coalesce"
-        : "immediate",
+      effect.kind === "applied" && event.type === "run.output.delta" ? "coalesce" : "immediate",
     );
     if (!("payload" in event)) return true;
     const shouldProject =
       (effect.kind === "ignored" && effect.reason === "durable-only") ||
       (effect.kind === "applied" &&
-        (event.type === "run.changed" ||
-          event.type === "transcript.item.committed"));
+        (event.type === "run.changed" || event.type === "transcript.item.committed"));
     if (!shouldProject) return true;
-    const { terminalRun } = projectDurableEvent(
-      this.#deps.queryClient,
-      event as GatewayEvent,
-    );
+    const { terminalRun } = projectDurableEvent(this.#deps.queryClient, event as GatewayEvent);
     if (terminalRun) {
       void this.#retireRunOverlay(terminalRun.sessionId, terminalRun.runId);
     }
@@ -216,10 +201,7 @@ export class GatewaySyncController {
         );
         if (this.#stopped) return;
 
-        let replacement = withCursor(
-          createEmptyLiveOverlay(),
-          bootstrap.capturedEventCursor,
-        );
+        let replacement = withCursor(createEmptyLiveOverlay(), bootstrap.capturedEventCursor);
         for (const run of bootstrap.nonterminalRuns) {
           replacement = ensureRunOverlay(replacement, run);
         }
@@ -238,14 +220,8 @@ export class GatewaySyncController {
         // All remote reads succeeded; install durable Query truth and the live
         // replacement as one synchronous commit phase.
         setCsrfToken(bootstrap.csrfToken);
-        this.#deps.queryClient.setQueryData(
-          gatewayKeys.models,
-          bootstrap.models,
-        );
-        this.#deps.queryClient.setQueryData(
-          gatewayKeys.providerAuth,
-          bootstrap.providerAuth,
-        );
+        this.#deps.queryClient.setQueryData(gatewayKeys.models, bootstrap.models);
+        this.#deps.queryClient.setQueryData(gatewayKeys.providerAuth, bootstrap.providerAuth);
         for (const { sessionId, snapshot } of snapshots) {
           this.#installDurableSnapshot(sessionId, snapshot);
         }
@@ -276,17 +252,8 @@ export class GatewaySyncController {
       historyTruncated: snapshot.historyTruncated,
     },
   ): void {
-    this.#deps.queryClient.setQueryData(
-      gatewayKeys.sessions.snapshot(sessionId),
-      snapshot,
-    );
-    this.#deps.queryClient.setQueryData(
-      gatewayKeys.sessions.detail(sessionId),
-      snapshot.session,
-    );
-    this.#deps.queryClient.setQueryData(
-      gatewayKeys.sessions.transcript(sessionId),
-      transcript,
-    );
+    this.#deps.queryClient.setQueryData(gatewayKeys.sessions.snapshot(sessionId), snapshot);
+    this.#deps.queryClient.setQueryData(gatewayKeys.sessions.detail(sessionId), snapshot.session);
+    this.#deps.queryClient.setQueryData(gatewayKeys.sessions.transcript(sessionId), transcript);
   }
 }

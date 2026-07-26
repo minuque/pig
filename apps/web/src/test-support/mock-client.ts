@@ -45,9 +45,7 @@ export const mockBootstrap = {
   capturedEventCursor: "epoch_1:1",
 } as unknown as Bootstrap;
 
-export function mockProviderAuth(
-  overrides: Partial<ProviderAuthStatus> = {},
-): ProviderAuthStatus {
+export function mockProviderAuth(overrides: Partial<ProviderAuthStatus> = {}): ProviderAuthStatus {
   return {
     providerId: "anthropic",
     revision: 1,

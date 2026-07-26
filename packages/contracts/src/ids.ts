@@ -23,11 +23,7 @@ export const ModelIdSchema = z
 export const ProviderIdSchema = opaqueId<"ProviderId">();
 export const AuthFlowIdSchema = opaqueId<"AuthFlowId">();
 export const PreviewIdSchema = opaqueId<"PreviewId">();
-export const OpaqueCursorSchema = z
-  .string()
-  .min(1)
-  .max(512)
-  .brand<"OpaqueCursor">();
+export const OpaqueCursorSchema = z.string().min(1).max(512).brand<"OpaqueCursor">();
 export const EventCursorSchema = z
   .string()
   .regex(/^[A-Za-z0-9_-]+:(?:0|[1-9]\d*)$/)

@@ -4,9 +4,7 @@ import { problem } from "../src/problem.js";
 
 describe("problem details factory", () => {
   it("produces contract-valid server errors marked retryable", () => {
-    const parsed = ProblemDetailsSchema.parse(
-      problem("server.unavailable", 503, "req_1"),
-    );
+    const parsed = ProblemDetailsSchema.parse(problem("server.unavailable", 503, "req_1"));
     expect(parsed.code).toBe("server.unavailable");
     expect(parsed.status).toBe(503);
     expect(parsed.retryable).toBe(true);

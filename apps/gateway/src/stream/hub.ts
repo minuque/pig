@@ -15,8 +15,7 @@ export type Event = {
   payload: unknown;
 };
 
-export type ReplayResetReason =
-  "cursor_invalid" | "epoch_changed" | "replay_unavailable";
+export type ReplayResetReason = "cursor_invalid" | "epoch_changed" | "replay_unavailable";
 
 type Subscriber = {
   send: (event: Event) => void | Promise<void>;
@@ -51,11 +50,7 @@ export class EventHub {
   publish(
     input: Omit<
       Event,
-      | "schemaVersion"
-      | "contractRevision"
-      | "gatewayEpoch"
-      | "gatewaySeq"
-      | "emittedAt"
+      "schemaVersion" | "contractRevision" | "gatewayEpoch" | "gatewaySeq" | "emittedAt"
     >,
   ): Event {
     const event: Event = {

@@ -1,10 +1,6 @@
 import { computed, type ComputedRef } from "vue";
 import { useRoute } from "vue-router";
-import {
-  createRouter,
-  createWebHashHistory,
-  type RouteRecordRaw,
-} from "vue-router";
+import { createRouter, createWebHashHistory, type RouteRecordRaw } from "vue-router";
 import {
   SessionIdSchema,
   WorkspaceIdSchema,

@@ -64,19 +64,15 @@ describe("public contract registry", () => {
     const routes = endpoints.map(({ method, path }) => `${method} ${path}`);
     expect([...routes].sort()).toEqual([...expectedRoutes].sort());
     expect(new Set(routes).size).toBe(routes.length);
-    expect(new Set(endpoints.map(({ operationId }) => operationId)).size).toBe(
+    expect(new Set(endpoints.map(({ operationId }) => operationId)).size).toBe(endpoints.length);
+    expect(new Set(endpoints.map(({ typedClientMethod }) => typedClientMethod)).size).toBe(
       endpoints.length,
     );
-    expect(
-      new Set(endpoints.map(({ typedClientMethod }) => typedClientMethod)).size,
-    ).toBe(endpoints.length);
   });
 
   it("gives every operation one authorization class, request/response schemas, and Problem family", () => {
     for (const endpoint of endpoints) {
-      expect(["health", "bootstrap", "principal", "workspace"]).toContain(
-        endpoint.authorization,
-      );
+      expect(["health", "bootstrap", "principal", "workspace"]).toContain(endpoint.authorization);
       expect(endpoint.pathSchema.safeParse({})).toBeDefined();
       expect(endpoint.querySchema.safeParse({})).toBeDefined();
       expect(endpoint.bodySchema.safeParse({})).toBeDefined();
@@ -90,16 +86,12 @@ describe("Pi capability compatibility fixture", () => {
   it("decodes the Pi 0.82.1 bootstrap capability shape", () => {
     const fixture = JSON.parse(
       readFileSync(
-        fileURLToPath(
-          new URL("../test-fixtures/pi-0.82.1-bootstrap.json", import.meta.url),
-        ),
+        fileURLToPath(new URL("../test-fixtures/pi-0.82.1-bootstrap.json", import.meta.url)),
         "utf8",
       ),
     );
     const bootstrap = BootstrapSchema.parse(fixture);
-    expect(bootstrap.models[0]?.modelId).toBe(
-      "anthropic/claude-sonnet-4-5@20250929",
-    );
+    expect(bootstrap.models[0]?.modelId).toBe("anthropic/claude-sonnet-4-5@20250929");
     expect(bootstrap.models[0]?.thinkingLevels).toEqual([
       "off",
       "minimal",
@@ -149,9 +141,7 @@ describe("closed browser-safe schemas", () => {
   });
 
   it("accepts public resources while projecting away additive response fields", () => {
-    expect(
-      RunSummarySchema.parse({ ...run, internalPiState: "secret" }),
-    ).toEqual(run);
+    expect(RunSummarySchema.parse({ ...run, internalPiState: "secret" })).toEqual(run);
     expect(() => RunSummarySchema.parse({ ...run, revision: -1 })).toThrow();
   });
 
@@ -190,12 +180,8 @@ describe("closed browser-safe schemas", () => {
       payload: run,
     };
     expect(GatewayEventSchema.parse(event).type).toBe("run.changed");
-    expect(() =>
-      GatewayEventSchema.parse({ ...event, gatewaySeq: 0 }),
-    ).toThrow();
-    expect(() =>
-      GatewayEventSchema.parse({ ...event, type: "future.event" }),
-    ).toThrow();
+    expect(() => GatewayEventSchema.parse({ ...event, gatewaySeq: 0 })).toThrow();
+    expect(() => GatewayEventSchema.parse({ ...event, type: "future.event" })).toThrow();
     expect(Object.keys(gatewayEventSchemas)).toHaveLength(11);
   });
 
@@ -240,8 +226,6 @@ describe("closed browser-safe schemas", () => {
       retryable: true,
     };
     expect(ProblemDetailsSchema.parse(problem).code).toBe("run.queue_full");
-    expect(() =>
-      ProblemDetailsSchema.parse({ ...problem, code: "run.made_up" }),
-    ).toThrow();
+    expect(() => ProblemDetailsSchema.parse({ ...problem, code: "run.made_up" })).toThrow();
   });
 });

@@ -23,8 +23,7 @@ import type { UnknownGatewayEvent } from "@/lib/gateway/sse";
  *   mutating overlay state (the snapshot already contains them).
  */
 
-export type LivePhase =
-  "queued" | "thinking" | "streaming" | "tool" | "settling" | "terminal";
+export type LivePhase = "queued" | "thinking" | "streaming" | "tool" | "settling" | "terminal";
 
 export interface LiveToolProgress {
   callId: string;
@@ -100,10 +99,7 @@ export function cursorSeq(cursor: EventCursor): number {
 }
 
 /** Install an externally captured cursor (bootstrap / snapshot boundary). */
-export function withCursor(
-  state: LiveOverlayState,
-  cursor: EventCursor,
-): LiveOverlayState {
+export function withCursor(state: LiveOverlayState, cursor: EventCursor): LiveOverlayState {
   const seq = cursorSeq(cursor);
   if (seq < 0) return state;
   return {
@@ -155,12 +151,7 @@ const RUN_SCOPED_TYPES = new Set([
   "transcript.item.committed",
 ]);
 
-const TERMINAL_RUN_STATES = new Set([
-  "completed",
-  "failed",
-  "cancelled",
-  "interrupted",
-]);
+const TERMINAL_RUN_STATES = new Set(["completed", "failed", "cancelled", "interrupted"]);
 
 export function isTerminalRunState(state: string): boolean {
   return TERMINAL_RUN_STATES.has(state);
@@ -172,10 +163,7 @@ export function reduceLiveOverlay(
 ): ReduceResult {
   const { gatewayEpoch, gatewaySeq } = event;
 
-  if (
-    previous.gatewayEpoch !== null &&
-    gatewayEpoch !== previous.gatewayEpoch
-  ) {
+  if (previous.gatewayEpoch !== null && gatewayEpoch !== previous.gatewayEpoch) {
     return {
       next: previous,
       effect: {
@@ -191,10 +179,7 @@ export function reduceLiveOverlay(
         next: previous,
         effect: {
           kind: "ignored",
-          reason:
-            gatewaySeq === previous.lastGatewaySeq
-              ? "duplicate-cursor"
-              : "stale-cursor",
+          reason: gatewaySeq === previous.lastGatewaySeq ? "duplicate-cursor" : "stale-cursor",
         },
       };
     }
@@ -247,10 +232,7 @@ export function reduceLiveOverlay(
     };
   }
 
-  const scoped = event as Extract<
-    GatewayEvent,
-    { runId: RunId; runSeq: number }
-  >;
+  const scoped = event as Extract<GatewayEvent, { runId: RunId; runSeq: number }>;
   const { sessionId, runId, runSeq } = scoped;
   const session = previous.bySession[sessionId] ?? {};
   const existingRun = session[runId];
@@ -293,9 +275,7 @@ export function reduceLiveOverlay(
         const progress: LiveToolProgress = {
           callId: payload.callId,
           status: payload.status,
-          ...(payload.summary !== undefined
-            ? { summary: payload.summary }
-            : {}),
+          ...(payload.summary !== undefined ? { summary: payload.summary } : {}),
         };
         return {
           ...next,
@@ -308,53 +288,31 @@ export function reduceLiveOverlay(
       return { next: state, effect: { kind: "applied" } };
     }
     case "run.phase.changed": {
-      const { state } = upsertRun(
-        advanced,
-        sessionId,
-        runId,
-        runSeq,
-        (run) => ({
-          ...run,
-          lastRunSeq: runSeq,
-          snapshotSealed: false,
-          phase: scoped.payload.phase,
-        }),
-      );
+      const { state } = upsertRun(advanced, sessionId, runId, runSeq, (run) => ({
+        ...run,
+        lastRunSeq: runSeq,
+        snapshotSealed: false,
+        phase: scoped.payload.phase,
+      }));
       return { next: state, effect: { kind: "applied" } };
     }
     case "run.changed": {
       const runState = scoped.payload.state;
-      const { state } = upsertRun(
-        advanced,
-        sessionId,
-        runId,
-        runSeq,
-        (run) => ({
-          ...run,
-          lastRunSeq: runSeq,
-          snapshotSealed: false,
-          phase:
-            runState === "queued"
-              ? "queued"
-              : isTerminalRunState(runState)
-                ? "terminal"
-                : run.phase,
-        }),
-      );
+      const { state } = upsertRun(advanced, sessionId, runId, runSeq, (run) => ({
+        ...run,
+        lastRunSeq: runSeq,
+        snapshotSealed: false,
+        phase:
+          runState === "queued" ? "queued" : isTerminalRunState(runState) ? "terminal" : run.phase,
+      }));
       return { next: state, effect: { kind: "applied" } };
     }
     case "transcript.item.committed": {
-      const { state } = upsertRun(
-        advanced,
-        sessionId,
-        runId,
-        runSeq,
-        (run) => ({
-          ...run,
-          lastRunSeq: runSeq,
-          snapshotSealed: false,
-        }),
-      );
+      const { state } = upsertRun(advanced, sessionId, runId, runSeq, (run) => ({
+        ...run,
+        lastRunSeq: runSeq,
+        snapshotSealed: false,
+      }));
       return { next: state, effect: { kind: "applied" } };
     }
   }
@@ -431,10 +389,7 @@ export function removeRunOverlay(
 }
 
 /** Seed empty overlays for known nonterminal Runs lacking live state. */
-export function ensureRunOverlay(
-  state: LiveOverlayState,
-  run: RunSummary,
-): LiveOverlayState {
+export function ensureRunOverlay(state: LiveOverlayState, run: RunSummary): LiveOverlayState {
   const session = state.bySession[run.sessionId] ?? {};
   if (session[run.runId]) return state;
   const seeded = makeRun(run.runId, 0);

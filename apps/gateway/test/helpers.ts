@@ -44,9 +44,7 @@ export async function openSchemaDatabase(path: string): Promise<DatabaseSync> {
   return db;
 }
 
-export async function openStore(
-  path: string,
-): Promise<{ db: DatabaseSync; store: Store }> {
+export async function openStore(path: string): Promise<{ db: DatabaseSync; store: Store }> {
   const db = await openSchemaDatabase(path);
   return { db, store: new Store(db) };
 }

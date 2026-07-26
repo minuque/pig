@@ -10,9 +10,7 @@ export class SessionProjectionCoordinator {
     private readonly agentDir: string,
   ) {}
   async reconcile(): Promise<void> {
-    const workspaces = this.store.all<any>(
-      "SELECT * FROM workspaces WHERE active=1",
-    );
+    const workspaces = this.store.all<any>("SELECT * FROM workspaces WHERE active=1");
     for (const workspace of workspaces) {
       let sessions: Awaited<ReturnType<typeof SessionManager.list>>;
       try {
@@ -24,10 +22,7 @@ export class SessionProjectionCoordinator {
         continue;
       }
       for (const info of sessions) {
-        const existing = this.store.row<any>(
-          "SELECT * FROM sessions WHERE session_id=?",
-          info.id,
-        );
+        const existing = this.store.row<any>("SELECT * FROM sessions WHERE session_id=?", info.id);
         if (existing && existing.source_path !== info.path) {
           this.store.run(
             "UPDATE sessions SET availability='quarantined',updated_at=? WHERE session_id=?",
@@ -47,10 +42,7 @@ export class SessionProjectionCoordinator {
             info.created.toISOString(),
             now,
           );
-        } else if (
-          existing.workspace_id !== workspace.workspace_id ||
-          existing.active !== 1
-        ) {
+        } else if (existing.workspace_id !== workspace.workspace_id || existing.active !== 1) {
           continue;
         }
         await projectSession(this.store, info.id, info.path);

@@ -43,13 +43,7 @@ export type PublicAuthFlow = {
   flowId: string;
   providerId: string;
   revision: number;
-  state:
-    | "pending"
-    | "succeeded"
-    | "failed"
-    | "cancelled"
-    | "expired"
-    | "interrupted";
+  state: "pending" | "succeeded" | "failed" | "cancelled" | "expired" | "interrupted";
   interaction?: Record<string, unknown>;
   expiresAt: string;
 };
@@ -97,10 +91,7 @@ export class PiCapabilityAdapter implements CapabilityAdapter {
       };
     });
   }
-  async setApiKey(
-    providerId: string,
-    key: string,
-  ): Promise<PublicProviderAuth> {
+  async setApiKey(providerId: string, key: string): Promise<PublicProviderAuth> {
     await this.runtime.setRuntimeApiKey(providerId, key);
     return (
       (await this.providerAuth()).find((x) => x.providerId === providerId) ?? {
@@ -138,15 +129,7 @@ class DeterministicCapabilityAdapter implements CapabilityAdapter {
         providerId: "deterministic",
         name: "Deterministic acceptance model",
         available: true,
-        thinkingLevels: [
-          "off",
-          "minimal",
-          "low",
-          "medium",
-          "high",
-          "xhigh",
-          "max",
-        ],
+        thinkingLevels: ["off", "minimal", "low", "medium", "high", "xhigh", "max"],
       },
     ];
   }
@@ -176,12 +159,10 @@ class DeterministicCapabilityAdapter implements CapabilityAdapter {
 }
 
 /** Internal process composition seam; it exposes no HTTP test surface. */
-export function capabilityAdapterFromEnvironment():
-  CapabilityAdapter | undefined {
+export function capabilityAdapterFromEnvironment(): CapabilityAdapter | undefined {
   const configured = process.env.NPNG_CAPABILITY_ADAPTER;
   if (configured === undefined) return undefined;
-  if (configured === "deterministic")
-    return new DeterministicCapabilityAdapter();
+  if (configured === "deterministic") return new DeterministicCapabilityAdapter();
   throw new Error("server.unavailable");
 }
 
@@ -231,9 +212,7 @@ export class CapabilityCoordinator {
     return result;
   }
   async deleteCredential(principalId: string, providerId: string) {
-    const result = await (
-      await this.adapterPromise
-    ).deleteCredential(providerId);
+    const result = await (await this.adapterPromise).deleteCredential(providerId);
     this.saveAuth(principalId, result);
     return result;
   }
@@ -283,20 +262,11 @@ export class CapabilityCoordinator {
       principalId,
     );
     if (!row) throw new Error("auth_flow.not_found");
-    if (row.state === "pending" && this.clock() >= Date.parse(row.expires_at))
-      this.expire(row);
-    const current = this.store.row<any>(
-      "SELECT * FROM auth_flows WHERE flow_id=?",
-      flowId,
-    )!;
+    if (row.state === "pending" && this.clock() >= Date.parse(row.expires_at)) this.expire(row);
+    const current = this.store.row<any>("SELECT * FROM auth_flows WHERE flow_id=?", flowId)!;
     return this.public(current);
   }
-  respond(
-    principalId: string,
-    flowId: string,
-    promptId: string,
-    response: string,
-  ) {
+  respond(principalId: string, flowId: string, promptId: string, response: string) {
     const row = this.store.row<any>(
       "SELECT * FROM auth_flows WHERE flow_id=? AND principal_id=?",
       flowId,
@@ -304,11 +274,7 @@ export class CapabilityCoordinator {
     );
     if (!row) throw new Error("auth_flow.not_found");
     if (row.state !== "pending")
-      throw new Error(
-        row.state === "expired"
-          ? "auth_flow.expired"
-          : "auth_flow.invalid_state",
-      );
+      throw new Error(row.state === "expired" ? "auth_flow.expired" : "auth_flow.invalid_state");
     const pending = this.pending.get(flowId);
     if (!pending || pending.expiresAt <= this.clock()) {
       this.expire(row);
@@ -344,16 +310,12 @@ export class CapabilityCoordinator {
       this.finish(pending.flowId, "succeeded");
     } catch {
       if (this.pending.has(pending.flowId))
-        this.finish(
-          pending.flowId,
-          pending.abort.signal.aborted ? "cancelled" : "failed",
-        );
+        this.finish(pending.flowId, pending.abort.signal.aborted ? "cancelled" : "failed");
     }
     this.pending.delete(pending.flowId);
   }
   private prompt(pending: Pending, prompt: AuthPrompt): Promise<string> {
-    if (pending.expiresAt <= this.clock())
-      return Promise.reject(new Error("auth_flow.expired"));
+    if (pending.expiresAt <= this.clock()) return Promise.reject(new Error("auth_flow.expired"));
     const promptId = randomUUID().replaceAll("-", "_");
     const interaction =
       prompt.type === "select"
@@ -370,8 +332,7 @@ export class CapabilityCoordinator {
             kind: "prompt",
             promptId,
             label: prompt.message,
-            sensitive:
-              prompt.type === "secret" || prompt.type === "manual_code",
+            sensitive: prompt.type === "secret" || prompt.type === "manual_code",
           };
     this.update(pending.flowId, { interaction });
     return new Promise((resolve, reject) => {
@@ -392,9 +353,7 @@ export class CapabilityCoordinator {
         kind: "deviceCode",
         verificationUrl: event.verificationUri,
         userCode: event.userCode,
-        expiresAt: new Date(
-          this.clock() + (event.expiresInSeconds ?? 600) * 1000,
-        ).toISOString(),
+        expiresAt: new Date(this.clock() + (event.expiresInSeconds ?? 600) * 1000).toISOString(),
       };
     if (interaction) this.update(pending.flowId, { interaction });
   }
@@ -413,10 +372,8 @@ export class CapabilityCoordinator {
       "UPDATE auth_flows SET state=COALESCE(?,state),interaction_json=?,revision=revision+1,updated_at=? WHERE flow_id=? AND state='pending'",
       change.state ?? null,
       change.interaction === undefined
-        ? (this.store.row<any>(
-            "SELECT interaction_json FROM auth_flows WHERE flow_id=?",
-            flowId,
-          )?.interaction_json ?? null)
+        ? (this.store.row<any>("SELECT interaction_json FROM auth_flows WHERE flow_id=?", flowId)
+            ?.interaction_json ?? null)
         : change.interaction
           ? JSON.stringify(change.interaction)
           : null,
@@ -430,9 +387,7 @@ export class CapabilityCoordinator {
       providerId: row.provider_id,
       revision: row.revision,
       state: row.state,
-      ...(row.interaction_json
-        ? { interaction: JSON.parse(row.interaction_json) }
-        : {}),
+      ...(row.interaction_json ? { interaction: JSON.parse(row.interaction_json) } : {}),
       expiresAt: row.expires_at,
     };
   }
@@ -448,9 +403,8 @@ export class CapabilityCoordinator {
   }
   private principal() {
     return (
-      this.store.row<{ principal_id: string }>(
-        "SELECT principal_id FROM principals LIMIT 1",
-      )?.principal_id ?? "local"
+      this.store.row<{ principal_id: string }>("SELECT principal_id FROM principals LIMIT 1")
+        ?.principal_id ?? "local"
     );
   }
 }

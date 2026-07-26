@@ -1,10 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
-import {
-  createAgentSession,
-  ModelRuntime,
-  SessionManager,
-} from "@earendil-works/pi-coding-agent";
+import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent";
 import type { Store } from "../db/store.js";
 import type { EventHub } from "../stream/hub.js";
 import { projectSession } from "../projection/projector.js";
@@ -73,9 +69,7 @@ class PiRuntimeAdapter implements RuntimeAdapter {
       modelsPath: join(input.agentDir, "models.json"),
       allowModelNetwork: false,
     });
-    const matches = modelRuntime
-      .getModels()
-      .filter((candidate) => candidate.id === input.modelId);
+    const matches = modelRuntime.getModels().filter((candidate) => candidate.id === input.modelId);
     if (matches.length !== 1) throw new Error("model.not_found");
     const model = matches[0]!;
     if (!modelRuntime.hasConfiguredAuth(model.provider)) {
@@ -135,9 +129,8 @@ export class RuntimeCoordinator {
       now,
     );
     this.nextOrdinal = Number(
-      this.store.row<{ ordinal: number }>(
-        "SELECT COALESCE(MAX(ordinal),0) AS ordinal FROM runs",
-      )?.ordinal ?? 0,
+      this.store.row<{ ordinal: number }>("SELECT COALESCE(MAX(ordinal),0) AS ordinal FROM runs")
+        ?.ordinal ?? 0,
     );
   }
 
@@ -154,8 +147,7 @@ export class RuntimeCoordinator {
       body.commandId,
     );
     if (command) {
-      if (command.payload_hash !== hash)
-        throw new Error("command.idempotency_conflict");
+      if (command.payload_hash !== hash) throw new Error("command.idempotency_conflict");
       return JSON.parse(command.result_json);
     }
     const queued = Number(
@@ -239,11 +231,7 @@ export class RuntimeCoordinator {
     });
   }
 
-  private emitDelta(
-    runId: string,
-    target: "text" | "thinking",
-    text: string,
-  ): void {
+  private emitDelta(runId: string, target: "text" | "thinking", text: string): void {
     let emitted: RunRow | undefined;
     this.store.transaction(() => {
       const current = this.store.row<RunRow>(
@@ -414,18 +402,12 @@ export class RuntimeCoordinator {
     return true;
   }
 
-  async cancel(
-    runId: string,
-    principalId = "local",
-    commandId?: string,
-  ): Promise<void> {
+  async cancel(runId: string, principalId = "local", commandId?: string): Promise<void> {
     const payload = { operation: "cancel", runId };
-    if (commandId && this.replayCommand(principalId, commandId, payload))
-      return;
+    if (commandId && this.replayCommand(principalId, commandId, payload)) return;
     const row = this.row(runId);
     if (!row) throw new Error("run.not_found");
-    if (TERMINAL_STATES.includes(row.state))
-      throw new Error("run.invalid_state");
+    if (TERMINAL_STATES.includes(row.state)) throw new Error("run.invalid_state");
     if (row.state === "queued") {
       this.update(runId, "cancelled");
     } else {
@@ -455,11 +437,7 @@ export class RuntimeCoordinator {
             runId,
           );
           if (current?.source_path) {
-            await projectSession(
-              this.store,
-              current.session_id,
-              current.source_path,
-            );
+            await projectSession(this.store, current.session_id, current.source_path);
           }
           this.update(runId, "cancelled");
         }
@@ -514,8 +492,7 @@ export class RuntimeCoordinator {
   ): Promise<void> {
     if (!instruction) throw new Error("request.validation_failed");
     const payload = { operation: "steer", runId, instruction };
-    if (commandId && this.replayCommand(principalId, commandId, payload))
-      return;
+    if (commandId && this.replayCommand(principalId, commandId, payload)) return;
     const row = this.row(runId);
     if (!row) throw new Error("run.not_found");
     if (row.state !== "running") throw new Error("run.invalid_state");
@@ -525,11 +502,7 @@ export class RuntimeCoordinator {
     if (commandId) this.saveCommand(principalId, commandId, payload, { runId });
   }
 
-  private replayCommand(
-    principalId: string,
-    commandId: string,
-    payload: unknown,
-  ): boolean {
+  private replayCommand(principalId: string, commandId: string, payload: unknown): boolean {
     const row = this.store.row<{ payload_hash: string }>(
       "SELECT payload_hash FROM commands WHERE principal_id=? AND command_id=?",
       principalId,
@@ -569,8 +542,7 @@ export class RuntimeCoordinator {
     );
     for (const row of pending) {
       if (row.state === "queued") this.update(row.run_id, "interrupted");
-      else if (row.state !== "cancelling")
-        this.update(row.run_id, "cancelling");
+      else if (row.state !== "cancelling") this.update(row.run_id, "cancelling");
     }
     await Promise.allSettled(
       [...this.controls.entries()].map(([runId, control]) =>

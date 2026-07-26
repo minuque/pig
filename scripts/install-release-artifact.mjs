@@ -7,14 +7,9 @@ const artifactDir = resolve(
   process.env.NPNG_RELEASE_ARTIFACT_DIR ?? join(root, "release-artifact"),
 );
 const files = await readdir(artifactDir);
-const contracts = files.find(
-  (file) => file.includes("contracts") && file.endsWith(".tgz"),
-);
-const gateway = files.find(
-  (file) => file.startsWith("no-pi-no-gang-") && file.endsWith(".tgz"),
-);
-if (!contracts || !gateway)
-  throw new Error("Release artifact tarballs are incomplete");
+const contracts = files.find((file) => file.includes("contracts") && file.endsWith(".tgz"));
+const gateway = files.find((file) => file.startsWith("no-pi-no-gang-") && file.endsWith(".tgz"));
+if (!contracts || !gateway) throw new Error("Release artifact tarballs are incomplete");
 const installDir = join(root, ".release-install");
 await rm(installDir, {
   recursive: true,
@@ -41,6 +36,4 @@ const result = spawnSync(
 );
 if (result.error) throw result.error;
 if (result.status !== 0) process.exit(result.status ?? 1);
-console.log(
-  join(installDir, "node_modules", "no-pi-no-gang", "dist", "cli.js"),
-);
+console.log(join(installDir, "node_modules", "no-pi-no-gang", "dist", "cli.js"));

@@ -52,10 +52,7 @@ interface RequestInput {
   signal?: AbortSignal | undefined;
 }
 
-async function request<T>(
-  input: RequestInput,
-  schema: z.ZodType<T>,
-): Promise<T> {
+async function request<T>(input: RequestInput, schema: z.ZodType<T>): Promise<T> {
   const url = new URL(input.path, window.location.origin);
   for (const [key, value] of Object.entries(input.query ?? {})) {
     if (value !== undefined) url.searchParams.set(key, String(value));
@@ -110,8 +107,7 @@ async function request<T>(
   }
 }
 
-const mutationResult = <T extends z.ZodType>(result: T) =>
-  mutationResultSchema(result);
+const mutationResult = <T extends z.ZodType>(result: T) => mutationResultSchema(result);
 
 export function createGatewayClient(): WebGatewayClient {
   return {
@@ -318,9 +314,7 @@ export function createGatewayClient(): WebGatewayClient {
               commandId: input.commandId,
               prompt: input.prompt,
               executionProfile: input.executionProfile,
-              ...(input.retryOfRunId
-                ? { retryOfRunId: input.retryOfRunId }
-                : {}),
+              ...(input.retryOfRunId ? { retryOfRunId: input.retryOfRunId } : {}),
             },
             mutation: true,
             signal: options?.signal,

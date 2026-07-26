@@ -1,17 +1,10 @@
-import type {
-  GatewayClientErrorKind,
-  ProblemDetails,
-} from "@no-pi-no-gang/contracts";
+import type { GatewayClientErrorKind, ProblemDetails } from "@no-pi-no-gang/contracts";
 
 export class GatewayRequestError extends Error {
   readonly kind: GatewayClientErrorKind;
   readonly problem: ProblemDetails | undefined;
 
-  constructor(
-    kind: GatewayClientErrorKind,
-    message: string,
-    problem?: ProblemDetails,
-  ) {
+  constructor(kind: GatewayClientErrorKind, message: string, problem?: ProblemDetails) {
     super(message);
     this.name = "GatewayRequestError";
     this.kind = kind;

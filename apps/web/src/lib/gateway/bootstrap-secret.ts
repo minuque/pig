@@ -6,11 +6,7 @@ export function captureBootstrapSecret(): void {
   const encoded = match?.[1];
   if (encoded === undefined) return;
   pendingSecret = decodeURIComponent(encoded);
-  window.history.replaceState(
-    null,
-    "",
-    `${window.location.pathname}${window.location.search}#/`,
-  );
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#/`);
 }
 
 /** The bootstrap secret is readable exactly once and is never persisted. */

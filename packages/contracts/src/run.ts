@@ -1,11 +1,6 @@
 import { z } from "zod";
 import { InstantSchema, RevisionSchema } from "./common.js";
-import {
-  CommandIdSchema,
-  ModelIdSchema,
-  RunIdSchema,
-  SessionIdSchema,
-} from "./ids.js";
+import { CommandIdSchema, ModelIdSchema, RunIdSchema, SessionIdSchema } from "./ids.js";
 
 export const ThinkingLevelSchema = z.enum([
   "off",

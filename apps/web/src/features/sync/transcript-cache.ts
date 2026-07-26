@@ -22,9 +22,7 @@ export interface TranscriptCacheData {
   historyTruncated: boolean;
 }
 
-export function transcriptCacheFromPage(
-  page: CursorPage<TranscriptItem>,
-): TranscriptCacheData {
+export function transcriptCacheFromPage(page: CursorPage<TranscriptItem>): TranscriptCacheData {
   return {
     items: page.items,
     previousCursor: page.nextCursor,
@@ -84,9 +82,9 @@ export function appendCommittedTranscriptItem(
   if (existing.items.some((entry) => entry.entryId === item.entryId)) {
     return true;
   }
-  queryClient.setQueryData<TranscriptCacheData>(
-    gatewayKeys.sessions.transcript(sessionId),
-    { ...existing, items: [...existing.items, item] },
-  );
+  queryClient.setQueryData<TranscriptCacheData>(gatewayKeys.sessions.transcript(sessionId), {
+    ...existing,
+    items: [...existing.items, item],
+  });
   return true;
 }

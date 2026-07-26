@@ -22,10 +22,7 @@ async function migrationFixture() {
   const roots = rootsFor(dir);
   const migrationDir = join(dir, "migrations");
   await mkdir(migrationDir, { recursive: true });
-  const sql = await readFile(
-    new URL("../migrations/001-initial.sql", import.meta.url),
-    "utf8",
-  );
+  const sql = await readFile(new URL("../migrations/001-initial.sql", import.meta.url), "utf8");
   await writeFile(join(migrationDir, "001-initial.sql"), sql);
   await mkdir(roots.data, { recursive: true });
   return { dir, roots, migrationDir };
@@ -36,10 +33,7 @@ describe("SQLite migrations", () => {
     const { roots, migrationDir } = await migrationFixture();
     const db = await openDatabase(roots, migrationDir);
     expect(
-      Number(
-        (db.prepare("PRAGMA user_version").get() as { user_version: number })
-          .user_version,
-      ),
+      Number((db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version),
     ).toBe(1);
     db.close();
     const backups = await listBackups(roots);
@@ -83,8 +77,7 @@ describe("SQLite migrations", () => {
     first.close();
     await writeFile(
       join(fixture.migrationDir, "001-initial.sql"),
-      "\n" +
-        (await readFile(join(fixture.migrationDir, "001-initial.sql"), "utf8")),
+      "\n" + (await readFile(join(fixture.migrationDir, "001-initial.sql"), "utf8")),
     );
     await expect(
       openDatabase(fixture.roots, fixture.migrationDir),

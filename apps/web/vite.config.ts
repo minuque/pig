@@ -27,10 +27,7 @@ function inlineCssForGateway(): Plugin {
         const escaped = fileName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const link = new RegExp(`<link[^>]*href="/?${escaped}"[^>]*>\\s*`);
         if (!link.test(source)) continue;
-        source = source.replace(
-          link,
-          `<style>${String(asset.source)}</style>\n  `,
-        );
+        source = source.replace(link, `<style>${String(asset.source)}</style>\n  `);
         delete bundle[fileName];
       }
       html.source = source;

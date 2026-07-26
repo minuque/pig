@@ -53,8 +53,6 @@ describe("DiagnosticSink", () => {
     const files = await logFiles(dir);
     const sizes = await Promise.all(files.map((name) => stat(join(dir, name))));
     expect(files.length).toBeGreaterThan(1);
-    expect(sizes.reduce((sum, item) => sum + item.size, 0)).toBeLessThanOrEqual(
-      300,
-    );
+    expect(sizes.reduce((sum, item) => sum + item.size, 0)).toBeLessThanOrEqual(300);
   });
 });

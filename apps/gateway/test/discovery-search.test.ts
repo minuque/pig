@@ -30,18 +30,13 @@ const capabilities: CapabilityAdapter = {
   },
 };
 
-async function authenticate(
-  gateway: Awaited<ReturnType<typeof createHttpGateway>>,
-) {
+async function authenticate(gateway: Awaited<ReturnType<typeof createHttpGateway>>) {
   const secret = new URL(gateway.bootstrapUrl).hash.slice("#bootstrap=".length);
-  const response = await fetch(
-    `${gateway.origin}/api/v1/gateway-auth/bootstrap`,
-    {
-      method: "POST",
-      headers: { origin: gateway.origin, "content-type": "application/json" },
-      body: JSON.stringify({ secret }),
-    },
-  );
+  const response = await fetch(`${gateway.origin}/api/v1/gateway-auth/bootstrap`, {
+    method: "POST",
+    headers: { origin: gateway.origin, "content-type": "application/json" },
+    body: JSON.stringify({ secret }),
+  });
   return response.headers.get("set-cookie")!.split(";")[0]!;
 }
 
@@ -119,10 +114,7 @@ describe("session discovery and search", () => {
       const coordinator = new SessionProjectionCoordinator(store, agentDir);
       await coordinator.reconcile();
       await coordinator.reconcile();
-      expect(
-        store.row<{ count: number }>("SELECT count(*) AS count FROM sessions")
-          ?.count,
-      ).toBe(3);
+      expect(store.row<{ count: number }>("SELECT count(*) AS count FROM sessions")?.count).toBe(3);
       expect(
         store.row<{ count: number }>(
           "SELECT count(*) AS count FROM sessions WHERE workspace_id='workspace_1'",
@@ -165,9 +157,7 @@ describe("session discovery and search", () => {
       };
       expect(secondPage.items).toHaveLength(1);
       expect(secondPage.items[0]!.workspaceId).toBe("workspace_1");
-      expect(secondPage.items[0]!.sessionId).not.toBe(
-        firstPage.items[0]!.sessionId,
-      );
+      expect(secondPage.items[0]!.sessionId).not.toBe(firstPage.items[0]!.sessionId);
       expect(secondPage.nextCursor).toBeNull();
     } finally {
       if (gateway) await gateway.close();

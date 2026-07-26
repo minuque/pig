@@ -46,8 +46,7 @@ describe("MarkdownView safe rendering", () => {
   it("renders dangerous links as plain text without an anchor", () => {
     const wrapper = mount(MarkdownView, {
       props: {
-        source:
-          "[xss](javascript:alert(1)) [data](data:text/html;base64,PHNjcmlwdD4=)",
+        source: "[xss](javascript:alert(1)) [data](data:text/html;base64,PHNjcmlwdD4=)",
       },
     });
     expect(wrapper.find("a").exists()).toBe(false);

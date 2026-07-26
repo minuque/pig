@@ -11,9 +11,7 @@ describe("StreamCoalescer", () => {
 
   it("coalesces rapid offers into one commit per 75ms window, latest wins", () => {
     const commits: number[] = [];
-    const coalescer = new StreamCoalescer<number>(75, (value) =>
-      commits.push(value),
-    );
+    const coalescer = new StreamCoalescer<number>(75, (value) => commits.push(value));
     coalescer.offer(1, "coalesce");
     coalescer.offer(2, "coalesce");
     vi.advanceTimersByTime(74);
@@ -26,9 +24,7 @@ describe("StreamCoalescer", () => {
 
   it("starts a fresh window after each flush", () => {
     const commits: number[] = [];
-    const coalescer = new StreamCoalescer<number>(75, (value) =>
-      commits.push(value),
-    );
+    const coalescer = new StreamCoalescer<number>(75, (value) => commits.push(value));
     coalescer.offer(1, "coalesce");
     vi.advanceTimersByTime(75);
     coalescer.offer(2, "coalesce");
@@ -39,9 +35,7 @@ describe("StreamCoalescer", () => {
 
   it("commits a final chunk immediately, flushing pending state first", () => {
     const commits: number[] = [];
-    const coalescer = new StreamCoalescer<number>(75, (value) =>
-      commits.push(value),
-    );
+    const coalescer = new StreamCoalescer<number>(75, (value) => commits.push(value));
     coalescer.offer(1, "coalesce");
     coalescer.offer(2, "immediate");
     expect(commits).toEqual([1, 2]);
@@ -53,9 +47,7 @@ describe("StreamCoalescer", () => {
 
   it("commits immediate offers synchronously when nothing is pending", () => {
     const commits: number[] = [];
-    const coalescer = new StreamCoalescer<number>(75, (value) =>
-      commits.push(value),
-    );
+    const coalescer = new StreamCoalescer<number>(75, (value) => commits.push(value));
     coalescer.offer(9, "immediate");
     expect(commits).toEqual([9]);
     coalescer.dispose();
@@ -63,9 +55,7 @@ describe("StreamCoalescer", () => {
 
   it("discards pending state without committing (wholesale reset)", () => {
     const commits: number[] = [];
-    const coalescer = new StreamCoalescer<number>(75, (value) =>
-      commits.push(value),
-    );
+    const coalescer = new StreamCoalescer<number>(75, (value) => commits.push(value));
     coalescer.offer(1, "coalesce");
     coalescer.discard();
     vi.advanceTimersByTime(500);

@@ -5,10 +5,7 @@ import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { buildRun } from "@no-pi-no-gang/testkit";
 import PromptComposer from "@/features/session/components/PromptComposer.vue";
 import { GatewayClientKey } from "@/lib/gateway/client-context";
-import {
-  createMockGatewayClient,
-  mockMutationResult,
-} from "@/test-support/mock-client";
+import { createMockGatewayClient, mockMutationResult } from "@/test-support/mock-client";
 
 async function mountComposer() {
   const client = createMockGatewayClient();
@@ -38,10 +35,7 @@ async function mountComposer() {
       sessionAvailable: true,
     },
     global: {
-      plugins: [
-        createPinia(),
-        [VueQueryPlugin, { queryClient: new QueryClient() }],
-      ],
+      plugins: [createPinia(), [VueQueryPlugin, { queryClient: new QueryClient() }]],
       provide: { [GatewayClientKey as symbol]: client },
     },
   });
@@ -67,9 +61,7 @@ describe("PromptComposer Run semantics", () => {
     expect(client.runs.steer).not.toHaveBeenCalled();
 
     await input.setValue("explicit correction");
-    const steer = wrapper
-      .findAll("button")
-      .find((button) => button.text() === "Steer 当前 Run");
+    const steer = wrapper.findAll("button").find((button) => button.text() === "Steer 当前 Run");
     expect(steer).toBeDefined();
     await steer!.trigger("click");
     await flushPromises();
@@ -80,9 +72,7 @@ describe("PromptComposer Run semantics", () => {
       }),
     );
     expect(wrapper.text()).toContain("model_frozen / high（已冻结）");
-    expect(
-      wrapper.find('select[aria-label="模型"]').attributes("disabled"),
-    ).toBeUndefined();
+    expect(wrapper.find('select[aria-label="模型"]').attributes("disabled")).toBeUndefined();
     wrapper.unmount();
   });
 });

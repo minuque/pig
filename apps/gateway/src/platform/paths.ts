@@ -9,16 +9,10 @@ export function resolveDataRoots(override?: string): DataRoots {
     override ??
     process.env.NO_PI_NO_GANG_DATA_DIR ??
     (p === "win32"
-      ? resolve(
-          process.env.LOCALAPPDATA ?? resolve(home, "AppData/Local"),
-          "no-pi-no-gang",
-        )
+      ? resolve(process.env.LOCALAPPDATA ?? resolve(home, "AppData/Local"), "no-pi-no-gang")
       : p === "darwin"
         ? resolve(home, "Library/Application Support/no-pi-no-gang")
-        : resolve(
-            process.env.XDG_DATA_HOME ?? resolve(home, ".local/share"),
-            "no-pi-no-gang",
-          ));
+        : resolve(process.env.XDG_DATA_HOME ?? resolve(home, ".local/share"), "no-pi-no-gang"));
   if (!isAbsolute(base)) throw new Error("data_dir_invalid");
   const data = p === "win32" ? resolve(base, "Data") : base;
   const state = override
@@ -27,20 +21,14 @@ export function resolveDataRoots(override?: string): DataRoots {
       ? resolve(base, "State")
       : p === "win32"
         ? resolve(base, "State")
-        : resolve(
-            process.env.XDG_STATE_HOME ?? resolve(home, ".local/state"),
-            "no-pi-no-gang",
-          );
+        : resolve(process.env.XDG_STATE_HOME ?? resolve(home, ".local/state"), "no-pi-no-gang");
   const cache = override
     ? resolve(base, "Cache")
     : p === "darwin"
       ? resolve(home, "Library/Caches/no-pi-no-gang")
       : p === "win32"
         ? resolve(base, "Cache")
-        : resolve(
-            process.env.XDG_CACHE_HOME ?? resolve(home, ".cache"),
-            "no-pi-no-gang",
-          );
+        : resolve(process.env.XDG_CACHE_HOME ?? resolve(home, ".cache"), "no-pi-no-gang");
   const logs = override
     ? resolve(base, "Logs")
     : p === "darwin"
@@ -62,8 +50,8 @@ export function resolveDataRoots(override?: string): DataRoots {
 }
 export async function ensureRoots(r: DataRoots): Promise<void> {
   await Promise.all(
-    [r.data, r.state, r.cache, r.logs, resolve(r.state, "run"), r.backups].map(
-      (p) => mkdir(p, { recursive: true, mode: 0o700 }),
+    [r.data, r.state, r.cache, r.logs, resolve(r.state, "run"), r.backups].map((p) =>
+      mkdir(p, { recursive: true, mode: 0o700 }),
     ),
   );
 }

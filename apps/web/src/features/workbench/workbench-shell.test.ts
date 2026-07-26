@@ -29,11 +29,7 @@ async function mountShell(client = createMockGatewayClient()) {
   const wrapper = mount(WorkbenchShell, {
     attachTo: document.body,
     global: {
-      plugins: [
-        createPinia(),
-        [VueQueryPlugin, { queryClient: new QueryClient() }],
-        router,
-      ],
+      plugins: [createPinia(), [VueQueryPlugin, { queryClient: new QueryClient() }], router],
       provide: { [GatewayClientKey as symbol]: client },
       stubs: { teleport: true },
     },
@@ -51,10 +47,7 @@ describe("WorkbenchShell semantics", () => {
     const { wrapper } = await mountShell();
     expect(wrapper.find("header.shell-banner").exists()).toBe(true);
     const navs = wrapper.findAll("nav");
-    expect(navs.map((nav) => nav.attributes("aria-label")).sort()).toEqual([
-      "会话",
-      "工作区",
-    ]);
+    expect(navs.map((nav) => nav.attributes("aria-label")).sort()).toEqual(["会话", "工作区"]);
     expect(wrapper.find("main.shell-main").exists()).toBe(true);
     expect(wrapper.find('[role="status"]').text()).toContain("正在连接");
     const theme = wrapper.find('select[aria-label="主题"]');
@@ -94,9 +87,7 @@ describe("WorkbenchShell semantics", () => {
 
   it("opens the provider auth dialog with focus containment, closes on Escape and returns focus", async () => {
     const { wrapper } = await mountShell();
-    const trigger = wrapper
-      .findAll("button")
-      .find((button) => button.text() === "Provider 授权");
+    const trigger = wrapper.findAll("button").find((button) => button.text() === "Provider 授权");
     expect(trigger).toBeDefined();
     (trigger!.element as HTMLElement).focus();
     await trigger!.trigger("click");
@@ -116,9 +107,7 @@ describe("WorkbenchShell semantics", () => {
 
   it("contains Tab inside an open dialog", async () => {
     const { wrapper } = await mountShell();
-    const trigger = wrapper
-      .findAll("button")
-      .find((button) => button.text() === "Provider 授权");
+    const trigger = wrapper.findAll("button").find((button) => button.text() === "Provider 授权");
     await trigger!.trigger("click");
     await flushPromises();
 
@@ -149,9 +138,7 @@ describe("WorkbenchShell semantics", () => {
     const toolbar = wrapper.find('[role="toolbar"][aria-label="导航"]');
     expect(toolbar.exists()).toBe(true);
 
-    const railTrigger = toolbar
-      .findAll("button")
-      .find((button) => button.text() === "工作区");
+    const railTrigger = toolbar.findAll("button").find((button) => button.text() === "工作区");
     expect(railTrigger).toBeDefined();
     (railTrigger!.element as HTMLElement).focus();
     await railTrigger!.trigger("click");

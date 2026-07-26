@@ -1,10 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  CapabilityCoordinator,
-  type CapabilityAdapter,
-} from "../src/capabilities.js";
+import { CapabilityCoordinator, type CapabilityAdapter } from "../src/capabilities.js";
 import { openStore, removeTempDir, tempDir } from "./helpers.js";
 
 const cleanups: string[] = [];
@@ -57,34 +54,20 @@ describe("capability coordination", () => {
       },
     };
     try {
-      const coordinator = new CapabilityCoordinator(
-        store,
-        Promise.resolve(adapter),
-      );
+      const coordinator = new CapabilityCoordinator(store, Promise.resolve(adapter));
       const flow = await coordinator.create("principal_1", "provider_1");
       const prompt = await eventually(() => {
         const current = coordinator.get("principal_1", flow.flowId);
-        return current.interaction?.kind === "prompt"
-          ? current.interaction
-          : undefined;
+        return current.interaction?.kind === "prompt" ? current.interaction : undefined;
       });
       expect(prompt).toMatchObject({ sensitive: true });
       expect(JSON.stringify(prompt)).not.toContain(canary);
-      coordinator.respond(
-        "principal_1",
-        flow.flowId,
-        String(prompt.promptId),
-        canary,
-      );
+      coordinator.respond("principal_1", flow.flowId, String(prompt.promptId), canary);
       await eventually(() =>
-        coordinator.get("principal_1", flow.flowId).state === "succeeded"
-          ? true
-          : undefined,
+        coordinator.get("principal_1", flow.flowId).state === "succeeded" ? true : undefined,
       );
       expect(received).toBe(canary);
-      expect((await readFile(database)).includes(Buffer.from(canary))).toBe(
-        false,
-      );
+      expect((await readFile(database)).includes(Buffer.from(canary))).toBe(false);
 
       const pending = await new CapabilityCoordinator(
         store,
@@ -95,10 +78,8 @@ describe("capability coordination", () => {
       ).create("principal_1", "provider_1");
       new CapabilityCoordinator(store, Promise.resolve(adapter));
       expect(
-        store.row<{ state: string }>(
-          "SELECT state FROM auth_flows WHERE flow_id=?",
-          pending.flowId,
-        )?.state,
+        store.row<{ state: string }>("SELECT state FROM auth_flows WHERE flow_id=?", pending.flowId)
+          ?.state,
       ).toBe("interrupted");
     } finally {
       db.close();

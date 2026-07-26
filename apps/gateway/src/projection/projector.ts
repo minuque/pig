@@ -7,8 +7,7 @@ export type Projection = {
   name?: string;
   summary?: string;
 };
-const iso = (v: unknown) =>
-  typeof v === "string" ? v : new Date().toISOString();
+const iso = (v: unknown) => (typeof v === "string" ? v : new Date().toISOString());
 export async function projectSession(
   store: Store,
   sessionId: string,
@@ -52,11 +51,7 @@ export async function projectSession(
       return { health: "quarantined", items };
     }
     if (i === 0) {
-      if (
-        x.type !== "session" ||
-        typeof x.id !== "string" ||
-        typeof x.cwd !== "string"
-      ) {
+      if (x.type !== "session" || typeof x.id !== "string" || typeof x.cwd !== "string") {
         store.run(
           "UPDATE sessions SET availability=?,updated_at=? WHERE session_id=?",
           "quarantined",
@@ -106,9 +101,7 @@ export async function projectSession(
     .map((l) => {
       try {
         const x = JSON.parse(l);
-        return x.type === "session_info" && typeof x.name === "string"
-          ? x.name
-          : undefined;
+        return x.type === "session_info" && typeof x.name === "string" ? x.name : undefined;
       } catch {
         return undefined;
       }
@@ -122,17 +115,14 @@ export async function projectSession(
       return [];
     }
   });
-  const byId = new Map(
-    rawEntries.filter((x) => typeof x.id === "string").map((x) => [x.id, x]),
-  );
+  const byId = new Map(rawEntries.filter((x) => typeof x.id === "string").map((x) => [x.id, x]));
   const hasParentLinks = rawEntries.some((x) => typeof x.parentId === "string");
   const activeRaw = new Set<string>();
   if (hasParentLinks) {
     let leaf = [...rawEntries].reverse().find((x) => typeof x.id === "string");
     while (leaf && typeof leaf.id === "string" && !activeRaw.has(leaf.id)) {
       activeRaw.add(leaf.id);
-      leaf =
-        typeof leaf.parentId === "string" ? byId.get(leaf.parentId) : undefined;
+      leaf = typeof leaf.parentId === "string" ? byId.get(leaf.parentId) : undefined;
     }
   }
   const user = items
@@ -149,9 +139,7 @@ export async function projectSession(
     store.run("DELETE FROM session_search WHERE session_id=?", sessionId);
     for (const [i, item] of items.entries()) {
       const entry = String(item.entryId);
-      const digest = createHash("sha256")
-        .update(JSON.stringify(item))
-        .digest("hex");
+      const digest = createHash("sha256").update(JSON.stringify(item)).digest("hex");
       store.run(
         "INSERT INTO session_entries(session_id,entry_id,source_order,item_json,digest) VALUES(?,?,?,?,?)",
         sessionId,
@@ -161,12 +149,7 @@ export async function projectSession(
         digest,
       );
     }
-    if (user)
-      store.run(
-        "INSERT INTO session_search(session_id,text) VALUES(?,?)",
-        sessionId,
-        user,
-      );
+    if (user) store.run("INSERT INTO session_search(session_id,text) VALUES(?,?)", sessionId, user);
     store.run(
       "UPDATE sessions SET availability=?,name=?,updated_at=?,last_summary=? WHERE session_id=?",
       health,
@@ -183,9 +166,7 @@ export async function projectSession(
     summary: user.slice(0, 1000),
   };
 }
-function normalize(
-  x: Record<string, any>,
-): Record<string, unknown> | undefined {
+function normalize(x: Record<string, any>): Record<string, unknown> | undefined {
   const createdAt = iso(x.timestamp);
   if (x.type === "message") {
     const role = x.message?.role;

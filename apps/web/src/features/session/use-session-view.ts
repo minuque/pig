@@ -9,11 +9,7 @@ import type {
 } from "@no-pi-no-gang/contracts";
 import { useGatewayClient } from "@/lib/gateway/client-context";
 import { gatewayKeys } from "@/lib/gateway/keys";
-import {
-  isTerminalRunState,
-  type LivePhase,
-  type LiveRunState,
-} from "@/features/sync/reducer";
+import { isTerminalRunState, type LivePhase, type LiveRunState } from "@/features/sync/reducer";
 import { useLiveOverlayStore } from "@/features/sync/live-overlay-store";
 import {
   prependOlderTranscriptPage,
@@ -83,18 +79,14 @@ export interface SessionView {
  * the Session's overlays and seed the transcript cache exactly once per
  * captured cursor.
  */
-export function useSessionView(
-  sessionId: Ref<SessionId | undefined>,
-): SessionView {
+export function useSessionView(sessionId: Ref<SessionId | undefined>): SessionView {
   const client = useGatewayClient();
   const queryClient = useQueryClient();
   const overlayStore = useLiveOverlayStore();
 
   const snapshotQuery = useQuery({
     queryKey: computed(() =>
-      gatewayKeys.sessions.snapshot(
-        sessionId.value ?? ("__none__" as SessionId),
-      ),
+      gatewayKeys.sessions.snapshot(sessionId.value ?? ("__none__" as SessionId)),
     ),
     queryFn: () => {
       const id = sessionId.value;
@@ -106,9 +98,7 @@ export function useSessionView(
 
   const transcriptQuery = useQuery({
     queryKey: computed(() =>
-      gatewayKeys.sessions.transcript(
-        sessionId.value ?? ("__none__" as SessionId),
-      ),
+      gatewayKeys.sessions.transcript(sessionId.value ?? ("__none__" as SessionId)),
     ),
     queryFn: async (): Promise<TranscriptCacheData> => {
       const id = sessionId.value;
@@ -130,8 +120,7 @@ export function useSessionView(
       if (snapshot.session.sessionId !== id) return;
       const installed = overlayStore.installSnapshot(id, snapshot);
       const hasTranscriptCache =
-        queryClient.getQueryData(gatewayKeys.sessions.transcript(id)) !==
-        undefined;
+        queryClient.getQueryData(gatewayKeys.sessions.transcript(id)) !== undefined;
       if (installed || !hasTranscriptCache) {
         seedTranscriptFromSnapshot(queryClient, id, snapshot);
       }
@@ -139,42 +128,27 @@ export function useSessionView(
     { immediate: true },
   );
 
-  const session = computed<SessionDetail | null>(
-    () => snapshotQuery.data.value?.session ?? null,
-  );
+  const session = computed<SessionDetail | null>(() => snapshotQuery.data.value?.session ?? null);
   const activeRun = computed<RunSummary | null>(
     () => snapshotQuery.data.value?.activeRuns[0] ?? null,
   );
-  const queuedRuns = computed<RunSummary[]>(
-    () => snapshotQuery.data.value?.queuedRuns ?? [],
-  );
+  const queuedRuns = computed<RunSummary[]>(() => snapshotQuery.data.value?.queuedRuns ?? []);
 
   const entries = computed<TranscriptEntry[]>(() => {
     const id = sessionId.value;
     if (id === undefined) return [];
-    const result: TranscriptEntry[] = (
-      transcriptQuery.data.value?.items ?? []
-    ).map((item) => ({
+    const result: TranscriptEntry[] = (transcriptQuery.data.value?.items ?? []).map((item) => ({
       kind: "durable",
       key: `d:${item.entryId}`,
       item,
     }));
     const overlays = overlayStore.overlay.bySession[id] ?? {};
-    const knownRuns = [
-      ...(activeRun.value ? [activeRun.value] : []),
-      ...queuedRuns.value,
-    ];
+    const knownRuns = [...(activeRun.value ? [activeRun.value] : []), ...queuedRuns.value];
     for (const run of Object.values(overlays)) {
-      if (
-        run.text === "" &&
-        run.thinking === "" &&
-        run.toolOrder.length === 0
-      ) {
+      if (run.text === "" && run.thinking === "" && run.toolOrder.length === 0) {
         continue;
       }
-      const summary = knownRuns.find(
-        (candidate) => candidate.runId === run.runId,
-      );
+      const summary = knownRuns.find((candidate) => candidate.runId === run.runId);
       if (summary && isTerminalRunState(summary.state)) continue;
       result.push({
         kind: "live",
@@ -190,10 +164,7 @@ export function useSessionView(
     const run = activeRun.value;
     if (!run) return "";
     const id = sessionId.value;
-    const overlay =
-      id === undefined
-        ? undefined
-        : overlayStore.overlay.bySession[id]?.[run.runId];
+    const overlay = id === undefined ? undefined : overlayStore.overlay.bySession[id]?.[run.runId];
     if (isTerminalRunState(run.state)) {
       return `Run ${RUN_STATE_LABELS[run.state]}`;
     }
@@ -207,9 +178,7 @@ export function useSessionView(
     () => (transcriptQuery.data.value?.previousCursor ?? null) !== null,
   );
 
-  const historyTruncated = computed(
-    () => transcriptQuery.data.value?.historyTruncated ?? false,
-  );
+  const historyTruncated = computed(() => transcriptQuery.data.value?.historyTruncated ?? false);
 
   async function loadOlder(): Promise<void> {
     const id = sessionId.value;

@@ -83,14 +83,7 @@ export const gatewayEventSchemas = {
     ...runScope,
     type: z.literal("run.phase.changed"),
     payload: z.object({
-      phase: z.enum([
-        "queued",
-        "thinking",
-        "streaming",
-        "tool",
-        "settling",
-        "terminal",
-      ]),
+      phase: z.enum(["queued", "thinking", "streaming", "tool", "settling", "terminal"]),
       label: z.string().max(160).optional(),
     }),
   }),
@@ -112,11 +105,7 @@ export const gatewayEventSchemas = {
 } as const;
 
 export const GatewayEventSchema = z.union(
-  Object.values(gatewayEventSchemas) as unknown as [
-    z.ZodType,
-    z.ZodType,
-    ...z.ZodType[],
-  ],
+  Object.values(gatewayEventSchemas) as unknown as [z.ZodType, z.ZodType, ...z.ZodType[]],
 );
 export const StreamControlEventSchema = z.discriminatedUnion("type", [
   z.object({
@@ -125,12 +114,7 @@ export const StreamControlEventSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("stream.reset"),
-    reason: z.enum([
-      "cursor_invalid",
-      "epoch_changed",
-      "replay_unavailable",
-      "client_lagged",
-    ]),
+    reason: z.enum(["cursor_invalid", "epoch_changed", "replay_unavailable", "client_lagged"]),
     requestedCursor: EventCursorSchema.optional(),
     oldestCursor: EventCursorSchema.optional(),
     latestCursor: EventCursorSchema,
@@ -140,9 +124,7 @@ export const EventsQuerySchema = z.strictObject({
   after: EventCursorSchema.optional(),
 });
 
-export type GatewayEvent = z.infer<
-  (typeof gatewayEventSchemas)[keyof typeof gatewayEventSchemas]
->;
+export type GatewayEvent = z.infer<(typeof gatewayEventSchemas)[keyof typeof gatewayEventSchemas]>;
 export type StreamControlEvent = z.infer<typeof StreamControlEventSchema>;
 export type GatewayStreamItem =
   | { kind: "connection"; state: "connecting" | "reconnecting" | "live" }

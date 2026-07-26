@@ -34,21 +34,15 @@ const capabilities: CapabilityAdapter = {
   },
 };
 
-async function authenticate(
-  gateway: Awaited<ReturnType<typeof createHttpGateway>>,
-) {
+async function authenticate(gateway: Awaited<ReturnType<typeof createHttpGateway>>) {
   const secret = new URL(gateway.bootstrapUrl).hash.slice("#bootstrap=".length);
-  const response = await fetch(
-    `${gateway.origin}/api/v1/gateway-auth/bootstrap`,
-    {
-      method: "POST",
-      headers: { origin: gateway.origin, "content-type": "application/json" },
-      body: JSON.stringify({ secret }),
-    },
-  );
+  const response = await fetch(`${gateway.origin}/api/v1/gateway-auth/bootstrap`, {
+    method: "POST",
+    headers: { origin: gateway.origin, "content-type": "application/json" },
+    body: JSON.stringify({ secret }),
+  });
   const cookie = response.headers.get("set-cookie")!.split(";")[0]!;
-  const csrfToken = ((await response.json()) as { csrfToken: string })
-    .csrfToken;
+  const csrfToken = ((await response.json()) as { csrfToken: string }).csrfToken;
   return {
     read: { origin: gateway.origin, cookie },
     write: {
@@ -67,10 +61,7 @@ describe("destructive capability lifecycle", () => {
     const roots = rootsFor(dir);
     await mkdir(roots.data, { recursive: true });
     const source = join(dir, "session.jsonl");
-    await writeFile(
-      source,
-      '{"type":"session","id":"session_1","cwd":"/safe"}\n',
-    );
+    await writeFile(source, '{"type":"session","id":"session_1","cwd":"/safe"}\n');
     const { store } = await openStore(roots.database);
     addPrincipalWorkspaceSession(store, source);
     const gateway = await createHttpGateway(store, roots, undefined, dir, {
@@ -78,24 +69,18 @@ describe("destructive capability lifecycle", () => {
     });
     const auth = await authenticate(gateway);
     const body = JSON.stringify({ commandId: "delete_1", expectedRevision: 1 });
-    const first = await fetch(
-      `${gateway.origin}/api/v1/sessions/session_1/commands/delete`,
-      {
-        method: "POST",
-        headers: auth.write,
-        body,
-      },
-    );
+    const first = await fetch(`${gateway.origin}/api/v1/sessions/session_1/commands/delete`, {
+      method: "POST",
+      headers: auth.write,
+      body,
+    });
     expect(first.status).toBe(202);
     const firstJson = await first.json();
-    const replay = await fetch(
-      `${gateway.origin}/api/v1/sessions/session_1/commands/delete`,
-      {
-        method: "POST",
-        headers: auth.write,
-        body,
-      },
-    );
+    const replay = await fetch(`${gateway.origin}/api/v1/sessions/session_1/commands/delete`, {
+      method: "POST",
+      headers: auth.write,
+      body,
+    });
     expect(replay.status).toBe(202);
     expect(await replay.json()).toEqual(firstJson);
     expect(
@@ -111,10 +96,7 @@ describe("destructive capability lifecycle", () => {
     await mkdir(recoveryRoots.data, { recursive: true });
     const recoverySource = join(recoveryDir, "recover.jsonl");
     const recyclePath = `${recoverySource}.recycle-session_1-recover_1`;
-    await writeFile(
-      recoverySource,
-      '{"type":"session","id":"session_1","cwd":"/safe"}\n',
-    );
+    await writeFile(recoverySource, '{"type":"session","id":"session_1","cwd":"/safe"}\n');
     const recovery = await openStore(recoveryRoots.database);
     addPrincipalWorkspaceSession(recovery.store, recoverySource);
     recovery.store.run(
@@ -154,10 +136,7 @@ describe("destructive capability lifecycle", () => {
     const roots = rootsFor(dir);
     await mkdir(roots.data, { recursive: true });
     const source = join(dir, "session.jsonl");
-    await writeFile(
-      source,
-      '{"type":"session","id":"session_1","cwd":"/safe"}\n',
-    );
+    await writeFile(source, '{"type":"session","id":"session_1","cwd":"/safe"}\n');
     const { store } = await openStore(roots.database);
     addPrincipalWorkspaceSession(store, source);
     const gateway = await createHttpGateway(store, roots, undefined, dir, {
@@ -206,17 +185,13 @@ describe("destructive capability lifecycle", () => {
       expect(replay.status).toBe(200);
       expect(await replay.json()).toEqual(firstJson);
 
-      const revoked = await fetch(
-        `${gateway.origin}/api/v1/sessions/session_1`,
-        {
-          headers: auth.read,
-        },
-      );
+      const revoked = await fetch(`${gateway.origin}/api/v1/sessions/session_1`, {
+        headers: auth.read,
+      });
       expect(revoked.status).toBe(404);
       expect(
-        store.row<{ active: number }>(
-          "SELECT active FROM sessions WHERE session_id='session_1'",
-        )?.active,
+        store.row<{ active: number }>("SELECT active FROM sessions WHERE session_id='session_1'")
+          ?.active,
       ).toBe(0);
     } finally {
       await gateway.close();

@@ -11,10 +11,7 @@ describe("EventHub", () => {
     const first = hub.publish(event("one"));
     const second = hub.publish(event("two"));
     const third = hub.publish(event("three"));
-    expect(hub.replay(`${hub.epoch}:1`)?.map((x) => x.type)).toEqual([
-      "two",
-      "three",
-    ]);
+    expect(hub.replay(`${hub.epoch}:1`)?.map((x) => x.type)).toEqual(["two", "three"]);
     expect(hub.replay(`${hub.epoch}:0`)).toBeNull();
     expect(hub.replay(`other:1`)).toBeNull();
     expect(hub.replay(`${hub.epoch}:3`)).toEqual([]);
@@ -54,12 +51,9 @@ describe("EventHub", () => {
     const hub = new EventHub("epoch_boundary", 10);
     hub.publish(event("before"));
     const received: string[] = [];
-    const prepared = hub.prepareSubscription(
-      "epoch_boundary:0",
-      async (item) => {
-        received.push(item.type);
-      },
-    );
+    const prepared = hub.prepareSubscription("epoch_boundary:0", async (item) => {
+      received.push(item.type);
+    });
     expect("reason" in prepared).toBe(false);
     if ("reason" in prepared) return;
     hub.publish(event("during"));

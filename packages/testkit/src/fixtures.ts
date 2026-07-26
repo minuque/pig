@@ -9,9 +9,7 @@ import {
 
 const instant = "2025-01-02T03:04:05.000Z";
 
-export const buildWorkspace = (
-  overrides: Record<string, unknown> = {},
-): WorkspaceDetail =>
+export const buildWorkspace = (overrides: Record<string, unknown> = {}): WorkspaceDetail =>
   WorkspaceDetailSchema.parse({
     workspaceId: "workspace_1",
     name: "Fixture Workspace",
@@ -22,9 +20,7 @@ export const buildWorkspace = (
     ...overrides,
   });
 
-export const buildSession = (
-  overrides: Record<string, unknown> = {},
-): SessionDetail =>
+export const buildSession = (overrides: Record<string, unknown> = {}): SessionDetail =>
   SessionDetailSchema.parse({
     sessionId: "session_1",
     workspaceId: "workspace_1",

@@ -45,22 +45,14 @@ export const useLiveOverlayStore = defineStore("live-overlay", () => {
    * newer than the currently reduced state and therefore replaced the
    * Session's overlays; false when it was a duplicate or stale install.
    */
-  function installSnapshot(
-    sessionId: SessionId,
-    snapshot: SessionSnapshot,
-  ): boolean {
+  function installSnapshot(sessionId: SessionId, snapshot: SessionSnapshot): boolean {
     const seq = cursorSeq(snapshot.capturedEventCursor);
     if (seq < 0) return false;
     const current = overlay.value;
     if (current.sessionWatermarks[sessionId] === seq) return false;
     if (seq < current.lastGatewaySeq) return false;
     const overlays = overlayFromPartialOutputs(snapshot.partialOutputs);
-    let next = replaceSessionOverlays(
-      current,
-      sessionId,
-      overlays,
-      snapshot.capturedEventCursor,
-    );
+    let next = replaceSessionOverlays(current, sessionId, overlays, snapshot.capturedEventCursor);
     for (const run of [...snapshot.activeRuns, ...snapshot.queuedRuns]) {
       next = ensureRunOverlay(next, run);
     }
@@ -78,10 +70,7 @@ export const useLiveOverlayStore = defineStore("live-overlay", () => {
    * rebuilt from a freshly captured bootstrap cursor and nonterminal Runs;
    * per-Session overlays are then reinstalled from refetched snapshots.
    */
-  function resetAll(
-    cursor: EventCursor,
-    nonterminalRuns: readonly RunSummary[],
-  ): void {
+  function resetAll(cursor: EventCursor, nonterminalRuns: readonly RunSummary[]): void {
     let next = withCursor(createEmptyLiveOverlay(), cursor);
     for (const run of nonterminalRuns) next = ensureRunOverlay(next, run);
     overlay.value = next;

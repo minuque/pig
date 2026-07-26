@@ -2,12 +2,7 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { projectSession } from "../src/projection/projector.js";
-import {
-  addPrincipalWorkspaceSession,
-  openStore,
-  removeTempDir,
-  tempDir,
-} from "./helpers.js";
+import { addPrincipalWorkspaceSession, openStore, removeTempDir, tempDir } from "./helpers.js";
 
 const cleanups: string[] = [];
 afterEach(async () => {
@@ -118,10 +113,9 @@ describe("session projection", () => {
     const { db, store } = await openStore(join(dir, "app.sqlite3"));
     addPrincipalWorkspaceSession(store, join(dir, "missing.jsonl"));
     try {
-      expect(
-        (await projectSession(store, "session_1", join(dir, "missing.jsonl")))
-          .health,
-      ).toBe("unavailable");
+      expect((await projectSession(store, "session_1", join(dir, "missing.jsonl"))).health).toBe(
+        "unavailable",
+      );
       expect(
         store.row<{ availability: string }>(
           "SELECT availability FROM sessions WHERE session_id='session_1'",

@@ -35,14 +35,7 @@ export const BootstrapExchangeResultSchema = z.object({
 });
 export const LiveHealthSchema = z.object({ status: z.literal("live") });
 export const ReadyHealthSchema = z.object({
-  status: z.enum([
-    "ready",
-    "starting",
-    "migrating",
-    "reconciling",
-    "shutting_down",
-    "unavailable",
-  ]),
+  status: z.enum(["ready", "starting", "migrating", "reconciling", "shutting_down", "unavailable"]),
 });
 
 export type Capabilities = z.infer<typeof CapabilitiesSchema>;

@@ -131,8 +131,7 @@ async function main() {
   const health = new Health();
   const startupServer = await startHealthServer(health);
   health.set("migrating");
-  const runtimeRoot =
-    import.meta.dirname ?? new URL(".", import.meta.url).pathname;
+  const runtimeRoot = import.meta.dirname ?? new URL(".", import.meta.url).pathname;
   let db: Awaited<ReturnType<typeof openDatabase>>;
   try {
     db = await openDatabase(roots, join(runtimeRoot, "migrations"));

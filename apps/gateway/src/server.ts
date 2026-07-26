@@ -1,11 +1,6 @@
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import {
-  readFile,
-  rename,
-  access as accessFile,
-  writeFile,
-} from "node:fs/promises";
+import { readFile, rename, access as accessFile, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import type { Server } from "node:http";
 import { randomUUID } from "node:crypto";
@@ -61,17 +56,11 @@ export async function createHttpGateway(
 ): Promise<GatewayHandle> {
   const health = options.health ?? new Health();
   const hub = new EventHub();
-  const access = new GatewayAccess(
-    store,
-    `http://127.0.0.1:0`,
-    proposedWorkspacePath,
-  );
+  const access = new GatewayAccess(store, `http://127.0.0.1:0`, proposedWorkspacePath);
   const runtime = new RuntimeCoordinator(store, hub, getAgentDir());
   const capabilities = new CapabilityCoordinator(
     store,
-    options.capabilities
-      ? Promise.resolve(options.capabilities)
-      : PiCapabilityAdapter.create(),
+    options.capabilities ? Promise.resolve(options.capabilities) : PiCapabilityAdapter.create(),
   );
   const app = new Hono();
   let serverPort = 0;
@@ -117,8 +106,7 @@ export async function createHttpGateway(
           : e instanceof Error
             ? e.message
             : undefined;
-    const code =
-      candidate && known.has(candidate) ? candidate : "server.internal";
+    const code = candidate && known.has(candidate) ? candidate : "server.internal";
     const statuses: Record<string, number> = {
       "request.invalid_json": 400,
       "request.validation_failed": 400,
@@ -381,21 +369,13 @@ export async function createHttpGateway(
       const a = auth(c, true),
         b = await parse(c, UpdateWorkspaceSchema);
       if (!b || b instanceof Response) return b;
-      const w = await access.authorizeWorkspace(
-        a.principalId,
-        c.req.param("workspaceId"),
-      );
+      const w = await access.authorizeWorkspace(a.principalId, c.req.param("workspaceId"));
       const payload = {
         operation: "updateWorkspace",
         workspaceId: w.workspace_id,
         body: b,
       };
-      const replay = replayCommand<any>(
-        store,
-        a.principalId,
-        b.commandId,
-        payload,
-      );
+      const replay = replayCommand<any>(store, a.principalId, b.commandId, payload);
       if (replay) return c.json(replay);
       if (w.revision !== (b as any).expectedRevision)
         throw new Error("workspace.revision_conflict");
@@ -437,16 +417,10 @@ export async function createHttpGateway(
         workspaceId,
         body: b,
       };
-      const replay = replayCommand<any>(
-        store,
-        a.principalId,
-        b.commandId,
-        payload,
-      );
+      const replay = replayCommand<any>(store, a.principalId, b.commandId, payload);
       if (replay) return c.json(replay);
       const w = await access.authorizeWorkspace(a.principalId, workspaceId);
-      if (w.revision !== b.expectedRevision)
-        throw new Error("workspace.revision_conflict");
+      if (w.revision !== b.expectedRevision) throw new Error("workspace.revision_conflict");
       const busy = store.row<any>(
         "SELECT 1 as x FROM runs r JOIN sessions s ON s.session_id=r.session_id WHERE s.workspace_id=? AND r.state NOT IN ('completed','failed','cancelled','interrupted') LIMIT 1",
         w.workspace_id,
@@ -501,15 +475,8 @@ export async function createHttpGateway(
   app.get("/api/v1/workspaces/:workspaceId/sessions", (c) => {
     try {
       const a = auth(c);
-      const w = awaitWorkspace(
-        store,
-        access,
-        a.principalId,
-        c.req.param("workspaceId"),
-      );
-      const q = SessionListQuerySchema.parse(
-        Object.fromEntries(new URL(c.req.url).searchParams),
-      );
+      const w = awaitWorkspace(store, access, a.principalId, c.req.param("workspaceId"));
+      const q = SessionListQuerySchema.parse(Object.fromEntries(new URL(c.req.url).searchParams));
       const limit = q.limit ?? 25;
       const cursor = q.cursor ? decodeCursor(q.cursor) : undefined;
       const rows = q.search
@@ -533,8 +500,7 @@ export async function createHttpGateway(
             limit + 1,
           );
       const items = rows.slice(0, limit);
-      const nextCursor =
-        rows.length > limit ? encodeCursor(items.at(-1)) : null;
+      const nextCursor = rows.length > limit ? encodeCursor(items.at(-1)) : null;
       return c.json({ items, nextCursor });
     } catch (e) {
       return fail(c, e);
@@ -545,28 +511,15 @@ export async function createHttpGateway(
       const a = auth(c, true),
         b = await parse(c, CreateSessionSchema);
       if (!b || b instanceof Response) return b;
-      const w = awaitWorkspace(
-        store,
-        access,
-        a.principalId,
-        c.req.param("workspaceId"),
-      );
+      const w = awaitWorkspace(store, access, a.principalId, c.req.param("workspaceId"));
       const payload = {
         operation: "createSession",
         workspaceId: w.workspace_id,
         body: b,
       };
-      const replay = replayCommand<any>(
-        store,
-        a.principalId,
-        b.commandId,
-        payload,
-      );
+      const replay = replayCommand<any>(store, a.principalId, b.commandId, payload);
       if (replay) return c.json(replay, 201);
-      const sm = SessionManager.create(
-        w.canonical_root,
-        join(getAgentDir(), "sessions"),
-      );
+      const sm = SessionManager.create(w.canonical_root, join(getAgentDir(), "sessions"));
       sm.appendSessionInfo((b as any).name);
       const source = sm.getSessionFile();
       const header = sm.getHeader();
@@ -618,12 +571,7 @@ export async function createHttpGateway(
   app.get("/api/v1/sessions/:sessionId", (c) => {
     try {
       const a = auth(c);
-      const s = awaitSession(
-        store,
-        access,
-        a.principalId,
-        c.req.param("sessionId"),
-      );
+      const s = awaitSession(store, access, a.principalId, c.req.param("sessionId"));
       return c.json(sessionDetail(s));
     } catch (e) {
       return fail(c, e);
@@ -634,32 +582,17 @@ export async function createHttpGateway(
       const a = auth(c, true),
         b = await parse(c, UpdateSessionSchema);
       if (!b || b instanceof Response) return b;
-      const s = awaitSession(
-        store,
-        access,
-        a.principalId,
-        c.req.param("sessionId"),
-      );
+      const s = awaitSession(store, access, a.principalId, c.req.param("sessionId"));
       const payload = {
         operation: "updateSession",
         sessionId: s.session_id,
         body: b,
       };
-      const replay = replayCommand<any>(
-        store,
-        a.principalId,
-        b.commandId,
-        payload,
-      );
+      const replay = replayCommand<any>(store, a.principalId, b.commandId, payload);
       if (replay) return c.json(replay);
-      if (
-        s.revision !== (b as any).expectedRevision ||
-        s.availability !== "healthy"
-      )
+      if (s.revision !== (b as any).expectedRevision || s.availability !== "healthy")
         throw new Error(
-          s.availability !== "healthy"
-            ? "session.unavailable"
-            : "session.revision_conflict",
+          s.availability !== "healthy" ? "session.unavailable" : "session.revision_conflict",
         );
       const sm = SessionManager.open(s.source_path);
       sm.appendSessionInfo((b as any).name);
@@ -685,13 +618,7 @@ export async function createHttpGateway(
           createdAt: s.created_at,
         },
       };
-      recordCommand(
-        store,
-        a.principalId,
-        b.commandId,
-        payload,
-        sessionUpdateResult,
-      );
+      recordCommand(store, a.principalId, b.commandId, payload, sessionUpdateResult);
       return c.json(sessionUpdateResult);
     } catch (e) {
       return fail(c, e);
@@ -704,16 +631,10 @@ export async function createHttpGateway(
       if (!b || b instanceof Response) return b;
       const sessionId = c.req.param("sessionId");
       const payload = { operation: "deleteSession", sessionId, body: b };
-      const replay = replayCommand<any>(
-        store,
-        a.principalId,
-        b.commandId,
-        payload,
-      );
+      const replay = replayCommand<any>(store, a.principalId, b.commandId, payload);
       if (replay) return c.json(replay, 202);
       const s = awaitSession(store, access, a.principalId, sessionId);
-      if (s.revision !== b.expectedRevision)
-        throw new Error("session.revision_conflict");
+      if (s.revision !== b.expectedRevision) throw new Error("session.revision_conflict");
       const busy = store.row<any>(
         "SELECT 1 AS x FROM runs WHERE session_id=? AND state NOT IN ('completed','failed','cancelled','interrupted') LIMIT 1",
         s.session_id,
@@ -753,14 +674,8 @@ export async function createHttpGateway(
         },
       };
       store.transaction(() => {
-        store.run(
-          "DELETE FROM session_search WHERE session_id=?",
-          s.session_id,
-        );
-        store.run(
-          "DELETE FROM session_entries WHERE session_id=?",
-          s.session_id,
-        );
+        store.run("DELETE FROM session_search WHERE session_id=?", s.session_id);
+        store.run("DELETE FROM session_entries WHERE session_id=?", s.session_id);
         store.run(
           "UPDATE sessions SET active=0,availability='unavailable',revision=revision+1,updated_at=? WHERE session_id=?",
           store.now(),
@@ -793,12 +708,7 @@ export async function createHttpGateway(
   app.get("/api/v1/sessions/:sessionId/transcript", (c) => {
     try {
       const a = auth(c);
-      const s = awaitSession(
-        store,
-        access,
-        a.principalId,
-        c.req.param("sessionId"),
-      );
+      const s = awaitSession(store, access, a.principalId, c.req.param("sessionId"));
       return c.json({
         items: store
           .all<any>(
@@ -818,12 +728,7 @@ export async function createHttpGateway(
       // Capture before every resource read. Any event racing with the reads is
       // replayed after this exact snapshot boundary.
       const capturedEventCursor = hub.cursor();
-      const s = awaitSession(
-        store,
-        access,
-        a.principalId,
-        c.req.param("sessionId"),
-      );
+      const s = awaitSession(store, access, a.principalId, c.req.param("sessionId"));
       return c.json({
         session: sessionDetail(s),
         activeRuns: store
@@ -860,12 +765,7 @@ export async function createHttpGateway(
       const a = auth(c, true),
         b = await parse(c, CreateRunSchema);
       if (!b || b instanceof Response) return b;
-      const s = awaitSession(
-        store,
-        access,
-        a.principalId,
-        c.req.param("sessionId"),
-      );
+      const s = awaitSession(store, access, a.principalId, c.req.param("sessionId"));
       if (s.availability !== "healthy") throw new Error("session.unavailable");
       const row = runtime.createRun(a.principalId, s.session_id, b);
       return c.json(
@@ -920,9 +820,7 @@ export async function createHttpGateway(
             disposition: "accepted",
             acceptedAt: new Date().toISOString(),
           },
-          result: runtime.summary(
-            store.row<any>("SELECT * FROM runs WHERE run_id=?", r.run_id),
-          ),
+          result: runtime.summary(store.row<any>("SELECT * FROM runs WHERE run_id=?", r.run_id)),
         },
         202,
       );
@@ -941,12 +839,7 @@ export async function createHttpGateway(
       );
       if (!r) throw new Error("run.not_found");
       awaitWorkspace(store, access, a.principalId, r.workspace_id);
-      await runtime.steer(
-        r.run_id,
-        (b as any).instruction,
-        a.principalId,
-        (b as any).commandId,
-      );
+      await runtime.steer(r.run_id, (b as any).instruction, a.principalId, (b as any).commandId);
       return c.json(
         {
           receipt: {
@@ -978,87 +871,60 @@ export async function createHttpGateway(
       return fail(c, e);
     }
   });
-  app.post(
-    "/api/v1/provider-auth/:providerId/commands/set-api-key",
-    async (c) => {
-      try {
-        const a = auth(c, true),
-          b = await parse(c, SetApiKeySchema);
-        if (!b || b instanceof Response) return b;
-        const providerId = ProviderIdSchema.parse(c.req.param("providerId"));
-        const payload = { operation: "setProviderApiKey", providerId, body: b };
-        const replay = replayCommand<any>(
-          store,
-          a.principalId,
-          b.commandId,
-          payload,
-        );
-        if (replay) return c.json(replay, 202);
-        const status = await capabilities.setApiKey(
-          a.principalId,
-          providerId,
-          b.apiKey,
-        );
-        const result = {
-          receipt: {
-            commandId: b.commandId,
-            disposition: "applied",
-            acceptedAt: store.now(),
-          },
-          result: status,
-        };
-        store.transaction(() =>
-          recordCommand(store, a.principalId, b.commandId, payload, result),
-        );
-        hub.publish({ type: "providerAuth.changed", payload: status });
-        return c.json(result, 202);
-      } catch (e) {
-        return fail(c, e);
-      }
-    },
-  );
-  app.post(
-    "/api/v1/provider-auth/:providerId/commands/delete-credential",
-    async (c) => {
-      try {
-        const a = auth(c, true),
-          b = await parse(c, CommandOnlySchema);
-        if (!b || b instanceof Response) return b;
-        const providerId = ProviderIdSchema.parse(c.req.param("providerId"));
-        const payload = {
-          operation: "deleteProviderCredential",
-          providerId,
-          body: b,
-        };
-        const replay = replayCommand<any>(
-          store,
-          a.principalId,
-          b.commandId,
-          payload,
-        );
-        if (replay) return c.json(replay, 202);
-        const status = await capabilities.deleteCredential(
-          a.principalId,
-          providerId,
-        );
-        const result = {
-          receipt: {
-            commandId: b.commandId,
-            disposition: "applied",
-            acceptedAt: store.now(),
-          },
-          result: status,
-        };
-        store.transaction(() =>
-          recordCommand(store, a.principalId, b.commandId, payload, result),
-        );
-        hub.publish({ type: "providerAuth.changed", payload: status });
-        return c.json(result, 202);
-      } catch (e) {
-        return fail(c, e);
-      }
-    },
-  );
+  app.post("/api/v1/provider-auth/:providerId/commands/set-api-key", async (c) => {
+    try {
+      const a = auth(c, true),
+        b = await parse(c, SetApiKeySchema);
+      if (!b || b instanceof Response) return b;
+      const providerId = ProviderIdSchema.parse(c.req.param("providerId"));
+      const payload = { operation: "setProviderApiKey", providerId, body: b };
+      const replay = replayCommand<any>(store, a.principalId, b.commandId, payload);
+      if (replay) return c.json(replay, 202);
+      const status = await capabilities.setApiKey(a.principalId, providerId, b.apiKey);
+      const result = {
+        receipt: {
+          commandId: b.commandId,
+          disposition: "applied",
+          acceptedAt: store.now(),
+        },
+        result: status,
+      };
+      store.transaction(() => recordCommand(store, a.principalId, b.commandId, payload, result));
+      hub.publish({ type: "providerAuth.changed", payload: status });
+      return c.json(result, 202);
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
+  app.post("/api/v1/provider-auth/:providerId/commands/delete-credential", async (c) => {
+    try {
+      const a = auth(c, true),
+        b = await parse(c, CommandOnlySchema);
+      if (!b || b instanceof Response) return b;
+      const providerId = ProviderIdSchema.parse(c.req.param("providerId"));
+      const payload = {
+        operation: "deleteProviderCredential",
+        providerId,
+        body: b,
+      };
+      const replay = replayCommand<any>(store, a.principalId, b.commandId, payload);
+      if (replay) return c.json(replay, 202);
+      const status = await capabilities.deleteCredential(a.principalId, providerId);
+      const result = {
+        receipt: {
+          commandId: b.commandId,
+          disposition: "applied",
+          acceptedAt: store.now(),
+        },
+        result: status,
+      };
+      store.transaction(() => recordCommand(store, a.principalId, b.commandId, payload, result));
+      hub.publish({ type: "providerAuth.changed", payload: status });
+      return c.json(result, 202);
+    } catch (e) {
+      return fail(c, e);
+    }
+  });
   app.post("/api/v1/provider-auth/:providerId/auth-flows", async (c) => {
     try {
       const a = auth(c, true),
@@ -1066,12 +932,7 @@ export async function createHttpGateway(
       if (!b || b instanceof Response) return b;
       const providerId = ProviderIdSchema.parse(c.req.param("providerId"));
       const payload = { operation: "createAuthFlow", providerId, body: b };
-      const replay = replayCommand<any>(
-        store,
-        a.principalId,
-        b.commandId,
-        payload,
-      );
+      const replay = replayCommand<any>(store, a.principalId, b.commandId, payload);
       if (replay) return c.json(replay, 202);
       const flow = await capabilities.create(a.principalId, providerId);
       const result = {
@@ -1082,9 +943,7 @@ export async function createHttpGateway(
         },
         result: flow,
       };
-      store.transaction(() =>
-        recordCommand(store, a.principalId, b.commandId, payload, result),
-      );
+      store.transaction(() => recordCommand(store, a.principalId, b.commandId, payload, result));
       hub.publish({ type: "authFlow.changed", payload: flow });
       return c.json(result, 202);
     } catch (e) {
@@ -1124,9 +983,7 @@ export async function createHttpGateway(
         promptId: b.promptId,
         commandId: b.commandId,
       };
-      store.transaction(() =>
-        recordCommand(store, a.principalId, b.commandId, payload, result),
-      );
+      store.transaction(() => recordCommand(store, a.principalId, b.commandId, payload, result));
       hub.publish({ type: "authFlow.changed", payload: flow });
       return c.json(result, 202);
     } catch (e) {
@@ -1152,9 +1009,7 @@ export async function createHttpGateway(
         flowId: c.req.param("flowId"),
         commandId: b.commandId,
       };
-      store.transaction(() =>
-        recordCommand(store, a.principalId, b.commandId, payload, result),
-      );
+      store.transaction(() => recordCommand(store, a.principalId, b.commandId, payload, result));
       hub.publish({ type: "authFlow.changed", payload: flow });
       return c.json(result, 202);
     } catch (e) {
@@ -1185,9 +1040,7 @@ export async function createHttpGateway(
                   type: "stream.reset",
                   reason: "client_lagged",
                   ...(after ? { requestedCursor: after } : {}),
-                  ...(hub.oldestCursor()
-                    ? { oldestCursor: hub.oldestCursor() }
-                    : {}),
+                  ...(hub.oldestCursor() ? { oldestCursor: hub.oldestCursor() } : {}),
                   latestCursor,
                 }),
               });
@@ -1202,9 +1055,7 @@ export async function createHttpGateway(
               type: "stream.reset",
               reason: prepared.reason,
               ...(after ? { requestedCursor: after } : {}),
-              ...(hub.oldestCursor()
-                ? { oldestCursor: hub.oldestCursor() }
-                : {}),
+              ...(hub.oldestCursor() ? { oldestCursor: hub.oldestCursor() } : {}),
               latestCursor: hub.cursor(),
             }),
           });
@@ -1242,8 +1093,7 @@ export async function createHttpGateway(
   });
   app.all("*", async (c) => {
     try {
-      const rel =
-        c.req.path === "/" ? "index.html" : c.req.path.replace(/^\//, "");
+      const rel = c.req.path === "/" ? "index.html" : c.req.path.replace(/^\//, "");
       const file = join(publicDir, rel);
       const body = await readFile(file);
       const type = rel.endsWith(".js")
@@ -1254,10 +1104,7 @@ export async function createHttpGateway(
       return c.body(body as any, {
         headers: {
           "content-type": type,
-          "cache-control":
-            rel === "index.html"
-              ? "no-store"
-              : "public,max-age=31536000,immutable",
+          "cache-control": rel === "index.html" ? "no-store" : "public,max-age=31536000,immutable",
         },
       });
     } catch {
@@ -1276,8 +1123,7 @@ export async function createHttpGateway(
           method: req.method ?? "GET",
           headers: req.headers as HeadersInit,
         };
-        if (req.method !== "GET" && req.method !== "HEAD")
-          init.body = Buffer.concat(chunks) as any;
+        if (req.method !== "GET" && req.method !== "HEAD") init.body = Buffer.concat(chunks) as any;
         const response = await app.fetch(new Request(url, init));
         res.statusCode = response.status;
         response.headers.forEach((v, k) => res.setHeader(k, v));
@@ -1320,9 +1166,7 @@ export async function createHttpGateway(
     db: store.db,
     close: async () => {
       health.set("shutting_down");
-      const serverClosed = new Promise<void>((resolve) =>
-        server.close(() => resolve()),
-      );
+      const serverClosed = new Promise<void>((resolve) => server.close(() => resolve()));
       await runtime.close();
       server.closeAllConnections();
       await serverClosed;
@@ -1342,18 +1186,11 @@ async function recoverSessionDeletes(store: Store): Promise<void> {
       const recycleExists = await accessFile(op.recycle_path)
         .then(() => true)
         .catch(() => false);
-      if (sourceExists && !recycleExists)
-        await rename(op.source_path, op.recycle_path);
+      if (sourceExists && !recycleExists) await rename(op.source_path, op.recycle_path);
       if ((recycleExists || sourceExists) && !(sourceExists && recycleExists)) {
         store.transaction(() => {
-          store.run(
-            "DELETE FROM session_search WHERE session_id=?",
-            op.session_id,
-          );
-          store.run(
-            "DELETE FROM session_entries WHERE session_id=?",
-            op.session_id,
-          );
+          store.run("DELETE FROM session_search WHERE session_id=?", op.session_id);
+          store.run("DELETE FROM session_entries WHERE session_id=?", op.session_id);
           store.run(
             "UPDATE sessions SET active=0,availability='unavailable',revision=revision+1,updated_at=? WHERE session_id=?",
             store.now(),
@@ -1407,8 +1244,7 @@ function encodeCursor(row: any): string {
 function decodeCursor(value: string): { updatedAt: string; sessionId: string } {
   try {
     const x = JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
-    if (typeof x.updatedAt !== "string" || typeof x.sessionId !== "string")
-      throw new Error();
+    if (typeof x.updatedAt !== "string" || typeof x.sessionId !== "string") throw new Error();
     return x;
   } catch {
     throw new Error("request.validation_failed");
@@ -1434,20 +1270,10 @@ function sessionDetail(row: any) {
     ...(row.last_summary ? { lastVerifiedSummary: row.last_summary } : {}),
   };
 }
-function awaitWorkspace(
-  store: Store,
-  access: GatewayAccess,
-  p: string,
-  id: string,
-) {
+function awaitWorkspace(store: Store, access: GatewayAccess, p: string, id: string) {
   return access.authorizeWorkspace(p, id);
 }
-function awaitSession(
-  store: Store,
-  access: GatewayAccess,
-  p: string,
-  id: string,
-): any {
+function awaitSession(store: Store, access: GatewayAccess, p: string, id: string): any {
   const s = store.row<any>(
     "SELECT s.* FROM sessions s JOIN workspaces w ON w.workspace_id=s.workspace_id WHERE s.session_id=? AND s.active=1 AND w.active=1",
     id,

@@ -34,10 +34,7 @@ function concretePath(path: string): string {
   return path.replace(/:[^/]+/g, "missing_1");
 }
 
-function requestStatus(
-  url: string,
-  headers: Record<string, string>,
-): Promise<number> {
+function requestStatus(url: string, headers: Record<string, string>): Promise<number> {
   return new Promise((resolve, reject) => {
     const outgoing = request(url, { headers }, (response) => {
       response.resume();
@@ -65,34 +62,23 @@ describe("server contract registry", () => {
           headers.set("origin", gateway.origin);
           headers.set("content-type", "application/json");
         }
-        const response = await fetch(
-          `${gateway.origin}${concretePath(endpoint.path)}`,
-          {
-            method: endpoint.method,
-            headers,
-            ...(endpoint.method === "GET"
-              ? {}
-              : {
-                  body: JSON.stringify(
-                    endpoint.operationId === "gatewayAuthBootstrap"
-                      ? { secret: "x".repeat(43) }
-                      : {},
-                  ),
-                }),
-          },
-        );
+        const response = await fetch(`${gateway.origin}${concretePath(endpoint.path)}`, {
+          method: endpoint.method,
+          headers,
+          ...(endpoint.method === "GET"
+            ? {}
+            : {
+                body: JSON.stringify(
+                  endpoint.operationId === "gatewayAuthBootstrap" ? { secret: "x".repeat(43) } : {},
+                ),
+              }),
+        });
         expect(response.status, endpoint.operationId).not.toBe(404);
         const body = await response.json();
         if (response.status === endpoint.successStatus) {
-          expect(
-            endpoint.successSchema.safeParse(body).success,
-            endpoint.operationId,
-          ).toBe(true);
+          expect(endpoint.successSchema.safeParse(body).success, endpoint.operationId).toBe(true);
         } else {
-          expect(
-            ProblemDetailsSchema.safeParse(body).success,
-            endpoint.operationId,
-          ).toBe(true);
+          expect(ProblemDetailsSchema.safeParse(body).success, endpoint.operationId).toBe(true);
         }
       }
     } finally {
@@ -115,20 +101,15 @@ describe("server contract registry", () => {
       },
     });
     try {
-      const secret = new URL(gateway.bootstrapUrl).hash.slice(
-        "#bootstrap=".length,
-      );
-      const exchanged = await fetch(
-        `${gateway.origin}/api/v1/gateway-auth/bootstrap`,
-        {
-          method: "POST",
-          headers: {
-            origin: gateway.origin,
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({ secret }),
+      const secret = new URL(gateway.bootstrapUrl).hash.slice("#bootstrap=".length);
+      const exchanged = await fetch(`${gateway.origin}/api/v1/gateway-auth/bootstrap`, {
+        method: "POST",
+        headers: {
+          origin: gateway.origin,
+          "content-type": "application/json",
         },
-      );
+        body: JSON.stringify({ secret }),
+      });
       const cookie = exchanged.headers.get("set-cookie")!.split(";")[0]!;
       const internal = await fetch(`${gateway.origin}/api/v1/bootstrap`, {
         headers: { origin: gateway.origin, cookie },

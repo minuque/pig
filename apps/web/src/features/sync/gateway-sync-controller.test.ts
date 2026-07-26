@@ -59,9 +59,7 @@ describe("GatewaySyncController recovery", () => {
       coalesceMs: 5,
     });
     controller.start("epoch_1:1" as never);
-    await eventually(() =>
-      expect(store.overlay.bySession.session_1?.run_1?.text).toBe("ab"),
-    );
+    await eventually(() => expect(store.overlay.bySession.session_1?.run_1?.text).toBe("ab"));
     expect(store.overlay.cursor).toBe("epoch_1:3");
     await controller.stop();
   });
@@ -119,14 +117,10 @@ describe("GatewaySyncController recovery", () => {
       sessionId: "session_1",
     });
     expect(
-      queryClient.getQueryData(
-        gatewayKeys.sessions.snapshot("session_1" as never),
-      ),
+      queryClient.getQueryData(gatewayKeys.sessions.snapshot("session_1" as never)),
     ).toStrictEqual(replacement);
     expect(store.overlay.cursor).toBe("epoch_2:10");
-    expect(store.overlay.bySession.session_1?.run_replacement?.text).toBe(
-      "verified",
-    );
+    expect(store.overlay.bySession.session_1?.run_replacement?.text).toBe("verified");
     expect(store.overlay.bySession.session_1?.run_1).toBeUndefined();
     await controller.stop();
   });

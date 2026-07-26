@@ -13,11 +13,7 @@ import type {
   WorkspaceId,
 } from "./ids.js";
 import type { RunDetail, RunSummary, ThinkingLevel } from "./run.js";
-import type {
-  SessionDetail,
-  SessionSnapshot,
-  SessionSummary,
-} from "./session.js";
+import type { SessionDetail, SessionSnapshot, SessionSummary } from "./session.js";
 import type { GatewayStreamItem } from "./events.js";
 import type { TranscriptItem } from "./transcript.js";
 import type {
@@ -41,13 +37,7 @@ export interface GatewayClient {
   health: {
     live(): Promise<{ status: "live" }>;
     ready(): Promise<{
-      status:
-        | "ready"
-        | "starting"
-        | "migrating"
-        | "reconciling"
-        | "shutting_down"
-        | "unavailable";
+      status: "ready" | "starting" | "migrating" | "reconciling" | "shutting_down" | "unavailable";
     }>;
   };
   gatewayAuth: {
@@ -84,9 +74,7 @@ export interface GatewayClient {
     delete(
       input: { sessionId: SessionId } & RevisionCommandInput,
     ): Promise<MutationResult<SessionSummary>>;
-    transcript(
-      input: { sessionId: SessionId } & PageInput,
-    ): Promise<CursorPage<TranscriptItem>>;
+    transcript(input: { sessionId: SessionId } & PageInput): Promise<CursorPage<TranscriptItem>>;
     snapshot(input: { sessionId: SessionId }): Promise<SessionSnapshot>;
   };
   runs: {
@@ -104,9 +92,7 @@ export interface GatewayClient {
     steer(
       input: { runId: RunId; instruction: string } & CommandInput,
     ): Promise<MutationResult<RunSummary>>;
-    cancel(
-      input: { runId: RunId } & CommandInput,
-    ): Promise<MutationResult<RunSummary>>;
+    cancel(input: { runId: RunId } & CommandInput): Promise<MutationResult<RunSummary>>;
   };
   models: { list(): Promise<Model[]> };
   providerAuth: {
@@ -119,9 +105,7 @@ export interface GatewayClient {
     ): Promise<MutationResult<ProviderAuthStatus>>;
   };
   authFlows: {
-    create(
-      input: { providerId: ProviderId } & CommandInput,
-    ): Promise<MutationResult<AuthFlow>>;
+    create(input: { providerId: ProviderId } & CommandInput): Promise<MutationResult<AuthFlow>>;
     get(input: { flowId: AuthFlowId }): Promise<AuthFlow>;
     respond(
       input: {
@@ -130,9 +114,7 @@ export interface GatewayClient {
         response: string;
       } & CommandInput,
     ): Promise<MutationResult<AuthFlow>>;
-    cancel(
-      input: { flowId: AuthFlowId } & CommandInput,
-    ): Promise<MutationResult<AuthFlow>>;
+    cancel(input: { flowId: AuthFlowId } & CommandInput): Promise<MutationResult<AuthFlow>>;
   };
   events: {
     open(
@@ -142,5 +124,4 @@ export interface GatewayClient {
   };
 }
 
-export type GatewayClientErrorKind =
-  "problem" | "network" | "decode" | "protocol" | "aborted";
+export type GatewayClientErrorKind = "problem" | "network" | "decode" | "protocol" | "aborted";

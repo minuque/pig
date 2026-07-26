@@ -92,10 +92,7 @@ function blockTokensToVNodes(tokens: Token[]): VNodeChild[] {
       }
       case "fence":
       case "code_block": {
-        const language =
-          token.type === "fence"
-            ? (token.info.trim().split(/\s+/)[0] ?? "")
-            : "";
+        const language = token.type === "fence" ? (token.info.trim().split(/\s+/)[0] ?? "") : "";
         out.push(
           h(CodeBlock, {
             key,
@@ -113,26 +110,16 @@ function blockTokensToVNodes(tokens: Token[]): VNodeChild[] {
       }
       case "blockquote_open": {
         const end = findClose(tokens, i, "blockquote_open", "blockquote_close");
-        out.push(
-          h(
-            "blockquote",
-            { key },
-            blockTokensToVNodes(tokens.slice(i + 1, end)),
-          ),
-        );
+        out.push(h("blockquote", { key }, blockTokensToVNodes(tokens.slice(i + 1, end))));
         i = end + 1;
         break;
       }
       case "bullet_list_open":
       case "ordered_list_open": {
         const closeType =
-          token.type === "bullet_list_open"
-            ? "bullet_list_close"
-            : "ordered_list_close";
+          token.type === "bullet_list_open" ? "bullet_list_close" : "ordered_list_close";
         const end = findClose(tokens, i, token.type, closeType);
-        out.push(
-          h(token.tag, { key }, listItemsToVNodes(tokens.slice(i + 1, end))),
-        );
+        out.push(h(token.tag, { key }, listItemsToVNodes(tokens.slice(i + 1, end))));
         i = end + 1;
         break;
       }
@@ -163,13 +150,7 @@ function listItemsToVNodes(tokens: Token[]): VNodeChild[] {
     const token = tokens[i]!;
     if (token.type === "list_item_open") {
       const end = findClose(tokens, i, "list_item_open", "list_item_close");
-      out.push(
-        h(
-          "li",
-          { key: `li${i}` },
-          blockTokensToVNodes(tokens.slice(i + 1, end)),
-        ),
-      );
+      out.push(h("li", { key: `li${i}` }, blockTokensToVNodes(tokens.slice(i + 1, end))));
       i = end + 1;
     } else {
       i += 1;
@@ -231,8 +212,7 @@ interface InlineFrame {
 function inlineToVNodes(inline: Token): VNodeChild[] {
   const root: VNodeChild[] = [];
   const stack: InlineFrame[] = [];
-  const current = (): VNodeChild[] =>
-    stack.length > 0 ? stack[stack.length - 1]!.children : root;
+  const current = (): VNodeChild[] => (stack.length > 0 ? stack[stack.length - 1]!.children : root);
   const closeFrame = () => {
     const frame = stack.pop();
     if (!frame) return;
@@ -298,11 +278,7 @@ function inlineToVNodes(inline: Token): VNodeChild[] {
         // Remote images are never fetched; the alt text is shown instead.
         const alt = token.content.trim();
         current().push(
-          h(
-            "span",
-            { class: "md-image-alt" },
-            `[图片${alt === "" ? "" : `: ${alt}`}]`,
-          ),
+          h("span", { class: "md-image-alt" }, `[图片${alt === "" ? "" : `: ${alt}`}]`),
         );
         break;
       }

@@ -19,10 +19,7 @@ export function projectDurableEvent(
 ): { terminalRun?: { sessionId: SessionId; runId: RunId } } {
   switch (event.type) {
     case "workspace.changed": {
-      queryClient.setQueryData(
-        gatewayKeys.workspaces.detail(event.workspaceId),
-        event.payload,
-      );
+      queryClient.setQueryData(gatewayKeys.workspaces.detail(event.workspaceId), event.payload);
       void queryClient.invalidateQueries({
         queryKey: gatewayKeys.workspaces.list(),
       });
@@ -37,9 +34,10 @@ export function projectDurableEvent(
     case "session.changed": {
       queryClient.setQueryData(
         gatewayKeys.sessions.detail(event.sessionId),
-        (
-          current: Record<string, unknown> | undefined,
-        ): Record<string, unknown> => ({ ...current, ...event.payload }),
+        (current: Record<string, unknown> | undefined): Record<string, unknown> => ({
+          ...current,
+          ...event.payload,
+        }),
       );
       void queryClient.invalidateQueries({
         queryKey: [...gatewayKeys.sessions.all, "list"],
@@ -68,11 +66,7 @@ export function projectDurableEvent(
       return {};
     }
     case "transcript.item.committed": {
-      const appended = appendCommittedTranscriptItem(
-        queryClient,
-        event.sessionId,
-        event.payload,
-      );
+      const appended = appendCommittedTranscriptItem(queryClient, event.sessionId, event.payload);
       if (!appended) {
         void queryClient.invalidateQueries({
           queryKey: gatewayKeys.sessions.transcript(event.sessionId),
@@ -90,19 +84,14 @@ export function projectDurableEvent(
         (current: Array<{ providerId: string }> | undefined) => {
           if (!current) return current;
           return current.map((status) =>
-            status.providerId === event.payload.providerId
-              ? event.payload
-              : status,
+            status.providerId === event.payload.providerId ? event.payload : status,
           );
         },
       );
       return {};
     }
     case "authFlow.changed": {
-      queryClient.setQueryData(
-        gatewayKeys.authFlow(event.payload.flowId),
-        event.payload,
-      );
+      queryClient.setQueryData(gatewayKeys.authFlow(event.payload.flowId), event.payload);
       return {};
     }
     default: {

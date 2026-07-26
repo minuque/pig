@@ -1,9 +1,4 @@
-import {
-  createHash,
-  randomBytes,
-  randomUUID,
-  timingSafeEqual,
-} from "node:crypto";
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { realpath } from "node:fs/promises";
 import { isAbsolute, relative, sep } from "node:path";
 import type { Context, Next } from "hono";
@@ -24,10 +19,8 @@ export class AccessError extends Error {
   }
 }
 
-const digest = (value: string): Buffer =>
-  createHash("sha256").update(value).digest();
-const equalDigest = (left: Buffer, value: string): boolean =>
-  timingSafeEqual(left, digest(value));
+const digest = (value: string): Buffer => createHash("sha256").update(value).digest();
+const equalDigest = (left: Buffer, value: string): boolean => timingSafeEqual(left, digest(value));
 
 export class GatewayAccess {
   readonly epoch = randomUUID();
@@ -49,9 +42,7 @@ export class GatewayAccess {
     proposed?: string,
     private readonly clock: () => number = Date.now,
   ) {
-    const row = store.row<{ principal_id: string }>(
-      "SELECT principal_id FROM principals LIMIT 1",
-    );
+    const row = store.row<{ principal_id: string }>("SELECT principal_id FROM principals LIMIT 1");
     this.principalId = row?.principal_id ?? randomUUID();
     if (!row)
       store.run(
@@ -69,11 +60,9 @@ export class GatewayAccess {
 
   security(c: Context, mutation = false): void {
     const expected = new URL(this.origin);
-    if (c.req.header("host") !== expected.host)
-      throw new AccessError("auth.forbidden", 403);
+    if (c.req.header("host") !== expected.host) throw new AccessError("auth.forbidden", 403);
     const origin = c.req.header("origin");
-    if (origin && origin !== this.origin)
-      throw new AccessError("auth.forbidden", 403);
+    if (origin && origin !== this.origin) throw new AccessError("auth.forbidden", 403);
     const fetchSite = c.req.header("sec-fetch-site");
     if (fetchSite === "cross-site" || fetchSite === "same-site")
       throw new AccessError("auth.forbidden", 403);
@@ -87,11 +76,7 @@ export class GatewayAccess {
   }
 
   exchange(secret: string): string {
-    if (
-      this.used ||
-      this.clock() > this.expiresAt ||
-      !equalDigest(this.secretDigest, secret)
-    )
+    if (this.used || this.clock() > this.expiresAt || !equalDigest(this.secretDigest, secret))
       throw new AccessError("auth.bootstrap_invalid");
     this.used = true;
     const session = randomBytes(32).toString("base64url");
@@ -109,9 +94,7 @@ export class GatewayAccess {
 
   auth(c: Context, mutation = false): AccessContext {
     this.security(c, mutation);
-    const raw = c.req
-      .header("cookie")
-      ?.match(/(?:^|;\s*)npng_session=([^;]+)/)?.[1];
+    const raw = c.req.header("cookie")?.match(/(?:^|;\s*)npng_session=([^;]+)/)?.[1];
     if (!raw || !this.browser || !equalDigest(this.browser.sessionDigest, raw))
       throw new AccessError("auth.unauthenticated");
     if (mutation && c.req.header("x-csrf-token") !== this.browser.csrf)
@@ -134,8 +117,7 @@ export class GatewayAccess {
   }
 
   async canonical(candidate: string): Promise<string> {
-    if (!isAbsolute(candidate))
-      throw new AccessError("workspace.path_invalid", 400);
+    if (!isAbsolute(candidate)) throw new AccessError("workspace.path_invalid", 400);
     try {
       return await realpath(candidate);
     } catch {
@@ -149,10 +131,7 @@ export class GatewayAccess {
       this.canonical(target),
     ]);
     const value = relative(canonicalRoot, canonicalTarget);
-    return (
-      value === "" ||
-      (!value.startsWith(`..${sep}`) && value !== ".." && !isAbsolute(value))
-    );
+    return value === "" || (!value.startsWith(`..${sep}`) && value !== ".." && !isAbsolute(value));
   }
 
   authorizeWorkspace(
@@ -179,11 +158,7 @@ export class GatewayAccess {
   }
 }
 
-export async function accessMiddleware(
-  access: GatewayAccess,
-  c: Context,
-  next: Next,
-) {
+export async function accessMiddleware(access: GatewayAccess, c: Context, next: Next) {
   try {
     access.auth(c, c.req.method !== "GET");
     await next();

@@ -24,9 +24,7 @@ describe("real loopback gateway", () => {
     const gateway = await createHttpGateway(store, roots, workspace, publicDir);
     try {
       const origin = gateway.origin;
-      const secret = new URL(gateway.bootstrapUrl).hash.slice(
-        "#bootstrap=".length,
-      );
+      const secret = new URL(gateway.bootstrapUrl).hash.slice("#bootstrap=".length);
       const exchanged = await fetch(`${origin}/api/v1/gateway-auth/bootstrap`, {
         method: "POST",
         headers: { origin, "content-type": "application/json" },
@@ -35,38 +33,31 @@ describe("real loopback gateway", () => {
       expect(exchanged.status).toBe(200);
       const cookie = exchanged.headers.get("set-cookie");
       expect(cookie).toMatch(/^npng_session=/);
-      const csrf = ((await exchanged.json()) as { csrfToken: string })
-        .csrfToken;
+      const csrf = ((await exchanged.json()) as { csrfToken: string }).csrfToken;
 
       const bootstrapped = await fetch(`${origin}/api/v1/bootstrap`, {
         headers: { origin, cookie: cookie!.split(";")[0]! },
       });
       expect(bootstrapped.status).toBe(200);
       expect(
-        ((await bootstrapped.json()) as { proposedWorkspacePath?: string })
-          .proposedWorkspacePath,
+        ((await bootstrapped.json()) as { proposedWorkspacePath?: string }).proposedWorkspacePath,
       ).toBe(workspace);
 
-      const preview = await fetch(
-        `${origin}/api/v1/workspace-registration-previews`,
-        {
-          method: "POST",
-          headers: {
-            origin,
-            cookie: cookie!.split(";")[0]!,
-            "x-csrf-token": csrf,
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            commandId: "cmd_preview",
-            candidatePath: workspace,
-          }),
+      const preview = await fetch(`${origin}/api/v1/workspace-registration-previews`, {
+        method: "POST",
+        headers: {
+          origin,
+          cookie: cookie!.split(";")[0]!,
+          "x-csrf-token": csrf,
+          "content-type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          commandId: "cmd_preview",
+          candidatePath: workspace,
+        }),
+      });
       expect(preview.status).toBe(201);
-      const previewResult = (
-        (await preview.json()) as { result: { previewId: string } }
-      ).result;
+      const previewResult = ((await preview.json()) as { result: { previewId: string } }).result;
       const created = await fetch(`${origin}/api/v1/workspaces`, {
         method: "POST",
         headers: {
@@ -83,8 +74,7 @@ describe("real loopback gateway", () => {
       });
       expect(created.status).toBe(201);
       expect(
-        ((await created.json()) as { result: { canonicalRoot: string } }).result
-          .canonicalRoot,
+        ((await created.json()) as { result: { canonicalRoot: string } }).result.canonicalRoot,
       ).toBe(workspace);
 
       const crossSite = await fetch(`${origin}/api/v1/bootstrap`, {

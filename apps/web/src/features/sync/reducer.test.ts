@@ -41,20 +41,14 @@ function delta(input: DeltaInput): GatewayEvent {
 
 describe("reduceLiveOverlay ordering", () => {
   it("applies the first event and advances the cursor", () => {
-    const result = reduceLiveOverlay(
-      createEmptyLiveOverlay(),
-      delta({ seq: 1 }),
-    );
+    const result = reduceLiveOverlay(createEmptyLiveOverlay(), delta({ seq: 1 }));
     expect(result.effect).toEqual({ kind: "applied" });
     expect(result.next.cursor).toBe("epoch_1:1");
     expect(result.next.bySession["session_1"]?.["run_1"]?.text).toBe("x");
   });
 
   it("ignores duplicate cursors without doubling state", () => {
-    const first = reduceLiveOverlay(
-      createEmptyLiveOverlay(),
-      delta({ seq: 1 }),
-    );
+    const first = reduceLiveOverlay(createEmptyLiveOverlay(), delta({ seq: 1 }));
     const second = reduceLiveOverlay(first.next, delta({ seq: 1 }));
     expect(second.effect).toEqual({
       kind: "ignored",
@@ -65,10 +59,7 @@ describe("reduceLiveOverlay ordering", () => {
   });
 
   it("ignores stale cursors below the watermark", () => {
-    let state = reduceLiveOverlay(
-      createEmptyLiveOverlay(),
-      delta({ seq: 1 }),
-    ).next;
+    let state = reduceLiveOverlay(createEmptyLiveOverlay(), delta({ seq: 1 })).next;
     state = reduceLiveOverlay(state, delta({ seq: 2, text: "y" })).next;
     const stale = reduceLiveOverlay(state, delta({ seq: 1 }));
     expect(stale.effect).toEqual({ kind: "ignored", reason: "stale-cursor" });
@@ -76,10 +67,7 @@ describe("reduceLiveOverlay ordering", () => {
   });
 
   it("reports gateway sequence gaps with expected and received", () => {
-    const state = reduceLiveOverlay(
-      createEmptyLiveOverlay(),
-      delta({ seq: 1 }),
-    ).next;
+    const state = reduceLiveOverlay(createEmptyLiveOverlay(), delta({ seq: 1 })).next;
     const gap = reduceLiveOverlay(state, delta({ seq: 3 }));
     expect(gap.effect).toEqual({
       kind: "gap",
@@ -92,10 +80,7 @@ describe("reduceLiveOverlay ordering", () => {
 
   it("reports epoch changes without mutating state", () => {
     const state = withCursor(createEmptyLiveOverlay(), "epoch_1:1" as never);
-    const changed = reduceLiveOverlay(
-      state,
-      delta({ seq: 2, epoch: "epoch_2" }),
-    );
+    const changed = reduceLiveOverlay(state, delta({ seq: 2, epoch: "epoch_2" }));
     expect(changed.effect).toEqual({
       kind: "epoch-changed",
       previous: "epoch_1",
@@ -111,20 +96,14 @@ describe("reduceLiveOverlay ordering", () => {
       state,
       delta({ seq: 2, sessionId: "session_2", runId: "run_2", text: "b" }),
     ).next;
-    state = reduceLiveOverlay(
-      state,
-      delta({ seq: 3, runSeq: 2, text: "c" }),
-    ).next;
+    state = reduceLiveOverlay(state, delta({ seq: 3, runSeq: 2, text: "c" })).next;
     expect(state.cursor).toBe("epoch_1:3");
     expect(state.bySession["session_1"]?.["run_1"]?.text).toBe("ac");
     expect(state.bySession["session_2"]?.["run_2"]?.text).toBe("b");
   });
 
   it("ignores duplicate run sequences", () => {
-    let state = reduceLiveOverlay(
-      createEmptyLiveOverlay(),
-      delta({ seq: 1 }),
-    ).next;
+    let state = reduceLiveOverlay(createEmptyLiveOverlay(), delta({ seq: 1 })).next;
     const dup = reduceLiveOverlay(state, delta({ seq: 2, runSeq: 1 }));
     expect(dup.effect).toEqual({
       kind: "ignored",
@@ -134,10 +113,7 @@ describe("reduceLiveOverlay ordering", () => {
   });
 
   it("reports run sequence gaps scoped to the run", () => {
-    const state = reduceLiveOverlay(
-      createEmptyLiveOverlay(),
-      delta({ seq: 1 }),
-    ).next;
+    const state = reduceLiveOverlay(createEmptyLiveOverlay(), delta({ seq: 1 })).next;
     const gap = reduceLiveOverlay(state, delta({ seq: 2, runSeq: 3 }));
     expect(gap.effect).toEqual({
       kind: "gap",
@@ -153,12 +129,7 @@ describe("reduceLiveOverlay ordering", () => {
 describe("snapshot watermarks", () => {
   it("advances the cursor over snapshot-covered events without applying them", () => {
     let state = withCursor(createEmptyLiveOverlay(), "epoch_1:4" as never);
-    state = replaceSessionOverlays(
-      state,
-      "session_1" as never,
-      {},
-      "epoch_1:6" as never,
-    );
+    state = replaceSessionOverlays(state, "session_1" as never, {}, "epoch_1:6" as never);
     const covered = reduceLiveOverlay(state, delta({ seq: 5, text: "z" }));
     expect(covered.effect).toEqual({
       kind: "ignored",
@@ -166,10 +137,7 @@ describe("snapshot watermarks", () => {
     });
     expect(covered.next.cursor).toBe("epoch_1:5");
     expect(covered.next.bySession["session_1"]?.["run_1"]).toBeUndefined();
-    const beyond = reduceLiveOverlay(
-      covered.next,
-      delta({ seq: 6, text: "z" }),
-    );
+    const beyond = reduceLiveOverlay(covered.next, delta({ seq: 6, text: "z" }));
     expect(beyond.effect).toEqual({
       kind: "ignored",
       reason: "covered-by-snapshot",
@@ -183,16 +151,8 @@ describe("snapshot watermarks", () => {
     const overlays = overlayFromPartialOutputs([
       { runId: "run_1", text: "hi", thinking: "", tools: [] } as never,
     ]);
-    state = replaceSessionOverlays(
-      state,
-      "session_1" as never,
-      overlays,
-      "epoch_1:6" as never,
-    );
-    const applied = reduceLiveOverlay(
-      state,
-      delta({ seq: 7, runSeq: 42, text: "!" }),
-    );
+    state = replaceSessionOverlays(state, "session_1" as never, overlays, "epoch_1:6" as never);
+    const applied = reduceLiveOverlay(state, delta({ seq: 7, runSeq: 42, text: "!" }));
     expect(applied.effect).toEqual({ kind: "applied" });
     const run = applied.next.bySession["session_1"]?.["run_1"];
     expect(run?.text).toBe("hi!");

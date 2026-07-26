@@ -8,8 +8,7 @@ export function canonicalJson(value: unknown): string {
   return `{${Object.keys(value as Record<string, unknown>)
     .sort()
     .map(
-      (key) =>
-        `${JSON.stringify(key)}:${canonicalJson((value as Record<string, unknown>)[key])}`,
+      (key) => `${JSON.stringify(key)}:${canonicalJson((value as Record<string, unknown>)[key])}`,
     )
     .join(",")}}`;
 }
@@ -30,8 +29,7 @@ export function replayCommand<T>(
     commandId,
   );
   if (!row) return undefined;
-  if (row.payload_hash !== safeDigest(payload))
-    throw new Error("command.idempotency_conflict");
+  if (row.payload_hash !== safeDigest(payload)) throw new Error("command.idempotency_conflict");
   return JSON.parse(row.result_json) as T;
 }
 

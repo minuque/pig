@@ -57,8 +57,7 @@ import {
 } from "./workspace.js";
 
 export type HttpMethod = "GET" | "POST" | "PATCH";
-export type AuthorizationClass =
-  "health" | "bootstrap" | "principal" | "workspace";
+export type AuthorizationClass = "health" | "bootstrap" | "principal" | "workspace";
 export interface EndpointDescriptor {
   readonly operationId: string;
   readonly method: HttpMethod;
@@ -72,22 +71,10 @@ export interface EndpointDescriptor {
   readonly successSchema: z.ZodType;
   readonly problemCodes: readonly ProblemCode[];
 }
-const requestProblems = [
-  "request.validation_failed",
-  "server.internal",
-] as const;
-const authProblems = [
-  "auth.unauthenticated",
-  "auth.csrf_invalid",
-  "server.internal",
-] as const;
-const workspaceProblems = [
-  "auth.forbidden",
-  "workspace.not_found",
-  "server.internal",
-] as const;
-const endpoint = (descriptor: EndpointDescriptor): EndpointDescriptor =>
-  descriptor;
+const requestProblems = ["request.validation_failed", "server.internal"] as const;
+const authProblems = ["auth.unauthenticated", "auth.csrf_invalid", "server.internal"] as const;
+const workspaceProblems = ["auth.forbidden", "workspace.not_found", "server.internal"] as const;
+const endpoint = (descriptor: EndpointDescriptor): EndpointDescriptor => descriptor;
 const path = <T extends z.ZodRawShape>(shape: T) => z.strictObject(shape);
 const mutation = mutationResultSchema;
 
@@ -155,11 +142,7 @@ export const endpoints = [
     bodySchema: EmptySchema,
     successStatus: 200,
     successSchema: GatewayEventSchema,
-    problemCodes: [
-      "stream.cursor_invalid",
-      "stream.replay_unavailable",
-      ...authProblems,
-    ],
+    problemCodes: ["stream.cursor_invalid", "stream.replay_unavailable", ...authProblems],
   }),
   endpoint({
     operationId: "createWorkspaceRegistrationPreview",
@@ -241,11 +224,7 @@ export const endpoints = [
     bodySchema: RevisionCommandSchema,
     successStatus: 200,
     successSchema: mutation(WorkspaceSummarySchema),
-    problemCodes: [
-      "workspace.revision_conflict",
-      "workspace.in_use",
-      ...workspaceProblems,
-    ],
+    problemCodes: ["workspace.revision_conflict", "workspace.in_use", ...workspaceProblems],
   }),
   endpoint({
     operationId: "listSessions",
@@ -346,11 +325,7 @@ export const endpoints = [
     bodySchema: EmptySchema,
     successStatus: 200,
     successSchema: SessionSnapshotSchema,
-    problemCodes: [
-      "session.not_found",
-      "session.unavailable",
-      ...workspaceProblems,
-    ],
+    problemCodes: ["session.not_found", "session.unavailable", ...workspaceProblems],
   }),
   endpoint({
     operationId: "createRun",
@@ -530,11 +505,7 @@ export const endpoints = [
     bodySchema: CommandOnlySchema,
     successStatus: 202,
     successSchema: mutation(AuthFlowSchema),
-    problemCodes: [
-      "auth_flow.not_found",
-      "auth_flow.invalid_state",
-      ...authProblems,
-    ],
+    problemCodes: ["auth_flow.not_found", "auth_flow.invalid_state", ...authProblems],
   }),
 ] as const satisfies readonly EndpointDescriptor[];
 

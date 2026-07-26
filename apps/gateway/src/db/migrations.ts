@@ -1,12 +1,5 @@
 import { createHash } from "node:crypto";
-import {
-  readFile,
-  readdir,
-  mkdir,
-  writeFile,
-  rename,
-  rm,
-} from "node:fs/promises";
+import { readFile, readdir, mkdir, writeFile, rename, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { DatabaseSync, backup } from "node:sqlite";
 import type { DataRoots } from "../types.js";
@@ -19,9 +12,7 @@ export class DatabaseError extends Error {
 }
 type Migration = { name: string; version: number; sql: string };
 async function migrations(dir: string): Promise<Migration[]> {
-  const names = (await readdir(dir))
-    .filter((x) => /^\d{3}-.+\.sql$/.test(x))
-    .sort();
+  const names = (await readdir(dir)).filter((x) => /^\d{3}-.+\.sql$/.test(x)).sort();
   const list = await Promise.all(
     names.map(async (name) => ({
       name,
@@ -36,24 +27,17 @@ async function migrations(dir: string): Promise<Migration[]> {
     throw new DatabaseError("migration_history_invalid");
   return list;
 }
-function validateHistory(
-  db: DatabaseSync,
-  version: number,
-  list: Migration[],
-): void {
+function validateHistory(db: DatabaseSync, version: number, list: Migration[]): void {
   if (version === 0) return;
   let rows: Array<{ version: number; name: string; checksum: string }>;
   try {
     rows = db
-      .prepare(
-        "SELECT version,name,checksum FROM migration_history ORDER BY version",
-      )
+      .prepare("SELECT version,name,checksum FROM migration_history ORDER BY version")
       .all() as Array<{ version: number; name: string; checksum: string }>;
   } catch {
     throw new DatabaseError("migration_history_invalid");
   }
-  if (rows.length !== version)
-    throw new DatabaseError("migration_history_invalid");
+  if (rows.length !== version) throw new DatabaseError("migration_history_invalid");
   for (let index = 0; index < version; index++) {
     const row = rows[index];
     const migration = list[index];
@@ -67,10 +51,7 @@ function validateHistory(
       throw new DatabaseError("migration_history_invalid");
   }
 }
-export async function openDatabase(
-  roots: DataRoots,
-  migrationDir: string,
-): Promise<DatabaseSync> {
+export async function openDatabase(roots: DataRoots, migrationDir: string): Promise<DatabaseSync> {
   let db: DatabaseSync;
   try {
     db = new DatabaseSync(roots.database, {
@@ -89,8 +70,7 @@ export async function openDatabase(
           }
         ).application_id,
       );
-      if (id !== 0 && id !== APPLICATION_ID)
-        throw new DatabaseError("database_not_owned");
+      if (id !== 0 && id !== APPLICATION_ID) throw new DatabaseError("database_not_owned");
       if (id === 0) db.exec(`PRAGMA application_id=${APPLICATION_ID}`);
     } catch (e) {
       if (e instanceof DatabaseError) throw e;
@@ -98,8 +78,7 @@ export async function openDatabase(
     }
     const list = await migrations(migrationDir);
     const v = Number(
-      (db.prepare("PRAGMA user_version").get() as { user_version: number })
-        .user_version,
+      (db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version,
     );
     if (v > MAX_SCHEMA) throw new DatabaseError("database_newer_than_binary");
     validateHistory(db, v, list);
@@ -140,11 +119,7 @@ export async function openDatabase(
       } finally {
         check.close();
       }
-      if (
-        integrity !== "ok" ||
-        backupId !== APPLICATION_ID ||
-        backupVersion !== v
-      )
+      if (integrity !== "ok" || backupId !== APPLICATION_ID || backupVersion !== v)
         throw new DatabaseError("backup_invalid");
       await rename(tmp, join(backupDir, "app.sqlite3"));
       await writeFile(
@@ -192,15 +167,11 @@ async function sha(path: string) {
 }
 async function pruneBackups(roots: DataRoots): Promise<void> {
   const ids = (await readdir(roots.backups)).sort().reverse();
-  await Promise.all(
-    ids.slice(3).map((id) => rm(join(roots.backups, id), { recursive: true })),
-  );
+  await Promise.all(ids.slice(3).map((id) => rm(join(roots.backups, id), { recursive: true })));
 }
 export async function listBackups(
   roots: DataRoots,
-): Promise<
-  Array<{ id: string; version: number; sha256: string; valid: boolean }>
-> {
+): Promise<Array<{ id: string; version: number; sha256: string; valid: boolean }>> {
   let out: Array<{
     id: string;
     version: number;
@@ -210,9 +181,10 @@ export async function listBackups(
   try {
     for (const id of await readdir(roots.backups)) {
       try {
-        const m = JSON.parse(
-          await readFile(join(roots.backups, id, "manifest.json"), "utf8"),
-        ) as { version: number; sha256: string };
+        const m = JSON.parse(await readFile(join(roots.backups, id, "manifest.json"), "utf8")) as {
+          version: number;
+          sha256: string;
+        };
         const actual = await sha(join(roots.backups, id, "app.sqlite3"));
         out.push({
           id,
@@ -225,17 +197,13 @@ export async function listBackups(
   } catch {}
   return out;
 }
-export async function restoreBackup(
-  roots: DataRoots,
-  id: string,
-): Promise<void> {
+export async function restoreBackup(roots: DataRoots, id: string): Promise<void> {
   if (!/^\d+-schema-\d+$/.test(id)) throw new DatabaseError("backup_invalid");
   const p = join(roots.backups, id, "app.sqlite3");
   const digest = await sha(p);
   const entries = await listBackups(roots);
   const b = entries.find((x) => x.id === id);
-  if (!b || !b.valid || b.sha256 !== digest)
-    throw new DatabaseError("backup_invalid");
+  if (!b || !b.valid || b.sha256 !== digest) throw new DatabaseError("backup_invalid");
   const check = new DatabaseSync(p, { readOnly: true });
   let ok: boolean;
   try {
@@ -261,10 +229,7 @@ export async function restoreBackup(
   const suffix = `.before-restore-${Date.now()}`;
   for (const extension of ["", "-wal", "-shm"]) {
     try {
-      await rename(
-        roots.database + extension,
-        roots.database + extension + suffix,
-      );
+      await rename(roots.database + extension, roots.database + extension + suffix);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     }

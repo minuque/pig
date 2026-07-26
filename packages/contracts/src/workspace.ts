@@ -35,6 +35,4 @@ export const UpdateWorkspaceSchema = z.strictObject({
 
 export type WorkspaceSummary = z.infer<typeof WorkspaceSummarySchema>;
 export type WorkspaceDetail = z.infer<typeof WorkspaceDetailSchema>;
-export type WorkspaceRegistrationPreview = z.infer<
-  typeof WorkspaceRegistrationPreviewSchema
->;
+export type WorkspaceRegistrationPreview = z.infer<typeof WorkspaceRegistrationPreviewSchema>;

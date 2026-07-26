@@ -7,12 +7,7 @@ import {
   type RuntimeExecution,
 } from "../src/runtime/coordinator.js";
 import { EventHub } from "../src/stream/hub.js";
-import {
-  addPrincipalWorkspaceSession,
-  openStore,
-  removeTempDir,
-  tempDir,
-} from "./helpers.js";
+import { addPrincipalWorkspaceSession, openStore, removeTempDir, tempDir } from "./helpers.js";
 
 class ControlledAdapter implements RuntimeAdapter {
   readonly starts: Array<{
@@ -24,8 +19,7 @@ class ControlledAdapter implements RuntimeAdapter {
     thinkingLevel: string;
     emit: (target: "text" | "thinking", text: string) => void;
   }> = [];
-  private readonly startWaiters: Array<{ count: number; resolve: () => void }> =
-    [];
+  private readonly startWaiters: Array<{ count: number; resolve: () => void }> = [];
 
   waitForStarts(count: number): Promise<void> {
     if (this.starts.length >= count) return Promise.resolve();
@@ -93,31 +87,14 @@ describe("RuntimeCoordinator", () => {
     const dir = await tempDir();
     cleanups.push(dir);
     const source = join(dir, "session.jsonl");
-    await writeFile(
-      source,
-      JSON.stringify({ type: "session", id: "s", cwd: dir }) + "\n",
-    );
+    await writeFile(source, JSON.stringify({ type: "session", id: "s", cwd: dir }) + "\n");
     const { db, store } = await openStore(join(dir, "app.sqlite3"));
     addPrincipalWorkspaceSession(store, source);
     try {
       const adapter = new ControlledAdapter();
-      const coordinator = new RuntimeCoordinator(
-        store,
-        new EventHub("epoch_1"),
-        dir,
-        1,
-        adapter,
-      );
-      const first = coordinator.createRun(
-        "principal_1",
-        "session_1",
-        body("cmd_1", "first"),
-      );
-      const second = coordinator.createRun(
-        "principal_1",
-        "session_1",
-        body("cmd_2", "second"),
-      );
+      const coordinator = new RuntimeCoordinator(store, new EventHub("epoch_1"), dir, 1, adapter);
+      const first = coordinator.createRun("principal_1", "session_1", body("cmd_1", "first"));
+      const second = coordinator.createRun("principal_1", "session_1", body("cmd_2", "second"));
       expect(first.runId).not.toBe(second.runId);
       expect(adapter.starts.map((x) => x.run)).toEqual(["first"]);
       adapter.starts[0]!.resolve();
@@ -126,9 +103,7 @@ describe("RuntimeCoordinator", () => {
       adapter.starts[1]!.resolve();
       await coordinator.waitForIdle();
       expect(
-        store
-          .all<{ state: string }>("SELECT state FROM runs ORDER BY ordinal")
-          .map((x) => x.state),
+        store.all<{ state: string }>("SELECT state FROM runs ORDER BY ordinal").map((x) => x.state),
       ).toEqual(["completed", "completed"]);
       await coordinator.close();
     } finally {
@@ -145,34 +120,13 @@ describe("RuntimeCoordinator", () => {
     addPrincipalWorkspaceSession(store, source);
     try {
       const adapter = new ControlledAdapter();
-      const coordinator = new RuntimeCoordinator(
-        store,
-        new EventHub(),
-        dir,
-        1,
-        adapter,
-      );
-      const first = coordinator.createRun(
-        "principal_1",
-        "session_1",
-        body("same", "prompt"),
-      );
-      const replay = coordinator.createRun(
-        "principal_1",
-        "session_1",
-        body("same", "prompt"),
-      );
+      const coordinator = new RuntimeCoordinator(store, new EventHub(), dir, 1, adapter);
+      const first = coordinator.createRun("principal_1", "session_1", body("same", "prompt"));
+      const replay = coordinator.createRun("principal_1", "session_1", body("same", "prompt"));
       expect(replay).toEqual(first);
-      expect(
-        store.row<{ count: number }>("SELECT count(*) AS count FROM runs")
-          ?.count,
-      ).toBe(1);
+      expect(store.row<{ count: number }>("SELECT count(*) AS count FROM runs")?.count).toBe(1);
       expect(() =>
-        coordinator.createRun(
-          "principal_1",
-          "session_1",
-          body("same", "changed"),
-        ),
+        coordinator.createRun("principal_1", "session_1", body("same", "changed")),
       ).toThrow("command.idempotency_conflict");
       adapter.starts[0]!.resolve();
       await coordinator.waitForIdle();
@@ -213,15 +167,11 @@ describe("RuntimeCoordinator", () => {
         new ControlledAdapter(),
       );
       expect(
-        store.row<{ state: string }>(
-          "SELECT state FROM runs WHERE run_id='run_old'",
-        )?.state,
+        store.row<{ state: string }>("SELECT state FROM runs WHERE run_id='run_old'")?.state,
       ).toBe("interrupted");
       expect(coordinator.update("run_old", "completed")).toBe(false);
       expect(
-        store.row<{ state: string }>(
-          "SELECT state FROM runs WHERE run_id='run_old'",
-        )?.state,
+        store.row<{ state: string }>("SELECT state FROM runs WHERE run_id='run_old'")?.state,
       ).toBe("interrupted");
       await coordinator.close();
     } finally {
@@ -238,51 +188,24 @@ describe("RuntimeCoordinator", () => {
     addPrincipalWorkspaceSession(store, source);
     try {
       const adapter = new ControlledAdapter();
-      const coordinator = new RuntimeCoordinator(
-        store,
-        new EventHub(),
-        dir,
-        1,
-        adapter,
-      );
-      const first = coordinator.createRun(
-        "principal_1",
-        "session_1",
-        body("cmd_1", "active"),
-      );
-      const second = coordinator.createRun(
-        "principal_1",
-        "session_1",
-        body("cmd_2", "queued"),
-      );
+      const coordinator = new RuntimeCoordinator(store, new EventHub(), dir, 1, adapter);
+      const first = coordinator.createRun("principal_1", "session_1", body("cmd_1", "active"));
+      const second = coordinator.createRun("principal_1", "session_1", body("cmd_2", "queued"));
       await adapter.waitForStarts(1);
       await coordinator.cancel(second.runId, "principal_1", "cancel_2");
       expect(
-        store.row<{ state: string }>(
-          "SELECT state FROM runs WHERE run_id=?",
-          second.runId,
-        )?.state,
+        store.row<{ state: string }>("SELECT state FROM runs WHERE run_id=?", second.runId)?.state,
       ).toBe("cancelled");
-      const cancelling = coordinator.cancel(
-        first.runId,
-        "principal_1",
-        "cancel_1",
-      );
+      const cancelling = coordinator.cancel(first.runId, "principal_1", "cancel_1");
       expect(adapter.starts[0]!.cancelled).toBe(true);
       expect(
-        store.row<{ state: string }>(
-          "SELECT state FROM runs WHERE run_id=?",
-          first.runId,
-        )?.state,
+        store.row<{ state: string }>("SELECT state FROM runs WHERE run_id=?", first.runId)?.state,
       ).toBe("cancelling");
       expect(coordinator.update(first.runId, "completed")).toBe(false);
       adapter.starts[0]!.settleCancel();
       await cancelling;
       expect(
-        store.row<{ state: string }>(
-          "SELECT state FROM runs WHERE run_id=?",
-          first.runId,
-        )?.state,
+        store.row<{ state: string }>("SELECT state FROM runs WHERE run_id=?", first.runId)?.state,
       ).toBe("cancelled");
       await coordinator.waitForIdle();
       await coordinator.close();
@@ -300,38 +223,24 @@ describe("RuntimeCoordinator", () => {
     addPrincipalWorkspaceSession(store, source);
     try {
       const adapter = new ControlledAdapter();
-      const coordinator = new RuntimeCoordinator(
-        store,
-        new EventHub(),
-        dir,
-        1,
-        adapter,
-      );
+      const coordinator = new RuntimeCoordinator(store, new EventHub(), dir, 1, adapter);
       const first = coordinator.createRun(
         "principal_1",
         "session_1",
         body("cmd_boundary_1", "first"),
       );
-      coordinator.createRun(
-        "principal_1",
-        "session_1",
-        body("cmd_boundary_2", "second"),
-      );
+      coordinator.createRun("principal_1", "session_1", body("cmd_boundary_2", "second"));
       await adapter.waitForStarts(1);
       const cancelling = coordinator.cancel(first.runId);
       await Promise.resolve();
       expect(adapter.starts.map((item) => item.run)).toEqual(["first"]);
-      expect(
-        store.row<any>("SELECT state FROM runs WHERE run_id=?", first.runId)
-          ?.state,
-      ).toBe("cancelling");
+      expect(store.row<any>("SELECT state FROM runs WHERE run_id=?", first.runId)?.state).toBe(
+        "cancelling",
+      );
       adapter.starts[0]!.settleCancel();
       await cancelling;
       await adapter.waitForStarts(2);
-      expect(adapter.starts.map((item) => item.run)).toEqual([
-        "first",
-        "second",
-      ]);
+      expect(adapter.starts.map((item) => item.run)).toEqual(["first", "second"]);
       adapter.starts[1]!.resolve();
       await coordinator.waitForIdle();
       await coordinator.close();
@@ -349,31 +258,13 @@ describe("RuntimeCoordinator", () => {
     addPrincipalWorkspaceSession(store, source);
     try {
       const adapter = new ControlledAdapter();
-      const coordinator = new RuntimeCoordinator(
-        store,
-        new EventHub(),
-        dir,
-        1,
-        adapter,
-        10,
-      );
-      const first = coordinator.createRun(
-        "principal_1",
-        "session_1",
-        body("timeout_1", "first"),
-      );
-      coordinator.createRun(
-        "principal_1",
-        "session_1",
-        body("timeout_2", "second"),
-      );
+      const coordinator = new RuntimeCoordinator(store, new EventHub(), dir, 1, adapter, 10);
+      const first = coordinator.createRun("principal_1", "session_1", body("timeout_1", "first"));
+      coordinator.createRun("principal_1", "session_1", body("timeout_2", "second"));
       await adapter.waitForStarts(1);
       await coordinator.cancel(first.runId);
       expect(
-        store.row<any>(
-          "SELECT state,failure_code FROM runs WHERE run_id=?",
-          first.runId,
-        ),
+        store.row<any>("SELECT state,failure_code FROM runs WHERE run_id=?", first.runId),
       ).toMatchObject({
         state: "interrupted",
         failure_code: "run.cancel_timeout",
@@ -407,13 +298,7 @@ describe("RuntimeCoordinator", () => {
     );
     try {
       const adapter = new ControlledAdapter();
-      const coordinator = new RuntimeCoordinator(
-        store,
-        new EventHub(),
-        dir,
-        1,
-        adapter,
-      );
+      const coordinator = new RuntimeCoordinator(store, new EventHub(), dir, 1, adapter);
       coordinator.createRun("principal_1", "session_1", body("fair_1", "a1"));
       coordinator.createRun("principal_1", "session_1", body("fair_2", "a2"));
       coordinator.createRun("principal_1", "session_2", body("fair_3", "b1"));
@@ -422,11 +307,7 @@ describe("RuntimeCoordinator", () => {
       coordinator.createRun("principal_1", "session_1", body("fair_4", "a3"));
       adapter.starts[1]!.resolve();
       await adapter.waitForStarts(3);
-      expect(adapter.starts.map((item) => item.run)).toEqual([
-        "a1",
-        "a2",
-        "b1",
-      ]);
+      expect(adapter.starts.map((item) => item.run)).toEqual(["a1", "a2", "b1"]);
       adapter.starts[2]!.resolve();
       await adapter.waitForStarts(4);
       expect(adapter.starts[3]!.run).toBe("a3");
@@ -463,15 +344,11 @@ describe("RuntimeCoordinator", () => {
       adapter.starts[0]!.emit("text", "b");
       adapter.starts[0]!.resolve();
       await coordinator.waitForIdle();
-      const events = hub
-        .replay()!
-        .filter((event) => event.runId === original.runId);
+      const events = hub.replay()!.filter((event) => event.runId === original.runId);
       expect(events.map((event) => event.runSeq)).toEqual([1, 2, 3, 4, 5, 6]);
       expect(
         events.every(
-          (event) =>
-            event.workspaceId === "workspace_1" &&
-            event.sessionId === "session_1",
+          (event) => event.workspaceId === "workspace_1" && event.sessionId === "session_1",
         ),
       ).toBe(true);
       expect(
@@ -494,10 +371,8 @@ describe("RuntimeCoordinator", () => {
       });
       expect(retry.runId).not.toBe(original.runId);
       expect(
-        store.row<any>(
-          "SELECT retry_of_run_id FROM runs WHERE run_id=?",
-          retry.runId,
-        )?.retry_of_run_id,
+        store.row<any>("SELECT retry_of_run_id FROM runs WHERE run_id=?", retry.runId)
+          ?.retry_of_run_id,
       ).toBe(original.runId);
       adapter.starts[1]!.resolve();
       await coordinator.waitForIdle();
@@ -516,18 +391,8 @@ describe("RuntimeCoordinator", () => {
     addPrincipalWorkspaceSession(store, source);
     try {
       const adapter = new ControlledAdapter();
-      const coordinator = new RuntimeCoordinator(
-        store,
-        new EventHub(),
-        dir,
-        1,
-        adapter,
-      );
-      coordinator.createRun(
-        "principal_1",
-        "session_1",
-        body("capacity_0", "active"),
-      );
+      const coordinator = new RuntimeCoordinator(store, new EventHub(), dir, 1, adapter);
+      coordinator.createRun("principal_1", "session_1", body("capacity_0", "active"));
       await adapter.waitForStarts(1);
       for (let index = 1; index <= 32; index += 1) {
         coordinator.createRun(
@@ -537,21 +402,13 @@ describe("RuntimeCoordinator", () => {
         );
       }
       expect(() =>
-        coordinator.createRun(
-          "principal_1",
-          "session_1",
-          body("capacity_33", "overflow"),
-        ),
+        coordinator.createRun("principal_1", "session_1", body("capacity_33", "overflow")),
       ).toThrow("run.queue_full");
 
       adapter.starts[0]!.settleCancel();
       await coordinator.close();
       expect(() =>
-        coordinator.createRun(
-          "principal_1",
-          "session_1",
-          body("after_close", "closed"),
-        ),
+        coordinator.createRun("principal_1", "session_1", body("after_close", "closed")),
       ).toThrow("command.admission_closed");
     } finally {
       db.close();
