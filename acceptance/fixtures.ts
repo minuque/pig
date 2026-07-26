@@ -106,6 +106,7 @@ async function stop(child: ChildProcess | null): Promise<void> {
 
 export const test = base.extend<TestFixtures>({
   gateway: [
+    // biome-ignore lint/correctness/noEmptyPattern: Playwright requires the fixtures argument.
     async ({}, use, testInfo) => {
       const project = process.env.NPNG_ACCEPTANCE_INSTALL;
       const tarball = process.env.NPNG_ACCEPTANCE_TARBALL;

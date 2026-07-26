@@ -1,4 +1,10 @@
-import type { EventCursor, GatewayEvent, RunId, SessionId, SessionSnapshot } from "@no-pi-no-gang/contracts";
+import type {
+  EventCursor,
+  GatewayEvent,
+  RunId,
+  SessionId,
+  SessionSnapshot,
+} from "@no-pi-no-gang/contracts";
 import type { QueryClient } from "@tanstack/vue-query";
 import type { useLiveOverlayStore } from "@/features/sync/live-overlay-store";
 import { projectDurableEvent } from "@/features/sync/projector";

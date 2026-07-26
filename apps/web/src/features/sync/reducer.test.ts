@@ -103,7 +103,7 @@ describe("reduceLiveOverlay ordering", () => {
   });
 
   it("ignores duplicate run sequences", () => {
-    let state = reduceLiveOverlay(createEmptyLiveOverlay(), delta({ seq: 1 })).next;
+    const state = reduceLiveOverlay(createEmptyLiveOverlay(), delta({ seq: 1 })).next;
     const dup = reduceLiveOverlay(state, delta({ seq: 2, runSeq: 1 }));
     expect(dup.effect).toEqual({
       kind: "ignored",

@@ -152,7 +152,7 @@ describe("session projection", () => {
         )?.projection_generation,
       ).toBe(1);
 
-      await writeFile(source, `${base}{\"type\":\"message\",\"id\":\"second\"`);
+      await writeFile(source, `${base}{"type":"message","id":"second"`);
       expect((await projectSession(store, "session_1", source)).health).toBe("dirty_tail");
       expect(
         store.row<{ projection_generation: number }>(

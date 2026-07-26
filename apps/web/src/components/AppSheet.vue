@@ -73,6 +73,7 @@ function onBackdropClick(event: MouseEvent): void {
 
 <template>
   <Teleport to="body">
+    <!-- biome-ignore lint/a11y/noStaticElementInteractions: The backdrop closes only on self-click; the dialog owns keyboard focus. -->
     <div
       v-if="open"
       class="sheet-backdrop"

@@ -4,7 +4,7 @@ import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   APPLICATION_ID,
-  DatabaseError,
+  type DatabaseError,
   listBackups,
   openDatabase,
   restoreBackup,

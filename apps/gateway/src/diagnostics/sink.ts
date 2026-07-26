@@ -16,6 +16,7 @@ export type SafeDiagnosticEvent = {
 
 const stringFields = ["requestId", "commandId", "component", "state", "fingerprint"] as const;
 const numberFields = ["status", "count"] as const;
+// biome-ignore lint/suspicious/noControlCharactersInRegex: Diagnostic fields must strip control characters.
 const clean = (value: string): string => value.replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, 160);
 
 export class DiagnosticSink {

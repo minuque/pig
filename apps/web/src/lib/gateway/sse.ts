@@ -104,10 +104,11 @@ export async function* readSseFrames(body: ReadableStream<Uint8Array>): AsyncIte
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      let newline: number;
-      while ((newline = buffer.indexOf("\n")) !== -1) {
+      let newline = buffer.indexOf("\n");
+      while (newline !== -1) {
         const line = buffer.slice(0, newline).replace(/\r$/, "");
         buffer = buffer.slice(newline + 1);
+        newline = buffer.indexOf("\n");
         if (line === "") {
           const frame = dispatch();
           if (frame) yield frame;
