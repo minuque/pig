@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { SessionId, WorkspaceId } from "@no-pi-no-gang/contracts";
+import type {
+  ProviderId,
+  SessionId,
+  WorkspaceId,
+} from "@no-pi-no-gang/contracts";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import ResponsiveNavigation from "@/components/ResponsiveNavigation.vue";
@@ -23,6 +27,18 @@ const overlayStore = useLiveOverlayStore();
 const { preference, setTheme } = useTheme();
 
 const authOpen = ref(false);
+/** Provider the auth sheet should target; null opens the untargeted center. */
+const authProviderId = ref<ProviderId | null>(null);
+
+function openAuth(providerId: ProviderId | null): void {
+  authProviderId.value = providerId;
+  authOpen.value = true;
+}
+
+function closeAuth(): void {
+  authOpen.value = false;
+  authProviderId.value = null;
+}
 
 const CONNECTION_LABELS = {
   connecting: "正在连接…",
@@ -97,7 +113,7 @@ function onSessionDeleted(id: SessionId): void {
           type="button"
           class="btn"
           aria-haspopup="dialog"
-          @click="authOpen = true"
+          @click="openAuth(null)"
         >
           Provider 授权
         </button>
@@ -122,10 +138,14 @@ function onSessionDeleted(id: SessionId): void {
     </ResponsiveNavigation>
 
     <main class="shell-main">
-      <ConversationPanel :session-id="sessionId" />
+      <ConversationPanel :session-id="sessionId" @authorize="openAuth" />
     </main>
 
-    <ProviderAuthFlow :open="authOpen" @close="authOpen = false" />
+    <ProviderAuthFlow
+      :open="authOpen"
+      :provider-id="authProviderId"
+      @close="closeAuth"
+    />
   </div>
 </template>
 

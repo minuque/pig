@@ -11,12 +11,15 @@ import {
   mockProviderAuth,
 } from "@/test-support/mock-client";
 
-function mountFlow(client: ReturnType<typeof createMockGatewayClient>) {
+function mountFlow(
+  client: ReturnType<typeof createMockGatewayClient>,
+  queryClient = new QueryClient(),
+) {
   return mount(ProviderAuthFlow, {
     props: { open: true },
     attachTo: document.body,
     global: {
-      plugins: [[VueQueryPlugin, { queryClient: new QueryClient() }]],
+      plugins: [[VueQueryPlugin, { queryClient }]],
       provide: { [GatewayClientKey as symbol]: client },
       stubs: { teleport: true },
     },
@@ -52,6 +55,88 @@ describe("ProviderAuthFlow secrets", () => {
       expect.objectContaining({ apiKey: "sk-secret-value" }),
     );
     expect((passwordInput(wrapper).element as HTMLInputElement).value).toBe("");
+    wrapper.unmount();
+  });
+
+  it("clears the API key from state and DOM before the write promise settles", async () => {
+    const client = createMockGatewayClient();
+    vi.mocked(client.providerAuth.list).mockResolvedValue([
+      mockProviderAuth({ methods: ["apiKey"] }),
+    ]);
+    let resolveWrite!: (value: unknown) => void;
+    vi.mocked(client.providerAuth.setApiKey).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveWrite = resolve as (value: unknown) => void;
+        }),
+    );
+    const queryClient = new QueryClient();
+    const wrapper = mountFlow(client, queryClient);
+    await flushPromises();
+
+    const input = passwordInput(wrapper);
+    await input.setValue("sk-canary-pending");
+    await wrapper.find("form.provider-row").trigger("submit");
+
+    // The write is still in flight, yet state and DOM are already empty.
+    expect(client.providerAuth.setApiKey).toHaveBeenCalledWith(
+      expect.objectContaining({ apiKey: "sk-canary-pending" }),
+    );
+    expect((passwordInput(wrapper).element as HTMLInputElement).value).toBe("");
+
+    resolveWrite(mockMutationResult(mockProviderAuth({ state: "ready" })));
+    await flushPromises();
+    expect((passwordInput(wrapper).element as HTMLInputElement).value).toBe("");
+    expect(JSON.stringify(queryClient.getQueryCache().getAll())).not.toContain("sk-canary-pending");
+    wrapper.unmount();
+  });
+
+  it("clears a sensitive prompt answer before the respond promise settles", async () => {
+    const client = createMockGatewayClient();
+    vi.mocked(client.providerAuth.list).mockResolvedValue([
+      mockProviderAuth({
+        providerId: "openai" as ProviderId,
+        methods: ["authFlow"],
+      }),
+    ]);
+    const flow = mockAuthFlow({
+      providerId: "openai" as ProviderId,
+      interaction: {
+        kind: "prompt",
+        promptId: "p1",
+        label: "输入验证码",
+        sensitive: true,
+      },
+    });
+    vi.mocked(client.authFlows.create).mockResolvedValue(mockMutationResult(flow));
+    vi.mocked(client.authFlows.get).mockResolvedValue(flow);
+    let resolveRespond!: (value: unknown) => void;
+    vi.mocked(client.authFlows.respond).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRespond = resolve as (value: unknown) => void;
+        }),
+    );
+    const queryClient = new QueryClient();
+    const wrapper = mountFlow(client, queryClient);
+    await flushPromises();
+
+    await startButton(wrapper)!.trigger("click");
+    await flushPromises();
+    const input = wrapper.find("#auth-prompt-response");
+    await input.setValue("my-canary-answer");
+    await wrapper.find("form.interaction").trigger("submit");
+
+    // Pending respond promise: the secret is already gone from state and DOM.
+    expect(client.authFlows.respond).toHaveBeenCalledWith(
+      expect.objectContaining({ response: "my-canary-answer" }),
+    );
+    expect((wrapper.find("#auth-prompt-response").element as HTMLInputElement).value).toBe("");
+
+    resolveRespond(mockMutationResult(flow));
+    await flushPromises();
+    expect(wrapper.text()).not.toContain("my-canary-answer");
+    expect(JSON.stringify(queryClient.getQueryCache().getAll())).not.toContain("my-canary-answer");
     wrapper.unmount();
   });
 
@@ -216,16 +301,32 @@ describe("ProviderAuthFlow interactions", () => {
     const wrapper = mountFlow(client);
     await flushPromises();
 
+    let resolveRespond!: (value: unknown) => void;
+    vi.mocked(client.authFlows.respond).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRespond = resolve as (value: unknown) => void;
+        }),
+    );
     await startButton(wrapper)!.trigger("click");
     await flushPromises();
     const radios = wrapper.findAll('input[type="radio"]');
     expect(radios).toHaveLength(2);
     await radios[1]!.setValue(true);
     await wrapper.find("form.interaction").trigger("submit");
-    await flushPromises();
 
+    // The choice is cleared from state and DOM before the promise settles.
     expect(client.authFlows.respond).toHaveBeenCalledWith(
       expect.objectContaining({ promptId: "s1", response: "team" }),
+    );
+    expect((wrapper.findAll('input[type="radio"]')[1]!.element as HTMLInputElement).checked).toBe(
+      false,
+    );
+
+    resolveRespond(mockMutationResult(flow));
+    await flushPromises();
+    expect((wrapper.findAll('input[type="radio"]')[1]!.element as HTMLInputElement).checked).toBe(
+      false,
     );
     wrapper.unmount();
   });

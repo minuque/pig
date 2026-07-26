@@ -75,4 +75,38 @@ describe("PromptComposer Run semantics", () => {
     expect(wrapper.find('select[aria-label="模型"]').attributes("disabled")).toBeUndefined();
     wrapper.unmount();
   });
+
+  it("offers a provider-directed authorize action for an unavailable model", async () => {
+    const client = createMockGatewayClient();
+    vi.mocked(client.models.list).mockResolvedValue([
+      {
+        modelId: "model_down",
+        providerId: "anthropic",
+        name: "Down model",
+        available: false,
+        thinkingLevels: ["medium"],
+      } as never,
+    ]);
+    const wrapper = mount(PromptComposer, {
+      props: {
+        sessionId: "session_1" as never,
+        activeRun: null,
+        sessionAvailable: true,
+      },
+      global: {
+        plugins: [createPinia(), [VueQueryPlugin, { queryClient: new QueryClient() }]],
+        provide: { [GatewayClientKey as symbol]: client },
+      },
+    });
+    await flushPromises();
+
+    const authorize = wrapper
+      .findAll("button")
+      .find((button) => button.text() === "授权 anthropic");
+    expect(authorize).toBeDefined();
+    expect(authorize!.attributes("type")).toBe("button");
+    await authorize!.trigger("click");
+    expect(wrapper.emitted("authorize")).toEqual([["anthropic"]]);
+    wrapper.unmount();
+  });
 });

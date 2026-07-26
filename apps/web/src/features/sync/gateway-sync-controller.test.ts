@@ -74,7 +74,7 @@ describe("GatewaySyncController recovery", () => {
           yield { kind: "event", event: delta(3, 1, "lost") } as const;
         })();
       }
-      expect(input.after).toBe("epoch_2:10");
+      expect(input.after).toBe("epoch_2:12");
       return (async function* () {})();
     });
     vi.mocked(client.bootstrap.get).mockResolvedValue({
@@ -119,9 +119,128 @@ describe("GatewaySyncController recovery", () => {
     expect(
       queryClient.getQueryData(gatewayKeys.sessions.snapshot("session_1" as never)),
     ).toStrictEqual(replacement);
-    expect(store.overlay.cursor).toBe("epoch_2:10");
+    expect(store.overlay.cursor).toBe("epoch_2:12");
     expect(store.overlay.bySession.session_1?.run_replacement?.text).toBe("verified");
     expect(store.overlay.bySession.session_1?.run_1).toBeUndefined();
+    await controller.stop();
+  });
+
+  it("resumes the stream from the newest verified snapshot cursor without re-reducing covered events", async () => {
+    const client = createMockGatewayClient();
+    let opens = 0;
+    vi.mocked(client.events.open).mockImplementation((input) => {
+      opens += 1;
+      if (opens === 1) {
+        return (async function* () {
+          yield { kind: "event", event: delta(3, 1, "lost") } as const;
+        })();
+      }
+      // Events between the bootstrap cursor (epoch_1:10) and the snapshot
+      // cursor (epoch_1:14) are already covered by the snapshot; the stream
+      // must resume strictly after it instead of replaying them.
+      expect(input.after).toBe("epoch_1:14");
+      return (async function* () {
+        yield { kind: "event", event: delta(15, 1, " live") } as const;
+      })();
+    });
+    vi.mocked(client.bootstrap.get).mockResolvedValue({
+      ...mockBootstrap,
+      capturedEventCursor: "epoch_1:10",
+      nonterminalRuns: [],
+    } as never);
+    const snapshot: SessionSnapshot = {
+      ...mockSessionSnapshot(),
+      capturedEventCursor: "epoch_1:14" as never,
+      partialOutputs: [{ runId: "run_1", text: "covered", thinking: "", tools: [] }],
+    } as unknown as SessionSnapshot;
+    vi.mocked(client.sessions.snapshot).mockResolvedValue(snapshot);
+
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(
+      gatewayKeys.sessions.snapshot("session_1" as never),
+      mockSessionSnapshot(),
+    );
+    const store = useLiveOverlayStore();
+    store.resetAll("epoch_1:1" as never, []);
+    const controller = new GatewaySyncController({
+      client,
+      queryClient,
+      store,
+      coalesceMs: 5,
+      resyncDelayMs: 5,
+    });
+    controller.start("epoch_1:1" as never);
+
+    await eventually(() =>
+      expect(store.overlay.bySession.session_1?.run_1?.text).toBe("covered live"),
+    );
+    expect(store.overlay.cursor).toBe("epoch_1:15");
+    await controller.stop();
+  });
+
+  it("resets recovery on an epoch-divergent snapshot and only installs a consistent re-capture", async () => {
+    const client = createMockGatewayClient();
+    let opens = 0;
+    const resumeCursors: unknown[] = [];
+    vi.mocked(client.events.open).mockImplementation((input) => {
+      opens += 1;
+      if (opens === 1) {
+        return (async function* () {
+          yield { kind: "event", event: delta(3, 1, "lost") } as const;
+        })();
+      }
+      resumeCursors.push(input.after);
+      return (async function* () {})();
+    });
+    vi.mocked(client.bootstrap.get)
+      .mockResolvedValueOnce({
+        ...mockBootstrap,
+        capturedEventCursor: "epoch_1:10",
+        nonterminalRuns: [],
+      } as never)
+      .mockResolvedValue({
+        ...mockBootstrap,
+        capturedEventCursor: "epoch_2:20",
+        nonterminalRuns: [],
+      } as never);
+    const mixedSnapshot: SessionSnapshot = {
+      ...mockSessionSnapshot(),
+      capturedEventCursor: "epoch_2:14" as never,
+      partialOutputs: [{ runId: "run_1", text: "mixed", thinking: "", tools: [] }],
+    } as unknown as SessionSnapshot;
+    const consistentSnapshot: SessionSnapshot = {
+      ...mockSessionSnapshot(),
+      capturedEventCursor: "epoch_2:22" as never,
+      partialOutputs: [{ runId: "run_1", text: "verified", thinking: "", tools: [] }],
+    } as unknown as SessionSnapshot;
+    vi.mocked(client.sessions.snapshot)
+      .mockResolvedValueOnce(mixedSnapshot)
+      .mockResolvedValue(consistentSnapshot);
+
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(
+      gatewayKeys.sessions.snapshot("session_1" as never),
+      mockSessionSnapshot(),
+    );
+    const store = useLiveOverlayStore();
+    store.resetAll("epoch_1:1" as never, []);
+    const controller = new GatewaySyncController({
+      client,
+      queryClient,
+      store,
+      coalesceMs: 5,
+      resyncDelayMs: 5,
+    });
+    controller.start("epoch_1:1" as never);
+
+    await eventually(() => expect(store.overlay.bySession.session_1?.run_1?.text).toBe("verified"));
+    // The mixed-epoch capture was discarded wholesale, never committed.
+    expect(client.bootstrap.get).toHaveBeenCalledTimes(2);
+    expect(resumeCursors).toEqual(["epoch_2:22"]);
+    expect(store.overlay.cursor).toBe("epoch_2:22");
+    expect(
+      queryClient.getQueryData(gatewayKeys.sessions.snapshot("session_1" as never)),
+    ).toStrictEqual(consistentSnapshot);
     await controller.stop();
   });
 });

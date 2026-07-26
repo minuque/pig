@@ -6,7 +6,7 @@ import type {
   ProviderId,
 } from "@no-pi-no-gang/contracts";
 import { useQuery, useQueryClient } from "@tanstack/vue-query";
-import { computed, onBeforeUnmount, reactive, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from "vue";
 import AppSheet from "@/components/AppSheet.vue";
 import { useGatewayClient } from "@/lib/gateway/client-context";
 import { gatewayKeys } from "@/lib/gateway/keys";
@@ -20,7 +20,11 @@ import { newCommandId } from "@/lib/utils/command";
  * the authFlow query (kept fresh by SSE projection and polling while
  * pending); expired/restarted flows become uncontinuable terminal states.
  */
-const props = defineProps<{ open: boolean }>();
+const props = defineProps<{
+  open: boolean;
+  /** Provider to highlight when the sheet opens (e.g. from the composer). */
+  providerId?: ProviderId | null;
+}>();
 const emit = defineEmits<{ close: [] }>();
 
 const client = useGatewayClient();
@@ -31,6 +35,26 @@ const providersQuery = useQuery({
   queryFn: () => client.providerAuth.list(),
 });
 const providers = computed(() => providersQuery.data.value ?? []);
+
+/** Provider the sheet was opened for; its card is marked and scrolled to. */
+const targetedProvider = computed(() => {
+  const id = props.providerId;
+  if (id === null || id === undefined) return null;
+  return providers.value.find((provider) => provider.providerId === id) ?? null;
+});
+
+watch(
+  () => [props.open, targetedProvider.value] as const,
+  async ([open, target]) => {
+    if (!open || !target) return;
+    await nextTick();
+    const card = document.getElementById(`provider-card-${target.providerId}`);
+    // Focus stays with the sheet; only the scroll position is adjusted.
+    if (card && typeof card.scrollIntoView === "function") {
+      card.scrollIntoView({ block: "nearest" });
+    }
+  },
+);
 
 /* ---------- secrets: local, write-only, eagerly cleared ---------- */
 
@@ -78,18 +102,17 @@ async function refreshProviders(): Promise<void> {
 async function saveApiKey(provider: ProviderAuthStatus): Promise<void> {
   const apiKey = apiKeys[provider.providerId] ?? "";
   if (apiKey === "" || busy.value) return;
-  try {
-    const ok = await run(() =>
-      client.providerAuth.setApiKey({
-        providerId: provider.providerId,
-        commandId: newCommandId(),
-        apiKey,
-      }),
-    );
-    if (ok) await refreshProviders();
-  } finally {
-    apiKeys[provider.providerId] = "";
-  }
+  // Write-only: clear state and DOM *before* the client promise starts; the
+  // local constant serves this single write and is never restored.
+  apiKeys[provider.providerId] = "";
+  const ok = await run(() =>
+    client.providerAuth.setApiKey({
+      providerId: provider.providerId,
+      commandId: newCommandId(),
+      apiKey,
+    }),
+  );
+  if (ok) await refreshProviders();
 }
 
 async function removeCredential(provider: ProviderAuthStatus): Promise<void> {
@@ -160,18 +183,16 @@ async function submitPrompt(flow: AuthFlow): Promise<void> {
   if (interaction?.kind !== "prompt") return;
   const response = promptResponse.value;
   if (response === "" || busy.value) return;
-  try {
-    await run(() =>
-      client.authFlows.respond({
-        flowId: flow.flowId,
-        commandId: newCommandId(),
-        promptId: interaction.promptId,
-        response,
-      }),
-    );
-  } finally {
-    promptResponse.value = "";
-  }
+  // Clear before the write; the answer is never restored afterwards.
+  promptResponse.value = "";
+  await run(() =>
+    client.authFlows.respond({
+      flowId: flow.flowId,
+      commandId: newCommandId(),
+      promptId: interaction.promptId,
+      response,
+    }),
+  );
 }
 
 async function submitSelect(flow: AuthFlow): Promise<void> {
@@ -179,18 +200,16 @@ async function submitSelect(flow: AuthFlow): Promise<void> {
   if (interaction?.kind !== "select") return;
   const response = selectResponse.value;
   if (response === "" || busy.value) return;
-  try {
-    await run(() =>
-      client.authFlows.respond({
-        flowId: flow.flowId,
-        commandId: newCommandId(),
-        promptId: interaction.promptId,
-        response,
-      }),
-    );
-  } finally {
-    selectResponse.value = "";
-  }
+  // Clear before the write; the choice is never restored afterwards.
+  selectResponse.value = "";
+  await run(() =>
+    client.authFlows.respond({
+      flowId: flow.flowId,
+      commandId: newCommandId(),
+      promptId: interaction.promptId,
+      response,
+    }),
+  );
 }
 
 async function cancelFlow(): Promise<void> {
@@ -227,6 +246,9 @@ watch(
   <AppSheet :open="open" title="Provider 授权" @close="emit('close')">
     <div class="auth">
       <p v-if="error" class="auth-error" role="alert">{{ error }}</p>
+      <p v-if="targetedProvider" class="auth-target">
+        为 {{ targetedProvider.providerId }} 完成授权后，对应模型即可使用。
+      </p>
 
       <section v-if="currentFlow" class="auth-flow" aria-label="授权流程">
         <p class="auth-flow-state">
@@ -356,8 +378,13 @@ watch(
 
       <section
         v-for="provider in providers"
+        :id="`provider-card-${provider.providerId}`"
         :key="provider.providerId"
         class="provider-card"
+        :class="{
+          'provider-card--targeted':
+            targetedProvider?.providerId === provider.providerId,
+        }"
       >
         <header class="provider-head">
           <h3 class="provider-name">{{ provider.providerId }}</h3>
@@ -504,6 +531,19 @@ fieldset {
   gap: var(--space-2);
   padding: var(--space-3) 0;
   border-top: 1px solid var(--color-border);
+}
+
+.provider-card--targeted {
+  margin: 0 calc(-1 * var(--space-3));
+  padding: var(--space-3);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-control);
+}
+
+.auth-target {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-foreground-muted);
 }
 
 .provider-head {

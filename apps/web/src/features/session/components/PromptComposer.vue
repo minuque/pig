@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {
   ExecutionProfile,
+  ProviderId,
   RunSummary,
   SessionId,
   ThinkingLevel,
@@ -25,6 +26,9 @@ const props = defineProps<{
   activeRun: RunSummary | null;
   sessionAvailable: boolean;
 }>();
+
+/** Provider authorization intent travels up; the shell owns the sheet. */
+const emit = defineEmits<{ authorize: [providerId: ProviderId] }>();
 
 const client = useGatewayClient();
 const { text: draftText, clear: clearDraft } = useDraft(
@@ -56,6 +60,18 @@ const selectedModel = computed(
   () =>
     models.value.find((model) => model.modelId === userModelId.value) ?? null,
 );
+
+/** The selected model when it cannot run until its provider is authorized. */
+const unavailableModel = computed(() => {
+  const model = selectedModel.value;
+  return model !== null && !model.available ? model : null;
+});
+
+function authorizeUnavailable(): void {
+  const model = unavailableModel.value;
+  if (model === null) return;
+  emit("authorize", model.providerId);
+}
 
 watch(selectedModel, (model) => {
   if (model && !model.thinkingLevels.includes(userThinkingLevel.value)) {
@@ -194,6 +210,14 @@ async function cancelRun(): Promise<void> {
         当前 Run：{{ admittedRun.executionProfile.modelId }} /
         {{ admittedRun.executionProfile.thinkingLevel }}（已冻结）
       </span>
+      <button
+        v-if="unavailableModel"
+        type="button"
+        class="btn"
+        @click="authorizeUnavailable"
+      >
+        授权 {{ unavailableModel.providerId }}
+      </button>
     </div>
 
     <label class="visually-hidden" for="prompt-input">输入 Prompt</label>

@@ -106,6 +106,52 @@ function getHighlighter(): Promise<HighlighterCore> {
 export type HighlightedRoot = Awaited<ReturnType<HighlighterCore["codeToHast"]>>;
 
 /**
+ * WCAG AA token fixes (issue 16): a few stock github-light/github-dark
+ * palette entries fall below 4.5:1 on the app code surfaces (#ecebe6 /
+ * #111110). They are remapped to the closest readable sibling tone; every
+ * other token keeps the stock GitHub palette. Keys are lowercase hex.
+ */
+export const LIGHT_TOKEN_COLOR_FIXES: Readonly<Record<string, string>> = {
+  "#d73a49": "#b31d28", // keyword / storage red → deeper red
+  "#e36209": "#9a4600", // variable orange → burnt orange
+  "#22863a": "#116d2c", // tag / regexp / escape green → deeper green
+  "#6a737d": "#57606a", // comment gray → darker gray
+  "#f6f8fa": "#57606a", // markup.ignored: invisible on the code surface
+  "#fafbfc": "#57606a", // carriage-return: invisible on the code surface
+};
+
+export const DARK_TOKEN_COLOR_FIXES: Readonly<Record<string, string>> = {
+  "#6a737d": "#8b949e", // comment gray → lighter gray
+  "#2f363d": "#8b949e", // markup.ignored: invisible on the code surface
+  "#24292e": "#8b949e", // carriage-return: invisible on the code surface
+};
+
+/** Rewrite one `--shiki-{light,dark}` style entry when it needs an AA fix. */
+function fixTokenStyle(style: string): string {
+  return style.replace(
+    /--shiki-(light|dark):(#[0-9a-f]{6})/gi,
+    (declaration, kind: string, color: string) => {
+      const fixes =
+        kind.toLowerCase() === "light" ? LIGHT_TOKEN_COLOR_FIXES : DARK_TOKEN_COLOR_FIXES;
+      const fixed = fixes[color.toLowerCase()];
+      return fixed === undefined ? declaration : `--shiki-${kind}:${fixed}`;
+    },
+  );
+}
+
+/** Apply token color fixes in place; codeToHast returns a fresh tree. */
+function remapTokenColors(node: HastNode): void {
+  if (node.type === "element") {
+    const element = node as HastElement;
+    if (typeof element.properties?.style === "string" && element.properties.style !== "") {
+      element.properties.style = fixTokenStyle(element.properties.style);
+    }
+  }
+  const children = (node as { children?: HastNode[] }).children ?? [];
+  for (const child of children) remapTokenColors(child);
+}
+
+/**
  * Highlight code into a HAST tree with dual light/dark CSS variables.
  * Returns null for unknown/plain languages (rendered as plain code).
  */
@@ -125,10 +171,15 @@ export async function highlightToHast(
     );
     loadedLanguages.add(normalized);
   }
-  return highlighter.codeToHast(code, {
+  const root = highlighter.codeToHast(code, {
     lang: normalized,
     themes: { light: "github-light", dark: "github-dark" },
+    // Both themes as CSS variables (never an inline `color`, which would
+    // override the --shiki-active bridge and pin one theme everywhere).
+    defaultColor: false,
   });
+  remapTokenColors(root as HastNode);
+  return root;
 }
 
 /* ---------- HAST → VNode (safe subset: pre/code/span + class/style) ------- */

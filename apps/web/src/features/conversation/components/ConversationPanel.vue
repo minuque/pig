@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SessionId } from "@no-pi-no-gang/contracts";
+import type { ProviderId, SessionId } from "@no-pi-no-gang/contracts";
 import { computed, toRef } from "vue";
 import PromptComposer from "@/features/session/components/PromptComposer.vue";
 import { useSessionView } from "@/features/session/use-session-view";
@@ -12,6 +12,7 @@ import TranscriptList from "@/features/transcript/components/TranscriptList.vue"
  * the two views together.
  */
 const props = defineProps<{ sessionId: SessionId | undefined }>();
+const emit = defineEmits<{ authorize: [providerId: ProviderId] }>();
 
 const {
   session,
@@ -74,6 +75,8 @@ const sessionAvailable = computed(
       </p>
 
       <TranscriptList
+        v-if="sessionId !== undefined"
+        :session-id="sessionId"
         :entries="entries"
         :pending="snapshotPending || transcriptPending"
         :can-load-older="canLoadOlder"
@@ -86,6 +89,7 @@ const sessionAvailable = computed(
         :session-id="sessionId"
         :active-run="activeRun"
         :session-available="sessionAvailable"
+        @authorize="emit('authorize', $event)"
       />
     </template>
   </section>

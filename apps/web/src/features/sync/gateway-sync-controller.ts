@@ -1,15 +1,10 @@
-import type {
-  EventCursor,
-  GatewayEvent,
-  RunId,
-  SessionId,
-  SessionSnapshot,
-} from "@no-pi-no-gang/contracts";
+import type { EventCursor, GatewayEvent, RunId, SessionId, SessionSnapshot } from "@no-pi-no-gang/contracts";
 import type { QueryClient } from "@tanstack/vue-query";
 import type { useLiveOverlayStore } from "@/features/sync/live-overlay-store";
 import { projectDurableEvent } from "@/features/sync/projector";
 import {
   createEmptyLiveOverlay,
+  cursorSeq,
   ensureRunOverlay,
   type LiveOverlayState,
   overlayFromPartialOutputs,
@@ -25,6 +20,31 @@ import { gatewayKeys } from "@/lib/gateway/keys";
 import type { UnknownGatewayEvent } from "@/lib/gateway/sse";
 
 type LiveOverlayStore = ReturnType<typeof useLiveOverlayStore>;
+
+/**
+ * Stream resume cursor after recovery: the newest same-epoch sequence
+ * covered by the verified snapshots and the bootstrap. A snapshot captured
+ * under a different epoch — or behind the bootstrap cursor — makes the
+ * staged replacement unsafe, so recovery resets instead of re-reducing
+ * events the snapshots already covered.
+ */
+function recoveryResumeCursor(
+  bootstrapCursor: EventCursor,
+  snapshotCursors: readonly EventCursor[],
+): EventCursor | null {
+  const boundary = bootstrapCursor.lastIndexOf(":");
+  const bootstrapSeq = cursorSeq(bootstrapCursor);
+  if (boundary <= 0 || bootstrapSeq < 0) return null;
+  const epoch = bootstrapCursor.slice(0, boundary);
+  let maxSeq = bootstrapSeq;
+  for (const cursor of snapshotCursors) {
+    const seq = cursorSeq(cursor);
+    if (seq < bootstrapSeq) return null;
+    if (cursor.slice(0, cursor.lastIndexOf(":")) !== epoch) return null;
+    if (seq > maxSeq) maxSeq = seq;
+  }
+  return `${epoch}:${maxSeq}` as EventCursor;
+}
 
 export interface GatewaySyncControllerDeps {
   client: WebGatewayClient;
@@ -206,7 +226,17 @@ export class GatewaySyncController {
         );
         if (this.#stopped) return;
 
-        let replacement = withCursor(createEmptyLiveOverlay(), bootstrap.capturedEventCursor);
+        const resumeCursor = recoveryResumeCursor(
+          bootstrap.capturedEventCursor,
+          snapshots.map(({ snapshot }) => snapshot.capturedEventCursor),
+        );
+        if (resumeCursor === null) {
+          // Discard the staged capture wholesale; the retry re-captures a
+          // consistent bootstrap + snapshot set under one epoch.
+          throw new Error("Recovery snapshots diverged from the bootstrap cursor");
+        }
+
+        let replacement = withCursor(createEmptyLiveOverlay(), resumeCursor);
         for (const run of bootstrap.nonterminalRuns) {
           replacement = ensureRunOverlay(replacement, run);
         }
@@ -233,7 +263,7 @@ export class GatewaySyncController {
         this.#overlayState = replacement;
         this.#deps.store.commit(replacement);
         if (this.#stopped) return;
-        void this.#run(bootstrap.capturedEventCursor, ++this.#loopId);
+        void this.#run(resumeCursor, ++this.#loopId);
       } catch {
         if (this.#stopped) return;
         this.#deps.store.setConnection("reconnecting");

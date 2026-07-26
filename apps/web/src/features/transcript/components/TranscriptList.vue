@@ -1,14 +1,38 @@
+<script lang="ts">
+import type { SessionId } from "@no-pi-no-gang/contracts";
+
+/**
+ * Per-Session scroll memory: purely in-memory, keyed by Session ID.
+ * Positions survive Session switches and remounts within the page lifetime,
+ * are never persisted, and are never shared across Sessions.
+ */
+interface TranscriptScrollPosition {
+  scrollTop: number;
+  nearTail: boolean;
+}
+
+const scrollPositions = new Map<SessionId, TranscriptScrollPosition>();
+</script>
+
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import type { TranscriptEntry } from "@/features/session/use-session-view";
 import TranscriptItem from "@/features/transcript/components/TranscriptItem.vue";
 
 /**
- * Scrollable Transcript. While the user is near the tail, new entries keep
- * the view pinned to the bottom; after scrolling up, new entries no longer
- * yank the scroll position — a "jump to latest" button appears instead.
- * Screen readers get only coarse phase announcements (never per-token)
- * through a visually hidden polite status region.
+ * Scrollable Transcript. While the user is near the tail, new entries and
+ * in-place live updates keep the view pinned to the bottom; after scrolling
+ * up, updates no longer yank the scroll position — a "jump to latest"
+ * button appears instead. Scroll positions are saved and restored per
+ * Session. Screen readers get only coarse phase announcements (never
+ * per-token) through a visually hidden polite status region.
  */
 const props = defineProps<{
   entries: TranscriptEntry[];
@@ -16,6 +40,7 @@ const props = defineProps<{
   canLoadOlder: boolean;
   historyTruncated: boolean;
   liveAnnouncement: string;
+  sessionId: SessionId;
 }>();
 const emit = defineEmits<{ loadOlder: [] }>();
 
@@ -44,16 +69,70 @@ async function scrollToTail(): Promise<void> {
   jumpVisible.value = false;
 }
 
+function savePosition(sessionId: SessionId): void {
+  const el = scroller.value;
+  if (!el) return;
+  scrollPositions.set(sessionId, {
+    scrollTop: el.scrollTop,
+    nearTail: nearTail.value,
+  });
+}
+
+function restorePosition(sessionId: SessionId): void {
+  const el = scroller.value;
+  const saved = scrollPositions.get(sessionId);
+  if (!el || !saved || saved.nearTail) {
+    // Unvisited or tail-pinned Session: follow the tail again.
+    void scrollToTail();
+    return;
+  }
+  el.scrollTop = saved.scrollTop;
+  nearTail.value = false;
+  jumpVisible.value = false;
+}
+
+let switchingSession = false;
+
 watch(
-  () => props.entries.length,
-  () => {
-    if (nearTail.value) void scrollToTail();
-    else jumpVisible.value = true;
+  () => props.sessionId,
+  async (next, previous) => {
+    savePosition(previous);
+    switchingSession = true;
+    await nextTick();
+    restorePosition(next);
+    switchingSession = false;
   },
 );
 
+/**
+ * Follow signal: entry identity plus live content sizes, so token updates
+ * to an existing live entry trigger tail-follow even when the entry count
+ * is unchanged.
+ */
+const followSignal = computed(() =>
+  props.entries
+    .map((entry) =>
+      entry.kind === "durable"
+        ? entry.key
+        : `${entry.key}:${entry.run.text.length}:${entry.run.thinking.length}:${entry.run.toolOrder.length}`,
+    )
+    .join("|"),
+);
+
+watch(followSignal, () => {
+  if (switchingSession) return;
+  if (nearTail.value) void scrollToTail();
+  else jumpVisible.value = true;
+});
+
 onMounted(() => {
-  void scrollToTail();
+  restorePosition(props.sessionId);
+});
+
+onBeforeUnmount(() => {
+  // Template listeners detach with the component; the position registry is
+  // per-process and intentionally survives the unmount.
+  savePosition(props.sessionId);
 });
 </script>
 

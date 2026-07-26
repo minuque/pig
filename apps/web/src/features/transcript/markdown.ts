@@ -96,7 +96,9 @@ function blockTokensToVNodes(tokens: Token[]): VNodeChild[] {
         out.push(
           h(CodeBlock, {
             key,
-            code: token.content.replace(/\n$/, ""),
+            // The model keeps the exact token content (including the
+            // trailing newline); trimming is a display-only concern.
+            code: token.content,
             language,
           }),
         );

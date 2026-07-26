@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, shallowRef, type VNodeChild, watch } from "vue";
+import { computed, ref, shallowRef, type VNodeChild, watch } from "vue";
 import { VNodeSlot } from "@/components/VNodeSlot";
 import {
   hastToVNodes,
@@ -17,11 +17,20 @@ const props = withDefaults(defineProps<{ code: string; language?: string }>(), {
   language: "",
 });
 
+/**
+ * Display-only view: exactly one trailing separator newline is trimmed so
+ * blocks do not render a spurious empty last line. The `code` model and the
+ * clipboard payload always keep the raw string.
+ */
+const displayCode = computed(() =>
+  props.code.endsWith("\n") ? props.code.slice(0, -1) : props.code,
+);
+
 const highlighted = shallowRef<VNodeChild[] | null>(null);
 let loadSeq = 0;
 
 watch(
-  () => [props.code, props.language] as const,
+  () => [displayCode.value, props.language] as const,
   async ([code, language]) => {
     const seq = ++loadSeq;
     if (normalizeLanguage(language) === null) {
@@ -72,7 +81,7 @@ async function copy(): Promise<void> {
         {{ copied ? "已复制" : "复制" }}
       </button>
     </figcaption>
-    <pre v-if="highlighted === null"><code>{{ code }}</code></pre>
+    <pre v-if="highlighted === null"><code>{{ displayCode }}</code></pre>
     <VNodeSlot v-else :nodes="highlighted" />
   </figure>
 </template>
