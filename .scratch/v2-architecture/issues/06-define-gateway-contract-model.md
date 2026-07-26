@@ -16,6 +16,7 @@ Which versioned resources, commands, snapshots, event envelopes, error taxonomy,
 export const endpoints: EndpointRegistry
 
 export interface GatewayClient {
+  gatewayAuth: GatewayAuthClient
   bootstrap: BootstrapClient
   workspaces: WorkspaceClient
   sessions: SessionClient
@@ -34,6 +35,7 @@ The endpoint registry is the sole declaration of each operation's `operationId`,
 The v1 public resources are:
 
 - `Bootstrap` and `Capabilities`;
+- `WorkspaceRegistrationPreview`;
 - `WorkspaceSummary` and `WorkspaceDetail`;
 - `SessionSummary` and `SessionDetail`;
 - `TranscriptItem` and `SessionSnapshot`;
@@ -58,9 +60,11 @@ Every item has a stable public `entryId`. `unsupported` preserves only safe iden
 All public endpoints use `/api/v1`:
 
 ```text
+POST /api/v1/gateway-auth/bootstrap
 GET  /api/v1/bootstrap
 GET  /api/v1/events
 
+POST /api/v1/workspace-registration-previews
 GET  /api/v1/workspaces
 POST /api/v1/workspaces
 GET  /api/v1/workspaces/:workspaceId
@@ -117,9 +121,15 @@ type CursorPage<T> = { items: T[]; nextCursor: OpaqueCursor | null }
 
 Callers may only return a cursor to its originating operation and filter set. Default and maximum page sizes are capabilities. Delivery may repeat resources as concurrent updates change ordering, so callers deduplicate by ID and revision.
 
+### Minimum health probes
+
+`GET /health/live` and `GET /health/ready` are fixed registry operations under `/api/v1`. They are unauthenticated only to support CLI startup checks and still pass exact loopback Host and Fetch Metadata validation with CORS disabled. Liveness returns only `200 { status: "live" }`. Readiness returns only `200 { status: "ready" }` or `503` with one bounded code: `starting`, `migrating`, `reconciling`, `shutting_down`, or `unavailable`; neither endpoint exposes versions, paths, dependency details, capabilities, or errors. Authenticated Bootstrap remains the detailed compatibility/capability handshake.
+
 ### Bootstrap and snapshots
 
 `GET /bootstrap` is a bounded consistency handshake, not a database dump. It returns Gateway/build identity, authenticated-principal summary, `contractRevision`, `minClientRevision`, capabilities and limits, model/provider readiness, nonterminal Run summaries, and a captured event cursor. Workspace, Session, and Transcript collections are fetched separately.
+
+The unauthenticated local bootstrap exchange is a distinct one-time credential operation. After exchange, authenticated Bootstrap also carries the process-scoped CSRF token and optional CLI startup Workspace path proposal. `WorkspaceRegistrationPreview` is short-lived and Principal-bound; Workspace creation revalidates it before committing a canonical root. Exact browser and path-security semantics are owned by **Define local authentication and Workspace authorization**.
 
 A Session snapshot is also bounded. The server first captures event cursor `C`, then reads and returns:
 
@@ -211,9 +221,15 @@ request.invalid_json
 request.validation_failed
 auth.unauthenticated
 auth.forbidden
+auth.bootstrap_invalid
+auth.csrf_invalid
 protocol.client_too_old
 workspace.not_found
 workspace.revision_conflict
+workspace.path_invalid
+workspace.path_changed
+workspace.registration_preview_invalid
+workspace.in_use
 session.not_found
 session.revision_conflict
 session.unavailable

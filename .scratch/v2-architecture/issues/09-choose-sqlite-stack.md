@@ -10,7 +10,7 @@ Which Node-compatible SQLite driver and migration approach best fit an npm-distr
 
 ## Answer
 
-Adopt **Node >=22.16.0, built-in `node:sqlite`, and an application-owned numbered SQL migration runner**. This avoids native addon downloads, `node-gyp`, Electron ABI rebuilding, and platform-specific prebuild failures while retaining transactions and FTS5 in official Node binaries.
+Adopt **built-in `node:sqlite` and an application-owned numbered SQL migration runner**. SQLite requires the verified Node >=22.16.0 capability baseline; the product-level engine floor is raised to **Node >=22.19.0** because the selected Pi coding-agent package requires the stricter version. This avoids native addon downloads, `node-gyp`, Electron ABI rebuilding, and platform-specific prebuild failures while retaining transactions and FTS5 in official Node binaries.
 
 Migrations are immutable ordered `.sql` files. Startup reads `PRAGMA user_version` and applies each next migration inside `BEGIN IMMEDIATE` / `COMMIT`, rolling back and refusing to serve on failure. Do not introduce an ORM or migration framework. Long FTS rebuilds run as explicit controlled work rather than inside request handlers because `DatabaseSync` is synchronous.
 
