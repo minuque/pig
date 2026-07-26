@@ -14,8 +14,10 @@ async function typeWithKeyboard(
   locator: Locator,
   value: string,
   submit = false,
+  replace = false,
 ): Promise<void> {
   await locator.focus();
+  if (replace) await page.keyboard.press("ControlOrMeta+A");
   await page.keyboard.insertText(value);
   if (submit) await page.keyboard.press("Enter");
 }
@@ -36,7 +38,7 @@ test("Chromium packaged critical journey is persistent, responsive, and accessib
   await expect(page.getByRole("dialog", { name: "注册工作区" })).toBeFocused();
   await typeWithKeyboard(page, page.getByLabel("工作区路径"), gateway.workspaceDir, true);
   await expect(page.getByText("规范化根路径")).toBeVisible();
-  await typeWithKeyboard(page, page.getByLabel("显示名称"), "Release workspace");
+  await typeWithKeyboard(page, page.getByLabel("显示名称"), "Release workspace", false, true);
   await activate(page, page.getByRole("button", { name: "确认注册" }));
   await expect(page).toHaveURL(/#\/workspaces\//);
 
@@ -163,7 +165,9 @@ test("Chromium packaged critical journey is persistent, responsive, and accessib
       .getByRole("article", { name: "用户消息" })
       .filter({ hasText: "draft retained for first session" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("article", { name: "助手消息" }).filter({ hasText: "Release stream complete." }),
-  ).toBeVisible();
+  const persistedAssistant = page
+    .getByRole("article", { name: "助手消息" })
+    .filter({ hasText: "Release stream complete." });
+  await expect(persistedAssistant).toHaveCount(2);
+  await expect(persistedAssistant.first()).toBeVisible();
 });

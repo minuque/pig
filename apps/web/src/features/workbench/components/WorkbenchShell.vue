@@ -153,15 +153,18 @@ function onSessionDeleted(id: SessionId): void {
 .shell {
   display: grid;
   height: 100%;
-  grid-template-rows: auto 1fr;
-  grid-template-columns: 220px 300px 1fr;
+  grid-template-rows: auto auto 1fr;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "banner banner banner"
-    "nav nav main";
+    "banner"
+    "nav"
+    "main";
 }
 
 @media (min-width: 901px) {
   .shell {
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 220px 300px minmax(0, 1fr);
     grid-template-areas:
       "banner banner banner"
       "rail sidebar main";
@@ -184,8 +187,9 @@ function onSessionDeleted(id: SessionId): void {
   grid-area: banner;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-3);
-  padding: 0 var(--space-4);
+  padding: var(--space-1) var(--space-4);
   min-height: var(--target-min);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);

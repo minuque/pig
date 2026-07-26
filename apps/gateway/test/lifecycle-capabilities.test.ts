@@ -2,6 +2,7 @@ import { mkdir, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { CapabilityAdapter } from "../src/capabilities.js";
+import { safeDigest } from "../src/commands/ledger.js";
 import { createHttpGateway } from "../src/server.js";
 import {
   addPrincipalWorkspaceSession,
@@ -99,15 +100,42 @@ describe("destructive capability lifecycle", () => {
     await writeFile(recoverySource, '{"type":"session","id":"session_1","cwd":"/safe"}\n');
     const recovery = await openStore(recoveryRoots.database);
     addPrincipalWorkspaceSession(recovery.store, recoverySource);
+    const recoveryBody = { commandId: "recover_1", expectedRevision: 1 };
+    const recoveryPayload = {
+      operation: "deleteSession",
+      sessionId: "session_1",
+      body: recoveryBody,
+    };
+    const recoveryNow = recovery.store.now();
+    const recoveryResult = {
+      receipt: {
+        commandId: "recover_1",
+        disposition: "applied",
+        acceptedAt: recoveryNow,
+      },
+      result: {
+        sessionId: "session_1",
+        workspaceId: "workspace_1",
+        name: "Session",
+        revision: 2,
+        availability: "unavailable",
+        updatedAt: recoveryNow,
+      },
+    };
     recovery.store.run(
       "INSERT INTO session_delete_ops(session_id,command_id,source_path,recycle_path,manifest_json,state,created_at,updated_at) VALUES(?,?,?,?,?,'prepared',?,?)",
       "session_1",
       "recover_1",
       recoverySource,
       recyclePath,
-      "{}",
-      recovery.store.now(),
-      recovery.store.now(),
+      JSON.stringify({
+        principalId: "principal_1",
+        payloadHash: safeDigest(recoveryPayload),
+        payload: recoveryPayload,
+        result: recoveryResult,
+      }),
+      recoveryNow,
+      recoveryNow,
     );
     await rename(recoverySource, recyclePath);
     const recoveredGateway = await createHttpGateway(
@@ -127,6 +155,17 @@ describe("destructive capability lifecycle", () => {
         "SELECT active FROM sessions WHERE session_id='session_1'",
       )?.active,
     ).toBe(0);
+    const recoveredAuth = await authenticate(recoveredGateway);
+    const recoveredReplay = await fetch(
+      `${recoveredGateway.origin}/api/v1/sessions/session_1/commands/delete`,
+      {
+        method: "POST",
+        headers: recoveredAuth.write,
+        body: JSON.stringify(recoveryBody),
+      },
+    );
+    expect(recoveredReplay.status).toBe(202);
+    expect(await recoveredReplay.json()).toEqual(recoveryResult);
     await recoveredGateway.close();
   });
 
@@ -160,6 +199,29 @@ describe("destructive capability lifecycle", () => {
         code: "workspace.revision_conflict",
       });
 
+      const now = store.now();
+      store.run(
+        "INSERT INTO runs(run_id,session_id,command_id,prompt,profile_json,state,ordinal,retry_of_run_id,failure_code,revision,run_seq,created_at,updated_at) VALUES('run_1','session_1','run_command_1','pending','{}','queued',1,NULL,NULL,1,1,?,?)",
+        now,
+        now,
+      );
+      const busy = await fetch(
+        `${gateway.origin}/api/v1/workspaces/workspace_1/commands/unregister`,
+        {
+          method: "POST",
+          headers: auth.write,
+          body: JSON.stringify({
+            commandId: "unregister_busy",
+            expectedRevision: 1,
+          }),
+        },
+      );
+      expect(busy.status).toBe(409);
+      expect((await busy.json()) as { code: string }).toMatchObject({
+        code: "workspace.in_use",
+      });
+      store.run("UPDATE runs SET state='completed' WHERE run_id='run_1'");
+
       const body = JSON.stringify({
         commandId: "unregister_1",
         expectedRevision: 1,
@@ -185,10 +247,44 @@ describe("destructive capability lifecycle", () => {
       expect(replay.status).toBe(200);
       expect(await replay.json()).toEqual(firstJson);
 
-      const revoked = await fetch(`${gateway.origin}/api/v1/sessions/session_1`, {
-        headers: auth.read,
+      const [revokedWorkspace, revokedSession, revokedRun, revokedMutation, workspaces] =
+        await Promise.all([
+          fetch(`${gateway.origin}/api/v1/workspaces/workspace_1`, {
+            headers: auth.read,
+          }),
+          fetch(`${gateway.origin}/api/v1/sessions/session_1`, {
+            headers: auth.read,
+          }),
+          fetch(`${gateway.origin}/api/v1/runs/run_1`, {
+            headers: auth.read,
+          }),
+          fetch(`${gateway.origin}/api/v1/sessions/session_1`, {
+            method: "PATCH",
+            headers: auth.write,
+            body: JSON.stringify({
+              commandId: "rename_after_revoke",
+              expectedRevision: 1,
+              name: "Hidden",
+            }),
+          }),
+          fetch(`${gateway.origin}/api/v1/workspaces`, {
+            headers: auth.read,
+          }),
+        ]);
+      expect([
+        revokedWorkspace.status,
+        revokedSession.status,
+        revokedRun.status,
+        revokedMutation.status,
+      ]).toEqual([404, 404, 404, 404]);
+      expect((await workspaces.json()) as { items: unknown[] }).toMatchObject({
+        items: [],
       });
-      expect(revoked.status).toBe(404);
+      expect(
+        store.row<{ active: number }>(
+          "SELECT active FROM workspace_grants WHERE principal_id='principal_1' AND workspace_id='workspace_1'",
+        )?.active,
+      ).toBe(0);
       expect(
         store.row<{ active: number }>("SELECT active FROM sessions WHERE session_id='session_1'")
           ?.active,

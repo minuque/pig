@@ -61,6 +61,7 @@ function assertGatewayFiles(files) {
     "LICENSE",
     "dist/cli.js",
     "dist/migrations/001-initial.sql",
+    "dist/migrations/002-gateway-release-safety.sql",
     "dist/public/index.html",
   ]) {
     if (!files.some(({ path }) => path === required)) {

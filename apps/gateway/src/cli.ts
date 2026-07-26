@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { mkdir } from "node:fs/promises";
 import { createServer, type Server } from "node:http";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -101,6 +100,7 @@ async function main() {
   }
   const a = args(process.argv.slice(2)),
     roots = resolveDataRoots(a.dataDir);
+  const runtimeRoot = import.meta.dirname ?? new URL(".", import.meta.url).pathname;
   await ensureRoots(roots);
   const release = await acquireLock(roots);
   if (a.maintenance) {
@@ -110,7 +110,7 @@ async function main() {
         return;
       }
       if (a.maintenance === "restore" && a.backupId && a.confirm) {
-        await restoreBackup(roots, a.backupId);
+        await restoreBackup(roots, a.backupId, join(runtimeRoot, "migrations"));
         console.log("Restored backup. Run the recorded compatible version.");
         return;
       }
@@ -135,7 +135,6 @@ async function main() {
   const health = new Health();
   const startupServer = await startHealthServer(health);
   health.set("migrating");
-  const runtimeRoot = import.meta.dirname ?? new URL(".", import.meta.url).pathname;
   let db: Awaited<ReturnType<typeof openDatabase>>;
   try {
     db = await openDatabase(roots, join(runtimeRoot, "migrations"));

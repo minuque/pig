@@ -228,7 +228,7 @@ export async function listBackups(
 export async function restoreBackup(
   roots: DataRoots,
   id: string,
-  migrationDir = join(import.meta.dirname, "../../migrations"),
+  migrationDir: string,
 ): Promise<void> {
   if (!/^\d+-schema-\d+$/.test(id)) throw new DatabaseError("backup_invalid");
   const source = join(roots.backups, id, "app.sqlite3");

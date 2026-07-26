@@ -37,6 +37,29 @@ jobs:
           path: release-artifact/*.tgz
           if-no-files-found: error
 
+  unsupported-node-gate:
+    name: Reject unsupported Node 22.18
+    needs: linux-suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: packed-release
+          path: release-artifact
+      - run: node scripts/install-release-artifact.mjs
+        env:
+          NPNG_RELEASE_ARTIFACT_DIR: ${{ github.workspace }}/release-artifact
+      - run: npm run test:real-pi
+        env:
+          NPNG_EXPECT_NODE_GATE: "1"
+          NPNG_GATEWAY_CLI: ${{ github.workspace }}/.release-install/node_modules/no-pi-no-gang/dist/cli.js
+
   chromium-critical:
     needs: linux-suite
     runs-on: ubuntu-latest

@@ -142,14 +142,16 @@ export class GatewayAccess {
     canonical_root: string;
     name: string;
     revision: number;
+    updated_at: string;
   } {
     const row = this.store.row<{
       workspace_id: string;
       canonical_root: string;
       name: string;
       revision: number;
+      updated_at: string;
     }>(
-      "SELECT w.workspace_id,w.canonical_root,w.name,w.revision FROM workspaces w JOIN workspace_grants g ON g.workspace_id=w.workspace_id AND g.principal_id=? AND g.active=1 WHERE w.workspace_id=? AND w.active=1",
+      "SELECT w.workspace_id,w.canonical_root,w.name,w.revision,w.updated_at FROM workspaces w JOIN workspace_grants g ON g.workspace_id=w.workspace_id AND g.principal_id=? AND g.active=1 WHERE w.workspace_id=? AND w.active=1",
       principalId,
       id,
     );

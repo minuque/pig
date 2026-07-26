@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { access as accessFile, readdir, readFile, realpath, rename, writeFile } from "node:fs/promises";
+import { access as accessFile, readFile, rename, writeFile } from "node:fs/promises";
 import type { Server } from "node:http";
 import { createServer } from "node:http";
 import { join } from "node:path";
@@ -13,7 +13,6 @@ import {
   CreateSessionSchema,
   CreateWorkspacePreviewSchema,
   CreateWorkspaceSchema,
-  PaginationQuerySchema,
   ProviderIdSchema,
   RespondAuthFlowSchema,
   RevisionCommandSchema,
@@ -25,7 +24,7 @@ import {
 } from "@no-pi-no-gang/contracts";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { z } from "zod";
+import type { z } from "zod";
 import { AccessError, GatewayAccess } from "./access/access.js";
 import {
   type CapabilityAdapter,
@@ -37,14 +36,13 @@ import type { Store } from "./db/store.js";
 import { Health } from "./diagnostics/health.js";
 import { problem } from "./problem.js";
 import { SessionProjectionCoordinator } from "./projection/coordinator.js";
-import { projectSession } from "./projection/projector.js";
 import { RuntimeCoordinator } from "./runtime/coordinator.js";
-import { EventHub } from "./stream/hub.js";
-import type { DataRoots, GatewayHandle, HealthState } from "./types.js";
+import { EventHub, type Event as GatewayEvent } from "./stream/hub.js";
+import type { DataRoots, GatewayHandle } from "./types.js";
 
 export async function createHttpGateway(
   store: Store,
-  roots: DataRoots,
+  _roots: DataRoots,
   proposedWorkspacePath?: string,
   publicDir = join(process.cwd(), "public"),
   options: {
@@ -264,7 +262,7 @@ export async function createHttpGateway(
       return c.json({
         items: store
           .all<any>(
-            "SELECT workspace_id as workspaceId,name,revision,updated_at as updatedAt FROM workspaces WHERE principal_id=? AND active=1 ORDER BY updated_at DESC LIMIT 100",
+            "SELECT w.workspace_id as workspaceId,w.name,w.revision,w.updated_at as updatedAt FROM workspaces w JOIN workspace_grants g ON g.workspace_id=w.workspace_id AND g.principal_id=? AND g.active=1 WHERE w.active=1 ORDER BY w.updated_at DESC LIMIT 100",
             a.principalId,
           )
           .map((r) => r),
@@ -363,14 +361,13 @@ export async function createHttpGateway(
   app.get("/api/v1/workspaces/:workspaceId", (c) => {
     try {
       const a = auth(c);
-      const w = store.row<any>(
-        "SELECT workspace_id as workspaceId,name,revision,updated_at as updatedAt,canonical_root as canonicalRoot FROM workspaces WHERE workspace_id=? AND principal_id=? AND active=1",
-        c.req.param("workspaceId"),
-        a.principalId,
-      );
-      if (!w) throw new Error("workspace.not_found");
+      const w = access.authorizeWorkspace(a.principalId, c.req.param("workspaceId"));
       return c.json({
-        ...w,
+        workspaceId: w.workspace_id,
+        name: w.name,
+        revision: w.revision,
+        updatedAt: w.updated_at,
+        canonicalRoot: w.canonical_root,
         grantNotice: "Gateway access only; not a filesystem sandbox",
       });
     } catch (e) {
@@ -459,6 +456,12 @@ export async function createHttpGateway(
           now,
           w.workspace_id,
           b.expectedRevision,
+        );
+        store.run(
+          "UPDATE workspace_grants SET active=0,updated_at=? WHERE principal_id=? AND workspace_id=? AND active=1",
+          now,
+          a.principalId,
+          w.workspace_id,
         );
         store.run(
           "UPDATE sessions SET active=0,availability='unavailable',revision=revision+1,updated_at=? WHERE workspace_id=?",
@@ -648,11 +651,15 @@ export async function createHttpGateway(
       if (replay) return c.json(replay, 202);
       const s = awaitSession(store, access, a.principalId, sessionId);
       if (s.revision !== b.expectedRevision) throw new Error("session.revision_conflict");
-      const priorDelete = store.row<{ state: string }>(
-        "SELECT state FROM session_delete_ops WHERE session_id=?",
+      const priorDelete = store.row<any>(
+        "SELECT * FROM session_delete_ops WHERE session_id=?",
         s.session_id,
       );
-      if (priorDelete?.state === "conflict") {
+      if (
+        priorDelete &&
+        (priorDelete.command_id !== b.commandId ||
+          !["prepared", "renaming"].includes(priorDelete.state))
+      ) {
         throw new Error("session.unavailable");
       }
       const busy = store.row<any>(
@@ -660,33 +667,12 @@ export async function createHttpGateway(
         s.session_id,
       );
       if (busy) throw new Error("run.invalid_state");
-      const recyclePath = `${s.source_path}.recycle-${s.session_id}-${b.commandId}`;
       const now = store.now();
-      store.run(
-        "INSERT OR REPLACE INTO session_delete_ops(session_id,command_id,source_path,recycle_path,manifest_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)",
-        s.session_id,
-        b.commandId,
-        s.source_path,
-        recyclePath,
-        JSON.stringify({
-          sessionId: s.session_id,
-          commandId: b.commandId,
-          sourcePath: s.source_path,
-        }),
-        "prepared",
-        now,
-        now,
-      );
-      try {
-        await rename(s.source_path, recyclePath);
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-      }
-      const result = {
+      const freshResult = {
         receipt: {
           commandId: b.commandId,
           disposition: "applied",
-          acceptedAt: store.now(),
+          acceptedAt: now,
         },
         result: {
           sessionId: s.session_id,
@@ -694,30 +680,66 @@ export async function createHttpGateway(
           name: s.name,
           revision: s.revision + 1,
           availability: "unavailable",
-          updatedAt: store.now(),
+          updatedAt: now,
         },
       };
-      store.transaction(() => {
-        store.run("DELETE FROM session_search WHERE session_id=?", s.session_id);
-        store.run("DELETE FROM session_entries WHERE session_id=?", s.session_id);
+      const priorManifest = priorDelete
+        ? parseSessionDeleteManifest(priorDelete.manifest_json)
+        : undefined;
+      if (
+        priorDelete &&
+        (!priorManifest ||
+          priorManifest.principalId !== a.principalId ||
+          priorManifest.payloadHash !== safeDigest(payload))
+      ) {
+        throw new Error("command.idempotency_conflict");
+      }
+      const result = priorManifest?.result ?? freshResult;
+      const manifest =
+        priorManifest ??
+        ({
+          principalId: a.principalId,
+          payloadHash: safeDigest(payload),
+          payload,
+          result,
+        } satisfies SessionDeleteManifest);
+      const deleteOp =
+        priorDelete ??
+        ({
+          session_id: s.session_id,
+          command_id: b.commandId,
+          source_path: s.source_path,
+          recycle_path: `${s.source_path}.recycle-${s.session_id}-${b.commandId}`,
+        } satisfies SessionDeleteOperation);
+      if (!priorDelete) {
         store.run(
-          "UPDATE sessions SET active=0,availability='unavailable',revision=revision+1,updated_at=? WHERE session_id=?",
-          store.now(),
-          s.session_id,
+          "INSERT INTO session_delete_ops(session_id,command_id,source_path,recycle_path,manifest_json,state,created_at,updated_at) VALUES(?,?,?,?,?,'prepared',?,?)",
+          deleteOp.session_id,
+          deleteOp.command_id,
+          deleteOp.source_path,
+          deleteOp.recycle_path,
+          JSON.stringify(manifest),
+          now,
+          now,
         );
-        store.run(
-          "INSERT OR REPLACE INTO tombstones(session_id,command_id,deleted_at) VALUES(?,?,?)",
-          s.session_id,
-          b.commandId,
-          store.now(),
-        );
-        store.run(
-          "UPDATE session_delete_ops SET state='committed',updated_at=? WHERE session_id=?",
-          store.now(),
-          s.session_id,
-        );
-        recordCommand(store, a.principalId, b.commandId, payload, result);
-      });
+      }
+      store.run(
+        "UPDATE session_delete_ops SET state='renaming',updated_at=? WHERE session_id=?",
+        store.now(),
+        deleteOp.session_id,
+      );
+      const sourceExists = await fileExists(deleteOp.source_path);
+      const recycleExists = await fileExists(deleteOp.recycle_path);
+      if (sourceExists && recycleExists) {
+        markSessionDeleteBlocked(store, deleteOp.session_id, "conflict", "quarantined");
+        throw new Error("session.unavailable");
+      }
+      if (!sourceExists && !recycleExists) {
+        markSessionDeleteBlocked(store, deleteOp.session_id, "missing", "unavailable");
+        throw new Error("session.unavailable");
+      }
+      if (sourceExists) await rename(deleteOp.source_path, deleteOp.recycle_path);
+      finalizeSessionDelete(store, deleteOp, manifest);
       hub.publish({
         type: "session.removed",
         workspaceId: s.workspace_id,
@@ -1031,37 +1053,54 @@ export async function createHttpGateway(
   });
   app.get("/api/v1/events", (c) => {
     try {
-      auth(c);
+      const a = auth(c);
       const after = c.req.query("after");
+      const visibleWorkspaces = new Set(
+        store
+          .all<{ workspace_id: string }>(
+            "SELECT w.workspace_id FROM workspaces w JOIN workspace_grants g ON g.workspace_id=w.workspace_id AND g.principal_id=? AND g.active=1 WHERE w.active=1",
+            a.principalId,
+          )
+          .map((row) => row.workspace_id),
+      );
       return streamSSE(c, async (stream) => {
         let finish!: () => void;
         const finished = new Promise<void>((resolve) => {
           finish = resolve;
         });
-        const prepared = hub.prepareSubscription(
-          after,
-          async (event) => {
+        const writeVisibleEvent = async (event: GatewayEvent): Promise<void> => {
+          if (event.workspaceId && event.type === "workspace.changed") {
+            const authorized = store.row<{ workspace_id: string }>(
+              "SELECT w.workspace_id FROM workspaces w JOIN workspace_grants g ON g.workspace_id=w.workspace_id AND g.principal_id=? AND g.active=1 WHERE w.workspace_id=? AND w.active=1",
+              a.principalId,
+              event.workspaceId,
+            );
+            if (authorized) visibleWorkspaces.add(event.workspaceId);
+          }
+          if (event.workspaceId && !visibleWorkspaces.has(event.workspaceId)) return;
+          await stream.writeSSE({
+            id: `${event.gatewayEpoch}:${event.gatewaySeq}`,
+            data: JSON.stringify(event),
+          });
+          if (event.workspaceId && event.type === "workspace.removed") {
+            visibleWorkspaces.delete(event.workspaceId);
+          }
+        };
+        const prepared = hub.prepareSubscription(after, writeVisibleEvent, {
+          onLag: async (latestCursor) => {
             await stream.writeSSE({
-              id: `${event.gatewayEpoch}:${event.gatewaySeq}`,
-              data: JSON.stringify(event),
+              data: JSON.stringify({
+                type: "stream.reset",
+                reason: "client_lagged",
+                ...(after ? { requestedCursor: after } : {}),
+                ...(hub.oldestCursor() ? { oldestCursor: hub.oldestCursor() } : {}),
+                latestCursor,
+              }),
             });
+            stream.close();
+            finish();
           },
-          {
-            onLag: async (latestCursor) => {
-              await stream.writeSSE({
-                data: JSON.stringify({
-                  type: "stream.reset",
-                  reason: "client_lagged",
-                  ...(after ? { requestedCursor: after } : {}),
-                  ...(hub.oldestCursor() ? { oldestCursor: hub.oldestCursor() } : {}),
-                  latestCursor,
-                }),
-              });
-              stream.close();
-              finish();
-            },
-          },
-        );
+        });
         if ("reason" in prepared) {
           await stream.writeSSE({
             data: JSON.stringify({
@@ -1076,10 +1115,7 @@ export async function createHttpGateway(
           return;
         }
         for (const event of prepared.replay) {
-          await stream.writeSSE({
-            id: `${event.gatewayEpoch}:${event.gatewaySeq}`,
-            data: JSON.stringify(event),
-          });
+          await writeVisibleEvent(event);
         }
         // ready is a post-replay control boundary. The subscriber remains
         // paused until it has been written, so writeSSE is never concurrent.
@@ -1139,7 +1175,9 @@ export async function createHttpGateway(
         if (req.method !== "GET" && req.method !== "HEAD") init.body = Buffer.concat(chunks) as any;
         const response = await app.fetch(new Request(url, init));
         res.statusCode = response.status;
-        response.headers.forEach((v, k) => res.setHeader(k, v));
+        response.headers.forEach((value, key) => {
+          res.setHeader(key, value);
+        });
         if (response.body) {
           const reader = response.body.getReader();
           while (true) {
@@ -1187,70 +1225,125 @@ export async function createHttpGateway(
     },
   };
 }
+type SessionDeleteOperation = {
+  session_id: string;
+  command_id: string;
+  source_path: string;
+  recycle_path: string;
+};
+
+type SessionDeleteManifest = {
+  principalId: string;
+  payloadHash: string;
+  payload: unknown;
+  result: unknown;
+};
+
+async function fileExists(path: string): Promise<boolean> {
+  return accessFile(path)
+    .then(() => true)
+    .catch(() => false);
+}
+
+function parseSessionDeleteManifest(raw: unknown): SessionDeleteManifest | undefined {
+  try {
+    const value = JSON.parse(String(raw)) as Partial<SessionDeleteManifest>;
+    if (
+      typeof value.principalId !== "string" ||
+      typeof value.payloadHash !== "string" ||
+      value.payload === undefined ||
+      value.result === undefined ||
+      value.payloadHash !== safeDigest(value.payload)
+    ) {
+      return undefined;
+    }
+    return value as SessionDeleteManifest;
+  } catch {
+    return undefined;
+  }
+}
+
+function markSessionDeleteBlocked(
+  store: Store,
+  sessionId: string,
+  state: "conflict" | "missing",
+  availability: "quarantined" | "unavailable",
+): void {
+  store.transaction(() => {
+    store.run(
+      "UPDATE session_delete_ops SET state=?,updated_at=? WHERE session_id=?",
+      state,
+      store.now(),
+      sessionId,
+    );
+    store.run(
+      "UPDATE sessions SET availability=?,revision=revision+1,updated_at=? WHERE session_id=?",
+      availability,
+      store.now(),
+      sessionId,
+    );
+  });
+}
+
+function finalizeSessionDelete(
+  store: Store,
+  operation: SessionDeleteOperation,
+  manifest?: SessionDeleteManifest,
+): void {
+  store.transaction(() => {
+    store.run("DELETE FROM session_search WHERE session_id=?", operation.session_id);
+    store.run("DELETE FROM session_entries WHERE session_id=?", operation.session_id);
+    store.run(
+      "UPDATE sessions SET active=0,availability='unavailable',revision=revision+1,updated_at=? WHERE session_id=?",
+      store.now(),
+      operation.session_id,
+    );
+    store.run(
+      "INSERT OR REPLACE INTO tombstones(session_id,command_id,deleted_at) VALUES(?,?,?)",
+      operation.session_id,
+      operation.command_id,
+      store.now(),
+    );
+    store.run(
+      "UPDATE session_delete_ops SET state='committed',updated_at=? WHERE session_id=?",
+      store.now(),
+      operation.session_id,
+    );
+    if (manifest) {
+      recordCommand(
+        store,
+        manifest.principalId,
+        operation.command_id,
+        manifest.payload,
+        manifest.result,
+      );
+    }
+  });
+}
+
 async function recoverSessionDeletes(store: Store): Promise<void> {
-  const ops = store.all<any>(
+  const operations = store.all<SessionDeleteOperation & { manifest_json: string }>(
     "SELECT * FROM session_delete_ops WHERE state IN ('prepared','renaming')",
   );
-  for (const op of ops) {
+  for (const operation of operations) {
     try {
-      const sourceExists = await accessFile(op.source_path)
-        .then(() => true)
-        .catch(() => false);
-      const recycleExists = await accessFile(op.recycle_path)
-        .then(() => true)
-        .catch(() => false);
-      if (sourceExists && !recycleExists) await rename(op.source_path, op.recycle_path);
-      if ((recycleExists || sourceExists) && !(sourceExists && recycleExists)) {
-        store.transaction(() => {
-          store.run("DELETE FROM session_search WHERE session_id=?", op.session_id);
-          store.run("DELETE FROM session_entries WHERE session_id=?", op.session_id);
-          store.run(
-            "UPDATE sessions SET active=0,availability='unavailable',revision=revision+1,updated_at=? WHERE session_id=?",
-            store.now(),
-            op.session_id,
-          );
-          store.run(
-            "INSERT OR REPLACE INTO tombstones(session_id,command_id,deleted_at) VALUES(?,?,?)",
-            op.session_id,
-            op.command_id,
-            store.now(),
-          );
-          store.run(
-            "UPDATE session_delete_ops SET state='committed',updated_at=? WHERE session_id=?",
-            store.now(),
-            op.session_id,
-          );
-        });
-      } else if (sourceExists && recycleExists) {
-        store.run(
-          "UPDATE session_delete_ops SET state='conflict',updated_at=? WHERE session_id=?",
-          store.now(),
-          op.session_id,
-        );
-        store.run(
-          "UPDATE sessions SET availability='quarantined',revision=revision+1,updated_at=? WHERE session_id=?",
-          store.now(),
-          op.session_id,
-        );
-      } else {
-        store.transaction(() => {
-          store.run(
-            "UPDATE session_delete_ops SET state='missing',updated_at=? WHERE session_id=?",
-            store.now(),
-            op.session_id,
-          );
-          store.run(
-            "UPDATE sessions SET availability='unavailable',revision=revision+1,updated_at=? WHERE session_id=?",
-            store.now(),
-            op.session_id,
-          );
-        });
+      const sourceExists = await fileExists(operation.source_path);
+      const recycleExists = await fileExists(operation.recycle_path);
+      if (sourceExists && recycleExists) {
+        markSessionDeleteBlocked(store, operation.session_id, "conflict", "quarantined");
+        continue;
       }
+      if (!sourceExists && !recycleExists) {
+        markSessionDeleteBlocked(store, operation.session_id, "missing", "unavailable");
+        continue;
+      }
+      if (sourceExists) await rename(operation.source_path, operation.recycle_path);
+      finalizeSessionDelete(store, operation, parseSessionDeleteManifest(operation.manifest_json));
     } catch {
       store.run(
         "UPDATE session_delete_ops SET state='recovery_failed',updated_at=? WHERE session_id=?",
         store.now(),
-        op.session_id,
+        operation.session_id,
       );
     }
   }
@@ -1290,10 +1383,10 @@ function sessionDetail(row: any) {
     ...(row.last_summary ? { lastVerifiedSummary: row.last_summary } : {}),
   };
 }
-function awaitWorkspace(store: Store, access: GatewayAccess, p: string, id: string) {
+function awaitWorkspace(_store: Store, access: GatewayAccess, p: string, id: string) {
   return access.authorizeWorkspace(p, id);
 }
-function awaitSession(store: Store, access: GatewayAccess, p: string, id: string): any {
+function awaitSession(store: Store, _access: GatewayAccess, p: string, id: string): any {
   const s = store.row<any>(
     "SELECT s.* FROM sessions s JOIN workspaces w ON w.workspace_id=s.workspace_id JOIN workspace_grants g ON g.workspace_id=w.workspace_id AND g.principal_id=? AND g.active=1 WHERE s.session_id=? AND s.active=1 AND w.active=1",
     p,

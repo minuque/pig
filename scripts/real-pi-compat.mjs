@@ -64,6 +64,17 @@ function gatewayEnv(extra = {}, nativeDataRoot = false) {
   return env;
 }
 
+function runGatewayCommand(args) {
+  const result = spawnSync(process.execPath, [gatewayCli, ...args], {
+    cwd: root,
+    env: gatewayEnv(),
+    encoding: "utf8",
+  });
+  if (result.error) throw result.error;
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  return result.stdout;
+}
+
 async function startGateway(options = {}) {
   const nativeDataRoot = options.nativeDataRoot === true;
   const child = spawn(process.execPath, gatewayArgs(nativeDataRoot), {
@@ -324,6 +335,21 @@ try {
     );
     throw new Error(`Rollback Barrier: Pi ${previous} cannot read candidate ${candidate} fixture`);
   }
+
+  const backups = JSON.parse(runGatewayCommand(["backups", "list", "--data-dir", dataDir]));
+  const restorable = backups.find((backup) => backup.valid === true);
+  assert(restorable, "Gateway did not create a verified upgrade backup");
+  runGatewayCommand(["backups", "restore", restorable.id, "--confirm", "--data-dir", dataDir]);
+  gateway = await startGateway();
+  await stopGateway(gateway.child);
+  gateway = undefined;
+  const restored = new DatabaseSync(dbPath, { readOnly: true });
+  assert.equal(
+    restored.prepare("PRAGMA user_version").get().user_version,
+    2,
+    "restored database did not migrate through the packaged migration set",
+  );
+  restored.close();
 
   console.log(`real-pi compatibility passed: candidate ${candidate}, previous ${previous}`);
 } finally {

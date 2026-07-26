@@ -73,6 +73,13 @@ describe("session discovery and search", () => {
         workspace2,
         now,
       );
+      store.run(
+        "INSERT INTO workspace_grants(principal_id,workspace_id,active,created_at,updated_at) VALUES('principal_1','workspace_1',1,?,?),('principal_1','workspace_2',1,?,?)",
+        now,
+        now,
+        now,
+        now,
+      );
 
       const create = (cwd: string, name: string, text: string) => {
         const manager = SessionManager.create(cwd, sessionDir);
