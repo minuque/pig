@@ -1,0 +1,38 @@
+{
+  "name": "no-pi-no-gang-v2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0 <23 || >=24.0.0 <25"
+  },
+  "workspaces": [
+    "apps/web",
+    "apps/gateway",
+    "packages/contracts",
+    "packages/testkit"
+  ],
+  "scripts": {
+    "format": "prettier --write package.json release-support.json playwright.config.ts tsconfig.base.json vitest.config.ts DESIGN.md .github acceptance scripts packages apps",
+    "check": "prettier --check package.json release-support.json playwright.config.ts tsconfig.base.json vitest.config.ts DESIGN.md .github acceptance scripts packages apps && npm run validate:design",
+    "validate:design": "node scripts/validate-design.mjs",
+    "typecheck": "npm run typecheck --workspace @no-pi-no-gang/contracts && npm run build --workspace @no-pi-no-gang/contracts && npm run typecheck --workspace @no-pi-no-gang/testkit && npm run typecheck --workspace no-pi-no-gang && npm run typecheck --workspace @no-pi-no-gang/web",
+    "test": "vitest run && npm run test --workspace @no-pi-no-gang/web && npm run test --workspace no-pi-no-gang",
+    "build": "npm run build --workspace @no-pi-no-gang/contracts && npm run build --workspace @no-pi-no-gang/testkit && node scripts/build-gateway.mjs",
+    "pack:check": "node scripts/pack-check.mjs && npm pack --dry-run --workspace no-pi-no-gang",
+    "verify:quick": "npm run check && npm run typecheck && npm run test && npm run build && npm run pack:check",
+    "test:real-pi": "node scripts/real-pi-compat.mjs",
+    "test:acceptance": "playwright test",
+    "test:acceptance:chromium": "playwright test --project=chromium",
+    "verify:real-pi": "npm run build && npm run test:real-pi",
+    "verify:release": "npm run verify:quick && npm run test:real-pi && npm run test:acceptance:chromium"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^24.0.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS principals (principal_id TEXT PRIMARY KEY, display_name TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS workspaces (workspace_id TEXT PRIMARY KEY, principal_id TEXT NOT NULL REFERENCES principals(principal_id), name TEXT NOT NULL, canonical_root TEXT NOT NULL UNIQUE, revision INTEGER NOT NULL DEFAULT 1, active INTEGER NOT NULL DEFAULT 1, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS sessions (session_id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(workspace_id), source_path TEXT NOT NULL, name TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1, availability TEXT NOT NULL DEFAULT 'healthy', active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, last_summary TEXT);
+CREATE TABLE IF NOT EXISTS runs (run_id TEXT PRIMARY KEY, session_id TEXT NOT NULL REFERENCES sessions(session_id), command_id TEXT NOT NULL, prompt TEXT NOT NULL, profile_json TEXT NOT NULL, state TEXT NOT NULL, ordinal INTEGER NOT NULL, retry_of_run_id TEXT, failure_code TEXT, revision INTEGER NOT NULL DEFAULT 1, run_seq INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(session_id, command_id));
+CREATE TABLE IF NOT EXISTS commands (principal_id TEXT NOT NULL, command_id TEXT NOT NULL, payload_hash TEXT NOT NULL, result_json TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(principal_id, command_id));
+CREATE TABLE IF NOT EXISTS session_entries (session_id TEXT NOT NULL REFERENCES sessions(session_id), entry_id TEXT NOT NULL, source_order INTEGER NOT NULL, item_json TEXT NOT NULL, digest TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1, PRIMARY KEY(session_id, entry_id));
+CREATE TABLE IF NOT EXISTS tombstones (session_id TEXT PRIMARY KEY, command_id TEXT NOT NULL, deleted_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS session_delete_ops (session_id TEXT PRIMARY KEY, command_id TEXT NOT NULL, source_path TEXT NOT NULL, recycle_path TEXT NOT NULL, manifest_json TEXT NOT NULL, state TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS provider_auth (principal_id TEXT NOT NULL, provider_id TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1, state TEXT NOT NULL, methods_json TEXT NOT NULL, PRIMARY KEY(principal_id, provider_id));
+CREATE TABLE IF NOT EXISTS auth_flows (flow_id TEXT PRIMARY KEY, principal_id TEXT NOT NULL, provider_id TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1, state TEXT NOT NULL, interaction_json TEXT, expires_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS migration_history (version INTEGER PRIMARY KEY, name TEXT NOT NULL, checksum TEXT NOT NULL, applied_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE VIRTUAL TABLE IF NOT EXISTS session_search USING fts5(session_id UNINDEXED, text);
+CREATE INDEX IF NOT EXISTS idx_sessions_workspace_active_updated ON sessions(workspace_id, active, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_runs_session_state ON runs(session_id, state);

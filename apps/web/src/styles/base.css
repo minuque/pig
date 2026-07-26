@@ -1,0 +1,301 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  line-height: var(--line-compact);
+  color: var(--color-foreground);
+  background: var(--color-canvas);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  color: var(--color-foreground-muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-compact);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Shared controls (semantic tokens only) ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-foreground);
+  font-size: var(--text-sm);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary);
+  filter: brightness(0.94);
+}
+
+.btn-danger {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.btn-ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+.field {
+  width: 100%;
+  min-height: var(--target-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+}
+
+textarea.field {
+  padding: var(--space-3);
+  line-height: var(--line-compact);
+  resize: vertical;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-status);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-foreground-muted);
+  white-space: nowrap;
+}
+
+.badge[data-tone="success"] {
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.badge[data-tone="warning"] {
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+
+.badge[data-tone="danger"] {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.notice-box {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-muted);
+  font-size: var(--text-sm);
+}
+
+.notice-box[data-tone="danger"] {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+/* ---------- Markdown (dynamic VNodes; global by design) ---------- */
+
+.markdown-view {
+  line-height: var(--line-reading);
+  overflow-wrap: break-word;
+}
+
+.markdown-view > * + * {
+  margin-top: var(--space-3);
+}
+
+.markdown-view h1,
+.markdown-view h2,
+.markdown-view h3,
+.markdown-view h4 {
+  line-height: var(--line-compact);
+  font-size: var(--text-md);
+}
+
+.markdown-view h1 {
+  font-size: var(--text-lg);
+}
+
+.markdown-view ul,
+.markdown-view ol {
+  padding-left: var(--space-6);
+}
+
+.markdown-view blockquote {
+  margin-left: 0;
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--color-border);
+  color: var(--color-foreground-muted);
+}
+
+.markdown-view table {
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.markdown-view th,
+.markdown-view td {
+  border: 1px solid var(--color-border);
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+}
+
+.md-inline-code {
+  font-family: var(--font-code);
+  font-size: var(--text-sm);
+  background: var(--color-code-surface);
+  border-radius: var(--radius-compact);
+  padding: 0 var(--space-1);
+}
+
+.md-link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.md-image-alt {
+  color: var(--color-foreground-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---------- Code block (Shiki VNodes; global by design) ---------- */
+
+.code-block {
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-code-surface);
+  overflow: hidden;
+}
+
+.code-block__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 0 var(--space-2) 0 var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  min-height: var(--target-min);
+}
+
+.code-block__lang {
+  font-family: var(--font-code);
+  font-size: var(--text-xs);
+  color: var(--color-foreground-muted);
+}
+
+.code-block__copy {
+  min-height: var(--target-min);
+  min-width: var(--target-min);
+  padding: 0 var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--color-foreground-muted);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-compact);
+}
+
+.code-block__copy:hover {
+  color: var(--color-foreground);
+}
+
+.code-block pre {
+  margin: 0;
+  padding: var(--space-3);
+  overflow-x: auto;
+  font-family: var(--font-code);
+  font-size: var(--text-sm);
+  line-height: var(--line-compact);
+  background: transparent !important;
+}
+
+.code-block pre span {
+  color: var(--shiki-active);
+}
