@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import MarkdownView from "@/features/transcript/components/MarkdownView.vue";
 import { safeLinkHref } from "@/features/transcript/markdown";
 

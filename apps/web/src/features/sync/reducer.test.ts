@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import type { GatewayEvent } from "@no-pi-no-gang/contracts";
+import { describe, expect, it } from "vitest";
 import {
   createEmptyLiveOverlay,
   overlayFromPartialOutputs,

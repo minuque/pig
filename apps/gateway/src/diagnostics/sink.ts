@@ -1,6 +1,6 @@
+import { createHash, randomUUID } from "node:crypto";
 import { appendFile, mkdir, readdir, stat, unlink } from "node:fs/promises";
 import { join } from "node:path";
-import { createHash, randomUUID } from "node:crypto";
 
 export type SafeDiagnosticEvent = {
   code: string;

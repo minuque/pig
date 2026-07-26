@@ -1,47 +1,53 @@
-import { Hono } from "hono";
-import { streamSSE } from "hono/streaming";
-import { readFile, rename, access as accessFile, writeFile } from "node:fs/promises";
-import { createServer } from "node:http";
-import type { Server } from "node:http";
 import { randomUUID } from "node:crypto";
+import {
+  access as accessFile,
+  readdir,
+  readFile,
+  realpath,
+  rename,
+  writeFile,
+} from "node:fs/promises";
+import type { Server } from "node:http";
+import { createServer } from "node:http";
 import { join } from "node:path";
-import { z } from "zod";
+import { getAgentDir, SessionManager } from "@earendil-works/pi-coding-agent";
 import {
   BootstrapExchangeSchema,
+  CancelRunSchema,
+  CommandOnlySchema,
+  CreateAuthFlowSchema,
+  CreateRunSchema,
+  CreateSessionSchema,
   CreateWorkspacePreviewSchema,
   CreateWorkspaceSchema,
-  CreateSessionSchema,
-  UpdateSessionSchema,
-  CreateRunSchema,
-  CancelRunSchema,
-  SteerRunSchema,
-  RevisionCommandSchema,
-  UpdateWorkspaceSchema,
-  SessionListQuerySchema,
   PaginationQuerySchema,
   ProviderIdSchema,
-  SetApiKeySchema,
-  CreateAuthFlowSchema,
   RespondAuthFlowSchema,
-  CommandOnlySchema,
+  RevisionCommandSchema,
+  SessionListQuerySchema,
+  SetApiKeySchema,
+  SteerRunSchema,
+  UpdateSessionSchema,
+  UpdateWorkspaceSchema,
 } from "@no-pi-no-gang/contracts";
-import type { Store } from "./db/store.js";
-import type { DataRoots, GatewayHandle, HealthState } from "./types.js";
-import { GatewayAccess, AccessError } from "./access/access.js";
-import { EventHub } from "./stream/hub.js";
-import { RuntimeCoordinator } from "./runtime/coordinator.js";
-import { projectSession } from "./projection/projector.js";
-import { SessionProjectionCoordinator } from "./projection/coordinator.js";
-import { Health } from "./diagnostics/health.js";
-import { problem } from "./problem.js";
-import { getAgentDir, SessionManager } from "@earendil-works/pi-coding-agent";
-import { readdir, realpath } from "node:fs/promises";
+import { Hono } from "hono";
+import { streamSSE } from "hono/streaming";
+import { z } from "zod";
+import { AccessError, GatewayAccess } from "./access/access.js";
 import {
+  type CapabilityAdapter,
   CapabilityCoordinator,
   PiCapabilityAdapter,
-  type CapabilityAdapter,
 } from "./capabilities.js";
-import { replayCommand, recordCommand, safeDigest } from "./commands/ledger.js";
+import { recordCommand, replayCommand, safeDigest } from "./commands/ledger.js";
+import type { Store } from "./db/store.js";
+import { Health } from "./diagnostics/health.js";
+import { problem } from "./problem.js";
+import { SessionProjectionCoordinator } from "./projection/coordinator.js";
+import { projectSession } from "./projection/projector.js";
+import { RuntimeCoordinator } from "./runtime/coordinator.js";
+import { EventHub } from "./stream/hub.js";
+import type { DataRoots, GatewayHandle, HealthState } from "./types.js";
 
 export async function createHttpGateway(
   store: Store,

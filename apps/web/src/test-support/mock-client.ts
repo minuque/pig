@@ -1,4 +1,3 @@
-import { vi } from "vitest";
 import type {
   AuthFlow,
   Bootstrap,
@@ -7,6 +6,7 @@ import type {
   SessionSnapshot,
 } from "@no-pi-no-gang/contracts";
 import { buildSession } from "@no-pi-no-gang/testkit";
+import { vi } from "vitest";
 import type { WebGatewayClient } from "@/lib/gateway/client";
 
 /**

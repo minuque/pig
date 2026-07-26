@@ -1,8 +1,8 @@
-import type { FullConfig } from "@playwright/test";
-import { mkdtemp, mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { spawnSync } from "node:child_process";
+import type { FullConfig } from "@playwright/test";
 
 const root = resolve(import.meta.dirname, "..");
 

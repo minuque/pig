@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { test, expect } from "./fixtures";
+import { expect, test } from "./fixtures";
 
 async function bootstrap(page: Page, url: string) {
   await page.goto(url);

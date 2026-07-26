@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { request } from "node:http";
 import { join } from "node:path";
-import { ProblemDetailsSchema, endpoints } from "@no-pi-no-gang/contracts";
+import { endpoints, ProblemDetailsSchema } from "@no-pi-no-gang/contracts";
 import { afterEach, describe, expect, it } from "vitest";
 import type { CapabilityAdapter } from "../src/capabilities.js";
 import { createHttpGateway } from "../src/server.js";

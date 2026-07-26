@@ -1,5 +1,3 @@
-import { computed, watch, type ComputedRef, type Ref } from "vue";
-import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import type {
   RunState,
   RunSummary,
@@ -7,16 +5,18 @@ import type {
   SessionId,
   TranscriptItem,
 } from "@no-pi-no-gang/contracts";
-import { useGatewayClient } from "@/lib/gateway/client-context";
-import { gatewayKeys } from "@/lib/gateway/keys";
-import { isTerminalRunState, type LivePhase, type LiveRunState } from "@/features/sync/reducer";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
+import { type ComputedRef, computed, type Ref, watch } from "vue";
 import { useLiveOverlayStore } from "@/features/sync/live-overlay-store";
+import { isTerminalRunState, type LivePhase, type LiveRunState } from "@/features/sync/reducer";
 import {
   prependOlderTranscriptPage,
   seedTranscriptFromSnapshot,
-  transcriptCacheFromPage,
   type TranscriptCacheData,
+  transcriptCacheFromPage,
 } from "@/features/sync/transcript-cache";
+import { useGatewayClient } from "@/lib/gateway/client-context";
+import { gatewayKeys } from "@/lib/gateway/keys";
 
 /**
  * One rendered Transcript entry: either a durable item owned by Vue Query or

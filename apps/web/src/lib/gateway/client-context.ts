@@ -1,4 +1,4 @@
-import { inject, type App, type InjectionKey } from "vue";
+import { type App, type InjectionKey, inject } from "vue";
 import type { WebGatewayClient } from "@/lib/gateway/client";
 
 export const GatewayClientKey: InjectionKey<WebGatewayClient> = Symbol("GatewayClient");

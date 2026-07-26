@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from "vue";
 import { useQueryClient } from "@tanstack/vue-query";
+import { onBeforeUnmount, ref } from "vue";
 import BootFailure from "@/components/BootFailure.vue";
-import { useGatewayClient } from "@/lib/gateway/client-context";
-import { setCsrfToken } from "@/lib/gateway/csrf";
-import { consumeBootstrapSecret } from "@/lib/gateway/bootstrap-secret";
-import { isAuthProblem } from "@/lib/gateway/errors";
-import { gatewayKeys } from "@/lib/gateway/keys";
 import { GatewaySyncController } from "@/features/sync/gateway-sync-controller";
 import { useLiveOverlayStore } from "@/features/sync/live-overlay-store";
+import { consumeBootstrapSecret } from "@/lib/gateway/bootstrap-secret";
+import { useGatewayClient } from "@/lib/gateway/client-context";
+import { setCsrfToken } from "@/lib/gateway/csrf";
+import { isAuthProblem } from "@/lib/gateway/errors";
+import { gatewayKeys } from "@/lib/gateway/keys";
 
 /**
  * Boot sequence: exchange the one-time fragment bootstrap secret for the

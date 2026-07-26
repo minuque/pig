@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
-import { readFile, readdir, mkdir, writeFile, rename, rm } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { DatabaseSync, backup } from "node:sqlite";
+import { backup, DatabaseSync } from "node:sqlite";
 import type { DataRoots } from "../types.js";
 export const APPLICATION_ID = 0x4e504e47;
 export const MAX_SCHEMA = 1;

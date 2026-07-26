@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import type {
   SessionAvailability,
   SessionId,
   SessionSummary,
   WorkspaceId,
 } from "@no-pi-no-gang/contracts";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
+import { computed, ref } from "vue";
 import { useGatewayClient } from "@/lib/gateway/client-context";
 import { gatewayKeys } from "@/lib/gateway/keys";
 import { newCommandId } from "@/lib/utils/command";

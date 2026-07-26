@@ -1,6 +1,6 @@
-import { h, type VNodeChild } from "vue";
 import MarkdownIt from "markdown-it";
 import type Token from "markdown-it/lib/token.mjs";
+import { h, type VNodeChild } from "vue";
 import CodeBlock from "@/features/transcript/components/CodeBlock.vue";
 
 /**

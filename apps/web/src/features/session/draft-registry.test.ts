@@ -1,6 +1,6 @@
+import type { SessionId } from "@no-pi-no-gang/contracts";
 import { describe, expect, it } from "vitest";
 import { ref } from "vue";
-import type { SessionId } from "@no-pi-no-gang/contracts";
 import { useDraft } from "@/features/session/draft-registry";
 
 const sid = (value: string): SessionId => value as SessionId;

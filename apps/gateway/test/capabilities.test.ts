@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { CapabilityCoordinator, type CapabilityAdapter } from "../src/capabilities.js";
+import { type CapabilityAdapter, CapabilityCoordinator } from "../src/capabilities.js";
 import { openStore, removeTempDir, tempDir } from "./helpers.js";
 
 const cleanups: string[] = [];

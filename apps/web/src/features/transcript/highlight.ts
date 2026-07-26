@@ -1,7 +1,7 @@
 import { createHighlighterCore, type HighlighterCore } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
-import githubLight from "shiki/themes/github-light.mjs";
 import githubDark from "shiki/themes/github-dark.mjs";
+import githubLight from "shiki/themes/github-light.mjs";
 import { h, type VNodeChild } from "vue";
 
 /**

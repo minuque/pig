@@ -8,11 +8,11 @@ import {
 } from "./bootstrap.js";
 import {
   CommandOnlySchema,
+  cursorPageSchema,
   EmptySchema,
+  mutationResultSchema,
   PaginationQuerySchema,
   RevisionCommandSchema,
-  cursorPageSchema,
-  mutationResultSchema,
 } from "./common.js";
 import { EventsQuerySchema, GatewayEventSchema } from "./events.js";
 import {

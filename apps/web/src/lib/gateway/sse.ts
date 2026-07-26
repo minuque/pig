@@ -1,16 +1,16 @@
-import { z } from "zod";
 import {
-  EventCursorSchema,
-  GatewayEventSchema,
-  StreamControlEventSchema,
-  gatewayEventSchemas,
   type EventCursor,
+  EventCursorSchema,
   type GatewayEvent,
+  GatewayEventSchema,
   type GatewayStreamItem,
+  gatewayEventSchemas,
+  ProblemDetailsSchema,
   type StreamControlEvent,
+  StreamControlEventSchema,
 } from "@no-pi-no-gang/contracts";
+import { z } from "zod";
 import { GatewayRequestError, GatewayStreamOpenError } from "@/lib/gateway/errors";
-import { ProblemDetailsSchema } from "@no-pi-no-gang/contracts";
 
 /** A future event type this client does not know yet. Cursor-relevant only. */
 export interface UnknownGatewayEvent {

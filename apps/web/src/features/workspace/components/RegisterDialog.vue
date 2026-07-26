@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
 import type { WorkspaceId } from "@no-pi-no-gang/contracts";
+import { ref, watch } from "vue";
 import AppSheet from "@/components/AppSheet.vue";
 import { useGatewayClient } from "@/lib/gateway/client-context";
 import { newCommandId } from "@/lib/utils/command";

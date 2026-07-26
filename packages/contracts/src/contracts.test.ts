@@ -2,16 +2,16 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
-  CreateRunSchema,
   BootstrapSchema,
+  CreateRunSchema,
+  endpoints,
   GatewayEventSchema,
+  gatewayEventSchemas,
+  ModelIdSchema,
   ProblemDetailsSchema,
   RunSummarySchema,
   SessionSnapshotSchema,
-  ModelIdSchema,
   TranscriptItemSchema,
-  endpoints,
-  gatewayEventSchemas,
 } from "./index.js";
 
 const expectedRoutes = [

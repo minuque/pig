@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
-import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
+import type { ProviderId } from "@no-pi-no-gang/contracts";
 import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import ProviderAuthFlow from "@/features/auth/components/ProviderAuthFlow.vue";
 import { GatewayClientKey } from "@/lib/gateway/client-context";
-import type { ProviderId } from "@no-pi-no-gang/contracts";
 import {
   createMockGatewayClient,
   mockAuthFlow,

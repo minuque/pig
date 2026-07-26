@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, shallowRef, watch, type VNodeChild } from "vue";
+import { ref, shallowRef, type VNodeChild, watch } from "vue";
+import { VNodeSlot } from "@/components/VNodeSlot";
 import {
   hastToVNodes,
   highlightToHast,
   normalizeLanguage,
 } from "@/features/transcript/highlight";
-import { VNodeSlot } from "@/components/VNodeSlot";
 
 /**
  * Fenced code block: raw code is always preserved verbatim; Shiki

@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { describe, expect, it, afterEach } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { GatewayAccess } from "../src/access/access.js";
 import { openStore, removeTempDir, tempDir } from "./helpers.js";
 

@@ -1,12 +1,12 @@
-import { createApp } from "vue";
-import { createPinia } from "pinia";
 import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { createPinia } from "pinia";
+import { createApp } from "vue";
 import App from "@/App.vue";
-import { createAppRouter } from "@/router";
+import { captureBootstrapSecret } from "@/lib/gateway/bootstrap-secret";
 import { createGatewayClient } from "@/lib/gateway/client";
 import { provideGatewayClient } from "@/lib/gateway/client-context";
+import { createAppRouter } from "@/router";
 import { useTheme } from "@/theme/use-theme";
-import { captureBootstrapSecret } from "@/lib/gateway/bootstrap-secret";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
 

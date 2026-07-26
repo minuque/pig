@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { buildRun } from "@no-pi-no-gang/testkit";
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
-import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
-import { buildRun } from "@no-pi-no-gang/testkit";
+import { describe, expect, it, vi } from "vitest";
 import PromptComposer from "@/features/session/components/PromptComposer.vue";
 import { GatewayClientKey } from "@/lib/gateway/client-context";
 import { createMockGatewayClient, mockMutationResult } from "@/test-support/mock-client";

@@ -1,12 +1,11 @@
-import { computed, type ComputedRef } from "vue";
-import { useRoute } from "vue-router";
-import { createRouter, createWebHashHistory, type RouteRecordRaw } from "vue-router";
 import {
-  SessionIdSchema,
-  WorkspaceIdSchema,
   type SessionId,
+  SessionIdSchema,
   type WorkspaceId,
+  WorkspaceIdSchema,
 } from "@no-pi-no-gang/contracts";
+import { type ComputedRef, computed } from "vue";
+import { createRouter, createWebHashHistory, type RouteRecordRaw, useRoute } from "vue-router";
 import WorkbenchShell from "@/features/workbench/components/WorkbenchShell.vue";
 
 /**

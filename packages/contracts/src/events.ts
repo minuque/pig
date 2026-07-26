@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { ContractRevisionSchema, InstantSchema } from "./common.js";
-import { AuthFlowSchema, ProviderAuthStatusSchema } from "./model-auth.js";
 import {
   CommandIdSchema,
   EntryIdSchema,
@@ -9,6 +8,7 @@ import {
   SessionIdSchema,
   WorkspaceIdSchema,
 } from "./ids.js";
+import { AuthFlowSchema, ProviderAuthStatusSchema } from "./model-auth.js";
 import { RunSummarySchema } from "./run.js";
 import { SessionSummarySchema } from "./session.js";
 import { TranscriptItemSchema } from "./transcript.js";

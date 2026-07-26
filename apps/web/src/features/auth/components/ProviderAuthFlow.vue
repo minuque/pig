@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref, watch } from "vue";
-import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import type {
   AuthFlow,
   AuthFlowId,
   ProviderAuthStatus,
   ProviderId,
 } from "@no-pi-no-gang/contracts";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
+import { computed, onBeforeUnmount, reactive, ref, watch } from "vue";
 import AppSheet from "@/components/AppSheet.vue";
 import { useGatewayClient } from "@/lib/gateway/client-context";
 import { gatewayKeys } from "@/lib/gateway/keys";

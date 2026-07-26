@@ -1,5 +1,3 @@
-import { shallowRef, ref } from "vue";
-import { defineStore } from "pinia";
 import type {
   EventCursor,
   RunId,
@@ -7,15 +5,17 @@ import type {
   SessionId,
   SessionSnapshot,
 } from "@no-pi-no-gang/contracts";
+import { defineStore } from "pinia";
+import { ref, shallowRef } from "vue";
 import {
   createEmptyLiveOverlay,
   cursorSeq,
   ensureRunOverlay,
+  type LiveOverlayState,
   overlayFromPartialOutputs,
   removeRunOverlay,
   replaceSessionOverlays,
   withCursor,
-  type LiveOverlayState,
 } from "@/features/sync/reducer";
 
 export type StreamConnection = "connecting" | "live" | "reconnecting";

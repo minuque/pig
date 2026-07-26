@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from "vue";
-import TranscriptItem from "@/features/transcript/components/TranscriptItem.vue";
 import type { TranscriptEntry } from "@/features/session/use-session-view";
+import TranscriptItem from "@/features/transcript/components/TranscriptItem.vue";
 
 /**
  * Scrollable Transcript. While the user is near the tail, new entries keep

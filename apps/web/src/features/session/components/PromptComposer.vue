@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { computed, ref, toRef, watch } from "vue";
-import { useQuery } from "@tanstack/vue-query";
 import type {
   ExecutionProfile,
   RunSummary,
   SessionId,
   ThinkingLevel,
 } from "@no-pi-no-gang/contracts";
+import { useQuery } from "@tanstack/vue-query";
+import { computed, ref, toRef, watch } from "vue";
+import { useDraft } from "@/features/session/draft-registry";
+import { isTerminalRunState } from "@/features/sync/reducer";
 import { useGatewayClient } from "@/lib/gateway/client-context";
 import { gatewayKeys } from "@/lib/gateway/keys";
 import { newCommandId } from "@/lib/utils/command";
-import { useDraft } from "@/features/session/draft-registry";
-import { isTerminalRunState } from "@/features/sync/reducer";
 
 /**
  * Prompt composer. The draft is session-scoped and in-memory only

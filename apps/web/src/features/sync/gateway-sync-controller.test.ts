@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { GatewayEvent, SessionSnapshot } from "@no-pi-no-gang/contracts";
 import { QueryClient } from "@tanstack/vue-query";
 import { createPinia, setActivePinia } from "pinia";
-import type { GatewayEvent, SessionSnapshot } from "@no-pi-no-gang/contracts";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GatewaySyncController } from "@/features/sync/gateway-sync-controller";
 import { useLiveOverlayStore } from "@/features/sync/live-overlay-store";
 import { gatewayKeys } from "@/lib/gateway/keys";

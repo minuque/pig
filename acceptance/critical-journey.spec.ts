@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Locator, Page } from "@playwright/test";
-import { test, expect } from "./fixtures";
+import { expect, test } from "./fixtures";
 
 const connected = (page: Page) => page.getByRole("status").filter({ hasText: "已连接" });
 

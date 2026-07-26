@@ -1,15 +1,15 @@
 <script setup lang="ts">
+import type { SessionId, WorkspaceId } from "@no-pi-no-gang/contracts";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import type { SessionId, WorkspaceId } from "@no-pi-no-gang/contracts";
 import ResponsiveNavigation from "@/components/ResponsiveNavigation.vue";
-import WorkspaceRail from "@/features/workspace/components/WorkspaceRail.vue";
-import SessionSidebar from "@/features/session/components/SessionSidebar.vue";
-import ConversationPanel from "@/features/conversation/components/ConversationPanel.vue";
 import ProviderAuthFlow from "@/features/auth/components/ProviderAuthFlow.vue";
-import { useRouteIds } from "@/router";
+import ConversationPanel from "@/features/conversation/components/ConversationPanel.vue";
+import SessionSidebar from "@/features/session/components/SessionSidebar.vue";
 import { useLiveOverlayStore } from "@/features/sync/live-overlay-store";
-import { useTheme, type ThemePreference } from "@/theme/use-theme";
+import WorkspaceRail from "@/features/workspace/components/WorkspaceRail.vue";
+import { useRouteIds } from "@/router";
+import { type ThemePreference, useTheme } from "@/theme/use-theme";
 
 /**
  * The three-region workbench shell. The Router owns the selected

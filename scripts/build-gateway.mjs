@@ -1,7 +1,7 @@
+import { spawnSync } from "node:child_process";
 import { cp, mkdir, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const web = join(root, "apps", "web");

@@ -1,6 +1,6 @@
+import { mkdir } from "node:fs/promises";
 import { homedir, platform } from "node:os";
 import { isAbsolute, resolve } from "node:path";
-import { mkdir } from "node:fs/promises";
 import type { DataRoots } from "../types.js";
 export function resolveDataRoots(override?: string): DataRoots {
   const p = platform();

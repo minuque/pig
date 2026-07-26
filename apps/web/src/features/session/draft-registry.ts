@@ -1,5 +1,5 @@
-import { computed, reactive, type Ref, type WritableComputedRef } from "vue";
 import type { SessionId } from "@no-pi-no-gang/contracts";
+import { computed, type Ref, reactive, type WritableComputedRef } from "vue";
 
 /**
  * Composer draft registry: purely in-memory, keyed by Session ID. Drafts

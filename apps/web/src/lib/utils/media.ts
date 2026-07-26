@@ -1,4 +1,4 @@
-import { onBeforeUnmount, ref, type Ref } from "vue";
+import { onBeforeUnmount, type Ref, ref } from "vue";
 
 /**
  * Reactive media query. Degrades to `false` (desktop layout) when matchMedia

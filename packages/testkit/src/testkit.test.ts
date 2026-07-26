@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { StableClock, SequenceIdSource, buildRun, buildSession } from "./index.js";
+import { buildRun, buildSession, SequenceIdSource, StableClock } from "./index.js";
 
 describe("deterministic test dependencies", () => {
   it("advances a stable clock only when instructed", () => {

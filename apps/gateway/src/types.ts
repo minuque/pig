@@ -1,5 +1,5 @@
-import type { DatabaseSync } from "node:sqlite";
 import type { Server } from "node:http";
+import type { DatabaseSync } from "node:sqlite";
 export interface DataRoots {
   base: string;
   data: string;

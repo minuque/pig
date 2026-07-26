@@ -1,11 +1,11 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { buildSession, buildWorkspace } from "@no-pi-no-gang/testkit";
+import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { createPinia } from "pinia";
-import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
-import { buildSession, buildWorkspace } from "@no-pi-no-gang/testkit";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import WorkbenchShell from "@/features/workbench/components/WorkbenchShell.vue";
-import { createAppRouter } from "@/router";
 import { GatewayClientKey } from "@/lib/gateway/client-context";
+import { createAppRouter } from "@/router";
 import { createMockGatewayClient } from "@/test-support/mock-client";
 
 function narrowMediaQuery(matches: boolean) {

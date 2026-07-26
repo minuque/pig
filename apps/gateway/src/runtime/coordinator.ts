@@ -2,8 +2,8 @@ import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent";
 import type { Store } from "../db/store.js";
-import type { EventHub } from "../stream/hub.js";
 import { projectSession } from "../projection/projector.js";
+import type { EventHub } from "../stream/hub.js";
 
 const TERMINAL_STATES = ["completed", "failed", "cancelled", "interrupted"];
 const TRANSITIONS: Readonly<Record<string, readonly string[]>> = {

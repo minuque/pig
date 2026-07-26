@@ -1,10 +1,10 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { DatabaseSync } from "node:sqlite";
-import type { DataRoots } from "../src/types.js";
+import { fileURLToPath } from "node:url";
 import { Store } from "../src/db/store.js";
+import type { DataRoots } from "../src/types.js";
 
 export async function tempDir(): Promise<string> {
   return mkdtemp(join(tmpdir(), "npng-gateway-test-"));

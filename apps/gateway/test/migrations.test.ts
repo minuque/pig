@@ -3,11 +3,11 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  APPLICATION_ID,
+  DatabaseError,
   listBackups,
   openDatabase,
   restoreBackup,
-  DatabaseError,
-  APPLICATION_ID,
 } from "../src/db/migrations.js";
 import { removeTempDir, rootsFor, tempDir } from "./helpers.js";
 

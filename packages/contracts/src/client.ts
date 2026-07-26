@@ -1,6 +1,6 @@
-import type { AuthFlow, Model, ProviderAuthStatus } from "./model-auth.js";
 import type { Bootstrap } from "./bootstrap.js";
 import type { CursorPage, MutationResult, Revision } from "./common.js";
+import type { GatewayStreamItem } from "./events.js";
 import type {
   AuthFlowId,
   CommandId,
@@ -12,9 +12,9 @@ import type {
   SessionId,
   WorkspaceId,
 } from "./ids.js";
+import type { AuthFlow, Model, ProviderAuthStatus } from "./model-auth.js";
 import type { RunDetail, RunSummary, ThinkingLevel } from "./run.js";
 import type { SessionDetail, SessionSnapshot, SessionSummary } from "./session.js";
-import type { GatewayStreamItem } from "./events.js";
 import type { TranscriptItem } from "./transcript.js";
 import type {
   WorkspaceDetail,

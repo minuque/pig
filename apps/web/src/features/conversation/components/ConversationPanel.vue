@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, toRef } from "vue";
 import type { SessionId } from "@no-pi-no-gang/contracts";
-import TranscriptList from "@/features/transcript/components/TranscriptList.vue";
+import { computed, toRef } from "vue";
 import PromptComposer from "@/features/session/components/PromptComposer.vue";
 import { useSessionView } from "@/features/session/use-session-view";
+import TranscriptList from "@/features/transcript/components/TranscriptList.vue";
 
 /**
  * The conversation region: Session header (name, availability, live run

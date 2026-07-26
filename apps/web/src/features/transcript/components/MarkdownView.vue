@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { markdownToVNodes } from "@/features/transcript/markdown";
 import { VNodeSlot } from "@/components/VNodeSlot";
+import { markdownToVNodes } from "@/features/transcript/markdown";
 
 /**
  * Safe Markdown renderer: tokens become Vue VNodes (no v-html, no

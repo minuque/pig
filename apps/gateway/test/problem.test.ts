@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { ProblemDetailsSchema } from "@no-pi-no-gang/contracts";
+import { describe, expect, it } from "vitest";
 import { problem } from "../src/problem.js";
 
 describe("problem details factory", () => {

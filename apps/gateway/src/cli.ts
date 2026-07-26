@@ -1,16 +1,16 @@
 #!/usr/bin/env node
-import { join } from "node:path";
-import { mkdir } from "node:fs/promises";
-import { open } from "node:fs/promises";
+import { mkdir, open } from "node:fs/promises";
 import { createServer, type Server } from "node:http";
-import { resolveDataRoots, ensureRoots } from "./platform/paths.js";
-import { acquireLock, writeMarker } from "./platform/lock.js";
-import { openDatabase, listBackups, restoreBackup } from "./db/migrations.js";
-import { Store } from "./db/store.js";
-import { createHttpGateway } from "./server.js";
-import { DiagnosticSink } from "./diagnostics/sink.js";
-import { Health } from "./diagnostics/health.js";
+import { join } from "node:path";
 import { capabilityAdapterFromEnvironment } from "./capabilities.js";
+import { listBackups, openDatabase, restoreBackup } from "./db/migrations.js";
+import { Store } from "./db/store.js";
+import { Health } from "./diagnostics/health.js";
+import { DiagnosticSink } from "./diagnostics/sink.js";
+import { acquireLock, writeMarker } from "./platform/lock.js";
+import { ensureRoots, resolveDataRoots } from "./platform/paths.js";
+import { createHttpGateway } from "./server.js";
+
 const version = "0.1.0";
 function help() {
   console.log(

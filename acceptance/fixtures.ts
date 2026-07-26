@@ -1,9 +1,9 @@
-import { test as base, expect } from "@playwright/test";
-import { spawn, type ChildProcess } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { test as base, expect } from "@playwright/test";
 
 export interface PackagedGateway {
   readonly bootstrapUrl: string;

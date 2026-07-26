@@ -1,4 +1,3 @@
-import type { QueryClient } from "@tanstack/vue-query";
 import type {
   CursorPage,
   OpaqueCursor,
@@ -6,6 +5,7 @@ import type {
   SessionSnapshot,
   TranscriptItem,
 } from "@no-pi-no-gang/contracts";
+import type { QueryClient } from "@tanstack/vue-query";
 import { gatewayKeys } from "@/lib/gateway/keys";
 
 /**

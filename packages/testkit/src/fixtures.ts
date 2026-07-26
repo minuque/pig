@@ -1,10 +1,10 @@
 import {
-  RunSummarySchema,
-  SessionDetailSchema,
-  WorkspaceDetailSchema,
   type RunSummary,
+  RunSummarySchema,
   type SessionDetail,
+  SessionDetailSchema,
   type WorkspaceDetail,
+  WorkspaceDetailSchema,
 } from "@no-pi-no-gang/contracts";
 
 const instant = "2025-01-02T03:04:05.000Z";

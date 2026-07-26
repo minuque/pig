@@ -1,23 +1,28 @@
+import type {
+  EventCursor,
+  GatewayEvent,
+  RunId,
+  SessionId,
+  SessionSnapshot,
+} from "@no-pi-no-gang/contracts";
 import type { QueryClient } from "@tanstack/vue-query";
-import type { EventCursor, GatewayEvent, RunId, SessionId } from "@no-pi-no-gang/contracts";
-import type { WebGatewayClient } from "@/lib/gateway/client";
-import { setCsrfToken } from "@/lib/gateway/csrf";
-import { gatewayKeys } from "@/lib/gateway/keys";
-import type { UnknownGatewayEvent } from "@/lib/gateway/sse";
+import type { useLiveOverlayStore } from "@/features/sync/live-overlay-store";
+import { projectDurableEvent } from "@/features/sync/projector";
 import {
   createEmptyLiveOverlay,
   ensureRunOverlay,
+  type LiveOverlayState,
   overlayFromPartialOutputs,
   reduceLiveOverlay,
   replaceSessionOverlays,
   withCursor,
-  type LiveOverlayState,
 } from "@/features/sync/reducer";
-import type { useLiveOverlayStore } from "@/features/sync/live-overlay-store";
-import { projectDurableEvent } from "@/features/sync/projector";
 import { StreamCoalescer } from "@/features/sync/stream-coalescer";
-import type { SessionSnapshot } from "@no-pi-no-gang/contracts";
 import type { TranscriptCacheData } from "@/features/sync/transcript-cache";
+import type { WebGatewayClient } from "@/lib/gateway/client";
+import { setCsrfToken } from "@/lib/gateway/csrf";
+import { gatewayKeys } from "@/lib/gateway/keys";
+import type { UnknownGatewayEvent } from "@/lib/gateway/sse";
 
 type LiveOverlayStore = ReturnType<typeof useLiveOverlayStore>;
 

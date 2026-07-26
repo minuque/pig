@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed } from "vue";
 import type { TranscriptItem } from "@no-pi-no-gang/contracts";
-import MarkdownView from "@/features/transcript/components/MarkdownView.vue";
+import { computed } from "vue";
 import {
   runStateLabel,
   type TranscriptEntry,
 } from "@/features/session/use-session-view";
+import MarkdownView from "@/features/transcript/components/MarkdownView.vue";
 
 /**
  * One Transcript entry: either a durable item owned by Vue Query or the

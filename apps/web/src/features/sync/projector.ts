@@ -1,8 +1,8 @@
-import type { QueryClient } from "@tanstack/vue-query";
 import type { GatewayEvent, RunId, SessionId } from "@no-pi-no-gang/contracts";
-import { gatewayKeys } from "@/lib/gateway/keys";
+import type { QueryClient } from "@tanstack/vue-query";
 import { isTerminalRunState } from "@/features/sync/reducer";
 import { appendCommittedTranscriptItem } from "@/features/sync/transcript-cache";
+import { gatewayKeys } from "@/lib/gateway/keys";
 
 /**
  * Durable projector: installs verified SSE payloads into the Vue Query cache

@@ -1,10 +1,10 @@
 import { strict as assert } from "node:assert";
 import { spawn, spawnSync } from "node:child_process";
-import { access, readFile, writeFile, mkdir, mkdtemp, rm } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
 import { DatabaseSync } from "node:sqlite";
+import { pathToFileURL } from "node:url";
 
 const root = resolve(import.meta.dirname, "..");
 const support = JSON.parse(await readFile(join(root, "release-support.json"), "utf8"));
