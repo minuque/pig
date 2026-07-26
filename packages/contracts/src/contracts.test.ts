@@ -8,6 +8,7 @@ import {
   ProblemDetailsSchema,
   RunSummarySchema,
   SessionSnapshotSchema,
+  ModelIdSchema,
   TranscriptItemSchema,
   endpoints,
   gatewayEventSchemas,
@@ -108,6 +109,12 @@ describe("Pi capability compatibility fixture", () => {
       "xhigh",
       "max",
     ]);
+  });
+
+  it("accepts Pi latest-model aliases", () => {
+    expect(ModelIdSchema.parse("~anthropic/claude-sonnet-latest")).toBe(
+      "~anthropic/claude-sonnet-latest",
+    );
   });
 });
 

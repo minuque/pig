@@ -18,7 +18,7 @@ export const ModelIdSchema = z
   .string()
   .min(1)
   .max(256)
-  .regex(/^[A-Za-z0-9._:/@-]+$/)
+  .regex(/^~?[A-Za-z0-9._:/@-]+$/)
   .brand<"ModelId">();
 export const ProviderIdSchema = opaqueId<"ProviderId">();
 export const AuthFlowIdSchema = opaqueId<"AuthFlowId">();
