@@ -19,12 +19,7 @@ export interface GatewayOptions {
   migrationDir?: string;
 }
 export type HealthState =
-  | "starting"
-  | "migrating"
-  | "reconciling"
-  | "ready"
-  | "shutting_down"
-  | "unavailable";
+  "starting" | "migrating" | "reconciling" | "ready" | "shutting_down" | "unavailable";
 export interface GatewayHandle {
   origin: string;
   port: number;

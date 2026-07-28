@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, type VNodeChild, watch } from "vue";
 import { VNodeSlot } from "@/components/VNodeSlot";
-import {
-  hastToVNodes,
-  highlightToHast,
-  normalizeLanguage,
-} from "@/features/transcript/highlight";
+import { hastToVNodes, highlightToHast, normalizeLanguage } from "@/features/transcript/highlight";
 
 /**
  * Fenced code block: raw code is always preserved verbatim; Shiki
@@ -69,9 +65,7 @@ async function copy(): Promise<void> {
 <template>
   <figure class="code-block">
     <figcaption class="code-block__bar">
-      <span class="code-block__lang">{{
-        language === "" ? "text" : language
-      }}</span>
+      <span class="code-block__lang">{{ language === "" ? "text" : language }}</span>
       <button
         type="button"
         class="code-block__copy"

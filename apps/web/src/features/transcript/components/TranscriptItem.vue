@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { TranscriptItem } from "@no-pi-no-gang/contracts";
 import { computed } from "vue";
-import {
-  runStateLabel,
-  type TranscriptEntry,
-} from "@/features/session/use-session-view";
+import { runStateLabel, type TranscriptEntry } from "@/features/session/use-session-view";
 import MarkdownView from "@/features/transcript/components/MarkdownView.vue";
 
 /**
@@ -64,32 +61,21 @@ function formatTime(instant: string): string {
 <template>
   <article class="transcript-item" :aria-label="ariaLabel">
     <template v-if="durable">
-      <div
-        v-if="durable.kind === 'message'"
-        class="message"
-        :data-role="durable.role"
-      >
+      <div v-if="durable.kind === 'message'" class="message" :data-role="durable.role">
         <p class="message-meta">
           <span class="message-role">
             {{ durable.role === "user" ? "你" : "助手" }}
           </span>
-          <time :datetime="durable.createdAt">{{
-            formatTime(durable.createdAt)
-          }}</time>
+          <time :datetime="durable.createdAt">{{ formatTime(durable.createdAt) }}</time>
         </p>
-        <MarkdownView
-          v-if="durable.role === 'assistant'"
-          :source="durable.text"
-        />
+        <MarkdownView v-if="durable.role === 'assistant'" :source="durable.text" />
         <p v-else class="message-user-text">{{ durable.text }}</p>
       </div>
 
       <details v-else-if="durable.kind === 'toolCall'" class="tool-call">
         <summary>
           <span class="tool-name">{{ durable.toolName }}</span>
-          <span v-if="durable.summary" class="tool-summary">{{
-            durable.summary
-          }}</span>
+          <span v-if="durable.summary" class="tool-summary">{{ durable.summary }}</span>
         </summary>
         <p class="tool-detail">调用 ID：{{ durable.callId }}</p>
       </details>
@@ -113,11 +99,7 @@ function formatTime(instant: string): string {
         模型已切换为 {{ durable.modelId }}
       </p>
 
-      <p
-        v-else-if="durable.kind === 'notice'"
-        class="meta-note"
-        :data-level="durable.level"
-      >
+      <p v-else-if="durable.kind === 'notice'" class="meta-note" :data-level="durable.level">
         {{ durable.text }}
       </p>
 
@@ -143,9 +125,7 @@ function formatTime(instant: string): string {
       <ul v-if="liveTools.length > 0" class="live-tools">
         <li v-for="tool in liveTools" :key="tool.callId">
           <span class="tool-name">{{ tool.status }}</span>
-          <span v-if="tool.summary" class="tool-summary">{{
-            tool.summary
-          }}</span>
+          <span v-if="tool.summary" class="tool-summary">{{ tool.summary }}</span>
         </li>
       </ul>
       <MarkdownView v-if="live.run.text !== ''" :source="live.run.text" />

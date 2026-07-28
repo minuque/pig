@@ -44,10 +44,7 @@ async function boot(): Promise<void> {
     setCsrfToken(bootstrap.csrfToken);
     queryClient.setQueryData(gatewayKeys.models, bootstrap.models);
     queryClient.setQueryData(gatewayKeys.providerAuth, bootstrap.providerAuth);
-    overlayStore.resetAll(
-      bootstrap.capturedEventCursor,
-      bootstrap.nonterminalRuns,
-    );
+    overlayStore.resetAll(bootstrap.capturedEventCursor, bootstrap.nonterminalRuns);
     if (controller === null) {
       controller = new GatewaySyncController({
         client,
@@ -61,8 +58,7 @@ async function boot(): Promise<void> {
     if (isAuthProblem(cause)) {
       failure.value = {
         title: "需要重新建立安全连接",
-        detail:
-          "启动链接已失效或已被使用。请回到终端，重新打开 no-pi-no-gang 输出的启动链接。",
+        detail: "启动链接已失效或已被使用。请回到终端，重新打开 no-pi-no-gang 输出的启动链接。",
         retryable: false,
       };
     } else {

@@ -1,0 +1,337 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "no-pi-no-gang v2 首发目标架构",
+    "subtitle": "本地单用户 Vue 工作台 · 单进程 Node Agent Gateway · Pi Session 保持唯一事实源",
+    "output": "v2-architecture-plan.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "command-run",
+        "label": "命令与 Run 主路径",
+        "focus": ["local-user", "vue-workbench", "access-policy", "hono-api", "runtime-coordinator", "pi-sdk", "pi-jsonl"],
+        "note": "从本地浏览器命令进入 Gateway，经公平调度后由固定版本 Pi SDK 执行并写回 Pi 原生 Session。"
+      },
+      {
+        "id": "realtime-sync",
+        "label": "多 Session 实时同步",
+        "focus": ["hono-api", "sync-controller", "vue-workbench"],
+        "note": "一个 Gateway 级 SSE 连接复用所有 Session；游标缺口、epoch 变化或背压触发快照恢复。"
+      },
+      {
+        "id": "session-persistence",
+        "label": "Session 真相与投影",
+        "focus": ["pi-jsonl", "projection-coordinator", "app-sqlite", "hono-api"],
+        "note": "Pi JSONL 拥有 Transcript 真相；SQLite 只保存应用状态与可重建投影，并以 generation 原子切换。"
+      },
+      {
+        "id": "local-security",
+        "label": "本地安全边界",
+        "focus": ["local-user", "vue-workbench", "access-policy", "hono-api", "app-sqlite"],
+        "note": "随机 loopback、一次性 fragment bootstrap、Cookie/CSRF 与 Workspace Grant 逐层保护 Gateway 资源。"
+      },
+      {
+        "id": "recovery-path",
+        "label": "崩溃与恢复路径",
+        "focus": ["runtime-coordinator", "app-sqlite", "pi-jsonl", "projection-coordinator", "sync-controller"],
+        "note": "非终态 Run 重启后变为 Interrupted；投影可重建；客户端通过 snapshot + cursor 恢复且绝不自动重放。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "local-user",
+      "type": "external",
+      "label": "本地用户 / CLI",
+      "sublabel": "npm 安装 · 随机端口",
+      "pos": [40, 300],
+      "size": [150, 66]
+    },
+    {
+      "id": "vue-workbench",
+      "type": "frontend",
+      "label": "Vue 工作台",
+      "sublabel": "Router · Query · Pinia",
+      "pos": [240, 210],
+      "size": [160, 66],
+      "tag": "Vue 3 + Vite"
+    },
+    {
+      "id": "sync-controller",
+      "type": "messagebus",
+      "label": "同步控制器",
+      "sublabel": "SSE 游标 · reset · overlay",
+      "pos": [240, 410],
+      "size": [160, 66],
+      "tag": "唯一 SSE consumer"
+    },
+    {
+      "id": "access-policy",
+      "type": "security",
+      "label": "访问策略",
+      "sublabel": "Origin · Cookie · CSRF",
+      "pos": [470, 210],
+      "size": [160, 66],
+      "tag": "Workspace Grant"
+    },
+    {
+      "id": "hono-api",
+      "type": "backend",
+      "label": "Hono API",
+      "sublabel": "REST /api/v1 · 全局 SSE",
+      "pos": [690, 210],
+      "size": [160, 66],
+      "tag": "Zod 4 contracts"
+    },
+    {
+      "id": "runtime-coordinator",
+      "type": "backend",
+      "label": "Run 协调器",
+      "sublabel": "Session FIFO · 公平并发",
+      "pos": [900, 90],
+      "size": [170, 66],
+      "tag": "Steer · cancel · shutdown"
+    },
+    {
+      "id": "projection-coordinator",
+      "type": "backend",
+      "label": "投影协调器",
+      "sublabel": "发现 · 对账 · generation",
+      "pos": [900, 410],
+      "size": [170, 66],
+      "tag": "健康状态 + tombstone"
+    },
+    {
+      "id": "pi-sdk",
+      "type": "cloud",
+      "label": "固定版本 Pi SDK",
+      "sublabel": "AgentSession · Auth · Models",
+      "pos": [1130, 90],
+      "size": [170, 66],
+      "tag": "Node ≥ 22.19"
+    },
+    {
+      "id": "pi-jsonl",
+      "type": "database",
+      "label": "Pi Session JSONL",
+      "sublabel": "Transcript 唯一事实源",
+      "pos": [1360, 90],
+      "size": [170, 66],
+      "tag": "Pi Agent Root"
+    },
+    {
+      "id": "app-sqlite",
+      "type": "database",
+      "label": "应用 SQLite",
+      "sublabel": "账本 · 幂等 · 投影 · FTS",
+      "pos": [1130, 410],
+      "size": [170, 66],
+      "tag": "node:sqlite"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "浏览器进程",
+      "wraps": ["vue-workbench", "sync-controller"],
+      "pad": 28
+    },
+    {
+      "kind": "region",
+      "label": "Node Agent Gateway · 单进程组合根",
+      "wraps": ["access-policy", "hono-api", "runtime-coordinator", "projection-coordinator", "pi-sdk"],
+      "pad": 30
+    },
+    {
+      "kind": "security-group",
+      "label": "Gateway 信任边界 · 仅 127.0.0.1",
+      "wraps": ["access-policy", "hono-api", "runtime-coordinator", "projection-coordinator"],
+      "pad": 16
+    },
+    {
+      "kind": "region",
+      "label": "Pi 拥有的数据边界",
+      "wraps": ["pi-jsonl"],
+      "pad": 24
+    },
+    {
+      "kind": "region",
+      "label": "Application Data Root",
+      "wraps": ["app-sqlite"],
+      "pad": 24
+    }
+  ],
+  "connections": [
+    {
+      "id": "launch-workbench",
+      "from": "local-user",
+      "to": "vue-workbench",
+      "label": "fragment bootstrap",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "orthogonal-h",
+      "labelAt": [215, 290]
+    },
+    {
+      "id": "rest-commands",
+      "from": "vue-workbench",
+      "to": "access-policy",
+      "label": "REST commands",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "straight",
+      "labelDy": -14
+    },
+    {
+      "id": "authorized-request",
+      "from": "access-policy",
+      "to": "hono-api",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "straight"
+    },
+    {
+      "id": "admit-run",
+      "from": "hono-api",
+      "to": "runtime-coordinator",
+      "label": "durable admission",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "orthogonal-h",
+      "labelAt": [875, 170]
+    },
+    {
+      "id": "execute-agent",
+      "from": "runtime-coordinator",
+      "to": "pi-sdk",
+      "label": "AgentSession",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "straight",
+      "labelAt": [1100, 170]
+    },
+    {
+      "id": "persist-session",
+      "from": "pi-sdk",
+      "to": "pi-jsonl",
+      "label": "原生写入",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "straight",
+      "labelDy": -14
+    },
+    {
+      "id": "multiplexed-sse",
+      "from": "hono-api",
+      "to": "sync-controller",
+      "label": "单路多 Session SSE",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "right",
+      "via": [[770, 520], [430, 520], [430, 443]],
+      "labelAt": [600, 520],
+      "labelDy": -10
+    },
+    {
+      "id": "project-live-state",
+      "from": "sync-controller",
+      "to": "vue-workbench",
+      "label": "状态投影",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "route": "straight",
+      "labelDx": 46
+    },
+    {
+      "id": "read-session-source",
+      "from": "pi-jsonl",
+      "to": "projection-coordinator",
+      "label": "发现 / 对账",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "via": [[1445, 550], [985, 550]],
+      "labelAt": [1215, 550],
+      "labelDy": -10
+    },
+    {
+      "id": "store-projection",
+      "from": "projection-coordinator",
+      "to": "app-sqlite",
+      "label": "原子切换",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "straight",
+      "labelDy": -14
+    },
+    {
+      "id": "persist-run-ledger",
+      "from": "runtime-coordinator",
+      "to": "app-sqlite",
+      "label": "Run 账本",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [[985, 285], [1215, 285]],
+      "labelAt": [1100, 285],
+      "labelDy": -10
+    },
+    {
+      "id": "serve-snapshots",
+      "from": "projection-coordinator",
+      "to": "hono-api",
+      "label": "资源 / 快照",
+      "fromSide": "left",
+      "toSide": "bottom",
+      "via": [[875, 443], [875, 345], [770, 345]],
+      "labelAt": [825, 345],
+      "labelDy": -10
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "包与契约边界",
+      "items": [
+        "apps/web → packages/contracts ← apps/gateway",
+        "packages/testkit 仅服务测试；生产代码不得依赖",
+        "发布物是一个 npm CLI，内含 Gateway、SPA 与不可变 migrations"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "状态所有权",
+      "items": [
+        "Router 拥有选中 ID；Vue Query 拥有 REST durable facts",
+        "Pinia 仅拥有按 Session / Run 分区的 Live Overlay",
+        "敏感 Auth 输入与 composer draft 只短暂存在组件内存"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "安全与恢复不变量",
+      "items": [
+        "不启用 CORS；Workspace Grant 不是操作系统沙箱",
+        "Interrupted Run 绝不自动重放；终态必须 settled + durable",
+        "升级前验证 SQLite 备份；应用永不复制或恢复 Pi Agent Root"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "首发验收",
+      "items": [
+        "Vitest + Playwright + 真实 SQLite + 固定版本真实 Pi",
+        "Linux 完整验证；Windows / macOS 从同一 packed artifact 冒烟",
+        "四里程碑：安全 Shell → durable Session → 实时并行 → hardening"
+      ]
+    }
+  ]
+}

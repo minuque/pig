@@ -15,14 +15,7 @@ const scrollPositions = new Map<SessionId, TranscriptScrollPosition>();
 </script>
 
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  watch,
-} from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { TranscriptEntry } from "@/features/session/use-session-view";
 import TranscriptItem from "@/features/transcript/components/TranscriptItem.vue";
 
@@ -142,17 +135,10 @@ onBeforeUnmount(() => {
 
     <div ref="scroller" class="transcript-scroll" @scroll.passive="onScroll">
       <div class="transcript-head">
-        <button
-          v-if="canLoadOlder"
-          type="button"
-          class="btn btn-ghost"
-          @click="emit('loadOlder')"
-        >
+        <button v-if="canLoadOlder" type="button" class="btn btn-ghost" @click="emit('loadOlder')">
           加载更早的消息
         </button>
-        <p v-if="historyTruncated" class="truncated-note">
-          更早的历史记录已截断，仅显示最近内容。
-        </p>
+        <p v-if="historyTruncated" class="truncated-note">更早的历史记录已截断，仅显示最近内容。</p>
       </div>
 
       <p v-if="pending" class="transcript-empty" role="status">正在加载…</p>
@@ -167,12 +153,7 @@ onBeforeUnmount(() => {
       </ul>
     </div>
 
-    <button
-      v-if="jumpVisible"
-      type="button"
-      class="btn jump-latest"
-      @click="scrollToTail"
-    >
+    <button v-if="jumpVisible" type="button" class="btn jump-latest" @click="scrollToTail">
       跳转到最新
     </button>
   </div>

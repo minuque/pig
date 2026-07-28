@@ -32,10 +32,7 @@ const queryClient = useQueryClient();
 const search = ref("");
 const listQuery = useQuery({
   queryKey: computed(() =>
-    gatewayKeys.sessions.list(
-      props.workspaceId ?? ("__none__" as WorkspaceId),
-      search.value,
-    ),
+    gatewayKeys.sessions.list(props.workspaceId ?? ("__none__" as WorkspaceId), search.value),
   ),
   queryFn: () => {
     const workspaceId = props.workspaceId;
@@ -169,20 +166,13 @@ async function deleteSession(session: SessionSummary): Promise<void> {
       {{ actionError }}
     </p>
 
-    <p v-if="workspaceId === undefined" class="sidebar-empty">
-      选择一个工作区以查看会话。
-    </p>
+    <p v-if="workspaceId === undefined" class="sidebar-empty">选择一个工作区以查看会话。</p>
     <p v-else-if="listQuery.isPending.value" class="sidebar-empty">正在加载…</p>
-    <p v-else-if="sessions.length === 0" class="sidebar-empty">
-      没有匹配的会话。
-    </p>
+    <p v-else-if="sessions.length === 0" class="sidebar-empty">没有匹配的会话。</p>
 
     <ul v-else class="session-list">
       <li v-for="session in sessions" :key="session.sessionId">
-        <div
-          class="session-row"
-          :data-active="session.sessionId === activeSessionId"
-        >
+        <div class="session-row" :data-active="session.sessionId === activeSessionId">
           <template v-if="renamingId === session.sessionId">
             <input
               v-model="renameValue"
@@ -193,36 +183,16 @@ async function deleteSession(session: SessionSummary): Promise<void> {
               @keydown.enter.prevent="submitRename(session)"
               @keydown.escape.prevent="renamingId = null"
             />
-            <button
-              type="button"
-              class="btn btn-ghost"
-              @click="submitRename(session)"
-            >
-              保存
-            </button>
-            <button
-              type="button"
-              class="btn btn-ghost"
-              @click="renamingId = null"
-            >
-              取消
-            </button>
+            <button type="button" class="btn btn-ghost" @click="submitRename(session)">保存</button>
+            <button type="button" class="btn btn-ghost" @click="renamingId = null">取消</button>
           </template>
 
           <template v-else-if="confirmingDeleteId === session.sessionId">
             <span class="confirm-text">删除「{{ session.name }}」？</span>
-            <button
-              type="button"
-              class="btn btn-danger"
-              @click="deleteSession(session)"
-            >
+            <button type="button" class="btn btn-danger" @click="deleteSession(session)">
               确认删除
             </button>
-            <button
-              type="button"
-              class="btn btn-ghost"
-              @click="confirmingDeleteId = null"
-            >
+            <button type="button" class="btn btn-ghost" @click="confirmingDeleteId = null">
               取消
             </button>
           </template>
@@ -231,18 +201,14 @@ async function deleteSession(session: SessionSummary): Promise<void> {
             <button
               type="button"
               class="session-select"
-              :aria-current="
-                session.sessionId === activeSessionId ? 'page' : undefined
-              "
+              :aria-current="session.sessionId === activeSessionId ? 'page' : undefined"
               @click="emit('select', session.sessionId)"
             >
               <span class="session-name">{{ session.name }}</span>
               <span
                 v-if="availabilityLabel(session) !== ''"
                 class="badge"
-                :data-tone="
-                  session.availability === 'quarantined' ? 'danger' : 'warning'
-                "
+                :data-tone="session.availability === 'quarantined' ? 'danger' : 'warning'"
               >
                 {{ availabilityLabel(session) }}
               </span>

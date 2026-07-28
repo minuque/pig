@@ -31,9 +31,7 @@ const props = defineProps<{
 const emit = defineEmits<{ authorize: [providerId: ProviderId] }>();
 
 const client = useGatewayClient();
-const { text: draftText, clear: clearDraft } = useDraft(
-  toRef(props, "sessionId"),
-);
+const { text: draftText, clear: clearDraft } = useDraft(toRef(props, "sessionId"));
 
 const modelsQuery = useQuery({
   queryKey: gatewayKeys.models,
@@ -57,8 +55,7 @@ watch(
 );
 
 const selectedModel = computed(
-  () =>
-    models.value.find((model) => model.modelId === userModelId.value) ?? null,
+  () => models.value.find((model) => model.modelId === userModelId.value) ?? null,
 );
 
 /** The selected model when it cannot run until its provider is authorized. */
@@ -102,12 +99,9 @@ const pending = ref(false);
 const error = ref<string | null>(null);
 
 const canType = computed(
-  () =>
-    props.sessionId !== undefined && props.sessionAvailable && !pending.value,
+  () => props.sessionId !== undefined && props.sessionAvailable && !pending.value,
 );
-const canSubmit = computed(
-  () => canType.value && draftText.value.trim() !== "",
-);
+const canSubmit = computed(() => canType.value && draftText.value.trim() !== "");
 
 async function run(action: () => Promise<unknown>): Promise<boolean> {
   pending.value = true;
@@ -161,9 +155,7 @@ async function steerRun(): Promise<void> {
 async function cancelRun(): Promise<void> {
   const target = admittedRun.value;
   if (!target || pending.value) return;
-  await run(() =>
-    client.runs.cancel({ runId: target.runId, commandId: newCommandId() }),
-  );
+  await run(() => client.runs.cancel({ runId: target.runId, commandId: newCommandId() }));
 }
 </script>
 
@@ -197,11 +189,7 @@ async function cancelRun(): Promise<void> {
           :disabled="!selectedModel"
           aria-label="思考级别"
         >
-          <option
-            v-for="level in selectedModel?.thinkingLevels ?? []"
-            :key="level"
-            :value="level"
-          >
+          <option v-for="level in selectedModel?.thinkingLevels ?? []" :key="level" :value="level">
             {{ level }}
           </option>
         </select>
@@ -210,12 +198,7 @@ async function cancelRun(): Promise<void> {
         当前 Run：{{ admittedRun.executionProfile.modelId }} /
         {{ admittedRun.executionProfile.thinkingLevel }}（已冻结）
       </span>
-      <button
-        v-if="unavailableModel"
-        type="button"
-        class="btn"
-        @click="authorizeUnavailable"
-      >
+      <button v-if="unavailableModel" type="button" class="btn" @click="authorizeUnavailable">
         授权 {{ unavailableModel.providerId }}
       </button>
     </div>
@@ -237,13 +220,7 @@ async function cancelRun(): Promise<void> {
       <button type="submit" class="btn btn-primary" :disabled="!canSubmit">
         {{ admittedRun ? "排队新 Run" : "发送" }}
       </button>
-      <button
-        v-if="steerTarget"
-        type="button"
-        class="btn"
-        :disabled="!canSubmit"
-        @click="steerRun"
-      >
+      <button v-if="steerTarget" type="button" class="btn" :disabled="!canSubmit" @click="steerRun">
         Steer 当前 Run
       </button>
       <button

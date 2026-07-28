@@ -13,12 +13,7 @@ const emit = defineEmits<{ retry: [] }>();
     <div class="boot-failure-card" role="alert">
       <h1 class="boot-failure-title">{{ title }}</h1>
       <p class="boot-failure-detail">{{ detail }}</p>
-      <button
-        v-if="retryable"
-        type="button"
-        class="btn btn-primary"
-        @click="emit('retry')"
-      >
+      <button v-if="retryable" type="button" class="btn btn-primary" @click="emit('retry')">
         重试
       </button>
     </div>

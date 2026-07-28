@@ -34,35 +34,17 @@ watch(
   </template>
   <template v-else>
     <div class="nav-toolbar" role="toolbar" aria-label="导航">
-      <button
-        type="button"
-        class="btn"
-        aria-haspopup="dialog"
-        @click="openSheet = 'rail'"
-      >
+      <button type="button" class="btn" aria-haspopup="dialog" @click="openSheet = 'rail'">
         工作区
       </button>
-      <button
-        type="button"
-        class="btn"
-        aria-haspopup="dialog"
-        @click="openSheet = 'sidebar'"
-      >
+      <button type="button" class="btn" aria-haspopup="dialog" @click="openSheet = 'sidebar'">
         会话
       </button>
     </div>
-    <AppSheet
-      :open="openSheet === 'rail'"
-      title="工作区"
-      @close="openSheet = null"
-    >
+    <AppSheet :open="openSheet === 'rail'" title="工作区" @close="openSheet = null">
       <slot name="rail" />
     </AppSheet>
-    <AppSheet
-      :open="openSheet === 'sidebar'"
-      title="会话"
-      @close="openSheet = null"
-    >
+    <AppSheet :open="openSheet === 'sidebar'" title="会话" @close="openSheet = null">
       <slot name="sidebar" />
     </AppSheet>
   </template>

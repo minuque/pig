@@ -27,10 +27,7 @@ watch(
   () => props.open,
   async (open) => {
     if (open) {
-      previousFocus =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null;
+      previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       await nextTick();
       panel.value?.focus();
     } else {
@@ -74,12 +71,7 @@ function onBackdropClick(event: MouseEvent): void {
 <template>
   <Teleport to="body">
     <!-- biome-ignore lint/a11y/noStaticElementInteractions: The backdrop closes only on self-click; the dialog owns keyboard focus. -->
-    <div
-      v-if="open"
-      class="sheet-backdrop"
-      @click="onBackdropClick"
-      @keydown="onKeydown"
-    >
+    <div v-if="open" class="sheet-backdrop" @click="onBackdropClick" @keydown="onKeydown">
       <div
         ref="panel"
         class="sheet-panel"
@@ -90,12 +82,7 @@ function onBackdropClick(event: MouseEvent): void {
       >
         <header class="sheet-header">
           <h2 :id="titleId" class="sheet-title">{{ title }}</h2>
-          <button
-            type="button"
-            class="sheet-close"
-            aria-label="关闭"
-            @click="emit('close')"
-          >
+          <button type="button" class="sheet-close" aria-label="关闭" @click="emit('close')">
             ×
           </button>
         </header>

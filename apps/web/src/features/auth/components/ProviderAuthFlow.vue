@@ -130,22 +130,17 @@ async function removeCredential(provider: ProviderAuthStatus): Promise<void> {
 const flowId = ref<AuthFlowId | null>(null);
 
 const flowQuery = useQuery({
-  queryKey: computed(() =>
-    gatewayKeys.authFlow(flowId.value ?? ("__none__" as AuthFlowId)),
-  ),
+  queryKey: computed(() => gatewayKeys.authFlow(flowId.value ?? ("__none__" as AuthFlowId))),
   queryFn: () => {
     const id = flowId.value;
     if (id === null) throw new Error("flowId is required");
     return client.authFlows.get({ flowId: id });
   },
   enabled: computed(() => flowId.value !== null),
-  refetchInterval: (query) =>
-    query.state.data?.state === "pending" ? 1500 : false,
+  refetchInterval: (query) => (query.state.data?.state === "pending" ? 1500 : false),
 });
 
-const currentFlow = computed<AuthFlow | null>(
-  () => flowQuery.data.value ?? null,
-);
+const currentFlow = computed<AuthFlow | null>(() => flowQuery.data.value ?? null);
 
 const FLOW_STATE_LABELS: Record<AuthFlow["state"], string> = {
   pending: "等待完成",
@@ -170,10 +165,7 @@ async function startFlow(provider: ProviderAuthStatus): Promise<void> {
       commandId: newCommandId(),
     });
     flowId.value = result.result.flowId;
-    queryClient.setQueryData(
-      gatewayKeys.authFlow(result.result.flowId),
-      result.result,
-    );
+    queryClient.setQueryData(gatewayKeys.authFlow(result.result.flowId), result.result);
   });
   if (!ok) flowId.value = null;
 }
@@ -252,21 +244,13 @@ watch(
 
       <section v-if="currentFlow" class="auth-flow" aria-label="授权流程">
         <p class="auth-flow-state">
-          <span
-            class="badge"
-            :data-tone="currentFlow.state === 'pending' ? 'warning' : 'success'"
-          >
+          <span class="badge" :data-tone="currentFlow.state === 'pending' ? 'warning' : 'success'">
             {{ FLOW_STATE_LABELS[currentFlow.state] }}
           </span>
         </p>
 
-        <template
-          v-if="currentFlow.state === 'pending' && currentFlow.interaction"
-        >
-          <div
-            v-if="currentFlow.interaction.kind === 'openUrl'"
-            class="interaction"
-          >
+        <template v-if="currentFlow.state === 'pending' && currentFlow.interaction">
+          <div v-if="currentFlow.interaction.kind === 'openUrl'" class="interaction">
             <p>请在浏览器中完成授权：</p>
             <a
               class="btn btn-primary"
@@ -278,10 +262,7 @@ watch(
             </a>
           </div>
 
-          <div
-            v-else-if="currentFlow.interaction.kind === 'deviceCode'"
-            class="interaction"
-          >
+          <div v-else-if="currentFlow.interaction.kind === 'deviceCode'" class="interaction">
             <p>
               打开
               <a
@@ -292,15 +273,11 @@ watch(
               >
               并输入代码：
             </p>
-            <code class="device-code">{{
-              currentFlow.interaction.userCode
-            }}</code>
+            <code class="device-code">{{ currentFlow.interaction.userCode }}</code>
             <p class="interaction-note">
               有效期至
               <time :datetime="currentFlow.interaction.expiresAt">{{
-                new Date(currentFlow.interaction.expiresAt).toLocaleTimeString(
-                  "zh-CN",
-                )
+                new Date(currentFlow.interaction.expiresAt).toLocaleTimeString("zh-CN")
               }}</time>
             </p>
           </div>
@@ -320,20 +297,12 @@ watch(
               :type="currentFlow.interaction.sensitive ? 'password' : 'text'"
               autocomplete="off"
             />
-            <button
-              type="submit"
-              class="btn btn-primary"
-              :disabled="promptResponse === '' || busy"
-            >
+            <button type="submit" class="btn btn-primary" :disabled="promptResponse === '' || busy">
               提交
             </button>
           </form>
 
-          <form
-            v-else
-            class="interaction"
-            @submit.prevent="submitSelect(currentFlow)"
-          >
+          <form v-else class="interaction" @submit.prevent="submitSelect(currentFlow)">
             <fieldset v-if="currentFlow.interaction.kind === 'select'">
               <legend class="interaction-label">
                 {{ currentFlow.interaction.label }}
@@ -352,28 +321,17 @@ watch(
                 {{ option.label }}
               </label>
             </fieldset>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              :disabled="selectResponse === '' || busy"
-            >
+            <button type="submit" class="btn btn-primary" :disabled="selectResponse === '' || busy">
               提交
             </button>
           </form>
 
-          <button
-            type="button"
-            class="btn btn-ghost"
-            :disabled="busy"
-            @click="cancelFlow"
-          >
+          <button type="button" class="btn btn-ghost" :disabled="busy" @click="cancelFlow">
             取消授权
           </button>
         </template>
 
-        <button v-else type="button" class="btn" @click="finishFlow">
-          完成
-        </button>
+        <button v-else type="button" class="btn" @click="finishFlow">完成</button>
       </section>
 
       <section
@@ -382,8 +340,7 @@ watch(
         :key="provider.providerId"
         class="provider-card"
         :class="{
-          'provider-card--targeted':
-            targetedProvider?.providerId === provider.providerId,
+          'provider-card--targeted': targetedProvider?.providerId === provider.providerId,
         }"
       >
         <header class="provider-head">
@@ -449,9 +406,7 @@ watch(
       </section>
 
       <p v-if="providersQuery.isPending.value" class="auth-empty">正在加载…</p>
-      <p v-else-if="providers.length === 0" class="auth-empty">
-        没有需要授权的 Provider。
-      </p>
+      <p v-else-if="providers.length === 0" class="auth-empty">没有需要授权的 Provider。</p>
     </div>
   </AppSheet>
 </template>

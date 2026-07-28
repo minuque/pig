@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import type {
-  ProviderId,
-  SessionId,
-  WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+import type { ProviderId, SessionId, WorkspaceId } from "@no-pi-no-gang/contracts";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import ResponsiveNavigation from "@/components/ResponsiveNavigation.vue";
@@ -82,39 +78,20 @@ function onSessionDeleted(id: SessionId): void {
     <header class="shell-banner">
       <p class="shell-title">No Pi No Gang</p>
       <p class="shell-connection" role="status">
-        <span
-          class="badge"
-          :data-tone="
-            overlayStore.connection === 'live' ? 'success' : 'warning'
-          "
-        >
+        <span class="badge" :data-tone="overlayStore.connection === 'live' ? 'success' : 'warning'">
           {{ CONNECTION_LABELS[overlayStore.connection] }}
         </span>
       </p>
       <div class="shell-actions">
         <label class="theme-select">
           <span class="visually-hidden">主题</span>
-          <select
-            class="field"
-            aria-label="主题"
-            :value="preference"
-            @change="onThemeChange"
-          >
-            <option
-              v-for="(label, value) in THEME_LABELS"
-              :key="value"
-              :value="value"
-            >
+          <select class="field" aria-label="主题" :value="preference" @change="onThemeChange">
+            <option v-for="(label, value) in THEME_LABELS" :key="value" :value="value">
               {{ label }}
             </option>
           </select>
         </label>
-        <button
-          type="button"
-          class="btn"
-          aria-haspopup="dialog"
-          @click="openAuth(null)"
-        >
+        <button type="button" class="btn" aria-haspopup="dialog" @click="openAuth(null)">
           Provider 授权
         </button>
       </div>
@@ -122,10 +99,7 @@ function onSessionDeleted(id: SessionId): void {
 
     <ResponsiveNavigation>
       <template #rail>
-        <WorkspaceRail
-          :active-workspace-id="workspaceId"
-          @select="selectWorkspace"
-        />
+        <WorkspaceRail :active-workspace-id="workspaceId" @select="selectWorkspace" />
       </template>
       <template #sidebar>
         <SessionSidebar
@@ -141,11 +115,7 @@ function onSessionDeleted(id: SessionId): void {
       <ConversationPanel :session-id="sessionId" @authorize="openAuth" />
     </main>
 
-    <ProviderAuthFlow
-      :open="authOpen"
-      :provider-id="authProviderId"
-      @close="closeAuth"
-    />
+    <ProviderAuthFlow :open="authOpen" :provider-id="authProviderId" @close="closeAuth" />
   </div>
 </template>
 

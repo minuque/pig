@@ -28,9 +28,7 @@ const {
   loadOlder,
 } = useSessionView(toRef(props, "sessionId"));
 
-const sessionAvailable = computed(
-  () => session.value?.availability === "healthy",
-);
+const sessionAvailable = computed(() => session.value?.availability === "healthy");
 </script>
 
 <template>
@@ -50,9 +48,7 @@ const sessionAvailable = computed(
         <span
           v-if="session && session.availability !== 'healthy'"
           class="badge"
-          :data-tone="
-            session.availability === 'quarantined' ? 'danger' : 'warning'
-          "
+          :data-tone="session.availability === 'quarantined' ? 'danger' : 'warning'"
         >
           {{
             session.availability === "quarantined"

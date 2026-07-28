@@ -14,11 +14,11 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "format": "biome check --write --linter-enabled=false .",
-    "lint": "biome lint .",
-    "lint:fix": "biome lint --write .",
-    "check": "biome check . && npm run design:lint",
-    "ci:biome": "biome ci .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check": "npm run format:check && npm run lint && npm run design:lint",
     "design:lint": "designmd lint DESIGN.md",
     "typecheck": "npm run typecheck --workspace @no-pi-no-gang/contracts && npm run build --workspace @no-pi-no-gang/contracts && npm run typecheck --workspace @no-pi-no-gang/testkit && npm run typecheck --workspace no-pi-no-gang && npm run typecheck --workspace @no-pi-no-gang/web",
     "test": "vitest run && npm run test --workspace @no-pi-no-gang/web && npm run test --workspace no-pi-no-gang",
@@ -33,16 +33,26 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
-    "@biomejs/biome": "2.5.5",
+    "@eslint/js": "^10.0.1",
     "@google/design.md": "0.3.0",
     "@playwright/test": "^1.58.2",
     "@types/node": "^24.0.0",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.10.0",
+    "globals": "^17.8.0",
     "husky": "9.1.7",
     "lint-staged": "17.2.0",
+    "prettier": "^3.9.6",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.65.0",
     "vitest": "^3.2.4"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts,json,jsonc,css,vue,html}": "biome check --write --no-errors-on-unmatched"
+    "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts,vue}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,jsonc,css,html,md,yml,yaml}": "prettier --write"
   }
 }

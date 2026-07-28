@@ -5,7 +5,7 @@
 ## Language
 
 **Agent Gateway**:
-本地 Node 进程，拥有 Pi Runtime、Session 并发、实时事件、应用持久化和客户端契约。
+本地 Node 进程，拥有 Pi Runtime、Session 并发、应用持久化和客户端契约。
 _Avoid_: Web BFF, AgentHost, Backend（泛指时）
 
 **Workspace**:
@@ -36,17 +36,9 @@ _Avoid_: Current Model, Runtime Settings
 为 Pi 模型 provider 建立 credential 的短生命周期交互，可能包含浏览器 OAuth、device code、选择或敏感输入；它不同于访问 Agent Gateway 的用户认证。
 _Avoid_: Login（未区分 provider 与 Gateway 时）, Credential
 
-**Session Projection**:
-从 Pi Session JSONL 重建的 SQLite 查询视图，用于列表、分组、搜索和统计，不是会话事实源。
-_Avoid_: Session Database, Message Store
-
 **Unavailable Session**:
-持久 Session 源当前无法被 Agent Gateway 安全恢复或修改的 Session；界面可以展示最后验证的只读状态，但必须拒绝新的 Run 和 Session mutation。
-_Avoid_: Broken Session, Failed Session
-
-**Quarantined Session**:
-因结构损坏、身份冲突或授权归属歧义而被逻辑隔离的 Unavailable Session；仅允许安全诊断与删除，不自动改写或跳过其持久历史。
-_Avoid_: Deleted Session, Hidden Session
+持久 Session 源无法被 Agent Gateway 安全恢复或修改的 Session；损坏、脏尾和身份冲突是原因而不是并列的用户状态。界面可以展示最后验证的信息，但必须拒绝新的 Run 和 Session mutation。
+_Avoid_: Broken Session, Failed Session, Quarantined Session
 
 **Principal**:
 通过 Agent Gateway 认证、可被授予 Workspace 访问权的稳定身份；Local Principal 跨 Gateway 重启保持身份，但浏览器 credential 不保持。
@@ -55,23 +47,3 @@ _Avoid_: Provider Account, Auth Flow, Cookie Session
 **Workspace Grant**:
 Principal 对一个 canonical Workspace 根的显式资源访问授权；它控制 Gateway 中的 Workspace、Session 和 Run 可见性与操作权，不限制 Pi 工具的操作系统文件权限。
 _Avoid_: Sandbox, Filesystem Jail, cwd Allowlist
-
-**Live Overlay**:
-客户端从 Gateway 实时事件归约出的、尚未由 durable Session/Run/Transcript 状态取代的临时 Run 视图；按 Session 和 Run 隔离，可被 snapshot 整体替换，绝不是第二份持久事实。
-_Avoid_: Live Session, Client Projection, Optimistic Transcript
-
-**Application Data Root**:
-no-pi-no-gang 独占的、按操作系统规范解析的数据层级；包含 SQLite、实例状态与应用日志，但不包含 Workspace 内容或 Pi Agent Root 中的认证、模型和 Session JSONL。
-_Avoid_: Pi Home, Workspace Metadata Directory, Project Database
-
-**Minimum Safe Diagnostic Surface**:
-首版唯一承诺的运维可见性边界：类型化白名单日志、请求关联、最小 health probes、崩溃标记和可操作恢复状态；它不采集对话/工具内容，也不等同于完整 observability 平台。
-_Avoid_: Debug Dump, Support Bundle, Telemetry Platform
-
-**Upgrade Backup**:
-仅在应用 SQLite schema 变更前，由 Online Backup API 生成并通过完整性、所有权、schema 与 checksum 校验的版本化快照；不包含 Pi Agent Root。
-_Avoid_: Database Copy, Pi Backup, WAL Copy
-
-**Rollback Barrier**:
-新的 Pi 版本写入后，上一受支持版本无法可靠读取该 Session JSONL 的兼容边界；它禁止普通版本回滚，必须先另行决定迁移、导出与用户备份方案。
-_Avoid_: Breaking Update, Schema Bump, Forced Downgrade

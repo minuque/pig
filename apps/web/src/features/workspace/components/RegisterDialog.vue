@@ -57,9 +57,7 @@ async function preview(): Promise<void> {
     previewId.value = result.result.previewId;
     canonicalRoot.value = result.result.canonicalRoot;
     grantNotice.value = result.result.grantNotice;
-    const segments = result.result.canonicalRoot
-      .split(/[\\/]/)
-      .filter((segment) => segment !== "");
+    const segments = result.result.canonicalRoot.split(/[\\/]/).filter((segment) => segment !== "");
     name.value = segments[segments.length - 1] ?? result.result.canonicalRoot;
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : "路径预览失败";
@@ -132,9 +130,7 @@ async function confirm(): Promise<void> {
         />
         <p v-if="error" class="register-error" role="alert">{{ error }}</p>
         <div class="register-actions">
-          <button type="button" class="btn" :disabled="pending" @click="reset">
-            上一步
-          </button>
+          <button type="button" class="btn" :disabled="pending" @click="reset">上一步</button>
           <button
             type="button"
             class="btn btn-primary"

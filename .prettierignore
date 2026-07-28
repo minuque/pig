@@ -1,0 +1,12 @@
+node_modules
+dist
+.scratch
+.worktrees
+playwright-report
+test-results
+.smoke-ui
+.release-install
+release-artifact
+CONTEXT.md
+package-lock.json
+nul

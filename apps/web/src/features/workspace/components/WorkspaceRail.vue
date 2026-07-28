@@ -36,9 +36,7 @@ async function onRegistered(workspaceId: WorkspaceId): Promise<void> {
 <template>
   <nav class="workspace-rail" aria-label="工作区">
     <p v-if="listQuery.isPending.value" class="rail-empty">正在加载…</p>
-    <p v-else-if="workspaces.length === 0" class="rail-empty">
-      还没有工作区。注册一个以开始。
-    </p>
+    <p v-else-if="workspaces.length === 0" class="rail-empty">还没有工作区。注册一个以开始。</p>
 
     <ul v-else class="workspace-list">
       <li v-for="workspace in workspaces" :key="workspace.workspaceId">
@@ -46,11 +44,7 @@ async function onRegistered(workspaceId: WorkspaceId): Promise<void> {
           type="button"
           class="workspace-select"
           :data-active="workspace.workspaceId === props.activeWorkspaceId"
-          :aria-current="
-            workspace.workspaceId === props.activeWorkspaceId
-              ? 'page'
-              : undefined
-          "
+          :aria-current="workspace.workspaceId === props.activeWorkspaceId ? 'page' : undefined"
           @click="emit('select', workspace.workspaceId)"
         >
           {{ workspace.name }}
@@ -67,11 +61,7 @@ async function onRegistered(workspaceId: WorkspaceId): Promise<void> {
       注册工作区
     </button>
 
-    <RegisterDialog
-      :open="registerOpen"
-      @close="registerOpen = false"
-      @registered="onRegistered"
-    />
+    <RegisterDialog :open="registerOpen" @close="registerOpen = false" @registered="onRegistered" />
   </nav>
 </template>
 

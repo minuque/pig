@@ -11,9 +11,8 @@
     "sourceMap": false,
     "resolveJsonModule": true,
     "useDefineForClassFields": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["./src/*"],
       "@no-pi-no-gang/contracts": ["../../packages/contracts/src/index.ts"],
       "@no-pi-no-gang/testkit": ["../../packages/testkit/src/index.ts"]
     }
