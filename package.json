@@ -8,16 +8,15 @@
     "node": ">=22.19.0 <23 || >=24.0.0 <25"
   },
   "scripts": {
+    "prototype:web": "start packages\\web\\prototype\\index.html",
     "prepare": "husky",
-    "prototype:layout": "start packages\\web\\prototype-layout\\index.html",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "check": "pnpm format:check && pnpm lint && pnpm design:lint",
     "design:lint": "designmd lint DESIGN.md",
-    "typecheck": "pnpm -r --if-present typecheck",
-    "prototype:web": "node packages/web/prototype/serve.mjs"
+    "typecheck": "pnpm -r --if-present typecheck"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
