@@ -3,39 +3,26 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.5.0",
   "engines": {
     "node": ">=22.19.0 <23 || >=24.0.0 <25"
   },
-  "workspaces": [
-    "apps/web",
-    "apps/gateway",
-    "packages/contracts",
-    "packages/testkit"
-  ],
   "scripts": {
     "prepare": "husky",
+    "prototype:layout": "start packages\\web\\prototype-layout\\index.html",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "check": "npm run format:check && npm run lint && npm run design:lint",
+    "check": "pnpm format:check && pnpm lint && pnpm design:lint",
     "design:lint": "designmd lint DESIGN.md",
-    "typecheck": "npm run typecheck --workspace @no-pi-no-gang/contracts && npm run build --workspace @no-pi-no-gang/contracts && npm run typecheck --workspace @no-pi-no-gang/testkit && npm run typecheck --workspace no-pi-no-gang && npm run typecheck --workspace @no-pi-no-gang/web",
-    "test": "vitest run && npm run test --workspace @no-pi-no-gang/web && npm run test --workspace no-pi-no-gang",
-    "build": "npm run build --workspace @no-pi-no-gang/contracts && npm run build --workspace @no-pi-no-gang/testkit && node scripts/build-gateway.mjs",
-    "pack:check": "node scripts/pack-check.mjs && npm pack --dry-run --workspace no-pi-no-gang",
-    "verify:quick": "npm run check && npm run typecheck && npm run test && npm run build && npm run pack:check",
-    "test:real-pi": "node scripts/real-pi-compat.mjs",
-    "test:acceptance": "playwright test",
-    "test:acceptance:chromium": "playwright test --project=chromium",
-    "verify:real-pi": "npm run build && npm run test:real-pi",
-    "verify:release": "npm run verify:quick && npm run test:real-pi && npm run test:acceptance:chromium"
+    "typecheck": "pnpm -r --if-present typecheck",
+    "prototype:web": "node packages/web/prototype/serve.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
     "@eslint/js": "^10.0.1",
     "@google/design.md": "0.3.0",
-    "@playwright/test": "^1.58.2",
     "@types/node": "^24.0.0",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",

@@ -1,9 +1,12 @@
 {
-  "name": "@no-pi-no-gang/testkit",
+  "name": "@no-pi-no-gang/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@no-pi-no-gang/contracts": "workspace:*"
   }
 }

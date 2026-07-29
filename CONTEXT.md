@@ -16,6 +16,10 @@ _Avoid_: cwd（当指产品概念时）, Project（未定义代码仓库语义�
 由 Pi 原生 Session ID 标识并持久化为 JSONL 的对话聚合；可以在不同客户端或 Gateway 生命周期之间恢复。
 _Avoid_: Chat, Conversation, Thread
 
+**Transcript**:
+从 Pi Session JSONL 读取并向用户呈现的已持久化历史内容，包括用户 prompt、Agent 回复，以及按可见性规则展示的思考、工具活动和工具结果。它不是原始 JSONL、SQLite 中的消息副本或当前 Run 尚未持久化的实时增量；实时活动在 Pi 持久化后才成为会话记录的一部分。文档首次出现时使用“会话记录（Transcript）”，后续使用“会话记录”。
+_Avoid_: Chat History, Message Store, Raw JSONL, 实时活动
+
 **Run**:
 一次被 Agent Gateway 接受的用户 prompt 执行，拥有独立标识与终态；同一 Session 的 Run 按 FIFO 串行，不同 Session 的 Run 可并行。
 _Avoid_: Execution, Turn, Prompt（当指执行生命周期时）
@@ -40,10 +44,10 @@ _Avoid_: Login（未区分 provider 与 Gateway 时）, Credential
 持久 Session 源无法被 Agent Gateway 安全恢复或修改的 Session；损坏、脏尾和身份冲突是原因而不是并列的用户状态。界面可以展示最后验证的信息，但必须拒绝新的 Run 和 Session mutation。
 _Avoid_: Broken Session, Failed Session, Quarantined Session
 
-**Principal**:
-通过 Agent Gateway 认证、可被授予 Workspace 访问权的稳定身份；Local Principal 跨 Gateway 重启保持身份，但浏览器 credential 不保持。
-_Avoid_: Provider Account, Auth Flow, Cookie Session
+**Local Identity**:
+Agent Gateway 识别的稳定本地身份，可被授予 Workspace 访问权。Local Identity 跨 Gateway 重启保持不变，但浏览器、桌面端或 CLI 的临时访问凭证可以变化；多个本地客户端可以映射到同一个 Local Identity。它不是用户账号或模型 provider 身份。
+_Avoid_: Principal, Client, User Account, Provider Account, Auth Flow, Cookie Session
 
-**Workspace Grant**:
-Principal 对一个 canonical Workspace 根的显式资源访问授权；它控制 Gateway 中的 Workspace、Session 和 Run 可见性与操作权，不限制 Pi 工具的操作系统文件权限。
-_Avoid_: Sandbox, Filesystem Jail, cwd Allowlist
+**Workspace Access**:
+Local Identity 对一个 canonical Workspace 根的显式资源访问授权；它控制 Gateway 中 Workspace、Session 和 Run 的可见性与操作权，可以被取消，但不限制 Pi 工具或子进程的操作系统文件权限。
+_Avoid_: Workspace Grant, Permission, Owner, Sandbox, Filesystem Jail, cwd Allowlist
