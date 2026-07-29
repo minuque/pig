@@ -8,6 +8,7 @@ class Gateway {
   private port: number = 0;
   private runtimeAdapter: PiRuntimeAdapter;
   private credentialMap = new Map<string, string>();
+  private workspaceMap = new Map<string, { id: string; name: string }>();
 
   constructor(runtimeAdapter?: PiRuntimeAdapter) {
     this.runtimeAdapter = runtimeAdapter || new PiRuntimeAdapterImpl();
@@ -40,6 +41,30 @@ class Gateway {
           }
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ identity: identityId }));
+        } catch (e) {
+          res.writeHead(400);
+          res.end();
+        }
+      });
+      return;
+    }
+    if (req.url === "/workspaces") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ workspaces: Array.from(this.workspaceMap.values()) }));
+      return;
+    }
+    if (req.url === "/workspaces" && req.method === "POST") {
+      let body = "";
+      req.on("data", (chunk: any) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        try {
+          const { name } = JSON.parse(body);
+          const id = "ws-" + Date.now();
+          this.workspaceMap.set(id, { id, name: name || "default" });
+          res.writeHead(201, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ id, name: name || "default" }));
         } catch (e) {
           res.writeHead(400);
           res.end();
