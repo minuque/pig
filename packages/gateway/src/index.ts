@@ -8,8 +8,8 @@ class Gateway {
   private port: number = 0;
   private runtimeAdapter: PiRuntimeAdapter;
 
-  constructor(runtimeAdapter: PiRuntimeAdapter) {
-    this.runtimeAdapter = runtimeAdapter;
+  constructor(runtimeAdapter?: PiRuntimeAdapter) {
+    this.runtimeAdapter = runtimeAdapter || new PiRuntimeAdapter();
     this.server = createServer(this.handleRequest.bind(this));
   }
 
@@ -57,3 +57,35 @@ class Gateway {
 }
 
 export default Gateway;
+
+export class PiRuntimeAdapter implements PiRuntimeAdapter {
+  private fixedPiVersion = "0.1.0"; // Phase 0: fixed version
+
+  async startSession(workspaceId: string): Promise<any> {
+    // Stub: in real would call Pi Runtime via adapter
+    console.log(`[PiAdapter] Starting session for workspace ${workspaceId} with ${this.fixedPiVersion}`);
+    return { id: `sess-${Date.now()}`, workspaceId, status: 'available' };
+  }
+
+  async createRun(sessionId: string, prompt: string, commandId?: string): Promise<any> {
+    if (commandId) {
+      console.log(`[PiAdapter] Run with commandId ${commandId} for prompt: ${prompt.slice(0, 50)}...`);
+    } else {
+      console.log(`[PiAdapter] Create run for session ${sessionId}: ${prompt.slice(0, 50)}...`);
+    }
+    return { 
+      id: `run-${Date.now()}`, 
+      sessionId, 
+      prompt, 
+      runId: `run-${Date.now()}`, 
+      commandId,
+      status: 'admission',
+      createdAt: new Date()
+    };
+  }
+
+  async cancelRun(runId: string): Promise<void> {
+    console.log(`[PiAdapter] Cancel run ${runId}`);
+    // real cancel logic here
+  }
+}
