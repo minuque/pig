@@ -1,7 +1,9 @@
-import { createServer } from 'http';
-import { EventEmitter } from 'events';
+import { createServer } from "http";
+import { EventEmitter } from "events";
 
-import type { PiRuntimeAdapter } from '@no-pi-no-gang/contracts';
+import type { PiRuntimeAdapter } from "@no-pi-no-gang/contracts";
+
+const emitter = new EventEmitter();
 
 class Gateway {
   private server;
@@ -14,20 +16,32 @@ class Gateway {
   }
 
   private handleRequest(req: any, res: any) {
-    if (req.url === '/health') {
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end('Gateway OK');
+    if (req.url === "/health") {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end("Gateway OK");
       return;
     }
-    if (req.url === '/sse') {
-      // basic SSE setup for MVP
+    if (req.url === "/sse") {
       res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
       });
-      res.write('event: connected\\n\\n');
-      // for MVP, simple echo or something
+
+      res.write("event: connected\\n\\n");
+
+      // SSE listener for streaming output with sessionId/runId
+      const streamListener = (data: any) => {
+        res.write(`data: ${JSON.stringify(data)}\\n\\n`);
+      };
+
+      emitter.on("message", streamListener);
+
+      // Clean up on close
+      req.on("close", () => {
+        emitter.removeListener("message", streamListener);
+      });
+
       res.end();
       return;
     }
@@ -35,9 +49,13 @@ class Gateway {
     res.end();
   }
 
+  static emitStream(data: any) {
+    emitter.emit("message", data);
+  }
+
   async start() {
     return new Promise<number>((resolve, reject) => {
-      this.server.listen(0, '127.0.0.1', () => {
+      this.server.listen(0, "127.0.0.1", () => {
         const addr = this.server.address() as any;
         this.port = addr.port;
         resolve(this.port);
@@ -63,24 +81,28 @@ export class PiRuntimeAdapter implements PiRuntimeAdapter {
 
   async startSession(workspaceId: string): Promise<any> {
     // Stub: in real would call Pi Runtime via adapter
-    console.log(`[PiAdapter] Starting session for workspace ${workspaceId} with ${this.fixedPiVersion}`);
-    return { id: `sess-${Date.now()}`, workspaceId, status: 'available' };
+    console.log(
+      `[PiAdapter] Starting session for workspace ${workspaceId} with ${this.fixedPiVersion}`,
+    );
+    return { id: `sess-${Date.now()}`, workspaceId, status: "available" };
   }
 
   async createRun(sessionId: string, prompt: string, commandId?: string): Promise<any> {
     if (commandId) {
-      console.log(`[PiAdapter] Run with commandId ${commandId} for prompt: ${prompt.slice(0, 50)}...`);
+      console.log(
+        `[PiAdapter] Run with commandId ${commandId} for prompt: ${prompt.slice(0, 50)}...`,
+      );
     } else {
       console.log(`[PiAdapter] Create run for session ${sessionId}: ${prompt.slice(0, 50)}...`);
     }
-    return { 
-      id: `run-${Date.now()}`, 
-      sessionId, 
-      prompt, 
-      runId: `run-${Date.now()}`, 
+    return {
+      id: `run-${Date.now()}`,
+      sessionId,
+      prompt,
+      runId: `run-${Date.now()}`,
       commandId,
-      status: 'admission',
-      createdAt: new Date()
+      status: "admission",
+      createdAt: new Date(),
     };
   }
 
