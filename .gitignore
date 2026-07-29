@@ -151,6 +151,7 @@ test-results/
 .agents/
 .claude/
 .pi/
+.grok/
 .worktrees/
 .codegraph/
 skills-lock.json
