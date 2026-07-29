@@ -65,6 +65,10 @@ importers:
       "@no-pi-no-gang/contracts":
         specifier: workspace:*
         version: link:../contracts
+    devDependencies:
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
 
 packages:
   "@axe-core/playwright@4.12.1":

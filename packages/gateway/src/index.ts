@@ -3,8 +3,6 @@ import { EventEmitter } from "events";
 
 import type { PiRuntimeAdapter } from "@no-pi-no-gang/contracts";
 
-const emitter = new EventEmitter();
-
 class Gateway {
   private server;
   private port: number = 0;
@@ -22,35 +20,19 @@ class Gateway {
       return;
     }
     if (req.url === "/sse") {
+      // basic SSE setup for MVP
       res.writeHead(200, {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
       });
-
       res.write("event: connected\\n\\n");
-
-      // SSE listener for streaming output with sessionId/runId
-      const streamListener = (data: any) => {
-        res.write(`data: ${JSON.stringify(data)}\\n\\n`);
-      };
-
-      emitter.on("message", streamListener);
-
-      // Clean up on close
-      req.on("close", () => {
-        emitter.removeListener("message", streamListener);
-      });
-
+      // for MVP, simple echo or something
       res.end();
       return;
     }
     res.writeHead(404);
     res.end();
-  }
-
-  static emitStream(data: any) {
-    emitter.emit("message", data);
   }
 
   async start() {

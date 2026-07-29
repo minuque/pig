@@ -16,12 +16,12 @@
     <main class="main-content">
       <div class="transcript-area">
         <h2>Session Transcript</h2>
-        <div class="transcript-content" id="transcript">
+        <div id="transcript" class="transcript-content">
           <!-- Transcript messages -->
           <div class="message prompt">Hello, what can you do?</div>
           <div class="message agent">I can help with coding and more.</div>
           <!-- Streaming simulation -->
-          <div id="streaming" class="streaming" style="display: none;">
+          <div id="streaming" class="streaming" style="display: none">
             <div class="message agent streaming-token">Thinking...</div>
           </div>
         </div>
@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
 </script>
 
 <style scoped>

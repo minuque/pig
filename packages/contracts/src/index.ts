@@ -13,7 +13,7 @@ export interface Session {
   name?: string;
   createdAt: Date;
   updatedAt: Date;
-  status: 'available' | 'unavailable';
+  status: "available" | "unavailable";
   // Session Index will point to Pi JSONL file
 }
 
@@ -23,7 +23,7 @@ export interface Run {
   prompt: string;
   runId: string; // unique per prompt
   commandId?: string; // client generated for idempotency
-  status: 'admission' | 'running' | 'terminal' | 'cancelled' | 'failed' | 'completed';
+  status: "admission" | "running" | "terminal" | "cancelled" | "failed" | "completed";
   output?: string; // accumulated output
   createdAt: Date;
   updatedAt: Date;
