@@ -12,11 +12,11 @@
 ## 验收标准
 
 - [x] 已建立集中的 `PiRuntimeAdapter` 边界；现有 Gateway Session Route 通过该接口访问，客户端不导入或操作 Pi SDK/Pi 对象。
-- [ ] Pi Runtime Adapter 实际调用项目依赖中固定版本的 Pi Runtime，而不是本地字符串或存根。
-- [ ] Session Index 从 Pi JSONL 发现 Session，产生跨 Gateway 重启稳定的 `sessionId`，并按 canonical Workspace 范围过滤。
-- [ ] 缺失或不可解析的 JSONL 不会生成伪造的持久 Session 身份；错误通过稳定问题类型返回。
-- [ ] Gateway 重启后重新扫描相同数据可得到相同的 Session 列表基础数据。
-- [ ] Pi JSONL 保持 Session、Transcript 和工具结果的唯一事实源；Index 不复制会话内容形成第二事实源。
+- [x] Pi Runtime Adapter 实际调用项目依赖中固定版本的 Pi Runtime，而不是本地字符串或存根。
+- [x] Session Index 从 Pi JSONL 发现 Session，产生跨 Gateway 重启稳定的 `sessionId`，并按 canonical Workspace 范围过滤。
+- [x] 缺失或不可解析的 JSONL 不会生成伪造的持久 Session 身份；错误通过稳定问题类型返回。
+- [x] Gateway 重启后重新扫描相同数据可得到相同的 Session 列表基础数据。
+- [x] Pi JSONL 保持 Session、Transcript 和工具结果的唯一事实源；Index 不复制会话内容形成第二事实源。
 
 ## 不在本票
 
