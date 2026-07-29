@@ -1,5 +1,13 @@
+export const CONTRACT_VERSION = "0.1.0" as const;
+
+export type WorkspaceId = string & { readonly __brand: "WorkspaceId" };
+export type SessionId = string & { readonly __brand: "SessionId" };
+export type RunId = string & { readonly __brand: "RunId" };
+export type LocalIdentityId = string & { readonly __brand: "LocalIdentityId" };
+export type CommandId = string & { readonly __brand: "CommandId" };
+
 export interface Workspace {
-  id: string;
+  id: WorkspaceId;
   name: string;
   description?: string;
   createdAt: Date;
@@ -8,8 +16,8 @@ export interface Workspace {
 }
 
 export interface Session {
-  id: string;
-  workspaceId: string;
+  id: SessionId;
+  workspaceId: WorkspaceId;
   name?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -18,11 +26,11 @@ export interface Session {
 }
 
 export interface Run {
-  id: string;
-  sessionId: string;
+  id: RunId;
+  sessionId: SessionId;
   prompt: string;
-  runId: string; // unique per prompt
-  commandId?: string; // client generated for idempotency
+  runId: RunId; // unique per prompt
+  commandId?: CommandId; // client generated for idempotency
   status: "admission" | "running" | "terminal" | "cancelled" | "failed" | "completed";
   output?: string; // accumulated output
   createdAt: Date;
@@ -30,19 +38,53 @@ export interface Run {
 }
 
 export interface LocalIdentity {
-  id: string;
-  workspaceId: string;
-  sessionId?: string;
+  id: LocalIdentityId;
+  workspaceId: WorkspaceId;
+  sessionId?: SessionId;
   // credential mapped to this identity
 }
 
-export type CommandId = string;
+export interface SSEEventEnvelope {
+  version: string;
+  type: string;
+  data: unknown;
+  sessionId?: SessionId;
+  runId?: RunId;
+  timestamp?: Date;
+}
+
+export interface Repository<T> {
+  findById(id: string): Promise<T | undefined>;
+  save(entity: T): Promise<T>;
+  delete(id: string): Promise<boolean>;
+  findAll(): Promise<T[]>;
+}
+
+export interface PlatformPort {
+  resolveWorkspacePath(workspaceId: WorkspaceId): Promise<string>;
+  getPlatformPath(): Promise<string>;
+}
+
+export interface CommandExecutor {
+  execute<T>(command: any, commandId: CommandId): Promise<T>;
+  // idempotent: same commandId returns cached result immediately
+}
+
+export interface SingleWorkspaceStrategy {
+  getCanonicalWorkspace(): Promise<Workspace | undefined>;
+  setCanonicalWorkspace(workspace: Workspace): Promise<void>;
+}
+
+export interface SingleActiveRunStrategy {
+  getActiveRun(): Promise<Run | undefined>;
+  setActiveRun(run: Run): Promise<void>;
+}
 
 export interface PiRuntimeAdapter {
-  // Gateway uses this to call Pi Runtime
-  startSession(workspaceId: string): Promise<Session>;
-  createRun(sessionId: string, prompt: string, commandId?: string): Promise<Run>;
-  cancelRun(runId: string): Promise<void>;
-  discoverSessions(): Promise<any[]>;
+  // Gateway uses this to call Pi Runtime - fixed version dependency
+  startSession(workspaceId: WorkspaceId): Promise<Session>;
+  createRun(sessionId: SessionId, prompt: string, commandId?: CommandId): Promise<Run>;
+  cancelRun(runId: RunId): Promise<void>;
+  discoverSessions(): Promise<Session[]>;
   // etc for MVP
 }
