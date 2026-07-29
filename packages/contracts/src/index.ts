@@ -45,4 +45,3 @@ export interface PiRuntimeAdapter {
   cancelRun(runId: string): Promise<void>;
   // etc for MVP
 }
-
