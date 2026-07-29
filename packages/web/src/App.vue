@@ -16,10 +16,14 @@
     <main class="main-content">
       <div class="transcript-area">
         <h2>Session Transcript</h2>
-        <div class="transcript-content">
+        <div class="transcript-content" id="transcript">
           <!-- Transcript messages -->
           <div class="message prompt">Hello, what can you do?</div>
           <div class="message agent">I can help with coding and more.</div>
+          <!-- Streaming simulation -->
+          <div id="streaming" class="streaming" style="display: none;">
+            <div class="message agent streaming-token">Thinking...</div>
+          </div>
         </div>
       </div>
 
