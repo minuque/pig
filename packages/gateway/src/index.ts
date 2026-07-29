@@ -47,6 +47,19 @@ class Gateway {
       });
       return;
     }
+    if (req.url === "/sessions") {
+      (async () => {
+        try {
+          const sessions = await this.runtimeAdapter.discoverSessions();
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ sessions }));
+        } catch (e) {
+          res.writeHead(500);
+          res.end();
+        }
+      })();
+      return;
+    }
     if (req.url === "/sse") {
       // basic SSE setup for MVP
       res.writeHead(200, {
@@ -119,5 +132,16 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
   async cancelRun(runId: string): Promise<void> {
     console.log(`[PiAdapter] Cancel run ${runId}`);
     // real cancel logic here
+  }
+
+  async discoverSessions(): Promise<any[]> {
+    // MVP stub: read from Pi JSONL (Phase 2 will use real index)
+    return [
+      {
+        id: `sess-${Date.now()}`,
+        workspaceId: "default",
+        status: "available",
+      },
+    ];
   }
 }

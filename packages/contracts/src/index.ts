@@ -43,5 +43,6 @@ export interface PiRuntimeAdapter {
   startSession(workspaceId: string): Promise<Session>;
   createRun(sessionId: string, prompt: string, commandId?: string): Promise<Run>;
   cancelRun(runId: string): Promise<void>;
+  discoverSessions(): Promise<any[]>;
   // etc for MVP
 }
