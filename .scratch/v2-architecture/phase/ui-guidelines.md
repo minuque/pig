@@ -97,3 +97,32 @@ Phase 3 再执行完整键盘旅程、语义、对比度和多主题发布门禁
 - 不以复杂动画替代状态反馈。
 - 不信任或直接渲染 Pi、模型及工具返回的 HTML。
 - 不在 Phase 0 实现 pixel-perfect screenshot 门禁。
+
+## 10. UI 依赖选型（Phase 0 最终确定）
+
+**核心栈：** Vue 3 + TypeScript + Vite + Tailwind CSS + shadcn-vue + lucide-vue-next + vueuse + markstream-vue + vue-router
+
+### 详细说明
+
+- **框架**：Vue 3 + TypeScript + Vite（轻量、编译后 bundle 极小，shallow reactivity 适合 session/transcript 状态）
+- **样式**：Tailwind CSS（快速实现 DESIGN.md 驱动的 token 系统：CSS var 完全映射 primary/canvas-soft/hairline/r-lg 等）
+- **组件库**：shadcn-vue（组件生态完整，高度适配 token 设计体系）
+- **路由**：vue-router（支持 session 切换、标签页、抽屉导航）
+- **图标**：lucide-vue-next
+- **状态管理**：vueuse（当前阶段足够）
+- **流式输出**：markstream-vue（AI SSE 对话核心）
+- **可选**：vue-virtual-scroller（长 transcript 虚拟滚动）
+
+### 集成顺序
+
+1. 安装依赖：`pnpm add vue@3 typescript@5 tailwindcss@3 @tailwindcss/typography shadcn-vue lucide-vue-next vueuse markstream-vue vue-router`
+2. 创建 `router/index.ts` 并注册 routes
+3. Tailwind 配置 + markstream-vue CSS import（layer(components)）
+4. markstream-vue 模式选择（mode="chat" + smooth-streaming="auto"）
+5. shadcn-vue 组件集成
+
+### 理由
+
+符合本地优先 Pi Agent 工作台的轻量克制定位（Notion 式暖纸底、单一蓝、hairline），不选 React/Svelte/Reka UI（bundle 或生态不匹配）。
+
+此选型已写入 DESIGN.md 约束，可直接用于原型变体 A/B/C 布局。

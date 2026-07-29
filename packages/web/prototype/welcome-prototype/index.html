@@ -1,0 +1,1276 @@
+<!doctype html>
+<!--
+  ══════════════════════════════════════════════════════════════════════════
+  PROTOTYPE — throwaway, 不进 main 的正式代码
+  问题:首次访问的欢迎页长什么样?(参考 G:/xps.png 风格:深色岛+亮橙点缀+大字标题+彩色起步卡)
+  展示位置:当前原型首页(packages/web/prototype/index.html 默认变体 A 三栏)的中间 chat 区域,
+           语义上 = 首次访问的默认路由 page。路由机制本身不在本原型范围内。
+  变体(?variant=a|b|c 或底部浮条 ←/→ 切换):
+    A · 分屏直译   — 参考图原样直译:左深色 hero(光标图标+大标题+橙 CTA)/ 右暖纸区(起步卡网格)
+    B · 居中编辑部 — 暖纸底居中大字+手绘下划线,输入框内嵌在欢迎页里(替代 dock composer)
+    C · 深色终端岛 — 致敬 ghostty.org:纯字符 ASCII ghost logo + 终端会话,键盘感最强
+  与 DESIGN.md 的张力(本原型故意试探,供讨论):
+    - 深色面板用暖炭 #2a2a28 / 终端黑 #16161a,不是 secondary 藏青 — 参考图气质来自炭黑
+    - CTA 用 accent-orange #dd5b00(AA 达标);参考图那种亮橙 #e8552d 只用于装饰(光标/下划线/ASCII),
+      亮橙白字对比 ~3.4:1 不达标,DESIGN.md 选深一号橙正是这个原因
+    - 起步卡用 sticker 色块 + emoji 图标,比 DESIGN.md "sticker 仅装饰" 更进一步
+    - 不引外部字体(Google Fonts 离线/网络不可控),标题用 Inter 800 + 紧字距近似参考图的圆体
+  交互:起步卡点击 → 填入可见输入框并聚焦;主 CTA → 聚焦输入框;"显示更多"展开更多起步卡。
+  ══════════════════════════════════════════════════════════════════════════
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PROTOTYPE · 欢迎页 (?variant=a|b|c)</title>
+    <style>
+      /* ── DESIGN.md tokens(与 prototype/index.html 同一套) ─────────── */
+      :root {
+        --primary: #0075de;
+        --primary-active: #005bab;
+        --secondary: #213183;
+        --on-primary: #ffffff;
+        --canvas: #ffffff;
+        --canvas-soft: #f6f5f4;
+        --surface: #ffffff;
+        --ink: #000000;
+        --ink-2: #31302e;
+        --ink-muted: #615d59;
+        --ink-faint: #a39e98;
+        --hairline: #e6e6e6;
+        --accent-sky: #62aef0;
+        --accent-purple: #d6b6f6;
+        --accent-purple-deep: #391c57;
+        --accent-pink: #ff64c8;
+        --accent-orange: #dd5b00;
+        --accent-orange-deep: #793400;
+        --accent-teal: #2a9d99;
+        --accent-green: #1aae39;
+        --r-xs: 4px;
+        --r-sm: 5px;
+        --r-md: 8px;
+        --r-lg: 12px;
+        --r-xl: 16px;
+        --r-full: 9999px;
+        --shadow-1:
+          rgba(0, 0, 0, 0.01) 0 0.175px 1.041px, rgba(0, 0, 0, 0.02) 0 0.8px 2.925px,
+          rgba(0, 0, 0, 0.027) 0 2.025px 7.847px, rgba(0, 0, 0, 0.04) 0 4px 18px;
+        --shadow-2:
+          rgba(0, 0, 0, 0.01) 0 0.175px 1.041px, rgba(0, 0, 0, 0.02) 0 0.8px 2.925px,
+          rgba(0, 0, 0, 0.027) 0 2.025px 7.847px, rgba(0, 0, 0, 0.04) 0 4px 18px,
+          rgba(0, 0, 0, 0.05) 0 23px 52px;
+        --font:
+          Inter, -apple-system, "Segoe UI", system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+        --mono: ui-monospace, "Cascadia Code", "Cascadia Mono", Consolas, monospace;
+        /* welcome-specific(参考图取样) */
+        --w-charcoal: #2a2a28;
+        --w-charcoal-2: #35352f;
+        --w-orange: #e8552d;
+        --w-terminal: #16161a;
+        --w-terminal-ink: #c3c3c4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        background: var(--canvas-soft);
+        color: var(--ink);
+        font-size: 15px;
+        line-height: 1.33;
+        -webkit-font-smoothing: antialiased;
+      }
+      button {
+        font-family: inherit;
+        cursor: pointer;
+      }
+      textarea {
+        font-family: inherit;
+      }
+      :focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 1px;
+        border-radius: var(--r-xs);
+      }
+
+      /* ── shared primitives ────────────────────────────────────────── */
+      .btn-primary {
+        background: var(--primary);
+        color: var(--on-primary);
+        border: 0;
+        border-radius: var(--r-full);
+        font-size: 15px;
+        font-weight: 500;
+        padding: 7px 18px;
+      }
+      .btn-primary:active {
+        background: var(--primary-active);
+        transform: scale(0.97);
+      }
+      .btn-utility {
+        background: var(--surface);
+        color: var(--ink);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-md);
+        font-size: 14px;
+        font-weight: 500;
+        padding: 4px 14px;
+      }
+      .btn-utility:hover {
+        background: var(--canvas-soft);
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+      }
+      .eyebrow {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.125px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: var(--r-full);
+        flex: none;
+        display: inline-block;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-full);
+        padding: 3px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.125px;
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+      .kbd-hint {
+        font-size: 12px;
+        color: var(--ink-faint);
+      }
+      .mono {
+        font-family: var(--mono);
+        font-size: 12.5px;
+      }
+
+      /* ── shell:复刻当前原型首页默认变体 A 的三栏框架 ──────────────── */
+      .shell {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr) 300px;
+        height: 100vh;
+      }
+      .left {
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--hairline);
+        background: var(--canvas-soft);
+        min-height: 0;
+      }
+      .brand {
+        padding: 14px 16px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .wordmark {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.2px;
+      }
+      .new-btn {
+        margin: 2px 12px 10px;
+      }
+      .nav {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 8px 12px;
+      }
+      .nav-welcome {
+        width: 100%;
+        text-align: left;
+        background: var(--surface);
+        border: 1px solid var(--primary);
+        border-radius: var(--r-lg);
+        padding: 10px 12px;
+        margin-bottom: 10px;
+        box-shadow: var(--shadow-1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .nav-welcome .kbd-hint {
+        margin-left: auto;
+        font-weight: 400;
+      }
+      .ws {
+        padding: 10px 8px 4px;
+      }
+      .ws .n {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.125px;
+        color: var(--ink-muted);
+        text-transform: uppercase;
+      }
+      .ws .p {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-faint);
+        margin-top: 1px;
+      }
+      .sess-card {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        cursor: pointer;
+      }
+      .sess-card:hover {
+        box-shadow: var(--shadow-1);
+      }
+      .sess-card .t {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .sess-card .prev {
+        font-size: 12.5px;
+        color: var(--ink-muted);
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 6px;
+      }
+      .sess-card .m {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--ink-faint);
+      }
+      .leftfoot {
+        border-top: 1px solid var(--hairline);
+        padding: 10px 16px;
+        font-size: 12px;
+        color: var(--ink-muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .center {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        background: var(--canvas-soft);
+      }
+      .head {
+        border-bottom: 1px solid var(--hairline);
+        background: var(--surface);
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .head h1 {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.125px;
+        margin: 0;
+      }
+      .head .sub {
+        font-size: 12px;
+        color: var(--ink-faint);
+        font-family: var(--mono);
+      }
+      .stage {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .dock {
+        padding: 12px 28px 18px;
+      }
+      .right {
+        border-left: 1px solid var(--hairline);
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .tabs {
+        display: flex;
+        gap: 2px;
+        border-bottom: 1px solid var(--hairline);
+        padding: 8px 12px 0;
+      }
+      .tab {
+        border: 0;
+        background: transparent;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ink-muted);
+        padding: 7px 10px;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+      }
+      .tab.active {
+        color: var(--ink);
+        border-bottom-color: var(--primary);
+      }
+      .panel {
+        flex: 1;
+        overflow-y: auto;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .kv {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--hairline);
+        font-size: 13px;
+      }
+      .kv:last-child {
+        border-bottom: 0;
+      }
+      .kv .k {
+        color: var(--ink-muted);
+      }
+      .kv .v {
+        font-weight: 500;
+        text-align: right;
+      }
+      .empty-note {
+        padding: 14px;
+        color: var(--ink-muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      /* composer(与当前原型一致;首次访问无 Run 状态行) */
+      .composer {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+        box-shadow: var(--shadow-1);
+        padding: 10px 12px 8px;
+      }
+      .composer textarea {
+        width: 100%;
+        border: 0;
+        resize: none;
+        font-size: 15px;
+        line-height: 1.45;
+        outline: none;
+        background: transparent;
+        color: var(--ink);
+      }
+      .composer .c-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+      .composer .c-note {
+        font-size: 12px;
+        color: var(--ink-faint);
+      }
+
+      /* ── welcome shared bits ──────────────────────────────────────── */
+      .w-cursor {
+        color: var(--w-orange);
+        flex: none;
+      }
+      .w-display {
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        line-height: 1.04;
+        margin: 0;
+      }
+      .u-scribble {
+        position: relative;
+        white-space: nowrap;
+      }
+      .u-scribble svg {
+        position: absolute;
+        left: -2%;
+        right: -2%;
+        bottom: -0.18em;
+        width: 104%;
+        height: 0.22em;
+        color: var(--w-orange);
+        overflow: visible;
+      }
+      .w-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--accent-orange);
+        color: #fff;
+        border: 0;
+        border-radius: var(--r-full);
+        font-size: 15px;
+        font-weight: 600;
+        padding: 10px 22px;
+      }
+      .w-cta:hover {
+        background: var(--accent-orange-deep);
+      }
+      .w-cta:active {
+        transform: scale(0.97);
+      }
+      .w-ghost-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        border: 1.5px solid currentColor;
+        border-radius: var(--r-full);
+        font-size: 14px;
+        font-weight: 600;
+        padding: 8px 18px;
+      }
+      /* 起步卡(参考图右侧 Agent Profile 卡的产品化转译) */
+      .w-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+      }
+      .w-card {
+        text-align: left;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-lg);
+        overflow: hidden;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        transition:
+          transform 0.12s,
+          box-shadow 0.12s;
+      }
+      .w-card:hover {
+        box-shadow: var(--shadow-1);
+        transform: translateY(-1px);
+      }
+      .w-card .ava {
+        height: 56px;
+        display: grid;
+        place-items: center;
+        font-size: 26px;
+      }
+      .w-card .body {
+        padding: 8px 10px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex: 1;
+      }
+      .w-card .t {
+        font-size: 13.5px;
+        font-weight: 700;
+      }
+      .w-card .chip {
+        display: inline-flex;
+        align-self: flex-start;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--ink-muted);
+        background: var(--canvas-soft);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-full);
+        padding: 2px 8px;
+      }
+      .w-card .foot {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--ink-faint);
+        border-top: 1px solid var(--hairline);
+        padding: 5px 10px;
+      }
+      .w-more {
+        justify-self: center;
+        grid-column: 1 / -1;
+        background: transparent;
+        border: 1.5px solid var(--hairline);
+        border-radius: var(--r-full);
+        color: var(--ink-muted);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 7px 18px;
+      }
+      .w-more:hover {
+        border-color: var(--ink-faint);
+        color: var(--ink);
+      }
+
+      /* ── Variant A · 分屏直译 ─────────────────────────────────────── */
+      .wa-wrap {
+        flex: 1;
+        display: flex;
+        min-height: 0;
+      }
+      .wa-dark {
+        flex: 0 0 44%;
+        min-width: 340px;
+        background: var(--w-charcoal);
+        color: #f4f2ec;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 18px;
+        padding: 40px 44px;
+        position: relative;
+        overflow: hidden;
+      }
+      .wa-dark::after {
+        /* 参考图深色面板里的细微质感,用一层极淡的斜向渐变代替噪点 */
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), transparent 45%);
+        pointer-events: none;
+      }
+      .wa-dark .w-display {
+        font-size: clamp(34px, 3.4vw, 46px);
+      }
+      .wa-sub {
+        color: rgba(244, 242, 236, 0.66);
+        font-size: 14.5px;
+        line-height: 1.6;
+        max-width: 34em;
+      }
+      .wa-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 4px;
+      }
+      .wa-dark .w-ghost-cta {
+        color: rgba(244, 242, 236, 0.8);
+      }
+      .wa-dark .w-ghost-cta:hover {
+        color: #fff;
+        border-color: #fff;
+      }
+      .wa-meta {
+        position: absolute;
+        left: 44px;
+        bottom: 22px;
+        display: flex;
+        gap: 14px;
+        font-size: 11.5px;
+        color: rgba(244, 242, 236, 0.42);
+        font-family: var(--mono);
+      }
+      .wa-light {
+        flex: 1;
+        min-width: 0;
+        background: var(--canvas-soft);
+        padding: 32px 36px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .wa-light .eyebrow {
+        color: var(--ink-muted);
+      }
+      .wa-light h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: -0.4px;
+      }
+      .wa-light .lede {
+        font-size: 13px;
+        color: var(--ink-muted);
+        line-height: 1.55;
+        margin-bottom: 4px;
+      }
+
+      /* ── Variant B · 居中编辑部 ───────────────────────────────────── */
+      .wb-wrap {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 56px 40px 40px;
+        text-align: center;
+        gap: 20px;
+      }
+      .wb-wrap .w-display {
+        font-size: clamp(38px, 4vw, 54px);
+        color: var(--ink);
+      }
+      .wb-sub {
+        color: var(--ink-muted);
+        font-size: 15px;
+        line-height: 1.65;
+        max-width: 40em;
+      }
+      .wb-input {
+        width: min(620px, 100%);
+        text-align: left;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-xl);
+        box-shadow: var(--shadow-2);
+        padding: 14px 16px 10px;
+        margin-top: 6px;
+      }
+      .wb-input textarea {
+        width: 100%;
+        border: 0;
+        resize: none;
+        font-size: 16px;
+        line-height: 1.5;
+        outline: none;
+        background: transparent;
+        color: var(--ink);
+      }
+      .wb-input .c-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .wb-section {
+        width: min(860px, 100%);
+        margin-top: 26px;
+        text-align: left;
+      }
+      .wb-section .eyebrow {
+        color: var(--ink-muted);
+        display: block;
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      .wb-foot {
+        margin-top: 30px;
+        font-size: 12.5px;
+        color: var(--ink-faint);
+        display: flex;
+        gap: 18px;
+        font-family: var(--mono);
+      }
+
+      /* ── Variant C · 深色终端岛 ───────────────────────────────────── */
+      .wc-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+      }
+      .wc-island {
+        width: min(860px, 100%);
+        background: var(--w-terminal);
+        border: 1px solid #2a2a2e;
+        border-radius: var(--r-xl);
+        box-shadow: var(--shadow-2);
+        overflow: hidden;
+        color: var(--w-terminal-ink);
+      }
+      .wc-chrome {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-bottom: 1px solid #26262b;
+      }
+      .wc-chrome .b {
+        width: 12px;
+        height: 12px;
+        border-radius: var(--r-full);
+      }
+      .wc-chrome .r {
+        background: #ff605c;
+      }
+      .wc-chrome .y {
+        background: #ffbd44;
+      }
+      .wc-chrome .g {
+        background: #00ca4e;
+      }
+      .wc-chrome .title {
+        flex: 1;
+        text-align: center;
+        font-size: 12px;
+        color: #828286;
+        font-weight: 300;
+      }
+      .wc-body {
+        display: flex;
+        gap: 28px;
+        padding: 26px 30px 22px;
+        flex-wrap: wrap;
+      }
+      .wc-ghost {
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.25;
+        white-space: pre;
+        color: var(--w-terminal-ink);
+        flex: none;
+        align-self: center;
+      }
+      .wc-ghost .o {
+        color: var(--w-orange);
+      }
+      .wc-log {
+        flex: 1;
+        min-width: 300px;
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.75;
+      }
+      .wc-log .p {
+        color: var(--w-orange);
+      }
+      .wc-log .ok {
+        color: var(--accent-green);
+      }
+      .wc-log .dim {
+        color: #828286;
+      }
+      .wc-cmd {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border: 0;
+        border-radius: var(--r-md);
+        color: var(--w-terminal-ink);
+        font-family: var(--mono);
+        font-size: 13px;
+        padding: 6px 8px;
+        margin: 0 -8px;
+      }
+      .wc-cmd:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .wc-cmd .p {
+        color: var(--w-orange);
+      }
+      .wc-cmd .arrow {
+        color: #828286;
+      }
+      .wc-caret {
+        display: inline-block;
+        width: 8px;
+        height: 15px;
+        background: var(--w-orange);
+        vertical-align: -2px;
+        animation: wc-blink 1.1s steps(2) infinite;
+      }
+      @keyframes wc-blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      .wc-foot {
+        border-top: 1px solid #26262b;
+        padding: 10px 30px 14px;
+        display: flex;
+        gap: 16px;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: #615d59;
+        flex-wrap: wrap;
+      }
+
+      /* ── prototype switcher(不属于被评估的设计) ───────────────────── */
+      .proto-switcher {
+        position: fixed;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: #1b1a19;
+        color: #fff;
+        border-radius: var(--r-full);
+        box-shadow: var(--shadow-2);
+        padding: 5px 8px;
+        font-size: 13px;
+        user-select: none;
+      }
+      .proto-switcher button {
+        border: 0;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        width: 26px;
+        height: 26px;
+        border-radius: var(--r-full);
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .proto-switcher button:hover {
+        background: rgba(255, 255, 255, 0.24);
+      }
+      .proto-switcher .label {
+        min-width: 150px;
+        text-align: center;
+        font-weight: 500;
+      }
+      .proto-switcher .tag {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: rgba(255, 255, 255, 0.5);
+        margin-right: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <div class="proto-switcher" role="group" aria-label="欢迎页变体切换">
+      <span class="tag">WELCOME PROTO</span>
+      <button id="sw-prev" aria-label="上一个变体">←</button>
+      <span class="label" id="sw-label"></span>
+      <button id="sw-next" aria-label="下一个变体">→</button>
+    </div>
+
+    <script>
+      /* ── mock data(与当前原型同一套领域语言) ─────────────────────── */
+      const gateway = {
+        status: "Ready",
+        addr: "127.0.0.1:54321",
+        pi: "v0.28.1 (pinned)",
+        identity: "local-me",
+        uptime: "2h 14m",
+        connection: "Online",
+      };
+
+      const workspaces = [
+        { id: "ws1", name: "no-pi-no-gang-v2", path: "G:\\AICode\\no-pi-no-gang-v2" },
+        { id: "ws2", name: "kero", path: "D:\\Projects\\kero" },
+      ];
+
+      const sessions = [
+        {
+          id: "s1",
+          ws: "ws1",
+          title: "Run 协调器重构",
+          updated: "2 分钟前",
+          preview: "已把 admission 改成 per-Session 队列,跨 Session 走有界并发池…",
+          state: "Running",
+          color: "var(--primary)",
+          pulse: true,
+        },
+        {
+          id: "s2",
+          ws: "ws1",
+          title: "Session 索引搜索",
+          updated: "1 小时前",
+          preview: "搜索只索引可见文本,不碰 credential 和思考内容。",
+          state: "Completed",
+          color: "var(--accent-green)",
+          pulse: false,
+        },
+        {
+          id: "s5",
+          ws: "ws2",
+          title: "Vite 构建优化",
+          updated: "刚刚",
+          preview: "先跑一次 profile 构建,看 chunk 拆分和冷启动耗时…",
+          state: "Running",
+          color: "var(--primary)",
+          pulse: true,
+        },
+      ];
+
+      /* 起步卡:参考图 Agent Profile 卡 → 我们的"第一个任务"模板 */
+      const STARTERS = [
+        {
+          id: "t1",
+          icon: "🧭",
+          bg: "var(--accent-sky)",
+          t: "读懂仓库",
+          chip: "先给导览,不动代码",
+          prompt: "这个仓库是怎么跑起来的?给我一份导览,先别改任何代码。",
+        },
+        {
+          id: "t2",
+          icon: "🧪",
+          bg: "var(--accent-pink)",
+          t: "补上测试",
+          chip: "跑到全绿为止",
+          prompt: "给 run/coordinator 的容量超限路径补上幂等测试。",
+        },
+        {
+          id: "t3",
+          icon: "🛠️",
+          bg: "var(--accent-teal)",
+          t: "小步重构",
+          chip: "每步可回看",
+          prompt: "把 admission 逻辑拆成纯函数 + 薄副作用层,保持行为不变。",
+        },
+        {
+          id: "t4",
+          icon: "📦",
+          bg: "var(--accent-purple)",
+          t: "构建体检",
+          chip: "先诊断再开药",
+          prompt: "分析这个仓库构建慢在哪,先别改配置,给我一份拆解。",
+        },
+        {
+          id: "t5",
+          icon: "📝",
+          bg: "var(--accent-orange)",
+          t: "写文档",
+          chip: "从代码出发",
+          prompt: "把 README 的快速开始改成 pnpm 工作区写法。",
+        },
+        {
+          id: "t6",
+          icon: "🔍",
+          bg: "var(--accent-green)",
+          t: "查个 bug",
+          chip: "先复现再定位",
+          prompt: "测试偶尔失败,帮我定位是哪几个用例 flaky,说明判断依据。",
+        },
+        {
+          id: "t7",
+          icon: "🚢",
+          bg: "var(--accent-sky)",
+          t: "发布前检查",
+          chip: "清单驱动",
+          prompt: "走一遍发布检查清单,告诉我哪些项还没过、卡在哪。",
+        },
+        {
+          id: "t8",
+          icon: "🧹",
+          bg: "var(--accent-pink)",
+          t: "清理债务",
+          chip: "给理由再动手",
+          prompt: "找出仓库里最值得还的三笔技术债,说明理由,先别改。",
+        },
+      ];
+
+      const CURSOR_SVG = `<svg class="w-cursor" width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 2.8 20.2 12.2l-6.9 1.2-3.9 5.9z" fill="currentColor"/><path d="M13.4 14.2l3.2 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+      const SCRIBBLE_SVG = `<svg viewBox="0 0 220 14" preserveAspectRatio="none" aria-hidden="true"><path d="M4 9 C 55 2, 95 12, 138 6 S 200 3, 216 8" stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`;
+
+      /* ASCII ghost:致敬 ghostty.org 的纯字符 logo 做法(橙色 body + 深色眼睛) */
+      const GHOST_LINES = [
+        "      .==+****+==.      ",
+        "    =#@@@@@@@@@@@@#=    ",
+        "  +@@@$$$$$$$$$$@@@+   ",
+        "  @@@$$        $$@@@   ",
+        "  @@@$   o  o   $@@@   ",
+        "  @@@$          $@@@   ",
+        "  @@@$$        $$@@@   ",
+        "  +@@@$$$$$$$$$$@@@+   ",
+        "    =#@@@@@@@@@@@@#=    ",
+        "     @@@  @@@@  @@@    ",
+        "     ~@#  #@@~  #@~    ",
+      ];
+      const ghostHtml = GHOST_LINES.map((line) => {
+        /* 眼睛的两个 o 保持暗色,其余字符橙色 — 与 Ghostty 的 .b 高亮同思路 */
+        const html = line.replace(/o/g, "\0");
+        return `<div><span class="o">${html.replace(/\0/g, '</span>o<span class="o">')}</span></div>`;
+      }).join("");
+
+      /* ── shared render helpers ────────────────────────────────────── */
+      const wsById = (id) => workspaces.find((w) => w.id === id);
+
+      function starterCards(count) {
+        const shown = STARTERS.slice(0, count).map(cardHtml).join("");
+        return shown;
+      }
+      function cardHtml(s) {
+        return `<button class="w-card" data-fill="${s.id}">
+          <span class="ava" style="background:${s.bg}">${s.icon}</span>
+          <span class="body">
+            <span class="t">${s.t}</span>
+            <span class="chip">${s.chip}</span>
+          </span>
+          <span class="foot">填入输入框 ↵</span>
+        </button>`;
+      }
+
+      function composerDock() {
+        return `<div class="dock"><div class="composer">
+          <textarea rows="2" placeholder="输入 prompt,创建你的第一个 Session…" aria-label="Prompt 输入"></textarea>
+          <div class="c-row">
+            <span class="badge">claude-opus-4-8 · high</span>
+            <span class="c-note">模型与 thinking level 在 admission 时冻结</span>
+            <span style="flex:1"></span>
+            <button class="btn-primary" data-action="noop">发送</button>
+          </div>
+        </div></div>`;
+      }
+
+      /* ── welcome variants ─────────────────────────────────────────── */
+      function welcomeA(state) {
+        return `<div class="wa-wrap">
+          <div class="wa-dark">
+            ${CURSOR_SVG}
+            <h2 class="w-display">Build with<br><span class="u-scribble">Agents.${SCRIBBLE_SVG}</span></h2>
+            <div class="wa-sub">调研、规划、实现 —— 交给在你本地运行的 Agent。每一步都有会话记录,随时可以 Steer 纠偏。</div>
+            <div class="wa-actions">
+              <button class="w-cta" data-focus>创建第一个 Session →</button>
+              <button class="w-ghost-cta" data-action="scroll-cards">看看能做什么</button>
+            </div>
+            <div class="wa-meta"><span>本地优先</span><span>·</span><span>数据不出你的机器</span></div>
+          </div>
+          <div class="wa-light" id="wa-cards">
+            <div class="eyebrow">START HERE</div>
+            <h2>第一个任务,从这里挑</h2>
+            <div class="lede">点一张卡,prompt 会填进下方输入框 —— 发出去就是你的第一个 Run。</div>
+            <div class="w-cards">
+              ${starterCards(state.more ? 8 : 4)}
+              <button class="w-more" data-more>${state.more ? "收起 ▴" : "显示更多 ▾"}</button>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      function welcomeB(state) {
+        return `<div class="wb-wrap">
+          ${CURSOR_SVG}
+          <h2 class="w-display">让 Agent 跑<span class="u-scribble">重活${SCRIBBLE_SVG}</span>,<br>你来做决定。</h2>
+          <div class="wb-sub">本地优先的 Agent 工作台 —— Session 可恢复,Run 可审计,数据不出你的机器。</div>
+          <div class="wb-input">
+            <textarea rows="2" placeholder="输入你的第一个 prompt…" aria-label="Prompt 输入"></textarea>
+            <div class="c-row">
+              <span class="badge">claude-opus-4-8 · high</span>
+              <span style="flex:1"></span>
+              <button class="w-cta" data-action="noop" style="padding:8px 18px">发送 →</button>
+            </div>
+          </div>
+          <div class="wb-section">
+            <span class="eyebrow">或者从这些开始</span>
+            <div class="w-cards">
+              ${starterCards(state.more ? 8 : 4)}
+              <button class="w-more" data-more>${state.more ? "收起 ▴" : "显示更多 ▾"}</button>
+            </div>
+          </div>
+          <div class="wb-foot"><span>Gateway Ready · ${gateway.addr}</span><span>诊断不含 prompt 与 credential</span></div>
+        </div>`;
+      }
+
+      function welcomeC() {
+        return `<div class="wc-wrap">
+          <div class="wc-island">
+            <div class="wc-chrome">
+              <span class="b r"></span><span class="b y"></span><span class="b g"></span>
+              <span class="title">👻 工作台 — 首次启动</span>
+              <span style="width:44px"></span>
+            </div>
+            <div class="wc-body">
+              <div class="wc-ghost" aria-hidden="true">${ghostHtml}</div>
+              <div class="wc-log">
+                <div><span class="p">$</span> npng doctor</div>
+                <div><span class="ok">✓</span> Gateway <span class="ok">Ready</span> <span class="dim">— ${gateway.addr}</span></div>
+                <div><span class="ok">✓</span> Local Identity <span class="dim">— ${gateway.identity}</span></div>
+                <div><span class="ok">✓</span> ${workspaces.length} 个 Workspace 已授权</div>
+                <div style="height:10px"></div>
+                <div class="dim"># 下一步,三选一(点击即可填入输入框):</div>
+                <button class="wc-cmd" data-fill="t1"><span class="p">$</span> npng new --task "读懂仓库" <span class="arrow">↵</span></button>
+                <button class="wc-cmd" data-fill="t2"><span class="p">$</span> npng new --task "补上测试" <span class="arrow">↵</span></button>
+                <button class="wc-cmd" data-fill="t4"><span class="p">$</span> npng new --task "构建体检" <span class="arrow">↵</span></button>
+                <div style="height:6px"></div>
+                <div><span class="p">$</span> <span class="wc-caret"></span></div>
+              </div>
+            </div>
+            <div class="wc-foot"><span>数据不出本机</span><span>·</span><span>会话记录可恢复</span><span>·</span><span>Steer 随时纠偏</span></div>
+          </div>
+        </div>`;
+      }
+
+      /* ── shell ────────────────────────────────────────────────────── */
+      function renderRightPanel(state) {
+        const kv = (k, v) =>
+          `<div class="kv"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+        const panels = {
+          run: `<div class="card empty-note">尚无 Run。<br>发送第一个 prompt 后,Run 的状态、Execution Profile 与诊断会出现在这里。</div>`,
+          session: `<div class="card empty-note">当前路由:欢迎页(首次访问默认页)。<br>从左侧选择 Session 后,这里会显示它的上下文与可用性。</div>`,
+          gateway: `<div class="card" style="padding:14px">
+            ${kv("服务", gateway.status)}
+            ${kv("监听", `<span class="mono">${gateway.addr}</span>`)}
+            ${kv("Pi Runtime", gateway.pi)}
+            ${kv("Local Identity", gateway.identity)}
+            ${kv("运行时长", gateway.uptime)}
+            <div style="font-size:12px;color:var(--ink-faint);margin-top:8px;line-height:1.5">仅监听随机 loopback 端口;诊断输出不包含 prompt 与 credential。</div>
+          </div>`,
+        };
+        return `<aside class="right">
+          <div class="tabs" role="tablist">
+            ${["run", "session", "gateway"]
+              .map(
+                (t) =>
+                  `<button class="tab${state.rightTab === t ? " active" : ""}" data-action="tab" data-id="${t}" role="tab">${{ run: "Run", session: "Session", gateway: "Gateway" }[t]}</button>`,
+              )
+              .join("")}
+          </div>
+          <div class="panel">${panels[state.rightTab]}</div>
+        </aside>`;
+      }
+
+      function renderShell(state) {
+        const nav = workspaces
+          .map((w) => {
+            const rows = sessions
+              .filter((x) => x.ws === w.id)
+              .map(
+                (
+                  x,
+                ) => `<button class="sess-card" data-action="noop" title="会话切换已在 layout 原型中评估,此处仅作背景">
+                  <div class="t">${x.title}</div>
+                  <div class="prev">${x.preview}</div>
+                  <div class="m"><span class="dot${x.pulse ? " pulse" : ""}" style="background:${x.color}"></span>${x.state} · ${x.updated}</div>
+                </button>`,
+              )
+              .join("");
+            return `<div class="ws"><div class="n">${w.name}</div><div class="p">${w.path}</div></div>${rows}`;
+          })
+          .join("");
+
+        const stage = { a: welcomeA, b: welcomeB, c: welcomeC }[state.variant](state);
+        /* B 把输入框内嵌进欢迎页,替代 dock composer */
+        const dock = state.variant === "b" ? "" : composerDock();
+
+        return `<div class="shell">
+          <aside class="left">
+            <div class="brand"><span class="wordmark">工作台</span><span class="kbd-hint">v2</span></div>
+            <button class="btn-primary new-btn" data-action="noop">+ 新建 Session</button>
+            <nav class="nav" aria-label="Workspace 与 Session">
+              <div class="nav-welcome">✦ 欢迎<span class="kbd-hint">当前路由</span></div>
+              ${nav}
+            </nav>
+            <div class="leftfoot"><span class="dot" style="background:var(--accent-green)"></span>${gateway.connection}<span style="flex:1"></span><span class="mono">${gateway.addr}</span></div>
+          </aside>
+          <main class="center">
+            <div class="head">
+              <h1>欢迎</h1>
+              <span class="badge"><span class="dot" style="background:var(--accent-green)"></span>首次访问</span>
+              <span style="flex:1"></span>
+              <span class="sub">route: / (default)</span>
+            </div>
+            <div class="stage">${stage}</div>
+            ${dock}
+          </main>
+          ${renderRightPanel(state)}
+        </div>`;
+      }
+
+      /* ── switcher + state ─────────────────────────────────────────── */
+      const VARIANTS = [
+        { key: "a", label: "A · 分屏直译" },
+        { key: "b", label: "B · 居中编辑部" },
+        { key: "c", label: "C · 深色终端岛" },
+      ];
+
+      const params = new URLSearchParams(location.search);
+      const state = {
+        variant: VARIANTS.some((v) => v.key === (params.get("variant") || "").toLowerCase())
+          ? params.get("variant").toLowerCase()
+          : "a",
+        rightTab: "run",
+        more: false,
+      };
+
+      function setVariant(key) {
+        state.variant = key;
+        try {
+          const url = new URL(location.href);
+          url.searchParams.set("variant", key);
+          history.replaceState(null, "", url);
+        } catch {
+          /* file:// 协议下 replaceState 被禁,切换仍然可用,只是 URL 不更新 */
+        }
+        render();
+      }
+
+      function render() {
+        document.getElementById("app").innerHTML = renderShell(state);
+        document.getElementById("sw-label").textContent = VARIANTS.find(
+          (v) => v.key === state.variant,
+        ).label;
+      }
+
+      function cycle(dir) {
+        const i = VARIANTS.findIndex((v) => v.key === state.variant);
+        setVariant(VARIANTS[(i + dir + VARIANTS.length) % VARIANTS.length].key);
+      }
+
+      document.getElementById("sw-prev").addEventListener("click", () => cycle(-1));
+      document.getElementById("sw-next").addEventListener("click", () => cycle(1));
+
+      document.addEventListener("keydown", (e) => {
+        const t = e.target;
+        if (t.matches("input, textarea, [contenteditable]")) return;
+        if (e.key === "ArrowLeft") cycle(-1);
+        if (e.key === "ArrowRight") cycle(1);
+      });
+
+      document.getElementById("app").addEventListener("click", (e) => {
+        const fill = e.target.closest("[data-fill]");
+        if (fill) {
+          const s = STARTERS.find((x) => x.id === fill.dataset.fill);
+          const ta = document.querySelector(".center textarea");
+          if (s && ta) {
+            ta.value = s.prompt;
+            ta.focus();
+          }
+          return;
+        }
+        if (e.target.closest("[data-focus]")) {
+          const ta = document.querySelector(".center textarea");
+          if (ta) ta.focus();
+          return;
+        }
+        if (e.target.closest("[data-more]")) {
+          state.more = !state.more;
+          render();
+          return;
+        }
+        if (e.target.closest('[data-action="scroll-cards"]')) {
+          const el = document.getElementById("wa-cards");
+          if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+          return;
+        }
+        const tab = e.target.closest('[data-action="tab"]');
+        if (tab) {
+          state.rightTab = tab.dataset.id;
+          render();
+        }
+      });
+
+      render();
+    </script>
+  </body>
+</html>

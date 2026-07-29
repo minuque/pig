@@ -9,6 +9,7 @@
   },
   "scripts": {
     "prototype:web": "start packages\\web\\prototype\\index.html",
+    "prototype:welcome": "start packages\\web\\prototype\\welcome-prototype\\index.html",
     "prepare": "husky",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
