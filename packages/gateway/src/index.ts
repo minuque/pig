@@ -7,9 +7,10 @@ class Gateway {
   private server;
   private port: number = 0;
   private runtimeAdapter: PiRuntimeAdapter;
+  private credentialMap = new Map<string, string>();
 
   constructor(runtimeAdapter?: PiRuntimeAdapter) {
-    this.runtimeAdapter = runtimeAdapter || new PiRuntimeAdapter();
+    this.runtimeAdapter = runtimeAdapter || new PiRuntimeAdapterImpl();
     this.server = createServer(this.handleRequest.bind(this));
   }
 
@@ -17,6 +18,33 @@ class Gateway {
     if (req.url === "/health") {
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.end("Gateway OK");
+      return;
+    }
+    if (req.url === "/credential") {
+      let body = "";
+      req.on("data", (chunk: any) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        try {
+          const { credential } = JSON.parse(body);
+          if (!credential) {
+            res.writeHead(400);
+            res.end();
+            return;
+          }
+          let identityId = this.credentialMap.get(credential);
+          if (!identityId) {
+            identityId = `id-${Date.now()}`;
+            this.credentialMap.set(credential, identityId);
+          }
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ identity: identityId }));
+        } catch (e) {
+          res.writeHead(400);
+          res.end();
+        }
+      });
       return;
     }
     if (req.url === "/sse") {
@@ -58,7 +86,7 @@ class Gateway {
 
 export default Gateway;
 
-export class PiRuntimeAdapter implements PiRuntimeAdapter {
+export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
   private fixedPiVersion = "0.1.0"; // Phase 0: fixed version
 
   async startSession(workspaceId: string): Promise<any> {
