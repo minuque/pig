@@ -161,12 +161,22 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
 
   async discoverSessions(): Promise<any[]> {
     // MVP stub: read from Pi JSONL (Phase 2 will use real index)
-    return [
-      {
-        id: `sess-${Date.now()}`,
-        workspaceId: "default",
-        status: "available",
-      },
-    ];
+    try {
+      // Stub: read from workspace root / sessions.jsonl (real path in Phase 2)
+      const fs = await import("fs/promises");
+      const data = await fs.readFile("sessions.jsonl", "utf8");
+      // Parse JSONL lines (stub)
+      const lines = data.split("\n").filter((l) => l.trim());
+      return lines.map((line) => JSON.parse(line));
+    } catch {
+      console.warn("No sessions.jsonl — falling back to stub");
+      return [
+        {
+          id: `sess-${Date.now()}`,
+          workspaceId: "default",
+          status: "available",
+        },
+      ];
+    }
   }
 }
