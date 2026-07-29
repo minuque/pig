@@ -2,6 +2,7 @@ import { createServer } from "http";
 import { EventEmitter } from "events";
 
 import type { PiRuntimeAdapter } from "@no-pi-no-gang/contracts";
+import { SingleWorkspaceStrategyImpl, SingleActiveRunStrategyImpl } from "@no-pi-no-gang/contracts";
 
 class Gateway {
   private server;
@@ -9,6 +10,8 @@ class Gateway {
   private runtimeAdapter: PiRuntimeAdapter;
   private credentialMap = new Map<string, string>();
   private workspaceMap = new Map<string, { id: string; name: string }>();
+  private singleWorkspaceStrategy = new SingleWorkspaceStrategyImpl();
+  private singleActiveRunStrategy = new SingleActiveRunStrategyImpl();
 
   constructor(runtimeAdapter?: PiRuntimeAdapter) {
     this.runtimeAdapter = runtimeAdapter || new PiRuntimeAdapterImpl();

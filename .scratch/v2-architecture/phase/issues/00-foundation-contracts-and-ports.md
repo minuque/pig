@@ -13,10 +13,10 @@
 
 - [X]  `web`、`gateway`、`contracts`、`testkit` 保持独立；生产代码不依赖 `testkit`，`contracts` 不依赖 Vue、DOM、Node 或 Pi SDK。
 - [X]  Workspace、Session、Run、Local Identity、Command 使用稳定且不可互换的标识；公共 API 位于 `/api/v1`。
-- [ ]  REST 资源、mutation、错误和统一 SSE 事件信封具有共享 schema；Run 事件至少携带 `sessionId`、`runId` 和 `type`。
-- [ ]  业务逻辑依赖 Workspace Repository、Run Repository、Session Index 和平台路径 Port；Windows 路径规则不散落在业务逻辑中。
-- [ ]  进程内 Command Executor 对每个 mutation 支持：等价 `commandId` 重试返回原结果，不同 payload 复用返回稳定冲突。
-- [ ]  单 Workspace 与全局单 active Run 由可替换策略表达，不进入资源模型或 Repository 契约。
+- [x]  REST 资源、mutation、错误和统一 SSE 事件信封具有共享 schema；Run 事件至少携带 `sessionId`、`runId` 和 `type`。
+- [x]  业务逻辑依赖 Workspace Repository、Run Repository、Session Index 和平台路径 Port；Windows 路径规则不散落在业务逻辑中。
+- [x]  进程内 Command Executor 对每个 mutation 支持：等价 `commandId` 重试返回原结果，不同 payload 复用返回稳定冲突。
+- [x]  单 Workspace 与全局单 active Run 由可替换策略表达，不进入资源模型或 Repository 契约。
 
 ## 不在本票
 

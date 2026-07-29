@@ -88,3 +88,23 @@ export interface PiRuntimeAdapter {
   discoverSessions(): Promise<Session[]>;
   // etc for MVP
 }
+
+export class SingleWorkspaceStrategyImpl implements SingleWorkspaceStrategy {
+  private canonicalWorkspace?: Workspace;
+  async getCanonicalWorkspace(): Promise<Workspace | undefined> {
+    return this.canonicalWorkspace;
+  }
+  async setCanonicalWorkspace(workspace: Workspace): Promise<void> {
+    this.canonicalWorkspace = workspace;
+  }
+}
+
+export class SingleActiveRunStrategyImpl implements SingleActiveRunStrategy {
+  private activeRun?: Run;
+  async getActiveRun(): Promise<Run | undefined> {
+    return this.activeRun;
+  }
+  async setActiveRun(run: Run): Promise<void> {
+    this.activeRun = run;
+  }
+}
