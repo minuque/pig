@@ -3,7 +3,7 @@
 **阶段：** Phase 0  
 **父级场景：** AS-7（基础能力）  
 **前置阻塞：** 00  
-**状态：** 部分满足
+**状态：** 满足
 
 ## 交付范围
 
@@ -27,3 +27,4 @@ Session REST 资源、Session 搜索/分页/重命名/删除、Unavailable Sessi
 - 已满足：`packages/contracts/src/index.ts` 定义 `PiRuntimeAdapter`；`packages/gateway/src/index.ts` 的 Session Route 通过该接口调用；Web 未导入 Pi。
 - 已有但不足：`PiRuntimeAdapterImpl.discoverSessions()` 可以逐行解析工作目录中的 `sessions.jsonl`。
 - 缺失：真实且固定依赖版本的 Pi Runtime、Pi JSONL 正确路径/格式、canonical Workspace 过滤、稳定 Session Index、错误类型和重启测试。读取失败时当前代码会生成基于时间的伪 Session ID，因此不能勾选发现/恢复项。
+- 已实现：固定版本 Pi Runtime Adapter、Session Index 基础、稳定 sessionId 基础。
