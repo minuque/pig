@@ -18,9 +18,6 @@ const platformPort: PlatformPort = {
   async canonicalizeWorkspacePath(path) {
     return path.toLowerCase();
   },
-  async getPlatformPath() {
-    return "win32";
-  },
 };
 
 class StreamingRuntime extends PiRuntimeAdapterImpl {

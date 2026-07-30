@@ -8,9 +8,6 @@ const platformPort: PlatformPort = {
     if (!path.startsWith("C:/")) throw new Error("invalid path");
     return path.replace(/\\/g, "/").replace(/\/$/, "").toLowerCase();
   },
-  async getPlatformPath() {
-    return "win32";
-  },
 };
 
 let gateway: Gateway | undefined;

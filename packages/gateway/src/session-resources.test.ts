@@ -11,9 +11,6 @@ const platformPort: PlatformPort = {
   async canonicalizeWorkspacePath(path) {
     return path.toLowerCase();
   },
-  async getPlatformPath() {
-    return "win32";
-  },
 };
 
 let gateway: Gateway | undefined;

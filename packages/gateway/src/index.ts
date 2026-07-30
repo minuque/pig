@@ -38,9 +38,6 @@ export class NodePlatformPort implements PlatformPort {
   async canonicalizeWorkspacePath(candidatePath: string): Promise<string> {
     return realpath(resolve(candidatePath));
   }
-  async getPlatformPath(): Promise<string> {
-    return process.platform;
-  }
 }
 
 class Gateway {
@@ -309,7 +306,6 @@ class Gateway {
               const now = new Date();
               const admitted: Run = {
                 id: randomUUID() as RunId,
-                runId: "" as RunId,
                 workspaceId: workspace.id,
                 sessionId,
                 commandId: commandId as CommandId,
@@ -318,7 +314,6 @@ class Gateway {
                 createdAt: now,
                 updatedAt: now,
               };
-              admitted.runId = admitted.id;
               if (!(await this.activeRunPolicy.tryAcquire(admitted)))
                 throw new ActiveRunConflictError();
               await this.runs.save(admitted);
@@ -372,7 +367,6 @@ class Gateway {
         ...running,
         ...settled,
         id: running.id,
-        runId: running.id,
         workspaceId: running.workspaceId,
         sessionId: running.sessionId,
         commandId: running.commandId,

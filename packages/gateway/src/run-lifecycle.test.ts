@@ -11,9 +11,6 @@ const platformPort: PlatformPort = {
   async canonicalizeWorkspacePath(path) {
     return path.toLowerCase();
   },
-  async getPlatformPath() {
-    return "win32";
-  },
 };
 
 class DeferredRuntime extends PiRuntimeAdapterImpl {
@@ -98,7 +95,6 @@ describe("run lifecycle", () => {
     const blocked = responses.find(({ status }) => status === 409)!;
     const first = (await firstResponse.json()) as { run: Run };
     expect(first.run).toMatchObject({ workspaceId: workspace.id, status: "admission" });
-    expect(first.run.id).toBe(first.run.runId);
     expect(await blocked.json()).toEqual({ code: "ACTIVE_RUN_LIMIT" });
     expect(runtime.calls).toBe(1);
 
@@ -140,7 +136,6 @@ describe("run lifecycle", () => {
     const now = new Date();
     const completed = {
       id: "run" as Run["id"],
-      runId: "run" as Run["runId"],
       workspaceId: "workspace" as Run["workspaceId"],
       sessionId: "session" as Run["sessionId"],
       commandId: "command" as Run["commandId"],

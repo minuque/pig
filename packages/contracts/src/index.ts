@@ -33,7 +33,6 @@ export interface Run {
   workspaceId: WorkspaceId;
   sessionId: SessionId;
   prompt: string;
-  runId: RunId;
   commandId: CommandId;
   status: "admission" | "running" | "cancelled" | "failed" | "completed";
   output?: string;
@@ -63,7 +62,6 @@ export interface Repository<T> {
 
 export interface PlatformPort {
   canonicalizeWorkspacePath(candidatePath: string): Promise<string>;
-  getPlatformPath(): Promise<string>;
 }
 
 export class CommandConflictError extends Error {
@@ -100,7 +98,6 @@ export interface SingleWorkspaceStrategy {
 export type RunRepository = Repository<Run>;
 
 export interface SingleActiveRunStrategy {
-  getActiveRun(): Promise<Run | undefined>;
   tryAcquire(run: Run): Promise<boolean>;
   release(runId: RunId): Promise<void>;
 }
@@ -137,9 +134,6 @@ export class SingleWorkspaceStrategyImpl implements SingleWorkspaceStrategy {
 
 export class SingleActiveRunStrategyImpl implements SingleActiveRunStrategy {
   private activeRun: Run | undefined;
-  async getActiveRun(): Promise<Run | undefined> {
-    return this.activeRun;
-  }
   async tryAcquire(run: Run): Promise<boolean> {
     if (this.activeRun) return false;
     this.activeRun = run;
