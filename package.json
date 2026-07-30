@@ -17,7 +17,8 @@
     "lint:fix": "eslint . --fix",
     "check": "pnpm format:check && pnpm lint && pnpm design:lint",
     "design:lint": "designmd lint DESIGN.md",
-    "typecheck": "pnpm -r --if-present typecheck"
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
