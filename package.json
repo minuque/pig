@@ -8,21 +8,24 @@
     "node": ">=22.19.0 <23 || >=24.0.0 <25"
   },
   "scripts": {
-    "prestart": "pnpm build",
-    "start": "tsx packages/gateway/src/cli.ts packages/web/dist",
     "dev": "tsx scripts/dev.ts",
     "dev:gateway": "pnpm --filter @no-pi-no-gang/gateway dev",
     "dev:web": "pnpm --filter @no-pi-no-gang/web dev",
     "build": "pnpm --filter @no-pi-no-gang/web build",
-    "prepare": "husky",
+    "preview": "pnpm --filter @no-pi-no-gang/web preview",
+    "prestart": "pnpm build",
+    "start": "tsx packages/gateway/src/cli.ts packages/web/dist",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "pnpm lint:code && pnpm lint:design",
+    "lint:code": "eslint .",
+    "lint:design": "designmd lint DESIGN.md",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "check": "pnpm format:check && pnpm lint && pnpm design:lint && pnpm typecheck && pnpm test",
-    "design:lint": "designmd lint DESIGN.md",
-    "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test"
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "fix": "pnpm format && pnpm lint:fix",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
