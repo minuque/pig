@@ -73,10 +73,78 @@
           {{ currentSession.status === "available" ? "Available" : "Unavailable" }}
         </p>
         <p class="mono">Session ID: {{ currentSession.id }}</p>
-        <div class="empty">
-          <h2>会话内容将在下一阶段提供</h2>
-          <p>此页面仅建立 Workspace 与 Session 导航，不包含 Prompt、Run 或实时输出。</p>
-        </div>
+        <section class="transcript" aria-labelledby="transcript-title" aria-live="off">
+          <h2 id="transcript-title">Transcript</h2>
+          <p v-if="loadingTranscript" role="status">正在加载 Transcript…</p>
+          <div v-else-if="transcriptError" class="notice error" role="alert">
+            {{ transcriptError }}
+          </div>
+          <article
+            v-for="(entry, index) in transcript"
+            :key="`${currentSession.id}:${index}`"
+            class="message"
+          >
+            <strong>{{ typeof entry.role === "string" ? entry.role : "message" }}</strong>
+            <MarkdownRender
+              mode="chat"
+              :content="transcriptText(entry)"
+              code-renderer="pre"
+              html-policy="safe"
+              :smooth-streaming="false"
+              :typewriter="false"
+              :fade="false"
+            />
+          </article>
+          <article v-for="run in sessionRuns" :key="run.id" class="message streaming">
+            <strong>assistant · {{ run.status }}</strong>
+            <MarkdownRender
+              mode="chat"
+              :content="run.output"
+              code-renderer="pre"
+              html-policy="safe"
+              :smooth-streaming="terminalStatuses.has(run.status) ? false : 'auto'"
+              :typewriter="!terminalStatuses.has(run.status)"
+              :fade="false"
+            />
+          </article>
+          <p
+            v-if="!loadingTranscript && transcript.length === 0 && sessionRuns.length === 0"
+            class="notice"
+          >
+            暂无消息。
+          </p>
+        </section>
+        <form class="prompt" @submit.prevent="sendPrompt">
+          <label for="prompt-input">Prompt</label>
+          <textarea
+            id="prompt-input"
+            v-model="prompt"
+            rows="4"
+            :disabled="Boolean(activeRun)"
+            required
+          ></textarea>
+          <p v-if="activeRun" id="active-run-reason">
+            已有 active Run（{{ activeRun.status }}），完成或取消后才能发送。
+          </p>
+          <div v-if="runError" class="notice error" role="alert">{{ runError }}</div>
+          <div class="actions">
+            <button
+              type="submit"
+              :disabled="!prompt.trim() || Boolean(activeRun)"
+              :aria-describedby="activeRun ? 'active-run-reason' : undefined"
+            >
+              发送
+            </button>
+            <button
+              type="button"
+              class="secondary"
+              :disabled="!activeRun || cancelling"
+              @click="cancelRun"
+            >
+              {{ cancelling ? "取消中…" : "Cancel" }}
+            </button>
+          </div>
+        </form>
       </section>
       <section v-else class="content empty" aria-labelledby="empty-title">
         <h1 id="empty-title">选择或创建 Session</h1>
@@ -121,15 +189,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from "vue";
+import type { SSEEventEnvelope, TranscriptEntry } from "@no-pi-no-gang/contracts";
+import MarkdownRender from "markstream-vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
   api,
   bootstrapFromFragment,
   errorMessage,
+  streamEvents,
   type SessionDto,
   type WorkspaceDto,
 } from "./api.js";
+import { routeRunEvent, terminalStatuses, transcriptText, type UiRun } from "./run-state.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -149,6 +221,21 @@ const pathInput = ref<HTMLInputElement>();
 const currentSession = computed(() =>
   sessions.value.find(({ id }) => id === route.params.sessionId),
 );
+const transcript = ref<TranscriptEntry[]>([]);
+const loadingTranscript = ref(false);
+const transcriptError = ref("");
+const prompt = ref("");
+const runError = ref("");
+const cancelling = ref(false);
+const runs = reactive(new Map<string, UiRun>());
+const queuedEvents: SSEEventEnvelope[] = [];
+const sessionRuns = computed(() =>
+  [...runs.values()].filter(({ sessionId }) => sessionId === currentSession.value?.id),
+);
+const activeRun = computed(() =>
+  sessionRuns.value.find(({ status }) => !terminalStatuses.has(status)),
+);
+const eventController = new AbortController();
 
 onMounted(async () => {
   try {
@@ -161,10 +248,94 @@ onMounted(async () => {
       await nextTick();
       pathInput.value?.focus();
     }
+    void streamEvents(handleEvent, eventController.signal).catch((error) => {
+      if (!eventController.signal.aborted) runError.value = errorMessage(error);
+    });
   } catch (error) {
     startupError.value = errorMessage(error);
   }
 });
+
+onBeforeUnmount(() => eventController.abort());
+watch(
+  () => [workspace.value?.id, currentSession.value?.id],
+  () => void loadTranscript(),
+);
+
+async function loadTranscript() {
+  const workspaceId = workspace.value?.id;
+  const sessionId = currentSession.value?.id;
+  if (!workspaceId || !sessionId) {
+    transcript.value = [];
+    return;
+  }
+  loadingTranscript.value = true;
+  transcriptError.value = "";
+  try {
+    const result = await api<{ transcript: TranscriptEntry[] }>(
+      `/workspaces/${workspaceId}/sessions/${sessionId}/transcript`,
+    );
+    if (currentSession.value?.id === sessionId) {
+      transcript.value = result.transcript;
+      for (const run of runs.values())
+        if (run.sessionId === sessionId && terminalStatuses.has(run.status)) runs.delete(run.id);
+    }
+  } catch (error) {
+    transcriptError.value = errorMessage(error);
+  } finally {
+    loadingTranscript.value = false;
+  }
+}
+
+function handleEvent(value: unknown) {
+  const envelope = value as SSEEventEnvelope;
+  const run = routeRunEvent(runs, envelope);
+  if (!run) {
+    if (envelope.sessionId === currentSession.value?.id && queuedEvents.length < 50)
+      queuedEvents.push(envelope);
+    return;
+  }
+  if (terminalStatuses.has(run.status) && run.sessionId === currentSession.value?.id)
+    void loadTranscript();
+}
+
+async function sendPrompt() {
+  const workspaceId = workspace.value?.id;
+  const sessionId = currentSession.value?.id;
+  const text = prompt.value.trim();
+  if (!workspaceId || !sessionId || !text || activeRun.value) return;
+  runError.value = "";
+  try {
+    const { run } = await api<{ run: Omit<UiRun, "output"> & { output?: string } }>(
+      `/workspaces/${workspaceId}/sessions/${sessionId}/runs`,
+      { method: "POST", body: JSON.stringify({ prompt: text, commandId: crypto.randomUUID() }) },
+    );
+    runs.set(run.id, { ...run, output: run.output ?? "" });
+    prompt.value = "";
+    for (const event of queuedEvents.splice(0)) handleEvent(event);
+  } catch (error) {
+    runError.value = errorMessage(error);
+  }
+}
+
+async function cancelRun() {
+  const run = activeRun.value;
+  if (!run || cancelling.value) return;
+  cancelling.value = true;
+  runError.value = "";
+  try {
+    const result = await api<{ run: { status: UiRun["status"] } }>(
+      `/workspaces/${run.workspaceId}/sessions/${run.sessionId}/runs/${run.id}/cancel`,
+      { method: "POST", body: JSON.stringify({ commandId: crypto.randomUUID() }) },
+    );
+    run.status = result.run.status;
+    await loadTranscript();
+  } catch (error) {
+    runError.value = errorMessage(error);
+  } finally {
+    cancelling.value = false;
+  }
+}
 
 async function loadSessions() {
   if (!workspace.value || loadingSessions.value) return;
@@ -264,17 +435,14 @@ async function createSession() {
   --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
   --focus: 0 0 0 3px rgba(0, 117, 222, 0.35);
 }
-* {
-  box-sizing: border-box;
-}
 body {
-  margin: 0;
   background: var(--canvas);
   color: var(--text);
   font-family: var(--font);
 }
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 button {
@@ -405,11 +573,13 @@ main {
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.18);
 }
 label,
-input {
+input,
+textarea {
   display: block;
   width: 100%;
 }
-input {
+input,
+textarea {
   min-height: 44px;
   margin: 0.5rem 0 1rem;
   padding: 0.5rem;
@@ -419,6 +589,23 @@ input {
 .preview {
   display: grid;
   gap: 0.5rem;
+}
+.transcript {
+  margin-top: 2rem;
+}
+.message,
+.prompt {
+  margin-top: 1rem;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.streaming {
+  border-left: 4px solid var(--primary);
+}
+.prompt textarea {
+  resize: vertical;
 }
 @media (max-width: 700px) {
   .shell {

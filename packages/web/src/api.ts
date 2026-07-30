@@ -37,6 +37,31 @@ export async function bootstrapFromFragment(): Promise<void> {
   credential = ((await response.json()) as { credential: string }).credential;
 }
 
+export async function streamEvents(
+  onEvent: (event: unknown) => void,
+  signal: AbortSignal,
+): Promise<void> {
+  const response = await fetch("/api/v1/events", {
+    headers: { authorization: `Bearer ${credential}` },
+    signal,
+  });
+  if (!response.ok || !response.body)
+    throw new ApiError(`HTTP_${response.status}`, crypto.randomUUID());
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) return;
+    buffer += value;
+    const messages = buffer.split("\n\n");
+    buffer = messages.pop() ?? "";
+    for (const message of messages) {
+      const data = message.split("\n").find((line) => line.startsWith("data: "));
+      if (data) onEvent(JSON.parse(data.slice(6)) as unknown);
+    }
+  }
+}
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const requestId = crypto.randomUUID();
   const response = await fetch(`/api/v1${path}`, {

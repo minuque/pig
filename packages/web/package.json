@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@no-pi-no-gang/contracts": "workspace:*",
+    "markstream-vue": "^1.0.7",
     "vue": "^3.5.40",
     "vue-router": "^4.6.4"
   },
