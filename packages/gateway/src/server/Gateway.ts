@@ -22,6 +22,7 @@ import {
   WorkspaceAccessDeniedError,
   WorkspacesApplication,
 } from "../application/workspaces.js";
+import { serveWebFile } from "./static-files.js";
 
 export interface GatewayOptions {
   platformPort?: PlatformPort;
@@ -30,12 +31,14 @@ export interface GatewayOptions {
   bootstrapTtlMs?: number;
   runRepository?: RunRepository;
   activeRunStrategy?: SingleActiveRunStrategy;
+  webRoot?: string;
 }
 
 export class Gateway {
   private readonly server = createServer(this.handleRequest.bind(this));
   private readonly bootstrapSecret: string;
   private readonly bootstrapExpiresAt: number;
+  private readonly webRoot: string | undefined;
   private bootstrapUsed = false;
   private port = 0;
   private readonly credentials = new Map<string, LocalIdentityId>();
@@ -48,6 +51,7 @@ export class Gateway {
     const runtime = options.runtimeAdapter ?? new PiRuntimeAdapterImpl();
     this.bootstrapSecret = options.bootstrapSecret ?? randomUUID();
     this.bootstrapExpiresAt = Date.now() + (options.bootstrapTtlMs ?? 60_000);
+    this.webRoot = options.webRoot;
     this.workspaces = new WorkspacesApplication(options.platformPort ?? new NodePlatformPort());
     this.sessions = new SessionsApplication(this.workspaces, runtime);
     this.runs = new RunsApplication(
@@ -104,6 +108,13 @@ export class Gateway {
     const url = new URL(req.url ?? "/", "http://127.0.0.1");
     if (url.pathname === "/health" && req.method === "GET")
       return this.send(res, 200, { status: "ok" });
+    if (
+      this.webRoot &&
+      req.method === "GET" &&
+      !url.pathname.startsWith("/api/") &&
+      (await serveWebFile(this.webRoot, url.pathname, res))
+    )
+      return;
     if (url.pathname === "/api/v1/bootstrap" && req.method === "POST") {
       try {
         const { secret } = await this.body(req);
