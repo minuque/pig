@@ -9,10 +9,14 @@ export type CommandId = string & { readonly __brand: "CommandId" };
 export interface Workspace {
   id: WorkspaceId;
   name: string;
-  description?: string;
+  canonicalPath: string;
   createdAt: Date;
   updatedAt: Date;
-  canonical?: boolean; // for Phase 0, single canonical workspace
+}
+
+export interface WorkspaceAccess {
+  localIdentityId: LocalIdentityId;
+  workspaceId: WorkspaceId;
 }
 
 export interface Session {
@@ -22,26 +26,22 @@ export interface Session {
   createdAt: Date;
   updatedAt: Date;
   status: "available" | "unavailable";
-  // Session Index will point to Pi JSONL file
 }
 
 export interface Run {
   id: RunId;
   sessionId: SessionId;
   prompt: string;
-  runId: RunId; // unique per prompt
-  commandId?: CommandId; // client generated for idempotency
+  runId: RunId;
+  commandId?: CommandId;
   status: "admission" | "running" | "terminal" | "cancelled" | "failed" | "completed";
-  output?: string; // accumulated output
+  output?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface LocalIdentity {
   id: LocalIdentityId;
-  workspaceId: WorkspaceId;
-  sessionId?: SessionId;
-  // credential mapped to this identity
 }
 
 export interface SSEEventEnvelope {
@@ -61,13 +61,34 @@ export interface Repository<T> {
 }
 
 export interface PlatformPort {
-  resolveWorkspacePath(workspaceId: WorkspaceId): Promise<string>;
+  canonicalizeWorkspacePath(candidatePath: string): Promise<string>;
   getPlatformPath(): Promise<string>;
 }
 
+export class CommandConflictError extends Error {
+  constructor() {
+    super("commandId was already used with a different payload");
+  }
+}
+
 export interface CommandExecutor {
-  execute<T>(command: any, commandId: CommandId): Promise<T>;
-  // idempotent: same commandId returns cached result immediately
+  execute<T>(commandId: CommandId, payload: unknown, operation: () => Promise<T>): Promise<T>;
+}
+
+export class InMemoryCommandExecutor implements CommandExecutor {
+  private readonly commands = new Map<CommandId, { payload: string; result: Promise<unknown> }>();
+
+  execute<T>(commandId: CommandId, payload: unknown, operation: () => Promise<T>): Promise<T> {
+    const serialized = JSON.stringify(payload);
+    const previous = this.commands.get(commandId);
+    if (previous) {
+      if (previous.payload !== serialized) throw new CommandConflictError();
+      return previous.result as Promise<T>;
+    }
+    const result = operation();
+    this.commands.set(commandId, { payload: serialized, result });
+    return result;
+  }
 }
 
 export interface SingleWorkspaceStrategy {
@@ -81,12 +102,10 @@ export interface SingleActiveRunStrategy {
 }
 
 export interface PiRuntimeAdapter {
-  // Gateway uses this to call Pi Runtime - fixed version dependency
   startSession(workspaceId: WorkspaceId): Promise<Session>;
   createRun(sessionId: SessionId, prompt: string, commandId?: CommandId): Promise<Run>;
   cancelRun(runId: RunId): Promise<void>;
   discoverSessions(): Promise<Session[]>;
-  // etc for MVP
 }
 
 export class SingleWorkspaceStrategyImpl implements SingleWorkspaceStrategy {

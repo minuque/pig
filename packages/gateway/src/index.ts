@@ -1,123 +1,203 @@
-import { createServer } from "http";
-import { EventEmitter } from "events";
+import { randomUUID } from "crypto";
+import { realpath } from "fs/promises";
+import { createServer, type IncomingMessage, type ServerResponse } from "http";
+import { resolve } from "path";
 
-import type { PiRuntimeAdapter } from "@no-pi-no-gang/contracts";
-import { SingleWorkspaceStrategyImpl, SingleActiveRunStrategyImpl } from "@no-pi-no-gang/contracts";
+import {
+  CommandConflictError,
+  InMemoryCommandExecutor,
+  SingleWorkspaceStrategyImpl,
+  type CommandId,
+  type LocalIdentityId,
+  type PiRuntimeAdapter,
+  type PlatformPort,
+  type Workspace,
+  type WorkspaceId,
+} from "@no-pi-no-gang/contracts";
+
+interface GatewayOptions {
+  platformPort?: PlatformPort;
+  bootstrapSecret?: string;
+  bootstrapTtlMs?: number;
+}
+
+export class NodePlatformPort implements PlatformPort {
+  async canonicalizeWorkspacePath(candidatePath: string): Promise<string> {
+    return realpath(resolve(candidatePath));
+  }
+  async getPlatformPath(): Promise<string> {
+    return process.platform;
+  }
+}
 
 class Gateway {
-  private server;
-  private port: number = 0;
-  private runtimeAdapter: PiRuntimeAdapter;
-  private credentialMap = new Map<string, string>();
-  private workspaceMap = new Map<string, { id: string; name: string }>();
-  private singleWorkspaceStrategy = new SingleWorkspaceStrategyImpl();
-  private singleActiveRunStrategy = new SingleActiveRunStrategyImpl();
+  private readonly server = createServer(this.handleRequest.bind(this));
+  private readonly platformPort: PlatformPort;
+  private readonly bootstrapSecret: string;
+  private readonly bootstrapExpiresAt: number;
+  private bootstrapUsed = false;
+  private port = 0;
+  private readonly credentials = new Map<string, LocalIdentityId>();
+  private readonly workspaceAccess = new Map<LocalIdentityId, Set<WorkspaceId>>();
+  private readonly workspaces = new Map<WorkspaceId, Workspace>();
+  private readonly workspacePolicy = new SingleWorkspaceStrategyImpl();
+  private readonly commands = new InMemoryCommandExecutor();
 
-  constructor(runtimeAdapter?: PiRuntimeAdapter) {
-    this.runtimeAdapter = runtimeAdapter || new PiRuntimeAdapterImpl();
-    this.server = createServer(this.handleRequest.bind(this));
+  constructor(options: GatewayOptions = {}) {
+    this.platformPort = options.platformPort ?? new NodePlatformPort();
+    this.bootstrapSecret = options.bootstrapSecret ?? randomUUID();
+    this.bootstrapExpiresAt = Date.now() + (options.bootstrapTtlMs ?? 60_000);
   }
 
-  private handleRequest(req: any, res: any) {
-    if (req.url === "/health") {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end("Gateway OK");
-      return;
+  private send(res: ServerResponse, status: number, body?: unknown) {
+    res.writeHead(status, body === undefined ? {} : { "Content-Type": "application/json" });
+    res.end(body === undefined ? undefined : JSON.stringify(body));
+  }
+
+  private async body(req: IncomingMessage): Promise<Record<string, unknown>> {
+    let raw = "";
+    for await (const chunk of req) {
+      raw += chunk;
+      if (raw.length > 1_000_000) throw new Error("body too large");
     }
-    if (req.url === "/credential") {
-      let body = "";
-      req.on("data", (chunk: any) => {
-        body += chunk;
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      throw new Error("invalid body");
+    return parsed as Record<string, unknown>;
+  }
+
+  private identity(req: IncomingMessage): LocalIdentityId | undefined {
+    const header = req.headers.authorization;
+    return header?.startsWith("Bearer ") ? this.credentials.get(header.slice(7)) : undefined;
+  }
+
+  private hasAccess(identityId: LocalIdentityId, workspaceId: WorkspaceId) {
+    return this.workspaceAccess.get(identityId)?.has(workspaceId) === true;
+  }
+
+  private async handleRequest(req: IncomingMessage, res: ServerResponse) {
+    const url = new URL(req.url ?? "/", "http://127.0.0.1");
+    if (url.pathname === "/health" && req.method === "GET")
+      return this.send(res, 200, { status: "ok" });
+
+    if (url.pathname === "/api/v1/bootstrap" && req.method === "POST") {
+      try {
+        const { secret } = await this.body(req);
+        if (
+          typeof secret !== "string" ||
+          secret !== this.bootstrapSecret ||
+          this.bootstrapUsed ||
+          Date.now() >= this.bootstrapExpiresAt
+        )
+          return this.send(res, 401, { code: "INVALID_BOOTSTRAP" });
+        this.bootstrapUsed = true;
+        const credential = randomUUID();
+        const identityId = randomUUID() as LocalIdentityId;
+        this.credentials.set(credential, identityId);
+        return this.send(res, 201, { credential, identityId });
+      } catch {
+        return this.send(res, 400, { code: "INVALID_REQUEST" });
+      }
+    }
+
+    if (!url.pathname.startsWith("/api/v1/")) return this.send(res, 404);
+    const identityId = this.identity(req);
+    if (!identityId) return this.send(res, 401, { code: "UNAUTHENTICATED" });
+
+    if (url.pathname === "/api/v1/workspaces/preview" && req.method === "POST") {
+      try {
+        const { path } = await this.body(req);
+        if (typeof path !== "string" || !path.trim()) throw new Error("invalid path");
+        const canonicalPath = await this.platformPort.canonicalizeWorkspacePath(path);
+        return this.send(res, 200, { canonicalPath });
+      } catch {
+        return this.send(res, 400, { code: "INVALID_WORKSPACE_PATH" });
+      }
+    }
+
+    if (url.pathname === "/api/v1/workspaces/confirm" && req.method === "POST") {
+      try {
+        const { path, name, commandId } = await this.body(req);
+        if (
+          typeof path !== "string" ||
+          !path.trim() ||
+          typeof commandId !== "string" ||
+          !commandId.trim() ||
+          (name !== undefined && (typeof name !== "string" || !name.trim()))
+        )
+          throw new Error("invalid request");
+        const canonicalPath = await this.platformPort.canonicalizeWorkspacePath(path);
+        const workspace = await this.commands.execute(
+          commandId as CommandId,
+          { canonicalPath, name: name ?? "Workspace", identityId },
+          async () => {
+            const existing = await this.workspacePolicy.getCanonicalWorkspace();
+            if (existing && existing.canonicalPath !== canonicalPath)
+              throw new SingleWorkspaceConflictError();
+            const result =
+              existing ??
+              ({
+                id: randomUUID() as WorkspaceId,
+                name: (name as string | undefined) ?? "Workspace",
+                canonicalPath,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              } satisfies Workspace);
+            if (!existing) {
+              this.workspaces.set(result.id, result);
+              await this.workspacePolicy.setCanonicalWorkspace(result);
+            }
+            const access = this.workspaceAccess.get(identityId) ?? new Set<WorkspaceId>();
+            access.add(result.id);
+            this.workspaceAccess.set(identityId, access);
+            return result;
+          },
+        );
+        return this.send(res, 201, { workspace });
+      } catch (error) {
+        if (error instanceof CommandConflictError)
+          return this.send(res, 409, { code: "COMMAND_ID_CONFLICT" });
+        if (error instanceof SingleWorkspaceConflictError)
+          return this.send(res, 409, { code: "SINGLE_WORKSPACE_LIMIT" });
+        return this.send(res, 400, { code: "INVALID_REQUEST" });
+      }
+    }
+
+    if (url.pathname === "/api/v1/workspaces" && req.method === "GET") {
+      return this.send(res, 200, {
+        workspaces: [...this.workspaces.values()].filter((workspace) =>
+          this.hasAccess(identityId, workspace.id),
+        ),
       });
-      req.on("end", () => {
-        try {
-          const { credential } = JSON.parse(body);
-          if (!credential) {
-            res.writeHead(400);
-            res.end();
-            return;
-          }
-          let identityId = this.credentialMap.get(credential);
-          if (!identityId) {
-            identityId = `id-${Date.now()}`;
-            this.credentialMap.set(credential, identityId);
-          }
-          res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ identity: identityId }));
-        } catch (e) {
-          res.writeHead(400);
-          res.end();
-        }
-      });
-      return;
     }
-    if (req.url === "/workspaces") {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ workspaces: Array.from(this.workspaceMap.values()) }));
-      return;
+
+    const match = url.pathname.match(/^\/api\/v1\/workspaces\/([^/]+)$/);
+    if (match && req.method === "GET") {
+      const workspaceId = match[1] as WorkspaceId;
+      const workspace = this.workspaces.get(workspaceId);
+      if (!workspace || !this.hasAccess(identityId, workspaceId))
+        return this.send(res, 403, { code: "WORKSPACE_ACCESS_DENIED" });
+      return this.send(res, 200, { workspace });
     }
-    if (req.url === "/workspaces" && req.method === "POST") {
-      let body = "";
-      req.on("data", (chunk: any) => {
-        body += chunk;
-      });
-      req.on("end", () => {
-        try {
-          const { name } = JSON.parse(body);
-          const id = "ws-" + Date.now();
-          this.workspaceMap.set(id, { id, name: name || "default" });
-          res.writeHead(201, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ id, name: name || "default" }));
-        } catch (e) {
-          res.writeHead(400);
-          res.end();
-        }
-      });
-      return;
-    }
-    if (req.url === "/sessions") {
-      (async () => {
-        try {
-          const sessions = await this.runtimeAdapter.discoverSessions();
-          res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ sessions }));
-        } catch (e) {
-          res.writeHead(500);
-          res.end();
-        }
-      })();
-      return;
-    }
-    if (req.url === "/sse") {
-      // basic SSE setup for MVP
-      res.writeHead(200, {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      });
-      res.write("event: connected\\n\\n");
-      // for MVP, simple echo or something
-      res.end();
-      return;
-    }
-    res.writeHead(404);
-    res.end();
+
+    return this.send(res, 404);
   }
 
   async start() {
-    return new Promise<number>((resolve, reject) => {
+    return new Promise<number>((resolveStart, reject) => {
+      this.server.once("error", reject);
       this.server.listen(0, "127.0.0.1", () => {
-        const addr = this.server.address() as any;
-        this.port = addr.port;
-        resolve(this.port);
+        this.server.off("error", reject);
+        this.port = (this.server.address() as { port: number }).port;
+        resolveStart(this.port);
       });
     });
   }
 
   async stop() {
-    return new Promise<void>((resolve) => {
-      this.server.close(() => resolve());
-    });
+    return new Promise<void>((resolveStop, reject) =>
+      this.server.close((error) => (error ? reject(error) : resolveStop())),
+    );
   }
 
   getPort() {
@@ -125,61 +205,41 @@ class Gateway {
   }
 }
 
+class SingleWorkspaceConflictError extends Error {}
+
 export default Gateway;
 
 export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
-  private fixedPiVersion = "0.1.0"; // Phase 0: fixed version
-
-  async startSession(workspaceId: string): Promise<any> {
-    // Stub: in real would call Pi Runtime via adapter
-    console.log(
-      `[PiAdapter] Starting session for workspace ${workspaceId} with ${this.fixedPiVersion}`,
-    );
+  async startSession(workspaceId: WorkspaceId): Promise<any> {
     return { id: `sess-${Date.now()}`, workspaceId, status: "available" };
   }
 
-  async createRun(sessionId: string, prompt: string, commandId?: string): Promise<any> {
-    if (commandId) {
-      console.log(
-        `[PiAdapter] Run with commandId ${commandId} for prompt: ${prompt.slice(0, 50)}...`,
-      );
-    } else {
-      console.log(`[PiAdapter] Create run for session ${sessionId}: ${prompt.slice(0, 50)}...`);
-    }
+  async createRun(sessionId: string, prompt: string, commandId?: CommandId): Promise<any> {
+    const id = `run-${Date.now()}`;
     return {
-      id: `run-${Date.now()}`,
+      id,
       sessionId,
       prompt,
-      runId: `run-${Date.now()}`,
+      runId: id,
       commandId,
       status: "admission",
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
   }
 
-  async cancelRun(runId: string): Promise<void> {
-    console.log(`[PiAdapter] Cancel run ${runId}`);
-    // real cancel logic here
-  }
+  async cancelRun(_runId: string): Promise<void> {}
 
   async discoverSessions(): Promise<any[]> {
-    // MVP stub: read from Pi JSONL (Phase 2 will use real index)
     try {
-      // Stub: read from workspace root / sessions.jsonl (real path in Phase 2)
-      const fs = await import("fs/promises");
-      const data = await fs.readFile("sessions.jsonl", "utf8");
-      // Parse JSONL lines (stub)
-      const lines = data.split("\n").filter((l) => l.trim());
-      return lines.map((line) => JSON.parse(line));
+      const { readFile } = await import("fs/promises");
+      const data = await readFile("sessions.jsonl", "utf8");
+      return data
+        .split("\n")
+        .filter((line) => line.trim())
+        .map((line) => JSON.parse(line));
     } catch {
-      console.warn("No sessions.jsonl — falling back to stub");
-      return [
-        {
-          id: `sess-${Date.now()}`,
-          workspaceId: "default",
-          status: "available",
-        },
-      ];
+      return [];
     }
   }
 }
