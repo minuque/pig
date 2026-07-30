@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vitest run src/workspace-access.test.ts",
+    "test": "vitest run src/workspace-access.test.ts src/session-resources.test.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

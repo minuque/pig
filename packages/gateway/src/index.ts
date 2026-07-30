@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { realpath } from "fs/promises";
+import { appendFile, readFile, realpath } from "fs/promises";
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { resolve } from "path";
 
@@ -11,12 +11,16 @@ import {
   type LocalIdentityId,
   type PiRuntimeAdapter,
   type PlatformPort,
+  type Session,
+  type SessionId,
+  type TranscriptEntry,
   type Workspace,
   type WorkspaceId,
 } from "@no-pi-no-gang/contracts";
 
 interface GatewayOptions {
   platformPort?: PlatformPort;
+  runtimeAdapter?: PiRuntimeAdapter;
   bootstrapSecret?: string;
   bootstrapTtlMs?: number;
 }
@@ -33,6 +37,7 @@ export class NodePlatformPort implements PlatformPort {
 class Gateway {
   private readonly server = createServer(this.handleRequest.bind(this));
   private readonly platformPort: PlatformPort;
+  private readonly runtimeAdapter: PiRuntimeAdapter;
   private readonly bootstrapSecret: string;
   private readonly bootstrapExpiresAt: number;
   private bootstrapUsed = false;
@@ -45,6 +50,7 @@ class Gateway {
 
   constructor(options: GatewayOptions = {}) {
     this.platformPort = options.platformPort ?? new NodePlatformPort();
+    this.runtimeAdapter = options.runtimeAdapter ?? new PiRuntimeAdapterImpl();
     this.bootstrapSecret = options.bootstrapSecret ?? randomUUID();
     this.bootstrapExpiresAt = Date.now() + (options.bootstrapTtlMs ?? 60_000);
   }
@@ -171,16 +177,69 @@ class Gateway {
       });
     }
 
-    const match = url.pathname.match(/^\/api\/v1\/workspaces\/([^/]+)$/);
-    if (match && req.method === "GET") {
-      const workspaceId = match[1] as WorkspaceId;
+    const workspaceMatch = url.pathname.match(/^\/api\/v1\/workspaces\/([^/]+)$/);
+    if (workspaceMatch && req.method === "GET") {
+      const workspaceId = workspaceMatch[1] as WorkspaceId;
       const workspace = this.workspaces.get(workspaceId);
       if (!workspace || !this.hasAccess(identityId, workspaceId))
         return this.send(res, 403, { code: "WORKSPACE_ACCESS_DENIED" });
       return this.send(res, 200, { workspace });
     }
 
+    const sessionsMatch = url.pathname.match(/^\/api\/v1\/workspaces\/([^/]+)\/sessions$/);
+    if (sessionsMatch) {
+      const workspace = this.authorizedWorkspace(identityId, sessionsMatch[1] as WorkspaceId);
+      if (!workspace) return this.send(res, 403, { code: "WORKSPACE_ACCESS_DENIED" });
+      if (req.method === "GET")
+        return this.send(res, 200, {
+          sessions: await this.runtimeAdapter.discoverSessions(workspace),
+        });
+      if (req.method === "POST") {
+        try {
+          const { commandId, name } = await this.body(req);
+          if (
+            typeof commandId !== "string" ||
+            !commandId.trim() ||
+            (name !== undefined && (typeof name !== "string" || !name.trim()))
+          )
+            throw new Error();
+          const session = await this.commands.execute(
+            commandId as CommandId,
+            { workspaceId: workspace.id, identityId, name },
+            () => this.runtimeAdapter.startSession(workspace, name as string | undefined),
+          );
+          return this.send(res, 201, { session });
+        } catch (error) {
+          if (error instanceof CommandConflictError)
+            return this.send(res, 409, { code: "COMMAND_ID_CONFLICT" });
+          return this.send(res, 400, { code: "INVALID_REQUEST" });
+        }
+      }
+    }
+
+    const sessionMatch = url.pathname.match(
+      /^\/api\/v1\/workspaces\/([^/]+)\/sessions\/([^/]+)(\/transcript)?$/,
+    );
+    if (sessionMatch && req.method === "GET") {
+      const workspace = this.authorizedWorkspace(identityId, sessionMatch[1] as WorkspaceId);
+      if (!workspace) return this.send(res, 403, { code: "WORKSPACE_ACCESS_DENIED" });
+      const sessionId = sessionMatch[2] as SessionId;
+      const session = (await this.runtimeAdapter.discoverSessions(workspace)).find(
+        ({ id }) => id === sessionId,
+      );
+      if (!session) return this.send(res, 404, { code: "SESSION_NOT_FOUND" });
+      if (sessionMatch[3])
+        return this.send(res, 200, {
+          transcript: await this.runtimeAdapter.readTranscript(workspace, sessionId),
+        });
+      return this.send(res, 200, { session });
+    }
+
     return this.send(res, 404);
+  }
+
+  private authorizedWorkspace(identityId: LocalIdentityId, workspaceId: WorkspaceId) {
+    return this.hasAccess(identityId, workspaceId) ? this.workspaces.get(workspaceId) : undefined;
   }
 
   async start() {
@@ -210,12 +269,27 @@ class SingleWorkspaceConflictError extends Error {}
 export default Gateway;
 
 export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
-  async startSession(workspaceId: WorkspaceId): Promise<any> {
-    return { id: `sess-${Date.now()}`, workspaceId, status: "available" };
+  constructor(private readonly jsonlPath = "sessions.jsonl") {}
+
+  async startSession(workspace: Workspace, name?: string): Promise<Session> {
+    const now = new Date();
+    const session: Session = {
+      id: randomUUID() as SessionId,
+      workspaceId: workspace.id,
+      ...(name === undefined ? {} : { name }),
+      createdAt: now,
+      updatedAt: now,
+      status: "available",
+    };
+    await appendFile(
+      this.jsonlPath,
+      `${JSON.stringify({ type: "session", canonicalPath: workspace.canonicalPath, session })}\n`,
+    );
+    return session;
   }
 
-  async createRun(sessionId: string, prompt: string, commandId?: CommandId): Promise<any> {
-    const id = `run-${Date.now()}`;
+  async createRun(sessionId: SessionId, prompt: string, commandId?: CommandId): Promise<any> {
+    const id = randomUUID();
     return {
       id,
       sessionId,
@@ -230,16 +304,37 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
 
   async cancelRun(_runId: string): Promise<void> {}
 
-  async discoverSessions(): Promise<any[]> {
+  private async records(): Promise<TranscriptEntry[]> {
     try {
-      const { readFile } = await import("fs/promises");
-      const data = await readFile("sessions.jsonl", "utf8");
-      return data
+      return (await readFile(this.jsonlPath, "utf8"))
         .split("\n")
-        .filter((line) => line.trim())
-        .map((line) => JSON.parse(line));
-    } catch {
-      return [];
+        .filter(Boolean)
+        .map((line) => JSON.parse(line) as TranscriptEntry);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+      throw error;
     }
+  }
+
+  async discoverSessions(workspace: Workspace): Promise<Session[]> {
+    return (await this.records())
+      .filter(
+        ({ type, canonicalPath }) =>
+          type === "session" && canonicalPath === workspace.canonicalPath,
+      )
+      .map(({ session }) => session as Session)
+      .map((session) => ({
+        ...session,
+        workspaceId: workspace.id,
+        createdAt: new Date(session.createdAt),
+        updatedAt: new Date(session.updatedAt),
+      }));
+  }
+
+  async readTranscript(workspace: Workspace, sessionId: SessionId): Promise<TranscriptEntry[]> {
+    return (await this.records()).filter(
+      ({ type, canonicalPath, sessionId: id }) =>
+        type !== "session" && canonicalPath === workspace.canonicalPath && id === sessionId,
+    );
   }
 }

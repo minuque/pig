@@ -101,11 +101,14 @@ export interface SingleActiveRunStrategy {
   setActiveRun(run: Run): Promise<void>;
 }
 
+export type TranscriptEntry = Record<string, unknown>;
+
 export interface PiRuntimeAdapter {
-  startSession(workspaceId: WorkspaceId): Promise<Session>;
+  startSession(workspace: Workspace, name?: string): Promise<Session>;
   createRun(sessionId: SessionId, prompt: string, commandId?: CommandId): Promise<Run>;
   cancelRun(runId: RunId): Promise<void>;
-  discoverSessions(): Promise<Session[]>;
+  discoverSessions(workspace: Workspace): Promise<Session[]>;
+  readTranscript(workspace: Workspace, sessionId: SessionId): Promise<TranscriptEntry[]>;
 }
 
 export class SingleWorkspaceStrategyImpl implements SingleWorkspaceStrategy {
