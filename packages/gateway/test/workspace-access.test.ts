@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import type { PlatformPort } from "@no-pi-no-gang/contracts";
-import Gateway from "./index.js";
+import Gateway from "../src/index.js";
 
 const platformPort: PlatformPort = {
   async canonicalizeWorkspacePath(path) {

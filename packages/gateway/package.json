@@ -9,5 +9,8 @@
   },
   "dependencies": {
     "@no-pi-no-gang/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@no-pi-no-gang/testkit": "workspace:*"
   }
 }

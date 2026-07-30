@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { SSEEventEnvelope } from "@no-pi-no-gang/contracts";
-import { routeRunEvent, type UiRun } from "./run-state.js";
+import { routeRunEvent, type UiRun } from "../src/features/runs/run-state.js";
 
 function event(type: string, sessionId: string, runId: string, data: unknown = {}) {
   return { version: "0.1.0", type, sessionId, runId, data } as SSEEventEnvelope;

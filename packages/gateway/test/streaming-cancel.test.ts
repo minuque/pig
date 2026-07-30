@@ -12,7 +12,7 @@ import type {
   SessionId,
   SSEEventEnvelope,
 } from "@no-pi-no-gang/contracts";
-import Gateway, { PiRuntimeAdapterImpl } from "./index.js";
+import Gateway, { PiRuntimeAdapterImpl } from "../src/index.js";
 
 const platformPort: PlatformPort = {
   async canonicalizeWorkspacePath(path) {

@@ -5,5 +5,9 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"
-  }
+  },
+  "dependencies": {
+    "@no-pi-no-gang/contracts": "workspace:*"
+  },
+  "exports": "./src/index.ts"
 }

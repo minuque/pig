@@ -1,0 +1,22 @@
+import type { Run, RunId, RunRepository } from "@no-pi-no-gang/contracts";
+import { terminalStatuses } from "../../application/runs.js";
+
+export class InMemoryRunRepository implements RunRepository {
+  private readonly runs = new Map<RunId, Run>();
+  async findById(id: string) {
+    return this.runs.get(id as RunId);
+  }
+  async save(run: Run) {
+    const previous = this.runs.get(run.id);
+    if (previous && terminalStatuses.has(previous.status) && run.status !== previous.status)
+      return previous;
+    this.runs.set(run.id, run);
+    return run;
+  }
+  async delete(id: string) {
+    return this.runs.delete(id as RunId);
+  }
+  async findAll() {
+    return [...this.runs.values()];
+  }
+}

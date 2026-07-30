@@ -57,8 +57,16 @@ importers:
       "@no-pi-no-gang/contracts":
         specifier: workspace:*
         version: link:../contracts
+    devDependencies:
+      "@no-pi-no-gang/testkit":
+        specifier: workspace:*
+        version: link:../testkit
 
-  packages/testkit: {}
+  packages/testkit:
+    dependencies:
+      "@no-pi-no-gang/contracts":
+        specifier: workspace:*
+        version: link:../contracts
 
   packages/web:
     dependencies:

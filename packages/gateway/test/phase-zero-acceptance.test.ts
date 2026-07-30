@@ -13,7 +13,7 @@ import type {
   SessionId,
   SSEEventEnvelope,
 } from "@no-pi-no-gang/contracts";
-import Gateway, { PiRuntimeAdapterImpl } from "./index.js";
+import Gateway, { PiRuntimeAdapterImpl } from "../src/index.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const platformPort: PlatformPort = {
@@ -178,7 +178,7 @@ describe("Phase 0 acceptance gate", () => {
       bootstrapSecret: "BOOTSTRAP_CANARY",
     });
     const firstPort = await gateway.start();
-    const source = await readFile(join(root, "packages/gateway/src/index.ts"), "utf8");
+    const source = await readFile(join(root, "packages/gateway/src/server/Gateway.ts"), "utf8");
     expect(source.match(/\.listen\(/g)).toHaveLength(1);
     expect(source).toContain('this.server.listen(0, "127.0.0.1"');
     expect(firstPort).toBeGreaterThan(0);
@@ -201,8 +201,15 @@ describe("Phase 0 acceptance gate", () => {
     const [contracts, gatewaySource, webSource, app, rootPackage, gatewayPackage, webPackage] =
       await Promise.all([
         read("packages/contracts/src/index.ts"),
-        read("packages/gateway/src/index.ts"),
-        read("packages/web/src/api.ts"),
+        Promise.all([
+          read("packages/gateway/src/server/Gateway.ts"),
+          read("packages/gateway/src/application/workspaces.ts"),
+          read("packages/gateway/src/application/sessions.ts"),
+          read("packages/gateway/src/application/runs.ts"),
+          read("packages/gateway/src/adapters/pi/runtime.ts"),
+          read("packages/gateway/src/adapters/repositories/run-repository.ts"),
+        ]).then((parts) => parts.join("\n")),
+        read("packages/web/src/api/index.ts"),
         read("packages/web/src/App.vue"),
         read("package.json"),
         read("packages/gateway/package.json"),
@@ -215,12 +222,12 @@ describe("Phase 0 acceptance gate", () => {
     expect(webDependencies).not.toHaveProperty("@no-pi-no-gang/testkit");
     expect(contracts).not.toMatch(/from ["'](?:vue|node:|fs|path|http|@pi)/);
     expect(gatewaySource).toContain("implements PiRuntimeAdapter");
-    expect(gatewaySource).toContain("runtimeAdapter.discoverSessions");
+    expect(gatewaySource).toContain("runtime.discoverSessions");
     expect(gatewaySource).toContain("implements RunRepository");
-    expect(gatewaySource).toContain("platformPort.canonicalizeWorkspacePath");
-    expect(gatewaySource).toContain("authorizedWorkspace(identityId");
-    expect(gatewaySource).toContain("activeRunPolicy.tryAcquire");
-    expect(gatewaySource).toContain("workspacePolicy.getCanonicalWorkspace");
+    expect(gatewaySource).toContain("platform.canonicalizeWorkspacePath");
+    expect(gatewaySource).toContain("workspaces.get(identityId");
+    expect(gatewaySource).toContain("activePolicy.tryAcquire");
+    expect(gatewaySource).toContain("policy.getCanonicalWorkspace");
     expect(webSource).not.toMatch(/@pi|PiRuntime|piSession/);
     expect(app).toContain('html-policy="safe"');
     expect(app).not.toContain("v-html");

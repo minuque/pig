@@ -5,7 +5,8 @@ import { join } from "path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import type { PlatformPort } from "@no-pi-no-gang/contracts";
-import Gateway, { PiRuntimeAdapterImpl } from "./index.js";
+import Gateway, { PiRuntimeAdapterImpl } from "../src/index.js";
+import { gatewayRequest as request } from "@no-pi-no-gang/testkit";
 
 const platformPort: PlatformPort = {
   async canonicalizeWorkspacePath(path) {
@@ -21,17 +22,6 @@ afterEach(async () => {
   gateway = undefined;
   directory = undefined;
 });
-
-async function request(port: number, path: string, credential?: string, body?: unknown) {
-  return fetch(`http://127.0.0.1:${port}${path}`, {
-    method: body === undefined ? "GET" : "POST",
-    headers: {
-      ...(credential ? { authorization: `Bearer ${credential}` } : {}),
-      ...(body === undefined ? {} : { "content-type": "application/json" }),
-    },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  });
-}
 
 describe("session resources", () => {
   it("gates, creates idempotently, rescans, opens, and reads JSONL after restart", async () => {

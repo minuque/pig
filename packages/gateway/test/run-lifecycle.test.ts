@@ -5,7 +5,8 @@ import { join } from "path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import type { CommandId, PlatformPort, Run, SessionId } from "@no-pi-no-gang/contracts";
-import Gateway, { InMemoryRunRepository, PiRuntimeAdapterImpl } from "./index.js";
+import Gateway, { InMemoryRunRepository, PiRuntimeAdapterImpl } from "../src/index.js";
+import { gatewayRequest as request } from "@no-pi-no-gang/testkit";
 
 const platformPort: PlatformPort = {
   async canonicalizeWorkspacePath(path) {
@@ -35,17 +36,6 @@ afterEach(async () => {
   gateway = undefined;
   directory = undefined;
 });
-
-async function request(port: number, path: string, credential: string, body?: unknown) {
-  return fetch(`http://127.0.0.1:${port}${path}`, {
-    method: body === undefined ? "GET" : "POST",
-    headers: {
-      authorization: `Bearer ${credential}`,
-      ...(body === undefined ? {} : { "content-type": "application/json" }),
-    },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  });
-}
 
 async function setup() {
   directory = await mkdtemp(join(tmpdir(), "gateway-runs-"));

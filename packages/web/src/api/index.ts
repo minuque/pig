@@ -1,16 +1,5 @@
-export interface WorkspaceDto {
-  id: string;
-  name: string;
-  canonicalPath: string;
-}
-
-export interface SessionDto {
-  id: string;
-  workspaceId: string;
-  name?: string;
-  status: "available" | "unavailable";
-  updatedAt: string;
-}
+export type { WorkspaceDto } from "../features/workspaces/types.js";
+export type { SessionDto } from "../features/sessions/types.js";
 
 export class ApiError extends Error {
   constructor(

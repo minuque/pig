@@ -1,0 +1,61 @@
+import type { PiRunEvent } from "../events/index.js";
+import type {
+  CommandId,
+  Run,
+  RunId,
+  Session,
+  SessionId,
+  TranscriptEntry,
+  Workspace,
+} from "../resources/index.js";
+
+export interface Repository<T> {
+  findById(id: string): Promise<T | undefined>;
+  save(entity: T): Promise<T>;
+  delete(id: string): Promise<boolean>;
+  findAll(): Promise<T[]>;
+}
+export interface PlatformPort {
+  canonicalizeWorkspacePath(candidatePath: string): Promise<string>;
+}
+export interface SingleWorkspaceStrategy {
+  getCanonicalWorkspace(): Promise<Workspace | undefined>;
+  setCanonicalWorkspace(workspace: Workspace): Promise<void>;
+}
+export type RunRepository = Repository<Run>;
+export interface SingleActiveRunStrategy {
+  tryAcquire(run: Run): Promise<boolean>;
+  release(runId: RunId): Promise<void>;
+}
+export interface PiRuntimeAdapter {
+  startSession(workspace: Workspace, name?: string): Promise<Session>;
+  createRun(
+    sessionId: SessionId,
+    prompt: string,
+    commandId?: CommandId,
+    onEvent?: (event: PiRunEvent) => void,
+  ): Promise<{ status: "completed" | "failed" | "cancelled"; output?: string }>;
+  cancelRun(runId: RunId): Promise<void>;
+  discoverSessions(workspace: Workspace): Promise<Session[]>;
+  readTranscript(workspace: Workspace, sessionId: SessionId): Promise<TranscriptEntry[]>;
+}
+export class SingleWorkspaceStrategyImpl implements SingleWorkspaceStrategy {
+  private canonicalWorkspace?: Workspace;
+  async getCanonicalWorkspace() {
+    return this.canonicalWorkspace;
+  }
+  async setCanonicalWorkspace(workspace: Workspace) {
+    this.canonicalWorkspace = workspace;
+  }
+}
+export class SingleActiveRunStrategyImpl implements SingleActiveRunStrategy {
+  private activeRun: Run | undefined;
+  async tryAcquire(run: Run) {
+    if (this.activeRun) return false;
+    this.activeRun = run;
+    return true;
+  }
+  async release(runId: RunId) {
+    if (this.activeRun?.id === runId) this.activeRun = undefined;
+  }
+}

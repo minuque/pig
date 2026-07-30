@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, errorMessage } from "./api.js";
+import { ApiError, errorMessage } from "../src/api/index.js";
 
 describe("errorMessage", () => {
   it("keeps the API code and stable request association actionable", () => {
