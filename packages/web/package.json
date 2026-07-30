@@ -4,12 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "test": "vitest run",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@no-pi-no-gang/contracts": "workspace:*"
+    "@no-pi-no-gang/contracts": "workspace:*",
+    "vue": "^3.5.40",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vue-tsc": "^3.3.8"
   }
 }
