@@ -5,6 +5,7 @@ import { resolve } from "path";
 
 import {
   CommandConflictError,
+  CONTRACT_VERSION,
   InMemoryCommandExecutor,
   SingleActiveRunStrategyImpl,
   SingleWorkspaceStrategyImpl,
@@ -15,6 +16,7 @@ import {
   type Run,
   type RunId,
   type RunRepository,
+  type SSEEventEnvelope,
   type Session,
   type SingleActiveRunStrategy,
   type SessionId,
@@ -56,6 +58,8 @@ class Gateway {
   private readonly commands = new InMemoryCommandExecutor();
   private readonly runs: RunRepository;
   private readonly activeRunPolicy: SingleActiveRunStrategy;
+  private readonly eventClients = new Map<ServerResponse, LocalIdentityId>();
+  private readonly terminalEvents = new Set<RunId>();
 
   constructor(options: GatewayOptions = {}) {
     this.platformPort = options.platformPort ?? new NodePlatformPort();
@@ -120,6 +124,18 @@ class Gateway {
     if (!url.pathname.startsWith("/api/v1/")) return this.send(res, 404);
     const identityId = this.identity(req);
     if (!identityId) return this.send(res, 401, { code: "UNAUTHENTICATED" });
+
+    if (url.pathname === "/api/v1/events" && req.method === "GET") {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+      res.write(": connected\n\n");
+      this.eventClients.set(res, identityId);
+      res.on("close", () => this.eventClients.delete(res));
+      return;
+    }
 
     if (url.pathname === "/api/v1/workspaces/preview" && req.method === "POST") {
       try {
@@ -229,7 +245,7 @@ class Gateway {
     }
 
     const runsMatch = url.pathname.match(
-      /^\/api\/v1\/workspaces\/([^/]+)\/sessions\/([^/]+)\/runs(?:\/([^/]+))?$/,
+      /^\/api\/v1\/workspaces\/([^/]+)\/sessions\/([^/]+)\/runs(?:\/([^/]+)(\/cancel)?)?$/,
     );
     if (runsMatch) {
       const workspace = this.authorizedWorkspace(identityId, runsMatch[1] as WorkspaceId);
@@ -239,11 +255,42 @@ class Gateway {
         ({ id }) => id === sessionId,
       );
       if (!session) return this.send(res, 404, { code: "SESSION_NOT_FOUND" });
-      if (req.method === "GET" && runsMatch[3]) {
+      if (req.method === "GET" && runsMatch[3] && !runsMatch[4]) {
         const run = await this.runs.findById(runsMatch[3]);
         if (!run || run.workspaceId !== workspace.id || run.sessionId !== sessionId)
           return this.send(res, 404, { code: "RUN_NOT_FOUND" });
         return this.send(res, 200, { run });
+      }
+      if (req.method === "POST" && runsMatch[3] && runsMatch[4]) {
+        try {
+          const { commandId } = await this.body(req);
+          if (typeof commandId !== "string" || !commandId.trim()) throw new Error();
+          const run = await this.runs.findById(runsMatch[3]);
+          if (!run || run.workspaceId !== workspace.id || run.sessionId !== sessionId)
+            return this.send(res, 404, { code: "RUN_NOT_FOUND" });
+          const cancelled = await this.commands.execute(
+            commandId as CommandId,
+            { workspaceId: workspace.id, sessionId, runId: run.id, identityId },
+            async () => {
+              const current = await this.runs.findById(run.id);
+              if (!current || terminalStatuses.has(current.status)) return current ?? run;
+              await this.runtimeAdapter.cancelRun(run.id);
+              const settled = await this.runs.save({
+                ...current,
+                status: "cancelled",
+                updatedAt: new Date(),
+              });
+              await this.activeRunPolicy.release(run.id);
+              this.emitTerminal(settled);
+              return settled;
+            },
+          );
+          return this.send(res, 200, { run: cancelled });
+        } catch (error) {
+          if (error instanceof CommandConflictError)
+            return this.send(res, 409, { code: "COMMAND_ID_CONFLICT" });
+          return this.send(res, 400, { code: "INVALID_REQUEST" });
+        }
       }
       if (req.method === "POST" && !runsMatch[3]) {
         try {
@@ -314,12 +361,14 @@ class Gateway {
   private async executeRun(run: Run) {
     try {
       const running = await this.runs.save({ ...run, status: "running", updatedAt: new Date() });
+      this.emitRunEvent(running, "run.running", { status: "running" });
       const settled = await this.runtimeAdapter.createRun(
         running.sessionId,
         running.prompt,
         running.commandId,
+        (event) => void this.emitIncrement(running, event.type, event.data),
       );
-      await this.runs.save({
+      const saved = await this.runs.save({
         ...running,
         ...settled,
         id: running.id,
@@ -330,11 +379,38 @@ class Gateway {
         prompt: running.prompt,
         updatedAt: new Date(),
       });
+      this.emitTerminal(saved);
     } catch {
-      await this.runs.save({ ...run, status: "failed", updatedAt: new Date() });
+      const failed = await this.runs.save({ ...run, status: "failed", updatedAt: new Date() });
+      this.emitTerminal(failed);
     } finally {
       await this.activeRunPolicy.release(run.id);
     }
+  }
+
+  private async emitIncrement(run: Run, type: string, data: unknown) {
+    const current = await this.runs.findById(run.id);
+    if (current && !terminalStatuses.has(current.status)) this.emitRunEvent(run, type, data);
+  }
+
+  private emitTerminal(run: Run) {
+    if (!terminalStatuses.has(run.status) || this.terminalEvents.has(run.id)) return;
+    this.terminalEvents.add(run.id);
+    this.emitRunEvent(run, `run.${run.status}`, { status: run.status, output: run.output });
+  }
+
+  private emitRunEvent(run: Run, type: string, data: unknown) {
+    const envelope: SSEEventEnvelope = {
+      version: CONTRACT_VERSION,
+      type,
+      data,
+      sessionId: run.sessionId,
+      runId: run.id,
+      timestamp: new Date(),
+    };
+    const message = `data: ${JSON.stringify(envelope)}\n\n`;
+    for (const [client, identityId] of this.eventClients)
+      if (this.hasAccess(identityId, run.workspaceId)) client.write(message);
   }
 
   private authorizedWorkspace(identityId: LocalIdentityId, workspaceId: WorkspaceId) {
@@ -353,6 +429,8 @@ class Gateway {
   }
 
   async stop() {
+    for (const client of this.eventClients.keys()) client.end();
+    this.eventClients.clear();
     return new Promise<void>((resolveStop, reject) =>
       this.server.close((error) => (error ? reject(error) : resolveStop())),
     );
@@ -415,6 +493,7 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
     _sessionId: SessionId,
     _prompt: string,
     _commandId?: CommandId,
+    _onEvent?: (event: { type: string; data: unknown }) => void,
   ): Promise<{ status: "completed" | "failed" | "cancelled"; output?: string }> {
     return { status: "completed" };
   }

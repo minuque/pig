@@ -107,12 +107,18 @@ export interface SingleActiveRunStrategy {
 
 export type TranscriptEntry = Record<string, unknown>;
 
+export interface PiRunEvent {
+  type: string;
+  data: unknown;
+}
+
 export interface PiRuntimeAdapter {
   startSession(workspace: Workspace, name?: string): Promise<Session>;
   createRun(
     sessionId: SessionId,
     prompt: string,
     commandId?: CommandId,
+    onEvent?: (event: PiRunEvent) => void,
   ): Promise<{ status: "completed" | "failed" | "cancelled"; output?: string }>;
   cancelRun(runId: RunId): Promise<void>;
   discoverSessions(workspace: Workspace): Promise<Session[]>;
