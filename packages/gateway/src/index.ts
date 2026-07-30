@@ -6,12 +6,17 @@ import { resolve } from "path";
 import {
   CommandConflictError,
   InMemoryCommandExecutor,
+  SingleActiveRunStrategyImpl,
   SingleWorkspaceStrategyImpl,
   type CommandId,
   type LocalIdentityId,
   type PiRuntimeAdapter,
   type PlatformPort,
+  type Run,
+  type RunId,
+  type RunRepository,
   type Session,
+  type SingleActiveRunStrategy,
   type SessionId,
   type TranscriptEntry,
   type Workspace,
@@ -23,6 +28,8 @@ interface GatewayOptions {
   runtimeAdapter?: PiRuntimeAdapter;
   bootstrapSecret?: string;
   bootstrapTtlMs?: number;
+  runRepository?: RunRepository;
+  activeRunStrategy?: SingleActiveRunStrategy;
 }
 
 export class NodePlatformPort implements PlatformPort {
@@ -47,12 +54,16 @@ class Gateway {
   private readonly workspaces = new Map<WorkspaceId, Workspace>();
   private readonly workspacePolicy = new SingleWorkspaceStrategyImpl();
   private readonly commands = new InMemoryCommandExecutor();
+  private readonly runs: RunRepository;
+  private readonly activeRunPolicy: SingleActiveRunStrategy;
 
   constructor(options: GatewayOptions = {}) {
     this.platformPort = options.platformPort ?? new NodePlatformPort();
     this.runtimeAdapter = options.runtimeAdapter ?? new PiRuntimeAdapterImpl();
     this.bootstrapSecret = options.bootstrapSecret ?? randomUUID();
     this.bootstrapExpiresAt = Date.now() + (options.bootstrapTtlMs ?? 60_000);
+    this.runs = options.runRepository ?? new InMemoryRunRepository();
+    this.activeRunPolicy = options.activeRunStrategy ?? new SingleActiveRunStrategyImpl();
   }
 
   private send(res: ServerResponse, status: number, body?: unknown) {
@@ -217,6 +228,68 @@ class Gateway {
       }
     }
 
+    const runsMatch = url.pathname.match(
+      /^\/api\/v1\/workspaces\/([^/]+)\/sessions\/([^/]+)\/runs(?:\/([^/]+))?$/,
+    );
+    if (runsMatch) {
+      const workspace = this.authorizedWorkspace(identityId, runsMatch[1] as WorkspaceId);
+      if (!workspace) return this.send(res, 403, { code: "WORKSPACE_ACCESS_DENIED" });
+      const sessionId = runsMatch[2] as SessionId;
+      const session = (await this.runtimeAdapter.discoverSessions(workspace)).find(
+        ({ id }) => id === sessionId,
+      );
+      if (!session) return this.send(res, 404, { code: "SESSION_NOT_FOUND" });
+      if (req.method === "GET" && runsMatch[3]) {
+        const run = await this.runs.findById(runsMatch[3]);
+        if (!run || run.workspaceId !== workspace.id || run.sessionId !== sessionId)
+          return this.send(res, 404, { code: "RUN_NOT_FOUND" });
+        return this.send(res, 200, { run });
+      }
+      if (req.method === "POST" && !runsMatch[3]) {
+        try {
+          const { commandId, prompt } = await this.body(req);
+          if (
+            typeof commandId !== "string" ||
+            !commandId.trim() ||
+            typeof prompt !== "string" ||
+            !prompt.trim()
+          )
+            throw new Error("invalid request");
+          const run = await this.commands.execute(
+            commandId as CommandId,
+            { workspaceId: workspace.id, sessionId, prompt, identityId },
+            async () => {
+              const now = new Date();
+              const admitted: Run = {
+                id: randomUUID() as RunId,
+                runId: "" as RunId,
+                workspaceId: workspace.id,
+                sessionId,
+                commandId: commandId as CommandId,
+                prompt,
+                status: "admission",
+                createdAt: now,
+                updatedAt: now,
+              };
+              admitted.runId = admitted.id;
+              if (!(await this.activeRunPolicy.tryAcquire(admitted)))
+                throw new ActiveRunConflictError();
+              await this.runs.save(admitted);
+              void this.executeRun(admitted);
+              return admitted;
+            },
+          );
+          return this.send(res, 201, { run });
+        } catch (error) {
+          if (error instanceof CommandConflictError)
+            return this.send(res, 409, { code: "COMMAND_ID_CONFLICT" });
+          if (error instanceof ActiveRunConflictError)
+            return this.send(res, 409, { code: "ACTIVE_RUN_LIMIT" });
+          return this.send(res, 400, { code: "INVALID_REQUEST" });
+        }
+      }
+    }
+
     const sessionMatch = url.pathname.match(
       /^\/api\/v1\/workspaces\/([^/]+)\/sessions\/([^/]+)(\/transcript)?$/,
     );
@@ -236,6 +309,32 @@ class Gateway {
     }
 
     return this.send(res, 404);
+  }
+
+  private async executeRun(run: Run) {
+    try {
+      const running = await this.runs.save({ ...run, status: "running", updatedAt: new Date() });
+      const settled = await this.runtimeAdapter.createRun(
+        running.sessionId,
+        running.prompt,
+        running.commandId,
+      );
+      await this.runs.save({
+        ...running,
+        ...settled,
+        id: running.id,
+        runId: running.id,
+        workspaceId: running.workspaceId,
+        sessionId: running.sessionId,
+        commandId: running.commandId,
+        prompt: running.prompt,
+        updatedAt: new Date(),
+      });
+    } catch {
+      await this.runs.save({ ...run, status: "failed", updatedAt: new Date() });
+    } finally {
+      await this.activeRunPolicy.release(run.id);
+    }
   }
 
   private authorizedWorkspace(identityId: LocalIdentityId, workspaceId: WorkspaceId) {
@@ -265,6 +364,30 @@ class Gateway {
 }
 
 class SingleWorkspaceConflictError extends Error {}
+class ActiveRunConflictError extends Error {}
+
+const terminalStatuses = new Set<Run["status"]>(["completed", "failed", "cancelled"]);
+
+export class InMemoryRunRepository implements RunRepository {
+  private readonly runs = new Map<RunId, Run>();
+
+  async findById(id: string) {
+    return this.runs.get(id as RunId);
+  }
+  async save(run: Run) {
+    const previous = this.runs.get(run.id);
+    if (previous && terminalStatuses.has(previous.status) && run.status !== previous.status)
+      return previous;
+    this.runs.set(run.id, run);
+    return run;
+  }
+  async delete(id: string) {
+    return this.runs.delete(id as RunId);
+  }
+  async findAll() {
+    return [...this.runs.values()];
+  }
+}
 
 export default Gateway;
 
@@ -288,18 +411,12 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
     return session;
   }
 
-  async createRun(sessionId: SessionId, prompt: string, commandId?: CommandId): Promise<any> {
-    const id = randomUUID();
-    return {
-      id,
-      sessionId,
-      prompt,
-      runId: id,
-      commandId,
-      status: "admission",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+  async createRun(
+    _sessionId: SessionId,
+    _prompt: string,
+    _commandId?: CommandId,
+  ): Promise<{ status: "completed" | "failed" | "cancelled"; output?: string }> {
+    return { status: "completed" };
   }
 
   async cancelRun(_runId: string): Promise<void> {}

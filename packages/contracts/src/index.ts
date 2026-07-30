@@ -30,11 +30,12 @@ export interface Session {
 
 export interface Run {
   id: RunId;
+  workspaceId: WorkspaceId;
   sessionId: SessionId;
   prompt: string;
   runId: RunId;
-  commandId?: CommandId;
-  status: "admission" | "running" | "terminal" | "cancelled" | "failed" | "completed";
+  commandId: CommandId;
+  status: "admission" | "running" | "cancelled" | "failed" | "completed";
   output?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -96,16 +97,23 @@ export interface SingleWorkspaceStrategy {
   setCanonicalWorkspace(workspace: Workspace): Promise<void>;
 }
 
+export type RunRepository = Repository<Run>;
+
 export interface SingleActiveRunStrategy {
   getActiveRun(): Promise<Run | undefined>;
-  setActiveRun(run: Run): Promise<void>;
+  tryAcquire(run: Run): Promise<boolean>;
+  release(runId: RunId): Promise<void>;
 }
 
 export type TranscriptEntry = Record<string, unknown>;
 
 export interface PiRuntimeAdapter {
   startSession(workspace: Workspace, name?: string): Promise<Session>;
-  createRun(sessionId: SessionId, prompt: string, commandId?: CommandId): Promise<Run>;
+  createRun(
+    sessionId: SessionId,
+    prompt: string,
+    commandId?: CommandId,
+  ): Promise<{ status: "completed" | "failed" | "cancelled"; output?: string }>;
   cancelRun(runId: RunId): Promise<void>;
   discoverSessions(workspace: Workspace): Promise<Session[]>;
   readTranscript(workspace: Workspace, sessionId: SessionId): Promise<TranscriptEntry[]>;
@@ -122,11 +130,16 @@ export class SingleWorkspaceStrategyImpl implements SingleWorkspaceStrategy {
 }
 
 export class SingleActiveRunStrategyImpl implements SingleActiveRunStrategy {
-  private activeRun?: Run;
+  private activeRun: Run | undefined;
   async getActiveRun(): Promise<Run | undefined> {
     return this.activeRun;
   }
-  async setActiveRun(run: Run): Promise<void> {
+  async tryAcquire(run: Run): Promise<boolean> {
+    if (this.activeRun) return false;
     this.activeRun = run;
+    return true;
+  }
+  async release(runId: RunId): Promise<void> {
+    if (this.activeRun?.id === runId) this.activeRun = undefined;
   }
 }
