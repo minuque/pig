@@ -1,8 +1,14 @@
 import type { SSEEventEnvelope } from "@no-pi-no-gang/contracts";
 
-export function gatewayRequest(port: number, path: string, credential?: string, body?: unknown) {
+export function gatewayRequest(
+  port: number,
+  path: string,
+  credential?: string,
+  body?: unknown,
+  method = body === undefined ? "GET" : "POST",
+) {
   return fetch(`http://127.0.0.1:${port}${path}`, {
-    method: body === undefined ? "GET" : "POST",
+    method,
     headers: {
       ...(credential ? { authorization: `Bearer ${credential}` } : {}),
       ...(body === undefined ? {} : { "content-type": "application/json" }),

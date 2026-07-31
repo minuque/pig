@@ -134,23 +134,7 @@ afterEach(async () => {
   directory = undefined;
 });
 
-function request(
-  port: number,
-  path: string,
-  credential?: string,
-  body?: unknown,
-  method?: "PATCH" | "DELETE",
-) {
-  if (!method) return gatewayRequest(port, path, credential, body);
-  return fetch(`http://127.0.0.1:${port}${path}`, {
-    method,
-    headers: {
-      ...(credential ? { authorization: `Bearer ${credential}` } : {}),
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-}
+const request = gatewayRequest;
 
 async function start(options: { maxConcurrentRuns?: number } = {}) {
   directory ??= await mkdtemp(join(tmpdir(), "phase-one-"));

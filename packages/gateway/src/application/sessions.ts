@@ -6,7 +6,7 @@ import {
   type SessionId,
   type WorkspaceId,
 } from "@no-pi-no-gang/contracts";
-import type { MetadataStore } from "../adapters/repositories/metadata-store.js";
+import type { SqliteMetadataStore } from "../adapters/repositories/metadata-store.js";
 import { WorkspacesApplication } from "./workspaces.js";
 
 export class SessionNotFoundError extends Error {}
@@ -17,7 +17,7 @@ export class SessionsApplication {
   constructor(
     private readonly workspaces: WorkspacesApplication,
     private readonly runtime: PiRuntimeAdapter,
-    private readonly metadata: MetadataStore,
+    private readonly metadata: SqliteMetadataStore,
   ) {}
   private async all(identityId: LocalIdentityId, workspaceId: WorkspaceId) {
     return (await this.runtime.discoverSessions(this.workspaces.get(identityId, workspaceId)))

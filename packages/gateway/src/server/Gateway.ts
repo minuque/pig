@@ -19,10 +19,7 @@ import {
   RunNotFoundError,
   RunsApplication,
 } from "../application/runs.js";
-import {
-  SqliteMetadataStore,
-  type MetadataStore,
-} from "../adapters/repositories/metadata-store.js";
+import { SqliteMetadataStore } from "../adapters/repositories/metadata-store.js";
 import {
   InvalidSessionCursorError,
   SessionNotFoundError,
@@ -37,9 +34,7 @@ export interface GatewayOptions {
   bootstrapSecret?: string;
   bootstrapTtlMs?: number;
   runRepository?: RunRepository;
-  metadataStore?: MetadataStore;
   dbPath?: string;
-  stableIdentityId?: LocalIdentityId;
   maxConcurrentRuns?: number;
   webRoot?: string;
 }
@@ -56,7 +51,7 @@ export class Gateway {
   private readonly workspaces: WorkspacesApplication;
   private readonly sessions: SessionsApplication;
   private readonly runs: RunsApplication;
-  private readonly metadata: MetadataStore;
+  private readonly metadata: SqliteMetadataStore;
   private readonly closesMetadata: boolean;
 
   constructor(options: GatewayOptions = {}) {
@@ -64,9 +59,8 @@ export class Gateway {
     this.bootstrapSecret = options.bootstrapSecret ?? randomUUID();
     this.bootstrapExpiresAt = Date.now() + (options.bootstrapTtlMs ?? 60_000);
     this.webRoot = options.webRoot;
-    this.metadata =
-      options.metadataStore ?? new SqliteMetadataStore(options.dbPath, options.stableIdentityId);
-    this.closesMetadata = !options.metadataStore && options.dbPath !== undefined;
+    this.metadata = new SqliteMetadataStore(options.dbPath);
+    this.closesMetadata = options.dbPath !== undefined;
     this.workspaces = new WorkspacesApplication(
       options.platformPort ?? new NodePlatformPort(),
       this.metadata,

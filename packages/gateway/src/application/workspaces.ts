@@ -7,7 +7,7 @@ import {
   type Workspace,
   type WorkspaceId,
 } from "@no-pi-no-gang/contracts";
-import type { MetadataStore } from "../adapters/repositories/metadata-store.js";
+import type { SqliteMetadataStore } from "../adapters/repositories/metadata-store.js";
 
 export class WorkspaceAccessDeniedError extends Error {}
 
@@ -15,7 +15,7 @@ export class WorkspacesApplication {
   private readonly commands = new InMemoryCommandExecutor();
   constructor(
     private readonly platform: PlatformPort,
-    private readonly metadata: MetadataStore,
+    private readonly metadata: SqliteMetadataStore,
   ) {}
   async selectDirectory() {
     return this.platform.selectWorkspaceDirectory();

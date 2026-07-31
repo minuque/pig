@@ -2,23 +2,11 @@ import { randomUUID } from "crypto";
 import { DatabaseSync } from "node:sqlite";
 import type { LocalIdentityId, SessionId, Workspace, WorkspaceId } from "@no-pi-no-gang/contracts";
 
-export interface MetadataStore {
-  identity(): LocalIdentityId;
-  listWorkspaces(identityId: LocalIdentityId): Workspace[];
-  findWorkspace(identityId: LocalIdentityId, id: WorkspaceId): Workspace | undefined;
-  confirmWorkspace(identityId: LocalIdentityId, workspace: Workspace): Workspace;
-  revokeWorkspace(identityId: LocalIdentityId, id: WorkspaceId): boolean;
-  sessionMetadata(workspaceId: WorkspaceId, id: SessionId): { name?: string; deleted: boolean };
-  renameSession(workspaceId: WorkspaceId, id: SessionId, name: string): void;
-  deleteSession(workspaceId: WorkspaceId, id: SessionId): void;
-  close(): void;
-}
-
-export class SqliteMetadataStore implements MetadataStore {
+export class SqliteMetadataStore {
   private readonly db: DatabaseSync;
   private closed = false;
 
-  constructor(path = ":memory:", stableIdentity?: LocalIdentityId) {
+  constructor(path = ":memory:") {
     this.db = new DatabaseSync(path);
     this.db.exec(`
       PRAGMA journal_mode = WAL;
@@ -36,8 +24,6 @@ export class SqliteMetadataStore implements MetadataStore {
         deleted INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(workspace_id, session_id)
       );
     `);
-    if (stableIdentity)
-      this.db.prepare("INSERT OR IGNORE INTO local_identity(id) VALUES (?)").run(stableIdentity);
   }
 
   identity() {

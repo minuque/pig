@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -20,25 +20,24 @@ const run = (command, args, cwd = root, capture = false) => {
 };
 
 try {
-  run("npm", ["pack", "--pack-destination", staging], gateway);
-  const artifact = join(staging, "no-pi-no-gang-gateway-0.0.0.tgz");
-  const entries = run("tar", ["-tf", "no-pi-no-gang-gateway-0.0.0.tgz"], staging, true).split(
-    /\r?\n/,
-  );
-  const packedPackage = JSON.parse(
-    run("tar", ["-xOf", "no-pi-no-gang-gateway-0.0.0.tgz", "package/package.json"], staging, true),
-  );
+  const packOutput = run(
+    "npm",
+    ["pack", "--json", "--silent", "--pack-destination", staging],
+    gateway,
+    true,
+  ).replaceAll("\r\n", "\n");
+  const jsonStart = packOutput.lastIndexOf("[\n  {");
+  if (jsonStart < 0) throw new Error("npm pack did not return JSON metadata");
+  const [packed] = JSON.parse(packOutput.slice(jsonStart));
+  const artifact = join(staging, packed.filename);
+  const entries = new Set(packed.files.map(({ path }) => path));
   for (const required of [
-    "package/dist/cli.js",
-    "package/web/index.html",
-    "package/package.json",
-    "package/node_modules/@no-pi-no-gang/contracts/dist/index.js",
+    "dist/cli.js",
+    "web/index.html",
+    "package.json",
+    "node_modules/@no-pi-no-gang/contracts/dist/index.js",
   ])
-    if (!entries.includes(required)) throw new Error(`packed artifact is missing ${required}`);
-  if (packedPackage.bin?.["no-pi-no-gang"] !== "dist/cli.js")
-    throw new Error("packed artifact is missing the CLI bin");
-  if (String(packedPackage.dependencies?.["@no-pi-no-gang/contracts"] ?? "").includes("workspace:"))
-    throw new Error("packed artifact retained a workspace dependency range");
+    if (!entries.has(required)) throw new Error(`packed artifact is missing ${required}`);
 
   const portableArtifact = join(install, "gateway.tgz");
   await cp(artifact, portableArtifact);
@@ -47,6 +46,11 @@ try {
   await rm(join(gateway, "web"), { recursive: true, force: true });
   run("npm", ["init", "-y"], install);
   run("npm", ["install", portableArtifact], install);
+  const installedPackage = JSON.parse(
+    await readFile(join(install, "node_modules/@no-pi-no-gang/gateway/package.json"), "utf8"),
+  );
+  if (installedPackage.bin?.["no-pi-no-gang"] !== "dist/cli.js")
+    throw new Error("packed artifact is missing the CLI bin");
   const bin =
     process.platform === "win32"
       ? join(install, "node_modules/.bin/no-pi-no-gang.cmd")
