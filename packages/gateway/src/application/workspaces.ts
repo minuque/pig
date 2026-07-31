@@ -20,6 +20,10 @@ export class WorkspacesApplication {
 
   constructor(private readonly platform: PlatformPort) {}
 
+  async selectDirectory() {
+    return this.platform.selectWorkspaceDirectory();
+  }
+
   async preview(path: string) {
     return this.platform.canonicalizeWorkspacePath(path);
   }

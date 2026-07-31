@@ -4,18 +4,17 @@ import { api, errorMessage, type WorkspaceDto } from "../../api/index.js";
 export function useWorkspaceAccess() {
   const workspace = ref<WorkspaceDto>();
   const showAuthorize = ref(false);
-  const candidatePath = ref("");
   const previewPath = ref("");
   const authorizing = ref(false);
   const authorizeError = ref("");
-  const pathInput = ref<HTMLInputElement>();
+  const pickerButton = ref<HTMLButtonElement>();
 
   async function loadWorkspace() {
     workspace.value = (await api<{ workspaces: WorkspaceDto[] }>("/workspaces")).workspaces[0];
     if (!workspace.value) {
       showAuthorize.value = true;
       await nextTick();
-      pathInput.value?.focus();
+      pickerButton.value?.focus();
     }
   }
   function clearPreview() {
@@ -30,10 +29,14 @@ export function useWorkspaceAccess() {
     authorizing.value = true;
     authorizeError.value = "";
     try {
+      const { path } = await api<{ path: string | null }>("/workspaces/select-directory", {
+        method: "POST",
+      });
+      if (!path) return;
       previewPath.value = (
         await api<{ canonicalPath: string }>("/workspaces/preview", {
           method: "POST",
-          body: JSON.stringify({ path: candidatePath.value }),
+          body: JSON.stringify({ path }),
         })
       ).canonicalPath;
     } catch (error) {
@@ -63,11 +66,10 @@ export function useWorkspaceAccess() {
   return {
     workspace,
     showAuthorize,
-    candidatePath,
     previewPath,
     authorizing,
     authorizeError,
-    pathInput,
+    pickerButton,
     loadWorkspace,
     clearPreview,
     closeAuthorize,

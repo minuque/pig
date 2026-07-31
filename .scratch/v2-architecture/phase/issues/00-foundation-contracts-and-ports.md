@@ -22,9 +22,3 @@
 
 具体 Workspace、Session、Run、SSE 和 UI 行为；跨进程重启的 durable 幂等、revision、SQLite ledger。
 
-## 当前实现证据
-
-- 已满足：四个 workspace package 已建立；`web`/`gateway` 只依赖 `contracts`，`contracts` 无运行时依赖，`testkit` 未被生产包依赖。证据：各 package 的 `package.json`、`packages/contracts/src/index.ts`。
-- 已有但不足：contracts 定义了 Workspace、Session、Run、LocalIdentity、CommandId 和 Pi Adapter 接口，但 ID 仍是普通 `string`，路由未版本化，没有共享 schema/事件信封。
-- 缺失：Repository、Session Index、平台路径 Port、Command Executor 和策略接口。
-- 已实现：稳定标识（branded types）、版本化 (CONTRACT_VERSION)、SSE 事件信封、Repository 接口、Platform Port、Command Executor、策略接口。

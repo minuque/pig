@@ -16,6 +16,7 @@ export interface Repository<T> {
   findAll(): Promise<T[]>;
 }
 export interface PlatformPort {
+  selectWorkspaceDirectory(): Promise<string | undefined>;
   canonicalizeWorkspacePath(candidatePath: string): Promise<string>;
 }
 export interface SingleWorkspaceStrategy {

@@ -3,7 +3,11 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { PlatformPort } from "@no-pi-no-gang/contracts";
 import Gateway from "../src/index.js";
 
+let selectedDirectory: string | undefined;
 const platformPort: PlatformPort = {
+  async selectWorkspaceDirectory() {
+    return selectedDirectory;
+  },
   async canonicalizeWorkspacePath(path) {
     if (!path.startsWith("C:/")) throw new Error("invalid path");
     return path.replace(/\\/g, "/").replace(/\/$/, "").toLowerCase();
@@ -11,7 +15,10 @@ const platformPort: PlatformPort = {
 };
 
 let gateway: Gateway | undefined;
-afterEach(async () => gateway?.stop());
+afterEach(async () => {
+  selectedDirectory = undefined;
+  await gateway?.stop();
+});
 
 async function request(
   port: number,
@@ -37,6 +44,30 @@ async function bootstrap(port: number) {
 }
 
 describe("workspace access", () => {
+  it("authenticates folder selection and treats cancellation as a retryable result", async () => {
+    gateway = new Gateway({ platformPort, bootstrapSecret: "test-secret" });
+    const port = await gateway.start();
+
+    expect(
+      (await request(port, "/api/v1/workspaces/select-directory", undefined, undefined, "POST"))
+        .status,
+    ).toBe(401);
+
+    const { credential } = await bootstrap(port);
+    expect(
+      await (
+        await request(port, "/api/v1/workspaces/select-directory", undefined, credential, "POST")
+      ).json(),
+    ).toEqual({ path: null });
+
+    selectedDirectory = "C:/Project";
+    expect(
+      await (
+        await request(port, "/api/v1/workspaces/select-directory", undefined, credential, "POST")
+      ).json(),
+    ).toEqual({ path: "C:/Project" });
+  });
+
   it("previews without granting, confirms a canonical workspace, and gates resources", async () => {
     gateway = new Gateway({ platformPort, bootstrapSecret: "test-secret" });
     const port = await gateway.start();

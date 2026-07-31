@@ -155,14 +155,7 @@
     <div v-if="showAuthorize" class="modal-backdrop" @click.self="closeAuthorize">
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="authorize-title">
         <h2 id="authorize-title">授权 Workspace</h2>
-        <label for="workspace-path">目录路径</label>
-        <input
-          id="workspace-path"
-          ref="pathInput"
-          v-model="candidatePath"
-          :disabled="authorizing"
-          @input="clearPreview"
-        />
+        <p v-if="!previewPath">由本机 Gateway 打开 Windows 文件夹选择器。</p>
         <p v-if="previewPath" class="preview">
           <strong>将授权：</strong><span class="mono">{{ previewPath }}</span>
         </p>
@@ -173,15 +166,21 @@
           </button>
           <button
             v-if="!previewPath"
+            ref="pickerButton"
             type="button"
-            :disabled="!candidatePath.trim() || authorizing"
+            :disabled="authorizing"
             @click="previewWorkspace"
           >
-            {{ authorizing ? "预览中…" : "预览路径" }}
+            {{ authorizing ? "选择中…" : "选择文件夹" }}
           </button>
-          <button v-else type="button" :disabled="authorizing" @click="confirmWorkspace">
-            {{ authorizing ? "授权中…" : "确认并授权" }}
-          </button>
+          <template v-else>
+            <button type="button" class="secondary" :disabled="authorizing" @click="clearPreview">
+              重新选择
+            </button>
+            <button type="button" :disabled="authorizing" @click="confirmWorkspace">
+              {{ authorizing ? "授权中…" : "确认并授权" }}
+            </button>
+          </template>
         </div>
       </section>
     </div>
@@ -202,11 +201,10 @@ const {
   startupError,
   navOpen,
   showAuthorize,
-  candidatePath,
   previewPath,
   authorizing,
   authorizeError,
-  pathInput,
+  pickerButton,
   currentSession,
   transcript,
   loadingTranscript,

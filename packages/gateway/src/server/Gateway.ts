@@ -150,6 +150,8 @@ export class Gateway {
     }
 
     try {
+      if (url.pathname === "/api/v1/workspaces/select-directory" && req.method === "POST")
+        return this.send(res, 200, { path: (await this.workspaces.selectDirectory()) ?? null });
       if (url.pathname === "/api/v1/workspaces/preview" && req.method === "POST") {
         const { path } = await this.body(req);
         if (typeof path !== "string" || !path.trim()) throw new Error();

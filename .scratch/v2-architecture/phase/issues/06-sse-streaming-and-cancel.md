@@ -21,9 +21,3 @@
 
 SSE replay、epoch、连续性判断、snapshot 合并、跨重启恢复、队列和 Steer。
 
-## 实现证据
-
-- `packages/contracts/src/index.ts`：`PiRuntimeAdapter.createRun()` 通过 `PiRunEvent` 回调暴露在线增量，Gateway 继续使用共享 `SSEEventEnvelope`。
-- `packages/gateway/src/index.ts`：提供受 Bearer 鉴权的单一 `GET /api/v1/events` 长连接；按 Workspace Access 广播带稳定 `sessionId`/`runId` 的 Pi 增量和 Run 终态，并在连接关闭或 Gateway stop 时清理客户端。`POST .../runs/:runId/cancel` 复用 Command Executor，实现幂等/冲突、终态竞态保护、槽位释放及晚到增量丢弃。
-- `packages/gateway/src/streaming-cancel.test.ts`：覆盖 SSE 鉴权、跨 Session 稳定事件归属、流完成、执行失败、Cancel 幂等/冲突、Cancel 后新 Run、Cancel/自然完成竞态、单一终态事件和晚到增量/settled 不复活。
-- 验证：`pnpm --filter @no-pi-no-gang/gateway test`（4 files、9 tests passed）；`pnpm typecheck`（4 workspace packages passed）；`git diff --check` 通过。

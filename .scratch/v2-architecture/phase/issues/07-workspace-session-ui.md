@@ -21,12 +21,3 @@
 
 完整组件库、视觉精修、多 Workspace、Session rename/delete/search/pagination、Prompt/Transcript/Run 实时 UI。
 
-## 当前实现证据
-
-- `packages/web/src/App.vue` 通过 Bearer 鉴权的 `/api/v1/workspaces/select-directory` 请求本机 Gateway 打开 Windows 原生文件夹选择器，再沿用 `/preview` 与 `/confirm` 实现 canonical 预览后明确授权；取消不显示错误且可重试，异步期间禁用操作并在处理函数中二次防重入。
-- 此交互是网页按钮调用本机 Gateway，由 Gateway 触发操作系统对话框，不是浏览器 File System Access API。
-- `packages/web/src/App.vue` 通过 `/api/v1/workspaces/:workspaceId/sessions` 加载和创建 Session，并使用 `/sessions/:sessionId` 路由；客户端仅保存 API DTO 和稳定 ID。
-- `packages/web/src/api.ts` 复用 fragment bootstrap 约定，立即从历史中移除 secret，并为 API 错误提供错误码、重试提示和客户端 request ID。
-- `packages/web/src/App.vue` 覆盖 Workspace/Session 的 Loading、Empty、Error，提供宽屏双栏及 `700px` 以下可开关 Session 导航；长 ID 使用换行避免溢出。
-- `packages/web/src/App.vue` 定义基础设计变量、正文/等宽字体、可见 `:focus-visible`，使用原生控件、ARIA 名称和“符号 + 文本”状态。
-- `packages/web/src/api.test.ts` 验证错误提示保留错误码、稳定关联 ID 和重试动作；`pnpm --filter @no-pi-no-gang/web test` 通过（1 test），`pnpm typecheck` 通过。

@@ -22,10 +22,3 @@
 
 Steer、队列、完整草稿隔离、虚拟滚动、raw HTML、完整主题与视觉发布门禁。
 
-## 实现证据
-
-- `packages/web/src/App.vue` 连接真实 Transcript/Run/Cancel API，以单个 Run 消息原位追加 delta，并在终态重载 durable transcript。
-- `packages/web/src/api.ts` 通过带 Bearer 凭据的 fetch 流读取真实 `/api/v1/events` SSE；`run-state.ts` 按 sessionId/runId 信封路由并拒绝错配与终态迟到事件。
-- `markstream-vue` 使用 `content`、`mode="chat"`、`code-renderer="pre"`、`html-policy="safe"`；CSS 在 `reset.css` 后导入，不安装可选 peers。
-- Prompt/Cancel 使用原生 form、button、textarea 和可见焦点；Transcript `aria-live="off"`，active Run 禁发并提供原因。
-- `run-state.test.ts` 覆盖稳定 ID 路由、错配隔离、终态重载信号和迟到 delta；web 3 tests、gateway 9 tests、typecheck、lint 均通过。

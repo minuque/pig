@@ -22,9 +22,3 @@
 
 Workspace 授权、Session/Run API、远程访问、任意 host 绑定、跨 Gateway 重启 credential。
 
-## 当前实现证据
-
-- 已满足：`packages/gateway/src/index.ts` 的 `Gateway.start()` 调用 `listen(0, "127.0.0.1")`。
-- 已有但不足：存在 `/credential` 内存映射，但它接受任意可重复 credential，生成的 identity 不稳定，也没有限时、单次 bootstrap 或 transport adapter。
-- 缺失：Gateway/SPA 启动入口、API 鉴权、Workspace Access 衔接及敏感 credential 日志/历史验证。当前 `/sessions`、`/workspaces`、`/sse` 均可匿名访问。
-- 已实现：local launch stub、credential bootstrap stub、idempotent commandId support in gateway.

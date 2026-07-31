@@ -21,9 +21,3 @@
 
 SSE 输出、Cancel、队列、跨 Session 并行、Steer、Execution Profile 工作台、durable Run ledger、Interrupted Run。
 
-## 实现证据
-
-- `packages/contracts/src/index.ts`：Run 明确携带 `workspaceId`、`sessionId`、`commandId`，并定义 Run Repository、原子槽位获取/释放策略及 Pi settled 返回契约。
-- `packages/gateway/src/index.ts`：Run Route 统一执行 admission → running → terminal；`InMemoryCommandExecutor` 处理等价重试/冲突，Repository 拒绝终态复活，全局策略在 Pi settled 后释放槽位；Adapter 不记录 prompt 内容。
-- `packages/gateway/src/run-lifecycle.test.ts`：覆盖并发 admission 仅一次调用 Pi、稳定/独立 runId、幂等与冲突、running/failed/completed、终态保护和 settled 后槽位释放。
-- 验证：`pnpm --filter @no-pi-no-gang/gateway test`（3 files、6 tests 通过）；`pnpm typecheck` 通过；`git diff --check` 通过。

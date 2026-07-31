@@ -21,10 +21,3 @@
 
 Session 重命名、删除、分页、搜索、Unavailable Session、完整索引恢复。
 
-## 当前实现证据
-
-- `packages/gateway/src/index.ts` 提供鉴权后的 `POST/GET /api/v1/workspaces/:workspaceId/sessions`、Session 打开与 `/transcript`；所有路由复用 Local Identity、`authorizedWorkspace` Workspace Access、`CommandExecutor` 和 `PiRuntimeAdapter`。
-- Session 创建仅返回 contracts `Session` 投影；默认 Adapter 将稳定 UUID、canonical Workspace 和可选名称写入 JSONL，Session 列表/打开通过 Adapter 每次重扫恢复，不向客户端暴露 Pi Runtime 对象。
-- Transcript Route 每次调用 `PiRuntimeAdapter.readTranscript` 重新读取 JSONL，不保存 Transcript 副本或使用 SSE 内容。
-- `packages/gateway/src/session-resources.test.ts` 覆盖未认证 401、不匹配 Workspace Access 403、创建等价重试、payload 冲突、稳定 ID、无 Pi 对象、列表/打开/Transcript，以及 Gateway stop/start 后从同一 JSONL 重扫恢复和 Transcript 新鲜读取。
-- 验证：`pnpm --filter @no-pi-no-gang/gateway test`（2 files、3 tests passed）；`pnpm typecheck`（4 workspace packages passed）。

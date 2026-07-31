@@ -9,6 +9,9 @@ import Gateway, { PiRuntimeAdapterImpl } from "../src/index.js";
 import { gatewayRequest as request } from "@no-pi-no-gang/testkit";
 
 const platformPort: PlatformPort = {
+  async selectWorkspaceDirectory() {
+    return undefined;
+  },
   async canonicalizeWorkspacePath(path) {
     return path.toLowerCase();
   },

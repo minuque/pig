@@ -17,6 +17,9 @@ import Gateway, { PiRuntimeAdapterImpl } from "../src/index.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const platformPort: PlatformPort = {
+  async selectWorkspaceDirectory() {
+    return undefined;
+  },
   async canonicalizeWorkspacePath(path) {
     return path.toLowerCase();
   },
