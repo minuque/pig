@@ -11,7 +11,7 @@
 
 ## 验收标准
 
-- [x] 用户可完成 Workspace 路径预览、明确确认和授权；重复提交被即时反馈和阻止。
+- [x] 用户无需手动输入路径，可通过本机 Gateway 打开的 Windows 原生文件夹选择器完成 Workspace 路径预览、明确确认和授权；取消选择后可重试，重复提交被即时反馈和阻止。
 - [x] UI 提供 Session 列表、创建入口和当前 Session 页面，状态以稳定 `workspaceId`/`sessionId` 为键，不持有 Pi 对象。
 - [x] Workspace 与 Session 流程具有可观察的 Loading、Empty 和 Error 状态，错误包含可操作提示和稳定关联信息。
 - [x] 代表性宽屏下导航与内容同时可见；代表性窄屏下当前 Session 上下文与核心操作仍可访问，代码/内容不撑破页面。
@@ -23,7 +23,8 @@
 
 ## 当前实现证据
 
-- `packages/web/src/App.vue` 通过 `/api/v1/workspaces/preview` 与 `/confirm` 实现预览后明确授权；异步期间禁用操作并在处理函数中二次防重入。
+- `packages/web/src/App.vue` 通过 Bearer 鉴权的 `/api/v1/workspaces/select-directory` 请求本机 Gateway 打开 Windows 原生文件夹选择器，再沿用 `/preview` 与 `/confirm` 实现 canonical 预览后明确授权；取消不显示错误且可重试，异步期间禁用操作并在处理函数中二次防重入。
+- 此交互是网页按钮调用本机 Gateway，由 Gateway 触发操作系统对话框，不是浏览器 File System Access API。
 - `packages/web/src/App.vue` 通过 `/api/v1/workspaces/:workspaceId/sessions` 加载和创建 Session，并使用 `/sessions/:sessionId` 路由；客户端仅保存 API DTO 和稳定 ID。
 - `packages/web/src/api.ts` 复用 fragment bootstrap 约定，立即从历史中移除 secret，并为 API 错误提供错误码、重试提示和客户端 request ID。
 - `packages/web/src/App.vue` 覆盖 Workspace/Session 的 Loading、Empty、Error，提供宽屏双栏及 `700px` 以下可开关 Session 导航；长 ID 使用换行避免溢出。

@@ -2,7 +2,7 @@
 
 本目录把 [`../spec.md`](../spec.md) 中的目标架构拆成可独立验收的增量阶段。`spec.md` 仍是最终架构、安全边界和发布范围的规范来源；本目录只规定能力的落地顺序。
 
-跨阶段 UI 原则见 [`ui-guidelines.md`](ui-guidelines.md)；各阶段只在自己的 `UI Scope` 中规定当期实现深度。
+跨阶段 UI 原则见 [`ui-guidelines.md`](ui-guidelines.md)；各阶段只在自己的 `UI Scope` 中规定当期实现深度。仓库目录与依赖边界见 [`repository-layout.md`](repository-layout.md)。
 
 Current phase: Phase 0（planning）
 

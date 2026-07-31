@@ -11,7 +11,7 @@ Status: proposed
 - Windows 本地开发启动 Gateway 和 SPA。
 - Gateway 绑定随机 `127.0.0.1` 端口。
 - 浏览器通过最小的进程级凭证访问 Gateway，并映射到固定的 Local Identity。
-- 用户显式授权一个 canonical Workspace，形成 Workspace Access。
+- 用户通过本机 Gateway 触发 Windows 原生文件夹选择器，预览并显式确认一个 canonical Workspace，形成 Workspace Access；这不是浏览器 File System Access API。
 - 创建、列出和打开该 Workspace 中的 Pi Session。
 - 每个 prompt 创建具有独立 `runId` 的 Run；全局同时最多运行一个 Run。
 - mutation 携带客户端生成的 `commandId`，Gateway 至少在当前进程内拒绝不同 payload 复用并返回等价重试的原结果。
@@ -82,7 +82,7 @@ Status: proposed
 
 1. Windows 开发环境可以启动 Gateway 和 SPA，Gateway 仅监听随机 loopback 端口。
 2. 未完成浏览器凭证建立的请求无法访问 API；建立成功后凭证映射到 Local Identity。
-3. 用户确认一个 canonical Workspace 并形成 Workspace Access 后，可以创建并重新打开 Pi Session。
+3. 用户从 Gateway 打开的 Windows 原生文件夹选择器选择目录（取消后可重试），确认 canonical Workspace 并形成 Workspace Access 后，可以创建并重新打开 Pi Session。
 4. 用户发送 prompt 后，可以看到流式内容，并在结束后重新读取已持久化的会话记录。
 5. 用户可以取消当前 Run；取消后可以发起新 Run。
 6. active Run 存在时，第二个 prompt 被明确拒绝或禁用，不产生隐式并发。
