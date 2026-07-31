@@ -11,8 +11,10 @@ import type {
   Run,
   SessionId,
   SSEEventEnvelope,
+  WorkspaceId,
 } from "@no-pi-no-gang/contracts";
-import Gateway, { PiRuntimeAdapterImpl } from "../src/index.js";
+import Gateway from "../src/index.js";
+import { FakePiRuntimeAdapter } from "./fake-pi-runtime.js";
 
 const platformPort: PlatformPort = {
   async selectWorkspaceDirectory() {
@@ -23,20 +25,21 @@ const platformPort: PlatformPort = {
   },
 };
 
-class StreamingRuntime extends PiRuntimeAdapterImpl {
+class StreamingRuntime extends FakePiRuntimeAdapter {
   cancelCalls = 0;
   readonly pending: Array<{
     emit: (event: PiRunEvent) => void;
-    settle: (result: { status: "completed" | "failed" }) => void;
+    settle: (result: { status: "completed" | "failed" | "cancelled" }) => void;
   }> = [];
 
   override async createRun(
+    _workspaceId: WorkspaceId,
     _sessionId: SessionId,
     _prompt: string,
     _commandId?: CommandId,
     onEvent: (event: PiRunEvent) => void = () => undefined,
   ) {
-    return new Promise<{ status: "completed" | "failed" }>((settle) =>
+    return new Promise<{ status: "completed" | "failed" | "cancelled" }>((settle) =>
       this.pending.push({ emit: onEvent, settle }),
     );
   }
@@ -162,13 +165,26 @@ describe("gateway SSE streaming and cancel", () => {
 
     const deltas = events.filter(({ type }) => type === "run.output.delta");
     expect(deltas).toMatchObject([
-      { sessionId: first.sessionId, runId: first.id, data: { text: "one" } },
-      { sessionId: second.sessionId, runId: second.id, data: { text: "two" } },
+      {
+        workspaceId: first.workspaceId,
+        sessionId: first.sessionId,
+        runId: first.id,
+        data: { text: "one" },
+      },
+      {
+        workspaceId: second.workspaceId,
+        sessionId: second.sessionId,
+        runId: second.id,
+        data: { text: "two" },
+      },
     ]);
     expect(
       events
         .filter(({ type }) => type.startsWith("run."))
-        .every(({ version, sessionId, runId }) => version === "0.1.0" && sessionId && runId),
+        .every(
+          ({ version, workspaceId, sessionId, runId }) =>
+            version === "0.1.0" && workspaceId && sessionId && runId,
+        ),
     ).toBe(true);
   });
 
@@ -180,7 +196,7 @@ describe("gateway SSE streaming and cancel", () => {
     const cancel = () => request(port, cancelPath, credential, { commandId: "cancel-1" });
 
     const cancelled = (await (await cancel()).json()) as { run: Run };
-    expect(cancelled.run.status).toBe("cancelled");
+    expect(cancelled.run.status).toBe("cancelling");
     expect((await (await cancel()).json()) as unknown).toEqual(cancelled);
     expect(runtime.cancelCalls).toBe(1);
 
@@ -190,8 +206,8 @@ describe("gateway SSE streaming and cancel", () => {
     });
     expect(conflict.status).toBe(409);
     runtime.pending[0]!.emit({ type: "run.output.delta", data: { text: "late" } });
-    runtime.pending[0]!.settle({ status: "completed" });
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    runtime.pending[0]!.settle({ status: "cancelled" });
+    await waitFor(() => events.some(({ type }) => type === "run.cancelled"));
     const stored = (await (await request(port, `${runs[0]}/${first.id}`, credential)).json()) as {
       run: Run;
     };

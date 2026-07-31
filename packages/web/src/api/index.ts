@@ -29,6 +29,7 @@ export async function bootstrapFromFragment(): Promise<void> {
 export async function streamEvents(
   onEvent: (event: unknown) => void,
   signal: AbortSignal,
+  onOpen: () => void = () => undefined,
 ): Promise<void> {
   const response = await fetch("/api/v1/events", {
     headers: { authorization: `Bearer ${credential}` },
@@ -36,6 +37,7 @@ export async function streamEvents(
   });
   if (!response.ok || !response.body)
     throw new ApiError(`HTTP_${response.status}`, crypto.randomUUID());
+  onOpen();
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
   while (true) {

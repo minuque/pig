@@ -5,7 +5,8 @@ import { join } from "path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import type { PlatformPort } from "@no-pi-no-gang/contracts";
-import Gateway, { PiRuntimeAdapterImpl } from "../src/index.js";
+import Gateway from "../src/index.js";
+import { FakePiRuntimeAdapter } from "./fake-pi-runtime.js";
 import { gatewayRequest as request } from "@no-pi-no-gang/testkit";
 
 const platformPort: PlatformPort = {
@@ -32,7 +33,7 @@ describe("session resources", () => {
     const jsonlPath = join(directory, "sessions.jsonl");
     gateway = new Gateway({
       platformPort,
-      runtimeAdapter: new PiRuntimeAdapterImpl(jsonlPath),
+      runtimeAdapter: new FakePiRuntimeAdapter(jsonlPath),
       bootstrapSecret: "secret",
     });
     let port = await gateway.start();

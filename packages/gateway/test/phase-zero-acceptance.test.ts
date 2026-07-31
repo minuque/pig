@@ -12,8 +12,10 @@ import type {
   Run,
   SessionId,
   SSEEventEnvelope,
+  WorkspaceId,
 } from "@no-pi-no-gang/contracts";
-import Gateway, { PiRuntimeAdapterImpl } from "../src/index.js";
+import Gateway from "../src/index.js";
+import { FakePiRuntimeAdapter } from "./fake-pi-runtime.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const platformPort: PlatformPort = {
@@ -25,12 +27,13 @@ const platformPort: PlatformPort = {
   },
 };
 
-class AcceptanceRuntime extends PiRuntimeAdapterImpl {
+class AcceptanceRuntime extends FakePiRuntimeAdapter {
   constructor(private readonly path: string) {
     super(path);
   }
 
   override async createRun(
+    _workspaceId: WorkspaceId,
     sessionId: SessionId,
     _prompt: string,
     _commandId?: CommandId,
@@ -221,7 +224,10 @@ describe("Phase 0 acceptance gate", () => {
     const gatewayDependencies = JSON.parse(gatewayPackage).dependencies;
     const webDependencies = JSON.parse(webPackage).dependencies;
 
-    expect(gatewayDependencies).toEqual({ "@no-pi-no-gang/contracts": "workspace:*" });
+    expect(gatewayDependencies).toEqual({
+      "@earendil-works/pi-coding-agent": "0.83.0",
+      "@no-pi-no-gang/contracts": "0.0.0",
+    });
     expect(webDependencies).not.toHaveProperty("@no-pi-no-gang/testkit");
     expect(contracts).not.toMatch(/from ["'](?:vue|node:|fs|path|http|@pi)/);
     expect(gatewaySource).toContain("implements PiRuntimeAdapter");
@@ -229,12 +235,12 @@ describe("Phase 0 acceptance gate", () => {
     expect(gatewaySource).toContain("implements RunRepository");
     expect(gatewaySource).toContain("platform.canonicalizeWorkspacePath");
     expect(gatewaySource).toContain("workspaces.get(identityId");
-    expect(gatewaySource).toContain("activePolicy.tryAcquire");
-    expect(gatewaySource).toContain("policy.getCanonicalWorkspace");
+    expect(gatewaySource).toContain('status: "queued"');
+    expect(gatewaySource).toContain("maxConcurrentRuns");
     expect(webSource).not.toMatch(/@pi|PiRuntime|piSession/);
     expect(app).toContain('html-policy="safe"');
     expect(app).not.toContain("v-html");
     expect(app).not.toMatch(/innerHTML|javascript:|\sonerror\s*=/i);
-    expect(`${contracts}\n${rootPackage}`).not.toMatch(/replay|epoch|revision|steer|queue|sqlite/i);
+    expect(`${contracts}\n${rootPackage}`).not.toMatch(/replay|epoch|revision/i);
   });
 });

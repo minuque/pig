@@ -3,14 +3,29 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "no-pi-no-gang": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "web"
+  ],
+  "bundledDependencies": [
+    "@no-pi-no-gang/contracts"
+  ],
   "scripts": {
     "dev": "tsx watch src/cli.ts",
     "start": "tsx src/cli.ts",
+    "build": "node ../../scripts/build-package.mjs",
+    "prepack": "pnpm build",
+    "postpack": "node ../../scripts/build-package.mjs restore",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@no-pi-no-gang/contracts": "workspace:*"
+    "@earendil-works/pi-coding-agent": "0.83.0",
+    "@no-pi-no-gang/contracts": "0.0.0"
   },
   "devDependencies": {
     "@no-pi-no-gang/testkit": "workspace:*",

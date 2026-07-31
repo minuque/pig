@@ -2,26 +2,33 @@ import { randomUUID } from "crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import {
   CommandConflictError,
-  SingleActiveRunStrategyImpl,
   type CommandId,
   type LocalIdentityId,
   type PiRuntimeAdapter,
   type PlatformPort,
   type RunRepository,
   type SessionId,
-  type SingleActiveRunStrategy,
   type WorkspaceId,
 } from "@no-pi-no-gang/contracts";
 import { NodePlatformPort } from "../adapters/filesystem/node-platform.js";
 import { PiRuntimeAdapterImpl } from "../adapters/pi/runtime.js";
 import { InMemoryRunRepository } from "../adapters/repositories/run-repository.js";
-import { ActiveRunConflictError, RunNotFoundError, RunsApplication } from "../application/runs.js";
-import { SessionNotFoundError, SessionsApplication } from "../application/sessions.js";
 import {
-  SingleWorkspaceConflictError,
-  WorkspaceAccessDeniedError,
-  WorkspacesApplication,
-} from "../application/workspaces.js";
+  InvalidExecutionProfileError,
+  InvalidRunStateError,
+  RunNotFoundError,
+  RunsApplication,
+} from "../application/runs.js";
+import {
+  SqliteMetadataStore,
+  type MetadataStore,
+} from "../adapters/repositories/metadata-store.js";
+import {
+  InvalidSessionCursorError,
+  SessionNotFoundError,
+  SessionsApplication,
+} from "../application/sessions.js";
+import { WorkspaceAccessDeniedError, WorkspacesApplication } from "../application/workspaces.js";
 import { serveWebFile } from "./static-files.js";
 
 export interface GatewayOptions {
@@ -30,7 +37,10 @@ export interface GatewayOptions {
   bootstrapSecret?: string;
   bootstrapTtlMs?: number;
   runRepository?: RunRepository;
-  activeRunStrategy?: SingleActiveRunStrategy;
+  metadataStore?: MetadataStore;
+  dbPath?: string;
+  stableIdentityId?: LocalIdentityId;
+  maxConcurrentRuns?: number;
   webRoot?: string;
 }
 
@@ -46,24 +56,32 @@ export class Gateway {
   private readonly workspaces: WorkspacesApplication;
   private readonly sessions: SessionsApplication;
   private readonly runs: RunsApplication;
+  private readonly metadata: MetadataStore;
+  private readonly closesMetadata: boolean;
 
   constructor(options: GatewayOptions = {}) {
     const runtime = options.runtimeAdapter ?? new PiRuntimeAdapterImpl();
     this.bootstrapSecret = options.bootstrapSecret ?? randomUUID();
     this.bootstrapExpiresAt = Date.now() + (options.bootstrapTtlMs ?? 60_000);
     this.webRoot = options.webRoot;
-    this.workspaces = new WorkspacesApplication(options.platformPort ?? new NodePlatformPort());
-    this.sessions = new SessionsApplication(this.workspaces, runtime);
+    this.metadata =
+      options.metadataStore ?? new SqliteMetadataStore(options.dbPath, options.stableIdentityId);
+    this.closesMetadata = !options.metadataStore && options.dbPath !== undefined;
+    this.workspaces = new WorkspacesApplication(
+      options.platformPort ?? new NodePlatformPort(),
+      this.metadata,
+    );
+    this.sessions = new SessionsApplication(this.workspaces, runtime, this.metadata);
     this.runs = new RunsApplication(
       this.sessions,
       runtime,
       options.runRepository ?? new InMemoryRunRepository(),
-      options.activeRunStrategy ?? new SingleActiveRunStrategyImpl(),
       (workspaceId, event) => {
         const message = `data: ${JSON.stringify(event)}\n\n`;
         for (const [client, identityId] of this.eventClients)
           if (this.workspaces.hasAccess(identityId, workspaceId)) client.write(message);
       },
+      options.maxConcurrentRuns ?? 2,
     );
   }
 
@@ -92,10 +110,12 @@ export class Gateway {
   private error(res: ServerResponse, error: unknown) {
     if (error instanceof CommandConflictError)
       return this.send(res, 409, { code: "COMMAND_ID_CONFLICT" });
-    if (error instanceof SingleWorkspaceConflictError)
-      return this.send(res, 409, { code: "SINGLE_WORKSPACE_LIMIT" });
-    if (error instanceof ActiveRunConflictError)
-      return this.send(res, 409, { code: "ACTIVE_RUN_LIMIT" });
+    if (error instanceof InvalidExecutionProfileError)
+      return this.send(res, 400, { code: "INVALID_EXECUTION_PROFILE" });
+    if (error instanceof InvalidSessionCursorError)
+      return this.send(res, 400, { code: "INVALID_SESSION_CURSOR" });
+    if (error instanceof InvalidRunStateError)
+      return this.send(res, 409, { code: "INVALID_RUN_STATE" });
     if (error instanceof WorkspaceAccessDeniedError)
       return this.send(res, 403, { code: "WORKSPACE_ACCESS_DENIED" });
     if (error instanceof SessionNotFoundError)
@@ -127,7 +147,7 @@ export class Gateway {
           return this.send(res, 401, { code: "INVALID_BOOTSTRAP" });
         this.bootstrapUsed = true;
         const credential = randomUUID();
-        const identityId = randomUUID() as LocalIdentityId;
+        const identityId = this.metadata.identity();
         this.credentials.set(credential, identityId);
         return this.send(res, 201, { credential, identityId });
       } catch {
@@ -178,7 +198,15 @@ export class Gateway {
       }
       if (url.pathname === "/api/v1/workspaces" && req.method === "GET")
         return this.send(res, 200, { workspaces: this.workspaces.list(identityId) });
+      if (url.pathname === "/api/v1/capabilities" && req.method === "GET")
+        return this.send(res, 200, await this.runs.capabilities());
       const workspaceMatch = url.pathname.match(/^\/api\/v1\/workspaces\/([^/]+)$/);
+      if (workspaceMatch && req.method === "DELETE") {
+        const { confirm } = await this.body(req);
+        if (confirm !== true) throw new Error();
+        this.workspaces.revoke(identityId, workspaceMatch[1] as WorkspaceId);
+        return this.send(res, 204);
+      }
       if (workspaceMatch && req.method === "GET")
         return this.send(res, 200, {
           workspace: this.workspaces.get(identityId, workspaceMatch[1] as WorkspaceId),
@@ -189,7 +217,12 @@ export class Gateway {
         const workspaceId = sessionsMatch[1] as WorkspaceId;
         if (req.method === "GET")
           return this.send(res, 200, {
-            sessions: await this.sessions.list(identityId, workspaceId),
+            ...(await this.sessions.list(
+              identityId,
+              workspaceId,
+              url.searchParams.get("cursor") ?? undefined,
+              Number(url.searchParams.get("limit") ?? 50),
+            )),
           });
         if (req.method === "POST") {
           const { commandId, name } = await this.body(req);
@@ -234,7 +267,7 @@ export class Gateway {
           });
         }
         if (req.method === "POST" && !runsMatch[3]) {
-          const { commandId, prompt } = await this.body(req);
+          const { commandId, prompt, profile } = await this.body(req);
           if (
             typeof commandId !== "string" ||
             !commandId.trim() ||
@@ -249,14 +282,56 @@ export class Gateway {
               sessionId,
               prompt,
               commandId as CommandId,
+              profile as import("@no-pi-no-gang/contracts").ExecutionProfile | undefined,
             ),
           });
         }
       }
 
+      const steerMatch = url.pathname.match(
+        /^\/api\/v1\/workspaces\/([^/]+)\/sessions\/([^/]+)\/runs\/([^/]+)\/steer$/,
+      );
+      if (steerMatch && req.method === "POST") {
+        const { input } = await this.body(req);
+        if (typeof input !== "string" || !input.trim()) throw new Error();
+        return this.send(res, 200, {
+          run: await this.runs.steer(
+            identityId,
+            steerMatch[1] as WorkspaceId,
+            steerMatch[2] as SessionId,
+            steerMatch[3]!,
+            input,
+          ),
+        });
+      }
       const sessionMatch = url.pathname.match(
         /^\/api\/v1\/workspaces\/([^/]+)\/sessions\/([^/]+)(\/transcript)?$/,
       );
+      if (sessionMatch && req.method === "PATCH") {
+        const { name, confirm } = await this.body(req);
+        if (confirm !== true || typeof name !== "string" || !name.trim()) throw new Error();
+        return this.send(res, 200, {
+          session: await this.sessions.rename(
+            identityId,
+            sessionMatch[1] as WorkspaceId,
+            sessionMatch[2] as SessionId,
+            name,
+          ),
+        });
+      }
+      if (sessionMatch && req.method === "DELETE") {
+        const { confirm } = await this.body(req);
+        if (confirm !== true) throw new Error();
+        return this.send(
+          res,
+          200,
+          await this.sessions.delete(
+            identityId,
+            sessionMatch[1] as WorkspaceId,
+            sessionMatch[2] as SessionId,
+          ),
+        );
+      }
       if (sessionMatch && req.method === "GET") {
         const workspaceId = sessionMatch[1] as WorkspaceId;
         const sessionId = sessionMatch[2] as SessionId;
@@ -288,9 +363,13 @@ export class Gateway {
   async stop() {
     for (const client of this.eventClients.keys()) client.end();
     this.eventClients.clear();
-    return new Promise<void>((resolveStop, reject) =>
-      this.server.close((error) => (error ? reject(error) : resolveStop())),
-    );
+    try {
+      await new Promise<void>((resolveStop, reject) =>
+        this.server.close((error) => (error ? reject(error) : resolveStop())),
+      );
+    } finally {
+      if (this.closesMetadata) this.metadata.close();
+    }
   }
 
   getPort() {

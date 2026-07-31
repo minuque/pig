@@ -13,6 +13,12 @@ export class InMemoryRunRepository implements RunRepository {
     this.runs.set(run.id, run);
     return run;
   }
+  async transition(id: RunId, from: Run["status"][], next: Run) {
+    const current = this.runs.get(id);
+    if (!current || !from.includes(current.status)) return;
+    this.runs.set(id, next);
+    return next;
+  }
   async delete(id: string) {
     return this.runs.delete(id as RunId);
   }

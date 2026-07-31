@@ -1,13 +1,18 @@
+#!/usr/bin/env node
 import { spawn } from "child_process";
 import { randomUUID } from "crypto";
+import { fileURLToPath } from "url";
 import { resolve } from "path";
 
 import Gateway from "./index.js";
 
-const webRoot = process.argv[2] ? resolve(process.argv[2]) : undefined;
+const webRoot = process.argv[2]
+  ? resolve(process.argv[2])
+  : fileURLToPath(new URL("../web/", import.meta.url));
 const bootstrapSecret = process.env.BOOTSTRAP_SECRET ?? randomUUID();
 const gateway = new Gateway({
   bootstrapSecret,
+  dbPath: process.env.GATEWAY_DB_PATH ?? "gateway.sqlite",
   ...(webRoot ? { webRoot } : {}),
 });
 const port = await gateway.start();

@@ -26,13 +26,23 @@ export interface Session {
   status: "available" | "unavailable";
 }
 
+export interface ExecutionProfile {
+  model: string;
+  thinkingLevel: string;
+}
+
+export interface RuntimeCapabilities {
+  profiles: ExecutionProfile[];
+}
+
 export interface Run {
   id: RunId;
   workspaceId: WorkspaceId;
   sessionId: SessionId;
   prompt: string;
   commandId: CommandId;
-  status: "admission" | "running" | "cancelled" | "failed" | "completed";
+  profile?: ExecutionProfile;
+  status: "admission" | "queued" | "running" | "cancelling" | "cancelled" | "failed" | "completed";
   output?: string;
   createdAt: Date;
   updatedAt: Date;

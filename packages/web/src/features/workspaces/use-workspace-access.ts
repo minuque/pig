@@ -3,6 +3,7 @@ import { api, errorMessage, type WorkspaceDto } from "../../api/index.js";
 
 export function useWorkspaceAccess() {
   const workspace = ref<WorkspaceDto>();
+  const workspaces = ref<WorkspaceDto[]>([]);
   const showAuthorize = ref(false);
   const previewPath = ref("");
   const authorizing = ref(false);
@@ -10,7 +11,8 @@ export function useWorkspaceAccess() {
   const pickerButton = ref<HTMLButtonElement>();
 
   async function loadWorkspace() {
-    workspace.value = (await api<{ workspaces: WorkspaceDto[] }>("/workspaces")).workspaces[0];
+    workspaces.value = (await api<{ workspaces: WorkspaceDto[] }>("/workspaces")).workspaces;
+    workspace.value = workspaces.value[0];
     if (!workspace.value) {
       showAuthorize.value = true;
       await nextTick();
@@ -56,6 +58,10 @@ export function useWorkspaceAccess() {
           body: JSON.stringify({ path: previewPath.value, commandId: crypto.randomUUID() }),
         })
       ).workspace;
+      workspaces.value = [
+        workspace.value,
+        ...workspaces.value.filter(({ id }) => id !== workspace.value?.id),
+      ];
       showAuthorize.value = false;
     } catch (error) {
       authorizeError.value = errorMessage(error);
@@ -63,8 +69,21 @@ export function useWorkspaceAccess() {
       authorizing.value = false;
     }
   }
+  async function revokeWorkspace() {
+    if (!workspace.value || !confirm(`取消授权 ${workspace.value.name}？`)) return;
+    await api(`/workspaces/${workspace.value.id}`, {
+      method: "DELETE",
+      body: JSON.stringify({ confirm: true }),
+    });
+    workspaces.value = workspaces.value.filter(({ id }) => id !== workspace.value?.id);
+    workspace.value = workspaces.value[0];
+  }
+  function selectWorkspace(id: string) {
+    workspace.value = workspaces.value.find((item) => item.id === id);
+  }
   return {
     workspace,
+    workspaces,
     showAuthorize,
     previewPath,
     authorizing,
@@ -75,5 +94,7 @@ export function useWorkspaceAccess() {
     closeAuthorize,
     previewWorkspace,
     confirmWorkspace,
+    revokeWorkspace,
+    selectWorkspace,
   };
 }

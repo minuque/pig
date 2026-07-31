@@ -1,33 +1,28 @@
 import { randomUUID } from "crypto";
 import {
   InMemoryCommandExecutor,
-  SingleWorkspaceStrategyImpl,
   type CommandId,
   type LocalIdentityId,
   type PlatformPort,
   type Workspace,
   type WorkspaceId,
 } from "@no-pi-no-gang/contracts";
+import type { MetadataStore } from "../adapters/repositories/metadata-store.js";
 
-export class SingleWorkspaceConflictError extends Error {}
 export class WorkspaceAccessDeniedError extends Error {}
 
 export class WorkspacesApplication {
-  private readonly access = new Map<LocalIdentityId, Set<WorkspaceId>>();
-  private readonly workspaces = new Map<WorkspaceId, Workspace>();
-  private readonly policy = new SingleWorkspaceStrategyImpl();
   private readonly commands = new InMemoryCommandExecutor();
-
-  constructor(private readonly platform: PlatformPort) {}
-
+  constructor(
+    private readonly platform: PlatformPort,
+    private readonly metadata: MetadataStore,
+  ) {}
   async selectDirectory() {
     return this.platform.selectWorkspaceDirectory();
   }
-
   async preview(path: string) {
     return this.platform.canonicalizeWorkspacePath(path);
   }
-
   async confirm(
     identityId: LocalIdentityId,
     path: string,
@@ -39,43 +34,30 @@ export class WorkspacesApplication {
       commandId,
       { canonicalPath, name: name ?? "Workspace", identityId },
       async () => {
-        const existing = await this.policy.getCanonicalWorkspace();
-        if (existing && existing.canonicalPath !== canonicalPath)
-          throw new SingleWorkspaceConflictError();
         const now = new Date();
-        const workspace =
-          existing ??
-          ({
-            id: randomUUID() as WorkspaceId,
-            name: name ?? "Workspace",
-            canonicalPath,
-            createdAt: now,
-            updatedAt: now,
-          } satisfies Workspace);
-        if (!existing) {
-          this.workspaces.set(workspace.id, workspace);
-          await this.policy.setCanonicalWorkspace(workspace);
-        }
-        const access = this.access.get(identityId) ?? new Set<WorkspaceId>();
-        access.add(workspace.id);
-        this.access.set(identityId, access);
-        return workspace;
+        return this.metadata.confirmWorkspace(identityId, {
+          id: randomUUID() as WorkspaceId,
+          name: name ?? "Workspace",
+          canonicalPath,
+          createdAt: now,
+          updatedAt: now,
+        } satisfies Workspace);
       },
     );
   }
-
   list(identityId: LocalIdentityId) {
-    return [...this.workspaces.values()].filter(({ id }) => this.hasAccess(identityId, id));
+    return this.metadata.listWorkspaces(identityId);
   }
-
   get(identityId: LocalIdentityId, workspaceId: WorkspaceId) {
-    const workspace = this.workspaces.get(workspaceId);
-    if (!workspace || !this.hasAccess(identityId, workspaceId))
-      throw new WorkspaceAccessDeniedError();
+    const workspace = this.metadata.findWorkspace(identityId, workspaceId);
+    if (!workspace) throw new WorkspaceAccessDeniedError();
     return workspace;
   }
-
   hasAccess(identityId: LocalIdentityId, workspaceId: WorkspaceId) {
-    return this.access.get(identityId)?.has(workspaceId) === true;
+    return Boolean(this.metadata.findWorkspace(identityId, workspaceId));
+  }
+  revoke(identityId: LocalIdentityId, workspaceId: WorkspaceId) {
+    this.get(identityId, workspaceId);
+    this.metadata.revokeWorkspace(identityId, workspaceId);
   }
 }

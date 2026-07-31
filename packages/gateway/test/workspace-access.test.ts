@@ -110,7 +110,7 @@ describe("workspace access", () => {
     expect(((await retry.json()) as typeof first).workspace.id).toBe(first.workspace.id);
   });
 
-  it("rejects command reuse and a second canonical workspace", async () => {
+  it("rejects command reuse and permits multiple canonical workspaces", async () => {
     gateway = new Gateway({ platformPort, bootstrapSecret: "test-secret" });
     const port = await gateway.start();
     const { credential } = await bootstrap(port);
@@ -121,8 +121,9 @@ describe("workspace access", () => {
     expect(
       (await confirm({ path: "C:/One", name: "changed", commandId: "same-command" })).status,
     ).toBe(409);
-    const limited = await confirm({ path: "C:/Two", commandId: "other-command" });
-    expect(limited.status).toBe(409);
-    expect(await limited.json()).toEqual({ code: "SINGLE_WORKSPACE_LIMIT" });
+    const second = await confirm({ path: "C:/Two", commandId: "other-command" });
+    expect(second.status).toBe(201);
+    const listed = await request(port, "/api/v1/workspaces", undefined, credential);
+    expect(((await listed.json()) as { workspaces: unknown[] }).workspaces).toHaveLength(2);
   });
 });
