@@ -216,7 +216,7 @@ describe("Phase 0 acceptance gate", () => {
           read("packages/gateway/src/adapters/repositories/run-repository.ts"),
         ]).then((parts) => parts.join("\n")),
         read("packages/web/src/api/index.ts"),
-        read("packages/web/src/App.vue"),
+        read("packages/web/src/app/App.vue"),
         read("package.json"),
         read("packages/gateway/package.json"),
         read("packages/web/package.json"),

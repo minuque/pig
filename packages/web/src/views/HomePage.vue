@@ -1,14 +1,6 @@
 <template>
-  <div class="home-page">
-    <h1>Welcome to No-Pi-No-Gang MVP</h1>
-    <p>Phase 0: Workspace → Session → Prompt → Streaming</p>
-    <!-- Follow UI guidelines: use colors, spacing from tokens -->
+  <div class="flex min-h-screen flex-col items-center justify-center gap-4 p-10 text-center">
+    <h1 class="text-heading-1 font-bold text-ink">Welcome to No-Pi-No-Gang MVP</h1>
+    <p class="text-body-md text-ink-muted">Phase 0: Workspace → Session → Prompt → Streaming</p>
   </div>
 </template>
-
-<style scoped>
-.home-page {
-  padding: 40px;
-  text-align: center;
-}
-</style>

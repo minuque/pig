@@ -7,3 +7,4 @@ allowBuilds:
   "@google/genai": false
   esbuild: true
   protobufjs: false
+  vue-demi: true
