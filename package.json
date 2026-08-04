@@ -13,7 +13,6 @@
     "dev:web": "pnpm --filter @no-pi-no-gang/web dev",
     "build": "pnpm --filter @no-pi-no-gang/web build",
     "smoke:packed": "node scripts/smoke-packed.mjs",
-    "check:phase1": "pnpm check && pnpm build && pnpm smoke:packed",
     "preview": "pnpm --filter @no-pi-no-gang/web preview",
     "prestart": "pnpm build",
     "start": "tsx packages/gateway/src/cli.ts packages/web/dist",
