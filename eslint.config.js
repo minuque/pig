@@ -35,6 +35,15 @@ export default tseslint.config(
       "no-empty-pattern": "off",
       "prefer-const": "off",
       "preserve-caught-error": "off",
+      // 共享状态对象模式：props 传可变对象改字段合法，仅拦替换 props 本身
+      "vue/no-mutating-props": ["error", { shallowOnly: true }],
+    },
+  },
+  {
+    files: ["**/components/ui/**/*.vue"],
+    // shadcn-vue ui 组件惯例为单字名（badge.vue 等）
+    rules: {
+      "vue/multi-word-component-names": "off",
     },
   },
   {

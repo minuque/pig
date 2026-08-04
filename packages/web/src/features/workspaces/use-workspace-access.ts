@@ -1,4 +1,4 @@
-import { nextTick, ref } from "vue";
+import { ref } from "vue";
 import { api, errorMessage, type WorkspaceDto } from "../../api/index.js";
 
 export function useWorkspaceAccess() {
@@ -8,16 +8,11 @@ export function useWorkspaceAccess() {
   const previewPath = ref("");
   const authorizing = ref(false);
   const authorizeError = ref("");
-  const pickerButton = ref<HTMLButtonElement>();
 
   async function loadWorkspace() {
     workspaces.value = (await api<{ workspaces: WorkspaceDto[] }>("/workspaces")).workspaces;
     workspace.value = workspaces.value[0];
-    if (!workspace.value) {
-      showAuthorize.value = true;
-      await nextTick();
-      pickerButton.value?.focus();
-    }
+    if (!workspace.value) showAuthorize.value = true;
   }
   function clearPreview() {
     previewPath.value = "";
@@ -88,7 +83,6 @@ export function useWorkspaceAccess() {
     previewPath,
     authorizing,
     authorizeError,
-    pickerButton,
     loadWorkspace,
     clearPreview,
     closeAuthorize,
