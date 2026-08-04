@@ -1,9 +1,9 @@
 import { onMounted, ref } from "vue";
-import { bootstrapFromFragment, errorMessage } from "./api/index.js";
-import { terminalStatuses, transcriptText } from "./features/runs/run-state.js";
-import { useRuns } from "./features/runs/use-runs.js";
-import { useSessions } from "./features/sessions/use-sessions.js";
-import { useWorkspaceAccess } from "./features/workspaces/use-workspace-access.js";
+import { bootstrapFromFragment, errorMessage } from "../api/index.js";
+import { terminalStatuses, transcriptText } from "../features/runs/run-state.js";
+import { useRuns } from "../features/runs/use-runs.js";
+import { useSessions } from "../features/sessions/use-sessions.js";
+import { useWorkspaceAccess } from "../features/workspaces/use-workspace-access.js";
 
 export function useApp() {
   const startupError = ref("");

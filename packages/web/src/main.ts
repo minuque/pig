@@ -1,8 +1,8 @@
 import { createApp } from "vue";
-import "./reset.css";
-import "./app.css";
+import "./app/reset.css";
+import "./app/app.css";
 import "markstream-vue/index.css";
-import App from "./App.vue";
+import App from "./app/App.vue";
 import router from "./router/index.js";
 
 const app = createApp(App);

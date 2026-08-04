@@ -346,7 +346,7 @@
 import MarkdownRender from "markstream-vue";
 import { nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
-import { clampPanelWidth, isNearBottom } from "./features/sessions/session-state.js";
+import { clampPanelWidth, isNearBottom } from "../features/sessions/session-state.js";
 import { useApp } from "./use-app.js";
 
 const {
