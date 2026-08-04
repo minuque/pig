@@ -18,7 +18,6 @@ afterEach(() => {
 
 describe("useRuns event recovery", () => {
   it("reconnects after a disconnect, reloads transcript, and refreshes a queued run", async () => {
-    vi.useFakeTimers();
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
     api.mockImplementation((path: string, init?: RequestInit) => {
       if (path === "/capabilities")
@@ -42,11 +41,16 @@ describe("useRuns event recovery", () => {
         },
       });
     });
+    vi.useFakeTimers();
+    streamEvents.mockClear();
     streamEvents
-      .mockImplementationOnce(async (_onEvent, _signal, onOpen) => onOpen())
       .mockImplementationOnce(async (_onEvent, _signal, onOpen) => {
         onOpen();
-        await new Promise(() => undefined);
+        return { gap: false, latestSequence: undefined };
+      })
+      .mockImplementationOnce(async (_onEvent, _signal, onOpen) => {
+        onOpen();
+        return { gap: true, latestSequence: undefined };
       });
     const loadTranscript = vi.fn(async () => undefined);
     const workspace = ref<WorkspaceDto>({

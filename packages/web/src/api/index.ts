@@ -1,6 +1,8 @@
 export type { WorkspaceDto } from "../features/workspaces/types.js";
 export type { SessionDto } from "../features/sessions/types.js";
 
+import type { SSEEventEnvelope } from "@no-pi-no-gang/contracts";
+
 export class ApiError extends Error {
   constructor(
     readonly code: string,
@@ -48,28 +50,44 @@ export async function bootstrapFromFragment(): Promise<void> {
 export async function streamEvents(
   onEvent: (event: unknown) => void,
   signal: AbortSignal,
-  onOpen: () => void = () => undefined,
-): Promise<void> {
+  onOpen: (info: { gap: boolean; latestSequence?: number | undefined }) => void = () => undefined,
+  lastEventId?: number,
+): Promise<{ gap: boolean; latestSequence: number | undefined }> {
+  const headers: HeadersInit = {
+    authorization: `Bearer ${credential}`,
+  };
+  if (lastEventId !== undefined) {
+    headers["Last-Event-ID"] = lastEventId.toString();
+  }
   const response = await fetch("/api/v1/events", {
-    headers: { authorization: `Bearer ${credential}` },
+    headers,
     signal,
   });
   if (!response.ok || !response.body)
     throw new ApiError(`HTTP_${response.status}`, crypto.randomUUID());
-  onOpen();
+  const gap = response.headers.get("X-Event-Stream-Gap") === "1";
+  let latestSequence: number | undefined = undefined;
+  onOpen({ gap, latestSequence });
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
   while (true) {
     const { value, done } = await reader.read();
-    if (done) return;
+    if (done) return { gap, latestSequence };
     buffer += value;
     const messages = buffer.split("\n\n");
     buffer = messages.pop() ?? "";
     for (const message of messages) {
       const data = message.split("\n").find((line) => line.startsWith("data: "));
-      if (data) onEvent(JSON.parse(data.slice(6)) as unknown);
+      if (data) {
+        const envelope = JSON.parse(data.slice(6)) as SSEEventEnvelope;
+        onEvent(envelope);
+        if (latestSequence === undefined || envelope.sequence > latestSequence) {
+          latestSequence = envelope.sequence;
+        }
+      }
     }
   }
+  return { gap, latestSequence };
 }
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {

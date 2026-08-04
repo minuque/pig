@@ -3,11 +3,13 @@ import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import {
   CommandConflictError,
   type CommandId,
+  type ErrorCode,
   type LocalIdentityId,
   type PiRuntimeAdapter,
   type PlatformPort,
   type RunRepository,
   type SessionId,
+  type SSEEventEnvelope,
   type WorkspaceId,
 } from "@no-pi-no-gang/contracts";
 import { NodePlatformPort } from "../adapters/filesystem/node-platform.js";
@@ -27,6 +29,20 @@ import {
 } from "../application/sessions.js";
 import { WorkspaceAccessDeniedError, WorkspacesApplication } from "../application/workspaces.js";
 import { serveWebFile } from "./static-files.js";
+
+export class EventBuffer {
+  private readonly buffer: SSEEventEnvelope[] = [];
+  constructor(private readonly capacity = 1000) {}
+  push(event: SSEEventEnvelope) {
+    this.buffer.push(event);
+    if (this.buffer.length > this.capacity) this.buffer.shift();
+  }
+  replayAfter(seq: number): SSEEventEnvelope[] | undefined {
+    const idx = this.buffer.findIndex((e) => e.sequence === seq);
+    if (idx === -1) return undefined;
+    return this.buffer.slice(idx + 1);
+  }
+}
 
 export interface GatewayOptions {
   platformPort?: PlatformPort;
@@ -53,6 +69,19 @@ export class Gateway {
   private readonly runs: RunsApplication;
   private readonly metadata: SqliteMetadataStore;
   private readonly closesMetadata: boolean;
+  private readonly eventBuffer = new EventBuffer(1000);
+  private sequence = 1;
+  private readonly statusMap: Record<ErrorCode, number> = {
+    COMMAND_ID_CONFLICT: 409,
+    INVALID_EXECUTION_PROFILE: 400,
+    INVALID_SESSION_CURSOR: 400,
+    INVALID_RUN_STATE: 409,
+    WORKSPACE_ACCESS_DENIED: 403,
+    SESSION_NOT_FOUND: 404,
+    RUN_NOT_FOUND: 404,
+    INVALID_BOOTSTRAP: 401,
+    UNAUTHENTICATED: 401,
+  };
 
   constructor(options: GatewayOptions = {}) {
     const runtime = options.runtimeAdapter ?? new PiRuntimeAdapterImpl();
@@ -71,6 +100,8 @@ export class Gateway {
       runtime,
       options.runRepository ?? new InMemoryRunRepository(),
       (workspaceId, event) => {
+        event.sequence = ++this.sequence;
+        this.eventBuffer.push(event);
         const message = `data: ${JSON.stringify(event)}\n\n`;
         for (const [client, identityId] of this.eventClients)
           if (this.workspaces.hasAccess(identityId, workspaceId)) client.write(message);
@@ -102,20 +133,27 @@ export class Gateway {
   }
 
   private error(res: ServerResponse, error: unknown) {
-    if (error instanceof CommandConflictError)
-      return this.send(res, 409, { code: "COMMAND_ID_CONFLICT" });
-    if (error instanceof InvalidExecutionProfileError)
-      return this.send(res, 400, { code: "INVALID_EXECUTION_PROFILE" });
-    if (error instanceof InvalidSessionCursorError)
-      return this.send(res, 400, { code: "INVALID_SESSION_CURSOR" });
-    if (error instanceof InvalidRunStateError)
-      return this.send(res, 409, { code: "INVALID_RUN_STATE" });
-    if (error instanceof WorkspaceAccessDeniedError)
-      return this.send(res, 403, { code: "WORKSPACE_ACCESS_DENIED" });
-    if (error instanceof SessionNotFoundError)
-      return this.send(res, 404, { code: "SESSION_NOT_FOUND" });
-    if (error instanceof RunNotFoundError) return this.send(res, 404, { code: "RUN_NOT_FOUND" });
-    return this.send(res, 400, { code: "INVALID_REQUEST" });
+    let code: ErrorCode | undefined;
+    if (error instanceof CommandConflictError) {
+      code = "COMMAND_ID_CONFLICT";
+    } else if (error instanceof Error && "code" in error) {
+      code = error.code as ErrorCode;
+    }
+    if (!code) {
+      console.error("Unhandled error:", error);
+      return this.send(res, 500, { code: "INVALID_REQUEST" });
+    }
+    const status = this.statusMap[code] ?? 500;
+    return this.send(res, status, { code });
+  }
+
+  private requireString(value: unknown): string {
+    if (typeof value !== "string" || !value.trim()) {
+      const err = new Error("invalid field");
+      (err as any).code = "INVALID_REQUEST";
+      throw err;
+    }
+    return value.trim();
   }
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse) {
@@ -152,12 +190,27 @@ export class Gateway {
     const identityId = this.identity(req);
     if (!identityId) return this.send(res, 401, { code: "UNAUTHENTICATED" });
     if (url.pathname === "/api/v1/events" && req.method === "GET") {
+      let replay: SSEEventEnvelope[] | undefined = undefined;
+      const lastEventId = req.headers["last-event-id"] as string | undefined;
+      if (typeof lastEventId === "string") {
+        const s = Number(lastEventId);
+        if (!isNaN(s)) replay = this.eventBuffer.replayAfter(s);
+      }
       res.writeHead(200, {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
+        ...(replay === undefined ? { "X-Event-Stream-Gap": "1" } : {}),
       });
-      res.write(": connected\n\n");
+      if (replay !== undefined) {
+        for (const event of replay) {
+          if (this.workspaces.hasAccess(identityId, event.workspaceId)) {
+            res.write(`data: ${JSON.stringify(event)}\n\n`);
+          }
+        }
+      } else {
+        res.write(": connected\n\n");
+      }
       this.eventClients.set(res, identityId);
       res.on("close", () => this.eventClients.delete(res));
       return;
@@ -168,26 +221,16 @@ export class Gateway {
         return this.send(res, 200, { path: (await this.workspaces.selectDirectory()) ?? null });
       if (url.pathname === "/api/v1/workspaces/preview" && req.method === "POST") {
         const { path } = await this.body(req);
-        if (typeof path !== "string" || !path.trim()) throw new Error();
-        return this.send(res, 200, { canonicalPath: await this.workspaces.preview(path) });
+        const pathStr = this.requireString(path);
+        return this.send(res, 200, { canonicalPath: await this.workspaces.preview(pathStr) });
       }
       if (url.pathname === "/api/v1/workspaces/confirm" && req.method === "POST") {
         const { path, name, commandId } = await this.body(req);
-        if (
-          typeof path !== "string" ||
-          !path.trim() ||
-          typeof commandId !== "string" ||
-          !commandId.trim() ||
-          (name !== undefined && (typeof name !== "string" || !name.trim()))
-        )
-          throw new Error();
+        if (typeof path !== "string" || !path.trim()) throw new Error();
+        const cmdId = this.requireString(commandId);
+        const nameStr = name !== undefined ? this.requireString(name) : undefined;
         return this.send(res, 201, {
-          workspace: await this.workspaces.confirm(
-            identityId,
-            path,
-            name as string | undefined,
-            commandId as CommandId,
-          ),
+          workspace: await this.workspaces.confirm(identityId, path, nameStr, cmdId as CommandId),
         });
       }
       if (url.pathname === "/api/v1/workspaces" && req.method === "GET")
@@ -220,18 +263,14 @@ export class Gateway {
           });
         if (req.method === "POST") {
           const { commandId, name } = await this.body(req);
-          if (
-            typeof commandId !== "string" ||
-            !commandId.trim() ||
-            (name !== undefined && (typeof name !== "string" || !name.trim()))
-          )
-            throw new Error();
+          const cmdId = this.requireString(commandId);
+          const nameStr = name !== undefined ? this.requireString(name) : undefined;
           return this.send(res, 201, {
             session: await this.sessions.create(
               identityId,
               workspaceId,
-              name as string | undefined,
-              commandId as CommandId,
+              nameStr,
+              cmdId as CommandId,
             ),
           });
         }
@@ -249,33 +288,28 @@ export class Gateway {
           });
         if (req.method === "POST" && runsMatch[3] && runsMatch[4]) {
           const { commandId } = await this.body(req);
-          if (typeof commandId !== "string" || !commandId.trim()) throw new Error();
+          const cmdId = this.requireString(commandId);
           return this.send(res, 200, {
             run: await this.runs.cancel(
               identityId,
               workspaceId,
               sessionId,
               runsMatch[3],
-              commandId as CommandId,
+              cmdId as CommandId,
             ),
           });
         }
         if (req.method === "POST" && !runsMatch[3]) {
           const { commandId, prompt, profile } = await this.body(req);
-          if (
-            typeof commandId !== "string" ||
-            !commandId.trim() ||
-            typeof prompt !== "string" ||
-            !prompt.trim()
-          )
-            throw new Error();
+          const cmdId = this.requireString(commandId);
+          const promptStr = this.requireString(prompt);
           return this.send(res, 201, {
             run: await this.runs.create(
               identityId,
               workspaceId,
               sessionId,
-              prompt,
-              commandId as CommandId,
+              promptStr,
+              cmdId as CommandId,
               profile as import("@no-pi-no-gang/contracts").ExecutionProfile | undefined,
             ),
           });
@@ -287,14 +321,14 @@ export class Gateway {
       );
       if (steerMatch && req.method === "POST") {
         const { input } = await this.body(req);
-        if (typeof input !== "string" || !input.trim()) throw new Error();
+        const inputStr = this.requireString(input);
         return this.send(res, 200, {
           run: await this.runs.steer(
             identityId,
             steerMatch[1] as WorkspaceId,
             steerMatch[2] as SessionId,
             steerMatch[3]!,
-            input,
+            inputStr,
           ),
         });
       }
@@ -304,12 +338,13 @@ export class Gateway {
       if (sessionMatch && req.method === "PATCH") {
         const { name, confirm } = await this.body(req);
         if (confirm !== true || typeof name !== "string" || !name.trim()) throw new Error();
+        const nameStr = this.requireString(name);
         return this.send(res, 200, {
           session: await this.sessions.rename(
             identityId,
             sessionMatch[1] as WorkspaceId,
             sessionMatch[2] as SessionId,
-            name,
+            nameStr,
           ),
         });
       }

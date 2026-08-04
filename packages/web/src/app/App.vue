@@ -216,8 +216,7 @@ const {
 
 const unavailable = computed(() => currentSession.value?.status === "unavailable");
 const queuedCount = computed(
-  () =>
-    sessionRuns.value.filter(({ status }) => status === "admission" || status === "queued").length,
+  () => sessionRuns.value.filter(({ status }) => status === "queued").length,
 );
 function onSelectWorkspace(id: string) {
   selectWorkspace(id);

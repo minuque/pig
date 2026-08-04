@@ -8,6 +8,7 @@ export interface SSEEventEnvelope {
   workspaceId: WorkspaceId;
   sessionId?: SessionId;
   runId?: RunId;
+  sequence: number;
   timestamp?: Date;
 }
 export interface PiRunEvent {

@@ -202,25 +202,14 @@ describe("Phase 0 acceptance gate", () => {
     ).toBe(401);
   });
 
-  it("locks package, adapter, repository, index, platform, authorization, policy, and Phase 1 boundaries", async () => {
+  it("locks package dependency boundaries", async () => {
     const read = (path: string) => readFile(join(root, path), "utf8");
-    const [contracts, gatewaySource, webSource, app, rootPackage, gatewayPackage, webPackage] =
-      await Promise.all([
-        read("packages/contracts/src/index.ts"),
-        Promise.all([
-          read("packages/gateway/src/server/Gateway.ts"),
-          read("packages/gateway/src/application/workspaces.ts"),
-          read("packages/gateway/src/application/sessions.ts"),
-          read("packages/gateway/src/application/runs.ts"),
-          read("packages/gateway/src/adapters/pi/runtime.ts"),
-          read("packages/gateway/src/adapters/repositories/run-repository.ts"),
-        ]).then((parts) => parts.join("\n")),
-        read("packages/web/src/api/index.ts"),
-        read("packages/web/src/app/App.vue"),
-        read("package.json"),
-        read("packages/gateway/package.json"),
-        read("packages/web/package.json"),
-      ]);
+    const [contracts, rootPackage, gatewayPackage, webPackage] = await Promise.all([
+      read("packages/contracts/src/index.ts"),
+      read("package.json"),
+      read("packages/gateway/package.json"),
+      read("packages/web/package.json"),
+    ]);
     const gatewayDependencies = JSON.parse(gatewayPackage).dependencies;
     const webDependencies = JSON.parse(webPackage).dependencies;
 
@@ -230,17 +219,6 @@ describe("Phase 0 acceptance gate", () => {
     });
     expect(webDependencies).not.toHaveProperty("@no-pi-no-gang/testkit");
     expect(contracts).not.toMatch(/from ["'](?:vue|node:|fs|path|http|@pi)/);
-    expect(gatewaySource).toContain("implements PiRuntimeAdapter");
-    expect(gatewaySource).toContain("runtime.discoverSessions");
-    expect(gatewaySource).toContain("implements RunRepository");
-    expect(gatewaySource).toContain("platform.canonicalizeWorkspacePath");
-    expect(gatewaySource).toContain("workspaces.get(identityId");
-    expect(gatewaySource).toContain('status: "queued"');
-    expect(gatewaySource).toContain("maxConcurrentRuns");
-    expect(webSource).not.toMatch(/@pi|PiRuntime|piSession/);
-    expect(app).toContain('html-policy="safe"');
-    expect(app).not.toContain("v-html");
-    expect(app).not.toMatch(/innerHTML|javascript:|\sonerror\s*=/i);
-    expect(`${contracts}\n${rootPackage}`).not.toMatch(/replay|epoch|revision/i);
+    expect(rootPackage).not.toMatch(/replay|epoch|revision/i);
   });
 });

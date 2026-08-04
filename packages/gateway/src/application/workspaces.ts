@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import {
   InMemoryCommandExecutor,
   type CommandId,
+  type ErrorCode,
   type LocalIdentityId,
   type PlatformPort,
   type Workspace,
@@ -9,7 +10,9 @@ import {
 } from "@no-pi-no-gang/contracts";
 import type { SqliteMetadataStore } from "../adapters/repositories/metadata-store.js";
 
-export class WorkspaceAccessDeniedError extends Error {}
+export class WorkspaceAccessDeniedError extends Error {
+  readonly code: ErrorCode = "WORKSPACE_ACCESS_DENIED";
+}
 
 export class WorkspacesApplication {
   private readonly commands = new InMemoryCommandExecutor();

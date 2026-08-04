@@ -1,3 +1,5 @@
+import type { RunStatus } from "../run-state.js";
+
 export type WorkspaceId = string & { readonly __brand: "WorkspaceId" };
 export type SessionId = string & { readonly __brand: "SessionId" };
 export type RunId = string & { readonly __brand: "RunId" };
@@ -42,7 +44,7 @@ export interface Run {
   prompt: string;
   commandId: CommandId;
   profile?: ExecutionProfile;
-  status: "admission" | "queued" | "running" | "cancelling" | "cancelled" | "failed" | "completed";
+  status: RunStatus;
   output?: string;
   createdAt: Date;
   updatedAt: Date;

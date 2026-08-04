@@ -42,6 +42,7 @@ export function useRuns(
   );
   const runs = computed(() => clientState.value?.runs ?? new Map<string, UiRun>());
   const queuedEvents = new Map<string, SSEEventEnvelope[]>();
+  let lastSequence: number | undefined;
   const sessionRuns = computed(() =>
     [...runs.value.values()].filter(({ sessionId }) => sessionId === currentSession.value?.id),
   );
@@ -52,6 +53,10 @@ export function useRuns(
 
   function handleEvent(value: unknown) {
     const envelope = value as SSEEventEnvelope;
+    if (lastSequence !== undefined && envelope.sequence <= lastSequence) {
+      return; // ignore old non-replay event
+    }
+    lastSequence = Math.max(lastSequence ?? 0, envelope.sequence);
     const run = routeSessionEvent(states, envelope);
     if (!run) {
       if (
@@ -110,12 +115,26 @@ export function useRuns(
     void (async () => {
       for (let attempt = 0; attempt < 3 && !eventController.signal.aborted; attempt++) {
         try {
-          await streamEvents(handleEvent, eventController.signal, () => {
-            if (!opened) {
-              opened = true;
-              resolveReady();
-            } else void recoverAfterReconnect();
-          });
+          const { gap, latestSequence } = await streamEvents(
+            handleEvent,
+            eventController.signal,
+            (info) => {
+              if (!opened) {
+                opened = true;
+                resolveReady();
+              }
+            },
+            lastSequence,
+          );
+          if (
+            gap ||
+            (lastSequence === undefined
+              ? false
+              : latestSequence !== undefined && latestSequence <= lastSequence)
+          ) {
+            await recoverAfterReconnect();
+          }
+          if (latestSequence !== undefined) lastSequence = latestSequence;
           if (!eventController.signal.aborted) throw new Error("Event stream disconnected");
         } catch (error) {
           if (eventController.signal.aborted) return;

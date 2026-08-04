@@ -1,8 +1,11 @@
 import { randomUUID } from "crypto";
 import {
+  canTransition,
   CONTRACT_VERSION,
   InMemoryCommandExecutor,
+  terminalStatuses,
   type CommandId,
+  type ErrorCode,
   type ExecutionProfile,
   type LocalIdentityId,
   type PiRuntimeAdapter,
@@ -14,26 +17,39 @@ import {
   type WorkspaceId,
 } from "@no-pi-no-gang/contracts";
 import { SessionsApplication } from "./sessions.js";
+import { RunScheduler } from "./run-scheduler.js";
+import { RunStateMachine } from "./run-state-machine.js";
 
-export class RunNotFoundError extends Error {}
-export class InvalidExecutionProfileError extends Error {}
-export class InvalidRunStateError extends Error {}
-export const terminalStatuses = new Set<Run["status"]>(["completed", "failed", "cancelled"]);
+export class RunNotFoundError extends Error {
+  readonly code: ErrorCode = "RUN_NOT_FOUND";
+}
+export class InvalidExecutionProfileError extends Error {
+  readonly code: ErrorCode = "INVALID_EXECUTION_PROFILE";
+}
+export class InvalidRunStateError extends Error {
+  readonly code: ErrorCode = "INVALID_RUN_STATE";
+}
 
 export class RunsApplication {
   private readonly commands = new InMemoryCommandExecutor();
-  private readonly terminalEvents = new Set<RunId>();
-  private readonly queues = new Map<string, Run[]>();
-  private readonly active = new Map<string, RunId>();
-  private running = 0;
-  private scheduling = false;
+  private readonly scheduler: RunScheduler;
+  private readonly stateMachine: RunStateMachine;
   constructor(
     private readonly sessions: SessionsApplication,
     private readonly runtime: PiRuntimeAdapter,
     private readonly repository: RunRepository,
     private readonly emit: (workspaceId: WorkspaceId, event: SSEEventEnvelope) => void,
     private readonly concurrency = 2,
-  ) {}
+  ) {
+    this.stateMachine = new RunStateMachine(this.emit, this.repository);
+    this.scheduler = new RunScheduler(
+      this.stateMachine,
+      this.repository,
+      this.runtime,
+      this.emit,
+      this.concurrency,
+    );
+  }
   capabilities() {
     return this.runtime.capabilities();
   }
@@ -87,11 +103,7 @@ export class RunsApplication {
           updatedAt: now,
         };
         await this.repository.save(run);
-        const key = this.sessionKey(workspaceId, sessionId);
-        const queue = this.queues.get(key) ?? [];
-        queue.push(run);
-        this.queues.set(key, queue);
-        void this.schedule();
+        this.scheduler.enqueue(run, workspaceId, sessionId);
         return run;
       },
     );
@@ -111,29 +123,35 @@ export class RunsApplication {
         const current = await this.repository.findById(run.id);
         if (!current || terminalStatuses.has(current.status)) return current ?? run;
         const key = this.sessionKey(workspaceId, sessionId);
-        if (current.status === "queued" && this.active.get(key) !== current.id) {
-          const cancelled = await this.repository.transition(current.id, ["queued"], {
+        if (
+          current.status === "queued" &&
+          this.scheduler.getActiveId(workspaceId, sessionId) !== current.id
+        ) {
+          const currentStatus = current.status;
+          if (!canTransition(currentStatus, "cancelled"))
+            return (await this.repository.findById(current.id)) ?? current;
+          const cancelled = await this.repository.transition(current.id, [currentStatus], {
             ...current,
             status: "cancelled",
             updatedAt: new Date(),
           });
           if (!cancelled) return (await this.repository.findById(current.id)) ?? current;
-          const queue = this.queues.get(key) ?? [];
-          this.queues.set(
-            key,
-            queue.filter(({ id }) => id !== current.id),
-          );
-          this.emitTerminal(cancelled);
+          this.scheduler.removeQueued(key, current.id);
+          this.stateMachine.emitTerminal(cancelled);
           return cancelled;
         }
         if (current.status === "cancelling") return current;
-        const cancelling = await this.repository.transition(current.id, ["running"], {
+        const currentStatus = current.status;
+        if (!canTransition(currentStatus, "cancelling"))
+          return (await this.repository.findById(current.id)) ?? current;
+        const cancelling = await this.repository.transition(current.id, [currentStatus], {
           ...current,
           status: "cancelling",
           updatedAt: new Date(),
         });
         if (!cancelling) return (await this.repository.findById(current.id)) ?? current;
-        this.emitEvent(cancelling, "run.cancelling", { status: "cancelling" });
+        this.stateMachine.markCancelling(cancelling.id);
+        this.stateMachine.emitEvent(cancelling, "run.cancelling", { status: "cancelling" });
         void this.cancelRuntime(cancelling);
         return cancelling;
       },
@@ -147,102 +165,27 @@ export class RunsApplication {
     input: string,
   ) {
     const run = await this.existing(identityId, workspaceId, sessionId, runId);
-    if (
-      run.status !== "running" ||
-      this.active.get(this.sessionKey(workspaceId, sessionId)) !== run.id
-    )
+    if (run.status !== "running" || this.scheduler.getActiveId(workspaceId, sessionId) !== run.id)
       throw new InvalidRunStateError();
     await this.runtime.steerRun(run.id, input);
     return run;
   }
-  private schedule() {
-    if (this.scheduling) return;
-    this.scheduling = true;
-    try {
-      while (this.running < this.concurrency) {
-        const entry = [...this.queues].find(
-          ([key, queue]) => queue.length && !this.active.has(key),
-        );
-        if (!entry) return;
-        const [key, queue] = entry;
-        const run = queue.shift()!;
-        this.active.set(key, run.id);
-        this.running++;
-        void this.execute(run);
-      }
-    } finally {
-      this.scheduling = false;
-    }
-  }
-  private async execute(run: Run) {
-    try {
-      const running = await this.repository.transition(run.id, ["queued"], {
-        ...run,
-        status: "running",
-        updatedAt: new Date(),
-      });
-      if (!running) return;
-      this.emitEvent(running, "run.running", { status: "running", profile: running.profile });
-      const settled = await this.runtime.createRun(
-        running.workspaceId,
-        running.sessionId,
-        running.prompt,
-        running.id as unknown as CommandId,
-        (event) => void this.emitIncrement(running, event.type, event.data),
-        running.profile,
-      );
-      const saved = await this.repository.transition(run.id, ["running", "cancelling"], {
-        ...running,
-        ...settled,
-        updatedAt: new Date(),
-      });
-      if (saved) this.emitTerminal(saved);
-    } catch {
-      const failed = await this.repository.transition(run.id, ["queued", "running", "cancelling"], {
-        ...run,
-        status: "failed",
-        updatedAt: new Date(),
-      });
-      if (failed) this.emitTerminal(failed);
-    } finally {
-      this.active.delete(this.sessionKey(run.workspaceId, run.sessionId));
-      this.running--;
-      void this.schedule();
-    }
+  private sessionKey(workspaceId: WorkspaceId, sessionId: SessionId) {
+    return `${workspaceId}:${sessionId}`;
   }
   private async cancelRuntime(run: Run) {
     try {
       await this.runtime.cancelRun(run.id);
     } catch {
-      const failed = await this.repository.transition(run.id, ["cancelling"], {
-        ...run,
-        status: "failed",
-        updatedAt: new Date(),
-      });
-      if (failed) this.emitTerminal(failed);
+      const current = await this.repository.findById(run.id);
+      if (current && canTransition(current.status, "failed")) {
+        const failed = await this.repository.transition(run.id, [current.status], {
+          ...run,
+          status: "failed",
+          updatedAt: new Date(),
+        });
+        if (failed) this.stateMachine.emitTerminal(failed);
+      }
     }
-  }
-  private sessionKey(workspaceId: WorkspaceId, sessionId: SessionId) {
-    return `${workspaceId}:${sessionId}`;
-  }
-  private async emitIncrement(run: Run, type: string, data: unknown) {
-    const current = await this.repository.findById(run.id);
-    if (current?.status === "running") this.emitEvent(run, type, data);
-  }
-  private emitTerminal(run: Run) {
-    if (!terminalStatuses.has(run.status) || this.terminalEvents.has(run.id)) return;
-    this.terminalEvents.add(run.id);
-    this.emitEvent(run, `run.${run.status}`, { status: run.status, output: run.output });
-  }
-  private emitEvent(run: Run, type: string, data: unknown) {
-    this.emit(run.workspaceId, {
-      version: CONTRACT_VERSION,
-      type,
-      data,
-      workspaceId: run.workspaceId,
-      sessionId: run.sessionId,
-      runId: run.id,
-      timestamp: new Date(),
-    });
   }
 }

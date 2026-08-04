@@ -1,5 +1,9 @@
-import type { Run, RunId, RunRepository } from "@no-pi-no-gang/contracts";
-import { terminalStatuses } from "../../application/runs.js";
+import {
+  terminalStatuses,
+  type Run,
+  type RunId,
+  type RunRepository,
+} from "@no-pi-no-gang/contracts";
 
 export class InMemoryRunRepository implements RunRepository {
   private readonly runs = new Map<RunId, Run>();

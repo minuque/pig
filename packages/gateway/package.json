@@ -11,6 +11,13 @@
     "dist",
     "web"
   ],
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "types": "./src/index.d.ts"
+    },
+    "./src/*": "./src/*"
+  },
   "bundledDependencies": [
     "@no-pi-no-gang/contracts"
   ],

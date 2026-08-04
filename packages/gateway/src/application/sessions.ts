@@ -1,6 +1,7 @@
 import {
   InMemoryCommandExecutor,
   type CommandId,
+  type ErrorCode,
   type LocalIdentityId,
   type PiRuntimeAdapter,
   type SessionId,
@@ -9,8 +10,12 @@ import {
 import type { SqliteMetadataStore } from "../adapters/repositories/metadata-store.js";
 import { WorkspacesApplication } from "./workspaces.js";
 
-export class SessionNotFoundError extends Error {}
-export class InvalidSessionCursorError extends Error {}
+export class SessionNotFoundError extends Error {
+  readonly code: ErrorCode = "SESSION_NOT_FOUND";
+}
+export class InvalidSessionCursorError extends Error {
+  readonly code: ErrorCode = "INVALID_SESSION_CURSOR";
+}
 
 export class SessionsApplication {
   private readonly commands = new InMemoryCommandExecutor();
