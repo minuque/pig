@@ -4,6 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>no-pi-no-gang</title>
+    <script>
+      // 首屏主题引导：与 vueuse useColorMode(storageKey: "npg-theme") 同格式；非法/缺失视为 auto
+      (function () {
+        var stored;
+        try {
+          stored = localStorage.getItem("npg-theme");
+          if (stored !== "light" && stored !== "dark" && stored !== "auto") {
+            stored = "auto";
+            localStorage.setItem("npg-theme", stored);
+          }
+        } catch (e) {
+          /* localStorage 不可用时继续使用系统偏好 */
+        }
+        var dark =
+          stored === "dark" ||
+          (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.documentElement.classList.add("dark");
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

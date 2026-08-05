@@ -93,10 +93,9 @@
   --size-drawer: 360px; /* mobile drawer width */
   --size-content: 52rem; /* transcript/prompt max width */
   --size-modal: 32rem; /* dialog max width */
-  --size-textarea-min: 70px; /* prompt textarea */
-  --size-textarea-min-compact: 54px;
   --size-welcome: 45rem;
   --size-nav-action: 28px;
+  --size-candidate-list: 300px;
 
   /* Font weights — DESIGN.md roles: 400/500/600/700 */
   --font-weight-regular: 400;
@@ -120,6 +119,13 @@
   --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.2); /* jump-to-latest button */
   --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.2); /* mobile drawers */
   --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.18); /* dialog */
+  /* Popover/menu 浮层阴影（composer 系列共用） */
+  --shadow-popover:
+    0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 1px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
+  /* Composer 反色主按钮（浅色主题深底浅字，深色主题反相） */
+  --inverse-bg: #0b0d12;
+  --inverse-bg-hover: #2a2f3a;
+  --inverse-fg: #ffffff;
 
   /* Elevation — barely-there layered shadows */
   --shadow-soft:
@@ -142,6 +148,45 @@
   --duration-shimmer: 2s; /* loading 扫光循环 */
 
   --focus: 0 0 0 3px rgba(0, 117, 222, 0.3);
+}
+
+/* ─── Dark mode — Notion 风格中性色；仅覆盖颜色/阴影 token，尺寸/动效继承 :root ─── */
+.dark {
+  color-scheme: dark;
+  --primary: #3b9df0;
+  --primary-active: #2f8ae0;
+  --on-primary: #0b0b0b; /* primary 上需深色文字（#e8e8e8 对比仅 2.4:1，不达 WCAG） */
+  --canvas: #1f1f1f;
+  --canvas-soft: #161616;
+  --surface: #1f1f1f;
+  --ink: #e8e8e8;
+  --ink-secondary: #c9c9c9;
+  --ink-muted: #9a9a9a;
+  --ink-faint: #888888;
+  --hairline: #303030;
+  /* sticker 中用作状态色的两个橙提亮（run 失败左条 / active session 文字） */
+  --accent-orange: #ff8a3d;
+  --accent-orange-deep: #d97706;
+  --success: #33c35e;
+  --warning: #ff8a3d;
+  --danger: #ff6b6b;
+  --scrim: rgba(0, 0, 0, 0.55);
+  --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --shadow-soft:
+    0 0.175px 1.041px rgba(0, 0, 0, 0.3), 0 0.8px 2.925px rgba(0, 0, 0, 0.3),
+    0 2.025px 7.847px rgba(0, 0, 0, 0.32), 0 4px 18px rgba(0, 0, 0, 0.4);
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.25),
+    0 0 0 0.5px rgba(255, 255, 255, 0.07); /* hairline ring 反相为微亮 */
+  --shadow-elevated:
+    0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
+  --focus: 0 0 0 3px rgba(59, 157, 240, 0.45);
+  --inverse-bg: #f5f5f5;
+  --inverse-bg-hover: #ffffff;
+  --inverse-fg: #0a0a0a;
 }
 
 /* Tailwind v4 mapping — utilities like bg-canvas-soft, text-ink, rounded-lg */
@@ -309,13 +354,6 @@ textarea {
   visibility: hidden;
   padding: 0;
 }
-.actions,
-.composer-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-}
 .secondary,
 .icon-button {
   background: var(--surface);
@@ -361,13 +399,6 @@ textarea {
   position: relative;
   min-width: 0;
   border-radius: var(--radius-lg);
-  transition:
-    box-shadow var(--duration-fast) var(--ease-smooth),
-    background var(--duration-fast) var(--ease-smooth);
-}
-.workspace-item:has(.workspace-row.expanded) {
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
 }
 .workspace-row {
   display: flex;
@@ -530,6 +561,7 @@ small,
   background: var(--hairline);
 }
 main {
+  grid-column: 3;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -568,8 +600,13 @@ main {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.workbench-header > .session-status {
+.header-right {
+  display: flex;
+  align-items: center;
   justify-self: end;
+  gap: var(--spacing-xs);
+}
+.header-right .session-status {
   margin: 0;
   color: var(--ink-muted);
   font-family: var(--font-mono);
@@ -578,10 +615,6 @@ main {
 .status-mark {
   color: var(--success);
   font-size: var(--text-eyebrow);
-}
-.header-spacer {
-  width: var(--size-control);
-  justify-self: end;
 }
 .startup-error {
   margin: var(--spacing-md);
@@ -612,12 +645,6 @@ main {
   min-height: 100%;
   margin: auto;
   padding: var(--spacing-md);
-}
-.prompt {
-  padding: var(--spacing-md);
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
 }
 .streaming {
   border-left: var(--border-width-emphasis) solid var(--primary);
@@ -712,72 +739,11 @@ main {
     animation: none;
   }
 }
-/* ── composer（原型：状态行 + 模型 badge + Steer/排队） ──────────── */
-.c-status {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding-bottom: var(--spacing-xs);
-  margin-bottom: var(--spacing-xs);
-  border-bottom: var(--border-width) solid var(--hairline);
-  flex-wrap: wrap;
-}
-.c-reason {
-  margin: var(--spacing-xs) 0 0;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border: var(--border-width) solid var(--hairline);
-  border-left: var(--border-width-emphasis) solid var(--accent-orange-deep);
-  border-radius: var(--radius-md);
-  background: var(--canvas-soft);
-  font-size: 13px;
-  color: var(--ink-muted);
-}
-.badge-profile {
-  padding: var(--spacing-xxs) var(--spacing-sm);
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-full);
-  background: var(--surface);
-  color: var(--ink-2);
-  font-size: 12px;
-  font-weight: var(--font-weight-semibold);
-  white-space: nowrap;
-}
-.c-note {
-  font-size: 12px;
-  color: var(--ink-muted);
-}
-.prompt.disabled {
-  background: var(--canvas-soft);
-}
-.prompt.disabled .composer-row select {
-  background: var(--canvas-soft);
-}
-.run-status-line {
-  display: flex;
-}
 .jump-latest {
   position: absolute;
   right: var(--spacing-md);
   bottom: var(--spacing-md);
   box-shadow: var(--shadow-float);
-}
-.prompt {
-  width: min(var(--size-content), 100%);
-  margin: auto;
-}
-.prompt textarea {
-  display: block;
-  width: 100%;
-  min-height: var(--size-textarea-min);
-  margin: var(--spacing-xs) 0;
-  resize: vertical;
-}
-.composer-row select {
-  min-width: 0;
-}
-.composer-actions {
-  justify-content: flex-start;
-  flex-wrap: wrap;
 }
 .notice {
   padding: var(--spacing-md);
@@ -787,98 +753,6 @@ main {
 }
 .error {
   border-left: var(--border-width-emphasis) solid var(--danger);
-}
-.welcome {
-  min-height: 0;
-  flex: 1;
-  display: grid;
-  place-items: center;
-  padding: var(--spacing-lg);
-}
-.welcome-form {
-  width: min(var(--size-welcome), 100%);
-  transform: translateY(calc(-1 * var(--spacing-xxl)));
-  animation: enter-blur var(--duration-slow) var(--ease-out);
-}
-.welcome-title {
-  margin: 0 0 var(--spacing-lg);
-  text-align: center;
-  font-size: var(--text-heading-2);
-  letter-spacing: var(--tracking-heading-2);
-}
-.welcome-composer {
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-xl);
-  background: var(--surface);
-  box-shadow: var(--shadow-elevated);
-  transition:
-    box-shadow var(--duration-fast) var(--ease-smooth),
-    transform var(--duration-fast) var(--ease-smooth);
-}
-.welcome-composer:focus-within {
-  box-shadow: var(--shadow-elevated), var(--focus);
-}
-.welcome-composer textarea {
-  display: block;
-  width: 100%;
-  min-height: calc(2 * var(--size-textarea-min));
-  padding: var(--spacing-sm);
-  resize: vertical;
-  border: 0;
-  background: transparent;
-  font-size: var(--text-body-md);
-}
-.welcome-composer textarea:focus-visible {
-  outline: 0;
-  box-shadow: none;
-}
-.welcome-controls {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-.welcome-controls select {
-  min-width: 0;
-  max-width: 42%;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: var(--canvas-soft);
-  font-size: var(--text-caption);
-}
-.welcome-spacer {
-  flex: 1;
-}
-.welcome-send {
-  flex: none;
-  width: var(--size-control);
-  padding: 0;
-}
-.welcome-send svg {
-  width: var(--spacing-lg);
-  height: var(--spacing-lg);
-}
-.welcome-auth {
-  margin: var(--spacing-md) 0 0;
-  text-align: center;
-}
-.welcome-form > .notice {
-  margin-top: var(--spacing-md);
-}
-.modal-backdrop {
-  position: fixed;
-  z-index: var(--z-modal);
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: var(--spacing-md);
-  background: var(--scrim);
-}
-.modal {
-  width: min(var(--size-modal), 100%);
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-modal);
 }
 .preview {
   display: grid;
@@ -931,63 +805,82 @@ main {
 .session-card {
   padding-right: var(--spacing-xl);
 }
-.menu-scrim {
-  position: fixed;
-  z-index: var(--z-drawer);
-  inset: 0;
-}
-.workspace-item > .session-menu {
-  top: var(--size-control);
-  right: var(--spacing-xxs);
-}
-.session-menu {
-  position: absolute;
-  z-index: calc(var(--z-drawer) + 1);
-  top: calc(100% - var(--spacing-xs));
-  right: var(--spacing-xs);
-  min-width: var(--size-menu);
-  padding: var(--spacing-xxs);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  box-shadow: var(--shadow-elevated);
-}
-.session-menu button {
-  display: block;
-  width: 100%;
-  min-height: 0;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--ink);
-  text-align: left;
-  font-size: var(--text-caption);
-}
-.session-menu button:hover {
-  background: var(--canvas-soft);
-}
-.session-menu .danger-text {
-  color: var(--danger);
-}
 @media (hover: none) {
   .session-kebab {
     opacity: 1;
   }
 }
 
-/* ── dialog（重命名/删除） ────────────────────────────────────────── */
+/* ── dialog（重命名/删除/授权） ─────────────────────────────────── */
 .rename-input {
   display: block;
   width: 100%;
   margin: var(--spacing-md) 0;
 }
-.dialog-note {
-  margin: var(--spacing-md) 0;
-  color: var(--ink-muted);
-}
-.dialog-actions {
-  justify-content: flex-end;
+/* authorize dialog：最近 Pi 目录候选（平面行，不加重阴影卡片） */
+.candidates {
+  display: grid;
   gap: var(--spacing-xs);
+}
+.candidates-note {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+}
+.candidate-list {
+  display: grid;
+  gap: var(--spacing-xxs);
+  max-height: var(--size-candidate-list);
+  margin: 0;
+  padding: 0 var(--spacing-xxs) 0 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+.candidate-row {
+  display: grid;
+  gap: var(--spacing-xxs);
+  width: 100%;
+  min-height: var(--size-control);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth);
+}
+.candidate-row:hover {
+  background: var(--canvas-soft);
+}
+.candidate-name {
+  font-weight: var(--font-weight-medium);
+}
+.candidate-path {
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  overflow-wrap: anywhere;
+}
+@media (pointer: coarse) {
+  .candidate-row {
+    min-height: calc(var(--size-control) + var(--spacing-xxs));
+  }
+}
+/* DialogContent 定位：top-1/2 left-1/2 + transform 居中（Tailwind translate-* 走 translate 属性，
+   与 keyframes 的 transform 叠加会双重偏移，故居中基值放这里，入场动画只负责 6px 起跳） */
+[data-slot="dialog-content"] {
+  transform: translate(-50%, -50%);
+}
+/* shadcn-vue Dialog 右上关闭按钮：覆盖全局 button 造型（token 派生） */
+[data-slot="dialog-close"] {
+  min-height: 0;
+  padding: var(--spacing-xxs);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--ink-muted);
 }
 button.danger {
   background: var(--danger);
@@ -1075,6 +968,19 @@ button.danger {
     filter: blur(0);
   }
 }
+/* DialogContent 入场：keyframes 内嵌 -50% 居中偏移，避免覆盖 fixed translate 定位 */
+@keyframes dialog-enter {
+  from {
+    transform: translate(-50%, calc(-50% + 6px));
+    opacity: 0;
+    filter: blur(2px);
+  }
+  to {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
 .enter-blur {
   animation: enter-blur var(--duration-slow) var(--ease-out);
 }
@@ -1148,9 +1054,9 @@ button.danger {
 }
 @media (max-width: 520px) {
   .workbench-header {
-    grid-template-columns: var(--size-control) minmax(0, 1fr) var(--size-control);
+    grid-template-columns: var(--size-control) minmax(0, 1fr) auto;
   }
-  .workbench-header > .session-status {
+  .header-right .session-status {
     width: var(--size-control);
     overflow: hidden;
     font-size: 0;
@@ -1159,13 +1065,8 @@ button.danger {
   .workbench-header .status-mark {
     font-size: var(--text-eyebrow);
   }
-  .workbench-header button {
+  .workbench-header > .header-toggle {
     padding-inline: var(--spacing-sm);
-  }
-  .composer-row {
-    align-items: stretch;
-    flex-direction: column;
-    gap: var(--spacing-xxs);
   }
   .session-status {
     align-self: flex-start;
@@ -1174,27 +1075,10 @@ button.danger {
   .workspace-main {
     gap: var(--spacing-xs);
   }
-  .prompt {
-    padding: var(--spacing-sm);
-  }
-  .prompt textarea {
-    min-height: var(--size-textarea-min-compact);
-  }
-  .welcome {
-    padding: var(--spacing-sm);
-  }
-  .welcome-form {
-    transform: none;
-  }
-  .welcome-title {
-    font-size: var(--text-heading-3);
-  }
-  .welcome-controls {
-    flex-wrap: wrap;
-  }
-  .welcome-controls select {
-    max-width: 100%;
-    flex: 1 1 100%;
+}
+@media (pointer: coarse) {
+  [data-slot="dropdown-menu-item"] {
+    min-height: calc(var(--size-control) + var(--spacing-xxs));
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1208,10 +1092,13 @@ button.danger {
   .workspace-row,
   .workspace-chevron,
   .session-kebab,
-  .welcome-form,
-  .welcome-composer,
   .dot.pulse {
     transition: none;
     animation: none;
+  }
+  /* shadcn-vue 组件入场动画（Dialog/DropdownMenu）：!important 压过 data-[state=open]:animate-* 工具类 */
+  [data-slot="dialog-content"][data-state="open"],
+  [data-slot="dropdown-menu-content"][data-state="open"] {
+    animation: none !important;
   }
 }

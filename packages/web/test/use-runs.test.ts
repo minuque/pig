@@ -21,7 +21,16 @@ describe("useRuns event recovery", () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
     api.mockImplementation((path: string, init?: RequestInit) => {
       if (path === "/capabilities")
-        return Promise.resolve({ profiles: [{ model: "fake/model", thinkingLevel: "off" }] });
+        return Promise.resolve({
+          presets: [{ model: "fake/model", thinkingLevel: "off" }],
+          catalog: [
+            {
+              id: "fake",
+              name: "Fake",
+              models: [{ id: "model", name: "Model", reasoning: false, thinkingLevels: ["off"] }],
+            },
+          ],
+        });
       if (init?.method === "POST")
         return Promise.resolve({
           run: {

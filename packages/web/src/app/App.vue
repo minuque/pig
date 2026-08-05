@@ -60,13 +60,15 @@
             (currentSession ? `Session ${currentSession.id.slice(0, 8)}` : "新建 Session")
           }}
         </h1>
-        <p v-if="currentSession" class="session-status">
-          <span class="status-mark" aria-hidden="true">{{
-            currentSession.status === "available" ? "●" : "!"
-          }}</span>
-          {{ currentSession.status === "available" ? "Available" : "Unavailable" }}
-        </p>
-        <span v-else class="header-spacer" aria-hidden="true"></span>
+        <div class="header-right">
+          <p v-if="currentSession" class="session-status">
+            <span class="status-mark" aria-hidden="true">{{
+              currentSession.status === "available" ? "●" : "!"
+            }}</span>
+            {{ currentSession.status === "available" ? "Available" : "Unavailable" }}
+          </p>
+          <ThemeToggle />
+        </div>
       </header>
 
       <div v-if="startupError" class="notice error startup-error" role="alert">
@@ -89,27 +91,27 @@
           @cancel-run="cancelRun"
         />
 
-        <ComposerBar
+        <ChatInput
           v-model:prompt="prompt"
-          v-model:profile="profile"
+          v-model:preset="preset"
+          :catalog="catalog"
           :active-run="activeRun"
           :queued-count="queuedCount"
           :cancelling="cancelling"
-          :profiles="profiles"
           :unavailable="unavailable"
           :run-error="runError"
           @send="sendPrompt"
-          @steer="steerRun(prompt)"
+          @steer="steerRun"
           @cancel-run="cancelRun"
         />
       </section>
       <SessionWelcome
         v-else
         v-model:prompt="welcomePrompt"
-        v-model:profile="profile"
+        v-model:preset="preset"
         v-model:workspace-id="welcomeWorkspaceId"
         :workspaces="workspaces"
-        :profiles="profiles"
+        :catalog="catalog"
         :submitting="welcomeSubmitting"
         :error="welcomeError"
         @submit="submitWelcome"
@@ -122,10 +124,14 @@
       :preview-path="previewPath"
       :authorizing="authorizing"
       :authorize-error="authorizeError"
+      :candidates="workspaceCandidates"
+      :candidates-loading="candidatesLoading"
+      :candidates-error="candidatesError"
       @close="closeAuthorize"
       @preview="previewWorkspace"
       @clear="clearPreview"
       @confirm="confirmWorkspace"
+      @select-candidate="selectCandidate"
     />
   </div>
 </template>
@@ -133,10 +139,11 @@
 <script setup lang="ts">
 import { PanelLeft } from "lucide-vue-next";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
-import ComposerBar from "../features/runs/ComposerBar.vue";
+import ChatInput from "../features/runs/ChatInput.vue";
 import { clampPanelWidth } from "../features/sessions/session-state.js";
 import SessionNav from "../features/sessions/SessionNav.vue";
 import SessionWelcome from "../features/sessions/SessionWelcome.vue";
+import ThemeToggle from "../features/theme/ThemeToggle.vue";
 import TranscriptView from "../features/sessions/TranscriptView.vue";
 import WorkspaceAuthorizeDialog from "../features/workspaces/WorkspaceAuthorizeDialog.vue";
 import { useApp } from "./use-app.js";
@@ -156,6 +163,9 @@ const {
   previewPath,
   authorizing,
   authorizeError,
+  workspaceCandidates,
+  candidatesLoading,
+  candidatesError,
   currentSession,
   transcript,
   loadingTranscript,
@@ -166,8 +176,8 @@ const {
   sessionRuns,
   activeRun,
   clientState,
-  profiles,
-  profile,
+  catalog,
+  preset,
   loadSessions,
   sendPrompt,
   cancelRun,
@@ -175,6 +185,7 @@ const {
   clearPreview,
   closeAuthorize,
   previewWorkspace,
+  selectCandidate,
   confirmWorkspace,
   createSession,
   renameSession,
@@ -201,10 +212,10 @@ watch(
   },
   { immediate: true },
 );
-async function submitWelcome() {
+async function submitWelcome(text: string) {
   const workspaceId = welcomeWorkspaceId.value;
-  const text = welcomePrompt.value.trim();
-  if (!workspaceId || !profile.value || !text || welcomeSubmitting.value) return;
+  const trimmed = text.trim();
+  if (!workspaceId || !preset.value || !trimmed || welcomeSubmitting.value) return;
   welcomeSubmitting.value = true;
   welcomeError.value = "";
   try {
@@ -214,7 +225,7 @@ async function submitWelcome() {
       return;
     }
     await nextTick();
-    prompt.value = text;
+    prompt.value = trimmed;
     await sendPrompt();
     welcomePrompt.value = "";
   } finally {

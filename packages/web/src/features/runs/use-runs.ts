@@ -1,4 +1,4 @@
-import type { ExecutionProfile, SSEEventEnvelope } from "@no-pi-no-gang/contracts";
+import type { ModelPreset, ModelVendor, SSEEventEnvelope } from "@no-pi-no-gang/contracts";
 import { computed, onBeforeUnmount, reactive, ref, type ComputedRef, type Ref } from "vue";
 import {
   api,
@@ -33,8 +33,9 @@ export function useRuns(
   });
   const runError = ref("");
   const cancelling = ref(new Set<string>());
-  const profiles = ref<ExecutionProfile[]>([]);
-  const profile = ref<ExecutionProfile>();
+  const presets = ref<ModelPreset[]>([]);
+  const catalog = ref<ModelVendor[]>([]);
+  const preset = ref<ModelPreset>();
   const clientState = computed(() =>
     workspace.value && currentSession.value
       ? sessionState(states, workspace.value.id, currentSession.value.id)
@@ -102,9 +103,12 @@ export function useRuns(
       }
   }
   async function startEvents() {
-    const capabilities = await api<{ profiles: ExecutionProfile[] }>("/capabilities");
-    profiles.value = capabilities.profiles;
-    profile.value = profiles.value[0];
+    const capabilities = await api<{ presets: ModelPreset[]; catalog: ModelVendor[] }>(
+      "/capabilities",
+    );
+    presets.value = capabilities.presets;
+    catalog.value = capabilities.catalog;
+    preset.value = presets.value[0];
     let opened = false;
     let resolveReady!: () => void;
     let rejectReady!: (error: unknown) => void;
@@ -149,10 +153,10 @@ export function useRuns(
     })();
     await ready;
   }
-  async function sendPrompt() {
+  async function sendPrompt(override?: string) {
     const workspaceId = workspace.value?.id;
     const sessionId = currentSession.value?.id;
-    const text = prompt.value.trim();
+    const text = (override ?? prompt.value).trim();
     if (!workspaceId || !sessionId || !text) return;
     const state = sessionState(states, workspaceId, sessionId);
     runError.value = "";
@@ -164,7 +168,7 @@ export function useRuns(
           body: JSON.stringify({
             prompt: text,
             commandId: crypto.randomUUID(),
-            profile: profile.value,
+            profile: preset.value,
           }),
         },
       );
@@ -217,8 +221,9 @@ export function useRuns(
     sessionRuns,
     activeRun,
     clientState,
-    profiles,
-    profile,
+    presets,
+    catalog,
+    preset,
     startEvents,
     sendPrompt,
     cancelRun,

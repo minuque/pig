@@ -1,5 +1,6 @@
 import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import type { WorkspaceCandidate } from "@no-pi-no-gang/contracts";
 import { api, errorMessage, type WorkspaceDto } from "../../api/index.js";
 
 export function useWorkspaceAccess() {
@@ -11,7 +12,37 @@ export function useWorkspaceAccess() {
   const previewPath = ref("");
   const authorizing = ref(false);
   const authorizeError = ref("");
+  const workspaceCandidates = ref<WorkspaceCandidate[]>([]);
+  const candidatesLoading = ref(false);
+  const candidatesError = ref("");
   let loaded = false;
+  // 已成功加载后保持 promise，重开不重拉；失败时清空允许下次重试
+  let candidatesPromise: Promise<void> | undefined;
+
+  function ensureCandidates(): void {
+    if (candidatesPromise) return;
+    candidatesLoading.value = true;
+    candidatesError.value = "";
+    candidatesPromise = api<{ candidates: WorkspaceCandidate[] }>("/workspaces/candidates")
+      .then(({ candidates }) => {
+        workspaceCandidates.value = candidates;
+      })
+      .catch((error) => {
+        candidatesError.value = errorMessage(error);
+        candidatesPromise = undefined;
+      })
+      .finally(() => {
+        candidatesLoading.value = false;
+      });
+  }
+  // 候选预览：pick 与候选点击共用；只预览，授权仍由用户点“确认并授权”
+  async function previewPathOf(path: string): Promise<string> {
+    const { canonicalPath } = await api<{ canonicalPath: string }>("/workspaces/preview", {
+      method: "POST",
+      body: JSON.stringify({ path }),
+    });
+    return canonicalPath;
+  }
 
   async function loadWorkspace() {
     workspaces.value = (await api<{ workspaces: WorkspaceDto[] }>("/workspaces")).workspaces;
@@ -42,12 +73,19 @@ export function useWorkspaceAccess() {
         method: "POST",
       });
       if (!path) return;
-      previewPath.value = (
-        await api<{ canonicalPath: string }>("/workspaces/preview", {
-          method: "POST",
-          body: JSON.stringify({ path }),
-        })
-      ).canonicalPath;
+      previewPath.value = await previewPathOf(path);
+    } catch (error) {
+      authorizeError.value = errorMessage(error);
+    } finally {
+      authorizing.value = false;
+    }
+  }
+  async function selectCandidate(candidate: WorkspaceCandidate) {
+    if (authorizing.value) return;
+    authorizing.value = true;
+    authorizeError.value = "";
+    try {
+      previewPath.value = await previewPathOf(candidate.canonicalPath);
     } catch (error) {
       authorizeError.value = errorMessage(error);
     } finally {
@@ -69,6 +107,10 @@ export function useWorkspaceAccess() {
         workspace.value,
         ...workspaces.value.filter(({ id }) => id !== workspace.value?.id),
       ];
+      // 已授权目录从候选列表移除（canonicalPath 由 gateway 规范化，可直接比较）
+      workspaceCandidates.value = workspaceCandidates.value.filter(
+        ({ canonicalPath }) => canonicalPath !== previewPath.value,
+      );
       showAuthorize.value = false;
     } catch (error) {
       authorizeError.value = errorMessage(error);
@@ -98,6 +140,10 @@ export function useWorkspaceAccess() {
       else void router.replace("/");
     },
   );
+  // 打开授权 Dialog 时才冷加载最近目录，不阻塞 loadWorkspace/startup
+  watch(showAuthorize, (show) => {
+    if (show) void ensureCandidates();
+  });
   return {
     workspace,
     workspaces,
@@ -105,10 +151,15 @@ export function useWorkspaceAccess() {
     previewPath,
     authorizing,
     authorizeError,
+    workspaceCandidates,
+    candidatesLoading,
+    candidatesError,
     loadWorkspace,
+    ensureCandidates,
     clearPreview,
     closeAuthorize,
     previewWorkspace,
+    selectCandidate,
     confirmWorkspace,
     revokeWorkspace,
   };

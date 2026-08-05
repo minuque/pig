@@ -1,55 +1,43 @@
 <template>
   <section class="welcome" aria-labelledby="welcome-title">
-    <form class="welcome-form" @submit.prevent="onSubmit">
+    <div class="welcome-form">
       <h1 id="welcome-title" class="welcome-title">开始一个新任务</h1>
 
-      <div class="welcome-composer">
-        <textarea
-          v-model="prompt"
-          rows="4"
-          placeholder="想完成什么？"
-          aria-label="任务描述"
-          :disabled="!workspaceId"
-          @keydown="onKeydown"
-        ></textarea>
-
-        <div class="welcome-controls">
-          <select v-model="workspaceId" aria-label="Workspace">
+      <ChatInput
+        v-model:prompt="prompt"
+        v-model:preset="preset"
+        :catalog="catalog"
+        :send-disabled="!canSubmitNow"
+        bare
+        placeholder="想完成什么？"
+        aria-label="任务描述"
+        :on-enhance="onEnhance"
+        @send="onSend"
+      >
+        <template #left>
+          <select
+            v-model="workspaceId"
+            class="welcome-workspace"
+            aria-label="Workspace"
+            :disabled="!workspaces.length"
+          >
             <option :value="undefined" disabled>选择 Workspace</option>
             <option v-for="ws in workspaces" :key="ws.id" :value="ws.id">{{ ws.name }}</option>
           </select>
-
-          <select v-model="profile" aria-label="Execution Profile">
-            <option :value="undefined" disabled>选择 Execution Profile</option>
-            <option
-              v-for="item in profiles"
-              :key="`${item.model}:${item.thinkingLevel}`"
-              :value="item"
-            >
-              {{ item.model }} · {{ item.thinkingLevel }}
-            </option>
-          </select>
-
-          <span class="welcome-spacer"></span>
-
-          <button type="submit" class="welcome-send" :disabled="!canSubmitNow" aria-label="发送">
-            <ArrowUp v-if="!submitting" aria-hidden="true" />
-            <span v-else>提交中…</span>
-          </button>
-        </div>
-      </div>
+        </template>
+      </ChatInput>
 
       <p v-if="!workspaceId" class="welcome-auth">
         <button type="button" class="secondary" @click="emit('authorize')">授权 Workspace</button>
       </p>
 
       <p v-if="error" class="notice error" role="alert">{{ error }}</p>
-    </form>
+    </div>
   </section>
 </template>
 
 <script lang="ts">
-import type { ExecutionProfile } from "@no-pi-no-gang/contracts";
+import type { ModelPreset } from "@no-pi-no-gang/contracts";
 
 /** 键盘守卫：仅裸 Enter 提交；Shift+Enter 换行、IME 组合期间一律放行。 */
 export function shouldSubmitOnKeydown(e: {
@@ -60,49 +48,106 @@ export function shouldSubmitOnKeydown(e: {
   return e.key === "Enter" && !e.shiftKey && !e.isComposing;
 }
 
-/** 提交守卫：空白 prompt、无 workspace、无 profile 或提交中均拒绝。 */
+/** 提交守卫：空白 prompt、无 workspace、无 preset 或提交中均拒绝。 */
 export function canSubmit(
   prompt: string,
   workspaceId: string | undefined,
-  profile: ExecutionProfile | undefined,
+  preset: ModelPreset | undefined,
   submitting: boolean,
 ): boolean {
-  return workspaceId !== undefined && profile !== undefined && !submitting && prompt.trim() !== "";
+  return workspaceId !== undefined && preset !== undefined && !submitting && prompt.trim() !== "";
 }
 </script>
 
 <script setup lang="ts">
-import { ArrowUp } from "lucide-vue-next";
 import { computed } from "vue";
+import type { ModelVendor } from "@no-pi-no-gang/contracts";
 import type { WorkspaceDto } from "../../api/index.js";
+import ChatInput from "../runs/ChatInput.vue";
 
 const prompt = defineModel<string>("prompt", { required: true });
-const profile = defineModel<ExecutionProfile | undefined>("profile");
+const preset = defineModel<ModelPreset | undefined>("preset");
 const workspaceId = defineModel<string | undefined>("workspaceId");
 
 const props = defineProps<{
   workspaces: WorkspaceDto[];
-  profiles: ExecutionProfile[];
+  catalog: ModelVendor[];
   submitting: boolean;
   error: string;
+  onEnhance?: (prompt: string, signal?: AbortSignal) => Promise<string>;
 }>();
 
 const emit = defineEmits<{
-  submit: [];
+  submit: [text: string];
   authorize: [];
 }>();
 
 const canSubmitNow = computed(() =>
-  canSubmit(prompt.value, workspaceId.value, profile.value, props.submitting),
+  canSubmit(prompt.value, workspaceId.value, preset.value, props.submitting),
 );
 
-function onSubmit() {
-  if (canSubmitNow.value) emit("submit");
-}
-
-function onKeydown(e: KeyboardEvent) {
-  if (!shouldSubmitOnKeydown(e)) return; // Shift+Enter 换行、IME 组合期间不拦截
-  e.preventDefault(); // 裸 Enter 不产生换行
-  onSubmit();
+// ChatInput 内部已做发送守卫（含 sendDisabled），这里只转发
+function onSend(text: string) {
+  emit("submit", text);
 }
 </script>
+
+<style scoped>
+.welcome {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: var(--spacing-lg);
+}
+.welcome-form {
+  width: min(var(--size-welcome), 100%);
+  transform: translateY(calc(-1 * var(--spacing-xxl)));
+  animation: enter-blur var(--duration-slow) var(--ease-out);
+}
+.welcome-title {
+  margin: 0 0 var(--spacing-lg);
+  text-align: center;
+  font-size: var(--text-heading-2);
+  letter-spacing: var(--tracking-heading-2);
+}
+.welcome-workspace {
+  min-width: 0;
+  max-width: 42%;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--canvas-soft);
+  font-size: var(--text-caption);
+  color: var(--ink);
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+.welcome-auth {
+  margin: var(--spacing-md) 0 0;
+  text-align: center;
+}
+.secondary {
+  font: inherit;
+  font-size: var(--text-caption);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--hairline);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.secondary:hover {
+  background: var(--canvas-soft);
+}
+.welcome-form > .notice {
+  margin-top: var(--spacing-md);
+}
+.notice {
+  padding: var(--spacing-md);
+  background: var(--canvas-soft);
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-md);
+}
+.error {
+  border-left: var(--border-width-emphasis) solid var(--danger);
+}
+</style>
