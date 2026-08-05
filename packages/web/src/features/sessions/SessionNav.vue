@@ -1,103 +1,134 @@
 <template>
-  <label class="workspace-picker">
-    <select
-      aria-label="当前 Workspace"
-      :value="workspace?.id"
-      @change="emit('select-workspace', ($event.target as HTMLSelectElement).value)"
-    >
-      <option v-for="item in workspaces" :key="item.id" :value="item.id">
-        {{ item.name }}
-      </option>
-    </select>
-    <span class="workspace-picker-label">
-      <span class="wp-main">{{ workspace?.name ?? "未授权" }}</span>
-      <span v-if="workspace" class="wp-path">{{ workspace.canonicalPath }}</span>
-      <span class="wp-caret" aria-hidden="true">▾</span>
-    </span>
-  </label>
-  <div class="actions compact-actions">
-    <button class="secondary" type="button" @click="emit('authorize')">授权</button>
-    <button class="secondary" type="button" :disabled="!workspace" @click="emit('revoke')">
-      Revoke
-    </button>
-  </div>
-
-  <section aria-labelledby="sessions-title">
-    <div class="section-title">
-      <h2 id="sessions-title">Sessions</h2>
+  <div class="session-nav">
+    <header class="nav-masthead">
+      <h2 id="workspaces-title">Workspaces</h2>
       <button
         class="icon-button"
         type="button"
-        aria-label="创建 Session"
-        :disabled="!workspace || creating"
-        @click="emit('create')"
+        aria-label="授权新 Workspace"
+        @click="emit('authorize')"
       >
-        ＋
+        <Plus :size="16" aria-hidden="true" />
       </button>
-    </div>
-    <p v-if="loadingSessions" class="shimmer" role="status">正在加载 Sessions…</p>
-    <div v-else-if="sessionError" class="notice error" role="alert">
-      <p>{{ sessionError }}</p>
-      <button type="button" @click="emit('retry')">重试</button>
-    </div>
-    <p v-else-if="workspace && sessions.length === 0" class="notice">
-      暂无 Session。使用“创建 Session”开始。
-    </p>
-    <nav v-else aria-label="Session 列表">
-      <div
-        v-for="session in sessions"
-        :key="session.id"
-        class="session-item"
-        :class="{ unavailable: session.status === 'unavailable' }"
-      >
-        <RouterLink
-          :to="`/sessions/${session.id}`"
-          class="session-card"
-          @click="
-            menuSession = null;
-            emit('navigate');
-          "
-        >
-          <span class="t">{{ session.name || `Session ${session.id.slice(0, 8)}` }}</span>
-          <small class="m">
-            <span
-              class="dot"
-              aria-hidden="true"
-              :style="{
-                backgroundColor:
-                  session.status === 'available'
-                    ? 'var(--accent-green)'
-                    : 'var(--accent-orange-deep)',
-              }"
-            ></span>
-            {{ session.status === "available" ? "Available" : "Unavailable" }}
-            <span class="time">{{ formatTime(session.updatedAt) }}</span>
-          </small>
-        </RouterLink>
+    </header>
+
+    <ul class="workspace-list" aria-labelledby="workspaces-title">
+      <li v-for="workspace in workspaces" :key="workspace.id" class="workspace-item">
         <button
-          class="icon-button session-kebab"
+          class="workspace-row"
           type="button"
-          :aria-label="`操作 Session：${session.name || session.id.slice(0, 8)}`"
-          :aria-expanded="menuSession?.id === session.id"
-          @click.stop="toggleMenu(session, $event)"
+          :class="{
+            expanded: isExpanded(workspace.id),
+            active: workspace.id === activeWorkspaceId,
+          }"
+          :aria-expanded="isExpanded(workspace.id)"
+          :title="workspace.canonicalPath"
+          @click="emit('toggle-workspace', workspace.id)"
+        >
+          <component
+            :is="isExpanded(workspace.id) ? FolderOpen : Folder"
+            :size="16"
+            class="workspace-folder"
+            aria-hidden="true"
+          />
+          <span class="workspace-name">{{ workspace.name }}</span>
+          <ChevronRight
+            :size="14"
+            class="workspace-chevron"
+            :class="{ open: isExpanded(workspace.id) }"
+            aria-hidden="true"
+          />
+        </button>
+        <button
+          class="icon-button workspace-create"
+          type="button"
+          :aria-label="`创建 Session：${workspace.name}`"
+          :disabled="creatingWorkspaceId === workspace.id"
+          @click="emit('create', workspace)"
+        >
+          <Plus :size="16" aria-hidden="true" />
+        </button>
+        <button
+          class="icon-button workspace-kebab"
+          type="button"
+          :aria-label="`操作 Workspace：${workspace.name}`"
+          :aria-expanded="menuWorkspace?.id === workspace.id"
+          @click="toggleWorkspaceMenu(workspace, $event)"
         >
           <MoreVertical :size="16" aria-hidden="true" />
         </button>
-        <div v-if="menuSession?.id === session.id" class="session-menu" role="menu">
-          <button type="button" role="menuitem" @click="openRename(session)">重命名</button>
-          <button type="button" role="menuitem" class="danger-text" @click="openDelete(session)">
-            删除
+        <div v-if="menuWorkspace?.id === workspace.id" class="session-menu" role="menu">
+          <button
+            type="button"
+            role="menuitem"
+            class="danger-text"
+            @click="revokeWorkspace(workspace)"
+          >
+            撤销授权
           </button>
         </div>
-      </div>
-    </nav>
-    <button v-if="nextCursor" class="secondary" type="button" @click="emit('load-more')">
-      加载更多
-    </button>
-  </section>
+
+        <div v-if="isExpanded(workspace.id)" class="workspace-sessions">
+          <p v-if="loadingWorkspaceIds.has(workspace.id)" class="shimmer" role="status">
+            正在加载 Sessions…
+          </p>
+          <div v-else-if="sessionErrors.get(workspace.id)" class="notice error" role="alert">
+            <p>{{ sessionErrors.get(workspace.id) }}</p>
+            <button type="button" @click="emit('retry', workspace.id)">重试</button>
+          </div>
+          <p v-else-if="sessionsOf(workspace).length === 0" class="notice">
+            暂无 Session。使用“+”创建。
+          </p>
+          <nav v-else class="session-list" :aria-label="`${workspace.name} 的 Session 列表`">
+            <div v-for="session in sessionsOf(workspace)" :key="session.id" class="session-item">
+              <RouterLink
+                :to="`/workspaces/${workspace.id}/sessions/${session.id}`"
+                class="session-card"
+                :class="{ active: session.id === activeSessionId }"
+                @click="emit('navigate', workspace.id)"
+              >
+                <span class="t">{{ session.name || `Session ${session.id.slice(0, 8)}` }}</span>
+                <span class="session-status" :class="statusOf(session)">
+                  {{ statusLabel(session) }}
+                </span>
+              </RouterLink>
+              <button
+                class="icon-button session-kebab"
+                type="button"
+                :aria-label="`操作 Session：${session.name || session.id.slice(0, 8)}`"
+                :aria-expanded="menuSession?.id === session.id"
+                @click.stop="toggleSessionMenu(session, $event)"
+              >
+                <MoreVertical :size="16" aria-hidden="true" />
+              </button>
+              <div v-if="menuSession?.id === session.id" class="session-menu" role="menu">
+                <button type="button" role="menuitem" @click="openRename(session)">重命名</button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  class="danger-text"
+                  @click="openDelete(session)"
+                >
+                  删除
+                </button>
+              </div>
+            </div>
+          </nav>
+          <button
+            v-if="nextCursors.get(workspace.id)"
+            class="secondary load-more"
+            type="button"
+            @click="emit('load-more', workspace.id)"
+          >
+            加载更多
+          </button>
+        </div>
+      </li>
+    </ul>
+  </div>
 
   <Teleport to="body">
-    <div v-if="menuSession" class="menu-scrim" @click="menuSession = null"></div>
+    <div v-if="menuSession || menuWorkspace" class="menu-scrim" @click="closeMenus"></div>
   </Teleport>
 
   <Teleport to="body">
@@ -145,62 +176,98 @@
 </template>
 
 <script setup lang="ts">
-import { MoreVertical } from "lucide-vue-next";
+import { ChevronRight, Folder, FolderOpen, MoreVertical, Plus } from "lucide-vue-next";
 import { nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 import type { SessionDto, WorkspaceDto } from "../../api/index.js";
 
-defineProps<{
-  workspace?: WorkspaceDto | undefined;
+const props = defineProps<{
   workspaces: WorkspaceDto[];
-  sessions: SessionDto[];
-  loadingSessions: boolean;
-  creating: boolean;
-  nextCursor?: string | undefined;
-  sessionError: string;
+  activeWorkspaceId?: string;
+  expandedWorkspaceIds: Set<string>;
+  sessionsByWorkspace: Map<string, SessionDto[]>;
+  loadingWorkspaceIds: Set<string>;
+  sessionErrors: Map<string, string>;
+  nextCursors: Map<string, string | undefined>;
+  activeSessionId?: string;
+  activeSessionHasRun: boolean;
+  creatingWorkspaceId?: string;
 }>();
 
 const emit = defineEmits<{
-  "select-workspace": [id: string];
+  "toggle-workspace": [id: string];
   authorize: [];
-  revoke: [];
-  create: [];
-  "load-more": [];
-  retry: [];
-  navigate: [];
+  revoke: [workspace: WorkspaceDto];
+  create: [workspace: WorkspaceDto];
+  "load-more": [workspaceId: string];
+  retry: [workspaceId: string];
+  navigate: [workspaceId: string];
   rename: [session: SessionDto, name: string];
   delete: [session: SessionDto];
 }>();
 
+function isExpanded(id: string): boolean {
+  return props.expandedWorkspaceIds.has(id);
+}
+function sessionsOf(workspace: WorkspaceDto): SessionDto[] {
+  return props.sessionsByWorkspace.get(workspace.id) ?? [];
+}
+function statusOf(session: SessionDto): "active" | "available" | "unavailable" {
+  if (session.id === props.activeSessionId && props.activeSessionHasRun) return "active";
+  return session.status;
+}
+function statusLabel(session: SessionDto): string {
+  const status = statusOf(session);
+  return status === "active" ? "ACTIVE" : status === "available" ? "Available" : "Unavailable";
+}
+
+/* ── 菜单（Workspace 撤销 / Session 重命名·删除） ─────────────────── */
 const menuSession = ref<SessionDto | null>(null);
-const dialog = ref<{ session: SessionDto; mode: "rename" | "delete" } | null>(null);
-const renameDraft = ref("");
-const renameInput = ref<HTMLInputElement>();
+const menuWorkspace = ref<WorkspaceDto | null>(null);
 const menuTrigger = ref<HTMLElement | null>(null);
 
-function toggleMenu(session: SessionDto, event: MouseEvent) {
-  menuSession.value = menuSession.value?.id === session.id ? null : session;
-  if (menuSession.value) menuTrigger.value = event.currentTarget as HTMLElement;
+function toggleWorkspaceMenu(workspace: WorkspaceDto, event: MouseEvent) {
+  menuWorkspace.value = menuWorkspace.value?.id === workspace.id ? null : workspace;
+  if (menuWorkspace.value) {
+    menuSession.value = null;
+    menuTrigger.value = event.currentTarget as HTMLElement;
+  }
 }
-function closeMenu() {
+function toggleSessionMenu(session: SessionDto, event: MouseEvent) {
+  menuSession.value = menuSession.value?.id === session.id ? null : session;
+  if (menuSession.value) {
+    menuWorkspace.value = null;
+    menuTrigger.value = event.currentTarget as HTMLElement;
+  }
+}
+function closeMenus() {
   menuSession.value = null;
+  menuWorkspace.value = null;
+}
+function revokeWorkspace(workspace: WorkspaceDto) {
+  closeMenus();
+  emit("revoke", workspace);
 }
 function onKeydown(event: KeyboardEvent) {
-  if (event.key === "Escape") {
-    if (dialog.value) closeDialog();
-    else closeMenu();
-  }
+  if (event.key !== "Escape") return;
+  if (dialog.value) closeDialog();
+  else closeMenus();
 }
 window.addEventListener("keydown", onKeydown);
 onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 
+/* ── 重命名 / 删除 dialog ────────────────────────────────────────── */
+const dialog = ref<{ session: SessionDto; mode: "rename" | "delete" } | null>(null);
+const renameDraft = ref("");
+const renameInput = ref<HTMLInputElement>();
+
 function openRename(session: SessionDto) {
-  closeMenu();
+  closeMenus();
   renameDraft.value = session.name ?? "";
   dialog.value = { session, mode: "rename" };
 }
 function openDelete(session: SessionDto) {
-  closeMenu();
+  closeMenus();
   dialog.value = { session, mode: "delete" };
 }
 function closeDialog() {
@@ -230,18 +297,4 @@ watch(
     }
   },
 );
-
-function formatTime(iso: string): string {
-  const time = new Date(iso).getTime();
-  if (Number.isNaN(time)) return "";
-  const minutes = Math.floor((Date.now() - time) / 60000);
-  if (minutes < 1) return "刚刚";
-  if (minutes < 60) return `${minutes} 分钟前`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} 小时前`;
-  const days = Math.floor(hours / 24);
-  if (days === 1) return "昨天";
-  if (days < 7) return `${days} 天前`;
-  return new Date(time).toLocaleDateString();
-}
 </script>
