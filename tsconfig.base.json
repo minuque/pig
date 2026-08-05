@@ -14,7 +14,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "skipLibCheck": true,
-    "ignoreDeprecations": "5.0",
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@no-pi-no-gang/gateway": ["packages/gateway/src/index.ts"],
