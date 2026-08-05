@@ -82,7 +82,7 @@ no-pi-no-gang-v2/
 │
 ├─ scripts/
 │  └─ smoke/                     # packed artifact 等发布验证
-├─ .scratch/
+├─ docs/
 │  └─ v2-architecture/           # 规格、阶段文档、架构图
 ├─ package.json                  # npm workspaces 与统一命令
 ├─ package-lock.json
