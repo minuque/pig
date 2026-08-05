@@ -309,7 +309,6 @@ textarea {
 .section-title,
 .actions,
 .workbench-header,
-.session-heading,
 .composer-row {
   display: flex;
   align-items: center;
@@ -476,19 +475,32 @@ main {
   border-bottom: var(--border-width) solid var(--hairline);
   background: var(--surface);
 }
-.workspace-main {
-  min-height: 0;
-  flex: 1;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
+.header-toggle {
+  flex: none;
 }
-.session-heading {
+.header-title {
+  flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+}
+.header-title .eyebrow {
+  margin: 0;
+}
+.header-title h1 {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .session-status {
   flex: none;
+  margin: 0;
   padding: var(--spacing-xs) var(--spacing-sm);
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-full);
@@ -496,6 +508,14 @@ main {
 }
 .status-mark {
   font-weight: var(--font-weight-bold);
+}
+.workspace-main {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
 }
 .transcript-region {
   position: relative;
@@ -975,15 +995,11 @@ button.danger {
   .workspace-main {
     padding: var(--spacing-sm);
   }
-  .session-heading {
-    align-items: flex-start;
-  }
 }
 @media (max-width: 520px) {
   .workbench-header button {
     padding-inline: var(--spacing-sm);
   }
-  .session-heading,
   .composer-row {
     align-items: stretch;
     flex-direction: column;

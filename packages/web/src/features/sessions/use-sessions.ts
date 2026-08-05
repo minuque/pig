@@ -80,7 +80,7 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
         currentSession.value?.id === sessionId &&
         generation === transcriptGeneration
       )
-        transcript.value = result.transcript;
+        transcript.value = result.transcript ?? [];
     } catch (error) {
       if (
         workspace.value?.id === workspaceId &&

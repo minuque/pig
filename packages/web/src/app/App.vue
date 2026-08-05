@@ -54,17 +54,29 @@
     <main>
       <header class="workbench-header">
         <button
-          class="secondary"
+          class="icon-button header-toggle"
           type="button"
           :aria-expanded="leftOpen"
+          aria-label="切换 Workspace 导航"
           @click="leftOpen = !leftOpen"
         >
-          Workspace
+          <PanelLeft :size="16" aria-hidden="true" />
         </button>
-        <strong>{{
-          currentSession?.name ||
-          (currentSession ? `Session ${currentSession.id.slice(0, 8)}` : "未选择 Session")
-        }}</strong>
+        <div class="header-title">
+          <p class="eyebrow">CURRENT SESSION</p>
+          <h1 id="current-title">
+            {{
+              currentSession?.name ||
+              (currentSession ? `Session ${currentSession.id.slice(0, 8)}` : "未选择 Session")
+            }}
+          </h1>
+        </div>
+        <p v-if="currentSession" class="session-status">
+          <span class="status-mark" aria-hidden="true">{{
+            currentSession.status === "available" ? "✓" : "!"
+          }}</span>
+          {{ currentSession.status === "available" ? "Available" : "Unavailable" }}
+        </p>
       </header>
       <div v-if="startupError" class="notice error" role="alert">{{ startupError }}</div>
       <section
@@ -73,21 +85,6 @@
         class="workspace-main enter-blur"
         aria-labelledby="current-title"
       >
-        <header class="session-heading">
-          <div>
-            <p class="eyebrow">CURRENT SESSION</p>
-            <h1 id="current-title">
-              {{ currentSession.name || `Session ${currentSession.id.slice(0, 8)}` }}
-            </h1>
-          </div>
-          <p class="session-status">
-            <span class="status-mark" aria-hidden="true">{{
-              currentSession.status === "available" ? "✓" : "!"
-            }}</span>
-            {{ currentSession.status === "available" ? "Available" : "Unavailable" }}
-          </p>
-        </header>
-
         <TranscriptView
           :session-id="currentSession.id"
           :transcript="transcript"
@@ -133,6 +130,7 @@
 </template>
 
 <script setup lang="ts">
+import { PanelLeft } from "lucide-vue-next";
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { clampPanelWidth } from "../features/sessions/session-state.js";
 import SessionNav from "../features/sessions/SessionNav.vue";
