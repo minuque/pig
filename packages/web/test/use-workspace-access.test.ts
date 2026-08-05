@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 const { api, router, mock } = vi.hoisted(() => ({
@@ -25,6 +25,8 @@ function w(id: string) {
   return { id, name: id, canonicalPath: `/${id}` };
 }
 
+afterEach(() => vi.unstubAllGlobals());
+
 describe("useWorkspaceAccess route restoration", () => {
   it("activates the workspace named by the canonical URL when authorized", async () => {
     api.mockImplementation(() => Promise.resolve({ workspaces: [w("a"), w("b")] }));
@@ -46,6 +48,23 @@ describe("useWorkspaceAccess route restoration", () => {
 
     expect(router.replace).toHaveBeenCalledWith("/");
     expect(access.workspace.value?.id).toBe("a");
+  });
+
+  it("keeps the current session when revoking another workspace", async () => {
+    api.mockImplementation((path: string) =>
+      path === "/workspaces"
+        ? Promise.resolve({ workspaces: [w("a"), w("b")] })
+        : Promise.resolve({}),
+    );
+    vi.stubGlobal("confirm", () => true);
+    mock.setParams!({ workspaceId: "a", sessionId: "s1" });
+    const access = useWorkspaceAccess();
+    await access.loadWorkspace();
+
+    await access.revokeWorkspace(w("b"));
+
+    expect(access.workspace.value?.id).toBe("a");
+    expect(router.push).not.toHaveBeenCalled();
   });
 
   it("switches the active workspace when the route selects a session of another workspace", async () => {

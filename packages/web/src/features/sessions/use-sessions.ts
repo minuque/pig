@@ -99,7 +99,7 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
           )
             sessionsByWorkspace.value.set(targetWorkspaceId, [session, ...list]);
         } catch {
-          // 深链无效则保持列表原样
+          await router.replace("/");
         }
       }
     } catch (error) {

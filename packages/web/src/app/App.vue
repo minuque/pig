@@ -5,31 +5,23 @@
     :style="{ '--left-width': `${leftWidth}px` }"
   >
     <aside class="sidebar" :class="{ open: leftOpen }" aria-label="Workspace 与 Session 导航">
-      <header>
-        <strong>Workspace</strong>
-        <button
-          class="icon-button panel-close"
-          type="button"
-          aria-label="收起 Workspace 导航"
-          @click="leftOpen = false"
-        >
-          ‹
-        </button>
-      </header>
       <SessionNav
-        :workspace="workspace"
         :workspaces="workspaces"
-        :sessions="sessions"
-        :loading-sessions="loadingSessions"
-        :creating="creating"
-        :next-cursor="nextCursor"
-        :session-error="sessionError"
+        :active-workspace-id="workspace?.id"
+        :expanded-workspace-ids="expandedWorkspaceIds"
+        :sessions-by-workspace="sessionsByWorkspace"
+        :loading-workspace-ids="loadingWorkspaceIds"
+        :session-errors="sessionErrors"
+        :next-cursors="nextCursors"
+        :active-session-id="currentSession?.id"
+        :active-session-has-run="Boolean(activeRun)"
+        :creating-workspace-id="creatingWorkspaceId"
+        @toggle-workspace="toggleWorkspace"
         @authorize="showAuthorize = true"
         @revoke="revokeWorkspace"
-        @select-workspace="onSelectWorkspace"
         @create="createSession"
-        @load-more="loadSessions(true)"
-        @retry="loadSessions()"
+        @load-more="loadWorkspaceSessions($event, true)"
+        @retry="loadWorkspaceSessions"
         @navigate="closeMobilePanels"
         @rename="renameSession"
         @delete="deleteSession"
@@ -62,26 +54,27 @@
         >
           <PanelLeft :size="16" aria-hidden="true" />
         </button>
-        <div class="header-title">
-          <p class="eyebrow">CURRENT SESSION</p>
-          <h1 id="current-title">
-            {{
-              currentSession?.name ||
-              (currentSession ? `Session ${currentSession.id.slice(0, 8)}` : "未选择 Session")
-            }}
-          </h1>
-        </div>
+        <h1 id="current-title">
+          {{
+            currentSession?.name ||
+            (currentSession ? `Session ${currentSession.id.slice(0, 8)}` : "新建 Session")
+          }}
+        </h1>
         <p v-if="currentSession" class="session-status">
           <span class="status-mark" aria-hidden="true">{{
-            currentSession.status === "available" ? "✓" : "!"
+            currentSession.status === "available" ? "●" : "!"
           }}</span>
           {{ currentSession.status === "available" ? "Available" : "Unavailable" }}
         </p>
+        <span v-else class="header-spacer" aria-hidden="true"></span>
       </header>
-      <div v-if="startupError" class="notice error" role="alert">{{ startupError }}</div>
+
+      <div v-if="startupError" class="notice error startup-error" role="alert">
+        {{ startupError }}
+      </div>
       <section
         v-else-if="currentSession"
-        :key="currentSession.id"
+        :key="`${currentSession.workspaceId}:${currentSession.id}`"
         class="workspace-main enter-blur"
         aria-labelledby="current-title"
       >
@@ -110,10 +103,18 @@
           @cancel-run="cancelRun"
         />
       </section>
-      <section v-else class="empty" aria-labelledby="empty-title">
-        <h1 id="empty-title">选择或创建 Session</h1>
-        <p>从 Workspace 导航选择 Session。</p>
-      </section>
+      <SessionWelcome
+        v-else
+        v-model:prompt="welcomePrompt"
+        v-model:profile="profile"
+        v-model:workspace-id="welcomeWorkspaceId"
+        :workspaces="workspaces"
+        :profiles="profiles"
+        :submitting="welcomeSubmitting"
+        :error="welcomeError"
+        @submit="submitWelcome"
+        @authorize="showAuthorize = true"
+      />
     </main>
 
     <WorkspaceAuthorizeDialog
@@ -131,22 +132,25 @@
 
 <script setup lang="ts">
 import { PanelLeft } from "lucide-vue-next";
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import ComposerBar from "../features/runs/ComposerBar.vue";
 import { clampPanelWidth } from "../features/sessions/session-state.js";
 import SessionNav from "../features/sessions/SessionNav.vue";
+import SessionWelcome from "../features/sessions/SessionWelcome.vue";
 import TranscriptView from "../features/sessions/TranscriptView.vue";
-import ComposerBar from "../features/runs/ComposerBar.vue";
 import WorkspaceAuthorizeDialog from "../features/workspaces/WorkspaceAuthorizeDialog.vue";
 import { useApp } from "./use-app.js";
 
 const {
   workspace,
   workspaces,
-  sessions,
-  loadingSessions,
-  creating,
-  nextCursor,
-  sessionError,
+  sessionsByWorkspace,
+  loadingWorkspaceIds,
+  creatingWorkspaceId,
+  sessionErrors,
+  nextCursors,
+  expandedWorkspaceIds,
+  toggleWorkspace,
   startupError,
   showAuthorize,
   previewPath,
@@ -176,22 +180,66 @@ const {
   renameSession,
   deleteSession,
   revokeWorkspace,
-  selectWorkspace,
 } = useApp();
 
 const unavailable = computed(() => currentSession.value?.status === "unavailable");
 const queuedCount = computed(
   () => sessionRuns.value.filter(({ status }) => status === "queued").length,
 );
-function onSelectWorkspace(id: string) {
-  selectWorkspace(id);
-  void loadSessions();
+
+function loadWorkspaceSessions(workspaceId: string, append = false) {
+  return loadSessions(workspaceId, append);
+}
+
+/* ── 欢迎页：创建 Session 后立即发送首个 Run ───────────────────── */
+const welcomePrompt = ref("");
+const welcomeWorkspaceId = ref<string>();
+const welcomeSubmitting = ref(false);
+const welcomeError = ref("");
+
+watch(
+  workspaces,
+  (items) => {
+    if (!items.some(({ id }) => id === welcomeWorkspaceId.value))
+      welcomeWorkspaceId.value = items[0]?.id;
+  },
+  { immediate: true },
+);
+watch(
+  () => workspace.value?.id,
+  (id) => {
+    if (!id || expandedWorkspaceIds.value.has(id)) return;
+    expandedWorkspaceIds.value = new Set([...expandedWorkspaceIds.value, id]);
+    if (!sessionsByWorkspace.value.has(id)) void loadSessions(id);
+  },
+  { immediate: true },
+);
+
+async function submitWelcome() {
+  const workspaceId = welcomeWorkspaceId.value;
+  const text = welcomePrompt.value.trim();
+  if (!workspaceId || !profile.value || !text || welcomeSubmitting.value) return;
+  welcomeSubmitting.value = true;
+  welcomeError.value = "";
+  try {
+    const session = await createSession(workspaceId);
+    if (!session) {
+      welcomeError.value = sessionErrors.value.get(workspaceId) || "无法创建 Session";
+      return;
+    }
+    await nextTick();
+    prompt.value = text;
+    await sendPrompt();
+    welcomePrompt.value = "";
+  } finally {
+    welcomeSubmitting.value = false;
+  }
 }
 
 /* ── 左栏布局（resize + 移动端抽屉） ─────────────────────────────── */
 const narrowViewport = matchMedia("(max-width: 900px)");
 const leftOpen = ref(!narrowViewport.matches);
-const leftWidth = ref(280);
+const leftWidth = ref(clampPanelWidth(window.innerWidth * 0.18));
 
 function setPanelWidth(desired: number) {
   const room = window.innerWidth - 332;

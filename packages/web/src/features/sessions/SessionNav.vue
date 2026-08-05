@@ -68,60 +68,84 @@
           </button>
         </div>
 
-        <div v-if="isExpanded(workspace.id)" class="workspace-sessions">
-          <p v-if="loadingWorkspaceIds.has(workspace.id)" class="shimmer" role="status">
-            正在加载 Sessions…
-          </p>
-          <div v-else-if="sessionErrors.get(workspace.id)" class="notice error" role="alert">
-            <p>{{ sessionErrors.get(workspace.id) }}</p>
-            <button type="button" @click="emit('retry', workspace.id)">重试</button>
-          </div>
-          <p v-else-if="sessionsOf(workspace).length === 0" class="notice">
-            暂无 Session。使用“+”创建。
-          </p>
-          <nav v-else class="session-list" :aria-label="`${workspace.name} 的 Session 列表`">
-            <div v-for="session in sessionsOf(workspace)" :key="session.id" class="session-item">
-              <RouterLink
-                :to="`/workspaces/${workspace.id}/sessions/${session.id}`"
-                class="session-card"
-                :class="{ active: session.id === activeSessionId }"
-                @click="emit('navigate', workspace.id)"
-              >
-                <span class="t">{{ session.name || `Session ${session.id.slice(0, 8)}` }}</span>
-                <span class="session-status" :class="statusOf(session)">
-                  {{ statusLabel(session) }}
-                </span>
-              </RouterLink>
-              <button
-                class="icon-button session-kebab"
-                type="button"
-                :aria-label="`操作 Session：${session.name || session.id.slice(0, 8)}`"
-                :aria-expanded="menuSession?.id === session.id"
-                @click.stop="toggleSessionMenu(session, $event)"
-              >
-                <MoreVertical :size="16" aria-hidden="true" />
-              </button>
-              <div v-if="menuSession?.id === session.id" class="session-menu" role="menu">
-                <button type="button" role="menuitem" @click="openRename(session)">重命名</button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  class="danger-text"
-                  @click="openDelete(session)"
-                >
-                  删除
-                </button>
+        <div
+          class="workspace-reveal"
+          :data-open="isExpanded(workspace.id)"
+          :inert="!isExpanded(workspace.id)"
+          :aria-hidden="!isExpanded(workspace.id)"
+        >
+          <div>
+            <div class="workspace-sessions">
+              <p v-if="loadingWorkspaceIds.has(workspace.id)" class="shimmer" role="status">
+                正在加载 Sessions…
+              </p>
+              <div v-else-if="sessionErrors.get(workspace.id)" class="notice error" role="alert">
+                <p>{{ sessionErrors.get(workspace.id) }}</p>
+                <button type="button" @click="emit('retry', workspace.id)">重试</button>
               </div>
+              <p v-else-if="sessionsOf(workspace).length === 0" class="notice">
+                暂无 Session。使用“+”创建。
+              </p>
+              <nav v-else class="session-list" :aria-label="`${workspace.name} 的 Session 列表`">
+                <div
+                  v-for="session in sessionsOf(workspace)"
+                  :key="session.id"
+                  class="session-item"
+                >
+                  <RouterLink
+                    :to="`/workspaces/${workspace.id}/sessions/${session.id}`"
+                    class="session-card"
+                    :class="{
+                      active: workspace.id === activeWorkspaceId && session.id === activeSessionId,
+                    }"
+                    @click="emit('navigate', workspace.id)"
+                  >
+                    <span class="t">{{ session.name || `Session ${session.id.slice(0, 8)}` }}</span>
+                    <span
+                      class="session-status"
+                      :class="statusOf(session)"
+                      :title="statusLabel(session)"
+                    >
+                      <span aria-hidden="true">{{
+                        statusOf(session) === "active" ? "ACTIVE" : "●"
+                      }}</span>
+                      <span class="sr-only">{{ statusLabel(session) }}</span>
+                    </span>
+                  </RouterLink>
+                  <button
+                    class="icon-button session-kebab"
+                    type="button"
+                    :aria-label="`操作 Session：${session.name || session.id.slice(0, 8)}`"
+                    :aria-expanded="menuSession?.id === session.id"
+                    @click.stop="toggleSessionMenu(session, $event)"
+                  >
+                    <MoreVertical :size="16" aria-hidden="true" />
+                  </button>
+                  <div v-if="menuSession?.id === session.id" class="session-menu" role="menu">
+                    <button type="button" role="menuitem" @click="openRename(session)">
+                      重命名
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="danger-text"
+                      @click="openDelete(session)"
+                    >
+                      删除
+                    </button>
+                  </div>
+                </div>
+              </nav>
+              <button
+                v-if="nextCursors.get(workspace.id)"
+                class="secondary load-more"
+                type="button"
+                @click="emit('load-more', workspace.id)"
+              >
+                加载更多
+              </button>
             </div>
-          </nav>
-          <button
-            v-if="nextCursors.get(workspace.id)"
-            class="secondary load-more"
-            type="button"
-            @click="emit('load-more', workspace.id)"
-          >
-            加载更多
-          </button>
+          </div>
         </div>
       </li>
     </ul>
@@ -183,15 +207,15 @@ import type { SessionDto, WorkspaceDto } from "../../api/index.js";
 
 const props = defineProps<{
   workspaces: WorkspaceDto[];
-  activeWorkspaceId?: string;
+  activeWorkspaceId: string | undefined;
   expandedWorkspaceIds: Set<string>;
   sessionsByWorkspace: Map<string, SessionDto[]>;
   loadingWorkspaceIds: Set<string>;
   sessionErrors: Map<string, string>;
   nextCursors: Map<string, string | undefined>;
-  activeSessionId?: string;
+  activeSessionId: string | undefined;
   activeSessionHasRun: boolean;
-  creatingWorkspaceId?: string;
+  creatingWorkspaceId: string | undefined;
 }>();
 
 const emit = defineEmits<{
@@ -213,7 +237,12 @@ function sessionsOf(workspace: WorkspaceDto): SessionDto[] {
   return props.sessionsByWorkspace.get(workspace.id) ?? [];
 }
 function statusOf(session: SessionDto): "active" | "available" | "unavailable" {
-  if (session.id === props.activeSessionId && props.activeSessionHasRun) return "active";
+  if (
+    session.workspaceId === props.activeWorkspaceId &&
+    session.id === props.activeSessionId &&
+    props.activeSessionHasRun
+  )
+    return "active";
   return session.status;
 }
 function statusLabel(session: SessionDto): string {

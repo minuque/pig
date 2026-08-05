@@ -120,6 +120,22 @@ describe("useSessions per-workspace caches", () => {
     expect(sessions.currentSession.value?.id).toBe("deep");
   });
 
+  it("returns an invalid deep link to the welcome page", async () => {
+    api.mockImplementation((path: string) => {
+      if (path === "/workspaces/a/sessions?limit=25") return Promise.resolve({ sessions: [] });
+      if (path === "/workspaces/a/sessions/missing") return Promise.reject(new Error("missing"));
+      return Promise.resolve({});
+    });
+    const active = ref<WorkspaceDto>(workspace("a"));
+    const sessions = useSessions(active);
+    mock.setParams!({ workspaceId: "a", sessionId: "missing" });
+    await nextTick();
+
+    await sessions.loadSessions("a");
+
+    expect(router.replace).toHaveBeenCalledWith("/");
+  });
+
   it("lazy-loads a workspace's sessions on first expand only", async () => {
     api.mockImplementation(() => Promise.resolve({ sessions: [session("a1", "a")] }));
     const active = ref<WorkspaceDto>(workspace("a"));

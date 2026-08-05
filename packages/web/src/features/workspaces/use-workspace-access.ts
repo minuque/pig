@@ -84,9 +84,9 @@ export function useWorkspaceAccess() {
       body: JSON.stringify({ confirm: true }),
     });
     workspaces.value = workspaces.value.filter(({ id }) => id !== targetWorkspace.id);
+    if (workspace.value?.id !== targetWorkspace.id) return;
     workspace.value = workspaces.value[0];
-    // 手动切换与 URL 的 Workspace 语义冲突：清除当前 Session 选择
-    if (route.params.sessionId) await router.push("/");
+    if (route.params.workspaceId === targetWorkspace.id) await router.push("/");
   }
   function selectWorkspace(id: string) {
     workspace.value = workspaces.value.find((item) => item.id === id);

@@ -51,3 +51,15 @@ _Avoid_: Principal, Client, User Account, Provider Account, Auth Flow, Cookie Se
 **Workspace Access**:
 Local Identity 对一个 canonical Workspace 根的显式资源访问授权；它控制 Gateway 中 Workspace、Session 和 Run 的可见性与操作权，可以被取消，但不限制 Pi 工具或子进程的操作系统文件权限。
 _Avoid_: Workspace Grant, Permission, Owner, Sandbox, Filesystem Jail, cwd Allowlist
+
+**Active Workspace**:
+用户当前操作上下文所属的 Workspace；选择一个 Session 时，其所属 Workspace 随之成为 Active Workspace。导航中的展开状态不改变 Active Workspace。
+_Avoid_: Current Project, Expanded Workspace, Selected Folder
+
+**Expanded Workspace**:
+导航树中已展开、可浏览其 Session 的 Workspace；可以同时存在多个，但不代表它们是 Active Workspace。
+_Avoid_: Active Workspace, Open Project
+
+**Target Workspace**:
+欢迎页提交首个 prompt 时选定的 Workspace；新 Session 和首个 Run 在其中创建，创建成功后它才成为 Active Workspace。
+_Avoid_: Active Workspace（提交前）, Default Project, cwd

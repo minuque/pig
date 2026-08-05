@@ -4,7 +4,7 @@
 
 ## Status
 
-accepted
+superseded by ADR-0005
 
 ## Consequences
 
