@@ -20,8 +20,8 @@
         @authorize="showAuthorize = true"
         @revoke="revokeWorkspace"
         @create="createSession"
-        @load-more="loadWorkspaceSessions($event, true)"
-        @retry="loadWorkspaceSessions"
+        @load-more="loadSessions($event, true)"
+        @retry="loadSessions"
         @navigate="closeMobilePanels"
         @rename="renameSession"
         @delete="deleteSession"
@@ -187,10 +187,6 @@ const queuedCount = computed(
   () => sessionRuns.value.filter(({ status }) => status === "queued").length,
 );
 
-function loadWorkspaceSessions(workspaceId: string, append = false) {
-  return loadSessions(workspaceId, append);
-}
-
 /* ── 欢迎页：创建 Session 后立即发送首个 Run ───────────────────── */
 const welcomePrompt = ref("");
 const welcomeWorkspaceId = ref<string>();
@@ -205,16 +201,6 @@ watch(
   },
   { immediate: true },
 );
-watch(
-  () => workspace.value?.id,
-  (id) => {
-    if (!id || expandedWorkspaceIds.value.has(id)) return;
-    expandedWorkspaceIds.value = new Set([...expandedWorkspaceIds.value, id]);
-    if (!sessionsByWorkspace.value.has(id)) void loadSessions(id);
-  },
-  { immediate: true },
-);
-
 async function submitWelcome() {
   const workspaceId = welcomeWorkspaceId.value;
   const text = welcomePrompt.value.trim();

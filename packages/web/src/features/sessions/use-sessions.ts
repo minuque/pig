@@ -20,7 +20,6 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
   // 导航树展开态：仅浏览用（ADR-0004），不持久化、不改变 Active Workspace
   const expandedWorkspaceIds = ref<Set<string>>(new Set());
   const creatingWorkspaceId = ref<string>();
-  const navOpen = ref(false);
 
   // 兼容输出：跟随活动 Workspace（由 useWorkspaceAccess 维护）
   const sessions = computed(() => {
@@ -39,8 +38,6 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
     const wid = workspace.value?.id;
     return wid ? nextCursors.value.get(wid) : undefined;
   });
-  const creating = computed(() => creatingWorkspaceId.value !== undefined);
-
   // 严格按 URL 的 workspaceId + sessionId 查找，相同 sessionId 不跨 Workspace 命中
   const currentSession = computed(() => {
     const wid = routeWorkspaceId.value;
@@ -54,13 +51,21 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
   const transcriptError = ref("");
   let transcriptGeneration = 0;
 
+  function expandWorkspace(id: string, requiredSessionId?: string) {
+    if (!expandedWorkspaceIds.value.has(id))
+      expandedWorkspaceIds.value = new Set([...expandedWorkspaceIds.value, id]);
+    const cached = sessionsByWorkspace.value.get(id);
+    if (!cached || (requiredSessionId && !cached.some(({ id }) => id === requiredSessionId)))
+      void loadSessions(id);
+  }
   function toggleWorkspace(id: string) {
+    if (!expandedWorkspaceIds.value.has(id)) {
+      expandWorkspace(id);
+      return;
+    }
     const next = new Set(expandedWorkspaceIds.value);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
+    next.delete(id);
     expandedWorkspaceIds.value = next;
-    // 首次展开时懒加载（ADR-0004），已缓存（含空列表）则跳过
-    if (next.has(id) && !sessionsByWorkspace.value.has(id)) void loadSessions(id);
   }
 
   async function loadSessions(targetWorkspaceId: string, append = false) {
@@ -106,7 +111,8 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
       if (generations[targetWorkspaceId] === generation)
         sessionErrors.value.set(targetWorkspaceId, errorMessage(error));
     } finally {
-      loadingWorkspaceIds.value.delete(targetWorkspaceId);
+      if (generations[targetWorkspaceId] === generation)
+        loadingWorkspaceIds.value.delete(targetWorkspaceId);
     }
   }
 
@@ -153,7 +159,6 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
         ...(sessionsByWorkspace.value.get(wid) ?? []).filter(({ id }) => id !== session.id),
       ]);
       await router.push(`/workspaces/${wid}/sessions/${session.id}`);
-      navOpen.value = false;
       return session;
     } catch (error) {
       sessionErrors.value.set(wid, errorMessage(error));
@@ -207,15 +212,14 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
     loadingSessions,
     sessionError,
     nextCursor,
-    creating,
     creatingWorkspaceId,
-    navOpen,
     currentSession,
     sessionsByWorkspace,
     loadingWorkspaceIds,
     sessionErrors,
     nextCursors,
     expandedWorkspaceIds,
+    expandWorkspace,
     toggleWorkspace,
     transcript,
     loadingTranscript,

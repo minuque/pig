@@ -88,11 +88,6 @@ export function useWorkspaceAccess() {
     workspace.value = workspaces.value[0];
     if (route.params.workspaceId === targetWorkspace.id) await router.push("/");
   }
-  function selectWorkspace(id: string) {
-    workspace.value = workspaces.value.find((item) => item.id === id);
-    // 手动切换与 URL 的 Workspace 语义冲突：清除当前 Session 选择
-    if (route.params.sessionId) void router.push("/");
-  }
   // 路由驱动：选择非活动 Workspace 的 Session 时切换 Active Workspace；未授权 URL 回退欢迎页
   watch(
     () => route.params.workspaceId,
@@ -116,6 +111,5 @@ export function useWorkspaceAccess() {
     previewWorkspace,
     confirmWorkspace,
     revokeWorkspace,
-    selectWorkspace,
   };
 }

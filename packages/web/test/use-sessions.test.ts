@@ -120,6 +120,48 @@ describe("useSessions per-workspace caches", () => {
     expect(sessions.currentSession.value?.id).toBe("deep");
   });
 
+  it("refreshes a cached workspace when a routed session is missing", async () => {
+    api.mockImplementation((path: string) => {
+      if (path === "/workspaces/a/sessions?limit=25")
+        return Promise.resolve({ sessions: [session("old", "a")] });
+      if (path === "/workspaces/a/sessions/deep")
+        return Promise.resolve({ session: session("deep", "a") });
+      return Promise.resolve({});
+    });
+    const active = ref<WorkspaceDto>(workspace("a"));
+    const sessions = useSessions(active);
+    sessions.sessionsByWorkspace.value.set("a", [session("old", "a")]);
+    mock.setParams!({ workspaceId: "a", sessionId: "deep" });
+    await nextTick();
+
+    sessions.expandWorkspace("a", "deep");
+    await vi.waitFor(() => expect(sessions.currentSession.value?.id).toBe("deep"));
+
+    expect(api).toHaveBeenCalledWith("/workspaces/a/sessions/deep");
+  });
+
+  it("keeps loading visible until the latest request settles", async () => {
+    const resolvers: Array<(value: { sessions: SessionDto[] }) => void> = [];
+    api.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolvers.push(resolve);
+        }),
+    );
+    const active = ref<WorkspaceDto>(workspace("a"));
+    const sessions = useSessions(active);
+
+    const first = sessions.loadSessions("a");
+    const latest = sessions.loadSessions("a");
+    resolvers[0]!({ sessions: [] });
+    await first;
+    expect(sessions.loadingWorkspaceIds.value.has("a")).toBe(true);
+
+    resolvers[1]!({ sessions: [] });
+    await latest;
+    expect(sessions.loadingWorkspaceIds.value.has("a")).toBe(false);
+  });
+
   it("returns an invalid deep link to the welcome page", async () => {
     api.mockImplementation((path: string) => {
       if (path === "/workspaces/a/sessions?limit=25") return Promise.resolve({ sessions: [] });
