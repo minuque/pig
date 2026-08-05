@@ -4,6 +4,7 @@ import {
   type CommandId,
   type ErrorCode,
   type LocalIdentityId,
+  type PiRuntimeAdapter,
   type PlatformPort,
   type Workspace,
   type WorkspaceId,
@@ -19,6 +20,7 @@ export class WorkspacesApplication {
   constructor(
     private readonly platform: PlatformPort,
     private readonly metadata: SqliteMetadataStore,
+    private readonly runtime: PiRuntimeAdapter,
   ) {}
   async selectDirectory() {
     return this.platform.selectWorkspaceDirectory();
@@ -62,5 +64,14 @@ export class WorkspacesApplication {
   revoke(identityId: LocalIdentityId, workspaceId: WorkspaceId) {
     this.get(identityId, workspaceId);
     this.metadata.revokeWorkspace(identityId, workspaceId);
+  }
+  /** 每请求过滤当前身份已授权目录；revoke 后候选可重新出现 */
+  async candidates(identityId: LocalIdentityId) {
+    const authorized = new Set(
+      this.metadata.listWorkspaces(identityId).map((workspace) => workspace.canonicalPath),
+    );
+    return (await this.runtime.discoverCandidateWorkspaces()).filter(
+      (candidate) => !authorized.has(candidate.canonicalPath),
+    );
   }
 }

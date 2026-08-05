@@ -14,6 +14,12 @@ export interface Workspace {
   updatedAt: Date;
 }
 
+export interface WorkspaceCandidate {
+  canonicalPath: string;
+  name: string;
+  lastModified: string;
+}
+
 export interface WorkspaceAccess {
   localIdentityId: LocalIdentityId;
   workspaceId: WorkspaceId;
@@ -28,13 +34,33 @@ export interface Session {
   status: "available" | "unavailable";
 }
 
-export interface ExecutionProfile {
+export interface ModelPreset {
   model: string;
   thinkingLevel: string;
 }
 
+/** 模型目录（Model Picker 展示用）：供应商 → 模型列表。 */
+export interface ModelInfo {
+  id: string;
+  name: string;
+  reasoning: boolean;
+  thinkingLevels: string[];
+  contextWindow?: number;
+  /** 品牌名（如 "OpenAI"），供 Picker 展示，来自供应商元数据 */
+  brand?: string;
+  /** 模型描述，供 Picker 展示；缺省时前端回退到模型名 */
+  description?: string;
+}
+
+export interface ModelVendor {
+  id: string;
+  name: string;
+  models: ModelInfo[];
+}
+
 export interface RuntimeCapabilities {
-  profiles: ExecutionProfile[];
+  presets: ModelPreset[];
+  catalog: ModelVendor[];
 }
 
 export interface Run {
@@ -43,7 +69,7 @@ export interface Run {
   sessionId: SessionId;
   prompt: string;
   commandId: CommandId;
-  profile?: ExecutionProfile;
+  profile?: ModelPreset;
   status: RunStatus;
   output?: string;
   createdAt: Date;

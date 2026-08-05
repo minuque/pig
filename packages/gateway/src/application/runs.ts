@@ -6,8 +6,8 @@ import {
   terminalStatuses,
   type CommandId,
   type ErrorCode,
-  type ExecutionProfile,
   type LocalIdentityId,
+  type ModelPreset,
   type PiRuntimeAdapter,
   type Run,
   type RunId,
@@ -23,8 +23,8 @@ import { RunStateMachine } from "./run-state-machine.js";
 export class RunNotFoundError extends Error {
   readonly code: ErrorCode = "RUN_NOT_FOUND";
 }
-export class InvalidExecutionProfileError extends Error {
-  readonly code: ErrorCode = "INVALID_EXECUTION_PROFILE";
+export class InvalidModelPresetError extends Error {
+  readonly code: ErrorCode = "INVALID_MODEL_PRESET";
 }
 export class InvalidRunStateError extends Error {
   readonly code: ErrorCode = "INVALID_RUN_STATE";
@@ -74,18 +74,18 @@ export class RunsApplication {
     sessionId: SessionId,
     prompt: string,
     commandId: CommandId,
-    profile?: ExecutionProfile,
+    profile?: ModelPreset,
   ) {
     await this.sessions.get(identityId, workspaceId, sessionId);
     const capabilities = await this.runtime.capabilities();
-    const frozen = profile ?? capabilities.profiles[0];
+    const frozen = profile ?? capabilities.presets[0];
     if (
       !frozen ||
-      !capabilities.profiles.some(
+      !capabilities.presets.some(
         (p) => p.model === frozen.model && p.thinkingLevel === frozen.thinkingLevel,
       )
     )
-      throw new InvalidExecutionProfileError();
+      throw new InvalidModelPresetError();
     return this.commands.execute(
       commandId,
       { workspaceId, sessionId, prompt, identityId, profile: frozen },

@@ -16,7 +16,7 @@ import { NodePlatformPort } from "../adapters/filesystem/node-platform.js";
 import { PiRuntimeAdapterImpl } from "../adapters/pi/runtime.js";
 import { InMemoryRunRepository } from "../adapters/repositories/run-repository.js";
 import {
-  InvalidExecutionProfileError,
+  InvalidModelPresetError,
   InvalidRunStateError,
   RunNotFoundError,
   RunsApplication,
@@ -73,7 +73,7 @@ export class Gateway {
   private sequence = 1;
   private readonly statusMap: Record<ErrorCode, number> = {
     COMMAND_ID_CONFLICT: 409,
-    INVALID_EXECUTION_PROFILE: 400,
+    INVALID_MODEL_PRESET: 400,
     INVALID_SESSION_CURSOR: 400,
     INVALID_RUN_STATE: 409,
     WORKSPACE_ACCESS_DENIED: 403,
@@ -93,6 +93,7 @@ export class Gateway {
     this.workspaces = new WorkspacesApplication(
       options.platformPort ?? new NodePlatformPort(),
       this.metadata,
+      runtime,
     );
     this.sessions = new SessionsApplication(this.workspaces, runtime, this.metadata);
     this.runs = new RunsApplication(
@@ -235,6 +236,8 @@ export class Gateway {
       }
       if (url.pathname === "/api/v1/workspaces" && req.method === "GET")
         return this.send(res, 200, { workspaces: this.workspaces.list(identityId) });
+      if (url.pathname === "/api/v1/workspaces/candidates" && req.method === "GET")
+        return this.send(res, 200, { candidates: await this.workspaces.candidates(identityId) });
       if (url.pathname === "/api/v1/capabilities" && req.method === "GET")
         return this.send(res, 200, await this.runs.capabilities());
       const workspaceMatch = url.pathname.match(/^\/api\/v1\/workspaces\/([^/]+)$/);
@@ -310,7 +313,7 @@ export class Gateway {
               sessionId,
               promptStr,
               cmdId as CommandId,
-              profile as import("@no-pi-no-gang/contracts").ExecutionProfile | undefined,
+              profile as import("@no-pi-no-gang/contracts").ModelPreset | undefined,
             ),
           });
         }

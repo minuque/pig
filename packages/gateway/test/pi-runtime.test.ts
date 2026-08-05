@@ -18,14 +18,30 @@ const workspace = (path: string, id = "workspace") =>
 describe("PiRuntimeAdapterImpl", () => {
   it("uses authenticated models, unambiguous profile keys, and Pi thinking levels without network", async () => {
     const models = [
-      { provider: "provider-a", id: "same-model" },
-      { provider: "provider-b", id: "same-model" },
+      {
+        provider: "provider-a",
+        id: "same-model",
+        name: "Same Model",
+        reasoning: true,
+        contextWindow: 1000,
+      },
+      {
+        provider: "provider-b",
+        id: "same-model",
+        name: "Same Model",
+        reasoning: false,
+        contextWindow: 1000,
+      },
     ];
     const disposed: string[] = [];
     const runtime = {
       async getAvailable() {
         return models;
       },
+      getProvider: (id: string) => ({
+        id,
+        name: id === "provider-a" ? "Provider A" : "Provider B",
+      }),
     };
     const adapter = new PiRuntimeAdapterImpl(async () => runtime as never, (async ({
       model,
@@ -40,10 +56,42 @@ describe("PiRuntimeAdapterImpl", () => {
     })) as never);
 
     expect(await adapter.capabilities()).toEqual({
-      profiles: [
+      presets: [
         { model: "provider-a/same-model", thinkingLevel: "off" },
         { model: "provider-a/same-model", thinkingLevel: "high" },
         { model: "provider-b/same-model", thinkingLevel: "low" },
+      ],
+      catalog: [
+        {
+          id: "provider-a",
+          name: "Provider A",
+          models: [
+            {
+              id: "same-model",
+              name: "Same Model",
+              reasoning: true,
+              thinkingLevels: ["off", "high"],
+              contextWindow: 1000,
+              brand: "Provider A",
+              description: "Same Model",
+            },
+          ],
+        },
+        {
+          id: "provider-b",
+          name: "Provider B",
+          models: [
+            {
+              id: "same-model",
+              name: "Same Model",
+              reasoning: false,
+              thinkingLevels: ["low"],
+              contextWindow: 1000,
+              brand: "Provider B",
+              description: "Same Model",
+            },
+          ],
+        },
       ],
     });
     expect(disposed).toEqual(["provider-a", "provider-b"]);

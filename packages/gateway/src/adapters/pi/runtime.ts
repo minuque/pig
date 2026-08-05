@@ -1,10 +1,11 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { mkdir, realpath, writeFile } from "node:fs/promises";
+import { basename, dirname, resolve } from "node:path";
 import type { AgentSession, AgentSessionEvent } from "@earendil-works/pi-coding-agent";
 import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent";
 import type {
   CommandId,
-  ExecutionProfile,
+  ModelPreset,
+  ModelVendor,
   PiRunEvent,
   PiRuntimeAdapter,
   RunId,
@@ -12,6 +13,7 @@ import type {
   SessionId,
   TranscriptEntry,
   Workspace,
+  WorkspaceCandidate,
   WorkspaceId,
 } from "@no-pi-no-gang/contracts";
 
@@ -30,6 +32,7 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
   private readonly sessionPaths = new Map<string, string>();
   private readonly activeRuns = new Map<RunId, ActiveRun>();
   private runtimePromise?: Promise<Runtime>;
+  private candidatesPromise: Promise<WorkspaceCandidate[]> | undefined;
 
   constructor(
     private readonly createRuntime: () => Promise<Runtime> = () =>
@@ -72,7 +75,8 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
 
   async capabilities() {
     const runtime = await this.runtime();
-    const profiles: ExecutionProfile[] = [];
+    const presets: ModelPreset[] = [];
+    const vendors = new Map<string, ModelVendor>();
     for (const model of await runtime.getAvailable()) {
       const { session } = await this.createSession({
         modelRuntime: runtime,
@@ -82,13 +86,28 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
       });
       try {
         const key = `${model.provider}/${model.id}`;
-        for (const thinkingLevel of session.getAvailableThinkingLevels())
-          profiles.push({ model: key, thinkingLevel });
+        const thinkingLevels = session.getAvailableThinkingLevels();
+        for (const thinkingLevel of thinkingLevels) presets.push({ model: key, thinkingLevel });
+        const vendor = vendors.get(model.provider) ?? {
+          id: model.provider,
+          name: runtime.getProvider(model.provider)?.name ?? model.provider,
+          models: [],
+        };
+        vendor.models.push({
+          id: model.id,
+          name: model.name,
+          reasoning: model.reasoning,
+          thinkingLevels,
+          ...(model.contextWindow ? { contextWindow: model.contextWindow } : {}),
+          brand: vendor.name,
+          description: model.name,
+        });
+        vendors.set(model.provider, vendor);
       } finally {
         session.dispose();
       }
     }
-    return { profiles };
+    return { presets, catalog: [...vendors.values()] };
   }
 
   async createRun(
@@ -97,7 +116,7 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
     prompt: string,
     runKey?: CommandId,
     onEvent: (event: PiRunEvent) => void = () => undefined,
-    profile?: ExecutionProfile,
+    profile?: ModelPreset,
   ): Promise<{ status: "completed" | "failed" | "cancelled"; output?: string }> {
     const runId = runKey as unknown as RunId;
     let resolve!: (session: AgentSession) => void;
@@ -127,7 +146,7 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
       const model =
         profile &&
         runtime.getModel(profile.model.slice(0, separator), profile.model.slice(separator + 1));
-      if (!model || !profile) throw new Error("Execution profile is unavailable");
+      if (!model || !profile) throw new Error("Model preset is unavailable");
       ({ session } = await this.createSession({
         cwd: SessionManager.open(path).getCwd(),
         modelRuntime: runtime,
@@ -196,6 +215,48 @@ export class PiRuntimeAdapterImpl implements PiRuntimeAdapter {
         status: "available" as const,
       };
     });
+  }
+
+  /**
+   * 冷加载：仅在首次调用时扫描一次 sessionDir，进程级缓存；失败清空缓存允许重试。
+   * sessionDir 为函数时按 workspace 分库，无法全局列举，返回空。
+   */
+  async discoverCandidateWorkspaces(): Promise<WorkspaceCandidate[]> {
+    const sessionDir = this.sessionDir;
+    if (typeof sessionDir === "function") return [];
+    return (this.candidatesPromise ??= this.scanCandidates(sessionDir)).then((candidates) => [
+      ...candidates,
+    ]);
+  }
+
+  private async scanCandidates(sessionDir: string | undefined): Promise<WorkspaceCandidate[]> {
+    try {
+      const infos = await SessionManager.listAll(sessionDir);
+      infos.sort((a, b) => b.modified.getTime() - a.modified.getTime());
+      const seen = new Set<string>();
+      const candidates: WorkspaceCandidate[] = [];
+      for (const info of infos) {
+        if (!info.cwd) continue;
+        let canonicalPath: string;
+        try {
+          canonicalPath = await realpath(resolve(info.cwd));
+        } catch {
+          continue; // cwd 不存在或不可读，单项跳过
+        }
+        const key = process.platform === "win32" ? canonicalPath.toLowerCase() : canonicalPath;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        candidates.push({
+          canonicalPath,
+          name: basename(canonicalPath),
+          lastModified: info.modified.toISOString(),
+        });
+      }
+      return candidates;
+    } catch (error) {
+      this.candidatesPromise = undefined;
+      throw error;
+    }
   }
 
   async readTranscript(workspace: Workspace, sessionId: SessionId): Promise<TranscriptEntry[]> {

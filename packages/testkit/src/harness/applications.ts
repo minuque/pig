@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import type {
   CommandId,
-  ExecutionProfile,
+  ModelPreset,
   PiRunEvent,
   PiRuntimeAdapter,
   Run,
@@ -12,6 +12,7 @@ import type {
   SSEEventEnvelope,
   TranscriptEntry,
   Workspace,
+  WorkspaceCandidate,
   WorkspaceId,
 } from "@no-pi-no-gang/contracts";
 import {
@@ -30,6 +31,11 @@ type FakeRecord =
 /** 内存版 Pi Runtime 假件：不落盘，供 application 直连测试复用 */
 export class FakePiRuntimeAdapter implements PiRuntimeAdapter {
   protected readonly records: FakeRecord[] = [];
+  candidates: WorkspaceCandidate[] = [];
+
+  async discoverCandidateWorkspaces(): Promise<WorkspaceCandidate[]> {
+    return this.candidates.map((candidate) => ({ ...candidate }));
+  }
 
   async startSession(workspace: Workspace, name?: string): Promise<Session> {
     const now = new Date();
@@ -46,7 +52,16 @@ export class FakePiRuntimeAdapter implements PiRuntimeAdapter {
   }
 
   async capabilities() {
-    return { profiles: [{ model: "fake/default", thinkingLevel: "off" }] };
+    return {
+      presets: [{ model: "fake/default", thinkingLevel: "off" }],
+      catalog: [
+        {
+          id: "fake",
+          name: "Fake",
+          models: [{ id: "default", name: "Default", reasoning: false, thinkingLevels: ["off"] }],
+        },
+      ],
+    };
   }
 
   async createRun(
@@ -55,7 +70,7 @@ export class FakePiRuntimeAdapter implements PiRuntimeAdapter {
     _prompt: string,
     _commandId?: CommandId,
     _onEvent?: (event: PiRunEvent) => void,
-    _profile?: ExecutionProfile,
+    _profile?: ModelPreset,
   ): Promise<{ status: "completed" | "failed" | "cancelled"; output?: string }> {
     return { status: "completed" };
   }
@@ -111,7 +126,7 @@ export function createApplications(options?: {
   } = options ?? {};
 
   const metadata = new SqliteMetadataStore(dbPath ?? ":memory:");
-  const workspaces = new WorkspacesApplication(platformPort, metadata);
+  const workspaces = new WorkspacesApplication(platformPort, metadata, runtimeAdapter);
   const sessions = new SessionsApplication(workspaces, runtimeAdapter, metadata);
   const runs = new RunsApplication(
     sessions,

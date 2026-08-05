@@ -1,13 +1,14 @@
 import type { PiRunEvent } from "../events/index.js";
 import type {
   CommandId,
-  ExecutionProfile,
+  ModelPreset,
   Run,
   RunId,
   Session,
   SessionId,
   TranscriptEntry,
   Workspace,
+  WorkspaceCandidate,
   WorkspaceId,
 } from "../resources/index.js";
 
@@ -33,10 +34,11 @@ export interface PiRuntimeAdapter {
     prompt: string,
     commandId?: CommandId,
     onEvent?: (event: PiRunEvent) => void,
-    profile?: ExecutionProfile,
+    profile?: ModelPreset,
   ): Promise<{ status: "completed" | "failed" | "cancelled"; output?: string }>;
   cancelRun(runId: RunId): Promise<void>;
   steerRun(runId: RunId, input: string): Promise<void>;
   discoverSessions(workspace: Workspace): Promise<Session[]>;
   readTranscript(workspace: Workspace, sessionId: SessionId): Promise<TranscriptEntry[]>;
+  discoverCandidateWorkspaces(): Promise<WorkspaceCandidate[]>;
 }

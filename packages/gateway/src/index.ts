@@ -8,7 +8,7 @@ export { SessionsApplication } from "./application/sessions.js";
 export { RunsApplication } from "./application/runs.js";
 export {
   RunNotFoundError,
-  InvalidExecutionProfileError,
+  InvalidModelPresetError,
   InvalidRunStateError,
 } from "./application/runs.js";
 export { InvalidSessionCursorError, SessionNotFoundError } from "./application/sessions.js";

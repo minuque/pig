@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import type {
   CommandId,
-  ExecutionProfile,
+  ModelPreset,
   PiRunEvent,
   PlatformPort,
   Run,
@@ -31,7 +31,7 @@ const platformPort: PlatformPort = {
 };
 
 class FakePiRuntime extends FakePiRuntimeAdapter {
-  profiles: ExecutionProfile[] = [
+  presets: ModelPreset[] = [
     { model: "fake-fast", thinkingLevel: "low" },
     { model: "fake-deep", thinkingLevel: "high" },
   ];
@@ -39,7 +39,7 @@ class FakePiRuntime extends FakePiRuntimeAdapter {
     workspaceId: WorkspaceId;
     sessionId: SessionId;
     prompt: string;
-    profile?: ExecutionProfile;
+    profile?: ModelPreset;
     settle: (status?: "completed" | "failed" | "cancelled") => void;
   }> = [];
   readonly cancelCalls: RunId[] = [];
@@ -53,7 +53,16 @@ class FakePiRuntime extends FakePiRuntimeAdapter {
   }
 
   override async capabilities() {
-    return { profiles: this.profiles.map((profile) => ({ ...profile })) };
+    return {
+      presets: this.presets.map((preset) => ({ ...preset })),
+      catalog: [
+        {
+          id: "fake",
+          name: "Fake",
+          models: [{ id: "default", name: "Default", reasoning: false, thinkingLevels: ["off"] }],
+        },
+      ],
+    };
   }
 
   override async createRun(
@@ -62,7 +71,7 @@ class FakePiRuntime extends FakePiRuntimeAdapter {
     prompt: string,
     _commandId?: CommandId,
     onEvent: (event: PiRunEvent) => void = () => undefined,
-    profile?: ExecutionProfile,
+    profile?: ModelPreset,
   ) {
     this.active++;
     this.maxActive = Math.max(this.maxActive, this.active);
@@ -179,13 +188,13 @@ async function run(
   workspaceId: string,
   sessionId: SessionId,
   commandId: string,
-  profile?: ExecutionProfile,
+  preset?: ModelPreset,
 ) {
   const path = `/api/v1/workspaces/${workspaceId}/sessions/${sessionId}/runs`;
   const response = await request(port, path, credential, {
     commandId,
     prompt: commandId,
-    ...(profile ? { profile } : {}),
+    ...(preset ? { profile: preset } : {}),
   });
   expect(response.status).toBe(201);
   return ((await response.json()) as { run: Run }).run;
@@ -443,23 +452,30 @@ describe("Phase 1 Gateway acceptance", () => {
     expect((await request(started.port, second, started.credential)).status).toBe(200);
   });
 
-  it("uses runtime capabilities, rejects invalid profiles, freezes queued profiles, and keeps SQLite metadata-only", async () => {
+  it("uses runtime capabilities, rejects invalid presets, freezes queued presets, and keeps SQLite metadata-only", async () => {
     const started = await start({ maxConcurrentRuns: 1 });
     const one = await workspace(started.port, started.credential);
     const current = await session(started.port, started.credential, one.id, "profile-session");
     expect(
       await (await request(started.port, "/api/v1/capabilities", started.credential)).json(),
     ).toEqual({
-      profiles: started.runtime.profiles,
+      presets: started.runtime.presets,
+      catalog: [
+        {
+          id: "fake",
+          name: "Fake",
+          models: [{ id: "default", name: "Default", reasoning: false, thinkingLevels: ["off"] }],
+        },
+      ],
     });
     const runs = `/api/v1/workspaces/${one.id}/sessions/${current.id}/runs`;
     const invalid = await request(started.port, runs, started.credential, {
-      commandId: "invalid-profile",
+      commandId: "invalid-preset",
       prompt: "invalid",
       profile: { model: "missing", thinkingLevel: "none" },
     });
     expect(invalid.status).toBe(400);
-    expect(await invalid.json()).toEqual({ code: "INVALID_EXECUTION_PROFILE" });
+    expect(await invalid.json()).toEqual({ code: "INVALID_MODEL_PRESET" });
 
     started.runtime.emitCanaryDelta = true;
     const first = await run(
@@ -468,9 +484,9 @@ describe("Phase 1 Gateway acceptance", () => {
       one.id,
       current.id,
       "FULL_PROMPT_CANARY",
-      started.runtime.profiles[0],
+      started.runtime.presets[0],
     );
-    const frozen = { ...started.runtime.profiles[1]! };
+    const frozen = { ...started.runtime.presets[1]! };
     const queued = await run(
       started.port,
       started.credential,
@@ -480,7 +496,7 @@ describe("Phase 1 Gateway acceptance", () => {
       frozen,
     );
     expect(queued).toMatchObject({ status: "queued", profile: frozen });
-    started.runtime.profiles = [{ model: "changed", thinkingLevel: "changed" }];
+    started.runtime.presets = [{ model: "changed", thinkingLevel: "changed" }];
     started.runtime.calls[0]!.settle();
     await waitFor(() => started.runtime.calls.length === 2);
     expect(started.runtime.calls[1]!.profile).toEqual(frozen);

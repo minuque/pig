@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { appendFile, readFile } from "fs/promises";
 import type {
   CommandId,
-  ExecutionProfile,
+  ModelPreset,
   PiRunEvent,
   PiRuntimeAdapter,
   RunId,
@@ -10,11 +10,16 @@ import type {
   SessionId,
   TranscriptEntry,
   Workspace,
+  WorkspaceCandidate,
   WorkspaceId,
 } from "@no-pi-no-gang/contracts";
 
 export class FakePiRuntimeAdapter implements PiRuntimeAdapter {
   constructor(protected readonly jsonlPath = "sessions.jsonl") {}
+  candidates: WorkspaceCandidate[] = [];
+  async discoverCandidateWorkspaces(): Promise<WorkspaceCandidate[]> {
+    return this.candidates.map((candidate) => ({ ...candidate }));
+  }
   async startSession(workspace: Workspace, name?: string): Promise<Session> {
     const now = new Date();
     const session: Session = {
@@ -32,7 +37,16 @@ export class FakePiRuntimeAdapter implements PiRuntimeAdapter {
     return session;
   }
   async capabilities() {
-    return { profiles: [{ model: "fake/default", thinkingLevel: "off" }] };
+    return {
+      presets: [{ model: "fake/default", thinkingLevel: "off" }],
+      catalog: [
+        {
+          id: "fake",
+          name: "Fake",
+          models: [{ id: "default", name: "Default", reasoning: false, thinkingLevels: ["off"] }],
+        },
+      ],
+    };
   }
   async createRun(
     _workspaceId: WorkspaceId,
@@ -40,7 +54,7 @@ export class FakePiRuntimeAdapter implements PiRuntimeAdapter {
     _prompt: string,
     _commandId?: CommandId,
     _onEvent?: (event: PiRunEvent) => void,
-    _profile?: ExecutionProfile,
+    _profile?: ModelPreset,
   ): Promise<{ status: "completed" | "failed" | "cancelled"; output?: string }> {
     return { status: "completed" };
   }
