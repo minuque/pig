@@ -4,7 +4,7 @@ import type { TranscriptEntry } from "@no-pi-no-gang/contracts";
 export type TranscriptPart =
   | { kind: "user"; text: string }
   | { kind: "agent"; text: string; thinking: string[] }
-  | { kind: "tool"; name: string; isError: boolean }
+  | { kind: "tool"; name: string; isError: boolean; text: string }
   | { kind: "other"; label: string; detail: string };
 
 interface Block {
@@ -58,6 +58,7 @@ export function parseTranscriptEntry(entry: TranscriptEntry): TranscriptPart | u
       kind: "tool",
       name: typeof name === "string" && name ? name : "工具",
       isError: (message as MessageLike).isError === true,
+      text: textFromContent((message as MessageLike).content),
     };
   }
   return undefined;

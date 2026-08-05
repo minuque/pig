@@ -50,7 +50,7 @@
           type="button"
           :aria-expanded="leftOpen"
           aria-label="切换 Workspace 导航"
-          @click="leftOpen = !leftOpen"
+          @click="toggle"
         >
           <PanelLeft :size="16" aria-hidden="true" />
         </button>
@@ -87,8 +87,11 @@
           :transcript-error="transcriptError"
           :session-runs="sessionRuns"
           :cancelling="cancelling"
-          :client-state="clientState"
+          :scroll-top="clientState?.scrollTop ?? 0"
+          :following="clientState?.following ?? true"
+          :has-new-activity="clientState?.hasNewActivity ?? false"
           @cancel-run="cancelRun"
+          @scroll-state="applyScrollState"
         />
 
         <ChatInput
@@ -138,15 +141,16 @@
 
 <script setup lang="ts">
 import { PanelLeft } from "lucide-vue-next";
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { computed } from "vue";
 import ChatInput from "../features/runs/ChatInput.vue";
-import { clampPanelWidth } from "../features/sessions/session-state.js";
 import SessionNav from "../features/sessions/SessionNav.vue";
 import SessionWelcome from "../features/sessions/SessionWelcome.vue";
 import ThemeToggle from "../features/theme/ThemeToggle.vue";
 import TranscriptView from "../features/sessions/TranscriptView.vue";
 import WorkspaceAuthorizeDialog from "../features/workspaces/WorkspaceAuthorizeDialog.vue";
 import { useApp } from "./use-app.js";
+import { useLeftPanel } from "./use-left-panel.js";
+import { useWelcomeSubmit } from "./use-welcome-submit.js";
 
 const {
   workspace,
@@ -175,6 +179,7 @@ const {
   cancelling,
   sessionRuns,
   activeRun,
+  applyScrollState,
   clientState,
   catalog,
   preset,
@@ -198,83 +203,190 @@ const queuedCount = computed(
   () => sessionRuns.value.filter(({ status }) => status === "queued").length,
 );
 
-/* ── 欢迎页：创建 Session 后立即发送首个 Run ───────────────────── */
-const welcomePrompt = ref("");
-const welcomeWorkspaceId = ref<string>();
-const welcomeSubmitting = ref(false);
-const welcomeError = ref("");
+/* ── 布局与欢迎页编排由职责聚焦的 composable 提供 ───────────────── */
+const { leftOpen, leftWidth, toggle, resizeBy, startResize, closeMobilePanels } = useLeftPanel();
+const { welcomePrompt, welcomeWorkspaceId, welcomeSubmitting, welcomeError, submitWelcome } =
+  useWelcomeSubmit({ workspaces, preset, sessionErrors, prompt, createSession, sendPrompt });
+</script>
 
-watch(
-  workspaces,
-  (items) => {
-    if (!items.some(({ id }) => id === welcomeWorkspaceId.value))
-      welcomeWorkspaceId.value = items[0]?.id;
-  },
-  { immediate: true },
-);
-async function submitWelcome(text: string) {
-  const workspaceId = welcomeWorkspaceId.value;
-  const trimmed = text.trim();
-  if (!workspaceId || !preset.value || !trimmed || welcomeSubmitting.value) return;
-  welcomeSubmitting.value = true;
-  welcomeError.value = "";
-  try {
-    const session = await createSession(workspaceId);
-    if (!session) {
-      welcomeError.value = sessionErrors.value.get(workspaceId) || "无法创建 Session";
-      return;
-    }
-    await nextTick();
-    prompt.value = trimmed;
-    await sendPrompt();
-    welcomePrompt.value = "";
-  } finally {
-    welcomeSubmitting.value = false;
+<style scoped>
+/* ── 工作台壳布局（原 app.css，随入口组件共置） ─────────────────── */
+.shell {
+  --left-width: var(--size-sidebar);
+  height: 100vh;
+  display: grid;
+  grid-template-columns: var(--left-width) var(--size-resizer) minmax(0, 1fr);
+  padding: var(--spacing-xs);
+  overflow: hidden;
+  transition: grid-template-columns var(--duration-normal) var(--ease-smooth);
+}
+.shell.left-closed {
+  grid-template-columns: 0 0 minmax(0, 1fr);
+}
+.sidebar {
+  min-width: 0;
+  padding: var(--spacing-xs);
+  overflow: auto;
+  background: transparent;
+}
+.left-closed .sidebar {
+  visibility: hidden;
+  padding: 0;
+}
+.resizer {
+  z-index: var(--z-resizer);
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+}
+.resizer:hover,
+.resizer:focus-visible {
+  background: var(--hairline);
+}
+main {
+  grid-column: 3;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-shell);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+.workbench-header {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 1fr) auto minmax(7.5rem, 1fr);
+  align-items: center;
+  min-height: calc(var(--size-control) + 2 * var(--spacing-xs));
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--surface);
+}
+.header-toggle {
+  justify-self: start;
+  width: var(--size-nav-action);
+  min-height: var(--size-nav-action);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.workbench-header h1 {
+  justify-self: center;
+  min-width: 0;
+  max-width: 50vw;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-body-sm--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: var(--spacing-xs);
+}
+.header-right .session-status {
+  margin: 0;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+}
+.status-mark {
+  color: var(--success);
+  font-size: var(--text-eyebrow);
+}
+.startup-error {
+  margin: var(--spacing-md);
+}
+.workspace-main {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+}
+.enter-blur {
+  animation: enter-blur var(--duration-slow) var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    transition: none;
+  }
+  .enter-blur {
+    animation: none;
   }
 }
-
-/* ── 左栏布局（resize + 移动端抽屉） ─────────────────────────────── */
-const narrowViewport = matchMedia("(max-width: 900px)");
-const leftOpen = ref(!narrowViewport.matches);
-const leftWidth = ref(clampPanelWidth(window.innerWidth * 0.18));
-
-function setPanelWidth(desired: number) {
-  const room = window.innerWidth - 332;
-  leftWidth.value = Math.min(clampPanelWidth(desired), Math.max(240, room));
+@media (max-width: 900px) {
+  .shell,
+  .shell.left-closed {
+    height: 100dvh;
+    display: block;
+    padding: 0;
+  }
+  main {
+    height: 100dvh;
+    border-radius: 0;
+  }
+  .resizer {
+    display: none;
+  }
+  .sidebar,
+  .left-closed .sidebar {
+    position: fixed;
+    z-index: var(--z-drawer);
+    inset-block: 0;
+    left: 0;
+    width: min(88vw, var(--size-drawer));
+    padding: var(--spacing-md);
+    visibility: hidden;
+    transform: translateX(-105%);
+    transition:
+      transform var(--duration-normal) var(--ease-smooth),
+      visibility 0s linear var(--duration-normal);
+    background: var(--canvas-soft);
+    box-shadow: var(--shadow-drawer);
+  }
+  .sidebar.open {
+    visibility: visible;
+    transform: translateX(0);
+    transition:
+      transform var(--duration-normal) var(--ease-smooth),
+      visibility 0s linear;
+  }
+  .workspace-main {
+    padding: var(--spacing-sm);
+  }
 }
-function resizeBy(delta: number) {
-  setPanelWidth(leftWidth.value + delta);
+@media (max-width: 520px) {
+  .workbench-header {
+    grid-template-columns: var(--size-control) minmax(0, 1fr) auto;
+  }
+  .header-right .session-status {
+    width: var(--size-control);
+    overflow: hidden;
+    font-size: 0;
+    text-align: center;
+  }
+  .workbench-header .status-mark {
+    font-size: var(--text-eyebrow);
+  }
+  .workbench-header > .header-toggle {
+    padding-inline: var(--spacing-sm);
+  }
+  .workspace-main {
+    gap: var(--spacing-xs);
+  }
 }
-function startResize(event: PointerEvent) {
-  event.preventDefault();
-  const startX = event.clientX;
-  const startWidth = leftWidth.value;
-  const move = (next: PointerEvent) => setPanelWidth(startWidth + (next.clientX - startX));
-  const stop = () => {
-    window.removeEventListener("pointermove", move);
-    window.removeEventListener("pointerup", stop);
-  };
-  window.addEventListener("pointermove", move);
-  window.addEventListener("pointerup", stop, { once: true });
+@media (prefers-reduced-motion: reduce) {
+  /* 置于末尾，覆盖上方 media 块内的 transition */
+  .sidebar {
+    transition: none;
+    animation: none;
+  }
 }
-function closeMobilePanels() {
-  if (narrowViewport.matches) leftOpen.value = false;
-}
-function fitPanels() {
-  if (narrowViewport.matches || !leftOpen.value) return;
-  const excess = leftWidth.value - (window.innerWidth - 332);
-  if (excess > 0) leftWidth.value = Math.max(240, leftWidth.value - excess);
-}
-function handleViewportChange(event: MediaQueryListEvent) {
-  if (event.matches) closeMobilePanels();
-  else fitPanels();
-}
-narrowViewport.addEventListener("change", handleViewportChange);
-window.addEventListener("resize", fitPanels);
-fitPanels();
-watch(leftOpen, () => void fitPanels());
-onBeforeUnmount(() => {
-  narrowViewport.removeEventListener("change", handleViewportChange);
-  window.removeEventListener("resize", fitPanels);
-});
-</script>
+</style>

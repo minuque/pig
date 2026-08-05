@@ -1,3 +1,20 @@
+<template>
+  <DropdownMenuPortal>
+    <DropdownMenuContent
+      data-slot="dropdown-menu-content"
+      v-bind="{ ...$attrs, ...forwarded }"
+      :class="
+        cn(
+          'bg-surface text-ink z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) min-w-(--size-menu) origin-(--reka-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-(--radius-md) border border-hairline p-(--spacing-xxs) shadow-elevated data-[state=open]:animate-[enter-blur_var(--duration-slow)_var(--ease-out)]',
+          props.class,
+        )
+      "
+    >
+      <slot />
+    </DropdownMenuContent>
+  </DropdownMenuPortal>
+</template>
+
 <script setup lang="ts">
 import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui";
 import type { ComputedRef, HTMLAttributes } from "vue";
@@ -26,20 +43,3 @@ const forwarded = useForwardPropsEmits(
   emits,
 ) as ComputedRef<DropdownMenuContentProps>;
 </script>
-
-<template>
-  <DropdownMenuPortal>
-    <DropdownMenuContent
-      data-slot="dropdown-menu-content"
-      v-bind="{ ...$attrs, ...forwarded }"
-      :class="
-        cn(
-          'bg-surface text-ink z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) min-w-(--size-menu) origin-(--reka-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-(--radius-md) border border-hairline p-(--spacing-xxs) shadow-elevated data-[state=open]:animate-[enter-blur_var(--duration-slow)_var(--ease-out)]',
-          props.class,
-        )
-      "
-    >
-      <slot />
-    </DropdownMenuContent>
-  </DropdownMenuPortal>
-</template>

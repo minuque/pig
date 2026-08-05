@@ -50,7 +50,7 @@ export async function bootstrapFromFragment(): Promise<void> {
 export async function streamEvents(
   onEvent: (event: unknown) => void,
   signal: AbortSignal,
-  onOpen: (info: { gap: boolean; latestSequence?: number | undefined }) => void = () => undefined,
+  onOpen: (info: { gap: boolean }) => void = () => undefined,
   lastEventId?: number,
 ): Promise<{ gap: boolean; latestSequence: number | undefined }> {
   const headers: HeadersInit = {
@@ -67,7 +67,7 @@ export async function streamEvents(
     throw new ApiError(`HTTP_${response.status}`, crypto.randomUUID());
   const gap = response.headers.get("X-Event-Stream-Gap") === "1";
   let latestSequence: number | undefined = undefined;
-  onOpen({ gap, latestSequence });
+  onOpen({ gap });
   const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
   while (true) {

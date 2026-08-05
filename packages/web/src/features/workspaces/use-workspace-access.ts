@@ -155,7 +155,6 @@ export function useWorkspaceAccess() {
     candidatesLoading,
     candidatesError,
     loadWorkspace,
-    ensureCandidates,
     clearPreview,
     closeAuthorize,
     previewWorkspace,

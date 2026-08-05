@@ -156,53 +156,26 @@
     </ul>
   </div>
 
-  <Dialog :open="Boolean(dialog)" @update:open="onDialogOpenChange">
-    <DialogContent @close-auto-focus="onCloseAutoFocus">
-      <DialogHeader>
-        <DialogTitle>{{
-          dialog?.mode === "rename" ? "重命名 Session" : "删除 Session"
-        }}</DialogTitle>
-        <DialogDescription v-if="dialog?.mode === 'rename'"
-          >输入该 Session 的新名称。</DialogDescription
-        >
-        <DialogDescription v-else>
-          删除“{{
-            dialog?.session.name || dialog?.session.id.slice(0, 8)
-          }}”的本地索引？此操作不可撤销。
-        </DialogDescription>
-      </DialogHeader>
-      <input
-        v-if="dialog?.mode === 'rename'"
-        ref="renameInput"
-        v-model="renameDraft"
-        class="rename-input"
-        aria-label="Session 名称"
-        maxlength="200"
-        @keydown.enter="submitRename"
-      />
-      <DialogFooter>
-        <button class="secondary" type="button" @click="closeDialog">取消</button>
-        <button v-if="dialog?.mode === 'delete'" class="danger" type="button" @click="submitDelete">
-          删除
-        </button>
-        <button v-else type="button" @click="submitRename">保存</button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+  <SessionRenameDialog
+    v-if="renameTarget"
+    :session="renameTarget.session"
+    :trigger="renameTarget.trigger"
+    @close="renameTarget = null"
+    @rename="handleRename"
+  />
+  <SessionDeleteDialog
+    v-if="deleteTarget"
+    :session="deleteTarget.session"
+    :trigger="deleteTarget.trigger"
+    @close="deleteTarget = null"
+    @delete="handleDelete"
+  />
 </template>
 
 <script setup lang="ts">
 import { ChevronRight, Folder, FolderOpen, MoreVertical, Plus } from "lucide-vue-next";
-import { nextTick, ref, watch } from "vue";
+import { ref } from "vue";
 import { RouterLink } from "vue-router";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../../components/ui/dialog/index.js";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -210,6 +183,8 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu/index.js";
 import type { SessionDto, WorkspaceDto } from "../../api/index.js";
+import SessionDeleteDialog from "./SessionDeleteDialog.vue";
+import SessionRenameDialog from "./SessionRenameDialog.vue";
 import { sessionKey } from "./session-state.js";
 
 const props = defineProps<{
@@ -270,58 +245,256 @@ function revokeWorkspace(workspace: WorkspaceDto) {
   emit("revoke", workspace);
 }
 
-/* ── 重命名 / 删除 dialog（受控 open，reka 管理焦点/Escape/外点关闭） ── */
-const dialog = ref<{ session: SessionDto; mode: "rename" | "delete" } | null>(null);
-const renameDraft = ref("");
-const renameInput = ref<HTMLInputElement>();
-// 关闭后焦点回触发 kebab（菜单项卸载后 reka 无法自行恢复）；
+/* ── 重命名 / 删除 dialog（弹窗职责在子组件；此处记录目标与触发 kebab） ── */
+// 关闭后子组件将焦点回落到触发 kebab（菜单项卸载后 reka 无法自行恢复）；
 // Session id 跨 Workspace 不唯一，key 用 workspaceId:sessionId 组合
 const kebabRefs = new Map<string, HTMLElement | null>();
-let pendingFocus: HTMLElement | null = null;
+const renameTarget = ref<{ session: SessionDto; trigger: HTMLElement | null } | null>(null);
+const deleteTarget = ref<{ session: SessionDto; trigger: HTMLElement | null } | null>(null);
 
 function openRename(session: SessionDto) {
-  renameDraft.value = session.name ?? "";
-  pendingFocus = kebabRefs.get(sessionKey(session.workspaceId, session.id)) ?? null;
-  dialog.value = { session, mode: "rename" };
+  renameTarget.value = {
+    session,
+    trigger: kebabRefs.get(sessionKey(session.workspaceId, session.id)) ?? null,
+  };
 }
 function openDelete(session: SessionDto) {
-  pendingFocus = kebabRefs.get(sessionKey(session.workspaceId, session.id)) ?? null;
-  dialog.value = { session, mode: "delete" };
+  deleteTarget.value = {
+    session,
+    trigger: kebabRefs.get(sessionKey(session.workspaceId, session.id)) ?? null,
+  };
 }
-function onDialogOpenChange(open: boolean) {
-  if (!open) closeDialog();
+function handleRename(name: string) {
+  const target = renameTarget.value;
+  if (!target) return;
+  renameTarget.value = null;
+  emit("rename", target.session, name);
 }
-function closeDialog() {
-  dialog.value = null;
-  renameDraft.value = "";
+function handleDelete() {
+  const target = deleteTarget.value;
+  if (!target) return;
+  deleteTarget.value = null;
+  emit("delete", target.session);
 }
-// reka 关闭 dialog 前触发：焦点回触发 kebab（阻止默认聚焦 body）
-function onCloseAutoFocus(event: Event) {
-  event.preventDefault();
-  pendingFocus?.focus();
-  pendingFocus = null;
-}
-function submitRename() {
-  if (!dialog.value || !renameDraft.value.trim()) return;
-  const { session } = dialog.value;
-  const name = renameDraft.value.trim();
-  closeDialog();
-  emit("rename", session, name);
-}
-function submitDelete() {
-  if (!dialog.value) return;
-  const { session } = dialog.value;
-  closeDialog();
-  emit("delete", session);
-}
-watch(
-  () => dialog.value?.mode,
-  async (mode) => {
-    if (mode === "rename") {
-      await nextTick();
-      renameInput.value?.focus();
-      renameInput.value?.select();
-    }
-  },
-);
 </script>
+
+<style scoped>
+.session-nav {
+  min-width: 0;
+}
+.nav-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--size-control);
+  padding: 0 var(--spacing-xs) var(--spacing-xs);
+}
+.nav-masthead h2 {
+  margin: 0;
+  font-size: var(--text-body-md);
+  font-weight: var(--font-weight-semibold);
+}
+.nav-masthead .icon-button,
+.workspace-create,
+.workspace-kebab {
+  width: var(--size-nav-action);
+  min-height: var(--size-nav-action);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.workspace-list {
+  display: grid;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.workspace-item {
+  position: relative;
+  min-width: 0;
+  border-radius: var(--radius-lg);
+}
+.workspace-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+  min-height: var(--size-control);
+  padding: var(--spacing-xs) calc(3 * var(--size-nav-action)) var(--spacing-xs) var(--spacing-xs);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth);
+}
+.workspace-row:hover {
+  background: var(--surface);
+}
+.workspace-row.active .workspace-name {
+  font-weight: var(--font-weight-semibold);
+}
+.workspace-folder,
+.workspace-chevron {
+  flex: none;
+  color: var(--ink-faint);
+}
+.workspace-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-chevron {
+  margin-left: auto;
+  transition: transform var(--duration-normal) var(--ease-smooth);
+}
+.workspace-chevron.open {
+  transform: rotate(90deg);
+}
+.workspace-create,
+.workspace-kebab {
+  position: absolute;
+  top: calc((var(--size-control) - var(--size-nav-action)) / 2);
+  z-index: 1;
+  color: var(--ink-faint);
+}
+.workspace-create {
+  right: calc(var(--size-nav-action) + var(--spacing-xxs));
+}
+.workspace-kebab {
+  right: var(--spacing-xxs);
+  opacity: 0;
+}
+.workspace-item:hover > .workspace-kebab,
+.workspace-kebab:focus-visible,
+.workspace-kebab[aria-expanded="true"] {
+  opacity: 1;
+}
+.workspace-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-normal) var(--ease-smooth);
+}
+.workspace-reveal[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.workspace-reveal > div {
+  overflow: hidden;
+}
+.workspace-sessions {
+  padding: 0 var(--spacing-xs) var(--spacing-xs) calc(var(--spacing-lg) + var(--spacing-xs));
+}
+.workspace-sessions > .notice,
+.workspace-sessions > .shimmer {
+  margin: var(--spacing-xxs) 0;
+  padding: var(--spacing-xs);
+  font-size: var(--text-caption);
+}
+.session-list {
+  display: grid;
+  gap: var(--spacing-xxs);
+}
+.session-item {
+  position: relative;
+}
+.session-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: var(--size-control);
+  padding: var(--spacing-xs) var(--spacing-xl) var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth);
+}
+.session-card:hover {
+  background: var(--canvas-soft);
+}
+.session-card:active {
+  transform: scale(0.98);
+}
+.session-card.active,
+.session-card.router-link-active {
+  background: var(--canvas-soft);
+}
+.session-card .t {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.session-card.active .t {
+  font-weight: var(--font-weight-semibold);
+}
+.session-card .session-status {
+  flex: none;
+  color: var(--ink-faint);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-semibold);
+}
+.session-card .session-status.active {
+  color: var(--accent-orange-deep);
+}
+.session-card .session-status.unavailable {
+  color: var(--danger);
+}
+.session-kebab {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  width: var(--size-kebab);
+  min-height: var(--size-kebab);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-smooth),
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-smooth);
+}
+.session-item:hover .session-kebab,
+.session-kebab:focus-visible,
+.session-kebab[aria-expanded="true"] {
+  opacity: 1;
+}
+.session-kebab:hover {
+  background: var(--canvas-soft);
+  color: var(--ink);
+}
+.load-more {
+  width: 100%;
+  min-height: var(--size-nav-action);
+  margin-top: var(--spacing-xxs);
+  padding: var(--spacing-xxs) var(--spacing-xs);
+  font-size: var(--text-caption);
+}
+@media (hover: none) {
+  .session-kebab {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-reveal,
+  .workspace-item,
+  .workspace-row,
+  .workspace-chevron,
+  .session-card,
+  .session-kebab {
+    transition: none;
+    animation: none;
+  }
+}
+</style>

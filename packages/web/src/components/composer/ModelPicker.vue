@@ -1,7 +1,72 @@
+<template>
+  <DropdownMenu v-model:open="open" :modal="false">
+    <DropdownMenuTrigger as-child>
+      <button type="button" class="selector" :disabled="disabled" :aria-label="`模型：${label}`">
+        <VendorMark :name="current.vendor?.name ?? ''" :size="12" />
+        <span class="selector-name">{{ label }}</span>
+        <ChevronDown :size="12" class="selector-chevron" />
+      </button>
+    </DropdownMenuTrigger>
+
+    <DropdownMenuContent
+      side="top"
+      align="start"
+      :side-offset="6"
+      aria-label="选择模型"
+      class="z-30 w-[280px] rounded-(--radius-lg) shadow-(--shadow-popover) data-[state=open]:animate-[enter-blur_180ms_var(--ease-smooth)]"
+      @open-auto-focus="onOpenAutoFocus"
+      @pointer-down-outside="suppressFocusRestore"
+      @close-auto-focus="onCloseAutoFocus"
+    >
+      <div class="search">
+        <Search :size="13" class="search-icon" />
+        <input
+          ref="searchRef"
+          v-model="query"
+          type="text"
+          placeholder="搜索模型"
+          aria-label="搜索模型"
+        />
+      </div>
+      <div class="groups">
+        <template v-if="filtered.length">
+          <div v-for="vendor in filtered" :key="vendor.id" class="group">
+            <div class="group-label">{{ vendor.name }}</div>
+            <DropdownMenuItem
+              v-for="m in vendor.models"
+              :key="m.id"
+              class="model-item gap-[7px] rounded-[7px] px-2 py-[5px] text-[11px] font-medium active:scale-100 cursor-pointer hover:bg-canvas-soft focus:bg-canvas-soft data-[current]:text-primary"
+              :data-current="`${vendor.id}/${m.id}` === model ? '' : undefined"
+              @select="select(`${vendor.id}/${m.id}`)"
+            >
+              <VendorMark :name="vendor.name" :size="14" />
+              <span class="model-body">
+                <span class="model-name">{{ m.name }}</span>
+                <span v-if="m.description" class="model-desc">{{ m.description }}</span>
+              </span>
+              <span v-if="m.thinkingLevels.length === 1" class="model-tag">默认</span>
+              <Check v-if="`${vendor.id}/${m.id}` === model" :size="13" class="model-check" />
+            </DropdownMenuItem>
+          </div>
+        </template>
+        <div v-else class="empty">没有匹配的模型</div>
+      </div>
+    </DropdownMenuContent>
+  </DropdownMenu>
+</template>
+
 <script setup lang="ts">
 import { Check, ChevronDown, Search } from "lucide-vue-next";
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import type { ModelVendor } from "@no-pi-no-gang/contracts";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu/index.js";
+import VendorMark from "./VendorMark.vue";
+import { filterCatalog, parseModelId } from "./model-preset.js";
 
 const props = withDefaults(
   defineProps<{
@@ -18,54 +83,20 @@ const emit = defineEmits<{
 
 const open = ref(false);
 const query = ref("");
-const root = ref<HTMLElement | null>(null);
 const searchRef = ref<HTMLInputElement | null>(null);
 
 const current = computed(() => {
-  const sep = props.model.indexOf("/");
-  const provider = props.model.slice(0, sep);
-  const id = props.model.slice(sep + 1);
-  const vendor = props.catalog.find((v) => v.id === provider);
+  const { vendorId, modelId: id } = parseModelId(props.model);
+  const vendor = props.catalog.find((v) => v.id === vendorId);
   return { vendor, model: vendor?.models.find((m) => m.id === id) };
 });
 
-const filtered = computed(() => {
-  const q = query.value.trim().toLowerCase();
-  if (!q) return props.catalog;
-  return props.catalog
-    .map((vendor) => ({
-      ...vendor,
-      models: vendor.models.filter(
-        (m) =>
-          m.name.toLowerCase().includes(q) ||
-          m.id.toLowerCase().includes(q) ||
-          vendor.name.toLowerCase().includes(q),
-      ),
-    }))
-    .filter((vendor) => vendor.models.length > 0);
-});
+const filtered = computed(() => filterCatalog(props.catalog, query.value));
 
-function toggle() {
-  if (props.disabled) return;
-  open.value = !open.value;
-}
-function select(model: string) {
-  emit("update:model", model);
-  open.value = false;
-}
-function onDocDown(event: PointerEvent) {
-  if (!root.value?.contains(event.target as Node)) open.value = false;
-}
+// 每次打开清空上次搜索
 watch(open, (isOpen) => {
-  if (isOpen) {
-    query.value = "";
-    void nextTick(() => searchRef.value?.focus());
-    document.addEventListener("pointerdown", onDocDown);
-  } else {
-    document.removeEventListener("pointerdown", onDocDown);
-  }
+  if (isOpen) query.value = "";
 });
-onBeforeUnmount(() => document.removeEventListener("pointerdown", onDocDown));
 
 // 选择器标签：品牌名 + 模型名，均来自 catalog 数据
 const label = computed(() => {
@@ -73,97 +104,30 @@ const label = computed(() => {
   if (!vendor || !model) return props.model;
   return `${vendor.name} · ${model.name}`;
 });
-</script>
 
-<template>
-  <div ref="root" class="picker">
-    <button
-      type="button"
-      class="selector"
-      :disabled="disabled"
-      :aria-expanded="open"
-      aria-haspopup="listbox"
-      :aria-label="`模型：${label}`"
-      @click="toggle"
-    >
-      <VendorMark :name="current.vendor?.name ?? ''" :size="12" />
-      <span class="selector-name">{{ label }}</span>
-      <ChevronDown :size="12" class="selector-chevron" />
-    </button>
+function select(model: string) {
+  emit("update:model", model);
+  // 菜单由 reka-ui 在 select 后自动关闭
+}
 
-    <div v-if="open" class="popover" role="listbox" aria-label="选择模型">
-      <div class="search">
-        <Search :size="13" class="search-icon" />
-        <input
-          ref="searchRef"
-          v-model="query"
-          type="text"
-          placeholder="搜索模型"
-          aria-label="搜索模型"
-        />
-      </div>
-      <div class="groups">
-        <template v-if="filtered.length">
-          <div v-for="vendor in filtered" :key="vendor.id" class="group">
-            <div class="group-label">{{ vendor.name }}</div>
-            <button
-              v-for="m in vendor.models"
-              :key="m.id"
-              type="button"
-              role="option"
-              :aria-selected="`${vendor.id}/${m.id}` === model"
-              class="model-item"
-              :class="{ 'model-item-current': `${vendor.id}/${m.id}` === model }"
-              @click="select(`${vendor.id}/${m.id}`)"
-            >
-              <VendorMark :name="vendor.name" :size="14" />
-              <span class="model-body">
-                <span class="model-name">{{ m.name }}</span>
-                <span v-if="m.description" class="model-desc">{{ m.description }}</span>
-              </span>
-              <span v-if="m.thinkingLevels.length === 1" class="model-tag">默认</span>
-              <Check v-if="`${vendor.id}/${m.id}` === model" :size="13" class="model-check" />
-            </button>
-          </div>
-        </template>
-        <div v-else class="empty">没有匹配的模型</div>
-      </div>
-    </div>
-  </div>
-</template>
+// 打开后聚焦搜索框（阻止 reka 默认聚焦内容容器）
+function onOpenAutoFocus(event: Event) {
+  event.preventDefault();
+  searchRef.value?.focus();
+}
 
-<!-- 供应商品牌标记：中性首字母圆点；品牌名与模型描述均来自 catalog 数据，不硬编码 -->
-<script lang="ts">
-import { defineComponent, h } from "vue";
-
-export const VendorMark = defineComponent({
-  name: "VendorMark",
-  props: { name: { type: String, default: "" }, size: { type: Number, default: 12 } },
-  setup(props) {
-    return () => {
-      const size = props.size;
-      return h(
-        "span",
-        {
-          class: "vendor-fallback",
-          style: {
-            width: `${size}px`,
-            height: `${size}px`,
-            fontSize: `${Math.max(8, size * 0.6)}px`,
-          },
-        },
-        props.name.charAt(0).toUpperCase() || "?",
-      );
-    };
-  },
-});
+// 外点关闭时禁止 reka 把焦点抢回触发器，让点击落在目标元素上（与旧行为一致）
+let suppressRestore = false;
+function suppressFocusRestore() {
+  suppressRestore = true;
+}
+function onCloseAutoFocus(event: Event) {
+  if (suppressRestore) event.preventDefault();
+  suppressRestore = false;
+}
 </script>
 
 <style scoped>
-.picker {
-  position: relative;
-  display: flex;
-}
 .selector {
   display: inline-flex;
   align-items: center;
@@ -195,30 +159,6 @@ export const VendorMark = defineComponent({
 .selector-chevron {
   flex: none;
   opacity: 0.55;
-}
-.popover {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 0;
-  z-index: 30;
-  width: 280px;
-  padding: 4px;
-  background: var(--surface);
-  border: 0.5px solid var(--hairline);
-  border-radius: 12px;
-  box-shadow: var(--shadow-popover);
-  transform-origin: bottom left;
-  animation: popover-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes popover-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 .search {
   display: flex;
@@ -259,27 +199,6 @@ export const VendorMark = defineComponent({
   text-transform: uppercase;
   color: var(--ink-faint);
 }
-.model-item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  width: 100%;
-  padding: 5px 8px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--ink);
-  font-size: 11px;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-}
-.model-item:hover {
-  background: var(--canvas-soft);
-}
-.model-item-current {
-  color: var(--primary);
-}
 .model-body {
   flex: 1 1 auto;
   min-width: 0;
@@ -317,16 +236,5 @@ export const VendorMark = defineComponent({
   font-size: 11px;
   color: var(--ink-faint);
   text-align: center;
-}
-.vendor-fallback {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  border-radius: 999px;
-  background: var(--canvas-soft);
-  color: var(--ink-muted);
-  font-weight: 600;
-  line-height: 1;
 }
 </style>

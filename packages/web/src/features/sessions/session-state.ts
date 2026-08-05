@@ -20,6 +20,25 @@ export interface SessionClientState {
   runs: Map<string, UiRun>;
 }
 
+// TranscriptView 通过该类型化契约上报滚动状态，唯一所有者（useRuns）负责写入
+// SessionClientState 对应字段；TranscriptView 只读 props、只发事件
+export interface TranscriptScrollState {
+  scrollTop: number;
+  following: boolean;
+  hasNewActivity: boolean;
+}
+
+// 由滚动事件推导快照：贴底视为跟随并清除新活动提示，否则保留原提示
+export function scrollStateFrom(
+  scrollTop: number,
+  clientHeight: number,
+  scrollHeight: number,
+  previousHasNewActivity: boolean,
+): TranscriptScrollState {
+  const following = isNearBottom(scrollTop, clientHeight, scrollHeight);
+  return { scrollTop, following, hasNewActivity: following ? false : previousHasNewActivity };
+}
+
 export const sessionKey = (workspaceId: string, sessionId: string) => `${workspaceId}:${sessionId}`;
 
 export function sessionState(

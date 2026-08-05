@@ -13,6 +13,7 @@ import {
   sessionKey,
   sessionState,
   type SessionClientState,
+  type TranscriptScrollState,
 } from "../sessions/session-state.js";
 
 export function useRuns(
@@ -41,6 +42,15 @@ export function useRuns(
       ? sessionState(states, workspace.value.id, currentSession.value.id)
       : undefined,
   );
+  // 滚动状态唯一写入入口：TranscriptView 只上报，由这里落到会话状态；
+  // 其余写入仅有 sessionState 初始化与 routeSessionEvent 的新活动提示
+  function applyScrollState(scroll: TranscriptScrollState) {
+    const state = clientState.value;
+    if (!state) return;
+    state.scrollTop = scroll.scrollTop;
+    state.following = scroll.following;
+    state.hasNewActivity = scroll.hasNewActivity;
+  }
   const runs = computed(() => clientState.value?.runs ?? new Map<string, UiRun>());
   const queuedEvents = new Map<string, SSEEventEnvelope[]>();
   let lastSequence: number | undefined;
@@ -52,9 +62,10 @@ export function useRuns(
   );
   const eventController = new AbortController();
 
-  function handleEvent(value: unknown) {
+  function handleEvent(value: unknown, replay = false) {
     const envelope = value as SSEEventEnvelope;
-    if (lastSequence !== undefined && envelope.sequence <= lastSequence) {
+    // 预响应事件到达时已推进过 lastSequence，重放时跳过去重（这些事件从未被应用）
+    if (!replay && lastSequence !== undefined && envelope.sequence <= lastSequence) {
       return; // ignore old non-replay event
     }
     lastSequence = Math.max(lastSequence ?? 0, envelope.sequence);
@@ -177,7 +188,7 @@ export function useRuns(
       const key = `${workspaceId}:${sessionId}:${run.id}`;
       const queued = queuedEvents.get(key) ?? [];
       queuedEvents.delete(key);
-      for (const event of queued) handleEvent(event);
+      for (const event of queued) handleEvent(event, true);
     } catch (error) {
       runError.value = errorMessage(error);
     }
@@ -221,10 +232,10 @@ export function useRuns(
     sessionRuns,
     activeRun,
     clientState,
-    presets,
     catalog,
     preset,
     startEvents,
+    applyScrollState,
     sendPrompt,
     cancelRun,
     steerRun,

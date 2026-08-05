@@ -5,6 +5,7 @@ import {
   clampPanelWidth,
   isNearBottom,
   routeSessionEvent,
+  scrollStateFrom,
   sessionState,
 } from "../src/features/sessions/session-state.js";
 
@@ -58,5 +59,57 @@ describe("workbench state", () => {
 
     expect(alphaRun.output).toBe("alpha");
     expect(betaRun.output).toBe("beta");
+  });
+});
+
+describe("transcript scroll state contract", () => {
+  it("derives following from position and clears new activity when near bottom", () => {
+    expect(scrollStateFrom(820, 100, 1000, true)).toEqual({
+      scrollTop: 820,
+      following: true,
+      hasNewActivity: false,
+    });
+    expect(scrollStateFrom(700, 100, 1000, true)).toEqual({
+      scrollTop: 700,
+      following: false,
+      hasNewActivity: true,
+    });
+    expect(scrollStateFrom(700, 100, 1000, false)).toEqual({
+      scrollTop: 700,
+      following: false,
+      hasNewActivity: false,
+    });
+  });
+
+  it("marks new activity on run events only when the session is not following", () => {
+    const states = new Map();
+    const away = sessionState(states, "a", "s1");
+    away.following = false;
+    const awayRun: UiRun = {
+      id: "run",
+      workspaceId: "a",
+      sessionId: "s1",
+      status: "running",
+      output: "",
+    };
+    away.runs.set(awayRun.id, awayRun);
+    const following = sessionState(states, "a", "s2");
+    following.runs.set(awayRun.id, { ...awayRun, sessionId: "s2" });
+
+    const delta = (sessionId: string) =>
+      ({
+        version: "0.1.0",
+        type: "run.output.delta",
+        workspaceId: "a",
+        sessionId,
+        runId: "run",
+        data: { text: "x" },
+      }) as SSEEventEnvelope;
+
+    routeSessionEvent(states, delta("s1"));
+    routeSessionEvent(states, delta("s2"));
+
+    expect(away.hasNewActivity).toBe(true);
+    expect(following.hasNewActivity).toBe(false);
   });
 });

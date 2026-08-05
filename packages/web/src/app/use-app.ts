@@ -1,7 +1,6 @@
 import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { bootstrapFromFragment, errorMessage } from "../api/index.js";
-import { terminalStatuses, transcriptText } from "../features/runs/run-state.js";
 import { useRuns } from "../features/runs/use-runs.js";
 import { useSessions } from "../features/sessions/use-sessions.js";
 import { useWorkspaceAccess } from "../features/workspaces/use-workspace-access.js";
@@ -48,8 +47,6 @@ export function useApp() {
     ...sessions,
     ...runs,
     startupError,
-    terminalStatuses,
-    transcriptText,
     confirmWorkspace,
   };
 }

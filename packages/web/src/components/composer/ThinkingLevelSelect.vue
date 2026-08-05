@@ -1,6 +1,50 @@
+<template>
+  <DropdownMenu v-model:open="open" :modal="false">
+    <DropdownMenuTrigger as-child>
+      <button
+        type="button"
+        class="selector"
+        :disabled="disabled || levels.length < 2"
+        :aria-label="`思考强度：${label}`"
+      >
+        <span class="level-name">{{ label }}</span>
+        <ChevronDown :size="12" class="level-chevron" />
+      </button>
+    </DropdownMenuTrigger>
+
+    <DropdownMenuContent
+      side="top"
+      align="start"
+      :side-offset="6"
+      aria-label="思考强度"
+      class="z-30 min-w-[110px] p-[3px] rounded-[10px] shadow-(--shadow-popover) data-[state=open]:animate-[enter-blur_180ms_var(--ease-smooth)]"
+      @open-auto-focus="onOpenAutoFocus"
+      @pointer-down-outside="suppressFocusRestore"
+      @close-auto-focus="onCloseAutoFocus"
+    >
+      <DropdownMenuItem
+        v-for="item in levels"
+        :key="item"
+        class="h-[26px] gap-[6px] rounded-[7px] px-[7px] py-0 text-[11px] font-medium active:scale-100 cursor-pointer hover:bg-canvas-soft focus:bg-canvas-soft data-[current]:text-primary"
+        :data-current="item === level ? '' : undefined"
+        @select="select(item)"
+      >
+        <span class="menu-name">{{ item.charAt(0).toUpperCase() + item.slice(1) }}</span>
+        <Check v-if="item === level" :size="12" class="menu-check" />
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+</template>
+
 <script setup lang="ts">
 import { ChevronDown, Check } from "lucide-vue-next";
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, ref } from "vue";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu/index.js";
 
 const props = withDefaults(
   defineProps<{
@@ -16,74 +60,32 @@ const emit = defineEmits<{
 }>();
 
 const open = ref(false);
-const root = ref<HTMLElement | null>(null);
-
-// 联动：模型切换后当前 level 不可用时自动修正为第一个可用值
-watch(
-  () => props.levels,
-  (levels) => {
-    if (levels.length && !levels.includes(props.level)) emit("update:level", levels[0]!);
-  },
-  { immediate: true },
-);
 
 const label = computed(() => props.level.charAt(0).toUpperCase() + props.level.slice(1));
 
-function toggle() {
-  if (props.disabled || props.levels.length < 2) return;
-  open.value = !open.value;
+function select(item: string) {
+  emit("update:level", item);
+  // 菜单由 reka-ui 在 select 后自动关闭
 }
-function onDocDown(event: PointerEvent) {
-  if (!root.value?.contains(event.target as Node)) open.value = false;
+
+// 打开后聚焦第一项（阻止 reka 默认聚焦内容容器，Enter 即可直接选择）
+function onOpenAutoFocus(event: Event) {
+  event.preventDefault();
+  (event.target as HTMLElement).querySelector<HTMLElement>('[role="menuitem"]')?.focus();
 }
-watch(open, (isOpen) => {
-  if (isOpen) document.addEventListener("pointerdown", onDocDown);
-  else document.removeEventListener("pointerdown", onDocDown);
-});
-onBeforeUnmount(() => document.removeEventListener("pointerdown", onDocDown));
+
+// 外点关闭时禁止 reka 把焦点抢回触发器，让点击落在目标元素上（与旧行为一致）
+let suppressRestore = false;
+function suppressFocusRestore() {
+  suppressRestore = true;
+}
+function onCloseAutoFocus(event: Event) {
+  if (suppressRestore) event.preventDefault();
+  suppressRestore = false;
+}
 </script>
 
-<template>
-  <div ref="root" class="level">
-    <button
-      type="button"
-      class="selector"
-      :disabled="disabled"
-      :aria-expanded="open"
-      aria-haspopup="listbox"
-      :aria-label="`思考强度：${label}`"
-      @click="toggle"
-    >
-      <span class="level-name">{{ label }}</span>
-      <ChevronDown :size="12" class="level-chevron" />
-    </button>
-
-    <div v-if="open" class="menu" role="listbox" aria-label="思考强度">
-      <button
-        v-for="item in levels"
-        :key="item"
-        type="button"
-        role="option"
-        :aria-selected="item === level"
-        class="menu-item"
-        :class="{ 'menu-item-current': item === level }"
-        @click="
-          emit('update:level', item);
-          open = false;
-        "
-      >
-        <span class="menu-name">{{ item.charAt(0).toUpperCase() + item.slice(1) }}</span>
-        <Check v-if="item === level" :size="12" class="menu-check" />
-      </button>
-    </div>
-  </div>
-</template>
-
 <style scoped>
-.level {
-  position: relative;
-  display: flex;
-}
 .selector {
   display: inline-flex;
   align-items: center;
@@ -112,52 +114,6 @@ onBeforeUnmount(() => document.removeEventListener("pointerdown", onDocDown));
 .level-chevron {
   flex: none;
   opacity: 0.55;
-}
-.menu {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 0;
-  z-index: 30;
-  min-width: 110px;
-  padding: 3px;
-  background: var(--surface);
-  border: 0.5px solid var(--hairline);
-  border-radius: 10px;
-  box-shadow: var(--shadow-popover);
-  transform-origin: bottom left;
-  animation: menu-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes menu-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  height: 26px;
-  padding: 0 7px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--ink);
-  font-size: 11px;
-  font-weight: 425;
-  text-align: left;
-  cursor: pointer;
-}
-.menu-item:hover {
-  background: var(--canvas-soft);
-}
-.menu-item-current {
-  color: var(--primary);
 }
 .menu-name {
   flex: 1 1 auto;

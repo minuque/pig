@@ -6,8 +6,8 @@
 
 **Status:** ready-for-agent
 
-- [ ] 三处弹层的打开、关闭、选择和视觉行为与现状一致
-- [x] 三处弹层均可通过方向键、Enter 和 Escape 完整操作
-- [x] 删除手写 document 级外点监听及对应清理逻辑
-- [x] 供应商标记不再依赖不必要的 render function
-- [x] typecheck 通过，vitest 全绿，浏览器验收无回归
+- [X]  三处弹层的打开、关闭、选择和视觉行为与现状一致
+- [X]  三处弹层均可通过方向键、Enter 和 Escape 完整操作
+- [X]  删除手写 document 级外点监听及对应清理逻辑
+- [X]  供应商标记不再依赖不必要的 render function
+- [X]  typecheck 通过，vitest 全绿，浏览器验收无回归

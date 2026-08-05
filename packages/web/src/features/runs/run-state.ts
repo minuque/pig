@@ -53,9 +53,3 @@ export function routeRunEvent(
   }
   return run;
 }
-
-export function transcriptText(entry: Record<string, unknown>): string {
-  if (typeof entry.content === "string") return entry.content;
-  if (typeof entry.text === "string") return entry.text;
-  return JSON.stringify(entry, null, 2);
-}

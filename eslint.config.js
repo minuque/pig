@@ -9,7 +9,7 @@ export default tseslint.config(
     ignores: [
       "**/dist/**",
       "**/node_modules/**",
-      ".scratch/**",
+      "docs/**",
       ".worktrees/**",
       "playwright-report/**",
       "test-results/**",

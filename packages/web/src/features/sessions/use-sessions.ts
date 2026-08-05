@@ -21,22 +21,10 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
   const expandedWorkspaceIds = ref<Set<string>>(new Set());
   const creatingWorkspaceId = ref<string>();
 
-  // 兼容输出：跟随活动 Workspace（由 useWorkspaceAccess 维护）
+  // 兼容输出：跟随活动 Workspace（由 useWorkspaceAccess 维护）；测试与外部仍引用
   const sessions = computed(() => {
     const wid = workspace.value?.id;
     return wid ? (sessionsByWorkspace.value.get(wid) ?? []) : [];
-  });
-  const loadingSessions = computed(() => {
-    const wid = workspace.value?.id;
-    return wid ? loadingWorkspaceIds.value.has(wid) : false;
-  });
-  const sessionError = computed(() => {
-    const wid = workspace.value?.id;
-    return wid ? (sessionErrors.value.get(wid) ?? "") : "";
-  });
-  const nextCursor = computed(() => {
-    const wid = workspace.value?.id;
-    return wid ? nextCursors.value.get(wid) : undefined;
   });
   // 严格按 URL 的 workspaceId + sessionId 查找，相同 sessionId 不跨 Workspace 命中
   const currentSession = computed(() => {
@@ -209,9 +197,6 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
   );
   return {
     sessions,
-    loadingSessions,
-    sessionError,
-    nextCursor,
     creatingWorkspaceId,
     currentSession,
     sessionsByWorkspace,

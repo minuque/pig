@@ -1,0 +1,122 @@
+import { describe, expect, it } from "vitest";
+import { nextTick, ref } from "vue";
+import type { ModelPreset, ModelVendor } from "@no-pi-no-gang/contracts";
+import {
+  filterCatalog,
+  parseModelId,
+  resolveModelInfo,
+  useModelPresetBinding,
+} from "../src/components/composer/model-preset.js";
+
+const catalog: ModelVendor[] = [
+  {
+    id: "anthropic",
+    name: "Anthropic",
+    models: [
+      {
+        id: "claude-sonnet",
+        name: "Claude Sonnet",
+        reasoning: true,
+        thinkingLevels: ["low", "high"],
+      },
+      { id: "claude-haiku", name: "Claude Haiku", reasoning: true, thinkingLevels: ["low"] },
+    ],
+  },
+  {
+    id: "openai",
+    name: "OpenAI",
+    models: [{ id: "gpt-4o", name: "GPT-4o", reasoning: true, thinkingLevels: ["none"] }],
+  },
+];
+
+describe("filterCatalog", () => {
+  it("空查询返回完整目录", () => {
+    expect(filterCatalog(catalog, "  ")).toEqual(catalog);
+  });
+
+  it("按模型名/模型 id/供应商名模糊匹配，并剔除无命中供应商", () => {
+    expect(filterCatalog(catalog, "sonnet").map((v) => v.id)).toEqual(["anthropic"]);
+    expect(filterCatalog(catalog, "gpt-4o").map((v) => v.id)).toEqual(["openai"]);
+    expect(filterCatalog(catalog, "ANTHROPIC").map((v) => v.id)).toEqual(["anthropic"]);
+  });
+
+  it("无命中返回空数组", () => {
+    expect(filterCatalog(catalog, "不存在的模型")).toEqual([]);
+  });
+});
+
+describe("parseModelId", () => {
+  it("拆分为 vendorId/modelId", () => {
+    expect(parseModelId("anthropic/claude-sonnet")).toEqual({
+      vendorId: "anthropic",
+      modelId: "claude-sonnet",
+    });
+  });
+
+  it("无分隔符时整体视为 vendorId，模型 id 为空", () => {
+    expect(parseModelId("claude-sonnet")).toEqual({ vendorId: "claude-sonnet", modelId: "" });
+  });
+});
+
+describe("resolveModelInfo", () => {
+  it("命中时返回供应商、模型与可用 thinking level", () => {
+    const info = resolveModelInfo(catalog, "anthropic/claude-sonnet");
+    expect(info.vendor?.id).toBe("anthropic");
+    expect(info.model?.id).toBe("claude-sonnet");
+    expect(info.levels).toEqual(["low", "high"]);
+  });
+
+  it("无分隔符/未知供应商/未知模型均回退为空结果", () => {
+    expect(resolveModelInfo(catalog, "claude-sonnet").levels).toEqual([]);
+    expect(resolveModelInfo(catalog, "unknown/x").levels).toEqual([]);
+    expect(resolveModelInfo(catalog, "anthropic/unknown").levels).toEqual([]);
+  });
+});
+
+describe("useModelPresetBinding", () => {
+  it("模型切换后 level 不可用时由状态所有者自动修正", async () => {
+    const preset = ref<ModelPreset | undefined>({
+      model: "anthropic/claude-sonnet",
+      thinkingLevel: "high",
+    });
+    const { model, level } = useModelPresetBinding(() => catalog, preset);
+
+    model.value = "openai/gpt-4o";
+    await nextTick();
+
+    expect(preset.value).toEqual({ model: "openai/gpt-4o", thinkingLevel: "none" });
+    expect(level.value).toBe("none");
+  });
+
+  it("支持 Ref 形式 catalog", () => {
+    const catalogRef = ref<ModelVendor[]>(catalog);
+    const preset = ref<ModelPreset | undefined>({
+      model: "anthropic/claude-sonnet",
+      thinkingLevel: "high",
+    });
+    const { modelLevels } = useModelPresetBinding(catalogRef, preset);
+
+    expect(modelLevels.value).toEqual(["low", "high"]);
+  });
+
+  it("初始空 catalog 整体替换后联动仍响应（getter 契约回归）", async () => {
+    // getter 内读取响应式源（对应 `() => props.catalog`），整体替换后联动重算
+    const current = ref<ModelVendor[]>([]);
+    const preset = ref<ModelPreset | undefined>({
+      model: "anthropic/claude-sonnet",
+      thinkingLevel: "high",
+    });
+    const { model, modelLevels, level } = useModelPresetBinding(() => current.value, preset);
+
+    expect(modelLevels.value).toEqual([]);
+
+    current.value = catalog; // 整体替换
+    await nextTick();
+    expect(modelLevels.value).toEqual(["low", "high"]);
+    expect(level.value).toBe("high");
+
+    model.value = "openai/gpt-4o";
+    await nextTick();
+    expect(preset.value).toEqual({ model: "openai/gpt-4o", thinkingLevel: "none" });
+  });
+});

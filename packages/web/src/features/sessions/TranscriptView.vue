@@ -18,13 +18,13 @@
                 <button
                   type="button"
                   class="fold-toggle"
-                  :aria-expanded="thinkingOpen.has(entryId(entry))"
+                  :aria-expanded="thinkingOpen.has(foldKey(entry))"
                   @click="toggleThinking(entry)"
                 >
                   <span class="fold-caret" aria-hidden="true">▸</span>
                   思考过程
                 </button>
-                <div class="reveal" :data-open="thinkingOpen.has(entryId(entry))">
+                <div class="reveal" :data-open="thinkingOpen.has(foldKey(entry))">
                   <div class="fold-body thinking-body">
                     <p v-for="(block, i) in agentThinking(entry)" :key="i">{{ block }}</p>
                   </div>
@@ -46,7 +46,7 @@
                 <button
                   type="button"
                   class="fold-toggle"
-                  :aria-expanded="toolOpen.has(entryId(entry))"
+                  :aria-expanded="toolOpen.has(foldKey(entry))"
                   @click="toggleTool(entry)"
                 >
                   <span class="fold-caret" aria-hidden="true">▸</span>
@@ -61,7 +61,7 @@
                   ></span>
                   <span class="tool-name mono">{{ toolName(entry) }}</span>
                 </button>
-                <div class="reveal" :data-open="toolOpen.has(entryId(entry))">
+                <div class="reveal" :data-open="toolOpen.has(foldKey(entry))">
                   <div class="fold-body tool-body">
                     <MarkdownRender
                       mode="chat"
@@ -119,24 +119,40 @@
         </template>
       </div>
     </div>
-    <button
-      v-if="clientState?.hasNewActivity"
-      class="jump-latest"
-      type="button"
-      @click="scrollToLatest"
-    >
+    <button v-if="hasNewActivity" class="jump-latest" type="button" @click="scrollToLatest">
       跳转到最新
     </button>
   </section>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
 import type { TranscriptEntry } from "@no-pi-no-gang/contracts";
+
+/**
+ * 折叠键分配器：条目自带非空字符串 id 时直接用该 id；否则按对象身份分配稳定序号键。
+ * 对象身份键不随列表追加/重排变化，避免索引或空字符串导致的错位与共享折叠状态。
+ */
+export function createFoldKey() {
+  const keys = new WeakMap<object, number>();
+  let next = 0;
+  return (entry: TranscriptEntry): string => {
+    if (typeof entry.id === "string" && entry.id) return `id:${entry.id}`;
+    let key = keys.get(entry);
+    if (key === undefined) {
+      key = next++;
+      keys.set(entry, key);
+    }
+    return `obj:${key}`;
+  };
+}
+</script>
+
+<script setup lang="ts">
 import MarkdownRender from "markstream-vue";
 import { nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { terminalStatuses, type UiRun } from "../runs/run-state.js";
 import RunStatusBadge from "../runs/RunStatusBadge.vue";
-import { isNearBottom, type SessionClientState } from "./session-state.js";
+import { scrollStateFrom, type TranscriptScrollState } from "./session-state.js";
 import { parseTranscriptEntry, type TranscriptPart } from "./transcript-format.js";
 
 const props = defineProps<{
@@ -146,11 +162,14 @@ const props = defineProps<{
   transcriptError: string;
   sessionRuns: UiRun[];
   cancelling: Set<string>;
-  clientState?: SessionClientState | undefined;
+  scrollTop: number;
+  following: boolean;
+  hasNewActivity: boolean;
 }>();
 
 const emit = defineEmits<{
   "cancel-run": [run: UiRun];
+  "scroll-state": [state: TranscriptScrollState];
 }>();
 
 const TERMINAL_NOTES: Record<string, string> = {
@@ -165,6 +184,7 @@ function terminalNote(status: string) {
 /* ── 条目解析（思考/工具活动折叠） ───────────────────────────────── */
 const thinkingOpen = ref(new Set<string>());
 const toolOpen = ref(new Set<string>());
+const foldKey = createFoldKey();
 const parts = new WeakMap<object, TranscriptPart | undefined>();
 function part(entry: TranscriptEntry): TranscriptPart | undefined {
   let value = parts.get(entry);
@@ -173,9 +193,6 @@ function part(entry: TranscriptEntry): TranscriptPart | undefined {
     parts.set(entry, value);
   }
   return value;
-}
-function entryId(entry: TranscriptEntry) {
-  return typeof entry.id === "string" ? entry.id : "";
 }
 function agentThinking(entry: TranscriptEntry) {
   const p = part(entry);
@@ -194,14 +211,8 @@ function toolName(entry: TranscriptEntry) {
   return p?.kind === "tool" ? p.name : "";
 }
 function toolResult(entry: TranscriptEntry) {
-  const message = entry.message as { content?: unknown } | undefined;
-  if (typeof message?.content === "string") return message.content;
-  if (Array.isArray(message?.content)) {
-    return (message.content as Array<{ text?: unknown }>)
-      .map((block) => (typeof block?.text === "string" ? block.text : ""))
-      .join("");
-  }
-  return "";
+  const p = part(entry);
+  return p?.kind === "tool" ? p.text : "";
 }
 function isToolError(entry: TranscriptEntry) {
   const p = part(entry);
@@ -212,66 +223,79 @@ function otherLabel(entry: TranscriptEntry) {
   return p?.kind === "other" ? p.label : "";
 }
 function toggleThinking(entry: TranscriptEntry) {
-  const id = entryId(entry);
+  const id = foldKey(entry);
   const next = new Set(thinkingOpen.value);
   if (next.has(id)) next.delete(id);
   else next.add(id);
   thinkingOpen.value = next;
 }
 function toggleTool(entry: TranscriptEntry) {
-  const id = entryId(entry);
+  const id = foldKey(entry);
   const next = new Set(toolOpen.value);
   if (next.has(id)) next.delete(id);
   else next.add(id);
   toolOpen.value = next;
 }
 
-/* ── 滚动跟随 ─────────────────────────────────────────────────────── */
+/* ── 滚动跟随：props 只读，变更一律通过 scroll-state 上报唯一所有者 ── */
 const transcriptElement = ref<HTMLElement>();
 const transcriptContent = ref<HTMLElement>();
 let switchingSession = false;
-let restoreTarget: number | undefined;
+// 恢复目标：进入 Session 时取所有者快照，首次恢复后一次性消费
+let restoreTarget: number | undefined = props.scrollTop;
 const resizeObserver = new ResizeObserver(() => contentChanged());
 
 function recordScroll() {
-  if (switchingSession || !transcriptElement.value || !props.clientState) return;
+  if (switchingSession || !transcriptElement.value) return;
   const element = transcriptElement.value;
-  props.clientState.scrollTop = element.scrollTop;
-  props.clientState.following = isNearBottom(
-    element.scrollTop,
-    element.clientHeight,
-    element.scrollHeight,
+  emit(
+    "scroll-state",
+    scrollStateFrom(
+      element.scrollTop,
+      element.clientHeight,
+      element.scrollHeight,
+      props.hasNewActivity,
+    ),
   );
-  if (props.clientState.following) props.clientState.hasNewActivity = false;
 }
 async function scrollToLatest() {
   await nextTick();
-  if (!transcriptElement.value || !props.clientState) return;
+  if (!transcriptElement.value) return;
   transcriptElement.value.scrollTop = transcriptElement.value.scrollHeight;
-  props.clientState.scrollTop = transcriptElement.value.scrollTop;
-  props.clientState.following = true;
-  props.clientState.hasNewActivity = false;
+  emit("scroll-state", {
+    scrollTop: transcriptElement.value.scrollTop,
+    following: true,
+    hasNewActivity: false,
+  });
 }
 function restoreScroll() {
   if (restoreTarget === undefined || props.loadingTranscript) return false;
-  if (transcriptElement.value && props.clientState) {
-    transcriptElement.value.scrollTop = restoreTarget;
-    props.clientState.scrollTop = transcriptElement.value.scrollTop;
-    props.clientState.following = isNearBottom(
-      transcriptElement.value.scrollTop,
-      transcriptElement.value.clientHeight,
-      transcriptElement.value.scrollHeight,
+  if (transcriptElement.value) {
+    const element = transcriptElement.value;
+    element.scrollTop = restoreTarget;
+    emit(
+      "scroll-state",
+      scrollStateFrom(
+        element.scrollTop,
+        element.clientHeight,
+        element.scrollHeight,
+        props.hasNewActivity,
+      ),
     );
-    props.clientState.hasNewActivity = false;
   }
   restoreTarget = undefined;
   switchingSession = false;
   return true;
 }
 function contentChanged() {
-  if (!props.clientState || restoreScroll()) return;
-  if (props.clientState.following) void scrollToLatest();
-  else props.clientState.hasNewActivity = true;
+  if (restoreScroll()) return;
+  if (props.following) void scrollToLatest();
+  else if (transcriptElement.value)
+    emit("scroll-state", {
+      scrollTop: transcriptElement.value.scrollTop,
+      following: false,
+      hasNewActivity: true,
+    });
 }
 watch(transcriptContent, (element, previous) => {
   if (previous) resizeObserver.unobserve(previous);
@@ -281,7 +305,7 @@ watch(
   () => props.sessionId,
   async () => {
     switchingSession = true;
-    restoreTarget = props.clientState?.scrollTop ?? 0;
+    restoreTarget = props.scrollTop;
     await nextTick();
     restoreScroll();
   },
@@ -298,3 +322,175 @@ watch(
 );
 onBeforeUnmount(() => resizeObserver.disconnect());
 </script>
+
+<style scoped>
+.transcript-region {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--canvas-soft);
+}
+.transcript {
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.transcript-content {
+  width: min(var(--size-content), 100%);
+  min-height: 100%;
+  margin: auto;
+  padding: var(--spacing-md);
+}
+.streaming {
+  border-left: var(--border-width-emphasis) solid var(--primary);
+}
+.msg {
+  margin-bottom: var(--spacing-md);
+}
+.msg-prompt {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.msg-prompt .who {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  background: var(--ink);
+  color: var(--on-primary);
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  display: grid;
+  place-items: center;
+}
+.msg-prompt .text {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.msg-agent {
+  padding: var(--spacing-md) 0;
+}
+.msg-tool {
+  margin-bottom: var(--spacing-md);
+}
+.run-block {
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border-left: var(--border-width-emphasis) solid var(--primary);
+}
+.run-block.status-completed {
+  border-left-color: var(--accent-green);
+}
+.run-block.status-failed {
+  border-left-color: var(--accent-orange);
+}
+.run-block.status-cancelled {
+  border-left-color: var(--ink-faint);
+}
+.run-head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+.run-id {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+.run-note {
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+.jump-latest {
+  position: absolute;
+  right: var(--spacing-md);
+  bottom: var(--spacing-md);
+  box-shadow: var(--shadow-float);
+}
+.fold {
+  margin-bottom: var(--spacing-xs);
+}
+.fold-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: 0;
+  padding: var(--spacing-xxs) 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+}
+.fold-toggle:hover {
+  color: var(--ink);
+}
+.fold-caret {
+  display: inline-block;
+  font-size: 10px;
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+.fold-toggle[aria-expanded="true"] .fold-caret {
+  transform: rotate(90deg);
+}
+.fold-toggle .dot {
+  flex: none;
+}
+.tool-name {
+  color: inherit;
+  font-size: 12px;
+}
+.reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-normal) var(--ease-smooth);
+}
+.reveal[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.reveal > * {
+  overflow: hidden;
+}
+.fold-body {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-left: var(--border-width-emphasis) solid var(--hairline);
+  background: var(--canvas-soft);
+  border-radius: var(--radius-sm);
+}
+.thinking-body p {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+  white-space: pre-wrap;
+}
+.thinking-body p:last-child {
+  margin-bottom: 0;
+}
+.tool-body {
+  font-size: var(--text-body-sm);
+}
+.msg-other {
+  padding: var(--spacing-xxs) var(--spacing-sm);
+  color: var(--ink-faint);
+  font-size: var(--text-caption);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .fold-caret {
+    transition: none;
+    animation: none;
+  }
+}
+</style>
