@@ -20,6 +20,7 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
   const transcriptError = ref("");
   let sessionsGeneration = 0;
   let loadingRequests = 0;
+  let transcriptGeneration = 0;
 
   async function loadSessions(append = false) {
     const workspaceId = workspace.value?.id;
@@ -35,6 +36,23 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
       if (generation !== sessionsGeneration || workspace.value?.id !== workspaceId) return;
       sessions.value = append ? [...sessions.value, ...page.sessions] : page.sessions;
       nextCursor.value = page.nextCursor;
+      // 深链恢复：URL 指向的 Session 不在当前页时单独拉取
+      const deep = route.params.sessionId as string | undefined;
+      if (deep && !sessions.value.some(({ id }) => id === deep)) {
+        try {
+          const { session } = await api<{ session: SessionDto }>(
+            `/workspaces/${workspaceId}/sessions/${deep}`,
+          );
+          if (
+            generation === sessionsGeneration &&
+            workspace.value?.id === workspaceId &&
+            !sessions.value.some(({ id }) => id === session.id)
+          )
+            sessions.value = [session, ...sessions.value];
+        } catch {
+          // 深链无效则保持列表原样
+        }
+      }
     } catch (error) {
       if (generation === sessionsGeneration) sessionError.value = errorMessage(error);
     } finally {
@@ -49,20 +67,33 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
       transcript.value = [];
       return;
     }
-    transcript.value = [];
-    loadingTranscript.value = true;
+    // 保留旧内容直到新内容到达：run 完成后并入时不闪烁
+    if (transcript.value.length === 0) loadingTranscript.value = true;
     transcriptError.value = "";
+    const generation = transcriptGeneration;
     try {
       const result = await api<{ transcript: TranscriptEntry[] }>(
         `/workspaces/${workspaceId}/sessions/${sessionId}/transcript`,
       );
-      if (workspace.value?.id === workspaceId && currentSession.value?.id === sessionId)
+      if (
+        workspace.value?.id === workspaceId &&
+        currentSession.value?.id === sessionId &&
+        generation === transcriptGeneration
+      )
         transcript.value = result.transcript;
     } catch (error) {
-      if (workspace.value?.id === workspaceId && currentSession.value?.id === sessionId)
+      if (
+        workspace.value?.id === workspaceId &&
+        currentSession.value?.id === sessionId &&
+        generation === transcriptGeneration
+      )
         transcriptError.value = errorMessage(error);
     } finally {
-      if (workspace.value?.id === workspaceId && currentSession.value?.id === sessionId)
+      if (
+        workspace.value?.id === workspaceId &&
+        currentSession.value?.id === sessionId &&
+        generation === transcriptGeneration
+      )
         loadingTranscript.value = false;
     }
   }
@@ -84,40 +115,58 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
       creating.value = false;
     }
   }
-  async function renameSession() {
-    if (!workspace.value || !currentSession.value) return;
-    const name = prompt("Session 名称", currentSession.value.name ?? "");
-    if (!name?.trim()) return;
-    const { session } = await api<{ session: SessionDto }>(
-      `/workspaces/${workspace.value.id}/sessions/${currentSession.value.id}`,
-      { method: "PATCH", body: JSON.stringify({ name, confirm: true }) },
-    );
-    Object.assign(currentSession.value, session);
+  async function renameSession(session: SessionDto, name: string) {
+    const workspaceId = workspace.value?.id;
+    if (!workspaceId || !name.trim()) return;
+    sessionError.value = "";
+    try {
+      const { session: updated } = await api<{ session: SessionDto }>(
+        `/workspaces/${workspaceId}/sessions/${session.id}`,
+        { method: "PATCH", body: JSON.stringify({ name, confirm: true }) },
+      );
+      if (workspace.value?.id !== workspaceId) return;
+      Object.assign(session, updated);
+    } catch (error) {
+      sessionError.value = errorMessage(error);
+    }
   }
-  async function deleteSession() {
-    if (!workspace.value || !currentSession.value || !confirm("删除此 Session 的本地索引？"))
-      return;
-    await api(`/workspaces/${workspace.value.id}/sessions/${currentSession.value.id}`, {
-      method: "DELETE",
-      body: JSON.stringify({ confirm: true }),
-    });
-    sessions.value = sessions.value.filter(({ id }) => id !== currentSession.value?.id);
-    await router.push("/");
+  async function deleteSession(session: SessionDto) {
+    const workspaceId = workspace.value?.id;
+    if (!workspaceId) return;
+    sessionError.value = "";
+    try {
+      await api(`/workspaces/${workspaceId}/sessions/${session.id}`, {
+        method: "DELETE",
+        body: JSON.stringify({ confirm: true }),
+      });
+      if (workspace.value?.id !== workspaceId) return;
+      sessions.value = sessions.value.filter(({ id }) => id !== session.id);
+      if (currentSession.value?.id === session.id) await router.push("/");
+    } catch (error) {
+      sessionError.value = errorMessage(error);
+    }
   }
   watch(
     () => workspace.value?.id,
-    async () => {
+    async (_id, previous) => {
       sessionsGeneration++;
+      transcriptGeneration++;
       sessions.value = [];
       nextCursor.value = undefined;
       transcript.value = [];
-      if (route.params.sessionId) await router.push("/");
+      // 仅真实切换 Workspace 时清掉 session 选择；首次加载保留 URL（刷新恢复）
+      if (previous !== undefined && route.params.sessionId) await router.push("/");
     },
     { flush: "sync" },
   );
   watch(
     () => [workspace.value?.id, currentSession.value?.id],
-    () => void loadTranscript(),
+    () => {
+      // 立即清空避免新 session 视图短暂显示旧内容
+      transcriptGeneration++;
+      transcript.value = [];
+      void loadTranscript();
+    },
   );
   return {
     sessions,

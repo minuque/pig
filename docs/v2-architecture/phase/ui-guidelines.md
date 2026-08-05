@@ -17,11 +17,12 @@
 
 ## 2. Information Architecture
 
-工作台采用三个主要区域：
+工作台采用两个主要区域（右栏 ContextPanel 已裁切，见 `docs/adr/0001-drop-context-panel.md`）：
 
-1. Workspace 与 Session 导航。
-2. 当前 Session 的会话记录（Transcript）与实时活动。
-3. Prompt 输入及当前 Run 操作。
+1. 左栏：Workspace 与 Session 导航。
+2. 中央：当前 Session 的会话记录（Transcript）、实时活动、Prompt 输入及 Run 操作。
+
+Session 切换由路由驱动（`/sessions/:sessionId`，见 `docs/adr/0002-router-driven-session-switching.md`）。
 
 ## 3. Core User Journey
 
@@ -36,3 +37,14 @@
   → Steer 或 Cancel
   → Run 完成
 ```
+
+## 4. 打磨规格（当前轮）
+
+- **布局**：两栏（左导航可折叠 + 中央 chat），无右栏；桌面优先，移动端左栏为抽屉。
+- **Session 切换**：路由驱动 `/sessions/:sessionId`；`/` 渲染空态视图（HomePage 死代码删除）。
+- **样式**：手写 CSS + token（Tailwind v4 `@theme` 已映射），shadcn 按需摘抄。
+- **动效**：状态驱动（press 缩放 0.98、disabled、focus-ring 统一、loading shimmer）+ 入场（transcript 切换 blur-in 280ms `--ease-out`、左栏抽屉位移过渡 `--ease-smooth`）。不做新消息入场动效。
+- **Transcript**：用户消息 surface 卡片、Agent 消息通栏；思考/工具活动默认折叠为摘要行（工具名+状态），grid-rows 展开；Run 终态标记“已并入”并收拢动画。
+- **Session 列表**：卡片 kebab 菜单（重命名/删除，删除需确认 dialog）。
+- **Gateway 状态**：正常态无常驻指示，仅错误 banner。
+- **延后项**：虚拟滚动、消息操作（复制/重跑）、拖拽物理、落地页引导。

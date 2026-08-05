@@ -1,20 +1,21 @@
 import { ref } from "vue";
 import { describe, expect, it, vi } from "vitest";
 
-const { api, route } = vi.hoisted(() => ({
+const { api, route, router } = vi.hoisted(() => ({
   api: vi.fn(),
   route: { params: { sessionId: "same" } },
+  router: { push: vi.fn(async () => undefined) },
 }));
 vi.mock("vue-router", () => ({
   useRoute: () => route,
-  useRouter: () => ({ push: vi.fn(async () => undefined) }),
+  useRouter: () => router,
 }));
 vi.mock("../src/api/index.js", () => ({
   api,
   errorMessage: () => "error",
 }));
 
-import type { WorkspaceDto } from "../src/api/index.js";
+import type { SessionDto, WorkspaceDto } from "../src/api/index.js";
 import { useSessions } from "../src/features/sessions/use-sessions.js";
 
 describe("useSessions transcript identity", () => {
@@ -42,5 +43,45 @@ describe("useSessions transcript identity", () => {
     await pending;
 
     expect(sessions.transcript.value).toEqual([]);
+  });
+});
+
+describe("useSessions session operations", () => {
+  it("renames the target session, not only the current one", async () => {
+    api.mockImplementation(() => Promise.resolve({ session: { id: "s2", name: "新名字" } }));
+    const workspace = ref<WorkspaceDto>({ id: "a", name: "A", canonicalPath: "/a" });
+    const sessions = useSessions(workspace);
+    const target: SessionDto = {
+      id: "s2",
+      workspaceId: "a",
+      status: "available",
+      updatedAt: "now",
+    };
+    sessions.sessions.value = [
+      { id: "s1", workspaceId: "a", status: "available", updatedAt: "now" },
+      target,
+    ];
+
+    await sessions.renameSession(target, "新名字");
+
+    expect(target.name).toBe("新名字");
+    expect(api).toHaveBeenCalledWith(
+      "/workspaces/a/sessions/s2",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+  });
+
+  it("routes back to / when deleting the current session", async () => {
+    api.mockImplementation(() => Promise.resolve({}));
+    const workspace = ref<WorkspaceDto>({ id: "a", name: "A", canonicalPath: "/a" });
+    const sessions = useSessions(workspace);
+    const current = { id: "s1", workspaceId: "a", status: "available" as const, updatedAt: "now" };
+    sessions.sessions.value = [current];
+    route.params.sessionId = "s1";
+
+    await sessions.deleteSession(current);
+
+    expect(router.push).toHaveBeenCalledWith("/");
+    expect(sessions.sessions.value).toEqual([]);
   });
 });

@@ -3,70 +3,120 @@
     <h2 id="transcript-title" class="sr-only">Transcript</h2>
     <div ref="transcriptElement" class="transcript" aria-live="off" @scroll="recordScroll">
       <div ref="transcriptContent" class="transcript-content">
-        <p v-if="loadingTranscript" role="status">正在加载 Transcript…</p>
+        <p v-if="loadingTranscript" class="shimmer" role="status">正在加载 Transcript…</p>
         <div v-else-if="transcriptError" class="notice error" role="alert">
           {{ transcriptError }}
         </div>
-        <article
-          v-for="(entry, index) in transcript"
-          :key="`${sessionId}:${index}`"
-          class="msg"
-          :class="isUser(entry) ? 'msg-prompt' : 'msg-agent'"
-        >
-          <template v-if="isUser(entry)">
-            <span class="who" aria-hidden="true">我</span>
-            <div class="text">{{ transcriptText(entry) }}</div>
-          </template>
-          <MarkdownRender
-            v-else
-            mode="chat"
-            :content="transcriptText(entry)"
-            code-renderer="pre"
-            html-policy="safe"
-            :smooth-streaming="false"
-            :typewriter="false"
-            :fade="false"
-          />
-        </article>
-        <article
-          v-for="run in sessionRuns"
-          :key="run.id"
-          class="msg run-block"
-          :class="[`status-${run.status}`, { streaming: !terminalStatuses.has(run.status) }]"
-        >
-          <div class="run-head">
-            <RunStatusBadge :status="run.status" />
-            <span class="run-id mono">{{ run.id.slice(0, 12) }}</span>
-            <span v-if="terminalStatuses.has(run.status)" class="run-note">{{
-              terminalNote(run.status)
-            }}</span>
-            <span style="flex: 1"></span>
-            <button
-              v-if="!terminalStatuses.has(run.status)"
-              type="button"
-              class="secondary"
-              :disabled="cancelling.has(run.id)"
-              @click="emit('cancel-run', run)"
-            >
-              {{ cancelling.has(run.id) ? "取消中…" : "取消 Run" }}
-            </button>
-          </div>
-          <MarkdownRender
-            mode="chat"
-            :content="run.output"
-            code-renderer="pre"
-            html-policy="safe"
-            :smooth-streaming="terminalStatuses.has(run.status) ? false : 'auto'"
-            :typewriter="!terminalStatuses.has(run.status)"
-            :fade="false"
-          />
-        </article>
-        <p
-          v-if="!loadingTranscript && transcript.length === 0 && sessionRuns.length === 0"
-          class="notice"
-        >
-          暂无消息。
-        </p>
+        <template v-else>
+          <article v-for="(entry, index) in transcript" :key="`${sessionId}:${index}`" class="msg">
+            <div v-if="part(entry)?.kind === 'user'" class="msg-prompt">
+              <span class="who" aria-hidden="true">我</span>
+              <div class="text">{{ userText(entry) }}</div>
+            </div>
+            <div v-else-if="part(entry)?.kind === 'agent'" class="msg-agent">
+              <div v-if="agentThinking(entry).length" class="fold">
+                <button
+                  type="button"
+                  class="fold-toggle"
+                  :aria-expanded="thinkingOpen.has(entryId(entry))"
+                  @click="toggleThinking(entry)"
+                >
+                  <span class="fold-caret" aria-hidden="true">▸</span>
+                  思考过程
+                </button>
+                <div class="reveal" :data-open="thinkingOpen.has(entryId(entry))">
+                  <div class="fold-body thinking-body">
+                    <p v-for="(block, i) in agentThinking(entry)" :key="i">{{ block }}</p>
+                  </div>
+                </div>
+              </div>
+              <MarkdownRender
+                v-if="agentText(entry)"
+                mode="chat"
+                :content="agentText(entry)"
+                code-renderer="pre"
+                html-policy="safe"
+                :smooth-streaming="false"
+                :typewriter="false"
+                :fade="false"
+              />
+            </div>
+            <div v-else-if="part(entry)?.kind === 'tool'" class="msg-tool">
+              <div class="fold">
+                <button
+                  type="button"
+                  class="fold-toggle"
+                  :aria-expanded="toolOpen.has(entryId(entry))"
+                  @click="toggleTool(entry)"
+                >
+                  <span class="fold-caret" aria-hidden="true">▸</span>
+                  <span
+                    class="dot"
+                    aria-hidden="true"
+                    :style="{
+                      backgroundColor: isToolError(entry)
+                        ? 'var(--accent-orange)'
+                        : 'var(--accent-green)',
+                    }"
+                  ></span>
+                  <span class="tool-name mono">{{ toolName(entry) }}</span>
+                </button>
+                <div class="reveal" :data-open="toolOpen.has(entryId(entry))">
+                  <div class="fold-body tool-body">
+                    <MarkdownRender
+                      mode="chat"
+                      :content="toolResult(entry)"
+                      code-renderer="pre"
+                      html-policy="safe"
+                      :smooth-streaming="false"
+                      :typewriter="false"
+                      :fade="false"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else-if="part(entry)" class="msg-other mono">
+              <span class="other-label">{{ otherLabel(entry) }}</span>
+            </div>
+          </article>
+          <article
+            v-for="run in sessionRuns"
+            :key="run.id"
+            class="msg run-block"
+            :class="[`status-${run.status}`, { streaming: !terminalStatuses.has(run.status) }]"
+          >
+            <div class="run-head">
+              <RunStatusBadge :status="run.status" />
+              <span class="run-id mono">{{ run.id.slice(0, 12) }}</span>
+              <span v-if="terminalStatuses.has(run.status)" class="run-note">{{
+                terminalNote(run.status)
+              }}</span>
+              <span style="flex: 1"></span>
+              <button
+                v-if="!terminalStatuses.has(run.status)"
+                type="button"
+                class="secondary"
+                :disabled="cancelling.has(run.id)"
+                @click="emit('cancel-run', run)"
+              >
+                {{ cancelling.has(run.id) ? "取消中…" : "取消 Run" }}
+              </button>
+            </div>
+            <MarkdownRender
+              mode="chat"
+              :content="run.output"
+              code-renderer="pre"
+              html-policy="safe"
+              :smooth-streaming="terminalStatuses.has(run.status) ? false : 'auto'"
+              :typewriter="!terminalStatuses.has(run.status)"
+              :fade="false"
+            />
+          </article>
+          <p v-if="transcript.length === 0 && sessionRuns.length === 0" class="notice">
+            暂无消息。
+          </p>
+        </template>
       </div>
     </div>
     <button
@@ -84,9 +134,10 @@
 import type { TranscriptEntry } from "@no-pi-no-gang/contracts";
 import MarkdownRender from "markstream-vue";
 import { nextTick, onBeforeUnmount, ref, watch } from "vue";
-import { terminalStatuses, transcriptText, type UiRun } from "../runs/run-state.js";
+import { terminalStatuses, type UiRun } from "../runs/run-state.js";
 import RunStatusBadge from "../runs/RunStatusBadge.vue";
 import { isNearBottom, type SessionClientState } from "./session-state.js";
+import { parseTranscriptEntry, type TranscriptPart } from "./transcript-format.js";
 
 const props = defineProps<{
   sessionId: string;
@@ -110,8 +161,69 @@ const TERMINAL_NOTES: Record<string, string> = {
 function terminalNote(status: string) {
   return TERMINAL_NOTES[status] ?? "";
 }
-function isUser(entry: Record<string, unknown>) {
-  return entry.role === "user";
+
+/* ── 条目解析（思考/工具活动折叠） ───────────────────────────────── */
+const thinkingOpen = ref(new Set<string>());
+const toolOpen = ref(new Set<string>());
+const parts = new WeakMap<object, TranscriptPart | undefined>();
+function part(entry: TranscriptEntry): TranscriptPart | undefined {
+  let value = parts.get(entry);
+  if (!value && !parts.has(entry)) {
+    value = parseTranscriptEntry(entry);
+    parts.set(entry, value);
+  }
+  return value;
+}
+function entryId(entry: TranscriptEntry) {
+  return typeof entry.id === "string" ? entry.id : "";
+}
+function agentThinking(entry: TranscriptEntry) {
+  const p = part(entry);
+  return p?.kind === "agent" ? p.thinking : [];
+}
+function agentText(entry: TranscriptEntry) {
+  const p = part(entry);
+  return p?.kind === "agent" ? p.text : "";
+}
+function userText(entry: TranscriptEntry) {
+  const p = part(entry);
+  return p?.kind === "user" ? p.text : "";
+}
+function toolName(entry: TranscriptEntry) {
+  const p = part(entry);
+  return p?.kind === "tool" ? p.name : "";
+}
+function toolResult(entry: TranscriptEntry) {
+  const message = entry.message as { content?: unknown } | undefined;
+  if (typeof message?.content === "string") return message.content;
+  if (Array.isArray(message?.content)) {
+    return (message.content as Array<{ text?: unknown }>)
+      .map((block) => (typeof block?.text === "string" ? block.text : ""))
+      .join("");
+  }
+  return "";
+}
+function isToolError(entry: TranscriptEntry) {
+  const p = part(entry);
+  return p?.kind === "tool" ? p.isError : false;
+}
+function otherLabel(entry: TranscriptEntry) {
+  const p = part(entry);
+  return p?.kind === "other" ? p.label : "";
+}
+function toggleThinking(entry: TranscriptEntry) {
+  const id = entryId(entry);
+  const next = new Set(thinkingOpen.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  thinkingOpen.value = next;
+}
+function toggleTool(entry: TranscriptEntry) {
+  const id = entryId(entry);
+  const next = new Set(toolOpen.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  toolOpen.value = next;
 }
 
 /* ── 滚动跟随 ─────────────────────────────────────────────────────── */

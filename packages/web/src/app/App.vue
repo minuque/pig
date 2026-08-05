@@ -1,8 +1,8 @@
 <template>
   <div
     class="shell"
-    :class="{ 'left-closed': !leftOpen, 'right-closed': !rightOpen }"
-    :style="{ '--left-width': `${leftWidth}px`, '--right-width': `${rightWidth}px` }"
+    :class="{ 'left-closed': !leftOpen }"
+    :style="{ '--left-width': `${leftWidth}px` }"
   >
     <aside class="sidebar" :class="{ open: leftOpen }" aria-label="Workspace 与 Session 导航">
       <header>
@@ -31,6 +31,8 @@
         @load-more="loadSessions(true)"
         @retry="loadSessions()"
         @navigate="closeMobilePanels"
+        @rename="renameSession"
+        @delete="deleteSession"
       />
     </aside>
 
@@ -44,9 +46,9 @@
       aria-valuemin="240"
       aria-valuemax="420"
       tabindex="0"
-      @pointerdown="startResize('left', $event)"
-      @keydown.left.prevent="resizeBy('left', -16)"
-      @keydown.right.prevent="resizeBy('left', 16)"
+      @pointerdown="startResize($event)"
+      @keydown.left.prevent="resizeBy(-16)"
+      @keydown.right.prevent="resizeBy(16)"
     ></div>
 
     <main>
@@ -63,20 +65,12 @@
           currentSession?.name ||
           (currentSession ? `Session ${currentSession.id.slice(0, 8)}` : "未选择 Session")
         }}</strong>
-        <button
-          class="secondary"
-          type="button"
-          :aria-expanded="rightOpen"
-          @click="rightOpen = !rightOpen"
-        >
-          Context
-        </button>
       </header>
       <div v-if="startupError" class="notice error" role="alert">{{ startupError }}</div>
       <section
         v-else-if="currentSession"
         :key="currentSession.id"
-        class="workspace-main"
+        class="workspace-main enter-blur"
         aria-labelledby="current-title"
       >
         <header class="session-heading">
@@ -125,32 +119,6 @@
       </section>
     </main>
 
-    <div
-      v-if="rightOpen"
-      class="resizer right-resizer"
-      role="separator"
-      aria-label="调整右栏宽度"
-      aria-orientation="vertical"
-      :aria-valuenow="rightWidth"
-      aria-valuemin="240"
-      aria-valuemax="420"
-      tabindex="0"
-      @pointerdown="startResize('right', $event)"
-      @keydown.left.prevent="resizeBy('right', 16)"
-      @keydown.right.prevent="resizeBy('right', -16)"
-    ></div>
-
-    <ContextPanel
-      :open="rightOpen"
-      :active-run="activeRun"
-      :current-session="currentSession"
-      :startup-error="startupError"
-      :run-error="runError"
-      @close="rightOpen = false"
-      @rename-session="renameSession"
-      @delete-session="deleteSession"
-    />
-
     <WorkspaceAuthorizeDialog
       :show="showAuthorize"
       :preview-path="previewPath"
@@ -165,12 +133,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { clampPanelWidth } from "../features/sessions/session-state.js";
 import SessionNav from "../features/sessions/SessionNav.vue";
 import TranscriptView from "../features/sessions/TranscriptView.vue";
 import ComposerBar from "../features/runs/ComposerBar.vue";
-import ContextPanel from "../features/runs/ContextPanel.vue";
 import WorkspaceAuthorizeDialog from "../features/workspaces/WorkspaceAuthorizeDialog.vue";
 import { useApp } from "./use-app.js";
 
@@ -223,34 +190,23 @@ function onSelectWorkspace(id: string) {
   void loadSessions();
 }
 
-/* ── 面板布局（resize + 移动端抽屉） ──────────────────────────────── */
+/* ── 左栏布局（resize + 移动端抽屉） ─────────────────────────────── */
 const narrowViewport = matchMedia("(max-width: 900px)");
 const leftOpen = ref(!narrowViewport.matches);
-const rightOpen = ref(!narrowViewport.matches);
 const leftWidth = ref(280);
-const rightWidth = ref(300);
 
-function setPanelWidth(side: "left" | "right", desired: number) {
-  const otherWidth = side === "left" ? rightWidth.value : leftWidth.value;
-  const otherOpen = side === "left" ? rightOpen.value : leftOpen.value;
-  const room = window.innerWidth - (otherOpen ? otherWidth + 6 : 0) - 326;
-  (side === "left" ? leftWidth : rightWidth).value = Math.min(
-    clampPanelWidth(desired),
-    Math.max(240, room),
-  );
+function setPanelWidth(desired: number) {
+  const room = window.innerWidth - 332;
+  leftWidth.value = Math.min(clampPanelWidth(desired), Math.max(240, room));
 }
-function resizeBy(side: "left" | "right", delta: number) {
-  const width = side === "left" ? leftWidth.value : rightWidth.value;
-  setPanelWidth(side, width + delta);
+function resizeBy(delta: number) {
+  setPanelWidth(leftWidth.value + delta);
 }
-function startResize(side: "left" | "right", event: PointerEvent) {
+function startResize(event: PointerEvent) {
   event.preventDefault();
   const startX = event.clientX;
-  const startWidth = side === "left" ? leftWidth.value : rightWidth.value;
-  const move = (next: PointerEvent) => {
-    const delta = (next.clientX - startX) * (side === "left" ? 1 : -1);
-    setPanelWidth(side, startWidth + delta);
-  };
+  const startWidth = leftWidth.value;
+  const move = (next: PointerEvent) => setPanelWidth(startWidth + (next.clientX - startX));
   const stop = () => {
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", stop);
@@ -259,20 +215,12 @@ function startResize(side: "left" | "right", event: PointerEvent) {
   window.addEventListener("pointerup", stop, { once: true });
 }
 function closeMobilePanels() {
-  if (narrowViewport.matches) {
-    leftOpen.value = false;
-    rightOpen.value = false;
-  }
+  if (narrowViewport.matches) leftOpen.value = false;
 }
 function fitPanels() {
-  if (narrowViewport.matches || !leftOpen.value || !rightOpen.value) return;
-  const excess = leftWidth.value + rightWidth.value - (window.innerWidth - 332);
-  if (excess <= 0) return;
-  rightWidth.value = Math.max(240, rightWidth.value - excess);
-  leftWidth.value = Math.max(
-    240,
-    Math.min(leftWidth.value, window.innerWidth - 332 - rightWidth.value),
-  );
+  if (narrowViewport.matches || !leftOpen.value) return;
+  const excess = leftWidth.value - (window.innerWidth - 332);
+  if (excess > 0) leftWidth.value = Math.max(240, leftWidth.value - excess);
 }
 function handleViewportChange(event: MediaQueryListEvent) {
   if (event.matches) closeMobilePanels();
@@ -281,10 +229,7 @@ function handleViewportChange(event: MediaQueryListEvent) {
 narrowViewport.addEventListener("change", handleViewportChange);
 window.addEventListener("resize", fitPanels);
 fitPanels();
-watch([leftOpen, rightOpen], async () => {
-  await nextTick();
-  fitPanels();
-});
+watch(leftOpen, () => void fitPanels());
 onBeforeUnmount(() => {
   narrowViewport.removeEventListener("change", handleViewportChange);
   window.removeEventListener("resize", fitPanels);
