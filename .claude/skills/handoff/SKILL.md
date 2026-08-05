@@ -7,8 +7,6 @@ disable-model-invocation: true
 
 Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to the temporary directory of the user's OS - not the current workspace.
 
-**语言：** 交接文档使用简体中文；路径、URL、代码、skill 名保留原文。
-
 Include a "suggested skills" section in the document, which suggests skills that the agent should invoke.
 
 Do not duplicate content already captured in other artifacts (specs, plans, ADRs, issues, commits, diffs). Reference them by path or URL instead.

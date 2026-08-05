@@ -21,7 +21,9 @@ A **seam** is the public boundary you test at: the interface where you observe b
 
 **Test only at pre-agreed seams.** Before writing any test, write down the seams under test and confirm them with the user. No test is written at an unconfirmed seam. You can't test everything — agreeing the seams up front is how testing effort lands on the critical paths and complex logic instead of every edge case.
 
-Seams already confirmed earlier in the flow (spec via `/to-spec`, design interview via `/grill-with-docs`) are inherited as-is. Seams not previously confirmed are determined by the implementer from the domain vocabulary and stated inline — no waiting on user confirmation; the user can correct them. Ask: "What's the public interface, and which seams should we test?"
+Ask: "What's the public interface, and which seams should we test?"
+
+When the shape of that interface is itself in question — how deep the module is, where the seam belongs, what the interface should expose — use the `/codebase-design` skill for the vocabulary. It is the shared source of the module, interface, depth, seam, adapter, leverage and locality terms, and it is a reference to consult, not a session to run.
 
 ## Anti-patterns
 
@@ -33,5 +35,4 @@ Seams already confirmed earlier in the flow (spec via `/to-spec`, design intervi
 
 - **Red before green.** Write the failing test first, then only enough code to pass it. Don't anticipate future tests or add speculative features.
 - **One slice at a time.** One seam, one test, one minimal implementation per cycle.
-- **Trivial logic is exempt.** A one-line, branchless, stateless behavior (constant, pure getter) needs no test — the loop targets critical paths and complex logic, not every line. (YAGNI applies to tests too.)
 - **Refactoring is not part of the loop.** It belongs to the review stage (see the `code-review` skill), not the red → green implementation cycle.

@@ -8,8 +8,6 @@ disable-model-invocation: true
 
 Surface architectural friction and propose **deepening opportunities** — refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
 
-**语言：** HTML 报告与后续访谈对话使用简体中文；代码、标识符保留原文。
-
 This command is _informed_ by the project's domain model and built on a shared design vocabulary:
 
 - Run the `/codebase-design` skill for the architecture vocabulary (**module**, **interface**, **depth**, **seam**, **adapter**, **leverage**, **locality**) and its principles (the deletion test, "the interface is the test surface", "one adapter = hypothetical seam, two = real"). Use these terms exactly in every suggestion — don't drift into "component," "service," "API," or "boundary."

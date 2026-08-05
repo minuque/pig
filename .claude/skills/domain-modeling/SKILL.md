@@ -7,8 +7,6 @@ description: Build and sharpen a project's domain model. Use when the user wants
 
 Actively build and sharpen the project's domain model as you design. This is the _active_ discipline — challenging terms, inventing edge-case scenarios, and writing the glossary and decisions down the moment they crystallise. (Merely _reading_ `CONTEXT.md` for vocabulary is not this skill — that's a one-line habit any skill can do. This skill is for when you're changing the model, not just consuming it.)
 
-**语言：** 产出的所有文档（CONTEXT.md、ADR、词汇定义）一律使用简体中文；术语表条目保留原文术语并附中文释义。
-
 ## File structure
 
 Most repos have a single context:
