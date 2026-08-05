@@ -148,8 +148,6 @@ test-results/
 .smoke-ui/
 
 # agents config files
-.agents/
-.claude/
 .pi/
 .grok/
 .worktrees/
