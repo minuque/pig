@@ -154,3 +154,8 @@ test-results/
 .codegraph/
 skills-lock.json
 sessions.jsonl
+
+# Runtime database
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
