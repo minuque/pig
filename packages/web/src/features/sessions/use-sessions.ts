@@ -6,64 +6,117 @@ import { api, errorMessage, type SessionDto, type WorkspaceDto } from "../../api
 export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
   const route = useRoute();
   const router = useRouter();
-  const sessions = ref<SessionDto[]>([]);
-  const loadingSessions = ref(false);
-  const creating = ref(false);
-  const sessionError = ref("");
-  const nextCursor = ref<string>();
+  const routeWorkspaceId = computed(() => route.params.workspaceId as string | undefined);
+  const routeSessionId = computed(() => route.params.sessionId as string | undefined);
+
+  // 按 Workspace 隔离的缓存：懒加载后保留至页面刷新，互不覆盖
+  const sessionsByWorkspace = ref<Map<string, SessionDto[]>>(new Map());
+  const loadingWorkspaceIds = ref<Set<string>>(new Set());
+  const sessionErrors = ref<Map<string, string>>(new Map());
+  const nextCursors = ref<Map<string, string | undefined>>(new Map());
+  // 每次 loadSessions 递增目标 Workspace 代次，迟到的响应不再提交
+  const generations: Record<string, number> = {};
+
+  // 导航树展开态：仅浏览用（ADR-0004），不持久化、不改变 Active Workspace
+  const expandedWorkspaceIds = ref<Set<string>>(new Set());
+  const creatingWorkspaceId = ref<string>();
   const navOpen = ref(false);
-  const currentSession = computed(() =>
-    sessions.value.find(({ id }) => id === route.params.sessionId),
-  );
+
+  // 兼容输出：跟随活动 Workspace（由 useWorkspaceAccess 维护）
+  const sessions = computed(() => {
+    const wid = workspace.value?.id;
+    return wid ? (sessionsByWorkspace.value.get(wid) ?? []) : [];
+  });
+  const loadingSessions = computed(() => {
+    const wid = workspace.value?.id;
+    return wid ? loadingWorkspaceIds.value.has(wid) : false;
+  });
+  const sessionError = computed(() => {
+    const wid = workspace.value?.id;
+    return wid ? (sessionErrors.value.get(wid) ?? "") : "";
+  });
+  const nextCursor = computed(() => {
+    const wid = workspace.value?.id;
+    return wid ? nextCursors.value.get(wid) : undefined;
+  });
+  const creating = computed(() => creatingWorkspaceId.value !== undefined);
+
+  // 严格按 URL 的 workspaceId + sessionId 查找，相同 sessionId 不跨 Workspace 命中
+  const currentSession = computed(() => {
+    const wid = routeWorkspaceId.value;
+    const sid = routeSessionId.value;
+    if (!wid || !sid) return undefined;
+    return sessionsByWorkspace.value.get(wid)?.find(({ id }) => id === sid);
+  });
+
   const transcript = ref<TranscriptEntry[]>([]);
   const loadingTranscript = ref(false);
   const transcriptError = ref("");
-  let sessionsGeneration = 0;
-  let loadingRequests = 0;
   let transcriptGeneration = 0;
 
-  async function loadSessions(append = false) {
-    const workspaceId = workspace.value?.id;
-    if (!workspaceId) return;
-    const generation = sessionsGeneration;
-    loadingRequests++;
-    loadingSessions.value = true;
-    sessionError.value = "";
+  function toggleWorkspace(id: string) {
+    const next = new Set(expandedWorkspaceIds.value);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    expandedWorkspaceIds.value = next;
+    // 首次展开时懒加载（ADR-0004），已缓存（含空列表）则跳过
+    if (next.has(id) && !sessionsByWorkspace.value.has(id)) void loadSessions(id);
+  }
+
+  async function loadSessions(targetWorkspaceId: string, append = false) {
+    const generation = (generations[targetWorkspaceId] = (generations[targetWorkspaceId] ?? 0) + 1);
+    loadingWorkspaceIds.value.add(targetWorkspaceId);
+    sessionErrors.value.set(targetWorkspaceId, "");
     try {
+      const cursor = append ? nextCursors.value.get(targetWorkspaceId) : undefined;
       const page = await api<{ sessions: SessionDto[]; nextCursor?: string }>(
-        `/workspaces/${workspaceId}/sessions?limit=25${append && nextCursor.value ? `&cursor=${encodeURIComponent(nextCursor.value)}` : ""}`,
+        `/workspaces/${targetWorkspaceId}/sessions?limit=25${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`,
       );
-      if (generation !== sessionsGeneration || workspace.value?.id !== workspaceId) return;
-      sessions.value = append ? [...sessions.value, ...page.sessions] : page.sessions;
-      nextCursor.value = page.nextCursor;
-      // 深链恢复：URL 指向的 Session 不在当前页时单独拉取
-      const deep = route.params.sessionId as string | undefined;
-      if (deep && !sessions.value.some(({ id }) => id === deep)) {
+      if (generations[targetWorkspaceId] !== generation) return;
+      sessionsByWorkspace.value.set(
+        targetWorkspaceId,
+        append
+          ? [...(sessionsByWorkspace.value.get(targetWorkspaceId) ?? []), ...page.sessions]
+          : page.sessions,
+      );
+      nextCursors.value.set(targetWorkspaceId, page.nextCursor);
+      // 深链恢复：URL 指向的 Session 不在首屏时单独请求
+      const deepId =
+        routeWorkspaceId.value === targetWorkspaceId ? routeSessionId.value : undefined;
+      if (
+        deepId &&
+        !sessionsByWorkspace.value.get(targetWorkspaceId)?.some(({ id }) => id === deepId)
+      ) {
         try {
           const { session } = await api<{ session: SessionDto }>(
-            `/workspaces/${workspaceId}/sessions/${deep}`,
+            `/workspaces/${targetWorkspaceId}/sessions/${deepId}`,
           );
+          const list = sessionsByWorkspace.value.get(targetWorkspaceId) ?? [];
           if (
-            generation === sessionsGeneration &&
-            workspace.value?.id === workspaceId &&
-            !sessions.value.some(({ id }) => id === session.id)
+            generations[targetWorkspaceId] === generation &&
+            routeWorkspaceId.value === targetWorkspaceId &&
+            !list.some(({ id }) => id === session.id)
           )
-            sessions.value = [session, ...sessions.value];
+            sessionsByWorkspace.value.set(targetWorkspaceId, [session, ...list]);
         } catch {
           // 深链无效则保持列表原样
         }
       }
     } catch (error) {
-      if (generation === sessionsGeneration) sessionError.value = errorMessage(error);
+      if (generations[targetWorkspaceId] === generation)
+        sessionErrors.value.set(targetWorkspaceId, errorMessage(error));
     } finally {
-      loadingRequests--;
-      loadingSessions.value = loadingRequests > 0;
+      loadingWorkspaceIds.value.delete(targetWorkspaceId);
     }
   }
+
+  function isCurrent(workspaceIdOfSession: string, sessionIdOfSession: string) {
+    const current = currentSession.value;
+    return current?.workspaceId === workspaceIdOfSession && current.id === sessionIdOfSession;
+  }
   async function loadTranscript() {
-    const workspaceId = workspace.value?.id;
-    const sessionId = currentSession.value?.id;
-    if (!workspaceId || !sessionId) {
+    const current = currentSession.value;
+    if (!current) {
       transcript.value = [];
       return;
     }
@@ -73,94 +126,75 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
     const generation = transcriptGeneration;
     try {
       const result = await api<{ transcript: TranscriptEntry[] }>(
-        `/workspaces/${workspaceId}/sessions/${sessionId}/transcript`,
+        `/workspaces/${current.workspaceId}/sessions/${current.id}/transcript`,
       );
-      if (
-        workspace.value?.id === workspaceId &&
-        currentSession.value?.id === sessionId &&
-        generation === transcriptGeneration
-      )
+      if (isCurrent(current.workspaceId, current.id) && generation === transcriptGeneration)
         transcript.value = result.transcript ?? [];
     } catch (error) {
-      if (
-        workspace.value?.id === workspaceId &&
-        currentSession.value?.id === sessionId &&
-        generation === transcriptGeneration
-      )
+      if (isCurrent(current.workspaceId, current.id) && generation === transcriptGeneration)
         transcriptError.value = errorMessage(error);
     } finally {
-      if (
-        workspace.value?.id === workspaceId &&
-        currentSession.value?.id === sessionId &&
-        generation === transcriptGeneration
-      )
+      if (isCurrent(current.workspaceId, current.id) && generation === transcriptGeneration)
         loadingTranscript.value = false;
     }
   }
-  async function createSession() {
-    if (!workspace.value || creating.value) return;
-    creating.value = true;
-    sessionError.value = "";
+  async function createSession(target?: WorkspaceDto | string) {
+    const wid = typeof target === "string" ? target : (target?.id ?? workspace.value?.id);
+    if (!wid || creatingWorkspaceId.value) return;
+    creatingWorkspaceId.value = wid;
+    sessionErrors.value.set(wid, "");
     try {
-      const { session } = await api<{ session: SessionDto }>(
-        `/workspaces/${workspace.value.id}/sessions`,
-        { method: "POST", body: JSON.stringify({ commandId: crypto.randomUUID() }) },
-      );
-      sessions.value = [session, ...sessions.value.filter(({ id }) => id !== session.id)];
-      await router.push(`/sessions/${session.id}`);
+      const { session } = await api<{ session: SessionDto }>(`/workspaces/${wid}/sessions`, {
+        method: "POST",
+        body: JSON.stringify({ commandId: crypto.randomUUID() }),
+      });
+      sessionsByWorkspace.value.set(wid, [
+        session,
+        ...(sessionsByWorkspace.value.get(wid) ?? []).filter(({ id }) => id !== session.id),
+      ]);
+      await router.push(`/workspaces/${wid}/sessions/${session.id}`);
       navOpen.value = false;
+      return session;
     } catch (error) {
-      sessionError.value = errorMessage(error);
+      sessionErrors.value.set(wid, errorMessage(error));
     } finally {
-      creating.value = false;
+      creatingWorkspaceId.value = undefined;
     }
   }
   async function renameSession(session: SessionDto, name: string) {
-    const workspaceId = workspace.value?.id;
-    if (!workspaceId || !name.trim()) return;
-    sessionError.value = "";
+    if (!name.trim()) return;
+    sessionErrors.value.set(session.workspaceId, "");
     try {
       const { session: updated } = await api<{ session: SessionDto }>(
-        `/workspaces/${workspaceId}/sessions/${session.id}`,
+        `/workspaces/${session.workspaceId}/sessions/${session.id}`,
         { method: "PATCH", body: JSON.stringify({ name, confirm: true }) },
       );
-      if (workspace.value?.id !== workspaceId) return;
       Object.assign(session, updated);
     } catch (error) {
-      sessionError.value = errorMessage(error);
+      sessionErrors.value.set(session.workspaceId, errorMessage(error));
     }
   }
   async function deleteSession(session: SessionDto) {
-    const workspaceId = workspace.value?.id;
-    if (!workspaceId) return;
-    sessionError.value = "";
+    sessionErrors.value.set(session.workspaceId, "");
     try {
-      await api(`/workspaces/${workspaceId}/sessions/${session.id}`, {
+      await api(`/workspaces/${session.workspaceId}/sessions/${session.id}`, {
         method: "DELETE",
         body: JSON.stringify({ confirm: true }),
       });
-      if (workspace.value?.id !== workspaceId) return;
-      sessions.value = sessions.value.filter(({ id }) => id !== session.id);
-      if (currentSession.value?.id === session.id) await router.push("/");
+      const wasCurrent = isCurrent(session.workspaceId, session.id);
+      sessionsByWorkspace.value.set(
+        session.workspaceId,
+        (sessionsByWorkspace.value.get(session.workspaceId) ?? []).filter(
+          ({ id }) => id !== session.id,
+        ),
+      );
+      if (wasCurrent) await router.push("/");
     } catch (error) {
-      sessionError.value = errorMessage(error);
+      sessionErrors.value.set(session.workspaceId, errorMessage(error));
     }
   }
   watch(
-    () => workspace.value?.id,
-    async (_id, previous) => {
-      sessionsGeneration++;
-      transcriptGeneration++;
-      sessions.value = [];
-      nextCursor.value = undefined;
-      transcript.value = [];
-      // 仅真实切换 Workspace 时清掉 session 选择；首次加载保留 URL（刷新恢复）
-      if (previous !== undefined && route.params.sessionId) await router.push("/");
-    },
-    { flush: "sync" },
-  );
-  watch(
-    () => [workspace.value?.id, currentSession.value?.id],
+    () => [currentSession.value?.id, currentSession.value?.workspaceId],
     () => {
       // 立即清空避免新 session 视图短暂显示旧内容
       transcriptGeneration++;
@@ -171,17 +205,24 @@ export function useSessions(workspace: Ref<WorkspaceDto | undefined>) {
   return {
     sessions,
     loadingSessions,
-    creating,
     sessionError,
+    nextCursor,
+    creating,
+    creatingWorkspaceId,
     navOpen,
     currentSession,
+    sessionsByWorkspace,
+    loadingWorkspaceIds,
+    sessionErrors,
+    nextCursors,
+    expandedWorkspaceIds,
+    toggleWorkspace,
     transcript,
     loadingTranscript,
     transcriptError,
     loadSessions,
     loadTranscript,
     createSession,
-    nextCursor,
     renameSession,
     deleteSession,
   };

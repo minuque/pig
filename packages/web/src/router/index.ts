@@ -9,7 +9,7 @@ const router = createRouter({
   history: createWebHistory("/"),
   routes: [
     { path: "/", component: Empty },
-    { path: "/sessions/:sessionId", component: Empty },
+    { path: "/workspaces/:workspaceId/sessions/:sessionId", component: Empty },
   ],
 });
 
