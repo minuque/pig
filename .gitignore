@@ -150,6 +150,7 @@ test-results/
 # agents config files
 .pi/
 .grok/
+.claude/
 .worktrees/
 .codegraph/
 skills-lock.json
