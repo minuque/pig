@@ -1,11 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApplications, FakePiRuntimeAdapter } from "@no-pi-no-gang/testkit";
-import type {
-  CommandId,
-  LocalIdentityId,
-  SSEEventEnvelope,
-  WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+import { createApplications, FakePiRuntimeAdapter } from "@pig/testkit";
+import type { CommandId, LocalIdentityId, SSEEventEnvelope, WorkspaceId } from "@pig/contracts";
 
 describe("application direct access", () => {
   afterEach(() => {

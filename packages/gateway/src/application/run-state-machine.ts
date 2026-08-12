@@ -10,7 +10,7 @@ import {
   type WorkspaceId,
   terminalStatuses,
   CONTRACT_VERSION,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 
 export class RunStateMachine {
   private readonly terminalEvents = new Set<RunId>();

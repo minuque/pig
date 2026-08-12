@@ -16,8 +16,8 @@ import type {
   SessionId,
   Workspace,
   WorkspaceId,
-} from "@no-pi-no-gang/contracts";
-import { gatewayRequest, waitFor } from "@no-pi-no-gang/testkit";
+} from "@pig/contracts";
+import { gatewayRequest, waitFor } from "@pig/testkit";
 import Gateway from "../src/index.js";
 import { FakePiRuntimeAdapter } from "./fake-pi-runtime.js";
 

@@ -3,7 +3,7 @@ import {
   terminalStatuses,
   type RunStatus,
   type SSEEventEnvelope,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 
 export type { RunStatus };
 export { terminalStatuses };

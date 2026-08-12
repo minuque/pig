@@ -8,7 +8,7 @@ import {
   type PlatformPort,
   type Workspace,
   type WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 import type { SqliteMetadataStore } from "../adapters/repositories/metadata-store.js";
 
 export class WorkspaceAccessDeniedError extends Error {

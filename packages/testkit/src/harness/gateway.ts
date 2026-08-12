@@ -1,4 +1,4 @@
-import type { SSEEventEnvelope } from "@no-pi-no-gang/contracts";
+import type { SSEEventEnvelope } from "@pig/contracts";
 
 export function gatewayRequest(
   port: number,

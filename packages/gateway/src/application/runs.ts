@@ -15,7 +15,7 @@ import {
   type SSEEventEnvelope,
   type SessionId,
   type WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 import { SessionsApplication } from "./sessions.js";
 import { RunScheduler } from "./run-scheduler.js";
 import { RunStateMachine } from "./run-state-machine.js";

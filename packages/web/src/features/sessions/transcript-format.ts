@@ -1,4 +1,4 @@
-import type { TranscriptEntry } from "@no-pi-no-gang/contracts";
+import type { TranscriptEntry } from "@pig/contracts";
 
 /** 单条会话记录（Pi SessionEntry）渲染为 UI 部件的分类结果。 */
 export type TranscriptPart =

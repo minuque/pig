@@ -17,8 +17,8 @@
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@no-pi-no-gang/gateway": ["packages/gateway/src/index.ts"],
-      "@no-pi-no-gang/testkit": ["packages/testkit/src/index.ts"]
+      "@pig/gateway": ["packages/gateway/src/index.ts"],
+      "@pig/testkit": ["packages/testkit/src/index.ts"]
     }
   }
 }

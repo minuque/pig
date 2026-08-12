@@ -1,4 +1,4 @@
-import type { SSEEventEnvelope } from "@no-pi-no-gang/contracts";
+import type { SSEEventEnvelope } from "@pig/contracts";
 import { routeRunEvent, type UiRun } from "../runs/run-state.js";
 
 export const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width));

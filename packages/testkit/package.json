@@ -1,5 +1,5 @@
 {
-  "name": "@no-pi-no-gang/testkit",
+  "name": "@pig/testkit",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@no-pi-no-gang/contracts": "workspace:*"
+    "@pig/contracts": "workspace:*"
   },
   "exports": "./src/index.ts"
 }

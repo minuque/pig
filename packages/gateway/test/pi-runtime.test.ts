@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { SessionManager } from "@earendil-works/pi-coding-agent";
-import type { CommandId, RunId, Workspace } from "@no-pi-no-gang/contracts";
+import type { CommandId, RunId, Workspace } from "@pig/contracts";
 import { describe, expect, it, vi } from "vitest";
 import { PiRuntimeAdapterImpl } from "../src/index.js";
 

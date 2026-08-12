@@ -1,4 +1,4 @@
-import type { ModelPreset, ModelVendor, SSEEventEnvelope } from "@no-pi-no-gang/contracts";
+import type { ModelPreset, ModelVendor, SSEEventEnvelope } from "@pig/contracts";
 import { computed, onBeforeUnmount, reactive, ref, type ComputedRef, type Ref } from "vue";
 import {
   api,

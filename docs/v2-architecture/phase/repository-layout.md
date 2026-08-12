@@ -7,7 +7,7 @@ Status: proposed
 ## 完整目录
 
 ```text
-no-pi-no-gang-v2/
+pig/
 ├─ packages/
 │  ├─ contracts/                 # browser-safe 公共契约
 │  │  ├─ src/

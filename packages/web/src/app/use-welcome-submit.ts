@@ -1,5 +1,5 @@
 import { nextTick, ref, watch, type Ref } from "vue";
-import type { ModelPreset } from "@no-pi-no-gang/contracts";
+import type { ModelPreset } from "@pig/contracts";
 import type { SessionDto, WorkspaceDto } from "../api/index.js";
 
 /** 当前选择仍存在于列表时保留，否则回退到第一个 Workspace。 */

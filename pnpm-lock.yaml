@@ -61,11 +61,11 @@ importers:
       '@earendil-works/pi-coding-agent':
         specifier: 0.83.0
         version: 0.83.0(ws@8.21.1)(zod@3.25.76)
-      '@no-pi-no-gang/contracts':
+      '@pig/contracts':
         specifier: 0.0.0
         version: link:../contracts
     devDependencies:
-      '@no-pi-no-gang/testkit':
+      '@pig/testkit':
         specifier: workspace:*
         version: link:../testkit
       tsx:
@@ -74,13 +74,13 @@ importers:
 
   packages/testkit:
     dependencies:
-      '@no-pi-no-gang/contracts':
+      '@pig/contracts':
         specifier: workspace:*
         version: link:../contracts
 
   packages/web:
     dependencies:
-      '@no-pi-no-gang/contracts':
+      '@pig/contracts':
         specifier: workspace:*
         version: link:../contracts
       '@vueuse/core':

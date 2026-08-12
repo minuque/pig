@@ -12,7 +12,7 @@ import type {
   SessionId,
   SSEEventEnvelope,
   WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 import Gateway from "../src/index.js";
 import { FakePiRuntimeAdapter } from "./fake-pi-runtime.js";
 

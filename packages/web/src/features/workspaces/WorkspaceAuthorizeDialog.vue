@@ -68,7 +68,7 @@
 
 <script setup lang="ts">
 import { nextTick, ref, watch } from "vue";
-import type { WorkspaceCandidate } from "@no-pi-no-gang/contracts";
+import type { WorkspaceCandidate } from "@pig/contracts";
 import {
   Dialog,
   DialogContent,

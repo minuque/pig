@@ -1,4 +1,4 @@
-import type { TranscriptEntry } from "@no-pi-no-gang/contracts";
+import type { TranscriptEntry } from "@pig/contracts";
 import { computed, ref, watch, type Ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { api, errorMessage, type SessionDto, type WorkspaceDto } from "../../api/index.js";

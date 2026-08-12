@@ -2,8 +2,8 @@ import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { SessionManager } from "@earendil-works/pi-coding-agent";
-import type { PlatformPort } from "@no-pi-no-gang/contracts";
-import { FakePiRuntimeAdapter } from "@no-pi-no-gang/testkit";
+import type { PlatformPort } from "@pig/contracts";
+import { FakePiRuntimeAdapter } from "@pig/testkit";
 import { afterEach, describe, expect, it } from "vitest";
 import Gateway, { PiRuntimeAdapterImpl } from "../src/index.js";
 

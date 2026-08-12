@@ -12,7 +12,7 @@ import type {
   Workspace,
   WorkspaceCandidate,
   WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 
 export class FakePiRuntimeAdapter implements PiRuntimeAdapter {
   constructor(protected readonly jsonlPath = "sessions.jsonl") {}

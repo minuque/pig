@@ -1,19 +1,19 @@
 {
-  "name": "no-pi-no-gang-v2",
+  "name": "pig",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.5.0",
   "engines": {
-    "node": ">=22.19.0 <23 || >=24.0.0 <25"
+    "node": ">=22.19.0"
   },
   "scripts": {
     "dev": "tsx scripts/dev.ts",
-    "dev:gateway": "pnpm --filter @no-pi-no-gang/gateway dev",
-    "dev:web": "pnpm --filter @no-pi-no-gang/web dev",
-    "build": "pnpm --filter @no-pi-no-gang/web build",
+    "dev:gateway": "pnpm --filter @pig/gateway dev",
+    "dev:web": "pnpm --filter @pig/web dev",
+    "build": "pnpm --filter @pig/web build",
     "start": "pnpm build && tsx packages/gateway/src/cli.ts packages/web/dist",
-    "preview": "pnpm --filter @no-pi-no-gang/web preview",
+    "preview": "pnpm --filter @pig/web preview",
     "test": "pnpm -r --if-present test",
     "typecheck": "tsc --noEmit -p scripts/tsconfig.json && pnpm -r --if-present typecheck",
     "lint": "eslint . && designmd lint DESIGN.md",

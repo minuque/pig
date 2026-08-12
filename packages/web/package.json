@@ -1,5 +1,5 @@
 {
-  "name": "@no-pi-no-gang/web",
+  "name": "@pig/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@no-pi-no-gang/contracts": "workspace:*",
+    "@pig/contracts": "workspace:*",
     "@vueuse/core": "^14.4.0",
     "clsx": "^2.1.1",
     "lucide-vue-next": "^1.0.0",

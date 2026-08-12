@@ -13,7 +13,7 @@ import type {
   SessionId,
   SSEEventEnvelope,
   WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 import Gateway from "../src/index.js";
 import { FakePiRuntimeAdapter } from "./fake-pi-runtime.js";
 
@@ -215,9 +215,9 @@ describe("Phase 0 acceptance gate", () => {
 
     expect(gatewayDependencies).toEqual({
       "@earendil-works/pi-coding-agent": "0.83.0",
-      "@no-pi-no-gang/contracts": "0.0.0",
+      "@pig/contracts": "0.0.0",
     });
-    expect(webDependencies).not.toHaveProperty("@no-pi-no-gang/testkit");
+    expect(webDependencies).not.toHaveProperty("@pig/testkit");
     expect(contracts).not.toMatch(/from ["'](?:vue|node:|fs|path|http|@pi)/);
     expect(rootPackage).not.toMatch(/replay|epoch|revision/i);
   });

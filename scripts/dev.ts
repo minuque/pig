@@ -36,7 +36,7 @@ async function main() {
   const port = await gateway.start();
   const pnpm = process.env.npm_execpath;
   if (!pnpm) throw new Error("pnpm executable not found");
-  const web = spawn(process.execPath, [pnpm, "--filter", "@no-pi-no-gang/web", "dev"], {
+  const web = spawn(process.execPath, [pnpm, "--filter", "@pig/web", "dev"], {
     env: {
       ...process.env,
       GATEWAY_TARGET: `http://127.0.0.1:${port}`,

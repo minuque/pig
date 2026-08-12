@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const gateway = join(root, "packages/gateway");
-const dependency = join(gateway, "node_modules/@no-pi-no-gang/contracts");
+const dependency = join(gateway, "node_modules/@pig/contracts");
 const backup = `${dependency}.workspace-link`;
 const run = (command, args) => {
   const result = spawnSync(command, args, {
@@ -29,7 +29,7 @@ if (process.argv[2] === "restore") {
 
 const temp = await mkdtemp(join(tmpdir(), "nono-package-"));
 try {
-  run("pnpm", ["--filter", "@no-pi-no-gang/web", "build"]);
+  run("pnpm", ["--filter", "@pig/web", "build"]);
   await rm(join(gateway, "dist"), { recursive: true, force: true });
   await rm(join(gateway, "web"), { recursive: true, force: true });
   await cp(join(root, "packages/web/dist"), join(gateway, "web"), { recursive: true });

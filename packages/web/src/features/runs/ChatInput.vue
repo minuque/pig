@@ -97,7 +97,7 @@ export function canSteer(text: string, unavailable: boolean): boolean {
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref } from "vue";
 import { ArrowUp } from "lucide-vue-next";
-import type { ModelPreset, ModelVendor } from "@no-pi-no-gang/contracts";
+import type { ModelPreset, ModelVendor } from "@pig/contracts";
 import ModelPicker from "../../components/composer/ModelPicker.vue";
 import ThinkingLevelSelect from "../../components/composer/ThinkingLevelSelect.vue";
 import { useModelPresetBinding } from "../../components/composer/model-preset.js";

@@ -1,11 +1,11 @@
 {
-  "name": "@no-pi-no-gang/gateway",
+  "name": "@pig/gateway",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "no-pi-no-gang": "dist/cli.js"
+    "pig": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -19,7 +19,7 @@
     "./src/*": "./src/*"
   },
   "bundledDependencies": [
-    "@no-pi-no-gang/contracts"
+    "@pig/contracts"
   ],
   "scripts": {
     "dev": "tsx watch src/cli.ts",
@@ -32,10 +32,10 @@
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.83.0",
-    "@no-pi-no-gang/contracts": "0.0.0"
+    "@pig/contracts": "0.0.0"
   },
   "devDependencies": {
-    "@no-pi-no-gang/testkit": "workspace:*",
+    "@pig/testkit": "workspace:*",
     "tsx": "^4.23.1"
   }
 }

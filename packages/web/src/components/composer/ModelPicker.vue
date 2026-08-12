@@ -58,7 +58,7 @@
 <script setup lang="ts">
 import { Check, ChevronDown, Search } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
-import type { ModelVendor } from "@no-pi-no-gang/contracts";
+import type { ModelVendor } from "@pig/contracts";
 import {
   DropdownMenu,
   DropdownMenuContent,

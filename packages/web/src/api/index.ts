@@ -1,7 +1,7 @@
 export type { WorkspaceDto } from "../features/workspaces/types.js";
 export type { SessionDto } from "../features/sessions/types.js";
 
-import type { SSEEventEnvelope } from "@no-pi-no-gang/contracts";
+import type { SSEEventEnvelope } from "@pig/contracts";
 
 export class ApiError extends Error {
   constructor(
@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-const CREDENTIAL_KEY = "no-pi-no-gang.credential";
+const CREDENTIAL_KEY = "pig.credential";
 let credential = restoreCredential();
 
 function restoreCredential(): string {

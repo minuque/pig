@@ -1,6 +1,6 @@
 import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import type { WorkspaceCandidate } from "@no-pi-no-gang/contracts";
+import type { WorkspaceCandidate } from "@pig/contracts";
 import { api, errorMessage, type WorkspaceDto } from "../../api/index.js";
 
 export function useWorkspaceAccess() {

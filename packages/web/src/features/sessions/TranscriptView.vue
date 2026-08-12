@@ -126,7 +126,7 @@
 </template>
 
 <script lang="ts">
-import type { TranscriptEntry } from "@no-pi-no-gang/contracts";
+import type { TranscriptEntry } from "@pig/contracts";
 
 /**
  * 折叠键分配器：条目自带非空字符串 id 时直接用该 id；否则按对象身份分配稳定序号键。

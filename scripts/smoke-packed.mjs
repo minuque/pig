@@ -35,7 +35,7 @@ try {
     "dist/cli.js",
     "web/index.html",
     "package.json",
-    "node_modules/@no-pi-no-gang/contracts/dist/index.js",
+    "node_modules/@pig/contracts/dist/index.js",
   ])
     if (!entries.has(required)) throw new Error(`packed artifact is missing ${required}`);
 
@@ -47,14 +47,14 @@ try {
   run("npm", ["init", "-y"], install);
   run("npm", ["install", portableArtifact], install);
   const installedPackage = JSON.parse(
-    await readFile(join(install, "node_modules/@no-pi-no-gang/gateway/package.json"), "utf8"),
+    await readFile(join(install, "node_modules/@pig/gateway/package.json"), "utf8"),
   );
-  if (installedPackage.bin?.["no-pi-no-gang"] !== "dist/cli.js")
+  if (installedPackage.bin?.["pig"] !== "dist/cli.js")
     throw new Error("packed artifact is missing the CLI bin");
   const bin =
     process.platform === "win32"
-      ? join(install, "node_modules/.bin/no-pi-no-gang.cmd")
-      : join(install, "node_modules/.bin/no-pi-no-gang");
+      ? join(install, "node_modules/.bin/pig.cmd")
+      : join(install, "node_modules/.bin/pig");
   const child = spawn(bin, [], {
     cwd: install,
     shell: process.platform === "win32",

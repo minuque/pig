@@ -1,4 +1,4 @@
-# no-pi-no-gang v2
+# pig v2
 
 一个以 Pi 为 Agent 底座的本地优先工作台。Agent Gateway 拥有执行与持久化协调，客户端只消费版本化契约。
 

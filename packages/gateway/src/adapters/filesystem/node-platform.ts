@@ -2,7 +2,7 @@ import { execFile } from "child_process";
 import { realpath } from "fs/promises";
 import { resolve } from "path";
 import { promisify } from "util";
-import type { PlatformPort } from "@no-pi-no-gang/contracts";
+import type { PlatformPort } from "@pig/contracts";
 
 const execFileAsync = promisify(execFile);
 const folderPickerScript = `

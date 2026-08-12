@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError, bootstrapFromFragment, errorMessage, streamEvents } from "../src/api/index.js";
 
-const CREDENTIAL_KEY = "no-pi-no-gang.credential";
+const CREDENTIAL_KEY = "pig.credential";
 const STORAGE = new Map<string, string>();
 vi.stubGlobal("sessionStorage", {
   getItem: (key: string) => STORAGE.get(key) ?? null,

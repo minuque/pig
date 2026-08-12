@@ -37,7 +37,7 @@
 </template>
 
 <script lang="ts">
-import type { ModelPreset } from "@no-pi-no-gang/contracts";
+import type { ModelPreset } from "@pig/contracts";
 
 /** 键盘守卫：仅裸 Enter 提交；Shift+Enter 换行、IME 组合期间一律放行。 */
 export function shouldSubmitOnKeydown(e: {
@@ -61,7 +61,7 @@ export function canSubmit(
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { ModelVendor } from "@no-pi-no-gang/contracts";
+import type { ModelVendor } from "@pig/contracts";
 import type { WorkspaceDto } from "../../api/index.js";
 import ChatInput from "../runs/ChatInput.vue";
 

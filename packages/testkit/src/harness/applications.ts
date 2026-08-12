@@ -14,7 +14,7 @@ import type {
   Workspace,
   WorkspaceCandidate,
   WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 import {
   InMemoryRunRepository,
   NodePlatformPort,
@@ -22,7 +22,7 @@ import {
   SessionsApplication,
   SqliteMetadataStore,
   WorkspacesApplication,
-} from "@no-pi-no-gang/gateway";
+} from "@pig/gateway";
 
 type FakeRecord =
   | { kind: "session"; canonicalPath: string; session: Session }
@@ -145,4 +145,4 @@ export function createApplications(options?: {
   };
 }
 
-export type { Run, RunId } from "@no-pi-no-gang/contracts";
+export type { Run, RunId } from "@pig/contracts";

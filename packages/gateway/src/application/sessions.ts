@@ -6,7 +6,7 @@ import {
   type PiRuntimeAdapter,
   type SessionId,
   type WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 import type { SqliteMetadataStore } from "../adapters/repositories/metadata-store.js";
 import { WorkspacesApplication } from "./workspaces.js";
 

@@ -15,7 +15,7 @@ import type {
   Workspace,
   WorkspaceCandidate,
   WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 
 type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>;
 type SessionFactory = typeof createAgentSession;

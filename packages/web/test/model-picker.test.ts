@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { nextTick, ref } from "vue";
-import type { ModelPreset, ModelVendor } from "@no-pi-no-gang/contracts";
+import type { ModelPreset, ModelVendor } from "@pig/contracts";
 import {
   filterCatalog,
   parseModelId,

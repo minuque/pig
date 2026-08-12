@@ -11,7 +11,7 @@ import {
   type SessionId,
   type SSEEventEnvelope,
   type WorkspaceId,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 import { NodePlatformPort } from "../adapters/filesystem/node-platform.js";
 import { PiRuntimeAdapterImpl } from "../adapters/pi/runtime.js";
 import { InMemoryRunRepository } from "../adapters/repositories/run-repository.js";
@@ -313,7 +313,7 @@ export class Gateway {
               sessionId,
               promptStr,
               cmdId as CommandId,
-              profile as import("@no-pi-no-gang/contracts").ModelPreset | undefined,
+              profile as import("@pig/contracts").ModelPreset | undefined,
             ),
           });
         }

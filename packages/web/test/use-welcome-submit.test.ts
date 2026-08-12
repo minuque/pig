@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
-import type { ModelPreset } from "@no-pi-no-gang/contracts";
+import type { ModelPreset } from "@pig/contracts";
 import type { SessionDto, WorkspaceDto } from "../src/api/index.js";
 import { nextWelcomeWorkspaceId, useWelcomeSubmit } from "../src/app/use-welcome-submit.js";
 

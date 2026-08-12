@@ -4,10 +4,10 @@ import { join } from "path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import type { PlatformPort } from "@no-pi-no-gang/contracts";
+import type { PlatformPort } from "@pig/contracts";
 import Gateway from "../src/index.js";
 import { FakePiRuntimeAdapter } from "./fake-pi-runtime.js";
-import { gatewayRequest as request } from "@no-pi-no-gang/testkit";
+import { gatewayRequest as request } from "@pig/testkit";
 
 const platformPort: PlatformPort = {
   async selectWorkspaceDirectory() {

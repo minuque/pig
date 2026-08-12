@@ -8,7 +8,7 @@ import {
   type SSEEventEnvelope,
   type WorkspaceId,
   type SessionId,
-} from "@no-pi-no-gang/contracts";
+} from "@pig/contracts";
 import { RunStateMachine } from "./run-state-machine.js";
 
 export class RunScheduler {

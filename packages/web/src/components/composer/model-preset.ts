@@ -1,5 +1,5 @@
 import { computed, watch, type Ref } from "vue";
-import type { ModelPreset, ModelVendor } from "@no-pi-no-gang/contracts";
+import type { ModelPreset, ModelVendor } from "@pig/contracts";
 
 /** 模型目录过滤：按模型名/模型 id/供应商名模糊匹配；空查询返回完整目录。 */
 export function filterCatalog(catalog: ModelVendor[], query: string): ModelVendor[] {

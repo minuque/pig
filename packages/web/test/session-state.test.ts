@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { SSEEventEnvelope } from "@no-pi-no-gang/contracts";
+import type { SSEEventEnvelope } from "@pig/contracts";
 import type { UiRun } from "../src/features/runs/run-state.js";
 import {
   clampPanelWidth,

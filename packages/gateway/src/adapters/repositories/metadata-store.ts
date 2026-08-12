@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { DatabaseSync } from "node:sqlite";
-import type { LocalIdentityId, SessionId, Workspace, WorkspaceId } from "@no-pi-no-gang/contracts";
+import type { LocalIdentityId, SessionId, Workspace, WorkspaceId } from "@pig/contracts";
 
 export class SqliteMetadataStore {
   private readonly db: DatabaseSync;

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import type { PlatformPort } from "@no-pi-no-gang/contracts";
+import type { PlatformPort } from "@pig/contracts";
 import Gateway from "../src/index.js";
 
 let selectedDirectory: string | undefined;
