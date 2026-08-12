@@ -12,7 +12,6 @@ const webRoot = process.argv[2]
 const bootstrapSecret = process.env.BOOTSTRAP_SECRET ?? randomUUID();
 const gateway = new Gateway({
   bootstrapSecret,
-  dbPath: process.env.GATEWAY_DB_PATH ?? "gateway.sqlite",
   ...(webRoot ? { webRoot } : {}),
 });
 const port = await gateway.start();

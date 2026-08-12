@@ -12,7 +12,7 @@
     "dev:gateway": "pnpm --filter @pig/gateway dev",
     "dev:web": "pnpm --filter @pig/web dev",
     "build": "pnpm --filter @pig/web build",
-    "start": "pnpm build && tsx packages/gateway/src/cli.ts packages/web/dist",
+    "start": "pnpm build && tsx packages/gateway/src/cli.ts apps/web/dist",
     "preview": "pnpm --filter @pig/web preview",
     "test": "pnpm -r --if-present test",
     "typecheck": "tsc --noEmit -p scripts/tsconfig.json && pnpm -r --if-present typecheck",

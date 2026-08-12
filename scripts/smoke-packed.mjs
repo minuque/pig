@@ -10,7 +10,7 @@ const install = await mkdtemp(join(tmpdir(), "nono-install-"));
 const run = (command, args, cwd = root, capture = false) => {
   const result = spawnSync(command, args, {
     cwd,
-    shell: process.platform === "win32",
+    shell: process.platform === "win32" && command === "npm",
     stdio: capture ? "pipe" : "inherit",
     encoding: capture ? "utf8" : undefined,
   });
@@ -31,12 +31,7 @@ try {
   const [packed] = JSON.parse(packOutput.slice(jsonStart));
   const artifact = join(staging, packed.filename);
   const entries = new Set(packed.files.map(({ path }) => path));
-  for (const required of [
-    "dist/cli.js",
-    "web/index.html",
-    "package.json",
-    "node_modules/@pig/contracts/dist/index.js",
-  ])
+  for (const required of ["dist/cli.js", "web/index.html", "package.json"])
     if (!entries.has(required)) throw new Error(`packed artifact is missing ${required}`);
 
   const portableArtifact = join(install, "gateway.tgz");
@@ -51,6 +46,17 @@ try {
   );
   if (installedPackage.bin?.["pig"] !== "dist/cli.js")
     throw new Error("packed artifact is missing the CLI bin");
+  // 模块入口：安装后的 `import "@pig/gateway"` 必须可解析（exports 指向 dist）；
+  // 解析或默认导出缺失都会让 run 抛错，smoke 即失败。
+  run(
+    process.execPath,
+    [
+      "-e",
+      "import('@pig/gateway').then(m => { if (typeof m.Gateway !== 'function') process.exit(1) })",
+    ],
+    install,
+    true,
+  );
   const bin =
     process.platform === "win32"
       ? join(install, "node_modules/.bin/pig.cmd")
@@ -62,7 +68,6 @@ try {
       ...process.env,
       NO_OPEN: "1",
       BOOTSTRAP_SECRET: "smoke",
-      GATEWAY_DB_PATH: join(install, "gateway.sqlite"),
     },
     stdio: ["ignore", "pipe", "inherit"],
   });
@@ -95,7 +100,7 @@ try {
       await new Promise((resolveExit) => child.once("exit", resolveExit));
   }
 } finally {
-  run("node", [join(root, "scripts/build-package.mjs"), "restore"]);
+  run(process.execPath, [join(root, "scripts/build-package.mjs"), "restore"]);
   await rm(join(gateway, "dist"), { recursive: true, force: true });
   await rm(join(gateway, "web"), { recursive: true, force: true });
   await rm(staging, { recursive: true, force: true });

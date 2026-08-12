@@ -134,7 +134,7 @@ pig/
 ├─ apps/web/                         # Web 入口
 │  └─ src/platform/websocket.ts      # Browser ByteTransportFactory
 ├─ packages/ui/                      # 平台无关 Vue UI（Phase 2）
-└─ packages/pi-host/                 # PiServerService + WebSocket listener
+└─ packages/gateway/                 # PiServerService + WebSocket listener
 ```
 
 不再创建 `packages/pi-client`。目录迁移分阶段进行，不为目录美观制造无意义 rename。
