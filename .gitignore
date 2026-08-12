@@ -160,3 +160,6 @@ sessions.jsonl
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+
+# Local agents config
+.agents/
