@@ -1,50 +1,44 @@
 # UI Guidelines
 
-## 1. UI 依赖选型
+## 1. UI 依赖
 
-**核心栈：** Vue 3 + TypeScript + Vite + Tailwind CSS + shadcn-vue + lucide-vue-next + vueuse + markstream-vue + vue-router
+Vue 3 + TypeScript + Vite + Tailwind CSS + shadcn-vue + lucide-vue-next + VueUse + markstream-vue + vue-router。
 
-### 详细说明
+- Vue 负责 UI state 与组件接线。
+- `@earendil-works/pi-client` 的 `RemoteSession` 是 Session 操作入口。
+- markstream-vue 渲染 transcript 内容。
+- WebSocket、bootstrap、目录选择属于 platform concern，不进入 Agent Domain。
 
-- **框架**：Vue 3 + TypeScript + Vite（轻量、编译后 bundle 极小，shallow reactivity 适合 session/transcript 状态）
-- **样式**：Tailwind CSS（快速实现 DESIGN.md 驱动的 token 系统）
-- **组件库**：shadcn-vue（组件生态完整，高度适配 token 设计体系）
-- **路由**：vue-router（支持 session 切换、标签页、抽屉导航）
-- **图标**：lucide-vue-next
-- **状态管理**：vueuse（当前阶段足够）
-- **流式输出**：markstream-vue（AI SSE 对话核心）
-- **可选**：vue-virtual-scroller（长 transcript 虚拟滚动）
+## 2. 信息架构
 
-## 2. Information Architecture
+工作台有两个区域：
 
-工作台采用两个主要区域（右栏 ContextPanel 已裁切，见 `docs/adr/0001-drop-context-panel.md`）：
+1. 左栏：已授权 Workspace，以及按 cwd 分组的其它 Pi Session。
+2. 中央：当前 Session 的 Transcript、phase、Prompt、Steer 与 Abort 操作。
 
-1. 左栏：Workspace 与 Session 导航。
-2. 中央：当前 Session 的会话记录（Transcript）、实时活动、Prompt 输入及 Run 操作。
+Session 切换由 `/sessions/:sessionId` 路由驱动。撤销 Workspace 只修改本地授权偏好，不删除 Pi Session。
 
-Session 切换由路由驱动（`/sessions/:sessionId`，见 `docs/adr/0002-router-driven-session-switching.md`）。
-
-## 3. Core User Journey
-
-核心旅程保持为：
+## 3. 核心旅程
 
 ```text
 授权 Workspace
   → 选择或创建 Session
-  → 查看会话记录
-  → 输入 Prompt
-  → 查看实时活动
-  → Steer 或 Cancel
-  → Run 完成
+  → 查看 Transcript
+  → 发送 Prompt
+  → 根据 phase 查看实时进度
+  → 运行中 Steer 或 Abort
+  → phase 回到 idle
 ```
 
-## 4. 打磨规格（当前轮）
+## 4. 当前产品契约
 
-- **布局**：两栏（左导航可折叠 + 中央 chat），无右栏；桌面优先，移动端左栏为抽屉。
-- **Session 切换**：路由驱动 `/sessions/:sessionId`；`/` 渲染空态视图（HomePage 死代码删除）。
-- **样式**：手写 CSS + token（Tailwind v4 `@theme` 已映射），shadcn 按需摘抄。
-- **动效**：状态驱动（press 缩放 0.98、disabled、focus-ring 统一、loading shimmer）+ 入场（transcript 切换 blur-in 280ms `--ease-out`、左栏抽屉位移过渡 `--ease-smooth`）。不做新消息入场动效。
-- **Transcript**：用户消息 surface 卡片、Agent 消息通栏；思考/工具活动默认折叠为摘要行（工具名+状态），grid-rows 展开；Run 终态标记“已并入”并收拢动画。
-- **Session 列表**：卡片 kebab 菜单（重命名/删除，删除需确认 dialog）。
-- **Gateway 状态**：正常态无常驻指示，仅错误 banner。
-- **延后项**：虚拟滚动、消息操作（复制/重跑）、拖拽物理、落地页引导。
+- **布局**：两栏；桌面左栏可折叠，移动端左栏为抽屉。
+- **Transcript**：用户消息使用 surface 卡片；Agent 消息通栏；思考与工具活动默认折叠。
+- **模型**：Session 为 `idle` 时可修改；运行中禁用 ModelPicker 与 ThinkingLevelSelect。
+- **Session 列表**：Pi 拥有 Session 真相。已授权目录优先显示，其它 Session 继续按 cwd 显示。
+- **Gateway 状态**：正常时不显示常驻指示；错误使用 banner。
+- **启动授权**：启动链接携带一次性 bootstrap secret；兑换成功后清除 URL hash。
+
+## 5. Upstream gaps
+
+- Session 重命名、删除、消息重跑与虚拟滚动未实现。官方协议具备稳定契约后再接入，不建立第二套状态。
