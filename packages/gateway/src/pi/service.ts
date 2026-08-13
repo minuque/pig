@@ -1,7 +1,7 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent";
-import type { SessionEntry, SessionHeader } from "@earendil-works/pi-coding-agent";
+import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/pi-coding-agent";
 import type { ModelMetadata, SessionMetadata } from "@earendil-works/pi-protocol";
 import {
   PiServerError,
@@ -41,18 +41,14 @@ export class PiHostService implements PiServerService {
   constructor(private readonly options: PiHostServiceOptions = {}) {}
 
   async listSessions(): Promise<SessionMetadata[]> {
-    const infos = await SessionManager.listAll(this.options.sessionDir);
-    this.sessionPaths.clear();
-    return infos.map((info) => {
-      this.sessionPaths.set(info.id, info.path);
-      return {
-        id: info.id,
-        createdAt: info.created.getTime(),
-        ...(info.modified ? { updatedAt: info.modified.getTime() } : {}),
-        ...(info.name ? { sessionName: info.name } : {}),
-        ...(info.cwd ? { cwd: info.cwd } : {}),
-      };
-    });
+    const infos = await this.refreshSessionPaths();
+    return infos.map((info) => ({
+      id: info.id,
+      createdAt: info.created.getTime(),
+      ...(info.modified ? { updatedAt: info.modified.getTime() } : {}),
+      ...(info.name ? { sessionName: info.name } : {}),
+      ...(info.cwd ? { cwd: info.cwd } : {}),
+    }));
   }
 
   async listModels(): Promise<ModelMetadata[]> {
@@ -113,12 +109,18 @@ export class PiHostService implements PiServerService {
     return new PiHostSession(session);
   }
 
-  private async findSessionPath(sessionId: string): Promise<string | undefined> {
-    const cached = this.sessionPaths.get(sessionId);
-    if (cached) return cached;
+  /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */
+  private async refreshSessionPaths(): Promise<SessionInfo[]> {
     const infos = await SessionManager.listAll(this.options.sessionDir);
     this.sessionPaths.clear();
     for (const info of infos) this.sessionPaths.set(info.id, info.path);
+    return infos;
+  }
+
+  private async findSessionPath(sessionId: string): Promise<string | undefined> {
+    const cached = this.sessionPaths.get(sessionId);
+    if (cached) return cached;
+    await this.refreshSessionPaths();
     return this.sessionPaths.get(sessionId);
   }
 

@@ -5,7 +5,6 @@ import type {
   SessionSnapshot,
   ThinkingLevel,
 } from "@earendil-works/pi-protocol";
-import { projectTranscript, type TranscriptPart } from "./transcript-format.js";
 
 export const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width));
 
@@ -45,15 +44,12 @@ export function scrollStateFrom(
   return { scrollTop, following, hasNewActivity: following ? false : previousHasNewActivity };
 }
 
-export const sessionKey = (sessionId: string) => sessionId;
-
 export function sessionState(states: Map<string, SessionClientState>, sessionId: string) {
-  const key = sessionKey(sessionId);
-  let state = states.get(key);
+  let state = states.get(sessionId);
   if (!state) {
     // reactive：draft/滚动等属性写入必须被响应式追踪（如 draft 清空后 PromptEditor 同步）
     state = reactive({ draft: "", scrollTop: 0, following: true, hasNewActivity: false });
-    states.set(key, state);
+    states.set(sessionId, state);
   }
   return state;
 }
@@ -69,7 +65,6 @@ export interface SessionProjection {
   running: boolean;
   queuedSteerCount: number;
   updatedAt: number;
-  transcript: TranscriptPart[];
 }
 
 export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjection {
@@ -83,6 +78,5 @@ export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjec
     running: snapshot.phase !== "idle",
     queuedSteerCount: snapshot.queuedSteerCount,
     updatedAt: snapshot.updatedAt,
-    transcript: projectTranscript(snapshot.transcript),
   };
 }

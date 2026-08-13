@@ -1,20 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canSubmit, shouldSubmitOnKeydown } from "../src/features/sessions/SessionWelcome.vue";
-
-describe("shouldSubmitOnKeydown", () => {
-  it("裸 Enter 提交", () => {
-    expect(shouldSubmitOnKeydown({ key: "Enter", shiftKey: false, isComposing: false })).toBe(true);
-  });
-
-  it("Shift+Enter 与 IME 组合期间不提交", () => {
-    expect(shouldSubmitOnKeydown({ key: "Enter", shiftKey: true, isComposing: false })).toBe(false);
-    expect(shouldSubmitOnKeydown({ key: "Enter", shiftKey: false, isComposing: true })).toBe(false);
-  });
-
-  it("非 Enter 键不提交", () => {
-    expect(shouldSubmitOnKeydown({ key: "a", shiftKey: false, isComposing: false })).toBe(false);
-  });
-});
+import { canSubmit } from "../src/features/sessions/SessionWelcome.vue";
 
 describe("canSubmit", () => {
   const profile = { model: "gpt-5", thinkingLevel: "high" };

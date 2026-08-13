@@ -16,16 +16,15 @@ const catalog: ComposerVendor[] = [
       {
         id: "claude-sonnet",
         name: "Claude Sonnet",
-        reasoning: true,
         thinkingLevels: ["low", "high"],
       },
-      { id: "claude-haiku", name: "Claude Haiku", reasoning: true, thinkingLevels: ["low"] },
+      { id: "claude-haiku", name: "Claude Haiku", thinkingLevels: ["low"] },
     ],
   },
   {
     id: "openai",
     name: "OpenAI",
-    models: [{ id: "gpt-4o", name: "GPT-4o", reasoning: true, thinkingLevels: ["none"] }],
+    models: [{ id: "gpt-4o", name: "GPT-4o", thinkingLevels: ["none"] }],
   },
 ];
 

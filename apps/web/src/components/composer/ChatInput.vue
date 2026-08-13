@@ -11,8 +11,6 @@
     <PromptEditor
       ref="promptEditor"
       v-model:prompt="prompt"
-      v-model:enhancing="enhancing"
-      :on-enhance="onEnhance"
       :placeholder="placeholder"
       :aria-label="ariaLabel"
       @submit="send"
@@ -64,9 +62,9 @@
 </template>
 
 <script lang="ts">
-/** 发送守卫：有正文、非增强中且未被外部禁用；与发送按钮 disabled 一致。 */
-export function canSend(text: string, enhancing: boolean, sendDisabled: boolean): boolean {
-  return text.trim() !== "" && !enhancing && !sendDisabled;
+/** 发送守卫：有正文且未被外部禁用；与发送按钮 disabled 一致。 */
+export function canSend(text: string, sendDisabled: boolean): boolean {
+  return text.trim() !== "" && !sendDisabled;
 }
 </script>
 
@@ -93,7 +91,6 @@ const props = withDefaults(
     /** 取消中：禁用停止按钮并切换文案 */
     aborting?: boolean;
     error?: string;
-    onEnhance?: ((prompt: string, signal?: AbortSignal) => Promise<string>) | undefined;
     /** 外部禁用发送（如 welcome 的 workspace/预设/提交中守卫） */
     sendDisabled?: boolean;
     placeholder?: string;
@@ -134,11 +131,10 @@ const {
 } = useAttachments();
 
 /** 编辑器增强中：由 PromptEditor 单向写入，用于禁用发送 */
-const enhancing = ref(false);
 const promptEditor = ref<InstanceType<typeof PromptEditor> | null>(null);
 
 const running = computed(() => props.phase !== undefined && props.phase !== "idle");
-const sendActive = computed(() => canSend(prompt.value, enhancing.value, props.sendDisabled));
+const sendActive = computed(() => canSend(prompt.value, props.sendDisabled));
 
 // 文件选择后把焦点还给编辑器
 function onAttachmentFiles(e: Event) {

@@ -10,15 +10,12 @@ const webRoot = process.argv[2]
   ? resolve(process.argv[2])
   : fileURLToPath(new URL("../web/", import.meta.url));
 const bootstrapSecret = process.env.BOOTSTRAP_SECRET ?? randomUUID();
-const gateway = new Gateway({
-  bootstrapSecret,
-  ...(webRoot ? { webRoot } : {}),
-});
+const gateway = new Gateway({ bootstrapSecret, webRoot });
 const port = await gateway.start();
 const origin = `http://127.0.0.1:${port}`;
 console.log(`Gateway listening on ${origin}`);
 
-if (webRoot && process.env.NO_OPEN !== "1") {
+if (process.env.NO_OPEN !== "1") {
   const url = `${origin}/#bootstrap=${encodeURIComponent(bootstrapSecret)}`;
   const command =
     process.platform === "win32" ? "cmd.exe" : process.platform === "darwin" ? "open" : "xdg-open";

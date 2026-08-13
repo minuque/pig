@@ -131,9 +131,11 @@ export class TranscriptProjection {
         const args = this.toolCalls.get(message.toolCallId);
         if (args === undefined) return undefined;
         const item = this.toolItem(message, args);
-        // item_finished 只接受终态（running 成员被收窄排除）
-        if (item.status === "running") return undefined;
-        return { type: "item_finished", item };
+        // finished 阶段 toProtocolToolResultMessage 只产出终态（running 占位已由 tool_execution_start 发出）
+        return {
+          type: "item_finished",
+          item: item as Extract<ToolTranscriptItem, { status: "complete" | "error" }>,
+        };
       }
       default:
         return undefined; // 自定义消息（bash/custom/compaction 等）不进 transcript

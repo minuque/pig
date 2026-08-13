@@ -38,6 +38,7 @@ export async function bootstrapFromUrl(): Promise<void> {
   const hash = new URLSearchParams(location.hash.slice(1));
   const secret = hash.get("bootstrap");
   if (!secret) return;
+
   history.replaceState(null, "", `${location.pathname}${location.search}`);
   const response = await fetch(BOOTSTRAP_PATH, {
     method: "POST",

@@ -93,14 +93,12 @@ export function usePiClient() {
 
   return {
     client,
-    serverSnapshot,
     connectionState,
     connectionError,
     connected,
     sessions,
     models,
     connect,
-    disconnect,
     dispose,
   };
 }

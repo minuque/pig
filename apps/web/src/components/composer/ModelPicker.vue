@@ -116,7 +116,7 @@ function onOpenAutoFocus(event: Event) {
   searchRef.value?.focus();
 }
 
-// 外点关闭时禁止 reka 把焦点抢回触发器，让点击落在目标元素上（与旧行为一致）
+// 外点关闭时禁止 reka 把焦点抢回触发器，让点击落在目标元素上
 let suppressRestore = false;
 function suppressFocusRestore() {
   suppressRestore = true;

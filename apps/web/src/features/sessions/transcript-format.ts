@@ -47,13 +47,3 @@ export function projectTranscriptItem(item: TranscriptItem): TranscriptPart | un
     status: item.status,
   };
 }
-
-/** 批量投影：跳过无可见内容的条目，保持顺序。 */
-export function projectTranscript(items: readonly TranscriptItem[]): TranscriptPart[] {
-  const parts: TranscriptPart[] = [];
-  for (const item of items) {
-    const part = projectTranscriptItem(item);
-    if (part) parts.push(part);
-  }
-  return parts;
-}

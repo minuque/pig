@@ -1,13 +1,9 @@
 import { computed, shallowRef, toValue, type MaybeRefOrGetter } from "vue";
 import type { PiClient, Unsubscribe } from "@earendil-works/pi-client";
 import { RemoteSession } from "@earendil-works/pi-coding-agent/client";
-import type {
-  RemoteSessionLifecycle,
-  RemoteSessionState,
-} from "@earendil-works/pi-coding-agent/client";
+import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client";
 import type { ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol";
 import { projectSessionSnapshot, type SessionProjection } from "./session-state.js";
-import { projectTranscript, type TranscriptPart } from "./transcript-format.js";
 
 export type { SessionGroup } from "./types.js";
 
@@ -28,24 +24,17 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
   // SDK 实例仅存引用，不响应式深追踪
   const remote = shallowRef<RemoteSession>();
   const state = shallowRef<RemoteSessionState>();
-  const lastError = shallowRef<Error>();
   let unsubscribeState: Unsubscribe | undefined;
   let disposePromise: Promise<void> | undefined;
   // 替换操作串行化：同一时刻至多一个 open/create，避免并发 lease
   let replaceChain: Promise<void> = Promise.resolve();
 
   // 纯派生：由上述状态 computed 得到
-  const lifecycle = computed<RemoteSessionLifecycle | undefined>(() => state.value?.lifecycle);
-  const busy = computed(() => lifecycle.value?.status === "busy");
-  const operation = computed(() =>
-    lifecycle.value?.status === "busy" ? lifecycle.value.operation : undefined,
-  );
   const snapshot = computed(() => state.value?.snapshot);
   const projection = computed<SessionProjection | undefined>(() =>
     snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined,
   );
   const transcript = computed(() => state.value?.transcript ?? []);
-  const transcriptParts = computed<TranscriptPart[]>(() => projectTranscript(transcript.value));
 
   function attach(next: RemoteSession) {
     const previous = remote.value;
@@ -80,12 +69,7 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
       if (remote.value?.id === sessionId) return;
       const target = client.value;
       if (!target) throw new Error("PiClient 未连接");
-      try {
-        attach(await RemoteSession.open(target, sessionId));
-      } catch (error) {
-        lastError.value = error instanceof Error ? error : new Error(String(error));
-        throw error;
-      }
+      attach(await RemoteSession.open(target, sessionId));
     });
   }
 
@@ -94,38 +78,13 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     return enqueueReplace(async () => {
       const target = client.value;
       if (!target) throw new Error("PiClient 未连接");
-      try {
-        attach(
-          await RemoteSession.create(target, {
-            cwd,
-            ...(options?.model !== undefined ? { model: options.model } : {}),
-            ...(options?.thinkingLevel !== undefined
-              ? { thinkingLevel: options.thinkingLevel }
-              : {}),
-          }),
-        );
-      } catch (error) {
-        lastError.value = error instanceof Error ? error : new Error(String(error));
-        throw error;
-      }
-    });
-  }
-
-  /** 等待已附加的 RemoteSession 进入 ready：供创建后立刻提交首条输入。 */
-  async function whenReady(): Promise<void> {
-    const current = remote.value;
-    if (!current) throw new Error("Session 未附加");
-    if (current.state.lifecycle.status === "ready") return;
-    await new Promise<void>((resolve, reject) => {
-      const unsubscribe = current.subscribe((nextState) => {
-        if (nextState.lifecycle.status === "ready") {
-          unsubscribe();
-          resolve();
-        } else if (nextState.lifecycle.status === "disposed") {
-          unsubscribe();
-          reject(new Error("Session 已销毁"));
-        }
-      });
+      attach(
+        await RemoteSession.create(target, {
+          cwd,
+          ...(options?.model !== undefined ? { model: options.model } : {}),
+          ...(options?.thinkingLevel !== undefined ? { thinkingLevel: options.thinkingLevel } : {}),
+        }),
+      );
     });
   }
 
@@ -156,17 +115,11 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
   return {
     remote,
     state,
-    lastError,
-    lifecycle,
-    busy,
-    operation,
     snapshot,
     projection,
     transcript,
-    transcriptParts,
     openSession,
     createSession,
-    whenReady,
     submit,
     abort,
     setModel,

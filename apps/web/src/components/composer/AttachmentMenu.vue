@@ -69,7 +69,7 @@ const menuOpen = defineModel<boolean>("menuOpen", { default: false });
 
 const fileRef = ref<HTMLInputElement | null>(null);
 
-/** 选择图片/文件：设置 accept 与 fallback 类型后触发系统文件选择器（行为与旧实现一致） */
+/** 选择图片/文件：设置 accept 与 fallback 类型后触发系统文件选择器 */
 function onSelect(kind: AttachmentKind) {
   const input = fileRef.value;
   if (!input) return;
@@ -90,7 +90,7 @@ function onMenuAutoFocus(event: Event) {
   (event.target as HTMLElement).querySelector<HTMLElement>('[role="menuitem"]')?.focus();
 }
 
-// 外点关闭时禁止 reka 把焦点抢回触发器，让点击落在目标元素上（与旧行为一致）
+// 外点关闭时禁止 reka 把焦点抢回触发器，让点击落在目标元素上
 let suppressRestore = false;
 function suppressFocusRestore() {
   suppressRestore = true;

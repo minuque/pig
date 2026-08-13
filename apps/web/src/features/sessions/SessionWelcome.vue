@@ -11,7 +11,6 @@
         bare
         placeholder="想完成什么？"
         aria-label="任务描述"
-        :on-enhance="onEnhance"
         @send="onSend"
       >
         <template #left>
@@ -41,15 +40,6 @@
 <script lang="ts">
 import type { ComposerPreset } from "../../components/composer/types.js";
 
-/** 键盘守卫：仅裸 Enter 提交；Shift+Enter 换行、IME 组合期间一律放行。 */
-export function shouldSubmitOnKeydown(e: {
-  key: string;
-  shiftKey: boolean;
-  isComposing: boolean;
-}): boolean {
-  return e.key === "Enter" && !e.shiftKey && !e.isComposing;
-}
-
 /** 提交守卫：空白 prompt、无 workspace、无 preset 或提交中均拒绝。 */
 export function canSubmit(
   prompt: string,
@@ -76,7 +66,6 @@ const props = defineProps<{
   catalog: ComposerVendor[];
   submitting: boolean;
   error: string;
-  onEnhance?: (prompt: string, signal?: AbortSignal) => Promise<string>;
 }>();
 
 const emit = defineEmits<{

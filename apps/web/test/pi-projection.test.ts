@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SessionMetadata, SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol";
 import { projectSessionSnapshot } from "../src/features/sessions/session-state.js";
-import {
-  projectTranscript,
-  projectTranscriptItem,
-} from "../src/features/sessions/transcript-format.js";
+import { projectTranscriptItem } from "../src/features/sessions/transcript-format.js";
 import { groupSessionsByCwd, workspaceName } from "../src/features/sessions/types.js";
 
 function userItem(text: string): TranscriptItem {
@@ -89,14 +86,6 @@ describe("projectTranscriptItem", () => {
   it("drops items without visible content", () => {
     expect(projectTranscriptItem(assistantItem("", []))).toBeUndefined();
   });
-  it("keeps order and drops empty items in batch projection", () => {
-    expect(
-      projectTranscript([assistantItem("", []), userItem("a"), toolItem("bash", "b")]),
-    ).toEqual([
-      { kind: "user", text: "a" },
-      { kind: "tool", name: "bash", isError: false, text: "b", status: "complete" },
-    ]);
-  });
 });
 
 describe("projectSessionSnapshot", () => {
@@ -123,7 +112,6 @@ describe("projectSessionSnapshot", () => {
     expect(projection.name).toBe(`Session ${"s1".slice(0, 8)}`);
     expect(projection.cwd).toBe("/repo");
     expect(projection.running).toBe(false);
-    expect(projection.transcript).toEqual([{ kind: "user", text: "hi" }]);
   });
   it("marks non-idle phases as running and counts queued steer", () => {
     const projection = projectSessionSnapshot(

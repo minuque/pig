@@ -89,12 +89,11 @@ describe("useRemoteSessions lifecycle", () => {
     expect(sessions.remote.value).toBe(b);
   });
 
-  it("open 失败：不附加、错误上抛并记录 lastError", async () => {
+  it("open 失败：不附加、错误上抛", async () => {
     const { sessions } = setup();
     openMock.mockRejectedValue(new Error("boom"));
     await expect(sessions.openSession("s1")).rejects.toThrow("boom");
     expect(sessions.remote.value).toBeUndefined();
-    expect(sessions.lastError.value?.message).toBe("boom");
   });
 
   it("dispose 可重复调用且底层只 dispose 一次", async () => {

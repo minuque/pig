@@ -66,6 +66,7 @@ export class PiHostSession implements PiSessionRuntime {
       model: { provider: model.provider, id: model.id },
       thinkingLevel: session.thinkingLevel,
       attached: false, // 由 PiServer 按连接状态覆盖
+      // PiServer 的 normalizedSnapshot 恒覆盖 locked，此处占位
       locked: false,
       revision: this.revision,
       transcript: this.projection.transcript(entries),

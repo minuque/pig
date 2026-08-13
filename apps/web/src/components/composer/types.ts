@@ -1,12 +1,10 @@
 import type { ModelMetadata, ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol";
 
-/** 模型选择目录的本地 UI 类型：由官方 ModelMetadata 投影，替代 @pig/contracts 导入。 */
+/** 模型选择目录的本地 UI 类型：由官方 ModelMetadata 投影。 */
 export interface ComposerModelInfo {
   id: string;
   name: string;
-  reasoning: boolean;
   thinkingLevels: string[];
-  contextWindow?: number;
   description?: string;
 }
 
@@ -16,7 +14,7 @@ export interface ComposerVendor {
   models: ComposerModelInfo[];
 }
 
-/** 执行档：model 为 "provider/id"，thinkingLevel 为可读字符串（与旧 UI 一致）。 */
+/** 执行档：model 为 "provider/id"，thinkingLevel 为可读字符串。 */
 export interface ComposerPreset {
   model: string;
   thinkingLevel: string;
@@ -34,9 +32,7 @@ export function catalogFromModels(models: readonly ModelMetadata[]): ComposerVen
     vendor.models.push({
       id: model.id,
       name: model.name,
-      reasoning: model.reasoning,
       thinkingLevels: [...model.supportedThinkingLevels],
-      ...(model.contextWindow ? { contextWindow: model.contextWindow } : {}),
     });
     vendors.set(model.provider, vendor);
   }

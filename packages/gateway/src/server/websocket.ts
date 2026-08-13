@@ -13,7 +13,7 @@ type ByteConnectionAcceptor = Parameters<PiServerListener["start"]>[0];
 type ByteConnectionHandler = ReturnType<ByteConnectionAcceptor>;
 
 /** Host WebSocket 路径：认证经查询参数传递（浏览器无法自定义 header）。 */
-export const WEBSOCKET_PATH = "/api/v1/pi";
+const WEBSOCKET_PATH = "/api/v1/pi";
 
 export interface WebSocketListenerOptions {
   /** 承载升级的 HTTP server（只绑定 127.0.0.1）。 */
