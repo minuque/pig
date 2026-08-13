@@ -44,7 +44,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu/index.js";
+} from "@components/ui/dropdown-menu/index.js";
 
 const props = withDefaults(
   defineProps<{

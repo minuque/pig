@@ -20,7 +20,7 @@ import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui
 import type { ComputedRef, HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui";
-import { cn } from "@/lib/utils.js";
+import { cn } from "@utils/utils.js";
 
 defineOptions({
   inheritAttrs: false,

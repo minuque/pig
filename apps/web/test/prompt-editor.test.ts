@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldSubmitOnKeydown } from "../src/components/composer/PromptEditor.vue";
+import { shouldSubmitOnKeydown } from "@components/composer/PromptEditor.vue";
 
 describe("shouldSubmitOnKeydown", () => {
   it("裸 Enter 触发提交", () => {

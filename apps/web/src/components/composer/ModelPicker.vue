@@ -36,8 +36,8 @@
               v-for="m in vendor.models"
               :key="m.id"
               class="model-item gap-[7px] rounded-[7px] px-2 py-[5px] text-[11px] font-medium active:scale-100 cursor-pointer hover:bg-canvas-soft focus:bg-canvas-soft data-[current]:text-primary"
-              :data-current="`${vendor.id}/${m.id}` === model ? '' : undefined"
-              @select="select(`${vendor.id}/${m.id}`)"
+              :data-current="isCurrent(vendor.id, m.id) ? '' : undefined"
+              @select="select({ provider: vendor.id, id: m.id })"
             >
               <VendorMark :name="vendor.name" :size="14" />
               <span class="model-body">
@@ -45,7 +45,7 @@
                 <span v-if="m.description" class="model-desc">{{ m.description }}</span>
               </span>
               <span v-if="m.thinkingLevels.length === 1" class="model-tag">默认</span>
-              <Check v-if="`${vendor.id}/${m.id}` === model" :size="13" class="model-check" />
+              <Check v-if="isCurrent(vendor.id, m.id)" :size="13" class="model-check" />
             </DropdownMenuItem>
           </div>
         </template>
@@ -58,38 +58,35 @@
 <script setup lang="ts">
 import { Check, ChevronDown, Search } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
-import type { ComposerVendor } from "./types.js";
+import type { ModelRef } from "@earendil-works/pi-protocol";
+import { modelLabel, sameModel, type ComposerVendor } from "@components/composer/types.js";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu/index.js";
-import VendorMark from "./VendorMark.vue";
-import { filterCatalog, parseModelId } from "./model-preset.js";
+} from "@components/ui/dropdown-menu/index.js";
+import VendorMark from "@components/composer/VendorMark.vue";
+import { filterCatalog, resolveModelInfo } from "@components/composer/model-preset.js";
 
 const props = withDefaults(
   defineProps<{
     catalog: ComposerVendor[];
-    model: string; // "provider/id"
+    model: ModelRef | undefined;
     disabled?: boolean;
   }>(),
   { disabled: false },
 );
 
 const emit = defineEmits<{
-  "update:model": [value: string];
+  "update:model": [value: ModelRef];
 }>();
 
 const open = ref(false);
 const query = ref("");
 const searchRef = ref<HTMLInputElement | null>(null);
 
-const current = computed(() => {
-  const { vendorId, modelId: id } = parseModelId(props.model);
-  const vendor = props.catalog.find((v) => v.id === vendorId);
-  return { vendor, model: vendor?.models.find((m) => m.id === id) };
-});
+const current = computed(() => resolveModelInfo(props.catalog, props.model));
 
 const filtered = computed(() => filterCatalog(props.catalog, query.value));
 
@@ -101,11 +98,14 @@ watch(open, (isOpen) => {
 // 选择器标签：品牌名 + 模型名，均来自 catalog 数据
 const label = computed(() => {
   const { vendor, model } = current.value;
-  if (!vendor || !model) return props.model;
+  if (!vendor || !model) return modelLabel(props.model);
   return `${vendor.name} · ${model.name}`;
 });
 
-function select(model: string) {
+function isCurrent(provider: string, id: string) {
+  return sameModel(props.model, { provider, id });
+}
+function select(model: ModelRef) {
   emit("update:model", model);
   // 菜单由 reka-ui 在 select 后自动关闭
 }

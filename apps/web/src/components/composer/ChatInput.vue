@@ -9,29 +9,15 @@
     />
 
     <PromptEditor
-      ref="promptEditor"
       v-model:prompt="prompt"
       :placeholder="placeholder"
       :aria-label="ariaLabel"
       @submit="send"
     >
-      <template #chips>
-        <AttachmentChips
-          :attachments="attachments"
-          :exiting="exitingAtt"
-          @remove="removeAttachment"
-        />
-      </template>
       <template #left>
-        <AttachmentMenu
-          v-model:menu-open="menuOpen"
-          :disabled="sendDisabled"
-          @files="onAttachmentFiles"
-        />
-
         <slot name="left" />
 
-        <ModelPicker v-model:model="model" :catalog="catalog" />
+        <ModelPicker v-model:model="model" :catalog="catalog" :disabled="running" />
         <ThinkingLevelSelect v-model:level="level" :levels="modelLevels" :disabled="running" />
       </template>
       <template #right>
@@ -40,7 +26,7 @@
           class="icon-btn send"
           :class="{ 'send-active': sendActive }"
           :aria-label="running ? '发送 Steer' : '发送'"
-          :title="running ? '发送 Steer（运行中不创建新 Run）' : '发送'"
+          :title="running ? '发送 Steer（追加到当前 turn）' : '发送 Prompt'"
           :disabled="!sendActive"
           @click="send"
         >
@@ -52,10 +38,10 @@
     <div v-if="error" class="notice error" role="alert">{{ error }}</div>
     <div v-if="phase" class="actions composer-actions">
       <span class="badge-preset mono"
-        >{{ preset?.model ?? "—" }} · {{ preset?.thinkingLevel ?? "—" }}</span
+        >{{ modelLabel(preset?.model) }} · {{ preset?.thinkingLevel ?? "—" }}</span
       >
       <span class="c-note">{{
-        running ? "运行中发送将作为 Steer 追加，不创建新 Run" : "模型与 thinking level 在创建时固定"
+        running ? "运行中发送将作为 Steer 追加" : "Session 空闲时可修改模型与 thinking level"
       }}</span>
     </div>
   </component>
@@ -69,18 +55,19 @@ export function canSend(text: string, sendDisabled: boolean): boolean {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { computed } from "vue";
 import { ArrowUp } from "lucide-vue-next";
 import type { SessionPhase } from "@earendil-works/pi-protocol";
-import ModelPicker from "./ModelPicker.vue";
-import ThinkingLevelSelect from "./ThinkingLevelSelect.vue";
-import PromptEditor from "./PromptEditor.vue";
-import AttachmentMenu from "./AttachmentMenu.vue";
-import AttachmentChips from "./AttachmentChips.vue";
-import { useModelPresetBinding } from "./model-preset.js";
-import { useAttachments } from "./use-attachments.js";
-import type { ComposerPreset, ComposerVendor } from "./types.js";
-import SessionControlBar from "../../features/sessions/SessionControlBar.vue";
+import ModelPicker from "@components/composer/ModelPicker.vue";
+import ThinkingLevelSelect from "@components/composer/ThinkingLevelSelect.vue";
+import PromptEditor from "@components/composer/PromptEditor.vue";
+import { useModelPresetBinding } from "@components/composer/model-preset.js";
+import {
+  modelLabel,
+  type ComposerPreset,
+  type ComposerVendor,
+} from "@components/composer/types.js";
+import SessionControlBar from "@features/sessions/SessionControlBar.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -119,53 +106,12 @@ const emit = defineEmits<{
 }>();
 
 const { model, modelLevels, level } = useModelPresetBinding(() => props.catalog, preset);
-const {
-  attachments,
-  exitingAtt,
-  menuOpen,
-  onFiles,
-  removeAttachment,
-  composeText,
-  clear,
-  dispose,
-} = useAttachments();
-
-/** 编辑器增强中：由 PromptEditor 单向写入，用于禁用发送 */
-const promptEditor = ref<InstanceType<typeof PromptEditor> | null>(null);
-
 const running = computed(() => props.phase !== undefined && props.phase !== "idle");
 const sendActive = computed(() => canSend(prompt.value, props.sendDisabled));
 
-// 文件选择后把焦点还给编辑器
-function onAttachmentFiles(e: Event) {
-  onFiles(e);
-  nextTick(() => promptEditor.value?.focus());
-}
-
-// 发送后父组件（发送成功）清空 prompt：此时清附件并复位发送标记；
-// 发送失败则 prompt 原样保留（正文与附件都不丢），无需恢复逻辑。
-let sentNonEmpty = false;
-watch(prompt, (value) => {
-  if (value === "" && sentNonEmpty) {
-    sentNonEmpty = false;
-    clearComposer();
-  }
-});
-
 function send() {
-  if (!sendActive.value) return;
-  sentNonEmpty = true;
-  // 不清空：清空由父组件在提交成功后触发（prompt 置空）
-  emit("send", composeText(prompt.value));
+  if (sendActive.value) emit("send", prompt.value);
 }
-function clearComposer() {
-  // 清空 prompt 由 PromptEditor 的 watch 同步编辑器并复位增强状态
-  prompt.value = "";
-  clear();
-  nextTick(() => promptEditor.value?.focus());
-}
-
-onBeforeUnmount(dispose);
 </script>
 
 <style scoped>

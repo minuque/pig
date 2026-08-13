@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canSend } from "../src/components/composer/ChatInput.vue";
+import { canSend } from "@components/composer/ChatInput.vue";
 
 describe("canSend", () => {
   it("有正文且未被禁用才可发送", () => {

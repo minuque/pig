@@ -14,10 +14,18 @@ export interface ComposerVendor {
   models: ComposerModelInfo[];
 }
 
-/** 执行档：model 为 "provider/id"，thinkingLevel 为可读字符串。 */
+/** 执行档全程保留官方 ModelRef；字符串只用于展示。 */
 export interface ComposerPreset {
-  model: string;
+  model: ModelRef;
   thinkingLevel: string;
+}
+
+export function sameModel(a: ModelRef | undefined, b: ModelRef | undefined): boolean {
+  return a?.provider === b?.provider && a?.id === b?.id;
+}
+
+export function modelLabel(model: ModelRef | undefined): string {
+  return model ? `${model.provider}/${model.id}` : "—";
 }
 
 /** 官方 ModelMetadata → 供应商目录；保留服务端顺序。 */
@@ -44,17 +52,12 @@ export function defaultPresetFrom(catalog: readonly ComposerVendor[]): ComposerP
   for (const vendor of catalog) {
     const first = vendor.models[0];
     if (!first) continue;
-    return { model: `${vendor.id}/${first.id}`, thinkingLevel: first.thinkingLevels[0] ?? "" };
+    return {
+      model: { provider: vendor.id, id: first.id },
+      thinkingLevel: first.thinkingLevels[0] ?? "",
+    };
   }
   return undefined;
-}
-
-/** ComposerPreset → 官方 ModelRef（provider/id 字符串拆分）。 */
-export function modelRefOf(preset: ComposerPreset): ModelRef {
-  const sep = preset.model.indexOf("/");
-  return sep === -1
-    ? { provider: preset.model, id: "" }
-    : { provider: preset.model.slice(0, sep), id: preset.model.slice(sep + 1) };
 }
 
 /** 字符串 thinkingLevel → 官方 ThinkingLevel；未知值回退 "off"。 */

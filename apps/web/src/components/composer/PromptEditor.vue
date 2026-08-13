@@ -83,20 +83,18 @@ function focus() {
 function syncFromEditor() {
   const el = editor.value;
   if (!el) return;
-  prompt.value = el.textContent ?? "";
+  prompt.value = el.innerText;
 }
-const escapeHtml = (str: string) =>
-  str.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] ?? c);
 
 // 外部改写 prompt（draft 恢复等）时同步进编辑器。
 // 挂载时也同步一次：重挂载且 prompt 初始非空时，保证编辑器显示既有草稿（watch 非 immediate，setup 阶段 editor 尚未挂载）。
 function syncFromPrompt() {
   const el = editor.value;
   if (!el) return;
-  if (el.textContent !== prompt.value) {
+  if (el.innerText !== prompt.value) {
     const sel = window.getSelection();
     const focused = sel && el.contains(sel.anchorNode);
-    el.innerHTML = escapeHtml(prompt.value);
+    el.innerText = prompt.value;
     if (focused) focusEnd();
   }
 }
@@ -154,7 +152,6 @@ defineExpose({ focus });
 }
 .field:focus-visible {
   outline: 0;
-  box-shadow: none;
 }
 .field ::selection,
 .field::selection {

@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { nextTick, ref } from "vue";
-import type { ComposerPreset, ComposerVendor } from "../src/components/composer/types.js";
+import type { ComposerPreset, ComposerVendor } from "@components/composer/types.js";
 import {
   filterCatalog,
-  parseModelId,
   resolveModelInfo,
   useModelPresetBinding,
-} from "../src/components/composer/model-preset.js";
+} from "@components/composer/model-preset.js";
 
 const catalog: ComposerVendor[] = [
   {
@@ -44,53 +43,43 @@ describe("filterCatalog", () => {
   });
 });
 
-describe("parseModelId", () => {
-  it("拆分为 vendorId/modelId", () => {
-    expect(parseModelId("anthropic/claude-sonnet")).toEqual({
-      vendorId: "anthropic",
-      modelId: "claude-sonnet",
-    });
-  });
-
-  it("无分隔符时整体视为 vendorId，模型 id 为空", () => {
-    expect(parseModelId("claude-sonnet")).toEqual({ vendorId: "claude-sonnet", modelId: "" });
-  });
-});
-
 describe("resolveModelInfo", () => {
   it("命中时返回供应商、模型与可用 thinking level", () => {
-    const info = resolveModelInfo(catalog, "anthropic/claude-sonnet");
+    const info = resolveModelInfo(catalog, { provider: "anthropic", id: "claude-sonnet" });
     expect(info.vendor?.id).toBe("anthropic");
     expect(info.model?.id).toBe("claude-sonnet");
     expect(info.levels).toEqual(["low", "high"]);
   });
 
   it("无分隔符/未知供应商/未知模型均回退为空结果", () => {
-    expect(resolveModelInfo(catalog, "claude-sonnet").levels).toEqual([]);
-    expect(resolveModelInfo(catalog, "unknown/x").levels).toEqual([]);
-    expect(resolveModelInfo(catalog, "anthropic/unknown").levels).toEqual([]);
+    expect(resolveModelInfo(catalog, undefined).levels).toEqual([]);
+    expect(resolveModelInfo(catalog, { provider: "unknown", id: "x" }).levels).toEqual([]);
+    expect(resolveModelInfo(catalog, { provider: "anthropic", id: "unknown" }).levels).toEqual([]);
   });
 });
 
 describe("useModelPresetBinding", () => {
   it("模型切换后 level 不可用时由状态所有者自动修正", async () => {
     const preset = ref<ComposerPreset | undefined>({
-      model: "anthropic/claude-sonnet",
+      model: { provider: "anthropic", id: "claude-sonnet" },
       thinkingLevel: "high",
     });
     const { model, level } = useModelPresetBinding(() => catalog, preset);
 
-    model.value = "openai/gpt-4o";
+    model.value = { provider: "openai", id: "gpt-4o" };
     await nextTick();
 
-    expect(preset.value).toEqual({ model: "openai/gpt-4o", thinkingLevel: "none" });
+    expect(preset.value).toEqual({
+      model: { provider: "openai", id: "gpt-4o" },
+      thinkingLevel: "none",
+    });
     expect(level.value).toBe("none");
   });
 
   it("支持 Ref 形式 catalog", () => {
     const catalogRef = ref<ComposerVendor[]>(catalog);
     const preset = ref<ComposerPreset | undefined>({
-      model: "anthropic/claude-sonnet",
+      model: { provider: "anthropic", id: "claude-sonnet" },
       thinkingLevel: "high",
     });
     const { modelLevels } = useModelPresetBinding(catalogRef, preset);
@@ -102,7 +91,7 @@ describe("useModelPresetBinding", () => {
     // getter 内读取响应式源（对应 `() => props.catalog`），整体替换后联动重算
     const current = ref<ComposerVendor[]>([]);
     const preset = ref<ComposerPreset | undefined>({
-      model: "anthropic/claude-sonnet",
+      model: { provider: "anthropic", id: "claude-sonnet" },
       thinkingLevel: "high",
     });
     const { model, modelLevels, level } = useModelPresetBinding(() => current.value, preset);
@@ -114,8 +103,11 @@ describe("useModelPresetBinding", () => {
     expect(modelLevels.value).toEqual(["low", "high"]);
     expect(level.value).toBe("high");
 
-    model.value = "openai/gpt-4o";
+    model.value = { provider: "openai", id: "gpt-4o" };
     await nextTick();
-    expect(preset.value).toEqual({ model: "openai/gpt-4o", thinkingLevel: "none" });
+    expect(preset.value).toEqual({
+      model: { provider: "openai", id: "gpt-4o" },
+      thinkingLevel: "none",
+    });
   });
 });
