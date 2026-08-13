@@ -13,6 +13,7 @@ import type {
   PiServerService,
   PiSessionRuntime,
 } from "@earendil-works/pi-server";
+import { canonicalizePath } from "../native/directory.js";
 import { PiHostSession } from "./session-runtime.js";
 
 type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>;
@@ -37,6 +38,7 @@ export class PiHostService implements PiServerService {
   /** sessionId → 会话文件路径（listSessions/openSession 时填充）。 */
   private readonly sessionPaths = new Map<string, string>();
   private runtimePromise?: Promise<Runtime>;
+  private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined;
 
   constructor(private readonly options: PiHostServiceOptions = {}) {}
 
@@ -47,7 +49,7 @@ export class PiHostService implements PiServerService {
       createdAt: info.created.getTime(),
       ...(info.modified ? { updatedAt: info.modified.getTime() } : {}),
       ...(info.name ? { sessionName: info.name } : {}),
-      ...(info.cwd ? { cwd: info.cwd } : {}),
+      ...(info.cwd ? { cwd: canonicalizePath(info.cwd) } : {}),
     }));
   }
 
@@ -61,7 +63,7 @@ export class PiHostService implements PiServerService {
 
   async createSession(options: CreateSessionOptions): Promise<PiSessionRuntime> {
     const runtime = await this.runtime();
-    const cwd = options.cwd ?? this.options.cwd ?? process.cwd();
+    const cwd = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd());
     const manager = SessionManager.create(cwd, this.options.sessionDir, { id: options.id });
     if (options.name) manager.appendSessionInfo(options.name);
     const path = manager.getSessionFile();
@@ -69,7 +71,13 @@ export class PiHostService implements PiServerService {
     if (!path || !header) throw new Error("Pi did not create a persistent session");
     // 立即落盘 header，保证 PiServer 分配的 id 持久化（Pi 仅在出现助手消息后写文件）
     await mkdir(dirname(path), { recursive: true });
+    // temporary compatibility: SDK 暂无 ensurePersisted；写后立即用 SessionManager 回读校验。
     await writeFile(path, serializeEntries(header, manager.getEntries()), { flag: "wx" });
+    if (SessionManager.open(path).getHeader()?.id !== options.id) {
+      await rm(path, { force: true });
+      throw new Error("Pi session persistence format validation failed");
+    }
+    this.sessionsCache = undefined;
     this.sessionPaths.set(options.id, path);
     const model = options.model
       ? runtime.getModel(options.model.provider, options.model.id)
@@ -111,9 +119,13 @@ export class PiHostService implements PiServerService {
 
   /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */
   private async refreshSessionPaths(): Promise<SessionInfo[]> {
+    const now = Date.now();
+    if (this.sessionsCache && this.sessionsCache.expiresAt > now) return this.sessionsCache.infos;
     const infos = await SessionManager.listAll(this.options.sessionDir);
     this.sessionPaths.clear();
     for (const info of infos) this.sessionPaths.set(info.id, info.path);
+    // ponytail: 短 TTL 代替无界扫盘；SDK 有 Session 变更通知后改精确失效。
+    this.sessionsCache = { expiresAt: now + 2_000, infos };
     return infos;
   }
 
@@ -133,6 +145,7 @@ export class PiHostService implements PiServerService {
   }
 
   private async rollbackSession(sessionId: string, path: string): Promise<void> {
+    this.sessionsCache = undefined;
     this.sessionPaths.delete(sessionId);
     await rm(path, { force: true });
   }

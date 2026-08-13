@@ -11,6 +11,8 @@ export interface GatewayOptions {
   bootstrapSecret?: string;
   bootstrapTtlMs?: number;
   webRoot?: string;
+  sessionDir?: string;
+  cwd?: string;
   /** 目录选择平台端口，测试可注入假件。 */
   platformPort?: DirectoryPort;
   maxFrameLength?: number;
@@ -36,22 +38,28 @@ export class Gateway {
     );
     this.webRoot = options.webRoot;
     this.platformPort = options.platformPort ?? new NodeDirectoryPort();
-    this.piServer = new PiServer(new PiHostService(), {
-      listeners: [
-        createWebSocketListener({
-          server: this.server,
-          auth: this.auth,
-          ...(options.maxFrameLength !== undefined
-            ? { maxFrameLength: options.maxFrameLength }
-            : {}),
-          ...(options.maxPendingBytes !== undefined
-            ? { maxPendingBytes: options.maxPendingBytes }
-            : {}),
-        }),
-      ],
-      ...(options.maxFrameLength !== undefined ? { maxFrameLength: options.maxFrameLength } : {}),
-      onError: (error) => console.error("PiServer error:", error),
-    });
+    this.piServer = new PiServer(
+      new PiHostService({
+        ...(options.sessionDir ? { sessionDir: options.sessionDir } : {}),
+        ...(options.cwd ? { cwd: options.cwd } : {}),
+      }),
+      {
+        listeners: [
+          createWebSocketListener({
+            server: this.server,
+            auth: this.auth,
+            ...(options.maxFrameLength !== undefined
+              ? { maxFrameLength: options.maxFrameLength }
+              : {}),
+            ...(options.maxPendingBytes !== undefined
+              ? { maxPendingBytes: options.maxPendingBytes }
+              : {}),
+          }),
+        ],
+        ...(options.maxFrameLength !== undefined ? { maxFrameLength: options.maxFrameLength } : {}),
+        onError: (error) => console.error("PiServer error:", error),
+      },
+    );
   }
 
   private send(res: ServerResponse, status: number, body?: unknown) {
@@ -101,7 +109,14 @@ export class Gateway {
       if (!this.auth.verify(this.credential(req)))
         return this.send(res, 401, { code: "UNAUTHENTICATED" });
       try {
-        return this.send(res, 200, { path: (await this.platformPort.selectDirectory()) ?? null });
+        const body = await this.body(req).catch((): Record<string, unknown> => ({}));
+        const input = typeof body.path === "string" ? body.path : undefined;
+        if (this.platformPort.requiresManualInput && !input)
+          return this.send(res, 200, { path: null, requiresManualInput: true });
+        const path = input
+          ? await this.platformPort.validateDirectory(input)
+          : await this.platformPort.selectDirectory();
+        return this.send(res, 200, { path: path ?? null, requiresManualInput: false });
       } catch (error) {
         console.error("select-directory failed:", error);
         return this.send(res, 500, { code: "INVALID_REQUEST" });

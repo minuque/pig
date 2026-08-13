@@ -10,6 +10,9 @@ const directoryPort: DirectoryPort = {
   async selectDirectory() {
     return selectedDirectory;
   },
+  async validateDirectory(path) {
+    return path;
+  },
 };
 
 let gateway: Gateway | undefined;
@@ -78,7 +81,7 @@ describe("thin host HTTP shell", () => {
       await (
         await request(base, "/api/v1/platform/select-directory", undefined, credential, "POST")
       ).json(),
-    ).toEqual({ path: "C:/projects/demo" });
+    ).toEqual({ path: "C:/projects/demo", requiresManualInput: false });
 
     // 用户取消时返回 null，可重试
     selectedDirectory = undefined;
@@ -86,7 +89,7 @@ describe("thin host HTTP shell", () => {
       await (
         await request(base, "/api/v1/platform/select-directory", undefined, credential, "POST")
       ).json(),
-    ).toEqual({ path: null });
+    ).toEqual({ path: null, requiresManualInput: false });
   });
 });
 

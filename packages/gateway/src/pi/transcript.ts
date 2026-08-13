@@ -38,6 +38,8 @@ export class TranscriptProjection {
   private readonly toolCalls = new Map<string, JsonValue>();
   private streamingMessageId: string | undefined;
   private nextMessageId = 0;
+  private cachedEntries: readonly SessionEntry[] = [];
+  private cachedTranscript: TranscriptItem[] = [];
 
   /** 把 AgentSession 事件映射为进度事件；无关事件返回 undefined。 */
   progress(event: AgentSessionEvent): TranscriptProgress | undefined {
@@ -78,6 +80,11 @@ export class TranscriptProjection {
 
   /** 把当前分支的会话条目投影为协议 transcript（跳过非消息条目）。 */
   transcript(entries: readonly SessionEntry[]): TranscriptItem[] {
+    if (
+      entries.length === this.cachedEntries.length &&
+      entries.every((entry, index) => entry.id === this.cachedEntries[index]?.id)
+    )
+      return this.cachedTranscript;
     const toolCalls = new Map<string, JsonValue>();
     const items: TranscriptItem[] = [];
     for (const entry of entries) {
@@ -94,6 +101,8 @@ export class TranscriptProjection {
         items.push(this.toolItem(message, args));
       }
     }
+    this.cachedEntries = entries;
+    this.cachedTranscript = items;
     return items;
   }
 
@@ -130,6 +139,7 @@ export class TranscriptProjection {
         if (stage !== "finished") return undefined;
         const args = this.toolCalls.get(message.toolCallId);
         if (args === undefined) return undefined;
+        this.toolCalls.delete(message.toolCallId);
         const item = this.toolItem(message, args);
         // finished 阶段 toProtocolToolResultMessage 只产出终态（running 占位已由 tool_execution_start 发出）
         return {

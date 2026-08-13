@@ -110,7 +110,7 @@ class WebSocketByteConnection implements ByteConnection {
   }
 
   send(chunk: Uint8Array): Promise<void> {
-    if (this.closedValue) return Promise.resolve();
+    if (this.closedValue) return Promise.reject(new Error("WebSocket connection is closed"));
     if (this.pendingBytes + chunk.byteLength > this.maxPendingBytes) {
       // 慢客户端：待发送积压超限，断开
       this.onError?.(new Error(`WebSocket send backlog exceeded ${this.maxPendingBytes} bytes`));
