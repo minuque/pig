@@ -4,41 +4,24 @@
       <h1 id="welcome-title" class="welcome-title">开始一个新任务</h1>
 
       <ChatInput
-        v-model:prompt="prompt"
+        v-model:prompt="welcomePrompt"
         v-model:preset="preset"
         :catalog="catalog"
         :send-disabled="!canSubmitNow"
         bare
         placeholder="想完成什么？"
         aria-label="任务描述"
-        @send="onSend"
+        @send="submitWelcome"
       >
-        <template #left>
-          <select
-            v-model="workspaceId"
-            class="welcome-workspace"
-            aria-label="Workspace"
-            :disabled="!workspaces.length"
-          >
-            <option :value="undefined" disabled>选择 Workspace</option>
-            <option v-for="ws in workspaces" :key="ws.canonicalPath" :value="ws.canonicalPath">
-              {{ workspaceName(ws.canonicalPath) }}
-            </option>
-          </select>
-        </template>
       </ChatInput>
 
-      <p v-if="!workspaceId" class="welcome-auth">
-        <button type="button" class="secondary" @click="emit('add-workspace')">添加本地目录</button>
-      </p>
-
-      <p v-if="error" class="notice error" role="alert">{{ error }}</p>
+      <p v-if="welcomeError" class="notice error" role="alert">{{ welcomeError }}</p>
     </div>
   </section>
 </template>
 
 <script lang="ts">
-import type { ComposerPreset } from "../../components/composer/types.js";
+import type { ComposerPreset } from "@components/composer/types.js";
 
 /** 提交守卫：空白 prompt、无 workspace、无 preset 或提交中均拒绝。 */
 export function canSubmit(
@@ -53,34 +36,23 @@ export function canSubmit(
 
 <script setup lang="ts">
 import { computed } from "vue";
-import ChatInput from "../../components/composer/ChatInput.vue";
-import type { ComposerVendor } from "../../components/composer/types.js";
-import { workspaceName, type LocalWorkspace } from "./types.js";
+import { useWorkspace } from "@app/hooks/use-app.js";
+import ChatInput from "@components/composer/ChatInput.vue";
+import { useWelcomeSubmit } from "@features/sessions/hooks/use-welcome-submit.js";
 
-const prompt = defineModel<string>("prompt", { required: true });
-const preset = defineModel<ComposerPreset | undefined>("preset");
-const workspaceId = defineModel<string | undefined>("workspaceId");
-
-const props = defineProps<{
-  workspaces: LocalWorkspace[];
-  catalog: ComposerVendor[];
-  submitting: boolean;
-  error: string;
-}>();
-
-const emit = defineEmits<{
-  submit: [text: string];
-  "add-workspace": [];
-}>();
+const { workspaces, catalog, lastCwd, preset, createSession, submitText } = useWorkspace();
+const { welcomePrompt, welcomeWorkspaceId, welcomeSubmitting, welcomeError, submitWelcome } =
+  useWelcomeSubmit({
+    workspaces,
+    lastCwd,
+    preset,
+    createSession,
+    submit: submitText,
+  });
 
 const canSubmitNow = computed(() =>
-  canSubmit(prompt.value, workspaceId.value, preset.value, props.submitting),
+  canSubmit(welcomePrompt.value, welcomeWorkspaceId.value, preset.value, welcomeSubmitting.value),
 );
-
-// ChatInput 内部已做发送守卫（含 sendDisabled），这里只转发
-function onSend(text: string) {
-  emit("submit", text);
-}
 </script>
 
 <style scoped>
@@ -101,33 +73,6 @@ function onSend(text: string) {
   text-align: center;
   font-size: var(--text-heading-2);
   letter-spacing: var(--tracking-heading-2);
-}
-.welcome-workspace {
-  min-width: 0;
-  max-width: 42%;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: var(--canvas-soft);
-  font-size: var(--text-caption);
-  color: var(--ink);
-  padding: var(--spacing-xs) var(--spacing-sm);
-}
-.welcome-auth {
-  margin: var(--spacing-md) 0 0;
-  text-align: center;
-}
-.secondary {
-  font: inherit;
-  font-size: var(--text-caption);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  border: var(--border-width) solid var(--hairline);
-  background: var(--surface);
-  color: var(--ink);
-  cursor: pointer;
-}
-.secondary:hover {
-  background: var(--canvas-soft);
 }
 .welcome-form > .notice {
   margin-top: var(--spacing-md);

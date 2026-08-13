@@ -112,8 +112,11 @@
 import MarkdownRender from "markstream-vue";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import type { SessionPhase, TranscriptItem } from "@earendil-works/pi-protocol";
-import { scrollStateFrom, type TranscriptScrollState } from "./session-state.js";
-import { projectTranscriptItem, type TranscriptPart } from "./transcript-format.js";
+import { scrollStateFrom, type TranscriptScrollState } from "@features/sessions/session-state.js";
+import {
+  projectTranscriptItem,
+  type TranscriptPart,
+} from "@features/sessions/transcript-format.js";
 
 const props = defineProps<{
   sessionId: string;

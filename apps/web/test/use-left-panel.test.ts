@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fitPanelWidth, panelWidthFor } from "../src/app/use-left-panel.js";
+import { fitPanelWidth, panelWidthFor } from "@components/layout/hooks/use-left-panel.js";
 
 describe("left panel width helpers", () => {
   it("clamps desired width to panel bounds", () => {

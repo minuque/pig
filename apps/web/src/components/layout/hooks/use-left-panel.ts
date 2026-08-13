@@ -1,5 +1,5 @@
 import { onBeforeUnmount, readonly, ref, watch } from "vue";
-import { clampPanelWidth } from "../features/sessions/session-state.js";
+import { clampPanelWidth } from "@features/sessions/session-state.js";
 
 /** 主内容区最小宽度（px）：侧栏调宽时始终为其保留的空间。 */
 export const CONTENT_MIN_WIDTH = 332;

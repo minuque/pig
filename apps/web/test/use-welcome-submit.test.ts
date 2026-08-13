@@ -1,13 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
-import type { ComposerPreset } from "../src/components/composer/types.js";
-import type { LocalWorkspace } from "../src/features/sessions/types.js";
-import { nextWelcomeWorkspaceId, useWelcomeSubmit } from "../src/app/use-welcome-submit.js";
+import type { ComposerPreset } from "@components/composer/types.js";
+import type { LocalWorkspace } from "@features/sessions/types.js";
+import {
+  nextWelcomeWorkspaceId,
+  useWelcomeSubmit,
+} from "@features/sessions/hooks/use-welcome-submit.js";
 
 function workspace(id: string): LocalWorkspace {
   return { canonicalPath: `/${id}` };
 }
-const preset: ComposerPreset = { model: "gpt-5", thinkingLevel: "high" };
+const preset: ComposerPreset = {
+  model: { provider: "openai", id: "gpt-5" },
+  thinkingLevel: "high",
+};
 
 describe("nextWelcomeWorkspaceId", () => {
   it("keeps the current selection while it still exists", () => {

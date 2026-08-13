@@ -3,9 +3,12 @@ import type { PiClient, Unsubscribe } from "@earendil-works/pi-client";
 import { RemoteSession } from "@earendil-works/pi-coding-agent/client";
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client";
 import type { ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol";
-import { projectSessionSnapshot, type SessionProjection } from "./session-state.js";
+import {
+  projectSessionSnapshot,
+  type SessionProjection,
+} from "@features/sessions/session-state.js";
 
-export type { SessionGroup } from "./types.js";
+export type { SessionGroup } from "@features/sessions/types.js";
 
 export interface CreateSessionInput {
   cwd: string;

@@ -5,8 +5,8 @@ import {
   isNearBottom,
   scrollStateFrom,
   sessionState,
-} from "../src/features/sessions/session-state.js";
-import type { SessionClientState } from "../src/features/sessions/session-state.js";
+} from "@features/sessions/session-state.js";
+import type { SessionClientState } from "@features/sessions/session-state.js";
 
 describe("workbench state", () => {
   it("clamps panel widths and detects whether transcript should follow", () => {

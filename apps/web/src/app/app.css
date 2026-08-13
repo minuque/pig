@@ -146,8 +146,6 @@
   --duration-normal: 200ms;
   --duration-slow: 280ms;
   --duration-shimmer: 2s; /* loading 扫光循环 */
-
-  --focus: 0 0 0 3px rgba(0, 117, 222, 0.3);
 }
 
 /* ─── Dark mode — Notion 风格中性色；仅覆盖颜色/阴影 token，尺寸/动效继承 :root ─── */
@@ -183,7 +181,6 @@
   --shadow-elevated:
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
-  --focus: 0 0 0 3px rgba(59, 157, 240, 0.45);
   --inverse-bg: #f5f5f5;
   --inverse-bg-hover: #ffffff;
   --inverse-fg: #0a0a0a;
@@ -309,7 +306,6 @@ button:not(:disabled):active {
 :focus-visible {
   outline: var(--focus-ring-width) solid var(--primary);
   outline-offset: var(--focus-ring-width);
-  box-shadow: var(--focus);
 }
 h1,
 h2,

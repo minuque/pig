@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from "vue";
-import type { ComposerPreset } from "../components/composer/types.js";
-import type { LocalWorkspace } from "../features/sessions/types.js";
+import type { ComposerPreset } from "@components/composer/types.js";
+import type { LocalWorkspace } from "@features/sessions/types.js";
 
 /** 当前选择仍存在于列表时保留，否则回退到最近使用的目录或第一个目录。 */
 export function nextWelcomeWorkspaceId(

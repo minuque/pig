@@ -7,7 +7,7 @@
         type="button"
         :disabled="addingWorkspace"
         aria-label="添加本地目录"
-        @click="emit('add-workspace')"
+        @click="addWorkspace()"
       >
         <Plus :size="16" aria-hidden="true" />
       </button>
@@ -26,7 +26,7 @@
           }"
           :aria-expanded="isExpanded(group.canonicalPath)"
           :title="group.canonicalPath"
-          @click="emit('toggle-workspace', group.canonicalPath)"
+          @click="toggleWorkspace(group.canonicalPath)"
         >
           <component
             :is="isExpanded(group.canonicalPath) ? FolderOpen : Folder"
@@ -43,15 +43,16 @@
           />
         </button>
         <button
+          v-if="group.authorized"
           class="icon-button workspace-create"
           type="button"
           :aria-label="`创建 Session：${workspaceName(group.canonicalPath)}`"
-          :disabled="creating"
-          @click="emit('create', group.canonicalPath)"
+          :disabled="Boolean(creating)"
+          @click="createSession(group.canonicalPath)"
         >
           <Plus :size="16" aria-hidden="true" />
         </button>
-        <DropdownMenu v-if="isLocal(group.canonicalPath)">
+        <DropdownMenu v-if="group.authorized">
           <DropdownMenuTrigger as-child>
             <button
               class="icon-button workspace-kebab"
@@ -63,7 +64,7 @@
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem variant="destructive" @select="emit('revoke', group.canonicalPath)">
+            <DropdownMenuItem variant="destructive" @select="revokeWorkspace(group.canonicalPath)">
               从列表移除
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -119,44 +120,39 @@
 
 <script setup lang="ts">
 import { ChevronRight, Folder, FolderOpen, MoreVertical, Plus } from "lucide-vue-next";
+import { useWorkspace } from "@app/hooks/use-app.js";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu/index.js";
-import { workspaceName, type LocalWorkspace } from "./types.js";
-import type { SessionGroup } from "./use-sessions.js";
-
-const props = defineProps<{
-  groups: SessionGroup[];
-  /** 本地目录列表：kebab 操作仅对本地列表中的目录展示 */
-  workspaces: LocalWorkspace[];
-  expandedWorkspaceIds: Set<string>;
-  activeWorkspaceId: string | undefined;
-  activeSessionId: string | undefined;
-  activeSessionRunning: boolean;
-  creating: boolean;
-  addingWorkspace: boolean;
-  workspaceError: string;
-}>();
+} from "@components/ui/dropdown-menu/index.js";
+import { workspaceName } from "@features/sessions/types.js";
 
 const emit = defineEmits<{
-  "toggle-workspace": [canonicalPath: string];
-  "add-workspace": [];
-  revoke: [canonicalPath: string];
-  create: [canonicalPath: string];
   navigate: [canonicalPath: string];
 }>();
 
+const {
+  groups,
+  expandedWorkspaceIds,
+  activeWorkspaceId,
+  activeSessionId,
+  activeSessionRunning,
+  creating,
+  addingWorkspace,
+  sessionError: workspaceError,
+  toggleWorkspace,
+  addWorkspace,
+  revokeWorkspace,
+  createSession,
+} = useWorkspace();
+
 function isExpanded(canonicalPath: string): boolean {
-  return props.expandedWorkspaceIds.has(canonicalPath);
-}
-function isLocal(canonicalPath: string): boolean {
-  return props.workspaces.some((w) => w.canonicalPath === canonicalPath);
+  return expandedWorkspaceIds.value.has(canonicalPath);
 }
 function isActiveSession(canonicalPath: string, sessionId: string): boolean {
-  return canonicalPath === props.activeWorkspaceId && sessionId === props.activeSessionId;
+  return canonicalPath === activeWorkspaceId.value && sessionId === activeSessionId.value;
 }
 </script>
 

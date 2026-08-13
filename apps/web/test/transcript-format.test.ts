@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TranscriptItem } from "@earendil-works/pi-protocol";
-import { projectTranscriptItem } from "../src/features/sessions/transcript-format.js";
+import { projectTranscriptItem } from "@features/sessions/transcript-format.js";
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
   return {

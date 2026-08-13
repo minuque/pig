@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { canSubmit } from "../src/features/sessions/SessionWelcome.vue";
+import { canSubmit } from "@features/sessions/SessionWelcome.vue";
 
 describe("canSubmit", () => {
-  const profile = { model: "gpt-5", thinkingLevel: "high" };
+  const profile = { model: { provider: "openai", id: "gpt-5" }, thinkingLevel: "high" };
 
   it("满足全部条件才可提交", () => {
     expect(canSubmit("  写个脚本  ", "w1", profile, false)).toBe(true);

@@ -11,6 +11,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@app": fileURLToPath(new URL("./src/app", import.meta.url)),
+      "@components": fileURLToPath(new URL("./src/components", import.meta.url)),
+      "@features": fileURLToPath(new URL("./src/features", import.meta.url)),
+      "@client": fileURLToPath(new URL("./src/client", import.meta.url)),
+      "@router": fileURLToPath(new URL("./src/router", import.meta.url)),
+      "@utils": fileURLToPath(new URL("./src/utils", import.meta.url)),
     },
   },
   server: {
@@ -19,6 +25,8 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     open: bootstrapSecret ? `/#bootstrap=${encodeURIComponent(bootstrapSecret)}` : false,
-    ...(gatewayTarget ? { proxy: { "/api": { target: gatewayTarget } } } : {}),
+    ...(gatewayTarget
+      ? { proxy: { "/api": { target: gatewayTarget, ws: true, changeOrigin: true } } }
+      : {}),
   },
 });

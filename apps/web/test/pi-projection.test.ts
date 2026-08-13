@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { SessionMetadata, SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol";
-import { projectSessionSnapshot } from "../src/features/sessions/session-state.js";
-import { projectTranscriptItem } from "../src/features/sessions/transcript-format.js";
-import { groupSessionsByCwd, workspaceName } from "../src/features/sessions/types.js";
+import { projectSessionSnapshot } from "@features/sessions/session-state.js";
+import { projectTranscriptItem } from "@features/sessions/transcript-format.js";
+import { groupSessionsByCwd, workspaceName } from "@features/sessions/types.js";
 
 function userItem(text: string): TranscriptItem {
   return {
@@ -136,15 +136,38 @@ describe("workspaceName and grouping", () => {
     ];
     const groups = groupSessionsByCwd(sessions, ["/a", "/b"]);
     expect(groups).toEqual([
-      { canonicalPath: "/a", sessions: [{ id: "s2", createdAt: 2, cwd: "/a" }] },
-      { canonicalPath: "/b", sessions: [{ id: "s1", createdAt: 1, cwd: "/b" }] },
+      {
+        canonicalPath: "/a",
+        sessions: [{ id: "s2", createdAt: 2, cwd: "/a" }],
+        authorized: true,
+      },
+      {
+        canonicalPath: "/b",
+        sessions: [{ id: "s1", createdAt: 1, cwd: "/b" }],
+        authorized: true,
+      },
     ]);
   });
-  it("keeps empty local workspaces as groups", () => {
-    const groups = groupSessionsByCwd([{ id: "s1", createdAt: 1, cwd: "/a" }], ["/a", "/empty"]);
+  it("keeps empty local workspaces and appends sessions from other cwd", () => {
+    const groups = groupSessionsByCwd(
+      [
+        { id: "s1", createdAt: 1, cwd: "/a" },
+        { id: "s2", createdAt: 2, cwd: "/other" },
+      ],
+      ["/a", "/empty"],
+    );
     expect(groups).toEqual([
-      { canonicalPath: "/a", sessions: [{ id: "s1", createdAt: 1, cwd: "/a" }] },
-      { canonicalPath: "/empty", sessions: [] },
+      {
+        canonicalPath: "/a",
+        sessions: [{ id: "s1", createdAt: 1, cwd: "/a" }],
+        authorized: true,
+      },
+      { canonicalPath: "/empty", sessions: [], authorized: true },
+      {
+        canonicalPath: "/other",
+        sessions: [{ id: "s2", createdAt: 2, cwd: "/other" }],
+        authorized: false,
+      },
     ]);
   });
 });

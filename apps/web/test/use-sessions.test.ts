@@ -40,7 +40,7 @@ vi.mock("@earendil-works/pi-coding-agent/client", () => ({
   },
 }));
 
-import { useRemoteSessions } from "../src/features/sessions/use-sessions.js";
+import { useRemoteSessions } from "@features/sessions/hooks/use-sessions.js";
 
 beforeEach(() => {
   openMock.mockReset();

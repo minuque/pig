@@ -5,7 +5,7 @@ vi.mock("vue-router", () => ({
   createWebHistory: () => "history",
 }));
 
-import router from "../src/router/index.js";
+import router from "@router/index.js";
 
 describe("router canonical paths", () => {
   it("keeps only / and the session route", () => {

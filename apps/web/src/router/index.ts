@@ -1,15 +1,18 @@
-import { defineComponent } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 
-// 路由仅作为 URL 状态源：Session 选择由 useApp 读取 route.params.sessionId 驱动，
-// 视图由 App 壳直接渲染（无 router-view），路由组件恒为空。
-const Empty = defineComponent({ render: () => null });
-
+// 路由切屏：/ 欢迎页，/sessions/:id 工作台。共享工作区由 App provide。
 const router = createRouter({
   history: createWebHistory("/"),
   routes: [
-    { path: "/", component: Empty },
-    { name: "session", path: "/sessions/:sessionId", component: Empty },
+    {
+      path: "/",
+      component: () => import("@features/sessions/SessionWelcome.vue"),
+    },
+    {
+      name: "session",
+      path: "/sessions/:sessionId",
+      component: () => import("@features/sessions/SessionWorkbench.vue"),
+    },
   ],
 });
 
