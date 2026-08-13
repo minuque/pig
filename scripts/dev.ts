@@ -32,8 +32,12 @@ if (process.env.MSYSTEM && !process.env[WRAPPED] && process.stdin.isTTY) {
 
 async function main() {
   const bootstrapSecret = randomUUID();
-  const gateway = new Gateway({ bootstrapSecret });
+  // 开发模式不让 Vite 冷启动消耗一次性启动授权的有效期。
+  const gateway = new Gateway({ bootstrapSecret, bootstrapTtlMs: Number.POSITIVE_INFINITY });
   const port = await gateway.start();
+  console.info(
+    `[dev] 启动链接：http://127.0.0.1:5173/#bootstrap=${encodeURIComponent(bootstrapSecret)}`,
+  );
   const pnpm = process.env.npm_execpath;
   if (!pnpm) throw new Error("pnpm executable not found");
   const web = spawn(process.execPath, [pnpm, "--filter", "@pig/web", "dev"], {
