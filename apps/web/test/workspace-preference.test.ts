@@ -8,7 +8,7 @@ import {
   saveLastCwd,
   saveLocalWorkspaces,
   type WorkspaceStorage,
-} from "../src/client/workspace.js";
+} from "@client/workspace.js";
 
 const STORAGE = new Map<string, string>();
 const storage: WorkspaceStorage = {
@@ -26,8 +26,8 @@ describe("parseLocalWorkspaces", () => {
     expect(parseLocalWorkspaces("not-json")).toEqual([]);
     expect(parseLocalWorkspaces('"str"')).toEqual([]);
   });
-  it("keeps only non-empty strings", () => {
-    expect(parseLocalWorkspaces('["/a", "", 42, "/b"]')).toEqual(["/a", "/b"]);
+  it("keeps only non-empty strings and canonicalizes old Windows paths", () => {
+    expect(parseLocalWorkspaces('["/a/", "", 42, "C:\\\\Foo\\\\"]')).toEqual(["/a", "c:/Foo"]);
   });
 });
 

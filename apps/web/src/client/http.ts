@@ -17,9 +17,7 @@ export class PlatformRequestError extends Error {
 
 export function restoreCredential(): string {
   try {
-    return typeof sessionStorage === "undefined"
-      ? ""
-      : (sessionStorage.getItem(CREDENTIAL_KEY) ?? "");
+    return typeof localStorage === "undefined" ? "" : (localStorage.getItem(CREDENTIAL_KEY) ?? "");
   } catch {
     return "";
   }
@@ -27,7 +25,7 @@ export function restoreCredential(): string {
 
 export function persistCredential(value: string): void {
   try {
-    sessionStorage?.setItem(CREDENTIAL_KEY, value);
+    localStorage?.setItem(CREDENTIAL_KEY, value);
   } catch {
     /* 隐私模式等场景下存储不可用，凭证仅存活于本页 */
   }
@@ -39,7 +37,6 @@ export async function bootstrapFromUrl(): Promise<void> {
   const secret = hash.get("bootstrap");
   if (!secret) return;
 
-  history.replaceState(null, "", `${location.pathname}${location.search}`);
   const response = await fetch(BOOTSTRAP_PATH, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -48,6 +45,7 @@ export async function bootstrapFromUrl(): Promise<void> {
   if (!response.ok) throw new PlatformRequestError("INVALID_BOOTSTRAP", crypto.randomUUID());
   const { credential } = (await response.json()) as { credential: string };
   persistCredential(credential);
+  history.replaceState(null, "", `${location.pathname}${location.search}`);
 }
 
 /** 带凭证的 JSON 请求；非 2xx 时抛出 PlatformRequestError。 */

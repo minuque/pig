@@ -11,13 +11,23 @@ export const LAST_CWD_KEY = "pig.lastCwd";
 
 export type WorkspaceStorage = Pick<Storage, "getItem" | "setItem">;
 
+/** 兼容旧偏好：统一分隔符、盘符大小写与尾斜杠。新路径由 Host realpath。 */
+export function canonicalizeWorkspacePath(path: string): string {
+  const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "");
+  return /^[A-Z]:/.test(normalized)
+    ? normalized[0]!.toLowerCase() + normalized.slice(1)
+    : normalized;
+}
+
 /** 解析持久化的目录列表：非法 JSON 或非字符串项一律丢弃。 */
 export function parseLocalWorkspaces(json: string | null): string[] {
   if (!json) return [];
   try {
     const value: unknown = JSON.parse(json);
     if (!Array.isArray(value)) return [];
-    return value.filter((item): item is string => typeof item === "string" && item.length > 0);
+    return value
+      .filter((item): item is string => typeof item === "string" && item.length > 0)
+      .map(canonicalizeWorkspacePath);
   } catch {
     return [];
   }
@@ -64,17 +74,19 @@ export function useLocalWorkspaces() {
   const lastCwd = ref<string | undefined>(loadLastCwd());
 
   function add(path: string) {
-    if (!path || workspaces.value.includes(path)) return;
-    workspaces.value = [...workspaces.value, path];
+    const canonicalPath = canonicalizeWorkspacePath(path);
+    if (!canonicalPath || workspaces.value.includes(canonicalPath)) return;
+    workspaces.value = [...workspaces.value, canonicalPath];
     saveLocalWorkspaces(workspaces.value);
   }
   function remove(path: string) {
-    workspaces.value = workspaces.value.filter((item) => item !== path);
+    const canonicalPath = canonicalizeWorkspacePath(path);
+    workspaces.value = workspaces.value.filter((item) => item !== canonicalPath);
     saveLocalWorkspaces(workspaces.value);
   }
   function selectCwd(path: string) {
-    lastCwd.value = path;
-    saveLastCwd(path);
+    lastCwd.value = canonicalizeWorkspacePath(path);
+    saveLastCwd(lastCwd.value);
   }
   return {
     workspaces: readonly(workspaces),

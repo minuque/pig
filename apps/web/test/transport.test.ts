@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createWebSocketByteTransportFactory,
   type WebSocketTransportOptions,
-} from "../src/client/transport.js";
+} from "@client/transport.js";
 import type { ByteTransport, ByteTransportHandlers } from "@earendil-works/pi-client";
 
 type WsEvent = { wasClean?: boolean; code?: number; data?: unknown };
@@ -110,14 +110,14 @@ describe("createWebSocketByteTransportFactory", () => {
     expect(handlers.onError).not.toHaveBeenCalled();
   });
 
-  it("close() 幂等且抑制后续终态通知", async () => {
+  it("close() 幂等且主动通知一次终态", async () => {
     const { transport, socket, handlers } = await openTransport();
     transport.close();
     transport.close();
     expect(socket.closeCount).toBe(1);
     socket.emit("close", { wasClean: true, code: 1000 });
     socket.emit("error");
-    expect(handlers.onClose).not.toHaveBeenCalled();
+    expect(handlers.onClose).toHaveBeenCalledTimes(1);
     expect(handlers.onError).not.toHaveBeenCalled();
   });
 

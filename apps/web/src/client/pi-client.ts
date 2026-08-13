@@ -8,8 +8,8 @@ import { computed, onBeforeUnmount, ref, shallowRef } from "vue";
 import { PiClient } from "@earendil-works/pi-client";
 import type { ConnectionState, Unsubscribe } from "@earendil-works/pi-client";
 import type { ServerSnapshot } from "@earendil-works/pi-protocol";
-import { restoreCredential } from "./http.js";
-import { createWebSocketByteTransportFactory, webSocketUrl } from "./transport.js";
+import { restoreCredential } from "@client/http.js";
+import { createWebSocketByteTransportFactory, webSocketUrl } from "@client/transport.js";
 
 export interface PiClientConnectionOptions {
   /** 覆盖默认的本机 WebSocket URL（含认证）。 */
@@ -41,7 +41,7 @@ export function usePiClient() {
     if (disposed) throw new Error("usePiClient 已销毁");
     const previous = client.value;
     unsubscribeAll();
-    previous?.disconnect("重新连接");
+    await previous?.dispose();
     connectionError.value = undefined;
 
     const next = new PiClient({

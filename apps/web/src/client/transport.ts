@@ -107,9 +107,9 @@ export function createWebSocketByteTransportFactory(
       },
       close() {
         if (closed) return;
-        closed = true;
         // open 前关闭：settle openPromise，避免 send 永久 pending
         if (!opened) openReject(new Error("WebSocket transport 已关闭"));
+        finish();
         socket.close();
       },
     };
