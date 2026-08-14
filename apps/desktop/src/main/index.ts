@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { access } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { ChildProcess } from "node:child_process";
-import { app, dialog } from "electron";
+import { app, dialog, Menu } from "electron";
 
 // gateway 的 package exports 指向 dist，开发时可能没有
 import Gateway from "../../../../packages/gateway/src/index.js";
@@ -41,6 +41,7 @@ app.on("before-quit", (event) => {
 });
 
 void app.whenReady().then(async () => {
+  Menu.setApplicationMenu(null);
   try {
     const secret = randomUUID();
     const isDev = isDesktopDev();
@@ -75,7 +76,9 @@ void app.whenReady().then(async () => {
 
     const window = createMainWindow(PRELOAD_PATH);
 
-    await window.loadURL(bootstrapAppUrl(isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port), secret));
+    await window.loadURL(
+      bootstrapAppUrl(isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port), secret, process.platform),
+    );
   } catch (error) {
     dialog.showErrorBox("无法启动", error instanceof Error ? error.message : String(error));
     await shutdown();
