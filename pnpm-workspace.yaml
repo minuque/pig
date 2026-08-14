@@ -6,6 +6,7 @@ linkWorkspacePackages: true
 
 allowBuilds:
   "@google/genai": false
+  electron: true
   esbuild: true
   protobufjs: false
   vue-demi: true
