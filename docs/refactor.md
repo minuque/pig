@@ -1,4 +1,4 @@
-# pig 架构瘦身：重构为 Pi-first Web GUI
+# pig 架构瘦身：重构为 Pi-first GUI
 
 > Repository: `minuque/pig`
 >
@@ -10,9 +10,9 @@ pig 不再定位为独立 Agent Runtime、Platform 或 Framework，而是：
 
 > **一个 local-first、交互优秀、高性能的 Pi GUI。**
 
-首版只实现 Web，后续可支持 Desktop。pig 负责 UI、平台接入和本地安全，不重新实现 Agent Loop、Session、Model Runtime、Tools、Transcript、Steer 或 Abort。
+pig 负责 Web 与 Desktop UI、平台接入和本地安全，不重新实现 Agent Loop、Session、Model Runtime、Tools、Transcript、Steer 或 Abort。
 
-新增 Agent 能力时，优先使用 Pi Extension、Skill 或 Package，不向 pig core 添加第二套 Agent Runtime。
+新增 Agent 能力时，优先遵循 Pi Extension Api 或 Package，不向 pig core 添加第二套 Agent Runtime。
 
 ## 2. 核心原则
 
@@ -78,7 +78,7 @@ MCP、Subagent、Permission、Browser、Git、Terminal、Custom Tool 和 Workflo
 
 ## 3. 版本决策
 
-当前仓库锁定 Pi `0.83.0`，该版本尚无官方 Remote Protocol。重构第一步统一升级并精确锁定 Pi `0.84.1`：
+仓库已将 Pi 包统一升级并精确锁定到 `0.84.1`：
 
 ```text
 @earendil-works/pi-coding-agent  0.84.1
@@ -167,7 +167,7 @@ import type {
 
 `RemoteSession.submit(text)` 在 `idle` 时发送 prompt，在 `turn` 时发送 steer。UI 不再维护独立的 Run 或 Steer 路径。
 
-Web 与未来 Desktop 只替换 `ByteTransportFactory`，不重新定义 Agent interface。
+Web 与 Desktop 只替换 `ByteTransportFactory`，不重新定义 Agent interface。
 
 ## 6. Thin Host 契约
 
@@ -231,29 +231,27 @@ ServerSnapshot / SessionSnapshot / TranscriptProgress
 
 ### Phase 0：接入官方远程栈
 
-先完成：
+**状态：实现已完成，验收覆盖待补。**
 
-1. 将所有 Pi 包精确锁定到 `0.84.1`。
-2. 引入官方 client、protocol 和 server。
-3. 实现最小 Browser `ByteTransportFactory`。
-4. 实现最小 `PiServerService` adapter。
-5. 验证 create/open、prompt/stream、abort 和 reconnect。
-
-完成后，其他任务再并行。
+- [x] 所有 Pi 包精确锁定到 `0.84.1`。
+- [x] 引入官方 client、protocol 和 server。
+- [x] 实现 Browser `ByteTransportFactory`。
+- [x] 实现最小 `PiServerService` adapter。
+- [ ] create/open 和 prompt/stream 已有回归测试；Abort 与 reconnect 已实现，但仍需显式回归测试。
 
 ### Phase 1：替换旧 Host 与 UI State
 
-| Task | 主要范围 | 目标 |
-| --- | --- | --- |
-| A — Thin Pi Host | `packages/gateway/**` 或 `packages/pi-host/**` | 删除旧应用层和数据库 Domain；接入 PiServerService、AgentSession 与 WebSocket listener。 |
-| B — Web Transport | `packages/web/src/api/**`、`platform/**` | 删除 REST/SSE Agent client；创建官方 PiClient 并注入 WebSocket ByteTransport。 |
-| C — Pi-native UI | `packages/web/src/app/**`、`features/**`、`components/**` | 删除 UiRun 和 recovery；使用 RemoteSession state、Snapshot 和 TranscriptItem，保留现有视觉与交互。 |
+**状态：已完成。**
 
-并行任务不得跨范围顺手删除公共文件。
+| Task | 主要范围 | 结果 |
+| --- | --- | --- |
+| A — Thin Pi Host | `packages/gateway/**` | 已删除旧应用层和数据库 Domain；Host 使用 PiServerService、AgentSession 与 WebSocket listener。 |
+| B — Web Transport | `apps/web/src/client/**` | 已删除 REST/SSE Agent client；使用官方 PiClient 与 WebSocket ByteTransport。 |
+| C — Pi-native UI | `apps/web/src/app/**`、`features/**`、`components/**` | 已删除 UiRun 和 recovery；使用 RemoteSession、Snapshot 与 TranscriptItem。 |
 
 ### Phase 2：抽取 UI Core
 
-Phase 1 稳定后，将 Web 拆成平台无关的 `@pig/ui` 与 Browser-only 的 `@pig/web`。暂不创建 Desktop。
+Phase 1 稳定后，将 Web 拆成平台无关的 `@pig/ui` 与 Browser-only 的 `@pig/web`；Desktop 复用同一 UI Core。
 
 ### Phase 3：清理 Legacy
 
@@ -272,7 +270,6 @@ Phase 1 稳定后，将 Web 拆成平台无关的 `@pig/ui` 与 Browser-only 的
 
 官方远程契约尚未提供以下能力。本轮不自研扩展协议：
 
-- Session rename/delete
 - Tree、fork、clone 与 import
 - 手动 compaction 与 follow-up queue
 - 图片 prompt
@@ -280,13 +277,11 @@ Phase 1 稳定后，将 Web 拆成平台无关的 `@pig/ui` 与 Browser-only 的
 
 将这些能力记录为 upstream gap；官方契约支持后再接入。
 
-本轮不要做 Desktop shell、自定义 Agent Loop、自研 Plugin System、新数据库 Domain、内置 MCP/Subagent/Browser/Git/Terminal/Permission、Cloud Backend、多用户 SaaS 或无明确需求的泛化抽象。
+本轮不要做自定义 Agent Loop、自研 Plugin System、新数据库 Domain、内置 MCP/Subagent/Browser/Git/Terminal/Permission、Cloud Backend、多用户 SaaS 或无明确需求的泛化抽象。
 
 ## 10. 质量与验收
 
 所有修改必须通过 TypeScript typecheck、lint 和 tests。优先使用 Pi 官方类型，不用 `any` 绕过协议，不长期保留新旧架构双轨。
-
-浏览器验收交给用户，不擅自启动服务。
 
 ### Prompt 调用链
 
@@ -309,7 +304,7 @@ Pi SDK → PiServer adapter → official Snapshot/Progress → RemoteSession →
 - Host 重启后，Session 真相仍来自 Pi Session storage。
 - 重连后，以官方 Snapshot 恢复状态，不执行 Pig Run recovery。
 - UI Core 不知道 WebSocket 或 bootstrap 的实现。
-- 新增 Desktop 时，只增加 Desktop shell 与新的 `ByteTransportFactory`。
+- Web 与 Desktop 只保留各自的 shell 和 `ByteTransportFactory`。
 - 安装新的 Pi Extension 时，pig core 不增加对应 Agent 业务实现。
 
 ## 11. 执行要求

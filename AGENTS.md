@@ -1,23 +1,11 @@
 # AGENTS.md
 
-pig 是 Pi-first Web GUI（local-first）。pnpm monorepo：`apps/web`（Vue 3 + TS）+ `packages/gateway`（Node thin host）。
+pig 是一个 local-first 的 Pi-first Web 与 Desktop GUI；
 
-## 架构红线
+- 改动后运行 `pnpm check`。
 
-- Pi 拥有 Agent Truth：禁止实现第二套 Agent Loop / Session / Transcript / Prompt / Steer / Abort / Model / Tools。
-- 跨进程用官方 `@earendil-works/pi-*` 协议：禁止自建 PiClient、wire protocol、事件 envelope、reconnect state machine。
-- pig 只拥有 UI Truth：路由、draft、滚动、theme、Snapshot/Transcript 展示投影。
-- 新增 Agent 能力优先用 Pi Extension / Skill / Package。
+## 按需阅读
 
-完整契约见 `docs/refactor.md`；UI 契约见 `docs/ui-guidelines.md`。
-
-## 代码
-
-- Vue SFC 顶层区块顺序：template → script → style。
-- 平台无关 UI 不直接依赖 `fetch`、`WebSocket`、`sessionStorage`、`location`、Node API 或 Pi Host internals。
-- UI 遵循 `DESIGN.md`。
-
-## 验收
-
-- 浏览器验收默认交接给用户，不擅自启动服务。
-- 改动后跑 `pnpm check`。
+- 新增或调整 feature 模块目录、领域边界前，阅读 [`docs/directory-structure.md`](docs/directory-structure.md)。
+- 修改 Agent、Session、Gateway、远程协议或平台边界前，阅读 [`docs/refactor.md`](docs/refactor.md)。
+- 修改 Vue、UI、桌面壳、交互或视觉前，阅读 [`docs/ui-guidelines.md`](docs/ui-guidelines.md) 和 [`DESIGN.md`](DESIGN.md)。
