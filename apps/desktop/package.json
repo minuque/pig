@@ -1,0 +1,23 @@
+{
+  "name": "@pig/desktop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./electron-main.mjs",
+  "scripts": {
+    "dev": "electron . -- --dev",
+    "start": "electron .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@pig/gateway": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "electron": "^38.0.0",
+    "tsx": "^4.23.1",
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.4"
+  }
+}

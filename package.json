@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "tsx scripts/dev.ts",
     "dev:debug": "tsx --inspect=9229 scripts/dev.ts --debug",
+    "dev:desktop": "pnpm --filter @pig/desktop dev",
     "dev:gateway": "pnpm --filter @pig/gateway dev",
     "dev:web": "pnpm --filter @pig/web dev",
     "build": "pnpm --filter @pig/web build",
