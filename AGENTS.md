@@ -2,7 +2,8 @@
 
 pig 是一个 local-first 的 Pi-first Web 与 Desktop GUI；
 
-- 改动后运行 `pnpm check`。
+- 单轮改动后运行 `pnpm check:touched`（只校验脏文件所属包）。
+- 跨包改动或提交前运行 `pnpm check`（全量并行，不短路）。
 
 ## 按需阅读
 

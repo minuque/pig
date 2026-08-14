@@ -4,8 +4,8 @@
  * 数据源: designmd export DESIGN.md --format css-tailwind（根 devDependency @google/design.md）
  *
  * 已知刻意差异（不视为不一致）:
- *  - --font-<role>: "NotionInter"      → 专有字体名, DESIGN.md 明确用 Inter 替代, 见 --font-sans
- *  - --font-weight-<role>               → 值与 Tailwind 默认一致, 通用 4 档 --font-weight-* 已覆盖
+ *  - --font-<role>: SystemUI / GeistMono → 专有/角色字体名, 工作台用 --font-sans / --font-mono
+ *  - --font-weight-<role>                → 值与 Tailwind 默认一致, 通用 4 档 --font-weight-* 已覆盖
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";

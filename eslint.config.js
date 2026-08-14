@@ -41,8 +41,8 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/components/ui/**/*.vue"],
-    // shadcn-vue ui 组件惯例为单字名（badge.vue 等）
+    files: ["**/components/ui/**/*.vue", "**/features/*/index.vue"],
+    // shadcn-vue 单字名；feature 入口按目录规范必须是 index.vue
     rules: {
       "vue/multi-word-component-names": "off",
     },
