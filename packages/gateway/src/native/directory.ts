@@ -68,17 +68,3 @@ export class ManualDirectoryPort implements DirectoryPort {
   }
   validateDirectory = validateDirectory;
 }
-
-export class NodeDirectoryPort implements DirectoryPort {
-  private readonly adapter: DirectoryPort =
-    process.platform === "win32" ? new WindowsDirectoryPort() : new ManualDirectoryPort();
-  get requiresManualInput(): boolean {
-    return this.adapter.requiresManualInput === true;
-  }
-  selectDirectory() {
-    return this.adapter.selectDirectory();
-  }
-  validateDirectory(path: string) {
-    return this.adapter.validateDirectory(path);
-  }
-}

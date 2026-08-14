@@ -355,6 +355,15 @@ describe("PiHostService", () => {
     });
   });
 
+  it("renames via SessionManager and deletes the session file", async () => {
+    const { service } = await makeService();
+    await service.createSession({ id: "sess-1" });
+    await service.renameSession("sess-1", "卸载插件");
+    expect(await service.listSessions()).toMatchObject([{ id: "sess-1", sessionName: "卸载插件" }]);
+    await service.deleteSession("sess-1");
+    expect(await service.listSessions()).toEqual([]);
+  });
+
   it("rejects an unknown session and an unavailable model", async () => {
     const { service } = await makeService();
     await expect(service.openSession("missing")).rejects.toThrow(/not found/);

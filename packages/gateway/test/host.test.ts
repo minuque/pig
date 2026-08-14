@@ -91,6 +91,28 @@ describe("thin host HTTP shell", () => {
       ).json(),
     ).toEqual({ path: null, requiresManualInput: false });
   });
+
+  it("renames and deletes sessions only with a valid credential", async () => {
+    const base = await startGateway();
+    expect(
+      (await request(base, "/api/v1/platform/rename-session", { id: "s", name: "a" })).status,
+    ).toBe(401);
+    expect((await request(base, "/api/v1/platform/delete-session", { id: "s" })).status).toBe(401);
+
+    const { credential } = (await (
+      await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
+    ).json()) as { credential: string };
+    expect(
+      (
+        await request(
+          base,
+          "/api/v1/platform/rename-session",
+          { id: "missing", name: "a" },
+          credential,
+        )
+      ).status,
+    ).toBe(404);
+  });
 });
 
 describe("thin host WebSocket", () => {

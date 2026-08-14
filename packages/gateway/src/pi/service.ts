@@ -14,6 +14,7 @@ import type {
   PiSessionRuntime,
 } from "@earendil-works/pi-server";
 import { canonicalizePath } from "../native/directory.js";
+import { sessionListName } from "./session-label.js";
 import { PiHostSession } from "./session-runtime.js";
 
 type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>;
@@ -44,13 +45,16 @@ export class PiHostService implements PiServerService {
 
   async listSessions(): Promise<SessionMetadata[]> {
     const infos = await this.refreshSessionPaths();
-    return infos.map((info) => ({
-      id: info.id,
-      createdAt: info.created.getTime(),
-      ...(info.modified ? { updatedAt: info.modified.getTime() } : {}),
-      ...(info.name ? { sessionName: info.name } : {}),
-      ...(info.cwd ? { cwd: canonicalizePath(info.cwd) } : {}),
-    }));
+    return infos.map((info) => {
+      const sessionName = sessionListName(info);
+      return {
+        id: info.id,
+        createdAt: info.created.getTime(),
+        ...(info.modified ? { updatedAt: info.modified.getTime() } : {}),
+        ...(sessionName ? { sessionName } : {}),
+        ...(info.cwd ? { cwd: canonicalizePath(info.cwd) } : {}),
+      };
+    });
   }
 
   async listModels(): Promise<ModelMetadata[]> {
@@ -103,6 +107,25 @@ export class PiHostService implements PiServerService {
       await this.rollbackSession(options.id, path);
       throw error;
     }
+  }
+
+  /** 通过 Pi SessionManager 追加 session_info，不另建一套命名状态。 */
+  async renameSession(sessionId: string, name: string): Promise<void> {
+    const trimmed = name.trim();
+    if (!trimmed) throw new PiServerError("invalid_request", "会话名不能为空");
+    const path = await this.findSessionPath(sessionId);
+    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`);
+    SessionManager.open(path).appendSessionInfo(trimmed);
+    this.sessionsCache = undefined;
+  }
+
+  /** 删除 Pi 会话文件。 */
+  async deleteSession(sessionId: string): Promise<void> {
+    const path = await this.findSessionPath(sessionId);
+    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`);
+    await rm(path, { force: true });
+    this.sessionPaths.delete(sessionId);
+    this.sessionsCache = undefined;
   }
 
   async openSession(sessionId: string): Promise<PiSessionRuntime> {

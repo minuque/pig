@@ -1,45 +1,40 @@
 import { randomUUID } from "node:crypto";
 
+/** credential 有效期：覆盖单次本地启动会话即可。 */
+const CREDENTIAL_TTL_MS = 24 * 60 * 60 * 1_000;
+
 /**
  * 本地启动认证：一次性 bootstrap secret 兑换 WebSocket credential。
  * 认证属于 transport security；浏览器无法自定义 header，credential 经查询参数传递。
+ * 兑换只发生一次，凭证只需单个字段。
  */
 export class BootstrapAuth {
-  private readonly credentials = new Map<string, number>();
-  private bootstrapUsed = false;
+  private readonly expiresAt: number;
+  private credential: string | undefined;
+  private credentialExpiresAt = 0;
 
   constructor(
     private readonly secret: string,
     private readonly ttlMs: number,
-    private readonly expiresAt = Date.now() + ttlMs,
-    private readonly credentialTtlMs = 24 * 60 * 60 * 1_000,
-    private readonly maxCredentials = 16,
-  ) {}
+  ) {
+    this.expiresAt = Date.now() + ttlMs;
+  }
 
   /** 用 secret 兑换一次性 credential；secret 错误、重复使用或过期返回 undefined。 */
   exchange(secret: string): string | undefined {
-    if (this.bootstrapUsed || Date.now() >= this.expiresAt || secret !== this.secret) {
+    if (this.credential || Date.now() >= this.expiresAt || secret !== this.secret) {
       return undefined;
     }
-    this.bootstrapUsed = true;
-    const credential = randomUUID();
-    const now = Date.now();
-    for (const [value, expiresAt] of this.credentials) {
-      if (expiresAt <= now) this.credentials.delete(value);
-    }
-    while (this.credentials.size >= this.maxCredentials) {
-      this.credentials.delete(this.credentials.keys().next().value as string);
-    }
-    this.credentials.set(credential, now + this.credentialTtlMs);
-    return credential;
+    this.credential = randomUUID();
+    this.credentialExpiresAt = Date.now() + CREDENTIAL_TTL_MS;
+    return this.credential;
   }
 
   verify(credential: string | undefined): boolean {
-    if (!credential) return false;
-    const expiresAt = this.credentials.get(credential);
-    if (expiresAt === undefined) return false;
-    if (expiresAt > Date.now()) return true;
-    this.credentials.delete(credential);
-    return false;
+    return (
+      credential !== undefined &&
+      credential === this.credential &&
+      this.credentialExpiresAt > Date.now()
+    );
   }
 }

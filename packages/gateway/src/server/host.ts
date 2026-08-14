@@ -2,8 +2,13 @@ import { randomUUID } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { PiServer } from "@earendil-works/pi-server";
 import { BootstrapAuth } from "../auth/bootstrap.js";
+import { SessionNotFoundError } from "@earendil-works/pi-server";
 import { PiHostService } from "../pi/service.js";
-import { NodeDirectoryPort, type DirectoryPort } from "../native/directory.js";
+import {
+  ManualDirectoryPort,
+  WindowsDirectoryPort,
+  type DirectoryPort,
+} from "../native/directory.js";
 import { serveWebFile } from "./static-files.js";
 import { createWebSocketListener } from "./websocket.js";
 
@@ -26,6 +31,7 @@ export interface GatewayOptions {
 export class Gateway {
   private readonly server = createServer(this.handleRequest.bind(this));
   private readonly auth: BootstrapAuth;
+  private readonly hostService: PiHostService;
   private readonly piServer: PiServer;
   private readonly webRoot: string | undefined;
   private readonly platformPort: DirectoryPort;
@@ -37,29 +43,29 @@ export class Gateway {
       options.bootstrapTtlMs ?? 60_000,
     );
     this.webRoot = options.webRoot;
-    this.platformPort = options.platformPort ?? new NodeDirectoryPort();
-    this.piServer = new PiServer(
-      new PiHostService({
-        ...(options.sessionDir ? { sessionDir: options.sessionDir } : {}),
-        ...(options.cwd ? { cwd: options.cwd } : {}),
-      }),
-      {
-        listeners: [
-          createWebSocketListener({
-            server: this.server,
-            auth: this.auth,
-            ...(options.maxFrameLength !== undefined
-              ? { maxFrameLength: options.maxFrameLength }
-              : {}),
-            ...(options.maxPendingBytes !== undefined
-              ? { maxPendingBytes: options.maxPendingBytes }
-              : {}),
-          }),
-        ],
-        ...(options.maxFrameLength !== undefined ? { maxFrameLength: options.maxFrameLength } : {}),
-        onError: (error) => console.error("PiServer error:", error),
-      },
-    );
+    this.platformPort =
+      options.platformPort ??
+      (process.platform === "win32" ? new WindowsDirectoryPort() : new ManualDirectoryPort());
+    this.hostService = new PiHostService({
+      ...(options.sessionDir ? { sessionDir: options.sessionDir } : {}),
+      ...(options.cwd ? { cwd: options.cwd } : {}),
+    });
+    this.piServer = new PiServer(this.hostService, {
+      listeners: [
+        createWebSocketListener({
+          server: this.server,
+          auth: this.auth,
+          ...(options.maxFrameLength !== undefined
+            ? { maxFrameLength: options.maxFrameLength }
+            : {}),
+          ...(options.maxPendingBytes !== undefined
+            ? { maxPendingBytes: options.maxPendingBytes }
+            : {}),
+        }),
+      ],
+      ...(options.maxFrameLength !== undefined ? { maxFrameLength: options.maxFrameLength } : {}),
+      onError: (error) => console.error("PiServer error:", error),
+    });
   }
 
   private send(res: ServerResponse, status: number, body?: unknown) {
@@ -122,7 +128,38 @@ export class Gateway {
         return this.send(res, 500, { code: "INVALID_REQUEST" });
       }
     }
+    if (url.pathname === "/api/v1/platform/rename-session" && req.method === "POST") {
+      return this.handleSessionFileAction(req, res, async (id, body) => {
+        const name = typeof body.name === "string" ? body.name : "";
+        await this.hostService.renameSession(id, name);
+      });
+    }
+    if (url.pathname === "/api/v1/platform/delete-session" && req.method === "POST") {
+      return this.handleSessionFileAction(req, res, async (id) => {
+        await this.hostService.deleteSession(id);
+      });
+    }
     return this.send(res, 404);
+  }
+
+  private async handleSessionFileAction(
+    req: IncomingMessage,
+    res: ServerResponse,
+    run: (id: string, body: Record<string, unknown>) => Promise<void>,
+  ) {
+    if (!this.auth.verify(this.credential(req)))
+      return this.send(res, 401, { code: "UNAUTHENTICATED" });
+    try {
+      const body = await this.body(req);
+      const id = typeof body.id === "string" ? body.id : "";
+      if (!id) return this.send(res, 400, { code: "INVALID_REQUEST" });
+      await run(id, body);
+      return this.send(res, 200, { ok: true });
+    } catch (error) {
+      if (error instanceof SessionNotFoundError) return this.send(res, 404, { code: "NOT_FOUND" });
+      console.error("session file action failed:", error);
+      return this.send(res, 400, { code: "INVALID_REQUEST" });
+    }
   }
 
   async start() {
