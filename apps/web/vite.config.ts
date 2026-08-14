@@ -2,12 +2,45 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 const gatewayTarget = process.env.GATEWAY_TARGET;
 const bootstrapSecret = process.env.BOOTSTRAP_SECRET;
 
 export default defineConfig({
-  plugins: [vue(), tailwindcss()],
+  plugins: [
+    vue(),
+    tailwindcss(),
+    VitePWA({
+      registerType: "autoUpdate",
+      manifest: {
+        name: "pig",
+        short_name: "pig",
+        description: "AI 对话工作台",
+        lang: "zh-CN",
+        theme_color: "#18181b",
+        background_color: "#ffffff",
+        display: "standalone",
+        start_url: "/",
+        icons: [
+          { src: "/pwa-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/pwa-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          {
+            src: "/pwa-icon-maskable-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
+            src: "/pwa-icon-maskable-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+    }),
+  ],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
