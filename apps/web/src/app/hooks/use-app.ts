@@ -10,19 +10,19 @@ import {
   type InjectionKey,
 } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { bootstrapFromUrl, errorMessage } from "@client/http.js";
+import { bootstrapFromUrl, errorMessage, platformRequest } from "@client/http.js";
 import { usePiClient } from "@client/pi-client.js";
 import { useLocalWorkspaces } from "@client/workspace.js";
-import { catalogFromModels, thinkingLevelOf } from "@components/composer/types.js";
-import { useComposerBinding } from "@components/composer/hooks/use-composer-binding.js";
-import { useRemoteSessions } from "@features/sessions/hooks/use-sessions.js";
-import { useSessionRoute } from "@features/sessions/hooks/use-session-route.js";
-import { useWorkspaceNav } from "@features/sessions/hooks/use-workspace-nav.js";
+import { catalogFromModels, thinkingLevelOf } from "@features/chat-input/types.js";
+import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-binding.js";
+import { useRemoteSessions } from "@features/session-workbench/hooks/use-sessions.js";
+import { useSessionRoute } from "@features/session-workbench/hooks/use-session-route.js";
+import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js";
 import {
   sessionState,
   type SessionClientState,
   type TranscriptScrollState,
-} from "@features/sessions/session-state.js";
+} from "@features/session-workbench/session-state.js";
 
 const RECONNECT_ATTEMPTS = 5;
 
@@ -78,7 +78,7 @@ function createWorkspace() {
   }
 
   const phase = computed(() => projection.value?.phase);
-  const { preset } = useComposerBinding({
+  const { preset } = useChatInputBinding({
     catalog,
     snapshot: remote.snapshot,
     phase,
@@ -124,6 +124,31 @@ function createWorkspace() {
       throw error;
     } finally {
       submitting.value = false;
+    }
+  }
+  async function renameSession(id: string, name: string) {
+    sessionError.value = "";
+    try {
+      await platformRequest("/api/v1/platform/rename-session", {
+        method: "POST",
+        body: JSON.stringify({ id, name }),
+      });
+      await pi.refreshSessions();
+    } catch (error) {
+      sessionError.value = errorMessage(error);
+    }
+  }
+  async function deleteSession(id: string) {
+    sessionError.value = "";
+    try {
+      await platformRequest("/api/v1/platform/delete-session", {
+        method: "POST",
+        body: JSON.stringify({ id }),
+      });
+      if (sessionId.value === id) await router.replace("/");
+      await pi.refreshSessions();
+    } catch (error) {
+      sessionError.value = errorMessage(error);
     }
   }
   async function abortSession() {
@@ -219,6 +244,8 @@ function createWorkspace() {
     addWorkspace,
     revokeWorkspace,
     createSession,
+    renameSession,
+    deleteSession,
     submitText,
     abortSession,
     applyScrollState,

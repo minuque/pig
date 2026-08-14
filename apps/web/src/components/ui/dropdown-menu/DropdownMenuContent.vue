@@ -5,7 +5,7 @@
       v-bind="{ ...$attrs, ...forwarded }"
       :class="
         cn(
-          'bg-surface text-ink z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) min-w-(--size-menu) origin-(--reka-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-(--radius-md) border border-hairline p-(--spacing-xxs) shadow-elevated data-[state=open]:animate-[enter-blur_var(--duration-slow)_var(--ease-out)]',
+          'bg-surface text-ink z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) min-w-(--size-menu) origin-(--reka-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-(--radius-md) border border-hairline p-(--spacing-xxs) shadow-elevated data-[state=open]:animate-[enter-blur_180ms_var(--ease-smooth)]',
           props.class,
         )
       "

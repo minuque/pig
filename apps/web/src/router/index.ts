@@ -6,12 +6,12 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      component: () => import("@features/sessions/SessionWelcome.vue"),
+      component: () => import("@features/session-workbench/components/SessionWelcome.vue"),
     },
     {
       name: "session",
       path: "/sessions/:sessionId",
-      component: () => import("@features/sessions/SessionWorkbench.vue"),
+      component: () => import("@features/session-workbench/index.vue"),
     },
   ],
 });

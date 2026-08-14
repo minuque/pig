@@ -1,78 +1,55 @@
 <template>
-  <div class="theme-toggle" role="group" aria-label="主题">
-    <button
-      v-for="option in options"
-      :key="option.mode"
-      type="button"
-      class="theme-option"
-      :class="{ active: mode === option.mode }"
-      :aria-pressed="mode === option.mode"
-      :aria-label="option.label"
-      @click="mode = option.mode"
-    >
-      <component :is="option.icon" :size="16" aria-hidden="true" />
-    </button>
-  </div>
+  <button type="button" class="theme-toggle" :aria-label="actionLabel" @click="toggle">
+    <component :is="isDark ? Moon : Sun" :size="16" aria-hidden="true" />
+  </button>
 </template>
 
 <script setup lang="ts">
 import { useColorMode } from "@vueuse/core";
-import { Monitor, Moon, Sun } from "lucide-vue-next";
-import type { Component } from "vue";
+import { Moon, Sun } from "lucide-vue-next";
+import { computed } from "vue";
 
-const mode = useColorMode({ emitAuto: true, storageKey: "npg-theme" });
+const mode = useColorMode({ initialValue: "light", storageKey: "npg-theme" });
+if (mode.store.value === "auto") mode.value = mode.system.value;
 
-const options: Array<{
-  mode: "light" | "dark" | "auto";
-  label: string;
-  icon: Component;
-}> = [
-  { mode: "light", label: "浅色模式", icon: Sun },
-  { mode: "dark", label: "深色模式", icon: Moon },
-  { mode: "auto", label: "跟随系统", icon: Monitor },
-];
+const isDark = computed(() => mode.value === "dark");
+const actionLabel = computed(() =>
+  isDark.value ? "当前深色模式，点击切换到浅色模式" : "当前浅色模式，点击切换到深色模式",
+);
+
+function toggle() {
+  mode.value = isDark.value ? "light" : "dark";
+}
 </script>
 
 <style scoped>
 .theme-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xxs);
-  padding: var(--spacing-xxs);
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-full);
-  background: var(--canvas-soft);
-}
-.theme-option {
   display: grid;
+  flex: none;
   place-items: center;
-  width: var(--size-control);
-  min-height: var(--size-control);
+  width: var(--size-nav-action);
+  min-height: var(--size-nav-action);
   padding: 0;
+  border: 0;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--ink-faint);
+  color: var(--ink-muted);
   transition:
     background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth),
-    transform var(--duration-fast) var(--ease-smooth);
+    color var(--duration-fast) var(--ease-smooth);
 }
-.theme-option:hover {
+.theme-toggle:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
   color: var(--ink);
-}
-.theme-option.active {
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: var(--shadow-card);
 }
 @media (pointer: coarse) {
-  .theme-option {
-    width: calc(var(--size-control) + var(--spacing-xxs));
-    min-height: calc(var(--size-control) + var(--spacing-xxs));
+  .theme-toggle {
+    width: var(--size-control);
+    min-height: var(--size-control);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .theme-option {
+  .theme-toggle {
     transition: none;
   }
 }

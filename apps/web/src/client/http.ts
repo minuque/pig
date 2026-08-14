@@ -31,6 +31,11 @@ export function persistCredential(value: string): void {
   }
 }
 
+function clearBootstrapHash(): void {
+  if (!new URLSearchParams(location.hash.slice(1)).has("bootstrap")) return;
+  history.replaceState(null, "", `${location.pathname}${location.search}`);
+}
+
 /** 从 `#bootstrap=<secret>` 片段兑换本地服务凭证；无片段时不执行任何操作。 */
 export async function bootstrapFromUrl(): Promise<void> {
   const hash = new URLSearchParams(location.hash.slice(1));
@@ -42,10 +47,18 @@ export async function bootstrapFromUrl(): Promise<void> {
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ secret }),
   });
-  if (!response.ok) throw new PlatformRequestError("INVALID_BOOTSTRAP", crypto.randomUUID());
+  if (!response.ok) {
+    // secret 一次性；刷新/二次打开启动链接会再打已兑换的 hash。
+    // 已有凭证则清掉过期 hash，沿用 localStorage，避免把整页打成 INVALID_BOOTSTRAP。
+    if (restoreCredential()) {
+      clearBootstrapHash();
+      return;
+    }
+    throw new PlatformRequestError("INVALID_BOOTSTRAP", crypto.randomUUID());
+  }
   const { credential } = (await response.json()) as { credential: string };
   persistCredential(credential);
-  history.replaceState(null, "", `${location.pathname}${location.search}`);
+  clearBootstrapHash();
 }
 
 /** 带凭证的 JSON 请求；非 2xx 时抛出 PlatformRequestError。 */

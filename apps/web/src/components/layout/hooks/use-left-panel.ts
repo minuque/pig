@@ -1,5 +1,5 @@
 import { onBeforeUnmount, readonly, ref, watch } from "vue";
-import { clampPanelWidth } from "@features/sessions/session-state.js";
+import { clampPanelWidth } from "@features/session-workbench/session-state.js";
 
 /** 主内容区最小宽度（px）：侧栏调宽时始终为其保留的空间。 */
 export const CONTENT_MIN_WIDTH = 332;
@@ -20,7 +20,10 @@ export function fitPanelWidth(width: number, viewportWidth: number): number {
 export function useLeftPanel() {
   const narrowViewport = matchMedia("(max-width: 900px)");
   const leftOpen = ref(!narrowViewport.matches);
+  /** 当前是否为 max-width: 900px 窄视口。 */
+  const isNarrow = ref(narrowViewport.matches);
   const leftWidth = ref(clampPanelWidth(window.innerWidth * 0.18));
+  const resizing = ref(false);
 
   function setPanelWidth(desired: number) {
     leftWidth.value = panelWidthFor(desired, window.innerWidth);
@@ -29,16 +32,35 @@ export function useLeftPanel() {
     setPanelWidth(leftWidth.value + delta);
   }
   function startResize(event: PointerEvent) {
+    const handle = event.currentTarget;
+    if (!(handle instanceof HTMLElement)) return;
     event.preventDefault();
+    handle.setPointerCapture(event.pointerId);
     const startX = event.clientX;
     const startWidth = leftWidth.value;
-    const move = (next: PointerEvent) => setPanelWidth(startWidth + (next.clientX - startX));
-    const stop = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", stop);
+    resizing.value = true;
+    let frame = 0;
+    let pendingX = startX;
+    const move = (next: PointerEvent) => {
+      pendingX = next.clientX;
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        setPanelWidth(startWidth + (pendingX - startX));
+      });
     };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", stop, { once: true });
+    const stop = () => {
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", stop);
+      handle.removeEventListener("pointercancel", stop);
+      if (frame) cancelAnimationFrame(frame);
+      setPanelWidth(startWidth + (pendingX - startX));
+      resizing.value = false;
+      if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", stop);
+    handle.addEventListener("pointercancel", stop);
   }
   function toggle() {
     leftOpen.value = !leftOpen.value;
@@ -51,6 +73,7 @@ export function useLeftPanel() {
     leftWidth.value = fitPanelWidth(leftWidth.value, window.innerWidth);
   }
   function handleViewportChange(event: MediaQueryListEvent) {
+    isNarrow.value = event.matches;
     if (event.matches) closeMobilePanels();
     else fitPanels();
   }
@@ -65,6 +88,8 @@ export function useLeftPanel() {
   return {
     leftOpen: readonly(leftOpen),
     leftWidth: readonly(leftWidth),
+    isNarrow: readonly(isNarrow),
+    resizing: readonly(resizing),
     toggle,
     resizeBy,
     startResize,

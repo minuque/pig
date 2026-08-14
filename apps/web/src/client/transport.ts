@@ -21,9 +21,16 @@ export interface WebSocketTransportOptions {
   binaryType?: BinaryType;
 }
 
-/** 组装本机 PiServer WebSocket URL。 */
+/**
+ * 组装本机 PiServer WebSocket URL。
+ * 开发态优先连 Gateway 源：Vite 的 `/api` WS 代理会把 Gateway 的 401 握手当 HTTP 回写，
+ * Windows 上变成 `write ECONNABORTED`。
+ */
 export function webSocketUrl(credential: string, base?: string | URL): string {
-  const url = new URL(WEBSOCKET_PATH, base ?? window.location.href);
+  const url = new URL(
+    WEBSOCKET_PATH,
+    base ?? import.meta.env.VITE_GATEWAY_TARGET ?? window.location.href,
+  );
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   if (credential) url.searchParams.set("credential", credential);
   return url.href;

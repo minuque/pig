@@ -1,40 +1,46 @@
 @import "tailwindcss";
+@import "markstream-vue/index.css" layer(components);
 
-/* ─── DESIGN.md tokens (v2-alpha) ─────────────────────────────── */
+/* ─── DESIGN.md tokens (workbench desktop) ───────────────────── */
 :root {
   /* Colors */
-  --primary: #0075de;
-  --primary-active: #005bab;
-  --secondary: #213183;
+  --primary: #4176e6;
+  --primary-active: #2d5fc4;
+  --secondary: #0e3074;
   --on-primary: #ffffff;
   --canvas: #ffffff;
-  --canvas-soft: #f6f5f4;
+  --canvas-soft: #f9fafb;
   --surface: #ffffff;
-  --ink: #000000;
-  --ink-secondary: #31302e;
-  --ink-muted: #615d59;
-  --ink-faint: #a39e98;
-  --hairline: #e6e6e6;
+  --ink: #0f1115;
+  --ink-secondary: #353638;
+  --ink-muted: #5c5f66;
+  --ink-faint: #8b8f97;
+  --hairline: #e5e7eb;
 
-  /* Sticker palette — decoration only, never structural fill */
-  --accent-sky: #62aef0;
-  --accent-purple: #d6b6f6;
-  --accent-purple-deep: #391c57;
-  --accent-pink: #ff64c8;
+  /* Grok decorative palette — never structural fill */
+  --accent-sunset: #ff7a17;
+  --accent-sunset-soft: #ffc285;
+  --accent-dusk: #7c3aed;
+  --accent-twilight: #c4b5fd;
+  --accent-breeze: #a0c3ec;
+  --accent-midnight: #0d1726;
+  /* Semantic status (not decoration) */
   --accent-orange: #dd5b00;
   --accent-orange-deep: #793400;
-  --accent-teal: #2a9d99;
   --accent-green: #1aae39;
-  --accent-brown: #523410;
 
   /* Status — UI Guidelines §6; DESIGN.md carries status via sticker colors */
   --success: #1aae39; /* accent-green */
   --warning: #dd5b00; /* accent-orange */
   --danger: #eb5757; /* Notion app red, for destructive actions */
 
-  /* Typography — NotionInter, substitute Inter per DESIGN.md */
-  --font-sans: Inter, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  /* Typography — SystemUI per DESIGN.md */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono:
+    "SF Mono", "JetBrains Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, Courier,
+    "PingFang SC", "Microsoft YaHei";
   --text-display-1: 64px;
   --text-display-1--line-height: 1;
   --tracking-display-1: -2.125px;
@@ -46,24 +52,27 @@
   --tracking-heading-1: -1px;
   --text-heading-2: 26px;
   --text-heading-2--line-height: 1.23;
-  --tracking-heading-2: -0.625px;
+  --tracking-heading-2: -0.4px;
   --text-heading-3: 22px;
   --text-heading-3--line-height: 1.27;
   --tracking-heading-3: -0.25px;
-  --text-title: 20px;
+  --text-title: 16px;
   --text-title--line-height: 1.4;
   --tracking-title: -0.125px;
-  --text-body-md: 16px;
-  --text-body-md--line-height: 1.5;
-  --text-body-sm: 15px;
-  --text-body-sm--line-height: 1.33;
-  --text-button: 16px;
-  --text-button--line-height: 1.5;
-  --text-caption: 14px;
-  --text-caption--line-height: 1.43;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 1.43;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 1.43;
+  --text-button: 14px;
+  --text-button--line-height: 1.43;
+  --text-caption: 13px;
+  --text-caption--line-height: 1.38;
   --text-eyebrow: 12px;
   --text-eyebrow--line-height: 1.33;
   --tracking-eyebrow: 0.125px;
+  --text-caption-mono: 12px;
+  --text-caption-mono--line-height: 1.33;
+  --tracking-caption-mono: 1.2px;
 
   /* Spacing — base unit 8px */
   --spacing-xxs: 4px;
@@ -76,11 +85,11 @@
 
   /* Shapes */
   --radius-xs: 4px;
-  --radius-sm: 5px;
+  --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-  --radius-shell: 24px;
+  --radius-shell: 0px;
   --radius-full: 9999px;
 
   /* Sizes */
@@ -89,9 +98,13 @@
   --size-kebab: 28px; /* session 卡片操作按钮 */
   --size-menu: 140px; /* kebab 下拉菜单最小宽度 */
   --size-sidebar: 280px; /* left panel width */
+  --size-sidebar-rail: 56px;
+  --size-sidebar-rail-mac: 90px;
+  --titlebar-inset: 44px;
+  --size-windows-caption: 138px;
   --size-context: 300px; /* right panel width */
   --size-drawer: 360px; /* mobile drawer width */
-  --size-content: 52rem; /* transcript/prompt max width */
+  --size-content: 46.75rem; /* 748px transcript/prompt max width */
   --size-modal: 32rem; /* dialog max width */
   --size-welcome: 45rem;
   --size-nav-action: 28px;
@@ -119,10 +132,10 @@
   --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.2); /* jump-to-latest button */
   --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.2); /* mobile drawers */
   --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.18); /* dialog */
-  /* Popover/menu 浮层阴影（composer 系列共用） */
+  /* Popover/menu 浮层阴影（输入区浮层共用） */
   --shadow-popover:
     0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 1px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
-  /* Composer 反色主按钮（浅色主题深底浅字，深色主题反相） */
+  /* 输入区反色主按钮（浅色主题深底浅字，深色主题反相） */
   --inverse-bg: #0b0d12;
   --inverse-bg-hover: #2a2f3a;
   --inverse-fg: #ffffff;
@@ -148,21 +161,21 @@
   --duration-shimmer: 2s; /* loading 扫光循环 */
 }
 
-/* ─── Dark mode — Notion 风格中性色；仅覆盖颜色/阴影 token，尺寸/动效继承 :root ─── */
+/* ─── Dark mode — 近黑工作台；仅覆盖颜色/阴影 token，尺寸/动效继承 :root ─── */
 .dark {
   color-scheme: dark;
-  --primary: #3b9df0;
-  --primary-active: #2f8ae0;
-  --on-primary: #0b0b0b; /* primary 上需深色文字（#e8e8e8 对比仅 2.4:1，不达 WCAG） */
-  --canvas: #1f1f1f;
-  --canvas-soft: #161616;
-  --surface: #1f1f1f;
-  --ink: #e8e8e8;
-  --ink-secondary: #c9c9c9;
-  --ink-muted: #9a9a9a;
-  --ink-faint: #888888;
-  --hairline: #303030;
-  /* sticker 中用作状态色的两个橙提亮（run 失败左条 / active session 文字） */
+  --primary: #679efe;
+  --primary-active: #4d8af0;
+  --on-primary: #0f1115;
+  --canvas: #151517;
+  --canvas-soft: #1b1b1c;
+  --surface: #151517;
+  --ink: #ebeef2;
+  --ink-secondary: #c5c8ce;
+  --ink-muted: #9aa0a8;
+  --ink-faint: #7a7e86;
+  --hairline: #2c2c2e;
+  /* 语义橙提亮（run 失败左条 / active session 文字） */
   --accent-orange: #ff8a3d;
   --accent-orange-deep: #d97706;
   --success: #33c35e;
@@ -200,15 +213,15 @@
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
   --color-hairline: var(--hairline);
-  --color-accent-sky: var(--accent-sky);
-  --color-accent-purple: var(--accent-purple);
-  --color-accent-purple-deep: var(--accent-purple-deep);
-  --color-accent-pink: var(--accent-pink);
+  --color-accent-sunset: var(--accent-sunset);
+  --color-accent-sunset-soft: var(--accent-sunset-soft);
+  --color-accent-dusk: var(--accent-dusk);
+  --color-accent-twilight: var(--accent-twilight);
+  --color-accent-breeze: var(--accent-breeze);
+  --color-accent-midnight: var(--accent-midnight);
   --color-accent-orange: var(--accent-orange);
   --color-accent-orange-deep: var(--accent-orange-deep);
-  --color-accent-teal: var(--accent-teal);
   --color-accent-green: var(--accent-green);
-  --color-accent-brown: var(--accent-brown);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -254,6 +267,9 @@
   --text-eyebrow: var(--text-eyebrow);
   --text-eyebrow--line-height: var(--text-eyebrow--line-height);
   --tracking-eyebrow: var(--tracking-eyebrow);
+  --text-caption-mono: var(--text-caption-mono);
+  --text-caption-mono--line-height: var(--text-caption-mono--line-height);
+  --tracking-caption-mono: var(--tracking-caption-mono);
 
   --spacing-xxs: var(--spacing-xxs);
   --spacing-xs: var(--spacing-xs);
@@ -337,6 +353,28 @@ textarea {
 .icon-button {
   width: var(--size-control);
   padding: 0;
+}
+.selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 0;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.selector:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.selector:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 small,
 .mono {
@@ -447,4 +485,110 @@ small,
   [data-slot="dropdown-menu-content"][data-state="open"] {
     animation: none !important;
   }
+}
+
+/* 公共滚动条：细、透明轨、不占 gutter */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 22%, transparent) transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: var(--radius-full);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ink) 36%, transparent);
+}
+
+/* 桌面壳：平台 rail / 透明底 / 模态时取消拖拽 */
+html[data-pig-desktop-platform="darwin"] {
+  --size-sidebar-rail: var(--size-sidebar-rail-mac);
+}
+html[data-pig-desktop-platform="darwin"],
+html[data-pig-desktop-platform="win32"],
+html[data-pig-desktop-platform="darwin"] body,
+html[data-pig-desktop-platform="win32"] body,
+html[data-pig-desktop-platform="darwin"] #app,
+html[data-pig-desktop-platform="win32"] #app {
+  background: transparent;
+}
+html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
+  -webkit-app-region: no-drag;
+}
+
+/* markstream 聊天文档：对齐 DESIGN 14px 密度；抵消全局 button 高特异性 */
+.markstream-vue {
+  --ms-font-sans: var(--font-sans);
+  --ms-font-mono: var(--font-mono);
+  --ms-text-body: var(--text-body-md);
+  --ms-leading-body: 1.6;
+  --ms-text-h1: var(--text-heading-3);
+  --ms-text-h2: var(--text-title);
+  --ms-text-h3: var(--text-body-md);
+  --ms-text-h4: var(--text-body-md);
+  --ms-text-h5: var(--text-caption);
+  --ms-text-h6: var(--text-caption);
+  --ms-leading-h1: 1.27;
+  --ms-leading-h2: 1.4;
+  --ms-leading-h3: 1.43;
+  --ms-flow-heading-1-mt: 0.2em;
+  --ms-flow-heading-1-mb: 0.55em;
+  --ms-flow-heading-2-mt: 1em;
+  --ms-flow-heading-2-mb: 0.4em;
+  --ms-flow-heading-3-mt: 0.85em;
+  --ms-flow-heading-3-mb: 0.35em;
+  --ms-flow-paragraph-y: 0.45em;
+  --ms-flow-list-y: 0.3em;
+  --ms-flow-list-item-y: 0.12em;
+  --ms-flow-list-indent: 1.35em;
+  --ms-flow-codeblock-y: 0.55em;
+  --ms-flow-diagram-y: 0.55em;
+  --ms-radius: var(--radius-md);
+}
+.markstream-vue button {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+}
+.markstream-vue button:not(:disabled):active {
+  transform: none;
+}
+.markstream-vue ol {
+  list-style: decimal;
+  padding-left: var(--ms-flow-list-indent);
+}
+.markstream-vue ul {
+  list-style: disc;
+  padding-left: var(--ms-flow-list-indent);
+}
+.markstream-vue pre {
+  margin: var(--ms-flow-codeblock-y) 0;
+  padding: var(--spacing-sm);
+  overflow: auto;
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--canvas-soft);
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.markstream-vue :not(pre) > code {
+  padding: 1px 6px;
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-full);
+  background: var(--canvas-soft);
+  font-family: var(--font-mono);
+  font-size: 12px;
 }

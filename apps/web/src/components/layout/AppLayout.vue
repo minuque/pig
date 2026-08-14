@@ -1,27 +1,31 @@
 <template>
   <div
     class="shell"
-    :class="{ 'left-closed': !leftOpen }"
+    :class="{ 'left-closed': !leftOpen, 'is-resizing': resizing }"
     :style="{ '--left-width': `${leftWidth}px` }"
   >
     <aside class="sidebar" :class="{ open: leftOpen }" aria-label="Workspace 与 Session 导航">
-      <slot name="sidebar" :on-navigate="closeMobilePanels" />
+      <slot
+        name="sidebar"
+        :on-navigate="closeMobilePanels"
+        :collapsed="!leftOpen && !isNarrow"
+        :toggle="toggle"
+      />
+      <div
+        v-if="leftOpen"
+        class="resizer"
+        role="separator"
+        aria-label="调整左栏宽度"
+        aria-orientation="vertical"
+        :aria-valuenow="leftWidth"
+        aria-valuemin="240"
+        aria-valuemax="420"
+        tabindex="0"
+        @pointerdown="startResize($event)"
+        @keydown.left.prevent="resizeBy(-16)"
+        @keydown.right.prevent="resizeBy(16)"
+      ></div>
     </aside>
-
-    <div
-      v-if="leftOpen"
-      class="resizer"
-      role="separator"
-      aria-label="调整左栏宽度"
-      aria-orientation="vertical"
-      :aria-valuenow="leftWidth"
-      aria-valuemin="240"
-      aria-valuemax="420"
-      tabindex="0"
-      @pointerdown="startResize($event)"
-      @keydown.left.prevent="resizeBy(-16)"
-      @keydown.right.prevent="resizeBy(16)"
-    ></div>
 
     <main>
       <header class="workbench-header">
@@ -34,9 +38,11 @@
         >
           <PanelLeft :size="16" aria-hidden="true" />
         </button>
-        <h1 id="current-title">{{ title }}</h1>
+        <h1 v-if="title" id="current-title">{{ title }}</h1>
+        <span v-if="thinkingLevel" class="header-chip">{{ thinkingLevel }}</span>
         <div class="header-right">
-          <p v-if="phase" class="session-status">
+          <p v-if="connecting && !phase" class="session-status" role="status">正在连接…</p>
+          <p v-else-if="phase && phase !== 'idle'" class="session-status" role="status">
             <span
               class="status-mark"
               :style="{ color: running ? 'var(--primary)' : 'var(--ink-faint)' }"
@@ -56,7 +62,7 @@
 <script setup lang="ts">
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 import { PanelLeft } from "lucide-vue-next";
-import { phaseLabel } from "@features/sessions/SessionControlBar.vue";
+import { phaseLabel } from "@features/session-workbench/components/SessionControlBar.vue";
 import ThemeToggle from "@features/theme/ThemeToggle.vue";
 import { useLeftPanel } from "@components/layout/hooks/use-left-panel.js";
 
@@ -64,70 +70,91 @@ defineProps<{
   title: string;
   phase?: SessionPhase | undefined;
   running?: boolean | undefined;
+  connecting?: boolean | undefined;
+  thinkingLevel?: string | undefined;
 }>();
 
 defineSlots<{
   default(): unknown;
-  sidebar(props: { onNavigate: () => void }): unknown;
+  sidebar(props: { onNavigate: () => void; collapsed: boolean; toggle: () => void }): unknown;
 }>();
 
-const { leftOpen, leftWidth, toggle, resizeBy, startResize, closeMobilePanels } = useLeftPanel();
+const {
+  leftOpen,
+  leftWidth,
+  isNarrow,
+  resizing,
+  toggle,
+  resizeBy,
+  startResize,
+  closeMobilePanels,
+} = useLeftPanel();
 </script>
 
 <style scoped>
 .shell {
   --left-width: var(--size-sidebar);
   height: 100vh;
-  display: grid;
-  grid-template-columns: var(--left-width) var(--size-resizer) minmax(0, 1fr);
-  padding: var(--spacing-xs);
+  display: flex;
   overflow: hidden;
-  transition: grid-template-columns var(--duration-normal) var(--ease-smooth);
-}
-.shell.left-closed {
-  grid-template-columns: 0 0 minmax(0, 1fr);
 }
 .sidebar {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: var(--left-width);
   min-width: 0;
+  min-height: 0;
   padding: var(--spacing-xs);
-  overflow: auto;
-  background: transparent;
-}
-.left-closed .sidebar {
-  visibility: hidden;
-  padding: 0;
+  overflow: hidden;
+  background: var(--canvas-soft);
+  contain: layout style;
+  transition: width var(--duration-normal) var(--ease-smooth);
 }
 .resizer {
+  position: absolute;
+  inset-block: 0;
+  right: 0;
   z-index: var(--z-resizer);
+  width: var(--size-resizer);
   cursor: col-resize;
   touch-action: none;
-  background: transparent;
 }
-.resizer:hover,
 .resizer:focus-visible {
   background: var(--hairline);
 }
+.shell.is-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+.shell.is-resizing .sidebar {
+  transition: none;
+  will-change: width;
+}
+.shell.is-resizing main {
+  pointer-events: none;
+  contain: strict;
+}
 main {
-  grid-column: 3;
+  flex: 1;
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: var(--radius-shell);
   background: var(--surface);
-  box-shadow: var(--shadow-card);
 }
 .workbench-header {
-  display: grid;
-  grid-template-columns: minmax(7.5rem, 1fr) auto minmax(7.5rem, 1fr);
+  display: flex;
   align-items: center;
+  gap: var(--spacing-xs);
   min-height: calc(var(--size-control) + 2 * var(--spacing-xs));
   padding: var(--spacing-xs) var(--spacing-sm);
   background: var(--surface);
 }
 .header-toggle {
-  justify-self: start;
+  flex: none;
   width: var(--size-nav-action);
   min-height: var(--size-nav-action);
   padding: 0;
@@ -135,37 +162,85 @@ main {
   background: transparent;
 }
 .workbench-header h1 {
-  justify-self: center;
   min-width: 0;
-  max-width: 50vw;
+  max-width: 40vw;
   margin: 0;
   overflow: hidden;
-  color: var(--ink-muted);
+  color: var(--ink);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-sm--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.header-chip {
+  flex: none;
+  max-width: 8rem;
+  padding: 2px 8px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink-muted);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-eyebrow--line-height);
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
 .header-right {
   display: flex;
   align-items: center;
-  justify-self: end;
+  margin-left: auto;
   gap: var(--spacing-xs);
 }
 .header-right .session-status {
   margin: 0;
-  color: var(--ink-muted);
+  color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
 }
 .status-mark {
   font-size: var(--text-eyebrow);
 }
 @media (prefers-reduced-motion: reduce) {
-  .shell {
+  .sidebar {
     transition: none;
   }
+}
+@media (min-width: 901px) {
+  .shell.left-closed .sidebar {
+    width: var(--size-sidebar-rail);
+  }
+  .header-toggle {
+    display: none;
+  }
+}
+html[data-pig-desktop-platform] .sidebar,
+html[data-pig-desktop-platform] .workbench-header {
+  -webkit-app-region: drag;
+}
+html[data-pig-desktop-platform]
+  .sidebar
+  :deep(:is(button, a, input, select, textarea, [role="button"], [role="link"])),
+html[data-pig-desktop-platform]
+  .workbench-header
+  :deep(:is(button, a, input, select, textarea, [role="button"], [role="link"])),
+html[data-pig-desktop-platform] .resizer {
+  -webkit-app-region: no-drag;
+}
+html[data-pig-desktop-platform="win32"] .workbench-header {
+  min-height: var(--titlebar-inset);
+  padding-right: var(--size-windows-caption);
+}
+html[data-pig-desktop-platform="darwin"] .shell,
+html[data-pig-desktop-platform="win32"] .shell {
+  background: transparent;
+}
+html[data-pig-desktop-platform="darwin"] .sidebar,
+html[data-pig-desktop-platform="win32"] .sidebar {
+  background: color-mix(in srgb, var(--canvas-soft) 72%, transparent);
 }
 @media (max-width: 900px) {
   .shell,
@@ -176,7 +251,6 @@ main {
   }
   main {
     height: 100dvh;
-    border-radius: 0;
   }
   .resizer {
     display: none;
@@ -206,9 +280,6 @@ main {
   }
 }
 @media (max-width: 520px) {
-  .workbench-header {
-    grid-template-columns: var(--size-control) minmax(0, 1fr) auto;
-  }
   .header-right .session-status {
     width: var(--size-control);
     overflow: hidden;

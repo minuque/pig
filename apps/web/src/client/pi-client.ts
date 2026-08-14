@@ -72,8 +72,13 @@ export function usePiClient() {
     return next;
   }
 
-  function disconnect(reason?: string) {
-    client.value?.disconnect(reason);
+  /** 用官方 list 结果覆盖快照里的 sessions，不另建列表。 */
+  async function refreshSessions() {
+    const current = client.value;
+    const snapshot = serverSnapshot.value;
+    if (!current || !snapshot) return;
+    const sessions = await current.listSessions();
+    serverSnapshot.value = { ...snapshot, sessions: [...sessions] };
   }
 
   async function dispose() {
@@ -99,6 +104,7 @@ export function usePiClient() {
     sessions,
     models,
     connect,
+    refreshSessions,
     dispose,
   };
 }
