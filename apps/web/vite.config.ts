@@ -3,13 +3,17 @@ import { fileURLToPath, URL } from "node:url";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+import vueDevTools from "vite-plugin-vue-devtools";
 
 const gatewayTarget = process.env.GATEWAY_TARGET;
 const bootstrapSecret = process.env.BOOTSTRAP_SECRET;
+// 给客户端：Pi WebSocket 直连 Gateway，不经 Vite 的 WS 代理
+if (gatewayTarget) process.env.VITE_GATEWAY_TARGET = gatewayTarget;
 
 export default defineConfig({
   plugins: [
     vue(),
+    vueDevTools(),
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
@@ -59,7 +63,11 @@ export default defineConfig({
     strictPort: true,
     open: bootstrapSecret ? `/#bootstrap=${encodeURIComponent(bootstrapSecret)}` : false,
     ...(gatewayTarget
-      ? { proxy: { "/api": { target: gatewayTarget, ws: true, changeOrigin: true } } }
+      ? {
+          // 只反代 HTTP。ws:true 时 Gateway 对未授权 upgrade 回 401，
+          // Vite/http-proxy 会当普通 HTTP 回写，Windows 上变成 write ECONNABORTED。
+          proxy: { "/api": { target: gatewayTarget, changeOrigin: true } },
+        }
       : {}),
   },
 });
