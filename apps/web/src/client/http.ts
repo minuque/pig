@@ -48,7 +48,7 @@ export async function bootstrapFromUrl(): Promise<void> {
     body: JSON.stringify({ secret }),
   });
   if (!response.ok) {
-    // secret 一次性；刷新/二次打开启动链接会再打已兑换的 hash。
+    // secret 错误或 Gateway 已重启时兑换会 401。
     // 已有凭证则清掉过期 hash，沿用 localStorage，避免把整页打成 INVALID_BOOTSTRAP。
     if (restoreCredential()) {
       clearBootstrapHash();

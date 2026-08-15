@@ -54,15 +54,16 @@ describe("thin host HTTP shell", () => {
     expect(await (await request(base, "/health")).json()).toEqual({ status: "ok" });
   });
 
-  it("exchanges bootstrap secret for a one-time credential", async () => {
+  it("exchanges bootstrap secret for a reusable credential", async () => {
     const base = await startGateway();
     expect((await request(base, "/api/v1/bootstrap", { secret: "wrong" })).status).toBe(401);
     const response = await request(base, "/api/v1/bootstrap", { secret: "test-secret" });
     expect(response.status).toBe(201);
     const { credential } = (await response.json()) as { credential: string };
     expect(credential).toBeTruthy();
-    // 一次性：重复兑换被拒绝
-    expect((await request(base, "/api/v1/bootstrap", { secret: "test-secret" })).status).toBe(401);
+    const again = await request(base, "/api/v1/bootstrap", { secret: "test-secret" });
+    expect(again.status).toBe(201);
+    expect(await again.json()).toEqual({ credential });
   });
 
   it("selects a directory only with a valid credential", async () => {

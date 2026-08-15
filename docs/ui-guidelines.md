@@ -41,9 +41,9 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。撤销 Workspace 只修�
 - **计数**：composer 下「N 轮 · M 步」由官方 Transcript 的 user / tool 条数派生，不编造耗时或 token。
 - **模型**：Session 为 `idle` 时可修改；运行中禁用 ModelPicker 与 ThinkingLevelSelect。
 - **Session 列表**：Pi 拥有 Session 真相。已授权目录优先显示，其它 Session 继续按 cwd 显示。行展示标题 + 相对时间，默认展开 lastCwd（否则第一项）。
-- **Composer**：对话列内绝对贴底 overlay，transcript 通栏滚动；与欢迎页共用 PromptEditor 卡。发送钮用 primary。欢迎页在卡上方选工作区。
+- **ChatI**：对话列内绝对贴底 overlay，transcript 通栏滚动；与欢迎页共用 PromptEditor 卡。发送钮用 primary。欢迎页在卡上方选工作区。
 - **Gateway 状态**：正常时不显示常驻指示；连接中不挡欢迎/对话页，只在顶栏给一句状态。错误使用 banner。
-- **启动授权**：启动链接携带一次性 bootstrap secret；兑换成功后清除 URL hash。
+- **启动授权**：启动链接携带 bootstrap secret。同一 secret 在 Gateway 生命周期内重复兑换得到同一凭证；页面兑换成功后清除 URL hash。
 - **关窗**：桌面关窗仍退出并释放 Gateway，不搬托盘驻留。
 
 ## 5. Upstream gaps

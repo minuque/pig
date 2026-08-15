@@ -4,7 +4,14 @@
     <div class="titlebar-drag" aria-hidden="true"></div>
 
     <div class="logo-row">
-      <img class="brand-logo" src="/pwa-icon-192.png" width="22" height="22" alt="pig" />
+      <Mascot
+        v-if="!collapsed"
+        class="brand-mascot"
+        :size="22"
+        :state="mascotState"
+        :follow-pointer="false"
+        label="pig"
+      />
       <button
         class="icon-button collapse-toggle"
         type="button"
@@ -146,7 +153,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
+import Mascot from "@features/mascot/index.vue";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
+import { mascotStateFromPhase } from "@features/mascot/presence.js";
 import { workspaceName } from "@features/session-nav/types.js";
 
 defineProps<{
@@ -167,6 +176,7 @@ const {
   creating,
   addingWorkspace,
   sessionError: workspaceError,
+  phase,
   toggleWorkspace,
   addWorkspace,
   revokeWorkspace,
@@ -176,6 +186,9 @@ const {
 } = useWorkspace();
 
 const navBody = useTemplateRef<HTMLElement>("navBody");
+const mascotState = computed(() =>
+  creating.value ? "thinking" : mascotStateFromPhase(phase.value),
+);
 
 // 活动会话变化或工作区展开后，把活动项滚入视野
 watch(
@@ -276,15 +289,9 @@ html[data-pig-desktop-platform] .session-nav input {
   justify-content: center;
   padding-inline: 0;
 }
-.session-nav.collapsed .brand-logo {
-  display: none;
-}
-.brand-logo {
+.brand-mascot {
   flex: none;
-  width: 22px;
-  height: 22px;
   border-radius: 6px;
-  object-fit: cover;
 }
 .collapse-toggle {
   display: flex;

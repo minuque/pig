@@ -32,7 +32,7 @@ if (process.env.MSYSTEM && !process.env[WRAPPED] && process.stdin.isTTY) {
 
 async function main() {
   const bootstrapSecret = randomUUID();
-  // 开发模式不让 Vite 冷启动消耗一次性启动授权的有效期。
+  // 开发模式不让 Vite 冷启动把 secret 有效期耗光；同一链接可被多个浏览器重复兑换。
   const gateway = new Gateway({ bootstrapSecret, bootstrapTtlMs: Number.POSITIVE_INFINITY });
   const port = await gateway.start();
   console.info(
