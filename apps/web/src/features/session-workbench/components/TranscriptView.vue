@@ -6,15 +6,17 @@
     :aria-labelledby="transcriptTitleId"
   >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
-    <button
-      v-if="pinText"
-      class="user-pin"
-      type="button"
-      :aria-label="`回到用户句：${pinText}`"
-      @click="scrollToPinnedUser"
-    >
-      {{ pinText }}
-    </button>
+    <Transition name="user-pin">
+      <button
+        v-if="pinText"
+        class="user-pin"
+        type="button"
+        :aria-label="`回到用户句：${pinText}`"
+        @click="scrollToPinnedUser"
+      >
+        {{ pinText }}
+      </button>
+    </Transition>
     <MarkstreamVirtualTimeline
       v-if="rows.length"
       ref="timeline"
@@ -227,17 +229,17 @@ function scrollToPinnedUser() {
 }
 .user-pin {
   position: absolute;
-  top: var(--spacing-sm);
-  right: max(0px, calc((100% - min(var(--size-content), 100%)) / 2));
+  top: 0;
+  right: 0;
+  left: 0;
   z-index: 1;
   box-sizing: border-box;
-  width: fit-content;
-  max-width: min(40rem, 86%, var(--size-content));
-  margin: 0;
+  width: min(var(--size-content), 100%);
+  margin-inline: auto;
   padding: 8px 14px;
   overflow: hidden;
   border: 0;
-  border-radius: var(--radius-xl);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
   background: var(--primary);
   color: var(--on-primary);
   font-size: var(--text-body-md);
@@ -245,6 +247,23 @@ function scrollToPinnedUser() {
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
+}
+.user-pin-enter-active,
+.user-pin-leave-active {
+  transition:
+    transform var(--duration-normal) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+.user-pin-enter-from,
+.user-pin-leave-to {
+  opacity: 0;
+  transform: translateY(-100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .user-pin-enter-active,
+  .user-pin-leave-active {
+    transition: none;
+  }
 }
 .shimmer {
   color: var(--ink-muted);
