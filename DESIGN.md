@@ -307,9 +307,9 @@ components:
 
 浅色侧栏 `{colors.canvas-soft}`，对话列 `{colors.surface}`。结构色 `{colors.primary}`（#4176e6）只用于发送、链接、选中、focus。控件圆角 `{rounded.lg}`（12px）。
 
-深色是同一套分面的近灰反相：对话 `#151517`、侧栏 `#1b1b1c`、缝 `#2c2c2e`。装饰用 sunset / dusk / twilight / breeze。阶段与计数可用 `{typography.caption-mono}`。
+深色是同一套分面的近灰反相：对话 `#151517`、侧栏 `#1b1b1c`、缝 `#2c2c2e`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
 
-桌面壳只把原生材质给侧栏（macOS vibrancy / Windows acrylic）。对话列不透明。浏览器无桌面标记时，侧栏也不透明。浅色是默认入口。
+桌面壳只把原生材质给侧栏（macOS vibrancy / Windows acrylic）。对话列不透明。输入卡在桌面用不透底的 canvas-soft/surface 混合（亚克力窗上 CSS backdrop-filter 会透到系统材质）。浏览器无桌面标记时，侧栏也不透明。浅色是默认入口。
 
 ## Colors
 
@@ -368,7 +368,7 @@ sunset 是装饰，orange 是语义。
 
 代码与 `{typography.caption-mono}`：Geist Mono / SF Mono / JetBrains Mono / Consolas。
 
-`{typography.caption-mono}` 用于阶段、计数、栏目标签，大写 + 正 tracking。
+`{typography.caption-mono}` 用于阶段、栏目标签，大写 + 正 tracking。
 
 ### Hierarchy
 
@@ -385,7 +385,7 @@ sunset 是装饰，orange 是语义。
 | `{typography.button}`       | 14px | 500    | 1.43        | 按钮                   |
 | `{typography.caption}`      | 13px | 400    | 1.38        | 辅助说明               |
 | `{typography.eyebrow}`      | 12px | 600    | 1.33        | 徽章、小标签           |
-| `{typography.caption-mono}` | 12px | 400    | 1.33        | 阶段 / 轮次            |
+| `{typography.caption-mono}` | 12px | 400    | 1.33        | 阶段 / 栏目标签        |
 
 headline 只在欢迎页。栏标题 600，按钮 500。
 
@@ -393,7 +393,7 @@ headline 只在欢迎页。栏标题 600，按钮 500。
 
 ### Spacing
 
-8px 基准。侧栏内边距 12/6；列表行 28–32px；对话内容列约 748px。
+8px 基准。侧栏内边距 12/6；列表行 28–32px；对话列与输入卡默认 748px，≥1400px 占主栏 60%。
 
 ### Shell
 
@@ -444,7 +444,7 @@ headline 只在欢迎页。栏标题 600，按钮 500。
 
 **`feature-card`** — 用户轻底段落与次级卡；助手正文通栏。
 
-**`badge-mono`** — 阶段、轮次。「N 轮 · M 步」用 `{typography.caption-mono}`，由官方 Transcript 条数派生。
+**`badge-mono`** — 阶段等短标签用 `{typography.caption-mono}`。不在 composer 下展示「N 轮 · M 步」。
 
 **`status-run` / `status-ok`** — 运行与成功：语义橙 / 绿。
 

@@ -6,7 +6,7 @@ pnpm workspace 管理三个包：
 
 - `apps/web/` — Web 前端（Vue 3 + TypeScript + Vite）
 - `apps/desktop/` — Electron 桌面壳（main / preload）
-- `packages/gateway/` — 本地 Gateway（auth / native / pi / server）
+- `packages/gateway/` — 本地 Gateway（auth / pi / server；目录选择端口在 `src/directory.ts`）
 
 ## 2. apps/web/src 分层
 

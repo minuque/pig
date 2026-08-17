@@ -17,7 +17,7 @@ Vue 3 + TypeScript + Vite + Tailwind CSS + shadcn-vue + lucide-vue-next + VueUse
 1. 左栏：已授权 Workspace，以及按 cwd 分组的其它 Pi Session。
 2. 中央：当前 Session 的 Transcript、phase、Prompt、Steer 与 Abort 操作。
 
-Session 切换由 `/sessions/:sessionId` 路由驱动。撤销 Workspace 只修改本地授权偏好，不删除 Pi Session。
+Session 切换由 `/sessions/:sessionId` 路由驱动。
 
 ## 3. 核心旅程
 
@@ -36,20 +36,16 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。撤销 Workspace 只修�
 - **布局**：两栏铺满；≥901px 左栏折叠为 rail（56px，macOS 桌面 90px），移动端左栏为抽屉。无第三栏。
 - **表面**：侧栏默认不透明 `canvas-soft`；桌面窗（darwin/win32）侧栏用 `color-mix(canvas-soft 72%, transparent)` 透出亚克力/vibrancy。对话列始终不透明 `surface`。视觉跟 `DESIGN.md`：浅色冷蓝灰，深色近灰工作台，装饰 sunset/dusk。
 - **桌面壳**：Electron 无原生 File 菜单。macOS hiddenInset，Windows `titleBarStyle: hidden` + caption overlay，Linux 无框。仅侧栏接受原生材质。URL `?pig-desktop-platform=` 只开 drag / 玻璃，浏览器无参数则无铬层。
-- **Transcript**：主列是文档，不是气泡。用户句克制，助手通栏 markstream；工具一行摘要，思考默认折叠。
+- **Transcript**：主列是文档。用户句右对齐自适应胶囊（fit-content，最长约 86%）；助手通栏 markstream（15px / 1.7，代码 14px，表为横线无竖框，行内代码为胶囊）；工具默认 icon+名+摘要一行，有输出时可展开；思考默认折叠。折叠体不挂载正文；工具输出展开最多 32 行视口并虚拟滚动；长助手消息开 markstream 节点虚拟滚动。≥1400px 正文与输入卡同宽，占主栏 60%。
 - **Session 操作**：重命名走 Pi `SessionManager.appendSessionInfo`；删除只删 Pi 会话文件。不自建第二套 Session 库。
-- **计数**：composer 下「N 轮 · M 步」由官方 Transcript 的 user / tool 条数派生，不编造耗时或 token。
 - **模型**：Session 为 `idle` 时可修改；运行中禁用 ModelPicker 与 ThinkingLevelSelect。
 - **Session 列表**：Pi 拥有 Session 真相。已授权目录优先显示，其它 Session 继续按 cwd 显示。行展示标题 + 相对时间，默认展开 lastCwd（否则第一项）。
-- **ChatI**：对话列内绝对贴底 overlay，transcript 通栏滚动；与欢迎页共用 PromptEditor 卡。发送钮用 primary。欢迎页在卡上方选工作区。
+- **ChatInput**：对话列内绝对贴底 overlay，transcript 通栏滚动；与欢迎页共用 PromptEditor 卡。Web 卡用 backdrop-filter 虚化 transcript；桌面因系统亚克力会关掉 CSS 虚化，改为不透底的 `canvas-soft`/`surface` 混合。dock 不铺实底。模型/思考在左，发送圆钮在右用 primary。欢迎页在卡上方选工作区。
 - **Gateway 状态**：正常时不显示常驻指示；连接中不挡欢迎/对话页，只在顶栏给一句状态。错误使用 banner。
 - **启动授权**：启动链接携带 bootstrap secret。同一 secret 在 Gateway 生命周期内重复兑换得到同一凭证；页面兑换成功后清除 URL hash。
 - **关窗**：桌面关窗仍退出并释放 Gateway，不搬托盘驻留。
 
-## 5. Upstream gaps
 
-- 消息重跑与虚拟滚动未实现。官方协议具备稳定契约后再接入，不建立第二套状态。
-
-## 6. 浏览器验收
+## 5. 浏览器验收
 
 浏览器验收交给用户；除非用户明确要求，否则不启动服务。

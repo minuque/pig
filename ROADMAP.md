@@ -144,26 +144,26 @@ pig/
 UI 直接使用官方类型，不再声明 pig 版 `PiClient`：
 
 ```ts
-import { PiClient, type ByteTransportFactory } from "@earendil-works/pi-client"
-import { RemoteSession } from "@earendil-works/pi-coding-agent/client"
+import { PiClient, type ByteTransportFactory } from "@earendil-works/pi-client";
+import { RemoteSession } from "@earendil-works/pi-coding-agent/client";
 import type {
   ModelRef,
   SessionMetadata,
   SessionSnapshot,
   ThinkingLevel,
   TranscriptItem,
-} from "@earendil-works/pi-protocol"
+} from "@earendil-works/pi-protocol";
 ```
 
 职责如下：
 
-| 模块 | 职责 |
-| --- | --- |
-| `PiClient` | 连接、重连、Session 列表、创建和附加 Session |
-| `RemoteSession` | 打开/创建当前 Session、提交输入、Abort、切换 Model/Thinking、维护 Transcript 投影 |
-| `ByteTransportFactory` | 将浏览器 WebSocket 适配为有序二进制传输 |
-| `SessionSnapshot` | 当前 Session 的权威状态、phase、model、thinking 和 transcript |
-| `ServerSnapshot` | Session metadata 与可用模型目录 |
+| 模块                   | 职责                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `PiClient`             | 连接、重连、Session 列表、创建和附加 Session                                      |
+| `RemoteSession`        | 打开/创建当前 Session、提交输入、Abort、切换 Model/Thinking、维护 Transcript 投影 |
+| `ByteTransportFactory` | 将浏览器 WebSocket 适配为有序二进制传输                                           |
+| `SessionSnapshot`      | 当前 Session 的权威状态、phase、model、thinking 和 transcript                     |
+| `ServerSnapshot`       | Session metadata 与可用模型目录                                                   |
 
 `RemoteSession.submit(text)` 在 `idle` 时发送 prompt，在 `turn` 时发送 steer。UI 不再维护独立的 Run 或 Steer 路径。
 
@@ -175,26 +175,26 @@ Host 使用官方 `PiServer`，只实现 `PiServerService` adapter：
 
 ```ts
 interface PiServerService {
-  listSessions(): Promise<SessionMetadata[]>
-  listModels(): Promise<ModelMetadata[]>
-  createSession(options: CreateSessionOptions): Promise<PiSessionRuntime>
-  openSession(sessionId: string): Promise<PiSessionRuntime>
+  listSessions(): Promise<SessionMetadata[]>;
+  listModels(): Promise<ModelMetadata[]>;
+  createSession(options: CreateSessionOptions): Promise<PiSessionRuntime>;
+  openSession(sessionId: string): Promise<PiSessionRuntime>;
 }
 ```
 
 最薄映射：
 
-| PiServer 操作 | Pi SDK 调用 |
-| --- | --- |
-| `listSessions` | `SessionManager.listAll()` |
-| `listModels` | `ModelRuntime.getAvailable()` |
-| `createSession` | `SessionManager.create(..., { id })` + `createAgentSession()` |
-| `openSession` | 按 ID 查找 Session path + `SessionManager.open()` + `createAgentSession()` |
-| `prompt` | `AgentSession.prompt()` |
-| `steer` | `AgentSession.steer()` |
-| `abort` | `AgentSession.abort()` |
-| `setModel` | `ModelRuntime.getModel()` + `AgentSession.setModel()` |
-| `setThinking` | `AgentSession.setThinkingLevel()` |
+| PiServer 操作   | Pi SDK 调用                                                                |
+| --------------- | -------------------------------------------------------------------------- |
+| `listSessions`  | `SessionManager.listAll()`                                                 |
+| `listModels`    | `ModelRuntime.getAvailable()`                                              |
+| `createSession` | `SessionManager.create(..., { id })` + `createAgentSession()`              |
+| `openSession`   | 按 ID 查找 Session path + `SessionManager.open()` + `createAgentSession()` |
+| `prompt`        | `AgentSession.prompt()`                                                    |
+| `steer`         | `AgentSession.steer()`                                                     |
+| `abort`         | `AgentSession.abort()`                                                     |
+| `setModel`      | `ModelRuntime.getModel()` + `AgentSession.setModel()`                      |
+| `setThinking`   | `AgentSession.setThinkingLevel()`                                          |
 
 Adapter 只将 Pi SDK 状态和事件映射为官方 `SessionSnapshot` / `TranscriptProgress`，不得产生 Pig Event 或 Pig Run 状态。
 
@@ -202,19 +202,19 @@ WebSocket listener 必须在交给 `PiServer` 前完成认证，并限制 frame 
 
 ## 7. 删除与替换
 
-| 现有设计 | 处理方式 |
-| --- | --- |
-| `RunsApplication`、`RunScheduler`、`RunStateMachine`、`RunRepository` | 删除。 |
-| `UiRun`、`RunStatus`、Run ID、Run recovery | 删除。工作状态使用 `SessionSnapshot.phase`。 |
-| `SSEEventEnvelope`、sequence、gap recovery | 删除。由官方 PiClient 和 Snapshot 处理连接恢复。 |
-| `run.output.delta`、`run.thinking.delta`、`run.tool.*` | 删除。改用官方 Transcript types 和 progress。 |
-| `ModelPreset` | 删除。改用 `ModelRef + ThinkingLevel`。 |
-| `commandId` 与命令去重 Domain | 删除。请求关联由官方 PiClient protocol 处理。 |
-| Pig Session persistence | 删除。Session metadata、ID 和 transcript 以 Pi 为准。 |
-| Workspace Domain | 删除。cwd/project selection 属于 Web platform；授权属于 transport security。 |
-| SQLite Agent metadata | 删除。UI preference 使用简单 UI persistence。 |
-| `useRuns()` | 删除。改为围绕 `RemoteSession` 和 UI projection 的组合式状态。 |
-| 通用 REST/SSE API client | 删除。仅保留 bootstrap、目录选择等 Browser platform 请求。 |
+| 现有设计                                                              | 处理方式                                                                     |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `RunsApplication`、`RunScheduler`、`RunStateMachine`、`RunRepository` | 删除。                                                                       |
+| `UiRun`、`RunStatus`、Run ID、Run recovery                            | 删除。工作状态使用 `SessionSnapshot.phase`。                                 |
+| `SSEEventEnvelope`、sequence、gap recovery                            | 删除。由官方 PiClient 和 Snapshot 处理连接恢复。                             |
+| `run.output.delta`、`run.thinking.delta`、`run.tool.*`                | 删除。改用官方 Transcript types 和 progress。                                |
+| `ModelPreset`                                                         | 删除。改用 `ModelRef + ThinkingLevel`。                                      |
+| `commandId` 与命令去重 Domain                                         | 删除。请求关联由官方 PiClient protocol 处理。                                |
+| Pig Session persistence                                               | 删除。Session metadata、ID 和 transcript 以 Pi 为准。                        |
+| Workspace Domain                                                      | 删除。cwd/project selection 属于 Web platform；授权属于 transport security。 |
+| SQLite Agent metadata                                                 | 删除。UI preference 使用简单 UI persistence。                                |
+| `useRuns()`                                                           | 删除。改为围绕 `RemoteSession` 和 UI projection 的组合式状态。               |
+| 通用 REST/SSE API client                                              | 删除。仅保留 bootstrap、目录选择等 Browser platform 请求。                   |
 
 前端状态流统一为：
 
@@ -243,11 +243,11 @@ ServerSnapshot / SessionSnapshot / TranscriptProgress
 
 **状态：已完成。**
 
-| Task | 主要范围 | 结果 |
-| --- | --- | --- |
-| A — Thin Pi Host | `packages/gateway/**` | 已删除旧应用层和数据库 Domain；Host 使用 PiServerService、AgentSession 与 WebSocket listener。 |
-| B — Web Transport | `apps/web/src/client/**` | 已删除 REST/SSE Agent client；使用官方 PiClient 与 WebSocket ByteTransport。 |
-| C — Pi-native UI | `apps/web/src/app/**`、`features/**`、`components/**` | 已删除 UiRun 和 recovery；使用 RemoteSession、Snapshot 与 TranscriptItem。 |
+| Task              | 主要范围                                              | 结果                                                                                           |
+| ----------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| A — Thin Pi Host  | `packages/gateway/**`                                 | 已删除旧应用层和数据库 Domain；Host 使用 PiServerService、AgentSession 与 WebSocket listener。 |
+| B — Web Transport | `apps/web/src/client/**`                              | 已删除 REST/SSE Agent client；使用官方 PiClient 与 WebSocket ByteTransport。                   |
+| C — Pi-native UI  | `apps/web/src/app/**`、`features/**`、`components/**` | 已删除 UiRun 和 recovery；使用 RemoteSession、Snapshot 与 TranscriptItem。                     |
 
 ### Phase 2：抽取 UI Core
 
@@ -306,24 +306,6 @@ Pi SDK → PiServer adapter → official Snapshot/Progress → RemoteSession →
 - UI Core 不知道 WebSocket 或 bootstrap 的实现。
 - Web 与 Desktop 只保留各自的 shell 和 `ByteTransportFactory`。
 - 安装新的 Pi Extension 时，pig core 不增加对应 Agent 业务实现。
-
-## 11. 执行要求
-
-修改代码前：
-
-1. 阅读相关实现、调用链和测试。
-2. 标记旧 Agent Gateway 抽象及其调用方。
-3. 核实当前锁定版本的官方 Pi 类型。
-4. 确定本 Task 的最小修改范围后直接实施。
-
-完成后报告：
-
-- 实际完成内容和删除的旧抽象
-- 新调用链与关键文件
-- typecheck、lint 和 test 结果
-- 未完成事项与 upstream gap
-
-如果官方远程栈无法表达某项能力，不要重建复杂 Domain。记录 gap，并等待官方契约或采用最薄的临时兼容方案。
 
 > **最终判断顺序：官方 Pi SDK/Remote Protocol → Pi Extension → UI state → platform concern。**
 >
