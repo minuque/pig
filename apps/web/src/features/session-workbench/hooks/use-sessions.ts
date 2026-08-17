@@ -6,7 +6,7 @@ import type { ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol";
 import {
   projectSessionSnapshot,
   type SessionProjection,
-} from "@features/session-workbench/session-state.js";
+} from "@features/session-workbench/lib/session-state.js";
 
 export interface CreateSessionInput {
   cwd: string;

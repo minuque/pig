@@ -5,7 +5,7 @@ import {
   shouldVirtualizeMarkdown,
   splitLines,
   visibleLineRange,
-} from "@features/session-workbench/expandable-text.js";
+} from "@features/session-workbench/lib/expandable-text.js";
 
 describe("splitLines", () => {
   it("空串没有行", () => {

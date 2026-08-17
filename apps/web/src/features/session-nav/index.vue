@@ -146,7 +146,8 @@
 <script setup lang="ts">
 import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { Folder, FolderOpen, MoreVertical, PanelLeft, Plus } from "lucide-vue-next";
-import { useWorkspace } from "@app/hooks/use-app.js";
+import { useNav } from "@features/session-nav/index.js";
+import { useSession } from "@features/session-workbench/index.js";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -155,7 +156,7 @@ import {
 } from "@components/ui/dropdown-menu/index.js";
 import Mascot from "@features/mascot/index.vue";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
-import { mascotStateFromPhase } from "@features/mascot/presence.js";
+import { mascotStateFromPhase } from "@features/mascot/lib/presence.js";
 import { workspaceName } from "@features/session-nav/types.js";
 
 defineProps<{
@@ -173,17 +174,15 @@ const {
   activeWorkspaceId,
   activeSessionId,
   activeSessionRunning,
-  creating,
   addingWorkspace,
-  sessionError: workspaceError,
-  phase,
+  navError: workspaceError,
   toggleWorkspace,
   addWorkspace,
   revokeWorkspace,
-  createSession,
   renameSession,
   deleteSession,
-} = useWorkspace();
+} = useNav();
+const { creating, phase, createSession } = useSession();
 
 const navBody = useTemplateRef<HTMLElement>("navBody");
 const mascotState = computed(() =>

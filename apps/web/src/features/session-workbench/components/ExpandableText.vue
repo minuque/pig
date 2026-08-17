@@ -24,7 +24,7 @@ import {
   DEFAULT_OVERSCAN_LINES,
   splitLines,
   visibleLineRange,
-} from "@features/session-workbench/expandable-text.js";
+} from "@features/session-workbench/lib/expandable-text.js";
 
 const props = withDefaults(
   defineProps<{
@@ -80,7 +80,7 @@ function onScroll(event: Event) {
   background: var(--canvas-soft);
   color: var(--ink-secondary);
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 12px;
   line-height: 21px;
   white-space: pre;
   tab-size: 2;

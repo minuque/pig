@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { EXPRESSIONS, EXPRESSION_IDS, applyBlink, lerpFace } from "@features/mascot/expressions.js";
+import {
+  EXPRESSIONS,
+  EXPRESSION_IDS,
+  applyBlink,
+  lerpFace,
+} from "@features/mascot/lib/expressions.js";
 import {
   MASCOT_STATES,
   mascotStateFromPhase,
   pickNextExpression,
   randomDuration,
-} from "@features/mascot/presence.js";
-import { UnitSpring } from "@features/mascot/spring.js";
+} from "@features/mascot/lib/presence.js";
+import { UnitSpring } from "@features/mascot/hooks/use-mascot-runtime.js";
 
 describe("mascot presence", () => {
   it("maps Pi phase onto mascot states without inventing extra phases", () => {

@@ -1,9 +1,14 @@
 import { onBeforeUnmount, watch, type Ref } from "vue";
-import { applyBlink, applyGaze, cloneFace, EXPRESSIONS, lerpFace } from "../expressions.js";
-import { paintMascot, readMascotColors } from "../paint.js";
-import { MASCOT_STATES, pickNextExpression, randomDuration } from "../presence.js";
-import { UnitSpring } from "../spring.js";
-import type { ExpressionId, Gaze, MascotState } from "../types.js";
+import {
+  applyBlink,
+  applyGaze,
+  cloneFace,
+  EXPRESSIONS,
+  lerpFace,
+  MASCOT_VIEWBOX,
+} from "../lib/expressions.js";
+import { MASCOT_STATES, pickNextExpression, randomDuration } from "../lib/presence.js";
+import type { ExpressionId, Eye, Face, Gaze, MascotColors, MascotState } from "../types.js";
 
 const BLINK_SECONDS = 0.32;
 
@@ -229,4 +234,95 @@ export function useMascotRuntime(options: {
   });
 
   return { blink: beginBlink };
+}
+
+/** 过阻尼弹簧：0→1 表情过渡，中途改目标时从当前值再出发。 */
+export class UnitSpring {
+  value = 1;
+  velocity = 0;
+
+  constructor(
+    private readonly frequency = 7,
+    private readonly damping = 0.95,
+  ) {}
+
+  start(): void {
+    this.value = 0;
+    this.velocity = 0;
+  }
+
+  get settled(): boolean {
+    return this.value >= 0.999 && Math.abs(this.velocity) < 0.01;
+  }
+
+  step(dt: number): number {
+    if (this.settled) {
+      this.value = 1;
+      this.velocity = 0;
+      return 1;
+    }
+    const omega = this.frequency * Math.PI * 2;
+    const accel = (1 - this.value) * omega * omega - this.velocity * 2 * this.damping * omega;
+    this.velocity += accel * dt;
+    this.value += this.velocity * dt;
+    if (this.value > 1 && this.velocity > 0) {
+      this.value = 1;
+      this.velocity = 0;
+    }
+    return this.value;
+  }
+}
+
+const MASCOT_EYE = "#0f1115";
+
+function readMascotColors(el: HTMLElement): MascotColors {
+  const styles = getComputedStyle(el);
+  const primary = styles.getPropertyValue("--primary").trim() || "#4176e6";
+  return {
+    body: primary,
+    ear: styles.getPropertyValue("--primary-active").trim() || primary,
+    eye: MASCOT_EYE,
+  };
+}
+
+function paintMascot(
+  ctx: CanvasRenderingContext2D,
+  frame: { face: Face; colors: MascotColors; showEars: boolean },
+): void {
+  const { face, colors, showEars } = frame;
+  const size = ctx.canvas.width;
+  ctx.clearRect(0, 0, size, size);
+  ctx.save();
+  ctx.scale(size / MASCOT_VIEWBOX, size / MASCOT_VIEWBOX);
+
+  if (showEars) {
+    fillEllipse(ctx, 30, 26, 11, 13, colors.ear);
+    fillEllipse(ctx, 70, 26, 11, 13, colors.ear);
+  }
+
+  fillEllipse(ctx, 50, 56, 38, 33, colors.body);
+  fillEye(ctx, face.left, colors.eye);
+  fillEye(ctx, face.right, colors.eye);
+
+  ctx.restore();
+}
+
+function fillEllipse(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  fill: string,
+): void {
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
+function fillEye(ctx: CanvasRenderingContext2D, eye: Eye, fill: string): void {
+  const rx = Math.max(0.4, eye.rx);
+  const ry = Math.max(0.35, eye.ry);
+  fillEllipse(ctx, eye.cx, eye.cy, rx, ry, fill);
 }

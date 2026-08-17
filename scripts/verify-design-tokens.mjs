@@ -1,5 +1,5 @@
 /**
- * 验证 apps/web/src/app/app.css 的 :root token 与 DESIGN.md 官方导出一致。
+ * 验证 apps/web/src/style/app.css 的 :root token 与 DESIGN.md 官方导出一致。
  * 用法: pnpm check:design-tokens（根目录）
  * 数据源: designmd export DESIGN.md --format css-tailwind（根 devDependency @google/design.md）
  *
@@ -13,7 +13,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const appCss = resolve(root, "apps/web/src/app/app.css");
+const appCss = resolve(root, "apps/web/src/style/app.css");
 
 const official = execFileSync(
   process.execPath,

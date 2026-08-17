@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SessionMetadata, SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol";
-import { projectSessionSnapshot } from "@features/session-workbench/session-state.js";
-import { projectTranscriptItem } from "@features/session-workbench/transcript-format.js";
+import { projectSessionSnapshot } from "@features/session-workbench/lib/session-state.js";
+import { projectTranscriptItem } from "@features/session-workbench/lib/transcript-format.js";
 import {
   formatRelativeTime,
   groupSessionsByCwd,

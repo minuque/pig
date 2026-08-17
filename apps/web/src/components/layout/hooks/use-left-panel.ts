@@ -1,8 +1,9 @@
 import { onBeforeUnmount, readonly, ref, watch } from "vue";
-import { clampPanelWidth } from "@features/session-workbench/session-state.js";
 
 /** 主内容区最小宽度（px）：侧栏调宽时始终为其保留的空间。 */
 export const CONTENT_MIN_WIDTH = 332;
+
+const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width));
 
 /** 期望宽度按侧栏上下限与视口可用空间裁剪。 */
 export function panelWidthFor(desired: number, viewportWidth: number): number {

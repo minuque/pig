@@ -51,6 +51,14 @@
   </section>
 </template>
 
+<script lang="ts">
+/** markstream measurementKey：版式身份（宽 / 主题 / 字号密度），不是 Session 身份。 */
+export function transcriptMeasurementKey(width: number, theme: "light" | "dark"): string {
+  const column = Number.isFinite(width) ? Math.round(width) : 0;
+  return `${column}:${theme}:doc-v3`;
+}
+</script>
+
 <script setup lang="ts">
 import { useElementSize } from "@vueuse/core";
 import { computed, ref, useTemplateRef, watch } from "vue";
@@ -59,12 +67,11 @@ import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "ma
 import type { SessionPhase, TranscriptItem } from "@earendil-works/pi-protocol";
 import ConversationTurn from "@features/session-workbench/components/ConversationTurn.vue";
 import ToolSummary from "@features/session-workbench/components/ToolSummary.vue";
-import { transcriptMeasurementKey } from "@features/session-workbench/transcript-layout.js";
 import {
   conversationRows,
   type ConversationRow,
   type TranscriptPart,
-} from "@features/session-workbench/transcript-format.js";
+} from "@features/session-workbench/lib/transcript-format.js";
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
 
 const props = defineProps<{

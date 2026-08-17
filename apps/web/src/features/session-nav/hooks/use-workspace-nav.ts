@@ -1,7 +1,8 @@
 import { computed, ref, watch, type Ref } from "vue";
+import type { Router } from "vue-router";
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
 import { errorMessage, platformRequest } from "@client/http.js";
-import type { useLocalWorkspaces } from "@client/workspace.js";
+import type { useLocalWorkspaces } from "@client/local-cwd.js";
 import {
   groupSessionsByCwd,
   initialExpandedWorkspace,
@@ -15,6 +16,11 @@ export function useWorkspaceNav(
   sessions: Ref<readonly SessionMetadata[]>,
   local: LocalWorkspaces,
   error: Ref<string>,
+  admin: {
+    sessionId: Ref<string | undefined>;
+    router: Router;
+    refreshSessions(): Promise<void>;
+  },
 ) {
   const addingWorkspace = ref(false);
   const workspaces = computed(() => localWorkspacesFrom(local.workspaces.value));
@@ -62,6 +68,31 @@ export function useWorkspaceNav(
   function revokeWorkspace(path: string) {
     if (confirm(`从列表中移除 ${workspaceName(path)}？`)) local.remove(path);
   }
+  async function renameSession(id: string, name: string) {
+    error.value = "";
+    try {
+      await platformRequest("/api/v1/platform/rename-session", {
+        method: "POST",
+        body: JSON.stringify({ id, name }),
+      });
+      await admin.refreshSessions();
+    } catch (cause) {
+      error.value = errorMessage(cause);
+    }
+  }
+  async function deleteSession(id: string) {
+    error.value = "";
+    try {
+      await platformRequest("/api/v1/platform/delete-session", {
+        method: "POST",
+        body: JSON.stringify({ id }),
+      });
+      if (admin.sessionId.value === id) await admin.router.replace("/");
+      await admin.refreshSessions();
+    } catch (cause) {
+      error.value = errorMessage(cause);
+    }
+  }
   watch(
     groups,
     (list) => {
@@ -80,5 +111,7 @@ export function useWorkspaceNav(
     toggleWorkspace,
     addWorkspace,
     revokeWorkspace,
+    renameSession,
+    deleteSession,
   };
 }

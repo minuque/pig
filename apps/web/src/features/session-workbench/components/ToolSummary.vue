@@ -26,7 +26,7 @@ import FoldReveal from "@features/session-workbench/components/FoldReveal.vue";
 import {
   toolStatusLabel,
   type TranscriptPart,
-} from "@features/session-workbench/transcript-format.js";
+} from "@features/session-workbench/lib/transcript-format.js";
 
 const props = defineProps<{
   part: Extract<TranscriptPart, { kind: "tool" }>;

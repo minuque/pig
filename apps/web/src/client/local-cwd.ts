@@ -1,6 +1,6 @@
 /**
- * 本地 cwd Workspace preference（Browser platform）。
- * 已授权本地目录列表与最近使用的 cwd 持久化在 localStorage；
+ * 本地 cwd 偏好（Browser platform）。
+ * 已授权目录列表与最近使用的 cwd 持久化在 localStorage；
  * 目录授权属于 transport security，不进入任何 Agent Domain。
  * 平台层只处理 canonicalPath 字符串，展示视图由 features 层映射。
  */

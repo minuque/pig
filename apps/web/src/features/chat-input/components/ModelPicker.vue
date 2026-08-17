@@ -76,7 +76,7 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
 import VendorMark from "@features/chat-input/components/VendorMark.vue";
-import { filterCatalog, resolveModelInfo } from "@features/chat-input/model-preset.js";
+import { filterCatalog, resolveModelInfo } from "@features/chat-input/lib/model-preset.js";
 
 const props = withDefaults(
   defineProps<{

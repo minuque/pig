@@ -8,7 +8,7 @@ import {
   saveLastCwd,
   saveLocalWorkspaces,
   type WorkspaceStorage,
-} from "@client/workspace.js";
+} from "@client/local-cwd.js";
 
 const STORAGE = new Map<string, string>();
 const storage: WorkspaceStorage = {

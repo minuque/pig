@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { nextTick, ref } from "vue";
 import type { ChatInputPreset, ChatInputVendor } from "@features/chat-input/types.js";
-import {
-  filterCatalog,
-  resolveModelInfo,
-  useModelPresetBinding,
-} from "@features/chat-input/model-preset.js";
+import { filterCatalog, resolveModelInfo } from "@features/chat-input/lib/model-preset.js";
+import { useModelPresetBinding } from "@features/chat-input/hooks/use-model-preset-binding.js";
 
 const catalog: ChatInputVendor[] = [
   {

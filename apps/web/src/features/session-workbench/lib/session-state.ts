@@ -8,8 +8,6 @@ import type {
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
 import { UNTITLED_SESSION } from "@features/session-nav/types.js";
 
-export const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width));
-
 /** 每 Session 的 UI 私有状态（草稿、滚动位置恢复），不进入任何 Agent Domain。 */
 export interface SessionClientState {
   draft: string;

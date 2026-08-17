@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { transcriptMeasurementKey } from "@features/session-workbench/transcript-layout.js";
+import { transcriptMeasurementKey } from "@features/session-workbench/components/TranscriptView.vue";
 
 describe("transcriptMeasurementKey", () => {
   it("binds layout identity, not a Session id", () => {

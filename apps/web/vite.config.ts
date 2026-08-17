@@ -54,7 +54,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
-      "@app": fileURLToPath(new URL("./src/app", import.meta.url)),
+      "@style": fileURLToPath(new URL("./src/style", import.meta.url)),
       "@components": fileURLToPath(new URL("./src/components", import.meta.url)),
       "@features": fileURLToPath(new URL("./src/features", import.meta.url)),
       "@client": fileURLToPath(new URL("./src/client", import.meta.url)),

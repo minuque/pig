@@ -4,7 +4,7 @@ import {
   conversationRows,
   projectTranscriptItem,
   toolStatusLabel,
-} from "@features/session-workbench/transcript-format.js";
+} from "@features/session-workbench/lib/transcript-format.js";
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
   return {

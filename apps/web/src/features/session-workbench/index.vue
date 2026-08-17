@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
 import ChatInput from "@features/chat-input/index.vue";
-import { useWorkspace } from "@app/hooks/use-app.js";
+import { useSession } from "@features/session-workbench/index.js";
 import TranscriptView from "@features/session-workbench/components/TranscriptView.vue";
 
 const {
@@ -51,7 +51,7 @@ const {
   queuedSteerCount,
   sessionError,
   submitText,
-} = useWorkspace();
+} = useSession();
 
 const dock = useTemplateRef<HTMLElement>("dock");
 const dockHeight = shallowRef(168);

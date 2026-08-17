@@ -27,8 +27,8 @@
 import MarkdownRender from "markstream-vue";
 import { computed } from "vue";
 import FoldReveal from "@features/session-workbench/components/FoldReveal.vue";
-import { shouldVirtualizeMarkdown } from "@features/session-workbench/expandable-text.js";
-import type { TranscriptPart } from "@features/session-workbench/transcript-format.js";
+import { shouldVirtualizeMarkdown } from "@features/session-workbench/lib/expandable-text.js";
+import type { TranscriptPart } from "@features/session-workbench/lib/transcript-format.js";
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
 
 const props = withDefaults(

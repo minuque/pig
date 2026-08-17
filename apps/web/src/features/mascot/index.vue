@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { computed, ref, toRef, useTemplateRef } from "vue";
-import { clamp } from "./expressions.js";
+import { clamp } from "./lib/expressions.js";
 import { useMascotRuntime } from "./hooks/use-mascot-runtime.js";
 import type { Gaze, MascotState } from "./types.js";
 

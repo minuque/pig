@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { bootstrapFromUrl, persistCredential, restoreCredential } from "@client/http.js";
+import { bootstrapFromUrl, persistCredential, restoreCredential } from "@client/bootstrap.js";
 
 const store = new Map<string, string>();
 

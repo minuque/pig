@@ -72,7 +72,7 @@ import type { SessionPhase } from "@earendil-works/pi-protocol";
 import ModelPicker from "@features/chat-input/components/ModelPicker.vue";
 import ThinkingLevelSelect from "@features/chat-input/components/ThinkingLevelSelect.vue";
 import PromptEditor from "@features/chat-input/components/PromptEditor.vue";
-import { useModelPresetBinding } from "@features/chat-input/model-preset.js";
+import { useModelPresetBinding } from "@features/chat-input/hooks/use-model-preset-binding.js";
 import type { ChatInputPreset, ChatInputVendor } from "@features/chat-input/types.js";
 import SessionControlBar from "@features/session-workbench/components/SessionControlBar.vue";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js";

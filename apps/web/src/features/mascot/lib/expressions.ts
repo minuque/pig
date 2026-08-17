@@ -1,4 +1,4 @@
-import type { ExpressionId, Eye, Face } from "./types.js";
+import type { ExpressionId, Eye, Face } from "../types.js";
 
 /** 逻辑画布边长。绘制时再映射到像素。 */
 export const MASCOT_VIEWBOX = 100;

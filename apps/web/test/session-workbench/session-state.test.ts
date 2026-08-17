@@ -1,20 +1,14 @@
 import { computed, reactive } from "vue";
 import { describe, expect, it } from "vitest";
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
-import { clampPanelWidth, sessionState } from "@features/session-workbench/session-state.js";
-import type { SessionClientState } from "@features/session-workbench/session-state.js";
+import { sessionState } from "@features/session-workbench/lib/session-state.js";
+import type { SessionClientState } from "@features/session-workbench/lib/session-state.js";
 
 function mockThreadState(threadKey = "s"): MarkstreamThreadVirtualState {
   return { threadKey, itemHeights: {}, markdownStates: {} };
 }
 
 describe("workbench state", () => {
-  it("clamps panel widths", () => {
-    expect(clampPanelWidth(100)).toBe(240);
-    expect(clampPanelWidth(340)).toBe(340);
-    expect(clampPanelWidth(600)).toBe(420);
-  });
-
   it("keeps thread state isolated by session", () => {
     const states = new Map();
     const first = sessionState(states, "session-a");

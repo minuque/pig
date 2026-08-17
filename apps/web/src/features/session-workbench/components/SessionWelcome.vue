@@ -63,7 +63,8 @@ export function canSubmit(
 <script setup lang="ts">
 import { computed } from "vue";
 import { ChevronDown, Folder } from "lucide-vue-next";
-import { useWorkspace } from "@app/hooks/use-app.js";
+import { useNav } from "@features/session-nav/index.js";
+import { useSession } from "@features/session-workbench/index.js";
 import ChatInput from "@features/chat-input/index.vue";
 import Mascot from "@features/mascot/index.vue";
 import {
@@ -75,7 +76,8 @@ import {
 import { useWelcomeSubmit } from "@features/session-workbench/hooks/use-welcome-submit.js";
 import { workspaceName } from "@features/session-nav/types.js";
 
-const { workspaces, catalog, lastCwd, preset, createSession, submitText } = useWorkspace();
+const { workspaces, lastCwd } = useNav();
+const { catalog, preset, createSession, submitText } = useSession();
 const { welcomePrompt, welcomeWorkspaceId, welcomeSubmitting, welcomeError, submitWelcome } =
   useWelcomeSubmit({
     workspaces,

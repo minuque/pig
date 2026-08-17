@@ -1,5 +1,5 @@
 import type { SessionPhase } from "@earendil-works/pi-protocol";
-import type { MascotSpec, MascotState } from "./types.js";
+import type { MascotSpec, MascotState } from "../types.js";
 
 export const MASCOT_STATES: Record<MascotState, MascotSpec> = {
   idle: {

@@ -5,7 +5,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "paths": {
       "@/*": ["apps/web/src/*"],
-      "@app/*": ["apps/web/src/app/*"],
+      "@style/*": ["apps/web/src/style/*"],
       "@components/*": ["apps/web/src/components/*"],
       "@features/*": ["apps/web/src/features/*"],
       "@client/*": ["apps/web/src/client/*"],
