@@ -227,21 +227,20 @@ function scrollToPinnedUser() {
 }
 .user-pin {
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
+  top: var(--spacing-sm);
+  right: max(0px, calc((100% - min(var(--size-content), 100%)) / 2));
   z-index: 1;
   box-sizing: border-box;
-  width: min(var(--size-content), 100%);
-  margin-inline: auto;
-  padding: 6px 12px;
+  width: fit-content;
+  max-width: min(40rem, 86%, var(--size-content));
+  margin: 0;
+  padding: 8px 14px;
   overflow: hidden;
   border: 0;
-  border-bottom: var(--border-width) solid var(--hairline);
-  border-radius: 0;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  color: var(--ink-secondary);
-  font-size: var(--text-caption);
+  border-radius: var(--radius-xl);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: var(--text-body-md);
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
