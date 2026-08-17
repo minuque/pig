@@ -6,9 +6,13 @@
     :aria-labelledby="transcriptTitleId"
   >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
-    <button>
-      v-if="pinText" class="user-pin" type="button" :aria-label="`回到用户句：${pinText}`"
-      @click="scrollToPinnedUser" >
+    <button
+      v-if="pinText"
+      class="user-pin"
+      type="button"
+      :aria-label="`回到用户句：${pinText}`"
+      @click="scrollToPinnedUser"
+    >
       {{ pinText }}
     </button>
     <MarkstreamVirtualTimeline
