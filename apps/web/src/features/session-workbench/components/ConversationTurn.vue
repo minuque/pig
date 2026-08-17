@@ -1,29 +1,21 @@
 <template>
   <article class="turn">
     <div v-if="part.kind === 'user'" class="turn-user">
-      <span class="turn-label">你</span>
       <p class="turn-prompt">{{ part.text }}</p>
     </div>
     <div v-else class="turn-agent">
-      <div v-if="part.thinking.length" class="fold">
-        <button
-          type="button"
-          class="fold-toggle"
-          :aria-expanded="thinkingOpen"
-          @click="thinkingOpen = !thinkingOpen"
-        >
-          <span class="fold-caret" aria-hidden="true">▸</span>
-          思考过程
-        </button>
-        <div class="reveal" :data-open="thinkingOpen">
-          <div class="fold-clip">
-            <div class="fold-body thinking-body">
-              <p v-for="(block, i) in part.thinking" :key="i">{{ block }}</p>
-            </div>
-          </div>
+      <FoldReveal v-if="part.thinking.length">
+        <template #summary>思考过程</template>
+        <div class="fold-body thinking-body">
+          <MarkdownRender
+            v-for="(block, i) in part.thinking"
+            :key="i"
+            v-bind="thinkProps"
+            :content="block"
+          />
         </div>
-      </div>
-      <MarkdownRender v-if="part.text" v-bind="chatMarkdownProps(streaming)" :content="part.text" />
+      </FoldReveal>
+      <MarkdownRender v-if="part.text" v-bind="markdownProps" :content="part.text" />
       <span v-if="part.status === 'error' || part.status === 'aborted'" class="turn-status">
         {{ part.status === "error" ? "出错" : "已中止" }}
       </span>
@@ -31,79 +23,102 @@
   </article>
 </template>
 
-<script lang="ts">
-/** 同一条 chat 行保持 mode=chat；只切换节奏，避免切 docs 重排。 */
-export function chatMarkdownProps(streaming: boolean) {
-  return {
-    customId: "chat",
-    mode: "chat" as const,
-    codeRenderer: "pre" as const,
-    htmlPolicy: "safe" as const,
-    final: !streaming,
-    smoothStreaming: streaming ? ("auto" as const) : false,
-    typewriter: streaming ? ("simple" as const) : false,
-    fade: false,
-  };
-}
-</script>
-
 <script setup lang="ts">
 import MarkdownRender from "markstream-vue";
-import { shallowRef } from "vue";
+import { computed } from "vue";
+import FoldReveal from "@features/session-workbench/components/FoldReveal.vue";
+import { shouldVirtualizeMarkdown } from "@features/session-workbench/expandable-text.js";
 import type { TranscriptPart } from "@features/session-workbench/transcript-format.js";
+import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     part: Extract<TranscriptPart, { kind: "user" | "agent" }>;
+    itemId?: string;
     /** 当前条目正在流式输出 */
     streaming?: boolean;
   }>(),
-  { streaming: false },
+  { itemId: "", streaming: false },
 );
 
-const thinkingOpen = shallowRef(false);
+const { isDark } = useColorScheme();
+// 同一条 chat 行保持 mode=chat，只切换节奏，避免切 docs 重排；完成态才设 nodeVirtual。
+const markdownProps = computed(() => {
+  const shared = {
+    customId: "chat",
+    mode: "chat",
+    codeRenderer: "monaco",
+    fade: false,
+    isDark: isDark.value,
+    codeBlockProps: {
+      showHeader: true,
+      showCopyButton: true,
+      showCollapseButton: true,
+      showExpandButton: true,
+    },
+  } as const;
+  if (props.streaming) {
+    return { ...shared, typewriter: "simple", smoothStreaming: "auto" } as const;
+  }
+  const long = shouldVirtualizeMarkdown(props.part.kind === "agent" ? props.part.text : "");
+  return {
+    ...shared,
+    final: true,
+    typewriter: false,
+    smoothStreaming: false,
+    nodeVirtual: "auto",
+    ...(long && props.itemId
+      ? {
+          maxLiveNodes: 48,
+          virtualScroll: { enabled: true as const, sessionKey: `msg:${props.itemId}` },
+        }
+      : {}),
+  } as const;
+});
+// 思考块最小直配：minimal 模式默认 fade=false、maxLiveNodes=0，只需关节奏。
+const thinkProps = computed(
+  () =>
+    ({
+      customId: "chat",
+      mode: "minimal",
+      codeRenderer: "pre",
+      final: true,
+      typewriter: false,
+      smoothStreaming: false,
+      isDark: isDark.value,
+    }) as const,
+);
 </script>
 
 <style scoped>
 .turn {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 .turn-user {
-  display: grid;
-  gap: var(--spacing-xxs);
-}
-.turn-label {
-  color: var(--ink-muted);
-  font-size: var(--text-caption);
+  display: flex;
+  justify-content: flex-end;
 }
 .turn-prompt {
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: min(40rem, 86%);
+  max-height: calc(1.5em * 16);
   margin: 0;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  overflow: auto;
+  border-radius: var(--radius-xl);
   background: var(--canvas-soft);
-  color: var(--ink-secondary);
+  color: var(--ink);
   font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
+  line-height: 1.5;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
 .turn-agent {
-  padding: var(--spacing-xs) 0;
+  padding: 2px 0;
   color: var(--ink);
-  font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
-}
-.reveal {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--duration-normal) var(--ease-smooth);
-}
-.reveal[data-open="true"] {
-  grid-template-rows: 1fr;
-}
-.fold-clip {
-  overflow: hidden;
-  min-height: 0;
+  font-size: 15px;
+  line-height: 1.7;
 }
 .turn-status {
   display: inline-block;
@@ -115,48 +130,17 @@ const thinkingOpen = shallowRef(false);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
 }
-.fold {
-  margin-bottom: var(--spacing-xxs);
-}
-.fold-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  min-height: 0;
-  padding: var(--spacing-xxs) 0;
-  background: transparent;
-  color: var(--ink-muted);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-}
-.fold-toggle:hover {
-  color: var(--ink);
-}
-.fold-caret {
-  display: inline-block;
-  font-size: 10px;
-  transition: transform var(--duration-fast) var(--ease-smooth);
-}
-.fold-toggle[aria-expanded="true"] .fold-caret {
-  transform: rotate(90deg);
-}
 .fold-body {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-left: 2px solid var(--hairline);
+  padding: 2px 0 4px 22px;
 }
-.thinking-body p {
+.thinking-body :deep(p) {
   margin: 0 0 var(--spacing-xs);
   color: var(--ink-muted);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-caption);
+  line-height: 1.55;
   white-space: pre-wrap;
 }
-.thinking-body p:last-child {
+.thinking-body > :last-child :deep(p:last-child) {
   margin-bottom: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .fold-caret {
-    transition: none;
-  }
 }
 </style>

@@ -8,6 +8,7 @@
         :aria-label="`思考强度：${label}`"
       >
         <span class="level-name">{{ label }}</span>
+        <ChevronDown :size="12" aria-hidden="true" />
       </button>
     </DropdownMenuTrigger>
 
@@ -36,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { Check } from "lucide-vue-next";
+import { Check, ChevronDown } from "lucide-vue-next";
 import { computed } from "vue";
 import {
   DropdownMenu,

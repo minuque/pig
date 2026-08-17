@@ -10,10 +10,8 @@
       :session-id="sessionId"
       :transcript="transcript"
       :phase="phase"
-      :scroll-top="clientState?.scrollTop ?? 0"
-      :following="clientState?.following ?? true"
-      :has-new-activity="clientState?.hasNewActivity ?? false"
-      @scroll-state="applyScrollState"
+      :thread-state="clientState?.threadState ?? null"
+      @thread-state="applyThreadState"
     />
 
     <div ref="dock" class="chat-input-dock">
@@ -34,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
+import { onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
 import ChatInput from "@features/chat-input/index.vue";
 import { useWorkspace } from "@app/hooks/use-app.js";
 import TranscriptView from "@features/session-workbench/components/TranscriptView.vue";
@@ -46,7 +44,7 @@ const {
   aborting,
   clientState,
   abortSession,
-  applyScrollState,
+  applyThreadState,
   prompt,
   preset,
   catalog,
@@ -91,17 +89,12 @@ onBeforeUnmount(() => dockObserver?.disconnect());
   bottom: 0;
   z-index: 2;
   padding: 32px var(--spacing-md) 10px;
-  background: linear-gradient(
-    to top,
-    var(--surface) 0 46%,
-    color-mix(in srgb, var(--surface) 72%, transparent) 72%,
-    transparent
-  );
+  background: transparent;
   pointer-events: none;
 }
-.chat-input-dock > * {
+.chat-input-dock :deep(.prompt) {
   pointer-events: auto;
-  width: min(var(--size-content), 100%);
+  width: min(var(--size-composer), 100%);
   margin-inline: auto;
 }
 .enter-blur {

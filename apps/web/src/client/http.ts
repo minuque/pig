@@ -39,7 +39,11 @@ function clearBootstrapHash(): void {
 /** 从 `#bootstrap=<secret>` 片段兑换本地服务凭证；无片段时不执行任何操作。 */
 export async function bootstrapFromUrl(): Promise<void> {
   const hash = new URLSearchParams(location.hash.slice(1));
-  const secret = hash.get("bootstrap");
+  // dev 下无 `#bootstrap` hash 时用注入的 secret 自动授权，避免直接打开 5173 报"请求失败"
+  const secret =
+    hash.get("bootstrap") ??
+    (import.meta.env.DEV ? import.meta.env.VITE_BOOTSTRAP_SECRET : undefined) ??
+    null;
   if (!secret) return;
 
   const response = await fetch(BOOTSTRAP_PATH, {

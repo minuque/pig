@@ -52,7 +52,7 @@ export function spawnVite(env: { GATEWAY_TARGET: string }): ChildProcess {
   const node = nodeExecutable();
   const pnpm = pnpmExecutable();
 
-  // 不传 BOOTSTRAP_SECRET：vite.config 有该变量时会 open 系统浏览器
+  // 不传 BOOTSTRAP_SECRET：桌面壳自己走 Gateway 授权，避免注入到 Vite define
   const childEnv: NodeJS.ProcessEnv = { ...process.env };
   childEnv.GATEWAY_TARGET = env.GATEWAY_TARGET;
   delete childEnv.BOOTSTRAP_SECRET;

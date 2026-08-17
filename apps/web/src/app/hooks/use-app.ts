@@ -18,10 +18,10 @@ import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-b
 import { useRemoteSessions } from "@features/session-workbench/hooks/use-sessions.js";
 import { useSessionRoute } from "@features/session-workbench/hooks/use-session-route.js";
 import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js";
+import type { MarkstreamThreadVirtualState } from "markstream-vue";
 import {
   sessionState,
   type SessionClientState,
-  type TranscriptScrollState,
 } from "@features/session-workbench/session-state.js";
 
 const RECONNECT_ATTEMPTS = 5;
@@ -69,12 +69,10 @@ function createWorkspace() {
       if (clientState.value) clientState.value.draft = value;
     },
   });
-  function applyScrollState(scroll: TranscriptScrollState) {
+  function applyThreadState(threadState: MarkstreamThreadVirtualState) {
     const state = clientState.value;
     if (!state) return;
-    state.scrollTop = scroll.scrollTop;
-    state.following = scroll.following;
-    state.hasNewActivity = scroll.hasNewActivity;
+    state.threadState = threadState;
   }
 
   const phase = computed(() => projection.value?.phase);
@@ -248,7 +246,7 @@ function createWorkspace() {
     deleteSession,
     submitText,
     abortSession,
-    applyScrollState,
+    applyThreadState,
     lastCwd: local.lastCwd,
   };
 }

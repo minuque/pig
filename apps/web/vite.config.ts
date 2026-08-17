@@ -9,6 +9,8 @@ const gatewayTarget = process.env.GATEWAY_TARGET;
 const bootstrapSecret = process.env.BOOTSTRAP_SECRET;
 // 给客户端：Pi WebSocket 直连 Gateway，不经 Vite 的 WS 代理
 if (gatewayTarget) process.env.VITE_GATEWAY_TARGET = gatewayTarget;
+// dev 下暴露 bootstrap secret，无凭证访问时自动跳转启动链接完成授权
+if (bootstrapSecret) process.env.VITE_BOOTSTRAP_SECRET = bootstrapSecret;
 
 export default defineConfig({
   plugins: [
@@ -17,10 +19,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        // markstream / mermaid / shiki 主包超过 Workbox 默认 2 MiB，不抬上限则 vite build 失败
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
+      },
       manifest: {
         name: "pig",
         short_name: "pig",
-        description: "AI 对话工作台",
+        description: "",
         lang: "zh-CN",
         theme_color: "#18181b",
         background_color: "#ffffff",
@@ -61,7 +67,7 @@ export default defineConfig({
     // 固定端口,方便 VSCode Chrome 调试;strictPort 防止被静默换端口后断点失效
     port: 5173,
     strictPort: true,
-    open: bootstrapSecret ? `/#bootstrap=${encodeURIComponent(bootstrapSecret)}` : false,
+    open: false,
     ...(gatewayTarget
       ? {
           // 只反代 HTTP。ws:true 时 Gateway 对未授权 upgrade 回 401，

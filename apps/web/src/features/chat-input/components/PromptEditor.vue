@@ -1,6 +1,8 @@
 <template>
   <div class="frame">
-    <slot name="chips" />
+    <div v-if="$slots.chips" class="chips">
+      <slot name="chips" />
+    </div>
     <div class="editor-wrap">
       <div
         ref="editor"
@@ -38,7 +40,7 @@ export function shouldSubmitOnKeydown(e: {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -119,19 +121,50 @@ defineExpose({ focus });
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px 10px;
-  background: color-mix(in srgb, var(--ink) 7%, var(--surface));
-  border: 0;
-  border-radius: 16px;
-  box-shadow: none;
+  /* Web 毛玻璃：isolation/overflow 会让 backdrop 采不到 transcript。桌面不透底见 app.css */
+  background: color-mix(in srgb, var(--canvas-soft) 78%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--primary) 34%, var(--hairline));
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 22%, transparent),
+    0 0 24px color-mix(in srgb, var(--primary) 16%, transparent);
+  transition:
+    border-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth);
 }
-.frame:has(.chips) {
-  padding-top: 12px;
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.frame:focus-within {
+  border-color: color-mix(in srgb, var(--primary) 48%, var(--hairline));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent),
+    0 0 28px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .frame {
+    background: var(--canvas-soft);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 14px 0;
+}
 .editor-wrap {
   position: relative;
+  padding: 14px 16px 10px;
 }
 .field {
   position: relative;
@@ -142,8 +175,8 @@ defineExpose({ focus });
   color: var(--ink);
   font: inherit;
   font-size: var(--text-body-md);
-  line-height: 20px;
-  min-height: 36px;
+  line-height: 1.5;
+  min-height: 44px;
   max-height: 160px;
   overflow-y: auto;
   white-space: pre-wrap;
@@ -162,8 +195,7 @@ defineExpose({ focus });
   position: absolute;
   top: 0;
   left: 0;
-  color: var(--ink);
-  opacity: 0.5;
+  color: var(--ink-faint);
   pointer-events: none;
 }
 
@@ -172,16 +204,26 @@ defineExpose({ focus });
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  min-height: 44px;
+  padding: 6px 10px 8px 10px;
+  border-top: var(--border-width) solid var(--hairline);
 }
 .left {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   min-width: 0;
 }
 .right {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame {
+    transition: none;
+  }
 }
 </style>

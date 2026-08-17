@@ -103,7 +103,7 @@ const chipLabel = computed(() =>
 }
 .welcome-form {
   /* 与非 bare ChatInput 同宽，chat-input 卡本身由 PromptEditor 提供 */
-  width: min(var(--size-content), 100%);
+  width: min(var(--size-composer), 100%);
 }
 .welcome-mascot {
   display: grid;

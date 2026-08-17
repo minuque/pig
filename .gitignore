@@ -153,6 +153,8 @@ test-results/
 .claude/
 .worktrees/
 .codegraph/
+.agents/
+.diagram-design/
 skills-lock.json
 sessions.jsonl
 
@@ -160,6 +162,3 @@ sessions.jsonl
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
-
-# Local agents config
-.agents/

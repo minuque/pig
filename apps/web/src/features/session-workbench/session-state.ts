@@ -5,51 +5,23 @@ import type {
   SessionSnapshot,
   ThinkingLevel,
 } from "@earendil-works/pi-protocol";
+import type { MarkstreamThreadVirtualState } from "markstream-vue";
 import { UNTITLED_SESSION } from "@features/session-nav/types.js";
 
 export const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width));
 
-export function isNearBottom(
-  scrollTop: number,
-  clientHeight: number,
-  scrollHeight: number,
-  threshold = 80,
-) {
-  return scrollHeight - scrollTop - clientHeight <= threshold;
-}
-
-/** 每 Session 的 UI 私有状态（草稿、滚动、跟随），不进入任何 Agent Domain。 */
+/** 每 Session 的 UI 私有状态（草稿、滚动位置恢复），不进入任何 Agent Domain。 */
 export interface SessionClientState {
   draft: string;
-  scrollTop: number;
-  following: boolean;
-  hasNewActivity: boolean;
-}
-
-// TranscriptView 通过该类型化契约上报滚动状态，唯一所有者（App 层）负责写入
-// SessionClientState 对应字段；TranscriptView 只读 props、只发事件
-export interface TranscriptScrollState {
-  scrollTop: number;
-  following: boolean;
-  hasNewActivity: boolean;
-}
-
-// 由滚动事件推导快照：贴底视为跟随并清除新活动提示，否则保留原提示
-export function scrollStateFrom(
-  scrollTop: number,
-  clientHeight: number,
-  scrollHeight: number,
-  previousHasNewActivity: boolean,
-): TranscriptScrollState {
-  const following = isNearBottom(scrollTop, clientHeight, scrollHeight);
-  return { scrollTop, following, hasNewActivity: following ? false : previousHasNewActivity };
+  /** 上次离开会话时的虚拟滚动状态（滚动锚点 + 行高缓存），切回时恢复 */
+  threadState: MarkstreamThreadVirtualState | null;
 }
 
 export function sessionState(states: Map<string, SessionClientState>, sessionId: string) {
   let state = states.get(sessionId);
   if (!state) {
-    // reactive：draft/滚动等属性写入必须被响应式追踪（如 draft 清空后 PromptEditor 同步）
-    state = reactive({ draft: "", scrollTop: 0, following: true, hasNewActivity: false });
+    // reactive：draft/threadState 等属性写入必须被响应式追踪（如 draft 清空后 PromptEditor 同步）
+    state = reactive({ draft: "", threadState: null });
     states.set(sessionId, state);
   }
   return state;

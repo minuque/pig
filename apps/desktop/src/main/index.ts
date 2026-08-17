@@ -2,18 +2,20 @@ import { randomUUID } from "node:crypto";
 import { access } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { ChildProcess } from "node:child_process";
-import { app, dialog, Menu } from "electron";
+import { app, dialog, Menu, type BrowserWindow } from "electron";
 
 // gateway 的 package exports 指向 dist，开发时可能没有
 import Gateway from "../../../../packages/gateway/src/index.js";
 import { VITE_DEV_ORIGIN, bootstrapAppUrl, gatewayOrigin, isDesktopDev } from "./urls.js";
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js";
+import { createElectronDirectoryPort } from "./directory-port.js";
 import { createMainWindow } from "./window.js";
 
 const PRELOAD_PATH = fileURLToPath(new URL("../preload/index.js", import.meta.url));
 
 let gateway: Gateway | undefined;
 let vite: ChildProcess | undefined;
+let mainWindow: BrowserWindow | undefined;
 let stopping = false;
 
 async function shutdown(): Promise<void> {
@@ -65,6 +67,11 @@ void app.whenReady().then(async () => {
     gateway = new Gateway({
       bootstrapSecret: secret,
       bootstrapTtlMs: Number.POSITIVE_INFINITY,
+      platformPort: createElectronDirectoryPort(
+        () => mainWindow,
+        (parent, options) =>
+          parent ? dialog.showOpenDialog(parent, options) : dialog.showOpenDialog(options),
+      ),
       ...(webRoot ? { webRoot } : {}),
     });
     const port = await gateway.start();
@@ -74,9 +81,9 @@ void app.whenReady().then(async () => {
       await waitForHttp(VITE_DEV_ORIGIN);
     }
 
-    const window = createMainWindow(PRELOAD_PATH);
+    mainWindow = createMainWindow(PRELOAD_PATH);
 
-    await window.loadURL(
+    await mainWindow.loadURL(
       bootstrapAppUrl(isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port), secret, process.platform),
     );
   } catch (error) {

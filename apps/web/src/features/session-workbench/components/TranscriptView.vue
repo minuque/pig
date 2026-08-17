@@ -1,30 +1,44 @@
 <template>
-  <section id="transcript-panel" class="transcript-region" :aria-labelledby="transcriptTitleId">
+  <section
+    id="transcript-panel"
+    ref="region"
+    class="transcript-region"
+    :aria-labelledby="transcriptTitleId"
+  >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
-    <div ref="transcriptElement" class="transcript" aria-live="off" @scroll="recordScroll">
-      <div ref="transcriptContent" class="transcript-content">
-        <template v-if="rows.length">
-          <template v-for="row in rows" :key="row.item.id">
-            <ConversationTurn
-              v-if="row.kind === 'message'"
-              :part="row.part"
-              :streaming="isStreamingItem(row.item, row.part)"
-            />
-            <p v-else class="tool-summary">
-              <span
-                class="dot"
-                aria-hidden="true"
-                :style="{ backgroundColor: toolDot(row.part) }"
-              ></span>
-              <span class="mono">{{ row.part.name }}</span>
-              <span>{{ toolStatusLabel(row.part.status, row.part.isError) }}</span>
-            </p>
-          </template>
-        </template>
-        <p v-else-if="running" class="shimmer" role="status">正在运行…</p>
-        <p v-else class="notice">暂无消息</p>
-      </div>
-    </div>
+    <MarkstreamVirtualTimeline
+      v-if="rows.length"
+      ref="timeline"
+      class="transcript"
+      :thread-key="sessionId"
+      :measurement-key="measurementKey"
+      :items="rows"
+      :get-key="rowKey"
+      :get-kind="rowKind"
+      :estimate-item-height="estimateHeight"
+      :stick-to-bottom="'auto'"
+      :overscan="8"
+      :initial-thread-state="threadState"
+      @thread-state-change="onThreadState"
+    >
+      <template #default="{ item: row, index, measureRef }">
+        <div
+          :ref="measureRef"
+          class="row"
+          :class="{ 'row--first': index === 0, 'row--last': index === rows.length - 1 }"
+        >
+          <ConversationTurn
+            v-if="row.kind === 'message'"
+            :part="row.part"
+            :item-id="row.item.id"
+            :streaming="isStreamingItem(row.item, row.part)"
+          />
+          <ToolSummary v-else :part="row.part" />
+        </div>
+      </template>
+    </MarkstreamVirtualTimeline>
+    <p v-else-if="running" class="shimmer" role="status">正在运行…</p>
+    <p v-else class="notice">暂无消息</p>
     <button
       v-if="hasNewActivity"
       class="jump-latest"
@@ -38,19 +52,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { useElementSize } from "@vueuse/core";
+import { computed, ref, useTemplateRef, watch } from "vue";
 import { ArrowDown } from "lucide-vue-next";
+import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue";
 import type { SessionPhase, TranscriptItem } from "@earendil-works/pi-protocol";
 import ConversationTurn from "@features/session-workbench/components/ConversationTurn.vue";
-import {
-  scrollStateFrom,
-  type TranscriptScrollState,
-} from "@features/session-workbench/session-state.js";
+import ToolSummary from "@features/session-workbench/components/ToolSummary.vue";
+import { transcriptMeasurementKey } from "@features/session-workbench/transcript-layout.js";
 import {
   conversationRows,
-  toolStatusLabel,
+  type ConversationRow,
   type TranscriptPart,
 } from "@features/session-workbench/transcript-format.js";
+import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
 
 const props = defineProps<{
   sessionId: string;
@@ -58,18 +73,35 @@ const props = defineProps<{
   transcript: readonly TranscriptItem[];
   /** 当前 Session phase：非 idle 时显示 streaming 空态 */
   phase: SessionPhase | undefined;
-  scrollTop: number;
-  following: boolean;
-  hasNewActivity: boolean;
+  /** 上次离开该会话时的虚拟滚动状态，用于恢复滚动位置与行高缓存 */
+  threadState: MarkstreamThreadVirtualState | null;
 }>();
 
 const emit = defineEmits<{
-  "scroll-state": [state: TranscriptScrollState];
+  "thread-state": [state: MarkstreamThreadVirtualState];
 }>();
 
 const running = computed(() => props.phase !== undefined && props.phase !== "idle");
 const rows = computed(() => conversationRows(props.transcript));
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`);
+const region = useTemplateRef<HTMLElement>("region");
+const { width } = useElementSize(region);
+const { isDark } = useColorScheme();
+const measurementKey = computed(() =>
+  transcriptMeasurementKey(width.value, isDark.value ? "dark" : "light"),
+);
+
+// 虚拟滚动行 key：以 TranscriptItem id 保证流式输出时同一行原地更新
+function rowKey(row: ConversationRow): string {
+  return row.item.id;
+}
+function rowKind(row: ConversationRow): string {
+  return row.kind;
+}
+// 初始行高估算：正文消息约 200px，工具一行摘要约 40px；实测后由组件修正
+function estimateHeight(row: ConversationRow): number {
+  return row.kind === "message" ? 200 : 40;
+}
 
 function isStreamingItem(
   item: TranscriptItem,
@@ -79,89 +111,35 @@ function isStreamingItem(
   return part.kind === "agent" && item.role === "assistant" && item.status === "streaming";
 }
 
-function toolDot(part: Extract<TranscriptPart, { kind: "tool" }>): string {
-  if (part.isError || part.status === "error" || part.status === "aborted") {
-    return "var(--accent-orange)";
-  }
-  if (part.status === "running" || part.status === "streaming") return "var(--primary)";
-  return "var(--accent-green)";
+/* ── 贴底跟随与「跳转到最新」：滚动状态由 MarkstreamVirtualTimeline 管理 ── */
+const timeline = useTemplateRef<{
+  scrollToBottom(): void;
+  captureThreadState(): MarkstreamThreadVirtualState;
+}>("timeline");
+// 用户是否贴在底部：bottom 锚点（或无锚点，初始态）视为贴底；item 锚点表示已上滚
+const atBottom = ref(true);
+const hasNewActivity = ref(false);
+
+function onThreadState(state: MarkstreamThreadVirtualState) {
+  // 上报给 App 层（每 Session 唯一所有者），用于切会话后恢复
+  emit("thread-state", state);
+  const bottom = state.outerAnchor?.type !== "item";
+  atBottom.value = bottom;
+  if (bottom) hasNewActivity.value = false;
 }
 
-/* ── 滚动跟随：props 只读，变更一律通过 scroll-state 上报唯一所有者 ── */
-const transcriptElement = ref<HTMLElement>();
-const transcriptContent = ref<HTMLElement>();
-let switchingSession = false;
-// 恢复目标：进入 Session 时取所有者快照，首次恢复后一次性消费
-let restoreTarget: number | undefined = props.scrollTop;
-const resizeObserver = new ResizeObserver(() => contentChanged());
-
-function recordScroll() {
-  if (switchingSession || !transcriptElement.value) return;
-  const element = transcriptElement.value;
-  emit(
-    "scroll-state",
-    scrollStateFrom(
-      element.scrollTop,
-      element.clientHeight,
-      element.scrollHeight,
-      props.hasNewActivity,
-    ),
-  );
-}
-async function scrollToLatest() {
-  await nextTick();
-  if (!transcriptElement.value) return;
-  transcriptElement.value.scrollTop = transcriptElement.value.scrollHeight;
-  emit("scroll-state", {
-    scrollTop: transcriptElement.value.scrollTop,
-    following: true,
-    hasNewActivity: false,
-  });
-}
-function restoreScroll() {
-  if (restoreTarget === undefined) return false;
-  if (transcriptElement.value) {
-    const element = transcriptElement.value;
-    element.scrollTop = restoreTarget;
-    emit(
-      "scroll-state",
-      scrollStateFrom(
-        element.scrollTop,
-        element.clientHeight,
-        element.scrollHeight,
-        props.hasNewActivity,
-      ),
-    );
-  }
-  restoreTarget = undefined;
-  switchingSession = false;
-  return true;
-}
-function contentChanged() {
-  if (restoreScroll()) return;
-  if (props.following) void scrollToLatest();
-  else if (transcriptElement.value)
-    emit("scroll-state", {
-      scrollTop: transcriptElement.value.scrollTop,
-      following: false,
-      hasNewActivity: true,
-    });
-}
-watch(transcriptContent, (element, previous) => {
-  if (previous) resizeObserver.unobserve(previous);
-  if (element) resizeObserver.observe(element);
-});
+// 新增消息行且用户不在底部时，提示「跳转到最新」（贴底时组件会自行跟随）
 watch(
-  () => props.sessionId,
-  async () => {
-    switchingSession = true;
-    restoreTarget = props.scrollTop;
-    await nextTick();
-    restoreScroll();
+  () => rows.value.length,
+  (length, previous) => {
+    if (length > (previous ?? 0) && !atBottom.value) hasNewActivity.value = true;
   },
-  { flush: "pre" },
 );
-onBeforeUnmount(() => resizeObserver.disconnect());
+
+function scrollToLatest() {
+  hasNewActivity.value = false;
+  timeline.value?.scrollToBottom();
+}
 </script>
 
 <style scoped>
@@ -171,30 +149,35 @@ onBeforeUnmount(() => resizeObserver.disconnect());
   overflow: hidden;
   background: transparent;
 }
+/* MarkstreamVirtualTimeline 根元素自带 overflow:auto 滚动容器，此处补充 pig 的视觉规范 */
 .transcript {
-  height: 100%;
-  overflow: auto;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
 }
-.transcript-content {
-  width: min(var(--size-content), 100%);
-  min-height: 100%;
-  margin: auto;
-  padding: var(--spacing-sm) 0 calc(var(--chat-input-space, 168px) + var(--spacing-sm));
+.transcript::-webkit-scrollbar {
+  width: 8px;
 }
-.tool-summary {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  margin: 0 0 var(--spacing-sm);
-  color: var(--ink-muted);
-  font-size: var(--text-caption);
+.transcript::-webkit-scrollbar-track {
+  background: transparent;
 }
-.tool-summary .dot {
-  flex: none;
-  width: 6px;
-  height: 6px;
+.transcript::-webkit-scrollbar-thumb {
+  background: var(--hairline);
   border-radius: var(--radius-full);
+}
+.transcript::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-muted);
+}
+/* 内容宽度约束：由每个虚拟行继承，替代原 transcript-content 的宽度盒 */
+.transcript :deep(.markstream-virtual-timeline__item) {
+  width: min(var(--size-content), 100%);
+  margin-inline: auto;
+}
+.row--first {
+  padding-top: var(--spacing-lg);
+}
+.row--last {
+  padding-bottom: calc(var(--chat-input-space, 168px) + var(--spacing-md));
 }
 .shimmer {
   color: var(--ink-muted);
@@ -207,7 +190,7 @@ onBeforeUnmount(() => resizeObserver.disconnect());
 }
 .jump-latest {
   position: absolute;
-  left: 50%;
+  right: var(--spacing-lg);
   bottom: calc(var(--chat-input-space, 168px) + var(--spacing-md));
   display: inline-flex;
   align-items: center;
@@ -216,12 +199,11 @@ onBeforeUnmount(() => resizeObserver.disconnect());
   height: 32px;
   min-height: 0;
   padding: 0;
-  border: 0;
+  border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-full);
-  background: var(--primary);
-  color: var(--on-primary);
-  transform: translateX(-50%);
-  box-shadow: var(--shadow-float);
+  background: var(--canvas-soft);
+  color: var(--ink-secondary);
+  box-shadow: var(--shadow-soft);
   cursor: pointer;
 }
 </style>

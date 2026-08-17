@@ -5,21 +5,14 @@
 </template>
 
 <script setup lang="ts">
-import { useColorMode } from "@vueuse/core";
 import { Moon, Sun } from "lucide-vue-next";
 import { computed } from "vue";
+import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
 
-const mode = useColorMode({ initialValue: "light", storageKey: "npg-theme" });
-if (mode.store.value === "auto") mode.value = mode.system.value;
-
-const isDark = computed(() => mode.value === "dark");
+const { isDark, toggle } = useColorScheme();
 const actionLabel = computed(() =>
   isDark.value ? "当前深色模式，点击切换到浅色模式" : "当前浅色模式，点击切换到深色模式",
 );
-
-function toggle() {
-  mode.value = isDark.value ? "light" : "dark";
-}
 </script>
 
 <style scoped>

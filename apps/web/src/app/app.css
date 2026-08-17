@@ -104,7 +104,8 @@
   --size-windows-caption: 138px;
   --size-context: 300px; /* right panel width */
   --size-drawer: 360px; /* mobile drawer width */
-  --size-content: 46.75rem; /* 748px transcript/prompt max width */
+  --size-content: 46.75rem; /* 748px transcript；大屏见媒体查询 */
+  --size-composer: 46.75rem; /* 输入卡；大屏略窄于正文列 */
   --size-modal: 32rem; /* dialog max width */
   --size-welcome: 45rem;
   --size-nav-action: 28px;
@@ -159,6 +160,14 @@
   --duration-normal: 200ms;
   --duration-slow: 280ms;
   --duration-shimmer: 2s; /* loading 扫光循环 */
+}
+
+/* 全屏：对话列与输入卡占主栏 60% */
+@media (min-width: 1400px) {
+  :root {
+    --size-content: 60%;
+    --size-composer: 60%;
+  }
 }
 
 /* ─── Dark mode — 近黑工作台；仅覆盖颜色/阴影 token，尺寸/动效继承 :root ─── */
@@ -357,20 +366,23 @@ textarea {
 .selector {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   min-height: 0;
   padding: 4px 8px;
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--ink);
+  color: var(--ink-muted);
   font-size: var(--text-caption);
   font-weight: 500;
   cursor: pointer;
-  transition: background 150ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    background 150ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .selector:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--ink);
 }
 .selector:disabled {
   opacity: 0.5;
@@ -519,16 +531,23 @@ html[data-pig-desktop-platform="darwin"] #app,
 html[data-pig-desktop-platform="win32"] #app {
   background: transparent;
 }
+/* Electron 亚克力窗上 backdrop-filter 会透到系统材质；桌面输入卡用不透底混合 */
+html[data-pig-desktop-platform] .prompt .frame {
+  background: color-mix(in srgb, var(--canvas-soft) 72%, var(--surface));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
   -webkit-app-region: no-drag;
 }
 
-/* markstream 聊天文档：对齐 DESIGN 14px 密度；抵消全局 button 高特异性 */
-.markstream-vue {
+/* markstream 聊天文档：覆写收进根节点 data-custom-id=chat（与 .markstream-vue 同元素）。
+   包内 --ms-* 色是 hsl() 通道；from token h s l 接到 DESIGN hex，深色随 .dark token 走。 */
+[data-custom-id="chat"] {
   --ms-font-sans: var(--font-sans);
   --ms-font-mono: var(--font-mono);
-  --ms-text-body: var(--text-body-md);
-  --ms-leading-body: 1.6;
+  --ms-text-body: 15px;
+  --ms-leading-body: 1.7;
   --ms-text-h1: var(--text-heading-3);
   --ms-text-h2: var(--text-title);
   --ms-text-h3: var(--text-body-md);
@@ -538,21 +557,59 @@ html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
   --ms-leading-h1: 1.27;
   --ms-leading-h2: 1.4;
   --ms-leading-h3: 1.43;
-  --ms-flow-heading-1-mt: 0.2em;
-  --ms-flow-heading-1-mb: 0.55em;
-  --ms-flow-heading-2-mt: 1em;
-  --ms-flow-heading-2-mb: 0.4em;
-  --ms-flow-heading-3-mt: 0.85em;
-  --ms-flow-heading-3-mb: 0.35em;
-  --ms-flow-paragraph-y: 0.45em;
-  --ms-flow-list-y: 0.3em;
-  --ms-flow-list-item-y: 0.12em;
-  --ms-flow-list-indent: 1.35em;
-  --ms-flow-codeblock-y: 0.55em;
-  --ms-flow-diagram-y: 0.55em;
+  --ms-flow-heading-1-mt: 0.35em;
+  --ms-flow-heading-1-mb: 0.65em;
+  --ms-flow-heading-2-mt: 1.25em;
+  --ms-flow-heading-2-mb: 0.5em;
+  --ms-flow-heading-3-mt: 1em;
+  --ms-flow-heading-3-mb: 0.4em;
+  --ms-flow-paragraph-y: 0.7em;
+  --ms-flow-list-y: 0.55em;
+  --ms-flow-list-item-y: 0.38em;
+  --ms-flow-list-indent: 1.4em;
+  --ms-flow-codeblock-y: 0.75em;
+  --ms-flow-diagram-y: 0.75em;
+  --ms-flow-table-y: 1em;
+  --ms-flow-table-cell: 0.7em 1.15em 0.7em 0;
+  --ms-flow-blockquote-y: 0.45em;
+  --ms-flow-blockquote-indent: 0.85em;
+  --ms-flow-hr-y: 0.7em;
   --ms-radius: var(--radius-md);
+  --ms-border-width: var(--border-width);
+  --ms-focus-ring-width: var(--focus-ring-width);
+  --ms-focus-ring-offset: var(--focus-ring-width);
+  --ms-foreground: from var(--ink) h s l;
+  --ms-background: from var(--surface) h s l;
+  --ms-muted: from var(--canvas-soft) h s l;
+  --ms-muted-foreground: from var(--ink-muted) h s l;
+  --ms-border: from var(--hairline) h s l;
+  --ms-primary: from var(--primary) h s l;
+  --ms-primary-foreground: from var(--on-primary) h s l;
+  --ms-secondary: from var(--canvas-soft) h s l;
+  --ms-secondary-foreground: from var(--ink-secondary) h s l;
+  --ms-accent: from var(--canvas-soft) h s l;
+  --ms-accent-foreground: from var(--ink) h s l;
+  --ms-destructive: from var(--danger) h s l;
+  --ms-destructive-foreground: from var(--on-primary) h s l;
+  --ms-success: from var(--success) h s l;
+  --ms-success-foreground: from var(--on-primary) h s l;
+  --ms-warning: from var(--warning) h s l;
+  --ms-warning-foreground: from var(--ink) h s l;
+  --ms-info: from var(--primary) h s l;
+  --ms-info-foreground: from var(--on-primary) h s l;
+  --ms-diff-added: from color-mix(in srgb, var(--success) 88%, var(--surface)) h s l;
+  --ms-diff-removed: from color-mix(in srgb, var(--danger) 88%, var(--surface)) h s l;
+  --ms-highlight: from color-mix(in srgb, var(--primary) 16%, var(--surface)) h s l;
+  --ms-highlight-foreground: from var(--ink) h s l;
+  --ms-popover: from var(--surface) h s l;
+  --ms-popover-foreground: from var(--ink) h s l;
+  --ms-ring: from var(--primary) h s l;
+  --ms-shadow-subtle: var(--shadow-soft);
+  --ms-shadow-popover: var(--shadow-popover);
+  --ms-shadow-modal: var(--shadow-modal);
+  --ms-shadow-preview: var(--shadow-modal);
 }
-.markstream-vue button {
+[data-custom-id="chat"] button {
   min-height: 0;
   padding: 0;
   border: 0;
@@ -561,18 +618,80 @@ html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
   color: inherit;
   box-shadow: none;
 }
-.markstream-vue button:not(:disabled):active {
+[data-custom-id="chat"] button:not(:disabled):active {
   transform: none;
 }
-.markstream-vue ol {
+/* 全局 h1 { clamp(title, 2vw, heading-2) } 会压过包内 heading 字号 */
+[data-custom-id="chat"] h1 {
+  margin-top: var(--ms-flow-heading-1-mt);
+  margin-bottom: var(--ms-flow-heading-1-mb);
+  font-size: var(--ms-text-h1);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--ms-leading-h1);
+}
+[data-custom-id="chat"] h2 {
+  margin-top: var(--ms-flow-heading-2-mt);
+  margin-bottom: var(--ms-flow-heading-2-mb);
+  font-size: var(--ms-text-h2);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--ms-leading-h2);
+}
+[data-custom-id="chat"] h3 {
+  margin-top: var(--ms-flow-heading-3-mt);
+  margin-bottom: var(--ms-flow-heading-3-mb);
+  font-size: var(--ms-text-h3);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--ms-leading-h3);
+}
+[data-custom-id="chat"] p {
+  margin: var(--ms-flow-paragraph-y) 0;
+  line-height: var(--ms-leading-body);
+}
+[data-custom-id="chat"] a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+[data-custom-id="chat"] ol {
   list-style: decimal;
   padding-left: var(--ms-flow-list-indent);
+  margin: var(--ms-flow-list-y) 0;
 }
-.markstream-vue ul {
+[data-custom-id="chat"] ul {
   list-style: disc;
   padding-left: var(--ms-flow-list-indent);
+  margin: var(--ms-flow-list-y) 0;
 }
-.markstream-vue pre {
+[data-custom-id="chat"] li {
+  margin: var(--ms-flow-list-item-y) 0;
+  line-height: var(--ms-leading-body);
+}
+[data-custom-id="chat"] li::marker {
+  color: var(--ink-muted);
+}
+[data-custom-id="chat"] table {
+  width: 100%;
+  margin: var(--ms-flow-table-y) 0;
+  border-collapse: collapse;
+  font-size: inherit;
+}
+[data-custom-id="chat"] th,
+[data-custom-id="chat"] td {
+  padding: var(--ms-flow-table-cell);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--hairline);
+  text-align: left;
+  vertical-align: top;
+}
+[data-custom-id="chat"] th {
+  color: var(--ink-muted);
+  font-weight: var(--font-weight-medium);
+}
+[data-custom-id="chat"] td {
+  color: var(--ink);
+}
+[data-custom-id="chat"] pre {
   margin: var(--ms-flow-codeblock-y) 0;
   padding: var(--spacing-sm);
   overflow: auto;
@@ -581,14 +700,18 @@ html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
   background: var(--canvas-soft);
   color: var(--ink-secondary);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
 }
-.markstream-vue :not(pre) > code {
-  padding: 1px 6px;
+[data-custom-id="chat"] :not(pre) > code {
+  padding: 1px 7px;
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-full);
   background: var(--canvas-soft);
+  color: var(--ink-secondary);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
+}
+[data-custom-id="chat"] :is(.cm-editor, .cm-content) {
+  font-size: 14px;
 }

@@ -3,6 +3,7 @@
     <DropdownMenuTrigger as-child>
       <button type="button" class="selector" :disabled="disabled" :aria-label="`模型：${label}`">
         <span class="selector-name">{{ label }}</span>
+        <ChevronDown :size="12" aria-hidden="true" />
       </button>
     </DropdownMenuTrigger>
 
@@ -58,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { Check, Search } from "lucide-vue-next";
+import { Check, ChevronDown, Search } from "lucide-vue-next";
 import { useVirtualList } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 import type { ModelRef } from "@earendil-works/pi-protocol";
@@ -163,6 +164,9 @@ function onCloseAutoFocus(event: Event) {
 
 <style scoped>
 .selector-name {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 .search {

@@ -16,10 +16,15 @@
       </template>
       <template #left>
         <slot name="left" />
+        <ModelPicker v-model:model="model" :catalog="catalog" :disabled="running" />
+        <ThinkingLevelSelect
+          v-if="modelLevels.length > 1"
+          v-model:level="level"
+          :levels="modelLevels"
+          :disabled="running"
+        />
       </template>
       <template #right>
-        <ModelPicker v-model:model="model" :catalog="catalog" :disabled="running" />
-        <ThinkingLevelSelect v-model:level="level" :levels="modelLevels" :disabled="running" />
         <Tooltip v-if="error" :delay-duration="200">
           <TooltipTrigger as-child>
             <button type="button" class="error-indicator" aria-label="请求失败">
@@ -36,7 +41,7 @@
           :disabled="!sendActive"
           @click="send"
         >
-          <ArrowUp :size="16" />
+          <ArrowRight :size="16" />
         </button>
       </template>
     </PromptEditor>
@@ -62,7 +67,7 @@ export function canSend(text: string, sendDisabled: boolean): boolean {
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { ArrowUp, CircleAlert } from "lucide-vue-next";
+import { ArrowRight, CircleAlert } from "lucide-vue-next";
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 import ModelPicker from "@features/chat-input/components/ModelPicker.vue";
 import ThinkingLevelSelect from "@features/chat-input/components/ThinkingLevelSelect.vue";
@@ -128,7 +133,7 @@ function send() {
   background: transparent;
 }
 .prompt:not(.bare):not(.docked) {
-  width: min(var(--size-content), 100%);
+  width: min(var(--size-composer), 100%);
   margin-inline: auto;
 }
 .chat-input-foot {
@@ -164,7 +169,7 @@ function send() {
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
   color: var(--ink-faint);
   cursor: default;
   transition:
