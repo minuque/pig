@@ -6,6 +6,11 @@
     :aria-labelledby="transcriptTitleId"
   >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
+    <button>
+      v-if="pinText" class="user-pin" type="button" :aria-label="`回到用户句：${pinText}`"
+      @click="scrollToPinnedUser" >
+      {{ pinText }}
+    </button>
     <MarkstreamVirtualTimeline
       v-if="rows.length"
       ref="timeline"
@@ -14,26 +19,27 @@
       :measurement-key="measurementKey"
       :items="rows"
       :get-key="rowKey"
-      :get-kind="rowKind"
+      :get-kind="transcriptRowKind"
+      :get-content="transcriptRowContent"
+      :get-final="transcriptRowFinal"
       :estimate-item-height="estimateHeight"
+      markdown-mode="chat"
+      markdown-code-renderer="monaco"
       :stick-to-bottom="'auto'"
       :overscan="8"
       :initial-thread-state="threadState"
       @thread-state-change="onThreadState"
     >
-      <template #default="{ item: row, index, measureRef }">
-        <div
-          :ref="measureRef"
-          class="row"
-          :class="{ 'row--first': index === 0, 'row--last': index === rows.length - 1 }"
-        >
-          <ConversationTurn
-            v-if="row.kind === 'message'"
-            :part="row.part"
-            :item-id="row.item.id"
-            :streaming="isStreamingItem(row.item, row.part)"
+      <template #default="{ item: row, measureRef, markdownProps }">
+        <div :ref="measureRef" class="row">
+          <UserMessage v-if="row.role === 'user'" :item="row" />
+          <AssistantMessage
+            v-else-if="row.role === 'assistant'"
+            :item="row"
+            :streaming="isStreamingAssistant(row)"
+            :timeline-markdown="markdownProps"
           />
-          <ToolSummary v-else :part="row.part" />
+          <ToolCall v-else-if="row.role === 'tool'" :item="row" />
         </div>
       </template>
     </MarkstreamVirtualTimeline>
@@ -52,25 +58,41 @@
 </template>
 
 <script lang="ts">
-/** markstream measurementKey：版式身份（宽 / 主题 / 字号密度），不是 Session 身份。 */
-export function transcriptMeasurementKey(width: number, theme: "light" | "dark"): string {
-  const column = Number.isFinite(width) ? Math.round(width) : 0;
-  return `${column}:${theme}:doc-v3`;
+import type { TranscriptItem } from "@earendil-works/pi-protocol";
+import {
+  isAssistantItem,
+  transcriptText,
+} from "@features/session-workbench/lib/transcript-format.js";
+
+/** 时间线认 Markdown 的 kind：仅助手正文。 */
+export function transcriptRowKind(item: TranscriptItem): string {
+  if (item.role === "assistant") return "assistant-markdown";
+  if (item.role === "tool") return "tool-call";
+  return "user-message";
+}
+
+export function transcriptRowContent(item: TranscriptItem): string {
+  return isAssistantItem(item) ? transcriptText(item) : "";
+}
+
+export function transcriptRowFinal(item: TranscriptItem): boolean {
+  return !(isAssistantItem(item) && item.status === "streaming");
 }
 </script>
 
 <script setup lang="ts">
-import { useElementSize } from "@vueuse/core";
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { ArrowDown } from "lucide-vue-next";
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue";
-import type { SessionPhase, TranscriptItem } from "@earendil-works/pi-protocol";
-import ConversationTurn from "@features/session-workbench/components/ConversationTurn.vue";
-import ToolSummary from "@features/session-workbench/components/ToolSummary.vue";
+import type { SessionPhase } from "@earendil-works/pi-protocol";
+import AssistantMessage from "@features/session-workbench/components/AssistantMessage.vue";
+import ToolCall from "@features/session-workbench/components/ToolCall.vue";
+import UserMessage from "@features/session-workbench/components/UserMessage.vue";
 import {
   conversationRows,
-  type ConversationRow,
-  type TranscriptPart,
+  isUserItem,
+  pinnedUserIndex,
+  userPinLabel,
 } from "@features/session-workbench/lib/transcript-format.js";
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
 
@@ -92,47 +114,59 @@ const running = computed(() => props.phase !== undefined && props.phase !== "idl
 const rows = computed(() => conversationRows(props.transcript));
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`);
 const region = useTemplateRef<HTMLElement>("region");
-const { width } = useElementSize(region);
 const { isDark } = useColorScheme();
-const measurementKey = computed(() =>
-  transcriptMeasurementKey(width.value, isDark.value ? "dark" : "light"),
-);
+const measurementKey = computed(() => (isDark.value ? "dark" : "light"));
 
 // 虚拟滚动行 key：以 TranscriptItem id 保证流式输出时同一行原地更新
-function rowKey(row: ConversationRow): string {
-  return row.item.id;
+function rowKey(item: TranscriptItem): string {
+  return item.id;
 }
-function rowKind(row: ConversationRow): string {
-  return row.kind;
-}
-// 初始行高估算：正文消息约 200px，工具一行摘要约 40px；实测后由组件修正
-function estimateHeight(row: ConversationRow): number {
-  return row.kind === "message" ? 200 : 40;
+function estimateHeight(item: TranscriptItem): number {
+  if (item.role === "tool") return 48;
+  return item.role === "assistant" ? 200 : 88;
 }
 
-function isStreamingItem(
-  item: TranscriptItem,
-  part: Extract<TranscriptPart, { kind: "user" | "agent" }>,
-): boolean {
+function isStreamingAssistant(item: TranscriptItem): boolean {
   if (!running.value || item !== props.transcript[props.transcript.length - 1]) return false;
-  return part.kind === "agent" && item.role === "assistant" && item.status === "streaming";
+  return isAssistantItem(item) && item.status === "streaming";
 }
 
 /* ── 贴底跟随与「跳转到最新」：滚动状态由 MarkstreamVirtualTimeline 管理 ── */
 const timeline = useTemplateRef<{
   scrollToBottom(): void;
+  scrollToIndex(index: number, align?: "start" | "center" | "end"): void;
   captureThreadState(): MarkstreamThreadVirtualState;
 }>("timeline");
-// 用户是否贴在底部：bottom 锚点（或无锚点，初始态）视为贴底；item 锚点表示已上滚
+// 与 stickToBottom=auto 对齐：离底 ≤48px 仍视为贴底（时间线会继续跟随）
 const atBottom = ref(true);
 const hasNewActivity = ref(false);
+const pinnedIndex = shallowRef(-1);
+const pinText = computed(() => {
+  const item = rows.value[pinnedIndex.value];
+  return item && isUserItem(item) ? userPinLabel(item) : "";
+});
+
+function timelineScrollRoot(): HTMLElement | null {
+  return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null;
+}
 
 function onThreadState(state: MarkstreamThreadVirtualState) {
   // 上报给 App 层（每 Session 唯一所有者），用于切会话后恢复
   emit("thread-state", state);
-  const bottom = state.outerAnchor?.type !== "item";
+  const root = timelineScrollRoot();
+  const bottom = root
+    ? root.scrollHeight - root.scrollTop - root.clientHeight <= 48
+    : state.outerAnchor?.type !== "item";
   atBottom.value = bottom;
   if (bottom) hasNewActivity.value = false;
+  const list = rows.value;
+  const scrollTop = root?.scrollTop ?? 0;
+  const paddingTop = root ? Number.parseFloat(getComputedStyle(root).paddingTop) || 0 : 0;
+  pinnedIndex.value = pinnedUserIndex(list, scrollTop, paddingTop, (index) => {
+    const item = list[index];
+    if (!item) return 0;
+    return state.itemHeights[item.id] ?? estimateHeight(item);
+  });
 }
 
 // 新增消息行且用户不在底部时，提示「跳转到最新」（贴底时组件会自行跟随）
@@ -147,6 +181,11 @@ function scrollToLatest() {
   hasNewActivity.value = false;
   timeline.value?.scrollToBottom();
 }
+
+function scrollToPinnedUser() {
+  if (pinnedIndex.value < 0) return;
+  timeline.value?.scrollToIndex(pinnedIndex.value, "start");
+}
 </script>
 
 <style scoped>
@@ -156,8 +195,10 @@ function scrollToLatest() {
   overflow: hidden;
   background: transparent;
 }
-/* MarkstreamVirtualTimeline 根元素自带 overflow:auto 滚动容器，此处补充 pig 的视觉规范 */
+/* 滚动根自带 overflow:auto；首尾 inset 写在容器上，不进虚拟行高 */
 .transcript {
+  padding-top: var(--spacing-lg);
+  padding-bottom: calc(var(--chat-input-space, 168px) + var(--spacing-md));
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--hairline) transparent;
@@ -180,11 +221,27 @@ function scrollToLatest() {
   width: min(var(--size-content), 100%);
   margin-inline: auto;
 }
-.row--first {
-  padding-top: var(--spacing-lg);
-}
-.row--last {
-  padding-bottom: calc(var(--chat-input-space, 168px) + var(--spacing-md));
+.user-pin {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  width: min(var(--size-content), 100%);
+  margin-inline: auto;
+  padding: 6px 12px;
+  overflow: hidden;
+  border: 0;
+  border-bottom: var(--border-width) solid var(--hairline);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--ink-secondary);
+  font-size: var(--text-caption);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
 }
 .shimmer {
   color: var(--ink-muted);

@@ -1,13 +1,47 @@
 import { describe, expect, it } from "vitest";
-import { transcriptMeasurementKey } from "@features/session-workbench/components/TranscriptView.vue";
+import type { TranscriptItem } from "@earendil-works/pi-protocol";
+import {
+  transcriptRowContent,
+  transcriptRowFinal,
+  transcriptRowKind,
+} from "@features/session-workbench/components/TranscriptView.vue";
 
-describe("transcriptMeasurementKey", () => {
-  it("binds layout identity, not a Session id", () => {
-    expect(transcriptMeasurementKey(720.4, "dark")).toBe("720:dark:doc-v3");
-    expect(transcriptMeasurementKey(720, "light")).toBe("720:light:doc-v3");
+function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
+  return {
+    id: "e1",
+    timestamp: 0,
+    content: [],
+    ...partial,
+  } as TranscriptItem;
+}
+
+describe("transcript row markstream mapping", () => {
+  it("maps only assistant body to assistant-markdown", () => {
+    const user = item({ role: "user", content: [{ type: "text", text: "问" }] });
+    const agent = item({
+      id: "a1",
+      role: "assistant",
+      status: "complete",
+      content: [{ type: "text", text: "答" }],
+    });
+    const tool = item({ id: "t1", role: "tool", toolName: "bash", content: [] });
+    expect(transcriptRowKind(user)).toBe("user-message");
+    expect(transcriptRowKind(agent)).toBe("assistant-markdown");
+    expect(transcriptRowKind(tool)).toBe("tool-call");
+    expect(transcriptRowContent(user)).toBe("");
+    expect(transcriptRowContent(agent)).toBe("答");
+    expect(transcriptRowContent(tool)).toBe("");
+    expect(transcriptRowFinal(agent)).toBe(true);
   });
 
-  it("treats non-finite width as 0", () => {
-    expect(transcriptMeasurementKey(Number.NaN, "light")).toBe("0:light:doc-v3");
+  it("keeps streaming assistant rows live so the timeline can grow in place", () => {
+    const streaming = item({
+      id: "a1",
+      role: "assistant",
+      status: "streaming",
+      content: [{ type: "text", text: "…" }],
+    });
+    expect(transcriptRowFinal(streaming)).toBe(false);
+    expect(transcriptRowContent(streaming)).toBe("…");
   });
 });

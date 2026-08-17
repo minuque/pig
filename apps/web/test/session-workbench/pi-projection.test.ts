@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { SessionMetadata, SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol";
 import { projectSessionSnapshot } from "@features/session-workbench/lib/session-state.js";
-import { projectTranscriptItem } from "@features/session-workbench/lib/transcript-format.js";
 import {
   formatRelativeTime,
   groupSessionsByCwd,
@@ -18,82 +17,6 @@ function userItem(text: string): TranscriptItem {
     timestamp: 1,
   };
 }
-function assistantItem(text: string, thinking: string[] = []): TranscriptItem {
-  return {
-    id: `a-${text}`,
-    role: "assistant",
-    content: [
-      ...(text ? [{ type: "text" as const, text }] : []),
-      ...thinking.map((value) => ({ type: "thinking" as const, thinking: value })),
-    ],
-    model: { provider: "test", id: "model" },
-    timestamp: 2,
-    status: "complete",
-    stopReason: "stop",
-  };
-}
-function toolItem(name: string, text: string, isError = false): TranscriptItem {
-  return {
-    id: `t-${name}`,
-    role: "tool",
-    toolCallId: `call-${name}`,
-    toolName: name,
-    input: {},
-    content: text ? [{ type: "text", text }] : [],
-    timestamp: 3,
-    status: isError ? "error" : "complete",
-    isError,
-  } as TranscriptItem; // 判别联合由 status 分支，测试 fixture 直接断言
-}
-
-describe("projectTranscriptItem", () => {
-  it("projects user text", () => {
-    expect(projectTranscriptItem(userItem("你好"))).toEqual({ kind: "user", text: "你好" });
-  });
-  it("projects assistant text with thinking blocks, keeping status", () => {
-    expect(projectTranscriptItem(assistantItem("回答", ["思考一"]))).toEqual({
-      kind: "agent",
-      text: "回答",
-      thinking: ["思考一"],
-      status: "complete",
-    });
-  });
-  it("projects tool items with error flag, keeping status", () => {
-    expect(projectTranscriptItem(toolItem("bash", "ok"))).toEqual({
-      kind: "tool",
-      name: "bash",
-      isError: false,
-      text: "ok",
-      status: "complete",
-    });
-    expect(projectTranscriptItem(toolItem("bash", "", true))).toMatchObject({
-      kind: "tool",
-      name: "bash",
-      isError: true,
-    });
-  });
-  it("keeps running/error/aborted status on agent items", () => {
-    const running = { ...assistantItem("写一半"), status: "streaming" };
-    expect(projectTranscriptItem(running as TranscriptItem)).toMatchObject({
-      kind: "agent",
-      status: "streaming",
-    });
-    const error = { ...assistantItem("失败"), status: "error" };
-    expect(projectTranscriptItem(error as TranscriptItem)).toMatchObject({
-      kind: "agent",
-      status: "error",
-    });
-    const aborted = { ...assistantItem("中止"), status: "aborted" };
-    expect(projectTranscriptItem(aborted as TranscriptItem)).toMatchObject({
-      kind: "agent",
-      status: "aborted",
-    });
-  });
-  it("drops items without visible content", () => {
-    expect(projectTranscriptItem(assistantItem("", []))).toBeUndefined();
-  });
-});
-
 describe("projectSessionSnapshot", () => {
   function snapshot(overrides: Partial<SessionSnapshot> = {}): SessionSnapshot {
     return {

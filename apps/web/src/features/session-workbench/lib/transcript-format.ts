@@ -1,78 +1,84 @@
-import type { TranscriptItem } from "@earendil-works/pi-protocol";
+import type {
+  AssistantTranscriptItem,
+  ToolTranscriptItem,
+  TranscriptItem,
+  UserTranscriptItem,
+} from "@earendil-works/pi-protocol";
 
-/** 官方 TranscriptItem 的终态/进行态（assistant/tool 条目）。 */
-export type TranscriptItemStatus = "streaming" | "running" | "complete" | "error" | "aborted";
+export type TranscriptImageBlock = { data: string; mimeType: string };
 
-/** 单条会话记录渲染为 UI 部件的分类结果；agent/tool 保留官方 status。 */
-export type TranscriptPart =
-  | { kind: "user"; text: string }
-  | { kind: "agent"; text: string; thinking: string[]; status: TranscriptItemStatus }
-  | { kind: "tool"; name: string; isError: boolean; text: string; status: TranscriptItemStatus };
-
-/** 对话行：正文消息，或工具一行摘要。 */
-export type ConversationRow =
-  | {
-      kind: "message";
-      item: TranscriptItem;
-      part: Extract<TranscriptPart, { kind: "user" | "agent" }>;
-    }
-  | { kind: "tool-summary"; item: TranscriptItem; part: Extract<TranscriptPart, { kind: "tool" }> };
-
-interface Block {
-  type?: unknown;
-  text?: unknown;
-  thinking?: unknown;
+export function isUserItem(item: TranscriptItem): item is UserTranscriptItem {
+  return item.role === "user";
 }
 
-function textFromContent(content: unknown): string {
-  if (typeof content === "string") return content;
-  if (!Array.isArray(content)) return "";
-  return content
-    .filter((block): block is Block => typeof block === "object" && block !== null)
-    .map((block) => (typeof block.text === "string" ? block.text : ""))
+export function isAssistantItem(item: TranscriptItem): item is AssistantTranscriptItem {
+  return item.role === "assistant";
+}
+
+export function transcriptText(item: TranscriptItem): string {
+  return item.content
+    .filter((block): block is { type: "text"; text: string } => block.type === "text")
+    .map((block) => block.text)
     .join("");
 }
 
-/** 官方 TranscriptItem → UI 部件投影；无可见内容时返回 undefined。 */
-export function projectTranscriptItem(item: TranscriptItem): TranscriptPart | undefined {
-  if (item.role === "user") {
-    const text = textFromContent(item.content);
-    return text ? { kind: "user", text } : undefined;
-  }
-  if (item.role === "assistant") {
-    const thinking = item.content
-      .filter((block) => block.type === "thinking")
-      .map((block) => block.thinking)
-      .filter(Boolean);
-    const text = textFromContent(item.content);
-    if (!text && thinking.length === 0) return undefined;
-    return { kind: "agent", text, thinking, status: item.status };
-  }
-  return {
-    kind: "tool",
-    name: item.toolName || "工具",
-    isError: item.isError === true,
-    text: textFromContent(item.content),
-    status: item.status,
-  };
+export function transcriptImages(item: TranscriptItem): TranscriptImageBlock[] {
+  return item.content
+    .filter(
+      (block): block is { type: "image"; data: string; mimeType: string } => block.type === "image",
+    )
+    .map((block) => ({ data: block.data, mimeType: block.mimeType }));
 }
 
-/** 对话投影：user/agent 正文 + 工具一行摘要。 */
-export function conversationRows(items: readonly TranscriptItem[]): ConversationRow[] {
-  const rows: ConversationRow[] = [];
-  for (const item of items) {
-    const part = projectTranscriptItem(item);
-    if (!part) continue;
-    if (part.kind === "tool") rows.push({ kind: "tool-summary", item, part });
-    else rows.push({ kind: "message", item, part });
-  }
-  return rows;
+export function assistantThinking(item: AssistantTranscriptItem): string[] {
+  return item.content
+    .filter((block): block is { type: "thinking"; thinking: string } => block.type === "thinking")
+    .map((block) => block.thinking)
+    .filter(Boolean);
 }
 
-/** 工具 status 文案；isError 优先于 complete。 */
-export function toolStatusLabel(status: TranscriptItemStatus, isError = false): string {
-  if (isError || status === "error") return "出错";
-  if (status === "aborted") return "已中止";
-  if (status === "running" || status === "streaming") return "运行中";
-  return "完成";
+export function transcriptImageSrc(data: string, mimeType: string): string {
+  if (data.startsWith("data:")) return data;
+  return `data:${mimeType};base64,${data}`;
+}
+
+export function isVisibleTranscriptItem(item: TranscriptItem): boolean {
+  if (isUserItem(item)) return transcriptText(item).length > 0 || transcriptImages(item).length > 0;
+  if (isAssistantItem(item))
+    return transcriptText(item).length > 0 || assistantThinking(item).length > 0;
+  return true;
+}
+
+/** 可见条目：无文字且无图的用户句、仅有 toolCall 的助手句不占行。 */
+export function conversationRows(items: readonly TranscriptItem[]): TranscriptItem[] {
+  return items.filter(isVisibleTranscriptItem);
+}
+
+export function toolIconTone(item: ToolTranscriptItem): string {
+  if (item.isError) return "var(--danger)";
+  if (item.status === "running") return "var(--primary)";
+  return "var(--accent-green)";
+}
+
+export function pinnedUserIndex(
+  rows: readonly TranscriptItem[],
+  scrollTop: number,
+  paddingTop: number,
+  heightOf: (index: number) => number,
+): number {
+  let offset = paddingTop;
+  let pinned = -1;
+  for (let index = 0; index < rows.length; index++) {
+    const height = heightOf(index);
+    const row = rows[index];
+    if (row && isUserItem(row) && offset + height <= scrollTop) pinned = index;
+    offset += height;
+  }
+  return pinned;
+}
+
+export function userPinLabel(item: UserTranscriptItem): string {
+  const text = transcriptText(item).replace(/\s+/g, " ").trim();
+  if (text) return text;
+  return transcriptImages(item).length > 0 ? "图片" : "";
 }

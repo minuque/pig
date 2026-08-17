@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import type { TranscriptItem } from "@earendil-works/pi-protocol";
 import {
   conversationRows,
-  projectTranscriptItem,
-  toolStatusLabel,
+  isVisibleTranscriptItem,
+  pinnedUserIndex,
+  transcriptImageSrc,
+  transcriptImages,
+  transcriptText,
+  userPinLabel,
 } from "@features/session-workbench/lib/transcript-format.js";
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
@@ -15,46 +19,8 @@ function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] 
   } as TranscriptItem;
 }
 
-describe("projectTranscriptItem", () => {
-  it("classifies user messages with string content", () => {
-    const part = projectTranscriptItem(
-      item({ role: "user", content: [{ type: "text", text: "你好" }] }),
-    );
-    expect(part).toEqual({ kind: "user", text: "你好" });
-  });
-
-  it("splits assistant content into text and thinking blocks", () => {
-    const part = projectTranscriptItem(
-      item({
-        role: "assistant",
-        content: [
-          { type: "thinking", thinking: "内部推理" },
-          { type: "text", text: "最终回答" },
-        ],
-      }),
-    );
-    expect(part).toEqual({ kind: "agent", text: "最终回答", thinking: ["内部推理"] });
-  });
-
-  it("drops items without visible content", () => {
-    expect(projectTranscriptItem(item({ role: "assistant", content: [] }))).toBeUndefined();
-  });
-
-  it("classifies tool items with error flag", () => {
-    const part = projectTranscriptItem(
-      item({
-        role: "tool",
-        toolName: "bash",
-        isError: true,
-        content: [{ type: "text", text: "failed" }],
-      }),
-    );
-    expect(part).toEqual({ kind: "tool", name: "bash", isError: true, text: "failed" });
-  });
-});
-
 describe("conversationRows", () => {
-  it("keeps user/agent messages and collapses tools to one-line summaries", () => {
+  it("keeps user text, assistant text, and tool items", () => {
     const user = item({ id: "u1", role: "user", content: [{ type: "text", text: "问" }] });
     const tool = item({
       id: "t1",
@@ -70,27 +36,66 @@ describe("conversationRows", () => {
       status: "complete",
       content: [{ type: "text", text: "答" }],
     });
-    const rows = conversationRows([user, tool, agent]);
-    expect(rows.map((row) => row.kind)).toEqual(["message", "tool-summary", "message"]);
-    expect(rows[1]).toMatchObject({
-      kind: "tool-summary",
-      part: { kind: "tool", name: "bash" },
-    });
-    expect(rows[0]?.kind === "message" && rows[0].part.kind).toBe("user");
+    expect(conversationRows([user, tool, agent]).map((row) => row.id)).toEqual(["u1", "t1", "a1"]);
   });
 
-  it("skips items without a visible projection", () => {
+  it("keeps a user item that is only an image", () => {
+    const user = item({
+      role: "user",
+      content: [{ type: "image", data: "abc", mimeType: "image/png" }],
+    });
+    expect(isVisibleTranscriptItem(user)).toBe(true);
+    expect(transcriptImages(user)).toEqual([{ data: "abc", mimeType: "image/png" }]);
+  });
+
+  it("drops assistant items that only contain toolCall blocks", () => {
+    const agent = item({
+      role: "assistant",
+      status: "complete",
+      content: [{ type: "toolCall", toolCallId: "c1", toolName: "bash", input: {} }],
+    });
+    expect(conversationRows([agent])).toEqual([]);
+  });
+
+  it("drops items without visible user or assistant payload", () => {
     expect(conversationRows([item({ role: "assistant", content: [] })])).toEqual([]);
+    expect(conversationRows([item({ role: "user", content: [] })])).toEqual([]);
   });
 });
 
-describe("toolStatusLabel", () => {
-  it("maps official status, with isError winning over complete", () => {
-    expect(toolStatusLabel("running")).toBe("运行中");
-    expect(toolStatusLabel("streaming")).toBe("运行中");
-    expect(toolStatusLabel("complete")).toBe("完成");
-    expect(toolStatusLabel("complete", true)).toBe("出错");
-    expect(toolStatusLabel("error")).toBe("出错");
-    expect(toolStatusLabel("aborted")).toBe("已中止");
+describe("transcript text helpers", () => {
+  it("joins text blocks and builds a data URL", () => {
+    const user = item({
+      role: "user",
+      content: [
+        { type: "text", text: "a" },
+        { type: "text", text: "b" },
+      ],
+    });
+    expect(transcriptText(user)).toBe("ab");
+    expect(transcriptImageSrc("xyz", "image/png")).toBe("data:image/png;base64,xyz");
+    expect(transcriptImageSrc("data:image/png;base64,xyz", "image/png")).toBe(
+      "data:image/png;base64,xyz",
+    );
+  });
+});
+
+describe("pinnedUserIndex", () => {
+  it("selects the last user item fully above the viewport", () => {
+    const rows = [
+      item({ id: "u1", role: "user", content: [{ type: "text", text: "一" }] }),
+      item({
+        id: "a1",
+        role: "assistant",
+        status: "complete",
+        content: [{ type: "text", text: "答" }],
+      }),
+      item({ id: "u2", role: "user", content: [{ type: "text", text: "二" }] }),
+    ];
+    const heights = [40, 200, 40];
+    expect(pinnedUserIndex(rows, 0, 16, (index) => heights[index] ?? 0)).toBe(-1);
+    expect(pinnedUserIndex(rows, 56, 16, (index) => heights[index] ?? 0)).toBe(0);
+    expect(pinnedUserIndex(rows, 400, 16, (index) => heights[index] ?? 0)).toBe(2);
+    expect(userPinLabel(rows[0] as Extract<TranscriptItem, { role: "user" }>)).toBe("一");
   });
 });
