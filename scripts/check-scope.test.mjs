@@ -16,6 +16,13 @@ describe("classifyTouched", () => {
     assert.equal(classifyTouched(["package.json"]).escalate, true);
   });
 
+  it("删除的包内路径仍映射到所属包", () => {
+    const scope = classifyTouched(["apps/web/src/gone.vue"]);
+    assert.deepEqual(scope.packages, ["@pig/web"]);
+    assert.deepEqual(scope.lintFiles, ["apps/web/src/gone.vue"]);
+    assert.deepEqual(scope.prettierFiles, ["apps/web/src/gone.vue"]);
+  });
+
   it("DESIGN.md 触发 designmd 与 token", () => {
     const scope = classifyTouched(["DESIGN.md"]);
     assert.equal(scope.designmd, true);

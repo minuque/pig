@@ -9,7 +9,7 @@ Pig Workbench 是用户操作和观察 Pi Session 的环境。Pi 拥有 Agent �
 
 **Agent**：
 为 Session 执行工作的 Pi Agent Runtime。它是执行角色，不是具有独立身份或跨 Session 状态的持久实体。
-_避免使用_：助手、Agent 档案
+_避免使用_：Assistant Message、助手、Agent 档案
 
 **Session（会话）**：
 由 Pi 拥有、记录 Agent 交互的持久对象，为一个 Working Directory 创建。关闭并重新打开 Pig Workbench 不会创建新 Session。
@@ -28,8 +28,8 @@ _避免使用_：关闭、隐藏、Abort
 _避免使用_：工作区、Workspace
 
 **Prompt（提示）**：
-用户提交的、用于开始一个 Turn 的指令。
-_避免使用_：消息、查询
+用户提交的、用于开始一个 Turn 的动作与正文。它不是 Transcript 条目本身。
+_避免使用_：User Message、查询
 
 **Turn（轮次）**：
 Agent 从接受 Prompt 到 Session 恢复空闲期间的一段工作。
@@ -51,8 +51,20 @@ _避免使用_：后续 Prompt、排队消息
 提前终止活动 Turn，但不删除其 Session。
 _避免使用_：取消 Session、删除
 
+**User Message（用户句）**：
+Transcript 中 `role` 为 `user` 的条目，含文字与图片。
+_避免使用_：Prompt、消息
+
+**Assistant Message（助手句）**：
+Transcript 中 `role` 为 `assistant` 的条目，含正文与思考。调用本身在 Tool Call 上。
+_避免使用_：Agent、Agent 输出
+
+**Tool Call（工具调用）**：
+Transcript 中 `role` 为 `tool` 的条目：一次调用的入参、输出与状态。
+_避免使用_：Tool、函数
+
 **Transcript（交互记录）**：
-Session 中 Prompt、Agent 输出和 Tool 活动的有序历史。它不是底层全部运行时事件的完整日志。
+Session 中 User Message、Assistant Message 和 Tool Call 的有序历史。它不是底层全部运行时事件的完整日志。
 _避免使用_：聊天记录、事件日志
 
 **Model（模型）**：
@@ -64,5 +76,5 @@ Session 为当前 Model 请求的推理投入程度。
 _避免使用_：思考模式、智能级别
 
 **Tool（工具）**：
-Agent 可以在 Turn 中调用的外部能力。Tool 活动是 Transcript 的一部分。
-_避免使用_：函数、Extension
+Agent 可以在 Turn 中调用的外部能力。一次具体调用是 Tool Call。
+_避免使用_：Tool Call、函数、Extension

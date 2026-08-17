@@ -2,6 +2,7 @@
  * 单轮校验：只跑脏文件所属包。根配置改动升级为全量 check。
  * 用法: pnpm check:touched
  */
+import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,6 +30,9 @@ async function main() {
   }
 
   const scope = classifyTouched(files);
+  // 删除路径仍参与包分类；Prettier/ESLint 只能跑还在磁盘上的文件
+  scope.prettierFiles = scope.prettierFiles.filter((file) => existsSync(resolve(root, file)));
+  scope.lintFiles = scope.lintFiles.filter((file) => existsSync(resolve(root, file)));
   if (scope.escalate) {
     console.log("check:touched: 根配置有改动，升级为全量 pnpm check");
     const ran = await runPnpm(["check"], root);

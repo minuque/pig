@@ -566,11 +566,11 @@ html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
   --ms-flow-paragraph-y: 0.7em;
   --ms-flow-list-y: 0.55em;
   --ms-flow-list-item-y: 0.38em;
-  --ms-flow-list-indent: 1.4em;
+  --ms-flow-list-indent: 1.65em;
   --ms-flow-codeblock-y: 0.75em;
   --ms-flow-diagram-y: 0.75em;
   --ms-flow-table-y: 1em;
-  --ms-flow-table-cell: 0.7em 1.15em 0.7em 0;
+  --ms-flow-table-cell: 0.7em 1em;
   --ms-flow-blockquote-y: 0.45em;
   --ms-flow-blockquote-indent: 0.85em;
   --ms-flow-hr-y: 0.7em;
@@ -654,14 +654,17 @@ html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
   text-decoration-thickness: 1px;
 }
 [data-custom-id="chat"] ol {
-  list-style: decimal;
-  padding-left: var(--ms-flow-list-indent);
+  list-style: decimal outside;
+  padding-inline-start: var(--ms-flow-list-indent);
   margin: var(--ms-flow-list-y) 0;
 }
 [data-custom-id="chat"] ul {
-  list-style: disc;
-  padding-left: var(--ms-flow-list-indent);
+  list-style: disc outside;
+  padding-inline-start: var(--ms-flow-list-indent);
   margin: var(--ms-flow-list-y) 0;
+}
+[data-custom-id="chat"] :is(ul, ol) :is(ul, ol) {
+  margin-block: 0.15em;
 }
 [data-custom-id="chat"] li {
   margin: var(--ms-flow-list-item-y) 0;
@@ -670,10 +673,25 @@ html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
 [data-custom-id="chat"] li::marker {
   color: var(--ink-muted);
 }
+[data-custom-id="chat"] li > p {
+  margin: 0.15em 0;
+}
+[data-custom-id="chat"] li > p:first-child {
+  margin-top: 0;
+}
+[data-custom-id="chat"] li > p:last-child {
+  margin-bottom: 0;
+}
+/* 任务列表不要负 margin，避免虚拟行把勾选标记裁掉 */
+[data-custom-id="chat"] li:has(.checkbox-node) {
+  list-style: none;
+  margin-inline-start: 0;
+}
 [data-custom-id="chat"] table {
   width: 100%;
   margin: var(--ms-flow-table-y) 0;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: inherit;
 }
 [data-custom-id="chat"] th,
@@ -690,6 +708,9 @@ html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
 }
 [data-custom-id="chat"] td {
   color: var(--ink);
+}
+[data-custom-id="chat"] tbody tr:last-child > :is(th, td) {
+  border-bottom: 0;
 }
 [data-custom-id="chat"] pre {
   margin: var(--ms-flow-codeblock-y) 0;
