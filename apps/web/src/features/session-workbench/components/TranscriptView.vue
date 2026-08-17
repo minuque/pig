@@ -239,7 +239,7 @@ function scrollToPinnedUser() {
   padding: 8px 14px;
   overflow: hidden;
   border: 0;
-  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  border-radius: 0;
   background: var(--primary);
   color: var(--on-primary);
   font-size: var(--text-body-md);
