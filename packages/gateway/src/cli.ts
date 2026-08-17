@@ -10,9 +10,12 @@ const webRoot = process.argv[2]
   ? resolve(process.argv[2])
   : fileURLToPath(new URL("../web/", import.meta.url));
 const bootstrapSecret = process.env.BOOTSTRAP_SECRET ?? randomUUID();
+const requested = Number.parseInt(process.env.PORT ?? "8787", 10);
+const listenPort = Number.isInteger(requested) && requested > 0 ? requested : 8787;
 const gateway = new Gateway({
   bootstrapSecret,
   webRoot,
+  port: listenPort,
   ...(process.env.PIG_SESSION_DIR ? { sessionDir: resolve(process.env.PIG_SESSION_DIR) } : {}),
   ...(process.env.PIG_CWD ? { cwd: resolve(process.env.PIG_CWD) } : {}),
 });

@@ -18,6 +18,8 @@ export interface GatewayOptions {
   platformPort?: DirectoryPort;
   maxFrameLength?: number;
   maxPendingBytes?: number;
+  /** HTTP 监听端口。缺省 0，由系统分配。 */
+  port?: number;
 }
 
 /**
@@ -31,6 +33,7 @@ export class Gateway {
   private readonly piServer: PiServer;
   private readonly webRoot: string | undefined;
   private readonly platformPort: DirectoryPort;
+  private readonly listenPort: number;
   private port = 0;
 
   constructor(options: GatewayOptions = {}) {
@@ -39,6 +42,7 @@ export class Gateway {
       options.bootstrapTtlMs ?? 60_000,
     );
     this.webRoot = options.webRoot;
+    this.listenPort = options.port ?? 0;
     this.platformPort =
       options.platformPort ??
       (process.platform === "win32" ? new WindowsDirectoryPort() : new ManualDirectoryPort());
@@ -162,7 +166,7 @@ export class Gateway {
     await this.piServer.start();
     return new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject);
-      this.server.listen(0, "127.0.0.1", () => {
+      this.server.listen(this.listenPort, "127.0.0.1", () => {
         this.server.off("error", reject);
         this.port = (this.server.address() as { port: number }).port;
         resolveStart(this.port);
