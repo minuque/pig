@@ -303,7 +303,7 @@ components:
 
 ## Overview
 
-本地桌面工作台：冷蓝灰分面、系统 UI 14px、一档业务蓝、hairline 分隔。对话列是文档；铬层安静。
+本地桌面工作台：冷蓝灰分面、系统 UI 默认14px、一档业务蓝、hairline 分隔。对话列是文档；铬层安静。
 
 浅色侧栏 `{colors.canvas-soft}`，对话列 `{colors.surface}`。结构色 `{colors.primary}`（#4176e6）只用于发送、链接、选中、focus。控件圆角 `{rounded.lg}`（12px）。
 
@@ -412,7 +412,7 @@ headline 只在欢迎页。栏标题 600，按钮 500。
 | Level    | Treatment  | Use            |
 | -------- | ---------- | -------------- |
 | 0 — Flat | hairline   | 栏、列表、对话 |
-| 1 — Soft | 一层轻阴影 | composer 卡    |
+| 1 — Soft | 一层轻阴影 | chatInput 卡   |
 | 2 — Pop  | 稍深，仍短 | 菜单、抽屉     |
 
 深色卡和栏用 hairline。桌面侧栏深度来自原生材质。
@@ -440,11 +440,11 @@ headline 只在欢迎页。栏标题 600，按钮 500。
 
 **`button-icon-circular`** — 28/36 图标钮，hover 6% ink 罩。
 
-**`text-input`** — composer 编辑区，12px 圆角软底井；发送 28px primary 圆钮。
+**`text-input`** — chatInput 编辑区，12px 圆角软底井；发送 28px primary 圆钮。
 
 **`feature-card`** — 用户轻底段落与次级卡；助手正文通栏。
 
-**`badge-mono`** — 阶段等短标签用 `{typography.caption-mono}`。不在 composer 下展示「N 轮 · M 步」。
+**`badge-mono`** — 阶段等短标签用 `{typography.caption-mono}`。不在 chatInput 下展示「N 轮 · M 步」。
 
 **`status-run` / `status-ok`** — 运行与成功：语义橙 / 绿。
 
@@ -456,6 +456,6 @@ headline 只在欢迎页。栏标题 600，按钮 500。
 - 深色：`#151517` / `#1b1b1c` / 缝 `#2c2c2e`。
 - `{colors.primary}` 用于动作和选中。
 - 工作台 14px 系统字；标签可用等宽大写。
-- composer / New Session：`{rounded.lg}`。
+- chatInput / New Session：`{rounded.lg}`。
 - 原生材质只进侧栏；桌面折叠保留 rail。
 - 装饰走 sunset / dusk / breeze。

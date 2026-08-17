@@ -1,8 +1,4 @@
-# pig 架构瘦身：重构为 Pi-first GUI
-
-> Repository: `minuque/pig`
->
-> 本文可直接作为重构任务 Prompt。执行前只需补充分支、范围或任务编号。
+# ROADMAP
 
 ## 1. 产品定位
 
@@ -11,8 +7,6 @@ pig 不再定位为独立 Agent Runtime、Platform 或 Framework，而是：
 > **一个 local-first、交互优秀、高性能的 Pi GUI。**
 
 pig 负责 Web 与 Desktop UI、平台接入和本地安全，不重新实现 Agent Loop、Session、Model Runtime、Tools、Transcript、Steer 或 Abort。
-
-新增 Agent 能力时，优先遵循 Pi Extension Api 或 Package，不向 pig core 添加第二套 Agent Runtime。
 
 ## 2. 核心原则
 
@@ -63,39 +57,17 @@ flowchart LR
 
 ### Thin Host
 
-Node 侧只负责：
-
-- 将 Pi SDK 接入官方 `PiServerService`
-- 提供 WebSocket listener
-- 处理 localhost bootstrap、认证和进程生命周期
-- 托管 Web 静态资源
-
-Node 侧不再承担独立 Agent Domain。
+Node 侧只承担平台接入，细节见第 5 章。
 
 ### Extension-first
 
 MCP、Subagent、Permission、Browser、Git、Terminal、Custom Tool 和 Workflow 优先实现为 Pi Extension、Skill 或 Package。只有 Pi 无法表达的 UI-only 能力才进入 pig core。
 
-## 3. 版本决策
-
-仓库已将 Pi 包统一升级并精确锁定到 `0.84.1`：
-
-```text
-@earendil-works/pi-coding-agent  0.84.1
-@earendil-works/pi-client        0.84.1
-@earendil-works/pi-protocol      0.84.1
-@earendil-works/pi-server        0.84.1
-```
-
-所有 Pi 包必须使用同一版本，不使用宽松版本范围。
-
-这些远程接口仍标记为 experimental。只在 WebSocket transport 和 Host adapter 两处接触底层协议，避免版本变化扩散到 Vue UI。
-
-## 4. 目标架构
+## 3. 目标架构
 
 ```mermaid
 flowchart TB
-  UI[Vue UI<br/>Composer · Transcript · Session · Tool · Thinking]
+  UI[Vue UI]
   RS[Official RemoteSession]
   PC[Official PiClient]
   BT[Browser WebSocket ByteTransport]
@@ -115,31 +87,7 @@ flowchart TB
   SDK --> X
 ```
 
-首版调用链：
-
-```text
-Vue UI
-→ RemoteSession
-→ PiClient
-→ WebSocket ByteTransport
-→ PiServer
-→ PiServerService adapter
-→ Pi SDK
-```
-
-建议最终结构：
-
-```text
-pig/
-├─ apps/web/                         # Web 入口
-│  └─ src/platform/websocket.ts      # Browser ByteTransportFactory
-├─ packages/ui/                      # 平台无关 Vue UI（Phase 2）
-└─ packages/gateway/                 # PiServerService + WebSocket listener
-```
-
-不再创建 `packages/pi-client`。目录迁移分阶段进行，不为目录美观制造无意义 rename。
-
-## 5. 官方客户端契约
+## 4. 官方客户端契约
 
 UI 直接使用官方类型，不再声明 pig 版 `PiClient`：
 
@@ -169,7 +117,7 @@ import type {
 
 Web 与 Desktop 只替换 `ByteTransportFactory`，不重新定义 Agent interface。
 
-## 6. Thin Host 契约
+## 5. Thin Host 契约
 
 Host 使用官方 `PiServer`，只实现 `PiServerService` adapter：
 
@@ -200,64 +148,7 @@ Adapter 只将 Pi SDK 状态和事件映射为官方 `SessionSnapshot` / `Transc
 
 WebSocket listener 必须在交给 `PiServer` 前完成认证，并限制 frame 和待发送数据大小。认证属于 transport security，不属于 Agent Domain。
 
-## 7. 删除与替换
-
-| 现有设计                                                              | 处理方式                                                                     |
-| --------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `RunsApplication`、`RunScheduler`、`RunStateMachine`、`RunRepository` | 删除。                                                                       |
-| `UiRun`、`RunStatus`、Run ID、Run recovery                            | 删除。工作状态使用 `SessionSnapshot.phase`。                                 |
-| `SSEEventEnvelope`、sequence、gap recovery                            | 删除。由官方 PiClient 和 Snapshot 处理连接恢复。                             |
-| `run.output.delta`、`run.thinking.delta`、`run.tool.*`                | 删除。改用官方 Transcript types 和 progress。                                |
-| `ModelPreset`                                                         | 删除。改用 `ModelRef + ThinkingLevel`。                                      |
-| `commandId` 与命令去重 Domain                                         | 删除。请求关联由官方 PiClient protocol 处理。                                |
-| Pig Session persistence                                               | 删除。Session metadata、ID 和 transcript 以 Pi 为准。                        |
-| Workspace Domain                                                      | 删除。cwd/project selection 属于 Web platform；授权属于 transport security。 |
-| SQLite Agent metadata                                                 | 删除。UI preference 使用简单 UI persistence。                                |
-| `useRuns()`                                                           | 删除。改为围绕 `RemoteSession` 和 UI projection 的组合式状态。               |
-| 通用 REST/SSE API client                                              | 删除。仅保留 bootstrap、目录选择等 Browser platform 请求。                   |
-
-前端状态流统一为：
-
-```text
-ServerSnapshot / SessionSnapshot / TranscriptProgress
-→ RemoteSession
-→ Vue projection
-→ render
-```
-
-平台无关 UI 不得直接依赖 `fetch`、`WebSocket`、`sessionStorage`、`location`、Node APIs 或 Pi Host internals。
-
-## 8. 执行阶段
-
-### Phase 0：接入官方远程栈
-
-**状态：实现已完成，验收覆盖待补。**
-
-- [x] 所有 Pi 包精确锁定到 `0.84.1`。
-- [x] 引入官方 client、protocol 和 server。
-- [x] 实现 Browser `ByteTransportFactory`。
-- [x] 实现最小 `PiServerService` adapter。
-- [ ] create/open 和 prompt/stream 已有回归测试；Abort 与 reconnect 已实现，但仍需显式回归测试。
-
-### Phase 1：替换旧 Host 与 UI State
-
-**状态：已完成。**
-
-| Task              | 主要范围                                              | 结果                                                                                           |
-| ----------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| A — Thin Pi Host  | `packages/gateway/**`                                 | 已删除旧应用层和数据库 Domain；Host 使用 PiServerService、AgentSession 与 WebSocket listener。 |
-| B — Web Transport | `apps/web/src/client/**`                              | 已删除 REST/SSE Agent client；使用官方 PiClient 与 WebSocket ByteTransport。                   |
-| C — Pi-native UI  | `apps/web/src/app/**`、`features/**`、`components/**` | 已删除 UiRun 和 recovery；使用 RemoteSession、Snapshot 与 TranscriptItem。                     |
-
-### Phase 2：抽取 UI Core
-
-Phase 1 稳定后，将 Web 拆成平台无关的 `@pig/ui` 与 Browser-only 的 `@pig/web`；Desktop 复用同一 UI Core。
-
-### Phase 3：清理 Legacy
-
-统一删除旧 contracts、dead code、旧 tests 和过时文档；更新 scripts 与架构文档；必要时将 gateway rename 为 pi-host。
-
-## 9. 首版能力
+## 6. 能力边界
 
 必须保留：
 
@@ -275,37 +166,9 @@ Phase 1 稳定后，将 Web 拆成平台无关的 `@pig/ui` 与 Browser-only 的
 - 图片 prompt
 - Extension UI dialog
 
-将这些能力记录为 upstream gap；官方契约支持后再接入。
-
-本轮不要做自定义 Agent Loop、自研 Plugin System、新数据库 Domain、内置 MCP/Subagent/Browser/Git/Terminal/Permission、Cloud Backend、多用户 SaaS 或无明确需求的泛化抽象。
-
-## 10. 质量与验收
-
-所有修改必须通过 TypeScript typecheck、lint 和 tests。优先使用 Pi 官方类型，不用 `any` 绕过协议，不长期保留新旧架构双轨。
-
-### Prompt 调用链
-
-```text
-UI → RemoteSession.submit() → PiClient → PiServer → AgentSession.prompt()/steer()
-```
-
-链路中不存在 `RunsApplication`、`RunScheduler` 或 `RunStateMachine`。
-
-### 状态调用链
-
-```text
-Pi SDK → PiServer adapter → official Snapshot/Progress → RemoteSession → UI
-```
-
-链路中不存在 Pig Event、SSE envelope 或 Pig Run State Machine。
-
 ### 事实源与平台边界
 
 - Host 重启后，Session 真相仍来自 Pi Session storage。
-- 重连后，以官方 Snapshot 恢复状态，不执行 Pig Run recovery。
-- UI Core 不知道 WebSocket 或 bootstrap 的实现。
-- Web 与 Desktop 只保留各自的 shell 和 `ByteTransportFactory`。
-- 安装新的 Pi Extension 时，pig core 不增加对应 Agent 业务实现。
 
 > **最终判断顺序：官方 Pi SDK/Remote Protocol → Pi Extension → UI state → platform concern。**
 >

@@ -12,8 +12,14 @@ pnpm workspace 管理三个包：
 
 ```
 apps/web/src/
-├── app/          # 应用入口与全局状态（App.vue、app.css、hooks/use-app.ts）
-├── client/       # 平台接入（PiClient、HTTP、transport、workspace）
+├── App.vue       # 组合根
+├── style/        # 全局样式（reset.css、app.css tokens）
+├── client/       # 平台接入
+│   ├── bootstrap.ts  # 启动授权与凭证存取
+│   ├── http.ts       # platformRequest / 错误文案
+│   ├── transport.ts  # Browser WebSocket → ByteTransport
+│   ├── pi-client.ts  # PiClient 生命周期、响应式投影、退避重连
+│   └── local-cwd.ts  # 已授权目录与最近 cwd 的 localStorage 偏好
 ├── components/   # 跨域共享组件
 │   ├── layout/   #   壳层布局（AppLayout）
 │   └── ui/       #   shadcn-vue 基础组件（dropdown-menu、tooltip、badge）
@@ -22,8 +28,10 @@ apps/web/src/
 └── utils/        # 通用工具（cn 等）
 ```
 
+- `App.vue` 只接线：`usePiClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再 bootstrap / connect / 挂路由会话。组合根用参数传递，不包一层 Platform。
+- 子树只拿两把钥匙：`useSession()` / `useNav()`。不写创建/发送/重命名等领域规则。
+- `client/` 是 platform concern（网络、凭证、传输、本地目录偏好），不进入 Agent Domain；也不再导出名为 Platform 的组合对象。
 - `components/` 只放跨域共享的 `layout` 与 `ui`；领域组件一律进 `features/`。
-- `client/` 是 platform concern（网络、bootstrap、目录选择），不进入 Agent Domain。
 
 ## 2.1 test 目录
 
@@ -37,7 +45,7 @@ apps/web/test/
 ├── client/              # 对应 src/client
 ├── layout/              # 对应 src/components/layout
 ├── router/              # 对应 src/router
-└── app/                 # 对应 src/app 与 src 根
+└── app/                 # 对应 src 根（App.vue、desktop-marker 等）
 ```
 
 - 测试文件随被测模块同目录；别名 import（`@features/...` 等）不受目录层级影响。
@@ -49,22 +57,24 @@ apps/web/test/
 
 ```
 features/<module>/
-├── index.vue        # 模块入口组件（唯一）
+├── index.vue        # 模块入口组件（唯一视图入口）
+├── index.ts         # 模块对外组合：provide / use（有跨树共享时才建）
+├── types.ts         # 对外契约；仅本模块用的类型可放 lib/
 ├── components/      # 模块私有视图组件
 ├── hooks/           # 模块私有 composable
-├── <logic>.ts       # 纯逻辑：类型投影、格式化、状态机（平铺根目录）
-└── types.ts         # 模块类型
+└── lib/             # 纯逻辑：投影、格式化、预设、绘制、会话 UI 状态
 ```
 
 规则：
 
-1. 入口组件必须是 `index.vue`，不放根目录其它视图组件。
+1. 入口组件必须是 `index.vue`，不放根目录其它视图组件。跨模块引用视图写 `index.vue`，引用组合写 `index.js`，不要省略文件名。
 2. 视图组件收进 `components/`。
-3. composable 收进 `hooks/`。
-4. 纯逻辑（类型、格式化、投影、状态）平铺根目录，用明确文件名（如 `transcript-format.ts`、`session-state.ts`）。
-5. 跨模块引用用别名 `@features/<module>/...`，不写相对路径；模块内引用可用相对路径。
-6. 一个 feature 只做一件领域事；耦合两个功能的模块应拆成两块（如 `session-nav` / `session-workbench`）。
-7. 跨模块共享的类型放被依赖方（如 workspace 类型在 `session-nav`，`session-workbench` 引用它）。
+3. composable 收进 `hooks/`。模块级 `provide` / `use` 放根目录 `index.ts`，不进 `hooks/`。
+4. `lib/` 只放**有两处及以上生产消费**的纯逻辑（投影、格式化、预设表）。单点消费的函数放回对应 `.vue` / `hooks/`，不要为测试单独抽文件。根目录不平铺 `*.ts`（`types.ts` 除外）。小模块没有可复用逻辑时不建 `lib/`。
+5. `lib/` 是技术桶，不按子领域再切；状态机也只是其中的文件，不另开 `model/`。
+6. 跨模块引用用别名 `@features/<module>/...`，不写相对路径；模块内引用可用相对路径。
+7. 一个 feature 只做一件领域事；耦合两个功能的模块应拆成两块（如 `session-nav` / `session-workbench`）。
+8. 跨模块共享的类型放被依赖方（如 workspace 类型在 `session-nav`，`session-workbench` 引用它）。
 
 ## 4. 现有模块
 
