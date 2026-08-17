@@ -4,11 +4,7 @@ import { PiServer } from "@earendil-works/pi-server";
 import { BootstrapAuth } from "../auth/bootstrap.js";
 import { SessionNotFoundError } from "@earendil-works/pi-server";
 import { PiHostService } from "../pi/service.js";
-import {
-  ManualDirectoryPort,
-  WindowsDirectoryPort,
-  type DirectoryPort,
-} from "../native/directory.js";
+import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js";
 import { serveWebFile } from "./static-files.js";
 import { createWebSocketListener } from "./websocket.js";
 

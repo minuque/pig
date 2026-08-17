@@ -13,7 +13,7 @@ import type {
   PiServerService,
   PiSessionRuntime,
 } from "@earendil-works/pi-server";
-import { canonicalizePath } from "../native/directory.js";
+import { canonicalizePath } from "../directory.js";
 import { sessionListName } from "./session-label.js";
 import { PiHostSession } from "./session-runtime.js";
 

@@ -3,7 +3,7 @@ import { ServerMessageDecoder } from "@earendil-works/pi-protocol";
 import { WebSocket } from "ws";
 
 import Gateway from "../src/index.js";
-import type { DirectoryPort } from "../src/native/directory.js";
+import type { DirectoryPort } from "../src/directory.js";
 
 let selectedDirectory: string | undefined;
 const directoryPort: DirectoryPort = {
