@@ -6,7 +6,7 @@
 
 **[简体中文](README.md)** · English
 
-> A local-first, polished, high-performance **Pi GUI** — Web and Desktop clients that present and control Pi Sessions, without re-implementing the Agent Runtime.
+> A local-first, polished, high-performance **Pi Agent GUI** — Web and Desktop.
 
 ## Architecture
 

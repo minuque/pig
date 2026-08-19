@@ -6,7 +6,7 @@
 
 **[English](README.en.md)** · 简体中文
 
-> local-first、交互优秀、高性能的 **Pi GUI**——Web 与 Desktop 双端，负责呈现与控制 Pi Session，不重新实现 Agent Runtime。
+> 本地优先、交互优秀、高性能的 **Pi Agent GUI**——Web 与 Desktop。
 
 ## 快速开始
 
