@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="apps/web/public/pwa-icon-512.png" width="160" alt="pig" />
+  <img src="apps/web/public/logo.png" width="160" alt="pig" />
 </p>
 
 # pig
