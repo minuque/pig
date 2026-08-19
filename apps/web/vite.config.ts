@@ -28,8 +28,8 @@ export default defineConfig({
         short_name: "pig",
         description: "",
         lang: "zh-CN",
-        theme_color: "#18181b",
-        background_color: "#ffffff",
+        theme_color: "#0D1B33",
+        background_color: "#0D1B33",
         display: "standalone",
         start_url: "/",
         icons: [
