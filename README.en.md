@@ -5,8 +5,6 @@
 # pig
 
 <p align="center">
-  <a href="https://github.com/earendil-works/pi"><img alt="Pi package" src="https://img.shields.io/badge/Pi-package-blue" /></a>
-  <a href="https://www.npmjs.com/package/@earendil-works/pi-coding-agent/v/0.84.1"><img alt="npm" src="https://img.shields.io/badge/npm-v0.84.1-brightgreen" /></a>
   <img alt="Node.js" src="https://img.shields.io/badge/Node.js-%E2%89%A522.19-green" />
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue" /></a>
 </p>
