@@ -2,6 +2,7 @@
   "name": "@pig/desktop",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "main": "./electron-main.mjs",
   "scripts": {

@@ -23,3 +23,7 @@ pnpm dev:desktop    # Electron 桌面开发
 - [`CONTEXT.md`](CONTEXT.md) — 领域语言
 - [`docs/directory-structure.md`](docs/directory-structure.md) — 目录与模块规范
 - [`docs/ui-guidelines.md`](docs/ui-guidelines.md) — UI 规范
+
+## 许可证
+
+[MIT](LICENSE)
