@@ -28,7 +28,7 @@ export default defineConfig({
         short_name: "pig",
         description: "",
         lang: "zh-CN",
-        theme_color: "#5e7ac8",
+        theme_color: "#000000",
         background_color: "#5e7ac8",
         display: "standalone",
         start_url: "/",
