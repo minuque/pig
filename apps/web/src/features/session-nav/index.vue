@@ -4,6 +4,9 @@
     <div class="titlebar-drag" aria-hidden="true"></div>
 
     <div class="logo-row">
+      <RouterLink v-if="!collapsed" to="/" class="logo-mark" aria-label="返回欢迎页">
+        <img src="/logo.png" alt="" width="22" height="22" />
+      </RouterLink>
       <button
         class="icon-button collapse-toggle"
         type="button"
@@ -29,7 +32,7 @@
 
     <div v-show="!collapsed" ref="navBody" class="nav-body">
       <header class="nav-masthead">
-        <h2 id="workspaces-title">工作目录</h2>
+        <h2 id="workspaces-title" class="nav-masthead-title">工作目录</h2>
         <button
           class="icon-button"
           type="button"
@@ -58,7 +61,7 @@
           >
             <component
               :is="isExpanded(group.canonicalPath) ? FolderOpen : Folder"
-              :size="16"
+              :size="14"
               class="workspace-folder"
               aria-hidden="true"
             />
@@ -132,11 +135,16 @@
         </li>
       </ul>
     </div>
+
+    <div class="nav-foot">
+      <ThemeToggle />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, useTemplateRef, watch } from "vue";
+import { RouterLink } from "vue-router";
 import { Folder, FolderOpen, MoreVertical, PanelLeft, Plus } from "lucide-vue-next";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
@@ -148,6 +156,7 @@ import {
 } from "@components/ui/dropdown-menu/index.js";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
 import { workspaceName } from "@features/session-nav/types.js";
+import ThemeToggle from "@features/theme/ThemeToggle.vue";
 
 defineProps<{
   collapsed?: boolean;
@@ -210,7 +219,7 @@ function isExpanded(canonicalPath: string): boolean {
 .session-nav {
   --nav-row: 28px;
   --nav-rail: 36px;
-  --nav-new: 36px;
+  --nav-new: 28px;
   position: relative;
   display: flex;
   flex: 1;
@@ -265,7 +274,7 @@ html[data-pig-desktop-platform] .session-nav input {
 .logo-row {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   width: 100%;
   min-height: var(--nav-rail);
   padding-inline: 2px;
@@ -274,6 +283,23 @@ html[data-pig-desktop-platform] .session-nav input {
   width: var(--nav-rail);
   justify-content: center;
   padding-inline: 0;
+}
+.logo-mark {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--nav-rail);
+  min-height: var(--nav-rail);
+  border-radius: var(--radius-md);
+}
+.logo-mark img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+.logo-mark:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
 }
 .collapse-toggle {
   display: flex;
@@ -297,29 +323,33 @@ html[data-pig-desktop-platform] .session-nav input {
 .new-session {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--spacing-xs);
   width: 100%;
   height: var(--nav-new);
   min-height: var(--nav-new);
-  padding: 0 var(--spacing-sm);
+  padding: 0 var(--spacing-xs);
   border: 0;
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
-  color: var(--ink);
-  font-size: var(--text-button);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-button--line-height);
+  line-height: var(--text-caption--line-height);
 }
 .session-nav.collapsed .new-session {
   width: var(--nav-rail);
   height: var(--nav-rail);
   min-height: var(--nav-rail);
+  justify-content: center;
   padding: 0;
-  border-radius: var(--radius-md);
 }
 .new-session:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
+}
+.new-session:disabled {
+  opacity: 0.45;
 }
 
 .nav-body {
@@ -341,14 +371,15 @@ html[data-pig-desktop-platform] .session-nav input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: var(--nav-row);
+  min-height: 22px;
   padding: 0 var(--spacing-xxs);
 }
-.nav-masthead h2 {
+.nav-masthead-title {
   margin: 0;
   color: var(--ink-muted);
-  font-size: var(--text-caption);
+  font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-medium);
+  line-height: var(--text-eyebrow--line-height);
 }
 .nav-masthead .icon-button,
 .workspace-create,
@@ -358,6 +389,7 @@ html[data-pig-desktop-platform] .session-nav input {
   padding: 0;
   border: 0;
   background: transparent;
+  color: var(--ink-faint);
 }
 .nav-masthead .icon-button:disabled {
   opacity: 0.5;
@@ -378,19 +410,15 @@ html[data-pig-desktop-platform] .session-nav input {
   align-items: center;
   gap: 6px;
   width: 100%;
-  min-height: var(--nav-row);
-  padding: 4px 8px;
+  min-height: 22px;
+  padding: 2px 8px;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--ink);
+  color: var(--ink-muted);
   text-align: left;
 }
 .workspace-row:hover {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
-}
-.workspace-row.active .workspace-name,
-.workspace-row.expanded .workspace-name {
-  font-weight: var(--font-weight-medium);
+  color: var(--ink);
 }
 .workspace-folder {
   flex: none;
@@ -399,15 +427,17 @@ html[data-pig-desktop-platform] .session-nav input {
 .workspace-name {
   min-width: 0;
   overflow: hidden;
-  color: var(--ink);
-  font-size: var(--text-body-sm);
+  color: inherit;
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-eyebrow--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .workspace-create,
 .workspace-kebab {
   position: absolute;
-  top: calc((var(--nav-row) - var(--size-nav-action)) / 2);
+  top: calc((22px - var(--size-nav-action)) / 2);
   z-index: 1;
   color: var(--ink-faint);
   opacity: 0;
@@ -440,6 +470,20 @@ html[data-pig-desktop-platform] .session-nav input {
   margin: var(--spacing-xxs) 0;
   padding: var(--spacing-xs);
   font-size: var(--text-caption);
+}
+.nav-foot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 100%;
+  min-height: var(--nav-rail);
+  padding-inline: 2px;
+  margin-top: auto;
+}
+.session-nav.collapsed .nav-foot {
+  width: var(--nav-rail);
+  justify-content: center;
+  padding-inline: 0;
 }
 @media (prefers-reduced-motion: reduce) {
   .workspace-reveal {
