@@ -121,7 +121,7 @@ defineExpose({ focus });
   position: relative;
   display: flex;
   flex-direction: column;
-  /* 网页实色；桌面毛玻璃见 app.css（isolation/overflow 会让 backdrop 采不到 transcript） */
+  /* 网页实色；桌面毛玻璃画在 ::before，正文 z-index 压在上面 */
   background: var(--canvas-soft);
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-xl);
@@ -131,6 +131,7 @@ defineExpose({ focus });
 .frame::before {
   content: "";
   position: absolute;
+  z-index: 0;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
@@ -140,6 +141,12 @@ defineExpose({ focus });
   border-color: color-mix(in srgb, var(--primary) 48%, var(--hairline));
 }
 
+.chips,
+.editor-wrap,
+.row {
+  position: relative;
+  z-index: 1;
+}
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -147,7 +154,6 @@ defineExpose({ focus });
   padding: 12px 14px 0;
 }
 .editor-wrap {
-  position: relative;
   padding: 14px 16px 10px;
 }
 .field {

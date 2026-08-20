@@ -528,14 +528,31 @@ small,
 html[data-pig-desktop-platform="darwin"] {
   --size-sidebar-rail: var(--size-sidebar-rail-mac);
 }
-/* 桌面输入卡 / 菜单：糊下方页面。窗体不透明，backdrop 不会穿到壁纸。 */
+/* 桌面毛玻璃：模糊画在空 ::before 上，正文叠在上面。滤镜和内容同元素时 Chromium 采不到 transcript。 */
 html[data-pig-desktop-platform] .prompt .frame,
 html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
-  background: color-mix(in srgb, var(--canvas-soft) var(--glass-opacity), transparent);
+  isolation: isolate;
+  background: transparent;
   border-color: color-mix(in srgb, var(--ink) 8%, transparent);
   box-shadow: var(--shadow-popover);
+}
+html[data-pig-desktop-platform] .prompt .frame::before,
+html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"]::before {
+  z-index: 0;
+  background: color-mix(in srgb, var(--canvas-soft) var(--glass-opacity), transparent);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+}
+html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] > * {
+  position: relative;
+  z-index: 1;
 }
 html[data-pig-desktop-platform] .prompt .frame:focus-within {
   border-color: color-mix(in srgb, var(--primary) 36%, var(--hairline));
@@ -544,6 +561,10 @@ html[data-pig-desktop-platform] .prompt .frame:focus-within {
   html[data-pig-desktop-platform] .prompt .frame,
   html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
     background: var(--canvas-soft);
+  }
+  html[data-pig-desktop-platform] .prompt .frame::before,
+  html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"]::before {
+    background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
