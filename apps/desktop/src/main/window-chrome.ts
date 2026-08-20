@@ -6,10 +6,7 @@ const SECURE_WEB_PREFERENCES = {
   sandbox: true,
 } as const;
 
-/**
- * 按平台返回窗口铬层；不含 preload / 窗控 IPC。
- * 窗体不透明，好让输入卡/菜单的 CSS backdrop-filter 采到页面而不是壁纸。
- */
+/** 按平台返回窗口铬层；不含 preload / 窗控 IPC。 */
 export function windowChromeFor(platform: string): BrowserWindowConstructorOptions {
   const webPreferences = { ...SECURE_WEB_PREFERENCES };
 

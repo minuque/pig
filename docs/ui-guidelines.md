@@ -50,7 +50,7 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。
 - **Session 列表**：Pi 拥有 Session 真相。已授权目录优先显示，其它 Session 继续按 cwd 显示。行展示标题 + 相对时间，默认展开 lastCwd（否则第一项）。
 - **ChatInput**
   - 输入卡绝对贴在对话列底部，transcript 通栏滚动。欢迎页复用同一个 PromptEditor 卡。
-  - 桌面输入卡对齐 t3code：`glass-shell` 上 `isolation` + 空 `::before` 做 backdrop-filter（blur 12px / 深色 16px，填充 80%），正文在 `glass-host`（z-10）。菜单用 `dropdown-glass` 配方直接糊在弹出层上。
+  - 桌面输入卡和模型/思考菜单使用 backdrop-filter（blur 12px / 深色 16px，填充 80%）。
   - 浏览器输入卡和菜单使用不透明 `canvas-soft`，不跟桌面玻璃。
   - `prefers-reduced-transparency` 时桌面回退不透明 `canvas-soft`。
   - dock 不铺实底。模型和思考选项放在左侧，primary 发送圆钮放在右侧。

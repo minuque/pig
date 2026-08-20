@@ -528,7 +528,6 @@ small,
 html[data-pig-desktop-platform="darwin"] {
   --size-sidebar-rail: var(--size-sidebar-rail-mac);
 }
-/* 桌面毛玻璃：对齐 t3code chat-composer-glass-shell / dropdown-glass */
 html[data-pig-desktop-platform] .prompt .glass-shell {
   isolation: isolate;
 }

@@ -1,5 +1,4 @@
 <template>
-  <!-- 结构对齐 t3code chat-composer-glass-shell / glass-host：模糊层在 shell::before，正文在 host -->
   <div class="glass-shell">
     <div class="glass-host">
       <div v-if="$slots.chips" class="chips">
