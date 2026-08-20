@@ -14,6 +14,7 @@ import type {
   PiSessionRuntime,
 } from "@earendil-works/pi-server";
 import { canonicalizePath } from "../directory.js";
+import { modelFromBranch, type SessionCard } from "./session-card.js";
 import { sessionListName } from "./session-label.js";
 import { PiHostSession } from "./session-runtime.js";
 
@@ -39,7 +40,8 @@ export class PiHostService implements PiServerService {
   /** sessionId → 会话文件路径（listSessions/openSession 时填充）。 */
   private readonly sessionPaths = new Map<string, string>();
   private runtimePromise?: Promise<Runtime>;
-  private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined;
+  private sessionsCache:
+    { expiresAt: number; infos: SessionInfo[]; cards: SessionCard[] } | undefined;
 
   constructor(private readonly options: PiHostServiceOptions = {}) {}
 
@@ -55,6 +57,15 @@ export class PiHostService implements PiServerService {
         ...(info.cwd ? { cwd: canonicalizePath(info.cwd) } : {}),
       };
     });
+  }
+
+  /**
+   * 侧栏卡片投影：消息数来自 SessionInfo，模型来自当前分支最后一次 model_change。
+   * 不进协议 SessionMetadata（strict，会丢掉额外字段）。
+   */
+  async listSessionCards(): Promise<SessionCard[]> {
+    await this.refreshSessionPaths();
+    return this.sessionsCache?.cards ?? [];
   }
 
   async listModels(): Promise<ModelMetadata[]> {
@@ -148,7 +159,7 @@ export class PiHostService implements PiServerService {
     this.sessionPaths.clear();
     for (const info of infos) this.sessionPaths.set(info.id, info.path);
     // ponytail: 短 TTL 代替无界扫盘；SDK 有 Session 变更通知后改精确失效。
-    this.sessionsCache = { expiresAt: now + 2_000, infos };
+    this.sessionsCache = { expiresAt: now + 2_000, infos, cards: cardsFromInfos(infos) };
     return infos;
   }
 
@@ -172,6 +183,22 @@ export class PiHostService implements PiServerService {
     this.sessionPaths.delete(sessionId);
     await rm(path, { force: true });
   }
+}
+
+function cardsFromInfos(infos: readonly SessionInfo[]): SessionCard[] {
+  return infos.map((info) => {
+    let model: SessionCard["model"];
+    try {
+      model = modelFromBranch(SessionManager.open(info.path).getBranch());
+    } catch {
+      model = undefined;
+    }
+    return {
+      id: info.id,
+      messageCount: info.messageCount,
+      ...(model ? { model } : {}),
+    };
+  });
 }
 
 /** 测试注入用默认 ModelRuntime：不做网络刷新，避免启动时拉取模型目录。 */

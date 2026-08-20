@@ -315,6 +315,7 @@ describe("PiHostService", () => {
     const metadata = await service.listSessions();
     expect(metadata).toHaveLength(1);
     expect(metadata[0]).toMatchObject({ id: "sess-1", cwd: expect.any(String) });
+    expect(await service.listSessionCards()).toMatchObject([{ id: "sess-1", messageCount: 0 }]);
 
     const reopened = await service.openSession("sess-1");
     expect(await reopened.snapshot()).toMatchObject({ id: "sess-1" });

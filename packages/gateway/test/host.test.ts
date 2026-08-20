@@ -99,6 +99,7 @@ describe("thin host HTTP shell", () => {
       (await request(base, "/api/v1/platform/rename-session", { id: "s", name: "a" })).status,
     ).toBe(401);
     expect((await request(base, "/api/v1/platform/delete-session", { id: "s" })).status).toBe(401);
+    expect((await request(base, "/api/v1/platform/session-cards")).status).toBe(401);
 
     const { credential } = (await (
       await request(base, "/api/v1/bootstrap", { secret: "test-secret" })

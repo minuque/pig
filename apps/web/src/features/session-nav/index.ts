@@ -4,6 +4,7 @@ import type { useLocalWorkspaces } from "@client/local-cwd.js";
 import type { usePiClient } from "@client/pi-client.js";
 import type { SessionContext } from "@features/session-workbench/index.js";
 import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js";
+import { modelDisplayNames, sessionCardFoot } from "@features/session-nav/types.js";
 
 export type NavContext = ReturnType<typeof createNav>;
 export const navKey: InjectionKey<NavContext> = Symbol("nav");
@@ -21,10 +22,30 @@ function createNav(
     refreshSessions: pi.refreshSessions,
   });
 
+  const cardFootById = computed(() => {
+    const names = modelDisplayNames(session.catalog.value);
+    const liveId = session.sessionId.value;
+    const live =
+      liveId && session.projection.value
+        ? {
+            sessionId: liveId,
+            messageCount: session.transcript.value.length,
+            model: session.projection.value.model,
+          }
+        : undefined;
+    const extras = nav.sessionCards.value;
+    const feet = new Map<string, { messageCount: number | undefined; modelLabel: string }>();
+    for (const item of nav.listedSessions.value) {
+      feet.set(item.id, sessionCardFoot(item.id, extras, live, names));
+    }
+    return feet;
+  });
+
   return {
     groups: nav.groups,
     workspaces: nav.workspaces,
     listedSessions: nav.listedSessions,
+    cardFootById,
     projectScope: nav.projectScope,
     addingWorkspace: nav.addingWorkspace,
     navError,

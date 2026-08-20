@@ -164,6 +164,8 @@
                 :workspace-title="session.cwd ? workspaceName(session.cwd) : ''"
                 :active="session.id === activeSessionId"
                 :running="activeSessionRunning && session.id === activeSessionId"
+                :message-count="cardFootById.get(session.id)?.messageCount ?? null"
+                :model-label="cardFootById.get(session.id)?.modelLabel ?? ''"
                 @navigate="onSessionNavigate(session.cwd)"
                 @rename="renameSession"
                 @delete="deleteSession"
@@ -229,6 +231,7 @@ const emit = defineEmits<{
 const {
   groups,
   listedSessions,
+  cardFootById,
   projectScope,
   activeWorkspaceId,
   activeSessionId,

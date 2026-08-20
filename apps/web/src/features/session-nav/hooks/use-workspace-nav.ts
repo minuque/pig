@@ -8,6 +8,7 @@ import {
   listSessionsForSidebar,
   localWorkspacesFrom,
   workspaceName,
+  type SessionCardExtra,
 } from "@features/session-nav/types.js";
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>;
@@ -28,6 +29,39 @@ export function useWorkspaceNav(
   /** null = 全部工作目录。对齐 T3 `projectScopeKey`。 */
   const projectScope = shallowRef<string | null>(null);
   const listedSessions = computed(() => listSessionsForSidebar(sessions.value, projectScope.value));
+  const sessionCards = ref(new Map<string, SessionCardExtra>());
+  const sessionStamp = computed(() =>
+    sessions.value
+      .map((session) => `${session.id}:${session.updatedAt ?? session.createdAt}`)
+      .join("|"),
+  );
+
+  async function loadSessionCards() {
+    try {
+      const result = await platformRequest<{ cards: (SessionCardExtra & { id: string })[] }>(
+        "/api/v1/platform/session-cards",
+      );
+      sessionCards.value = new Map(
+        result.cards.map((card) => [
+          card.id,
+          {
+            messageCount: card.messageCount,
+            ...(card.model ? { model: card.model } : {}),
+          },
+        ]),
+      );
+    } catch {
+      /* 卡片脚注失败不挡会话列表 */
+    }
+  }
+
+  watch(
+    sessionStamp,
+    () => {
+      void loadSessionCards();
+    },
+    { immediate: true },
+  );
 
   watch(groups, (list) => {
     const scoped = projectScope.value;
@@ -74,6 +108,7 @@ export function useWorkspaceNav(
         body: JSON.stringify({ id, name }),
       });
       await admin.refreshSessions();
+      await loadSessionCards();
     } catch (cause) {
       error.value = errorMessage(cause);
     }
@@ -87,6 +122,7 @@ export function useWorkspaceNav(
       });
       if (admin.sessionId.value === id) await admin.router.replace("/");
       await admin.refreshSessions();
+      await loadSessionCards();
     } catch (cause) {
       error.value = errorMessage(cause);
     }
@@ -96,6 +132,7 @@ export function useWorkspaceNav(
     workspaces,
     groups,
     listedSessions,
+    sessionCards,
     projectScope,
     addWorkspace,
     revokeWorkspace,

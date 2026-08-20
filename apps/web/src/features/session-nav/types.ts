@@ -119,3 +119,47 @@ export function groupSessionsByCwd(
 export function localWorkspacesFrom(paths: readonly string[]): LocalWorkspace[] {
   return paths.map((canonicalPath) => ({ canonicalPath }));
 }
+
+/** 协议列表不带的卡片脚注：消息数 + 当前模型。 */
+export interface SessionCardExtra {
+  messageCount: number;
+  model?: { provider: string; id: string };
+}
+
+export interface SessionCardLive {
+  sessionId: string;
+  messageCount: number;
+  model: { provider: string; id: string };
+}
+
+export function modelDisplayNames(
+  catalog: readonly { id: string; models: readonly { id: string; name: string }[] }[],
+): Map<string, string> {
+  const names = new Map<string, string>();
+  for (const vendor of catalog) {
+    for (const model of vendor.models) names.set(`${vendor.id}/${model.id}`, model.name);
+  }
+  return names;
+}
+
+export function sessionModelLabel(
+  model: { provider: string; id: string } | undefined,
+  names: ReadonlyMap<string, string>,
+): string {
+  if (!model) return "";
+  return names.get(`${model.provider}/${model.id}`) ?? model.id;
+}
+
+export function sessionCardFoot(
+  sessionId: string,
+  extras: ReadonlyMap<string, SessionCardExtra>,
+  live: SessionCardLive | undefined,
+  names: ReadonlyMap<string, string>,
+): { messageCount: number | undefined; modelLabel: string } {
+  const extra = extras.get(sessionId);
+  const isLive = live?.sessionId === sessionId;
+  return {
+    messageCount: isLive ? live.messageCount : extra?.messageCount,
+    modelLabel: sessionModelLabel(isLive ? live.model : extra?.model, names),
+  };
+}

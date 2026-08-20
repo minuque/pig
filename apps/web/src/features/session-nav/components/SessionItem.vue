@@ -57,7 +57,8 @@
           <span class="title">{{ sessionTitle(session) }}</span>
         </div>
         <div class="card-line card-foot">
-          <span class="card-spacer"></span>
+          <span class="card-count">{{ messageCount == null ? "" : `${messageCount} 条` }}</span>
+          <span class="card-model">{{ modelLabel }}</span>
         </div>
       </template>
     </RouterLink>
@@ -107,12 +108,16 @@ const props = withDefaults(
     variant?: "card" | "slim";
     highlighted?: boolean;
     resultId?: string;
+    messageCount?: number | null;
+    modelLabel?: string;
   }>(),
   {
     workspaceTitle: "",
     variant: "card",
     highlighted: false,
     resultId: "",
+    messageCount: null,
+    modelLabel: "",
   },
 );
 
@@ -219,7 +224,27 @@ function onDelete() {
   margin-top: 4px;
 }
 .card-foot {
+  justify-content: space-between;
+  gap: 8px;
   margin-top: 2px;
+}
+.card-count,
+.card-model {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-faint);
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-count {
+  flex: none;
+}
+.card-model {
+  flex: none;
+  max-width: 60%;
+  text-align: right;
 }
 .title {
   min-width: 0;

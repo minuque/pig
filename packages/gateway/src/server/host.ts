@@ -128,6 +128,17 @@ export class Gateway {
         return this.send(res, 500, { code: "INVALID_REQUEST" });
       }
     }
+    if (url.pathname === "/api/v1/platform/session-cards" && req.method === "GET") {
+      if (!this.auth.verify(this.credential(req)))
+        return this.send(res, 401, { code: "UNAUTHENTICATED" });
+      try {
+        const cards = await this.hostService.listSessionCards();
+        return this.send(res, 200, { cards });
+      } catch (error) {
+        console.error("session-cards failed:", error);
+        return this.send(res, 500, { code: "INVALID_REQUEST" });
+      }
+    }
     if (url.pathname === "/api/v1/platform/rename-session" && req.method === "POST") {
       return this.handleSessionFileAction(req, res, async (id, body) => {
         const name = typeof body.name === "string" ? body.name : "";

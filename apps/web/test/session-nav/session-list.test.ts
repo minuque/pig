@@ -4,7 +4,10 @@ import {
   formatRelativeTime,
   groupSessionsByCwd,
   listSessionsForSidebar,
+  modelDisplayNames,
   searchSessionsByTitle,
+  sessionCardFoot,
+  sessionModelLabel,
   sessionTitle,
   sortSessionsForSidebar,
   workspaceName,
@@ -132,5 +135,36 @@ describe("session-dimension list", () => {
       "b",
     ]);
     expect(searchSessionsByTitle(sessions, "新会话").map((session) => session.id)).toEqual(["c"]);
+  });
+});
+
+describe("session card foot", () => {
+  it("uses catalog name and live overlay for the open session", () => {
+    const extras = new Map([
+      ["s1", { messageCount: 2, model: { provider: "openai", id: "gpt-4" } }],
+      ["s2", { messageCount: 9, model: { provider: "openai", id: "o3" } }],
+    ]);
+    const names = modelDisplayNames([
+      {
+        id: "openai",
+        models: [
+          { id: "gpt-4", name: "GPT-4" },
+          { id: "o3", name: "o3" },
+        ],
+      },
+    ]);
+    expect(sessionCardFoot("s1", extras, undefined, names)).toEqual({
+      messageCount: 2,
+      modelLabel: "GPT-4",
+    });
+    expect(
+      sessionCardFoot(
+        "s1",
+        extras,
+        { sessionId: "s1", messageCount: 5, model: { provider: "openai", id: "o3" } },
+        names,
+      ),
+    ).toEqual({ messageCount: 5, modelLabel: "o3" });
+    expect(sessionModelLabel({ provider: "x", id: "unknown" }, names)).toBe("unknown");
   });
 });
