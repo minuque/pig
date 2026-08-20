@@ -1,6 +1,7 @@
 <template>
   <AppLayout
     :title="currentTitle"
+    :cwd="activeCwd"
     :phase="projection?.phase"
     :running="projection?.running"
     :connecting="connecting"
@@ -51,7 +52,7 @@ import { provideSession } from "@features/session-workbench/index.js";
 const pi = usePiClient();
 const cwd = useLocalWorkspaces();
 const session = provideSession(pi, cwd);
-provideNav(pi, cwd, session);
+const nav = provideNav(pi, cwd, session);
 
 const startupError = shallowRef("");
 const startupVisible = shallowRef(true);
@@ -90,6 +91,7 @@ const { projection, sessionId } = session;
 const currentTitle = computed(
   () => projection.value?.name ?? (sessionId.value ? UNTITLED_SESSION : ""),
 );
+const activeCwd = computed(() => (sessionId.value ? nav.activeWorkspaceId.value : undefined));
 </script>
 
 <style scoped>

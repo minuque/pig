@@ -39,6 +39,7 @@
           <PanelLeft :size="16" aria-hidden="true" />
         </button>
         <h1 v-if="title" id="current-title">{{ title }}</h1>
+        <span v-if="title && cwd" class="header-cwd" :title="cwd">{{ workspaceName(cwd) }}</span>
         <span v-if="thinkingLevel" class="header-chip">{{ thinkingLevel }}</span>
         <div class="header-right">
           <p v-if="connecting && !phase" class="session-status" role="status">正在连接…</p>
@@ -51,7 +52,6 @@
             >
             {{ phaseLabel(phase) }}
           </p>
-          <ThemeToggle />
         </div>
       </header>
       <slot />
@@ -62,12 +62,13 @@
 <script setup lang="ts">
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 import { PanelLeft } from "lucide-vue-next";
+import { workspaceName } from "@features/session-nav/types.js";
 import { phaseLabel } from "@features/session-workbench/components/SessionControlBar.vue";
-import ThemeToggle from "@features/theme/ThemeToggle.vue";
 import { useLeftPanel } from "@components/layout/hooks/use-left-panel.js";
 
 defineProps<{
   title: string;
+  cwd?: string | undefined;
   phase?: SessionPhase | undefined;
   running?: boolean | undefined;
   connecting?: boolean | undefined;
@@ -170,6 +171,16 @@ main {
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-sm--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.header-cwd {
+  min-width: 0;
+  max-width: 24vw;
+  overflow: hidden;
+  color: var(--ink-faint);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
