@@ -5,9 +5,12 @@
     :running="projection?.running"
     :connecting="connecting"
     :thinking-level="projection?.thinkingLevel"
-    :class="['startup-underlay-transition', { 'startup-underlay': startupWait }]"
-    :inert="startupWait || undefined"
-    :aria-hidden="startupWait ? 'true' : undefined"
+    :class="{
+      'startup-underlay': startupConcealed,
+      'startup-underlay-transition': startupVisible,
+    }"
+    :inert="startupVisible || undefined"
+    :aria-hidden="startupVisible ? 'true' : undefined"
   >
     <template #sidebar="{ onNavigate, collapsed, toggle }">
       <SessionNav :collapsed="collapsed" @navigate="onNavigate" @toggle="toggle" />
@@ -22,9 +25,13 @@
     <RouterView v-else />
   </AppLayout>
 
-  <Transition name="startup-wait">
-    <StartupWait v-if="startupWait && !startupError" :phase="startupPhase" />
-  </Transition>
+  <StartupWait
+    v-if="startupVisible && !startupError"
+    :ready="startupReady"
+    :phase="startupPhase"
+    @reveal="revealStartupUnderlay"
+    @finished="finishStartupWait"
+  />
 </template>
 
 <script setup lang="ts">
@@ -47,8 +54,19 @@ const session = provideSession(pi, cwd);
 provideNav(pi, cwd, session);
 
 const startupError = shallowRef("");
-const startupWait = shallowRef(true);
+const startupVisible = shallowRef(true);
+const startupConcealed = shallowRef(true);
+const startupReady = shallowRef(false);
 const startupPhase = shallowRef<StartupPhase>("authorizing");
+
+function revealStartupUnderlay() {
+  startupConcealed.value = false;
+}
+
+function finishStartupWait() {
+  startupConcealed.value = false;
+  startupVisible.value = false;
+}
 
 onMounted(async () => {
   try {
@@ -57,10 +75,11 @@ onMounted(async () => {
     await pi.connect();
     startupPhase.value = "preparing";
     await session.initialize();
-    startupWait.value = false;
+    startupReady.value = true;
   } catch (error) {
     startupError.value = errorMessage(error);
-    startupWait.value = false;
+    startupConcealed.value = false;
+    startupVisible.value = false;
   }
 });
 
@@ -76,19 +95,5 @@ const currentTitle = computed(
 <style scoped>
 .startup-error {
   margin: var(--spacing-md);
-}
-</style>
-
-<style>
-.startup-underlay {
-  opacity: 0;
-}
-.startup-underlay-transition {
-  transition: opacity 360ms var(--ease-out) 60ms;
-}
-@media (prefers-reduced-motion: reduce) {
-  .startup-underlay-transition {
-    transition: none;
-  }
 }
 </style>
