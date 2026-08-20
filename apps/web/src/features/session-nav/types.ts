@@ -36,34 +36,54 @@ const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
-/** 侧栏相对时间：48分钟 / 2小时 / 昨天 / 3天 / 8月14日。 */
+/** 侧栏相对时间：T3 compact（刚刚 / 48m / 2h / 1d）。 */
 export function formatRelativeTime(timestamp: number, now = Date.now()): string {
   if (!Number.isFinite(timestamp) || timestamp <= 0) return "";
   const delta = Math.max(0, now - timestamp);
   if (delta < MINUTE) return "刚刚";
-  if (delta < HOUR) return `${Math.floor(delta / MINUTE)}分钟`;
-  if (delta < DAY) return `${Math.floor(delta / HOUR)}小时`;
-  if (delta < 2 * DAY) return "昨天";
-  if (delta < 7 * DAY) return `${Math.floor(delta / DAY)}天`;
-  const date = new Date(timestamp);
-  const current = new Date(now);
-  if (date.getFullYear() === current.getFullYear()) {
-    return `${date.getMonth() + 1}月${date.getDate()}日`;
-  }
-  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+  if (delta < HOUR) return `${Math.floor(delta / MINUTE)}m`;
+  if (delta < DAY) return `${Math.floor(delta / HOUR)}h`;
+  return `${Math.floor(delta / DAY)}d`;
 }
 
 function sortSessionsByRecency(sessions: SessionMetadata[]): SessionMetadata[] {
   return [...sessions].sort((a, b) => sessionRecency(b) - sessionRecency(a));
 }
 
-/** 默认不展开；仅当 lastCwd 仍在列表里时展开它。 */
-export function initialExpandedWorkspace(
-  groups: readonly Pick<SessionGroup, "canonicalPath">[],
-  lastCwd: string | undefined,
-): string | undefined {
-  if (lastCwd && groups.some((group) => group.canonicalPath === lastCwd)) return lastCwd;
-  return undefined;
+/**
+ * 侧栏会话序：按创建时间新→旧，活动不重排。
+ * 对齐 T3 `sortThreadsForSidebar`（createdAt 静态序）。
+ */
+export function sortSessionsForSidebar(sessions: readonly SessionMetadata[]): SessionMetadata[] {
+  return [...sessions].sort(
+    (left, right) => right.createdAt - left.createdAt || left.id.localeCompare(right.id),
+  );
+}
+
+/**
+ * 会话维列表：无 cwd 的 Session 不进侧栏；scopeCwd 为 null 即全部工作目录。
+ */
+export function listSessionsForSidebar(
+  sessions: readonly SessionMetadata[],
+  scopeCwd: string | null,
+): SessionMetadata[] {
+  return sortSessionsForSidebar(
+    sessions.filter((session) => session.cwd && (scopeCwd === null || session.cwd === scopeCwd)),
+  );
+}
+
+/**
+ * 仅按标题过滤，保持输入序。空查询返回空数组（与 T3 `searchSidebarThreadsByTitle` 相同）。
+ */
+export function searchSessionsByTitle<T extends Pick<SessionMetadata, "sessionName">>(
+  sessions: readonly T[],
+  query: string,
+): T[] {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (normalizedQuery.length === 0) return [];
+  return sessions.filter((session) =>
+    sessionTitle(session).toLowerCase().includes(normalizedQuery),
+  );
 }
 
 /** 已授权目录优先；其余 Pi Session 按 cwd 继续展示。组内按最近活动倒序。 */

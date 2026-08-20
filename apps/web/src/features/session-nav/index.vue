@@ -18,122 +18,171 @@
       </button>
     </div>
 
-    <button
-      class="new-session"
-      type="button"
-      :disabled="!newSessionPath || Boolean(creating)"
-      :aria-label="collapsed ? '新会话' : undefined"
-      :title="collapsed ? '新会话' : undefined"
-      @click="onNewSession()"
-    >
-      <Plus :size="16" aria-hidden="true" />
-      <span v-if="!collapsed">新会话</span>
-    </button>
+    <template v-if="collapsed">
+      <button
+        class="icon-button rail-action"
+        type="button"
+        :disabled="!newSessionPath || Boolean(creating)"
+        aria-label="新会话"
+        title="新会话"
+        @click="onNewSession()"
+      >
+        <SquarePen :size="16" aria-hidden="true" />
+      </button>
+    </template>
 
-    <div v-show="!collapsed" ref="navBody" class="nav-body">
-      <header class="nav-masthead">
-        <h2 id="workspaces-title" class="nav-masthead-title">工作目录</h2>
-        <button
-          class="icon-button"
-          type="button"
-          :disabled="addingWorkspace"
-          aria-label="添加本地目录"
-          @click="addWorkspace()"
-        >
-          <Plus :size="16" aria-hidden="true" />
-        </button>
-      </header>
-
-      <p v-if="workspaceError" class="notice error" role="alert">{{ workspaceError }}</p>
-
-      <ul class="workspace-list" aria-labelledby="workspaces-title">
-        <li v-for="group in groups" :key="group.canonicalPath" class="workspace-item">
-          <button
-            class="workspace-row"
-            type="button"
-            :class="{
-              expanded: isExpanded(group.canonicalPath),
-              active: group.canonicalPath === activeWorkspaceId,
-            }"
-            :aria-expanded="isExpanded(group.canonicalPath)"
-            :title="group.canonicalPath"
-            @click="toggleWorkspace(group.canonicalPath)"
-          >
-            <component
-              :is="isExpanded(group.canonicalPath) ? FolderOpen : Folder"
-              :size="14"
-              class="workspace-folder"
-              aria-hidden="true"
+    <div v-show="!collapsed" class="nav-main">
+      <div class="nav-toolbar">
+        <div class="search-row">
+          <label class="search-field">
+            <Search :size="16" class="search-icon" aria-hidden="true" />
+            <input
+              ref="searchInput"
+              v-model="searchQuery"
+              type="search"
+              class="search-input"
+              placeholder="搜索"
+              aria-label="搜索会话"
+              role="combobox"
+              aria-autocomplete="list"
+              :aria-expanded="isSearching && searchResults.length > 0"
+              :aria-controls="
+                isSearching && searchResults.length > 0
+                  ? 'sidebar-session-search-results'
+                  : undefined
+              "
+              :aria-activedescendant="activeSearchResultId"
+              @keydown="onSearchKeydown"
             />
-            <span class="workspace-name">{{ workspaceName(group.canonicalPath) }}</span>
-          </button>
+            <button
+              v-if="isSearching"
+              class="icon-button search-clear"
+              type="button"
+              aria-label="清除搜索"
+              @click="clearSearch()"
+            >
+              <X :size="12" aria-hidden="true" />
+            </button>
+          </label>
           <button
-            v-if="group.authorized"
-            class="icon-button workspace-create"
+            class="icon-button toolbar-icon"
             type="button"
-            :aria-label="`在 ${workspaceName(group.canonicalPath)} 中创建会话`"
-            :disabled="Boolean(creating)"
-            @click="createSession(group.canonicalPath)"
+            :disabled="!newSessionPath || Boolean(creating)"
+            aria-label="新会话"
+            title="新会话"
+            @click="onNewSession()"
           >
-            <Plus :size="16" aria-hidden="true" />
+            <SquarePen :size="16" aria-hidden="true" />
           </button>
-          <DropdownMenu v-if="group.authorized">
+        </div>
+
+        <div v-if="groups.length > 0" class="scope-row">
+          <DropdownMenu>
             <DropdownMenuTrigger as-child>
-              <button
-                class="icon-button workspace-kebab"
-                type="button"
-                :aria-label="`操作目录：${workspaceName(group.canonicalPath)}`"
-                @click.stop
-              >
-                <MoreVertical :size="16" aria-hidden="true" />
+              <button class="scope-trigger" type="button" aria-label="按工作目录筛选会话">
+                <Folder :size="16" aria-hidden="true" />
+                <span class="scope-label">{{ scopedGroupName }}</span>
+                <ChevronDown :size="16" aria-hidden="true" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem @select="projectScope = null">
+                <Folder :size="16" aria-hidden="true" />
+                <span class="min-w-0 flex-1 truncate">全部工作目录</span>
+                <Check v-if="projectScope === null" :size="14" aria-hidden="true" />
+              </DropdownMenuItem>
               <DropdownMenuItem
-                variant="destructive"
-                @select="revokeWorkspace(group.canonicalPath)"
+                v-for="group in groups"
+                :key="group.canonicalPath"
+                :title="group.canonicalPath"
+                @select="projectScope = group.canonicalPath"
               >
-                从列表移除
+                <Folder :size="16" aria-hidden="true" />
+                <span class="min-w-0 flex-1 truncate">{{
+                  workspaceName(group.canonicalPath)
+                }}</span>
+                <Check v-if="projectScope === group.canonicalPath" :size="14" aria-hidden="true" />
+                <button
+                  v-if="group.authorized"
+                  class="ml-auto inline-flex size-6 items-center justify-center rounded-md text-ink-faint hover:text-ink"
+                  type="button"
+                  :aria-label="`从列表移除 ${workspaceName(group.canonicalPath)}`"
+                  @pointerdown.stop
+                  @click.stop="revokeWorkspace(group.canonicalPath)"
+                >
+                  <X :size="12" aria-hidden="true" />
+                </button>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <div
-            class="workspace-reveal"
-            :data-open="isExpanded(group.canonicalPath)"
-            :inert="!isExpanded(group.canonicalPath)"
-            :aria-hidden="!isExpanded(group.canonicalPath)"
+          <button
+            class="icon-button toolbar-icon"
+            type="button"
+            :disabled="addingWorkspace"
+            aria-label="添加本地目录"
+            title="添加本地目录"
+            @click="addWorkspace()"
           >
-            <div>
-              <!-- ponytail: 直接 v-for 渲染；单工作区会话上千时恢复虚拟列表 -->
-              <nav
-                class="workspace-sessions"
-                :aria-label="`${workspaceName(group.canonicalPath)} 的会话列表`"
-              >
-                <p v-if="group.sessions.length === 0" class="notice">暂无会话</p>
-                <template v-else>
-                  <SessionItem
-                    v-for="session in group.sessions"
-                    :key="session.id"
-                    :session="session"
-                    :active="
-                      group.canonicalPath === activeWorkspaceId && session.id === activeSessionId
-                    "
-                    :running="
-                      activeSessionRunning &&
-                      group.canonicalPath === activeWorkspaceId &&
-                      session.id === activeSessionId
-                    "
-                    @navigate="emit('navigate', group.canonicalPath)"
-                    @rename="renameSession"
-                    @delete="deleteSession"
-                  />
-                </template>
-              </nav>
-            </div>
+            <FolderPlus :size="16" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      <p v-if="workspaceError" class="notice error" role="alert">{{ workspaceError }}</p>
+
+      <div ref="navBody" class="nav-body">
+        <nav v-if="isSearching" class="session-list" aria-label="搜索结果">
+          <ul
+            v-if="searchResults.length > 0"
+            id="sidebar-session-search-results"
+            role="listbox"
+            aria-label="会话搜索结果"
+          >
+            <li v-for="(session, index) in searchResults" :key="session.id" role="presentation">
+              <SessionItem
+                :session="session"
+                :workspace-title="session.cwd ? workspaceName(session.cwd) : ''"
+                variant="slim"
+                :active="session.id === activeSessionId"
+                :running="activeSessionRunning && session.id === activeSessionId"
+                :highlighted="index === activeSearchResultIndex"
+                :result-id="searchResultId(index)"
+                @navigate="onSessionNavigate(session.cwd)"
+                @rename="renameSession"
+                @delete="deleteSession"
+              />
+            </li>
+          </ul>
+          <p v-else class="notice empty" role="status">没有匹配的会话</p>
+        </nav>
+
+        <nav v-else class="session-list" aria-label="会话列表">
+          <ul v-if="listedSessions.length > 0" role="list">
+            <li v-for="session in listedSessions" :key="session.id">
+              <SessionItem
+                :session="session"
+                :workspace-title="session.cwd ? workspaceName(session.cwd) : ''"
+                :active="session.id === activeSessionId"
+                :running="activeSessionRunning && session.id === activeSessionId"
+                @navigate="onSessionNavigate(session.cwd)"
+                @rename="renameSession"
+                @delete="deleteSession"
+              />
+            </li>
+          </ul>
+          <div v-else class="empty-state">
+            <template v-if="groups.length === 0">
+              <span>还没有工作目录</span>
+              <button class="empty-add" type="button" @click="addWorkspace()">
+                <Plus :size="12" aria-hidden="true" />
+                添加本地目录
+              </button>
+            </template>
+            <span v-else-if="projectScope">「{{ scopedGroupName }}」暂无会话</span>
+            <span v-else>暂无会话</span>
           </div>
-        </li>
-      </ul>
+        </nav>
+      </div>
     </div>
 
     <div class="nav-foot">
@@ -143,9 +192,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, useTemplateRef, watch } from "vue";
+import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
 import { RouterLink } from "vue-router";
-import { Folder, FolderOpen, MoreVertical, PanelLeft, Plus } from "lucide-vue-next";
+import {
+  Check,
+  ChevronDown,
+  Folder,
+  FolderPlus,
+  PanelLeft,
+  Plus,
+  Search,
+  SquarePen,
+  X,
+} from "lucide-vue-next";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import {
@@ -155,7 +214,7 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
-import { workspaceName } from "@features/session-nav/types.js";
+import { searchSessionsByTitle, workspaceName } from "@features/session-nav/types.js";
 import ThemeToggle from "@features/theme/ThemeToggle.vue";
 
 defineProps<{
@@ -169,13 +228,13 @@ const emit = defineEmits<{
 
 const {
   groups,
-  expandedWorkspaceIds,
+  listedSessions,
+  projectScope,
   activeWorkspaceId,
   activeSessionId,
   activeSessionRunning,
   addingWorkspace,
   navError: workspaceError,
-  toggleWorkspace,
   addWorkspace,
   revokeWorkspace,
   renameSession,
@@ -184,21 +243,54 @@ const {
 const { creating, createSession } = useSession();
 
 const navBody = useTemplateRef<HTMLElement>("navBody");
+const searchInput = useTemplateRef<HTMLInputElement>("searchInput");
+const searchQuery = shallowRef("");
+const activeSearchResultIndex = shallowRef(0);
 
-// 活动会话变化或工作区展开后，把活动项滚入视野
+const isSearching = computed(() => searchQuery.value.trim().length > 0);
+const searchResults = computed(() =>
+  searchSessionsByTitle(listedSessions.value, searchQuery.value),
+);
+const searchResultOrderKey = computed(() =>
+  searchResults.value.map((session) => session.id).join("\0"),
+);
+const scopedGroupName = computed(() => {
+  const scoped = projectScope.value;
+  if (!scoped) return "全部工作目录";
+  return workspaceName(scoped);
+});
+const activeSearchResultId = computed(() => {
+  if (!isSearching.value || !searchResults.value[activeSearchResultIndex.value]) return undefined;
+  return searchResultId(activeSearchResultIndex.value);
+});
+
+watch(searchResultOrderKey, () => {
+  activeSearchResultIndex.value = 0;
+});
+
 watch(
-  () => [activeSessionId.value, activeWorkspaceId.value, expandedWorkspaceIds.value] as const,
+  () => [activeSessionId.value, listedSessions.value, searchResultOrderKey.value] as const,
   async () => {
     await nextTick();
     navBody.value
-      ?.querySelector<HTMLElement>('[aria-current="page"]')
+      ?.querySelector<HTMLElement>('[aria-current="page"], [aria-selected="true"]')
       ?.scrollIntoView({ block: "nearest" });
   },
 );
 
-/** 优先当前授权 cwd，否则第一个已授权 workspace。 */
+watch(activeSearchResultIndex, async () => {
+  if (!isSearching.value) return;
+  await nextTick();
+  document.getElementById(searchResultId(activeSearchResultIndex.value))?.scrollIntoView({
+    block: "nearest",
+  });
+});
+
+/** 筛选到已授权目录时用该目录；否则当前会话 cwd，再否则第一个已授权。 */
 const newSessionPath = computed(() => {
   const authorized = groups.value.filter((group) => group.authorized);
+  const scoped = projectScope.value;
+  if (scoped && authorized.some((group) => group.canonicalPath === scoped)) return scoped;
   const active = activeWorkspaceId.value;
   if (active && authorized.some((group) => group.canonicalPath === active)) return active;
   return authorized[0]?.canonicalPath;
@@ -210,8 +302,45 @@ function onNewSession() {
   void createSession(path);
 }
 
-function isExpanded(canonicalPath: string): boolean {
-  return expandedWorkspaceIds.value.has(canonicalPath);
+function onSessionNavigate(cwd: string | undefined) {
+  searchQuery.value = "";
+  if (cwd) emit("navigate", cwd);
+}
+
+function searchResultId(index: number): string {
+  return `sidebar-session-search-result-${index}`;
+}
+
+function clearSearch() {
+  searchQuery.value = "";
+  searchInput.value?.focus();
+}
+
+function onSearchKeydown(event: KeyboardEvent) {
+  if (event.isComposing || event.keyCode === 229) return;
+  if (event.key === "Escape" && isSearching.value) {
+    event.preventDefault();
+    event.stopPropagation();
+    clearSearch();
+    return;
+  }
+  if (searchResults.value.length === 0) return;
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    activeSearchResultIndex.value =
+      (activeSearchResultIndex.value + 1) % searchResults.value.length;
+    return;
+  }
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    activeSearchResultIndex.value =
+      (activeSearchResultIndex.value - 1 + searchResults.value.length) % searchResults.value.length;
+    return;
+  }
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.getElementById(searchResultId(activeSearchResultIndex.value))?.click();
+  }
 }
 </script>
 
@@ -219,7 +348,6 @@ function isExpanded(canonicalPath: string): boolean {
 .session-nav {
   --nav-row: 28px;
   --nav-rail: 36px;
-  --nav-new: 28px;
   position: relative;
   display: flex;
   flex: 1;
@@ -301,11 +429,13 @@ html[data-pig-desktop-platform] .session-nav input {
 .logo-mark:hover {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
 }
-.collapse-toggle {
+.collapse-toggle,
+.rail-action,
+.toolbar-icon,
+.search-clear {
   display: flex;
   justify-content: center;
   align-items: center;
-
   flex: none;
   width: var(--nav-rail);
   min-height: var(--nav-rail);
@@ -315,43 +445,26 @@ html[data-pig-desktop-platform] .session-nav input {
   background: transparent;
   color: var(--ink-muted);
 }
-.collapse-toggle:hover {
-  background: var(--surface);
-  color: var(--ink);
-}
-
-.new-session {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: var(--spacing-xs);
-  width: 100%;
-  height: var(--nav-new);
-  min-height: var(--nav-new);
-  padding: 0 var(--spacing-xs);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--ink-muted);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-caption--line-height);
-}
-.session-nav.collapsed .new-session {
-  width: var(--nav-rail);
-  height: var(--nav-rail);
-  min-height: var(--nav-rail);
-  justify-content: center;
-  padding: 0;
-}
-.new-session:hover:not(:disabled) {
+.collapse-toggle:hover,
+.rail-action:hover:not(:disabled),
+.toolbar-icon:hover:not(:disabled),
+.search-clear:hover {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
   color: var(--ink);
 }
-.new-session:disabled {
+.rail-action:disabled,
+.toolbar-icon:disabled {
   opacity: 0.45;
 }
 
+.nav-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+  min-width: 0;
+  min-height: 0;
+}
 .nav-body {
   display: flex;
   flex: 1;
@@ -367,110 +480,125 @@ html[data-pig-desktop-platform] .session-nav input {
 .session-nav:not(:hover) .nav-body::-webkit-scrollbar-thumb {
   background: transparent;
 }
-.nav-masthead {
+
+.nav-toolbar {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 4px;
+  padding-inline: 2px;
+}
+.search-row,
+.scope-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  min-height: var(--nav-row);
-  padding: 0 var(--spacing-xxs);
+  gap: 4px;
+  min-width: 0;
 }
-.nav-masthead-title {
-  margin: 0;
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: var(--radius-md);
   color: var(--ink-muted);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
 }
-.nav-masthead .icon-button,
-.workspace-create,
-.workspace-kebab {
-  width: var(--size-nav-action);
-  min-height: var(--size-nav-action);
+.search-field:hover,
+.search-field:focus-within {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
+}
+.search-icon {
+  flex: none;
+  opacity: 0.8;
+}
+.search-input {
+  min-width: 0;
+  flex: 1;
+  height: auto;
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--ink-faint);
+  color: var(--ink);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-body-sm--line-height);
 }
-.nav-masthead .icon-button:disabled {
-  opacity: 0.5;
+.search-input::placeholder {
+  color: var(--ink-muted);
+  font-weight: var(--font-weight-medium);
 }
-.workspace-list {
-  display: grid;
-  gap: var(--spacing-xxs);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.search-input::-webkit-search-cancel-button {
+  display: none;
 }
-.workspace-item {
-  position: relative;
-  min-width: 0;
+.search-clear,
+.toolbar-icon {
+  width: var(--size-nav-action);
+  min-height: var(--size-nav-action);
 }
-.workspace-row {
+.scope-trigger {
   display: flex;
   align-items: center;
-  gap: 6px;
-  width: 100%;
-  min-height: var(--nav-row);
-  padding: 4px 8px;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  height: 32px;
+  padding: 0 8px;
+  border: 0;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--ink);
   text-align: left;
 }
-.workspace-row:hover {
+.scope-trigger:hover {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
 }
-.workspace-row.active .workspace-name,
-.workspace-row.expanded .workspace-name {
-  font-weight: var(--font-weight-medium);
-}
-.workspace-folder {
-  flex: none;
-  color: var(--ink-faint);
-}
-.workspace-name {
+.scope-label {
   min-width: 0;
+  flex: 1;
   overflow: hidden;
-  color: var(--ink);
   font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.workspace-create,
-.workspace-kebab {
-  position: absolute;
-  top: calc((var(--nav-row) - var(--size-nav-action)) / 2);
-  z-index: 1;
+.session-list ul {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.empty-state,
+.notice.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 8px;
   color: var(--ink-faint);
-  opacity: 0;
-}
-.workspace-create {
-  right: calc(var(--size-nav-action) + 2px);
-}
-.workspace-kebab {
-  right: 2px;
-}
-.workspace-item:hover > .workspace-create,
-.workspace-item:hover > .workspace-kebab,
-.workspace-create:focus-visible,
-.workspace-kebab:focus-visible,
-.workspace-kebab[aria-expanded="true"] {
-  opacity: 1;
-}
-.workspace-reveal {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--duration-normal) var(--ease-smooth);
-}
-.workspace-reveal[data-open="true"] {
-  grid-template-rows: 1fr;
-}
-.workspace-reveal > div {
-  overflow: hidden;
-}
-.workspace-sessions > .notice {
-  margin: var(--spacing-xxs) 0;
-  padding: var(--spacing-xs);
   font-size: var(--text-caption);
+  text-align: center;
+}
+.empty-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+.empty-add:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
 }
 .nav-foot {
   display: flex;
@@ -485,10 +613,5 @@ html[data-pig-desktop-platform] .session-nav input {
   width: var(--nav-rail);
   justify-content: center;
   padding-inline: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .workspace-reveal {
-    transition: none;
-  }
 }
 </style>

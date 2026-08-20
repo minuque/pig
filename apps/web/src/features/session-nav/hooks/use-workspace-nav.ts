@@ -1,11 +1,11 @@
-import { computed, ref, watch, type Ref } from "vue";
+import { computed, ref, shallowRef, watch, type Ref } from "vue";
 import type { Router } from "vue-router";
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
 import { errorMessage, platformRequest } from "@client/http.js";
 import type { useLocalWorkspaces } from "@client/local-cwd.js";
 import {
   groupSessionsByCwd,
-  initialExpandedWorkspace,
+  listSessionsForSidebar,
   localWorkspacesFrom,
   workspaceName,
 } from "@features/session-nav/types.js";
@@ -25,18 +25,17 @@ export function useWorkspaceNav(
   const addingWorkspace = ref(false);
   const workspaces = computed(() => localWorkspacesFrom(local.workspaces.value));
   const groups = computed(() => groupSessionsByCwd(sessions.value, local.workspaces.value));
-  const expandedWorkspaceIds = ref(new Set<string>());
+  /** null = 全部工作目录。对齐 T3 `projectScopeKey`。 */
+  const projectScope = shallowRef<string | null>(null);
+  const listedSessions = computed(() => listSessionsForSidebar(sessions.value, projectScope.value));
 
-  function expandCwd(path: string) {
-    if (!expandedWorkspaceIds.value.has(path))
-      expandedWorkspaceIds.value = new Set([...expandedWorkspaceIds.value, path]);
-  }
-  function toggleWorkspace(path: string) {
-    if (!expandedWorkspaceIds.value.has(path)) return expandCwd(path);
-    const next = new Set(expandedWorkspaceIds.value);
-    next.delete(path);
-    expandedWorkspaceIds.value = next;
-  }
+  watch(groups, (list) => {
+    const scoped = projectScope.value;
+    if (scoped !== null && !list.some((group) => group.canonicalPath === scoped)) {
+      projectScope.value = null;
+    }
+  });
+
   async function addWorkspace() {
     if (addingWorkspace.value) return;
     addingWorkspace.value = true;
@@ -57,7 +56,6 @@ export function useWorkspaceNav(
       if (result.path) {
         local.add(result.path);
         local.selectCwd(result.path);
-        expandCwd(result.path);
       }
     } catch (cause) {
       error.value = errorMessage(cause);
@@ -93,22 +91,12 @@ export function useWorkspaceNav(
       error.value = errorMessage(cause);
     }
   }
-  watch(
-    groups,
-    (list) => {
-      if (expandedWorkspaceIds.value.size || !list.length) return;
-      const target = initialExpandedWorkspace(list, local.lastCwd.value);
-      if (target) expandCwd(target);
-    },
-    { immediate: true },
-  );
-
   return {
     addingWorkspace,
     workspaces,
     groups,
-    expandedWorkspaceIds,
-    toggleWorkspace,
+    listedSessions,
+    projectScope,
     addWorkspace,
     revokeWorkspace,
     renameSession,
