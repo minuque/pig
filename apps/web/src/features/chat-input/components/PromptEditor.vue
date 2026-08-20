@@ -121,18 +121,12 @@ defineExpose({ focus });
   position: relative;
   display: flex;
   flex-direction: column;
-  /* Web 毛玻璃：isolation/overflow 会让 backdrop 采不到 transcript。桌面不透底见 app.css */
-  background: color-mix(in srgb, var(--canvas-soft) 78%, transparent);
-  border: var(--border-width) solid color-mix(in srgb, var(--primary) 34%, var(--hairline));
+  /* 网页实色；桌面毛玻璃见 app.css（isolation/overflow 会让 backdrop 采不到 transcript） */
+  background: var(--canvas-soft);
+  border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-xl);
-  backdrop-filter: blur(28px) saturate(1.4);
-  -webkit-backdrop-filter: blur(28px) saturate(1.4);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--primary) 22%, transparent),
-    0 0 24px color-mix(in srgb, var(--primary) 16%, transparent);
-  transition:
-    border-color var(--duration-fast) var(--ease-smooth),
-    box-shadow var(--duration-fast) var(--ease-smooth);
+  box-shadow: var(--shadow-soft);
+  transition: border-color var(--duration-fast) var(--ease-smooth);
 }
 .frame::before {
   content: "";
@@ -144,16 +138,6 @@ defineExpose({ focus });
 }
 .frame:focus-within {
   border-color: color-mix(in srgb, var(--primary) 48%, var(--hairline));
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent),
-    0 0 28px color-mix(in srgb, var(--primary) 20%, transparent);
-}
-@media (prefers-reduced-transparency: reduce) {
-  .frame {
-    background: var(--canvas-soft);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
 }
 
 .chips {

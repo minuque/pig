@@ -16,6 +16,9 @@
   --ink-muted: #5c5f66;
   --ink-faint: #8b8f97;
   --hairline: #e5e7eb;
+  --glass-blur: 12px;
+  --glass-opacity: 80%;
+  --glass-saturation: 1.14;
 
   /* Grok decorative palette — never structural fill */
   --accent-sunset: #ff7a17;
@@ -206,6 +209,8 @@
   --inverse-bg: #f5f5f5;
   --inverse-bg-hover: #ffffff;
   --inverse-fg: #0a0a0a;
+  --glass-blur: 16px;
+  --glass-saturation: 1.08;
 }
 
 /* Tailwind v4 mapping — utilities like bg-canvas-soft, text-ink, rounded-lg */
@@ -519,23 +524,29 @@ small,
   background: color-mix(in srgb, var(--ink) 36%, transparent);
 }
 
-/* 桌面壳：平台 rail / 透明底 / 模态时取消拖拽 */
+/* 桌面壳：平台 rail / 输入卡毛玻璃 / 模态时取消拖拽 */
 html[data-pig-desktop-platform="darwin"] {
   --size-sidebar-rail: var(--size-sidebar-rail-mac);
 }
-html[data-pig-desktop-platform="darwin"],
-html[data-pig-desktop-platform="win32"],
-html[data-pig-desktop-platform="darwin"] body,
-html[data-pig-desktop-platform="win32"] body,
-html[data-pig-desktop-platform="darwin"] #app,
-html[data-pig-desktop-platform="win32"] #app {
-  background: transparent;
+/* 桌面输入卡 / 菜单：糊下方页面。窗体不透明，backdrop 不会穿到壁纸。 */
+html[data-pig-desktop-platform] .prompt .frame,
+html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
+  background: color-mix(in srgb, var(--canvas-soft) var(--glass-opacity), transparent);
+  border-color: color-mix(in srgb, var(--ink) 8%, transparent);
+  box-shadow: var(--shadow-popover);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
 }
-/* Electron 亚克力窗上 backdrop-filter 会透到系统材质；桌面输入卡用不透底混合 */
-html[data-pig-desktop-platform] .prompt .frame {
-  background: color-mix(in srgb, var(--canvas-soft) 72%, var(--surface));
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+html[data-pig-desktop-platform] .prompt .frame:focus-within {
+  border-color: color-mix(in srgb, var(--primary) 36%, var(--hairline));
+}
+@media (prefers-reduced-transparency: reduce) {
+  html[data-pig-desktop-platform] .prompt .frame,
+  html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
+    background: var(--canvas-soft);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
   -webkit-app-region: no-drag;

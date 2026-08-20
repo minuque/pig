@@ -234,14 +234,6 @@ html[data-pig-desktop-platform="win32"] .workbench-header {
   min-height: var(--titlebar-inset);
   padding-right: var(--size-windows-caption);
 }
-html[data-pig-desktop-platform="darwin"] .shell,
-html[data-pig-desktop-platform="win32"] .shell {
-  background: transparent;
-}
-html[data-pig-desktop-platform="darwin"] .sidebar,
-html[data-pig-desktop-platform="win32"] .sidebar {
-  background: color-mix(in srgb, var(--canvas-soft) 72%, transparent);
-}
 @media (max-width: 900px) {
   .shell,
   .shell.left-closed {

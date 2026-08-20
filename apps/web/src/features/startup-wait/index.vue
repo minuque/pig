@@ -418,10 +418,6 @@ onBeforeUnmount(() => {
 :global(.startup-underlay-transition) {
   transition: opacity 360ms var(--ease-out) 60ms;
 }
-:global(html[data-pig-desktop-platform="darwin"]) .startup-wait,
-:global(html[data-pig-desktop-platform="win32"]) .startup-wait {
-  background: color-mix(in srgb, var(--surface) 28%, transparent);
-}
 @media (prefers-reduced-transparency: reduce) {
   .startup-wait {
     background: var(--surface);

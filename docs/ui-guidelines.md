@@ -34,9 +34,9 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。
 ## 4. 当前产品契约
 
 - **布局**：两栏铺满；≥901px 左栏折叠为 rail（56px，macOS 桌面 90px），移动端左栏为抽屉。无第三栏。
-- **表面**：侧栏默认不透明 `canvas-soft`；桌面窗（darwin/win32）侧栏用 `color-mix(canvas-soft 72%, transparent)` 透出亚克力/vibrancy。对话列始终不透明 `surface`。视觉跟 `DESIGN.md`：浅色冷蓝灰，深色近灰工作台，装饰 sunset/dusk。
-- **启动等待态**：每次完整加载逐帧播放 Pi 组装动画，落块关键帧之间平滑补间，消行与闪烁保持离散。初始化完成前隐藏工作台。浏览器与 Linux 使用纯主题底色；darwin/win32 使用 28% `surface` 染色，透出原生材质。所有平台均隐藏 Session 内容。退出时 Logo 缩小淡出，遮罩与工作台交叉淡变。`prefers-reduced-transparency` 回退不透明 `surface`。
-- **桌面壳**：Electron 无原生 File 菜单。macOS hiddenInset，Windows `titleBarStyle: hidden` + caption overlay，Linux 无框。仅侧栏接受原生材质。URL `?pig-desktop-platform=` 只开 drag / 玻璃，浏览器无参数则无铬层。
+- **表面**：侧栏不透明 `canvas-soft`，对话列不透明 `surface`。视觉跟 `DESIGN.md`：浅色冷蓝灰，深色近灰工作台，装饰 sunset/dusk。
+- **启动等待态**：每次完整加载逐帧播放 Pi 组装动画，落块关键帧之间平滑补间，消行与闪烁保持离散。初始化完成前隐藏工作台。各平台使用不透明 `surface`。所有平台均隐藏 Session 内容。退出时 Logo 缩小淡出，遮罩与工作台交叉淡变。
+- **桌面壳**：Electron 无原生 File 菜单。macOS hiddenInset，Windows `titleBarStyle: hidden` + caption overlay，Linux 无框。窗体不透明（无 vibrancy/acrylic），输入卡和菜单才能用 CSS 毛玻璃。URL `?pig-desktop-platform=` 只开 drag / 输入卡毛玻璃，浏览器无参数则无铬层。
 - **Transcript**
   - 主列连续排版，不给 Assistant Message 添加卡片背景。
   - User Message 右对齐，使用 primary 蓝胶囊。宽度按内容收缩，最长约为内容列的 86%，文字使用 on-primary。
@@ -50,8 +50,9 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。
 - **Session 列表**：Pi 拥有 Session 真相。已授权目录优先显示，其它 Session 继续按 cwd 显示。行展示标题 + 相对时间，默认展开 lastCwd（否则第一项）。
 - **ChatInput**
   - 输入卡绝对贴在对话列底部，transcript 通栏滚动。欢迎页复用同一个 PromptEditor 卡。
-  - Web 输入卡使用 backdrop-filter 虚化下方 transcript。
-  - 桌面壳关闭 CSS 虚化，改用不透明的 `canvas-soft` 和 `surface` 混合，避免系统亚克力透入输入卡。
+  - 桌面输入卡和模型/思考菜单使用 backdrop-filter 虚化下方页面（blur 12px / 深色 16px，填充 80%）。
+  - 浏览器输入卡和菜单使用不透明 `canvas-soft`，不跟桌面玻璃。
+  - `prefers-reduced-transparency` 时桌面回退不透明 `canvas-soft`。
   - dock 不铺实底。模型和思考选项放在左侧，primary 发送圆钮放在右侧。
   - 欢迎页在输入卡上方选择工作目录。
 - **Gateway 状态**：正常时不显示常驻指示；连接中不挡欢迎/对话页，只在顶栏给一句状态。错误使用 banner。

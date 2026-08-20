@@ -309,7 +309,7 @@ components:
 
 深色是同一套分面的近灰反相：对话 `#151517`、侧栏 `#1b1b1c`、缝 `#2c2c2e`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
 
-常驻工作台只把原生材质给侧栏（macOS vibrancy / Windows acrylic），启动等待态可短暂全屏透出原生材质。对话列不透明。输入卡在桌面用不透底的 canvas-soft/surface 混合（亚克力窗上 CSS backdrop-filter 会透到系统材质）。浏览器无桌面标记时，侧栏也不透明。浅色是默认入口。
+窗体不透明，好让输入卡和菜单用 CSS 毛玻璃糊下方页面。侧栏 `canvas-soft`，对话列 `surface`。浏览器输入卡实色，不跟桌面玻璃。浅色是默认入口。
 
 ## Colors
 
@@ -415,7 +415,7 @@ headline 只在欢迎页。栏标题 600，按钮 500。
 | 1 — Soft | 一层轻阴影 | chatInput 卡   |
 | 2 — Pop  | 稍深，仍短 | 菜单、抽屉     |
 
-深色卡和栏用 hairline。桌面侧栏深度来自原生材质。
+深色卡和栏用 hairline。桌面输入卡和菜单用毛玻璃（`--glass-blur` 12px，深色 16px，填充 80%）。
 
 ## Shapes
 
@@ -437,5 +437,5 @@ headline 只在欢迎页。栏标题 600，按钮 500。
 - `{colors.primary}` 用于动作和选中。
 - 工作台 14px 系统字；标签可用等宽大写。
 - chatInput / New Session：`{rounded.lg}`。
-- 常驻工作台的原生材质只进侧栏；启动等待态可短暂全屏透出。桌面折叠保留 rail。
+- 桌面输入卡/菜单用毛玻璃；网页实色。桌面折叠保留 rail。
 - 装饰走 sunset / dusk / breeze。

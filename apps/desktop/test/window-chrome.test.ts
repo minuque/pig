@@ -8,21 +8,18 @@ const SECURE_WEB_PREFERENCES = {
 };
 
 describe("windowChromeFor", () => {
-  it("darwin 使用 hiddenInset 与 sidebar vibrancy", () => {
+  it("darwin 使用 hiddenInset，无 vibrancy", () => {
     expect(windowChromeFor("darwin")).toEqual({
       titleBarStyle: "hiddenInset",
       trafficLightPosition: { x: 16, y: 18 },
-      vibrancy: "sidebar",
-      visualEffectState: "followWindow",
       webPreferences: SECURE_WEB_PREFERENCES,
     });
   });
 
-  it("win32 使用 hidden overlay 与 acrylic，无原生菜单条", () => {
+  it("win32 使用 hidden overlay，无 acrylic", () => {
     expect(windowChromeFor("win32")).toEqual({
       titleBarStyle: "hidden",
       titleBarOverlay: { color: "#00000000", symbolColor: "#7f858f", height: 44 },
-      backgroundMaterial: "acrylic",
       thickFrame: true,
       roundedCorners: true,
       autoHideMenuBar: true,
@@ -30,10 +27,9 @@ describe("windowChromeFor", () => {
     });
   });
 
-  it("linux 无框透明", () => {
+  it("linux 无框不透明", () => {
     expect(windowChromeFor("linux")).toEqual({
       frame: false,
-      transparent: true,
       webPreferences: SECURE_WEB_PREFERENCES,
     });
   });
