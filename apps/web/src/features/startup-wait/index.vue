@@ -405,12 +405,10 @@ onBeforeUnmount(() => {
   visibility: visible;
   opacity: 1;
 }
-:global(html[data-pig-desktop-platform="darwin"] .startup-underlay),
-:global(html[data-pig-desktop-platform="win32"] .startup-underlay) {
+:global(.startup-underlay) {
   opacity: 0;
 }
-:global(html[data-pig-desktop-platform="darwin"] .startup-underlay-transition),
-:global(html[data-pig-desktop-platform="win32"] .startup-underlay-transition) {
+:global(.startup-underlay-transition) {
   transition: opacity var(--duration-normal) var(--ease-smooth);
 }
 :global(html[data-pig-desktop-platform="darwin"]) .startup-wait,
@@ -427,7 +425,7 @@ onBeforeUnmount(() => {
 }
 @media (prefers-reduced-motion: reduce) {
   .startup-wait.leaving,
-  :global(html[data-pig-desktop-platform] .startup-underlay-transition) {
+  :global(.startup-underlay-transition) {
     transition: none;
   }
 }
