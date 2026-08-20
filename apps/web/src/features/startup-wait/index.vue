@@ -197,7 +197,7 @@ const PALETTE: Record<Exclude<PiLogoColor, "theme">, string> = {
   green: "#A3A473",
   orange: "#D4904E",
 };
-const LEAVE_MS = 200;
+const LEAVE_MS = 440;
 let animationRequest = 0;
 let frameIndex = 0;
 let frameStartedAt = -1;
@@ -340,10 +340,21 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  background:
+    radial-gradient(
+      circle at 12% 0%,
+      color-mix(in srgb, var(--accent-dusk) 10%, transparent),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 8% 72%,
+      color-mix(in srgb, var(--accent-breeze) 8%, transparent),
+      transparent 38%
+    ),
+    color-mix(in srgb, var(--surface) 92%, transparent);
   color: var(--ink);
-  backdrop-filter: blur(28px) saturate(1.4);
-  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  backdrop-filter: blur(40px) saturate(1.15);
+  -webkit-backdrop-filter: blur(40px) saturate(1.15);
   cursor: pointer;
   opacity: 1;
   -webkit-app-region: no-drag;
@@ -351,7 +362,7 @@ onBeforeUnmount(() => {
 .startup-wait.leaving {
   pointer-events: none;
   opacity: 0;
-  transition: opacity var(--duration-normal) var(--ease-smooth);
+  transition: opacity 420ms var(--ease-smooth);
 }
 .drag-strip {
   position: absolute;
@@ -365,6 +376,15 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-sm);
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition:
+    opacity var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-slow) var(--ease-out);
+}
+.startup-wait.leaving .startup-content {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.96);
 }
 .logo-button {
   width: clamp(96px, 15vw, 128px);
@@ -409,7 +429,7 @@ onBeforeUnmount(() => {
   opacity: 0;
 }
 :global(.startup-underlay-transition) {
-  transition: opacity var(--duration-normal) var(--ease-smooth);
+  transition: opacity 360ms var(--ease-out) 60ms;
 }
 :global(html[data-pig-desktop-platform="darwin"]) .startup-wait,
 :global(html[data-pig-desktop-platform="win32"]) .startup-wait {
@@ -425,6 +445,7 @@ onBeforeUnmount(() => {
 }
 @media (prefers-reduced-motion: reduce) {
   .startup-wait.leaving,
+  .startup-content,
   :global(.startup-underlay-transition) {
     transition: none;
   }
