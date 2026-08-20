@@ -16,7 +16,7 @@
         class="icon-button collapse-toggle"
         type="button"
         :aria-expanded="!collapsed"
-        aria-label="切换 Workspace 导航"
+        aria-label="切换工作目录导航"
         @click="emit('toggle')"
       >
         <PanelLeft :size="16" aria-hidden="true" />
@@ -37,7 +37,7 @@
 
     <div v-show="!collapsed" ref="navBody" class="nav-body">
       <header class="nav-masthead">
-        <h2 id="workspaces-title">工作区</h2>
+        <h2 id="workspaces-title">工作目录</h2>
         <button
           class="icon-button"
           type="button"
@@ -76,7 +76,7 @@
             v-if="group.authorized"
             class="icon-button workspace-create"
             type="button"
-            :aria-label="`创建 Session：${workspaceName(group.canonicalPath)}`"
+            :aria-label="`在 ${workspaceName(group.canonicalPath)} 中创建会话`"
             :disabled="Boolean(creating)"
             @click="createSession(group.canonicalPath)"
           >

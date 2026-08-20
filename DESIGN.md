@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: pig Workbench
-description: A dense, local-first agent workbench. Light mode keeps cool bluish-neutral surfaces and one business blue; dark mode takes xAI/Grok's near-black canvas and hairline seams. System UI type, sunset/dusk decoration only, sidebar/conversation split. Chrome stays quiet so the transcript reads as the document.
+description: A local-first agent workbench with cool bluish-neutral surfaces in light mode and near-black surfaces in dark mode. One blue is reserved for actions, links, focus, and selection. Sunset and dusk colors are decorative only. The layout uses a sidebar and an opaque transcript column. Navigation and window controls use lower contrast than transcript content.
 
 colors:
   primary: "#4176e6"
@@ -303,7 +303,7 @@ components:
 
 ## Overview
 
-本地桌面工作台：冷蓝灰分面、系统 UI 默认14px、一档业务蓝、hairline 分隔。对话列是文档；铬层安静。
+本地桌面工作台使用冷蓝灰浅色表面和近黑深色表面。系统 UI 字号默认 14px。业务蓝只用于动作、链接、焦点和选中。布局包含侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
 
 浅色侧栏 `{colors.canvas-soft}`，对话列 `{colors.surface}`。结构色 `{colors.primary}`（#4176e6）只用于发送、链接、选中、focus。控件圆角 `{rounded.lg}`（12px）。
 
@@ -429,26 +429,6 @@ headline 只在欢迎页。栏标题 600，按钮 500。
 | `{rounded.full}` | 9999px | 圆形图标钮、徽章            |
 
 壳层圆角 0。发送是 28px primary 圆钮。
-
-## Components
-
-**`nav-bar`** — 侧栏顶，`canvas-soft`，14px，左右 12px。品牌字标、折叠、新会话。Session 行：标题 + 相对时间；选中 8% ink 罩。
-
-**`button-primary`** — 业务蓝，12px 圆角。
-
-**`button-secondary` / `button-utility`** — 白底 hairline。
-
-**`button-icon-circular`** — 28/36 图标钮，hover 6% ink 罩。
-
-**`text-input`** — chatInput 编辑区，12px 圆角软底井；发送 28px primary 圆钮。
-
-**`feature-card`** — 用户轻底段落与次级卡；助手正文通栏。
-
-**`badge-mono`** — 阶段等短标签用 `{typography.caption-mono}`。不在 chatInput 下展示「N 轮 · M 步」。
-
-**`status-run` / `status-ok`** — 运行与成功：语义橙 / 绿。
-
-**`mark-sunset` / `mark-dusk` / `mark-breeze`** — 装饰芯片。
 
 ## Do's and Don'ts
 

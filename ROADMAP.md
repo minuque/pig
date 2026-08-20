@@ -10,7 +10,7 @@ pig 负责 Web 与 Desktop UI、平台接入和本地安全，不重新实现 Ag
 
 ## 2. 核心原则
 
-### Pi 拥有 Agent Truth
+### Pi 管理 Agent 状态
 
 Pi 负责：
 
@@ -23,7 +23,7 @@ Pi 负责：
 
 pig 不再定义 `PigRun`、`PigSession`、`PigAgentEvent`、`PigTool`、`PigModel` 等平行抽象。
 
-### 官方 Remote Protocol 是跨进程 Truth
+### 官方 Remote Protocol 提供跨进程状态
 
 浏览器与 Node Host 之间直接使用 Pi 官方远程栈：
 
@@ -36,7 +36,7 @@ pig 不再定义 `PigRun`、`PigSession`、`PigAgentEvent`、`PigTool`、`PigMod
 
 `ServerSnapshot` 和 `SessionSnapshot` 是权威状态；`session_progress` 只用于低延迟展示，不作为持久事实源。重连后以新 Snapshot 覆盖本地投影。
 
-### pig 只拥有 UI Truth
+### pig 只管理 UI 状态
 
 pig 可以维护：
 
@@ -168,8 +168,8 @@ WebSocket listener 必须在交给 `PiServer` 前完成认证，并限制 frame 
 
 ### 事实源与平台边界
 
-- Host 重启后，Session 真相仍来自 Pi Session storage。
+- Host 重启后，Session 状态仍从 Pi Session storage 读取。
 
 > **最终判断顺序：官方 Pi SDK/Remote Protocol → Pi Extension → UI state → platform concern。**
 >
-> Pi 已拥有的能力，禁止在 pig 中实现第二份 Agent Truth。
+> Pi 已拥有的能力，禁止在 pig 中重复实现。

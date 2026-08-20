@@ -6,7 +6,7 @@ import {
 } from "../../../../packages/gateway/src/directory.js";
 
 const DIALOG_OPTIONS = {
-  title: "选择工作区",
+  title: "选择工作目录",
   properties: ["openDirectory", "createDirectory"],
 } as const satisfies OpenDialogOptions;
 

@@ -109,7 +109,7 @@ public static class FolderPicker
     }
 }
 '@
-$path = [FolderPicker]::Pick('选择工作区')
+$path = [FolderPicker]::Pick('选择工作目录')
 if ($path) { [Console]::Out.Write((ConvertTo-Json -Compress -InputObject $path)) }
 `;
 

@@ -4,7 +4,7 @@
     :class="{ 'left-closed': !leftOpen, 'is-resizing': resizing }"
     :style="{ '--left-width': `${leftWidth}px` }"
   >
-    <aside class="sidebar" :class="{ open: leftOpen }" aria-label="Workspace 与 Session 导航">
+    <aside class="sidebar" :class="{ open: leftOpen }" aria-label="工作目录和会话导航">
       <slot
         name="sidebar"
         :on-navigate="closeMobilePanels"
@@ -33,7 +33,7 @@
           class="icon-button header-toggle"
           type="button"
           :aria-expanded="leftOpen"
-          aria-label="切换 Workspace 导航"
+          aria-label="切换工作目录导航"
           @click="toggle"
         >
           <PanelLeft :size="16" aria-hidden="true" />

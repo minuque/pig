@@ -13,8 +13,6 @@
 
 > A local-first, polished, high-performance **Pi Agent GUI** — Web and Desktop.
 
-## Architecture
-
 ## Quick start
 
 ```bash

@@ -12,13 +12,13 @@
       <div v-if="workspaces.length" class="welcome-chips">
         <DropdownMenu :modal="false">
           <DropdownMenuTrigger as-child>
-            <button type="button" class="workspace-chip" :aria-label="`工作区：${chipLabel}`">
+            <button type="button" class="workspace-chip" :aria-label="`工作目录：${chipLabel}`">
               <Folder :size="14" aria-hidden="true" />
               <span class="workspace-chip-name">{{ chipLabel }}</span>
               <ChevronDown :size="12" aria-hidden="true" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" :side-offset="6" aria-label="选择工作区">
+          <DropdownMenuContent align="start" :side-offset="6" aria-label="选择工作目录">
             <DropdownMenuItem
               v-for="item in workspaces"
               :key="item.canonicalPath"
@@ -91,7 +91,7 @@ const canSubmitNow = computed(() =>
   canSubmit(welcomePrompt.value, welcomeWorkspaceId.value, preset.value, welcomeSubmitting.value),
 );
 const chipLabel = computed(() =>
-  welcomeWorkspaceId.value ? workspaceName(welcomeWorkspaceId.value) : "选择工作区",
+  welcomeWorkspaceId.value ? workspaceName(welcomeWorkspaceId.value) : "选择工作目录",
 );
 </script>
 
