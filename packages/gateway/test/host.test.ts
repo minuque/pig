@@ -114,6 +114,9 @@ describe("thin host HTTP shell", () => {
         )
       ).status,
     ).toBe(404);
+    const cards = await request(base, "/api/v1/platform/session-cards", undefined, credential);
+    expect(cards.status).toBe(200);
+    await expect(cards.json()).resolves.toMatchObject({ cards: expect.any(Array) });
   });
 });
 

@@ -317,6 +317,13 @@ describe("PiHostService", () => {
     expect(metadata[0]).toMatchObject({ id: "sess-1", cwd: expect.any(String) });
     expect(await service.listSessionCards()).toMatchObject([{ id: "sess-1", messageCount: 0 }]);
 
+    const fake = sessions.get("sess-1");
+    fake!.sessionManager.appendMessage({ role: "user", content: "hi", timestamp: 1000 });
+    fake!.sessionManager.appendModelChange("test", "test-model");
+    expect(await service.listSessionCards()).toMatchObject([
+      { id: "sess-1", messageCount: 1, model: { provider: "test", id: "test-model" } },
+    ]);
+
     const reopened = await service.openSession("sess-1");
     expect(await reopened.snapshot()).toMatchObject({ id: "sess-1" });
   });

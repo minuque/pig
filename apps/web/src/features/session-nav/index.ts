@@ -18,6 +18,7 @@ function createNav(
   const navError = ref("");
   const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
     sessionId: session.sessionId,
+    connected: pi.connected,
     router,
     refreshSessions: pi.refreshSessions,
   });

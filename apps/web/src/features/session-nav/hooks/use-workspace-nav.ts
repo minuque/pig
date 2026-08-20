@@ -19,6 +19,7 @@ export function useWorkspaceNav(
   error: Ref<string>,
   admin: {
     sessionId: Ref<string | undefined>;
+    connected: Ref<boolean>;
     router: Router;
     refreshSessions(): Promise<void>;
   },
@@ -29,7 +30,7 @@ export function useWorkspaceNav(
   /** null = 全部工作目录。对齐 T3 `projectScopeKey`。 */
   const projectScope = shallowRef<string | null>(null);
   const listedSessions = computed(() => listSessionsForSidebar(sessions.value, projectScope.value));
-  const sessionCards = ref(new Map<string, SessionCardExtra>());
+  const sessionCards = shallowRef(new Map<string, SessionCardExtra>());
   const sessionStamp = computed(() =>
     sessions.value
       .map((session) => `${session.id}:${session.updatedAt ?? session.createdAt}`)
@@ -37,6 +38,7 @@ export function useWorkspaceNav(
   );
 
   async function loadSessionCards() {
+    if (!admin.connected.value) return;
     try {
       const result = await platformRequest<{ cards: (SessionCardExtra & { id: string })[] }>(
         "/api/v1/platform/session-cards",
@@ -56,12 +58,15 @@ export function useWorkspaceNav(
   }
 
   watch(
-    sessionStamp,
-    () => {
-      void loadSessionCards();
+    admin.connected,
+    (connected) => {
+      if (connected) void loadSessionCards();
     },
     { immediate: true },
   );
+  watch(sessionStamp, () => {
+    void loadSessionCards();
+  });
 
   watch(groups, (list) => {
     const scoped = projectScope.value;
@@ -138,5 +143,6 @@ export function useWorkspaceNav(
     revokeWorkspace,
     renameSession,
     deleteSession,
+    loadSessionCards,
   };
 }
