@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canSubmit } from "@features/session-workbench/components/SessionWelcome.vue";
+import { workspaceHeroLabel } from "@features/session-workbench/components/WorkspaceHero.vue";
 
 describe("canSubmit", () => {
   const profile = { model: { provider: "openai", id: "gpt-5" }, thinkingLevel: "high" };
@@ -22,5 +23,16 @@ describe("canSubmit", () => {
 
   it("提交中拒绝", () => {
     expect(canSubmit("任务", "w1", profile, true)).toBe(false);
+  });
+});
+
+describe("workspaceHeroLabel", () => {
+  it("无目录时显示选择工作目录", () => {
+    expect(workspaceHeroLabel(undefined)).toBe("选择工作目录");
+  });
+
+  it("有路径时用目录名作标题", () => {
+    expect(workspaceHeroLabel("/repo/app")).toBe("app");
+    expect(workspaceHeroLabel("C:\\repo\\app")).toBe("app");
   });
 });

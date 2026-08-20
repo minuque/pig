@@ -38,7 +38,6 @@
       </template>
     </MarkstreamVirtualTimeline>
     <p v-else-if="running" class="shimmer" role="status">正在运行…</p>
-    <p v-else class="notice">暂无消息</p>
     <button
       v-if="hasNewActivity"
       class="jump-latest"
@@ -192,12 +191,6 @@ function scrollToLatest() {
   margin-inline: auto;
 }
 .shimmer {
-  color: var(--ink-muted);
-}
-.notice {
-  padding: var(--spacing-sm) 0;
-  background: transparent;
-  border: 0;
   color: var(--ink-muted);
 }
 .jump-latest {
