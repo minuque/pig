@@ -66,7 +66,6 @@ try {
     shell: process.platform === "win32",
     env: {
       ...process.env,
-      NO_OPEN: "1",
       BOOTSTRAP_SECRET: "smoke",
     },
     stdio: ["ignore", "pipe", "inherit"],
