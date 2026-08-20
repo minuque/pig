@@ -340,10 +340,10 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: color-mix(in srgb, var(--surface) 28%, transparent);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
   color: var(--ink);
-  backdrop-filter: blur(28px) saturate(1.35);
-  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
   cursor: pointer;
   opacity: 1;
   -webkit-app-region: no-drag;
