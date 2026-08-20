@@ -54,6 +54,7 @@
             >
             {{ phaseLabel(phase) }}
           </p>
+          <ThemeToggle />
         </div>
       </header>
       <slot />
@@ -66,6 +67,7 @@ import type { SessionPhase } from "@earendil-works/pi-protocol";
 import { PanelLeft } from "lucide-vue-next";
 import { workspaceName } from "@features/session-nav/types.js";
 import { phaseLabel } from "@features/session-workbench/components/SessionControlBar.vue";
+import ThemeToggle from "@features/theme/ThemeToggle.vue";
 import { useLeftPanel } from "@components/layout/hooks/use-left-panel.js";
 
 defineProps<{

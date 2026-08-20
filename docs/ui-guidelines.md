@@ -47,8 +47,8 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。
   - 视口宽度不小于 1400px 时，正文与输入卡同宽，占主栏 60%。
 - **Session 操作**：重命名走 Pi `SessionManager.appendSessionInfo`；删除只删 Pi 会话文件。不自建第二套 Session 库。
 - **模型**：Session 为 `idle` 时可修改；运行中禁用 ModelPicker 与 ThinkingLevelSelect。
-- **Session 列表**：Pi 拥有 Session 真相。默认按会话维平铺（创建时间新→旧，活动不重排），工作目录只做顶部筛选（「全部工作目录」）。搜索按标题过滤，命中时列表换成单行结果。卡片三行：目录名 + 相对时间、标题、消息数 + 当前模型（space-between）。侧栏底放 ThemeToggle；折叠钮旁 pig 标回 `/`。
-- **顶栏**：Session 标题 + 淡 cwd 名；thinking chip；phase / 连接只在非 idle。无主题开关。
+- **Session 列表**：Pi 拥有 Session 真相。默认按会话维平铺（创建时间新→旧，活动不重排），工作目录只做顶部筛选（「全部工作目录」）。搜索按标题过滤，命中时列表换成单行结果。卡片三行：目录名 + 相对时间、标题、消息数 + 当前模型（space-between）。侧栏底放设置齿轮占位；折叠钮旁 pig 标回 `/`。
+- **顶栏**：Session 标题 + 淡 cwd 名；thinking chip；phase / 连接只在非 idle。右上 ThemeToggle。
 - **ChatInput**
   - 有 Transcript 时输入卡绝对贴在对话列底部，transcript 通栏滚动。
   - 欢迎页和 idle 空 Session 居中短句「在 {目录名} 开始」，输入卡在标题下（不 dock）。欢迎页目录名可切换；空 Session 用 session cwd，缺则 lastCwd。thinking 为 off 时顶栏不显示芯片。

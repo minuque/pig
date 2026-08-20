@@ -188,7 +188,9 @@
     </div>
 
     <div class="nav-foot">
-      <ThemeToggle />
+      <button class="icon-button settings-placeholder" type="button" aria-label="设置">
+        <Settings :size="16" aria-hidden="true" />
+      </button>
     </div>
   </div>
 </template>
@@ -204,6 +206,7 @@ import {
   PanelLeft,
   Plus,
   Search,
+  Settings,
   SquarePen,
   X,
 } from "lucide-vue-next";
@@ -217,7 +220,6 @@ import {
 } from "@components/ui/dropdown-menu/index.js";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
 import { searchSessionsByTitle, workspaceName } from "@features/session-nav/types.js";
-import ThemeToggle from "@features/theme/ThemeToggle.vue";
 
 defineProps<{
   collapsed?: boolean;
@@ -616,5 +618,20 @@ html[data-pig-desktop-platform] .session-nav input {
   width: var(--nav-rail);
   justify-content: center;
   padding-inline: 0;
+}
+.settings-placeholder {
+  display: grid;
+  place-items: center;
+  width: var(--size-nav-action);
+  min-height: var(--size-nav-action);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-muted);
+}
+.settings-placeholder:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
 }
 </style>
