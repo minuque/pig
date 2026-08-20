@@ -19,7 +19,6 @@
       :get-final="transcriptRowFinal"
       :estimate-item-height="estimateHeight"
       markdown-mode="chat"
-      markdown-code-renderer="monaco"
       :stick-to-bottom="'auto'"
       :overscan="8"
       :initial-thread-state="threadState"

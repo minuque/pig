@@ -47,7 +47,6 @@ const agentMarkdown = computed(() => {
   const shared = {
     customId: "chat",
     mode: "chat",
-    codeRenderer: "monaco",
     fade: false,
     isDark: isDark.value,
     codeBlockProps: {
@@ -81,7 +80,7 @@ const thinkProps = computed(
     ({
       customId: "chat",
       mode: "minimal",
-      codeRenderer: "pre",
+      renderCodeBlocksAsPre: true,
       final: true,
       typewriter: false,
       smoothStreaming: false,

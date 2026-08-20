@@ -18,7 +18,7 @@
     "@vueuse/core": "^14.4.0",
     "clsx": "^2.1.1",
     "lucide-vue-next": "^1.0.0",
-    "markstream-vue": "^1.0.7",
+    "markstream-vue": "^2.0.0",
     "mermaid": "^11.16.1",
     "reka-ui": "^2.10.1",
     "stream-diffs": "^0.0.2",
