@@ -7,6 +7,10 @@ Pig Workbench 是用户操作和观察 Pi Session 的环境。Pi 拥有 Agent �
 **Pi**：
 拥有 Session 生命周期、Session 历史和 Agent Runtime 的系统。
 
+**启动等待态**：
+Pig Workbench 在首次可用前呈现的临时状态。它随启动准备结束而结束，不是固定时长的品牌片头。
+_避免使用_：开屏动画、Loading、启动片头
+
 **Agent**：
 为 Session 执行工作的 Pi Agent Runtime。它是执行角色，不是具有独立身份或跨 Session 状态的持久实体。
 _避免使用_：Assistant Message、助手、Agent 档案
