@@ -5,6 +5,10 @@
     :running="projection?.running"
     :connecting="connecting"
     :thinking-level="projection?.thinkingLevel"
+    :class="{
+      'startup-underlay': startupConcealed,
+      'startup-underlay-transition': startupVisible,
+    }"
     :inert="startupVisible || undefined"
     :aria-hidden="startupVisible ? 'true' : undefined"
   >
@@ -25,6 +29,7 @@
     v-if="startupVisible && !startupError"
     :ready="startupReady"
     :phase="startupPhase"
+    @reveal="revealStartupUnderlay"
     @finished="finishStartupWait"
   />
 </template>
@@ -50,10 +55,16 @@ provideNav(pi, cwd, session);
 
 const startupError = shallowRef("");
 const startupVisible = shallowRef(true);
+const startupConcealed = shallowRef(true);
 const startupReady = shallowRef(false);
 const startupPhase = shallowRef<StartupPhase>("authorizing");
 
+function revealStartupUnderlay() {
+  startupConcealed.value = false;
+}
+
 function finishStartupWait() {
+  startupConcealed.value = false;
   startupVisible.value = false;
 }
 
@@ -67,6 +78,7 @@ onMounted(async () => {
     startupReady.value = true;
   } catch (error) {
     startupError.value = errorMessage(error);
+    startupConcealed.value = false;
     startupVisible.value = false;
   }
 });

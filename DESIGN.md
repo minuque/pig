@@ -309,7 +309,7 @@ components:
 
 深色是同一套分面的近灰反相：对话 `#151517`、侧栏 `#1b1b1c`、缝 `#2c2c2e`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
 
-桌面壳只把原生材质给侧栏（macOS vibrancy / Windows acrylic）。对话列不透明。输入卡在桌面用不透底的 canvas-soft/surface 混合（亚克力窗上 CSS backdrop-filter 会透到系统材质）。浏览器无桌面标记时，侧栏也不透明。浅色是默认入口。
+常驻工作台只把原生材质给侧栏（macOS vibrancy / Windows acrylic），启动等待态可短暂全屏透出原生材质。对话列不透明。输入卡在桌面用不透底的 canvas-soft/surface 混合（亚克力窗上 CSS backdrop-filter 会透到系统材质）。浏览器无桌面标记时，侧栏也不透明。浅色是默认入口。
 
 ## Colors
 
@@ -437,5 +437,5 @@ headline 只在欢迎页。栏标题 600，按钮 500。
 - `{colors.primary}` 用于动作和选中。
 - 工作台 14px 系统字；标签可用等宽大写。
 - chatInput / New Session：`{rounded.lg}`。
-- 原生材质只进侧栏；桌面折叠保留 rail。
+- 常驻工作台的原生材质只进侧栏；启动等待态可短暂全屏透出。桌面折叠保留 rail。
 - 装饰走 sunset / dusk / breeze。

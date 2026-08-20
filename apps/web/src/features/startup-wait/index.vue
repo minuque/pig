@@ -104,20 +104,16 @@ export const PI_LOGO_DURATION_MS = PI_LOGO_FRAMES.reduce(
   0,
 );
 
-function isActivePiece(frame: PiLogoFrame, y: number, x: number): boolean {
-  if (!frame.active || frame.activeX === undefined || frame.activeY === undefined) return false;
-  return PIECES[frame.active].some(
-    ([pieceY, pieceX]) => y === frame.activeY! + pieceY && x === frame.activeX! + pieceX,
-  );
-}
+const PIECE_COLORS: Record<PiLogoPiece, PiLogoColor> = {
+  left: "red",
+  top: "cyan",
+  right: "green",
+};
 
 function colorAt(frame: PiLogoFrame, y: number, x: number): PiLogoColor | undefined {
   const key = `${y},${x}`;
   if (frame.theme) return FINAL_PI.has(key) ? "theme" : undefined;
   if (frame.flash && y === 6 && x >= 1 && x <= 6) return "orange";
-  if (frame.active === "left" && isActivePiece(frame, y, x)) return "red";
-  if (frame.active === "top" && isActivePiece(frame, y, x)) return "cyan";
-  if (frame.active === "right" && isActivePiece(frame, y, x)) return "green";
 
   if (frame.phase === 4) {
     if (CYAN_PHASE_4.has(key)) return "cyan";
@@ -138,12 +134,30 @@ function colorAt(frame: PiLogoFrame, y: number, x: number): PiLogoColor | undefi
   return undefined;
 }
 
-export function cellsForPiLogoFrame(frame: PiLogoFrame): PiLogoCell[] {
+export function interpolatedActiveY(frameIndex: number, progress: number): number | undefined {
+  const frame = PI_LOGO_FRAMES[frameIndex];
+  if (!frame?.active || frame.activeY === undefined) return undefined;
+  const next = PI_LOGO_FRAMES[frameIndex + 1];
+  if (next?.active !== frame.active || next.activeY === undefined) return frame.activeY;
+  const t = Math.max(0, Math.min(1, progress));
+  return frame.activeY + (next.activeY - frame.activeY) * t;
+}
+
+export function cellsForPiLogoFrame(frame: PiLogoFrame, activeY = frame.activeY): PiLogoCell[] {
   const cells: PiLogoCell[] = [];
   for (let y = 0; y <= 8; y += 1) {
     for (let x = 1; x <= 8; x += 1) {
       const color = colorAt(frame, y, x);
       if (color) cells.push({ x, y, color });
+    }
+  }
+  if (frame.active && frame.activeX !== undefined && activeY !== undefined) {
+    for (const [pieceY, pieceX] of PIECES[frame.active]) {
+      cells.push({
+        x: frame.activeX + pieceX,
+        y: activeY + pieceY,
+        color: PIECE_COLORS[frame.active],
+      });
     }
   }
   return cells;
@@ -158,7 +172,7 @@ const props = defineProps<{
   ready: boolean;
   phase: StartupPhase;
 }>();
-const emit = defineEmits<{ finished: [] }>();
+const emit = defineEmits<{ reveal: []; finished: [] }>();
 
 const host = useTemplateRef<HTMLButtonElement>("host");
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
@@ -184,7 +198,10 @@ const PALETTE: Record<Exclude<PiLogoColor, "theme">, string> = {
   orange: "#D4904E",
 };
 const LEAVE_MS = 200;
-let frameTimer = 0;
+let animationRequest = 0;
+let frameIndex = 0;
+let frameStartedAt = -1;
+let currentActiveY = currentFrame.value.activeY;
 let leaveTimer = 0;
 let reducedMotion = false;
 let finished = false;
@@ -208,7 +225,7 @@ function paint() {
   if (!context) return;
   context.clearRect(0, 0, width, height);
   const themeColor = getComputedStyle(container).getPropertyValue("--ink").trim() || "#0f1115";
-  for (const cell of cellsForPiLogoFrame(currentFrame.value)) {
+  for (const cell of cellsForPiLogoFrame(currentFrame.value, currentActiveY)) {
     const left = Math.round(((cell.x - 1) * width) / 8);
     const right = Math.round((cell.x * width) / 8);
     const top = Math.round((cell.y * height) / 9);
@@ -226,6 +243,7 @@ function finish() {
 
 function beginLeave() {
   if (leaving.value || finished || !props.ready || !animationComplete.value) return;
+  emit("reveal");
   if (reducedMotion || document.hidden) {
     finish();
     return;
@@ -235,22 +253,30 @@ function beginLeave() {
 }
 
 function completeAnimation() {
-  window.clearTimeout(frameTimer);
+  cancelAnimationFrame(animationRequest);
   currentFrame.value = PI_LOGO_FRAMES.at(-1)!;
+  currentActiveY = undefined;
   animationComplete.value = true;
   paint();
   beginLeave();
 }
 
-function showFrame(index: number) {
-  const frame = PI_LOGO_FRAMES[index];
+function animateLogo(now: number) {
+  if (frameStartedAt < 0) frameStartedAt = now;
+  let frame = PI_LOGO_FRAMES[frameIndex];
+  while (frame && now - frameStartedAt >= frame.durationMs) {
+    frameStartedAt += frame.durationMs;
+    frameIndex += 1;
+    frame = PI_LOGO_FRAMES[frameIndex];
+  }
   if (!frame) {
     completeAnimation();
     return;
   }
   currentFrame.value = frame;
+  currentActiveY = interpolatedActiveY(frameIndex, (now - frameStartedAt) / frame.durationMs);
   paint();
-  frameTimer = window.setTimeout(() => showFrame(index + 1), frame.durationMs);
+  animationRequest = requestAnimationFrame(animateLogo);
 }
 
 function skipAnimation() {
@@ -289,11 +315,14 @@ onMounted(() => {
 
   reducedMotion = motionQuery.matches;
   if (reducedMotion || document.hidden) completeAnimation();
-  else showFrame(0);
+  else {
+    paint();
+    animationRequest = requestAnimationFrame(animateLogo);
+  }
 });
 
 onBeforeUnmount(() => {
-  window.clearTimeout(frameTimer);
+  cancelAnimationFrame(animationRequest);
   window.clearTimeout(leaveTimer);
   resizeObserver?.disconnect();
   themeObserver?.disconnect();
@@ -311,8 +340,10 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 28%, transparent);
   color: var(--ink);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
   cursor: pointer;
   opacity: 1;
   -webkit-app-region: no-drag;
@@ -374,8 +405,29 @@ onBeforeUnmount(() => {
   visibility: visible;
   opacity: 1;
 }
+:global(html[data-pig-desktop-platform="darwin"] .startup-underlay),
+:global(html[data-pig-desktop-platform="win32"] .startup-underlay) {
+  opacity: 0;
+}
+:global(html[data-pig-desktop-platform="darwin"] .startup-underlay-transition),
+:global(html[data-pig-desktop-platform="win32"] .startup-underlay-transition) {
+  transition: opacity var(--duration-normal) var(--ease-smooth);
+}
+:global(html[data-pig-desktop-platform="darwin"]) .startup-wait,
+:global(html[data-pig-desktop-platform="win32"]) .startup-wait {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .startup-wait {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .startup-wait.leaving {
+  .startup-wait.leaving,
+  :global(html[data-pig-desktop-platform] .startup-underlay-transition) {
     transition: none;
   }
 }

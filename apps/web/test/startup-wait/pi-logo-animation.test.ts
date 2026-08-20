@@ -3,6 +3,7 @@ import {
   PI_LOGO_DURATION_MS,
   PI_LOGO_FRAMES,
   cellsForPiLogoFrame,
+  interpolatedActiveY,
 } from "@features/startup-wait/index.vue";
 
 describe("Pi startup logo animation", () => {
@@ -24,6 +25,13 @@ describe("Pi startup logo animation", () => {
       "right",
     ]);
     expect(PI_LOGO_FRAMES.at(-1)).toMatchObject({ phase: 5, durationMs: 450, theme: true });
+  });
+
+  it("interpolates only between keyframes of the same falling piece", () => {
+    expect(interpolatedActiveY(0, 0.5)).toBe(0.5);
+    expect(interpolatedActiveY(3, 0.5)).toBe(3);
+    expect(interpolatedActiveY(4, 0.25)).toBe(0.25);
+    expect(interpolatedActiveY(12, 0.5)).toBeUndefined();
   });
 
   it("clears the six-cell row and settles into the ten-cell Pi mark", () => {
