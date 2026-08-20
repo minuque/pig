@@ -342,16 +342,21 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background:
     radial-gradient(
-      circle at 12% 0%,
-      color-mix(in srgb, var(--accent-dusk) 10%, transparent),
+      circle at 14% -8%,
+      color-mix(in srgb, var(--accent-dusk) 20%, transparent),
+      transparent 46%
+    ),
+    radial-gradient(
+      circle at -4% 76%,
+      color-mix(in srgb, var(--accent-breeze) 16%, transparent),
       transparent 42%
     ),
     radial-gradient(
-      circle at 8% 72%,
-      color-mix(in srgb, var(--accent-breeze) 8%, transparent),
+      circle at 94% 18%,
+      color-mix(in srgb, var(--accent-sunset-soft) 10%, transparent),
       transparent 38%
     ),
-    color-mix(in srgb, var(--surface) 92%, transparent);
+    color-mix(in srgb, var(--surface) 84%, transparent);
   color: var(--ink);
   backdrop-filter: blur(40px) saturate(1.15);
   -webkit-backdrop-filter: blur(40px) saturate(1.15);
