@@ -79,6 +79,7 @@ onBeforeUnmount(() => dockObserver?.disconnect());
   min-height: 0;
   flex: 1;
   overflow: hidden;
+  background: var(--surface);
 }
 .workspace-main :deep(.transcript-region) {
   height: 100%;

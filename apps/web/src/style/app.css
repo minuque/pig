@@ -19,6 +19,7 @@
   --glass-blur: 12px;
   --glass-opacity: 80%;
   --glass-saturation: 1.14;
+  --glass-surface: var(--canvas-soft);
 
   /* Grok decorative palette — never structural fill */
   --accent-sunset: #ff7a17;
@@ -211,6 +212,7 @@
   --inverse-fg: #0a0a0a;
   --glass-blur: 16px;
   --glass-saturation: 1.08;
+  --glass-surface: color-mix(in srgb, var(--surface) 96%, #fff);
 }
 
 /* Tailwind v4 mapping — utilities like bg-canvas-soft, text-ink, rounded-lg */
@@ -440,12 +442,10 @@ small,
   from {
     opacity: 0;
     transform: translateY(6px);
-    filter: blur(2px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 /* DialogContent 入场：keyframes 内嵌 -50% 居中偏移，避免覆盖 fixed translate 定位 */
@@ -528,43 +528,63 @@ small,
 html[data-pig-desktop-platform="darwin"] {
   --size-sidebar-rail: var(--size-sidebar-rail-mac);
 }
-/* 桌面毛玻璃：模糊画在空 ::before 上，正文叠在上面。滤镜和内容同元素时 Chromium 采不到 transcript。 */
-html[data-pig-desktop-platform] .prompt .frame,
-html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
+/* 桌面毛玻璃：对齐 t3code chat-composer-glass-shell / dropdown-glass */
+html[data-pig-desktop-platform] .prompt .glass-shell {
   isolation: isolate;
-  background: transparent;
-  border-color: color-mix(in srgb, var(--ink) 8%, transparent);
-  box-shadow: var(--shadow-popover);
 }
-html[data-pig-desktop-platform] .prompt .frame::before,
-html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"]::before {
-  z-index: 0;
-  background: color-mix(in srgb, var(--canvas-soft) var(--glass-opacity), transparent);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-}
-html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
+html[data-pig-desktop-platform] .prompt .glass-shell::before {
   pointer-events: none;
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--glass-surface) var(--glass-opacity), transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  content: "";
 }
-html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] > * {
-  position: relative;
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  html[data-pig-desktop-platform] .prompt .glass-shell::before,
+  html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
+    background: var(--glass-surface);
+  }
+}
+html[data-pig-desktop-platform] .prompt .glass-host {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+html[data-pig-desktop-platform] .prompt .glass-host::after {
+  pointer-events: none;
+  position: absolute;
   z-index: 1;
+  inset: 0;
+  border: var(--border-width) solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent);
+  content: "";
 }
-html[data-pig-desktop-platform] .prompt .frame:focus-within {
+html[data-pig-desktop-platform] .prompt .glass-host:focus-within::after {
   border-color: color-mix(in srgb, var(--primary) 36%, var(--hairline));
 }
+html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
+  background: color-mix(
+    in srgb,
+    var(--surface) 18%,
+    color-mix(in srgb, var(--surface) var(--glass-opacity), transparent)
+  );
+  border-color: color-mix(in srgb, var(--ink) 10%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+}
 @media (prefers-reduced-transparency: reduce) {
-  html[data-pig-desktop-platform] .prompt .frame,
+  html[data-pig-desktop-platform] .prompt .glass-shell::before {
+    background: var(--canvas-soft);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
   html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
     background: var(--canvas-soft);
-  }
-  html[data-pig-desktop-platform] .prompt .frame::before,
-  html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"]::before {
-    background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
