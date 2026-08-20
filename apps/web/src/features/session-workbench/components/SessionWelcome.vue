@@ -1,12 +1,6 @@
 <template>
   <section class="welcome" aria-labelledby="welcome-title">
     <div class="welcome-form">
-      <Mascot
-        class="welcome-mascot"
-        :size="88"
-        :state="welcomeSubmitting ? 'thinking' : 'idle'"
-        label="pig"
-      />
       <h1 id="welcome-title" class="welcome-title">开始一个新任务</h1>
 
       <div v-if="workspaces.length" class="welcome-chips">
@@ -66,7 +60,6 @@ import { ChevronDown, Folder } from "lucide-vue-next";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import ChatInput from "@features/chat-input/index.vue";
-import Mascot from "@features/mascot/index.vue";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -106,10 +99,6 @@ const chipLabel = computed(() =>
 .welcome-form {
   /* 与非 bare ChatInput 同宽，chat-input 卡本身由 PromptEditor 提供 */
   width: min(var(--size-composer), 100%);
-}
-.welcome-mascot {
-  display: grid;
-  margin: 0 auto var(--spacing-md);
 }
 .welcome-title {
   margin: 0 0 var(--spacing-md);

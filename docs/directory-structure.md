@@ -83,7 +83,6 @@ features/<module>/
 | `chat-input`        | 对话输入卡：PromptEditor、模型/思考强度选择、发送、错误提示     |
 | `session-nav`       | 左侧导航：会话列表、workspace 分组、虚拟列表、会话标题/时间工具 |
 | `session-workbench` | 会话工作台：转录视图、对话轮、欢迎页、控制栏、session 运行时    |
-| `mascot`            | 吉祥物：状态→表情映射、弹簧过渡、Canvas 绘制                     |
 | `startup-wait`       | 首次加载等待态：Pi 组装动画、启动阶段和离场                       |
 | `theme`             | 主题切换                                                     |
 
