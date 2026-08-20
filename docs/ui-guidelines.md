@@ -35,7 +35,7 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。
 
 - **布局**：两栏铺满；≥901px 左栏折叠为 rail（56px，macOS 桌面 90px），移动端左栏为抽屉。无第三栏。
 - **表面**：侧栏默认不透明 `canvas-soft`；桌面窗（darwin/win32）侧栏用 `color-mix(canvas-soft 72%, transparent)` 透出亚克力/vibrancy。对话列始终不透明 `surface`。视觉跟 `DESIGN.md`：浅色冷蓝灰，深色近灰工作台，装饰 sunset/dusk。
-- **启动等待态**：每次完整加载逐帧播放 Pi 组装动画，落块关键帧之间平滑补间，消行与闪烁保持离散。初始化完成前隐藏工作台。背景用 84% `surface` 染色和紫、蓝、暖色雾化光斑；darwin/win32 透出原生材质，浏览器与 Linux 使用主题底色，不透出 Session 内容。退出时 Logo 缩小淡出，遮罩与工作台交叉淡变。`prefers-reduced-transparency` 回退不透明 `surface`。
+- **启动等待态**：每次完整加载逐帧播放 Pi 组装动画，落块关键帧之间平滑补间，消行与闪烁保持离散。初始化完成前隐藏工作台。浏览器与 Linux 使用纯主题底色；darwin/win32 使用 28% `surface` 染色，透出原生材质。所有平台均隐藏 Session 内容。退出时 Logo 缩小淡出，遮罩与工作台交叉淡变。`prefers-reduced-transparency` 回退不透明 `surface`。
 - **桌面壳**：Electron 无原生 File 菜单。macOS hiddenInset，Windows `titleBarStyle: hidden` + caption overlay，Linux 无框。仅侧栏接受原生材质。URL `?pig-desktop-platform=` 只开 drag / 玻璃，浏览器无参数则无铬层。
 - **Transcript**
   - 主列连续排版，不给 Assistant Message 添加卡片背景。

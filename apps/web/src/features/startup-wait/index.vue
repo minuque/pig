@@ -340,26 +340,8 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background:
-    radial-gradient(
-      circle at 14% -8%,
-      color-mix(in srgb, var(--accent-dusk) 20%, transparent),
-      transparent 46%
-    ),
-    radial-gradient(
-      circle at -4% 76%,
-      color-mix(in srgb, var(--accent-breeze) 16%, transparent),
-      transparent 42%
-    ),
-    radial-gradient(
-      circle at 94% 18%,
-      color-mix(in srgb, var(--accent-sunset-soft) 10%, transparent),
-      transparent 38%
-    ),
-    color-mix(in srgb, var(--surface) 84%, transparent);
+  background: var(--surface);
   color: var(--ink);
-  backdrop-filter: blur(40px) saturate(1.15);
-  -webkit-backdrop-filter: blur(40px) saturate(1.15);
   cursor: pointer;
   opacity: 1;
   -webkit-app-region: no-drag;
@@ -438,14 +420,11 @@ onBeforeUnmount(() => {
 }
 :global(html[data-pig-desktop-platform="darwin"]) .startup-wait,
 :global(html[data-pig-desktop-platform="win32"]) .startup-wait {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: color-mix(in srgb, var(--surface) 28%, transparent);
 }
 @media (prefers-reduced-transparency: reduce) {
   .startup-wait {
     background: var(--surface);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
