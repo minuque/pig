@@ -1,7 +1,7 @@
 <template>
   <div class="workspace-hero">
     <h1 :id="titleId" class="hero-title">
-      <DropdownMenu :modal="false">
+      <DropdownMenu v-if="selectable" :modal="false">
         <DropdownMenuTrigger as-child>
           <button
             type="button"
@@ -22,6 +22,7 @@
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <span v-else class="hero-picker-name">{{ label }}</span>
     </h1>
     <p v-if="workspaceId" class="hero-path" :title="workspaceId">{{ workspaceId }}</p>
   </div>
@@ -46,10 +47,15 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
 
-defineProps<{
-  titleId: string;
-  workspaces: readonly LocalWorkspace[];
-}>();
+withDefaults(
+  defineProps<{
+    titleId: string;
+    workspaces: readonly LocalWorkspace[];
+    /** 空 Session 已绑定 cwd，标题只展示不切换。 */
+    selectable?: boolean;
+  }>(),
+  { selectable: true },
+);
 
 const workspaceId = defineModel<string | undefined>("workspaceId");
 const label = computed(() => workspaceHeroLabel(workspaceId.value));

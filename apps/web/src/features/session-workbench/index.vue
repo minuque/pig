@@ -12,6 +12,7 @@
           :workspace-id="activeWorkspaceId"
           title-id="session-hero-title"
           :workspaces="workspaces"
+          :selectable="false"
         />
         <ChatInput
           v-model:prompt="prompt"

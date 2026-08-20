@@ -47,14 +47,15 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。
   - 视口宽度不小于 1400px 时，正文与输入卡同宽，占主栏 60%。
 - **Session 操作**：重命名走 Pi `SessionManager.appendSessionInfo`；删除只删 Pi 会话文件。不自建第二套 Session 库。
 - **模型**：Session 为 `idle` 时可修改；运行中禁用 ModelPicker 与 ThinkingLevelSelect。
-- **Session 列表**：Pi 拥有 Session 真相。已授权目录优先显示，其它 Session 继续按 cwd 显示。行展示标题 + 相对时间，默认展开 lastCwd（否则第一项）。
+- **Session 列表**：Pi 拥有 Session 真相。已授权目录优先显示，其它 Session 继续按 cwd 显示。行展示标题 + 相对时间，默认展开 lastCwd（否则第一项）。工作目录行是分组头。侧栏底放 ThemeToggle；折叠钮旁 pig 标回 `/`。
+- **顶栏**：Session 标题 + 淡 cwd 名；thinking chip；phase / 连接只在非 idle。无主题开关。
 - **ChatInput**
-  - 输入卡绝对贴在对话列底部，transcript 通栏滚动。欢迎页复用同一个 PromptEditor 卡。
+  - 有 Transcript 时输入卡绝对贴在对话列底部，transcript 通栏滚动。
+  - 欢迎页和 idle 空 Session 居中：目录名作 display 标题，输入卡在标题下（不 dock）。欢迎页标题可切换工作目录；空 Session 标题只展示已绑定 cwd。
   - 桌面输入卡和模型/思考菜单使用 backdrop-filter（blur 12px / 深色 16px，填充 80%）。
   - 浏览器输入卡和菜单使用不透明 `canvas-soft`，不跟桌面玻璃。
   - `prefers-reduced-transparency` 时桌面回退不透明 `canvas-soft`。
   - dock 不铺实底。模型和思考选项放在左侧，primary 发送圆钮放在右侧。
-  - 欢迎页在输入卡上方选择工作目录。
 - **Gateway 状态**：正常时不显示常驻指示；连接中不挡欢迎/对话页，只在顶栏给一句状态。错误使用 banner。
 - **启动授权**：启动链接携带 bootstrap secret。同一 secret 在 Gateway 生命周期内重复兑换得到同一凭证；页面兑换成功后清除 URL hash。
 - **关窗**：桌面关窗仍退出并释放 Gateway，不搬托盘驻留。
