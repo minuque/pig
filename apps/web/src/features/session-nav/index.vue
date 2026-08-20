@@ -371,15 +371,14 @@ html[data-pig-desktop-platform] .session-nav input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 22px;
+  min-height: var(--nav-row);
   padding: 0 var(--spacing-xxs);
 }
 .nav-masthead-title {
   margin: 0;
   color: var(--ink-muted);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-eyebrow--line-height);
 }
 .nav-masthead .icon-button,
 .workspace-create,
@@ -410,15 +409,19 @@ html[data-pig-desktop-platform] .session-nav input {
   align-items: center;
   gap: 6px;
   width: 100%;
-  min-height: 22px;
-  padding: 2px 8px;
+  min-height: var(--nav-row);
+  padding: 4px 8px;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--ink);
   text-align: left;
 }
 .workspace-row:hover {
-  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+.workspace-row.active .workspace-name,
+.workspace-row.expanded .workspace-name {
+  font-weight: var(--font-weight-medium);
 }
 .workspace-folder {
   flex: none;
@@ -427,17 +430,15 @@ html[data-pig-desktop-platform] .session-nav input {
 .workspace-name {
   min-width: 0;
   overflow: hidden;
-  color: inherit;
-  font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-eyebrow--line-height);
+  color: var(--ink);
+  font-size: var(--text-body-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .workspace-create,
 .workspace-kebab {
   position: absolute;
-  top: calc((22px - var(--size-nav-action)) / 2);
+  top: calc((var(--nav-row) - var(--size-nav-action)) / 2);
   z-index: 1;
   color: var(--ink-faint);
   opacity: 0;
