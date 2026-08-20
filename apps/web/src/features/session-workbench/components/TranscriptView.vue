@@ -6,17 +6,6 @@
     :aria-labelledby="transcriptTitleId"
   >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
-    <Transition name="user-pin">
-      <button
-        v-if="pinText"
-        class="user-pin"
-        type="button"
-        :aria-label="`回到用户句：${pinText}`"
-        @click="scrollToPinnedUser"
-      >
-        {{ pinText }}
-      </button>
-    </Transition>
     <MarkstreamVirtualTimeline
       v-if="rows.length"
       ref="timeline"
@@ -87,19 +76,14 @@ export function transcriptRowFinal(item: TranscriptItem): boolean {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, ref, useTemplateRef, watch } from "vue";
 import { ArrowDown } from "lucide-vue-next";
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue";
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 import AssistantMessage from "@features/session-workbench/components/AssistantMessage.vue";
 import ToolCall from "@features/session-workbench/components/ToolCall.vue";
 import UserMessage from "@features/session-workbench/components/UserMessage.vue";
-import {
-  conversationRows,
-  isUserItem,
-  pinnedUserIndex,
-  userPinLabel,
-} from "@features/session-workbench/lib/transcript-format.js";
+import { conversationRows } from "@features/session-workbench/lib/transcript-format.js";
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
 
 const props = defineProps<{
@@ -140,17 +124,11 @@ function isStreamingAssistant(item: TranscriptItem): boolean {
 /* ── 贴底跟随与「跳转到最新」：滚动状态由 MarkstreamVirtualTimeline 管理 ── */
 const timeline = useTemplateRef<{
   scrollToBottom(): void;
-  scrollToIndex(index: number, align?: "start" | "center" | "end"): void;
   captureThreadState(): MarkstreamThreadVirtualState;
 }>("timeline");
 // 与 stickToBottom=auto 对齐：离底 ≤48px 仍视为贴底（时间线会继续跟随）
 const atBottom = ref(true);
 const hasNewActivity = ref(false);
-const pinnedIndex = shallowRef(-1);
-const pinText = computed(() => {
-  const item = rows.value[pinnedIndex.value];
-  return item && isUserItem(item) ? userPinLabel(item) : "";
-});
 
 function timelineScrollRoot(): HTMLElement | null {
   return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null;
@@ -165,14 +143,6 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
     : state.outerAnchor?.type !== "item";
   atBottom.value = bottom;
   if (bottom) hasNewActivity.value = false;
-  const list = rows.value;
-  const scrollTop = root?.scrollTop ?? 0;
-  const paddingTop = root ? Number.parseFloat(getComputedStyle(root).paddingTop) || 0 : 0;
-  pinnedIndex.value = pinnedUserIndex(list, scrollTop, paddingTop, (index) => {
-    const item = list[index];
-    if (!item) return 0;
-    return state.itemHeights[item.id] ?? estimateHeight(item);
-  });
 }
 
 // 新增消息行且用户不在底部时，提示「跳转到最新」（贴底时组件会自行跟随）
@@ -186,11 +156,6 @@ watch(
 function scrollToLatest() {
   hasNewActivity.value = false;
   timeline.value?.scrollToBottom();
-}
-
-function scrollToPinnedUser() {
-  if (pinnedIndex.value < 0) return;
-  timeline.value?.scrollToIndex(pinnedIndex.value, "start");
 }
 </script>
 
@@ -226,44 +191,6 @@ function scrollToPinnedUser() {
 .transcript :deep(.markstream-virtual-timeline__item) {
   width: min(var(--size-content), 100%);
   margin-inline: auto;
-}
-.user-pin {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 1;
-  box-sizing: border-box;
-  width: min(var(--size-content), 100%);
-  margin-inline: auto;
-  padding: 8px 14px;
-  overflow: hidden;
-  border: 0;
-  border-radius: 0;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-size: var(--text-body-md);
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.user-pin-enter-active,
-.user-pin-leave-active {
-  transition:
-    transform var(--duration-normal) var(--ease-out),
-    opacity var(--duration-fast) var(--ease-out);
-}
-.user-pin-enter-from,
-.user-pin-leave-to {
-  opacity: 0;
-  transform: translateY(-100%);
-}
-@media (prefers-reduced-motion: reduce) {
-  .user-pin-enter-active,
-  .user-pin-leave-active {
-    transition: none;
-  }
 }
 .shimmer {
   color: var(--ink-muted);

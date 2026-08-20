@@ -59,26 +59,3 @@ export function toolIconTone(item: ToolTranscriptItem): string {
   if (item.status === "running") return "var(--primary)";
   return "var(--accent-green)";
 }
-
-export function pinnedUserIndex(
-  rows: readonly TranscriptItem[],
-  scrollTop: number,
-  paddingTop: number,
-  heightOf: (index: number) => number,
-): number {
-  let offset = paddingTop;
-  let pinned = -1;
-  for (let index = 0; index < rows.length; index++) {
-    const height = heightOf(index);
-    const row = rows[index];
-    if (row && isUserItem(row) && offset + height <= scrollTop) pinned = index;
-    offset += height;
-  }
-  return pinned;
-}
-
-export function userPinLabel(item: UserTranscriptItem): string {
-  const text = transcriptText(item).replace(/\s+/g, " ").trim();
-  if (text) return text;
-  return transcriptImages(item).length > 0 ? "图片" : "";
-}

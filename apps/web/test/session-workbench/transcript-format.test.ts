@@ -3,11 +3,9 @@ import type { TranscriptItem } from "@earendil-works/pi-protocol";
 import {
   conversationRows,
   isVisibleTranscriptItem,
-  pinnedUserIndex,
   transcriptImageSrc,
   transcriptImages,
   transcriptText,
-  userPinLabel,
 } from "@features/session-workbench/lib/transcript-format.js";
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
@@ -77,25 +75,5 @@ describe("transcript text helpers", () => {
     expect(transcriptImageSrc("data:image/png;base64,xyz", "image/png")).toBe(
       "data:image/png;base64,xyz",
     );
-  });
-});
-
-describe("pinnedUserIndex", () => {
-  it("selects the last user item fully above the viewport", () => {
-    const rows = [
-      item({ id: "u1", role: "user", content: [{ type: "text", text: "一" }] }),
-      item({
-        id: "a1",
-        role: "assistant",
-        status: "complete",
-        content: [{ type: "text", text: "答" }],
-      }),
-      item({ id: "u2", role: "user", content: [{ type: "text", text: "二" }] }),
-    ];
-    const heights = [40, 200, 40];
-    expect(pinnedUserIndex(rows, 0, 16, (index) => heights[index] ?? 0)).toBe(-1);
-    expect(pinnedUserIndex(rows, 56, 16, (index) => heights[index] ?? 0)).toBe(0);
-    expect(pinnedUserIndex(rows, 400, 16, (index) => heights[index] ?? 0)).toBe(2);
-    expect(userPinLabel(rows[0] as Extract<TranscriptItem, { role: "user" }>)).toBe("一");
   });
 });

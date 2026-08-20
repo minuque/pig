@@ -41,7 +41,6 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。
   - 主列连续排版，不给 Assistant Message 添加卡片背景。
   - User Message 右对齐，使用 primary 蓝胶囊。宽度按内容收缩，最长约为内容列的 86%，文字使用 on-primary。
   - User Message 的图片放在胶囊下方的同一右栏。图片限制宽度，点击后用 Dialog 放大。
-  - User Message 滚出视口顶部后，显示一条贴顶的同色截断条。截断条占满内容列，不含图片，下滑时淡入，点击后回到原句。
   - Assistant Message 通栏使用 markstream，字号 15px，行高 1.7。思考默认折叠，不显示助手条目中的 toolCall。
   - Tool Call 默认显示状态图标、名称和截断入参。展开后显示完整入参与输出，顶栏提供复制操作。
   - 长 Assistant Message 使用 markstream 节点虚拟滚动。
