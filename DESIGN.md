@@ -372,22 +372,22 @@ sunset 是装饰，orange 是语义。
 
 ### Hierarchy
 
-| Token                       | Size | Weight | Line Height | Use                        |
-| --------------------------- | ---- | ------ | ----------- | -------------------------- |
-| `{typography.display-1}`    | 64px | 700    | 1.0         | 展示标题                   |
-| `{typography.display-2}`    | 54px | 700    | 1.04        | 欢迎页 / 空 Session 目录名 |
-| `{typography.heading-1}`    | 40px | 700    | 1.1         | 大节标题；窄屏欢迎标题     |
-| `{typography.heading-2}`    | 26px | 600    | 1.23        | 节标题                     |
-| `{typography.heading-3}`    | 22px | 600    | 1.27        | 卡片标题                   |
-| `{typography.title}`        | 16px | 600    | 1.4         | 栏标题                     |
-| `{typography.body-md}`      | 14px | 400    | 1.43        | 工作台正文                 |
-| `{typography.body-sm}`      | 14px | 400    | 1.43        | 侧栏、导航、对话元数据     |
-| `{typography.button}`       | 14px | 500    | 1.43        | 按钮                       |
-| `{typography.caption}`      | 13px | 400    | 1.38        | 辅助说明                   |
-| `{typography.eyebrow}`      | 12px | 600    | 1.33        | 徽章、小标签               |
-| `{typography.caption-mono}` | 12px | 400    | 1.33        | 阶段 / 栏目标签            |
+| Token                       | Size | Weight | Line Height | Use                      |
+| --------------------------- | ---- | ------ | ----------- | ------------------------ |
+| `{typography.display-1}`    | 64px | 700    | 1.0         | 展示标题                 |
+| `{typography.display-2}`    | 54px | 700    | 1.04        | 展示标题                 |
+| `{typography.heading-1}`    | 40px | 700    | 1.1         | 大节标题                 |
+| `{typography.heading-2}`    | 26px | 600    | 1.23        | 欢迎页 / 空 Session 短句 |
+| `{typography.heading-3}`    | 22px | 600    | 1.27        | 卡片标题                 |
+| `{typography.title}`        | 16px | 600    | 1.4         | 栏标题                   |
+| `{typography.body-md}`      | 14px | 400    | 1.43        | 工作台正文               |
+| `{typography.body-sm}`      | 14px | 400    | 1.43        | 侧栏、导航、对话元数据   |
+| `{typography.button}`       | 14px | 500    | 1.43        | 按钮                     |
+| `{typography.caption}`      | 13px | 400    | 1.38        | 辅助说明                 |
+| `{typography.eyebrow}`      | 12px | 600    | 1.33        | 徽章、小标签             |
+| `{typography.caption-mono}` | 12px | 400    | 1.33        | 阶段 / 栏目标签          |
 
-headline 用于欢迎页和空 Session 的目录名。栏标题 600，按钮 500。
+headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮 500。
 
 ## Layout
 

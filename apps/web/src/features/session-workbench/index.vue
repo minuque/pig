@@ -9,7 +9,7 @@
     <div v-if="emptyCanvas" class="empty-canvas">
       <div class="empty-canvas-form">
         <WorkspaceHero
-          :workspace-id="activeWorkspaceId"
+          :workspace-id="heroCwd"
           title-id="session-hero-title"
           :workspaces="workspaces"
           :selectable="false"
@@ -87,9 +87,10 @@ const {
   sessionError,
   submitText,
 } = useSession();
-const { workspaces, activeWorkspaceId } = useNav();
+const { workspaces, activeWorkspaceId, lastCwd } = useNav();
 
 const emptyCanvas = computed(() => isEmptyCanvas(transcript.value.length, phase.value));
+const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value);
 
 const dock = useTemplateRef<HTMLElement>("dock");
 const dockHeight = shallowRef(168);

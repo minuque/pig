@@ -91,7 +91,9 @@ const { projection, sessionId } = session;
 const currentTitle = computed(
   () => projection.value?.name ?? (sessionId.value ? UNTITLED_SESSION : ""),
 );
-const activeCwd = computed(() => (sessionId.value ? nav.activeWorkspaceId.value : undefined));
+const activeCwd = computed(() =>
+  sessionId.value ? (nav.activeWorkspaceId.value ?? nav.lastCwd.value) : undefined,
+);
 </script>
 
 <style scoped>

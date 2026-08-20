@@ -30,13 +30,9 @@ export function useWelcomeSubmit(deps: WelcomeSubmitDeps) {
   const welcomeError = ref("");
 
   watch(
-    deps.workspaces,
-    (items) => {
-      welcomeWorkspaceId.value = nextWelcomeWorkspaceId(
-        items,
-        welcomeWorkspaceId.value,
-        deps.lastCwd.value,
-      );
+    [deps.workspaces, deps.lastCwd],
+    ([items, last]) => {
+      welcomeWorkspaceId.value = nextWelcomeWorkspaceId(items, welcomeWorkspaceId.value, last);
     },
     { immediate: true },
   );

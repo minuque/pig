@@ -40,7 +40,9 @@
         </button>
         <h1 v-if="title" id="current-title">{{ title }}</h1>
         <span v-if="title && cwd" class="header-cwd" :title="cwd">{{ workspaceName(cwd) }}</span>
-        <span v-if="thinkingLevel" class="header-chip">{{ thinkingLevel }}</span>
+        <span v-if="thinkingLevel && thinkingLevel.toLowerCase() !== 'off'" class="header-chip">{{
+          thinkingLevel
+        }}</span>
         <div class="header-right">
           <p v-if="connecting && !phase" class="session-status" role="status">正在连接…</p>
           <p v-else-if="phase && phase !== 'idle'" class="session-status" role="status">

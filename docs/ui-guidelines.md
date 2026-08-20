@@ -51,7 +51,7 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。
 - **顶栏**：Session 标题 + 淡 cwd 名；thinking chip；phase / 连接只在非 idle。无主题开关。
 - **ChatInput**
   - 有 Transcript 时输入卡绝对贴在对话列底部，transcript 通栏滚动。
-  - 欢迎页和 idle 空 Session 居中：目录名作 display 标题，输入卡在标题下（不 dock）。欢迎页标题可切换工作目录；空 Session 标题只展示已绑定 cwd。
+  - 欢迎页和 idle 空 Session 居中短句「在 {目录名} 开始」，输入卡在标题下（不 dock）。欢迎页目录名可切换；空 Session 用 session cwd，缺则 lastCwd。thinking 为 off 时顶栏不显示芯片。
   - 桌面输入卡和模型/思考菜单使用 backdrop-filter（blur 12px / 深色 16px，填充 80%）。
   - 浏览器输入卡和菜单使用不透明 `canvas-soft`，不跟桌面玻璃。
   - `prefers-reduced-transparency` 时桌面回退不透明 `canvas-soft`。
