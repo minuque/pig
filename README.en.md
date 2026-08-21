@@ -11,7 +11,7 @@
 
 **[简体中文](README.md)** · English
 
-> A local-first, polished, high-performance **Pi Agent GUI** — Web and Desktop.
+> A polished, high-performance **Pi Agent GUI** that follows Pi's design philosophy: no extra built-in tools; all capabilities come from the Pi Extension API.
 
 ## Quick start
 

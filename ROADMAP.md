@@ -4,9 +4,11 @@
 
 pig 不再定位为独立 Agent Runtime、Platform 或 Framework，而是：
 
-> **一个 local-first、交互优秀、高性能的 Pi GUI。**
+> **一个遵循 Pi 设计哲学，不额外内置工具，完全通过 Extension API 扩展的交互优秀、高性能的 Pi Agent GUI。**
 
-pig 负责 Web 与 Desktop UI、平台接入和本地安全，不重新实现 Agent Loop、Session、Model Runtime、Tools、Transcript、Steer 或 Abort。
+- pig 负责 Web 与 Desktop UI、平台接入和本地安全，不重新实现 Agent Loop、Session、Model Runtime 等已有能力。
+- 完全保留 Pi 的原生体验，不做 git 版本管理、不做内置终端、不做内置浏览器，会话交互体验优先。
+- 能力衍生基于 Pi Extension API 扩展，支持动态拔插。
 
 ## 2. 核心原则
 

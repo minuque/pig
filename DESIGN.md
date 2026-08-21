@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: pig Workbench
-description: A local-first agent workbench with cool bluish-neutral surfaces in light mode and near-black surfaces in dark mode. One blue is reserved for actions, links, focus, and selection. Sunset and dusk colors are decorative only. The layout uses a sidebar and an opaque transcript column. Navigation and window controls use lower contrast than transcript content.
+description: A Pi Agent GUI with cool bluish-neutral surfaces in light mode and near-black surfaces in dark mode. One blue is reserved for actions, links, focus, and selection. Sunset and dusk colors are decorative only. The layout uses a sidebar and an opaque transcript column. Navigation and window controls use lower contrast than transcript content.
 
 colors:
   primary: "#4176e6"
@@ -303,7 +303,7 @@ components:
 
 ## Overview
 
-本地桌面工作台使用冷蓝灰浅色表面和近黑深色表面。系统 UI 字号默认 14px。业务蓝只用于动作、链接、焦点和选中。布局包含侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
+Pi Agent GUI 使用冷蓝灰浅色表面和近黑深色表面。系统 UI 字号默认 14px。业务蓝只用于动作、链接、焦点和选中。布局包含侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
 
 浅色侧栏 `{colors.canvas-soft}`，对话列 `{colors.surface}`。结构色 `{colors.primary}`（#4176e6）只用于发送、链接、选中、focus。控件圆角 `{rounded.lg}`（12px）。
 

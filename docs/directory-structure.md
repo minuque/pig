@@ -1,10 +1,12 @@
 # 目录结构
 
+pig 是 Pi Agent GUI：`apps/web` 与 `apps/desktop` 负责 UI，`packages/gateway` 负责平台接入与本地安全。Agent Loop / Session / Model Runtime 由 Pi 拥有。能力走 Pi Extension API，不在 pig 内置 Git、终端、浏览器。
+
 pnpm workspace：
 
 - `apps/web/` — Vue 3 + TypeScript + Vite
 - `apps/desktop/` — Electron main / preload
-- `packages/gateway/` — 本地 Gateway
+- `packages/gateway/` — Thin Host：平台接入与本地安全
 
 浏览器 UI 旅程在仓库根 `e2e/`（Playwright，跨 Web 构建物与 Gateway），不是 `apps/web/test/` 的模块单测。`pnpm test:e2e` 写出 `playwright-report/`（调试）和 `e2e-report/latest/`（验收单）。
 

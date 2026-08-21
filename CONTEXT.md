@@ -1,8 +1,12 @@
 # Pig Workbench
 
-Pig Workbench 是用户操作和观察 Pi Session 的环境。Pi 拥有 Agent 行为和 Session 历史；Pig Workbench 拥有它们的呈现和控制方式。
+Pig Workbench 是用户操作和观察 Pi Session 的 GUI。Pi 拥有 Agent 行为和 Session 历史；pig 拥有它们的呈现和控制方式。
 
 ## 领域语言
+
+**pig**：
+遵循 Pi 设计哲学的 Pi Agent GUI。
+_避免使用_：Agent Runtime、Platform、Framework
 
 **Pi**：
 拥有 Session 生命周期、Session 历史和 Agent Runtime 的系统。
@@ -82,3 +86,7 @@ _避免使用_：思考模式、智能级别
 **Tool（工具）**：
 Agent 可以在 Turn 中调用的外部能力。一次具体调用是 Tool Call。
 _避免使用_：Tool Call、函数、Extension
+
+**Extension（扩展）**：
+通过 Pi Extension API 接入、可动态拔插的能力单元。Git、Terminal、Browser、MCP、Custom Tool 以 Extension 存在，不是 pig 内置工具。
+_避免使用_：内置工具、插件

@@ -11,7 +11,7 @@
 
 **[English](README.en.md)** · 简体中文
 
-> 本地优先、交互优秀、高性能的 **Pi Agent GUI**——Web 与 Desktop。
+> 遵循 Pi 设计哲学，不额外内置工具，完全通过 Extension API 扩展的交互优秀、高性能 **Pi Agent GUI**。
 
 ## 快速开始
 

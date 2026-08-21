@@ -23,6 +23,8 @@ Session 切换由 `/sessions/:sessionId` 驱动。
 
 ## 产品契约
 
+会话交互优先。不做 git 版本管理、内置终端、内置浏览器。这些能力走 Pi Extension，不进 pig core。
+
 ### 布局与表面
 
 两栏铺满。≥901px 左栏收成 rail（56px，macOS 桌面 90px）。移动端左栏为抽屉。
