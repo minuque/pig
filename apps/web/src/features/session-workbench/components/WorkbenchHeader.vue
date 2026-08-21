@@ -39,14 +39,13 @@ import ThemeToggle from "@features/theme/ThemeToggle.vue";
 
 defineProps<{
   leftOpen: boolean;
-  connecting?: boolean;
 }>();
 
 const emit = defineEmits<{
   toggle: [];
 }>();
 
-const { sessionId, projection, phase } = useSession();
+const { sessionId, projection, phase, connecting } = useSession();
 const { activeWorkspaceId, lastCwd } = useNav();
 
 const title = computed(() => projection.value?.name ?? (sessionId.value ? UNTITLED_SESSION : ""));

@@ -1,23 +1,18 @@
 <template>
-  <Startup :connect="connect" :initialize="initialize">
+  <Startup :connect="pi.connect" :initialize="session.initialize">
     <AppLayout>
       <template #sidebar="{ onNavigate, collapsed, toggle }">
         <SessionNav :collapsed="collapsed" @navigate="onNavigate" @toggle="toggle" />
       </template>
       <template #header="{ leftOpen, toggle }">
-        <WorkbenchHeader :left-open="leftOpen" :connecting="connecting" @toggle="toggle" />
+        <WorkbenchHeader :left-open="leftOpen" @toggle="toggle" />
       </template>
-
-      <p v-if="connectionError && connected" class="notice error startup-error" role="alert">
-        {{ connectionError.message }}
-      </p>
-      <RouterView v-else />
+      <WorkbenchOutlet />
     </AppLayout>
   </Startup>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
 import AppLayout from "@components/layout/AppLayout.vue";
 import { useLocalWorkspaces } from "@client/local-cwd.js";
 import { usePiClient } from "@client/pi-client.js";
@@ -25,26 +20,11 @@ import SessionNav from "@features/session-nav/index.vue";
 import { provideNav } from "@features/session-nav/index.js";
 import Startup from "@features/startup/index.vue";
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue";
+import WorkbenchOutlet from "@features/session-workbench/components/WorkbenchOutlet.vue";
 import { provideSession } from "@features/session-workbench/index.js";
 
 const pi = usePiClient();
 const cwd = useLocalWorkspaces();
 const session = provideSession(pi, cwd);
 provideNav(pi, cwd, session);
-
-function connect() {
-  return pi.connect();
-}
-function initialize() {
-  return session.initialize();
-}
-
-const connecting = computed(() => pi.connectionState.value === "connecting");
-const { connectionError, connected } = pi;
 </script>
-
-<style scoped>
-.startup-error {
-  margin: var(--spacing-md);
-}
-</style>
