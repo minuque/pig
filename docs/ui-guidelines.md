@@ -33,7 +33,7 @@ Session 切换由 `/sessions/:sessionId` 驱动。
 
 ### 启动
 
-完整加载播 Pi 组装动画，与 boot 并行；Logo 播完即进工作台。遮罩只播 Logo。退出时 Logo 缩小淡出，遮罩与工作台交叉淡变。
+完整加载播 Pi 组装动画，与 boot 并行；Logo 播完即进工作台。遮罩只播 Logo，背景不透明 `surface`。退出时 Logo 缩小淡出，遮罩与工作台交叉淡变。
 
 bootstrap / connect / initialize 失败进 `/error`（含连接超时）。已连接后的连接错误用 `StartupError`：icon + 文本居中，侧栏和顶栏仍在。
 
@@ -41,7 +41,7 @@ bootstrap / connect / initialize 失败进 `/error`（含连接超时）。已�
 
 Electron 无原生 File 菜单。macOS hiddenInset；Windows `titleBarStyle: hidden` + caption overlay；Linux 无框。窗体不透明。毛玻璃只给输入卡和菜单。
 
-`?pig-desktop-platform=` 打开 drag 与输入卡毛玻璃。关窗即退出并释放 Gateway。
+`?pig-desktop-platform=` 打开 drag 与输入卡毛玻璃。浏览器无该参数则无铬层。关窗即退出并释放 Gateway，不驻留托盘。
 
 ### Transcript
 
@@ -67,12 +67,14 @@ Session 标题 + 淡 cwd 名。右上 ThemeToggle。thinking 为 off 时不显�
 
 ### ChatInput
 
-有 Transcript 时输入卡贴对话列底部，transcript 通栏滚动。欢迎页和 idle 空 Session：居中「在 {目录名} 开始」，输入卡在标题下。欢迎页目录名可切换；空 Session 用 session cwd，缺则 lastCwd。
+有 Transcript 时输入卡绝对贴对话列底部，transcript 通栏滚动。欢迎页和 idle 空 Session：居中「在 {目录名} 开始」，输入卡在标题下、不 dock。欢迎页目录名可切换；空 Session 用 session cwd，缺则 lastCwd。
 
-桌面输入卡和模型/思考菜单：backdrop-filter（blur 12px / 深色 16px，填充 80%）。浏览器用不透明 `canvas-soft`。`prefers-reduced-transparency` 时桌面同样回退。dock 不铺实底。模型与思考在左，发送圆钮在右。
+桌面输入卡和模型/思考菜单：backdrop-filter（blur 12px / 深色 16px，填充 80%）。浏览器用不透明 `canvas-soft`。`prefers-reduced-transparency` 时桌面同样回退。dock 不铺实底。模型与思考在左，primary 发送圆钮在右。
 
 ### Gateway
 
 正常时无常驻指示。连接中不挡页面，只在顶栏给一句状态。错误走主栏空画布，与启动失败同款。
 
 启动链接携带 bootstrap secret。同一 secret 在 Gateway 生命周期内重复兑换得到同一凭证。页面兑换成功后清 URL hash。
+
+浏览器验收交给用户；除非用户明确要求，否则不启动服务。
