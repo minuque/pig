@@ -475,6 +475,8 @@ export function createPiLogoPlayer(options: {
   canvas: HTMLCanvasElement;
   wrap: HTMLElement;
   themeColor: () => string;
+  /** 四块积木落定、消行开场前调用，用来叠标语打字。 */
+  onNearEnd?: () => void;
 }): PiLogoPlayer {
   let abort: AbortController | undefined;
   let extraTopRows = 0;
@@ -563,6 +565,9 @@ export function createPiLogoPlayer(options: {
         if (!(await animatePiece(settled, step.piece, step.duration, signal))) return false;
         if (step.holdAfter > 0 && !(await hold(settled, step.holdAfter, signal))) return false;
       }
+
+      if (signal.aborted) return false;
+      options.onNearEnd?.();
 
       for (let i = 0; i < LOGO_TIMING.clearFlashCount; i += 1) {
         const on = i % 2 === 0;
