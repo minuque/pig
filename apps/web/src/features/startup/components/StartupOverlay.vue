@@ -169,8 +169,9 @@ onBeforeUnmount(() => {
   transform: translateY(-6px) scale(0.96);
 }
 .logo-button {
-  width: clamp(112px, 18vw, 168px);
+  width: clamp(96px, 15vw, 128px);
   min-height: 0;
+  aspect-ratio: 8 / 9;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -188,15 +189,12 @@ onBeforeUnmount(() => {
 .logo-stage {
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
+  height: 100%;
   overflow: visible;
 }
 .logo-wrap {
   position: absolute;
-  top: calc(100% * -3 / 4);
-  left: calc(100% * -2 / 4);
-  width: calc(100% * 8 / 4);
-  height: calc(100% * 9 / 4);
+  inset: 0;
   pointer-events: none;
 }
 .logo-canvas {
