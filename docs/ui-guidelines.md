@@ -5,7 +5,10 @@
 Vue 3 + TypeScript + Vite + Tailwind CSS + shadcn-vue + lucide-vue-next + VueUse + markstream-vue + vue-router。
 
 - Vue 管 UI state 与组件接线。SFC 区块顺序：`template` → `script` → `style`。
-- `src/components/` 只放布局壳与 shadcn-vue 基础件。领域 UI 进 `features/`。
+- `src/components/` 只放布局壳与 shadcn-vue 基础件。领域 UI 进 `features/`。业务只 import `@components/ui/...`，不直接 import `reka-ui`。
+- 新增或更新 shadcn-vue 组件用 CLI，不手抄 registry、不从 GitHub 扒文件：
+  `pnpm dlx shadcn-vue@latest add <name> --cwd apps/web --yes`
+  装完按仓库习惯改 import（`@utils/utils.js`、`lucide-vue-next`），需要时补 reka 的 `exactOptionalPropertyTypes` cast。已按 DESIGN.md token 改过的包装（如 dropdown-menu、tooltip）不要用 `--overwrite` 整包覆盖。
 - Session 操作入口是 `@earendil-works/pi-client` 的 `RemoteSession`。
 - transcript 用 markstream-vue。视觉 token 以 `DESIGN.md` 为准。
 
