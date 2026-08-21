@@ -31,7 +31,7 @@ Session 切换由 `/sessions/:sessionId` 驱动。
 
 ### 启动
 
-完整加载播 Pi 组装动画，与 boot 并行。积木落定后在 Logo 下打出标语 There are many agent harnesses / but this one is yours（yours 用 primary）。标语打完即进工作台。遮罩背景不透明 `surface`。退出时 Logo 与标语缩小淡出，遮罩与工作台交叉淡变。
+完整加载播 Pi 组装动画，与 boot 并行。积木落定后在 Logo 下打出标语 There are many agent harnesses / but this one is yours（yours 用 primary、斜体加粗）。标语打完即进工作台。遮罩背景不透明 `surface`。退出时 Logo 与标语缩小淡出，遮罩与工作台交叉淡变。
 
 bootstrap / connect / initialize 失败进 `/error`（含连接超时）。已连接后的连接错误用 `StartupError`：icon + 文本居中，侧栏和顶栏仍在。
 

@@ -328,21 +328,23 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   min-width: 0;
-  min-height: calc(2 * var(--text-caption) * var(--text-caption--line-height));
+  min-height: calc(2em * var(--text-caption--line-height));
   margin: 0;
   color: var(--ink-muted);
-  font-size: var(--text-caption);
+  font-size: calc(var(--text-caption) + 2px);
   line-height: var(--text-caption--line-height);
   text-align: center;
   pointer-events: none;
 }
 .slogan-line {
   display: block;
-  min-height: calc(var(--text-caption) * var(--text-caption--line-height));
+  min-height: calc(1em * var(--text-caption--line-height));
   white-space: nowrap;
 }
 .slogan-highlight {
   color: var(--primary);
+  font-style: italic;
+  font-weight: var(--font-weight-bold);
 }
 .slogan-cursor {
   display: inline-block;
