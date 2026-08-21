@@ -4,7 +4,7 @@ pnpm workspace：
 
 - `apps/web/` — Vue 3 + TypeScript + Vite
 - `apps/desktop/` — Electron main / preload
-- `packages/gateway/` — 本地 Gateway（auth / pi / server；目录选择在 `src/directory.ts`）
+- `packages/gateway/` — 本地 Gateway
 
 ## apps/web/src
 
@@ -24,6 +24,20 @@ apps/web/src/
 `App.vue`：`usePiClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再把 `connect` / `initialize` 交给启动门。子树只用 `useSession()` / `useNav()`，不写创建/发送/重命名等领域规则。
 
 `apps/web/test/` 镜像 `src/` 分层。测 `src` 根文件的用例用相对路径。
+
+## packages/gateway/src
+
+```
+packages/gateway/src/
+├── cli.ts
+├── index.ts        # 导出 Gateway、DirectoryPort
+├── directory.ts    # 目录选择、canonicalizePath
+├── auth/           # bootstrap 凭证
+├── pi/             # Session 运行时、transcript、卡片
+└── server/         # HTTP / WebSocket host
+```
+
+`test/` 跟 `src/` 同层。
 
 ## features/\<module\>/
 
