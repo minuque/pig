@@ -92,7 +92,6 @@
           >
             <FolderPlus :size="16" aria-hidden="true" />
           </button>
-          <NavErrorTip :message="workspaceError" />
         </div>
       </div>
 
@@ -116,13 +115,10 @@
           <div v-else class="empty-state">
             <template v-if="groups.length === 0">
               <span>还没有工作目录</span>
-              <div class="empty-add-row">
-                <button class="empty-add" type="button" @click="addWorkspace()">
-                  <Plus :size="12" aria-hidden="true" />
-                  添加本地目录
-                </button>
-                <NavErrorTip :message="workspaceError" />
-              </div>
+              <button class="empty-add" type="button" @click="addWorkspace()">
+                <Plus :size="12" aria-hidden="true" />
+                添加本地目录
+              </button>
             </template>
             <span v-else-if="projectScope">「{{ scopedGroupName }}」暂无会话</span>
             <span v-else>暂无会话</span>
@@ -141,6 +137,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, useTemplateRef, watch } from "vue";
+import { toast } from "vue-sonner";
 import { RouterLink } from "vue-router";
 import {
   Check,
@@ -161,7 +158,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
-import NavErrorTip from "@features/session-nav/components/NavErrorTip.vue";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
 import { workspaceName } from "@features/session-nav/types.js";
 
@@ -196,6 +192,11 @@ const scopedGroupName = computed(() => {
   const scoped = projectScope.value;
   if (!scoped) return "全部工作目录";
   return workspaceName(scoped);
+});
+
+watch(workspaceError, (message) => {
+  const text = message.trim();
+  if (text) toast.error(text);
 });
 
 watch(
@@ -424,12 +425,6 @@ html[data-pig-desktop-platform] .session-nav input {
   color: var(--ink-faint);
   font-size: var(--text-caption);
   text-align: center;
-}
-.empty-add-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
 }
 .empty-add {
   display: inline-flex;

@@ -10,10 +10,12 @@
       <WorkbenchOutlet />
     </AppLayout>
   </Startup>
+  <Toaster position="top-right" close-button :duration="5000" />
 </template>
 
 <script setup lang="ts">
 import AppLayout from "@components/layout/AppLayout.vue";
+import { Toaster } from "@components/ui/sonner/index.js";
 import { useLocalWorkspaces } from "@client/local-cwd.js";
 import { usePiClient } from "@client/pi-client.js";
 import SessionNav from "@features/session-nav/index.vue";
