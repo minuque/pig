@@ -92,10 +92,9 @@
           >
             <FolderPlus :size="16" aria-hidden="true" />
           </button>
+          <NavErrorTip :message="workspaceError" />
         </div>
       </div>
-
-      <p v-if="workspaceError" class="notice error" role="alert">{{ workspaceError }}</p>
 
       <div ref="navBody" class="nav-body">
         <nav class="session-list" aria-label="会话列表">
@@ -117,10 +116,13 @@
           <div v-else class="empty-state">
             <template v-if="groups.length === 0">
               <span>还没有工作目录</span>
-              <button class="empty-add" type="button" @click="addWorkspace()">
-                <Plus :size="12" aria-hidden="true" />
-                添加本地目录
-              </button>
+              <div class="empty-add-row">
+                <button class="empty-add" type="button" @click="addWorkspace()">
+                  <Plus :size="12" aria-hidden="true" />
+                  添加本地目录
+                </button>
+                <NavErrorTip :message="workspaceError" />
+              </div>
             </template>
             <span v-else-if="projectScope">「{{ scopedGroupName }}」暂无会话</span>
             <span v-else>暂无会话</span>
@@ -159,6 +161,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
+import NavErrorTip from "@features/session-nav/components/NavErrorTip.vue";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
 import { workspaceName } from "@features/session-nav/types.js";
 
@@ -421,6 +424,12 @@ html[data-pig-desktop-platform] .session-nav input {
   color: var(--ink-faint);
   font-size: var(--text-caption);
   text-align: center;
+}
+.empty-add-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 .empty-add {
   display: inline-flex;
