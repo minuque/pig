@@ -8,14 +8,22 @@ pnpm workspace：
 
 ## apps/web/src
 
-- `App.vue` 组合根：`usePiClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再把 `connect` / `initialize` 交给启动门。子树只用 `useSession()` / `useNav()`，不写创建/发送/重命名等领域规则。
-- `client/` 网络、凭证、传输、本地目录偏好
-- `components/layout/` 壳层；`components/ui/` shadcn-vue 基础件
-- `features/` 领域模块
-- `style/` 全局样式
-- `router/` 路由
-- `utils/` 通用工具
-- `apps/web/test/` 镜像 `src/` 分层。测 `src` 根文件的用例用相对路径。
+```
+apps/web/src/
+├── App.vue         # 组合根
+├── style/          # 全局样式
+├── client/         # 网络、凭证、传输、本地目录偏好
+├── components/
+│   ├── layout/     # 壳层
+│   └── ui/         # shadcn-vue 基础件
+├── features/       # 领域模块
+├── router/
+└── utils/
+```
+
+`App.vue`：`usePiClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再把 `connect` / `initialize` 交给启动门。子树只用 `useSession()` / `useNav()`，不写创建/发送/重命名等领域规则。
+
+`apps/web/test/` 镜像 `src/` 分层。测 `src` 根文件的用例用相对路径。
 
 ## features/\<module\>/
 
