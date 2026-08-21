@@ -330,7 +330,7 @@ onBeforeUnmount(() => {
   min-width: 0;
   min-height: calc(2em * var(--text-caption--line-height));
   margin: 0;
-  color: var(--ink-faint);
+  color: var(--ink);
   font-size: var(--text-title);
   line-height: var(--text-caption--line-height);
   text-align: center;
