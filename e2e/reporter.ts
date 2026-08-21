@@ -4,6 +4,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
+import { CHECKPOINT_COPY } from "./checkpoint.js";
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const latestDir = resolve(root, "e2e-report/latest");
 
@@ -49,9 +51,14 @@ class E2eReporter implements Reporter {
     const status = this.failed.length === 0 && result.status === "passed" ? "pass" : "fail";
     const sha = gitShortSha();
     const when = new Date().toISOString();
-    const rows = this.shots.map(
-      (shot) => `| ${shot.name} | ${status === "pass" ? "pass" : "见测试结果"} |`,
-    );
+    const resultLabel = status === "pass" ? "pass" : "见测试结果";
+    const rows = this.shots.map((shot) => {
+      const copy =
+        shot.name in CHECKPOINT_COPY
+          ? CHECKPOINT_COPY[shot.name as keyof typeof CHECKPOINT_COPY]
+          : "";
+      return `| ${shot.name} | ${copy} | ${resultLabel} |`;
+    });
     let axeSection = "serious/critical: 无法解析";
     try {
       const violations = JSON.parse(this.axeJson) as unknown[];
@@ -63,7 +70,13 @@ class E2eReporter implements Reporter {
       /* keep fallback */
     }
     const images = this.shots
-      .map((shot) => `## ${shot.name}\n\n![](${shotFileName(shot.name)})\n`)
+      .map((shot) => {
+        const copy =
+          shot.name in CHECKPOINT_COPY
+            ? CHECKPOINT_COPY[shot.name as keyof typeof CHECKPOINT_COPY]
+            : "";
+        return `## ${shot.name}\n\n${copy}\n\n![](${shotFileName(shot.name)})\n`;
+      })
       .join("\n");
     const failBlock =
       this.failed.length === 0
@@ -71,9 +84,9 @@ class E2eReporter implements Reporter {
         : `\n## 失败\n\n${this.failed.map((title) => `- ${title}`).join("\n")}\n\n调试报告：\`npx playwright show-report\`\n`;
     const report = `# pig UI 验收  ${status}  ${sha}  ${when}  1280×800 / 390×844  production SPA
 
-| 检查点 | 结果 |
-| --- | --- |
-${rows.join("\n") || "| （无截图） | |"}
+| 检查点 | 描述 | 结果 |
+| --- | --- | --- |
+${rows.join("\n") || "| （无截图） | | |"}
 
 ${images}
 ## axe
