@@ -6,6 +6,7 @@ Vue 3 + TypeScript + Vite + Tailwind CSS + shadcn-vue + lucide-vue-next + VueUse
 
 - Vue 负责 UI state 与组件接线。
 - Vue SFC 顶层区块顺序为 `template` → `script` → `style`。
+- `src/components/` 只放布局壳与 shadcn-vue 基础件，不承担业务逻辑。领域 UI 进 `features/`。
 - `@earendil-works/pi-client` 的 `RemoteSession` 是 Session 操作入口。
 - markstream-vue 渲染 transcript 内容。
 
