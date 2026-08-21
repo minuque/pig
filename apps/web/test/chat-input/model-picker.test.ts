@@ -154,6 +154,10 @@ describe("vendorDisplayName / vendorIcon", () => {
     expect(vendorDisplayName("azure-openai-responses")).toBe("Azure");
     expect(vendorDisplayName("openai-codex")).toBe("OpenAI");
     expect(vendorDisplayName("qwen-token-plan-cn")).toBe("Qwen");
+    expect(vendorDisplayName("opencode")).toBe("Anthropic");
+    expect(vendorDisplayName("opencode-go")).toBe("OpenCode");
+    expect(vendorIcon("opencode")?.src).toBe(vendorIcon("anthropic")?.src);
+    expect(vendorIcon("opencode-go")?.src).not.toBe(vendorIcon("opencode")?.src);
     expect(vendorIcon("xai")?.src).toBeTruthy();
     expect(vendorIcon("xai")?.tinted).toBe(true);
     expect(vendorIcon("deepseek")?.tinted).toBe(false);

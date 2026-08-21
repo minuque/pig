@@ -1,10 +1,10 @@
 /** 供应商品牌展示：Pi provider id → 显示名 / LobeHub 图标。未知供应商回退到原 id。 */
-import anthropic from "@lobehub/icons-static-svg/icons/anthropic.svg?url";
 import antgroupColor from "@lobehub/icons-static-svg/icons/antgroup-color.svg?url";
 import azureColor from "@lobehub/icons-static-svg/icons/azure-color.svg?url";
 import baseten from "@lobehub/icons-static-svg/icons/baseten.svg?url";
 import bedrockColor from "@lobehub/icons-static-svg/icons/bedrock-color.svg?url";
 import cerebrasColor from "@lobehub/icons-static-svg/icons/cerebras-color.svg?url";
+import claudeColor from "@lobehub/icons-static-svg/icons/claude-color.svg?url";
 import cloudflareColor from "@lobehub/icons-static-svg/icons/cloudflare-color.svg?url";
 import copilotColor from "@lobehub/icons-static-svg/icons/copilot-color.svg?url";
 import deepseekColor from "@lobehub/icons-static-svg/icons/deepseek-color.svg?url";
@@ -12,6 +12,7 @@ import fireworksColor from "@lobehub/icons-static-svg/icons/fireworks-color.svg?
 import geminiColor from "@lobehub/icons-static-svg/icons/gemini-color.svg?url";
 import geminicliColor from "@lobehub/icons-static-svg/icons/geminicli-color.svg?url";
 import googleColor from "@lobehub/icons-static-svg/icons/google-color.svg?url";
+import grok from "@lobehub/icons-static-svg/icons/grok.svg?url";
 import groq from "@lobehub/icons-static-svg/icons/groq.svg?url";
 import huggingfaceColor from "@lobehub/icons-static-svg/icons/huggingface-color.svg?url";
 import kimiColor from "@lobehub/icons-static-svg/icons/kimi-color.svg?url";
@@ -27,7 +28,6 @@ import togetherColor from "@lobehub/icons-static-svg/icons/together-color.svg?ur
 import vercel from "@lobehub/icons-static-svg/icons/vercel.svg?url";
 import vertexaiColor from "@lobehub/icons-static-svg/icons/vertexai-color.svg?url";
 import workersaiColor from "@lobehub/icons-static-svg/icons/workersai-color.svg?url";
-import xai from "@lobehub/icons-static-svg/icons/xai.svg?url";
 import xiaomimimo from "@lobehub/icons-static-svg/icons/xiaomimimo.svg?url";
 import zhipuColor from "@lobehub/icons-static-svg/icons/zhipu-color.svg?url";
 
@@ -88,12 +88,18 @@ const ALIASES: Record<string, string> = {
   zhipu: "zhipu",
   "cloudflare-workers-ai": "workersai",
   "cloudflare-ai-gateway": "cloudflare",
+  claude: "anthropic",
+  "claude-code": "anthropic",
+  claudecode: "anthropic",
+  // OpenCode Zen 目录是 Claude 系列，和 OpenCode Go 不能共用同一套标
+  opencode: "anthropic",
+  "opencode-go": "opencode",
 };
 
 const ICONS: Record<string, VendorIcon> = {
   openai: { src: openai, tinted: true },
-  anthropic: { src: anthropic, tinted: true },
-  xai: { src: xai, tinted: true },
+  anthropic: { src: claudeColor, tinted: false },
+  xai: { src: grok, tinted: true },
   google: { src: googleColor, tinted: false },
   gemini: { src: geminiColor, tinted: false },
   geminicli: { src: geminicliColor, tinted: false },
@@ -134,7 +140,6 @@ function familyOf(id: string): string {
   if (key.startsWith("kimi") || key.startsWith("moonshot")) return "kimi";
   if (key.startsWith("minimax")) return "minimax";
   if (key.startsWith("xiaomi")) return "xiaomi";
-  if (key.startsWith("opencode")) return "opencode";
   if (key.startsWith("cloudflare-workers")) return "workersai";
   if (key.startsWith("cloudflare")) return "cloudflare";
   if (key.startsWith("vercel")) return "vercel";
@@ -146,7 +151,7 @@ function familyOf(id: string): string {
 export function vendorDisplayName(id: string): string {
   const key = id.trim();
   if (!key) return key;
-  return NAMES[key] ?? NAMES[familyOf(key)] ?? key;
+  return NAMES[familyOf(key)] ?? key;
 }
 
 export function vendorIcon(id: string): VendorIcon | undefined {
