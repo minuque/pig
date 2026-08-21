@@ -10,7 +10,7 @@
       <WorkbenchOutlet />
     </AppLayout>
   </Startup>
-  <Toaster position="top-right" close-button :duration="5000" />
+  <Toaster />
 </template>
 
 <script setup lang="ts">
