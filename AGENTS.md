@@ -10,3 +10,4 @@
 - 每一轮修改实施完成后，做一次原子git commit，方便回溯。
 - 单轮改动后运行 `pnpm check:touched`（只校验脏文件所属包）。
 - 跨包改动或提交前运行 `pnpm check`（全量并行，不短路）。
+- UI 改完需要整页证据时运行 `pnpm test:e2e`，看 `e2e-report/latest/report.md`。不把浏览器旅程放进 `pnpm check`。

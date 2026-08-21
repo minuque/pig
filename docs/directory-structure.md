@@ -8,6 +8,8 @@ pnpm workspace 管理三个包：
 - `apps/desktop/` — Electron 桌面壳（main / preload）
 - `packages/gateway/` — 本地 Gateway（auth / pi / server；目录选择端口在 `src/directory.ts`）
 
+浏览器 UI 旅程在仓库根 `e2e/`（Playwright，跨 Web 构建物与 Gateway），不是 `apps/web/test/` 的模块单测。`pnpm test:e2e` 写出 `playwright-report/`（调试）和 `e2e-report/latest/`（验收单）。
+
 ## 2. apps/web/src 分层
 
 ```
@@ -50,6 +52,7 @@ apps/web/test/
 
 - 测试文件随被测模块同目录；别名 import（`@features/...` 等）不受目录层级影响。
 - 测 `src` 根文件的用例用相对路径（如 `../../src/desktop-marker.js`）。
+- 整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
 
 ## 3. features/ 模块排版规范
 
