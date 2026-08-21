@@ -25,21 +25,7 @@ apps/web/src/
 
 `apps/web/test/` 镜像 `src/` 分层。测 `src` 根文件的用例用相对路径。
 
-## packages/gateway/src
-
-```
-packages/gateway/src/
-├── cli.ts
-├── index.ts        # 导出 Gateway、DirectoryPort
-├── directory.ts    # 目录选择、canonicalizePath
-├── auth/           # bootstrap 凭证
-├── pi/             # Session 运行时、transcript、卡片
-└── server/         # HTTP / WebSocket host
-```
-
-`test/` 跟 `src/` 同层。
-
-## features/\<module\>/
+### features/\<module\>/
 
 ```
 index.vue        唯一视图入口
@@ -65,3 +51,17 @@ lib/             两处及以上生产消费的纯逻辑
 | `theme`             | 主题切换 |
 
 `components/ui/` 只放 shadcn-vue 基础件，业务样式不回流到这里。新领域先归既有模块，边界不清再拆 feature。
+
+## packages/gateway/src
+
+```
+packages/gateway/src/
+├── cli.ts
+├── index.ts        # 导出 Gateway、DirectoryPort
+├── directory.ts    # 目录选择、canonicalizePath
+├── auth/           # bootstrap 凭证
+├── pi/             # Session 运行时、transcript、卡片
+└── server/         # HTTP / WebSocket host
+```
+
+`test/` 跟 `src/` 同层。
