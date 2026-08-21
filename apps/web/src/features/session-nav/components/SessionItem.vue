@@ -42,8 +42,8 @@
       <div class="card-line card-foot">
         <span class="card-count">{{ messageCount == null ? "" : `${messageCount} 条` }}</span>
         <span class="card-model">
-          <VendorMark v-if="modelProvider" :vendor="modelProvider" :size="12" />
           <span class="card-model-name">{{ modelLabel }}</span>
+          <VendorMark v-if="modelProvider" :vendor="modelProvider" :size="13" />
         </span>
       </div>
     </RouterLink>
@@ -202,15 +202,15 @@ function onDelete() {
 .card-count,
 .card-model {
   min-width: 0;
-  overflow: hidden;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 .card-count {
   flex: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .card-model {
   display: inline-flex;
@@ -219,13 +219,16 @@ function onDelete() {
   gap: 4px;
   flex: none;
   max-width: 60%;
-  text-align: right;
+}
+.card-model :deep(.vendor-mark) {
+  display: block;
+  line-height: 0;
 }
 .card-model-name {
   min-width: 0;
   overflow: hidden;
+  line-height: 1;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .title {
   min-width: 0;
