@@ -35,7 +35,10 @@ function createNav(
           }
         : undefined;
     const extras = nav.sessionCards.value;
-    const feet = new Map<string, { messageCount: number | undefined; modelLabel: string }>();
+    const feet = new Map<
+      string,
+      { messageCount: number | undefined; modelLabel: string; modelProvider: string }
+    >();
     for (const item of nav.listedSessions.value) {
       feet.set(item.id, sessionCardFoot(item.id, extras, live, names));
     }

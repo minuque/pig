@@ -1,4 +1,5 @@
 import type { ModelMetadata, ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol";
+import { vendorDisplayName } from "@features/chat-input/lib/vendor-logo.js";
 
 /** 模型选择目录的本地 UI 类型：由官方 ModelMetadata 投影。 */
 export interface ChatInputModelInfo {
@@ -33,7 +34,7 @@ export function catalogFromModels(models: readonly ModelMetadata[]): ChatInputVe
   for (const model of models) {
     const vendor = vendors.get(model.provider) ?? {
       id: model.provider,
-      name: model.provider,
+      name: vendorDisplayName(model.provider),
       models: [],
     };
     vendor.models.push({

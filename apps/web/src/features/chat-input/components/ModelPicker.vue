@@ -2,6 +2,12 @@
   <DropdownMenu v-model:open="open" :modal="false">
     <DropdownMenuTrigger as-child>
       <button type="button" class="selector" :disabled="disabled" :aria-label="`模型：${label}`">
+        <VendorMark
+          v-if="current.vendor"
+          :vendor="current.vendor.id"
+          :name="current.vendor.name"
+          :size="14"
+        />
         <span class="selector-name">{{ label }}</span>
         <ChevronDown :size="12" aria-hidden="true" />
       </button>
@@ -12,63 +18,113 @@
       align="start"
       :side-offset="6"
       aria-label="选择模型"
-      class="z-30 w-[280px] rounded-(--radius-lg) shadow-(--shadow-popover) data-[state=open]:animate-[enter-blur_180ms_var(--ease-smooth)]"
+      class="z-30 w-[min(400px,calc(100vw-24px))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover) data-[state=open]:animate-[enter-blur_180ms_var(--ease-smooth)]"
       @open-auto-focus="onOpenAutoFocus"
       @pointer-down-outside="suppressFocusRestore"
       @close-auto-focus="onCloseAutoFocus"
     >
-      <div class="search">
-        <Search :size="13" class="search-icon" />
-        <input
-          ref="searchRef"
-          v-model="query"
-          type="text"
-          placeholder="搜索模型"
-          aria-label="搜索模型"
-        />
-      </div>
-      <div v-bind="containerProps" class="groups">
-        <div v-if="items.length" v-bind="wrapperProps">
-          <template v-for="item in list" :key="keyOf(item)">
-            <div v-if="item.data.type === 'label'" class="group-label">
-              {{ item.data.vendor.name }}
-            </div>
-            <DropdownMenuItem
-              v-else
-              class="model-item gap-[7px] rounded-[7px] px-2 py-0 h-[28px] text-[11px] font-medium active:scale-100 cursor-pointer hover:bg-canvas-soft focus:bg-canvas-soft data-[current]:text-primary"
-              :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
-              @select="select({ provider: item.data.vendor.id, id: item.data.model.id })"
-            >
-              <VendorMark :name="item.data.vendor.name" :size="14" />
-              <span class="model-body">
-                <span class="model-name">{{ item.data.model.name }}</span>
-              </span>
-              <span v-if="item.data.model.thinkingLevels.length === 1" class="model-tag">默认</span>
-              <Check
-                v-if="isCurrent(item.data.vendor.id, item.data.model.id)"
-                :size="13"
-                class="model-check"
-              />
-            </DropdownMenuItem>
-          </template>
+      <div class="picker">
+        <div class="rail" aria-label="按供应商筛选">
+          <button
+            type="button"
+            class="rail-btn"
+            title="收藏模型"
+            aria-label="收藏模型"
+            :aria-pressed="scope === FAVORITES_SCOPE"
+            :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
+            @click="scope = FAVORITES_SCOPE"
+          >
+            <Star
+              :size="16"
+              :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'"
+              aria-hidden="true"
+            />
+          </button>
+          <button
+            v-for="vendor in catalog"
+            :key="vendor.id"
+            type="button"
+            class="rail-btn"
+            :title="vendor.name"
+            :aria-label="vendor.name"
+            :aria-pressed="scope === vendor.id"
+            :data-current="scope === vendor.id ? '' : undefined"
+            @click="scope = vendor.id"
+          >
+            <VendorMark :vendor="vendor.id" :name="vendor.name" :size="16" />
+          </button>
         </div>
-        <div v-else class="empty">没有匹配的模型</div>
+
+        <div class="main">
+          <div class="search">
+            <Search :size="13" class="search-icon" />
+            <input
+              ref="searchRef"
+              v-model="query"
+              type="text"
+              placeholder="搜索模型"
+              aria-label="搜索模型"
+            />
+          </div>
+          <div v-bind="containerProps" class="groups">
+            <div v-if="items.length" v-bind="wrapperProps">
+              <div
+                v-for="item in list"
+                :key="`${item.data.vendor.id}/${item.data.model.id}`"
+                class="model-row"
+                :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
+              >
+                <DropdownMenuItem
+                  class="model-item gap-2 rounded-(--radius-md) px-2.5 py-0 h-[52px] text-[13px] font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
+                  @select="select({ provider: item.data.vendor.id, id: item.data.model.id })"
+                >
+                  <span class="model-body">
+                    <span class="model-name">{{ item.data.model.name }}</span>
+                    <span class="model-vendor">
+                      <VendorMark
+                        :vendor="item.data.vendor.id"
+                        :name="item.data.vendor.name"
+                        :size="12"
+                      />
+                      {{ item.data.vendor.name }}
+                    </span>
+                  </span>
+                </DropdownMenuItem>
+                <button
+                  type="button"
+                  class="fav"
+                  tabindex="-1"
+                  :class="{ on: isFavorite(item.data.vendor.id, item.data.model.id) }"
+                  :aria-label="
+                    isFavorite(item.data.vendor.id, item.data.model.id) ? '取消收藏' : '收藏模型'
+                  "
+                  @pointerdown.stop
+                  @click.stop="toggleFavorite(item.data.vendor.id, item.data.model.id)"
+                >
+                  <Star
+                    :size="14"
+                    :fill="
+                      isFavorite(item.data.vendor.id, item.data.model.id) ? 'currentColor' : 'none'
+                    "
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+            </div>
+            <div v-else class="empty">{{ emptyText }}</div>
+          </div>
+        </div>
       </div>
     </DropdownMenuContent>
   </DropdownMenu>
 </template>
 
 <script setup lang="ts">
-import { Check, ChevronDown, Search } from "lucide-vue-next";
+import { ChevronDown, Search, Star } from "lucide-vue-next";
 import { useVirtualList } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 import type { ModelRef } from "@earendil-works/pi-protocol";
-import {
-  modelLabel,
-  sameModel,
-  type ChatInputModelInfo,
-  type ChatInputVendor,
-} from "@features/chat-input/types.js";
+import { modelLabel, sameModel, type ChatInputVendor } from "@features/chat-input/types.js";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -76,7 +132,12 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
 import VendorMark from "@features/chat-input/components/VendorMark.vue";
-import { filterCatalog, resolveModelInfo } from "@features/chat-input/lib/model-preset.js";
+import { useModelFavorites } from "@features/chat-input/hooks/use-model-favorites.js";
+import {
+  FAVORITES_SCOPE,
+  listPickerRows,
+  resolveModelInfo,
+} from "@features/chat-input/lib/model-preset.js";
 
 const props = withDefaults(
   defineProps<{
@@ -93,48 +154,41 @@ const emit = defineEmits<{
 
 const open = ref(false);
 const query = ref("");
+const scope = ref(FAVORITES_SCOPE);
 const searchRef = ref<HTMLInputElement | null>(null);
+const EMPTY_FAVORITES = new Set<string>();
+const { set: favoriteSet, isFavorite, toggle: toggleFavorite } = useModelFavorites();
 
 const current = computed(() => resolveModelInfo(props.catalog, props.model));
 
-const filtered = computed(() => filterCatalog(props.catalog, query.value));
+const items = computed(() =>
+  listPickerRows(
+    props.catalog,
+    query.value,
+    scope.value,
+    scope.value === FAVORITES_SCOPE ? favoriteSet.value : EMPTY_FAVORITES,
+  ),
+);
 
-type FlatItem =
-  | { type: "label"; vendor: ChatInputVendor }
-  | { type: "model"; vendor: ChatInputVendor; model: ChatInputModelInfo };
-
-// 供应商分组扁平化为行，供虚拟滚动按固定高度渲染
-const items = computed<FlatItem[]>(() => {
-  const out: FlatItem[] = [];
-  for (const vendor of filtered.value) {
-    out.push({ type: "label", vendor });
-    for (const model of vendor.models) out.push({ type: "model", vendor, model });
-  }
-  return out;
-});
-
-const LABEL_HEIGHT = 24;
-const ITEM_HEIGHT = 28;
-
+const ITEM_HEIGHT = 52;
 const { list, containerProps, wrapperProps } = useVirtualList(items, {
-  itemHeight: (index) => (items.value[index]?.type === "label" ? LABEL_HEIGHT : ITEM_HEIGHT),
+  itemHeight: ITEM_HEIGHT,
 });
 
-function keyOf(item: { data: FlatItem }): string {
-  const d = item.data;
-  return d.type === "label" ? `label:${d.vendor.id}` : `model:${d.vendor.id}/${d.model.id}`;
-}
+const emptyText = computed(() =>
+  scope.value === FAVORITES_SCOPE && !query.value.trim() ? "还没有收藏的模型" : "没有匹配的模型",
+);
 
-// 每次打开清空上次搜索
 watch(open, (isOpen) => {
-  if (isOpen) query.value = "";
+  if (!isOpen) return;
+  query.value = "";
+  scope.value = current.value.vendor?.id ?? props.catalog[0]?.id ?? FAVORITES_SCOPE;
 });
 
-// 选择器标签：品牌名 + 模型名，均来自 catalog 数据
 const label = computed(() => {
   const { vendor, model } = current.value;
   if (!vendor || !model) return modelLabel(props.model);
-  return `${vendor.name} · ${model.name}`;
+  return model.name;
 });
 
 function isCurrent(provider: string, id: string) {
@@ -142,16 +196,13 @@ function isCurrent(provider: string, id: string) {
 }
 function select(model: ModelRef) {
   emit("update:model", model);
-  // 菜单由 reka-ui 在 select 后自动关闭
 }
 
-// 打开后聚焦搜索框（阻止 reka 默认聚焦内容容器）
 function onOpenAutoFocus(event: Event) {
   event.preventDefault();
   searchRef.value?.focus();
 }
 
-// 外点关闭时禁止 reka 把焦点抢回触发器，让点击落在目标元素上
 let suppressRestore = false;
 function suppressFocusRestore() {
   suppressRestore = true;
@@ -169,14 +220,60 @@ function onCloseAutoFocus(event: Event) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.picker {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  height: min(320px, var(--reka-dropdown-menu-content-available-height, 70vh));
+}
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 0;
+  padding: 6px 4px;
+  overflow-y: auto;
+  border-right: var(--border-width) solid var(--hairline);
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+.rail-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.rail-btn:hover {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--ink);
+}
+.rail-btn[data-current] {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  color: var(--ink);
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
 .search {
   display: flex;
   align-items: center;
   gap: 6px;
+  height: 32px;
+  margin: 8px 8px 4px;
   padding: 0 8px;
-  height: 26px;
-  margin-bottom: 4px;
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   background: var(--canvas-soft);
 }
 .search-icon {
@@ -191,53 +288,86 @@ function onCloseAutoFocus(event: Event) {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
 }
 .search input::placeholder {
   color: var(--ink-faint);
 }
 .groups {
-  max-height: 300px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  padding: 0 4px 6px;
 }
-.group-label {
+.model-row {
   display: flex;
   align-items: center;
-  height: 24px;
-  padding: 0 8px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
+  height: 52px;
+  padding-right: 4px;
+  border-radius: var(--radius-md);
+}
+.model-row:hover,
+.model-row:focus-within {
+  background: var(--canvas-soft);
+}
+.model-row[data-current] {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.model-item {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .model-body {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 .model-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
 }
-.model-tag {
+.model-vendor {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fav {
+  display: grid;
+  place-items: center;
   flex: none;
-  padding: 1px 5px;
-  border-radius: 999px;
-  background: var(--canvas-soft);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+.fav:hover {
   color: var(--ink-muted);
-  font-size: 9px;
-  font-weight: 500;
 }
-.model-check {
-  flex: none;
-  color: var(--primary);
+.fav.on {
+  color: var(--accent-sunset);
 }
 .empty {
-  padding: 10px 8px;
-  font-size: 11px;
+  padding: 24px 8px;
+  font-size: 12px;
   color: var(--ink-faint);
   text-align: center;
 }

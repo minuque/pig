@@ -141,6 +141,7 @@ describe("session card foot", () => {
     expect(sessionCardFoot("s1", extras, undefined, names)).toEqual({
       messageCount: 2,
       modelLabel: "GPT-4",
+      modelProvider: "openai",
     });
     expect(
       sessionCardFoot(
@@ -149,7 +150,7 @@ describe("session card foot", () => {
         { sessionId: "s1", messageCount: 5, model: { provider: "openai", id: "o3" } },
         names,
       ),
-    ).toEqual({ messageCount: 5, modelLabel: "o3" });
+    ).toEqual({ messageCount: 5, modelLabel: "o3", modelProvider: "openai" });
     expect(sessionModelLabel({ provider: "x", id: "unknown" }, names)).toBe("unknown");
   });
 });

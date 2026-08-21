@@ -106,6 +106,7 @@
                 :running="activeSessionRunning && item.data.id === activeSessionId"
                 :message-count="cardFootById.get(item.data.id)?.messageCount ?? null"
                 :model-label="cardFootById.get(item.data.id)?.modelLabel ?? ''"
+                :model-provider="cardFootById.get(item.data.id)?.modelProvider ?? ''"
                 @navigate="onSessionNavigate(item.data.cwd)"
                 @rename="renameSession"
                 @delete="deleteSession"

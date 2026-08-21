@@ -41,7 +41,10 @@
       </div>
       <div class="card-line card-foot">
         <span class="card-count">{{ messageCount == null ? "" : `${messageCount} 条` }}</span>
-        <span class="card-model">{{ modelLabel }}</span>
+        <span class="card-model">
+          <VendorMark v-if="modelProvider" :vendor="modelProvider" :size="12" />
+          <span class="card-model-name">{{ modelLabel }}</span>
+        </span>
       </div>
     </RouterLink>
     <DropdownMenu>
@@ -80,6 +83,7 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
 import { formatRelativeTime, sessionRecency, sessionTitle } from "@features/session-nav/types.js";
+import VendorMark from "@features/chat-input/components/VendorMark.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -89,11 +93,13 @@ const props = withDefaults(
     running?: boolean;
     messageCount?: number | null;
     modelLabel?: string;
+    modelProvider?: string;
   }>(),
   {
     workspaceTitle: "",
     messageCount: null,
     modelLabel: "",
+    modelProvider: "",
   },
 );
 
@@ -207,9 +213,19 @@ function onDelete() {
   flex: none;
 }
 .card-model {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
   flex: none;
   max-width: 60%;
   text-align: right;
+}
+.card-model-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .title {
   min-width: 0;

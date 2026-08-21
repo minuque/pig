@@ -141,11 +141,13 @@ export function sessionCardFoot(
   extras: ReadonlyMap<string, SessionCardExtra>,
   live: SessionCardLive | undefined,
   names: ReadonlyMap<string, string>,
-): { messageCount: number | undefined; modelLabel: string } {
+): { messageCount: number | undefined; modelLabel: string; modelProvider: string } {
   const extra = extras.get(sessionId);
   const isLive = live?.sessionId === sessionId;
+  const model = isLive ? live.model : extra?.model;
   return {
     messageCount: isLive ? live.messageCount : extra?.messageCount,
-    modelLabel: sessionModelLabel(isLive ? live.model : extra?.model, names),
+    modelLabel: sessionModelLabel(model, names),
+    modelProvider: model?.provider ?? "",
   };
 }

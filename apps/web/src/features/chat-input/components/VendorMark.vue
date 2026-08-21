@@ -1,18 +1,46 @@
 <template>
-  <span class="vendor-fallback" :style="style">{{ letter }}</span>
+  <svg
+    v-if="glyph"
+    class="vendor-mark"
+    :width="size"
+    :height="size"
+    :viewBox="glyph.viewBox"
+    aria-hidden="true"
+  >
+    <path
+      v-for="(path, index) in glyph.paths"
+      :key="index"
+      :d="path.d"
+      :fill="path.fill ?? 'currentColor'"
+      :fill-rule="path.fillRule"
+    />
+  </svg>
+  <span v-else class="vendor-mark vendor-fallback" :style="fallbackStyle">{{ letter }}</span>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { vendorDisplayName, vendorGlyph } from "@features/chat-input/lib/vendor-logo.js";
 
-const props = withDefaults(defineProps<{ name?: string; size?: number }>(), {
-  name: "",
-  size: 12,
+const props = withDefaults(
+  defineProps<{
+    vendor?: string;
+    name?: string;
+    size?: number;
+  }>(),
+  {
+    vendor: "",
+    name: "",
+    size: 12,
+  },
+);
+
+const glyph = computed(() => vendorGlyph(props.vendor || props.name));
+const letter = computed(() => {
+  const label = vendorDisplayName(props.vendor || props.name) || props.name || props.vendor;
+  return label.charAt(0).toUpperCase() || "?";
 });
-
-/** 供应商品牌标记：中性首字母圆点；品牌名来自 catalog 数据，不硬编码 */
-const letter = computed(() => props.name.charAt(0).toUpperCase() || "?");
-const style = computed(() => ({
+const fallbackStyle = computed(() => ({
   width: `${props.size}px`,
   height: `${props.size}px`,
   fontSize: `${Math.max(8, props.size * 0.6)}px`,
@@ -20,11 +48,15 @@ const style = computed(() => ({
 </script>
 
 <style scoped>
+.vendor-mark {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+}
 .vendor-fallback {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: none;
   border-radius: 999px;
   background: var(--canvas-soft);
   color: var(--ink-muted);

@@ -1,7 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { nextTick, ref } from "vue";
-import type { ChatInputPreset, ChatInputVendor } from "@features/chat-input/types.js";
-import { filterCatalog, resolveModelInfo } from "@features/chat-input/lib/model-preset.js";
+import {
+  catalogFromModels,
+  type ChatInputPreset,
+  type ChatInputVendor,
+} from "@features/chat-input/types.js";
+import {
+  FAVORITES_SCOPE,
+  filterCatalog,
+  listPickerRows,
+  resolveModelInfo,
+} from "@features/chat-input/lib/model-preset.js";
+import { vendorDisplayName, vendorGlyph } from "@features/chat-input/lib/vendor-logo.js";
+import {
+  parseFavoriteModels,
+  toggleFavoriteKey,
+  useModelFavorites,
+} from "@features/chat-input/hooks/use-model-favorites.js";
 import { useModelPresetBinding } from "@features/chat-input/hooks/use-model-preset-binding.js";
 
 const catalog: ChatInputVendor[] = [
@@ -106,5 +121,88 @@ describe("useModelPresetBinding", () => {
       model: { provider: "openai", id: "gpt-4o" },
       thinkingLevel: "none",
     });
+  });
+});
+
+describe("listPickerRows", () => {
+  it("按供应商过滤", () => {
+    const rows = listPickerRows(catalog, "", "openai", new Set());
+    expect(rows.map((row) => row.model.id)).toEqual(["gpt-4o"]);
+  });
+
+  it("收藏范围只返回已收藏且仍在目录中的模型", () => {
+    const rows = listPickerRows(
+      catalog,
+      "",
+      FAVORITES_SCOPE,
+      new Set(["anthropic/claude-sonnet", "missing/gone"]),
+    );
+    expect(rows.map((row) => `${row.vendor.id}/${row.model.id}`)).toEqual([
+      "anthropic/claude-sonnet",
+    ]);
+  });
+
+  it("搜索在当前范围内模糊匹配", () => {
+    const rows = listPickerRows(catalog, "haiku", "anthropic", new Set());
+    expect(rows.map((row) => row.model.id)).toEqual(["claude-haiku"]);
+  });
+});
+
+describe("vendorDisplayName / vendorGlyph", () => {
+  it("已知供应商给出显示名和矢量标记", () => {
+    expect(vendorDisplayName("openai")).toBe("OpenAI");
+    expect(vendorDisplayName("azure-openai-responses")).toBe("OpenAI");
+    expect(vendorDisplayName("openai-codex")).toBe("OpenAI");
+    expect(vendorDisplayName("qwen-token-plan-cn")).toBe("Qwen");
+    expect(vendorGlyph("xai")).toBeDefined();
+  });
+
+  it("未知供应商保留原 id 且无标记", () => {
+    expect(vendorDisplayName("acme-labs")).toBe("acme-labs");
+    expect(vendorGlyph("acme-labs")).toBeUndefined();
+  });
+});
+
+describe("catalogFromModels", () => {
+  it("用供应商显示名作为分组名", () => {
+    const grouped = catalogFromModels([
+      {
+        provider: "xai",
+        id: "grok-4.6",
+        name: "Grok 4.6",
+        api: "openai-completions",
+        reasoning: false,
+        input: ["text"],
+        contextWindow: 1,
+        maxTokens: 1,
+        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        supportedThinkingLevels: ["low"],
+        authenticated: true,
+      },
+    ]);
+    expect(grouped[0]?.name).toBe("xAI");
+  });
+});
+
+describe("favorite models", () => {
+  it("解析非法 JSON 为空列表", () => {
+    expect(parseFavoriteModels("{")).toEqual([]);
+    expect(parseFavoriteModels('["openai/gpt-4o", 1, "ok"]')).toEqual(["openai/gpt-4o"]);
+  });
+
+  it("切换收藏并写回 storage", () => {
+    const data = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        data.set(key, value);
+      },
+    };
+    const { isFavorite, toggle } = useModelFavorites(storage);
+    expect(isFavorite("openai", "gpt-4o")).toBe(false);
+    toggle("openai", "gpt-4o");
+    expect(isFavorite("openai", "gpt-4o")).toBe(true);
+    expect(toggleFavoriteKey(["openai/gpt-4o"], "openai/gpt-4o")).toEqual([]);
+    expect(JSON.parse(data.get("pig.favoriteModels") ?? "[]")).toEqual(["openai/gpt-4o"]);
   });
 });
