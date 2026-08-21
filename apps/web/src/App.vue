@@ -1,5 +1,5 @@
 <template>
-  <StartupWait :connect="connect" :initialize="initialize">
+  <Startup :connect="connect" :initialize="initialize">
     <AppLayout>
       <template #sidebar="{ onNavigate, collapsed, toggle }">
         <SessionNav :collapsed="collapsed" @navigate="onNavigate" @toggle="toggle" />
@@ -13,7 +13,7 @@
       </p>
       <RouterView v-else />
     </AppLayout>
-  </StartupWait>
+  </Startup>
 </template>
 
 <script setup lang="ts">
@@ -23,7 +23,7 @@ import { useLocalWorkspaces } from "@client/local-cwd.js";
 import { usePiClient } from "@client/pi-client.js";
 import SessionNav from "@features/session-nav/index.vue";
 import { provideNav } from "@features/session-nav/index.js";
-import StartupWait from "@features/startup-wait/index.vue";
+import Startup from "@features/startup-wait/index.vue";
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue";
 import { provideSession } from "@features/session-workbench/index.js";
 
