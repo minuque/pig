@@ -22,7 +22,7 @@ apps/web/src/
 │   └── local-cwd.ts  # 已授权目录与最近 cwd 的 localStorage 偏好
 ├── components/   # 跨域共享组件
 │   ├── layout/   #   壳层布局（AppLayout：两栏壳，不含业务顶栏）
-│   └── ui/       #   shadcn-vue 基础组件（dropdown-menu、tooltip、badge、sonner）
+│   └── ui/       #   shadcn-vue 基础组件（dropdown-menu、tooltip、badge、alert）
 ├── features/     # 领域功能模块
 ├── router/       # 路由
 └── utils/        # 通用工具（cn 等）

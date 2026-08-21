@@ -137,7 +137,6 @@
 
 <script setup lang="ts">
 import { computed, nextTick, useTemplateRef, watch } from "vue";
-import { toast } from "vue-sonner";
 import { RouterLink } from "vue-router";
 import {
   Check,
@@ -150,14 +149,15 @@ import {
   SquarePen,
   X,
 } from "lucide-vue-next";
-import { useNav } from "@features/session-nav/index.js";
-import { useSession } from "@features/session-workbench/index.js";
+import { notify } from "@components/ui/alert/index.js";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
+import { useNav } from "@features/session-nav/index.js";
+import { useSession } from "@features/session-workbench/index.js";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
 import { workspaceName } from "@features/session-nav/types.js";
 
@@ -196,7 +196,7 @@ const scopedGroupName = computed(() => {
 
 watch(workspaceError, (message) => {
   const text = message.trim();
-  if (text) toast.error(text);
+  if (text) notify.error(text);
 });
 
 watch(

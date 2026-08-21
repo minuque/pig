@@ -10,12 +10,12 @@
       <WorkbenchOutlet />
     </AppLayout>
   </Startup>
-  <Toaster />
+  <AlertToaster />
 </template>
 
 <script setup lang="ts">
 import AppLayout from "@components/layout/AppLayout.vue";
-import { Toaster } from "@components/ui/sonner/index.js";
+import { AlertToaster } from "@components/ui/alert/index.js";
 import { useLocalWorkspaces } from "@client/local-cwd.js";
 import { usePiClient } from "@client/pi-client.js";
 import SessionNav from "@features/session-nav/index.vue";
