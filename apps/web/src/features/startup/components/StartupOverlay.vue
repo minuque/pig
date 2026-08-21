@@ -12,14 +12,6 @@
       >
         <canvas ref="canvas" class="logo-canvas" aria-hidden="true"></canvas>
       </button>
-      <p
-        class="startup-status"
-        :class="{ visible: animationComplete && !ready }"
-        role="status"
-        aria-live="polite"
-      >
-        {{ animationComplete && !ready ? phaseLabel : "" }}
-      </p>
     </div>
   </div>
 </template>
@@ -165,13 +157,8 @@ export function cellsForPiLogoFrame(frame: PiLogoFrame, activeY = frame.activeY)
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from "vue";
-import type { StartupPhase } from "@features/startup/types.js";
+import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from "vue";
 
-const props = defineProps<{
-  ready: boolean;
-  phase: StartupPhase;
-}>();
 const emit = defineEmits<{ reveal: []; finished: [] }>();
 
 const host = useTemplateRef<HTMLButtonElement>("host");
@@ -179,17 +166,6 @@ const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const animationComplete = shallowRef(false);
 const leaving = shallowRef(false);
 const currentFrame = shallowRef<PiLogoFrame>(PI_LOGO_FRAMES[0]!);
-const phaseLabel = computed(() => {
-  switch (props.phase) {
-    case "authorizing":
-      return "正在验证启动凭证";
-    case "connecting":
-      return "正在连接 Pi";
-    case "preparing":
-      return "正在准备工作台";
-  }
-  return "";
-});
 
 const PALETTE: Record<Exclude<PiLogoColor, "theme">, string> = {
   cyan: "#4B607C",
@@ -242,7 +218,7 @@ function finish() {
 }
 
 function beginLeave() {
-  if (leaving.value || finished || !props.ready || !animationComplete.value) return;
+  if (leaving.value || finished || !animationComplete.value) return;
   emit("reveal");
   if (reducedMotion || document.hidden) {
     finish();
@@ -297,11 +273,6 @@ function onMotionChange() {
   reducedMotion = motionQuery?.matches ?? false;
   if (reducedMotion) completeAnimation();
 }
-
-watch(
-  () => props.ready,
-  () => beginLeave(),
-);
 
 onMounted(() => {
   resizeObserver = new ResizeObserver(paint);
@@ -396,21 +367,6 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   image-rendering: pixelated;
-}
-.startup-status {
-  min-height: 1rem;
-  margin: 0;
-  visibility: hidden;
-  color: var(--ink-muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-caption-mono);
-  line-height: var(--text-caption-mono--line-height);
-  letter-spacing: var(--tracking-caption-mono);
-  opacity: 0;
-}
-.startup-status.visible {
-  visibility: visible;
-  opacity: 1;
 }
 @media (prefers-reduced-transparency: reduce) {
   .startup-wait {

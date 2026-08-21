@@ -17,9 +17,9 @@ describe("startup sequence", () => {
     replace.mockClear();
   });
 
-  it("runs bootstrap, connect, then initialize", async () => {
+  it("runs bootstrap, connect, then initialize without closing the overlay", async () => {
     const order: string[] = [];
-    const { start, ready, phase, visible } = useStartupSequence({
+    const { start, ready, visible } = useStartupSequence({
       bootstrap: async () => {
         order.push("bootstrap");
       },
@@ -29,11 +29,11 @@ describe("startup sequence", () => {
       initialize: async () => {
         order.push("initialize");
       },
+      connectTimeoutMs: 0,
     });
     await start();
     expect(order).toEqual(["bootstrap", "connect", "initialize"]);
     expect(ready.value).toBe(true);
-    expect(phase.value).toBe("preparing");
     expect(visible.value).toBe(true);
     expect(replace).not.toHaveBeenCalled();
   });
@@ -44,24 +44,39 @@ describe("startup sequence", () => {
       bootstrap: async () => undefined,
       connect: async () => undefined,
       initialize: async () => undefined,
+      connectTimeoutMs: 0,
     });
     await start();
     expect(replace).toHaveBeenCalledWith("/");
   });
 
-  it("opens /error and hides the overlay when boot fails", async () => {
+  it("opens /error without tearing down the overlay when boot fails", async () => {
     const { start, visible, ready, failed } = useStartupSequence({
       bootstrap: async () => undefined,
       connect: async () => {
         throw new Error("凭证无效");
       },
       initialize: async () => undefined,
+      connectTimeoutMs: 0,
     });
     await start();
     expect(ready.value).toBe(false);
     expect(failed.value).toBe(true);
-    expect(visible.value).toBe(false);
+    expect(visible.value).toBe(true);
     expect(useStartupError().value).toBe("请求失败。请检查本地服务后重试。");
+    expect(replace).toHaveBeenCalledWith({ name: "error" });
+  });
+
+  it("treats a hung connect as a startup error", async () => {
+    const { start, failed, visible } = useStartupSequence({
+      bootstrap: async () => undefined,
+      connect: () => new Promise(() => {}),
+      initialize: async () => undefined,
+      connectTimeoutMs: 20,
+    });
+    await start();
+    expect(failed.value).toBe(true);
+    expect(visible.value).toBe(true);
     expect(replace).toHaveBeenCalledWith({ name: "error" });
   });
 });

@@ -10,13 +10,7 @@
   >
     <slot />
   </div>
-  <StartupOverlay
-    v-if="visible && !failed"
-    :ready="ready"
-    :phase="phase"
-    @reveal="reveal"
-    @finished="finish"
-  />
+  <StartupOverlay v-if="visible" @reveal="reveal" @finished="finish" />
 </template>
 
 <script setup lang="ts">
@@ -29,8 +23,7 @@ const props = defineProps<{
   initialize: () => Promise<unknown>;
 }>();
 
-const { visible, concealed, ready, failed, phase, reveal, finish, start } =
-  useStartupSequence(props);
+const { visible, concealed, reveal, finish, start } = useStartupSequence(props);
 
 onMounted(() => {
   void start();
