@@ -2,8 +2,8 @@
   <section class="startup-error" aria-labelledby="startup-error-title" role="alert">
     <div class="error-cluster">
       <CircleAlert :size="32" class="error-icon" aria-hidden="true" />
-      <h1 id="startup-error-title" class="error-title">无法启动工作台</h1>
-      <p class="error-detail">{{ detail }}</p>
+      <h1 id="startup-error-title" class="error-title">{{ title }}</h1>
+      <p class="error-detail">{{ copy }}</p>
     </div>
   </section>
 </template>
@@ -13,8 +13,19 @@ import { computed } from "vue";
 import { CircleAlert } from "lucide-vue-next";
 import { useStartupError } from "@features/startup/hooks/use-startup-error.js";
 
-const message = useStartupError();
-const detail = computed(() => message.value.trim() || "启动过程中出现错误。");
+const props = withDefaults(
+  defineProps<{
+    title?: string;
+    detail?: string;
+  }>(),
+  {
+    title: "无法启动工作台",
+    detail: "",
+  },
+);
+
+const stored = useStartupError();
+const copy = computed(() => props.detail.trim() || stored.value.trim() || "启动过程中出现错误。");
 </script>
 
 <style scoped>
