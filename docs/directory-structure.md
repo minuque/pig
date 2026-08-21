@@ -6,6 +6,8 @@ pnpm workspace：
 - `apps/desktop/` — Electron main / preload
 - `packages/gateway/` — 本地 Gateway
 
+浏览器 UI 旅程在仓库根 `e2e/`（Playwright，跨 Web 构建物与 Gateway），不是 `apps/web/test/` 的模块单测。`pnpm test:e2e` 写出 `playwright-report/`（调试）和 `e2e-report/latest/`（验收单）。
+
 ## apps/web/src
 
 ```
@@ -23,7 +25,7 @@ apps/web/src/
 
 `App.vue`：`usePiClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再把 `connect` / `initialize` 交给启动门。子树只用 `useSession()` / `useNav()`，不写创建/发送/重命名等领域规则。
 
-`apps/web/test/` 镜像 `src/` 分层。测 `src` 根文件的用例用相对路径。
+`apps/web/test/` 镜像 `src/` 分层。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
 
 ### features/\<module\>/
 
