@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
   min-height: calc(2em * var(--text-caption--line-height));
   margin: 0;
   color: var(--ink-muted);
-  font-size: calc(var(--text-caption) + 2px);
+  font-size: var(--text-title);
   line-height: var(--text-caption--line-height);
   text-align: center;
   pointer-events: none;
