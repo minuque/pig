@@ -28,7 +28,7 @@ apps/web/src/
 └── utils/        # 通用工具（cn 等）
 ```
 
-- `App.vue` 只接线：`usePiClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再 bootstrap / connect / 挂路由会话。组合根用参数传递，不包一层 Platform。
+- `App.vue` 只接线：`usePiClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再把 `connect` / `initialize` 交给启动门。组合根用参数传递，不包一层 Platform。
 - 子树只拿两把钥匙：`useSession()` / `useNav()`。不写创建/发送/重命名等领域规则。
 - `client/` 是 platform concern（网络、凭证、传输、本地目录偏好），不进入 Agent Domain；也不再导出名为 Platform 的组合对象。
 - `components/` 只放跨域共享的 `layout` 与 `ui`；领域组件一律进 `features/`。
@@ -83,7 +83,7 @@ features/<module>/
 | `chat-input`        | 对话输入卡：PromptEditor、模型/思考强度选择、发送、错误提示     |
 | `session-nav`       | 左侧导航：会话平铺列表、工作目录筛选、会话标题/时间工具 |
 | `session-workbench` | 会话工作台：顶栏、转录视图、对话轮、欢迎页、控制栏、session 运行时 |
-| `startup-wait`       | 首次加载等待态：Pi 组装动画、启动阶段和离场、启动失败页           |
+| `startup-wait`       | 启动门：boot 序列、遮罩、Pi 组装动画、失败页                      |
 | `theme`             | 主题切换                                                     |
 
 ## 5. 边界原则
