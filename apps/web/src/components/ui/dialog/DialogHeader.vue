@@ -12,8 +12,8 @@ const props = withDefaults(
 
 <template>
   <div
-    data-slot="alert-description"
-    :class="cn('text-muted-foreground col-start-2 text-sm [&_p]:leading-relaxed', props.class)"
+    data-slot="dialog-header"
+    :class="cn('flex flex-col gap-2 text-center sm:text-left', props.class)"
   >
     <slot />
   </div>

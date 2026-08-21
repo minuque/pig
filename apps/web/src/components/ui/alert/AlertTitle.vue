@@ -1,3 +1,15 @@
+<script setup lang="ts">
+import type { HTMLAttributes } from "vue";
+import { cn } from "@utils/utils.js";
+
+const props = withDefaults(
+  defineProps<{
+    class?: HTMLAttributes["class"];
+  }>(),
+  { class: undefined },
+);
+</script>
+
 <template>
   <div
     data-slot="alert-title"
@@ -6,12 +18,3 @@
     <slot />
   </div>
 </template>
-
-<script setup lang="ts">
-import type { HTMLAttributes } from "vue";
-import { cn } from "@utils/utils.js";
-
-const props = defineProps<{
-  class?: HTMLAttributes["class"];
-}>();
-</script>

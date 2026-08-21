@@ -8,11 +8,12 @@
     "baseColor": "neutral",
     "cssVariables": true
   },
+  "iconLibrary": "lucide",
   "aliases": {
     "components": "@/components",
-    "utils": "@/lib/utils",
+    "utils": "@/utils/utils",
     "ui": "@/components/ui",
     "composables": "@/composables",
-    "lib": "@/lib"
+    "lib": "@/utils"
   }
 }

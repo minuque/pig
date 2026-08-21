@@ -244,10 +244,19 @@
   --color-ring: var(--ink-muted);
   --color-ring-offset: var(--surface);
   --color-primary-foreground: var(--on-primary);
+  --color-secondary-foreground: var(--on-primary);
   --color-destructive: var(--danger);
   --color-destructive-foreground: var(--on-primary);
   --color-input: var(--hairline);
   --color-background: var(--surface);
+  --color-foreground: var(--ink);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--ink);
+  --color-muted: var(--canvas-soft);
+  --color-muted-foreground: var(--ink-muted);
+  --color-border: var(--hairline);
   --color-accent: var(--canvas-soft);
   --color-accent-foreground: var(--ink);
 

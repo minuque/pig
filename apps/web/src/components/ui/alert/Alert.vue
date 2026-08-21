@@ -1,29 +1,13 @@
-<template>
-  <div
-    data-slot="alert"
-    role="alert"
-    :class="
-      cn(
-        'relative grid w-full items-start gap-y-0.5 rounded-lg border border-hairline bg-surface px-4 py-3 text-sm grid-cols-[0_1fr] has-[>svg]:grid-cols-[1rem_1fr] has-[>svg]:gap-x-3 [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current',
-        variant === 'destructive'
-          ? 'text-destructive *:data-[slot=alert-description]:text-destructive/90'
-          : 'text-ink',
-        props.class,
-      )
-    "
-  >
-    <slot />
-  </div>
-</template>
-
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue";
+import type { AlertVariants } from "./index.js";
 import { cn } from "@utils/utils.js";
+import { alertVariants } from "./index.js";
 
 const props = withDefaults(
   defineProps<{
     class?: HTMLAttributes["class"];
-    variant?: "default" | "destructive";
+    variant?: AlertVariants["variant"];
   }>(),
   {
     class: undefined,
@@ -31,3 +15,9 @@ const props = withDefaults(
   },
 );
 </script>
+
+<template>
+  <div data-slot="alert" :class="cn(alertVariants({ variant }), props.class)" role="alert">
+    <slot />
+  </div>
+</template>
