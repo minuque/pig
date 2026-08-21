@@ -83,7 +83,7 @@ features/<module>/
 | `chat-input`        | 对话输入卡：PromptEditor、模型/思考强度选择、发送、错误提示     |
 | `session-nav`       | 左侧导航：会话平铺列表、工作目录筛选、会话标题/时间工具 |
 | `session-workbench` | 会话工作台：顶栏、转录视图、对话轮、欢迎页、控制栏、session 运行时 |
-| `startup-wait`       | 首次加载等待态：Pi 组装动画、启动阶段和离场                       |
+| `startup-wait`       | 首次加载等待态：Pi 组装动画、启动阶段和离场、启动失败页           |
 | `theme`             | 主题切换                                                     |
 
 ## 5. 边界原则

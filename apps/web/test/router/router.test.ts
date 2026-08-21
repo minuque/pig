@@ -8,8 +8,8 @@ vi.mock("vue-router", () => ({
 import router from "@router/index.js";
 
 describe("router canonical paths", () => {
-  it("keeps only / and the session route", () => {
+  it("keeps welcome, session, and startup error routes", () => {
     const routes = (router as unknown as { routes: Array<{ path: string }> }).routes;
-    expect(routes.map(({ path }) => path).sort()).toEqual(["/", "/sessions/:sessionId"]);
+    expect(routes.map(({ path }) => path).sort()).toEqual(["/", "/error", "/sessions/:sessionId"]);
   });
 });

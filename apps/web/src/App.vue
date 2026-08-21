@@ -14,10 +14,7 @@
       <WorkbenchHeader :left-open="leftOpen" :connecting="connecting" @toggle="toggle" />
     </template>
 
-    <div v-if="startupError" class="notice error startup-error" role="alert">
-      {{ startupError }}
-    </div>
-    <p v-else-if="connectionError && connected" class="notice error startup-error" role="alert">
+    <p v-if="connectionError && connected" class="notice error startup-error" role="alert">
       {{ connectionError.message }}
     </p>
     <RouterView v-else />
@@ -34,6 +31,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, shallowRef } from "vue";
+import { useRouter } from "vue-router";
 import AppLayout from "@components/layout/AppLayout.vue";
 import { bootstrapFromUrl } from "@client/bootstrap.js";
 import { errorMessage } from "@client/http.js";
@@ -42,10 +40,12 @@ import { usePiClient } from "@client/pi-client.js";
 import SessionNav from "@features/session-nav/index.vue";
 import { provideNav } from "@features/session-nav/index.js";
 import StartupWait from "@features/startup-wait/index.vue";
+import { setStartupError } from "@features/startup-wait/hooks/use-startup-error.js";
 import type { StartupPhase } from "@features/startup-wait/types.js";
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue";
 import { provideSession } from "@features/session-workbench/index.js";
 
+const router = useRouter();
 const pi = usePiClient();
 const cwd = useLocalWorkspaces();
 const session = provideSession(pi, cwd);
@@ -74,8 +74,11 @@ onMounted(async () => {
     startupPhase.value = "preparing";
     await session.initialize();
     startupReady.value = true;
+    if (router.currentRoute.value.name === "error") await router.replace("/");
   } catch (error) {
     startupError.value = errorMessage(error);
+    setStartupError(startupError.value);
+    await router.replace({ name: "error" });
     startupConcealed.value = false;
     startupVisible.value = false;
   }
