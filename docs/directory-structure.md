@@ -21,7 +21,7 @@ apps/web/src/
 │   ├── pi-client.ts  # PiClient 生命周期、响应式投影、退避重连
 │   └── local-cwd.ts  # 已授权目录与最近 cwd 的 localStorage 偏好
 ├── components/   # 跨域共享组件
-│   ├── layout/   #   壳层布局（AppLayout）
+│   ├── layout/   #   壳层布局（AppLayout：两栏壳，不含业务顶栏）
 │   └── ui/       #   shadcn-vue 基础组件（dropdown-menu、tooltip、badge）
 ├── features/     # 领域功能模块
 ├── router/       # 路由
@@ -82,7 +82,7 @@ features/<module>/
 | ------------------- | ------------------------------------------------------------ |
 | `chat-input`        | 对话输入卡：PromptEditor、模型/思考强度选择、发送、错误提示     |
 | `session-nav`       | 左侧导航：会话平铺列表、工作目录筛选、会话标题/时间工具 |
-| `session-workbench` | 会话工作台：转录视图、对话轮、欢迎页、控制栏、session 运行时    |
+| `session-workbench` | 会话工作台：顶栏、转录视图、对话轮、欢迎页、控制栏、session 运行时 |
 | `startup-wait`       | 首次加载等待态：Pi 组装动画、启动阶段和离场                       |
 | `theme`             | 主题切换                                                     |
 

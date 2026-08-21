@@ -1,11 +1,5 @@
 <template>
   <AppLayout
-    :title="currentTitle"
-    :cwd="activeCwd"
-    :phase="projection?.phase"
-    :running="projection?.running"
-    :connecting="connecting"
-    :thinking-level="projection?.thinkingLevel"
     :class="{
       'startup-underlay': startupConcealed,
       'startup-underlay-transition': startupVisible,
@@ -15,6 +9,9 @@
   >
     <template #sidebar="{ onNavigate, collapsed, toggle }">
       <SessionNav :collapsed="collapsed" @navigate="onNavigate" @toggle="toggle" />
+    </template>
+    <template #header="{ leftOpen, toggle }">
+      <WorkbenchHeader :left-open="leftOpen" :connecting="connecting" @toggle="toggle" />
     </template>
 
     <div v-if="startupError" class="notice error startup-error" role="alert">
@@ -46,13 +43,13 @@ import SessionNav from "@features/session-nav/index.vue";
 import { provideNav } from "@features/session-nav/index.js";
 import StartupWait from "@features/startup-wait/index.vue";
 import type { StartupPhase } from "@features/startup-wait/types.js";
-import { UNTITLED_SESSION } from "@features/session-nav/types.js";
+import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue";
 import { provideSession } from "@features/session-workbench/index.js";
 
 const pi = usePiClient();
 const cwd = useLocalWorkspaces();
 const session = provideSession(pi, cwd);
-const nav = provideNav(pi, cwd, session);
+provideNav(pi, cwd, session);
 
 const startupError = shallowRef("");
 const startupVisible = shallowRef(true);
@@ -86,14 +83,6 @@ onMounted(async () => {
 
 const connecting = computed(() => pi.connectionState.value === "connecting");
 const { connectionError, connected } = pi;
-const { projection, sessionId } = session;
-
-const currentTitle = computed(
-  () => projection.value?.name ?? (sessionId.value ? UNTITLED_SESSION : ""),
-);
-const activeCwd = computed(() =>
-  sessionId.value ? (nav.activeWorkspaceId.value ?? nav.lastCwd.value) : undefined,
-);
 </script>
 
 <style scoped>
