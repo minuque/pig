@@ -11,7 +11,7 @@ import {
   listPickerRows,
   resolveModelInfo,
 } from "@features/chat-input/lib/model-preset.js";
-import { vendorDisplayName, vendorGlyph } from "@features/chat-input/lib/vendor-logo.js";
+import { vendorDisplayName, vendorIcon } from "@features/chat-input/lib/vendor-logo.js";
 import {
   parseFavoriteModels,
   toggleFavoriteKey,
@@ -148,18 +148,20 @@ describe("listPickerRows", () => {
   });
 });
 
-describe("vendorDisplayName / vendorGlyph", () => {
-  it("已知供应商给出显示名和矢量标记", () => {
+describe("vendorDisplayName / vendorIcon", () => {
+  it("已知供应商给出显示名和 LobeHub 图标", () => {
     expect(vendorDisplayName("openai")).toBe("OpenAI");
-    expect(vendorDisplayName("azure-openai-responses")).toBe("OpenAI");
+    expect(vendorDisplayName("azure-openai-responses")).toBe("Azure");
     expect(vendorDisplayName("openai-codex")).toBe("OpenAI");
     expect(vendorDisplayName("qwen-token-plan-cn")).toBe("Qwen");
-    expect(vendorGlyph("xai")).toBeDefined();
+    expect(vendorIcon("xai")?.src).toBeTruthy();
+    expect(vendorIcon("xai")?.tinted).toBe(true);
+    expect(vendorIcon("deepseek")?.tinted).toBe(false);
   });
 
-  it("未知供应商保留原 id 且无标记", () => {
+  it("未知供应商保留原 id 且无图标", () => {
     expect(vendorDisplayName("acme-labs")).toBe("acme-labs");
-    expect(vendorGlyph("acme-labs")).toBeUndefined();
+    expect(vendorIcon("acme-labs")).toBeUndefined();
   });
 });
 
