@@ -56,6 +56,7 @@ const monoStyle = computed(() => ({
   vertical-align: middle;
 }
 .vendor-mark-mono {
+  color: var(--ink);
   background-color: currentColor;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
