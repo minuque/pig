@@ -16,24 +16,11 @@
           </div>
         </div>
       </button>
-      <p
-        class="startup-slogan"
-        :style="{ '--slogan-fade': `${SLOGAN_FADE_MS}ms` }"
-        aria-hidden="true"
-      >
-        <span v-for="lineIndex in [0, 1]" :key="lineIndex" class="slogan-line"
-          ><span
-            v-for="glyph in glyphsByLine[lineIndex]"
-            :key="glyph.id"
-            class="slogan-glyph"
-            :class="{ 'slogan-highlight': glyph.highlight }"
-            :style="{ animationDelay: `${glyph.delayMs}ms` }"
-            >{{ glyph.text }}</span
-          ><span
-            v-if="showCursor && cursorLine === lineIndex"
-            class="slogan-cursor"
-            :class="{ 'slogan-cursor-accent': cursorAccent }"
-          ></span
+      <p class="startup-slogan" aria-hidden="true">
+        <span v-for="(line, lineIndex) in slogan.lines" :key="lineIndex" class="slogan-line"
+          ><span>{{ line.plain }}</span
+          ><span v-if="line.highlight" class="slogan-highlight">{{ line.highlight }}</span
+          ><span v-if="showCursor && slogan.cursorLine === lineIndex" class="slogan-cursor"></span
         ></span>
       </p>
     </div>
@@ -48,65 +35,50 @@ export const STARTUP_SLOGAN_LINES = [
 
 export const STARTUP_SLOGAN = STARTUP_SLOGAN_LINES.join("\n");
 export const SLOGAN_HIGHLIGHT = "yours";
-export const SLOGAN_CHAR_MS = 28;
-export const SLOGAN_SPACE_EXTRA_MS = 16;
-export const SLOGAN_NEWLINE_MS = 90;
-export const SLOGAN_YOURS_MS = 44;
-export const SLOGAN_FADE_MS = 100;
+export const SLOGAN_CHAR_MS = 24;
 export const SLOGAN_END_HOLD_MS = 900;
 
-export interface SloganGlyph {
-  id: number;
-  text: string;
-  line: 0 | 1;
-  highlight: boolean;
-  delayMs: number;
+export interface SloganLineView {
+  plain: string;
+  highlight: string;
 }
 
-function stepAfter(ch: string, highlight: boolean): number {
-  if (highlight) return SLOGAN_YOURS_MS;
-  if (ch === " ") return SLOGAN_CHAR_MS + SLOGAN_SPACE_EXTRA_MS;
-  return SLOGAN_CHAR_MS;
-}
+/** 按已打出的字符数切两行，yours 开始出现后进 highlight。 */
+export function typedSlogan(charCount: number): {
+  lines: [SloganLineView, SloganLineView];
+  cursorLine: 0 | 1;
+} {
+  const line1 = STARTUP_SLOGAN_LINES[0];
+  const line2 = STARTUP_SLOGAN_LINES[1];
+  const n = Math.max(0, Math.min(charCount, STARTUP_SLOGAN.length));
+  const empty = { plain: "", highlight: "" } as const;
 
-/** 可见字形的错开时间表：空格/换行略停，yours 稍慢。 */
-export function sloganGlyphs(): SloganGlyph[] {
-  const glyphs: SloganGlyph[] = [];
-  const yoursAt = STARTUP_SLOGAN.lastIndexOf(SLOGAN_HIGHLIGHT);
-  let delayMs = 0;
-  let line: 0 | 1 = 0;
-  let id = 0;
-
-  for (let i = 0; i < STARTUP_SLOGAN.length; i += 1) {
-    const text = STARTUP_SLOGAN[i]!;
-    if (text === "\n") {
-      delayMs += SLOGAN_NEWLINE_MS;
-      line = 1;
-      continue;
-    }
-    const highlight = i >= yoursAt;
-    glyphs.push({ id, text, line, highlight, delayMs });
-    id += 1;
-    delayMs += stepAfter(text, highlight);
+  if (n <= line1.length) {
+    return {
+      lines: [{ plain: line1.slice(0, n), highlight: "" }, empty],
+      cursorLine: 0,
+    };
   }
-  return glyphs;
-}
 
-export const SLOGAN_GLYPHS = sloganGlyphs();
+  const visible2 = line2.slice(0, n - line1.length - 1);
+  const hiAt = line2.lastIndexOf(SLOGAN_HIGHLIGHT);
+  if (visible2.length <= hiAt) {
+    return {
+      lines: [
+        { plain: line1, highlight: "" },
+        { plain: visible2, highlight: "" },
+      ],
+      cursorLine: 1,
+    };
+  }
 
-export function sloganPlayMs(glyphs: readonly SloganGlyph[] = SLOGAN_GLYPHS): number {
-  const last = glyphs[glyphs.length - 1];
-  return (last?.delayMs ?? 0) + SLOGAN_FADE_MS + SLOGAN_END_HOLD_MS;
-}
-
-/** 换行开始即把光标移到第二行。 */
-export function sloganCursorLine(
-  elapsedMs: number,
-  glyphs: readonly SloganGlyph[] = SLOGAN_GLYPHS,
-): 0 | 1 {
-  const firstLine2 = glyphs.find((glyph) => glyph.line === 1);
-  if (firstLine2 && elapsedMs >= firstLine2.delayMs - SLOGAN_NEWLINE_MS) return 1;
-  return 0;
+  return {
+    lines: [
+      { plain: line1, highlight: "" },
+      { plain: visible2.slice(0, hiAt), highlight: visible2.slice(hiAt) },
+    ],
+    cursorLine: 1,
+  };
 }
 </script>
 
@@ -121,21 +93,11 @@ const wrap = useTemplateRef<HTMLDivElement>("wrap");
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const animationComplete = shallowRef(false);
 const leaving = shallowRef(false);
+const typedChars = shallowRef(0);
 const sloganTyping = shallowRef(false);
-const elapsedMs = shallowRef(0);
-const visibleGlyphs = shallowRef<readonly SloganGlyph[]>([]);
 
-const glyphsByLine = computed(() => {
-  const lines: [SloganGlyph[], SloganGlyph[]] = [[], []];
-  for (const glyph of visibleGlyphs.value) lines[glyph.line].push(glyph);
-  return lines;
-});
-const cursorLine = computed(() => sloganCursorLine(elapsedMs.value));
+const slogan = computed(() => typedSlogan(typedChars.value));
 const showCursor = computed(() => sloganTyping.value);
-const cursorAccent = computed(() => {
-  const yours = SLOGAN_GLYPHS.find((glyph) => glyph.highlight);
-  return yours !== undefined && elapsedMs.value >= yours.delayMs;
-});
 
 const LEAVE_MS = 440;
 let player: PiLogoPlayer | undefined;
@@ -147,45 +109,40 @@ let themeObserver: MutationObserver | undefined;
 let motionQuery: MediaQueryList | undefined;
 let sloganAbort: AbortController | undefined;
 let sloganPromise: Promise<void> = Promise.resolve();
-let sloganRaf = 0;
 
-function stopSloganRaf() {
-  if (sloganRaf === 0) return;
-  window.cancelAnimationFrame(sloganRaf);
-  sloganRaf = 0;
+function sleep(ms: number, signal: AbortSignal): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (signal.aborted) {
+      resolve(false);
+      return;
+    }
+    const timer = window.setTimeout(() => resolve(!signal.aborted), ms);
+    signal.addEventListener(
+      "abort",
+      () => {
+        window.clearTimeout(timer);
+        resolve(false);
+      },
+      { once: true },
+    );
+  });
 }
 
 async function runSlogan(signal: AbortSignal): Promise<void> {
-  visibleGlyphs.value = SLOGAN_GLYPHS;
   sloganTyping.value = true;
-  elapsedMs.value = 0;
-  const startedAt = performance.now();
-  const totalMs = sloganPlayMs();
-
-  await new Promise<void>((resolve) => {
-    const tick = (now: number) => {
-      if (signal.aborted) {
-        sloganRaf = 0;
-        resolve();
-        return;
-      }
-      elapsedMs.value = now - startedAt;
-      if (elapsedMs.value >= totalMs) {
-        sloganRaf = 0;
-        resolve();
-        return;
-      }
-      sloganRaf = window.requestAnimationFrame(tick);
-    };
-    sloganRaf = window.requestAnimationFrame(tick);
-  });
-
+  typedChars.value = 0;
+  for (let i = 1; i <= STARTUP_SLOGAN.length; i += 1) {
+    if (signal.aborted) return;
+    typedChars.value = i;
+    if (!(await sleep(SLOGAN_CHAR_MS, signal))) return;
+  }
+  if (signal.aborted) return;
+  await sleep(SLOGAN_END_HOLD_MS, signal);
   if (!signal.aborted) sloganTyping.value = false;
 }
 
 function startSlogan() {
   sloganAbort?.abort();
-  stopSloganRaf();
   sloganAbort = new AbortController();
   sloganPromise = runSlogan(sloganAbort.signal);
 }
@@ -216,7 +173,6 @@ function beginLeave() {
 
 function completeAnimation() {
   sloganAbort?.abort();
-  stopSloganRaf();
   player?.cancel();
   animationComplete.value = true;
   beginLeave();
@@ -279,7 +235,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   sloganAbort?.abort();
-  stopSloganRaf();
   player?.cancel();
   window.clearTimeout(leaveTimer);
   resizeObserver?.disconnect();
@@ -386,10 +341,6 @@ onBeforeUnmount(() => {
   min-height: calc(1em * var(--text-caption--line-height));
   white-space: nowrap;
 }
-.slogan-glyph {
-  opacity: 0;
-  animation: slogan-ink var(--slogan-fade) var(--ease-out) both;
-}
 .slogan-highlight {
   color: var(--primary);
   font-style: italic;
@@ -404,7 +355,7 @@ onBeforeUnmount(() => {
   vertical-align: -0.08em;
   animation: slogan-caret 1.05s steps(1, end) infinite;
 }
-.slogan-cursor-accent {
+.slogan-line:has(.slogan-highlight) .slogan-cursor {
   background: var(--primary);
 }
 @keyframes slogan-caret {
@@ -415,14 +366,6 @@ onBeforeUnmount(() => {
   50%,
   100% {
     opacity: 0;
-  }
-}
-@keyframes slogan-ink {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }
 @media (prefers-reduced-transparency: reduce) {
@@ -437,10 +380,6 @@ onBeforeUnmount(() => {
   }
   .slogan-cursor {
     animation: none;
-  }
-  .slogan-glyph {
-    animation: none;
-    opacity: 1;
   }
 }
 </style>
