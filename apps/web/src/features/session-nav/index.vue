@@ -95,18 +95,18 @@
         </div>
       </div>
 
-      <div ref="navBody" class="nav-body">
+      <div v-bind="containerProps" class="nav-body">
         <nav class="session-list" aria-label="会话列表">
-          <ul v-if="listedSessions.length > 0" role="list">
-            <li v-for="session in listedSessions" :key="session.id">
+          <ul v-if="listedSessions.length > 0" v-bind="wrapperProps" role="list">
+            <li v-for="item in list" :key="item.data.id">
               <SessionItem
-                :session="session"
-                :workspace-title="session.cwd ? workspaceName(session.cwd) : ''"
-                :active="session.id === activeSessionId"
-                :running="activeSessionRunning && session.id === activeSessionId"
-                :message-count="cardFootById.get(session.id)?.messageCount ?? null"
-                :model-label="cardFootById.get(session.id)?.modelLabel ?? ''"
-                @navigate="onSessionNavigate(session.cwd)"
+                :session="item.data"
+                :workspace-title="item.data.cwd ? workspaceName(item.data.cwd) : ''"
+                :active="item.data.id === activeSessionId"
+                :running="activeSessionRunning && item.data.id === activeSessionId"
+                :message-count="cardFootById.get(item.data.id)?.messageCount ?? null"
+                :model-label="cardFootById.get(item.data.id)?.modelLabel ?? ''"
+                @navigate="onSessionNavigate(item.data.cwd)"
                 @rename="renameSession"
                 @delete="deleteSession"
               />
@@ -136,7 +136,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, useTemplateRef, watch } from "vue";
+import { computed, nextTick, watch } from "vue";
+import { useVirtualList } from "@vueuse/core";
 import { RouterLink } from "vue-router";
 import {
   Check,
@@ -187,7 +188,11 @@ const {
 } = useNav();
 const { creating, createSession } = useSession();
 
-const navBody = useTemplateRef<HTMLElement>("navBody");
+/* 卡片 4.875rem + 行间 1px */
+const SESSION_ROW_PX = 79;
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(listedSessions, {
+  itemHeight: SESSION_ROW_PX,
+});
 const scopedGroupName = computed(() => {
   const scoped = projectScope.value;
   if (!scoped) return "全部工作目录";
@@ -203,9 +208,9 @@ watch(
   () => [activeSessionId.value, listedSessions.value] as const,
   async () => {
     await nextTick();
-    navBody.value
-      ?.querySelector<HTMLElement>('[aria-current="page"]')
-      ?.scrollIntoView({ block: "nearest" });
+    const id = activeSessionId.value;
+    const index = listedSessions.value.findIndex((session) => session.id === id);
+    if (index >= 0) scrollTo(index);
   },
 );
 
