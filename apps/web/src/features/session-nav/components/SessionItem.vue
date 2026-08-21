@@ -1,6 +1,6 @@
 <template>
-  <div class="session-item" :class="variant">
-    <form v-if="renaming" class="rename-form" :class="variant" @submit.prevent="commitRename">
+  <div class="session-item">
+    <form v-if="renaming" class="rename-form" @submit.prevent="commitRename">
       <input
         ref="nameInput"
         v-model="draft"
@@ -12,20 +12,19 @@
     </form>
     <RouterLink
       v-else
-      :id="resultId || undefined"
       :to="{ name: 'session', params: { sessionId: session.id } }"
       class="session-card"
-      :class="[variant, { active, highlighted }]"
+      :class="{ active }"
       :aria-current="active ? 'page' : undefined"
-      :aria-selected="highlighted || undefined"
       :aria-label="
         workspaceTitle ? `${sessionTitle(session)}, ${workspaceTitle}` : sessionTitle(session)
       "
       @click="onNavigate"
     >
-      <template v-if="variant === 'slim'">
+      <div class="card-line">
         <Folder :size="16" class="workspace-mark" aria-hidden="true" />
-        <span class="title">{{ sessionTitle(session) }}</span>
+        <span v-if="workspaceTitle" class="workspace-title">{{ workspaceTitle }}</span>
+        <span v-else class="card-spacer"></span>
         <span class="session-meta">
           <span v-if="running" class="session-status">运行中</span>
           <time
@@ -36,31 +35,14 @@
             {{ formatRelativeTime(sessionRecency(session)) }}
           </time>
         </span>
-      </template>
-      <template v-else>
-        <div class="card-line">
-          <Folder :size="16" class="workspace-mark" aria-hidden="true" />
-          <span v-if="workspaceTitle" class="workspace-title">{{ workspaceTitle }}</span>
-          <span v-else class="card-spacer"></span>
-          <span class="session-meta">
-            <span v-if="running" class="session-status">运行中</span>
-            <time
-              v-else-if="sessionRecency(session)"
-              class="session-time"
-              :datetime="new Date(sessionRecency(session)).toISOString()"
-            >
-              {{ formatRelativeTime(sessionRecency(session)) }}
-            </time>
-          </span>
-        </div>
-        <div class="card-title-line">
-          <span class="title">{{ sessionTitle(session) }}</span>
-        </div>
-        <div class="card-line card-foot">
-          <span class="card-count">{{ messageCount == null ? "" : `${messageCount} 条` }}</span>
-          <span class="card-model">{{ modelLabel }}</span>
-        </div>
-      </template>
+      </div>
+      <div class="card-title-line">
+        <span class="title">{{ sessionTitle(session) }}</span>
+      </div>
+      <div class="card-line card-foot">
+        <span class="card-count">{{ messageCount == null ? "" : `${messageCount} 条` }}</span>
+        <span class="card-model">{{ modelLabel }}</span>
+      </div>
     </RouterLink>
     <DropdownMenu>
       <DropdownMenuTrigger as-child>
@@ -105,17 +87,11 @@ const props = withDefaults(
     workspaceTitle?: string;
     active?: boolean;
     running?: boolean;
-    variant?: "card" | "slim";
-    highlighted?: boolean;
-    resultId?: string;
     messageCount?: number | null;
     modelLabel?: string;
   }>(),
   {
     workspaceTitle: "",
-    variant: "card",
-    highlighted: false,
-    resultId: "",
     messageCount: null,
     modelLabel: "",
   },
@@ -164,29 +140,18 @@ function onDelete() {
 .session-card,
 .rename-form {
   display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   min-width: 0;
+  height: 4.875rem;
+  padding: 8px 10px;
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
   text-decoration: none;
 }
-.session-card.card,
-.rename-form.card {
-  flex-direction: column;
-  height: 4.875rem;
-  padding: 8px 10px;
-  justify-content: flex-start;
-}
-.session-card.slim,
-.rename-form.slim {
-  align-items: center;
-  gap: 10px;
-  height: 36px;
-  padding: 0 10px;
-}
 .session-item:hover .session-card,
-.session-item:has(.session-kebab[aria-expanded="true"]) .session-card,
-.session-card.highlighted {
+.session-item:has(.session-kebab[aria-expanded="true"]) .session-card {
   background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 .session-card.active {
@@ -257,14 +222,6 @@ function onDelete() {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.session-card.slim .title {
-  font-weight: var(--font-weight-regular);
-  color: var(--ink-secondary);
-}
-.session-card.slim.active .title,
-.session-card.slim.highlighted .title {
-  color: var(--ink);
-}
 .session-card.active .title {
   font-weight: var(--font-weight-medium);
 }
@@ -287,7 +244,7 @@ function onDelete() {
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-semibold);
 }
-.rename-form.card {
+.rename-form {
   justify-content: center;
 }
 .rename-input {
@@ -312,14 +269,9 @@ function onDelete() {
   color: var(--ink-faint);
   opacity: 0;
 }
-.session-item.card .session-kebab {
+.session-item .session-kebab {
   top: 6px;
   right: 6px;
-}
-.session-item.slim .session-kebab {
-  top: 50%;
-  right: 2px;
-  transform: translateY(-50%);
 }
 .session-item:hover .session-meta,
 .session-item:has(.session-kebab[aria-expanded="true"]) .session-meta {

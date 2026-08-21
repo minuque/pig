@@ -72,20 +72,6 @@ export function listSessionsForSidebar(
   );
 }
 
-/**
- * 仅按标题过滤，保持输入序。空查询返回空数组（与 T3 `searchSidebarThreadsByTitle` 相同）。
- */
-export function searchSessionsByTitle<T extends Pick<SessionMetadata, "sessionName">>(
-  sessions: readonly T[],
-  query: string,
-): T[] {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (normalizedQuery.length === 0) return [];
-  return sessions.filter((session) =>
-    sessionTitle(session).toLowerCase().includes(normalizedQuery),
-  );
-}
-
 /** 已授权目录优先；其余 Pi Session 按 cwd 继续展示。组内按最近活动倒序。 */
 export function groupSessionsByCwd(
   sessions: readonly SessionMetadata[],

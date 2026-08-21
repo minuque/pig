@@ -32,51 +32,8 @@
     </template>
 
     <div v-show="!collapsed" class="nav-main">
-      <div class="nav-toolbar">
-        <div class="search-row">
-          <label class="search-field">
-            <Search :size="16" class="search-icon" aria-hidden="true" />
-            <input
-              ref="searchInput"
-              v-model="searchQuery"
-              type="search"
-              class="search-input"
-              placeholder="搜索"
-              aria-label="搜索会话"
-              role="combobox"
-              aria-autocomplete="list"
-              :aria-expanded="isSearching && searchResults.length > 0"
-              :aria-controls="
-                isSearching && searchResults.length > 0
-                  ? 'sidebar-session-search-results'
-                  : undefined
-              "
-              :aria-activedescendant="activeSearchResultId"
-              @keydown="onSearchKeydown"
-            />
-            <button
-              v-if="isSearching"
-              class="icon-button search-clear"
-              type="button"
-              aria-label="清除搜索"
-              @click="clearSearch()"
-            >
-              <X :size="12" aria-hidden="true" />
-            </button>
-          </label>
-          <button
-            class="icon-button toolbar-icon"
-            type="button"
-            :disabled="!newSessionPath || Boolean(creating)"
-            aria-label="新会话"
-            title="新会话"
-            @click="onNewSession()"
-          >
-            <SquarePen :size="16" aria-hidden="true" />
-          </button>
-        </div>
-
-        <div v-if="groups.length > 0" class="scope-row">
+      <div v-if="groups.length > 0" class="nav-toolbar">
+        <div class="scope-row">
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <button class="scope-trigger" type="button" aria-label="按工作目录筛选会话">
@@ -118,6 +75,16 @@
           <button
             class="icon-button toolbar-icon"
             type="button"
+            :disabled="!newSessionPath || Boolean(creating)"
+            aria-label="新会话"
+            title="新会话"
+            @click="onNewSession()"
+          >
+            <SquarePen :size="16" aria-hidden="true" />
+          </button>
+          <button
+            class="icon-button toolbar-icon"
+            type="button"
             :disabled="addingWorkspace"
             aria-label="添加本地目录"
             title="添加本地目录"
@@ -131,32 +98,7 @@
       <p v-if="workspaceError" class="notice error" role="alert">{{ workspaceError }}</p>
 
       <div ref="navBody" class="nav-body">
-        <nav v-if="isSearching" class="session-list" aria-label="搜索结果">
-          <ul
-            v-if="searchResults.length > 0"
-            id="sidebar-session-search-results"
-            role="listbox"
-            aria-label="会话搜索结果"
-          >
-            <li v-for="(session, index) in searchResults" :key="session.id" role="presentation">
-              <SessionItem
-                :session="session"
-                :workspace-title="session.cwd ? workspaceName(session.cwd) : ''"
-                variant="slim"
-                :active="session.id === activeSessionId"
-                :running="activeSessionRunning && session.id === activeSessionId"
-                :highlighted="index === activeSearchResultIndex"
-                :result-id="searchResultId(index)"
-                @navigate="onSessionNavigate(session.cwd)"
-                @rename="renameSession"
-                @delete="deleteSession"
-              />
-            </li>
-          </ul>
-          <p v-else class="notice empty" role="status">没有匹配的会话</p>
-        </nav>
-
-        <nav v-else class="session-list" aria-label="会话列表">
+        <nav class="session-list" aria-label="会话列表">
           <ul v-if="listedSessions.length > 0" role="list">
             <li v-for="session in listedSessions" :key="session.id">
               <SessionItem
@@ -196,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { RouterLink } from "vue-router";
 import {
   Check,
@@ -205,7 +147,6 @@ import {
   FolderPlus,
   PanelLeft,
   Plus,
-  Search,
   Settings,
   SquarePen,
   X,
@@ -219,7 +160,7 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
-import { searchSessionsByTitle, workspaceName } from "@features/session-nav/types.js";
+import { workspaceName } from "@features/session-nav/types.js";
 
 defineProps<{
   collapsed?: boolean;
@@ -248,48 +189,21 @@ const {
 const { creating, createSession } = useSession();
 
 const navBody = useTemplateRef<HTMLElement>("navBody");
-const searchInput = useTemplateRef<HTMLInputElement>("searchInput");
-const searchQuery = shallowRef("");
-const activeSearchResultIndex = shallowRef(0);
-
-const isSearching = computed(() => searchQuery.value.trim().length > 0);
-const searchResults = computed(() =>
-  searchSessionsByTitle(listedSessions.value, searchQuery.value),
-);
-const searchResultOrderKey = computed(() =>
-  searchResults.value.map((session) => session.id).join("\0"),
-);
 const scopedGroupName = computed(() => {
   const scoped = projectScope.value;
   if (!scoped) return "全部工作目录";
   return workspaceName(scoped);
 });
-const activeSearchResultId = computed(() => {
-  if (!isSearching.value || !searchResults.value[activeSearchResultIndex.value]) return undefined;
-  return searchResultId(activeSearchResultIndex.value);
-});
-
-watch(searchResultOrderKey, () => {
-  activeSearchResultIndex.value = 0;
-});
 
 watch(
-  () => [activeSessionId.value, listedSessions.value, searchResultOrderKey.value] as const,
+  () => [activeSessionId.value, listedSessions.value] as const,
   async () => {
     await nextTick();
     navBody.value
-      ?.querySelector<HTMLElement>('[aria-current="page"], [aria-selected="true"]')
+      ?.querySelector<HTMLElement>('[aria-current="page"]')
       ?.scrollIntoView({ block: "nearest" });
   },
 );
-
-watch(activeSearchResultIndex, async () => {
-  if (!isSearching.value) return;
-  await nextTick();
-  document.getElementById(searchResultId(activeSearchResultIndex.value))?.scrollIntoView({
-    block: "nearest",
-  });
-});
 
 /** 筛选到已授权目录时用该目录；否则当前会话 cwd，再否则第一个已授权。 */
 const newSessionPath = computed(() => {
@@ -308,44 +222,7 @@ function onNewSession() {
 }
 
 function onSessionNavigate(cwd: string | undefined) {
-  searchQuery.value = "";
   if (cwd) emit("navigate", cwd);
-}
-
-function searchResultId(index: number): string {
-  return `sidebar-session-search-result-${index}`;
-}
-
-function clearSearch() {
-  searchQuery.value = "";
-  searchInput.value?.focus();
-}
-
-function onSearchKeydown(event: KeyboardEvent) {
-  if (event.isComposing || event.keyCode === 229) return;
-  if (event.key === "Escape" && isSearching.value) {
-    event.preventDefault();
-    event.stopPropagation();
-    clearSearch();
-    return;
-  }
-  if (searchResults.value.length === 0) return;
-  if (event.key === "ArrowDown") {
-    event.preventDefault();
-    activeSearchResultIndex.value =
-      (activeSearchResultIndex.value + 1) % searchResults.value.length;
-    return;
-  }
-  if (event.key === "ArrowUp") {
-    event.preventDefault();
-    activeSearchResultIndex.value =
-      (activeSearchResultIndex.value - 1 + searchResults.value.length) % searchResults.value.length;
-    return;
-  }
-  if (event.key === "Enter") {
-    event.preventDefault();
-    document.getElementById(searchResultId(activeSearchResultIndex.value))?.click();
-  }
 }
 </script>
 
@@ -436,8 +313,7 @@ html[data-pig-desktop-platform] .session-nav input {
 }
 .collapse-toggle,
 .rail-action,
-.toolbar-icon,
-.search-clear {
+.toolbar-icon {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -452,8 +328,7 @@ html[data-pig-desktop-platform] .session-nav input {
 }
 .collapse-toggle:hover,
 .rail-action:hover:not(:disabled),
-.toolbar-icon:hover:not(:disabled),
-.search-clear:hover {
+.toolbar-icon:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
   color: var(--ink);
 }
@@ -493,53 +368,12 @@ html[data-pig-desktop-platform] .session-nav input {
   gap: 4px;
   padding-inline: 2px;
 }
-.search-row,
 .scope-row {
   display: flex;
   align-items: center;
   gap: 4px;
   min-width: 0;
 }
-.search-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  flex: 1;
-  height: 32px;
-  padding: 0 8px;
-  border-radius: var(--radius-md);
-  color: var(--ink-muted);
-}
-.search-field:hover,
-.search-field:focus-within {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
-  color: var(--ink);
-}
-.search-icon {
-  flex: none;
-  opacity: 0.8;
-}
-.search-input {
-  min-width: 0;
-  flex: 1;
-  height: auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-sm--line-height);
-}
-.search-input::placeholder {
-  color: var(--ink-muted);
-  font-weight: var(--font-weight-medium);
-}
-.search-input::-webkit-search-cancel-button {
-  display: none;
-}
-.search-clear,
 .toolbar-icon {
   width: var(--size-nav-action);
   min-height: var(--size-nav-action);
@@ -578,8 +412,7 @@ html[data-pig-desktop-platform] .session-nav input {
   padding: 0;
   list-style: none;
 }
-.empty-state,
-.notice.empty {
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;

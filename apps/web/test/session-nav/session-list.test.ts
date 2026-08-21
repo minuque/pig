@@ -5,7 +5,6 @@ import {
   groupSessionsByCwd,
   listSessionsForSidebar,
   modelDisplayNames,
-  searchSessionsByTitle,
   sessionCardFoot,
   sessionModelLabel,
   sessionTitle,
@@ -121,20 +120,6 @@ describe("session-dimension list", () => {
         { id: "newer", createdAt: 2, cwd: "/a" },
       ]).map((session) => session.id),
     ).toEqual(["newer", "older"]);
-  });
-
-  it("searches titles only and keeps input order", () => {
-    const sessions: SessionMetadata[] = [
-      { id: "a", createdAt: 1, sessionName: "Casual Greeting", cwd: "/a" },
-      { id: "b", createdAt: 2, sessionName: "Friendly Greeting", cwd: "/b" },
-      { id: "c", createdAt: 3, cwd: "/a" },
-    ];
-    expect(searchSessionsByTitle(sessions, "").map((session) => session.id)).toEqual([]);
-    expect(searchSessionsByTitle(sessions, "greeting").map((session) => session.id)).toEqual([
-      "a",
-      "b",
-    ]);
-    expect(searchSessionsByTitle(sessions, "新会话").map((session) => session.id)).toEqual(["c"]);
   });
 });
 

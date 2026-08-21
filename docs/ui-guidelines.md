@@ -25,7 +25,6 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。
   → 选择或创建 Session
   → 查看 Transcript
   → 发送 Prompt
-  → 根据 phase 查看实时进度
   → 运行中 Steer 或 Abort
   → phase 回到 idle
 ```
@@ -68,7 +67,7 @@ Session 切换由 `/sessions/:sessionId` 路由驱动。
 - 重命名走 Pi `SessionManager.appendSessionInfo`。删除只删 Pi 会话文件。不自建第二套 Session 库。
 - 模型仅 `idle` 时可改。运行中禁用 ModelPicker 与 ThinkingLevelSelect。
 - 列表真相在 Pi。默认按会话维平铺，创建时间新→旧，活动不重排。
-- 工作目录只做顶部筛选（「全部工作目录」）。搜索按标题过滤，命中后换成单行结果。
+- 工作目录只做顶部筛选（「全部工作目录」）。
 - 卡片三行：目录名 + 相对时间、标题、消息数 + 当前模型（space-between）。
 - 侧栏底设置齿轮占位。折叠钮旁 pig 标回 `/`。
 
