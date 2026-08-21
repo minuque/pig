@@ -21,8 +21,8 @@
 
 <script setup lang="ts">
 import { onMounted } from "vue";
-import StartupOverlay from "@features/startup-wait/components/StartupOverlay.vue";
-import { useStartupSequence } from "@features/startup-wait/hooks/use-startup-sequence.js";
+import StartupOverlay from "@features/startup/components/StartupOverlay.vue";
+import { useStartupSequence } from "@features/startup/hooks/use-startup-sequence.js";
 
 const props = defineProps<{
   connect: () => Promise<unknown>;

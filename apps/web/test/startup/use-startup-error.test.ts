@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  setStartupError,
-  useStartupError,
-} from "@features/startup-wait/hooks/use-startup-error.js";
+import { setStartupError, useStartupError } from "@features/startup/hooks/use-startup-error.js";
 
 describe("startup error message", () => {
   it("stores the failure copy for the error route", () => {

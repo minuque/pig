@@ -16,7 +16,7 @@ const router = createRouter({
     {
       name: "error",
       path: "/error",
-      component: () => import("@features/startup-wait/components/StartupError.vue"),
+      component: () => import("@features/startup/components/StartupError.vue"),
     },
   ],
 });

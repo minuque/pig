@@ -4,7 +4,7 @@ import {
   PI_LOGO_FRAMES,
   cellsForPiLogoFrame,
   interpolatedActiveY,
-} from "@features/startup-wait/components/StartupOverlay.vue";
+} from "@features/startup/components/StartupOverlay.vue";
 
 describe("Pi startup logo animation", () => {
   it("matches the current install.ps1 frame order and 2.63 second duration", () => {

@@ -166,7 +166,7 @@ export function cellsForPiLogoFrame(frame: PiLogoFrame, activeY = frame.activeY)
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from "vue";
-import type { StartupPhase } from "@features/startup-wait/types.js";
+import type { StartupPhase } from "@features/startup/types.js";
 
 const props = defineProps<{
   ready: boolean;

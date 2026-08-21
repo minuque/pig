@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { CircleAlert } from "lucide-vue-next";
-import { useStartupError } from "@features/startup-wait/hooks/use-startup-error.js";
+import { useStartupError } from "@features/startup/hooks/use-startup-error.js";
 
 const message = useStartupError();
 const detail = computed(() => message.value.trim() || "启动过程中出现错误。");

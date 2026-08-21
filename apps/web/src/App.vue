@@ -23,7 +23,7 @@ import { useLocalWorkspaces } from "@client/local-cwd.js";
 import { usePiClient } from "@client/pi-client.js";
 import SessionNav from "@features/session-nav/index.vue";
 import { provideNav } from "@features/session-nav/index.js";
-import Startup from "@features/startup-wait/index.vue";
+import Startup from "@features/startup/index.vue";
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue";
 import { provideSession } from "@features/session-workbench/index.js";
 

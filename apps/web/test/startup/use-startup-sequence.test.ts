@@ -7,11 +7,8 @@ vi.mock("vue-router", () => ({
   useRouter: () => ({ currentRoute, replace }),
 }));
 
-import {
-  setStartupError,
-  useStartupError,
-} from "@features/startup-wait/hooks/use-startup-error.js";
-import { useStartupSequence } from "@features/startup-wait/hooks/use-startup-sequence.js";
+import { setStartupError, useStartupError } from "@features/startup/hooks/use-startup-error.js";
+import { useStartupSequence } from "@features/startup/hooks/use-startup-sequence.js";
 
 describe("startup sequence", () => {
   beforeEach(() => {

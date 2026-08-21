@@ -42,6 +42,7 @@ apps/web/test/
 ├── chat-input/          # 对应 features/chat-input
 ├── session-nav/         # 对应 features/session-nav
 ├── session-workbench/   # 对应 features/session-workbench
+├── startup/             # 对应 features/startup
 ├── client/              # 对应 src/client
 ├── layout/              # 对应 src/components/layout
 ├── router/              # 对应 src/router
@@ -83,7 +84,7 @@ features/<module>/
 | `chat-input`        | 对话输入卡：PromptEditor、模型/思考强度选择、发送、错误提示     |
 | `session-nav`       | 左侧导航：会话平铺列表、工作目录筛选、会话标题/时间工具 |
 | `session-workbench` | 会话工作台：顶栏、转录视图、对话轮、欢迎页、控制栏、session 运行时 |
-| `startup-wait`       | 启动门：boot 序列、遮罩、Pi 组装动画、失败页                      |
+| `startup`            | 启动门：boot 序列、遮罩、Pi 组装动画、失败页                      |
 | `theme`             | 主题切换                                                     |
 
 ## 5. 边界原则

@@ -2,8 +2,8 @@ import { readonly, shallowRef } from "vue";
 import { useRouter } from "vue-router";
 import { bootstrapFromUrl } from "@client/bootstrap.js";
 import { errorMessage } from "@client/http.js";
-import { setStartupError } from "@features/startup-wait/hooks/use-startup-error.js";
-import type { StartupPhase } from "@features/startup-wait/types.js";
+import { setStartupError } from "@features/startup/hooks/use-startup-error.js";
+import type { StartupPhase } from "@features/startup/types.js";
 
 export interface StartupSequenceOptions {
   connect: () => Promise<unknown>;
