@@ -46,7 +46,7 @@ const images = computed(() => transcriptImages(props.item));
   padding: 8px 14px;
   overflow: auto;
   border-radius: var(--radius-xl);
-  background: var(--primary);
+  background: var(--primary-active);
   color: color-mix(in srgb, var(--on-primary) 92%, var(--secondary));
   font-size: var(--text-body-md);
   line-height: 1.5;
