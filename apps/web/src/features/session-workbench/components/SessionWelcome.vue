@@ -1,10 +1,12 @@
 <template>
   <section class="welcome" aria-labelledby="welcome-title">
     <div class="welcome-form">
-      <WorkspaceHero
+      <WorkbenchHero
         v-model:workspace-id="welcomeWorkspaceId"
         title-id="welcome-title"
         :workspaces="workspaces"
+        :adding="addingWorkspace"
+        @add="addWorkspace()"
       />
 
       <ChatInput
@@ -42,10 +44,10 @@ import { computed } from "vue";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import ChatInput from "@features/chat-input/index.vue";
-import WorkspaceHero from "@features/session-workbench/components/WorkspaceHero.vue";
+import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue";
 import { useWelcomeSubmit } from "@features/session-workbench/hooks/use-welcome-submit.js";
 
-const { workspaces, lastCwd } = useNav();
+const { workspaces, lastCwd, addingWorkspace, addWorkspace } = useNav();
 const { catalog, preset, createSession, submitText } = useSession();
 const { welcomePrompt, welcomeWorkspaceId, welcomeSubmitting, welcomeError, submitWelcome } =
   useWelcomeSubmit({

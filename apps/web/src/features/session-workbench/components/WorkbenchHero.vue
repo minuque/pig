@@ -1,21 +1,32 @@
 <template>
-  <div class="workspace-hero">
+  <div class="workbench-hero">
     <h1 :id="titleId" class="hero-title">
       <span v-if="workspaceId">在</span>
       <DropdownMenu v-if="selectable" :modal="false">
         <DropdownMenuTrigger as-child>
-          <button
-            type="button"
-            class="hero-picker"
-            :disabled="!workspaces.length"
-            :aria-label="`工作目录：${label}`"
-          >
+          <button type="button" class="hero-picker" :aria-label="`工作目录：${label}`">
             <span class="hero-name">{{ label }}</span>
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" :side-offset="6" aria-label="选择工作目录">
-          <DropdownMenuItem v-for="item in workspaces" :key="item" @select="workspaceId = item">
-            {{ workspaceName(item) }}
+        <DropdownMenuContent
+          align="center"
+          :side-offset="6"
+          class="workbench-hero-menu"
+          aria-label="选择工作目录"
+        >
+          <DropdownMenuItem
+            v-for="item in workspaces"
+            :key="item"
+            :title="item"
+            :class="{ 'workbench-hero-option-active': item === workspaceId }"
+            @select="workspaceId = item"
+          >
+            <span class="workbench-hero-option-label">{{ workspaceName(item) }}</span>
+          </DropdownMenuItem>
+          <div v-if="workspaces.length" class="workbench-hero-menu-rule" role="separator"></div>
+          <DropdownMenuItem :disabled="adding" @select="emit('add')">
+            <FolderPlus :size="14" aria-hidden="true" />
+            添加本地目录
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -29,13 +40,14 @@
 import { workspaceName } from "@features/session-nav/format.js";
 
 /** 无选中目录时回退到选择提示；有路径时用最后一段。 */
-export function workspaceHeroLabel(workspaceId: string | undefined): string {
+export function workbenchHeroLabel(workspaceId: string | undefined): string {
   return workspaceId ? workspaceName(workspaceId) : "选择工作目录";
 }
 </script>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { FolderPlus } from "lucide-vue-next";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,16 +61,21 @@ withDefaults(
     workspaces: readonly string[];
     /** 空 Session 已绑定 cwd，标题只展示不切换。 */
     selectable?: boolean;
+    adding?: boolean;
   }>(),
-  { selectable: true },
+  { selectable: true, adding: false },
 );
 
+const emit = defineEmits<{
+  add: [];
+}>();
+
 const workspaceId = defineModel<string | undefined>("workspaceId");
-const label = computed(() => workspaceHeroLabel(workspaceId.value));
+const label = computed(() => workbenchHeroLabel(workspaceId.value));
 </script>
 
 <style scoped>
-.workspace-hero {
+.workbench-hero {
   display: flex;
   justify-content: center;
   min-width: 0;
@@ -73,7 +90,7 @@ const label = computed(() => workspaceHeroLabel(workspaceId.value));
   margin: 0;
   color: var(--ink);
   font-size: var(--text-heading-2);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-regular);
   line-height: var(--text-heading-2--line-height);
   letter-spacing: var(--tracking-heading-2);
   text-align: center;
@@ -85,6 +102,7 @@ const label = computed(() => workspaceHeroLabel(workspaceId.value));
   margin: 0;
   padding: 0;
   border: 0;
+  border-bottom: 1px dotted color-mix(in srgb, var(--ink) 38%, transparent);
   border-radius: 0;
   background: transparent;
   color: inherit;
@@ -92,26 +110,41 @@ const label = computed(() => workspaceHeroLabel(workspaceId.value));
   font-weight: inherit;
   letter-spacing: inherit;
   line-height: inherit;
-  text-decoration: underline dotted;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.18em;
-  text-decoration-color: color-mix(in srgb, var(--ink) 32%, transparent);
   cursor: pointer;
 }
 .hero-picker:hover:not(:disabled) {
-  text-decoration-color: var(--ink);
+  border-bottom-color: color-mix(in srgb, var(--ink) 72%, transparent);
 }
 .hero-picker:not(:disabled):active {
   transform: none;
-}
-.hero-picker:disabled {
-  cursor: default;
-  opacity: 1;
 }
 .hero-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+</style>
+
+<style>
+/* 菜单经 Portal 挂到 body，scoped 选不中 */
+.workbench-hero-menu {
+  min-width: 10rem;
+  max-width: 16rem;
+  width: max-content;
+}
+.workbench-hero-option-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workbench-hero-option-active {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.workbench-hero-menu-rule {
+  height: 1px;
+  margin: var(--spacing-xxs) 0;
+  background: var(--hairline);
 }
 </style>

@@ -18,7 +18,7 @@
     </div>
     <div v-else-if="emptyCanvas" class="empty-canvas">
       <div class="empty-canvas-form">
-        <WorkspaceHero
+        <WorkbenchHero
           :workspace-id="heroCwd"
           title-id="session-hero-title"
           :workspaces="workspaces"
@@ -89,7 +89,7 @@ import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import { hasEarlierTranscript } from "@features/session-workbench/lib/session-state.js";
 import TranscriptView from "@features/session-workbench/components/TranscriptView.vue";
-import WorkspaceHero from "@features/session-workbench/components/WorkspaceHero.vue";
+import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue";
 
 const {
   sessionId,
