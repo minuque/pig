@@ -1,16 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
+import { formatRelativeTime, sessionTitle, workspaceName } from "@features/session-nav/format.js";
 import {
-  formatRelativeTime,
   groupSessionsByCwd,
   listSessionsForSidebar,
   modelDisplayNames,
   sessionCardFoot,
   sessionModelLabel,
-  sessionTitle,
   sortSessionsForSidebar,
-  workspaceName,
-} from "@features/session-nav/types.js";
+} from "@features/session-nav/sidebar.js";
 
 describe("workspaceName and grouping", () => {
   it("uses the last path segment as display name", () => {

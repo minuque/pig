@@ -1,21 +1,19 @@
 import { ref, watch, type Ref } from "vue";
 import type { ChatInputPreset } from "@features/chat-input/types.js";
-import type { LocalWorkspace } from "@features/session-nav/types.js";
 
 /** 当前选择仍存在于列表时保留，否则回退到最近使用的目录或第一个目录。 */
 export function nextWelcomeWorkspaceId(
-  workspaces: LocalWorkspace[],
+  workspaces: readonly string[],
   current: string | undefined,
   lastCwd: string | undefined,
 ): string | undefined {
-  if (workspaces.some(({ canonicalPath }) => canonicalPath === current)) return current;
-  if (lastCwd !== undefined && workspaces.some(({ canonicalPath }) => canonicalPath === lastCwd))
-    return lastCwd;
-  return workspaces[0]?.canonicalPath;
+  if (workspaces.includes(current ?? "")) return current;
+  if (lastCwd !== undefined && workspaces.includes(lastCwd)) return lastCwd;
+  return workspaces[0];
 }
 
 export interface WelcomeSubmitDeps {
-  workspaces: Ref<LocalWorkspace[]>;
+  workspaces: Ref<readonly string[]>;
   lastCwd: Ref<string | undefined>;
   preset: Ref<ChatInputPreset | undefined>;
   createSession: (cwd: string) => Promise<void>;

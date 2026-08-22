@@ -14,12 +14,8 @@
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" :side-offset="6" aria-label="选择工作目录">
-          <DropdownMenuItem
-            v-for="item in workspaces"
-            :key="item.canonicalPath"
-            @select="workspaceId = item.canonicalPath"
-          >
-            {{ workspaceName(item.canonicalPath) }}
+          <DropdownMenuItem v-for="item in workspaces" :key="item" @select="workspaceId = item">
+            {{ workspaceName(item) }}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -30,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { workspaceName } from "@features/session-nav/types.js";
+import { workspaceName } from "@features/session-nav/format.js";
 
 /** 无选中目录时回退到选择提示；有路径时用最后一段。 */
 export function workspaceHeroLabel(workspaceId: string | undefined): string {
@@ -40,7 +36,6 @@ export function workspaceHeroLabel(workspaceId: string | undefined): string {
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { LocalWorkspace } from "@features/session-nav/types.js";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +46,7 @@ import {
 withDefaults(
   defineProps<{
     titleId: string;
-    workspaces: readonly LocalWorkspace[];
+    workspaces: readonly string[];
     /** 空 Session 已绑定 cwd，标题只展示不切换。 */
     selectable?: boolean;
   }>(),

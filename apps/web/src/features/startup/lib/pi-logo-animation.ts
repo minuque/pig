@@ -1,3 +1,5 @@
+import { sleep } from "./sleep.js";
+
 export type PieceColor = "cyan" | "red" | "green" | "orange";
 export type CellColor = PieceColor | "flash" | "theme";
 export type CellMap = Record<string, CellColor>;
@@ -444,24 +446,6 @@ export function extraTopRowsForWrap(wrap: HTMLElement): number {
   const cellCss = wrapRect.width / BOARD_W;
   const totalRows = Math.max(BOARD_H, Math.ceil(wrapRect.bottom / cellCss));
   return totalRows - BOARD_H;
-}
-
-function sleep(ms: number, signal: AbortSignal): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (signal.aborted) {
-      resolve(false);
-      return;
-    }
-    const timer = window.setTimeout(() => resolve(!signal.aborted), ms);
-    signal.addEventListener(
-      "abort",
-      () => {
-        window.clearTimeout(timer);
-        resolve(false);
-      },
-      { once: true },
-    );
-  });
 }
 
 export interface PiLogoPlayer {

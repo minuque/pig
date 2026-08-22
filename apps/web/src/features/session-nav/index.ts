@@ -4,7 +4,7 @@ import type { useLocalWorkspaces } from "@client/local-cwd.js";
 import type { usePiClient } from "@client/pi-client.js";
 import type { SessionContext } from "@features/session-workbench/index.js";
 import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js";
-import { modelDisplayNames, sessionCardFoot } from "@features/session-nav/types.js";
+import { modelDisplayNames, sessionCardFoot } from "@features/session-nav/sidebar.js";
 
 export type NavContext = ReturnType<typeof createNav>;
 export const navKey: InjectionKey<NavContext> = Symbol("nav");

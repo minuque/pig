@@ -32,6 +32,8 @@ export async function platformRequest<T>(path: string, init?: RequestInit): Prom
   return response.json() as Promise<T>;
 }
 
+// bootstrap 兑换失败抛的是带 code/requestId 的普通 Error，不走 PlatformRequestError，
+// 故这里除 instanceof 外还需按字段识别。
 function requestFailure(error: unknown): { code: string; requestId: string } | undefined {
   if (error instanceof PlatformRequestError) return error;
   if (

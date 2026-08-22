@@ -10,6 +10,7 @@ import type {
   ByteTransportHandlers,
 } from "@earendil-works/pi-client";
 
+// 与 gateway 端 packages/gateway/src/server/websocket.ts 的 WEBSOCKET_PATH 必须一致。
 export const WEBSOCKET_PATH = "/api/v1/pi";
 
 export interface WebSocketTransportOptions {

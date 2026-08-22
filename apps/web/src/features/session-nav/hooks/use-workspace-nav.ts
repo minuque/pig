@@ -3,13 +3,12 @@ import type { Router } from "vue-router";
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
 import { errorMessage, platformRequest } from "@client/http.js";
 import type { useLocalWorkspaces } from "@client/local-cwd.js";
+import { workspaceName } from "@features/session-nav/format.js";
 import {
   groupSessionsByCwd,
   listSessionsForSidebar,
-  localWorkspacesFrom,
-  workspaceName,
   type SessionCardExtra,
-} from "@features/session-nav/types.js";
+} from "@features/session-nav/sidebar.js";
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>;
 
@@ -25,7 +24,7 @@ export function useWorkspaceNav(
   },
 ) {
   const addingWorkspace = ref(false);
-  const workspaces = computed(() => localWorkspacesFrom(local.workspaces.value));
+  const workspaces = local.workspaces;
   const groups = computed(() => groupSessionsByCwd(sessions.value, local.workspaces.value));
   /** null = 全部工作目录。对齐 T3 `projectScopeKey`。 */
   const projectScope = shallowRef<string | null>(null);

@@ -6,7 +6,7 @@ import type {
   ThinkingLevel,
 } from "@earendil-works/pi-protocol";
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
-import { UNTITLED_SESSION } from "@features/session-nav/types.js";
+import { UNTITLED_SESSION } from "@features/session-nav/format.js";
 
 /** 每 Session 的 UI 私有状态（草稿、滚动位置恢复），不进入任何 Agent Domain。 */
 export interface SessionClientState {

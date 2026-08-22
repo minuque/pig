@@ -84,7 +84,8 @@ export function typedSlogan(charCount: number): {
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from "vue";
-import { createPiLogoPlayer, type PiLogoPlayer } from "@features/startup/lib/pi-logo-animation.js";
+import { createPiLogoPlayer } from "@features/startup/lib/pi-logo-animation.js";
+import { sleep } from "@features/startup/lib/sleep.js";
 
 const emit = defineEmits<{ reveal: []; finished: [] }>();
 
@@ -100,7 +101,7 @@ const slogan = computed(() => typedSlogan(typedChars.value));
 const showCursor = computed(() => sloganTyping.value);
 
 const LEAVE_MS = 440;
-let player: PiLogoPlayer | undefined;
+let player: ReturnType<typeof createPiLogoPlayer> | undefined;
 let leaveTimer = 0;
 let reducedMotion = false;
 let finished = false;
@@ -109,24 +110,6 @@ let themeObserver: MutationObserver | undefined;
 let motionQuery: MediaQueryList | undefined;
 let sloganAbort: AbortController | undefined;
 let sloganPromise: Promise<void> = Promise.resolve();
-
-function sleep(ms: number, signal: AbortSignal): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (signal.aborted) {
-      resolve(false);
-      return;
-    }
-    const timer = window.setTimeout(() => resolve(!signal.aborted), ms);
-    signal.addEventListener(
-      "abort",
-      () => {
-        window.clearTimeout(timer);
-        resolve(false);
-      },
-      { once: true },
-    );
-  });
-}
 
 async function runSlogan(signal: AbortSignal): Promise<void> {
   sloganTyping.value = true;

@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { PanelLeft } from "lucide-vue-next";
-import { workspaceName, UNTITLED_SESSION } from "@features/session-nav/types.js";
+import { UNTITLED_SESSION, workspaceName } from "@features/session-nav/format.js";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import { phaseLabel } from "@features/session-workbench/components/SessionControlBar.vue";

@@ -14,7 +14,7 @@
           :aria-label="ariaLabel"
           :data-empty="!hasText || undefined"
           :data-placeholder="placeholder"
-          @input="onEditorInput"
+          @input="syncFromEditor"
           @keydown="onEditorKeydown"
         ></div>
       </div>
@@ -105,9 +105,6 @@ function syncFromPrompt() {
 watch(prompt, syncFromPrompt);
 onMounted(syncFromPrompt);
 
-function onEditorInput() {
-  syncFromEditor();
-}
 function onEditorKeydown(e: KeyboardEvent) {
   if (shouldSubmitOnKeydown(e)) {
     e.preventDefault();

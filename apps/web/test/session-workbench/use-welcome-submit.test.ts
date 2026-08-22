@@ -1,14 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
 import type { ChatInputPreset } from "@features/chat-input/types.js";
-import type { LocalWorkspace } from "@features/session-nav/types.js";
 import {
   nextWelcomeWorkspaceId,
   useWelcomeSubmit,
 } from "@features/session-workbench/hooks/use-welcome-submit.js";
 
-function workspace(id: string): LocalWorkspace {
-  return { canonicalPath: `/${id}` };
+function workspace(id: string): string {
+  return `/${id}`;
 }
 const preset: ChatInputPreset = {
   model: { provider: "openai", id: "gpt-5" },

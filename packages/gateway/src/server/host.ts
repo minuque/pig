@@ -90,6 +90,13 @@ export class Gateway {
     return header?.startsWith("Bearer ") ? header.slice(7) : undefined;
   }
 
+  /** 校验 Bearer 凭证；失败时写 401 响应并返回 false。 */
+  private requireAuth(req: IncomingMessage, res: ServerResponse): boolean {
+    if (this.auth.verify(this.credential(req))) return true;
+    this.send(res, 401, { code: "UNAUTHENTICATED" });
+    return false;
+  }
+
   private async handleRequest(req: IncomingMessage, res: ServerResponse) {
     const url = new URL(req.url ?? "/", "http://127.0.0.1");
     if (url.pathname === "/health" && req.method === "GET")
@@ -112,8 +119,7 @@ export class Gateway {
       }
     }
     if (url.pathname === "/api/v1/platform/select-directory" && req.method === "POST") {
-      if (!this.auth.verify(this.credential(req)))
-        return this.send(res, 401, { code: "UNAUTHENTICATED" });
+      if (!this.requireAuth(req, res)) return;
       try {
         const body = await this.body(req).catch((): Record<string, unknown> => ({}));
         const input = typeof body.path === "string" ? body.path : undefined;
@@ -129,8 +135,7 @@ export class Gateway {
       }
     }
     if (url.pathname === "/api/v1/platform/session-cards" && req.method === "GET") {
-      if (!this.auth.verify(this.credential(req)))
-        return this.send(res, 401, { code: "UNAUTHENTICATED" });
+      if (!this.requireAuth(req, res)) return;
       try {
         const cards = await this.hostService.listSessionCards();
         return this.send(res, 200, { cards });
@@ -158,8 +163,7 @@ export class Gateway {
     res: ServerResponse,
     run: (id: string, body: Record<string, unknown>) => Promise<void>,
   ) {
-    if (!this.auth.verify(this.credential(req)))
-      return this.send(res, 401, { code: "UNAUTHENTICATED" });
+    if (!this.requireAuth(req, res)) return;
     try {
       const body = await this.body(req);
       const id = typeof body.id === "string" ? body.id : "";

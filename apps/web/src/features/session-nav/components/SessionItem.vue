@@ -82,7 +82,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js";
-import { formatRelativeTime, sessionRecency, sessionTitle } from "@features/session-nav/types.js";
+import { formatRelativeTime, sessionRecency, sessionTitle } from "@features/session-nav/format.js";
 import VendorMark from "@features/chat-input/components/VendorMark.vue";
 
 const props = withDefaults(

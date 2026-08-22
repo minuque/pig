@@ -125,6 +125,8 @@ export type DirectoryExecFile = (
   options: { encoding: "utf8"; windowsHide: boolean; timeout: number },
 ) => Promise<{ stdout: string }>;
 
+// 与 web 端 apps/web/src/client/local-cwd.ts 的 canonicalizeWorkspacePath 是同一套
+// 规范化逻辑（分隔符/盘符/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizePath(path: string): string {
   const normalized = resolve(path).replaceAll("\\", "/").replace(/\/$/, "");
   return /^[A-Z]:/.test(normalized)

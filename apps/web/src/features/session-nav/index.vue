@@ -161,7 +161,7 @@ import {
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
-import { workspaceName } from "@features/session-nav/types.js";
+import { workspaceName } from "@features/session-nav/format.js";
 
 defineProps<{
   collapsed?: boolean;
