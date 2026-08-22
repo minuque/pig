@@ -348,13 +348,13 @@ html[data-pig-desktop-platform] .session-nav input {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: #ffffff;
+  color: var(--on-primary);
 }
 .collapse-toggle:hover,
 .rail-action:hover:not(:disabled),
 .toolbar-icon:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
-  color: #ffffff;
+  color: var(--on-primary);
 }
 .rail-action:disabled,
 .toolbar-icon:disabled {
@@ -481,10 +481,10 @@ html[data-pig-desktop-platform] .session-nav input {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: #ffffff;
+  color: var(--on-primary);
 }
 .settings-placeholder:hover {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
-  color: #ffffff;
+  color: var(--on-primary);
 }
 </style>

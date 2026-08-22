@@ -47,7 +47,7 @@ const images = computed(() => transcriptImages(props.item));
   overflow: auto;
   border-radius: var(--radius-xl);
   background: var(--primary);
-  color: #ffffff;
+  color: color-mix(in srgb, var(--on-primary) 78%, var(--secondary));
   font-size: var(--text-body-md);
   line-height: 1.5;
   overflow-wrap: anywhere;
