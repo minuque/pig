@@ -85,9 +85,9 @@ export class PiHostService implements PiServerService {
     const path = manager.getSessionFile();
     const header = manager.getHeader();
     if (!path || !header) throw new Error("Pi did not create a persistent session");
-    // 立即落盘 header，保证 PiServer 分配的 id 持久化（Pi 仅在出现助手消息后写文件）
+    // 立即落盘 header，保证 PiServer 分配的 id 持久化（Pi 仅在出现助手消息后写文件）。
+    // SDK 无 ensurePersisted API，写入后用 SessionManager 回读校验替代。
     await mkdir(dirname(path), { recursive: true });
-    // temporary compatibility: SDK 暂无 ensurePersisted；写后立即用 SessionManager 回读校验。
     await writeFile(path, serializeEntries(header, manager.getEntries()), { flag: "wx" });
     if (SessionManager.open(path).getHeader()?.id !== options.id) {
       await rm(path, { force: true });

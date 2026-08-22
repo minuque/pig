@@ -40,6 +40,7 @@ export function useLeftPanel() {
     const startX = event.clientX;
     const startWidth = leftWidth.value;
     resizing.value = true;
+    // pointermove 用 rAF 合帧：每帧至多计算一次宽度，pointerup 后补一次最终位置
     let frame = 0;
     let pendingX = startX;
     const move = (next: PointerEvent) => {

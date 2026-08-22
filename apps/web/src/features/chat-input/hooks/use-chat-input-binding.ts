@@ -26,6 +26,7 @@ interface ChatInputBindingOptions {
 /** Session 快照与模型选择器之间唯一的双向同步点。 */
 export function useChatInputBinding(options: ChatInputBindingOptions) {
   const preset = ref<ChatInputPreset>();
+  // 回声抑制：setModel 在途时快照仍是旧模型，不让快照回写覆盖用户刚选的值
   const pendingModel = ref(false);
 
   watch(

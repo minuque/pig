@@ -21,6 +21,7 @@ export function useModelPresetBinding(
       if (preset.value) preset.value = { ...preset.value, thinkingLevel };
     },
   });
+  // 切模型后当前 thinkingLevel 不在新模型的档位里时，回落到第一档
   watch(modelLevels, (levels) => {
     if (levels.length && !levels.includes(level.value) && preset.value) {
       preset.value = { ...preset.value, thinkingLevel: levels[0]! };

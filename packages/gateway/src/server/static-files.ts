@@ -18,6 +18,7 @@ export async function serveWebFile(root: string, pathname: string, res: ServerRe
     return false;
   }
   const file = resolve(root, requested);
+  // 路径穿越防御：解析后的真实路径必须仍在 webRoot 内
   const pathFromRoot = relative(resolve(root), file);
   if (pathFromRoot.startsWith("..") || isAbsolute(pathFromRoot)) return false;
 
@@ -29,6 +30,7 @@ export async function serveWebFile(root: string, pathname: string, res: ServerRe
     res.end(content);
     return true;
   } catch {
+    // 无扩展名的路径回退 index.html（SPA 前端路由）；带扩展名的静态资源缺失按 404 处理
     if (extname(requested)) return false;
     try {
       const content = await readFile(resolve(root, "index.html"));
