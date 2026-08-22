@@ -83,6 +83,7 @@ const thinkingChip = computed(() => {
   padding: 0;
   border: 0;
   background: transparent;
+  color: #ffffff;
 }
 .workbench-header h1 {
   min-width: 0;

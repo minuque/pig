@@ -285,7 +285,7 @@ function onDelete() {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--ink-faint);
+  color: #ffffff;
   opacity: 0;
 }
 .session-item .session-kebab {

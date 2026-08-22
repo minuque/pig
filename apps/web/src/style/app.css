@@ -171,7 +171,7 @@
   color-scheme: dark;
   --primary: #679efe;
   --primary-active: #4d8af0;
-  --on-primary: #0f1115;
+  --on-primary: #ffffff;
   --canvas: #151517;
   --canvas-soft: #1b1b1c;
   --surface: #151517;
@@ -370,6 +370,7 @@ textarea {
 .icon-button {
   width: var(--size-control);
   padding: 0;
+  color: #ffffff;
 }
 .selector {
   display: inline-flex;
