@@ -350,6 +350,11 @@ button:not(:disabled):active {
   outline: var(--focus-ring-width) solid var(--primary);
   outline-offset: var(--focus-ring-width);
 }
+input:focus-visible,
+textarea:focus-visible,
+[contenteditable]:focus-visible {
+  outline: none;
+}
 h1,
 h2,
 p {
@@ -585,9 +590,6 @@ html[data-pig-desktop-platform] .prompt .glass-host::after {
   border-radius: inherit;
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent);
   content: "";
-}
-html[data-pig-desktop-platform] .prompt .glass-host:focus-within::after {
-  border-color: color-mix(in srgb, var(--primary) 36%, var(--hairline));
 }
 html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
   background: color-mix(

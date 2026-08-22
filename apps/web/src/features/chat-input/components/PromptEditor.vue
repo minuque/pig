@@ -128,10 +128,6 @@ defineExpose({ focus });
   border: var(--border-width) solid var(--composer-ring);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
-  transition: border-color var(--duration-fast) var(--ease-smooth);
-}
-.glass-host:focus-within {
-  border-color: color-mix(in srgb, var(--primary) 48%, var(--composer-ring));
 }
 
 .chips {
