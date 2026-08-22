@@ -11,7 +11,7 @@ const router = createRouter({
     {
       name: "session",
       path: "/sessions/:sessionId",
-      component: () => import("@features/session-workbench/components/SessionCanvas.vue"),
+      component: () => import("@features/session-workbench/components/WorkbenchMain.vue"),
     },
     {
       name: "error",

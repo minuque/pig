@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isEmptyCanvas } from "@features/session-workbench/components/SessionCanvas.vue";
+import { isEmptyCanvas } from "@features/session-workbench/components/WorkbenchMain.vue";
 
 describe("isEmptyCanvas", () => {
   it("idle 或未定 phase 且无 transcript 时走居中空画布", () => {
