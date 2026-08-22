@@ -234,15 +234,17 @@ function onDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--ink);
+  color: var(--ink-muted);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-sm--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-smooth);
 }
-.session-card.active .title {
-  font-weight: var(--font-weight-medium);
+.session-item:hover .title,
+.session-item:has(.session-kebab[aria-expanded="true"]) .title {
+  color: var(--ink);
 }
 .session-meta {
   flex: none;
