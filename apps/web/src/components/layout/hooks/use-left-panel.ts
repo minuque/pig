@@ -25,19 +25,7 @@ export function useLeftPanel() {
   const isNarrow = ref(narrowViewport.matches);
   const leftWidth = ref(clampPanelWidth(window.innerWidth * 0.18));
   const resizing = ref(false);
-  /** 拖拽期间冻结主栏宽度，避免 transcript 每帧重测。 */
-  const frozenMainWidth = ref<number | null>(null);
-  let unfreezeFrame = 0;
 
-  function cancelUnfreeze() {
-    if (!unfreezeFrame) return;
-    cancelAnimationFrame(unfreezeFrame);
-    unfreezeFrame = 0;
-  }
-  function unfreezeMain() {
-    resizing.value = false;
-    frozenMainWidth.value = null;
-  }
   function setPanelWidth(desired: number) {
     leftWidth.value = panelWidthFor(desired, window.innerWidth);
   }
@@ -51,11 +39,6 @@ export function useLeftPanel() {
     handle.setPointerCapture(event.pointerId);
     const startX = event.clientX;
     const startWidth = leftWidth.value;
-    const shell = handle.closest(".shell");
-    const main = shell?.querySelector("main");
-    cancelUnfreeze();
-    frozenMainWidth.value =
-      main instanceof HTMLElement ? Math.round(main.getBoundingClientRect().width) : null;
     resizing.value = true;
     let frame = 0;
     let pendingX = startX;
@@ -73,12 +56,7 @@ export function useLeftPanel() {
       handle.removeEventListener("pointercancel", stop);
       if (frame) cancelAnimationFrame(frame);
       setPanelWidth(startWidth + (pendingX - startX));
-      // 侧栏宽度先落地，下一帧再解冻主栏，时间线只量一次
-      cancelUnfreeze();
-      unfreezeFrame = requestAnimationFrame(() => {
-        unfreezeFrame = 0;
-        unfreezeMain();
-      });
+      resizing.value = false;
       if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
     };
     handle.addEventListener("pointermove", move);
@@ -105,7 +83,6 @@ export function useLeftPanel() {
   fitPanels();
   watch(leftOpen, () => void fitPanels());
   onBeforeUnmount(() => {
-    cancelUnfreeze();
     narrowViewport.removeEventListener("change", handleViewportChange);
     window.removeEventListener("resize", fitPanels);
   });
@@ -114,7 +91,6 @@ export function useLeftPanel() {
     leftWidth: readonly(leftWidth),
     isNarrow: readonly(isNarrow),
     resizing: readonly(resizing),
-    frozenMainWidth: readonly(frozenMainWidth),
     toggle,
     resizeBy,
     startResize,

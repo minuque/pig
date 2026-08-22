@@ -2,10 +2,7 @@
   <div
     class="shell"
     :class="{ 'left-closed': !leftOpen, 'is-resizing': resizing }"
-    :style="{
-      '--left-width': `${leftWidth}px`,
-      ...(frozenMainWidth != null ? { '--main-frozen-width': `${frozenMainWidth}px` } : {}),
-    }"
+    :style="{ '--left-width': `${leftWidth}px` }"
   >
     <aside class="sidebar" :class="{ open: leftOpen }" aria-label="工作目录和会话导航">
       <slot
@@ -51,7 +48,6 @@ const {
   leftWidth,
   isNarrow,
   resizing,
-  frozenMainWidth,
   toggle,
   resizeBy,
   startResize,
@@ -102,9 +98,6 @@ const {
 }
 .shell.is-resizing main {
   pointer-events: none;
-  contain: strict;
-  flex: none;
-  width: var(--main-frozen-width);
 }
 main {
   flex: 1;

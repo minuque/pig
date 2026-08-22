@@ -108,8 +108,8 @@
   --size-windows-caption: 138px;
   --size-context: 300px; /* right panel width */
   --size-drawer: 360px; /* mobile drawer width */
-  --size-content: 46.75rem; /* 748px transcript；大屏见媒体查询 */
-  --size-composer: 46.75rem; /* 输入卡；大屏略窄于正文列 */
+  --size-content: 46.75rem; /* 748px 对话列，居中；侧栏拖拽只改变留白 */
+  --size-composer: 46.75rem; /* 与对话列同宽 */
   --size-modal: 32rem; /* dialog max width */
   --size-welcome: 45rem;
   --size-nav-action: 28px;
@@ -164,14 +164,6 @@
   --duration-normal: 200ms;
   --duration-slow: 280ms;
   --duration-shimmer: 2s; /* loading 扫光循环 */
-}
-
-/* 全屏：对话列与输入卡占主栏 60% */
-@media (min-width: 1400px) {
-  :root {
-    --size-content: 60%;
-    --size-composer: 60%;
-  }
 }
 
 /* ─── Dark mode — 近黑工作台；仅覆盖颜色/阴影 token，尺寸/动效继承 :root ─── */
