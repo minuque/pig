@@ -164,7 +164,8 @@ function onDelete() {
 }
 .workspace-mark {
   flex: none;
-  color: var(--ink);
+  color: var(--ink-muted);
+  transition: color var(--duration-fast) var(--ease-smooth);
 }
 .card-line {
   display: flex;
@@ -222,13 +223,25 @@ function onDelete() {
 .card-model :deep(.vendor-mark) {
   display: block;
   line-height: 0;
+  filter: grayscale(1);
+  opacity: 0.65;
+  transition:
+    filter var(--duration-fast) var(--ease-smooth),
+    opacity var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+.card-model :deep(.vendor-mark-mono) {
+  color: var(--ink-muted);
+  filter: none;
+  opacity: 1;
 }
 .card-model-name {
-  color: var(--ink);
+  color: var(--ink-muted);
   min-width: 0;
   overflow: hidden;
   line-height: 1;
   text-overflow: ellipsis;
+  transition: color var(--duration-fast) var(--ease-smooth);
 }
 .title {
   min-width: 0;
@@ -243,7 +256,17 @@ function onDelete() {
   transition: color var(--duration-fast) var(--ease-smooth);
 }
 .session-item:hover .title,
-.session-item:has(.session-kebab[aria-expanded="true"]) .title {
+.session-item:hover .workspace-mark,
+.session-item:hover .card-model-name,
+.session-item:has(.session-kebab[aria-expanded="true"]) .title,
+.session-item:has(.session-kebab[aria-expanded="true"]) .workspace-mark,
+.session-item:has(.session-kebab[aria-expanded="true"]) .card-model-name {
+  color: var(--ink);
+}
+.session-item:hover .card-model :deep(.vendor-mark),
+.session-item:has(.session-kebab[aria-expanded="true"]) .card-model :deep(.vendor-mark) {
+  filter: none;
+  opacity: 1;
   color: var(--ink);
 }
 .session-meta {
