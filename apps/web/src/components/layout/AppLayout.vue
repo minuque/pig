@@ -85,12 +85,6 @@ const {
   cursor: col-resize;
   touch-action: none;
   background: var(--canvas-soft);
-  transition: background var(--duration-fast) var(--ease-smooth);
-}
-.resizer:hover,
-.resizer:focus-visible,
-.shell.is-resizing .resizer {
-  background: var(--primary-active);
 }
 .shell.is-resizing {
   cursor: col-resize;
