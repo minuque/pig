@@ -33,6 +33,29 @@
 
     <div v-show="!collapsed" class="nav-main">
       <div v-if="groups.length > 0" class="nav-toolbar">
+        <div class="search-row">
+          <label class="search-field">
+            <Search :size="16" aria-hidden="true" />
+            <input
+              v-model="searchQuery"
+              class="search-input"
+              type="search"
+              placeholder="搜索"
+              aria-label="搜索会话"
+              autocomplete="off"
+            />
+          </label>
+          <button
+            class="icon-button toolbar-icon"
+            type="button"
+            :disabled="!newSessionPath || Boolean(creating)"
+            aria-label="新会话"
+            title="新会话"
+            @click="onNewSession()"
+          >
+            <SquarePen :size="16" aria-hidden="true" />
+          </button>
+        </div>
         <div class="scope-row">
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
@@ -79,16 +102,6 @@
           <button
             class="icon-button toolbar-icon"
             type="button"
-            :disabled="!newSessionPath || Boolean(creating)"
-            aria-label="新会话"
-            title="新会话"
-            @click="onNewSession()"
-          >
-            <SquarePen :size="16" aria-hidden="true" />
-          </button>
-          <button
-            class="icon-button toolbar-icon"
-            type="button"
             :disabled="addingWorkspace"
             aria-label="添加本地目录"
             title="添加本地目录"
@@ -101,7 +114,7 @@
 
       <div v-bind="containerProps" class="nav-body">
         <nav class="session-list" aria-label="会话列表">
-          <ul v-if="listedSessions.length > 0" v-bind="wrapperProps" role="list">
+          <ul v-if="visibleSessions.length > 0" v-bind="wrapperProps" role="list">
             <li v-for="item in list" :key="item.data.id">
               <SessionItem
                 :session="item.data"
@@ -125,6 +138,7 @@
                 添加本地目录
               </button>
             </template>
+            <span v-else-if="searchQuery.trim()">没有匹配的会话</span>
             <span v-else-if="projectScope.length">「{{ scopedGroupName }}」暂无会话</span>
             <span v-else>暂无会话</span>
           </div>
@@ -141,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, watch } from "vue";
+import { computed, nextTick, shallowRef, watch } from "vue";
 import { useVirtualList } from "@vueuse/core";
 import { RouterLink } from "vue-router";
 import {
@@ -151,6 +165,7 @@ import {
   FolderPlus,
   PanelLeft,
   Plus,
+  Search,
   Settings,
   SquarePen,
   X,
@@ -166,6 +181,7 @@ import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
 import { workspaceName, workspaceScopeLabel } from "@features/session-nav/format.js";
+import { filterSessionsForSearch } from "@features/session-nav/sidebar.js";
 
 defineProps<{
   collapsed?: boolean;
@@ -195,9 +211,14 @@ const {
 } = useNav();
 const { creating, createSession } = useSession();
 
-/* 卡片 4.875rem + 行间 1px */
-const SESSION_ROW_PX = 79;
-const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(listedSessions, {
+const searchQuery = shallowRef("");
+const visibleSessions = computed(() =>
+  filterSessionsForSearch(listedSessions.value, searchQuery.value),
+);
+
+/* 卡片 4.875rem + 行间 8px */
+const SESSION_ROW_PX = 86;
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(visibleSessions, {
   itemHeight: SESSION_ROW_PX,
 });
 const scopedGroupName = computed(() => workspaceScopeLabel(projectScope.value));
@@ -208,11 +229,11 @@ watch(workspaceError, (message) => {
 });
 
 watch(
-  () => [activeSessionId.value, listedSessions.value] as const,
+  () => [activeSessionId.value, visibleSessions.value] as const,
   async () => {
     await nextTick();
     const id = activeSessionId.value;
-    const index = listedSessions.value.findIndex((session) => session.id === id);
+    const index = visibleSessions.value.findIndex((session) => session.id === id);
     if (index >= 0) scrollTo(index);
   },
 );
@@ -390,15 +411,17 @@ html[data-pig-desktop-platform] .session-nav input {
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--spacing-xs);
   padding-inline: 2px;
 }
+.search-row,
 .scope-row {
   display: flex;
   align-items: center;
   gap: 4px;
   min-width: 0;
 }
+.search-field,
 .scope-trigger {
   display: flex;
   align-items: center;
@@ -406,15 +429,42 @@ html[data-pig-desktop-platform] .session-nav input {
   min-width: 0;
   flex: 1;
   height: 32px;
+  min-height: 32px;
   padding: 0 8px;
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--ink);
-  text-align: left;
+  color: var(--ink-muted);
+}
+.search-field {
+  cursor: text;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
 }
 .scope-trigger:hover {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+.search-input {
+  min-width: 0;
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-body-sm);
+  appearance: none;
+  user-select: text;
+}
+.search-input::placeholder {
+  color: var(--ink-faint);
+}
+.search-input::-webkit-search-cancel-button {
+  display: none;
+}
+.scope-trigger {
+  color: var(--ink);
+  text-align: left;
 }
 .scope-label {
   min-width: 0;
@@ -428,10 +478,12 @@ html[data-pig-desktop-platform] .session-nav input {
 .session-list ul {
   display: flex;
   flex-direction: column;
-  gap: 1px;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+.session-list li {
+  padding-bottom: var(--spacing-xs);
 }
 .empty-state {
   display: flex;

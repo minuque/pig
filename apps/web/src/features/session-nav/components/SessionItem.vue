@@ -27,13 +27,12 @@
         <span v-else class="card-spacer"></span>
         <span class="session-meta">
           <span v-if="running" class="session-status">运行中</span>
-          <time
-            v-else-if="sessionRecency(session)"
-            class="session-time"
-            :datetime="new Date(sessionRecency(session)).toISOString()"
-          >
-            {{ formatRelativeTime(sessionRecency(session)) }}
-          </time>
+          <template v-else-if="sessionRecency(session)">
+            <Clock :size="12" class="session-clock" aria-hidden="true" />
+            <time class="session-time" :datetime="new Date(sessionRecency(session)).toISOString()">
+              {{ formatRelativeTime(sessionRecency(session)) }}
+            </time>
+          </template>
         </span>
       </div>
       <div class="card-title-line">
@@ -74,7 +73,7 @@
 
 <script setup lang="ts">
 import { nextTick, ref } from "vue";
-import { Folder, MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next";
+import { Clock, Folder, MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next";
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
 import {
   DropdownMenu,
@@ -249,7 +248,12 @@ function onDelete() {
   flex: none;
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   transition: opacity var(--duration-fast) var(--ease-smooth);
+}
+.session-clock {
+  flex: none;
+  color: var(--ink-faint);
 }
 .session-time {
   color: var(--ink-faint);

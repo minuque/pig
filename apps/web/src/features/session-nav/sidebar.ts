@@ -1,6 +1,6 @@
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js";
-import { sessionRecency } from "./format.js";
+import { sessionRecency, sessionTitle, workspaceName } from "./format.js";
 
 /** 左侧导航按 cwd 分组；authorized 表示目录在本地授权列表。 */
 export interface SessionGroup {
@@ -37,6 +37,20 @@ export function listSessionsForSidebar(
       return cwd !== undefined && (scope.size === 0 || scope.has(cwd));
     }),
   );
+}
+
+/** 按标题或目录名过滤侧栏会话，空查询原样返回。 */
+export function filterSessionsForSearch(
+  sessions: readonly SessionMetadata[],
+  query: string,
+): SessionMetadata[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return [...sessions];
+  return sessions.filter((session) => {
+    if (sessionTitle(session).toLowerCase().includes(needle)) return true;
+    const cwd = session.cwd;
+    return Boolean(cwd && workspaceName(cwd).toLowerCase().includes(needle));
+  });
 }
 
 /** 勾选/取消一个工作目录；路径先规范化再比较。 */

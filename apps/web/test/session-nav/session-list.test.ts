@@ -7,6 +7,7 @@ import {
   workspaceScopeLabel,
 } from "@features/session-nav/format.js";
 import {
+  filterSessionsForSearch,
   groupSessionsByCwd,
   listSessionsForSidebar,
   modelDisplayNames,
@@ -144,6 +145,18 @@ describe("session-dimension list", () => {
       "a2",
       "a1",
     ]);
+  });
+
+  it("filters listed sessions by title or workspace name", () => {
+    const sessions: SessionMetadata[] = [
+      { id: "a", createdAt: 1, cwd: "/repo/pig", sessionName: "渲染性能" },
+      { id: "b", createdAt: 2, cwd: "/repo/tmp", sessionName: "Friendly Greeting" },
+    ];
+    expect(filterSessionsForSearch(sessions, "").map((session) => session.id)).toEqual(["a", "b"]);
+    expect(filterSessionsForSearch(sessions, "  greeting ").map((session) => session.id)).toEqual([
+      "b",
+    ]);
+    expect(filterSessionsForSearch(sessions, "PIG").map((session) => session.id)).toEqual(["a"]);
   });
 
   it("treats live Windows cwd and canonical workspace path as the same filter", () => {
