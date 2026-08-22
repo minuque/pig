@@ -59,11 +59,11 @@ Tool Call 默认：状态图标、名称、截断入参。展开后完整入参�
 
 模型仅 `idle` 时可改。列表真相在 Pi：按会话平铺，创建时间新→旧，活动不重排。工作目录只做顶部筛选。
 
-卡片三行：目录名 + 相对时间、标题、消息数 + 当前模型（space-between）。侧栏底设置齿轮占位。折叠钮旁 pig 标回 `/`。侧栏操作失败用右上 Alert。
+卡片三行：目录名 + 相对时间、标题、消息数 + 当前模型（space-between）。标题用 `caption`。侧栏底设置齿轮占位。折叠钮旁 pig 标回 `/`。侧栏操作失败用右上 Alert。
 
 ### 顶栏
 
-Session 标题 + 淡 cwd 名。右上 ThemeToggle。thinking 为 off 时不显示芯片。phase / 连接只在非 idle 显示。
+Session 标题（`caption`）+ 淡 cwd 名。右上 ThemeToggle。thinking 为 off 时不显示芯片。phase / 连接只在非 idle 显示。
 
 ### ChatInput
 

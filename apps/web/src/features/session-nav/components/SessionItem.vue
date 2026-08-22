@@ -242,9 +242,9 @@ function onDelete() {
   flex: 1;
   overflow: hidden;
   color: var(--ink-muted);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-regular);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color var(--duration-fast) var(--ease-smooth);
@@ -309,7 +309,8 @@ function onDelete() {
   background: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
   user-select: text;
 }
 .session-kebab {

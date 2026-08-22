@@ -91,9 +91,9 @@ const thinkingChip = computed(() => {
   margin: 0;
   overflow: hidden;
   color: var(--ink);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
