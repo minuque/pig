@@ -449,6 +449,17 @@ small,
   background: transparent;
   color: var(--ink-muted);
 }
+/* 菜单项内嵌按钮：覆盖全局主色圆钮，避免「从列表移除」等被撑成蓝椭圆 */
+[data-slot="dropdown-menu-item"] button {
+  min-height: 0;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+}
+[data-slot="dropdown-menu-item"] button:not(:disabled):active {
+  transform: none;
+}
 /* ── 入场与状态动效 ───────────────────────────────────────────────── */
 @keyframes enter-blur {
   from {

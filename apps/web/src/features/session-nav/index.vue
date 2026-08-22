@@ -89,7 +89,7 @@
                   />
                   <button
                     v-if="group.authorized"
-                    class="ml-auto inline-flex size-6 items-center justify-center rounded-md text-ink-faint hover:text-ink"
+                    class="scope-revoke"
                     type="button"
                     :aria-label="`从列表移除 ${workspaceName(group.canonicalPath)}`"
                     @pointerdown.stop
@@ -485,6 +485,24 @@ html[data-pig-desktop-platform] .session-nav input {
   font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.scope-revoke {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-nav-action);
+  min-height: var(--size-nav-action);
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-faint);
+}
+.scope-revoke:hover {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--ink);
 }
 .session-list ul {
   display: flex;
