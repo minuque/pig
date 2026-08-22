@@ -7,6 +7,7 @@ import { SessionManager } from "@earendil-works/pi-coding-agent";
 import type { TranscriptProgress } from "@earendil-works/pi-protocol";
 import { SessionBusyError } from "@earendil-works/pi-server";
 import { afterEach, describe, expect, it } from "vitest";
+import { canonicalizePath } from "../src/directory.js";
 import { PiHostService } from "../src/pi/service.js";
 import { PiHostSession } from "../src/pi/session-runtime.js";
 import {
@@ -233,7 +234,7 @@ describe("PiHostSession", () => {
     const snapshot = runtime.snapshot();
     expect(snapshot).toMatchObject({
       id: "session-1",
-      cwd: resolve("/tmp"),
+      cwd: canonicalizePath(resolve("/tmp")),
       phase: "idle",
       model: { provider: "test", id: "test-model" },
       thinkingLevel: "medium",

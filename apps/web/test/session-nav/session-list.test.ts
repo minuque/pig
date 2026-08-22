@@ -60,6 +60,20 @@ describe("workspaceName and grouping", () => {
     expect(formatRelativeTime(now - 26 * 60 * 60_000, now)).toBe("1d");
   });
 
+  it("merges live Windows cwd into the canonical local workspace group", () => {
+    const groups = groupSessionsByCwd(
+      [{ id: "open", createdAt: 1, cwd: "G:\\AICode\\pig" }],
+      ["g:/AICode/pig"],
+    );
+    expect(groups).toEqual([
+      {
+        canonicalPath: "g:/AICode/pig",
+        sessions: [{ id: "open", createdAt: 1, cwd: "G:\\AICode\\pig" }],
+        authorized: true,
+      },
+    ]);
+  });
+
   it("keeps empty local workspaces and appends sessions from other cwd", () => {
     const groups = groupSessionsByCwd(
       [
@@ -108,6 +122,16 @@ describe("session-dimension list", () => {
     expect(listSessionsForSidebar(sessions, "/a").map((session) => session.id)).toEqual([
       "a2",
       "a1",
+    ]);
+  });
+
+  it("treats live Windows cwd and canonical workspace path as the same filter", () => {
+    const sessions: SessionMetadata[] = [
+      { id: "open", createdAt: 2, cwd: "G:\\AICode\\pig" },
+      { id: "other", createdAt: 1, cwd: "/elsewhere" },
+    ];
+    expect(listSessionsForSidebar(sessions, "g:/AICode/pig").map((session) => session.id)).toEqual([
+      "open",
     ]);
   });
 

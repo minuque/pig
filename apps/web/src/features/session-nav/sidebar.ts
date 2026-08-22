@@ -1,4 +1,5 @@
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
+import { canonicalizeWorkspacePath } from "@client/local-cwd.js";
 import { sessionRecency } from "./format.js";
 
 /** 左侧导航按 cwd 分组；authorized 表示目录在本地授权列表。 */
@@ -29,26 +30,36 @@ export function listSessionsForSidebar(
   sessions: readonly SessionMetadata[],
   scopeCwd: string | null,
 ): SessionMetadata[] {
+  const scope = scopeCwd === null ? null : canonicalizeWorkspacePath(scopeCwd);
   return sortSessionsForSidebar(
-    sessions.filter((session) => session.cwd && (scopeCwd === null || session.cwd === scopeCwd)),
+    sessions.filter((session) => {
+      const cwd = sessionCwd(session);
+      return cwd !== undefined && (scope === null || cwd === scope);
+    }),
   );
 }
 
 /** 已授权目录优先；其余 Pi Session 按 cwd 继续展示。组内按最近活动倒序。 */
+function sessionCwd(session: Pick<SessionMetadata, "cwd">): string | undefined {
+  return session.cwd ? canonicalizeWorkspacePath(session.cwd) : undefined;
+}
+
 export function groupSessionsByCwd(
   sessions: readonly SessionMetadata[],
   localWorkspaces: readonly string[],
 ): SessionGroup[] {
   const byPath = new Map<string, SessionMetadata[]>();
   for (const session of sessions) {
-    if (!session.cwd) continue;
-    const list = byPath.get(session.cwd);
+    const cwd = sessionCwd(session);
+    if (!cwd) continue;
+    const list = byPath.get(cwd);
     if (list) list.push(session);
-    else byPath.set(session.cwd, [session]);
+    else byPath.set(cwd, [session]);
   }
-  const local = new Set(localWorkspaces);
+  const localPaths = localWorkspaces.map(canonicalizeWorkspacePath);
+  const local = new Set(localPaths);
   return [
-    ...localWorkspaces.map((canonicalPath) => ({
+    ...localPaths.map((canonicalPath) => ({
       canonicalPath,
       sessions: sortSessionsByRecency(byPath.get(canonicalPath) ?? []),
       authorized: true,

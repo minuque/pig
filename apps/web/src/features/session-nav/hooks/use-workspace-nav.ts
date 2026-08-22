@@ -3,6 +3,7 @@ import type { Router } from "vue-router";
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
 import { errorMessage, platformRequest } from "@client/http.js";
 import type { useLocalWorkspaces } from "@client/local-cwd.js";
+import { canonicalizeWorkspacePath } from "@client/local-cwd.js";
 import { workspaceName } from "@features/session-nav/format.js";
 import {
   groupSessionsByCwd,
@@ -69,7 +70,9 @@ export function useWorkspaceNav(
 
   watch(groups, (list) => {
     const scoped = projectScope.value;
-    if (scoped !== null && !list.some((group) => group.canonicalPath === scoped)) {
+    if (scoped === null) return;
+    const canonical = canonicalizeWorkspacePath(scoped);
+    if (!list.some((group) => group.canonicalPath === canonical)) {
       projectScope.value = null;
     }
   });

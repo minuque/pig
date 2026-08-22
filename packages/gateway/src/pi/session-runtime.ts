@@ -12,6 +12,7 @@ import type {
   PromptInput,
   SteerInput,
 } from "@earendil-works/pi-server";
+import { canonicalizePath } from "../directory.js";
 import { TranscriptProjection, windowSnapshotTranscript } from "./transcript.js";
 
 /**
@@ -59,7 +60,7 @@ export class PiHostSession implements PiSessionRuntime {
     return {
       id: session.sessionId,
       ...(session.sessionName === undefined ? {} : { name: session.sessionName }),
-      cwd: manager.getCwd(),
+      cwd: canonicalizePath(manager.getCwd()),
       createdAt,
       updatedAt: this.sessionUpdatedAt(entries, createdAt),
       phase: this.getPhase(),
