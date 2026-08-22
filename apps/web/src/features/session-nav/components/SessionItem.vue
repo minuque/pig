@@ -224,17 +224,10 @@ function onDelete() {
 .card-model :deep(.vendor-mark) {
   display: block;
   line-height: 0;
-  filter: grayscale(1);
-  opacity: 0.65;
+  filter: brightness(0.72);
   transition:
     filter var(--duration-fast) var(--ease-smooth),
-    opacity var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth);
-}
-.card-model :deep(.vendor-mark-mono) {
-  color: var(--ink-muted);
-  filter: none;
-  opacity: 1;
 }
 .card-model-name {
   color: var(--ink-muted);
@@ -275,7 +268,6 @@ function onDelete() {
 .session-item:has(.session-kebab[aria-expanded="true"]) .card-model :deep(.vendor-mark),
 .session-card.active .card-model :deep(.vendor-mark) {
   filter: none;
-  opacity: 1;
   color: var(--ink);
 }
 .session-card.active .workspace-mark {
