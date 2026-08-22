@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TranscriptItem } from "@earendil-works/pi-protocol";
 import {
   estimateTranscriptRowHeight,
+  isTranscriptAtTop,
   transcriptRowContent,
   transcriptRowFinal,
   transcriptRowKind,
@@ -97,5 +98,13 @@ describe("estimateTranscriptRowHeight", () => {
     expect(estimateTranscriptRowHeight(brief)).toBe(78);
     expect(estimateTranscriptRowHeight(wrapped)).toBe(100);
     expect(estimateTranscriptRowHeight(broken)).toBe(122);
+  });
+});
+
+describe("isTranscriptAtTop", () => {
+  it("离顶 48px 内视为置顶", () => {
+    expect(isTranscriptAtTop(0)).toBe(true);
+    expect(isTranscriptAtTop(48)).toBe(true);
+    expect(isTranscriptAtTop(49)).toBe(false);
   });
 });

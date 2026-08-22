@@ -6,7 +6,7 @@
     :aria-labelledby="transcriptTitleId"
   >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
-    <div v-if="hasEarlier" class="earlier-bar">
+    <div v-if="showEarlier" class="earlier-bar">
       <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
         {{ loadingEarlier ? "正在加载…" : "显示更早" }}
       </button>
@@ -76,6 +76,11 @@ export function transcriptRowContent(item: TranscriptItem): string {
 
 export function transcriptRowFinal(item: TranscriptItem): boolean {
   return !(isAssistantItem(item) && item.status === "streaming");
+}
+
+/** 离顶 ≤48px 视为置顶，与贴底判定同一阈值。 */
+export function isTranscriptAtTop(scrollTop: number, threshold = 48): boolean {
+  return scrollTop <= threshold;
 }
 
 function estimateWrappedLines(text: string, charsPerLine: number): number {
@@ -156,9 +161,11 @@ const timeline = useTemplateRef<{
   scrollToBottom(): void;
   captureThreadState(): MarkstreamThreadVirtualState;
 }>("timeline");
-// 与 stickToBottom=auto 对齐：离底 ≤48px 仍视为贴底（时间线会继续跟随）
+// 与 stickToBottom=auto 对齐：离底/顶 ≤48px 仍视为贴边
 const atBottom = ref(true);
+const atTop = ref(false);
 const hasNewActivity = ref(false);
+const showEarlier = computed(() => props.hasEarlier && (atTop.value || props.loadingEarlier));
 
 function timelineScrollRoot(): HTMLElement | null {
   return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null;
@@ -172,6 +179,7 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
     ? root.scrollHeight - root.scrollTop - root.clientHeight <= 48
     : state.outerAnchor?.type !== "item";
   atBottom.value = bottom;
+  atTop.value = root ? isTranscriptAtTop(root.scrollTop) : false;
   if (bottom) hasNewActivity.value = false;
 }
 
