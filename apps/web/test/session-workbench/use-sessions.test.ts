@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, type MaybeRefOrGetter } from "vue";
 import type { PiClient } from "@earendil-works/pi-client";
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client";
+import type { TranscriptItem } from "@earendil-works/pi-protocol";
+import { INITIAL_TRANSCRIPT_TAIL } from "@features/session-workbench/lib/session-state.js";
 
 /** 假 RemoteSession：记录 dispose 次数与订阅者，可手动派发状态。 */
 const { openMock, createMock, makeSession } = vi.hoisted(() => {
@@ -55,6 +57,25 @@ function setup() {
   const sessions = useRemoteSessions(client as unknown as MaybeRefOrGetter<PiClient | undefined>);
   client.value = {} as unknown as PiClient;
   return { sessions };
+}
+
+function makeTranscript(count: number, prefix = "m"): TranscriptItem[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `${prefix}${i + 1}`,
+    role: "user",
+    content: [{ type: "text", text: `${prefix}${i + 1}` }],
+    timestamp: i + 1,
+  }));
+}
+
+function waitReveal() {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, 0);
+  });
+}
+
+function setTranscript(session: ReturnType<typeof makeSession>, items: TranscriptItem[]) {
+  session.state = { ...session.state, transcript: items };
 }
 
 describe("useRemoteSessions lifecycle", () => {
@@ -176,5 +197,47 @@ describe("useRemoteSessions lifecycle", () => {
     await Promise.all([sessions.dispose(), sessions.dispose(), sessions.dispose()]);
     expect(a.disposeCalls).toBe(1);
     expect(sessions.remote.value).toBeUndefined();
+  });
+});
+
+describe("useRemoteSessions 尾部先上屏", () => {
+  it("openSession 后立刻只暴露最后 40 条", async () => {
+    const { sessions } = setup();
+    const a = makeSession("s1");
+    setTranscript(a, makeTranscript(45));
+    openMock.mockResolvedValue(a);
+    await sessions.openSession("s1");
+    expect(sessions.transcript.value).toHaveLength(INITIAL_TRANSCRIPT_TAIL);
+    expect(sessions.transcript.value[0]?.id).toBe("m6");
+    expect(sessions.transcript.value.at(-1)?.id).toBe("m45");
+  });
+
+  it("一帧之后补上全文", async () => {
+    const { sessions } = setup();
+    const a = makeSession("s1");
+    setTranscript(a, makeTranscript(45));
+    openMock.mockResolvedValue(a);
+    await sessions.openSession("s1");
+    await waitReveal();
+    expect(sessions.transcript.value).toHaveLength(45);
+    expect(sessions.transcript.value.map((item) => item.id)).toEqual(
+      Array.from({ length: 45 }, (_, i) => `m${i + 1}`),
+    );
+  });
+
+  it("切走后过期的补全文不得覆盖当前 session", async () => {
+    const { sessions } = setup();
+    const a = makeSession("sA");
+    const b = makeSession("sB");
+    setTranscript(a, makeTranscript(45, "a"));
+    setTranscript(b, makeTranscript(1, "b"));
+    openMock.mockImplementation(async (_client, id) => (id === "sA" ? a : b));
+    await sessions.openSession("sA");
+    expect(sessions.transcript.value).toHaveLength(INITIAL_TRANSCRIPT_TAIL);
+    await sessions.openSession("sB");
+    expect(sessions.remote.value).toBe(b);
+    await waitReveal();
+    expect(sessions.remote.value).toBe(b);
+    expect(sessions.transcript.value.map((item) => item.id)).toEqual(["b1"]);
   });
 });

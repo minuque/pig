@@ -23,6 +23,14 @@ type SessionMessage = Extract<
   { type: "message_start" | "message_update" | "message_end" }
 >["message"];
 
+/** 发给客户端的快照只留尾部。窗口为降低首包 JSON，历史截断，加载更早未做。 */
+export const SNAPSHOT_TRANSCRIPT_WINDOW = 80;
+
+/** 截断快照 transcript；不足窗口则原样返回，超出只留尾部且保持原顺序。 */
+export function windowSnapshotTranscript<T>(items: readonly T[]): T[] {
+  return items.slice(-SNAPSHOT_TRANSCRIPT_WINDOW);
+}
+
 /**
  * 协议投影：把 AgentSession 事件与 SessionManager 条目映射为官方
  * TranscriptProgress / TranscriptItem。

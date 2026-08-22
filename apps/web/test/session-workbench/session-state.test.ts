@@ -1,7 +1,11 @@
 import { computed, reactive } from "vue";
 import { describe, expect, it } from "vitest";
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
-import { isSessionPending, sessionState } from "@features/session-workbench/lib/session-state.js";
+import {
+  isSessionPending,
+  sessionState,
+  tailTranscript,
+} from "@features/session-workbench/lib/session-state.js";
 import type { SessionClientState } from "@features/session-workbench/lib/session-state.js";
 
 function mockThreadState(threadKey = "s"): MarkstreamThreadVirtualState {
@@ -44,5 +48,16 @@ describe("isSessionPending", () => {
     expect(isSessionPending(undefined, "s1")).toBe(false);
     expect(isSessionPending(undefined, undefined)).toBe(false);
     expect(isSessionPending("s1", "s1")).toBe(false);
+  });
+});
+
+describe("tailTranscript", () => {
+  it("少于 limit 时原样返回", () => {
+    const items = ["a", "b", "c"];
+    expect(tailTranscript(items, 5)).toBe(items);
+  });
+
+  it("多于 limit 只留尾部且保持原顺序", () => {
+    expect(tailTranscript(["a", "b", "c", "d", "e"], 2)).toEqual(["d", "e"]);
   });
 });

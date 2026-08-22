@@ -12,7 +12,7 @@ import type {
   PromptInput,
   SteerInput,
 } from "@earendil-works/pi-server";
-import { TranscriptProjection } from "./transcript.js";
+import { TranscriptProjection, windowSnapshotTranscript } from "./transcript.js";
 
 /**
  * 不触发全量 snapshot 广播的事件：高频增量，或产生进度时尚未持久化
@@ -69,7 +69,8 @@ export class PiHostSession implements PiSessionRuntime {
       // PiServer 的 normalizedSnapshot 恒覆盖 locked，此处占位
       locked: false,
       revision: this.revision,
-      transcript: this.projection.transcript(entries),
+      // 窗口为降低首包 JSON，历史截断，加载更早未做。磁盘与 SessionManager 仍是全文。
+      transcript: windowSnapshotTranscript(this.projection.transcript(entries)),
       queuedSteer: steering.map((text, index) => ({
         id: `steer-${index}`,
         role: "user",

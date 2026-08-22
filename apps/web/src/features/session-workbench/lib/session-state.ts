@@ -59,3 +59,12 @@ export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjec
     updatedAt: snapshot.updatedAt,
   };
 }
+
+/** 打开长会话时先上屏的尾部条数。 */
+export const INITIAL_TRANSCRIPT_TAIL = 40;
+
+/** 取 transcript 尾部。不超过 limit 时原样返回，超过则丢掉头部、保持原顺序。 */
+export function tailTranscript<T>(items: readonly T[], limit = INITIAL_TRANSCRIPT_TAIL): T[] {
+  if (items.length <= limit) return items as T[];
+  return items.slice(-limit);
+}

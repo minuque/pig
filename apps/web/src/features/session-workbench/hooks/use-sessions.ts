@@ -4,7 +4,9 @@ import { RemoteSession } from "@earendil-works/pi-coding-agent/client";
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client";
 import type { ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol";
 import {
+  INITIAL_TRANSCRIPT_TAIL,
   projectSessionSnapshot,
+  tailTranscript,
   type SessionProjection,
 } from "@features/session-workbench/lib/session-state.js";
 
@@ -31,6 +33,8 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
   let replaceChain: Promise<void> = Promise.resolve();
   // 最新想打开的 session：快速连点时跳过中间 id，只落地最后一次
   let wantedId: string | undefined;
+  // 作废尚未落地的「补全文」，避免切走后写回过期 transcript
+  let cancelPendingReveal: (() => void) | undefined;
 
   // 纯派生：由上述状态 computed 得到
   const snapshot = computed(() => state.value?.snapshot);
@@ -45,11 +49,47 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     // 替换旧实例：释放其 lease（RemoteSession.dispose 幂等，可重复调用）
     if (previous && previous !== next) void previous.dispose();
     remote.value = next;
+    let cancelled = false;
+    let revealedFull = false;
+    let revealTimer: ReturnType<typeof setTimeout> | undefined;
+    cancelPendingReveal = () => {
+      cancelled = true;
+      if (revealTimer !== undefined) {
+        clearTimeout(revealTimer);
+        revealTimer = undefined;
+      }
+    };
+    // 长会话先交尾部给时间线，一帧后再补全文；后续流式直接用全文。
     unsubscribeState = next.subscribe((nextState) => {
-      state.value = nextState;
+      if (cancelled) return;
+      if (revealedFull) {
+        if (revealTimer !== undefined) {
+          clearTimeout(revealTimer);
+          revealTimer = undefined;
+        }
+        state.value = nextState;
+        return;
+      }
+      if (nextState.transcript.length <= INITIAL_TRANSCRIPT_TAIL) {
+        revealedFull = true;
+        state.value = nextState;
+        return;
+      }
+      revealedFull = true;
+      state.value = {
+        ...nextState,
+        transcript: tailTranscript(nextState.transcript),
+      };
+      revealTimer = setTimeout(() => {
+        revealTimer = undefined;
+        if (cancelled) return;
+        state.value = nextState;
+      }, 0);
     });
   }
   function detach() {
+    cancelPendingReveal?.();
+    cancelPendingReveal = undefined;
     unsubscribeState?.();
     unsubscribeState = undefined;
     remote.value = undefined;

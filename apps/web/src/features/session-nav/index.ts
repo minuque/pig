@@ -30,6 +30,7 @@ function createNav(
       liveId && session.projection.value
         ? {
             sessionId: liveId,
+            // 快照窗口截断 transcript；条数由 sessionCardFoot 与 extras 取 max。
             messageCount: session.transcript.value.length,
             model: session.projection.value.model,
           }
