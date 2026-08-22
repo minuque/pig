@@ -215,7 +215,9 @@
   --glass-surface: var(--composer);
 }
 
-/* Tailwind v4 mapping — utilities like bg-canvas-soft, text-ink, rounded-lg */
+/* Tailwind v4 mapping — utilities like bg-canvas-soft, text-ink, rounded-lg。
+   只映射实色 token。color-mix 别名（--bubble / --composer-ring）不要登记进 @theme，
+   否则 @tailwindcss/vite 会把整份 app.css 打成空串。 */
 @theme inline {
   --color-primary: var(--primary);
   --color-primary-active: var(--primary-active);
@@ -224,10 +226,6 @@
   --color-canvas: var(--canvas);
   --color-canvas-soft: var(--canvas-soft);
   --color-surface: var(--surface);
-  --color-sidebar: var(--sidebar);
-  --color-composer: var(--composer);
-  --color-composer-ring: var(--composer-ring);
-  --color-bubble: var(--bubble);
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-muted: var(--ink-muted);
