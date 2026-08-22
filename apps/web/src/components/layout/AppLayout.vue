@@ -72,7 +72,7 @@ const {
   min-height: 0;
   padding: var(--spacing-xs);
   overflow: hidden;
-  background: var(--canvas-soft);
+  background: var(--sidebar);
   contain: layout style;
   transition: width var(--duration-normal) var(--ease-smooth);
 }
@@ -152,7 +152,7 @@ html[data-pig-desktop-platform] .resizer {
     transition:
       transform var(--duration-normal) var(--ease-smooth),
       visibility 0s linear var(--duration-normal);
-    background: var(--canvas-soft);
+    background: var(--sidebar);
     box-shadow: var(--shadow-drawer);
   }
   .sidebar.open {

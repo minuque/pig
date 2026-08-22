@@ -9,7 +9,7 @@ export function createMainWindow(preloadPath: string): BrowserWindow {
     width: 1280,
     height: 800,
     show: false,
-    backgroundColor: nativeTheme.shouldUseDarkColors ? "#151517" : "#ffffff",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#0a0a0a" : "#ffffff",
     ...chrome,
     webPreferences: {
       ...chrome.webPreferences,

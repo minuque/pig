@@ -29,7 +29,7 @@ Session 切换由 `/sessions/:sessionId` 驱动。
 
 两栏铺满。≥901px 左栏收成 rail（56px，macOS 桌面 90px）。移动端左栏为抽屉。
 
-侧栏 `canvas-soft`，对话列 `surface`，均不透明。sunset / dusk 只做装饰。
+侧栏 `sidebar`（浅色等同 `canvas-soft`），对话列 `surface`，均不透明。sunset / dusk 只做装饰。
 
 ### 启动
 
@@ -76,5 +76,3 @@ Session 标题 + 淡 cwd 名。右上 ThemeToggle。thinking 为 off 时不显�
 正常时无常驻指示。连接中不挡页面，只在顶栏给一句状态。错误走主栏空画布，与启动失败同款。
 
 启动链接携带 bootstrap secret。同一 secret 在 Gateway 生命周期内重复兑换得到同一凭证。页面兑换成功后清 URL hash。
-
-浏览器验收交给用户；除非用户明确要求，否则不启动服务。

@@ -11,6 +11,7 @@
   --canvas: #ffffff;
   --canvas-soft: #f9fafb;
   --surface: #ffffff;
+  --sidebar: var(--canvas-soft);
   --ink: #0f1115;
   --ink-secondary: #353638;
   --ink-muted: #5c5f66;
@@ -172,9 +173,10 @@
   --primary: #679efe;
   --primary-active: #4d8af0;
   --on-primary: #ffffff;
-  --canvas: #151517;
+  --canvas: #0a0a0a;
   --canvas-soft: #1b1b1c;
-  --surface: #151517;
+  --surface: #0a0a0a;
+  --sidebar: #050505;
   --ink: #ebeef2;
   --ink-secondary: #c5c8ce;
   --ink-muted: #9aa0a8;
@@ -216,6 +218,7 @@
   --color-canvas: var(--canvas);
   --color-canvas-soft: var(--canvas-soft);
   --color-surface: var(--surface);
+  --color-sidebar: var(--sidebar);
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-muted: var(--ink-muted);

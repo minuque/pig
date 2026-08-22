@@ -305,11 +305,11 @@ components:
 
 Pi Agent GUI 使用冷蓝灰浅色表面和近黑深色表面。系统 UI 字号默认 14px。业务蓝只用于动作、链接、焦点和选中。布局包含侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
 
-浅色侧栏 `{colors.canvas-soft}`，对话列 `{colors.surface}`。结构色 `{colors.primary}`（#4176e6）只用于发送、链接、选中、focus。控件圆角 `{rounded.lg}`（12px）。
+浅色侧栏 `{colors.canvas-soft}`，对话列 `{colors.surface}`。深色侧栏 `#050505`、对话列 `#0a0a0a`。结构色 `{colors.primary}`（#4176e6）只用于发送、链接、选中、focus。控件圆角 `{rounded.lg}`（12px）。
 
-深色是同一套分面的近灰反相：对话 `#151517`、侧栏 `#1b1b1c`、缝 `#2c2c2e`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
+深色是同一套分面的近黑反相：对话 `#0a0a0a`、侧栏 `#050505`、缝 `#2c2c2e`。次级井仍用 `#1b1b1c`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
 
-窗体不透明，好让输入卡和菜单用 CSS 毛玻璃糊下方页面。侧栏 `canvas-soft`，对话列 `surface`。浏览器输入卡实色，不跟桌面玻璃。浅色是默认入口。
+窗体不透明，好让输入卡和菜单用 CSS 毛玻璃糊下方页面。侧栏走 `--sidebar`，对话列 `surface`。浏览器输入卡实色，不跟桌面玻璃。浅色是默认入口。
 
 ## Colors
 
@@ -354,8 +354,8 @@ sunset 是装饰，orange 是语义。
 
 | 角色    | 值        |
 | ------- | --------- |
-| 对话底  | `#151517` |
-| 侧栏    | `#1b1b1c` |
+| 对话底  | `#0a0a0a` |
+| 侧栏    | `#050505` |
 | 主字    | `#ebeef2` |
 | 缝      | `#2c2c2e` |
 | primary | `#679efe` |
@@ -433,7 +433,7 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 ## Do's and Don'ts
 
 - 浅色：侧栏软底，对话白底。
-- 深色：`#151517` / `#1b1b1c` / 缝 `#2c2c2e`。
+- 深色：对话 `#0a0a0a`、侧栏 `#050505`、缝 `#2c2c2e`。
 - `{colors.primary}` 用于动作和选中。
 - 工作台 14px 系统字；标签可用等宽大写。
 - chatInput / New Session：`{rounded.lg}`。
