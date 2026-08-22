@@ -248,7 +248,7 @@ components:
     rounded: "{rounded.lg}"
     padding: "{spacing.md}"
   ex-pricing-tier-featured:
-    description: "Featured surface — polarity-flipped fill."
+    description: "Featured surface. Polarity-flipped fill."
     backgroundColor: "{colors.ink}"
     textColor: "{colors.on-primary}"
     rounded: "{rounded.lg}"
