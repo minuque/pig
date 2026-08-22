@@ -2,9 +2,10 @@ import { computed, shallowRef, toValue, type MaybeRefOrGetter } from "vue";
 import type { PiClient, Unsubscribe } from "@earendil-works/pi-client";
 import { RemoteSession } from "@earendil-works/pi-coding-agent/client";
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client";
-import type { ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol";
+import type { ModelRef, ThinkingLevel, TranscriptItem } from "@earendil-works/pi-protocol";
+import { platformRequest } from "@client/http.js";
 import {
-  INITIAL_TRANSCRIPT_TAIL,
+  mergeTranscriptWindow,
   projectSessionSnapshot,
   tailTranscript,
   type SessionProjection,
@@ -33,8 +34,8 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
   let replaceChain: Promise<void> = Promise.resolve();
   // 最新想打开的 session：快速连点时跳过中间 id，只落地最后一次
   let wantedId: string | undefined;
-  // 作废尚未落地的「补全文」，避免切走后写回过期 transcript
-  let cancelPendingReveal: (() => void) | undefined;
+  const loadingEarlier = shallowRef(false);
+  const earlierExhausted = shallowRef(false);
 
   // 纯派生：由上述状态 computed 得到
   const snapshot = computed(() => state.value?.snapshot);
@@ -49,47 +50,42 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     // 替换旧实例：释放其 lease（RemoteSession.dispose 幂等，可重复调用）
     if (previous && previous !== next) void previous.dispose();
     remote.value = next;
-    let cancelled = false;
-    let revealedFull = false;
-    let revealTimer: ReturnType<typeof setTimeout> | undefined;
-    cancelPendingReveal = () => {
-      cancelled = true;
-      if (revealTimer !== undefined) {
-        clearTimeout(revealTimer);
-        revealTimer = undefined;
-      }
-    };
-    // 长会话先交尾部给时间线，一帧后再补全文；后续流式直接用全文。
+    let prefix: TranscriptItem[] = [];
+    let latestWindow: readonly TranscriptItem[] = [];
+    earlierExhausted.value = false;
     unsubscribeState = next.subscribe((nextState) => {
-      if (cancelled) return;
-      if (revealedFull) {
-        if (revealTimer !== undefined) {
-          clearTimeout(revealTimer);
-          revealTimer = undefined;
-        }
-        state.value = nextState;
-        return;
-      }
-      if (nextState.transcript.length <= INITIAL_TRANSCRIPT_TAIL) {
-        revealedFull = true;
-        state.value = nextState;
-        return;
-      }
-      revealedFull = true;
-      state.value = {
-        ...nextState,
-        transcript: tailTranscript(nextState.transcript),
-      };
-      revealTimer = setTimeout(() => {
-        revealTimer = undefined;
-        if (cancelled) return;
-        state.value = nextState;
-      }, 0);
+      latestWindow = tailTranscript(nextState.transcript);
+      const merged = mergeTranscriptWindow(prefix, latestWindow);
+      const windowIds = new Set(latestWindow.map((item) => item.id));
+      prefix = merged.filter((item) => !windowIds.has(item.id));
+      state.value = { ...nextState, transcript: merged };
     });
+    async function loadEarlier() {
+      const id = remote.value?.id;
+      const before = state.value?.transcript[0]?.id;
+      if (!id || !before || loadingEarlier.value || earlierExhausted.value) return;
+      loadingEarlier.value = true;
+      try {
+        const page = await platformRequest<{ items: TranscriptItem[]; hasMore: boolean }>(
+          `/api/v1/platform/transcript?sessionId=${encodeURIComponent(id)}&before=${encodeURIComponent(before)}`,
+        );
+        if (remote.value?.id !== id) return;
+        prefix = mergeTranscriptWindow([...page.items, ...prefix], latestWindow);
+        earlierExhausted.value = !page.hasMore;
+        const current = state.value;
+        if (current)
+          state.value = { ...current, transcript: mergeTranscriptWindow(prefix, latestWindow) };
+      } finally {
+        if (remote.value?.id === id) loadingEarlier.value = false;
+      }
+    }
+    attachLoadEarlier = loadEarlier;
   }
+  let attachLoadEarlier: (() => Promise<void>) | undefined;
   function detach() {
-    cancelPendingReveal?.();
-    cancelPendingReveal = undefined;
+    attachLoadEarlier = undefined;
+    loadingEarlier.value = false;
+    earlierExhausted.value = false;
     unsubscribeState?.();
     unsubscribeState = undefined;
     remote.value = undefined;
@@ -174,12 +170,19 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     return disposePromise;
   }
 
+  async function loadEarlier() {
+    await attachLoadEarlier?.();
+  }
+
   return {
     remote,
     state,
     snapshot,
     projection,
     transcript,
+    loadingEarlier,
+    earlierExhausted,
+    loadEarlier,
     openSession,
     createSession,
     submit,

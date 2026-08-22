@@ -23,12 +23,24 @@ type SessionMessage = Extract<
   { type: "message_start" | "message_update" | "message_end" }
 >["message"];
 
-/** 发给客户端的快照只留尾部。窗口为降低首包 JSON，历史截断，加载更早未做。 */
-export const SNAPSHOT_TRANSCRIPT_WINDOW = 80;
+/** 打开会话与「显示更早」共用的页大小。与 web INITIAL_TRANSCRIPT_TAIL 对齐。 */
+export const TRANSCRIPT_PAGE_SIZE = 40;
 
-/** 截断快照 transcript；不足窗口则原样返回，超出只留尾部且保持原顺序。 */
+/** 截断快照 transcript；不足一页则原样返回，超出只留尾部且保持原顺序。 */
 export function windowSnapshotTranscript<T>(items: readonly T[]): T[] {
-  return items.slice(-SNAPSHOT_TRANSCRIPT_WINDOW);
+  return items.slice(-TRANSCRIPT_PAGE_SIZE);
+}
+
+/** 取 beforeId 之前的一页；找不到或已在开头则空。hasMore 表示再往前还有。 */
+export function transcriptPageBefore<T extends { id: string }>(
+  items: readonly T[],
+  beforeId: string,
+  limit = TRANSCRIPT_PAGE_SIZE,
+): { items: T[]; hasMore: boolean } {
+  const end = items.findIndex((item) => item.id === beforeId);
+  if (end <= 0) return { items: [], hasMore: false };
+  const start = Math.max(0, end - limit);
+  return { items: items.slice(start, end) as T[], hasMore: start > 0 };
 }
 
 /**

@@ -100,6 +100,9 @@ describe("thin host HTTP shell", () => {
     ).toBe(401);
     expect((await request(base, "/api/v1/platform/delete-session", { id: "s" })).status).toBe(401);
     expect((await request(base, "/api/v1/platform/session-cards")).status).toBe(401);
+    expect((await request(base, "/api/v1/platform/transcript?sessionId=s&before=m1")).status).toBe(
+      401,
+    );
 
     const { credential } = (await (
       await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
@@ -110,6 +113,20 @@ describe("thin host HTTP shell", () => {
           base,
           "/api/v1/platform/rename-session",
           { id: "missing", name: "a" },
+          credential,
+        )
+      ).status,
+    ).toBe(404);
+    expect(
+      (await request(base, "/api/v1/platform/transcript?sessionId=s", undefined, credential))
+        .status,
+    ).toBe(400);
+    expect(
+      (
+        await request(
+          base,
+          "/api/v1/platform/transcript?sessionId=missing&before=m1",
+          undefined,
           credential,
         )
       ).status,

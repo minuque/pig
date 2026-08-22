@@ -2,7 +2,9 @@ import { computed, reactive } from "vue";
 import { describe, expect, it } from "vitest";
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
 import {
+  hasEarlierTranscript,
   isSessionPending,
+  mergeTranscriptWindow,
   sessionState,
   tailTranscript,
 } from "@features/session-workbench/lib/session-state.js";
@@ -59,5 +61,37 @@ describe("tailTranscript", () => {
 
   it("多于 limit 只留尾部且保持原顺序", () => {
     expect(tailTranscript(["a", "b", "c", "d", "e"], 2)).toEqual(["d", "e"]);
+  });
+});
+
+describe("mergeTranscriptWindow", () => {
+  it("保留被窗口挤出的前缀，窗口内同 id 以窗口为准", () => {
+    const prefix = [
+      { id: "a", n: 1 },
+      { id: "b", n: 1 },
+    ];
+    const window = [
+      { id: "b", n: 2 },
+      { id: "c", n: 2 },
+    ];
+    expect(mergeTranscriptWindow(prefix, window)).toEqual([
+      { id: "a", n: 1 },
+      { id: "b", n: 2 },
+      { id: "c", n: 2 },
+    ]);
+  });
+});
+
+describe("hasEarlierTranscript", () => {
+  it("全量大于已加载时显示按钮，耗尽或空列表不显示", () => {
+    expect(hasEarlierTranscript(40, 193, false)).toBe(true);
+    expect(hasEarlierTranscript(193, 193, false)).toBe(false);
+    expect(hasEarlierTranscript(40, 193, true)).toBe(false);
+    expect(hasEarlierTranscript(0, 193, false)).toBe(false);
+  });
+
+  it("全量未知时满页才显示", () => {
+    expect(hasEarlierTranscript(40, undefined, false)).toBe(true);
+    expect(hasEarlierTranscript(2, undefined, false)).toBe(false);
   });
 });

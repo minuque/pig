@@ -2,7 +2,7 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent";
 import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/pi-coding-agent";
-import type { ModelMetadata, SessionMetadata } from "@earendil-works/pi-protocol";
+import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol";
 import {
   PiServerError,
   SessionNotFoundError,
@@ -17,6 +17,7 @@ import { canonicalizePath } from "../directory.js";
 import { modelFromBranch, type SessionCard } from "./session-card.js";
 import { sessionListName } from "./session-label.js";
 import { PiHostSession } from "./session-runtime.js";
+import { TRANSCRIPT_PAGE_SIZE, TranscriptProjection, transcriptPageBefore } from "./transcript.js";
 
 type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>;
 type SessionFactory = typeof createAgentSession;
@@ -137,6 +138,18 @@ export class PiHostService implements PiServerService {
     await rm(path, { force: true });
     this.sessionPaths.delete(sessionId);
     this.sessionsCache = undefined;
+  }
+
+  /** 读磁盘当前分支，返回 beforeId 之前的一页。不占用 AgentSession lease。 */
+  async readTranscriptPage(
+    sessionId: string,
+    beforeId: string,
+    limit = TRANSCRIPT_PAGE_SIZE,
+  ): Promise<{ items: TranscriptItem[]; hasMore: boolean }> {
+    const path = await this.findSessionPath(sessionId);
+    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`);
+    const items = new TranscriptProjection().transcript(SessionManager.open(path).getBranch());
+    return transcriptPageBefore(items, beforeId, limit);
   }
 
   async openSession(sessionId: string): Promise<PiSessionRuntime> {

@@ -6,7 +6,7 @@ import type { TranscriptItem } from "@earendil-works/pi-protocol";
 import { INITIAL_TRANSCRIPT_TAIL } from "@features/session-workbench/lib/session-state.js";
 
 /** 假 RemoteSession：记录 dispose 次数与订阅者，可手动派发状态。 */
-const { openMock, createMock, makeSession } = vi.hoisted(() => {
+const { openMock, createMock, makeSession, platformRequestMock } = vi.hoisted(() => {
   class FakeRemoteSession {
     id: string | undefined;
     disposeCalls = 0;
@@ -33,6 +33,7 @@ const { openMock, createMock, makeSession } = vi.hoisted(() => {
   return {
     openMock: vi.fn<(client: PiClient, sessionId: string) => Promise<FakeRemoteSession>>(),
     createMock: vi.fn<(client: PiClient, options: unknown) => Promise<FakeRemoteSession>>(),
+    platformRequestMock: vi.fn(),
     makeSession: (id?: string) => new FakeRemoteSession(id),
   };
 });
@@ -44,10 +45,16 @@ vi.mock("@earendil-works/pi-coding-agent/client", () => ({
   },
 }));
 
+vi.mock("@client/http.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@client/http.js")>();
+  return { ...actual, platformRequest: platformRequestMock };
+});
+
 import { useRemoteSessions } from "@features/session-workbench/hooks/use-sessions.js";
 
 beforeEach(() => {
   openMock.mockReset();
+  platformRequestMock.mockReset();
   createMock.mockReset();
 });
 
@@ -66,12 +73,6 @@ function makeTranscript(count: number, prefix = "m"): TranscriptItem[] {
     content: [{ type: "text", text: `${prefix}${i + 1}` }],
     timestamp: i + 1,
   }));
-}
-
-function waitReveal() {
-  return new Promise<void>((resolve) => {
-    setTimeout(resolve, 0);
-  });
 }
 
 function setTranscript(session: ReturnType<typeof makeSession>, items: TranscriptItem[]) {
@@ -201,7 +202,7 @@ describe("useRemoteSessions lifecycle", () => {
 });
 
 describe("useRemoteSessions 尾部先上屏", () => {
-  it("openSession 后立刻只暴露最后 40 条", async () => {
+  it("openSession 只暴露最后 40 条，不自动补全文", async () => {
     const { sessions } = setup();
     const a = makeSession("s1");
     setTranscript(a, makeTranscript(45));
@@ -210,34 +211,32 @@ describe("useRemoteSessions 尾部先上屏", () => {
     expect(sessions.transcript.value).toHaveLength(INITIAL_TRANSCRIPT_TAIL);
     expect(sessions.transcript.value[0]?.id).toBe("m6");
     expect(sessions.transcript.value.at(-1)?.id).toBe("m45");
+    await Promise.resolve();
+    expect(sessions.transcript.value).toHaveLength(INITIAL_TRANSCRIPT_TAIL);
   });
 
-  it("一帧之后补上全文", async () => {
+  it("显示更早把更早一页接到头部", async () => {
     const { sessions } = setup();
     const a = makeSession("s1");
     setTranscript(a, makeTranscript(45));
     openMock.mockResolvedValue(a);
+    platformRequestMock.mockResolvedValue({
+      items: makeTranscript(5).slice(0, 5),
+      hasMore: false,
+    });
     await sessions.openSession("s1");
-    await waitReveal();
-    expect(sessions.transcript.value).toHaveLength(45);
-    expect(sessions.transcript.value.map((item) => item.id)).toEqual(
-      Array.from({ length: 45 }, (_, i) => `m${i + 1}`),
+    await sessions.loadEarlier();
+    expect(platformRequestMock).toHaveBeenCalledWith(
+      expect.stringContaining("sessionId=s1&before=m6"),
     );
-  });
-
-  it("切走后过期的补全文不得覆盖当前 session", async () => {
-    const { sessions } = setup();
-    const a = makeSession("sA");
-    const b = makeSession("sB");
-    setTranscript(a, makeTranscript(45, "a"));
-    setTranscript(b, makeTranscript(1, "b"));
-    openMock.mockImplementation(async (_client, id) => (id === "sA" ? a : b));
-    await sessions.openSession("sA");
-    expect(sessions.transcript.value).toHaveLength(INITIAL_TRANSCRIPT_TAIL);
-    await sessions.openSession("sB");
-    expect(sessions.remote.value).toBe(b);
-    await waitReveal();
-    expect(sessions.remote.value).toBe(b);
-    expect(sessions.transcript.value.map((item) => item.id)).toEqual(["b1"]);
+    expect(sessions.transcript.value.map((item) => item.id)).toEqual([
+      "m1",
+      "m2",
+      "m3",
+      "m4",
+      "m5",
+      ...Array.from({ length: 40 }, (_, i) => `m${i + 6}`),
+    ]);
+    expect(sessions.earlierExhausted.value).toBe(true);
   });
 });

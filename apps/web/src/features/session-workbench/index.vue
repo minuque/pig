@@ -44,7 +44,10 @@
         :transcript="transcript"
         :phase="phase"
         :thread-state="clientState?.threadState ?? null"
+        :has-earlier="hasEarlier"
+        :loading-earlier="loadingEarlier"
         @thread-state="applyThreadState"
+        @load-earlier="loadEarlier"
       />
 
       <div ref="dock" class="chat-input-dock">
@@ -84,6 +87,7 @@ import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vu
 import ChatInput from "@features/chat-input/index.vue";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
+import { hasEarlierTranscript } from "@features/session-workbench/lib/session-state.js";
 import TranscriptView from "@features/session-workbench/components/TranscriptView.vue";
 import WorkspaceHero from "@features/session-workbench/components/WorkspaceHero.vue";
 
@@ -102,11 +106,21 @@ const {
   queuedSteerCount,
   sessionError,
   submitText,
+  loadEarlier,
+  loadingEarlier,
+  earlierExhausted,
 } = useSession();
-const { workspaces, activeWorkspaceId, lastCwd } = useNav();
+const { workspaces, activeWorkspaceId, lastCwd, cardFootById } = useNav();
 
 const emptyCanvas = computed(() =>
   isEmptyCanvas(transcript.value.length, phase.value, sessionPending.value),
+);
+const hasEarlier = computed(() =>
+  hasEarlierTranscript(
+    transcript.value.length,
+    sessionId.value ? cardFootById.value.get(sessionId.value)?.messageCount : undefined,
+    earlierExhausted.value,
+  ),
 );
 const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value);
 

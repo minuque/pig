@@ -69,7 +69,7 @@ export class PiHostSession implements PiSessionRuntime {
       // PiServer 的 normalizedSnapshot 恒覆盖 locked，此处占位
       locked: false,
       revision: this.revision,
-      // 窗口为降低首包 JSON，历史截断，加载更早未做。磁盘与 SessionManager 仍是全文。
+      // 首包只带最近一页；更早的走 platform/transcript。磁盘仍是全文。
       transcript: windowSnapshotTranscript(this.projection.transcript(entries)),
       queuedSteer: steering.map((text, index) => ({
         id: `steer-${index}`,

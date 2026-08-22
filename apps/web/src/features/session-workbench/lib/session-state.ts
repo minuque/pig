@@ -60,11 +60,32 @@ export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjec
   };
 }
 
-/** 打开长会话时先上屏的尾部条数。 */
+/** 打开会话与「显示更早」共用的页大小。与 gateway TRANSCRIPT_PAGE_SIZE 对齐。 */
 export const INITIAL_TRANSCRIPT_TAIL = 40;
 
 /** 取 transcript 尾部。不超过 limit 时原样返回，超过则丢掉头部、保持原顺序。 */
 export function tailTranscript<T>(items: readonly T[], limit = INITIAL_TRANSCRIPT_TAIL): T[] {
   if (items.length <= limit) return items as T[];
   return items.slice(-limit);
+}
+
+/** 快照窗口覆盖已加载前缀中的同 id；前缀里被挤出窗口的条目保留。 */
+export function mergeTranscriptWindow<T extends { id: string }>(
+  prefix: readonly T[],
+  window: readonly T[],
+): T[] {
+  const inWindow = new Set(window.map((item) => item.id));
+  return [...prefix.filter((item) => !inWindow.has(item.id)), ...window];
+}
+
+/** 还有更早消息可加载：未耗尽，且全量大于已加载（全量未知时满页则显示按钮）。 */
+export function hasEarlierTranscript(
+  loaded: number,
+  total: number | undefined,
+  exhausted: boolean,
+  page = INITIAL_TRANSCRIPT_TAIL,
+): boolean {
+  if (exhausted || loaded === 0) return false;
+  if (total !== undefined) return total > loaded;
+  return loaded >= page;
 }

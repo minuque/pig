@@ -84,6 +84,9 @@ function createSession(
     submitText: runtime.submitText,
     abortSession: runtime.abortSession,
     applyThreadState: runtime.applyThreadState,
+    loadEarlier: remote.loadEarlier,
+    loadingEarlier: remote.loadingEarlier,
+    earlierExhausted: remote.earlierExhausted,
     initialize,
   };
 }

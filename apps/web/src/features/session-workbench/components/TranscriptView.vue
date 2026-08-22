@@ -6,6 +6,11 @@
     :aria-labelledby="transcriptTitleId"
   >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
+    <div v-if="hasEarlier" class="earlier-bar">
+      <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
+        {{ loadingEarlier ? "正在加载…" : "显示更早" }}
+      </button>
+    </div>
     <MarkstreamVirtualTimeline
       v-if="rows.length"
       ref="timeline"
@@ -109,18 +114,24 @@ import UserMessage from "@features/session-workbench/components/UserMessage.vue"
 import { conversationRows } from "@features/session-workbench/lib/transcript-format.js";
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
 
-const props = defineProps<{
-  sessionId: string;
-  /** 官方 TranscriptItem 列表：RemoteSession 维护的投影 */
-  transcript: readonly TranscriptItem[];
-  /** 当前 Session phase：非 idle 时显示 streaming 空态 */
-  phase: SessionPhase | undefined;
-  /** 上次离开该会话时的虚拟滚动状态，用于恢复滚动位置与行高缓存 */
-  threadState: MarkstreamThreadVirtualState | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    sessionId: string;
+    /** 官方 TranscriptItem 列表：RemoteSession 维护的投影 */
+    transcript: readonly TranscriptItem[];
+    /** 当前 Session phase：非 idle 时显示 streaming 空态 */
+    phase: SessionPhase | undefined;
+    /** 上次离开该会话时的虚拟滚动状态，用于恢复滚动位置与行高缓存 */
+    threadState: MarkstreamThreadVirtualState | null;
+    hasEarlier?: boolean;
+    loadingEarlier?: boolean;
+  }>(),
+  { hasEarlier: false, loadingEarlier: false },
+);
 
 const emit = defineEmits<{
   "thread-state": [state: MarkstreamThreadVirtualState];
+  "load-earlier": [];
 }>();
 
 const running = computed(() => props.phase !== undefined && props.phase !== "idle");
@@ -215,6 +226,37 @@ onBeforeUnmount(() => {
 .transcript :deep(.markstream-virtual-timeline__item) {
   width: min(var(--size-content), 100%);
   margin-inline: auto;
+}
+.earlier-bar {
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-sm);
+  pointer-events: none;
+}
+.earlier-bar button {
+  pointer-events: auto;
+  min-height: var(--size-nav-action);
+  padding: 4px 12px;
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-full);
+  background: var(--canvas-soft);
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+}
+.earlier-bar button:hover:not(:disabled) {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 5%, var(--canvas-soft));
+}
+.earlier-bar button:disabled {
+  cursor: default;
+  opacity: 0.7;
 }
 .shimmer {
   color: var(--ink-muted);
