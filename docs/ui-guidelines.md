@@ -69,7 +69,7 @@ Session 标题 + 淡 cwd 名。右上 ThemeToggle。thinking 为 off 时不显�
 
 有 Transcript 时输入卡绝对贴对话列底部，transcript 通栏滚动。欢迎页和 idle 空 Session：居中「在 {目录名} 开始」，输入卡在标题下、不 dock。欢迎页目录名可切换；空 Session 用 session cwd，缺则 lastCwd。
 
-桌面输入卡和模型/思考菜单：backdrop-filter（blur 12px / 深色 16px，填充 80%）。浏览器用不透明 `canvas-soft`。`prefers-reduced-transparency` 时桌面同样回退。dock 不铺实底。模型与思考在左，primary 发送圆钮在右。
+桌面输入卡和模型/思考菜单：backdrop-filter（blur 12px / 深色 16px，填充 80%）。浏览器用不透明 `composer`。`prefers-reduced-transparency` 时桌面同样回退。dock 不铺实底。模型与思考在左，primary 发送圆钮在右。
 
 ### Gateway
 

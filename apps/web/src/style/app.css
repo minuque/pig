@@ -12,15 +12,17 @@
   --canvas-soft: #f9fafb;
   --surface: #ffffff;
   --sidebar: var(--canvas-soft);
+  --composer: var(--canvas-soft);
   --ink: #0f1115;
   --ink-secondary: #353638;
   --ink-muted: #5c5f66;
   --ink-faint: #8b8f97;
   --hairline: #e5e7eb;
+  --composer-ring: var(--hairline);
   --glass-blur: 12px;
   --glass-opacity: 80%;
   --glass-saturation: 1.14;
-  --glass-surface: var(--canvas-soft);
+  --glass-surface: var(--composer);
 
   /* Grok decorative palette — never structural fill */
   --accent-sunset: #ff7a17;
@@ -177,11 +179,13 @@
   --canvas-soft: #1b1b1c;
   --surface: #0a0a0a;
   --sidebar: #050505;
+  --composer: #121212;
   --ink: #ebeef2;
   --ink-secondary: #c5c8ce;
   --ink-muted: #9aa0a8;
   --ink-faint: #7a7e86;
   --hairline: #2c2c2e;
+  --composer-ring: color-mix(in srgb, var(--ink) 8%, var(--composer));
   /* 语义橙提亮（run 失败左条 / active session 文字） */
   --accent-orange: #ff8a3d;
   --accent-orange-deep: #d97706;
@@ -206,7 +210,7 @@
   --inverse-fg: #0a0a0a;
   --glass-blur: 16px;
   --glass-saturation: 1.08;
-  --glass-surface: color-mix(in srgb, var(--surface) 96%, #fff);
+  --glass-surface: var(--composer);
 }
 
 /* Tailwind v4 mapping — utilities like bg-canvas-soft, text-ink, rounded-lg */
@@ -219,6 +223,8 @@
   --color-canvas-soft: var(--canvas-soft);
   --color-surface: var(--surface);
   --color-sidebar: var(--sidebar);
+  --color-composer: var(--composer);
+  --color-composer-ring: var(--composer-ring);
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-muted: var(--ink-muted);
@@ -384,7 +390,7 @@ textarea {
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--ink-faint);
   font-size: var(--text-caption);
   font-weight: 500;
   cursor: pointer;
@@ -583,12 +589,12 @@ html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
 }
 @media (prefers-reduced-transparency: reduce) {
   html[data-pig-desktop-platform] .prompt .glass-shell::before {
-    background: var(--canvas-soft);
+    background: var(--composer);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
   html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
-    background: var(--canvas-soft);
+    background: var(--composer);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }

@@ -307,7 +307,7 @@ Pi Agent GUI 使用冷蓝灰浅色表面和近黑深色表面。系统 UI 字号
 
 浅色侧栏 `{colors.canvas-soft}`，对话列 `{colors.surface}`。深色侧栏 `#050505`、对话列 `#0a0a0a`。结构色 `{colors.primary}`（#4176e6）只用于发送、链接、选中、focus。控件圆角 `{rounded.lg}`（12px）。
 
-深色是同一套分面的近黑反相：对话 `#0a0a0a`、侧栏 `#050505`、缝 `#2c2c2e`。次级井仍用 `#1b1b1c`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
+深色是同一套分面的近黑反相：对话 `#0a0a0a`、侧栏 `#050505`、输入卡 `#121212`、缝 `#2c2c2e`。次级井仍用 `#1b1b1c`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
 
 窗体不透明，好让输入卡和菜单用 CSS 毛玻璃糊下方页面。侧栏走 `--sidebar`，对话列 `surface`。浏览器输入卡实色，不跟桌面玻璃。浅色是默认入口。
 
@@ -329,8 +329,8 @@ Pi Agent GUI 使用冷蓝灰浅色表面和近黑深色表面。系统 UI 字号
 
 ### Surface
 
-- **White** (`{colors.canvas}` / `{colors.surface}` — #ffffff)：对话列、卡片、输入。
-- **Cool Mist** (`{colors.canvas-soft}` — #f9fafb)：侧栏、页底、次级井。
+- **White** (`{colors.canvas}` / `{colors.surface}` — #ffffff)：对话列、卡片。
+- **Cool Mist** (`{colors.canvas-soft}` — #f9fafb)：浅色侧栏、页底、次级井、浅色输入卡。
 - **Hairline** (`{colors.hairline}` — #e5e7eb)：栏缝与控件边。
 
 ### Text
@@ -356,6 +356,7 @@ sunset 是装饰，orange 是语义。
 | ------- | --------- |
 | 对话底  | `#0a0a0a` |
 | 侧栏    | `#050505` |
+| 输入卡  | `#121212` |
 | 主字    | `#ebeef2` |
 | 缝      | `#2c2c2e` |
 | primary | `#679efe` |
@@ -433,7 +434,7 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 ## Do's and Don'ts
 
 - 浅色：侧栏软底，对话白底。
-- 深色：对话 `#0a0a0a`、侧栏 `#050505`、缝 `#2c2c2e`。
+- 深色：对话 `#0a0a0a`、侧栏 `#050505`、输入卡 `#121212`、缝 `#2c2c2e`。
 - `{colors.primary}` 用于动作和选中。
 - 工作台 14px 系统字；标签可用等宽大写。
 - chatInput / New Session：`{rounded.lg}`。

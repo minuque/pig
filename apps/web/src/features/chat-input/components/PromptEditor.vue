@@ -124,14 +124,14 @@ defineExpose({ focus });
   z-index: 10;
   display: flex;
   flex-direction: column;
-  background: var(--canvas-soft);
-  border: var(--border-width) solid var(--hairline);
+  background: var(--composer);
+  border: var(--border-width) solid var(--composer-ring);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
   transition: border-color var(--duration-fast) var(--ease-smooth);
 }
 .glass-host:focus-within {
-  border-color: color-mix(in srgb, var(--primary) 48%, var(--hairline));
+  border-color: color-mix(in srgb, var(--primary) 48%, var(--composer-ring));
 }
 
 .chips {
@@ -183,7 +183,7 @@ defineExpose({ focus });
   gap: 8px;
   min-height: 44px;
   padding: 6px 10px 8px 10px;
-  border-top: var(--border-width) solid var(--hairline);
+  border-top: var(--border-width) solid var(--composer-ring);
 }
 .left {
   display: flex;

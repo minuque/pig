@@ -169,8 +169,8 @@ function send() {
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--ink) 10%, transparent);
-  color: var(--ink-faint);
+  background: var(--primary);
+  color: var(--on-primary);
   cursor: default;
   transition:
     background var(--duration-fast) var(--ease-smooth),
@@ -178,8 +178,6 @@ function send() {
     transform var(--duration-fast) var(--ease-smooth);
 }
 .send:not(:disabled) {
-  background: var(--primary);
-  color: var(--on-primary);
   cursor: pointer;
 }
 .send:not(:disabled):hover {
