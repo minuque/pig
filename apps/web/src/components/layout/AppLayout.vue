@@ -28,18 +28,17 @@
     </aside>
 
     <main>
-      <slot name="header" :left-open="leftOpen" :toggle="toggle" />
       <slot />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useLeftPanel } from "@components/layout/hooks/use-left-panel.js";
+import { provide } from "vue";
+import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js";
 
 defineSlots<{
   default(): unknown;
-  header(props: { leftOpen: boolean; toggle: () => void }): unknown;
   sidebar(props: { onNavigate: () => void; collapsed: boolean; toggle: () => void }): unknown;
 }>();
 
@@ -53,6 +52,8 @@ const {
   startResize,
   closeMobilePanels,
 } = useLeftPanel();
+
+provide(leftPanelKey, { leftOpen, toggle });
 </script>
 
 <style scoped>

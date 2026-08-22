@@ -1,4 +1,16 @@
-import { onBeforeUnmount, readonly, ref, watch } from "vue";
+import { inject, onBeforeUnmount, readonly, ref, watch, type InjectionKey, type Ref } from "vue";
+
+export const leftPanelKey: InjectionKey<{
+  leftOpen: Readonly<Ref<boolean>>;
+  toggle: () => void;
+}> = Symbol("left-panel");
+
+/** 消费 AppLayout 提供的左栏开关，供主列顶栏切换抽屉。 */
+export function useLeftPanelToggle() {
+  const ctx = inject(leftPanelKey);
+  if (!ctx) throw new Error("useLeftPanelToggle() 需要在 AppLayout 内调用");
+  return ctx;
+}
 
 /** 主内容区最小宽度（px）：侧栏调宽时始终为其保留的空间。 */
 export const CONTENT_MIN_WIDTH = 332;

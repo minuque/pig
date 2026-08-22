@@ -5,7 +5,7 @@
       type="button"
       :aria-expanded="leftOpen"
       aria-label="切换工作目录导航"
-      @click="emit('toggle')"
+      @click="toggle"
     >
       <PanelLeft :size="16" aria-hidden="true" />
     </button>
@@ -32,20 +32,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { PanelLeft } from "lucide-vue-next";
+import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js";
 import { sessionTitle, UNTITLED_SESSION, workspaceName } from "@features/session-nav/format.js";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import { phaseLabel } from "@features/session-workbench/components/SessionControlBar.vue";
 import ThemeToggle from "@features/theme/ThemeToggle.vue";
 
-defineProps<{
-  leftOpen: boolean;
-}>();
-
-const emit = defineEmits<{
-  toggle: [];
-}>();
-
+const { leftOpen, toggle } = useLeftPanelToggle();
 const { sessionId, projection, phase, connecting, sessionPending } = useSession();
 const { activeWorkspaceId, lastCwd, listedSessions } = useNav();
 
