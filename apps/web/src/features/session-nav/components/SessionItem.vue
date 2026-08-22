@@ -140,6 +140,7 @@ function onDelete() {
 <style scoped>
 .session-item {
   position: relative;
+  width: 100%;
   min-width: 0;
 }
 .session-card,
@@ -322,6 +323,9 @@ function onDelete() {
 .session-kebab {
   position: absolute;
   z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: var(--size-nav-action);
   min-height: var(--size-nav-action);
   padding: 0;
@@ -331,8 +335,8 @@ function onDelete() {
   opacity: 0;
 }
 .session-item .session-kebab {
-  top: 6px;
-  right: 6px;
+  top: 2px;
+  right: 2px;
 }
 .session-item:hover .session-meta,
 .session-item:has(.session-kebab[aria-expanded="true"]) .session-meta {

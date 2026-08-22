@@ -336,11 +336,8 @@ html[data-pig-desktop-platform] .session-nav input {
   width: 100%;
   min-height: var(--nav-rail);
   padding-inline: 2px;
-}
-.session-nav.collapsed .logo-row {
-  width: var(--nav-rail);
-  justify-content: center;
-  padding-inline: 0;
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
 }
 .logo-mark {
   display: flex;
@@ -401,6 +398,7 @@ html[data-pig-desktop-platform] .session-nav input {
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  scrollbar-gutter: stable;
 }
 .session-nav:not(:hover) .nav-body {
   scrollbar-color: transparent transparent;
@@ -415,6 +413,8 @@ html[data-pig-desktop-platform] .session-nav input {
   flex-direction: column;
   gap: var(--spacing-xs);
   padding-inline: 2px;
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
 }
 .search-row,
 .scope-row {
@@ -530,8 +530,13 @@ html[data-pig-desktop-platform] .session-nav input {
   min-height: var(--nav-rail);
   padding-inline: 2px;
   margin-top: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
 }
+.session-nav.collapsed .logo-row,
 .session-nav.collapsed .nav-foot {
+  overflow: visible;
+  scrollbar-gutter: auto;
   width: var(--nav-rail);
   justify-content: center;
   padding-inline: 0;
