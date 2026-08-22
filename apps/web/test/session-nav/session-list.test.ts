@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
-import { formatRelativeTime, sessionTitle, workspaceName } from "@features/session-nav/format.js";
+import {
+  formatRelativeTime,
+  sessionTitle,
+  workspaceName,
+  workspaceScopeLabel,
+} from "@features/session-nav/format.js";
 import {
   groupSessionsByCwd,
   listSessionsForSidebar,
   modelDisplayNames,
+  pruneProjectScope,
   sessionCardFoot,
   sessionModelLabel,
   sortSessionsForSidebar,
+  toggleProjectScope,
 } from "@features/session-nav/sidebar.js";
 
 describe("workspaceName and grouping", () => {
@@ -106,7 +113,7 @@ describe("session-dimension list", () => {
       { id: "mid", createdAt: 2, cwd: "/a", updatedAt: 80 },
       { id: "orphan", createdAt: 4 },
     ];
-    expect(listSessionsForSidebar(sessions, null).map((session) => session.id)).toEqual([
+    expect(listSessionsForSidebar(sessions, []).map((session) => session.id)).toEqual([
       "new",
       "mid",
       "old",
@@ -119,7 +126,21 @@ describe("session-dimension list", () => {
       { id: "a2", createdAt: 3, cwd: "/a" },
       { id: "a1", createdAt: 2, cwd: "/a" },
     ];
-    expect(listSessionsForSidebar(sessions, "/a").map((session) => session.id)).toEqual([
+    expect(listSessionsForSidebar(sessions, ["/a"]).map((session) => session.id)).toEqual([
+      "a2",
+      "a1",
+    ]);
+  });
+
+  it("filters to several cwds and keeps creation order", () => {
+    const sessions: SessionMetadata[] = [
+      { id: "b", createdAt: 1, cwd: "/b" },
+      { id: "a2", createdAt: 3, cwd: "/a" },
+      { id: "c", createdAt: 4, cwd: "/c" },
+      { id: "a1", createdAt: 2, cwd: "/a" },
+    ];
+    expect(listSessionsForSidebar(sessions, ["/a", "/c"]).map((session) => session.id)).toEqual([
+      "c",
       "a2",
       "a1",
     ]);
@@ -130,9 +151,27 @@ describe("session-dimension list", () => {
       { id: "open", createdAt: 2, cwd: "G:\\AICode\\pig" },
       { id: "other", createdAt: 1, cwd: "/elsewhere" },
     ];
-    expect(listSessionsForSidebar(sessions, "g:/AICode/pig").map((session) => session.id)).toEqual([
-      "open",
-    ]);
+    expect(
+      listSessionsForSidebar(sessions, ["g:/AICode/pig"]).map((session) => session.id),
+    ).toEqual(["open"]);
+  });
+
+  it("toggles a path into and out of the scope set", () => {
+    expect(toggleProjectScope([], "/a")).toEqual(["/a"]);
+    expect(toggleProjectScope(["/a"], "/a")).toEqual([]);
+    expect(toggleProjectScope(["g:/AICode/pig"], "G:\\AICode\\pig")).toEqual([]);
+    expect(toggleProjectScope(["/a"], "/b")).toEqual(["/a", "/b"]);
+  });
+
+  it("drops scoped paths that are no longer in the group list", () => {
+    expect(pruneProjectScope(["/a", "/gone"], ["/a", "/b"])).toEqual(["/a"]);
+    expect(pruneProjectScope(["/gone"], ["/a"])).toEqual([]);
+  });
+
+  it("labels empty as all, one as the folder name, many as a count", () => {
+    expect(workspaceScopeLabel([])).toBe("全部工作目录");
+    expect(workspaceScopeLabel(["/repo/app"])).toBe("app");
+    expect(workspaceScopeLabel(["/a", "/b"])).toBe("2 个工作目录");
   });
 
   it("does not reorder by activity", () => {

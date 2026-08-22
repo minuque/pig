@@ -52,6 +52,8 @@ function createNav(
     listedSessions: nav.listedSessions,
     cardFootById,
     projectScope: nav.projectScope,
+    toggleProjectScope: nav.toggleProjectScope,
+    clearProjectScope: nav.clearProjectScope,
     addingWorkspace: nav.addingWorkspace,
     navError,
     lastCwd: cwd.lastCwd,

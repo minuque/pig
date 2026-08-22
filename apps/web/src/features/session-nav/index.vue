@@ -43,22 +43,26 @@
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuItem @select="projectScope = null">
+              <DropdownMenuItem @select="clearProjectScope">
                 <Folder :size="16" aria-hidden="true" />
                 <span class="min-w-0 flex-1 truncate">全部工作目录</span>
-                <Check v-if="projectScope === null" :size="14" aria-hidden="true" />
+                <Check v-if="projectScope.length === 0" :size="14" aria-hidden="true" />
               </DropdownMenuItem>
               <DropdownMenuItem
                 v-for="group in groups"
                 :key="group.canonicalPath"
                 :title="group.canonicalPath"
-                @select="projectScope = group.canonicalPath"
+                @select="onToggleScope($event, group.canonicalPath)"
               >
                 <Folder :size="16" aria-hidden="true" />
                 <span class="min-w-0 flex-1 truncate">{{
                   workspaceName(group.canonicalPath)
                 }}</span>
-                <Check v-if="projectScope === group.canonicalPath" :size="14" aria-hidden="true" />
+                <Check
+                  v-if="projectScope.includes(group.canonicalPath)"
+                  :size="14"
+                  aria-hidden="true"
+                />
                 <button
                   v-if="group.authorized"
                   class="ml-auto inline-flex size-6 items-center justify-center rounded-md text-ink-faint hover:text-ink"
@@ -121,7 +125,7 @@
                 添加本地目录
               </button>
             </template>
-            <span v-else-if="projectScope">「{{ scopedGroupName }}」暂无会话</span>
+            <span v-else-if="projectScope.length">「{{ scopedGroupName }}」暂无会话</span>
             <span v-else>暂无会话</span>
           </div>
         </nav>
@@ -161,7 +165,7 @@ import {
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import SessionItem from "@features/session-nav/components/SessionItem.vue";
-import { workspaceName } from "@features/session-nav/format.js";
+import { workspaceName, workspaceScopeLabel } from "@features/session-nav/format.js";
 
 defineProps<{
   collapsed?: boolean;
@@ -177,6 +181,8 @@ const {
   listedSessions,
   cardFootById,
   projectScope,
+  toggleProjectScope,
+  clearProjectScope,
   activeWorkspaceId,
   activeSessionId,
   activeSessionRunning,
@@ -194,11 +200,7 @@ const SESSION_ROW_PX = 79;
 const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(listedSessions, {
   itemHeight: SESSION_ROW_PX,
 });
-const scopedGroupName = computed(() => {
-  const scoped = projectScope.value;
-  if (!scoped) return "全部工作目录";
-  return workspaceName(scoped);
-});
+const scopedGroupName = computed(() => workspaceScopeLabel(projectScope.value));
 
 watch(workspaceError, (message) => {
   const text = message.trim();
@@ -215,15 +217,27 @@ watch(
   },
 );
 
-/** 筛选到已授权目录时用该目录；否则当前会话 cwd，再否则第一个已授权。 */
+/** 筛选到已授权目录时用该目录；多选时优先当前会话 cwd。否则第一个已授权。 */
 const newSessionPath = computed(() => {
   const authorized = groups.value.filter((group) => group.authorized);
-  const scoped = projectScope.value;
-  if (scoped && authorized.some((group) => group.canonicalPath === scoped)) return scoped;
+  const scopedAuthorized = projectScope.value.filter((path) =>
+    authorized.some((group) => group.canonicalPath === path),
+  );
+  if (scopedAuthorized.length === 1) return scopedAuthorized[0];
+  if (scopedAuthorized.length > 1) {
+    const active = activeWorkspaceId.value;
+    if (active && scopedAuthorized.includes(active)) return active;
+    return scopedAuthorized[0];
+  }
   const active = activeWorkspaceId.value;
   if (active && authorized.some((group) => group.canonicalPath === active)) return active;
   return authorized[0]?.canonicalPath;
 });
+
+function onToggleScope(event: Event, path: string) {
+  event.preventDefault();
+  toggleProjectScope(path);
+}
 
 function onNewSession() {
   const path = newSessionPath.value;
@@ -328,8 +342,8 @@ html[data-pig-desktop-platform] .session-nav input {
   justify-content: center;
   align-items: center;
   flex: none;
-  width: var(--nav-rail);
-  min-height: var(--nav-rail);
+  width: var(--size-nav-action);
+  min-height: var(--size-nav-action);
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
@@ -383,10 +397,6 @@ html[data-pig-desktop-platform] .session-nav input {
   align-items: center;
   gap: 4px;
   min-width: 0;
-}
-.toolbar-icon {
-  width: var(--size-nav-action);
-  min-height: var(--size-nav-action);
 }
 .scope-trigger {
   display: flex;

@@ -24,19 +24,37 @@ export function sortSessionsForSidebar(sessions: readonly SessionMetadata[]): Se
 }
 
 /**
- * 会话维列表：无 cwd 的 Session 不进侧栏；scopeCwd 为 null 即全部工作目录。
+ * 会话维列表：无 cwd 的 Session 不进侧栏；scopeCwds 为空即全部工作目录。
  */
 export function listSessionsForSidebar(
   sessions: readonly SessionMetadata[],
-  scopeCwd: string | null,
+  scopeCwds: readonly string[],
 ): SessionMetadata[] {
-  const scope = scopeCwd === null ? null : canonicalizeWorkspacePath(scopeCwd);
+  const scope = new Set(scopeCwds.map(canonicalizeWorkspacePath));
   return sortSessionsForSidebar(
     sessions.filter((session) => {
       const cwd = sessionCwd(session);
-      return cwd !== undefined && (scope === null || cwd === scope);
+      return cwd !== undefined && (scope.size === 0 || scope.has(cwd));
     }),
   );
+}
+
+/** 勾选/取消一个工作目录；路径先规范化再比较。 */
+export function toggleProjectScope(scoped: readonly string[], path: string): string[] {
+  const canonical = canonicalizeWorkspacePath(path);
+  const current = scoped.map(canonicalizeWorkspacePath);
+  return current.includes(canonical)
+    ? current.filter((item) => item !== canonical)
+    : [...current, canonical];
+}
+
+/** 分组里已经没有的目录从筛选里拿掉。 */
+export function pruneProjectScope(
+  scoped: readonly string[],
+  groupPaths: readonly string[],
+): string[] {
+  const groups = new Set(groupPaths.map(canonicalizeWorkspacePath));
+  return scoped.map(canonicalizeWorkspacePath).filter((path) => groups.has(path));
 }
 
 /** 已授权目录优先；其余 Pi Session 按 cwd 继续展示。组内按最近活动倒序。 */

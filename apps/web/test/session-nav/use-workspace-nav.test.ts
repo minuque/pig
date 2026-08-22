@@ -40,7 +40,7 @@ describe("useWorkspaceNav projectScope", () => {
       refreshSessions: vi.fn(async () => undefined),
     });
 
-    nav.projectScope.value = "g:/AICode/pig";
+    nav.toggleProjectScope("g:/AICode/pig");
     await nextTick();
     expect(nav.listedSessions.value.map((session) => session.id)).toEqual(["s1"]);
 
@@ -48,7 +48,7 @@ describe("useWorkspaceNav projectScope", () => {
     sessions.value = [{ id: "s1", createdAt: 1, cwd: "G:\\AICode\\pig" }];
     await nextTick();
 
-    expect(nav.projectScope.value).toBe("g:/AICode/pig");
+    expect(nav.projectScope.value).toEqual(["g:/AICode/pig"]);
     expect(nav.listedSessions.value.map((session) => session.id)).toEqual(["s1"]);
   });
 
@@ -61,11 +61,36 @@ describe("useWorkspaceNav projectScope", () => {
       refreshSessions: vi.fn(async () => undefined),
     });
 
-    nav.projectScope.value = "g:/AICode/pig";
+    nav.toggleProjectScope("g:/AICode/pig");
     sessions.value = [{ id: "s1", createdAt: 1, cwd: "G:\\AICode\\pig" }];
     await nextTick();
 
-    expect(nav.projectScope.value).toBe("g:/AICode/pig");
+    expect(nav.projectScope.value).toEqual(["g:/AICode/pig"]);
     expect(nav.listedSessions.value.map((session) => session.id)).toEqual(["s1"]);
+  });
+
+  it("可勾选多个目录，列表只含这些 cwd 的会话", async () => {
+    const sessions = ref<SessionMetadata[]>([
+      { id: "a", createdAt: 1, cwd: "/a" },
+      { id: "b", createdAt: 2, cwd: "/b" },
+      { id: "c", createdAt: 3, cwd: "/c" },
+    ]);
+    const nav = useWorkspaceNav(sessions, localWorkspaces(["/a", "/b", "/c"]), ref(""), {
+      sessionId: ref(undefined),
+      connected: ref(false),
+      router: { replace: vi.fn() } as never,
+      refreshSessions: vi.fn(async () => undefined),
+    });
+
+    nav.toggleProjectScope("/a");
+    nav.toggleProjectScope("/c");
+    await nextTick();
+    expect(nav.projectScope.value).toEqual(["/a", "/c"]);
+    expect(nav.listedSessions.value.map((session) => session.id)).toEqual(["c", "a"]);
+
+    nav.clearProjectScope();
+    await nextTick();
+    expect(nav.projectScope.value).toEqual([]);
+    expect(nav.listedSessions.value.map((session) => session.id)).toEqual(["c", "b", "a"]);
   });
 });

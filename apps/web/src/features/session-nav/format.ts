@@ -6,6 +6,13 @@ export function workspaceName(path: string): string {
   return segments[segments.length - 1] ?? path;
 }
 
+/** 侧栏筛选触发器文案：空=全部，一个用目录名，多个用数量。 */
+export function workspaceScopeLabel(scoped: readonly string[]): string {
+  if (scoped.length === 0) return "全部工作目录";
+  if (scoped.length === 1) return workspaceName(scoped[0]!);
+  return `${scoped.length} 个工作目录`;
+}
+
 /** 未命名 Session 的列表/标题回退文案。 */
 export const UNTITLED_SESSION = "新会话";
 

@@ -3,11 +3,12 @@ import type { Router } from "vue-router";
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
 import { errorMessage, platformRequest } from "@client/http.js";
 import type { useLocalWorkspaces } from "@client/local-cwd.js";
-import { canonicalizeWorkspacePath } from "@client/local-cwd.js";
 import { workspaceName } from "@features/session-nav/format.js";
 import {
   groupSessionsByCwd,
   listSessionsForSidebar,
+  pruneProjectScope,
+  toggleProjectScope,
   type SessionCardExtra,
 } from "@features/session-nav/sidebar.js";
 
@@ -27,8 +28,8 @@ export function useWorkspaceNav(
   const addingWorkspace = ref(false);
   const workspaces = local.workspaces;
   const groups = computed(() => groupSessionsByCwd(sessions.value, local.workspaces.value));
-  /** null = 全部工作目录。对齐 T3 `projectScopeKey`。 */
-  const projectScope = shallowRef<string | null>(null);
+  /** 空数组 = 全部工作目录。 */
+  const projectScope = shallowRef<string[]>([]);
   const listedSessions = computed(() => listSessionsForSidebar(sessions.value, projectScope.value));
   const sessionCards = shallowRef(new Map<string, SessionCardExtra>());
   const sessionStamp = computed(() =>
@@ -69,13 +70,19 @@ export function useWorkspaceNav(
   });
 
   watch(groups, (list) => {
-    const scoped = projectScope.value;
-    if (scoped === null) return;
-    const canonical = canonicalizeWorkspacePath(scoped);
-    if (!list.some((group) => group.canonicalPath === canonical)) {
-      projectScope.value = null;
-    }
+    const next = pruneProjectScope(
+      projectScope.value,
+      list.map((group) => group.canonicalPath),
+    );
+    if (next.length !== projectScope.value.length) projectScope.value = next;
   });
+
+  function toggleScope(path: string) {
+    projectScope.value = toggleProjectScope(projectScope.value, path);
+  }
+  function clearProjectScope() {
+    projectScope.value = [];
+  }
 
   async function addWorkspace() {
     if (addingWorkspace.value) return;
@@ -141,6 +148,8 @@ export function useWorkspaceNav(
     listedSessions,
     sessionCards,
     projectScope,
+    toggleProjectScope: toggleScope,
+    clearProjectScope,
     addWorkspace,
     revokeWorkspace,
     renameSession,
