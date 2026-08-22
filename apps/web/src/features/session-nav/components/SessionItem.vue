@@ -58,7 +58,7 @@
           <MoreHorizontal :size="16" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" :side-offset="6">
+      <DropdownMenuContent align="start" class="select-none" :side-offset="6">
         <DropdownMenuItem @select="startRename">
           <Pencil :size="14" aria-hidden="true" />
           重命名
@@ -165,7 +165,7 @@ function onDelete() {
 }
 .workspace-mark {
   flex: none;
-  color: var(--ink-faint);
+  color: var(--ink);
 }
 .card-line {
   display: flex;
@@ -225,6 +225,7 @@ function onDelete() {
   line-height: 0;
 }
 .card-model-name {
+  color: var(--ink);
   min-width: 0;
   overflow: hidden;
   line-height: 1;
@@ -276,6 +277,7 @@ function onDelete() {
   color: var(--ink);
   font: inherit;
   font-size: 13px;
+  user-select: text;
 }
 .session-kebab {
   position: absolute;

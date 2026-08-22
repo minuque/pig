@@ -42,7 +42,7 @@
                 <ChevronDown :size="16" aria-hidden="true" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
+            <DropdownMenuContent align="start" class="select-none">
               <DropdownMenuItem @select="clearProjectScope">
                 <Folder :size="16" aria-hidden="true" />
                 <span class="min-w-0 flex-1 truncate">全部工作目录</span>
@@ -262,6 +262,7 @@ function onSessionNavigate(cwd: string | undefined) {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  user-select: none;
 }
 .session-nav.collapsed {
   align-items: center;
