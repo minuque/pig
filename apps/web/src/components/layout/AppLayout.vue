@@ -84,9 +84,13 @@ const {
   width: var(--size-resizer);
   cursor: col-resize;
   touch-action: none;
+  background: var(--surface);
+  transition: background var(--duration-fast) var(--ease-smooth);
 }
-.resizer:focus-visible {
-  background: var(--hairline);
+.resizer:hover,
+.resizer:focus-visible,
+.shell.is-resizing .resizer {
+  background: var(--primary-active);
 }
 .shell.is-resizing {
   cursor: col-resize;
@@ -109,7 +113,8 @@ main {
   background: var(--surface);
 }
 @media (prefers-reduced-motion: reduce) {
-  .sidebar {
+  .sidebar,
+  .resizer {
     transition: none;
   }
 }
@@ -166,7 +171,8 @@ html[data-pig-desktop-platform] .resizer {
 }
 @media (prefers-reduced-motion: reduce) {
   /* 置于末尾，覆盖上方 media 块内的 transition */
-  .sidebar {
+  .sidebar,
+  .resizer {
     transition: none;
     animation: none;
   }
