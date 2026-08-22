@@ -24,6 +24,11 @@ describe("workspaceName and grouping", () => {
     expect(workspaceName("C:\\repo\\app")).toBe("app");
     expect(workspaceName("/")).toBe("/");
   });
+  it("keeps session cwd groups when local workspaces are empty", () => {
+    const groups = groupSessionsByCwd([{ id: "s1", createdAt: 1, cwd: "/pig" }], []);
+    expect(groups.map((group) => group.canonicalPath)).toEqual(["/pig"]);
+    expect(groups[0]?.authorized).toBe(false);
+  });
   it("groups sessions by cwd, following local workspace order", () => {
     const sessions: SessionMetadata[] = [
       { id: "s1", createdAt: 1, cwd: "/b" },

@@ -47,8 +47,10 @@ import ChatInput from "@features/chat-input/index.vue";
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue";
 import { useWelcomeSubmit } from "@features/session-workbench/hooks/use-welcome-submit.js";
 
-const { workspaces, lastCwd, addingWorkspace, addWorkspace } = useNav();
+const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav();
 const { catalog, preset, createSession, submitText } = useSession();
+/** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
+const workspaces = computed(() => groups.value.map((group) => group.canonicalPath));
 const { welcomePrompt, welcomeWorkspaceId, welcomeSubmitting, welcomeError, submitWelcome } =
   useWelcomeSubmit({
     workspaces,

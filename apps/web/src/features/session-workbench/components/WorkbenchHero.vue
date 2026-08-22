@@ -131,10 +131,8 @@ const label = computed(() => workbenchHeroLabel(workspaceId.value));
 .workbench-hero-menu {
   min-width: 10rem;
   max-width: 16rem;
-  width: max-content;
 }
 .workbench-hero-option-label {
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
