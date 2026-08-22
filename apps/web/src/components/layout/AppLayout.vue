@@ -84,7 +84,7 @@ const {
   width: var(--size-resizer);
   cursor: col-resize;
   touch-action: none;
-  background: var(--canvas-soft);
+  background: var(--surface);
 }
 .shell.is-resizing {
   cursor: col-resize;
