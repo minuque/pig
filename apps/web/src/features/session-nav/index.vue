@@ -87,16 +87,6 @@
                     :size="14"
                     aria-hidden="true"
                   />
-                  <button
-                    v-if="group.authorized"
-                    class="scope-revoke"
-                    type="button"
-                    :aria-label="`从列表移除 ${workspaceName(group.canonicalPath)}`"
-                    @pointerdown.stop
-                    @click.stop="revokeWorkspace(group.canonicalPath)"
-                  >
-                    <X :size="12" aria-hidden="true" />
-                  </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -170,7 +160,6 @@ import {
   Search,
   Settings,
   SquarePen,
-  X,
 } from "lucide-vue-next";
 import { notify } from "@components/ui/alert/index.js";
 import {
@@ -207,7 +196,6 @@ const {
   addingWorkspace,
   navError: workspaceError,
   addWorkspace,
-  revokeWorkspace,
   renameSession,
   deleteSession,
 } = useNav();
@@ -240,21 +228,19 @@ watch(
   },
 );
 
-/** 筛选到已授权目录时用该目录；多选时优先当前会话 cwd。否则第一个已授权。 */
+/** 筛选到一个目录时用它；多选时优先当前会话 cwd。否则当前会话 cwd 或列表第一项。 */
 const newSessionPath = computed(() => {
-  const authorized = groups.value.filter((group) => group.authorized);
-  const scopedAuthorized = projectScope.value.filter((path) =>
-    authorized.some((group) => group.canonicalPath === path),
-  );
-  if (scopedAuthorized.length === 1) return scopedAuthorized[0];
-  if (scopedAuthorized.length > 1) {
+  const paths = groups.value.map((group) => group.canonicalPath);
+  const scoped = projectScope.value.filter((path) => paths.includes(path));
+  if (scoped.length === 1) return scoped[0];
+  if (scoped.length > 1) {
     const active = activeWorkspaceId.value;
-    if (active && scopedAuthorized.includes(active)) return active;
-    return scopedAuthorized[0];
+    if (active && scoped.includes(active)) return active;
+    return scoped[0];
   }
   const active = activeWorkspaceId.value;
-  if (active && authorized.some((group) => group.canonicalPath === active)) return active;
-  return authorized[0]?.canonicalPath;
+  if (active && paths.includes(active)) return active;
+  return paths[0];
 });
 
 function onToggleScope(event: Event, path: string) {
@@ -485,24 +471,6 @@ html[data-pig-desktop-platform] .session-nav input {
   font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.scope-revoke {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: var(--size-nav-action);
-  min-height: var(--size-nav-action);
-  margin-left: auto;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--ink-faint);
-}
-.scope-revoke:hover {
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
-  color: var(--ink);
 }
 .session-list ul {
   display: flex;

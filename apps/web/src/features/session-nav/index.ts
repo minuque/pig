@@ -61,7 +61,6 @@ function createNav(
     activeSessionId: session.sessionId,
     activeSessionRunning: computed(() => session.projection.value?.running ?? false),
     addWorkspace: nav.addWorkspace,
-    revokeWorkspace: nav.revokeWorkspace,
     renameSession: nav.renameSession,
     deleteSession: nav.deleteSession,
   };

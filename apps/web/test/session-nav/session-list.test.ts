@@ -27,7 +27,6 @@ describe("workspaceName and grouping", () => {
   it("keeps session cwd groups when local workspaces are empty", () => {
     const groups = groupSessionsByCwd([{ id: "s1", createdAt: 1, cwd: "/pig" }], []);
     expect(groups.map((group) => group.canonicalPath)).toEqual(["/pig"]);
-    expect(groups[0]?.authorized).toBe(false);
   });
   it("groups sessions by cwd, following local workspace order", () => {
     const sessions: SessionMetadata[] = [
@@ -40,12 +39,10 @@ describe("workspaceName and grouping", () => {
       {
         canonicalPath: "/a",
         sessions: [{ id: "s2", createdAt: 2, cwd: "/a" }],
-        authorized: true,
       },
       {
         canonicalPath: "/b",
         sessions: [{ id: "s1", createdAt: 1, cwd: "/b" }],
-        authorized: true,
       },
     ]);
   });
@@ -82,7 +79,6 @@ describe("workspaceName and grouping", () => {
       {
         canonicalPath: "g:/AICode/pig",
         sessions: [{ id: "open", createdAt: 1, cwd: "G:\\AICode\\pig" }],
-        authorized: true,
       },
     ]);
   });
@@ -99,13 +95,11 @@ describe("workspaceName and grouping", () => {
       {
         canonicalPath: "/a",
         sessions: [{ id: "s1", createdAt: 1, cwd: "/a" }],
-        authorized: true,
       },
-      { canonicalPath: "/empty", sessions: [], authorized: true },
+      { canonicalPath: "/empty", sessions: [] },
       {
         canonicalPath: "/other",
         sessions: [{ id: "s2", createdAt: 2, cwd: "/other" }],
-        authorized: false,
       },
     ]);
   });

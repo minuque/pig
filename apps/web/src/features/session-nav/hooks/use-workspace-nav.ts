@@ -3,7 +3,6 @@ import type { Router } from "vue-router";
 import type { SessionMetadata } from "@earendil-works/pi-protocol";
 import { errorMessage, platformRequest } from "@client/http.js";
 import type { useLocalWorkspaces } from "@client/local-cwd.js";
-import { workspaceName } from "@features/session-nav/format.js";
 import {
   groupSessionsByCwd,
   listSessionsForSidebar,
@@ -111,9 +110,6 @@ export function useWorkspaceNav(
       addingWorkspace.value = false;
     }
   }
-  function revokeWorkspace(path: string) {
-    if (confirm(`从列表中移除 ${workspaceName(path)}？`)) local.remove(path);
-  }
   async function renameSession(id: string, name: string) {
     error.value = "";
     try {
@@ -151,7 +147,6 @@ export function useWorkspaceNav(
     toggleProjectScope: toggleScope,
     clearProjectScope,
     addWorkspace,
-    revokeWorkspace,
     renameSession,
     deleteSession,
     loadSessionCards,

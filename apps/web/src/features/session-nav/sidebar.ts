@@ -2,11 +2,10 @@ import type { SessionMetadata } from "@earendil-works/pi-protocol";
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js";
 import { sessionRecency, sessionTitle, workspaceName } from "./format.js";
 
-/** 左侧导航按 cwd 分组；authorized 表示目录在本地授权列表。 */
+/** 左侧导航按 cwd 分组。 */
 export interface SessionGroup {
   canonicalPath: string;
   sessions: SessionMetadata[];
-  authorized: boolean;
 }
 
 function sortSessionsByRecency(sessions: SessionMetadata[]): SessionMetadata[] {
@@ -71,7 +70,7 @@ export function pruneProjectScope(
   return scoped.map(canonicalizeWorkspacePath).filter((path) => groups.has(path));
 }
 
-/** 已授权目录优先；其余 Pi Session 按 cwd 继续展示。组内按最近活动倒序。 */
+/** 本地名单在前（含尚无会话的目录）；其余 Pi Session 按 cwd 跟上。组内按最近活动倒序。 */
 function sessionCwd(session: Pick<SessionMetadata, "cwd">): string | undefined {
   return session.cwd ? canonicalizeWorkspacePath(session.cwd) : undefined;
 }
@@ -94,14 +93,12 @@ export function groupSessionsByCwd(
     ...localPaths.map((canonicalPath) => ({
       canonicalPath,
       sessions: sortSessionsByRecency(byPath.get(canonicalPath) ?? []),
-      authorized: true,
     })),
     ...[...byPath]
       .filter(([canonicalPath]) => !local.has(canonicalPath))
       .map(([canonicalPath, groupedSessions]) => ({
         canonicalPath,
         sessions: sortSessionsByRecency(groupedSessions),
-        authorized: false,
       })),
   ];
 }
