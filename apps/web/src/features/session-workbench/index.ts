@@ -84,7 +84,14 @@ function createSession(
     submitText: runtime.submitText,
     abortSession: runtime.abortSession,
     applyThreadState: runtime.applyThreadState,
-    loadEarlier: remote.loadEarlier,
+    loadEarlier: async () => {
+      sessionError.value = "";
+      try {
+        await remote.loadEarlier();
+      } catch (error) {
+        sessionError.value = errorMessage(error);
+      }
+    },
     loadingEarlier: remote.loadingEarlier,
     earlierExhausted: remote.earlierExhausted,
     initialize,

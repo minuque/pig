@@ -239,4 +239,15 @@ describe("useRemoteSessions 尾部先上屏", () => {
     ]);
     expect(sessions.earlierExhausted.value).toBe(true);
   });
+
+  it("显示更早失败时上抛且复位 loading", async () => {
+    const { sessions } = setup();
+    const a = makeSession("s1");
+    setTranscript(a, makeTranscript(45));
+    openMock.mockResolvedValue(a);
+    platformRequestMock.mockRejectedValue(new Error("boom"));
+    await sessions.openSession("s1");
+    await expect(sessions.loadEarlier()).rejects.toThrow("boom");
+    expect(sessions.loadingEarlier.value).toBe(false);
+  });
 });

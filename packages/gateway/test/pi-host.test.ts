@@ -428,6 +428,7 @@ describe("PiHostService", () => {
         item.role === "user" && item.content[0]?.type === "text" ? item.content[0].text : item.role,
       ),
     ).toEqual(["m0", "m1", "m2", "m3", "m4"]);
+    expect(() => JSON.stringify(page)).not.toThrow();
   });
 
   it("renames via SessionManager and deletes the session file", async () => {
