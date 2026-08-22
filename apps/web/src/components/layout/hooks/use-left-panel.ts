@@ -27,7 +27,17 @@ export function useLeftPanel() {
   const resizing = ref(false);
   /** 拖拽期间冻结主栏宽度，避免 transcript 每帧重测。 */
   const frozenMainWidth = ref<number | null>(null);
+  let unfreezeFrame = 0;
 
+  function cancelUnfreeze() {
+    if (!unfreezeFrame) return;
+    cancelAnimationFrame(unfreezeFrame);
+    unfreezeFrame = 0;
+  }
+  function unfreezeMain() {
+    resizing.value = false;
+    frozenMainWidth.value = null;
+  }
   function setPanelWidth(desired: number) {
     leftWidth.value = panelWidthFor(desired, window.innerWidth);
   }
@@ -43,6 +53,7 @@ export function useLeftPanel() {
     const startWidth = leftWidth.value;
     const shell = handle.closest(".shell");
     const main = shell?.querySelector("main");
+    cancelUnfreeze();
     frozenMainWidth.value =
       main instanceof HTMLElement ? Math.round(main.getBoundingClientRect().width) : null;
     resizing.value = true;
@@ -62,8 +73,12 @@ export function useLeftPanel() {
       handle.removeEventListener("pointercancel", stop);
       if (frame) cancelAnimationFrame(frame);
       setPanelWidth(startWidth + (pendingX - startX));
-      resizing.value = false;
-      frozenMainWidth.value = null;
+      // 侧栏宽度先落地，下一帧再解冻主栏，时间线只量一次
+      cancelUnfreeze();
+      unfreezeFrame = requestAnimationFrame(() => {
+        unfreezeFrame = 0;
+        unfreezeMain();
+      });
       if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
     };
     handle.addEventListener("pointermove", move);
@@ -90,6 +105,7 @@ export function useLeftPanel() {
   fitPanels();
   watch(leftOpen, () => void fitPanels());
   onBeforeUnmount(() => {
+    cancelUnfreeze();
     narrowViewport.removeEventListener("change", handleViewportChange);
     window.removeEventListener("resize", fitPanels);
   });

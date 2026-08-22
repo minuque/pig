@@ -17,7 +17,7 @@
       :get-kind="transcriptRowKind"
       :get-content="transcriptRowContent"
       :get-final="transcriptRowFinal"
-      :estimate-item-height="estimateHeight"
+      :estimate-item-height="estimateTranscriptRowHeight"
       markdown-mode="chat"
       :stick-to-bottom="'auto'"
       :overscan="8"
@@ -53,6 +53,7 @@
 <script lang="ts">
 import type { TranscriptItem } from "@earendil-works/pi-protocol";
 import {
+  assistantThinking,
   isAssistantItem,
   transcriptText,
 } from "@features/session-workbench/lib/transcript-format.js";
@@ -70,6 +71,30 @@ export function transcriptRowContent(item: TranscriptItem): string {
 
 export function transcriptRowFinal(item: TranscriptItem): boolean {
   return !(isAssistantItem(item) && item.status === "streaming");
+}
+
+function estimateWrappedLines(text: string, charsPerLine: number): number {
+  if (!text) return 1;
+  let lines = 0;
+  for (const part of text.split("\n")) {
+    lines += Math.max(1, Math.ceil(part.length / charsPerLine));
+  }
+  return lines;
+}
+
+/**
+ * 虚拟列表估高：宁可偏高，避免宽度变窄后按 200px 塞进过多未测行。
+ * 助手约 48 字/行、26px 行高；用户约 36 字/行、22px 行高。
+ */
+export function estimateTranscriptRowHeight(item: TranscriptItem): number {
+  if (item.role === "tool") return 48;
+  const text = transcriptText(item);
+  if (item.role === "user") {
+    return Math.min(280, 56 + estimateWrappedLines(text, 36) * 22);
+  }
+  const height = 36 + estimateWrappedLines(text, 48) * 26;
+  const thinking = isAssistantItem(item) && assistantThinking(item).length > 0 ? 36 : 0;
+  return Math.min(960, Math.max(160, height + thinking));
 }
 </script>
 
@@ -108,10 +133,6 @@ const measurementKey = computed(() => (isDark.value ? "dark" : "light"));
 // 虚拟滚动行 key：以 TranscriptItem id 保证流式输出时同一行原地更新
 function rowKey(item: TranscriptItem): string {
   return item.id;
-}
-function estimateHeight(item: TranscriptItem): number {
-  if (item.role === "tool") return 48;
-  return item.role === "assistant" ? 200 : 88;
 }
 
 function isStreamingAssistant(item: TranscriptItem): boolean {
