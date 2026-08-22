@@ -74,7 +74,7 @@ export function transcriptRowFinal(item: TranscriptItem): boolean {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
 import { ArrowDown } from "lucide-vue-next";
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue";
 import type { SessionPhase } from "@earendil-works/pi-protocol";
@@ -155,6 +155,11 @@ function scrollToLatest() {
   hasNewActivity.value = false;
   timeline.value?.scrollToBottom();
 }
+
+onBeforeUnmount(() => {
+  const captured = timeline.value?.captureThreadState();
+  if (captured) emit("thread-state", captured);
+});
 </script>
 
 <style scoped>

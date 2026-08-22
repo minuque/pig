@@ -15,4 +15,9 @@ describe("isEmptyCanvas", () => {
     expect(isEmptyCanvas(0, "turn")).toBe(false);
     expect(isEmptyCanvas(0, "compaction")).toBe(false);
   });
+
+  it("Session 加载中不走空画布，避免把 loading 当成欢迎页", () => {
+    expect(isEmptyCanvas(0, undefined, true)).toBe(false);
+    expect(isEmptyCanvas(0, "idle", true)).toBe(false);
+  });
 });

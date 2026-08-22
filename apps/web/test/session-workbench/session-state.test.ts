@@ -1,7 +1,7 @@
 import { computed, reactive } from "vue";
 import { describe, expect, it } from "vitest";
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
-import { sessionState } from "@features/session-workbench/lib/session-state.js";
+import { isSessionPending, sessionState } from "@features/session-workbench/lib/session-state.js";
 import type { SessionClientState } from "@features/session-workbench/lib/session-state.js";
 
 function mockThreadState(threadKey = "s"): MarkstreamThreadVirtualState {
@@ -31,5 +31,18 @@ describe("workbench state", () => {
     // 各 Session 状态隔离：写入 s2 不影响 s1
     sessionState(states, "s2").draft = "另一份";
     expect(draft.value).toBe("草稿");
+  });
+});
+
+describe("isSessionPending", () => {
+  it("路由已切走且尚未附加到新 id 时为加载中", () => {
+    expect(isSessionPending("s2", "s1")).toBe(true);
+    expect(isSessionPending("s2", undefined)).toBe(true);
+  });
+
+  it("无路由或已附加到当前 id 时不是加载中", () => {
+    expect(isSessionPending(undefined, "s1")).toBe(false);
+    expect(isSessionPending(undefined, undefined)).toBe(false);
+    expect(isSessionPending("s1", "s1")).toBe(false);
   });
 });

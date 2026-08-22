@@ -29,6 +29,8 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
   let disposePromise: Promise<void> | undefined;
   // 替换操作串行化：同一时刻至多一个 open/create，避免并发 lease
   let replaceChain: Promise<void> = Promise.resolve();
+  // 最新想打开的 session：快速连点时跳过中间 id，只落地最后一次
+  let wantedId: string | undefined;
 
   // 纯派生：由上述状态 computed 得到
   const snapshot = computed(() => state.value?.snapshot);
@@ -53,6 +55,11 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     remote.value = undefined;
     state.value = undefined;
   }
+  function release() {
+    const previous = remote.value;
+    detach();
+    if (previous) void previous.dispose();
+  }
 
   /** 串行执行替换操作：前一次失败不阻塞后续。 */
   function enqueueReplace<T>(run: () => Promise<T>): Promise<T> {
@@ -66,11 +73,24 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
 
   /** 打开已有 Session：重连后以官方 Snapshot 整体覆盖本地投影。已附加同 id 时幂等跳过。 */
   async function openSession(sessionId: string) {
+    wantedId = sessionId;
     return enqueueReplace(async () => {
+      if (wantedId !== sessionId) return;
       if (remote.value?.id === sessionId) return;
       const target = client.value;
       if (!target) throw new Error("PiClient 未连接");
-      attach(await RemoteSession.open(target, sessionId));
+      release();
+      try {
+        const next = await RemoteSession.open(target, sessionId);
+        if (wantedId !== sessionId) {
+          await next.dispose();
+          return;
+        }
+        attach(next);
+      } catch (error) {
+        if (wantedId !== sessionId) return;
+        throw error;
+      }
     });
   }
 
@@ -106,6 +126,7 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     await remote.value?.reconnect();
   }
   async function dispose() {
+    wantedId = undefined;
     if (disposePromise) return disposePromise;
     const current = remote.value;
     detach();

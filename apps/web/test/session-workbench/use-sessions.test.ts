@@ -8,6 +8,7 @@ const { openMock, createMock, makeSession } = vi.hoisted(() => {
   class FakeRemoteSession {
     id: string | undefined;
     disposeCalls = 0;
+    subscribeCalls = 0;
     listeners = new Set<(state: RemoteSessionState) => void>();
     state: RemoteSessionState = {
       lifecycle: { status: "ready" },
@@ -17,6 +18,7 @@ const { openMock, createMock, makeSession } = vi.hoisted(() => {
       this.id = id;
     }
     subscribe(listener: (state: RemoteSessionState) => void) {
+      this.subscribeCalls += 1;
       this.listeners.add(listener);
       listener(this.state);
       return () => this.listeners.delete(listener);
@@ -66,14 +68,84 @@ describe("useRemoteSessions lifecycle", () => {
     expect(sessions.remote.value).toBe(a);
   });
 
-  it("并发 open 串行执行且替换时释放旧实例 lease", async () => {
+  it("快速连点只打开最后一次请求的 session", async () => {
     const { sessions } = setup();
     const a = makeSession("s1");
     const b = makeSession("s2");
-    openMock.mockResolvedValueOnce(a).mockResolvedValueOnce(b);
-    await Promise.all([sessions.openSession("s1"), sessions.openSession("s2")]);
-    expect(openMock).toHaveBeenCalledTimes(2);
+    const c = makeSession("s3");
+    openMock.mockImplementation(async (_client, id) => {
+      if (id === "s1") return a;
+      if (id === "s2") return b;
+      return c;
+    });
+    await Promise.all([
+      sessions.openSession("s1"),
+      sessions.openSession("s2"),
+      sessions.openSession("s3"),
+    ]);
+    expect(openMock).toHaveBeenCalledTimes(1);
+    expect(openMock.mock.calls[0]?.[1]).toBe("s3");
+    expect(sessions.remote.value).toBe(c);
+    expect(a.disposeCalls).toBe(0);
+    expect(b.disposeCalls).toBe(0);
+  });
+
+  it("进行中的 open 完成后若已切走则释放、不附加", async () => {
+    const { sessions } = setup();
+    const a = makeSession("s1");
+    const b = makeSession("s2");
+    let releaseA = () => {};
+    let hitS1 = () => {};
+    const enteredS1 = new Promise<void>((resolve) => {
+      hitS1 = resolve;
+    });
+    const gateA = new Promise<void>((resolve) => {
+      releaseA = resolve;
+    });
+    openMock.mockImplementation(async (_client, id) => {
+      if (id === "s1") {
+        hitS1();
+        await gateA;
+        return a;
+      }
+      return b;
+    });
+    const first = sessions.openSession("s1");
+    await enteredS1;
+    const second = sessions.openSession("s2");
+    releaseA();
+    await Promise.all([first, second]);
+    expect(openMock.mock.calls.map((call) => call[1])).toEqual(["s1", "s2"]);
     expect(a.disposeCalls).toBe(1);
+    expect(a.subscribeCalls).toBe(0);
+    expect(sessions.remote.value).toBe(b);
+  });
+
+  it("已过期的 open 失败不上抛、不挡后续", async () => {
+    const { sessions } = setup();
+    const b = makeSession("s2");
+    let releaseA = () => {};
+    let hitS1 = () => {};
+    const enteredS1 = new Promise<void>((resolve) => {
+      hitS1 = resolve;
+    });
+    const gateA = new Promise<void>((resolve) => {
+      releaseA = resolve;
+    });
+    openMock.mockImplementation(async (_client, id) => {
+      if (id === "s1") {
+        hitS1();
+        await gateA;
+        throw new Error("boom");
+      }
+      return b;
+    });
+    const first = sessions.openSession("s1");
+    await enteredS1;
+    const second = sessions.openSession("s2");
+    releaseA();
+    await expect(first).resolves.toBeUndefined();
+    await expect(second).resolves.toBeUndefined();
     expect(sessions.remote.value).toBe(b);
   });
 

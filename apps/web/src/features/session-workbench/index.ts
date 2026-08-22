@@ -8,6 +8,7 @@ import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-b
 import { useRemoteSessions } from "@features/session-workbench/hooks/use-sessions.js";
 import { useSessionRoute } from "@features/session-workbench/hooks/use-session-route.js";
 import { useSessionRuntime } from "@features/session-workbench/hooks/use-session-runtime.js";
+import { isSessionPending } from "@features/session-workbench/lib/session-state.js";
 
 export type SessionContext = ReturnType<typeof createSession>;
 export const sessionKey: InjectionKey<SessionContext> = Symbol("session");
@@ -30,7 +31,8 @@ function createSession(
     dispose: remote.dispose,
   });
 
-  const projection = remote.projection;
+  const sessionPending = computed(() => isSessionPending(sessionId.value, remote.remote.value?.id));
+  const projection = computed(() => (sessionPending.value ? undefined : remote.projection.value));
   const catalog = computed(() => catalogFromModels(pi.models.value));
   const phase = computed(() => projection.value?.phase);
   const { preset } = useChatInputBinding({
@@ -65,10 +67,11 @@ function createSession(
     sessionId,
     projection,
     phase,
+    sessionPending,
     connecting: computed(() => pi.connectionState.value === "connecting"),
     connected: pi.connected,
     connectionError: pi.connectionError,
-    transcript: remote.transcript,
+    transcript: computed(() => (sessionPending.value ? [] : remote.transcript.value)),
     catalog,
     preset,
     prompt: runtime.prompt,

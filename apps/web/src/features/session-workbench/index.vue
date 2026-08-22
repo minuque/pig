@@ -1,12 +1,22 @@
 <template>
   <section
     v-if="sessionId"
-    :key="sessionId"
     class="workspace-main enter-blur"
-    :style="emptyCanvas ? undefined : { '--chat-input-space': `${dockHeight}px` }"
+    :style="emptyCanvas || sessionPending ? undefined : { '--chat-input-space': `${dockHeight}px` }"
     :aria-labelledby="emptyCanvas ? 'session-hero-title' : 'current-title'"
+    :aria-busy="sessionPending || undefined"
   >
-    <div v-if="emptyCanvas" class="empty-canvas">
+    <div v-if="sessionPending" class="session-loading" role="status" aria-live="polite">
+      <p class="sr-only">正在加载会话</p>
+      <div class="session-loading-stack" aria-hidden="true">
+        <div class="session-loading-user"></div>
+        <div class="session-loading-agent"></div>
+        <div class="session-loading-agent session-loading-agent--short"></div>
+        <div class="session-loading-user session-loading-user--short"></div>
+        <div class="session-loading-agent"></div>
+      </div>
+    </div>
+    <div v-else-if="emptyCanvas" class="empty-canvas">
       <div class="empty-canvas-form">
         <WorkspaceHero
           :workspace-id="heroCwd"
@@ -58,8 +68,13 @@
 <script lang="ts">
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 
-/** 无 transcript 且未运行：居中空画布。运行中即使无行仍贴底 + shimmer。 */
-export function isEmptyCanvas(transcriptLength: number, phase: SessionPhase | undefined): boolean {
+/** 无 transcript 且未运行：居中空画布。加载中、运行中即使无行也不走空画布。 */
+export function isEmptyCanvas(
+  transcriptLength: number,
+  phase: SessionPhase | undefined,
+  pending = false,
+): boolean {
+  if (pending) return false;
   return transcriptLength === 0 && (phase === undefined || phase === "idle");
 }
 </script>
@@ -76,6 +91,7 @@ const {
   sessionId,
   transcript,
   phase,
+  sessionPending,
   aborting,
   clientState,
   abortSession,
@@ -89,7 +105,9 @@ const {
 } = useSession();
 const { workspaces, activeWorkspaceId, lastCwd } = useNav();
 
-const emptyCanvas = computed(() => isEmptyCanvas(transcript.value.length, phase.value));
+const emptyCanvas = computed(() =>
+  isEmptyCanvas(transcript.value.length, phase.value, sessionPending.value),
+);
 const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value);
 
 const dock = useTemplateRef<HTMLElement>("dock");
@@ -125,6 +143,60 @@ onBeforeUnmount(() => dockObserver?.disconnect());
 .workspace-main :deep(.transcript-region) {
   height: 100%;
   flex: 1;
+}
+.session-loading {
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  padding: var(--spacing-lg) var(--spacing-md);
+}
+.session-loading-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  width: min(var(--size-content), 100%);
+  margin-inline: auto;
+}
+.session-loading-user,
+.session-loading-agent {
+  background-size: 200% 100%;
+  animation: shimmer var(--duration-shimmer) var(--ease-in-out) infinite;
+}
+.session-loading-user {
+  align-self: flex-end;
+  width: min(42%, 280px);
+  height: 40px;
+  border-radius: var(--radius-xl);
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--primary) 22%, transparent) 25%,
+    color-mix(in srgb, var(--primary) 36%, transparent) 50%,
+    color-mix(in srgb, var(--primary) 22%, transparent) 75%
+  );
+}
+.session-loading-user--short {
+  width: min(28%, 180px);
+}
+.session-loading-agent {
+  align-self: stretch;
+  height: 72px;
+  border-radius: var(--radius-md);
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--ink) 6%, transparent) 25%,
+    color-mix(in srgb, var(--ink) 11%, transparent) 50%,
+    color-mix(in srgb, var(--ink) 6%, transparent) 75%
+  );
+}
+.session-loading-agent--short {
+  width: 70%;
+  height: 28px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .session-loading-user,
+  .session-loading-agent {
+    animation: none;
+  }
 }
 .empty-canvas {
   min-height: 0;

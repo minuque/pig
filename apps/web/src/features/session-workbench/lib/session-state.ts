@@ -25,6 +25,14 @@ export function sessionState(states: Map<string, SessionClientState>, sessionId:
   return state;
 }
 
+/** 路由已指向某 Session，但 RemoteSession 尚未附加到同一 id。 */
+export function isSessionPending(
+  routeSessionId: string | undefined,
+  attachedSessionId: string | undefined,
+): boolean {
+  return routeSessionId !== undefined && routeSessionId !== attachedSessionId;
+}
+
 /** SessionSnapshot 的 UI 展示投影：以快照为权威，重连后整体覆盖，不增量修补。 */
 export interface SessionProjection {
   id: string;

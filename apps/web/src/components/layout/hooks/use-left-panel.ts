@@ -25,6 +25,8 @@ export function useLeftPanel() {
   const isNarrow = ref(narrowViewport.matches);
   const leftWidth = ref(clampPanelWidth(window.innerWidth * 0.18));
   const resizing = ref(false);
+  /** 拖拽期间冻结主栏宽度，避免 transcript 每帧重测。 */
+  const frozenMainWidth = ref<number | null>(null);
 
   function setPanelWidth(desired: number) {
     leftWidth.value = panelWidthFor(desired, window.innerWidth);
@@ -39,6 +41,10 @@ export function useLeftPanel() {
     handle.setPointerCapture(event.pointerId);
     const startX = event.clientX;
     const startWidth = leftWidth.value;
+    const shell = handle.closest(".shell");
+    const main = shell?.querySelector("main");
+    frozenMainWidth.value =
+      main instanceof HTMLElement ? Math.round(main.getBoundingClientRect().width) : null;
     resizing.value = true;
     let frame = 0;
     let pendingX = startX;
@@ -57,6 +63,7 @@ export function useLeftPanel() {
       if (frame) cancelAnimationFrame(frame);
       setPanelWidth(startWidth + (pendingX - startX));
       resizing.value = false;
+      frozenMainWidth.value = null;
       if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
     };
     handle.addEventListener("pointermove", move);
@@ -91,6 +98,7 @@ export function useLeftPanel() {
     leftWidth: readonly(leftWidth),
     isNarrow: readonly(isNarrow),
     resizing: readonly(resizing),
+    frozenMainWidth: readonly(frozenMainWidth),
     toggle,
     resizeBy,
     startResize,

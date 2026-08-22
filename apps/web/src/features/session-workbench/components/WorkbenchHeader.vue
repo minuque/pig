@@ -14,6 +14,7 @@
     <span v-if="thinkingChip" class="header-chip">{{ thinkingChip }}</span>
     <div class="header-right">
       <p v-if="connecting && !phase" class="session-status" role="status">正在连接…</p>
+      <p v-else-if="sessionPending" class="session-status" role="status">正在加载会话…</p>
       <p v-else-if="phase && phase !== 'idle'" class="session-status" role="status">
         <span
           class="status-mark"
@@ -31,7 +32,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { PanelLeft } from "lucide-vue-next";
-import { UNTITLED_SESSION, workspaceName } from "@features/session-nav/format.js";
+import { sessionTitle, UNTITLED_SESSION, workspaceName } from "@features/session-nav/format.js";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import { phaseLabel } from "@features/session-workbench/components/SessionControlBar.vue";
@@ -45,10 +46,16 @@ const emit = defineEmits<{
   toggle: [];
 }>();
 
-const { sessionId, projection, phase, connecting } = useSession();
-const { activeWorkspaceId, lastCwd } = useNav();
+const { sessionId, projection, phase, connecting, sessionPending } = useSession();
+const { activeWorkspaceId, lastCwd, listedSessions } = useNav();
 
-const title = computed(() => projection.value?.name ?? (sessionId.value ? UNTITLED_SESSION : ""));
+const title = computed(() => {
+  if (sessionPending.value) {
+    const meta = listedSessions.value.find((session) => session.id === sessionId.value);
+    return meta ? sessionTitle(meta) : UNTITLED_SESSION;
+  }
+  return projection.value?.name ?? (sessionId.value ? UNTITLED_SESSION : "");
+});
 const cwd = computed(() =>
   sessionId.value ? (activeWorkspaceId.value ?? lastCwd.value) : undefined,
 );
