@@ -260,14 +260,20 @@ function onDelete() {
 .session-item:hover .card-model-name,
 .session-item:has(.session-kebab[aria-expanded="true"]) .title,
 .session-item:has(.session-kebab[aria-expanded="true"]) .workspace-mark,
-.session-item:has(.session-kebab[aria-expanded="true"]) .card-model-name {
+.session-item:has(.session-kebab[aria-expanded="true"]) .card-model-name,
+.session-card.active .title,
+.session-card.active .card-model-name {
   color: var(--ink);
 }
 .session-item:hover .card-model :deep(.vendor-mark),
-.session-item:has(.session-kebab[aria-expanded="true"]) .card-model :deep(.vendor-mark) {
+.session-item:has(.session-kebab[aria-expanded="true"]) .card-model :deep(.vendor-mark),
+.session-card.active .card-model :deep(.vendor-mark) {
   filter: none;
   opacity: 1;
   color: var(--ink);
+}
+.session-card.active .workspace-mark {
+  color: var(--primary);
 }
 .session-meta {
   flex: none;

@@ -57,48 +57,50 @@
           </button>
         </div>
         <div class="scope-row">
-          <DropdownMenu>
-            <DropdownMenuTrigger as-child>
-              <button class="scope-trigger" type="button" aria-label="按工作目录筛选会话">
-                <Folder :size="16" aria-hidden="true" />
-                <span class="scope-label">{{ scopedGroupName }}</span>
-                <ChevronDown :size="16" aria-hidden="true" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" class="select-none">
-              <DropdownMenuItem @select="clearProjectScope">
-                <Folder :size="16" aria-hidden="true" />
-                <span class="min-w-0 flex-1 truncate">全部工作目录</span>
-                <Check v-if="projectScope.length === 0" :size="14" aria-hidden="true" />
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                v-for="group in groups"
-                :key="group.canonicalPath"
-                :title="group.canonicalPath"
-                @select="onToggleScope($event, group.canonicalPath)"
-              >
-                <Folder :size="16" aria-hidden="true" />
-                <span class="min-w-0 flex-1 truncate">{{
-                  workspaceName(group.canonicalPath)
-                }}</span>
-                <Check
-                  v-if="projectScope.includes(group.canonicalPath)"
-                  :size="14"
-                  aria-hidden="true"
-                />
-                <button
-                  v-if="group.authorized"
-                  class="ml-auto inline-flex size-6 items-center justify-center rounded-md text-ink-faint hover:text-ink"
-                  type="button"
-                  :aria-label="`从列表移除 ${workspaceName(group.canonicalPath)}`"
-                  @pointerdown.stop
-                  @click.stop="revokeWorkspace(group.canonicalPath)"
-                >
-                  <X :size="12" aria-hidden="true" />
+          <div class="scope-menu">
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <button class="scope-trigger" type="button" aria-label="按工作目录筛选会话">
+                  <Folder :size="16" aria-hidden="true" />
+                  <span class="scope-label">{{ scopedGroupName }}</span>
+                  <ChevronDown :size="16" aria-hidden="true" />
                 </button>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" class="select-none">
+                <DropdownMenuItem @select="clearProjectScope">
+                  <Folder :size="16" aria-hidden="true" />
+                  <span class="min-w-0 flex-1 truncate">全部工作目录</span>
+                  <Check v-if="projectScope.length === 0" :size="14" aria-hidden="true" />
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  v-for="group in groups"
+                  :key="group.canonicalPath"
+                  :title="group.canonicalPath"
+                  @select="onToggleScope($event, group.canonicalPath)"
+                >
+                  <Folder :size="16" aria-hidden="true" />
+                  <span class="min-w-0 flex-1 truncate">{{
+                    workspaceName(group.canonicalPath)
+                  }}</span>
+                  <Check
+                    v-if="projectScope.includes(group.canonicalPath)"
+                    :size="14"
+                    aria-hidden="true"
+                  />
+                  <button
+                    v-if="group.authorized"
+                    class="ml-auto inline-flex size-6 items-center justify-center rounded-md text-ink-faint hover:text-ink"
+                    type="button"
+                    :aria-label="`从列表移除 ${workspaceName(group.canonicalPath)}`"
+                    @pointerdown.stop
+                    @click.stop="revokeWorkspace(group.canonicalPath)"
+                  >
+                    <X :size="12" aria-hidden="true" />
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           <button
             class="icon-button toolbar-icon"
             type="button"
@@ -421,6 +423,14 @@ html[data-pig-desktop-platform] .session-nav input {
   gap: 4px;
   min-width: 0;
 }
+.scope-menu {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+.toolbar-icon {
+  margin-left: auto;
+}
 .search-field,
 .scope-trigger {
   display: flex;
@@ -463,6 +473,7 @@ html[data-pig-desktop-platform] .session-nav input {
   display: none;
 }
 .scope-trigger {
+  width: 100%;
   color: var(--ink);
   text-align: left;
 }
