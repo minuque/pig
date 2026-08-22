@@ -12,3 +12,4 @@
 - 跨包改动或提交前运行 `pnpm check`（全量并行，不短路）。
 - UI 改完需要整页证据时运行 `pnpm test:e2e`，看 `e2e-report/latest/report.md`。不把浏览器旅程放进 `pnpm check`。
 - 组件样式色走 `DESIGN.md` 对应 CSS 变量（`--primary`、`--on-primary` 等）。缺中间档用 `color-mix` 叠现有 token。色值只写在 `apps/web/src/style/app.css` 的 token 定义处。
+- 浏览器验收交给用户；除非用户明确要求，否则不启动调试服务器或chrome mcp。
