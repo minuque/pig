@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { fitPanelWidth, panelWidthFor } from "@components/layout/hooks/use-left-panel.js";
+import {
+  fitPanelWidth,
+  panelWidthFor,
+  parseLeftPanelWidth,
+} from "@components/layout/hooks/use-left-panel.js";
 
 describe("left panel width helpers", () => {
   it("clamps desired width to panel bounds", () => {
@@ -18,5 +22,15 @@ describe("left panel width helpers", () => {
     expect(fitPanelWidth(420, 700)).toBe(368);
     expect(fitPanelWidth(300, 500)).toBe(240);
     expect(fitPanelWidth(240, 500)).toBe(240);
+  });
+});
+
+describe("parseLeftPanelWidth", () => {
+  it("accepts finite numbers and drops the rest", () => {
+    expect(parseLeftPanelWidth("360")).toBe(360);
+    expect(parseLeftPanelWidth("240.5")).toBe(240.5);
+    expect(parseLeftPanelWidth(null)).toBeUndefined();
+    expect(parseLeftPanelWidth("")).toBeUndefined();
+    expect(parseLeftPanelWidth("wide")).toBeUndefined();
   });
 });

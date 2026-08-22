@@ -12,8 +12,33 @@ export function useLeftPanelToggle() {
   return ctx;
 }
 
+export const LEFT_PANEL_WIDTH_KEY = "pig.leftPanelWidth";
+
 /** 主内容区最小宽度（px）：侧栏调宽时始终为其保留的空间。 */
 export const CONTENT_MIN_WIDTH = 332;
+
+/** 解析持久化的左栏宽度：非有限数字丢弃。 */
+export function parseLeftPanelWidth(raw: string | null): number | undefined {
+  if (raw == null || raw.trim() === "") return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function loadStoredWidth(): number | undefined {
+  try {
+    return parseLeftPanelWidth(localStorage.getItem(LEFT_PANEL_WIDTH_KEY));
+  } catch {
+    return undefined;
+  }
+}
+
+function persistWidth(width: number) {
+  try {
+    localStorage.setItem(LEFT_PANEL_WIDTH_KEY, String(width));
+  } catch {
+    /* 隐私模式等场景下仅本页有效 */
+  }
+}
 
 const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width));
 
@@ -35,7 +60,12 @@ export function useLeftPanel() {
   const leftOpen = ref(!narrowViewport.matches);
   /** 当前是否为 max-width: 900px 窄视口。 */
   const isNarrow = ref(narrowViewport.matches);
-  const leftWidth = ref(clampPanelWidth(window.innerWidth * 0.18));
+  const leftWidth = ref(
+    panelWidthFor(
+      loadStoredWidth() ?? clampPanelWidth(window.innerWidth * 0.18),
+      window.innerWidth,
+    ),
+  );
   const resizing = ref(false);
 
   function setPanelWidth(desired: number) {
@@ -43,6 +73,7 @@ export function useLeftPanel() {
   }
   function resizeBy(delta: number) {
     setPanelWidth(leftWidth.value + delta);
+    persistWidth(leftWidth.value);
   }
   function startResize(event: PointerEvent) {
     const handle = event.currentTarget;
@@ -52,6 +83,8 @@ export function useLeftPanel() {
     const startX = event.clientX;
     const startWidth = leftWidth.value;
     resizing.value = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
     // pointermove 用 rAF 合帧：每帧至多计算一次宽度，pointerup 后补一次最终位置
     let frame = 0;
     let pendingX = startX;
@@ -69,7 +102,10 @@ export function useLeftPanel() {
       handle.removeEventListener("pointercancel", stop);
       if (frame) cancelAnimationFrame(frame);
       setPanelWidth(startWidth + (pendingX - startX));
+      persistWidth(leftWidth.value);
       resizing.value = false;
+      document.body.style.removeProperty("cursor");
+      document.body.style.removeProperty("user-select");
       if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
     };
     handle.addEventListener("pointermove", move);
@@ -98,6 +134,8 @@ export function useLeftPanel() {
   onBeforeUnmount(() => {
     narrowViewport.removeEventListener("change", handleViewportChange);
     window.removeEventListener("resize", fitPanels);
+    document.body.style.removeProperty("cursor");
+    document.body.style.removeProperty("user-select");
   });
   return {
     leftOpen: readonly(leftOpen),

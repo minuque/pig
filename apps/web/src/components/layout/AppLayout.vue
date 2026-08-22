@@ -11,21 +11,21 @@
         :collapsed="!leftOpen && !isNarrow"
         :toggle="toggle"
       />
-      <div
-        v-if="leftOpen"
-        class="resizer"
-        role="separator"
-        aria-label="调整左栏宽度"
-        aria-orientation="vertical"
-        :aria-valuenow="leftWidth"
-        aria-valuemin="240"
-        aria-valuemax="420"
-        tabindex="0"
-        @pointerdown="startResize($event)"
-        @keydown.left.prevent="resizeBy(-16)"
-        @keydown.right.prevent="resizeBy(16)"
-      ></div>
     </aside>
+    <div
+      v-if="leftOpen"
+      class="resizer"
+      role="separator"
+      aria-label="调整左栏宽度"
+      aria-orientation="vertical"
+      :aria-valuenow="leftWidth"
+      aria-valuemin="240"
+      aria-valuemax="420"
+      tabindex="0"
+      @pointerdown="startResize($event)"
+      @keydown.left.prevent="resizeBy(-16)"
+      @keydown.right.prevent="resizeBy(16)"
+    ></div>
 
     <main>
       <slot />
@@ -59,6 +59,7 @@ provide(leftPanelKey, { leftOpen, toggle });
 <style scoped>
 .shell {
   --left-width: var(--size-sidebar);
+  position: relative;
   height: 100vh;
   display: flex;
   overflow: hidden;
@@ -80,12 +81,28 @@ provide(leftPanelKey, { leftOpen, toggle });
 .resizer {
   position: absolute;
   inset-block: 0;
-  right: 0;
+  left: var(--left-width);
   z-index: var(--z-resizer);
-  width: var(--size-resizer);
+  width: 16px;
+  transform: translateX(-50%);
   cursor: col-resize;
   touch-action: none;
-  background: var(--surface);
+  background: transparent;
+}
+.resizer::after {
+  pointer-events: none;
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: transparent;
+  transition: background var(--duration-fast) var(--ease-smooth);
+  content: "";
+}
+.resizer:hover::after,
+.shell.is-resizing .resizer::after {
+  background: var(--hairline);
 }
 .shell.is-resizing {
   cursor: col-resize;
