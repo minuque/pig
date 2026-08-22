@@ -47,7 +47,7 @@ Electron 无原生 File 菜单。macOS hiddenInset；Windows `titleBarStyle: hid
 
 主列连续排版。Assistant Message 无卡片背景，通栏 markstream（15px / 行高 1.7），思考默认折叠，条目不含 toolCall。长文用 markstream 节点虚拟滚动。
 
-User Message 右对齐 primary 蓝胶囊，最长约内容列 86%，文字 on-primary。图片在胶囊下方同一右栏，点击 Dialog 放大。
+User Message 右对齐气泡，最长约内容列 86%，底 `--bubble`，文字 `ink`。图片在气泡下方同一右栏，点击 Dialog 放大。
 
 Tool Call 默认：状态图标、名称、截断入参。展开后完整入参与输出，顶栏可复制。
 
