@@ -84,7 +84,7 @@ const {
   width: var(--size-resizer);
   cursor: col-resize;
   touch-action: none;
-  background: var(--surface);
+  background: var(--canvas-soft);
   transition: background var(--duration-fast) var(--ease-smooth);
 }
 .resizer:hover,
