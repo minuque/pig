@@ -47,13 +47,29 @@ describe("Session control", () => {
     expect(workbenchMainSource).toContain('@abort="abortSession"');
   });
 
-  it("uses the danger color for the running abort state", () => {
-    expect(chatInputSource).toMatch(/\.send--abort\s*\{[^}]*background:\s*var\(--danger\)/s);
+  it("uses t3code-style send and abort interaction states", () => {
+    expect(chatInputSource).toMatch(
+      /\.send--abort\s*\{[^}]*background:\s*color-mix\(in srgb, var\(--danger\) 90%, transparent\)/s,
+    );
+    expect(chatInputSource).toMatch(
+      /\.send--abort:not\(:disabled\):hover\s*\{[^}]*background:\s*var\(--danger\)/s,
+    );
+    expect(chatInputSource).toMatch(
+      /\.send:not\(:disabled\):hover\s*\{[^}]*transform:\s*scale\(1\.05\)/s,
+    );
+    expect(chatInputSource).toMatch(/\.send:active\s*\{[^}]*box-shadow:\s*none/s);
+    expect(chatInputSource).toMatch(/\.send:disabled\s*\{[^}]*opacity:\s*0\.3/s);
   });
 
   it("centers the remaining scroll control above the composer", () => {
     expect(workbenchMainSource).toMatch(
       /\.session-floating-controls\s*\{[^}]*align-items:\s*center/s,
+    );
+  });
+
+  it("keeps the scroll control out of the measured composer flow", () => {
+    expect(workbenchMainSource).toMatch(
+      /\.session-floating-controls\s*\{[^}]*position:\s*absolute[^}]*bottom:\s*calc\(100%\s*-\s*var\(--spacing-xxs\)\)/s,
     );
   });
 

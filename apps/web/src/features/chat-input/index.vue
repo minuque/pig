@@ -62,7 +62,16 @@
           @mousedown.prevent
           @click="onPrimaryAction"
         >
-          <Square v-if="running" :size="12" />
+          <svg
+            v-if="running"
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <rect x="2" y="2" width="8" height="8" rx="1.5" />
+          </svg>
           <ArrowUp v-else :size="16" />
         </button>
       </template>
@@ -89,7 +98,7 @@ export function canSend(text: string, sendDisabled: boolean, attachmentCount = 0
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ArrowUp, CircleAlert, Plus, Square } from "lucide-vue-next";
+import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next";
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue";
 import ModelPicker from "@features/chat-input/components/ModelPicker.vue";
@@ -255,24 +264,41 @@ function onPrimaryAction() {
   border-radius: var(--radius-full);
   background: var(--primary);
   color: var(--on-primary);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--on-primary) 16%, transparent),
+    0 1px 2px color-mix(in srgb, var(--primary) 24%, transparent);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
+    opacity var(--duration-fast) var(--ease-smooth),
     transform var(--duration-fast) var(--ease-smooth);
 }
 .send:not(:disabled):hover {
   background: var(--primary-active);
+  transform: scale(1.05);
+}
+.send:active {
+  box-shadow: none;
 }
 .send--abort {
-  background: var(--danger);
+  background: color-mix(in srgb, var(--danger) 90%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--on-primary) 16%, transparent),
+    0 1px 2px color-mix(in srgb, var(--danger) 24%, transparent);
 }
 .send--abort:not(:disabled):hover {
-  background: color-mix(in srgb, var(--danger) 86%, var(--ink));
+  background: var(--danger);
 }
 .send:disabled {
   cursor: default;
-  opacity: 1;
+  opacity: 0.3;
+  box-shadow: none;
+  transform: none;
+}
+.send--abort:disabled {
+  opacity: 0.5;
 }
 @media (prefers-reduced-motion: reduce) {
   .plus,
