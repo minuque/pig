@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TranscriptItem } from "@earendil-works/pi-protocol";
 import {
   estimateTranscriptRowHeight,
+  isTranscriptAtBottom,
   isTranscriptAtTop,
   transcriptRowContent,
   transcriptRowFinal,
@@ -101,7 +102,12 @@ describe("estimateTranscriptRowHeight", () => {
   });
 });
 
-describe("isTranscriptAtTop", () => {
+describe("transcript edge thresholds", () => {
+  it("离底 2px 内才与 Markstream 一起视为精确贴底", () => {
+    expect(isTranscriptAtBottom(1000, 398, 600)).toBe(true);
+    expect(isTranscriptAtBottom(1000, 397, 600)).toBe(false);
+  });
+
   it("离顶 48px 内视为置顶", () => {
     expect(isTranscriptAtTop(0)).toBe(true);
     expect(isTranscriptAtTop(48)).toBe(true);

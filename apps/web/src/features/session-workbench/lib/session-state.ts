@@ -4,13 +4,21 @@ import type {
   SessionPhase,
   SessionSnapshot,
   ThinkingLevel,
+  TranscriptItem,
+  UserTranscriptItem,
 } from "@earendil-works/pi-protocol";
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
 import { UNTITLED_SESSION } from "@features/session-nav/format.js";
 
-/** 每 Session 的 UI 私有状态（草稿、滚动位置恢复），不进入任何 Agent Domain。 */
+export interface OptimisticUserMessage {
+  item: UserTranscriptItem;
+  knownItemIds: readonly string[];
+}
+
+/** 每 Session 的 UI 私有状态（草稿、乐观用户句、滚动位置恢复），不进入任何 Agent Domain。 */
 export interface SessionClientState {
   draft: string;
+  optimisticUser: OptimisticUserMessage | null;
   /** 上次离开会话时的虚拟滚动状态（滚动锚点 + 行高缓存），切回时恢复 */
   threadState: MarkstreamThreadVirtualState | null;
 }
@@ -18,11 +26,38 @@ export interface SessionClientState {
 export function sessionState(states: Map<string, SessionClientState>, sessionId: string) {
   let state = states.get(sessionId);
   if (!state) {
-    // reactive：draft/threadState 等属性写入必须被响应式追踪（如 draft 清空后 PromptEditor 同步）
-    state = reactive({ draft: "", threadState: null });
+    // reactive：UI 私有状态写入必须被响应式追踪（如 draft 清空后 PromptEditor 同步）
+    state = reactive({ draft: "", optimisticUser: null, threadState: null });
     states.set(sessionId, state);
   }
   return state;
+}
+
+function userText(item: TranscriptItem): string {
+  if (item.role !== "user") return "";
+  return item.content
+    .filter((block): block is { type: "text"; text: string } => block.type === "text")
+    .map((block) => block.text)
+    .join("");
+}
+
+/** 服务端确认前把乐观用户句插在提交时的 Transcript 尾部；确认后只返回服务端真相。 */
+export function projectOptimisticTranscript(
+  items: readonly TranscriptItem[],
+  optimistic: OptimisticUserMessage | null,
+): readonly TranscriptItem[] {
+  if (!optimistic) return items;
+  const known = new Set(optimistic.knownItemIds);
+  const confirmed = items.some(
+    (item) => !known.has(item.id) && userText(item) === userText(optimistic.item),
+  );
+  if (confirmed) return items;
+
+  let insertionIndex = 0;
+  for (let index = 0; index < items.length; index += 1) {
+    if (known.has(items[index]!.id)) insertionIndex = index + 1;
+  }
+  return [...items.slice(0, insertionIndex), optimistic.item, ...items.slice(insertionIndex)];
 }
 
 /** 路由已指向某 Session，但 RemoteSession 尚未附加到同一 id。 */

@@ -112,8 +112,8 @@
   --size-windows-caption: 138px;
   --size-context: 300px; /* right panel width */
   --size-drawer: 360px; /* mobile drawer width */
-  --size-content: 46.75rem; /* 748px 对话列，居中；侧栏拖拽只改变留白 */
-  --size-composer: 46.75rem; /* 与对话列同宽 */
+  --size-content: 45.75rem; /* 732px Transcript 正文，居中 */
+  --size-composer: 46.75rem; /* 748px 输入卡，正文每侧内收 8px */
   --size-modal: 32rem; /* dialog max width */
   --size-welcome: 45rem;
   --size-nav-action: 28px;

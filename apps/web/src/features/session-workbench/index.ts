@@ -8,7 +8,10 @@ import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-b
 import { useRemoteSessions } from "@features/session-workbench/hooks/use-sessions.js";
 import { useSessionRoute } from "@features/session-workbench/hooks/use-session-route.js";
 import { useSessionRuntime } from "@features/session-workbench/hooks/use-session-runtime.js";
-import { isSessionPending } from "@features/session-workbench/lib/session-state.js";
+import {
+  isSessionPending,
+  projectOptimisticTranscript,
+} from "@features/session-workbench/lib/session-state.js";
 
 export type SessionContext = ReturnType<typeof createSession>;
 export const sessionKey: InjectionKey<SessionContext> = Symbol("session");
@@ -52,6 +55,12 @@ function createSession(
     sessionError,
     selectCwd: cwd.selectCwd,
   });
+  const transcript = computed(() =>
+    projectOptimisticTranscript(
+      sessionPending.value ? [] : remote.transcript.value,
+      runtime.clientState.value?.optimisticUser ?? null,
+    ),
+  );
 
   pi.bindAttachedReconnect(async () => {
     if (remote.remote.value) await remote.reconnect();
@@ -71,7 +80,7 @@ function createSession(
     connecting: computed(() => pi.connectionState.value === "connecting"),
     connected: pi.connected,
     connectionError: pi.connectionError,
-    transcript: computed(() => (sessionPending.value ? [] : remote.transcript.value)),
+    transcript,
     catalog,
     preset,
     prompt: runtime.prompt,

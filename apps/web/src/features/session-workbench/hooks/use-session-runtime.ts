@@ -1,6 +1,7 @@
 import { computed, reactive, ref, type Ref } from "vue";
 import type { Router } from "vue-router";
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
+import type { UserTranscriptItem } from "@earendil-works/pi-protocol";
 import { errorMessage } from "@client/http.js";
 import { thinkingLevelOf, type ChatInputPreset } from "@features/chat-input/types.js";
 import {
@@ -69,16 +70,32 @@ export function useSessionRuntime(options: SessionRuntimeOptions) {
   }
 
   async function submitText(text: string) {
-    if (submitting.value) return;
+    const state = clientState.value;
+    const normalized = text.trim();
+    if (!state || !normalized || submitting.value) return;
+
     submitting.value = true;
     sessionError.value = "";
+    const optimisticItem: UserTranscriptItem = {
+      id: `optimistic-${sessionId.value}-${Date.now()}`,
+      role: "user",
+      content: [{ type: "text", text: normalized }],
+      timestamp: Date.now(),
+    };
+    state.optimisticUser = {
+      item: optimisticItem,
+      knownItemIds: remote.transcript.value.map((item) => item.id),
+    };
+    state.draft = "";
+
     try {
-      await remote.submit(text);
-      prompt.value = "";
+      await remote.submit(normalized);
     } catch (error) {
+      if (!state.draft) state.draft = text;
       sessionError.value = errorMessage(error);
       throw error;
     } finally {
+      if (state.optimisticUser?.item.id === optimisticItem.id) state.optimisticUser = null;
       submitting.value = false;
     }
   }

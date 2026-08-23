@@ -40,6 +40,7 @@
 
     <template v-else>
       <TranscriptView
+        ref="transcriptView"
         :session-id="sessionId"
         :transcript="transcript"
         :phase="phase"
@@ -60,7 +61,7 @@
           :aborting="aborting"
           :error="sessionError"
           docked
-          @send="submitText"
+          @send="submitFromDock"
           @abort="abortSession"
         />
       </div>
@@ -123,6 +124,12 @@ const hasEarlier = computed(() =>
   ),
 );
 const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value);
+
+const transcriptView = useTemplateRef<{ prepareForSubmit(): void }>("transcriptView");
+function submitFromDock(text: string) {
+  transcriptView.value?.prepareForSubmit();
+  return submitText(text);
+}
 
 const dock = useTemplateRef<HTMLElement>("dock");
 const dockHeight = shallowRef(168);

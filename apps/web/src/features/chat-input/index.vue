@@ -76,7 +76,7 @@
       @change="onFilesPicked"
     />
 
-    <div v-if="running" class="chat-input-foot">
+    <div v-if="showSessionControl && running" class="chat-input-foot">
       <SessionControlBar
         v-if="phase && phase !== 'idle'"
         :phase="phase"
@@ -154,6 +154,8 @@ const emit = defineEmits<{
 
 const { model, modelLevels, level } = useModelPresetBinding(() => props.catalog, preset);
 const running = computed(() => props.phase !== undefined && props.phase !== "idle");
+// 暂停展示输入框下方的 Steering 状态条；队列、Abort 与组件接线保留，稳定后可直接恢复。
+const showSessionControl = false;
 const { attachments, addFiles, remove, clear } = useComposerAttachments();
 const sendActive = computed(() =>
   canSend(prompt.value, props.sendDisabled, attachments.value.length),

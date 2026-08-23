@@ -78,9 +78,19 @@ export function transcriptRowFinal(item: TranscriptItem): boolean {
   return !(isAssistantItem(item) && item.status === "streaming");
 }
 
-/** 离顶 ≤48px 视为置顶，与贴底判定同一阈值。 */
+/** 离顶 ≤48px 视为置顶，方便提前展示「显示更早」。 */
 export function isTranscriptAtTop(scrollTop: number, threshold = 48): boolean {
   return scrollTop <= threshold;
+}
+
+/** 与 Markstream 新增行的精确贴底阈值一致，避免 UI 和时间线各判一套状态。 */
+export function isTranscriptAtBottom(
+  scrollHeight: number,
+  scrollTop: number,
+  clientHeight: number,
+  threshold = 2,
+): boolean {
+  return scrollHeight - scrollTop - clientHeight <= threshold;
 }
 
 function estimateWrappedLines(text: string, charsPerLine: number): number {
@@ -161,7 +171,7 @@ const timeline = useTemplateRef<{
   scrollToBottom(): void;
   captureThreadState(): MarkstreamThreadVirtualState;
 }>("timeline");
-// 与 stickToBottom=auto 对齐：离底/顶 ≤48px 仍视为贴边
+// 新增行只在精确贴底时自动跟随；顶部仍保留 48px 的提前加载区。
 const atBottom = ref(true);
 const atTop = ref(false);
 const hasNewActivity = ref(false);
@@ -176,7 +186,7 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
   emit("thread-state", state);
   const root = timelineScrollRoot();
   const bottom = root
-    ? root.scrollHeight - root.scrollTop - root.clientHeight <= 48
+    ? isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
     : state.outerAnchor?.type !== "item";
   atBottom.value = bottom;
   atTop.value = root ? isTranscriptAtTop(root.scrollTop) : false;
@@ -192,9 +202,12 @@ watch(
 );
 
 function scrollToLatest() {
+  atBottom.value = true;
   hasNewActivity.value = false;
   timeline.value?.scrollToBottom();
 }
+
+defineExpose({ prepareForSubmit: scrollToLatest });
 
 onBeforeUnmount(() => {
   const captured = timeline.value?.captureThreadState();

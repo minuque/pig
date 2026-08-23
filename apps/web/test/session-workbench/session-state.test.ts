@@ -1,10 +1,12 @@
 import { computed, reactive } from "vue";
 import { describe, expect, it } from "vitest";
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
+import type { TranscriptItem, UserTranscriptItem } from "@earendil-works/pi-protocol";
 import {
   hasEarlierTranscript,
   isSessionPending,
   mergeTranscriptWindow,
+  projectOptimisticTranscript,
   sessionState,
   tailTranscript,
 } from "@features/session-workbench/lib/session-state.js";
@@ -21,7 +23,11 @@ describe("workbench state", () => {
     first.threadState = mockThreadState("session-a");
 
     expect(sessionState(states, "session-a")).toBe(first);
-    expect(sessionState(states, "session-b")).toMatchObject({ draft: "", threadState: null });
+    expect(sessionState(states, "session-b")).toMatchObject({
+      draft: "",
+      optimisticUser: null,
+      threadState: null,
+    });
   });
 
   it("state mutations are reactive (draft and threadState writes are tracked)", () => {
@@ -37,6 +43,47 @@ describe("workbench state", () => {
     // 各 Session 状态隔离：写入 s2 不影响 s1
     sessionState(states, "s2").draft = "另一份";
     expect(draft.value).toBe("草稿");
+  });
+});
+
+describe("projectOptimisticTranscript", () => {
+  const optimistic: UserTranscriptItem = {
+    id: "optimistic-1",
+    role: "user",
+    content: [{ type: "text", text: "新任务" }],
+    timestamp: 2,
+  };
+  const previous: UserTranscriptItem = {
+    id: "u1",
+    role: "user",
+    content: [{ type: "text", text: "旧任务" }],
+    timestamp: 1,
+  };
+  const assistant = {
+    id: "a1",
+    role: "assistant",
+    content: [{ type: "text", text: "处理中" }],
+    status: "streaming",
+    timestamp: 3,
+  } as TranscriptItem;
+
+  it("把乐观用户句插在提交前历史之后、后续流式内容之前", () => {
+    expect(
+      projectOptimisticTranscript([previous, assistant], {
+        item: optimistic,
+        knownItemIds: [previous.id],
+      }).map((item) => item.id),
+    ).toEqual([previous.id, optimistic.id, assistant.id]);
+  });
+
+  it("收到新的同文服务端用户句后移除乐观投影", () => {
+    const confirmed = { ...optimistic, id: "server-u2" };
+    expect(
+      projectOptimisticTranscript([previous, confirmed, assistant], {
+        item: optimistic,
+        knownItemIds: [previous.id],
+      }).map((item) => item.id),
+    ).toEqual([previous.id, confirmed.id, assistant.id]);
   });
 });
 
