@@ -4,6 +4,7 @@ import {
   estimateTranscriptRowHeight,
   isTranscriptAtBottom,
   isTranscriptAtTop,
+  isTranscriptVisuallyAtBottom,
   shouldHoldProgrammaticBottom,
   unpinBottomScrollTop,
   transcriptRowContent,
@@ -117,10 +118,17 @@ describe("transcript edge thresholds", () => {
     expect(isTranscriptAtTop(49)).toBe(false);
   });
 
-  it("有内容且离开底部就显示回到底部按钮，不等待新消息", () => {
+  it("有内容且视觉上离开底部才显示回到底部按钮", () => {
     expect(shouldShowScrollToLatest(3, false)).toBe(true);
     expect(shouldShowScrollToLatest(3, true)).toBe(false);
     expect(shouldShowScrollToLatest(0, false)).toBe(false);
+  });
+
+  it("上翻解锁的 3px 仍算视觉贴底，不弹出回到底部", () => {
+    expect(isTranscriptVisuallyAtBottom(1000, 397, 600)).toBe(true);
+    expect(isTranscriptVisuallyAtBottom(1000, 352, 600)).toBe(true);
+    expect(isTranscriptVisuallyAtBottom(1000, 351, 600)).toBe(false);
+    expect(shouldShowScrollToLatest(3, isTranscriptVisuallyAtBottom(1000, 397, 600))).toBe(false);
   });
 
   it("程序化滚底后，未贴底读数在 hold 窗口内不能把按钮打回来", () => {

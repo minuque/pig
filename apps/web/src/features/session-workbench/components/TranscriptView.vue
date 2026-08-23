@@ -89,6 +89,15 @@ export function isTranscriptAtBottom(
   return scrollHeight - scrollTop - clientHeight <= threshold;
 }
 
+/** 与 Markstream te（48px）一致：上翻解锁的 3px / DPI 余量仍算在底部，不弹出按钮。 */
+export function isTranscriptVisuallyAtBottom(
+  scrollHeight: number,
+  scrollTop: number,
+  clientHeight: number,
+): boolean {
+  return isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, 48);
+}
+
 /** 盖过时间线已排队的旧锚点 rAF 与测高回写。 */
 export const PROGRAMMATIC_BOTTOM_HOLD_MS = 400;
 
@@ -253,7 +262,7 @@ function jumpToBottom() {
 function onThreadState(state: MarkstreamThreadVirtualState) {
   const root = timelineScrollRoot();
   const bottom = root
-    ? isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
+    ? isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
     : state.outerAnchor?.type !== "item";
   atTop.value = root ? isTranscriptAtTop(root.scrollTop) : false;
   if (shouldHoldProgrammaticBottom(bottom, bottomHoldUntil, performance.now())) return;
@@ -264,6 +273,11 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
 }
 
 function scrollToLatest() {
+  const root = timelineScrollRoot();
+  if (root && isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)) {
+    pinBottomUi();
+    return;
+  }
   const holdUntil = performance.now() + PROGRAMMATIC_BOTTOM_HOLD_MS;
   bottomHoldUntil = holdUntil;
   pinBottomUi();
