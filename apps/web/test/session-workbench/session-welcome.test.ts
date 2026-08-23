@@ -5,24 +5,20 @@ import { workbenchHeroLabel } from "@features/session-workbench/components/Workb
 describe("canSubmit", () => {
   const profile = { model: { provider: "openai", id: "gpt-5" }, thinkingLevel: "high" };
 
-  it("满足全部条件才可提交", () => {
-    expect(canSubmit("  写个脚本  ", "w1", profile, false)).toBe(true);
-  });
-
-  it("空白 prompt 拒绝", () => {
-    expect(canSubmit("   ", "w1", profile, false)).toBe(false);
+  it("有 workspace、preset 且未提交中即可", () => {
+    expect(canSubmit("w1", profile, false)).toBe(true);
   });
 
   it("无 workspace 拒绝", () => {
-    expect(canSubmit("任务", undefined, profile, false)).toBe(false);
+    expect(canSubmit(undefined, profile, false)).toBe(false);
   });
 
   it("无 profile 拒绝", () => {
-    expect(canSubmit("任务", "w1", undefined, false)).toBe(false);
+    expect(canSubmit("w1", undefined, false)).toBe(false);
   });
 
   it("提交中拒绝", () => {
-    expect(canSubmit("任务", "w1", profile, true)).toBe(false);
+    expect(canSubmit("w1", profile, true)).toBe(false);
   });
 });
 

@@ -28,14 +28,13 @@
 <script lang="ts">
 import type { ChatInputPreset } from "@features/chat-input/types.js";
 
-/** 提交守卫：空白 prompt、无 workspace、无 preset 或提交中均拒绝。 */
+/** 外部禁用只拦无 workspace / 无 preset / 提交中。空白 prompt 由 ChatInput canSend 负责。 */
 export function canSubmit(
-  prompt: string,
   workspaceId: string | undefined,
   preset: ChatInputPreset | undefined,
   submitting: boolean,
 ): boolean {
-  return workspaceId !== undefined && preset !== undefined && !submitting && prompt.trim() !== "";
+  return workspaceId !== undefined && preset !== undefined && !submitting;
 }
 </script>
 
@@ -61,7 +60,7 @@ const { welcomePrompt, welcomeWorkspaceId, welcomeSubmitting, welcomeError, subm
   });
 
 const canSubmitNow = computed(() =>
-  canSubmit(welcomePrompt.value, welcomeWorkspaceId.value, preset.value, welcomeSubmitting.value),
+  canSubmit(welcomeWorkspaceId.value, preset.value, welcomeSubmitting.value),
 );
 </script>
 

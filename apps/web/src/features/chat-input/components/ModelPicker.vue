@@ -9,7 +9,6 @@
           :size="14"
         />
         <span class="selector-name">{{ label }}</span>
-        <ChevronDown :size="12" aria-hidden="true" />
       </button>
     </DropdownMenuTrigger>
 
@@ -120,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDown, Search, Star } from "lucide-vue-next";
+import { Search, Star } from "lucide-vue-next";
 import { useVirtualList } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 import type { ModelRef } from "@earendil-works/pi-protocol";

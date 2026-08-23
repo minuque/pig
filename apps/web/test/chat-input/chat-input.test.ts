@@ -13,4 +13,13 @@ describe("canSend", () => {
   it("外部禁用拒绝", () => {
     expect(canSend("hi", true)).toBe(false);
   });
+
+  it("仅附件可发送", () => {
+    expect(canSend("   ", false, 1)).toBe(true);
+  });
+
+  it("附件加外部禁用仍拒绝", () => {
+    expect(canSend("hi", true, 2)).toBe(false);
+    expect(canSend("   ", true, 1)).toBe(false);
+  });
 });

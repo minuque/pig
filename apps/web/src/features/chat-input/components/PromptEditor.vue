@@ -1,29 +1,35 @@
 <template>
-  <div class="glass-shell">
-    <div class="glass-host">
-      <div v-if="$slots.chips" class="chips">
-        <slot name="chips" />
-      </div>
-      <div class="editor-wrap">
-        <div
-          ref="editor"
-          class="field"
-          contenteditable="true"
-          role="textbox"
-          aria-multiline="true"
-          :aria-label="ariaLabel"
-          :data-empty="!hasText || undefined"
-          :data-placeholder="placeholder"
-          @input="syncFromEditor"
-          @keydown="onEditorKeydown"
-        ></div>
-      </div>
-      <div class="row">
-        <div class="left">
-          <slot name="left" />
+  <div class="composer" @mousedown="onComposerMousedown">
+    <div class="attach-tray" :data-open="$slots.chips ? '' : undefined">
+      <div class="attach-inner">
+        <div class="chips">
+          <slot name="chips" />
         </div>
-        <div class="right">
-          <slot name="right" />
+      </div>
+    </div>
+    <div class="glass-shell">
+      <div class="glass-host">
+        <div class="editor-wrap">
+          <div
+            ref="editor"
+            class="field"
+            contenteditable="true"
+            role="textbox"
+            aria-multiline="true"
+            :aria-label="ariaLabel"
+            :data-empty="!hasText || undefined"
+            :data-placeholder="placeholder"
+            @input="syncFromEditor"
+            @keydown="onEditorKeydown"
+          ></div>
+        </div>
+        <div class="row">
+          <div class="left">
+            <slot name="left" />
+          </div>
+          <div class="right">
+            <slot name="right" />
+          </div>
         </div>
       </div>
     </div>
@@ -112,12 +118,58 @@ function onEditorKeydown(e: KeyboardEvent) {
   }
 }
 
+/** 点卡空白处聚焦；控件（按钮/输入/编辑器）放行，避免抢走自身交互。 */
+function onComposerMousedown(e: MouseEvent) {
+  const el = e.target;
+  if (!(el instanceof Element)) return;
+  if (el.closest("button, input, textarea, [contenteditable]")) return;
+  e.preventDefault();
+  focus();
+}
+
 defineExpose({ focus });
 </script>
 
 <style scoped>
+.composer {
+  position: relative;
+}
+.attach-tray {
+  position: relative;
+  z-index: 0;
+  height: 0;
+  overflow: hidden;
+  transition: height var(--duration-fast) var(--ease-smooth);
+}
+.attach-tray[data-open] {
+  height: 68px;
+  overflow: visible;
+}
+.attach-inner {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: -8px;
+  height: 68px;
+  display: flex;
+  align-items: flex-start;
+  background: color-mix(in srgb, var(--ink) 8%, var(--composer));
+  border: var(--border-width) solid var(--composer-ring);
+  border-bottom: 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+.chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  padding: 10px 12px 18px;
+  overflow-x: auto;
+}
 .glass-shell {
   position: relative;
+  z-index: 10;
 }
 .glass-host {
   position: relative;
@@ -130,14 +182,8 @@ defineExpose({ focus });
   box-shadow: var(--shadow-soft);
 }
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 12px 14px 0;
-}
 .editor-wrap {
-  padding: 14px 16px 10px;
+  padding: 14px 16px 48px;
 }
 .field {
   position: relative;
@@ -173,13 +219,16 @@ defineExpose({ focus });
 }
 
 .row {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   min-height: 44px;
   padding: 6px 10px 8px 10px;
-  border-top: var(--border-width) solid var(--composer-ring);
 }
 .left {
   display: flex;
@@ -195,6 +244,7 @@ defineExpose({ focus });
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .attach-tray,
   .glass-host {
     transition: none;
   }
