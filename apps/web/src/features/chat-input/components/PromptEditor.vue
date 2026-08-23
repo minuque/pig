@@ -56,8 +56,8 @@ const props = withDefaults(
     ariaLabel?: string;
   }>(),
   {
-    placeholder: "给智能体发消息",
-    ariaLabel: "给智能体发消息",
+    placeholder: "do what you want ...",
+    ariaLabel: "do what you want ...",
   },
 );
 
