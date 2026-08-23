@@ -4,6 +4,7 @@ import { RemoteSession } from "@earendil-works/pi-coding-agent/client";
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client";
 import type { ModelRef, ThinkingLevel, TranscriptItem } from "@earendil-works/pi-protocol";
 import { platformRequest } from "@client/http.js";
+import type { ContextUsageEstimate } from "@features/chat-input/lib/context-usage.js";
 import {
   mergeTranscriptWindow,
   projectSessionSnapshot,
@@ -36,6 +37,8 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
   let wantedId: string | undefined;
   const loadingEarlier = shallowRef(false);
   const earlierExhausted = shallowRef(false);
+  const contextUsageEstimate = shallowRef<ContextUsageEstimate>();
+  let contextUsageRequest = 0;
 
   // 纯派生：由上述状态 computed 得到
   const snapshot = computed(() => state.value?.snapshot);
@@ -52,6 +55,7 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     remote.value = next;
     let prefix: TranscriptItem[] = [];
     let latestWindow: readonly TranscriptItem[] = [];
+    let usageRevision: number | undefined;
     earlierExhausted.value = false;
     unsubscribeState = next.subscribe((nextState) => {
       latestWindow = tailTranscript(nextState.transcript);
@@ -59,6 +63,11 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
       const windowIds = new Set(latestWindow.map((item) => item.id));
       prefix = merged.filter((item) => !windowIds.has(item.id));
       state.value = { ...nextState, transcript: merged };
+      const revision = nextState.snapshot?.revision;
+      if (revision !== undefined && revision !== usageRevision) {
+        usageRevision = revision;
+        void refreshContextUsage(next.id);
+      }
     });
     async function loadEarlier() {
       const id = remote.value?.id;
@@ -83,6 +92,7 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
   }
   let attachLoadEarlier: (() => Promise<void>) | undefined;
   function detach() {
+    contextUsageRequest += 1;
     attachLoadEarlier = undefined;
     loadingEarlier.value = false;
     earlierExhausted.value = false;
@@ -90,6 +100,21 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     unsubscribeState = undefined;
     remote.value = undefined;
     state.value = undefined;
+    contextUsageEstimate.value = undefined;
+  }
+
+  async function refreshContextUsage(sessionId: string | undefined) {
+    if (!sessionId) return;
+    const request = ++contextUsageRequest;
+    try {
+      const result = await platformRequest<{ usage: ContextUsageEstimate | null }>(
+        `/api/v1/platform/context-usage?sessionId=${encodeURIComponent(sessionId)}`,
+      );
+      if (request !== contextUsageRequest || remote.value?.id !== sessionId) return;
+      contextUsageEstimate.value = result.usage ?? undefined;
+    } catch {
+      // 占用估算是辅助信息；失败时保留上次结果，不覆盖会话主错误。
+    }
   }
   function release() {
     const previous = remote.value;
@@ -182,6 +207,7 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     transcript,
     loadingEarlier,
     earlierExhausted,
+    contextUsageEstimate,
     loadEarlier,
     openSession,
     createSession,

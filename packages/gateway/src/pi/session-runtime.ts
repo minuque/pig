@@ -13,6 +13,7 @@ import type {
   SteerInput,
 } from "@earendil-works/pi-server";
 import { canonicalizePath } from "../directory.js";
+import { estimateContextUsage } from "./context-usage.js";
 import { TranscriptProjection, windowSnapshotTranscript } from "./transcript.js";
 
 /**
@@ -44,8 +45,15 @@ export class PiHostSession implements PiSessionRuntime {
   private busy: Promise<void> | undefined;
   private disposed = false;
 
-  constructor(private readonly session: AgentSession) {
+  constructor(
+    private readonly session: AgentSession,
+    private readonly onDispose?: () => void,
+  ) {
     this.unsubscribeSession = session.subscribe((event) => this.handleEvent(event));
+  }
+
+  contextUsage() {
+    return estimateContextUsage(this.session);
   }
 
   snapshot(): SessionSnapshot {
@@ -142,6 +150,7 @@ export class PiHostSession implements PiSessionRuntime {
     this.unsubscribeSession();
     this.session.dispose();
     this.listeners.clear();
+    this.onDispose?.();
   }
 
   /** 互斥操作：冲突操作直接拒绝（协议要求 reject rather than queue）。 */

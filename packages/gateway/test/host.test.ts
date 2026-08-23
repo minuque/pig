@@ -100,6 +100,7 @@ describe("thin host HTTP shell", () => {
     ).toBe(401);
     expect((await request(base, "/api/v1/platform/delete-session", { id: "s" })).status).toBe(401);
     expect((await request(base, "/api/v1/platform/session-cards")).status).toBe(401);
+    expect((await request(base, "/api/v1/platform/context-usage?sessionId=s")).status).toBe(401);
     expect((await request(base, "/api/v1/platform/transcript?sessionId=s&before=m1")).status).toBe(
       401,
     );
@@ -122,6 +123,19 @@ describe("thin host HTTP shell", () => {
         .status,
     ).toBe(400);
     expect(
+      (await request(base, "/api/v1/platform/context-usage", undefined, credential)).status,
+    ).toBe(400);
+    await expect(
+      (
+        await request(
+          base,
+          "/api/v1/platform/context-usage?sessionId=missing",
+          undefined,
+          credential,
+        )
+      ).json(),
+    ).resolves.toEqual({ usage: null });
+    expect(
       (
         await request(
           base,
@@ -134,7 +148,7 @@ describe("thin host HTTP shell", () => {
     const cards = await request(base, "/api/v1/platform/session-cards", undefined, credential);
     expect(cards.status).toBe(200);
     await expect(cards.json()).resolves.toMatchObject({ cards: expect.any(Array) });
-  });
+  }, 15_000);
 });
 
 describe("thin host WebSocket", () => {

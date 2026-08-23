@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { TranscriptItem, Usage } from "@earendil-works/pi-protocol";
 import {
   contextUsagePercent,
   formatTokenCount,
-  lastAssistantUsage,
-  modelContextWindow,
   projectContextUsage,
   segmentShare,
   shouldShowComposerMeta,
+  type ContextUsageEstimate,
 } from "@features/chat-input/lib/context-usage.js";
 import { contextUsageSummary } from "@features/chat-input/components/ContextUsagePanel.vue";
 import {
@@ -16,16 +14,19 @@ import {
   usageRingOffset,
   USAGE_RING_LENGTH,
 } from "@features/chat-input/components/ComposerMeta.vue";
-import type { ChatInputVendor } from "@features/chat-input/types.js";
 
-function usage(partial: Partial<Usage> = {}): Usage {
+function estimate(partial: Partial<ContextUsageEstimate> = {}): ContextUsageEstimate {
   return {
-    input: 0,
-    output: 0,
-    cacheRead: 0,
-    cacheWrite: 0,
-    totalTokens: 0,
-    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+    used: 70_300,
+    window: 200_000,
+    segments: {
+      systemPrompt: 3000,
+      memory: 5000,
+      tools: 7000,
+      conversation: 50_000,
+      other: 5300,
+      idle: 129_700,
+    },
     ...partial,
   };
 }
@@ -35,88 +36,34 @@ describe("formatTokenCount", () => {
     expect(formatTokenCount(471)).toBe("471");
     expect(formatTokenCount(9100)).toBe("9.1K");
     expect(formatTokenCount(3000)).toBe("3.0K");
-    expect(formatTokenCount(70300)).toBe("70.3K");
+    expect(formatTokenCount(70_300)).toBe("70.3K");
     expect(formatTokenCount(200_000)).toBe("200K");
   });
 });
 
 describe("projectContextUsage", () => {
-  it("无 usage 时占用为 0，窗口仍保留", () => {
-    expect(projectContextUsage(undefined, 200_000)).toEqual({
-      used: 0,
-      window: 200_000,
-      percent: 0,
-      segments: [],
-    });
+  it("无估算时不展示占用", () => {
+    expect(projectContextUsage(undefined)).toBeUndefined();
   });
 
-  it("占用取 input，分段只展示大于 0 的 usage 字段", () => {
-    const projected = projectContextUsage(
-      usage({ input: 70_300, output: 200, cacheRead: 2000, reasoning: 500, totalTokens: 73_000 }),
-      200_000,
-    );
-    expect(projected.used).toBe(70_300);
-    expect(projected.window).toBe(200_000);
-    expect(projected.percent).toBe(35);
-    expect(projected.segments.map((segment) => segment.id)).toEqual([
-      "input",
-      "output",
-      "cache",
-      "reasoning",
+  it("按固定顺序投影六类估算", () => {
+    const projected = projectContextUsage(estimate());
+    expect(projected?.used).toBe(70_300);
+    expect(projected?.window).toBe(200_000);
+    expect(projected?.percent).toBe(35);
+    expect(projected?.segments.map((segment) => segment.id)).toEqual([
+      "systemPrompt",
+      "memory",
+      "tools",
+      "conversation",
+      "other",
+      "idle",
     ]);
   });
 
   it("窗口为 0 时百分比为 0", () => {
     expect(contextUsagePercent(100, 0)).toBe(0);
     expect(segmentShare(50, 200)).toBe(25);
-  });
-});
-
-describe("lastAssistantUsage / modelContextWindow", () => {
-  it("从后往前取最近一条带 usage 的助手消息", () => {
-    const items: TranscriptItem[] = [
-      {
-        id: "u1",
-        role: "user",
-        content: [{ type: "text", text: "hi" }],
-        timestamp: 1,
-      },
-      {
-        id: "a1",
-        role: "assistant",
-        status: "complete",
-        stopReason: "stop",
-        model: { provider: "xai", id: "grok" },
-        content: [{ type: "text", text: "old" }],
-        timestamp: 2,
-        usage: usage({ input: 10 }),
-      },
-      {
-        id: "a2",
-        role: "assistant",
-        status: "complete",
-        stopReason: "stop",
-        model: { provider: "xai", id: "grok" },
-        content: [{ type: "text", text: "new" }],
-        timestamp: 3,
-        usage: usage({ input: 70_300 }),
-      },
-    ];
-    expect(lastAssistantUsage(items)?.input).toBe(70_300);
-    expect(lastAssistantUsage(items.slice(0, 1))).toBeUndefined();
-  });
-
-  it("按 provider/id 从目录取 contextWindow", () => {
-    const catalog: ChatInputVendor[] = [
-      {
-        id: "xai",
-        name: "xAI",
-        models: [{ id: "grok", name: "Grok", thinkingLevels: ["off"], contextWindow: 200_000 }],
-      },
-    ];
-    expect(modelContextWindow(catalog, { provider: "xai", id: "grok" })).toBe(200_000);
-    expect(modelContextWindow(catalog, { provider: "xai", id: "missing" })).toBe(0);
-    expect(modelContextWindow(catalog, undefined)).toBe(0);
   });
 });
 
@@ -127,7 +74,7 @@ describe("shouldShowComposerMeta", () => {
 
   it("有目录或占用数据时展示", () => {
     expect(shouldShowComposerMeta("/repo", undefined)).toBe(true);
-    expect(shouldShowComposerMeta(undefined, projectContextUsage(undefined, 1000))).toBe(true);
+    expect(shouldShowComposerMeta(undefined, projectContextUsage(estimate()))).toBe(true);
   });
 });
 
@@ -144,7 +91,7 @@ describe("composer meta / panel copy", () => {
   });
 
   it("面板摘要与按钮标签用中文占用口径", () => {
-    const projected = projectContextUsage(usage({ input: 70_300, output: 1 }), 200_000);
+    const projected = projectContextUsage(estimate())!;
     expect(contextUsageSummary(projected)).toBe("70.3K / 200K token");
     expect(contextUsageAriaLabel(projected)).toBe("上下文占用 35%");
   });

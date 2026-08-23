@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, type MaybeRefOrGetter } from "vue";
 import type { PiClient } from "@earendil-works/pi-client";
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client";
-import type { TranscriptItem } from "@earendil-works/pi-protocol";
+import type { SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol";
+import type { ContextUsageEstimate } from "@features/chat-input/lib/context-usage.js";
 import { INITIAL_TRANSCRIPT_TAIL } from "@features/session-workbench/lib/session-state.js";
 
 /** 假 RemoteSession：记录 dispose 次数与订阅者，可手动派发状态。 */
@@ -24,6 +25,9 @@ const { openMock, createMock, makeSession, platformRequestMock } = vi.hoisted(()
       this.listeners.add(listener);
       listener(this.state);
       return () => this.listeners.delete(listener);
+    }
+    emit() {
+      for (const listener of this.listeners) listener(this.state);
     }
     dispose() {
       this.disposeCalls += 1;
@@ -74,6 +78,37 @@ function makeTranscript(count: number, prefix = "m"): TranscriptItem[] {
     timestamp: i + 1,
   }));
 }
+
+function snapshot(revision: number): SessionSnapshot {
+  return {
+    id: "s1",
+    cwd: "/repo",
+    createdAt: 1,
+    updatedAt: 1,
+    phase: "idle",
+    model: { provider: "test", id: "model" },
+    thinkingLevel: "medium",
+    attached: true,
+    locked: false,
+    revision,
+    transcript: [],
+    queuedSteer: [],
+    queuedSteerCount: 0,
+  };
+}
+
+const usageEstimate: ContextUsageEstimate = {
+  used: 300,
+  window: 1000,
+  segments: {
+    systemPrompt: 50,
+    memory: 25,
+    tools: 75,
+    conversation: 100,
+    other: 50,
+    idle: 700,
+  },
+};
 
 function setTranscript(session: ReturnType<typeof makeSession>, items: TranscriptItem[]) {
   session.state = { ...session.state, transcript: items };
@@ -198,6 +233,24 @@ describe("useRemoteSessions lifecycle", () => {
     await Promise.all([sessions.dispose(), sessions.dispose(), sessions.dispose()]);
     expect(a.disposeCalls).toBe(1);
     expect(sessions.remote.value).toBeUndefined();
+  });
+
+  it("snapshot revision 变化时刷新占用估算", async () => {
+    const { sessions } = setup();
+    const a = makeSession("s1");
+    a.state = { ...a.state, snapshot: snapshot(1) };
+    openMock.mockResolvedValue(a);
+    platformRequestMock.mockResolvedValue({ usage: usageEstimate });
+
+    await sessions.openSession("s1");
+    await vi.waitFor(() => expect(sessions.contextUsageEstimate.value).toEqual(usageEstimate));
+    expect(platformRequestMock).toHaveBeenCalledWith("/api/v1/platform/context-usage?sessionId=s1");
+
+    a.emit();
+    expect(platformRequestMock).toHaveBeenCalledTimes(1);
+    a.state = { ...a.state, snapshot: snapshot(2) };
+    a.emit();
+    await vi.waitFor(() => expect(platformRequestMock).toHaveBeenCalledTimes(2));
   });
 });
 

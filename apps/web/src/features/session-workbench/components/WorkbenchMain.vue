@@ -105,11 +105,7 @@ export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boo
 import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
 import { ArrowDown } from "lucide-vue-next";
 import ChatInput from "@features/chat-input/index.vue";
-import {
-  lastAssistantUsage,
-  modelContextWindow,
-  projectContextUsage,
-} from "@features/chat-input/lib/context-usage.js";
+import { projectContextUsage } from "@features/chat-input/lib/context-usage.js";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import { hasEarlierTranscript } from "@features/session-workbench/lib/session-state.js";
@@ -120,6 +116,7 @@ import { Button } from "@components/ui/button/index.js";
 const {
   sessionId,
   transcript,
+  contextUsageEstimate,
   phase,
   sessionPending,
   aborting,
@@ -150,12 +147,7 @@ const hasEarlier = computed(() =>
 );
 const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value);
 const composerCwd = computed(() => projection.value?.cwd ?? heroCwd.value);
-const contextUsage = computed(() =>
-  projectContextUsage(
-    lastAssistantUsage(transcript.value),
-    modelContextWindow(catalog.value, projection.value?.model ?? preset.value?.model),
-  ),
-);
+const contextUsage = computed(() => projectContextUsage(contextUsageEstimate.value));
 
 const transcriptAtBottom = shallowRef(true);
 const showScrollToLatest = computed(() =>

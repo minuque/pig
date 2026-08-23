@@ -2,7 +2,7 @@
   <div class="glass-shell usage-shell">
     <div class="glass-host usage-host">
       <div class="head">
-        <h3 class="title">上下文占用</h3>
+        <h3 class="title">上下文占用（估算）</h3>
         <button type="button" class="close" aria-label="关闭上下文占用" @click="emit('close')">
           <X :size="16" />
         </button>
@@ -21,7 +21,6 @@
             background: segment.color,
           }"
         ></span>
-        <span class="bar-rest"></span>
       </div>
       <ul v-if="usage.segments.length" class="legend">
         <li v-for="segment in usage.segments" :key="segment.id" class="legend-row">
@@ -136,10 +135,6 @@ const tokenSummary = computed(() => contextUsageSummary(props.usage));
   display: block;
   flex: none;
   height: 100%;
-  min-width: 0;
-}
-.bar-rest {
-  flex: 1;
   min-width: 0;
 }
 .legend {

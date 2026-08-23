@@ -14,6 +14,7 @@ import type {
   PiSessionRuntime,
 } from "@earendil-works/pi-server";
 import { canonicalizePath } from "../directory.js";
+import type { ContextUsageEstimate } from "./context-usage.js";
 import { modelFromBranch, type SessionCard } from "./session-card.js";
 import { sessionListName } from "./session-label.js";
 import { PiHostSession } from "./session-runtime.js";
@@ -40,6 +41,7 @@ export interface PiHostServiceOptions {
 export class PiHostService implements PiServerService {
   /** sessionId → 会话文件路径（listSessions/openSession 时填充）。 */
   private readonly sessionPaths = new Map<string, string>();
+  private readonly activeSessions = new Map<string, PiHostSession>();
   private runtimePromise?: Promise<Runtime>;
   private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined;
 
@@ -113,7 +115,7 @@ export class PiHostService implements PiServerService {
         ...(model ? { model } : {}),
         ...(options.thinkingLevel ? { thinkingLevel: options.thinkingLevel } : {}),
       });
-      return new PiHostSession(session);
+      return this.trackSession(session);
     } catch (error) {
       // AgentSession 创建失败（如无可用模型）时回滚，避免遗留空会话文件
       await this.rollbackSession(options.id, path);
@@ -161,7 +163,11 @@ export class PiHostService implements PiServerService {
       modelRuntime: runtime,
       sessionManager: SessionManager.open(path),
     });
-    return new PiHostSession(session);
+    return this.trackSession(session);
+  }
+
+  contextUsage(sessionId: string): ContextUsageEstimate | undefined {
+    return this.activeSessions.get(sessionId)?.contextUsage();
   }
 
   /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */
@@ -189,6 +195,17 @@ export class PiHostService implements PiServerService {
 
   private sessionFactory(): SessionFactory {
     return this.options.createSession ?? createAgentSession;
+  }
+
+  private trackSession(session: Awaited<ReturnType<SessionFactory>>["session"]): PiHostSession {
+    let host!: PiHostSession;
+    host = new PiHostSession(session, () => {
+      if (this.activeSessions.get(session.sessionId) === host) {
+        this.activeSessions.delete(session.sessionId);
+      }
+    });
+    this.activeSessions.set(session.sessionId, host);
+    return host;
   }
 
   private async rollbackSession(sessionId: string, path: string): Promise<void> {

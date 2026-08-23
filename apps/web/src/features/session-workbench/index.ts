@@ -81,6 +81,7 @@ function createSession(
     connected: pi.connected,
     connectionError: pi.connectionError,
     transcript,
+    contextUsageEstimate: remote.contextUsageEstimate,
     catalog,
     preset,
     prompt: runtime.prompt,

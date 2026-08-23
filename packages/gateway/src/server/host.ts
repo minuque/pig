@@ -159,6 +159,12 @@ export class Gateway {
         return this.send(res, 500, { code: "INVALID_REQUEST" });
       }
     }
+    if (url.pathname === "/api/v1/platform/context-usage" && req.method === "GET") {
+      if (!this.requireAuth(req, res)) return;
+      const sessionId = url.searchParams.get("sessionId") ?? "";
+      if (!sessionId) return this.send(res, 400, { code: "INVALID_REQUEST" });
+      return this.send(res, 200, { usage: this.hostService.contextUsage(sessionId) ?? null });
+    }
     if (url.pathname === "/api/v1/platform/rename-session" && req.method === "POST") {
       return this.handleSessionFileAction(req, res, async (id, body) => {
         const name = typeof body.name === "string" ? body.name : "";

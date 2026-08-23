@@ -32,6 +32,12 @@ class FakeAgentSession {
   steers: string[] = [];
   aborted = false;
   disposed = false;
+  systemPrompt = "system prompt";
+  messages: Array<{ role: "user"; content: string; timestamp: number }> = [];
+  resourceLoader = {
+    getAgentsFiles: () => ({ agentsFiles: [] }),
+    getSkills: () => ({ skills: [] }),
+  };
   private readonly listeners = new Set<(event: AgentSessionEvent) => void>();
   constructor(public sessionManager: SessionManager) {}
 
@@ -65,6 +71,15 @@ class FakeAgentSession {
   }
   getSteeringMessages() {
     return this.steering;
+  }
+  getContextUsage() {
+    return { tokens: 100, contextWindow: 1000, percent: 10 };
+  }
+  getActiveToolNames() {
+    return [];
+  }
+  getAllTools() {
+    return [];
   }
   async waitForIdle() {}
   dispose() {
@@ -358,6 +373,19 @@ describe("PiHostService", () => {
 
     const reopened = await service.openSession("sess-1");
     expect(await reopened.snapshot()).toMatchObject({ id: "sess-1" });
+  });
+
+  it("只读取当前已附加 session 的占用估算，并在释放后清理", async () => {
+    const { service } = await makeService();
+    const runtime = await service.createSession({ id: "sess-1" });
+    expect(service.contextUsage("sess-1")).toMatchObject({
+      used: 100,
+      window: 1000,
+      segments: { idle: 900 },
+    });
+    expect(service.contextUsage("missing")).toBeUndefined();
+    await runtime.dispose();
+    expect(service.contextUsage("sess-1")).toBeUndefined();
   });
 
   it("reopens a session in a fresh service and restores the transcript", async () => {

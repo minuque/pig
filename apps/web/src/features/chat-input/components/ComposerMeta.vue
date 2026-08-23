@@ -6,6 +6,7 @@
     </span>
     <span v-else class="cwd-spacer"></span>
     <button
+      v-if="usage"
       type="button"
       class="usage"
       :class="{ open }"
