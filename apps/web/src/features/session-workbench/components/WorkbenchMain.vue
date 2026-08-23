@@ -289,7 +289,7 @@ onBeforeUnmount(() => dockObserver?.disconnect());
   /* 脱离 Dock 测量流，避免显隐时改写 transcript 底部 inset 并触发滚动回弹。 */
   position: absolute;
   inset-inline: var(--spacing-md);
-  bottom: calc(100% - var(--spacing-xxs));
+  bottom: calc(100% + var(--spacing-xxs));
   max-width: var(--size-composer);
   margin-inline: auto;
   display: flex;
