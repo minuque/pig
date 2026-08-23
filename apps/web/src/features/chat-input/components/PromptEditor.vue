@@ -149,8 +149,8 @@ defineExpose({ focus });
   position: absolute;
   left: 20px;
   right: 20px;
+  top: 0;
   bottom: -8px;
-  height: 68px;
   display: flex;
   align-items: flex-start;
   background: var(--composer);
@@ -161,9 +161,12 @@ defineExpose({ focus });
 .chips {
   display: flex;
   flex-wrap: nowrap;
+  align-items: flex-start;
   gap: 8px;
   min-width: 0;
   width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   padding: 10px 12px 18px;
   overflow-x: auto;
 }

@@ -69,13 +69,15 @@ const alt = computed(() => props.name || "图片");
 .remove {
   position: absolute;
   z-index: 1;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   display: grid;
   place-items: center;
   width: 16px;
   height: 16px;
-  min-height: 0;
+  min-width: 16px;
+  min-height: 16px;
+  max-height: 16px;
   padding: 0;
   line-height: 0;
   border: var(--border-width) solid var(--hairline);
