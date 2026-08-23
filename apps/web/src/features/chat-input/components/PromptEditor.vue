@@ -153,7 +153,7 @@ defineExpose({ focus });
   height: 68px;
   display: flex;
   align-items: flex-start;
-  background: color-mix(in srgb, var(--ink) 8%, var(--composer));
+  background: var(--composer);
   border: var(--border-width) solid var(--composer-ring);
   border-bottom: 0;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
