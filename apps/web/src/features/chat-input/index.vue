@@ -77,7 +77,13 @@
         </button>
       </template>
     </PromptEditor>
-    <ComposerMeta :cwd="cwd" :usage="usage" :open="usageOpen" @toggle="usageOpen = !usageOpen" />
+    <ComposerMeta
+      v-if="showMeta"
+      :cwd="cwd"
+      :usage="usage"
+      :open="usageOpen"
+      @toggle="usageOpen = !usageOpen"
+    />
     <input
       ref="fileInput"
       type="file"
@@ -108,7 +114,10 @@ import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel
 import ModelPicker from "@features/chat-input/components/ModelPicker.vue";
 import ThinkingLevelSelect from "@features/chat-input/components/ThinkingLevelSelect.vue";
 import PromptEditor from "@features/chat-input/components/PromptEditor.vue";
-import type { ContextUsage } from "@features/chat-input/lib/context-usage.js";
+import {
+  shouldShowComposerMeta,
+  type ContextUsage,
+} from "@features/chat-input/lib/context-usage.js";
 import { useModelPresetBinding } from "@features/chat-input/hooks/use-model-preset-binding.js";
 import {
   MAX_COMPOSER_ATTACHMENTS,
@@ -168,6 +177,7 @@ const sendActive = computed(() => canSend(prompt.value, props.sendDisabled));
 const promptEditor = ref<{ focus: () => void } | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const usageOpen = ref(false);
+const showMeta = computed(() => shouldShowComposerMeta(props.cwd, props.usage));
 
 watch(
   () => props.cwd,

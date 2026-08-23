@@ -7,6 +7,7 @@ import {
   modelContextWindow,
   projectContextUsage,
   segmentShare,
+  shouldShowComposerMeta,
 } from "@features/chat-input/lib/context-usage.js";
 import { contextUsageSummary } from "@features/chat-input/components/ContextUsagePanel.vue";
 import {
@@ -116,6 +117,17 @@ describe("lastAssistantUsage / modelContextWindow", () => {
     expect(modelContextWindow(catalog, { provider: "xai", id: "grok" })).toBe(200_000);
     expect(modelContextWindow(catalog, { provider: "xai", id: "missing" })).toBe(0);
     expect(modelContextWindow(catalog, undefined)).toBe(0);
+  });
+});
+
+describe("shouldShowComposerMeta", () => {
+  it("欢迎页不传 cwd/usage 时不展示底栏", () => {
+    expect(shouldShowComposerMeta(undefined, undefined)).toBe(false);
+  });
+
+  it("有目录或占用数据时展示", () => {
+    expect(shouldShowComposerMeta("/repo", undefined)).toBe(true);
+    expect(shouldShowComposerMeta(undefined, projectContextUsage(undefined, 1000))).toBe(true);
   });
 });
 

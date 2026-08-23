@@ -14,8 +14,6 @@
         v-model:preset="preset"
         :catalog="catalog"
         :send-disabled="!canSubmitNow"
-        :cwd="welcomeWorkspaceId"
-        :usage="contextUsage"
         bare
         placeholder="do what you want ..."
         aria-label="任务描述"
@@ -45,7 +43,6 @@ import { computed } from "vue";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import ChatInput from "@features/chat-input/index.vue";
-import { modelContextWindow, projectContextUsage } from "@features/chat-input/lib/context-usage.js";
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue";
 import { useWelcomeSubmit } from "@features/session-workbench/hooks/use-welcome-submit.js";
 
@@ -64,9 +61,6 @@ const { welcomePrompt, welcomeWorkspaceId, welcomeSubmitting, welcomeError, subm
 
 const canSubmitNow = computed(() =>
   canSubmit(welcomeWorkspaceId.value, preset.value, welcomeSubmitting.value),
-);
-const contextUsage = computed(() =>
-  projectContextUsage(undefined, modelContextWindow(catalog.value, preset.value?.model)),
 );
 </script>
 

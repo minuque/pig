@@ -73,7 +73,7 @@ Session 标题（`caption`）+ 淡 cwd 名。右上 ThemeToggle。thinking 为 o
 
 桌面输入卡和模型/思考菜单：backdrop-filter（blur 12px / 深色 16px，填充 80%）。浏览器用不透明 `composer`。`prefers-reduced-transparency` 时桌面同样回退。dock 不铺实底。模型与思考在左，primary 发送圆钮在右。
 
-输入卡下方状态条只显示当前工作目录（Folder + 末段名）和上下文占用环，不展示 git / 主机等其余项。点击占用环在输入卡上方展开占用面板：百分比、已用/窗口 token、分段条、图例。
+输入卡下方状态条只显示当前工作目录（Folder + 末段名）和上下文占用环，不展示 git / 主机等其余项。点击占用环在输入卡上方展开占用面板：百分比、已用/窗口 token、分段条、图例。欢迎页不展示该状态条。
 
 ### Gateway
 

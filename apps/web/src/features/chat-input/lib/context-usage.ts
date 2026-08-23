@@ -15,6 +15,14 @@ export interface ContextUsage {
   segments: ContextUsageSegment[];
 }
 
+/** 欢迎页不传 cwd/usage，不展示底栏。 */
+export function shouldShowComposerMeta(
+  cwd: string | undefined,
+  usage: ContextUsage | undefined,
+): boolean {
+  return cwd !== undefined || usage !== undefined;
+}
+
 const SEGMENT_DEFS = [
   { id: "input" as const, label: "输入", key: "input" as const, color: "var(--primary)" },
   { id: "output" as const, label: "输出", key: "output" as const, color: "var(--accent-sunset)" },
