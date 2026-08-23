@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   nextThinkingLevel,
   thinkingBarOpacities,
-  thinkingDepth,
+  thinkingGlow,
 } from "@features/chat-input/components/ThinkingLevelSelect.vue";
+
+const full = ["off", "minimal", "low", "medium", "high", "xhigh", "max"] as const;
 
 describe("nextThinkingLevel", () => {
   it("按数组循环到下一档", () => {
@@ -23,22 +25,31 @@ describe("nextThinkingLevel", () => {
   });
 });
 
-describe("thinkingDepth", () => {
-  it("最低档为 0、最高档为 1，中间按比例", () => {
-    expect(thinkingDepth(0, 4)).toBe(0);
-    expect(thinkingDepth(1, 4)).toBeCloseTo(1 / 3);
-    expect(thinkingDepth(3, 4)).toBe(1);
+describe("thinkingGlow", () => {
+  it("off 为 0，最高有效档为 1，中间按有效档比例", () => {
+    expect(thinkingGlow("off", full)).toBe(0);
+    expect(thinkingGlow("minimal", full)).toBe(0);
+    expect(thinkingGlow("max", full)).toBe(1);
+    expect(thinkingGlow("medium", full)).toBeCloseTo(2 / 5);
   });
 
-  it("单档或空档为 0", () => {
-    expect(thinkingDepth(0, 1)).toBe(0);
-    expect(thinkingDepth(0, 0)).toBe(0);
+  it("没有 off 时最低档为暗、最高档为亮", () => {
+    expect(thinkingGlow("low", ["low", "medium", "high"])).toBe(0);
+    expect(thinkingGlow("high", ["low", "medium", "high"])).toBe(1);
+  });
+
+  it("仅一档有效时为最亮", () => {
+    expect(thinkingGlow("on", ["off", "on"])).toBe(1);
   });
 });
 
 describe("thinkingBarOpacities", () => {
-  it("最低档只亮第一根，最高档三根全亮", () => {
-    expect(thinkingBarOpacities(0, 3)).toEqual([1, 0.28, 0.28]);
-    expect(thinkingBarOpacities(2, 3)).toEqual([1, 1, 1]);
+  it("off 三根全灭", () => {
+    expect(thinkingBarOpacities("off", full)).toEqual([0, 0, 0]);
+  });
+
+  it("最低有效档亮第一根，最高有效档三根全亮", () => {
+    expect(thinkingBarOpacities("minimal", full)).toEqual([1, 0.28, 0.28]);
+    expect(thinkingBarOpacities("max", full)).toEqual([1, 1, 1]);
   });
 });
