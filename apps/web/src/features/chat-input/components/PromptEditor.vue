@@ -165,10 +165,10 @@ defineExpose({ focus });
   gap: 8px;
   min-width: 0;
   width: 100%;
-  height: 100%;
   box-sizing: border-box;
   padding: 10px 12px 18px;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 .glass-shell {
   position: relative;
