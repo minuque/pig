@@ -87,6 +87,18 @@ export function isTranscriptAtBottom(
   return scrollHeight - scrollTop - clientHeight <= threshold;
 }
 
+/** 盖过时间线已排队的旧锚点 rAF；再长会挡住用户马上上翻。 */
+export const PROGRAMMATIC_BOTTOM_HOLD_MS = 120;
+
+/** 程序化滚底后，未贴底读数在 hold 窗口内视为旧锚点回写。 */
+export function shouldHoldProgrammaticBottom(
+  measuredBottom: boolean,
+  holdUntil: number,
+  now: number,
+): boolean {
+  return !measuredBottom && now < holdUntil;
+}
+
 function estimateWrappedLines(text: string, charsPerLine: number): number {
   if (!text) return 1;
   let lines = 0;
@@ -164,14 +176,23 @@ function isStreamingAssistant(item: TranscriptItem): boolean {
 const timeline = useTemplateRef<{
   scrollToBottom(): void;
   captureThreadState(): MarkstreamThreadVirtualState;
+  restoreThreadState(state: MarkstreamThreadVirtualState): void;
 }>("timeline");
 // 新增行只在精确贴底时自动跟随；顶部仍保留 48px 的提前加载区。
 const atBottom = shallowRef(true);
 const atTop = shallowRef(false);
 const showEarlier = computed(() => props.hasEarlier && (atTop.value || props.loadingEarlier));
+let bottomHoldUntil = 0;
 
 function timelineScrollRoot(): HTMLElement | null {
   return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null;
+}
+
+function pinBottomUi() {
+  if (!atBottom.value) {
+    atBottom.value = true;
+    emit("bottom-change", true);
+  }
 }
 
 function onThreadState(state: MarkstreamThreadVirtualState) {
@@ -179,19 +200,30 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
   const bottom = root
     ? isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
     : state.outerAnchor?.type !== "item";
+  atTop.value = root ? isTranscriptAtTop(root.scrollTop) : false;
+  if (shouldHoldProgrammaticBottom(bottom, bottomHoldUntil, performance.now())) return;
   if (atBottom.value !== bottom) {
     atBottom.value = bottom;
     emit("bottom-change", bottom);
   }
-  atTop.value = root ? isTranscriptAtTop(root.scrollTop) : false;
 }
 
 function scrollToLatest() {
-  if (!atBottom.value) {
-    atBottom.value = true;
-    emit("bottom-change", true);
+  bottomHoldUntil = performance.now() + PROGRAMMATIC_BOTTOM_HOLD_MS;
+  pinBottomUi();
+  const api = timeline.value;
+  const root = timelineScrollRoot();
+  // restore 期间 scrollToBottom 会被 kn(旧锚点) 拽回去；按钮在 dock 上仍可点。
+  if (root?.classList.contains("is-restoring-thread") && api) {
+    api.restoreThreadState({
+      ...api.captureThreadState(),
+      outerAnchor: { type: "bottom", distanceFromBottomPx: 0 },
+    });
+    return;
   }
-  timeline.value?.scrollToBottom();
+  api?.scrollToBottom();
+  // 已排队的 item 锚点 rAF 会在本帧之后写回，再滚一次压住。
+  requestAnimationFrame(() => api?.scrollToBottom());
 }
 
 defineExpose({ prepareForSubmit: scrollToLatest, scrollToLatest });

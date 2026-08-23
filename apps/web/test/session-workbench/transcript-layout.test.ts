@@ -4,6 +4,7 @@ import {
   estimateTranscriptRowHeight,
   isTranscriptAtBottom,
   isTranscriptAtTop,
+  shouldHoldProgrammaticBottom,
   transcriptRowContent,
   transcriptRowFinal,
   transcriptRowKind,
@@ -119,5 +120,11 @@ describe("transcript edge thresholds", () => {
     expect(shouldShowScrollToLatest(3, false)).toBe(true);
     expect(shouldShowScrollToLatest(3, true)).toBe(false);
     expect(shouldShowScrollToLatest(0, false)).toBe(false);
+  });
+
+  it("程序化滚底后，未贴底读数在 hold 窗口内不能把按钮打回来", () => {
+    expect(shouldHoldProgrammaticBottom(false, 100, 99)).toBe(true);
+    expect(shouldHoldProgrammaticBottom(false, 100, 100)).toBe(false);
+    expect(shouldHoldProgrammaticBottom(true, 100, 99)).toBe(false);
   });
 });
