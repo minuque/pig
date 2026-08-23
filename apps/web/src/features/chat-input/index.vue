@@ -266,19 +266,17 @@ function send() {
   border-radius: var(--radius-full);
   background: var(--primary);
   color: var(--on-primary);
-  cursor: default;
+  cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
     transform var(--duration-fast) var(--ease-smooth);
 }
-.send:not(:disabled) {
-  cursor: pointer;
-}
 .send:not(:disabled):hover {
   background: var(--primary-active);
 }
 .send:disabled {
+  cursor: default;
   opacity: 1;
 }
 @media (prefers-reduced-motion: reduce) {

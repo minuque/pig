@@ -68,26 +68,33 @@ const alt = computed(() => props.name || "图片");
 }
 .remove {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  z-index: 1;
+  top: 4px;
+  right: 4px;
   display: grid;
   place-items: center;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   padding: 0;
-  border: 0;
+  border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--ink) 72%, transparent);
-  color: var(--canvas);
+  background: var(--surface);
+  color: var(--ink-muted);
   opacity: 0;
   pointer-events: none;
   cursor: pointer;
-  transition: opacity var(--duration-fast) var(--ease-smooth);
+  transition:
+    opacity var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
 }
 .thumb-wrap:hover .remove,
 .remove:focus-visible {
   opacity: 1;
   pointer-events: auto;
+}
+.remove:hover,
+.remove:focus-visible {
+  color: var(--ink);
 }
 @media (prefers-reduced-motion: reduce) {
   .remove {
