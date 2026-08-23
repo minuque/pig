@@ -6,6 +6,7 @@ export interface ChatInputModelInfo {
   id: string;
   name: string;
   thinkingLevels: string[];
+  contextWindow?: number;
 }
 
 export interface ChatInputVendor {
@@ -41,6 +42,7 @@ export function catalogFromModels(models: readonly ModelMetadata[]): ChatInputVe
       id: model.id,
       name: model.name,
       thinkingLevels: [...model.supportedThinkingLevels],
+      contextWindow: model.contextWindow,
     });
     vendors.set(model.provider, vendor);
   }

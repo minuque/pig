@@ -30,7 +30,7 @@
       markdown-mode="chat"
       :stick-to-bottom="'auto'"
       :overscan="8"
-      :initial-thread-state="threadState"
+      :initial-thread-state="pinnedThreadState"
       @thread-state-change="onThreadState"
     >
       <template #default="{ item: row, measureRef, markdownProps }">
@@ -53,11 +53,23 @@
 
 <script lang="ts">
 import type { TranscriptItem } from "@earendil-works/pi-protocol";
+import type { MarkstreamThreadVirtualState } from "markstream-vue";
 import {
   assistantThinking,
   isAssistantItem,
   transcriptText,
 } from "@features/session-workbench/lib/transcript-format.js";
+
+/** 打开会话只恢复行高缓存，视口强制贴底。 */
+export function threadStatePinnedToBottom(
+  state: MarkstreamThreadVirtualState | null,
+): MarkstreamThreadVirtualState | null {
+  if (!state) return null;
+  return {
+    ...state,
+    outerAnchor: { type: "bottom", distanceFromBottomPx: 0 },
+  };
+}
 
 /** 时间线认 Markdown 的 kind：仅助手正文。 */
 export function transcriptRowKind(item: TranscriptItem): string {
@@ -151,7 +163,7 @@ export function estimateTranscriptRowHeight(item: TranscriptItem): number {
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
-import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue";
+import { MarkstreamVirtualTimeline } from "markstream-vue";
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 import AssistantMessage from "@features/session-workbench/components/AssistantMessage.vue";
 import ToolCall from "@features/session-workbench/components/ToolCall.vue";
@@ -166,7 +178,7 @@ const props = withDefaults(
     transcript: readonly TranscriptItem[];
     /** 当前 Session phase：非 idle 时显示 streaming 空态 */
     phase: SessionPhase | undefined;
-    /** 上次离开该会话时的虚拟滚动状态，用于恢复滚动位置与行高缓存 */
+    /** 上次离开该会话时的虚拟滚动状态：只复用行高，打开时贴底 */
     threadState: MarkstreamThreadVirtualState | null;
     hasEarlier?: boolean;
     loadingEarlier?: boolean;
@@ -182,6 +194,7 @@ const emit = defineEmits<{
 
 const running = computed(() => props.phase !== undefined && props.phase !== "idle");
 const rows = computed(() => conversationRows(props.transcript));
+const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState));
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`);
 const region = useTemplateRef<HTMLElement>("region");
 const { isDark } = useColorScheme();
@@ -305,6 +318,18 @@ watch(
   },
   { flush: "pre" },
 );
+// 打开或切换会话：内容就绪后贴底。从空到有行也滚一次（首屏迟到）。
+watch(
+  () => props.sessionId,
+  () => {
+    if (rows.value.length === 0) return;
+    scrollToLatest();
+  },
+  { immediate: true, flush: "post" },
+);
+watch(rows, (next, prev) => {
+  if (prev.length === 0 && next.length > 0) scrollToLatest();
+});
 onBeforeUnmount(() => {
   releasePinnedToBottom();
   persistThreadState();

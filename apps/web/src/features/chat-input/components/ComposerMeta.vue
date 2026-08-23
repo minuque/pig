@@ -1,0 +1,145 @@
+<template>
+  <div class="meta">
+    <span v-if="cwdLabel" class="cwd" :title="cwd">
+      <Folder :size="14" aria-hidden="true" />
+      <span class="cwd-name">{{ cwdLabel }}</span>
+    </span>
+    <span v-else class="cwd-spacer"></span>
+    <button
+      type="button"
+      class="usage"
+      :class="{ open }"
+      :aria-label="usageLabel"
+      :aria-pressed="open"
+      :title="usageLabel"
+      @mousedown.prevent
+      @click="emit('toggle')"
+    >
+      <svg class="ring" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <circle class="ring-track" cx="8" cy="8" r="6" />
+        <circle
+          class="ring-fill"
+          cx="8"
+          cy="8"
+          r="6"
+          :stroke-dasharray="RING"
+          :stroke-dashoffset="ringOffset"
+        />
+      </svg>
+    </button>
+  </div>
+</template>
+
+<script lang="ts">
+import { workspaceName } from "@features/session-nav/format.js";
+import type { ContextUsage } from "@features/chat-input/lib/context-usage.js";
+
+const RING_RADIUS = 6;
+export const USAGE_RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+
+export function usageRingOffset(percent: number, length = USAGE_RING_LENGTH): number {
+  const clamped = Math.min(100, Math.max(0, percent));
+  return length * (1 - clamped / 100);
+}
+
+export function composerCwdLabel(cwd: string | undefined): string {
+  return cwd ? workspaceName(cwd) : "";
+}
+
+export function contextUsageAriaLabel(usage: ContextUsage | undefined): string {
+  const percent = usage?.percent ?? 0;
+  return `上下文占用 ${percent}%`;
+}
+</script>
+
+<script setup lang="ts">
+import { computed } from "vue";
+import { Folder } from "lucide-vue-next";
+
+const props = withDefaults(
+  defineProps<{
+    cwd?: string | undefined;
+    usage?: ContextUsage | undefined;
+    open?: boolean;
+  }>(),
+  { cwd: undefined, usage: undefined, open: false },
+);
+
+const emit = defineEmits<{
+  toggle: [];
+}>();
+
+const RING = USAGE_RING_LENGTH;
+const cwdLabel = computed(() => composerCwdLabel(props.cwd));
+const usageLabel = computed(() => contextUsageAriaLabel(props.usage));
+const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0));
+</script>
+
+<style scoped>
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xs);
+  min-height: 28px;
+  padding: 6px 2px 0;
+}
+.cwd {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 70%;
+  padding: 2px 8px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+.cwd-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cwd-spacer {
+  min-width: 0;
+}
+.usage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+.usage:hover,
+.usage.open {
+  color: var(--ink-muted);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.ring {
+  display: block;
+  transform: rotate(-90deg);
+}
+.ring-track,
+.ring-fill {
+  fill: none;
+  stroke-width: 1.5;
+}
+.ring-track {
+  stroke: color-mix(in srgb, var(--ink) 18%, transparent);
+}
+.ring-fill {
+  stroke: currentColor;
+  stroke-linecap: round;
+}
+</style>

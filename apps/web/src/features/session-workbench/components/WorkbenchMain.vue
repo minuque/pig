@@ -30,6 +30,8 @@
           :catalog="catalog"
           :phase="phase"
           :error="sessionError"
+          :cwd="composerCwd"
+          :usage="contextUsage"
           @send="submitText"
         />
       </div>
@@ -70,6 +72,8 @@
           :phase="phase"
           :aborting="aborting"
           :error="sessionError"
+          :cwd="composerCwd"
+          :usage="contextUsage"
           docked
           @send="submitFromDock"
           @abort="abortSession"
@@ -101,6 +105,11 @@ export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boo
 import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
 import { ArrowDown } from "lucide-vue-next";
 import ChatInput from "@features/chat-input/index.vue";
+import {
+  lastAssistantUsage,
+  modelContextWindow,
+  projectContextUsage,
+} from "@features/chat-input/lib/context-usage.js";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import { hasEarlierTranscript } from "@features/session-workbench/lib/session-state.js";
@@ -120,6 +129,7 @@ const {
   prompt,
   preset,
   catalog,
+  projection,
   sessionError,
   submitText,
   loadEarlier,
@@ -139,6 +149,13 @@ const hasEarlier = computed(() =>
   ),
 );
 const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value);
+const composerCwd = computed(() => projection.value?.cwd ?? heroCwd.value);
+const contextUsage = computed(() =>
+  projectContextUsage(
+    lastAssistantUsage(transcript.value),
+    modelContextWindow(catalog.value, projection.value?.model ?? preset.value?.model),
+  ),
+);
 
 const transcriptAtBottom = shallowRef(true);
 const showScrollToLatest = computed(() =>
@@ -173,7 +190,10 @@ watch(
     dockObserver?.disconnect();
     if (!element) return;
     dockObserver = new ResizeObserver(() => {
-      dockHeight.value = element.offsetHeight;
+      const nextHeight = element.offsetHeight;
+      const grew = nextHeight > dockHeight.value;
+      dockHeight.value = nextHeight;
+      if (grew && transcriptAtBottom.value) transcriptView.value?.scrollToLatest();
     });
     dockObserver.observe(element);
     dockHeight.value = element.offsetHeight;

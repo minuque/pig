@@ -6,6 +6,7 @@
     @submit.prevent="send"
     @paste="onPaste"
   >
+    <ContextUsagePanel v-if="usageOpen && usage" :usage="usage" @close="usageOpen = false" />
     <PromptEditor
       ref="promptEditor"
       v-model:prompt="prompt"
@@ -76,6 +77,7 @@
         </button>
       </template>
     </PromptEditor>
+    <ComposerMeta :cwd="cwd" :usage="usage" :open="usageOpen" @toggle="usageOpen = !usageOpen" />
     <input
       ref="fileInput"
       type="file"
@@ -97,13 +99,16 @@ export function canSend(text: string, sendDisabled: boolean): boolean {
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next";
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue";
+import ComposerMeta from "@features/chat-input/components/ComposerMeta.vue";
+import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel.vue";
 import ModelPicker from "@features/chat-input/components/ModelPicker.vue";
 import ThinkingLevelSelect from "@features/chat-input/components/ThinkingLevelSelect.vue";
 import PromptEditor from "@features/chat-input/components/PromptEditor.vue";
+import type { ContextUsage } from "@features/chat-input/lib/context-usage.js";
 import { useModelPresetBinding } from "@features/chat-input/hooks/use-model-preset-binding.js";
 import {
   MAX_COMPOSER_ATTACHMENTS,
@@ -129,6 +134,9 @@ const props = withDefaults(
     bare?: boolean;
     /** 对话列贴底：宽度交给上层 dock */
     docked?: boolean;
+    /** 当前工作目录，底栏展示末段名 */
+    cwd?: string | undefined;
+    usage?: ContextUsage | undefined;
   }>(),
   {
     phase: undefined,
@@ -139,6 +147,8 @@ const props = withDefaults(
     ariaLabel: "给智能体发消息",
     bare: false,
     docked: false,
+    cwd: undefined,
+    usage: undefined,
   },
 );
 
@@ -157,6 +167,14 @@ const sendActive = computed(() => canSend(prompt.value, props.sendDisabled));
 
 const promptEditor = ref<{ focus: () => void } | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
+const usageOpen = ref(false);
+
+watch(
+  () => props.cwd,
+  () => {
+    usageOpen.value = false;
+  },
+);
 
 function focusEditor() {
   promptEditor.value?.focus();

@@ -6,6 +6,7 @@ import {
   isTranscriptAtTop,
   isTranscriptVisuallyAtBottom,
   shouldHoldProgrammaticBottom,
+  threadStatePinnedToBottom,
   unpinBottomScrollTop,
   transcriptRowContent,
   transcriptRowFinal,
@@ -142,5 +143,22 @@ describe("transcript edge thresholds", () => {
     expect(unpinBottomScrollTop(1000, 400, 600, -8)).toBe(392);
     expect(unpinBottomScrollTop(1000, 400, 600, 8)).toBeNull();
     expect(unpinBottomScrollTop(1000, 397, 600, -8)).toBeNull();
+  });
+
+  it("恢复会话时只保留行高，锚点强制贴底", () => {
+    expect(threadStatePinnedToBottom(null)).toBeNull();
+    expect(
+      threadStatePinnedToBottom({
+        threadKey: "s1",
+        itemHeights: { a: 40 },
+        markdownStates: {},
+        outerAnchor: { type: "item", itemKey: "a", offsetWithinItemPx: 12 },
+      }),
+    ).toEqual({
+      threadKey: "s1",
+      itemHeights: { a: 40 },
+      markdownStates: {},
+      outerAnchor: { type: "bottom", distanceFromBottomPx: 0 },
+    });
   });
 });
