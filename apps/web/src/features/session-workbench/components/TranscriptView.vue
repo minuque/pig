@@ -110,7 +110,7 @@ export function shouldHoldProgrammaticBottom(
   return !measuredBottom && now < holdUntil;
 }
 
-/** 贴底后首次上翻：拉开超过 2px，避免 Markstream 按 ne 回钉。 */
+/** 贴底后明显上翻才解锁。1px 级惯性不能 preventDefault，否则永远触不了底。 */
 export function unpinBottomScrollTop(
   scrollHeight: number,
   scrollTop: number,
@@ -118,11 +118,10 @@ export function unpinBottomScrollTop(
   deltaY: number,
   threshold = 2,
 ): number | null {
-  if (deltaY >= 0) return null;
+  if (deltaY >= 0 || Math.abs(deltaY) <= threshold) return null;
   if (!isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, threshold)) return null;
   const maxTop = Math.max(0, scrollHeight - clientHeight);
-  const step = Math.max(threshold + 1, Math.abs(deltaY));
-  return Math.max(0, Math.min(maxTop, scrollTop - step));
+  return Math.max(0, Math.min(maxTop, scrollTop - Math.abs(deltaY)));
 }
 
 function estimateWrappedLines(text: string, charsPerLine: number): number {
@@ -273,11 +272,6 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
 }
 
 function scrollToLatest() {
-  const root = timelineScrollRoot();
-  if (root && isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)) {
-    pinBottomUi();
-    return;
-  }
   const holdUntil = performance.now() + PROGRAMMATIC_BOTTOM_HOLD_MS;
   bottomHoldUntil = holdUntil;
   pinBottomUi();

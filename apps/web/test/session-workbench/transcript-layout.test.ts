@@ -137,8 +137,8 @@ describe("transcript edge thresholds", () => {
     expect(shouldHoldProgrammaticBottom(true, 100, 99)).toBe(false);
   });
 
-  it("贴底首次上翻拉开超过 2px，下翻或已离开底部不改", () => {
-    expect(unpinBottomScrollTop(1000, 400, 600, -1)).toBe(397);
+  it("贴底只有明显上翻才解锁，1px 惯性不抢走触底", () => {
+    expect(unpinBottomScrollTop(1000, 400, 600, -1)).toBeNull();
     expect(unpinBottomScrollTop(1000, 400, 600, -8)).toBe(392);
     expect(unpinBottomScrollTop(1000, 400, 600, 8)).toBeNull();
     expect(unpinBottomScrollTop(1000, 397, 600, -8)).toBeNull();
