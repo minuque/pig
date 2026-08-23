@@ -21,9 +21,8 @@
     </Dialog>
     <Button
       type="button"
-      variant="secondary"
       size="icon-2xs"
-      class="absolute top-0 right-0 z-10 bg-ink text-canvas hover:bg-ink hover:text-canvas opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto"
+      class="remove"
       aria-label="移除附件"
       @click.stop="emit('remove')"
     >
@@ -49,3 +48,35 @@ const emit = defineEmits<{
 
 const alt = computed(() => props.name || "图片");
 </script>
+
+<style scoped>
+/* 全局 button reset 后本钮自行重盖：深色圆底不跟 ink 反相，白图也能看清。 */
+.remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--accent-midnight);
+  color: var(--on-primary);
+  box-shadow: none;
+  opacity: 0;
+  pointer-events: none;
+}
+.group:hover .remove,
+.remove:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.remove:hover,
+.remove:focus-visible {
+  background: var(--accent-midnight);
+  color: var(--on-primary);
+}
+</style>
