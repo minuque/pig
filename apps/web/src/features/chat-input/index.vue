@@ -55,13 +55,15 @@
         <button
           type="button"
           class="send"
-          :aria-label="running ? '发送 Steer' : '发送'"
-          :title="running ? '发送 Steer（追加到当前 turn）' : '发送 Prompt'"
-          :disabled="!sendActive"
+          :class="{ 'send--abort': running }"
+          :aria-label="running ? (aborting ? '正在停止当前 Turn' : '停止当前 Turn') : '发送'"
+          :title="running ? '停止当前 Turn' : '发送 Prompt'"
+          :disabled="running ? aborting : !sendActive"
           @mousedown.prevent
-          @click="send"
+          @click="onPrimaryAction"
         >
-          <ArrowUp :size="16" />
+          <Square v-if="running" :size="12" />
+          <ArrowUp v-else :size="16" />
         </button>
       </template>
     </PromptEditor>
@@ -87,7 +89,7 @@ export function canSend(text: string, sendDisabled: boolean, attachmentCount = 0
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next";
+import { ArrowUp, CircleAlert, Plus, Square } from "lucide-vue-next";
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue";
 import ModelPicker from "@features/chat-input/components/ModelPicker.vue";
@@ -107,6 +109,8 @@ const props = withDefaults(
     catalog: ChatInputVendor[];
     /** 当前 Session phase：控制 Steering 文案与运行时禁用项 */
     phase?: SessionPhase | undefined;
+    /** Abort 请求进行中：保持停止态并禁用重复点击 */
+    aborting?: boolean;
     error?: string;
     /** 外部禁用发送（如 welcome 的 workspace/预设/提交中守卫） */
     sendDisabled?: boolean;
@@ -119,6 +123,7 @@ const props = withDefaults(
   }>(),
   {
     phase: undefined,
+    aborting: false,
     error: "",
     sendDisabled: false,
     placeholder: "给智能体发消息",
@@ -133,6 +138,7 @@ const preset = defineModel<ChatInputPreset | undefined>("preset");
 
 const emit = defineEmits<{
   send: [text: string];
+  abort: [];
 }>();
 
 const { model, modelLevels, level } = useModelPresetBinding(() => props.catalog, preset);
@@ -173,6 +179,14 @@ function send() {
   const text = prompt.value;
   emit("send", text);
   if (text.trim() !== "") clear();
+}
+
+function onPrimaryAction() {
+  if (running.value) {
+    emit("abort");
+    return;
+  }
+  send();
 }
 </script>
 
@@ -249,6 +263,12 @@ function send() {
 }
 .send:not(:disabled):hover {
   background: var(--primary-active);
+}
+.send--abort {
+  background: var(--danger);
+}
+.send--abort:not(:disabled):hover {
+  background: color-mix(in srgb, var(--danger) 86%, var(--ink));
 }
 .send:disabled {
   cursor: default;

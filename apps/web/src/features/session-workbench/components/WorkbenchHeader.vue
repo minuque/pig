@@ -36,7 +36,7 @@ import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js";
 import { sessionTitle, UNTITLED_SESSION, workspaceName } from "@features/session-nav/format.js";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
-import { phaseLabel } from "@features/session-workbench/components/SessionControlBar.vue";
+import { phaseLabel } from "@features/session-workbench/lib/session-phase.js";
 import ThemeToggle from "@features/theme/ThemeToggle.vue";
 
 const { leftOpen, toggle } = useLeftPanelToggle();

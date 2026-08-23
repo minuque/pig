@@ -38,14 +38,20 @@ describe("canSend", () => {
 });
 
 describe("Session control", () => {
-  it("renders abort as a floating control above the docked composer", () => {
-    expect(workbenchMainSource).toContain('class="session-floating-controls"');
-    expect(workbenchMainSource).toContain("<SessionControlBar");
+  it("turns the send button into the abort control while running", () => {
+    expect(chatInputSource).toContain(":class=\"{ 'send--abort': running }\"");
+    expect(chatInputSource).toContain(':disabled="running ? aborting : !sendActive"');
+    expect(chatInputSource).toContain('@click="onPrimaryAction"');
+    expect(workbenchMainSource).not.toContain("<SessionControlBar");
+    expect(workbenchMainSource).toContain(':aborting="aborting"');
     expect(workbenchMainSource).toContain('@abort="abortSession"');
-    expect(chatInputSource).not.toContain("SessionControlBar");
   });
 
-  it("centers the floating control stack above the composer", () => {
+  it("uses the danger color for the running abort state", () => {
+    expect(chatInputSource).toMatch(/\.send--abort\s*\{[^}]*background:\s*var\(--danger\)/s);
+  });
+
+  it("centers the remaining scroll control above the composer", () => {
     expect(workbenchMainSource).toMatch(
       /\.session-floating-controls\s*\{[^}]*align-items:\s*center/s,
     );

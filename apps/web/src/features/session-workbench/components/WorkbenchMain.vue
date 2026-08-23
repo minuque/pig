@@ -50,7 +50,7 @@
       />
 
       <div ref="dock" class="chat-input-dock">
-        <div v-if="showScrollToLatest || running" class="session-floating-controls">
+        <div v-if="showScrollToLatest" class="session-floating-controls">
           <Button
             v-if="showScrollToLatest"
             class="floating-control scroll-latest-control"
@@ -63,23 +63,17 @@
           >
             <ArrowDown />
           </Button>
-          <SessionControlBar
-            v-if="phase && phase !== 'idle'"
-            class="floating-control"
-            :phase="phase"
-            :queued-steer-count="queuedSteerCount"
-            :aborting="aborting"
-            @abort="abortSession"
-          />
         </div>
         <ChatInput
           v-model:prompt="prompt"
           v-model:preset="preset"
           :catalog="catalog"
           :phase="phase"
+          :aborting="aborting"
           :error="sessionError"
           docked
           @send="submitFromDock"
+          @abort="abortSession"
         />
       </div>
     </template>
@@ -111,7 +105,6 @@ import ChatInput from "@features/chat-input/index.vue";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import { hasEarlierTranscript } from "@features/session-workbench/lib/session-state.js";
-import SessionControlBar from "@features/session-workbench/components/SessionControlBar.vue";
 import TranscriptView from "@features/session-workbench/components/TranscriptView.vue";
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue";
 import { Button } from "@components/ui/button/index.js";
@@ -128,7 +121,6 @@ const {
   prompt,
   preset,
   catalog,
-  queuedSteerCount,
   sessionError,
   submitText,
   loadEarlier,
@@ -140,7 +132,6 @@ const { workspaces, activeWorkspaceId, lastCwd, cardFootById } = useNav();
 const emptyCanvas = computed(() =>
   isEmptyCanvas(transcript.value.length, phase.value, sessionPending.value),
 );
-const running = computed(() => phase.value !== undefined && phase.value !== "idle");
 const hasEarlier = computed(() =>
   hasEarlierTranscript(
     transcript.value.length,
