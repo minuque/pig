@@ -20,7 +20,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       workbox: {
-        // markstream / mermaid / shiki 主包超过 Workbox 默认 2 MiB，不抬上限则 vite build 失败
+        // markstream / shiki 主包超过 Workbox 默认 2 MiB，不抬上限则 vite build 失败
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
       },
       manifest: {
