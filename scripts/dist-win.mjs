@@ -19,9 +19,6 @@ if (process.platform !== "win32") {
 }
 
 const { version } = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
-if (typeof version !== "string" || !version) {
-  throw new Error("根 package.json 缺少 version");
-}
 
 run("pnpm", ["--filter", "@pig/gateway", "build"]);
 run("pnpm", ["exec", "tsc", "-p", "tsconfig.main.json"], desktop);

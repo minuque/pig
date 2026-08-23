@@ -8,6 +8,7 @@ const DIALOG_OPTIONS = {
 
 export type CanonicalizePath = (path: string) => string;
 
+/** 与 Gateway DirectoryPort 对齐；不能从 gateway 源码 import type，tsc emit 会撑破 rootDir。 */
 export type DirectoryPort = {
   selectDirectory(): Promise<string | undefined>;
   validateDirectory(path: string): Promise<string>;

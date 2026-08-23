@@ -18,10 +18,6 @@ files:
   - package.json
   - out/main/**/*
   - out/preload/**/*
-  - "!src/**"
-  - "!test/**"
-  - "!electron-main.mjs"
-  - "!**/*.{ts,tsx,map}"
   - "!node_modules/@pig/gateway/src{,/**/*}"
   - "!node_modules/@pig/gateway/test{,/**/*}"
   - "!node_modules/@pig/gateway/web{,/**/*}"
@@ -35,10 +31,7 @@ win:
     - target: nsis
       arch:
         - x64
-  executableName: pig
   requestedExecutionLevel: asInvoker
-  forceCodeSigning: false
-  icon: ../web/public/logo.png
 
 nsis:
   oneClick: false
@@ -57,4 +50,3 @@ nsis:
   include: installer.nsh
   runAfterFinish: true
   differentialPackage: false
-  artifactName: Pig-${version}-x64-Setup.${ext}

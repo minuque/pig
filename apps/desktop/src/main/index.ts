@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { access } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import type { ChildProcess } from "node:child_process";
 import { app, dialog, Menu, type BrowserWindow } from "electron";
 
@@ -7,22 +8,20 @@ import { VITE_DEV_ORIGIN, bootstrapAppUrl, gatewayOrigin, isDesktopDev } from ".
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js";
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js";
 import { createMainWindow } from "./window.js";
-import { resolvePreloadPath, resolveWebRoot, webRootMissingMessage } from "./paths.js";
+import { resolveWebRoot } from "./paths.js";
 
 type GatewayInstance = {
   start(): Promise<number>;
   stop(): Promise<void>;
 };
 
-type GatewayCtor = new (options: {
-  bootstrapSecret: string;
-  bootstrapTtlMs: number;
-  platformPort: DirectoryPort;
-  webRoot?: string;
-}) => GatewayInstance;
-
 type GatewayModule = {
-  default: GatewayCtor;
+  default: new (options: {
+    bootstrapSecret: string;
+    bootstrapTtlMs: number;
+    platformPort: DirectoryPort;
+    webRoot?: string;
+  }) => GatewayInstance;
   canonicalizePath: (path: string) => string;
 };
 
@@ -73,19 +72,19 @@ void app.whenReady().then(async () => {
     const isDev = isDesktopDev();
     const isPackaged = app.isPackaged;
     const gatewayMod = await loadGatewayModule(isPackaged);
-    const webRoot = resolveWebRoot({
-      isDev,
-      isPackaged,
-      moduleUrl: import.meta.url,
-      resourcesPath: process.resourcesPath,
-    });
-    const preloadPath = resolvePreloadPath(import.meta.url);
+    const webRoot = resolveWebRoot(isDev, isPackaged, import.meta.url, process.resourcesPath);
+    const preloadPath = fileURLToPath(new URL("../preload/index.js", import.meta.url));
 
     if (webRoot) {
       try {
         await access(webRoot);
       } catch {
-        dialog.showErrorBox("无法启动", webRootMissingMessage(isPackaged));
+        dialog.showErrorBox(
+          "无法启动",
+          isPackaged
+            ? "安装包资源缺失。"
+            : "未找到 Web 构建产物（apps/web/dist）。请先执行 pnpm --filter @pig/web build。",
+        );
         await shutdown();
         return;
       }

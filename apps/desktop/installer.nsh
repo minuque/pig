@@ -1,3 +1,7 @@
+; 高分屏：不声明 DPI 时 Windows 会整窗位图拉伸，安装器发糊。
+ManifestDPIAware true
+ManifestDPIAwareness "PerMonitorV2,System"
+
 ; 每用户安装：探测目录可写。失败只提示，不抬 UAC。
 ; 默认目录由 electron-builder 每用户模式设为 %LOCALAPPDATA%\Programs\pig。不要改 appId。
 
