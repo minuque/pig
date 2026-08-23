@@ -11,3 +11,6 @@ allowBuilds:
   esbuild: true
   protobufjs: false
   vue-demi: true
+
+patchedDependencies:
+  markstream-vue@2.0.0: patches/markstream-vue@2.0.0.patch
