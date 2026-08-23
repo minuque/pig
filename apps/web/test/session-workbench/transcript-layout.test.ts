@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { TranscriptItem } from "@earendil-works/pi-protocol";
 import {
+  EARLIER_ROW_ID,
   estimateTranscriptRowHeight,
+  isEarlierRow,
   isTranscriptAtBottom,
-  isTranscriptAtTop,
   isTranscriptVisuallyAtBottom,
   shouldHoldProgrammaticBottom,
   threadStatePinnedToBottom,
@@ -11,6 +12,7 @@ import {
   transcriptRowContent,
   transcriptRowFinal,
   transcriptRowKind,
+  withEarlierRow,
 } from "@features/session-workbench/components/TranscriptView.vue";
 import { shouldShowScrollToLatest } from "@features/session-workbench/components/WorkbenchMain.vue";
 
@@ -51,6 +53,19 @@ describe("transcript row markstream mapping", () => {
     });
     expect(transcriptRowFinal(streaming)).toBe(false);
     expect(transcriptRowContent(streaming)).toBe("…");
+  });
+
+  it("加载更早行独占时间线首行，不是 Markdown", () => {
+    const user = item({ role: "user", content: [{ type: "text", text: "问" }] });
+    expect(withEarlierRow([user], false)).toEqual([user]);
+    const headed = withEarlierRow([user], true);
+    expect(headed[0]).toEqual({ id: EARLIER_ROW_ID, role: "earlier" });
+    expect(headed[1]).toEqual(user);
+    expect(isEarlierRow(headed[0]!)).toBe(true);
+    expect(transcriptRowKind(headed[0]!)).toBe("load-earlier");
+    expect(transcriptRowContent(headed[0]!)).toBe("");
+    expect(transcriptRowFinal(headed[0]!)).toBe(true);
+    expect(estimateTranscriptRowHeight(headed[0]!)).toBe(48);
   });
 });
 
@@ -111,12 +126,6 @@ describe("transcript edge thresholds", () => {
   it("离底 2px 内才与 Markstream 一起视为精确贴底", () => {
     expect(isTranscriptAtBottom(1000, 398, 600)).toBe(true);
     expect(isTranscriptAtBottom(1000, 397, 600)).toBe(false);
-  });
-
-  it("离顶 48px 内视为置顶", () => {
-    expect(isTranscriptAtTop(0)).toBe(true);
-    expect(isTranscriptAtTop(48)).toBe(true);
-    expect(isTranscriptAtTop(49)).toBe(false);
   });
 
   it("有内容且视觉上离开底部才显示回到底部按钮", () => {

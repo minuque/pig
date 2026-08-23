@@ -9,12 +9,6 @@
   >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
 
-    <div v-if="showEarlier" class="earlier-bar">
-      <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
-        {{ loadingEarlier ? "加载中…" : "加载更早" }}
-      </button>
-    </div>
-
     <MarkstreamVirtualTimeline
       v-if="rows.length"
       ref="timeline"
@@ -35,7 +29,12 @@
     >
       <template #default="{ item: row, measureRef, markdownProps }">
         <div :ref="measureRef" class="row">
-          <UserMessage v-if="row.role === 'user'" :item="row" />
+          <div v-if="isEarlierRow(row)" class="earlier-row">
+            <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
+              {{ loadingEarlier ? "加载中…" : "加载更早" }}
+            </button>
+          </div>
+          <UserMessage v-else-if="row.role === 'user'" :item="row" />
           <AssistantMessage
             v-else-if="row.role === 'assistant'"
             :item="row"
@@ -56,9 +55,29 @@ import type { TranscriptItem } from "@earendil-works/pi-protocol";
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
 import {
   assistantThinking,
+  conversationRows,
   isAssistantItem,
   transcriptText,
 } from "@features/session-workbench/lib/transcript-format.js";
+
+export const EARLIER_ROW_ID = "transcript-earlier";
+
+export type EarlierRow = { id: typeof EARLIER_ROW_ID; role: "earlier" };
+export type TimelineRow = TranscriptItem | EarlierRow;
+
+export function isEarlierRow(row: TimelineRow): row is EarlierRow {
+  return row.role === "earlier";
+}
+
+/** 有更早消息时插在时间线头顶，占独立一行，随列表滚动。 */
+export function withEarlierRow(
+  items: readonly TranscriptItem[],
+  hasEarlier: boolean,
+): TimelineRow[] {
+  const rows = conversationRows(items);
+  if (!hasEarlier) return rows;
+  return [{ id: EARLIER_ROW_ID, role: "earlier" }, ...rows];
+}
 
 /** 打开会话只恢复行高缓存，视口强制贴底。 */
 export function threadStatePinnedToBottom(
@@ -71,24 +90,20 @@ export function threadStatePinnedToBottom(
   };
 }
 
-/** 时间线认 Markdown 的 kind：仅助手正文。 */
-export function transcriptRowKind(item: TranscriptItem): string {
+/** 时间线认 Markdown 的 kind：仅助手正文。加载行不是 Markdown。 */
+export function transcriptRowKind(item: TimelineRow): string {
+  if (isEarlierRow(item)) return "load-earlier";
   if (item.role === "assistant") return "assistant-markdown";
   if (item.role === "tool") return "tool-call";
   return "user-message";
 }
 
-export function transcriptRowContent(item: TranscriptItem): string {
-  return isAssistantItem(item) ? transcriptText(item) : "";
+export function transcriptRowContent(item: TimelineRow): string {
+  return !isEarlierRow(item) && isAssistantItem(item) ? transcriptText(item) : "";
 }
 
-export function transcriptRowFinal(item: TranscriptItem): boolean {
-  return !(isAssistantItem(item) && item.status === "streaming");
-}
-
-/** 离顶 ≤48px 视为置顶，方便提前展示「加载更早」。 */
-export function isTranscriptAtTop(scrollTop: number, threshold = 48): boolean {
-  return scrollTop <= threshold;
+export function transcriptRowFinal(item: TimelineRow): boolean {
+  return isEarlierRow(item) || !(isAssistantItem(item) && item.status === "streaming");
 }
 
 /** 与 Markstream 新增行的精确贴底阈值一致，避免 UI 和时间线各判一套状态。 */
@@ -149,8 +164,8 @@ function estimateWrappedLines(text: string, charsPerLine: number): number {
  * 虚拟列表估高：宁可偏高，避免宽度变窄后按 200px 塞进过多未测行。
  * 助手约 48 字/行、26px 行高；用户约 36 字/行、22px 行高。
  */
-export function estimateTranscriptRowHeight(item: TranscriptItem): number {
-  if (item.role === "tool") return 48;
+export function estimateTranscriptRowHeight(item: TimelineRow): number {
+  if (isEarlierRow(item) || item.role === "tool") return 48;
   const text = transcriptText(item);
   if (item.role === "user") {
     return Math.min(280, 56 + estimateWrappedLines(text, 36) * 22);
@@ -168,7 +183,6 @@ import type { SessionPhase } from "@earendil-works/pi-protocol";
 import AssistantMessage from "@features/session-workbench/components/AssistantMessage.vue";
 import ToolCall from "@features/session-workbench/components/ToolCall.vue";
 import UserMessage from "@features/session-workbench/components/UserMessage.vue";
-import { conversationRows } from "@features/session-workbench/lib/transcript-format.js";
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
 
 const props = withDefaults(
@@ -193,7 +207,7 @@ const emit = defineEmits<{
 }>();
 
 const running = computed(() => props.phase !== undefined && props.phase !== "idle");
-const rows = computed(() => conversationRows(props.transcript));
+const rows = computed(() => withEarlierRow(props.transcript, props.hasEarlier));
 const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState));
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`);
 const region = useTemplateRef<HTMLElement>("region");
@@ -201,7 +215,7 @@ const { isDark } = useColorScheme();
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"));
 
 // 虚拟滚动行 key：以 TranscriptItem id 保证流式输出时同一行原地更新
-function rowKey(item: TranscriptItem): string {
+function rowKey(item: TimelineRow): string {
   return item.id;
 }
 
@@ -216,10 +230,8 @@ const timeline = useTemplateRef<{
   captureThreadState(): MarkstreamThreadVirtualState;
   restoreThreadState(state: MarkstreamThreadVirtualState): void;
 }>("timeline");
-// 新增行只在精确贴底时自动跟随；顶部仍保留 48px 的提前加载区。
+// 新增行只在精确贴底时自动跟随。
 const atBottom = shallowRef(true);
-const atTop = shallowRef(false);
-const showEarlier = computed(() => props.hasEarlier && (atTop.value || props.loadingEarlier));
 let bottomHoldUntil = 0;
 let pinRaf = 0;
 
@@ -276,7 +288,6 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
   const bottom = root
     ? isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
     : state.outerAnchor?.type !== "item";
-  atTop.value = root ? isTranscriptAtTop(root.scrollTop) : false;
   if (shouldHoldProgrammaticBottom(bottom, bottomHoldUntil, performance.now())) return;
   if (atBottom.value !== bottom) {
     atBottom.value = bottom;
@@ -309,7 +320,6 @@ watch(
   () => props.sessionId,
   (_sessionId, previousSessionId) => {
     persistThreadState(previousSessionId);
-    atTop.value = false;
     releasePinnedToBottom();
     if (!atBottom.value) {
       atBottom.value = true;
@@ -369,34 +379,27 @@ onBeforeUnmount(() => {
   width: min(var(--size-content), 100%);
   margin-inline: auto;
 }
-.earlier-bar {
-  position: absolute;
-  top: 0;
-  inset-inline: 0;
-  z-index: 1;
+.earlier-row {
   display: flex;
   justify-content: center;
-  padding: var(--spacing-sm);
-  pointer-events: none;
+  padding: var(--spacing-sm) 0 var(--spacing-md);
 }
-.earlier-bar button {
-  pointer-events: auto;
+.earlier-row button {
   min-height: var(--size-nav-action);
   padding: 4px 12px;
-  border: var(--border-width) solid var(--hairline);
+  border: 0;
   border-radius: var(--radius-full);
-  background: var(--canvas-soft);
-  color: var(--ink-muted);
+  background: transparent;
+  color: var(--ink-faint);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
-  box-shadow: var(--shadow-soft);
   cursor: pointer;
 }
-.earlier-bar button:hover:not(:disabled) {
+.earlier-row button:hover:not(:disabled) {
   color: var(--ink);
-  background: color-mix(in srgb, var(--ink) 5%, var(--canvas-soft));
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
-.earlier-bar button:disabled {
+.earlier-row button:disabled {
   cursor: default;
   opacity: 0.7;
 }

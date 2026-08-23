@@ -47,7 +47,7 @@ Electron 无原生 File 菜单。macOS hiddenInset；Windows `titleBarStyle: hid
 
 ### Transcript
 
-主列连续排版。Assistant Message 无卡片背景，通栏 markstream（15px / 行高 1.7），思考默认折叠，条目不含 toolCall。长文用 markstream 节点虚拟滚动。打开或切换 Session 时视口贴底（最新消息）；离开时仍缓存行高，再进入不恢复中间滚动位置。
+主列连续排版。Assistant Message 无卡片背景，通栏 markstream（15px / 行高 1.7），思考默认折叠，条目不含 toolCall。长文用 markstream 节点虚拟滚动。打开或切换 Session 时视口贴底（最新消息）；离开时仍缓存行高，再进入不恢复中间滚动位置。「加载更早」是时间线首行，随列表滚动，不悬浮顶栏。
 
 User Message 右对齐气泡，最长约内容列 86%，底 `--bubble`，文字 `ink`。图片在气泡下方同一右栏，点击 Dialog 放大。
 
@@ -73,7 +73,7 @@ Session 标题（`caption`）+ 淡 cwd 名。右上 ThemeToggle。thinking 为 o
 
 桌面输入卡和模型/思考菜单：backdrop-filter（blur 12px / 深色 16px，填充 80%）。浏览器用不透明 `composer`。`prefers-reduced-transparency` 时桌面同样回退。dock 不铺实底。模型与思考在左，primary 发送圆钮在右。
 
-输入卡下方状态条只显示当前工作目录（Folder + 末段名）和上下文占用环，不展示 git / 主机等其余项。点击占用环在输入卡上方展开占用面板：百分比、已用/窗口 token、分段条、图例。欢迎页不展示该状态条。
+输入卡下方状态条只显示当前工作目录（Folder + 末段名）和上下文占用环，不展示 git / 主机等其余项。点击占用环在输入卡上方展开估算面板：百分比、已用/窗口 token，以及系统提示词、记忆、Tool 定义、当前会话上下文、其他、空闲六段。欢迎页不展示该状态条。
 
 ### Gateway
 
