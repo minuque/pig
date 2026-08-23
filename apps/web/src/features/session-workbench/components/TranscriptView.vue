@@ -359,6 +359,7 @@ onBeforeUnmount(() => {
   padding-bottom: calc(var(--chat-input-space, 168px) + var(--spacing-md));
   overscroll-behavior: contain;
   scrollbar-width: thin;
+  scrollbar-gutter: stable;
   scrollbar-color: var(--hairline) transparent;
 }
 .transcript::-webkit-scrollbar {

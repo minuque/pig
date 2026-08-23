@@ -278,10 +278,10 @@ onBeforeUnmount(() => dockObserver?.disconnect());
 }
 .chat-input-dock {
   position: absolute;
-  inset-inline: 0;
+  inset-inline: 0 8px;
   bottom: 0;
   z-index: 2;
-  padding: var(--spacing-sm) var(--spacing-md) 10px;
+  padding: 0 var(--spacing-md) 10px;
   background: var(--surface);
   pointer-events: none;
 }
