@@ -1,5 +1,5 @@
 import { useColorMode } from "@vueuse/core";
-import { computed } from "vue";
+import { computed, nextTick } from "vue";
 
 const STORAGE_KEY = "npg-theme";
 
@@ -11,7 +11,23 @@ export function useColorScheme() {
   const isDark = computed(() => mode.value === "dark");
 
   function toggle() {
-    mode.value = isDark.value ? "light" : "dark";
+    const updateTheme = () => {
+      mode.value = isDark.value ? "light" : "dark";
+    };
+
+    if (
+      typeof document === "undefined" ||
+      !document.startViewTransition ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      updateTheme();
+      return;
+    }
+
+    document.startViewTransition(async () => {
+      updateTheme();
+      await nextTick();
+    });
   }
 
   return { isDark, toggle };

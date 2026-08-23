@@ -215,6 +215,42 @@
   --glass-surface: var(--composer);
 }
 
+/* DeepWiki 风格的双向对角主题揭幕；旧快照保持静止，只裁切新主题。 */
+::view-transition-group(root) {
+  animation-duration: 700ms;
+  animation-timing-function: var(--ease-smooth);
+}
+::view-transition-old(root) {
+  z-index: -1;
+  animation: none;
+}
+::view-transition-new(root) {
+  animation-name: reveal-light-theme;
+}
+.dark::view-transition-new(root) {
+  animation-name: reveal-dark-theme;
+}
+@keyframes reveal-dark-theme {
+  from {
+    clip-path: polygon(50% -71%, -50% 71%, -50% 71%, 50% -71%);
+    opacity: 0.5;
+  }
+  to {
+    clip-path: polygon(50% -71%, -50% 71%, 50% 171%, 171% 50%);
+    opacity: 1;
+  }
+}
+@keyframes reveal-light-theme {
+  from {
+    clip-path: polygon(171% 50%, 50% 171%, 50% 171%, 171% 50%);
+    opacity: 0.5;
+  }
+  to {
+    clip-path: polygon(171% 50%, 50% 171%, -50% 71%, 50% -71%);
+    opacity: 1;
+  }
+}
+
 /* Tailwind v4 mapping — utilities like bg-canvas-soft, text-ink, rounded-lg。
    只映射实色 token。color-mix 别名（--bubble / --composer-ring）不要登记进 @theme，
    否则 @tailwindcss/vite 会把整份 app.css 打成空串。 */
