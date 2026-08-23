@@ -7,6 +7,12 @@ const chatInputSource = readFileSync(
   fileURLToPath(new URL("../../src/features/chat-input/index.vue", import.meta.url)),
   "utf8",
 );
+const workbenchMainSource = readFileSync(
+  fileURLToPath(
+    new URL("../../src/features/session-workbench/components/WorkbenchMain.vue", import.meta.url),
+  ),
+  "utf8",
+);
 
 describe("canSend", () => {
   it("有正文且未被禁用才可发送", () => {
@@ -32,9 +38,16 @@ describe("canSend", () => {
 });
 
 describe("Session control", () => {
-  it("keeps the abort control available while a Session is running", () => {
-    expect(chatInputSource).toContain('<div v-if="running" class="chat-input-foot">');
-    expect(chatInputSource).toContain("@abort=\"emit('abort')\"");
-    expect(chatInputSource).not.toContain("showSessionControl = false");
+  it("renders abort as a floating control above the docked composer", () => {
+    expect(workbenchMainSource).toContain('class="session-floating-controls"');
+    expect(workbenchMainSource).toContain("<SessionControlBar");
+    expect(workbenchMainSource).toContain('@abort="abortSession"');
+    expect(chatInputSource).not.toContain("SessionControlBar");
+  });
+
+  it("centers the floating control stack above the composer", () => {
+    expect(workbenchMainSource).toMatch(
+      /\.session-floating-controls\s*\{[^}]*align-items:\s*center/s,
+    );
   });
 });

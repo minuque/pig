@@ -29,11 +29,8 @@
           v-model:preset="preset"
           :catalog="catalog"
           :phase="phase"
-          :queued-steer-count="queuedSteerCount"
-          :aborting="aborting"
           :error="sessionError"
           @send="submitText"
-          @abort="abortSession"
         />
       </div>
     </div>
@@ -49,20 +46,40 @@
         :loading-earlier="loadingEarlier"
         @thread-state="applyThreadState"
         @load-earlier="loadEarlier"
+        @bottom-change="onTranscriptBottomChange"
       />
 
       <div ref="dock" class="chat-input-dock">
+        <div v-if="showScrollToLatest || running" class="session-floating-controls">
+          <Button
+            v-if="showScrollToLatest"
+            class="floating-control"
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            aria-label="滚动到底部"
+            title="滚动到底部"
+            @click="scrollToLatest"
+          >
+            <ArrowDown />
+          </Button>
+          <SessionControlBar
+            v-if="phase && phase !== 'idle'"
+            class="floating-control"
+            :phase="phase"
+            :queued-steer-count="queuedSteerCount"
+            :aborting="aborting"
+            @abort="abortSession"
+          />
+        </div>
         <ChatInput
           v-model:prompt="prompt"
           v-model:preset="preset"
           :catalog="catalog"
           :phase="phase"
-          :queued-steer-count="queuedSteerCount"
-          :aborting="aborting"
           :error="sessionError"
           docked
           @send="submitFromDock"
-          @abort="abortSession"
         />
       </div>
     </template>
@@ -81,16 +98,23 @@ export function isEmptyCanvas(
   if (pending) return false;
   return transcriptLength === 0 && (phase === undefined || phase === "idle");
 }
+
+export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boolean): boolean {
+  return transcriptLength > 0 && !atBottom;
+}
 </script>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
+import { ArrowDown } from "lucide-vue-next";
 import ChatInput from "@features/chat-input/index.vue";
 import { useNav } from "@features/session-nav/index.js";
 import { useSession } from "@features/session-workbench/index.js";
 import { hasEarlierTranscript } from "@features/session-workbench/lib/session-state.js";
+import SessionControlBar from "@features/session-workbench/components/SessionControlBar.vue";
 import TranscriptView from "@features/session-workbench/components/TranscriptView.vue";
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue";
+import { Button } from "@components/ui/button/index.js";
 
 const {
   sessionId,
@@ -116,6 +140,7 @@ const { workspaces, activeWorkspaceId, lastCwd, cardFootById } = useNav();
 const emptyCanvas = computed(() =>
   isEmptyCanvas(transcript.value.length, phase.value, sessionPending.value),
 );
+const running = computed(() => phase.value !== undefined && phase.value !== "idle");
 const hasEarlier = computed(() =>
   hasEarlierTranscript(
     transcript.value.length,
@@ -125,11 +150,28 @@ const hasEarlier = computed(() =>
 );
 const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value);
 
-const transcriptView = useTemplateRef<{ prepareForSubmit(): void }>("transcriptView");
+const transcriptAtBottom = shallowRef(true);
+const showScrollToLatest = computed(() =>
+  shouldShowScrollToLatest(transcript.value.length, transcriptAtBottom.value),
+);
+const transcriptView = useTemplateRef<{
+  prepareForSubmit(): void;
+  scrollToLatest(): void;
+}>("transcriptView");
+function onTranscriptBottomChange(atBottom: boolean) {
+  transcriptAtBottom.value = atBottom;
+}
+function scrollToLatest() {
+  transcriptView.value?.scrollToLatest();
+}
 function submitFromDock(text: string) {
   transcriptView.value?.prepareForSubmit();
   return submitText(text);
 }
+
+watch(sessionId, () => {
+  transcriptAtBottom.value = true;
+});
 
 const dock = useTemplateRef<HTMLElement>("dock");
 const dockHeight = shallowRef(168);
@@ -237,9 +279,21 @@ onBeforeUnmount(() => dockObserver?.disconnect());
   inset-inline: 0;
   bottom: 0;
   z-index: 2;
-  padding: 32px var(--spacing-md) 10px;
+  padding: var(--spacing-sm) var(--spacing-md) 10px;
   background: transparent;
   pointer-events: none;
+}
+.session-floating-controls {
+  width: min(var(--size-composer), 100%);
+  margin: 0 auto var(--spacing-xs);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  pointer-events: none;
+}
+.floating-control {
+  pointer-events: auto;
 }
 .chat-input-dock :deep(.prompt) {
   pointer-events: auto;

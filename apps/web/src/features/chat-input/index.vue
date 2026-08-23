@@ -75,16 +75,6 @@
       aria-hidden="true"
       @change="onFilesPicked"
     />
-
-    <div v-if="running" class="chat-input-foot">
-      <SessionControlBar
-        v-if="phase && phase !== 'idle'"
-        :phase="phase"
-        :queued-steer-count="queuedSteerCount"
-        :aborting="aborting"
-        @abort="emit('abort')"
-      />
-    </div>
   </component>
 </template>
 
@@ -110,17 +100,13 @@ import {
   useComposerAttachments,
 } from "@features/chat-input/hooks/use-composer-attachments.js";
 import type { ChatInputPreset, ChatInputVendor } from "@features/chat-input/types.js";
-import SessionControlBar from "@features/session-workbench/components/SessionControlBar.vue";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js";
 
 const props = withDefaults(
   defineProps<{
     catalog: ChatInputVendor[];
-    /** 当前 Session phase：非 idle 时在卡下显示轻提示 */
+    /** 当前 Session phase：控制 Steering 文案与运行时禁用项 */
     phase?: SessionPhase | undefined;
-    queuedSteerCount?: number;
-    /** 取消中：禁用停止按钮并切换文案 */
-    aborting?: boolean;
     error?: string;
     /** 外部禁用发送（如 welcome 的 workspace/预设/提交中守卫） */
     sendDisabled?: boolean;
@@ -133,8 +119,6 @@ const props = withDefaults(
   }>(),
   {
     phase: undefined,
-    queuedSteerCount: 0,
-    aborting: false,
     error: "",
     sendDisabled: false,
     placeholder: "给智能体发消息",
@@ -149,7 +133,6 @@ const preset = defineModel<ChatInputPreset | undefined>("preset");
 
 const emit = defineEmits<{
   send: [text: string];
-  abort: [];
 }>();
 
 const { model, modelLevels, level } = useModelPresetBinding(() => props.catalog, preset);
@@ -203,14 +186,6 @@ function send() {
 .prompt:not(.bare):not(.docked) {
   width: min(var(--size-composer), 100%);
   margin-inline: auto;
-}
-.chat-input-foot {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 2px;
-  margin-top: 4px;
-  padding-inline: 2px;
 }
 .error-indicator {
   display: inline-flex;

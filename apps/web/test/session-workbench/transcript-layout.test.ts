@@ -8,6 +8,7 @@ import {
   transcriptRowFinal,
   transcriptRowKind,
 } from "@features/session-workbench/components/TranscriptView.vue";
+import { shouldShowScrollToLatest } from "@features/session-workbench/components/WorkbenchMain.vue";
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
   return {
@@ -112,5 +113,11 @@ describe("transcript edge thresholds", () => {
     expect(isTranscriptAtTop(0)).toBe(true);
     expect(isTranscriptAtTop(48)).toBe(true);
     expect(isTranscriptAtTop(49)).toBe(false);
+  });
+
+  it("有内容且离开底部就显示回到底部按钮，不等待新消息", () => {
+    expect(shouldShowScrollToLatest(3, false)).toBe(true);
+    expect(shouldShowScrollToLatest(3, true)).toBe(false);
+    expect(shouldShowScrollToLatest(0, false)).toBe(false);
   });
 });

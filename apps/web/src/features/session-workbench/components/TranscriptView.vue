@@ -43,15 +43,6 @@
       </template>
     </MarkstreamVirtualTimeline>
     <p v-else-if="running" class="shimmer" role="status">正在运行…</p>
-    <button
-      v-if="hasNewActivity"
-      class="jump-latest"
-      type="button"
-      aria-label="跳转到最新"
-      @click="scrollToLatest"
-    >
-      <ArrowDown :size="16" />
-    </button>
   </section>
 </template>
 
@@ -119,8 +110,7 @@ export function estimateTranscriptRowHeight(item: TranscriptItem): number {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
-import { ArrowDown } from "lucide-vue-next";
+import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue";
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 import AssistantMessage from "@features/session-workbench/components/AssistantMessage.vue";
@@ -147,6 +137,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   "thread-state": [state: MarkstreamThreadVirtualState];
   "load-earlier": [];
+  "bottom-change": [atBottom: boolean];
 }>();
 
 const running = computed(() => props.phase !== undefined && props.phase !== "idle");
@@ -172,9 +163,8 @@ const timeline = useTemplateRef<{
   captureThreadState(): MarkstreamThreadVirtualState;
 }>("timeline");
 // 新增行只在精确贴底时自动跟随；顶部仍保留 48px 的提前加载区。
-const atBottom = ref(true);
-const atTop = ref(false);
-const hasNewActivity = ref(false);
+const atBottom = shallowRef(true);
+const atTop = shallowRef(false);
 const showEarlier = computed(() => props.hasEarlier && (atTop.value || props.loadingEarlier));
 
 function timelineScrollRoot(): HTMLElement | null {
@@ -186,26 +176,22 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
   const bottom = root
     ? isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
     : state.outerAnchor?.type !== "item";
-  atBottom.value = bottom;
+  if (atBottom.value !== bottom) {
+    atBottom.value = bottom;
+    emit("bottom-change", bottom);
+  }
   atTop.value = root ? isTranscriptAtTop(root.scrollTop) : false;
-  if (bottom) hasNewActivity.value = false;
 }
 
-// 新增消息行且用户不在底部时，提示「跳转到最新」（贴底时组件会自行跟随）
-watch(
-  () => rows.value.length,
-  (length, previous) => {
-    if (length > (previous ?? 0) && !atBottom.value) hasNewActivity.value = true;
-  },
-);
-
 function scrollToLatest() {
-  atBottom.value = true;
-  hasNewActivity.value = false;
+  if (!atBottom.value) {
+    atBottom.value = true;
+    emit("bottom-change", true);
+  }
   timeline.value?.scrollToBottom();
 }
 
-defineExpose({ prepareForSubmit: scrollToLatest });
+defineExpose({ prepareForSubmit: scrollToLatest, scrollToLatest });
 
 function persistThreadState(expectedSessionId = props.sessionId) {
   const captured = timeline.value?.captureThreadState();
@@ -215,7 +201,14 @@ function persistThreadState(expectedSessionId = props.sessionId) {
 // flush:pre 确保子时间线收到新 thread-key 前捕获旧 Session。
 watch(
   () => props.sessionId,
-  (_sessionId, previousSessionId) => persistThreadState(previousSessionId),
+  (_sessionId, previousSessionId) => {
+    persistThreadState(previousSessionId);
+    atTop.value = false;
+    if (!atBottom.value) {
+      atBottom.value = true;
+      emit("bottom-change", true);
+    }
+  },
   { flush: "pre" },
 );
 onBeforeUnmount(() => persistThreadState());
@@ -287,23 +280,5 @@ onBeforeUnmount(() => persistThreadState());
 }
 .shimmer {
   color: var(--ink-muted);
-}
-.jump-latest {
-  position: absolute;
-  right: var(--spacing-lg);
-  bottom: calc(var(--chat-input-space, 168px) + var(--spacing-md));
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  min-height: 0;
-  padding: 0;
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-full);
-  background: var(--canvas-soft);
-  color: var(--ink-secondary);
-  box-shadow: var(--shadow-soft);
-  cursor: pointer;
 }
 </style>
