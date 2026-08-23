@@ -282,7 +282,7 @@ onBeforeUnmount(() => dockObserver?.disconnect());
   bottom: 0;
   z-index: 2;
   padding: var(--spacing-sm) var(--spacing-md) 10px;
-  background: transparent;
+  background: var(--surface);
   pointer-events: none;
 }
 .session-floating-controls {
