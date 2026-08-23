@@ -59,11 +59,7 @@ export function projectOptimisticTranscript(
       !known.has(item.id) &&
       userText(item) === userText(optimistic.item),
   );
-  if (confirmedIndex >= 0) {
-    return items.map((item, index) =>
-      index === confirmedIndex ? { ...item, id: optimistic.item.id } : item,
-    );
-  }
+  if (confirmedIndex >= 0) return items;
 
   return [...items.slice(0, insertionIndex), optimistic.item, ...items.slice(insertionIndex)];
 }
@@ -103,7 +99,7 @@ export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjec
   };
 }
 
-/** 打开会话与「显示更早」共用的页大小。与 gateway TRANSCRIPT_PAGE_SIZE 对齐。 */
+/** 打开会话与「加载更早」共用的页大小。与 gateway TRANSCRIPT_PAGE_SIZE 对齐。 */
 export const INITIAL_TRANSCRIPT_TAIL = 40;
 
 /** 取 transcript 尾部。不超过 limit 时原样返回，超过则丢掉头部、保持原顺序。 */

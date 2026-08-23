@@ -78,13 +78,13 @@ describe("projectOptimisticTranscript", () => {
 
   it("收到新的同文服务端用户句后移除乐观投影", () => {
     const confirmed = { ...optimistic, id: "server-u2" };
-    const projected = projectOptimisticTranscript([previous, confirmed, assistant], {
-      item: optimistic,
-      knownItemIds: [previous.id],
-    });
-
-    expect(projected.map((item) => item.id)).toEqual([previous.id, optimistic.id, assistant.id]);
-    expect(projected[1]).toEqual({ ...confirmed, id: optimistic.id });
+    const items = [previous, confirmed, assistant];
+    expect(
+      projectOptimisticTranscript(items, {
+        item: optimistic,
+        knownItemIds: [previous.id],
+      }),
+    ).toBe(items);
   });
 
   it("加载更早记录时不会把旧同文用户句误判为确认", () => {

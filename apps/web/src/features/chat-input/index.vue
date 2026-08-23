@@ -90,9 +90,9 @@
 </template>
 
 <script lang="ts">
-/** 发送守卫：有正文或附件，且未被外部禁用；与发送按钮 disabled 一致。 */
-export function canSend(text: string, sendDisabled: boolean, attachmentCount = 0): boolean {
-  return (text.trim() !== "" || attachmentCount > 0) && !sendDisabled;
+/** 发送守卫：有正文且未被外部禁用；附件不进协议，不能单独放行。 */
+export function canSend(text: string, sendDisabled: boolean): boolean {
+  return text.trim() !== "" && !sendDisabled;
 }
 </script>
 
@@ -116,7 +116,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 const props = withDefaults(
   defineProps<{
     catalog: ChatInputVendor[];
-    /** 当前 Session phase：控制 Steering 文案与运行时禁用项 */
+    /** 当前 Session phase：运行中把发送钮改成停止 */
     phase?: SessionPhase | undefined;
     /** Abort 请求进行中：保持停止态并禁用重复点击 */
     aborting?: boolean;
@@ -153,9 +153,7 @@ const emit = defineEmits<{
 const { model, modelLevels, level } = useModelPresetBinding(() => props.catalog, preset);
 const running = computed(() => props.phase !== undefined && props.phase !== "idle");
 const { attachments, addFiles, remove, clear } = useComposerAttachments();
-const sendActive = computed(() =>
-  canSend(prompt.value, props.sendDisabled, attachments.value.length),
-);
+const sendActive = computed(() => canSend(prompt.value, props.sendDisabled));
 
 const promptEditor = ref<{ focus: () => void } | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -184,10 +182,10 @@ function onPaste(e: ClipboardEvent) {
 }
 
 function send() {
-  if (!sendActive.value) return;
+  if (running.value || !sendActive.value) return;
   const text = prompt.value;
   emit("send", text);
-  if (text.trim() !== "") clear();
+  clear();
 }
 
 function onPrimaryAction() {

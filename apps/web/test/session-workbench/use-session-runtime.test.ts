@@ -69,6 +69,13 @@ describe("useSessionRuntime submitText", () => {
     expect(isProxy(runtime.clientState.value?.threadState)).toBe(false);
   });
 
+  it("空白正文不提交", async () => {
+    const { remote, runtime } = setup(async () => undefined);
+    await runtime.submitText("   ");
+    expect(remote.submit).not.toHaveBeenCalled();
+    expect(runtime.clientState.value?.optimisticUser).toBeNull();
+  });
+
   it("提交失败时恢复未被新输入覆盖的草稿", async () => {
     const { runtime } = setup(async () => {
       throw new Error("发送失败");

@@ -23,7 +23,7 @@ type SessionMessage = Extract<
   { type: "message_start" | "message_update" | "message_end" }
 >["message"];
 
-/** 打开会话与「显示更早」共用的页大小。与 web INITIAL_TRANSCRIPT_TAIL 对齐。 */
+/** 打开会话与「加载更早」共用的页大小。与 web INITIAL_TRANSCRIPT_TAIL 对齐。 */
 export const TRANSCRIPT_PAGE_SIZE = 40;
 
 /** 截断快照 transcript；不足一页则原样返回，超出只留尾部且保持原顺序。 */

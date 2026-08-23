@@ -6,11 +6,13 @@
     :aria-labelledby="transcriptTitleId"
   >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
+
     <div v-if="showEarlier" class="earlier-bar">
       <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
-        {{ loadingEarlier ? "正在加载…" : "显示更早" }}
+        {{ loadingEarlier ? "加载中…" : "加载更早" }}
       </button>
     </div>
+
     <MarkstreamVirtualTimeline
       v-if="rows.length"
       ref="timeline"
@@ -42,6 +44,7 @@
         </div>
       </template>
     </MarkstreamVirtualTimeline>
+
     <p v-else-if="running" class="shimmer" role="status">正在运行…</p>
   </section>
 </template>
@@ -69,7 +72,7 @@ export function transcriptRowFinal(item: TranscriptItem): boolean {
   return !(isAssistantItem(item) && item.status === "streaming");
 }
 
-/** 离顶 ≤48px 视为置顶，方便提前展示「显示更早」。 */
+/** 离顶 ≤48px 视为置顶，方便提前展示「加载更早」。 */
 export function isTranscriptAtTop(scrollTop: number, threshold = 48): boolean {
   return scrollTop <= threshold;
 }

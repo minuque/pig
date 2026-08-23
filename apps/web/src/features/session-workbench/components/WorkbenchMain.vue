@@ -52,7 +52,6 @@
       <div ref="dock" class="chat-input-dock">
         <div v-if="showScrollToLatest" class="session-floating-controls">
           <Button
-            v-if="showScrollToLatest"
             class="floating-control scroll-latest-control"
             type="button"
             variant="outline"

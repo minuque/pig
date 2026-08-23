@@ -88,7 +88,6 @@ function createSession(
     sessionError,
     creating: runtime.creating,
     aborting: runtime.aborting,
-    queuedSteerCount: computed(() => projection.value?.queuedSteerCount ?? 0),
     createSession: runtime.createSession,
     submitText: runtime.submitText,
     abortSession: runtime.abortSession,
