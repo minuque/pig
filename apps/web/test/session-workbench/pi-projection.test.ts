@@ -35,11 +35,8 @@ describe("projectSessionSnapshot", () => {
     expect(projection.cwd).toBe("/repo");
     expect(projection.running).toBe(false);
   });
-  it("marks non-idle phases as running and counts queued steer", () => {
-    const projection = projectSessionSnapshot(
-      snapshot({ phase: "turn", queuedSteerCount: 2, transcript: [] }),
-    );
+  it("marks non-idle phases as running", () => {
+    const projection = projectSessionSnapshot(snapshot({ phase: "turn", transcript: [] }));
     expect(projection.running).toBe(true);
-    expect(projection.queuedSteerCount).toBe(2);
   });
 });

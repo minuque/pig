@@ -85,7 +85,7 @@ function focusEnd() {
   sel?.removeAllRanges();
   sel?.addRange(range);
 }
-/** 供父组件（发送/steer/选文件后）重新聚焦编辑器 */
+/** 供父组件（发送/选文件后）重新聚焦编辑器 */
 function focus() {
   editor.value?.focus();
 }

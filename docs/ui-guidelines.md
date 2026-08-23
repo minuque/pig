@@ -12,13 +12,13 @@ Vue 3 + TypeScript + Vite + Tailwind CSS + shadcn-vue + lucide-vue-next + VueUse
 
 ## 信息架构
 
-两栏：左栏会话列表（顶部按工作目录筛选），中央 Transcript / phase / Prompt / Steer / Abort。无第三栏。
+两栏：左栏会话列表（顶部按工作目录筛选），中央 Transcript / phase / Prompt / Abort。无第三栏。
 
 Session 切换由 `/sessions/:sessionId` 驱动。
 
 ```text
 授权工作目录 → 选择或创建 Session → 查看 Transcript
-  → 发送 Prompt → 运行中 Steer 或 Abort → phase 回到 idle
+  → 发送 Prompt → 运行中可 Abort → phase 回到 idle
 ```
 
 ## 产品契约

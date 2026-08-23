@@ -81,7 +81,6 @@ export interface SessionProjection {
   thinkingLevel: ThinkingLevel;
   phase: SessionPhase;
   running: boolean;
-  queuedSteerCount: number;
   updatedAt: number;
 }
 
@@ -94,7 +93,6 @@ export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjec
     thinkingLevel: snapshot.thinkingLevel,
     phase: snapshot.phase,
     running: snapshot.phase !== "idle",
-    queuedSteerCount: snapshot.queuedSteerCount,
     updatedAt: snapshot.updatedAt,
   };
 }

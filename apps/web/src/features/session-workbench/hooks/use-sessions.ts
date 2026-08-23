@@ -145,7 +145,7 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     });
   }
 
-  /** 提交输入：idle 时 prompt，turn 时 steer，由官方 RemoteSession 决定。 */
+  /** 提交输入。Web UI 仅在 idle 时调用。 */
   async function submit(text: string) {
     await remote.value?.submit(text);
   }
