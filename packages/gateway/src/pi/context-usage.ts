@@ -19,7 +19,8 @@ interface ContextUsageSource {
   systemPrompt: string;
   messages: EstimableMessage[];
   model: { contextWindow?: number } | undefined;
-  getContextUsage(): { tokens: number | null; contextWindow: number } | undefined;
+  getContextUsage():
+    { tokens: number | null; contextWindow: number; percent: number | null } | undefined;
   getActiveToolNames(): string[];
   getAllTools(): Array<{
     name: string;
@@ -40,6 +41,7 @@ interface ContextUsageSource {
 }
 
 const USED_KEYS = ["systemPrompt", "memory", "tools", "conversation"] as const;
+const FIXED_KEYS = ["systemPrompt", "memory", "tools"] as const;
 
 function estimateText(text: string): number {
   return Math.ceil(text.length / 4);
@@ -75,17 +77,35 @@ function fitKnownSegments(
   segments: Record<(typeof USED_KEYS)[number], number>,
   used: number,
 ): Record<(typeof USED_KEYS)[number], number> {
-  const known = USED_KEYS.reduce((sum, key) => sum + segments[key], 0);
-  if (known <= used || known === 0) return segments;
-  const scale = used / known;
-  return Object.fromEntries(
-    USED_KEYS.map((key) => [key, Math.floor(segments[key] * scale)]),
-  ) as Record<(typeof USED_KEYS)[number], number>;
+  const fixed = FIXED_KEYS.reduce((sum, key) => sum + segments[key], 0);
+  return {
+    ...segments,
+    conversation: Math.min(segments.conversation, Math.max(0, used - fixed)),
+  };
+}
+
+export function resolveUsedTokens(
+  usage: { tokens: number | null; percent: number | null } | undefined,
+  estimated: number,
+  contextWindow: number,
+): number {
+  const reported = usage?.tokens;
+  const fromPercent =
+    usage?.percent !== null && usage?.percent !== undefined && contextWindow > 0
+      ? Math.round((usage.percent / 100) * contextWindow)
+      : undefined;
+  let resolved = reported ?? fromPercent ?? estimated;
+  if (reported !== null && reported !== undefined && fromPercent !== undefined) {
+    const tolerance = Math.max(32, Math.round(contextWindow * 0.001));
+    if (Math.abs(reported - fromPercent) > tolerance) resolved = fromPercent;
+  }
+  if (estimated > 0 && resolved < estimated * 0.25) resolved = estimated;
+  return Math.max(0, Math.round(resolved));
 }
 
 /**
- * 以 Pi 的总占用校准 chars/4 分段估算。来源估算超过总量时按比例收缩；
- * 低于总量时差额归入「其他」，保证分段互斥且总和等于窗口。
+ * 以 Pi 的总占用校准 chars/4 分段估算。System prompt、Memory、Tools
+ * 是固定项，不会为适配异常偏小的 usage 而压缩；差额归入「其他」。
  */
 export function estimateContextUsage(source: ContextUsageSource): ContextUsageEstimate {
   const systemPromptTotal = estimateText(source.systemPrompt);
@@ -98,12 +118,9 @@ export function estimateContextUsage(source: ContextUsageSource): ContextUsageEs
   };
   const reported = source.getContextUsage();
   const known = USED_KEYS.reduce((sum, key) => sum + raw[key], 0);
-  const reportedTokens = reported?.tokens;
-  const used = Math.max(
-    0,
-    Math.round(typeof reportedTokens === "number" && reportedTokens > 0 ? reportedTokens : known),
-  );
   const window = Math.max(0, reported?.contextWindow ?? source.model?.contextWindow ?? 0);
+  const fixed = FIXED_KEYS.reduce((sum, key) => sum + raw[key], 0);
+  const used = Math.max(resolveUsedTokens(reported, known, window), fixed);
   const fitted = fitKnownSegments(raw, used);
   const fittedKnown = USED_KEYS.reduce((sum, key) => sum + fitted[key], 0);
 
