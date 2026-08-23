@@ -53,12 +53,12 @@ const alt = computed(() => props.name || "图片");
 /* 全局 button reset 后本钮自行重盖：深色圆底不跟 ink 反相，白图也能看清。 */
 .remove {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -6px;
+  right: -6px;
   z-index: 1;
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
   min-height: 0;
   padding: 0;
   border: 0;
