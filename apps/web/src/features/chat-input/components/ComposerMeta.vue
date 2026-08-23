@@ -92,10 +92,13 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0));
   max-width: 70%;
   padding: 2px 8px;
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: transparent;
   color: var(--ink-muted);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
+}
+.cwd:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 .cwd-name {
   min-width: 0;
@@ -121,8 +124,7 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0));
   color: var(--ink-faint);
   cursor: pointer;
 }
-.usage:hover,
-.usage.open {
+.usage:hover {
   color: var(--ink-muted);
   background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
@@ -134,7 +136,7 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0));
 .usage-ring-track,
 .usage-ring-fill {
   fill: none;
-  stroke-width: 1.5;
+  stroke-width: 2.5;
 }
 .usage-ring-track {
   stroke: color-mix(in srgb, var(--ink) 18%, transparent);
