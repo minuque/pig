@@ -1,4 +1,4 @@
-import { computed, reactive, ref, type Ref } from "vue";
+import { computed, markRaw, reactive, ref, type Ref } from "vue";
 import type { Router } from "vue-router";
 import type { MarkstreamThreadVirtualState } from "markstream-vue";
 import type { UserTranscriptItem } from "@earendil-works/pi-protocol";
@@ -39,9 +39,9 @@ export function useSessionRuntime(options: SessionRuntimeOptions) {
   });
 
   function applyThreadState(threadState: MarkstreamThreadVirtualState) {
-    const state = clientState.value;
-    if (!state) return;
-    state.threadState = threadState;
+    const id = threadState.threadKey ?? sessionId.value;
+    if (!id) return;
+    sessionState(states, id).threadState = markRaw(threadState);
   }
 
   async function createSession(cwd: string) {

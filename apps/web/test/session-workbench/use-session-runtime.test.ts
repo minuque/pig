@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { isProxy, ref } from "vue";
 import { describe, expect, it, vi } from "vitest";
 import type { Router } from "vue-router";
 import type { TranscriptItem } from "@earendil-works/pi-protocol";
@@ -22,15 +22,16 @@ function setup(submit: (text: string) => Promise<void>) {
     createSession: vi.fn(),
     abort: vi.fn(),
   } as unknown as ReturnType<typeof useRemoteSessions>;
+  const sessionId = ref("s1");
   const runtime = useSessionRuntime({
     remote,
-    sessionId: ref("s1"),
+    sessionId,
     router: { push: vi.fn() } as unknown as Router,
     preset: ref<ChatInputPreset>(),
     sessionError: ref(""),
     selectCwd: vi.fn(),
   });
-  return { remote, runtime };
+  return { remote, runtime, sessionId };
 }
 
 describe("useSessionRuntime submitText", () => {
@@ -54,6 +55,18 @@ describe("useSessionRuntime submitText", () => {
     resolveSubmit();
     await request;
     expect(runtime.clientState.value?.optimisticUser).toBeNull();
+  });
+
+  it("按捕获状态的 threadKey 保存，不写进当前 Session", () => {
+    const { runtime, sessionId } = setup(async () => undefined);
+    expect(runtime.clientState.value?.threadState).toBeNull();
+
+    runtime.applyThreadState({ threadKey: "s2", itemHeights: {}, markdownStates: {} });
+
+    expect(runtime.clientState.value?.threadState).toBeNull();
+    sessionId.value = "s2";
+    expect(runtime.clientState.value?.threadState?.threadKey).toBe("s2");
+    expect(isProxy(runtime.clientState.value?.threadState)).toBe(false);
   });
 
   it("提交失败时恢复未被新输入覆盖的草稿", async () => {

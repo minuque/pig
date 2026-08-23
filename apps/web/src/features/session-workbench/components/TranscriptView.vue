@@ -182,8 +182,6 @@ function timelineScrollRoot(): HTMLElement | null {
 }
 
 function onThreadState(state: MarkstreamThreadVirtualState) {
-  // 上报给 App 层（每 Session 唯一所有者），用于切会话后恢复
-  emit("thread-state", state);
   const root = timelineScrollRoot();
   const bottom = root
     ? isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
@@ -209,10 +207,18 @@ function scrollToLatest() {
 
 defineExpose({ prepareForSubmit: scrollToLatest });
 
-onBeforeUnmount(() => {
+function persistThreadState(expectedSessionId = props.sessionId) {
   const captured = timeline.value?.captureThreadState();
-  if (captured) emit("thread-state", captured);
-});
+  if (captured?.threadKey === expectedSessionId) emit("thread-state", captured);
+}
+
+// flush:pre 确保子时间线收到新 thread-key 前捕获旧 Session。
+watch(
+  () => props.sessionId,
+  (_sessionId, previousSessionId) => persistThreadState(previousSessionId),
+  { flush: "pre" },
+);
+onBeforeUnmount(() => persistThreadState());
 </script>
 
 <style scoped>
