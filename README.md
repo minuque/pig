@@ -13,6 +13,10 @@
 
 > 遵循 Pi 设计哲学，不额外内置工具，完全通过 Extension API 扩展的 **Pi Agent GUI**。
 
+<p align="center">
+  <img src="apps/web/public/preview.png" alt="pig 桌面预览" />
+</p>
+
 ## 快速开始
 
 ```bash
