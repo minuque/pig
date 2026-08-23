@@ -48,15 +48,23 @@ export function projectOptimisticTranscript(
 ): readonly TranscriptItem[] {
   if (!optimistic) return items;
   const known = new Set(optimistic.knownItemIds);
-  const confirmed = items.some(
-    (item) => !known.has(item.id) && userText(item) === userText(optimistic.item),
-  );
-  if (confirmed) return items;
-
   let insertionIndex = 0;
   for (let index = 0; index < items.length; index += 1) {
     if (known.has(items[index]!.id)) insertionIndex = index + 1;
   }
+
+  const confirmedIndex = items.findIndex(
+    (item, index) =>
+      index >= insertionIndex &&
+      !known.has(item.id) &&
+      userText(item) === userText(optimistic.item),
+  );
+  if (confirmedIndex >= 0) {
+    return items.map((item, index) =>
+      index === confirmedIndex ? { ...item, id: optimistic.item.id } : item,
+    );
+  }
+
   return [...items.slice(0, insertionIndex), optimistic.item, ...items.slice(insertionIndex)];
 }
 

@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  markstream-vue@2.0.0: c0cf7b7219ca964299bec5e07694fe93dc501e85c1d4a0d75531a810dd84ee01
+  markstream-vue@2.0.0: 3d5c886a233f5051cf3dffddb85eed75d2997a7053dc4a06371ed9258f16fa9d
 
 importers:
 
@@ -113,7 +113,7 @@ importers:
         version: 1.0.0(vue@3.5.40(typescript@6.0.3))
       markstream-vue:
         specifier: ^2.0.0
-        version: 2.0.0(patch_hash=c0cf7b7219ca964299bec5e07694fe93dc501e85c1d4a0d75531a810dd84ee01)(stream-diffs@0.0.2(@shikijs/themes@4.4.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vue@3.5.40(typescript@6.0.3)))(vue@3.5.40(typescript@6.0.3))
+        version: 2.0.0(patch_hash=3d5c886a233f5051cf3dffddb85eed75d2997a7053dc4a06371ed9258f16fa9d)(stream-diffs@0.0.2(@shikijs/themes@4.4.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vue@3.5.40(typescript@6.0.3)))(vue@3.5.40(typescript@6.0.3))
       reka-ui:
         specifier: ^2.10.1
         version: 2.10.1(vue@3.5.40(typescript@6.0.3))
@@ -8914,7 +8914,7 @@ snapshots:
 
   markstream-core@2.0.0: {}
 
-  markstream-vue@2.0.0(patch_hash=c0cf7b7219ca964299bec5e07694fe93dc501e85c1d4a0d75531a810dd84ee01)(stream-diffs@0.0.2(@shikijs/themes@4.4.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vue@3.5.40(typescript@6.0.3)))(vue@3.5.40(typescript@6.0.3)):
+  markstream-vue@2.0.0(patch_hash=3d5c886a233f5051cf3dffddb85eed75d2997a7053dc4a06371ed9258f16fa9d)(stream-diffs@0.0.2(@shikijs/themes@4.4.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vue@3.5.40(typescript@6.0.3)))(vue@3.5.40(typescript@6.0.3)):
     dependencies:
       '@chenglou/pretext': 0.0.8
       '@floating-ui/dom': 1.8.0
