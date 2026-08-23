@@ -29,14 +29,6 @@ interface ContextUsageSource {
   }>;
   resourceLoader: {
     getAgentsFiles(): { agentsFiles: Array<{ path: string; content: string }> };
-    getSkills(): {
-      skills: Array<{
-        name: string;
-        description: string;
-        filePath: string;
-        disableModelInvocation: boolean;
-      }>;
-    };
   };
 }
 
@@ -47,17 +39,10 @@ function estimateText(text: string): number {
   return Math.ceil(text.length / 4);
 }
 
-function memoryText(source: ContextUsageSource): string {
-  const files = source.resourceLoader
+function estimateMemory(source: ContextUsageSource): number {
+  return source.resourceLoader
     .getAgentsFiles()
-    .agentsFiles.map(({ path, content }) => `${path}\n${content}`);
-  const skills = source.getActiveToolNames().includes("read")
-    ? source.resourceLoader
-        .getSkills()
-        .skills.filter((skill) => !skill.disableModelInvocation)
-        .map((skill) => `${skill.name}\n${skill.description}\n${skill.filePath}`)
-    : [];
-  return [...files, ...skills].join("\n");
+    .agentsFiles.reduce((sum, file) => sum + estimateText(file.content), 0);
 }
 
 function activeToolsText(source: ContextUsageSource): string {
@@ -109,7 +94,7 @@ export function resolveUsedTokens(
  */
 export function estimateContextUsage(source: ContextUsageSource): ContextUsageEstimate {
   const systemPromptTotal = estimateText(source.systemPrompt);
-  const memory = Math.min(systemPromptTotal, estimateText(memoryText(source)));
+  const memory = Math.min(systemPromptTotal, estimateMemory(source));
   const raw = {
     systemPrompt: systemPromptTotal - memory,
     memory,

@@ -13,16 +13,6 @@ function source(overrides: Record<string, unknown> = {}) {
       getAgentsFiles: () => ({
         agentsFiles: [{ path: "AGENTS.md", content: "a".repeat(80) }],
       }),
-      getSkills: () => ({
-        skills: [
-          {
-            name: "review",
-            description: "Review code",
-            filePath: "/skills/review/SKILL.md",
-            disableModelInvocation: false,
-          },
-        ],
-      }),
     },
     ...overrides,
   };
@@ -42,32 +32,23 @@ describe("estimateContextUsage", () => {
     expect(usage.segments.conversation).toBeGreaterThan(0);
   });
 
-  it("总量未知时使用所有来源估算，并忽略不进系统提示词的 skill", () => {
+  it("Memory 只逐文件统计 context file 正文", () => {
     const base = source();
-    const withoutHidden = estimateContextUsage({
-      ...base,
-      getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }),
-    });
-    const withHidden = estimateContextUsage({
+    const usage = estimateContextUsage({
       ...base,
       getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }),
       resourceLoader: {
-        ...base.resourceLoader,
-        getSkills: () => ({
-          skills: [
-            ...base.resourceLoader.getSkills().skills,
-            {
-              name: "hidden",
-              description: "x".repeat(200),
-              filePath: "/hidden/SKILL.md",
-              disableModelInvocation: true,
-            },
+        getAgentsFiles: () => ({
+          agentsFiles: [
+            { path: "p".repeat(1000), content: "aaaaa" },
+            { path: "q".repeat(1000), content: "bbbbb" },
           ],
         }),
       },
     });
-    expect(withHidden).toEqual(withoutHidden);
-    expect(withoutHidden.segments.other).toBe(0);
+
+    expect(usage.segments.memory).toBe(4);
+    expect(usage.segments.other).toBe(0);
   });
 
   it("来源估算超过上报总量时仅收缩会话分段", () => {
