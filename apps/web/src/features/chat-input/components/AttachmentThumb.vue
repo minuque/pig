@@ -23,7 +23,7 @@
       type="button"
       variant="secondary"
       size="icon-2xs"
-      class="absolute top-0 right-0 z-10 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto"
+      class="absolute top-0 right-0 z-10 bg-ink text-canvas hover:bg-ink hover:text-canvas opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto"
       aria-label="移除附件"
       @click.stop="emit('remove')"
     >
