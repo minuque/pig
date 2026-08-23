@@ -31,6 +31,8 @@ Session 切换由 `/sessions/:sessionId` 驱动。
 
 侧栏 `sidebar`（浅色等同 `canvas-soft`），对话列 `surface`，均不透明。sunset / dusk 只做装饰。
 
+原生 `button` 只做 reset：透明、无 padding、无 min-height、无主色。主色圆钮和图标钮在使用处显式写宽高与色。不要把 CTA 药丸写在 `button` 元素选择器上。
+
 ### 启动
 
 完整加载播 Pi 组装动画，与 boot 并行。积木落定后在 Logo 下打出标语 There are many agent harnesses / but this one is yours（yours 用 primary、斜体加粗）。标语打完即进工作台。遮罩背景不透明 `surface`。退出时 Logo 与标语缩小淡出，遮罩与工作台交叉淡变。

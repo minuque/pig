@@ -330,21 +330,20 @@ textarea,
 select {
   font: inherit;
 }
+/* 原生 button 只做 reset。主色圆钮、图标钮在使用处显式写，避免漏设 min-height 被撑成药丸。 */
 button {
-  min-height: var(--size-control);
-  padding: var(--spacing-xs) var(--spacing-md);
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
   border: 0;
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  color: var(--on-primary);
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
   cursor: pointer;
 }
 button:disabled {
-  cursor: not-allowed;
-  opacity: var(--opacity-disabled);
-}
-button:not(:disabled):active {
-  transform: scale(0.98);
+  cursor: default;
 }
 :focus-visible {
   outline: var(--focus-ring-width) solid var(--primary);
@@ -446,24 +445,10 @@ small,
 [data-slot="dialog-content"] {
   transform: translate(-50%, -50%);
 }
-/* shadcn-vue Dialog 右上关闭按钮：覆盖全局 button 造型（token 派生） */
 [data-slot="dialog-close"] {
-  min-height: 0;
   padding: var(--spacing-xxs);
   border-radius: var(--radius-xs);
-  background: transparent;
   color: var(--ink-muted);
-}
-/* 菜单项内嵌按钮：覆盖全局主色圆钮，避免「从列表移除」等被撑成蓝椭圆 */
-[data-slot="dropdown-menu-item"] button {
-  min-height: 0;
-  padding: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: inherit;
-}
-[data-slot="dropdown-menu-item"] button:not(:disabled):active {
-  transform: none;
 }
 /* ── 入场与状态动效 ───────────────────────────────────────────────── */
 @keyframes enter-blur {
