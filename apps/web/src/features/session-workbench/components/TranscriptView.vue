@@ -4,7 +4,7 @@
     ref="region"
     class="transcript-region"
     :aria-labelledby="transcriptTitleId"
-    @wheel.passive="releasePinnedToBottom"
+    @wheel="onTranscriptWheel"
     @pointerdown="releasePinnedToBottom"
   >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
@@ -99,6 +99,21 @@ export function shouldHoldProgrammaticBottom(
   now: number,
 ): boolean {
   return !measuredBottom && now < holdUntil;
+}
+
+/** 贴底后首次上翻：拉开超过 2px，避免 Markstream 按 ne 回钉。 */
+export function unpinBottomScrollTop(
+  scrollHeight: number,
+  scrollTop: number,
+  clientHeight: number,
+  deltaY: number,
+  threshold = 2,
+): number | null {
+  if (deltaY >= 0) return null;
+  if (!isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, threshold)) return null;
+  const maxTop = Math.max(0, scrollHeight - clientHeight);
+  const step = Math.max(threshold + 1, Math.abs(deltaY));
+  return Math.max(0, Math.min(maxTop, scrollTop - step));
 }
 
 function estimateWrappedLines(text: string, charsPerLine: number): number {
@@ -204,6 +219,21 @@ function releasePinnedToBottom() {
     pinRaf = 0;
   }
   bottomHoldUntil = 0;
+}
+
+function onTranscriptWheel(event: WheelEvent) {
+  releasePinnedToBottom();
+  const root = timelineScrollRoot();
+  if (!root) return;
+  const nextTop = unpinBottomScrollTop(
+    root.scrollHeight,
+    root.scrollTop,
+    root.clientHeight,
+    event.deltaY,
+  );
+  if (nextTop === null) return;
+  event.preventDefault();
+  root.scrollTop = nextTop;
 }
 
 function jumpToBottom() {

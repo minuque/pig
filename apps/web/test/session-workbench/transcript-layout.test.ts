@@ -5,6 +5,7 @@ import {
   isTranscriptAtBottom,
   isTranscriptAtTop,
   shouldHoldProgrammaticBottom,
+  unpinBottomScrollTop,
   transcriptRowContent,
   transcriptRowFinal,
   transcriptRowKind,
@@ -126,5 +127,12 @@ describe("transcript edge thresholds", () => {
     expect(shouldHoldProgrammaticBottom(false, 100, 99)).toBe(true);
     expect(shouldHoldProgrammaticBottom(false, 100, 100)).toBe(false);
     expect(shouldHoldProgrammaticBottom(true, 100, 99)).toBe(false);
+  });
+
+  it("贴底首次上翻拉开超过 2px，下翻或已离开底部不改", () => {
+    expect(unpinBottomScrollTop(1000, 400, 600, -1)).toBe(397);
+    expect(unpinBottomScrollTop(1000, 400, 600, -8)).toBe(392);
+    expect(unpinBottomScrollTop(1000, 400, 600, 8)).toBeNull();
+    expect(unpinBottomScrollTop(1000, 397, 600, -8)).toBeNull();
   });
 });
