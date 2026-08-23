@@ -53,7 +53,7 @@
         <div v-if="showScrollToLatest || running" class="session-floating-controls">
           <Button
             v-if="showScrollToLatest"
-            class="floating-control"
+            class="floating-control scroll-latest-control"
             type="button"
             variant="outline"
             size="icon-sm"
@@ -294,6 +294,12 @@ onBeforeUnmount(() => dockObserver?.disconnect());
 }
 .floating-control {
   pointer-events: auto;
+}
+.scroll-latest-control {
+  border-radius: var(--radius-full);
+  background: var(--canvas-soft);
+  color: var(--ink-secondary);
+  box-shadow: var(--shadow-float);
 }
 .chat-input-dock :deep(.prompt) {
   pointer-events: auto;

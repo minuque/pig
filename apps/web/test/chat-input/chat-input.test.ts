@@ -50,4 +50,11 @@ describe("Session control", () => {
       /\.session-floating-controls\s*\{[^}]*align-items:\s*center/s,
     );
   });
+
+  it("gives the scroll-to-latest control an opaque floating background", () => {
+    expect(workbenchMainSource).toContain('class="floating-control scroll-latest-control"');
+    expect(workbenchMainSource).toMatch(
+      /\.scroll-latest-control\s*\{[^}]*background:\s*var\(--canvas-soft\)[^}]*box-shadow:\s*var\(--shadow-float\)/s,
+    );
+  });
 });
