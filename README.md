@@ -19,6 +19,7 @@
 pnpm install        # 安装依赖
 pnpm dev            # 启动 Gateway + Web
 pnpm dev:desktop    # Electron 桌面开发
+pnpm dist:win       # Windows 安装器
 ```
 
 ## 文档

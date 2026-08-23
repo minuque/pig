@@ -15,6 +15,7 @@
     "build": "pnpm --filter @pig/web build",
     "start": "pnpm build && tsx packages/gateway/src/cli.ts apps/web/dist",
     "start:desktop": "pnpm build && pnpm --filter @pig/desktop start",
+    "dist:win": "node scripts/dist-win.mjs",
     "preview": "pnpm --filter @pig/web preview",
     "test": "pnpm -r --if-present test && pnpm test:scripts",
     "test:scripts": "node --test scripts/check-scope.test.mjs",

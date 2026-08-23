@@ -1,5 +1,7 @@
 node_modules
 dist
+packages/gateway/web
+release
 docs
 .worktrees
 playwright-report

@@ -1,14 +1,17 @@
 import { realpath } from "node:fs/promises";
 import type { BrowserWindow, OpenDialogOptions, OpenDialogReturnValue } from "electron";
-import {
-  canonicalizePath,
-  type DirectoryPort,
-} from "../../../../packages/gateway/src/directory.js";
 
 const DIALOG_OPTIONS = {
   title: "选择工作目录",
   properties: ["openDirectory", "createDirectory"],
 } as const satisfies OpenDialogOptions;
+
+export type CanonicalizePath = (path: string) => string;
+
+export type DirectoryPort = {
+  selectDirectory(): Promise<string | undefined>;
+  validateDirectory(path: string): Promise<string>;
+};
 
 export type PickDirectory = (
   parent: BrowserWindow | undefined,
@@ -18,6 +21,7 @@ export type PickDirectory = (
 export function createElectronDirectoryPort(
   getWindow: () => BrowserWindow | undefined,
   pickDirectory: PickDirectory,
+  canonicalizePath: CanonicalizePath,
 ): DirectoryPort {
   return {
     async selectDirectory() {

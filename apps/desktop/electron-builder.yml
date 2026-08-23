@@ -1,0 +1,60 @@
+# appId 不能改。升级/卸载靠它识别已装实例。
+appId: app.pig.desktop
+productName: pig
+executableName: pig
+copyright: Copyright (c) 2026 HappyXqw
+artifactName: Pig-${version}-x64-Setup.${ext}
+forceCodeSigning: false
+asar: true
+icon: ../web/public/logo.png
+
+extraMetadata:
+  main: out/main/index.js
+
+directories:
+  output: ../../release
+
+files:
+  - package.json
+  - out/main/**/*
+  - out/preload/**/*
+  - "!src/**"
+  - "!test/**"
+  - "!electron-main.mjs"
+  - "!**/*.{ts,tsx,map}"
+  - "!node_modules/@pig/gateway/src{,/**/*}"
+  - "!node_modules/@pig/gateway/test{,/**/*}"
+  - "!node_modules/@pig/gateway/web{,/**/*}"
+
+extraResources:
+  - from: ../web/dist
+    to: web
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  executableName: pig
+  requestedExecutionLevel: asInvoker
+  forceCodeSigning: false
+  icon: ../web/public/logo.png
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  packElevateHelper: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: pig
+  installerLanguages:
+    - zh_CN
+    - en_US
+  displayLanguageSelector: false
+  license: ../../LICENSE
+  include: installer.nsh
+  runAfterFinish: true
+  differentialPackage: false
+  artifactName: Pig-${version}-x64-Setup.${ext}

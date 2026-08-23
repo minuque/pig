@@ -9,7 +9,9 @@
     "dev": "electron . -- --dev",
     "start": "electron .",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "compile:main": "tsc -p tsconfig.main.json",
+    "dist:win": "electron-builder --win --x64 --publish never"
   },
   "dependencies": {
     "@pig/gateway": "workspace:*"
@@ -17,6 +19,7 @@
   "devDependencies": {
     "@types/node": "^24.13.3",
     "electron": "^38.0.0",
+    "electron-builder": "^26.15.3",
     "tsx": "^4.23.1",
     "typescript": "^6.0.3",
     "vitest": "^3.2.4"

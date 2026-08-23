@@ -10,6 +10,8 @@ export default tseslint.config(
       "**/dist/**",
       "**/node_modules/**",
       "**/out/**",
+      "packages/gateway/web/**",
+      "release/**",
       "docs/**",
       ".worktrees/**",
       "playwright-report/**",

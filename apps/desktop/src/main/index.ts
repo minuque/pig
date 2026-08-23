@@ -1,22 +1,46 @@
 import { randomUUID } from "node:crypto";
 import { access } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import type { ChildProcess } from "node:child_process";
 import { app, dialog, Menu, type BrowserWindow } from "electron";
 
-// gateway 的 package exports 指向 dist，开发时可能没有
-import Gateway from "../../../../packages/gateway/src/index.js";
 import { VITE_DEV_ORIGIN, bootstrapAppUrl, gatewayOrigin, isDesktopDev } from "./urls.js";
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js";
-import { createElectronDirectoryPort } from "./directory-port.js";
+import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js";
 import { createMainWindow } from "./window.js";
+import { resolvePreloadPath, resolveWebRoot, webRootMissingMessage } from "./paths.js";
 
-const PRELOAD_PATH = fileURLToPath(new URL("../preload/index.js", import.meta.url));
+type GatewayInstance = {
+  start(): Promise<number>;
+  stop(): Promise<void>;
+};
 
-let gateway: Gateway | undefined;
+type GatewayCtor = new (options: {
+  bootstrapSecret: string;
+  bootstrapTtlMs: number;
+  platformPort: DirectoryPort;
+  webRoot?: string;
+}) => GatewayInstance;
+
+type GatewayModule = {
+  default: GatewayCtor;
+  canonicalizePath: (path: string) => string;
+};
+
+let gateway: GatewayInstance | undefined;
 let vite: ChildProcess | undefined;
 let mainWindow: BrowserWindow | undefined;
 let stopping = false;
+
+async function loadGatewayModule(isPackaged: boolean): Promise<GatewayModule> {
+  if (isPackaged) {
+    // 非字面量，避免 tsc emit 把 gateway 源码拉进 rootDir
+    const spec = "@pig/gateway";
+    return (await import(spec)) as GatewayModule;
+  }
+  // exports 指向 dist，开发时可能没有
+  const url = new URL("../../../../packages/gateway/src/index.js", import.meta.url).href;
+  return (await import(url)) as GatewayModule;
+}
 
 async function shutdown(): Promise<void> {
   if (stopping) return;
@@ -47,30 +71,34 @@ void app.whenReady().then(async () => {
   try {
     const secret = randomUUID();
     const isDev = isDesktopDev();
-    const webRoot = isDev
-      ? undefined
-      : fileURLToPath(new URL("../../../web/dist", import.meta.url));
+    const isPackaged = app.isPackaged;
+    const gatewayMod = await loadGatewayModule(isPackaged);
+    const webRoot = resolveWebRoot({
+      isDev,
+      isPackaged,
+      moduleUrl: import.meta.url,
+      resourcesPath: process.resourcesPath,
+    });
+    const preloadPath = resolvePreloadPath(import.meta.url);
 
     if (webRoot) {
       try {
         await access(webRoot);
       } catch {
-        dialog.showErrorBox(
-          "无法启动",
-          "未找到 Web 构建产物（apps/web/dist）。请先执行 pnpm --filter @pig/web build。",
-        );
+        dialog.showErrorBox("无法启动", webRootMissingMessage(isPackaged));
         await shutdown();
         return;
       }
     }
 
-    gateway = new Gateway({
+    gateway = new gatewayMod.default({
       bootstrapSecret: secret,
       bootstrapTtlMs: Number.POSITIVE_INFINITY,
       platformPort: createElectronDirectoryPort(
         () => mainWindow,
         (parent, options) =>
           parent ? dialog.showOpenDialog(parent, options) : dialog.showOpenDialog(options),
+        gatewayMod.canonicalizePath,
       ),
       ...(webRoot ? { webRoot } : {}),
     });
@@ -81,7 +109,7 @@ void app.whenReady().then(async () => {
       await waitForHttp(VITE_DEV_ORIGIN);
     }
 
-    mainWindow = createMainWindow(PRELOAD_PATH);
+    mainWindow = createMainWindow(preloadPath);
 
     await mainWindow.loadURL(
       bootstrapAppUrl(isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port), secret, process.platform),
