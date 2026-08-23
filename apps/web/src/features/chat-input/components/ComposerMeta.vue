@@ -15,10 +15,10 @@
       @mousedown.prevent
       @click="emit('toggle')"
     >
-      <svg class="ring" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-        <circle class="ring-track" cx="8" cy="8" r="6" />
+      <svg class="usage-ring" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <circle class="usage-ring-track" cx="8" cy="8" r="6" />
         <circle
-          class="ring-fill"
+          class="usage-ring-fill"
           cx="8"
           cy="8"
           r="6"
@@ -126,19 +126,20 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0));
   color: var(--ink-muted);
   background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
-.ring {
+.usage-ring {
   display: block;
+  overflow: visible;
   transform: rotate(-90deg);
 }
-.ring-track,
-.ring-fill {
+.usage-ring-track,
+.usage-ring-fill {
   fill: none;
   stroke-width: 1.5;
 }
-.ring-track {
+.usage-ring-track {
   stroke: color-mix(in srgb, var(--ink) 18%, transparent);
 }
-.ring-fill {
+.usage-ring-fill {
   stroke: currentColor;
   stroke-linecap: round;
 }
