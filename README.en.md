@@ -23,7 +23,6 @@
 pnpm install        # install dependencies
 pnpm dev            # start Gateway + Web, opens the browser
 pnpm dev:desktop    # Electron desktop development
-pnpm dist:win       # Windows installer
 ```
 
 ## Docs
