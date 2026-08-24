@@ -96,7 +96,7 @@ provide(leftPanelKey, { leftOpen, toggle });
   left: 50%;
   width: 2px;
   transform: translateX(-50%);
-  background: transparent;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
   transition: background var(--duration-fast) var(--ease-smooth);
   content: "";
 }
