@@ -1,9 +1,10 @@
 <template>
   <div
     class="timeline-minimap"
-    :class="{ persistent: hasPersistentGutter }"
+    :class="{ persistent: hasPersistentGutter, interactive: hitStripWidth > 0 }"
     data-testid="timeline-minimap"
     :data-persistent-gutter="hasPersistentGutter ? 'true' : 'false'"
+    :style="{ width: hitAreaWidth }"
   >
     <div class="minimap-stage">
       <button
@@ -11,10 +12,6 @@
         :class="{ interactive: hitStripWidth > 0 }"
         type="button"
         :aria-label="`跳转到：${activeItem?.userText ?? '用户句'}`"
-        :style="{
-          height: resolveMinimapHeightStyle(items.length),
-          width: railWidth,
-        }"
         @blur="activeIndex = null"
         @click="onRailClick"
         @focus="onRailFocus"
@@ -23,7 +20,6 @@
         @mousemove="onRailMove"
         @mousedown="onRailMouseDown"
       >
-        <span class="minimap-spine" aria-hidden="true"></span>
         <span
           v-for="(item, index) in items"
           :key="item.id"
@@ -59,9 +55,8 @@
 import { computed, shallowRef } from "vue";
 import type { TranscriptMinimapItem } from "@features/session-workbench/lib/transcript-minimap.js";
 import {
-  resolveMinimapHeightStyle,
+  resolveMinimapHitAreaWidth,
   resolveMinimapIndexFromPointer,
-  resolveMinimapInteractiveWidth,
   resolveMinimapTopPercent,
 } from "@features/session-workbench/lib/transcript-minimap.js";
 
@@ -93,9 +88,10 @@ const previewTranslate = computed(() => {
   if (index === props.items.length - 1) return "-100%";
   return "-50%";
 });
-const railWidth = computed(() =>
-  resolveMinimapInteractiveWidth(props.hitStripWidth, activeItem.value !== null),
-);
+const hitAreaWidth = computed(() => {
+  const width = resolveMinimapHitAreaWidth(props.hitStripWidth, activeItem.value !== null);
+  return typeof width === "number" ? `${width}px` : width;
+});
 
 function stripClass(index: number): string {
   const active = resolvedActiveIndex.value;
@@ -187,6 +183,9 @@ function moveActive(delta: number) {
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-smooth);
 }
+.timeline-minimap.interactive {
+  pointer-events: auto;
+}
 .timeline-minimap.persistent,
 .timeline-minimap:hover,
 .timeline-minimap:focus-within {
@@ -200,12 +199,10 @@ function moveActive(delta: number) {
 }
 .minimap-rail {
   position: absolute;
-  top: 50%;
-  left: 12px;
+  inset: 0;
   padding: 0;
   border: 0;
   background: transparent;
-  transform: translateY(-50%);
   cursor: pointer;
 }
 .minimap-rail.interactive {
@@ -215,18 +212,10 @@ function moveActive(delta: number) {
   outline: var(--focus-ring-width) solid var(--primary);
   outline-offset: 2px;
 }
-.minimap-spine {
-  position: absolute;
-  top: 0;
-  left: 12px;
-  width: 1px;
-  height: 100%;
-  background: color-mix(in srgb, var(--ink) 15%, transparent);
-}
 .minimap-strip {
   pointer-events: none;
   position: absolute;
-  left: 0;
+  left: 12px;
   height: 2px;
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--ink-muted) 35%, transparent);
@@ -254,7 +243,7 @@ function moveActive(delta: number) {
 .minimap-preview {
   pointer-events: auto;
   position: absolute;
-  left: 32px;
+  left: 44px;
   width: 20rem;
   cursor: text;
   user-select: text;

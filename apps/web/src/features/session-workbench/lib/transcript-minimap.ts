@@ -1,6 +1,5 @@
 /** 对齐 T3 TimelineMinimap：正文列左侧 gutter 里按用户句跳转。 */
 
-export const MINIMAP_ITEM_SPACING = 8;
 export const MINIMAP_MIN_ITEMS = 2;
 /** 与 `--size-content`（732px）一致，gutter 按居中正文列计算。 */
 export const MINIMAP_CONTENT_MAX_WIDTH = 732;
@@ -55,9 +54,12 @@ export function deriveTranscriptMinimapItems(
   return items;
 }
 
-export function resolveMinimapHeightStyle(itemCount: number): string {
-  const naturalHeight = Math.max(1, (itemCount - 1) * MINIMAP_ITEM_SPACING);
-  return `min(${naturalHeight}px, 100%)`;
+export function resolveMinimapHitAreaWidth(
+  hitStripWidth: number,
+  expanded: boolean,
+): number | string {
+  if (hitStripWidth <= 0) return 0;
+  return resolveMinimapInteractiveWidth(MINIMAP_HIT_STRIP_LEFT + hitStripWidth, expanded);
 }
 
 export function resolveMinimapTopPercent(index: number, itemCount: number): number {

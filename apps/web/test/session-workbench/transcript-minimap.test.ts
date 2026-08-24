@@ -5,7 +5,7 @@ import {
   MINIMAP_MIN_ITEMS,
   minimapRowInView,
   resolveMinimapHasPersistentGutter,
-  resolveMinimapHeightStyle,
+  resolveMinimapHitAreaWidth,
   resolveMinimapHitStripWidth,
   resolveMinimapIndexFromPointer,
   resolveMinimapInteractiveWidth,
@@ -60,7 +60,6 @@ describe("minimap geometry", () => {
   it("刻度均分轨道，指针落到最近一项", () => {
     expect(resolveMinimapTopPercent(0, 4)).toBe(0);
     expect(resolveMinimapTopPercent(3, 4)).toBe(100);
-    expect(resolveMinimapHeightStyle(4)).toBe("min(24px, 100%)");
     expect(
       resolveMinimapIndexFromPointer({
         itemCount: 4,
@@ -84,6 +83,9 @@ describe("minimap geometry", () => {
     expect(resolveMinimapHasPersistentGutter(828)).toBe(true);
     expect(resolveMinimapHitStripWidth(732)).toBe(0);
     expect(resolveMinimapHitStripWidth(828)).toBe(36);
+    expect(resolveMinimapHitAreaWidth(0, false)).toBe(0);
+    expect(resolveMinimapHitAreaWidth(36, false)).toBe(48);
+    expect(resolveMinimapHitAreaWidth(36, true)).toBe("22rem");
     expect(resolveMinimapInteractiveWidth(36, false)).toBe(36);
     expect(resolveMinimapInteractiveWidth(36, true)).toBe("22rem");
   });
