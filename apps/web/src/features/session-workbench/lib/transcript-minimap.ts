@@ -1,4 +1,4 @@
-/** 对齐 T3 TimelineMinimap：正文列左侧 gutter 里按用户句跳转。 */
+/** 对齐 Waku ConversationNavigationRail：正文列左侧紧凑刻度，按用户句跳转。 */
 
 export const MINIMAP_MIN_ITEMS = 2;
 /** 与 `--size-content`（732px）一致，gutter 按居中正文列计算。 */
@@ -6,7 +6,9 @@ export const MINIMAP_CONTENT_MAX_WIDTH = 732;
 export const MINIMAP_PERSISTENT_GUTTER = 48;
 export const MINIMAP_HIT_STRIP_LEFT = 12;
 export const MINIMAP_HIT_STRIP_MAX_WIDTH = 40;
-export const MINIMAP_EXPANDED_HIT_STRIP_WIDTH = "22rem";
+/** 与 Waku `NAVIGATION_RAIL_PITCH` / `w-11` 一致。 */
+export const MINIMAP_RAIL_PITCH = 12;
+export const MINIMAP_RAIL_WIDTH = 44;
 
 export interface MinimapSourceRow {
   id: string;
@@ -54,17 +56,21 @@ export function deriveTranscriptMinimapItems(
   return items;
 }
 
-export function resolveMinimapHitAreaWidth(
-  hitStripWidth: number,
-  expanded: boolean,
-): number | string {
+export function resolveMinimapHeightStyle(itemCount: number): string {
+  if (itemCount <= 0) return "0px";
+  return `min(${itemCount * MINIMAP_RAIL_PITCH}px, 80%)`;
+}
+
+export function resolveMinimapHitAreaWidth(hitStripWidth: number): number {
   if (hitStripWidth <= 0) return 0;
-  return resolveMinimapInteractiveWidth(MINIMAP_HIT_STRIP_LEFT + hitStripWidth, expanded);
+  return MINIMAP_RAIL_WIDTH;
 }
 
 export function resolveMinimapTopPercent(index: number, itemCount: number): number {
-  if (itemCount <= 1) return 0;
-  return (Math.max(0, Math.min(index, itemCount - 1)) / (itemCount - 1)) * 100;
+  if (itemCount <= 0) return 0;
+  if (itemCount === 1) return 50;
+  const clamped = Math.max(0, Math.min(index, itemCount - 1));
+  return ((clamped + 0.5) / itemCount) * 100;
 }
 
 export function resolveMinimapIndexFromPointer(input: {
@@ -75,8 +81,9 @@ export function resolveMinimapIndexFromPointer(input: {
 }): number | null {
   if (input.itemCount <= 0 || input.railHeight <= 0) return null;
   if (input.itemCount === 1) return 0;
-  const progress = Math.max(0, Math.min(1, (input.pointerY - input.railTop) / input.railHeight));
-  return Math.max(0, Math.min(input.itemCount - 1, Math.round(progress * (input.itemCount - 1))));
+  const slot = input.railHeight / input.itemCount;
+  const index = Math.floor((input.pointerY - input.railTop) / slot);
+  return Math.max(0, Math.min(input.itemCount - 1, index));
 }
 
 function sideGutter(viewportWidth: number): number {
@@ -96,13 +103,6 @@ export function resolveMinimapHitStripWidth(viewportWidth: number): number {
     0,
     Math.min(MINIMAP_HIT_STRIP_MAX_WIDTH, Math.floor(gutter) - MINIMAP_HIT_STRIP_LEFT),
   );
-}
-
-export function resolveMinimapInteractiveWidth(
-  collapsedWidth: number,
-  expanded: boolean,
-): number | string {
-  return expanded ? MINIMAP_EXPANDED_HIT_STRIP_WIDTH : collapsedWidth;
 }
 
 export function minimapRowInView(

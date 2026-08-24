@@ -5,10 +5,10 @@ import {
   MINIMAP_MIN_ITEMS,
   minimapRowInView,
   resolveMinimapHasPersistentGutter,
+  resolveMinimapHeightStyle,
   resolveMinimapHitAreaWidth,
   resolveMinimapHitStripWidth,
   resolveMinimapIndexFromPointer,
-  resolveMinimapInteractiveWidth,
   resolveMinimapTopPercent,
   sameIdList,
 } from "@features/session-workbench/lib/transcript-minimap.js";
@@ -57,14 +57,15 @@ describe("deriveTranscriptMinimapItems", () => {
 });
 
 describe("minimap geometry", () => {
-  it("刻度均分轨道，指针落到最近一项", () => {
-    expect(resolveMinimapTopPercent(0, 4)).toBe(0);
-    expect(resolveMinimapTopPercent(3, 4)).toBe(100);
+  it("刻度按 12px 槽位居中，指针落到所在槽", () => {
+    expect(resolveMinimapHeightStyle(4)).toBe("min(48px, 80%)");
+    expect(resolveMinimapTopPercent(0, 4)).toBe(12.5);
+    expect(resolveMinimapTopPercent(3, 4)).toBe(87.5);
     expect(
       resolveMinimapIndexFromPointer({
         itemCount: 4,
         railTop: 100,
-        railHeight: 30,
+        railHeight: 48,
         pointerY: 100,
       }),
     ).toBe(0);
@@ -72,22 +73,19 @@ describe("minimap geometry", () => {
       resolveMinimapIndexFromPointer({
         itemCount: 4,
         railTop: 100,
-        railHeight: 30,
-        pointerY: 130,
+        railHeight: 48,
+        pointerY: 147,
       }),
     ).toBe(3);
   });
 
-  it("侧留白 >= 48px 才常驻；命中条不越过正文列", () => {
+  it("侧留白 >= 48px 才常驻；命中条为 44px 紧凑轨", () => {
     expect(resolveMinimapHasPersistentGutter(732)).toBe(false);
     expect(resolveMinimapHasPersistentGutter(828)).toBe(true);
     expect(resolveMinimapHitStripWidth(732)).toBe(0);
     expect(resolveMinimapHitStripWidth(828)).toBe(36);
-    expect(resolveMinimapHitAreaWidth(0, false)).toBe(0);
-    expect(resolveMinimapHitAreaWidth(36, false)).toBe(48);
-    expect(resolveMinimapHitAreaWidth(36, true)).toBe("22rem");
-    expect(resolveMinimapInteractiveWidth(36, false)).toBe(36);
-    expect(resolveMinimapInteractiveWidth(36, true)).toBe("22rem");
+    expect(resolveMinimapHitAreaWidth(0)).toBe(0);
+    expect(resolveMinimapHitAreaWidth(36)).toBe(44);
   });
 
   it("行与视口相交才算 in-view", () => {

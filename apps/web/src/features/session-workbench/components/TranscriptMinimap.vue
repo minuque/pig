@@ -4,7 +4,7 @@
     :class="{ persistent: hasPersistentGutter, interactive: hitStripWidth > 0 }"
     data-testid="timeline-minimap"
     :data-persistent-gutter="hasPersistentGutter ? 'true' : 'false'"
-    :style="{ width: hitAreaWidth }"
+    :style="{ width: hitAreaWidth, height: railHeight }"
   >
     <div class="minimap-stage">
       <button
@@ -55,6 +55,7 @@
 import { computed, shallowRef } from "vue";
 import type { TranscriptMinimapItem } from "@features/session-workbench/lib/transcript-minimap.js";
 import {
+  resolveMinimapHeightStyle,
   resolveMinimapHitAreaWidth,
   resolveMinimapIndexFromPointer,
   resolveMinimapTopPercent,
@@ -88,10 +89,8 @@ const previewTranslate = computed(() => {
   if (index === props.items.length - 1) return "-100%";
   return "-50%";
 });
-const hitAreaWidth = computed(() => {
-  const width = resolveMinimapHitAreaWidth(props.hitStripWidth, activeItem.value !== null);
-  return typeof width === "number" ? `${width}px` : width;
-});
+const hitAreaWidth = computed(() => `${resolveMinimapHitAreaWidth(props.hitStripWidth)}px`);
+const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length));
 
 function stripClass(index: number): string {
   const active = resolvedActiveIndex.value;
@@ -176,20 +175,15 @@ function moveActive(delta: number) {
 .timeline-minimap {
   pointer-events: none;
   position: absolute;
+  left: var(--spacing-md);
+  top: calc((100% - var(--chat-input-space, 168px)) / 2);
   z-index: 3;
-  inset: 0 auto var(--chat-input-space, 168px) 0;
   display: none;
-  width: 4.5rem;
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-smooth);
+  width: 44px;
+  transform: translateY(-50%);
 }
 .timeline-minimap.interactive {
   pointer-events: auto;
-}
-.timeline-minimap.persistent,
-.timeline-minimap:hover,
-.timeline-minimap:focus-within {
-  opacity: 1;
 }
 .minimap-stage {
   position: relative;
@@ -215,7 +209,7 @@ function moveActive(delta: number) {
 .minimap-strip {
   pointer-events: none;
   position: absolute;
-  left: 12px;
+  left: 0;
   height: 2px;
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--ink-muted) 35%, transparent);
@@ -231,19 +225,19 @@ function moveActive(delta: number) {
   width: 8px;
 }
 .minimap-strip.strip-mid {
-  width: 10px;
+  width: 14px;
 }
 .minimap-strip.strip-near {
-  width: 16px;
+  width: 22px;
 }
 .minimap-strip.strip-active {
-  width: 24px;
+  width: 32px;
   background: color-mix(in srgb, var(--ink-muted) 75%, transparent);
 }
 .minimap-preview {
   pointer-events: auto;
   position: absolute;
-  left: 44px;
+  left: 60px;
   width: 20rem;
   cursor: text;
   user-select: text;
@@ -285,7 +279,6 @@ function moveActive(delta: number) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .timeline-minimap,
   .minimap-strip {
     transition: none;
   }
