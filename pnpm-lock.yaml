@@ -3,7 +3,6 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
-  injectWorkspacePackages: true
 
 patchedDependencies:
   markstream-vue@2.0.0: 3d5c886a233f5051cf3dffddb85eed75d2997a7053dc4a06371ed9258f16fa9d
@@ -66,6 +65,9 @@ importers:
       '@pig/gateway':
         specifier: workspace:*
         version: file:packages/gateway
+    dependenciesMeta:
+      '@pig/gateway':
+        injected: true
     devDependencies:
       '@types/node':
         specifier: ^24.13.3

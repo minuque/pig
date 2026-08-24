@@ -14,6 +14,11 @@
   "dependencies": {
     "@pig/gateway": "workspace:*"
   },
+  "dependenciesMeta": {
+    "@pig/gateway": {
+      "injected": true
+    }
+  },
   "devDependencies": {
     "@types/node": "^24.13.3",
     "electron": "^38.0.0",

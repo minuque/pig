@@ -3,10 +3,8 @@ packages:
   - "apps/*"
 
 linkWorkspacePackages: true
-nodeLinker: hoisted
-packageImportMethod: copy
-injectWorkspacePackages: true
-dedupeInjectedDeps: false
+syncInjectedDepsAfterScripts:
+  - build
 
 allowBuilds:
   "@google/genai": false
