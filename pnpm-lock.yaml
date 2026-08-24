@@ -3,6 +3,7 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
+  injectWorkspacePackages: true
 
 patchedDependencies:
   markstream-vue@2.0.0: 3d5c886a233f5051cf3dffddb85eed75d2997a7053dc4a06371ed9258f16fa9d
@@ -64,7 +65,7 @@ importers:
     dependencies:
       '@pig/gateway':
         specifier: workspace:*
-        version: link:../../packages/gateway
+        version: file:packages/gateway
     devDependencies:
       '@types/node':
         specifier: ^24.13.3
@@ -1360,6 +1361,10 @@ packages:
         optional: true
       shiki:
         optional: true
+
+  '@pig/gateway@file:packages/gateway':
+    resolution: {directory: packages/gateway, type: directory}
+    hasBin: true
 
   '@playwright/test@1.62.1':
     resolution: {integrity: sha512-DTcUc8qii+cpHvtOwggMtBRMjKZHXYWdw8syRYu2vtzuq4Wxphqq4NfCs5Zt44L6mA8rfDfj+PHnxFc/FeK6mQ==}
@@ -6573,6 +6578,19 @@ snapshots:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
       shiki: 4.4.3
+
+  '@pig/gateway@file:packages/gateway':
+    dependencies:
+      '@earendil-works/pi-coding-agent': 0.84.1(ws@8.21.1)(zod@3.25.76)
+      '@earendil-works/pi-protocol': 0.84.1
+      '@earendil-works/pi-server': 0.84.1(ws@8.21.1)(zod@3.25.76)
+      ws: 8.21.1
+    transitivePeerDependencies:
+      - '@modelcontextprotocol/sdk'
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+      - zod
 
   '@playwright/test@1.62.1':
     dependencies:
