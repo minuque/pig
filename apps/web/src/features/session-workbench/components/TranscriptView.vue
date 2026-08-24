@@ -9,42 +9,56 @@
   >
     <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
 
-    <MarkstreamVirtualTimeline
-      v-if="rows.length"
-      ref="timeline"
-      class="transcript"
-      :thread-key="sessionId"
-      :measurement-key="measurementKey"
-      :items="rows"
-      :get-key="rowKey"
-      :get-kind="transcriptRowKind"
-      :get-content="transcriptRowContent"
-      :get-final="transcriptRowFinal"
-      :estimate-item-height="estimateTranscriptRowHeight"
-      markdown-mode="chat"
-      :stick-to-bottom="'auto'"
-      :overscan="8"
-      :initial-thread-state="pinnedThreadState"
-      @thread-state-change="onThreadState"
-    >
-      <template #default="{ item: row, measureRef, markdownProps }">
-        <div :ref="measureRef" class="row">
-          <div v-if="isEarlierRow(row)" class="earlier-row">
-            <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
-              {{ loadingEarlier ? "加载中…" : "加载更早" }}
-            </button>
+    <template v-if="rows.length">
+      <MarkstreamVirtualTimeline
+        ref="timeline"
+        class="transcript"
+        :thread-key="sessionId"
+        :measurement-key="measurementKey"
+        :items="rows"
+        :get-key="rowKey"
+        :get-kind="transcriptRowKind"
+        :get-content="transcriptRowContent"
+        :get-final="transcriptRowFinal"
+        :estimate-item-height="estimateTranscriptRowHeight"
+        markdown-mode="chat"
+        :stick-to-bottom="'auto'"
+        :overscan="8"
+        :initial-thread-state="pinnedThreadState"
+        @thread-state-change="onThreadState"
+      >
+        <template #default="{ item: row, measureRef, markdownProps }">
+          <div
+            :ref="measureRef"
+            class="row"
+            :data-minimap-row="row.role === 'user' ? row.id : undefined"
+          >
+            <div v-if="isEarlierRow(row)" class="earlier-row">
+              <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
+                {{ loadingEarlier ? "加载中…" : "加载更早" }}
+              </button>
+            </div>
+            <UserMessage v-else-if="row.role === 'user'" :item="row" />
+            <AssistantMessage
+              v-else-if="row.role === 'assistant'"
+              :item="row"
+              :streaming="isStreamingAssistant(row)"
+              :timeline-markdown="markdownProps"
+            />
+            <ToolCall v-else-if="row.role === 'tool'" :item="row" />
           </div>
-          <UserMessage v-else-if="row.role === 'user'" :item="row" />
-          <AssistantMessage
-            v-else-if="row.role === 'assistant'"
-            :item="row"
-            :streaming="isStreamingAssistant(row)"
-            :timeline-markdown="markdownProps"
-          />
-          <ToolCall v-else-if="row.role === 'tool'" :item="row" />
-        </div>
-      </template>
-    </MarkstreamVirtualTimeline>
+        </template>
+      </MarkstreamVirtualTimeline>
+
+      <TranscriptMinimap
+        v-if="minimapItems.length >= MINIMAP_MIN_ITEMS"
+        :items="minimapItems"
+        :in-view-ids="inViewIds"
+        :has-persistent-gutter="hasPersistentGutter"
+        :hit-strip-width="hitStripWidth"
+        @select="onMinimapSelect"
+      />
+    </template>
 
     <p v-else-if="running" class="shimmer" role="status">正在运行…</p>
   </section>
@@ -181,8 +195,17 @@ import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vu
 import { MarkstreamVirtualTimeline } from "markstream-vue";
 import type { SessionPhase } from "@earendil-works/pi-protocol";
 import AssistantMessage from "@features/session-workbench/components/AssistantMessage.vue";
+import TranscriptMinimap from "@features/session-workbench/components/TranscriptMinimap.vue";
 import ToolCall from "@features/session-workbench/components/ToolCall.vue";
 import UserMessage from "@features/session-workbench/components/UserMessage.vue";
+import {
+  deriveTranscriptMinimapItems,
+  MINIMAP_MIN_ITEMS,
+  resolveMinimapHasPersistentGutter,
+  resolveMinimapHitStripWidth,
+  sameIdList,
+  type TranscriptMinimapItem,
+} from "@features/session-workbench/lib/transcript-minimap.js";
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
 
 const props = withDefaults(
@@ -213,6 +236,19 @@ const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`);
 const region = useTemplateRef<HTMLElement>("region");
 const { isDark } = useColorScheme();
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"));
+const minimapItems = computed(() =>
+  deriveTranscriptMinimapItems(
+    rows.value.map((row) => ({
+      id: row.id,
+      role: row.role,
+      text: isEarlierRow(row) ? "" : transcriptText(row),
+    })),
+  ),
+);
+const viewportWidth = shallowRef(0);
+const inViewIds = shallowRef<readonly string[]>([]);
+const hasPersistentGutter = computed(() => resolveMinimapHasPersistentGutter(viewportWidth.value));
+const hitStripWidth = computed(() => resolveMinimapHitStripWidth(viewportWidth.value));
 
 // 虚拟滚动行 key：以 TranscriptItem id 保证流式输出时同一行原地更新
 function rowKey(item: TimelineRow): string {
@@ -227,6 +263,7 @@ function isStreamingAssistant(item: TranscriptItem): boolean {
 /* ── 贴底跟随与「跳转到最新」：滚动状态由 MarkstreamVirtualTimeline 管理 ── */
 const timeline = useTemplateRef<{
   scrollToBottom(): void;
+  scrollToIndex(index: number, align?: "start" | "center" | "end"): void;
   captureThreadState(): MarkstreamThreadVirtualState;
   restoreThreadState(state: MarkstreamThreadVirtualState): void;
 }>("timeline");
@@ -283,7 +320,27 @@ function jumpToBottom() {
   if (root) root.scrollTop = root.scrollHeight - root.clientHeight;
 }
 
+function collectInViewIds(): string[] {
+  const root = region.value;
+  if (!root) return [];
+  const viewport = root.getBoundingClientRect();
+  const ids: string[] = [];
+  for (const el of root.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
+    const box = el.getBoundingClientRect();
+    if (box.bottom <= viewport.top || box.top >= viewport.bottom) continue;
+    const id = el.dataset.minimapRow;
+    if (id) ids.push(id);
+  }
+  return ids;
+}
+
+function syncInViewIds() {
+  const next = collectInViewIds();
+  if (!sameIdList(inViewIds.value, next)) inViewIds.value = next;
+}
+
 function onThreadState(state: MarkstreamThreadVirtualState) {
+  syncInViewIds();
   const root = timelineScrollRoot();
   const bottom = root
     ? isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
@@ -292,6 +349,20 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
   if (atBottom.value !== bottom) {
     atBottom.value = bottom;
     emit("bottom-change", bottom);
+  }
+}
+
+function onMinimapSelect(item: TranscriptMinimapItem) {
+  releasePinnedToBottom();
+  timeline.value?.scrollToIndex(item.rowIndex, "start");
+  const root = timelineScrollRoot();
+  if (
+    root &&
+    atBottom.value &&
+    !isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
+  ) {
+    atBottom.value = false;
+    emit("bottom-change", false);
   }
 }
 
@@ -340,7 +411,26 @@ watch(
 watch(rows, (next, prev) => {
   if (prev.length === 0 && next.length > 0) scrollToLatest();
 });
+
+let viewportObserver: ResizeObserver | undefined;
+watch(
+  region,
+  (el) => {
+    viewportObserver?.disconnect();
+    if (!el) return;
+    const measure = () => {
+      viewportWidth.value = el.getBoundingClientRect().width;
+      syncInViewIds();
+    };
+    viewportObserver = new ResizeObserver(measure);
+    viewportObserver.observe(el);
+    measure();
+  },
+  { flush: "post" },
+);
+
 onBeforeUnmount(() => {
+  viewportObserver?.disconnect();
   releasePinnedToBottom();
   persistThreadState();
 });
