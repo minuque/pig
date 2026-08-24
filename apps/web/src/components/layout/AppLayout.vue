@@ -122,6 +122,8 @@ main {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* 困住栏内 z-index，避免 dock 底色盖住分栏把手 */
+  isolation: isolate;
   background: var(--surface);
 }
 @media (prefers-reduced-motion: reduce) {
