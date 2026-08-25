@@ -73,7 +73,7 @@ function estimateText(value: unknown): number {
 function previewValue(value: unknown): string {
   if (typeof value === "string") return value
   if (value == null) return ""
-  return JSON.stringify(value, null, 2)
+  return `\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\``
 }
 
 function countMessage(message: object): number {

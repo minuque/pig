@@ -54,7 +54,9 @@
       class="flex max-h-[80vh] w-full max-w-[min(48rem,calc(100vw-2rem))] flex-col gap-3 overflow-hidden sm:max-w-[min(48rem,calc(100vw-2rem))]"
     >
       <DialogTitle>{{ previewTitle }}</DialogTitle>
-      <pre class="preview-body">{{ previewBody }}</pre>
+      <div class="preview-body">
+        <MarkdownRender v-bind="previewMarkdown" :content="previewBody" />
+      </div>
     </DialogContent>
   </Dialog>
 </template>
@@ -68,8 +70,10 @@ export function contextPreviewPath(sessionId: string, segmentId: string): string
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { X } from "lucide-vue-next"
+import MarkdownRender from "markstream-vue"
 import { platformRequest } from "@client/http.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import {
   contextUsageSummary,
   formatTokenCount,
@@ -88,10 +92,31 @@ const emit = defineEmits<{
 }>()
 
 const tokenSummary = computed(() => contextUsageSummary(props.usage))
+const { isDark } = useColorScheme()
 const previewOpen = ref(false)
 const previewTitle = ref("")
 const previewBody = ref("")
 let previewRequest = 0
+const previewMarkdown = computed(
+  () =>
+    ({
+      customId: "chat",
+      mode: "chat",
+      fade: false,
+      final: true,
+      typewriter: false,
+      smoothStreaming: false,
+      isDark: isDark.value,
+      codeBlockOptions: { fontSize: 14, fontFamily: "var(--font-code)" },
+      codeBlockProps: {
+        showHeader: true,
+        showCopyButton: true,
+        showCollapseButton: true,
+        showExpandButton: true,
+        theme: "dark-plus",
+      },
+    }) as const,
+)
 
 async function openPreview(segment: ContextUsageSegment) {
   const sessionId = props.sessionId
@@ -249,14 +274,12 @@ function onPreviewOpen(open: boolean) {
   text-align: end;
 }
 .preview-body {
-  margin: 0;
+  min-height: 0;
+  flex: 1;
   overflow: auto;
   max-height: calc(80vh - 5rem);
-  color: var(--ink-secondary);
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.7;
 }
 </style>
