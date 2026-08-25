@@ -56,7 +56,16 @@
     >
       <DialogTitle>{{ previewTitle }}</DialogTitle>
       <div ref="previewPane" class="preview-body" tabindex="-1">
-        <p v-if="previewLoading" class="preview-status">加载中…</p>
+        <div
+          v-if="previewLoading"
+          class="preview-status"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <Spinner :size="24" aria-hidden="true" />
+          <span class="sr-only">正在加载预览</span>
+        </div>
         <MarkdownRender v-else-if="previewBody" v-bind="previewMarkdown" :content="previewBody" />
       </div>
     </DialogContent>
@@ -70,11 +79,12 @@ export function contextPreviewPath(sessionId: string, segmentId: string): string
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, nextTick, ref } from "vue"
 import { X } from "lucide-vue-next"
 import MarkdownRender from "markstream-vue"
 import { platformRequest } from "@client/http.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { Spinner } from "@components/ui/spinner/index.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import {
   contextUsageSummary,
@@ -123,6 +133,8 @@ async function openPreview(segment: ContextUsageSegment) {
   previewBody.value = ""
   previewLoading.value = true
   previewOpen.value = true
+  await nextTick()
+  if (request !== previewRequest) return
   try {
     const result = await platformRequest<{
       preview: { title: string; content: string } | null
@@ -130,6 +142,7 @@ async function openPreview(segment: ContextUsageSegment) {
     if (request !== previewRequest) return
     previewTitle.value = result.preview?.title || segment.label
     previewBody.value = result.preview?.content || "没有可预览的内容。"
+    await nextTick()
   } catch {
     if (request !== previewRequest) return
     previewBody.value = "无法加载预览。"
@@ -293,9 +306,8 @@ function onOpenAutoFocus(event: Event) {
   outline: none;
 }
 .preview-status {
-  margin: 0;
-  color: var(--ink-faint);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  display: grid;
+  place-items: center;
+  min-height: 100%;
 }
 </style>
