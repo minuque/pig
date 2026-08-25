@@ -1,11 +1,6 @@
 <template>
   <WorkbenchHeader />
-  <StartupError
-    v-if="connectionError && connected"
-    title="连接失败"
-    :detail="connectionError.message"
-  />
-  <StartupError v-else-if="isErrorRoute" />
+  <StartupError v-if="pageError" v-bind="pageError" />
   <SessionWelcome v-else-if="!sessionId" />
   <section
     v-else
@@ -150,7 +145,12 @@ const {
 } = useSession()
 const { workspaces, activeWorkspaceId, lastCwd, cardFootById } = useNav()
 
-const isErrorRoute = computed(() => route.name === "error")
+const pageError = computed(() => {
+  if (connectionError.value && connected.value) {
+    return { title: "连接失败", detail: connectionError.value.message }
+  }
+  return route.name === "error" ? {} : null
+})
 const emptyCanvas = computed(() =>
   isEmptyCanvas(transcript.value.length, phase.value, sessionPending.value),
 )
