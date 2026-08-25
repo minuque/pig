@@ -96,6 +96,12 @@
 [data-custom-id="chat"] .code-block-header {
   z-index: 10;
 }
+/* 语言图标靠运行时 h-4 w-4，Tailwind 扫不到 markstream JS，SVG 会按固有尺寸撑开。 */
+[data-custom-id="chat"] .code-block-header .icon-slot {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
 
 /* 菜单溢出卡片后，后续 Markdown 节点会按 DOM 顺序盖上来。 */
 [data-custom-id="chat"] .code-block-container:has(.code-more-menu) {
