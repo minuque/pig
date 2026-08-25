@@ -14,7 +14,7 @@ import {
   transcriptRowKind,
   withEarlierRow,
 } from "@features/session-workbench/components/TranscriptView.vue"
-import { shouldShowScrollToLatest } from "@features/session-workbench/components/WorkbenchMain.vue"
+import { shouldShowScrollToLatest } from "@features/session-workbench/index.vue"
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
   return {

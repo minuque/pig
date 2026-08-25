@@ -4,7 +4,7 @@
       <template #sidebar="{ onNavigate, collapsed, toggle }">
         <SessionNav :collapsed="collapsed" @navigate="onNavigate" @toggle="toggle" />
       </template>
-      <SessionWorkbench />
+      <RouterView />
     </AppLayout>
   </Startup>
   <AlertToaster />
@@ -18,7 +18,6 @@ import { usePiClient } from "@client/pi-client.js"
 import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
 import Startup from "@features/startup/index.vue"
-import SessionWorkbench from "@features/session-workbench/index.vue"
 import { provideSession } from "@features/session-workbench/index.js"
 
 const pi = usePiClient()
