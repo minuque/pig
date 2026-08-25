@@ -1,8 +1,6 @@
 @import "tailwindcss";
-/* Tailwind v4：用 tailwind-ready 样式，类名交给本包扫描器，避免预编译 utilities 被 layer 压掉。 */
+/* Tailwind v4：用 tailwind-ready 样式，类名交给扫描器，不再引入预编译 utilities。 */
 @import "markstream-vue/index.tailwind.css";
-@source "../../node_modules/markstream-vue/dist/tailwind.js";
-@source "../../node_modules/stream-diffs/dist";
 @import "./markdown-stream.css";
 
 /* ─── DESIGN.md tokens (workbench desktop) ───────────────────── */
