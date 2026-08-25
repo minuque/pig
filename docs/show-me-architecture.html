@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>pig 当前架构 · 分层图</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --primary: #679efe;
+        --primary-soft: color-mix(in srgb, var(--primary) 14%, transparent);
+        --canvas: #0a0a0a;
+        --sidebar: #050505;
+        --surface: #121212;
+        --well: #1b1b1c;
+        --ink: #ebeef2;
+        --ink-secondary: #c5c8ce;
+        --ink-muted: #9aa0a8;
+        --ink-faint: #7a7e86;
+        --hairline: #2c2c2e;
+        --sunset: #ff8a3d;
+        --dusk: #c4b5fd;
+        --breeze: #a0c3ec;
+        --green: #33c35e;
+        --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+        --mono: "SF Mono", "JetBrains Mono", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: var(--font);
+      }
+      button { font: inherit; }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) auto;
+        gap: 16px;
+        align-items: center;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--hairline);
+        background: color-mix(in srgb, var(--surface) 88%, transparent);
+        backdrop-filter: blur(16px) saturate(1.1);
+      }
+      h1 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.125px;
+      }
+      .subtitle {
+        margin: 2px 0 0;
+        color: var(--ink-muted);
+        font-size: 13px;
+        line-height: 1.38;
+      }
+      .tabs {
+        display: flex;
+        gap: 4px;
+        padding: 3px;
+        border: 1px solid var(--hairline);
+        border-radius: 10px;
+        background: var(--well);
+      }
+      .tabs button {
+        border: 0;
+        border-radius: 8px;
+        padding: 6px 11px;
+        background: transparent;
+        color: var(--ink-muted);
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .tabs button[aria-selected="true"] {
+        color: var(--ink);
+        background: var(--surface);
+        box-shadow: 0 0 0 1px var(--hairline);
+      }
+      .tabs button:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      main {
+        width: min(1440px, 100%);
+        margin: 0 auto;
+        padding: 20px 24px 40px;
+      }
+      .view[hidden] { display: none; }
+      .view-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px 20px;
+        margin-bottom: 14px;
+      }
+      .view-head h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.25px;
+      }
+      .view-head p {
+        margin: 0;
+        max-width: 760px;
+        color: var(--ink-muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        margin-bottom: 14px;
+        color: var(--ink-muted);
+        font-size: 12px;
+      }
+      .legend span { display: inline-flex; align-items: center; gap: 6px; }
+      .legend i { width: 18px; border-top: 2px solid var(--primary); }
+      .legend i.http { border-color: var(--sunset); border-top-style: dashed; }
+      .legend i.state { border-color: var(--dusk); }
+      .legend i.disk { border-color: var(--green); border-top-style: dotted; }
+
+      .stack {
+        display: grid;
+        gap: 0;
+        border: 1px solid var(--hairline);
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--surface);
+      }
+      .layer {
+        position: relative;
+        padding: 16px;
+        border-bottom: 1px solid var(--hairline);
+      }
+      .layer:last-child { border-bottom: 0; }
+      .layer + .layer::before {
+        content: "↓";
+        position: absolute;
+        top: -13px;
+        left: 31px;
+        z-index: 2;
+        width: 24px;
+        text-align: center;
+        color: var(--primary);
+        background: var(--surface);
+        font-family: var(--mono);
+        font-size: 16px;
+      }
+      .layer-head {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        gap: 12px;
+        align-items: baseline;
+        margin-bottom: 10px;
+      }
+      .kicker {
+        color: var(--ink-faint);
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .layer-note {
+        color: var(--ink-muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(var(--columns, 4), minmax(0, 1fr));
+        gap: 10px;
+      }
+      .card {
+        min-width: 0;
+        padding: 12px 13px;
+        border: 1px solid var(--hairline);
+        border-radius: 12px;
+        background: var(--well);
+      }
+      .card[data-tone="web"] { --tone: var(--primary); }
+      .card[data-tone="host"] { --tone: var(--breeze); }
+      .card[data-tone="pi"] { --tone: var(--dusk); }
+      .card[data-tone="runtime"] { --tone: var(--sunset); }
+      .card[data-tone="disk"] { --tone: var(--green); }
+      .card[data-tone="base"] { --tone: var(--ink-muted); }
+      .path {
+        margin-bottom: 5px;
+        color: var(--tone, var(--primary));
+        font-family: var(--mono);
+        font-size: 11px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+      .card h3 {
+        margin: 0 0 4px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .card p {
+        margin: 0;
+        color: var(--ink-muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 8px;
+      }
+      .chips span {
+        padding: 2px 6px;
+        border: 1px solid var(--hairline);
+        border-radius: 999px;
+        background: var(--surface);
+        color: var(--ink-secondary);
+        font-family: var(--mono);
+        font-size: 10px;
+      }
+      .boundary {
+        margin-top: 10px;
+        padding: 8px 10px;
+        border-left: 2px solid var(--tone, var(--primary));
+        background: color-mix(in srgb, var(--tone, var(--primary)) 8%, transparent);
+        color: var(--ink-secondary);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .flow-list { display: grid; gap: 14px; }
+      .flow {
+        padding: 16px;
+        border: 1px solid var(--hairline);
+        border-radius: 16px;
+        background: var(--surface);
+      }
+      .flow-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 6px 16px;
+        margin-bottom: 12px;
+      }
+      .flow h3 { margin: 0; font-size: 15px; font-weight: 600; }
+      .flow-meta { color: var(--ink-muted); font-family: var(--mono); font-size: 11px; }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(var(--steps, 6), minmax(118px, 1fr));
+        gap: 20px;
+        overflow-x: auto;
+        padding: 2px 2px 8px;
+      }
+      .step {
+        position: relative;
+        min-height: 112px;
+        padding: 11px 12px;
+        border: 1px solid var(--hairline);
+        border-radius: 12px;
+        background: var(--well);
+      }
+      .step:not(:last-child)::after {
+        content: "→";
+        position: absolute;
+        top: 43px;
+        right: -17px;
+        color: var(--line, var(--primary));
+        font-family: var(--mono);
+        font-size: 17px;
+      }
+      .step .number {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--line, var(--primary));
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+      .step strong { display: block; margin-bottom: 4px; font-size: 13px; }
+      .step small { display: block; color: var(--ink-muted); font-size: 11px; line-height: 1.45; }
+      .flow[data-kind="http"] .step { --line: var(--sunset); }
+      .flow[data-kind="state"] .step { --line: var(--dusk); }
+      .flow[data-kind="disk"] .step { --line: var(--green); }
+
+      .truth-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .truth {
+        padding: 13px;
+        border: 1px solid var(--hairline);
+        border-radius: 12px;
+        background: var(--surface);
+      }
+      .truth b { display: block; margin-bottom: 4px; font-size: 13px; }
+      .truth p { margin: 0; color: var(--ink-muted); font-size: 12px; line-height: 1.45; }
+
+      footer {
+        margin-top: 16px;
+        color: var(--ink-faint);
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 980px) {
+        header { grid-template-columns: 1fr; }
+        .tabs { overflow-x: auto; }
+        .tabs button { white-space: nowrap; }
+        .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .truth-grid { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 560px) {
+        header, main { padding-left: 14px; padding-right: 14px; }
+        .cards { grid-template-columns: 1fr; }
+        .layer-head { grid-template-columns: 1fr; gap: 3px; }
+        .layer + .layer::before { left: 18px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>pig 当前架构</h1>
+        <p class="subtitle">Pi Agent GUI。pig 管界面、本机接入与安全；Pi 管 Agent、Session 和模型运行时。</p>
+      </div>
+      <nav class="tabs" role="tablist" aria-label="架构分类">
+        <button type="button" role="tab" aria-selected="true" aria-controls="overview">整体架构</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="web">Web 子模块</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="gateway">Gateway 与 Pi</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="flows">关键数据流</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="view" id="overview" role="tabpanel">
+        <div class="view-head">
+          <h2>整体架构</h2>
+          <p>依赖向下。Desktop 只负责启动和窗口，Web 只组合 UI，Gateway 是本机 Thin Host，Pi 是领域真相。</p>
+        </div>
+        <div class="legend">
+          <span><i></i>界面与协议调用</span><span><i class="http"></i>HTTP / WebSocket</span><span><i class="state"></i>Pi 运行时</span><span><i class="disk"></i>本地持久化</span>
+        </div>
+        <div class="stack">
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L0 启动壳</span><span class="layer-note">选择运行形态，创建 bootstrap secret，启动下层服务。</span></div>
+            <div class="cards" style="--columns: 3">
+              <article class="card" data-tone="runtime"><div class="path">apps/desktop/</div><h3>Electron Desktop</h3><p>启动 Gateway 和开发态 Vite，创建窗口，注入启动链接；关窗释放端口。</p><div class="chips"><span>main</span><span>preload</span><span>DirectoryPort</span></div></article>
+              <article class="card" data-tone="runtime"><div class="path">scripts/</div><h3>开发与构建脚本</h3><p>组织 dev、check、打包和 smoke，不进入业务运行时。</p><div class="chips"><span>dev.ts</span><span>check.mjs</span></div></article>
+              <article class="card" data-tone="runtime"><div class="path">e2e/</div><h3>浏览器旅程</h3><p>跨 Web 构建物与 Gateway 验收完整用户路径。</p><div class="chips"><span>Playwright</span></div></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L1 交互层</span><span class="layer-note">Vue 组合根创建连接、会话和导航上下文，领域模块消费上下文。</span></div>
+            <div class="cards" style="--columns: 3">
+              <article class="card" data-tone="web"><div class="path">apps/web/src/App.vue</div><h3>组合根</h3><p>usePiClient → provideSession → provideNav，再交给 Startup 与 RouterView。</p></article>
+              <article class="card" data-tone="web"><div class="path">apps/web/src/features/</div><h3>领域 UI</h3><p>会话导航、工作台、输入、启动和主题。跨模块只走公开入口。</p></article>
+              <article class="card" data-tone="base"><div class="path">apps/web/src/client/</div><h3>浏览器适配</h3><p>bootstrap、HTTP、WebSocket transport、本地工作目录偏好。</p></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L2 本机 Host</span><span class="layer-note">只监听 127.0.0.1。负责认证、平台 API、静态文件和 PiServer 接线。</span></div>
+            <div class="cards" style="--columns: 3">
+              <article class="card" data-tone="host"><div class="path">packages/gateway/src/server/</div><h3>HTTP / WebSocket Host</h3><p>bootstrap、平台 API、SPA 静态托管，并把认证后的字节连接交给 PiServer。</p></article>
+              <article class="card" data-tone="host"><div class="path">packages/gateway/src/pi/</div><h3>Pi 适配层</h3><p>把 SessionManager、AgentSession、ModelRuntime 映射为 PiServerService。</p></article>
+              <article class="card" data-tone="host"><div class="path">packages/gateway/src/auth + directory.ts</div><h3>本机安全与目录</h3><p>secret 兑换 credential，校验 Bearer，目录选择与路径规范化。</p></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L3 Pi SDK</span><span class="layer-note">协议、连接、会话租约、Agent Loop 和模型目录都由 Pi 包提供。</span></div>
+            <div class="cards">
+              <article class="card" data-tone="pi"><div class="path">@earendil-works/pi-client</div><h3>PiClient</h3><p>连接状态、服务端快照、会话列表和重连。</p></article>
+              <article class="card" data-tone="pi"><div class="path">@earendil-works/pi-server</div><h3>PiServer</h3><p>协议服务端、Session lease、命令与事件分发。</p></article>
+              <article class="card" data-tone="pi"><div class="path">@earendil-works/pi-coding-agent</div><h3>Agent Runtime</h3><p>RemoteSession、AgentSession、SessionManager、ModelRuntime。</p></article>
+              <article class="card" data-tone="pi"><div class="path">@earendil-works/pi-protocol</div><h3>共享协议</h3><p>快照、Transcript、模型、phase 和二进制帧类型。</p></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L4 外部资源</span><span class="layer-note">Pi 会话文件是持久化真相。模型提供方由 Pi Runtime 访问。</span></div>
+            <div class="cards" style="--columns: 2">
+              <article class="card" data-tone="disk"><div class="path">~/.pi/agent/sessions/&lt;cwd&gt;/</div><h3>Session JSONL</h3><p>header、消息、模型切换和 session_info。Gateway 不维护第二套会话领域状态。</p></article>
+              <article class="card" data-tone="runtime"><div class="path">Model providers</div><h3>模型服务</h3><p>AgentSession 通过 ModelRuntime 解析模型与凭证并执行 turn。</p></article>
+            </div>
+          </section>
+        </div>
+        <div class="truth-grid">
+          <article class="truth"><b>会话真相</b><p>Pi SessionManager 和本地 JSONL。Web 快照只是投影。</p></article>
+          <article class="truth"><b>连接真相</b><p>PiClient 的 ServerSnapshot。Web 不另建会话列表。</p></article>
+          <article class="truth"><b>本地偏好</b><p>Workspace 筛选存在浏览器本地，不能替代 Session cwd。</p></article>
+        </div>
+      </section>
+
+      <section class="view" id="web" role="tabpanel" hidden>
+        <div class="view-head">
+          <h2>Web 子模块</h2>
+          <p>App.vue 只接线。领域状态落在 feature 上下文，网络和凭证留在 client，基础组件不接业务规则。</p>
+        </div>
+        <div class="stack">
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L0 组合根</span><span class="layer-note">创建长生命周期实例和 provide 上下文。</span></div>
+            <div class="cards" style="--columns: 3">
+              <article class="card" data-tone="web"><div class="path">src/App.vue</div><h3>应用接线</h3><p>PiClient、Workspace、Session、Nav 的唯一组装点。</p><div class="chips"><span>Startup</span><span>AppLayout</span><span>RouterView</span></div></article>
+              <article class="card" data-tone="web"><div class="path">src/router/</div><h3>路由状态</h3><p>/sessions/:sessionId 驱动打开与切换会话，/error 承接启动失败。</p></article>
+              <article class="card" data-tone="base"><div class="path">src/main.ts</div><h3>Vue 入口</h3><p>挂载应用、路由和全局样式。</p></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L1 领域模块</span><span class="layer-note">一个 feature 一件事。模块根 index.vue 是视图入口，index.ts 只在需要 provide / use 时存在。</span></div>
+            <div class="cards" style="--columns: 5">
+              <article class="card" data-tone="web"><div class="path">features/session-workbench/</div><h3>会话工作台</h3><p>RemoteSession、路由附加、Transcript 投影、创建、发送与中止。</p><div class="chips"><span>provideSession</span><span>useSession</span></div></article>
+              <article class="card" data-tone="web"><div class="path">features/session-nav/</div><h3>会话导航</h3><p>按 cwd 分组和筛选，会话卡片、重命名、删除与目录选择。</p><div class="chips"><span>provideNav</span><span>useNav</span></div></article>
+              <article class="card" data-tone="web"><div class="path">features/chat-input/</div><h3>输入卡</h3><p>模型与 thinking 预设、附件、上下文占用和提交交互。</p></article>
+              <article class="card" data-tone="web"><div class="path">features/startup/</div><h3>启动门</h3><p>bootstrap、connect、initialize 与启动失败页面。</p></article>
+              <article class="card" data-tone="web"><div class="path">features/theme/</div><h3>主题</h3><p>跟踪和切换明暗色。</p></article>
+            </div>
+            <div class="boundary" style="--tone: var(--primary)">关键交叉：session-workbench 调用 chat-input 的预设类型；session-nav 读取 session 上下文生成当前会话卡片。领域创建仍只在 App.vue 完成。</div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L2 壳与基础件</span><span class="layer-note">壳只管布局，ui 只放 shadcn-vue 基础件。</span></div>
+            <div class="cards" style="--columns: 2">
+              <article class="card" data-tone="base"><div class="path">components/layout/</div><h3>App 壳</h3><p>侧栏、桌面窗框、折叠与移动端抽屉。</p></article>
+              <article class="card" data-tone="base"><div class="path">components/ui/</div><h3>交互基础件</h3><p>button、dialog、tooltip、alert 等，不接会话规则。</p></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L3 浏览器适配</span><span class="layer-note">把浏览器能力变成领域模块可用的端口。</span></div>
+            <div class="cards" style="--columns: 4">
+              <article class="card" data-tone="base"><div class="path">client/pi-client.ts</div><h3>连接投影</h3><p>PiClient 生命周期、ServerSnapshot、五次退避重连。</p></article>
+              <article class="card" data-tone="base"><div class="path">client/transport.ts</div><h3>WebSocket 字节传输</h3><p>把浏览器 WebSocket 适配为 Pi ByteTransport。</p></article>
+              <article class="card" data-tone="base"><div class="path">client/http.ts + bootstrap.ts</div><h3>平台 HTTP 与认证</h3><p>credential 存取、Bearer 请求、错误文案和 secret 兑换。</p></article>
+              <article class="card" data-tone="base"><div class="path">client/local-cwd.ts</div><h3>Workspace 偏好</h3><p>保存授权目录和 lastCwd，供筛选与创建会话使用。</p></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L4 表现资源</span><span class="layer-note">全局 token 和纯工具，不反向持有领域状态。</span></div>
+            <div class="cards" style="--columns: 2">
+              <article class="card" data-tone="base"><div class="path">src/style/</div><h3>视觉 token</h3><p>app.css、reset 和 Markdown 流样式。</p></article>
+              <article class="card" data-tone="base"><div class="path">src/utils/</div><h3>通用纯函数</h3><p>cn() 等基础拼装函数。</p></article>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="gateway" role="tabpanel" hidden>
+        <div class="view-head">
+          <h2>Gateway 与 Pi</h2>
+          <p>Gateway 不重写 Pi。它把本机 HTTP、WebSocket、目录和凭证接到官方 PiServerService。</p>
+        </div>
+        <div class="stack">
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L0 包入口</span><span class="layer-note">Desktop、CLI、脚本只依赖公开导出。</span></div>
+            <div class="cards" style="--columns: 3">
+              <article class="card" data-tone="host"><div class="path">src/index.ts</div><h3>公开 API</h3><p>导出 Gateway、canonicalizePath 和 DirectoryPort。</p></article>
+              <article class="card" data-tone="host"><div class="path">src/cli.ts</div><h3>CLI 启动</h3><p>解析 Web 根目录并启动本地服务。</p></article>
+              <article class="card" data-tone="host"><div class="path">src/directory.ts</div><h3>目录端口</h3><p>Windows 选择器、手工输入和 canonical path。</p></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L1 Host</span><span class="layer-note">一个 Node HTTP server 同时承载静态文件、平台 API 与 WebSocket upgrade。</span></div>
+            <div class="cards" style="--columns: 4">
+              <article class="card" data-tone="host"><div class="path">server/host.ts</div><h3>Gateway</h3><p>组装 BootstrapAuth、PiHostService、PiServer 和 listener。</p></article>
+              <article class="card" data-tone="host"><div class="path">server/websocket.ts</div><h3>认证字节连接</h3><p>校验 credential，限制帧长和积压，再交给 PiServer。</p></article>
+              <article class="card" data-tone="host"><div class="path">server/static-files.ts</div><h3>SPA 静态托管</h3><p>生产态提供 apps/web/dist。</p></article>
+              <article class="card" data-tone="host"><div class="path">auth/bootstrap.ts</div><h3>启动凭证</h3><p>一次 secret 可重复兑换同一 credential，credential 只活在本次本机服务。</p></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L2 Pi 服务适配</span><span class="layer-note">将 Pi SDK 的对象和事件转换为官方服务接口及协议投影。</span></div>
+            <div class="cards" style="--columns: 4">
+              <article class="card" data-tone="pi"><div class="path">pi/service.ts</div><h3>PiHostService</h3><p>list/create/open/rename/delete Session，维护短 TTL 路径索引和活动会话表。</p></article>
+              <article class="card" data-tone="pi"><div class="path">pi/session-runtime.ts</div><h3>PiHostSession</h3><p>prompt、steer、abort、模型与 thinking；冲突操作直接拒绝。</p></article>
+              <article class="card" data-tone="pi"><div class="path">pi/transcript.ts</div><h3>TranscriptProjection</h3><p>AgentSession 事件映射为 progress，当前分支映射为快照条目。</p></article>
+              <article class="card" data-tone="pi"><div class="path">pi/context-usage.ts + session-card.ts</div><h3>平台投影</h3><p>上下文占用估算、侧栏消息数与模型脚注。</p></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L3 官方运行时</span><span class="layer-note">PiServer 管协议和连接，coding-agent 管会话与 Agent 执行。</span></div>
+            <div class="cards" style="--columns: 4">
+              <article class="card" data-tone="pi"><div class="path">PiServer</div><h3>协议调度</h3><p>把客户端命令路由到 PiServerService / PiSessionRuntime。</p></article>
+              <article class="card" data-tone="pi"><div class="path">AgentSession</div><h3>Agent Loop</h3><p>执行 prompt，发出 message 与 tool 事件。</p></article>
+              <article class="card" data-tone="pi"><div class="path">SessionManager</div><h3>会话持久化</h3><p>创建、打开、扫描、分支和 session_info。</p></article>
+              <article class="card" data-tone="pi"><div class="path">ModelRuntime</div><h3>模型目录</h3><p>解析可用模型、提供方和认证状态。</p></article>
+            </div>
+          </section>
+          <section class="layer">
+            <div class="layer-head"><span class="kicker">L4 磁盘</span><span class="layer-note">SessionManager 写 JSONL。Gateway 只缓存路径索引，不复制领域数据。</span></div>
+            <div class="cards" style="--columns: 2">
+              <article class="card" data-tone="disk"><div class="path">Session JSONL</div><h3>完整历史</h3><p>首个快照只发最近 40 条，更早历史由平台 HTTP 分页读取磁盘当前分支。</p></article>
+              <article class="card" data-tone="disk"><div class="path">session_info / model_change</div><h3>元数据来源</h3><p>重命名追加 session_info，侧栏模型取当前分支最后一次 model_change。</p></article>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="flows" role="tabpanel" hidden>
+        <div class="view-head">
+          <h2>关键数据流</h2>
+          <p>协议主链走 WebSocket。目录、卡片、历史分页和文件操作走带 Bearer 的平台 HTTP。</p>
+        </div>
+        <div class="legend"><span><i></i>Pi 协议</span><span><i class="http"></i>平台 HTTP</span><span><i class="state"></i>响应式状态</span><span><i class="disk"></i>磁盘</span></div>
+        <div class="flow-list">
+          <article class="flow" data-kind="http">
+            <div class="flow-head"><h3>启动与授权</h3><span class="flow-meta">HTTP → WebSocket</span></div>
+            <div class="steps" style="--steps: 6">
+              <div class="step"><span class="number">01 Desktop / CLI</span><strong>生成 secret</strong><small>Gateway 只监听 127.0.0.1</small></div>
+              <div class="step"><span class="number">02 启动链接</span><strong>#bootstrap=secret</strong><small>片段不发给普通 HTTP 服务</small></div>
+              <div class="step"><span class="number">03 Startup</span><strong>POST /bootstrap</strong><small>用 secret 兑换 credential</small></div>
+              <div class="step"><span class="number">04 Browser</span><strong>保存 credential</strong><small>写 localStorage 并清 URL hash</small></div>
+              <div class="step"><span class="number">05 PiClient</span><strong>连接 /api/v1/pi</strong><small>credential 经查询参数进入 WS upgrade</small></div>
+              <div class="step"><span class="number">06 PiServer</span><strong>返回 ServerSnapshot</strong><small>sessions、models、连接状态进入 Vue</small></div>
+            </div>
+          </article>
+
+          <article class="flow" data-kind="state">
+            <div class="flow-head"><h3>创建或打开会话</h3><span class="flow-meta">Pi 协议 + Vue route</span></div>
+            <div class="steps" style="--steps: 6">
+              <div class="step"><span class="number">01 Router / Welcome</span><strong>得到 sessionId 或 cwd</strong><small>路由打开已有会话，欢迎页创建新会话</small></div>
+              <div class="step"><span class="number">02 useRemoteSessions</span><strong>open / create</strong><small>替换串行，快速切换只保留最后目标</small></div>
+              <div class="step"><span class="number">03 RemoteSession</span><strong>向 PiClient 发命令</strong><small>官方实例持有会话 lease</small></div>
+              <div class="step"><span class="number">04 PiHostService</span><strong>打开或创建 AgentSession</strong><small>通过 SessionManager 找到 JSONL</small></div>
+              <div class="step"><span class="number">05 PiHostSession</span><strong>生成 SessionSnapshot</strong><small>Transcript 只取当前分支最近 40 条</small></div>
+              <div class="step"><span class="number">06 Vue projection</span><strong>渲染 Workbench</strong><small>snapshot、phase、transcript 变成 computed</small></div>
+            </div>
+          </article>
+
+          <article class="flow">
+            <div class="flow-head"><h3>Prompt 与流式 Transcript</h3><span class="flow-meta">WebSocket 双向</span></div>
+            <div class="steps" style="--steps: 7">
+              <div class="step"><span class="number">01 ChatInput</span><strong>submitText</strong><small>先放 optimistic user item，清空草稿</small></div>
+              <div class="step"><span class="number">02 RemoteSession</span><strong>submit(text)</strong><small>PiClient 编码协议命令</small></div>
+              <div class="step"><span class="number">03 PiHostSession</span><strong>exclusive prompt</strong><small>非 idle 或并发操作直接拒绝</small></div>
+              <div class="step"><span class="number">04 AgentSession</span><strong>执行 turn 与 tools</strong><small>产生 message_* 和 tool_execution_* 事件</small></div>
+              <div class="step"><span class="number">05 Projection</span><strong>事件 → progress</strong><small>流式 assistant 与 tool 占位增量发送</small></div>
+              <div class="step"><span class="number">06 message_end</span><strong>微任务后发 snapshot</strong><small>等 Pi 写盘，再用权威快照收敛流式状态</small></div>
+              <div class="step"><span class="number">07 TranscriptView</span><strong>合并并渲染</strong><small>RemoteSessionState 覆盖 optimistic item</small></div>
+            </div>
+          </article>
+
+          <article class="flow" data-kind="disk">
+            <div class="flow-head"><h3>加载更早 Transcript</h3><span class="flow-meta">平台 HTTP → 磁盘</span></div>
+            <div class="steps" style="--steps: 5">
+              <div class="step"><span class="number">01 TranscriptView</span><strong>点击加载更早</strong><small>取当前窗口第一条 id 作为 before</small></div>
+              <div class="step"><span class="number">02 platformRequest</span><strong>GET /transcript</strong><small>Bearer credential + sessionId + before</small></div>
+              <div class="step"><span class="number">03 PiHostService</span><strong>打开 SessionManager</strong><small>直接读磁盘当前分支，不占 AgentSession lease</small></div>
+              <div class="step"><span class="number">04 Projection</span><strong>返回前一页 40 条</strong><small>同时给出 hasMore</small></div>
+              <div class="step"><span class="number">05 useRemoteSessions</span><strong>合并 prefix + latest</strong><small>按 id 去重，保留实时窗口</small></div>
+            </div>
+          </article>
+
+          <article class="flow" data-kind="http">
+            <div class="flow-head"><h3>目录与会话文件操作</h3><span class="flow-meta">平台 HTTP</span></div>
+            <div class="steps" style="--steps: 5">
+              <div class="step"><span class="number">01 SessionNav</span><strong>选择 / 改名 / 删除</strong><small>导航模块发平台请求</small></div>
+              <div class="step"><span class="number">02 Gateway auth</span><strong>校验 Bearer</strong><small>凭证失效统一返回 UNAUTHENTICATED</small></div>
+              <div class="step"><span class="number">03 Platform port</span><strong>选目录或操作文件</strong><small>Electron dialog 或手工路径；SessionManager 改 JSONL</small></div>
+              <div class="step"><span class="number">04 PiClient</span><strong>refreshSessions</strong><small>用官方 list 结果覆盖 ServerSnapshot.sessions</small></div>
+              <div class="step"><span class="number">05 Nav computed</span><strong>重新分组和渲染</strong><small>本地 projectScope 只筛选，不改会话 cwd</small></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <footer>依据 docs/directory-structure.md、DESIGN.md 与当前 apps/web、apps/desktop、packages/gateway 源码整理。生成于仓库工作树，不扫描 node_modules。</footer>
+    </main>
+
+    <script>
+      const tabs = [...document.querySelectorAll('[role="tab"]')]
+      const views = [...document.querySelectorAll('[role="tabpanel"]')]
+
+      function selectTab(tab) {
+        tabs.forEach((item) => item.setAttribute("aria-selected", String(item === tab)))
+        views.forEach((view) => { view.hidden = view.id !== tab.getAttribute("aria-controls") })
+        history.replaceState(null, "", `#${tab.getAttribute("aria-controls")}`)
+      }
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => selectTab(tab))
+        tab.addEventListener("keydown", (event) => {
+          if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return
+          event.preventDefault()
+          const next = (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length
+          tabs[next].focus()
+          selectTab(tabs[next])
+        })
+      })
+
+      const initial = tabs.find((tab) => tab.getAttribute("aria-controls") === location.hash.slice(1))
+      if (initial) selectTab(initial)
+    </script>
+  </body>
+</html>
