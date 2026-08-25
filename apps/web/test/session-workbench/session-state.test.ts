@@ -8,7 +8,7 @@ import {
   mergeTranscriptWindow,
   projectOptimisticTranscript,
   sessionState,
-  tailTranscript,
+  transcriptWindowTotal,
 } from "@features/session-workbench/lib/session-state.js"
 import type { SessionClientState } from "@features/session-workbench/lib/session-state.js"
 
@@ -111,17 +111,6 @@ describe("isSessionPending", () => {
   })
 })
 
-describe("tailTranscript", () => {
-  it("少于 limit 时原样返回", () => {
-    const items = ["a", "b", "c"]
-    expect(tailTranscript(items, 5)).toBe(items)
-  })
-
-  it("多于 limit 只留尾部且保持原顺序", () => {
-    expect(tailTranscript(["a", "b", "c", "d", "e"], 2)).toEqual(["d", "e"])
-  })
-})
-
 describe("mergeTranscriptWindow", () => {
   it("保留被窗口挤出的前缀，窗口内同 id 以窗口为准", () => {
     const prefix = [
@@ -140,6 +129,19 @@ describe("mergeTranscriptWindow", () => {
   })
 })
 
+describe("transcriptWindowTotal", () => {
+  it("卡片全量与已加载取较大值", () => {
+    expect(transcriptWindowTotal(40, 193)).toBe(193)
+    expect(transcriptWindowTotal(200, 193)).toBe(200)
+  })
+
+  it("卡片未知时用已加载；两者都空则未知", () => {
+    expect(transcriptWindowTotal(40, undefined)).toBe(40)
+    expect(transcriptWindowTotal(0, undefined)).toBeUndefined()
+    expect(transcriptWindowTotal(0, 193)).toBe(193)
+  })
+})
+
 describe("hasEarlierTranscript", () => {
   it("全量大于已加载时显示按钮，耗尽或空列表不显示", () => {
     expect(hasEarlierTranscript(40, 193, false)).toBe(true)
@@ -148,8 +150,8 @@ describe("hasEarlierTranscript", () => {
     expect(hasEarlierTranscript(0, 193, false)).toBe(false)
   })
 
-  it("全量未知时满页才显示", () => {
-    expect(hasEarlierTranscript(40, undefined, false)).toBe(true)
+  it("全量未知时不猜测", () => {
+    expect(hasEarlierTranscript(40, undefined, false)).toBe(false)
     expect(hasEarlierTranscript(2, undefined, false)).toBe(false)
   })
 })

@@ -6,7 +6,10 @@ import type { ChatInputPreset } from "@features/chat-input/types.js"
 import type { useRemoteSessions } from "@features/session-workbench/hooks/use-sessions.js"
 import { useSessionRuntime } from "@features/session-workbench/hooks/use-session-runtime.js"
 
-function setup(submit: (text: string) => Promise<void>) {
+function setup(
+  submit: (text: string) => Promise<void>,
+  createSession: (cwd: string) => Promise<void> = async () => undefined,
+) {
   const transcript = ref<TranscriptItem[]>([
     {
       id: "u1",
@@ -15,11 +18,12 @@ function setup(submit: (text: string) => Promise<void>) {
       timestamp: 1,
     },
   ])
+  const sessionError = ref("")
   const remote = {
     remote: ref({ id: "s1" }),
     transcript,
     submit: vi.fn(submit),
-    createSession: vi.fn(),
+    createSession: vi.fn(createSession),
     abort: vi.fn(),
   } as unknown as ReturnType<typeof useRemoteSessions>
   const sessionId = ref("s1")
@@ -28,10 +32,10 @@ function setup(submit: (text: string) => Promise<void>) {
     sessionId,
     router: { push: vi.fn() } as unknown as Router,
     preset: ref<ChatInputPreset>(),
-    sessionError: ref(""),
+    sessionError,
     selectCwd: vi.fn(),
   })
-  return { remote, runtime, sessionId }
+  return { remote, runtime, sessionId, sessionError }
 }
 
 describe("useSessionRuntime submitText", () => {
@@ -86,5 +90,51 @@ describe("useSessionRuntime submitText", () => {
 
     expect(runtime.prompt.value).toBe("任务")
     expect(runtime.clientState.value?.optimisticUser).toBeNull()
+  })
+})
+
+describe("useSessionRuntime createAndSubmit", () => {
+  it("创建成功后发送正文", async () => {
+    const { remote, runtime, sessionError } = setup(async () => undefined)
+    await runtime.createAndSubmit("/repo", "  任务  ")
+
+    expect(remote.createSession).toHaveBeenCalledWith("/repo", undefined)
+    expect(remote.submit).toHaveBeenCalledWith("任务")
+    expect(sessionError.value).toBe("")
+  })
+
+  it("创建失败时不提交", async () => {
+    const { remote, runtime } = setup(
+      async () => undefined,
+      async () => {
+        throw new Error("创建失败")
+      },
+    )
+
+    await expect(runtime.createAndSubmit("/repo", "任务")).rejects.toThrow("创建失败")
+
+    expect(remote.createSession).toHaveBeenCalledTimes(1)
+    expect(remote.submit).not.toHaveBeenCalled()
+  })
+
+  it("先创建再提交", async () => {
+    let resolveCreate = () => {}
+    const pending = new Promise<void>((resolve) => {
+      resolveCreate = resolve
+    })
+    const { remote, runtime } = setup(
+      async () => undefined,
+      () => pending,
+    )
+
+    const request = runtime.createAndSubmit("/repo", "任务")
+    await Promise.resolve()
+
+    expect(remote.createSession).toHaveBeenCalledTimes(1)
+    expect(remote.submit).not.toHaveBeenCalled()
+
+    resolveCreate()
+    await request
+    expect(remote.submit).toHaveBeenCalledWith("任务")
   })
 })

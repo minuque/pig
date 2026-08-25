@@ -36,28 +36,58 @@ export function canSubmit(
 ): boolean {
   return workspaceId !== undefined && preset !== undefined && !submitting
 }
+
+/** 当前选择仍存在于列表时保留，否则回退到最近使用的目录或第一个目录。 */
+export function nextWelcomeWorkspaceId(
+  workspaces: readonly string[],
+  current: string | undefined,
+  lastCwd: string | undefined,
+): string | undefined {
+  if (workspaces.includes(current ?? "")) return current
+  if (lastCwd !== undefined && workspaces.includes(lastCwd)) return lastCwd
+  return workspaces[0]
+}
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref, watch } from "vue"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import ChatInput from "@features/chat-input/index.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
-import { useWelcomeSubmit } from "@features/session-workbench/hooks/use-welcome-submit.js"
 
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
-const { catalog, preset, createSession, submitText } = useSession()
+const { catalog, preset, createAndSubmit } = useSession()
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
-const { welcomePrompt, welcomeWorkspaceId, welcomeSubmitting, welcomeError, submitWelcome } =
-  useWelcomeSubmit({
-    workspaces,
-    lastCwd,
-    preset,
-    createSession,
-    submit: submitText,
-  })
+const welcomePrompt = ref("")
+const welcomeWorkspaceId = ref<string>()
+const welcomeSubmitting = ref(false)
+const welcomeError = ref("")
+
+watch(
+  [workspaces, lastCwd],
+  ([items, last]) => {
+    welcomeWorkspaceId.value = nextWelcomeWorkspaceId(items, welcomeWorkspaceId.value, last)
+  },
+  { immediate: true },
+)
+
+async function submitWelcome(text: string) {
+  const cwd = welcomeWorkspaceId.value
+  const trimmed = text.trim()
+  if (!cwd || !preset.value || !trimmed || welcomeSubmitting.value) return
+  welcomeSubmitting.value = true
+  welcomeError.value = ""
+  try {
+    await createAndSubmit(cwd, trimmed)
+    welcomePrompt.value = ""
+  } catch (error) {
+    welcomeError.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    welcomeSubmitting.value = false
+  }
+}
 
 const canSubmitNow = computed(() =>
   canSubmit(welcomeWorkspaceId.value, preset.value, welcomeSubmitting.value),

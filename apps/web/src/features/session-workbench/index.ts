@@ -1,12 +1,13 @@
-import { computed, inject, onBeforeUnmount, provide, ref, type InjectionKey } from "vue"
+import { computed, inject, onBeforeUnmount, provide, ref, watch, type InjectionKey } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
+import { projectContextUsage } from "@features/chat-input/lib/context-usage.js"
 import { catalogFromModels } from "@features/chat-input/types.js"
 import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-binding.js"
+import { useSessionCards } from "@features/session-workbench/hooks/use-session-cards.js"
 import { useRemoteSessions } from "@features/session-workbench/hooks/use-sessions.js"
-import { useSessionRoute } from "@features/session-workbench/hooks/use-session-route.js"
 import { useSessionRuntime } from "@features/session-workbench/hooks/use-session-runtime.js"
 import {
   isSessionPending,
@@ -23,16 +24,32 @@ function createSession(
   const route = useRoute()
   const router = useRouter()
   const sessionError = ref("")
-  const remote = useRemoteSessions(pi.client)
+  const cards = useSessionCards(pi.connected, pi.sessions)
+  const remote = useRemoteSessions(pi.client, { sessionCards: cards.sessionCards })
 
-  const { sessionId, initialize } = useSessionRoute({
-    route,
-    router,
-    error: sessionError,
-    errorMessage,
-    openSession: remote.openSession,
-    dispose: remote.dispose,
+  const sessionId = computed(() => {
+    const raw = route.params.sessionId
+    return typeof raw === "string" && raw.length > 0 ? raw : undefined
   })
+  let initialized = false
+  /** 路由参数与 RemoteSession 生命周期同步。 */
+  async function syncRoute() {
+    const id = sessionId.value
+    if (!id) return remote.dispose()
+    try {
+      await remote.openSession(id)
+    } catch (error) {
+      sessionError.value = errorMessage(error)
+      if (sessionId.value) await router.replace("/")
+    }
+  }
+  watch(sessionId, () => {
+    if (initialized) void syncRoute()
+  })
+  async function initialize() {
+    initialized = true
+    await syncRoute()
+  }
 
   const sessionPending = computed(() => isSessionPending(sessionId.value, remote.remote.value?.id))
   const projection = computed(() => (sessionPending.value ? undefined : remote.projection.value))
@@ -61,6 +78,8 @@ function createSession(
       runtime.clientState.value?.optimisticUser ?? null,
     ),
   )
+  const composerCwd = computed(() => projection.value?.cwd ?? cwd.lastCwd.value)
+  const contextUsage = computed(() => projectContextUsage(remote.contextUsageEstimate.value))
 
   pi.bindAttachedReconnect(async () => {
     if (remote.remote.value) await remote.reconnect()
@@ -81,7 +100,8 @@ function createSession(
     connected: pi.connected,
     connectionError: pi.connectionError,
     transcript,
-    contextUsageEstimate: remote.contextUsageEstimate,
+    composerCwd,
+    contextUsage,
     catalog,
     preset,
     prompt: runtime.prompt,
@@ -90,6 +110,7 @@ function createSession(
     creating: runtime.creating,
     aborting: runtime.aborting,
     createSession: runtime.createSession,
+    createAndSubmit: runtime.createAndSubmit,
     submitText: runtime.submitText,
     abortSession: runtime.abortSession,
     applyThreadState: runtime.applyThreadState,
@@ -102,7 +123,10 @@ function createSession(
       }
     },
     loadingEarlier: remote.loadingEarlier,
-    earlierExhausted: remote.earlierExhausted,
+    hasEarlier: computed(() => (sessionPending.value ? false : remote.hasEarlier.value)),
+    transcriptTotal: remote.transcriptTotal,
+    sessionCards: cards.sessionCards,
+    refreshSessionCards: cards.loadSessionCards,
     initialize,
   }
 }

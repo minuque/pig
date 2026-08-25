@@ -2,7 +2,7 @@
   <section class="empty-canvas enter-blur" aria-labelledby="session-hero-title">
     <div class="empty-canvas-form">
       <WorkbenchHero
-        :workspace-id="cwd"
+        :workspace-id="composerCwd"
         title-id="session-hero-title"
         :workspaces="workspaces"
         :selectable="false"
@@ -13,7 +13,7 @@
         :catalog="catalog"
         :phase="phase"
         :error="sessionError"
-        :cwd="cwd"
+        :cwd="composerCwd"
         :usage="contextUsage"
         :session-id="sessionId"
         @send="submitText"
@@ -23,16 +23,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
 import ChatInput from "@features/chat-input/index.vue"
-import { projectContextUsage } from "@features/chat-input/lib/context-usage.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 
 const {
   sessionId,
-  contextUsageEstimate,
+  composerCwd,
+  contextUsage,
   phase,
   prompt,
   preset,
@@ -40,10 +39,7 @@ const {
   sessionError,
   submitText,
 } = useSession()
-const { workspaces, activeWorkspaceId, lastCwd } = useNav()
-
-const cwd = computed(() => activeWorkspaceId.value ?? lastCwd.value)
-const contextUsage = computed(() => projectContextUsage(contextUsageEstimate.value))
+const { workspaces } = useNav()
 </script>
 
 <style scoped>

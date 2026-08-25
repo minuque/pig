@@ -40,8 +40,8 @@ import { phaseLabel } from "@features/session-workbench/lib/session-phase.js"
 import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
 const { leftOpen, toggle } = useLeftPanelToggle()
-const { sessionId, projection, phase, connecting, sessionPending } = useSession()
-const { activeWorkspaceId, lastCwd, listedSessions } = useNav()
+const { sessionId, projection, phase, connecting, sessionPending, composerCwd } = useSession()
+const { listedSessions } = useNav()
 
 const title = computed(() => {
   if (sessionPending.value) {
@@ -50,9 +50,7 @@ const title = computed(() => {
   }
   return projection.value?.name ?? (sessionId.value ? UNTITLED_SESSION : "")
 })
-const cwd = computed(() =>
-  sessionId.value ? (activeWorkspaceId.value ?? lastCwd.value) : undefined,
-)
+const cwd = computed(() => (sessionId.value ? composerCwd.value : undefined))
 const running = computed(() => projection.value?.running ?? false)
 const thinkingChip = computed(() => {
   const level = projection.value?.thinkingLevel

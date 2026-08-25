@@ -112,7 +112,7 @@ export function canSend(text: string, sendDisabled: boolean): boolean {
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next"
-import type { SessionPhase } from "@earendil-works/pi-protocol"
+import type { ModelRef, SessionPhase } from "@earendil-works/pi-protocol"
 import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue"
 import ComposerMeta from "@features/chat-input/components/ComposerMeta.vue"
 import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel.vue"
@@ -123,7 +123,7 @@ import {
   shouldShowComposerMeta,
   type ContextUsage,
 } from "@features/chat-input/lib/context-usage.js"
-import { useModelPresetBinding } from "@features/chat-input/hooks/use-model-preset-binding.js"
+import { resolveModelInfo } from "@features/chat-input/lib/model-preset.js"
 import {
   MAX_COMPOSER_ATTACHMENTS,
   imageFilesFromClipboard,
@@ -176,7 +176,19 @@ const emit = defineEmits<{
   abort: []
 }>()
 
-const { model, modelLevels, level } = useModelPresetBinding(() => props.catalog, preset)
+const model = computed({
+  get: () => preset.value?.model,
+  set: (next: ModelRef | undefined) => {
+    if (next) preset.value = { model: next, thinkingLevel: preset.value?.thinkingLevel ?? "" }
+  },
+})
+const modelLevels = computed(() => resolveModelInfo(props.catalog, model.value).levels)
+const level = computed({
+  get: () => preset.value?.thinkingLevel ?? "",
+  set: (thinkingLevel: string) => {
+    if (preset.value) preset.value = { ...preset.value, thinkingLevel }
+  },
+})
 const running = computed(() => props.phase !== undefined && props.phase !== "idle")
 const { attachments, addFiles, remove, clear } = useComposerAttachments()
 const sendActive = computed(() => canSend(prompt.value, props.sendDisabled))

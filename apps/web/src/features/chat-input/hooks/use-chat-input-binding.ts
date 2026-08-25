@@ -1,6 +1,7 @@
 import { ref, watch, type Ref } from "vue"
 import type { ModelRef, SessionPhase, ThinkingLevel } from "@earendil-works/pi-protocol"
 import { errorMessage } from "@client/http.js"
+import { resolveModelInfo } from "@features/chat-input/lib/model-preset.js"
 import {
   defaultPresetFrom,
   sameModel,
@@ -35,6 +36,15 @@ export function useChatInputBinding(options: ChatInputBindingOptions) {
       if (model && level && !pendingModel.value) preset.value = { model, thinkingLevel: level }
     },
   )
+  // 切模型或目录变化后，当前 thinkingLevel 不在新档位里则回落到第一档
+  watch([() => preset.value?.model, () => preset.value?.thinkingLevel, options.catalog], () => {
+    const current = preset.value
+    if (!current) return
+    const levels = resolveModelInfo(options.catalog.value, current.model).levels
+    if (levels.length && !levels.includes(current.thinkingLevel)) {
+      preset.value = { ...current, thinkingLevel: levels[0]! }
+    }
+  })
   watch(
     () => preset.value?.model,
     (model) => {

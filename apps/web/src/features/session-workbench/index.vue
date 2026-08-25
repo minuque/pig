@@ -70,10 +70,7 @@ export function isSessionLoading(
 import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useRoute } from "vue-router"
 import ChatInput from "@features/chat-input/index.vue"
-import { projectContextUsage } from "@features/chat-input/lib/context-usage.js"
-import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
-import { hasEarlierTranscript } from "@features/session-workbench/lib/session-state.js"
 import SessionEmptyCanvas from "@features/session-workbench/components/SessionEmptyCanvas.vue"
 import SessionLoading from "@features/session-workbench/components/SessionLoading.vue"
 import SessionWelcome from "@features/session-workbench/components/SessionWelcome.vue"
@@ -85,7 +82,8 @@ const route = useRoute()
 const {
   sessionId,
   transcript,
-  contextUsageEstimate,
+  composerCwd,
+  contextUsage,
   phase,
   sessionPending,
   aborting,
@@ -99,11 +97,10 @@ const {
   submitText,
   loadEarlier,
   loadingEarlier,
-  earlierExhausted,
+  hasEarlier,
   connectionError,
   connected,
 } = useSession()
-const { activeWorkspaceId, lastCwd, cardFootById } = useNav()
 
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
@@ -124,16 +121,7 @@ watch(sessionId, () => {
 function onTranscriptReady() {
   streamReady.value = true
 }
-const hasEarlier = computed(() =>
-  hasEarlierTranscript(
-    transcript.value.length,
-    sessionId.value ? cardFootById.value.get(sessionId.value)?.messageCount : undefined,
-    earlierExhausted.value,
-  ),
-)
 const threadState = computed(() => clientState.value?.threadState ?? null)
-const composerCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value)
-const contextUsage = computed(() => projectContextUsage(contextUsageEstimate.value))
 
 const transcriptView = useTemplateRef<{
   prepareForSubmit(): void

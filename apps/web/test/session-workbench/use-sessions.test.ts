@@ -4,7 +4,6 @@ import type { PiClient } from "@earendil-works/pi-client"
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
 import type { SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol"
 import type { ContextUsageEstimate } from "@features/chat-input/lib/context-usage.js"
-import { INITIAL_TRANSCRIPT_TAIL } from "@features/session-workbench/lib/session-state.js"
 
 /** 假 RemoteSession：记录 dispose 次数与订阅者，可手动派发状态。 */
 const { openMock, createMock, makeSession, platformRequestMock } = vi.hoisted(() => {
@@ -77,6 +76,19 @@ function makeTranscript(count: number, prefix = "m"): TranscriptItem[] {
     content: [{ type: "text", text: `${prefix}${i + 1}` }],
     timestamp: i + 1,
   }))
+}
+
+/** Gateway 快照窗口：id 从 start 起连续 count 条。 */
+function snapshotWindow(start: number, count: number): TranscriptItem[] {
+  return Array.from({ length: count }, (_, i) => {
+    const n = start + i
+    return {
+      id: `m${n}`,
+      role: "user" as const,
+      content: [{ type: "text", text: `m${n}` }],
+      timestamp: n,
+    }
+  })
 }
 
 function snapshot(revision: number): SessionSnapshot {
@@ -256,30 +268,42 @@ describe("useRemoteSessions lifecycle", () => {
   })
 })
 
-describe("useRemoteSessions 尾部先上屏", () => {
-  it("openSession 只暴露最后 40 条，不自动补全文", async () => {
+describe("useRemoteSessions 窗口", () => {
+  it("openSession 不自动补更早页，快照有多少就展示多少", async () => {
     const { sessions } = setup()
     const a = makeSession("s1")
-    setTranscript(a, makeTranscript(45))
+    setTranscript(a, snapshotWindow(6, 40))
     openMock.mockResolvedValue(a)
     await sessions.openSession("s1")
-    expect(sessions.transcript.value).toHaveLength(INITIAL_TRANSCRIPT_TAIL)
+    expect(sessions.transcript.value).toHaveLength(40)
     expect(sessions.transcript.value[0]?.id).toBe("m6")
     expect(sessions.transcript.value.at(-1)?.id).toBe("m45")
-    await Promise.resolve()
-    expect(sessions.transcript.value).toHaveLength(INITIAL_TRANSCRIPT_TAIL)
+    expect(sessions.hasEarlier.value).toBe(false)
+    expect(
+      platformRequestMock.mock.calls.every((call) => !String(call[0]).includes("/transcript?")),
+    ).toBe(true)
   })
 
-  it("加载更早把更早一页接到头部", async () => {
-    const { sessions } = setup()
+  it("卡片全量大于已加载时 hasEarlier，翻尽后关闭", async () => {
+    const cards = ref(new Map([["s1", { messageCount: 193 }]]))
+    const client = ref<PiClient | undefined>()
+    const sessions = useRemoteSessions(
+      client as unknown as MaybeRefOrGetter<PiClient | undefined>,
+      {
+        sessionCards: cards,
+      },
+    )
+    client.value = {} as unknown as PiClient
     const a = makeSession("s1")
-    setTranscript(a, makeTranscript(45))
+    setTranscript(a, snapshotWindow(6, 40))
     openMock.mockResolvedValue(a)
     platformRequestMock.mockResolvedValue({
-      items: makeTranscript(5).slice(0, 5),
+      items: makeTranscript(5),
       hasMore: false,
     })
     await sessions.openSession("s1")
+    expect(sessions.transcriptTotal.value).toBe(193)
+    expect(sessions.hasEarlier.value).toBe(true)
     await sessions.loadEarlier()
     expect(platformRequestMock).toHaveBeenCalledWith(
       expect.stringContaining("sessionId=s1&before=m6"),
@@ -293,12 +317,33 @@ describe("useRemoteSessions 尾部先上屏", () => {
       ...Array.from({ length: 40 }, (_, i) => `m${i + 6}`),
     ])
     expect(sessions.earlierExhausted.value).toBe(true)
+    expect(sessions.hasEarlier.value).toBe(false)
+  })
+
+  it("卡片后到时才出现 hasEarlier", async () => {
+    const cards = ref(new Map<string, { messageCount: number }>())
+    const client = ref<PiClient | undefined>()
+    const sessions = useRemoteSessions(
+      client as unknown as MaybeRefOrGetter<PiClient | undefined>,
+      {
+        sessionCards: cards,
+      },
+    )
+    client.value = {} as unknown as PiClient
+    const a = makeSession("s1")
+    setTranscript(a, snapshotWindow(6, 40))
+    openMock.mockResolvedValue(a)
+    await sessions.openSession("s1")
+    expect(sessions.hasEarlier.value).toBe(false)
+    cards.value = new Map([["s1", { messageCount: 193 }]])
+    expect(sessions.transcriptTotal.value).toBe(193)
+    expect(sessions.hasEarlier.value).toBe(true)
   })
 
   it("加载更早失败时上抛且复位 loading", async () => {
     const { sessions } = setup()
     const a = makeSession("s1")
-    setTranscript(a, makeTranscript(45))
+    setTranscript(a, makeTranscript(40))
     openMock.mockResolvedValue(a)
     platformRequestMock.mockRejectedValue(new Error("boom"))
     await sessions.openSession("s1")

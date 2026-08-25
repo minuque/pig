@@ -35,9 +35,9 @@ describe("useWorkspaceNav projectScope", () => {
     const sessions = ref<SessionMetadata[]>([{ id: "s1", createdAt: 1, cwd: "g:/AICode/pig" }])
     const nav = useWorkspaceNav(sessions, localWorkspaces(["g:/AICode/pig"]), ref(""), {
       sessionId: ref(undefined),
-      connected: ref(false),
       router: { replace: vi.fn() } as never,
       refreshSessions: vi.fn(async () => undefined),
+      refreshSessionCards: vi.fn(async () => undefined),
     })
 
     nav.toggleProjectScope("g:/AICode/pig")
@@ -56,9 +56,9 @@ describe("useWorkspaceNav projectScope", () => {
     const sessions = ref<SessionMetadata[]>([{ id: "s1", createdAt: 1, cwd: "g:/AICode/pig" }])
     const nav = useWorkspaceNav(sessions, localWorkspaces([]), ref(""), {
       sessionId: ref(undefined),
-      connected: ref(false),
       router: { replace: vi.fn() } as never,
       refreshSessions: vi.fn(async () => undefined),
+      refreshSessionCards: vi.fn(async () => undefined),
     })
 
     nav.toggleProjectScope("g:/AICode/pig")
@@ -77,9 +77,9 @@ describe("useWorkspaceNav projectScope", () => {
     ])
     const nav = useWorkspaceNav(sessions, localWorkspaces(["/a", "/b", "/c"]), ref(""), {
       sessionId: ref(undefined),
-      connected: ref(false),
       router: { replace: vi.fn() } as never,
       refreshSessions: vi.fn(async () => undefined),
+      refreshSessionCards: vi.fn(async () => undefined),
     })
 
     nav.toggleProjectScope("/a")

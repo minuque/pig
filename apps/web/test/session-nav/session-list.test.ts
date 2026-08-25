@@ -227,9 +227,7 @@ describe("session card foot", () => {
     expect(sessionModelLabel({ provider: "x", id: "unknown" }, names)).toBe("unknown")
   })
 
-  it("live 截断 transcript 不得把卡片条数改小", () => {
-    // extras 193 是卡片全量；live 40 是快照窗口。Math.max 避免侧栏显示成 40。
-    // 新消息刷出时 live 可能大于 extras，仍取较大值。
+  it("live 用窗口总条数，缺省则回落 extras", () => {
     const extras = new Map([
       ["s1", { messageCount: 193, model: { provider: "openai", id: "gpt-4" } }],
     ])
@@ -238,7 +236,15 @@ describe("session card foot", () => {
       sessionCardFoot(
         "s1",
         extras,
-        { sessionId: "s1", messageCount: 40, model: { provider: "openai", id: "gpt-4" } },
+        { sessionId: "s1", messageCount: 200, model: { provider: "openai", id: "gpt-4" } },
+        names,
+      ),
+    ).toEqual({ messageCount: 200, modelLabel: "GPT-4", modelProvider: "openai" })
+    expect(
+      sessionCardFoot(
+        "s1",
+        extras,
+        { sessionId: "s1", model: { provider: "openai", id: "gpt-4" } },
         names,
       ),
     ).toEqual({ messageCount: 193, modelLabel: "GPT-4", modelProvider: "openai" })

@@ -9,6 +9,22 @@ const catalog: ChatInputVendor[] = [
   { id: "b", name: "B", models: [{ id: "two", name: "Two", thinkingLevels: ["low"] }] },
 ]
 
+const pickerCatalog: ChatInputVendor[] = [
+  {
+    id: "anthropic",
+    name: "Anthropic",
+    models: [
+      { id: "claude-sonnet", name: "Claude Sonnet", thinkingLevels: ["low", "high"] },
+      { id: "claude-haiku", name: "Claude Haiku", thinkingLevels: ["low"] },
+    ],
+  },
+  {
+    id: "openai",
+    name: "OpenAI",
+    models: [{ id: "gpt-4o", name: "GPT-4o", thinkingLevels: ["off"] }],
+  },
+]
+
 function snapshot(model = { provider: "a", id: "one" }, thinkingLevel = "high") {
   return {
     id: "s1",
@@ -64,5 +80,98 @@ describe("useChatInputBinding", () => {
     await new Promise((resolve) => setTimeout(resolve))
     expect(setThinking).toHaveBeenCalledWith("low")
     expect(preset.value).toEqual({ model: { provider: "b", id: "two" }, thinkingLevel: "low" })
+  })
+
+  it("切模型后 thinkingLevel 不在新档位则回落第一档再下发", async () => {
+    const sonnet = { provider: "anthropic", id: "claude-sonnet" }
+    const gpt = { provider: "openai", id: "gpt-4o" }
+    const state = ref(snapshot(sonnet, "high"))
+    let release!: () => void
+    const setModel = vi.fn(
+      async () =>
+        new Promise<void>((resolve) => {
+          release = () => {
+            state.value = snapshot(gpt, "high")
+            resolve()
+          }
+        }),
+    )
+    const setThinking = vi.fn(async (level: string) => {
+      state.value = snapshot(state.value.model, level)
+    })
+    const phase = ref<"idle" | undefined>("idle")
+    const { preset } = useChatInputBinding({
+      catalog: ref(pickerCatalog),
+      snapshot: state,
+      phase,
+      error: ref(""),
+      setModel,
+      setThinking,
+    })
+
+    state.value = snapshot(sonnet, "high")
+    await nextTick()
+    // 输入卡只改模型，档位仍是旧值；binding 负责回落
+    preset.value = { model: gpt, thinkingLevel: "high" }
+    await nextTick()
+    expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
+    expect(setModel).toHaveBeenCalledWith(gpt)
+
+    release()
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(setThinking).toHaveBeenCalledWith("off")
+    expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
+  })
+
+  it("catalog 整体替换后仍按新目录回落档位", async () => {
+    const sonnet = { provider: "anthropic", id: "claude-sonnet" }
+    const gpt = { provider: "openai", id: "gpt-4o" }
+    const catalogRef = ref<ChatInputVendor[]>([])
+    const state = ref<SessionSnapshot | undefined>()
+    const setModel = vi.fn(async () => {})
+    const setThinking = vi.fn(async () => {})
+    const phase = ref<"idle" | undefined>("idle")
+    const { preset } = useChatInputBinding({
+      catalog: catalogRef,
+      snapshot: state,
+      phase,
+      error: ref(""),
+      setModel,
+      setThinking,
+    })
+
+    state.value = snapshot(sonnet, "high")
+    await nextTick()
+    expect(preset.value).toEqual({ model: sonnet, thinkingLevel: "high" })
+
+    catalogRef.value = pickerCatalog
+    await nextTick()
+    expect(preset.value).toEqual({ model: sonnet, thinkingLevel: "high" })
+
+    preset.value = { model: gpt, thinkingLevel: "high" }
+    await nextTick()
+    expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
+  })
+
+  it("空 catalog 补齐后非法档位按新目录回落", async () => {
+    const gpt = { provider: "openai", id: "gpt-4o" }
+    const catalogRef = ref<ChatInputVendor[]>([])
+    const state = ref<SessionSnapshot | undefined>()
+    const { preset } = useChatInputBinding({
+      catalog: catalogRef,
+      snapshot: state,
+      phase: ref<"idle" | undefined>("idle"),
+      error: ref(""),
+      setModel: vi.fn(async () => {}),
+      setThinking: vi.fn(async () => {}),
+    })
+
+    state.value = snapshot(gpt, "high")
+    await nextTick()
+    expect(preset.value).toEqual({ model: gpt, thinkingLevel: "high" })
+
+    catalogRef.value = pickerCatalog
+    await nextTick()
+    expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
   })
 })

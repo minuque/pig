@@ -6,9 +6,10 @@ import type { ModelRef, ThinkingLevel, TranscriptItem } from "@earendil-works/pi
 import { platformRequest } from "@client/http.js"
 import type { ContextUsageEstimate } from "@features/chat-input/lib/context-usage.js"
 import {
+  hasEarlierTranscript,
   mergeTranscriptWindow,
   projectSessionSnapshot,
-  tailTranscript,
+  transcriptWindowTotal,
   type SessionProjection,
 } from "@features/session-workbench/lib/session-state.js"
 
@@ -24,7 +25,12 @@ export interface CreateSessionInput {
  * Snapshot/Transcript 经 RemoteSessionState 投影为 UI 可读视图。
  * SDK 实例用 shallowRef 保存（不深追踪），纯派生用 computed。
  */
-export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | undefined>) {
+export function useRemoteSessions(
+  clientSource: MaybeRefOrGetter<PiClient | undefined>,
+  options?: {
+    sessionCards?: MaybeRefOrGetter<ReadonlyMap<string, { messageCount: number }>>
+  },
+) {
   const client = computed(() => toValue(clientSource))
   // SDK 实例仅存引用，不响应式深追踪
   const remote = shallowRef<RemoteSession>()
@@ -46,6 +52,17 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined,
   )
   const transcript = computed(() => state.value?.transcript ?? [])
+  const cardCount = computed(() => {
+    const id = remote.value?.id
+    if (!id || !options?.sessionCards) return undefined
+    return toValue(options.sessionCards).get(id)?.messageCount
+  })
+  const transcriptTotal = computed(() =>
+    transcriptWindowTotal(transcript.value.length, cardCount.value),
+  )
+  const hasEarlier = computed(() =>
+    hasEarlierTranscript(transcript.value.length, transcriptTotal.value, earlierExhausted.value),
+  )
 
   function attach(next: RemoteSession) {
     const previous = remote.value
@@ -58,7 +75,7 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     let usageRevision: number | undefined
     earlierExhausted.value = false
     unsubscribeState = next.subscribe((nextState) => {
-      latestWindow = tailTranscript(nextState.transcript)
+      latestWindow = nextState.transcript
       const merged = mergeTranscriptWindow(prefix, latestWindow)
       const windowIds = new Set(latestWindow.map((item) => item.id))
       prefix = merged.filter((item) => !windowIds.has(item.id))
@@ -205,6 +222,8 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     snapshot,
     projection,
     transcript,
+    transcriptTotal,
+    hasEarlier,
     loadingEarlier,
     earlierExhausted,
     contextUsageEstimate,

@@ -18,24 +18,24 @@ function createNav(
   const navError = ref("")
   const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
     sessionId: session.sessionId,
-    connected: pi.connected,
     router,
     refreshSessions: pi.refreshSessions,
+    refreshSessionCards: session.refreshSessionCards,
   })
 
   const cardFootById = computed(() => {
     const names = modelDisplayNames(session.catalog.value)
     const liveId = session.sessionId.value
+    const total = session.transcriptTotal.value
     const live =
       liveId && session.projection.value
         ? {
             sessionId: liveId,
-            // 快照窗口截断 transcript；条数由 sessionCardFoot 与 extras 取 max。
-            messageCount: session.transcript.value.length,
+            ...(total === undefined ? {} : { messageCount: total }),
             model: session.projection.value.model,
           }
         : undefined
-    const extras = nav.sessionCards.value
+    const extras = session.sessionCards.value
     const feet = new Map<
       string,
       { messageCount: number | undefined; modelLabel: string; modelProvider: string }

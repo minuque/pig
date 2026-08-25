@@ -112,6 +112,12 @@ export function useSessionRuntime(options: SessionRuntimeOptions) {
     }
   }
 
+  /** 欢迎页首次 Prompt：创建 Session 后立即发送。 */
+  async function createAndSubmit(cwd: string, text: string) {
+    await createSession(cwd)
+    await submitText(text)
+  }
+
   return {
     creating: creatingCwd,
     aborting,
@@ -119,6 +125,7 @@ export function useSessionRuntime(options: SessionRuntimeOptions) {
     prompt,
     applyThreadState,
     createSession,
+    createAndSubmit,
     submitText,
     abortSession,
   }

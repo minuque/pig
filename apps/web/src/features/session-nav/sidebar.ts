@@ -111,7 +111,7 @@ export interface SessionCardExtra {
 
 export interface SessionCardLive {
   sessionId: string
-  messageCount: number
+  messageCount?: number
   model: { provider: string; id: string }
 }
 
@@ -143,10 +143,7 @@ export function sessionCardFoot(
   const isLive = live?.sessionId === sessionId
   const model = isLive ? live.model : extra?.model
   return {
-    // live 可能是快照窗口（40）；与 extras 全量取较大值，避免 193 被改成 40。
-    messageCount: isLive
-      ? Math.max(extra?.messageCount ?? 0, live.messageCount)
-      : extra?.messageCount,
+    messageCount: isLive ? (live.messageCount ?? extra?.messageCount) : extra?.messageCount,
     modelLabel: sessionModelLabel(model, names),
     modelProvider: model?.provider ?? "",
   }
