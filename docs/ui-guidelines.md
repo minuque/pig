@@ -12,7 +12,7 @@ Vue 3 + TypeScript + Vite + Tailwind CSS + shadcn-vue + lucide-vue-next + VueUse
 
 ## 信息架构
 
-两栏：左栏会话列表（顶部按工作目录筛选），中央 Transcript / phase / Prompt / Abort。无第三栏。
+两栏：左栏会话列表（按项目或更新时间分组），中央 Transcript / phase / Prompt / Abort。无第三栏。
 
 Session 切换由 `/sessions/:sessionId` 驱动。
 
@@ -59,13 +59,15 @@ Tool Call 默认：状态图标、名称、截断入参。展开后完整入参�
 
 重命名走 Pi `SessionManager.appendSessionInfo`。删除只删 Pi 会话文件。
 
-模型仅 `idle` 时可改。列表真相在 Pi：按会话平铺，创建时间新→旧，活动不重排。工作目录只做顶部筛选。
+模型仅 `idle` 时可改。列表按当前分组的活动时间新→旧，改名不重排。无顶部工作目录筛选。细则见 [`prd/session-nav.md`](prd/session-nav.md)。
 
-卡片三行：目录名 + 相对时间、标题、消息数 + 当前模型（space-between）。标题用 `caption`。侧栏底设置齿轮占位。折叠钮旁 pig 标回 `/`。侧栏操作失败用右上 Alert。
+默认「更新时间」平铺，10 条后「显示更多」每次 +10。可切「项目」：目录名组头不可折叠，每组 5 条，末尾每次 +5。搜索时取消截断。New Task 与搜索是列表上方整行；分组切换与加目录同一行。项目组头可在该目录新建。
+
+卡片两行两列。标题 `caption`。右上时钟 + 相对时间；当前会话 `turn` 时改为 Spinner 并藏时钟。第二行左侧：更新时间分组为项目名，项目分组为消息数；右侧模型名 + VendorMark。无 kebab；右键 / 长按 / Shift+F10 打开重命名与删除。侧栏底设置齿轮占位。折叠钮旁 pig 标回 `/`。侧栏操作失败用右上 Alert。
 
 ### 顶栏
 
-Session 标题（`caption`）+ 淡 cwd 名。右上 ThemeToggle。thinking 为 off 时不显示芯片。phase / 连接只在非 idle 显示。
+Session 标题（`caption`）+ 淡 cwd 名。右上 ThemeToggle。不显示思考强度。phase / 连接只在非 idle 显示。
 
 ### ChatInput
 
