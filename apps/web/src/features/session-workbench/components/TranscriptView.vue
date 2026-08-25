@@ -3,6 +3,7 @@
     id="transcript-panel"
     ref="region"
     class="transcript-region"
+    :style="$slots.default ? { '--chat-input-space': `${dockHeight}px` } : undefined"
     :aria-labelledby="transcriptTitleId"
     @wheel="onTranscriptWheel"
     @pointerdown="releasePinnedToBottom"
@@ -62,6 +63,22 @@
 
     <p v-else-if="running" class="shimmer" role="status">正在运行…</p>
   </section>
+  <div v-if="$slots.default" ref="dock" class="chat-input-dock">
+    <div v-show="showScrollToLatest" class="session-floating-controls">
+      <Button
+        class="floating-control scroll-latest-control"
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        aria-label="滚动到底部"
+        title="滚动到底部"
+        @click="scrollToLatest"
+      >
+        <ArrowDown />
+      </Button>
+    </div>
+    <slot />
+  </div>
 </template>
 
 <script lang="ts">
@@ -139,6 +156,11 @@ export function isTranscriptVisuallyAtBottom(
   return isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, 48)
 }
 
+/** 有内容且视觉上离开底部才显示回到底部按钮。 */
+export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boolean): boolean {
+  return transcriptLength > 0 && !atBottom
+}
+
 /** 盖过时间线已排队的旧锚点 rAF 与测高回写。 */
 export const PROGRAMMATIC_BOTTOM_HOLD_MS = 400
 
@@ -192,12 +214,14 @@ export function estimateTranscriptRowHeight(item: TimelineRow): number {
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline } from "markstream-vue"
 import type { SessionPhase } from "@earendil-works/pi-protocol"
 import AssistantMessage from "@features/session-workbench/components/AssistantMessage.vue"
 import TranscriptMinimap from "@features/session-workbench/components/TranscriptMinimap.vue"
 import ToolCall from "@features/session-workbench/components/ToolCall.vue"
 import UserMessage from "@features/session-workbench/components/UserMessage.vue"
+import { Button } from "@components/ui/button/index.js"
 import {
   deriveTranscriptMinimapItems,
   MINIMAP_MIN_ITEMS,
@@ -226,14 +250,17 @@ const props = withDefaults(
 const emit = defineEmits<{
   "thread-state": [state: MarkstreamThreadVirtualState]
   "load-earlier": []
-  "bottom-change": [atBottom: boolean]
 }>()
+
+defineSlots<{ default?: () => unknown }>()
 
 const running = computed(() => props.phase !== undefined && props.phase !== "idle")
 const rows = computed(() => withEarlierRow(props.transcript, props.hasEarlier))
 const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState))
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
 const region = useTemplateRef<HTMLElement>("region")
+const dock = useTemplateRef<HTMLElement>("dock")
+const dockHeight = shallowRef(168)
 const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
 const minimapItems = computed(() =>
@@ -269,18 +296,15 @@ const timeline = useTemplateRef<{
 }>("timeline")
 // 新增行只在精确贴底时自动跟随。
 const atBottom = shallowRef(true)
+const showScrollToLatest = computed(() =>
+  shouldShowScrollToLatest(props.transcript.length, atBottom.value),
+)
 let bottomHoldUntil = 0
 let pinRaf = 0
+let dockObserver: ResizeObserver | undefined
 
 function timelineScrollRoot(): HTMLElement | null {
   return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null
-}
-
-function pinBottomUi() {
-  if (!atBottom.value) {
-    atBottom.value = true
-    emit("bottom-change", true)
-  }
 }
 
 function releasePinnedToBottom() {
@@ -346,10 +370,7 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
     ? isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
     : state.outerAnchor?.type !== "item"
   if (shouldHoldProgrammaticBottom(bottom, bottomHoldUntil, performance.now())) return
-  if (atBottom.value !== bottom) {
-    atBottom.value = bottom
-    emit("bottom-change", bottom)
-  }
+  atBottom.value = bottom
 }
 
 function onMinimapSelect(item: TranscriptMinimapItem) {
@@ -362,14 +383,13 @@ function onMinimapSelect(item: TranscriptMinimapItem) {
     !isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
   ) {
     atBottom.value = false
-    emit("bottom-change", false)
   }
 }
 
 function scrollToLatest() {
   const holdUntil = performance.now() + PROGRAMMATIC_BOTTOM_HOLD_MS
   bottomHoldUntil = holdUntil
-  pinBottomUi()
+  atBottom.value = true
   if (pinRaf) cancelAnimationFrame(pinRaf)
   const tick = () => {
     jumpToBottom()
@@ -379,7 +399,7 @@ function scrollToLatest() {
   tick()
 }
 
-defineExpose({ prepareForSubmit: scrollToLatest, scrollToLatest })
+defineExpose({ prepareForSubmit: scrollToLatest })
 
 function persistThreadState(expectedSessionId = props.sessionId) {
   const captured = timeline.value?.captureThreadState()
@@ -392,10 +412,7 @@ watch(
   (_sessionId, previousSessionId) => {
     persistThreadState(previousSessionId)
     releasePinnedToBottom()
-    if (!atBottom.value) {
-      atBottom.value = true
-      emit("bottom-change", true)
-    }
+    atBottom.value = true
   },
   { flush: "pre" },
 )
@@ -428,9 +445,26 @@ watch(
   },
   { flush: "post" },
 )
+watch(
+  dock,
+  (element) => {
+    dockObserver?.disconnect()
+    if (!element) return
+    dockObserver = new ResizeObserver(() => {
+      const nextHeight = element.offsetHeight
+      const grew = nextHeight > dockHeight.value
+      dockHeight.value = nextHeight
+      if (grew && atBottom.value) scrollToLatest()
+    })
+    dockObserver.observe(element)
+    dockHeight.value = element.offsetHeight
+  },
+  { flush: "post" },
+)
 
 onBeforeUnmount(() => {
   viewportObserver?.disconnect()
+  dockObserver?.disconnect()
   releasePinnedToBottom()
   persistThreadState()
 })
@@ -440,8 +474,58 @@ onBeforeUnmount(() => {
 .transcript-region {
   position: relative;
   min-height: 0;
+  flex: 1;
+  height: 100%;
   overflow: hidden;
   background: transparent;
+}
+/* 菜单在 transcript 内，抬整列才能压过绝对定位的 dock。区域背景透明，输入卡仍看得见。 */
+.transcript-region:has(.code-more-menu) {
+  z-index: 3;
+}
+.chat-input-dock {
+  position: absolute;
+  inset-inline: 0 8px;
+  bottom: 0;
+  z-index: 2;
+  padding: 0 var(--spacing-md) 10px;
+  background: var(--surface);
+  pointer-events: none;
+}
+.session-floating-controls {
+  /* 脱离 Dock 测量流，避免显隐时改写 transcript 底部 inset 并触发滚动回弹。 */
+  position: absolute;
+  inset-inline: var(--spacing-md);
+  bottom: calc(100% + var(--spacing-xxs));
+  max-width: var(--size-composer);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  pointer-events: none;
+}
+.floating-control {
+  pointer-events: auto;
+}
+.scroll-latest-control {
+  border-radius: var(--radius-full);
+  background: var(--canvas-soft);
+  color: var(--ink-secondary);
+  box-shadow: var(--shadow-float);
+}
+.chat-input-dock :deep(.prompt) {
+  pointer-events: auto;
+  width: min(var(--size-composer), 100%);
+  margin-inline: auto;
+}
+@media (max-width: 900px) {
+  .chat-input-dock {
+    padding-inline: var(--spacing-sm);
+  }
+  .session-floating-controls {
+    inset-inline: var(--spacing-sm);
+  }
 }
 /* 滚动根自带 overflow:auto；首尾 inset 写在容器上，不进虚拟行高 */
 .transcript {
