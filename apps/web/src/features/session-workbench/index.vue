@@ -220,6 +220,10 @@ onBeforeUnmount(() => dockObserver?.disconnect())
   height: 100%;
   flex: 1;
 }
+/* 菜单在 transcript 内，抬整列才能压过绝对定位的 dock。区域背景透明，输入卡仍看得见。 */
+.workspace-main:has(.code-more-menu) :deep(.transcript-region) {
+  z-index: 3;
+}
 .empty-canvas {
   min-height: 0;
   flex: 1;
