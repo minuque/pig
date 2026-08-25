@@ -191,6 +191,53 @@
         border-radius: 12px;
         background: var(--well);
       }
+      .card,
+      .step,
+      .truth {
+        cursor: pointer;
+        transition:
+          opacity 0.16s ease,
+          border-color 0.16s ease,
+          box-shadow 0.16s ease,
+          transform 0.16s ease;
+      }
+      .card:hover,
+      .step:hover,
+      .truth:hover,
+      .card:focus-visible,
+      .step:focus-visible,
+      .truth:focus-visible {
+        border-color: color-mix(in srgb, var(--tone, var(--line, var(--primary))) 55%, var(--hairline));
+        outline: none;
+        transform: translateY(-1px);
+      }
+      .card:focus-visible,
+      .step:focus-visible,
+      .truth:focus-visible {
+        box-shadow: 0 0 0 2px var(--primary);
+      }
+      .is-dim { opacity: 0.2; }
+      .is-related { opacity: 1; }
+      .is-active {
+        opacity: 1;
+        border-color: var(--tone, var(--line, var(--primary)));
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone, var(--line, var(--primary))) 20%, transparent);
+        transform: translateY(-2px);
+      }
+      .step.is-upstream { border-color: color-mix(in srgb, var(--line, var(--primary)) 45%, var(--hairline)); }
+      .step.is-downstream { border-color: color-mix(in srgb, var(--line, var(--primary)) 72%, var(--hairline)); }
+      .interaction-hint {
+        min-height: 34px;
+        margin-bottom: 14px;
+        padding: 8px 11px;
+        border: 1px solid var(--hairline);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--ink-muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .interaction-hint strong { color: var(--ink); font-weight: 600; }
       .card[data-tone="web"] { --tone: var(--primary); }
       .card[data-tone="host"] { --tone: var(--breeze); }
       .card[data-tone="pi"] { --tone: var(--dusk); }
@@ -346,6 +393,7 @@
     </header>
 
     <main>
+      <div class="interaction-hint" id="interaction-hint" aria-live="polite">点击卡片高亮同类职责；点击流程节点查看它的上下游。再次点击或按 Esc 清除。</div>
       <section class="view" id="overview" role="tabpanel">
         <div class="view-head">
           <h2>整体架构</h2>
@@ -579,8 +627,75 @@
     <script>
       const tabs = [...document.querySelectorAll('[role="tab"]')]
       const views = [...document.querySelectorAll('[role="tabpanel"]')]
+      const interactiveItems = [...document.querySelectorAll(".card, .step, .truth")]
+      const hint = document.getElementById("interaction-hint")
+      let selectedItem
+
+      interactiveItems.forEach((item) => {
+        item.tabIndex = 0
+        item.setAttribute("role", "button")
+        item.addEventListener("click", () => highlight(item))
+        item.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return
+          event.preventDefault()
+          highlight(item)
+        })
+      })
+
+      function clearHighlight() {
+        selectedItem = undefined
+        interactiveItems.forEach((item) =>
+          item.classList.remove(
+            "is-active",
+            "is-related",
+            "is-dim",
+            "is-upstream",
+            "is-downstream",
+          ),
+        )
+        hint.textContent = "点击卡片高亮同类职责；点击流程节点查看它的上下游。再次点击或按 Esc 清除。"
+      }
+
+      function highlight(item) {
+        if (selectedItem === item) return clearHighlight()
+        clearHighlight()
+        selectedItem = item
+        const view = item.closest(".view")
+        const candidates = [...view.querySelectorAll(".card, .step, .truth")]
+        candidates.forEach((candidate) => candidate.classList.add("is-dim"))
+        item.classList.remove("is-dim")
+        item.classList.add("is-active")
+
+        if (item.classList.contains("step")) {
+          const flow = item.closest(".flow")
+          const steps = [...flow.querySelectorAll(".step")]
+          const selectedIndex = steps.indexOf(item)
+          steps.forEach((step, index) => {
+            step.classList.remove("is-dim")
+            if (step !== item) step.classList.add("is-related")
+            if (index < selectedIndex) step.classList.add("is-upstream")
+            if (index > selectedIndex) step.classList.add("is-downstream")
+          })
+          hint.innerHTML = `<strong>${flow.querySelector("h3").textContent}</strong> · ${item.querySelector(".number").textContent} · 左侧是上游，右侧是下游。`
+          return
+        }
+
+        const tone = item.dataset.tone
+        if (tone) {
+          candidates
+            .filter((candidate) => candidate !== item && candidate.dataset.tone === tone)
+            .forEach((candidate) => {
+              candidate.classList.remove("is-dim")
+              candidate.classList.add("is-related")
+            })
+        }
+        const title = item.querySelector("h3, b")?.textContent ?? "架构节点"
+        const path = item.querySelector(".path")?.textContent
+        hint.innerHTML = `<strong>${title}</strong>${path ? ` · ${path}` : ""} · 同色卡片属于同一职责类型。`
+      }
 
       function selectTab(tab) {
+        clearHighlight()
         tabs.forEach((item) => item.setAttribute("aria-selected", String(item === tab)))
         views.forEach((view) => { view.hidden = view.id !== tab.getAttribute("aria-controls") })
         history.replaceState(null, "", `#${tab.getAttribute("aria-controls")}`)
@@ -589,12 +704,19 @@
       tabs.forEach((tab, index) => {
         tab.addEventListener("click", () => selectTab(tab))
         tab.addEventListener("keydown", (event) => {
-          if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return
+          if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return
           event.preventDefault()
-          const next = (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length
+          const next = (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length
           tabs[next].focus()
           selectTab(tabs[next])
         })
+      })
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") clearHighlight()
+      })
+      document.querySelector("main").addEventListener("click", (event) => {
+        if (!event.target.closest(".card, .step, .truth") && selectedItem) clearHighlight()
       })
 
       const initial = tabs.find((tab) => tab.getAttribute("aria-controls") === location.hash.slice(1))
