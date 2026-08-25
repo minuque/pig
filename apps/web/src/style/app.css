@@ -540,18 +540,20 @@ small,
   }
 }
 
-/* 公共滚动条：默认隐藏，容器 hover 淡入，离开淡出。
-   inherits:false，避免 html:hover 把颜色传给所有滚动条。
-   Chromium 设了 scrollbar-color 会走标准条并忽略 webkit 透明滑块，只给 Firefox 用。 */
+/* 公共滚动条：默认隐藏，容器 hover / 滚动时淡入。
+   每个元素自己写 --scrollbar-thumb，避免 html:hover 传到所有条子。
+   伪元素靠继承拿颜色。Chromium 的 scrollbar-color 会盖掉 webkit 透明滑块，只给 Firefox。 */
 @property --scrollbar-thumb {
   syntax: "<color>";
-  inherits: false;
+  inherits: true;
   initial-value: #0000;
 }
 * {
+  --scrollbar-thumb: #0000;
   transition: --scrollbar-thumb var(--duration-slow) var(--ease-out);
 }
-*:hover {
+*:hover,
+*.is-scrolling {
   --scrollbar-thumb: color-mix(in srgb, var(--ink) 22%, transparent);
 }
 @supports (-moz-appearance: none) {
