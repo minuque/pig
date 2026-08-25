@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@components/ui/dialog/index.js"
-import { transcriptImageSrc } from "@features/session-workbench/lib/transcript-format.js"
+import { transcriptImageSrc } from "@features/transcript/lib/transcript-format.js"
 
 const props = withDefaults(
   defineProps<{

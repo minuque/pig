@@ -53,13 +53,13 @@
 
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
-import type { TranscriptMinimapItem } from "@features/session-workbench/lib/transcript-minimap.js"
+import type { TranscriptMinimapItem } from "@features/transcript/lib/transcript-minimap.js"
 import {
   resolveMinimapHeightStyle,
   resolveMinimapHitAreaWidth,
   resolveMinimapIndexFromPointer,
   resolveMinimapTopPercent,
-} from "@features/session-workbench/lib/transcript-minimap.js"
+} from "@features/transcript/lib/transcript-minimap.js"
 
 const props = defineProps<{
   items: readonly TranscriptMinimapItem[]

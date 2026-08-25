@@ -11,7 +11,7 @@ import {
   resolveMinimapIndexFromPointer,
   resolveMinimapTopPercent,
   sameIdList,
-} from "@features/session-workbench/lib/transcript-minimap.js"
+} from "@features/transcript/lib/transcript-minimap.js"
 
 describe("compactMinimapPreview", () => {
   it("折叠空白；空串为 null", () => {

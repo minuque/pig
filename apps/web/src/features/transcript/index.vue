@@ -91,7 +91,7 @@ import {
   conversationRows,
   isAssistantItem,
   transcriptText,
-} from "@features/session-workbench/lib/transcript-format.js"
+} from "@features/transcript/lib/transcript-format.js"
 
 export const EARLIER_ROW_ID = "transcript-earlier"
 
@@ -233,10 +233,10 @@ import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch 
 import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline } from "markstream-vue"
 import type { SessionPhase } from "@earendil-works/pi-protocol"
-import AssistantMessage from "@features/session-workbench/components/AssistantMessage.vue"
-import TranscriptMinimap from "@features/session-workbench/components/TranscriptMinimap.vue"
-import ToolCall from "@features/session-workbench/components/ToolCall.vue"
-import UserMessage from "@features/session-workbench/components/UserMessage.vue"
+import AssistantMessage from "@features/transcript/components/AssistantMessage.vue"
+import TranscriptMinimap from "@features/transcript/components/TranscriptMinimap.vue"
+import ToolCall from "@features/transcript/components/ToolCall.vue"
+import UserMessage from "@features/transcript/components/UserMessage.vue"
 import { Button } from "@components/ui/button/index.js"
 import {
   deriveTranscriptMinimapItems,
@@ -245,7 +245,7 @@ import {
   resolveMinimapHitStripWidth,
   sameIdList,
   type TranscriptMinimapItem,
-} from "@features/session-workbench/lib/transcript-minimap.js"
+} from "@features/transcript/lib/transcript-minimap.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const props = withDefaults(

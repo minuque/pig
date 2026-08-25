@@ -36,13 +36,13 @@
 import { computed, shallowRef } from "vue"
 import { Copy, FileText, Pencil, Search, Terminal, Wrench } from "lucide-vue-next"
 import type { ToolTranscriptItem } from "@earendil-works/pi-protocol"
-import ExpandableText from "@features/session-workbench/components/ExpandableText.vue"
-import TranscriptImage from "@features/session-workbench/components/TranscriptImage.vue"
+import ExpandableText from "@features/transcript/components/ExpandableText.vue"
+import TranscriptImage from "@features/transcript/components/TranscriptImage.vue"
 import {
   toolIconTone,
   transcriptImages,
   transcriptText,
-} from "@features/session-workbench/lib/transcript-format.js"
+} from "@features/transcript/lib/transcript-format.js"
 
 const props = defineProps<{
   item: ToolTranscriptItem
