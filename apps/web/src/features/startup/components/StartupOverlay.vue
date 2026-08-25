@@ -311,22 +311,25 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   min-width: 0;
-  min-height: calc(2em * var(--text-caption--line-height));
+  min-height: calc(2em * var(--text-heading-3--line-height));
   margin: 0;
   color: var(--ink);
-  font-size: var(--text-title);
-  line-height: var(--text-caption--line-height);
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  font-size: var(--text-heading-3);
+  font-style: italic;
+  font-weight: var(--font-weight-regular);
+  line-height: var(--text-heading-3--line-height);
+  letter-spacing: -0.015em;
   text-align: center;
   pointer-events: none;
 }
 .slogan-line {
   display: block;
-  min-height: calc(1em * var(--text-caption--line-height));
+  min-height: calc(1em * var(--text-heading-3--line-height));
   white-space: nowrap;
 }
 .slogan-highlight {
   color: var(--primary);
-  font-style: italic;
   font-weight: var(--font-weight-bold);
 }
 .slogan-cursor {
