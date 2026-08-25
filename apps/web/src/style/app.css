@@ -1,5 +1,8 @@
 @import "tailwindcss";
-@import "markstream-vue/index.css" layer(components);
+/* Tailwind v4：用 tailwind-ready 样式，类名交给本包扫描器，避免预编译 utilities 被 layer 压掉。 */
+@import "markstream-vue/index.tailwind.css";
+@source "../../node_modules/markstream-vue/dist/tailwind.js";
+@source "../../node_modules/stream-diffs/dist";
 @import "./markdown-stream.css";
 
 /* ─── DESIGN.md tokens (workbench desktop) ───────────────────── */
@@ -356,8 +359,9 @@ textarea,
 select {
   font: inherit;
 }
-/* 原生 button 只做 reset。主色圆钮、图标钮在使用处显式写，避免漏设 min-height 被撑成药丸。 */
-button {
+/* 原生 button 只做 reset。主色圆钮、图标钮在使用处显式写，避免漏设 min-height 被撑成药丸。
+   不进 .markstream-vue：未分层的 element reset 会压过卡片内 Tailwind 工具类。 */
+button:not(:where(.markstream-vue *)) {
   appearance: none;
   margin: 0;
   padding: 0;
