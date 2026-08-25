@@ -99,3 +99,16 @@ export function segmentShare(tokens: number, window: number): number {
   if (window <= 0 || tokens <= 0) return 0
   return Math.min(100, (tokens / window) * 100)
 }
+
+const PREVIEWABLE = new Set<ContextUsageSegment["id"]>([
+  "systemPrompt",
+  "memory",
+  "skills",
+  "tools",
+  "toolResults",
+  "conversation",
+])
+
+export function canPreviewSegment(id: ContextUsageSegment["id"]): boolean {
+  return PREVIEWABLE.has(id)
+}

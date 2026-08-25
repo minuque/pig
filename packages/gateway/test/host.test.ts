@@ -125,6 +125,16 @@ describe("thin host HTTP shell", () => {
     expect(
       (await request(base, "/api/v1/platform/context-usage", undefined, credential)).status,
     ).toBe(400)
+    expect(
+      (
+        await request(
+          base,
+          "/api/v1/platform/context-usage?sessionId=missing&preview=nope",
+          undefined,
+          credential,
+        )
+      ).status,
+    ).toBe(400)
     await expect(
       (
         await request(
@@ -134,7 +144,7 @@ describe("thin host HTTP shell", () => {
           credential,
         )
       ).json(),
-    ).resolves.toEqual({ usage: null })
+    ).resolves.toEqual({ usage: null, preview: null })
     expect(
       (
         await request(

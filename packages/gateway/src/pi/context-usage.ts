@@ -1,5 +1,22 @@
 import { estimateTokens, formatSkillsForPrompt, type Skill } from "@earendil-works/pi-coding-agent"
 
+export const CONTEXT_PREVIEW_KEYS = [
+  "systemPrompt",
+  "memory",
+  "skills",
+  "tools",
+  "toolResults",
+  "conversation",
+] as const
+
+export type ContextPreviewKey = (typeof CONTEXT_PREVIEW_KEYS)[number]
+
+export interface ContextUsagePreview {
+  key: ContextPreviewKey
+  title: string
+  content: string
+}
+
 export interface ContextUsageEstimate {
   used: number
   window: number
@@ -13,6 +30,16 @@ export interface ContextUsageEstimate {
     other: number
     idle: number
   }
+  preview?: ContextUsagePreview
+}
+
+const PREVIEW_META: Record<ContextPreviewKey, { title: string; empty: string }> = {
+  systemPrompt: { title: "系统提示词", empty: "无系统提示词。" },
+  memory: { title: "记忆", empty: "当前上下文没有记忆文件。" },
+  skills: { title: "Skills", empty: "当前上下文没有 Skills。" },
+  tools: { title: "Tool 定义", empty: "没有启用的 Tool 定义。" },
+  toolResults: { title: "Tool 结果", empty: "当前上下文没有 Tool 结果。" },
+  conversation: { title: "当前会话上下文", empty: "没有会话上下文。" },
 }
 
 interface ContextUsageSource {
@@ -33,10 +60,27 @@ interface ContextUsageSource {
   }
 }
 
+export function isContextPreviewKey(value: string | null): value is ContextPreviewKey {
+  return CONTEXT_PREVIEW_KEYS.includes(value as ContextPreviewKey)
+}
+
 function estimateText(value: unknown): number {
   if (!value) return 0
   const text = typeof value === "string" ? value : JSON.stringify(value)
   return Math.max(0, Math.ceil(text.length / 4))
+}
+
+function previewValue(value: unknown): string {
+  if (typeof value === "string") return value
+  return JSON.stringify(value, null, 2)
+}
+
+function finishPreview(key: ContextPreviewKey, chunks: string[]): ContextUsagePreview {
+  return {
+    key,
+    title: PREVIEW_META[key].title,
+    content: chunks.join("\n\n") || PREVIEW_META[key].empty,
+  }
 }
 
 /** 只统计确实嵌进 system prompt 的片段，避免源文件预览把占用加两遍。 */
@@ -45,31 +89,48 @@ function embeddedTokens(prompt: string, chunk: string): number {
   return estimateText(chunk)
 }
 
-function estimateTools(source: ContextUsageSource): number {
+function collectTools(
+  source: ContextUsageSource,
+  preview: boolean,
+): { tokens: number; chunks: string[] } {
   const active = new Set(source.getActiveToolNames())
   let tokens = 0
+  const chunks: string[] = []
   for (const tool of source.getAllTools()) {
     if (!active.has(tool.name)) continue
-    tokens += estimateText({
+    const definition = {
       name: tool.name,
       description: tool.description,
       parameters: tool.parameters,
-    })
+    }
+    tokens += estimateText(definition)
+    if (preview) chunks.push(`## Definition: ${tool.name}\n\n${previewValue(definition)}`)
   }
-  return tokens
+  return { tokens, chunks }
 }
 
-function walkEntries(entries: unknown[]): { toolResults: number; conversation: number } {
+function walkEntries(
+  entries: unknown[],
+  preview: ContextPreviewKey | undefined,
+): { toolResults: number; conversation: number; toolChunks: string[]; contextChunks: string[] } {
   let toolResults = 0
   let conversation = 0
+  const toolChunks: string[] = []
+  const contextChunks: string[] = []
+  const wantTools = preview === "toolResults"
+  const wantContext = preview === "conversation"
   for (const raw of entries) {
     const entry = raw as {
       type?: string
       summary?: string
       content?: unknown
+      customType?: string
       message?: {
         role?: string
         content?: unknown
+        toolName?: string
+        command?: unknown
+        output?: unknown
       }
     }
     if (entry.type === "message") {
@@ -85,24 +146,54 @@ function walkEntries(entries: unknown[]): { toolResults: number; conversation: n
         }>) {
           if (block.type === "toolCall") {
             conversation += estimateText(block.name) + estimateText(block.arguments)
+            if (wantContext) {
+              contextChunks.push(
+                `## Assistant tool call: ${String(block.name)}\n\n${previewValue(block.arguments)}`,
+              )
+            }
           } else if (block.type === "text") {
             conversation += estimateText(block.text)
+            if (wantContext && block.text) contextChunks.push(`## Assistant\n\n${block.text}`)
           } else if (block.type === "thinking") {
             conversation += estimateText(block.thinking)
+            if (wantContext && block.thinking) {
+              contextChunks.push(`## Assistant thinking\n\n${block.thinking}`)
+            }
           }
         }
-      } else if (message.role === "toolResult" || message.role === "bashExecution") {
+      } else if (message.role === "toolResult") {
         toolResults += estimateTokens(message as Parameters<typeof estimateTokens>[0])
+        if (wantTools) {
+          toolChunks.push(`## Result: ${message.toolName}\n\n${previewValue(message.content)}`)
+        }
+      } else if (message.role === "bashExecution") {
+        toolResults += estimateTokens(message as Parameters<typeof estimateTokens>[0])
+        if (wantTools) {
+          toolChunks.push(
+            `## Bash\n\nCommand:\n\n${previewValue(message.command)}\n\nOutput:\n\n${previewValue(message.output)}`,
+          )
+        }
       } else {
         conversation += estimateTokens(message as Parameters<typeof estimateTokens>[0])
+        if (wantContext) {
+          contextChunks.push(`## ${message.role}\n\n${previewValue(message.content)}`)
+        }
       }
     } else if (entry.type === "compaction" || entry.type === "branch_summary") {
       conversation += estimateText(entry.summary)
+      if (wantContext && entry.summary) {
+        contextChunks.push(
+          `## ${entry.type === "compaction" ? "Compaction" : "Branch summary"}\n\n${entry.summary}`,
+        )
+      }
     } else if (entry.type === "custom_message") {
       conversation += estimateText(entry.content)
+      if (wantContext) {
+        contextChunks.push(`## Custom: ${entry.customType}\n\n${previewValue(entry.content)}`)
+      }
     }
   }
-  return { toolResults, conversation }
+  return { toolResults, conversation, toolChunks, contextChunks }
 }
 
 function capVariable(
@@ -139,36 +230,57 @@ export function resolveUsedTokens(
  * 以 Pi 的总占用校准分段。System / Memory / Skills / Tools definition
  * 是固定项；Tool results 与会话上下文按比例压缩；差额归入「其他」。
  */
-export function estimateContextUsage(source: ContextUsageSource): ContextUsageEstimate {
+export function estimateContextUsage(
+  source: ContextUsageSource,
+  previewKey?: ContextPreviewKey,
+): ContextUsageEstimate {
   const prompt = source.systemPrompt
   let memory = 0
+  const memoryChunks: string[] = []
   for (const file of source.resourceLoader.getAgentsFiles().agentsFiles) {
     memory += embeddedTokens(prompt, file.content)
+    if (previewKey === "memory")
+      memoryChunks.push(`## ${file.path}\n\n${previewValue(file.content)}`)
   }
   const skillsText = formatSkillsForPrompt(source.resourceLoader.getSkills().skills ?? []).trim()
   const skills = embeddedTokens(prompt, skillsText)
   const systemPrompt = Math.max(0, estimateText(prompt) - memory - skills)
-  const tools = estimateTools(source)
-  const walked = walkEntries(source.sessionManager.buildContextEntries())
-  const known = systemPrompt + memory + skills + tools + walked.toolResults + walked.conversation
+  const tools = collectTools(source, previewKey === "tools")
+  const walked = walkEntries(source.sessionManager.buildContextEntries(), previewKey)
+  const known =
+    systemPrompt + memory + skills + tools.tokens + walked.toolResults + walked.conversation
   const reported = source.getContextUsage()
   const window = Math.max(0, reported?.contextWindow ?? source.model?.contextWindow ?? 0)
-  const fixed = systemPrompt + memory + skills + tools
+  const fixed = systemPrompt + memory + skills + tools.tokens
   const used = Math.max(resolveUsedTokens(reported, known, window), fixed)
   const fitted = capVariable(walked, Math.max(0, used - fixed))
   const attributed = fixed + fitted.toolResults + fitted.conversation
 
-  return {
+  const estimate: ContextUsageEstimate = {
     used,
     window,
     segments: {
       systemPrompt,
       memory,
       skills,
-      tools,
+      tools: tools.tokens,
       ...fitted,
       other: Math.max(0, used - attributed),
       idle: Math.max(0, window - used),
     },
   }
+  if (!previewKey) return estimate
+  const preview =
+    previewKey === "systemPrompt"
+      ? finishPreview("systemPrompt", prompt ? [prompt] : [])
+      : previewKey === "memory"
+        ? finishPreview("memory", memoryChunks)
+        : previewKey === "skills"
+          ? finishPreview("skills", skillsText ? [skillsText] : [])
+          : previewKey === "tools"
+            ? finishPreview("tools", tools.chunks)
+            : previewKey === "toolResults"
+              ? finishPreview("toolResults", walked.toolChunks)
+              : finishPreview("conversation", walked.contextChunks)
+  return { ...estimate, preview }
 }

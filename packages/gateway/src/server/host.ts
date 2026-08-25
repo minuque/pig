@@ -7,6 +7,7 @@ import { PiHostService } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
 import { serveWebFile } from "./static-files.js"
 import { createWebSocketListener } from "./websocket.js"
+import { isContextPreviewKey } from "../pi/context-usage.js"
 
 export interface GatewayOptions {
   bootstrapSecret?: string
@@ -162,7 +163,18 @@ export class Gateway {
       if (!this.requireAuth(req, res)) return
       const sessionId = url.searchParams.get("sessionId") ?? ""
       if (!sessionId) return this.send(res, 400, { code: "INVALID_REQUEST" })
-      return this.send(res, 200, { usage: this.hostService.contextUsage(sessionId) ?? null })
+      const previewParam = url.searchParams.get("preview")
+      if (previewParam && !isContextPreviewKey(previewParam)) {
+        return this.send(res, 400, { code: "INVALID_REQUEST" })
+      }
+      const usage = this.hostService.contextUsage(
+        sessionId,
+        isContextPreviewKey(previewParam) ? previewParam : undefined,
+      )
+      return this.send(res, 200, {
+        usage: usage ?? null,
+        preview: usage?.preview ?? null,
+      })
     }
     if (url.pathname === "/api/v1/platform/rename-session" && req.method === "POST") {
       return this.handleSessionFileAction(req, res, async (id, body) => {

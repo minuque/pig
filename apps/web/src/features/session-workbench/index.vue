@@ -32,6 +32,7 @@
         :error="sessionError"
         :cwd="composerCwd"
         :usage="contextUsage"
+        :session-id="sessionId"
         @send="submitText"
       />
     </div>
@@ -57,6 +58,7 @@
       :error="sessionError"
       :cwd="composerCwd"
       :usage="contextUsage"
+      :session-id="sessionId"
       docked
       @send="submitFromDock"
       @abort="abortSession"

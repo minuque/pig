@@ -23,37 +23,69 @@
         ></span>
       </div>
       <ul v-if="usage.segments.length" class="legend">
-        <li v-for="segment in usage.segments" :key="segment.id" class="legend-row">
-          <span class="swatch" :style="{ background: segment.color }"></span>
-          <span class="legend-label">{{ segment.label }}</span>
-          <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
-          <span class="legend-pct"
-            >{{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%</span
+        <li v-for="segment in usage.segments" :key="segment.id">
+          <button
+            v-if="sessionId && canPreviewSegment(segment.id)"
+            type="button"
+            class="legend-row legend-row--button"
+            @click="openPreview(segment)"
           >
+            <span class="swatch" :style="{ background: segment.color }"></span>
+            <span class="legend-label">{{ segment.label }}</span>
+            <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
+            <span class="legend-pct"
+              >{{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%</span
+            >
+          </button>
+          <div v-else class="legend-row">
+            <span class="swatch" :style="{ background: segment.color }"></span>
+            <span class="legend-label">{{ segment.label }}</span>
+            <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
+            <span class="legend-pct"
+              >{{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%</span
+            >
+          </div>
         </li>
       </ul>
     </div>
   </div>
+  <Dialog :open="previewOpen" @update:open="onPreviewOpen">
+    <DialogContent
+      class="flex max-h-[80vh] w-full max-w-[min(48rem,calc(100vw-2rem))] flex-col gap-3 overflow-hidden sm:max-w-[min(48rem,calc(100vw-2rem))]"
+    >
+      <DialogTitle>{{ previewTitle }}</DialogTitle>
+      <pre class="preview-body">{{ previewBody }}</pre>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script lang="ts">
-import {
-  formatTokenCount,
-  segmentShare,
-  type ContextUsage,
-} from "@features/chat-input/lib/context-usage.js"
+import type { ContextUsage } from "@features/chat-input/lib/context-usage.js"
 
 export function contextUsageSummary(usage: ContextUsage): string {
   return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} token`
 }
+
+export function contextPreviewPath(sessionId: string, segmentId: string): string {
+  return `/api/v1/platform/context-usage?sessionId=${encodeURIComponent(sessionId)}&preview=${encodeURIComponent(segmentId)}`
+}
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { X } from "lucide-vue-next"
+import { platformRequest } from "@client/http.js"
+import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import {
+  canPreviewSegment,
+  formatTokenCount,
+  segmentShare,
+  type ContextUsageSegment,
+} from "@features/chat-input/lib/context-usage.js"
 
 const props = defineProps<{
   usage: ContextUsage
+  sessionId?: string | undefined
 }>()
 
 const emit = defineEmits<{
@@ -61,6 +93,35 @@ const emit = defineEmits<{
 }>()
 
 const tokenSummary = computed(() => contextUsageSummary(props.usage))
+const previewOpen = ref(false)
+const previewTitle = ref("")
+const previewBody = ref("")
+let previewRequest = 0
+
+async function openPreview(segment: ContextUsageSegment) {
+  const sessionId = props.sessionId
+  if (!sessionId) return
+  const request = ++previewRequest
+  previewTitle.value = segment.label
+  previewBody.value = "加载中…"
+  previewOpen.value = true
+  try {
+    const result = await platformRequest<{
+      preview: { title: string; content: string } | null
+    }>(contextPreviewPath(sessionId, segment.id))
+    if (request !== previewRequest) return
+    previewTitle.value = result.preview?.title || segment.label
+    previewBody.value = result.preview?.content || "没有可预览的内容。"
+  } catch {
+    if (request !== previewRequest) return
+    previewBody.value = "无法加载预览。"
+  }
+}
+
+function onPreviewOpen(open: boolean) {
+  previewOpen.value = open
+  if (!open) previewRequest += 1
+}
 </script>
 
 <style scoped>
@@ -153,10 +214,24 @@ const tokenSummary = computed(() => contextUsageSummary(props.usage))
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   min-height: 18px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--ink-secondary);
+  font: inherit;
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
+  text-align: start;
+}
+.legend-row--button {
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.legend-row--button:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
 }
 .swatch {
   flex: none;
@@ -177,5 +252,16 @@ const tokenSummary = computed(() => contextUsageSummary(props.usage))
 .legend-pct {
   min-width: 3.5em;
   text-align: end;
+}
+.preview-body {
+  margin: 0;
+  overflow: auto;
+  max-height: calc(80vh - 5rem);
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 </style>

@@ -14,7 +14,7 @@ import type {
   PiSessionRuntime,
 } from "@earendil-works/pi-server"
 import { canonicalizePath } from "../directory.js"
-import type { ContextUsageEstimate } from "./context-usage.js"
+import type { ContextPreviewKey, ContextUsageEstimate } from "./context-usage.js"
 import { modelFromBranch, type SessionCard } from "./session-card.js"
 import { sessionListName } from "./session-label.js"
 import { PiHostSession } from "./session-runtime.js"
@@ -166,8 +166,11 @@ export class PiHostService implements PiServerService {
     return this.trackSession(session)
   }
 
-  contextUsage(sessionId: string): ContextUsageEstimate | undefined {
-    return this.activeSessions.get(sessionId)?.contextUsage()
+  contextUsage(
+    sessionId: string,
+    previewKey?: ContextPreviewKey,
+  ): ContextUsageEstimate | undefined {
+    return this.activeSessions.get(sessionId)?.contextUsage(previewKey)
   }
 
   /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */

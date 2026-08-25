@@ -32,7 +32,9 @@ describe("estimateContextUsage", () => {
     const { idle, ...usedSegments } = usage.segments
     expect(usage.used).toBe(300)
     expect(usage.window).toBe(1000)
-    expect(Object.values(usedSegments).reduce((sum, value) => sum + value, 0)).toBe(300)
+    expect(Object.values(usedSegments).reduce((sum: number, value) => sum + Number(value), 0)).toBe(
+      300,
+    )
     expect(idle).toBe(700)
     expect(usage.segments.systemPrompt).toBeGreaterThan(0)
     expect(usage.segments.tools).toBeGreaterThan(0)
@@ -157,6 +159,63 @@ describe("estimateContextUsage", () => {
 
     expect(usage.segments.toolResults).toBeGreaterThan(0)
     expect(usage.segments.conversation).toBeGreaterThan(0)
+  })
+
+  it("按类别返回预览正文", () => {
+    const usage = estimateContextUsage(
+      source({
+        systemPrompt: "base\ncccc",
+        getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }),
+        resourceLoader: {
+          getAgentsFiles: () => ({ agentsFiles: [{ path: "AGENTS.md", content: "cccc" }] }),
+          getSkills: () => ({ skills: [] }),
+        },
+        sessionManager: {
+          buildContextEntries: () => [
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolCallId: "1",
+                toolName: "read",
+                content: "rrrrrrrr",
+                timestamp: 0,
+              },
+            },
+          ],
+        },
+      }),
+      "memory",
+    )
+
+    expect(usage.preview).toMatchObject({
+      key: "memory",
+      title: "记忆",
+    })
+    expect(usage.preview?.content).toContain("AGENTS.md")
+    expect(usage.preview?.content).toContain("cccc")
+    expect(
+      estimateContextUsage(
+        source({
+          getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }),
+          sessionManager: {
+            buildContextEntries: () => [
+              {
+                type: "message",
+                message: {
+                  role: "toolResult",
+                  toolCallId: "1",
+                  toolName: "read",
+                  content: "rrrrrrrr",
+                  timestamp: 0,
+                },
+              },
+            ],
+          },
+        }),
+        "toolResults",
+      ).preview?.content,
+    ).toContain("rrrrrrrr")
   })
 })
 

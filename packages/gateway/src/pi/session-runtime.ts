@@ -13,7 +13,7 @@ import type {
   SteerInput,
 } from "@earendil-works/pi-server"
 import { canonicalizePath } from "../directory.js"
-import { estimateContextUsage } from "./context-usage.js"
+import { estimateContextUsage, type ContextPreviewKey } from "./context-usage.js"
 import { TranscriptProjection, windowSnapshotTranscript } from "./transcript.js"
 
 /**
@@ -52,8 +52,8 @@ export class PiHostSession implements PiSessionRuntime {
     this.unsubscribeSession = session.subscribe((event) => this.handleEvent(event))
   }
 
-  contextUsage() {
-    return estimateContextUsage(this.session)
+  contextUsage(previewKey?: ContextPreviewKey) {
+    return estimateContextUsage(this.session, previewKey)
   }
 
   snapshot(): SessionSnapshot {

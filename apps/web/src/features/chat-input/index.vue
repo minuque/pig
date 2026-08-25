@@ -6,7 +6,12 @@
     @submit.prevent="send"
     @paste="onPaste"
   >
-    <ContextUsagePanel v-if="usageOpen && usage" :usage="usage" @close="usageOpen = false" />
+    <ContextUsagePanel
+      v-if="usageOpen && usage"
+      :usage="usage"
+      :session-id="sessionId"
+      @close="usageOpen = false"
+    />
     <PromptEditor
       ref="promptEditor"
       v-model:prompt="prompt"
@@ -146,6 +151,7 @@ const props = withDefaults(
     /** 当前工作目录，底栏展示末段名 */
     cwd?: string | undefined
     usage?: ContextUsage | undefined
+    sessionId?: string | undefined
   }>(),
   {
     phase: undefined,
@@ -158,6 +164,7 @@ const props = withDefaults(
     docked: false,
     cwd: undefined,
     usage: undefined,
+    sessionId: undefined,
   },
 )
 
