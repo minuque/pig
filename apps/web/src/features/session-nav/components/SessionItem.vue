@@ -249,11 +249,7 @@ function onDelete() {
   white-space: nowrap;
   transition: color var(--duration-fast) var(--ease-smooth);
 }
-.session-item:hover .title,
-.session-item:has(.session-kebab[aria-expanded="true"]) .title,
-.session-card.active .title {
-  font-weight: var(--font-weight-medium);
-}
+
 .session-item:hover .title,
 .session-item:hover .workspace-mark,
 .session-item:hover .card-model-name,

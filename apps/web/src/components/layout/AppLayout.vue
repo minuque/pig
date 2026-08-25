@@ -94,7 +94,7 @@ provide(leftPanelKey, { leftOpen, toggle })
   position: absolute;
   inset-block: 0;
   left: 50%;
-  width: 2px;
+  width: 1px;
   transform: translateX(-50%);
   background: color-mix(in srgb, var(--ink) 8%, transparent);
   transition: background var(--duration-fast) var(--ease-smooth);

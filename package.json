@@ -19,6 +19,7 @@
     "preview": "pnpm --filter @pig/web preview",
     "test": "pnpm -r --if-present test && pnpm test:scripts",
     "test:scripts": "node --test scripts/check-scope.test.mjs",
+    "test:e2e": "playwright test -c e2e/playwright.config.ts",
     "typecheck": "tsc --noEmit -p scripts/tsconfig.json && tsc --noEmit -p e2e/tsconfig.json && pnpm -r --if-present typecheck",
     "lint": "eslint . && designmd lint DESIGN.md",
     "format": "prettier --write .",
@@ -28,7 +29,6 @@
     "check:touched": "node scripts/check-touched.mjs",
     "check:design-tokens": "node scripts/verify-design-tokens.mjs",
     "check:release": "pnpm check && pnpm build && pnpm smoke:packed && pnpm test:e2e",
-    "test:e2e": "playwright test -c e2e/playwright.config.ts",
     "smoke:packed": "node scripts/smoke-packed.mjs",
     "prepare": "husky"
   },

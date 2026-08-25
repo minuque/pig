@@ -480,7 +480,7 @@ html[data-pig-desktop-platform] .session-nav input {
   list-style: none;
 }
 .session-list li {
-  padding-bottom: var(--spacing-xs);
+  padding-bottom: var(--spacing-xxs);
 }
 .empty-state {
   display: flex;
