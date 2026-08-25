@@ -49,21 +49,40 @@ describe("projectContextUsage", () => {
     expect(projectContextUsage(undefined)).toBeUndefined()
   })
 
-  it("按固定顺序投影六类估算", () => {
+  it("按固定顺序投影分段，标签用中文", () => {
     const projected = projectContextUsage(estimate())
     expect(projected?.used).toBe(70_300)
     expect(projected?.window).toBe(200_000)
     expect(projected?.percent).toBe(35)
-    expect(projected?.segments.map((segment) => segment.id)).toEqual([
-      "systemPrompt",
-      "memory",
-      "skills",
-      "tools",
-      "toolResults",
-      "conversation",
-      "other",
-      "idle",
+    expect(projected?.segments.map((segment) => [segment.id, segment.label])).toEqual([
+      ["systemPrompt", "系统提示词"],
+      ["memory", "记忆"],
+      ["skills", "技能"],
+      ["tools", "工具定义"],
+      ["toolResults", "工具结果"],
+      ["conversation", "当前会话上下文"],
+      ["other", "其他"],
+      ["idle", "空闲"],
     ])
+  })
+
+  it("缺分段或非数字按 0 投影，避免 NaN", () => {
+    const projected = projectContextUsage({
+      used: 10,
+      window: 100,
+      segments: {
+        systemPrompt: 10,
+        memory: 0,
+        tools: 0,
+        conversation: 0,
+        other: 0,
+        idle: 90,
+      } as ContextUsageEstimate["segments"],
+    })
+    expect(projected?.segments.find((segment) => segment.id === "skills")?.tokens).toBe(0)
+    expect(projected?.segments.find((segment) => segment.id === "toolResults")?.tokens).toBe(0)
+    expect(formatTokenCount(Number.NaN)).toBe("0")
+    expect(segmentShare(Number.NaN, 100)).toBe(0)
   })
 
   it("窗口为 0 时百分比为 0", () => {
@@ -97,7 +116,7 @@ describe("composer meta / panel copy", () => {
 
   it("面板摘要与按钮标签用中文占用口径", () => {
     const projected = projectContextUsage(estimate())!
-    expect(contextUsageSummary(projected)).toBe("70.3K / 200K token")
+    expect(contextUsageSummary(projected)).toBe("70.3K / 200K 令牌")
     expect(contextUsageAriaLabel(projected)).toBe("上下文占用 35%")
   })
 

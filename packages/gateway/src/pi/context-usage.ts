@@ -36,9 +36,9 @@ export interface ContextUsageEstimate {
 const PREVIEW_META: Record<ContextPreviewKey, { title: string; empty: string }> = {
   systemPrompt: { title: "系统提示词", empty: "无系统提示词。" },
   memory: { title: "记忆", empty: "当前上下文没有记忆文件。" },
-  skills: { title: "Skills", empty: "当前上下文没有 Skills。" },
-  tools: { title: "Tool 定义", empty: "没有启用的 Tool 定义。" },
-  toolResults: { title: "Tool 结果", empty: "当前上下文没有 Tool 结果。" },
+  skills: { title: "技能", empty: "当前上下文没有技能。" },
+  tools: { title: "工具定义", empty: "没有启用的工具定义。" },
+  toolResults: { title: "工具结果", empty: "当前上下文没有工具结果。" },
   conversation: { title: "当前会话上下文", empty: "没有会话上下文。" },
 }
 
@@ -72,7 +72,17 @@ function estimateText(value: unknown): number {
 
 function previewValue(value: unknown): string {
   if (typeof value === "string") return value
+  if (value == null) return ""
   return JSON.stringify(value, null, 2)
+}
+
+function countMessage(message: object): number {
+  try {
+    const tokens = estimateTokens(message as Parameters<typeof estimateTokens>[0])
+    return Number.isFinite(tokens) ? Math.max(0, tokens) : 0
+  } catch {
+    return estimateText(message)
+  }
 }
 
 function finishPreview(key: ContextPreviewKey, chunks: string[]): ContextUsagePreview {
@@ -104,7 +114,7 @@ function collectTools(
       parameters: tool.parameters,
     }
     tokens += estimateText(definition)
-    if (preview) chunks.push(`## Definition: ${tool.name}\n\n${previewValue(definition)}`)
+    if (preview) chunks.push(`## 定义：${tool.name}\n\n${previewValue(definition)}`)
   }
   return { tokens, chunks }
 }
@@ -128,6 +138,7 @@ function walkEntries(
       message?: {
         role?: string
         content?: unknown
+        summary?: unknown
         toolName?: string
         command?: unknown
         output?: unknown
@@ -148,48 +159,56 @@ function walkEntries(
             conversation += estimateText(block.name) + estimateText(block.arguments)
             if (wantContext) {
               contextChunks.push(
-                `## Assistant tool call: ${String(block.name)}\n\n${previewValue(block.arguments)}`,
+                `## 助手工具调用：${String(block.name)}\n\n${previewValue(block.arguments)}`,
               )
             }
           } else if (block.type === "text") {
             conversation += estimateText(block.text)
-            if (wantContext && block.text) contextChunks.push(`## Assistant\n\n${block.text}`)
+            if (wantContext && block.text) contextChunks.push(`## 助手\n\n${block.text}`)
           } else if (block.type === "thinking") {
             conversation += estimateText(block.thinking)
             if (wantContext && block.thinking) {
-              contextChunks.push(`## Assistant thinking\n\n${block.thinking}`)
+              contextChunks.push(`## 助手思考\n\n${block.thinking}`)
             }
           }
         }
       } else if (message.role === "toolResult") {
-        toolResults += estimateTokens(message as Parameters<typeof estimateTokens>[0])
+        toolResults += countMessage(message)
         if (wantTools) {
-          toolChunks.push(`## Result: ${message.toolName}\n\n${previewValue(message.content)}`)
+          toolChunks.push(`## 结果：${message.toolName}\n\n${previewValue(message.content)}`)
         }
       } else if (message.role === "bashExecution") {
-        toolResults += estimateTokens(message as Parameters<typeof estimateTokens>[0])
+        toolResults += countMessage(message)
         if (wantTools) {
           toolChunks.push(
-            `## Bash\n\nCommand:\n\n${previewValue(message.command)}\n\nOutput:\n\n${previewValue(message.output)}`,
+            `## 命令\n\n${previewValue(message.command)}\n\n输出：\n\n${previewValue(message.output)}`,
           )
         }
-      } else {
-        conversation += estimateTokens(message as Parameters<typeof estimateTokens>[0])
+      } else if (message.role === "branchSummary" || message.role === "compactionSummary") {
+        conversation += countMessage(message)
         if (wantContext) {
-          contextChunks.push(`## ${message.role}\n\n${previewValue(message.content)}`)
+          const title = message.role === "compactionSummary" ? "压缩" : "分支摘要"
+          contextChunks.push(`## ${title}\n\n${previewValue(message.summary)}`)
+        }
+      } else {
+        conversation += countMessage(message)
+        if (wantContext) {
+          contextChunks.push(
+            `## ${message.role === "user" ? "用户" : message.role}\n\n${previewValue(message.content)}`,
+          )
         }
       }
     } else if (entry.type === "compaction" || entry.type === "branch_summary") {
       conversation += estimateText(entry.summary)
       if (wantContext && entry.summary) {
         contextChunks.push(
-          `## ${entry.type === "compaction" ? "Compaction" : "Branch summary"}\n\n${entry.summary}`,
+          `## ${entry.type === "compaction" ? "压缩" : "分支摘要"}\n\n${entry.summary}`,
         )
       }
     } else if (entry.type === "custom_message") {
       conversation += estimateText(entry.content)
       if (wantContext) {
-        contextChunks.push(`## Custom: ${entry.customType}\n\n${previewValue(entry.content)}`)
+        contextChunks.push(`## 自定义：${entry.customType}\n\n${previewValue(entry.content)}`)
       }
     }
   }
@@ -227,8 +246,8 @@ export function resolveUsedTokens(
 }
 
 /**
- * 以 Pi 的总占用校准分段。System / Memory / Skills / Tools definition
- * 是固定项；Tool results 与会话上下文按比例压缩；差额归入「其他」。
+ * 以 Pi 的总占用校准分段。系统提示词 / 记忆 / 技能 / 工具定义
+ * 是固定项；工具结果与会话上下文按比例压缩；差额归入「其他」。
  */
 export function estimateContextUsage(
   source: ContextUsageSource,

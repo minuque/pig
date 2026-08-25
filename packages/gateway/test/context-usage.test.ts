@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { formatSkillsForPrompt } from "@earendil-works/pi-coding-agent"
 import { estimateContextUsage, resolveUsedTokens } from "../src/pi/context-usage.js"
 
 function source(overrides: Record<string, unknown> = {}) {
@@ -39,6 +40,8 @@ describe("estimateContextUsage", () => {
     expect(usage.segments.systemPrompt).toBeGreaterThan(0)
     expect(usage.segments.tools).toBeGreaterThan(0)
     expect(usage.segments.conversation).toBeGreaterThan(0)
+    expect(usage.segments.skills).toBe(0)
+    expect(usage.segments.toolResults).toBe(0)
   })
 
   it("未嵌进 system prompt 的 Memory 不计占用", () => {
@@ -54,6 +57,33 @@ describe("estimateContextUsage", () => {
     })
 
     expect(usage.segments.memory).toBe(0)
+  })
+
+  it("嵌进 system prompt 的技能只计一次", () => {
+    const skills = [{ name: "ok", description: "desc", filePath: "/v" }]
+    const skillsText = formatSkillsForPrompt(skills as never).trim()
+    const memory = "cccc"
+    const systemPrompt = `base\n${memory}\n${skillsText}`
+    const usage = estimateContextUsage({
+      ...source(),
+      systemPrompt,
+      getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }),
+      resourceLoader: {
+        getAgentsFiles: () => ({
+          agentsFiles: [{ path: "AGENTS.md", content: memory }],
+        }),
+        getSkills: () => ({ skills: skills as never }),
+      },
+      sessionManager: { buildContextEntries: () => [] },
+      getActiveToolNames: () => [],
+      getAllTools: () => [],
+    })
+
+    expect(usage.segments.memory).toBe(Math.ceil(memory.length / 4))
+    expect(usage.segments.skills).toBe(Math.ceil(skillsText.length / 4))
+    expect(usage.segments.systemPrompt + usage.segments.memory + usage.segments.skills).toBe(
+      Math.ceil(systemPrompt.length / 4),
+    )
   })
 
   it("嵌进 system prompt 的 Memory 只计一次", () => {

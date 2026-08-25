@@ -44,14 +44,18 @@ export function shouldShowComposerMeta(
   return cwd !== undefined || usage !== undefined
 }
 
+function finiteTokens(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0
+}
+
 const SEGMENT_DEFS = [
   { id: "systemPrompt" as const, label: "系统提示词", color: "var(--primary)", previewable: true },
   { id: "memory" as const, label: "记忆", color: "var(--accent-dusk)", previewable: true },
-  { id: "skills" as const, label: "Skills", color: "var(--accent-twilight)", previewable: true },
-  { id: "tools" as const, label: "Tool 定义", color: "var(--accent-sunset)", previewable: true },
+  { id: "skills" as const, label: "技能", color: "var(--accent-twilight)", previewable: true },
+  { id: "tools" as const, label: "工具定义", color: "var(--accent-sunset)", previewable: true },
   {
     id: "toolResults" as const,
-    label: "Tool 结果",
+    label: "工具结果",
     color: "var(--accent-orange)",
     previewable: true,
   },
@@ -72,7 +76,7 @@ const SEGMENT_DEFS = [
 
 /** <1K 整数；1K–100K 一位小数；更大取整。 */
 export function formatTokenCount(tokens: number): string {
-  const abs = Math.max(0, tokens)
+  const abs = finiteTokens(tokens)
   if (abs < 1000) return String(Math.round(abs))
   const kilo = abs / 1000
   if (abs < 100_000) return `${kilo.toFixed(1)}K`
@@ -97,7 +101,7 @@ export function projectContextUsage(
     segments: SEGMENT_DEFS.map((def) => ({
       id: def.id,
       label: def.label,
-      tokens: Math.max(0, estimate.segments[def.id]),
+      tokens: finiteTokens(estimate.segments[def.id]),
       color: def.color,
       previewable: def.previewable,
     })),
@@ -105,10 +109,10 @@ export function projectContextUsage(
 }
 
 export function segmentShare(tokens: number, window: number): number {
-  if (window <= 0 || tokens <= 0) return 0
+  if (window <= 0 || !(tokens > 0)) return 0
   return Math.min(100, (tokens / window) * 100)
 }
 
 export function contextUsageSummary(usage: ContextUsage): string {
-  return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} token`
+  return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} 令牌`
 }

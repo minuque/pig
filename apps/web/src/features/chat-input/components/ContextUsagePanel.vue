@@ -2,7 +2,7 @@
   <div class="glass-shell usage-shell">
     <div class="glass-host usage-host">
       <div class="head">
-        <h3 class="title">Context Usage</h3>
+        <h3 class="title">上下文占用</h3>
         <button type="button" class="close" aria-label="关闭上下文占用" @click="emit('close')">
           <X :size="16" />
         </button>
