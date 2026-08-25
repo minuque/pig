@@ -482,6 +482,12 @@ onBeforeUnmount(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: enter-blur var(--duration-slow) var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .transcript-viewport {
+    animation: none;
+  }
 }
 .transcript-region {
   position: relative;

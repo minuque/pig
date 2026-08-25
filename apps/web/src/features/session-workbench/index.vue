@@ -2,65 +2,66 @@
   <WorkbenchHeader />
   <StartupError v-if="pageError" v-bind="pageError" />
   <SessionWelcome v-else-if="!sessionId" />
-  <section
-    v-else
-    class="workspace-main enter-blur"
-    :aria-labelledby="emptyCanvas ? 'session-hero-title' : 'current-title'"
-    :aria-busy="sessionPending || undefined"
+  <div
+    v-else-if="sessionPending"
+    class="empty-canvas"
+    role="status"
+    aria-live="polite"
+    aria-busy="true"
   >
-    <div v-if="sessionPending" class="empty-canvas" role="status" aria-live="polite">
-      <Spinner :size="24" aria-hidden="true" />
-      <p class="sr-only">正在加载会话</p>
-    </div>
-    <div v-else-if="emptyCanvas" class="empty-canvas">
-      <div class="empty-canvas-form">
-        <WorkbenchHero
-          :workspace-id="heroCwd"
-          title-id="session-hero-title"
-          :workspaces="workspaces"
-          :selectable="false"
-        />
-        <ChatInput
-          v-model:prompt="prompt"
-          v-model:preset="preset"
-          :catalog="catalog"
-          :phase="phase"
-          :error="sessionError"
-          :cwd="composerCwd"
-          :usage="contextUsage"
-          @send="submitText"
-        />
-      </div>
-    </div>
-
-    <template v-else>
-      <TranscriptView
-        ref="transcriptView"
-        :session-id="sessionId"
-        :transcript="transcript"
+    <Spinner :size="24" aria-hidden="true" />
+    <p class="sr-only">正在加载会话</p>
+  </div>
+  <section
+    v-else-if="emptyCanvas"
+    class="empty-canvas enter-blur"
+    aria-labelledby="session-hero-title"
+  >
+    <div class="empty-canvas-form">
+      <WorkbenchHero
+        :workspace-id="heroCwd"
+        title-id="session-hero-title"
+        :workspaces="workspaces"
+        :selectable="false"
+      />
+      <ChatInput
+        v-model:prompt="prompt"
+        v-model:preset="preset"
+        :catalog="catalog"
         :phase="phase"
-        :thread-state="clientState?.threadState ?? null"
-        :has-earlier="hasEarlier"
-        :loading-earlier="loadingEarlier"
-        @thread-state="applyThreadState"
-        @load-earlier="loadEarlier"
-      >
-        <ChatInput
-          v-model:prompt="prompt"
-          v-model:preset="preset"
-          :catalog="catalog"
-          :phase="phase"
-          :aborting="aborting"
-          :error="sessionError"
-          :cwd="composerCwd"
-          :usage="contextUsage"
-          docked
-          @send="submitFromDock"
-          @abort="abortSession"
-        />
-      </TranscriptView>
-    </template>
+        :error="sessionError"
+        :cwd="composerCwd"
+        :usage="contextUsage"
+        @send="submitText"
+      />
+    </div>
   </section>
+  <TranscriptView
+    v-else
+    ref="transcriptView"
+    :session-id="sessionId"
+    :transcript="transcript"
+    :phase="phase"
+    :thread-state="clientState?.threadState ?? null"
+    :has-earlier="hasEarlier"
+    :loading-earlier="loadingEarlier"
+    @thread-state="applyThreadState"
+    @load-earlier="loadEarlier"
+  >
+    <ChatInput
+      v-model:prompt="prompt"
+      v-model:preset="preset"
+      :catalog="catalog"
+      :phase="phase"
+      :aborting="aborting"
+      :error="sessionError"
+      :cwd="composerCwd"
+      :usage="contextUsage"
+      docked
+      @send="submitFromDock"
+      @abort="abortSession"
+    />
+  </TranscriptView>
 </template>
 
 <script lang="ts">
@@ -147,15 +148,6 @@ function submitFromDock(text: string) {
 </script>
 
 <style scoped>
-.workspace-main {
-  position: relative;
-  min-height: 0;
-  flex: 1;
-  overflow: hidden;
-  background: var(--surface);
-  display: flex;
-  flex-direction: column;
-}
 .empty-canvas {
   min-height: 0;
   flex: 1;
