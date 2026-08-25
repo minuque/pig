@@ -94,15 +94,15 @@ flowchart TB
 UI 直接使用官方类型，不再声明 pig 版 `PiClient`：
 
 ```ts
-import { PiClient, type ByteTransportFactory } from "@earendil-works/pi-client";
-import { RemoteSession } from "@earendil-works/pi-coding-agent/client";
+import { PiClient, type ByteTransportFactory } from "@earendil-works/pi-client"
+import { RemoteSession } from "@earendil-works/pi-coding-agent/client"
 import type {
   ModelRef,
   SessionMetadata,
   SessionSnapshot,
   ThinkingLevel,
   TranscriptItem,
-} from "@earendil-works/pi-protocol";
+} from "@earendil-works/pi-protocol"
 ```
 
 职责如下：
@@ -125,10 +125,10 @@ Host 使用官方 `PiServer`，只实现 `PiServerService` adapter：
 
 ```ts
 interface PiServerService {
-  listSessions(): Promise<SessionMetadata[]>;
-  listModels(): Promise<ModelMetadata[]>;
-  createSession(options: CreateSessionOptions): Promise<PiSessionRuntime>;
-  openSession(sessionId: string): Promise<PiSessionRuntime>;
+  listSessions(): Promise<SessionMetadata[]>
+  listModels(): Promise<ModelMetadata[]>
+  createSession(options: CreateSessionOptions): Promise<PiSessionRuntime>
+  openSession(sessionId: string): Promise<PiSessionRuntime>
 }
 ```
 

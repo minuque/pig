@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { DialogCloseProps } from "reka-ui";
-import type { ComputedRef } from "vue";
-import { DialogClose, useForwardProps } from "reka-ui";
+import type { DialogCloseProps } from "reka-ui"
+import type { ComputedRef } from "vue"
+import { DialogClose, useForwardProps } from "reka-ui"
 
-const props = defineProps<DialogCloseProps>();
+const props = defineProps<DialogCloseProps>()
 
-const forwardedProps = useForwardProps(props) as ComputedRef<DialogCloseProps>;
+const forwardedProps = useForwardProps(props) as ComputedRef<DialogCloseProps>
 </script>
 
 <template>

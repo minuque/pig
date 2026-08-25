@@ -1,17 +1,17 @@
-import type { SessionPhase } from "@earendil-works/pi-protocol";
+import type { SessionPhase } from "@earendil-works/pi-protocol"
 
 /** phase 文案：对齐官方 SessionPhase。 */
 export function phaseLabel(phase: SessionPhase): string {
   switch (phase) {
     case "turn":
-      return "运行中";
+      return "运行中"
     case "compaction":
-      return "压缩中";
+      return "压缩中"
     case "retry":
-      return "重试中";
+      return "重试中"
     case "branch_summary":
-      return "分支摘要";
+      return "分支摘要"
     default:
-      return "空闲";
+      return "空闲"
   }
 }

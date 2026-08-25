@@ -17,22 +17,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef } from "vue";
+import { computed, shallowRef } from "vue"
 import {
   DEFAULT_LINE_HEIGHT_PX,
   DEFAULT_MAX_EXPAND_LINES,
   DEFAULT_OVERSCAN_LINES,
   splitLines,
   visibleLineRange,
-} from "@features/session-workbench/lib/expandable-text.js";
+} from "@features/session-workbench/lib/expandable-text.js"
 
 const props = withDefaults(
   defineProps<{
-    text: string;
-    maxLines?: number;
-    lineHeight?: number;
-    tone?: "code" | "plain";
-    showCount?: boolean;
+    text: string
+    maxLines?: number
+    lineHeight?: number
+    tone?: "code" | "plain"
+    showCount?: boolean
   }>(),
   {
     maxLines: DEFAULT_MAX_EXPAND_LINES,
@@ -40,13 +40,13 @@ const props = withDefaults(
     tone: "code",
     showCount: true,
   },
-);
+)
 
-const preClass = computed(() => ({ "expand-text-pre--plain": props.tone === "plain" }));
+const preClass = computed(() => ({ "expand-text-pre--plain": props.tone === "plain" }))
 
-const scrollTop = shallowRef(0);
-const lines = computed(() => splitLines(props.text));
-const virtual = computed(() => lines.value.length > props.maxLines);
+const scrollTop = shallowRef(0)
+const lines = computed(() => splitLines(props.text))
+const virtual = computed(() => lines.value.length > props.maxLines)
 const range = computed(() =>
   virtual.value
     ? visibleLineRange(
@@ -57,15 +57,13 @@ const range = computed(() =>
         DEFAULT_OVERSCAN_LINES,
       )
     : { start: 0, end: lines.value.length },
-);
-const visibleText = computed(() =>
-  lines.value.slice(range.value.start, range.value.end).join("\n"),
-);
-const padTop = computed(() => range.value.start * props.lineHeight);
-const totalHeight = computed(() => lines.value.length * props.lineHeight);
+)
+const visibleText = computed(() => lines.value.slice(range.value.start, range.value.end).join("\n"))
+const padTop = computed(() => range.value.start * props.lineHeight)
+const totalHeight = computed(() => lines.value.length * props.lineHeight)
 
 function onScroll(event: Event) {
-  scrollTop.value = (event.currentTarget as HTMLElement).scrollTop;
+  scrollTop.value = (event.currentTarget as HTMLElement).scrollTop
 }
 </script>
 

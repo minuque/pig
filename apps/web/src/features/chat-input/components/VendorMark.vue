@@ -12,40 +12,40 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { vendorDisplayName, vendorIcon } from "@features/chat-input/lib/vendor-logo.js";
+import { computed } from "vue"
+import { vendorDisplayName, vendorIcon } from "@features/chat-input/lib/vendor-logo.js"
 
 const props = withDefaults(
   defineProps<{
-    vendor?: string;
-    name?: string;
-    size?: number;
+    vendor?: string
+    name?: string
+    size?: number
   }>(),
   {
     vendor: "",
     name: "",
     size: 12,
   },
-);
+)
 
-const icon = computed(() => vendorIcon(props.vendor || props.name));
+const icon = computed(() => vendorIcon(props.vendor || props.name))
 const letter = computed(() => {
-  const label = vendorDisplayName(props.vendor || props.name) || props.name || props.vendor;
-  return label.charAt(0).toUpperCase() || "?";
-});
+  const label = vendorDisplayName(props.vendor || props.name) || props.name || props.vendor
+  return label.charAt(0).toUpperCase() || "?"
+})
 const box = computed(() => ({
   width: `${props.size}px`,
   height: `${props.size}px`,
-}));
+}))
 const fallbackStyle = computed(() => ({
   ...box.value,
   fontSize: `${Math.max(8, props.size * 0.6)}px`,
-}));
+}))
 const monoStyle = computed(() => ({
   ...box.value,
   webkitMaskImage: `url("${icon.value?.src}")`,
   maskImage: `url("${icon.value?.src}")`,
-}));
+}))
 </script>
 
 <style scoped>

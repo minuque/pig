@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { estimateContextUsage, resolveUsedTokens } from "../src/pi/context-usage.js";
+import { describe, expect, it } from "vitest"
+import { estimateContextUsage, resolveUsedTokens } from "../src/pi/context-usage.js"
 
 function source(overrides: Record<string, unknown> = {}) {
   return {
@@ -15,25 +15,25 @@ function source(overrides: Record<string, unknown> = {}) {
       }),
     },
     ...overrides,
-  };
+  }
 }
 
 describe("estimateContextUsage", () => {
   it("以 Pi 总占用校准来源估算，差额归入其他，剩余归入空闲", () => {
-    const usage = estimateContextUsage(source());
-    const { idle, ...usedSegments } = usage.segments;
-    expect(usage.used).toBe(300);
-    expect(usage.window).toBe(1000);
-    expect(Object.values(usedSegments).reduce((sum, value) => sum + value, 0)).toBe(300);
-    expect(idle).toBe(700);
-    expect(usage.segments.systemPrompt).toBeGreaterThan(0);
-    expect(usage.segments.memory).toBeGreaterThan(0);
-    expect(usage.segments.tools).toBeGreaterThan(0);
-    expect(usage.segments.conversation).toBeGreaterThan(0);
-  });
+    const usage = estimateContextUsage(source())
+    const { idle, ...usedSegments } = usage.segments
+    expect(usage.used).toBe(300)
+    expect(usage.window).toBe(1000)
+    expect(Object.values(usedSegments).reduce((sum, value) => sum + value, 0)).toBe(300)
+    expect(idle).toBe(700)
+    expect(usage.segments.systemPrompt).toBeGreaterThan(0)
+    expect(usage.segments.memory).toBeGreaterThan(0)
+    expect(usage.segments.tools).toBeGreaterThan(0)
+    expect(usage.segments.conversation).toBeGreaterThan(0)
+  })
 
   it("Memory 只逐文件统计 context file 正文", () => {
-    const base = source();
+    const base = source()
     const usage = estimateContextUsage({
       ...base,
       getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }),
@@ -45,55 +45,55 @@ describe("estimateContextUsage", () => {
           ],
         }),
       },
-    });
+    })
 
-    expect(usage.segments.memory).toBe(4);
-    expect(usage.segments.other).toBe(0);
-  });
+    expect(usage.segments.memory).toBe(4)
+    expect(usage.segments.other).toBe(0)
+  })
 
   it("来源估算超过上报总量时仅收缩会话分段", () => {
     const estimated = estimateContextUsage(
       source({ getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }) }),
-    );
+    )
     const fixed =
-      estimated.segments.systemPrompt + estimated.segments.memory + estimated.segments.tools;
-    const target = fixed + Math.floor(estimated.segments.conversation / 2);
+      estimated.segments.systemPrompt + estimated.segments.memory + estimated.segments.tools
+    const target = fixed + Math.floor(estimated.segments.conversation / 2)
     const usage = estimateContextUsage(
       source({ getContextUsage: () => ({ tokens: target, contextWindow: 1000, percent: null }) }),
-    );
+    )
 
-    expect(usage.used).toBe(target);
-    expect(usage.segments.systemPrompt).toBe(estimated.segments.systemPrompt);
-    expect(usage.segments.memory).toBe(estimated.segments.memory);
-    expect(usage.segments.tools).toBe(estimated.segments.tools);
-    expect(usage.segments.conversation).toBe(target - fixed);
-  });
+    expect(usage.used).toBe(target)
+    expect(usage.segments.systemPrompt).toBe(estimated.segments.systemPrompt)
+    expect(usage.segments.memory).toBe(estimated.segments.memory)
+    expect(usage.segments.tools).toBe(estimated.segments.tools)
+    expect(usage.segments.conversation).toBe(target - fixed)
+  })
 
   it("总占用不低于固定分段", () => {
     const estimated = estimateContextUsage(
       source({ getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }) }),
-    );
+    )
     const fixed =
-      estimated.segments.systemPrompt + estimated.segments.memory + estimated.segments.tools;
+      estimated.segments.systemPrompt + estimated.segments.memory + estimated.segments.tools
     const usage = estimateContextUsage(
       source({
         getContextUsage: () => ({ tokens: fixed - 1, contextWindow: 1000, percent: null }),
       }),
-    );
+    )
 
-    expect(usage.used).toBe(fixed);
-    expect(usage.segments.conversation).toBe(0);
-  });
-});
+    expect(usage.used).toBe(fixed)
+    expect(usage.segments.conversation).toBe(0)
+  })
+})
 
 describe("resolveUsedTokens", () => {
   it("上报 tokens 与 percent 显著不一致时优先 percent", () => {
-    expect(resolveUsedTokens({ tokens: 1, percent: 7 }, 20_000, 272_000)).toBe(19_040);
-    expect(resolveUsedTokens({ tokens: 19_000, percent: 7 }, 20_000, 272_000)).toBe(19_000);
-  });
+    expect(resolveUsedTokens({ tokens: 1, percent: 7 }, 20_000, 272_000)).toBe(19_040)
+    expect(resolveUsedTokens({ tokens: 19_000, percent: 7 }, 20_000, 272_000)).toBe(19_000)
+  })
 
   it("上报值明显小于内容估算时回退估算", () => {
-    expect(resolveUsedTokens({ tokens: 1, percent: 1 / 2720 }, 20_000, 272_000)).toBe(20_000);
-    expect(resolveUsedTokens({ tokens: null, percent: null }, 20_000, 272_000)).toBe(20_000);
-  });
-});
+    expect(resolveUsedTokens({ tokens: 1, percent: 1 / 2720 }, 20_000, 272_000)).toBe(20_000)
+    expect(resolveUsedTokens({ tokens: null, percent: null }, 20_000, 272_000)).toBe(20_000)
+  })
+})

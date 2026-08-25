@@ -1,16 +1,16 @@
-import tailwindcss from "@tailwindcss/vite";
-import { fileURLToPath, URL } from "node:url";
-import vue from "@vitejs/plugin-vue";
-import { defineConfig } from "vite";
-import { VitePWA } from "vite-plugin-pwa";
-import vueDevTools from "vite-plugin-vue-devtools";
+import tailwindcss from "@tailwindcss/vite"
+import { fileURLToPath, URL } from "node:url"
+import vue from "@vitejs/plugin-vue"
+import { defineConfig } from "vite"
+import { VitePWA } from "vite-plugin-pwa"
+import vueDevTools from "vite-plugin-vue-devtools"
 
-const gatewayTarget = process.env.GATEWAY_TARGET;
-const bootstrapSecret = process.env.BOOTSTRAP_SECRET;
+const gatewayTarget = process.env.GATEWAY_TARGET
+const bootstrapSecret = process.env.BOOTSTRAP_SECRET
 // 给客户端：Pi WebSocket 直连 Gateway，不经 Vite 的 WS 代理
-if (gatewayTarget) process.env.VITE_GATEWAY_TARGET = gatewayTarget;
+if (gatewayTarget) process.env.VITE_GATEWAY_TARGET = gatewayTarget
 // dev 下暴露 bootstrap secret，无凭证访问时自动跳转启动链接完成授权
-if (bootstrapSecret) process.env.VITE_BOOTSTRAP_SECRET = bootstrapSecret;
+if (bootstrapSecret) process.env.VITE_BOOTSTRAP_SECRET = bootstrapSecret
 
 export default defineConfig({
   plugins: [
@@ -76,4 +76,4 @@ export default defineConfig({
         }
       : {}),
   },
-});
+})

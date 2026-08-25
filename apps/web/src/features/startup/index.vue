@@ -14,20 +14,20 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
-import StartupOverlay from "@features/startup/components/StartupOverlay.vue";
-import { useStartupSequence } from "@features/startup/hooks/use-startup-sequence.js";
+import { onMounted } from "vue"
+import StartupOverlay from "@features/startup/components/StartupOverlay.vue"
+import { useStartupSequence } from "@features/startup/hooks/use-startup-sequence.js"
 
 const props = defineProps<{
-  connect: () => Promise<unknown>;
-  initialize: () => Promise<unknown>;
-}>();
+  connect: () => Promise<unknown>
+  initialize: () => Promise<unknown>
+}>()
 
-const { visible, concealed, reveal, finish, start } = useStartupSequence(props);
+const { visible, concealed, reveal, finish, start } = useStartupSequence(props)
 
 onMounted(() => {
-  void start();
-});
+  void start()
+})
 </script>
 
 <style scoped>

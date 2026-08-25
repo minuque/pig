@@ -1,34 +1,34 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { ServerMessageDecoder } from "@earendil-works/pi-protocol";
-import { WebSocket } from "ws";
+import { afterEach, describe, expect, it } from "vitest"
+import { ServerMessageDecoder } from "@earendil-works/pi-protocol"
+import { WebSocket } from "ws"
 
-import Gateway from "../src/index.js";
-import type { DirectoryPort } from "../src/directory.js";
+import Gateway from "../src/index.js"
+import type { DirectoryPort } from "../src/directory.js"
 
-let selectedDirectory: string | undefined;
+let selectedDirectory: string | undefined
 const directoryPort: DirectoryPort = {
   async selectDirectory() {
-    return selectedDirectory;
+    return selectedDirectory
   },
   async validateDirectory(path) {
-    return path;
+    return path
   },
-};
+}
 
-let gateway: Gateway | undefined;
+let gateway: Gateway | undefined
 afterEach(async () => {
-  selectedDirectory = undefined;
-  await gateway?.stop();
-  gateway = undefined;
-});
+  selectedDirectory = undefined
+  await gateway?.stop()
+  gateway = undefined
+})
 
 async function startGateway(options?: ConstructorParameters<typeof Gateway>[0]) {
   gateway = new Gateway({
     bootstrapSecret: "test-secret",
     platformPort: directoryPort,
     ...options,
-  });
-  return `http://127.0.0.1:${await gateway.start()}`;
+  })
+  return `http://127.0.0.1:${await gateway.start()}`
 }
 
 async function request(
@@ -45,69 +45,69 @@ async function request(
       ...(credential ? { authorization: `Bearer ${credential}` } : {}),
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  });
+  })
 }
 
 describe("thin host HTTP shell", () => {
   it("serves /health", async () => {
-    const base = await startGateway();
-    expect(await (await request(base, "/health")).json()).toEqual({ status: "ok" });
-  });
+    const base = await startGateway()
+    expect(await (await request(base, "/health")).json()).toEqual({ status: "ok" })
+  })
 
   it("exchanges bootstrap secret for a reusable credential", async () => {
-    const base = await startGateway();
-    expect((await request(base, "/api/v1/bootstrap", { secret: "wrong" })).status).toBe(401);
-    const response = await request(base, "/api/v1/bootstrap", { secret: "test-secret" });
-    expect(response.status).toBe(201);
-    const { credential } = (await response.json()) as { credential: string };
-    expect(credential).toBeTruthy();
-    const again = await request(base, "/api/v1/bootstrap", { secret: "test-secret" });
-    expect(again.status).toBe(201);
-    expect(await again.json()).toEqual({ credential });
-  });
+    const base = await startGateway()
+    expect((await request(base, "/api/v1/bootstrap", { secret: "wrong" })).status).toBe(401)
+    const response = await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
+    expect(response.status).toBe(201)
+    const { credential } = (await response.json()) as { credential: string }
+    expect(credential).toBeTruthy()
+    const again = await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
+    expect(again.status).toBe(201)
+    expect(await again.json()).toEqual({ credential })
+  })
 
   it("selects a directory only with a valid credential", async () => {
-    const base = await startGateway();
+    const base = await startGateway()
     const { credential } = (await (
       await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
-    ).json()) as { credential: string };
+    ).json()) as { credential: string }
 
     expect(
       (await request(base, "/api/v1/platform/select-directory", undefined, undefined, "POST"))
         .status,
-    ).toBe(401);
+    ).toBe(401)
 
-    selectedDirectory = "C:/projects/demo";
+    selectedDirectory = "C:/projects/demo"
     expect(
       await (
         await request(base, "/api/v1/platform/select-directory", undefined, credential, "POST")
       ).json(),
-    ).toEqual({ path: "C:/projects/demo", requiresManualInput: false });
+    ).toEqual({ path: "C:/projects/demo", requiresManualInput: false })
 
     // 用户取消时返回 null，可重试
-    selectedDirectory = undefined;
+    selectedDirectory = undefined
     expect(
       await (
         await request(base, "/api/v1/platform/select-directory", undefined, credential, "POST")
       ).json(),
-    ).toEqual({ path: null, requiresManualInput: false });
-  });
+    ).toEqual({ path: null, requiresManualInput: false })
+  })
 
   it("renames and deletes sessions only with a valid credential", async () => {
-    const base = await startGateway();
+    const base = await startGateway()
     expect(
       (await request(base, "/api/v1/platform/rename-session", { id: "s", name: "a" })).status,
-    ).toBe(401);
-    expect((await request(base, "/api/v1/platform/delete-session", { id: "s" })).status).toBe(401);
-    expect((await request(base, "/api/v1/platform/session-cards")).status).toBe(401);
-    expect((await request(base, "/api/v1/platform/context-usage?sessionId=s")).status).toBe(401);
+    ).toBe(401)
+    expect((await request(base, "/api/v1/platform/delete-session", { id: "s" })).status).toBe(401)
+    expect((await request(base, "/api/v1/platform/session-cards")).status).toBe(401)
+    expect((await request(base, "/api/v1/platform/context-usage?sessionId=s")).status).toBe(401)
     expect((await request(base, "/api/v1/platform/transcript?sessionId=s&before=m1")).status).toBe(
       401,
-    );
+    )
 
     const { credential } = (await (
       await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
-    ).json()) as { credential: string };
+    ).json()) as { credential: string }
     expect(
       (
         await request(
@@ -117,14 +117,14 @@ describe("thin host HTTP shell", () => {
           credential,
         )
       ).status,
-    ).toBe(404);
+    ).toBe(404)
     expect(
       (await request(base, "/api/v1/platform/transcript?sessionId=s", undefined, credential))
         .status,
-    ).toBe(400);
+    ).toBe(400)
     expect(
       (await request(base, "/api/v1/platform/context-usage", undefined, credential)).status,
-    ).toBe(400);
+    ).toBe(400)
     await expect(
       (
         await request(
@@ -134,7 +134,7 @@ describe("thin host HTTP shell", () => {
           credential,
         )
       ).json(),
-    ).resolves.toEqual({ usage: null });
+    ).resolves.toEqual({ usage: null })
     expect(
       (
         await request(
@@ -144,17 +144,17 @@ describe("thin host HTTP shell", () => {
           credential,
         )
       ).status,
-    ).toBe(404);
-    const cards = await request(base, "/api/v1/platform/session-cards", undefined, credential);
-    expect(cards.status).toBe(200);
-    await expect(cards.json()).resolves.toMatchObject({ cards: expect.any(Array) });
-  }, 15_000);
-});
+    ).toBe(404)
+    const cards = await request(base, "/api/v1/platform/session-cards", undefined, credential)
+    expect(cards.status).toBe(200)
+    await expect(cards.json()).resolves.toMatchObject({ cards: expect.any(Array) })
+  }, 15_000)
+})
 
 describe("thin host WebSocket", () => {
   it("rejects upgrades without a valid credential", async () => {
-    await startGateway();
-    const port = gateway!.getPort();
+    await startGateway()
+    const port = gateway!.getPort()
 
     for (const url of [
       `ws://127.0.0.1:${port}/api/v1/pi`,
@@ -164,49 +164,49 @@ describe("thin host WebSocket", () => {
         const timer = setTimeout(
           () => reject(new Error("upgrade 未返回 unexpected-response")),
           3000,
-        );
-        const socket = new WebSocket(url);
+        )
+        const socket = new WebSocket(url)
         socket.once("unexpected-response", (_req, res) => {
-          clearTimeout(timer);
-          socket.terminate();
-          resolve(res.statusCode ?? 0);
-        });
+          clearTimeout(timer)
+          socket.terminate()
+          resolve(res.statusCode ?? 0)
+        })
         socket.once("error", () => {
           // unexpected-response 后底层 socket 被销毁也会触发 error，忽略
-        });
-      });
-      expect(status).toBe(401);
+        })
+      })
+      expect(status).toBe(401)
     }
-  });
+  })
 
   it("hands authenticated connections to PiServer after upgrade", async () => {
-    const base = await startGateway();
-    const port = gateway!.getPort();
+    const base = await startGateway()
+    const port = gateway!.getPort()
     const { credential } = (await (
       await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
-    ).json()) as { credential: string };
+    ).json()) as { credential: string }
 
-    const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi?credential=${credential}`);
+    const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi?credential=${credential}`)
     const result = await new Promise<{ message: unknown; closed: boolean }>((resolve, reject) => {
-      const decoder = new ServerMessageDecoder();
+      const decoder = new ServerMessageDecoder()
       socket.on("message", (data) => {
         // 发送一个长度=1、载荷非法 CBOR 的帧：PiServer 应回 hello_error 并关闭
-        const messages = decoder.push(data as Buffer);
+        const messages = decoder.push(data as Buffer)
         for (const message of messages) {
           if (message.type === "hello_error") {
-            socket.close();
-            resolve({ message, closed: false });
+            socket.close()
+            resolve({ message, closed: false })
           }
         }
-      });
-      socket.once("close", () => resolve({ message: undefined, closed: true }));
-      socket.once("error", reject);
-      socket.once("open", () => socket.send(new Uint8Array([0x00, 0x00, 0x00, 0x01, 0xff])));
-    });
+      })
+      socket.once("close", () => resolve({ message: undefined, closed: true }))
+      socket.once("error", reject)
+      socket.once("open", () => socket.send(new Uint8Array([0x00, 0x00, 0x00, 0x01, 0xff])))
+    })
 
-    const message = result.message as { type: string; error?: { code: string } };
-    expect(message.type).toBe("hello_error");
-    expect(message.error?.code).toBe("invalid_request");
-    expect(result.closed).toBe(false);
-  });
-});
+    const message = result.message as { type: string; error?: { code: string } }
+    expect(message.type).toBe("hello_error")
+    expect(message.error?.code).toBe("invalid_request")
+    expect(result.closed).toBe(false)
+  })
+})

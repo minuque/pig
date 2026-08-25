@@ -1,13 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
-import { nextTick, ref } from "vue";
-import type { SessionSnapshot } from "@earendil-works/pi-protocol";
-import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-binding.js";
-import type { ChatInputVendor } from "@features/chat-input/types.js";
+import { describe, expect, it, vi } from "vitest"
+import { nextTick, ref } from "vue"
+import type { SessionSnapshot } from "@earendil-works/pi-protocol"
+import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-binding.js"
+import type { ChatInputVendor } from "@features/chat-input/types.js"
 
 const catalog: ChatInputVendor[] = [
   { id: "a", name: "A", models: [{ id: "one", name: "One", thinkingLevels: ["high"] }] },
   { id: "b", name: "B", models: [{ id: "two", name: "Two", thinkingLevels: ["low"] }] },
-];
+]
 
 function snapshot(model = { provider: "a", id: "one" }, thinkingLevel = "high") {
   return {
@@ -24,26 +24,26 @@ function snapshot(model = { provider: "a", id: "one" }, thinkingLevel = "high") 
     transcript: [],
     queuedSteer: [],
     queuedSteerCount: 0,
-  } as SessionSnapshot;
+  } as SessionSnapshot
 }
 
 describe("useChatInputBinding", () => {
   it("切换模型时保留自动修正的 thinking，并在模型回执后下发", async () => {
-    const state = ref(snapshot());
-    let release!: () => void;
+    const state = ref(snapshot())
+    let release!: () => void
     const setModel = vi.fn(
       async () =>
         new Promise<void>((resolve) => {
           release = () => {
-            state.value = snapshot({ provider: "b", id: "two" }, "high");
-            resolve();
-          };
+            state.value = snapshot({ provider: "b", id: "two" }, "high")
+            resolve()
+          }
         }),
-    );
+    )
     const setThinking = vi.fn(async (level: string) => {
-      state.value = snapshot({ provider: "b", id: "two" }, level);
-    });
-    const phase = ref<"idle" | undefined>("idle");
+      state.value = snapshot({ provider: "b", id: "two" }, level)
+    })
+    const phase = ref<"idle" | undefined>("idle")
     const { preset } = useChatInputBinding({
       catalog: ref(catalog),
       snapshot: state,
@@ -51,18 +51,18 @@ describe("useChatInputBinding", () => {
       error: ref(""),
       setModel,
       setThinking,
-    });
+    })
 
-    state.value = snapshot();
-    await nextTick();
-    preset.value = { model: { provider: "b", id: "two" }, thinkingLevel: "low" };
-    await nextTick();
-    expect(setModel).toHaveBeenCalledWith({ provider: "b", id: "two" });
-    expect(preset.value?.thinkingLevel).toBe("low");
+    state.value = snapshot()
+    await nextTick()
+    preset.value = { model: { provider: "b", id: "two" }, thinkingLevel: "low" }
+    await nextTick()
+    expect(setModel).toHaveBeenCalledWith({ provider: "b", id: "two" })
+    expect(preset.value?.thinkingLevel).toBe("low")
 
-    release();
-    await new Promise((resolve) => setTimeout(resolve));
-    expect(setThinking).toHaveBeenCalledWith("low");
-    expect(preset.value).toEqual({ model: { provider: "b", id: "two" }, thinkingLevel: "low" });
-  });
-});
+    release()
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(setThinking).toHaveBeenCalledWith("low")
+    expect(preset.value).toEqual({ model: { provider: "b", id: "two" }, thinkingLevel: "low" })
+  })
+})

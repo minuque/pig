@@ -100,52 +100,52 @@
 <script lang="ts">
 /** 发送守卫：有正文且未被外部禁用；附件不进协议，不能单独放行。 */
 export function canSend(text: string, sendDisabled: boolean): boolean {
-  return text.trim() !== "" && !sendDisabled;
+  return text.trim() !== "" && !sendDisabled
 }
 </script>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next";
-import type { SessionPhase } from "@earendil-works/pi-protocol";
-import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue";
-import ComposerMeta from "@features/chat-input/components/ComposerMeta.vue";
-import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel.vue";
-import ModelPicker from "@features/chat-input/components/ModelPicker.vue";
-import ThinkingLevelSelect from "@features/chat-input/components/ThinkingLevelSelect.vue";
-import PromptEditor from "@features/chat-input/components/PromptEditor.vue";
+import { computed, ref, watch } from "vue"
+import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next"
+import type { SessionPhase } from "@earendil-works/pi-protocol"
+import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue"
+import ComposerMeta from "@features/chat-input/components/ComposerMeta.vue"
+import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel.vue"
+import ModelPicker from "@features/chat-input/components/ModelPicker.vue"
+import ThinkingLevelSelect from "@features/chat-input/components/ThinkingLevelSelect.vue"
+import PromptEditor from "@features/chat-input/components/PromptEditor.vue"
 import {
   shouldShowComposerMeta,
   type ContextUsage,
-} from "@features/chat-input/lib/context-usage.js";
-import { useModelPresetBinding } from "@features/chat-input/hooks/use-model-preset-binding.js";
+} from "@features/chat-input/lib/context-usage.js"
+import { useModelPresetBinding } from "@features/chat-input/hooks/use-model-preset-binding.js"
 import {
   MAX_COMPOSER_ATTACHMENTS,
   imageFilesFromClipboard,
   useComposerAttachments,
-} from "@features/chat-input/hooks/use-composer-attachments.js";
-import type { ChatInputPreset, ChatInputVendor } from "@features/chat-input/types.js";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js";
+} from "@features/chat-input/hooks/use-composer-attachments.js"
+import type { ChatInputPreset, ChatInputVendor } from "@features/chat-input/types.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = withDefaults(
   defineProps<{
-    catalog: ChatInputVendor[];
+    catalog: ChatInputVendor[]
     /** 当前 Session phase：运行中把发送钮改成停止 */
-    phase?: SessionPhase | undefined;
+    phase?: SessionPhase | undefined
     /** Abort 请求进行中：保持停止态并禁用重复点击 */
-    aborting?: boolean;
-    error?: string;
+    aborting?: boolean
+    error?: string
     /** 外部禁用发送（如 welcome 的 workspace/预设/提交中守卫） */
-    sendDisabled?: boolean;
-    placeholder?: string;
-    ariaLabel?: string;
+    sendDisabled?: boolean
+    placeholder?: string
+    ariaLabel?: string
     /** 嵌入其他布局时以 div 渲染，避免嵌套 form */
-    bare?: boolean;
+    bare?: boolean
     /** 对话列贴底：宽度交给上层 dock */
-    docked?: boolean;
+    docked?: boolean
     /** 当前工作目录，底栏展示末段名 */
-    cwd?: string | undefined;
-    usage?: ContextUsage | undefined;
+    cwd?: string | undefined
+    usage?: ContextUsage | undefined
   }>(),
   {
     phase: undefined,
@@ -159,69 +159,69 @@ const props = withDefaults(
     cwd: undefined,
     usage: undefined,
   },
-);
+)
 
-const prompt = defineModel<string>("prompt", { required: true });
-const preset = defineModel<ChatInputPreset | undefined>("preset");
+const prompt = defineModel<string>("prompt", { required: true })
+const preset = defineModel<ChatInputPreset | undefined>("preset")
 
 const emit = defineEmits<{
-  send: [text: string];
-  abort: [];
-}>();
+  send: [text: string]
+  abort: []
+}>()
 
-const { model, modelLevels, level } = useModelPresetBinding(() => props.catalog, preset);
-const running = computed(() => props.phase !== undefined && props.phase !== "idle");
-const { attachments, addFiles, remove, clear } = useComposerAttachments();
-const sendActive = computed(() => canSend(prompt.value, props.sendDisabled));
+const { model, modelLevels, level } = useModelPresetBinding(() => props.catalog, preset)
+const running = computed(() => props.phase !== undefined && props.phase !== "idle")
+const { attachments, addFiles, remove, clear } = useComposerAttachments()
+const sendActive = computed(() => canSend(prompt.value, props.sendDisabled))
 
-const promptEditor = ref<{ focus: () => void } | null>(null);
-const fileInput = ref<HTMLInputElement | null>(null);
-const usageOpen = ref(false);
-const showMeta = computed(() => shouldShowComposerMeta(props.cwd, props.usage));
+const promptEditor = ref<{ focus: () => void } | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
+const usageOpen = ref(false)
+const showMeta = computed(() => shouldShowComposerMeta(props.cwd, props.usage))
 
 watch(
   () => props.cwd,
   () => {
-    usageOpen.value = false;
+    usageOpen.value = false
   },
-);
+)
 
 function focusEditor() {
-  promptEditor.value?.focus();
+  promptEditor.value?.focus()
 }
 
 function openFilePicker() {
-  fileInput.value?.click();
+  fileInput.value?.click()
 }
 
 function onFilesPicked(e: Event) {
-  const input = e.target as HTMLInputElement;
-  addFiles(input.files);
-  input.value = "";
-  focusEditor();
+  const input = e.target as HTMLInputElement
+  addFiles(input.files)
+  input.value = ""
+  focusEditor()
 }
 
 function onPaste(e: ClipboardEvent) {
-  const files = imageFilesFromClipboard(e.clipboardData);
-  if (files.length === 0) return;
-  e.preventDefault();
-  addFiles(files);
-  focusEditor();
+  const files = imageFilesFromClipboard(e.clipboardData)
+  if (files.length === 0) return
+  e.preventDefault()
+  addFiles(files)
+  focusEditor()
 }
 
 function send() {
-  if (running.value || !sendActive.value) return;
-  const text = prompt.value;
-  emit("send", text);
-  clear();
+  if (running.value || !sendActive.value) return
+  const text = prompt.value
+  emit("send", text)
+  clear()
 }
 
 function onPrimaryAction() {
   if (running.value) {
-    emit("abort");
-    return;
+    emit("abort")
+    return
   }
-  send();
+  send()
 }
 </script>
 

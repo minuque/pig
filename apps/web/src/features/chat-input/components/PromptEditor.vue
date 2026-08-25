@@ -39,95 +39,95 @@
 <script lang="ts">
 /** 键盘守卫：仅裸 Enter 触发提交；Shift+Enter 换行、IME 组合期间一律放行。 */
 export function shouldSubmitOnKeydown(e: {
-  key: string;
-  shiftKey: boolean;
-  isComposing: boolean;
+  key: string
+  shiftKey: boolean
+  isComposing: boolean
 }): boolean {
-  return e.key === "Enter" && !e.shiftKey && !e.isComposing;
+  return e.key === "Enter" && !e.shiftKey && !e.isComposing
 }
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue"
 
 const props = withDefaults(
   defineProps<{
-    placeholder?: string;
-    ariaLabel?: string;
+    placeholder?: string
+    ariaLabel?: string
   }>(),
   {
     placeholder: "do what you want ...",
     ariaLabel: "do what you want ...",
   },
-);
+)
 
 /** 与外部 prompt 双向绑定：输入/增强结果写回外部，外部草稿恢复时同步进编辑器 */
-const prompt = defineModel<string>("prompt", { required: true });
+const prompt = defineModel<string>("prompt", { required: true })
 
 const emit = defineEmits<{
   /** 裸 Enter：是否真正发送由父组件守卫 */
-  submit: [];
-}>();
+  submit: []
+}>()
 
-const editor = ref<HTMLElement | null>(null);
+const editor = ref<HTMLElement | null>(null)
 
-const hasText = computed(() => prompt.value.trim().length > 0);
+const hasText = computed(() => prompt.value.trim().length > 0)
 
 /** 聚焦并把光标移到末尾 */
 function focusEnd() {
-  const el = editor.value;
-  if (!el) return;
-  el.focus();
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  range.collapse(false);
-  const sel = window.getSelection();
-  sel?.removeAllRanges();
-  sel?.addRange(range);
+  const el = editor.value
+  if (!el) return
+  el.focus()
+  const range = document.createRange()
+  range.selectNodeContents(el)
+  range.collapse(false)
+  const sel = window.getSelection()
+  sel?.removeAllRanges()
+  sel?.addRange(range)
 }
 /** 供父组件（发送/选文件后）重新聚焦编辑器 */
 function focus() {
-  editor.value?.focus();
+  editor.value?.focus()
 }
 
 function syncFromEditor() {
-  const el = editor.value;
-  if (!el) return;
-  prompt.value = el.innerText;
+  const el = editor.value
+  if (!el) return
+  prompt.value = el.innerText
 }
 
 // 外部改写 prompt（draft 恢复等）时同步进编辑器。
 // 挂载时也同步一次：重挂载且 prompt 初始非空时，保证编辑器显示既有草稿（watch 非 immediate，setup 阶段 editor 尚未挂载）。
 function syncFromPrompt() {
-  const el = editor.value;
-  if (!el) return;
+  const el = editor.value
+  if (!el) return
   if (el.innerText !== prompt.value) {
-    const sel = window.getSelection();
-    const focused = sel && el.contains(sel.anchorNode);
-    el.innerText = prompt.value;
-    if (focused) focusEnd();
+    const sel = window.getSelection()
+    const focused = sel && el.contains(sel.anchorNode)
+    el.innerText = prompt.value
+    if (focused) focusEnd()
   }
 }
-watch(prompt, syncFromPrompt);
-onMounted(syncFromPrompt);
+watch(prompt, syncFromPrompt)
+onMounted(syncFromPrompt)
 
 function onEditorKeydown(e: KeyboardEvent) {
   if (shouldSubmitOnKeydown(e)) {
-    e.preventDefault();
-    emit("submit");
+    e.preventDefault()
+    emit("submit")
   }
 }
 
 /** 点卡空白处聚焦；控件（按钮/输入/编辑器）放行，避免抢走自身交互。 */
 function onComposerMousedown(e: MouseEvent) {
-  const el = e.target;
-  if (!(el instanceof Element)) return;
-  if (el.closest("button, input, textarea, [contenteditable]")) return;
-  e.preventDefault();
-  focus();
+  const el = e.target
+  if (!(el instanceof Element)) return
+  if (el.closest("button, input, textarea, [contenteditable]")) return
+  e.preventDefault()
+  focus()
 }
 
-defineExpose({ focus });
+defineExpose({ focus })
 </script>
 
 <style scoped>

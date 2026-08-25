@@ -17,16 +17,16 @@
 </template>
 
 <script setup lang="ts">
-import { shallowRef } from "vue";
+import { shallowRef } from "vue"
 
 withDefaults(
   defineProps<{
-    toggleClass?: string;
+    toggleClass?: string
   }>(),
   { toggleClass: "" },
-);
+)
 
-const open = shallowRef(false);
+const open = shallowRef(false)
 </script>
 
 <style scoped>

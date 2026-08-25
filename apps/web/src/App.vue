@@ -11,18 +11,18 @@
 </template>
 
 <script setup lang="ts">
-import AppLayout from "@components/layout/AppLayout.vue";
-import { AlertToaster } from "@components/ui/alert/index.js";
-import { useLocalWorkspaces } from "@client/local-cwd.js";
-import { usePiClient } from "@client/pi-client.js";
-import SessionNav from "@features/session-nav/index.vue";
-import { provideNav } from "@features/session-nav/index.js";
-import Startup from "@features/startup/index.vue";
-import SessionWorkbench from "@features/session-workbench/index.vue";
-import { provideSession } from "@features/session-workbench/index.js";
+import AppLayout from "@components/layout/AppLayout.vue"
+import { AlertToaster } from "@components/ui/alert/index.js"
+import { useLocalWorkspaces } from "@client/local-cwd.js"
+import { usePiClient } from "@client/pi-client.js"
+import SessionNav from "@features/session-nav/index.vue"
+import { provideNav } from "@features/session-nav/index.js"
+import Startup from "@features/startup/index.vue"
+import SessionWorkbench from "@features/session-workbench/index.vue"
+import { provideSession } from "@features/session-workbench/index.js"
 
-const pi = usePiClient();
-const cwd = useLocalWorkspaces();
-const session = provideSession(pi, cwd);
-provideNav(pi, cwd, session);
+const pi = usePiClient()
+const cwd = useLocalWorkspaces()
+const session = provideSession(pi, cwd)
+provideNav(pi, cwd, session)
 </script>

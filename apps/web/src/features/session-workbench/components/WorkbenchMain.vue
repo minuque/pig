@@ -84,7 +84,7 @@
 </template>
 
 <script lang="ts">
-import type { SessionPhase } from "@earendil-works/pi-protocol";
+import type { SessionPhase } from "@earendil-works/pi-protocol"
 
 /** 无 transcript 且未运行：居中空画布。加载中、运行中即使无行也不走空画布。 */
 export function isEmptyCanvas(
@@ -92,26 +92,26 @@ export function isEmptyCanvas(
   phase: SessionPhase | undefined,
   pending = false,
 ): boolean {
-  if (pending) return false;
-  return transcriptLength === 0 && (phase === undefined || phase === "idle");
+  if (pending) return false
+  return transcriptLength === 0 && (phase === undefined || phase === "idle")
 }
 
 export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boolean): boolean {
-  return transcriptLength > 0 && !atBottom;
+  return transcriptLength > 0 && !atBottom
 }
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
-import { ArrowDown } from "lucide-vue-next";
-import ChatInput from "@features/chat-input/index.vue";
-import { projectContextUsage } from "@features/chat-input/lib/context-usage.js";
-import { useNav } from "@features/session-nav/index.js";
-import { useSession } from "@features/session-workbench/index.js";
-import { hasEarlierTranscript } from "@features/session-workbench/lib/session-state.js";
-import TranscriptView from "@features/session-workbench/components/TranscriptView.vue";
-import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue";
-import { Button } from "@components/ui/button/index.js";
+import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { ArrowDown } from "lucide-vue-next"
+import ChatInput from "@features/chat-input/index.vue"
+import { projectContextUsage } from "@features/chat-input/lib/context-usage.js"
+import { useNav } from "@features/session-nav/index.js"
+import { useSession } from "@features/session-workbench/index.js"
+import { hasEarlierTranscript } from "@features/session-workbench/lib/session-state.js"
+import TranscriptView from "@features/session-workbench/components/TranscriptView.vue"
+import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
+import { Button } from "@components/ui/button/index.js"
 
 const {
   sessionId,
@@ -132,67 +132,67 @@ const {
   loadEarlier,
   loadingEarlier,
   earlierExhausted,
-} = useSession();
-const { workspaces, activeWorkspaceId, lastCwd, cardFootById } = useNav();
+} = useSession()
+const { workspaces, activeWorkspaceId, lastCwd, cardFootById } = useNav()
 
 const emptyCanvas = computed(() =>
   isEmptyCanvas(transcript.value.length, phase.value, sessionPending.value),
-);
+)
 const hasEarlier = computed(() =>
   hasEarlierTranscript(
     transcript.value.length,
     sessionId.value ? cardFootById.value.get(sessionId.value)?.messageCount : undefined,
     earlierExhausted.value,
   ),
-);
-const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value);
-const composerCwd = computed(() => projection.value?.cwd ?? heroCwd.value);
-const contextUsage = computed(() => projectContextUsage(contextUsageEstimate.value));
+)
+const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value)
+const composerCwd = computed(() => projection.value?.cwd ?? heroCwd.value)
+const contextUsage = computed(() => projectContextUsage(contextUsageEstimate.value))
 
-const transcriptAtBottom = shallowRef(true);
+const transcriptAtBottom = shallowRef(true)
 const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(transcript.value.length, transcriptAtBottom.value),
-);
+)
 const transcriptView = useTemplateRef<{
-  prepareForSubmit(): void;
-  scrollToLatest(): void;
-}>("transcriptView");
+  prepareForSubmit(): void
+  scrollToLatest(): void
+}>("transcriptView")
 function onTranscriptBottomChange(atBottom: boolean) {
-  transcriptAtBottom.value = atBottom;
+  transcriptAtBottom.value = atBottom
 }
 function scrollToLatest() {
-  transcriptView.value?.scrollToLatest();
+  transcriptView.value?.scrollToLatest()
 }
 function submitFromDock(text: string) {
-  transcriptView.value?.prepareForSubmit();
-  return submitText(text);
+  transcriptView.value?.prepareForSubmit()
+  return submitText(text)
 }
 
 watch(sessionId, () => {
-  transcriptAtBottom.value = true;
-});
+  transcriptAtBottom.value = true
+})
 
-const dock = useTemplateRef<HTMLElement>("dock");
-const dockHeight = shallowRef(168);
-let dockObserver: ResizeObserver | undefined;
+const dock = useTemplateRef<HTMLElement>("dock")
+const dockHeight = shallowRef(168)
+let dockObserver: ResizeObserver | undefined
 
 watch(
   dock,
   (element) => {
-    dockObserver?.disconnect();
-    if (!element) return;
+    dockObserver?.disconnect()
+    if (!element) return
     dockObserver = new ResizeObserver(() => {
-      const nextHeight = element.offsetHeight;
-      const grew = nextHeight > dockHeight.value;
-      dockHeight.value = nextHeight;
-      if (grew && transcriptAtBottom.value) transcriptView.value?.scrollToLatest();
-    });
-    dockObserver.observe(element);
-    dockHeight.value = element.offsetHeight;
+      const nextHeight = element.offsetHeight
+      const grew = nextHeight > dockHeight.value
+      dockHeight.value = nextHeight
+      if (grew && transcriptAtBottom.value) transcriptView.value?.scrollToLatest()
+    })
+    dockObserver.observe(element)
+    dockHeight.value = element.offsetHeight
   },
   { flush: "post" },
-);
-onBeforeUnmount(() => dockObserver?.disconnect());
+)
+onBeforeUnmount(() => dockObserver?.disconnect())
 </script>
 
 <style scoped>

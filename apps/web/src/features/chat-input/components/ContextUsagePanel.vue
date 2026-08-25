@@ -38,26 +38,26 @@ import {
   formatTokenCount,
   segmentShare,
   type ContextUsage,
-} from "@features/chat-input/lib/context-usage.js";
+} from "@features/chat-input/lib/context-usage.js"
 
 export function contextUsageSummary(usage: ContextUsage): string {
-  return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} token`;
+  return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} token`
 }
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { X } from "lucide-vue-next";
+import { computed } from "vue"
+import { X } from "lucide-vue-next"
 
 const props = defineProps<{
-  usage: ContextUsage;
-}>();
+  usage: ContextUsage
+}>()
 
 const emit = defineEmits<{
-  close: [];
-}>();
+  close: []
+}>()
 
-const tokenSummary = computed(() => contextUsageSummary(props.usage));
+const tokenSummary = computed(() => contextUsageSummary(props.usage))
 </script>
 
 <style scoped>

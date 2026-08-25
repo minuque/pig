@@ -1,21 +1,21 @@
-import { computed, shallowRef, toValue, type MaybeRefOrGetter } from "vue";
-import type { PiClient, Unsubscribe } from "@earendil-works/pi-client";
-import { RemoteSession } from "@earendil-works/pi-coding-agent/client";
-import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client";
-import type { ModelRef, ThinkingLevel, TranscriptItem } from "@earendil-works/pi-protocol";
-import { platformRequest } from "@client/http.js";
-import type { ContextUsageEstimate } from "@features/chat-input/lib/context-usage.js";
+import { computed, shallowRef, toValue, type MaybeRefOrGetter } from "vue"
+import type { PiClient, Unsubscribe } from "@earendil-works/pi-client"
+import { RemoteSession } from "@earendil-works/pi-coding-agent/client"
+import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
+import type { ModelRef, ThinkingLevel, TranscriptItem } from "@earendil-works/pi-protocol"
+import { platformRequest } from "@client/http.js"
+import type { ContextUsageEstimate } from "@features/chat-input/lib/context-usage.js"
 import {
   mergeTranscriptWindow,
   projectSessionSnapshot,
   tailTranscript,
   type SessionProjection,
-} from "@features/session-workbench/lib/session-state.js";
+} from "@features/session-workbench/lib/session-state.js"
 
 export interface CreateSessionInput {
-  cwd: string;
-  model?: ModelRef;
-  thinkingLevel?: ThinkingLevel;
+  cwd: string
+  model?: ModelRef
+  thinkingLevel?: ThinkingLevel
 }
 
 /**
@@ -25,178 +25,178 @@ export interface CreateSessionInput {
  * SDK 实例用 shallowRef 保存（不深追踪），纯派生用 computed。
  */
 export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | undefined>) {
-  const client = computed(() => toValue(clientSource));
+  const client = computed(() => toValue(clientSource))
   // SDK 实例仅存引用，不响应式深追踪
-  const remote = shallowRef<RemoteSession>();
-  const state = shallowRef<RemoteSessionState>();
-  let unsubscribeState: Unsubscribe | undefined;
-  let disposePromise: Promise<void> | undefined;
+  const remote = shallowRef<RemoteSession>()
+  const state = shallowRef<RemoteSessionState>()
+  let unsubscribeState: Unsubscribe | undefined
+  let disposePromise: Promise<void> | undefined
   // 替换操作串行化：同一时刻至多一个 open/create，避免并发 lease
-  let replaceChain: Promise<void> = Promise.resolve();
+  let replaceChain: Promise<void> = Promise.resolve()
   // 最新想打开的 session：快速连点时跳过中间 id，只落地最后一次
-  let wantedId: string | undefined;
-  const loadingEarlier = shallowRef(false);
-  const earlierExhausted = shallowRef(false);
-  const contextUsageEstimate = shallowRef<ContextUsageEstimate>();
-  let contextUsageRequest = 0;
+  let wantedId: string | undefined
+  const loadingEarlier = shallowRef(false)
+  const earlierExhausted = shallowRef(false)
+  const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
+  let contextUsageRequest = 0
 
   // 纯派生：由上述状态 computed 得到
-  const snapshot = computed(() => state.value?.snapshot);
+  const snapshot = computed(() => state.value?.snapshot)
   const projection = computed<SessionProjection | undefined>(() =>
     snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined,
-  );
-  const transcript = computed(() => state.value?.transcript ?? []);
+  )
+  const transcript = computed(() => state.value?.transcript ?? [])
 
   function attach(next: RemoteSession) {
-    const previous = remote.value;
-    detach();
+    const previous = remote.value
+    detach()
     // 替换旧实例：释放其 lease（RemoteSession.dispose 幂等，可重复调用）
-    if (previous && previous !== next) void previous.dispose();
-    remote.value = next;
-    let prefix: TranscriptItem[] = [];
-    let latestWindow: readonly TranscriptItem[] = [];
-    let usageRevision: number | undefined;
-    earlierExhausted.value = false;
+    if (previous && previous !== next) void previous.dispose()
+    remote.value = next
+    let prefix: TranscriptItem[] = []
+    let latestWindow: readonly TranscriptItem[] = []
+    let usageRevision: number | undefined
+    earlierExhausted.value = false
     unsubscribeState = next.subscribe((nextState) => {
-      latestWindow = tailTranscript(nextState.transcript);
-      const merged = mergeTranscriptWindow(prefix, latestWindow);
-      const windowIds = new Set(latestWindow.map((item) => item.id));
-      prefix = merged.filter((item) => !windowIds.has(item.id));
-      state.value = { ...nextState, transcript: merged };
-      const revision = nextState.snapshot?.revision;
+      latestWindow = tailTranscript(nextState.transcript)
+      const merged = mergeTranscriptWindow(prefix, latestWindow)
+      const windowIds = new Set(latestWindow.map((item) => item.id))
+      prefix = merged.filter((item) => !windowIds.has(item.id))
+      state.value = { ...nextState, transcript: merged }
+      const revision = nextState.snapshot?.revision
       if (revision !== undefined && revision !== usageRevision) {
-        usageRevision = revision;
-        void refreshContextUsage(next.id);
+        usageRevision = revision
+        void refreshContextUsage(next.id)
       }
-    });
+    })
     async function loadEarlier() {
-      const id = remote.value?.id;
-      const before = state.value?.transcript[0]?.id;
-      if (!id || !before || loadingEarlier.value || earlierExhausted.value) return;
-      loadingEarlier.value = true;
+      const id = remote.value?.id
+      const before = state.value?.transcript[0]?.id
+      if (!id || !before || loadingEarlier.value || earlierExhausted.value) return
+      loadingEarlier.value = true
       try {
         const page = await platformRequest<{ items: TranscriptItem[]; hasMore: boolean }>(
           `/api/v1/platform/transcript?sessionId=${encodeURIComponent(id)}&before=${encodeURIComponent(before)}`,
-        );
-        if (remote.value?.id !== id) return;
-        prefix = mergeTranscriptWindow([...page.items, ...prefix], latestWindow);
-        earlierExhausted.value = !page.hasMore;
-        const current = state.value;
+        )
+        if (remote.value?.id !== id) return
+        prefix = mergeTranscriptWindow([...page.items, ...prefix], latestWindow)
+        earlierExhausted.value = !page.hasMore
+        const current = state.value
         if (current)
-          state.value = { ...current, transcript: mergeTranscriptWindow(prefix, latestWindow) };
+          state.value = { ...current, transcript: mergeTranscriptWindow(prefix, latestWindow) }
       } finally {
-        if (remote.value?.id === id) loadingEarlier.value = false;
+        if (remote.value?.id === id) loadingEarlier.value = false
       }
     }
-    attachLoadEarlier = loadEarlier;
+    attachLoadEarlier = loadEarlier
   }
-  let attachLoadEarlier: (() => Promise<void>) | undefined;
+  let attachLoadEarlier: (() => Promise<void>) | undefined
   function detach() {
-    contextUsageRequest += 1;
-    attachLoadEarlier = undefined;
-    loadingEarlier.value = false;
-    earlierExhausted.value = false;
-    unsubscribeState?.();
-    unsubscribeState = undefined;
-    remote.value = undefined;
-    state.value = undefined;
-    contextUsageEstimate.value = undefined;
+    contextUsageRequest += 1
+    attachLoadEarlier = undefined
+    loadingEarlier.value = false
+    earlierExhausted.value = false
+    unsubscribeState?.()
+    unsubscribeState = undefined
+    remote.value = undefined
+    state.value = undefined
+    contextUsageEstimate.value = undefined
   }
 
   async function refreshContextUsage(sessionId: string | undefined) {
-    if (!sessionId) return;
-    const request = ++contextUsageRequest;
+    if (!sessionId) return
+    const request = ++contextUsageRequest
     try {
       const result = await platformRequest<{ usage: ContextUsageEstimate | null }>(
         `/api/v1/platform/context-usage?sessionId=${encodeURIComponent(sessionId)}`,
-      );
-      if (request !== contextUsageRequest || remote.value?.id !== sessionId) return;
-      contextUsageEstimate.value = result.usage ?? undefined;
+      )
+      if (request !== contextUsageRequest || remote.value?.id !== sessionId) return
+      contextUsageEstimate.value = result.usage ?? undefined
     } catch {
       // 占用估算是辅助信息；失败时保留上次结果，不覆盖会话主错误。
     }
   }
   function release() {
-    const previous = remote.value;
-    detach();
-    if (previous) void previous.dispose();
+    const previous = remote.value
+    detach()
+    if (previous) void previous.dispose()
   }
 
   /** 串行执行替换操作：前一次失败不阻塞后续。 */
   function enqueueReplace<T>(run: () => Promise<T>): Promise<T> {
-    const next = replaceChain.then(run, run);
+    const next = replaceChain.then(run, run)
     replaceChain = next.then(
       () => undefined,
       () => undefined,
-    );
-    return next;
+    )
+    return next
   }
 
   /** 打开已有 Session：重连后以官方 Snapshot 整体覆盖本地投影。已附加同 id 时幂等跳过。 */
   async function openSession(sessionId: string) {
-    wantedId = sessionId;
+    wantedId = sessionId
     return enqueueReplace(async () => {
-      if (wantedId !== sessionId) return;
-      if (remote.value?.id === sessionId) return;
-      const target = client.value;
-      if (!target) throw new Error("PiClient 未连接");
-      release();
+      if (wantedId !== sessionId) return
+      if (remote.value?.id === sessionId) return
+      const target = client.value
+      if (!target) throw new Error("PiClient 未连接")
+      release()
       try {
-        const next = await RemoteSession.open(target, sessionId);
+        const next = await RemoteSession.open(target, sessionId)
         if (wantedId !== sessionId) {
-          await next.dispose();
-          return;
+          await next.dispose()
+          return
         }
-        attach(next);
+        attach(next)
       } catch (error) {
-        if (wantedId !== sessionId) return;
-        throw error;
+        if (wantedId !== sessionId) return
+        throw error
       }
-    });
+    })
   }
 
   /** 在指定 cwd 创建新 Session（cwd 来自本地 Workspace preference）。 */
   async function createSession(cwd: string, options?: Omit<CreateSessionInput, "cwd">) {
     return enqueueReplace(async () => {
-      const target = client.value;
-      if (!target) throw new Error("PiClient 未连接");
+      const target = client.value
+      if (!target) throw new Error("PiClient 未连接")
       attach(
         await RemoteSession.create(target, {
           cwd,
           ...(options?.model !== undefined ? { model: options.model } : {}),
           ...(options?.thinkingLevel !== undefined ? { thinkingLevel: options.thinkingLevel } : {}),
         }),
-      );
-    });
+      )
+    })
   }
 
   /** 提交输入。Web UI 仅在 idle 时调用。 */
   async function submit(text: string) {
-    await remote.value?.submit(text);
+    await remote.value?.submit(text)
   }
   async function abort() {
-    await remote.value?.abort();
+    await remote.value?.abort()
   }
   async function setModel(model: ModelRef) {
-    await remote.value?.setModel(model);
+    await remote.value?.setModel(model)
   }
   async function setThinking(thinkingLevel: ThinkingLevel) {
-    await remote.value?.setThinking(thinkingLevel);
+    await remote.value?.setThinking(thinkingLevel)
   }
   async function reconnect() {
-    await remote.value?.reconnect();
+    await remote.value?.reconnect()
   }
   async function dispose() {
-    wantedId = undefined;
-    if (disposePromise) return disposePromise;
-    const current = remote.value;
-    detach();
-    disposePromise = current?.dispose() ?? Promise.resolve();
-    return disposePromise;
+    wantedId = undefined
+    if (disposePromise) return disposePromise
+    const current = remote.value
+    detach()
+    disposePromise = current?.dispose() ?? Promise.resolve()
+    return disposePromise
   }
 
   async function loadEarlier() {
-    await attachLoadEarlier?.();
+    await attachLoadEarlier?.()
   }
 
   return {
@@ -217,5 +217,5 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     setThinking,
     reconnect,
     dispose,
-  };
+  }
 }

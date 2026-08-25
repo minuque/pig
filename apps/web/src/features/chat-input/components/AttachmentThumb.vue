@@ -32,21 +32,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { X } from "lucide-vue-next";
-import { Button } from "@components/ui/button/index.js";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@components/ui/dialog/index.js";
+import { computed } from "vue"
+import { X } from "lucide-vue-next"
+import { Button } from "@components/ui/button/index.js"
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@components/ui/dialog/index.js"
 
 const props = defineProps<{
-  src: string;
-  name: string;
-}>();
+  src: string
+  name: string
+}>()
 
 const emit = defineEmits<{
-  remove: [];
-}>();
+  remove: []
+}>()
 
-const alt = computed(() => props.name || "图片");
+const alt = computed(() => props.name || "图片")
 </script>
 
 <style scoped>

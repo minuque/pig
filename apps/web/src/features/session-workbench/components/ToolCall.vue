@@ -33,41 +33,41 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef } from "vue";
-import { Copy, FileText, Pencil, Search, Terminal, Wrench } from "lucide-vue-next";
-import type { ToolTranscriptItem } from "@earendil-works/pi-protocol";
-import ExpandableText from "@features/session-workbench/components/ExpandableText.vue";
-import TranscriptImage from "@features/session-workbench/components/TranscriptImage.vue";
+import { computed, shallowRef } from "vue"
+import { Copy, FileText, Pencil, Search, Terminal, Wrench } from "lucide-vue-next"
+import type { ToolTranscriptItem } from "@earendil-works/pi-protocol"
+import ExpandableText from "@features/session-workbench/components/ExpandableText.vue"
+import TranscriptImage from "@features/session-workbench/components/TranscriptImage.vue"
 import {
   toolIconTone,
   transcriptImages,
   transcriptText,
-} from "@features/session-workbench/lib/transcript-format.js";
+} from "@features/session-workbench/lib/transcript-format.js"
 
 const props = defineProps<{
-  item: ToolTranscriptItem;
-}>();
+  item: ToolTranscriptItem
+}>()
 
-const open = shallowRef(false);
-const inputLine = computed(() => JSON.stringify(props.item.input) ?? "");
-const inputFull = computed(() => JSON.stringify(props.item.input, null, 2) ?? "");
-const outputText = computed(() => transcriptText(props.item));
-const outputImages = computed(() => transcriptImages(props.item));
-const tone = computed(() => toolIconTone(props.item));
+const open = shallowRef(false)
+const inputLine = computed(() => JSON.stringify(props.item.input) ?? "")
+const inputFull = computed(() => JSON.stringify(props.item.input, null, 2) ?? "")
+const outputText = computed(() => transcriptText(props.item))
+const outputImages = computed(() => transcriptImages(props.item))
+const tone = computed(() => toolIconTone(props.item))
 const icon = computed(() => {
-  const name = props.item.toolName.toLowerCase();
-  if (/(read|cat|open)/.test(name)) return FileText;
-  if (/(write|edit|apply)/.test(name)) return Pencil;
-  if (/(bash|shell|exec|cmd|pwsh)/.test(name)) return Terminal;
-  if (/(grep|search|find)/.test(name)) return Search;
-  return Wrench;
-});
+  const name = props.item.toolName.toLowerCase()
+  if (/(read|cat|open)/.test(name)) return FileText
+  if (/(write|edit|apply)/.test(name)) return Pencil
+  if (/(bash|shell|exec|cmd|pwsh)/.test(name)) return Terminal
+  if (/(grep|search|find)/.test(name)) return Search
+  return Wrench
+})
 
 async function copyPayload() {
-  const chunks = [inputFull.value, outputText.value].filter((chunk) => chunk.trim().length > 0);
-  if (chunks.length === 0) return;
+  const chunks = [inputFull.value, outputText.value].filter((chunk) => chunk.trim().length > 0)
+  if (chunks.length === 0) return
   try {
-    await navigator.clipboard.writeText(chunks.join("\n\n"));
+    await navigator.clipboard.writeText(chunks.join("\n\n"))
   } catch {
     // 剪贴板不可用时保持静默
   }

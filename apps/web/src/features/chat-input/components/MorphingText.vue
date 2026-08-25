@@ -6,23 +6,23 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
+import { nextTick, onMounted, ref, useTemplateRef, watch } from "vue"
 
 const props = defineProps<{
-  text: string;
-}>();
+  text: string
+}>()
 
-const sizer = useTemplateRef<HTMLElement>("sizer");
-const widthPx = ref("auto");
+const sizer = useTemplateRef<HTMLElement>("sizer")
+const widthPx = ref("auto")
 
 async function measure() {
-  await nextTick();
-  const el = sizer.value;
-  if (el) widthPx.value = `${el.offsetWidth}px`;
+  await nextTick()
+  const el = sizer.value
+  if (el) widthPx.value = `${el.offsetWidth}px`
 }
 
-watch(() => props.text, measure);
-onMounted(measure);
+watch(() => props.text, measure)
+onMounted(measure)
 </script>
 
 <style scoped>

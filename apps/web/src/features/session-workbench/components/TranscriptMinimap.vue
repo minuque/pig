@@ -52,122 +52,122 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef } from "vue";
-import type { TranscriptMinimapItem } from "@features/session-workbench/lib/transcript-minimap.js";
+import { computed, shallowRef } from "vue"
+import type { TranscriptMinimapItem } from "@features/session-workbench/lib/transcript-minimap.js"
 import {
   resolveMinimapHeightStyle,
   resolveMinimapHitAreaWidth,
   resolveMinimapIndexFromPointer,
   resolveMinimapTopPercent,
-} from "@features/session-workbench/lib/transcript-minimap.js";
+} from "@features/session-workbench/lib/transcript-minimap.js"
 
 const props = defineProps<{
-  items: readonly TranscriptMinimapItem[];
-  inViewIds: readonly string[];
-  hasPersistentGutter: boolean;
-  hitStripWidth: number;
-}>();
+  items: readonly TranscriptMinimapItem[]
+  inViewIds: readonly string[]
+  hasPersistentGutter: boolean
+  hitStripWidth: number
+}>()
 
 const emit = defineEmits<{
-  select: [item: TranscriptMinimapItem];
-}>();
+  select: [item: TranscriptMinimapItem]
+}>()
 
-const activeIndex = shallowRef<number | null>(null);
+const activeIndex = shallowRef<number | null>(null)
 
 const resolvedActiveIndex = computed(() => {
-  const index = activeIndex.value;
-  return index !== null && index < props.items.length ? index : null;
-});
+  const index = activeIndex.value
+  return index !== null && index < props.items.length ? index : null
+})
 const activeItem = computed(() => {
-  const index = resolvedActiveIndex.value;
-  return index === null ? null : (props.items[index] ?? null);
-});
+  const index = resolvedActiveIndex.value
+  return index === null ? null : (props.items[index] ?? null)
+})
 const previewTranslate = computed(() => {
-  const index = resolvedActiveIndex.value;
-  if (index === null) return "-50%";
-  if (index === 0) return "0%";
-  if (index === props.items.length - 1) return "-100%";
-  return "-50%";
-});
-const hitAreaWidth = computed(() => `${resolveMinimapHitAreaWidth(props.hitStripWidth)}px`);
-const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length));
+  const index = resolvedActiveIndex.value
+  if (index === null) return "-50%"
+  if (index === 0) return "0%"
+  if (index === props.items.length - 1) return "-100%"
+  return "-50%"
+})
+const hitAreaWidth = computed(() => `${resolveMinimapHitAreaWidth(props.hitStripWidth)}px`)
+const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
 function stripClass(index: number): string {
-  const active = resolvedActiveIndex.value;
-  if (active === null) return "strip-far";
-  const distance = Math.abs(index - active);
-  if (distance === 0) return "strip-active";
-  if (distance === 1) return "strip-near";
-  if (distance === 2) return "strip-mid";
-  return "strip-far";
+  const active = resolvedActiveIndex.value
+  if (active === null) return "strip-far"
+  const distance = Math.abs(index - active)
+  if (distance === 0) return "strip-active"
+  if (distance === 1) return "strip-near"
+  if (distance === 2) return "strip-mid"
+  return "strip-far"
 }
 
 function indexFromEvent(event: MouseEvent): number | null {
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
   return resolveMinimapIndexFromPointer({
     itemCount: props.items.length,
     railTop: rect.top,
     railHeight: rect.height,
     pointerY: event.clientY,
-  });
+  })
 }
 
 function previewTarget(target: EventTarget | null): boolean {
-  return target instanceof Element && target.closest("[data-minimap-preview]") !== null;
+  return target instanceof Element && target.closest("[data-minimap-preview]") !== null
 }
 
 function onRailMove(event: MouseEvent) {
-  activeIndex.value = indexFromEvent(event);
+  activeIndex.value = indexFromEvent(event)
 }
 
 function onRailFocus() {
-  if (activeIndex.value === null) activeIndex.value = 0;
+  if (activeIndex.value === null) activeIndex.value = 0
 }
 
 function onRailClick(event: MouseEvent) {
-  if (previewTarget(event.target)) return;
-  const index = indexFromEvent(event);
-  const item = index === null ? null : (props.items[index] ?? null);
-  if (item) emit("select", item);
-  (event.currentTarget as HTMLButtonElement).blur();
+  if (previewTarget(event.target)) return
+  const index = indexFromEvent(event)
+  const item = index === null ? null : (props.items[index] ?? null)
+  if (item) emit("select", item)
+  ;(event.currentTarget as HTMLButtonElement).blur()
 }
 
 function onRailMouseDown(event: MouseEvent) {
-  if (previewTarget(event.target)) return;
-  event.preventDefault();
+  if (previewTarget(event.target)) return
+  event.preventDefault()
 }
 
 function onRailKeydown(event: KeyboardEvent) {
   if (event.key === "ArrowDown") {
-    event.preventDefault();
-    moveActive(1);
-    return;
+    event.preventDefault()
+    moveActive(1)
+    return
   }
   if (event.key === "ArrowUp") {
-    event.preventDefault();
-    moveActive(-1);
-    return;
+    event.preventDefault()
+    moveActive(-1)
+    return
   }
   if (event.key === "Home") {
-    event.preventDefault();
-    activeIndex.value = 0;
-    return;
+    event.preventDefault()
+    activeIndex.value = 0
+    return
   }
   if (event.key === "End") {
-    event.preventDefault();
-    activeIndex.value = Math.max(0, props.items.length - 1);
-    return;
+    event.preventDefault()
+    activeIndex.value = Math.max(0, props.items.length - 1)
+    return
   }
   if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    const item = activeItem.value;
-    if (item) emit("select", item);
+    event.preventDefault()
+    const item = activeItem.value
+    if (item) emit("select", item)
   }
 }
 
 function moveActive(delta: number) {
-  const base = activeIndex.value ?? 0;
-  activeIndex.value = Math.max(0, Math.min(props.items.length - 1, base + delta));
+  const base = activeIndex.value ?? 0
+  activeIndex.value = Math.max(0, Math.min(props.items.length - 1, base + delta))
 }
 </script>
 

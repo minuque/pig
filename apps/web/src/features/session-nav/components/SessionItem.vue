@@ -72,27 +72,27 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref } from "vue";
-import { Clock, Folder, MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next";
-import type { SessionMetadata } from "@earendil-works/pi-protocol";
+import { nextTick, ref } from "vue"
+import { Clock, Folder, MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next"
+import type { SessionMetadata } from "@earendil-works/pi-protocol"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js";
-import { formatRelativeTime, sessionRecency, sessionTitle } from "@features/session-nav/format.js";
-import VendorMark from "@features/chat-input/components/VendorMark.vue";
+} from "@components/ui/dropdown-menu/index.js"
+import { formatRelativeTime, sessionRecency, sessionTitle } from "@features/session-nav/format.js"
+import VendorMark from "@features/chat-input/components/VendorMark.vue"
 
 const props = withDefaults(
   defineProps<{
-    session: SessionMetadata;
-    workspaceTitle?: string;
-    active?: boolean;
-    running?: boolean;
-    messageCount?: number | null;
-    modelLabel?: string;
-    modelProvider?: string;
+    session: SessionMetadata
+    workspaceTitle?: string
+    active?: boolean
+    running?: boolean
+    messageCount?: number | null
+    modelLabel?: string
+    modelProvider?: string
   }>(),
   {
     workspaceTitle: "",
@@ -100,39 +100,39 @@ const props = withDefaults(
     modelLabel: "",
     modelProvider: "",
   },
-);
+)
 
 const emit = defineEmits<{
-  navigate: [];
-  rename: [id: string, name: string];
-  delete: [id: string];
-}>();
+  navigate: []
+  rename: [id: string, name: string]
+  delete: [id: string]
+}>()
 
-const renaming = ref(false);
-const draft = ref("");
-const nameInput = ref<HTMLInputElement | null>(null);
+const renaming = ref(false)
+const draft = ref("")
+const nameInput = ref<HTMLInputElement | null>(null)
 
 function onNavigate() {
-  emit("navigate");
+  emit("navigate")
 }
 function startRename() {
-  draft.value = sessionTitle(props.session);
-  renaming.value = true;
+  draft.value = sessionTitle(props.session)
+  renaming.value = true
   void nextTick(() => {
-    nameInput.value?.focus();
-    nameInput.value?.select();
-  });
+    nameInput.value?.focus()
+    nameInput.value?.select()
+  })
 }
 function commitRename() {
-  if (!renaming.value) return;
-  renaming.value = false;
-  const name = draft.value.trim();
-  if (!name || name === sessionTitle(props.session)) return;
-  emit("rename", props.session.id, name);
+  if (!renaming.value) return
+  renaming.value = false
+  const name = draft.value.trim()
+  if (!name || name === sessionTitle(props.session)) return
+  emit("rename", props.session.id, name)
 }
 function onDelete() {
   if (confirm(`删除会话「${sessionTitle(props.session)}」？此操作不可恢复。`)) {
-    emit("delete", props.session.id);
+    emit("delete", props.session.id)
   }
 }
 </script>

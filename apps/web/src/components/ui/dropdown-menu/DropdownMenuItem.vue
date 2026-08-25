@@ -16,28 +16,28 @@
 </template>
 
 <script setup lang="ts">
-import type { DropdownMenuItemProps } from "reka-ui";
-import type { ComputedRef, HTMLAttributes } from "vue";
-import { reactiveOmit } from "@vueuse/core";
-import { DropdownMenuItem, useForwardProps } from "reka-ui";
-import { cn } from "@utils/utils.js";
+import type { DropdownMenuItemProps } from "reka-ui"
+import type { ComputedRef, HTMLAttributes } from "vue"
+import { reactiveOmit } from "@vueuse/core"
+import { DropdownMenuItem, useForwardProps } from "reka-ui"
+import { cn } from "@utils/utils.js"
 
 const props = withDefaults(
   defineProps<
     DropdownMenuItemProps & {
-      class?: HTMLAttributes["class"];
-      inset?: boolean;
-      variant?: "default" | "destructive";
+      class?: HTMLAttributes["class"]
+      inset?: boolean
+      variant?: "default" | "destructive"
     }
   >(),
   {
     class: undefined,
     variant: "default",
   },
-);
+)
 
-const delegatedProps = reactiveOmit(props, "inset", "variant", "class");
+const delegatedProps = reactiveOmit(props, "inset", "variant", "class")
 
 // reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
-const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuItemProps>;
+const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuItemProps>
 </script>

@@ -1,10 +1,10 @@
-import { execFile } from "node:child_process";
-import { realpath } from "node:fs/promises";
-import { resolve } from "node:path";
-import { promisify } from "node:util";
+import { execFile } from "node:child_process"
+import { realpath } from "node:fs/promises"
+import { resolve } from "node:path"
+import { promisify } from "node:util"
 
-const execFileAsync = promisify(execFile);
-const PICKER_TIMEOUT_MS = 60_000;
+const execFileAsync = promisify(execFile)
+const PICKER_TIMEOUT_MS = 60_000
 
 /** IFileOpenDialog + Per-Monitor V2：现代资源管理器对话框，避免 WinForms FolderBrowser 被系统拉伸发糊。 */
 const folderPickerScript = `
@@ -111,65 +111,64 @@ public static class FolderPicker
 '@
 $path = [FolderPicker]::Pick('选择工作目录')
 if ($path) { [Console]::Out.Write((ConvertTo-Json -Compress -InputObject $path)) }
-`;
+`
 
 export interface DirectoryPort {
-  readonly requiresManualInput?: boolean;
-  selectDirectory(): Promise<string | undefined>;
-  validateDirectory(path: string): Promise<string>;
+  readonly requiresManualInput?: boolean
+  selectDirectory(): Promise<string | undefined>
+  validateDirectory(path: string): Promise<string>
 }
 
 export type DirectoryExecFile = (
   file: string,
   args: readonly string[],
   options: { encoding: "utf8"; windowsHide: boolean; timeout: number },
-) => Promise<{ stdout: string }>;
+) => Promise<{ stdout: string }>
 
 // 与 web 端 apps/web/src/client/local-cwd.ts 的 canonicalizeWorkspacePath 是同一套
 // 规范化逻辑（分隔符/盘符/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizePath(path: string): string {
-  const normalized = resolve(path).replaceAll("\\", "/").replace(/\/$/, "");
+  const normalized = resolve(path).replaceAll("\\", "/").replace(/\/$/, "")
   return /^[A-Z]:/.test(normalized)
     ? normalized[0]!.toLowerCase() + normalized.slice(1)
-    : normalized;
+    : normalized
 }
 
 async function validateDirectory(path: string): Promise<string> {
-  return canonicalizePath(await realpath(path));
+  return canonicalizePath(await realpath(path))
 }
 
 export class WindowsDirectoryPort implements DirectoryPort {
   constructor(private readonly exec: DirectoryExecFile = execFileAsync) {}
 
   async selectDirectory(): Promise<string | undefined> {
-    let lastError: unknown;
+    let lastError: unknown
     for (const executable of ["pwsh", "powershell.exe"]) {
       try {
         const { stdout } = await this.exec(
           executable,
           ["-NoLogo", "-NoProfile", "-NonInteractive", "-STA", "-Command", folderPickerScript],
           { encoding: "utf8", windowsHide: true, timeout: PICKER_TIMEOUT_MS },
-        );
-        if (!stdout.trim()) return undefined;
-        const selected: unknown = JSON.parse(stdout);
-        if (typeof selected !== "string" || !selected.trim())
-          throw new Error("invalid folder path");
-        return validateDirectory(selected);
+        )
+        if (!stdout.trim()) return undefined
+        const selected: unknown = JSON.parse(stdout)
+        if (typeof selected !== "string" || !selected.trim()) throw new Error("invalid folder path")
+        return validateDirectory(selected)
       } catch (error) {
-        lastError = error;
-        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+        lastError = error
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error
       }
     }
-    throw lastError;
+    throw lastError
   }
 
-  validateDirectory = validateDirectory;
+  validateDirectory = validateDirectory
 }
 
 export class ManualDirectoryPort implements DirectoryPort {
-  readonly requiresManualInput = true;
+  readonly requiresManualInput = true
   async selectDirectory(): Promise<undefined> {
-    return undefined;
+    return undefined
   }
-  validateDirectory = validateDirectory;
+  validateDirectory = validateDirectory
 }

@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router"
 
 // 路由切屏：/ 欢迎页，/sessions/:id 工作台，/error 启动失败。共享工作区由 App provide。
 const router = createRouter({
@@ -19,6 +19,6 @@ const router = createRouter({
       component: () => import("@features/startup/components/StartupError.vue"),
     },
   ],
-});
+})
 
-export default router;
+export default router

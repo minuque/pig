@@ -19,29 +19,29 @@
 </template>
 
 <script setup lang="ts">
-import MarkdownRender, { type MarkstreamVirtualMarkdownProps } from "markstream-vue";
-import { computed } from "vue";
-import type { AssistantTranscriptItem } from "@earendil-works/pi-protocol";
-import FoldReveal from "@features/session-workbench/components/FoldReveal.vue";
+import MarkdownRender, { type MarkstreamVirtualMarkdownProps } from "markstream-vue"
+import { computed } from "vue"
+import type { AssistantTranscriptItem } from "@earendil-works/pi-protocol"
+import FoldReveal from "@features/session-workbench/components/FoldReveal.vue"
 import {
   assistantThinking,
   transcriptText,
-} from "@features/session-workbench/lib/transcript-format.js";
-import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
+} from "@features/session-workbench/lib/transcript-format.js"
+import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const props = withDefaults(
   defineProps<{
-    item: AssistantTranscriptItem;
-    streaming?: boolean;
+    item: AssistantTranscriptItem
+    streaming?: boolean
     // eslint-disable-next-line vue/require-default-prop -- 时间线 slot 仅助手行传入
-    timelineMarkdown?: MarkstreamVirtualMarkdownProps;
+    timelineMarkdown?: MarkstreamVirtualMarkdownProps
   }>(),
   { streaming: false },
-);
+)
 
-const { isDark } = useColorScheme();
-const text = computed(() => transcriptText(props.item));
-const thinking = computed(() => assistantThinking(props.item));
+const { isDark } = useColorScheme()
+const text = computed(() => transcriptText(props.item))
+const thinking = computed(() => assistantThinking(props.item))
 
 const agentMarkdown = computed(() => {
   const shared = {
@@ -55,8 +55,8 @@ const agentMarkdown = computed(() => {
       showCollapseButton: true,
       showExpandButton: true,
     },
-  } as const;
-  const timeline = props.timelineMarkdown;
+  } as const
+  const timeline = props.timelineMarkdown
   if (props.streaming) {
     return {
       ...timeline,
@@ -64,7 +64,7 @@ const agentMarkdown = computed(() => {
       final: timeline?.final ?? false,
       typewriter: "simple",
       smoothStreaming: "auto",
-    } as const;
+    } as const
   }
   return {
     ...timeline,
@@ -72,8 +72,8 @@ const agentMarkdown = computed(() => {
     final: timeline?.final ?? true,
     typewriter: false,
     smoothStreaming: false,
-  } as const;
-});
+  } as const
+})
 
 const thinkProps = computed(
   () =>
@@ -86,7 +86,7 @@ const thinkProps = computed(
       smoothStreaming: false,
       isDark: isDark.value,
     }) as const,
-);
+)
 </script>
 
 <style scoped>

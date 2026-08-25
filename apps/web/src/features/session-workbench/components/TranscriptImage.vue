@@ -15,20 +15,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@components/ui/dialog/index.js";
-import { transcriptImageSrc } from "@features/session-workbench/lib/transcript-format.js";
+import { computed } from "vue"
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@components/ui/dialog/index.js"
+import { transcriptImageSrc } from "@features/session-workbench/lib/transcript-format.js"
 
 const props = withDefaults(
   defineProps<{
-    data: string;
-    mimeType: string;
-    alt?: string;
+    data: string
+    mimeType: string
+    alt?: string
   }>(),
   { alt: "图片" },
-);
+)
 
-const src = computed(() => transcriptImageSrc(props.data, props.mimeType));
+const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
 </script>
 
 <style scoped>

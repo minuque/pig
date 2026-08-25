@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import type { ChatInputPreset } from "@features/chat-input/types.js";
+import type { ChatInputPreset } from "@features/chat-input/types.js"
 
 /** 外部禁用只拦无 workspace / 无 preset / 提交中。空白 prompt 由 ChatInput canSend 负责。 */
 export function canSubmit(
@@ -34,22 +34,22 @@ export function canSubmit(
   preset: ChatInputPreset | undefined,
   submitting: boolean,
 ): boolean {
-  return workspaceId !== undefined && preset !== undefined && !submitting;
+  return workspaceId !== undefined && preset !== undefined && !submitting
 }
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { useNav } from "@features/session-nav/index.js";
-import { useSession } from "@features/session-workbench/index.js";
-import ChatInput from "@features/chat-input/index.vue";
-import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue";
-import { useWelcomeSubmit } from "@features/session-workbench/hooks/use-welcome-submit.js";
+import { computed } from "vue"
+import { useNav } from "@features/session-nav/index.js"
+import { useSession } from "@features/session-workbench/index.js"
+import ChatInput from "@features/chat-input/index.vue"
+import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
+import { useWelcomeSubmit } from "@features/session-workbench/hooks/use-welcome-submit.js"
 
-const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav();
-const { catalog, preset, createSession, submitText } = useSession();
+const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
+const { catalog, preset, createSession, submitText } = useSession()
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
-const workspaces = computed(() => groups.value.map((group) => group.canonicalPath));
+const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const { welcomePrompt, welcomeWorkspaceId, welcomeSubmitting, welcomeError, submitWelcome } =
   useWelcomeSubmit({
     workspaces,
@@ -57,11 +57,11 @@ const { welcomePrompt, welcomeWorkspaceId, welcomeSubmitting, welcomeError, subm
     preset,
     createSession,
     submit: submitText,
-  });
+  })
 
 const canSubmitNow = computed(() =>
   canSubmit(welcomeWorkspaceId.value, preset.value, welcomeSubmitting.value),
-);
+)
 </script>
 
 <style scoped>

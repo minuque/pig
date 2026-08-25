@@ -31,37 +31,37 @@
 export const STARTUP_SLOGAN_LINES = [
   "There are many agent harnesses",
   "but this one is yours",
-] as const;
+] as const
 
-export const STARTUP_SLOGAN = STARTUP_SLOGAN_LINES.join("\n");
-export const SLOGAN_HIGHLIGHT = "yours";
-export const SLOGAN_CHAR_MS = 24;
-export const SLOGAN_END_HOLD_MS = 900;
+export const STARTUP_SLOGAN = STARTUP_SLOGAN_LINES.join("\n")
+export const SLOGAN_HIGHLIGHT = "yours"
+export const SLOGAN_CHAR_MS = 24
+export const SLOGAN_END_HOLD_MS = 900
 
 export interface SloganLineView {
-  plain: string;
-  highlight: string;
+  plain: string
+  highlight: string
 }
 
 /** 按已打出的字符数切两行，yours 开始出现后进 highlight。 */
 export function typedSlogan(charCount: number): {
-  lines: [SloganLineView, SloganLineView];
-  cursorLine: 0 | 1;
+  lines: [SloganLineView, SloganLineView]
+  cursorLine: 0 | 1
 } {
-  const line1 = STARTUP_SLOGAN_LINES[0];
-  const line2 = STARTUP_SLOGAN_LINES[1];
-  const n = Math.max(0, Math.min(charCount, STARTUP_SLOGAN.length));
-  const empty = { plain: "", highlight: "" } as const;
+  const line1 = STARTUP_SLOGAN_LINES[0]
+  const line2 = STARTUP_SLOGAN_LINES[1]
+  const n = Math.max(0, Math.min(charCount, STARTUP_SLOGAN.length))
+  const empty = { plain: "", highlight: "" } as const
 
   if (n <= line1.length) {
     return {
       lines: [{ plain: line1.slice(0, n), highlight: "" }, empty],
       cursorLine: 0,
-    };
+    }
   }
 
-  const visible2 = line2.slice(0, n - line1.length - 1);
-  const hiAt = line2.lastIndexOf(SLOGAN_HIGHLIGHT);
+  const visible2 = line2.slice(0, n - line1.length - 1)
+  const hiAt = line2.lastIndexOf(SLOGAN_HIGHLIGHT)
   if (visible2.length <= hiAt) {
     return {
       lines: [
@@ -69,7 +69,7 @@ export function typedSlogan(charCount: number): {
         { plain: visible2, highlight: "" },
       ],
       cursorLine: 1,
-    };
+    }
   }
 
   return {
@@ -78,154 +78,154 @@ export function typedSlogan(charCount: number): {
       { plain: visible2.slice(0, hiAt), highlight: visible2.slice(hiAt) },
     ],
     cursorLine: 1,
-  };
+  }
 }
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from "vue";
-import { createPiLogoPlayer } from "@features/startup/lib/pi-logo-animation.js";
-import { sleep } from "@features/startup/lib/sleep.js";
+import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from "vue"
+import { createPiLogoPlayer } from "@features/startup/lib/pi-logo-animation.js"
+import { sleep } from "@features/startup/lib/sleep.js"
 
-const emit = defineEmits<{ reveal: []; finished: [] }>();
+const emit = defineEmits<{ reveal: []; finished: [] }>()
 
-const host = useTemplateRef<HTMLButtonElement>("host");
-const wrap = useTemplateRef<HTMLDivElement>("wrap");
-const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
-const animationComplete = shallowRef(false);
-const leaving = shallowRef(false);
-const typedChars = shallowRef(0);
-const sloganTyping = shallowRef(false);
+const host = useTemplateRef<HTMLButtonElement>("host")
+const wrap = useTemplateRef<HTMLDivElement>("wrap")
+const canvas = useTemplateRef<HTMLCanvasElement>("canvas")
+const animationComplete = shallowRef(false)
+const leaving = shallowRef(false)
+const typedChars = shallowRef(0)
+const sloganTyping = shallowRef(false)
 
-const slogan = computed(() => typedSlogan(typedChars.value));
-const showCursor = computed(() => sloganTyping.value);
+const slogan = computed(() => typedSlogan(typedChars.value))
+const showCursor = computed(() => sloganTyping.value)
 
-const LEAVE_MS = 440;
-let player: ReturnType<typeof createPiLogoPlayer> | undefined;
-let leaveTimer = 0;
-let reducedMotion = false;
-let finished = false;
-let resizeObserver: ResizeObserver | undefined;
-let themeObserver: MutationObserver | undefined;
-let motionQuery: MediaQueryList | undefined;
-let sloganAbort: AbortController | undefined;
-let sloganPromise: Promise<void> = Promise.resolve();
+const LEAVE_MS = 440
+let player: ReturnType<typeof createPiLogoPlayer> | undefined
+let leaveTimer = 0
+let reducedMotion = false
+let finished = false
+let resizeObserver: ResizeObserver | undefined
+let themeObserver: MutationObserver | undefined
+let motionQuery: MediaQueryList | undefined
+let sloganAbort: AbortController | undefined
+let sloganPromise: Promise<void> = Promise.resolve()
 
 async function runSlogan(signal: AbortSignal): Promise<void> {
-  sloganTyping.value = true;
-  typedChars.value = 0;
+  sloganTyping.value = true
+  typedChars.value = 0
   for (let i = 1; i <= STARTUP_SLOGAN.length; i += 1) {
-    if (signal.aborted) return;
-    typedChars.value = i;
-    if (!(await sleep(SLOGAN_CHAR_MS, signal))) return;
+    if (signal.aborted) return
+    typedChars.value = i
+    if (!(await sleep(SLOGAN_CHAR_MS, signal))) return
   }
-  if (signal.aborted) return;
-  await sleep(SLOGAN_END_HOLD_MS, signal);
-  if (!signal.aborted) sloganTyping.value = false;
+  if (signal.aborted) return
+  await sleep(SLOGAN_END_HOLD_MS, signal)
+  if (!signal.aborted) sloganTyping.value = false
 }
 
 function startSlogan() {
-  sloganAbort?.abort();
-  sloganAbort = new AbortController();
-  sloganPromise = runSlogan(sloganAbort.signal);
+  sloganAbort?.abort()
+  sloganAbort = new AbortController()
+  sloganPromise = runSlogan(sloganAbort.signal)
 }
 
 function themeColor(): string {
   const ink = getComputedStyle(host.value ?? document.documentElement)
     .getPropertyValue("--ink")
-    .trim();
-  return ink || "#0f1115";
+    .trim()
+  return ink || "#0f1115"
 }
 
 function finish() {
-  if (finished) return;
-  finished = true;
-  emit("finished");
+  if (finished) return
+  finished = true
+  emit("finished")
 }
 
 function beginLeave() {
-  if (leaving.value || finished || !animationComplete.value) return;
-  emit("reveal");
+  if (leaving.value || finished || !animationComplete.value) return
+  emit("reveal")
   if (reducedMotion || document.hidden) {
-    finish();
-    return;
+    finish()
+    return
   }
-  leaving.value = true;
-  leaveTimer = window.setTimeout(finish, LEAVE_MS);
+  leaving.value = true
+  leaveTimer = window.setTimeout(finish, LEAVE_MS)
 }
 
 function completeAnimation() {
-  sloganAbort?.abort();
-  player?.cancel();
-  animationComplete.value = true;
-  beginLeave();
+  sloganAbort?.abort()
+  player?.cancel()
+  animationComplete.value = true
+  beginLeave()
 }
 
 function skipAnimation() {
-  if (!animationComplete.value) completeAnimation();
+  if (!animationComplete.value) completeAnimation()
 }
 
 function onKeydown(event: KeyboardEvent) {
-  if (event.key !== "Escape") return;
-  event.preventDefault();
-  skipAnimation();
+  if (event.key !== "Escape") return
+  event.preventDefault()
+  skipAnimation()
 }
 
 function onVisibilityChange() {
-  if (document.hidden) completeAnimation();
+  if (document.hidden) completeAnimation()
 }
 
 function onMotionChange() {
-  reducedMotion = motionQuery?.matches ?? false;
-  if (reducedMotion) completeAnimation();
+  reducedMotion = motionQuery?.matches ?? false
+  if (reducedMotion) completeAnimation()
 }
 
 onMounted(() => {
-  const target = canvas.value;
-  const board = wrap.value;
+  const target = canvas.value
+  const board = wrap.value
   if (target && board) {
     player = createPiLogoPlayer({
       canvas: target,
       wrap: board,
       themeColor,
       onNearEnd: startSlogan,
-    });
+    })
   }
 
-  resizeObserver = new ResizeObserver(() => player?.resize());
-  if (board) resizeObserver.observe(board);
+  resizeObserver = new ResizeObserver(() => player?.resize())
+  if (board) resizeObserver.observe(board)
   themeObserver = new MutationObserver(() => {
-    if (animationComplete.value) player?.showStatic();
-  });
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-  motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  motionQuery.addEventListener("change", onMotionChange);
-  document.addEventListener("visibilitychange", onVisibilityChange);
-  window.addEventListener("keydown", onKeydown);
+    if (animationComplete.value) player?.showStatic()
+  })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
+  motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+  motionQuery.addEventListener("change", onMotionChange)
+  document.addEventListener("visibilitychange", onVisibilityChange)
+  window.addEventListener("keydown", onKeydown)
 
-  reducedMotion = motionQuery.matches;
+  reducedMotion = motionQuery.matches
   if (reducedMotion || document.hidden) {
-    completeAnimation();
-    return;
+    completeAnimation()
+    return
   }
 
   void player?.play().then(async (played) => {
-    if (!played) return;
-    await sloganPromise;
-    completeAnimation();
-  });
-});
+    if (!played) return
+    await sloganPromise
+    completeAnimation()
+  })
+})
 
 onBeforeUnmount(() => {
-  sloganAbort?.abort();
-  player?.cancel();
-  window.clearTimeout(leaveTimer);
-  resizeObserver?.disconnect();
-  themeObserver?.disconnect();
-  motionQuery?.removeEventListener("change", onMotionChange);
-  document.removeEventListener("visibilitychange", onVisibilityChange);
-  window.removeEventListener("keydown", onKeydown);
-});
+  sloganAbort?.abort()
+  player?.cancel()
+  window.clearTimeout(leaveTimer)
+  resizeObserver?.disconnect()
+  themeObserver?.disconnect()
+  motionQuery?.removeEventListener("change", onMotionChange)
+  document.removeEventListener("visibilitychange", onVisibilityChange)
+  window.removeEventListener("keydown", onKeydown)
+})
 </script>
 
 <style scoped>

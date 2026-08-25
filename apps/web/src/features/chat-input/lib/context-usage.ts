@@ -1,28 +1,28 @@
 export interface ContextUsageEstimate {
-  used: number;
-  window: number;
+  used: number
+  window: number
   segments: {
-    systemPrompt: number;
-    memory: number;
-    tools: number;
-    conversation: number;
-    other: number;
-    idle: number;
-  };
+    systemPrompt: number
+    memory: number
+    tools: number
+    conversation: number
+    other: number
+    idle: number
+  }
 }
 
 export interface ContextUsageSegment {
-  id: "systemPrompt" | "memory" | "tools" | "conversation" | "other" | "idle";
-  label: string;
-  tokens: number;
-  color: string;
+  id: "systemPrompt" | "memory" | "tools" | "conversation" | "other" | "idle"
+  label: string
+  tokens: number
+  color: string
 }
 
 export interface ContextUsage {
-  used: number;
-  window: number;
-  percent: number;
-  segments: ContextUsageSegment[];
+  used: number
+  window: number
+  percent: number
+  segments: ContextUsageSegment[]
 }
 
 /** 欢迎页不传 cwd/usage，不展示底栏。 */
@@ -30,7 +30,7 @@ export function shouldShowComposerMeta(
   cwd: string | undefined,
   usage: ContextUsage | undefined,
 ): boolean {
-  return cwd !== undefined || usage !== undefined;
+  return cwd !== undefined || usage !== undefined
 }
 
 const SEGMENT_DEFS = [
@@ -48,28 +48,28 @@ const SEGMENT_DEFS = [
     label: "空闲",
     color: "color-mix(in srgb, var(--ink) 12%, transparent)",
   },
-];
+]
 
 /** <1K 整数；1K–100K 一位小数；更大取整。 */
 export function formatTokenCount(tokens: number): string {
-  const abs = Math.max(0, tokens);
-  if (abs < 1000) return String(Math.round(abs));
-  const kilo = abs / 1000;
-  if (abs < 100_000) return `${kilo.toFixed(1)}K`;
-  return `${Math.round(kilo)}K`;
+  const abs = Math.max(0, tokens)
+  if (abs < 1000) return String(Math.round(abs))
+  const kilo = abs / 1000
+  if (abs < 100_000) return `${kilo.toFixed(1)}K`
+  return `${Math.round(kilo)}K`
 }
 
 export function contextUsagePercent(used: number, window: number): number {
-  if (window <= 0 || used <= 0) return 0;
-  return Math.min(100, Math.round((used / window) * 100));
+  if (window <= 0 || used <= 0) return 0
+  return Math.min(100, Math.round((used / window) * 100))
 }
 
 export function projectContextUsage(
   estimate: ContextUsageEstimate | undefined,
 ): ContextUsage | undefined {
-  if (!estimate) return undefined;
-  const window = Math.max(0, estimate.window);
-  const used = Math.max(0, estimate.used);
+  if (!estimate) return undefined
+  const window = Math.max(0, estimate.window)
+  const used = Math.max(0, estimate.used)
   return {
     used,
     window,
@@ -80,10 +80,10 @@ export function projectContextUsage(
       tokens: Math.max(0, estimate.segments[def.id]),
       color: def.color,
     })),
-  };
+  }
 }
 
 export function segmentShare(tokens: number, window: number): number {
-  if (window <= 0 || tokens <= 0) return 0;
-  return Math.min(100, (tokens / window) * 100);
+  if (window <= 0 || tokens <= 0) return 0
+  return Math.min(100, (tokens / window) * 100)
 }

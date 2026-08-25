@@ -32,48 +32,48 @@
 </template>
 
 <script lang="ts">
-import { workspaceName } from "@features/session-nav/format.js";
-import type { ContextUsage } from "@features/chat-input/lib/context-usage.js";
+import { workspaceName } from "@features/session-nav/format.js"
+import type { ContextUsage } from "@features/chat-input/lib/context-usage.js"
 
-const RING_RADIUS = 6;
-export const USAGE_RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+const RING_RADIUS = 6
+export const USAGE_RING_LENGTH = 2 * Math.PI * RING_RADIUS
 
 export function usageRingOffset(percent: number, length = USAGE_RING_LENGTH): number {
-  const clamped = Math.min(100, Math.max(0, percent));
-  return length * (1 - clamped / 100);
+  const clamped = Math.min(100, Math.max(0, percent))
+  return length * (1 - clamped / 100)
 }
 
 export function composerCwdLabel(cwd: string | undefined): string {
-  return cwd ? workspaceName(cwd) : "";
+  return cwd ? workspaceName(cwd) : ""
 }
 
 export function contextUsageAriaLabel(usage: ContextUsage | undefined): string {
-  const percent = usage?.percent ?? 0;
-  return `上下文占用 ${percent}%`;
+  const percent = usage?.percent ?? 0
+  return `上下文占用 ${percent}%`
 }
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { Folder } from "lucide-vue-next";
+import { computed } from "vue"
+import { Folder } from "lucide-vue-next"
 
 const props = withDefaults(
   defineProps<{
-    cwd?: string | undefined;
-    usage?: ContextUsage | undefined;
-    open?: boolean;
+    cwd?: string | undefined
+    usage?: ContextUsage | undefined
+    open?: boolean
   }>(),
   { cwd: undefined, usage: undefined, open: false },
-);
+)
 
 const emit = defineEmits<{
-  toggle: [];
-}>();
+  toggle: []
+}>()
 
-const RING = USAGE_RING_LENGTH;
-const cwdLabel = computed(() => composerCwdLabel(props.cwd));
-const usageLabel = computed(() => contextUsageAriaLabel(props.usage));
-const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0));
+const RING = USAGE_RING_LENGTH
+const cwdLabel = computed(() => composerCwdLabel(props.cwd))
+const usageLabel = computed(() => contextUsageAriaLabel(props.usage))
+const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
 </script>
 
 <style scoped>

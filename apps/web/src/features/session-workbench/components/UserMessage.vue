@@ -13,20 +13,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import type { UserTranscriptItem } from "@earendil-works/pi-protocol";
-import TranscriptImage from "@features/session-workbench/components/TranscriptImage.vue";
+import { computed } from "vue"
+import type { UserTranscriptItem } from "@earendil-works/pi-protocol"
+import TranscriptImage from "@features/session-workbench/components/TranscriptImage.vue"
 import {
   transcriptImages,
   transcriptText,
-} from "@features/session-workbench/lib/transcript-format.js";
+} from "@features/session-workbench/lib/transcript-format.js"
 
 const props = defineProps<{
-  item: UserTranscriptItem;
-}>();
+  item: UserTranscriptItem
+}>()
 
-const text = computed(() => transcriptText(props.item));
-const images = computed(() => transcriptImages(props.item));
+const text = computed(() => transcriptText(props.item))
+const images = computed(() => transcriptImages(props.item))
 </script>
 
 <style scoped>

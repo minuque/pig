@@ -5,14 +5,14 @@
 </template>
 
 <script setup lang="ts">
-import { Moon, Sun } from "lucide-vue-next";
-import { computed } from "vue";
-import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
+import { Moon, Sun } from "lucide-vue-next"
+import { computed } from "vue"
+import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
-const { isDark, toggle } = useColorScheme();
+const { isDark, toggle } = useColorScheme()
 const actionLabel = computed(() =>
   isDark.value ? "当前深色模式，点击切换到浅色模式" : "当前浅色模式，点击切换到深色模式",
-);
+)
 </script>
 
 <style scoped>

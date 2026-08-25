@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui";
-import type { HTMLAttributes } from "vue";
-import type { BadgeVariants } from "./index.js";
-import { reactiveOmit } from "@vueuse/core";
-import { Primitive } from "reka-ui";
-import { cn } from "@utils/utils.js";
-import { badgeVariants } from "./index.js";
+import type { PrimitiveProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import type { BadgeVariants } from "./index.js"
+import { reactiveOmit } from "@vueuse/core"
+import { Primitive } from "reka-ui"
+import { cn } from "@utils/utils.js"
+import { badgeVariants } from "./index.js"
 
 const props = withDefaults(
   defineProps<
     PrimitiveProps & {
-      variant?: BadgeVariants["variant"];
-      class?: HTMLAttributes["class"];
+      variant?: BadgeVariants["variant"]
+      class?: HTMLAttributes["class"]
     }
   >(),
   {
@@ -20,9 +20,9 @@ const props = withDefaults(
     variant: "default",
     class: undefined,
   },
-);
+)
 
-const delegatedProps = reactiveOmit(props, "class");
+const delegatedProps = reactiveOmit(props, "class")
 </script>
 
 <template>

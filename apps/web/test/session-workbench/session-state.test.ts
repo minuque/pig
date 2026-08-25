@@ -1,7 +1,7 @@
-import { computed, reactive } from "vue";
-import { describe, expect, it } from "vitest";
-import type { MarkstreamThreadVirtualState } from "markstream-vue";
-import type { TranscriptItem, UserTranscriptItem } from "@earendil-works/pi-protocol";
+import { computed, reactive } from "vue"
+import { describe, expect, it } from "vitest"
+import type { MarkstreamThreadVirtualState } from "markstream-vue"
+import type { TranscriptItem, UserTranscriptItem } from "@earendil-works/pi-protocol"
 import {
   hasEarlierTranscript,
   isSessionPending,
@@ -9,42 +9,42 @@ import {
   projectOptimisticTranscript,
   sessionState,
   tailTranscript,
-} from "@features/session-workbench/lib/session-state.js";
-import type { SessionClientState } from "@features/session-workbench/lib/session-state.js";
+} from "@features/session-workbench/lib/session-state.js"
+import type { SessionClientState } from "@features/session-workbench/lib/session-state.js"
 
 function mockThreadState(threadKey = "s"): MarkstreamThreadVirtualState {
-  return { threadKey, itemHeights: {}, markdownStates: {} };
+  return { threadKey, itemHeights: {}, markdownStates: {} }
 }
 
 describe("workbench state", () => {
   it("keeps thread state isolated by session", () => {
-    const states = new Map();
-    const first = sessionState(states, "session-a");
-    first.threadState = mockThreadState("session-a");
+    const states = new Map()
+    const first = sessionState(states, "session-a")
+    first.threadState = mockThreadState("session-a")
 
-    expect(sessionState(states, "session-a")).toBe(first);
+    expect(sessionState(states, "session-a")).toBe(first)
     expect(sessionState(states, "session-b")).toMatchObject({
       draft: "",
       optimisticUser: null,
       threadState: null,
-    });
-  });
+    })
+  })
 
   it("state mutations are reactive (draft and threadState writes are tracked)", () => {
-    const states = reactive(new Map<string, SessionClientState>());
-    const draft = computed(() => sessionState(states, "s1").draft);
-    const threadState = computed(() => sessionState(states, "s1").threadState);
-    expect(draft.value).toBe("");
-    expect(threadState.value).toBeNull();
-    sessionState(states, "s1").draft = "草稿";
-    sessionState(states, "s1").threadState = mockThreadState("s1");
-    expect(draft.value).toBe("草稿");
-    expect(threadState.value?.threadKey).toBe("s1");
+    const states = reactive(new Map<string, SessionClientState>())
+    const draft = computed(() => sessionState(states, "s1").draft)
+    const threadState = computed(() => sessionState(states, "s1").threadState)
+    expect(draft.value).toBe("")
+    expect(threadState.value).toBeNull()
+    sessionState(states, "s1").draft = "草稿"
+    sessionState(states, "s1").threadState = mockThreadState("s1")
+    expect(draft.value).toBe("草稿")
+    expect(threadState.value?.threadKey).toBe("s1")
     // 各 Session 状态隔离：写入 s2 不影响 s1
-    sessionState(states, "s2").draft = "另一份";
-    expect(draft.value).toBe("草稿");
-  });
-});
+    sessionState(states, "s2").draft = "另一份"
+    expect(draft.value).toBe("草稿")
+  })
+})
 
 describe("projectOptimisticTranscript", () => {
   const optimistic: UserTranscriptItem = {
@@ -52,20 +52,20 @@ describe("projectOptimisticTranscript", () => {
     role: "user",
     content: [{ type: "text", text: "新任务" }],
     timestamp: 2,
-  };
+  }
   const previous: UserTranscriptItem = {
     id: "u1",
     role: "user",
     content: [{ type: "text", text: "旧任务" }],
     timestamp: 1,
-  };
+  }
   const assistant = {
     id: "a1",
     role: "assistant",
     content: [{ type: "text", text: "处理中" }],
     status: "streaming",
     timestamp: 3,
-  } as TranscriptItem;
+  } as TranscriptItem
 
   it("把乐观用户句插在提交前历史之后、后续流式内容之前", () => {
     expect(
@@ -73,83 +73,83 @@ describe("projectOptimisticTranscript", () => {
         item: optimistic,
         knownItemIds: [previous.id],
       }).map((item) => item.id),
-    ).toEqual([previous.id, optimistic.id, assistant.id]);
-  });
+    ).toEqual([previous.id, optimistic.id, assistant.id])
+  })
 
   it("收到新的同文服务端用户句后移除乐观投影", () => {
-    const confirmed = { ...optimistic, id: "server-u2" };
-    const items = [previous, confirmed, assistant];
+    const confirmed = { ...optimistic, id: "server-u2" }
+    const items = [previous, confirmed, assistant]
     expect(
       projectOptimisticTranscript(items, {
         item: optimistic,
         knownItemIds: [previous.id],
       }),
-    ).toBe(items);
-  });
+    ).toBe(items)
+  })
 
   it("加载更早记录时不会把旧同文用户句误判为确认", () => {
-    const earlierDuplicate = { ...optimistic, id: "earlier-u0", timestamp: 0 };
+    const earlierDuplicate = { ...optimistic, id: "earlier-u0", timestamp: 0 }
     expect(
       projectOptimisticTranscript([earlierDuplicate, previous, assistant], {
         item: optimistic,
         knownItemIds: [previous.id],
       }).map((item) => item.id),
-    ).toEqual([earlierDuplicate.id, previous.id, optimistic.id, assistant.id]);
-  });
-});
+    ).toEqual([earlierDuplicate.id, previous.id, optimistic.id, assistant.id])
+  })
+})
 
 describe("isSessionPending", () => {
   it("路由已切走且尚未附加到新 id 时为加载中", () => {
-    expect(isSessionPending("s2", "s1")).toBe(true);
-    expect(isSessionPending("s2", undefined)).toBe(true);
-  });
+    expect(isSessionPending("s2", "s1")).toBe(true)
+    expect(isSessionPending("s2", undefined)).toBe(true)
+  })
 
   it("无路由或已附加到当前 id 时不是加载中", () => {
-    expect(isSessionPending(undefined, "s1")).toBe(false);
-    expect(isSessionPending(undefined, undefined)).toBe(false);
-    expect(isSessionPending("s1", "s1")).toBe(false);
-  });
-});
+    expect(isSessionPending(undefined, "s1")).toBe(false)
+    expect(isSessionPending(undefined, undefined)).toBe(false)
+    expect(isSessionPending("s1", "s1")).toBe(false)
+  })
+})
 
 describe("tailTranscript", () => {
   it("少于 limit 时原样返回", () => {
-    const items = ["a", "b", "c"];
-    expect(tailTranscript(items, 5)).toBe(items);
-  });
+    const items = ["a", "b", "c"]
+    expect(tailTranscript(items, 5)).toBe(items)
+  })
 
   it("多于 limit 只留尾部且保持原顺序", () => {
-    expect(tailTranscript(["a", "b", "c", "d", "e"], 2)).toEqual(["d", "e"]);
-  });
-});
+    expect(tailTranscript(["a", "b", "c", "d", "e"], 2)).toEqual(["d", "e"])
+  })
+})
 
 describe("mergeTranscriptWindow", () => {
   it("保留被窗口挤出的前缀，窗口内同 id 以窗口为准", () => {
     const prefix = [
       { id: "a", n: 1 },
       { id: "b", n: 1 },
-    ];
+    ]
     const window = [
       { id: "b", n: 2 },
       { id: "c", n: 2 },
-    ];
+    ]
     expect(mergeTranscriptWindow(prefix, window)).toEqual([
       { id: "a", n: 1 },
       { id: "b", n: 2 },
       { id: "c", n: 2 },
-    ]);
-  });
-});
+    ])
+  })
+})
 
 describe("hasEarlierTranscript", () => {
   it("全量大于已加载时显示按钮，耗尽或空列表不显示", () => {
-    expect(hasEarlierTranscript(40, 193, false)).toBe(true);
-    expect(hasEarlierTranscript(193, 193, false)).toBe(false);
-    expect(hasEarlierTranscript(40, 193, true)).toBe(false);
-    expect(hasEarlierTranscript(0, 193, false)).toBe(false);
-  });
+    expect(hasEarlierTranscript(40, 193, false)).toBe(true)
+    expect(hasEarlierTranscript(193, 193, false)).toBe(false)
+    expect(hasEarlierTranscript(40, 193, true)).toBe(false)
+    expect(hasEarlierTranscript(0, 193, false)).toBe(false)
+  })
 
   it("全量未知时满页才显示", () => {
-    expect(hasEarlierTranscript(40, undefined, false)).toBe(true);
-    expect(hasEarlierTranscript(2, undefined, false)).toBe(false);
-  });
-});
+    expect(hasEarlierTranscript(40, undefined, false)).toBe(true)
+    expect(hasEarlierTranscript(2, undefined, false)).toBe(false)
+  })
+})

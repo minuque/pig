@@ -34,13 +34,13 @@
 </template>
 
 <script setup lang="ts">
-import { provide } from "vue";
-import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js";
+import { provide } from "vue"
+import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js"
 
 defineSlots<{
-  default(): unknown;
-  sidebar(props: { onNavigate: () => void; collapsed: boolean; toggle: () => void }): unknown;
-}>();
+  default(): unknown
+  sidebar(props: { onNavigate: () => void; collapsed: boolean; toggle: () => void }): unknown
+}>()
 
 const {
   leftOpen,
@@ -51,9 +51,9 @@ const {
   resizeBy,
   startResize,
   closeMobilePanels,
-} = useLeftPanel();
+} = useLeftPanel()
 
-provide(leftPanelKey, { leftOpen, toggle });
+provide(leftPanelKey, { leftOpen, toggle })
 </script>
 
 <style scoped>

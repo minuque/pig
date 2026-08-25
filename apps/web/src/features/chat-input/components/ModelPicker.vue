@@ -119,46 +119,46 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Star } from "lucide-vue-next";
-import { useVirtualList } from "@vueuse/core";
-import { computed, ref, watch } from "vue";
-import type { ModelRef } from "@earendil-works/pi-protocol";
-import { modelLabel, sameModel, type ChatInputVendor } from "@features/chat-input/types.js";
+import { Search, Star } from "lucide-vue-next"
+import { useVirtualList } from "@vueuse/core"
+import { computed, ref, watch } from "vue"
+import type { ModelRef } from "@earendil-works/pi-protocol"
+import { modelLabel, sameModel, type ChatInputVendor } from "@features/chat-input/types.js"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js";
-import VendorMark from "@features/chat-input/components/VendorMark.vue";
-import { useModelFavorites } from "@features/chat-input/hooks/use-model-favorites.js";
+} from "@components/ui/dropdown-menu/index.js"
+import VendorMark from "@features/chat-input/components/VendorMark.vue"
+import { useModelFavorites } from "@features/chat-input/hooks/use-model-favorites.js"
 import {
   FAVORITES_SCOPE,
   listPickerRows,
   resolveModelInfo,
-} from "@features/chat-input/lib/model-preset.js";
+} from "@features/chat-input/lib/model-preset.js"
 
 const props = withDefaults(
   defineProps<{
-    catalog: ChatInputVendor[];
-    model: ModelRef | undefined;
-    disabled?: boolean;
+    catalog: ChatInputVendor[]
+    model: ModelRef | undefined
+    disabled?: boolean
   }>(),
   { disabled: false },
-);
+)
 
 const emit = defineEmits<{
-  "update:model": [value: ModelRef];
-}>();
+  "update:model": [value: ModelRef]
+}>()
 
-const open = ref(false);
-const query = ref("");
-const scope = ref(FAVORITES_SCOPE);
-const searchRef = ref<HTMLInputElement | null>(null);
-const EMPTY_FAVORITES = new Set<string>();
-const { set: favoriteSet, isFavorite, toggle: toggleFavorite } = useModelFavorites();
+const open = ref(false)
+const query = ref("")
+const scope = ref(FAVORITES_SCOPE)
+const searchRef = ref<HTMLInputElement | null>(null)
+const EMPTY_FAVORITES = new Set<string>()
+const { set: favoriteSet, isFavorite, toggle: toggleFavorite } = useModelFavorites()
 
-const current = computed(() => resolveModelInfo(props.catalog, props.model));
+const current = computed(() => resolveModelInfo(props.catalog, props.model))
 
 const items = computed(() =>
   listPickerRows(
@@ -167,48 +167,48 @@ const items = computed(() =>
     scope.value,
     scope.value === FAVORITES_SCOPE ? favoriteSet.value : EMPTY_FAVORITES,
   ),
-);
+)
 
-const ITEM_HEIGHT = 52;
+const ITEM_HEIGHT = 52
 const { list, containerProps, wrapperProps } = useVirtualList(items, {
   itemHeight: ITEM_HEIGHT,
-});
+})
 
 const emptyText = computed(() =>
   scope.value === FAVORITES_SCOPE && !query.value.trim() ? "还没有收藏的模型" : "没有匹配的模型",
-);
+)
 
 watch(open, (isOpen) => {
-  if (!isOpen) return;
-  query.value = "";
-  scope.value = current.value.vendor?.id ?? props.catalog[0]?.id ?? FAVORITES_SCOPE;
-});
+  if (!isOpen) return
+  query.value = ""
+  scope.value = current.value.vendor?.id ?? props.catalog[0]?.id ?? FAVORITES_SCOPE
+})
 
 const label = computed(() => {
-  const { vendor, model } = current.value;
-  if (!vendor || !model) return modelLabel(props.model);
-  return model.name;
-});
+  const { vendor, model } = current.value
+  if (!vendor || !model) return modelLabel(props.model)
+  return model.name
+})
 
 function isCurrent(provider: string, id: string) {
-  return sameModel(props.model, { provider, id });
+  return sameModel(props.model, { provider, id })
 }
 function select(model: ModelRef) {
-  emit("update:model", model);
+  emit("update:model", model)
 }
 
 function onOpenAutoFocus(event: Event) {
-  event.preventDefault();
-  searchRef.value?.focus();
+  event.preventDefault()
+  searchRef.value?.focus()
 }
 
-let suppressRestore = false;
+let suppressRestore = false
 function suppressFocusRestore() {
-  suppressRestore = true;
+  suppressRestore = true
 }
 function onCloseAutoFocus(event: Event) {
-  if (suppressRestore) event.preventDefault();
-  suppressRestore = false;
+  if (suppressRestore) event.preventDefault()
+  suppressRestore = false
 }
 </script>
 

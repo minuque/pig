@@ -147,9 +147,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, watch } from "vue";
-import { useVirtualList } from "@vueuse/core";
-import { RouterLink } from "vue-router";
+import { computed, nextTick, shallowRef, watch } from "vue"
+import { useVirtualList } from "@vueuse/core"
+import { RouterLink } from "vue-router"
 import {
   Check,
   ChevronDown,
@@ -160,28 +160,28 @@ import {
   Search,
   Settings,
   SquarePen,
-} from "lucide-vue-next";
-import { notify } from "@components/ui/alert/index.js";
+} from "lucide-vue-next"
+import { notify } from "@components/ui/alert/index.js"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js";
-import { useNav } from "@features/session-nav/index.js";
-import { useSession } from "@features/session-workbench/index.js";
-import SessionItem from "@features/session-nav/components/SessionItem.vue";
-import { workspaceName, workspaceScopeLabel } from "@features/session-nav/format.js";
-import { filterSessionsForSearch } from "@features/session-nav/sidebar.js";
+} from "@components/ui/dropdown-menu/index.js"
+import { useNav } from "@features/session-nav/index.js"
+import { useSession } from "@features/session-workbench/index.js"
+import SessionItem from "@features/session-nav/components/SessionItem.vue"
+import { workspaceName, workspaceScopeLabel } from "@features/session-nav/format.js"
+import { filterSessionsForSearch } from "@features/session-nav/sidebar.js"
 
 defineProps<{
-  collapsed?: boolean;
-}>();
+  collapsed?: boolean
+}>()
 
 const emit = defineEmits<{
-  navigate: [canonicalPath: string];
-  toggle: [];
-}>();
+  navigate: [canonicalPath: string]
+  toggle: []
+}>()
 
 const {
   groups,
@@ -198,64 +198,64 @@ const {
   addWorkspace,
   renameSession,
   deleteSession,
-} = useNav();
-const { creating, createSession } = useSession();
+} = useNav()
+const { creating, createSession } = useSession()
 
-const searchQuery = shallowRef("");
+const searchQuery = shallowRef("")
 const visibleSessions = computed(() =>
   filterSessionsForSearch(listedSessions.value, searchQuery.value),
-);
+)
 
 /* 卡片 4.875rem + 行间 8px */
-const SESSION_ROW_PX = 86;
+const SESSION_ROW_PX = 86
 const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(visibleSessions, {
   itemHeight: SESSION_ROW_PX,
-});
-const scopedGroupName = computed(() => workspaceScopeLabel(projectScope.value));
+})
+const scopedGroupName = computed(() => workspaceScopeLabel(projectScope.value))
 
 watch(workspaceError, (message) => {
-  const text = message.trim();
-  if (text) notify.error(text);
-});
+  const text = message.trim()
+  if (text) notify.error(text)
+})
 
 watch(
   () => [activeSessionId.value, visibleSessions.value] as const,
   async () => {
-    await nextTick();
-    const id = activeSessionId.value;
-    const index = visibleSessions.value.findIndex((session) => session.id === id);
-    if (index >= 0) scrollTo(index);
+    await nextTick()
+    const id = activeSessionId.value
+    const index = visibleSessions.value.findIndex((session) => session.id === id)
+    if (index >= 0) scrollTo(index)
   },
-);
+)
 
 /** 筛选到一个目录时用它；多选时优先当前会话 cwd。否则当前会话 cwd 或列表第一项。 */
 const newSessionPath = computed(() => {
-  const paths = groups.value.map((group) => group.canonicalPath);
-  const scoped = projectScope.value.filter((path) => paths.includes(path));
-  if (scoped.length === 1) return scoped[0];
+  const paths = groups.value.map((group) => group.canonicalPath)
+  const scoped = projectScope.value.filter((path) => paths.includes(path))
+  if (scoped.length === 1) return scoped[0]
   if (scoped.length > 1) {
-    const active = activeWorkspaceId.value;
-    if (active && scoped.includes(active)) return active;
-    return scoped[0];
+    const active = activeWorkspaceId.value
+    if (active && scoped.includes(active)) return active
+    return scoped[0]
   }
-  const active = activeWorkspaceId.value;
-  if (active && paths.includes(active)) return active;
-  return paths[0];
-});
+  const active = activeWorkspaceId.value
+  if (active && paths.includes(active)) return active
+  return paths[0]
+})
 
 function onToggleScope(event: Event, path: string) {
-  event.preventDefault();
-  toggleProjectScope(path);
+  event.preventDefault()
+  toggleProjectScope(path)
 }
 
 function onNewSession() {
-  const path = newSessionPath.value;
-  if (!path) return;
-  void createSession(path);
+  const path = newSessionPath.value
+  if (!path) return
+  void createSession(path)
 }
 
 function onSessionNavigate(cwd: string | undefined) {
-  if (cwd) emit("navigate", cwd);
+  if (cwd) emit("navigate", cwd)
 }
 </script>
 

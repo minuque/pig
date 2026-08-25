@@ -22,10 +22,10 @@
 </template>
 
 <script setup lang="ts">
-import { CircleAlert, X } from "lucide-vue-next";
-import Alert from "@components/ui/alert/Alert.vue";
-import AlertDescription from "@components/ui/alert/AlertDescription.vue";
-import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js";
+import { CircleAlert, X } from "lucide-vue-next"
+import Alert from "@components/ui/alert/Alert.vue"
+import AlertDescription from "@components/ui/alert/AlertDescription.vue"
+import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
 </script>
 
 <style scoped>

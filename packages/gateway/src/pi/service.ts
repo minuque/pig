@@ -1,37 +1,37 @@
-import { mkdir, rm, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
-import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent";
-import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/pi-coding-agent";
-import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol";
+import { mkdir, rm, writeFile } from "node:fs/promises"
+import { dirname } from "node:path"
+import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent"
+import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/pi-coding-agent"
+import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   PiServerError,
   SessionNotFoundError,
   toProtocolModelMetadata,
-} from "@earendil-works/pi-server";
+} from "@earendil-works/pi-server"
 import type {
   CreateSessionOptions,
   PiServerService,
   PiSessionRuntime,
-} from "@earendil-works/pi-server";
-import { canonicalizePath } from "../directory.js";
-import type { ContextUsageEstimate } from "./context-usage.js";
-import { modelFromBranch, type SessionCard } from "./session-card.js";
-import { sessionListName } from "./session-label.js";
-import { PiHostSession } from "./session-runtime.js";
-import { TRANSCRIPT_PAGE_SIZE, TranscriptProjection, transcriptPageBefore } from "./transcript.js";
+} from "@earendil-works/pi-server"
+import { canonicalizePath } from "../directory.js"
+import type { ContextUsageEstimate } from "./context-usage.js"
+import { modelFromBranch, type SessionCard } from "./session-card.js"
+import { sessionListName } from "./session-label.js"
+import { PiHostSession } from "./session-runtime.js"
+import { TRANSCRIPT_PAGE_SIZE, TranscriptProjection, transcriptPageBefore } from "./transcript.js"
 
-type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>;
-type SessionFactory = typeof createAgentSession;
+type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
+type SessionFactory = typeof createAgentSession
 
 export interface PiHostServiceOptions {
   /** 统一会话目录；缺省用 Pi 默认（~/.pi/agent/sessions/<cwd>/）。 */
-  sessionDir?: string;
+  sessionDir?: string
   /** 默认工作目录（createSession 未指定 cwd 时使用）。 */
-  cwd?: string;
+  cwd?: string
   /** 测试注入：ModelRuntime 工厂。 */
-  createRuntime?: () => Promise<Runtime>;
+  createRuntime?: () => Promise<Runtime>
   /** 测试注入：AgentSession 工厂。 */
-  createSession?: SessionFactory;
+  createSession?: SessionFactory
 }
 
 /**
@@ -40,25 +40,25 @@ export interface PiHostServiceOptions {
  */
 export class PiHostService implements PiServerService {
   /** sessionId → 会话文件路径（listSessions/openSession 时填充）。 */
-  private readonly sessionPaths = new Map<string, string>();
-  private readonly activeSessions = new Map<string, PiHostSession>();
-  private runtimePromise?: Promise<Runtime>;
-  private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined;
+  private readonly sessionPaths = new Map<string, string>()
+  private readonly activeSessions = new Map<string, PiHostSession>()
+  private runtimePromise?: Promise<Runtime>
+  private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined
 
   constructor(private readonly options: PiHostServiceOptions = {}) {}
 
   async listSessions(): Promise<SessionMetadata[]> {
-    const infos = await this.refreshSessionPaths();
+    const infos = await this.refreshSessionPaths()
     return infos.map((info) => {
-      const sessionName = sessionListName(info);
+      const sessionName = sessionListName(info)
       return {
         id: info.id,
         createdAt: info.created.getTime(),
         ...(info.modified ? { updatedAt: info.modified.getTime() } : {}),
         ...(sessionName ? { sessionName } : {}),
         ...(info.cwd ? { cwd: canonicalizePath(info.cwd) } : {}),
-      };
-    });
+      }
+    })
   }
 
   /**
@@ -66,46 +66,46 @@ export class PiHostService implements PiServerService {
    * 不进协议 SessionMetadata（strict，会丢掉额外字段）。
    */
   async listSessionCards(): Promise<SessionCard[]> {
-    this.sessionsCache = undefined;
-    const infos = await this.refreshSessionPaths();
-    return cardsFromInfos(infos);
+    this.sessionsCache = undefined
+    const infos = await this.refreshSessionPaths()
+    return cardsFromInfos(infos)
   }
 
   async listModels(): Promise<ModelMetadata[]> {
-    const runtime = await this.runtime();
-    const models = await runtime.getAvailable();
+    const runtime = await this.runtime()
+    const models = await runtime.getAvailable()
     return models.map((model) =>
       toProtocolModelMetadata(model, runtime.hasConfiguredAuth(model.provider)),
-    );
+    )
   }
 
   async createSession(options: CreateSessionOptions): Promise<PiSessionRuntime> {
-    const runtime = await this.runtime();
-    const cwd = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd());
-    const manager = SessionManager.create(cwd, this.options.sessionDir, { id: options.id });
-    if (options.name) manager.appendSessionInfo(options.name);
-    const path = manager.getSessionFile();
-    const header = manager.getHeader();
-    if (!path || !header) throw new Error("Pi did not create a persistent session");
+    const runtime = await this.runtime()
+    const cwd = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd())
+    const manager = SessionManager.create(cwd, this.options.sessionDir, { id: options.id })
+    if (options.name) manager.appendSessionInfo(options.name)
+    const path = manager.getSessionFile()
+    const header = manager.getHeader()
+    if (!path || !header) throw new Error("Pi did not create a persistent session")
     // 立即落盘 header，保证 PiServer 分配的 id 持久化（Pi 仅在出现助手消息后写文件）。
     // SDK 无 ensurePersisted API，写入后用 SessionManager 回读校验替代。
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, serializeEntries(header, manager.getEntries()), { flag: "wx" });
+    await mkdir(dirname(path), { recursive: true })
+    await writeFile(path, serializeEntries(header, manager.getEntries()), { flag: "wx" })
     if (SessionManager.open(path).getHeader()?.id !== options.id) {
-      await rm(path, { force: true });
-      throw new Error("Pi session persistence format validation failed");
+      await rm(path, { force: true })
+      throw new Error("Pi session persistence format validation failed")
     }
-    this.sessionsCache = undefined;
-    this.sessionPaths.set(options.id, path);
+    this.sessionsCache = undefined
+    this.sessionPaths.set(options.id, path)
     const model = options.model
       ? runtime.getModel(options.model.provider, options.model.id)
-      : undefined;
+      : undefined
     if (options.model && !model) {
-      await this.rollbackSession(options.id, path);
+      await this.rollbackSession(options.id, path)
       throw new PiServerError(
         "invalid_request",
         `Model ${options.model.provider}/${options.model.id} is unavailable`,
-      );
+      )
     }
     try {
       const { session } = await this.sessionFactory()({
@@ -114,32 +114,32 @@ export class PiHostService implements PiServerService {
         sessionManager: SessionManager.open(path),
         ...(model ? { model } : {}),
         ...(options.thinkingLevel ? { thinkingLevel: options.thinkingLevel } : {}),
-      });
-      return this.trackSession(session);
+      })
+      return this.trackSession(session)
     } catch (error) {
       // AgentSession 创建失败（如无可用模型）时回滚，避免遗留空会话文件
-      await this.rollbackSession(options.id, path);
-      throw error;
+      await this.rollbackSession(options.id, path)
+      throw error
     }
   }
 
   /** 通过 Pi SessionManager 追加 session_info，不另建一套命名状态。 */
   async renameSession(sessionId: string, name: string): Promise<void> {
-    const trimmed = name.trim();
-    if (!trimmed) throw new PiServerError("invalid_request", "会话名不能为空");
-    const path = await this.findSessionPath(sessionId);
-    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`);
-    SessionManager.open(path).appendSessionInfo(trimmed);
-    this.sessionsCache = undefined;
+    const trimmed = name.trim()
+    if (!trimmed) throw new PiServerError("invalid_request", "会话名不能为空")
+    const path = await this.findSessionPath(sessionId)
+    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
+    SessionManager.open(path).appendSessionInfo(trimmed)
+    this.sessionsCache = undefined
   }
 
   /** 删除 Pi 会话文件。 */
   async deleteSession(sessionId: string): Promise<void> {
-    const path = await this.findSessionPath(sessionId);
-    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`);
-    await rm(path, { force: true });
-    this.sessionPaths.delete(sessionId);
-    this.sessionsCache = undefined;
+    const path = await this.findSessionPath(sessionId)
+    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
+    await rm(path, { force: true })
+    this.sessionPaths.delete(sessionId)
+    this.sessionsCache = undefined
   }
 
   /** 读磁盘当前分支，返回 beforeId 之前的一页。不占用 AgentSession lease。 */
@@ -148,95 +148,95 @@ export class PiHostService implements PiServerService {
     beforeId: string,
     limit = TRANSCRIPT_PAGE_SIZE,
   ): Promise<{ items: TranscriptItem[]; hasMore: boolean }> {
-    const path = await this.findSessionPath(sessionId);
-    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`);
-    const items = new TranscriptProjection().transcript(SessionManager.open(path).getBranch());
-    return transcriptPageBefore(items, beforeId, limit);
+    const path = await this.findSessionPath(sessionId)
+    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
+    const items = new TranscriptProjection().transcript(SessionManager.open(path).getBranch())
+    return transcriptPageBefore(items, beforeId, limit)
   }
 
   async openSession(sessionId: string): Promise<PiSessionRuntime> {
-    const runtime = await this.runtime();
-    const path = await this.findSessionPath(sessionId);
-    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`);
+    const runtime = await this.runtime()
+    const path = await this.findSessionPath(sessionId)
+    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     const { session } = await this.sessionFactory()({
       cwd: SessionManager.open(path).getCwd(),
       modelRuntime: runtime,
       sessionManager: SessionManager.open(path),
-    });
-    return this.trackSession(session);
+    })
+    return this.trackSession(session)
   }
 
   contextUsage(sessionId: string): ContextUsageEstimate | undefined {
-    return this.activeSessions.get(sessionId)?.contextUsage();
+    return this.activeSessions.get(sessionId)?.contextUsage()
   }
 
   /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */
   private async refreshSessionPaths(): Promise<SessionInfo[]> {
-    const now = Date.now();
-    if (this.sessionsCache && this.sessionsCache.expiresAt > now) return this.sessionsCache.infos;
-    const infos = await SessionManager.listAll(this.options.sessionDir);
-    this.sessionPaths.clear();
-    for (const info of infos) this.sessionPaths.set(info.id, info.path);
+    const now = Date.now()
+    if (this.sessionsCache && this.sessionsCache.expiresAt > now) return this.sessionsCache.infos
+    const infos = await SessionManager.listAll(this.options.sessionDir)
+    this.sessionPaths.clear()
+    for (const info of infos) this.sessionPaths.set(info.id, info.path)
     // ponytail: 短 TTL 代替无界扫盘；SDK 有 Session 变更通知后改精确失效。
-    this.sessionsCache = { expiresAt: now + 2_000, infos };
-    return infos;
+    this.sessionsCache = { expiresAt: now + 2_000, infos }
+    return infos
   }
 
   private async findSessionPath(sessionId: string): Promise<string | undefined> {
-    const cached = this.sessionPaths.get(sessionId);
-    if (cached) return cached;
-    await this.refreshSessionPaths();
-    return this.sessionPaths.get(sessionId);
+    const cached = this.sessionPaths.get(sessionId)
+    if (cached) return cached
+    await this.refreshSessionPaths()
+    return this.sessionPaths.get(sessionId)
   }
 
   private runtime(): Promise<Runtime> {
-    return (this.runtimePromise ??= (this.options.createRuntime ?? createDefaultRuntime)());
+    return (this.runtimePromise ??= (this.options.createRuntime ?? createDefaultRuntime)())
   }
 
   private sessionFactory(): SessionFactory {
-    return this.options.createSession ?? createAgentSession;
+    return this.options.createSession ?? createAgentSession
   }
 
   private trackSession(session: Awaited<ReturnType<SessionFactory>>["session"]): PiHostSession {
-    let host!: PiHostSession;
+    let host!: PiHostSession
     host = new PiHostSession(session, () => {
       if (this.activeSessions.get(session.sessionId) === host) {
-        this.activeSessions.delete(session.sessionId);
+        this.activeSessions.delete(session.sessionId)
       }
-    });
-    this.activeSessions.set(session.sessionId, host);
-    return host;
+    })
+    this.activeSessions.set(session.sessionId, host)
+    return host
   }
 
   private async rollbackSession(sessionId: string, path: string): Promise<void> {
-    this.sessionsCache = undefined;
-    this.sessionPaths.delete(sessionId);
-    await rm(path, { force: true });
+    this.sessionsCache = undefined
+    this.sessionPaths.delete(sessionId)
+    await rm(path, { force: true })
   }
 }
 
 function cardsFromInfos(infos: readonly SessionInfo[]): SessionCard[] {
   return infos.map((info) => {
-    let model: SessionCard["model"];
+    let model: SessionCard["model"]
     try {
-      model = modelFromBranch(SessionManager.open(info.path).getBranch());
+      model = modelFromBranch(SessionManager.open(info.path).getBranch())
     } catch {
-      model = undefined;
+      model = undefined
     }
     return {
       id: info.id,
       messageCount: info.messageCount,
       ...(model ? { model } : {}),
-    };
-  });
+    }
+  })
 }
 
 /** 测试注入用默认 ModelRuntime：不做网络刷新，避免启动时拉取模型目录。 */
 function createDefaultRuntime(): Promise<Runtime> {
-  return ModelRuntime.create({ allowModelNetwork: false });
+  return ModelRuntime.create({ allowModelNetwork: false })
 }
 
 /** 与仓库既有做法一致：header + 条目逐行 JSON 落盘。 */
 function serializeEntries(header: SessionHeader, entries: SessionEntry[]): string {
-  return [header, ...entries].map((entry) => JSON.stringify(entry)).join("\n") + "\n";
+  return [header, ...entries].map((entry) => JSON.stringify(entry)).join("\n") + "\n"
 }

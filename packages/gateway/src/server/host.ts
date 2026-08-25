@@ -1,25 +1,25 @@
-import { randomUUID } from "node:crypto";
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { PiServer } from "@earendil-works/pi-server";
-import { BootstrapAuth } from "../auth/bootstrap.js";
-import { SessionNotFoundError } from "@earendil-works/pi-server";
-import { PiHostService } from "../pi/service.js";
-import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js";
-import { serveWebFile } from "./static-files.js";
-import { createWebSocketListener } from "./websocket.js";
+import { randomUUID } from "node:crypto"
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
+import { PiServer } from "@earendil-works/pi-server"
+import { BootstrapAuth } from "../auth/bootstrap.js"
+import { SessionNotFoundError } from "@earendil-works/pi-server"
+import { PiHostService } from "../pi/service.js"
+import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
+import { serveWebFile } from "./static-files.js"
+import { createWebSocketListener } from "./websocket.js"
 
 export interface GatewayOptions {
-  bootstrapSecret?: string;
-  bootstrapTtlMs?: number;
-  webRoot?: string;
-  sessionDir?: string;
-  cwd?: string;
+  bootstrapSecret?: string
+  bootstrapTtlMs?: number
+  webRoot?: string
+  sessionDir?: string
+  cwd?: string
   /** 目录选择平台端口，测试可注入假件。 */
-  platformPort?: DirectoryPort;
-  maxFrameLength?: number;
-  maxPendingBytes?: number;
+  platformPort?: DirectoryPort
+  maxFrameLength?: number
+  maxPendingBytes?: number
   /** HTTP 监听端口。缺省 0，由系统分配。 */
-  port?: number;
+  port?: number
 }
 
 /**
@@ -27,29 +27,29 @@ export interface GatewayOptions {
  * + 认证过的 WebSocket listener，连接直接交给官方 PiServer + PiHostService。
  */
 export class Gateway {
-  private readonly server = createServer(this.handleRequest.bind(this));
-  private readonly auth: BootstrapAuth;
-  private readonly hostService: PiHostService;
-  private readonly piServer: PiServer;
-  private readonly webRoot: string | undefined;
-  private readonly platformPort: DirectoryPort;
-  private readonly listenPort: number;
-  private port = 0;
+  private readonly server = createServer(this.handleRequest.bind(this))
+  private readonly auth: BootstrapAuth
+  private readonly hostService: PiHostService
+  private readonly piServer: PiServer
+  private readonly webRoot: string | undefined
+  private readonly platformPort: DirectoryPort
+  private readonly listenPort: number
+  private port = 0
 
   constructor(options: GatewayOptions = {}) {
     this.auth = new BootstrapAuth(
       options.bootstrapSecret ?? randomUUID(),
       options.bootstrapTtlMs ?? 60_000,
-    );
-    this.webRoot = options.webRoot;
-    this.listenPort = options.port ?? 0;
+    )
+    this.webRoot = options.webRoot
+    this.listenPort = options.port ?? 0
     this.platformPort =
       options.platformPort ??
-      (process.platform === "win32" ? new WindowsDirectoryPort() : new ManualDirectoryPort());
+      (process.platform === "win32" ? new WindowsDirectoryPort() : new ManualDirectoryPort())
     this.hostService = new PiHostService({
       ...(options.sessionDir ? { sessionDir: options.sessionDir } : {}),
       ...(options.cwd ? { cwd: options.cwd } : {}),
-    });
+    })
     this.piServer = new PiServer(this.hostService, {
       listeners: [
         createWebSocketListener({
@@ -65,118 +65,117 @@ export class Gateway {
       ],
       ...(options.maxFrameLength !== undefined ? { maxFrameLength: options.maxFrameLength } : {}),
       onError: (error) => console.error("PiServer error:", error),
-    });
+    })
   }
 
   private send(res: ServerResponse, status: number, body?: unknown) {
-    res.writeHead(status, body === undefined ? {} : { "Content-Type": "application/json" });
-    res.end(body === undefined ? undefined : JSON.stringify(body));
+    res.writeHead(status, body === undefined ? {} : { "Content-Type": "application/json" })
+    res.end(body === undefined ? undefined : JSON.stringify(body))
   }
 
   private async body(req: IncomingMessage): Promise<Record<string, unknown>> {
-    let raw = "";
+    let raw = ""
     for await (const chunk of req) {
-      raw += chunk;
-      if (raw.length > 1_000_000) throw new Error("body too large");
+      raw += chunk
+      if (raw.length > 1_000_000) throw new Error("body too large")
     }
-    const parsed: unknown = JSON.parse(raw);
+    const parsed: unknown = JSON.parse(raw)
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
-      throw new Error("invalid body");
-    return parsed as Record<string, unknown>;
+      throw new Error("invalid body")
+    return parsed as Record<string, unknown>
   }
 
   private credential(req: IncomingMessage): string | undefined {
-    const header = req.headers.authorization;
-    return header?.startsWith("Bearer ") ? header.slice(7) : undefined;
+    const header = req.headers.authorization
+    return header?.startsWith("Bearer ") ? header.slice(7) : undefined
   }
 
   /** 校验 Bearer 凭证；失败时写 401 响应并返回 false。 */
   private requireAuth(req: IncomingMessage, res: ServerResponse): boolean {
-    if (this.auth.verify(this.credential(req))) return true;
-    this.send(res, 401, { code: "UNAUTHENTICATED" });
-    return false;
+    if (this.auth.verify(this.credential(req))) return true
+    this.send(res, 401, { code: "UNAUTHENTICATED" })
+    return false
   }
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse) {
-    const url = new URL(req.url ?? "/", "http://127.0.0.1");
+    const url = new URL(req.url ?? "/", "http://127.0.0.1")
     if (url.pathname === "/health" && req.method === "GET")
-      return this.send(res, 200, { status: "ok" });
+      return this.send(res, 200, { status: "ok" })
     if (
       this.webRoot &&
       req.method === "GET" &&
       !url.pathname.startsWith("/api/") &&
       (await serveWebFile(this.webRoot, url.pathname, res))
     )
-      return;
+      return
     if (url.pathname === "/api/v1/bootstrap" && req.method === "POST") {
       try {
-        const { secret } = await this.body(req);
-        const credential = typeof secret === "string" ? this.auth.exchange(secret) : undefined;
-        if (!credential) return this.send(res, 401, { code: "INVALID_BOOTSTRAP" });
-        return this.send(res, 201, { credential });
+        const { secret } = await this.body(req)
+        const credential = typeof secret === "string" ? this.auth.exchange(secret) : undefined
+        if (!credential) return this.send(res, 401, { code: "INVALID_BOOTSTRAP" })
+        return this.send(res, 201, { credential })
       } catch {
-        return this.send(res, 400, { code: "INVALID_REQUEST" });
+        return this.send(res, 400, { code: "INVALID_REQUEST" })
       }
     }
     if (url.pathname === "/api/v1/platform/select-directory" && req.method === "POST") {
-      if (!this.requireAuth(req, res)) return;
+      if (!this.requireAuth(req, res)) return
       try {
-        const body = await this.body(req).catch((): Record<string, unknown> => ({}));
-        const input = typeof body.path === "string" ? body.path : undefined;
+        const body = await this.body(req).catch((): Record<string, unknown> => ({}))
+        const input = typeof body.path === "string" ? body.path : undefined
         if (this.platformPort.requiresManualInput && !input)
-          return this.send(res, 200, { path: null, requiresManualInput: true });
+          return this.send(res, 200, { path: null, requiresManualInput: true })
         const path = input
           ? await this.platformPort.validateDirectory(input)
-          : await this.platformPort.selectDirectory();
-        return this.send(res, 200, { path: path ?? null, requiresManualInput: false });
+          : await this.platformPort.selectDirectory()
+        return this.send(res, 200, { path: path ?? null, requiresManualInput: false })
       } catch (error) {
-        console.error("select-directory failed:", error);
-        return this.send(res, 500, { code: "INVALID_REQUEST" });
+        console.error("select-directory failed:", error)
+        return this.send(res, 500, { code: "INVALID_REQUEST" })
       }
     }
     if (url.pathname === "/api/v1/platform/session-cards" && req.method === "GET") {
-      if (!this.requireAuth(req, res)) return;
+      if (!this.requireAuth(req, res)) return
       try {
-        const cards = await this.hostService.listSessionCards();
-        return this.send(res, 200, { cards });
+        const cards = await this.hostService.listSessionCards()
+        return this.send(res, 200, { cards })
       } catch (error) {
-        console.error("session-cards failed:", error);
-        return this.send(res, 500, { code: "INVALID_REQUEST" });
+        console.error("session-cards failed:", error)
+        return this.send(res, 500, { code: "INVALID_REQUEST" })
       }
     }
     if (url.pathname === "/api/v1/platform/transcript" && req.method === "GET") {
-      if (!this.requireAuth(req, res)) return;
-      const sessionId = url.searchParams.get("sessionId") ?? "";
-      const before = url.searchParams.get("before") ?? "";
-      if (!sessionId || !before) return this.send(res, 400, { code: "INVALID_REQUEST" });
+      if (!this.requireAuth(req, res)) return
+      const sessionId = url.searchParams.get("sessionId") ?? ""
+      const before = url.searchParams.get("before") ?? ""
+      if (!sessionId || !before) return this.send(res, 400, { code: "INVALID_REQUEST" })
       try {
-        const page = await this.hostService.readTranscriptPage(sessionId, before);
-        return this.send(res, 200, page);
+        const page = await this.hostService.readTranscriptPage(sessionId, before)
+        return this.send(res, 200, page)
       } catch (error) {
-        if (error instanceof SessionNotFoundError)
-          return this.send(res, 404, { code: "NOT_FOUND" });
-        console.error("transcript page failed:", error);
-        return this.send(res, 500, { code: "INVALID_REQUEST" });
+        if (error instanceof SessionNotFoundError) return this.send(res, 404, { code: "NOT_FOUND" })
+        console.error("transcript page failed:", error)
+        return this.send(res, 500, { code: "INVALID_REQUEST" })
       }
     }
     if (url.pathname === "/api/v1/platform/context-usage" && req.method === "GET") {
-      if (!this.requireAuth(req, res)) return;
-      const sessionId = url.searchParams.get("sessionId") ?? "";
-      if (!sessionId) return this.send(res, 400, { code: "INVALID_REQUEST" });
-      return this.send(res, 200, { usage: this.hostService.contextUsage(sessionId) ?? null });
+      if (!this.requireAuth(req, res)) return
+      const sessionId = url.searchParams.get("sessionId") ?? ""
+      if (!sessionId) return this.send(res, 400, { code: "INVALID_REQUEST" })
+      return this.send(res, 200, { usage: this.hostService.contextUsage(sessionId) ?? null })
     }
     if (url.pathname === "/api/v1/platform/rename-session" && req.method === "POST") {
       return this.handleSessionFileAction(req, res, async (id, body) => {
-        const name = typeof body.name === "string" ? body.name : "";
-        await this.hostService.renameSession(id, name);
-      });
+        const name = typeof body.name === "string" ? body.name : ""
+        await this.hostService.renameSession(id, name)
+      })
     }
     if (url.pathname === "/api/v1/platform/delete-session" && req.method === "POST") {
       return this.handleSessionFileAction(req, res, async (id) => {
-        await this.hostService.deleteSession(id);
-      });
+        await this.hostService.deleteSession(id)
+      })
     }
-    return this.send(res, 404);
+    return this.send(res, 404)
   }
 
   private async handleSessionFileAction(
@@ -184,42 +183,42 @@ export class Gateway {
     res: ServerResponse,
     run: (id: string, body: Record<string, unknown>) => Promise<void>,
   ) {
-    if (!this.requireAuth(req, res)) return;
+    if (!this.requireAuth(req, res)) return
     try {
-      const body = await this.body(req);
-      const id = typeof body.id === "string" ? body.id : "";
-      if (!id) return this.send(res, 400, { code: "INVALID_REQUEST" });
-      await run(id, body);
-      return this.send(res, 200, { ok: true });
+      const body = await this.body(req)
+      const id = typeof body.id === "string" ? body.id : ""
+      if (!id) return this.send(res, 400, { code: "INVALID_REQUEST" })
+      await run(id, body)
+      return this.send(res, 200, { ok: true })
     } catch (error) {
-      if (error instanceof SessionNotFoundError) return this.send(res, 404, { code: "NOT_FOUND" });
-      console.error("session file action failed:", error);
-      return this.send(res, 400, { code: "INVALID_REQUEST" });
+      if (error instanceof SessionNotFoundError) return this.send(res, 404, { code: "NOT_FOUND" })
+      console.error("session file action failed:", error)
+      return this.send(res, 400, { code: "INVALID_REQUEST" })
     }
   }
 
   async start() {
-    await this.piServer.start();
+    await this.piServer.start()
     return new Promise<number>((resolveStart, reject) => {
-      this.server.once("error", reject);
+      this.server.once("error", reject)
       this.server.listen(this.listenPort, "127.0.0.1", () => {
-        this.server.off("error", reject);
-        this.port = (this.server.address() as { port: number }).port;
-        resolveStart(this.port);
-      });
-    });
+        this.server.off("error", reject)
+        this.port = (this.server.address() as { port: number }).port
+        resolveStart(this.port)
+      })
+    })
   }
 
   async stop() {
-    await this.piServer.close();
+    await this.piServer.close()
     await new Promise<void>((resolveStop, reject) =>
       this.server.close((error) => (error ? reject(error) : resolveStop())),
-    );
+    )
   }
 
   getPort() {
-    return this.port;
+    return this.port
   }
 }
 
-export default Gateway;
+export default Gateway

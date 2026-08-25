@@ -1,23 +1,23 @@
-import { realpath } from "node:fs/promises";
-import type { BrowserWindow, OpenDialogOptions, OpenDialogReturnValue } from "electron";
+import { realpath } from "node:fs/promises"
+import type { BrowserWindow, OpenDialogOptions, OpenDialogReturnValue } from "electron"
 
 const DIALOG_OPTIONS = {
   title: "选择工作目录",
   properties: ["openDirectory", "createDirectory"],
-} as const satisfies OpenDialogOptions;
+} as const satisfies OpenDialogOptions
 
-export type CanonicalizePath = (path: string) => string;
+export type CanonicalizePath = (path: string) => string
 
 /** 与 Gateway DirectoryPort 对齐；不能从 gateway 源码 import type，tsc emit 会撑破 rootDir。 */
 export type DirectoryPort = {
-  selectDirectory(): Promise<string | undefined>;
-  validateDirectory(path: string): Promise<string>;
-};
+  selectDirectory(): Promise<string | undefined>
+  validateDirectory(path: string): Promise<string>
+}
 
 export type PickDirectory = (
   parent: BrowserWindow | undefined,
   options: typeof DIALOG_OPTIONS,
-) => Promise<OpenDialogReturnValue>;
+) => Promise<OpenDialogReturnValue>
 
 export function createElectronDirectoryPort(
   getWindow: () => BrowserWindow | undefined,
@@ -26,13 +26,13 @@ export function createElectronDirectoryPort(
 ): DirectoryPort {
   return {
     async selectDirectory() {
-      const result = await pickDirectory(getWindow(), DIALOG_OPTIONS);
-      const selected = result.filePaths[0];
-      if (result.canceled || !selected) return undefined;
-      return canonicalizePath(await realpath(selected));
+      const result = await pickDirectory(getWindow(), DIALOG_OPTIONS)
+      const selected = result.filePaths[0]
+      if (result.canceled || !selected) return undefined
+      return canonicalizePath(await realpath(selected))
     },
     async validateDirectory(path) {
-      return canonicalizePath(await realpath(path));
+      return canonicalizePath(await realpath(path))
     },
-  };
+  }
 }

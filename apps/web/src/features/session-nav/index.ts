@@ -1,31 +1,31 @@
-import { computed, inject, provide, ref, type InjectionKey } from "vue";
-import { useRouter } from "vue-router";
-import type { useLocalWorkspaces } from "@client/local-cwd.js";
-import type { usePiClient } from "@client/pi-client.js";
-import type { SessionContext } from "@features/session-workbench/index.js";
-import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js";
-import { modelDisplayNames, sessionCardFoot } from "@features/session-nav/sidebar.js";
+import { computed, inject, provide, ref, type InjectionKey } from "vue"
+import { useRouter } from "vue-router"
+import type { useLocalWorkspaces } from "@client/local-cwd.js"
+import type { usePiClient } from "@client/pi-client.js"
+import type { SessionContext } from "@features/session-workbench/index.js"
+import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js"
+import { modelDisplayNames, sessionCardFoot } from "@features/session-nav/sidebar.js"
 
-export type NavContext = ReturnType<typeof createNav>;
-export const navKey: InjectionKey<NavContext> = Symbol("nav");
+export type NavContext = ReturnType<typeof createNav>
+export const navKey: InjectionKey<NavContext> = Symbol("nav")
 
 function createNav(
   pi: ReturnType<typeof usePiClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
   session: SessionContext,
 ) {
-  const router = useRouter();
-  const navError = ref("");
+  const router = useRouter()
+  const navError = ref("")
   const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
     sessionId: session.sessionId,
     connected: pi.connected,
     router,
     refreshSessions: pi.refreshSessions,
-  });
+  })
 
   const cardFootById = computed(() => {
-    const names = modelDisplayNames(session.catalog.value);
-    const liveId = session.sessionId.value;
+    const names = modelDisplayNames(session.catalog.value)
+    const liveId = session.sessionId.value
     const live =
       liveId && session.projection.value
         ? {
@@ -34,17 +34,17 @@ function createNav(
             messageCount: session.transcript.value.length,
             model: session.projection.value.model,
           }
-        : undefined;
-    const extras = nav.sessionCards.value;
+        : undefined
+    const extras = nav.sessionCards.value
     const feet = new Map<
       string,
       { messageCount: number | undefined; modelLabel: string; modelProvider: string }
-    >();
+    >()
     for (const item of nav.listedSessions.value) {
-      feet.set(item.id, sessionCardFoot(item.id, extras, live, names));
+      feet.set(item.id, sessionCardFoot(item.id, extras, live, names))
     }
-    return feet;
-  });
+    return feet
+  })
 
   return {
     groups: nav.groups,
@@ -63,7 +63,7 @@ function createNav(
     addWorkspace: nav.addWorkspace,
     renameSession: nav.renameSession,
     deleteSession: nav.deleteSession,
-  };
+  }
 }
 
 export function provideNav(
@@ -71,13 +71,13 @@ export function provideNav(
   cwd: ReturnType<typeof useLocalWorkspaces>,
   session: SessionContext,
 ) {
-  const nav = createNav(pi, cwd, session);
-  provide(navKey, nav);
-  return nav;
+  const nav = createNav(pi, cwd, session)
+  provide(navKey, nav)
+  return nav
 }
 
 export function useNav(): NavContext {
-  const nav = inject(navKey);
-  if (!nav) throw new Error("useNav() 需要在 provideNav() 之后调用");
-  return nav;
+  const nav = inject(navKey)
+  if (!nav) throw new Error("useNav() 需要在 provideNav() 之后调用")
+  return nav
 }

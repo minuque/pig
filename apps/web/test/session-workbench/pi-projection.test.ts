@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
-import type { SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol";
-import { projectSessionSnapshot } from "@features/session-workbench/lib/session-state.js";
+import { describe, expect, it } from "vitest"
+import type { SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol"
+import { projectSessionSnapshot } from "@features/session-workbench/lib/session-state.js"
 
 function userItem(text: string): TranscriptItem {
   return {
@@ -8,7 +8,7 @@ function userItem(text: string): TranscriptItem {
     role: "user",
     content: [{ type: "text", text }],
     timestamp: 1,
-  };
+  }
 }
 describe("projectSessionSnapshot", () => {
   function snapshot(overrides: Partial<SessionSnapshot> = {}): SessionSnapshot {
@@ -27,16 +27,16 @@ describe("projectSessionSnapshot", () => {
       queuedSteer: [],
       queuedSteerCount: 0,
       ...overrides,
-    };
+    }
   }
   it("derives display fields and default name", () => {
-    const projection = projectSessionSnapshot(snapshot());
-    expect(projection.name).toBe("新会话");
-    expect(projection.cwd).toBe("/repo");
-    expect(projection.running).toBe(false);
-  });
+    const projection = projectSessionSnapshot(snapshot())
+    expect(projection.name).toBe("新会话")
+    expect(projection.cwd).toBe("/repo")
+    expect(projection.running).toBe(false)
+  })
   it("marks non-idle phases as running", () => {
-    const projection = projectSessionSnapshot(snapshot({ phase: "turn", transcript: [] }));
-    expect(projection.running).toBe(true);
-  });
-});
+    const projection = projectSessionSnapshot(snapshot({ phase: "turn", transcript: [] }))
+    expect(projection.running).toBe(true)
+  })
+})

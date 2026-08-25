@@ -1,12 +1,12 @@
-import { readonly, shallowRef } from "vue";
+import { readonly, shallowRef } from "vue"
 
-const message = shallowRef("");
+const message = shallowRef("")
 
 /** 启动失败文案：启动门写入，错误页读取。不进 URL。 */
 export function setStartupError(value: string) {
-  message.value = value;
+  message.value = value
 }
 
 export function useStartupError() {
-  return readonly(message);
+  return readonly(message)
 }

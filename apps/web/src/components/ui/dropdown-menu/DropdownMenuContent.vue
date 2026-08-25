@@ -16,15 +16,15 @@
 </template>
 
 <script setup lang="ts">
-import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui";
-import type { ComputedRef, HTMLAttributes } from "vue";
-import { reactiveOmit } from "@vueuse/core";
-import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui";
-import { cn } from "@utils/utils.js";
+import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui"
+import type { ComputedRef, HTMLAttributes } from "vue"
+import { reactiveOmit } from "@vueuse/core"
+import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
+import { cn } from "@utils/utils.js"
 
 defineOptions({
   inheritAttrs: false,
-});
+})
 
 const props = withDefaults(
   defineProps<DropdownMenuContentProps & { class?: HTMLAttributes["class"] }>(),
@@ -32,14 +32,14 @@ const props = withDefaults(
     class: undefined,
     sideOffset: 4,
   },
-);
-const emits = defineEmits<DropdownMenuContentEmits>();
+)
+const emits = defineEmits<DropdownMenuContentEmits>()
 
-const delegatedProps = reactiveOmit(props, "class");
+const delegatedProps = reactiveOmit(props, "class")
 
 // reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
 const forwarded = useForwardPropsEmits(
   delegatedProps,
   emits,
-) as ComputedRef<DropdownMenuContentProps>;
+) as ComputedRef<DropdownMenuContentProps>
 </script>

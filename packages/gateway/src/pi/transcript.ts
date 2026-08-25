@@ -1,34 +1,34 @@
-import type { AgentSessionEvent, SessionEntry } from "@earendil-works/pi-coding-agent";
+import type { AgentSessionEvent, SessionEntry } from "@earendil-works/pi-coding-agent"
 import type {
   JsonValue,
   TranscriptItem,
   TranscriptProgress,
   ToolTranscriptItem,
-} from "@earendil-works/pi-protocol";
+} from "@earendil-works/pi-protocol"
 import {
   toProtocolAssistantMessage,
   toProtocolJsonValue,
   toProtocolToolResultMessage,
   toProtocolUserMessage,
-} from "@earendil-works/pi-server";
+} from "@earendil-works/pi-server"
 
 /** 会话条目携带的消息（pi-ai 未直接依赖，从官方会话类型提取）。 */
-type AgentMessage = Extract<SessionEntry, { type: "message" }>["message"];
-type AssistantMessage = Extract<AgentMessage, { role: "assistant" }>;
-type ToolResultMessage = Extract<AgentMessage, { role: "toolResult" }>;
+type AgentMessage = Extract<SessionEntry, { type: "message" }>["message"]
+type AssistantMessage = Extract<AgentMessage, { role: "assistant" }>
+type ToolResultMessage = Extract<AgentMessage, { role: "toolResult" }>
 
 /** 消息事件携带的消息；自定义角色（bash/custom/compaction 等）不进入 transcript。 */
 type SessionMessage = Extract<
   AgentSessionEvent,
   { type: "message_start" | "message_update" | "message_end" }
->["message"];
+>["message"]
 
 /** 打开会话与「加载更早」共用的页大小。与 web INITIAL_TRANSCRIPT_TAIL 对齐。 */
-export const TRANSCRIPT_PAGE_SIZE = 40;
+export const TRANSCRIPT_PAGE_SIZE = 40
 
 /** 截断快照 transcript；不足一页则原样返回，超出只留尾部且保持原顺序。 */
 export function windowSnapshotTranscript<T>(items: readonly T[]): T[] {
-  return items.slice(-TRANSCRIPT_PAGE_SIZE);
+  return items.slice(-TRANSCRIPT_PAGE_SIZE)
 }
 
 /** 取 beforeId 之前的一页；找不到或已在开头则空。hasMore 表示再往前还有。 */
@@ -37,10 +37,10 @@ export function transcriptPageBefore<T extends { id: string }>(
   beforeId: string,
   limit = TRANSCRIPT_PAGE_SIZE,
 ): { items: T[]; hasMore: boolean } {
-  const end = items.findIndex((item) => item.id === beforeId);
-  if (end <= 0) return { items: [], hasMore: false };
-  const start = Math.max(0, end - limit);
-  return { items: items.slice(start, end) as T[], hasMore: start > 0 };
+  const end = items.findIndex((item) => item.id === beforeId)
+  if (end <= 0) return { items: [], hasMore: false }
+  const start = Math.max(0, end - limit)
+  return { items: items.slice(start, end) as T[], hasMore: start > 0 }
 }
 
 /**
@@ -55,29 +55,29 @@ export function transcriptPageBefore<T extends { id: string }>(
  */
 export class TranscriptProjection {
   /** toolCallId → 工具调用参数（来自助手消息事件与 tool_execution_start） */
-  private readonly toolCalls = new Map<string, JsonValue>();
-  private streamingMessageId: string | undefined;
-  private nextMessageId = 0;
-  private cachedEntries: readonly SessionEntry[] = [];
-  private cachedTranscript: TranscriptItem[] = [];
+  private readonly toolCalls = new Map<string, JsonValue>()
+  private streamingMessageId: string | undefined
+  private nextMessageId = 0
+  private cachedEntries: readonly SessionEntry[] = []
+  private cachedTranscript: TranscriptItem[] = []
 
   /** 把 AgentSession 事件映射为进度事件；无关事件返回 undefined。 */
   progress(event: AgentSessionEvent): TranscriptProgress | undefined {
     switch (event.type) {
       case "message_start":
-        return this.messageProgress(event.message, "started");
+        return this.messageProgress(event.message, "started")
       case "message_update":
-        return this.messageProgress(event.message, "updated");
+        return this.messageProgress(event.message, "updated")
       case "message_end":
-        return this.messageProgress(event.message, "finished");
+        return this.messageProgress(event.message, "finished")
       case "tool_execution_start": {
-        let input: JsonValue;
+        let input: JsonValue
         try {
-          input = toProtocolJsonValue(event.args);
+          input = toProtocolJsonValue(event.args)
         } catch {
-          return undefined; // 非 JSON 参数（不应发生），跳过该条目
+          return undefined // 非 JSON 参数（不应发生），跳过该条目
         }
-        this.toolCalls.set(event.toolCallId, input);
+        this.toolCalls.set(event.toolCallId, input)
         return {
           type: "item_started",
           item: {
@@ -91,10 +91,10 @@ export class TranscriptProjection {
             status: "running",
             isError: false,
           },
-        };
+        }
       }
       default:
-        return undefined;
+        return undefined
     }
   }
 
@@ -104,26 +104,26 @@ export class TranscriptProjection {
       entries.length === this.cachedEntries.length &&
       entries.every((entry, index) => entry.id === this.cachedEntries[index]?.id)
     )
-      return this.cachedTranscript;
-    const toolCalls = new Map<string, JsonValue>();
-    const items: TranscriptItem[] = [];
+      return this.cachedTranscript
+    const toolCalls = new Map<string, JsonValue>()
+    const items: TranscriptItem[] = []
     for (const entry of entries) {
-      if (entry.type !== "message") continue;
-      const message = entry.message;
+      if (entry.type !== "message") continue
+      const message = entry.message
       if (message.role === "user") {
-        items.push(toProtocolUserMessage(message, { id: entry.id }));
+        items.push(toProtocolUserMessage(message, { id: entry.id }))
       } else if (message.role === "assistant") {
-        this.indexToolCalls(message.content, toolCalls);
-        items.push(toProtocolAssistantMessage(message, { id: entry.id }));
+        this.indexToolCalls(message.content, toolCalls)
+        items.push(toProtocolAssistantMessage(message, { id: entry.id }))
       } else if (message.role === "toolResult") {
-        const args = toolCalls.get(message.toolCallId);
-        if (args === undefined) continue; // 找不到对应调用，无法构造输入
-        items.push(this.toolItem(message, args));
+        const args = toolCalls.get(message.toolCallId)
+        if (args === undefined) continue // 找不到对应调用，无法构造输入
+        items.push(this.toolItem(message, args))
       }
     }
-    this.cachedEntries = entries;
-    this.cachedTranscript = items;
-    return items;
+    this.cachedEntries = entries
+    this.cachedTranscript = items
+    return items
   }
 
   private messageProgress(
@@ -133,42 +133,42 @@ export class TranscriptProjection {
     switch (message.role) {
       case "user":
         // user 条目不会变化，且 item_finished 不接受 user，只在开始时发一次
-        if (stage !== "started") return undefined;
+        if (stage !== "started") return undefined
         return {
           type: "item_started",
           item: toProtocolUserMessage(message, { id: this.allocateId() }),
-        };
+        }
       case "assistant": {
-        this.indexToolCalls(message.content, this.toolCalls);
+        this.indexToolCalls(message.content, this.toolCalls)
         const id =
           stage === "started"
             ? (this.streamingMessageId = this.allocateId())
-            : (this.streamingMessageId ?? this.allocateId());
-        const item = toProtocolAssistantMessage(message, { id });
+            : (this.streamingMessageId ?? this.allocateId())
+        const item = toProtocolAssistantMessage(message, { id })
         if (stage === "finished") {
-          this.streamingMessageId = undefined;
+          this.streamingMessageId = undefined
           // item_finished 只接受终态（无 stopReason 的 streaming 成员被收窄排除）
-          if ("stopReason" in item) return { type: "item_finished", item };
-          return undefined;
+          if ("stopReason" in item) return { type: "item_finished", item }
+          return undefined
         }
-        if (stage === "updated") return { type: "item_updated", item };
-        return { type: "item_started", item };
+        if (stage === "updated") return { type: "item_updated", item }
+        return { type: "item_started", item }
       }
       case "toolResult": {
         // running 占位已由 tool_execution_start 发出；完成态在结束时发一次
-        if (stage !== "finished") return undefined;
-        const args = this.toolCalls.get(message.toolCallId);
-        if (args === undefined) return undefined;
-        this.toolCalls.delete(message.toolCallId);
-        const item = this.toolItem(message, args);
+        if (stage !== "finished") return undefined
+        const args = this.toolCalls.get(message.toolCallId)
+        if (args === undefined) return undefined
+        this.toolCalls.delete(message.toolCallId)
+        const item = this.toolItem(message, args)
         // finished 阶段 toProtocolToolResultMessage 只产出终态（running 占位已由 tool_execution_start 发出）
         return {
           type: "item_finished",
           item: item as Extract<ToolTranscriptItem, { status: "complete" | "error" }>,
-        };
+        }
       }
       default:
-        return undefined; // 自定义消息（bash/custom/compaction 等）不进 transcript
+        return undefined // 自定义消息（bash/custom/compaction 等）不进 transcript
     }
   }
 
@@ -181,7 +181,7 @@ export class TranscriptProjection {
         name: message.toolName,
         arguments: toolCallArguments(args),
       },
-    });
+    })
   }
 
   /** 索引助手消息中的 toolCall 参数；非 JSON 参数（不应发生）跳过。 */
@@ -190,9 +190,9 @@ export class TranscriptProjection {
     index: Map<string, JsonValue>,
   ): void {
     for (const part of content) {
-      if (part.type !== "toolCall") continue;
+      if (part.type !== "toolCall") continue
       try {
-        index.set(part.id, toProtocolJsonValue(part.arguments));
+        index.set(part.id, toProtocolJsonValue(part.arguments))
       } catch {
         // 不索引；对应 tool 条目将因找不到参数而跳过
       }
@@ -200,13 +200,13 @@ export class TranscriptProjection {
   }
 
   private allocateId(): string {
-    this.nextMessageId += 1;
-    return `m${this.nextMessageId}`;
+    this.nextMessageId += 1
+    return `m${this.nextMessageId}`
   }
 }
 
 /** 协议 ToolCall 要求参数为 JSON 对象；非对象参数按空对象处理（运行时同义）。 */
 function toolCallArguments(value: JsonValue): Record<string, unknown> {
-  if (typeof value === "object" && value !== null && !Array.isArray(value)) return value;
-  return {};
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) return value
+  return {}
 }

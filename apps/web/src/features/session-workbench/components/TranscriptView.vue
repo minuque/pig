@@ -65,22 +65,22 @@
 </template>
 
 <script lang="ts">
-import type { TranscriptItem } from "@earendil-works/pi-protocol";
-import type { MarkstreamThreadVirtualState } from "markstream-vue";
+import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import type { MarkstreamThreadVirtualState } from "markstream-vue"
 import {
   assistantThinking,
   conversationRows,
   isAssistantItem,
   transcriptText,
-} from "@features/session-workbench/lib/transcript-format.js";
+} from "@features/session-workbench/lib/transcript-format.js"
 
-export const EARLIER_ROW_ID = "transcript-earlier";
+export const EARLIER_ROW_ID = "transcript-earlier"
 
-export type EarlierRow = { id: typeof EARLIER_ROW_ID; role: "earlier" };
-export type TimelineRow = TranscriptItem | EarlierRow;
+export type EarlierRow = { id: typeof EARLIER_ROW_ID; role: "earlier" }
+export type TimelineRow = TranscriptItem | EarlierRow
 
 export function isEarlierRow(row: TimelineRow): row is EarlierRow {
-  return row.role === "earlier";
+  return row.role === "earlier"
 }
 
 /** 有更早消息时插在时间线头顶，占独立一行，随列表滚动。 */
@@ -88,36 +88,36 @@ export function withEarlierRow(
   items: readonly TranscriptItem[],
   hasEarlier: boolean,
 ): TimelineRow[] {
-  const rows = conversationRows(items);
-  if (!hasEarlier) return rows;
-  return [{ id: EARLIER_ROW_ID, role: "earlier" }, ...rows];
+  const rows = conversationRows(items)
+  if (!hasEarlier) return rows
+  return [{ id: EARLIER_ROW_ID, role: "earlier" }, ...rows]
 }
 
 /** 打开会话只恢复行高缓存，视口强制贴底。 */
 export function threadStatePinnedToBottom(
   state: MarkstreamThreadVirtualState | null,
 ): MarkstreamThreadVirtualState | null {
-  if (!state) return null;
+  if (!state) return null
   return {
     ...state,
     outerAnchor: { type: "bottom", distanceFromBottomPx: 0 },
-  };
+  }
 }
 
 /** 时间线认 Markdown 的 kind：仅助手正文。加载行不是 Markdown。 */
 export function transcriptRowKind(item: TimelineRow): string {
-  if (isEarlierRow(item)) return "load-earlier";
-  if (item.role === "assistant") return "assistant-markdown";
-  if (item.role === "tool") return "tool-call";
-  return "user-message";
+  if (isEarlierRow(item)) return "load-earlier"
+  if (item.role === "assistant") return "assistant-markdown"
+  if (item.role === "tool") return "tool-call"
+  return "user-message"
 }
 
 export function transcriptRowContent(item: TimelineRow): string {
-  return !isEarlierRow(item) && isAssistantItem(item) ? transcriptText(item) : "";
+  return !isEarlierRow(item) && isAssistantItem(item) ? transcriptText(item) : ""
 }
 
 export function transcriptRowFinal(item: TimelineRow): boolean {
-  return isEarlierRow(item) || !(isAssistantItem(item) && item.status === "streaming");
+  return isEarlierRow(item) || !(isAssistantItem(item) && item.status === "streaming")
 }
 
 /** 与 Markstream 新增行的精确贴底阈值一致，避免 UI 和时间线各判一套状态。 */
@@ -127,7 +127,7 @@ export function isTranscriptAtBottom(
   clientHeight: number,
   threshold = 2,
 ): boolean {
-  return scrollHeight - scrollTop - clientHeight <= threshold;
+  return scrollHeight - scrollTop - clientHeight <= threshold
 }
 
 /** 与 Markstream te（48px）一致：上翻解锁的 3px / DPI 余量仍算在底部，不弹出按钮。 */
@@ -136,11 +136,11 @@ export function isTranscriptVisuallyAtBottom(
   scrollTop: number,
   clientHeight: number,
 ): boolean {
-  return isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, 48);
+  return isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, 48)
 }
 
 /** 盖过时间线已排队的旧锚点 rAF 与测高回写。 */
-export const PROGRAMMATIC_BOTTOM_HOLD_MS = 400;
+export const PROGRAMMATIC_BOTTOM_HOLD_MS = 400
 
 /** 程序化滚底后，未贴底读数在 hold 窗口内视为旧锚点回写。 */
 export function shouldHoldProgrammaticBottom(
@@ -148,7 +148,7 @@ export function shouldHoldProgrammaticBottom(
   holdUntil: number,
   now: number,
 ): boolean {
-  return !measuredBottom && now < holdUntil;
+  return !measuredBottom && now < holdUntil
 }
 
 /** 贴底后明显上翻才解锁。1px 级惯性不能 preventDefault，否则永远触不了底。 */
@@ -159,19 +159,19 @@ export function unpinBottomScrollTop(
   deltaY: number,
   threshold = 2,
 ): number | null {
-  if (deltaY >= 0 || Math.abs(deltaY) <= threshold) return null;
-  if (!isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, threshold)) return null;
-  const maxTop = Math.max(0, scrollHeight - clientHeight);
-  return Math.max(0, Math.min(maxTop, scrollTop - Math.abs(deltaY)));
+  if (deltaY >= 0 || Math.abs(deltaY) <= threshold) return null
+  if (!isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, threshold)) return null
+  const maxTop = Math.max(0, scrollHeight - clientHeight)
+  return Math.max(0, Math.min(maxTop, scrollTop - Math.abs(deltaY)))
 }
 
 function estimateWrappedLines(text: string, charsPerLine: number): number {
-  if (!text) return 1;
-  let lines = 0;
+  if (!text) return 1
+  let lines = 0
   for (const part of text.split("\n")) {
-    lines += Math.max(1, Math.ceil(part.length / charsPerLine));
+    lines += Math.max(1, Math.ceil(part.length / charsPerLine))
   }
-  return lines;
+  return lines
 }
 
 /**
@@ -179,25 +179,25 @@ function estimateWrappedLines(text: string, charsPerLine: number): number {
  * 助手约 48 字/行、26px 行高；用户约 36 字/行、22px 行高。
  */
 export function estimateTranscriptRowHeight(item: TimelineRow): number {
-  if (isEarlierRow(item) || item.role === "tool") return 48;
-  const text = transcriptText(item);
+  if (isEarlierRow(item) || item.role === "tool") return 48
+  const text = transcriptText(item)
   if (item.role === "user") {
-    return Math.min(280, 56 + estimateWrappedLines(text, 36) * 22);
+    return Math.min(280, 56 + estimateWrappedLines(text, 36) * 22)
   }
-  const height = 36 + estimateWrappedLines(text, 48) * 26;
-  const thinking = isAssistantItem(item) && assistantThinking(item).length > 0 ? 36 : 0;
-  return Math.min(960, Math.max(160, height + thinking));
+  const height = 36 + estimateWrappedLines(text, 48) * 26
+  const thinking = isAssistantItem(item) && assistantThinking(item).length > 0 ? 36 : 0
+  return Math.min(960, Math.max(160, height + thinking))
 }
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue";
-import { MarkstreamVirtualTimeline } from "markstream-vue";
-import type { SessionPhase } from "@earendil-works/pi-protocol";
-import AssistantMessage from "@features/session-workbench/components/AssistantMessage.vue";
-import TranscriptMinimap from "@features/session-workbench/components/TranscriptMinimap.vue";
-import ToolCall from "@features/session-workbench/components/ToolCall.vue";
-import UserMessage from "@features/session-workbench/components/UserMessage.vue";
+import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { MarkstreamVirtualTimeline } from "markstream-vue"
+import type { SessionPhase } from "@earendil-works/pi-protocol"
+import AssistantMessage from "@features/session-workbench/components/AssistantMessage.vue"
+import TranscriptMinimap from "@features/session-workbench/components/TranscriptMinimap.vue"
+import ToolCall from "@features/session-workbench/components/ToolCall.vue"
+import UserMessage from "@features/session-workbench/components/UserMessage.vue"
 import {
   deriveTranscriptMinimapItems,
   MINIMAP_MIN_ITEMS,
@@ -205,37 +205,37 @@ import {
   resolveMinimapHitStripWidth,
   sameIdList,
   type TranscriptMinimapItem,
-} from "@features/session-workbench/lib/transcript-minimap.js";
-import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js";
+} from "@features/session-workbench/lib/transcript-minimap.js"
+import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const props = withDefaults(
   defineProps<{
-    sessionId: string;
+    sessionId: string
     /** 官方 TranscriptItem 列表：RemoteSession 维护的投影 */
-    transcript: readonly TranscriptItem[];
+    transcript: readonly TranscriptItem[]
     /** 当前 Session phase：非 idle 时显示 streaming 空态 */
-    phase: SessionPhase | undefined;
+    phase: SessionPhase | undefined
     /** 上次离开该会话时的虚拟滚动状态：只复用行高，打开时贴底 */
-    threadState: MarkstreamThreadVirtualState | null;
-    hasEarlier?: boolean;
-    loadingEarlier?: boolean;
+    threadState: MarkstreamThreadVirtualState | null
+    hasEarlier?: boolean
+    loadingEarlier?: boolean
   }>(),
   { hasEarlier: false, loadingEarlier: false },
-);
+)
 
 const emit = defineEmits<{
-  "thread-state": [state: MarkstreamThreadVirtualState];
-  "load-earlier": [];
-  "bottom-change": [atBottom: boolean];
-}>();
+  "thread-state": [state: MarkstreamThreadVirtualState]
+  "load-earlier": []
+  "bottom-change": [atBottom: boolean]
+}>()
 
-const running = computed(() => props.phase !== undefined && props.phase !== "idle");
-const rows = computed(() => withEarlierRow(props.transcript, props.hasEarlier));
-const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState));
-const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`);
-const region = useTemplateRef<HTMLElement>("region");
-const { isDark } = useColorScheme();
-const measurementKey = computed(() => (isDark.value ? "dark" : "light"));
+const running = computed(() => props.phase !== undefined && props.phase !== "idle")
+const rows = computed(() => withEarlierRow(props.transcript, props.hasEarlier))
+const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState))
+const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
+const region = useTemplateRef<HTMLElement>("region")
+const { isDark } = useColorScheme()
+const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
 const minimapItems = computed(() =>
   deriveTranscriptMinimapItems(
     rows.value.map((row) => ({
@@ -244,196 +244,196 @@ const minimapItems = computed(() =>
       text: isEarlierRow(row) ? "" : transcriptText(row),
     })),
   ),
-);
-const viewportWidth = shallowRef(0);
-const inViewIds = shallowRef<readonly string[]>([]);
-const hasPersistentGutter = computed(() => resolveMinimapHasPersistentGutter(viewportWidth.value));
-const hitStripWidth = computed(() => resolveMinimapHitStripWidth(viewportWidth.value));
+)
+const viewportWidth = shallowRef(0)
+const inViewIds = shallowRef<readonly string[]>([])
+const hasPersistentGutter = computed(() => resolveMinimapHasPersistentGutter(viewportWidth.value))
+const hitStripWidth = computed(() => resolveMinimapHitStripWidth(viewportWidth.value))
 
 // 虚拟滚动行 key：以 TranscriptItem id 保证流式输出时同一行原地更新
 function rowKey(item: TimelineRow): string {
-  return item.id;
+  return item.id
 }
 
 function isStreamingAssistant(item: TranscriptItem): boolean {
-  if (!running.value || item !== props.transcript[props.transcript.length - 1]) return false;
-  return isAssistantItem(item) && item.status === "streaming";
+  if (!running.value || item !== props.transcript[props.transcript.length - 1]) return false
+  return isAssistantItem(item) && item.status === "streaming"
 }
 
 /* ── 贴底跟随与「跳转到最新」：滚动状态由 MarkstreamVirtualTimeline 管理 ── */
 const timeline = useTemplateRef<{
-  scrollToBottom(): void;
-  scrollToIndex(index: number, align?: "start" | "center" | "end"): void;
-  captureThreadState(): MarkstreamThreadVirtualState;
-  restoreThreadState(state: MarkstreamThreadVirtualState): void;
-}>("timeline");
+  scrollToBottom(): void
+  scrollToIndex(index: number, align?: "start" | "center" | "end"): void
+  captureThreadState(): MarkstreamThreadVirtualState
+  restoreThreadState(state: MarkstreamThreadVirtualState): void
+}>("timeline")
 // 新增行只在精确贴底时自动跟随。
-const atBottom = shallowRef(true);
-let bottomHoldUntil = 0;
-let pinRaf = 0;
+const atBottom = shallowRef(true)
+let bottomHoldUntil = 0
+let pinRaf = 0
 
 function timelineScrollRoot(): HTMLElement | null {
-  return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null;
+  return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null
 }
 
 function pinBottomUi() {
   if (!atBottom.value) {
-    atBottom.value = true;
-    emit("bottom-change", true);
+    atBottom.value = true
+    emit("bottom-change", true)
   }
 }
 
 function releasePinnedToBottom() {
   if (pinRaf) {
-    cancelAnimationFrame(pinRaf);
-    pinRaf = 0;
+    cancelAnimationFrame(pinRaf)
+    pinRaf = 0
   }
-  bottomHoldUntil = 0;
+  bottomHoldUntil = 0
 }
 
 function onTranscriptWheel(event: WheelEvent) {
-  releasePinnedToBottom();
-  const root = timelineScrollRoot();
-  if (!root) return;
+  releasePinnedToBottom()
+  const root = timelineScrollRoot()
+  if (!root) return
   const nextTop = unpinBottomScrollTop(
     root.scrollHeight,
     root.scrollTop,
     root.clientHeight,
     event.deltaY,
-  );
-  if (nextTop === null) return;
-  event.preventDefault();
-  root.scrollTop = nextTop;
+  )
+  if (nextTop === null) return
+  event.preventDefault()
+  root.scrollTop = nextTop
 }
 
 function jumpToBottom() {
-  const api = timeline.value;
-  const root = timelineScrollRoot();
+  const api = timeline.value
+  const root = timelineScrollRoot()
   if (root?.classList.contains("is-restoring-thread") && api) {
     api.restoreThreadState({
       ...api.captureThreadState(),
       outerAnchor: { type: "bottom", distanceFromBottomPx: 0 },
-    });
-    return;
+    })
+    return
   }
-  api?.scrollToBottom();
-  if (root) root.scrollTop = root.scrollHeight - root.clientHeight;
+  api?.scrollToBottom()
+  if (root) root.scrollTop = root.scrollHeight - root.clientHeight
 }
 
 function collectInViewIds(): string[] {
-  const root = region.value;
-  if (!root) return [];
-  const viewport = root.getBoundingClientRect();
-  const ids: string[] = [];
+  const root = region.value
+  if (!root) return []
+  const viewport = root.getBoundingClientRect()
+  const ids: string[] = []
   for (const el of root.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
-    const box = el.getBoundingClientRect();
-    if (box.bottom <= viewport.top || box.top >= viewport.bottom) continue;
-    const id = el.dataset.minimapRow;
-    if (id) ids.push(id);
+    const box = el.getBoundingClientRect()
+    if (box.bottom <= viewport.top || box.top >= viewport.bottom) continue
+    const id = el.dataset.minimapRow
+    if (id) ids.push(id)
   }
-  return ids;
+  return ids
 }
 
 function syncInViewIds() {
-  const next = collectInViewIds();
-  if (!sameIdList(inViewIds.value, next)) inViewIds.value = next;
+  const next = collectInViewIds()
+  if (!sameIdList(inViewIds.value, next)) inViewIds.value = next
 }
 
 function onThreadState(state: MarkstreamThreadVirtualState) {
-  syncInViewIds();
-  const root = timelineScrollRoot();
+  syncInViewIds()
+  const root = timelineScrollRoot()
   const bottom = root
     ? isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
-    : state.outerAnchor?.type !== "item";
-  if (shouldHoldProgrammaticBottom(bottom, bottomHoldUntil, performance.now())) return;
+    : state.outerAnchor?.type !== "item"
+  if (shouldHoldProgrammaticBottom(bottom, bottomHoldUntil, performance.now())) return
   if (atBottom.value !== bottom) {
-    atBottom.value = bottom;
-    emit("bottom-change", bottom);
+    atBottom.value = bottom
+    emit("bottom-change", bottom)
   }
 }
 
 function onMinimapSelect(item: TranscriptMinimapItem) {
-  releasePinnedToBottom();
-  timeline.value?.scrollToIndex(item.rowIndex, "start");
-  const root = timelineScrollRoot();
+  releasePinnedToBottom()
+  timeline.value?.scrollToIndex(item.rowIndex, "start")
+  const root = timelineScrollRoot()
   if (
     root &&
     atBottom.value &&
     !isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
   ) {
-    atBottom.value = false;
-    emit("bottom-change", false);
+    atBottom.value = false
+    emit("bottom-change", false)
   }
 }
 
 function scrollToLatest() {
-  const holdUntil = performance.now() + PROGRAMMATIC_BOTTOM_HOLD_MS;
-  bottomHoldUntil = holdUntil;
-  pinBottomUi();
-  if (pinRaf) cancelAnimationFrame(pinRaf);
+  const holdUntil = performance.now() + PROGRAMMATIC_BOTTOM_HOLD_MS
+  bottomHoldUntil = holdUntil
+  pinBottomUi()
+  if (pinRaf) cancelAnimationFrame(pinRaf)
   const tick = () => {
-    jumpToBottom();
-    if (performance.now() < holdUntil) pinRaf = requestAnimationFrame(tick);
-    else pinRaf = 0;
-  };
-  tick();
+    jumpToBottom()
+    if (performance.now() < holdUntil) pinRaf = requestAnimationFrame(tick)
+    else pinRaf = 0
+  }
+  tick()
 }
 
-defineExpose({ prepareForSubmit: scrollToLatest, scrollToLatest });
+defineExpose({ prepareForSubmit: scrollToLatest, scrollToLatest })
 
 function persistThreadState(expectedSessionId = props.sessionId) {
-  const captured = timeline.value?.captureThreadState();
-  if (captured?.threadKey === expectedSessionId) emit("thread-state", captured);
+  const captured = timeline.value?.captureThreadState()
+  if (captured?.threadKey === expectedSessionId) emit("thread-state", captured)
 }
 
 // flush:pre 确保子时间线收到新 thread-key 前捕获旧 Session。
 watch(
   () => props.sessionId,
   (_sessionId, previousSessionId) => {
-    persistThreadState(previousSessionId);
-    releasePinnedToBottom();
+    persistThreadState(previousSessionId)
+    releasePinnedToBottom()
     if (!atBottom.value) {
-      atBottom.value = true;
-      emit("bottom-change", true);
+      atBottom.value = true
+      emit("bottom-change", true)
     }
   },
   { flush: "pre" },
-);
+)
 // 打开或切换会话：内容就绪后贴底。从空到有行也滚一次（首屏迟到）。
 watch(
   () => props.sessionId,
   () => {
-    if (rows.value.length === 0) return;
-    scrollToLatest();
+    if (rows.value.length === 0) return
+    scrollToLatest()
   },
   { immediate: true, flush: "post" },
-);
+)
 watch(rows, (next, prev) => {
-  if (prev.length === 0 && next.length > 0) scrollToLatest();
-});
+  if (prev.length === 0 && next.length > 0) scrollToLatest()
+})
 
-let viewportObserver: ResizeObserver | undefined;
+let viewportObserver: ResizeObserver | undefined
 watch(
   region,
   (el) => {
-    viewportObserver?.disconnect();
-    if (!el) return;
+    viewportObserver?.disconnect()
+    if (!el) return
     const measure = () => {
-      viewportWidth.value = el.getBoundingClientRect().width;
-      syncInViewIds();
-    };
-    viewportObserver = new ResizeObserver(measure);
-    viewportObserver.observe(el);
-    measure();
+      viewportWidth.value = el.getBoundingClientRect().width
+      syncInViewIds()
+    }
+    viewportObserver = new ResizeObserver(measure)
+    viewportObserver.observe(el)
+    measure()
   },
   { flush: "post" },
-);
+)
 
 onBeforeUnmount(() => {
-  viewportObserver?.disconnect();
-  releasePinnedToBottom();
-  persistThreadState();
-});
+  viewportObserver?.disconnect()
+  releasePinnedToBottom()
+  persistThreadState()
+})
 </script>
 
 <style scoped>

@@ -30,35 +30,35 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { PanelLeft } from "lucide-vue-next";
-import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js";
-import { sessionTitle, UNTITLED_SESSION, workspaceName } from "@features/session-nav/format.js";
-import { useNav } from "@features/session-nav/index.js";
-import { useSession } from "@features/session-workbench/index.js";
-import { phaseLabel } from "@features/session-workbench/lib/session-phase.js";
-import ThemeToggle from "@features/theme/ThemeToggle.vue";
+import { computed } from "vue"
+import { PanelLeft } from "lucide-vue-next"
+import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
+import { sessionTitle, UNTITLED_SESSION, workspaceName } from "@features/session-nav/format.js"
+import { useNav } from "@features/session-nav/index.js"
+import { useSession } from "@features/session-workbench/index.js"
+import { phaseLabel } from "@features/session-workbench/lib/session-phase.js"
+import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
-const { leftOpen, toggle } = useLeftPanelToggle();
-const { sessionId, projection, phase, connecting, sessionPending } = useSession();
-const { activeWorkspaceId, lastCwd, listedSessions } = useNav();
+const { leftOpen, toggle } = useLeftPanelToggle()
+const { sessionId, projection, phase, connecting, sessionPending } = useSession()
+const { activeWorkspaceId, lastCwd, listedSessions } = useNav()
 
 const title = computed(() => {
   if (sessionPending.value) {
-    const meta = listedSessions.value.find((session) => session.id === sessionId.value);
-    return meta ? sessionTitle(meta) : UNTITLED_SESSION;
+    const meta = listedSessions.value.find((session) => session.id === sessionId.value)
+    return meta ? sessionTitle(meta) : UNTITLED_SESSION
   }
-  return projection.value?.name ?? (sessionId.value ? UNTITLED_SESSION : "");
-});
+  return projection.value?.name ?? (sessionId.value ? UNTITLED_SESSION : "")
+})
 const cwd = computed(() =>
   sessionId.value ? (activeWorkspaceId.value ?? lastCwd.value) : undefined,
-);
-const running = computed(() => projection.value?.running ?? false);
+)
+const running = computed(() => projection.value?.running ?? false)
 const thinkingChip = computed(() => {
-  const level = projection.value?.thinkingLevel;
-  if (!level || level.toLowerCase() === "off") return "";
-  return level;
-});
+  const level = projection.value?.thinkingLevel
+  if (!level || level.toLowerCase() === "off") return ""
+  return level
+})
 </script>
 
 <style scoped>

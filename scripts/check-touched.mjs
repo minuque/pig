@@ -2,83 +2,81 @@
  * 单轮校验：只跑脏文件所属包。根配置改动升级为全量 check。
  * 用法: pnpm check:touched
  */
-import { existsSync } from "node:fs";
-import { spawnSync } from "node:child_process";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync } from "node:fs"
+import { spawnSync } from "node:child_process"
+import { dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 
-import { classifyTouched } from "./check-scope.mjs";
-import { reportResults, runPnpm } from "./check-run.mjs";
+import { classifyTouched } from "./check-scope.mjs"
+import { reportResults, runPnpm } from "./check-run.mjs"
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
 function dirtyFiles() {
-  const opts = { cwd: root, encoding: "utf8", windowsHide: true };
+  const opts = { cwd: root, encoding: "utf8", windowsHide: true }
   const names = [
     ...spawnSync("git", ["diff", "--name-only"], opts).stdout.split(/\r?\n/),
     ...spawnSync("git", ["diff", "--name-only", "--cached"], opts).stdout.split(/\r?\n/),
     ...spawnSync("git", ["ls-files", "--others", "--exclude-standard"], opts).stdout.split(/\r?\n/),
-  ];
-  return [...new Set(names.map((line) => line.trim()).filter(Boolean))];
+  ]
+  return [...new Set(names.map((line) => line.trim()).filter(Boolean))]
 }
 
 async function main() {
-  const files = dirtyFiles();
+  const files = dirtyFiles()
   if (files.length === 0) {
-    console.log("check:touched: 无脏文件，跳过");
-    return;
+    console.log("check:touched: 无脏文件，跳过")
+    return
   }
 
-  const scope = classifyTouched(files);
+  const scope = classifyTouched(files)
   // 删除路径仍参与包分类；Prettier/ESLint 只能跑还在磁盘上的文件
-  scope.prettierFiles = scope.prettierFiles.filter((file) => existsSync(resolve(root, file)));
-  scope.lintFiles = scope.lintFiles.filter((file) => existsSync(resolve(root, file)));
+  scope.prettierFiles = scope.prettierFiles.filter((file) => existsSync(resolve(root, file)))
+  scope.lintFiles = scope.lintFiles.filter((file) => existsSync(resolve(root, file)))
   if (scope.escalate) {
-    console.log("check:touched: 根配置有改动，升级为全量 pnpm check");
-    const ran = await runPnpm(["check"], root);
-    process.stdout.write(ran.out);
-    process.exitCode = ran.code;
-    return;
+    console.log("check:touched: 根配置有改动，升级为全量 pnpm check")
+    const ran = await runPnpm(["check"], root)
+    process.stdout.write(ran.out)
+    process.exitCode = ran.code
+    return
   }
 
   /** @type {{ name: string, args: string[] }[]} */
-  const steps = [];
+  const steps = []
   if (scope.prettierFiles.length) {
-    steps.push({ name: "format", args: ["exec", "prettier", "--check", ...scope.prettierFiles] });
+    steps.push({ name: "format", args: ["exec", "prettier", "--check", ...scope.prettierFiles] })
   }
   if (scope.lintFiles.length) {
-    steps.push({ name: "lint", args: ["exec", "eslint", ...scope.lintFiles] });
+    steps.push({ name: "lint", args: ["exec", "eslint", ...scope.lintFiles] })
   }
   if (scope.designmd)
-    steps.push({ name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] });
-  if (scope.tokens) steps.push({ name: "design-tokens", args: ["check:design-tokens"] });
+    steps.push({ name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] })
+  if (scope.tokens) steps.push({ name: "design-tokens", args: ["check:design-tokens"] })
   if (scope.scripts) {
     steps.push({
       name: "typecheck:scripts",
       args: ["exec", "tsc", "--noEmit", "-p", "scripts/tsconfig.json"],
-    });
-    steps.push({ name: "test:scripts", args: ["test:scripts"] });
+    })
+    steps.push({ name: "test:scripts", args: ["test:scripts"] })
   }
   for (const id of scope.packages) {
-    steps.push({ name: `typecheck:${id}`, args: ["--filter", id, "typecheck"] });
-    steps.push({ name: `test:${id}`, args: ["--filter", id, "test"] });
+    steps.push({ name: `typecheck:${id}`, args: ["--filter", id, "typecheck"] })
+    steps.push({ name: `test:${id}`, args: ["--filter", id, "test"] })
   }
 
   if (steps.length === 0) {
-    console.log(`check:touched: ${files.length} 个脏文件无需脚本/测试/lint`);
-    return;
+    console.log(`check:touched: ${files.length} 个脏文件无需脚本/测试/lint`)
+    return
   }
 
-  console.log(
-    `check:touched: ${files.length} files → ${steps.map((step) => step.name).join(", ")}`,
-  );
+  console.log(`check:touched: ${files.length} files → ${steps.map((step) => step.name).join(", ")}`)
   const results = await Promise.all(
     steps.map(async (step) => {
-      const ran = await runPnpm(step.args, root);
-      return { name: step.name, ...ran };
+      const ran = await runPnpm(step.args, root)
+      return { name: step.name, ...ran }
     }),
-  );
-  reportResults("check:touched", results);
+  )
+  reportResults("check:touched", results)
 }
 
-void main();
+void main()

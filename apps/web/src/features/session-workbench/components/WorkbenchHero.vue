@@ -37,41 +37,41 @@
 </template>
 
 <script lang="ts">
-import { workspaceName } from "@features/session-nav/format.js";
+import { workspaceName } from "@features/session-nav/format.js"
 
 /** 无选中目录时回退到选择提示；有路径时用最后一段。 */
 export function workbenchHeroLabel(workspaceId: string | undefined): string {
-  return workspaceId ? workspaceName(workspaceId) : "选择工作目录";
+  return workspaceId ? workspaceName(workspaceId) : "选择工作目录"
 }
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { FolderPlus } from "lucide-vue-next";
+import { computed } from "vue"
+import { FolderPlus } from "lucide-vue-next"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js";
+} from "@components/ui/dropdown-menu/index.js"
 
 withDefaults(
   defineProps<{
-    titleId: string;
-    workspaces: readonly string[];
+    titleId: string
+    workspaces: readonly string[]
     /** 空 Session 已绑定 cwd，标题只展示不切换。 */
-    selectable?: boolean;
-    adding?: boolean;
+    selectable?: boolean
+    adding?: boolean
   }>(),
   { selectable: true, adding: false },
-);
+)
 
 const emit = defineEmits<{
-  add: [];
-}>();
+  add: []
+}>()
 
-const workspaceId = defineModel<string | undefined>("workspaceId");
-const label = computed(() => workbenchHeroLabel(workspaceId.value));
+const workspaceId = defineModel<string | undefined>("workspaceId")
+const label = computed(() => workbenchHeroLabel(workspaceId.value))
 </script>
 
 <style scoped>

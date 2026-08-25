@@ -9,23 +9,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { CircleAlert } from "lucide-vue-next";
-import { useStartupError } from "@features/startup/hooks/use-startup-error.js";
+import { computed } from "vue"
+import { CircleAlert } from "lucide-vue-next"
+import { useStartupError } from "@features/startup/hooks/use-startup-error.js"
 
 const props = withDefaults(
   defineProps<{
-    title?: string;
-    detail?: string;
+    title?: string
+    detail?: string
   }>(),
   {
     title: "无法启动工作台",
     detail: "",
   },
-);
+)
 
-const stored = useStartupError();
-const copy = computed(() => props.detail.trim() || stored.value.trim() || "启动过程中出现错误。");
+const stored = useStartupError()
+const copy = computed(() => props.detail.trim() || stored.value.trim() || "启动过程中出现错误。")
 </script>
 
 <style scoped>

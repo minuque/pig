@@ -1,15 +1,15 @@
-import type { SessionMetadata } from "@earendil-works/pi-protocol";
-import { canonicalizeWorkspacePath } from "@client/local-cwd.js";
-import { sessionRecency, sessionTitle, workspaceName } from "./format.js";
+import type { SessionMetadata } from "@earendil-works/pi-protocol"
+import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
+import { sessionRecency, sessionTitle, workspaceName } from "./format.js"
 
 /** 左侧导航按 cwd 分组。 */
 export interface SessionGroup {
-  canonicalPath: string;
-  sessions: SessionMetadata[];
+  canonicalPath: string
+  sessions: SessionMetadata[]
 }
 
 function sortSessionsByRecency(sessions: SessionMetadata[]): SessionMetadata[] {
-  return [...sessions].sort((a, b) => sessionRecency(b) - sessionRecency(a));
+  return [...sessions].sort((a, b) => sessionRecency(b) - sessionRecency(a))
 }
 
 /**
@@ -19,7 +19,7 @@ function sortSessionsByRecency(sessions: SessionMetadata[]): SessionMetadata[] {
 export function sortSessionsForSidebar(sessions: readonly SessionMetadata[]): SessionMetadata[] {
   return [...sessions].sort(
     (left, right) => right.createdAt - left.createdAt || left.id.localeCompare(right.id),
-  );
+  )
 }
 
 /**
@@ -29,13 +29,13 @@ export function listSessionsForSidebar(
   sessions: readonly SessionMetadata[],
   scopeCwds: readonly string[],
 ): SessionMetadata[] {
-  const scope = new Set(scopeCwds.map(canonicalizeWorkspacePath));
+  const scope = new Set(scopeCwds.map(canonicalizeWorkspacePath))
   return sortSessionsForSidebar(
     sessions.filter((session) => {
-      const cwd = sessionCwd(session);
-      return cwd !== undefined && (scope.size === 0 || scope.has(cwd));
+      const cwd = sessionCwd(session)
+      return cwd !== undefined && (scope.size === 0 || scope.has(cwd))
     }),
-  );
+  )
 }
 
 /** 按标题或目录名过滤侧栏会话，空查询原样返回。 */
@@ -43,22 +43,22 @@ export function filterSessionsForSearch(
   sessions: readonly SessionMetadata[],
   query: string,
 ): SessionMetadata[] {
-  const needle = query.trim().toLowerCase();
-  if (!needle) return [...sessions];
+  const needle = query.trim().toLowerCase()
+  if (!needle) return [...sessions]
   return sessions.filter((session) => {
-    if (sessionTitle(session).toLowerCase().includes(needle)) return true;
-    const cwd = session.cwd;
-    return Boolean(cwd && workspaceName(cwd).toLowerCase().includes(needle));
-  });
+    if (sessionTitle(session).toLowerCase().includes(needle)) return true
+    const cwd = session.cwd
+    return Boolean(cwd && workspaceName(cwd).toLowerCase().includes(needle))
+  })
 }
 
 /** 勾选/取消一个工作目录；路径先规范化再比较。 */
 export function toggleProjectScope(scoped: readonly string[], path: string): string[] {
-  const canonical = canonicalizeWorkspacePath(path);
-  const current = scoped.map(canonicalizeWorkspacePath);
+  const canonical = canonicalizeWorkspacePath(path)
+  const current = scoped.map(canonicalizeWorkspacePath)
   return current.includes(canonical)
     ? current.filter((item) => item !== canonical)
-    : [...current, canonical];
+    : [...current, canonical]
 }
 
 /** 分组里已经没有的目录从筛选里拿掉。 */
@@ -66,29 +66,29 @@ export function pruneProjectScope(
   scoped: readonly string[],
   groupPaths: readonly string[],
 ): string[] {
-  const groups = new Set(groupPaths.map(canonicalizeWorkspacePath));
-  return scoped.map(canonicalizeWorkspacePath).filter((path) => groups.has(path));
+  const groups = new Set(groupPaths.map(canonicalizeWorkspacePath))
+  return scoped.map(canonicalizeWorkspacePath).filter((path) => groups.has(path))
 }
 
 /** 本地名单在前（含尚无会话的目录）；其余 Pi Session 按 cwd 跟上。组内按最近活动倒序。 */
 function sessionCwd(session: Pick<SessionMetadata, "cwd">): string | undefined {
-  return session.cwd ? canonicalizeWorkspacePath(session.cwd) : undefined;
+  return session.cwd ? canonicalizeWorkspacePath(session.cwd) : undefined
 }
 
 export function groupSessionsByCwd(
   sessions: readonly SessionMetadata[],
   localWorkspaces: readonly string[],
 ): SessionGroup[] {
-  const byPath = new Map<string, SessionMetadata[]>();
+  const byPath = new Map<string, SessionMetadata[]>()
   for (const session of sessions) {
-    const cwd = sessionCwd(session);
-    if (!cwd) continue;
-    const list = byPath.get(cwd);
-    if (list) list.push(session);
-    else byPath.set(cwd, [session]);
+    const cwd = sessionCwd(session)
+    if (!cwd) continue
+    const list = byPath.get(cwd)
+    if (list) list.push(session)
+    else byPath.set(cwd, [session])
   }
-  const localPaths = localWorkspaces.map(canonicalizeWorkspacePath);
-  const local = new Set(localPaths);
+  const localPaths = localWorkspaces.map(canonicalizeWorkspacePath)
+  const local = new Set(localPaths)
   return [
     ...localPaths.map((canonicalPath) => ({
       canonicalPath,
@@ -100,37 +100,37 @@ export function groupSessionsByCwd(
         canonicalPath,
         sessions: sortSessionsByRecency(groupedSessions),
       })),
-  ];
+  ]
 }
 
 /** 协议列表不带的卡片脚注：消息数 + 当前模型。 */
 export interface SessionCardExtra {
-  messageCount: number;
-  model?: { provider: string; id: string };
+  messageCount: number
+  model?: { provider: string; id: string }
 }
 
 export interface SessionCardLive {
-  sessionId: string;
-  messageCount: number;
-  model: { provider: string; id: string };
+  sessionId: string
+  messageCount: number
+  model: { provider: string; id: string }
 }
 
 export function modelDisplayNames(
   catalog: readonly { id: string; models: readonly { id: string; name: string }[] }[],
 ): Map<string, string> {
-  const names = new Map<string, string>();
+  const names = new Map<string, string>()
   for (const vendor of catalog) {
-    for (const model of vendor.models) names.set(`${vendor.id}/${model.id}`, model.name);
+    for (const model of vendor.models) names.set(`${vendor.id}/${model.id}`, model.name)
   }
-  return names;
+  return names
 }
 
 export function sessionModelLabel(
   model: { provider: string; id: string } | undefined,
   names: ReadonlyMap<string, string>,
 ): string {
-  if (!model) return "";
-  return names.get(`${model.provider}/${model.id}`) ?? model.id;
+  if (!model) return ""
+  return names.get(`${model.provider}/${model.id}`) ?? model.id
 }
 
 export function sessionCardFoot(
@@ -139,9 +139,9 @@ export function sessionCardFoot(
   live: SessionCardLive | undefined,
   names: ReadonlyMap<string, string>,
 ): { messageCount: number | undefined; modelLabel: string; modelProvider: string } {
-  const extra = extras.get(sessionId);
-  const isLive = live?.sessionId === sessionId;
-  const model = isLive ? live.model : extra?.model;
+  const extra = extras.get(sessionId)
+  const isLive = live?.sessionId === sessionId
+  const model = isLive ? live.model : extra?.model
   return {
     // live 可能是快照窗口（40）；与 extras 全量取较大值，避免 193 被改成 40。
     messageCount: isLive
@@ -149,5 +149,5 @@ export function sessionCardFoot(
       : extra?.messageCount,
     modelLabel: sessionModelLabel(model, names),
     modelProvider: model?.provider ?? "",
-  };
+  }
 }

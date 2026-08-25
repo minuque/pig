@@ -2,17 +2,17 @@
 export function sleep(ms: number, signal: AbortSignal): Promise<boolean> {
   return new Promise((resolve) => {
     if (signal.aborted) {
-      resolve(false);
-      return;
+      resolve(false)
+      return
     }
-    const timer = window.setTimeout(() => resolve(!signal.aborted), ms);
+    const timer = window.setTimeout(() => resolve(!signal.aborted), ms)
     signal.addEventListener(
       "abort",
       () => {
-        window.clearTimeout(timer);
-        resolve(false);
+        window.clearTimeout(timer)
+        resolve(false)
       },
       { once: true },
-    );
-  });
+    )
+  })
 }
