@@ -9,15 +9,9 @@
     :aria-labelledby="emptyCanvas ? 'session-hero-title' : 'current-title'"
     :aria-busy="sessionPending || undefined"
   >
-    <div v-if="sessionPending" class="session-loading" role="status" aria-live="polite">
+    <div v-if="sessionPending" class="empty-canvas" role="status" aria-live="polite">
+      <Spinner :size="24" aria-hidden="true" />
       <p class="sr-only">正在加载会话</p>
-      <div class="session-loading-stack" aria-hidden="true">
-        <div class="session-loading-user"></div>
-        <div class="session-loading-agent"></div>
-        <div class="session-loading-agent session-loading-agent--short"></div>
-        <div class="session-loading-user session-loading-user--short"></div>
-        <div class="session-loading-agent"></div>
-      </div>
     </div>
     <div v-else-if="emptyCanvas" class="empty-canvas">
       <div class="empty-canvas-form">
@@ -119,6 +113,7 @@ import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHea
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import StartupError from "@features/startup/components/StartupError.vue"
 import { Button } from "@components/ui/button/index.js"
+import { Spinner } from "@components/ui/spinner/index.js"
 
 const route = useRoute()
 const {
@@ -224,60 +219,6 @@ onBeforeUnmount(() => dockObserver?.disconnect())
 .workspace-main :deep(.transcript-region) {
   height: 100%;
   flex: 1;
-}
-.session-loading {
-  min-height: 0;
-  flex: 1;
-  overflow: hidden;
-  padding: var(--spacing-lg) var(--spacing-md);
-}
-.session-loading-stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-  width: min(var(--size-content), 100%);
-  margin-inline: auto;
-}
-.session-loading-user,
-.session-loading-agent {
-  background-size: 200% 100%;
-  animation: shimmer var(--duration-shimmer) var(--ease-in-out) infinite;
-}
-.session-loading-user {
-  align-self: flex-end;
-  width: min(42%, 280px);
-  height: 40px;
-  border-radius: var(--radius-xl);
-  background-image: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--primary) 22%, transparent) 25%,
-    color-mix(in srgb, var(--primary) 36%, transparent) 50%,
-    color-mix(in srgb, var(--primary) 22%, transparent) 75%
-  );
-}
-.session-loading-user--short {
-  width: min(28%, 180px);
-}
-.session-loading-agent {
-  align-self: stretch;
-  height: 72px;
-  border-radius: var(--radius-md);
-  background-image: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--ink) 6%, transparent) 25%,
-    color-mix(in srgb, var(--ink) 11%, transparent) 50%,
-    color-mix(in srgb, var(--ink) 6%, transparent) 75%
-  );
-}
-.session-loading-agent--short {
-  width: 70%;
-  height: 28px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .session-loading-user,
-  .session-loading-agent {
-    animation: none;
-  }
 }
 .empty-canvas {
   min-height: 0;
