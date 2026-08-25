@@ -134,12 +134,35 @@
       .legend i.disk { border-color: var(--green); border-top-style: dotted; }
 
       .stack {
+        position: relative;
         display: grid;
         gap: 0;
         border: 1px solid var(--hairline);
         border-radius: 16px;
         overflow: hidden;
         background: var(--surface);
+      }
+      .arch-edges {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        pointer-events: none;
+      }
+      .arch-edges path {
+        fill: none;
+        stroke-linecap: round;
+        stroke-width: 2;
+      }
+      .arch-edges text {
+        fill: var(--ink-secondary);
+        stroke: var(--surface);
+        stroke-width: 4px;
+        paint-order: stroke;
+        font-family: var(--mono);
+        font-size: 10px;
       }
       .layer {
         position: relative;
@@ -393,7 +416,7 @@
     </header>
 
     <main>
-      <div class="interaction-hint" id="interaction-hint" aria-live="polite">点击卡片高亮同类职责；点击流程节点查看它的上下游。再次点击或按 Esc 清除。</div>
+      <div class="interaction-hint" id="interaction-hint" aria-live="polite">点击卡片高亮关系节点并绘制连线；点击流程节点查看它的上下游。再次点击或按 Esc 清除。</div>
       <section class="view" id="overview" role="tabpanel">
         <div class="view-head">
           <h2>整体架构</h2>
@@ -629,6 +652,79 @@
       const views = [...document.querySelectorAll('[role="tabpanel"]')]
       const interactiveItems = [...document.querySelectorAll(".card, .step, .truth")]
       const hint = document.getElementById("interaction-hint")
+      const edgeColors = {
+        import: "#679efe",
+        http: "#ff8a3d",
+        state: "#c4b5fd",
+        disk: "#33c35e",
+      }
+      const graphs = {
+        overview: [
+          ["Electron Desktop", "组合根", "http", "加载 UI"],
+          ["Electron Desktop", "HTTP / WebSocket Host", "http", "启动"],
+          ["开发与构建脚本", "HTTP / WebSocket Host", "import", "启动 / 检查"],
+          ["浏览器旅程", "领域 UI", "http", "浏览器"],
+          ["浏览器旅程", "HTTP / WebSocket Host", "http", "HTTP / WS"],
+          ["组合根", "领域 UI", "import", "组合"],
+          ["组合根", "浏览器适配", "import", "创建"],
+          ["领域 UI", "浏览器适配", "import", "调用"],
+          ["浏览器适配", "HTTP / WebSocket Host", "http", "HTTP / WS"],
+          ["浏览器适配", "PiClient", "import", "SDK"],
+          ["HTTP / WebSocket Host", "PiServer", "state", "listener"],
+          ["HTTP / WebSocket Host", "本机安全与目录", "import", "auth / port"],
+          ["PiServer", "Pi 适配层", "state", "dispatch"],
+          ["Pi 适配层", "Agent Runtime", "state", "SDK"],
+          ["PiClient", "PiServer", "http", "CBOR"],
+          ["PiClient", "共享协议", "import", "类型"],
+          ["PiServer", "共享协议", "import", "类型"],
+          ["Agent Runtime", "Session JSONL", "disk", "SessionManager"],
+          ["Agent Runtime", "模型服务", "http", "模型 API"],
+        ],
+        web: [
+          ["Vue 入口", "应用接线", "import", "mount"],
+          ["应用接线", "会话工作台", "import", "provideSession"],
+          ["应用接线", "会话导航", "import", "provideNav"],
+          ["应用接线", "启动门", "import", "Startup"],
+          ["应用接线", "App 壳", "import", "layout"],
+          ["应用接线", "连接投影", "import", "usePiClient"],
+          ["应用接线", "Workspace 偏好", "import", "cwd"],
+          ["路由状态", "会话工作台", "state", "sessionId"],
+          ["路由状态", "启动门", "state", "error"],
+          ["会话工作台", "输入卡", "import", "preset / submit"],
+          ["会话工作台", "连接投影", "state", "RemoteSession"],
+          ["会话导航", "会话工作台", "state", "SessionContext"],
+          ["会话导航", "平台 HTTP 与认证", "http", "平台 API"],
+          ["会话导航", "Workspace 偏好", "state", "筛选"],
+          ["输入卡", "交互基础件", "import", "UI"],
+          ["启动门", "平台 HTTP 与认证", "http", "bootstrap"],
+          ["启动门", "连接投影", "state", "connect"],
+          ["主题", "视觉 token", "state", "class"],
+          ["App 壳", "交互基础件", "import", "UI"],
+          ["交互基础件", "通用纯函数", "import", "cn"],
+          ["连接投影", "WebSocket 字节传输", "http", "ByteTransport"],
+        ],
+        gateway: [
+          ["公开 API", "Gateway", "import", "export"],
+          ["CLI 启动", "Gateway", "import", "start"],
+          ["Gateway", "目录端口", "import", "DirectoryPort"],
+          ["Gateway", "认证字节连接", "import", "listener"],
+          ["Gateway", "SPA 静态托管", "import", "webRoot"],
+          ["Gateway", "启动凭证", "import", "auth"],
+          ["Gateway", "PiHostService", "state", "service"],
+          ["Gateway", "协议调度", "state", "PiServer"],
+          ["认证字节连接", "协议调度", "http", "CBOR"],
+          ["PiHostService", "PiHostSession", "state", "track"],
+          ["PiHostService", "Agent Loop", "state", "create / open"],
+          ["PiHostService", "会话持久化", "disk", "SessionManager"],
+          ["PiHostService", "模型目录", "state", "ModelRuntime"],
+          ["PiHostSession", "Agent Loop", "state", "prompt / event"],
+          ["PiHostSession", "TranscriptProjection", "state", "progress"],
+          ["PiHostService", "平台投影", "state", "cards / usage"],
+          ["TranscriptProjection", "完整历史", "disk", "分页"],
+          ["会话持久化", "完整历史", "disk", "JSONL"],
+          ["会话持久化", "元数据来源", "disk", "entries"],
+        ],
+      }
       let selectedItem
 
       interactiveItems.forEach((item) => {
@@ -642,8 +738,13 @@
         })
       })
 
+      function cardTitle(card) {
+        return card.querySelector("h3")?.textContent ?? ""
+      }
+
       function clearHighlight() {
         selectedItem = undefined
+        document.querySelectorAll(".arch-edges").forEach((svg) => svg.remove())
         interactiveItems.forEach((item) =>
           item.classList.remove(
             "is-active",
@@ -653,7 +754,7 @@
             "is-downstream",
           ),
         )
-        hint.textContent = "点击卡片高亮同类职责；点击流程节点查看它的上下游。再次点击或按 Esc 清除。"
+        hint.textContent = "点击卡片高亮关系节点并绘制连线；点击流程节点查看它的上下游。再次点击或按 Esc 清除。"
       }
 
       function highlight(item) {
@@ -680,18 +781,112 @@
           return
         }
 
-        const tone = item.dataset.tone
-        if (tone) {
+        if (item.classList.contains("card")) {
+          const title = cardTitle(item)
+          const edges = (graphs[view.id] ?? []).filter(
+            ([from, to]) => from === title || to === title,
+          )
+          const relatedTitles = new Set(edges.flatMap(([from, to]) => [from, to]))
           candidates
-            .filter((candidate) => candidate !== item && candidate.dataset.tone === tone)
+            .filter(
+              (candidate) => candidate.classList.contains("card") && relatedTitles.has(cardTitle(candidate)),
+            )
             .forEach((candidate) => {
               candidate.classList.remove("is-dim")
-              candidate.classList.add("is-related")
+              if (candidate !== item) candidate.classList.add("is-related")
             })
+          const incoming = edges.filter(([, to]) => to === title).length
+          const outgoing = edges.length - incoming
+          const path = item.querySelector(".path")?.textContent
+          hint.innerHTML = `<strong>${title}</strong>${path ? ` · ${path}` : ""} · 入边 ${incoming}，出边 ${outgoing}。`
+          requestAnimationFrame(() => drawEdges(view, edges))
+          return
         }
-        const title = item.querySelector("h3, b")?.textContent ?? "架构节点"
-        const path = item.querySelector(".path")?.textContent
-        hint.innerHTML = `<strong>${title}</strong>${path ? ` · ${path}` : ""} · 同色卡片属于同一职责类型。`
+
+        const title = item.querySelector("b")?.textContent ?? "架构节点"
+        hint.innerHTML = `<strong>${title}</strong> · 这是架构真相说明，不参与依赖连线。`
+      }
+
+      function drawEdges(view, edges) {
+        const stack = view.querySelector(".stack")
+        if (!stack || !edges.length) return
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        svg.classList.add("arch-edges")
+        svg.setAttribute("aria-hidden", "true")
+        const rect = stack.getBoundingClientRect()
+        svg.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`)
+        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs")
+        Object.entries(edgeColors).forEach(([kind, color]) => {
+          const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker")
+          marker.id = `arrow-${view.id}-${kind}`
+          marker.setAttribute("viewBox", "0 0 10 10")
+          marker.setAttribute("refX", "9")
+          marker.setAttribute("refY", "5")
+          marker.setAttribute("markerWidth", "5")
+          marker.setAttribute("markerHeight", "5")
+          marker.setAttribute("orient", "auto-start-reverse")
+          const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path")
+          arrow.setAttribute("d", "M 0 0 L 10 5 L 0 10 z")
+          arrow.style.fill = color
+          marker.appendChild(arrow)
+          defs.appendChild(marker)
+        })
+        svg.appendChild(defs)
+        stack.appendChild(svg)
+
+        const cards = new Map(
+          [...view.querySelectorAll(".card")].map((card) => [cardTitle(card), card]),
+        )
+        edges.forEach(([from, to, kind, label], index) => {
+          const source = cards.get(from)
+          const target = cards.get(to)
+          if (!source || !target) return
+          drawEdge(svg, rect, source, target, kind, label, index, view.id)
+        })
+      }
+
+      function drawEdge(svg, rootRect, source, target, kind, label, index, viewId) {
+        const a = source.getBoundingClientRect()
+        const b = target.getBoundingClientRect()
+        const down = a.bottom <= b.top
+        const up = b.bottom <= a.top
+        let x1, y1, x2, y2, c1x, c1y, c2x, c2y
+        if (down || up) {
+          x1 = a.left - rootRect.left + a.width / 2
+          y1 = (down ? a.bottom : a.top) - rootRect.top
+          x2 = b.left - rootRect.left + b.width / 2
+          y2 = (down ? b.top : b.bottom) - rootRect.top
+          const bend = Math.max(24, Math.abs(y2 - y1) / 2)
+          c1x = x1 + (index % 3 - 1) * 10
+          c1y = y1 + (down ? bend : -bend)
+          c2x = x2 - (index % 3 - 1) * 10
+          c2y = y2 + (down ? -bend : bend)
+        } else {
+          const right = a.left < b.left
+          x1 = (right ? a.right : a.left) - rootRect.left
+          y1 = a.top - rootRect.top + a.height / 2
+          x2 = (right ? b.left : b.right) - rootRect.left
+          y2 = b.top - rootRect.top + b.height / 2
+          const bend = Math.max(20, Math.abs(x2 - x1) / 2)
+          c1x = x1 + (right ? bend : -bend)
+          c1y = y1
+          c2x = x2 + (right ? -bend : bend)
+          c2y = y2
+        }
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
+        path.setAttribute("d", `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`)
+        path.setAttribute("stroke", edgeColors[kind])
+        path.setAttribute("marker-end", `url(#arrow-${viewId}-${kind})`)
+        if (kind === "http") path.setAttribute("stroke-dasharray", "6 5")
+        if (kind === "disk") path.setAttribute("stroke-dasharray", "2 5")
+        svg.appendChild(path)
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text")
+        text.setAttribute("x", String((x1 + x2) / 2))
+        text.setAttribute("y", String((y1 + y2) / 2 - 4))
+        text.setAttribute("text-anchor", "middle")
+        text.textContent = label
+        svg.appendChild(text)
       }
 
       function selectTab(tab) {
@@ -717,6 +912,20 @@
       })
       document.querySelector("main").addEventListener("click", (event) => {
         if (!event.target.closest(".card, .step, .truth") && selectedItem) clearHighlight()
+      })
+      let resizeFrame
+      window.addEventListener("resize", () => {
+        cancelAnimationFrame(resizeFrame)
+        resizeFrame = requestAnimationFrame(() => {
+          if (!selectedItem?.classList.contains("card")) return
+          document.querySelectorAll(".arch-edges").forEach((svg) => svg.remove())
+          const view = selectedItem.closest(".view")
+          const title = cardTitle(selectedItem)
+          const edges = (graphs[view.id] ?? []).filter(
+            ([from, to]) => from === title || to === title,
+          )
+          drawEdges(view, edges)
+        })
       })
 
       const initial = tabs.find((tab) => tab.getAttribute("aria-controls") === location.hash.slice(1))
