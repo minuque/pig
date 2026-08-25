@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "markstream-vue/index.css" layer(components);
-@import "./markdown-chat.css";
+@import "./markdown-stream.css";
 
 /* ─── DESIGN.md tokens (workbench desktop) ───────────────────── */
 :root {
