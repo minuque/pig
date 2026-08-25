@@ -4,6 +4,7 @@ import {
   EARLIER_ROW_ID,
   estimateTranscriptRowHeight,
   isEarlierRow,
+  isMarkdownStreamReady,
   isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
   shouldHoldProgrammaticBottom,
@@ -66,6 +67,18 @@ describe("transcript row markstream mapping", () => {
     expect(transcriptRowContent(headed[0]!)).toBe("")
     expect(transcriptRowFinal(headed[0]!)).toBe(true)
     expect(estimateTranscriptRowHeight(headed[0]!)).toBe(48)
+  })
+})
+
+describe("isMarkdownStreamReady", () => {
+  it("没有助手正文时立刻就绪", () => {
+    expect(isMarkdownStreamReady(false, 0, false)).toBe(true)
+  })
+
+  it("有助手正文时要等挂上且 pending 清零", () => {
+    expect(isMarkdownStreamReady(true, 0, false)).toBe(false)
+    expect(isMarkdownStreamReady(true, 2, true)).toBe(false)
+    expect(isMarkdownStreamReady(true, 0, true)).toBe(true)
   })
 })
 

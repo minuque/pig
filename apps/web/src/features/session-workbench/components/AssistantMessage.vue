@@ -11,7 +11,13 @@
         />
       </div>
     </FoldReveal>
-    <MarkdownRender v-if="text" v-bind="agentMarkdown" :content="text" />
+    <MarkdownRender
+      v-if="text"
+      v-bind="agentMarkdown"
+      :content="text"
+      @render-settled="emit('render-settled')"
+      @render-final="emit('render-settled')"
+    />
     <span v-if="item.status === 'error' || item.status === 'aborted'" class="status">
       {{ item.status === "error" ? "出错" : "已中止" }}
     </span>
@@ -20,7 +26,7 @@
 
 <script setup lang="ts">
 import MarkdownRender, { type MarkstreamVirtualMarkdownProps } from "markstream-vue"
-import { computed } from "vue"
+import { computed, onBeforeMount, onMounted } from "vue"
 import type { AssistantTranscriptItem } from "@earendil-works/pi-protocol"
 import FoldReveal from "@features/session-workbench/components/FoldReveal.vue"
 import {
@@ -39,9 +45,21 @@ const props = withDefaults(
   { streaming: false },
 )
 
+const emit = defineEmits<{
+  "render-pending": []
+  "render-settled": []
+}>()
+
 const { isDark } = useColorScheme()
 const text = computed(() => transcriptText(props.item))
 const thinking = computed(() => assistantThinking(props.item))
+
+onBeforeMount(() => {
+  if (text.value && !props.streaming) emit("render-pending")
+})
+onMounted(() => {
+  if (!text.value || props.streaming) emit("render-settled")
+})
 
 const codeBlockOptions = {
   fontSize: 14,

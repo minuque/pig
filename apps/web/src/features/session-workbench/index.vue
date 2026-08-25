@@ -2,68 +2,62 @@
   <WorkbenchHeader />
   <StartupError v-if="pageError" v-bind="pageError" />
   <SessionWelcome v-else-if="!sessionId" />
-  <div
-    v-else-if="sessionPending"
-    class="empty-canvas"
-    role="status"
-    aria-live="polite"
-    aria-busy="true"
-  >
-    <Spinner :size="24" aria-hidden="true" />
-    <p class="sr-only">正在加载会话</p>
-  </div>
-  <section
-    v-else-if="emptyCanvas"
-    class="empty-canvas enter-blur"
-    aria-labelledby="session-hero-title"
-  >
-    <div class="empty-canvas-form">
-      <WorkbenchHero
-        :workspace-id="heroCwd"
-        title-id="session-hero-title"
-        :workspaces="workspaces"
-        :selectable="false"
-      />
+  <div v-else class="session-stage">
+    <section
+      v-if="emptyCanvas"
+      class="empty-canvas enter-blur"
+      aria-labelledby="session-hero-title"
+    >
+      <div class="empty-canvas-form">
+        <WorkbenchHero
+          :workspace-id="heroCwd"
+          title-id="session-hero-title"
+          :workspaces="workspaces"
+          :selectable="false"
+        />
+        <ChatInput
+          v-model:prompt="prompt"
+          v-model:preset="preset"
+          :catalog="catalog"
+          :phase="phase"
+          :error="sessionError"
+          :cwd="composerCwd"
+          :usage="contextUsage"
+          :session-id="sessionId"
+          @send="submitText"
+        />
+      </div>
+    </section>
+    <TranscriptView
+      v-else-if="!sessionPending"
+      ref="transcriptView"
+      :session-id="sessionId"
+      :transcript="transcript"
+      :phase="phase"
+      :thread-state="clientState?.threadState ?? null"
+      :has-earlier="hasEarlier"
+      :loading-earlier="loadingEarlier"
+      @thread-state="applyThreadState"
+      @load-earlier="loadEarlier"
+      @ready="onTranscriptReady"
+    >
       <ChatInput
         v-model:prompt="prompt"
         v-model:preset="preset"
         :catalog="catalog"
         :phase="phase"
+        :aborting="aborting"
         :error="sessionError"
         :cwd="composerCwd"
         :usage="contextUsage"
         :session-id="sessionId"
-        @send="submitText"
+        docked
+        @send="submitFromDock"
+        @abort="abortSession"
       />
-    </div>
-  </section>
-  <TranscriptView
-    v-else
-    ref="transcriptView"
-    :session-id="sessionId"
-    :transcript="transcript"
-    :phase="phase"
-    :thread-state="clientState?.threadState ?? null"
-    :has-earlier="hasEarlier"
-    :loading-earlier="loadingEarlier"
-    @thread-state="applyThreadState"
-    @load-earlier="loadEarlier"
-  >
-    <ChatInput
-      v-model:prompt="prompt"
-      v-model:preset="preset"
-      :catalog="catalog"
-      :phase="phase"
-      :aborting="aborting"
-      :error="sessionError"
-      :cwd="composerCwd"
-      :usage="contextUsage"
-      :session-id="sessionId"
-      docked
-      @send="submitFromDock"
-      @abort="abortSession"
-    />
-  </TranscriptView>
+    </TranscriptView>
+    <SessionLoading v-if="sessionLoading" />
+  </div>
 </template>
 
 <script lang="ts">
@@ -78,22 +72,31 @@ export function isEmptyCanvas(
   if (pending) return false
   return transcriptLength === 0 && (phase === undefined || phase === "idle")
 }
+
+/** 远程未附加，或已附加但 markdown-stream 尚未渲染完：继续遮罩。 */
+export function isSessionLoading(
+  pending: boolean,
+  transcriptLength: number,
+  streamReady: boolean,
+): boolean {
+  return pending || (transcriptLength > 0 && !streamReady)
+}
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue"
+import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useRoute } from "vue-router"
 import ChatInput from "@features/chat-input/index.vue"
 import { projectContextUsage } from "@features/chat-input/lib/context-usage.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { hasEarlierTranscript } from "@features/session-workbench/lib/session-state.js"
+import SessionLoading from "@features/session-workbench/components/SessionLoading.vue"
 import SessionWelcome from "@features/session-workbench/components/SessionWelcome.vue"
 import TranscriptView from "@features/session-workbench/components/TranscriptView.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import StartupError from "@features/startup/components/StartupError.vue"
-import { Spinner } from "@components/ui/spinner/index.js"
 
 const route = useRoute()
 const {
@@ -126,9 +129,19 @@ const pageError = computed(() => {
   }
   return route.name === "error" ? {} : null
 })
+const streamReady = shallowRef(false)
 const emptyCanvas = computed(() =>
   isEmptyCanvas(transcript.value.length, phase.value, sessionPending.value),
 )
+const sessionLoading = computed(() =>
+  isSessionLoading(sessionPending.value, transcript.value.length, streamReady.value),
+)
+watch(sessionId, () => {
+  streamReady.value = false
+})
+function onTranscriptReady() {
+  streamReady.value = true
+}
 const hasEarlier = computed(() =>
   hasEarlierTranscript(
     transcript.value.length,
@@ -150,6 +163,13 @@ function submitFromDock(text: string) {
 </script>
 
 <style scoped>
+.session-stage {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 .empty-canvas {
   min-height: 0;
   flex: 1;

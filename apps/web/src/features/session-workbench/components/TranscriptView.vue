@@ -11,60 +11,59 @@
       @wheel="onTranscriptWheel"
       @pointerdown="releasePinnedToBottom"
     >
-      <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
-      <template v-if="rows.length">
-        <MarkstreamVirtualTimeline
-          ref="timeline"
-          class="transcript"
-          :thread-key="sessionId"
-          :measurement-key="measurementKey"
-          :items="rows"
-          :get-key="rowKey"
-          :get-kind="transcriptRowKind"
-          :get-content="transcriptRowContent"
-          :get-final="transcriptRowFinal"
-          :estimate-item-height="estimateTranscriptRowHeight"
-          markdown-mode="chat"
-          :stick-to-bottom="'auto'"
-          :overscan="8"
-          :initial-thread-state="pinnedThreadState"
-          @thread-state-change="onThreadState"
-        >
-          <template #default="{ item: row, measureRef, markdownProps }">
-            <div
-              :ref="measureRef"
-              class="row"
-              :data-minimap-row="row.role === 'user' ? row.id : undefined"
-            >
-              <div v-if="isEarlierRow(row)" class="earlier-row">
-                <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
-                  {{ loadingEarlier ? "加载中…" : "加载更早" }}
-                </button>
-              </div>
-              <UserMessage v-else-if="row.role === 'user'" :item="row" />
-              <AssistantMessage
-                v-else-if="row.role === 'assistant'"
-                :item="row"
-                :streaming="isStreamingAssistant(row)"
-                :timeline-markdown="markdownProps"
-              />
-              <ToolCall v-else-if="row.role === 'tool'" :item="row" />
+      <MarkstreamVirtualTimeline
+        v-if="rows.length"
+        ref="timeline"
+        class="transcript"
+        :thread-key="sessionId"
+        :measurement-key="measurementKey"
+        :items="rows"
+        :get-key="rowKey"
+        :get-kind="transcriptRowKind"
+        :get-content="transcriptRowContent"
+        :get-final="transcriptRowFinal"
+        :estimate-item-height="estimateTranscriptRowHeight"
+        markdown-mode="chat"
+        :stick-to-bottom="'auto'"
+        :overscan="8"
+        :initial-thread-state="pinnedThreadState"
+        @thread-state-change="onThreadState"
+      >
+        <template #default="{ item: row, measureRef, markdownProps }">
+          <div
+            :ref="measureRef"
+            class="row"
+            :data-minimap-row="row.role === 'user' ? row.id : undefined"
+          >
+            <div v-if="isEarlierRow(row)" class="earlier-row">
+              <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
+                {{ loadingEarlier ? "加载中…" : "加载更早" }}
+              </button>
             </div>
-          </template>
-        </MarkstreamVirtualTimeline>
+            <UserMessage v-else-if="row.role === 'user'" :item="row" />
+            <AssistantMessage
+              v-else-if="row.role === 'assistant'"
+              :item="row"
+              :streaming="isStreamingAssistant(row)"
+              :timeline-markdown="markdownProps"
+              @render-pending="onMarkdownPending(row.id)"
+              @render-settled="onMarkdownSettled(row.id)"
+            />
+            <ToolCall v-else-if="row.role === 'tool'" :item="row" />
+          </div>
+        </template>
+      </MarkstreamVirtualTimeline>
 
-        <TranscriptMinimap
-          v-if="minimapItems.length >= MINIMAP_MIN_ITEMS"
-          :items="minimapItems"
-          :in-view-ids="inViewIds"
-          :has-persistent-gutter="hasPersistentGutter"
-          :hit-strip-width="hitStripWidth"
-          @select="onMinimapSelect"
-        />
-      </template>
-
-      <p v-else-if="running" class="shimmer" role="status">正在运行…</p>
+      <TranscriptMinimap
+        v-if="rows.length && minimapItems.length >= MINIMAP_MIN_ITEMS"
+        :items="minimapItems"
+        :in-view-ids="inViewIds"
+        :has-persistent-gutter="hasPersistentGutter"
+        :hit-strip-width="hitStripWidth"
+        @select="onMinimapSelect"
+      />
     </section>
+
     <div v-if="$slots.default" ref="dock" class="chat-input-dock">
       <div v-show="showScrollToLatest" class="session-floating-controls">
         <Button
@@ -164,6 +163,20 @@ export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boo
   return transcriptLength > 0 && !atBottom
 }
 
+/** ponytail: 2s 封顶，markdown-stream 卡住时不挡会话 */
+export const MARKDOWN_STREAM_READY_TIMEOUT_MS = 2000
+
+/** 无助手正文即可撤；有则必须已挂上且 pending 清零。 */
+export function isMarkdownStreamReady(
+  hasMarkdownRows: boolean,
+  pendingCount: number,
+  mounted: boolean,
+): boolean {
+  if (pendingCount > 0) return false
+  if (!hasMarkdownRows) return true
+  return mounted
+}
+
 /** 盖过时间线已排队的旧锚点 rAF 与测高回写。 */
 export const PROGRAMMATIC_BOTTOM_HOLD_MS = 400
 
@@ -216,7 +229,7 @@ export function estimateTranscriptRowHeight(item: TimelineRow): number {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline } from "markstream-vue"
 import type { SessionPhase } from "@earendil-works/pi-protocol"
@@ -253,6 +266,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   "thread-state": [state: MarkstreamThreadVirtualState]
   "load-earlier": []
+  ready: []
 }>()
 
 defineSlots<{ default?: () => unknown }>()
@@ -288,6 +302,56 @@ function rowKey(item: TimelineRow): string {
 function isStreamingAssistant(item: TranscriptItem): boolean {
   if (!running.value || item !== props.transcript[props.transcript.length - 1]) return false
   return isAssistantItem(item) && item.status === "streaming"
+}
+
+const pendingMarkdownIds = new Set<string>()
+let markdownMounted = false
+let streamReadyEmitted = false
+let readyTimer = 0
+
+function hasMarkdownRows(): boolean {
+  return rows.value.some(
+    (row) => !isEarlierRow(row) && row.role === "assistant" && Boolean(transcriptText(row)),
+  )
+}
+
+function emitStreamReady() {
+  if (streamReadyEmitted) return
+  streamReadyEmitted = true
+  if (readyTimer) {
+    clearTimeout(readyTimer)
+    readyTimer = 0
+  }
+  emit("ready")
+}
+
+function resetStreamReady() {
+  pendingMarkdownIds.clear()
+  markdownMounted = false
+  streamReadyEmitted = false
+  if (readyTimer) {
+    clearTimeout(readyTimer)
+    readyTimer = 0
+  }
+}
+
+function checkStreamReady() {
+  if (isMarkdownStreamReady(hasMarkdownRows(), pendingMarkdownIds.size, markdownMounted)) {
+    emitStreamReady()
+  }
+}
+
+function onMarkdownPending(id: string) {
+  if (streamReadyEmitted) return
+  pendingMarkdownIds.add(id)
+  markdownMounted = true
+}
+
+function onMarkdownSettled(id: string) {
+  if (streamReadyEmitted) return
+  pendingMarkdownIds.delete(id)
+  markdownMounted = true
+  void nextTick(checkStreamReady)
 }
 
 /* ── 贴底跟随与「跳转到最新」：滚动状态由 MarkstreamVirtualTimeline 管理 ── */
@@ -374,6 +438,11 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
     : state.outerAnchor?.type !== "item"
   if (shouldHoldProgrammaticBottom(bottom, bottomHoldUntil, performance.now())) return
   atBottom.value = bottom
+  if (!streamReadyEmitted) {
+    requestAnimationFrame(() => {
+      if (!streamReadyEmitted) checkStreamReady()
+    })
+  }
 }
 
 function onMinimapSelect(item: TranscriptMinimapItem) {
@@ -418,6 +487,22 @@ watch(
     atBottom.value = true
   },
   { flush: "pre" },
+)
+watch(
+  () => props.sessionId,
+  () => {
+    resetStreamReady()
+    readyTimer = window.setTimeout(emitStreamReady, MARKDOWN_STREAM_READY_TIMEOUT_MS)
+  },
+  { immediate: true },
+)
+watch(
+  rows,
+  () => {
+    if (streamReadyEmitted) return
+    if (rows.value.length === 0) emitStreamReady()
+  },
+  { immediate: true, flush: "post" },
 )
 // 打开或切换会话：内容就绪后贴底。从空到有行也滚一次（首屏迟到）。
 watch(
@@ -470,6 +555,7 @@ onBeforeUnmount(() => {
   dockObserver?.disconnect()
   releasePinnedToBottom()
   persistThreadState()
+  resetStreamReady()
 })
 </script>
 
