@@ -62,9 +62,10 @@ const tokenSummary = computed(() => contextUsageSummary(props.usage))
 
 <style scoped>
 .usage-shell {
-  position: relative;
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(100% + 8px);
   z-index: 10;
-  margin-bottom: 8px;
 }
 .usage-host {
   position: relative;

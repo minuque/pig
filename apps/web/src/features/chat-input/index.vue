@@ -227,6 +227,7 @@ function onPrimaryAction() {
 
 <style scoped>
 .prompt {
+  position: relative;
   padding: 0;
   border: 0;
   border-radius: 0;
