@@ -1,83 +1,86 @@
 <template>
-  <section
-    id="transcript-panel"
-    ref="region"
-    class="transcript-region"
+  <div
+    class="transcript-viewport"
     :style="$slots.default ? { '--chat-input-space': `${dockHeight}px` } : undefined"
-    :aria-labelledby="transcriptTitleId"
-    @wheel="onTranscriptWheel"
-    @pointerdown="releasePinnedToBottom"
   >
-    <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
-
-    <template v-if="rows.length">
-      <MarkstreamVirtualTimeline
-        ref="timeline"
-        class="transcript"
-        :thread-key="sessionId"
-        :measurement-key="measurementKey"
-        :items="rows"
-        :get-key="rowKey"
-        :get-kind="transcriptRowKind"
-        :get-content="transcriptRowContent"
-        :get-final="transcriptRowFinal"
-        :estimate-item-height="estimateTranscriptRowHeight"
-        markdown-mode="chat"
-        :stick-to-bottom="'auto'"
-        :overscan="8"
-        :initial-thread-state="pinnedThreadState"
-        @thread-state-change="onThreadState"
-      >
-        <template #default="{ item: row, measureRef, markdownProps }">
-          <div
-            :ref="measureRef"
-            class="row"
-            :data-minimap-row="row.role === 'user' ? row.id : undefined"
-          >
-            <div v-if="isEarlierRow(row)" class="earlier-row">
-              <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
-                {{ loadingEarlier ? "加载中…" : "加载更早" }}
-              </button>
+    <section
+      id="transcript-panel"
+      ref="region"
+      class="transcript-region"
+      :aria-labelledby="transcriptTitleId"
+      @wheel="onTranscriptWheel"
+      @pointerdown="releasePinnedToBottom"
+    >
+      <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
+      <template v-if="rows.length">
+        <MarkstreamVirtualTimeline
+          ref="timeline"
+          class="transcript"
+          :thread-key="sessionId"
+          :measurement-key="measurementKey"
+          :items="rows"
+          :get-key="rowKey"
+          :get-kind="transcriptRowKind"
+          :get-content="transcriptRowContent"
+          :get-final="transcriptRowFinal"
+          :estimate-item-height="estimateTranscriptRowHeight"
+          markdown-mode="chat"
+          :stick-to-bottom="'auto'"
+          :overscan="8"
+          :initial-thread-state="pinnedThreadState"
+          @thread-state-change="onThreadState"
+        >
+          <template #default="{ item: row, measureRef, markdownProps }">
+            <div
+              :ref="measureRef"
+              class="row"
+              :data-minimap-row="row.role === 'user' ? row.id : undefined"
+            >
+              <div v-if="isEarlierRow(row)" class="earlier-row">
+                <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
+                  {{ loadingEarlier ? "加载中…" : "加载更早" }}
+                </button>
+              </div>
+              <UserMessage v-else-if="row.role === 'user'" :item="row" />
+              <AssistantMessage
+                v-else-if="row.role === 'assistant'"
+                :item="row"
+                :streaming="isStreamingAssistant(row)"
+                :timeline-markdown="markdownProps"
+              />
+              <ToolCall v-else-if="row.role === 'tool'" :item="row" />
             </div>
-            <UserMessage v-else-if="row.role === 'user'" :item="row" />
-            <AssistantMessage
-              v-else-if="row.role === 'assistant'"
-              :item="row"
-              :streaming="isStreamingAssistant(row)"
-              :timeline-markdown="markdownProps"
-            />
-            <ToolCall v-else-if="row.role === 'tool'" :item="row" />
-          </div>
-        </template>
-      </MarkstreamVirtualTimeline>
+          </template>
+        </MarkstreamVirtualTimeline>
 
-      <TranscriptMinimap
-        v-if="minimapItems.length >= MINIMAP_MIN_ITEMS"
-        :items="minimapItems"
-        :in-view-ids="inViewIds"
-        :has-persistent-gutter="hasPersistentGutter"
-        :hit-strip-width="hitStripWidth"
-        @select="onMinimapSelect"
-      />
-    </template>
+        <TranscriptMinimap
+          v-if="minimapItems.length >= MINIMAP_MIN_ITEMS"
+          :items="minimapItems"
+          :in-view-ids="inViewIds"
+          :has-persistent-gutter="hasPersistentGutter"
+          :hit-strip-width="hitStripWidth"
+          @select="onMinimapSelect"
+        />
+      </template>
 
-    <p v-else-if="running" class="shimmer" role="status">正在运行…</p>
-  </section>
-  <div v-if="$slots.default" ref="dock" class="chat-input-dock">
-    <div v-show="showScrollToLatest" class="session-floating-controls">
-      <Button
-        class="floating-control scroll-latest-control"
-        type="button"
-        variant="outline"
-        size="icon-sm"
-        aria-label="滚动到底部"
-        title="滚动到底部"
-        @click="scrollToLatest"
-      >
-        <ArrowDown />
-      </Button>
+      <p v-else-if="running" class="shimmer" role="status">正在运行…</p>
+    </section>
+    <div v-if="$slots.default" ref="dock" class="chat-input-dock">
+      <div v-show="showScrollToLatest" class="session-floating-controls">
+        <Button
+          class="floating-control scroll-latest-control"
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          aria-label="滚动到底部"
+          title="滚动到底部"
+          @click="scrollToLatest"
+        >
+          <ArrowDown />
+        </Button>
+      </div>
+      <slot />
     </div>
-    <slot />
   </div>
 </template>
 
@@ -471,11 +474,19 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.transcript-region {
+.transcript-viewport {
   position: relative;
   min-height: 0;
   flex: 1;
   height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.transcript-region {
+  position: relative;
+  min-height: 0;
+  flex: 1;
   overflow: hidden;
   background: transparent;
 }
