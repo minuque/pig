@@ -1,4 +1,4 @@
-import { estimateTokens } from "@earendil-works/pi-coding-agent"
+import { estimateTokens, formatSkillsForPrompt, type Skill } from "@earendil-works/pi-coding-agent"
 
 export interface ContextUsageEstimate {
   used: number
@@ -6,18 +6,17 @@ export interface ContextUsageEstimate {
   segments: {
     systemPrompt: number
     memory: number
+    skills: number
     tools: number
+    toolResults: number
     conversation: number
     other: number
     idle: number
   }
 }
 
-type EstimableMessage = Parameters<typeof estimateTokens>[0]
-
 interface ContextUsageSource {
   systemPrompt: string
-  messages: EstimableMessage[]
   model: { contextWindow?: number } | undefined
   getContextUsage():
     { tokens: number | null; contextWindow: number; percent: number | null } | undefined
@@ -27,46 +26,94 @@ interface ContextUsageSource {
     description: string
     parameters: unknown
   }>
+  sessionManager: { buildContextEntries(): unknown[] }
   resourceLoader: {
     getAgentsFiles(): { agentsFiles: Array<{ path: string; content: string }> }
+    getSkills(): { skills: Skill[] }
   }
 }
 
-const USED_KEYS = ["systemPrompt", "memory", "tools", "conversation"] as const
-const FIXED_KEYS = ["systemPrompt", "memory", "tools"] as const
-
-function estimateText(text: string): number {
-  return Math.ceil(text.length / 4)
+function estimateText(value: unknown): number {
+  if (!value) return 0
+  const text = typeof value === "string" ? value : JSON.stringify(value)
+  return Math.max(0, Math.ceil(text.length / 4))
 }
 
-function estimateMemory(source: ContextUsageSource): number {
-  return source.resourceLoader
-    .getAgentsFiles()
-    .agentsFiles.reduce((sum, file) => sum + estimateText(file.content), 0)
+/** 只统计确实嵌进 system prompt 的片段，避免源文件预览把占用加两遍。 */
+function embeddedTokens(prompt: string, chunk: string): number {
+  if (!chunk || !prompt.includes(chunk)) return 0
+  return estimateText(chunk)
 }
 
-function activeToolsText(source: ContextUsageSource): string {
+function estimateTools(source: ContextUsageSource): number {
   const active = new Set(source.getActiveToolNames())
-  const tools = source
-    .getAllTools()
-    .filter((tool) => active.has(tool.name))
-    .map((tool) => ({
+  let tokens = 0
+  for (const tool of source.getAllTools()) {
+    if (!active.has(tool.name)) continue
+    tokens += estimateText({
       name: tool.name,
       description: tool.description,
-      inputSchema: tool.parameters,
-    }))
-  return tools.length > 0 ? JSON.stringify(tools) : ""
+      parameters: tool.parameters,
+    })
+  }
+  return tokens
 }
 
-function fitKnownSegments(
-  segments: Record<(typeof USED_KEYS)[number], number>,
-  used: number,
-): Record<(typeof USED_KEYS)[number], number> {
-  const fixed = FIXED_KEYS.reduce((sum, key) => sum + segments[key], 0)
-  return {
-    ...segments,
-    conversation: Math.min(segments.conversation, Math.max(0, used - fixed)),
+function walkEntries(entries: unknown[]): { toolResults: number; conversation: number } {
+  let toolResults = 0
+  let conversation = 0
+  for (const raw of entries) {
+    const entry = raw as {
+      type?: string
+      summary?: string
+      content?: unknown
+      message?: {
+        role?: string
+        content?: unknown
+      }
+    }
+    if (entry.type === "message") {
+      const message = entry.message
+      if (!message) continue
+      if (message.role === "assistant" && Array.isArray(message.content)) {
+        for (const block of message.content as Array<{
+          type?: string
+          name?: unknown
+          arguments?: unknown
+          text?: string
+          thinking?: string
+        }>) {
+          if (block.type === "toolCall") {
+            conversation += estimateText(block.name) + estimateText(block.arguments)
+          } else if (block.type === "text") {
+            conversation += estimateText(block.text)
+          } else if (block.type === "thinking") {
+            conversation += estimateText(block.thinking)
+          }
+        }
+      } else if (message.role === "toolResult" || message.role === "bashExecution") {
+        toolResults += estimateTokens(message as Parameters<typeof estimateTokens>[0])
+      } else {
+        conversation += estimateTokens(message as Parameters<typeof estimateTokens>[0])
+      }
+    } else if (entry.type === "compaction" || entry.type === "branch_summary") {
+      conversation += estimateText(entry.summary)
+    } else if (entry.type === "custom_message") {
+      conversation += estimateText(entry.content)
+    }
   }
+  return { toolResults, conversation }
+}
+
+function capVariable(
+  raw: { toolResults: number; conversation: number },
+  budget: number,
+): { toolResults: number; conversation: number } {
+  const estimated = raw.toolResults + raw.conversation
+  if (estimated <= budget || estimated === 0) return raw
+  if (budget === 0) return { toolResults: 0, conversation: 0 }
+  const toolResults = Math.round((raw.toolResults / estimated) * budget)
+  return { toolResults, conversation: budget - toolResults }
 }
 
 export function resolveUsedTokens(
@@ -89,32 +136,38 @@ export function resolveUsedTokens(
 }
 
 /**
- * 以 Pi 的总占用校准 chars/4 分段估算。System prompt、Memory、Tools
- * 是固定项，不会为适配异常偏小的 usage 而压缩；差额归入「其他」。
+ * 以 Pi 的总占用校准分段。System / Memory / Skills / Tools definition
+ * 是固定项；Tool results 与会话上下文按比例压缩；差额归入「其他」。
  */
 export function estimateContextUsage(source: ContextUsageSource): ContextUsageEstimate {
-  const systemPromptTotal = estimateText(source.systemPrompt)
-  const memory = Math.min(systemPromptTotal, estimateMemory(source))
-  const raw = {
-    systemPrompt: systemPromptTotal - memory,
-    memory,
-    tools: estimateText(activeToolsText(source)),
-    conversation: source.messages.reduce((sum, message) => sum + estimateTokens(message), 0),
+  const prompt = source.systemPrompt
+  let memory = 0
+  for (const file of source.resourceLoader.getAgentsFiles().agentsFiles) {
+    memory += embeddedTokens(prompt, file.content)
   }
+  const skillsText = formatSkillsForPrompt(source.resourceLoader.getSkills().skills ?? []).trim()
+  const skills = embeddedTokens(prompt, skillsText)
+  const systemPrompt = Math.max(0, estimateText(prompt) - memory - skills)
+  const tools = estimateTools(source)
+  const walked = walkEntries(source.sessionManager.buildContextEntries())
+  const known = systemPrompt + memory + skills + tools + walked.toolResults + walked.conversation
   const reported = source.getContextUsage()
-  const known = USED_KEYS.reduce((sum, key) => sum + raw[key], 0)
   const window = Math.max(0, reported?.contextWindow ?? source.model?.contextWindow ?? 0)
-  const fixed = FIXED_KEYS.reduce((sum, key) => sum + raw[key], 0)
+  const fixed = systemPrompt + memory + skills + tools
   const used = Math.max(resolveUsedTokens(reported, known, window), fixed)
-  const fitted = fitKnownSegments(raw, used)
-  const fittedKnown = USED_KEYS.reduce((sum, key) => sum + fitted[key], 0)
+  const fitted = capVariable(walked, Math.max(0, used - fixed))
+  const attributed = fixed + fitted.toolResults + fitted.conversation
 
   return {
     used,
     window,
     segments: {
+      systemPrompt,
+      memory,
+      skills,
+      tools,
       ...fitted,
-      other: Math.max(0, used - fittedKnown),
+      other: Math.max(0, used - attributed),
       idle: Math.max(0, window - used),
     },
   }

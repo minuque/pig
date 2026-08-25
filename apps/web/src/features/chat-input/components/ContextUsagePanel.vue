@@ -27,6 +27,9 @@
           <span class="swatch" :style="{ background: segment.color }"></span>
           <span class="legend-label">{{ segment.label }}</span>
           <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
+          <span class="legend-pct"
+            >{{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%</span
+          >
         </li>
       </ul>
     </div>
@@ -165,9 +168,14 @@ const tokenSummary = computed(() => contextUsageSummary(props.usage))
   min-width: 0;
   flex: 1;
 }
-.legend-count {
+.legend-count,
+.legend-pct {
   flex: none;
   color: var(--ink-faint);
   font-variant-numeric: tabular-nums;
+}
+.legend-pct {
+  min-width: 3.5em;
+  text-align: end;
 }
 </style>

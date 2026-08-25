@@ -103,7 +103,9 @@ const usageEstimate: ContextUsageEstimate = {
   segments: {
     systemPrompt: 50,
     memory: 25,
+    skills: 0,
     tools: 75,
+    toolResults: 0,
     conversation: 100,
     other: 50,
     idle: 700,

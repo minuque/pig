@@ -4,15 +4,23 @@ import { estimateContextUsage, resolveUsedTokens } from "../src/pi/context-usage
 function source(overrides: Record<string, unknown> = {}) {
   return {
     systemPrompt: "s".repeat(400),
-    messages: [{ role: "user" as const, content: "m".repeat(80), timestamp: 1 }],
     model: { contextWindow: 1000 },
     getContextUsage: () => ({ tokens: 300, contextWindow: 1000, percent: 30 }),
     getActiveToolNames: () => ["read"],
     getAllTools: () => [{ name: "read", description: "Read a file", parameters: {} }],
+    sessionManager: {
+      buildContextEntries: () => [
+        {
+          type: "message",
+          message: { role: "user" as const, content: "m".repeat(80), timestamp: 1 },
+        },
+      ],
+    },
     resourceLoader: {
       getAgentsFiles: () => ({
         agentsFiles: [{ path: "AGENTS.md", content: "a".repeat(80) }],
       }),
+      getSkills: () => ({ skills: [] }),
     },
     ...overrides,
   }
@@ -27,37 +35,59 @@ describe("estimateContextUsage", () => {
     expect(Object.values(usedSegments).reduce((sum, value) => sum + value, 0)).toBe(300)
     expect(idle).toBe(700)
     expect(usage.segments.systemPrompt).toBeGreaterThan(0)
-    expect(usage.segments.memory).toBeGreaterThan(0)
     expect(usage.segments.tools).toBeGreaterThan(0)
     expect(usage.segments.conversation).toBeGreaterThan(0)
   })
 
-  it("Memory 只逐文件统计 context file 正文", () => {
-    const base = source()
+  it("未嵌进 system prompt 的 Memory 不计占用", () => {
     const usage = estimateContextUsage({
-      ...base,
+      ...source(),
       getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }),
       resourceLoader: {
         getAgentsFiles: () => ({
-          agentsFiles: [
-            { path: "p".repeat(1000), content: "aaaaa" },
-            { path: "q".repeat(1000), content: "bbbbb" },
-          ],
+          agentsFiles: [{ path: "AGENTS.md", content: "cccc" }],
         }),
+        getSkills: () => ({ skills: [] }),
       },
     })
 
-    expect(usage.segments.memory).toBe(4)
-    expect(usage.segments.other).toBe(0)
+    expect(usage.segments.memory).toBe(0)
   })
 
-  it("来源估算超过上报总量时仅收缩会话分段", () => {
+  it("嵌进 system prompt 的 Memory 只计一次", () => {
+    const memory = "cccc"
+    const usage = estimateContextUsage({
+      ...source(),
+      systemPrompt: `base\n${memory}`,
+      getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }),
+      resourceLoader: {
+        getAgentsFiles: () => ({
+          agentsFiles: [{ path: "AGENTS.md", content: memory }],
+        }),
+        getSkills: () => ({ skills: [] }),
+      },
+      sessionManager: { buildContextEntries: () => [] },
+      getActiveToolNames: () => [],
+      getAllTools: () => [],
+    })
+
+    expect(usage.segments.memory).toBe(1)
+    expect(usage.segments.systemPrompt + usage.segments.memory).toBe(
+      Math.ceil("base\ncccc".length / 4),
+    )
+  })
+
+  it("来源估算超过上报总量时只压缩 Tool 结果与会话分段", () => {
     const estimated = estimateContextUsage(
       source({ getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }) }),
     )
     const fixed =
-      estimated.segments.systemPrompt + estimated.segments.memory + estimated.segments.tools
-    const target = fixed + Math.floor(estimated.segments.conversation / 2)
+      estimated.segments.systemPrompt +
+      estimated.segments.memory +
+      estimated.segments.skills +
+      estimated.segments.tools
+    const variable = estimated.segments.toolResults + estimated.segments.conversation
+    const target = fixed + Math.floor(variable / 2)
     const usage = estimateContextUsage(
       source({ getContextUsage: () => ({ tokens: target, contextWindow: 1000, percent: null }) }),
     )
@@ -65,8 +95,9 @@ describe("estimateContextUsage", () => {
     expect(usage.used).toBe(target)
     expect(usage.segments.systemPrompt).toBe(estimated.segments.systemPrompt)
     expect(usage.segments.memory).toBe(estimated.segments.memory)
+    expect(usage.segments.skills).toBe(estimated.segments.skills)
     expect(usage.segments.tools).toBe(estimated.segments.tools)
-    expect(usage.segments.conversation).toBe(target - fixed)
+    expect(usage.segments.toolResults + usage.segments.conversation).toBe(target - fixed)
   })
 
   it("总占用不低于固定分段", () => {
@@ -74,7 +105,10 @@ describe("estimateContextUsage", () => {
       source({ getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }) }),
     )
     const fixed =
-      estimated.segments.systemPrompt + estimated.segments.memory + estimated.segments.tools
+      estimated.segments.systemPrompt +
+      estimated.segments.memory +
+      estimated.segments.skills +
+      estimated.segments.tools
     const usage = estimateContextUsage(
       source({
         getContextUsage: () => ({ tokens: fixed - 1, contextWindow: 1000, percent: null }),
@@ -83,6 +117,46 @@ describe("estimateContextUsage", () => {
 
     expect(usage.used).toBe(fixed)
     expect(usage.segments.conversation).toBe(0)
+    expect(usage.segments.toolResults).toBe(0)
+  })
+
+  it("Tool 结果从会话上下文拆出", () => {
+    const usage = estimateContextUsage(
+      source({
+        getContextUsage: () => ({ tokens: null, contextWindow: 1000, percent: null }),
+        sessionManager: {
+          buildContextEntries: () => [
+            {
+              type: "message",
+              message: { role: "user", content: "uuuuuuuu", timestamp: 0 },
+            },
+            {
+              type: "message",
+              message: {
+                role: "assistant",
+                content: [
+                  { type: "text", text: "aaaa" },
+                  { type: "toolCall", id: "1", name: "read", arguments: { path: "a" } },
+                ],
+              },
+            },
+            {
+              type: "message",
+              message: {
+                role: "toolResult",
+                toolCallId: "1",
+                toolName: "read",
+                content: "rrrrrrrr",
+                timestamp: 0,
+              },
+            },
+          ],
+        },
+      }),
+    )
+
+    expect(usage.segments.toolResults).toBeGreaterThan(0)
+    expect(usage.segments.conversation).toBeGreaterThan(0)
   })
 })
 

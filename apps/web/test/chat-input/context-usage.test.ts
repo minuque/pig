@@ -22,8 +22,10 @@ function estimate(partial: Partial<ContextUsageEstimate> = {}): ContextUsageEsti
     segments: {
       systemPrompt: 3000,
       memory: 5000,
+      skills: 2000,
       tools: 7000,
-      conversation: 50_000,
+      toolResults: 3000,
+      conversation: 45_000,
       other: 5300,
       idle: 129_700,
     },
@@ -54,7 +56,9 @@ describe("projectContextUsage", () => {
     expect(projected?.segments.map((segment) => segment.id)).toEqual([
       "systemPrompt",
       "memory",
+      "skills",
       "tools",
+      "toolResults",
       "conversation",
       "other",
       "idle",

@@ -4,7 +4,9 @@ export interface ContextUsageEstimate {
   segments: {
     systemPrompt: number
     memory: number
+    skills: number
     tools: number
+    toolResults: number
     conversation: number
     other: number
     idle: number
@@ -12,7 +14,15 @@ export interface ContextUsageEstimate {
 }
 
 export interface ContextUsageSegment {
-  id: "systemPrompt" | "memory" | "tools" | "conversation" | "other" | "idle"
+  id:
+    | "systemPrompt"
+    | "memory"
+    | "skills"
+    | "tools"
+    | "toolResults"
+    | "conversation"
+    | "other"
+    | "idle"
   label: string
   tokens: number
   color: string
@@ -36,7 +46,9 @@ export function shouldShowComposerMeta(
 const SEGMENT_DEFS = [
   { id: "systemPrompt" as const, label: "系统提示词", color: "var(--primary)" },
   { id: "memory" as const, label: "记忆", color: "var(--accent-dusk)" },
+  { id: "skills" as const, label: "Skills", color: "var(--accent-twilight)" },
   { id: "tools" as const, label: "Tool 定义", color: "var(--accent-sunset)" },
+  { id: "toolResults" as const, label: "Tool 结果", color: "var(--accent-orange)" },
   {
     id: "conversation" as const,
     label: "当前会话上下文",
