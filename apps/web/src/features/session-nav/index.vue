@@ -22,7 +22,7 @@
       <button
         class="icon-button rail-action"
         type="button"
-        :disabled="!newSessionPath || Boolean(creating)"
+        :disabled="Boolean(creating)"
         aria-label="新会话"
         title="新会话"
         @click="onNewSession()"
@@ -32,61 +32,45 @@
     </template>
 
     <div v-show="!collapsed" class="nav-main">
-      <div v-if="groups.length > 0" class="nav-toolbar">
-        <div class="search-row">
-          <label class="search-field">
-            <Search :size="16" aria-hidden="true" />
-            <input
-              v-model="searchQuery"
-              class="search-input"
-              type="search"
-              placeholder="搜索"
-              aria-label="搜索会话"
-              autocomplete="off"
-            />
-          </label>
-          <button
-            class="icon-button toolbar-icon"
-            type="button"
-            :disabled="!newSessionPath || Boolean(creating)"
-            aria-label="新会话"
-            title="新会话"
-            @click="onNewSession()"
-          >
-            <SquarePen :size="16" aria-hidden="true" />
-          </button>
-        </div>
-        <div class="scope-row">
-          <div class="scope-menu">
+      <div class="nav-toolbar">
+        <button
+          class="new-task"
+          type="button"
+          :disabled="Boolean(creating)"
+          aria-label="新会话"
+          @click="onNewSession()"
+        >
+          <SquarePen :size="16" aria-hidden="true" />
+          <span>新会话</span>
+        </button>
+        <label class="search-field">
+          <Search :size="16" aria-hidden="true" />
+          <input
+            v-model="searchQuery"
+            class="search-input"
+            type="search"
+            placeholder="搜索"
+            aria-label="搜索会话"
+            autocomplete="off"
+          />
+        </label>
+        <div class="grouping-row">
+          <div class="grouping-menu">
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
-                <button class="scope-trigger" type="button" aria-label="按工作目录筛选会话">
-                  <Folder :size="16" aria-hidden="true" />
-                  <span class="scope-label">{{ scopedGroupName }}</span>
+                <button class="grouping-trigger" type="button" aria-label="切换会话分组">
+                  <span class="grouping-label">{{ groupingLabel }}</span>
                   <ChevronDown :size="16" aria-hidden="true" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" class="select-none">
-                <DropdownMenuItem @select="clearProjectScope">
-                  <Folder :size="16" aria-hidden="true" />
-                  <span class="min-w-0 flex-1 truncate">全部工作目录</span>
-                  <Check v-if="projectScope.length === 0" :size="14" aria-hidden="true" />
+                <DropdownMenuItem @select="setGrouping('updated')">
+                  <span class="min-w-0 flex-1 truncate">更新时间</span>
+                  <Check v-if="grouping === 'updated'" :size="14" aria-hidden="true" />
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  v-for="group in groups"
-                  :key="group.canonicalPath"
-                  :title="group.canonicalPath"
-                  @select="onToggleScope($event, group.canonicalPath)"
-                >
-                  <Folder :size="16" aria-hidden="true" />
-                  <span class="min-w-0 flex-1 truncate">{{
-                    workspaceName(group.canonicalPath)
-                  }}</span>
-                  <Check
-                    v-if="projectScope.includes(group.canonicalPath)"
-                    :size="14"
-                    aria-hidden="true"
-                  />
+                <DropdownMenuItem @select="setGrouping('project')">
+                  <span class="min-w-0 flex-1 truncate">项目</span>
+                  <Check v-if="grouping === 'project'" :size="14" aria-hidden="true" />
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -106,20 +90,43 @@
 
       <div v-bind="containerProps" class="nav-body">
         <nav class="session-list" aria-label="会话列表">
-          <ul v-if="visibleSessions.length > 0" v-bind="wrapperProps" role="list">
-            <li v-for="item in list" :key="item.data.id">
+          <ul v-if="showList" v-bind="wrapperProps" role="list">
+            <li v-for="item in list" :key="item.data.key" :class="`row-${item.data.kind}`">
+              <div v-if="item.data.kind === 'group'" class="group-head">
+                <span class="group-name">{{ workspaceName(item.data.canonicalPath) }}</span>
+                <button
+                  class="icon-button group-new"
+                  type="button"
+                  :disabled="Boolean(creating)"
+                  aria-label="在此目录新建会话"
+                  title="新会话"
+                  @click="createSession(item.data.canonicalPath)"
+                >
+                  <SquarePen :size="16" aria-hidden="true" />
+                </button>
+              </div>
               <SessionItem
-                :session="item.data"
-                :workspace-title="item.data.cwd ? workspaceName(item.data.cwd) : ''"
-                :active="item.data.id === activeSessionId"
-                :running="activeSessionRunning && item.data.id === activeSessionId"
-                :message-count="cardFootById.get(item.data.id)?.messageCount ?? null"
-                :model-label="cardFootById.get(item.data.id)?.modelLabel ?? ''"
-                :model-provider="cardFootById.get(item.data.id)?.modelProvider ?? ''"
-                @navigate="onSessionNavigate(item.data.cwd)"
+                v-else-if="item.data.kind === 'session'"
+                :session="item.data.session"
+                :workspace-title="item.data.session.cwd ? workspaceName(item.data.session.cwd) : ''"
+                :active="item.data.session.id === activeSessionId"
+                :running="phase === 'turn' && item.data.session.id === activeSessionId"
+                :grouping="grouping"
+                :message-count="cardFootById.get(item.data.session.id)?.messageCount ?? null"
+                :model-label="cardFootById.get(item.data.session.id)?.modelLabel ?? ''"
+                :model-provider="cardFootById.get(item.data.session.id)?.modelProvider ?? ''"
+                @navigate="onSessionNavigate(item.data.session.cwd)"
                 @rename="renameSession"
                 @delete="deleteSession"
               />
+              <button
+                v-else
+                class="more-button"
+                type="button"
+                @click="bumpGroup(item.data.groupKey)"
+              >
+                显示更多
+              </button>
             </li>
           </ul>
           <div v-else class="empty-state">
@@ -130,8 +137,7 @@
                 添加本地目录
               </button>
             </template>
-            <span v-else-if="searchQuery.trim()">没有匹配的会话</span>
-            <span v-else-if="projectScope.length">「{{ scopedGroupName }}」暂无会话</span>
+            <span v-else-if="searching">没有匹配的会话</span>
             <span v-else>暂无会话</span>
           </div>
         </nav>
@@ -149,11 +155,10 @@
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, watch } from "vue"
 import { useVirtualList } from "@vueuse/core"
-import { RouterLink } from "vue-router"
+import { RouterLink, useRouter } from "vue-router"
 import {
   Check,
   ChevronDown,
-  Folder,
   FolderPlus,
   PanelLeft,
   Plus,
@@ -168,10 +173,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
+import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
-import { workspaceName, workspaceScopeLabel } from "@features/session-nav/format.js"
+import { workspaceName } from "@features/session-nav/format.js"
 import { filterSessionsForSearch } from "@features/session-nav/sidebar.js"
 
 defineProps<{
@@ -183,35 +189,48 @@ const emit = defineEmits<{
   toggle: []
 }>()
 
+const router = useRouter()
 const {
   groups,
   listedSessions,
   cardFootById,
-  projectScope,
-  toggleProjectScope,
-  clearProjectScope,
+  grouping,
+  setGrouping,
+  bumpGroup,
+  rowsFor,
   activeWorkspaceId,
   activeSessionId,
-  activeSessionRunning,
+  lastCwd,
   addingWorkspace,
   navError: workspaceError,
   addWorkspace,
   renameSession,
   deleteSession,
 } = useNav()
-const { creating, createSession } = useSession()
+const { creating, createSession, phase } = useSession()
 
 const searchQuery = shallowRef("")
+const searching = computed(() => searchQuery.value.trim() !== "")
 const visibleSessions = computed(() =>
   filterSessionsForSearch(listedSessions.value, searchQuery.value),
 )
+const rows = rowsFor(searching, visibleSessions)
+const groupingLabel = computed(() => (grouping.value === "project" ? "项目" : "更新时间"))
+const showList = computed(() =>
+  searching.value ? rows.value.some((row) => row.kind === "session") : rows.value.length > 0,
+)
 
-/* 卡片 4.875rem + 行间 8px */
-const SESSION_ROW_PX = 86
-const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(visibleSessions, {
-  itemHeight: SESSION_ROW_PX,
+const GROUP_ROW_PX = 32
+const SESSION_ROW_PX = 56
+const MORE_ROW_PX = 34
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(rows, {
+  itemHeight: (index) => {
+    const row = rows.value[index]
+    if (row?.kind === "group") return GROUP_ROW_PX
+    if (row?.kind === "more") return MORE_ROW_PX
+    return SESSION_ROW_PX
+  },
 })
-const scopedGroupName = computed(() => workspaceScopeLabel(projectScope.value))
 
 watch(workspaceError, (message) => {
   const text = message.trim()
@@ -219,38 +238,28 @@ watch(workspaceError, (message) => {
 })
 
 watch(
-  () => [activeSessionId.value, visibleSessions.value] as const,
+  () => [activeSessionId.value, rows.value] as const,
   async () => {
     await nextTick()
     const id = activeSessionId.value
-    const index = visibleSessions.value.findIndex((session) => session.id === id)
+    const index = rows.value.findIndex((row) => row.kind === "session" && row.session.id === id)
     if (index >= 0) scrollTo(index)
   },
 )
 
-/** 筛选到一个目录时用它；多选时优先当前会话 cwd。否则当前会话 cwd 或列表第一项。 */
+/** 打开中会话 cwd → lastCwd；都没有则不在侧栏创建。 */
 const newSessionPath = computed(() => {
-  const paths = groups.value.map((group) => group.canonicalPath)
-  const scoped = projectScope.value.filter((path) => paths.includes(path))
-  if (scoped.length === 1) return scoped[0]
-  if (scoped.length > 1) {
-    const active = activeWorkspaceId.value
-    if (active && scoped.includes(active)) return active
-    return scoped[0]
-  }
-  const active = activeWorkspaceId.value
-  if (active && paths.includes(active)) return active
-  return paths[0]
+  const open = activeWorkspaceId.value
+  if (open) return canonicalizeWorkspacePath(open)
+  return lastCwd.value
 })
-
-function onToggleScope(event: Event, path: string) {
-  event.preventDefault()
-  toggleProjectScope(path)
-}
 
 function onNewSession() {
   const path = newSessionPath.value
-  if (!path) return
+  if (!path) {
+    void router.push("/")
+    return
+  }
   void createSession(path)
 }
 
@@ -344,7 +353,8 @@ html[data-pig-desktop-platform] .session-nav input {
 }
 .collapse-toggle,
 .rail-action,
-.toolbar-icon {
+.toolbar-icon,
+.group-new {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -359,12 +369,14 @@ html[data-pig-desktop-platform] .session-nav input {
 }
 .collapse-toggle:hover,
 .rail-action:hover:not(:disabled),
-.toolbar-icon:hover:not(:disabled) {
+.toolbar-icon:hover:not(:disabled),
+.group-new:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
   color: var(--ink);
 }
 .rail-action:disabled,
-.toolbar-icon:disabled {
+.toolbar-icon:disabled,
+.group-new:disabled {
   opacity: 0.45;
 }
 
@@ -396,14 +408,13 @@ html[data-pig-desktop-platform] .session-nav input {
   overflow-y: hidden;
   scrollbar-gutter: stable;
 }
-.search-row,
-.scope-row {
+.grouping-row {
   display: flex;
   align-items: center;
   gap: 4px;
   min-width: 0;
 }
-.scope-menu {
+.grouping-menu {
   display: flex;
   flex: 1;
   min-width: 0;
@@ -412,7 +423,8 @@ html[data-pig-desktop-platform] .session-nav input {
   margin-left: auto;
 }
 .search-field,
-.scope-trigger {
+.grouping-trigger,
+.new-task {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -430,8 +442,21 @@ html[data-pig-desktop-platform] .session-nav input {
   cursor: text;
   background: color-mix(in srgb, var(--ink) 8%, transparent);
 }
-.scope-trigger:hover {
+.grouping-trigger:hover,
+.new-task:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
+}
+.new-task:disabled {
+  opacity: 0.45;
+}
+.new-task {
+  width: 100%;
+  flex: none;
+  color: var(--ink);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  text-align: left;
 }
 .search-input {
   min-width: 0;
@@ -452,12 +477,12 @@ html[data-pig-desktop-platform] .session-nav input {
 .search-input::-webkit-search-cancel-button {
   display: none;
 }
-.scope-trigger {
+.grouping-trigger {
   width: 100%;
   color: var(--ink);
   text-align: left;
 }
-.scope-label {
+.grouping-label {
   min-width: 0;
   flex: 1;
   overflow: hidden;
@@ -475,6 +500,39 @@ html[data-pig-desktop-platform] .session-nav input {
 }
 .session-list li {
   padding-bottom: var(--spacing-xxs);
+}
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding-inline: 8px;
+}
+.group-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--ink-muted);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.more-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+}
+.more-button:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
 }
 .empty-state {
   display: flex;

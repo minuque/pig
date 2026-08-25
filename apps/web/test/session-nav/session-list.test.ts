@@ -1,22 +1,27 @@
 import { describe, expect, it } from "vitest"
 import type { SessionMetadata } from "@earendil-works/pi-protocol"
+import { formatRelativeTime, sessionTitle, workspaceName } from "@features/session-nav/format.js"
 import {
-  formatRelativeTime,
-  sessionTitle,
-  workspaceName,
-  workspaceScopeLabel,
-} from "@features/session-nav/format.js"
-import {
+  PROJECT_PAGE,
+  UPDATED_PAGE,
+  bumpReveal,
   filterSessionsForSearch,
   groupSessionsByCwd,
   listSessionsForSidebar,
   modelDisplayNames,
-  pruneProjectScope,
   sessionCardFoot,
   sessionModelLabel,
+  sidebarRows,
   sortSessionsForSidebar,
-  toggleProjectScope,
 } from "@features/session-nav/sidebar.js"
+
+function meta(
+  id: string,
+  createdAt: number,
+  extra: Partial<SessionMetadata> = {},
+): SessionMetadata {
+  return { id, createdAt, ...extra }
+}
 
 describe("workspaceName and grouping", () => {
   it("uses the last path segment as display name", () => {
@@ -106,43 +111,17 @@ describe("workspaceName and grouping", () => {
 })
 
 describe("session-dimension list", () => {
-  it("lists all cwd sessions newest-created first when unscoped", () => {
+  it("drops sessions without cwd and sorts by recency", () => {
     const sessions: SessionMetadata[] = [
       { id: "old", createdAt: 1, cwd: "/b", updatedAt: 90 },
       { id: "new", createdAt: 3, cwd: "/a" },
       { id: "mid", createdAt: 2, cwd: "/a", updatedAt: 80 },
       { id: "orphan", createdAt: 4 },
     ]
-    expect(listSessionsForSidebar(sessions, []).map((session) => session.id)).toEqual([
-      "new",
-      "mid",
+    expect(listSessionsForSidebar(sessions).map((session) => session.id)).toEqual([
       "old",
-    ])
-  })
-
-  it("filters to one cwd without changing creation order", () => {
-    const sessions: SessionMetadata[] = [
-      { id: "b", createdAt: 1, cwd: "/b" },
-      { id: "a2", createdAt: 3, cwd: "/a" },
-      { id: "a1", createdAt: 2, cwd: "/a" },
-    ]
-    expect(listSessionsForSidebar(sessions, ["/a"]).map((session) => session.id)).toEqual([
-      "a2",
-      "a1",
-    ])
-  })
-
-  it("filters to several cwds and keeps creation order", () => {
-    const sessions: SessionMetadata[] = [
-      { id: "b", createdAt: 1, cwd: "/b" },
-      { id: "a2", createdAt: 3, cwd: "/a" },
-      { id: "c", createdAt: 4, cwd: "/c" },
-      { id: "a1", createdAt: 2, cwd: "/a" },
-    ]
-    expect(listSessionsForSidebar(sessions, ["/a", "/c"]).map((session) => session.id)).toEqual([
-      "c",
-      "a2",
-      "a1",
+      "mid",
+      "new",
     ])
   })
 
@@ -158,41 +137,154 @@ describe("session-dimension list", () => {
     expect(filterSessionsForSearch(sessions, "PIG").map((session) => session.id)).toEqual(["a"])
   })
 
-  it("treats live Windows cwd and canonical workspace path as the same filter", () => {
-    const sessions: SessionMetadata[] = [
-      { id: "open", createdAt: 2, cwd: "G:\\AICode\\pig" },
-      { id: "other", createdAt: 1, cwd: "/elsewhere" },
-    ]
-    expect(
-      listSessionsForSidebar(sessions, ["g:/AICode/pig"]).map((session) => session.id),
-    ).toEqual(["open"])
-  })
-
-  it("toggles a path into and out of the scope set", () => {
-    expect(toggleProjectScope([], "/a")).toEqual(["/a"])
-    expect(toggleProjectScope(["/a"], "/a")).toEqual([])
-    expect(toggleProjectScope(["g:/AICode/pig"], "G:\\AICode\\pig")).toEqual([])
-    expect(toggleProjectScope(["/a"], "/b")).toEqual(["/a", "/b"])
-  })
-
-  it("drops scoped paths that are no longer in the group list", () => {
-    expect(pruneProjectScope(["/a", "/gone"], ["/a", "/b"])).toEqual(["/a"])
-    expect(pruneProjectScope(["/gone"], ["/a"])).toEqual([])
-  })
-
-  it("labels empty as all, one as the folder name, many as a count", () => {
-    expect(workspaceScopeLabel([])).toBe("全部工作目录")
-    expect(workspaceScopeLabel(["/repo/app"])).toBe("app")
-    expect(workspaceScopeLabel(["/a", "/b"])).toBe("2 个工作目录")
-  })
-
-  it("does not reorder by activity", () => {
+  it("sorts by recency descending then id", () => {
     expect(
       sortSessionsForSidebar([
         { id: "older", createdAt: 1, updatedAt: 100, cwd: "/a" },
         { id: "newer", createdAt: 2, cwd: "/a" },
       ]).map((session) => session.id),
-    ).toEqual(["newer", "older"])
+    ).toEqual(["older", "newer"])
+    expect(
+      sortSessionsForSidebar([
+        { id: "b", createdAt: 5, cwd: "/a" },
+        { id: "a", createdAt: 5, cwd: "/a" },
+      ]).map((session) => session.id),
+    ).toEqual(["a", "b"])
+  })
+})
+
+describe("sidebar rows", () => {
+  it("truncates updated grouping to 10 then a more row", () => {
+    expect(UPDATED_PAGE).toBe(10)
+    const sessions = Array.from({ length: 12 }, (_, index) =>
+      meta(`s${String(index).padStart(2, "0")}`, index, { cwd: "/a" }),
+    )
+    const rows = sidebarRows({
+      grouping: "updated",
+      sessions,
+      groups: [],
+      revealByGroup: {},
+      searching: false,
+    })
+    expect(rows.some((row) => row.kind === "group")).toBe(false)
+    expect(rows.filter((row) => row.kind === "session").map((row) => row.session.id)).toEqual([
+      "s11",
+      "s10",
+      "s09",
+      "s08",
+      "s07",
+      "s06",
+      "s05",
+      "s04",
+      "s03",
+      "s02",
+    ])
+    expect(rows.at(-1)).toEqual({ kind: "more", key: "more:updated", groupKey: "updated" })
+  })
+
+  it("hides updated more when all sessions are revealed", () => {
+    const sessions = Array.from({ length: 12 }, (_, index) =>
+      meta(`s${index}`, index, { cwd: "/a" }),
+    )
+    const rows = sidebarRows({
+      grouping: "updated",
+      sessions,
+      groups: [],
+      revealByGroup: { updated: 20 },
+      searching: false,
+    })
+    expect(rows.filter((row) => row.kind === "session")).toHaveLength(12)
+    expect(rows.some((row) => row.kind === "more")).toBe(false)
+  })
+
+  it("truncates each project group to 5 and keeps empty group headers", () => {
+    expect(PROJECT_PAGE).toBe(5)
+    const aSessions = Array.from({ length: 7 }, (_, index) =>
+      meta(`a${index}`, index, { cwd: "/a" }),
+    )
+    const bSessions = Array.from({ length: 6 }, (_, index) =>
+      meta(`b${index}`, index, { cwd: "/b" }),
+    )
+    const rows = sidebarRows({
+      grouping: "project",
+      sessions: [...aSessions, ...bSessions],
+      groups: [
+        { canonicalPath: "/a", sessions: sortSessionsForSidebar(aSessions) },
+        { canonicalPath: "/empty", sessions: [] },
+        { canonicalPath: "/b", sessions: sortSessionsForSidebar(bSessions) },
+      ],
+      revealByGroup: {},
+      searching: false,
+    })
+    expect(
+      rows.map((row) => {
+        if (row.kind === "group") return `group:${row.canonicalPath}:${row.first}`
+        if (row.kind === "session") return `session:${row.session.id}`
+        return `more:${row.groupKey}`
+      }),
+    ).toEqual([
+      "group:/a:true",
+      "session:a6",
+      "session:a5",
+      "session:a4",
+      "session:a3",
+      "session:a2",
+      "more:/a",
+      "group:/empty:false",
+      "group:/b:false",
+      "session:b5",
+      "session:b4",
+      "session:b3",
+      "session:b2",
+      "session:b1",
+      "more:/b",
+    ])
+  })
+
+  it("shows every session and no more while searching", () => {
+    const sessions = Array.from({ length: 12 }, (_, index) =>
+      meta(`s${index}`, index, { cwd: "/a" }),
+    )
+    const updated = sidebarRows({
+      grouping: "updated",
+      sessions,
+      groups: [],
+      revealByGroup: {},
+      searching: true,
+    })
+    expect(updated.filter((row) => row.kind === "session")).toHaveLength(12)
+    expect(updated.some((row) => row.kind === "more")).toBe(false)
+
+    const aSessions = Array.from({ length: 7 }, (_, index) =>
+      meta(`a${index}`, index, { cwd: "/a" }),
+    )
+    const project = sidebarRows({
+      grouping: "project",
+      sessions: aSessions,
+      groups: [
+        { canonicalPath: "/a", sessions: sortSessionsForSidebar(aSessions) },
+        { canonicalPath: "/empty", sessions: [] },
+      ],
+      revealByGroup: {},
+      searching: true,
+    })
+    expect(project.map((row) => row.kind)).toEqual([
+      "group",
+      "session",
+      "session",
+      "session",
+      "session",
+      "session",
+      "session",
+      "session",
+      "group",
+    ])
+  })
+
+  it("treats a missing reveal count as one page when bumping", () => {
+    expect(bumpReveal(undefined, 10)).toBe(20)
+    expect(bumpReveal(10, 10)).toBe(20)
+    expect(bumpReveal(undefined, 5)).toBe(10)
   })
 })
 

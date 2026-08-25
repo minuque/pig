@@ -11,7 +11,6 @@
     </button>
     <h1 v-if="title" id="current-title">{{ title }}</h1>
     <span v-if="title && cwd" class="header-cwd" :title="cwd">{{ workspaceName(cwd) }}</span>
-    <span v-if="thinkingChip" class="header-chip">{{ thinkingChip }}</span>
     <div class="header-right">
       <p v-if="connecting && !phase" class="session-status" role="status">正在连接…</p>
       <p v-else-if="sessionPending" class="session-status" role="status">正在加载会话…</p>
@@ -52,11 +51,6 @@ const title = computed(() => {
 })
 const cwd = computed(() => (sessionId.value ? composerCwd.value : undefined))
 const running = computed(() => projection.value?.running ?? false)
-const thinkingChip = computed(() => {
-  const level = projection.value?.thinkingLevel
-  if (!level || level.toLowerCase() === "off") return ""
-  return level
-})
 </script>
 
 <style scoped>
@@ -97,21 +91,6 @@ const thinkingChip = computed(() => {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.header-chip {
-  flex: none;
-  max-width: 8rem;
-  padding: 2px 8px;
-  overflow: hidden;
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
-  color: var(--ink-muted);
-  font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-eyebrow--line-height);
-  text-overflow: ellipsis;
-  text-transform: capitalize;
   white-space: nowrap;
 }
 .header-right {

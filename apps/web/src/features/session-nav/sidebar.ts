@@ -8,34 +8,31 @@ export interface SessionGroup {
   sessions: SessionMetadata[]
 }
 
-function sortSessionsByRecency(sessions: SessionMetadata[]): SessionMetadata[] {
-  return [...sessions].sort((a, b) => sessionRecency(b) - sessionRecency(a))
+export type SidebarGrouping = "updated" | "project"
+
+export type SidebarRow =
+  | { kind: "group"; key: string; canonicalPath: string; first: boolean }
+  | { kind: "session"; key: string; session: SessionMetadata }
+  | { kind: "more"; key: string; groupKey: string }
+
+export const UPDATED_PAGE = 10
+export const PROJECT_PAGE = 5
+
+function sessionCwd(session: Pick<SessionMetadata, "cwd">): string | undefined {
+  return session.cwd ? canonicalizeWorkspacePath(session.cwd) : undefined
 }
 
-/**
- * 侧栏会话序：按创建时间新→旧，活动不重排。
- * 对齐 T3 `sortThreadsForSidebar`（createdAt 静态序）。
- */
+/** 侧栏会话序：sessionRecency 新→旧，同分按 id。 */
 export function sortSessionsForSidebar(sessions: readonly SessionMetadata[]): SessionMetadata[] {
   return [...sessions].sort(
-    (left, right) => right.createdAt - left.createdAt || left.id.localeCompare(right.id),
+    (left, right) =>
+      sessionRecency(right) - sessionRecency(left) || left.id.localeCompare(right.id),
   )
 }
 
-/**
- * 会话维列表：无 cwd 的 Session 不进侧栏；scopeCwds 为空即全部工作目录。
- */
-export function listSessionsForSidebar(
-  sessions: readonly SessionMetadata[],
-  scopeCwds: readonly string[],
-): SessionMetadata[] {
-  const scope = new Set(scopeCwds.map(canonicalizeWorkspacePath))
-  return sortSessionsForSidebar(
-    sessions.filter((session) => {
-      const cwd = sessionCwd(session)
-      return cwd !== undefined && (scope.size === 0 || scope.has(cwd))
-    }),
-  )
+/** 会话维列表：无 cwd 的 Session 不进侧栏。 */
+export function listSessionsForSidebar(sessions: readonly SessionMetadata[]): SessionMetadata[] {
+  return sortSessionsForSidebar(sessions.filter((session) => sessionCwd(session) !== undefined))
 }
 
 /** 按标题或目录名过滤侧栏会话，空查询原样返回。 */
@@ -52,29 +49,7 @@ export function filterSessionsForSearch(
   })
 }
 
-/** 勾选/取消一个工作目录；路径先规范化再比较。 */
-export function toggleProjectScope(scoped: readonly string[], path: string): string[] {
-  const canonical = canonicalizeWorkspacePath(path)
-  const current = scoped.map(canonicalizeWorkspacePath)
-  return current.includes(canonical)
-    ? current.filter((item) => item !== canonical)
-    : [...current, canonical]
-}
-
-/** 分组里已经没有的目录从筛选里拿掉。 */
-export function pruneProjectScope(
-  scoped: readonly string[],
-  groupPaths: readonly string[],
-): string[] {
-  const groups = new Set(groupPaths.map(canonicalizeWorkspacePath))
-  return scoped.map(canonicalizeWorkspacePath).filter((path) => groups.has(path))
-}
-
 /** 本地名单在前（含尚无会话的目录）；其余 Pi Session 按 cwd 跟上。组内按最近活动倒序。 */
-function sessionCwd(session: Pick<SessionMetadata, "cwd">): string | undefined {
-  return session.cwd ? canonicalizeWorkspacePath(session.cwd) : undefined
-}
-
 export function groupSessionsByCwd(
   sessions: readonly SessionMetadata[],
   localWorkspaces: readonly string[],
@@ -92,15 +67,79 @@ export function groupSessionsByCwd(
   return [
     ...localPaths.map((canonicalPath) => ({
       canonicalPath,
-      sessions: sortSessionsByRecency(byPath.get(canonicalPath) ?? []),
+      sessions: sortSessionsForSidebar(byPath.get(canonicalPath) ?? []),
     })),
     ...[...byPath]
       .filter(([canonicalPath]) => !local.has(canonicalPath))
       .map(([canonicalPath, groupedSessions]) => ({
         canonicalPath,
-        sessions: sortSessionsByRecency(groupedSessions),
+        sessions: sortSessionsForSidebar(groupedSessions),
       })),
   ]
+}
+
+function appendGroupSessions(
+  rows: SidebarRow[],
+  sessions: readonly SessionMetadata[],
+  groupKey: string,
+  page: number,
+  revealByGroup: Readonly<Record<string, number>>,
+  searching: boolean,
+): void {
+  const limit = searching ? sessions.length : (revealByGroup[groupKey] ?? page)
+  const visible = sessions.slice(0, limit)
+  for (const session of visible) {
+    rows.push({ kind: "session", key: session.id, session })
+  }
+  if (!searching && visible.length < sessions.length) {
+    rows.push({ kind: "more", key: `more:${groupKey}`, groupKey })
+  }
+}
+
+/** 侧栏虚拟列表行：更新时间平铺；项目按 groups 出组头。searching 取消截断。 */
+export function sidebarRows(input: {
+  grouping: SidebarGrouping
+  sessions: readonly SessionMetadata[]
+  groups: readonly SessionGroup[]
+  revealByGroup: Readonly<Record<string, number>>
+  searching: boolean
+}): SidebarRow[] {
+  const { grouping, sessions, groups, revealByGroup, searching } = input
+  if (grouping === "updated") {
+    const rows: SidebarRow[] = []
+    appendGroupSessions(
+      rows,
+      listSessionsForSidebar(sessions),
+      "updated",
+      UPDATED_PAGE,
+      revealByGroup,
+      searching,
+    )
+    return rows
+  }
+  const rows: SidebarRow[] = []
+  for (const [index, group] of groups.entries()) {
+    rows.push({
+      kind: "group",
+      key: group.canonicalPath,
+      canonicalPath: group.canonicalPath,
+      first: index === 0,
+    })
+    appendGroupSessions(
+      rows,
+      group.sessions,
+      group.canonicalPath,
+      PROJECT_PAGE,
+      revealByGroup,
+      searching,
+    )
+  }
+  return rows
+}
+
+/** 缺省视为已露出一页，再加一页。 */
+export function bumpReveal(current: number | undefined, page: number): number {
+  return (current ?? page) + page
 }
 
 /** 协议列表不带的卡片脚注：消息数 + 当前模型。 */

@@ -1,16 +1,42 @@
-import { computed, ref, shallowRef, watch, type Ref } from "vue"
+import { computed, ref, shallowRef, toValue, type MaybeRefOrGetter, type Ref } from "vue"
 import type { Router } from "vue-router"
 import type { SessionMetadata } from "@earendil-works/pi-protocol"
 import { errorMessage, platformRequest } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import {
+  PROJECT_PAGE,
+  UPDATED_PAGE,
+  bumpReveal,
   groupSessionsByCwd,
   listSessionsForSidebar,
-  pruneProjectScope,
-  toggleProjectScope,
+  sidebarRows,
+  type SidebarGrouping,
+  type SidebarRow,
 } from "@features/session-nav/sidebar.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
+
+export const SIDEBAR_GROUPING_KEY = "pig.sidebarGrouping"
+
+function parseGrouping(raw: string | null): SidebarGrouping {
+  return raw === "project" ? "project" : "updated"
+}
+
+function loadGrouping(): SidebarGrouping {
+  try {
+    return parseGrouping(localStorage.getItem(SIDEBAR_GROUPING_KEY))
+  } catch {
+    return "updated"
+  }
+}
+
+function saveGrouping(value: SidebarGrouping): void {
+  try {
+    localStorage.setItem(SIDEBAR_GROUPING_KEY, value)
+  } catch {
+    /* 隐私模式等场景下存储不可用，偏好仅存活于本页 */
+  }
+}
 
 export function useWorkspaceNav(
   sessions: Ref<readonly SessionMetadata[]>,
@@ -26,23 +52,50 @@ export function useWorkspaceNav(
   const addingWorkspace = ref(false)
   const workspaces = local.workspaces
   const groups = computed(() => groupSessionsByCwd(sessions.value, local.workspaces.value))
-  /** 空数组 = 全部工作目录。 */
-  const projectScope = shallowRef<string[]>([])
-  const listedSessions = computed(() => listSessionsForSidebar(sessions.value, projectScope.value))
+  const listedSessions = computed(() => listSessionsForSidebar(sessions.value))
+  const grouping = ref<SidebarGrouping>(loadGrouping())
+  const revealByGroup = shallowRef<Record<string, number>>({})
 
-  watch(groups, (list) => {
-    const next = pruneProjectScope(
-      projectScope.value,
-      list.map((group) => group.canonicalPath),
-    )
-    if (next.length !== projectScope.value.length) projectScope.value = next
-  })
-
-  function toggleScope(path: string) {
-    projectScope.value = toggleProjectScope(projectScope.value, path)
+  function setGrouping(next: SidebarGrouping) {
+    if (next !== grouping.value) {
+      grouping.value = next
+      revealByGroup.value = {}
+    }
+    saveGrouping(next)
   }
-  function clearProjectScope() {
-    projectScope.value = []
+
+  function bumpGroup(groupKey: string) {
+    const page = grouping.value === "updated" ? UPDATED_PAGE : PROJECT_PAGE
+    revealByGroup.value = {
+      ...revealByGroup.value,
+      [groupKey]: bumpReveal(revealByGroup.value[groupKey], page),
+    }
+  }
+
+  function rowsFor(
+    searching: MaybeRefOrGetter<boolean>,
+    filteredSessions?: MaybeRefOrGetter<readonly SessionMetadata[]>,
+  ) {
+    return computed((): SidebarRow[] => {
+      const searchingNow = toValue(searching)
+      const sessionList =
+        filteredSessions === undefined ? listedSessions.value : toValue(filteredSessions)
+      const ids = new Set(sessionList.map((session) => session.id))
+      const groupList =
+        filteredSessions === undefined
+          ? groups.value
+          : groups.value.map((group) => ({
+              canonicalPath: group.canonicalPath,
+              sessions: group.sessions.filter((session) => ids.has(session.id)),
+            }))
+      return sidebarRows({
+        grouping: grouping.value,
+        sessions: sessionList,
+        groups: groupList,
+        revealByGroup: revealByGroup.value,
+        searching: searchingNow,
+      })
+    })
   }
 
   async function addWorkspace() {
@@ -104,9 +157,11 @@ export function useWorkspaceNav(
     workspaces,
     groups,
     listedSessions,
-    projectScope,
-    toggleProjectScope: toggleScope,
-    clearProjectScope,
+    grouping,
+    setGrouping,
+    revealByGroup,
+    bumpGroup,
+    rowsFor,
     addWorkspace,
     renameSession,
     deleteSession,

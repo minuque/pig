@@ -10,78 +10,76 @@
         @blur="commitRename"
       />
     </form>
-    <RouterLink
-      v-else
-      :to="{ name: 'session', params: { sessionId: session.id } }"
-      class="session-card"
-      :class="{ active }"
-      :aria-current="active ? 'page' : undefined"
-      :aria-label="
-        workspaceTitle ? `${sessionTitle(session)}, ${workspaceTitle}` : sessionTitle(session)
-      "
-      @click="onNavigate"
-    >
-      <div class="card-line">
-        <Folder :size="16" class="workspace-mark" aria-hidden="true" />
-        <span v-if="workspaceTitle" class="workspace-title">{{ workspaceTitle }}</span>
-        <span v-else class="card-spacer"></span>
-        <span class="session-meta">
-          <span v-if="running" class="session-status">运行中</span>
-          <template v-else-if="sessionRecency(session)">
-            <Clock :size="12" class="session-clock" aria-hidden="true" />
-            <time class="session-time" :datetime="new Date(sessionRecency(session)).toISOString()">
-              {{ formatRelativeTime(sessionRecency(session)) }}
-            </time>
-          </template>
-        </span>
-      </div>
-      <div class="card-title-line">
-        <span class="title">{{ sessionTitle(session) }}</span>
-      </div>
-      <div class="card-line card-foot">
-        <span class="card-count">{{ messageCount == null ? "" : `${messageCount} 条` }}</span>
-        <span class="card-model">
-          <span class="card-model-name">{{ modelLabel }}</span>
-          <VendorMark v-if="modelProvider" :vendor="modelProvider" :size="13" />
-        </span>
-      </div>
-    </RouterLink>
-    <DropdownMenu>
-      <DropdownMenuTrigger as-child>
-        <button
-          class="icon-button session-kebab"
-          type="button"
-          :aria-label="`操作会话：${sessionTitle(session)}`"
-          @click.stop
+    <ContextMenu v-else :press-open-delay="500" @update:open="onMenuOpenChange">
+      <ContextMenuTrigger as-child>
+        <RouterLink
+          :to="{ name: 'session', params: { sessionId: session.id } }"
+          class="session-card"
+          :class="{ active }"
+          :aria-current="active ? 'page' : undefined"
+          :aria-label="
+            workspaceTitle ? `${sessionTitle(session)}, ${workspaceTitle}` : sessionTitle(session)
+          "
+          @click="onCardClick"
+          @keydown="onCardKeydown"
         >
-          <MoreHorizontal :size="16" aria-hidden="true" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" class="select-none" :side-offset="6">
-        <DropdownMenuItem @select="startRename">
+          <div class="card-line card-head">
+            <span class="title">{{ sessionTitle(session) }}</span>
+            <span class="session-meta">
+              <Spinner v-if="running" :size="12" class="session-spinner" aria-hidden="true" />
+              <template v-else-if="sessionRecency(session)">
+                <Clock :size="12" class="session-clock" aria-hidden="true" />
+                <time
+                  class="session-time"
+                  :datetime="new Date(sessionRecency(session)).toISOString()"
+                >
+                  {{ formatRelativeTime(sessionRecency(session)) }}
+                </time>
+              </template>
+            </span>
+          </div>
+          <div class="card-line card-foot">
+            <span v-if="grouping === 'updated'" class="card-project">
+              <Folder :size="16" class="workspace-mark" aria-hidden="true" />
+              <span v-if="workspaceTitle" class="workspace-title">{{ workspaceTitle }}</span>
+            </span>
+            <span v-else class="card-count">{{
+              messageCount == null ? "" : `${messageCount} 条`
+            }}</span>
+            <span class="card-model">
+              <span class="card-model-name">{{ modelLabel }}</span>
+              <VendorMark v-if="modelProvider" :vendor="modelProvider" :size="13" />
+            </span>
+          </div>
+        </RouterLink>
+      </ContextMenuTrigger>
+      <ContextMenuContent class="select-none">
+        <ContextMenuItem @select="startRename">
           <Pencil :size="14" aria-hidden="true" />
           重命名
-        </DropdownMenuItem>
-        <DropdownMenuItem variant="destructive" @select="onDelete">
+        </ContextMenuItem>
+        <ContextMenuItem variant="destructive" @select="onDelete">
           <Trash2 :size="14" aria-hidden="true" />
           删除
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   </div>
 </template>
 
 <script setup lang="ts">
 import { nextTick, ref } from "vue"
-import { Clock, Folder, MoreHorizontal, Pencil, Trash2 } from "lucide-vue-next"
+import { Clock, Folder, Pencil, Trash2 } from "lucide-vue-next"
 import type { SessionMetadata } from "@earendil-works/pi-protocol"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@components/ui/context-menu/index.js"
+import { Spinner } from "@components/ui/spinner/index.js"
 import { formatRelativeTime, sessionRecency, sessionTitle } from "@features/session-nav/format.js"
+import type { SidebarGrouping } from "@features/session-nav/sidebar.js"
 import VendorMark from "@features/chat-input/components/VendorMark.vue"
 
 const props = withDefaults(
@@ -90,12 +88,14 @@ const props = withDefaults(
     workspaceTitle?: string
     active?: boolean
     running?: boolean
+    grouping?: SidebarGrouping
     messageCount?: number | null
     modelLabel?: string
     modelProvider?: string
   }>(),
   {
     workspaceTitle: "",
+    grouping: "updated",
     messageCount: null,
     modelLabel: "",
     modelProvider: "",
@@ -111,9 +111,34 @@ const emit = defineEmits<{
 const renaming = ref(false)
 const draft = ref("")
 const nameInput = ref<HTMLInputElement | null>(null)
+const menuOpen = ref(false)
 
-function onNavigate() {
+function onMenuOpenChange(open: boolean) {
+  menuOpen.value = open
+}
+function onCardClick(event: MouseEvent) {
+  if (menuOpen.value) {
+    event.preventDefault()
+    event.stopPropagation()
+    return
+  }
   emit("navigate")
+}
+function onCardKeydown(event: KeyboardEvent) {
+  if (event.key !== "F10" || !event.shiftKey) return
+  event.preventDefault()
+  const el = event.currentTarget
+  if (!(el instanceof HTMLElement)) return
+  const rect = el.getBoundingClientRect()
+  el.dispatchEvent(
+    new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.left + 8,
+      clientY: rect.top + 8,
+      view: window,
+    }),
+  )
 }
 function startRename() {
   draft.value = sessionTitle(props.session)
@@ -147,9 +172,10 @@ function onDelete() {
 .rename-form {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
+  gap: 0;
   min-width: 0;
-  height: 4.875rem;
+  height: 52px;
   padding: 8px 10px;
   border-radius: var(--radius-md);
   background: transparent;
@@ -157,7 +183,7 @@ function onDelete() {
   text-decoration: none;
 }
 .session-item:hover .session-card,
-.session-item:has(.session-kebab[aria-expanded="true"]) .session-card {
+.session-card[data-state="open"] {
   background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 .session-card.active {
@@ -173,7 +199,19 @@ function onDelete() {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  height: 20px;
+  height: 18px;
+}
+.card-head,
+.card-foot {
+  justify-content: space-between;
+  gap: 8px;
+}
+.card-project {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
 }
 .workspace-title {
   min-width: 0;
@@ -186,20 +224,6 @@ function onDelete() {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.card-spacer {
-  flex: 1;
-  min-width: 0;
-}
-.card-title-line {
-  display: flex;
-  min-width: 0;
-  margin-top: 4px;
-}
-.card-foot {
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 2px;
-}
 .card-count,
 .card-model {
   min-width: 0;
@@ -209,7 +233,7 @@ function onDelete() {
   white-space: nowrap;
 }
 .card-count {
-  flex: none;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -253,15 +277,15 @@ function onDelete() {
 .session-item:hover .title,
 .session-item:hover .workspace-mark,
 .session-item:hover .card-model-name,
-.session-item:has(.session-kebab[aria-expanded="true"]) .title,
-.session-item:has(.session-kebab[aria-expanded="true"]) .workspace-mark,
-.session-item:has(.session-kebab[aria-expanded="true"]) .card-model-name,
+.session-card[data-state="open"] .title,
+.session-card[data-state="open"] .workspace-mark,
+.session-card[data-state="open"] .card-model-name,
 .session-card.active .title,
 .session-card.active .card-model-name {
   color: var(--ink);
 }
 .session-item:hover .card-model :deep(.vendor-mark),
-.session-item:has(.session-kebab[aria-expanded="true"]) .card-model :deep(.vendor-mark),
+.session-card[data-state="open"] .card-model :deep(.vendor-mark),
 .session-card.active .card-model :deep(.vendor-mark) {
   filter: none;
   color: var(--ink);
@@ -274,9 +298,9 @@ function onDelete() {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  transition: opacity var(--duration-fast) var(--ease-smooth);
 }
-.session-clock {
+.session-clock,
+.session-spinner {
   flex: none;
   color: var(--ink-faint);
 }
@@ -287,11 +311,6 @@ function onDelete() {
   font-weight: var(--font-weight-regular);
   line-height: 16px;
   white-space: nowrap;
-}
-.session-status {
-  color: var(--accent-orange-deep);
-  font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-semibold);
 }
 .rename-form {
   justify-content: center;
@@ -308,32 +327,5 @@ function onDelete() {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   user-select: text;
-}
-.session-kebab {
-  position: absolute;
-  z-index: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: var(--size-nav-action);
-  min-height: var(--size-nav-action);
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--on-primary);
-  opacity: 0;
-}
-.session-item .session-kebab {
-  top: 2px;
-  right: 2px;
-}
-.session-item:hover .session-meta,
-.session-item:has(.session-kebab[aria-expanded="true"]) .session-meta {
-  opacity: 0;
-}
-.session-item:hover > .session-kebab,
-.session-kebab:focus-visible,
-.session-kebab[aria-expanded="true"] {
-  opacity: 1;
 }
 </style>
