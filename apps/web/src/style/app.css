@@ -540,10 +540,19 @@ small,
   }
 }
 
-/* 公共滚动条：细、透明轨、不占 gutter */
+/* 公共滚动条：默认隐藏，容器 hover 淡入，离开淡出 */
+@property --scrollbar-thumb {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0000;
+}
 * {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--ink) 22%, transparent) transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  transition: --scrollbar-thumb var(--duration-slow) var(--ease-out);
+}
+*:hover {
+  --scrollbar-thumb: color-mix(in srgb, var(--ink) 22%, transparent);
 }
 *::-webkit-scrollbar {
   width: 6px;
@@ -553,11 +562,21 @@ small,
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--ink) 22%, transparent);
+  background: var(--scrollbar-thumb);
   border-radius: var(--radius-full);
 }
 *::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--ink) 36%, transparent);
+}
+@media (pointer: coarse) {
+  * {
+    --scrollbar-thumb: color-mix(in srgb, var(--ink) 22%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: --scrollbar-thumb 0s;
+  }
 }
 
 /* 桌面壳：平台 rail / 输入卡毛玻璃 / 模态时取消拖拽 */

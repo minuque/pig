@@ -386,12 +386,6 @@ html[data-pig-desktop-platform] .session-nav input {
   overflow: auto;
   scrollbar-gutter: stable;
 }
-.session-nav:not(:hover) .nav-body {
-  scrollbar-color: transparent transparent;
-}
-.session-nav:not(:hover) .nav-body::-webkit-scrollbar-thumb {
-  background: transparent;
-}
 
 .nav-toolbar {
   display: flex;

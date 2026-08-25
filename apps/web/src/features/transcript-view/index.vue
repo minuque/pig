@@ -635,22 +635,7 @@ onBeforeUnmount(() => {
   padding-top: var(--spacing-lg);
   padding-bottom: calc(var(--chat-input-space, 168px) + var(--spacing-md));
   overscroll-behavior: contain;
-  scrollbar-width: thin;
   scrollbar-gutter: stable;
-  scrollbar-color: var(--hairline) transparent;
-}
-.transcript::-webkit-scrollbar {
-  width: 8px;
-}
-.transcript::-webkit-scrollbar-track {
-  background: transparent;
-}
-.transcript::-webkit-scrollbar-thumb {
-  background: var(--hairline);
-  border-radius: var(--radius-full);
-}
-.transcript::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-muted);
 }
 /* 内容宽度约束：由每个虚拟行继承，替代原 transcript-content 的宽度盒 */
 .transcript :deep(.markstream-virtual-timeline__item) {
