@@ -16,7 +16,6 @@ export default tseslint.config(
       ".worktrees/**",
       "playwright-report/**",
       "test-results/**",
-      "e2e-report/**",
     ],
   },
   {

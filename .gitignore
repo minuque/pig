@@ -146,7 +146,6 @@ vite.config.ts.timestamp-*
 # Browser e2e artifacts
 playwright-report/
 test-results/
-e2e-report/
 .smoke-ui/
 
 # agents config files

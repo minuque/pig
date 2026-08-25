@@ -8,7 +8,7 @@ pnpm workspace：
 - `apps/desktop/` — Electron main / preload
 - `packages/gateway/` — Thin Host：平台接入与本地安全
 
-浏览器 UI 旅程在仓库根 `e2e/`（Playwright，跨 Web 构建物与 Gateway），不是 `apps/web/test/` 的模块单测。`pnpm test:e2e` 写出 `playwright-report/`（调试）和 `e2e-report/latest/`（验收单）。
+浏览器 UI 旅程在仓库根 `e2e/`（Playwright，跨 Web 构建物与 Gateway），不是 `apps/web/test/` 的模块单测。`pnpm test:e2e` 写出 `playwright-report/`。
 
 ## apps/web/src
 

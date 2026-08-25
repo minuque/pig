@@ -21,10 +21,8 @@ export default defineConfig({
       {
         open: "never",
         outputFolder: resolve(root, "playwright-report"),
-        title: "pig UI 验收",
       },
     ],
-    [resolve(root, "e2e/reporter.ts")],
   ],
   use: {
     ...devices["Desktop Chrome"],
