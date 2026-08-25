@@ -43,17 +43,20 @@ const { isDark } = useColorScheme()
 const text = computed(() => transcriptText(props.item))
 const thinking = computed(() => assistantThinking(props.item))
 
+const codeBlockOptions = { fontSize: 14 } as const
 const agentMarkdown = computed(() => {
   const shared = {
     customId: "chat",
     mode: "chat",
     fade: false,
     isDark: isDark.value,
+    codeBlockOptions,
     codeBlockProps: {
       showHeader: true,
       showCopyButton: true,
       showCollapseButton: true,
       showExpandButton: true,
+      theme: "dark-plus",
     },
   } as const
   const timeline = props.timelineMarkdown
@@ -85,6 +88,8 @@ const thinkProps = computed(
       typewriter: false,
       smoothStreaming: false,
       isDark: isDark.value,
+      codeBlockOptions,
+      codeBlockProps: { theme: "dark-plus" },
     }) as const,
 )
 </script>
