@@ -26,6 +26,7 @@ export interface ContextUsageSegment {
   label: string
   tokens: number
   color: string
+  previewable: boolean
 }
 
 export interface ContextUsage {
@@ -44,21 +45,28 @@ export function shouldShowComposerMeta(
 }
 
 const SEGMENT_DEFS = [
-  { id: "systemPrompt" as const, label: "系统提示词", color: "var(--primary)" },
-  { id: "memory" as const, label: "记忆", color: "var(--accent-dusk)" },
-  { id: "skills" as const, label: "Skills", color: "var(--accent-twilight)" },
-  { id: "tools" as const, label: "Tool 定义", color: "var(--accent-sunset)" },
-  { id: "toolResults" as const, label: "Tool 结果", color: "var(--accent-orange)" },
+  { id: "systemPrompt" as const, label: "系统提示词", color: "var(--primary)", previewable: true },
+  { id: "memory" as const, label: "记忆", color: "var(--accent-dusk)", previewable: true },
+  { id: "skills" as const, label: "Skills", color: "var(--accent-twilight)", previewable: true },
+  { id: "tools" as const, label: "Tool 定义", color: "var(--accent-sunset)", previewable: true },
+  {
+    id: "toolResults" as const,
+    label: "Tool 结果",
+    color: "var(--accent-orange)",
+    previewable: true,
+  },
   {
     id: "conversation" as const,
     label: "当前会话上下文",
     color: "var(--accent-green)",
+    previewable: true,
   },
-  { id: "other" as const, label: "其他", color: "var(--accent-breeze)" },
+  { id: "other" as const, label: "其他", color: "var(--accent-breeze)", previewable: false },
   {
     id: "idle" as const,
     label: "空闲",
     color: "color-mix(in srgb, var(--ink) 12%, transparent)",
+    previewable: false,
   },
 ]
 
@@ -91,6 +99,7 @@ export function projectContextUsage(
       label: def.label,
       tokens: Math.max(0, estimate.segments[def.id]),
       color: def.color,
+      previewable: def.previewable,
     })),
   }
 }
@@ -100,15 +109,6 @@ export function segmentShare(tokens: number, window: number): number {
   return Math.min(100, (tokens / window) * 100)
 }
 
-const PREVIEWABLE = new Set<ContextUsageSegment["id"]>([
-  "systemPrompt",
-  "memory",
-  "skills",
-  "tools",
-  "toolResults",
-  "conversation",
-])
-
-export function canPreviewSegment(id: ContextUsageSegment["id"]): boolean {
-  return PREVIEWABLE.has(id)
+export function contextUsageSummary(usage: ContextUsage): string {
+  return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} token`
 }

@@ -25,7 +25,7 @@
       <ul v-if="usage.segments.length" class="legend">
         <li v-for="segment in usage.segments" :key="segment.id">
           <button
-            v-if="sessionId && canPreviewSegment(segment.id)"
+            v-if="sessionId && segment.previewable"
             type="button"
             class="legend-row legend-row--button"
             @click="openPreview(segment)"
@@ -60,12 +60,6 @@
 </template>
 
 <script lang="ts">
-import type { ContextUsage } from "@features/chat-input/lib/context-usage.js"
-
-export function contextUsageSummary(usage: ContextUsage): string {
-  return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} token`
-}
-
 export function contextPreviewPath(sessionId: string, segmentId: string): string {
   return `/api/v1/platform/context-usage?sessionId=${encodeURIComponent(sessionId)}&preview=${encodeURIComponent(segmentId)}`
 }
@@ -77,9 +71,10 @@ import { X } from "lucide-vue-next"
 import { platformRequest } from "@client/http.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import {
-  canPreviewSegment,
+  contextUsageSummary,
   formatTokenCount,
   segmentShare,
+  type ContextUsage,
   type ContextUsageSegment,
 } from "@features/chat-input/lib/context-usage.js"
 

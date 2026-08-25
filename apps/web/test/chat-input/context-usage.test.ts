@@ -1,17 +1,14 @@
 import { describe, expect, it } from "vitest"
 import {
-  canPreviewSegment,
   contextUsagePercent,
+  contextUsageSummary,
   formatTokenCount,
   projectContextUsage,
   segmentShare,
   shouldShowComposerMeta,
   type ContextUsageEstimate,
 } from "@features/chat-input/lib/context-usage.js"
-import {
-  contextPreviewPath,
-  contextUsageSummary,
-} from "@features/chat-input/components/ContextUsagePanel.vue"
+import { contextPreviewPath } from "@features/chat-input/components/ContextUsagePanel.vue"
 import {
   composerCwdLabel,
   contextUsageAriaLabel,
@@ -105,8 +102,11 @@ describe("composer meta / panel copy", () => {
   })
 
   it("可预览分段点进占用接口", () => {
-    expect(canPreviewSegment("conversation")).toBe(true)
-    expect(canPreviewSegment("idle")).toBe(false)
+    const projected = projectContextUsage(estimate())!
+    expect(projected.segments.find((segment) => segment.id === "conversation")?.previewable).toBe(
+      true,
+    )
+    expect(projected.segments.find((segment) => segment.id === "idle")?.previewable).toBe(false)
     expect(contextPreviewPath("s1", "skills")).toBe(
       "/api/v1/platform/context-usage?sessionId=s1&preview=skills",
     )
