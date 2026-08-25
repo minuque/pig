@@ -97,27 +97,22 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-  --radius-shell: 0px;
   --radius-full: 9999px;
 
   /* Sizes */
   --size-control: 40px; /* buttons, icon buttons */
   --size-resizer: 6px; /* panel divider width */
-  --size-kebab: 28px; /* session 卡片操作按钮 */
   --size-menu: 140px; /* kebab 下拉菜单最小宽度 */
   --size-sidebar: 280px; /* left panel width */
   --size-sidebar-rail: 56px;
   --size-sidebar-rail-mac: 90px;
   --titlebar-inset: 44px;
   --size-windows-caption: 138px;
-  --size-context: 300px; /* right panel width */
   --size-drawer: 360px; /* mobile drawer width */
   --size-content: 45.75rem; /* 732px Transcript 正文，居中 */
   --size-composer: 46.75rem; /* 748px 输入卡，正文每侧内收 8px */
   --size-modal: 32rem; /* dialog max width */
-  --size-welcome: 45rem;
   --size-nav-action: 28px;
-  --size-candidate-list: 300px;
 
   /* Font weights — DESIGN.md roles: 400/500/600/700 */
   --font-weight-regular: 400;
@@ -153,8 +148,6 @@
   --shadow-soft:
     0 0.175px 1.041px rgba(0, 0, 0, 0.01), 0 0.8px 2.925px rgba(0, 0, 0, 0.02),
     0 2.025px 7.847px rgba(0, 0, 0, 0.027), 0 4px 18px rgba(0, 0, 0, 0.04);
-  --shadow-card:
-    0 1px 2px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
   --shadow-elevated:
     0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 12px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02),
     0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
@@ -201,9 +194,6 @@
   --shadow-soft:
     0 0.175px 1.041px rgba(0, 0, 0, 0.3), 0 0.8px 2.925px rgba(0, 0, 0, 0.3),
     0 2.025px 7.847px rgba(0, 0, 0, 0.32), 0 4px 18px rgba(0, 0, 0, 0.4);
-  --shadow-card:
-    0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.25),
-    0 0 0 0.5px rgba(255, 255, 255, 0.07); /* hairline ring 反相为微亮 */
   --shadow-elevated:
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
@@ -215,7 +205,6 @@
   --glass-surface: var(--composer);
 }
 
-/* DeepWiki 风格的双向对角主题揭幕；旧快照保持静止，只裁切新主题。 */
 ::view-transition-group(root) {
   animation-duration: 700ms;
   animation-timing-function: var(--ease-smooth);
@@ -394,13 +383,6 @@ h1,
 h2,
 p {
   overflow-wrap: anywhere;
-}
-h1 {
-  margin: var(--spacing-xxs) 0;
-  font-size: clamp(var(--text-title), 2vw, var(--text-heading-2));
-}
-h2 {
-  font-size: var(--text-body-md);
 }
 select,
 textarea {
@@ -654,6 +636,9 @@ html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
   --ms-leading-h1: 1.27;
   --ms-leading-h2: 1.4;
   --ms-leading-h3: 1.43;
+  --ms-weight-h1: var(--font-weight-semibold);
+  --ms-weight-h2: var(--font-weight-semibold);
+  --ms-weight-h3: var(--font-weight-semibold);
   --ms-flow-heading-1-mt: 0.35em;
   --ms-flow-heading-1-mb: 0.65em;
   --ms-flow-heading-2-mt: 1.25em;
@@ -665,7 +650,6 @@ html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
   --ms-flow-list-item-y: 0.38em;
   --ms-flow-list-indent: 1.65em;
   --ms-flow-codeblock-y: 0.75em;
-  --ms-flow-diagram-y: 0.75em;
   --ms-flow-table-y: 1em;
   --ms-flow-table-cell: 0.7em 1em;
   --ms-flow-blockquote-y: 0.45em;
@@ -706,130 +690,7 @@ html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
   --ms-shadow-modal: var(--shadow-modal);
   --ms-shadow-preview: var(--shadow-modal);
 }
-[data-custom-id="chat"] button {
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: inherit;
-  box-shadow: none;
-}
-[data-custom-id="chat"] button:not(:disabled):active {
-  transform: none;
-}
-/* 全局 h1 { clamp(title, 2vw, heading-2) } 会压过包内 heading 字号 */
-[data-custom-id="chat"] h1 {
-  margin-top: var(--ms-flow-heading-1-mt);
-  margin-bottom: var(--ms-flow-heading-1-mb);
-  font-size: var(--ms-text-h1);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--ms-leading-h1);
-}
-[data-custom-id="chat"] h2 {
-  margin-top: var(--ms-flow-heading-2-mt);
-  margin-bottom: var(--ms-flow-heading-2-mb);
-  font-size: var(--ms-text-h2);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--ms-leading-h2);
-}
-[data-custom-id="chat"] h3 {
-  margin-top: var(--ms-flow-heading-3-mt);
-  margin-bottom: var(--ms-flow-heading-3-mb);
-  font-size: var(--ms-text-h3);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--ms-leading-h3);
-}
-[data-custom-id="chat"] p {
-  margin: var(--ms-flow-paragraph-y) 0;
-  line-height: var(--ms-leading-body);
-}
-[data-custom-id="chat"] a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-}
-[data-custom-id="chat"] ol {
-  list-style: decimal outside;
-  padding-inline-start: var(--ms-flow-list-indent);
-  margin: var(--ms-flow-list-y) 0;
-}
-[data-custom-id="chat"] ul {
-  list-style: disc outside;
-  padding-inline-start: var(--ms-flow-list-indent);
-  margin: var(--ms-flow-list-y) 0;
-}
-[data-custom-id="chat"] :is(ul, ol) :is(ul, ol) {
-  margin-block: 0.15em;
-}
-[data-custom-id="chat"] li {
-  margin: var(--ms-flow-list-item-y) 0;
-  line-height: var(--ms-leading-body);
-}
-[data-custom-id="chat"] li::marker {
-  color: var(--ink-muted);
-}
-[data-custom-id="chat"] li > p {
-  margin: 0.15em 0;
-}
-[data-custom-id="chat"] li > p:first-child {
-  margin-top: 0;
-}
-[data-custom-id="chat"] li > p:last-child {
-  margin-bottom: 0;
-}
-/* 任务列表不要负 margin，避免虚拟行把勾选标记裁掉 */
+/* 官方 li:has(.checkbox-node) 用负 margin，虚拟行会裁掉勾选标记 */
 [data-custom-id="chat"] li:has(.checkbox-node) {
-  list-style: none;
   margin-inline-start: 0;
-}
-[data-custom-id="chat"] table {
-  width: 100%;
-  margin: var(--ms-flow-table-y) 0;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: inherit;
-}
-[data-custom-id="chat"] th,
-[data-custom-id="chat"] td {
-  padding: var(--ms-flow-table-cell);
-  border: 0;
-  border-bottom: var(--border-width) solid var(--hairline);
-  text-align: left;
-  vertical-align: top;
-}
-[data-custom-id="chat"] th {
-  color: var(--ink-muted);
-  font-weight: var(--font-weight-medium);
-}
-[data-custom-id="chat"] td {
-  color: var(--ink);
-}
-[data-custom-id="chat"] tbody tr:last-child > :is(th, td) {
-  border-bottom: 0;
-}
-[data-custom-id="chat"] pre {
-  margin: var(--ms-flow-codeblock-y) 0;
-  padding: var(--spacing-sm);
-  overflow: auto;
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: var(--canvas-soft);
-  color: var(--ink-secondary);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 1.5;
-}
-[data-custom-id="chat"] :not(pre) > code {
-  padding: 1px 7px;
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-full);
-  background: var(--canvas-soft);
-  color: var(--ink-secondary);
-  font-family: var(--font-mono);
-  font-size: 14px;
-}
-[data-custom-id="chat"] :is(.cm-editor, .cm-content) {
-  font-size: 14px;
 }
