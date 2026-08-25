@@ -2,7 +2,7 @@
   <section class="empty-canvas enter-blur" aria-labelledby="session-hero-title">
     <div class="empty-canvas-form">
       <WorkbenchHero
-        :workspace-id="heroCwd"
+        :workspace-id="cwd"
         title-id="session-hero-title"
         :workspaces="workspaces"
         :selectable="false"
@@ -13,7 +13,7 @@
         :catalog="catalog"
         :phase="phase"
         :error="sessionError"
-        :cwd="composerCwd"
+        :cwd="cwd"
         :usage="contextUsage"
         :session-id="sessionId"
         @send="submitText"
@@ -37,14 +37,12 @@ const {
   prompt,
   preset,
   catalog,
-  projection,
   sessionError,
   submitText,
 } = useSession()
 const { workspaces, activeWorkspaceId, lastCwd } = useNav()
 
-const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value)
-const composerCwd = computed(() => projection.value?.cwd ?? heroCwd.value)
+const cwd = computed(() => activeWorkspaceId.value ?? lastCwd.value)
 const contextUsage = computed(() => projectContextUsage(contextUsageEstimate.value))
 </script>
 

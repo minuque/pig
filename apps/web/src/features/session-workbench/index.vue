@@ -2,23 +2,23 @@
   <WorkbenchHeader />
   <StartupError v-if="pageError" v-bind="pageError" />
 
-  <!-- 无 session：选目录并创建 -->
+  <!-- 1. 无 session -->
   <SessionWelcome v-else-if="!sessionId" />
 
   <div v-else class="session-stage">
     <SessionLoading v-if="sessionLoading" />
 
-    <!-- 空会话：居中画布 -->
+    <!-- 2. 空会话 -->
     <SessionEmptyCanvas v-if="emptyCanvas" />
 
-    <!-- 有 transcript：对话列 -->
+    <!-- 3. 有 transcript：对话列 -->
     <TranscriptView
       v-else-if="!sessionPending"
       ref="transcriptView"
       :session-id="sessionId"
       :transcript="transcript"
       :phase="phase"
-      :thread-state="clientState?.threadState ?? null"
+      :thread-state="threadState"
       :has-earlier="hasEarlier"
       :loading-earlier="loadingEarlier"
       @thread-state="applyThreadState"
@@ -95,7 +95,6 @@ const {
   prompt,
   preset,
   catalog,
-  projection,
   sessionError,
   submitText,
   loadEarlier,
@@ -132,8 +131,8 @@ const hasEarlier = computed(() =>
     earlierExhausted.value,
   ),
 )
-const heroCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value)
-const composerCwd = computed(() => projection.value?.cwd ?? heroCwd.value)
+const threadState = computed(() => clientState.value?.threadState ?? null)
+const composerCwd = computed(() => activeWorkspaceId.value ?? lastCwd.value)
 const contextUsage = computed(() => projectContextUsage(contextUsageEstimate.value))
 
 const transcriptView = useTemplateRef<{
