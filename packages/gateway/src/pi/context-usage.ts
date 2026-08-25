@@ -85,11 +85,25 @@ function countMessage(message: object): number {
   }
 }
 
+// ponytail: 预览截到 12 万字，全文塞进 JSON/DOM 会卡渲染线程。
+const PREVIEW_MAX_CHARS = 120_000
+
 function finishPreview(key: ContextPreviewKey, chunks: string[]): ContextUsagePreview {
+  let total = 0
+  const kept: string[] = []
+  for (const chunk of chunks) {
+    if (total >= PREVIEW_MAX_CHARS) break
+    kept.push(chunk)
+    total += chunk.length + 2
+  }
+  let content = kept.join("\n\n") || PREVIEW_META[key].empty
+  if (chunks.length > kept.length || content.length > PREVIEW_MAX_CHARS) {
+    content = `${content.slice(0, PREVIEW_MAX_CHARS)}\n\n…（后续已截断）`
+  }
   return {
     key,
     title: PREVIEW_META[key].title,
-    content: chunks.join("\n\n") || PREVIEW_META[key].empty,
+    content,
   }
 }
 

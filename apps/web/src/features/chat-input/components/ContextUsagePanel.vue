@@ -66,7 +66,14 @@
           <Spinner :size="24" aria-hidden="true" />
           <span class="sr-only">正在加载预览</span>
         </div>
-        <MarkdownRender v-else-if="previewBody" v-bind="previewMarkdown" :content="previewBody" />
+        <div v-else-if="previewVirtual" class="preview-virtual" v-bind="containerProps">
+          <div v-bind="wrapperProps">
+            <pre v-for="item in list" :key="item.index" class="preview-line">{{ item.data }}</pre>
+          </div>
+        </div>
+        <div v-else-if="previewBody" class="preview-markdown">
+          <MarkdownRender v-bind="previewMarkdown" :content="previewBody" />
+        </div>
       </div>
     </DialogContent>
   </Dialog>
@@ -80,11 +87,16 @@ export function contextPreviewPath(sessionId: string, segmentId: string): string
 
 <script setup lang="ts">
 import { computed, nextTick, ref } from "vue"
+import { useVirtualList } from "@vueuse/core"
 import { X } from "lucide-vue-next"
 import MarkdownRender from "markstream-vue"
 import { platformRequest } from "@client/http.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
+import {
+  shouldVirtualizeMarkdown,
+  splitLines,
+} from "@features/transcript-view/lib/expandable-text.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import {
   contextUsageSummary,
@@ -111,6 +123,13 @@ const previewTitle = ref("")
 const previewBody = ref("")
 const previewPane = ref<HTMLElement>()
 let previewRequest = 0
+const previewLines = computed(() => splitLines(previewBody.value))
+const previewVirtual = computed(() => shouldVirtualizeMarkdown(previewBody.value))
+const PREVIEW_LINE_PX = 21
+const { list, containerProps, wrapperProps } = useVirtualList(previewLines, {
+  itemHeight: PREVIEW_LINE_PX,
+  overscan: 12,
+})
 const previewMarkdown = computed(
   () =>
     ({
@@ -295,9 +314,11 @@ function onOpenAutoFocus(event: Event) {
   text-align: end;
 }
 .preview-body {
+  display: flex;
+  flex-direction: column;
   min-height: 0;
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   color: var(--ink);
   font-size: 15px;
   line-height: 1.7;
@@ -305,9 +326,28 @@ function onOpenAutoFocus(event: Event) {
 .preview-body:focus {
   outline: none;
 }
+.preview-status,
+.preview-virtual,
+.preview-markdown {
+  min-height: 0;
+  flex: 1;
+}
 .preview-status {
   display: grid;
   place-items: center;
-  min-height: 100%;
+}
+.preview-virtual,
+.preview-markdown {
+  overflow: auto;
+}
+.preview-line {
+  margin: 0;
+  min-height: 21px;
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 21px;
+  white-space: pre;
+  tab-size: 2;
 }
 </style>
