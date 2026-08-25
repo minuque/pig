@@ -92,6 +92,17 @@
   border-radius: var(--ms-radius);
 }
 
+/* pre 带 z-index:2 且与 header 同层，会盖住绝对定位的 more 菜单。 */
+[data-custom-id="chat"] .code-block-header {
+  z-index: 10;
+}
+
+/* 菜单溢出卡片后，后续 Markdown 节点会按 DOM 顺序盖上来。 */
+[data-custom-id="chat"] .code-block-container:has(.code-more-menu) {
+  position: relative;
+  z-index: 1;
+}
+
 /* contain:content 按矩形裁切，会吃掉 overflow:hidden + border-radius 的圆角。 */
 [data-custom-id="chat"] .code-block-shell-content,
 [data-custom-id="chat"] .code-loading-placeholder {
