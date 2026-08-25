@@ -1,0 +1,88 @@
+/* markstream 聊天文档：挂在 data-custom-id=chat（与 .markstream-vue 同元素）。
+   色值只引用 DESIGN token，深色随 .dark 走。 */
+[data-custom-id="chat"] {
+  --ms-font-sans: var(--font-sans);
+  --ms-font-mono: var(--font-mono);
+  --ms-text-body: 15px;
+  --ms-leading-body: 1.7;
+  --ms-text-h1: var(--text-heading-3);
+  --ms-text-h2: var(--text-title);
+  --ms-text-h3: var(--text-body-md);
+  --ms-text-h4: var(--text-body-md);
+  --ms-text-h5: var(--text-caption);
+  --ms-text-h6: var(--text-caption);
+  --ms-leading-h1: 1.27;
+  --ms-leading-h2: 1.4;
+  --ms-leading-h3: 1.43;
+  --ms-weight-h1: var(--font-weight-semibold);
+  --ms-weight-h2: var(--font-weight-semibold);
+  --ms-weight-h3: var(--font-weight-semibold);
+  --ms-flow-heading-1-mt: 0.35em;
+  --ms-flow-heading-1-mb: 0.65em;
+  --ms-flow-heading-2-mt: 1.25em;
+  --ms-flow-heading-2-mb: 0.5em;
+  --ms-flow-heading-3-mt: 1em;
+  --ms-flow-heading-3-mb: 0.4em;
+  --ms-flow-paragraph-y: 0.7em;
+  --ms-flow-list-y: 0.55em;
+  --ms-flow-list-item-y: 0.38em;
+  --ms-flow-list-indent: 1.65em;
+  --ms-flow-codeblock-y: 0.75em;
+  --ms-flow-table-y: 1em;
+  --ms-flow-table-cell: 0.7em 1em;
+  --ms-flow-blockquote-y: 0.45em;
+  --ms-flow-blockquote-indent: 0.85em;
+  --ms-flow-hr-y: 0.7em;
+  --ms-radius: var(--radius-md);
+  --ms-border-width: var(--border-width);
+  --ms-focus-ring-width: var(--focus-ring-width);
+  --ms-focus-ring-offset: var(--focus-ring-width);
+  --ms-foreground: from var(--ink) h s l;
+  --ms-background: from var(--surface) h s l;
+  --ms-muted: from var(--canvas-soft) h s l;
+  --ms-muted-foreground: from var(--ink-muted) h s l;
+  --ms-border: from var(--hairline) h s l;
+  --ms-primary: from var(--primary) h s l;
+  --ms-primary-foreground: from var(--on-primary) h s l;
+  --ms-secondary: from var(--canvas-soft) h s l;
+  --ms-secondary-foreground: from var(--ink-secondary) h s l;
+  --ms-accent: from var(--canvas-soft) h s l;
+  --ms-accent-foreground: from var(--ink) h s l;
+  --ms-destructive: from var(--danger) h s l;
+  --ms-destructive-foreground: from var(--on-primary) h s l;
+  --ms-success: from var(--success) h s l;
+  --ms-success-foreground: from var(--on-primary) h s l;
+  --ms-warning: from var(--warning) h s l;
+  --ms-warning-foreground: from var(--ink) h s l;
+  --ms-info: from var(--primary) h s l;
+  --ms-info-foreground: from var(--on-primary) h s l;
+  --ms-diff-added: from color-mix(in srgb, var(--success) 88%, var(--surface)) h s l;
+  --ms-diff-removed: from color-mix(in srgb, var(--danger) 88%, var(--surface)) h s l;
+  --ms-highlight: from color-mix(in srgb, var(--primary) 16%, var(--surface)) h s l;
+  --ms-highlight-foreground: from var(--ink) h s l;
+  --ms-popover: from var(--surface) h s l;
+  --ms-popover-foreground: from var(--ink) h s l;
+  --ms-ring: from var(--primary) h s l;
+  --ms-shadow-subtle: var(--shadow-soft);
+  --ms-shadow-popover: var(--shadow-popover);
+  --ms-shadow-modal: var(--shadow-modal);
+  --ms-shadow-preview: var(--shadow-modal);
+
+  --code-bg: var(--canvas-soft);
+  --code-header-bg: var(--canvas-soft);
+  --code-fg: var(--ink);
+  --code-border: var(--hairline);
+  --inline-code-bg: var(--canvas-soft);
+  --inline-code-fg: var(--ink-secondary);
+  --inline-code-border: var(--hairline);
+  --blockquote-border: var(--hairline);
+  --blockquote-fg: var(--ink-muted);
+  --table-border: var(--hairline);
+  --table-header-bg: var(--canvas-soft);
+  --focus-ring: var(--primary);
+}
+
+/* 官方 li:has(.checkbox-node) 用负 margin，虚拟行会裁掉勾选标记 */
+[data-custom-id="chat"] li:has(.checkbox-node) {
+  margin-inline-start: 0;
+}
