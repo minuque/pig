@@ -2,7 +2,7 @@
    色值只引用 DESIGN token，深色随 .dark 走。 */
 [data-custom-id="chat"] {
   --ms-font-sans: var(--font-sans);
-  --ms-font-mono: var(--font-mono);
+  --ms-font-mono: var(--font-code);
   --ms-text-body: 15px;
   --ms-leading-body: 1.7;
   --ms-text-h1: var(--text-heading-3);
@@ -80,6 +80,11 @@
   --table-border: var(--hairline);
   --table-header-bg: var(--canvas-soft);
   --focus-ring: var(--primary);
+}
+
+[data-custom-id="chat"] pre,
+[data-custom-id="chat"] code {
+  font-variant-ligatures: none;
 }
 
 /* 官方 li:has(.checkbox-node) 用负 margin，虚拟行会裁掉勾选标记 */

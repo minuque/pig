@@ -43,7 +43,10 @@ const { isDark } = useColorScheme()
 const text = computed(() => transcriptText(props.item))
 const thinking = computed(() => assistantThinking(props.item))
 
-const codeBlockOptions = { fontSize: 14 } as const
+const codeBlockOptions = {
+  fontSize: 14,
+  fontFamily: "var(--font-code)",
+} as const
 const agentMarkdown = computed(() => {
   const shared = {
     customId: "chat",
