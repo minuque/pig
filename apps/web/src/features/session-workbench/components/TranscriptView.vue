@@ -571,6 +571,17 @@ onBeforeUnmount(() => {
   width: min(var(--size-content), 100%);
   margin-inline: auto;
 }
+.transcript :deep(.markstream-virtual-timeline__restore-loading) {
+  display: none;
+}
+.transcript
+  :deep(.markstream-virtual-timeline.is-restoring-thread > .markstream-virtual-timeline__spacer),
+.transcript
+  :deep(.markstream-virtual-timeline.is-restoring-thread > .markstream-virtual-timeline__item) {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
 .earlier-row {
   display: flex;
   justify-content: center;
