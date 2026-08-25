@@ -24,7 +24,7 @@ import {
   DEFAULT_OVERSCAN_LINES,
   splitLines,
   visibleLineRange,
-} from "@features/transcript/lib/expandable-text.js"
+} from "@features/transcript-view/lib/expandable-text.js"
 
 const props = withDefaults(
   defineProps<{

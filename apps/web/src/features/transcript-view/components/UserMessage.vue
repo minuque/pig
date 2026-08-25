@@ -15,8 +15,11 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import type { UserTranscriptItem } from "@earendil-works/pi-protocol"
-import TranscriptImage from "@features/transcript/components/TranscriptImage.vue"
-import { transcriptImages, transcriptText } from "@features/transcript/lib/transcript-format.js"
+import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
+import {
+  transcriptImages,
+  transcriptText,
+} from "@features/transcript-view/lib/transcript-format.js"
 
 const props = defineProps<{
   item: UserTranscriptItem

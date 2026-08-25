@@ -28,8 +28,11 @@
 import MarkdownRender, { type MarkstreamVirtualMarkdownProps } from "markstream-vue"
 import { computed, onBeforeMount, onMounted } from "vue"
 import type { AssistantTranscriptItem } from "@earendil-works/pi-protocol"
-import FoldReveal from "@features/transcript/components/FoldReveal.vue"
-import { assistantThinking, transcriptText } from "@features/transcript/lib/transcript-format.js"
+import FoldReveal from "@features/transcript-view/components/FoldReveal.vue"
+import {
+  assistantThinking,
+  transcriptText,
+} from "@features/transcript-view/lib/transcript-format.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const props = withDefaults(

@@ -6,7 +6,7 @@ import {
   transcriptImageSrc,
   transcriptImages,
   transcriptText,
-} from "@features/transcript/lib/transcript-format.js"
+} from "@features/transcript-view/lib/transcript-format.js"
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
   return {

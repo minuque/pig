@@ -15,7 +15,7 @@ import {
   transcriptRowFinal,
   transcriptRowKind,
   withEarlierRow,
-} from "@features/transcript/index.vue"
+} from "@features/transcript-view/index.vue"
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
   return {
