@@ -51,11 +51,13 @@
   </div>
   <Dialog :open="previewOpen" @update:open="onPreviewOpen">
     <DialogContent
-      class="flex max-h-[80vh] w-full max-w-[min(48rem,calc(100vw-2rem))] flex-col gap-3 overflow-hidden sm:max-w-[min(48rem,calc(100vw-2rem))]"
+      class="flex h-[min(80vh,40rem)] w-[min(48rem,calc(100vw-2rem))] max-w-[min(48rem,calc(100vw-2rem))] flex-col gap-3 overflow-hidden sm:max-w-[min(48rem,calc(100vw-2rem))]"
+      @open-auto-focus="onOpenAutoFocus"
     >
       <DialogTitle>{{ previewTitle }}</DialogTitle>
-      <div class="preview-body">
-        <MarkdownRender v-bind="previewMarkdown" :content="previewBody" />
+      <div ref="previewPane" class="preview-body" tabindex="-1">
+        <p v-if="previewLoading" class="preview-status">加载中…</p>
+        <MarkdownRender v-else-if="previewBody" v-bind="previewMarkdown" :content="previewBody" />
       </div>
     </DialogContent>
   </Dialog>
@@ -94,27 +96,22 @@ const emit = defineEmits<{
 const tokenSummary = computed(() => contextUsageSummary(props.usage))
 const { isDark } = useColorScheme()
 const previewOpen = ref(false)
+const previewLoading = ref(false)
 const previewTitle = ref("")
 const previewBody = ref("")
+const previewPane = ref<HTMLElement>()
 let previewRequest = 0
 const previewMarkdown = computed(
   () =>
     ({
       customId: "chat",
-      mode: "chat",
+      mode: "minimal",
+      renderCodeBlocksAsPre: true,
       fade: false,
       final: true,
       typewriter: false,
       smoothStreaming: false,
       isDark: isDark.value,
-      codeBlockOptions: { fontSize: 14, fontFamily: "var(--font-code)" },
-      codeBlockProps: {
-        showHeader: true,
-        showCopyButton: true,
-        showCollapseButton: true,
-        showExpandButton: true,
-        theme: "dark-plus",
-      },
     }) as const,
 )
 
@@ -123,7 +120,8 @@ async function openPreview(segment: ContextUsageSegment) {
   if (!sessionId) return
   const request = ++previewRequest
   previewTitle.value = segment.label
-  previewBody.value = "加载中…"
+  previewBody.value = ""
+  previewLoading.value = true
   previewOpen.value = true
   try {
     const result = await platformRequest<{
@@ -135,12 +133,22 @@ async function openPreview(segment: ContextUsageSegment) {
   } catch {
     if (request !== previewRequest) return
     previewBody.value = "无法加载预览。"
+  } finally {
+    if (request === previewRequest) previewLoading.value = false
   }
 }
 
 function onPreviewOpen(open: boolean) {
   previewOpen.value = open
-  if (!open) previewRequest += 1
+  if (open) return
+  previewRequest += 1
+  previewLoading.value = false
+  previewBody.value = ""
+}
+
+function onOpenAutoFocus(event: Event) {
+  event.preventDefault()
+  previewPane.value?.focus()
 }
 </script>
 
@@ -277,9 +285,17 @@ function onPreviewOpen(open: boolean) {
   min-height: 0;
   flex: 1;
   overflow: auto;
-  max-height: calc(80vh - 5rem);
   color: var(--ink);
   font-size: 15px;
   line-height: 1.7;
+}
+.preview-body:focus {
+  outline: none;
+}
+.preview-status {
+  margin: 0;
+  color: var(--ink-faint);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
 }
 </style>
