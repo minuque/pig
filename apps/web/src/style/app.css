@@ -1,6 +1,7 @@
 @import "tailwindcss";
-/* Tailwind v4：用 tailwind-ready 样式，类名交给扫描器，不再引入预编译 utilities。 */
-@import "markstream-vue/index.tailwind.css";
+/* index.tailwind.css 不含运行时工具类（h-4 / rounded-lg 等）。
+   官方要另接 markstream-vue/tailwind safelist；只引一半，代码卡片会缺尺寸。 */
+@import "markstream-vue/index.css";
 @import "./markdown-stream.css";
 
 /* ─── DESIGN.md tokens (workbench desktop) ───────────────────── */
