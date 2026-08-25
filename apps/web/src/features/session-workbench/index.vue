@@ -1,9 +1,17 @@
 <template>
   <WorkbenchHeader />
   <StartupError v-if="pageError" v-bind="pageError" />
+
+  <!-- 无 session：选目录并创建 -->
   <SessionWelcome v-else-if="!sessionId" />
+
   <div v-else class="session-stage">
+    <SessionLoading v-if="sessionLoading" />
+
+    <!-- 空会话：居中画布 -->
     <SessionEmptyCanvas v-if="emptyCanvas" />
+
+    <!-- 有 transcript：对话列 -->
     <TranscriptView
       v-else-if="!sessionPending"
       ref="transcriptView"
@@ -32,7 +40,6 @@
         @abort="abortSession"
       />
     </TranscriptView>
-    <SessionLoading v-if="sessionLoading" />
   </div>
 </template>
 
