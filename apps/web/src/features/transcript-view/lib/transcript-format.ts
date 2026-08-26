@@ -58,7 +58,7 @@ export function conversationRows(items: readonly TranscriptItem[]): TranscriptIt
   return items.filter(isVisibleTranscriptItem)
 }
 
-const TOOL_HINT_KEYS = [
+const PATH_CMD_KEYS = [
   "path",
   "file",
   "file_path",
@@ -66,13 +66,11 @@ const TOOL_HINT_KEYS = [
   "filename",
   "target_file",
   "targetFile",
-  "query",
-  "pattern",
-  "glob",
-  "url",
   "command",
   "cmd",
 ] as const
+
+const TOOL_HINT_KEYS = [...PATH_CMD_KEYS, "query", "pattern", "glob", "url"] as const
 
 const RESULT_COUNT_MAX_LINES = 40
 const RESULT_COUNT_MAX_LINE_LENGTH = 160
@@ -99,15 +97,22 @@ function hasToolInput(input: unknown): boolean {
   return true
 }
 
+function hintFromKeys(input: unknown, keys: readonly string[]): string {
+  if (!isRecord(input)) return ""
+  for (const key of keys) {
+    const value = input[key]
+    if (typeof value === "string" && value.trim().length > 0) return value
+  }
+  return ""
+}
+
 /** 顶栏一句话：优先 path / query / cmd 等常用键，否则压成单行 JSON。 */
 export function toolInputHint(input: unknown): string {
   if (typeof input === "string") return input
   if (!hasToolInput(input)) return ""
+  const named = hintFromKeys(input, TOOL_HINT_KEYS)
+  if (named) return named
   if (isRecord(input)) {
-    for (const key of TOOL_HINT_KEYS) {
-      const value = input[key]
-      if (typeof value === "string" && value.trim().length > 0) return value
-    }
     const keys = Object.keys(input)
     if (keys.length === 1) {
       const value = input[keys[0]!]
@@ -130,11 +135,13 @@ function resultCount(text: string): number | null {
 }
 
 /**
- * 折叠顶栏右侧摘要。运行中只出示入参线索，避免把尚未到达的输出写进顶栏。
- * 短列表输出用「N 条结果」；长输出（读文件、命令倾倒）退回入参线索，免得顶栏被正文首行顶歪。
+ * 折叠顶栏右侧摘要。path / cmd 始终压过输出条数，避免 bash 两行输出变成「2 条结果」。
+ * 无路径或命令时，短列表才写成「N 条结果」。
  */
 export function toolCallSummary(item: ToolTranscriptItem): string {
   if (item.isError) return "失败"
+  const pathOrCmd = hintFromKeys(item.input, PATH_CMD_KEYS)
+  if (pathOrCmd) return pathOrCmd
   if (item.status !== "running") {
     const text = transcriptText(item)
     const count = resultCount(text)

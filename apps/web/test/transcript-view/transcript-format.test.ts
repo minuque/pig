@@ -134,6 +134,16 @@ describe("tool call summary", () => {
         tool({
           status: "complete",
           isError: false,
+          input: { cmd: "ls" },
+          content: [{ type: "text", text: "a\nb" }],
+        }),
+      ),
+    ).toBe("ls")
+    expect(
+      toolCallSummary(
+        tool({
+          status: "complete",
+          isError: false,
           input: { query: "spring" },
           content: [{ type: "text", text: "a\nb\nc" }],
         }),

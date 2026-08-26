@@ -1,26 +1,23 @@
 <template>
   <div class="call">
-    <div class="bar">
-      <button
-        type="button"
-        class="toggle"
-        :aria-expanded="open"
-        :aria-label="toggleLabel"
-        @click="open = !open"
-      >
-        <span class="status" :class="statusKind" aria-hidden="true">
-          <LoaderCircle v-if="running" class="spin" :size="16" />
-          <X v-else-if="item.isError" :size="10" :stroke-width="3" />
-          <Check v-else :size="10" :stroke-width="3" />
-        </span>
-        <span class="name">{{ item.toolName || "工具" }}</span>
+    <button
+      type="button"
+      class="toggle"
+      :aria-expanded="open"
+      :aria-label="toggleLabel"
+      @click="open = !open"
+    >
+      <span class="status" :class="statusKind" aria-hidden="true">
+        <LoaderCircle v-if="running" class="spin" :size="16" />
+        <X v-else-if="item.isError" :size="10" :stroke-width="3" />
+        <Check v-else :size="10" :stroke-width="3" />
+      </span>
+      <span class="name">{{ item.toolName || "工具" }}</span>
+      <span class="meta">
         <span v-if="summary" class="summary">{{ summary }}</span>
         <ChevronDown class="caret" :size="14" aria-hidden="true" />
-      </button>
-      <button type="button" class="copy" aria-label="复制" @click="copyPayload">
-        <Copy :size="14" />
-      </button>
-    </div>
+      </span>
+    </button>
     <div v-if="open" class="body">
       <section v-if="inputFull" class="layer">
         <h3 class="label">入参</h3>
@@ -44,7 +41,7 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
-import { Check, ChevronDown, Copy, LoaderCircle, X } from "lucide-vue-next"
+import { Check, ChevronDown, LoaderCircle, X } from "lucide-vue-next"
 import type { ToolTranscriptItem } from "@earendil-works/pi-protocol"
 import ExpandableText from "@features/transcript-view/components/ExpandableText.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
@@ -88,18 +85,6 @@ watch(
     if (isError) open.value = true
   },
 )
-
-async function copyPayload() {
-  const chunks = [toolInputPretty(props.item.input), transcriptText(props.item)].filter(
-    (chunk) => chunk.trim().length > 0,
-  )
-  if (chunks.length === 0) return
-  try {
-    await navigator.clipboard.writeText(chunks.join("\n\n"))
-  } catch {
-    // 剪贴板不可用时保持静默
-  }
-}
 </script>
 
 <style scoped>
@@ -111,20 +96,13 @@ async function copyPayload() {
   border-radius: var(--radius-lg);
   background: var(--canvas-soft);
 }
-.bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  min-height: 36px;
-}
 .toggle {
   display: flex;
-  flex: 1;
   align-items: center;
   gap: var(--spacing-xs);
+  width: 100%;
   min-width: 0;
-  min-height: 0;
+  min-height: 36px;
   padding: var(--spacing-xs) var(--spacing-sm);
   border: 0;
   border-radius: 0;
@@ -168,9 +146,16 @@ async function copyPayload() {
   color: var(--ink-secondary);
   font-weight: var(--font-weight-medium);
 }
+.meta {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
 .summary {
   min-width: 0;
-  flex: 1;
   overflow: hidden;
   color: var(--ink-muted);
   text-align: right;
@@ -179,42 +164,11 @@ async function copyPayload() {
 }
 .caret {
   flex: none;
-  margin-inline-start: auto;
   color: var(--ink-faint);
   transition: transform var(--duration-fast) var(--ease-smooth);
 }
 .toggle[aria-expanded="true"] .caret {
   transform: rotate(180deg);
-}
-.copy {
-  position: absolute;
-  inset-inline-end: 34px;
-  top: 4px;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink-muted);
-  opacity: 0;
-  pointer-events: none;
-  cursor: pointer;
-  transition:
-    opacity var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
-}
-.call:hover .copy,
-.call:focus-within .copy {
-  opacity: 1;
-  pointer-events: auto;
-}
-.copy:hover {
-  color: var(--ink);
 }
 .body {
   display: flex;
@@ -248,8 +202,7 @@ async function copyPayload() {
   .spin {
     animation: none;
   }
-  .caret,
-  .copy {
+  .caret {
     transition: none;
   }
 }
