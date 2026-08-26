@@ -11,7 +11,6 @@
       @wheel="onTranscriptWheel"
       @pointerdown="releasePinnedToBottom"
     >
-      <h2 :id="transcriptTitleId" class="sr-only">对话</h2>
       <MarkstreamVirtualTimeline
         v-if="rows.length"
         ref="timeline"

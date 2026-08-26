@@ -175,9 +175,8 @@ function onDelete() {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0;
+  gap: 8px;
   min-width: 0;
-  height: 52px;
   padding: 8px 10px;
   border-radius: var(--radius-md);
   background: transparent;

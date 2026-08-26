@@ -526,8 +526,8 @@ html[data-pig-desktop-platform] .session-nav input {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--ink-muted);
-  font-size: var(--text-eyebrow);
+  color: var(--ink);
+  font-size: var(--text-body-md);
   font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
