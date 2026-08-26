@@ -1,28 +1,30 @@
 <template>
-  <span
+  <svg
     class="orb"
+    :width="size"
+    :height="size"
+    :viewBox="`0 0 ${STAGE} ${STAGE}`"
     aria-hidden="true"
-    :style="{ width: `${size}px`, height: `${size}px`, '--orb-k': size / STAGE }"
+    focusable="false"
   >
-    <span class="ring">
-      <span
-        v-for="dot in dots"
-        :key="dot.key"
-        class="dot"
-        :style="{
-          '--orb-rx': `${dot.rx}px`,
-          '--orb-ry': `${dot.ry}px`,
-          animationDelay: `${dot.delay}ms`,
-        }"
-      />
-    </span>
-  </span>
+    <circle
+      v-for="dot in dots"
+      :key="dot.key"
+      class="dot"
+      :cx="CENTER + dot.rx"
+      :cy="CENTER + dot.ry"
+      :r="DOT_R"
+      :style="{ animationDelay: `${dot.delay}ms` }"
+    />
+  </svg>
 </template>
 
 <script setup lang="ts">
 const STAGE = 28
+const CENTER = STAGE / 2
 const RING_N = 8
-const RING_R = 8
+const RING_R = 10
+const DOT_R = 2
 const RING_MS = 2000
 
 const dots = Array.from({ length: RING_N }, (_, i) => {
@@ -45,50 +47,35 @@ withDefaults(
 
 <style scoped>
 .orb {
-  position: relative;
   display: block;
   flex: none;
   overflow: visible;
   border: 0;
   outline: none;
+  fill: currentColor;
   color: var(--ink-muted);
-}
-.ring {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 28px;
-  height: 28px;
-  transform: scale(var(--orb-k, 1));
-  transform-origin: 0 0;
+  pointer-events: none;
 }
 .dot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 3px;
-  height: 3px;
-  margin: -1.5px 0 0 -1.5px;
-  border-radius: var(--radius-full);
-  background: currentColor;
+  transform-box: fill-box;
+  transform-origin: center;
   animation: orb-ring-pulse 2s ease-in-out infinite both;
 }
 @keyframes orb-ring-pulse {
   0%,
   100% {
     opacity: 0.18;
-    transform: translate(var(--orb-rx), var(--orb-ry)) scale(0.7);
+    transform: scale(0.7);
   }
   50% {
     opacity: 1;
-    transform: translate(var(--orb-rx), var(--orb-ry)) scale(1.15);
+    transform: scale(1.15);
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .dot {
     animation: none;
     opacity: 0.7;
-    transform: translate(var(--orb-rx), var(--orb-ry));
   }
 }
 </style>

@@ -17,6 +17,8 @@ import ThinkingState from "@features/transcript-view/components/ThinkingState.vu
   gap: 6px;
   min-height: 28px;
   margin-bottom: var(--spacing-xxs);
+  border: 0;
+  outline: none;
   color: var(--ink-faint);
 }
 </style>

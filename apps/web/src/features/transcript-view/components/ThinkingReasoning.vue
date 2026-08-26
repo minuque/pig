@@ -1,6 +1,6 @@
 <template>
   <div class="tr">
-    <div v-if="!done" class="tr-header" role="status">
+    <div v-if="!done" class="tr-header">
       <ThinkingOrb />
       <ThinkingState text="思考中…" />
     </div>
