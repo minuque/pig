@@ -14,7 +14,7 @@ import type {
 } from "@earendil-works/pi-server"
 import { canonicalizePath } from "../directory.js"
 import { estimateContextUsage, type ContextPreviewKey } from "./context-usage.js"
-import { TranscriptProjection, windowSnapshotTranscript } from "./transcript.js"
+import { TranscriptProjection } from "./transcript.js"
 
 /**
  * 不触发全量 snapshot 广播的事件：高频增量，或产生进度时尚未持久化
@@ -78,8 +78,7 @@ export class PiHostSession implements PiSessionRuntime {
       // PiServer 的 normalizedSnapshot 恒覆盖 locked，此处占位
       locked: false,
       revision: this.revision,
-      // 首包只带最近一页；更早的走 platform/transcript。磁盘仍是全文。
-      transcript: windowSnapshotTranscript(this.projection.transcript(entries)),
+      transcript: this.projection.transcript(entries),
       queuedSteer: steering.map((text, index) => ({
         id: `steer-${index}`,
         role: "user",

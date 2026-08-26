@@ -19,10 +19,7 @@
         :transcript="transcript"
         :phase="phase"
         :thread-state="threadState"
-        :has-earlier="hasEarlier"
-        :loading-earlier="loadingEarlier"
         @thread-state="applyThreadState"
-        @load-earlier="loadEarlier"
         @ready="onTranscriptReady"
       />
       <div class="chat-input-bar">
@@ -96,9 +93,6 @@ const {
   catalog,
   sessionError,
   submitText,
-  loadEarlier,
-  loadingEarlier,
-  hasEarlier,
   connectionError,
   connected,
 } = useSession()

@@ -2,14 +2,11 @@ import { computed, shallowRef, toValue, type MaybeRefOrGetter } from "vue"
 import type { PiClient, Unsubscribe } from "@earendil-works/pi-client"
 import { RemoteSession } from "@earendil-works/pi-coding-agent/client"
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
-import type { ModelRef, ThinkingLevel, TranscriptItem } from "@earendil-works/pi-protocol"
+import type { ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol"
 import { platformRequest } from "@client/http.js"
 import type { ContextUsageEstimate } from "@features/chat-input/lib/context-usage.js"
 import {
-  hasEarlierTranscript,
-  mergeTranscriptWindow,
   projectSessionSnapshot,
-  transcriptWindowTotal,
   type SessionProjection,
 } from "@features/session-workbench/lib/session-state.js"
 
@@ -25,12 +22,7 @@ export interface CreateSessionInput {
  * Snapshot/Transcript 经 RemoteSessionState 投影为 UI 可读视图。
  * SDK 实例用 shallowRef 保存（不深追踪），纯派生用 computed。
  */
-export function useRemoteSessions(
-  clientSource: MaybeRefOrGetter<PiClient | undefined>,
-  options?: {
-    sessionCards?: MaybeRefOrGetter<ReadonlyMap<string, { messageCount: number }>>
-  },
-) {
+export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | undefined>) {
   const client = computed(() => toValue(clientSource))
   // SDK 实例仅存引用，不响应式深追踪
   const remote = shallowRef<RemoteSession>()
@@ -41,8 +33,6 @@ export function useRemoteSessions(
   let replaceChain: Promise<void> = Promise.resolve()
   // 最新想打开的 session：快速连点时跳过中间 id，只落地最后一次
   let wantedId: string | undefined
-  const loadingEarlier = shallowRef(false)
-  const earlierExhausted = shallowRef(false)
   const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
   let contextUsageRequest = 0
 
@@ -52,17 +42,6 @@ export function useRemoteSessions(
     snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined,
   )
   const transcript = computed(() => state.value?.transcript ?? [])
-  const cardCount = computed(() => {
-    const id = remote.value?.id
-    if (!id || !options?.sessionCards) return undefined
-    return toValue(options.sessionCards).get(id)?.messageCount
-  })
-  const transcriptTotal = computed(() =>
-    transcriptWindowTotal(transcript.value.length, cardCount.value),
-  )
-  const hasEarlier = computed(() =>
-    hasEarlierTranscript(transcript.value.length, transcriptTotal.value, earlierExhausted.value),
-  )
 
   function attach(next: RemoteSession) {
     const previous = remote.value
@@ -70,49 +49,18 @@ export function useRemoteSessions(
     // 替换旧实例：释放其 lease（RemoteSession.dispose 幂等，可重复调用）
     if (previous && previous !== next) void previous.dispose()
     remote.value = next
-    let prefix: TranscriptItem[] = []
-    let latestWindow: readonly TranscriptItem[] = []
     let usageRevision: number | undefined
-    earlierExhausted.value = false
     unsubscribeState = next.subscribe((nextState) => {
-      latestWindow = nextState.transcript
-      const merged = mergeTranscriptWindow(prefix, latestWindow)
-      const windowIds = new Set(latestWindow.map((item) => item.id))
-      prefix = merged.filter((item) => !windowIds.has(item.id))
-      state.value = { ...nextState, transcript: merged }
+      state.value = nextState
       const revision = nextState.snapshot?.revision
       if (revision !== undefined && revision !== usageRevision) {
         usageRevision = revision
         void refreshContextUsage(next.id)
       }
     })
-    async function loadEarlier() {
-      const id = remote.value?.id
-      const before = state.value?.transcript[0]?.id
-      if (!id || !before || loadingEarlier.value || earlierExhausted.value) return
-      loadingEarlier.value = true
-      try {
-        const page = await platformRequest<{ items: TranscriptItem[]; hasMore: boolean }>(
-          `/api/v1/platform/transcript?sessionId=${encodeURIComponent(id)}&before=${encodeURIComponent(before)}`,
-        )
-        if (remote.value?.id !== id) return
-        prefix = mergeTranscriptWindow([...page.items, ...prefix], latestWindow)
-        earlierExhausted.value = !page.hasMore
-        const current = state.value
-        if (current)
-          state.value = { ...current, transcript: mergeTranscriptWindow(prefix, latestWindow) }
-      } finally {
-        if (remote.value?.id === id) loadingEarlier.value = false
-      }
-    }
-    attachLoadEarlier = loadEarlier
   }
-  let attachLoadEarlier: (() => Promise<void>) | undefined
   function detach() {
     contextUsageRequest += 1
-    attachLoadEarlier = undefined
-    loadingEarlier.value = false
-    earlierExhausted.value = false
     unsubscribeState?.()
     unsubscribeState = undefined
     remote.value = undefined
@@ -212,22 +160,13 @@ export function useRemoteSessions(
     return disposePromise
   }
 
-  async function loadEarlier() {
-    await attachLoadEarlier?.()
-  }
-
   return {
     remote,
     state,
     snapshot,
     projection,
     transcript,
-    transcriptTotal,
-    hasEarlier,
-    loadingEarlier,
-    earlierExhausted,
     contextUsageEstimate,
-    loadEarlier,
     openSession,
     createSession,
     submit,

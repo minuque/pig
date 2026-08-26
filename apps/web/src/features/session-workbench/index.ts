@@ -25,7 +25,7 @@ function createSession(
   const router = useRouter()
   const sessionError = ref("")
   const cards = useSessionCards(pi.connected, pi.sessions)
-  const remote = useRemoteSessions(pi.client, { sessionCards: cards.sessionCards })
+  const remote = useRemoteSessions(pi.client)
 
   const sessionId = computed(() => {
     const raw = route.params.sessionId
@@ -114,17 +114,6 @@ function createSession(
     submitText: runtime.submitText,
     abortSession: runtime.abortSession,
     applyThreadState: runtime.applyThreadState,
-    loadEarlier: async () => {
-      sessionError.value = ""
-      try {
-        await remote.loadEarlier()
-      } catch (error) {
-        sessionError.value = errorMessage(error)
-      }
-    },
-    loadingEarlier: remote.loadingEarlier,
-    hasEarlier: computed(() => (sessionPending.value ? false : remote.hasEarlier.value)),
-    transcriptTotal: remote.transcriptTotal,
     sessionCards: cards.sessionCards,
     refreshSessionCards: cards.loadSessionCards,
     initialize,

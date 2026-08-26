@@ -145,20 +145,6 @@ export class Gateway {
         return this.send(res, 500, { code: "INVALID_REQUEST" })
       }
     }
-    if (url.pathname === "/api/v1/platform/transcript" && req.method === "GET") {
-      if (!this.requireAuth(req, res)) return
-      const sessionId = url.searchParams.get("sessionId") ?? ""
-      const before = url.searchParams.get("before") ?? ""
-      if (!sessionId || !before) return this.send(res, 400, { code: "INVALID_REQUEST" })
-      try {
-        const page = await this.hostService.readTranscriptPage(sessionId, before)
-        return this.send(res, 200, page)
-      } catch (error) {
-        if (error instanceof SessionNotFoundError) return this.send(res, 404, { code: "NOT_FOUND" })
-        console.error("transcript page failed:", error)
-        return this.send(res, 500, { code: "INVALID_REQUEST" })
-      }
-    }
     if (url.pathname === "/api/v1/platform/context-usage" && req.method === "GET") {
       if (!this.requireAuth(req, res)) return
       const sessionId = url.searchParams.get("sessionId") ?? ""

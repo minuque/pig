@@ -109,31 +109,3 @@ export function workbenchHeaderTitle(input: {
   if (meta) return sessionTitle(meta)
   return input.projectionName?.trim() || UNTITLED_SESSION
 }
-
-/** 快照窗口覆盖已加载前缀中的同 id；前缀里被挤出窗口的条目保留。 */
-export function mergeTranscriptWindow<T extends { id: string }>(
-  prefix: readonly T[],
-  window: readonly T[],
-): T[] {
-  const inWindow = new Set(window.map((item) => item.id))
-  return [...prefix.filter((item) => !inWindow.has(item.id)), ...window]
-}
-
-/** 窗口总条数：卡片全量与已加载取较大值；两者都空则未知。 */
-export function transcriptWindowTotal(
-  loaded: number,
-  cardCount: number | undefined,
-): number | undefined {
-  if (cardCount === undefined && loaded === 0) return undefined
-  return Math.max(cardCount ?? 0, loaded)
-}
-
-/** 还有更早消息可加载：未耗尽，且已知全量大于已加载。全量未知不猜测。 */
-export function hasEarlierTranscript(
-  loaded: number,
-  total: number | undefined,
-  exhausted: boolean,
-): boolean {
-  if (exhausted || loaded === 0 || total === undefined) return false
-  return total > loaded
-}

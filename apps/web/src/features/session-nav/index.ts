@@ -26,12 +26,11 @@ function createNav(
   const cardFootById = computed(() => {
     const names = modelDisplayNames(session.catalog.value)
     const liveId = session.sessionId.value
-    const total = session.transcriptTotal.value
     const live =
       liveId && session.projection.value
         ? {
             sessionId: liveId,
-            ...(total === undefined ? {} : { messageCount: total }),
+            messageCount: session.transcript.value.length,
             model: session.projection.value.model,
           }
         : undefined

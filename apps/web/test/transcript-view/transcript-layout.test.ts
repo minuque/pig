@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest"
 import type { ToolTranscriptItem, TranscriptItem } from "@earendil-works/pi-protocol"
 import {
-  EARLIER_ROW_ID,
-  isEarlierRow,
   isThinkingRow,
   isWorkRow,
   needsThinkingPlaceholder,
@@ -54,18 +52,6 @@ describe("transcript row markstream mapping", () => {
     expect(transcriptRowFinal(streaming)).toBe(false)
     expect(transcriptRowContent(streaming)).toBe("…")
   })
-
-  it("加载更早行独占时间线首行，不是 Markdown", () => {
-    const user = item({ role: "user", content: [{ type: "text", text: "问" }] })
-    expect(buildTimelineRows([user], "idle", false)).toEqual([user])
-    const headed = buildTimelineRows([user], "idle", true)
-    expect(headed[0]).toEqual({ id: EARLIER_ROW_ID, role: "earlier" })
-    expect(headed[1]).toEqual(user)
-    expect(isEarlierRow(headed[0]!)).toBe(true)
-    expect(transcriptRowKind(headed[0]!)).toBe("load-earlier")
-    expect(transcriptRowContent(headed[0]!)).toBe("")
-    expect(transcriptRowFinal(headed[0]!)).toBe(true)
-  })
 })
 
 describe("isMarkdownStreamReady", () => {
@@ -109,7 +95,7 @@ describe("thinking placeholder", () => {
     expect(needsThinkingPlaceholder("turn", [user, streaming])).toBe(true)
     expect(needsThinkingPlaceholder("turn", [user, streamingBody])).toBe(false)
     expect(needsThinkingPlaceholder("turn", [user, tool])).toBe(false)
-    const headed = buildTimelineRows([user], "turn", false)
+    const headed = buildTimelineRows([user], "turn")
     expect(isThinkingRow(headed[1]!)).toBe(true)
     expect(transcriptRowKind(headed[1]!)).toBe("thinking-wait")
     expect(transcriptRowContent(headed[1]!)).toBe("")
@@ -140,7 +126,7 @@ describe("turn work fold", () => {
       status: "complete",
       content: [{ type: "text", text: "答" }],
     })
-    const rows = buildTimelineRows([user, thinking, tool, agent], "idle", false)
+    const rows = buildTimelineRows([user, thinking, tool, agent], "idle")
     expect(rows.map((row) => row.role)).toEqual(["user", "work", "assistant"])
     const work = rows[1]!
     expect(isWorkRow(work)).toBe(true)
@@ -205,7 +191,6 @@ describe("turn work fold", () => {
     const rows = buildTimelineRows(
       [user, thought, first, read, other, bash, laterThought, second],
       "idle",
-      false,
     )
     expect(rows.map((row) => row.role)).toEqual(["user", "work", "assistant", "work", "assistant"])
     const firstWork = rows[1]!
@@ -247,7 +232,7 @@ describe("turn work fold", () => {
       isError: false,
       content: [],
     })
-    const rows = buildTimelineRows([user, thinking, toolA, toolB], "turn", false)
+    const rows = buildTimelineRows([user, thinking, toolA, toolB], "turn")
     expect(rows.map((row) => row.role)).toEqual(["user", "work"])
     const work = rows[1]!
     expect(isWorkRow(work)).toBe(true)
@@ -274,7 +259,7 @@ describe("turn work fold", () => {
       status: "complete",
       content: [{ type: "text", text: "答" }],
     })
-    const rows = buildTimelineRows([tool, user, agent], "idle", false)
+    const rows = buildTimelineRows([tool, user, agent], "idle")
     expect(rows.map((row) => [row.role, row.id])).toEqual([
       ["work", "work:t1"],
       ["user", "u1"],
@@ -310,7 +295,7 @@ describe("turn work fold", () => {
       isError: false,
       content: [],
     })
-    const rows = buildTimelineRows([user, toolA, agent, toolB], "turn", false)
+    const rows = buildTimelineRows([user, toolA, agent, toolB], "turn")
     expect(rows.map((row) => row.role)).toEqual(["user", "work", "assistant", "work"])
   })
 
@@ -330,7 +315,7 @@ describe("turn work fold", () => {
       status: "aborted",
       content: [{ type: "thinking", thinking: "半路" }],
     })
-    const rows = buildTimelineRows([user, tool, aborted], "idle", false)
+    const rows = buildTimelineRows([user, tool, aborted], "idle")
     const work = rows[1]!
     expect(isWorkRow(work)).toBe(true)
     if (!isWorkRow(work)) return

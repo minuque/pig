@@ -13,12 +13,10 @@ import {
   transcriptText,
 } from "@features/transcript-view/lib/transcript-format.js"
 
-export const EARLIER_ROW_ID = "transcript-earlier"
 export const THINKING_ROW_ID = "transcript-thinking"
 
 export type WorkKind = "thought" | "read" | "command" | "tool"
 
-export type EarlierRow = { id: typeof EARLIER_ROW_ID; role: "earlier" }
 export type ThinkingRow = { id: typeof THINKING_ROW_ID; role: "thinking" }
 export type WorkRow = {
   id: string
@@ -30,11 +28,7 @@ export type WorkRow = {
   kinds: WorkKind[]
   aborted: boolean
 }
-export type TimelineRow = TranscriptItem | EarlierRow | ThinkingRow | WorkRow
-
-export function isEarlierRow(row: TimelineRow): row is EarlierRow {
-  return row.role === "earlier"
-}
+export type TimelineRow = TranscriptItem | ThinkingRow | WorkRow
 
 export function isThinkingRow(row: TimelineRow): row is ThinkingRow {
   return row.role === "thinking"
@@ -191,10 +185,8 @@ function emitClusters(
 export function buildTimelineRows(
   items: readonly TranscriptItem[],
   phase: SessionPhase | undefined,
-  hasEarlier: boolean,
 ): TimelineRow[] {
   const rows: TimelineRow[] = []
-  if (hasEarlier) rows.push({ id: EARLIER_ROW_ID, role: "earlier" })
   const live = phase !== undefined && phase !== "idle"
   const segments = turnSegments(items)
   for (let index = 0; index < segments.length; index += 1) {
@@ -219,7 +211,6 @@ export function toolCardOpen(
 
 /** 时间线认 Markdown 的 kind：仅助手正文。加载行和工作行不是 Markdown。 */
 export function transcriptRowKind(item: TimelineRow): string {
-  if (isEarlierRow(item)) return "load-earlier"
   if (isThinkingRow(item)) return "thinking-wait"
   if (isWorkRow(item)) return item.mode === "fold" ? "work-fold" : "tool-group"
   if (item.role === "assistant") return "assistant-markdown"
@@ -228,14 +219,13 @@ export function transcriptRowKind(item: TimelineRow): string {
 }
 
 export function transcriptRowContent(item: TimelineRow): string {
-  return !isEarlierRow(item) && !isThinkingRow(item) && !isWorkRow(item) && isAssistantItem(item)
+  return !isThinkingRow(item) && !isWorkRow(item) && isAssistantItem(item)
     ? transcriptText(item)
     : ""
 }
 
 export function transcriptRowFinal(item: TimelineRow): boolean {
   return (
-    isEarlierRow(item) ||
     isThinkingRow(item) ||
     isWorkRow(item) ||
     !(isAssistantItem(item) && item.status === "streaming")
@@ -257,7 +247,6 @@ function estimateWrappedLines(text: string, charsPerLine: number): number {
  */
 export function estimateTranscriptRowHeight(item: TimelineRow): number {
   if (isThinkingRow(item)) return 36
-  if (isEarlierRow(item)) return 48
   if (isWorkRow(item)) {
     if (item.mode === "fold") return 36
     const thinking = item.thinking.length > 0 ? (item.thinkingStreaming ? 200 : 36) : 0

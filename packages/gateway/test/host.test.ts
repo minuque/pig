@@ -101,9 +101,6 @@ describe("thin host HTTP shell", () => {
     expect((await request(base, "/api/v1/platform/delete-session", { id: "s" })).status).toBe(401)
     expect((await request(base, "/api/v1/platform/session-cards")).status).toBe(401)
     expect((await request(base, "/api/v1/platform/context-usage?sessionId=s")).status).toBe(401)
-    expect((await request(base, "/api/v1/platform/transcript?sessionId=s&before=m1")).status).toBe(
-      401,
-    )
 
     const { credential } = (await (
       await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
@@ -118,10 +115,6 @@ describe("thin host HTTP shell", () => {
         )
       ).status,
     ).toBe(404)
-    expect(
-      (await request(base, "/api/v1/platform/transcript?sessionId=s", undefined, credential))
-        .status,
-    ).toBe(400)
     expect(
       (await request(base, "/api/v1/platform/context-usage", undefined, credential)).status,
     ).toBe(400)
@@ -145,16 +138,6 @@ describe("thin host HTTP shell", () => {
         )
       ).json(),
     ).resolves.toEqual({ usage: null, preview: null })
-    expect(
-      (
-        await request(
-          base,
-          "/api/v1/platform/transcript?sessionId=missing&before=m1",
-          undefined,
-          credential,
-        )
-      ).status,
-    ).toBe(404)
     const cards = await request(base, "/api/v1/platform/session-cards", undefined, credential)
     expect(cards.status).toBe(200)
     await expect(cards.json()).resolves.toMatchObject({ cards: expect.any(Array) })

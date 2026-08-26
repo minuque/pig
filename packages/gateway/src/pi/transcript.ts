@@ -23,26 +23,6 @@ type SessionMessage = Extract<
   { type: "message_start" | "message_update" | "message_end" }
 >["message"]
 
-/** 打开会话与「加载更早」共用的页大小。Web 不再双写。 */
-export const TRANSCRIPT_PAGE_SIZE = 40
-
-/** 截断快照 transcript；不足一页则原样返回，超出只留尾部且保持原顺序。 */
-export function windowSnapshotTranscript<T>(items: readonly T[]): T[] {
-  return items.slice(-TRANSCRIPT_PAGE_SIZE)
-}
-
-/** 取 beforeId 之前的一页；找不到或已在开头则空。hasMore 表示再往前还有。 */
-export function transcriptPageBefore<T extends { id: string }>(
-  items: readonly T[],
-  beforeId: string,
-  limit = TRANSCRIPT_PAGE_SIZE,
-): { items: T[]; hasMore: boolean } {
-  const end = items.findIndex((item) => item.id === beforeId)
-  if (end <= 0) return { items: [], hasMore: false }
-  const start = Math.max(0, end - limit)
-  return { items: items.slice(start, end) as T[], hasMore: start > 0 }
-}
-
 /**
  * 协议投影：把 AgentSession 事件与 SessionManager 条目映射为官方
  * TranscriptProgress / TranscriptItem。

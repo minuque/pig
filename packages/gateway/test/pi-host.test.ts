@@ -10,12 +10,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import { canonicalizePath } from "../src/directory.js"
 import { PiHostService } from "../src/pi/service.js"
 import { PiHostSession } from "../src/pi/session-runtime.js"
-import {
-  TRANSCRIPT_PAGE_SIZE,
-  TranscriptProjection,
-  transcriptPageBefore,
-  windowSnapshotTranscript,
-} from "../src/pi/transcript.js"
+import { TranscriptProjection } from "../src/pi/transcript.js"
 
 // --- 测试替身 -------------------------------------------------------------
 
@@ -214,32 +209,6 @@ describe("TranscriptProjection", () => {
   })
 })
 
-describe("windowSnapshotTranscript", () => {
-  it("不足一页则原样返回，超出则只留尾部且保持原顺序", () => {
-    expect(windowSnapshotTranscript([1, 2, 3])).toEqual([1, 2, 3])
-    const items = Array.from({ length: TRANSCRIPT_PAGE_SIZE + 5 }, (_, i) => i)
-    expect(windowSnapshotTranscript(items)).toEqual(
-      items.slice(items.length - TRANSCRIPT_PAGE_SIZE),
-    )
-  })
-})
-
-describe("transcriptPageBefore", () => {
-  const items = [1, 2, 3, 4, 5].map((n) => ({ id: `m${n}` }))
-
-  it("取 before 之前的一页，并标明再往前还有", () => {
-    expect(transcriptPageBefore(items, "m5", 2)).toEqual({
-      items: [{ id: "m3" }, { id: "m4" }],
-      hasMore: true,
-    })
-  })
-
-  it("已到开头或找不到锚点则空", () => {
-    expect(transcriptPageBefore(items, "m1", 2)).toEqual({ items: [], hasMore: false })
-    expect(transcriptPageBefore(items, "missing", 2)).toEqual({ items: [], hasMore: false })
-  })
-})
-
 // --- PiHostSession ---------------------------------------------------------
 
 describe("PiHostSession", () => {
@@ -423,41 +392,24 @@ describe("PiHostService", () => {
     })
   })
 
-  it("超过一页时 snapshot 只发尾部，卡片 messageCount 仍是全文", async () => {
+  it("长 transcript 整包进 snapshot，卡片 messageCount 仍是全文", async () => {
     const { service, sessions } = await makeService()
     const runtime = await service.createSession({ id: "sess-long" })
     const manager = sessions.get("sess-long")!.sessionManager
-    const total = TRANSCRIPT_PAGE_SIZE + 5
+    const total = 45
     for (let i = 0; i < total; i += 1) {
       manager.appendMessage({ role: "user", content: `m${i}`, timestamp: 1000 + i })
     }
     const snapshot = await runtime.snapshot()
-    expect(snapshot.transcript).toHaveLength(TRANSCRIPT_PAGE_SIZE)
+    expect(snapshot.transcript).toHaveLength(total)
     expect(
       snapshot.transcript.map((item) =>
         item.role === "user" && item.content[0]?.type === "text" ? item.content[0].text : item.role,
       ),
-    ).toEqual(
-      Array.from(
-        { length: TRANSCRIPT_PAGE_SIZE },
-        (_, i) => `m${i + total - TRANSCRIPT_PAGE_SIZE}`,
-      ),
-    )
-    expect(manager.getBranch().filter((entry) => entry.type === "message")).toHaveLength(total)
+    ).toEqual(Array.from({ length: total }, (_, i) => `m${i}`))
     expect(await service.listSessionCards()).toMatchObject([
       { id: "sess-long", messageCount: total },
     ])
-    const oldestInWindow = snapshot.transcript[0]
-    expect(oldestInWindow).toBeDefined()
-    const page = await service.readTranscriptPage("sess-long", oldestInWindow!.id)
-    expect(page.items).toHaveLength(5)
-    expect(page.hasMore).toBe(false)
-    expect(
-      page.items.map((item) =>
-        item.role === "user" && item.content[0]?.type === "text" ? item.content[0].text : item.role,
-      ),
-    ).toEqual(["m0", "m1", "m2", "m3", "m4"])
-    expect(() => JSON.stringify(page)).not.toThrow()
   })
 
   it("renames via SessionManager and deletes the session file", async () => {

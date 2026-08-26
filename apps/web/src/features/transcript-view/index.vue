@@ -32,12 +32,7 @@
             class="row"
             :data-minimap-row="row.role === 'user' ? row.id : undefined"
           >
-            <EarlierRow
-              v-if="isEarlierRow(row)"
-              :loading="loadingEarlier"
-              @load="emit('load-earlier')"
-            />
-            <UserMessage v-else-if="row.role === 'user'" :item="row" />
+            <UserMessage v-if="row.role === 'user'" :item="row" />
             <AssistantMessage
               v-else-if="row.role === 'assistant'"
               :item="row"
@@ -93,7 +88,6 @@ import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
 import type { SessionPhase, TranscriptItem } from "@earendil-works/pi-protocol"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
-import EarlierRow from "@features/transcript-view/components/EarlierRow.vue"
 import ThinkingWait from "@features/transcript-view/components/ThinkingWait.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
@@ -104,7 +98,6 @@ import { isAssistantItem, transcriptText } from "@features/transcript-view/lib/t
 import {
   buildTimelineRows,
   estimateTranscriptRowHeight,
-  isEarlierRow,
   isThinkingRow,
   isWorkRow,
   transcriptRowContent,
@@ -131,29 +124,23 @@ import {
 } from "@features/transcript-view/lib/transcript-scroll.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
-const props = withDefaults(
-  defineProps<{
-    sessionId: string
-    /** 官方 TranscriptItem 列表：RemoteSession 维护的投影 */
-    transcript: readonly TranscriptItem[]
-    /** 当前 Session phase：非 idle 时显示 streaming 空态 */
-    phase: SessionPhase | undefined
-    /** 上次离开该会话时的虚拟滚动状态：只复用行高，打开时贴底 */
-    threadState: MarkstreamThreadVirtualState | null
-    hasEarlier?: boolean
-    loadingEarlier?: boolean
-  }>(),
-  { hasEarlier: false, loadingEarlier: false },
-)
+const props = defineProps<{
+  sessionId: string
+  /** 官方 TranscriptItem 列表：RemoteSession 维护的投影 */
+  transcript: readonly TranscriptItem[]
+  /** 当前 Session phase：非 idle 时显示 streaming 空态 */
+  phase: SessionPhase | undefined
+  /** 上次离开该会话时的虚拟滚动状态：只复用行高，打开时贴底 */
+  threadState: MarkstreamThreadVirtualState | null
+}>()
 
 const emit = defineEmits<{
   "thread-state": [state: MarkstreamThreadVirtualState]
-  "load-earlier": []
   ready: []
 }>()
 
 const running = computed(() => props.phase !== undefined && props.phase !== "idle")
-const rows = computed(() => buildTimelineRows(props.transcript, props.phase, props.hasEarlier))
+const rows = computed(() => buildTimelineRows(props.transcript, props.phase))
 const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
 )
@@ -167,7 +154,7 @@ const minimapItems = computed(() =>
     rows.value.map((row) => ({
       id: row.id,
       role: row.role,
-      text: isEarlierRow(row) || isThinkingRow(row) || isWorkRow(row) ? "" : transcriptText(row),
+      text: isThinkingRow(row) || isWorkRow(row) ? "" : transcriptText(row),
     })),
   ),
 )

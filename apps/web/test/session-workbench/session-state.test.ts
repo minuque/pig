@@ -3,12 +3,9 @@ import { describe, expect, it } from "vitest"
 import type { MarkstreamThreadVirtualState } from "markstream-vue"
 import type { TranscriptItem, UserTranscriptItem } from "@earendil-works/pi-protocol"
 import {
-  hasEarlierTranscript,
   isSessionPending,
-  mergeTranscriptWindow,
   projectOptimisticTranscript,
   sessionState,
-  transcriptWindowTotal,
 } from "@features/session-workbench/lib/session-state.js"
 import type { SessionClientState } from "@features/session-workbench/lib/session-state.js"
 
@@ -87,7 +84,7 @@ describe("projectOptimisticTranscript", () => {
     ).toBe(items)
   })
 
-  it("加载更早记录时不会把旧同文用户句误判为确认", () => {
+  it("已知历史之外的同文用户句不算确认", () => {
     const earlierDuplicate = { ...optimistic, id: "earlier-u0", timestamp: 0 }
     expect(
       projectOptimisticTranscript([earlierDuplicate, previous, assistant], {
@@ -108,50 +105,5 @@ describe("isSessionPending", () => {
     expect(isSessionPending(undefined, "s1")).toBe(false)
     expect(isSessionPending(undefined, undefined)).toBe(false)
     expect(isSessionPending("s1", "s1")).toBe(false)
-  })
-})
-
-describe("mergeTranscriptWindow", () => {
-  it("保留被窗口挤出的前缀，窗口内同 id 以窗口为准", () => {
-    const prefix = [
-      { id: "a", n: 1 },
-      { id: "b", n: 1 },
-    ]
-    const window = [
-      { id: "b", n: 2 },
-      { id: "c", n: 2 },
-    ]
-    expect(mergeTranscriptWindow(prefix, window)).toEqual([
-      { id: "a", n: 1 },
-      { id: "b", n: 2 },
-      { id: "c", n: 2 },
-    ])
-  })
-})
-
-describe("transcriptWindowTotal", () => {
-  it("卡片全量与已加载取较大值", () => {
-    expect(transcriptWindowTotal(40, 193)).toBe(193)
-    expect(transcriptWindowTotal(200, 193)).toBe(200)
-  })
-
-  it("卡片未知时用已加载；两者都空则未知", () => {
-    expect(transcriptWindowTotal(40, undefined)).toBe(40)
-    expect(transcriptWindowTotal(0, undefined)).toBeUndefined()
-    expect(transcriptWindowTotal(0, 193)).toBe(193)
-  })
-})
-
-describe("hasEarlierTranscript", () => {
-  it("全量大于已加载时显示按钮，耗尽或空列表不显示", () => {
-    expect(hasEarlierTranscript(40, 193, false)).toBe(true)
-    expect(hasEarlierTranscript(193, 193, false)).toBe(false)
-    expect(hasEarlierTranscript(40, 193, true)).toBe(false)
-    expect(hasEarlierTranscript(0, 193, false)).toBe(false)
-  })
-
-  it("全量未知时不猜测", () => {
-    expect(hasEarlierTranscript(40, undefined, false)).toBe(false)
-    expect(hasEarlierTranscript(2, undefined, false)).toBe(false)
   })
 })

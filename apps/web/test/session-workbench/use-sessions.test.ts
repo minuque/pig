@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { ref, type MaybeRefOrGetter } from "vue"
 import type { PiClient } from "@earendil-works/pi-client"
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
-import type { SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol"
+import type { SessionSnapshot } from "@earendil-works/pi-protocol"
 import type { ContextUsageEstimate } from "@features/chat-input/lib/context-usage.js"
 
 /** 假 RemoteSession：记录 dispose 次数与订阅者，可手动派发状态。 */
@@ -69,28 +69,6 @@ function setup() {
   return { sessions }
 }
 
-function makeTranscript(count: number, prefix = "m"): TranscriptItem[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `${prefix}${i + 1}`,
-    role: "user",
-    content: [{ type: "text", text: `${prefix}${i + 1}` }],
-    timestamp: i + 1,
-  }))
-}
-
-/** Gateway 快照窗口：id 从 start 起连续 count 条。 */
-function snapshotWindow(start: number, count: number): TranscriptItem[] {
-  return Array.from({ length: count }, (_, i) => {
-    const n = start + i
-    return {
-      id: `m${n}`,
-      role: "user" as const,
-      content: [{ type: "text", text: `m${n}` }],
-      timestamp: n,
-    }
-  })
-}
-
 function snapshot(revision: number): SessionSnapshot {
   return {
     id: "s1",
@@ -122,10 +100,6 @@ const usageEstimate: ContextUsageEstimate = {
     other: 50,
     idle: 700,
   },
-}
-
-function setTranscript(session: ReturnType<typeof makeSession>, items: TranscriptItem[]) {
-  session.state = { ...session.state, transcript: items }
 }
 
 describe("useRemoteSessions lifecycle", () => {
@@ -265,89 +239,5 @@ describe("useRemoteSessions lifecycle", () => {
     a.state = { ...a.state, snapshot: snapshot(2) }
     a.emit()
     await vi.waitFor(() => expect(platformRequestMock).toHaveBeenCalledTimes(2))
-  })
-})
-
-describe("useRemoteSessions 窗口", () => {
-  it("openSession 不自动补更早页，快照有多少就展示多少", async () => {
-    const { sessions } = setup()
-    const a = makeSession("s1")
-    setTranscript(a, snapshotWindow(6, 40))
-    openMock.mockResolvedValue(a)
-    await sessions.openSession("s1")
-    expect(sessions.transcript.value).toHaveLength(40)
-    expect(sessions.transcript.value[0]?.id).toBe("m6")
-    expect(sessions.transcript.value.at(-1)?.id).toBe("m45")
-    expect(sessions.hasEarlier.value).toBe(false)
-    expect(
-      platformRequestMock.mock.calls.every((call) => !String(call[0]).includes("/transcript?")),
-    ).toBe(true)
-  })
-
-  it("卡片全量大于已加载时 hasEarlier，翻尽后关闭", async () => {
-    const cards = ref(new Map([["s1", { messageCount: 193 }]]))
-    const client = ref<PiClient | undefined>()
-    const sessions = useRemoteSessions(
-      client as unknown as MaybeRefOrGetter<PiClient | undefined>,
-      {
-        sessionCards: cards,
-      },
-    )
-    client.value = {} as unknown as PiClient
-    const a = makeSession("s1")
-    setTranscript(a, snapshotWindow(6, 40))
-    openMock.mockResolvedValue(a)
-    platformRequestMock.mockResolvedValue({
-      items: makeTranscript(5),
-      hasMore: false,
-    })
-    await sessions.openSession("s1")
-    expect(sessions.transcriptTotal.value).toBe(193)
-    expect(sessions.hasEarlier.value).toBe(true)
-    await sessions.loadEarlier()
-    expect(platformRequestMock).toHaveBeenCalledWith(
-      expect.stringContaining("sessionId=s1&before=m6"),
-    )
-    expect(sessions.transcript.value.map((item) => item.id)).toEqual([
-      "m1",
-      "m2",
-      "m3",
-      "m4",
-      "m5",
-      ...Array.from({ length: 40 }, (_, i) => `m${i + 6}`),
-    ])
-    expect(sessions.earlierExhausted.value).toBe(true)
-    expect(sessions.hasEarlier.value).toBe(false)
-  })
-
-  it("卡片后到时才出现 hasEarlier", async () => {
-    const cards = ref(new Map<string, { messageCount: number }>())
-    const client = ref<PiClient | undefined>()
-    const sessions = useRemoteSessions(
-      client as unknown as MaybeRefOrGetter<PiClient | undefined>,
-      {
-        sessionCards: cards,
-      },
-    )
-    client.value = {} as unknown as PiClient
-    const a = makeSession("s1")
-    setTranscript(a, snapshotWindow(6, 40))
-    openMock.mockResolvedValue(a)
-    await sessions.openSession("s1")
-    expect(sessions.hasEarlier.value).toBe(false)
-    cards.value = new Map([["s1", { messageCount: 193 }]])
-    expect(sessions.transcriptTotal.value).toBe(193)
-    expect(sessions.hasEarlier.value).toBe(true)
-  })
-
-  it("加载更早失败时上抛且复位 loading", async () => {
-    const { sessions } = setup()
-    const a = makeSession("s1")
-    setTranscript(a, makeTranscript(40))
-    openMock.mockResolvedValue(a)
-    platformRequestMock.mockRejectedValue(new Error("boom"))
-    await sessions.openSession("s1")
-    await expect(sessions.loadEarlier()).rejects.toThrow("boom")
-    expect(sessions.loadingEarlier.value).toBe(false)
   })
 })
