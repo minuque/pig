@@ -64,8 +64,12 @@ Transcript 中 `role` 为 `user` 的条目，含文字与图片。
 _避免使用_：Prompt、消息
 
 **Assistant Message（助手句）**：
-Transcript 中 `role` 为 `assistant` 的条目，含正文与思考。调用本身在 Tool Call 上。
+Transcript 中 `role` 为 `assistant` 的条目，含正文与思考。思考不是独立条目。调用本身在 Tool Call 上。
 _避免使用_：Agent、Agent 输出
+
+**Thinking（思考）**：
+Assistant Message 里的推理内容，不是 Transcript 条目，也不是 Tool Call。
+_避免使用_：reasoning、Activity、思考行
 
 **Tool Call（工具调用）**：
 Transcript 中 `role` 为 `tool` 的条目：一次调用的入参、输出与状态。
