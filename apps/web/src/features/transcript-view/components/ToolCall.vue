@@ -5,14 +5,14 @@
       class="toggle"
       :aria-expanded="open"
       :aria-label="toggleLabel"
-      @click="open = !open"
+      @click="onToggle"
     >
       <span class="status" :class="statusKind" aria-hidden="true">
         <LoaderCircle v-if="running" class="spin" :size="16" />
         <X v-else-if="item.isError" :size="10" :stroke-width="3" />
         <CircleCheck v-else :size="16" />
       </span>
-      <span class="name">{{ item.toolName || "工具" }}</span>
+      <span class="name">{{ title }}</span>
       <span class="meta">
         <span v-if="summary" class="summary">{{ summary }}</span>
         <ChevronDown class="caret" :size="14" aria-hidden="true" />
@@ -40,13 +40,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue"
+import { computed } from "vue"
 import { ChevronDown, CircleCheck, LoaderCircle, X } from "lucide-vue-next"
 import type { ToolTranscriptItem } from "@earendil-works/pi-protocol"
 import ExpandableText from "@features/transcript-view/components/ExpandableText.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import {
   toolCallSummary,
+  toolCallTitle,
   toolInputPretty,
   transcriptImages,
   transcriptText,
@@ -56,8 +57,9 @@ const props = defineProps<{
   item: ToolTranscriptItem
 }>()
 
-const open = shallowRef(false)
+const open = defineModel<boolean>("open", { required: true })
 const running = computed(() => props.item.status === "running")
+const locked = computed(() => running.value || props.item.isError)
 const statusKind = computed(() => {
   if (props.item.isError) return "is-err"
   if (running.value) return "is-run"
@@ -68,23 +70,20 @@ const statusLabel = computed(() => {
   if (running.value) return "运行中"
   return "完成"
 })
+const title = computed(() => toolCallTitle(props.item))
 const summary = computed(() => toolCallSummary(props.item))
 const toggleLabel = computed(() => {
-  const name = props.item.toolName || "工具"
-  return summary.value
-    ? `${name}，${statusLabel.value}，${summary.value}`
-    : `${name}，${statusLabel.value}`
+  const lead = `${title.value}，${statusLabel.value}`
+  return summary.value ? `${lead}，${summary.value}` : lead
 })
 const inputFull = computed(() => (open.value ? toolInputPretty(props.item.input) : ""))
 const outputText = computed(() => (open.value ? transcriptText(props.item) : ""))
 const outputImages = computed(() => (open.value ? transcriptImages(props.item) : []))
 
-watch(
-  () => props.item.isError,
-  (isError) => {
-    if (isError) open.value = true
-  },
-)
+function onToggle() {
+  if (locked.value) return
+  open.value = !open.value
+}
 </script>
 
 <style scoped>
@@ -141,13 +140,17 @@ watch(
   animation: tool-spin 0.8s linear infinite;
 }
 .name {
-  flex: none;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
   color: var(--ink-secondary);
   font-weight: var(--font-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .meta {
   display: flex;
-  flex: 1;
+  flex: none;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;

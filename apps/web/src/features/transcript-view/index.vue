@@ -32,11 +32,11 @@
             class="row"
             :data-minimap-row="row.role === 'user' ? row.id : undefined"
           >
-            <div v-if="isEarlierRow(row)" class="earlier-row">
-              <button type="button" :disabled="loadingEarlier" @click="emit('load-earlier')">
-                {{ loadingEarlier ? "加载中…" : "加载更早" }}
-              </button>
-            </div>
+            <EarlierRow
+              v-if="isEarlierRow(row)"
+              :loading="loadingEarlier"
+              @load="emit('load-earlier')"
+            />
             <UserMessage v-else-if="row.role === 'user'" :item="row" />
             <AssistantMessage
               v-else-if="row.role === 'assistant'"
@@ -49,7 +49,14 @@
             <div v-else-if="isThinkingRow(row)" class="thinking-row">
               <ThinkingWait />
             </div>
-            <ToolCall v-else-if="row.role === 'tool'" :item="row" />
+            <WorkRow
+              v-else-if="isWorkRow(row)"
+              :row="row"
+              :fold-open="isFoldOpen(row.id)"
+              :expanded-tools="expandedTools"
+              @toggle-fold="toggleFold(row.id)"
+              @toggle-tool="toggleTool"
+            />
           </div>
         </template>
       </MarkstreamVirtualTimeline>
@@ -80,206 +87,30 @@
   </div>
 </template>
 
-<script lang="ts">
-import type { SessionPhase, TranscriptItem } from "@earendil-works/pi-protocol"
-import type { MarkstreamThreadVirtualState } from "markstream-vue"
-import {
-  assistantThinking,
-  conversationRows,
-  isAssistantItem,
-  transcriptText,
-} from "@features/transcript-view/lib/transcript-format.js"
-
-export const EARLIER_ROW_ID = "transcript-earlier"
-export const THINKING_ROW_ID = "transcript-thinking"
-
-export type EarlierRow = { id: typeof EARLIER_ROW_ID; role: "earlier" }
-export type ThinkingRow = { id: typeof THINKING_ROW_ID; role: "thinking" }
-export type TimelineRow = TranscriptItem | EarlierRow | ThinkingRow
-
-export function isEarlierRow(row: TimelineRow): row is EarlierRow {
-  return row.role === "earlier"
-}
-
-export function isThinkingRow(row: TimelineRow): row is ThinkingRow {
-  return row.role === "thinking"
-}
-
-/** 运行中且末条不是流式助手或进行中的工具时，补一条思考占位。 */
-export function needsThinkingPlaceholder(
-  phase: SessionPhase | undefined,
-  items: readonly TranscriptItem[],
-): boolean {
-  if (phase === undefined || phase === "idle") return false
-  const last = items[items.length - 1]
-  if (!last) return true
-  if (isAssistantItem(last) && last.status === "streaming") return false
-  if (last.role === "tool" && last.status === "running") return false
-  return true
-}
-
-export function withThinkingRow(
-  rows: readonly TimelineRow[],
-  phase: SessionPhase | undefined,
-  items: readonly TranscriptItem[],
-): TimelineRow[] {
-  if (!needsThinkingPlaceholder(phase, items)) return [...rows]
-  return [...rows, { id: THINKING_ROW_ID, role: "thinking" }]
-}
-
-/** 有更早消息时插在时间线头顶，占独立一行，随列表滚动。 */
-export function withEarlierRow(
-  items: readonly TranscriptItem[],
-  hasEarlier: boolean,
-): TimelineRow[] {
-  const rows = conversationRows(items)
-  if (!hasEarlier) return rows
-  return [{ id: EARLIER_ROW_ID, role: "earlier" }, ...rows]
-}
-
-/** 打开会话只恢复行高缓存，视口强制贴底。 */
-export function threadStatePinnedToBottom(
-  state: MarkstreamThreadVirtualState | null,
-): MarkstreamThreadVirtualState | null {
-  if (!state) return null
-  return {
-    ...state,
-    outerAnchor: { type: "bottom", distanceFromBottomPx: 0 },
-  }
-}
-
-/** 时间线认 Markdown 的 kind：仅助手正文。加载行不是 Markdown。 */
-export function transcriptRowKind(item: TimelineRow): string {
-  if (isEarlierRow(item)) return "load-earlier"
-  if (isThinkingRow(item)) return "thinking-wait"
-  if (item.role === "assistant") return "assistant-markdown"
-  if (item.role === "tool") return "tool-call"
-  return "user-message"
-}
-
-export function transcriptRowContent(item: TimelineRow): string {
-  return !isEarlierRow(item) && !isThinkingRow(item) && isAssistantItem(item)
-    ? transcriptText(item)
-    : ""
-}
-
-export function transcriptRowFinal(item: TimelineRow): boolean {
-  return (
-    isEarlierRow(item) ||
-    isThinkingRow(item) ||
-    !(isAssistantItem(item) && item.status === "streaming")
-  )
-}
-
-/** 与 Markstream 新增行的精确贴底阈值一致，避免 UI 和时间线各判一套状态。 */
-export function isTranscriptAtBottom(
-  scrollHeight: number,
-  scrollTop: number,
-  clientHeight: number,
-  threshold = 2,
-): boolean {
-  return scrollHeight - scrollTop - clientHeight <= threshold
-}
-
-/** 与 Markstream te（48px）一致：上翻解锁的 3px / DPI 余量仍算在底部，不弹出按钮。 */
-export function isTranscriptVisuallyAtBottom(
-  scrollHeight: number,
-  scrollTop: number,
-  clientHeight: number,
-): boolean {
-  return isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, 48)
-}
-
-/** 有内容且视觉上离开底部才显示回到底部按钮。 */
-export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boolean): boolean {
-  return transcriptLength > 0 && !atBottom
-}
-
-/** ponytail: 2s 封顶，markdown-stream 卡住时不挡会话 */
-export const MARKDOWN_STREAM_READY_TIMEOUT_MS = 2000
-
-/** 无助手正文即可撤；有则必须已挂上且 pending 清零。 */
-export function isMarkdownStreamReady(
-  hasMarkdownRows: boolean,
-  pendingCount: number,
-  mounted: boolean,
-): boolean {
-  if (pendingCount > 0) return false
-  if (!hasMarkdownRows) return true
-  return mounted
-}
-
-/** 盖过时间线已排队的旧锚点 rAF 与测高回写。 */
-export const PROGRAMMATIC_BOTTOM_HOLD_MS = 400
-
-/** 程序化滚底后，未贴底读数在 hold 窗口内视为旧锚点回写。 */
-export function shouldHoldProgrammaticBottom(
-  measuredBottom: boolean,
-  holdUntil: number,
-  now: number,
-): boolean {
-  return !measuredBottom && now < holdUntil
-}
-
-/** 贴底后明显上翻才解锁。1px 级惯性不能 preventDefault，否则永远触不了底。 */
-export function unpinBottomScrollTop(
-  scrollHeight: number,
-  scrollTop: number,
-  clientHeight: number,
-  deltaY: number,
-  threshold = 2,
-): number | null {
-  if (deltaY >= 0 || Math.abs(deltaY) <= threshold) return null
-  if (!isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, threshold)) return null
-  const maxTop = Math.max(0, scrollHeight - clientHeight)
-  return Math.max(0, Math.min(maxTop, scrollTop - Math.abs(deltaY)))
-}
-
-function estimateWrappedLines(text: string, charsPerLine: number): number {
-  if (!text) return 1
-  let lines = 0
-  for (const part of text.split("\n")) {
-    lines += Math.max(1, Math.ceil(part.length / charsPerLine))
-  }
-  return lines
-}
-
-/**
- * 虚拟列表估高：宁可偏高，避免宽度变窄后按 200px 塞进过多未测行。
- * 助手约 48 字/行、26px 行高；用户约 36 字/行、22px 行高。
- */
-export function estimateTranscriptRowHeight(item: TimelineRow): number {
-  if (isThinkingRow(item)) return 36
-  if (isEarlierRow(item) || item.role === "tool") return 48
-  const text = transcriptText(item)
-  if (item.role === "user") {
-    return Math.min(280, 56 + estimateWrappedLines(text, 36) * 22)
-  }
-  const thinkingBlocks = isAssistantItem(item) ? assistantThinking(item) : []
-  if (
-    isAssistantItem(item) &&
-    item.status === "streaming" &&
-    !text &&
-    thinkingBlocks.length === 0
-  ) {
-    return 36
-  }
-  const height = 36 + estimateWrappedLines(text, 48) * 26
-  const thinking = thinkingBlocks.length > 0 ? (item.status === "streaming" ? 200 : 36) : 0
-  return Math.min(960, Math.max(160, height + thinking))
-}
-</script>
-
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
-import { MarkstreamVirtualTimeline } from "markstream-vue"
+import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
+import type { SessionPhase, TranscriptItem } from "@earendil-works/pi-protocol"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
+import EarlierRow from "@features/transcript-view/components/EarlierRow.vue"
 import ThinkingWait from "@features/transcript-view/components/ThinkingWait.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
-import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
+import WorkRow from "@features/transcript-view/components/WorkRow.vue"
 import { Button } from "@components/ui/button/index.js"
+import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
+import { isAssistantItem, transcriptText } from "@features/transcript-view/lib/transcript-format.js"
+import {
+  buildTimelineRows,
+  estimateTranscriptRowHeight,
+  isEarlierRow,
+  isThinkingRow,
+  isWorkRow,
+  transcriptRowContent,
+  transcriptRowFinal,
+  transcriptRowKind,
+} from "@features/transcript-view/lib/transcript-rows.js"
 import {
   deriveTranscriptMinimapItems,
   MINIMAP_MIN_ITEMS,
@@ -288,6 +119,16 @@ import {
   sameIdList,
   type TranscriptMinimapItem,
 } from "@features/transcript-view/lib/transcript-minimap.js"
+import {
+  isMarkdownStreamReady,
+  isTranscriptVisuallyAtBottom,
+  MARKDOWN_STREAM_READY_TIMEOUT_MS,
+  PROGRAMMATIC_BOTTOM_HOLD_MS,
+  shouldHoldProgrammaticBottom,
+  shouldShowScrollToLatest,
+  threadStatePinnedToBottom,
+  unpinBottomScrollTop,
+} from "@features/transcript-view/lib/transcript-scroll.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const props = withDefaults(
@@ -312,12 +153,9 @@ const emit = defineEmits<{
 }>()
 
 const running = computed(() => props.phase !== undefined && props.phase !== "idle")
-const rows = computed(() =>
-  withThinkingRow(
-    withEarlierRow(props.transcript, props.hasEarlier),
-    props.phase,
-    props.transcript,
-  ),
+const rows = computed(() => buildTimelineRows(props.transcript, props.phase, props.hasEarlier))
+const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpand(
+  () => props.sessionId,
 )
 const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState))
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
@@ -329,7 +167,7 @@ const minimapItems = computed(() =>
     rows.value.map((row) => ({
       id: row.id,
       role: row.role,
-      text: isEarlierRow(row) || isThinkingRow(row) ? "" : transcriptText(row),
+      text: isEarlierRow(row) || isThinkingRow(row) || isWorkRow(row) ? "" : transcriptText(row),
     })),
   ),
 )
@@ -338,8 +176,7 @@ const inViewIds = shallowRef<readonly string[]>([])
 const hasPersistentGutter = computed(() => resolveMinimapHasPersistentGutter(viewportWidth.value))
 const hitStripWidth = computed(() => resolveMinimapHitStripWidth(viewportWidth.value))
 
-// 虚拟滚动行 key：以 TranscriptItem id 保证流式输出时同一行原地更新
-function rowKey(item: TimelineRow): string {
+function rowKey(item: { id: string }): string {
   return item.id
 }
 
@@ -354,9 +191,7 @@ let streamReadyEmitted = false
 let readyTimer = 0
 
 function hasMarkdownRows(): boolean {
-  return rows.value.some(
-    (row) => !isEarlierRow(row) && row.role === "assistant" && Boolean(transcriptText(row)),
-  )
+  return rows.value.some((row) => row.role === "assistant" && Boolean(transcriptText(row)))
 }
 
 function emitStreamReady() {
@@ -398,14 +233,12 @@ function onMarkdownSettled(id: string) {
   void nextTick(checkStreamReady)
 }
 
-/* ── 贴底跟随与「跳转到最新」：滚动状态由 MarkstreamVirtualTimeline 管理 ── */
 const timeline = useTemplateRef<{
   scrollToBottom(): void
   scrollToIndex(index: number, align?: "start" | "center" | "end"): void
   captureThreadState(): MarkstreamThreadVirtualState
   restoreThreadState(state: MarkstreamThreadVirtualState): void
 }>("timeline")
-// 新增行只在精确贴底时自动跟随。
 const atBottom = shallowRef(true)
 const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, atBottom.value),
@@ -521,7 +354,6 @@ function persistThreadState(expectedSessionId = props.sessionId) {
   if (captured?.threadKey === expectedSessionId) emit("thread-state", captured)
 }
 
-// flush:pre 确保子时间线收到新 thread-key 前捕获旧 Session。
 watch(
   () => props.sessionId,
   (_sessionId, previousSessionId) => {
@@ -547,7 +379,6 @@ watch(
   },
   { immediate: true, flush: "post" },
 )
-// 打开或切换会话：内容就绪后贴底。从空到有行也滚一次（首屏迟到）。
 watch(
   () => props.sessionId,
   () => {
@@ -608,7 +439,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background: transparent;
 }
-/* 代码菜单可能溢出到输入区，抬整列压过输入卡 */
 .transcript-viewport:has(.code-more-menu) {
   z-index: 3;
 }
@@ -639,14 +469,12 @@ onBeforeUnmount(() => {
     inset-inline: var(--spacing-sm);
   }
 }
-/* 滚动根自带 overflow:auto；首尾 inset 写在容器上，不进虚拟行高 */
 .transcript {
   padding-top: var(--spacing-lg);
   padding-bottom: var(--spacing-lg);
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }
-/* 内容宽度约束：由每个虚拟行继承，替代原 transcript-content 的宽度盒 */
 .transcript :deep(.markstream-virtual-timeline__item) {
   width: min(var(--size-content), 100%);
   margin-inline: auto;
@@ -664,32 +492,5 @@ onBeforeUnmount(() => {
 }
 .thinking-row {
   margin-bottom: var(--spacing-lg);
-}
-.earlier-row {
-  display: flex;
-  justify-content: center;
-  padding: var(--spacing-sm) 0 var(--spacing-md);
-}
-.earlier-row button {
-  min-height: var(--size-nav-action);
-  padding: 4px 12px;
-  border: 0;
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--ink-faint);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-}
-.earlier-row button:hover:not(:disabled) {
-  color: var(--ink);
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
-}
-.earlier-row button:disabled {
-  cursor: default;
-  opacity: 0.7;
-}
-.shimmer {
-  color: var(--ink-muted);
 }
 </style>

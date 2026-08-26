@@ -4,6 +4,7 @@ import {
   conversationRows,
   isVisibleTranscriptItem,
   toolCallSummary,
+  toolCallTitle,
   transcriptImages,
 } from "@features/transcript-view/lib/transcript-format.js"
 
@@ -16,10 +17,24 @@ function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] 
   } as TranscriptItem
 }
 
+function tool(partial: Partial<ToolTranscriptItem> & { toolName: string }): ToolTranscriptItem {
+  return {
+    id: "t1",
+    role: "tool",
+    toolCallId: "t1",
+    input: {},
+    content: [],
+    timestamp: 0,
+    status: "complete",
+    isError: false,
+    ...partial,
+  } as ToolTranscriptItem
+}
+
 describe("conversationRows", () => {
   it("keeps user text, assistant text, and tool items", () => {
     const user = item({ id: "u1", role: "user", content: [{ type: "text", text: "问" }] })
-    const tool = item({
+    const toolItem = item({
       id: "t1",
       role: "tool",
       toolName: "bash",
@@ -33,7 +48,11 @@ describe("conversationRows", () => {
       status: "complete",
       content: [{ type: "text", text: "答" }],
     })
-    expect(conversationRows([user, tool, agent]).map((row) => row.id)).toEqual(["u1", "t1", "a1"])
+    expect(conversationRows([user, toolItem, agent]).map((row) => row.id)).toEqual([
+      "u1",
+      "t1",
+      "a1",
+    ])
   })
 
   it("keeps a user item that is only an image", () => {
@@ -59,30 +78,56 @@ describe("conversationRows", () => {
     expect(conversationRows([item({ role: "user", content: [] })])).toEqual([])
   })
 
-  it("keeps a streaming assistant before the first token", () => {
+  it("drops a streaming assistant that has no body yet", () => {
     const agent = item({
+      id: "a1",
       role: "assistant",
       status: "streaming",
       content: [],
     })
-    expect(conversationRows([agent])).toEqual([agent])
+    expect(conversationRows([agent])).toEqual([])
+  })
+
+  it("drops an assistant that only has thinking", () => {
+    const agent = item({
+      role: "assistant",
+      status: "complete",
+      content: [{ type: "thinking", thinking: "hmm" }],
+    })
+    expect(isVisibleTranscriptItem(agent)).toBe(false)
+  })
+})
+
+describe("tool call title", () => {
+  it("uses tense and input object", () => {
+    const running = tool({
+      toolName: "read",
+      status: "running",
+      input: { path: "src/app/page.tsx" },
+    })
+    expect(toolCallTitle(running)).toBe("正在读取 src/app/page.tsx")
+    expect(
+      toolCallTitle({ ...running, status: "complete", isError: false } as ToolTranscriptItem),
+    ).toBe("已读取 src/app/page.tsx")
+    expect(toolCallTitle(tool({ toolName: "bash", input: { command: "git status" } }))).toBe(
+      "已运行 git status",
+    )
+    expect(toolCallTitle(tool({ toolName: "web_search", input: { query: "vue sfc" } }))).toBe(
+      "已调用 vue sfc",
+    )
   })
 })
 
 describe("tool call summary", () => {
-  it("running uses the input hint, errors say 失败", () => {
-    const running = {
-      id: "t1",
-      role: "tool",
-      toolCallId: "t1",
+  it("running has no summary, errors say 失败", () => {
+    const running = tool({
       toolName: "bash",
       input: { path: "src/app/page.tsx" },
-      content: [],
-      timestamp: 0,
       status: "running",
-      isError: false,
-    } as ToolTranscriptItem
-    expect(toolCallSummary(running)).toBe("src/app/page.tsx")
-    expect(toolCallSummary({ ...running, status: "error", isError: true })).toBe("失败")
+    })
+    expect(toolCallSummary(running)).toBe("")
+    expect(
+      toolCallSummary({ ...running, status: "error", isError: true } as ToolTranscriptItem),
+    ).toBe("失败")
   })
 })

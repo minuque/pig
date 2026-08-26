@@ -15,6 +15,10 @@ export function isAssistantItem(item: TranscriptItem): item is AssistantTranscri
   return item.role === "assistant"
 }
 
+export function isToolItem(item: TranscriptItem): item is ToolTranscriptItem {
+  return item.role === "tool"
+}
+
 export function transcriptText(item: TranscriptItem): string {
   return item.content
     .filter((block): block is { type: "text"; text: string } => block.type === "text")
@@ -42,18 +46,14 @@ export function transcriptImageSrc(data: string, mimeType: string): string {
   return `data:${mimeType};base64,${data}`
 }
 
+/** 用户句有字或图才占行；助手句只凭正文占行，仅思考不占行。 */
 export function isVisibleTranscriptItem(item: TranscriptItem): boolean {
   if (isUserItem(item)) return transcriptText(item).length > 0 || transcriptImages(item).length > 0
-  if (isAssistantItem(item))
-    return (
-      item.status === "streaming" ||
-      transcriptText(item).length > 0 ||
-      assistantThinking(item).length > 0
-    )
+  if (isAssistantItem(item)) return transcriptText(item).length > 0
   return true
 }
 
-/** 可见条目：无文字且无图的用户句、仅有 toolCall 的助手句不占行。流式空助手句要占位。 */
+/** 可见条目：无文字且无图的用户句、仅思考或仅 toolCall 的助手句不占行。 */
 export function conversationRows(items: readonly TranscriptItem[]): TranscriptItem[] {
   return items.filter(isVisibleTranscriptItem)
 }
@@ -135,21 +135,46 @@ function resultCount(text: string): number | null {
 }
 
 /**
- * 折叠顶栏右侧摘要。path / cmd 始终压过输出条数，避免 bash 两行输出变成「2 条结果」。
- * 无路径或命令时，短列表才写成「N 条结果」。
+ * 折叠顶栏右侧摘要。标题已含 path / cmd，这里只留失败和短列表条数。
  */
 export function toolCallSummary(item: ToolTranscriptItem): string {
   if (item.isError) return "失败"
-  const pathOrCmd = hintFromKeys(item.input, PATH_CMD_KEYS)
-  if (pathOrCmd) return pathOrCmd
-  if (item.status !== "running") {
-    const text = transcriptText(item)
-    const count = resultCount(text)
-    if (count != null) return `${count} 条结果`
-    const images = transcriptImages(item)
-    if (!text && images.length > 0) {
-      return images.length === 1 ? "1 张图片" : `${images.length} 张图片`
-    }
+  if (item.status === "running") return ""
+  const text = transcriptText(item)
+  const count = resultCount(text)
+  if (count != null) return `${count} 条结果`
+  const images = transcriptImages(item)
+  if (!text && images.length > 0) {
+    return images.length === 1 ? "1 张图片" : `${images.length} 张图片`
   }
-  return toolInputHint(item.input)
+  return ""
+}
+
+const TOOL_VERBS: Record<string, string> = {
+  read: "读取",
+  write: "写入",
+  edit: "编辑",
+  bash: "运行",
+  grep: "搜索",
+  find: "查找",
+  ls: "列出",
+}
+
+const TITLE_OBJECT_MAX = 48
+
+function clipTitleObject(text: string): string {
+  const compact = text.replace(/\s+/g, " ").trim()
+  if (compact.length <= TITLE_OBJECT_MAX) return compact
+  return `${compact.slice(0, TITLE_OBJECT_MAX - 1)}…`
+}
+
+/** 顶栏标题：按 toolName 与入参写成时态人话。 */
+export function toolCallTitle(item: ToolTranscriptItem): string {
+  const name = item.toolName.trim().toLowerCase()
+  const verb = TOOL_VERBS[name] ?? "调用"
+  const known = name in TOOL_VERBS
+  const hint = clipTitleObject(toolInputHint(item.input))
+  const object = hint || (known ? "" : item.toolName.trim() || "工具")
+  const prefix = item.status === "running" ? "正在" : "已"
+  return object ? `${prefix}${verb} ${object}` : `${prefix}${verb}`
 }

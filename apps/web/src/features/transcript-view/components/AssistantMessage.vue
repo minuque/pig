@@ -1,16 +1,5 @@
 <template>
   <article class="assistant">
-    <ThinkingReasoning v-if="thinking.length" :streaming="streaming" :content="thinkingText">
-      <div class="thinking-body">
-        <MarkdownRender
-          v-for="(block, index) in thinking"
-          :key="index"
-          v-bind="thinkProps"
-          :content="block"
-        />
-      </div>
-    </ThinkingReasoning>
-    <ThinkingWait v-else-if="streaming && !text" />
     <MarkdownRender
       v-if="text"
       v-bind="agentMarkdown"
@@ -28,12 +17,7 @@
 import MarkdownRender, { type MarkstreamVirtualMarkdownProps } from "markstream-vue"
 import { computed, onBeforeMount, onMounted } from "vue"
 import type { AssistantTranscriptItem } from "@earendil-works/pi-protocol"
-import ThinkingReasoning from "@features/transcript-view/components/ThinkingReasoning.vue"
-import ThinkingWait from "@features/transcript-view/components/ThinkingWait.vue"
-import {
-  assistantThinking,
-  transcriptText,
-} from "@features/transcript-view/lib/transcript-format.js"
+import { transcriptText } from "@features/transcript-view/lib/transcript-format.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const props = withDefaults(
@@ -53,8 +37,6 @@ const emit = defineEmits<{
 
 const { isDark } = useColorScheme()
 const text = computed(() => transcriptText(props.item))
-const thinking = computed(() => assistantThinking(props.item))
-const thinkingText = computed(() => thinking.value.join("\n\n"))
 
 onBeforeMount(() => {
   if (text.value && !props.streaming) emit("render-pending")
@@ -100,21 +82,6 @@ const agentMarkdown = computed(() => {
     smoothStreaming: false,
   } as const
 })
-
-const thinkProps = computed(
-  () =>
-    ({
-      customId: "chat",
-      mode: "minimal",
-      renderCodeBlocksAsPre: true,
-      final: true,
-      typewriter: false,
-      smoothStreaming: false,
-      isDark: isDark.value,
-      codeBlockOptions,
-      codeBlockProps: { theme: "dark-plus" },
-    }) as const,
-)
 </script>
 
 <style scoped>
@@ -134,15 +101,5 @@ const thinkProps = computed(
   color: var(--danger);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
-}
-.thinking-body :deep(p) {
-  margin: 0 0 var(--spacing-xs);
-  color: var(--ink-muted);
-  font-size: var(--text-caption);
-  line-height: 1.55;
-  white-space: pre-wrap;
-}
-.thinking-body > :last-child :deep(p:last-child) {
-  margin-bottom: 0;
 }
 </style>

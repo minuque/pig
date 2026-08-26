@@ -5,7 +5,7 @@
       <ThinkingState text="思考中…" />
     </div>
     <button
-      v-else
+      v-else-if="!pinned"
       type="button"
       class="tr-header is-clickable"
       :aria-expanded="expanded"
@@ -48,10 +48,15 @@ import ThinkingState from "@features/transcript-view/components/ThinkingState.vu
 const COLLAPSE_MS = 360
 const FADE = 16
 
-const props = defineProps<{
-  streaming: boolean
-  content: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    streaming: boolean
+    content: string
+    /** 钉在工作组里：不折叠、不写标题条。 */
+    pinned?: boolean
+  }>(),
+  { pinned: false },
+)
 
 const open = shallowRef(props.streaming)
 const elapsedSec = shallowRef<number | null>(null)
@@ -62,7 +67,7 @@ const viewport = useTemplateRef<HTMLElement>("viewport")
 let collapseTimer = 0
 
 const done = computed(() => !props.streaming)
-const expanded = computed(() => (done.value ? open.value : true))
+const expanded = computed(() => (props.pinned ? true : done.value ? open.value : true))
 const doneLabel = computed(() =>
   elapsedSec.value != null ? `思考了 ${elapsedSec.value}s` : "思考过程",
 )
@@ -134,6 +139,7 @@ watch(
       open.value = true
       return
     }
+    if (props.pinned) return
     collapseSoon()
   },
 )
