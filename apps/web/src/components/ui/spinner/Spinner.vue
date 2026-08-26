@@ -27,7 +27,7 @@ const bar = computed(() => ({
       class="absolute inset-0 flex animate-spin justify-center motion-reduce:animate-none"
       :style="{ animationDelay: `${i * 100}ms` }"
     >
-      <div class="rounded-full bg-ink" :style="bar"></div>
+      <div class="rounded-full bg-primary" :style="bar"></div>
     </div>
   </div>
 </template>

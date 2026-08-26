@@ -10,7 +10,7 @@
       <span class="status" :class="statusKind" aria-hidden="true">
         <LoaderCircle v-if="running" class="spin" :size="16" />
         <X v-else-if="item.isError" :size="10" :stroke-width="3" />
-        <Check v-else :size="10" :stroke-width="3" />
+        <CircleCheck v-else :size="16" />
       </span>
       <span class="name">{{ item.toolName || "工具" }}</span>
       <span class="meta">
@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
-import { Check, ChevronDown, LoaderCircle, X } from "lucide-vue-next"
+import { ChevronDown, CircleCheck, LoaderCircle, X } from "lucide-vue-next"
 import type { ToolTranscriptItem } from "@earendil-works/pi-protocol"
 import ExpandableText from "@features/transcript-view/components/ExpandableText.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
@@ -128,15 +128,14 @@ watch(
   border-radius: var(--radius-full);
 }
 .status.is-ok {
-  background: var(--accent-green);
-  color: var(--on-primary);
+  color: var(--accent-green);
 }
 .status.is-err {
   background: var(--danger);
   color: var(--on-primary);
 }
 .status.is-run {
-  color: var(--ink-muted);
+  color: var(--primary);
 }
 .spin {
   animation: tool-spin 0.8s linear infinite;
