@@ -1,8 +1,7 @@
 <template>
   <span
     class="orb"
-    role="img"
-    :aria-label="label"
+    aria-hidden="true"
     :style="{ width: `${size}px`, height: `${size}px`, '--orb-k': size / STAGE }"
   >
     <span class="ring">
@@ -39,9 +38,8 @@ const dots = Array.from({ length: RING_N }, (_, i) => {
 withDefaults(
   defineProps<{
     size?: number
-    label?: string
   }>(),
-  { size: 24, label: "思考中" },
+  { size: 28 },
 )
 </script>
 
@@ -50,14 +48,19 @@ withDefaults(
   position: relative;
   display: block;
   flex: none;
-  overflow: hidden;
+  overflow: visible;
+  border: 0;
+  outline: none;
   color: var(--ink-muted);
-  contain: strict;
 }
 .ring {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
   transform: scale(var(--orb-k, 1));
+  transform-origin: 0 0;
 }
 .dot {
   position: absolute;
