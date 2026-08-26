@@ -45,11 +45,15 @@ export function transcriptImageSrc(data: string, mimeType: string): string {
 export function isVisibleTranscriptItem(item: TranscriptItem): boolean {
   if (isUserItem(item)) return transcriptText(item).length > 0 || transcriptImages(item).length > 0
   if (isAssistantItem(item))
-    return transcriptText(item).length > 0 || assistantThinking(item).length > 0
+    return (
+      item.status === "streaming" ||
+      transcriptText(item).length > 0 ||
+      assistantThinking(item).length > 0
+    )
   return true
 }
 
-/** 可见条目：无文字且无图的用户句、仅有 toolCall 的助手句不占行。 */
+/** 可见条目：无文字且无图的用户句、仅有 toolCall 的助手句不占行。流式空助手句要占位。 */
 export function conversationRows(items: readonly TranscriptItem[]): TranscriptItem[] {
   return items.filter(isVisibleTranscriptItem)
 }

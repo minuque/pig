@@ -1,8 +1,7 @@
 <template>
   <article class="assistant">
-    <FoldReveal v-if="thinking.length">
-      <template #summary>思考过程</template>
-      <div class="fold-body thinking-body">
+    <ThinkingReasoning v-if="thinking.length" :streaming="streaming" :content="thinkingText">
+      <div class="thinking-body">
         <MarkdownRender
           v-for="(block, index) in thinking"
           :key="index"
@@ -10,7 +9,8 @@
           :content="block"
         />
       </div>
-    </FoldReveal>
+    </ThinkingReasoning>
+    <ThinkingWait v-else-if="streaming && !text" />
     <MarkdownRender
       v-if="text"
       v-bind="agentMarkdown"
@@ -28,7 +28,8 @@
 import MarkdownRender, { type MarkstreamVirtualMarkdownProps } from "markstream-vue"
 import { computed, onBeforeMount, onMounted } from "vue"
 import type { AssistantTranscriptItem } from "@earendil-works/pi-protocol"
-import FoldReveal from "@features/transcript-view/components/FoldReveal.vue"
+import ThinkingReasoning from "@features/transcript-view/components/ThinkingReasoning.vue"
+import ThinkingWait from "@features/transcript-view/components/ThinkingWait.vue"
 import {
   assistantThinking,
   transcriptText,
@@ -53,6 +54,7 @@ const emit = defineEmits<{
 const { isDark } = useColorScheme()
 const text = computed(() => transcriptText(props.item))
 const thinking = computed(() => assistantThinking(props.item))
+const thinkingText = computed(() => thinking.value.join("\n\n"))
 
 onBeforeMount(() => {
   if (text.value && !props.streaming) emit("render-pending")
@@ -132,9 +134,6 @@ const thinkProps = computed(
   color: var(--danger);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
-}
-.fold-body {
-  padding: 2px 0 4px 22px;
 }
 .thinking-body :deep(p) {
   margin: 0 0 var(--spacing-xs);

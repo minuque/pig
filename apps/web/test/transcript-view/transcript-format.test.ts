@@ -59,6 +59,15 @@ describe("conversationRows", () => {
     expect(conversationRows([item({ role: "assistant", content: [] })])).toEqual([])
     expect(conversationRows([item({ role: "user", content: [] })])).toEqual([])
   })
+
+  it("keeps a streaming assistant before the first token", () => {
+    const agent = item({
+      role: "assistant",
+      status: "streaming",
+      content: [],
+    })
+    expect(conversationRows([agent])).toEqual([agent])
+  })
 })
 
 describe("transcript text helpers", () => {

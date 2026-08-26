@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest"
 import type { TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   EARLIER_ROW_ID,
+  THINKING_ROW_ID,
   estimateTranscriptRowHeight,
   isEarlierRow,
   isMarkdownStreamReady,
+  isThinkingRow,
   isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
+  needsThinkingPlaceholder,
   shouldHoldProgrammaticBottom,
   threadStatePinnedToBottom,
   shouldShowScrollToLatest,
@@ -15,6 +18,7 @@ import {
   transcriptRowFinal,
   transcriptRowKind,
   withEarlierRow,
+  withThinkingRow,
 } from "@features/transcript-view/index.vue"
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
@@ -122,6 +126,27 @@ describe("estimateTranscriptRowHeight", () => {
     expect(estimateTranscriptRowHeight(withThink)).toBe(332)
   })
 
+  it("流式思考估高加展开高度，空流式助手只占思考占位", () => {
+    const streamingThink = item({
+      id: "a5",
+      role: "assistant",
+      status: "streaming",
+      content: [
+        { type: "thinking", thinking: "先想" },
+        { type: "text", text: "字".repeat(480) },
+      ],
+    })
+    const streamingEmpty = item({
+      id: "a6",
+      role: "assistant",
+      status: "streaming",
+      content: [],
+    })
+    expect(estimateTranscriptRowHeight(streamingThink)).toBe(496)
+    expect(estimateTranscriptRowHeight(streamingEmpty)).toBe(36)
+    expect(estimateTranscriptRowHeight({ id: THINKING_ROW_ID, role: "thinking" })).toBe(36)
+  })
+
   it("用户行按约 36 字一行，硬换行分段折行", () => {
     const brief = item({ role: "user", content: [{ type: "text", text: "问" }] })
     const wrapped = item({ role: "user", content: [{ type: "text", text: "字".repeat(72) }] })
@@ -165,6 +190,34 @@ describe("transcript edge thresholds", () => {
     expect(unpinBottomScrollTop(1000, 400, 600, -8)).toBe(392)
     expect(unpinBottomScrollTop(1000, 400, 600, 8)).toBeNull()
     expect(unpinBottomScrollTop(1000, 397, 600, -8)).toBeNull()
+  })
+
+  it("运行中在用户句后补思考占位，流式助手或进行中的工具不重复", () => {
+    const user = item({ role: "user", content: [{ type: "text", text: "问" }] })
+    const streaming = item({
+      id: "a1",
+      role: "assistant",
+      status: "streaming",
+      content: [],
+    })
+    const tool = item({
+      id: "t1",
+      role: "tool",
+      toolName: "bash",
+      status: "running",
+      isError: false,
+      content: [],
+    })
+    expect(needsThinkingPlaceholder("idle", [])).toBe(false)
+    expect(needsThinkingPlaceholder("turn", [])).toBe(true)
+    expect(needsThinkingPlaceholder("turn", [user])).toBe(true)
+    expect(needsThinkingPlaceholder("turn", [user, streaming])).toBe(false)
+    expect(needsThinkingPlaceholder("turn", [user, tool])).toBe(false)
+    const headed = withThinkingRow(withEarlierRow([user], false), "turn", [user])
+    expect(isThinkingRow(headed[1]!)).toBe(true)
+    expect(transcriptRowKind(headed[1]!)).toBe("thinking-wait")
+    expect(transcriptRowContent(headed[1]!)).toBe("")
+    expect(transcriptRowFinal(headed[1]!)).toBe(true)
   })
 
   it("恢复会话时只保留行高，锚点强制贴底", () => {

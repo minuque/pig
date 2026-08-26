@@ -50,6 +50,9 @@
               @render-pending="onMarkdownPending(row.id)"
               @render-settled="onMarkdownSettled(row.id)"
             />
+            <div v-else-if="isThinkingRow(row)" class="thinking-row">
+              <ThinkingWait />
+            </div>
             <ToolCall v-else-if="row.role === 'tool'" :item="row" />
           </div>
         </template>
@@ -85,7 +88,7 @@
 </template>
 
 <script lang="ts">
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import type { SessionPhase, TranscriptItem } from "@earendil-works/pi-protocol"
 import type { MarkstreamThreadVirtualState } from "markstream-vue"
 import {
   assistantThinking,
@@ -95,12 +98,40 @@ import {
 } from "@features/transcript-view/lib/transcript-format.js"
 
 export const EARLIER_ROW_ID = "transcript-earlier"
+export const THINKING_ROW_ID = "transcript-thinking"
 
 export type EarlierRow = { id: typeof EARLIER_ROW_ID; role: "earlier" }
-export type TimelineRow = TranscriptItem | EarlierRow
+export type ThinkingRow = { id: typeof THINKING_ROW_ID; role: "thinking" }
+export type TimelineRow = TranscriptItem | EarlierRow | ThinkingRow
 
 export function isEarlierRow(row: TimelineRow): row is EarlierRow {
   return row.role === "earlier"
+}
+
+export function isThinkingRow(row: TimelineRow): row is ThinkingRow {
+  return row.role === "thinking"
+}
+
+/** 运行中且末条不是流式助手或进行中的工具时，补一条思考占位。 */
+export function needsThinkingPlaceholder(
+  phase: SessionPhase | undefined,
+  items: readonly TranscriptItem[],
+): boolean {
+  if (phase === undefined || phase === "idle") return false
+  const last = items[items.length - 1]
+  if (!last) return true
+  if (isAssistantItem(last) && last.status === "streaming") return false
+  if (last.role === "tool" && last.status === "running") return false
+  return true
+}
+
+export function withThinkingRow(
+  rows: readonly TimelineRow[],
+  phase: SessionPhase | undefined,
+  items: readonly TranscriptItem[],
+): TimelineRow[] {
+  if (!needsThinkingPlaceholder(phase, items)) return [...rows]
+  return [...rows, { id: THINKING_ROW_ID, role: "thinking" }]
 }
 
 /** 有更早消息时插在时间线头顶，占独立一行，随列表滚动。 */
@@ -127,17 +158,24 @@ export function threadStatePinnedToBottom(
 /** 时间线认 Markdown 的 kind：仅助手正文。加载行不是 Markdown。 */
 export function transcriptRowKind(item: TimelineRow): string {
   if (isEarlierRow(item)) return "load-earlier"
+  if (isThinkingRow(item)) return "thinking-wait"
   if (item.role === "assistant") return "assistant-markdown"
   if (item.role === "tool") return "tool-call"
   return "user-message"
 }
 
 export function transcriptRowContent(item: TimelineRow): string {
-  return !isEarlierRow(item) && isAssistantItem(item) ? transcriptText(item) : ""
+  return !isEarlierRow(item) && !isThinkingRow(item) && isAssistantItem(item)
+    ? transcriptText(item)
+    : ""
 }
 
 export function transcriptRowFinal(item: TimelineRow): boolean {
-  return isEarlierRow(item) || !(isAssistantItem(item) && item.status === "streaming")
+  return (
+    isEarlierRow(item) ||
+    isThinkingRow(item) ||
+    !(isAssistantItem(item) && item.status === "streaming")
+  )
 }
 
 /** 与 Markstream 新增行的精确贴底阈值一致，避免 UI 和时间线各判一套状态。 */
@@ -218,13 +256,23 @@ function estimateWrappedLines(text: string, charsPerLine: number): number {
  * 助手约 48 字/行、26px 行高；用户约 36 字/行、22px 行高。
  */
 export function estimateTranscriptRowHeight(item: TimelineRow): number {
+  if (isThinkingRow(item)) return 36
   if (isEarlierRow(item) || item.role === "tool") return 48
   const text = transcriptText(item)
   if (item.role === "user") {
     return Math.min(280, 56 + estimateWrappedLines(text, 36) * 22)
   }
+  const thinkingBlocks = isAssistantItem(item) ? assistantThinking(item) : []
+  if (
+    isAssistantItem(item) &&
+    item.status === "streaming" &&
+    !text &&
+    thinkingBlocks.length === 0
+  ) {
+    return 36
+  }
   const height = 36 + estimateWrappedLines(text, 48) * 26
-  const thinking = isAssistantItem(item) && assistantThinking(item).length > 0 ? 36 : 0
+  const thinking = thinkingBlocks.length > 0 ? (item.status === "streaming" ? 200 : 36) : 0
   return Math.min(960, Math.max(160, height + thinking))
 }
 </script>
@@ -233,8 +281,8 @@ export function estimateTranscriptRowHeight(item: TimelineRow): number {
 import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline } from "markstream-vue"
-import type { SessionPhase } from "@earendil-works/pi-protocol"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
+import ThinkingWait from "@features/transcript-view/components/ThinkingWait.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
@@ -273,7 +321,13 @@ const emit = defineEmits<{
 defineSlots<{ default?: () => unknown }>()
 
 const running = computed(() => props.phase !== undefined && props.phase !== "idle")
-const rows = computed(() => withEarlierRow(props.transcript, props.hasEarlier))
+const rows = computed(() =>
+  withThinkingRow(
+    withEarlierRow(props.transcript, props.hasEarlier),
+    props.phase,
+    props.transcript,
+  ),
+)
 const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState))
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
 const region = useTemplateRef<HTMLElement>("region")
@@ -286,7 +340,7 @@ const minimapItems = computed(() =>
     rows.value.map((row) => ({
       id: row.id,
       role: row.role,
-      text: isEarlierRow(row) ? "" : transcriptText(row),
+      text: isEarlierRow(row) || isThinkingRow(row) ? "" : transcriptText(row),
     })),
   ),
 )
@@ -653,6 +707,9 @@ onBeforeUnmount(() => {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+}
+.thinking-row {
+  margin-bottom: var(--spacing-lg);
 }
 .earlier-row {
   display: flex;
