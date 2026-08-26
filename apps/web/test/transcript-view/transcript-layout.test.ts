@@ -147,7 +147,7 @@ describe("turn work fold", () => {
     expect(work.mode).toBe("fold")
     expect(work.thinking).toEqual(["先看文件"])
     expect(work.tools.map((item) => item.id)).toEqual(["t1"])
-    expect(workFoldLabel(work)).toBe("1 次思考 · 1 次读取")
+    expect(workFoldLabel(work)).toBe("Ran 1 thought · 1 file read")
     expect(transcriptRowKind(work)).toBe("work-fold")
   })
 
@@ -212,8 +212,8 @@ describe("turn work fold", () => {
     expect(isWorkRow(firstWork)).toBe(true)
     expect(isWorkRow(secondWork)).toBe(true)
     if (!isWorkRow(firstWork) || !isWorkRow(secondWork)) return
-    expect(workFoldLabel(firstWork)).toBe("1 次思考")
-    expect(workFoldLabel(secondWork)).toBe("1 次读取 · 1 次工具调用 · 1 次命令 · 1 次思考")
+    expect(workFoldLabel(firstWork)).toBe("Ran 1 thought")
+    expect(workFoldLabel(secondWork)).toBe("Ran 1 file read · 1 tool call · 1 command · 1 thought")
   })
 
   it("进行中不折叠，连续工具占一行，思考画在组上", () => {

@@ -49,11 +49,11 @@ type TurnSegment = {
   rest: TranscriptItem[]
 }
 
-const KIND_LABEL: Record<WorkKind, string> = {
-  thought: "思考",
-  read: "读取",
-  command: "命令",
-  tool: "工具调用",
+const KIND_LABEL: Record<WorkKind, { one: string; many: string }> = {
+  thought: { one: "thought", many: "thoughts" },
+  read: { one: "file read", many: "file reads" },
+  command: { one: "command", many: "commands" },
+  tool: { one: "tool call", many: "tool calls" },
 }
 
 /** 运行中且末条不是流式正文或进行中的工具时，补一条思考占位。 */
@@ -105,7 +105,13 @@ export function formatWorkKinds(kinds: readonly WorkKind[]): string {
     if (last?.kind === kind) last.count += 1
     else groups.push({ kind, count: 1 })
   }
-  return groups.map((group) => `${group.count} 次${KIND_LABEL[group.kind]}`).join(" · ")
+  const body = groups
+    .map((group) => {
+      const noun = group.count === 1 ? KIND_LABEL[group.kind].one : KIND_LABEL[group.kind].many
+      return `${group.count} ${noun}`
+    })
+    .join(" · ")
+  return body ? `Ran ${body}` : ""
 }
 
 export function workFoldLabel(row: WorkRow): string {
