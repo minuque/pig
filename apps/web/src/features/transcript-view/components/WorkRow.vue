@@ -9,7 +9,7 @@
       @click="emit('toggle-fold')"
     >
       <span class="fold-label">{{ label }}</span>
-      <ChevronDown class="caret" :size="14" aria-hidden="true" />
+      <ChevronRight class="caret" :size="14" aria-hidden="true" />
     </button>
     <div v-if="revealed" class="body">
       <ThinkingBlocks
@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { ChevronDown } from "lucide-vue-next"
+import { ChevronRight } from "lucide-vue-next"
 import ThinkingBlocks from "@features/transcript-view/components/ThinkingBlocks.vue"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import {
@@ -58,17 +58,17 @@ const label = computed(() => workFoldLabel(props.row))
 <style scoped>
 .work {
   contain: layout style;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
 }
 .fold {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 20px;
+  min-height: 22px;
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--ink-faint);
+  color: var(--ink-muted);
   cursor: pointer;
 }
 .fold:focus {
@@ -80,22 +80,22 @@ const label = computed(() => workFoldLabel(props.row))
 }
 .fold:hover .fold-label,
 .fold:hover .caret {
-  color: var(--ink-muted);
+  color: var(--ink-secondary);
 }
 .fold-label {
-  color: var(--ink-faint);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: -0.005em;
-  line-height: 18px;
+  color: inherit;
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--text-body-sm--line-height);
 }
 .caret {
   flex: none;
-  color: var(--ink-faint);
+  color: inherit;
+  opacity: 0.7;
   transition: transform var(--duration-fast) var(--ease-smooth);
 }
 .fold[aria-expanded="true"] .caret {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }
 .body {
   display: flex;

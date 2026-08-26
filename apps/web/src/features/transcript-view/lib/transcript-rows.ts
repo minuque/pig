@@ -16,6 +16,8 @@ import {
 export const EARLIER_ROW_ID = "transcript-earlier"
 export const THINKING_ROW_ID = "transcript-thinking"
 
+export type WorkKind = "thought" | "read" | "command" | "tool"
+
 export type EarlierRow = { id: typeof EARLIER_ROW_ID; role: "earlier" }
 export type ThinkingRow = { id: typeof THINKING_ROW_ID; role: "thinking" }
 export type WorkRow = {
@@ -25,8 +27,8 @@ export type WorkRow = {
   thinking: string[]
   thinkingStreaming: boolean
   tools: ToolTranscriptItem[]
+  kinds: WorkKind[]
   aborted: boolean
-  durationSec: number | null
 }
 export type TimelineRow = TranscriptItem | EarlierRow | ThinkingRow | WorkRow
 
@@ -47,12 +49,11 @@ type TurnSegment = {
   rest: TranscriptItem[]
 }
 
-type TurnWork = {
-  thinking: string[]
-  thinkingStreaming: boolean
-  tools: ToolTranscriptItem[]
-  aborted: boolean
-  lastTs: number
+const KIND_LABEL: Record<WorkKind, string> = {
+  thought: "思考",
+  read: "读取",
+  command: "命令",
+  tool: "工具调用",
 }
 
 /** 运行中且末条不是流式正文或进行中的工具时，补一条思考占位。 */
@@ -90,138 +91,99 @@ function turnSegments(items: readonly TranscriptItem[]): TurnSegment[] {
   return segments
 }
 
-function collectWork(rest: readonly TranscriptItem[]): TurnWork {
-  const thinking: string[] = []
-  const tools: ToolTranscriptItem[] = []
+export function workKindOfTool(toolName: string): WorkKind {
+  const name = toolName.trim().toLowerCase()
+  if (name === "read") return "read"
+  if (name === "bash") return "command"
+  return "tool"
+}
+
+export function formatWorkKinds(kinds: readonly WorkKind[]): string {
+  const groups: { kind: WorkKind; count: number }[] = []
+  for (const kind of kinds) {
+    const last = groups[groups.length - 1]
+    if (last?.kind === kind) last.count += 1
+    else groups.push({ kind, count: 1 })
+  }
+  return groups.map((group) => `${group.count} 次${KIND_LABEL[group.kind]}`).join(" · ")
+}
+
+export function workFoldLabel(row: WorkRow): string {
+  if (row.aborted) return "已停止"
+  return formatWorkKinds(row.kinds)
+}
+
+function emitClusters(
+  rest: readonly TranscriptItem[],
+  rows: TimelineRow[],
+  mode: WorkRow["mode"],
+  orphanThinking: boolean,
+) {
+  let thinking: string[] = []
   let thinkingStreaming = false
+  let tools: ToolTranscriptItem[] = []
+  let kinds: WorkKind[] = []
   let aborted = false
-  let lastTs = 0
+  let thinkAnchor: string | undefined
+
+  const reset = () => {
+    thinking = []
+    thinkingStreaming = false
+    tools = []
+    kinds = []
+    aborted = false
+    thinkAnchor = undefined
+  }
+
+  const flush = (allowThinkingOnly: boolean) => {
+    if (tools.length === 0 && thinking.length === 0) return
+    if (tools.length === 0 && !allowThinkingOnly) return
+    const id = tools[0] ? `work:${tools[0].id}` : `work:think:${thinkAnchor ?? "head"}`
+    rows.push({
+      id,
+      role: "work",
+      mode,
+      thinking,
+      thinkingStreaming,
+      tools,
+      kinds,
+      aborted,
+    })
+    reset()
+  }
+
   for (const item of rest) {
     if (isToolItem(item)) {
       tools.push(item)
-      lastTs = Math.max(lastTs, item.timestamp)
+      kinds.push(workKindOfTool(item.toolName))
       continue
     }
     if (!isAssistantItem(item)) continue
     if (item.status === "aborted") aborted = true
     const blocks = assistantThinking(item)
-    if (blocks.length === 0) continue
-    thinking.push(...blocks)
-    lastTs = Math.max(lastTs, item.timestamp)
-    if (item.status === "streaming") thinkingStreaming = true
-  }
-  return { thinking, thinkingStreaming, tools, aborted, lastTs }
-}
-
-function hasWork(work: TurnWork): boolean {
-  return work.thinking.length > 0 || work.tools.length > 0
-}
-
-export function workDurationSec(start: number, end: number): number | null {
-  if (!Number.isFinite(start) || !Number.isFinite(end) || start <= 0 || end <= 0) return null
-  if (end < start) return null
-  const sec = Math.round((end - start) / 1000)
-  return sec >= 1 ? sec : null
-}
-
-export function workFoldLabel(row: WorkRow): string {
-  if (row.aborted) return "已停止"
-  if (row.durationSec != null) return `工作了 ${row.durationSec}s`
-  if (row.tools.length > 0) return `${row.tools.length} 次工具调用`
-  return "思考过程"
-}
-
-function makeWorkRow(id: string, mode: WorkRow["mode"], work: TurnWork, userTs: number): WorkRow {
-  return {
-    id,
-    role: "work",
-    mode,
-    thinking: work.thinking,
-    thinkingStreaming: work.thinkingStreaming,
-    tools: work.tools,
-    aborted: work.aborted,
-    durationSec: workDurationSec(userTs, work.lastTs),
-  }
-}
-
-function emitAssistantRows(rest: readonly TranscriptItem[], rows: TimelineRow[], work: TurnWork) {
-  for (const item of rest) {
-    if (!isAssistantItem(item)) continue
-    if (transcriptText(item).length > 0) {
-      rows.push(item)
-      continue
-    }
-    if ((item.status === "error" || item.status === "aborted") && !hasWork(work)) {
-      rows.push(item)
-    }
-  }
-}
-
-function emitFold(segment: TurnSegment, rows: TimelineRow[]) {
-  const work = collectWork(segment.rest)
-  if (hasWork(work) && segment.user) {
-    rows.push(makeWorkRow(`work:${segment.user.id}`, "fold", work, segment.user.timestamp))
-  }
-  emitAssistantRows(segment.rest, rows, work)
-}
-
-function emitLive(rest: readonly TranscriptItem[], rows: TimelineRow[], orphanThinking: boolean) {
-  let thinking: string[] = []
-  let thinkingStreaming = false
-  let tools: ToolTranscriptItem[] = []
-
-  const flushTools = () => {
-    if (tools.length === 0) return
-    const first = tools[0]!
-    rows.push(
-      makeWorkRow(
-        `work:${first.id}`,
-        "live",
-        { thinking, thinkingStreaming, tools, aborted: false, lastTs: 0 },
-        0,
-      ),
-    )
-    thinking = []
-    thinkingStreaming = false
-    tools = []
-  }
-
-  for (const item of rest) {
-    if (isToolItem(item)) {
-      tools.push(item)
-      continue
-    }
-    if (!isAssistantItem(item)) continue
-    const blocks = assistantThinking(item)
     if (blocks.length > 0) {
       thinking.push(...blocks)
+      kinds.push("thought")
+      thinkAnchor ??= item.id
       if (item.status === "streaming") thinkingStreaming = true
     }
     if (transcriptText(item).length > 0) {
-      flushTools()
+      flush(mode === "fold")
+      rows.push(item)
+      continue
+    }
+    if (
+      (item.status === "error" || item.status === "aborted") &&
+      tools.length === 0 &&
+      thinking.length === 0
+    ) {
       rows.push(item)
     }
   }
-  flushTools()
-  if (!orphanThinking || thinking.length === 0) return
-  const anchor = rest.find((item) => isAssistantItem(item) && assistantThinking(item).length > 0)
-  rows.push(
-    makeWorkRow(
-      `work:think:${anchor?.id ?? "head"}`,
-      "live",
-      {
-        thinking,
-        thinkingStreaming,
-        tools: [],
-        aborted: false,
-        lastTs: 0,
-      },
-      0,
-    ),
-  )
+  flush(mode === "fold" || orphanThinking)
 }
 
-/** 历史 Turn 把思考和工具收进一条折叠；进行中不折叠，连续工具占一行。 */
+/** 历史按正文切开工作组并折叠；进行中不折叠，连续工具占一行。 */
 export function buildTimelineRows(
   items: readonly TranscriptItem[],
   phase: SessionPhase | undefined,
@@ -235,8 +197,7 @@ export function buildTimelineRows(
     const segment = segments[index]!
     const folding = Boolean(segment.user) && !(live && index === segments.length - 1)
     if (segment.user) rows.push(segment.user)
-    if (folding) emitFold(segment, rows)
-    else emitLive(segment.rest, rows, !segment.user)
+    emitClusters(segment.rest, rows, folding ? "fold" : "live", !segment.user)
   }
   if (needsThinkingPlaceholder(phase, items)) {
     rows.push({ id: THINKING_ROW_ID, role: "thinking" })

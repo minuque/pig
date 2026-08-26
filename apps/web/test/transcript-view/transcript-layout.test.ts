@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
-import type { ToolTranscriptItem } from "@earendil-works/pi-protocol"
+import type { ToolTranscriptItem, TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   EARLIER_ROW_ID,
   isEarlierRow,
@@ -118,19 +117,13 @@ describe("thinking placeholder", () => {
 })
 
 describe("turn work fold", () => {
-  it("历史 Turn 把思考和工具收进一条折叠，只露出用户句和助手正文", () => {
-    const user = item({
-      id: "u1",
-      role: "user",
-      content: [{ type: "text", text: "问" }],
-      timestamp: 1000,
-    })
+  it("历史把思考和工具收进正文前的折叠，标签按种类计数", () => {
+    const user = item({ id: "u1", role: "user", content: [{ type: "text", text: "问" }] })
     const thinking = item({
       id: "a0",
       role: "assistant",
       status: "complete",
       content: [{ type: "thinking", thinking: "先看文件" }],
-      timestamp: 2500,
     })
     const tool = item({
       id: "t1",
@@ -139,14 +132,12 @@ describe("turn work fold", () => {
       status: "complete",
       isError: false,
       content: [],
-      timestamp: 4000,
     })
     const agent = item({
       id: "a1",
       role: "assistant",
       status: "complete",
       content: [{ type: "text", text: "答" }],
-      timestamp: 5000,
     })
     const rows = buildTimelineRows([user, thinking, tool, agent], "idle", false)
     expect(rows.map((row) => row.role)).toEqual(["user", "work", "assistant"])
@@ -156,9 +147,73 @@ describe("turn work fold", () => {
     expect(work.mode).toBe("fold")
     expect(work.thinking).toEqual(["先看文件"])
     expect(work.tools.map((item) => item.id)).toEqual(["t1"])
-    expect(work.durationSec).toBe(3)
-    expect(workFoldLabel(work)).toBe("工作了 3s")
+    expect(workFoldLabel(work)).toBe("1 次思考 · 1 次读取")
     expect(transcriptRowKind(work)).toBe("work-fold")
+  })
+
+  it("助手正文切开工作组，每段折叠条按出现顺序计数", () => {
+    const user = item({ id: "u1", role: "user", content: [{ type: "text", text: "问" }] })
+    const thought = item({
+      id: "a0",
+      role: "assistant",
+      status: "complete",
+      content: [{ type: "thinking", thinking: "先摸清" }],
+    })
+    const first = item({
+      id: "a1",
+      role: "assistant",
+      status: "complete",
+      content: [{ type: "text", text: "先摸清项目目录。" }],
+    })
+    const read = item({
+      id: "t1",
+      role: "tool",
+      toolName: "read",
+      status: "complete",
+      isError: false,
+      content: [],
+    })
+    const other = item({
+      id: "t2",
+      role: "tool",
+      toolName: "grep",
+      status: "complete",
+      isError: false,
+      content: [],
+    })
+    const bash = item({
+      id: "t3",
+      role: "tool",
+      toolName: "bash",
+      status: "complete",
+      isError: false,
+      content: [],
+    })
+    const laterThought = item({
+      id: "a2",
+      role: "assistant",
+      status: "complete",
+      content: [{ type: "thinking", thinking: "接着读" }],
+    })
+    const second = item({
+      id: "a3",
+      role: "assistant",
+      status: "complete",
+      content: [{ type: "text", text: "接着读 workspace。" }],
+    })
+    const rows = buildTimelineRows(
+      [user, thought, first, read, other, bash, laterThought, second],
+      "idle",
+      false,
+    )
+    expect(rows.map((row) => row.role)).toEqual(["user", "work", "assistant", "work", "assistant"])
+    const firstWork = rows[1]!
+    const secondWork = rows[3]!
+    expect(isWorkRow(firstWork)).toBe(true)
+    expect(isWorkRow(secondWork)).toBe(true)
+    if (!isWorkRow(firstWork) || !isWorkRow(secondWork)) return
+    expect(workFoldLabel(firstWork)).toBe("1 次思考")
+    expect(workFoldLabel(secondWork)).toBe("1 次读取 · 1 次工具调用 · 1 次命令 · 1 次思考")
   })
 
   it("进行中不折叠，连续工具占一行，思考画在组上", () => {
