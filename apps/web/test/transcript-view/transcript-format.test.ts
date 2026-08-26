@@ -99,21 +99,18 @@ describe("conversationRows", () => {
 })
 
 describe("tool call title", () => {
-  it("uses tense and input object", () => {
+  it("uses kind label and input object", () => {
     const running = tool({
       toolName: "read",
       status: "running",
       input: { path: "src/app/page.tsx" },
     })
-    expect(toolCallTitle(running)).toBe("正在读取 src/app/page.tsx")
-    expect(
-      toolCallTitle({ ...running, status: "complete", isError: false } as ToolTranscriptItem),
-    ).toBe("已读取 src/app/page.tsx")
+    expect(toolCallTitle(running)).toBe("Read page.tsx")
     expect(toolCallTitle(tool({ toolName: "bash", input: { command: "git status" } }))).toBe(
-      "已运行 git status",
+      'Run "git status"',
     )
     expect(toolCallTitle(tool({ toolName: "web_search", input: { query: "vue sfc" } }))).toBe(
-      "已调用 vue sfc",
+      "web_search vue sfc",
     )
   })
 })

@@ -1,29 +1,25 @@
 <template>
-  <ThinkingReasoning :streaming="streaming" :content="text" pinned>
-    <div class="thinking-body">
-      <MarkdownRender
-        v-for="(block, index) in blocks"
-        :key="index"
-        v-bind="thinkProps"
-        :content="block"
-      />
-    </div>
-  </ThinkingReasoning>
+  <div class="thinking-body">
+    <MarkdownRender
+      v-for="(block, index) in blocks"
+      :key="index"
+      v-bind="thinkProps"
+      :content="block"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
 import MarkdownRender from "markstream-vue"
 import { computed } from "vue"
-import ThinkingReasoning from "@features/transcript-view/components/ThinkingReasoning.vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const props = defineProps<{
   blocks: readonly string[]
-  streaming: boolean
+  streaming?: boolean
 }>()
 
 const { isDark } = useColorScheme()
-const text = computed(() => props.blocks.join("\n\n"))
 const thinkProps = computed(
   () =>
     ({
@@ -44,6 +40,10 @@ const thinkProps = computed(
 </script>
 
 <style scoped>
+.thinking-body {
+  max-height: 180px;
+  overflow: auto;
+}
 .thinking-body :deep(p) {
   margin: 0 0 var(--spacing-xs);
   color: var(--ink-muted);

@@ -28,6 +28,10 @@ export type WorkRow = {
   kinds: WorkKind[]
   aborted: boolean
 }
+export type WorkStep =
+  | { type: "thought"; id: string; text: string; streaming: boolean }
+  | { type: "tool"; item: ToolTranscriptItem }
+
 export type TimelineRow = TranscriptItem | ThinkingRow | WorkRow
 
 export function isThinkingRow(row: TimelineRow): row is ThinkingRow {
@@ -160,7 +164,7 @@ function emitClusters(
     if (item.status === "aborted") aborted = true
     const blocks = assistantThinking(item)
     if (blocks.length > 0) {
-      thinking.push(...blocks)
+      thinking.push(blocks.join("\n\n"))
       kinds.push("thought")
       thinkAnchor ??= item.id
       if (item.status === "streaming") thinkingStreaming = true
@@ -201,12 +205,44 @@ export function buildTimelineRows(
   return rows
 }
 
+export function workSteps(row: WorkRow): WorkStep[] {
+  const steps: WorkStep[] = []
+  let thinkAt = 0
+  let toolAt = 0
+  for (const [index, kind] of row.kinds.entries()) {
+    if (kind === "thought") {
+      const last = thinkAt + 1 === row.thinking.length
+      steps.push({
+        type: "thought",
+        id: `${row.id}:think:${index}`,
+        text: row.thinking[thinkAt] ?? "",
+        streaming: row.thinkingStreaming && last,
+      })
+      thinkAt += 1
+      continue
+    }
+    const item = row.tools[toolAt]
+    toolAt += 1
+    if (item) steps.push({ type: "tool", item })
+  }
+  return steps
+}
+
 export function toolCardOpen(
   item: ToolTranscriptItem,
   expanded: ReadonlyMap<string, boolean>,
 ): boolean {
   if (item.status === "running" || item.isError) return true
   return expanded.get(item.id) === true
+}
+
+export function thinkCardOpen(
+  id: string,
+  streaming: boolean,
+  expanded: ReadonlyMap<string, boolean>,
+): boolean {
+  if (streaming) return true
+  return expanded.get(id) === true
 }
 
 /** 时间线认 Markdown 的 kind：仅助手正文。加载行和工作行不是 Markdown。 */

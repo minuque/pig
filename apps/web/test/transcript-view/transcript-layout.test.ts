@@ -11,6 +11,7 @@ import {
   buildTimelineRows,
   formatWorkKinds,
   workFoldLabel,
+  workSteps,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { isMarkdownStreamReady } from "@features/transcript-view/lib/transcript-scroll.js"
 
@@ -136,6 +137,7 @@ describe("turn work fold", () => {
     expect(work.tools.map((item) => item.id)).toEqual(["t1"])
     expect(workFoldLabel(work)).toBe("Ran 1 thought · 1 file read")
     expect(transcriptRowKind(work)).toBe("work-fold")
+    expect(workSteps(work).map((step) => step.type)).toEqual(["thought", "tool"])
   })
 
   it("助手正文切开工作组，每段折叠条按出现顺序计数", () => {

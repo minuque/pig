@@ -10,12 +10,13 @@
       <span class="status" :class="statusKind" aria-hidden="true">
         <LoaderCircle v-if="running" class="spin" :size="16" />
         <X v-else-if="item.isError" :size="10" :stroke-width="3" />
-        <CircleCheck v-else :size="16" />
+        <component :is="kindIcon" v-else :size="16" />
       </span>
-      <span class="name">{{ title }}</span>
+      <span class="kind">{{ kind }}</span>
+      <span v-if="detail" class="detail">{{ detail }}</span>
       <span class="meta">
         <span v-if="summary" class="summary">{{ summary }}</span>
-        <ChevronDown class="caret" :size="14" aria-hidden="true" />
+        <ChevronRight class="caret" :size="14" aria-hidden="true" />
       </span>
     </button>
     <div v-if="open" class="body">
@@ -40,12 +41,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
-import { ChevronDown, CircleCheck, LoaderCircle, X } from "lucide-vue-next"
+import { computed, type Component } from "vue"
+import {
+  ChevronRight,
+  FileText,
+  LoaderCircle,
+  Pencil,
+  Search,
+  SquareTerminal,
+  Wrench,
+  X,
+} from "lucide-vue-next"
 import type { ToolTranscriptItem } from "@earendil-works/pi-protocol"
 import ExpandableText from "@features/transcript-view/components/ExpandableText.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import {
+  toolCallDetail,
+  toolCallKindLabel,
   toolCallSummary,
   toolCallTitle,
   toolInputPretty,
@@ -70,8 +82,26 @@ const statusLabel = computed(() => {
   if (running.value) return "运行中"
   return "完成"
 })
+const kind = computed(() => toolCallKindLabel(props.item.toolName))
+const detail = computed(() => toolCallDetail(props.item))
 const title = computed(() => toolCallTitle(props.item))
 const summary = computed(() => toolCallSummary(props.item))
+const kindIcon = computed((): Component => {
+  switch (props.item.toolName.trim().toLowerCase()) {
+    case "edit":
+    case "write":
+      return Pencil
+    case "read":
+      return FileText
+    case "bash":
+      return SquareTerminal
+    case "grep":
+    case "find":
+      return Search
+    default:
+      return Wrench
+  }
+})
 const toggleLabel = computed(() => {
   const lead = `${title.value}，${statusLabel.value}`
   return summary.value ? `${lead}，${summary.value}` : lead
@@ -89,10 +119,9 @@ function onToggle() {
 <style scoped>
 .call {
   contain: layout style;
-  margin: 0 0 var(--spacing-xs);
   overflow: hidden;
   border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   background: var(--canvas-soft);
 }
 .toggle {
@@ -101,8 +130,8 @@ function onToggle() {
   gap: var(--spacing-xs);
   width: 100%;
   min-width: 0;
-  min-height: 36px;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  min-height: 40px;
+  padding: 8px 12px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -127,7 +156,7 @@ function onToggle() {
   border-radius: var(--radius-full);
 }
 .status.is-ok {
-  color: var(--accent-green);
+  color: var(--ink-faint);
 }
 .status.is-err {
   background: var(--danger);
@@ -139,12 +168,16 @@ function onToggle() {
 .spin {
   animation: tool-spin 0.8s linear infinite;
 }
-.name {
+.kind {
+  flex: none;
+  color: var(--ink-secondary);
+  font-weight: var(--font-weight-medium);
+}
+.detail {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--ink-secondary);
-  font-weight: var(--font-weight-medium);
+  color: var(--ink);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -155,6 +188,7 @@ function onToggle() {
   justify-content: flex-end;
   gap: 6px;
   min-width: 0;
+  margin-left: auto;
 }
 .summary {
   min-width: 0;
@@ -170,7 +204,7 @@ function onToggle() {
   transition: transform var(--duration-fast) var(--ease-smooth);
 }
 .toggle[aria-expanded="true"] .caret {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }
 .body {
   display: flex;

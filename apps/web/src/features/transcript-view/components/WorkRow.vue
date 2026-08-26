@@ -12,18 +12,21 @@
       <ChevronRight class="caret" :size="14" aria-hidden="true" />
     </button>
     <div v-if="revealed" class="body">
-      <ThinkingBlocks
-        v-if="row.thinking.length"
-        :blocks="row.thinking"
-        :streaming="row.thinkingStreaming"
-      />
-      <ToolCall
-        v-for="tool in row.tools"
-        :key="tool.id"
-        :item="tool"
-        :open="toolCardOpen(tool, expandedTools)"
-        @update:open="emit('toggle-tool', tool.id, $event)"
-      />
+      <template v-for="step in steps" :key="step.type === 'tool' ? step.item.id : step.id">
+        <ThinkCard
+          v-if="step.type === 'thought'"
+          :text="step.text"
+          :streaming="step.streaming"
+          :open="thinkCardOpen(step.id, step.streaming, expandedTools)"
+          @update:open="emit('toggle-tool', step.id, $event)"
+        />
+        <ToolCall
+          v-else
+          :item="step.item"
+          :open="toolCardOpen(step.item, expandedTools)"
+          @update:open="emit('toggle-tool', step.item.id, $event)"
+        />
+      </template>
     </div>
   </div>
 </template>
@@ -31,11 +34,13 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { ChevronRight } from "lucide-vue-next"
-import ThinkingBlocks from "@features/transcript-view/components/ThinkingBlocks.vue"
+import ThinkCard from "@features/transcript-view/components/ThinkCard.vue"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import {
+  thinkCardOpen,
   toolCardOpen,
   workFoldLabel,
+  workSteps,
   type WorkRow,
 } from "@features/transcript-view/lib/transcript-rows.js"
 
@@ -53,6 +58,7 @@ const emit = defineEmits<{
 const folded = computed(() => props.row.mode === "fold")
 const revealed = computed(() => !folded.value || props.foldOpen)
 const label = computed(() => workFoldLabel(props.row))
+const steps = computed(() => workSteps(props.row))
 </script>
 
 <style scoped>
@@ -100,7 +106,12 @@ const label = computed(() => workFoldLabel(props.row))
 .body {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-xs);
   min-width: 0;
+  margin-top: var(--spacing-xs);
+  margin-left: 7px;
+  padding-left: 14px;
+  border-left: var(--border-width) solid var(--hairline);
 }
 @media (prefers-reduced-motion: reduce) {
   .caret {

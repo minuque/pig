@@ -150,14 +150,14 @@ export function toolCallSummary(item: ToolTranscriptItem): string {
   return ""
 }
 
-const TOOL_VERBS: Record<string, string> = {
-  read: "读取",
-  write: "写入",
-  edit: "编辑",
-  bash: "运行",
-  grep: "搜索",
-  find: "查找",
-  ls: "列出",
+const KIND_LABELS: Record<string, string> = {
+  read: "Read",
+  write: "Write",
+  edit: "Edit",
+  bash: "Run",
+  grep: "Search",
+  find: "Find",
+  ls: "List",
 }
 
 const TITLE_OBJECT_MAX = 48
@@ -168,13 +168,28 @@ function clipTitleObject(text: string): string {
   return `${compact.slice(0, TITLE_OBJECT_MAX - 1)}…`
 }
 
-/** 顶栏标题：按 toolName 与入参写成时态人话。 */
-export function toolCallTitle(item: ToolTranscriptItem): string {
+function fileName(path: string): string {
+  const base = path.replace(/\\/g, "/").split("/").filter(Boolean).pop()
+  return base || path
+}
+
+export function toolCallKindLabel(toolName: string): string {
+  const name = toolName.trim().toLowerCase()
+  return KIND_LABELS[name] ?? (toolName.trim() || "Tool")
+}
+
+export function toolCallDetail(item: ToolTranscriptItem): string {
   const name = item.toolName.trim().toLowerCase()
-  const verb = TOOL_VERBS[name] ?? "调用"
-  const known = name in TOOL_VERBS
   const hint = clipTitleObject(toolInputHint(item.input))
-  const object = hint || (known ? "" : item.toolName.trim() || "工具")
-  const prefix = item.status === "running" ? "正在" : "已"
-  return object ? `${prefix}${verb} ${object}` : `${prefix}${verb}`
+  if (!hint) return ""
+  if (name === "bash") return `"${hint}"`
+  if (name === "read" || name === "write" || name === "edit") return fileName(hint)
+  return hint
+}
+
+/** 顶栏标题：种类 + 入参对象。 */
+export function toolCallTitle(item: ToolTranscriptItem): string {
+  const kind = toolCallKindLabel(item.toolName)
+  const detail = toolCallDetail(item)
+  return detail ? `${kind} ${detail}` : kind
 }
