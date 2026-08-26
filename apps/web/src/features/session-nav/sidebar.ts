@@ -142,6 +142,14 @@ export function bumpReveal(current: number | undefined, page: number): number {
   return (current ?? page) + page
 }
 
+/** 当前会话变化或尚未跟滚过时才跟；分页展开改 rows 不跟。 */
+export function shouldFollowActiveSession(
+  activeId: string | undefined,
+  followedId: string | undefined,
+): boolean {
+  return activeId !== undefined && activeId !== followedId
+}
+
 /** 协议列表不带的卡片脚注：消息数 + 当前模型。 */
 export interface SessionCardExtra {
   messageCount: number

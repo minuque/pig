@@ -86,7 +86,7 @@ export function contextPreviewPath(sessionId: string, segmentId: string): string
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from "vue"
+import { computed, nextTick, ref, watch } from "vue"
 import { useVirtualList } from "@vueuse/core"
 import { X } from "lucide-vue-next"
 import MarkdownRender from "markstream-vue"
@@ -170,13 +170,22 @@ async function openPreview(segment: ContextUsageSegment) {
   }
 }
 
-function onPreviewOpen(open: boolean) {
-  previewOpen.value = open
-  if (open) return
+function closePreview() {
   previewRequest += 1
+  previewOpen.value = false
   previewLoading.value = false
   previewBody.value = ""
 }
+
+function onPreviewOpen(open: boolean) {
+  if (open) {
+    previewOpen.value = true
+    return
+  }
+  closePreview()
+}
+
+watch(() => props.sessionId, closePreview)
 
 function onOpenAutoFocus(event: Event) {
   event.preventDefault()

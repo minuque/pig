@@ -33,7 +33,7 @@
                   class="session-time"
                   :datetime="new Date(sessionRecency(session)).toISOString()"
                 >
-                  {{ formatRelativeTime(sessionRecency(session)) }}
+                  {{ relativeTime }}
                 </time>
               </template>
             </span>
@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref } from "vue"
+import { computed, nextTick, ref } from "vue"
 import { Clock, Folder, Pencil, Trash2 } from "lucide-vue-next"
 import type { SessionMetadata } from "@earendil-works/pi-protocol"
 import {
@@ -89,6 +89,7 @@ const props = withDefaults(
     active?: boolean
     running?: boolean
     grouping?: SidebarGrouping
+    now: number
     messageCount?: number | null
     modelLabel?: string
     modelProvider?: string
@@ -112,6 +113,7 @@ const renaming = ref(false)
 const draft = ref("")
 const nameInput = ref<HTMLInputElement | null>(null)
 const menuOpen = ref(false)
+const relativeTime = computed(() => formatRelativeTime(sessionRecency(props.session), props.now))
 
 function onMenuOpenChange(open: boolean) {
   menuOpen.value = open

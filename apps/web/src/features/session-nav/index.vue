@@ -112,6 +112,7 @@
                 :active="item.data.session.id === activeSessionId"
                 :running="phase === 'turn' && item.data.session.id === activeSessionId"
                 :grouping="grouping"
+                :now="now"
                 :message-count="cardFootById.get(item.data.session.id)?.messageCount ?? null"
                 :model-label="cardFootById.get(item.data.session.id)?.modelLabel ?? ''"
                 :model-provider="cardFootById.get(item.data.session.id)?.modelProvider ?? ''"
@@ -154,7 +155,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, watch } from "vue"
-import { useVirtualList } from "@vueuse/core"
+import { useTimestamp, useVirtualList } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
 import {
   Check,
@@ -178,7 +179,10 @@ import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { workspaceName } from "@features/session-nav/format.js"
-import { filterSessionsForSearch } from "@features/session-nav/sidebar.js"
+import {
+  filterSessionsForSearch,
+  shouldFollowActiveSession,
+} from "@features/session-nav/sidebar.js"
 
 defineProps<{
   collapsed?: boolean
@@ -210,6 +214,7 @@ const {
 const { creating, createSession, phase } = useSession()
 
 const searchQuery = shallowRef("")
+const now = useTimestamp({ interval: 60_000 })
 const searching = computed(() => searchQuery.value.trim() !== "")
 const visibleSessions = computed(() =>
   filterSessionsForSearch(listedSessions.value, searchQuery.value),
@@ -237,13 +242,22 @@ watch(workspaceError, (message) => {
   if (text) notify.error(text)
 })
 
+const followedSessionId = shallowRef<string | undefined>()
+
 watch(
   () => [activeSessionId.value, rows.value] as const,
   async () => {
-    await nextTick()
     const id = activeSessionId.value
+    if (!id) {
+      followedSessionId.value = undefined
+      return
+    }
+    if (!shouldFollowActiveSession(id, followedSessionId.value)) return
+    await nextTick()
     const index = rows.value.findIndex((row) => row.kind === "session" && row.session.id === id)
-    if (index >= 0) scrollTo(index)
+    if (index < 0) return
+    scrollTo(index)
+    followedSessionId.value = id
   },
 )
 

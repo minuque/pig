@@ -6,6 +6,7 @@ import {
   UPDATED_PAGE,
   bumpReveal,
   filterSessionsForSearch,
+  shouldFollowActiveSession,
   groupSessionsByCwd,
   listSessionsForSidebar,
   modelDisplayNames,
@@ -73,6 +74,7 @@ describe("workspaceName and grouping", () => {
     expect(formatRelativeTime(now - 48 * 60_000, now)).toBe("48m")
     expect(formatRelativeTime(now - 2 * 60 * 60_000, now)).toBe("2h")
     expect(formatRelativeTime(now - 26 * 60 * 60_000, now)).toBe("1d")
+    expect(formatRelativeTime(now - 20_000, now - 20_000 + 60_000)).toBe("1m")
   })
 
   it("merges live Windows cwd into the canonical local workspace group", () => {
@@ -285,6 +287,13 @@ describe("sidebar rows", () => {
     expect(bumpReveal(undefined, 10)).toBe(20)
     expect(bumpReveal(10, 10)).toBe(20)
     expect(bumpReveal(undefined, 5)).toBe(10)
+  })
+
+  it("does not follow the active session again when rows expand", () => {
+    expect(shouldFollowActiveSession("s1", "s1")).toBe(false)
+    expect(shouldFollowActiveSession("s2", "s1")).toBe(true)
+    expect(shouldFollowActiveSession("s1", undefined)).toBe(true)
+    expect(shouldFollowActiveSession(undefined, "s1")).toBe(false)
   })
 })
 

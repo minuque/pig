@@ -199,7 +199,7 @@ const usageOpen = ref(false)
 const showMeta = computed(() => shouldShowComposerMeta(props.cwd, props.usage))
 
 watch(
-  () => props.cwd,
+  () => [props.cwd, props.sessionId] as const,
   () => {
     usageOpen.value = false
   },
