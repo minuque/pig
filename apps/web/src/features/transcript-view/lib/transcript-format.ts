@@ -58,8 +58,91 @@ export function conversationRows(items: readonly TranscriptItem[]): TranscriptIt
   return items.filter(isVisibleTranscriptItem)
 }
 
-export function toolIconTone(item: ToolTranscriptItem): string {
-  if (item.isError) return "var(--danger)"
-  if (item.status === "running") return "var(--primary)"
-  return "var(--accent-green)"
+const TOOL_HINT_KEYS = [
+  "path",
+  "file",
+  "file_path",
+  "filePath",
+  "filename",
+  "target_file",
+  "targetFile",
+  "query",
+  "pattern",
+  "glob",
+  "url",
+  "command",
+  "cmd",
+] as const
+
+const RESULT_COUNT_MAX_LINES = 40
+const RESULT_COUNT_MAX_LINE_LENGTH = 160
+
+function jsonText(value: unknown, pretty = false): string {
+  if (value === undefined) return ""
+  try {
+    return (pretty ? JSON.stringify(value, null, 2) : JSON.stringify(value)) ?? ""
+  } catch {
+    return ""
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+/** 空对象 / 空数组不当作可展示入参，避免展开后出现无意义的 `{}`。 */
+function hasToolInput(input: unknown): boolean {
+  if (input === undefined || input === null) return false
+  if (typeof input === "string") return input.length > 0
+  if (Array.isArray(input)) return input.length > 0
+  if (isRecord(input)) return Object.keys(input).length > 0
+  return true
+}
+
+/** 顶栏一句话：优先 path / query / cmd 等常用键，否则压成单行 JSON。 */
+export function toolInputHint(input: unknown): string {
+  if (typeof input === "string") return input
+  if (!hasToolInput(input)) return ""
+  if (isRecord(input)) {
+    for (const key of TOOL_HINT_KEYS) {
+      const value = input[key]
+      if (typeof value === "string" && value.trim().length > 0) return value
+    }
+    const keys = Object.keys(input)
+    if (keys.length === 1) {
+      const value = input[keys[0]!]
+      if (typeof value === "string" && value.trim().length > 0) return value
+    }
+  }
+  const compact = jsonText(input)
+  return compact === "{}" || compact === "[]" || compact === "null" ? "" : compact
+}
+
+export function toolInputPretty(input: unknown): string {
+  return hasToolInput(input) ? jsonText(input, true) : ""
+}
+
+function resultCount(text: string): number | null {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0)
+  if (lines.length < 2 || lines.length > RESULT_COUNT_MAX_LINES) return null
+  if (lines.some((line) => line.length > RESULT_COUNT_MAX_LINE_LENGTH)) return null
+  return lines.length
+}
+
+/**
+ * 折叠顶栏右侧摘要。运行中只出示入参线索，避免把尚未到达的输出写进顶栏。
+ * 短列表输出用「N 条结果」；长输出（读文件、命令倾倒）退回入参线索，免得顶栏被正文首行顶歪。
+ */
+export function toolCallSummary(item: ToolTranscriptItem): string {
+  if (item.isError) return "失败"
+  if (item.status !== "running") {
+    const text = transcriptText(item)
+    const count = resultCount(text)
+    if (count != null) return `${count} 条结果`
+    const images = transcriptImages(item)
+    if (!text && images.length > 0) {
+      return images.length === 1 ? "1 张图片" : `${images.length} 张图片`
+    }
+  }
+  return toolInputHint(item.input)
 }

@@ -75,7 +75,7 @@ function onScroll(event: Event) {
   overflow: auto;
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-md);
-  background: var(--canvas-soft);
+  background: var(--surface);
   color: var(--ink-secondary);
   font-family: var(--font-mono);
   font-size: 12px;

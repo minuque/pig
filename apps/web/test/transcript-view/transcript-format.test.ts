@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest"
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import type { ToolTranscriptItem, TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   conversationRows,
   isVisibleTranscriptItem,
+  toolCallSummary,
+  toolInputHint,
+  toolInputPretty,
   transcriptImageSrc,
   transcriptImages,
   transcriptText,
@@ -84,5 +87,70 @@ describe("transcript text helpers", () => {
     expect(transcriptImageSrc("data:image/png;base64,xyz", "image/png")).toBe(
       "data:image/png;base64,xyz",
     )
+  })
+})
+
+function tool(
+  partial: Partial<ToolTranscriptItem> & Pick<ToolTranscriptItem, "status" | "isError">,
+): ToolTranscriptItem {
+  return {
+    id: "t1",
+    role: "tool",
+    toolCallId: "t1",
+    toolName: "bash",
+    input: {},
+    content: [],
+    timestamp: 0,
+    ...partial,
+  } as ToolTranscriptItem
+}
+
+describe("tool call summary", () => {
+  it("picks path / query / cmd from input, ignores empty objects", () => {
+    expect(toolInputHint({ path: "src/app/page.tsx" })).toBe("src/app/page.tsx")
+    expect(toolInputHint({ query: "spring physics easing" })).toBe("spring physics easing")
+    expect(toolInputHint({ cmd: "pnpm test" })).toBe("pnpm test")
+    expect(toolInputHint({ target_file: "a.ts" })).toBe("a.ts")
+    expect(toolInputHint({ only: "value" })).toBe("value")
+    expect(toolInputHint({})).toBe("")
+    expect(toolInputHint([])).toBe("")
+    expect(toolInputPretty({})).toBe("")
+    expect(toolInputPretty({ q: 1 })).toBe('{\n  "q": 1\n}')
+  })
+
+  it("running uses the input hint, complete short lists become 条结果, errors say 失败", () => {
+    expect(
+      toolCallSummary(
+        tool({
+          status: "running",
+          isError: false,
+          input: { path: "src/app/page.tsx" },
+          content: [{ type: "text", text: "a\nb\nc" }],
+        }),
+      ),
+    ).toBe("src/app/page.tsx")
+    expect(
+      toolCallSummary(
+        tool({
+          status: "complete",
+          isError: false,
+          input: { query: "spring" },
+          content: [{ type: "text", text: "a\nb\nc" }],
+        }),
+      ),
+    ).toBe("3 条结果")
+    expect(
+      toolCallSummary(
+        tool({
+          status: "complete",
+          isError: false,
+          input: { path: "src/app/page.tsx" },
+          content: [{ type: "text", text: "const x = 1\n".repeat(80) }],
+        }),
+      ),
+    ).toBe("src/app/page.tsx")
+    expect(
+      toolCallSummary(tool({ status: "error", isError: true, input: { cmd: "pnpm test" } })),
+    ).toBe("失败")
   })
 })

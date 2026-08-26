@@ -1,11 +1,21 @@
 <template>
   <div class="call">
     <div class="bar">
-      <button type="button" class="toggle" :aria-expanded="open" @click="open = !open">
-        <span class="caret" aria-hidden="true">▸</span>
-        <component :is="icon" class="icon" :size="14" :style="{ color: tone }" aria-hidden="true" />
+      <button
+        type="button"
+        class="toggle"
+        :aria-expanded="open"
+        :aria-label="toggleLabel"
+        @click="open = !open"
+      >
+        <span class="status" :class="statusKind" aria-hidden="true">
+          <LoaderCircle v-if="running" class="spin" :size="16" />
+          <X v-else-if="item.isError" :size="10" :stroke-width="3" />
+          <Check v-else :size="10" :stroke-width="3" />
+        </span>
         <span class="name">{{ item.toolName || "工具" }}</span>
-        <span v-if="inputLine" class="input">{{ inputLine }}</span>
+        <span v-if="summary" class="summary">{{ summary }}</span>
+        <ChevronDown class="caret" :size="14" aria-hidden="true" />
       </button>
       <button type="button" class="copy" aria-label="复制" @click="copyPayload">
         <Copy :size="14" />
@@ -14,7 +24,7 @@
     <div v-if="open" class="body">
       <section v-if="inputFull" class="layer">
         <h3 class="label">入参</h3>
-        <pre class="pre">{{ inputFull }}</pre>
+        <ExpandableText :text="inputFull" />
       </section>
       <section v-if="outputText || outputImages.length" class="layer">
         <h3 class="label">输出</h3>
@@ -33,13 +43,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef } from "vue"
-import { Copy, FileText, Pencil, Search, Terminal, Wrench } from "lucide-vue-next"
+import { computed, shallowRef, watch } from "vue"
+import { Check, ChevronDown, Copy, LoaderCircle, X } from "lucide-vue-next"
 import type { ToolTranscriptItem } from "@earendil-works/pi-protocol"
 import ExpandableText from "@features/transcript-view/components/ExpandableText.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import {
-  toolIconTone,
+  toolCallSummary,
+  toolInputPretty,
   transcriptImages,
   transcriptText,
 } from "@features/transcript-view/lib/transcript-format.js"
@@ -49,22 +60,39 @@ const props = defineProps<{
 }>()
 
 const open = shallowRef(false)
-const inputLine = computed(() => JSON.stringify(props.item.input) ?? "")
-const inputFull = computed(() => JSON.stringify(props.item.input, null, 2) ?? "")
-const outputText = computed(() => transcriptText(props.item))
-const outputImages = computed(() => transcriptImages(props.item))
-const tone = computed(() => toolIconTone(props.item))
-const icon = computed(() => {
-  const name = props.item.toolName.toLowerCase()
-  if (/(read|cat|open)/.test(name)) return FileText
-  if (/(write|edit|apply)/.test(name)) return Pencil
-  if (/(bash|shell|exec|cmd|pwsh)/.test(name)) return Terminal
-  if (/(grep|search|find)/.test(name)) return Search
-  return Wrench
+const running = computed(() => props.item.status === "running")
+const statusKind = computed(() => {
+  if (props.item.isError) return "is-err"
+  if (running.value) return "is-run"
+  return "is-ok"
 })
+const statusLabel = computed(() => {
+  if (props.item.isError) return "失败"
+  if (running.value) return "运行中"
+  return "完成"
+})
+const summary = computed(() => toolCallSummary(props.item))
+const toggleLabel = computed(() => {
+  const name = props.item.toolName || "工具"
+  return summary.value
+    ? `${name}，${statusLabel.value}，${summary.value}`
+    : `${name}，${statusLabel.value}`
+})
+const inputFull = computed(() => (open.value ? toolInputPretty(props.item.input) : ""))
+const outputText = computed(() => (open.value ? transcriptText(props.item) : ""))
+const outputImages = computed(() => (open.value ? transcriptImages(props.item) : []))
+
+watch(
+  () => props.item.isError,
+  (isError) => {
+    if (isError) open.value = true
+  },
+)
 
 async function copyPayload() {
-  const chunks = [inputFull.value, outputText.value].filter((chunk) => chunk.trim().length > 0)
+  const chunks = [toolInputPretty(props.item.input), transcriptText(props.item)].filter(
+    (chunk) => chunk.trim().length > 0,
+  )
   if (chunks.length === 0) return
   try {
     await navigator.clipboard.writeText(chunks.join("\n\n"))
@@ -76,25 +104,28 @@ async function copyPayload() {
 
 <style scoped>
 .call {
-  margin: 0 0 10px;
+  contain: layout style;
+  margin: 0 0 var(--spacing-xs);
+  overflow: hidden;
   border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--canvas-soft);
 }
 .bar {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 4px;
   min-width: 0;
+  min-height: 36px;
 }
 .toggle {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
   min-width: 0;
   min-height: 0;
-  padding: 6px 8px;
+  padding: var(--spacing-xs) var(--spacing-sm);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -109,43 +140,78 @@ async function copyPayload() {
 .toggle:not(:disabled):active {
   transform: none;
 }
-.caret {
+.status {
   flex: none;
-  font-size: 10px;
-  transition: transform var(--duration-fast) var(--ease-smooth);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
 }
-.toggle[aria-expanded="true"] .caret {
-  transform: rotate(90deg);
+.status.is-ok {
+  background: var(--accent-green);
+  color: var(--on-primary);
 }
-.icon {
-  flex: none;
+.status.is-err {
+  background: var(--danger);
+  color: var(--on-primary);
+}
+.status.is-run {
+  color: var(--ink-muted);
+}
+.spin {
+  animation: tool-spin 0.8s linear infinite;
 }
 .name {
   flex: none;
   color: var(--ink-secondary);
   font-weight: var(--font-weight-medium);
 }
-.input {
+.summary {
   min-width: 0;
+  flex: 1;
   overflow: hidden;
   color: var(--ink-muted);
+  text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.copy {
+.caret {
   flex: none;
+  margin-inline-start: auto;
+  color: var(--ink-faint);
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+.toggle[aria-expanded="true"] .caret {
+  transform: rotate(180deg);
+}
+.copy {
+  position: absolute;
+  inset-inline-end: 34px;
+  top: 4px;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
   min-height: 0;
-  margin-inline-end: 4px;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--ink-muted);
+  opacity: 0;
+  pointer-events: none;
   cursor: pointer;
+  transition:
+    opacity var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+.call:hover .copy,
+.call:focus-within .copy {
+  opacity: 1;
+  pointer-events: auto;
 }
 .copy:hover {
   color: var(--ink);
@@ -154,30 +220,18 @@ async function copyPayload() {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  padding: 0 8px 8px;
+  padding: var(--spacing-sm);
+  border-top: var(--border-width) solid var(--hairline);
 }
 .layer {
   min-width: 0;
 }
 .label {
-  margin: 0 0 4px;
+  margin: 0 0 var(--spacing-xxs);
   color: var(--ink-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-medium);
-}
-.pre {
-  margin: 0;
-  padding: var(--spacing-sm);
-  overflow: auto;
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--ink-secondary);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  letter-spacing: var(--tracking-eyebrow);
 }
 .images {
   display: flex;
@@ -185,8 +239,17 @@ async function copyPayload() {
   gap: var(--spacing-xs);
   margin-top: var(--spacing-xs);
 }
+@keyframes tool-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .caret {
+  .spin {
+    animation: none;
+  }
+  .caret,
+  .copy {
     transition: none;
   }
 }
