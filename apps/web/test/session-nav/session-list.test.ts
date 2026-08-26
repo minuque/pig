@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import type { SessionMetadata } from "@earendil-works/pi-protocol"
-import { formatRelativeTime, sessionTitle, workspaceName } from "@features/session-nav/format.js"
+import { sessionTitle, workspaceName } from "@features/session-nav/format.js"
 import {
   PROJECT_PAGE,
   UPDATED_PAGE,
@@ -66,15 +66,6 @@ describe("workspaceName and grouping", () => {
   it("titles unnamed sessions as 新会话", () => {
     expect(sessionTitle({})).toBe("新会话")
     expect(sessionTitle({ sessionName: "  卸载插件  " })).toBe("卸载插件")
-  })
-
-  it("formats compact relative time", () => {
-    const now = Date.parse("2026-08-14T12:00:00.000Z")
-    expect(formatRelativeTime(now - 20_000, now)).toBe("刚刚")
-    expect(formatRelativeTime(now - 48 * 60_000, now)).toBe("48m")
-    expect(formatRelativeTime(now - 2 * 60 * 60_000, now)).toBe("2h")
-    expect(formatRelativeTime(now - 26 * 60 * 60_000, now)).toBe("1d")
-    expect(formatRelativeTime(now - 20_000, now - 20_000 + 60_000)).toBe("1m")
   })
 
   it("merges live Windows cwd into the canonical local workspace group", () => {

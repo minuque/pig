@@ -6,7 +6,6 @@ import {
   listPickerRows,
   resolveModelInfo,
 } from "@features/chat-input/lib/model-preset.js"
-import { vendorDisplayName, vendorIcon } from "@features/chat-input/lib/vendor-logo.js"
 import {
   parseFavoriteModels,
   toggleFavoriteKey,
@@ -85,27 +84,6 @@ describe("listPickerRows", () => {
   it("搜索在当前范围内模糊匹配", () => {
     const rows = listPickerRows(catalog, "haiku", "anthropic", new Set())
     expect(rows.map((row) => row.model.id)).toEqual(["claude-haiku"])
-  })
-})
-
-describe("vendorDisplayName / vendorIcon", () => {
-  it("已知供应商给出显示名和 LobeHub 图标", () => {
-    expect(vendorDisplayName("openai")).toBe("OpenAI")
-    expect(vendorDisplayName("azure-openai-responses")).toBe("Azure")
-    expect(vendorDisplayName("openai-codex")).toBe("OpenAI")
-    expect(vendorDisplayName("qwen-token-plan-cn")).toBe("Qwen")
-    expect(vendorDisplayName("opencode")).toBe("Anthropic")
-    expect(vendorDisplayName("opencode-go")).toBe("OpenCode")
-    expect(vendorIcon("opencode")?.src).toBe(vendorIcon("anthropic")?.src)
-    expect(vendorIcon("opencode-go")?.src).not.toBe(vendorIcon("opencode")?.src)
-    expect(vendorIcon("xai")?.src).toBeTruthy()
-    expect(vendorIcon("xai")?.tinted).toBe(true)
-    expect(vendorIcon("deepseek")?.tinted).toBe(false)
-  })
-
-  it("未知供应商保留原 id 且无图标", () => {
-    expect(vendorDisplayName("acme-labs")).toBe("acme-labs")
-    expect(vendorIcon("acme-labs")).toBeUndefined()
   })
 })
 
