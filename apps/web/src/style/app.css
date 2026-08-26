@@ -375,10 +375,6 @@ button:not(:where(.markstream-vue *)) {
 button:disabled {
   cursor: default;
 }
-:focus-visible {
-  outline: var(--focus-ring-width) solid var(--primary);
-  outline-offset: var(--focus-ring-width);
-}
 input:focus-visible,
 textarea:focus-visible,
 [contenteditable]:focus-visible {
