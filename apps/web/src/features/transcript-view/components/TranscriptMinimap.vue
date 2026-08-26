@@ -176,7 +176,7 @@ function moveActive(delta: number) {
   pointer-events: none;
   position: absolute;
   left: var(--spacing-md);
-  top: calc((100% - var(--chat-input-space, 168px)) / 2);
+  top: 50%;
   z-index: 3;
   display: none;
   width: 44px;

@@ -12,34 +12,35 @@
     <SessionEmptyCanvas v-if="emptyCanvas" />
 
     <!-- 3. 有 transcript：对话列 -->
-    <TranscriptView
-      v-else-if="!sessionPending"
-      ref="transcriptView"
-      :session-id="sessionId"
-      :transcript="transcript"
-      :phase="phase"
-      :thread-state="threadState"
-      :has-earlier="hasEarlier"
-      :loading-earlier="loadingEarlier"
-      @thread-state="applyThreadState"
-      @load-earlier="loadEarlier"
-      @ready="onTranscriptReady"
-    >
-      <ChatInput
-        v-model:prompt="prompt"
-        v-model:preset="preset"
-        :catalog="catalog"
-        :phase="phase"
-        :aborting="aborting"
-        :error="sessionError"
-        :cwd="composerCwd"
-        :usage="contextUsage"
+    <template v-else-if="!sessionPending">
+      <TranscriptView
+        ref="transcriptView"
         :session-id="sessionId"
-        docked
-        @send="submitFromDock"
-        @abort="abortSession"
+        :transcript="transcript"
+        :phase="phase"
+        :thread-state="threadState"
+        :has-earlier="hasEarlier"
+        :loading-earlier="loadingEarlier"
+        @thread-state="applyThreadState"
+        @load-earlier="loadEarlier"
+        @ready="onTranscriptReady"
       />
-    </TranscriptView>
+      <div class="chat-input-bar">
+        <ChatInput
+          v-model:prompt="prompt"
+          v-model:preset="preset"
+          :catalog="catalog"
+          :phase="phase"
+          :aborting="aborting"
+          :error="sessionError"
+          :cwd="composerCwd"
+          :usage="contextUsage"
+          :session-id="sessionId"
+          @send="submitFromInput"
+          @abort="abortSession"
+        />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -126,7 +127,7 @@ const threadState = computed(() => clientState.value?.threadState ?? null)
 const transcriptView = useTemplateRef<{
   prepareForSubmit(): void
 }>("transcriptView")
-function submitFromDock(text: string) {
+function submitFromInput(text: string) {
   transcriptView.value?.prepareForSubmit()
   return submitText(text)
 }
@@ -139,5 +140,15 @@ function submitFromDock(text: string) {
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+.chat-input-bar {
+  flex-shrink: 0;
+  padding: 0 var(--spacing-md) 10px;
+  background: var(--surface);
+}
+@media (max-width: 900px) {
+  .chat-input-bar {
+    padding-inline: var(--spacing-sm);
+  }
 }
 </style>

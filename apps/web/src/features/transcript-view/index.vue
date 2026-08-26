@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="transcript-viewport"
-    :style="$slots.default ? { '--chat-input-space': `${dockHeight}px` } : undefined"
-  >
+  <div class="transcript-viewport">
     <section
       id="transcript-panel"
       ref="region"
@@ -67,21 +64,18 @@
       />
     </section>
 
-    <div v-if="$slots.default" ref="dock" class="chat-input-dock">
-      <div v-show="showScrollToLatest" class="session-floating-controls">
-        <Button
-          class="floating-control scroll-latest-control"
-          type="button"
-          variant="outline"
-          size="icon-sm"
-          aria-label="滚动到底部"
-          title="滚动到底部"
-          @click="scrollToLatest"
-        >
-          <ArrowDown />
-        </Button>
-      </div>
-      <slot />
+    <div v-show="showScrollToLatest" class="session-floating-controls">
+      <Button
+        class="floating-control scroll-latest-control"
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        aria-label="滚动到底部"
+        title="滚动到底部"
+        @click="scrollToLatest"
+      >
+        <ArrowDown />
+      </Button>
     </div>
   </div>
 </template>
@@ -317,8 +311,6 @@ const emit = defineEmits<{
   ready: []
 }>()
 
-defineSlots<{ default?: () => unknown }>()
-
 const running = computed(() => props.phase !== undefined && props.phase !== "idle")
 const rows = computed(() =>
   withThinkingRow(
@@ -330,8 +322,6 @@ const rows = computed(() =>
 const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState))
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
 const region = useTemplateRef<HTMLElement>("region")
-const dock = useTemplateRef<HTMLElement>("dock")
-const dockHeight = shallowRef(168)
 const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
 const minimapItems = computed(() =>
@@ -422,7 +412,6 @@ const showScrollToLatest = computed(() =>
 )
 let bottomHoldUntil = 0
 let pinRaf = 0
-let dockObserver: ResizeObserver | undefined
 
 function timelineScrollRoot(): HTMLElement | null {
   return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null
@@ -580,6 +569,7 @@ watch(
     const measure = () => {
       viewportWidth.value = el.getBoundingClientRect().width
       syncInViewIds()
+      if (atBottom.value) scrollToLatest()
     }
     viewportObserver = new ResizeObserver(measure)
     viewportObserver.observe(el)
@@ -587,26 +577,9 @@ watch(
   },
   { flush: "post" },
 )
-watch(
-  dock,
-  (element) => {
-    dockObserver?.disconnect()
-    if (!element) return
-    dockObserver = new ResizeObserver(() => {
-      const nextHeight = element.offsetHeight
-      const grew = nextHeight > dockHeight.value
-      dockHeight.value = nextHeight
-      if (grew && atBottom.value) scrollToLatest()
-    })
-    dockObserver.observe(element)
-    dockHeight.value = element.offsetHeight
-  },
-  { flush: "post" },
-)
 
 onBeforeUnmount(() => {
   viewportObserver?.disconnect()
-  dockObserver?.disconnect()
   releasePinnedToBottom()
   persistThreadState()
   resetStreamReady()
@@ -618,7 +591,6 @@ onBeforeUnmount(() => {
   position: relative;
   min-height: 0;
   flex: 1;
-  height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -636,24 +608,15 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background: transparent;
 }
-/* 菜单在 transcript 内，抬整列才能压过绝对定位的 dock。区域背景透明，输入卡仍看得见。 */
-.transcript-region:has(.code-more-menu) {
+/* 代码菜单可能溢出到输入区，抬整列压过输入卡 */
+.transcript-viewport:has(.code-more-menu) {
   z-index: 3;
 }
-.chat-input-dock {
-  position: absolute;
-  inset-inline: 0 8px;
-  bottom: 0;
-  z-index: 2;
-  padding: 0 var(--spacing-md) 10px;
-  background: var(--surface);
-  pointer-events: none;
-}
 .session-floating-controls {
-  /* 脱离 Dock 测量流，避免显隐时改写 transcript 底部 inset 并触发滚动回弹。 */
   position: absolute;
   inset-inline: var(--spacing-md);
-  bottom: calc(100% + var(--spacing-xxs));
+  bottom: var(--spacing-sm);
+  z-index: 2;
   max-width: var(--size-composer);
   margin-inline: auto;
   display: flex;
@@ -671,15 +634,7 @@ onBeforeUnmount(() => {
   color: var(--ink-secondary);
   box-shadow: var(--shadow-float);
 }
-.chat-input-dock :deep(.prompt) {
-  pointer-events: auto;
-  width: min(var(--size-composer), 100%);
-  margin-inline: auto;
-}
 @media (max-width: 900px) {
-  .chat-input-dock {
-    padding-inline: var(--spacing-sm);
-  }
   .session-floating-controls {
     inset-inline: var(--spacing-sm);
   }
@@ -687,7 +642,7 @@ onBeforeUnmount(() => {
 /* 滚动根自带 overflow:auto；首尾 inset 写在容器上，不进虚拟行高 */
 .transcript {
   padding-top: var(--spacing-lg);
-  padding-bottom: calc(var(--chat-input-space, 168px) + var(--spacing-md));
+  padding-bottom: var(--spacing-lg);
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
 }

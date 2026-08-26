@@ -2,7 +2,7 @@
   <component
     :is="bare ? 'div' : 'form'"
     class="prompt"
-    :class="{ bare, docked }"
+    :class="{ bare }"
     @submit.prevent="send"
     @paste="onPaste"
   >
@@ -146,8 +146,6 @@ const props = withDefaults(
     ariaLabel?: string
     /** 嵌入其他布局时以 div 渲染，避免嵌套 form */
     bare?: boolean
-    /** 对话列贴底：宽度交给上层 dock */
-    docked?: boolean
     /** 当前工作目录，底栏展示末段名 */
     cwd?: string | undefined
     usage?: ContextUsage | undefined
@@ -161,7 +159,6 @@ const props = withDefaults(
     placeholder: "do what you want ...",
     ariaLabel: "do what you want ...",
     bare: false,
-    docked: false,
     cwd: undefined,
     usage: undefined,
     sessionId: undefined,
@@ -252,7 +249,7 @@ function onPrimaryAction() {
   border-radius: 0;
   background: transparent;
 }
-.prompt:not(.bare):not(.docked) {
+.prompt:not(.bare) {
   width: min(var(--size-composer), 100%);
   margin-inline: auto;
 }
