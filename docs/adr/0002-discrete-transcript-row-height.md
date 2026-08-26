@@ -16,7 +16,7 @@ Markstream 根据已测行高维护虚拟总高和滚动锚点。卡顿与滚动
 4. Tool Call 展开态按 TranscriptItem id 保存。虚拟卸载后重新挂载不得悄悄折叠，也不得用折叠高度覆盖展开态缓存。
 5. 估高贴近默认折叠态，删除短 Assistant Message 的 160px 保底。长 Markdown 继续交给 Markstream 节点虚拟化。`overscan`、minimap 几何读取和缓存策略只在上述根因修复后按性能轨迹调整。
 
-现有 `markstream-vue` 补丁只处理正文宽度缓存。本方案不把行高、锚点或 ResizeObserver 防抖继续塞进依赖补丁。
+不维护 `markstream-vue` 本地补丁。正文宽度缓存允许失效后重新测量，不为减少重测把行高、锚点或 ResizeObserver 防抖塞进依赖补丁。
 
 ## Verification
 
@@ -29,11 +29,11 @@ Markstream 根据已测行高维护虚拟总高和滚动锚点。卡顿与滚动
 
 ## Considered options
 
-- 给 Markstream 增加行高补丁或防抖 ResizeObserver。它只能掩盖错误测量，还会继续扩大现有版本补丁。
+- 给 Markstream 增加行高补丁或防抖 ResizeObserver。它只能掩盖错误测量，还会引入对压缩产物和依赖版本的维护成本。
 - 保留外层高度动画。动画每帧都会进入 ResizeObserver、虚拟总高和锚点回写链路。
 - 只提高估高或保留 160px 保底。它减少首帧低估，却不能修复外边距漏测和重复主题初始化。
 - 关闭虚拟化。短期不抖，但长 Session 会把全部 Markdown 和 Tool Call 留在 DOM。
 
 ## Consequences
 
-思考展开不再有高度动画。Tool Call 展开状态需要一份按 id 保存的当前 Session UI 状态。主题状态成为单一共享实例。实现不新增依赖，不扩大 Markstream 补丁；先修测量正确性，再决定是否缩小 overscan 或减少 minimap 布局读取。
+思考展开不再有高度动画。Tool Call 展开状态需要一份按 id 保存的当前 Session UI 状态。主题状态成为单一共享实例。实现不新增依赖，不维护 Markstream 补丁；先修测量正确性，再决定是否缩小 overscan 或减少 minimap 布局读取。
