@@ -1,27 +1,19 @@
 <template>
   <div class="tr">
+    <div v-if="!done" class="tr-header" role="status">
+      <ThinkingOrb />
+      <ThinkingState text="思考中…" />
+    </div>
     <button
+      v-else
       type="button"
-      class="tr-header"
-      :class="{ 'is-clickable': done }"
+      class="tr-header is-clickable"
       :aria-expanded="expanded"
-      :aria-label="done ? '切换思考过程' : '思考中'"
-      :disabled="!done"
+      aria-label="切换思考过程"
       @click="toggle"
     >
-      <ThinkingOrb v-if="!done" />
-      <span v-if="done" class="tr-label">
-        {{ doneLabel }}
-      </span>
-      <ThinkingState v-else text="思考中…" />
-      <svg
-        v-if="done"
-        class="tr-chevron"
-        viewBox="0 0 24 24"
-        width="12"
-        height="12"
-        aria-hidden="true"
-      >
+      <span class="tr-label">{{ doneLabel }}</span>
+      <svg class="tr-chevron" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
         <path
           d="m4.5 15.75 7.5-7.5 7.5 7.5"
           fill="none"
@@ -37,7 +29,7 @@
         <div
           ref="viewport"
           class="tr-viewport"
-          :class="{ 'is-scroll': expanded }"
+          :class="{ 'is-scroll': done && expanded }"
           :style="{ WebkitMaskImage: mask, maskImage: mask }"
           @scroll="onScroll"
         >
@@ -181,7 +173,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   align-self: flex-start;
-  min-height: 20px;
+  min-height: 24px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -191,8 +183,12 @@ onBeforeUnmount(() => {
 .tr-header.is-clickable {
   cursor: pointer;
 }
-.tr-header:disabled {
-  opacity: 1;
+.tr-header:focus {
+  outline: none;
+}
+.tr-header.is-clickable:focus-visible {
+  outline: var(--focus-ring-width) solid var(--primary);
+  outline-offset: var(--focus-ring-width);
 }
 .tr-label {
   color: var(--ink-faint);
@@ -234,6 +230,7 @@ onBeforeUnmount(() => {
   max-height: 180px;
   margin-top: 6px;
   overflow: hidden;
+  outline: none;
 }
 .tr-viewport.is-scroll {
   overflow-y: auto;

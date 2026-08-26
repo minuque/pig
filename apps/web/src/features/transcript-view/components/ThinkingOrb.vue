@@ -41,7 +41,7 @@ withDefaults(
     size?: number
     label?: string
   }>(),
-  { size: 16, label: "思考中" },
+  { size: 24, label: "思考中" },
 )
 </script>
 
