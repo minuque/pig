@@ -51,7 +51,7 @@ Electron 无原生 File 菜单。macOS hiddenInset；Windows `titleBarStyle: hid
 
 User Message 右对齐气泡，最长约内容列 86%，底 `--bubble`，文字 `ink`。图片在气泡下方同一右栏，点击 Dialog 放大。
 
-Tool Call 默认折叠为一行：左侧状态点（运行中转圈 / 完成绿勾 / 失败红叉）、名称，右侧一句话摘要（路径、命令、短列表条数或「失败」）与展开箭头成组贴右。折叠行高固定，运行完成只换图标和摘要，不撑开时间线。展开后看入参与输出。失败的调用在运行中途转失败时自动展开。时间线行高只走离散态，滚动细则见 [`prd/transcript-scroll.md`](prd/transcript-scroll.md)。
+Tool Call 默认折叠为一行：左侧状态点（运行中转圈 / 完成绿勾 / 失败红叉）、名称，右侧一句话摘要（路径、命令、短列表条数或「失败」）与展开箭头成组贴右。折叠行高固定，运行完成只换图标和摘要，不撑开时间线。展开后看入参与输出。失败的调用在运行中途转失败时自动展开。时间线行高只走离散态，决策见 [`adr/0002-discrete-transcript-row-height.md`](adr/0002-discrete-transcript-row-height.md)。
 
 输入卡固定 748px，正文固定 732px 居中，每侧内收 8px；主栏更宽时只加留白，侧栏拖拽不挤压正文。主栏窄于各自固定宽度时随列宽收缩。
 
@@ -59,7 +59,7 @@ Tool Call 默认折叠为一行：左侧状态点（运行中转圈 / 完成绿�
 
 重命名走 Pi `SessionManager.appendSessionInfo`。删除只删 Pi 会话文件。
 
-模型仅 `idle` 时可改。列表按当前分组的活动时间新→旧，改名不重排。无顶部工作目录筛选。细则见 [`prd/session-nav.md`](prd/session-nav.md)。
+模型仅 `idle` 时可改。列表按当前分组的活动时间新→旧，改名不重排。无顶部工作目录筛选。决策见 [`adr/0001-sidebar-session-grouping.md`](adr/0001-sidebar-session-grouping.md)。
 
 默认「更新时间」平铺，10 条后「显示更多」每次 +10。可切「项目」：目录名组头不可折叠，每组 5 条，末尾每次 +5。搜索时取消截断。New Task 与搜索是列表上方整行；分组切换与加目录同一行。项目组头可在该目录新建。
 
