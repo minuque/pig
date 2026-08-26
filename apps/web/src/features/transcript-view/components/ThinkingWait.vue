@@ -15,7 +15,7 @@ import ThinkingState from "@features/transcript-view/components/ThinkingState.vu
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 28px;
+  min-height: 20px;
   margin-bottom: var(--spacing-xxs);
   border: 0;
   outline: none;

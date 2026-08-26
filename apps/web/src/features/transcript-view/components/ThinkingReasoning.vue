@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   align-self: flex-start;
-  min-height: 28px;
+  min-height: 20px;
   padding: 0;
   border: 0;
   background: transparent;
