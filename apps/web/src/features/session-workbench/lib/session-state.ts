@@ -1,6 +1,7 @@
 import { reactive } from "vue"
 import type {
   ModelRef,
+  SessionMetadata,
   SessionPhase,
   SessionSnapshot,
   ThinkingLevel,
@@ -8,7 +9,7 @@ import type {
   UserTranscriptItem,
 } from "@earendil-works/pi-protocol"
 import type { MarkstreamThreadVirtualState } from "markstream-vue"
-import { UNTITLED_SESSION } from "@features/session-nav/format.js"
+import { sessionTitle, UNTITLED_SESSION } from "@features/session-nav/format.js"
 
 export interface OptimisticUserMessage {
   item: UserTranscriptItem
@@ -95,6 +96,18 @@ export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjec
     running: snapshot.phase !== "idle",
     updatedAt: snapshot.updatedAt,
   }
+}
+
+/** 顶栏标题：列表名优先（改名后随 listSessions 更新），否则 snapshot 名。 */
+export function workbenchHeaderTitle(input: {
+  sessionId: string | undefined
+  listed: readonly Pick<SessionMetadata, "id" | "sessionName">[]
+  projectionName: string | undefined
+}): string {
+  if (!input.sessionId) return ""
+  const meta = input.listed.find((session) => session.id === input.sessionId)
+  if (meta) return sessionTitle(meta)
+  return input.projectionName?.trim() || UNTITLED_SESSION
 }
 
 /** 快照窗口覆盖已加载前缀中的同 id；前缀里被挤出窗口的条目保留。 */

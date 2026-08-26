@@ -32,9 +32,10 @@
 import { computed } from "vue"
 import { PanelLeft } from "lucide-vue-next"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
-import { sessionTitle, UNTITLED_SESSION, workspaceName } from "@features/session-nav/format.js"
+import { workspaceName } from "@features/session-nav/format.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
+import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
 import { phaseLabel } from "@features/session-workbench/lib/session-phase.js"
 import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
@@ -42,13 +43,13 @@ const { leftOpen, toggle } = useLeftPanelToggle()
 const { sessionId, projection, phase, connecting, sessionPending, composerCwd } = useSession()
 const { listedSessions } = useNav()
 
-const title = computed(() => {
-  if (sessionPending.value) {
-    const meta = listedSessions.value.find((session) => session.id === sessionId.value)
-    return meta ? sessionTitle(meta) : UNTITLED_SESSION
-  }
-  return projection.value?.name ?? (sessionId.value ? UNTITLED_SESSION : "")
-})
+const title = computed(() =>
+  workbenchHeaderTitle({
+    sessionId: sessionId.value,
+    listed: listedSessions.value,
+    projectionName: projection.value?.name,
+  }),
+)
 const cwd = computed(() => (sessionId.value ? composerCwd.value : undefined))
 const running = computed(() => projection.value?.running ?? false)
 </script>
