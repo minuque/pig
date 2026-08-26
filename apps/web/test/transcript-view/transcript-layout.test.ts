@@ -11,6 +11,7 @@ import {
   transcriptRowFinal,
   transcriptRowKind,
   buildTimelineRows,
+  formatWorkKinds,
   workFoldLabel,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { isMarkdownStreamReady } from "@features/transcript-view/lib/transcript-scroll.js"
@@ -214,6 +215,12 @@ describe("turn work fold", () => {
     if (!isWorkRow(firstWork) || !isWorkRow(secondWork)) return
     expect(workFoldLabel(firstWork)).toBe("Ran 1 thought")
     expect(workFoldLabel(secondWork)).toBe("Ran 1 file read · 1 tool call · 1 command · 1 thought")
+  })
+
+  it("同种类计数累计，不重复列出", () => {
+    expect(formatWorkKinds(["thought", "read", "thought", "read", "command"])).toBe(
+      "Ran 2 thoughts · 2 file reads · 1 command",
+    )
   })
 
   it("进行中不折叠，连续工具占一行，思考画在组上", () => {

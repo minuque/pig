@@ -99,16 +99,14 @@ export function workKindOfTool(toolName: string): WorkKind {
 }
 
 export function formatWorkKinds(kinds: readonly WorkKind[]): string {
-  const groups: { kind: WorkKind; count: number }[] = []
+  const counts = new Map<WorkKind, number>()
   for (const kind of kinds) {
-    const last = groups[groups.length - 1]
-    if (last?.kind === kind) last.count += 1
-    else groups.push({ kind, count: 1 })
+    counts.set(kind, (counts.get(kind) ?? 0) + 1)
   }
-  const body = groups
-    .map((group) => {
-      const noun = group.count === 1 ? KIND_LABEL[group.kind].one : KIND_LABEL[group.kind].many
-      return `${group.count} ${noun}`
+  const body = [...counts.entries()]
+    .map(([kind, count]) => {
+      const noun = count === 1 ? KIND_LABEL[kind].one : KIND_LABEL[kind].many
+      return `${count} ${noun}`
     })
     .join(" · ")
   return body ? `Ran ${body}` : ""
