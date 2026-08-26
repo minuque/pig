@@ -1,0 +1,151 @@
+# 核心旅程
+
+pig 把用户动作接到 Pi 的 Session，再把 Snapshot / Transcript 投到工作台。领域词见 `CONTEXT.md`。
+
+两条总线：
+
+- WebSocket（官方协议）：连接、Session 列表、创建/打开、Prompt / Abort、改 Model / Thinking。权威状态是 `ServerSnapshot` 和 `SessionSnapshot`。
+- HTTP `/api/v1/platform/*`（Thin Host）：选目录、侧栏卡片、更早 Transcript、上下文占用、重命名、删除。不进 Agent Domain。
+
+```mermaid
+flowchart TB
+  UI[Vue UI]
+  RS[RemoteSession]
+  PC[PiClient]
+  HTTP[platform HTTP]
+  GW[Gateway]
+  PS[PiServer]
+  SDK[SessionManager / AgentSession]
+
+  UI --> RS
+  UI --> HTTP
+  RS --> PC
+  PC -->|WebSocket| GW
+  HTTP -->|Bearer| GW
+  GW --> PS
+  PS --> SDK
+```
+
+## 启动进工作台
+
+e2e 对应 `01-bootstrap` → `02-session-inbox`。
+
+```mermaid
+flowchart TB
+  Hash["#bootstrap secret"] --> Boot["POST /api/v1/bootstrap"]
+  Boot --> Cred["localStorage pig.credential"]
+  Cred --> WS["PiClient.connect WebSocket"]
+  WS --> Snap["ServerSnapshot: sessions + models"]
+  Snap --> Init["按路由 openSession"]
+  Init --> Gate{"成功?"}
+  Gate -->|是| Inbox["侧栏会话列表 + 欢迎页"]
+  Gate -->|否| Err["/error"]
+```
+
+启动门和 Logo 动画并行。超时 8s 或兑换失败进 `/error`。已有凭证时过期 hash 会被清掉，沿用 localStorage。
+
+## 选工作目录
+
+Working Directory 限定 Session 范围。列表和 `lastCwd` 只活在浏览器。
+
+```mermaid
+flowchart TB
+  Click["侧栏 / 欢迎页 添加目录"] --> Sel["POST /api/v1/platform/select-directory"]
+  Sel --> Port{"系统选目录 or 手输路径"}
+  Port --> Canon["canonicalizePath"]
+  Canon --> LS["pig.localWorkspaces + pig.lastCwd"]
+  LS --> Groups["侧栏按 cwd 分组"]
+```
+
+会话列表来自 Pi。目录筛选来自本地偏好。两边按 canonical path 对齐。
+
+## 欢迎页开新会话
+
+路由 `/`，无 `sessionId`。这是主创建路径。
+
+```mermaid
+flowchart TB
+  Welcome["SessionWelcome"] --> Guard{"有 cwd + preset + 非空 Prompt?"}
+  Guard --> Create["RemoteSession.create cwd/model/thinking"]
+  Create --> Route["router.push /sessions/:id"]
+  Route --> Open["同步 RemoteSession"]
+  Open --> Prompt["submit 第一条 Prompt"]
+  Prompt --> Turn["phase: idle → turn"]
+  Turn --> TL["Transcript 出现 User Message"]
+```
+
+侧栏「新会话」只回到 `/`，不立刻建 Session。Session 在第一条 Prompt 时才创建。
+
+## 打开已有会话
+
+```mermaid
+flowchart TB
+  Click["点侧栏 Session"] --> Route["/sessions/:sessionId"]
+  Route --> Open["RemoteSession.open"]
+  Open --> Snap["SessionSnapshot 覆盖本地投影"]
+  Snap --> View{"transcript?"}
+  View -->|空且 idle| Empty["空画布 + ChatInput"]
+  View -->|有内容| Timeline["TranscriptView + 底栏输入"]
+  View -->|路由已变、Remote 未齐| Loading["SessionLoading"]
+```
+
+切 Session 会串行替换 lease。连点只落地最后一个 id。重连后仍用新 Snapshot 覆盖，不用 `session_progress` 当事实源。
+
+## 一轮工作
+
+```mermaid
+flowchart TB
+  Idle["phase idle"] --> Send["ChatInput 发送"]
+  Send --> Opt["乐观 User Message"]
+  Opt --> Submit["RemoteSession.submit"]
+  Submit --> Agent["AgentSession.prompt"]
+  Agent --> Prog["Snapshot + Transcript 流式投影"]
+  Prog --> Rows["User / Assistant / Tool Call"]
+  Rows --> End{"结束?"}
+  End -->|idle| Ready["发送钮回来"]
+  End -->|turn/retry/compaction| AbortBtn["发送钮变停止"]
+  AbortBtn --> Abort["RemoteSession.abort"]
+  Abort --> Idle
+```
+
+当前 UI 不做 Steering。运行中只能 Abort。协议里 `submit` 在 `turn` 时是 steer，Web 不走这条。
+
+空闲时可改 Model / Thinking：`preset` → `setModel` / `setThinking`。不新建 Session，已有 Transcript 不变。
+
+## 侧栏管理 Session
+
+```mermaid
+flowchart TB
+  List["ServerSnapshot.sessions"] --> Cards["GET session-cards"]
+  Cards --> Rows["按更新时间或项目分组"]
+  Rows --> Rename["POST rename-session"]
+  Rows --> Delete["POST delete-session"]
+  Rename --> Refresh["listSessions + cards"]
+  Delete --> Home{"删的是当前?"}
+  Home -->|是| Slash["回 /"]
+  Home -->|否| Refresh
+```
+
+Session Name 是显示标签，不是身份。Delete Session 永久删除 Pi Session 和 Transcript。
+
+辅助读路径：向上翻更早 Transcript、看 context usage。失败不挡主流程。
+
+## 工作台状态
+
+```mermaid
+flowchart TB
+  Start[启动等待态] --> Welcome["/ 欢迎页"]
+  Start --> Error["/error"]
+  Welcome -->|第一条 Prompt| Session["/sessions/:id"]
+  Welcome -->|点已有 Session| Session
+  Session --> Loading[附加中]
+  Loading --> Empty[空画布]
+  Loading --> Talk[时间线 + 输入]
+  Empty -->|Prompt| Talk
+  Talk -->|新会话按钮| Welcome
+  Talk -->|删除当前| Welcome
+```
+
+e2e 走到欢迎页和输入卡可用就停，不发真实 Turn。主题和窄屏抽屉是壳层，不进这条数据流。
+
+协议有、当前 UI 没有：Steering、手动 Compaction、图片进协议、fork/clone。附件只停在 Composer。
