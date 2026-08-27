@@ -343,6 +343,9 @@ html[data-pig-desktop-platform] .session-nav input {
 .session-list li {
   padding-bottom: var(--spacing-xxs);
 }
+.row-session {
+  padding-inline-end: var(--spacing-xxs);
+}
 .more-button {
   display: flex;
   align-items: center;

@@ -7,14 +7,18 @@
       aria-label="新会话"
       @click="emit('newSession')"
     >
-      <SquarePen :size="16" aria-hidden="true" />
-      <span>新会话</span>
+      <span class="mark" aria-hidden="true">
+        <SquarePen :size="16" />
+      </span>
+      <span class="label">新会话</span>
     </button>
     <Popover v-model:open="searchOpen">
       <PopoverTrigger as-child>
         <button class="toolbar-btn" type="button" :aria-expanded="searchOpen" aria-label="搜索会话">
-          <Search :size="16" aria-hidden="true" />
-          <span class="search-label">{{ searching ? searchQuery : "搜索" }}</span>
+          <span class="mark" aria-hidden="true">
+            <Search :size="16" />
+          </span>
+          <span class="label">{{ searching ? searchQuery : "搜索" }}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -25,7 +29,9 @@
         @open-auto-focus="onOpenAutoFocus"
       >
         <label class="search-field">
-          <Search :size="16" aria-hidden="true" />
+          <span class="mark" aria-hidden="true">
+            <Search :size="16" />
+          </span>
           <input
             ref="searchInput"
             v-model="searchQuery"
@@ -40,26 +46,32 @@
     </Popover>
     <div class="grouping-row">
       <span class="grouping-label">{{ groupingLabel }}</span>
-      <button
-        class="toolbar-icon"
-        type="button"
-        :aria-label="`当前${groupingLabel}，切换为${nextGroupingLabel}`"
-        :title="`切换为${nextGroupingLabel}`"
-        @click="toggleGrouping"
-      >
-        <Folder v-if="grouping === 'project'" :size="16" aria-hidden="true" />
-        <Clock v-else :size="16" aria-hidden="true" />
-      </button>
-      <button
-        class="toolbar-icon"
-        type="button"
-        :disabled="addingWorkspace"
-        aria-label="添加本地目录"
-        title="添加本地目录"
-        @click="addWorkspace()"
-      >
-        <FolderPlus :size="16" aria-hidden="true" />
-      </button>
+      <span class="grouping-actions">
+        <button
+          class="toolbar-icon"
+          type="button"
+          :aria-label="`当前${groupingLabel}，切换为${nextGroupingLabel}`"
+          :title="`切换为${nextGroupingLabel}`"
+          @click="toggleGrouping"
+        >
+          <span class="mark" aria-hidden="true">
+            <Folder v-if="grouping === 'project'" :size="16" />
+            <Clock v-else :size="16" />
+          </span>
+        </button>
+        <button
+          class="toolbar-icon"
+          type="button"
+          :disabled="addingWorkspace"
+          aria-label="添加本地目录"
+          title="添加本地目录"
+          @click="addWorkspace()"
+        >
+          <span class="mark" aria-hidden="true">
+            <FolderPlus :size="16" />
+          </span>
+        </button>
+      </span>
     </div>
   </div>
 </template>
@@ -106,15 +118,22 @@ function onOpenAutoFocus(event: Event) {
   overflow-y: hidden;
   scrollbar-gutter: stable;
 }
-.toolbar-btn {
+.toolbar-btn,
+.search-field,
+.grouping-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
   min-width: 0;
   height: 32px;
-  min-height: 32px;
+  line-height: 1;
+}
+.toolbar-btn,
+.search-field {
+  gap: 8px;
   padding: 0 8px;
+}
+.toolbar-btn {
+  width: 100%;
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
@@ -129,7 +148,16 @@ function onOpenAutoFocus(event: Event) {
 .toolbar-btn:disabled {
   opacity: 0.45;
 }
-.search-label {
+.mark {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+.label,
+.grouping-label {
   min-width: 0;
   flex: 1;
   overflow: hidden;
@@ -137,14 +165,7 @@ function onOpenAutoFocus(event: Event) {
   white-space: nowrap;
 }
 .search-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   width: 100%;
-  min-width: 0;
-  height: 32px;
-  min-height: 32px;
-  padding: 0 8px;
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--ink) 8%, transparent);
   color: var(--ink-muted);
@@ -153,10 +174,9 @@ function onOpenAutoFocus(event: Event) {
 .search-input {
   min-width: 0;
   flex: 1;
-  min-height: 0;
+  height: 100%;
   padding: 0;
   border: 0;
-  border-radius: 0;
   background: transparent;
   color: var(--ink);
   font-size: var(--text-body-sm);
@@ -170,28 +190,26 @@ function onOpenAutoFocus(event: Event) {
   display: none;
 }
 .grouping-row {
-  display: flex;
-  align-items: center;
   gap: 4px;
-  min-width: 0;
 }
 .grouping-label {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
   color: var(--ink);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+.grouping-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
 }
 .toolbar-icon {
   display: flex;
-  justify-content: center;
-  align-items: center;
   flex: none;
-  width: var(--size-nav-action);
-  min-height: var(--size-nav-action);
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);

@@ -7,12 +7,9 @@
       :aria-label="collapsed ? `展开 ${name}` : `折叠 ${name}`"
       @click="emit('toggle')"
     >
-      <ChevronRight
-        class="group-chevron"
-        :class="{ expanded: !collapsed }"
-        :size="14"
-        aria-hidden="true"
-      />
+      <span class="mark" aria-hidden="true">
+        <ChevronRight class="group-chevron" :class="{ expanded: !collapsed }" :size="16" />
+      </span>
       <span class="group-name">{{ name }}</span>
     </button>
     <button
@@ -23,7 +20,9 @@
       title="新会话"
       @click.stop="emit('create')"
     >
-      <Plus :size="16" aria-hidden="true" />
+      <span class="mark" aria-hidden="true">
+        <Plus :size="16" />
+      </span>
     </button>
   </div>
 </template>
@@ -44,20 +43,22 @@ const emit = defineEmits<{
 </script>
 
 <style scoped>
-.group-head {
+.group-head,
+.group-toggle,
+.group-new {
   display: flex;
   align-items: center;
+  line-height: 1;
+}
+.group-head {
   gap: 4px;
   height: 28px;
   padding-inline: 8px;
 }
 .group-toggle {
-  display: flex;
-  align-items: center;
   gap: 4px;
   min-width: 0;
   flex: 1;
-  height: 100%;
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
@@ -68,8 +69,15 @@ const emit = defineEmits<{
 .group-toggle:hover {
   color: var(--ink);
 }
-.group-chevron {
+.mark {
+  display: flex;
   flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+.group-chevron {
   color: var(--ink-faint);
   transition: transform var(--duration-fast) var(--ease-smooth);
 }
@@ -87,12 +95,10 @@ const emit = defineEmits<{
   white-space: nowrap;
 }
 .group-new {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   flex: none;
-  width: var(--size-nav-action);
-  min-height: var(--size-nav-action);
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
