@@ -1,4 +1,4 @@
-import type { ModelMetadata, ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol"
+import type { ModelMetadata, ThinkingLevel } from "@earendil-works/pi-protocol"
 import { vendorDisplayName } from "@features/chat-input/lib/vendor-logo.js"
 
 /** 模型选择目录的本地 UI 类型：由官方 ModelMetadata 投影。 */
@@ -15,17 +15,22 @@ export interface ChatInputVendor {
   models: ChatInputModelInfo[]
 }
 
-/** 执行档全程保留官方 ModelRef；字符串只用于展示。 */
+export interface ChatInputModel {
+  provider: string
+  id: string
+}
+
+/** 输入卡执行档：本地模型引用与思考档位。 */
 export interface ChatInputPreset {
-  model: ModelRef
+  model: ChatInputModel
   thinkingLevel: string
 }
 
-export function sameModel(a: ModelRef | undefined, b: ModelRef | undefined): boolean {
+export function sameModel(a: ChatInputModel | undefined, b: ChatInputModel | undefined): boolean {
   return a?.provider === b?.provider && a?.id === b?.id
 }
 
-export function modelLabel(model: ModelRef | undefined): string {
+export function modelLabel(model: ChatInputModel | undefined): string {
   return model ? `${model.provider}/${model.id}` : "—"
 }
 

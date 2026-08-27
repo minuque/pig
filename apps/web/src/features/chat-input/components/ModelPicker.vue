@@ -122,8 +122,12 @@
 import { Search, Star } from "lucide-vue-next"
 import { useVirtualList } from "@vueuse/core"
 import { computed, ref, watch } from "vue"
-import type { ModelRef } from "@earendil-works/pi-protocol"
-import { modelLabel, sameModel, type ChatInputVendor } from "@features/chat-input/types.js"
+import {
+  modelLabel,
+  sameModel,
+  type ChatInputModel,
+  type ChatInputVendor,
+} from "@features/chat-input/types.js"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -141,14 +145,14 @@ import {
 const props = withDefaults(
   defineProps<{
     catalog: ChatInputVendor[]
-    model: ModelRef | undefined
+    model: ChatInputModel | undefined
     disabled?: boolean
   }>(),
   { disabled: false },
 )
 
 const emit = defineEmits<{
-  "update:model": [value: ModelRef]
+  "update:model": [value: ChatInputModel]
 }>()
 
 const open = ref(false)
@@ -193,7 +197,7 @@ const label = computed(() => {
 function isCurrent(provider: string, id: string) {
   return sameModel(props.model, { provider, id })
 }
-function select(model: ModelRef) {
+function select(model: ChatInputModel) {
   emit("update:model", model)
 }
 

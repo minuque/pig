@@ -1,17 +1,18 @@
 import { ref, watch, type Ref } from "vue"
-import type { ModelRef, SessionPhase, ThinkingLevel } from "@earendil-works/pi-protocol"
+import type { SessionPhase, ThinkingLevel } from "@earendil-works/pi-protocol"
 import { errorMessage } from "@client/http.js"
 import { resolveModelInfo } from "@features/chat-input/lib/model-preset.js"
 import {
   defaultPresetFrom,
   sameModel,
   thinkingLevelOf,
+  type ChatInputModel,
   type ChatInputPreset,
   type ChatInputVendor,
 } from "@features/chat-input/types.js"
 
 interface ChatInputSnapshot {
-  model: ModelRef
+  model: ChatInputModel
   thinkingLevel: ThinkingLevel
 }
 
@@ -20,7 +21,7 @@ interface ChatInputBindingOptions {
   snapshot: Ref<ChatInputSnapshot | undefined>
   phase: Ref<SessionPhase | undefined>
   error: Ref<string>
-  setModel(model: ModelRef): Promise<void>
+  setModel(model: ChatInputModel): Promise<void>
   setThinking(level: ThinkingLevel): Promise<void>
 }
 
@@ -54,7 +55,7 @@ export function useChatInputBinding(options: ChatInputBindingOptions) {
       pendingModel.value = true
       void (async () => {
         try {
-          await options.setModel(model)
+          await options.setModel({ provider: model.provider, id: model.id })
           const desired = sameModel(preset.value?.model, model)
             ? preset.value?.thinkingLevel
             : undefined

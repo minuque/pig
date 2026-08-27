@@ -17,22 +17,17 @@
           class="session-card"
           :class="{ active }"
           :aria-current="active ? 'page' : undefined"
-          :aria-label="
-            workspaceTitle ? `${sessionTitle(session)}, ${workspaceTitle}` : sessionTitle(session)
-          "
+          :aria-label="workspaceTitle ? `${session.title}, ${workspaceTitle}` : session.title"
           @click="onCardClick"
           @keydown="onCardKeydown"
         >
           <div class="card-line card-head">
-            <span class="title">{{ sessionTitle(session) }}</span>
+            <span class="title">{{ session.title }}</span>
             <span class="session-meta">
               <Spinner v-if="running" :size="12" class="session-spinner" aria-hidden="true" />
-              <template v-else-if="sessionRecency(session)">
+              <template v-else-if="session.updatedAt">
                 <Clock :size="12" class="session-clock" aria-hidden="true" />
-                <time
-                  class="session-time"
-                  :datetime="new Date(sessionRecency(session)).toISOString()"
-                >
+                <time class="session-time" :datetime="new Date(session.updatedAt).toISOString()">
                   {{ relativeTime }}
                 </time>
               </template>
@@ -70,7 +65,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from "vue"
 import { Clock, Folder, Pencil, Trash2 } from "lucide-vue-next"
-import type { SessionMetadata } from "@earendil-works/pi-protocol"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -78,13 +72,13 @@ import {
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
-import { formatRelativeTime, sessionRecency, sessionTitle } from "@features/session-nav/format.js"
-import type { SidebarGrouping } from "@features/session-nav/sidebar.js"
+import { formatRelativeTime } from "@features/session-nav/format.js"
+import type { SidebarGrouping, SidebarSession } from "@features/session-nav/sidebar.js"
 import VendorMark from "@features/chat-input/components/VendorMark.vue"
 
 const props = withDefaults(
   defineProps<{
-    session: SessionMetadata
+    session: SidebarSession
     workspaceTitle?: string
     active?: boolean
     running?: boolean
@@ -113,7 +107,7 @@ const renaming = ref(false)
 const draft = ref("")
 const nameInput = ref<HTMLInputElement | null>(null)
 const menuOpen = ref(false)
-const relativeTime = computed(() => formatRelativeTime(sessionRecency(props.session), props.now))
+const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
 
 function onMenuOpenChange(open: boolean) {
   menuOpen.value = open
@@ -143,7 +137,7 @@ function onCardKeydown(event: KeyboardEvent) {
   )
 }
 function startRename() {
-  draft.value = sessionTitle(props.session)
+  draft.value = props.session.title
   renaming.value = true
   void nextTick(() => {
     nameInput.value?.focus()
@@ -154,11 +148,11 @@ function commitRename() {
   if (!renaming.value) return
   renaming.value = false
   const name = draft.value.trim()
-  if (!name || name === sessionTitle(props.session)) return
+  if (!name || name === props.session.title) return
   emit("rename", props.session.id, name)
 }
 function onDelete() {
-  if (confirm(`删除会话「${sessionTitle(props.session)}」？此操作不可恢复。`)) {
+  if (confirm(`删除会话「${props.session.title}」？此操作不可恢复。`)) {
     emit("delete", props.session.id)
   }
 }

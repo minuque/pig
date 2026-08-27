@@ -112,7 +112,6 @@ export function canSend(text: string, sendDisabled: boolean): boolean {
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next"
-import type { ModelRef } from "@earendil-works/pi-protocol"
 import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue"
 import ComposerMeta from "@features/chat-input/components/ComposerMeta.vue"
 import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel.vue"
@@ -129,7 +128,11 @@ import {
   imageFilesFromClipboard,
   useComposerAttachments,
 } from "@features/chat-input/hooks/use-composer-attachments.js"
-import type { ChatInputPreset, ChatInputVendor } from "@features/chat-input/types.js"
+import type {
+  ChatInputModel,
+  ChatInputPreset,
+  ChatInputVendor,
+} from "@features/chat-input/types.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = withDefaults(
@@ -175,7 +178,7 @@ const emit = defineEmits<{
 
 const model = computed({
   get: () => preset.value?.model,
-  set: (next: ModelRef | undefined) => {
+  set: (next: ChatInputModel | undefined) => {
     if (next) preset.value = { model: next, thinkingLevel: preset.value?.thinkingLevel ?? "" }
   },
 })

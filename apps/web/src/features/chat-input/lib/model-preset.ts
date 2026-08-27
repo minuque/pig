@@ -1,5 +1,8 @@
-import type { ModelRef } from "@earendil-works/pi-protocol"
-import type { ChatInputModelInfo, ChatInputVendor } from "@features/chat-input/types.js"
+import type {
+  ChatInputModel,
+  ChatInputModelInfo,
+  ChatInputVendor,
+} from "@features/chat-input/types.js"
 
 export function filterCatalog(catalog: ChatInputVendor[], query: string): ChatInputVendor[] {
   const q = query.trim().toLowerCase()
@@ -41,7 +44,7 @@ export function listPickerRows(
   return rows
 }
 
-export function resolveModelInfo(catalog: ChatInputVendor[], ref: ModelRef | undefined) {
+export function resolveModelInfo(catalog: ChatInputVendor[], ref: ChatInputModel | undefined) {
   const vendor = catalog.find((item) => item.id === ref?.provider)
   const model = vendor?.models.find((item) => item.id === ref?.id)
   return { vendor, model, levels: model?.thinkingLevels ?? [] }

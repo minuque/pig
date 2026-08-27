@@ -8,11 +8,19 @@ export interface SessionGroup {
   sessions: SessionMetadata[]
 }
 
+/** 侧栏会话行：id、标题、时间；cwd 供组名展示。 */
+export interface SidebarSession {
+  id: string
+  title: string
+  cwd?: string
+  updatedAt: number
+}
+
 export type SidebarGrouping = "updated" | "project"
 
 export type SidebarRow =
   | { kind: "group"; key: string; canonicalPath: string; first: boolean; collapsed: boolean }
-  | { kind: "session"; key: string; session: SessionMetadata }
+  | { kind: "session"; key: string; session: SidebarSession }
   | { kind: "more"; key: string; groupKey: string }
 
 export const UPDATED_PAGE = 10
@@ -89,7 +97,16 @@ function appendGroupSessions(
   const limit = searching ? sessions.length : (revealByGroup[groupKey] ?? page)
   const visible = sessions.slice(0, limit)
   for (const session of visible) {
-    rows.push({ kind: "session", key: session.id, session })
+    rows.push({
+      kind: "session",
+      key: session.id,
+      session: {
+        id: session.id,
+        title: sessionTitle(session),
+        ...(session.cwd !== undefined ? { cwd: session.cwd } : {}),
+        updatedAt: sessionRecency(session),
+      },
+    })
   }
   if (!searching && visible.length < sessions.length) {
     rows.push({ kind: "more", key: `more:${groupKey}`, groupKey })
