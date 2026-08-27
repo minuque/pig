@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
-import { cn } from "@utils/utils.js"
 
 const props = withDefaults(
   defineProps<{
@@ -20,7 +19,7 @@ const bar = computed(() => ({
 </script>
 
 <template>
-  <div :class="cn('relative', props.class)" :style="{ width: box, height: box }">
+  <div class="relative" :class="props.class" :style="{ width: box, height: box }">
     <div
       v-for="i in bars"
       :key="i"

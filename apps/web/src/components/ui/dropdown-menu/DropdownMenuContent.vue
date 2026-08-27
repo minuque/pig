@@ -3,12 +3,8 @@
     <DropdownMenuContent
       data-slot="dropdown-menu-content"
       v-bind="{ ...$attrs, ...forwarded }"
-      :class="
-        cn(
-          'bg-surface text-ink z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) min-w-(--size-menu) origin-(--reka-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-(--radius-md) border border-hairline p-(--spacing-xxs) shadow-elevated data-[state=open]:animate-[enter-blur_180ms_var(--ease-smooth)]',
-          props.class,
-        )
-      "
+      class="bg-surface text-ink z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) min-w-(--size-menu) origin-(--reka-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-(--radius-md) border border-hairline p-(--spacing-xxs) shadow-elevated data-[state=open]:animate-[enter-blur_180ms_var(--ease-smooth)]"
+      :class="props.class"
     >
       <slot />
     </DropdownMenuContent>
@@ -20,7 +16,6 @@ import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
-import { cn } from "@utils/utils.js"
 
 defineOptions({
   inheritAttrs: false,

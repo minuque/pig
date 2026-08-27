@@ -3,8 +3,8 @@
     <div class="alert-toaster" role="region" aria-label="通知">
       <TransitionGroup name="alert-toaster" tag="div" class="alert-toaster-stack">
         <div v-for="item in noticeQueue" :key="item.id" class="alert-toaster-item">
-          <Alert :variant="item.variant" class="pr-9">
-            <CircleAlert v-if="item.variant === 'destructive'" />
+          <Alert class="pr-9">
+            <CircleAlert />
             <AlertDescription>{{ item.message }}</AlertDescription>
           </Alert>
           <button

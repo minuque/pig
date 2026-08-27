@@ -3,7 +3,6 @@ import type { TooltipContentEmits, TooltipContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { TooltipArrow, TooltipContent, TooltipPortal, useForwardPropsEmits } from "reka-ui"
-import { cn } from "@utils/utils.js"
 
 defineOptions({
   inheritAttrs: false,
@@ -12,6 +11,7 @@ defineOptions({
 const props = withDefaults(
   defineProps<TooltipContentProps & { class?: HTMLAttributes["class"] }>(),
   {
+    class: undefined,
     sideOffset: 4,
   },
 )
@@ -27,12 +27,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Too
     <TooltipContent
       data-slot="tooltip-content"
       v-bind="{ ...forwarded, ...$attrs }"
-      :class="
-        cn(
-          'bg-ink text-surface z-50 w-fit rounded-md px-3 py-1.5 text-xs text-balance data-[state=open]:animate-[enter-blur_120ms_var(--ease-smooth)]',
-          props.class,
-        )
-      "
+      class="bg-ink text-surface z-50 w-fit rounded-md px-3 py-1.5 text-xs text-balance data-[state=open]:animate-[enter-blur_120ms_var(--ease-smooth)]"
+      :class="props.class"
     >
       <slot />
 

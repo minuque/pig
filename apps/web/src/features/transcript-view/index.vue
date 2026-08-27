@@ -27,11 +27,7 @@
         @thread-state-change="onThreadState"
       >
         <template #default="{ item: row, measureRef, markdownProps }">
-          <div
-            :ref="measureRef"
-            class="row"
-            :data-minimap-row="row.role === 'user' ? row.id : undefined"
-          >
+          <div :ref="measureRef" class="row">
             <UserMessage v-if="row.role === 'user'" :item="row" />
             <AssistantMessage
               v-else-if="row.role === 'assistant'"
@@ -42,7 +38,8 @@
               @render-settled="onMarkdownSettled(row.id)"
             />
             <div v-else-if="isThinkingRow(row)" class="thinking-row">
-              <ThinkingWait />
+              <ThinkingOrb />
+              <ThinkingState text="思考中…" />
             </div>
             <WorkRow
               v-else-if="isWorkRow(row)"
@@ -55,15 +52,6 @@
           </div>
         </template>
       </MarkstreamVirtualTimeline>
-
-      <TranscriptMinimap
-        v-if="rows.length && minimapItems.length >= MINIMAP_MIN_ITEMS"
-        :items="minimapItems"
-        :in-view-ids="inViewIds"
-        :has-persistent-gutter="hasPersistentGutter"
-        :hit-strip-width="hitStripWidth"
-        @select="onMinimapSelect"
-      />
     </section>
 
     <div v-show="showScrollToLatest" class="session-floating-controls">
@@ -88,8 +76,8 @@ import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
 import type { SessionPhase, TranscriptItem } from "@earendil-works/pi-protocol"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
-import ThinkingWait from "@features/transcript-view/components/ThinkingWait.vue"
-import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
+import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
+import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import WorkRow from "@features/transcript-view/components/WorkRow.vue"
 import { Button } from "@components/ui/button/index.js"
@@ -104,14 +92,6 @@ import {
   transcriptRowFinal,
   transcriptRowKind,
 } from "@features/transcript-view/lib/transcript-rows.js"
-import {
-  deriveTranscriptMinimapItems,
-  MINIMAP_MIN_ITEMS,
-  resolveMinimapHasPersistentGutter,
-  resolveMinimapHitStripWidth,
-  sameIdList,
-  type TranscriptMinimapItem,
-} from "@features/transcript-view/lib/transcript-minimap.js"
 import {
   isMarkdownStreamReady,
   isTranscriptVisuallyAtBottom,
@@ -149,19 +129,6 @@ const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
 const region = useTemplateRef<HTMLElement>("region")
 const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
-const minimapItems = computed(() =>
-  deriveTranscriptMinimapItems(
-    rows.value.map((row) => ({
-      id: row.id,
-      role: row.role,
-      text: isThinkingRow(row) || isWorkRow(row) ? "" : transcriptText(row),
-    })),
-  ),
-)
-const viewportWidth = shallowRef(0)
-const inViewIds = shallowRef<readonly string[]>([])
-const hasPersistentGutter = computed(() => resolveMinimapHasPersistentGutter(viewportWidth.value))
-const hitStripWidth = computed(() => resolveMinimapHitStripWidth(viewportWidth.value))
 
 function rowKey(item: { id: string }): string {
   return item.id
@@ -222,7 +189,6 @@ function onMarkdownSettled(id: string) {
 
 const timeline = useTemplateRef<{
   scrollToBottom(): void
-  scrollToIndex(index: number, align?: "start" | "center" | "end"): void
   captureThreadState(): MarkstreamThreadVirtualState
   restoreThreadState(state: MarkstreamThreadVirtualState): void
 }>("timeline")
@@ -274,27 +240,7 @@ function jumpToBottom() {
   if (root) root.scrollTop = root.scrollHeight - root.clientHeight
 }
 
-function collectInViewIds(): string[] {
-  const root = region.value
-  if (!root) return []
-  const viewport = root.getBoundingClientRect()
-  const ids: string[] = []
-  for (const el of root.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
-    const box = el.getBoundingClientRect()
-    if (box.bottom <= viewport.top || box.top >= viewport.bottom) continue
-    const id = el.dataset.minimapRow
-    if (id) ids.push(id)
-  }
-  return ids
-}
-
-function syncInViewIds() {
-  const next = collectInViewIds()
-  if (!sameIdList(inViewIds.value, next)) inViewIds.value = next
-}
-
 function onThreadState(state: MarkstreamThreadVirtualState) {
-  syncInViewIds()
   const root = timelineScrollRoot()
   const bottom = root
     ? isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
@@ -305,19 +251,6 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
     requestAnimationFrame(() => {
       if (!streamReadyEmitted) checkStreamReady()
     })
-  }
-}
-
-function onMinimapSelect(item: TranscriptMinimapItem) {
-  releasePinnedToBottom()
-  timeline.value?.scrollToIndex(item.rowIndex, "start")
-  const root = timelineScrollRoot()
-  if (
-    root &&
-    atBottom.value &&
-    !isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
-  ) {
-    atBottom.value = false
   }
 }
 
@@ -385,8 +318,6 @@ watch(
     viewportObserver?.disconnect()
     if (!el) return
     const measure = () => {
-      viewportWidth.value = el.getBoundingClientRect().width
-      syncInViewIds()
       if (atBottom.value) scrollToLatest()
     }
     viewportObserver = new ResizeObserver(measure)
@@ -478,6 +409,11 @@ onBeforeUnmount(() => {
   pointer-events: auto;
 }
 .thinking-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 20px;
   margin-bottom: var(--spacing-lg);
+  color: var(--ink-faint);
 }
 </style>

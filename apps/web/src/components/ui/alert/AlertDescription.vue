@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { cn } from "@utils/utils.js"
 
 const props = withDefaults(
   defineProps<{
@@ -13,7 +12,8 @@ const props = withDefaults(
 <template>
   <div
     data-slot="alert-description"
-    :class="cn('text-muted-foreground col-start-2 text-sm [&_p]:leading-relaxed', props.class)"
+    class="text-muted-foreground col-start-2 text-sm [&_p]:leading-relaxed"
+    :class="props.class"
   >
     <slot />
   </div>

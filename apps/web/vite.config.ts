@@ -2,7 +2,6 @@ import tailwindcss from "@tailwindcss/vite"
 import { fileURLToPath, URL } from "node:url"
 import vue from "@vitejs/plugin-vue"
 import { defineConfig } from "vite"
-import { VitePWA } from "vite-plugin-pwa"
 import vueDevTools from "vite-plugin-vue-devtools"
 
 const gatewayTarget = process.env.GATEWAY_TARGET
@@ -13,44 +12,7 @@ if (gatewayTarget) process.env.VITE_GATEWAY_TARGET = gatewayTarget
 if (bootstrapSecret) process.env.VITE_BOOTSTRAP_SECRET = bootstrapSecret
 
 export default defineConfig({
-  plugins: [
-    vue(),
-    vueDevTools(),
-    tailwindcss(),
-    VitePWA({
-      registerType: "autoUpdate",
-      workbox: {
-        // markstream / shiki 主包超过 Workbox 默认 2 MiB，不抬上限则 vite build 失败
-        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
-      },
-      manifest: {
-        name: "pig",
-        short_name: "pig",
-        description: "",
-        lang: "zh-CN",
-        theme_color: "#000000",
-        background_color: "#000000",
-        display: "standalone",
-        start_url: "/",
-        icons: [
-          { src: "/pwa-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-          { src: "/pwa-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-          {
-            src: "/pwa-icon-maskable-192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "maskable",
-          },
-          {
-            src: "/pwa-icon-maskable-512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
-        ],
-      },
-    }),
-  ],
+  plugins: [vue(), vueDevTools(), tailwindcss()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -59,7 +21,6 @@ export default defineConfig({
       "@features": fileURLToPath(new URL("./src/features", import.meta.url)),
       "@client": fileURLToPath(new URL("./src/client", import.meta.url)),
       "@router": fileURLToPath(new URL("./src/router", import.meta.url)),
-      "@utils": fileURLToPath(new URL("./src/utils", import.meta.url)),
     },
   },
   server: {

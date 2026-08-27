@@ -3,7 +3,6 @@ import type { DialogOverlayProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DialogOverlay, useForwardProps } from "reka-ui"
-import { cn } from "@utils/utils.js"
 
 const props = withDefaults(
   defineProps<DialogOverlayProps & { class?: HTMLAttributes["class"] }>(),
@@ -18,7 +17,8 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogOver
   <DialogOverlay
     data-slot="dialog-overlay"
     v-bind="forwardedProps"
-    :class="cn('fixed inset-0 z-50 bg-[var(--scrim)]', props.class)"
+    class="fixed inset-0 z-50 bg-[var(--scrim)]"
+    :class="props.class"
   >
     <slot />
   </DialogOverlay>

@@ -9,8 +9,7 @@
       "@components/*": ["apps/web/src/components/*"],
       "@features/*": ["apps/web/src/features/*"],
       "@client/*": ["apps/web/src/client/*"],
-      "@router/*": ["apps/web/src/router/*"],
-      "@utils/*": ["apps/web/src/utils/*"]
+      "@router/*": ["apps/web/src/router/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.vue", "test/**/*.ts"]

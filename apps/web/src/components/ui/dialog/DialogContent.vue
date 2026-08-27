@@ -4,7 +4,6 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { X } from "lucide-vue-next"
 import { reactiveOmit } from "@vueuse/core"
 import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from "reka-ui"
-import { cn } from "@utils/utils.js"
 import DialogOverlay from "./DialogOverlay.vue"
 
 defineOptions({
@@ -33,12 +32,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Dia
     <DialogContent
       data-slot="dialog-content"
       v-bind="{ ...$attrs, ...forwarded }"
-      :class="
-        cn(
-          'bg-background data-[state=open]:animate-[dialog-enter_200ms_var(--ease-smooth)] fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
-          props.class,
-        )
-      "
+      class="bg-background data-[state=open]:animate-[dialog-enter_200ms_var(--ease-smooth)] fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg"
+      :class="props.class"
     >
       <slot />
 
