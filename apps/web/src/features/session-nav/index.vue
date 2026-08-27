@@ -151,7 +151,7 @@ const showList = computed(() =>
   searching.value ? rows.value.some((row) => row.kind === "session") : rows.value.length > 0,
 )
 
-const GROUP_ROW_PX = 32
+const GROUP_ROW_PX = 36
 const SESSION_ROW_PX = 56
 const MORE_ROW_PX = 34
 const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(rows, {

@@ -20,9 +20,7 @@
       title="新会话"
       @click.stop="emit('create')"
     >
-      <span class="mark" aria-hidden="true">
-        <Plus :size="16" />
-      </span>
+      <Plus :size="16" aria-hidden="true" />
     </button>
   </div>
 </template>
@@ -43,31 +41,29 @@ const emit = defineEmits<{
 </script>
 
 <style scoped>
-.group-head,
-.group-toggle,
-.group-new {
+.group-head {
   display: flex;
   align-items: center;
-  line-height: 1;
-}
-.group-head {
-  gap: 4px;
-  height: 28px;
+  gap: 8px;
+  height: 32px;
   padding-inline: 8px;
+  border-radius: var(--radius-md);
+}
+.group-head:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
 }
 .group-toggle {
+  display: flex;
+  align-items: center;
   gap: 4px;
   min-width: 0;
   flex: 1;
+  height: 100%;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
   text-align: left;
-}
-.group-toggle:hover {
-  color: var(--ink);
 }
 .mark {
   display: flex;
@@ -81,6 +77,9 @@ const emit = defineEmits<{
   color: var(--ink-faint);
   transition: transform var(--duration-fast) var(--ease-smooth);
 }
+.group-head:hover .group-chevron {
+  color: var(--ink-muted);
+}
 .group-chevron.expanded {
   transform: rotate(90deg);
 }
@@ -91,22 +90,23 @@ const emit = defineEmits<{
   color: var(--ink);
   font-size: var(--text-body-md);
   font-weight: var(--font-weight-medium);
+  line-height: var(--text-body-md--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .group-new {
+  display: flex;
   flex: none;
+  align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-md);
   background: transparent;
   color: var(--ink-muted);
+  line-height: 0;
 }
-.group-new:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+.group-new:hover:not(:disabled),
+.group-new:focus-visible:not(:disabled) {
   color: var(--ink);
 }
 .group-new:disabled {
