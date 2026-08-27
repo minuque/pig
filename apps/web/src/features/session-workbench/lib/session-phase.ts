@@ -1,5 +1,10 @@
 import type { SessionPhase } from "@earendil-works/pi-protocol"
 
+/** 非 idle 视为运行中。 */
+export function isRunning(phase: SessionPhase | undefined): boolean {
+  return phase !== undefined && phase !== "idle"
+}
+
 /** phase 文案：对齐官方 SessionPhase。 */
 export function phaseLabel(phase: SessionPhase): string {
   switch (phase) {

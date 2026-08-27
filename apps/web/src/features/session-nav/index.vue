@@ -51,7 +51,7 @@
                 :session="item.data.session"
                 :workspace-title="item.data.session.cwd ? workspaceName(item.data.session.cwd) : ''"
                 :active="item.data.session.id === activeSessionId"
-                :running="phase === 'turn' && item.data.session.id === activeSessionId"
+                :running="activeSessionRunning && item.data.session.id === activeSessionId"
                 :grouping="grouping"
                 :now="now"
                 :message-count="cardFootById.get(item.data.session.id)?.messageCount ?? null"
@@ -132,13 +132,14 @@ const {
   rowsFor,
   activeWorkspaceId,
   activeSessionId,
+  activeSessionRunning,
   lastCwd,
   navError: workspaceError,
   addWorkspace,
   renameSession,
   deleteSession,
 } = useNav()
-const { creating, createSession, phase } = useSession()
+const { creating, createSession } = useSession()
 
 const searchQuery = shallowRef("")
 const now = useTimestamp({ interval: 60_000 })

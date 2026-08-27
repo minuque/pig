@@ -1,5 +1,4 @@
 import type {
-  SessionPhase,
   ToolTranscriptItem,
   TranscriptItem,
   UserTranscriptItem,
@@ -56,10 +55,10 @@ const KIND_LABEL: Record<WorkKind, { one: string; many: string }> = {
 
 /** 运行中且末条不是流式正文或进行中的工具时，补一条思考占位。 */
 export function needsThinkingPlaceholder(
-  phase: SessionPhase | undefined,
+  running: boolean,
   items: readonly TranscriptItem[],
 ): boolean {
-  if (phase === undefined || phase === "idle") return false
+  if (running === false) return false
   const last = items[items.length - 1]
   if (!last) return true
   if (isAssistantItem(last) && last.status === "streaming" && transcriptText(last).length > 0) {
@@ -188,18 +187,17 @@ function emitClusters(
 /** 历史按正文切开工作组并折叠；进行中不折叠，连续工具占一行。 */
 export function buildTimelineRows(
   items: readonly TranscriptItem[],
-  phase: SessionPhase | undefined,
+  running: boolean,
 ): TimelineRow[] {
   const rows: TimelineRow[] = []
-  const live = phase !== undefined && phase !== "idle"
   const segments = turnSegments(items)
   for (let index = 0; index < segments.length; index += 1) {
     const segment = segments[index]!
-    const folding = Boolean(segment.user) && !(live && index === segments.length - 1)
+    const folding = Boolean(segment.user) && !(running && index === segments.length - 1)
     if (segment.user) rows.push(segment.user)
     emitClusters(segment.rest, rows, folding ? "fold" : "live", !segment.user)
   }
-  if (needsThinkingPlaceholder(phase, items)) {
+  if (needsThinkingPlaceholder(running, items)) {
     rows.push({ id: THINKING_ROW_ID, role: "thinking" })
   }
   return rows

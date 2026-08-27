@@ -74,7 +74,7 @@
 import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
-import type { SessionPhase, TranscriptItem } from "@earendil-works/pi-protocol"
+import type { TranscriptItem } from "@earendil-works/pi-protocol"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
 import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
@@ -108,8 +108,8 @@ const props = defineProps<{
   sessionId: string
   /** 官方 TranscriptItem 列表：RemoteSession 维护的投影 */
   transcript: readonly TranscriptItem[]
-  /** 当前 Session phase：非 idle 时显示 streaming 空态 */
-  phase: SessionPhase | undefined
+  /** 运行中显示 streaming 空态 */
+  running: boolean
   /** 上次离开该会话时的虚拟滚动状态：只复用行高，打开时贴底 */
   threadState: MarkstreamThreadVirtualState | null
 }>()
@@ -119,8 +119,7 @@ const emit = defineEmits<{
   ready: []
 }>()
 
-const running = computed(() => props.phase !== undefined && props.phase !== "idle")
-const rows = computed(() => buildTimelineRows(props.transcript, props.phase))
+const rows = computed(() => buildTimelineRows(props.transcript, props.running))
 const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
 )
@@ -135,7 +134,7 @@ function rowKey(item: { id: string }): string {
 }
 
 function isStreamingAssistant(item: TranscriptItem): boolean {
-  if (!running.value || item !== props.transcript[props.transcript.length - 1]) return false
+  if (!props.running || item !== props.transcript[props.transcript.length - 1]) return false
   return isAssistantItem(item) && item.status === "streaming"
 }
 

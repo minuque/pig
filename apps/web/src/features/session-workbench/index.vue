@@ -17,7 +17,7 @@
         ref="transcriptView"
         :session-id="sessionId"
         :transcript="transcript"
-        :phase="phase"
+        :running="running"
         :thread-state="threadState"
         @thread-state="applyThreadState"
         @ready="onTranscriptReady"
@@ -27,7 +27,7 @@
           v-model:prompt="prompt"
           v-model:preset="preset"
           :catalog="catalog"
-          :phase="phase"
+          :running="running"
           :aborting="aborting"
           :error="sessionError"
           :cwd="composerCwd"
@@ -42,16 +42,14 @@
 </template>
 
 <script lang="ts">
-import type { SessionPhase } from "@earendil-works/pi-protocol"
-
 /** 无 transcript 且未运行：居中空画布。加载中、运行中即使无行也不走空画布。 */
 export function isEmptyCanvas(
   transcriptLength: number,
-  phase: SessionPhase | undefined,
+  running: boolean,
   pending = false,
 ): boolean {
   if (pending) return false
-  return transcriptLength === 0 && (phase === undefined || phase === "idle")
+  return transcriptLength === 0 && !running
 }
 
 /** 远程未附加，或已附加但 markdown-stream 尚未渲染完：继续遮罩。 */
@@ -82,7 +80,7 @@ const {
   transcript,
   composerCwd,
   contextUsage,
-  phase,
+  running,
   sessionPending,
   aborting,
   clientState,
@@ -105,7 +103,7 @@ const pageError = computed(() => {
 })
 const streamReady = shallowRef(false)
 const emptyCanvas = computed(() =>
-  isEmptyCanvas(transcript.value.length, phase.value, sessionPending.value),
+  isEmptyCanvas(transcript.value.length, running.value, sessionPending.value),
 )
 const sessionLoading = computed(() =>
   isSessionLoading(sessionPending.value, transcript.value.length, streamReady.value),

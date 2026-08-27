@@ -112,7 +112,7 @@ export function canSend(text: string, sendDisabled: boolean): boolean {
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next"
-import type { ModelRef, SessionPhase } from "@earendil-works/pi-protocol"
+import type { ModelRef } from "@earendil-works/pi-protocol"
 import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue"
 import ComposerMeta from "@features/chat-input/components/ComposerMeta.vue"
 import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel.vue"
@@ -135,8 +135,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 const props = withDefaults(
   defineProps<{
     catalog: ChatInputVendor[]
-    /** 当前 Session phase：运行中把发送钮改成停止 */
-    phase?: SessionPhase | undefined
+    /** 运行中把发送钮改成停止 */
+    running?: boolean
     /** Abort 请求进行中：保持停止态并禁用重复点击 */
     aborting?: boolean
     error?: string
@@ -152,7 +152,7 @@ const props = withDefaults(
     sessionId?: string | undefined
   }>(),
   {
-    phase: undefined,
+    running: false,
     aborting: false,
     error: "",
     sendDisabled: false,
@@ -186,7 +186,6 @@ const level = computed({
     if (preset.value) preset.value = { ...preset.value, thinkingLevel }
   },
 })
-const running = computed(() => props.phase !== undefined && props.phase !== "idle")
 const { attachments, addFiles, remove, clear } = useComposerAttachments()
 const sendActive = computed(() => canSend(prompt.value, props.sendDisabled))
 
@@ -226,14 +225,14 @@ function onPaste(e: ClipboardEvent) {
 }
 
 function send() {
-  if (running.value || !sendActive.value) return
+  if (props.running || !sendActive.value) return
   const text = prompt.value
   emit("send", text)
   clear()
 }
 
 function onPrimaryAction() {
-  if (running.value) {
+  if (props.running) {
     emit("abort")
     return
   }

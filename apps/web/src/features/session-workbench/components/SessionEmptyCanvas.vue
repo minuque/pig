@@ -11,7 +11,7 @@
         v-model:prompt="prompt"
         v-model:preset="preset"
         :catalog="catalog"
-        :phase="phase"
+        :running="running"
         :error="sessionError"
         :cwd="composerCwd"
         :usage="contextUsage"
@@ -32,7 +32,7 @@ const {
   sessionId,
   composerCwd,
   contextUsage,
-  phase,
+  running,
   prompt,
   preset,
   catalog,
