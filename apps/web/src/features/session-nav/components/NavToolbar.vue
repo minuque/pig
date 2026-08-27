@@ -47,18 +47,25 @@
     <div class="grouping-row">
       <span class="grouping-label">{{ groupingLabel }}</span>
       <span class="grouping-actions">
-        <button
-          class="toolbar-icon"
-          type="button"
-          :aria-label="`当前${groupingLabel}，切换为${nextGroupingLabel}`"
-          :title="`切换为${nextGroupingLabel}`"
-          @click="toggleGrouping"
-        >
-          <span class="mark" aria-hidden="true">
-            <Folder v-if="grouping === 'project'" :size="16" />
-            <Clock v-else :size="16" />
-          </span>
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <button class="toolbar-icon" type="button" aria-label="筛选会话分组" title="筛选">
+              <span class="mark" aria-hidden="true">
+                <ListFilter :size="16" />
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="select-none">
+            <DropdownMenuItem @select="setGrouping('updated')">
+              <span class="min-w-0 flex-1 truncate">更新时间</span>
+              <Check v-if="grouping === 'updated'" :size="14" aria-hidden="true" />
+            </DropdownMenuItem>
+            <DropdownMenuItem @select="setGrouping('project')">
+              <span class="min-w-0 flex-1 truncate">项目</span>
+              <Check v-if="grouping === 'project'" :size="14" aria-hidden="true" />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <button
           class="toolbar-icon"
           type="button"
@@ -78,7 +85,13 @@
 
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, useTemplateRef } from "vue"
-import { Clock, Folder, FolderPlus, Search, SquarePen } from "lucide-vue-next"
+import { Check, FolderPlus, ListFilter, Search, SquarePen } from "lucide-vue-next"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu/index.js"
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
@@ -96,11 +109,6 @@ const searchOpen = shallowRef(false)
 const searchInput = useTemplateRef<HTMLInputElement>("searchInput")
 const searching = computed(() => searchQuery.value.trim() !== "")
 const groupingLabel = computed(() => (grouping.value === "project" ? "项目" : "更新时间"))
-const nextGroupingLabel = computed(() => (grouping.value === "project" ? "更新时间" : "项目"))
-
-function toggleGrouping() {
-  setGrouping(grouping.value === "project" ? "updated" : "project")
-}
 
 function onOpenAutoFocus(event: Event) {
   event.preventDefault()
@@ -125,12 +133,12 @@ function onOpenAutoFocus(event: Event) {
   align-items: center;
   min-width: 0;
   height: 32px;
+  padding-inline: 8px;
   line-height: 1;
 }
 .toolbar-btn,
 .search-field {
   gap: 8px;
-  padding: 0 8px;
 }
 .toolbar-btn {
   width: 100%;
@@ -191,11 +199,13 @@ function onOpenAutoFocus(event: Event) {
 }
 .grouping-row {
   gap: 4px;
+  padding-inline-end: 0;
 }
 .grouping-label {
-  color: var(--ink);
+  color: var(--ink-muted);
   font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-regular);
+  text-align: left;
 }
 .grouping-actions {
   display: flex;
