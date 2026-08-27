@@ -9,19 +9,32 @@
     >
       <PanelLeft :size="16" aria-hidden="true" />
     </button>
-    <h1 v-if="title" id="current-title">{{ title }}</h1>
-    <span v-if="title && cwd" class="header-cwd" :title="cwd">{{ workspaceName(cwd) }}</span>
+    <h1
+      v-if="title"
+      id="current-title"
+      class="header-crumb"
+      :title="cwd ? `${cwd} \\ ${title}` : title"
+    >
+      <template v-if="dirName">
+        <span class="mark" aria-hidden="true">
+          <Folder :size="16" />
+        </span>
+        <span class="header-dir">{{ dirName }}</span>
+        <span class="header-sep" aria-hidden="true">\</span>
+      </template>
+      <span class="header-session">{{ title }}</span>
+    </h1>
     <div class="header-right">
-      <p v-if="connecting && !phase" class="session-status" role="status">正在连接…</p>
+      <p v-if="connecting && !projection" class="session-status" role="status">正在连接…</p>
       <p v-else-if="sessionPending" class="session-status" role="status">正在加载会话…</p>
-      <p v-else-if="phase && phase !== 'idle'" class="session-status" role="status">
+      <p v-else-if="phaseText" class="session-status" role="status">
         <span
           class="status-mark"
           :style="{ color: running ? 'var(--primary)' : 'var(--ink-faint)' }"
           aria-hidden="true"
           >●</span
         >
-        {{ phaseLabel(phase) }}
+        {{ phaseText }}
       </p>
       <ThemeToggle />
     </div>
@@ -30,17 +43,17 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { PanelLeft } from "lucide-vue-next"
+import { Folder, PanelLeft } from "lucide-vue-next"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { workspaceName } from "@features/session-nav/format.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
-import { phaseLabel } from "@features/session-workbench/lib/session-phase.js"
 import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
 const { leftOpen, toggle } = useLeftPanelToggle()
-const { sessionId, projection, phase, connecting, sessionPending, composerCwd } = useSession()
+const { sessionId, projection, connecting, sessionPending, composerCwd, running, phaseText } =
+  useSession()
 const { listedSessions } = useNav()
 
 const title = computed(() =>
@@ -51,7 +64,7 @@ const title = computed(() =>
   }),
 )
 const cwd = computed(() => (sessionId.value ? composerCwd.value : undefined))
-const running = computed(() => projection.value?.running ?? false)
+const dirName = computed(() => (cwd.value ? workspaceName(cwd.value) : ""))
 </script>
 
 <style scoped>
@@ -72,27 +85,45 @@ const running = computed(() => projection.value?.running ?? false)
   background: transparent;
   color: var(--on-primary);
 }
-.workbench-header h1 {
+.header-crumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
-  max-width: 40vw;
+  max-width: 60vw;
   margin: 0;
-  overflow: hidden;
-  color: var(--ink);
+  color: var(--ink-muted);
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-regular);
   line-height: var(--text-caption--line-height);
+}
+.header-crumb:hover {
+  color: var(--ink);
+}
+.mark {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+.header-dir,
+.header-session {
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.header-cwd {
-  min-width: 0;
-  max-width: 24vw;
-  overflow: hidden;
-  color: var(--ink-faint);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.header-dir {
+  flex: none;
+  max-width: 40%;
+}
+.header-sep {
+  flex: none;
+}
+.header-session {
+  flex: 1;
 }
 .header-right {
   display: flex;
