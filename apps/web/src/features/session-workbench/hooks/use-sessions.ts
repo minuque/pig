@@ -3,8 +3,7 @@ import type { PiClient, Unsubscribe } from "@earendil-works/pi-client"
 import { RemoteSession } from "@earendil-works/pi-coding-agent/client"
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
 import type { ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol"
-import { platformRequest } from "@client/http.js"
-import type { ContextUsageEstimate } from "@features/chat-input/lib/context-usage.js"
+import { contextUsage, type ContextUsageEstimate } from "@client/platform.js"
 import {
   projectSessionSnapshot,
   type SessionProjection,
@@ -72,11 +71,9 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     if (!sessionId) return
     const request = ++contextUsageRequest
     try {
-      const result = await platformRequest<{ usage: ContextUsageEstimate | null }>(
-        `/api/v1/platform/context-usage?sessionId=${encodeURIComponent(sessionId)}`,
-      )
+      const usage = await contextUsage(sessionId)
       if (request !== contextUsageRequest || remote.value?.id !== sessionId) return
-      contextUsageEstimate.value = result.usage ?? undefined
+      contextUsageEstimate.value = usage ?? undefined
     } catch {
       // 占用估算是辅助信息；失败时保留上次结果，不覆盖会话主错误。
     }

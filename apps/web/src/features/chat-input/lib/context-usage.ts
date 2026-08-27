@@ -1,17 +1,6 @@
-export interface ContextUsageEstimate {
-  used: number
-  window: number
-  segments: {
-    systemPrompt: number
-    memory: number
-    skills: number
-    tools: number
-    toolResults: number
-    conversation: number
-    other: number
-    idle: number
-  }
-}
+import type { ContextUsageEstimate } from "@client/platform.js"
+
+export type { ContextUsageEstimate }
 
 export interface ContextUsageSegment {
   id:

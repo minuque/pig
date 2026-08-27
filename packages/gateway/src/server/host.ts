@@ -2,12 +2,11 @@ import { randomUUID } from "node:crypto"
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
 import { PiServer } from "@earendil-works/pi-server"
 import { BootstrapAuth } from "../auth/bootstrap.js"
-import { SessionNotFoundError } from "@earendil-works/pi-server"
 import { PiHostService } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
+import { handlePlatformRequest } from "./platform.js"
 import { serveWebFile } from "./static-files.js"
 import { createWebSocketListener } from "./websocket.js"
-import { isContextPreviewKey } from "../pi/context-usage.js"
 
 export interface GatewayOptions {
   bootstrapSecret?: string
@@ -119,80 +118,17 @@ export class Gateway {
         return this.send(res, 400, { code: "INVALID_REQUEST" })
       }
     }
-    if (url.pathname === "/api/v1/platform/select-directory" && req.method === "POST") {
-      if (!this.requireAuth(req, res)) return
-      try {
-        const body = await this.body(req).catch((): Record<string, unknown> => ({}))
-        const input = typeof body.path === "string" ? body.path : undefined
-        if (this.platformPort.requiresManualInput && !input)
-          return this.send(res, 200, { path: null, requiresManualInput: true })
-        const path = input
-          ? await this.platformPort.validateDirectory(input)
-          : await this.platformPort.selectDirectory()
-        return this.send(res, 200, { path: path ?? null, requiresManualInput: false })
-      } catch (error) {
-        console.error("select-directory failed:", error)
-        return this.send(res, 500, { code: "INVALID_REQUEST" })
-      }
-    }
-    if (url.pathname === "/api/v1/platform/session-cards" && req.method === "GET") {
-      if (!this.requireAuth(req, res)) return
-      try {
-        const cards = await this.hostService.listSessionCards()
-        return this.send(res, 200, { cards })
-      } catch (error) {
-        console.error("session-cards failed:", error)
-        return this.send(res, 500, { code: "INVALID_REQUEST" })
-      }
-    }
-    if (url.pathname === "/api/v1/platform/context-usage" && req.method === "GET") {
-      if (!this.requireAuth(req, res)) return
-      const sessionId = url.searchParams.get("sessionId") ?? ""
-      if (!sessionId) return this.send(res, 400, { code: "INVALID_REQUEST" })
-      const previewParam = url.searchParams.get("preview")
-      if (previewParam && !isContextPreviewKey(previewParam)) {
-        return this.send(res, 400, { code: "INVALID_REQUEST" })
-      }
-      const usage = this.hostService.contextUsage(
-        sessionId,
-        isContextPreviewKey(previewParam) ? previewParam : undefined,
-      )
-      return this.send(res, 200, {
-        usage: usage ?? null,
-        preview: usage?.preview ?? null,
+    if (url.pathname.startsWith("/api/v1/platform/")) {
+      const handled = await handlePlatformRequest(req, res, url, {
+        requireAuth: this.requireAuth.bind(this),
+        send: this.send.bind(this),
+        body: this.body.bind(this),
+        hostService: this.hostService,
+        platformPort: this.platformPort,
       })
-    }
-    if (url.pathname === "/api/v1/platform/rename-session" && req.method === "POST") {
-      return this.handleSessionFileAction(req, res, async (id, body) => {
-        const name = typeof body.name === "string" ? body.name : ""
-        await this.hostService.renameSession(id, name)
-      })
-    }
-    if (url.pathname === "/api/v1/platform/delete-session" && req.method === "POST") {
-      return this.handleSessionFileAction(req, res, async (id) => {
-        await this.hostService.deleteSession(id)
-      })
+      if (handled) return
     }
     return this.send(res, 404)
-  }
-
-  private async handleSessionFileAction(
-    req: IncomingMessage,
-    res: ServerResponse,
-    run: (id: string, body: Record<string, unknown>) => Promise<void>,
-  ) {
-    if (!this.requireAuth(req, res)) return
-    try {
-      const body = await this.body(req)
-      const id = typeof body.id === "string" ? body.id : ""
-      if (!id) return this.send(res, 400, { code: "INVALID_REQUEST" })
-      await run(id, body)
-      return this.send(res, 200, { ok: true })
-    } catch (error) {
-      if (error instanceof SessionNotFoundError) return this.send(res, 404, { code: "NOT_FOUND" })
-      console.error("session file action failed:", error)
-      return this.send(res, 400, { code: "INVALID_REQUEST" })
-    }
   }
 
   async start() {

@@ -79,18 +79,12 @@
   </Dialog>
 </template>
 
-<script lang="ts">
-export function contextPreviewPath(sessionId: string, segmentId: string): string {
-  return `/api/v1/platform/context-usage?sessionId=${encodeURIComponent(sessionId)}&preview=${encodeURIComponent(segmentId)}`
-}
-</script>
-
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
 import { useVirtualList } from "@vueuse/core"
 import { X } from "lucide-vue-next"
 import MarkdownRender from "markstream-vue"
-import { platformRequest } from "@client/http.js"
+import { contextPreview } from "@client/platform.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import {
@@ -155,12 +149,10 @@ async function openPreview(segment: ContextUsageSegment) {
   await nextTick()
   if (request !== previewRequest) return
   try {
-    const result = await platformRequest<{
-      preview: { title: string; content: string } | null
-    }>(contextPreviewPath(sessionId, segment.id))
+    const preview = await contextPreview(sessionId, segment.id)
     if (request !== previewRequest) return
-    previewTitle.value = result.preview?.title || segment.label
-    previewBody.value = result.preview?.content || "没有可预览的内容。"
+    previewTitle.value = preview?.title || segment.label
+    previewBody.value = preview?.content || "没有可预览的内容。"
     await nextTick()
   } catch {
     if (request !== previewRequest) return

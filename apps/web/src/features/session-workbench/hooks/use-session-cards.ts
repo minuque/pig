@@ -1,11 +1,5 @@
 import { computed, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
-import { platformRequest } from "@client/http.js"
-
-/** 协议列表不带的卡片事实：磁盘总条数 + 当前模型。 */
-export interface SessionCardRecord {
-  messageCount: number
-  model?: { provider: string; id: string }
-}
+import { listSessionCards, type SessionCard } from "@client/platform.js"
 
 /**
  * 会话卡片 adapter：给窗口总条数和侧栏脚注。
@@ -15,7 +9,7 @@ export function useSessionCards(
   connected: MaybeRefOrGetter<boolean>,
   sessions: MaybeRefOrGetter<readonly { id: string; updatedAt?: number; createdAt: number }[]>,
 ) {
-  const sessionCards = shallowRef(new Map<string, SessionCardRecord>())
+  const sessionCards = shallowRef(new Map<string, Omit<SessionCard, "id">>())
   const sessionStamp = computed(() =>
     toValue(sessions)
       .map((session) => `${session.id}:${session.updatedAt ?? session.createdAt}`)
@@ -25,11 +19,9 @@ export function useSessionCards(
   async function loadSessionCards() {
     if (!toValue(connected)) return
     try {
-      const result = await platformRequest<{ cards: (SessionCardRecord & { id: string })[] }>(
-        "/api/v1/platform/session-cards",
-      )
+      const cards = await listSessionCards()
       sessionCards.value = new Map(
-        result.cards.map((card) => [
+        cards.map((card) => [
           card.id,
           {
             messageCount: card.messageCount,

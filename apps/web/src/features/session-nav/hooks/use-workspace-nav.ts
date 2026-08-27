@@ -1,7 +1,12 @@
 import { computed, ref, shallowRef, toValue, type MaybeRefOrGetter, type Ref } from "vue"
 import type { Router } from "vue-router"
 import type { SessionMetadata } from "@earendil-works/pi-protocol"
-import { errorMessage, platformRequest } from "@client/http.js"
+import { errorMessage } from "@client/http.js"
+import {
+  deleteSession as requestDeleteSession,
+  renameSession as requestRenameSession,
+  selectDirectory,
+} from "@client/platform.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import {
   PROJECT_PAGE,
@@ -112,17 +117,11 @@ export function useWorkspaceNav(
     addingWorkspace.value = true
     error.value = ""
     try {
-      let result = await platformRequest<{ path: string | null; requiresManualInput?: boolean }>(
-        "/api/v1/platform/select-directory",
-        { method: "POST" },
-      )
+      let result = await selectDirectory()
       if (result.requiresManualInput) {
         const path = window.prompt("输入本地目录路径")
         if (!path) return
-        result = await platformRequest("/api/v1/platform/select-directory", {
-          method: "POST",
-          body: JSON.stringify({ path }),
-        })
+        result = await selectDirectory(path)
       }
       if (result.path) {
         local.add(result.path)
@@ -137,10 +136,7 @@ export function useWorkspaceNav(
   async function renameSession(id: string, name: string) {
     error.value = ""
     try {
-      await platformRequest("/api/v1/platform/rename-session", {
-        method: "POST",
-        body: JSON.stringify({ id, name }),
-      })
+      await requestRenameSession(id, name)
       await admin.refreshSessions()
       await admin.refreshSessionCards()
     } catch (cause) {
@@ -150,10 +146,7 @@ export function useWorkspaceNav(
   async function deleteSession(id: string) {
     error.value = ""
     try {
-      await platformRequest("/api/v1/platform/delete-session", {
-        method: "POST",
-        body: JSON.stringify({ id }),
-      })
+      await requestDeleteSession(id)
       if (admin.sessionId.value === id) await admin.router.replace("/")
       await admin.refreshSessions()
       await admin.refreshSessionCards()
