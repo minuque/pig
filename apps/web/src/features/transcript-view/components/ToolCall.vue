@@ -52,7 +52,6 @@ import {
   Wrench,
   X,
 } from "lucide-vue-next"
-import type { ToolTranscriptItem } from "@earendil-works/pi-protocol"
 import ExpandableText from "@features/transcript-view/components/ExpandableText.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import {
@@ -61,16 +60,15 @@ import {
   toolCallSummary,
   toolCallTitle,
   toolInputPretty,
-  transcriptImages,
-  transcriptText,
 } from "@features/transcript-view/lib/transcript-format.js"
+import type { ToolCallView } from "@features/transcript-view/lib/transcript-rows.js"
 
 const props = defineProps<{
-  item: ToolTranscriptItem
+  item: ToolCallView
 }>()
 
 const open = defineModel<boolean>("open", { required: true })
-const running = computed(() => props.item.status === "running")
+const running = computed(() => props.item.running)
 const locked = computed(() => running.value || props.item.isError)
 const statusKind = computed(() => {
   if (props.item.isError) return "is-err"
@@ -83,8 +81,8 @@ const statusLabel = computed(() => {
   return "完成"
 })
 const kind = computed(() => toolCallKindLabel(props.item.toolName))
-const detail = computed(() => toolCallDetail(props.item))
-const title = computed(() => toolCallTitle(props.item))
+const detail = computed(() => toolCallDetail(props.item.toolName, props.item.input))
+const title = computed(() => toolCallTitle(props.item.toolName, props.item.input))
 const summary = computed(() => toolCallSummary(props.item))
 const kindIcon = computed((): Component => {
   switch (props.item.toolName.trim().toLowerCase()) {
@@ -107,8 +105,8 @@ const toggleLabel = computed(() => {
   return summary.value ? `${lead}，${summary.value}` : lead
 })
 const inputFull = computed(() => (open.value ? toolInputPretty(props.item.input) : ""))
-const outputText = computed(() => (open.value ? transcriptText(props.item) : ""))
-const outputImages = computed(() => (open.value ? transcriptImages(props.item) : []))
+const outputText = computed(() => (open.value ? props.item.outputText : ""))
+const outputImages = computed(() => (open.value ? props.item.outputImages : []))
 
 function onToggle() {
   if (locked.value) return

@@ -1,4 +1,5 @@
 import type {
+  AssistantTranscriptItem,
   ToolTranscriptItem,
   TranscriptItem,
   UserTranscriptItem,
@@ -9,29 +10,60 @@ import {
   isToolItem,
   isUserItem,
   isVisibleTranscriptItem,
+  transcriptImages,
   transcriptText,
 } from "@features/transcript-view/lib/transcript-format.js"
 
 export const THINKING_ROW_ID = "transcript-thinking"
 
+export type TranscriptImage = { data: string; mimeType: string }
+
+export type UserRow = {
+  id: string
+  role: "user"
+  text: string
+  images: TranscriptImage[]
+}
+
+export type AssistantRow = {
+  id: string
+  role: "assistant"
+  text: string
+  streaming: boolean
+  error: boolean
+  aborted: boolean
+}
+
+export type ToolCallView = {
+  id: string
+  toolName: string
+  running: boolean
+  isError: boolean
+  input: unknown
+  outputText: string
+  outputImages: TranscriptImage[]
+}
+
 export type WorkKind = "thought" | "read" | "command" | "tool"
 
 export type ThinkingRow = { id: typeof THINKING_ROW_ID; role: "thinking" }
+
 export type WorkRow = {
   id: string
   role: "work"
   mode: "live" | "fold"
   thinking: string[]
   thinkingStreaming: boolean
-  tools: ToolTranscriptItem[]
+  tools: ToolCallView[]
   kinds: WorkKind[]
   aborted: boolean
 }
+
 export type WorkStep =
   | { type: "thought"; id: string; text: string; streaming: boolean }
-  | { type: "tool"; item: ToolTranscriptItem }
+  | { type: "tool"; item: ToolCallView }
 
-export type TimelineRow = TranscriptItem | ThinkingRow | WorkRow
+export type TimelineRow = UserRow | AssistantRow | ThinkingRow | WorkRow
 
 export function isThinkingRow(row: TimelineRow): row is ThinkingRow {
   return row.role === "thinking"
@@ -51,6 +83,38 @@ const KIND_LABEL: Record<WorkKind, { one: string; many: string }> = {
   read: { one: "file read", many: "file reads" },
   command: { one: "command", many: "commands" },
   tool: { one: "tool call", many: "tool calls" },
+}
+
+function toUserRow(item: UserTranscriptItem): UserRow {
+  return {
+    id: item.id,
+    role: "user",
+    text: transcriptText(item),
+    images: transcriptImages(item),
+  }
+}
+
+function toAssistantRow(item: AssistantTranscriptItem): AssistantRow {
+  return {
+    id: item.id,
+    role: "assistant",
+    text: transcriptText(item),
+    streaming: item.status === "streaming",
+    error: item.status === "error",
+    aborted: item.status === "aborted",
+  }
+}
+
+function toToolCallView(item: ToolTranscriptItem): ToolCallView {
+  return {
+    id: item.id,
+    toolName: item.toolName,
+    running: item.status === "running",
+    isError: item.isError,
+    input: item.input,
+    outputText: transcriptText(item),
+    outputImages: transcriptImages(item),
+  }
 }
 
 /** 运行中且末条不是流式正文或进行中的工具时，补一条思考占位。 */
@@ -122,7 +186,7 @@ function emitClusters(
 ) {
   let thinking: string[] = []
   let thinkingStreaming = false
-  let tools: ToolTranscriptItem[] = []
+  let tools: ToolCallView[] = []
   let kinds: WorkKind[] = []
   let aborted = false
   let thinkAnchor: string | undefined
@@ -155,7 +219,7 @@ function emitClusters(
 
   for (const item of rest) {
     if (isToolItem(item)) {
-      tools.push(item)
+      tools.push(toToolCallView(item))
       kinds.push(workKindOfTool(item.toolName))
       continue
     }
@@ -170,7 +234,7 @@ function emitClusters(
     }
     if (transcriptText(item).length > 0) {
       flush(mode === "fold")
-      rows.push(item)
+      rows.push(toAssistantRow(item))
       continue
     }
     if (
@@ -178,7 +242,7 @@ function emitClusters(
       tools.length === 0 &&
       thinking.length === 0
     ) {
-      rows.push(item)
+      rows.push(toAssistantRow(item))
     }
   }
   flush(mode === "fold" || orphanThinking)
@@ -194,7 +258,7 @@ export function buildTimelineRows(
   for (let index = 0; index < segments.length; index += 1) {
     const segment = segments[index]!
     const folding = Boolean(segment.user) && !(running && index === segments.length - 1)
-    if (segment.user) rows.push(segment.user)
+    if (segment.user) rows.push(toUserRow(segment.user))
     emitClusters(segment.rest, rows, folding ? "fold" : "live", !segment.user)
   }
   if (needsThinkingPlaceholder(running, items)) {
@@ -226,11 +290,8 @@ export function workSteps(row: WorkRow): WorkStep[] {
   return steps
 }
 
-export function toolCardOpen(
-  item: ToolTranscriptItem,
-  expanded: ReadonlyMap<string, boolean>,
-): boolean {
-  if (item.status === "running" || item.isError) return true
+export function toolCardOpen(item: ToolCallView, expanded: ReadonlyMap<string, boolean>): boolean {
+  if (item.running || item.isError) return true
   return expanded.get(item.id) === true
 }
 
@@ -248,22 +309,15 @@ export function transcriptRowKind(item: TimelineRow): string {
   if (isThinkingRow(item)) return "thinking-wait"
   if (isWorkRow(item)) return item.mode === "fold" ? "work-fold" : "tool-group"
   if (item.role === "assistant") return "assistant-markdown"
-  if (item.role === "tool") return "tool-call"
   return "user-message"
 }
 
 export function transcriptRowContent(item: TimelineRow): string {
-  return !isThinkingRow(item) && !isWorkRow(item) && isAssistantItem(item)
-    ? transcriptText(item)
-    : ""
+  return item.role === "assistant" ? item.text : ""
 }
 
 export function transcriptRowFinal(item: TimelineRow): boolean {
-  return (
-    isThinkingRow(item) ||
-    isWorkRow(item) ||
-    !(isAssistantItem(item) && item.status === "streaming")
-  )
+  return item.role !== "assistant" || !item.streaming
 }
 
 function estimateWrappedLines(text: string, charsPerLine: number): number {
@@ -275,10 +329,7 @@ function estimateWrappedLines(text: string, charsPerLine: number): number {
   return lines
 }
 
-/**
- * 虚拟列表估高：宁可偏高，避免宽度变窄后按 200px 塞进过多未测行。
- * 助手约 48 字/行、26px 行高；用户约 36 字/行、22px 行高。
- */
+/** 虚拟列表估高宁可偏高：助手约 48 字/行 26px，用户约 36 字/行 22px。 */
 export function estimateTranscriptRowHeight(item: TimelineRow): number {
   if (isThinkingRow(item)) return 36
   if (isWorkRow(item)) {
@@ -286,11 +337,10 @@ export function estimateTranscriptRowHeight(item: TimelineRow): number {
     const thinking = item.thinking.length > 0 ? (item.thinkingStreaming ? 200 : 36) : 0
     return Math.max(48, 16 + thinking + item.tools.length * 48)
   }
-  const text = transcriptText(item)
+  const text = item.text
   if (item.role === "user") {
     return Math.min(280, 56 + estimateWrappedLines(text, 36) * 22)
   }
-  if (item.role === "tool") return 48
   const height = 36 + estimateWrappedLines(text, 48) * 26
   return Math.min(960, Math.max(160, height))
 }

@@ -1,9 +1,9 @@
 <template>
   <article class="user">
-    <p v-if="text" class="prompt">{{ text }}</p>
-    <div v-if="images.length" class="images">
+    <p v-if="item.text" class="prompt">{{ item.text }}</p>
+    <div v-if="item.images.length" class="images">
       <TranscriptImage
-        v-for="(image, index) in images"
+        v-for="(image, index) in item.images"
         :key="index"
         :data="image.data"
         :mime-type="image.mimeType"
@@ -13,20 +13,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
-import type { UserTranscriptItem } from "@earendil-works/pi-protocol"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
-import {
-  transcriptImages,
-  transcriptText,
-} from "@features/transcript-view/lib/transcript-format.js"
+import type { UserRow } from "@features/transcript-view/lib/transcript-rows.js"
 
-const props = defineProps<{
-  item: UserTranscriptItem
+defineProps<{
+  item: UserRow
 }>()
-
-const text = computed(() => transcriptText(props.item))
-const images = computed(() => transcriptImages(props.item))
 </script>
 
 <style scoped>

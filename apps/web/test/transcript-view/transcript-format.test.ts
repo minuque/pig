@@ -105,13 +105,9 @@ describe("tool call title", () => {
       status: "running",
       input: { path: "src/app/page.tsx" },
     })
-    expect(toolCallTitle(running)).toBe("Read page.tsx")
-    expect(toolCallTitle(tool({ toolName: "bash", input: { command: "git status" } }))).toBe(
-      'Run "git status"',
-    )
-    expect(toolCallTitle(tool({ toolName: "web_search", input: { query: "vue sfc" } }))).toBe(
-      "web_search vue sfc",
-    )
+    expect(toolCallTitle(running.toolName, running.input)).toBe("Read page.tsx")
+    expect(toolCallTitle("bash", { command: "git status" })).toBe('Run "git status"')
+    expect(toolCallTitle("web_search", { query: "vue sfc" })).toBe("web_search vue sfc")
   })
 })
 
@@ -122,9 +118,21 @@ describe("tool call summary", () => {
       input: { path: "src/app/page.tsx" },
       status: "running",
     })
-    expect(toolCallSummary(running)).toBe("")
     expect(
-      toolCallSummary({ ...running, status: "error", isError: true } as ToolTranscriptItem),
+      toolCallSummary({
+        isError: running.isError,
+        running: running.status === "running",
+        outputText: "",
+        outputImages: [],
+      }),
+    ).toBe("")
+    expect(
+      toolCallSummary({
+        isError: true,
+        running: false,
+        outputText: "",
+        outputImages: [],
+      }),
     ).toBe("失败")
   })
 })

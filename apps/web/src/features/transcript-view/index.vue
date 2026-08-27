@@ -32,7 +32,7 @@
             <AssistantMessage
               v-else-if="row.role === 'assistant'"
               :item="row"
-              :streaming="isStreamingAssistant(row)"
+              :streaming="running && row.streaming"
               :timeline-markdown="markdownProps"
               @render-pending="onMarkdownPending(row.id)"
               @render-settled="onMarkdownSettled(row.id)"
@@ -74,7 +74,6 @@
 import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
 import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
@@ -82,7 +81,7 @@ import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import WorkRow from "@features/transcript-view/components/WorkRow.vue"
 import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
-import { isAssistantItem, transcriptText } from "@features/transcript-view/lib/transcript-format.js"
+import type { TranscriptItem } from "@features/transcript-view/lib/transcript-format.js"
 import {
   buildTimelineRows,
   estimateTranscriptRowHeight,
@@ -133,18 +132,13 @@ function rowKey(item: { id: string }): string {
   return item.id
 }
 
-function isStreamingAssistant(item: TranscriptItem): boolean {
-  if (!props.running || item !== props.transcript[props.transcript.length - 1]) return false
-  return isAssistantItem(item) && item.status === "streaming"
-}
-
 const pendingMarkdownIds = new Set<string>()
 let markdownMounted = false
 let streamReadyEmitted = false
 let readyTimer = 0
 
 function hasMarkdownRows(): boolean {
-  return rows.value.some((row) => row.role === "assistant" && Boolean(transcriptText(row)))
+  return rows.value.some((row) => row.role === "assistant" && Boolean(row.text))
 }
 
 function emitStreamReady() {

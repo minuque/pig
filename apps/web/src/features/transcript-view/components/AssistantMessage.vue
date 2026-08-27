@@ -7,8 +7,8 @@
       @render-settled="emit('render-settled')"
       @render-final="emit('render-settled')"
     />
-    <span v-if="item.status === 'error' || item.status === 'aborted'" class="status">
-      {{ item.status === "error" ? "出错" : "已中止" }}
+    <span v-if="item.error || item.aborted" class="status">
+      {{ item.error ? "出错" : "已中止" }}
     </span>
   </article>
 </template>
@@ -16,13 +16,12 @@
 <script setup lang="ts">
 import MarkdownRender, { type MarkstreamVirtualMarkdownProps } from "markstream-vue"
 import { computed, onBeforeMount, onMounted } from "vue"
-import type { AssistantTranscriptItem } from "@earendil-works/pi-protocol"
-import { transcriptText } from "@features/transcript-view/lib/transcript-format.js"
+import type { AssistantRow } from "@features/transcript-view/lib/transcript-rows.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const props = withDefaults(
   defineProps<{
-    item: AssistantTranscriptItem
+    item: AssistantRow
     streaming?: boolean
     // eslint-disable-next-line vue/require-default-prop -- 时间线 slot 仅助手行传入
     timelineMarkdown?: MarkstreamVirtualMarkdownProps
@@ -36,7 +35,7 @@ const emit = defineEmits<{
 }>()
 
 const { isDark } = useColorScheme()
-const text = computed(() => transcriptText(props.item))
+const text = computed(() => props.item.text)
 
 onBeforeMount(() => {
   if (text.value && !props.streaming) emit("render-pending")

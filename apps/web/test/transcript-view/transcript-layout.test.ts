@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { ToolTranscriptItem, TranscriptItem } from "@earendil-works/pi-protocol"
+import type { TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   isThinkingRow,
   isWorkRow,
@@ -10,6 +10,7 @@ import {
   transcriptRowKind,
   buildTimelineRows,
   formatWorkKinds,
+  type ToolCallView,
   workFoldLabel,
   workSteps,
 } from "@features/transcript-view/lib/transcript-rows.js"
@@ -33,14 +34,12 @@ describe("transcript row markstream mapping", () => {
       status: "complete",
       content: [{ type: "text", text: "答" }],
     })
-    const tool = item({ id: "t1", role: "tool", toolName: "bash", content: [] })
-    expect(transcriptRowKind(user)).toBe("user-message")
-    expect(transcriptRowKind(agent)).toBe("assistant-markdown")
-    expect(transcriptRowKind(tool)).toBe("tool-call")
-    expect(transcriptRowContent(user)).toBe("")
-    expect(transcriptRowContent(agent)).toBe("答")
-    expect(transcriptRowContent(tool)).toBe("")
-    expect(transcriptRowFinal(agent)).toBe(true)
+    const rows = buildTimelineRows([user, agent], false)
+    expect(transcriptRowKind(rows[0]!)).toBe("user-message")
+    expect(transcriptRowKind(rows[1]!)).toBe("assistant-markdown")
+    expect(transcriptRowContent(rows[0]!)).toBe("")
+    expect(transcriptRowContent(rows[1]!)).toBe("答")
+    expect(transcriptRowFinal(rows[1]!)).toBe(true)
   })
 
   it("keeps streaming assistant rows live so the timeline can grow in place", () => {
@@ -50,8 +49,9 @@ describe("transcript row markstream mapping", () => {
       status: "streaming",
       content: [{ type: "text", text: "…" }],
     })
-    expect(transcriptRowFinal(streaming)).toBe(false)
-    expect(transcriptRowContent(streaming)).toBe("…")
+    const rows = buildTimelineRows([streaming], false)
+    expect(transcriptRowFinal(rows[0]!)).toBe(false)
+    expect(transcriptRowContent(rows[0]!)).toBe("…")
   })
 })
 
@@ -329,16 +329,17 @@ describe("turn work fold", () => {
 
 describe("toolCardOpen", () => {
   it("running 和失败保持展开，完成态按 id 记忆", () => {
-    const running = item({
+    const running: ToolCallView = {
       id: "t1",
-      role: "tool",
       toolName: "read",
-      status: "running",
+      running: true,
       isError: false,
-      content: [],
-    }) as ToolTranscriptItem
-    const done = { ...running, status: "complete", isError: false } as ToolTranscriptItem
-    const failed = { ...running, status: "error", isError: true } as ToolTranscriptItem
+      input: {},
+      outputText: "",
+      outputImages: [],
+    }
+    const done = { ...running, running: false, isError: false }
+    const failed = { ...running, running: false, isError: true }
     const expanded = new Map<string, boolean>([["t1", true]])
     expect(toolCardOpen(running, new Map())).toBe(true)
     expect(toolCardOpen(failed, new Map())).toBe(true)

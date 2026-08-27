@@ -5,6 +5,8 @@ import type {
   UserTranscriptItem,
 } from "@earendil-works/pi-protocol"
 
+export type { TranscriptItem }
+
 export type TranscriptImageBlock = { data: string; mimeType: string }
 
 export function isUserItem(item: TranscriptItem): item is UserTranscriptItem {
@@ -137,15 +139,18 @@ function resultCount(text: string): number | null {
 /**
  * 折叠顶栏右侧摘要。标题已含 path / cmd，这里只留失败和短列表条数。
  */
-export function toolCallSummary(item: ToolTranscriptItem): string {
+export function toolCallSummary(item: {
+  isError: boolean
+  running: boolean
+  outputText: string
+  outputImages: readonly TranscriptImageBlock[]
+}): string {
   if (item.isError) return "失败"
-  if (item.status === "running") return ""
-  const text = transcriptText(item)
-  const count = resultCount(text)
+  if (item.running) return ""
+  const count = resultCount(item.outputText)
   if (count != null) return `${count} 条结果`
-  const images = transcriptImages(item)
-  if (!text && images.length > 0) {
-    return images.length === 1 ? "1 张图片" : `${images.length} 张图片`
+  if (!item.outputText && item.outputImages.length > 0) {
+    return item.outputImages.length === 1 ? "1 张图片" : `${item.outputImages.length} 张图片`
   }
   return ""
 }
@@ -178,9 +183,9 @@ export function toolCallKindLabel(toolName: string): string {
   return KIND_LABELS[name] ?? (toolName.trim() || "Tool")
 }
 
-export function toolCallDetail(item: ToolTranscriptItem): string {
-  const name = item.toolName.trim().toLowerCase()
-  const hint = clipTitleObject(toolInputHint(item.input))
+export function toolCallDetail(toolName: string, input: unknown): string {
+  const name = toolName.trim().toLowerCase()
+  const hint = clipTitleObject(toolInputHint(input))
   if (!hint) return ""
   if (name === "bash") return `"${hint}"`
   if (name === "read" || name === "write" || name === "edit") return fileName(hint)
@@ -188,8 +193,8 @@ export function toolCallDetail(item: ToolTranscriptItem): string {
 }
 
 /** 顶栏标题：种类 + 入参对象。 */
-export function toolCallTitle(item: ToolTranscriptItem): string {
-  const kind = toolCallKindLabel(item.toolName)
-  const detail = toolCallDetail(item)
+export function toolCallTitle(toolName: string, input: unknown): string {
+  const kind = toolCallKindLabel(toolName)
+  const detail = toolCallDetail(toolName, input)
   return detail ? `${kind} ${detail}` : kind
 }
