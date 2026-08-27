@@ -84,7 +84,6 @@ provide(leftPanelKey, { leftOpen, toggle })
   left: var(--left-width);
   z-index: var(--z-resizer);
   width: 16px;
-  transform: translateX(-50%);
   cursor: col-resize;
   touch-action: none;
   background: transparent;
@@ -93,9 +92,8 @@ provide(leftPanelKey, { leftOpen, toggle })
   pointer-events: none;
   position: absolute;
   inset-block: 0;
-  left: 50%;
+  left: 0;
   width: 1px;
-  transform: translateX(-50%);
   background: color-mix(in srgb, var(--ink) 8%, transparent);
   transition: background var(--duration-fast) var(--ease-smooth);
   content: "";
@@ -133,6 +131,9 @@ main {
   }
 }
 @media (min-width: 901px) {
+  .sidebar.open {
+    padding-inline-end: 0;
+  }
   .shell.left-closed .sidebar {
     width: var(--size-sidebar-rail);
   }

@@ -55,6 +55,7 @@ export function useWorkspaceNav(
   const listedSessions = computed(() => listSessionsForSidebar(sessions.value))
   const grouping = ref<SidebarGrouping>(loadGrouping())
   const revealByGroup = shallowRef<Record<string, number>>({})
+  const collapsedByGroup = shallowRef<Record<string, boolean>>({})
 
   function setGrouping(next: SidebarGrouping) {
     if (next !== grouping.value) {
@@ -69,6 +70,13 @@ export function useWorkspaceNav(
     revealByGroup.value = {
       ...revealByGroup.value,
       [groupKey]: bumpReveal(revealByGroup.value[groupKey], page),
+    }
+  }
+
+  function toggleGroup(groupKey: string) {
+    collapsedByGroup.value = {
+      ...collapsedByGroup.value,
+      [groupKey]: !collapsedByGroup.value[groupKey],
     }
   }
 
@@ -94,6 +102,7 @@ export function useWorkspaceNav(
         groups: groupList,
         revealByGroup: revealByGroup.value,
         searching: searchingNow,
+        collapsedByGroup: collapsedByGroup.value,
       })
     })
   }
@@ -160,7 +169,9 @@ export function useWorkspaceNav(
     grouping,
     setGrouping,
     revealByGroup,
+    collapsedByGroup,
     bumpGroup,
+    toggleGroup,
     rowsFor,
     addWorkspace,
     renameSession,

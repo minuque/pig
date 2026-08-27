@@ -11,7 +11,7 @@ export interface SessionGroup {
 export type SidebarGrouping = "updated" | "project"
 
 export type SidebarRow =
-  | { kind: "group"; key: string; canonicalPath: string; first: boolean }
+  | { kind: "group"; key: string; canonicalPath: string; first: boolean; collapsed: boolean }
   | { kind: "session"; key: string; session: SessionMetadata }
   | { kind: "more"; key: string; groupKey: string }
 
@@ -96,15 +96,16 @@ function appendGroupSessions(
   }
 }
 
-/** 侧栏虚拟列表行：更新时间平铺；项目按 groups 出组头。searching 取消截断。 */
+/** 侧栏虚拟列表行：更新时间平铺；项目按 groups 出组头。searching 取消截断与折叠。 */
 export function sidebarRows(input: {
   grouping: SidebarGrouping
   sessions: readonly SessionMetadata[]
   groups: readonly SessionGroup[]
   revealByGroup: Readonly<Record<string, number>>
   searching: boolean
+  collapsedByGroup?: Readonly<Record<string, boolean>>
 }): SidebarRow[] {
-  const { grouping, sessions, groups, revealByGroup, searching } = input
+  const { grouping, sessions, groups, revealByGroup, searching, collapsedByGroup = {} } = input
   if (grouping === "updated") {
     const rows: SidebarRow[] = []
     appendGroupSessions(
@@ -119,12 +120,15 @@ export function sidebarRows(input: {
   }
   const rows: SidebarRow[] = []
   for (const [index, group] of groups.entries()) {
+    const collapsed = !searching && Boolean(collapsedByGroup[group.canonicalPath])
     rows.push({
       kind: "group",
       key: group.canonicalPath,
       canonicalPath: group.canonicalPath,
       first: index === 0,
+      collapsed,
     })
+    if (collapsed) continue
     appendGroupSessions(
       rows,
       group.sessions,

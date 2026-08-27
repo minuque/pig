@@ -53,6 +53,7 @@ function createNav(
     grouping: nav.grouping,
     setGrouping: nav.setGrouping,
     bumpGroup: nav.bumpGroup,
+    toggleGroup: nav.toggleGroup,
     rowsFor: nav.rowsFor,
     addingWorkspace: nav.addingWorkspace,
     navError,

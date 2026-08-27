@@ -234,6 +234,31 @@ describe("sidebar rows", () => {
     ])
   })
 
+  it("hides sessions under a collapsed project group", () => {
+    const aSessions = Array.from({ length: 3 }, (_, index) =>
+      meta(`a${index}`, index, { cwd: "/a" }),
+    )
+    const bSessions = [meta("b0", 1, { cwd: "/b" })]
+    const rows = sidebarRows({
+      grouping: "project",
+      sessions: [...aSessions, ...bSessions],
+      groups: [
+        { canonicalPath: "/a", sessions: sortSessionsForSidebar(aSessions) },
+        { canonicalPath: "/b", sessions: sortSessionsForSidebar(bSessions) },
+      ],
+      revealByGroup: {},
+      searching: false,
+      collapsedByGroup: { "/a": true },
+    })
+    expect(
+      rows.map((row) => {
+        if (row.kind === "group") return `group:${row.canonicalPath}:${row.collapsed}`
+        if (row.kind === "session") return `session:${row.session.id}`
+        return `more:${row.groupKey}`
+      }),
+    ).toEqual(["group:/a:true", "group:/b:false", "session:b0"])
+  })
+
   it("shows every session and no more while searching", () => {
     const sessions = Array.from({ length: 12 }, (_, index) =>
       meta(`s${index}`, index, { cwd: "/a" }),
@@ -260,6 +285,7 @@ describe("sidebar rows", () => {
       ],
       revealByGroup: {},
       searching: true,
+      collapsedByGroup: { "/a": true },
     })
     expect(project.map((row) => row.kind)).toEqual([
       "group",
