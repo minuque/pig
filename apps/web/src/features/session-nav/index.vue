@@ -358,8 +358,8 @@ html[data-pig-desktop-platform] .session-nav input {
   color: var(--ink-muted);
   font-size: var(--text-caption);
 }
-.more-button:hover {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+.more-button:hover,
+.more-button:focus-visible {
   color: var(--ink);
 }
 .empty-state {
