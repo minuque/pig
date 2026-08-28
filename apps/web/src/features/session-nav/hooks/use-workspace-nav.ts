@@ -11,7 +11,6 @@ import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import {
   PROJECT_PAGE,
   UPDATED_PAGE,
-  bumpReveal,
   groupSessionsByCwd,
   listSessionsForSidebar,
   sidebarRows,
@@ -74,7 +73,7 @@ export function useWorkspaceNav(
     const page = grouping.value === "updated" ? UPDATED_PAGE : PROJECT_PAGE
     revealByGroup.value = {
       ...revealByGroup.value,
-      [groupKey]: bumpReveal(revealByGroup.value[groupKey], page),
+      [groupKey]: (revealByGroup.value[groupKey] ?? page) + page,
     }
   }
 

@@ -107,10 +107,7 @@ import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { workspaceName } from "@features/session-nav/format.js"
-import {
-  filterSessionsForSearch,
-  shouldFollowActiveSession,
-} from "@features/session-nav/sidebar.js"
+import { filterSessionsForSearch } from "@features/session-nav/sidebar.js"
 
 defineProps<{
   collapsed?: boolean
@@ -179,7 +176,8 @@ watch(
       followedSessionId.value = undefined
       return
     }
-    if (!shouldFollowActiveSession(id, followedSessionId.value)) return
+    // 分页展开改 rows 不跟滚
+    if (id === followedSessionId.value) return
     await nextTick()
     const index = rows.value.findIndex((row) => row.kind === "session" && row.session.id === id)
     if (index < 0) return

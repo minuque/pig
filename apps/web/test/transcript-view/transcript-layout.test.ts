@@ -3,13 +3,11 @@ import type { TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   isThinkingRow,
   isWorkRow,
-  needsThinkingPlaceholder,
   toolCardOpen,
   transcriptRowContent,
   transcriptRowFinal,
   transcriptRowKind,
   buildTimelineRows,
-  formatWorkKinds,
   type ToolCallView,
   workFoldLabel,
   workSteps,
@@ -90,14 +88,13 @@ describe("thinking placeholder", () => {
       isError: false,
       content: [],
     })
-    expect(needsThinkingPlaceholder(false, [])).toBe(false)
-    expect(needsThinkingPlaceholder(true, [])).toBe(true)
-    expect(needsThinkingPlaceholder(true, [user])).toBe(true)
-    expect(needsThinkingPlaceholder(true, [user, streaming])).toBe(true)
-    expect(needsThinkingPlaceholder(true, [user, streamingBody])).toBe(false)
-    expect(needsThinkingPlaceholder(true, [user, tool])).toBe(false)
+    expect(buildTimelineRows([], false).some(isThinkingRow)).toBe(false)
+    expect(buildTimelineRows([], true).some(isThinkingRow)).toBe(true)
+    expect(buildTimelineRows([user], true).some(isThinkingRow)).toBe(true)
+    expect(buildTimelineRows([user, streaming], true).some(isThinkingRow)).toBe(true)
+    expect(buildTimelineRows([user, streamingBody], true).some(isThinkingRow)).toBe(false)
+    expect(buildTimelineRows([user, tool], true).some(isThinkingRow)).toBe(false)
     const headed = buildTimelineRows([user], true)
-    expect(isThinkingRow(headed[1]!)).toBe(true)
     expect(transcriptRowKind(headed[1]!)).toBe("thinking-wait")
     expect(transcriptRowContent(headed[1]!)).toBe("")
     expect(transcriptRowFinal(headed[1]!)).toBe(true)
@@ -202,12 +199,6 @@ describe("turn work fold", () => {
     if (!isWorkRow(firstWork) || !isWorkRow(secondWork)) return
     expect(workFoldLabel(firstWork)).toBe("Ran 1 thought")
     expect(workFoldLabel(secondWork)).toBe("Ran 1 file read · 1 tool call · 1 command · 1 thought")
-  })
-
-  it("同种类计数累计，不重复列出", () => {
-    expect(formatWorkKinds(["thought", "read", "thought", "read", "command"])).toBe(
-      "Ran 2 thoughts · 2 file reads · 1 command",
-    )
   })
 
   it("进行中不折叠，连续工具占一行，思考画在组上", () => {

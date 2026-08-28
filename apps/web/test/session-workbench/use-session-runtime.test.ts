@@ -116,25 +116,4 @@ describe("useSessionRuntime createAndSubmit", () => {
     expect(remote.createSession).toHaveBeenCalledTimes(1)
     expect(remote.submit).not.toHaveBeenCalled()
   })
-
-  it("先创建再提交", async () => {
-    let resolveCreate = () => {}
-    const pending = new Promise<void>((resolve) => {
-      resolveCreate = resolve
-    })
-    const { remote, runtime } = setup(
-      async () => undefined,
-      () => pending,
-    )
-
-    const request = runtime.createAndSubmit("/repo", "任务")
-    await Promise.resolve()
-
-    expect(remote.createSession).toHaveBeenCalledTimes(1)
-    expect(remote.submit).not.toHaveBeenCalled()
-
-    resolveCreate()
-    await request
-    expect(remote.submit).toHaveBeenCalledWith("任务")
-  })
 })

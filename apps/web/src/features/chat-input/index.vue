@@ -102,13 +102,6 @@
   </component>
 </template>
 
-<script lang="ts">
-/** 发送守卫：有正文且未被外部禁用；附件不进协议，不能单独放行。 */
-export function canSend(text: string, sendDisabled: boolean): boolean {
-  return text.trim() !== "" && !sendDisabled
-}
-</script>
-
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next"
@@ -190,7 +183,8 @@ const level = computed({
   },
 })
 const { attachments, addFiles, remove, clear } = useComposerAttachments()
-const sendActive = computed(() => canSend(prompt.value, props.sendDisabled))
+// 附件不进协议，不能单独放行
+const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisabled)
 
 const promptEditor = ref<{ focus: () => void } | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)

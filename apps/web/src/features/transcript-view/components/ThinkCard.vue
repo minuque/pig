@@ -13,7 +13,7 @@
       <ChevronRight class="caret" :size="14" aria-hidden="true" />
     </button>
     <div v-if="open && text" class="body">
-      <ThinkingBlocks :blocks="[text]" :streaming="streaming" />
+      <ThinkingBlocks :blocks="[text]" />
     </div>
   </div>
 </template>

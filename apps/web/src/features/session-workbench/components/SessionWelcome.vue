@@ -28,7 +28,7 @@
 <script lang="ts">
 import type { ChatInputPreset } from "@features/chat-input/types.js"
 
-/** 外部禁用只拦无 workspace / 无 preset / 提交中。空白 prompt 由 ChatInput canSend 负责。 */
+/** 外部禁用只拦无 workspace / 无 preset / 提交中。空白 prompt 由输入卡负责。 */
 export function canSubmit(
   workspaceId: string | undefined,
   preset: ChatInputPreset | undefined,

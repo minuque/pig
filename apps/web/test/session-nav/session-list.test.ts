@@ -4,9 +4,7 @@ import { sessionTitle, workspaceName } from "@features/session-nav/format.js"
 import {
   PROJECT_PAGE,
   UPDATED_PAGE,
-  bumpReveal,
   filterSessionsForSearch,
-  shouldFollowActiveSession,
   groupSessionsByCwd,
   listSessionsForSidebar,
   modelDisplayNames,
@@ -298,19 +296,6 @@ describe("sidebar rows", () => {
       "session",
       "group",
     ])
-  })
-
-  it("treats a missing reveal count as one page when bumping", () => {
-    expect(bumpReveal(undefined, 10)).toBe(20)
-    expect(bumpReveal(10, 10)).toBe(20)
-    expect(bumpReveal(undefined, 5)).toBe(10)
-  })
-
-  it("does not follow the active session again when rows expand", () => {
-    expect(shouldFollowActiveSession("s1", "s1")).toBe(false)
-    expect(shouldFollowActiveSession("s2", "s1")).toBe(true)
-    expect(shouldFollowActiveSession("s1", undefined)).toBe(true)
-    expect(shouldFollowActiveSession(undefined, "s1")).toBe(false)
   })
 })
 

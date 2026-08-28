@@ -36,18 +36,10 @@
   </div>
 </template>
 
-<script lang="ts">
-import { workspaceName } from "@features/session-nav/format.js"
-
-/** 无选中目录时回退到选择提示；有路径时用最后一段。 */
-export function workbenchHeroLabel(workspaceId: string | undefined): string {
-  return workspaceId ? workspaceName(workspaceId) : "选择工作目录"
-}
-</script>
-
 <script setup lang="ts">
 import { computed } from "vue"
 import { FolderPlus } from "lucide-vue-next"
+import { workspaceName } from "@features/session-nav/format.js"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,7 +63,9 @@ const emit = defineEmits<{
 }>()
 
 const workspaceId = defineModel<string | undefined>("workspaceId")
-const label = computed(() => workbenchHeroLabel(workspaceId.value))
+const label = computed(() =>
+  workspaceId.value ? workspaceName(workspaceId.value) : "选择工作目录",
+)
 </script>
 
 <style scoped>

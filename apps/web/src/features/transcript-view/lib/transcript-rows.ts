@@ -14,7 +14,7 @@ import {
   transcriptText,
 } from "@features/transcript-view/lib/transcript-format.js"
 
-export const THINKING_ROW_ID = "transcript-thinking"
+const THINKING_ROW_ID = "transcript-thinking"
 
 export type TranscriptImage = { data: string; mimeType: string }
 
@@ -118,10 +118,7 @@ function toToolCallView(item: ToolTranscriptItem): ToolCallView {
 }
 
 /** 运行中且末条不是流式正文或进行中的工具时，补一条思考占位。 */
-export function needsThinkingPlaceholder(
-  running: boolean,
-  items: readonly TranscriptItem[],
-): boolean {
+function needsThinkingPlaceholder(running: boolean, items: readonly TranscriptItem[]): boolean {
   if (running === false) return false
   const last = items[items.length - 1]
   if (!last) return true
@@ -159,7 +156,7 @@ export function workKindOfTool(toolName: string): WorkKind {
   return "tool"
 }
 
-export function formatWorkKinds(kinds: readonly WorkKind[]): string {
+function formatWorkKinds(kinds: readonly WorkKind[]): string {
   const counts = new Map<WorkKind, number>()
   for (const kind of kinds) {
     counts.set(kind, (counts.get(kind) ?? 0) + 1)

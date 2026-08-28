@@ -55,11 +55,6 @@ export function isVisibleTranscriptItem(item: TranscriptItem): boolean {
   return true
 }
 
-/** 可见条目：无文字且无图的用户句、仅思考或仅 toolCall 的助手句不占行。 */
-export function conversationRows(items: readonly TranscriptItem[]): TranscriptItem[] {
-  return items.filter(isVisibleTranscriptItem)
-}
-
 const PATH_CMD_KEYS = [
   "path",
   "file",

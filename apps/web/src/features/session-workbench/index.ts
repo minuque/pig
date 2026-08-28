@@ -9,9 +9,8 @@ import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-b
 import { useSessionCards } from "@features/session-workbench/hooks/use-session-cards.js"
 import { useRemoteSessions } from "@features/session-workbench/hooks/use-sessions.js"
 import { useSessionRuntime } from "@features/session-workbench/hooks/use-session-runtime.js"
-import { isRunning, phaseLabel } from "@features/session-workbench/lib/session-phase.js"
 import {
-  isSessionPending,
+  phaseLabel,
   projectOptimisticTranscript,
 } from "@features/session-workbench/lib/session-state.js"
 
@@ -52,7 +51,9 @@ function createSession(
     await syncRoute()
   }
 
-  const sessionPending = computed(() => isSessionPending(sessionId.value, remote.remote.value?.id))
+  const sessionPending = computed(
+    () => sessionId.value !== undefined && sessionId.value !== remote.remote.value?.id,
+  )
   const projection = computed(() => (sessionPending.value ? undefined : remote.projection.value))
   const catalog = computed(() => catalogFromModels(pi.models.value))
   const phase = computed(() => projection.value?.phase)
@@ -61,7 +62,7 @@ function createSession(
   )
   const phaseText = computed(() => {
     const current = phase.value
-    return current && isRunning(current) ? phaseLabel(current) : ""
+    return running.value && current ? phaseLabel(current) : ""
   })
   const { preset } = useChatInputBinding({
     catalog,

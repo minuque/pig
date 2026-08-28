@@ -14,9 +14,8 @@ import MarkdownRender from "markstream-vue"
 import { computed } from "vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
-const props = defineProps<{
+defineProps<{
   blocks: readonly string[]
-  streaming?: boolean
 }>()
 
 const { isDark } = useColorScheme()

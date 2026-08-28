@@ -65,14 +65,6 @@ export function projectOptimisticTranscript(
   return [...items.slice(0, insertionIndex), optimistic.item, ...items.slice(insertionIndex)]
 }
 
-/** 路由已指向某 Session，但 RemoteSession 尚未附加到同一 id。 */
-export function isSessionPending(
-  routeSessionId: string | undefined,
-  attachedSessionId: string | undefined,
-): boolean {
-  return routeSessionId !== undefined && routeSessionId !== attachedSessionId
-}
-
 /** SessionSnapshot 的 UI 展示投影：以快照为权威，重连后整体覆盖，不增量修补。 */
 export interface SessionProjection {
   id: string
@@ -95,6 +87,22 @@ export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjec
     phase: snapshot.phase,
     running: snapshot.phase !== "idle",
     updatedAt: snapshot.updatedAt,
+  }
+}
+
+/** phase 文案：对齐官方 SessionPhase。 */
+export function phaseLabel(phase: SessionPhase): string {
+  switch (phase) {
+    case "turn":
+      return "运行中"
+    case "compaction":
+      return "压缩中"
+    case "retry":
+      return "重试中"
+    case "branch_summary":
+      return "分支摘要"
+    default:
+      return "空闲"
   }
 }
 
