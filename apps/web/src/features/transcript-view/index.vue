@@ -27,7 +27,7 @@
         @thread-state-change="onThreadState"
       >
         <template #default="{ item: row, measureRef, markdownProps }">
-          <div :ref="measureRef" v-memo="[row.id, sidebarResizing ? 0 : row]" class="row">
+          <div :ref="measureRef" class="row">
             <UserMessage v-if="row.role === 'user'" :item="row" />
             <AssistantMessage
               v-else-if="row.role === 'assistant'"
@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
@@ -79,7 +79,6 @@ import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
 import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import WorkRow from "@features/transcript-view/components/WorkRow.vue"
-import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
 import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import type { TranscriptItem } from "@features/transcript-view/lib/transcript-format.js"
@@ -128,8 +127,6 @@ const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
 const region = useTemplateRef<HTMLElement>("region")
 const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
-const panel = inject(leftPanelKey, null)
-const sidebarResizing = computed(() => panel?.resizing.value ?? false)
 
 function rowKey(item: { id: string }): string {
   return item.id
@@ -217,9 +214,15 @@ function onTranscriptWheel(event: WheelEvent) {
     root.clientHeight,
     event.deltaY,
   )
-  if (nextTop === null) return
+  if (nextTop !== null) {
+    event.preventDefault()
+    root.scrollTop = nextTop
+    return
+  }
+  const onScroller = event.target instanceof Node && root.contains(event.target)
+  if (onScroller || event.deltaY === 0) return
   event.preventDefault()
-  root.scrollTop = nextTop
+  root.scrollTop += event.deltaY
 }
 
 function jumpToBottom() {
@@ -334,6 +337,8 @@ onBeforeUnmount(() => {
   min-height: 0;
   flex: 1;
   overflow: hidden;
+  display: flex;
+  justify-content: center;
   background: transparent;
 }
 .transcript-viewport:has(.code-more-menu) {
@@ -366,17 +371,28 @@ onBeforeUnmount(() => {
     inset-inline: var(--spacing-sm);
   }
 }
+.transcript,
+.transcript:hover {
+  --scrollbar-thumb: #0000;
+  scrollbar-width: none;
+}
 .transcript {
+  flex: none;
+  width: min(100%, var(--size-content));
+  min-width: 0;
+  height: 100%;
   padding-top: var(--spacing-lg);
   padding-bottom: var(--spacing-lg);
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+}
+.transcript::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 .transcript :deep(.markstream-virtual-timeline__item) {
   box-sizing: border-box;
-  width: var(--size-content);
-  max-width: 100%;
-  margin-inline: auto;
+  width: 100%;
 }
 .transcript :deep(.markstream-virtual-timeline__restore-loading) {
   display: none;
