@@ -3,6 +3,7 @@ import { inject, onBeforeUnmount, readonly, ref, watch, type InjectionKey, type 
 export const leftPanelKey: InjectionKey<{
   leftOpen: Readonly<Ref<boolean>>
   toggle: () => void
+  resizing: Readonly<Ref<boolean>>
 }> = Symbol("left-panel")
 
 /** 消费 AppLayout 提供的左栏开关，供主列顶栏切换抽屉。 */
@@ -67,6 +68,7 @@ export function useLeftPanel() {
     ),
   )
   const resizing = ref(false)
+  const frozenSidebarInner = ref<number | null>(null)
 
   function setPanelWidth(desired: number) {
     leftWidth.value = panelWidthFor(desired, window.innerWidth)
@@ -83,6 +85,7 @@ export function useLeftPanel() {
     const startX = event.clientX
     const startWidth = leftWidth.value
     resizing.value = true
+    frozenSidebarInner.value = startWidth
     document.body.style.cursor = "col-resize"
     document.body.style.userSelect = "none"
     // pointermove 用 rAF 合帧：每帧至多计算一次宽度，pointerup 后补一次最终位置
@@ -104,6 +107,7 @@ export function useLeftPanel() {
       setPanelWidth(startWidth + (pendingX - startX))
       persistWidth(leftWidth.value)
       resizing.value = false
+      frozenSidebarInner.value = null
       document.body.style.removeProperty("cursor")
       document.body.style.removeProperty("user-select")
       if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId)
@@ -142,6 +146,7 @@ export function useLeftPanel() {
     leftWidth: readonly(leftWidth),
     isNarrow: readonly(isNarrow),
     resizing: readonly(resizing),
+    frozenSidebarInner: readonly(frozenSidebarInner),
     toggle,
     resizeBy,
     startResize,

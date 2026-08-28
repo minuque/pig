@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, inject, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
@@ -79,6 +79,7 @@ import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
 import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import WorkRow from "@features/transcript-view/components/WorkRow.vue"
+import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
 import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import type { TranscriptItem } from "@features/transcript-view/lib/transcript-format.js"
@@ -127,6 +128,8 @@ const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
 const region = useTemplateRef<HTMLElement>("region")
 const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
+const panel = inject(leftPanelKey, null)
+const sidebarResizing = computed(() => panel?.resizing.value ?? false)
 
 function rowKey(item: { id: string }): string {
   return item.id
@@ -194,6 +197,19 @@ let pinRaf = 0
 
 function timelineScrollRoot(): HTMLElement | null {
   return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null
+}
+
+function freezeScroller(lock: boolean) {
+  const root = timelineScrollRoot()
+  if (!root) return
+  if (lock) {
+    const width = `${root.clientWidth}px`
+    root.style.width = width
+    root.style.minWidth = width
+    return
+  }
+  root.style.removeProperty("width")
+  root.style.removeProperty("min-width")
 }
 
 function releasePinnedToBottom() {
@@ -303,6 +319,7 @@ watch(
 watch(rows, (next, prev) => {
   if (prev.length === 0 && next.length > 0) scrollToLatest()
 })
+watch(sidebarResizing, (active) => freezeScroller(active), { flush: "sync" })
 
 onBeforeUnmount(() => {
   releasePinnedToBottom()

@@ -1,4 +1,5 @@
-import { onBeforeUnmount, shallowRef, type ShallowRef } from "vue"
+import { inject, onBeforeUnmount, shallowRef, watch, type ShallowRef } from "vue"
+import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
 
 export const CONTENT_WIDTH_KEY = "pig.conversation.contentWidth"
 
@@ -57,17 +58,32 @@ export function useConversationWidth(): {
 } {
   const rootEl = shallowRef<HTMLElement | null>(null)
   const resizing = shallowRef(false)
+  const panel = inject(leftPanelKey, null)
   let observer: ResizeObserver | undefined
+  let sidebarFrozen = false
 
   function publish(root: HTMLElement) {
     const column = root.offsetWidth
     root.style.setProperty("--conversation-column-width", `${column}px`)
+    if (sidebarFrozen) return
     const preference = readPreference()
     if (preference === null) {
       root.style.removeProperty("--chat-user-width")
       return
     }
     root.style.setProperty("--chat-user-width", `${resolveContentWidth(column, preference)}px`)
+  }
+
+  function freezeForSidebar(active: boolean) {
+    const root = rootEl.value
+    if (!root) return
+    if (active) {
+      sidebarFrozen = true
+      root.style.setProperty("--chat-user-width", `${snapshotWidth()}px`)
+      return
+    }
+    sidebarFrozen = false
+    publish(root)
   }
 
   function bindColumn(el: unknown) {
@@ -79,6 +95,7 @@ export function useConversationWidth(): {
     }
     rootEl.value = el
     observer = new ResizeObserver(() => {
+      if (sidebarFrozen) return
       publish(el)
     })
     observer.observe(el)
@@ -121,6 +138,12 @@ export function useConversationWidth(): {
     persistPreference(next)
     publish(root)
   }
+
+  watch(
+    () => panel?.resizing.value ?? false,
+    (active) => freezeForSidebar(active),
+    { flush: "sync" },
+  )
 
   onBeforeUnmount(() => {
     observer?.disconnect()
