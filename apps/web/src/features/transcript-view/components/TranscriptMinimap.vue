@@ -93,13 +93,7 @@ const hitAreaWidth = computed(() => `${resolveMinimapHitAreaWidth(props.hitStrip
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
 function stripClass(index: number): string {
-  const active = resolvedActiveIndex.value
-  if (active === null) return "strip-far"
-  const distance = Math.abs(index - active)
-  if (distance === 0) return "strip-active"
-  if (distance === 1) return "strip-near"
-  if (distance === 2) return "strip-mid"
-  return "strip-far"
+  return resolvedActiveIndex.value === index ? "strip-active" : "strip-far"
 }
 
 function indexFromEvent(event: MouseEvent): number | null {
@@ -224,15 +218,9 @@ function moveActive(delta: number) {
 .minimap-strip.strip-far {
   width: 8px;
 }
-.minimap-strip.strip-mid {
-  width: 14px;
-}
-.minimap-strip.strip-near {
-  width: 22px;
-}
 .minimap-strip.strip-active {
-  width: 32px;
-  background: color-mix(in srgb, var(--ink-muted) 75%, transparent);
+  width: 38px;
+  background: var(--on-primary);
 }
 .minimap-preview {
   pointer-events: auto;

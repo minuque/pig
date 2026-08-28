@@ -164,6 +164,7 @@
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 280ms;
+  --duration-theme: 500ms; /* 主题切换 View Transition 时长 */
   --duration-shimmer: 2s; /* loading 扫光循环 */
 }
 
@@ -210,7 +211,7 @@
 }
 
 ::view-transition-group(root) {
-  animation-duration: var(--duration-slow);
+  animation-duration: var(--duration-theme);
   animation-timing-function: var(--ease-smooth);
 }
 ::view-transition-old(root) {

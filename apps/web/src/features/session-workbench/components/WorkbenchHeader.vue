@@ -9,12 +9,7 @@
     >
       <PanelLeft :size="16" aria-hidden="true" />
     </button>
-    <h1
-      v-if="title"
-      id="current-title"
-      class="header-crumb"
-      :title="cwd ? `${cwd} \\ ${title}` : title"
-    >
+    <h1 v-if="title" id="current-title" class="header-crumb">
       <template v-if="dirName">
         <span class="mark" aria-hidden="true">
           <Folder :size="16" :stroke-width="1.5" />

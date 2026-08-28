@@ -122,7 +122,7 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
   border: 0;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--ink-faint);
+  color: var(--primary-active);
   cursor: pointer;
 }
 .usage:hover {
