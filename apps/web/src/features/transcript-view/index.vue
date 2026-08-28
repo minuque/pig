@@ -27,7 +27,11 @@
         @thread-state-change="onThreadState"
       >
         <template #default="{ item: row, measureRef, markdownProps }">
-          <div :ref="measureRef" class="row">
+          <div
+            :ref="measureRef"
+            class="row"
+            :data-minimap-row="row.role === 'user' ? row.id : undefined"
+          >
             <UserMessage v-if="row.role === 'user'" :item="row" />
             <AssistantMessage
               v-else-if="row.role === 'assistant'"
@@ -52,6 +56,14 @@
           </div>
         </template>
       </MarkstreamVirtualTimeline>
+      <TranscriptMinimap
+        v-if="rows.length && minimapItems.length >= MINIMAP_MIN_ITEMS"
+        :items="minimapItems"
+        :in-view-ids="inViewIds"
+        :has-persistent-gutter="hasPersistentGutter"
+        :hit-strip-width="hitStripWidth"
+        @select="onMinimapSelect"
+      />
     </section>
 
     <div v-show="showScrollToLatest" class="session-floating-controls">
@@ -71,16 +83,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, inject, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
+import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
 import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
+import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import WorkRow from "@features/transcript-view/components/WorkRow.vue"
 import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
+import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
+import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TranscriptItem } from "@features/transcript-view/lib/transcript-format.js"
 import {
   buildTimelineRows,
@@ -127,6 +143,15 @@ const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
 const region = useTemplateRef<HTMLElement>("region")
 const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
+const panel = inject(leftPanelKey, null)
+const sidebarResizing = computed(() => panel?.resizing.value ?? false)
+const {
+  items: minimapItems,
+  inViewIds,
+  hasPersistentGutter,
+  hitStripWidth,
+  syncLayout,
+} = useTranscriptMinimap(rows)
 
 function rowKey(item: { id: string }): string {
   return item.id
@@ -149,6 +174,7 @@ function emitStreamReady() {
     readyTimer = 0
   }
   emit("ready")
+  if (atBottom.value) scrollToLatest()
 }
 
 function resetStreamReady() {
@@ -182,6 +208,7 @@ function onMarkdownSettled(id: string) {
 
 const timeline = useTemplateRef<{
   scrollToBottom(): void
+  scrollToIndex(index: number, align?: "start" | "center" | "end"): void
   captureThreadState(): MarkstreamThreadVirtualState
   restoreThreadState(state: MarkstreamThreadVirtualState): void
 }>("timeline")
@@ -241,6 +268,7 @@ function jumpToBottom() {
 
 function onThreadState(state: MarkstreamThreadVirtualState) {
   const root = timelineScrollRoot()
+  syncLayout(region.value, root)
   const bottom = root
     ? isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
     : state.outerAnchor?.type !== "item"
@@ -250,6 +278,19 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
     requestAnimationFrame(() => {
       if (!streamReadyEmitted) checkStreamReady()
     })
+  }
+}
+
+function onMinimapSelect(item: { rowIndex: number }) {
+  releasePinnedToBottom()
+  timeline.value?.scrollToIndex(item.rowIndex, "start")
+  const root = timelineScrollRoot()
+  if (
+    root &&
+    atBottom.value &&
+    !isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
+  ) {
+    atBottom.value = false
   }
 }
 
@@ -310,7 +351,28 @@ watch(rows, (next, prev) => {
   if (prev.length === 0 && next.length > 0) scrollToLatest()
 })
 
+let layoutObserver: ResizeObserver | undefined
+watch(
+  region,
+  (el) => {
+    layoutObserver?.disconnect()
+    layoutObserver = undefined
+    if (!el) return
+    const tick = () => {
+      const root = timelineScrollRoot()
+      syncLayout(el, root)
+      if (sidebarResizing.value || !atBottom.value) return
+      jumpToBottom()
+    }
+    layoutObserver = new ResizeObserver(tick)
+    layoutObserver.observe(el)
+    tick()
+  },
+  { flush: "post" },
+)
+
 onBeforeUnmount(() => {
+  layoutObserver?.disconnect()
   releasePinnedToBottom()
   persistThreadState()
   resetStreamReady()
@@ -377,10 +439,12 @@ onBeforeUnmount(() => {
   scrollbar-width: none;
 }
 .transcript {
+  box-sizing: border-box;
   flex: none;
+  align-self: stretch;
   width: min(100%, var(--size-content));
   min-width: 0;
-  height: 100%;
+  min-height: 0;
   padding-top: var(--spacing-lg);
   padding-bottom: var(--spacing-lg);
   overscroll-behavior: contain;
