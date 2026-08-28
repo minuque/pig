@@ -27,7 +27,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Too
     <TooltipContent
       data-slot="tooltip-content"
       v-bind="{ ...forwarded, ...$attrs }"
-      class="bg-ink text-surface z-50 w-fit rounded-md px-3 py-1.5 text-xs text-balance translate-y-1 opacity-0 blur-[2px] transition-[translate,opacity,filter] duration-120 ease-(--ease-out) data-[state=open]:translate-y-0 data-[state=open]:opacity-100 data-[state=open]:blur-0 data-[state=closed]:animate-[exit-soft_120ms_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
+      class="bg-ink text-surface z-50 w-fit rounded-md px-3 py-1.5 text-xs text-balance translate-y-1 opacity-0 transition-[translate,opacity] duration-120 ease-(--ease-out) data-[state=open]:translate-y-0 data-[state=open]:opacity-100 data-[state=closed]:animate-[exit-soft_120ms_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
       :class="props.class"
     >
       <slot />

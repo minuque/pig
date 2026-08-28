@@ -3,7 +3,7 @@
     <ContextMenuContent
       data-slot="context-menu-content"
       v-bind="{ ...$attrs, ...forwarded }"
-      class="bg-surface text-ink z-(--z-drawer) max-h-(--reka-context-menu-content-available-height) min-w-(--size-menu) origin-(--reka-context-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-(--radius-md) border border-hairline p-(--spacing-xxs) shadow-elevated translate-y-1 opacity-0 blur-[2px] transition-[translate,opacity,filter] duration-(--duration-fast) ease-(--ease-out) data-[state=open]:translate-y-0 data-[state=open]:opacity-100 data-[state=open]:blur-0 data-[state=closed]:animate-[exit-soft_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
+      class="bg-surface text-ink z-(--z-drawer) max-h-(--reka-context-menu-content-available-height) min-w-(--size-menu) origin-(--reka-context-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-(--radius-md) border border-hairline p-(--spacing-xxs) shadow-elevated translate-y-1 opacity-0 transition-[translate,opacity] duration-(--duration-fast) ease-(--ease-out) data-[state=open]:translate-y-0 data-[state=open]:opacity-100 data-[state=closed]:animate-[exit-soft_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
       :class="props.class"
     >
       <slot />
