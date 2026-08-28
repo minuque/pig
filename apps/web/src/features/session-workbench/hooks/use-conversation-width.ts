@@ -95,7 +95,6 @@ export function useConversationWidth(): {
     }
     rootEl.value = el
     observer = new ResizeObserver(() => {
-      if (sidebarFrozen) return
       publish(el)
     })
     observer.observe(el)

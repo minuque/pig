@@ -27,7 +27,7 @@
         @thread-state-change="onThreadState"
       >
         <template #default="{ item: row, measureRef, markdownProps }">
-          <div :ref="measureRef" class="row">
+          <div :ref="measureRef" v-memo="[row.id, sidebarResizing ? 0 : row]" class="row">
             <UserMessage v-if="row.role === 'user'" :item="row" />
             <AssistantMessage
               v-else-if="row.role === 'assistant'"
@@ -199,19 +199,6 @@ function timelineScrollRoot(): HTMLElement | null {
   return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null
 }
 
-function freezeScroller(lock: boolean) {
-  const root = timelineScrollRoot()
-  if (!root) return
-  if (lock) {
-    const width = `${root.clientWidth}px`
-    root.style.width = width
-    root.style.minWidth = width
-    return
-  }
-  root.style.removeProperty("width")
-  root.style.removeProperty("min-width")
-}
-
 function releasePinnedToBottom() {
   if (pinRaf) {
     cancelAnimationFrame(pinRaf)
@@ -319,7 +306,6 @@ watch(
 watch(rows, (next, prev) => {
   if (prev.length === 0 && next.length > 0) scrollToLatest()
 })
-watch(sidebarResizing, (active) => freezeScroller(active), { flush: "sync" })
 
 onBeforeUnmount(() => {
   releasePinnedToBottom()
@@ -387,8 +373,9 @@ onBeforeUnmount(() => {
   scrollbar-gutter: stable;
 }
 .transcript :deep(.markstream-virtual-timeline__item) {
-  width: 100%;
-  max-width: var(--size-content);
+  box-sizing: border-box;
+  width: var(--size-content);
+  max-width: 100%;
   margin-inline: auto;
 }
 .transcript :deep(.markstream-virtual-timeline__restore-loading) {
