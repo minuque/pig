@@ -1,43 +1,70 @@
 <template>
   <WorkbenchHeader />
-  <StartupError v-if="pageError" v-bind="pageError" />
+  <div
+    :ref="bindColumn"
+    class="conversation-column"
+    :class="{ 'is-content-resizing': contentResizing }"
+  >
+    <StartupError v-if="pageError" v-bind="pageError" />
 
-  <!-- 1. 无 session -->
-  <SessionWelcome v-else-if="!sessionId" />
+    <!-- 1. 无 session -->
+    <SessionWelcome v-else-if="!sessionId" />
 
-  <div v-else class="session-stage">
-    <SessionLoading v-if="sessionLoading" />
+    <div v-else class="session-stage">
+      <SessionLoading v-if="sessionLoading" />
 
-    <!-- 2. 空会话 -->
-    <SessionEmptyCanvas v-if="emptyCanvas" />
+      <!-- 2. 空会话 -->
+      <SessionEmptyCanvas v-if="emptyCanvas" />
 
-    <!-- 3. 有 transcript：对话列 -->
-    <template v-else-if="!sessionPending">
-      <TranscriptView
-        ref="transcriptView"
-        :session-id="sessionId"
-        :transcript="transcript"
-        :running="running"
-        :thread-state="threadState"
-        @thread-state="applyThreadState"
-        @ready="onTranscriptReady"
-      />
-      <div class="chat-input-bar">
-        <ChatInput
-          v-model:prompt="prompt"
-          v-model:preset="preset"
-          :catalog="catalog"
-          :running="running"
-          :aborting="aborting"
-          :error="sessionError"
-          :cwd="composerCwd"
-          :usage="contextUsage"
+      <!-- 3. 有 transcript：对话列 -->
+      <template v-else-if="!sessionPending">
+        <TranscriptView
+          ref="transcriptView"
           :session-id="sessionId"
-          @send="submitFromInput"
-          @abort="abortSession"
+          :transcript="transcript"
+          :running="running"
+          :thread-state="threadState"
+          @thread-state="applyThreadState"
+          @ready="onTranscriptReady"
         />
-      </div>
-    </template>
+        <div class="chat-input-bar">
+          <ChatInput
+            v-model:prompt="prompt"
+            v-model:preset="preset"
+            :catalog="catalog"
+            :running="running"
+            :aborting="aborting"
+            :error="sessionError"
+            :cwd="composerCwd"
+            :usage="contextUsage"
+            :session-id="sessionId"
+            @send="submitFromInput"
+            @abort="abortSession"
+          />
+        </div>
+      </template>
+    </div>
+
+    <ContentWidthHandle
+      v-if="showContentHandles"
+      side="left"
+      :measure="snapshotWidth"
+      @start="beginResize"
+      @drag="previewWidth"
+      @commit="commitWidth"
+      @end="endResize"
+      @nudge="nudgeWidth"
+    />
+    <ContentWidthHandle
+      v-if="showContentHandles"
+      side="right"
+      :measure="snapshotWidth"
+      @start="beginResize"
+      @drag="previewWidth"
+      @commit="commitWidth"
+      @end="endResize"
+      @nudge="nudgeWidth"
+    />
   </div>
 </template>
 
@@ -67,9 +94,11 @@ import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useRoute } from "vue-router"
 import ChatInput from "@features/chat-input/index.vue"
 import { useSession } from "@features/session-workbench/index.js"
+import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
 import SessionEmptyCanvas from "@features/session-workbench/components/SessionEmptyCanvas.vue"
 import SessionLoading from "@features/session-workbench/components/SessionLoading.vue"
 import SessionWelcome from "@features/session-workbench/components/SessionWelcome.vue"
+import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import StartupError from "@features/startup/components/StartupError.vue"
@@ -105,6 +134,19 @@ const streamReady = shallowRef(false)
 const emptyCanvas = computed(() =>
   isEmptyCanvas(transcript.value.length, running.value, sessionPending.value),
 )
+const {
+  resizing: contentResizing,
+  bindColumn,
+  snapshotWidth,
+  beginResize,
+  previewWidth,
+  commitWidth,
+  endResize,
+  nudgeWidth,
+} = useConversationWidth()
+const showContentHandles = computed(
+  () => Boolean(sessionId.value) && !emptyCanvas.value && !sessionPending.value,
+)
 const sessionLoading = computed(() =>
   isSessionLoading(sessionPending.value, transcript.value.length, streamReady.value),
 )
@@ -126,6 +168,24 @@ function submitFromInput(text: string) {
 </script>
 
 <style scoped>
+.conversation-column {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* 与 use-conversation-width 的 680 / 0.64 / 920 对齐 */
+  --size-content: var(
+    --chat-user-width,
+    clamp(680px, calc(var(--conversation-column-width, 0px) * 0.64), 920px)
+  );
+  --size-composer: calc(var(--size-content) + 16px);
+}
+.conversation-column.is-content-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
 .session-stage {
   position: relative;
   min-height: 0;

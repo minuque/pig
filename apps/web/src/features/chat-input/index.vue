@@ -246,7 +246,8 @@ function onPrimaryAction() {
   background: transparent;
 }
 .prompt:not(.bare) {
-  width: min(var(--size-composer), 100%);
+  width: 100%;
+  max-width: var(--size-composer);
   margin-inline: auto;
 }
 .error-indicator {

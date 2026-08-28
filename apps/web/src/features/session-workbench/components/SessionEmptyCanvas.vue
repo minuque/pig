@@ -51,7 +51,8 @@ const { workspaces } = useNav()
   padding: 0 var(--spacing-md);
 }
 .empty-canvas-form {
-  width: min(var(--size-composer), 100%);
+  width: 100%;
+  max-width: var(--size-composer);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);

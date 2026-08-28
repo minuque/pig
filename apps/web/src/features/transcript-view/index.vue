@@ -304,24 +304,7 @@ watch(rows, (next, prev) => {
   if (prev.length === 0 && next.length > 0) scrollToLatest()
 })
 
-let viewportObserver: ResizeObserver | undefined
-watch(
-  region,
-  (el) => {
-    viewportObserver?.disconnect()
-    if (!el) return
-    const measure = () => {
-      if (atBottom.value) scrollToLatest()
-    }
-    viewportObserver = new ResizeObserver(measure)
-    viewportObserver.observe(el)
-    measure()
-  },
-  { flush: "post" },
-)
-
 onBeforeUnmount(() => {
-  viewportObserver?.disconnect()
   releasePinnedToBottom()
   persistThreadState()
   resetStreamReady()
@@ -387,7 +370,8 @@ onBeforeUnmount(() => {
   scrollbar-gutter: stable;
 }
 .transcript :deep(.markstream-virtual-timeline__item) {
-  width: min(var(--size-content), 100%);
+  width: 100%;
+  max-width: var(--size-content);
   margin-inline: auto;
 }
 .transcript :deep(.markstream-virtual-timeline__restore-loading) {

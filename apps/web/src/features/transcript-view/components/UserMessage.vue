@@ -32,7 +32,7 @@ defineProps<{
 .prompt {
   box-sizing: border-box;
   width: fit-content;
-  max-width: min(40rem, 86%);
+  max-width: min(calc(var(--size-content) * 0.702), 86%);
   max-height: calc(1.5em * 16);
   margin: 0;
   padding: 8px 14px;

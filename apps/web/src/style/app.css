@@ -113,8 +113,8 @@
   --titlebar-inset: 44px;
   --size-windows-caption: 138px;
   --size-drawer: 360px; /* mobile drawer width */
-  --size-content: 45.75rem; /* 732px Transcript 正文，居中 */
-  --size-composer: 46.75rem; /* 748px 输入卡，正文每侧内收 8px */
+  --size-content: 45.75rem; /* 会话列外回退；列内由 clamp(680px, 64%, 920px) 覆盖 */
+  --size-composer: 46.75rem; /* 会话列外回退；列内为正文 + 16px */
   --size-modal: 32rem; /* dialog max width */
   --size-nav-action: 28px;
 
