@@ -17,7 +17,7 @@
     >
       <template v-if="dirName">
         <span class="mark" aria-hidden="true">
-          <Folder :size="16" />
+          <Folder :size="16" :stroke-width="1.5" />
         </span>
         <span class="header-dir">{{ dirName }}</span>
         <span class="header-sep" aria-hidden="true">\</span>
@@ -83,7 +83,7 @@ const dirName = computed(() => (cwd.value ? workspaceName(cwd.value) : ""))
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--on-primary);
+  color: var(--ink-muted);
 }
 .header-crumb {
   display: flex;
@@ -96,9 +96,6 @@ const dirName = computed(() => (cwd.value ? workspaceName(cwd.value) : ""))
   font-size: var(--text-caption);
   font-weight: var(--font-weight-regular);
   line-height: var(--text-caption--line-height);
-}
-.header-crumb:hover {
-  color: var(--ink);
 }
 .mark {
   display: flex;

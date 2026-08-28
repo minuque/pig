@@ -11,23 +11,31 @@ export function useColorScheme() {
   const isDark = computed(() => mode.value === "dark")
 
   function toggle() {
-    const updateTheme = () => {
-      mode.value = isDark.value ? "light" : "dark"
-    }
-
-    if (
-      typeof document === "undefined" ||
-      !document.startViewTransition ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      updateTheme()
+    const next = isDark.value ? "light" : "dark"
+    if (typeof document === "undefined") {
+      mode.value = next
       return
     }
 
-    document.startViewTransition(async () => {
-      updateTheme()
+    const updateTheme = async () => {
+      const style = document.createElement("style")
+      style.textContent = "*,*::before,*::after{transition:none!important}"
+      document.head.append(style)
+      mode.value = next
       await nextTick()
-    })
+      void document.body.offsetHeight
+      requestAnimationFrame(() => requestAnimationFrame(() => style.remove()))
+    }
+
+    if (
+      !document.startViewTransition ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      void updateTheme()
+      return
+    }
+
+    document.startViewTransition(updateTheme)
   }
 
   return { isDark, toggle }

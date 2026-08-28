@@ -100,7 +100,7 @@ const sloganTyping = shallowRef(false)
 const slogan = computed(() => typedSlogan(typedChars.value))
 const showCursor = computed(() => sloganTyping.value)
 
-const LEAVE_MS = 440
+const LEAVE_MS = 200
 let player: ReturnType<typeof createPiLogoPlayer> | undefined
 let leaveTimer = 0
 let reducedMotion = false
@@ -245,7 +245,7 @@ onBeforeUnmount(() => {
 .startup-wait.leaving {
   pointer-events: none;
   opacity: 0;
-  transition: opacity 420ms var(--ease-smooth);
+  transition: opacity 180ms var(--ease-out);
 }
 .drag-strip {
   position: absolute;
@@ -263,11 +263,11 @@ onBeforeUnmount(() => {
   transform: translateY(0) scale(1);
   transition:
     opacity var(--duration-fast) var(--ease-smooth),
-    transform var(--duration-slow) var(--ease-out);
+    transform 180ms var(--ease-out);
 }
 .startup-wait.leaving .startup-content {
   opacity: 0;
-  transform: translateY(-6px) scale(0.96);
+  transform: translateY(-4px);
 }
 .logo-button {
   width: clamp(96px, 15vw, 128px);

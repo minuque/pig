@@ -14,6 +14,7 @@ interface Props extends PrimitiveProps {
   variant?: ButtonVariant
   size?: ButtonSize
   class?: HTMLAttributes["class"]
+  static?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,6 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
   variant: "default",
   size: "default",
   class: undefined,
+  static: false,
 })
 </script>
 
@@ -32,7 +34,13 @@ const props = withDefaults(defineProps<Props>(), {
     :data-size="size"
     :as="as"
     :as-child="asChild"
-    :class="[buttonBase, buttonVariant[variant], buttonSize[size], props.class]"
+    :class="[
+      buttonBase,
+      buttonVariant[variant],
+      buttonSize[size],
+      !props.static && 'active:scale-[0.96]',
+      props.class,
+    ]"
   >
     <slot />
   </Primitive>

@@ -2,14 +2,14 @@
   <Dialog>
     <DialogTrigger as-child>
       <button type="button" class="thumb" :aria-label="alt">
-        <img :src="src" :alt="alt" class="thumb-img" />
+        <img :src="src" :alt="alt" class="thumb-img transcript-image" />
       </button>
     </DialogTrigger>
     <DialogContent
       class="max-h-[90vh] w-full max-w-[min(56rem,calc(100vw-2rem))] overflow-auto p-(--spacing-sm) sm:max-w-[min(56rem,calc(100vw-2rem))]"
     >
       <DialogTitle class="sr-only">{{ alt }}</DialogTitle>
-      <img :src="src" :alt="alt" class="full" />
+      <img :src="src" :alt="alt" class="full transcript-image" />
     </DialogContent>
   </Dialog>
 </template>
@@ -37,7 +37,7 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   max-width: min(20rem, 86%);
   padding: 0;
   overflow: hidden;
-  border: var(--border-width) solid var(--hairline);
+  border: 0;
   border-radius: var(--radius-lg);
   background: var(--canvas-soft);
   cursor: zoom-in;
@@ -51,5 +51,12 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
 .full {
   max-height: calc(90vh - 2rem);
   object-fit: contain;
+}
+.transcript-image {
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+}
+:global(.dark) .transcript-image {
+  outline-color: oklch(1 0 0 / 0.1);
 }
 </style>

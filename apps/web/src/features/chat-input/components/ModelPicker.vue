@@ -17,7 +17,7 @@
       align="start"
       :side-offset="6"
       aria-label="选择模型"
-      class="z-30 w-[min(400px,calc(100vw-24px))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover) data-[state=open]:animate-[enter-blur_180ms_var(--ease-smooth)]"
+      class="z-30 w-[min(400px,calc(100vw-24px))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
       @open-auto-focus="onOpenAutoFocus"
       @pointer-down-outside="suppressFocusRestore"
       @close-auto-focus="onCloseAutoFocus"

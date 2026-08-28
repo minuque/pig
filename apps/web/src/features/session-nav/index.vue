@@ -85,12 +85,6 @@
         </nav>
       </div>
     </div>
-
-    <div class="nav-foot">
-      <button class="icon-button settings-placeholder" type="button" aria-label="设置">
-        <Settings :size="16" aria-hidden="true" />
-      </button>
-    </div>
   </div>
 </template>
 
@@ -98,7 +92,7 @@
 import { computed, nextTick, shallowRef, watch } from "vue"
 import { useTimestamp, useVirtualList } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
-import { PanelLeft, Plus, Settings, SquarePen } from "lucide-vue-next"
+import { PanelLeft, Plus, SquarePen } from "lucide-vue-next"
 import { notify } from "@components/ui/alert/index.js"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useNav } from "@features/session-nav/index.js"
@@ -387,38 +381,11 @@ html[data-pig-desktop-platform] .session-nav input {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
   color: var(--ink);
 }
-.nav-foot {
-  display: flex;
-  flex: none;
-  align-items: center;
-  width: 100%;
-  min-height: var(--nav-rail);
-  padding-inline: 2px;
-  margin-top: auto;
-  overflow-y: hidden;
-  scrollbar-gutter: stable;
-}
-.session-nav.collapsed .logo-row,
-.session-nav.collapsed .nav-foot {
+.session-nav.collapsed .logo-row {
   overflow: visible;
   scrollbar-gutter: auto;
   width: var(--nav-rail);
   justify-content: center;
   padding-inline: 0;
-}
-.settings-placeholder {
-  display: grid;
-  place-items: center;
-  width: var(--size-nav-action);
-  min-height: var(--size-nav-action);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--ink-muted);
-}
-.settings-placeholder:hover {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
-  color: var(--ink);
 }
 </style>

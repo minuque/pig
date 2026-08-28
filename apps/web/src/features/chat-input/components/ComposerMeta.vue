@@ -1,7 +1,7 @@
 <template>
   <div class="meta">
     <span v-if="cwdLabel" class="cwd" :title="cwd">
-      <Folder :size="14" aria-hidden="true" />
+      <Folder :size="14" :stroke-width="1.5" aria-hidden="true" />
       <span class="cwd-name">{{ cwdLabel }}</span>
     </span>
     <span v-else class="cwd-spacer"></span>

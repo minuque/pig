@@ -68,17 +68,18 @@
           @mousedown.prevent
           @click="onPrimaryAction"
         >
-          <svg
-            v-if="running"
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <rect x="2" y="2" width="8" height="8" rx="1.5" />
-          </svg>
-          <ArrowUp v-else :size="16" />
+          <span class="primary-icon" aria-hidden="true">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="currentColor"
+              :data-visible="running"
+            >
+              <rect x="2" y="2" width="8" height="8" rx="1.5" />
+            </svg>
+            <ArrowUp :size="16" :data-visible="!running" />
+          </span>
         </button>
       </template>
     </PromptEditor>
@@ -313,13 +314,13 @@ function onPrimaryAction() {
     box-shadow var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
     opacity var(--duration-fast) var(--ease-smooth),
-    transform var(--duration-fast) var(--ease-smooth);
+    scale var(--duration-fast) var(--ease-out);
 }
 .send:not(:disabled):hover {
   background: var(--primary-active);
-  transform: scale(1.05);
 }
-.send:active {
+.send:not(:disabled):active {
+  scale: 0.96;
   box-shadow: none;
 }
 .send--abort {
@@ -335,14 +336,33 @@ function onPrimaryAction() {
   cursor: default;
   opacity: 0.3;
   box-shadow: none;
-  transform: none;
+  scale: 1;
 }
 .send--abort:disabled {
   opacity: 0.5;
 }
+.primary-icon {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+}
+.primary-icon > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
+    scale 300ms cubic-bezier(0.2, 0, 0, 1),
+    filter 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+.primary-icon > [data-visible="false"] {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+}
 @media (prefers-reduced-motion: reduce) {
   .plus,
-  .send {
+  .send,
+  .primary-icon > * {
     transition: none;
   }
 }

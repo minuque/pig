@@ -107,7 +107,6 @@ function cycle() {
   flex: none;
   width: 0;
   overflow: hidden;
-  transition: width 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .bars-slot.on {
   width: 14px;
@@ -116,16 +115,28 @@ function cycle() {
 .bars {
   flex: none;
   fill: currentColor;
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+  transition:
+    opacity var(--duration-fast) cubic-bezier(0.2, 0, 0, 1),
+    scale var(--duration-fast) cubic-bezier(0.2, 0, 0, 1),
+    filter var(--duration-fast) cubic-bezier(0.2, 0, 0, 1);
+}
+.bars-slot.on .bars {
+  opacity: 1;
+  scale: 1;
+  filter: blur(0);
 }
 .bars rect {
-  transition: opacity 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 .level-name {
   text-transform: capitalize;
   font-weight: inherit;
 }
 @media (prefers-reduced-motion: reduce) {
-  .bars-slot,
+  .bars,
   .bars rect {
     transition: none;
   }

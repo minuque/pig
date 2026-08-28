@@ -32,7 +32,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Dia
     <DialogContent
       data-slot="dialog-content"
       v-bind="{ ...$attrs, ...forwarded }"
-      class="bg-background data-[state=open]:animate-[dialog-enter_200ms_var(--ease-smooth)] fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg"
+      class="bg-background fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-y-1.5 gap-4 rounded-lg border p-6 opacity-0 blur-[2px] shadow-lg transition-[translate,opacity,filter] duration-(--duration-normal) ease-(--ease-out) data-[state=open]:translate-y-0 data-[state=open]:opacity-100 data-[state=open]:blur-0 data-[state=closed]:animate-[exit-soft_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none sm:max-w-lg"
       :class="props.class"
     >
       <slot />

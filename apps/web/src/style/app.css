@@ -210,7 +210,7 @@
 }
 
 ::view-transition-group(root) {
-  animation-duration: 700ms;
+  animation-duration: var(--duration-slow);
   animation-timing-function: var(--ease-smooth);
 }
 ::view-transition-old(root) {
@@ -480,17 +480,24 @@ small,
     transform: translateY(0);
   }
 }
-/* DialogContent 入场：keyframes 内嵌 -50% 居中偏移，避免覆盖 fixed translate 定位 */
-@keyframes dialog-enter {
+@keyframes exit-soft {
   from {
-    transform: translate(-50%, calc(-50% + 6px));
-    opacity: 0;
-    filter: blur(2px);
+    opacity: 1;
+    translate: 0;
+    filter: blur(0);
   }
   to {
-    transform: translate(-50%, -50%);
+    opacity: 0;
+    translate: 0 4px;
+    filter: blur(2px);
+  }
+}
+@keyframes exit-fade {
+  from {
     opacity: 1;
-    filter: blur(0);
+  }
+  to {
+    opacity: 0;
   }
 }
 /* 入场动效 keyframes 全局保留：SessionWelcome 的 scoped 样式直接引用；
@@ -528,14 +535,6 @@ small,
     min-height: calc(var(--size-control) + var(--spacing-xxs));
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  /* shadcn-vue 组件入场动画（Dialog/DropdownMenu）：!important 压过 data-[state=open]:animate-* 工具类 */
-  [data-slot="dialog-content"][data-state="open"],
-  [data-slot="dropdown-menu-content"][data-state="open"] {
-    animation: none !important;
-  }
-}
-
 /* 公共滚动条：默认隐藏，容器 hover 时淡入。
    每个元素自己写 --scrollbar-thumb，避免 html:hover 传到所有条子。
    伪元素靠继承拿颜色。Chromium 的 scrollbar-color 会盖掉 webkit 透明滑块，只给 Firefox。 */
@@ -546,7 +545,6 @@ small,
 }
 * {
   --scrollbar-thumb: #0000;
-  transition: --scrollbar-thumb var(--duration-slow) var(--ease-out);
 }
 *:hover {
   --scrollbar-thumb: color-mix(in srgb, var(--ink) 22%, transparent);
@@ -567,6 +565,7 @@ small,
 *::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: var(--radius-full);
+  transition: background-color var(--duration-slow) var(--ease-out);
 }
 *::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--ink) 36%, transparent);
@@ -577,8 +576,8 @@ small,
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  * {
-    transition: --scrollbar-thumb 0s;
+  *::-webkit-scrollbar-thumb {
+    transition: none;
   }
 }
 

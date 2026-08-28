@@ -8,9 +8,9 @@
       @click="onToggle"
     >
       <span class="status" :class="statusKind" aria-hidden="true">
-        <LoaderCircle v-if="running" class="spin" :size="16" />
-        <X v-else-if="item.isError" :size="10" :stroke-width="3" />
-        <component :is="kindIcon" v-else :size="16" />
+        <LoaderCircle class="spin" :size="16" :data-visible="running" />
+        <X :size="10" :stroke-width="3" :data-visible="!running && item.isError" />
+        <component :is="kindIcon" :size="16" :data-visible="!running && !item.isError" />
       </span>
       <span class="kind">{{ kind }}</span>
       <span v-if="detail" class="detail">{{ detail }}</span>
@@ -146,9 +146,8 @@ function onToggle() {
 }
 .status {
   flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-grid;
+  place-items: center;
   width: 16px;
   height: 16px;
   border-radius: var(--radius-full);
@@ -162,6 +161,18 @@ function onToggle() {
 }
 .status.is-run {
   color: var(--primary);
+}
+.status > :deep(*) {
+  grid-area: 1 / 1;
+  transition:
+    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
+    scale 300ms cubic-bezier(0.2, 0, 0, 1),
+    filter 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+.status > :deep([data-visible="false"]) {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
 }
 .spin {
   animation: tool-spin 0.8s linear infinite;
@@ -235,6 +246,9 @@ function onToggle() {
 @media (prefers-reduced-motion: reduce) {
   .spin {
     animation: none;
+  }
+  .status > :deep(*) {
+    transition: none;
   }
   .caret {
     transition: none;

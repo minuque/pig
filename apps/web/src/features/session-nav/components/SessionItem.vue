@@ -24,18 +24,27 @@
           <div class="card-line card-head">
             <span class="title">{{ session.title }}</span>
             <span class="session-meta">
-              <Spinner v-if="running" :size="12" class="session-spinner" aria-hidden="true" />
-              <template v-else-if="session.updatedAt">
-                <Clock :size="12" class="session-clock" aria-hidden="true" />
-                <time class="session-time" :datetime="new Date(session.updatedAt).toISOString()">
-                  {{ relativeTime }}
-                </time>
-              </template>
+              <span v-if="running || session.updatedAt" class="session-icon" aria-hidden="true">
+                <Spinner :size="12" class="session-spinner" :data-visible="running" />
+                <Clock
+                  :size="12"
+                  :stroke-width="1.5"
+                  class="session-clock"
+                  :data-visible="!running && Boolean(session.updatedAt)"
+                />
+              </span>
+              <time
+                v-if="!running && session.updatedAt"
+                class="session-time"
+                :datetime="new Date(session.updatedAt).toISOString()"
+              >
+                {{ relativeTime }}
+              </time>
             </span>
           </div>
           <div class="card-line card-foot">
             <span v-if="grouping === 'updated'" class="card-project">
-              <Folder :size="16" class="workspace-mark" aria-hidden="true" />
+              <Folder :size="16" :stroke-width="1.5" class="workspace-mark" aria-hidden="true" />
               <span v-if="workspaceTitle" class="workspace-title">{{ workspaceTitle }}</span>
             </span>
             <span v-else class="card-count">{{
@@ -294,10 +303,26 @@ function onDelete() {
   align-items: center;
   gap: 4px;
 }
+.session-icon {
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+}
 .session-clock,
 .session-spinner {
+  grid-area: 1 / 1;
   flex: none;
   color: var(--ink-faint);
+  transition:
+    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
+    scale 300ms cubic-bezier(0.2, 0, 0, 1),
+    filter 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+.session-icon > [data-visible="false"] {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
 }
 .session-time {
   color: var(--ink-faint);
@@ -309,6 +334,12 @@ function onDelete() {
 }
 .rename-form {
   justify-content: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .session-clock,
+  .session-spinner {
+    transition: none;
+  }
 }
 .rename-input {
   width: 100%;

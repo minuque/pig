@@ -38,7 +38,7 @@ onMounted(() => {
   opacity: 0;
 }
 .startup-gate.startup-underlay-transition {
-  transition: opacity 360ms var(--ease-out) 60ms;
+  transition: opacity var(--duration-slow) var(--ease-out) 60ms;
 }
 @media (prefers-reduced-motion: reduce) {
   .startup-gate.startup-underlay-transition {

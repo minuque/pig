@@ -6,17 +6,25 @@
           type="button"
           variant="outline"
           size="icon"
-          class="size-12 overflow-hidden rounded-[var(--radius-lg)] p-0"
+          class="preview size-12 overflow-hidden rounded-[var(--radius-lg)] p-0"
           :aria-label="alt"
         >
-          <img :src="src" :alt="alt" class="absolute inset-0 size-full object-cover" />
+          <img
+            :src="src"
+            :alt="alt"
+            class="attachment-image absolute inset-0 size-full object-cover"
+          />
         </Button>
       </DialogTrigger>
       <DialogContent
         class="max-h-[90vh] w-full max-w-[min(56rem,calc(100vw-2rem))] overflow-auto p-(--spacing-sm) sm:max-w-[min(56rem,calc(100vw-2rem))]"
       >
         <DialogTitle class="sr-only">{{ alt }}</DialogTitle>
-        <img :src="src" :alt="alt" class="max-h-[calc(90vh-2rem)] w-full object-contain" />
+        <img
+          :src="src"
+          :alt="alt"
+          class="attachment-image max-h-[calc(90vh-2rem)] w-full object-contain"
+        />
       </DialogContent>
     </Dialog>
     <Button
@@ -50,6 +58,16 @@ const alt = computed(() => props.name || "图片")
 </script>
 
 <style scoped>
+.preview {
+  border: 0;
+}
+.attachment-image {
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+}
+:global(.dark) .attachment-image {
+  outline-color: oklch(1 0 0 / 0.1);
+}
 /* 全局 button reset 后本钮自行重盖：深色圆底不跟 ink 反相，白图也能看清。 */
 .remove {
   position: absolute;
@@ -67,16 +85,29 @@ const alt = computed(() => props.name || "图片")
   color: var(--on-primary);
   box-shadow: none;
   opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
   pointer-events: none;
+  transition:
+    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
+    scale 300ms cubic-bezier(0.2, 0, 0, 1),
+    filter 300ms cubic-bezier(0.2, 0, 0, 1);
 }
 .group:hover .remove,
 .remove:focus-visible {
   opacity: 1;
+  scale: 1;
+  filter: blur(0);
   pointer-events: auto;
 }
 .remove:hover,
 .remove:focus-visible {
   background: var(--accent-midnight);
   color: var(--on-primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .remove {
+    transition: none;
+  }
 }
 </style>
