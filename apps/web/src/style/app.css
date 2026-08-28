@@ -4,6 +4,12 @@
 @import "markstream-vue/index.css";
 @import "./markdown-stream.css";
 
+@property --size-content {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 45.75rem;
+}
+
 /* ─── DESIGN.md tokens (workbench desktop) ───────────────────── */
 :root {
   /* Colors */
@@ -208,6 +214,14 @@
   --glass-blur: 16px;
   --glass-saturation: 1.08;
   --glass-surface: var(--composer);
+}
+
+.media-inset-outline {
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+}
+.dark .media-inset-outline {
+  outline-color: oklch(1 0 0 / 0.1);
 }
 
 ::view-transition-group(root) {

@@ -1,52 +1,45 @@
 <template>
   <div
     class="timeline-minimap"
-    :class="{ persistent: hasPersistentGutter, interactive: hitStripWidth > 0 }"
+    :class="{ interactive: hitStripWidth > 0 }"
     data-testid="timeline-minimap"
-    :data-persistent-gutter="hasPersistentGutter ? 'true' : 'false'"
     :style="{ width: hitAreaWidth, height: railHeight }"
   >
-    <div class="minimap-stage">
+    <div class="minimap-stage" @focusout="onStageFocusOut" @mouseleave="activeIndex = null">
       <button
-        class="minimap-rail"
-        :class="{ interactive: hitStripWidth > 0 }"
+        v-for="(item, index) in items"
+        :key="item.id"
+        class="minimap-tick"
         type="button"
-        :aria-label="`跳转到：${activeItem?.userText ?? '用户句'}`"
-        @blur="activeIndex = null"
-        @click="onRailClick"
-        @focus="onRailFocus"
-        @keydown="onRailKeydown"
-        @mouseleave="activeIndex = null"
-        @mousemove="onRailMove"
-        @mousedown="onRailMouseDown"
+        :aria-label="`跳转到：${item.userText ?? '用户句'}`"
+        :style="tickStyle(index)"
+        @mouseenter="activeIndex = index"
+        @focus="activeIndex = index"
+        @click="emit('select', item)"
       >
         <span
-          v-for="(item, index) in items"
-          :key="item.id"
           class="minimap-strip"
-          :class="stripClass(index)"
+          :class="resolvedActiveIndex === index ? 'strip-active' : 'strip-far'"
           :data-in-view="inViewIds.includes(item.id) ? 'true' : 'false'"
-          :style="{ top: `${resolveMinimapTopPercent(index, items.length)}%` }"
           aria-hidden="true"
         ></span>
-        <span
-          v-if="activeItem"
-          class="minimap-preview"
-          data-minimap-preview
-          :style="{
-            top: `${resolveMinimapTopPercent(resolvedActiveIndex ?? 0, items.length)}%`,
-            transform: `translateY(${previewTranslate})`,
-          }"
-          @mousemove.stop
-        >
-          <span class="preview-card">
-            <span class="preview-user">{{ activeItem.userText ?? "用户句" }}</span>
-            <span v-if="activeItem.assistantText" class="preview-assistant">{{
-              activeItem.assistantText
-            }}</span>
-          </span>
-        </span>
       </button>
+      <span
+        v-if="activeItem"
+        class="minimap-preview"
+        data-minimap-preview
+        :style="{
+          top: `${resolveMinimapTopPercent(resolvedActiveIndex ?? 0, items.length)}%`,
+          transform: `translateY(${previewTranslate})`,
+        }"
+      >
+        <span class="preview-card">
+          <span class="preview-user">{{ activeItem.userText ?? "用户句" }}</span>
+          <span v-if="activeItem.assistantText" class="preview-assistant">{{
+            activeItem.assistantText
+          }}</span>
+        </span>
+      </span>
     </div>
   </div>
 </template>
@@ -55,16 +48,14 @@
 import { computed, shallowRef } from "vue"
 import type { TranscriptMinimapItem } from "@features/transcript-view/lib/transcript-minimap.js"
 import {
+  MINIMAP_RAIL_WIDTH,
   resolveMinimapHeightStyle,
-  resolveMinimapHitAreaWidth,
-  resolveMinimapIndexFromPointer,
   resolveMinimapTopPercent,
 } from "@features/transcript-view/lib/transcript-minimap.js"
 
 const props = defineProps<{
   items: readonly TranscriptMinimapItem[]
   inViewIds: readonly string[]
-  hasPersistentGutter: boolean
   hitStripWidth: number
 }>()
 
@@ -89,79 +80,22 @@ const previewTranslate = computed(() => {
   if (index === props.items.length - 1) return "-100%"
   return "-50%"
 })
-const hitAreaWidth = computed(() => `${resolveMinimapHitAreaWidth(props.hitStripWidth)}px`)
+const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
-function stripClass(index: number): string {
-  return resolvedActiveIndex.value === index ? "strip-active" : "strip-far"
-}
-
-function indexFromEvent(event: MouseEvent): number | null {
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  return resolveMinimapIndexFromPointer({
-    itemCount: props.items.length,
-    railTop: rect.top,
-    railHeight: rect.height,
-    pointerY: event.clientY,
-  })
-}
-
-function previewTarget(target: EventTarget | null): boolean {
-  return target instanceof Element && target.closest("[data-minimap-preview]") !== null
-}
-
-function onRailMove(event: MouseEvent) {
-  activeIndex.value = indexFromEvent(event)
-}
-
-function onRailFocus() {
-  if (activeIndex.value === null) activeIndex.value = 0
-}
-
-function onRailClick(event: MouseEvent) {
-  if (previewTarget(event.target)) return
-  const index = indexFromEvent(event)
-  const item = index === null ? null : (props.items[index] ?? null)
-  if (item) emit("select", item)
-  ;(event.currentTarget as HTMLButtonElement).blur()
-}
-
-function onRailMouseDown(event: MouseEvent) {
-  if (previewTarget(event.target)) return
-  event.preventDefault()
-}
-
-function onRailKeydown(event: KeyboardEvent) {
-  if (event.key === "ArrowDown") {
-    event.preventDefault()
-    moveActive(1)
-    return
-  }
-  if (event.key === "ArrowUp") {
-    event.preventDefault()
-    moveActive(-1)
-    return
-  }
-  if (event.key === "Home") {
-    event.preventDefault()
-    activeIndex.value = 0
-    return
-  }
-  if (event.key === "End") {
-    event.preventDefault()
-    activeIndex.value = Math.max(0, props.items.length - 1)
-    return
-  }
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault()
-    const item = activeItem.value
-    if (item) emit("select", item)
+function tickStyle(index: number): { top: string; height: string } {
+  const count = Math.max(props.items.length, 1)
+  return {
+    top: `${(index / count) * 100}%`,
+    height: `${100 / count}%`,
   }
 }
 
-function moveActive(delta: number) {
-  const base = activeIndex.value ?? 0
-  activeIndex.value = Math.max(0, Math.min(props.items.length - 1, base + delta))
+function onStageFocusOut(event: FocusEvent) {
+  const root = event.currentTarget
+  const next = event.relatedTarget
+  if (root instanceof Node && next instanceof Node && root.contains(next)) return
+  activeIndex.value = null
 }
 </script>
 
@@ -185,18 +119,16 @@ function moveActive(delta: number) {
   height: 100%;
   user-select: none;
 }
-.minimap-rail {
+.minimap-tick {
   position: absolute;
-  inset: 0;
+  left: 0;
+  width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
 }
-.minimap-rail.interactive {
-  pointer-events: auto;
-}
-.minimap-rail:focus-visible {
+.minimap-tick:focus-visible {
   outline: var(--focus-ring-width) solid var(--primary);
   outline-offset: 2px;
 }
@@ -204,6 +136,7 @@ function moveActive(delta: number) {
   pointer-events: none;
   position: absolute;
   left: 0;
+  top: 50%;
   height: 2px;
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--ink-muted) 35%, transparent);

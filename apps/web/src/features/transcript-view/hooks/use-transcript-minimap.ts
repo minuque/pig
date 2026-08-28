@@ -1,30 +1,16 @@
 import { computed, shallowRef, type MaybeRefOrGetter, toValue } from "vue"
 import type { TimelineRow } from "@features/transcript-view/lib/transcript-rows.js"
-import { isThinkingRow, isWorkRow } from "@features/transcript-view/lib/transcript-rows.js"
 import {
   deriveTranscriptMinimapItems,
-  resolveMinimapHasPersistentGutter,
   resolveMinimapHitStripWidth,
   sameIdList,
 } from "@features/transcript-view/lib/transcript-minimap.js"
-
-function previewText(row: TimelineRow): string {
-  if (isThinkingRow(row) || isWorkRow(row)) return ""
-  return row.text
-}
 
 export function useTranscriptMinimap(rows: MaybeRefOrGetter<readonly TimelineRow[]>) {
   const viewportWidth = shallowRef(0)
   const contentWidth = shallowRef(0)
   const inViewIds = shallowRef<readonly string[]>([])
-  const items = computed(() =>
-    deriveTranscriptMinimapItems(
-      toValue(rows).map((row) => ({ id: row.id, role: row.role, text: previewText(row) })),
-    ),
-  )
-  const hasPersistentGutter = computed(() =>
-    resolveMinimapHasPersistentGutter(viewportWidth.value, contentWidth.value),
-  )
+  const items = computed(() => deriveTranscriptMinimapItems(toValue(rows)))
   const hitStripWidth = computed(() =>
     resolveMinimapHitStripWidth(viewportWidth.value, contentWidth.value),
   )
@@ -49,5 +35,5 @@ export function useTranscriptMinimap(rows: MaybeRefOrGetter<readonly TimelineRow
     if (!sameIdList(inViewIds.value, next)) inViewIds.value = next
   }
 
-  return { items, inViewIds, hasPersistentGutter, hitStripWidth, syncLayout }
+  return { items, inViewIds, hitStripWidth, syncLayout }
 }

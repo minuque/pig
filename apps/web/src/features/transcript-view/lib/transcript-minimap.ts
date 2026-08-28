@@ -1,20 +1,15 @@
 /** 对齐 Waku ConversationNavigationRail：正文列左侧紧凑刻度，按用户句跳转。 */
 
+import type { TimelineRow } from "@features/transcript-view/lib/transcript-rows.js"
+
 export const MINIMAP_MIN_ITEMS = 2
 /** 无实测正文宽时的 gutter 回退，对齐自适应上限。 */
 export const MINIMAP_CONTENT_MAX_WIDTH = 920
-export const MINIMAP_PERSISTENT_GUTTER = 48
 export const MINIMAP_HIT_STRIP_LEFT = 12
 export const MINIMAP_HIT_STRIP_MAX_WIDTH = 40
 /** 与 Waku `NAVIGATION_RAIL_PITCH` / `w-11` 一致。 */
 export const MINIMAP_RAIL_PITCH = 12
 export const MINIMAP_RAIL_WIDTH = 44
-
-export interface MinimapSourceRow {
-  id: string
-  role: string
-  text: string
-}
 
 export interface TranscriptMinimapItem {
   id: string
@@ -23,47 +18,44 @@ export interface TranscriptMinimapItem {
   assistantText: string | null
 }
 
-export function compactMinimapPreview(text: string | null | undefined): string | null {
+function compactMinimapPreview(text: string | null | undefined): string | null {
   const compact = text?.replace(/\s+/g, " ").trim() ?? ""
   return compact.length > 0 ? compact : null
 }
 
-function lastAssistantText(rows: readonly MinimapSourceRow[], userRowIndex: number): string | null {
-  let assistantText: string | null = null
-  for (let index = userRowIndex + 1; index < rows.length; index += 1) {
-    const row = rows[index]
-    if (!row) continue
-    if (row.role === "user") break
-    if (row.role === "assistant") assistantText = compactMinimapPreview(row.text)
-  }
-  return assistantText
-}
-
 export function deriveTranscriptMinimapItems(
-  rows: readonly MinimapSourceRow[],
+  rows: readonly TimelineRow[],
 ): TranscriptMinimapItem[] {
   const items: TranscriptMinimapItem[] = []
-  for (let index = 0; index < rows.length; index += 1) {
+  let assistantText: string | null = null
+  let sawAssistant = false
+  for (let index = rows.length - 1; index >= 0; index -= 1) {
     const row = rows[index]
-    if (!row || row.role !== "user") continue
+    if (!row) continue
+    if (row.role === "assistant") {
+      if (!sawAssistant) {
+        assistantText = compactMinimapPreview(row.text)
+        sawAssistant = true
+      }
+      continue
+    }
+    if (row.role !== "user") continue
     items.push({
       id: row.id,
       rowIndex: index,
       userText: compactMinimapPreview(row.text),
-      assistantText: lastAssistantText(rows, index),
+      assistantText,
     })
+    assistantText = null
+    sawAssistant = false
   }
+  items.reverse()
   return items
 }
 
 export function resolveMinimapHeightStyle(itemCount: number): string {
   if (itemCount <= 0) return "0px"
   return `min(${itemCount * MINIMAP_RAIL_PITCH}px, 80%)`
-}
-
-export function resolveMinimapHitAreaWidth(hitStripWidth: number): number {
-  if (hitStripWidth <= 0) return 0
-  return MINIMAP_RAIL_WIDTH
 }
 
 export function resolveMinimapTopPercent(index: number, itemCount: number): number {
@@ -73,36 +65,13 @@ export function resolveMinimapTopPercent(index: number, itemCount: number): numb
   return ((clamped + 0.5) / itemCount) * 100
 }
 
-export function resolveMinimapIndexFromPointer(input: {
-  readonly itemCount: number
-  readonly railTop: number
-  readonly railHeight: number
-  readonly pointerY: number
-}): number | null {
-  if (input.itemCount <= 0 || input.railHeight <= 0) return null
-  if (input.itemCount === 1) return 0
-  const slot = input.railHeight / input.itemCount
-  const index = Math.floor((input.pointerY - input.railTop) / slot)
-  return Math.max(0, Math.min(input.itemCount - 1, index))
-}
-
-export function sideGutter(
-  viewportWidth: number,
-  contentWidth = MINIMAP_CONTENT_MAX_WIDTH,
-): number {
+function sideGutter(viewportWidth: number, contentWidth = MINIMAP_CONTENT_MAX_WIDTH): number {
   if (!Number.isFinite(viewportWidth) || viewportWidth <= 0) return 0
   const used =
     Number.isFinite(contentWidth) && contentWidth > 0
       ? Math.min(viewportWidth, contentWidth)
       : Math.min(viewportWidth, MINIMAP_CONTENT_MAX_WIDTH)
   return Math.max(0, (viewportWidth - used) / 2)
-}
-
-export function resolveMinimapHasPersistentGutter(
-  viewportWidth: number,
-  contentWidth = MINIMAP_CONTENT_MAX_WIDTH,
-): boolean {
-  return sideGutter(viewportWidth, contentWidth) >= MINIMAP_PERSISTENT_GUTTER
 }
 
 export function resolveMinimapHitStripWidth(
@@ -115,15 +84,6 @@ export function resolveMinimapHitStripWidth(
     0,
     Math.min(MINIMAP_HIT_STRIP_MAX_WIDTH, Math.floor(gutter) - MINIMAP_HIT_STRIP_LEFT),
   )
-}
-
-export function minimapRowInView(
-  rowTop: number,
-  rowHeight: number,
-  scrollTop: number,
-  scrollBottom: number,
-): boolean {
-  return rowTop < scrollBottom && rowTop + Math.max(1, rowHeight) > scrollTop
 }
 
 export function sameIdList(left: readonly string[], right: readonly string[]): boolean {

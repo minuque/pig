@@ -5,10 +5,6 @@ export const CONTENT_WIDTH_KEY = "pig.conversation.contentWidth"
 
 /** 拖拽下限，与列两侧手柄热区预算对齐。 */
 export const CONTENT_DRAG_MIN = 640
-/** 自适应下限：比原 732 正文略窄一档。 */
-export const CONTENT_ADAPTIVE_FLOOR = 680
-export const CONTENT_ADAPTIVE_RATIO = 0.64
-export const CONTENT_ADAPTIVE_CAP = 920
 /** 每侧 88px（24 内缩 + 40 热区 + 24 安全区）。 */
 export const CONTENT_EDGE_BUDGET = 176
 
@@ -19,14 +15,10 @@ export function parseContentWidth(raw: string | null): number | null {
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
-/** 列宽上的显示宽度：有偏好则钳制偏好，否则走 680 / 64% / 920。 */
-export function resolveContentWidth(columnWidth: number, preference: number | null): number {
+/** 列宽上的显示宽度：钳制偏好，不低于拖拽下限、不超过列侧预算。 */
+export function resolveContentWidth(columnWidth: number, preference: number): number {
   const max = Math.max(CONTENT_DRAG_MIN, columnWidth - CONTENT_EDGE_BUDGET)
-  if (preference !== null) return Math.min(Math.max(preference, CONTENT_DRAG_MIN), max)
-  return Math.max(
-    CONTENT_ADAPTIVE_FLOOR,
-    Math.min(columnWidth * CONTENT_ADAPTIVE_RATIO, CONTENT_ADAPTIVE_CAP),
-  )
+  return Math.min(Math.max(preference, CONTENT_DRAG_MIN), max)
 }
 
 function readPreference(): number | null {
@@ -101,10 +93,15 @@ export function useConversationWidth(): {
     publish(el)
   }
 
+  function readDisplayedWidth(root: HTMLElement): number {
+    const n = Number.parseFloat(getComputedStyle(root).getPropertyValue("--size-content"))
+    return Number.isFinite(n) && n > 0 ? n : CONTENT_DRAG_MIN
+  }
+
   function snapshotWidth(): number {
     const root = rootEl.value
-    if (!root) return CONTENT_ADAPTIVE_FLOOR
-    return resolveContentWidth(root.offsetWidth, readPreference())
+    if (!root) return CONTENT_DRAG_MIN
+    return resolveContentWidth(root.offsetWidth, readPreference() ?? readDisplayedWidth(root))
   }
 
   function beginResize() {

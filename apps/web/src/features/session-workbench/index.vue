@@ -45,26 +45,19 @@
       </template>
     </div>
 
-    <ContentWidthHandle
-      v-if="showContentHandles"
-      side="left"
-      :measure="snapshotWidth"
-      @start="beginResize"
-      @drag="previewWidth"
-      @commit="commitWidth"
-      @end="endResize"
-      @nudge="nudgeWidth"
-    />
-    <ContentWidthHandle
-      v-if="showContentHandles"
-      side="right"
-      :measure="snapshotWidth"
-      @start="beginResize"
-      @drag="previewWidth"
-      @commit="commitWidth"
-      @end="endResize"
-      @nudge="nudgeWidth"
-    />
+    <template v-if="showContentHandles">
+      <ContentWidthHandle
+        v-for="side in contentHandleSides"
+        :key="side"
+        :side="side"
+        :measure="snapshotWidth"
+        @start="beginResize"
+        @drag="previewWidth"
+        @commit="commitWidth"
+        @end="endResize"
+        @nudge="nudgeWidth"
+      />
+    </template>
   </div>
 </template>
 
@@ -147,6 +140,7 @@ const {
 const showContentHandles = computed(
   () => Boolean(sessionId.value) && !emptyCanvas.value && !sessionPending.value,
 )
+const contentHandleSides = ["left", "right"] as const
 const sessionLoading = computed(() =>
   isSessionLoading(sessionPending.value, transcript.value.length, streamReady.value),
 )
@@ -175,7 +169,7 @@ function submitFromInput(text: string) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  /* 与 use-conversation-width 的 680 / 0.64 / 920 对齐 */
+  /* 无偏好时正文宽：680 / 列宽 64% / 920 */
   --size-content: var(
     --chat-user-width,
     clamp(680px, calc(var(--conversation-column-width, 0px) * 0.64), 920px)

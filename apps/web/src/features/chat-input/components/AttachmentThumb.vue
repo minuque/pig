@@ -12,7 +12,7 @@
           <img
             :src="src"
             :alt="alt"
-            class="attachment-image absolute inset-0 size-full object-cover"
+            class="media-inset-outline absolute inset-0 size-full object-cover"
           />
         </Button>
       </DialogTrigger>
@@ -23,7 +23,7 @@
         <img
           :src="src"
           :alt="alt"
-          class="attachment-image max-h-[calc(90vh-2rem)] w-full object-contain"
+          class="media-inset-outline max-h-[calc(90vh-2rem)] w-full object-contain"
         />
       </DialogContent>
     </Dialog>
@@ -60,13 +60,6 @@ const alt = computed(() => props.name || "图片")
 <style scoped>
 .preview {
   border: 0;
-}
-.attachment-image {
-  outline: 1px solid oklch(0 0 0 / 0.1);
-  outline-offset: -1px;
-}
-:global(.dark) .attachment-image {
-  outline-color: oklch(1 0 0 / 0.1);
 }
 /* 全局 button reset 后本钮自行重盖：深色圆底不跟 ink 反相，白图也能看清。 */
 .remove {

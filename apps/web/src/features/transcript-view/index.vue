@@ -60,7 +60,6 @@
         v-if="rows.length && minimapItems.length >= MINIMAP_MIN_ITEMS"
         :items="minimapItems"
         :in-view-ids="inViewIds"
-        :has-persistent-gutter="hasPersistentGutter"
         :hit-strip-width="hitStripWidth"
         @select="selectMinimapItem"
       />
@@ -148,13 +147,7 @@ const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
 const panel = inject(leftPanelKey, null)
 const sidebarResizing = computed(() => panel?.resizing.value ?? false)
-const {
-  items: minimapItems,
-  inViewIds,
-  hasPersistentGutter,
-  hitStripWidth,
-  syncLayout,
-} = useTranscriptMinimap(rows)
+const { items: minimapItems, inViewIds, hitStripWidth, syncLayout } = useTranscriptMinimap(rows)
 
 function rowKey(item: { id: string }): string {
   return item.id
