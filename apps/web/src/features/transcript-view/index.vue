@@ -62,7 +62,7 @@
         :in-view-ids="inViewIds"
         :has-persistent-gutter="hasPersistentGutter"
         :hit-strip-width="hitStripWidth"
-        @select="onMinimapSelect"
+        @select="selectMinimapItem"
       />
     </section>
 
@@ -96,7 +96,10 @@ import WorkRow from "@features/transcript-view/components/WorkRow.vue"
 import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
-import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
+import {
+  MINIMAP_MIN_ITEMS,
+  type TranscriptMinimapItem,
+} from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TranscriptItem } from "@features/transcript-view/lib/transcript-format.js"
 import {
   buildTimelineRows,
@@ -281,7 +284,7 @@ function onThreadState(state: MarkstreamThreadVirtualState) {
   }
 }
 
-function onMinimapSelect(item: { rowIndex: number }) {
+function selectMinimapItem(item: TranscriptMinimapItem) {
   releasePinnedToBottom()
   timeline.value?.scrollToIndex(item.rowIndex, "start")
   const root = timelineScrollRoot()
