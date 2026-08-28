@@ -25,19 +25,20 @@ export const FAVORITES_SCOPE = "__favorites__"
 
 export type ModelPickerRow = { vendor: ChatInputVendor; model: ChatInputModelInfo }
 
-/** 当前供应商或收藏范围，再套搜索。目录顺序保留。 */
+/** 有搜索时全目录匹配；无搜索按供应商或收藏过滤。 */
 export function listPickerRows(
   catalog: ChatInputVendor[],
   query: string,
   scope: string,
   favorites: ReadonlySet<string>,
 ): ModelPickerRow[] {
+  const q = query.trim()
   const vendors =
-    scope === FAVORITES_SCOPE ? catalog : catalog.filter((vendor) => vendor.id === scope)
+    q || scope === FAVORITES_SCOPE ? catalog : catalog.filter((vendor) => vendor.id === scope)
   const rows: ModelPickerRow[] = []
   for (const vendor of filterCatalog(vendors, query)) {
     for (const model of vendor.models) {
-      if (scope === FAVORITES_SCOPE && !favorites.has(`${vendor.id}/${model.id}`)) continue
+      if (!q && scope === FAVORITES_SCOPE && !favorites.has(`${vendor.id}/${model.id}`)) continue
       rows.push({ vendor, model })
     }
   }

@@ -17,7 +17,7 @@
       align="start"
       :side-offset="6"
       aria-label="选择模型"
-      class="z-30 w-[min(400px,calc(100vw-24px))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
+      class="z-30 w-[min(400px,calc(100vw-24px))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden overflow-y-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
       @open-auto-focus="onOpenAutoFocus"
       @pointer-down-outside="suppressFocusRestore"
       @close-auto-focus="onCloseAutoFocus"
@@ -121,7 +121,7 @@
 <script setup lang="ts">
 import { Search, Star } from "lucide-vue-next"
 import { useVirtualList } from "@vueuse/core"
-import { computed, ref, watch } from "vue"
+import { computed, nextTick, ref, watch } from "vue"
 import {
   modelLabel,
   sameModel,
@@ -174,8 +174,13 @@ const items = computed(() =>
 )
 
 const ITEM_HEIGHT = 52
-const { list, containerProps, wrapperProps } = useVirtualList(items, {
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, {
   itemHeight: ITEM_HEIGHT,
+})
+
+watch([query, scope], async () => {
+  await nextTick()
+  scrollTo(0)
 })
 
 const emptyText = computed(() =>
@@ -266,6 +271,7 @@ function onCloseAutoFocus(event: Event) {
 .main {
   display: flex;
   flex-direction: column;
+  padding: var(--spacing-xxs);
   min-width: 0;
   min-height: 0;
 }
@@ -274,8 +280,8 @@ function onCloseAutoFocus(event: Event) {
   align-items: center;
   gap: 6px;
   height: 32px;
-  margin: 8px 8px 4px;
   padding: 0 8px;
+  margin-bottom: var(--spacing-xxs);
   border-radius: var(--radius-md);
   background: var(--canvas-soft);
 }
@@ -300,13 +306,16 @@ function onCloseAutoFocus(event: Event) {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 4px 6px;
+  scrollbar-width: none;
+}
+.groups::-webkit-scrollbar {
+  display: none;
 }
 .model-row {
   display: flex;
   align-items: center;
   height: 52px;
-  padding-right: 4px;
+  margin-bottom: var(--spacing-xxs);
   border-radius: var(--radius-md);
 }
 .model-row:hover,

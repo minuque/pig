@@ -81,8 +81,8 @@ describe("listPickerRows", () => {
     ])
   })
 
-  it("搜索在当前范围内模糊匹配", () => {
-    const rows = listPickerRows(catalog, "haiku", "anthropic", new Set())
+  it("搜索忽略供应商范围，全目录模糊匹配", () => {
+    const rows = listPickerRows(catalog, "haiku", "openai", new Set())
     expect(rows.map((row) => row.model.id)).toEqual(["claude-haiku"])
   })
 })
