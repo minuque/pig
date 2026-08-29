@@ -28,7 +28,7 @@ flowchart TB
 
 ## 启动进工作台
 
-e2e 对应 `01-bootstrap` → `02-session-inbox`。
+e2e 对应 `01-startup` → `02-session-inbox`。
 
 ```mermaid
 flowchart TB

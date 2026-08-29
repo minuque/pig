@@ -18,7 +18,7 @@ test("Chromium production SPA 关键旅程", async ({ page, gateway }) => {
   const sessionList = page.getByRole("navigation", { name: "会话列表" })
   await expect(sessionList).toBeVisible({ timeout: 30_000 })
   await expect(page.getByRole("status").filter({ hasText: "正在连接…" })).toHaveCount(0)
-  await checkpoint(page, "01-bootstrap")
+  await checkpoint(page, "01-startup")
 
   await expect(sessionList).toBeVisible()
   await expect(page.getByText("还没有工作目录")).toHaveCount(0)
