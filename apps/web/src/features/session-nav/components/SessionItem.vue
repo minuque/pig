@@ -70,7 +70,10 @@
     </ContextMenu>
 
     <Dialog v-model:open="deleteOpen">
-      <DialogContent class="sm:max-w-md" aria-describedby="delete-session-description">
+      <DialogContent
+        class="w-[min(28rem,calc(100vw-2rem))] max-w-[min(28rem,calc(100vw-2rem))] sm:max-w-[min(28rem,calc(100vw-2rem))]"
+        aria-describedby="delete-session-description"
+      >
         <DialogTitle>删除会话</DialogTitle>
         <p id="delete-session-description" class="delete-description">
           确定删除“{{ session.title }}”吗？此操作不可恢复。
