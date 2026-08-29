@@ -24,7 +24,6 @@ afterEach(async () => {
 
 async function startGateway(options?: ConstructorParameters<typeof Gateway>[0]) {
   gateway = new Gateway({
-    bootstrapSecret: "test-secret",
     platformPort: directoryPort,
     ...options,
   })
@@ -35,15 +34,11 @@ async function request(
   base: string,
   path: string,
   body?: unknown,
-  credential?: string,
   method = body === undefined ? "GET" : "POST",
 ) {
   return fetch(`${base}${path}`, {
     method,
-    headers: {
-      ...(body === undefined ? {} : { "content-type": "application/json" }),
-      ...(credential ? { authorization: `Bearer ${credential}` } : {}),
-    },
+    headers: body === undefined ? {} : { "content-type": "application/json" },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   })
 }
@@ -54,136 +49,69 @@ describe("thin host HTTP shell", () => {
     expect(await (await request(base, "/health")).json()).toEqual({ status: "ok" })
   })
 
-  it("exchanges bootstrap secret for a reusable credential", async () => {
+  it("selects a directory", async () => {
     const base = await startGateway()
-    expect((await request(base, "/api/v1/bootstrap", { secret: "wrong" })).status).toBe(401)
-    const response = await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
-    expect(response.status).toBe(201)
-    const { credential } = (await response.json()) as { credential: string }
-    expect(credential).toBeTruthy()
-    const again = await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
-    expect(again.status).toBe(201)
-    expect(await again.json()).toEqual({ credential })
-  })
-
-  it("selects a directory only with a valid credential", async () => {
-    const base = await startGateway()
-    const { credential } = (await (
-      await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
-    ).json()) as { credential: string }
-
-    expect(
-      (await request(base, "/api/v1/platform/select-directory", undefined, undefined, "POST"))
-        .status,
-    ).toBe(401)
-
     selectedDirectory = "C:/projects/demo"
     expect(
-      await (
-        await request(base, "/api/v1/platform/select-directory", undefined, credential, "POST")
-      ).json(),
-    ).toEqual({ path: "C:/projects/demo", requiresManualInput: false })
+      await (await request(base, "/api/v1/platform/select-directory", undefined, "POST")).json(),
+    ).toEqual({
+      path: "C:/projects/demo",
+      requiresManualInput: false,
+    })
 
-    // 用户取消时返回 null，可重试
     selectedDirectory = undefined
     expect(
-      await (
-        await request(base, "/api/v1/platform/select-directory", undefined, credential, "POST")
-      ).json(),
-    ).toEqual({ path: null, requiresManualInput: false })
+      await (await request(base, "/api/v1/platform/select-directory", undefined, "POST")).json(),
+    ).toEqual({
+      path: null,
+      requiresManualInput: false,
+    })
   })
 
-  it("renames and deletes sessions only with a valid credential", async () => {
+  it("renames and deletes sessions", async () => {
     const base = await startGateway()
     expect(
-      (await request(base, "/api/v1/platform/rename-session", { id: "s", name: "a" })).status,
-    ).toBe(401)
-    expect((await request(base, "/api/v1/platform/delete-session", { id: "s" })).status).toBe(401)
-    expect((await request(base, "/api/v1/platform/session-cards")).status).toBe(401)
-    expect((await request(base, "/api/v1/platform/context-usage?sessionId=s")).status).toBe(401)
-
-    const { credential } = (await (
-      await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
-    ).json()) as { credential: string }
-    expect(
-      (
-        await request(
-          base,
-          "/api/v1/platform/rename-session",
-          { id: "missing", name: "a" },
-          credential,
-        )
-      ).status,
+      (await request(base, "/api/v1/platform/rename-session", { id: "missing", name: "a" })).status,
     ).toBe(404)
+    expect((await request(base, "/api/v1/platform/context-usage")).status).toBe(400)
     expect(
-      (await request(base, "/api/v1/platform/context-usage", undefined, credential)).status,
-    ).toBe(400)
-    expect(
-      (
-        await request(
-          base,
-          "/api/v1/platform/context-usage?sessionId=missing&preview=nope",
-          undefined,
-          credential,
-        )
-      ).status,
+      (await request(base, "/api/v1/platform/context-usage?sessionId=missing&preview=nope")).status,
     ).toBe(400)
     await expect(
-      (
-        await request(
-          base,
-          "/api/v1/platform/context-usage?sessionId=missing",
-          undefined,
-          credential,
-        )
-      ).json(),
+      (await request(base, "/api/v1/platform/context-usage?sessionId=missing")).json(),
     ).resolves.toEqual({ usage: null, preview: null })
-    const cards = await request(base, "/api/v1/platform/session-cards", undefined, credential)
+    const cards = await request(base, "/api/v1/platform/session-cards")
     expect(cards.status).toBe(200)
     await expect(cards.json()).resolves.toMatchObject({ cards: expect.any(Array) })
   }, 15_000)
 })
 
 describe("thin host WebSocket", () => {
-  it("rejects upgrades without a valid credential", async () => {
+  it("rejects upgrades on unknown paths", async () => {
     await startGateway()
     const port = gateway!.getPort()
-
-    for (const url of [
-      `ws://127.0.0.1:${port}/api/v1/pi`,
-      `ws://127.0.0.1:${port}/api/v1/pi?credential=bad`,
-    ]) {
-      const status = await new Promise<number>((resolve, reject) => {
-        const timer = setTimeout(
-          () => reject(new Error("upgrade 未返回 unexpected-response")),
-          3000,
-        )
-        const socket = new WebSocket(url)
-        socket.once("unexpected-response", (_req, res) => {
-          clearTimeout(timer)
-          socket.terminate()
-          resolve(res.statusCode ?? 0)
-        })
-        socket.once("error", () => {
-          // unexpected-response 后底层 socket 被销毁也会触发 error，忽略
-        })
+    const status = await new Promise<number>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error("upgrade 未返回 unexpected-response")), 3000)
+      const socket = new WebSocket(`ws://127.0.0.1:${port}/nope`)
+      socket.once("unexpected-response", (_req, res) => {
+        clearTimeout(timer)
+        socket.terminate()
+        resolve(res.statusCode ?? 0)
       })
-      expect(status).toBe(401)
-    }
+      socket.once("error", () => {
+        // unexpected-response 后底层 socket 被销毁也会触发 error，忽略
+      })
+    })
+    expect(status).toBe(404)
   })
 
-  it("hands authenticated connections to PiServer after upgrade", async () => {
-    const base = await startGateway()
+  it("hands connections to PiServer after upgrade", async () => {
+    await startGateway()
     const port = gateway!.getPort()
-    const { credential } = (await (
-      await request(base, "/api/v1/bootstrap", { secret: "test-secret" })
-    ).json()) as { credential: string }
-
-    const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi?credential=${credential}`)
+    const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`)
     const result = await new Promise<{ message: unknown; closed: boolean }>((resolve, reject) => {
       const decoder = new ServerMessageDecoder()
       socket.on("message", (data) => {
-        // 发送一个长度=1、载荷非法 CBOR 的帧：PiServer 应回 hello_error 并关闭
         const messages = decoder.push(data as Buffer)
         for (const message of messages) {
           if (message.type === "hello_error") {

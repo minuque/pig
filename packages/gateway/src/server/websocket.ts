@@ -3,23 +3,18 @@ import type { Duplex } from "node:stream"
 import { DEFAULT_MAX_FRAME_LENGTH } from "@earendil-works/pi-protocol"
 import type { PiServerListener } from "@earendil-works/pi-server"
 import { WebSocket, WebSocketServer, type RawData } from "ws"
-import type { BootstrapAuth } from "../auth/bootstrap.js"
 
 // pi-server 未从入口导出 connection 类型，从 PiServerListener 签名反推
-/** 已授权的有序字节连接（认证完成后的连接）。 */
 type ByteConnection = Parameters<Parameters<PiServerListener["start"]>[0]>[0]
-/** 认证完成后把连接交给 PiServer 的接收器。 */
 type ByteConnectionAcceptor = Parameters<PiServerListener["start"]>[0]
 type ByteConnectionHandler = ReturnType<ByteConnectionAcceptor>
 
-/** Host WebSocket 路径：认证经查询参数传递（浏览器无法自定义 header）。 */
 // 与 web 端 apps/web/src/client/transport.ts 的 WEBSOCKET_PATH 必须一致。
 const WEBSOCKET_PATH = "/api/v1/pi"
 
 export interface WebSocketListenerOptions {
   /** 承载升级的 HTTP server（只绑定 127.0.0.1）。 */
   server: Server
-  auth: BootstrapAuth
   /** 单帧上限：同时作为 ws 接收 payload 上限，需与 PiServer maxFrameLength 一致。 */
   maxFrameLength?: number
   /** 每连接待发送积压上限：慢客户端超限时断开。 */
@@ -30,12 +25,9 @@ export interface WebSocketListenerOptions {
 const DEFAULT_MAX_PENDING_BYTES = 16 * 1024 * 1024
 const GRACEFUL_CLOSE_TIMEOUT_MS = 5_000
 
-/**
- * PiServerListener 的 WebSocket 实现：升级前完成 credential 认证，
- * 认证通过后把连接交给 PiServer（ByteConnectionAcceptor）。
- */
+/** PiServerListener 的 WebSocket 实现：路径匹配后把连接交给 PiServer。 */
 export function createWebSocketListener(options: WebSocketListenerOptions): PiServerListener {
-  const { server, auth } = options
+  const { server } = options
   const maxFrameLength = options.maxFrameLength ?? DEFAULT_MAX_FRAME_LENGTH
   const maxPendingBytes = options.maxPendingBytes ?? DEFAULT_MAX_PENDING_BYTES
   const onError = options.onError
@@ -50,9 +42,8 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
 
   const onUpgrade = (req: IncomingMessage, socket: Duplex, head: Buffer) => {
     const url = new URL(req.url ?? "/", "http://127.0.0.1")
-    const credential = url.searchParams.get("credential") ?? undefined
-    if (url.pathname !== WEBSOCKET_PATH || !auth.verify(credential)) {
-      socket.write("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n")
+    if (url.pathname !== WEBSOCKET_PATH) {
+      socket.write("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n")
       socket.destroy()
       return
     }

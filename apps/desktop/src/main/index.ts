@@ -1,10 +1,9 @@
-import { randomUUID } from "node:crypto"
 import { access } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 import type { ChildProcess } from "node:child_process"
 import { app, dialog, Menu, type BrowserWindow } from "electron"
 
-import { VITE_DEV_ORIGIN, bootstrapAppUrl, gatewayOrigin, isDesktopDev } from "./urls.js"
+import { VITE_DEV_ORIGIN, appUrl, gatewayOrigin, isDesktopDev } from "./urls.js"
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
@@ -16,12 +15,7 @@ type GatewayInstance = {
 }
 
 type GatewayModule = {
-  default: new (options: {
-    bootstrapSecret: string
-    bootstrapTtlMs: number
-    platformPort: DirectoryPort
-    webRoot?: string
-  }) => GatewayInstance
+  default: new (options: { platformPort: DirectoryPort; webRoot?: string }) => GatewayInstance
   canonicalizePath: (path: string) => string
 }
 
@@ -68,7 +62,6 @@ app.on("before-quit", (event) => {
 void app.whenReady().then(async () => {
   Menu.setApplicationMenu(null)
   try {
-    const secret = randomUUID()
     const isDev = isDesktopDev()
     const isPackaged = app.isPackaged
     const gatewayMod = await loadGatewayModule(isPackaged)
@@ -91,8 +84,6 @@ void app.whenReady().then(async () => {
     }
 
     gateway = new gatewayMod.default({
-      bootstrapSecret: secret,
-      bootstrapTtlMs: Number.POSITIVE_INFINITY,
       platformPort: createElectronDirectoryPort(
         () => mainWindow,
         (parent, options) =>
@@ -111,7 +102,7 @@ void app.whenReady().then(async () => {
     mainWindow = createMainWindow(preloadPath)
 
     await mainWindow.loadURL(
-      bootstrapAppUrl(isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port), secret, process.platform),
+      appUrl(isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port), process.platform),
     )
   } catch (error) {
     dialog.showErrorBox("无法启动", error instanceof Error ? error.message : String(error))

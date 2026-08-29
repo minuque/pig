@@ -8,11 +8,10 @@ import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
 import { PiClient } from "@earendil-works/pi-client"
 import type { ConnectionState, Unsubscribe } from "@earendil-works/pi-client"
 import type { ServerSnapshot } from "@earendil-works/pi-protocol"
-import { restoreCredential } from "@client/bootstrap.js"
 import { createWebSocketByteTransportFactory, webSocketUrl } from "@client/transport.js"
 
 export interface PiClientConnectionOptions {
-  /** 覆盖默认的本机 WebSocket URL（含认证）。 */
+  /** 覆盖默认的本机 WebSocket URL。 */
   url?: string
   maxFrameLength?: number
 }
@@ -55,7 +54,7 @@ export function usePiClient() {
 
     const next = new PiClient({
       transportFactory: createWebSocketByteTransportFactory({
-        url: options.url ?? webSocketUrl(restoreCredential()),
+        url: options.url ?? webSocketUrl(),
       }),
       ...(options.maxFrameLength !== undefined ? { maxFrameLength: options.maxFrameLength } : {}),
       onListenerError: (error) => {

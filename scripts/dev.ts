@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto"
 import { spawn } from "child_process"
 
 import Gateway from "../packages/gateway/src/index.js"
@@ -31,20 +30,15 @@ if (process.env.MSYSTEM && !process.env[WRAPPED] && process.stdin.isTTY) {
 }
 
 async function main() {
-  const bootstrapSecret = randomUUID()
-  // 开发模式不让 Vite 冷启动把 secret 有效期耗光；同一链接可被多个浏览器重复兑换。
-  const gateway = new Gateway({ bootstrapSecret, bootstrapTtlMs: Number.POSITIVE_INFINITY })
+  const gateway = new Gateway()
   const port = await gateway.start()
-  console.info(
-    `[dev] 启动链接：http://127.0.0.1:5173/#bootstrap=${encodeURIComponent(bootstrapSecret)}`,
-  )
+  console.info(`[dev] http://127.0.0.1:5173`)
   const pnpm = process.env.npm_execpath
   if (!pnpm) throw new Error("pnpm executable not found")
   const web = spawn(process.execPath, [pnpm, "--filter", "@pig/web", "dev"], {
     env: {
       ...process.env,
       GATEWAY_TARGET: `http://127.0.0.1:${port}`,
-      BOOTSTRAP_SECRET: bootstrapSecret,
     },
     stdio: "inherit",
     // 非 Windows 用独立进程组,便于整树终止(见 killTree)

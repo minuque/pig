@@ -17,12 +17,9 @@ describe("startup sequence", () => {
     replace.mockClear()
   })
 
-  it("runs bootstrap, connect, then initialize without closing the overlay", async () => {
+  it("runs connect then initialize without closing the overlay", async () => {
     const order: string[] = []
     const { start, ready, visible } = useStartupSequence({
-      bootstrap: async () => {
-        order.push("bootstrap")
-      },
       connect: async () => {
         order.push("connect")
       },
@@ -32,7 +29,7 @@ describe("startup sequence", () => {
       connectTimeoutMs: 0,
     })
     await start()
-    expect(order).toEqual(["bootstrap", "connect", "initialize"])
+    expect(order).toEqual(["connect", "initialize"])
     expect(ready.value).toBe(true)
     expect(visible.value).toBe(true)
     expect(replace).not.toHaveBeenCalled()
@@ -41,7 +38,6 @@ describe("startup sequence", () => {
   it("leaves the error route after a successful boot", async () => {
     currentRoute.value = { name: "error" }
     const { start } = useStartupSequence({
-      bootstrap: async () => undefined,
       connect: async () => undefined,
       initialize: async () => undefined,
       connectTimeoutMs: 0,
@@ -52,9 +48,8 @@ describe("startup sequence", () => {
 
   it("opens /error without tearing down the overlay when boot fails", async () => {
     const { start, visible, ready, failed } = useStartupSequence({
-      bootstrap: async () => undefined,
       connect: async () => {
-        throw new Error("凭证无效")
+        throw new Error("连接失败")
       },
       initialize: async () => undefined,
       connectTimeoutMs: 0,
@@ -69,7 +64,6 @@ describe("startup sequence", () => {
 
   it("treats a hung connect as a startup error", async () => {
     const { start, failed, visible } = useStartupSequence({
-      bootstrap: async () => undefined,
       connect: () => new Promise(() => {}),
       initialize: async () => undefined,
       connectTimeoutMs: 20,

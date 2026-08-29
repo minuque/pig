@@ -14,10 +14,9 @@ test("Chromium production SPA 关键旅程", async ({ page, gateway }) => {
     { workspaceId: gateway.workspaceId },
   )
 
-  await page.goto(gateway.bootstrapUrl)
+  await page.goto(gateway.origin)
   const sessionList = page.getByRole("navigation", { name: "会话列表" })
   await expect(sessionList).toBeVisible({ timeout: 30_000 })
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("pig.credential"))).toBeTruthy()
   await expect(page.getByRole("status").filter({ hasText: "正在连接…" })).toHaveCount(0)
   await checkpoint(page, "01-bootstrap")
 

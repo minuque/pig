@@ -1,7 +1,5 @@
-import { randomUUID } from "node:crypto"
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
 import { PiServer } from "@earendil-works/pi-server"
-import { BootstrapAuth } from "../auth/bootstrap.js"
 import { PiHostService } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
 import { handlePlatformRequest } from "./platform.js"
@@ -10,8 +8,6 @@ import { serveWebFile } from "./static-files.js"
 import { createWebSocketListener } from "./websocket.js"
 
 export interface GatewayOptions {
-  bootstrapSecret?: string
-  bootstrapTtlMs?: number
   webRoot?: string
   sessionDir?: string
   cwd?: string
@@ -24,12 +20,11 @@ export interface GatewayOptions {
 }
 
 /**
- * Thin Host：本地 HTTP 壳（health / 静态 SPA / bootstrap / 目录选择）
- * + 认证过的 WebSocket listener，连接直接交给官方 PiServer + PiHostService。
+ * Thin Host：本地 HTTP 壳（health / 静态 SPA / 目录选择）
+ * + 只绑 127.0.0.1 的 WebSocket listener，连接直接交给官方 PiServer + PiHostService。
  */
 export class Gateway {
   private readonly server = createServer(this.handleRequest.bind(this))
-  private readonly auth: BootstrapAuth
   private readonly hostService: PiHostService
   private readonly piServer: PiServer
   private readonly webRoot: string | undefined
@@ -38,10 +33,6 @@ export class Gateway {
   private port = 0
 
   constructor(options: GatewayOptions = {}) {
-    this.auth = new BootstrapAuth(
-      options.bootstrapSecret ?? randomUUID(),
-      options.bootstrapTtlMs ?? 60_000,
-    )
     this.webRoot = options.webRoot
     this.listenPort = options.port ?? 0
     this.platformPort =
@@ -55,7 +46,6 @@ export class Gateway {
       listeners: [
         createWebSocketListener({
           server: this.server,
-          auth: this.auth,
           ...(options.maxFrameLength !== undefined
             ? { maxFrameLength: options.maxFrameLength }
             : {}),
@@ -86,18 +76,6 @@ export class Gateway {
     return parsed as Record<string, unknown>
   }
 
-  private credential(req: IncomingMessage): string | undefined {
-    const header = req.headers.authorization
-    return header?.startsWith("Bearer ") ? header.slice(7) : undefined
-  }
-
-  /** 校验 Bearer 凭证；失败时写 401 响应并返回 false。 */
-  private requireAuth(req: IncomingMessage, res: ServerResponse): boolean {
-    if (this.auth.verify(this.credential(req))) return true
-    this.send(res, 401, { code: "UNAUTHENTICATED" })
-    return false
-  }
-
   private async handleRequest(req: IncomingMessage, res: ServerResponse) {
     const url = new URL(req.url ?? "/", "http://127.0.0.1")
     if (url.pathname === "/health" && req.method === "GET")
@@ -109,19 +87,8 @@ export class Gateway {
       (await serveWebFile(this.webRoot, url.pathname, res))
     )
       return
-    if (url.pathname === "/api/v1/bootstrap" && req.method === "POST") {
-      try {
-        const { secret } = await this.body(req)
-        const credential = typeof secret === "string" ? this.auth.exchange(secret) : undefined
-        if (!credential) return this.send(res, 401, { code: "INVALID_BOOTSTRAP" })
-        return this.send(res, 201, { credential })
-      } catch {
-        return this.send(res, 400, { code: "INVALID_REQUEST" })
-      }
-    }
     if (url.pathname.startsWith("/api/v1/platform/")) {
       const handled = await handlePlatformRequest(req, res, url, {
-        requireAuth: this.requireAuth.bind(this),
         send: this.send.bind(this),
         body: this.body.bind(this),
         hostService: this.hostService,

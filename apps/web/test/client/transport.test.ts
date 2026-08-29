@@ -65,10 +65,8 @@ async function openTransport(options: Partial<WebSocketTransportOptions> = {}) {
 }
 
 describe("webSocketUrl", () => {
-  it("用显式 base 组装路径并带上 credential", () => {
-    expect(webSocketUrl("tok", "http://127.0.0.1:5173/")).toBe(
-      "ws://127.0.0.1:5173/api/v1/pi?credential=tok",
-    )
+  it("用显式 base 组装路径", () => {
+    expect(webSocketUrl("http://127.0.0.1:5173/")).toBe("ws://127.0.0.1:5173/api/v1/pi")
   })
 })
 

@@ -9,7 +9,6 @@ import type { DirectoryPort } from "../packages/gateway/src/directory.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const webRoot = join(root, "apps/web/dist")
-const BOOTSTRAP_SECRET = "e2e-bootstrap"
 
 /** 与 web canonicalizeWorkspacePath 对齐，供 localStorage 种子。 */
 export function canonicalizeWorkspacePath(path: string): string {
@@ -21,7 +20,6 @@ export function canonicalizeWorkspacePath(path: string): string {
 
 export interface E2eGateway {
   readonly origin: string
-  readonly bootstrapUrl: string
   readonly workspaceDir: string
   readonly workspaceId: string
 }
@@ -47,8 +45,6 @@ export const test = base.extend<TestFixtures>({
         },
       }
       const gateway = new Gateway({
-        bootstrapSecret: BOOTSTRAP_SECRET,
-        bootstrapTtlMs: Number.POSITIVE_INFINITY,
         webRoot,
         sessionDir,
         cwd: workspaceDir,
@@ -60,7 +56,6 @@ export const test = base.extend<TestFixtures>({
       try {
         await use({
           origin,
-          bootstrapUrl: `${origin}/#bootstrap=${encodeURIComponent(BOOTSTRAP_SECRET)}`,
           workspaceDir,
           workspaceId,
         })

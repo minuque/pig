@@ -1,13 +1,11 @@
 import { readonly, shallowRef } from "vue"
 import { useRouter } from "vue-router"
-import { bootstrapFromUrl } from "@client/bootstrap.js"
 import { errorMessage } from "@client/http.js"
 import { setStartupError } from "@features/startup/hooks/use-startup-error.js"
 
 export interface StartupSequenceOptions {
   connect: () => Promise<unknown>
   initialize: () => Promise<unknown>
-  bootstrap?: () => Promise<void>
   /** 连接网关超时，超时视为启动失败并进 `/error`。0 表示不等待超时。 */
   connectTimeoutMs?: number
 }
@@ -36,7 +34,7 @@ function connectWithTimeout(connect: () => Promise<unknown>, ms: number): Promis
 }
 
 /**
- * 启动序列：bootstrap → connect → initialize，与遮罩动画并行。
+ * 启动序列：connect → initialize，与遮罩动画并行。
  * 失败只写入错误并进 `/error`，不打断 Logo 离场。
  */
 export function useStartupSequence(options: StartupSequenceOptions) {
@@ -57,7 +55,6 @@ export function useStartupSequence(options: StartupSequenceOptions) {
 
   async function start() {
     try {
-      await (options.bootstrap ?? bootstrapFromUrl)()
       await connectWithTimeout(
         options.connect,
         options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS,

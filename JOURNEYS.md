@@ -21,7 +21,7 @@ flowchart TB
   UI --> HTTP
   RS --> PC
   PC -->|WebSocket| GW
-  HTTP -->|Bearer| GW
+  HTTP --> GW
   GW --> PS
   PS --> SDK
 ```
@@ -32,9 +32,7 @@ e2e 对应 `01-bootstrap` → `02-session-inbox`。
 
 ```mermaid
 flowchart TB
-  Hash["#bootstrap secret"] --> Boot["POST /api/v1/bootstrap"]
-  Boot --> Cred["localStorage pig.credential"]
-  Cred --> WS["PiClient.connect WebSocket"]
+  Open["打开本机页"] --> WS["PiClient.connect WebSocket"]
   WS --> Snap["ServerSnapshot: sessions + models"]
   Snap --> Init["按路由 openSession"]
   Init --> Gate{"成功?"}
@@ -42,7 +40,7 @@ flowchart TB
   Gate -->|否| Err["/error"]
 ```
 
-启动门和 Logo 动画并行。超时 8s 或兑换失败进 `/error`。已有凭证时过期 hash 会被清掉，沿用 localStorage。
+启动门和 Logo 动画并行。超时 8s 进 `/error`。Gateway 只绑 127.0.0.1，不做启动认证。
 
 ## 选工作目录
 

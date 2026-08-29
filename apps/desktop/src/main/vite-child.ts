@@ -52,10 +52,8 @@ export function spawnVite(env: { GATEWAY_TARGET: string }): ChildProcess {
   const node = nodeExecutable()
   const pnpm = pnpmExecutable()
 
-  // 不传 BOOTSTRAP_SECRET：桌面壳自己走 Gateway 授权，避免注入到 Vite define
   const childEnv: NodeJS.ProcessEnv = { ...process.env }
   childEnv.GATEWAY_TARGET = env.GATEWAY_TARGET
-  delete childEnv.BOOTSTRAP_SECRET
 
   const windows = process.platform === "win32"
   const child = spawn(node, [pnpm, "--filter", "@pig/web", "dev"], {

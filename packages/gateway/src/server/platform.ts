@@ -5,14 +5,13 @@ import { isContextPreviewKey } from "../pi/context-usage.js"
 import type { PiHostService } from "../pi/service.js"
 
 export type PlatformRequestDeps = {
-  requireAuth(req: IncomingMessage, res: ServerResponse): boolean
   send(res: ServerResponse, status: number, body?: unknown): void
   body(req: IncomingMessage): Promise<Record<string, unknown>>
   hostService: PiHostService
   platformPort: DirectoryPort
 }
 
-/** 平台 HTTP：目录选择、会话卡片、上下文用量、重命名与删除。true=已处理（含 401/400/404/500）。 */
+/** 平台 HTTP：目录选择、会话卡片、上下文用量、重命名与删除。true=已处理（含 400/404/500）。 */
 export async function handlePlatformRequest(
   req: IncomingMessage,
   res: ServerResponse,
@@ -24,11 +23,11 @@ export async function handlePlatformRequest(
     return true
   }
   if (url.pathname === "/api/v1/platform/session-cards" && req.method === "GET") {
-    await handleSessionCards(req, res, deps)
+    await handleSessionCards(res, deps)
     return true
   }
   if (url.pathname === "/api/v1/platform/context-usage" && req.method === "GET") {
-    await handleContextUsage(req, res, url, deps)
+    await handleContextUsage(res, url, deps)
     return true
   }
   if (url.pathname === "/api/v1/platform/rename-session" && req.method === "POST") {
@@ -47,8 +46,7 @@ async function handleSelectDirectory(
   res: ServerResponse,
   deps: PlatformRequestDeps,
 ) {
-  const { requireAuth, send, body, platformPort } = deps
-  if (!requireAuth(req, res)) return
+  const { send, body, platformPort } = deps
   try {
     const payload = await body(req).catch((): Record<string, unknown> => ({}))
     const input = typeof payload.path === "string" ? payload.path : undefined
@@ -66,13 +64,8 @@ async function handleSelectDirectory(
   }
 }
 
-async function handleSessionCards(
-  req: IncomingMessage,
-  res: ServerResponse,
-  deps: PlatformRequestDeps,
-) {
-  const { requireAuth, send, hostService } = deps
-  if (!requireAuth(req, res)) return
+async function handleSessionCards(res: ServerResponse, deps: PlatformRequestDeps) {
+  const { send, hostService } = deps
   try {
     const cards = await hostService.listSessionCards()
     send(res, 200, { cards })
@@ -82,14 +75,8 @@ async function handleSessionCards(
   }
 }
 
-async function handleContextUsage(
-  req: IncomingMessage,
-  res: ServerResponse,
-  url: URL,
-  deps: PlatformRequestDeps,
-) {
-  const { requireAuth, send, hostService } = deps
-  if (!requireAuth(req, res)) return
+async function handleContextUsage(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
+  const { send, hostService } = deps
   try {
     const sessionId = url.searchParams.get("sessionId") ?? ""
     if (!sessionId) {
@@ -148,8 +135,7 @@ async function handleRenameSession(
   res: ServerResponse,
   deps: PlatformRequestDeps,
 ) {
-  const { requireAuth, send, hostService } = deps
-  if (!requireAuth(req, res)) return
+  const { send, hostService } = deps
   const payload = await readObjectBody(req, res, deps)
   if (!payload) return
   const id = typeof payload.id === "string" ? payload.id : ""
@@ -171,8 +157,7 @@ async function handleDeleteSession(
   res: ServerResponse,
   deps: PlatformRequestDeps,
 ) {
-  const { requireAuth, send, hostService } = deps
-  if (!requireAuth(req, res)) return
+  const { send, hostService } = deps
   const payload = await readObjectBody(req, res, deps)
   if (!payload) return
   const id = typeof payload.id === "string" ? payload.id : ""

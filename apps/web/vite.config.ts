@@ -6,11 +6,8 @@ import { VitePWA } from "vite-plugin-pwa"
 import vueDevTools from "vite-plugin-vue-devtools"
 
 const gatewayTarget = process.env.GATEWAY_TARGET
-const bootstrapSecret = process.env.BOOTSTRAP_SECRET
 // 给客户端：Pi WebSocket 直连 Gateway，不经 Vite 的 WS 代理
 if (gatewayTarget) process.env.VITE_GATEWAY_TARGET = gatewayTarget
-// dev 下暴露 bootstrap secret，无凭证访问时自动跳转启动链接完成授权
-if (bootstrapSecret) process.env.VITE_BOOTSTRAP_SECRET = bootstrapSecret
 
 export default defineConfig({
   plugins: [
@@ -69,8 +66,7 @@ export default defineConfig({
     open: false,
     ...(gatewayTarget
       ? {
-          // 只反代 HTTP。ws:true 时 Gateway 对未授权 upgrade 回 401，
-          // Vite/http-proxy 会当普通 HTTP 回写，Windows 上变成 write ECONNABORTED。
+          // 只反代 HTTP。WS 直连 Gateway，避免 Vite 代理把 upgrade 当普通 HTTP 回写。
           proxy: { "/api": { target: gatewayTarget, changeOrigin: true } },
         }
       : {}),
