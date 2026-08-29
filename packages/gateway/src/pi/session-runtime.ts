@@ -14,6 +14,7 @@ import type {
 } from "@earendil-works/pi-server"
 import { canonicalizePath } from "../directory.js"
 import { estimateContextUsage, type ContextPreviewKey } from "./context-usage.js"
+import { firstUserMessageText, sessionListName } from "./session-label.js"
 import { TranscriptProjection } from "./transcript.js"
 
 /**
@@ -65,9 +66,13 @@ export class PiHostSession implements PiSessionRuntime {
     const entries = manager.getBranch()
     const createdAt = this.sessionCreatedAt()
     const steering = session.getSteeringMessages()
+    const listName = sessionListName({
+      name: session.sessionName,
+      firstMessage: firstUserMessageText(entries),
+    })
     return {
       id: session.sessionId,
-      ...(session.sessionName === undefined ? {} : { name: session.sessionName }),
+      ...(listName === undefined ? {} : { name: listName }),
       cwd: canonicalizePath(manager.getCwd()),
       createdAt,
       updatedAt: this.sessionUpdatedAt(entries, createdAt),

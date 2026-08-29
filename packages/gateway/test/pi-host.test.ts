@@ -365,7 +365,7 @@ describe("PiHostService", () => {
     ])
 
     const reopened = await service.openSession("sess-1")
-    expect(await reopened.snapshot()).toMatchObject({ id: "sess-1" })
+    expect(await reopened.snapshot()).toMatchObject({ id: "sess-1", name: "hi" })
   })
 
   it("只读取当前已附加 session 的占用估算，并在释放后清理", async () => {
