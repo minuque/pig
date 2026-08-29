@@ -23,7 +23,7 @@
           >
             <span class="workbench-hero-option-label">{{ workspaceName(item) }}</span>
           </DropdownMenuItem>
-          <div v-if="workspaces.length" class="workbench-hero-menu-rule" role="separator"></div>
+          <DropdownMenuSeparator v-if="workspaces.length" />
           <DropdownMenuItem :disabled="adding" @select="emit('add')">
             <FolderPlus :size="14" aria-hidden="true" />
             添加本地目录
@@ -44,6 +44,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 
@@ -133,10 +134,5 @@ const label = computed(() =>
 }
 .workbench-hero-option-active {
   background: color-mix(in srgb, var(--ink) 8%, transparent);
-}
-.workbench-hero-menu-rule {
-  height: 1px;
-  margin: var(--spacing-xxs) 0;
-  background: var(--hairline);
 }
 </style>

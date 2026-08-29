@@ -1,4 +1,7 @@
 export { default as DropdownMenu } from "@components/ui/dropdown-menu/DropdownMenu.vue"
 export { default as DropdownMenuContent } from "@components/ui/dropdown-menu/DropdownMenuContent.vue"
 export { default as DropdownMenuItem } from "@components/ui/dropdown-menu/DropdownMenuItem.vue"
+export { default as DropdownMenuLabel } from "@components/ui/dropdown-menu/DropdownMenuLabel.vue"
+export { default as DropdownMenuSeparator } from "@components/ui/dropdown-menu/DropdownMenuSeparator.vue"
+export { default as DropdownMenuShortcut } from "@components/ui/dropdown-menu/DropdownMenuShortcut.vue"
 export { default as DropdownMenuTrigger } from "@components/ui/dropdown-menu/DropdownMenuTrigger.vue"

@@ -69,32 +69,44 @@
       </ContextMenuContent>
     </ContextMenu>
 
-    <Dialog v-model:open="deleteOpen">
-      <DialogContent class="delete-session-dialog" aria-describedby="delete-session-description">
-        <DialogTitle>删除会话</DialogTitle>
-        <p id="delete-session-description" class="delete-description">
-          确定删除“{{ session.title }}”吗？此操作不可恢复。
-        </p>
-        <div class="delete-actions">
-          <Button type="button" variant="outline" @click="deleteOpen = false">取消</Button>
-          <Button type="button" variant="destructive" @click="confirmDelete">删除会话</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <AlertDialog v-model:open="deleteOpen">
+      <AlertDialogContent class="sm:max-w-[28rem]">
+        <AlertDialogHeader>
+          <AlertDialogTitle>删除会话</AlertDialogTitle>
+          <AlertDialogDescription>
+            确定删除“{{ session.title }}”吗？此操作不可恢复。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" @click="confirmDelete">
+            删除会话
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef } from "vue"
 import { Clock, Folder, Pencil, Trash2 } from "lucide-vue-next"
-import { Button } from "@components/ui/button/index.js"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@components/ui/alert-dialog/index.js"
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
-import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import { formatRelativeTime } from "@features/session-nav/format.js"
 import type { SidebarGrouping, SidebarSession } from "@features/session-nav/sidebar.js"
@@ -207,17 +219,6 @@ function confirmDelete() {
 }
 .session-card.active {
   background: color-mix(in srgb, var(--ink) 8%, transparent);
-}
-.delete-description {
-  margin: 0;
-  color: var(--ink-muted);
-  font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
-}
-.delete-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-xs);
 }
 .workspace-mark {
   flex: none;
@@ -379,12 +380,5 @@ function confirmDelete() {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   user-select: text;
-}
-</style>
-
-<style>
-.delete-session-dialog[data-slot="dialog-content"] {
-  width: min(28rem, calc(100vw - 2rem));
-  max-width: min(28rem, calc(100vw - 2rem));
 }
 </style>

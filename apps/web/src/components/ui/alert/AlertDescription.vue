@@ -12,7 +12,7 @@ const props = withDefaults(
 <template>
   <div
     data-slot="alert-description"
-    class="text-muted-foreground col-start-2 text-sm [&_p]:leading-relaxed"
+    class="min-w-0 text-muted-foreground text-body-sm [&_p]:leading-relaxed"
     :class="props.class"
   >
     <slot />

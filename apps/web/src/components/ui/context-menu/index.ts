@@ -1,4 +1,7 @@
 export { default as ContextMenu } from "@components/ui/context-menu/ContextMenu.vue"
 export { default as ContextMenuContent } from "@components/ui/context-menu/ContextMenuContent.vue"
 export { default as ContextMenuItem } from "@components/ui/context-menu/ContextMenuItem.vue"
+export { default as ContextMenuLabel } from "@components/ui/context-menu/ContextMenuLabel.vue"
+export { default as ContextMenuSeparator } from "@components/ui/context-menu/ContextMenuSeparator.vue"
+export { default as ContextMenuShortcut } from "@components/ui/context-menu/ContextMenuShortcut.vue"
 export { default as ContextMenuTrigger } from "@components/ui/context-menu/ContextMenuTrigger.vue"

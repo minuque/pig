@@ -17,7 +17,7 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogTitl
   <DialogTitle
     data-slot="dialog-title"
     v-bind="forwardedProps"
-    class="text-lg leading-none font-semibold"
+    class="text-title leading-none font-semibold"
     :class="props.class"
   >
     <slot />

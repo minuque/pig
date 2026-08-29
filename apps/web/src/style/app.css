@@ -48,6 +48,7 @@
 
   /* Status — UI Guidelines §6; DESIGN.md carries status via sticker colors */
   --success: #1aae39; /* accent-green */
+  --info: #4176e6;
   --warning: #dd5b00; /* accent-orange */
   --danger: #eb5757; /* Notion app red, for destructive actions */
 
@@ -136,6 +137,7 @@
 
   /* Overlays & z-index */
   --scrim: rgba(0, 0, 0, 0.4);
+  --scrim-blur: 4px;
   --z-resizer: 1;
   --z-drawer: 10;
   --z-modal: 20;
@@ -196,6 +198,7 @@
   --accent-orange: #ff8a3d;
   --accent-orange-deep: #d97706;
   --success: #33c35e;
+  --info: #679efe;
   --warning: #ff8a3d;
   --danger: #ff6b6b;
   --scrim: rgba(0, 0, 0, 0.55);
@@ -285,6 +288,7 @@
   --color-accent-orange-deep: var(--accent-orange-deep);
   --color-accent-green: var(--accent-green);
   --color-success: var(--success);
+  --color-info: var(--info);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-ring: var(--ink-muted);
@@ -476,8 +480,13 @@ small,
 
 /* DialogContent 定位：top-1/2 left-1/2 + transform 居中（Tailwind translate-* 走 translate 属性，
    与 keyframes 的 transform 叠加会双重偏移，故居中基值放这里，入场动画只负责 6px 起跳） */
-[data-slot="dialog-content"] {
+:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
   transform: translate(-50%, -50%);
+}
+@media (max-width: 639px) {
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+    transform: translateX(-50%);
+  }
 }
 [data-slot="dialog-close"] {
   padding: var(--spacing-xxs);
@@ -546,7 +555,7 @@ small,
   }
 }
 @media (pointer: coarse) {
-  [data-slot="dropdown-menu-item"] {
+  :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
     min-height: calc(var(--size-control) + var(--spacing-xxs));
   }
 }
@@ -615,9 +624,18 @@ html[data-pig-desktop-platform] .prompt .glass-shell::before {
   content: "";
 }
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  html[data-pig-desktop-platform] .prompt .glass-shell::before,
-  html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
+  html[data-pig-desktop-platform] .prompt .glass-shell::before {
     background: var(--glass-surface);
+  }
+  html[data-pig-desktop-platform]
+    :is(
+      [data-slot="dropdown-menu-content"],
+      [data-slot="context-menu-content"],
+      [data-slot="popover-content"],
+      [data-slot="dialog-content"],
+      [data-slot="alert-dialog-content"]
+    ) {
+    background: var(--surface);
   }
 }
 html[data-pig-desktop-platform] .prompt .glass-host {
@@ -635,7 +653,14 @@ html[data-pig-desktop-platform] .prompt .glass-host::after {
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent);
   content: "";
 }
-html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
+html[data-pig-desktop-platform]
+  :is(
+    [data-slot="dropdown-menu-content"],
+    [data-slot="context-menu-content"],
+    [data-slot="popover-content"],
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"]
+  ) {
   background: color-mix(
     in srgb,
     var(--surface) 18%,
@@ -645,14 +670,31 @@ html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
 }
+html[data-pig-desktop-platform]
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent),
+    var(--shadow-modal);
+}
 @media (prefers-reduced-transparency: reduce) {
+  :is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"]) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
   html[data-pig-desktop-platform] .prompt .glass-shell::before {
     background: var(--chat-input);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
-    background: var(--chat-input);
+  html[data-pig-desktop-platform]
+    :is(
+      [data-slot="dropdown-menu-content"],
+      [data-slot="context-menu-content"],
+      [data-slot="popover-content"],
+      [data-slot="dialog-content"],
+      [data-slot="alert-dialog-content"]
+    ) {
+    background: var(--surface);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }

@@ -3,9 +3,15 @@
     <div class="alert-toaster" role="region" aria-label="通知">
       <TransitionGroup name="alert-toaster" tag="div" class="alert-toaster-stack">
         <div v-for="item in noticeQueue" :key="item.id" class="alert-toaster-item">
-          <Alert class="pr-9">
-            <CircleAlert />
+          <Alert :variant="item.variant" class="alert-toaster-alert">
+            <component :is="noticeIcons[item.variant]" aria-hidden="true" />
+            <AlertTitle v-if="item.title">{{ item.title }}</AlertTitle>
             <AlertDescription>{{ item.message }}</AlertDescription>
+            <AlertAction v-if="item.action">
+              <button class="alert-toaster-action" type="button" @click="runAction(item)">
+                {{ item.action.label }}
+              </button>
+            </AlertAction>
           </Alert>
           <button
             class="alert-toaster-close"
@@ -13,7 +19,7 @@
             aria-label="关闭通知"
             @click="dismissNotice(item.id)"
           >
-            <X :size="12" aria-hidden="true" />
+            <X aria-hidden="true" />
           </button>
         </div>
       </TransitionGroup>
@@ -22,10 +28,29 @@
 </template>
 
 <script setup lang="ts">
-import { CircleAlert, X } from "lucide-vue-next"
+import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-vue-next"
 import Alert from "@components/ui/alert/Alert.vue"
+import AlertAction from "@components/ui/alert/AlertAction.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
-import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
+import AlertTitle from "@components/ui/alert/AlertTitle.vue"
+import {
+  dismissNotice,
+  noticeQueue,
+  type Notice,
+  type NoticeVariant,
+} from "@components/ui/alert/notify.js"
+
+const noticeIcons = {
+  error: CircleAlert,
+  info: Info,
+  success: CircleCheck,
+  warning: TriangleAlert,
+} satisfies Record<NoticeVariant, typeof CircleAlert>
+
+function runAction(item: Notice): void {
+  dismissNotice(item.id)
+  item.action?.onSelect()
+}
 </script>
 
 <style scoped>
@@ -48,24 +73,45 @@ import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
   position: relative;
   pointer-events: auto;
 }
+.alert-toaster-alert {
+  padding-right: var(--spacing-xl);
+  box-shadow: var(--shadow-elevated);
+}
+.alert-toaster-action {
+  min-height: 28px;
+  padding-inline: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  color: currentColor;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+}
+.alert-toaster-action:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
 .alert-toaster-close {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: -6px;
+  right: -6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
   padding: 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
+  border: var(--border-width) solid color-mix(in srgb, var(--ink) 10%, transparent);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
   color: var(--ink-muted);
-  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+.alert-toaster-close svg {
+  width: 12px;
+  height: 12px;
 }
 .alert-toaster-close:hover {
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--surface);
   color: var(--ink);
 }
 .alert-toaster-enter-active,
@@ -84,5 +130,11 @@ html[data-pig-desktop-platform] .alert-toaster {
 }
 html[data-pig-desktop-platform="win32"] .alert-toaster {
   right: calc(var(--size-windows-caption) + var(--spacing-xs));
+}
+@media (prefers-reduced-motion: reduce) {
+  .alert-toaster-enter-active,
+  .alert-toaster-leave-active {
+    transition: none;
+  }
 }
 </style>
