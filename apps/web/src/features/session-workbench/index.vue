@@ -19,7 +19,6 @@
       <!-- 3. 有 transcript：对话列 -->
       <template v-else-if="!sessionPending">
         <TranscriptView
-          ref="transcriptView"
           :session-id="sessionId"
           :transcript="transcript"
           :running="running"
@@ -27,21 +26,6 @@
           @thread-state="applyThreadState"
           @ready="onTranscriptReady"
         />
-        <div class="chat-input-bar">
-          <ChatInput
-            v-model:prompt="prompt"
-            v-model:preset="preset"
-            :catalog="catalog"
-            :running="running"
-            :aborting="aborting"
-            :error="sessionError"
-            :cwd="composerCwd"
-            :usage="contextUsage"
-            :session-id="sessionId"
-            @send="submitFromInput"
-            @abort="abortSession"
-          />
-        </div>
       </template>
     </div>
 
@@ -83,9 +67,8 @@ export function isSessionLoading(
 </script>
 
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, shallowRef, watch } from "vue"
 import { useRoute } from "vue-router"
-import ChatInput from "@features/chat-input/index.vue"
 import { useSession } from "@features/session-workbench/index.js"
 import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
 import SessionEmptyCanvas from "@features/session-workbench/components/SessionEmptyCanvas.vue"
@@ -100,19 +83,10 @@ const route = useRoute()
 const {
   sessionId,
   transcript,
-  composerCwd,
-  contextUsage,
   running,
   sessionPending,
-  aborting,
   clientState,
-  abortSession,
   applyThreadState,
-  prompt,
-  preset,
-  catalog,
-  sessionError,
-  submitText,
   connectionError,
   connected,
 } = useSession()
@@ -151,14 +125,6 @@ function onTranscriptReady() {
   streamReady.value = true
 }
 const threadState = computed(() => clientState.value?.threadState ?? null)
-
-const transcriptView = useTemplateRef<{
-  prepareForSubmit(): void
-}>("transcriptView")
-function submitFromInput(text: string) {
-  transcriptView.value?.prepareForSubmit()
-  return submitText(text)
-}
 </script>
 
 <style scoped>
@@ -186,15 +152,5 @@ function submitFromInput(text: string) {
   flex: 1;
   display: flex;
   flex-direction: column;
-}
-.chat-input-bar {
-  flex-shrink: 0;
-  padding: 0 var(--spacing-md) 10px;
-  background: var(--surface);
-}
-@media (max-width: 900px) {
-  .chat-input-bar {
-    padding-inline: var(--spacing-sm);
-  }
 }
 </style>

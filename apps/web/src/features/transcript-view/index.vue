@@ -65,6 +65,8 @@
       />
     </section>
 
+    <TranscriptComposer :session-id="sessionId" :running="running" @prepare="scrollToLatest" />
+
     <div v-show="showScrollToLatest" class="session-floating-controls">
       <Button
         class="floating-control scroll-latest-control"
@@ -89,6 +91,7 @@ import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
 import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
+import TranscriptComposer from "@features/transcript-view/components/TranscriptComposer.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import WorkRow from "@features/transcript-view/components/WorkRow.vue"
@@ -303,8 +306,6 @@ function scrollToLatest() {
   tick()
 }
 
-defineExpose({ prepareForSubmit: scrollToLatest })
-
 function persistThreadState(expectedSessionId = props.sessionId) {
   const captured = timeline.value?.captureThreadState()
   if (captured?.threadKey === expectedSessionId) emit("thread-state", captured)
@@ -384,6 +385,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   animation: enter-blur var(--duration-slow) var(--ease-out);
+  --composer-overlay: 6rem;
 }
 @media (prefers-reduced-motion: reduce) {
   .transcript-viewport {
@@ -405,8 +407,8 @@ onBeforeUnmount(() => {
 .session-floating-controls {
   position: absolute;
   inset-inline: var(--spacing-md);
-  bottom: var(--spacing-sm);
-  z-index: 2;
+  bottom: calc(var(--composer-overlay) + var(--spacing-sm));
+  z-index: 3;
   max-width: var(--size-composer);
   margin-inline: auto;
   display: flex;
@@ -442,7 +444,7 @@ onBeforeUnmount(() => {
   min-width: 0;
   min-height: 0;
   padding-top: var(--spacing-lg);
-  padding-bottom: var(--spacing-lg);
+  padding-bottom: calc(var(--spacing-lg) + var(--composer-overlay));
   overscroll-behavior: contain;
 }
 .transcript::-webkit-scrollbar {
