@@ -55,6 +55,21 @@ export function isVisibleTranscriptItem(item: TranscriptItem): boolean {
   return true
 }
 
+/** 空失败助手句是自动重试残留，不进侧栏条数。 */
+export function isRetryErrorItem(item: TranscriptItem): boolean {
+  if (!isAssistantItem(item)) return false
+  if (item.status !== "error" && item.status !== "aborted") return false
+  return transcriptText(item).length === 0
+}
+
+export function conversationItemCount(items: readonly TranscriptItem[]): number {
+  let count = 0
+  for (const item of items) {
+    if (!isRetryErrorItem(item)) count += 1
+  }
+  return count
+}
+
 const PATH_CMD_KEYS = [
   "path",
   "file",

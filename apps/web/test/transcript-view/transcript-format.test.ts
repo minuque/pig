@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import type { ToolTranscriptItem, TranscriptItem } from "@earendil-works/pi-protocol"
 import {
+  conversationItemCount,
   isVisibleTranscriptItem,
   toolCallSummary,
   toolCallTitle,
@@ -68,6 +69,25 @@ describe("isVisibleTranscriptItem", () => {
         item({ role: "assistant", status: "complete", content: [{ type: "text", text: "答" }] }),
       ),
     ).toBe(true)
+  })
+
+  it("空失败助手句不计入侧栏条数", () => {
+    const user = item({ role: "user", content: [{ type: "text", text: "ping" }] })
+    const timeout = item({
+      id: "a1",
+      role: "assistant",
+      status: "error",
+      errorMessage: "Request timed out.",
+      content: [],
+    })
+    const retry = item({
+      id: "a2",
+      role: "assistant",
+      status: "error",
+      errorMessage: "Request timed out.",
+      content: [],
+    })
+    expect(conversationItemCount([user, timeout, retry])).toBe(1)
   })
 })
 

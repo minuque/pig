@@ -64,6 +64,11 @@ class FakeAgentSession {
   setThinkingLevel(level: string) {
     this.thinkingLevel = level
   }
+  setSessionName(name: string) {
+    this.sessionName = name
+    this.sessionManager.appendSessionInfo(name)
+    this.emit({ type: "session_info_changed", name })
+  }
   getSteeringMessages() {
     return this.steering
   }
@@ -339,6 +344,25 @@ describe("PiHostService", () => {
     expect(await service.listSessionCards()).toMatchObject([
       { id: "sess-1", messageCount: 1, model: { provider: "test", id: "test-model" } },
     ])
+    fake!.sessionManager.appendMessage(
+      assistantMessage({
+        stopReason: "error",
+        errorMessage: "Request timed out.",
+        content: [],
+        timestamp: 1100,
+      }),
+    )
+    fake!.sessionManager.appendMessage(
+      assistantMessage({
+        stopReason: "error",
+        errorMessage: "Request timed out.",
+        content: [],
+        timestamp: 1200,
+      }),
+    )
+    expect(await service.listSessionCards()).toMatchObject([
+      { id: "sess-1", messageCount: 1, model: { provider: "test", id: "test-model" } },
+    ])
 
     const reopened = await service.openSession("sess-1")
     expect(await reopened.snapshot()).toMatchObject({ id: "sess-1" })
@@ -414,8 +438,9 @@ describe("PiHostService", () => {
 
   it("renames via SessionManager and deletes the session file", async () => {
     const { service } = await makeService()
-    await service.createSession({ id: "sess-1" })
+    const runtime = await service.createSession({ id: "sess-1" })
     await service.renameSession("sess-1", "卸载插件")
+    expect((await runtime.snapshot()).name).toBe("卸载插件")
     expect(await service.listSessions()).toMatchObject([{ id: "sess-1", sessionName: "卸载插件" }])
     await service.deleteSession("sess-1")
     expect(await service.listSessions()).toEqual([])

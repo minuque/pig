@@ -65,6 +65,34 @@ describe("isMarkdownStreamReady", () => {
   })
 })
 
+describe("assistant error rows", () => {
+  it("连续空失败行合并为一条并带 errorMessage", () => {
+    const user = item({ role: "user", content: [{ type: "text", text: "ping" }] })
+    const first = item({
+      id: "e1",
+      role: "assistant",
+      status: "error",
+      errorMessage: "Request timed out.",
+      content: [],
+    })
+    const second = item({
+      id: "e2",
+      role: "assistant",
+      status: "error",
+      errorMessage: "Request timed out.",
+      content: [],
+    })
+    const rows = buildTimelineRows([user, first, second], false)
+    expect(rows).toHaveLength(2)
+    expect(rows[1]).toMatchObject({
+      role: "assistant",
+      error: true,
+      errorMessage: "Request timed out.",
+      retryCount: 2,
+    })
+  })
+})
+
 describe("thinking placeholder", () => {
   it("运行中在用户句后补思考占位，流式正文或进行中的工具不重复", () => {
     const user = item({ role: "user", content: [{ type: "text", text: "问" }] })

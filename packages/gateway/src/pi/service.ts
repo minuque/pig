@@ -15,7 +15,7 @@ import type {
 } from "@earendil-works/pi-server"
 import { canonicalizePath } from "../directory.js"
 import type { ContextPreviewKey, ContextUsageEstimate } from "./context-usage.js"
-import { modelFromBranch, type SessionCard } from "./session-card.js"
+import { conversationMessageCount, modelFromBranch, type SessionCard } from "./session-card.js"
 import { sessionListName } from "./session-label.js"
 import { PiHostSession } from "./session-runtime.js"
 
@@ -122,10 +122,16 @@ export class PiHostService implements PiServerService {
     }
   }
 
-  /** 通过 Pi SessionManager 追加 session_info，不另建一套命名状态。 */
+  /** 已打开的会话改 live 名；未打开的只追加 session_info。 */
   async renameSession(sessionId: string, name: string): Promise<void> {
     const trimmed = name.trim()
     if (!trimmed) throw new PiServerError("invalid_request", "会话名不能为空")
+    const live = this.activeSessions.get(sessionId)
+    if (live) {
+      live.setSessionName(trimmed)
+      this.sessionsCache = undefined
+      return
+    }
     const path = await this.findSessionPath(sessionId)
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     SessionManager.open(path).appendSessionInfo(trimmed)
@@ -208,14 +214,17 @@ export class PiHostService implements PiServerService {
 function cardsFromInfos(infos: readonly SessionInfo[]): SessionCard[] {
   return infos.map((info) => {
     let model: SessionCard["model"]
+    let messageCount = info.messageCount
     try {
-      model = modelFromBranch(SessionManager.open(info.path).getBranch())
+      const branch = SessionManager.open(info.path).getBranch()
+      model = modelFromBranch(branch)
+      messageCount = conversationMessageCount(branch)
     } catch {
       model = undefined
     }
     return {
       id: info.id,
-      messageCount: info.messageCount,
+      messageCount,
       ...(model ? { model } : {}),
     }
   })

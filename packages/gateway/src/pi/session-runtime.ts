@@ -138,6 +138,11 @@ export class PiHostSession implements PiSessionRuntime {
     })
   }
 
+  /** 改 live AgentSession 的显示名，避免 listMetadata 用空 snapshot.name 盖掉磁盘名。 */
+  setSessionName(name: string): void {
+    this.session.setSessionName(name)
+  }
+
   subscribe(listener: (event: PiSessionRuntimeEvent) => void): () => void {
     this.listeners.add(listener)
     return () => this.listeners.delete(listener)

@@ -32,6 +32,8 @@ export type AssistantRow = {
   streaming: boolean
   error: boolean
   aborted: boolean
+  errorMessage?: string
+  retryCount?: number
 }
 
 export type ToolCallView = {
@@ -94,7 +96,14 @@ function toUserRow(item: UserTranscriptItem): UserRow {
   }
 }
 
-function toAssistantRow(item: AssistantTranscriptItem): AssistantRow {
+function assistantErrorMessage(item: AssistantTranscriptItem): string | undefined {
+  if (!("errorMessage" in item)) return undefined
+  const value = item.errorMessage
+  return typeof value === "string" && value.length > 0 ? value : undefined
+}
+
+function toAssistantRow(item: AssistantTranscriptItem, retryCount = 1): AssistantRow {
+  const errorMessage = assistantErrorMessage(item)
   return {
     id: item.id,
     role: "assistant",
@@ -102,6 +111,8 @@ function toAssistantRow(item: AssistantTranscriptItem): AssistantRow {
     streaming: item.status === "streaming",
     error: item.status === "error",
     aborted: item.status === "aborted",
+    ...(errorMessage ? { errorMessage } : {}),
+    ...(retryCount > 1 ? { retryCount } : {}),
   }
 }
 
@@ -187,6 +198,7 @@ function emitClusters(
   let kinds: WorkKind[] = []
   let aborted = false
   let thinkAnchor: string | undefined
+  let errorRun: AssistantTranscriptItem[] = []
 
   const reset = () => {
     thinking = []
@@ -197,7 +209,15 @@ function emitClusters(
     thinkAnchor = undefined
   }
 
+  const flushErrors = () => {
+    const last = errorRun[errorRun.length - 1]
+    if (!last) return
+    rows.push(toAssistantRow(last, errorRun.length))
+    errorRun = []
+  }
+
   const flush = (allowThinkingOnly: boolean) => {
+    flushErrors()
     if (tools.length === 0 && thinking.length === 0) return
     if (tools.length === 0 && !allowThinkingOnly) return
     const id = tools[0] ? `work:${tools[0].id}` : `work:think:${thinkAnchor ?? "head"}`
@@ -216,6 +236,7 @@ function emitClusters(
 
   for (const item of rest) {
     if (isToolItem(item)) {
+      flushErrors()
       tools.push(toToolCallView(item))
       kinds.push(workKindOfTool(item.toolName))
       continue
@@ -224,6 +245,7 @@ function emitClusters(
     if (item.status === "aborted") aborted = true
     const blocks = assistantThinking(item)
     if (blocks.length > 0) {
+      flushErrors()
       thinking.push(blocks.join("\n\n"))
       kinds.push("thought")
       thinkAnchor ??= item.id
@@ -239,7 +261,7 @@ function emitClusters(
       tools.length === 0 &&
       thinking.length === 0
     ) {
-      rows.push(toAssistantRow(item))
+      errorRun.push(item)
     }
   }
   flush(mode === "fold" || orphanThinking)
@@ -338,6 +360,7 @@ export function estimateTranscriptRowHeight(item: TimelineRow): number {
   if (item.role === "user") {
     return Math.min(280, 56 + estimateWrappedLines(text, 36) * 22)
   }
+  if (!text && (item.error || item.aborted)) return item.errorMessage ? 56 : 36
   const height = 36 + estimateWrappedLines(text, 48) * 26
   return Math.min(960, Math.max(160, height))
 }

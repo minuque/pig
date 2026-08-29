@@ -8,8 +8,9 @@
       @render-final="emit('render-settled')"
     />
     <span v-if="item.error || item.aborted" class="status">
-      {{ item.error ? "出错" : "已中止" }}
+      {{ statusLabel }}
     </span>
+    <p v-if="item.errorMessage" class="error-detail">{{ item.errorMessage }}</p>
   </article>
 </template>
 
@@ -36,6 +37,12 @@ const emit = defineEmits<{
 
 const { isDark } = useColorScheme()
 const text = computed(() => props.item.text)
+const statusLabel = computed(() => {
+  const base = props.item.error ? "出错" : "已中止"
+  const retries = props.item.retryCount
+  if (retries && retries > 1) return `${base} · ${retries} 次`
+  return base
+})
 
 onBeforeMount(() => {
   if (text.value && !props.streaming) emit("render-pending")
@@ -100,5 +107,11 @@ const agentMarkdown = computed(() => {
   color: var(--danger);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
+}
+.error-detail {
+  margin: 6px 0 0;
+  color: var(--danger);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
 }
 </style>

@@ -5,6 +5,7 @@ import type { usePiClient } from "@client/pi-client.js"
 import type { SessionContext } from "@features/session-workbench/index.js"
 import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js"
 import { modelDisplayNames, sessionCardFoot } from "@features/session-nav/sidebar.js"
+import { conversationItemCount } from "@features/transcript-view/lib/transcript-format.js"
 
 export type NavContext = ReturnType<typeof createNav>
 export const navKey: InjectionKey<NavContext> = Symbol("nav")
@@ -30,7 +31,7 @@ function createNav(
       liveId && session.projection.value
         ? {
             sessionId: liveId,
-            messageCount: session.transcript.value.length,
+            messageCount: conversationItemCount(session.transcript.value),
             model: session.projection.value.model,
           }
         : undefined
