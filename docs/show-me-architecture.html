@@ -45,7 +45,7 @@
         z-index: 10;
         display: grid;
         grid-template-columns: minmax(220px, 1fr) auto;
-        gap: 12px 16px;
+        gap: 16px;
         align-items: center;
         padding: 16px 24px;
         border-bottom: 1px solid var(--hairline);
@@ -249,18 +249,7 @@
       }
       .step.is-upstream { border-color: color-mix(in srgb, var(--line, var(--primary)) 45%, var(--hairline)); }
       .step.is-downstream { border-color: color-mix(in srgb, var(--line, var(--primary)) 72%, var(--hairline)); }
-      .interaction-hint {
-        grid-column: 1 / -1;
-        min-height: 34px;
-        padding: 8px 11px;
-        border: 1px solid var(--hairline);
-        border-radius: 10px;
-        background: var(--well);
-        color: var(--ink-muted);
-        font-size: 12px;
-        line-height: 1.4;
-      }
-      .interaction-hint strong { color: var(--ink); font-weight: 600; }
+      .subtitle strong { color: var(--ink); font-weight: 600; }
       .card[data-tone="web"] { --tone: var(--primary); }
       .card[data-tone="host"] { --tone: var(--breeze); }
       .card[data-tone="pi"] { --tone: var(--dusk); }
@@ -405,7 +394,10 @@
     <header>
       <div>
         <h1>pig 当前架构</h1>
-        <p class="subtitle">Pi Agent GUI。pig 管界面与本机接入；Pi 管 Agent、Session 和模型运行时。</p>
+        <p class="subtitle">
+          Pi Agent GUI。pig 管界面与本机接入；Pi 管 Agent、Session 和模型运行时。
+          <span id="interaction-hint" aria-live="polite">点击卡片高亮关系节点并绘制连线；点击流程节点查看它的上下游。再次点击或按 Esc 清除。</span>
+        </p>
       </div>
       <nav class="tabs" role="tablist" aria-label="架构分类">
         <button type="button" role="tab" aria-selected="true" aria-controls="overview">整体架构</button>
@@ -413,7 +405,6 @@
         <button type="button" role="tab" aria-selected="false" aria-controls="gateway">Gateway 与 Pi</button>
         <button type="button" role="tab" aria-selected="false" aria-controls="flows">关键数据流</button>
       </nav>
-      <div class="interaction-hint" id="interaction-hint" aria-live="polite">点击卡片高亮关系节点并绘制连线；点击流程节点查看它的上下游。再次点击或按 Esc 清除。</div>
     </header>
 
     <main>
