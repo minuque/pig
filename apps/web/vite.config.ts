@@ -23,10 +23,10 @@ export default defineConfig({
       manifest: {
         name: "pig",
         short_name: "pig",
-        description: "",
+        description: "基于 Pi 的本地 Agent 工作台",
         lang: "zh-CN",
-        theme_color: "#000000",
-        background_color: "#000000",
+        theme_color: "#f9fafb",
+        background_color: "#ffffff",
         display: "standalone",
         start_url: "/",
         icons: [

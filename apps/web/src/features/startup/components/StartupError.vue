@@ -4,6 +4,7 @@
       <CircleAlert :size="32" class="error-icon" aria-hidden="true" />
       <h1 id="startup-error-title" class="error-title">{{ title }}</h1>
       <p class="error-detail">{{ copy }}</p>
+      <Button type="button" @click="retry">重试连接</Button>
     </div>
   </section>
 </template>
@@ -11,6 +12,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { CircleAlert } from "lucide-vue-next"
+import { Button } from "@components/ui/button/index.js"
 import { useStartupError } from "@features/startup/hooks/use-startup-error.js"
 
 const props = withDefaults(
@@ -26,6 +28,10 @@ const props = withDefaults(
 
 const stored = useStartupError()
 const copy = computed(() => props.detail.trim() || stored.value.trim() || "启动过程中出现错误。")
+
+function retry() {
+  window.location.reload()
+}
 </script>
 
 <style scoped>
