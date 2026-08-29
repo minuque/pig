@@ -30,6 +30,10 @@ export async function handlePlatformRequest(
     await handleContextUsage(res, url, deps)
     return true
   }
+  if (url.pathname === "/api/v1/platform/transcript" && req.method === "GET") {
+    await handleTranscript(res, url, deps)
+    return true
+  }
   if (url.pathname === "/api/v1/platform/rename-session" && req.method === "POST") {
     await handleRenameSession(req, res, deps)
     return true
@@ -72,6 +76,20 @@ async function handleSessionCards(res: ServerResponse, deps: PlatformRequestDeps
   } catch (error) {
     console.error("session-cards failed:", error)
     send(res, 500, { code: "INTERNAL_ERROR" })
+  }
+}
+
+async function handleTranscript(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
+  const { send, hostService } = deps
+  const sessionId = url.searchParams.get("sessionId") ?? ""
+  if (!sessionId) {
+    send(res, 400, { code: "INVALID_REQUEST" })
+    return
+  }
+  try {
+    send(res, 200, { items: await hostService.sessionTranscript(sessionId) })
+  } catch (error) {
+    sendSessionWriteError(error, res, send, "transcript")
   }
 }
 

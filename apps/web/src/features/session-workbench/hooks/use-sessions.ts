@@ -2,9 +2,10 @@ import { computed, shallowRef, toValue, type MaybeRefOrGetter } from "vue"
 import type { PiClient, Unsubscribe } from "@earendil-works/pi-client"
 import { RemoteSession } from "@earendil-works/pi-coding-agent/client"
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
-import type { ModelRef, ThinkingLevel } from "@earendil-works/pi-protocol"
-import { contextUsage, type ContextUsageEstimate } from "@client/platform.js"
+import type { ModelRef, ThinkingLevel, TranscriptItem } from "@earendil-works/pi-protocol"
+import { contextUsage, sessionTranscript, type ContextUsageEstimate } from "@client/platform.js"
 import {
+  mergeLiveTranscript,
   projectSessionSnapshot,
   type SessionProjection,
 } from "@features/session-workbench/lib/session-state.js"
@@ -34,13 +35,22 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
   let wantedId: string | undefined
   const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
   let contextUsageRequest = 0
+  const history = shallowRef<TranscriptItem[]>([])
+  const historySessionId = shallowRef<string>()
+  const heldLive = shallowRef<TranscriptItem[]>([])
+  let historyRequest = 0
 
   // 纯派生：由上述状态 computed 得到
   const snapshot = computed(() => state.value?.snapshot)
   const projection = computed<SessionProjection | undefined>(() =>
     snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined,
   )
-  const transcript = computed(() => state.value?.transcript ?? [])
+  const transcript = computed(() => {
+    const live = state.value?.transcript ?? []
+    const overlay = live.length > 0 ? live : heldLive.value
+    const persisted = historySessionId.value === wantedId ? history.value : []
+    return mergeLiveTranscript(persisted, overlay)
+  })
 
   function attach(next: RemoteSession) {
     const previous = remote.value
@@ -51,10 +61,13 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     let usageRevision: number | undefined
     unsubscribeState = next.subscribe((nextState) => {
       state.value = nextState
+      if (nextState.transcript.length > 0) heldLive.value = [...nextState.transcript]
       const revision = nextState.snapshot?.revision
-      if (revision !== undefined && revision !== usageRevision) {
+      const sessionId = next.id
+      if (revision !== undefined && revision !== usageRevision && sessionId) {
         usageRevision = revision
-        void refreshContextUsage(next.id)
+        void refreshContextUsage(sessionId)
+        void loadHistory(sessionId)
       }
     })
   }
@@ -65,6 +78,27 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     remote.value = undefined
     state.value = undefined
     contextUsageEstimate.value = undefined
+    if (historySessionId.value !== wantedId) {
+      history.value = []
+      historySessionId.value = undefined
+    }
+    heldLive.value = []
+  }
+
+  async function loadHistory(sessionId: string) {
+    const request = ++historyRequest
+    try {
+      const items = await sessionTranscript(sessionId)
+      if (request !== historyRequest || wantedId !== sessionId) return
+      history.value = items
+      historySessionId.value = sessionId
+    } catch {
+      if (request !== historyRequest || wantedId !== sessionId) return
+      if (historySessionId.value !== sessionId) {
+        history.value = []
+        historySessionId.value = sessionId
+      }
+    }
   }
 
   async function refreshContextUsage(sessionId: string | undefined) {
@@ -94,9 +128,15 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     return next
   }
 
-  /** 打开已有 Session：重连后以官方 Snapshot 整体覆盖本地投影。已附加同 id 时幂等跳过。 */
+  /** 打开已有 Session：历史走 HTTP，协议 snapshot 不含全文。已附加同 id 时幂等跳过。 */
   async function openSession(sessionId: string) {
     wantedId = sessionId
+    if (historySessionId.value !== sessionId) {
+      history.value = []
+      heldLive.value = []
+      historySessionId.value = undefined
+    }
+    void loadHistory(sessionId)
     return enqueueReplace(async () => {
       if (wantedId !== sessionId) return
       if (remote.value?.id === sessionId) return
@@ -122,13 +162,13 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     return enqueueReplace(async () => {
       const target = client.value
       if (!target) throw new Error("PiClient 未连接")
-      attach(
-        await RemoteSession.create(target, {
-          cwd,
-          ...(options?.model !== undefined ? { model: options.model } : {}),
-          ...(options?.thinkingLevel !== undefined ? { thinkingLevel: options.thinkingLevel } : {}),
-        }),
-      )
+      const next = await RemoteSession.create(target, {
+        cwd,
+        ...(options?.model !== undefined ? { model: options.model } : {}),
+        ...(options?.thinkingLevel !== undefined ? { thinkingLevel: options.thinkingLevel } : {}),
+      })
+      wantedId = next.id
+      attach(next)
     })
   }
 

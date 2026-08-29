@@ -402,21 +402,28 @@ describe("PiHostService", () => {
       }),
     )
     manager.appendMessage(toolResultMessage({ timestamp: 3000 }))
-    expect((await runtime.snapshot()).transcript).toHaveLength(3)
+    expect((await runtime.snapshot()).transcript).toEqual([])
+    expect((await first.service.sessionTranscript("sess-1")).map((item) => item.role)).toEqual([
+      "user",
+      "assistant",
+      "tool",
+    ])
 
     const second = await makeService(dir)
     const reopened = await second.service.openSession("sess-1")
     const snapshot = await reopened.snapshot()
     expect(snapshot).toMatchObject({ id: "sess-1" })
-    expect(snapshot.transcript.map((item) => item.role)).toEqual(["user", "assistant", "tool"])
-    expect(snapshot.transcript[2]).toMatchObject({
+    expect(snapshot.transcript).toEqual([])
+    const history = await second.service.sessionTranscript("sess-1")
+    expect(history.map((item) => item.role)).toEqual(["user", "assistant", "tool"])
+    expect(history[2]).toMatchObject({
       toolCallId: "call-1",
       input: { cmd: "ls" },
       status: "complete",
     })
   })
 
-  it("长 transcript 整包进 snapshot，卡片 messageCount 仍是全文", async () => {
+  it("长 transcript 走 sessionTranscript，snapshot 不带全文，卡片 messageCount 仍是全文", async () => {
     const { service, sessions } = await makeService()
     const runtime = await service.createSession({ id: "sess-long" })
     const manager = sessions.get("sess-long")!.sessionManager
@@ -425,9 +432,11 @@ describe("PiHostService", () => {
       manager.appendMessage({ role: "user", content: `m${i}`, timestamp: 1000 + i })
     }
     const snapshot = await runtime.snapshot()
-    expect(snapshot.transcript).toHaveLength(total)
+    expect(snapshot.transcript).toEqual([])
+    const history = await service.sessionTranscript("sess-long")
+    expect(history).toHaveLength(total)
     expect(
-      snapshot.transcript.map((item) =>
+      history.map((item) =>
         item.role === "user" && item.content[0]?.type === "text" ? item.content[0].text : item.role,
       ),
     ).toEqual(Array.from({ length: total }, (_, i) => `m${i}`))

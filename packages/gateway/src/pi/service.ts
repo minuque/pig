@@ -9,7 +9,7 @@ import {
   SettingsManager,
 } from "@earendil-works/pi-coding-agent"
 import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/pi-coding-agent"
-import type { ModelMetadata, SessionMetadata } from "@earendil-works/pi-protocol"
+import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   PiServerError,
   SessionNotFoundError,
@@ -25,6 +25,7 @@ import type { ContextPreviewKey, ContextUsageEstimate } from "./context-usage.js
 import { conversationMessageCount, modelFromBranch, type SessionCard } from "./session-card.js"
 import { sessionListName } from "./session-label.js"
 import { PiHostSession } from "./session-runtime.js"
+import { TranscriptProjection } from "./transcript.js"
 
 type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
 type SessionFactory = typeof createAgentSession
@@ -175,6 +176,15 @@ export class PiHostService implements PiServerService {
     previewKey?: ContextPreviewKey,
   ): ContextUsageEstimate | undefined {
     return this.activeSessions.get(sessionId)?.contextUsage(previewKey)
+  }
+
+  /** 历史 Transcript：已附加用 live 投影，否则读盘。不进协议 snapshot。 */
+  async sessionTranscript(sessionId: string): Promise<TranscriptItem[]> {
+    const live = this.activeSessions.get(sessionId)
+    if (live) return live.historyTranscript()
+    const path = await this.findSessionPath(sessionId)
+    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
+    return new TranscriptProjection().transcript(SessionManager.open(path).getBranch())
   }
 
   /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import type { MarkstreamThreadVirtualState } from "markstream-vue"
 import type { TranscriptItem, UserTranscriptItem } from "@earendil-works/pi-protocol"
 import {
+  mergeLiveTranscript,
   projectOptimisticTranscript,
   sessionState,
 } from "@features/session-workbench/lib/session-state.js"
@@ -24,6 +25,33 @@ describe("workbench state", () => {
     })
   })
 })
+
+describe("mergeLiveTranscript", () => {
+  it("磁盘历史为底，live 按 id 覆盖并追加", () => {
+    const persisted = [
+      { id: "u1", role: "user", content: [{ type: "text", text: "a" }], timestamp: 1 },
+      { id: "a1", role: "assistant", content: [{ type: "text", text: "old" }], timestamp: 2 },
+    ] as TranscriptItem[]
+    const live = [
+      { id: "a1", role: "assistant", content: [{ type: "text", text: "new" }], timestamp: 2 },
+      { id: "a2", role: "assistant", content: [{ type: "text", text: "tail" }], timestamp: 3 },
+    ] as TranscriptItem[]
+    expect(mergeLiveTranscript(persisted, live).map((item) => [item.id, userOrText(item)])).toEqual(
+      [
+        ["u1", "a"],
+        ["a1", "new"],
+        ["a2", "tail"],
+      ],
+    )
+    expect(mergeLiveTranscript(persisted, []).map((item) => item.id)).toEqual(["u1", "a1"])
+  })
+})
+
+function userOrText(item: TranscriptItem): string {
+  if (item.role !== "user" && item.role !== "assistant") return item.role
+  const block = item.content[0]
+  return block && "text" in block ? block.text : ""
+}
 
 describe("projectOptimisticTranscript", () => {
   const optimistic: UserTranscriptItem = {

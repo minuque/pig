@@ -2,6 +2,7 @@
  * 具名 platform HTTP API。路径字符串只出现在本文件。
  */
 import { platformRequest } from "@client/http.js"
+import type { TranscriptItem } from "@earendil-works/pi-protocol"
 
 export interface SessionCard {
   id: string
@@ -43,6 +44,13 @@ export async function selectDirectory(
 export async function listSessionCards(): Promise<SessionCard[]> {
   const result = await platformRequest<{ cards: SessionCard[] }>("/api/v1/platform/session-cards")
   return result.cards
+}
+
+export async function sessionTranscript(sessionId: string): Promise<TranscriptItem[]> {
+  const result = await platformRequest<{ items: TranscriptItem[] }>(
+    `/api/v1/platform/transcript?sessionId=${encodeURIComponent(sessionId)}`,
+  )
+  return Array.isArray(result.items) ? result.items : []
 }
 
 export async function contextUsage(sessionId: string): Promise<ContextUsageEstimate | null> {

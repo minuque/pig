@@ -83,6 +83,8 @@ describe("thin host HTTP shell", () => {
     const cards = await request(base, "/api/v1/platform/session-cards")
     expect(cards.status).toBe(200)
     await expect(cards.json()).resolves.toMatchObject({ cards: expect.any(Array) })
+    expect((await request(base, "/api/v1/platform/transcript")).status).toBe(400)
+    expect((await request(base, "/api/v1/platform/transcript?sessionId=missing")).status).toBe(404)
   }, 15_000)
 })
 

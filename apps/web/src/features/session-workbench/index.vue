@@ -11,13 +11,13 @@
     <SessionWelcome v-else-if="!sessionId" />
 
     <div v-else class="session-stage">
-      <SessionLoading v-if="sessionPending" />
+      <SessionLoading v-if="sessionPending && transcript.length === 0" />
 
       <!-- 2. 空会话 -->
       <SessionEmptyCanvas v-if="emptyCanvas" />
 
-      <!-- 3. 有 transcript：对话列 -->
-      <template v-else-if="!sessionPending">
+      <!-- 3. 有 transcript：对话列。历史可先于 attach 到齐。 -->
+      <template v-else-if="transcript.length > 0 || !sessionPending">
         <TranscriptView
           :session-id="sessionId"
           :transcript="transcript"

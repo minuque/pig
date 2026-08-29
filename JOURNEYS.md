@@ -5,7 +5,7 @@ pig 把用户动作接到 Pi 的 Session，再把 Snapshot / Transcript 投到�
 两条总线：
 
 - WebSocket（官方协议）：连接、Session 列表、创建/打开、Prompt / Abort、改 Model / Thinking。权威状态是 `ServerSnapshot` 和 `SessionSnapshot`。
-- HTTP `/api/v1/platform/*`（Thin Host）：选目录、侧栏卡片、更早 Transcript、上下文占用、重命名、删除。不进 Agent Domain。
+- HTTP `/api/v1/platform/*`（Thin Host）：选目录、侧栏卡片、历史 Transcript、上下文占用、重命名、删除。不进 Agent Domain。
 
 ```mermaid
 flowchart TB
@@ -79,15 +79,18 @@ flowchart TB
 ```mermaid
 flowchart TB
   Click["点侧栏 Session"] --> Route["/sessions/:sessionId"]
+  Route --> Hist["GET platform/transcript"]
   Route --> Open["RemoteSession.open"]
-  Open --> Snap["SessionSnapshot 覆盖本地投影"]
-  Snap --> View{"transcript?"}
+  Open --> Snap["SessionSnapshot 不含全文"]
+  Hist --> Merge["HTTP 历史 + live progress"]
+  Snap --> Merge
+  Merge --> View{"transcript?"}
   View -->|空且 idle| Empty["空画布 + ChatInput"]
   View -->|有内容| Timeline["TranscriptView + 底栏输入"]
-  View -->|路由已变、Remote 未齐| Loading["SessionLoading"]
+  View -->|历史未到且 Remote 未齐| Loading["SessionLoading"]
 ```
 
-切 Session 会串行替换 lease。连点只落地最后一个 id。重连后仍用新 Snapshot 覆盖，不用 `session_progress` 当事实源。
+切 Session 会串行替换 lease。连点只落地最后一个 id。历史以 platform HTTP 为准；live progress 按 id 覆盖。空 snapshot 不冲掉已拉到的历史。
 
 ## 一轮工作
 

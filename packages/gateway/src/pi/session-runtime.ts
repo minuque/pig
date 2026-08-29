@@ -4,6 +4,7 @@ import type {
   SessionPhase,
   SessionSnapshot,
   ThinkingLevel,
+  TranscriptItem,
 } from "@earendil-works/pi-protocol"
 import { PiServerError, SessionBusyError } from "@earendil-works/pi-server"
 import type {
@@ -57,6 +58,10 @@ export class PiHostSession implements PiSessionRuntime {
     return estimateContextUsage(this.session, previewKey)
   }
 
+  historyTranscript(): TranscriptItem[] {
+    return this.projection.transcript(this.session.sessionManager.getBranch())
+  }
+
   snapshot(): SessionSnapshot {
     const { session } = this
     const model = session.model
@@ -83,7 +88,8 @@ export class PiHostSession implements PiSessionRuntime {
       // PiServer 的 normalizedSnapshot 恒覆盖 locked，此处占位
       locked: false,
       revision: this.revision,
-      transcript: this.projection.transcript(entries),
+      // 全文走 platform HTTP；协议 snapshot 带上会触发 Typebox 校验，打开长会话要数十秒。
+      transcript: [],
       queuedSteer: steering.map((text, index) => ({
         id: `steer-${index}`,
         role: "user",

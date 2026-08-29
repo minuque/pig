@@ -42,6 +42,27 @@ function userText(item: TranscriptItem): string {
     .join("")
 }
 
+/** 磁盘历史为底，live progress 按 id 覆盖并追加。 */
+export function mergeLiveTranscript(
+  persisted: readonly TranscriptItem[],
+  live: readonly TranscriptItem[],
+): TranscriptItem[] {
+  if (live.length === 0) return [...persisted]
+  if (persisted.length === 0) return [...live]
+  const byId = new Map(persisted.map((item) => [item.id, item]))
+  const order = persisted.map((item) => item.id)
+  for (const item of live) {
+    if (!byId.has(item.id)) order.push(item.id)
+    byId.set(item.id, item)
+  }
+  const merged: TranscriptItem[] = []
+  for (const id of order) {
+    const item = byId.get(id)
+    if (item) merged.push(item)
+  }
+  return merged
+}
+
 /** 服务端确认前把乐观用户句插在提交时的 Transcript 尾部；确认后只返回服务端真相。 */
 export function projectOptimisticTranscript(
   items: readonly TranscriptItem[],

@@ -83,7 +83,7 @@ function createSession(
   })
   const transcript = computed(() =>
     projectOptimisticTranscript(
-      sessionPending.value ? [] : remote.transcript.value,
+      remote.transcript.value,
       runtime.clientState.value?.optimisticUser ?? null,
     ),
   )

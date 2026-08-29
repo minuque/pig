@@ -59,6 +59,11 @@ beforeEach(() => {
   openMock.mockReset()
   platformRequestMock.mockReset()
   createMock.mockReset()
+  platformRequestMock.mockImplementation(async (path: string) => {
+    if (path.includes("/transcript")) return { items: [] }
+    if (path.includes("context-usage")) return { usage: usageEstimate }
+    return {}
+  })
 })
 
 function setup() {
@@ -228,16 +233,45 @@ describe("useRemoteSessions lifecycle", () => {
     const a = makeSession("s1")
     a.state = { ...a.state, snapshot: snapshot(1) }
     openMock.mockResolvedValue(a)
-    platformRequestMock.mockResolvedValue({ usage: usageEstimate })
 
     await sessions.openSession("s1")
     await vi.waitFor(() => expect(sessions.contextUsageEstimate.value).toEqual(usageEstimate))
     expect(platformRequestMock).toHaveBeenCalledWith("/api/v1/platform/context-usage?sessionId=s1")
 
+    const usageCalls = () =>
+      platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("context-usage"))
+    expect(usageCalls()).toHaveLength(1)
     a.emit()
-    expect(platformRequestMock).toHaveBeenCalledTimes(1)
+    expect(usageCalls()).toHaveLength(1)
     a.state = { ...a.state, snapshot: snapshot(2) }
     a.emit()
-    await vi.waitFor(() => expect(platformRequestMock).toHaveBeenCalledTimes(2))
+    await vi.waitFor(() => expect(usageCalls()).toHaveLength(2))
+  })
+
+  it("打开会话用 HTTP 历史，空 snapshot 不冲掉", async () => {
+    const item = {
+      id: "u1",
+      role: "user" as const,
+      content: [{ type: "text" as const, text: "hi" }],
+      timestamp: 1,
+    }
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) return { items: [item] }
+      return { usage: usageEstimate }
+    })
+    const { sessions } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1), transcript: [] }
+    openMock.mockResolvedValue(a)
+    await sessions.openSession("s1")
+    await vi.waitFor(() => expect(sessions.transcript.value.map((row) => row.id)).toEqual(["u1"]))
+    a.state = { ...a.state, snapshot: snapshot(2), transcript: [] }
+    a.emit()
+    await vi.waitFor(() =>
+      expect(
+        platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("/transcript")),
+      ).not.toHaveLength(0),
+    )
+    expect(sessions.transcript.value.map((row) => row.id)).toEqual(["u1"])
   })
 })
