@@ -70,10 +70,7 @@
     </ContextMenu>
 
     <Dialog v-model:open="deleteOpen">
-      <DialogContent
-        class="w-[min(28rem,calc(100vw-2rem))] max-w-[min(28rem,calc(100vw-2rem))] sm:max-w-[min(28rem,calc(100vw-2rem))]"
-        aria-describedby="delete-session-description"
-      >
+      <DialogContent class="delete-session-dialog" aria-describedby="delete-session-description">
         <DialogTitle>删除会话</DialogTitle>
         <p id="delete-session-description" class="delete-description">
           确定删除“{{ session.title }}”吗？此操作不可恢复。
@@ -382,5 +379,12 @@ function confirmDelete() {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   user-select: text;
+}
+</style>
+
+<style>
+.delete-session-dialog[data-slot="dialog-content"] {
+  width: min(28rem, calc(100vw - 2rem));
+  max-width: min(28rem, calc(100vw - 2rem));
 }
 </style>
