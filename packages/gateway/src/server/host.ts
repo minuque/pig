@@ -5,6 +5,7 @@ import { BootstrapAuth } from "../auth/bootstrap.js"
 import { PiHostService } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
 import { handlePlatformRequest } from "./platform.js"
+import { installProviderHttp } from "./provider-http.js"
 import { serveWebFile } from "./static-files.js"
 import { createWebSocketListener } from "./websocket.js"
 
@@ -132,6 +133,7 @@ export class Gateway {
   }
 
   async start() {
+    installProviderHttp()
     await this.piServer.start()
     return new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject)
