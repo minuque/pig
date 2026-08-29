@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, watch } from "vue"
+import { computed, shallowRef, watch } from "vue"
 import { useTimestamp, useVirtualList } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
 import { PanelLeft, Plus, SquarePen } from "lucide-vue-next"
@@ -146,7 +146,7 @@ const showList = computed(() =>
 const GROUP_ROW_PX = 36
 const SESSION_ROW_PX = 56
 const MORE_ROW_PX = 34
-const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(rows, {
+const { list, containerProps, wrapperProps } = useVirtualList(rows, {
   itemHeight: (index) => {
     const row = rows.value[index]
     if (row?.kind === "group") return GROUP_ROW_PX
@@ -159,26 +159,6 @@ watch(workspaceError, (message) => {
   const text = message.trim()
   if (text) notify.error(text)
 })
-
-const followedSessionId = shallowRef<string | undefined>()
-
-watch(
-  () => [activeSessionId.value, rows.value] as const,
-  async () => {
-    const id = activeSessionId.value
-    if (!id) {
-      followedSessionId.value = undefined
-      return
-    }
-    // 分页展开改 rows 不跟滚
-    if (id === followedSessionId.value) return
-    await nextTick()
-    const index = rows.value.findIndex((row) => row.kind === "session" && row.session.id === id)
-    if (index < 0) return
-    scrollTo(index)
-    followedSessionId.value = id
-  },
-)
 
 /** 打开中会话 cwd → lastCwd；都没有则不在侧栏创建。 */
 const newSessionPath = computed(() => {
