@@ -380,7 +380,7 @@ select {
 }
 /* 原生 button 只做 reset。主色圆钮、图标钮在使用处显式写，避免漏设 min-height 被撑成药丸。
    不进 .markstream-vue：未分层的 element reset 会压过卡片内 Tailwind 工具类。 */
-button:not(:where(.markstream-vue *)) {
+button:not(:where(.markstream-vue *, [data-slot])) {
   appearance: none;
   margin: 0;
   padding: 0;
