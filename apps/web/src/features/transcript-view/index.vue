@@ -417,7 +417,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
   display: flex;
   justify-content: center;
-  background: transparent;
 }
 .transcript-viewport:has(.code-more-menu) {
   z-index: 3;
@@ -448,6 +447,7 @@ onBeforeUnmount(() => {
   bottom: 0;
   z-index: 2;
   padding: 0 var(--spacing-md) 10px;
+  background: var(--surface);
   pointer-events: none;
 }
 .chat-input-bar :deep(.prompt) {
