@@ -405,7 +405,7 @@
     <header>
       <div>
         <h1>pig 当前架构</h1>
-        <p class="subtitle">Pi Agent GUI。pig 管界面、本机接入与安全；Pi 管 Agent、Session 和模型运行时。</p>
+        <p class="subtitle">Pi Agent GUI。pig 管界面与本机接入；Pi 管 Agent、Session 和模型运行时。</p>
       </div>
       <nav class="tabs" role="tablist" aria-label="架构分类">
         <button type="button" role="tab" aria-selected="true" aria-controls="overview">整体架构</button>
@@ -427,9 +427,9 @@
         </div>
         <div class="stack">
           <section class="layer">
-            <div class="layer-head"><span class="kicker">L0 启动壳</span><span class="layer-note">选择运行形态，创建 bootstrap secret，启动下层服务。</span></div>
+            <div class="layer-head"><span class="kicker">L0 启动壳</span><span class="layer-note">选择运行形态，启动下层服务。</span></div>
             <div class="cards" style="--columns: 3">
-              <article class="card" data-tone="runtime"><div class="path">apps/desktop/</div><h3>Electron Desktop</h3><p>启动 Gateway 和开发态 Vite，创建窗口，注入启动链接；关窗释放端口。</p><div class="chips"><span>main</span><span>preload</span><span>DirectoryPort</span></div></article>
+              <article class="card" data-tone="runtime"><div class="path">apps/desktop/</div><h3>Electron Desktop</h3><p>启动 Gateway 和开发态 Vite，创建窗口并加载本机页；关窗释放端口。</p><div class="chips"><span>main</span><span>preload</span><span>DirectoryPort</span></div></article>
               <article class="card" data-tone="runtime"><div class="path">scripts/</div><h3>开发与构建脚本</h3><p>组织 dev、check、打包和 smoke，不进入业务运行时。</p><div class="chips"><span>dev.ts</span><span>check.mjs</span></div></article>
               <article class="card" data-tone="runtime"><div class="path">e2e/</div><h3>浏览器旅程</h3><p>跨 Web 构建物与 Gateway 验收完整用户路径。</p><div class="chips"><span>Playwright</span></div></article>
             </div>
@@ -439,15 +439,15 @@
             <div class="cards" style="--columns: 3">
               <article class="card" data-tone="web"><div class="path">apps/web/src/App.vue</div><h3>组合根</h3><p>usePiClient → provideSession → provideNav，再交给 Startup 与 RouterView。</p></article>
               <article class="card" data-tone="web"><div class="path">apps/web/src/features/</div><h3>领域 UI</h3><p>会话导航、工作台、输入、启动和主题。跨模块只走公开入口。</p></article>
-              <article class="card" data-tone="base"><div class="path">apps/web/src/client/</div><h3>浏览器适配</h3><p>bootstrap、HTTP、WebSocket transport、本地工作目录偏好。</p></article>
+              <article class="card" data-tone="base"><div class="path">apps/web/src/client/</div><h3>浏览器适配</h3><p>HTTP、WebSocket transport、本地工作目录偏好。</p></article>
             </div>
           </section>
           <section class="layer">
-            <div class="layer-head"><span class="kicker">L2 本机 Host</span><span class="layer-note">只监听 127.0.0.1。负责认证、平台 API、静态文件和 PiServer 接线。</span></div>
+            <div class="layer-head"><span class="kicker">L2 本机 Host</span><span class="layer-note">只监听 127.0.0.1。负责平台 API、静态文件和 PiServer 接线。</span></div>
             <div class="cards" style="--columns: 3">
-              <article class="card" data-tone="host"><div class="path">packages/gateway/src/server/</div><h3>HTTP / WebSocket Host</h3><p>bootstrap、平台 API、SPA 静态托管，并把认证后的字节连接交给 PiServer。</p></article>
+              <article class="card" data-tone="host"><div class="path">packages/gateway/src/server/</div><h3>HTTP / WebSocket Host</h3><p>平台 API、SPA 静态托管，并把字节连接交给 PiServer。</p></article>
               <article class="card" data-tone="host"><div class="path">packages/gateway/src/pi/</div><h3>Pi 适配层</h3><p>把 SessionManager、AgentSession、ModelRuntime 映射为 PiServerService。</p></article>
-              <article class="card" data-tone="host"><div class="path">packages/gateway/src/auth + directory.ts</div><h3>本机安全与目录</h3><p>secret 兑换 credential，校验 Bearer，目录选择与路径规范化。</p></article>
+              <article class="card" data-tone="host"><div class="path">packages/gateway/src/directory.ts</div><h3>本机目录</h3><p>目录选择与路径规范化。</p></article>
             </div>
           </section>
           <section class="layer">
@@ -477,7 +477,7 @@
       <section class="view" id="web" role="tabpanel" hidden>
         <div class="view-head">
           <h2>Web 子模块</h2>
-          <p>App.vue 只接线。领域状态落在 feature 上下文，网络和凭证留在 client，基础组件不接业务规则。</p>
+          <p>App.vue 只接线。领域状态落在 feature 上下文，网络留在 client，基础组件不接业务规则。</p>
         </div>
         <div class="stack">
           <section class="layer">
@@ -494,7 +494,7 @@
               <article class="card" data-tone="web"><div class="path">features/session-workbench/</div><h3>会话工作台</h3><p>RemoteSession、路由附加、Transcript 投影、创建、发送与中止。</p><div class="chips"><span>provideSession</span><span>useSession</span></div></article>
               <article class="card" data-tone="web"><div class="path">features/session-nav/</div><h3>会话导航</h3><p>按 cwd 分组和筛选，会话卡片、重命名、删除与目录选择。</p><div class="chips"><span>provideNav</span><span>useNav</span></div></article>
               <article class="card" data-tone="web"><div class="path">features/chat-input/</div><h3>输入卡</h3><p>模型与 thinking 预设、附件、上下文占用和提交交互。</p></article>
-              <article class="card" data-tone="web"><div class="path">features/startup/</div><h3>启动门</h3><p>bootstrap、connect、initialize 与启动失败页面。</p></article>
+              <article class="card" data-tone="web"><div class="path">features/startup/</div><h3>启动门</h3><p>connect、initialize 与启动失败页面。</p></article>
               <article class="card" data-tone="web"><div class="path">features/theme/</div><h3>主题</h3><p>跟踪和切换明暗色。</p></article>
             </div>
             <div class="boundary" style="--tone: var(--primary)">关键交叉：session-workbench 调用 chat-input 的预设类型；session-nav 读取 session 上下文生成当前会话卡片。领域创建仍只在 App.vue 完成。</div>
@@ -511,7 +511,7 @@
             <div class="cards" style="--columns: 4">
               <article class="card" data-tone="base"><div class="path">client/pi-client.ts</div><h3>连接投影</h3><p>PiClient 生命周期、ServerSnapshot、五次退避重连。</p></article>
               <article class="card" data-tone="base"><div class="path">client/transport.ts</div><h3>WebSocket 字节传输</h3><p>把浏览器 WebSocket 适配为 Pi ByteTransport。</p></article>
-              <article class="card" data-tone="base"><div class="path">client/http.ts + bootstrap.ts</div><h3>平台 HTTP 与认证</h3><p>credential 存取、Bearer 请求、错误文案和 secret 兑换。</p></article>
+              <article class="card" data-tone="base"><div class="path">client/http.ts</div><h3>平台 HTTP</h3><p>JSON 请求和错误文案。</p></article>
               <article class="card" data-tone="base"><div class="path">client/local-cwd.ts</div><h3>Workspace 偏好</h3><p>保存授权目录和 lastCwd，供筛选与创建会话使用。</p></article>
             </div>
           </section>
@@ -528,7 +528,7 @@
       <section class="view" id="gateway" role="tabpanel" hidden>
         <div class="view-head">
           <h2>Gateway 与 Pi</h2>
-          <p>Gateway 不重写 Pi。它把本机 HTTP、WebSocket、目录和凭证接到官方 PiServerService。</p>
+          <p>Gateway 不重写 Pi。它把本机 HTTP、WebSocket 和目录接到官方 PiServerService。</p>
         </div>
         <div class="stack">
           <section class="layer">
@@ -542,10 +542,10 @@
           <section class="layer">
             <div class="layer-head"><span class="kicker">L1 Host</span><span class="layer-note">一个 Node HTTP server 同时承载静态文件、平台 API 与 WebSocket upgrade。</span></div>
             <div class="cards" style="--columns: 4">
-              <article class="card" data-tone="host"><div class="path">server/host.ts</div><h3>Gateway</h3><p>组装 BootstrapAuth、PiHostService、PiServer 和 listener。</p></article>
-              <article class="card" data-tone="host"><div class="path">server/websocket.ts</div><h3>认证字节连接</h3><p>校验 credential，限制帧长和积压，再交给 PiServer。</p></article>
+              <article class="card" data-tone="host"><div class="path">server/host.ts</div><h3>Gateway</h3><p>组装 PiHostService、PiServer 和 listener。</p></article>
+              <article class="card" data-tone="host"><div class="path">server/websocket.ts</div><h3>WebSocket 连接</h3><p>路径匹配后限制帧长和积压，再交给 PiServer。</p></article>
               <article class="card" data-tone="host"><div class="path">server/static-files.ts</div><h3>SPA 静态托管</h3><p>生产态提供 apps/web/dist。</p></article>
-              <article class="card" data-tone="host"><div class="path">auth/bootstrap.ts</div><h3>启动凭证</h3><p>一次 secret 可重复兑换同一 credential，credential 只活在本次本机服务。</p></article>
+              <article class="card" data-tone="host"><div class="path">server/platform.ts</div><h3>平台 API</h3><p>选目录、会话卡片、上下文占用、重命名与删除。</p></article>
             </div>
           </section>
           <section class="layer">
@@ -579,19 +579,17 @@
       <section class="view" id="flows" role="tabpanel" hidden>
         <div class="view-head">
           <h2>关键数据流</h2>
-          <p>协议主链走 WebSocket。目录、卡片、历史分页和文件操作走带 Bearer 的平台 HTTP。</p>
+          <p>协议主链走 WebSocket。目录、卡片、历史分页和文件操作走平台 HTTP。</p>
         </div>
         <div class="legend"><span><i></i>Pi 协议</span><span><i class="http"></i>平台 HTTP</span><span><i class="state"></i>响应式状态</span><span><i class="disk"></i>磁盘</span></div>
         <div class="flow-list">
           <article class="flow" data-kind="http">
-            <div class="flow-head"><h3>启动与授权</h3><span class="flow-meta">HTTP → WebSocket</span></div>
-            <div class="steps" style="--steps: 6">
-              <div class="step"><span class="number">01 Desktop / CLI</span><strong>生成 secret</strong><small>Gateway 只监听 127.0.0.1</small></div>
-              <div class="step"><span class="number">02 启动链接</span><strong>#bootstrap=secret</strong><small>片段不发给普通 HTTP 服务</small></div>
-              <div class="step"><span class="number">03 Startup</span><strong>POST /bootstrap</strong><small>用 secret 兑换 credential</small></div>
-              <div class="step"><span class="number">04 Browser</span><strong>保存 credential</strong><small>写 localStorage 并清 URL hash</small></div>
-              <div class="step"><span class="number">05 PiClient</span><strong>连接 /api/v1/pi</strong><small>credential 经查询参数进入 WS upgrade</small></div>
-              <div class="step"><span class="number">06 PiServer</span><strong>返回 ServerSnapshot</strong><small>sessions、models、连接状态进入 Vue</small></div>
+            <div class="flow-head"><h3>启动</h3><span class="flow-meta">WebSocket</span></div>
+            <div class="steps" style="--steps: 4">
+              <div class="step"><span class="number">01 Desktop / CLI</span><strong>启动 Gateway</strong><small>只监听 127.0.0.1</small></div>
+              <div class="step"><span class="number">02 Browser</span><strong>打开本机页</strong><small>直连 127.0.0.1 上的 Gateway</small></div>
+              <div class="step"><span class="number">03 PiClient</span><strong>连接 /api/v1/pi</strong><small>路径匹配后交给 PiServer</small></div>
+              <div class="step"><span class="number">04 PiServer</span><strong>返回 ServerSnapshot</strong><small>sessions、models、连接状态进入 Vue</small></div>
             </div>
           </article>
 
@@ -624,7 +622,7 @@
             <div class="flow-head"><h3>加载更早 Transcript</h3><span class="flow-meta">平台 HTTP → 磁盘</span></div>
             <div class="steps" style="--steps: 5">
               <div class="step"><span class="number">01 TranscriptView</span><strong>点击加载更早</strong><small>取当前窗口第一条 id 作为 before</small></div>
-              <div class="step"><span class="number">02 platformRequest</span><strong>GET /transcript</strong><small>Bearer credential + sessionId + before</small></div>
+              <div class="step"><span class="number">02 platformRequest</span><strong>GET /transcript</strong><small>sessionId + before</small></div>
               <div class="step"><span class="number">03 PiHostService</span><strong>打开 SessionManager</strong><small>直接读磁盘当前分支，不占 AgentSession lease</small></div>
               <div class="step"><span class="number">04 Projection</span><strong>返回前一页 40 条</strong><small>同时给出 hasMore</small></div>
               <div class="step"><span class="number">05 useRemoteSessions</span><strong>合并 prefix + latest</strong><small>按 id 去重，保留实时窗口</small></div>
@@ -633,12 +631,11 @@
 
           <article class="flow" data-kind="http">
             <div class="flow-head"><h3>目录与会话文件操作</h3><span class="flow-meta">平台 HTTP</span></div>
-            <div class="steps" style="--steps: 5">
+            <div class="steps" style="--steps: 4">
               <div class="step"><span class="number">01 SessionNav</span><strong>选择 / 改名 / 删除</strong><small>导航模块发平台请求</small></div>
-              <div class="step"><span class="number">02 Gateway auth</span><strong>校验 Bearer</strong><small>凭证失效统一返回 UNAUTHENTICATED</small></div>
-              <div class="step"><span class="number">03 Platform port</span><strong>选目录或操作文件</strong><small>Electron dialog 或手工路径；SessionManager 改 JSONL</small></div>
-              <div class="step"><span class="number">04 PiClient</span><strong>refreshSessions</strong><small>用官方 list 结果覆盖 ServerSnapshot.sessions</small></div>
-              <div class="step"><span class="number">05 Nav computed</span><strong>重新分组和渲染</strong><small>本地 projectScope 只筛选，不改会话 cwd</small></div>
+              <div class="step"><span class="number">02 Platform port</span><strong>选目录或操作文件</strong><small>Electron dialog 或手工路径；SessionManager 改 JSONL</small></div>
+              <div class="step"><span class="number">03 PiClient</span><strong>refreshSessions</strong><small>用官方 list 结果覆盖 ServerSnapshot.sessions</small></div>
+              <div class="step"><span class="number">04 Nav computed</span><strong>重新分组和渲染</strong><small>本地 projectScope 只筛选，不改会话 cwd</small></div>
             </div>
           </article>
         </div>
@@ -671,7 +668,7 @@
           ["浏览器适配", "HTTP / WebSocket Host", "http", "HTTP / WS"],
           ["浏览器适配", "PiClient", "import", "SDK"],
           ["HTTP / WebSocket Host", "PiServer", "state", "listener"],
-          ["HTTP / WebSocket Host", "本机安全与目录", "import", "auth / port"],
+          ["HTTP / WebSocket Host", "本机目录", "import", "DirectoryPort"],
           ["PiServer", "Pi 适配层", "state", "dispatch"],
           ["Pi 适配层", "Agent Runtime", "state", "SDK"],
           ["PiClient", "PiServer", "http", "CBOR"],
@@ -693,10 +690,9 @@
           ["会话工作台", "输入卡", "import", "preset / submit"],
           ["会话工作台", "连接投影", "state", "RemoteSession"],
           ["会话导航", "会话工作台", "state", "SessionContext"],
-          ["会话导航", "平台 HTTP 与认证", "http", "平台 API"],
+          ["会话导航", "平台 HTTP", "http", "平台 API"],
           ["会话导航", "Workspace 偏好", "state", "筛选"],
           ["输入卡", "交互基础件", "import", "UI"],
-          ["启动门", "平台 HTTP 与认证", "http", "bootstrap"],
           ["启动门", "连接投影", "state", "connect"],
           ["主题", "视觉 token", "state", "class"],
           ["App 壳", "交互基础件", "import", "UI"],
@@ -707,12 +703,12 @@
           ["公开 API", "Gateway", "import", "export"],
           ["CLI 启动", "Gateway", "import", "start"],
           ["Gateway", "目录端口", "import", "DirectoryPort"],
-          ["Gateway", "认证字节连接", "import", "listener"],
+          ["Gateway", "WebSocket 连接", "import", "listener"],
           ["Gateway", "SPA 静态托管", "import", "webRoot"],
-          ["Gateway", "启动凭证", "import", "auth"],
+          ["Gateway", "平台 API", "import", "platform"],
           ["Gateway", "PiHostService", "state", "service"],
           ["Gateway", "协议调度", "state", "PiServer"],
-          ["认证字节连接", "协议调度", "http", "CBOR"],
+          ["WebSocket 连接", "协议调度", "http", "CBOR"],
           ["PiHostService", "PiHostSession", "state", "track"],
           ["PiHostService", "Agent Loop", "state", "create / open"],
           ["PiHostService", "会话持久化", "disk", "SessionManager"],
