@@ -140,7 +140,7 @@ const threadState = computed(() => clientState.value?.threadState ?? null)
     --chat-user-width,
     clamp(680px, calc(var(--conversation-column-width, 0px) * 0.64), 920px)
   );
-  --size-composer: calc(var(--size-content) + 16px);
+  --size-chat-input: calc(var(--size-content) + 16px);
 }
 .conversation-column.is-content-resizing {
   cursor: col-resize;

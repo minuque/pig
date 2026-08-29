@@ -41,7 +41,7 @@ const copy = computed(() => props.detail.trim() || stored.value.trim() || "å¯åŠ
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-xs);
-  max-width: var(--size-composer);
+  max-width: var(--size-chat-input);
   text-align: center;
 }
 .error-icon {

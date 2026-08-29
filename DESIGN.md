@@ -421,14 +421,14 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 
 ## Shapes
 
-| Token            | Value  | Use                         |
-| ---------------- | ------ | --------------------------- |
-| `{rounded.xs}`   | 4px    | 小标签                      |
-| `{rounded.sm}`   | 6px    | 折叠条、次要芯片            |
-| `{rounded.md}`   | 8px    | 列表行                      |
-| `{rounded.lg}`   | 12px   | composer、New Session、气泡 |
-| `{rounded.xl}`   | 16px   | 大容器                      |
-| `{rounded.full}` | 9999px | 圆形图标钮、徽章            |
+| Token            | Value  | Use                       |
+| ---------------- | ------ | ------------------------- |
+| `{rounded.xs}`   | 4px    | 小标签                    |
+| `{rounded.sm}`   | 6px    | 折叠条、次要芯片          |
+| `{rounded.md}`   | 8px    | 列表行                    |
+| `{rounded.lg}`   | 12px   | 输入卡、New Session、气泡 |
+| `{rounded.xl}`   | 16px   | 大容器                    |
+| `{rounded.full}` | 9999px | 圆形图标钮、徽章          |
 
 壳层圆角 0。发送是 28px primary 圆钮。
 

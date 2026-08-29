@@ -105,7 +105,7 @@ const canSubmitNow = computed(() =>
 .welcome-form {
   /* 与非 bare ChatInput 同宽，chat-input 卡本身由 PromptEditor 提供 */
   width: 100%;
-  max-width: var(--size-composer);
+  max-width: var(--size-chat-input);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);

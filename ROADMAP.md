@@ -43,7 +43,7 @@ pig 不再定义 `PigRun`、`PigSession`、`PigAgentEvent`、`PigTool`、`PigMod
 pig 可以维护：
 
 - 当前 Session、页面路由和加载状态
-- Composer draft、滚动位置和 auto-follow
+- 输入卡草稿、滚动位置和 auto-follow
 - panel、theme 和用户 UI preference
 - Snapshot / Transcript 的展示投影
 

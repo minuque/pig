@@ -47,7 +47,7 @@ import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-st
 import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
 const { leftOpen, toggle } = useLeftPanelToggle()
-const { sessionId, projection, connecting, sessionPending, composerCwd, running, phaseText } =
+const { sessionId, projection, connecting, sessionPending, sessionCwd, running, phaseText } =
   useSession()
 const { listedSessions } = useNav()
 
@@ -58,7 +58,7 @@ const title = computed(() =>
     projectionName: projection.value?.name,
   }),
 )
-const cwd = computed(() => (sessionId.value ? composerCwd.value : undefined))
+const cwd = computed(() => (sessionId.value ? sessionCwd.value : undefined))
 const dirName = computed(() => (cwd.value ? workspaceName(cwd.value) : ""))
 </script>
 

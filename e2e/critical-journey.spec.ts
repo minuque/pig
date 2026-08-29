@@ -32,9 +32,9 @@ test("Chromium production SPA 关键旅程", async ({ page, gateway }) => {
   await expect(prompt).toBeVisible()
   await expect(send).toBeDisabled()
   await expect(page.getByRole("button", { name: /^模型：/ })).toBeVisible()
-  await prompt.fill("e2e composer")
+  await prompt.fill("e2e chat-input")
   await expect(send).toBeEnabled()
-  await checkpoint(page, "04-composer")
+  await checkpoint(page, "04-chat-input")
 
   const axe = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])

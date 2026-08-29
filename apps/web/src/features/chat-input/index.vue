@@ -44,7 +44,7 @@
           type="button"
           class="plus"
           aria-label="添加图片"
-          :disabled="attachments.length >= MAX_COMPOSER_ATTACHMENTS"
+          :disabled="attachments.length >= MAX_CHAT_INPUT_ATTACHMENTS"
           @mousedown.prevent
           @click="openFilePicker"
         >
@@ -83,7 +83,7 @@
         </button>
       </template>
     </PromptEditor>
-    <ComposerMeta
+    <ChatInputMeta
       v-if="showMeta"
       :cwd="cwd"
       :usage="usage"
@@ -107,21 +107,21 @@
 import { computed, ref, watch } from "vue"
 import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next"
 import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue"
-import ComposerMeta from "@features/chat-input/components/ComposerMeta.vue"
+import ChatInputMeta from "@features/chat-input/components/ChatInputMeta.vue"
 import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel.vue"
 import ModelPicker from "@features/chat-input/components/ModelPicker.vue"
 import ThinkingLevelSelect from "@features/chat-input/components/ThinkingLevelSelect.vue"
 import PromptEditor from "@features/chat-input/components/PromptEditor.vue"
 import {
-  shouldShowComposerMeta,
+  shouldShowChatInputMeta,
   type ContextUsage,
 } from "@features/chat-input/lib/context-usage.js"
 import { resolveModelInfo } from "@features/chat-input/lib/model-preset.js"
 import {
-  MAX_COMPOSER_ATTACHMENTS,
+  MAX_CHAT_INPUT_ATTACHMENTS,
   imageFilesFromClipboard,
-  useComposerAttachments,
-} from "@features/chat-input/hooks/use-composer-attachments.js"
+  useChatInputAttachments,
+} from "@features/chat-input/hooks/use-chat-input-attachments.js"
 import type {
   ChatInputModel,
   ChatInputPreset,
@@ -183,14 +183,14 @@ const level = computed({
     if (preset.value) preset.value = { ...preset.value, thinkingLevel }
   },
 })
-const { attachments, addFiles, remove, clear } = useComposerAttachments()
+const { attachments, addFiles, remove, clear } = useChatInputAttachments()
 // 附件不进协议，不能单独放行
 const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisabled)
 
 const promptEditor = ref<{ focus: () => void } | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const usageOpen = ref(false)
-const showMeta = computed(() => shouldShowComposerMeta(props.cwd, props.usage))
+const showMeta = computed(() => shouldShowChatInputMeta(props.cwd, props.usage))
 
 watch(
   () => [props.cwd, props.sessionId] as const,
@@ -248,7 +248,7 @@ function onPrimaryAction() {
 }
 .prompt:not(.bare) {
   width: 100%;
-  max-width: var(--size-composer);
+  max-width: var(--size-chat-input);
   margin-inline: auto;
 }
 .error-indicator {

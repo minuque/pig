@@ -195,8 +195,8 @@ function onOpenAutoFocus(event: Event) {
 .usage-host {
   position: relative;
   padding: 12px 14px 10px;
-  background: var(--composer);
-  border: var(--border-width) solid var(--composer-ring);
+  background: var(--chat-input);
+  border: var(--border-width) solid var(--chat-input-ring);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
 }

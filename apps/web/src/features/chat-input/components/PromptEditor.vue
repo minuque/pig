@@ -1,5 +1,5 @@
 <template>
-  <div class="composer" @mousedown="onComposerMousedown">
+  <div class="chat-input" @mousedown="onChatInputMousedown">
     <div class="attach-tray" :data-open="$slots.chips ? '' : undefined">
       <div class="attach-inner">
         <div class="chips">
@@ -119,7 +119,7 @@ function onEditorKeydown(e: KeyboardEvent) {
 }
 
 /** 点卡空白处聚焦；控件（按钮/输入/编辑器）放行，避免抢走自身交互。 */
-function onComposerMousedown(e: MouseEvent) {
+function onChatInputMousedown(e: MouseEvent) {
   const el = e.target
   if (!(el instanceof Element)) return
   if (el.closest("button, input, textarea, [contenteditable]")) return
@@ -131,7 +131,7 @@ defineExpose({ focus })
 </script>
 
 <style scoped>
-.composer {
+.chat-input {
   position: relative;
 }
 .attach-tray {
@@ -153,8 +153,8 @@ defineExpose({ focus })
   bottom: -8px;
   display: flex;
   align-items: flex-start;
-  background: var(--composer);
-  border: var(--border-width) solid var(--composer-ring);
+  background: var(--chat-input);
+  border: var(--border-width) solid var(--chat-input-ring);
   border-bottom: 0;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
@@ -179,8 +179,8 @@ defineExpose({ focus })
   z-index: 10;
   display: flex;
   flex-direction: column;
-  background: var(--composer);
-  border: var(--border-width) solid var(--composer-ring);
+  background: var(--chat-input);
+  border: var(--border-width) solid var(--chat-input-ring);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
 }

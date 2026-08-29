@@ -65,7 +65,7 @@
       />
     </section>
 
-    <div ref="composer" class="chat-input-bar">
+    <div ref="inputBar" class="chat-input-bar">
       <ChatInput
         v-model:prompt="prompt"
         v-model:preset="preset"
@@ -73,7 +73,7 @@
         :running="running"
         :aborting="aborting"
         :error="sessionError"
-        :cwd="composerCwd"
+        :cwd="sessionCwd"
         :usage="contextUsage"
         :session-id="sessionId"
         @send="submitFromInput"
@@ -157,7 +157,7 @@ const {
   catalog,
   aborting,
   sessionError,
-  composerCwd,
+  sessionCwd,
   contextUsage,
   abortSession,
   submitText,
@@ -169,7 +169,7 @@ const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpan
 const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState))
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
 const region = useTemplateRef<HTMLElement>("region")
-const composer = useTemplateRef<HTMLElement>("composer")
+const inputBar = useTemplateRef<HTMLElement>("inputBar")
 const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
 const panel = inject(leftPanelKey, null)
@@ -365,7 +365,7 @@ watch(rows, (next, prev) => {
 
 let layoutObserver: ResizeObserver | undefined
 watch(
-  [region, composer],
+  [region, inputBar],
   ([el, bar]) => {
     layoutObserver?.disconnect()
     layoutObserver = undefined
@@ -374,7 +374,7 @@ watch(
       const root = timelineScrollRoot()
       syncLayout(el, root)
       const host = el.parentElement
-      if (bar && host) host.style.setProperty("--composer-overlay", `${bar.offsetHeight}px`)
+      if (bar && host) host.style.setProperty("--chat-input-overlay", `${bar.offsetHeight}px`)
       if (sidebarResizing.value || !atBottom.value) return
       jumpToBottom()
     }
@@ -403,7 +403,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   animation: enter-blur var(--duration-slow) var(--ease-out);
-  --composer-overlay: 6rem;
+  --chat-input-overlay: 6rem;
 }
 @media (prefers-reduced-motion: reduce) {
   .transcript-viewport {
@@ -424,9 +424,9 @@ onBeforeUnmount(() => {
 .session-floating-controls {
   position: absolute;
   inset-inline: var(--spacing-md);
-  bottom: calc(var(--composer-overlay) + var(--spacing-sm));
+  bottom: calc(var(--chat-input-overlay) + var(--spacing-sm));
   z-index: 3;
-  max-width: var(--size-composer);
+  max-width: var(--size-chat-input);
   margin-inline: auto;
   display: flex;
   flex-direction: column;
@@ -469,7 +469,7 @@ onBeforeUnmount(() => {
   min-width: 0;
   min-height: 0;
   padding-top: var(--spacing-lg);
-  padding-bottom: calc(var(--spacing-lg) + var(--composer-overlay));
+  padding-bottom: calc(var(--spacing-lg) + var(--chat-input-overlay));
   overscroll-behavior: contain;
   --scrollbar-thumb: #0000;
   scrollbar-width: none;

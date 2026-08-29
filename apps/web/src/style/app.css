@@ -21,18 +21,18 @@
   --canvas-soft: #f9fafb;
   --surface: #ffffff;
   --sidebar: var(--canvas-soft);
-  --composer: var(--canvas-soft);
+  --chat-input: var(--canvas-soft);
   --bubble: color-mix(in srgb, var(--ink) 5%, var(--surface));
   --ink: #0f1115;
   --ink-secondary: #353638;
   --ink-muted: #5c5f66;
   --ink-faint: #8b8f97;
   --hairline: #e5e7eb;
-  --composer-ring: var(--hairline);
+  --chat-input-ring: var(--hairline);
   --glass-blur: 12px;
   --glass-opacity: 80%;
   --glass-saturation: 1.14;
-  --glass-surface: var(--composer);
+  --glass-surface: var(--chat-input);
 
   /* Grok decorative palette — never structural fill */
   --accent-sunset: #ff7a17;
@@ -120,7 +120,7 @@
   --size-windows-caption: 138px;
   --size-drawer: 360px; /* mobile drawer width */
   --size-content: 45.75rem; /* 会话列外回退；列内由 clamp(680px, 64%, 920px) 覆盖 */
-  --size-composer: 46.75rem; /* 会话列外回退；列内为正文 + 16px */
+  --size-chat-input: 46.75rem; /* 会话列外回退；列内为正文 + 16px */
   --size-modal: 32rem; /* dialog max width */
   --size-nav-action: 28px;
 
@@ -170,7 +170,7 @@
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 280ms;
-  --duration-theme: 500ms; /* 主题切换 View Transition 时长 */
+  --duration-theme: 600ms; /* 主题切换 View Transition 时长 */
   --duration-shimmer: 2s; /* loading 扫光循环 */
 }
 
@@ -184,14 +184,14 @@
   --canvas-soft: #1b1b1c;
   --surface: #0a0a0a;
   --sidebar: #050505;
-  --composer: #121212;
+  --chat-input: #121212;
   --bubble: #141414;
   --ink: #ebeef2;
   --ink-secondary: #c5c8ce;
   --ink-muted: #9aa0a8;
   --ink-faint: #7a7e86;
   --hairline: #2c2c2e;
-  --composer-ring: color-mix(in srgb, var(--ink) 8%, var(--composer));
+  --chat-input-ring: color-mix(in srgb, var(--ink) 8%, var(--chat-input));
   /* 语义橙提亮（run 失败左条 / active session 文字） */
   --accent-orange: #ff8a3d;
   --accent-orange-deep: #d97706;
@@ -213,7 +213,7 @@
   --inverse-fg: #0a0a0a;
   --glass-blur: 16px;
   --glass-saturation: 1.08;
-  --glass-surface: var(--composer);
+  --glass-surface: var(--chat-input);
 }
 
 .media-inset-outline {
@@ -260,7 +260,7 @@
 }
 
 /* Tailwind v4 mapping — utilities like bg-canvas-soft, text-ink, rounded-lg。
-   只映射实色 token。color-mix 别名（--bubble / --composer-ring）不要登记进 @theme，
+   只映射实色 token。color-mix 别名（--bubble / --chat-input-ring）不要登记进 @theme，
    否则 @tailwindcss/vite 会把整份 app.css 打成空串。 */
 @theme inline {
   --color-primary: var(--primary);
@@ -647,12 +647,12 @@ html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
 }
 @media (prefers-reduced-transparency: reduce) {
   html[data-pig-desktop-platform] .prompt .glass-shell::before {
-    background: var(--composer);
+    background: var(--chat-input);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
   html[data-pig-desktop-platform] [data-slot="dropdown-menu-content"] {
-    background: var(--composer);
+    background: var(--chat-input);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }

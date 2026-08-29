@@ -1,8 +1,8 @@
 import { onUnmounted, ref } from "vue"
 
-export const MAX_COMPOSER_ATTACHMENTS = 6
+export const MAX_CHAT_INPUT_ATTACHMENTS = 6
 
-export interface ComposerAttachment {
+export interface ChatInputAttachment {
   id: string
   name: string
   mimeType: string
@@ -20,7 +20,7 @@ export function imageFilesFrom(list: FileList | File[] | null | undefined): File
 export function roomForAttachments(
   currentCount: number,
   incomingCount: number,
-  max = MAX_COMPOSER_ATTACHMENTS,
+  max = MAX_CHAT_INPUT_ATTACHMENTS,
 ): number {
   return Math.max(0, Math.min(incomingCount, max - currentCount))
 }
@@ -40,9 +40,9 @@ export function imageFilesFromClipboard(data: DataTransfer | null | undefined): 
   return imageFilesFrom(picked)
 }
 
-/** 输入卡本地附图：blob URL 只活在 composer，不进协议。 */
-export function useComposerAttachments(max = MAX_COMPOSER_ATTACHMENTS) {
-  const attachments = ref<ComposerAttachment[]>([])
+/** 输入卡本地附图：blob URL 只活在输入卡，不进协议。 */
+export function useChatInputAttachments(max = MAX_CHAT_INPUT_ATTACHMENTS) {
+  const attachments = ref<ChatInputAttachment[]>([])
 
   function addFiles(files: FileList | File[] | null | undefined) {
     const images = imageFilesFrom(files)
@@ -59,7 +59,7 @@ export function useComposerAttachments(max = MAX_COMPOSER_ATTACHMENTS) {
   }
 
   function remove(id: string) {
-    const kept: ComposerAttachment[] = []
+    const kept: ChatInputAttachment[] = []
     for (const item of attachments.value) {
       if (item.id === id) URL.revokeObjectURL(item.url)
       else kept.push(item)

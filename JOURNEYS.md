@@ -146,4 +146,4 @@ flowchart TB
 
 e2e 走到欢迎页和输入卡可用就停，不发真实 Turn。主题和窄屏抽屉是壳层，不进这条数据流。
 
-协议有、当前 UI 没有：Steering、手动 Compaction、图片进协议、fork/clone。附件只停在 Composer。
+协议有、当前 UI 没有：Steering、手动 Compaction、图片进协议、fork/clone。附件只停在输入卡。

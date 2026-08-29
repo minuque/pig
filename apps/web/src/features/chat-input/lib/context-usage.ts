@@ -26,7 +26,7 @@ export interface ContextUsage {
 }
 
 /** 欢迎页不传 cwd/usage，不展示底栏。 */
-export function shouldShowComposerMeta(
+export function shouldShowChatInputMeta(
   cwd: string | undefined,
   usage: ContextUsage | undefined,
 ): boolean {

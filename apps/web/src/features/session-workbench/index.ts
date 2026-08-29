@@ -87,7 +87,7 @@ function createSession(
       runtime.clientState.value?.optimisticUser ?? null,
     ),
   )
-  const composerCwd = computed(() => projection.value?.cwd ?? cwd.lastCwd.value)
+  const sessionCwd = computed(() => projection.value?.cwd ?? cwd.lastCwd.value)
   const contextUsage = computed(() => projectContextUsage(remote.contextUsageEstimate.value))
 
   pi.bindAttachedReconnect(async () => {
@@ -111,7 +111,7 @@ function createSession(
     connected: pi.connected,
     connectionError: pi.connectionError,
     transcript,
-    composerCwd,
+    sessionCwd,
     contextUsage,
     catalog,
     preset,

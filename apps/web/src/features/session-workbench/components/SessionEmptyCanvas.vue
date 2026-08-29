@@ -2,7 +2,7 @@
   <section class="empty-canvas enter-blur" aria-labelledby="session-hero-title">
     <div class="empty-canvas-form">
       <WorkbenchHero
-        :workspace-id="composerCwd"
+        :workspace-id="sessionCwd"
         title-id="session-hero-title"
         :workspaces="workspaces"
         :selectable="false"
@@ -13,7 +13,7 @@
         :catalog="catalog"
         :running="running"
         :error="sessionError"
-        :cwd="composerCwd"
+        :cwd="sessionCwd"
         :usage="contextUsage"
         :session-id="sessionId"
         @send="submitText"
@@ -30,7 +30,7 @@ import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.
 
 const {
   sessionId,
-  composerCwd,
+  sessionCwd,
   contextUsage,
   running,
   prompt,
@@ -52,7 +52,7 @@ const { workspaces } = useNav()
 }
 .empty-canvas-form {
   width: 100%;
-  max-width: var(--size-composer);
+  max-width: var(--size-chat-input);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);

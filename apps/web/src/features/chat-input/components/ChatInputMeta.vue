@@ -43,7 +43,7 @@ export function usageRingOffset(percent: number, length = USAGE_RING_LENGTH): nu
   return length * (1 - clamped / 100)
 }
 
-export function composerCwdLabel(cwd: string | undefined): string {
+export function chatInputCwdLabel(cwd: string | undefined): string {
   return cwd ? workspaceName(cwd) : ""
 }
 
@@ -71,7 +71,7 @@ const emit = defineEmits<{
 }>()
 
 const RING = USAGE_RING_LENGTH
-const cwdLabel = computed(() => composerCwdLabel(props.cwd))
+const cwdLabel = computed(() => chatInputCwdLabel(props.cwd))
 const usageLabel = computed(() => contextUsageAriaLabel(props.usage))
 const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
 </script>
