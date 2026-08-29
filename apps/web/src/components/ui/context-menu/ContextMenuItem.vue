@@ -4,7 +4,7 @@
     :data-inset="inset ? '' : undefined"
     :data-variant="variant"
     v-bind="forwardedProps"
-    class="relative flex min-h-8 cursor-pointer select-none items-center gap-(--spacing-xs) rounded-(--radius-sm) px-(--spacing-xs) py-(--spacing-xxs) text-body-sm outline-hidden transition-[background-color,color] duration-(--duration-fast) ease-(--ease-smooth) focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:cursor-default data-[disabled]:opacity-(--opacity-disabled) data-[inset]:pl-(--spacing-xxl) data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-canvas-soft data-[variant=destructive]:focus:text-destructive sm:min-h-7 sm:text-caption [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 [&_svg]:opacity-80"
+    class="relative flex min-h-8 cursor-pointer select-none items-center gap-(--spacing-xs) rounded-(--radius-md) px-(--spacing-xs) py-(--spacing-xxs) text-body-sm outline-hidden transition-[background-color,color] duration-(--duration-fast) ease-(--ease-smooth) focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:cursor-default data-[disabled]:opacity-(--opacity-disabled) data-[inset]:pl-(--spacing-xxl) data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-canvas-soft data-[variant=destructive]:focus:text-destructive sm:min-h-7 sm:text-caption [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 [&_svg]:opacity-80"
     :class="props.class"
   >
     <slot />
