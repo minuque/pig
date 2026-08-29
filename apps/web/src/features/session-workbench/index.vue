@@ -11,7 +11,7 @@
     <SessionWelcome v-else-if="!sessionId" />
 
     <div v-else class="session-stage">
-      <SessionLoading v-if="sessionLoading" />
+      <SessionLoading v-if="sessionPending" />
 
       <!-- 2. 空会话 -->
       <SessionEmptyCanvas v-if="emptyCanvas" />
@@ -24,7 +24,6 @@
           :running="running"
           :thread-state="threadState"
           @thread-state="applyThreadState"
-          @ready="onTranscriptReady"
         />
       </template>
     </div>
@@ -55,19 +54,10 @@ export function isEmptyCanvas(
   if (pending) return false
   return transcriptLength === 0 && !running
 }
-
-/** 远程未附加，或已附加但 markdown-stream 尚未渲染完：继续遮罩。 */
-export function isSessionLoading(
-  pending: boolean,
-  transcriptLength: number,
-  streamReady: boolean,
-): boolean {
-  return pending || (transcriptLength > 0 && !streamReady)
-}
 </script>
 
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue"
+import { computed } from "vue"
 import { useRoute } from "vue-router"
 import { useSession } from "@features/session-workbench/index.js"
 import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
@@ -97,7 +87,6 @@ const pageError = computed(() => {
   }
   return route.name === "error" ? {} : null
 })
-const streamReady = shallowRef(false)
 const emptyCanvas = computed(() =>
   isEmptyCanvas(transcript.value.length, running.value, sessionPending.value),
 )
@@ -115,15 +104,6 @@ const showContentHandles = computed(
   () => Boolean(sessionId.value) && !emptyCanvas.value && !sessionPending.value,
 )
 const contentHandleSides = ["left", "right"] as const
-const sessionLoading = computed(() =>
-  isSessionLoading(sessionPending.value, transcript.value.length, streamReady.value),
-)
-watch(sessionId, () => {
-  streamReady.value = false
-})
-function onTranscriptReady() {
-  streamReady.value = true
-}
 const threadState = computed(() => clientState.value?.threadState ?? null)
 </script>
 

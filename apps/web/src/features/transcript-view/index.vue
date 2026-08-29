@@ -129,7 +129,6 @@ import {
 import {
   isMarkdownStreamReady,
   isTranscriptVisuallyAtBottom,
-  MARKDOWN_STREAM_READY_TIMEOUT_MS,
   PROGRAMMATIC_BOTTOM_HOLD_MS,
   shouldHoldProgrammaticBottom,
   shouldShowScrollToLatest,
@@ -180,17 +179,10 @@ const rowKey = (item: { id: string }) => item.id
 const pendingMarkdownIds = new Set<string>()
 let markdownMounted = false
 let streamReadyEmitted = false
-let readyTimer = 0
-
-function stopReadyTimer() {
-  if (readyTimer) clearTimeout(readyTimer)
-  readyTimer = 0
-}
 
 function emitStreamReady() {
   if (streamReadyEmitted) return
   streamReadyEmitted = true
-  stopReadyTimer()
   emit("ready")
   if (atBottom.value) scrollToLatest()
 }
@@ -199,7 +191,6 @@ function resetStreamReady() {
   pendingMarkdownIds.clear()
   markdownMounted = false
   streamReadyEmitted = false
-  stopReadyTimer()
 }
 
 function checkStreamReady() {
@@ -346,7 +337,6 @@ watch(
   () => props.sessionId,
   () => {
     resetStreamReady()
-    readyTimer = window.setTimeout(emitStreamReady, MARKDOWN_STREAM_READY_TIMEOUT_MS)
     if (rows.value.length > 0) scrollToLatest()
   },
   { immediate: true, flush: "post" },

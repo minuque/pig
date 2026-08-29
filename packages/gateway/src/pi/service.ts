@@ -1,6 +1,13 @@
 import { mkdir, rm, writeFile } from "node:fs/promises"
 import { dirname } from "node:path"
-import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent"
+import {
+  createAgentSession,
+  DefaultResourceLoader,
+  getAgentDir,
+  ModelRuntime,
+  SessionManager,
+  SettingsManager,
+} from "@earendil-works/pi-coding-agent"
 import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/pi-coding-agent"
 import type { ModelMetadata, SessionMetadata } from "@earendil-works/pi-protocol"
 import {
@@ -42,6 +49,7 @@ export class PiHostService implements PiServerService {
   private readonly sessionPaths = new Map<string, string>()
   private readonly activeSessions = new Map<string, PiHostSession>()
   private runtimePromise?: Promise<Runtime>
+  private resourceWarm?: Promise<void>
   private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined
 
   constructor(private readonly options: PiHostServiceOptions = {}) {}
@@ -72,6 +80,7 @@ export class PiHostService implements PiServerService {
 
   async listModels(): Promise<ModelMetadata[]> {
     const runtime = await this.runtime()
+    void this.warmResources().catch(() => undefined)
     const models = await runtime.getAvailable()
     return models.map((model) =>
       toProtocolModelMetadata(model, runtime.hasConfiguredAuth(model.provider)),
@@ -107,6 +116,7 @@ export class PiHostService implements PiServerService {
       )
     }
     try {
+      await this.warmResources().catch(() => undefined)
       const { session } = await this.sessionFactory()({
         cwd,
         modelRuntime: runtime,
@@ -151,6 +161,7 @@ export class PiHostService implements PiServerService {
     const runtime = await this.runtime()
     const path = await this.findSessionPath(sessionId)
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
+    await this.warmResources().catch(() => undefined)
     const { session } = await this.sessionFactory()({
       cwd: SessionManager.open(path).getCwd(),
       modelRuntime: runtime,
@@ -187,6 +198,23 @@ export class PiHostService implements PiServerService {
 
   private runtime(): Promise<Runtime> {
     return (this.runtimePromise ??= (this.options.createRuntime ?? createDefaultRuntime)())
+  }
+
+  /** 连接时预热扩展/技能；测试注入 session 工厂时跳过。 */
+  private warmResources(): Promise<void> {
+    if (this.options.createSession) return Promise.resolve()
+    return (this.resourceWarm ??= this.reloadDefaultResources().catch((error: unknown) => {
+      delete this.resourceWarm
+      throw error
+    }))
+  }
+
+  private async reloadDefaultResources(): Promise<void> {
+    const cwd = canonicalizePath(this.options.cwd ?? process.cwd())
+    const agentDir = getAgentDir()
+    const settingsManager = SettingsManager.create(cwd, agentDir)
+    const loader = new DefaultResourceLoader({ cwd, agentDir, settingsManager })
+    await loader.reload()
   }
 
   private sessionFactory(): SessionFactory {

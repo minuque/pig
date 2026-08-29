@@ -35,9 +35,6 @@ export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boo
   return transcriptLength > 0 && !atBottom
 }
 
-/** ponytail: 2s 封顶，markdown-stream 卡住时不挡会话 */
-export const MARKDOWN_STREAM_READY_TIMEOUT_MS = 2000
-
 /** 无助手正文即可撤；有则必须已挂上且 pending 清零。 */
 export function isMarkdownStreamReady(
   hasMarkdownRows: boolean,
