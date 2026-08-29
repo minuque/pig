@@ -134,6 +134,7 @@ function themeColor(): string {
   const ink = getComputedStyle(host.value ?? document.documentElement)
     .getPropertyValue("--ink")
     .trim()
+  // 回退值为 --ink 浅色值；仅当 CSS 变量不可读时生效
   return ink || "#0f1115"
 }
 
@@ -329,7 +330,7 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 .slogan-highlight {
-  color: var(--primary);
+  color: var(--accent-dusk);
   font-weight: var(--font-weight-bold);
 }
 .slogan-cursor {
@@ -342,7 +343,7 @@ onBeforeUnmount(() => {
   animation: slogan-caret 1.05s steps(1, end) infinite;
 }
 .slogan-line:has(.slogan-highlight) .slogan-cursor {
-  background: var(--primary);
+  background: var(--accent-dusk);
 }
 @keyframes slogan-caret {
   0%,

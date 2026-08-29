@@ -16,15 +16,15 @@ colors:
   ink-muted: "#5c5f66"
   ink-faint: "#8b8f97"
   hairline: "#e5e7eb"
-  accent-sunset: "#ff7a17"
+  accent-sunset: "#ee650d"
   accent-sunset-soft: "#ffc285"
   accent-dusk: "#7c3aed"
-  accent-twilight: "#c4b5fd"
-  accent-breeze: "#a0c3ec"
+  accent-twilight: "#9a72d8"
+  accent-breeze: "#6494d2"
   accent-midnight: "#0d1726"
   accent-orange: "#dd5b00"
   accent-orange-deep: "#793400"
-  accent-green: "#1aae39"
+  accent-green: "#149441"
 
 typography:
   display-1:

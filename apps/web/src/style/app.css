@@ -35,22 +35,22 @@
   --glass-surface: var(--chat-input);
 
   /* Grok decorative palette — never structural fill */
-  --accent-sunset: #ff7a17;
+  --accent-sunset: #ee650d;
   --accent-sunset-soft: #ffc285;
   --accent-dusk: #7c3aed;
-  --accent-twilight: #c4b5fd;
-  --accent-breeze: #a0c3ec;
+  --accent-twilight: #9a72d8;
+  --accent-breeze: #6494d2;
   --accent-midnight: #0d1726;
   /* Semantic status (not decoration) */
   --accent-orange: #dd5b00;
   --accent-orange-deep: #793400;
-  --accent-green: #1aae39;
+  --accent-green: #149441;
 
   /* Status — UI Guidelines §6; DESIGN.md carries status via sticker colors */
-  --success: #1aae39; /* accent-green */
+  --success: #149441; /* accent-green */
   --info: #4176e6;
   --warning: #dd5b00; /* accent-orange */
-  --danger: #eb5757; /* Notion app red, for destructive actions */
+  --danger: #cf4040; /* 独立红, for destructive actions */
 
   /* Typography — SystemUI per DESIGN.md */
   --font-sans:
@@ -112,7 +112,6 @@
 
   /* Sizes */
   --size-control: 40px; /* buttons, icon buttons */
-  --size-resizer: 6px; /* panel divider width */
   --size-menu: 140px; /* kebab 下拉菜单最小宽度 */
   --size-sidebar: 280px; /* left panel width */
   --size-sidebar-rail: 56px;
@@ -167,7 +166,6 @@
   /* Motion — project house easing/duration (AGENTS.md UI Rules) */
   --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
-  --ease-spring: cubic-bezier(0.35, 1.55, 0.65, 1);
   --ease-in-out: cubic-bezier(0.66, 0, 0.34, 1);
   --duration-fast: 150ms;
   --duration-normal: 200ms;
@@ -197,6 +195,8 @@
   /* 语义橙提亮（run 失败左条 / active session 文字） */
   --accent-orange: #ff8a3d;
   --accent-orange-deep: #d97706;
+  --accent-green: #33c35e; /* 与 --success 同步, 双轨收敛 */
+  --secondary: #5b7ad4; /* 反相带/渐变端点提亮, ThinkingLevelSelect 低档文字 */
   --success: #33c35e;
   --info: #679efe;
   --warning: #ff8a3d;
@@ -291,7 +291,7 @@
   --color-info: var(--info);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
-  --color-ring: var(--ink-muted);
+  --color-ring: var(--primary);
   --color-ring-offset: var(--surface);
   --color-primary-foreground: var(--on-primary);
   --color-secondary-foreground: var(--on-primary);

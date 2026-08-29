@@ -303,11 +303,11 @@ function onPrimaryAction() {
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);
-  background: var(--primary);
-  color: var(--on-primary);
+  background: var(--inverse-bg);
+  color: var(--inverse-fg);
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--on-primary) 16%, transparent),
-    0 1px 2px color-mix(in srgb, var(--primary) 24%, transparent);
+    inset 0 1px 0 color-mix(in srgb, var(--inverse-fg) 16%, transparent),
+    0 1px 2px color-mix(in srgb, var(--inverse-bg) 24%, transparent);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),
@@ -317,7 +317,7 @@ function onPrimaryAction() {
     scale var(--duration-fast) var(--ease-out);
 }
 .send:not(:disabled):hover {
-  background: var(--primary-active);
+  background: var(--inverse-bg-hover);
 }
 .send:not(:disabled):active {
   scale: 0.96;
