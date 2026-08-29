@@ -65,11 +65,25 @@
       />
     </section>
 
-    <TranscriptComposer :session-id="sessionId" :running="running" @prepare="scrollToLatest" />
+    <div ref="composer" class="chat-input-bar">
+      <ChatInput
+        v-model:prompt="prompt"
+        v-model:preset="preset"
+        :catalog="catalog"
+        :running="running"
+        :aborting="aborting"
+        :error="sessionError"
+        :cwd="composerCwd"
+        :usage="contextUsage"
+        :session-id="sessionId"
+        @send="submitFromInput"
+        @abort="abortSession"
+      />
+    </div>
 
     <div v-show="showScrollToLatest" class="session-floating-controls">
       <Button
-        class="floating-control scroll-latest-control"
+        class="scroll-latest-control"
         type="button"
         variant="outline"
         size="icon-sm"
@@ -88,10 +102,10 @@ import { computed, inject, nextTick, onBeforeUnmount, shallowRef, useTemplateRef
 import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
 import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
+import ChatInput from "@features/chat-input/index.vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
 import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
-import TranscriptComposer from "@features/transcript-view/components/TranscriptComposer.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import WorkRow from "@features/transcript-view/components/WorkRow.vue"
@@ -123,14 +137,12 @@ import {
   unpinBottomScrollTop,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
+import { useSession } from "@features/session-workbench/index.js"
 
 const props = defineProps<{
   sessionId: string
-  /** 官方 TranscriptItem 列表：RemoteSession 维护的投影 */
   transcript: readonly TranscriptItem[]
-  /** 运行中显示 streaming 空态 */
   running: boolean
-  /** 上次离开该会话时的虚拟滚动状态：只复用行高，打开时贴底 */
   threadState: MarkstreamThreadVirtualState | null
 }>()
 
@@ -139,6 +151,17 @@ const emit = defineEmits<{
   ready: []
 }>()
 
+const {
+  prompt,
+  preset,
+  catalog,
+  aborting,
+  sessionError,
+  composerCwd,
+  contextUsage,
+  abortSession,
+  submitText,
+} = useSession()
 const rows = computed(() => buildTimelineRows(props.transcript, props.running))
 const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
@@ -146,32 +169,28 @@ const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpan
 const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState))
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
 const region = useTemplateRef<HTMLElement>("region")
+const composer = useTemplateRef<HTMLElement>("composer")
 const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
 const panel = inject(leftPanelKey, null)
 const sidebarResizing = computed(() => panel?.resizing.value ?? false)
 const { items: minimapItems, inViewIds, hitStripWidth, syncLayout } = useTranscriptMinimap(rows)
 
-function rowKey(item: { id: string }): string {
-  return item.id
-}
-
+const rowKey = (item: { id: string }) => item.id
 const pendingMarkdownIds = new Set<string>()
 let markdownMounted = false
 let streamReadyEmitted = false
 let readyTimer = 0
 
-function hasMarkdownRows(): boolean {
-  return rows.value.some((row) => row.role === "assistant" && Boolean(row.text))
+function stopReadyTimer() {
+  if (readyTimer) clearTimeout(readyTimer)
+  readyTimer = 0
 }
 
 function emitStreamReady() {
   if (streamReadyEmitted) return
   streamReadyEmitted = true
-  if (readyTimer) {
-    clearTimeout(readyTimer)
-    readyTimer = 0
-  }
+  stopReadyTimer()
   emit("ready")
   if (atBottom.value) scrollToLatest()
 }
@@ -180,14 +199,12 @@ function resetStreamReady() {
   pendingMarkdownIds.clear()
   markdownMounted = false
   streamReadyEmitted = false
-  if (readyTimer) {
-    clearTimeout(readyTimer)
-    readyTimer = 0
-  }
+  stopReadyTimer()
 }
 
 function checkStreamReady() {
-  if (isMarkdownStreamReady(hasMarkdownRows(), pendingMarkdownIds.size, markdownMounted)) {
+  const hasMarkdown = rows.value.some((row) => row.role === "assistant" && Boolean(row.text))
+  if (isMarkdownStreamReady(hasMarkdown, pendingMarkdownIds.size, markdownMounted)) {
     emitStreamReady()
   }
 }
@@ -306,6 +323,11 @@ function scrollToLatest() {
   tick()
 }
 
+function submitFromInput(text: string) {
+  scrollToLatest()
+  return submitText(text)
+}
+
 function persistThreadState(expectedSessionId = props.sessionId) {
   const captured = timeline.value?.captureThreadState()
   if (captured?.threadKey === expectedSessionId) emit("thread-state", captured)
@@ -325,8 +347,9 @@ watch(
   () => {
     resetStreamReady()
     readyTimer = window.setTimeout(emitStreamReady, MARKDOWN_STREAM_READY_TIMEOUT_MS)
+    if (rows.value.length > 0) scrollToLatest()
   },
-  { immediate: true },
+  { immediate: true, flush: "post" },
 )
 watch(
   rows,
@@ -336,33 +359,28 @@ watch(
   },
   { immediate: true, flush: "post" },
 )
-watch(
-  () => props.sessionId,
-  () => {
-    if (rows.value.length === 0) return
-    scrollToLatest()
-  },
-  { immediate: true, flush: "post" },
-)
 watch(rows, (next, prev) => {
   if (prev.length === 0 && next.length > 0) scrollToLatest()
 })
 
 let layoutObserver: ResizeObserver | undefined
 watch(
-  region,
-  (el) => {
+  [region, composer],
+  ([el, bar]) => {
     layoutObserver?.disconnect()
     layoutObserver = undefined
     if (!el) return
     const tick = () => {
       const root = timelineScrollRoot()
       syncLayout(el, root)
+      const host = el.parentElement
+      if (bar && host) host.style.setProperty("--composer-overlay", `${bar.offsetHeight}px`)
       if (sidebarResizing.value || !atBottom.value) return
       jumpToBottom()
     }
     layoutObserver = new ResizeObserver(tick)
     layoutObserver.observe(el)
+    if (bar) layoutObserver.observe(bar)
     tick()
   },
   { flush: "post" },
@@ -417,24 +435,31 @@ onBeforeUnmount(() => {
   gap: var(--spacing-xs);
   pointer-events: none;
 }
-.floating-control {
-  pointer-events: auto;
-}
 .scroll-latest-control {
+  pointer-events: auto;
   border-radius: var(--radius-full);
   background: var(--canvas-soft);
   color: var(--ink-secondary);
   box-shadow: var(--shadow-float);
 }
+.chat-input-bar {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 0 var(--spacing-md) 10px;
+  pointer-events: none;
+}
+.chat-input-bar :deep(.prompt) {
+  pointer-events: auto;
+}
 @media (max-width: 900px) {
   .session-floating-controls {
     inset-inline: var(--spacing-sm);
   }
-}
-.transcript,
-.transcript:hover {
-  --scrollbar-thumb: #0000;
-  scrollbar-width: none;
+  .chat-input-bar {
+    padding-inline: var(--spacing-sm);
+  }
 }
 .transcript {
   box-sizing: border-box;
@@ -446,11 +471,11 @@ onBeforeUnmount(() => {
   padding-top: var(--spacing-lg);
   padding-bottom: calc(var(--spacing-lg) + var(--composer-overlay));
   overscroll-behavior: contain;
+  --scrollbar-thumb: #0000;
+  scrollbar-width: none;
 }
 .transcript::-webkit-scrollbar {
   display: none;
-  width: 0;
-  height: 0;
 }
 .transcript :deep(.markstream-virtual-timeline__item) {
   box-sizing: border-box;
@@ -459,10 +484,7 @@ onBeforeUnmount(() => {
 .transcript :deep(.markstream-virtual-timeline__restore-loading) {
   display: none;
 }
-.transcript
-  :deep(.markstream-virtual-timeline.is-restoring-thread > .markstream-virtual-timeline__spacer),
-.transcript
-  :deep(.markstream-virtual-timeline.is-restoring-thread > .markstream-virtual-timeline__item) {
+.transcript :deep(.markstream-virtual-timeline.is-restoring-thread > *) {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
