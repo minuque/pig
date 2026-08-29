@@ -45,7 +45,7 @@
         z-index: 10;
         display: grid;
         grid-template-columns: minmax(220px, 1fr) auto;
-        gap: 16px;
+        gap: 12px 16px;
         align-items: center;
         padding: 16px 24px;
         border-bottom: 1px solid var(--hairline);
@@ -250,12 +250,12 @@
       .step.is-upstream { border-color: color-mix(in srgb, var(--line, var(--primary)) 45%, var(--hairline)); }
       .step.is-downstream { border-color: color-mix(in srgb, var(--line, var(--primary)) 72%, var(--hairline)); }
       .interaction-hint {
+        grid-column: 1 / -1;
         min-height: 34px;
-        margin-bottom: 14px;
         padding: 8px 11px;
         border: 1px solid var(--hairline);
         border-radius: 10px;
-        background: var(--surface);
+        background: var(--well);
         color: var(--ink-muted);
         font-size: 12px;
         line-height: 1.4;
@@ -413,10 +413,10 @@
         <button type="button" role="tab" aria-selected="false" aria-controls="gateway">Gateway 与 Pi</button>
         <button type="button" role="tab" aria-selected="false" aria-controls="flows">关键数据流</button>
       </nav>
+      <div class="interaction-hint" id="interaction-hint" aria-live="polite">点击卡片高亮关系节点并绘制连线；点击流程节点查看它的上下游。再次点击或按 Esc 清除。</div>
     </header>
 
     <main>
-      <div class="interaction-hint" id="interaction-hint" aria-live="polite">点击卡片高亮关系节点并绘制连线；点击流程节点查看它的上下游。再次点击或按 Esc 清除。</div>
       <section class="view" id="overview" role="tabpanel">
         <div class="view-head">
           <h2>整体架构</h2>
