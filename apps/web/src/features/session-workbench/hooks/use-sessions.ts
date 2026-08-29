@@ -212,5 +212,6 @@ export function useRemoteSessions(clientSource: MaybeRefOrGetter<PiClient | unde
     setThinking,
     reconnect,
     dispose,
+    historySessionId,
   }
 }

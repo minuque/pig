@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import type { MarkstreamThreadVirtualState } from "markstream-vue"
 import type { TranscriptItem, UserTranscriptItem } from "@earendil-works/pi-protocol"
 import {
+  isSessionOpening,
   mergeLiveTranscript,
   projectOptimisticTranscript,
   sessionState,
@@ -23,6 +24,15 @@ describe("workbench state", () => {
       optimisticUser: null,
       threadState: null,
     })
+  })
+})
+
+describe("isSessionOpening", () => {
+  it("lease 已齐但历史未到时仍算打开中，避免空画布闪一下", () => {
+    expect(isSessionOpening("s2", "s2", undefined)).toBe(true)
+    expect(isSessionOpening("s2", "s1", undefined)).toBe(true)
+    expect(isSessionOpening("s2", "s2", "s2")).toBe(false)
+    expect(isSessionOpening(undefined, undefined, undefined)).toBe(false)
   })
 })
 

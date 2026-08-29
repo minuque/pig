@@ -42,6 +42,16 @@ function userText(item: TranscriptItem): string {
     .join("")
 }
 
+/** 路由已有 session，但 lease 未齐或历史 HTTP 未落地。 */
+export function isSessionOpening(
+  sessionId: string | undefined,
+  remoteId: string | undefined,
+  historySessionId: string | undefined,
+): boolean {
+  if (!sessionId) return false
+  return sessionId !== remoteId || historySessionId !== sessionId
+}
+
 /** 磁盘历史为底，live progress 按 id 覆盖并追加。 */
 export function mergeLiveTranscript(
   persisted: readonly TranscriptItem[],

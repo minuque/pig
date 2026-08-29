@@ -10,6 +10,7 @@ import { useSessionCards } from "@features/session-workbench/hooks/use-session-c
 import { useRemoteSessions } from "@features/session-workbench/hooks/use-sessions.js"
 import { useSessionRuntime } from "@features/session-workbench/hooks/use-session-runtime.js"
 import {
+  isSessionOpening,
   phaseLabel,
   projectOptimisticTranscript,
 } from "@features/session-workbench/lib/session-state.js"
@@ -51,8 +52,8 @@ function createSession(
     await syncRoute()
   }
 
-  const sessionPending = computed(
-    () => sessionId.value !== undefined && sessionId.value !== remote.remote.value?.id,
+  const sessionPending = computed(() =>
+    isSessionOpening(sessionId.value, remote.remote.value?.id, remote.historySessionId.value),
   )
   const projection = computed(() => (sessionPending.value ? undefined : remote.projection.value))
   const catalog = computed(() => catalogFromModels(pi.models.value))
