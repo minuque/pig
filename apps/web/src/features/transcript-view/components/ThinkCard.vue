@@ -5,11 +5,12 @@
       class="toggle"
       :aria-expanded="open"
       :aria-label="toggleLabel"
+      :disabled="streaming"
       @click="onToggle"
     >
       <Asterisk class="icon" :size="16" aria-hidden="true" />
       <span class="kind">Think</span>
-      <span class="detail">{{ detail }}</span>
+      <span v-if="detail" class="detail">{{ detail }}</span>
       <ChevronRight class="caret" :size="14" aria-hidden="true" />
     </button>
     <div v-if="open && text" class="body">
@@ -41,19 +42,17 @@ function onToggle() {
 <style scoped>
 .call {
   contain: layout style;
-  overflow: hidden;
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-xl);
-  background: var(--canvas-soft);
+  min-width: 0;
 }
 .toggle {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   min-width: 0;
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 22px;
+  padding: 2px 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -65,8 +64,19 @@ function onToggle() {
 .toggle:hover {
   color: var(--ink);
 }
+.toggle:disabled {
+  cursor: default;
+  opacity: 1;
+}
 .toggle:not(:disabled):active {
   transform: none;
+}
+.toggle:focus {
+  outline: none;
+}
+.toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--primary);
+  outline-offset: var(--focus-ring-width);
 }
 .icon {
   flex: none;
@@ -74,8 +84,12 @@ function onToggle() {
 }
 .kind {
   flex: none;
+  color: var(--ink-muted);
+  font-weight: var(--font-weight-regular);
+}
+.toggle:hover .kind,
+.toggle[aria-expanded="true"] .kind {
   color: var(--ink-secondary);
-  font-weight: var(--font-weight-medium);
 }
 .detail {
   flex: 1;
@@ -88,13 +102,22 @@ function onToggle() {
 .caret {
   flex: none;
   color: var(--ink-faint);
-  transition: transform var(--duration-fast) var(--ease-smooth);
+  opacity: 0;
+  transition:
+    transform var(--duration-fast) var(--ease-smooth),
+    opacity var(--duration-fast) var(--ease-smooth);
+}
+.toggle:hover .caret,
+.toggle[aria-expanded="true"] .caret {
+  opacity: 1;
 }
 .toggle[aria-expanded="true"] .caret {
   transform: rotate(90deg);
 }
 .body {
-  padding: 0 12px 10px;
+  min-width: 0;
+  margin-top: 2px;
+  margin-inline-start: 24px;
 }
 @media (prefers-reduced-motion: reduce) {
   .caret {

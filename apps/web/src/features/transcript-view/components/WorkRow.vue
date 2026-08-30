@@ -90,28 +90,43 @@ const steps = computed(() => workSteps(props.row))
 }
 .fold-label {
   color: inherit;
-  font-size: var(--text-body-sm);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-regular);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--text-caption--line-height);
 }
 .caret {
   flex: none;
   color: inherit;
+  opacity: 0;
+  transition:
+    transform var(--duration-fast) var(--ease-smooth),
+    opacity var(--duration-fast) var(--ease-smooth);
+}
+.fold:hover .caret,
+.fold[aria-expanded="true"] .caret {
   opacity: 0.7;
-  transition: transform var(--duration-fast) var(--ease-smooth);
 }
 .fold[aria-expanded="true"] .caret {
   transform: rotate(90deg);
 }
 .body {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 2px;
   min-width: 0;
-  margin-top: var(--spacing-xs);
-  margin-left: 7px;
-  padding-left: 14px;
-  border-left: var(--border-width) solid var(--hairline);
+  margin-top: var(--spacing-xxs);
+  margin-inline-start: var(--spacing-xs);
+}
+.body::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 7px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--hairline);
+  pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .caret {

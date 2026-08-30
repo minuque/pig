@@ -1,5 +1,5 @@
 <template>
-  <div class="expand-text">
+  <div class="expand-text" :class="{ 'is-embedded': embedded }">
     <pre v-if="!virtual" class="expand-text-pre" :class="preClass">{{ text }}</pre>
     <pre
       v-else
@@ -33,16 +33,21 @@ const props = withDefaults(
     lineHeight?: number
     tone?: "code" | "plain"
     showCount?: boolean
+    embedded?: boolean
   }>(),
   {
     maxLines: DEFAULT_MAX_EXPAND_LINES,
     lineHeight: DEFAULT_LINE_HEIGHT_PX,
     tone: "code",
     showCount: true,
+    embedded: false,
   },
 )
 
-const preClass = computed(() => ({ "expand-text-pre--plain": props.tone === "plain" }))
+const preClass = computed(() => ({
+  "expand-text-pre--plain": props.tone === "plain",
+  "expand-text-pre--embedded": props.embedded,
+}))
 
 const scrollTop = shallowRef(0)
 const lines = computed(() => splitLines(props.text))
@@ -83,16 +88,26 @@ function onScroll(event: Event) {
   white-space: pre;
   tab-size: 2;
 }
-.expand-text-pre--plain {
+.expand-text-pre--plain,
+.expand-text-pre--embedded {
   margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
+}
+.expand-text-pre--plain {
   color: inherit;
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
   white-space: pre-wrap;
+}
+.expand-text-pre--embedded {
+  color: inherit;
+}
+.expand-text.is-embedded .expand-text-meta {
+  color: inherit;
+  opacity: 0.7;
 }
 .expand-text-pre--virtual {
   overflow: auto;

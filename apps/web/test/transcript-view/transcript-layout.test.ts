@@ -347,7 +347,7 @@ describe("turn work fold", () => {
 })
 
 describe("toolCardOpen", () => {
-  it("running 和失败保持展开，完成态按 id 记忆", () => {
+  it("展开态只按 id 记忆，运行和失败不强制展开", () => {
     const running: ToolCallView = {
       id: "t1",
       toolName: "read",
@@ -360,9 +360,10 @@ describe("toolCardOpen", () => {
     const done = { ...running, running: false, isError: false }
     const failed = { ...running, running: false, isError: true }
     const expanded = new Map<string, boolean>([["t1", true]])
-    expect(toolCardOpen(running, new Map())).toBe(true)
-    expect(toolCardOpen(failed, new Map())).toBe(true)
+    expect(toolCardOpen(running, new Map())).toBe(false)
+    expect(toolCardOpen(failed, new Map())).toBe(false)
     expect(toolCardOpen(done, new Map())).toBe(false)
     expect(toolCardOpen(done, expanded)).toBe(true)
+    expect(toolCardOpen(running, expanded)).toBe(true)
   })
 })

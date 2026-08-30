@@ -310,7 +310,6 @@ export function workSteps(row: WorkRow): WorkStep[] {
 }
 
 export function toolCardOpen(item: ToolCallView, expanded: ReadonlyMap<string, boolean>): boolean {
-  if (item.running || item.isError) return true
   return expanded.get(item.id) === true
 }
 
@@ -353,8 +352,8 @@ export function estimateTranscriptRowHeight(item: TimelineRow): number {
   if (isThinkingRow(item)) return 36
   if (isWorkRow(item)) {
     if (item.mode === "fold") return 36
-    const thinking = item.thinking.length > 0 ? (item.thinkingStreaming ? 200 : 36) : 0
-    return Math.max(48, 16 + thinking + item.tools.length * 48)
+    const thinking = item.thinking.length > 0 ? (item.thinkingStreaming ? 200 : 28) : 0
+    return Math.max(28, 12 + thinking + item.tools.length * 28)
   }
   const text = item.text
   if (item.role === "user") {
