@@ -6,12 +6,14 @@
     @submit.prevent="send"
     @paste="onPaste"
   >
-    <ContextUsagePanel
-      v-if="usageOpen && usage"
-      :usage="usage"
-      :session-id="sessionId"
-      @close="usageOpen = false"
-    />
+    <Transition name="panel-reveal">
+      <ContextUsagePanel
+        v-if="usageOpen && usage"
+        :usage="usage"
+        :session-id="sessionId"
+        @close="usageOpen = false"
+      />
+    </Transition>
     <PromptEditor
       ref="promptEditor"
       v-model:prompt="prompt"
@@ -41,7 +43,7 @@
       <template #right>
         <button
           type="button"
-          class="plus"
+          class="plus press-scale"
           :disabled="attachments.length >= MAX_CHAT_INPUT_ATTACHMENTS"
           @mousedown.prevent
           @click="openFilePicker"
@@ -58,14 +60,14 @@
         </Tooltip>
         <button
           type="button"
-          class="send"
+          class="send press-scale"
           :class="{ 'send--abort': running }"
           :title="running ? '停止当前 Turn' : '发送 Prompt'"
           :disabled="running ? aborting : !sendActive"
           @mousedown.prevent
           @click="onPrimaryAction"
         >
-          <span class="primary-icon">
+          <span class="primary-icon icon-swap">
             <svg
               width="12"
               height="12"
@@ -275,7 +277,8 @@ function onPrimaryAction() {
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
+    color var(--duration-fast) var(--ease-smooth),
+    scale var(--duration-fast) var(--ease-out);
 }
 .plus:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ink) 8%, transparent);
@@ -314,7 +317,6 @@ function onPrimaryAction() {
   background: var(--inverse-bg-hover);
 }
 .send:not(:disabled):active {
-  scale: 0.96;
   box-shadow: none;
 }
 .send--abort {
@@ -336,27 +338,12 @@ function onPrimaryAction() {
   opacity: 0.5;
 }
 .primary-icon {
-  display: grid;
-  place-items: center;
   width: 16px;
   height: 16px;
 }
-.primary-icon > * {
-  grid-area: 1 / 1;
-  transition:
-    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
-    scale 300ms cubic-bezier(0.2, 0, 0, 1),
-    filter 300ms cubic-bezier(0.2, 0, 0, 1);
-}
-.primary-icon > [data-visible="false"] {
-  opacity: 0;
-  scale: 0.25;
-  filter: blur(4px);
-}
 @media (prefers-reduced-motion: reduce) {
   .plus,
-  .send,
-  .primary-icon > * {
+  .send {
     transition: none;
   }
 }

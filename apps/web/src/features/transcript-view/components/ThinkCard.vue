@@ -4,7 +4,7 @@
       <Asterisk class="icon" :size="16" />
       <span class="kind">Think</span>
       <span v-if="detail" class="detail">{{ detail }}</span>
-      <ChevronRight class="caret" :size="14" />
+      <ChevronRight class="caret caret-hint" :size="14" />
     </button>
     <Transition name="fold-reveal">
       <div v-if="open && text" class="body">
@@ -96,45 +96,10 @@ function onToggle() {
 .caret {
   flex: none;
   color: var(--ink-faint);
-  opacity: 0;
-  transition:
-    transform var(--duration-slow) var(--ease-out),
-    opacity var(--duration-slow) var(--ease-out);
-}
-.toggle:hover .caret,
-.toggle.open .caret {
-  opacity: 1;
-}
-.toggle.open .caret {
-  transform: rotate(90deg);
 }
 .body {
   min-width: 0;
   margin-top: 2px;
   margin-inline-start: 24px;
-}
-.fold-reveal-enter-active,
-.fold-reveal-leave-active {
-  transition:
-    opacity var(--duration-slow) var(--ease-out),
-    transform var(--duration-slow) var(--ease-out);
-}
-.fold-reveal-enter-from,
-.fold-reveal-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .caret {
-    transition: none;
-  }
-  .fold-reveal-enter-active,
-  .fold-reveal-leave-active {
-    transition: opacity var(--duration-fast) var(--ease-out);
-  }
-  .fold-reveal-enter-from,
-  .fold-reveal-leave-to {
-    transform: none;
-  }
 }
 </style>

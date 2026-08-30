@@ -8,7 +8,7 @@
       @click="emit('toggle-fold')"
     >
       <span class="fold-label">{{ label }}</span>
-      <ChevronRight class="caret" :size="14" />
+      <ChevronRight class="caret caret-hint" :size="14" />
     </button>
     <Transition name="fold-reveal">
       <div v-if="revealed" class="body">
@@ -98,17 +98,6 @@ const steps = computed(() => workSteps(props.row))
 .caret {
   flex: none;
   color: inherit;
-  opacity: 0;
-  transition:
-    transform var(--duration-slow) var(--ease-out),
-    opacity var(--duration-slow) var(--ease-out);
-}
-.fold:hover .caret,
-.fold.open .caret {
-  opacity: 0.7;
-}
-.fold.open .caret {
-  transform: rotate(90deg);
 }
 .body {
   display: flex;
@@ -140,29 +129,5 @@ const steps = computed(() => workSteps(props.row))
   border-inline-start: var(--border-width) solid var(--hairline);
   border-bottom: var(--border-width) solid var(--hairline);
   border-end-start-radius: var(--radius-md);
-}
-.fold-reveal-enter-active,
-.fold-reveal-leave-active {
-  transition:
-    opacity var(--duration-slow) var(--ease-out),
-    transform var(--duration-slow) var(--ease-out);
-}
-.fold-reveal-enter-from,
-.fold-reveal-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .caret {
-    transition: none;
-  }
-  .fold-reveal-enter-active,
-  .fold-reveal-leave-active {
-    transition: opacity var(--duration-fast) var(--ease-out);
-  }
-  .fold-reveal-enter-from,
-  .fold-reveal-leave-to {
-    transform: none;
-  }
 }
 </style>

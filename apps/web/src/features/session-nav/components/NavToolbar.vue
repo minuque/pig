@@ -1,7 +1,7 @@
 <template>
   <div class="nav-toolbar">
     <button
-      class="toolbar-btn"
+      class="toolbar-btn press-scale"
       type="button"
       :disabled="Boolean(creating)"
       @click="emit('newSession')"
@@ -146,6 +146,9 @@ onClickOutside(searchRoot, () => {
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
   text-align: left;
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    scale var(--duration-fast) var(--ease-out);
 }
 .toolbar-btn:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
@@ -314,6 +317,7 @@ onClickOutside(searchRoot, () => {
   opacity: 0.45;
 }
 @media (prefers-reduced-motion: reduce) {
+  .toolbar-btn,
   .grouping-label,
   .search,
   .search-input,

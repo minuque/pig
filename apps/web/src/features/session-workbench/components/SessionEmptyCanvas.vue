@@ -1,9 +1,10 @@
 <template>
-  <section class="empty-canvas enter-blur">
+  <section class="empty-canvas">
     <div class="empty-canvas-form">
       <WorkbenchHero
         :workspace-id="sessionCwd"
         title-id="session-hero-title"
+        class="stagger-in"
         :workspaces="workspaces"
         :selectable="false"
       />
@@ -16,6 +17,7 @@
         :cwd="sessionCwd"
         :usage="contextUsage"
         :session-id="sessionId"
+        class="stagger-in"
         @send="submitText"
       />
     </div>
@@ -56,13 +58,5 @@ const { workspaces } = useNav()
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-}
-.enter-blur {
-  animation: enter-blur var(--duration-slow) var(--ease-out);
-}
-@media (prefers-reduced-motion: reduce) {
-  .enter-blur {
-    animation: none;
-  }
 }
 </style>

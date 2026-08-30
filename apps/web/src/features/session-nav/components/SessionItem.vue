@@ -21,7 +21,7 @@
           <div class="card-line card-head">
             <span class="title">{{ session.title }}</span>
             <span class="session-meta">
-              <span v-if="running || session.updatedAt" class="session-icon">
+              <span v-if="running || session.updatedAt" class="session-icon icon-swap">
                 <Spinner :size="12" class="session-spinner" :data-visible="running" />
                 <Clock
                   :size="12"
@@ -308,25 +308,13 @@ function confirmDelete() {
   gap: 4px;
 }
 .session-icon {
-  display: grid;
-  place-items: center;
   width: 12px;
   height: 12px;
 }
 .session-clock,
 .session-spinner {
-  grid-area: 1 / 1;
   flex: none;
   color: var(--ink-faint);
-  transition:
-    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
-    scale 300ms cubic-bezier(0.2, 0, 0, 1),
-    filter 300ms cubic-bezier(0.2, 0, 0, 1);
-}
-.session-icon > [data-visible="false"] {
-  opacity: 0;
-  scale: 0.25;
-  filter: blur(4px);
 }
 .session-time {
   color: var(--ink-faint);
@@ -338,12 +326,6 @@ function confirmDelete() {
 }
 .rename-form {
   justify-content: center;
-}
-@media (prefers-reduced-motion: reduce) {
-  .session-clock,
-  .session-spinner {
-    transition: none;
-  }
 }
 .rename-input {
   width: 100%;

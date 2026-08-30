@@ -3,6 +3,7 @@
    官方要另接 markstream-vue/tailwind safelist；只引一半，代码卡片会缺尺寸。 */
 @import "markstream-vue/index.css";
 @import "./markdown-stream.css";
+@import "./motion.css";
 
 @property --size-content {
   syntax: "<length>";
@@ -172,8 +173,10 @@
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 280ms;
+  --duration-icon: 300ms;
   --duration-theme: 600ms; /* 主题切换 View Transition 时长 */
   --duration-shimmer: 2s; /* loading 扫光循环 */
+  --ease-icon: cubic-bezier(0.2, 0, 0, 1);
 }
 
 /* ─── Dark mode — 近黑工作台；仅覆盖颜色/阴影 token，尺寸/动效继承 :root ─── */
@@ -441,8 +444,8 @@ textarea {
   font-weight: 500;
   cursor: pointer;
   transition:
-    background 150ms cubic-bezier(0.22, 1, 0.36, 1),
-    color 150ms cubic-bezier(0.22, 1, 0.36, 1);
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
 }
 .selector:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ink) 8%, transparent);
@@ -485,39 +488,6 @@ small,
   border-radius: var(--radius-xs);
   color: var(--ink-muted);
 }
-/* ── 入场与状态动效 ───────────────────────────────────────────────── */
-@keyframes enter-blur {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes exit-soft {
-  from {
-    opacity: 1;
-    translate: 0;
-    filter: blur(0);
-  }
-  to {
-    opacity: 0;
-    translate: 0 4px;
-    filter: blur(2px);
-  }
-}
-@keyframes exit-fade {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-/* 入场动效 keyframes 全局保留：SessionWelcome 的 scoped 样式直接引用；
-   .enter-blur 类规则已随工作台壳迁入 App.vue scoped */
 @keyframes shimmer {
   from {
     background-position: 200% 0;

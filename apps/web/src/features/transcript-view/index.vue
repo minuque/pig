@@ -293,13 +293,9 @@ onBeforeUnmount(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: enter-blur var(--duration-slow) var(--ease-out);
   --chat-input-overlay: 6rem;
 }
 @media (prefers-reduced-motion: reduce) {
-  .transcript-viewport {
-    animation: none;
-  }
   .session-floating-controls {
     transition: none;
   }

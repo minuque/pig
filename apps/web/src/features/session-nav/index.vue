@@ -14,7 +14,7 @@
 
     <template v-if="collapsed">
       <button
-        class="icon-button rail-action"
+        class="icon-button rail-action press-scale"
         type="button"
         :disabled="Boolean(creating)"
         title="新会话"
@@ -269,6 +269,12 @@ html[data-pig-desktop-platform] .session-nav input {
   background: transparent;
   color: var(--ink-muted);
 }
+.rail-action {
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    scale var(--duration-fast) var(--ease-out);
+}
 .collapse-toggle:hover,
 .rail-action:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
@@ -351,6 +357,11 @@ html[data-pig-desktop-platform] .session-nav input {
 .empty-add:hover {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
   color: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail-action {
+    transition: none;
+  }
 }
 .session-nav.collapsed .logo-row {
   overflow: visible;

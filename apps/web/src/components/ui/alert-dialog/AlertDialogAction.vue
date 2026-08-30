@@ -2,7 +2,7 @@
   <AlertDialogAction
     data-slot="alert-dialog-action"
     v-bind="forwardedProps"
-    :class="[buttonBase, buttonVariant[variant], buttonSize.default, props.class]"
+    :class="[buttonBase, buttonPress, buttonVariant[variant], buttonSize.default, props.class]"
   >
     <slot />
   </AlertDialogAction>
@@ -13,7 +13,7 @@ import type { AlertDialogActionProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { AlertDialogAction, useForwardProps } from "reka-ui"
-import { buttonBase, buttonSize, buttonVariant } from "@components/ui/button/index.js"
+import { buttonBase, buttonPress, buttonSize, buttonVariant } from "@components/ui/button/index.js"
 
 const props = withDefaults(
   defineProps<

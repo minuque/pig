@@ -1,0 +1,220 @@
+/* 工作台运动：token 在 app.css :root。此处只放可复用类与 Vue Transition 名。 */
+
+.press-scale:not(:disabled):active {
+  scale: 0.96;
+}
+
+.icon-swap {
+  display: grid;
+  place-items: center;
+}
+.icon-swap > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--duration-icon) var(--ease-icon),
+    scale var(--duration-icon) var(--ease-icon),
+    filter var(--duration-icon) var(--ease-icon);
+}
+.icon-swap > [data-visible="false"] {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+}
+
+.motion-icon {
+  transition:
+    opacity var(--duration-icon) var(--ease-icon),
+    scale var(--duration-icon) var(--ease-icon),
+    filter var(--duration-icon) var(--ease-icon);
+}
+.motion-hint {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+  pointer-events: none;
+  transition:
+    opacity var(--duration-icon) var(--ease-icon),
+    scale var(--duration-icon) var(--ease-icon),
+    filter var(--duration-icon) var(--ease-icon);
+}
+@media (hover: hover) {
+  :hover > .motion-hint,
+  :focus-within > .motion-hint,
+  .motion-hint:focus-visible {
+    opacity: 1;
+    scale: 1;
+    filter: blur(0);
+    pointer-events: auto;
+  }
+}
+@media (hover: none) {
+  .motion-hint {
+    opacity: 1;
+    scale: 1;
+    filter: blur(0);
+    pointer-events: auto;
+  }
+}
+
+.motion-turn {
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+.motion-turn.is-on {
+  transform: rotate(90deg);
+}
+
+.caret-hint {
+  opacity: 0;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+:is(:hover, .open) > .caret-hint {
+  opacity: 1;
+}
+.open > .caret-hint {
+  transform: rotate(90deg);
+}
+
+.stagger-in {
+  animation: enter-blur var(--duration-slow) var(--ease-out) both;
+}
+.stagger-in:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger-in:nth-child(2) {
+  animation-delay: 100ms;
+}
+.stagger-in:nth-child(3) {
+  animation-delay: 200ms;
+}
+
+@keyframes enter-blur {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes exit-soft {
+  from {
+    opacity: 1;
+    translate: 0;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    translate: 0 12px;
+    filter: blur(4px);
+  }
+}
+@keyframes exit-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.fold-reveal-enter-active {
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out),
+    filter var(--duration-slow) var(--ease-out);
+}
+.fold-reveal-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
+}
+.fold-reveal-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+  filter: blur(4px);
+}
+.fold-reveal-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+  filter: blur(4px);
+}
+
+.panel-reveal-enter-active {
+  transition:
+    opacity var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out),
+    filter var(--duration-normal) var(--ease-out);
+}
+.panel-reveal-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
+}
+.panel-reveal-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+  filter: blur(4px);
+}
+.panel-reveal-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+  filter: blur(4px);
+}
+
+.fade-layer-enter-active,
+.fade-layer-leave-active {
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+.fade-layer-enter-from,
+.fade-layer-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .press-scale:not(:disabled):active {
+    scale: 1;
+  }
+  .icon-swap > *,
+  .motion-icon,
+  .motion-hint,
+  .motion-turn,
+  .caret-hint {
+    transition: none;
+  }
+  .icon-swap > [data-visible="false"] {
+    filter: none;
+  }
+  .motion-hint {
+    filter: none;
+  }
+  .stagger-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  .fold-reveal-enter-active,
+  .fold-reveal-leave-active,
+  .panel-reveal-enter-active,
+  .panel-reveal-leave-active {
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+  .fold-reveal-enter-from,
+  .fold-reveal-leave-to,
+  .panel-reveal-enter-from,
+  .panel-reveal-leave-to {
+    transform: none;
+    filter: none;
+  }
+  .fade-layer-enter-active,
+  .fade-layer-leave-active {
+    transition: none;
+  }
+}

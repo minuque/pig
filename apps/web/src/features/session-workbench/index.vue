@@ -11,7 +11,9 @@
     <SessionWelcome v-else-if="!sessionId" />
 
     <div v-else class="session-stage">
-      <SessionLoading v-if="sessionPending && transcript.length === 0" />
+      <Transition name="fade-layer">
+        <SessionLoading v-if="sessionPending && transcript.length === 0" />
+      </Transition>
 
       <!-- 2. 空会话 -->
       <SessionEmptyCanvas v-if="emptyCanvas" />

@@ -122,6 +122,7 @@ function onPointerCancel() {
     transparent calc(var(--width-handle-pointer-y, 50%) + 52px)
   );
   opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
   content: "";
 }
 .width-handle[data-side="left"]::after {
@@ -137,6 +138,11 @@ function onPointerCancel() {
 @media (max-width: 900px) {
   .width-handle {
     display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .width-handle::after {
+    transition: none;
   }
 }
 </style>

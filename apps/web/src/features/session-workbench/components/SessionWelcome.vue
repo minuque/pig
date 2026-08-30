@@ -4,6 +4,7 @@
       <WorkbenchHero
         v-model:workspace-id="welcomeWorkspaceId"
         title-id="welcome-title"
+        class="stagger-in"
         :workspaces="workspaces"
         :adding="addingWorkspace"
         @add="addWorkspace()"
@@ -14,12 +15,13 @@
         v-model:preset="preset"
         :catalog="catalog"
         :send-disabled="!canSubmitNow"
+        class="stagger-in"
         bare
         placeholder="do what you want ..."
         @send="submitWelcome"
       />
 
-      <p v-if="welcomeError" class="notice error">{{ welcomeError }}</p>
+      <p v-if="welcomeError" class="notice error stagger-in">{{ welcomeError }}</p>
     </div>
   </section>
 </template>

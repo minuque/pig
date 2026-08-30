@@ -6,6 +6,7 @@
           type="button"
           variant="outline"
           size="icon"
+          static
           class="preview size-12 overflow-hidden rounded-[var(--radius-lg)] p-0"
         >
           <img
@@ -25,7 +26,7 @@
         />
       </DialogContent>
     </Dialog>
-    <Button type="button" size="icon-2xs" class="remove" @click.stop="emit('remove')">
+    <Button type="button" size="icon-2xs" class="remove motion-hint" @click.stop="emit('remove')">
       <X />
     </Button>
   </div>
@@ -69,30 +70,10 @@ const alt = computed(() => props.name || "图片")
   background: var(--accent-midnight);
   color: var(--on-primary);
   box-shadow: none;
-  opacity: 0;
-  scale: 0.25;
-  filter: blur(4px);
-  pointer-events: none;
-  transition:
-    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
-    scale 300ms cubic-bezier(0.2, 0, 0, 1),
-    filter 300ms cubic-bezier(0.2, 0, 0, 1);
-}
-.group:hover .remove,
-.remove:focus-visible {
-  opacity: 1;
-  scale: 1;
-  filter: blur(0);
-  pointer-events: auto;
 }
 .remove:hover,
 .remove:focus-visible {
   background: var(--accent-midnight);
   color: var(--on-primary);
-}
-@media (prefers-reduced-motion: reduce) {
-  .remove {
-    transition: none;
-  }
 }
 </style>

@@ -2,12 +2,16 @@
   <div class="group-head">
     <button class="group-toggle" type="button" @click="emit('toggle')">
       <span class="mark">
-        <ChevronRight class="group-chevron" :class="{ expanded: !collapsed }" :size="16" />
+        <ChevronRight
+          class="group-chevron motion-turn"
+          :class="{ 'is-on': !collapsed }"
+          :size="16"
+        />
       </span>
       <span class="group-name">{{ name }}</span>
     </button>
     <button
-      class="group-new"
+      class="group-new motion-hint"
       type="button"
       :disabled="creating"
       title="新会话"
@@ -68,13 +72,9 @@ const emit = defineEmits<{
 }
 .group-chevron {
   color: var(--ink-faint);
-  transition: transform var(--duration-fast) var(--ease-smooth);
 }
 .group-head:hover .group-chevron {
   color: var(--ink-muted);
-}
-.group-chevron.expanded {
-  transform: rotate(90deg);
 }
 .group-name {
   min-width: 0;
@@ -97,10 +97,6 @@ const emit = defineEmits<{
   background: transparent;
   color: var(--ink-muted);
   line-height: 0;
-  transition:
-    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
-    scale 300ms cubic-bezier(0.2, 0, 0, 1),
-    filter 300ms cubic-bezier(0.2, 0, 0, 1);
 }
 .group-new:hover:not(:disabled),
 .group-new:focus-visible:not(:disabled) {
@@ -108,23 +104,5 @@ const emit = defineEmits<{
 }
 .group-new:disabled {
   opacity: 0.45;
-}
-@media (hover: hover) {
-  .group-new {
-    opacity: 0;
-    scale: 0.25;
-    filter: blur(4px);
-  }
-  .group-head:hover .group-new,
-  .group-new:focus-visible {
-    opacity: 1;
-    scale: 1;
-    filter: blur(0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .group-new {
-    transition: none;
-  }
 }
 </style>

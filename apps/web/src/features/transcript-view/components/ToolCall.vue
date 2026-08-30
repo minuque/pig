@@ -7,7 +7,7 @@
       :disabled="!expandable"
       @click="onToggle"
     >
-      <span class="spine" :class="statusKind">
+      <span class="spine icon-swap" :class="statusKind">
         <LoaderCircle class="spin" :size="16" :data-visible="running" />
         <X :size="10" :stroke-width="3" :data-visible="!running && item.isError" />
         <component :is="kindIcon" :size="16" :data-visible="!running && !item.isError" />
@@ -18,7 +18,7 @@
         <span class="pill-text">{{ object }}</span>
       </span>
       <span v-if="summary" class="summary">{{ summary }}</span>
-      <ChevronRight v-if="expandable" class="caret" :size="14" />
+      <ChevronRight v-if="expandable" class="caret caret-hint" :size="14" />
     </button>
     <Transition name="fold-reveal">
       <div v-if="open && expandable" class="body">
@@ -184,8 +184,6 @@ function onToggle() {
 }
 .spine {
   flex: none;
-  display: inline-grid;
-  place-items: center;
   width: 16px;
   height: 16px;
   transition: color var(--duration-fast) var(--ease-out);
@@ -198,18 +196,6 @@ function onToggle() {
 }
 .spine.is-run {
   color: var(--primary);
-}
-.spine > :deep(*) {
-  grid-area: 1 / 1;
-  transition:
-    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
-    scale 300ms cubic-bezier(0.2, 0, 0, 1),
-    filter 300ms cubic-bezier(0.2, 0, 0, 1);
-}
-.spine > :deep([data-visible="false"]) {
-  opacity: 0;
-  scale: 0.25;
-  filter: blur(4px);
 }
 .spin {
   animation: tool-spin 0.8s linear infinite;
@@ -266,17 +252,6 @@ function onToggle() {
 .caret {
   flex: none;
   color: var(--ink-faint);
-  opacity: 0;
-  transition:
-    transform var(--duration-slow) var(--ease-out),
-    opacity var(--duration-slow) var(--ease-out);
-}
-.toggle:hover .caret,
-.toggle.open .caret {
-  opacity: 1;
-}
-.toggle.open .caret {
-  transform: rotate(90deg);
 }
 .body {
   min-width: 0;
@@ -330,34 +305,9 @@ function onToggle() {
     transform: rotate(360deg);
   }
 }
-.fold-reveal-enter-active,
-.fold-reveal-leave-active {
-  transition:
-    opacity var(--duration-slow) var(--ease-out),
-    transform var(--duration-slow) var(--ease-out);
-}
-.fold-reveal-enter-from,
-.fold-reveal-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
-}
 @media (prefers-reduced-motion: reduce) {
   .spin {
     animation: none;
-  }
-  .spine > :deep(*) {
-    transition: none;
-  }
-  .caret {
-    transition: none;
-  }
-  .fold-reveal-enter-active,
-  .fold-reveal-leave-active {
-    transition: opacity var(--duration-fast) var(--ease-out);
-  }
-  .fold-reveal-enter-from,
-  .fold-reveal-leave-to {
-    transform: none;
   }
 }
 </style>

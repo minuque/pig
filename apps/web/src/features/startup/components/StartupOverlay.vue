@@ -107,7 +107,7 @@ onBeforeUnmount(() => {
     0 10px 24px rgba(0, 0, 0, 0.36);
 }
 .startup-wait.leaving .startup-logo {
-  transform: translateY(-4px);
+  transform: translateY(-12px);
   transition: transform var(--duration-normal) var(--ease-out);
 }
 @media (prefers-reduced-transparency: reduce) {

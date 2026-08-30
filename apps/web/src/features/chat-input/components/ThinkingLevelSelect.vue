@@ -9,7 +9,7 @@
     @click="cycle"
   >
     <span class="bars-slot" :class="{ on: !isOff }">
-      <svg class="bars" width="14" height="14" viewBox="0 0 14 14">
+      <svg class="bars motion-icon" width="14" height="14" viewBox="0 0 14 14">
         <rect x="1.5" y="8" width="2.5" height="4.5" rx="1" :style="{ opacity: barOpacities[0] }" />
         <rect
           x="5.75"
@@ -105,7 +105,11 @@ function cycle() {
   display: inline-flex;
   flex: none;
   width: 0;
+  margin-right: 0;
   overflow: hidden;
+  transition:
+    width var(--duration-icon) var(--ease-icon),
+    margin-right var(--duration-icon) var(--ease-icon);
 }
 .bars-slot.on {
   width: 14px;
@@ -117,10 +121,6 @@ function cycle() {
   opacity: 0;
   scale: 0.25;
   filter: blur(4px);
-  transition:
-    opacity var(--duration-fast) cubic-bezier(0.2, 0, 0, 1),
-    scale var(--duration-fast) cubic-bezier(0.2, 0, 0, 1),
-    filter var(--duration-fast) cubic-bezier(0.2, 0, 0, 1);
 }
 .bars-slot.on .bars {
   opacity: 1;
@@ -135,7 +135,7 @@ function cycle() {
   font-weight: inherit;
 }
 @media (prefers-reduced-motion: reduce) {
-  .bars,
+  .bars-slot,
   .bars rect {
     transition: none;
   }

@@ -1,6 +1,6 @@
 <template>
-  <button type="button" class="theme-toggle" @click="toggle">
-    <span class="theme-icon">
+  <button type="button" class="theme-toggle press-scale" @click="toggle">
+    <span class="theme-icon icon-swap">
       <Sun :size="16" :data-visible="!isDark" />
       <Moon :size="16" :data-visible="isDark" />
     </span>
@@ -28,29 +28,16 @@ const { isDark, toggle } = useColorScheme()
   color: var(--ink-muted);
   transition:
     background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
+    color var(--duration-fast) var(--ease-smooth),
+    scale var(--duration-fast) var(--ease-out);
 }
 .theme-toggle:hover {
   background: color-mix(in srgb, var(--ink) 6%, transparent);
   color: var(--ink);
 }
 .theme-icon {
-  display: grid;
-  place-items: center;
   width: 16px;
   height: 16px;
-}
-.theme-icon :deep(svg) {
-  grid-area: 1 / 1;
-  transition:
-    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
-    scale 300ms cubic-bezier(0.2, 0, 0, 1),
-    filter 300ms cubic-bezier(0.2, 0, 0, 1);
-}
-.theme-icon :deep(svg[data-visible="false"]) {
-  opacity: 0;
-  scale: 0.25;
-  filter: blur(4px);
 }
 @media (pointer: coarse) {
   .theme-toggle {
@@ -59,8 +46,7 @@ const { isDark, toggle } = useColorScheme()
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .theme-toggle,
-  .theme-icon :deep(svg) {
+  .theme-toggle {
     transition: none;
   }
 }
