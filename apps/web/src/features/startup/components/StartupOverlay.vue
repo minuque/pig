@@ -92,9 +92,8 @@ onBeforeUnmount(() => {
   -webkit-app-region: drag;
 }
 .startup-logo {
-  width: clamp(80px, 12vw, 112px);
-  height: auto;
-  aspect-ratio: 1;
+  width: 96px;
+  height: 96px;
   object-fit: contain;
   border-radius: var(--radius-xs);
   pointer-events: none;
