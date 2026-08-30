@@ -199,10 +199,7 @@ watch(rows, (next, prev) => {
 })
 watch([scroller, list], observeSizes, { flush: "post" })
 
-onBeforeUnmount(() => {
-  releasePinnedToBottom()
-  sizeObserver?.disconnect()
-})
+onBeforeUnmount(() => sizeObserver?.disconnect())
 </script>
 
 <style scoped>

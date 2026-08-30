@@ -1,4 +1,4 @@
-import { onBeforeUnmount, readonly, shallowRef } from "vue"
+import { onBeforeUnmount, shallowRef } from "vue"
 import {
   isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
@@ -9,7 +9,7 @@ function userScrollBehavior() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
 }
 
-/** 跟随则瞬间贴底；导航（回底部 / 小地图）期间不贴底，等 scrollend。 */
+/** 跟随则瞬间贴底；导航期间不贴底，等 scrollend。 */
 export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   const atBottom = shallowRef(false)
   const visuallyAtBottom = shallowRef(false)
@@ -32,7 +32,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (root) root.scrollTop = root.scrollHeight - root.clientHeight
   }
 
-  function stopNavigating() {
+  function releasePinnedToBottom() {
     navigating = false
     if (navTimer) {
       window.clearTimeout(navTimer)
@@ -45,32 +45,27 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
 
   function finishNavigate() {
     if (!navigating) return
-    stopNavigating()
+    releasePinnedToBottom()
     const root = getRoot()
     if (root) applyBottom(root)
     if (atBottom.value) jumpToBottom()
   }
 
   function beginNavigate(root: HTMLElement) {
-    stopNavigating()
+    releasePinnedToBottom()
     navigating = true
     navRoot = root
     onNavEnd = () => finishNavigate()
     root.addEventListener("scrollend", onNavEnd, { once: true })
-    navTimer = window.setTimeout(finishNavigate, 1000)
+    navTimer = window.setTimeout(finishNavigate, 1000) // ponytail: 无 scrollend 时收尾；动画超过 1s 会提前恢复跟随
   }
 
   function pinIfNeeded() {
-    if (navigating) return
-    if (atBottom.value) jumpToBottom()
-  }
-
-  function releasePinnedToBottom() {
-    stopNavigating()
+    if (!navigating && atBottom.value) jumpToBottom()
   }
 
   function reset() {
-    stopNavigating()
+    releasePinnedToBottom()
     atBottom.value = false
     visuallyAtBottom.value = false
   }
@@ -82,7 +77,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   }
 
   function onWheel(event: WheelEvent) {
-    stopNavigating()
+    releasePinnedToBottom()
     if (event.deltaY < 0) atBottom.value = false
     const root = getRoot()
     if (!root) return
@@ -110,7 +105,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     visuallyAtBottom.value = true
     const top = Math.max(0, root.scrollHeight - root.clientHeight)
     if (Math.abs(root.scrollTop - top) <= 2) {
-      stopNavigating()
+      releasePinnedToBottom()
       jumpToBottom()
       return
     }
@@ -126,11 +121,11 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     el.scrollIntoView({ block: "start", behavior: userScrollBehavior() })
   }
 
-  onBeforeUnmount(stopNavigating)
+  onBeforeUnmount(releasePinnedToBottom)
 
   return {
-    atBottom: readonly(atBottom),
-    visuallyAtBottom: readonly(visuallyAtBottom),
+    atBottom,
+    visuallyAtBottom,
     pinIfNeeded,
     releasePinnedToBottom,
     reset,
