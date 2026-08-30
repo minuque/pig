@@ -153,7 +153,7 @@ function onStageFocusOut(event: FocusEvent) {
 }
 .minimap-strip.strip-active {
   width: 38px;
-  background: var(--on-primary);
+  background: var(--ink);
 }
 .minimap-preview {
   pointer-events: auto;
