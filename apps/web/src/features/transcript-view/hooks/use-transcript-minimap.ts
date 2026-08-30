@@ -6,7 +6,7 @@ import {
   sameIdList,
 } from "@features/transcript-view/lib/transcript-minimap.js"
 
-/** minimap 几何与输入遮罩、贴底 observer 都停在 Transcript 内部。 */
+/** minimap 几何与输入遮罩停在 Transcript 内部。 */
 export function useTranscriptMinimap(
   rows: MaybeRefOrGetter<readonly TimelineRow[]>,
   layout: {
@@ -14,9 +14,6 @@ export function useTranscriptMinimap(
     viewport: MaybeRefOrGetter<HTMLElement | null>
     inputBar: MaybeRefOrGetter<HTMLElement | null>
     scrollRoot: () => HTMLElement | null
-    sidebarResizing: MaybeRefOrGetter<boolean>
-    atBottom: MaybeRefOrGetter<boolean>
-    stickToBottom: () => void
   },
 ) {
   const viewportWidth = shallowRef(0)
@@ -54,8 +51,6 @@ export function useTranscriptMinimap(
     const root = layout.scrollRoot()
     syncLayout(el, root)
     if (bar && host) host.style.setProperty("--chat-input-overlay", `${bar.offsetHeight}px`)
-    if (toValue(layout.sidebarResizing) || !toValue(layout.atBottom)) return
-    layout.stickToBottom()
   }
 
   let layoutObserver: ResizeObserver | undefined

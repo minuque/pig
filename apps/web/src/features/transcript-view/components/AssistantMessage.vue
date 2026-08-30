@@ -63,6 +63,7 @@ const agentMarkdown = computed(() => {
     mode: "chat",
     fade: false,
     isDark: isDark.value,
+    viewportPriority: false,
     codeBlockOptions,
     codeBlockProps: {
       showHeader: true,

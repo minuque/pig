@@ -20,8 +20,9 @@
         :get-final="transcriptRowFinal"
         :estimate-item-height="estimateTranscriptRowHeight"
         markdown-mode="chat"
-        :stick-to-bottom="'auto'"
-        :overscan="8"
+        :stick-to-bottom="false"
+        :overscan="24"
+        :overscan-px="4000"
         :initial-thread-state="initialThreadState"
         @thread-state-change="onThreadState"
       >
@@ -96,10 +97,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
 import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
-import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
 import ChatInput from "@features/chat-input/index.vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
@@ -126,6 +126,7 @@ import {
 } from "@features/transcript-view/lib/transcript-rows.js"
 import {
   isMarkdownStreamReady,
+  isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
   PROGRAMMATIC_BOTTOM_HOLD_MS,
   shouldHoldProgrammaticBottom,
@@ -169,8 +170,6 @@ const region = useTemplateRef<HTMLElement>("region")
 const inputBar = useTemplateRef<HTMLElement>("inputBar")
 const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
-const panel = inject(leftPanelKey, null)
-const sidebarResizing = computed(() => panel?.resizing.value ?? false)
 
 const rowKey = (item: { id: string }) => item.id
 const pendingMarkdownIds = new Set<string>()
@@ -217,8 +216,9 @@ const timeline = useTemplateRef<{
   restoreThreadState(state: MarkstreamThreadVirtualState): void
 }>("timeline")
 const atBottom = shallowRef(false)
+const visuallyAtBottom = shallowRef(false)
 const showScrollToLatest = computed(() =>
-  shouldShowScrollToLatest(props.transcript.length, atBottom.value),
+  shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
 let bottomHoldUntil = 0
 let pinRaf = 0
@@ -237,6 +237,7 @@ function releasePinnedToBottom() {
 
 function onTranscriptWheel(event: WheelEvent) {
   releasePinnedToBottom()
+  if (event.deltaY < 0) atBottom.value = false
   const root = timelineScrollRoot()
   if (!root) return
   const nextTop = unpinBottomScrollTop(
@@ -280,19 +281,25 @@ const {
   viewport,
   inputBar,
   scrollRoot: timelineScrollRoot,
-  sidebarResizing,
-  atBottom,
-  stickToBottom: jumpToBottom,
 })
 
 function onThreadState(state: MarkstreamThreadVirtualState) {
   const root = timelineScrollRoot()
   syncLayout(region.value, root)
-  const bottom = root
-    ? isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
+  const exact = root
+    ? isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
     : state.outerAnchor?.type !== "item"
-  if (shouldHoldProgrammaticBottom(bottom, bottomHoldUntil, performance.now())) return
-  atBottom.value = bottom
+  const visual = root
+    ? isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
+    : exact
+  if (shouldHoldProgrammaticBottom(exact, bottomHoldUntil, performance.now())) return
+  if (atBottom.value) {
+    jumpToBottom()
+    visuallyAtBottom.value = true
+    return
+  }
+  atBottom.value = exact
+  visuallyAtBottom.value = visual
   if (!streamReadyEmitted) {
     requestAnimationFrame(() => {
       if (!streamReadyEmitted) checkStreamReady()
@@ -317,6 +324,7 @@ function scrollToLatest() {
   const holdUntil = performance.now() + PROGRAMMATIC_BOTTOM_HOLD_MS
   bottomHoldUntil = holdUntil
   atBottom.value = true
+  visuallyAtBottom.value = true
   if (pinRaf) cancelAnimationFrame(pinRaf)
   const tick = () => {
     jumpToBottom()
@@ -343,6 +351,7 @@ watch(
     releasePinnedToBottom()
     // 切 Session 不贴底、不恢复 scrollTop
     atBottom.value = false
+    visuallyAtBottom.value = false
   },
   { flush: "pre" },
 )

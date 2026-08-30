@@ -347,7 +347,7 @@ function estimateWrappedLines(text: string, charsPerLine: number): number {
   return lines
 }
 
-/** 虚拟列表估高宁可偏高：助手约 48 字/行 26px，用户约 36 字/行 22px。 */
+/** 估高偏低：偏高会在贴底上翻时测完变矮，把视口拽回底部。 */
 export function estimateTranscriptRowHeight(item: TimelineRow): number {
   if (isThinkingRow(item)) return 36
   if (isWorkRow(item)) {
@@ -360,6 +360,5 @@ export function estimateTranscriptRowHeight(item: TimelineRow): number {
     return Math.min(280, 56 + estimateWrappedLines(text, 36) * 22)
   }
   if (!text && (item.error || item.aborted)) return item.errorMessage ? 56 : 36
-  const height = 36 + estimateWrappedLines(text, 48) * 26
-  return Math.min(960, Math.max(160, height))
+  return Math.min(960, 36 + estimateWrappedLines(text, 48) * 22)
 }

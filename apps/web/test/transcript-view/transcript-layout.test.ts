@@ -8,11 +8,16 @@ import {
   transcriptRowFinal,
   transcriptRowKind,
   buildTimelineRows,
+  estimateTranscriptRowHeight,
   type ToolCallView,
   workFoldLabel,
   workSteps,
 } from "@features/transcript-view/lib/transcript-rows.js"
-import { isMarkdownStreamReady } from "@features/transcript-view/lib/transcript-scroll.js"
+import {
+  isMarkdownStreamReady,
+  isTranscriptAtBottom,
+  isTranscriptVisuallyAtBottom,
+} from "@features/transcript-view/lib/transcript-scroll.js"
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
   return {
@@ -50,6 +55,32 @@ describe("transcript row markstream mapping", () => {
     const rows = buildTimelineRows([streaming], false)
     expect(transcriptRowFinal(rows[0]!)).toBe(false)
     expect(transcriptRowContent(rows[0]!)).toBe("…")
+  })
+})
+
+describe("transcript bottom thresholds", () => {
+  it("离开精确底部后不再贴底，48px 内仍算视觉底部", () => {
+    const sh = 1000
+    const ch = 500
+    expect(isTranscriptAtBottom(sh, 500, ch)).toBe(true)
+    expect(isTranscriptAtBottom(sh, 490, ch)).toBe(false)
+    expect(isTranscriptVisuallyAtBottom(sh, 490, ch)).toBe(true)
+    expect(isTranscriptVisuallyAtBottom(sh, 451, ch)).toBe(false)
+  })
+})
+
+describe("estimateTranscriptRowHeight", () => {
+  it("短助手行不垫到 160，避免贴底上翻测高回弹", () => {
+    expect(
+      estimateTranscriptRowHeight({
+        id: "a1",
+        role: "assistant",
+        text: "答",
+        streaming: false,
+        error: false,
+        aborted: false,
+      }),
+    ).toBeLessThan(80)
   })
 })
 
