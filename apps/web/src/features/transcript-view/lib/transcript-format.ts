@@ -146,10 +146,10 @@ function resultCount(text: string): number | null {
   return lines.length
 }
 
-/** 折叠顶栏右侧摘要。read 用路径文件名，其余只留失败和短列表条数。 */
+/**
+ * 折叠顶栏右侧摘要。标题已含 path / cmd，这里只留失败和短列表条数。
+ */
 export function toolCallSummary(item: {
-  toolName?: string
-  input?: unknown
   isError: boolean
   running: boolean
   outputText: string
@@ -157,9 +157,6 @@ export function toolCallSummary(item: {
 }): string {
   if (item.isError) return "失败"
   if (item.running) return ""
-  if (item.toolName?.trim().toLowerCase() === "read") {
-    return toolCallDetail(item.toolName, item.input)
-  }
   const count = resultCount(item.outputText)
   if (count != null) return `${count} 条结果`
   if (!item.outputText && item.outputImages.length > 0) {
