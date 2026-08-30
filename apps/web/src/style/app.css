@@ -28,7 +28,7 @@
   --ink-muted: #5c5f66;
   --ink-faint: #8b8f97;
   --hairline: #e5e7eb;
-  --chat-input-ring: var(--hairline);
+  --chat-input-ring: #cecece; /* Light Modern input.border */
   --glass-blur: 12px;
   --glass-opacity: 80%;
   --glass-saturation: 1.14;
@@ -183,14 +183,14 @@
   --canvas: #0a0a0a;
   --canvas-soft: #1b1b1c;
   --surface: #0a0a0a;
-  --sidebar: #050505;
+  --sidebar: #181818; /* VS Code Dark Modern sideBar.background */
   --chat-input: #121212;
   --bubble: #141414;
   --ink: #ebeef2;
   --ink-secondary: #c5c8ce;
-  --ink-muted: #9aa0a8;
-  --ink-faint: #7a7e86;
-  --hairline: #2c2c2e;
+  --ink-muted: #9d9d9d; /* Dark Modern descriptionForeground */
+  --ink-faint: #6e7681; /* Dark Modern editorLineNumber.foreground */
+  --hairline: #2b2b2b; /* Dark Modern sideBar.border */
   --chat-input-ring: color-mix(in srgb, var(--ink) 8%, var(--chat-input));
   /* 语义橙提亮（run 失败左条 / active session 文字） */
   --accent-orange: #ff8a3d;
