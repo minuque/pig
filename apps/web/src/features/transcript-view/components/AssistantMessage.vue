@@ -50,7 +50,7 @@ const agentMarkdown = computed(() => {
       showCopyButton: true,
       showCollapseButton: true,
       showExpandButton: true,
-      theme: "dark-plus",
+      theme: isDark.value ? "dark-plus" : "light-plus",
     },
   } as const
   if (props.streaming) {
