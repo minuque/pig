@@ -1,20 +1,14 @@
 <template>
   <div class="session-nav" :class="{ collapsed }">
     <!-- 仅桌面壳可见；win32 用系统 caption，不画侧栏拖条 -->
-    <div class="titlebar-drag" aria-hidden="true"></div>
+    <div class="titlebar-drag"></div>
 
     <div class="logo-row">
-      <RouterLink v-if="!collapsed" to="/" class="logo-mark" aria-label="返回欢迎页">
+      <RouterLink v-if="!collapsed" to="/" class="logo-mark">
         <img src="/logo.png" alt="" width="22" height="22" />
       </RouterLink>
-      <button
-        class="icon-button collapse-toggle"
-        type="button"
-        :aria-expanded="!collapsed"
-        aria-label="切换工作目录导航"
-        @click="emit('toggle')"
-      >
-        <PanelLeft :size="16" aria-hidden="true" />
+      <button class="icon-button collapse-toggle" type="button" @click="emit('toggle')">
+        <PanelLeft :size="16" />
       </button>
     </div>
 
@@ -23,11 +17,10 @@
         class="icon-button rail-action"
         type="button"
         :disabled="Boolean(creating)"
-        aria-label="新会话"
         title="新会话"
         @click="onNewSession()"
       >
-        <SquarePen :size="16" aria-hidden="true" />
+        <SquarePen :size="16" />
       </button>
     </template>
 
@@ -35,8 +28,8 @@
       <NavToolbar v-model:search-query="searchQuery" @new-session="onNewSession" />
 
       <div v-bind="containerProps" class="nav-body">
-        <nav class="session-list" aria-label="会话列表">
-          <ul v-if="showList" v-bind="wrapperProps" role="list">
+        <nav class="session-list">
+          <ul v-if="showList" v-bind="wrapperProps">
             <li v-for="item in list" :key="item.data.key" :class="`row-${item.data.kind}`">
               <GroupHead
                 v-if="item.data.kind === 'group'"
@@ -74,7 +67,7 @@
             <template v-if="groups.length === 0">
               <span>还没有工作目录</span>
               <button class="empty-add" type="button" @click="addWorkspace()">
-                <Plus :size="12" aria-hidden="true" />
+                <Plus :size="12" />
                 添加本地目录
               </button>
             </template>

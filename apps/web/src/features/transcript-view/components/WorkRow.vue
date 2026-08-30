@@ -4,12 +4,11 @@
       v-if="folded"
       type="button"
       class="fold"
-      :aria-expanded="revealed"
-      :aria-label="label"
+      :class="{ open: revealed }"
       @click="emit('toggle-fold')"
     >
       <span class="fold-label">{{ label }}</span>
-      <ChevronRight class="caret" :size="14" aria-hidden="true" />
+      <ChevronRight class="caret" :size="14" />
     </button>
     <div v-if="revealed" class="body">
       <template v-for="step in steps" :key="step.type === 'tool' ? step.item.id : step.id">
@@ -103,10 +102,10 @@ const steps = computed(() => workSteps(props.row))
     opacity var(--duration-fast) var(--ease-smooth);
 }
 .fold:hover .caret,
-.fold[aria-expanded="true"] .caret {
+.fold.open .caret {
   opacity: 0.7;
 }
-.fold[aria-expanded="true"] .caret {
+.fold.open .caret {
   transform: rotate(90deg);
 }
 .body {

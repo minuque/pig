@@ -4,7 +4,7 @@
     :class="{ 'left-closed': !leftOpen, 'is-resizing': resizing }"
     :style="{ '--left-width': `${leftWidth}px` }"
   >
-    <aside class="sidebar" :class="{ open: leftOpen }" aria-label="工作目录和会话导航">
+    <aside class="sidebar" :class="{ open: leftOpen }">
       <slot
         name="sidebar"
         :on-navigate="closeMobilePanels"
@@ -15,12 +15,6 @@
     <div
       v-if="leftOpen"
       class="resizer"
-      role="separator"
-      aria-label="调整左栏宽度"
-      aria-orientation="vertical"
-      :aria-valuenow="leftWidth"
-      aria-valuemin="240"
-      aria-valuemax="420"
       tabindex="0"
       @pointerdown="startResize($event)"
       @keydown.left.prevent="resizeBy(-16)"

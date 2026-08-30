@@ -1,5 +1,5 @@
 <template>
-  <section class="empty-canvas enter-blur" aria-labelledby="session-hero-title">
+  <section class="empty-canvas enter-blur">
     <div class="empty-canvas-form">
       <WorkbenchHero
         :workspace-id="sessionCwd"

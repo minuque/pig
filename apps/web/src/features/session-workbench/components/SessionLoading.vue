@@ -1,7 +1,6 @@
 <template>
-  <div class="session-loading" role="status" aria-live="polite" aria-busy="true">
-    <Spinner :size="24" aria-hidden="true" />
-    <p class="sr-only">正在加载会话</p>
+  <div class="session-loading">
+    <Spinner :size="24" />
   </div>
 </template>
 

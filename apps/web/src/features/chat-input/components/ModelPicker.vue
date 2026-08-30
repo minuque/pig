@@ -1,7 +1,7 @@
 <template>
   <DropdownMenu v-model:open="open" :modal="false">
     <DropdownMenuTrigger as-child>
-      <button type="button" class="selector" :disabled="disabled" :aria-label="`模型：${label}`">
+      <button type="button" class="selector" :disabled="disabled">
         <VendorMark
           v-if="current.vendor"
           :vendor="current.vendor.id"
@@ -16,28 +16,21 @@
       side="top"
       align="start"
       :side-offset="6"
-      aria-label="选择模型"
       class="z-30 w-[min(400px,calc(100vw-24px))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden overflow-y-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
       @open-auto-focus="onOpenAutoFocus"
       @pointer-down-outside="suppressFocusRestore"
       @close-auto-focus="onCloseAutoFocus"
     >
       <div class="picker">
-        <div class="rail" aria-label="按供应商筛选">
+        <div class="rail">
           <button
             type="button"
             class="rail-btn"
             title="收藏模型"
-            aria-label="收藏模型"
-            :aria-pressed="scope === FAVORITES_SCOPE"
             :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
             @click="scope = FAVORITES_SCOPE"
           >
-            <Star
-              :size="16"
-              :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'"
-              aria-hidden="true"
-            />
+            <Star :size="16" :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'" />
           </button>
           <button
             v-for="vendor in catalog"
@@ -45,8 +38,6 @@
             type="button"
             class="rail-btn"
             :title="vendor.name"
-            :aria-label="vendor.name"
-            :aria-pressed="scope === vendor.id"
             :data-current="scope === vendor.id ? '' : undefined"
             @click="scope = vendor.id"
           >
@@ -57,13 +48,7 @@
         <div class="main">
           <div class="search">
             <Search :size="13" class="search-icon" />
-            <input
-              ref="searchRef"
-              v-model="query"
-              type="text"
-              placeholder="搜索模型"
-              aria-label="搜索模型"
-            />
+            <input ref="searchRef" v-model="query" type="text" placeholder="搜索模型" />
           </div>
           <div v-bind="containerProps" class="groups">
             <div v-if="items.length" v-bind="wrapperProps">
@@ -94,9 +79,6 @@
                   class="fav"
                   tabindex="-1"
                   :class="{ on: isFavorite(item.data.vendor.id, item.data.model.id) }"
-                  :aria-label="
-                    isFavorite(item.data.vendor.id, item.data.model.id) ? '取消收藏' : '收藏模型'
-                  "
                   @pointerdown.stop
                   @click.stop="toggleFavorite(item.data.vendor.id, item.data.model.id)"
                 >
@@ -105,7 +87,6 @@
                     :fill="
                       isFavorite(item.data.vendor.id, item.data.model.id) ? 'currentColor' : 'none'
                     "
-                    aria-hidden="true"
                   />
                 </button>
               </div>

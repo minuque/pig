@@ -4,10 +4,9 @@
       class="toolbar-btn"
       type="button"
       :disabled="Boolean(creating)"
-      aria-label="新会话"
       @click="emit('newSession')"
     >
-      <span class="mark" aria-hidden="true">
+      <span class="mark">
         <SquarePen :size="16" />
       </span>
       <span class="label">新会话</span>
@@ -20,12 +19,7 @@
         :class="{ expanded: searchExpanded }"
         @click="openSearch"
       >
-        <button
-          class="toolbar-icon"
-          type="button"
-          :aria-expanded="searchExpanded"
-          aria-label="搜索会话"
-        >
+        <button class="toolbar-icon" type="button">
           <Search :size="16" />
         </button>
         <input
@@ -34,26 +28,19 @@
           class="search-input"
           type="search"
           placeholder="搜索会话"
-          aria-label="搜索会话"
           autocomplete="off"
           :tabindex="searchExpanded ? 0 : -1"
           @keydown.escape="closeSearch"
         />
-        <button
-          v-if="searchExpanded"
-          class="clear-button"
-          type="button"
-          aria-label="关闭搜索"
-          @click.stop="closeSearch"
-        >
+        <button v-if="searchExpanded" class="clear-button" type="button" @click.stop="closeSearch">
           <X :size="14" />
         </button>
       </div>
       <span class="grouping-actions" :class="{ hidden: searchExpanded }">
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <button class="toolbar-icon" type="button" aria-label="筛选会话分组" title="筛选">
-              <span class="mark" aria-hidden="true">
+            <button class="toolbar-icon" type="button" title="筛选">
+              <span class="mark">
                 <ListFilter :size="16" />
               </span>
             </button>
@@ -61,11 +48,11 @@
           <DropdownMenuContent align="end" class="select-none">
             <DropdownMenuItem @select="setGrouping('updated')">
               <span class="min-w-0 flex-1 truncate">更新时间</span>
-              <Check v-if="grouping === 'updated'" :size="14" aria-hidden="true" />
+              <Check v-if="grouping === 'updated'" :size="14" />
             </DropdownMenuItem>
             <DropdownMenuItem @select="setGrouping('project')">
               <span class="min-w-0 flex-1 truncate">项目</span>
-              <Check v-if="grouping === 'project'" :size="14" aria-hidden="true" />
+              <Check v-if="grouping === 'project'" :size="14" />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -73,11 +60,10 @@
           class="toolbar-icon"
           type="button"
           :disabled="addingWorkspace"
-          aria-label="添加本地目录"
           title="添加本地目录"
           @click="addWorkspace()"
         >
-          <span class="mark" aria-hidden="true">
+          <span class="mark">
             <FolderPlus :size="16" />
           </span>
         </button>

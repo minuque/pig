@@ -1,10 +1,10 @@
 <template>
   <Teleport to="body">
-    <div class="alert-toaster" role="region" aria-label="通知">
+    <div class="alert-toaster">
       <TransitionGroup name="alert-toaster" tag="div" class="alert-toaster-stack">
         <div v-for="item in noticeQueue" :key="item.id" class="alert-toaster-item">
           <Alert :variant="item.variant" class="alert-toaster-alert">
-            <component :is="noticeIcons[item.variant]" aria-hidden="true" />
+            <component :is="noticeIcons[item.variant]" />
             <AlertTitle v-if="item.title">{{ item.title }}</AlertTitle>
             <AlertDescription>{{ item.message }}</AlertDescription>
             <AlertAction v-if="item.action">
@@ -13,13 +13,8 @@
               </button>
             </AlertAction>
           </Alert>
-          <button
-            class="alert-toaster-close"
-            type="button"
-            aria-label="关闭通知"
-            @click="dismissNotice(item.id)"
-          >
-            <X aria-hidden="true" />
+          <button class="alert-toaster-close" type="button" @click="dismissNotice(item.id)">
+            <X />
           </button>
         </div>
       </TransitionGroup>

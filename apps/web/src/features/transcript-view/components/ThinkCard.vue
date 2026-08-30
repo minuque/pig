@@ -1,17 +1,10 @@
 <template>
   <div class="call">
-    <button
-      type="button"
-      class="toggle"
-      :aria-expanded="open"
-      :aria-label="toggleLabel"
-      :disabled="streaming"
-      @click="onToggle"
-    >
-      <Asterisk class="icon" :size="16" aria-hidden="true" />
+    <button type="button" class="toggle" :class="{ open }" :disabled="streaming" @click="onToggle">
+      <Asterisk class="icon" :size="16" />
       <span class="kind">Think</span>
       <span v-if="detail" class="detail">{{ detail }}</span>
-      <ChevronRight class="caret" :size="14" aria-hidden="true" />
+      <ChevronRight class="caret" :size="14" />
     </button>
     <div v-if="open && text" class="body">
       <ThinkingBlocks :blocks="[text]" />
@@ -31,7 +24,6 @@ const props = defineProps<{
 
 const open = defineModel<boolean>("open", { required: true })
 const detail = computed(() => (props.streaming ? "Thinking…" : ""))
-const toggleLabel = computed(() => `Think ${detail.value}`)
 
 function onToggle() {
   if (props.streaming) return
@@ -88,7 +80,7 @@ function onToggle() {
   font-weight: var(--font-weight-regular);
 }
 .toggle:hover .kind,
-.toggle[aria-expanded="true"] .kind {
+.toggle.open .kind {
   color: var(--ink-secondary);
 }
 .detail {
@@ -108,10 +100,10 @@ function onToggle() {
     opacity var(--duration-fast) var(--ease-smooth);
 }
 .toggle:hover .caret,
-.toggle[aria-expanded="true"] .caret {
+.toggle.open .caret {
   opacity: 1;
 }
-.toggle[aria-expanded="true"] .caret {
+.toggle.open .caret {
   transform: rotate(90deg);
 }
 .body {

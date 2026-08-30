@@ -1,32 +1,25 @@
 <template>
   <header class="workbench-header">
-    <button
-      class="icon-button header-toggle"
-      type="button"
-      :aria-expanded="leftOpen"
-      aria-label="切换工作目录导航"
-      @click="toggle"
-    >
-      <PanelLeft :size="16" aria-hidden="true" />
+    <button class="icon-button header-toggle" type="button" @click="toggle">
+      <PanelLeft :size="16" />
     </button>
     <h1 v-if="title" id="current-title" class="header-crumb">
       <template v-if="dirName">
-        <span class="mark" aria-hidden="true">
+        <span class="mark">
           <Folder :size="16" :stroke-width="1.5" />
         </span>
         <span class="header-dir">{{ dirName }}</span>
-        <span class="header-sep" aria-hidden="true">\</span>
+        <span class="header-sep">\</span>
       </template>
       <span class="header-session">{{ title }}</span>
     </h1>
     <div class="header-right">
-      <p v-if="connecting && !projection" class="session-status" role="status">正在连接…</p>
-      <p v-else-if="sessionPending" class="session-status" role="status">正在加载会话…</p>
-      <p v-else-if="phaseText" class="session-status" role="status">
+      <p v-if="connecting && !projection" class="session-status">正在连接…</p>
+      <p v-else-if="sessionPending" class="session-status">正在加载会话…</p>
+      <p v-else-if="phaseText" class="session-status">
         <span
           class="status-mark"
           :style="{ color: running ? 'var(--primary)' : 'var(--ink-faint)' }"
-          aria-hidden="true"
           >●</span
         >
         {{ phaseText }}
@@ -46,7 +39,7 @@ import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
 import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
-const { leftOpen, toggle } = useLeftPanelToggle()
+const { toggle } = useLeftPanelToggle()
 const { sessionId, projection, connecting, sessionPending, sessionCwd, running, phaseText } =
   useSession()
 const { listedSessions } = useNav()

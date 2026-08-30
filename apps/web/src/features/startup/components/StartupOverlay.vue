@@ -1,6 +1,6 @@
 <template>
-  <div class="startup-wait" :class="{ leaving }" role="status" aria-label="正在启动">
-    <div class="drag-strip" aria-hidden="true"></div>
+  <div class="startup-wait" :class="{ leaving }">
+    <div class="drag-strip"></div>
     <img class="startup-logo" src="/logo.png" alt="" width="96" height="96" />
   </div>
 </template>

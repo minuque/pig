@@ -14,9 +14,6 @@
             ref="editor"
             class="field"
             contenteditable="true"
-            role="textbox"
-            aria-multiline="true"
-            :aria-label="ariaLabel"
             :data-empty="!hasText || undefined"
             :data-placeholder="placeholder"
             @input="syncFromEditor"
@@ -53,11 +50,9 @@ import { computed, onMounted, ref, watch } from "vue"
 const props = withDefaults(
   defineProps<{
     placeholder?: string
-    ariaLabel?: string
   }>(),
   {
     placeholder: "do what you want ...",
-    ariaLabel: "do what you want ...",
   },
 )
 

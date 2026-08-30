@@ -1,7 +1,7 @@
 <template>
-  <section class="startup-error" aria-labelledby="startup-error-title" role="alert">
+  <section class="startup-error">
     <div class="error-cluster">
-      <CircleAlert :size="32" class="error-icon" aria-hidden="true" />
+      <CircleAlert :size="32" class="error-icon" />
       <h1 id="startup-error-title" class="error-title">{{ title }}</h1>
       <p class="error-detail">{{ copy }}</p>
       <Button type="button" @click="retry">重试连接</Button>

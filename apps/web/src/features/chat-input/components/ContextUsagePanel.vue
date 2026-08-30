@@ -3,7 +3,7 @@
     <div class="glass-host usage-host">
       <div class="head">
         <h3 class="title">上下文占用</h3>
-        <button type="button" class="close" aria-label="关闭上下文占用" @click="emit('close')">
+        <button type="button" class="close" @click="emit('close')">
           <X :size="16" />
         </button>
       </div>
@@ -11,7 +11,7 @@
         <span class="percent">{{ usage.percent }}% 已用</span>
         <span class="tokens">{{ tokenSummary }}</span>
       </div>
-      <div class="bar" role="img" :aria-label="tokenSummary">
+      <div class="bar">
         <span
           v-for="segment in usage.segments"
           :key="segment.id"
@@ -56,15 +56,8 @@
     >
       <DialogTitle>{{ previewTitle }}</DialogTitle>
       <div ref="previewPane" class="preview-body" tabindex="-1">
-        <div
-          v-if="previewLoading"
-          class="preview-status"
-          role="status"
-          aria-live="polite"
-          aria-busy="true"
-        >
-          <Spinner :size="24" aria-hidden="true" />
-          <span class="sr-only">正在加载预览</span>
+        <div v-if="previewLoading" class="preview-status">
+          <Spinner :size="24" />
         </div>
         <div v-else-if="previewVirtual" class="preview-virtual" v-bind="containerProps">
           <div v-bind="wrapperProps">

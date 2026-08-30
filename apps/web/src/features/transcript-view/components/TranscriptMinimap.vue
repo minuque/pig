@@ -11,7 +11,6 @@
         :key="item.id"
         class="minimap-tick"
         type="button"
-        :aria-label="`跳转到：${item.userText ?? '用户句'}`"
         :style="tickStyle(index)"
         @mouseenter="activeIndex = index"
         @focus="activeIndex = index"
@@ -21,7 +20,6 @@
           class="minimap-strip"
           :class="resolvedActiveIndex === index ? 'strip-active' : 'strip-far'"
           :data-in-view="inViewIds.includes(item.id) ? 'true' : 'false'"
-          aria-hidden="true"
         ></span>
       </button>
       <span

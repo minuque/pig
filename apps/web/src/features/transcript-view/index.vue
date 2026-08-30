@@ -4,7 +4,6 @@
       id="transcript-panel"
       ref="region"
       class="transcript-region"
-      :aria-labelledby="transcriptTitleId"
       @wheel="onTranscriptWheel"
       @pointerdown="releasePinnedToBottom"
     >
@@ -87,7 +86,6 @@
         type="button"
         variant="outline"
         size="icon-sm"
-        aria-label="滚动到底部"
         title="滚动到底部"
         @click="scrollToLatest"
       >
@@ -166,7 +164,6 @@ const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpan
   () => props.sessionId,
 )
 const initialThreadState = computed(() => threadStateHeightsOnly(props.threadState))
-const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
 const viewport = useTemplateRef<HTMLElement>("viewport")
 const region = useTemplateRef<HTMLElement>("region")
 const inputBar = useTemplateRef<HTMLElement>("inputBar")

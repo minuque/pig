@@ -4,16 +4,11 @@
       <span v-if="workspaceId">在</span>
       <DropdownMenu v-if="selectable" :modal="false">
         <DropdownMenuTrigger as-child>
-          <button type="button" class="hero-picker" :aria-label="`工作目录：${label}`">
+          <button type="button" class="hero-picker">
             <span class="hero-name">{{ label }}</span>
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="center"
-          :side-offset="6"
-          class="workbench-hero-menu"
-          aria-label="选择工作目录"
-        >
+        <DropdownMenuContent align="center" :side-offset="6" class="workbench-hero-menu">
           <DropdownMenuItem
             v-for="item in workspaces"
             :key="item"
@@ -25,7 +20,7 @@
           </DropdownMenuItem>
           <DropdownMenuSeparator v-if="workspaces.length" />
           <DropdownMenuItem :disabled="adding" @select="emit('add')">
-            <FolderPlus :size="14" aria-hidden="true" />
+            <FolderPlus :size="14" />
             添加本地目录
           </DropdownMenuItem>
         </DropdownMenuContent>

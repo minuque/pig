@@ -7,7 +7,6 @@
       variantClasses[variant],
       props.class,
     ]"
-    role="alert"
   >
     <slot />
   </div>

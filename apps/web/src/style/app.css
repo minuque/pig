@@ -466,17 +466,6 @@ small,
 .error {
   border-left: var(--border-width-emphasis) solid var(--danger);
 }
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
 
 /* DialogContent 定位：top-1/2 left-1/2 + transform 居中（Tailwind translate-* 走 translate 属性，
    与 keyframes 的 transform 叠加会双重偏移，故居中基值放这里，入场动画只负责 6px 起跳） */
@@ -699,6 +688,7 @@ html[data-pig-desktop-platform]
     -webkit-backdrop-filter: none;
   }
 }
-html[data-pig-desktop-platform]:has([aria-modal="true"]) body * {
+html[data-pig-desktop-platform]:has([data-slot="dialog-content"]) body *,
+html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body * {
   -webkit-app-region: no-drag;
 }

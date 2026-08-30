@@ -16,7 +16,6 @@
       ref="promptEditor"
       v-model:prompt="prompt"
       :placeholder="placeholder"
-      :aria-label="ariaLabel"
       @submit="send"
     >
       <template v-if="attachments.length || $slots.chips" #chips>
@@ -43,7 +42,6 @@
         <button
           type="button"
           class="plus"
-          aria-label="添加图片"
           :disabled="attachments.length >= MAX_CHAT_INPUT_ATTACHMENTS"
           @mousedown.prevent
           @click="openFilePicker"
@@ -52,7 +50,7 @@
         </button>
         <Tooltip v-if="error" :delay-duration="200">
           <TooltipTrigger as-child>
-            <button type="button" class="error-indicator" aria-label="请求失败">
+            <button type="button" class="error-indicator">
               <CircleAlert :size="16" />
             </button>
           </TooltipTrigger>
@@ -62,13 +60,12 @@
           type="button"
           class="send"
           :class="{ 'send--abort': running }"
-          :aria-label="running ? (aborting ? '正在停止当前 Turn' : '停止当前 Turn') : '发送'"
           :title="running ? '停止当前 Turn' : '发送 Prompt'"
           :disabled="running ? aborting : !sendActive"
           @mousedown.prevent
           @click="onPrimaryAction"
         >
-          <span class="primary-icon" aria-hidden="true">
+          <span class="primary-icon">
             <svg
               width="12"
               height="12"
@@ -93,11 +90,10 @@
     <input
       ref="fileInput"
       type="file"
-      class="sr-only"
+      class="file-input"
       accept="image/*"
       multiple
       tabindex="-1"
-      aria-hidden="true"
       @change="onFilesPicked"
     />
   </component>
@@ -140,7 +136,6 @@ const props = withDefaults(
     /** 外部禁用发送（如 welcome 的 workspace/预设/提交中守卫） */
     sendDisabled?: boolean
     placeholder?: string
-    ariaLabel?: string
     /** 嵌入其他布局时以 div 渲染，避免嵌套 form */
     bare?: boolean
     /** 当前工作目录，底栏展示末段名 */
@@ -154,7 +149,6 @@ const props = withDefaults(
     error: "",
     sendDisabled: false,
     placeholder: "do what you want ...",
-    ariaLabel: "do what you want ...",
     bare: false,
     cwd: undefined,
     usage: undefined,
@@ -365,5 +359,8 @@ function onPrimaryAction() {
   .primary-icon > * {
     transition: none;
   }
+}
+.file-input {
+  display: none;
 }
 </style>

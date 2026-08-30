@@ -1,7 +1,7 @@
 <template>
   <div class="meta">
     <span v-if="cwdLabel" class="cwd" :title="cwd">
-      <Folder :size="14" :stroke-width="1.5" aria-hidden="true" />
+      <Folder :size="14" :stroke-width="1.5" />
       <span class="cwd-name">{{ cwdLabel }}</span>
     </span>
     <span v-else class="cwd-spacer"></span>
@@ -10,13 +10,11 @@
       type="button"
       class="usage"
       :class="{ open }"
-      :aria-label="usageLabel"
-      :aria-pressed="open"
       :title="usageLabel"
       @mousedown.prevent
       @click="emit('toggle')"
     >
-      <svg class="usage-ring" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <svg class="usage-ring" width="16" height="16" viewBox="0 0 16 16">
         <circle class="usage-ring-track" cx="8" cy="8" r="6" />
         <circle
           class="usage-ring-fill"
@@ -47,7 +45,7 @@ export function chatInputCwdLabel(cwd: string | undefined): string {
   return cwd ? workspaceName(cwd) : ""
 }
 
-export function contextUsageAriaLabel(usage: ContextUsage | undefined): string {
+export function contextUsageTitle(usage: ContextUsage | undefined): string {
   const percent = usage?.percent ?? 0
   return `上下文占用 ${percent}%`
 }
@@ -72,7 +70,7 @@ const emit = defineEmits<{
 
 const RING = USAGE_RING_LENGTH
 const cwdLabel = computed(() => chatInputCwdLabel(props.cwd))
-const usageLabel = computed(() => contextUsageAriaLabel(props.usage))
+const usageLabel = computed(() => contextUsageTitle(props.usage))
 const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
 </script>
 

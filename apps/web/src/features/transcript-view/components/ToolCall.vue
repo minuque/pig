@@ -3,23 +3,22 @@
     <button
       type="button"
       class="toggle"
-      :aria-expanded="open"
-      :aria-label="toggleLabel"
+      :class="{ open }"
       :disabled="!expandable"
       @click="onToggle"
     >
-      <span class="spine" :class="statusKind" aria-hidden="true">
+      <span class="spine" :class="statusKind">
         <LoaderCircle class="spin" :size="16" :data-visible="running" />
         <X :size="10" :stroke-width="3" :data-visible="!running && item.isError" />
         <component :is="kindIcon" :size="16" :data-visible="!running && !item.isError" />
       </span>
       <span class="kind">{{ kind }}</span>
       <span v-if="object" class="pill" :class="{ 'is-cmd': isCommand, 'is-file': isFile }">
-        <File v-if="isFile" class="pill-icon" :size="12" aria-hidden="true" />
+        <File v-if="isFile" class="pill-icon" :size="12" />
         <span class="pill-text">{{ object }}</span>
       </span>
       <span v-if="summary" class="summary">{{ summary }}</span>
-      <ChevronRight v-if="expandable" class="caret" :size="14" aria-hidden="true" />
+      <ChevronRight v-if="expandable" class="caret" :size="14" />
     </button>
     <div v-if="open && expandable" class="body">
       <div v-if="isCommand" class="well">
@@ -77,7 +76,6 @@ import {
   toolCallDetail,
   toolCallKindLabel,
   toolCallSummary,
-  toolCallTitle,
   toolInputHint,
   toolInputPretty,
 } from "@features/transcript-view/lib/transcript-format.js"
@@ -100,11 +98,6 @@ const statusKind = computed(() => {
   if (running.value) return "is-run"
   return "is-ok"
 })
-const statusLabel = computed(() => {
-  if (props.item.isError) return "失败"
-  if (running.value) return "运行中"
-  return "完成"
-})
 const kind = computed(() => toolCallKindLabel(props.item.toolName))
 const detail = computed(() => toolCallDetail(props.item.toolName, props.item.input))
 const object = computed(() => {
@@ -113,7 +106,6 @@ const object = computed(() => {
   return hint || detail.value.replace(/^"|"$/g, "")
 })
 const command = computed(() => (isCommand.value ? toolInputHint(props.item.input) : ""))
-const title = computed(() => toolCallTitle(props.item.toolName, props.item.input))
 const summary = computed(() => toolCallSummary(props.item))
 const kindIcon = computed((): Component => {
   switch (toolName.value) {
@@ -130,10 +122,6 @@ const kindIcon = computed((): Component => {
     default:
       return Wrench
   }
-})
-const toggleLabel = computed(() => {
-  const lead = `${title.value}，${statusLabel.value}`
-  return summary.value ? `${lead}，${summary.value}` : lead
 })
 const inputFull = computed(() => (open.value ? toolInputPretty(props.item.input) : ""))
 const outputText = computed(() => (open.value ? props.item.outputText : ""))
@@ -229,7 +217,7 @@ function onToggle() {
   font-weight: var(--font-weight-regular);
 }
 .toggle:hover .kind,
-.toggle[aria-expanded="true"] .kind {
+.toggle.open .kind {
   color: var(--ink-secondary);
 }
 .pill {
@@ -281,10 +269,10 @@ function onToggle() {
     opacity var(--duration-fast) var(--ease-smooth);
 }
 .toggle:hover .caret,
-.toggle[aria-expanded="true"] .caret {
+.toggle.open .caret {
   opacity: 1;
 }
-.toggle[aria-expanded="true"] .caret {
+.toggle.open .caret {
   transform: rotate(90deg);
 }
 .body {

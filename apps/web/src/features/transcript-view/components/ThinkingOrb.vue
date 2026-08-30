@@ -1,12 +1,5 @@
 <template>
-  <svg
-    class="orb"
-    :width="size"
-    :height="size"
-    :viewBox="`0 0 ${STAGE} ${STAGE}`"
-    aria-hidden="true"
-    focusable="false"
-  >
+  <svg class="orb" :width="size" :height="size" :viewBox="`0 0 ${STAGE} ${STAGE}`">
     <circle
       v-for="dot in dots"
       :key="dot.key"

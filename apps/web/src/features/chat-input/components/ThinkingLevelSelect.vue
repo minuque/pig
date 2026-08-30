@@ -4,12 +4,11 @@
     class="selector thinking"
     :class="{ off: isOff }"
     :disabled="disabled"
-    :aria-label="`思考强度：${label}`"
     :style="{ '--thinking-glow': glow }"
     @mousedown.prevent
     @click="cycle"
   >
-    <span class="bars-slot" :class="{ on: !isOff }" aria-hidden="true">
+    <span class="bars-slot" :class="{ on: !isOff }">
       <svg class="bars" width="14" height="14" viewBox="0 0 14 14">
         <rect x="1.5" y="8" width="2.5" height="4.5" rx="1" :style="{ opacity: barOpacities[0] }" />
         <rect

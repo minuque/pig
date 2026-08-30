@@ -5,7 +5,6 @@
         ref="nameInput"
         v-model="draft"
         class="rename-input"
-        aria-label="会话名称"
         @keydown.escape.prevent="renaming = false"
         @blur="commitRename"
       />
@@ -16,15 +15,13 @@
           :to="{ name: 'session', params: { sessionId: session.id } }"
           class="session-card"
           :class="{ active }"
-          :aria-current="active ? 'page' : undefined"
-          :aria-label="workspaceTitle ? `${session.title}, ${workspaceTitle}` : session.title"
           @click="onCardClick"
           @keydown="onCardKeydown"
         >
           <div class="card-line card-head">
             <span class="title">{{ session.title }}</span>
             <span class="session-meta">
-              <span v-if="running || session.updatedAt" class="session-icon" aria-hidden="true">
+              <span v-if="running || session.updatedAt" class="session-icon">
                 <Spinner :size="12" class="session-spinner" :data-visible="running" />
                 <Clock
                   :size="12"
@@ -44,7 +41,7 @@
           </div>
           <div class="card-line card-foot">
             <span v-if="grouping === 'updated'" class="card-project">
-              <Folder :size="16" :stroke-width="1.5" class="workspace-mark" aria-hidden="true" />
+              <Folder :size="16" :stroke-width="1.5" class="workspace-mark" />
               <span v-if="workspaceTitle" class="workspace-title">{{ workspaceTitle }}</span>
             </span>
             <span v-else class="card-count">{{
@@ -58,11 +55,11 @@
       </ContextMenuTrigger>
       <ContextMenuContent class="select-none">
         <ContextMenuItem @select="startRename">
-          <Pencil :size="14" aria-hidden="true" />
+          <Pencil :size="14" />
           重命名
         </ContextMenuItem>
         <ContextMenuItem variant="destructive" @select="deleteOpen = true">
-          <Trash2 :size="14" aria-hidden="true" />
+          <Trash2 :size="14" />
           删除
         </ContextMenuItem>
       </ContextMenuContent>

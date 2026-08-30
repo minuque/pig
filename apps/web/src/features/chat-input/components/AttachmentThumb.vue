@@ -7,7 +7,6 @@
           variant="outline"
           size="icon"
           class="preview size-12 overflow-hidden rounded-[var(--radius-lg)] p-0"
-          :aria-label="alt"
         >
           <img
             :src="src"
@@ -19,7 +18,6 @@
       <DialogContent
         class="max-h-[90vh] w-full max-w-[min(56rem,calc(100vw-2rem))] overflow-auto p-(--spacing-sm) sm:max-w-[min(56rem,calc(100vw-2rem))]"
       >
-        <DialogTitle class="sr-only">{{ alt }}</DialogTitle>
         <img
           :src="src"
           :alt="alt"
@@ -27,13 +25,7 @@
         />
       </DialogContent>
     </Dialog>
-    <Button
-      type="button"
-      size="icon-2xs"
-      class="remove"
-      aria-label="移除附件"
-      @click.stop="emit('remove')"
-    >
+    <Button type="button" size="icon-2xs" class="remove" @click.stop="emit('remove')">
       <X />
     </Button>
   </div>
@@ -43,7 +35,7 @@
 import { computed } from "vue"
 import { X } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@components/ui/dialog/index.js"
+import { Dialog, DialogContent, DialogTrigger } from "@components/ui/dialog/index.js"
 
 const props = defineProps<{
   src: string

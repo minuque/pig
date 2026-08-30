@@ -1,9 +1,5 @@
 <template>
-  <div
-    class="startup-gate"
-    :inert="visible || undefined"
-    :aria-hidden="visible ? 'true' : undefined"
-  >
+  <div class="startup-gate" :inert="visible || undefined">
     <slot />
   </div>
   <StartupOverlay v-if="visible" :dismiss="settled" @finished="finish" />

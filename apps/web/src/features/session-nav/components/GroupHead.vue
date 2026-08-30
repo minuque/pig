@@ -1,13 +1,7 @@
 <template>
   <div class="group-head">
-    <button
-      class="group-toggle"
-      type="button"
-      :aria-expanded="!collapsed"
-      :aria-label="collapsed ? `展开 ${name}` : `折叠 ${name}`"
-      @click="emit('toggle')"
-    >
-      <span class="mark" aria-hidden="true">
+    <button class="group-toggle" type="button" @click="emit('toggle')">
+      <span class="mark">
         <ChevronRight class="group-chevron" :class="{ expanded: !collapsed }" :size="16" />
       </span>
       <span class="group-name">{{ name }}</span>
@@ -16,11 +10,10 @@
       class="group-new"
       type="button"
       :disabled="creating"
-      aria-label="在此目录新建会话"
       title="新会话"
       @click.stop="emit('create')"
     >
-      <Plus :size="16" aria-hidden="true" />
+      <Plus :size="16" />
     </button>
   </div>
 </template>

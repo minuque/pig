@@ -1,5 +1,5 @@
 <template>
-  <section class="welcome" aria-labelledby="welcome-title">
+  <section class="welcome">
     <div class="welcome-form">
       <WorkbenchHero
         v-model:workspace-id="welcomeWorkspaceId"
@@ -16,11 +16,10 @@
         :send-disabled="!canSubmitNow"
         bare
         placeholder="do what you want ..."
-        aria-label="任务描述"
         @send="submitWelcome"
       />
 
-      <p v-if="welcomeError" class="notice error" role="alert">{{ welcomeError }}</p>
+      <p v-if="welcomeError" class="notice error">{{ welcomeError }}</p>
     </div>
   </section>
 </template>
