@@ -18,7 +18,7 @@
     "@lobehub/icons-static-svg": "1.94.0",
     "@vueuse/core": "14.4.0",
     "lucide-vue-next": "1.0.0",
-    "markstream-vue": "2.0.0",
+    "markstream-vue": "2.0.6",
     "reka-ui": "2.10.1",
     "stream-diffs": "0.0.2",
     "tailwindcss": "4.3.3",
