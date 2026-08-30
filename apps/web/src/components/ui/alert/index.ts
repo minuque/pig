@@ -1,7 +1,2 @@
-export { default as Alert } from "./Alert.vue"
-export { default as AlertAction } from "./AlertAction.vue"
-export { default as AlertDescription } from "./AlertDescription.vue"
-export { default as AlertTitle } from "./AlertTitle.vue"
 export { default as AlertToaster } from "./AlertToaster.vue"
-export { dismissNotice, noticeQueue, notify } from "./notify.js"
-export type { Notice, NoticeAction, NoticeOptions, NoticeVariant } from "./notify.js"
+export { notify } from "./notify.js"

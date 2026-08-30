@@ -7,7 +7,6 @@ import { WebSocket, WebSocketServer, type RawData } from "ws"
 // pi-server 未从入口导出 connection 类型，从 PiServerListener 签名反推
 type ByteConnection = Parameters<Parameters<PiServerListener["start"]>[0]>[0]
 type ByteConnectionAcceptor = Parameters<PiServerListener["start"]>[0]
-type ByteConnectionHandler = ReturnType<ByteConnectionAcceptor>
 
 // 与 web 端 apps/web/src/client/transport.ts 的 WEBSOCKET_PATH 必须一致。
 const WEBSOCKET_PATH = "/api/v1/pi"
