@@ -39,7 +39,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { FolderPlus } from "lucide-vue-next"
-import { workspaceName } from "@features/session-nav/format.js"
+import { workspaceName } from "@features/session-nav/index.js"
 import {
   DropdownMenu,
   DropdownMenuContent,

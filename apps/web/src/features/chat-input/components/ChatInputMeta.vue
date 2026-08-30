@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { workspaceName } from "@features/session-nav/format.js"
+import { workspaceName } from "@features/session-nav/index.js"
 import type { ContextUsage } from "@features/chat-input/lib/context-usage.js"
 
 const RING_RADIUS = 6

@@ -107,8 +107,8 @@ import {
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
-import { formatRelativeTime } from "@features/session-nav/format.js"
-import type { SidebarGrouping, SidebarSession } from "@features/session-nav/sidebar.js"
+import { formatRelativeTime } from "@features/session-nav/lib/format.js"
+import type { SidebarGrouping, SidebarSession } from "@features/session-nav/lib/session-list.js"
 import VendorMark from "@features/chat-input/components/VendorMark.vue"
 
 const props = withDefaults(

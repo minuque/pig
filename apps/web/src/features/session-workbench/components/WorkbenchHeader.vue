@@ -40,7 +40,7 @@
 import { computed } from "vue"
 import { Folder, PanelLeft } from "lucide-vue-next"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
-import { workspaceName } from "@features/session-nav/format.js"
+import { workspaceName } from "@features/session-nav/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"

@@ -1,4 +1,4 @@
-import type { SessionMetadata } from "@earendil-works/pi-protocol"
+import type { SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { sessionRecency, sessionTitle, workspaceName } from "./format.js"
 
@@ -182,4 +182,29 @@ export function sessionCardFoot(
     messageCount: isLive ? (live.messageCount ?? extra?.messageCount) : extra?.messageCount,
     modelProvider: model?.provider ?? "",
   }
+}
+
+function transcriptText(item: TranscriptItem): string {
+  return item.content
+    .filter((block): block is { type: "text"; text: string } => block.type === "text")
+    .map((block) => block.text)
+    .join("")
+}
+
+/** 空失败助手句是自动重试残留，不进侧栏条数。 */
+export function isRetryErrorItem(item: TranscriptItem): boolean {
+  if (item.role !== "assistant") return false
+  if (item.status !== "error" && item.status !== "aborted") return false
+  return transcriptText(item).length === 0
+}
+
+/** 侧栏一条：User / Assistant / Tool Call；空失败助手句不计。 */
+export function conversationItemCount(items: readonly TranscriptItem[]): number {
+  let count = 0
+  for (const item of items) {
+    if (item.role !== "user" && item.role !== "assistant" && item.role !== "tool") continue
+    if (isRetryErrorItem(item)) continue
+    count += 1
+  }
+  return count
 }

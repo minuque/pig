@@ -3,9 +3,11 @@ import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
 import type { SessionContext } from "@features/session-workbench/index.js"
+import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
 import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js"
-import { sessionCardFoot } from "@features/session-nav/sidebar.js"
-import { conversationItemCount } from "@features/transcript-view/lib/transcript-format.js"
+import { conversationItemCount, sessionCardFoot } from "@features/session-nav/lib/session-list.js"
+
+export { sessionTitle, workspaceName, UNTITLED_SESSION } from "@features/session-nav/lib/format.js"
 
 export type NavContext = ReturnType<typeof createNav>
 export const navKey: InjectionKey<NavContext> = Symbol("nav")
@@ -17,12 +19,18 @@ function createNav(
 ) {
   const router = useRouter()
   const navError = ref("")
-  const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
-    sessionId: session.sessionId,
-    router,
-    refreshSessions: pi.refreshSessions,
-    refreshSessionCards: session.refreshSessionCards,
-  })
+  const cards = useSessionCards(pi.connected, pi.sessions)
+  const nav = useWorkspaceNav(
+    pi.sessions,
+    cwd,
+    navError,
+    {
+      sessionId: session.sessionId,
+      router,
+      refreshSessions: pi.refreshSessions,
+    },
+    cards.loadSessionCards,
+  )
 
   const cardFootById = computed(() => {
     const liveId = session.sessionId.value
@@ -34,7 +42,7 @@ function createNav(
             model: session.projection.value.model,
           }
         : undefined
-    const extras = session.sessionCards.value
+    const extras = cards.sessionCards.value
     const feet = new Map<string, { messageCount: number | undefined; modelProvider: string }>()
     for (const item of nav.listedSessions.value) {
       feet.set(item.id, sessionCardFoot(item.id, extras, live))

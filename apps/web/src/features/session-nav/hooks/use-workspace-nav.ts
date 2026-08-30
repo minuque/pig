@@ -16,7 +16,7 @@ import {
   sidebarRows,
   type SidebarGrouping,
   type SidebarRow,
-} from "@features/session-nav/sidebar.js"
+} from "@features/session-nav/lib/session-list.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
@@ -50,16 +50,31 @@ export function useWorkspaceNav(
     sessionId: Ref<string | undefined>
     router: Router
     refreshSessions(): Promise<void>
-    refreshSessionCards(): Promise<void>
   },
+  refreshSessionCards: () => Promise<void> = async () => undefined,
 ) {
   const addingWorkspace = ref(false)
+  const titleById = shallowRef<Record<string, string>>({})
   const workspaces = local.workspaces
-  const groups = computed(() => groupSessionsByCwd(sessions.value, local.workspaces.value))
-  const listedSessions = computed(() => listSessionsForSidebar(sessions.value))
+  const groups = computed(() =>
+    groupSessionsByCwd(sessions.value, local.workspaces.value).map((group) => ({
+      ...group,
+      sessions: applyTitles(group.sessions),
+    })),
+  )
+  const listedSessions = computed(() => applyTitles(listSessionsForSidebar(sessions.value)))
   const grouping = ref<SidebarGrouping>(loadGrouping())
   const revealByGroup = shallowRef<Record<string, number>>({})
   const collapsedByGroup = shallowRef<Record<string, boolean>>({})
+
+  function applyTitles(list: readonly SessionMetadata[]): SessionMetadata[] {
+    const titles = titleById.value
+    if (Object.keys(titles).length === 0) return [...list]
+    return list.map((session) => {
+      const sessionName = titles[session.id]
+      return sessionName === undefined ? session : { ...session, sessionName }
+    })
+  }
 
   function setGrouping(next: SidebarGrouping) {
     if (next !== grouping.value) {
@@ -134,13 +149,20 @@ export function useWorkspaceNav(
   }
   async function renameSession(id: string, name: string) {
     error.value = ""
+    titleById.value = { ...titleById.value, [id]: name }
     try {
       await requestRenameSession(id, name)
-      await admin.refreshSessions()
-      await admin.refreshSessionCards()
     } catch (cause) {
+      const next = { ...titleById.value }
+      delete next[id]
+      titleById.value = next
       error.value = errorMessage(cause)
+      return
     }
+    void admin.refreshSessions().catch((cause) => {
+      error.value = errorMessage(cause)
+    })
+    void refreshSessionCards()
   }
   async function deleteSession(id: string) {
     error.value = ""
@@ -148,7 +170,7 @@ export function useWorkspaceNav(
       await requestDeleteSession(id)
       if (admin.sessionId.value === id) await admin.router.replace("/")
       await admin.refreshSessions()
-      await admin.refreshSessionCards()
+      void refreshSessionCards()
     } catch (cause) {
       error.value = errorMessage(cause)
     }

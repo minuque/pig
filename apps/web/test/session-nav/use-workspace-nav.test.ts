@@ -35,7 +35,6 @@ function admin() {
     sessionId: ref(undefined),
     router: { replace: vi.fn() } as never,
     refreshSessions: vi.fn(async () => undefined),
-    refreshSessionCards: vi.fn(async () => undefined),
   }
 }
 

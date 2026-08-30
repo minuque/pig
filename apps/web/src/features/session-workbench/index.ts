@@ -1,7 +1,6 @@
 import { inject, provide, type InjectionKey } from "vue"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
-import { useSessionCards } from "@features/session-workbench/hooks/use-session-cards.js"
 import { useSessionLifecycle } from "@features/session-workbench/hooks/use-session.js"
 
 export type SessionContext = ReturnType<typeof createSession>
@@ -11,7 +10,6 @@ function createSession(
   pi: ReturnType<typeof usePiClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
 ) {
-  const cards = useSessionCards(pi.connected, pi.sessions)
   const session = useSessionLifecycle(pi, cwd)
   return {
     sessionId: session.sessionId,
@@ -38,8 +36,6 @@ function createSession(
     submitText: session.submitText,
     abortSession: session.abortSession,
     applyThreadState: session.applyThreadState,
-    sessionCards: cards.sessionCards,
-    refreshSessionCards: cards.loadSessionCards,
     initialize: session.initialize,
   }
 }

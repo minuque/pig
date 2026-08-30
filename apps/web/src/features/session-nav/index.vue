@@ -94,13 +94,12 @@ import { RouterLink, useRouter } from "vue-router"
 import { PanelLeft, Plus, SquarePen } from "lucide-vue-next"
 import { notify } from "@components/ui/alert/index.js"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
-import { useNav } from "@features/session-nav/index.js"
+import { useNav, workspaceName } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
-import { workspaceName } from "@features/session-nav/format.js"
-import { filterSessionsForSearch } from "@features/session-nav/sidebar.js"
+import { filterSessionsForSearch } from "@features/session-nav/lib/session-list.js"
 
 defineProps<{
   collapsed?: boolean

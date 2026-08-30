@@ -1,16 +1,17 @@
 import { describe, expect, it } from "vitest"
-import type { SessionMetadata } from "@earendil-works/pi-protocol"
-import { sessionTitle, workspaceName } from "@features/session-nav/format.js"
+import type { SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
+import { sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
 import {
   PROJECT_PAGE,
   UPDATED_PAGE,
+  conversationItemCount,
   filterSessionsForSearch,
   groupSessionsByCwd,
   listSessionsForSidebar,
   sessionCardFoot,
   sidebarRows,
   sortSessionsForSidebar,
-} from "@features/session-nav/sidebar.js"
+} from "@features/session-nav/lib/session-list.js"
 
 function meta(
   id: string,
@@ -297,15 +298,41 @@ describe("sidebar rows", () => {
   })
 })
 
+function transcriptItem(
+  partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] },
+): TranscriptItem {
+  return {
+    id: "e1",
+    timestamp: 0,
+    content: [],
+    ...partial,
+  } as TranscriptItem
+}
+
 describe("session card foot", () => {
-  it("open session 用 live 模型供应商覆盖卡片", () => {
+  it("空失败助手句不计入侧栏条数", () => {
+    const user = transcriptItem({ role: "user", content: [{ type: "text", text: "ping" }] })
+    const timeout = transcriptItem({
+      id: "a1",
+      role: "assistant",
+      status: "error",
+      errorMessage: "Request timed out.",
+      content: [],
+    })
+    const retry = transcriptItem({
+      id: "a2",
+      role: "assistant",
+      status: "error",
+      errorMessage: "Request timed out.",
+      content: [],
+    })
+    expect(conversationItemCount([user, timeout, retry])).toBe(1)
+  })
+
+  it("打开中的 Session 用 live 覆盖磁盘条数和供应方", () => {
     const extras = new Map([
       ["s1", { messageCount: 2, model: { provider: "openai", id: "gpt-4" } }],
     ])
-    expect(sessionCardFoot("s1", extras, undefined)).toEqual({
-      messageCount: 2,
-      modelProvider: "openai",
-    })
     expect(
       sessionCardFoot("s1", extras, {
         sessionId: "s1",
@@ -313,23 +340,27 @@ describe("session card foot", () => {
         model: { provider: "anthropic", id: "claude" },
       }),
     ).toEqual({ messageCount: 5, modelProvider: "anthropic" })
+    expect(
+      sessionCardFoot("s1", extras, {
+        sessionId: "s1",
+        model: { provider: "openai", id: "gpt-4" },
+      }),
+    ).toEqual({ messageCount: 2, modelProvider: "openai" })
   })
 
-  it("live 用窗口总条数，缺省则回落 extras", () => {
+  it("未打开的 Session 用磁盘卡片", () => {
     const extras = new Map([
       ["s1", { messageCount: 193, model: { provider: "openai", id: "gpt-4" } }],
     ])
+    expect(sessionCardFoot("s1", extras, undefined)).toEqual({
+      messageCount: 193,
+      modelProvider: "openai",
+    })
     expect(
       sessionCardFoot("s1", extras, {
-        sessionId: "s1",
+        sessionId: "other",
         messageCount: 200,
-        model: { provider: "openai", id: "gpt-4" },
-      }),
-    ).toEqual({ messageCount: 200, modelProvider: "openai" })
-    expect(
-      sessionCardFoot("s1", extras, {
-        sessionId: "s1",
-        model: { provider: "openai", id: "gpt-4" },
+        model: { provider: "anthropic", id: "claude" },
       }),
     ).toEqual({ messageCount: 193, modelProvider: "openai" })
   })

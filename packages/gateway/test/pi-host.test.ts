@@ -402,6 +402,9 @@ describe("PiHostService", () => {
       }),
     )
     manager.appendMessage(toolResultMessage({ timestamp: 3000 }))
+    expect(await first.service.listSessionCards()).toMatchObject([
+      { id: "sess-1", messageCount: 3 },
+    ])
     expect((await runtime.snapshot()).transcript).toEqual([])
     expect((await first.service.sessionTranscript("sess-1")).map((item) => item.role)).toEqual([
       "user",

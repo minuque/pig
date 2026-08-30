@@ -9,7 +9,7 @@ import type {
   UserTranscriptItem,
 } from "@earendil-works/pi-protocol"
 import type { MarkstreamThreadVirtualState } from "markstream-vue"
-import { sessionTitle, UNTITLED_SESSION } from "@features/session-nav/format.js"
+import { sessionTitle, UNTITLED_SESSION } from "@features/session-nav/index.js"
 
 export interface OptimisticUserMessage {
   item: UserTranscriptItem
