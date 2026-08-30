@@ -8,7 +8,6 @@ import type {
   TranscriptItem,
   UserTranscriptItem,
 } from "@earendil-works/pi-protocol"
-import type { MarkstreamThreadVirtualState } from "markstream-vue"
 import { sessionTitle, UNTITLED_SESSION } from "@features/session-nav/index.js"
 
 export interface OptimisticUserMessage {
@@ -16,19 +15,17 @@ export interface OptimisticUserMessage {
   knownItemIds: readonly string[]
 }
 
-/** 每 Session 的 UI 私有状态（草稿、乐观用户句、滚动位置恢复），不进入任何 Agent Domain。 */
+/** 每 Session 的 UI 私有状态（草稿、乐观用户句），不进入任何 Agent Domain。 */
 export interface SessionClientState {
   draft: string
   optimisticUser: OptimisticUserMessage | null
-  /** 上次离开会话时的虚拟滚动状态（滚动锚点 + 行高缓存），切回时恢复 */
-  threadState: MarkstreamThreadVirtualState | null
 }
 
 export function sessionState(states: Map<string, SessionClientState>, sessionId: string) {
   let state = states.get(sessionId)
   if (!state) {
     // reactive：UI 私有状态写入必须被响应式追踪（如 draft 清空后 PromptEditor 同步）
-    state = reactive({ draft: "", optimisticUser: null, threadState: null })
+    state = reactive({ draft: "", optimisticUser: null })
     states.set(sessionId, state)
   }
   return state

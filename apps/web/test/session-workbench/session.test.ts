@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { computed, isProxy, nextTick, ref, shallowRef } from "vue"
+import { computed, nextTick, ref, shallowRef } from "vue"
 import type { PiClient } from "@earendil-works/pi-client"
 import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
 import type { SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol"
@@ -347,19 +347,6 @@ describe("提交失败恢复草稿", () => {
     resolveSubmit()
     await request
     expect(session.clientState.value?.optimisticUser).toBeNull()
-  })
-
-  it("按捕获状态的 threadKey 保存，不写进当前 Session", () => {
-    const { session } = setup()
-    routeBox.params.sessionId = "s1"
-    expect(session.clientState.value?.threadState).toBeNull()
-
-    session.applyThreadState({ threadKey: "s2", itemHeights: {}, markdownStates: {} })
-
-    expect(session.clientState.value?.threadState).toBeNull()
-    routeBox.params.sessionId = "s2"
-    expect(session.clientState.value?.threadState?.threadKey).toBe("s2")
-    expect(isProxy(session.clientState.value?.threadState)).toBe(false)
   })
 
   it("空白正文不提交", async () => {

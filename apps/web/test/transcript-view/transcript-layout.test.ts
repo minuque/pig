@@ -4,17 +4,12 @@ import {
   isThinkingRow,
   isWorkRow,
   toolCardOpen,
-  transcriptRowContent,
-  transcriptRowFinal,
-  transcriptRowKind,
   buildTimelineRows,
-  estimateTranscriptRowHeight,
   type ToolCallView,
   workFoldLabel,
   workSteps,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import {
-  isMarkdownStreamReady,
   isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
 } from "@features/transcript-view/lib/transcript-scroll.js"
@@ -28,8 +23,8 @@ function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] 
   } as TranscriptItem
 }
 
-describe("transcript row markstream mapping", () => {
-  it("maps only assistant body to assistant-markdown", () => {
+describe("transcript rows", () => {
+  it("用户行与助手正文按 role 分开", () => {
     const user = item({ role: "user", content: [{ type: "text", text: "问" }] })
     const agent = item({
       id: "a1",
@@ -38,14 +33,12 @@ describe("transcript row markstream mapping", () => {
       content: [{ type: "text", text: "答" }],
     })
     const rows = buildTimelineRows([user, agent], false)
-    expect(transcriptRowKind(rows[0]!)).toBe("user-message")
-    expect(transcriptRowKind(rows[1]!)).toBe("assistant-markdown")
-    expect(transcriptRowContent(rows[0]!)).toBe("")
-    expect(transcriptRowContent(rows[1]!)).toBe("答")
-    expect(transcriptRowFinal(rows[1]!)).toBe(true)
+    expect(rows[0]?.role).toBe("user")
+    expect(rows[1]?.role).toBe("assistant")
+    expect(rows[1]).toMatchObject({ role: "assistant", text: "答", streaming: false })
   })
 
-  it("keeps streaming assistant rows live so the timeline can grow in place", () => {
+  it("流式助手行 streaming 为 true", () => {
     const streaming = item({
       id: "a1",
       role: "assistant",
@@ -53,8 +46,7 @@ describe("transcript row markstream mapping", () => {
       content: [{ type: "text", text: "…" }],
     })
     const rows = buildTimelineRows([streaming], false)
-    expect(transcriptRowFinal(rows[0]!)).toBe(false)
-    expect(transcriptRowContent(rows[0]!)).toBe("…")
+    expect(rows[0]).toMatchObject({ role: "assistant", text: "…", streaming: true })
   })
 })
 
@@ -66,33 +58,6 @@ describe("transcript bottom thresholds", () => {
     expect(isTranscriptAtBottom(sh, 490, ch)).toBe(false)
     expect(isTranscriptVisuallyAtBottom(sh, 490, ch)).toBe(true)
     expect(isTranscriptVisuallyAtBottom(sh, 451, ch)).toBe(false)
-  })
-})
-
-describe("estimateTranscriptRowHeight", () => {
-  it("短助手行不垫到 160，避免贴底上翻测高回弹", () => {
-    expect(
-      estimateTranscriptRowHeight({
-        id: "a1",
-        role: "assistant",
-        text: "答",
-        streaming: false,
-        error: false,
-        aborted: false,
-      }),
-    ).toBeLessThan(80)
-  })
-})
-
-describe("isMarkdownStreamReady", () => {
-  it("没有助手正文时立刻就绪", () => {
-    expect(isMarkdownStreamReady(false, 0, false)).toBe(true)
-  })
-
-  it("有助手正文时要等挂上且 pending 清零", () => {
-    expect(isMarkdownStreamReady(true, 0, false)).toBe(false)
-    expect(isMarkdownStreamReady(true, 2, true)).toBe(false)
-    expect(isMarkdownStreamReady(true, 0, true)).toBe(true)
   })
 })
 
@@ -154,9 +119,8 @@ describe("thinking placeholder", () => {
     expect(buildTimelineRows([user, streamingBody], true).some(isThinkingRow)).toBe(false)
     expect(buildTimelineRows([user, tool], true).some(isThinkingRow)).toBe(false)
     const headed = buildTimelineRows([user], true)
-    expect(transcriptRowKind(headed[1]!)).toBe("thinking-wait")
-    expect(transcriptRowContent(headed[1]!)).toBe("")
-    expect(transcriptRowFinal(headed[1]!)).toBe(true)
+    expect(headed[1]?.role).toBe("thinking")
+    expect(isThinkingRow(headed[1]!)).toBe(true)
   })
 })
 
@@ -192,7 +156,7 @@ describe("turn work fold", () => {
     expect(work.thinking).toEqual(["先看文件"])
     expect(work.tools.map((item) => item.id)).toEqual(["t1"])
     expect(workFoldLabel(work)).toBe("Ran 1 thought · 1 file read")
-    expect(transcriptRowKind(work)).toBe("work-fold")
+    expect(work.role).toBe("work")
     expect(workSteps(work).map((step) => step.type)).toEqual(["thought", "tool"])
   })
 
@@ -292,7 +256,7 @@ describe("turn work fold", () => {
     expect(work.mode).toBe("live")
     expect(work.thinking).toEqual(["先看文件"])
     expect(work.tools.map((item) => item.id)).toEqual(["t1", "t2"])
-    expect(transcriptRowKind(work)).toBe("tool-group")
+    expect(work.role).toBe("work")
   })
 
   it("窗口顶部没有用户句的残段不折叠", () => {

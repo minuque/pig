@@ -1,12 +1,6 @@
 <template>
   <article class="assistant">
-    <MarkdownRender
-      v-if="text"
-      v-bind="agentMarkdown"
-      :content="text"
-      @render-settled="emit('render-settled')"
-      @render-final="emit('render-settled')"
-    />
+    <MarkdownRender v-if="text" v-bind="agentMarkdown" :content="text" />
     <span v-if="item.error || item.aborted" class="status">
       {{ statusLabel }}
     </span>
@@ -15,8 +9,8 @@
 </template>
 
 <script setup lang="ts">
-import MarkdownRender, { type MarkstreamVirtualMarkdownProps } from "markstream-vue"
-import { computed, onBeforeMount, onMounted } from "vue"
+import MarkdownRender from "markstream-vue"
+import { computed } from "vue"
 import type { AssistantRow } from "@features/transcript-view/lib/transcript-rows.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
@@ -24,16 +18,9 @@ const props = withDefaults(
   defineProps<{
     item: AssistantRow
     streaming?: boolean
-    // eslint-disable-next-line vue/require-default-prop -- 时间线 slot 仅助手行传入
-    timelineMarkdown?: MarkstreamVirtualMarkdownProps
   }>(),
   { streaming: false },
 )
-
-const emit = defineEmits<{
-  "render-pending": []
-  "render-settled": []
-}>()
 
 const { isDark } = useColorScheme()
 const text = computed(() => props.item.text)
@@ -44,16 +31,9 @@ const statusLabel = computed(() => {
   return base
 })
 
-onBeforeMount(() => {
-  if (text.value && !props.streaming) emit("render-pending")
-})
-onMounted(() => {
-  if (!text.value || props.streaming) emit("render-settled")
-})
-
 const codeBlockOptions = {
   fontSize: 14,
-  // 与 stream-diffs 实际行高对齐，避免增强后重新测高
+  // 与 stream-diffs 实际行高对齐
   lineHeight: 18,
   fontFamily: "var(--font-code)",
 } as const
@@ -73,20 +53,17 @@ const agentMarkdown = computed(() => {
       theme: "dark-plus",
     },
   } as const
-  const timeline = props.timelineMarkdown
   if (props.streaming) {
     return {
-      ...timeline,
       ...shared,
-      final: timeline?.final ?? false,
+      final: false,
       typewriter: "simple",
       smoothStreaming: "auto",
     } as const
   }
   return {
-    ...timeline,
     ...shared,
-    final: timeline?.final ?? true,
+    final: true,
     typewriter: false,
     smoothStreaming: false,
   } as const

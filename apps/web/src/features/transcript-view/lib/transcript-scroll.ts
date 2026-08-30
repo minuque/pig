@@ -1,15 +1,4 @@
-import type { MarkstreamThreadVirtualState } from "markstream-vue"
-
-/** 打开会话只恢复行高缓存，去掉会把视口滚走的锚点。 */
-export function threadStateHeightsOnly(
-  state: MarkstreamThreadVirtualState | null,
-): MarkstreamThreadVirtualState | null {
-  if (!state) return null
-  const { outerAnchor: _outerAnchor, ...rest } = state
-  return rest
-}
-
-/** 与 Markstream 新增行的精确贴底阈值一致，避免 UI 和时间线各判一套状态。 */
+/** 精确贴底：2px 内视为贴底。 */
 export function isTranscriptAtBottom(
   scrollHeight: number,
   scrollTop: number,
@@ -19,7 +8,7 @@ export function isTranscriptAtBottom(
   return scrollHeight - scrollTop - clientHeight <= threshold
 }
 
-/** 与 Markstream te（48px）一致：上翻解锁的 3px / DPI 余量仍算在底部，不弹出按钮。 */
+/** 视觉贴底：48px 内仍算在底部，不弹出回底部按钮。 */
 export function isTranscriptVisuallyAtBottom(
   scrollHeight: number,
   scrollTop: number,
@@ -33,21 +22,10 @@ export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boo
   return transcriptLength > 0 && !atBottom
 }
 
-/** 无助手正文即可撤；有则必须已挂上且 pending 清零。 */
-export function isMarkdownStreamReady(
-  hasMarkdownRows: boolean,
-  pendingCount: number,
-  mounted: boolean,
-): boolean {
-  if (pendingCount > 0) return false
-  if (!hasMarkdownRows) return true
-  return mounted
-}
-
-/** 盖过时间线已排队的旧锚点 rAF 与测高回写。 */
+/** 程序化滚底后短 hold，避免布局未完成时取消贴底。 */
 export const PROGRAMMATIC_BOTTOM_HOLD_MS = 400
 
-/** 程序化滚底后，未贴底读数在 hold 窗口内视为旧锚点回写。 */
+/** 程序化滚底后，未贴底读数在 hold 窗口内视为旧布局回写。 */
 export function shouldHoldProgrammaticBottom(
   measuredBottom: boolean,
   holdUntil: number,

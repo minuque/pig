@@ -7,28 +7,11 @@
       @wheel="onTranscriptWheel"
       @pointerdown="releasePinnedToBottom"
     >
-      <MarkstreamVirtualTimeline
-        v-if="rows.length"
-        ref="timeline"
-        class="transcript"
-        :thread-key="sessionId"
-        :measurement-key="measurementKey"
-        :items="rows"
-        :get-key="rowKey"
-        :get-kind="transcriptRowKind"
-        :get-content="transcriptRowContent"
-        :get-final="transcriptRowFinal"
-        :estimate-item-height="estimateTranscriptRowHeight"
-        markdown-mode="chat"
-        :stick-to-bottom="false"
-        :overscan="24"
-        :overscan-px="4000"
-        :initial-thread-state="initialThreadState"
-        @thread-state-change="onThreadState"
-      >
-        <template #default="{ item: row, measureRef, markdownProps }">
+      <div v-if="rows.length" ref="scroller" class="transcript" @scroll="onScrollerScroll">
+        <div ref="list" class="transcript-list">
           <div
-            :ref="measureRef"
+            v-for="row in rows"
+            :key="row.id"
             class="row"
             :data-minimap-row="row.role === 'user' ? row.id : undefined"
           >
@@ -37,9 +20,6 @@
               v-else-if="row.role === 'assistant'"
               :item="row"
               :streaming="running && row.streaming"
-              :timeline-markdown="markdownProps"
-              @render-pending="onMarkdownPending(row.id)"
-              @render-settled="onMarkdownSettled(row.id)"
             />
             <div v-else-if="isThinkingRow(row)" class="thinking-row">
               <ThinkingOrb />
@@ -54,8 +34,8 @@
               @toggle-tool="toggleTool"
             />
           </div>
-        </template>
-      </MarkstreamVirtualTimeline>
+        </div>
+      </div>
       <TranscriptMinimap
         v-if="rows.length && minimapItems.length >= MINIMAP_MIN_ITEMS"
         :items="minimapItems"
@@ -99,7 +79,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
-import { MarkstreamVirtualTimeline, type MarkstreamThreadVirtualState } from "markstream-vue"
 import ChatInput from "@features/chat-input/index.vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
@@ -117,36 +96,23 @@ import {
 import type { TranscriptItem } from "@features/transcript-view/lib/transcript-format.js"
 import {
   buildTimelineRows,
-  estimateTranscriptRowHeight,
   isThinkingRow,
   isWorkRow,
-  transcriptRowContent,
-  transcriptRowFinal,
-  transcriptRowKind,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import {
-  isMarkdownStreamReady,
   isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
   PROGRAMMATIC_BOTTOM_HOLD_MS,
   shouldHoldProgrammaticBottom,
   shouldShowScrollToLatest,
-  threadStateHeightsOnly,
   unpinBottomScrollTop,
 } from "@features/transcript-view/lib/transcript-scroll.js"
-import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import { useSession } from "@features/session-workbench/index.js"
 
 const props = defineProps<{
   sessionId: string
   transcript: readonly TranscriptItem[]
   running: boolean
-  threadState: MarkstreamThreadVirtualState | null
-}>()
-
-const emit = defineEmits<{
-  "thread-state": [state: MarkstreamThreadVirtualState]
-  ready: []
 }>()
 
 const {
@@ -164,57 +130,12 @@ const rows = computed(() => buildTimelineRows(props.transcript, props.running))
 const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
 )
-const initialThreadState = computed(() => threadStateHeightsOnly(props.threadState))
 const viewport = useTemplateRef<HTMLElement>("viewport")
 const region = useTemplateRef<HTMLElement>("region")
 const inputBar = useTemplateRef<HTMLElement>("inputBar")
-const { isDark } = useColorScheme()
-const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
+const scroller = useTemplateRef<HTMLElement>("scroller")
+const list = useTemplateRef<HTMLElement>("list")
 
-const rowKey = (item: { id: string }) => item.id
-const pendingMarkdownIds = new Set<string>()
-let markdownMounted = false
-let streamReadyEmitted = false
-
-function emitStreamReady() {
-  if (streamReadyEmitted) return
-  streamReadyEmitted = true
-  emit("ready")
-  if (atBottom.value) scrollToLatest()
-}
-
-function resetStreamReady() {
-  pendingMarkdownIds.clear()
-  markdownMounted = false
-  streamReadyEmitted = false
-}
-
-function checkStreamReady() {
-  const hasMarkdown = rows.value.some((row) => row.role === "assistant" && Boolean(row.text))
-  if (isMarkdownStreamReady(hasMarkdown, pendingMarkdownIds.size, markdownMounted)) {
-    emitStreamReady()
-  }
-}
-
-function onMarkdownPending(id: string) {
-  if (streamReadyEmitted) return
-  pendingMarkdownIds.add(id)
-  markdownMounted = true
-}
-
-function onMarkdownSettled(id: string) {
-  if (streamReadyEmitted) return
-  pendingMarkdownIds.delete(id)
-  markdownMounted = true
-  void nextTick(checkStreamReady)
-}
-
-const timeline = useTemplateRef<{
-  scrollToBottom(): void
-  scrollToIndex(index: number, align?: "start" | "center" | "end"): void
-  captureThreadState(): MarkstreamThreadVirtualState
-  restoreThreadState(state: MarkstreamThreadVirtualState): void
-}>("timeline")
 const atBottom = shallowRef(false)
 const visuallyAtBottom = shallowRef(false)
 const showScrollToLatest = computed(() =>
@@ -222,9 +143,10 @@ const showScrollToLatest = computed(() =>
 )
 let bottomHoldUntil = 0
 let pinRaf = 0
+let sizeObserver: ResizeObserver | undefined
 
-function timelineScrollRoot(): HTMLElement | null {
-  return region.value?.querySelector<HTMLElement>(".markstream-virtual-timeline") ?? null
+function scrollerRoot(): HTMLElement | null {
+  return scroller.value
 }
 
 function releasePinnedToBottom() {
@@ -238,7 +160,7 @@ function releasePinnedToBottom() {
 function onTranscriptWheel(event: WheelEvent) {
   releasePinnedToBottom()
   if (event.deltaY < 0) atBottom.value = false
-  const root = timelineScrollRoot()
+  const root = scrollerRoot()
   if (!root) return
   const nextTop = unpinBottomScrollTop(
     root.scrollHeight,
@@ -258,17 +180,18 @@ function onTranscriptWheel(event: WheelEvent) {
 }
 
 function jumpToBottom() {
-  const api = timeline.value
-  const root = timelineScrollRoot()
-  if (root?.classList.contains("is-restoring-thread") && api) {
-    api.restoreThreadState({
-      ...api.captureThreadState(),
-      outerAnchor: { type: "bottom", distanceFromBottomPx: 0 },
-    })
-    return
-  }
-  api?.scrollToBottom()
+  const root = scrollerRoot()
   if (root) root.scrollTop = root.scrollHeight - root.clientHeight
+}
+
+function pinIfNeeded() {
+  if (atBottom.value) jumpToBottom()
+}
+
+function readBottom(root: HTMLElement) {
+  const exact = isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
+  const visual = isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
+  return { exact, visual }
 }
 
 const {
@@ -280,37 +203,24 @@ const {
   region,
   viewport,
   inputBar,
-  scrollRoot: timelineScrollRoot,
+  scrollRoot: scrollerRoot,
 })
 
-function onThreadState(state: MarkstreamThreadVirtualState) {
-  const root = timelineScrollRoot()
+function onScrollerScroll() {
+  const root = scrollerRoot()
+  if (!root) return
   syncLayout(region.value, root)
-  const exact = root
-    ? isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
-    : state.outerAnchor?.type !== "item"
-  const visual = root
-    ? isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
-    : exact
+  const { exact, visual } = readBottom(root)
   if (shouldHoldProgrammaticBottom(exact, bottomHoldUntil, performance.now())) return
-  if (atBottom.value) {
-    jumpToBottom()
-    visuallyAtBottom.value = true
-    return
-  }
   atBottom.value = exact
   visuallyAtBottom.value = visual
-  if (!streamReadyEmitted) {
-    requestAnimationFrame(() => {
-      if (!streamReadyEmitted) checkStreamReady()
-    })
-  }
 }
 
 function selectMinimapItem(item: TranscriptMinimapItem) {
   releasePinnedToBottom()
-  timeline.value?.scrollToIndex(item.rowIndex, "start")
-  const root = timelineScrollRoot()
+  const root = scrollerRoot()
+  const target = root?.querySelector<HTMLElement>(`[data-minimap-row="${CSS.escape(item.id)}"]`)
+  target?.scrollIntoView({ block: "start" })
   if (
     root &&
     atBottom.value &&
@@ -339,15 +249,23 @@ function submitFromInput(text: string) {
   return submitText(text)
 }
 
-function persistThreadState(expectedSessionId = props.sessionId) {
-  const captured = timeline.value?.captureThreadState()
-  if (captured?.threadKey === expectedSessionId) emit("thread-state", captured)
+function observeSizes() {
+  sizeObserver?.disconnect()
+  sizeObserver = undefined
+  const root = scroller.value
+  const body = list.value
+  if (!root && !body) return
+  sizeObserver = new ResizeObserver(() => {
+    syncLayout(region.value, scrollerRoot())
+    pinIfNeeded()
+  })
+  if (root) sizeObserver.observe(root)
+  if (body) sizeObserver.observe(body)
 }
 
 watch(
   () => props.sessionId,
-  (_sessionId, previousSessionId) => {
-    persistThreadState(previousSessionId)
+  () => {
     releasePinnedToBottom()
     // 切 Session 不贴底、不恢复 scrollTop
     atBottom.value = false
@@ -355,29 +273,15 @@ watch(
   },
   { flush: "pre" },
 )
-watch(
-  () => props.sessionId,
-  () => {
-    resetStreamReady()
-  },
-  { immediate: true, flush: "post" },
-)
-watch(
-  rows,
-  () => {
-    if (streamReadyEmitted) return
-    if (rows.value.length === 0) emitStreamReady()
-  },
-  { immediate: true, flush: "post" },
-)
 watch(rows, (next, prev) => {
   if (prev.length === 0 && next.length > 0) scrollToLatest()
+  else if (atBottom.value) void nextTick(pinIfNeeded)
 })
+watch([scroller, list], observeSizes, { flush: "post" })
 
 onBeforeUnmount(() => {
   releasePinnedToBottom()
-  persistThreadState()
-  resetStreamReady()
+  sizeObserver?.disconnect()
 })
 </script>
 
@@ -465,6 +369,8 @@ onBeforeUnmount(() => {
   width: min(100%, var(--size-content));
   min-width: 0;
   min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-top: var(--spacing-lg);
   padding-bottom: calc(var(--spacing-lg) + var(--chat-input-overlay));
   overscroll-behavior: contain;
@@ -474,17 +380,10 @@ onBeforeUnmount(() => {
 .transcript::-webkit-scrollbar {
   display: none;
 }
-.transcript :deep(.markstream-virtual-timeline__item) {
+.transcript-list,
+.row {
   box-sizing: border-box;
   width: 100%;
-}
-.transcript :deep(.markstream-virtual-timeline__restore-loading) {
-  display: none;
-}
-.transcript :deep(.markstream-virtual-timeline.is-restoring-thread > *) {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
 }
 .thinking-row {
   display: inline-flex;

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest"
-import type { MarkstreamThreadVirtualState } from "markstream-vue"
 import type { TranscriptItem, UserTranscriptItem } from "@earendil-works/pi-protocol"
 import {
   isSessionOpening,
@@ -8,22 +7,28 @@ import {
   sessionState,
 } from "@features/session-workbench/lib/session-state.js"
 
-function mockThreadState(threadKey = "s"): MarkstreamThreadVirtualState {
-  return { threadKey, itemHeights: {}, markdownStates: {} }
-}
-
 describe("workbench state", () => {
-  it("keeps thread state isolated by session", () => {
+  it("keeps draft and optimistic user isolated by session", () => {
     const states = new Map()
     const first = sessionState(states, "session-a")
-    first.threadState = mockThreadState("session-a")
+    first.draft = "给 A"
+    first.optimisticUser = {
+      item: {
+        id: "optimistic-a",
+        role: "user",
+        content: [{ type: "text", text: "给 A" }],
+        timestamp: 1,
+      },
+      knownItemIds: [],
+    }
 
     expect(sessionState(states, "session-a")).toBe(first)
     expect(sessionState(states, "session-b")).toMatchObject({
       draft: "",
       optimisticUser: null,
-      threadState: null,
     })
+    expect(sessionState(states, "session-a").draft).toBe("给 A")
+    expect(sessionState(states, "session-b").draft).toBe("")
   })
 })
 

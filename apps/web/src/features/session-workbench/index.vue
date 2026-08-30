@@ -18,13 +18,7 @@
 
       <!-- 3. 有 transcript：对话列。历史可先于 attach 到齐。 -->
       <template v-else-if="transcript.length > 0 || !sessionPending">
-        <TranscriptView
-          :session-id="sessionId"
-          :transcript="transcript"
-          :running="running"
-          :thread-state="threadState"
-          @thread-state="applyThreadState"
-        />
+        <TranscriptView :session-id="sessionId" :transcript="transcript" :running="running" />
       </template>
     </div>
 
@@ -70,16 +64,7 @@ import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHea
 import StartupError from "@features/startup/components/StartupError.vue"
 
 const route = useRoute()
-const {
-  sessionId,
-  transcript,
-  running,
-  sessionPending,
-  clientState,
-  applyThreadState,
-  connectionError,
-  connected,
-} = useSession()
+const { sessionId, transcript, running, sessionPending, connectionError, connected } = useSession()
 
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
@@ -104,7 +89,6 @@ const showContentHandles = computed(
   () => Boolean(sessionId.value) && !emptyCanvas.value && !sessionPending.value,
 )
 const contentHandleSides = ["left", "right"] as const
-const threadState = computed(() => clientState.value?.threadState ?? null)
 </script>
 
 <style scoped>

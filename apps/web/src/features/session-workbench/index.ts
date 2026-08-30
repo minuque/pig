@@ -35,7 +35,6 @@ function createSession(
     createAndSubmit: session.createAndSubmit,
     submitText: session.submitText,
     abortSession: session.abortSession,
-    applyThreadState: session.applyThreadState,
     initialize: session.initialize,
   }
 }

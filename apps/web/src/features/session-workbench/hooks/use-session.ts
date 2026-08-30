@@ -1,7 +1,6 @@
 import {
   computed,
   getCurrentInstance,
-  markRaw,
   onBeforeUnmount,
   reactive,
   ref,
@@ -18,7 +17,6 @@ import type {
   TranscriptItem,
   UserTranscriptItem,
 } from "@earendil-works/pi-protocol"
-import type { MarkstreamThreadVirtualState } from "markstream-vue"
 import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
@@ -283,12 +281,6 @@ export function useSessionLifecycle(
     },
   })
 
-  function applyThreadState(threadState: MarkstreamThreadVirtualState) {
-    const id = threadState.threadKey ?? sessionId.value
-    if (!id) return
-    sessionState(states, id).threadState = markRaw(threadState)
-  }
-
   async function createSession(nextCwd: string) {
     if (creatingCwd.value) return
     creatingCwd.value = nextCwd
@@ -405,7 +397,6 @@ export function useSessionLifecycle(
     createAndSubmit,
     submitText,
     abortSession,
-    applyThreadState,
     initialize,
     remote,
     dispose,
