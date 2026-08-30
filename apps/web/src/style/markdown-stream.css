@@ -119,3 +119,9 @@
 [data-custom-id="chat"] .code-loading-placeholder {
   contain: none;
 }
+
+/* content-visibility:auto 在块要进视口时才换真实高度，虚拟时间线会抖 scrollHeight。 */
+[data-custom-id="chat"] .markdown-renderer {
+  content-visibility: visible !important;
+  contain-intrinsic-size: none !important;
+}
