@@ -19,7 +19,7 @@ describe("startup sequence", () => {
 
   it("runs connect then initialize without closing the overlay", async () => {
     const order: string[] = []
-    const { start, ready, visible } = useStartupSequence({
+    const { start, ready, visible, settled } = useStartupSequence({
       connect: async () => {
         order.push("connect")
       },
@@ -31,6 +31,7 @@ describe("startup sequence", () => {
     await start()
     expect(order).toEqual(["connect", "initialize"])
     expect(ready.value).toBe(true)
+    expect(settled.value).toBe(true)
     expect(visible.value).toBe(true)
     expect(replace).not.toHaveBeenCalled()
   })
@@ -47,7 +48,7 @@ describe("startup sequence", () => {
   })
 
   it("opens /error without tearing down the overlay when boot fails", async () => {
-    const { start, visible, ready, failed } = useStartupSequence({
+    const { start, visible, ready, failed, settled } = useStartupSequence({
       connect: async () => {
         throw new Error("连接失败")
       },
@@ -57,6 +58,7 @@ describe("startup sequence", () => {
     await start()
     expect(ready.value).toBe(false)
     expect(failed.value).toBe(true)
+    expect(settled.value).toBe(true)
     expect(visible.value).toBe(true)
     expect(useStartupError().value).toBe("请求失败。请检查本地服务后重试。")
     expect(replace).toHaveBeenCalledWith({ name: "error" })

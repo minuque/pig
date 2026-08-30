@@ -1,142 +1,27 @@
 <template>
-  <div class="startup-wait" :class="{ leaving }" @click="skipAnimation">
+  <div class="startup-wait" :class="{ leaving }" role="status" aria-label="正在启动">
     <div class="drag-strip" aria-hidden="true"></div>
-    <div class="startup-content">
-      <button
-        ref="host"
-        class="logo-button"
-        type="button"
-        :disabled="animationComplete"
-        aria-label="跳过 Pi 启动动画"
-        @click.stop="skipAnimation"
-      >
-        <div class="logo-stage">
-          <div ref="wrap" class="logo-wrap">
-            <canvas ref="canvas" class="logo-canvas" aria-hidden="true"></canvas>
-          </div>
-        </div>
-      </button>
-      <p class="startup-slogan" aria-hidden="true">
-        <span v-for="(line, lineIndex) in slogan.lines" :key="lineIndex" class="slogan-line"
-          ><span>{{ line.plain }}</span
-          ><span v-if="line.highlight" class="slogan-highlight">{{ line.highlight }}</span
-          ><span v-if="showCursor && slogan.cursorLine === lineIndex" class="slogan-cursor"></span
-        ></span>
-      </p>
-    </div>
+    <img class="startup-logo" src="/logo.png" alt="" width="96" height="96" />
   </div>
 </template>
 
-<script lang="ts">
-export const STARTUP_SLOGAN_LINES = [
-  "There are many agent harnesses",
-  "but this one is yours",
-] as const
-
-export const STARTUP_SLOGAN = STARTUP_SLOGAN_LINES.join("\n")
-export const SLOGAN_HIGHLIGHT = "yours"
-export const SLOGAN_CHAR_MS = 24
-export const SLOGAN_END_HOLD_MS = 900
-
-export interface SloganLineView {
-  plain: string
-  highlight: string
-}
-
-/** 按已打出的字符数切两行，yours 开始出现后进 highlight。 */
-export function typedSlogan(charCount: number): {
-  lines: [SloganLineView, SloganLineView]
-  cursorLine: 0 | 1
-} {
-  const line1 = STARTUP_SLOGAN_LINES[0]
-  const line2 = STARTUP_SLOGAN_LINES[1]
-  const n = Math.max(0, Math.min(charCount, STARTUP_SLOGAN.length))
-  const empty = { plain: "", highlight: "" } as const
-
-  if (n <= line1.length) {
-    return {
-      lines: [{ plain: line1.slice(0, n), highlight: "" }, empty],
-      cursorLine: 0,
-    }
-  }
-
-  const visible2 = line2.slice(0, n - line1.length - 1)
-  const hiAt = line2.lastIndexOf(SLOGAN_HIGHLIGHT)
-  if (visible2.length <= hiAt) {
-    return {
-      lines: [
-        { plain: line1, highlight: "" },
-        { plain: visible2, highlight: "" },
-      ],
-      cursorLine: 1,
-    }
-  }
-
-  return {
-    lines: [
-      { plain: line1, highlight: "" },
-      { plain: visible2.slice(0, hiAt), highlight: visible2.slice(hiAt) },
-    ],
-    cursorLine: 1,
-  }
-}
-</script>
-
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from "vue"
-import { createPiLogoPlayer } from "@features/startup/lib/pi-logo-animation.js"
-import { sleep } from "@features/startup/lib/sleep.js"
+import { onBeforeUnmount, onMounted, shallowRef, watch } from "vue"
 
-const emit = defineEmits<{ reveal: []; finished: [] }>()
+const props = defineProps<{
+  dismiss: boolean
+}>()
 
-const host = useTemplateRef<HTMLButtonElement>("host")
-const wrap = useTemplateRef<HTMLDivElement>("wrap")
-const canvas = useTemplateRef<HTMLCanvasElement>("canvas")
-const animationComplete = shallowRef(false)
+const emit = defineEmits<{
+  finished: []
+}>()
+
 const leaving = shallowRef(false)
-const typedChars = shallowRef(0)
-const sloganTyping = shallowRef(false)
-
-const slogan = computed(() => typedSlogan(typedChars.value))
-const showCursor = computed(() => sloganTyping.value)
-
 const LEAVE_MS = 200
-let player: ReturnType<typeof createPiLogoPlayer> | undefined
+let finished = false
 let leaveTimer = 0
 let reducedMotion = false
-let finished = false
-let resizeObserver: ResizeObserver | undefined
-let themeObserver: MutationObserver | undefined
 let motionQuery: MediaQueryList | undefined
-let sloganAbort: AbortController | undefined
-let sloganPromise: Promise<void> = Promise.resolve()
-
-async function runSlogan(signal: AbortSignal): Promise<void> {
-  sloganTyping.value = true
-  typedChars.value = 0
-  for (let i = 1; i <= STARTUP_SLOGAN.length; i += 1) {
-    if (signal.aborted) return
-    typedChars.value = i
-    if (!(await sleep(SLOGAN_CHAR_MS, signal))) return
-  }
-  if (signal.aborted) return
-  await sleep(SLOGAN_END_HOLD_MS, signal)
-  if (!signal.aborted) sloganTyping.value = false
-}
-
-function startSlogan() {
-  sloganAbort?.abort()
-  sloganAbort = new AbortController()
-  sloganPromise = runSlogan(sloganAbort.signal)
-}
-
-function themeColor(): string {
-  const ink = getComputedStyle(host.value ?? document.documentElement)
-    .getPropertyValue("--ink")
-    .trim()
-  // 回退值为 --ink 浅色值；仅当 CSS 变量不可读时生效
-  return ink || "#0f1115"
-}
 
 function finish() {
   if (finished) return
@@ -145,8 +30,7 @@ function finish() {
 }
 
 function beginLeave() {
-  if (leaving.value || finished || !animationComplete.value) return
-  emit("reveal")
+  if (leaving.value || finished) return
   if (reducedMotion || document.hidden) {
     finish()
     return
@@ -155,77 +39,28 @@ function beginLeave() {
   leaveTimer = window.setTimeout(finish, LEAVE_MS)
 }
 
-function completeAnimation() {
-  sloganAbort?.abort()
-  player?.cancel()
-  animationComplete.value = true
-  beginLeave()
-}
-
-function skipAnimation() {
-  if (!animationComplete.value) completeAnimation()
-}
-
-function onKeydown(event: KeyboardEvent) {
-  if (event.key !== "Escape") return
-  event.preventDefault()
-  skipAnimation()
-}
-
-function onVisibilityChange() {
-  if (document.hidden) completeAnimation()
-}
-
 function onMotionChange() {
   reducedMotion = motionQuery?.matches ?? false
-  if (reducedMotion) completeAnimation()
+  if (reducedMotion && props.dismiss) beginLeave()
 }
 
-onMounted(() => {
-  const target = canvas.value
-  const board = wrap.value
-  if (target && board) {
-    player = createPiLogoPlayer({
-      canvas: target,
-      wrap: board,
-      themeColor,
-      onNearEnd: startSlogan,
-    })
-  }
+watch(
+  () => props.dismiss,
+  (dismiss) => {
+    if (dismiss) beginLeave()
+  },
+)
 
-  resizeObserver = new ResizeObserver(() => player?.resize())
-  if (board) resizeObserver.observe(board)
-  themeObserver = new MutationObserver(() => {
-    if (animationComplete.value) player?.showStatic()
-  })
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
+onMounted(() => {
   motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
   motionQuery.addEventListener("change", onMotionChange)
-  document.addEventListener("visibilitychange", onVisibilityChange)
-  window.addEventListener("keydown", onKeydown)
-
   reducedMotion = motionQuery.matches
-  if (reducedMotion || document.hidden) {
-    completeAnimation()
-    return
-  }
-
-  void player?.play().then(async (played) => {
-    if (!played) return
-    await sloganPromise
-    completeAnimation()
-  })
+  if (props.dismiss) beginLeave()
 })
 
 onBeforeUnmount(() => {
-  sloganAbort?.abort()
-  player?.cancel()
   window.clearTimeout(leaveTimer)
-  resizeObserver?.disconnect()
-  themeObserver?.disconnect()
   motionQuery?.removeEventListener("change", onMotionChange)
-  document.removeEventListener("visibilitychange", onVisibilityChange)
-  window.removeEventListener("keydown", onKeydown)
 })
 </script>
 
@@ -237,16 +72,16 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--surface);
-  color: var(--ink);
-  cursor: pointer;
+  background: color-mix(in srgb, var(--glass-surface) var(--glass-opacity), transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   opacity: 1;
   -webkit-app-region: no-drag;
 }
 .startup-wait.leaving {
   pointer-events: none;
   opacity: 0;
-  transition: opacity 180ms var(--ease-out);
+  transition: opacity var(--duration-normal) var(--ease-out);
 }
 .drag-strip {
   position: absolute;
@@ -255,118 +90,28 @@ onBeforeUnmount(() => {
   height: var(--titlebar-inset);
   -webkit-app-region: drag;
 }
-.startup-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  transition:
-    opacity var(--duration-fast) var(--ease-smooth),
-    transform 180ms var(--ease-out);
+.startup-logo {
+  width: clamp(80px, 12vw, 112px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  pointer-events: none;
 }
-.startup-wait.leaving .startup-content {
-  opacity: 0;
+.startup-wait.leaving .startup-logo {
   transform: translateY(-4px);
-}
-.logo-button {
-  width: clamp(96px, 15vw, 128px);
-  min-height: 0;
-  aspect-ratio: 8 / 9;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: inherit;
-  -webkit-app-region: no-drag;
-}
-.logo-button:disabled {
-  cursor: default;
-  opacity: 1;
-}
-.logo-button:not(:disabled):active {
-  transform: none;
-}
-.logo-stage {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-.logo-wrap {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.logo-canvas {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  display: block;
-  image-rendering: pixelated;
-  pointer-events: none;
-}
-.startup-slogan {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-  min-height: calc(2em * var(--text-heading-3--line-height));
-  margin: 0;
-  color: var(--ink);
-  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, serif;
-  font-size: var(--text-heading-3);
-  font-style: italic;
-  font-weight: var(--font-weight-regular);
-  line-height: var(--text-heading-3--line-height);
-  letter-spacing: -0.015em;
-  text-align: center;
-  pointer-events: none;
-}
-.slogan-line {
-  display: block;
-  min-height: calc(1em * var(--text-heading-3--line-height));
-  white-space: nowrap;
-}
-.slogan-highlight {
-  color: var(--accent-dusk);
-  font-weight: var(--font-weight-bold);
-}
-.slogan-cursor {
-  display: inline-block;
-  width: 1.5px;
-  height: 0.85em;
-  margin-left: 1px;
-  background: currentColor;
-  vertical-align: -0.08em;
-  animation: slogan-caret 1.05s steps(1, end) infinite;
-}
-.slogan-line:has(.slogan-highlight) .slogan-cursor {
-  background: var(--accent-dusk);
-}
-@keyframes slogan-caret {
-  0%,
-  49% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0;
-  }
+  transition: transform var(--duration-normal) var(--ease-out);
 }
 @media (prefers-reduced-transparency: reduce) {
   .startup-wait {
     background: var(--surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .startup-wait.leaving,
-  .startup-content {
+  .startup-wait.leaving .startup-logo {
     transition: none;
-  }
-  .slogan-cursor {
-    animation: none;
   }
 }
 </style>

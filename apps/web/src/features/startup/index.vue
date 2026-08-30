@@ -1,16 +1,12 @@
 <template>
   <div
     class="startup-gate"
-    :class="{
-      'startup-underlay': concealed,
-      'startup-underlay-transition': visible,
-    }"
     :inert="visible || undefined"
     :aria-hidden="visible ? 'true' : undefined"
   >
     <slot />
   </div>
-  <StartupOverlay v-if="visible" @reveal="reveal" @finished="finish" />
+  <StartupOverlay v-if="visible" :dismiss="settled" @finished="finish" />
 </template>
 
 <script setup lang="ts">
@@ -23,7 +19,7 @@ const props = defineProps<{
   initialize: () => Promise<unknown>
 }>()
 
-const { visible, concealed, reveal, finish, start } = useStartupSequence(props)
+const { visible, settled, finish, start } = useStartupSequence(props)
 
 onMounted(() => {
   void start()
@@ -33,16 +29,5 @@ onMounted(() => {
 <style scoped>
 .startup-gate {
   height: 100%;
-}
-.startup-gate.startup-underlay {
-  opacity: 0;
-}
-.startup-gate.startup-underlay-transition {
-  transition: opacity var(--duration-slow) var(--ease-out) 60ms;
-}
-@media (prefers-reduced-motion: reduce) {
-  .startup-gate.startup-underlay-transition {
-    transition: none;
-  }
 }
 </style>

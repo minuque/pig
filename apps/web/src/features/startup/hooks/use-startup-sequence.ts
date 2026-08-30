@@ -34,22 +34,17 @@ function connectWithTimeout(connect: () => Promise<unknown>, ms: number): Promis
 }
 
 /**
- * 启动序列：connect → initialize，与遮罩动画并行。
- * 失败只写入错误并进 `/error`，不打断 Logo 离场。
+ * 启动序列：connect → initialize，与毛玻璃遮罩并行。
+ * 失败只写入错误并进 `/error`，settled 后由遮罩自行离场。
  */
 export function useStartupSequence(options: StartupSequenceOptions) {
   const router = useRouter()
   const visible = shallowRef(true)
-  const concealed = shallowRef(true)
+  const settled = shallowRef(false)
   const ready = shallowRef(false)
   const failed = shallowRef(false)
 
-  function reveal() {
-    concealed.value = false
-  }
-
   function finish() {
-    concealed.value = false
     visible.value = false
   }
 
@@ -66,15 +61,16 @@ export function useStartupSequence(options: StartupSequenceOptions) {
       failed.value = true
       setStartupError(errorMessage(error))
       await router.replace({ name: "error" })
+    } finally {
+      settled.value = true
     }
   }
 
   return {
     visible: readonly(visible),
-    concealed: readonly(concealed),
+    settled: readonly(settled),
     ready: readonly(ready),
     failed: readonly(failed),
-    reveal,
     finish,
     start,
   }
