@@ -186,6 +186,7 @@ function onToggle() {
   place-items: center;
   width: 16px;
   height: 16px;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 .spine.is-ok {
   color: var(--ink-faint);

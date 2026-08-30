@@ -80,7 +80,7 @@
       />
     </div>
 
-    <div v-show="showScrollToLatest" class="session-floating-controls">
+    <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
       <Button
         class="scroll-latest-control"
         type="button"
@@ -387,6 +387,9 @@ onBeforeUnmount(() => {
   .transcript-viewport {
     animation: none;
   }
+  .session-floating-controls {
+    transition: none;
+  }
 }
 .transcript-region {
   position: relative;
@@ -410,10 +413,17 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-xs);
+  opacity: 0;
   pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+.session-floating-controls.shown {
+  opacity: 1;
+}
+.session-floating-controls.shown .scroll-latest-control {
+  pointer-events: auto;
 }
 .scroll-latest-control {
-  pointer-events: auto;
   border-radius: var(--radius-full);
   background: var(--canvas-soft);
   color: var(--ink-secondary);
