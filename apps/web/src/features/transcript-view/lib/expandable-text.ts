@@ -25,7 +25,7 @@ export function visibleLineRange(
   return { start, end }
 }
 
-/** 助手长文才开 markstream 节点虚拟滚动，避免短消息也建一套 session。 */
+/** 长预览才用行窗口，避免短文本也建虚拟列表。 */
 export function shouldVirtualizeMarkdown(text: string): boolean {
   return text.length > MARKDOWN_VIRTUAL_CHARS || splitLines(text).length > MARKDOWN_VIRTUAL_LINES
 }

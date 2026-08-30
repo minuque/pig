@@ -1,6 +1,6 @@
 import { reactive, watch, type MaybeRefOrGetter, toValue } from "vue"
 
-/** 展开态只活在当前 Session 内存：虚拟卸载保留，切 Session 清空。 */
+/** 展开态只活在当前 Session 内存，切 Session 清空。 */
 export function useTranscriptExpand(sessionId: MaybeRefOrGetter<string>) {
   const expandedTools = reactive(new Map<string, boolean>())
   const expandedFolds = reactive(new Map<string, boolean>())
