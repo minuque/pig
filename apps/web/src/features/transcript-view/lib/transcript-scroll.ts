@@ -1,14 +1,12 @@
 import type { MarkstreamThreadVirtualState } from "markstream-vue"
 
-/** 打开会话只恢复行高缓存，视口强制贴底。 */
-export function threadStatePinnedToBottom(
+/** 打开会话只恢复行高缓存，去掉会把视口滚走的锚点。 */
+export function threadStateHeightsOnly(
   state: MarkstreamThreadVirtualState | null,
 ): MarkstreamThreadVirtualState | null {
   if (!state) return null
-  return {
-    ...state,
-    outerAnchor: { type: "bottom", distanceFromBottomPx: 0 },
-  }
+  const { outerAnchor: _outerAnchor, ...rest } = state
+  return rest
 }
 
 /** 与 Markstream 新增行的精确贴底阈值一致，避免 UI 和时间线各判一套状态。 */

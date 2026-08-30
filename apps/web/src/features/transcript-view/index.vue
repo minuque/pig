@@ -1,5 +1,5 @@
 <template>
-  <div class="transcript-viewport">
+  <div ref="viewport" class="transcript-viewport">
     <section
       id="transcript-panel"
       ref="region"
@@ -23,7 +23,7 @@
         markdown-mode="chat"
         :stick-to-bottom="'auto'"
         :overscan="8"
-        :initial-thread-state="pinnedThreadState"
+        :initial-thread-state="initialThreadState"
         @thread-state-change="onThreadState"
       >
         <template #default="{ item: row, measureRef, markdownProps }">
@@ -132,7 +132,7 @@ import {
   PROGRAMMATIC_BOTTOM_HOLD_MS,
   shouldHoldProgrammaticBottom,
   shouldShowScrollToLatest,
-  threadStatePinnedToBottom,
+  threadStateHeightsOnly,
   unpinBottomScrollTop,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
@@ -165,15 +165,15 @@ const rows = computed(() => buildTimelineRows(props.transcript, props.running))
 const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
 )
-const pinnedThreadState = computed(() => threadStatePinnedToBottom(props.threadState))
+const initialThreadState = computed(() => threadStateHeightsOnly(props.threadState))
 const transcriptTitleId = computed(() => `transcript-title-${props.sessionId}`)
+const viewport = useTemplateRef<HTMLElement>("viewport")
 const region = useTemplateRef<HTMLElement>("region")
 const inputBar = useTemplateRef<HTMLElement>("inputBar")
 const { isDark } = useColorScheme()
 const measurementKey = computed(() => (isDark.value ? "dark" : "light"))
 const panel = inject(leftPanelKey, null)
 const sidebarResizing = computed(() => panel?.resizing.value ?? false)
-const { items: minimapItems, inViewIds, hitStripWidth, syncLayout } = useTranscriptMinimap(rows)
 
 const rowKey = (item: { id: string }) => item.id
 const pendingMarkdownIds = new Set<string>()
@@ -219,7 +219,7 @@ const timeline = useTemplateRef<{
   captureThreadState(): MarkstreamThreadVirtualState
   restoreThreadState(state: MarkstreamThreadVirtualState): void
 }>("timeline")
-const atBottom = shallowRef(true)
+const atBottom = shallowRef(false)
 const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, atBottom.value),
 )
@@ -272,6 +272,21 @@ function jumpToBottom() {
   api?.scrollToBottom()
   if (root) root.scrollTop = root.scrollHeight - root.clientHeight
 }
+
+const {
+  items: minimapItems,
+  inViewIds,
+  hitStripWidth,
+  syncLayout,
+} = useTranscriptMinimap(rows, {
+  region,
+  viewport,
+  inputBar,
+  scrollRoot: timelineScrollRoot,
+  sidebarResizing,
+  atBottom,
+  stickToBottom: jumpToBottom,
+})
 
 function onThreadState(state: MarkstreamThreadVirtualState) {
   const root = timelineScrollRoot()
@@ -329,7 +344,8 @@ watch(
   (_sessionId, previousSessionId) => {
     persistThreadState(previousSessionId)
     releasePinnedToBottom()
-    atBottom.value = true
+    // 切 Session 不贴底、不恢复 scrollTop
+    atBottom.value = false
   },
   { flush: "pre" },
 )
@@ -337,7 +353,6 @@ watch(
   () => props.sessionId,
   () => {
     resetStreamReady()
-    if (rows.value.length > 0) scrollToLatest()
   },
   { immediate: true, flush: "post" },
 )
@@ -353,31 +368,7 @@ watch(rows, (next, prev) => {
   if (prev.length === 0 && next.length > 0) scrollToLatest()
 })
 
-let layoutObserver: ResizeObserver | undefined
-watch(
-  [region, inputBar],
-  ([el, bar]) => {
-    layoutObserver?.disconnect()
-    layoutObserver = undefined
-    if (!el) return
-    const tick = () => {
-      const root = timelineScrollRoot()
-      syncLayout(el, root)
-      const host = el.parentElement
-      if (bar && host) host.style.setProperty("--chat-input-overlay", `${bar.offsetHeight}px`)
-      if (sidebarResizing.value || !atBottom.value) return
-      jumpToBottom()
-    }
-    layoutObserver = new ResizeObserver(tick)
-    layoutObserver.observe(el)
-    if (bar) layoutObserver.observe(bar)
-    tick()
-  },
-  { flush: "post" },
-)
-
 onBeforeUnmount(() => {
-  layoutObserver?.disconnect()
   releasePinnedToBottom()
   persistThreadState()
   resetStreamReady()
