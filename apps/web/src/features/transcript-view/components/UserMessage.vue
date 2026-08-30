@@ -38,13 +38,15 @@ defineProps<{
   padding: 8px 14px;
   overflow: auto;
   border-radius: var(--radius-xl);
-  background: var(--bubble);
-  color: var(--ink);
+  background: var(--user-prompt-bg);
+  color: var(--user-prompt-fg);
   font-size: var(--text-body-md);
   line-height: 1.5;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+  cursor: pointer;
 }
+
 .images {
   display: flex;
   flex-direction: column;
