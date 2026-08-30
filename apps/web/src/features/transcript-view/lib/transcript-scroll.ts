@@ -25,13 +25,6 @@ export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boo
 /** 程序化滚底后短 hold，避免布局未完成时取消贴底。 */
 export const PROGRAMMATIC_BOTTOM_HOLD_MS = 400
 
-/** 用户平滑滚动未结束前，禁止瞬间贴底打断。 */
-export const USER_SMOOTH_SCROLL_MS = 500
-
-export function transcriptUserScrollBehavior(reduceMotion: boolean): ScrollBehavior {
-  return reduceMotion ? "auto" : "smooth"
-}
-
 /** 程序化滚底后，未贴底读数在 hold 窗口内视为旧布局回写。 */
 export function shouldHoldProgrammaticBottom(
   measuredBottom: boolean,
