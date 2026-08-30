@@ -1,75 +1,77 @@
 <template>
-  <div class="glass-shell usage-shell">
-    <div class="glass-host usage-host">
-      <div class="head">
-        <h3 class="title">上下文占用</h3>
-        <button type="button" class="close" @click="emit('close')">
-          <X :size="16" />
-        </button>
-      </div>
-      <div class="stats">
-        <span class="percent">{{ usage.percent }}% 已用</span>
-        <span class="tokens">{{ tokenSummary }}</span>
-      </div>
-      <div class="bar">
-        <span
-          v-for="segment in usage.segments"
-          :key="segment.id"
-          class="bar-seg"
-          :style="{
-            width: `${segmentShare(segment.tokens, usage.window)}%`,
-            background: segment.color,
-          }"
-        ></span>
-      </div>
-      <ul v-if="usage.segments.length" class="legend">
-        <li v-for="segment in usage.segments" :key="segment.id">
-          <button
-            v-if="sessionId && segment.previewable"
-            type="button"
-            class="legend-row legend-row--button"
-            @click="openPreview(segment)"
-          >
-            <span class="swatch" :style="{ background: segment.color }"></span>
-            <span class="legend-label">{{ segment.label }}</span>
-            <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
-            <span class="legend-pct"
-              >{{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%</span
-            >
+  <div class="usage-root">
+    <div class="glass-shell usage-shell">
+      <div class="glass-host usage-host">
+        <div class="head">
+          <h3 class="title">上下文占用</h3>
+          <button type="button" class="close" @click="emit('close')">
+            <X :size="16" />
           </button>
-          <div v-else class="legend-row">
-            <span class="swatch" :style="{ background: segment.color }"></span>
-            <span class="legend-label">{{ segment.label }}</span>
-            <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
-            <span class="legend-pct"
-              >{{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%</span
+        </div>
+        <div class="stats">
+          <span class="percent">{{ usage.percent }}% 已用</span>
+          <span class="tokens">{{ tokenSummary }}</span>
+        </div>
+        <div class="bar">
+          <span
+            v-for="segment in usage.segments"
+            :key="segment.id"
+            class="bar-seg"
+            :style="{
+              width: `${segmentShare(segment.tokens, usage.window)}%`,
+              background: segment.color,
+            }"
+          ></span>
+        </div>
+        <ul v-if="usage.segments.length" class="legend">
+          <li v-for="segment in usage.segments" :key="segment.id">
+            <button
+              v-if="sessionId && segment.previewable"
+              type="button"
+              class="legend-row legend-row--button"
+              @click="openPreview(segment)"
             >
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
-  <Dialog :open="previewOpen" @update:open="onPreviewOpen">
-    <DialogContent
-      class="flex h-[min(80vh,40rem)] w-[min(48rem,calc(100vw-2rem))] max-w-[min(48rem,calc(100vw-2rem))] flex-col gap-3 overflow-hidden sm:max-w-[min(48rem,calc(100vw-2rem))]"
-      @open-auto-focus="onOpenAutoFocus"
-    >
-      <DialogTitle>{{ previewTitle }}</DialogTitle>
-      <div ref="previewPane" class="preview-body" tabindex="-1">
-        <div v-if="previewLoading" class="preview-status">
-          <Spinner :size="24" />
-        </div>
-        <div v-else-if="previewVirtual" class="preview-virtual" v-bind="containerProps">
-          <div v-bind="wrapperProps">
-            <pre v-for="item in list" :key="item.index" class="preview-line">{{ item.data }}</pre>
-          </div>
-        </div>
-        <div v-else-if="previewBody" class="preview-markdown">
-          <MarkdownRender v-bind="previewMarkdown" :content="previewBody" />
-        </div>
+              <span class="swatch" :style="{ background: segment.color }"></span>
+              <span class="legend-label">{{ segment.label }}</span>
+              <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
+              <span class="legend-pct"
+                >{{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%</span
+              >
+            </button>
+            <div v-else class="legend-row">
+              <span class="swatch" :style="{ background: segment.color }"></span>
+              <span class="legend-label">{{ segment.label }}</span>
+              <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
+              <span class="legend-pct"
+                >{{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%</span
+              >
+            </div>
+          </li>
+        </ul>
       </div>
-    </DialogContent>
-  </Dialog>
+    </div>
+    <Dialog :open="previewOpen" @update:open="onPreviewOpen">
+      <DialogContent
+        class="flex h-[min(80vh,40rem)] w-[min(48rem,calc(100vw-2rem))] max-w-[min(48rem,calc(100vw-2rem))] flex-col gap-3 overflow-hidden sm:max-w-[min(48rem,calc(100vw-2rem))]"
+        @open-auto-focus="onOpenAutoFocus"
+      >
+        <DialogTitle>{{ previewTitle }}</DialogTitle>
+        <div ref="previewPane" class="preview-body" tabindex="-1">
+          <div v-if="previewLoading" class="preview-status">
+            <Spinner :size="24" />
+          </div>
+          <div v-else-if="previewVirtual" class="preview-virtual" v-bind="containerProps">
+            <div v-bind="wrapperProps">
+              <pre v-for="item in list" :key="item.index" class="preview-line">{{ item.data }}</pre>
+            </div>
+          </div>
+          <div v-else-if="previewBody" class="preview-markdown">
+            <MarkdownRender v-bind="previewMarkdown" :content="previewBody" />
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -179,11 +181,14 @@ function onOpenAutoFocus(event: Event) {
 </script>
 
 <style scoped>
-.usage-shell {
+.usage-root {
   position: absolute;
   inset-inline: 0;
   bottom: calc(100% + 8px);
   z-index: 10;
+}
+.usage-shell {
+  position: relative;
 }
 .usage-host {
   position: relative;
