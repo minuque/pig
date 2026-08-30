@@ -110,23 +110,35 @@ const steps = computed(() => workSteps(props.row))
   transform: rotate(90deg);
 }
 .body {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
   min-width: 0;
-  margin-top: var(--spacing-xxs);
-  margin-inline-start: var(--spacing-xs);
+  margin-top: 2px;
+  margin-inline-start: 6px;
 }
-.body::before {
+.body > :deep(.call) {
+  position: relative;
+  padding-inline-start: 20px;
+}
+.body > :deep(.call)::before {
   content: "";
   position: absolute;
-  inset-inline-start: 7px;
-  top: 8px;
-  bottom: 8px;
+  inset-inline-start: 6px;
+  top: 0;
+  bottom: 0;
   width: 1px;
   background: var(--hairline);
   pointer-events: none;
+}
+.body > :deep(.call:last-child)::before {
+  box-sizing: border-box;
+  width: 10px;
+  height: 11px;
+  bottom: auto;
+  background: none;
+  border-inline-start: var(--border-width) solid var(--hairline);
+  border-bottom: var(--border-width) solid var(--hairline);
+  border-end-start-radius: var(--radius-md);
 }
 @media (prefers-reduced-motion: reduce) {
   .caret {
