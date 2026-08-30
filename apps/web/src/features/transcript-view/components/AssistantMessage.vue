@@ -53,6 +53,8 @@ onMounted(() => {
 
 const codeBlockOptions = {
   fontSize: 14,
+  // 与 stream-diffs 实际行高对齐，避免增强后重新测高
+  lineHeight: 18,
   fontFamily: "var(--font-code)",
 } as const
 const agentMarkdown = computed(() => {
