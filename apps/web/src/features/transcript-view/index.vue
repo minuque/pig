@@ -105,7 +105,9 @@ import {
   PROGRAMMATIC_BOTTOM_HOLD_MS,
   shouldHoldProgrammaticBottom,
   shouldShowScrollToLatest,
+  transcriptUserScrollBehavior,
   unpinBottomScrollTop,
+  USER_SMOOTH_SCROLL_MS,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 import { useSession } from "@features/session-workbench/index.js"
 
@@ -142,8 +144,38 @@ const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
 let bottomHoldUntil = 0
+let userSmoothUntil = 0
+let smoothTimer = 0
+let smoothRoot: HTMLElement | null = null
+let onSmoothEnd: (() => void) | null = null
 let pinRaf = 0
 let sizeObserver: ResizeObserver | undefined
+
+function userScrollBehavior() {
+  return transcriptUserScrollBehavior(window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+}
+
+function clearUserSmoothLock() {
+  userSmoothUntil = 0
+  if (smoothTimer) {
+    window.clearTimeout(smoothTimer)
+    smoothTimer = 0
+  }
+  if (smoothRoot && onSmoothEnd) {
+    smoothRoot.removeEventListener("scrollend", onSmoothEnd)
+  }
+  smoothRoot = null
+  onSmoothEnd = null
+}
+
+function armUserSmoothLock(root: HTMLElement) {
+  clearUserSmoothLock()
+  userSmoothUntil = performance.now() + USER_SMOOTH_SCROLL_MS
+  onSmoothEnd = () => clearUserSmoothLock()
+  smoothRoot = root
+  root.addEventListener("scrollend", onSmoothEnd, { once: true })
+  smoothTimer = window.setTimeout(clearUserSmoothLock, USER_SMOOTH_SCROLL_MS)
+}
 
 function scrollerRoot(): HTMLElement | null {
   return scroller.value
@@ -155,6 +187,7 @@ function releasePinnedToBottom() {
     pinRaf = 0
   }
   bottomHoldUntil = 0
+  clearUserSmoothLock()
 }
 
 function onTranscriptWheel(event: WheelEvent) {
@@ -185,6 +218,7 @@ function jumpToBottom() {
 }
 
 function pinIfNeeded() {
+  if (performance.now() < userSmoothUntil) return
   if (atBottom.value) jumpToBottom()
 }
 
@@ -218,16 +252,11 @@ function onScrollerScroll() {
 
 function selectMinimapItem(item: TranscriptMinimapItem) {
   releasePinnedToBottom()
+  atBottom.value = false
+  visuallyAtBottom.value = false
   const root = scrollerRoot()
   const target = root?.querySelector<HTMLElement>(`[data-minimap-row="${CSS.escape(item.id)}"]`)
-  target?.scrollIntoView({ block: "start" })
-  if (
-    root &&
-    atBottom.value &&
-    !isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
-  ) {
-    atBottom.value = false
-  }
+  target?.scrollIntoView({ block: "start", behavior: userScrollBehavior() })
 }
 
 function scrollToLatest() {
@@ -235,6 +264,19 @@ function scrollToLatest() {
   bottomHoldUntil = holdUntil
   atBottom.value = true
   visuallyAtBottom.value = true
+  const root = scrollerRoot()
+  if (!root) return
+  const top = Math.max(0, root.scrollHeight - root.clientHeight)
+  const behavior = userScrollBehavior()
+  if (behavior === "smooth") {
+    if (pinRaf) {
+      cancelAnimationFrame(pinRaf)
+      pinRaf = 0
+    }
+    armUserSmoothLock(root)
+    root.scrollTo({ top, behavior })
+    return
+  }
   if (pinRaf) cancelAnimationFrame(pinRaf)
   const tick = () => {
     jumpToBottom()
