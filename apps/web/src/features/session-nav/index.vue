@@ -86,7 +86,6 @@ import { useTimestamp, useVirtualList } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
 import { PanelLeft, Plus, SquarePen } from "lucide-vue-next"
 import { notify } from "@components/ui/alert/index.js"
-import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
@@ -112,10 +111,8 @@ const {
   bumpGroup,
   toggleGroup,
   rowsFor,
-  activeWorkspaceId,
   activeSessionId,
   activeSessionRunning,
-  lastCwd,
   navError: workspaceError,
   addWorkspace,
   renameSession,
@@ -151,20 +148,8 @@ watch(workspaceError, (message) => {
   if (text) notify.error(text)
 })
 
-/** 打开中会话 cwd → lastCwd；都没有则不在侧栏创建。 */
-const newSessionPath = computed(() => {
-  const open = activeWorkspaceId.value
-  if (open) return canonicalizeWorkspacePath(open)
-  return lastCwd.value
-})
-
 function onNewSession() {
-  const path = newSessionPath.value
-  if (!path) {
-    void router.push("/")
-    return
-  }
-  void createSession(path)
+  void router.push("/")
 }
 
 function onSessionNavigate(cwd: string | undefined) {
