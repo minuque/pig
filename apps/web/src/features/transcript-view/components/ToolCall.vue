@@ -83,7 +83,10 @@ const statusLabel = computed(() => {
 const kind = computed(() => toolCallKindLabel(props.item.toolName))
 const detail = computed(() => toolCallDetail(props.item.toolName, props.item.input))
 const title = computed(() => toolCallTitle(props.item.toolName, props.item.input))
-const summary = computed(() => toolCallSummary(props.item))
+const summary = computed(() => {
+  const value = toolCallSummary(props.item)
+  return value === detail.value ? "" : value
+})
 const kindIcon = computed((): Component => {
   switch (props.item.toolName.trim().toLowerCase()) {
     case "edit":

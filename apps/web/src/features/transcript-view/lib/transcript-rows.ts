@@ -10,6 +10,7 @@ import {
   isToolItem,
   isUserItem,
   isVisibleTranscriptItem,
+  toolCallDetail,
   transcriptImages,
   transcriptText,
 } from "@features/transcript-view/lib/transcript-format.js"
@@ -167,13 +168,24 @@ export function workKindOfTool(toolName: string): WorkKind {
   return "tool"
 }
 
-function formatWorkKinds(kinds: readonly WorkKind[]): string {
+function readFoldLabel(tools: readonly ToolCallView[], count: number): string {
+  const names = tools
+    .filter((tool) => workKindOfTool(tool.toolName) === "read")
+    .map((tool) => toolCallDetail(tool.toolName, tool.input))
+    .filter((name) => name.length > 0)
+  if (names.length === count) return names.join(" · ")
+  const noun = count === 1 ? KIND_LABEL.read.one : KIND_LABEL.read.many
+  return `${count} ${noun}`
+}
+
+function formatWorkKinds(kinds: readonly WorkKind[], tools: readonly ToolCallView[]): string {
   const counts = new Map<WorkKind, number>()
   for (const kind of kinds) {
     counts.set(kind, (counts.get(kind) ?? 0) + 1)
   }
   const body = [...counts.entries()]
     .map(([kind, count]) => {
+      if (kind === "read") return readFoldLabel(tools, count)
       const noun = count === 1 ? KIND_LABEL[kind].one : KIND_LABEL[kind].many
       return `${count} ${noun}`
     })
@@ -183,7 +195,7 @@ function formatWorkKinds(kinds: readonly WorkKind[]): string {
 
 export function workFoldLabel(row: WorkRow): string {
   if (row.aborted) return "已停止"
-  return formatWorkKinds(row.kinds)
+  return formatWorkKinds(row.kinds, row.tools)
 }
 
 function emitClusters(

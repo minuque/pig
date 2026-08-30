@@ -185,6 +185,7 @@ describe("turn work fold", () => {
       toolName: "read",
       status: "complete",
       isError: false,
+      input: { path: "src/workspace.ts" },
       content: [],
     })
     const other = item({
@@ -226,7 +227,7 @@ describe("turn work fold", () => {
     expect(isWorkRow(secondWork)).toBe(true)
     if (!isWorkRow(firstWork) || !isWorkRow(secondWork)) return
     expect(workFoldLabel(firstWork)).toBe("Ran 1 thought")
-    expect(workFoldLabel(secondWork)).toBe("Ran 1 file read · 1 tool call · 1 command · 1 thought")
+    expect(workFoldLabel(secondWork)).toBe("Ran workspace.ts · 1 tool call · 1 command · 1 thought")
   })
 
   it("进行中不折叠，连续工具占一行，思考画在组上", () => {
