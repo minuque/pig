@@ -20,40 +20,42 @@
       <span v-if="summary" class="summary">{{ summary }}</span>
       <ChevronRight v-if="expandable" class="caret" :size="14" />
     </button>
-    <div v-if="open && expandable" class="body">
-      <div v-if="isCommand" class="well">
-        <p v-if="command" class="well-cmd">{{ command }}</p>
-        <div v-if="outputText || outputImages.length" class="well-out">
-          <ExpandableText v-if="outputText" :text="outputText" embedded />
-          <div v-if="outputImages.length" class="images">
-            <TranscriptImage
-              v-for="(image, index) in outputImages"
-              :key="index"
-              :data="image.data"
-              :mime-type="image.mimeType"
-            />
+    <Transition name="fold-reveal">
+      <div v-if="open && expandable" class="body">
+        <div v-if="isCommand" class="well">
+          <p v-if="command" class="well-cmd">{{ command }}</p>
+          <div v-if="outputText || outputImages.length" class="well-out">
+            <ExpandableText v-if="outputText" :text="outputText" embedded />
+            <div v-if="outputImages.length" class="images">
+              <TranscriptImage
+                v-for="(image, index) in outputImages"
+                :key="index"
+                :data="image.data"
+                :mime-type="image.mimeType"
+              />
+            </div>
           </div>
         </div>
+        <div v-else class="well">
+          <section v-if="inputFull" class="layer">
+            <h3 class="label">入参</h3>
+            <ExpandableText :text="inputFull" embedded />
+          </section>
+          <section v-if="outputText || outputImages.length" class="layer">
+            <h3 class="label">输出</h3>
+            <ExpandableText v-if="outputText" :text="outputText" embedded />
+            <div v-if="outputImages.length" class="images">
+              <TranscriptImage
+                v-for="(image, index) in outputImages"
+                :key="index"
+                :data="image.data"
+                :mime-type="image.mimeType"
+              />
+            </div>
+          </section>
+        </div>
       </div>
-      <div v-else class="well">
-        <section v-if="inputFull" class="layer">
-          <h3 class="label">入参</h3>
-          <ExpandableText :text="inputFull" embedded />
-        </section>
-        <section v-if="outputText || outputImages.length" class="layer">
-          <h3 class="label">输出</h3>
-          <ExpandableText v-if="outputText" :text="outputText" embedded />
-          <div v-if="outputImages.length" class="images">
-            <TranscriptImage
-              v-for="(image, index) in outputImages"
-              :key="index"
-              :data="image.data"
-              :mime-type="image.mimeType"
-            />
-          </div>
-        </section>
-      </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
@@ -266,8 +268,8 @@ function onToggle() {
   color: var(--ink-faint);
   opacity: 0;
   transition:
-    transform var(--duration-fast) var(--ease-smooth),
-    opacity var(--duration-fast) var(--ease-smooth);
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-slow) var(--ease-out);
 }
 .toggle:hover .caret,
 .toggle.open .caret {
@@ -328,6 +330,17 @@ function onToggle() {
     transform: rotate(360deg);
   }
 }
+.fold-reveal-enter-active,
+.fold-reveal-leave-active {
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+}
+.fold-reveal-enter-from,
+.fold-reveal-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 @media (prefers-reduced-motion: reduce) {
   .spin {
     animation: none;
@@ -337,6 +350,14 @@ function onToggle() {
   }
   .caret {
     transition: none;
+  }
+  .fold-reveal-enter-active,
+  .fold-reveal-leave-active {
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+  .fold-reveal-enter-from,
+  .fold-reveal-leave-to {
+    transform: none;
   }
 }
 </style>

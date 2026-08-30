@@ -6,9 +6,11 @@
       <span v-if="detail" class="detail">{{ detail }}</span>
       <ChevronRight class="caret" :size="14" />
     </button>
-    <div v-if="open && text" class="body">
-      <ThinkingBlocks :blocks="[text]" />
-    </div>
+    <Transition name="fold-reveal">
+      <div v-if="open && text" class="body">
+        <ThinkingBlocks :blocks="[text]" />
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -96,8 +98,8 @@ function onToggle() {
   color: var(--ink-faint);
   opacity: 0;
   transition:
-    transform var(--duration-fast) var(--ease-smooth),
-    opacity var(--duration-fast) var(--ease-smooth);
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-slow) var(--ease-out);
 }
 .toggle:hover .caret,
 .toggle.open .caret {
@@ -111,9 +113,28 @@ function onToggle() {
   margin-top: 2px;
   margin-inline-start: 24px;
 }
+.fold-reveal-enter-active,
+.fold-reveal-leave-active {
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+}
+.fold-reveal-enter-from,
+.fold-reveal-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 @media (prefers-reduced-motion: reduce) {
   .caret {
     transition: none;
+  }
+  .fold-reveal-enter-active,
+  .fold-reveal-leave-active {
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+  .fold-reveal-enter-from,
+  .fold-reveal-leave-to {
+    transform: none;
   }
 }
 </style>

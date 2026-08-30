@@ -10,23 +10,25 @@
       <span class="fold-label">{{ label }}</span>
       <ChevronRight class="caret" :size="14" />
     </button>
-    <div v-if="revealed" class="body">
-      <template v-for="step in steps" :key="step.type === 'tool' ? step.item.id : step.id">
-        <ThinkCard
-          v-if="step.type === 'thought'"
-          :text="step.text"
-          :streaming="step.streaming"
-          :open="thinkCardOpen(step.id, step.streaming, expandedTools)"
-          @update:open="emit('toggle-tool', step.id, $event)"
-        />
-        <ToolCall
-          v-else
-          :item="step.item"
-          :open="toolCardOpen(step.item, expandedTools)"
-          @update:open="emit('toggle-tool', step.item.id, $event)"
-        />
-      </template>
-    </div>
+    <Transition name="fold-reveal">
+      <div v-if="revealed" class="body">
+        <template v-for="step in steps" :key="step.type === 'tool' ? step.item.id : step.id">
+          <ThinkCard
+            v-if="step.type === 'thought'"
+            :text="step.text"
+            :streaming="step.streaming"
+            :open="thinkCardOpen(step.id, step.streaming, expandedTools)"
+            @update:open="emit('toggle-tool', step.id, $event)"
+          />
+          <ToolCall
+            v-else
+            :item="step.item"
+            :open="toolCardOpen(step.item, expandedTools)"
+            @update:open="emit('toggle-tool', step.item.id, $event)"
+          />
+        </template>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -98,8 +100,8 @@ const steps = computed(() => workSteps(props.row))
   color: inherit;
   opacity: 0;
   transition:
-    transform var(--duration-fast) var(--ease-smooth),
-    opacity var(--duration-fast) var(--ease-smooth);
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-slow) var(--ease-out);
 }
 .fold:hover .caret,
 .fold.open .caret {
@@ -139,9 +141,28 @@ const steps = computed(() => workSteps(props.row))
   border-bottom: var(--border-width) solid var(--hairline);
   border-end-start-radius: var(--radius-md);
 }
+.fold-reveal-enter-active,
+.fold-reveal-leave-active {
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+}
+.fold-reveal-enter-from,
+.fold-reveal-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 @media (prefers-reduced-motion: reduce) {
   .caret {
     transition: none;
+  }
+  .fold-reveal-enter-active,
+  .fold-reveal-leave-active {
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+  .fold-reveal-enter-from,
+  .fold-reveal-leave-to {
+    transform: none;
   }
 }
 </style>
