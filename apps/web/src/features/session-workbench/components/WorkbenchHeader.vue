@@ -61,7 +61,7 @@ const dirName = computed(() => (cwd.value ? workspaceName(cwd.value) : ""))
   align-items: center;
   gap: var(--spacing-xs);
   min-height: calc(var(--size-control) + 2 * var(--spacing-xs));
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: var(--spacing-xxs) var(--spacing-sm);
   background: var(--surface);
 }
 .header-toggle {

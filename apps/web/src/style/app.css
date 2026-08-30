@@ -186,8 +186,7 @@
   --canvas-soft: #1b1b1c;
   --surface: #131313;
   --sidebar: #181818; /* VS Code Dark Modern sideBar.background */
-  --user-prompt-bg: #2b7da3; /* 用户消息 prompt 气泡底色 */
-  --user-prompt-fg: #fcfdfe; /* 用户消息 prompt 文本色 */
+  --user-prompt-bg: #5b7ad4; /* 用户消息 prompt 气泡底色 */
   --chat-input: #121212;
   --bubble: #141414;
   --ink: #ebeef2;

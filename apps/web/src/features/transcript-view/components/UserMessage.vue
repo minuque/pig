@@ -39,7 +39,7 @@ defineProps<{
   overflow: auto;
   border-radius: var(--radius-xl);
   background: var(--user-prompt-bg);
-  color: var(--user-prompt-fg);
+  color: var(--ink);
   font-size: var(--text-body-md);
   line-height: 1.5;
   overflow-wrap: anywhere;
