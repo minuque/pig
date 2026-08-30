@@ -37,31 +37,30 @@ describe("isSessionOpening", () => {
 })
 
 describe("mergeLiveTranscript", () => {
-  it("磁盘历史为底，live 按 id 覆盖并追加", () => {
-    const persisted = [
-      { id: "u1", role: "user", content: [{ type: "text", text: "a" }], timestamp: 1 },
-      { id: "a1", role: "assistant", content: [{ type: "text", text: "old" }], timestamp: 2 },
-    ] as TranscriptItem[]
-    const live = [
-      { id: "a1", role: "assistant", content: [{ type: "text", text: "new" }], timestamp: 2 },
-      { id: "a2", role: "assistant", content: [{ type: "text", text: "tail" }], timestamp: 3 },
-    ] as TranscriptItem[]
-    expect(mergeLiveTranscript(persisted, live).map((item) => [item.id, userOrText(item)])).toEqual(
-      [
-        ["u1", "a"],
-        ["a1", "new"],
-        ["a2", "tail"],
-      ],
+  const row = (id: string, role: "user" | "assistant", text: string): TranscriptItem =>
+    ({ id, role, content: [{ type: "text", text }], timestamp: 0 }) as TranscriptItem
+
+  it("同 id 覆盖，新 id 追加；临时 id 对齐历史后缀", () => {
+    const overlay = mergeLiveTranscript(
+      [row("u1", "user", "a"), row("a1", "assistant", "old")],
+      [row("a1", "assistant", "new"), row("a2", "assistant", "tail")],
     )
-    expect(mergeLiveTranscript(persisted, []).map((item) => item.id)).toEqual(["u1", "a1"])
+    expect(overlay.map((item) => item.id)).toEqual(["u1", "a1", "a2"])
+    expect(overlay[1]).toMatchObject({ content: [{ type: "text", text: "new" }] })
+    const history = [row("disk-u", "user", "ok"), row("disk-a", "assistant", "嗯。")]
+    expect(
+      mergeLiveTranscript(history, [row("m1", "user", "ok"), row("m2", "assistant", "嗯。")]).map(
+        (item) => item.id,
+      ),
+    ).toEqual(["disk-u", "disk-a"])
+    expect(
+      mergeLiveTranscript(history.slice(0, 1), [
+        row("m1", "user", "ok"),
+        row("m2", "assistant", "嗯"),
+      ]).map((item) => item.id),
+    ).toEqual(["disk-u", "m2"])
   })
 })
-
-function userOrText(item: TranscriptItem): string {
-  if (item.role !== "user" && item.role !== "assistant") return item.role
-  const block = item.content[0]
-  return block && "text" in block ? block.text : ""
-}
 
 describe("projectOptimisticTranscript", () => {
   const optimistic: UserTranscriptItem = {

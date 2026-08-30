@@ -52,25 +52,31 @@ export function isSessionOpening(
   return sessionId !== remoteId || historySessionId !== sessionId
 }
 
-/** 磁盘历史为底，live progress 按 id 覆盖并追加。 */
+/** 磁盘历史为底，live 按 id 覆盖；当前回合的临时 id 对齐历史后缀，只追加还没落盘的尾巴。 */
 export function mergeLiveTranscript(
   persisted: readonly TranscriptItem[],
   live: readonly TranscriptItem[],
 ): TranscriptItem[] {
   if (live.length === 0) return [...persisted]
   if (persisted.length === 0) return [...live]
-  const byId = new Map(persisted.map((item) => [item.id, item]))
-  const order = persisted.map((item) => item.id)
-  for (const item of live) {
-    if (!byId.has(item.id)) order.push(item.id)
-    byId.set(item.id, item)
+  const overlay = new Map(live.map((item) => [item.id, item]))
+  const persistedIds = new Set(persisted.map((item) => item.id))
+  const merged = persisted.map((item) => overlay.get(item.id) ?? item)
+  const limit = Math.min(merged.length, live.length)
+  let covered = 0
+  for (let count = limit; count >= 1; count -= 1) {
+    if (merged.slice(-count).every((item, index) => sameTranscriptItem(item, live[index]!))) {
+      covered = count
+      break
+    }
   }
-  const merged: TranscriptItem[] = []
-  for (const id of order) {
-    const item = byId.get(id)
-    if (item) merged.push(item)
-  }
-  return merged
+  return merged.concat(live.slice(covered).filter((item) => !persistedIds.has(item.id)))
+}
+
+function sameTranscriptItem(a: TranscriptItem, b: TranscriptItem): boolean {
+  if (a.id === b.id) return true
+  if (a.role === "tool" && b.role === "tool") return a.toolCallId === b.toolCallId
+  return a.role === b.role && JSON.stringify(a.content) === JSON.stringify(b.content)
 }
 
 /** 服务端确认前把乐观用户句插在提交时的 Transcript 尾部；确认后只返回服务端真相。 */
