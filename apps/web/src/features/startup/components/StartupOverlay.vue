@@ -52,6 +52,7 @@ watch(
 )
 
 onMounted(() => {
+  document.getElementById("startup-splash")?.remove()
   motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
   motionQuery.addEventListener("change", onMotionChange)
   reducedMotion = motionQuery.matches
@@ -72,7 +73,7 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: color-mix(in srgb, var(--glass-surface) var(--glass-opacity), transparent);
+  background: color-mix(in srgb, var(--glass-surface) var(--glass-opacity), var(--canvas-soft));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   opacity: 1;
@@ -95,6 +96,7 @@ onBeforeUnmount(() => {
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
+  border-radius: var(--radius-xs);
   pointer-events: none;
 }
 .startup-wait.leaving .startup-logo {

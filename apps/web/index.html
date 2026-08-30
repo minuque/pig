@@ -23,8 +23,43 @@
         if (dark) document.documentElement.classList.add("dark")
       })()
     </script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #f9fafb;
+      }
+      html.dark,
+      html.dark body {
+        background: #1b1b1c;
+      }
+      #startup-splash {
+        position: fixed;
+        z-index: 30;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: color-mix(in srgb, #f9fafb 80%, transparent);
+        -webkit-backdrop-filter: blur(12px) saturate(1.14);
+        backdrop-filter: blur(12px) saturate(1.14);
+      }
+      html.dark #startup-splash {
+        background: color-mix(in srgb, #121212 80%, transparent);
+        -webkit-backdrop-filter: blur(16px) saturate(1.08);
+        backdrop-filter: blur(16px) saturate(1.08);
+      }
+      #startup-splash img {
+        width: 96px;
+        height: 96px;
+        border-radius: 4px;
+      }
+    </style>
   </head>
   <body>
+    <div id="startup-splash" aria-hidden="true">
+      <img src="/logo.png" width="96" height="96" alt="" />
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
