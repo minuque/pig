@@ -170,36 +170,16 @@ export interface SessionCardLive {
   model: { provider: string; id: string }
 }
 
-export function modelDisplayNames(
-  catalog: readonly { id: string; models: readonly { id: string; name: string }[] }[],
-): Map<string, string> {
-  const names = new Map<string, string>()
-  for (const vendor of catalog) {
-    for (const model of vendor.models) names.set(`${vendor.id}/${model.id}`, model.name)
-  }
-  return names
-}
-
-export function sessionModelLabel(
-  model: { provider: string; id: string } | undefined,
-  names: ReadonlyMap<string, string>,
-): string {
-  if (!model) return ""
-  return names.get(`${model.provider}/${model.id}`) ?? model.id
-}
-
 export function sessionCardFoot(
   sessionId: string,
   extras: ReadonlyMap<string, SessionCardExtra>,
   live: SessionCardLive | undefined,
-  names: ReadonlyMap<string, string>,
-): { messageCount: number | undefined; modelLabel: string; modelProvider: string } {
+): { messageCount: number | undefined; modelProvider: string } {
   const extra = extras.get(sessionId)
   const isLive = live?.sessionId === sessionId
   const model = isLive ? live.model : extra?.model
   return {
     messageCount: isLive ? (live.messageCount ?? extra?.messageCount) : extra?.messageCount,
-    modelLabel: sessionModelLabel(model, names),
     modelProvider: model?.provider ?? "",
   }
 }

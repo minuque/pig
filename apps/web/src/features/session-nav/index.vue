@@ -55,7 +55,6 @@
                 :grouping="grouping"
                 :now="now"
                 :message-count="cardFootById.get(item.data.session.id)?.messageCount ?? null"
-                :model-label="cardFootById.get(item.data.session.id)?.modelLabel ?? ''"
                 :model-provider="cardFootById.get(item.data.session.id)?.modelProvider ?? ''"
                 @navigate="onSessionNavigate(item.data.session.cwd)"
                 @rename="renameSession"

@@ -92,7 +92,6 @@ const agentMarkdown = computed(() => {
 
 <style scoped>
 .assistant {
-  margin-bottom: var(--spacing-lg);
   padding: 2px 0;
   color: var(--ink);
   font-size: 15px;

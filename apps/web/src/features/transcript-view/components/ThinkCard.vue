@@ -29,7 +29,7 @@ const props = defineProps<{
 }>()
 
 const open = defineModel<boolean>("open", { required: true })
-const detail = computed(() => (props.streaming ? "Thinking…" : "Thought"))
+const detail = computed(() => (props.streaming ? "Thinking…" : ""))
 const toggleLabel = computed(() => `Think ${detail.value}`)
 
 function onToggle() {

@@ -4,7 +4,7 @@ import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
 import type { SessionContext } from "@features/session-workbench/index.js"
 import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js"
-import { modelDisplayNames, sessionCardFoot } from "@features/session-nav/sidebar.js"
+import { sessionCardFoot } from "@features/session-nav/sidebar.js"
 import { conversationItemCount } from "@features/transcript-view/lib/transcript-format.js"
 
 export type NavContext = ReturnType<typeof createNav>
@@ -25,7 +25,6 @@ function createNav(
   })
 
   const cardFootById = computed(() => {
-    const names = modelDisplayNames(session.catalog.value)
     const liveId = session.sessionId.value
     const live =
       liveId && session.projection.value
@@ -36,12 +35,9 @@ function createNav(
           }
         : undefined
     const extras = session.sessionCards.value
-    const feet = new Map<
-      string,
-      { messageCount: number | undefined; modelLabel: string; modelProvider: string }
-    >()
+    const feet = new Map<string, { messageCount: number | undefined; modelProvider: string }>()
     for (const item of nav.listedSessions.value) {
-      feet.set(item.id, sessionCardFoot(item.id, extras, live, names))
+      feet.set(item.id, sessionCardFoot(item.id, extras, live))
     }
     return feet
   })

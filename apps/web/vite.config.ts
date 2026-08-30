@@ -25,8 +25,8 @@ export default defineConfig({
         short_name: "pig",
         description: "基于 Pi 的本地 Agent GUI",
         lang: "zh-CN",
-        theme_color: "#f9fafb",
-        background_color: "#ffffff",
+        theme_color: "#000000",
+        background_color: "#000000",
         display: "standalone",
         start_url: "/",
         icons: [

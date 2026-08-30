@@ -50,9 +50,8 @@
             <span v-else class="card-count">{{
               messageCount == null ? "" : `${messageCount} 条`
             }}</span>
-            <span class="card-model">
-              <span class="card-model-name">{{ modelLabel }}</span>
-              <VendorMark v-if="modelProvider" :vendor="modelProvider" :size="13" />
+            <span v-if="modelProvider" class="card-model">
+              <VendorMark :vendor="modelProvider" :size="13" />
             </span>
           </div>
         </RouterLink>
@@ -121,14 +120,12 @@ const props = withDefaults(
     grouping?: SidebarGrouping
     now: number
     messageCount?: number | null
-    modelLabel?: string
     modelProvider?: string
   }>(),
   {
     workspaceTitle: "",
     grouping: "updated",
     messageCount: null,
-    modelLabel: "",
     modelProvider: "",
   },
 )
@@ -255,26 +252,20 @@ function confirmDelete() {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.card-count,
-.card-model {
+.card-count {
   min-width: 0;
+  flex: 1;
+  overflow: hidden;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
-  white-space: nowrap;
-}
-.card-count {
-  flex: 1;
-  overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .card-model {
   display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
   flex: none;
-  max-width: 60%;
+  align-items: center;
 }
 .card-model :deep(.vendor-mark) {
   display: block;
@@ -283,14 +274,6 @@ function confirmDelete() {
   transition:
     filter var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth);
-}
-.card-model-name {
-  color: var(--ink-muted);
-  min-width: 0;
-  overflow: hidden;
-  line-height: 1;
-  text-overflow: ellipsis;
-  transition: color var(--duration-fast) var(--ease-smooth);
 }
 .title {
   min-width: 0;
@@ -307,12 +290,9 @@ function confirmDelete() {
 
 .session-item:hover .title,
 .session-item:hover .workspace-mark,
-.session-item:hover .card-model-name,
 .session-card[data-state="open"] .title,
 .session-card[data-state="open"] .workspace-mark,
-.session-card[data-state="open"] .card-model-name,
-.session-card.active .title,
-.session-card.active .card-model-name {
+.session-card.active .title {
   color: var(--ink);
 }
 .session-item:hover .card-model :deep(.vendor-mark),

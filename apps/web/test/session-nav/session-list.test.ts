@@ -7,9 +7,7 @@ import {
   filterSessionsForSearch,
   groupSessionsByCwd,
   listSessionsForSidebar,
-  modelDisplayNames,
   sessionCardFoot,
-  sessionModelLabel,
   sidebarRows,
   sortSessionsForSidebar,
 } from "@features/session-nav/sidebar.js"
@@ -300,56 +298,39 @@ describe("sidebar rows", () => {
 })
 
 describe("session card foot", () => {
-  it("uses catalog name and live overlay for the open session", () => {
+  it("open session 用 live 模型供应商覆盖卡片", () => {
     const extras = new Map([
       ["s1", { messageCount: 2, model: { provider: "openai", id: "gpt-4" } }],
-      ["s2", { messageCount: 9, model: { provider: "openai", id: "o3" } }],
     ])
-    const names = modelDisplayNames([
-      {
-        id: "openai",
-        models: [
-          { id: "gpt-4", name: "GPT-4" },
-          { id: "o3", name: "o3" },
-        ],
-      },
-    ])
-    expect(sessionCardFoot("s1", extras, undefined, names)).toEqual({
+    expect(sessionCardFoot("s1", extras, undefined)).toEqual({
       messageCount: 2,
-      modelLabel: "GPT-4",
       modelProvider: "openai",
     })
     expect(
-      sessionCardFoot(
-        "s1",
-        extras,
-        { sessionId: "s1", messageCount: 5, model: { provider: "openai", id: "o3" } },
-        names,
-      ),
-    ).toEqual({ messageCount: 5, modelLabel: "o3", modelProvider: "openai" })
-    expect(sessionModelLabel({ provider: "x", id: "unknown" }, names)).toBe("unknown")
+      sessionCardFoot("s1", extras, {
+        sessionId: "s1",
+        messageCount: 5,
+        model: { provider: "anthropic", id: "claude" },
+      }),
+    ).toEqual({ messageCount: 5, modelProvider: "anthropic" })
   })
 
   it("live 用窗口总条数，缺省则回落 extras", () => {
     const extras = new Map([
       ["s1", { messageCount: 193, model: { provider: "openai", id: "gpt-4" } }],
     ])
-    const names = modelDisplayNames([{ id: "openai", models: [{ id: "gpt-4", name: "GPT-4" }] }])
     expect(
-      sessionCardFoot(
-        "s1",
-        extras,
-        { sessionId: "s1", messageCount: 200, model: { provider: "openai", id: "gpt-4" } },
-        names,
-      ),
-    ).toEqual({ messageCount: 200, modelLabel: "GPT-4", modelProvider: "openai" })
+      sessionCardFoot("s1", extras, {
+        sessionId: "s1",
+        messageCount: 200,
+        model: { provider: "openai", id: "gpt-4" },
+      }),
+    ).toEqual({ messageCount: 200, modelProvider: "openai" })
     expect(
-      sessionCardFoot(
-        "s1",
-        extras,
-        { sessionId: "s1", model: { provider: "openai", id: "gpt-4" } },
-        names,
-      ),
-    ).toEqual({ messageCount: 193, modelLabel: "GPT-4", modelProvider: "openai" })
+      sessionCardFoot("s1", extras, {
+        sessionId: "s1",
+        model: { provider: "openai", id: "gpt-4" },
+      }),
+    ).toEqual({ messageCount: 193, modelProvider: "openai" })
   })
 })

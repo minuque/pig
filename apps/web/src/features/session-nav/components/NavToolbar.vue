@@ -147,12 +147,12 @@ onClickOutside(searchRoot, () => {
   align-items: center;
   min-width: 0;
   height: 32px;
-  line-height: 1;
 }
 .toolbar-btn {
   gap: 8px;
   width: 100%;
   padding-inline: 8px;
+  line-height: 1;
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
@@ -184,7 +184,7 @@ onClickOutside(searchRoot, () => {
 }
 .grouping-row {
   gap: 4px;
-  padding-inline: 4px 0;
+  padding-inline: 8px 0;
   overflow: hidden;
 }
 .grouping-label {
@@ -195,6 +195,7 @@ onClickOutside(searchRoot, () => {
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-regular);
+  line-height: var(--text-body-sm--line-height);
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
