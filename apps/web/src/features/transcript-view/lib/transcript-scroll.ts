@@ -22,18 +22,6 @@ export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boo
   return transcriptLength > 0 && !atBottom
 }
 
-/** 程序化滚底后短 hold，避免布局未完成时取消贴底。 */
-export const PROGRAMMATIC_BOTTOM_HOLD_MS = 400
-
-/** 程序化滚底后，未贴底读数在 hold 窗口内视为旧布局回写。 */
-export function shouldHoldProgrammaticBottom(
-  measuredBottom: boolean,
-  holdUntil: number,
-  now: number,
-): boolean {
-  return !measuredBottom && now < holdUntil
-}
-
 /** 贴底后明显上翻才解锁。1px 级惯性不能 preventDefault，否则永远触不了底。 */
 export function unpinBottomScrollTop(
   scrollHeight: number,

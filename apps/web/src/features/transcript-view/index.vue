@@ -4,10 +4,10 @@
       id="transcript-panel"
       ref="region"
       class="transcript-region"
-      @wheel="onTranscriptWheel"
+      @wheel="onWheel"
       @pointerdown="releasePinnedToBottom"
     >
-      <div v-if="rows.length" ref="scroller" class="transcript" @scroll="onScrollerScroll">
+      <div v-if="rows.length" ref="scroller" class="transcript" @scroll="onTranscriptScroll">
         <div ref="list" class="transcript-list">
           <div
             v-for="row in rows"
@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
 import ChatInput from "@features/chat-input/index.vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
@@ -88,6 +88,7 @@ import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import WorkRow from "@features/transcript-view/components/WorkRow.vue"
 import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
+import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
 import {
   MINIMAP_MIN_ITEMS,
@@ -99,14 +100,7 @@ import {
   isThinkingRow,
   isWorkRow,
 } from "@features/transcript-view/lib/transcript-rows.js"
-import {
-  isTranscriptAtBottom,
-  isTranscriptVisuallyAtBottom,
-  PROGRAMMATIC_BOTTOM_HOLD_MS,
-  shouldHoldProgrammaticBottom,
-  shouldShowScrollToLatest,
-  unpinBottomScrollTop,
-} from "@features/transcript-view/lib/transcript-scroll.js"
+import { shouldShowScrollToLatest } from "@features/transcript-view/lib/transcript-scroll.js"
 import { useSession } from "@features/session-workbench/index.js"
 
 const props = defineProps<{
@@ -136,68 +130,25 @@ const inputBar = useTemplateRef<HTMLElement>("inputBar")
 const scroller = useTemplateRef<HTMLElement>("scroller")
 const list = useTemplateRef<HTMLElement>("list")
 
-const atBottom = shallowRef(false)
-const visuallyAtBottom = shallowRef(false)
-const showScrollToLatest = computed(() =>
-  shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
-)
-let bottomHoldUntil = 0
-let pinTimer = 0
-let sizeObserver: ResizeObserver | undefined
-
 function scrollerRoot(): HTMLElement | null {
   return scroller.value
 }
 
-function userScrollBehavior() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
-}
-
-function releasePinnedToBottom() {
-  if (pinTimer) {
-    window.clearTimeout(pinTimer)
-    pinTimer = 0
-  }
-  bottomHoldUntil = 0
-}
-
-function onTranscriptWheel(event: WheelEvent) {
-  releasePinnedToBottom()
-  if (event.deltaY < 0) atBottom.value = false
-  const root = scrollerRoot()
-  if (!root) return
-  const nextTop = unpinBottomScrollTop(
-    root.scrollHeight,
-    root.scrollTop,
-    root.clientHeight,
-    event.deltaY,
-  )
-  if (nextTop !== null) {
-    event.preventDefault()
-    root.scrollTop = nextTop
-    return
-  }
-  const onScroller = event.target instanceof Node && root.contains(event.target)
-  if (onScroller || event.deltaY === 0) return
-  event.preventDefault()
-  root.scrollTop += event.deltaY
-}
-
-function jumpToBottom() {
-  const root = scrollerRoot()
-  if (root) root.scrollTop = root.scrollHeight - root.clientHeight
-}
-
-function pinIfNeeded() {
-  if (performance.now() < bottomHoldUntil) return
-  if (atBottom.value) jumpToBottom()
-}
-
-function readBottom(root: HTMLElement) {
-  const exact = isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
-  const visual = isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
-  return { exact, visual }
-}
+const {
+  atBottom,
+  visuallyAtBottom,
+  pinIfNeeded,
+  releasePinnedToBottom,
+  reset,
+  onScroll,
+  onWheel,
+  scrollToLatest,
+  scrollToElement,
+} = useTranscriptFollow(scrollerRoot)
+const showScrollToLatest = computed(() =>
+  shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
+)
+let sizeObserver: ResizeObserver | undefined
 
 const {
   items: minimapItems,
@@ -211,40 +162,15 @@ const {
   scrollRoot: scrollerRoot,
 })
 
-function onScrollerScroll() {
-  const root = scrollerRoot()
-  if (!root) return
-  syncLayout(region.value, root)
-  const { exact, visual } = readBottom(root)
-  if (shouldHoldProgrammaticBottom(exact, bottomHoldUntil, performance.now())) return
-  atBottom.value = exact
-  visuallyAtBottom.value = visual
+function onTranscriptScroll() {
+  syncLayout(region.value, scrollerRoot())
+  onScroll()
 }
 
 function selectMinimapItem(item: TranscriptMinimapItem) {
-  releasePinnedToBottom()
-  atBottom.value = false
-  visuallyAtBottom.value = false
   const root = scrollerRoot()
   const target = root?.querySelector<HTMLElement>(`[data-minimap-row="${CSS.escape(item.id)}"]`)
-  target?.scrollIntoView({ block: "start", behavior: userScrollBehavior() })
-}
-
-function scrollToLatest() {
-  const root = scrollerRoot()
-  if (!root) return
-  if (pinTimer) window.clearTimeout(pinTimer)
-  bottomHoldUntil = performance.now() + PROGRAMMATIC_BOTTOM_HOLD_MS
-  atBottom.value = true
-  visuallyAtBottom.value = true
-  root.scrollTo({
-    top: Math.max(0, root.scrollHeight - root.clientHeight),
-    behavior: userScrollBehavior(),
-  })
-  pinTimer = window.setTimeout(() => {
-    pinTimer = 0
-    if (atBottom.value) jumpToBottom()
-  }, PROGRAMMATIC_BOTTOM_HOLD_MS)
+  if (target) scrollToElement(target)
 }
 
 function submitFromInput(text: string) {
@@ -266,16 +192,7 @@ function observeSizes() {
   if (body) sizeObserver.observe(body)
 }
 
-watch(
-  () => props.sessionId,
-  () => {
-    releasePinnedToBottom()
-    // 切 Session 不贴底、不恢复 scrollTop
-    atBottom.value = false
-    visuallyAtBottom.value = false
-  },
-  { flush: "pre" },
-)
+watch(() => props.sessionId, reset, { flush: "pre" })
 watch(rows, (next, prev) => {
   if (prev.length === 0 && next.length > 0) scrollToLatest()
   else if (atBottom.value) void nextTick(pinIfNeeded)
