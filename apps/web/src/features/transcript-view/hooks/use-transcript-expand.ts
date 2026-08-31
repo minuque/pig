@@ -13,12 +13,12 @@ export function useTranscriptExpand(sessionId: MaybeRefOrGetter<string>) {
     },
   )
 
-  function isFoldOpen(id: string): boolean {
-    return expandedFolds.get(id) === true
+  function isFoldOpen(id: string): boolean | undefined {
+    return expandedFolds.get(id)
   }
 
-  function toggleFold(id: string) {
-    expandedFolds.set(id, !isFoldOpen(id))
+  function toggleFold(id: string, open: boolean) {
+    expandedFolds.set(id, open)
   }
 
   function toggleTool(id: string, open: boolean) {

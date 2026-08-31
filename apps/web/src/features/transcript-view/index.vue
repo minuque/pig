@@ -60,8 +60,8 @@
             :row="row"
             :fold-open="isFoldOpen(row.id)"
             :expanded-tools="expandedTools"
-            @toggle-fold="toggleFold(row.id)"
-            @toggle-tool="toggleTool"
+            @toggle-fold="onToggleFold(row.id, $event)"
+            @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
           />
         </div>
       </div>
@@ -86,6 +86,7 @@ import {
   type TranscriptMinimapItem,
 } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TranscriptItem } from "@features/transcript-view/lib/transcript-format.js"
+import type { TurnTiming } from "@client/platform.js"
 import { buildTimelineRows, isToolRow } from "@features/transcript-view/lib/transcript-rows.js"
 import { shouldShowScrollToLatest } from "@features/transcript-view/lib/transcript-scroll.js"
 import { useSession } from "@features/session-workbench/index.js"
@@ -94,6 +95,7 @@ const props = defineProps<{
   sessionId: string
   transcript: readonly TranscriptItem[]
   running: boolean
+  timings?: readonly TurnTiming[]
 }>()
 
 const {
@@ -107,7 +109,7 @@ const {
   abortSession,
   submitText,
 } = useSession()
-const rows = computed(() => buildTimelineRows(props.transcript, props.running))
+const rows = computed(() => buildTimelineRows(props.transcript, props.running, props.timings))
 const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
 )
@@ -150,6 +152,19 @@ const {
 function onTranscriptScroll() {
   syncLayout(viewport.value, column.value)
   onScroll()
+}
+
+function onToggleFold(id: string, open: boolean) {
+  releasePinnedToBottom()
+  atBottom.value = false
+  toggleFold(id, open)
+}
+
+function onToggleTool(rowId: string, id: string, open: boolean) {
+  releasePinnedToBottom()
+  atBottom.value = false
+  if (open) toggleFold(rowId, true)
+  toggleTool(id, open)
 }
 
 function selectMinimapItem(item: TranscriptMinimapItem) {

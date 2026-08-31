@@ -4,7 +4,6 @@ import type {
   SessionPhase,
   SessionSnapshot,
   ThinkingLevel,
-  TranscriptItem,
 } from "@earendil-works/pi-protocol"
 import { PiServerError, SessionBusyError } from "@earendil-works/pi-server"
 import type {
@@ -17,6 +16,7 @@ import { canonicalizePath } from "../directory.js"
 import { estimateContextUsage, type ContextPreviewKey } from "./context-usage.js"
 import { firstUserMessageText, sessionListName } from "./session-label.js"
 import { TranscriptProjection } from "./transcript.js"
+import { readTurnTimings, TurnTimingRecorder } from "./turn-timing.js"
 
 /**
  * 不触发全量 snapshot 广播的事件：高频增量，或产生进度时尚未持久化
@@ -46,11 +46,13 @@ export class PiHostSession implements PiSessionRuntime {
   private revision = 0
   private busy: Promise<void> | undefined
   private disposed = false
+  private readonly timing: TurnTimingRecorder
 
   constructor(
     private readonly session: AgentSession,
     private readonly onDispose?: () => void,
   ) {
+    this.timing = new TurnTimingRecorder(session.sessionManager)
     this.unsubscribeSession = session.subscribe((event) => this.handleEvent(event))
   }
 
@@ -58,8 +60,9 @@ export class PiHostSession implements PiSessionRuntime {
     return estimateContextUsage(this.session, previewKey)
   }
 
-  historyTranscript(): TranscriptItem[] {
-    return this.projection.transcript(this.session.sessionManager.getBranch())
+  historyTranscript() {
+    const entries = this.session.sessionManager.getBranch()
+    return { items: this.projection.transcript(entries), timings: readTurnTimings(entries) }
   }
 
   snapshot(): SessionSnapshot {
@@ -111,8 +114,17 @@ export class PiHostSession implements PiSessionRuntime {
   async prompt(input: PromptInput): Promise<void> {
     await this.exclusive(async () => {
       if (!this.session.isIdle) throw new SessionBusyError("A prompt is already running")
-      await this.session.prompt(input.text)
-      if (!this.session.isIdle) await this.session.waitForIdle()
+      this.timing.start()
+      try {
+        await this.session.prompt(input.text)
+        if (!this.session.isIdle) await this.session.waitForIdle()
+      } catch (error) {
+        this.timing.outcome("error")
+        throw error
+      } finally {
+        this.timing.finish()
+        this.broadcastSnapshot()
+      }
     })
   }
 
@@ -125,6 +137,7 @@ export class PiHostSession implements PiSessionRuntime {
 
   async abort(): Promise<void> {
     // AgentSession.abort 在 idle 时安全返回，无需 busy 检查
+    this.timing.outcome("aborted")
     await this.session.abort()
   }
 
@@ -184,6 +197,15 @@ export class PiHostSession implements PiSessionRuntime {
   }
 
   private handleEvent(event: AgentSessionEvent): void {
+    if (event.type === "message_end") {
+      if (event.message.role === "user") this.timing.user(event.message.timestamp)
+      if (event.message.role === "assistant") {
+        const reason = event.message.stopReason
+        this.timing.outcome(
+          reason === "aborted" ? "aborted" : reason === "error" ? "error" : "complete",
+        )
+      }
+    }
     const progress = this.projection.progress(event)
     if (progress) {
       this.revision += 1
@@ -192,7 +214,10 @@ export class PiHostSession implements PiSessionRuntime {
     if (event.type === "message_end") {
       // 官方在通知订阅者之后才持久化 message_end；延迟一拍广播，保证快照
       // 已包含该条目，否则客户端会用旧快照重建并清掉刚收到的 progress。
-      queueMicrotask(() => this.broadcastSnapshot())
+      queueMicrotask(() => {
+        this.timing.persistStart()
+        this.broadcastSnapshot()
+      })
       return
     }
     if (!SNAPSHOT_SKIP_EVENTS.has(event.type)) this.broadcastSnapshot()

@@ -20,7 +20,12 @@
 
       <!-- 3. 有 transcript：对话列。历史可先于 attach 到齐。 -->
       <template v-else-if="transcript.length > 0 || !sessionPending">
-        <TranscriptView :session-id="sessionId" :transcript="transcript" :running="running" />
+        <TranscriptView
+          :session-id="sessionId"
+          :transcript="transcript"
+          :running="running"
+          :timings="turnTimings"
+        />
       </template>
     </div>
 
@@ -59,7 +64,8 @@ function isEmptyCanvas(transcriptLength: number, running: boolean, pending = fal
 }
 
 const route = useRoute()
-const { sessionId, transcript, running, sessionPending, connectionError, connected } = useSession()
+const { sessionId, transcript, turnTimings, running, sessionPending, connectionError, connected } =
+  useSession()
 
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {

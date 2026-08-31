@@ -1,129 +1,140 @@
 <template>
-  <div class="tool-row" :class="{ folding: folded }">
-    <button
-      v-if="folded"
+  <section class="tool-row" :class="{ live, failed: row.error || row.aborted }">
+    <Button
       type="button"
+      static
       class="fold"
-      :class="{ open: revealed }"
-      @click="emit('toggle-fold')"
+      :aria-expanded="revealed"
+      :aria-controls="bodyId"
+      @click="emit('toggle-fold', !revealed)"
     >
-      <span class="fold-label">{{ label }}</span>
-      <ChevronRight class="caret caret-hint" :size="14" />
-    </button>
-    <div class="body" :class="{ open: bodyOpen }">
-      <div class="steps" :class="{ wait: waiting }">
-        <template v-if="!waiting">
-          <template v-for="step in steps" :key="step.type === 'tool' ? step.item.id : step.id">
+      <span>{{ label }}</span>
+      <ChevronRight
+        class="caret"
+        :class="{ open: revealed }"
+        :stroke-width="1.5"
+        data-icon="inline-end"
+        aria-hidden="true"
+      />
+    </Button>
+    <div
+      :id="bodyId"
+      class="body"
+      :class="{ open: revealed }"
+      :inert="!revealed"
+      :aria-hidden="!revealed"
+    >
+      <div class="body-inner">
+        <div v-if="rendered" class="steps">
+          <template v-for="step in row.steps" :key="step.id">
+            <AssistantMessage
+              v-if="step.type === 'assistant'"
+              :item="step.item"
+              :streaming="live && step.item.streaming"
+            />
             <ThinkCard
-              v-if="step.type === 'thought'"
+              v-else-if="step.type === 'thought'"
               :text="step.text"
               :streaming="step.streaming"
               :open="expandedTools.get(step.id) === true"
               @update:open="emit('toggle-tool', step.id, $event)"
             />
-            <ToolCall
+            <ToolSummaryGroup
               v-else
-              :item="step.item"
-              :open="expandedTools.get(step.item.id) === true"
-              @update:open="emit('toggle-tool', step.item.id, $event)"
+              :group="step"
+              :expanded="expandedTools"
+              @toggle="emit('toggle-tool', $event.id, $event.open)"
             />
           </template>
-        </template>
-        <div v-if="live" class="waiting">
-          <ThinkingOrb />
-          <ThinkingState :text="sentinelText" />
+          <div v-if="row.waiting" class="waiting">
+            <ThinkingOrb />
+            <ThinkingState text="思考中" />
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
+import { computed, shallowRef, useId, watch } from "vue"
 import { ChevronRight } from "lucide-vue-next"
-import ThinkCard from "@features/transcript-view/components/ThinkCard.vue"
-import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
-import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
-import ToolCall from "@features/transcript-view/components/ToolCall.vue"
-import {
-  toolRowLabel,
-  toolRowSteps,
-  type ToolRow,
-} from "@features/transcript-view/lib/transcript-rows.js"
+import { Button } from "@components/ui/button/index.js"
+import AssistantMessage from "./AssistantMessage.vue"
+import ThinkCard from "./ThinkCard.vue"
+import ThinkingOrb from "./ThinkingOrb.vue"
+import ThinkingState from "./ThinkingState.vue"
+import ToolSummaryGroup from "./ToolSummaryGroup.vue"
+import { toolRowLabel, type ToolRow } from "../lib/transcript-rows.js"
 
 const props = defineProps<{
   row: ToolRow
-  foldOpen: boolean
+  foldOpen: boolean | undefined
   expandedTools: Map<string, boolean>
 }>()
-
 const emit = defineEmits<{
-  "toggle-fold": []
+  "toggle-fold": [open: boolean]
   "toggle-tool": [id: string, open: boolean]
 }>()
-
-const folded = computed(() => props.row.mode === "fold")
+const bodyId = useId()
 const live = computed(() => props.row.mode === "live")
-const revealed = computed(() => !folded.value || props.foldOpen)
-const bodyOpen = ref(revealed.value)
-const waiting = computed(
-  () => live.value && props.row.tools.length === 0 && props.row.thinking.length === 0,
-)
-const sentinelText = computed(() => (props.row.tools.length > 0 ? "正在执行" : "思考中"))
-const label = computed(() => toolRowLabel(props.row))
-const steps = computed(() => toolRowSteps(props.row))
-
+const revealed = computed(() => props.foldOpen ?? live.value)
+const rendered = shallowRef(revealed.value)
 watch(
   revealed,
   (open) => {
-    if (open) {
-      bodyOpen.value = true
-      return
-    }
-    requestAnimationFrame(() => {
-      bodyOpen.value = false
-    })
+    if (open) rendered.value = true
   },
   { flush: "sync" },
+)
+const now = shallowRef(Date.now())
+const label = computed(() => toolRowLabel(props.row, now.value))
+watch(
+  () => live.value && props.row.timing?.endedAt === undefined && props.row.timing !== undefined,
+  (active, _, cleanup) => {
+    if (!active) return
+    now.value = Date.now()
+    const timer = setInterval(() => {
+      now.value = Date.now()
+    }, 1000)
+    cleanup(() => clearInterval(timer))
+  },
+  { immediate: true },
 )
 </script>
 
 <style scoped>
 .tool-row {
-  contain: layout style;
-  margin-bottom: var(--spacing-md);
+  min-width: 0;
+  margin-block-end: var(--spacing-md);
 }
 .fold {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 22px;
-  padding: 0;
-  border: 0;
+  height: auto;
+  min-height: 28px;
+  padding: 2px 0;
+  gap: var(--spacing-xs);
+  justify-content: flex-start;
+  border-radius: 0;
   background: transparent;
   color: var(--ink-muted);
-  cursor: pointer;
-}
-.fold:focus {
-  outline: none;
-}
-.fold:focus-visible {
-  outline: var(--focus-ring-width) solid var(--primary);
-  outline-offset: var(--focus-ring-width);
-}
-.fold:hover .fold-label,
-.fold:hover .caret {
-  color: var(--ink-secondary);
-}
-.fold-label {
-  color: inherit;
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-regular);
-  line-height: var(--text-body-sm--line-height);
+  white-space: normal;
+  text-align: start;
+  font-variant-numeric: tabular-nums;
+}
+.fold:hover {
+  background: transparent;
+  color: var(--ink-secondary);
+}
+.failed .fold {
+  color: var(--danger);
 }
 .caret {
-  flex: none;
-  color: inherit;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.caret.open {
+  transform: rotate(90deg);
 }
 .body {
   display: grid;
@@ -132,53 +143,29 @@ watch(
 }
 .body.open {
   grid-template-rows: 1fr;
-}
-.tool-row:not(.folding) .body {
-  transition-duration: 0ms;
-}
-.folding .body.open {
   transition-duration: var(--duration-slow);
 }
-.steps {
-  overflow: hidden;
+.body-inner {
   min-height: 0;
+  overflow: hidden;
+}
+.steps {
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  margin-top: 2px;
-  margin-inline-start: 6px;
-  padding-inline-start: 20px;
-  position: relative;
-}
-.steps.wait {
-  margin-inline-start: 0;
-  padding-inline-start: 0;
-}
-.steps:not(.wait)::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 6px;
-  top: 4px;
-  bottom: 10px;
-  width: 1px;
-  background: var(--transcript-guide);
-  pointer-events: none;
-}
-.steps > :deep(.call) {
-  position: relative;
+  gap: var(--spacing-sm);
+  padding-block: var(--spacing-sm);
+  border-block-start: var(--border-width) solid var(--hairline);
 }
 .waiting {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 20px;
-  color: var(--ink-faint);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-  line-height: 18px;
+  gap: var(--spacing-xs);
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
 }
 @media (prefers-reduced-motion: reduce) {
-  .body {
+  .body,
+  .caret {
     transition: none;
   }
 }

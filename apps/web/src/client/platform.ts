@@ -46,11 +46,43 @@ export async function listSessionCards(): Promise<SessionCard[]> {
   return result.cards
 }
 
-export async function sessionTranscript(sessionId: string): Promise<TranscriptItem[]> {
-  const result = await platformRequest<{ items: TranscriptItem[] }>(
+export type TurnTiming = { userId: string; startedAt: number } & (
+  | { outcome: "running"; endedAt?: never }
+  | { outcome: "complete" | "error" | "aborted"; endedAt: number }
+)
+
+function isTurnTiming(value: unknown): value is TurnTiming {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !("userId" in value) ||
+    typeof value.userId !== "string" ||
+    !("startedAt" in value) ||
+    typeof value.startedAt !== "number" ||
+    !Number.isFinite(value.startedAt) ||
+    !("outcome" in value)
+  )
+    return false
+  if (value.outcome === "running") return !("endedAt" in value)
+  return (
+    (value.outcome === "complete" || value.outcome === "error" || value.outcome === "aborted") &&
+    "endedAt" in value &&
+    typeof value.endedAt === "number" &&
+    Number.isFinite(value.endedAt) &&
+    value.endedAt >= value.startedAt
+  )
+}
+
+export async function sessionTranscript(
+  sessionId: string,
+): Promise<{ items: TranscriptItem[]; timings: TurnTiming[] }> {
+  const result = await platformRequest<{ items: TranscriptItem[]; timings?: unknown[] }>(
     `/api/v1/platform/transcript?sessionId=${encodeURIComponent(sessionId)}`,
   )
-  return Array.isArray(result.items) ? result.items : []
+  return {
+    items: Array.isArray(result.items) ? result.items : [],
+    timings: Array.isArray(result.timings) ? result.timings.filter(isTurnTiming) : [],
+  }
 }
 
 export async function contextUsage(sessionId: string): Promise<ContextUsageEstimate | null> {

@@ -377,15 +377,16 @@ describe("提交失败恢复草稿", () => {
 })
 
 describe("HTTP 历史与 live Transcript 合并", () => {
-  it("打开会话用 HTTP 历史，空 snapshot 不冲掉", async () => {
+  it("打开会话恢复 HTTP 历史和耗时，空 snapshot 不冲掉", async () => {
     const item = {
       id: "u1",
       role: "user" as const,
       content: [{ type: "text" as const, text: "hi" }],
       timestamp: 1,
     }
+    const timing = { userId: "u1", startedAt: 1000, endedAt: 66000, outcome: "complete" }
     platformRequestMock.mockImplementation(async (path: string) => {
-      if (path.includes("/transcript")) return { items: [item] }
+      if (path.includes("/transcript")) return { items: [item], timings: [timing] }
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -395,6 +396,7 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     routeBox.params.sessionId = "s1"
     await session.initialize()
     await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
+    expect(session.turnTimings.value).toEqual([timing])
     a.state = { ...a.state, snapshot: snapshot(2), transcript: [] }
     a.emit()
     await vi.waitFor(() =>
@@ -403,6 +405,7 @@ describe("HTTP 历史与 live Transcript 合并", () => {
       ).not.toHaveLength(0),
     )
     expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"])
+    expect(session.turnTimings.value).toEqual([timing])
   })
 })
 

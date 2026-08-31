@@ -26,6 +26,7 @@ import { conversationMessageCount, modelFromBranch, type SessionCard } from "./s
 import { sessionListName } from "./session-label.js"
 import { PiHostSession } from "./session-runtime.js"
 import { TranscriptProjection } from "./transcript.js"
+import { readTurnTimings, type TurnTiming } from "./turn-timing.js"
 
 type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
 type SessionFactory = typeof createAgentSession
@@ -179,12 +180,18 @@ export class PiHostService implements PiServerService {
   }
 
   /** 历史 Transcript：已附加用 live 投影，否则读盘。不进协议 snapshot。 */
-  async sessionTranscript(sessionId: string): Promise<TranscriptItem[]> {
+  async sessionTranscript(
+    sessionId: string,
+  ): Promise<{ items: TranscriptItem[]; timings: TurnTiming[] }> {
     const live = this.activeSessions.get(sessionId)
     if (live) return live.historyTranscript()
     const path = await this.findSessionPath(sessionId)
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
-    return new TranscriptProjection().transcript(SessionManager.open(path).getBranch())
+    const entries = SessionManager.open(path).getBranch()
+    return {
+      items: new TranscriptProjection().transcript(entries),
+      timings: readTurnTimings(entries),
+    }
   }
 
   /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */

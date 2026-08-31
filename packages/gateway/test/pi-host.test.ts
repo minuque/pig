@@ -406,18 +406,16 @@ describe("PiHostService", () => {
       { id: "sess-1", messageCount: 3 },
     ])
     expect((await runtime.snapshot()).transcript).toEqual([])
-    expect((await first.service.sessionTranscript("sess-1")).map((item) => item.role)).toEqual([
-      "user",
-      "assistant",
-      "tool",
-    ])
+    expect(
+      (await first.service.sessionTranscript("sess-1")).items.map((item) => item.role),
+    ).toEqual(["user", "assistant", "tool"])
 
     const second = await makeService(dir)
     const reopened = await second.service.openSession("sess-1")
     const snapshot = await reopened.snapshot()
     expect(snapshot).toMatchObject({ id: "sess-1" })
     expect(snapshot.transcript).toEqual([])
-    const history = await second.service.sessionTranscript("sess-1")
+    const { items: history } = await second.service.sessionTranscript("sess-1")
     expect(history.map((item) => item.role)).toEqual(["user", "assistant", "tool"])
     expect(history[2]).toMatchObject({
       toolCallId: "call-1",
@@ -436,7 +434,7 @@ describe("PiHostService", () => {
     }
     const snapshot = await runtime.snapshot()
     expect(snapshot.transcript).toEqual([])
-    const history = await service.sessionTranscript("sess-long")
+    const { items: history } = await service.sessionTranscript("sess-long")
     expect(history).toHaveLength(total)
     expect(
       history.map((item) =>

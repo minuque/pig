@@ -1,29 +1,21 @@
 import type {
   AssistantTranscriptItem,
-  ToolTranscriptItem,
   TranscriptItem,
   UserTranscriptItem,
 } from "@earendil-works/pi-protocol"
+import type { TurnTiming } from "@client/platform.js"
 import {
-  assistantThinking,
   isAssistantItem,
-  isCommandTool,
   isToolItem,
   isUserItem,
   isVisibleTranscriptItem,
   transcriptImages,
   transcriptText,
-} from "@features/transcript-view/lib/transcript-format.js"
+} from "./transcript-format.js"
+import { toolGroupKey } from "./tool-summary.js"
 
 export type TranscriptImage = { data: string; mimeType: string }
-
-export type UserRow = {
-  id: string
-  role: "user"
-  text: string
-  images: TranscriptImage[]
-}
-
+export type UserRow = { id: string; role: "user"; text: string; images: TranscriptImage[] }
 export type AssistantRow = {
   id: string
   role: "assistant"
@@ -34,7 +26,6 @@ export type AssistantRow = {
   errorMessage?: string
   retryCount?: number
 }
-
 export type ToolCallView = {
   id: string
   toolName: string
@@ -44,293 +35,220 @@ export type ToolCallView = {
   outputText: string
   outputImages: TranscriptImage[]
 }
-
-export type ToolKind = "thought" | "read" | "command" | "tool"
-
+export type ToolGroup = { type: "tools"; id: string; key: string; items: ToolCallView[] }
+export type ToolRowStep =
+  | { type: "thought"; id: string; text: string; streaming: boolean }
+  | { type: "assistant"; id: string; item: AssistantRow }
+  | ToolGroup
 export type ToolRow = {
   id: string
   role: "tools"
   mode: "live" | "fold"
-  thinking: string[]
-  thinkingStreaming: boolean
-  tools: ToolCallView[]
-  kinds: ToolKind[]
+  steps: ToolRowStep[]
+  waiting: boolean
   aborted: boolean
+  error: boolean
+  timing?: TurnTiming
 }
-
-export type ToolRowStep =
-  | { type: "thought"; id: string; text: string; streaming: boolean }
-  | { type: "tool"; item: ToolCallView }
-
 export type TimelineRow = UserRow | AssistantRow | ToolRow
 
 export function isToolRow(row: TimelineRow): row is ToolRow {
   return row.role === "tools"
 }
 
-function emptyToolRow(id: string): ToolRow {
-  return {
-    id,
-    role: "tools",
-    mode: "live",
-    thinking: [],
-    thinkingStreaming: false,
-    tools: [],
-    kinds: [],
-    aborted: false,
-  }
-}
-
-type TurnSegment = {
-  user: UserTranscriptItem | null
-  rest: TranscriptItem[]
-}
-
-const KIND_LABEL: Record<ToolKind, { one: string; many: string }> = {
-  thought: { one: "thought", many: "thoughts" },
-  read: { one: "file read", many: "file reads" },
-  command: { one: "command", many: "commands" },
-  tool: { one: "tool call", many: "tool calls" },
-}
-
-function toUserRow(item: UserTranscriptItem): UserRow {
-  return {
-    id: item.id,
-    role: "user",
-    text: transcriptText(item),
-    images: transcriptImages(item),
-  }
-}
-
-function assistantErrorMessage(item: AssistantTranscriptItem): string | undefined {
-  if (!("errorMessage" in item)) return undefined
-  const value = item.errorMessage
-  return typeof value === "string" && value.length > 0 ? value : undefined
-}
-
-function toAssistantRow(item: AssistantTranscriptItem, retryCount = 1): AssistantRow {
-  const errorMessage = assistantErrorMessage(item)
+function assistantRow(item: AssistantTranscriptItem, text = transcriptText(item)): AssistantRow {
   return {
     id: item.id,
     role: "assistant",
-    text: transcriptText(item),
+    text,
     streaming: item.status === "streaming",
     error: item.status === "error",
     aborted: item.status === "aborted",
-    ...(errorMessage ? { errorMessage } : {}),
-    ...(retryCount > 1 ? { retryCount } : {}),
+    ...("errorMessage" in item && item.errorMessage ? { errorMessage: item.errorMessage } : {}),
   }
 }
 
-function toToolCallView(item: ToolTranscriptItem): ToolCallView {
-  return {
-    id: item.id,
-    toolName: item.toolName,
-    running: item.status === "running",
-    isError: item.isError,
-    input: item.input,
-    outputText: transcriptText(item),
-    outputImages: transcriptImages(item),
+function addAssistant(steps: ToolRowStep[], item: AssistantRow) {
+  const last = steps.at(-1)
+  if (
+    !item.text &&
+    item.error &&
+    last?.type === "assistant" &&
+    last.item.error &&
+    !last.item.text
+  ) {
+    last.item = { ...item, retryCount: (last.item.retryCount ?? 1) + 1 }
+    return
   }
+  steps.push({ type: "assistant", id: item.id, item })
 }
 
-/** 运行中且末条不是流式正文或进行中的工具时，补一条思考占位。 */
-function needsThinkingPlaceholder(running: boolean, items: readonly TranscriptItem[]): boolean {
-  if (running === false) return false
-  const last = items[items.length - 1]
-  if (!last) return true
-  if (isAssistantItem(last) && last.status === "streaming" && transcriptText(last).length > 0) {
-    return false
-  }
-  if (isToolItem(last) && last.status === "running") return false
-  return true
-}
-
-function turnSegments(items: readonly TranscriptItem[]): TurnSegment[] {
-  const segments: TurnSegment[] = []
-  let user: UserTranscriptItem | null = null
-  let rest: TranscriptItem[] = []
-  const flush = () => {
-    if (user || rest.length > 0) segments.push({ user, rest })
-  }
-  for (const item of items) {
-    if (isUserItem(item) && isVisibleTranscriptItem(item)) {
-      flush()
-      user = item
-      rest = []
-      continue
-    }
-    rest.push(item)
-  }
-  flush()
-  return segments
-}
-
-function toolKindOfTool(toolName: string): ToolKind {
-  const name = toolName.trim().toLowerCase()
-  if (name === "read") return "read"
-  if (isCommandTool(name)) return "command"
-  return "tool"
-}
-
-function formatToolKinds(kinds: readonly ToolKind[]): string {
-  const counts = new Map<ToolKind, number>()
-  for (const kind of kinds) {
-    counts.set(kind, (counts.get(kind) ?? 0) + 1)
-  }
-  const body = [...counts.entries()]
-    .map(([kind, count]) => {
-      const noun = count === 1 ? KIND_LABEL[kind].one : KIND_LABEL[kind].many
-      return `${count} ${noun}`
-    })
-    .join(" · ")
-  return body ? `Ran ${body}` : ""
-}
-
-export function toolRowLabel(row: ToolRow): string {
-  if (row.aborted) return "已停止"
-  return formatToolKinds(row.kinds)
-}
-
-function emitClusters(
-  rest: readonly TranscriptItem[],
-  rows: TimelineRow[],
-  mode: ToolRow["mode"],
-  anchor: string,
-) {
-  let thinking: string[] = []
-  let thinkingStreaming = false
-  let tools: ToolCallView[] = []
-  let kinds: ToolKind[] = []
+function orderedSteps(items: readonly TranscriptItem[], live: boolean, anchor: string) {
+  const steps: ToolRowStep[] = []
+  let lastTool = -1
   let aborted = false
-  let cluster = 0
-  let errorRun: AssistantTranscriptItem[] = []
-
-  const reset = () => {
-    thinking = []
-    thinkingStreaming = false
-    tools = []
-    kinds = []
-    aborted = false
-  }
-
-  const flushErrors = () => {
-    const last = errorRun[errorRun.length - 1]
-    if (!last) return
-    rows.push(toAssistantRow(last, errorRun.length))
-    errorRun = []
-  }
-
-  const flush = () => {
-    flushErrors()
-    if (tools.length === 0 && thinking.length === 0) return
-    rows.push({
-      id: `tools:${anchor}:${cluster}`,
-      role: "tools",
-      mode,
-      thinking,
-      thinkingStreaming,
-      tools,
-      kinds,
-      aborted,
-    })
-    cluster += 1
-    reset()
-  }
-
-  for (const item of rest) {
+  let error = false
+  for (const [itemIndex, item] of items.entries()) {
     if (isToolItem(item)) {
-      flushErrors()
-      tools.push(toToolCallView(item))
-      kinds.push(toolKindOfTool(item.toolName))
+      const tool: ToolCallView = {
+        id: item.id,
+        toolName: item.toolName,
+        running: live && item.status === "running",
+        isError: item.isError,
+        input: item.input,
+        outputText: transcriptText(item),
+        outputImages: transcriptImages(item),
+      }
+      const key = toolGroupKey(tool.toolName)
+      const last = steps.at(-1)
+      if (
+        !tool.isError &&
+        last?.type === "tools" &&
+        last.key === key &&
+        !last.items.some((call) => call.isError)
+      ) {
+        last.items.push(tool)
+      } else {
+        steps.push({ type: "tools", id: `group:${item.id}`, key, items: [tool] })
+      }
+      lastTool = steps.length - 1
+      error ||= item.isError
       continue
     }
     if (!isAssistantItem(item)) continue
-    if (item.status === "aborted") aborted = true
-    const blocks = assistantThinking(item)
-    if (blocks.length > 0) {
-      flushErrors()
-      thinking.push(blocks.join("\n\n"))
-      kinds.push("thought")
-      if (item.status === "streaming") thinkingStreaming = true
+    aborted ||= item.status === "aborted"
+    error ||= item.status === "error"
+    for (const [index, block] of item.content.entries()) {
+      const id = `${anchor}:${item.timestamp}:${itemIndex}:${index}`
+      if (block.type === "thinking" && block.thinking) {
+        steps.push({
+          type: "thought",
+          id: `thought:${id}`,
+          text: block.thinking,
+          streaming: live && item.status === "streaming" && index === item.content.length - 1,
+        })
+      } else if (block.type === "text" && block.text) {
+        const previous = steps.at(-1)
+        if (item.content[index - 1]?.type === "text" && previous?.type === "assistant") {
+          previous.item.text += block.text
+        } else addAssistant(steps, { ...assistantRow(item, block.text), id: `text:${id}` })
+      } else if (block.type === "toolCall") {
+        lastTool = steps.length - 1
+      }
     }
-    if (transcriptText(item).length > 0) {
-      flush()
-      rows.push(toAssistantRow(item))
-      continue
-    }
-    if (
-      (item.status === "error" || item.status === "aborted") &&
-      tools.length === 0 &&
-      thinking.length === 0
-    ) {
-      errorRun.push(item)
+    if (!transcriptText(item) && (item.status === "error" || item.status === "aborted")) {
+      addAssistant(steps, assistantRow(item))
     }
   }
-  flush()
+  return { steps, lastTool, aborted, error }
 }
 
-/** 进行中只留最后一个工作槽展开，上面已完成的收成折叠条。 */
-function foldPriorLiveToolRows(rows: TimelineRow[]) {
-  const lastIndex = rows.length - 1
-  const keepLast = lastIndex >= 0 && isToolRow(rows[lastIndex]!)
-  for (const [index, row] of rows.entries()) {
-    if (!isToolRow(row) || row.mode !== "live") continue
-    if (keepLast && index === lastIndex) continue
-    row.mode = "fold"
+function appendTurn({
+  rows,
+  user,
+  rest,
+  live,
+  timings,
+  turnIndex,
+}: {
+  rows: TimelineRow[]
+  user: UserTranscriptItem | undefined
+  rest: TranscriptItem[]
+  live: boolean
+  timings: readonly TurnTiming[]
+  turnIndex: number
+}) {
+  if (user)
+    rows.push({
+      id: user.id,
+      role: "user",
+      text: transcriptText(user),
+      images: transcriptImages(user),
+    })
+  const anchor = `tools:${user?.timestamp ?? "orphan"}:${turnIndex}`
+  const { steps, lastTool, aborted, error } = orderedSteps(rest, live, anchor)
+  const last = rest.at(-1)
+  const waiting =
+    live &&
+    !(
+      isAssistantItemSafe(last) &&
+      last.status === "streaming" &&
+      last.content.some((part) => part.type === "text" && part.text)
+    ) &&
+    !(last && isToolItem(last) && last.status === "running") &&
+    !steps.some((step) => step.type === "thought" && step.streaming)
+  const work: ToolRowStep[] = []
+  const answers: AssistantRow[] = []
+  const hasTools = rest.some(
+    (item) =>
+      isToolItem(item) ||
+      (isAssistantItem(item) && item.content.some((block) => block.type === "toolCall")),
+  )
+  for (const [index, step] of steps.entries()) {
+    if (step.type === "assistant" && (!hasTools || (!live && index > lastTool)))
+      answers.push(step.item)
+    else work.push(step)
   }
+  const timing = timings.find((value) => value.userId === user?.id)
+  if (work.length || waiting) {
+    rows.push({
+      id: anchor,
+      role: "tools",
+      mode: live ? "live" : "fold",
+      steps: work,
+      waiting,
+      aborted: aborted || timing?.outcome === "aborted",
+      error: error || timing?.outcome === "error",
+      ...(timing ? { timing } : {}),
+    })
+  }
+  rows.push(...answers)
 }
 
-/** 历史按正文切开工具行并折叠；进行中只展开末个工作槽。 */
+function isAssistantItemSafe(item: TranscriptItem | undefined): item is AssistantTranscriptItem {
+  return item?.role === "assistant"
+}
+
 export function buildTimelineRows(
   items: readonly TranscriptItem[],
   running: boolean,
+  timings: readonly TurnTiming[] = [],
 ): TimelineRow[] {
   const rows: TimelineRow[] = []
-  const segments = turnSegments(items)
-  const wait = needsThinkingPlaceholder(running, items)
-  for (let index = 0; index < segments.length; index += 1) {
-    const segment = segments[index]!
-    const live = running && index === segments.length - 1
-    const folding = Boolean(segment.user) && !live
-    if (segment.user) rows.push(toUserRow(segment.user))
-    emitClusters(segment.rest, rows, folding ? "fold" : "live", segment.user?.id ?? "orphan")
-  }
-  if (wait) {
-    const last = rows[rows.length - 1]
-    if (!last || !isToolRow(last) || last.mode !== "live") {
-      const anchor = segments[segments.length - 1]?.user?.id ?? "orphan"
-      const prefix = `tools:${anchor}:`
-      let cluster = 0
-      for (const row of rows) {
-        if (isToolRow(row) && row.id.startsWith(prefix)) cluster += 1
+  let user: UserTranscriptItem | undefined
+  let rest: TranscriptItem[] = []
+  let turnIndex = 0
+  for (const item of items) {
+    if (isUserItem(item) && isVisibleTranscriptItem(item)) {
+      if (user || rest.length) {
+        appendTurn({ rows, user, rest, live: false, timings, turnIndex })
+        turnIndex += 1
       }
-      rows.push(emptyToolRow(`${prefix}${cluster}`))
-    }
+      user = item
+      rest = []
+    } else rest.push(item)
   }
-  if (running) foldPriorLiveToolRows(rows)
+  if (user || rest.length || running)
+    appendTurn({ rows, user, rest, live: running, timings, turnIndex })
   return rows
 }
 
-export function toolRowSteps(row: ToolRow): ToolRowStep[] {
-  const steps: ToolRowStep[] = []
-  let thinkAt = 0
-  let toolAt = 0
-  for (const [index, kind] of row.kinds.entries()) {
-    if (kind === "thought") {
-      const last = thinkAt + 1 === row.thinking.length
-      steps.push({
-        type: "thought",
-        id: `${row.id}:think:${index}`,
-        text: row.thinking[thinkAt] ?? "",
-        streaming: row.thinkingStreaming && last,
-      })
-      thinkAt += 1
-      continue
-    }
-    const item = row.tools[toolAt]
-    toolAt += 1
-    if (item) steps.push({ type: "tool", item })
-  }
-  return steps
+export function toolRowLabel(row: ToolRow, now = Date.now()): string {
+  const status = row.aborted
+    ? "已停止"
+    : row.error
+      ? "执行出错"
+      : row.mode === "live"
+        ? "执行中"
+        : "执行过程"
+  if (!row.timing || (row.timing.endedAt === undefined && row.mode !== "live")) return status
+  const seconds = Math.max(
+    0,
+    Math.floor(((row.timing.endedAt ?? now) - row.timing.startedAt) / 1000),
+  )
+  const duration =
+    seconds >= 60 ? `${Math.floor(seconds / 60)}分钟 ${seconds % 60}秒` : `${seconds}秒`
+  return row.aborted || row.error || row.mode === "live"
+    ? `${status} · 用时 ${duration}`
+    : `用时 ${duration}`
 }

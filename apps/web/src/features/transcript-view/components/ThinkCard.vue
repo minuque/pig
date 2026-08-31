@@ -1,101 +1,98 @@
 <template>
-  <div class="call">
-    <button type="button" class="toggle" :class="{ open }" :disabled="streaming" @click="onToggle">
-      <Lightbulb class="icon" :size="16" />
-      <span class="kind">Think</span>
-      <span v-if="detail" class="detail">{{ detail }}</span>
-      <ChevronRight class="caret caret-hint" :size="14" />
-    </button>
-    <div class="body" :class="{ open: open && text }">
+  <div class="thought">
+    <Button
+      type="button"
+      static
+      class="toggle"
+      :aria-expanded="open || previewing"
+      :aria-controls="bodyId"
+      @click="open = !open"
+    >
+      <Lightbulb :stroke-width="1.5" data-icon="inline-start" aria-hidden="true" />
+      <span>{{ streaming ? "思考中" : "思考" }}</span>
+      <span v-if="previewing" class="hint">展开全文</span>
+      <ChevronRight
+        class="caret"
+        :class="{ open }"
+        :stroke-width="1.5"
+        data-icon="inline-end"
+        aria-hidden="true"
+      />
+    </Button>
+    <div
+      :id="bodyId"
+      class="body"
+      :class="{ open: open || previewing }"
+      :inert="!open && !previewing"
+      :aria-hidden="!open && !previewing"
+    >
       <div class="body-inner">
-        <ThinkingBlocks v-if="text" :blocks="[text]" />
+        <div
+          v-if="!open && text"
+          ref="preview"
+          class="preview"
+          role="region"
+          aria-label="实时思考预览"
+          tabindex="0"
+          @wheel.stop
+          @scroll.stop
+        >
+          {{ text }}
+        </div>
+        <ThinkingBlocks v-else-if="open && text" :blocks="[text]" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, useId, useTemplateRef, watch } from "vue"
 import { ChevronRight, Lightbulb } from "lucide-vue-next"
-import ThinkingBlocks from "@features/transcript-view/components/ThinkingBlocks.vue"
+import { Button } from "@components/ui/button/index.js"
+import ThinkingBlocks from "./ThinkingBlocks.vue"
 
-const props = defineProps<{
-  text: string
-  streaming: boolean
-}>()
-
+const props = defineProps<{ text: string; streaming: boolean }>()
 const open = defineModel<boolean>("open", { required: true })
-const detail = computed(() => (props.streaming ? "Thinking…" : ""))
-
-function onToggle() {
-  if (props.streaming) return
-  open.value = !open.value
-}
+const bodyId = useId()
+const preview = useTemplateRef<HTMLElement>("preview")
+const previewing = computed(() => props.streaming && !open.value)
+watch(
+  [() => props.text, preview],
+  () => {
+    const element = preview.value
+    if (element) element.scrollTop = element.scrollHeight
+  },
+  { flush: "post" },
+)
 </script>
 
 <style scoped>
-.call {
-  contain: layout style;
+.thought {
   min-width: 0;
 }
 .toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  width: fit-content;
-  max-width: 100%;
-  min-width: 0;
-  min-height: 22px;
+  height: auto;
+  min-height: 28px;
   padding: 2px 0;
-  border: 0;
-  border-radius: 0;
+  gap: var(--spacing-xs);
   background: transparent;
   color: var(--ink-muted);
+  border-radius: 0;
   font-size: var(--text-body-sm);
-  font-weight: inherit;
-  text-align: left;
-}
-.toggle:hover {
-  color: var(--ink);
-}
-.toggle:disabled {
-  cursor: default;
-  opacity: 1;
-}
-.toggle:not(:disabled):active {
-  transform: none;
-}
-.toggle:focus {
-  outline: none;
-}
-.toggle:focus-visible {
-  outline: var(--focus-ring-width) solid var(--primary);
-  outline-offset: var(--focus-ring-width);
-}
-.icon {
-  flex: none;
-  color: var(--ink-faint);
-}
-.kind {
-  flex: none;
-  color: var(--ink-muted);
   font-weight: var(--font-weight-regular);
 }
-.toggle:hover .kind,
-.toggle.open .kind {
+.toggle:hover {
+  background: transparent;
   color: var(--ink-secondary);
 }
-.detail {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  color: var(--ink-muted);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.hint {
+  font-size: var(--text-caption);
 }
 .caret {
-  flex: none;
-  color: var(--ink-faint);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.caret.open {
+  transform: rotate(90deg);
 }
 .body {
   display: grid;
@@ -107,13 +104,25 @@ function onToggle() {
   transition-duration: var(--duration-slow);
 }
 .body-inner {
-  overflow: hidden;
   min-height: 0;
-  margin-top: 2px;
-  margin-inline-start: 24px;
+  overflow: hidden;
+  padding-inline-start: var(--spacing-lg);
+}
+.preview {
+  max-height: 5lh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  scrollbar-width: thin;
 }
 @media (prefers-reduced-motion: reduce) {
-  .body {
+  .body,
+  .caret {
     transition: none;
   }
 }

@@ -20,7 +20,12 @@ import type {
 import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
-import { contextUsage, sessionTranscript, type ContextUsageEstimate } from "@client/platform.js"
+import {
+  contextUsage,
+  sessionTranscript,
+  type ContextUsageEstimate,
+  type TurnTiming,
+} from "@client/platform.js"
 import { projectContextUsage } from "@features/chat-input/lib/context-usage.js"
 import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-binding.js"
 import { catalogFromModels, thinkingLevelOf } from "@features/chat-input/types.js"
@@ -64,6 +69,7 @@ export function useSessionLifecycle(
   const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
   let contextUsageRequest = 0
   const history = shallowRef<TranscriptItem[]>([])
+  const turnTimings = shallowRef<TurnTiming[]>([])
   const historySessionId = shallowRef<string>()
   const heldLive = shallowRef<TranscriptItem[]>([])
   let historyRequest = 0
@@ -107,6 +113,7 @@ export function useSessionLifecycle(
     contextUsageEstimate.value = undefined
     if (historySessionId.value !== wantedId) {
       history.value = []
+      turnTimings.value = []
       historySessionId.value = undefined
     }
     heldLive.value = []
@@ -115,14 +122,16 @@ export function useSessionLifecycle(
   async function loadHistory(id: string) {
     const request = ++historyRequest
     try {
-      const items = await sessionTranscript(id)
+      const { items, timings } = await sessionTranscript(id)
       if (request !== historyRequest || wantedId !== id) return
       history.value = items
+      turnTimings.value = timings
       historySessionId.value = id
     } catch {
       if (request !== historyRequest || wantedId !== id) return
       if (historySessionId.value !== id) {
         history.value = []
+        turnTimings.value = []
         historySessionId.value = id
       }
     }
@@ -160,6 +169,7 @@ export function useSessionLifecycle(
     wantedId = id
     if (historySessionId.value !== id) {
       history.value = []
+      turnTimings.value = []
       heldLive.value = []
       historySessionId.value = undefined
     }
@@ -384,6 +394,9 @@ export function useSessionLifecycle(
     connected: pi.connected,
     connectionError: pi.connectionError,
     transcript,
+    turnTimings: computed(() =>
+      historySessionId.value === sessionId.value ? turnTimings.value : [],
+    ),
     sessionCwd,
     contextUsage: projectedUsage,
     catalog,
