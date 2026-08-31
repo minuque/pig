@@ -1,25 +1,27 @@
 <template>
   <div class="session-item">
-    <form v-if="renaming" class="rename-form" @submit.prevent="commitRename">
-      <input
-        ref="nameInput"
-        v-model="draft"
-        class="rename-input"
-        @keydown.escape.prevent="renaming = false"
-        @blur="commitRename"
-      />
-    </form>
-    <ContextMenu v-else :press-open-delay="500" @update:open="onMenuOpenChange">
+    <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
-        <RouterLink
-          :to="{ name: 'session', params: { sessionId: session.id } }"
+        <component
+          :is="renaming ? 'div' : RouterLink"
           class="session-card"
           :class="{ active }"
+          :to="renaming ? undefined : { name: 'session', params: { sessionId: session.id } }"
           @click="onCardClick"
           @keydown="onCardKeydown"
         >
           <div class="card-line card-head">
-            <span class="title">{{ session.title }}</span>
+            <input
+              v-if="renaming"
+              ref="nameInput"
+              v-model="draft"
+              class="rename-input"
+              @click.stop
+              @keydown.enter.prevent="commitRename"
+              @keydown.escape.prevent="cancelRename"
+              @blur="commitRename"
+            />
+            <span v-else class="title">{{ session.title }}</span>
             <span class="session-meta">
               <span v-if="running || session.updatedAt" class="session-icon icon-swap">
                 <Spinner :size="12" class="session-spinner" :data-visible="running" />
@@ -51,7 +53,7 @@
               <VendorMark :vendor="modelProvider" :size="13" />
             </span>
           </div>
-        </RouterLink>
+        </component>
       </ContextMenuTrigger>
       <ContextMenuContent class="select-none">
         <ContextMenuItem @select="startRename">
@@ -86,6 +88,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef } from "vue"
+import { RouterLink } from "vue-router"
 import { Clock, Folder, Pencil, Trash2 } from "lucide-vue-next"
 import {
   AlertDialog,
@@ -144,7 +147,7 @@ function onMenuOpenChange(open: boolean) {
   menuOpen.value = open
 }
 function onCardClick(event: MouseEvent) {
-  if (menuOpen.value) {
+  if (menuOpen.value || renaming.value) {
     event.preventDefault()
     event.stopPropagation()
     return
@@ -175,6 +178,9 @@ function startRename() {
     nameInput.value?.select()
   })
 }
+function cancelRename() {
+  renaming.value = false
+}
 function commitRename() {
   if (!renaming.value) return
   renaming.value = false
@@ -194,8 +200,7 @@ function confirmDelete() {
   width: 100%;
   min-width: 0;
 }
-.session-card,
-.rename-form {
+.session-card {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -324,20 +329,20 @@ function confirmDelete() {
   line-height: 16px;
   white-space: nowrap;
 }
-.rename-form {
-  justify-content: center;
-}
 .rename-input {
-  width: 100%;
-  min-height: 24px;
-  padding: 0 6px;
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--ink);
-  font: inherit;
   font-size: var(--text-caption);
+  font-weight: var(--font-weight-regular);
   line-height: var(--text-caption--line-height);
+  outline: none;
+  box-shadow: inset 0 -1px 0 var(--hairline);
   user-select: text;
 }
 </style>
