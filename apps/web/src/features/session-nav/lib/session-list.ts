@@ -18,8 +18,6 @@ export interface SidebarSession {
 
 export type SidebarGrouping = "updated" | "project"
 
-export type SidebarWell = "start" | "mid" | "end" | "solo"
-
 export type SidebarRow =
   | {
       kind: "group"
@@ -27,10 +25,11 @@ export type SidebarRow =
       canonicalPath: string
       first: boolean
       collapsed: boolean
-      well?: SidebarWell
+      sessions: SidebarSession[]
+      more: boolean
     }
-  | { kind: "session"; key: string; session: SidebarSession; well?: SidebarWell }
-  | { kind: "more"; key: string; groupKey: string; well?: SidebarWell }
+  | { kind: "session"; key: string; session: SidebarSession }
+  | { kind: "more"; key: string; groupKey: string }
 
 export const UPDATED_PAGE = 10
 export const PROJECT_PAGE = 5
@@ -95,6 +94,30 @@ export function groupSessionsByCwd(
   ]
 }
 
+function sidebarSession(session: SessionMetadata): SidebarSession {
+  return {
+    id: session.id,
+    title: sessionTitle(session),
+    ...(session.cwd !== undefined ? { cwd: session.cwd } : {}),
+    updatedAt: sessionRecency(session),
+  }
+}
+
+function sliceVisible(
+  sessions: readonly SessionMetadata[],
+  groupKey: string,
+  page: number,
+  revealByGroup: Readonly<Record<string, number>>,
+  searching: boolean,
+): { sessions: SidebarSession[]; more: boolean } {
+  const limit = searching ? sessions.length : (revealByGroup[groupKey] ?? page)
+  const visible = sessions.slice(0, limit)
+  return {
+    sessions: visible.map(sidebarSession),
+    more: !searching && visible.length < sessions.length,
+  }
+}
+
 function appendGroupSessions(
   rows: SidebarRow[],
   sessions: readonly SessionMetadata[],
@@ -102,33 +125,12 @@ function appendGroupSessions(
   page: number,
   revealByGroup: Readonly<Record<string, number>>,
   searching: boolean,
-  nest = false,
 ): void {
-  const limit = searching ? sessions.length : (revealByGroup[groupKey] ?? page)
-  const visible = sessions.slice(0, limit)
-  const hasMore = !searching && visible.length < sessions.length
-  for (const [index, session] of visible.entries()) {
-    const well = nest ? (index === visible.length - 1 && !hasMore ? "end" : "mid") : undefined
-    rows.push({
-      kind: "session",
-      key: session.id,
-      session: {
-        id: session.id,
-        title: sessionTitle(session),
-        ...(session.cwd !== undefined ? { cwd: session.cwd } : {}),
-        updatedAt: sessionRecency(session),
-      },
-      ...(well ? { well } : {}),
-    })
+  const sliced = sliceVisible(sessions, groupKey, page, revealByGroup, searching)
+  for (const session of sliced.sessions) {
+    rows.push({ kind: "session", key: session.id, session })
   }
-  if (hasMore) {
-    rows.push({
-      kind: "more",
-      key: `more:${groupKey}`,
-      groupKey,
-      ...(nest ? { well: "end" as const } : {}),
-    })
-  }
+  if (sliced.more) rows.push({ kind: "more", key: `more:${groupKey}`, groupKey })
 }
 
 /** 侧栏虚拟列表行：更新时间平铺；项目按 groups 出组头。searching 取消截断与折叠。 */
@@ -156,25 +158,22 @@ export function sidebarRows(input: {
   const rows: SidebarRow[] = []
   for (const [index, group] of groups.entries()) {
     const collapsed = !searching && Boolean(collapsedByGroup[group.canonicalPath])
-    const hasChildren = !collapsed && group.sessions.length > 0
+    const sliced = sliceVisible(
+      group.sessions,
+      group.canonicalPath,
+      PROJECT_PAGE,
+      revealByGroup,
+      searching,
+    )
     rows.push({
       kind: "group",
       key: group.canonicalPath,
       canonicalPath: group.canonicalPath,
       first: index === 0,
       collapsed,
-      well: hasChildren ? "start" : "solo",
+      sessions: sliced.sessions,
+      more: sliced.more,
     })
-    if (collapsed) continue
-    appendGroupSessions(
-      rows,
-      group.sessions,
-      group.canonicalPath,
-      PROJECT_PAGE,
-      revealByGroup,
-      searching,
-      true,
-    )
   }
   return rows
 }

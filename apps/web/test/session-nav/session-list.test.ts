@@ -11,7 +11,25 @@ import {
   sessionCardFoot,
   sidebarRows,
   sortSessionsForSidebar,
+  type SidebarRow,
 } from "@features/session-nav/lib/session-list.js"
+
+function flattenRowKinds(
+  rows: readonly SidebarRow[],
+  flag: "first" | "collapsed" = "first",
+): string[] {
+  return rows.flatMap((row) => {
+    if (row.kind === "session") return [`session:${row.session.id}`]
+    if (row.kind === "more") return [`more:${row.groupKey}`]
+    const head = `group:${row.canonicalPath}:${flag === "first" ? row.first : row.collapsed}`
+    if (row.collapsed) return [head]
+    return [
+      head,
+      ...row.sessions.map((session) => `session:${session.id}`),
+      ...(row.more ? [`more:${row.canonicalPath}`] : []),
+    ]
+  })
+}
 
 function meta(
   id: string,
@@ -206,13 +224,7 @@ describe("sidebar rows", () => {
       revealByGroup: {},
       searching: false,
     })
-    expect(
-      rows.map((row) => {
-        if (row.kind === "group") return `group:${row.canonicalPath}:${row.first}`
-        if (row.kind === "session") return `session:${row.session.id}`
-        return `more:${row.groupKey}`
-      }),
-    ).toEqual([
+    expect(flattenRowKinds(rows)).toEqual([
       "group:/a:true",
       "session:a6",
       "session:a5",
@@ -247,13 +259,11 @@ describe("sidebar rows", () => {
       searching: false,
       collapsedByGroup: { "/a": true },
     })
-    expect(
-      rows.map((row) => {
-        if (row.kind === "group") return `group:${row.canonicalPath}:${row.collapsed}`
-        if (row.kind === "session") return `session:${row.session.id}`
-        return `more:${row.groupKey}`
-      }),
-    ).toEqual(["group:/a:true", "group:/b:false", "session:b0"])
+    expect(flattenRowKinds(rows, "collapsed")).toEqual([
+      "group:/a:true",
+      "group:/b:false",
+      "session:b0",
+    ])
   })
 
   it("shows every session and no more while searching", () => {
@@ -284,7 +294,7 @@ describe("sidebar rows", () => {
       searching: true,
       collapsedByGroup: { "/a": true },
     })
-    expect(project.map((row) => row.kind)).toEqual([
+    expect(flattenRowKinds(project).map((item) => item.split(":")[0])).toEqual([
       "group",
       "session",
       "session",

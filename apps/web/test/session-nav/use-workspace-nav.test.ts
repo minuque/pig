@@ -118,10 +118,14 @@ describe("useWorkspaceNav grouping", () => {
     nav.setGrouping("project")
 
     const kinds = (searching: boolean) =>
-      nav.rowsFor(searching).value.map((row) => {
-        if (row.kind === "group") return `group:${row.canonicalPath}`
-        if (row.kind === "session") return `session:${row.session.id}`
-        return `more:${row.groupKey}`
+      nav.rowsFor(searching).value.flatMap((row) => {
+        if (row.kind === "session") return [`session:${row.session.id}`]
+        if (row.kind === "more") return [`more:${row.groupKey}`]
+        return [
+          `group:${row.canonicalPath}`,
+          ...row.sessions.map((session) => `session:${session.id}`),
+          ...(row.more ? [`more:${row.canonicalPath}`] : []),
+        ]
       })
 
     expect(kinds(false)).toEqual([

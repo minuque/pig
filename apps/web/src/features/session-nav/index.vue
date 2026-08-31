@@ -27,24 +27,53 @@
     <div v-show="!collapsed" class="nav-main">
       <NavToolbar v-model:search-query="searchQuery" @new-session="onNewSession" />
 
-      <div v-bind="containerProps" class="nav-body">
+      <div class="nav-body" v-bind="grouping === 'project' ? {} : containerProps">
         <nav class="session-list">
-          <ul v-if="showList" v-bind="wrapperProps">
-            <li
-              v-for="item in list"
-              :key="item.data.key"
-              :class="[`row-${item.data.kind}`, item.data.well && `well-${item.data.well}`]"
-            >
+          <ul v-if="showList && grouping === 'project'">
+            <li v-for="row in groupRows" :key="row.key" class="row-group">
               <GroupHead
-                v-if="item.data.kind === 'group'"
-                :name="workspaceName(item.data.canonicalPath)"
-                :collapsed="item.data.collapsed"
+                :name="workspaceName(row.canonicalPath)"
+                :collapsed="row.collapsed"
                 :creating="Boolean(creating)"
-                @toggle="toggleGroup(item.data.canonicalPath)"
-                @create="createSession(item.data.canonicalPath)"
+                @toggle="toggleGroup(row.canonicalPath)"
+                @create="createSession(row.canonicalPath)"
               />
+              <Transition name="fold-reveal">
+                <div
+                  v-if="!row.collapsed && (row.sessions.length > 0 || row.more)"
+                  class="group-body"
+                >
+                  <SessionItem
+                    v-for="session in row.sessions"
+                    :key="session.id"
+                    :session="session"
+                    :workspace-title="session.cwd ? workspaceName(session.cwd) : ''"
+                    :active="session.id === activeSessionId"
+                    :running="activeSessionRunning && session.id === activeSessionId"
+                    grouping="project"
+                    :now="now"
+                    :message-count="cardFootById.get(session.id)?.messageCount ?? null"
+                    :model-provider="cardFootById.get(session.id)?.modelProvider ?? ''"
+                    @navigate="onSessionNavigate(session.cwd)"
+                    @rename="renameSession"
+                    @delete="deleteSession"
+                  />
+                  <button
+                    v-if="row.more"
+                    class="more-button"
+                    type="button"
+                    @click="bumpGroup(row.key)"
+                  >
+                    显示更多
+                  </button>
+                </div>
+              </Transition>
+            </li>
+          </ul>
+          <ul v-else-if="showList" v-bind="wrapperProps">
+            <li v-for="item in list" :key="item.data.key" :class="`row-${item.data.kind}`">
               <SessionItem
-                v-else-if="item.data.kind === 'session'"
+                v-if="item.data.kind === 'session'"
                 :session="item.data.session"
                 :workspace-title="item.data.session.cwd ? workspaceName(item.data.session.cwd) : ''"
                 :active="item.data.session.id === activeSessionId"
@@ -58,7 +87,7 @@
                 @delete="deleteSession"
               />
               <button
-                v-else
+                v-else-if="item.data.kind === 'more'"
                 class="more-button"
                 type="button"
                 @click="bumpGroup(item.data.groupKey)"
@@ -95,7 +124,7 @@ import { useSession } from "@features/session-workbench/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
-import { filterSessionsForSearch } from "@features/session-nav/lib/session-list.js"
+import { filterSessionsForSearch, type SidebarRow } from "@features/session-nav/lib/session-list.js"
 
 defineProps<{
   collapsed?: boolean
@@ -132,26 +161,21 @@ const visibleSessions = computed(() =>
 )
 const rows = rowsFor(searching, visibleSessions)
 const showList = computed(() =>
-  searching.value ? rows.value.some((row) => row.kind === "session") : rows.value.length > 0,
+  searching.value ? rows.value.some(rowHasSession) : rows.value.length > 0,
+)
+const groupRows = computed(() =>
+  rows.value.filter((row): row is Extract<SidebarRow, { kind: "group" }> => row.kind === "group"),
 )
 
-const GROUP_ROW_PX = 36
 const SESSION_ROW_PX = 56
 const MORE_ROW_PX = 34
-const WELL_PAD = 4
-const WELL_GAP = 8
 const { list, containerProps, wrapperProps } = useVirtualList(rows, {
-  itemHeight: (index) => {
-    const row = rows.value[index]
-    const base =
-      row?.kind === "group" ? GROUP_ROW_PX : row?.kind === "more" ? MORE_ROW_PX : SESSION_ROW_PX
-    const well = row?.well
-    if (well === "start") return base + WELL_PAD
-    if (well === "end") return base + WELL_GAP
-    if (well === "solo") return base + WELL_PAD + WELL_GAP
-    return base
-  },
+  itemHeight: (index) => (rows.value[index]?.kind === "more" ? MORE_ROW_PX : SESSION_ROW_PX),
 })
+
+function rowHasSession(row: SidebarRow) {
+  return row.kind === "session" || (row.kind === "group" && row.sessions.length > 0)
+}
 
 watch(workspaceError, (message) => {
   const text = message.trim()
@@ -298,6 +322,9 @@ html[data-pig-desktop-platform] .session-nav input {
   scrollbar-gutter: stable;
 }
 
+.session-list {
+  padding-inline-end: var(--spacing-xs);
+}
 .session-list ul {
   display: flex;
   flex-direction: column;
@@ -311,25 +338,19 @@ html[data-pig-desktop-platform] .session-nav input {
 .row-session {
   padding-inline-end: var(--spacing-xxs);
 }
-.well-start,
-.well-mid,
-.well-end,
-.well-solo {
-  padding-inline: var(--spacing-xxs);
+.row-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+  margin-bottom: var(--spacing-xs);
+  padding: var(--spacing-xxs);
+  border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--ink) 8%, var(--sidebar));
 }
-.well-start {
-  padding-top: var(--spacing-xxs);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-.well-end {
-  margin-bottom: var(--spacing-xs);
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-}
-.well-solo {
-  padding-top: var(--spacing-xxs);
-  margin-bottom: var(--spacing-xs);
-  border-radius: var(--radius-lg);
+.group-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
 }
 .more-button {
   display: flex;
