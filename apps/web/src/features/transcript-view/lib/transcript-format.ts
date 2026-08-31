@@ -69,9 +69,6 @@ const PATH_CMD_KEYS = [
 
 const TOOL_HINT_KEYS = [...PATH_CMD_KEYS, "query", "pattern", "glob", "url"] as const
 
-const RESULT_COUNT_MAX_LINES = 40
-const RESULT_COUNT_MAX_LINE_LENGTH = 160
-
 function jsonText(value: unknown, pretty = false): string {
   if (value === undefined) return ""
   try {
@@ -124,16 +121,7 @@ export function toolInputPretty(input: unknown): string {
   return hasToolInput(input) ? jsonText(input, true) : ""
 }
 
-function resultCount(text: string): number | null {
-  const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0)
-  if (lines.length < 2 || lines.length > RESULT_COUNT_MAX_LINES) return null
-  if (lines.some((line) => line.length > RESULT_COUNT_MAX_LINE_LENGTH)) return null
-  return lines.length
-}
-
-/**
- * 折叠顶栏右侧摘要。标题已含 path / cmd，这里只留失败和短列表条数。
- */
+/** 折叠顶栏右侧摘要，只留失败和图片提示。 */
 export function toolCallSummary(item: {
   isError: boolean
   running: boolean
@@ -142,8 +130,6 @@ export function toolCallSummary(item: {
 }): string {
   if (item.isError) return "失败"
   if (item.running) return ""
-  const count = resultCount(item.outputText)
-  if (count != null) return `${count} 条结果`
   if (!item.outputText && item.outputImages.length > 0) {
     return item.outputImages.length === 1 ? "1 张图片" : `${item.outputImages.length} 张图片`
   }
@@ -180,11 +166,12 @@ export function toolCallKindLabel(toolName: string): string {
 
 export function toolCallDetail(toolName: string, input: unknown): string {
   const name = toolName.trim().toLowerCase()
-  const hint = clipTitleObject(toolInputHint(input))
+  const hint = toolInputHint(input)
   if (!hint) return ""
-  if (name === "bash") return `"${hint}"`
   if (name === "read" || name === "write" || name === "edit") return fileName(hint)
-  return hint
+  const clipped = clipTitleObject(hint)
+  if (name === "bash") return `"${clipped}"`
+  return clipped
 }
 
 /** 顶栏标题：种类 + 入参对象。 */

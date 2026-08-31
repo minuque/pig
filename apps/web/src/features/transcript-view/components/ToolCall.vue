@@ -161,7 +161,7 @@ function onToggle() {
   border-radius: 0;
   background: transparent;
   color: var(--ink-muted);
-  font-size: var(--text-caption);
+  font-size: var(--text-body-sm);
   font-weight: inherit;
   text-align: left;
 }
@@ -227,8 +227,12 @@ function onToggle() {
   padding-inline: 8px;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  font-size: var(--text-caption-mono);
+  font-size: inherit;
   letter-spacing: 0;
+}
+.pill.is-file {
+  flex: 0 1 auto;
+  max-width: none;
 }
 .pill-icon {
   flex: none;
@@ -239,6 +243,10 @@ function onToggle() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.pill.is-file .pill-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .summary {
   flex: none;

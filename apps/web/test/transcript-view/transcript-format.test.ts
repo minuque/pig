@@ -79,13 +79,28 @@ describe("tool call title", () => {
       input: { path: "src/app/page.tsx" },
     })
     expect(toolCallTitle(running.toolName, running.input)).toBe("Read page.tsx")
+    const filename = "pi-powershell-transcript-check-with-complete-filename.log"
+    expect(
+      toolCallTitle("read", { path: `C:\\Users\\10537\\AppData\\Local\\Temp\\${filename}` }),
+    ).toBe(`Read ${filename}`)
+    expect(toolCallTitle("read", { path: `/tmp/transcript-check/${filename}` })).toBe(
+      `Read ${filename}`,
+    )
     expect(toolCallTitle("bash", { command: "git status" })).toBe('Run "git status"')
     expect(toolCallTitle("web_search", { query: "vue sfc" })).toBe("web_search vue sfc")
   })
 })
 
 describe("tool call summary", () => {
-  it("running has no summary, errors say 失败", () => {
+  it("running and text results have no summary, errors say 失败", () => {
+    expect(
+      toolCallSummary({
+        isError: false,
+        running: false,
+        outputText: "first result\nsecond result",
+        outputImages: [],
+      }),
+    ).toBe("")
     expect(
       toolCallSummary({
         isError: false,

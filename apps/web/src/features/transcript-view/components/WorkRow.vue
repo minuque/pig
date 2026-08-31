@@ -91,9 +91,9 @@ const steps = computed(() => workSteps(props.row))
 }
 .fold-label {
   color: inherit;
-  font-size: var(--text-caption);
+  font-size: var(--text-body-sm);
   font-weight: var(--font-weight-regular);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--text-body-sm--line-height);
 }
 .caret {
   flex: none;

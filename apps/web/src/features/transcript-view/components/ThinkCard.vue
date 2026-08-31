@@ -1,7 +1,7 @@
 <template>
   <div class="call">
     <button type="button" class="toggle" :class="{ open }" :disabled="streaming" @click="onToggle">
-      <Asterisk class="icon" :size="16" />
+      <Brain class="icon" :size="16" />
       <span class="kind">Think</span>
       <span v-if="detail" class="detail">{{ detail }}</span>
       <ChevronRight class="caret caret-hint" :size="14" />
@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Asterisk, ChevronRight } from "lucide-vue-next"
+import { Brain, ChevronRight } from "lucide-vue-next"
 import ThinkingBlocks from "@features/transcript-view/components/ThinkingBlocks.vue"
 
 const props = defineProps<{
@@ -51,7 +51,7 @@ function onToggle() {
   border-radius: 0;
   background: transparent;
   color: var(--ink-muted);
-  font-size: var(--text-caption);
+  font-size: var(--text-body-sm);
   font-weight: inherit;
   text-align: left;
 }
