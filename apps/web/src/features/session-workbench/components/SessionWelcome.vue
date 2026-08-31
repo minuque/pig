@@ -26,11 +26,15 @@
   </section>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed, ref, watch } from "vue"
 import type { ChatInputPreset } from "@features/chat-input/types.js"
+import { useNav } from "@features/session-nav/index.js"
+import { useSession } from "@features/session-workbench/index.js"
+import ChatInput from "@features/chat-input/index.vue"
+import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 
-/** 外部禁用只拦无 workspace / 无 preset / 提交中。空白 prompt 由输入卡负责。 */
-export function canSubmit(
+function canSubmit(
   workspaceId: string | undefined,
   preset: ChatInputPreset | undefined,
   submitting: boolean,
@@ -38,8 +42,7 @@ export function canSubmit(
   return workspaceId !== undefined && preset !== undefined && !submitting
 }
 
-/** 当前选择仍存在于列表时保留，否则回退到最近使用的目录或第一个目录。 */
-export function nextWelcomeWorkspaceId(
+function nextWelcomeWorkspaceId(
   workspaces: readonly string[],
   current: string | undefined,
   lastCwd: string | undefined,
@@ -48,14 +51,6 @@ export function nextWelcomeWorkspaceId(
   if (lastCwd !== undefined && workspaces.includes(lastCwd)) return lastCwd
   return workspaces[0]
 }
-</script>
-
-<script setup lang="ts">
-import { computed, ref, watch } from "vue"
-import { useNav } from "@features/session-nav/index.js"
-import { useSession } from "@features/session-workbench/index.js"
-import ChatInput from "@features/chat-input/index.vue"
-import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
 const { catalog, preset, createAndSubmit } = useSession()

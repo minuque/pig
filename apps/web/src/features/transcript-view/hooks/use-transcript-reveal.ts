@@ -13,8 +13,7 @@ function prefersReducedMotion() {
   )
 }
 
-/** 积压加压揭示：少则从容，多则加快，速度有上限。 */
-export function computeAdaptiveQueueStep(
+function computeAdaptiveQueueStep(
   backlog: number,
   dtMs: number,
   debt: number,

@@ -40,18 +40,6 @@
   </div>
 </template>
 
-<script lang="ts">
-/** 无 transcript 且未运行：居中空画布。加载中、运行中即使无行也不走空画布。 */
-export function isEmptyCanvas(
-  transcriptLength: number,
-  running: boolean,
-  pending = false,
-): boolean {
-  if (pending) return false
-  return transcriptLength === 0 && !running
-}
-</script>
-
 <script setup lang="ts">
 import { computed } from "vue"
 import { useRoute } from "vue-router"
@@ -64,6 +52,11 @@ import { useConversationWidth } from "@features/session-workbench/hooks/use-conv
 import TranscriptView from "@features/transcript-view/index.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import StartupError from "@features/startup/components/StartupError.vue"
+
+function isEmptyCanvas(transcriptLength: number, running: boolean, pending = false): boolean {
+  if (pending) return false
+  return transcriptLength === 0 && !running
+}
 
 const route = useRoute()
 const { sessionId, transcript, running, sessionPending, connectionError, connected } = useSession()

@@ -33,19 +33,16 @@
   </div>
 </template>
 
-<script lang="ts">
-/** 键盘守卫：仅裸 Enter 触发提交；Shift+Enter 换行、IME 组合期间一律放行。 */
-export function shouldSubmitOnKeydown(e: {
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue"
+
+function shouldSubmitOnKeydown(e: {
   key: string
   shiftKey: boolean
   isComposing: boolean
 }): boolean {
   return e.key === "Enter" && !e.shiftKey && !e.isComposing
 }
-</script>
-
-<script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue"
 
 const props = withDefaults(
   defineProps<{

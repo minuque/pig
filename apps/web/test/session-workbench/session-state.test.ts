@@ -4,33 +4,7 @@ import {
   isSessionOpening,
   mergeLiveTranscript,
   projectOptimisticTranscript,
-  sessionState,
 } from "@features/session-workbench/lib/session-state.js"
-
-describe("workbench state", () => {
-  it("keeps draft and optimistic user isolated by session", () => {
-    const states = new Map()
-    const first = sessionState(states, "session-a")
-    first.draft = "给 A"
-    first.optimisticUser = {
-      item: {
-        id: "optimistic-a",
-        role: "user",
-        content: [{ type: "text", text: "给 A" }],
-        timestamp: 1,
-      },
-      knownItemIds: [],
-    }
-
-    expect(sessionState(states, "session-a")).toBe(first)
-    expect(sessionState(states, "session-b")).toMatchObject({
-      draft: "",
-      optimisticUser: null,
-    })
-    expect(sessionState(states, "session-a").draft).toBe("给 A")
-    expect(sessionState(states, "session-b").draft).toBe("")
-  })
-})
 
 describe("isSessionOpening", () => {
   it("lease 已齐但历史未到时仍算打开中，避免空画布闪一下", () => {

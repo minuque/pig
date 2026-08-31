@@ -25,14 +25,6 @@ export interface ContextUsage {
   segments: ContextUsageSegment[]
 }
 
-/** 欢迎页不传 cwd/usage，不展示底栏。 */
-export function shouldShowChatInputMeta(
-  cwd: string | undefined,
-  usage: ContextUsage | undefined,
-): boolean {
-  return cwd !== undefined || usage !== undefined
-}
-
 function finiteTokens(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0
 }

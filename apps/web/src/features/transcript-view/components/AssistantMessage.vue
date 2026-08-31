@@ -8,9 +8,14 @@
   </article>
 </template>
 
-<script lang="ts">
-/** 聊天流式关掉虚拟窗口，节点随正文往下长，外层才能贴底跟随。 */
-export function assistantMarkdownFlags(streaming: boolean) {
+<script setup lang="ts">
+import MarkdownRender from "markstream-vue"
+import { computed } from "vue"
+import type { AssistantRow } from "@features/transcript-view/lib/transcript-rows.js"
+import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
+import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
+
+function assistantMarkdownFlags(streaming: boolean) {
   return {
     final: !streaming,
     typewriter: false as const,
@@ -20,14 +25,6 @@ export function assistantMarkdownFlags(streaming: boolean) {
     batchRendering: false,
   }
 }
-</script>
-
-<script setup lang="ts">
-import MarkdownRender from "markstream-vue"
-import { computed } from "vue"
-import type { AssistantRow } from "@features/transcript-view/lib/transcript-rows.js"
-import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
-import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const props = withDefaults(
   defineProps<{

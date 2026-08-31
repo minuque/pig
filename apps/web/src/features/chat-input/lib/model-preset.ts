@@ -4,7 +4,7 @@ import type {
   ChatInputVendor,
 } from "@features/chat-input/types.js"
 
-export function filterCatalog(catalog: ChatInputVendor[], query: string): ChatInputVendor[] {
+function filterCatalog(catalog: ChatInputVendor[], query: string): ChatInputVendor[] {
   const q = query.trim().toLowerCase()
   if (!q) return catalog
   return catalog

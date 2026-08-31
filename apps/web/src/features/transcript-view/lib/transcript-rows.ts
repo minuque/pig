@@ -166,7 +166,7 @@ function turnSegments(items: readonly TranscriptItem[]): TurnSegment[] {
   return segments
 }
 
-export function toolKindOfTool(toolName: string): ToolKind {
+function toolKindOfTool(toolName: string): ToolKind {
   const name = toolName.trim().toLowerCase()
   if (name === "read") return "read"
   if (isCommandTool(name)) return "command"

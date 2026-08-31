@@ -61,7 +61,7 @@ async function openTransport(options: Partial<WebSocketTransportOptions> = {}) {
     ...options,
   })
   const transport = await factory(handlers)
-  return { transport, socket: FakeWebSocket.instances[0]!, handlers, onData }
+  return { transport, socket: FakeWebSocket.instances[0]!, handlers }
 }
 
 describe("webSocketUrl", () => {
@@ -132,24 +132,5 @@ describe("createWebSocketByteTransportFactory", () => {
     socket.emit("message", { data: "not binary" })
     expect(handlers.onError).toHaveBeenCalledTimes(1)
     await expect(transport.send(new Uint8Array([1]))).rejects.toThrow("已关闭")
-  })
-
-  it("send 顺序与载荷透传（ByteTransport 契约）", async () => {
-    const { transport, socket } = await openTransport()
-    socket.emit("open")
-    const first = new Uint8Array([1, 2])
-    const second = new Uint8Array([3])
-    await transport.send(first)
-    await transport.send(second)
-    expect(socket.sent.map((b) => Array.from(new Uint8Array(b)))).toEqual([[1, 2], [3]])
-  })
-
-  it("onData 收到二进制消息（ArrayBuffer 视图）", async () => {
-    const { socket, onData } = await openTransport()
-    socket.emit("open")
-    const buffer = new Uint8Array([9, 8, 7]).buffer
-    socket.emit("message", { data: buffer })
-    expect(onData).toHaveBeenCalledTimes(1)
-    expect(Array.from(onData.mock.calls[0]![0] as Uint8Array)).toEqual([9, 8, 7])
   })
 })

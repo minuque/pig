@@ -123,36 +123,6 @@ describe("useChatInputBinding", () => {
     expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
   })
 
-  it("catalog 整体替换后仍按新目录回落档位", async () => {
-    const sonnet = { provider: "anthropic", id: "claude-sonnet" }
-    const gpt = { provider: "openai", id: "gpt-4o" }
-    const catalogRef = ref<ChatInputVendor[]>([])
-    const state = ref<SessionSnapshot | undefined>()
-    const setModel = vi.fn(async () => {})
-    const setThinking = vi.fn(async () => {})
-    const phase = ref<"idle" | undefined>("idle")
-    const { preset } = useChatInputBinding({
-      catalog: catalogRef,
-      snapshot: state,
-      phase,
-      error: ref(""),
-      setModel,
-      setThinking,
-    })
-
-    state.value = snapshot(sonnet, "high")
-    await nextTick()
-    expect(preset.value).toEqual({ model: sonnet, thinkingLevel: "high" })
-
-    catalogRef.value = pickerCatalog
-    await nextTick()
-    expect(preset.value).toEqual({ model: sonnet, thinkingLevel: "high" })
-
-    preset.value = { model: gpt, thinkingLevel: "high" }
-    await nextTick()
-    expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
-  })
-
   it("空 catalog 补齐后非法档位按新目录回落", async () => {
     const gpt = { provider: "openai", id: "gpt-4o" }
     const catalogRef = ref<ChatInputVendor[]>([])

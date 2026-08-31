@@ -1,22 +1,17 @@
 import { inject, onBeforeUnmount, shallowRef, watch, type ShallowRef } from "vue"
 import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
 
-export const CONTENT_WIDTH_KEY = "pig.conversation.contentWidth"
+const CONTENT_WIDTH_KEY = "pig.conversation.contentWidth"
+const CONTENT_DRAG_MIN = 640
+const CONTENT_EDGE_BUDGET = 176 // 每侧 88px
 
-/** 拖拽下限，与列两侧手柄热区预算对齐。 */
-export const CONTENT_DRAG_MIN = 640
-/** 每侧 88px（24 内缩 + 40 热区 + 24 安全区）。 */
-export const CONTENT_EDGE_BUDGET = 176
-
-/** 解析持久化的正文宽度：非正有限数丢弃。 */
-export function parseContentWidth(raw: string | null): number | null {
+function parseContentWidth(raw: string | null): number | null {
   if (raw == null || raw.trim() === "") return null
   const n = Number(raw)
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
-/** 列宽上的显示宽度：钳制偏好，不低于拖拽下限、不超过列侧预算。 */
-export function resolveContentWidth(columnWidth: number, preference: number): number {
+function resolveContentWidth(columnWidth: number, preference: number): number {
   const max = Math.max(CONTENT_DRAG_MIN, columnWidth - CONTENT_EDGE_BUDGET)
   return Math.min(Math.max(preference, CONTENT_DRAG_MIN), max)
 }
@@ -37,7 +32,6 @@ function persistPreference(width: number) {
   }
 }
 
-/** 会话列正文宽度轴：观察列宽、发布 CSS 变量、拖拽覆盖与存储。 */
 export function useConversationWidth(): {
   resizing: Readonly<ShallowRef<boolean>>
   bindColumn: (el: unknown) => void

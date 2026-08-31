@@ -110,10 +110,7 @@ import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel
 import ModelPicker from "@features/chat-input/components/ModelPicker.vue"
 import ThinkingLevelSelect from "@features/chat-input/components/ThinkingLevelSelect.vue"
 import PromptEditor from "@features/chat-input/components/PromptEditor.vue"
-import {
-  shouldShowChatInputMeta,
-  type ContextUsage,
-} from "@features/chat-input/lib/context-usage.js"
+import { type ContextUsage } from "@features/chat-input/lib/context-usage.js"
 import { resolveModelInfo } from "@features/chat-input/lib/model-preset.js"
 import {
   MAX_CHAT_INPUT_ATTACHMENTS,
@@ -186,7 +183,7 @@ const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisab
 const promptEditor = ref<{ focus: () => void } | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const usageOpen = ref(false)
-const showMeta = computed(() => shouldShowChatInputMeta(props.cwd, props.usage))
+const showMeta = computed(() => props.cwd !== undefined || props.usage !== undefined)
 
 watch(
   () => [props.cwd, props.sessionId] as const,

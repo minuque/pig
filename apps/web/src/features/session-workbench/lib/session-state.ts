@@ -24,7 +24,6 @@ export interface SessionClientState {
 export function sessionState(states: Map<string, SessionClientState>, sessionId: string) {
   let state = states.get(sessionId)
   if (!state) {
-    // reactive：UI 私有状态写入必须被响应式追踪（如 draft 清空后 PromptEditor 同步）
     state = reactive({ draft: "", optimisticUser: null })
     states.set(sessionId, state)
   }

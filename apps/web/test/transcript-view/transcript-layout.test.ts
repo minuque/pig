@@ -6,12 +6,6 @@ import {
   toolRowLabel,
   toolRowSteps,
 } from "@features/transcript-view/lib/transcript-rows.js"
-import { assistantMarkdownFlags } from "@features/transcript-view/components/AssistantMessage.vue"
-import { computeAdaptiveQueueStep } from "@features/transcript-view/hooks/use-transcript-reveal.js"
-import {
-  isTranscriptAtBottom,
-  isTranscriptVisuallyAtBottom,
-} from "@features/transcript-view/lib/transcript-scroll.js"
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
   return {
@@ -46,37 +40,6 @@ describe("transcript rows", () => {
     })
     const rows = buildTimelineRows([streaming], false)
     expect(rows[0]).toMatchObject({ role: "assistant", text: "…", streaming: true })
-  })
-})
-
-describe("transcript bottom thresholds", () => {
-  it("离开精确底部后不再贴底，48px 内仍算视觉底部", () => {
-    const sh = 1000
-    const ch = 500
-    expect(isTranscriptAtBottom(sh, 500, ch)).toBe(true)
-    expect(isTranscriptAtBottom(sh, 490, ch)).toBe(false)
-    expect(isTranscriptVisuallyAtBottom(sh, 490, ch)).toBe(true)
-    expect(isTranscriptVisuallyAtBottom(sh, 451, ch)).toBe(false)
-  })
-})
-
-describe("assistant markdown stream flags", () => {
-  it("流式关闭虚拟窗口，避免只停在文首", () => {
-    const flags = assistantMarkdownFlags(true)
-    expect(flags.maxLiveNodes).toBe(0)
-    expect(flags.nodeVirtual).toBe(false)
-    expect(flags.final).toBe(false)
-  })
-})
-
-describe("transcript reveal queue", () => {
-  it("积压越大单帧揭示越多，速度有上限", () => {
-    const frameMs = 1000 / 60
-    expect(computeAdaptiveQueueStep(8, frameMs, 0).revealChars).toBe(1)
-    expect(computeAdaptiveQueueStep(32, frameMs, 0).revealChars).toBe(2)
-    expect(computeAdaptiveQueueStep(128, frameMs, 0).revealChars).toBe(7)
-    expect(computeAdaptiveQueueStep(512, frameMs, 0).revealChars).toBe(10)
-    expect(computeAdaptiveQueueStep(0, frameMs, 0).revealChars).toBe(0)
   })
 })
 

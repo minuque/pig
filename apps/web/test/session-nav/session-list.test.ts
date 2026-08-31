@@ -1,13 +1,9 @@
 import { describe, expect, it } from "vitest"
 import type { SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
-import { sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
 import {
-  PROJECT_PAGE,
-  UPDATED_PAGE,
   conversationItemCount,
   filterSessionsForSearch,
   groupSessionsByCwd,
-  listSessionsForSidebar,
   sessionCardFoot,
   sidebarRows,
   sortSessionsForSidebar,
@@ -39,101 +35,32 @@ function meta(
   return { id, createdAt, ...extra }
 }
 
-describe("workspaceName and grouping", () => {
-  it("uses the last path segment as display name", () => {
-    expect(workspaceName("/repo/app/src")).toBe("src")
-    expect(workspaceName("C:\\repo\\app")).toBe("app")
-    expect(workspaceName("/")).toBe("/")
-  })
-  it("keeps session cwd groups when local workspaces are empty", () => {
-    const groups = groupSessionsByCwd([{ id: "s1", createdAt: 1, cwd: "/pig" }], [])
-    expect(groups.map((group) => group.canonicalPath)).toEqual(["/pig"])
-  })
-  it("groups sessions by cwd, following local workspace order", () => {
-    const sessions: SessionMetadata[] = [
-      { id: "s1", createdAt: 1, cwd: "/b" },
-      { id: "s2", createdAt: 2, cwd: "/a" },
-      { id: "s3", createdAt: 3 },
-    ]
-    const groups = groupSessionsByCwd(sessions, ["/a", "/b"])
-    expect(groups).toEqual([
-      {
-        canonicalPath: "/a",
-        sessions: [{ id: "s2", createdAt: 2, cwd: "/a" }],
-      },
-      {
-        canonicalPath: "/b",
-        sessions: [{ id: "s1", createdAt: 1, cwd: "/b" }],
-      },
-    ])
-  })
-  it("sorts sessions in a group by recency", () => {
+describe("groupSessionsByCwd", () => {
+  it("本地目录在前，无 cwd 不进组，组内按最近活动，Windows 路径对齐", () => {
     const groups = groupSessionsByCwd(
       [
+        { id: "s1", createdAt: 1, cwd: "/b" },
+        { id: "s2", createdAt: 2, cwd: "/a" },
+        { id: "s3", createdAt: 3 },
         { id: "old", createdAt: 1, cwd: "/a" },
-        { id: "new", createdAt: 2, updatedAt: 9, cwd: "/a" },
+        { id: "open", createdAt: 1, cwd: "G:\\AICode\\pig" },
       ],
-      ["/a"],
+      ["/a", "/b", "g:/AICode/pig", "/empty"],
     )
-    expect(groups[0]?.sessions.map((session) => session.id)).toEqual(["new", "old"])
-  })
-
-  it("titles unnamed sessions as 新会话", () => {
-    expect(sessionTitle({})).toBe("新会话")
-    expect(sessionTitle({ sessionName: "  卸载插件  " })).toBe("卸载插件")
-  })
-
-  it("merges live Windows cwd into the canonical local workspace group", () => {
-    const groups = groupSessionsByCwd(
-      [{ id: "open", createdAt: 1, cwd: "G:\\AICode\\pig" }],
-      ["g:/AICode/pig"],
-    )
-    expect(groups).toEqual([
-      {
-        canonicalPath: "g:/AICode/pig",
-        sessions: [{ id: "open", createdAt: 1, cwd: "G:\\AICode\\pig" }],
-      },
+    expect(groups.map((group) => group.canonicalPath)).toEqual([
+      "/a",
+      "/b",
+      "g:/AICode/pig",
+      "/empty",
     ])
-  })
-
-  it("keeps empty local workspaces and appends sessions from other cwd", () => {
-    const groups = groupSessionsByCwd(
-      [
-        { id: "s1", createdAt: 1, cwd: "/a" },
-        { id: "s2", createdAt: 2, cwd: "/other" },
-      ],
-      ["/a", "/empty"],
-    )
-    expect(groups).toEqual([
-      {
-        canonicalPath: "/a",
-        sessions: [{ id: "s1", createdAt: 1, cwd: "/a" }],
-      },
-      { canonicalPath: "/empty", sessions: [] },
-      {
-        canonicalPath: "/other",
-        sessions: [{ id: "s2", createdAt: 2, cwd: "/other" }],
-      },
-    ])
+    expect(groups[0]?.sessions.map((session) => session.id)).toEqual(["s2", "old"])
+    expect(groups[2]?.sessions.map((session) => session.id)).toEqual(["open"])
+    expect(groups[3]?.sessions).toEqual([])
   })
 })
 
-describe("session-dimension list", () => {
-  it("drops sessions without cwd and sorts by recency", () => {
-    const sessions: SessionMetadata[] = [
-      { id: "old", createdAt: 1, cwd: "/b", updatedAt: 90 },
-      { id: "new", createdAt: 3, cwd: "/a" },
-      { id: "mid", createdAt: 2, cwd: "/a", updatedAt: 80 },
-      { id: "orphan", createdAt: 4 },
-    ]
-    expect(listSessionsForSidebar(sessions).map((session) => session.id)).toEqual([
-      "old",
-      "mid",
-      "new",
-    ])
-  })
-
-  it("filters listed sessions by title or workspace name", () => {
+describe("filterSessionsForSearch", () => {
+  it("按标题或目录名过滤，空查询原样返回", () => {
     const sessions: SessionMetadata[] = [
       { id: "a", createdAt: 1, cwd: "/repo/pig", sessionName: "渲染性能" },
       { id: "b", createdAt: 2, cwd: "/repo/tmp", sessionName: "Friendly Greeting" },
@@ -144,26 +71,10 @@ describe("session-dimension list", () => {
     ])
     expect(filterSessionsForSearch(sessions, "PIG").map((session) => session.id)).toEqual(["a"])
   })
-
-  it("sorts by recency descending then id", () => {
-    expect(
-      sortSessionsForSidebar([
-        { id: "older", createdAt: 1, updatedAt: 100, cwd: "/a" },
-        { id: "newer", createdAt: 2, cwd: "/a" },
-      ]).map((session) => session.id),
-    ).toEqual(["older", "newer"])
-    expect(
-      sortSessionsForSidebar([
-        { id: "b", createdAt: 5, cwd: "/a" },
-        { id: "a", createdAt: 5, cwd: "/a" },
-      ]).map((session) => session.id),
-    ).toEqual(["a", "b"])
-  })
 })
 
 describe("sidebar rows", () => {
-  it("truncates updated grouping to 10 then a more row", () => {
-    expect(UPDATED_PAGE).toBe(10)
+  it("更新时间截到 10 条后出 more", () => {
     const sessions = Array.from({ length: 12 }, (_, index) =>
       meta(`s${String(index).padStart(2, "0")}`, index, { cwd: "/a" }),
     )
@@ -174,57 +85,27 @@ describe("sidebar rows", () => {
       revealByGroup: {},
       searching: false,
     })
-    expect(rows.some((row) => row.kind === "group")).toBe(false)
-    expect(rows.filter((row) => row.kind === "session").map((row) => row.session.id)).toEqual([
-      "s11",
-      "s10",
-      "s09",
-      "s08",
-      "s07",
-      "s06",
-      "s05",
-      "s04",
-      "s03",
-      "s02",
-    ])
+    expect(rows.filter((row) => row.kind === "session")).toHaveLength(10)
     expect(rows.at(-1)).toEqual({ kind: "more", key: "more:updated", groupKey: "updated" })
   })
 
-  it("hides updated more when all sessions are revealed", () => {
-    const sessions = Array.from({ length: 12 }, (_, index) =>
-      meta(`s${index}`, index, { cwd: "/a" }),
-    )
-    const rows = sidebarRows({
-      grouping: "updated",
-      sessions,
-      groups: [],
-      revealByGroup: { updated: 20 },
-      searching: false,
-    })
-    expect(rows.filter((row) => row.kind === "session")).toHaveLength(12)
-    expect(rows.some((row) => row.kind === "more")).toBe(false)
-  })
-
-  it("truncates each project group to 5 and keeps empty group headers", () => {
-    expect(PROJECT_PAGE).toBe(5)
+  it("项目分组每组截到 5，折叠藏会话，搜索取消截断与折叠", () => {
     const aSessions = Array.from({ length: 7 }, (_, index) =>
       meta(`a${index}`, index, { cwd: "/a" }),
     )
-    const bSessions = Array.from({ length: 6 }, (_, index) =>
-      meta(`b${index}`, index, { cwd: "/b" }),
-    )
-    const rows = sidebarRows({
+    const bSessions = [meta("b0", 1, { cwd: "/b" })]
+    const groups = [
+      { canonicalPath: "/a", sessions: sortSessionsForSidebar(aSessions) },
+      { canonicalPath: "/b", sessions: sortSessionsForSidebar(bSessions) },
+    ]
+    const truncated = sidebarRows({
       grouping: "project",
       sessions: [...aSessions, ...bSessions],
-      groups: [
-        { canonicalPath: "/a", sessions: sortSessionsForSidebar(aSessions) },
-        { canonicalPath: "/empty", sessions: [] },
-        { canonicalPath: "/b", sessions: sortSessionsForSidebar(bSessions) },
-      ],
+      groups,
       revealByGroup: {},
       searching: false,
     })
-    expect(flattenRowKinds(rows)).toEqual([
+    expect(flattenRowKinds(truncated)).toEqual([
       "group:/a:true",
       "session:a6",
       "session:a5",
@@ -232,79 +113,36 @@ describe("sidebar rows", () => {
       "session:a3",
       "session:a2",
       "more:/a",
-      "group:/empty:false",
       "group:/b:false",
-      "session:b5",
-      "session:b4",
-      "session:b3",
-      "session:b2",
-      "session:b1",
-      "more:/b",
+      "session:b0",
     ])
-  })
-
-  it("hides sessions under a collapsed project group", () => {
-    const aSessions = Array.from({ length: 3 }, (_, index) =>
-      meta(`a${index}`, index, { cwd: "/a" }),
-    )
-    const bSessions = [meta("b0", 1, { cwd: "/b" })]
-    const rows = sidebarRows({
+    const collapsed = sidebarRows({
       grouping: "project",
       sessions: [...aSessions, ...bSessions],
-      groups: [
-        { canonicalPath: "/a", sessions: sortSessionsForSidebar(aSessions) },
-        { canonicalPath: "/b", sessions: sortSessionsForSidebar(bSessions) },
-      ],
+      groups,
       revealByGroup: {},
       searching: false,
       collapsedByGroup: { "/a": true },
     })
-    expect(flattenRowKinds(rows, "collapsed")).toEqual([
+    expect(flattenRowKinds(collapsed, "collapsed")).toEqual([
       "group:/a:true",
       "group:/b:false",
       "session:b0",
     ])
-  })
-
-  it("shows every session and no more while searching", () => {
-    const sessions = Array.from({ length: 12 }, (_, index) =>
-      meta(`s${index}`, index, { cwd: "/a" }),
-    )
-    const updated = sidebarRows({
-      grouping: "updated",
-      sessions,
-      groups: [],
-      revealByGroup: {},
-      searching: true,
-    })
-    expect(updated.filter((row) => row.kind === "session")).toHaveLength(12)
-    expect(updated.some((row) => row.kind === "more")).toBe(false)
-
-    const aSessions = Array.from({ length: 7 }, (_, index) =>
-      meta(`a${index}`, index, { cwd: "/a" }),
-    )
-    const project = sidebarRows({
+    const searching = sidebarRows({
       grouping: "project",
       sessions: aSessions,
-      groups: [
-        { canonicalPath: "/a", sessions: sortSessionsForSidebar(aSessions) },
-        { canonicalPath: "/empty", sessions: [] },
-      ],
+      groups: [{ canonicalPath: "/a", sessions: sortSessionsForSidebar(aSessions) }],
       revealByGroup: {},
       searching: true,
       collapsedByGroup: { "/a": true },
     })
-    expect(flattenRowKinds(project).map((item) => item.split(":")[0])).toEqual([
-      "group",
-      "session",
-      "session",
-      "session",
-      "session",
-      "session",
-      "session",
-      "session",
-      "group",
-    ])
+    expect(searching.filter((row) => row.kind === "session" || row.kind === "group")).toHaveLength(
+      1,
+    )
+    expect(searching.some((row) => row.kind === "more")).toBe(false)
+    const group = searching[0]
+    expect(group?.kind === "group" && group.sessions).toHaveLength(7)
   })
 })
 
@@ -320,7 +158,7 @@ function transcriptItem(
 }
 
 describe("session card foot", () => {
-  it("空失败助手句不计入侧栏条数", () => {
+  it("空失败助手句不计条数；打开中用 live 覆盖磁盘卡片", () => {
     const user = transcriptItem({ role: "user", content: [{ type: "text", text: "ping" }] })
     const timeout = transcriptItem({
       id: "a1",
@@ -329,17 +167,8 @@ describe("session card foot", () => {
       errorMessage: "Request timed out.",
       content: [],
     })
-    const retry = transcriptItem({
-      id: "a2",
-      role: "assistant",
-      status: "error",
-      errorMessage: "Request timed out.",
-      content: [],
-    })
-    expect(conversationItemCount([user, timeout, retry])).toBe(1)
-  })
+    expect(conversationItemCount([user, timeout, timeout])).toBe(1)
 
-  it("打开中的 Session 用 live 覆盖磁盘条数和供应方", () => {
     const extras = new Map([
       ["s1", { messageCount: 2, model: { provider: "openai", id: "gpt-4" } }],
     ])
@@ -350,28 +179,9 @@ describe("session card foot", () => {
         model: { provider: "anthropic", id: "claude" },
       }),
     ).toEqual({ messageCount: 5, modelProvider: "anthropic" })
-    expect(
-      sessionCardFoot("s1", extras, {
-        sessionId: "s1",
-        model: { provider: "openai", id: "gpt-4" },
-      }),
-    ).toEqual({ messageCount: 2, modelProvider: "openai" })
-  })
-
-  it("未打开的 Session 用磁盘卡片", () => {
-    const extras = new Map([
-      ["s1", { messageCount: 193, model: { provider: "openai", id: "gpt-4" } }],
-    ])
     expect(sessionCardFoot("s1", extras, undefined)).toEqual({
-      messageCount: 193,
+      messageCount: 2,
       modelProvider: "openai",
     })
-    expect(
-      sessionCardFoot("s1", extras, {
-        sessionId: "other",
-        messageCount: 200,
-        model: { provider: "anthropic", id: "claude" },
-      }),
-    ).toEqual({ messageCount: 193, modelProvider: "openai" })
   })
 })

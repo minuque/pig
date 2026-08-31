@@ -211,8 +211,7 @@ function transcriptText(item: TranscriptItem): string {
     .join("")
 }
 
-/** 空失败助手句是自动重试残留，不进侧栏条数。 */
-export function isRetryErrorItem(item: TranscriptItem): boolean {
+function isRetryErrorItem(item: TranscriptItem): boolean {
   if (item.role !== "assistant") return false
   if (item.status !== "error" && item.status !== "aborted") return false
   return transcriptText(item).length === 0
