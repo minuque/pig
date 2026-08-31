@@ -352,15 +352,18 @@ html[data-pig-desktop-platform] .session-nav input {
   padding-bottom: var(--spacing-xxs);
   border-radius: var(--radius-lg);
   background-color: transparent;
+  box-shadow: none;
   transition:
     background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
     padding var(--duration-fast) var(--ease-out),
     margin-bottom var(--duration-fast) var(--ease-out);
 }
 .row-group.is-open {
   margin-bottom: var(--spacing-xs);
   padding: var(--spacing-xxs);
-  background-color: color-mix(in srgb, var(--ink) 8%, var(--sidebar));
+  background-color: var(--nav-well);
+  box-shadow: var(--shadow-soft);
   transition-duration: var(--duration-slow);
 }
 .group-body {

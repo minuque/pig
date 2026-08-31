@@ -22,6 +22,7 @@
   --canvas-soft: #f9fafb;
   --surface: #ffffff;
   --sidebar: var(--canvas-soft);
+  --nav-well: #ffffff; /* Light+ editor */
   --chat-input: var(--canvas-soft);
   --bubble: color-mix(in srgb, var(--ink) 5%, var(--surface));
   --user-prompt-bg: var(--sidebar);
@@ -191,6 +192,7 @@
   --canvas-soft: #1b1b1c;
   --surface: #131313;
   --sidebar: #181818; /* VS Code Dark Modern sideBar.background */
+  --nav-well: #1e1e1e; /* Dark+ editor */
   --user-prompt-bg: #5b7ad4; /* 用户消息 prompt 气泡底色 */
   --chat-input: #121212;
   --bubble: #141414;
