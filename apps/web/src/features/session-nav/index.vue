@@ -347,13 +347,19 @@ html[data-pig-desktop-platform] .session-nav input {
 .row-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: var(--spacing-xs);
-  padding: var(--spacing-xxs);
+  margin-bottom: 0;
+  padding: 0;
+  padding-bottom: var(--spacing-xxs);
   border-radius: var(--radius-lg);
   background-color: transparent;
-  transition: background-color var(--duration-fast) var(--ease-out);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    padding var(--duration-fast) var(--ease-out),
+    margin-bottom var(--duration-fast) var(--ease-out);
 }
 .row-group.is-open {
+  margin-bottom: var(--spacing-xs);
+  padding: var(--spacing-xxs);
   background-color: color-mix(in srgb, var(--ink) 8%, var(--sidebar));
   transition-duration: var(--duration-slow);
 }
