@@ -334,15 +334,21 @@ function confirmDelete() {
   flex: 1;
   height: 100%;
   margin: 0;
-  padding: 0;
+  padding: 0 4px;
   border: 0;
-  background: transparent;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--ink) 10%, var(--surface));
   color: var(--ink);
+  caret-color: var(--primary);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-regular);
   line-height: var(--text-caption--line-height);
   outline: none;
-  box-shadow: inset 0 -1px 0 var(--hairline);
+  box-shadow: inset 0 0 0 1px var(--primary);
   user-select: text;
+}
+.rename-input::selection {
+  background: color-mix(in srgb, var(--primary) 35%, transparent);
+  color: var(--ink);
 }
 </style>
