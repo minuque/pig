@@ -10,7 +10,7 @@
       <span class="fold-label">{{ label }}</span>
       <ChevronRight class="caret caret-hint" :size="14" />
     </button>
-    <div class="body" :class="{ open: revealed }">
+    <div class="body" :class="{ open: bodyOpen }">
       <div class="steps" :class="{ wait: waiting }">
         <template v-if="!waiting">
           <template v-for="step in steps" :key="step.type === 'tool' ? step.item.id : step.id">
@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref, watch } from "vue"
 import { ChevronRight } from "lucide-vue-next"
 import ThinkCard from "@features/transcript-view/components/ThinkCard.vue"
 import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
@@ -67,14 +67,27 @@ const emit = defineEmits<{
 const folded = computed(() => props.row.mode === "fold")
 const live = computed(() => props.row.mode === "live")
 const revealed = computed(() => !folded.value || props.foldOpen)
+const bodyOpen = ref(revealed.value)
 const waiting = computed(
   () => live.value && props.row.tools.length === 0 && props.row.thinking.length === 0,
 )
-const sentinelText = computed(() =>
-  props.row.tools.some((item) => item.running) ? "正在执行" : "思考中",
-)
+const sentinelText = computed(() => (props.row.tools.length > 0 ? "正在执行" : "思考中"))
 const label = computed(() => toolRowLabel(props.row))
 const steps = computed(() => toolRowSteps(props.row))
+
+watch(
+  revealed,
+  (open) => {
+    if (open) {
+      bodyOpen.value = true
+      return
+    }
+    requestAnimationFrame(() => {
+      bodyOpen.value = false
+    })
+  },
+  { flush: "sync" },
+)
 </script>
 
 <style scoped>
