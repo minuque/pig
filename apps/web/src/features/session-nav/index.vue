@@ -30,7 +30,12 @@
       <div class="nav-body" v-bind="grouping === 'project' ? {} : containerProps">
         <nav class="session-list">
           <ul v-if="showList && grouping === 'project'">
-            <li v-for="row in groupRows" :key="row.key" class="row-group">
+            <li
+              v-for="row in groupRows"
+              :key="row.key"
+              class="row-group"
+              :class="{ 'is-open': !row.collapsed && (row.sessions.length > 0 || row.more) }"
+            >
               <GroupHead
                 :name="workspaceName(row.canonicalPath)"
                 :collapsed="row.collapsed"
@@ -345,7 +350,12 @@ html[data-pig-desktop-platform] .session-nav input {
   margin-bottom: var(--spacing-xs);
   padding: var(--spacing-xxs);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--ink) 8%, var(--sidebar));
+  background-color: transparent;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+.row-group.is-open {
+  background-color: color-mix(in srgb, var(--ink) 8%, var(--sidebar));
+  transition-duration: var(--duration-slow);
 }
 .group-body {
   display: flex;
@@ -396,7 +406,9 @@ html[data-pig-desktop-platform] .session-nav input {
   color: var(--ink);
 }
 @media (prefers-reduced-motion: reduce) {
-  .rail-action {
+  .rail-action,
+  .row-group,
+  .row-group.is-open {
     transition: none;
   }
 }
