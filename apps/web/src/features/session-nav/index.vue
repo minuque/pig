@@ -363,11 +363,15 @@ html[data-pig-desktop-platform] .session-nav input {
   margin-bottom: var(--spacing-xs);
   padding: var(--spacing-xxs);
   background-color: var(--nav-well);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.1),
+    0 2px 6px rgb(0 0 0 / 0.05);
   transition-duration: var(--duration-slow);
 }
 :global(html.dark) .row-group.is-open {
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.28);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 2px 8px rgb(0 0 0 / 0.22);
 }
 .group-body {
   display: flex;
