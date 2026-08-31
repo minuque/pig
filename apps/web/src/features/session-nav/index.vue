@@ -38,11 +38,12 @@
                 @toggle="toggleGroup(row.canonicalPath)"
                 @create="createSession(row.canonicalPath)"
               />
-              <Transition name="fold-reveal">
-                <div
-                  v-if="!row.collapsed && (row.sessions.length > 0 || row.more)"
-                  class="group-body"
-                >
+              <div
+                v-if="row.sessions.length > 0 || row.more"
+                class="fold-height"
+                :class="{ 'is-open': !row.collapsed }"
+              >
+                <div class="group-body">
                   <SessionItem
                     v-for="session in row.sessions"
                     :key="session.id"
@@ -67,7 +68,7 @@
                     显示更多
                   </button>
                 </div>
-              </Transition>
+              </div>
             </li>
           </ul>
           <ul v-else-if="showList" v-bind="wrapperProps">
@@ -323,7 +324,7 @@ html[data-pig-desktop-platform] .session-nav input {
 }
 
 .session-list {
-  padding-inline-end: var(--spacing-xs);
+  padding-inline-end: var(--spacing-xxs);
 }
 .session-list ul {
   display: flex;
@@ -341,7 +342,6 @@ html[data-pig-desktop-platform] .session-nav input {
 .row-group {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xxs);
   margin-bottom: var(--spacing-xs);
   padding: var(--spacing-xxs);
   border-radius: var(--radius-lg);
@@ -351,6 +351,7 @@ html[data-pig-desktop-platform] .session-nav input {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xxs);
+  padding-top: var(--spacing-xxs);
 }
 .more-button {
   display: flex;

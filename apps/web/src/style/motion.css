@@ -152,6 +152,20 @@
   filter: blur(4px);
 }
 
+.fold-height {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-fast) var(--ease-out);
+}
+.fold-height.is-open {
+  grid-template-rows: 1fr;
+  transition-duration: var(--duration-slow);
+}
+.fold-height > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
 .fade-layer-enter-active,
 .fade-layer-leave-active {
   transition: opacity var(--duration-normal) var(--ease-out);
@@ -196,6 +210,10 @@
   .panel-reveal-leave-to {
     transform: none;
     filter: none;
+  }
+  .fold-height,
+  .fold-height.is-open {
+    transition: none;
   }
   .fade-layer-enter-active,
   .fade-layer-leave-active {
