@@ -22,10 +22,18 @@
       >
         <SquarePen :size="16" />
       </button>
+      <button
+        class="icon-button rail-action press-scale"
+        type="button"
+        title="搜索"
+        @click="searchOpen = true"
+      >
+        <Search :size="16" />
+      </button>
     </template>
 
     <div v-show="!collapsed" class="nav-main">
-      <NavToolbar v-model:search-query="searchQuery" @new-session="onNewSession" />
+      <NavToolbar @new-session="onNewSession" @search="searchOpen = true" />
 
       <div class="nav-body" v-bind="grouping === 'project' ? {} : containerProps">
         <nav class="session-list">
@@ -110,12 +118,12 @@
                 添加本地目录
               </button>
             </template>
-            <span v-else-if="searching">没有匹配的会话</span>
             <span v-else>暂无会话</span>
           </div>
         </nav>
       </div>
     </div>
+    <SessionSearch v-model:open="searchOpen" @navigate="onSessionNavigate" />
   </div>
 </template>
 
@@ -123,14 +131,15 @@
 import { computed, shallowRef, watch } from "vue"
 import { useTimestamp, useVirtualList } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
-import { PanelLeft, Plus, SquarePen } from "lucide-vue-next"
+import { PanelLeft, Plus, Search, SquarePen } from "lucide-vue-next"
 import { notify } from "@components/ui/alert/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
-import { filterSessionsForSearch, type SidebarRow } from "@features/session-nav/lib/session-list.js"
+import SessionSearch from "@features/session-nav/components/SessionSearch.vue"
+import type { SidebarRow } from "@features/session-nav/lib/session-list.js"
 
 defineProps<{
   collapsed?: boolean
@@ -144,7 +153,6 @@ const emit = defineEmits<{
 const router = useRouter()
 const {
   groups,
-  listedSessions,
   cardFootById,
   grouping,
   bumpGroup,
@@ -159,16 +167,10 @@ const {
 } = useNav()
 const { creating, createSession } = useSession()
 
-const searchQuery = shallowRef("")
+const searchOpen = shallowRef(false)
 const now = useTimestamp({ interval: 60_000 })
-const searching = computed(() => searchQuery.value.trim() !== "")
-const visibleSessions = computed(() =>
-  filterSessionsForSearch(listedSessions.value, searchQuery.value),
-)
-const rows = rowsFor(searching, visibleSessions)
-const showList = computed(() =>
-  searching.value ? rows.value.some(rowHasSession) : rows.value.length > 0,
-)
+const rows = rowsFor(false)
+const showList = computed(() => rows.value.length > 0)
 const groupRows = computed(() =>
   rows.value.filter((row): row is Extract<SidebarRow, { kind: "group" }> => row.kind === "group"),
 )
@@ -178,10 +180,6 @@ const MORE_ROW_PX = 34
 const { list, containerProps, wrapperProps } = useVirtualList(rows, {
   itemHeight: (index) => (rows.value[index]?.kind === "more" ? MORE_ROW_PX : SESSION_ROW_PX),
 })
-
-function rowHasSession(row: SidebarRow) {
-  return row.kind === "session" || (row.kind === "group" && row.sessions.length > 0)
-}
 
 watch(workspaceError, (message) => {
   const text = message.trim()
@@ -362,6 +360,7 @@ html[data-pig-desktop-platform] .session-nav input {
 .row-group.is-open {
   margin-bottom: var(--spacing-xs);
   padding: var(--spacing-xxs);
+  border: 1px solid var(--color-border);
   background-color: var(--nav-well);
   box-shadow:
     0 1px 2px rgb(0 0 0 / 0.1),
