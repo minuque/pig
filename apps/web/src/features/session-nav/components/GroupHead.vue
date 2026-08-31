@@ -1,12 +1,9 @@
 <template>
   <div class="group-head">
     <button class="group-toggle" type="button" @click="emit('toggle')">
-      <span class="mark">
-        <ChevronRight
-          class="group-chevron motion-turn"
-          :class="{ 'is-on': !collapsed }"
-          :size="16"
-        />
+      <span class="mark icon-swap" :class="{ 'is-open': !collapsed }">
+        <Folder :size="16" :stroke-width="1.5" :data-visible="collapsed" />
+        <FolderOpen :size="16" :stroke-width="1.5" :data-visible="!collapsed" />
       </span>
       <span class="group-name">{{ name }}</span>
     </button>
@@ -23,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronRight, Plus } from "lucide-vue-next"
+import { Folder, FolderOpen, Plus } from "lucide-vue-next"
 
 defineProps<{
   name: string
@@ -63,18 +60,18 @@ const emit = defineEmits<{
   text-align: left;
 }
 .mark {
-  display: flex;
   flex: none;
-  align-items: center;
-  justify-content: center;
   width: 16px;
   height: 16px;
-}
-.group-chevron {
   color: var(--ink-faint);
+  transition: color var(--duration-fast) var(--ease-smooth);
 }
-.group-head:hover .group-chevron {
+.group-head:hover .mark {
   color: var(--ink-muted);
+}
+.mark.is-open,
+.group-head:hover .mark.is-open {
+  color: var(--primary);
 }
 .group-name {
   min-width: 0;
