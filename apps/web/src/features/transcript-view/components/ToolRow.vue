@@ -12,11 +12,7 @@
     </button>
     <div class="body" :class="{ open: revealed }">
       <div class="steps" :class="{ wait: waiting }">
-        <div v-if="waiting" class="waiting">
-          <ThinkingOrb />
-          <span>Thinking…</span>
-        </div>
-        <template v-else>
+        <template v-if="!waiting">
           <template v-for="step in steps" :key="step.type === 'tool' ? step.item.id : step.id">
             <ThinkCard
               v-if="step.type === 'thought'"
@@ -33,6 +29,10 @@
             />
           </template>
         </template>
+        <div v-if="live" class="waiting">
+          <ThinkingOrb />
+          <ThinkingState :text="sentinelText" />
+        </div>
       </div>
     </div>
   </div>
@@ -43,6 +43,7 @@ import { computed } from "vue"
 import { ChevronRight } from "lucide-vue-next"
 import ThinkCard from "@features/transcript-view/components/ThinkCard.vue"
 import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
+import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import {
   thinkCardOpen,
@@ -64,10 +65,13 @@ const emit = defineEmits<{
 }>()
 
 const folded = computed(() => props.row.mode === "fold")
+const live = computed(() => props.row.mode === "live")
 const revealed = computed(() => !folded.value || props.foldOpen)
 const waiting = computed(
-  () =>
-    props.row.mode === "live" && props.row.tools.length === 0 && props.row.thinking.length === 0,
+  () => live.value && props.row.tools.length === 0 && props.row.thinking.length === 0,
+)
+const sentinelText = computed(() =>
+  props.row.tools.some((item) => item.running) ? "正在执行" : "思考中",
 )
 const label = computed(() => toolRowLabel(props.row))
 const steps = computed(() => toolRowSteps(props.row))

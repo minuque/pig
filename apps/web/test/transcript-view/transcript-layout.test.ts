@@ -353,6 +353,32 @@ describe("turn work fold", () => {
     })
     const rows = buildTimelineRows([user, toolA, agent, toolB], true)
     expect(rows.map((row) => row.role)).toEqual(["user", "tools", "assistant", "tools"])
+    const firstWork = rows[1]!
+    const secondWork = rows[3]!
+    expect(isToolRow(firstWork) && firstWork.mode).toBe("fold")
+    expect(isToolRow(secondWork) && secondWork.mode).toBe("live")
+  })
+
+  it("进行中正文开始后上面的工具组收成折叠", () => {
+    const user = item({ id: "u1", role: "user", content: [{ type: "text", text: "问" }] })
+    const tool = item({
+      id: "t1",
+      role: "tool",
+      toolName: "read",
+      status: "complete",
+      isError: false,
+      content: [],
+    })
+    const agent = item({
+      id: "a1",
+      role: "assistant",
+      status: "streaming",
+      content: [{ type: "text", text: "先说一句" }],
+    })
+    const rows = buildTimelineRows([user, tool, agent], true)
+    expect(rows.map((row) => row.role)).toEqual(["user", "tools", "assistant"])
+    const work = rows[1]!
+    expect(isToolRow(work) && work.mode).toBe("fold")
   })
 
   it("Abort 的 Turn 折叠条写已停止", () => {

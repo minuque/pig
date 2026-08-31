@@ -269,7 +269,27 @@ function emitClusters(
   flush()
 }
 
-/** 历史按正文切开工具行并折叠；进行中不折叠，连续工具占一行。 */
+/** 进行中只留最后一个工作槽展开，上面已完成的收成折叠条。 */
+function foldPriorLiveToolRows(rows: TimelineRow[]) {
+  const last = rows[rows.length - 1]
+  const keepLive = last !== undefined && isToolRow(last)
+  let lastTool = -1
+  if (keepLive) {
+    for (let index = rows.length - 1; index >= 0; index -= 1) {
+      if (isToolRow(rows[index]!)) {
+        lastTool = index
+        break
+      }
+    }
+  }
+  for (const [index, row] of rows.entries()) {
+    if (!isToolRow(row) || row.mode !== "live") continue
+    if (keepLive && index === lastTool) continue
+    row.mode = "fold"
+  }
+}
+
+/** 历史按正文切开工具行并折叠；进行中只展开末个工作槽。 */
 export function buildTimelineRows(
   items: readonly TranscriptItem[],
   running: boolean,
@@ -296,6 +316,7 @@ export function buildTimelineRows(
       rows.push(emptyToolRow(`${prefix}${cluster}`))
     }
   }
+  if (running) foldPriorLiveToolRows(rows)
   return rows
 }
 
