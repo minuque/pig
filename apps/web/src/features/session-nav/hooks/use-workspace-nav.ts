@@ -7,7 +7,7 @@ import {
   renameSession as requestRenameSession,
   selectDirectory,
 } from "@client/platform.js"
-import type { useLocalWorkspaces } from "@client/local-cwd.js"
+import { canonicalizeWorkspacePath, type useLocalWorkspaces } from "@client/local-cwd.js"
 import {
   PROJECT_PAGE,
   UPDATED_PAGE,
@@ -21,6 +21,7 @@ import {
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
 export const SIDEBAR_GROUPING_KEY = "pig.sidebarGrouping"
+export const SIDEBAR_COLLAPSED_KEY = "pig.sidebarCollapsed"
 
 function parseGrouping(raw: string | null): SidebarGrouping {
   return raw === "project" ? "project" : "updated"
@@ -37,6 +38,41 @@ function loadGrouping(): SidebarGrouping {
 function saveGrouping(value: SidebarGrouping): void {
   try {
     localStorage.setItem(SIDEBAR_GROUPING_KEY, value)
+  } catch {
+    /* 隐私模式等场景下存储不可用，偏好仅存活于本页 */
+  }
+}
+
+function parseCollapsed(json: string | null): Record<string, boolean> {
+  if (!json) return {}
+  try {
+    const value: unknown = JSON.parse(json)
+    if (!Array.isArray(value)) return {}
+    const next: Record<string, boolean> = {}
+    for (const item of value) {
+      if (typeof item !== "string" || item.length === 0) continue
+      next[canonicalizeWorkspacePath(item)] = true
+    }
+    return next
+  } catch {
+    return {}
+  }
+}
+
+function loadCollapsed(): Record<string, boolean> {
+  try {
+    return parseCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY))
+  } catch {
+    return {}
+  }
+}
+
+function saveCollapsed(map: Readonly<Record<string, boolean>>): void {
+  try {
+    localStorage.setItem(
+      SIDEBAR_COLLAPSED_KEY,
+      JSON.stringify(Object.keys(map).filter((key) => map[key])),
+    )
   } catch {
     /* 隐私模式等场景下存储不可用，偏好仅存活于本页 */
   }
@@ -65,7 +101,7 @@ export function useWorkspaceNav(
   const listedSessions = computed(() => applyTitles(listSessionsForSidebar(sessions.value)))
   const grouping = ref<SidebarGrouping>(loadGrouping())
   const revealByGroup = shallowRef<Record<string, number>>({})
-  const collapsedByGroup = shallowRef<Record<string, boolean>>({})
+  const collapsedByGroup = shallowRef<Record<string, boolean>>(loadCollapsed())
 
   function applyTitles(list: readonly SessionMetadata[]): SessionMetadata[] {
     const titles = titleById.value
@@ -97,6 +133,7 @@ export function useWorkspaceNav(
       ...collapsedByGroup.value,
       [groupKey]: !collapsedByGroup.value[groupKey],
     }
+    saveCollapsed(collapsedByGroup.value)
   }
 
   function rowsFor(
