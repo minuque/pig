@@ -4,6 +4,7 @@
 @import "markstream-vue/index.css";
 @import "./markdown-stream.css";
 @import "./motion.css";
+@import "./workbench.css";
 
 @property --size-content {
   syntax: "<length>";
@@ -11,33 +12,44 @@
   initial-value: 45.75rem;
 }
 
-/* ─── DESIGN.md tokens (workbench desktop) ───────────────────── */
+/* 工作台 token；明暗中性色采自 .tmp/light.png 与 .tmp/dark.png。 */
 :root {
+  color-scheme: light;
   /* Colors */
   --primary: #4176e6;
   --primary-active: #2d5fc4;
   --secondary: #0e3074;
   --on-primary: #ffffff;
-  --canvas: #ffffff;
-  --canvas-soft: #f9fafb;
-  --surface: #ffffff;
-  --sidebar: var(--canvas-soft);
-  --nav-well: #ffffff; /* Light+ editor */
-  --chat-input: var(--canvas-soft);
-  --bubble: color-mix(in srgb, var(--ink) 5%, var(--surface));
-  --user-prompt-bg: var(--sidebar);
+  --canvas: #fcfcfb;
+  --canvas-soft: #f2f2f1;
+  --surface: #fcfcfb;
+  --sidebar: #fbfbf9;
+  --nav-well: var(--surface);
+  --chat-input: #fefefe;
+  --bubble: #f0f0ef;
+  --user-prompt-bg: var(--bubble);
   --user-prompt-fg: var(--ink);
-  --ink: #0f1115;
-  --ink-secondary: #353638;
-  --ink-muted: #5c5f66;
-  --ink-faint: #8b8f97;
-  --hairline: #e5e7eb;
-  --tool-header: #f0f1f3;
-  --transcript-guide: #c5c7cc;
-  --chat-input-ring: #cecece; /* Light Modern input.border */
+  --ink: #0b0b0b;
+  --ink-secondary: #52514e;
+  --ink-muted: #52514e;
+  --ink-faint: #898781;
+  --hairline: #e2e2e1;
+  --tool-header: #f2f2f1;
+  --transcript-guide: #cececc;
+  --chat-input-ring: #e0e0df;
+  --popover: #ffffff;
+  --popover-border: #d7d7d5;
+  --interaction-hover: #f3f3f3;
+  --interaction-selected: #edece8;
+  --link: #184f95;
+  --inline-code: #f2f2f1;
+  --inline-code-ink: var(--ink);
+  --media-outline: rgba(0, 0, 0, 0.1);
+  --scrollbar-color: #aeaeac;
+  --scrollbar-hover: #898781;
   --glass-blur: 12px;
   --glass-opacity: 80%;
-  --glass-saturation: 1.14;
+  --glass-saturation: 1;
   --glass-surface: var(--chat-input);
 
   /* Grok decorative palette — never structural fill */
@@ -50,13 +62,13 @@
   /* Semantic status (not decoration) */
   --accent-orange: #dd5b00;
   --accent-orange-deep: #793400;
-  --accent-green: #149441;
+  --accent-green: #1e9e3c;
 
   /* Status — UI Guidelines §6; DESIGN.md carries status via sticker colors */
-  --success: #149441; /* accent-green */
+  --success: #1e9e3c;
   --info: #4176e6;
   --warning: #dd5b00; /* accent-orange */
-  --danger: #cf4040; /* 独立红, for destructive actions */
+  --danger: #cd2054;
 
   /* Typography — SystemUI per DESIGN.md */
   --font-sans:
@@ -157,8 +169,8 @@
   --shadow-popover:
     0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 1px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
   /* 输入区反色主按钮（浅色主题深底浅字，深色主题反相） */
-  --inverse-bg: #0b0d12;
-  --inverse-bg-hover: #2a2f3a;
+  --inverse-bg: #0b0b0b;
+  --inverse-bg-hover: #292929;
   --inverse-fg: #ffffff;
 
   /* Elevation — barely-there layered shadows */
@@ -188,31 +200,41 @@
   --primary: #679efe;
   --primary-active: #4d8af0;
   --on-primary: #ffffff;
-  --canvas: #131313;
-  --canvas-soft: #1b1b1c;
-  --surface: #131313;
-  --sidebar: #181818; /* VS Code Dark Modern sideBar.background */
-  --nav-well: #1e1e1e; /* Dark+ editor */
-  --user-prompt-bg: #5b7ad4; /* 用户消息 prompt 气泡底色 */
-  --chat-input: #121212;
-  --bubble: #141414;
-  --ink: #ebeef2;
-  --ink-secondary: #c5c8ce;
-  --ink-muted: #9d9d9d; /* Dark Modern descriptionForeground */
-  --ink-faint: #6e7681; /* Dark Modern editorLineNumber.foreground */
-  --hairline: #2b2b2b; /* Dark Modern sideBar.border */
-  --tool-header: #2a2a2c;
+  --canvas: #151515;
+  --canvas-soft: #272727;
+  --surface: #151515;
+  --sidebar: #111111;
+  --nav-well: var(--surface);
+  --user-prompt-bg: var(--bubble); /* 用户消息 prompt 气泡底色 */
+  --chat-input: #20201f;
+  --bubble: #212121;
+  --ink: #f0efec;
+  --ink-secondary: #e1e0d9;
+  --ink-muted: #c3c2b7;
+  --ink-faint: #898781;
+  --hairline: #292929;
+  --tool-header: #20201f;
   --transcript-guide: #454545;
-  --chat-input-ring: color-mix(in srgb, var(--ink) 8%, var(--chat-input));
+  --chat-input-ring: #313131;
+  --popover: #20201f;
+  --popover-border: #373736;
+  --interaction-hover: #292929;
+  --interaction-selected: #292929;
+  --link: #6da7ec;
+  --inline-code: #272727;
+  --inline-code-ink: #e1e0d9;
+  --media-outline: rgba(255, 255, 255, 0.1);
+  --scrollbar-color: #61615f;
+  --scrollbar-hover: #898781;
   /* 语义橙提亮（run 失败左条 / active session 文字） */
   --accent-orange: #ff8a3d;
   --accent-orange-deep: #d97706;
-  --accent-green: #33c35e; /* 与 --success 同步, 双轨收敛 */
+  --accent-green: #32d74b;
   --secondary: #5b7ad4; /* 反相带/渐变端点提亮, ThinkingLevelSelect 低档文字 */
-  --success: #33c35e;
+  --success: #32d74b;
   --info: #679efe;
   --warning: #ff8a3d;
-  --danger: #ff6b6b;
+  --danger: #ff2c56;
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.45);
   --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.5);
@@ -223,60 +245,15 @@
   --shadow-elevated:
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
-  --inverse-bg: #f5f5f5;
+  --inverse-bg: #f0efec;
   --inverse-bg-hover: #ffffff;
-  --inverse-fg: #131313;
+  --inverse-fg: #151515;
   --glass-blur: 16px;
-  --glass-saturation: 1.08;
+  --glass-saturation: 1;
   --glass-surface: var(--chat-input);
 }
 
-.media-inset-outline {
-  outline: 1px solid oklch(0 0 0 / 0.1);
-  outline-offset: -1px;
-}
-.dark .media-inset-outline {
-  outline-color: oklch(1 0 0 / 0.1);
-}
-
-::view-transition-group(root) {
-  animation-duration: var(--duration-theme);
-  animation-timing-function: var(--ease-smooth);
-}
-::view-transition-old(root) {
-  z-index: -1;
-  animation: none;
-}
-::view-transition-new(root) {
-  animation-name: reveal-light-theme;
-}
-.dark::view-transition-new(root) {
-  animation-name: reveal-dark-theme;
-}
-@keyframes reveal-dark-theme {
-  from {
-    clip-path: polygon(50% -71%, -50% 71%, -50% 71%, 50% -71%);
-    opacity: 0.5;
-  }
-  to {
-    clip-path: polygon(50% -71%, -50% 71%, 50% 171%, 171% 50%);
-    opacity: 1;
-  }
-}
-@keyframes reveal-light-theme {
-  from {
-    clip-path: polygon(171% 50%, 50% 171%, 50% 171%, 171% 50%);
-    opacity: 0.5;
-  }
-  to {
-    clip-path: polygon(171% 50%, 50% 171%, -50% 71%, 50% -71%);
-    opacity: 1;
-  }
-}
-
-/* Tailwind v4 mapping — utilities like bg-canvas-soft, text-ink, rounded-lg。
-   只映射实色 token。color-mix 别名（--bubble / --chat-input-ring）不要登记进 @theme，
-   否则 @tailwindcss/vite 会把整份 app.css 打成空串。 */
+/* Tailwind 仅映射实色 token，禁止 color-mix 定义进入 @theme。 */
 @theme inline {
   --color-primary: var(--primary);
   --color-primary-active: var(--primary-active);
@@ -314,12 +291,12 @@
   --color-foreground: var(--ink);
   --color-card: var(--surface);
   --color-card-foreground: var(--ink);
-  --color-popover: var(--surface);
+  --color-popover: var(--popover);
   --color-popover-foreground: var(--ink);
   --color-muted: var(--canvas-soft);
   --color-muted-foreground: var(--ink-muted);
   --color-border: var(--hairline);
-  --color-accent: var(--canvas-soft);
+  --color-accent: var(--interaction-hover);
   --color-accent-foreground: var(--ink);
 
   --font-sans: var(--font-sans);
@@ -378,292 +355,4 @@
   --shadow-float: var(--shadow-float);
   --shadow-drawer: var(--shadow-drawer);
   --shadow-modal: var(--shadow-modal);
-}
-body {
-  background: var(--canvas-soft);
-  color: var(--ink);
-  font-family: var(--font-sans);
-}
-@layer base {
-  button,
-  input,
-  textarea,
-  select {
-    font: inherit;
-  }
-}
-/* 原生 button 只做 reset。主色圆钮、图标钮在使用处显式写，避免漏设 min-height 被撑成药丸。
-   不进 .markstream-vue：未分层的 element reset 会压过卡片内 Tailwind 工具类。 */
-button:not(:where(.markstream-vue *, [data-slot])) {
-  appearance: none;
-  margin: 0;
-  padding: 0;
-  min-height: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
-button:disabled {
-  cursor: default;
-}
-input:focus-visible,
-textarea:focus-visible,
-[contenteditable]:focus-visible {
-  outline: none;
-}
-h1,
-h2,
-p {
-  overflow-wrap: anywhere;
-}
-select,
-textarea {
-  max-width: 100%;
-  padding: var(--spacing-xs);
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-xs);
-  background: var(--surface);
-  color: var(--ink);
-}
-.secondary,
-.icon-button {
-  background: var(--surface);
-  color: var(--ink);
-  border: var(--border-width) solid var(--hairline);
-}
-.icon-button {
-  width: var(--size-control);
-  padding: 0;
-  color: var(--on-primary);
-}
-.selector {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 0;
-  padding: 4px 8px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-faint);
-  font-size: var(--text-caption);
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
-}
-.selector:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
-  color: var(--ink);
-}
-.selector:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-small,
-.mono {
-  color: var(--ink-muted);
-}
-.mono {
-  font-family: var(--font-mono);
-  overflow-wrap: anywhere;
-}
-.notice {
-  padding: var(--spacing-md);
-  background: var(--canvas-soft);
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-md);
-}
-.error {
-  border-left: var(--border-width-emphasis) solid var(--danger);
-}
-
-/* DialogContent 定位：top-1/2 left-1/2 + transform 居中（Tailwind translate-* 走 translate 属性，
-   与 keyframes 的 transform 叠加会双重偏移，故居中基值放这里，入场动画只负责 6px 起跳） */
-:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
-  transform: translate(-50%, -50%);
-}
-@media (max-width: 639px) {
-  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
-    transform: translateX(-50%);
-  }
-}
-[data-slot="dialog-close"] {
-  padding: var(--spacing-xxs);
-  border-radius: var(--radius-xs);
-  color: var(--ink-muted);
-}
-@keyframes shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
-.shimmer {
-  background: linear-gradient(90deg, var(--ink-faint) 25%, var(--ink) 50%, var(--ink-faint) 75%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer var(--duration-shimmer) var(--ease-in-out) infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .shimmer {
-    animation: none;
-  }
-}
-/* 520px 下 SessionNav 与工作台 header 共用的 session-status 对齐基线 */
-@media (max-width: 520px) {
-  .session-status {
-    align-self: flex-start;
-    margin: 0;
-  }
-}
-@media (pointer: coarse) {
-  :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
-    min-height: calc(var(--size-control) + var(--spacing-xxs));
-  }
-}
-/* 公共滚动条：默认隐藏，容器 hover 时淡入。
-   每个元素自己写 --scrollbar-thumb，避免 html:hover 传到所有条子。
-   伪元素靠继承拿颜色。Chromium 的 scrollbar-color 会盖掉 webkit 透明滑块，只给 Firefox。 */
-@property --scrollbar-thumb {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #0000;
-}
-* {
-  --scrollbar-thumb: #0000;
-}
-*:hover {
-  --scrollbar-thumb: color-mix(in srgb, var(--ink) 22%, transparent);
-}
-@supports (-moz-appearance: none) {
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) transparent;
-  }
-}
-*::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-*::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: var(--radius-full);
-  transition: background-color var(--duration-slow) var(--ease-out);
-}
-*::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--ink) 36%, transparent);
-}
-@media (pointer: coarse) {
-  * {
-    --scrollbar-thumb: color-mix(in srgb, var(--ink) 22%, transparent);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  *::-webkit-scrollbar-thumb {
-    transition: none;
-  }
-}
-
-/* 桌面壳：平台 rail / 输入卡毛玻璃 / 模态时取消拖拽 */
-html[data-pig-desktop-platform="darwin"] {
-  --size-sidebar-rail: var(--size-sidebar-rail-mac);
-}
-html[data-pig-desktop-platform] .prompt .glass-shell {
-  isolation: isolate;
-}
-html[data-pig-desktop-platform] .prompt .glass-shell::before {
-  pointer-events: none;
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  border-radius: var(--radius-xl);
-  background: color-mix(in srgb, var(--glass-surface) var(--glass-opacity), transparent);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  content: "";
-}
-@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  html[data-pig-desktop-platform] .prompt .glass-shell::before {
-    background: var(--glass-surface);
-  }
-  html[data-pig-desktop-platform]
-    :is(
-      [data-slot="dropdown-menu-content"],
-      [data-slot="context-menu-content"],
-      [data-slot="popover-content"],
-      [data-slot="dialog-content"],
-      [data-slot="alert-dialog-content"]
-    ) {
-    background: var(--surface);
-  }
-}
-html[data-pig-desktop-platform] .prompt .glass-host {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-html[data-pig-desktop-platform] .prompt .glass-host::after {
-  pointer-events: none;
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  border: var(--border-width) solid color-mix(in srgb, var(--ink) 8%, transparent);
-  border-radius: inherit;
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent);
-  content: "";
-}
-html[data-pig-desktop-platform]
-  :is(
-    [data-slot="dropdown-menu-content"],
-    [data-slot="context-menu-content"],
-    [data-slot="popover-content"],
-    [data-slot="dialog-content"],
-    [data-slot="alert-dialog-content"]
-  ) {
-  background: color-mix(
-    in srgb,
-    var(--surface) 18%,
-    color-mix(in srgb, var(--surface) var(--glass-opacity), transparent)
-  );
-  border-color: var(--hairline);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-}
-@media (prefers-reduced-transparency: reduce) {
-  :is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"]) {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-  html[data-pig-desktop-platform] .prompt .glass-shell::before {
-    background: var(--chat-input);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-  html[data-pig-desktop-platform]
-    :is(
-      [data-slot="dropdown-menu-content"],
-      [data-slot="context-menu-content"],
-      [data-slot="popover-content"],
-      [data-slot="dialog-content"],
-      [data-slot="alert-dialog-content"]
-    ) {
-    background: var(--surface);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-html[data-pig-desktop-platform]:has([data-slot="dialog-content"]) body *,
-html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body * {
-  -webkit-app-region: no-drag;
 }

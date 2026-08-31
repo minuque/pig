@@ -214,10 +214,10 @@ function confirmDelete() {
 }
 .session-item:hover .session-card,
 .session-card[data-state="open"] {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: var(--interaction-hover);
 }
 .session-card.active {
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--interaction-selected);
 }
 .workspace-mark {
   flex: none;
