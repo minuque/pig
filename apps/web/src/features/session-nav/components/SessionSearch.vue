@@ -1,7 +1,7 @@
 <template>
   <Dialog :open="open" @update:open="open = $event">
     <DialogContent
-      class="gap-0 overflow-hidden p-0 sm:max-w-[min(36rem,calc(100vw-2rem))]"
+      class="gap-0 overflow-hidden !p-0 sm:max-w-[min(36rem,calc(100vw-2rem))]"
       :show-close-button="false"
     >
       <DialogTitle class="sr-only">搜索会话</DialogTitle>

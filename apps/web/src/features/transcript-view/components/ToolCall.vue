@@ -11,7 +11,7 @@
     >
       <ChevronRight
         class="caret"
-        :class="{ invisible: !expandable }"
+        :class="{ open, invisible: !expandable }"
         :size="14"
         aria-hidden="true"
       />
@@ -186,7 +186,7 @@ const expandable = computed(
   color: var(--ink-secondary);
   transition: transform var(--duration-fast) var(--ease-out);
 }
-.open .caret {
+.caret.open {
   transform: rotate(90deg);
 }
 .invisible {

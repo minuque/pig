@@ -105,13 +105,12 @@ const icon = computed(() => {
 }
 .detail {
   min-width: 0;
-  flex: 1;
+  flex: 0 1 auto;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 .caret {
-  margin-inline-start: auto;
   transition: transform var(--duration-fast) var(--ease-out);
 }
 .caret.open {
