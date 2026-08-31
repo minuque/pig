@@ -27,11 +27,10 @@ pnpm dev:desktop    # Electron desktop development
 
 ## Docs
 
-- [`ROADMAP.md`](ROADMAP.md) — architecture & boundaries
 - [`DESIGN.md`](DESIGN.md) — design system
 - [`CONTEXT.md`](CONTEXT.md) — domain language
+- [`ROADMAP.md`](ROADMAP.md) — architecture & boundaries
 - [`docs/directory-structure.md`](docs/directory-structure.md) — directory & module conventions
-- [`docs/ui-guidelines.md`](docs/ui-guidelines.md) — UI guidelines
 
 ## License
 

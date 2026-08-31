@@ -8,6 +8,10 @@ export function isTranscriptAtBottom(
   return scrollHeight - scrollTop - clientHeight <= threshold
 }
 
+export function transcriptFloorTop(scrollHeight: number, clientHeight: number): number {
+  return Math.max(0, scrollHeight - clientHeight)
+}
+
 /** 视觉贴底：48px 内仍算在底部，不弹出回底部按钮。 */
 export function isTranscriptVisuallyAtBottom(
   scrollHeight: number,

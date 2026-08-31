@@ -73,6 +73,9 @@ function onScroll(event: Event) {
 </script>
 
 <style scoped>
+.expand-text {
+  font-size: var(--text-caption);
+}
 .expand-text-pre {
   position: relative;
   margin: var(--spacing-xxs) 0 0;
@@ -83,7 +86,7 @@ function onScroll(event: Event) {
   background: var(--surface);
   color: var(--ink-secondary);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: inherit;
   line-height: 21px;
   white-space: pre;
   tab-size: 2;
@@ -124,6 +127,6 @@ function onScroll(event: Event) {
 .expand-text-meta {
   margin: 4px 0 0;
   color: var(--ink-faint);
-  font-size: var(--text-caption);
+  font-size: inherit;
 }
 </style>

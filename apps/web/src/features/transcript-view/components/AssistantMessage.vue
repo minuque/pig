@@ -8,10 +8,25 @@
   </article>
 </template>
 
+<script lang="ts">
+/** 聊天流式关掉虚拟窗口，节点随正文往下长，外层才能贴底跟随。 */
+export function assistantMarkdownFlags(streaming: boolean) {
+  return {
+    final: !streaming,
+    typewriter: false as const,
+    smoothStreaming: false as const,
+    maxLiveNodes: 0,
+    nodeVirtual: false as const,
+    batchRendering: false,
+  }
+}
+</script>
+
 <script setup lang="ts">
 import MarkdownRender from "markstream-vue"
 import { computed } from "vue"
 import type { AssistantRow } from "@features/transcript-view/lib/transcript-rows.js"
+import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const props = withDefaults(
@@ -23,7 +38,10 @@ const props = withDefaults(
 )
 
 const { isDark } = useColorScheme()
-const text = computed(() => props.item.text)
+const text = useTranscriptReveal(
+  () => props.item.text,
+  () => props.streaming,
+)
 const statusLabel = computed(() => {
   const base = props.item.error ? "出错" : "已中止"
   const retries = props.item.retryCount
@@ -37,37 +55,25 @@ const codeBlockOptions = {
   lineHeight: 18,
   fontFamily: "var(--font-code)",
 } as const
-const agentMarkdown = computed(() => {
-  const shared = {
-    customId: "chat",
-    mode: "chat",
-    fade: false,
-    isDark: isDark.value,
-    viewportPriority: false,
-    codeBlockOptions,
-    codeBlockProps: {
-      showHeader: true,
-      showCopyButton: true,
-      showCollapseButton: true,
-      showExpandButton: true,
-      theme: isDark.value ? "dark-plus" : "light-plus",
-    },
-  } as const
-  if (props.streaming) {
-    return {
-      ...shared,
-      final: false,
-      typewriter: "simple",
-      smoothStreaming: "auto",
-    } as const
-  }
-  return {
-    ...shared,
-    final: true,
-    typewriter: false,
-    smoothStreaming: false,
-  } as const
-})
+const agentMarkdown = computed(
+  () =>
+    ({
+      customId: "chat",
+      mode: "chat",
+      fade: false,
+      isDark: isDark.value,
+      viewportPriority: false,
+      codeBlockOptions,
+      codeBlockProps: {
+        showHeader: true,
+        showCopyButton: true,
+        showCollapseButton: true,
+        showExpandButton: true,
+        theme: isDark.value ? "dark-plus" : "light-plus",
+      },
+      ...assistantMarkdownFlags(props.streaming),
+    }) as const,
+)
 </script>
 
 <style scoped>

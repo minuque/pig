@@ -42,11 +42,12 @@ const thinkProps = computed(
 .thinking-body {
   max-height: 180px;
   overflow: auto;
+  font-size: var(--text-body-sm);
 }
 .thinking-body :deep(p) {
   margin: 0 0 var(--spacing-xs);
   color: var(--ink-muted);
-  font-size: var(--text-caption);
+  font-size: var(--text-body-sm);
   line-height: 1.55;
   white-space: pre-wrap;
 }

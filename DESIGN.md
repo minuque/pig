@@ -77,9 +77,9 @@ typography:
     letterSpacing: 0
   button:
     fontFamily: SystemUI
-    fontSize: 14px
+    fontSize: 13px
     fontWeight: 500
-    lineHeight: 1.43
+    lineHeight: 1.38
     letterSpacing: 0
   caption:
     fontFamily: SystemUI

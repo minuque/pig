@@ -31,6 +31,8 @@
   --ink-muted: #5c5f66;
   --ink-faint: #8b8f97;
   --hairline: #e5e7eb;
+  --tool-header: #f0f1f3;
+  --transcript-guide: #c5c7cc;
   --chat-input-ring: #cecece; /* Light Modern input.border */
   --glass-blur: 12px;
   --glass-opacity: 80%;
@@ -85,8 +87,8 @@
   --text-body-md--line-height: 1.43;
   --text-body-sm: 14px;
   --text-body-sm--line-height: 1.43;
-  --text-button: 14px;
-  --text-button--line-height: 1.43;
+  --text-button: 13px;
+  --text-button--line-height: 1.38;
   --text-caption: 13px;
   --text-caption--line-height: 1.38;
   --text-eyebrow: 12px;
@@ -197,6 +199,8 @@
   --ink-muted: #9d9d9d; /* Dark Modern descriptionForeground */
   --ink-faint: #6e7681; /* Dark Modern editorLineNumber.foreground */
   --hairline: #2b2b2b; /* Dark Modern sideBar.border */
+  --tool-header: #2a2a2c;
+  --transcript-guide: #454545;
   --chat-input-ring: color-mix(in srgb, var(--ink) 8%, var(--chat-input));
   /* 语义橙提亮（run 失败左条 / active session 文字） */
   --accent-orange: #ff8a3d;
@@ -378,11 +382,13 @@ body {
   color: var(--ink);
   font-family: var(--font-sans);
 }
-button,
-input,
-textarea,
-select {
-  font: inherit;
+@layer base {
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
 }
 /* 原生 button 只做 reset。主色圆钮、图标钮在使用处显式写，避免漏设 min-height 被撑成药丸。
    不进 .markstream-vue：未分层的 element reset 会压过卡片内 Tailwind 工具类。 */

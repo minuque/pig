@@ -80,6 +80,7 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-xs);
+  background: var(--surface);
   min-height: 28px;
   padding: 6px 2px 0;
 }
@@ -95,9 +96,6 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
   color: var(--ink-muted);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
-}
-.cwd:hover {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 .cwd-name {
   min-width: 0;

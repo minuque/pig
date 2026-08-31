@@ -6,14 +6,13 @@ import {
   sameIdList,
 } from "@features/transcript-view/lib/transcript-minimap.js"
 
-/** minimap 几何与输入遮罩停在 Transcript 内部。 */
+/** 可视区几何取滚动层，正文宽取内容列。 */
 export function useTranscriptMinimap(
   rows: MaybeRefOrGetter<readonly TimelineRow[]>,
   layout: {
-    region: MaybeRefOrGetter<HTMLElement | null>
     viewport: MaybeRefOrGetter<HTMLElement | null>
     inputBar: MaybeRefOrGetter<HTMLElement | null>
-    scrollRoot: () => HTMLElement | null
+    column: MaybeRefOrGetter<HTMLElement | null>
   },
 ) {
   const viewportWidth = shallowRef(0)
@@ -24,45 +23,48 @@ export function useTranscriptMinimap(
     resolveMinimapHitStripWidth(viewportWidth.value, contentWidth.value),
   )
 
-  function collectInViewIds(region: HTMLElement | null): string[] {
-    if (!region) return []
-    const viewport = region.getBoundingClientRect()
+  function collectInViewIds(port: HTMLElement | null): string[] {
+    if (!port) return []
+    const box = port.getBoundingClientRect()
     const ids: string[] = []
-    for (const el of region.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
-      const box = el.getBoundingClientRect()
-      if (box.bottom <= viewport.top || box.top >= viewport.bottom) continue
+    for (const el of port.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
+      const row = el.getBoundingClientRect()
+      if (row.bottom <= box.top || row.top >= box.bottom) continue
       const id = el.dataset.minimapRow
       if (id) ids.push(id)
     }
     return ids
   }
 
-  function syncLayout(region: HTMLElement | null, scroller: HTMLElement | null) {
-    viewportWidth.value = region?.clientWidth ?? 0
-    contentWidth.value = scroller?.offsetWidth ?? 0
-    const next = collectInViewIds(region)
+  function syncLayout(port: HTMLElement | null, column: HTMLElement | null) {
+    viewportWidth.value = port?.clientWidth ?? 0
+    contentWidth.value = column?.offsetWidth ?? 0
+    const next = collectInViewIds(port)
     if (!sameIdList(inViewIds.value, next)) inViewIds.value = next
   }
 
   function tick() {
-    const el = toValue(layout.region)
     const bar = toValue(layout.inputBar)
     const host = toValue(layout.viewport)
-    const root = layout.scrollRoot()
-    syncLayout(el, root)
-    if (bar && host) host.style.setProperty("--chat-input-overlay", `${bar.offsetHeight}px`)
+    syncLayout(host, toValue(layout.column))
+    if (bar && host) {
+      const inner = bar.firstElementChild
+      const height = inner instanceof HTMLElement ? inner.offsetHeight : bar.scrollHeight
+      host.style.setProperty("--chat-input-overlay", `${height}px`)
+    }
   }
 
   let layoutObserver: ResizeObserver | undefined
   watch(
-    () => [toValue(layout.region), toValue(layout.inputBar)] as const,
-    ([el, bar]) => {
+    () => [toValue(layout.viewport), toValue(layout.inputBar), toValue(layout.column)] as const,
+    ([el, bar, column]) => {
       layoutObserver?.disconnect()
       layoutObserver = undefined
       if (!el) return
       layoutObserver = new ResizeObserver(tick)
       layoutObserver.observe(el)
       if (bar) layoutObserver.observe(bar)
+      if (column) layoutObserver.observe(column)
       tick()
     },
     { flush: "post" },

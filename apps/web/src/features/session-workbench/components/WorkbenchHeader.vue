@@ -4,13 +4,6 @@
       <PanelLeft :size="16" />
     </button>
     <h1 v-if="title" id="current-title" class="header-crumb">
-      <template v-if="dirName">
-        <span class="mark">
-          <Folder :size="16" :stroke-width="1.5" />
-        </span>
-        <span class="header-dir">{{ dirName }}</span>
-        <span class="header-sep">\</span>
-      </template>
       <span class="header-session">{{ title }}</span>
     </h1>
     <div class="header-right">
@@ -31,17 +24,15 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Folder, PanelLeft } from "lucide-vue-next"
+import { PanelLeft } from "lucide-vue-next"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
-import { workspaceName } from "@features/session-nav/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
 import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
 const { toggle } = useLeftPanelToggle()
-const { sessionId, projection, connecting, sessionPending, sessionCwd, running, phaseText } =
-  useSession()
+const { sessionId, projection, connecting, sessionPending, running, phaseText } = useSession()
 const { listedSessions } = useNav()
 
 const title = computed(() =>
@@ -51,8 +42,6 @@ const title = computed(() =>
     projectionName: projection.value?.name,
   }),
 )
-const cwd = computed(() => (sessionId.value ? sessionCwd.value : undefined))
-const dirName = computed(() => (cwd.value ? workspaceName(cwd.value) : ""))
 </script>
 
 <style scoped>
@@ -85,29 +74,11 @@ const dirName = computed(() => (cwd.value ? workspaceName(cwd.value) : ""))
   font-weight: var(--font-weight-regular);
   line-height: var(--text-caption--line-height);
 }
-.mark {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-}
-.header-dir,
 .header-session {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.header-dir {
-  flex: none;
-  max-width: 40%;
-}
-.header-sep {
-  flex: none;
-}
-.header-session {
   flex: 1;
 }
 .header-right {

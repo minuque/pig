@@ -2,6 +2,7 @@ import { onBeforeUnmount, shallowRef } from "vue"
 import {
   isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
+  transcriptFloorTop,
   unpinBottomScrollTop,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 
@@ -9,7 +10,7 @@ function userScrollBehavior() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
 }
 
-/** 跟随则瞬间贴底；导航期间不贴底，等 scrollend。 */
+/** 在底部则内容变高时自动贴底；只有上翻才停。 */
 export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   const atBottom = shallowRef(false)
   const visuallyAtBottom = shallowRef(false)
@@ -17,19 +18,26 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   let navRoot: HTMLElement | null = null
   let onNavEnd: (() => void) | null = null
   let navTimer = 0
+  let lastWritten = 0
 
   function applyBottom(root: HTMLElement) {
-    atBottom.value = isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
     visuallyAtBottom.value = isTranscriptVisuallyAtBottom(
       root.scrollHeight,
       root.scrollTop,
       root.clientHeight,
     )
+    if (isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)) {
+      atBottom.value = true
+      lastWritten = root.scrollTop
+    }
   }
 
   function jumpToBottom() {
     const root = getRoot()
-    if (root) root.scrollTop = root.scrollHeight - root.clientHeight
+    if (!root) return
+    const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
+    lastWritten = floor
+    root.scrollTop = floor
   }
 
   function releasePinnedToBottom() {
@@ -41,6 +49,10 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (navRoot && onNavEnd) navRoot.removeEventListener("scrollend", onNavEnd)
     navRoot = null
     onNavEnd = null
+  }
+
+  function pinIfNeeded() {
+    if (!navigating && atBottom.value) jumpToBottom()
   }
 
   function finishNavigate() {
@@ -60,10 +72,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     navTimer = window.setTimeout(finishNavigate, 1000) // ponytail: 无 scrollend 时收尾；动画超过 1s 会提前恢复跟随
   }
 
-  function pinIfNeeded() {
-    if (!navigating && atBottom.value) jumpToBottom()
-  }
-
   function reset() {
     releasePinnedToBottom()
     atBottom.value = false
@@ -73,6 +81,19 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   function onScroll() {
     const root = getRoot()
     if (!root || navigating) return
+    if (atBottom.value) {
+      if (root.scrollTop + 2 < lastWritten) {
+        atBottom.value = false
+        visuallyAtBottom.value = isTranscriptVisuallyAtBottom(
+          root.scrollHeight,
+          root.scrollTop,
+          root.clientHeight,
+        )
+        return
+      }
+      visuallyAtBottom.value = true
+      return
+    }
     applyBottom(root)
   }
 
@@ -90,6 +111,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (nextTop !== null) {
       event.preventDefault()
       root.scrollTop = nextTop
+      lastWritten = nextTop
       return
     }
     const onScroller = event.target instanceof Node && root.contains(event.target)
@@ -99,11 +121,12 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   }
 
   function scrollToLatest() {
-    const root = getRoot()
-    if (!root) return
     atBottom.value = true
     visuallyAtBottom.value = true
-    const top = Math.max(0, root.scrollHeight - root.clientHeight)
+    const root = getRoot()
+    if (!root) return
+    const top = transcriptFloorTop(root.scrollHeight, root.clientHeight)
+    lastWritten = top
     if (Math.abs(root.scrollTop - top) <= 2) {
       releasePinnedToBottom()
       jumpToBottom()

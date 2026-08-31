@@ -1,6 +1,6 @@
-# Pig Workbench
+# Pig
 
-Pig Workbench 是用户操作和观察 Pi Session 的 GUI。Pi 拥有 Agent 行为和 Session 历史；pig 拥有它们的呈现和控制方式。
+Pig 是用户操作和观察 Pi Agent 的 GUI。Pi 拥有 Agent 行为和 Session 历史；pig 拥有它们的呈现和控制方式。
 
 ## 领域语言
 
@@ -10,10 +10,6 @@ _避免使用_：Agent Runtime、Platform、Framework
 
 **Pi**：
 拥有 Session 生命周期、Session 历史和 Agent Runtime 的系统。
-
-**启动等待态**：
-Pig Workbench 在首次加载时、进入可用界面前呈现的临时状态。它以 Pi 组装动画表明启动正在进行，不是与启动无关的品牌片头。
-_避免使用_：开屏动画、Loading、启动片头
 
 **Agent**：
 为 Session 执行工作的 Pi Agent Runtime。它是执行角色，不是具有独立身份或跨 Session 状态的持久实体。

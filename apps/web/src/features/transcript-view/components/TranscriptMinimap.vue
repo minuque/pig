@@ -3,9 +3,14 @@
     class="timeline-minimap"
     :class="{ interactive: hitStripWidth > 0 }"
     data-testid="timeline-minimap"
-    :style="{ width: hitAreaWidth, height: railHeight }"
+    :style="{ width: hitAreaWidth }"
   >
-    <div class="minimap-stage" @focusout="onStageFocusOut" @mouseleave="activeIndex = null">
+    <div
+      class="minimap-stage"
+      :style="{ height: railHeight }"
+      @focusout="onStageFocusOut"
+      @mouseleave="activeIndex = null"
+    >
       <button
         v-for="(item, index) in items"
         :key="item.id"
@@ -100,13 +105,14 @@ function onStageFocusOut(event: FocusEvent) {
 <style scoped>
 .timeline-minimap {
   pointer-events: none;
-  position: absolute;
-  left: var(--spacing-md);
+  position: sticky;
   top: 50%;
   z-index: 3;
   display: none;
   width: 44px;
-  transform: translateY(-50%);
+  height: 0;
+  margin-inline-start: var(--spacing-md);
+  overflow: visible;
 }
 .timeline-minimap.interactive {
   pointer-events: auto;
@@ -116,6 +122,7 @@ function onStageFocusOut(event: FocusEvent) {
   width: 100%;
   height: 100%;
   user-select: none;
+  transform: translateY(-50%);
 }
 .minimap-tick {
   position: absolute;
