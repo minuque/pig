@@ -1,22 +1,22 @@
 <template>
   <div class="call">
     <button type="button" class="toggle" :class="{ open }" :disabled="streaming" @click="onToggle">
-      <Brain class="icon" :size="16" />
+      <Lightbulb class="icon" :size="16" />
       <span class="kind">Think</span>
       <span v-if="detail" class="detail">{{ detail }}</span>
       <ChevronRight class="caret caret-hint" :size="14" />
     </button>
-    <Transition name="fold-reveal">
-      <div v-if="open && text" class="body">
-        <ThinkingBlocks :blocks="[text]" />
+    <div class="body" :class="{ open: open && text }">
+      <div class="body-inner">
+        <ThinkingBlocks v-if="text" :blocks="[text]" />
       </div>
-    </Transition>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Brain, ChevronRight } from "lucide-vue-next"
+import { ChevronRight, Lightbulb } from "lucide-vue-next"
 import ThinkingBlocks from "@features/transcript-view/components/ThinkingBlocks.vue"
 
 const props = defineProps<{
@@ -98,8 +98,23 @@ function onToggle() {
   color: var(--ink-faint);
 }
 .body {
-  min-width: 0;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-fast) var(--ease-out);
+}
+.body.open {
+  grid-template-rows: 1fr;
+  transition-duration: var(--duration-slow);
+}
+.body-inner {
+  overflow: hidden;
+  min-height: 0;
   margin-top: 2px;
   margin-inline-start: 24px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .body {
+    transition: none;
+  }
 }
 </style>

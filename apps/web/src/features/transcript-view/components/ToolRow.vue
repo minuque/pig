@@ -14,7 +14,7 @@
       <div class="steps" :class="{ wait: waiting }">
         <div v-if="waiting" class="waiting">
           <ThinkingOrb />
-          <ThinkingState text="Thinking…" />
+          <span>Thinking…</span>
         </div>
         <template v-else>
           <template v-for="step in steps" :key="step.type === 'tool' ? step.item.id : step.id">
@@ -43,7 +43,6 @@ import { computed } from "vue"
 import { ChevronRight } from "lucide-vue-next"
 import ThinkCard from "@features/transcript-view/components/ThinkCard.vue"
 import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
-import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import {
   thinkCardOpen,
@@ -159,6 +158,9 @@ const steps = computed(() => toolRowSteps(props.row))
   gap: 6px;
   min-height: 20px;
   color: var(--ink-faint);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: 18px;
 }
 @media (prefers-reduced-motion: reduce) {
   .body {
