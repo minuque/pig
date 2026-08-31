@@ -30,7 +30,11 @@
       <div v-bind="containerProps" class="nav-body">
         <nav class="session-list">
           <ul v-if="showList" v-bind="wrapperProps">
-            <li v-for="item in list" :key="item.data.key" :class="`row-${item.data.kind}`">
+            <li
+              v-for="item in list"
+              :key="item.data.key"
+              :class="[`row-${item.data.kind}`, item.data.well && `well-${item.data.well}`]"
+            >
               <GroupHead
                 v-if="item.data.kind === 'group'"
                 :name="workspaceName(item.data.canonicalPath)"
@@ -134,12 +138,18 @@ const showList = computed(() =>
 const GROUP_ROW_PX = 36
 const SESSION_ROW_PX = 56
 const MORE_ROW_PX = 34
+const WELL_PAD = 4
+const WELL_GAP = 8
 const { list, containerProps, wrapperProps } = useVirtualList(rows, {
   itemHeight: (index) => {
     const row = rows.value[index]
-    if (row?.kind === "group") return GROUP_ROW_PX
-    if (row?.kind === "more") return MORE_ROW_PX
-    return SESSION_ROW_PX
+    const base =
+      row?.kind === "group" ? GROUP_ROW_PX : row?.kind === "more" ? MORE_ROW_PX : SESSION_ROW_PX
+    const well = row?.well
+    if (well === "start") return base + WELL_PAD
+    if (well === "end") return base + WELL_GAP
+    if (well === "solo") return base + WELL_PAD + WELL_GAP
+    return base
   },
 })
 
@@ -300,6 +310,26 @@ html[data-pig-desktop-platform] .session-nav input {
 }
 .row-session {
   padding-inline-end: var(--spacing-xxs);
+}
+.well-start,
+.well-mid,
+.well-end,
+.well-solo {
+  padding-inline: var(--spacing-xxs);
+  background: color-mix(in srgb, var(--ink) 8%, var(--sidebar));
+}
+.well-start {
+  padding-top: var(--spacing-xxs);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.well-end {
+  margin-bottom: var(--spacing-xs);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.well-solo {
+  padding-top: var(--spacing-xxs);
+  margin-bottom: var(--spacing-xs);
+  border-radius: var(--radius-lg);
 }
 .more-button {
   display: flex;

@@ -18,10 +18,19 @@ export interface SidebarSession {
 
 export type SidebarGrouping = "updated" | "project"
 
+export type SidebarWell = "start" | "mid" | "end" | "solo"
+
 export type SidebarRow =
-  | { kind: "group"; key: string; canonicalPath: string; first: boolean; collapsed: boolean }
-  | { kind: "session"; key: string; session: SidebarSession }
-  | { kind: "more"; key: string; groupKey: string }
+  | {
+      kind: "group"
+      key: string
+      canonicalPath: string
+      first: boolean
+      collapsed: boolean
+      well?: SidebarWell
+    }
+  | { kind: "session"; key: string; session: SidebarSession; well?: SidebarWell }
+  | { kind: "more"; key: string; groupKey: string; well?: SidebarWell }
 
 export const UPDATED_PAGE = 10
 export const PROJECT_PAGE = 5
@@ -93,10 +102,13 @@ function appendGroupSessions(
   page: number,
   revealByGroup: Readonly<Record<string, number>>,
   searching: boolean,
+  nest = false,
 ): void {
   const limit = searching ? sessions.length : (revealByGroup[groupKey] ?? page)
   const visible = sessions.slice(0, limit)
-  for (const session of visible) {
+  const hasMore = !searching && visible.length < sessions.length
+  for (const [index, session] of visible.entries()) {
+    const well = nest ? (index === visible.length - 1 && !hasMore ? "end" : "mid") : undefined
     rows.push({
       kind: "session",
       key: session.id,
@@ -106,10 +118,16 @@ function appendGroupSessions(
         ...(session.cwd !== undefined ? { cwd: session.cwd } : {}),
         updatedAt: sessionRecency(session),
       },
+      ...(well ? { well } : {}),
     })
   }
-  if (!searching && visible.length < sessions.length) {
-    rows.push({ kind: "more", key: `more:${groupKey}`, groupKey })
+  if (hasMore) {
+    rows.push({
+      kind: "more",
+      key: `more:${groupKey}`,
+      groupKey,
+      ...(nest ? { well: "end" as const } : {}),
+    })
   }
 }
 
@@ -138,12 +156,14 @@ export function sidebarRows(input: {
   const rows: SidebarRow[] = []
   for (const [index, group] of groups.entries()) {
     const collapsed = !searching && Boolean(collapsedByGroup[group.canonicalPath])
+    const hasChildren = !collapsed && group.sessions.length > 0
     rows.push({
       kind: "group",
       key: group.canonicalPath,
       canonicalPath: group.canonicalPath,
       first: index === 0,
       collapsed,
+      well: hasChildren ? "start" : "solo",
     })
     if (collapsed) continue
     appendGroupSessions(
@@ -153,6 +173,7 @@ export function sidebarRows(input: {
       PROJECT_PAGE,
       revealByGroup,
       searching,
+      true,
     )
   }
   return rows
