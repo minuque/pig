@@ -7,6 +7,7 @@ import type {
 import {
   assistantThinking,
   isAssistantItem,
+  isCommandTool,
   isToolItem,
   isUserItem,
   isVisibleTranscriptItem,
@@ -168,7 +169,7 @@ function turnSegments(items: readonly TranscriptItem[]): TurnSegment[] {
 export function toolKindOfTool(toolName: string): ToolKind {
   const name = toolName.trim().toLowerCase()
   if (name === "read") return "read"
-  if (name === "bash") return "command"
+  if (isCommandTool(name)) return "command"
   return "tool"
 }
 
@@ -271,20 +272,11 @@ function emitClusters(
 
 /** 进行中只留最后一个工作槽展开，上面已完成的收成折叠条。 */
 function foldPriorLiveToolRows(rows: TimelineRow[]) {
-  const last = rows[rows.length - 1]
-  const keepLive = last !== undefined && isToolRow(last)
-  let lastTool = -1
-  if (keepLive) {
-    for (let index = rows.length - 1; index >= 0; index -= 1) {
-      if (isToolRow(rows[index]!)) {
-        lastTool = index
-        break
-      }
-    }
-  }
+  const lastIndex = rows.length - 1
+  const keepLast = lastIndex >= 0 && isToolRow(rows[lastIndex]!)
   for (const [index, row] of rows.entries()) {
     if (!isToolRow(row) || row.mode !== "live") continue
-    if (keepLive && index === lastTool) continue
+    if (keepLast && index === lastIndex) continue
     row.mode = "fold"
   }
 }
@@ -341,12 +333,4 @@ export function toolRowSteps(row: ToolRow): ToolRowStep[] {
     if (item) steps.push({ type: "tool", item })
   }
   return steps
-}
-
-export function toolCardOpen(item: ToolCallView, expanded: ReadonlyMap<string, boolean>): boolean {
-  return expanded.get(item.id) === true
-}
-
-export function thinkCardOpen(id: string, expanded: ReadonlyMap<string, boolean>): boolean {
-  return expanded.get(id) === true
 }

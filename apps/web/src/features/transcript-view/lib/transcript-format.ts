@@ -55,7 +55,7 @@ export function isVisibleTranscriptItem(item: TranscriptItem): boolean {
   return true
 }
 
-const PATH_CMD_KEYS = [
+const PATH_KEYS = [
   "path",
   "file",
   "file_path",
@@ -63,9 +63,9 @@ const PATH_CMD_KEYS = [
   "filename",
   "target_file",
   "targetFile",
-  "command",
-  "cmd",
 ] as const
+
+const PATH_CMD_KEYS = [...PATH_KEYS, "command", "cmd"] as const
 
 const TOOL_HINT_KEYS = [...PATH_CMD_KEYS, "query", "pattern", "glob", "url"] as const
 
@@ -121,19 +121,20 @@ export function toolInputPretty(input: unknown): string {
   return hasToolInput(input) ? jsonText(input, true) : ""
 }
 
-/** 折叠顶栏右侧摘要，只留失败和图片提示。 */
-export function toolCallSummary(item: {
-  isError: boolean
-  running: boolean
-  outputText: string
-  outputImages: readonly TranscriptImageBlock[]
-}): string {
-  if (item.isError) return "失败"
-  if (item.running) return ""
-  if (!item.outputText && item.outputImages.length > 0) {
-    return item.outputImages.length === 1 ? "1 张图片" : `${item.outputImages.length} 张图片`
-  }
-  return ""
+export function isCommandTool(toolName: string): boolean {
+  return ["bash", "powershell", "pwsh"].includes(toolName.trim().toLowerCase())
+}
+
+export function toolCommand(input: unknown): string {
+  return typeof input === "string" ? input : hintFromKeys(input, ["command", "cmd"])
+}
+
+export function toolPath(input: unknown): string {
+  return hintFromKeys(input, PATH_KEYS)
+}
+
+export function toolWorkingDirectory(input: unknown): string {
+  return hintFromKeys(input, ["cwd", "workdir", "working_directory"])
 }
 
 const KIND_LABELS: Record<string, string> = {
@@ -141,22 +142,11 @@ const KIND_LABELS: Record<string, string> = {
   write: "Write",
   edit: "Edit",
   bash: "Run",
+  powershell: "Pwsh",
+  pwsh: "Pwsh",
   grep: "Search",
   find: "Find",
   ls: "List",
-}
-
-const TITLE_OBJECT_MAX = 48
-
-function clipTitleObject(text: string): string {
-  const compact = text.replace(/\s+/g, " ").trim()
-  if (compact.length <= TITLE_OBJECT_MAX) return compact
-  return `${compact.slice(0, TITLE_OBJECT_MAX - 1)}…`
-}
-
-function fileName(path: string): string {
-  const base = path.replace(/\\/g, "/").split("/").filter(Boolean).pop()
-  return base || path
 }
 
 export function toolCallKindLabel(toolName: string): string {
@@ -166,12 +156,12 @@ export function toolCallKindLabel(toolName: string): string {
 
 export function toolCallDetail(toolName: string, input: unknown): string {
   const name = toolName.trim().toLowerCase()
+  if (isCommandTool(name)) {
+    const description = hintFromKeys(input, ["description"])
+    return description || toolCommand(input)
+  }
   const hint = toolInputHint(input)
-  if (!hint) return ""
-  if (name === "read" || name === "write" || name === "edit") return fileName(hint)
-  const clipped = clipTitleObject(hint)
-  if (name === "bash") return `"${clipped}"`
-  return clipped
+  return hint
 }
 
 /** 顶栏标题：种类 + 入参对象。 */

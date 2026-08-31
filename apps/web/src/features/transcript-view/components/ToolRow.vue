@@ -18,13 +18,13 @@
               v-if="step.type === 'thought'"
               :text="step.text"
               :streaming="step.streaming"
-              :open="thinkCardOpen(step.id, expandedTools)"
+              :open="expandedTools.get(step.id) === true"
               @update:open="emit('toggle-tool', step.id, $event)"
             />
             <ToolCall
               v-else
               :item="step.item"
-              :open="toolCardOpen(step.item, expandedTools)"
+              :open="expandedTools.get(step.item.id) === true"
               @update:open="emit('toggle-tool', step.item.id, $event)"
             />
           </template>
@@ -46,8 +46,6 @@ import ThinkingOrb from "@features/transcript-view/components/ThinkingOrb.vue"
 import ThinkingState from "@features/transcript-view/components/ThinkingState.vue"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import {
-  thinkCardOpen,
-  toolCardOpen,
   toolRowLabel,
   toolRowSteps,
   type ToolRow,

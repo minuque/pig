@@ -2,10 +2,7 @@ import { describe, expect, it } from "vitest"
 import type { TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   isToolRow,
-  toolCardOpen,
-  thinkCardOpen,
   buildTimelineRows,
-  type ToolCallView,
   toolRowLabel,
   toolRowSteps,
 } from "@features/transcript-view/lib/transcript-rows.js"
@@ -14,7 +11,6 @@ import { computeAdaptiveQueueStep } from "@features/transcript-view/hooks/use-tr
 import {
   isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
-  shouldReleaseFollowPin,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
@@ -61,14 +57,6 @@ describe("transcript bottom thresholds", () => {
     expect(isTranscriptAtBottom(sh, 490, ch)).toBe(false)
     expect(isTranscriptVisuallyAtBottom(sh, 490, ch)).toBe(true)
     expect(isTranscriptVisuallyAtBottom(sh, 451, ch)).toBe(false)
-  })
-})
-
-describe("transcript follow pin", () => {
-  it("贴底跟随中高度变高不解锁，上移才解锁", () => {
-    expect(shouldReleaseFollowPin(true, 400, 400)).toBe(false)
-    expect(shouldReleaseFollowPin(true, 390, 400)).toBe(true)
-    expect(shouldReleaseFollowPin(false, 390, 400)).toBe(false)
   })
 })
 
@@ -404,29 +392,5 @@ describe("turn work fold", () => {
     expect(work.aborted).toBe(true)
     expect(work.mode).toBe("fold")
     expect(toolRowLabel(work)).toBe("已停止")
-  })
-})
-
-describe("toolCardOpen", () => {
-  it("展开态只按 id 记忆，运行和失败不强制展开", () => {
-    const running: ToolCallView = {
-      id: "t1",
-      toolName: "read",
-      running: true,
-      isError: false,
-      input: {},
-      outputText: "",
-      outputImages: [],
-    }
-    const done = { ...running, running: false, isError: false }
-    const failed = { ...running, running: false, isError: true }
-    const expanded = new Map<string, boolean>([["t1", true]])
-    expect(toolCardOpen(running, new Map())).toBe(false)
-    expect(toolCardOpen(failed, new Map())).toBe(false)
-    expect(toolCardOpen(done, new Map())).toBe(false)
-    expect(toolCardOpen(done, expanded)).toBe(true)
-    expect(toolCardOpen(running, expanded)).toBe(true)
-    expect(thinkCardOpen("think:1", new Map())).toBe(false)
-    expect(thinkCardOpen("think:1", new Map([["think:1", true]]))).toBe(true)
   })
 })

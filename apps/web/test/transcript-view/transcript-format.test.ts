@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest"
 import type { ToolTranscriptItem, TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   isVisibleTranscriptItem,
-  toolCallSummary,
+  toolCallDetail,
   toolCallTitle,
+  toolInputPretty,
   transcriptImages,
 } from "@features/transcript-view/lib/transcript-format.js"
 
@@ -78,44 +79,43 @@ describe("tool call title", () => {
       status: "running",
       input: { path: "src/app/page.tsx" },
     })
-    expect(toolCallTitle(running.toolName, running.input)).toBe("Read page.tsx")
+    expect(toolCallTitle(running.toolName, running.input)).toBe("Read src/app/page.tsx")
     const filename = "pi-powershell-transcript-check-with-complete-filename.log"
     expect(
       toolCallTitle("read", { path: `C:\\Users\\10537\\AppData\\Local\\Temp\\${filename}` }),
-    ).toBe(`Read ${filename}`)
+    ).toBe(`Read C:\\Users\\10537\\AppData\\Local\\Temp\\${filename}`)
     expect(toolCallTitle("read", { path: `/tmp/transcript-check/${filename}` })).toBe(
-      `Read ${filename}`,
+      `Read /tmp/transcript-check/${filename}`,
     )
-    expect(toolCallTitle("bash", { command: "git status" })).toBe('Run "git status"')
+    expect(toolCallTitle("bash", { command: "git status" })).toBe("Run git status")
     expect(toolCallTitle("web_search", { query: "vue sfc" })).toBe("web_search vue sfc")
   })
-})
 
-describe("tool call summary", () => {
-  it("running and text results have no summary, errors say 失败", () => {
-    expect(
-      toolCallSummary({
-        isError: false,
-        running: false,
-        outputText: "first result\nsecond result",
-        outputImages: [],
-      }),
-    ).toBe("")
-    expect(
-      toolCallSummary({
-        isError: false,
-        running: true,
-        outputText: "",
-        outputImages: [],
-      }),
-    ).toBe("")
-    expect(
-      toolCallSummary({
-        isError: true,
-        running: false,
-        outputText: "",
-        outputImages: [],
-      }),
-    ).toBe("失败")
+  it("命令摘要优先描述，完整命令与路径交给布局省略而不丢失原文", () => {
+    const description = "检查 Web 类型与依赖"
+    const shortCommand = "git status --short"
+    const longCommand = `echo ${"x".repeat(200)}`
+    for (const name of ["bash", "powershell", "pwsh"]) {
+      expect(toolCallDetail(name, { command: shortCommand, description })).toBe(description)
+      expect(toolCallDetail(name, { command: longCommand, description })).toBe(description)
+      expect(toolCallDetail(name, { command: longCommand })).toBe(longCommand)
+    }
+    expect(toolCallDetail("powershell", { cmd: longCommand, description: "  " })).toBe(longCommand)
+    expect(toolCallDetail("bash", shortCommand)).toBe(shortCommand)
+    expect(toolCallDetail("bash", { path: "workdir", command: longCommand, description })).toBe(
+      description,
+    )
+    expect(toolCallDetail("powershell", { cmd: shortCommand, description })).toBe(description)
+    expect(toolCallTitle("powershell", { cmd: shortCommand, description })).toBe(
+      `Pwsh ${description}`,
+    )
+    const boundaryText = "界".repeat(80)
+    expect(toolCallDetail("ffgrep", { query: boundaryText })).toBe(boundaryText)
+    expect(toolCallDetail("ffgrep", { query: `${boundaryText}界` })).toBe(`${boundaryText}界`)
+    expect(toolCallDetail("bash", { command: longCommand, description: "💡".repeat(81) })).toBe(
+      "💡".repeat(81),
+    )
+    const input = { command: longCommand, description, timeout: 30 }
+    expect(toolInputPretty(input)).toBe(JSON.stringify(input, null, 2))
   })
 })
