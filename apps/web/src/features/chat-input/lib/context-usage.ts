@@ -95,5 +95,5 @@ export function segmentShare(tokens: number, window: number): number {
 }
 
 export function contextUsageSummary(usage: ContextUsage): string {
-  return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} 令牌`
+  return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} tokens`
 }
