@@ -1,17 +1,20 @@
 import { describe, expect, it } from "vitest"
 import type { TranscriptItem } from "@earendil-works/pi-protocol"
 import {
-  isThinkingRow,
-  isWorkRow,
+  isToolRow,
   toolCardOpen,
+  thinkCardOpen,
   buildTimelineRows,
   type ToolCallView,
-  workFoldLabel,
-  workSteps,
+  toolRowLabel,
+  toolRowSteps,
 } from "@features/transcript-view/lib/transcript-rows.js"
+import { assistantMarkdownFlags } from "@features/transcript-view/components/AssistantMessage.vue"
+import { computeAdaptiveQueueStep } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import {
   isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
+  shouldReleaseFollowPin,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
@@ -61,6 +64,34 @@ describe("transcript bottom thresholds", () => {
   })
 })
 
+describe("transcript follow pin", () => {
+  it("贴底跟随中高度变高不解锁，上移才解锁", () => {
+    expect(shouldReleaseFollowPin(true, 400, 400)).toBe(false)
+    expect(shouldReleaseFollowPin(true, 390, 400)).toBe(true)
+    expect(shouldReleaseFollowPin(false, 390, 400)).toBe(false)
+  })
+})
+
+describe("assistant markdown stream flags", () => {
+  it("流式关闭虚拟窗口，避免只停在文首", () => {
+    const flags = assistantMarkdownFlags(true)
+    expect(flags.maxLiveNodes).toBe(0)
+    expect(flags.nodeVirtual).toBe(false)
+    expect(flags.final).toBe(false)
+  })
+})
+
+describe("transcript reveal queue", () => {
+  it("积压越大单帧揭示越多，速度有上限", () => {
+    const frameMs = 1000 / 60
+    expect(computeAdaptiveQueueStep(8, frameMs, 0).revealChars).toBe(1)
+    expect(computeAdaptiveQueueStep(32, frameMs, 0).revealChars).toBe(2)
+    expect(computeAdaptiveQueueStep(128, frameMs, 0).revealChars).toBe(7)
+    expect(computeAdaptiveQueueStep(512, frameMs, 0).revealChars).toBe(10)
+    expect(computeAdaptiveQueueStep(0, frameMs, 0).revealChars).toBe(0)
+  })
+})
+
 describe("assistant error rows", () => {
   it("连续空失败行合并为一条并带 errorMessage", () => {
     const user = item({ role: "user", content: [{ type: "text", text: "ping" }] })
@@ -90,8 +121,8 @@ describe("assistant error rows", () => {
 })
 
 describe("thinking placeholder", () => {
-  it("运行中在用户句后补思考占位，流式正文或进行中的工具不重复", () => {
-    const user = item({ role: "user", content: [{ type: "text", text: "问" }] })
+  it("运行中在用户句后补工作槽等待，首个工具沿用同一 id", () => {
+    const user = item({ id: "u1", role: "user", content: [{ type: "text", text: "问" }] })
     const streaming = item({
       id: "a1",
       role: "assistant",
@@ -112,15 +143,16 @@ describe("thinking placeholder", () => {
       isError: false,
       content: [],
     })
-    expect(buildTimelineRows([], false).some(isThinkingRow)).toBe(false)
-    expect(buildTimelineRows([], true).some(isThinkingRow)).toBe(true)
-    expect(buildTimelineRows([user], true).some(isThinkingRow)).toBe(true)
-    expect(buildTimelineRows([user, streaming], true).some(isThinkingRow)).toBe(true)
-    expect(buildTimelineRows([user, streamingBody], true).some(isThinkingRow)).toBe(false)
-    expect(buildTimelineRows([user, tool], true).some(isThinkingRow)).toBe(false)
+    expect(buildTimelineRows([], false).some(isToolRow)).toBe(false)
+    const idle = buildTimelineRows([], true)
+    expect(idle[0]).toMatchObject({ role: "tools", id: "tools:orphan:0", mode: "live", tools: [] })
     const headed = buildTimelineRows([user], true)
-    expect(headed[1]?.role).toBe("thinking")
-    expect(isThinkingRow(headed[1]!)).toBe(true)
+    expect(headed[1]).toMatchObject({ role: "tools", id: "tools:u1:0", mode: "live", tools: [] })
+    expect(buildTimelineRows([user, streaming], true)[1]).toMatchObject({ id: "tools:u1:0" })
+    expect(buildTimelineRows([user, streamingBody], true).some(isToolRow)).toBe(false)
+    const withTool = buildTimelineRows([user, tool], true)
+    expect(withTool[1]).toMatchObject({ role: "tools", id: "tools:u1:0", mode: "live" })
+    expect(isToolRow(withTool[1]!) && withTool[1].tools.map((row) => row.id)).toEqual(["t1"])
   })
 })
 
@@ -148,16 +180,17 @@ describe("turn work fold", () => {
       content: [{ type: "text", text: "答" }],
     })
     const rows = buildTimelineRows([user, thinking, tool, agent], false)
-    expect(rows.map((row) => row.role)).toEqual(["user", "work", "assistant"])
+    expect(rows.map((row) => row.role)).toEqual(["user", "tools", "assistant"])
     const work = rows[1]!
-    expect(isWorkRow(work)).toBe(true)
-    if (!isWorkRow(work)) return
+    expect(isToolRow(work)).toBe(true)
+    if (!isToolRow(work)) return
     expect(work.mode).toBe("fold")
+    expect(work.id).toBe("tools:u1:0")
     expect(work.thinking).toEqual(["先看文件"])
     expect(work.tools.map((item) => item.id)).toEqual(["t1"])
-    expect(workFoldLabel(work)).toBe("Ran 1 thought · 1 file read")
-    expect(work.role).toBe("work")
-    expect(workSteps(work).map((step) => step.type)).toEqual(["thought", "tool"])
+    expect(toolRowLabel(work)).toBe("Ran 1 thought · 1 file read")
+    expect(work.role).toBe("tools")
+    expect(toolRowSteps(work).map((step) => step.type)).toEqual(["thought", "tool"])
   })
 
   it("助手正文切开工作组，每段折叠条按出现顺序计数", () => {
@@ -214,14 +247,20 @@ describe("turn work fold", () => {
       [user, thought, first, read, other, bash, laterThought, second],
       false,
     )
-    expect(rows.map((row) => row.role)).toEqual(["user", "work", "assistant", "work", "assistant"])
+    expect(rows.map((row) => row.role)).toEqual([
+      "user",
+      "tools",
+      "assistant",
+      "tools",
+      "assistant",
+    ])
     const firstWork = rows[1]!
     const secondWork = rows[3]!
-    expect(isWorkRow(firstWork)).toBe(true)
-    expect(isWorkRow(secondWork)).toBe(true)
-    if (!isWorkRow(firstWork) || !isWorkRow(secondWork)) return
-    expect(workFoldLabel(firstWork)).toBe("Ran 1 thought")
-    expect(workFoldLabel(secondWork)).toBe("Ran 1 file read · 1 tool call · 1 command · 1 thought")
+    expect(isToolRow(firstWork)).toBe(true)
+    expect(isToolRow(secondWork)).toBe(true)
+    if (!isToolRow(firstWork) || !isToolRow(secondWork)) return
+    expect(toolRowLabel(firstWork)).toBe("Ran 1 thought")
+    expect(toolRowLabel(secondWork)).toBe("Ran 1 file read · 1 tool call · 1 command · 1 thought")
   })
 
   it("进行中不折叠，连续工具占一行，思考画在组上", () => {
@@ -249,14 +288,15 @@ describe("turn work fold", () => {
       content: [],
     })
     const rows = buildTimelineRows([user, thinking, toolA, toolB], true)
-    expect(rows.map((row) => row.role)).toEqual(["user", "work"])
+    expect(rows.map((row) => row.role)).toEqual(["user", "tools"])
     const work = rows[1]!
-    expect(isWorkRow(work)).toBe(true)
-    if (!isWorkRow(work)) return
+    expect(isToolRow(work)).toBe(true)
+    if (!isToolRow(work)) return
     expect(work.mode).toBe("live")
+    expect(work.id).toBe("tools:u1:0")
     expect(work.thinking).toEqual(["先看文件"])
     expect(work.tools.map((item) => item.id)).toEqual(["t1", "t2"])
-    expect(work.role).toBe("work")
+    expect(work.role).toBe("tools")
   })
 
   it("窗口顶部没有用户句的残段不折叠", () => {
@@ -277,13 +317,13 @@ describe("turn work fold", () => {
     })
     const rows = buildTimelineRows([tool, user, agent], false)
     expect(rows.map((row) => [row.role, row.id])).toEqual([
-      ["work", "work:t1"],
+      ["tools", "tools:orphan:0"],
       ["user", "u1"],
       ["assistant", "a1"],
     ])
     const work = rows[0]!
-    expect(isWorkRow(work)).toBe(true)
-    if (!isWorkRow(work)) return
+    expect(isToolRow(work)).toBe(true)
+    if (!isToolRow(work)) return
     expect(work.mode).toBe("live")
   })
 
@@ -312,7 +352,7 @@ describe("turn work fold", () => {
       content: [],
     })
     const rows = buildTimelineRows([user, toolA, agent, toolB], true)
-    expect(rows.map((row) => row.role)).toEqual(["user", "work", "assistant", "work"])
+    expect(rows.map((row) => row.role)).toEqual(["user", "tools", "assistant", "tools"])
   })
 
   it("Abort 的 Turn 折叠条写已停止", () => {
@@ -333,11 +373,11 @@ describe("turn work fold", () => {
     })
     const rows = buildTimelineRows([user, tool, aborted], false)
     const work = rows[1]!
-    expect(isWorkRow(work)).toBe(true)
-    if (!isWorkRow(work)) return
+    expect(isToolRow(work)).toBe(true)
+    if (!isToolRow(work)) return
     expect(work.aborted).toBe(true)
     expect(work.mode).toBe("fold")
-    expect(workFoldLabel(work)).toBe("已停止")
+    expect(toolRowLabel(work)).toBe("已停止")
   })
 })
 
@@ -360,5 +400,7 @@ describe("toolCardOpen", () => {
     expect(toolCardOpen(done, new Map())).toBe(false)
     expect(toolCardOpen(done, expanded)).toBe(true)
     expect(toolCardOpen(running, expanded)).toBe(true)
+    expect(thinkCardOpen("think:1", new Map())).toBe(false)
+    expect(thinkCardOpen("think:1", new Map([["think:1", true]]))).toBe(true)
   })
 })

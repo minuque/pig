@@ -14,8 +14,6 @@ import {
   transcriptText,
 } from "@features/transcript-view/lib/transcript-format.js"
 
-const THINKING_ROW_ID = "transcript-thinking"
-
 export type TranscriptImage = { data: string; mimeType: string }
 
 export type UserRow = {
@@ -46,33 +44,40 @@ export type ToolCallView = {
   outputImages: TranscriptImage[]
 }
 
-export type WorkKind = "thought" | "read" | "command" | "tool"
+export type ToolKind = "thought" | "read" | "command" | "tool"
 
-export type ThinkingRow = { id: typeof THINKING_ROW_ID; role: "thinking" }
-
-export type WorkRow = {
+export type ToolRow = {
   id: string
-  role: "work"
+  role: "tools"
   mode: "live" | "fold"
   thinking: string[]
   thinkingStreaming: boolean
   tools: ToolCallView[]
-  kinds: WorkKind[]
+  kinds: ToolKind[]
   aborted: boolean
 }
 
-export type WorkStep =
+export type ToolRowStep =
   | { type: "thought"; id: string; text: string; streaming: boolean }
   | { type: "tool"; item: ToolCallView }
 
-export type TimelineRow = UserRow | AssistantRow | ThinkingRow | WorkRow
+export type TimelineRow = UserRow | AssistantRow | ToolRow
 
-export function isThinkingRow(row: TimelineRow): row is ThinkingRow {
-  return row.role === "thinking"
+export function isToolRow(row: TimelineRow): row is ToolRow {
+  return row.role === "tools"
 }
 
-export function isWorkRow(row: TimelineRow): row is WorkRow {
-  return row.role === "work"
+function emptyToolRow(id: string): ToolRow {
+  return {
+    id,
+    role: "tools",
+    mode: "live",
+    thinking: [],
+    thinkingStreaming: false,
+    tools: [],
+    kinds: [],
+    aborted: false,
+  }
 }
 
 type TurnSegment = {
@@ -80,7 +85,7 @@ type TurnSegment = {
   rest: TranscriptItem[]
 }
 
-const KIND_LABEL: Record<WorkKind, { one: string; many: string }> = {
+const KIND_LABEL: Record<ToolKind, { one: string; many: string }> = {
   thought: { one: "thought", many: "thoughts" },
   read: { one: "file read", many: "file reads" },
   command: { one: "command", many: "commands" },
@@ -160,15 +165,15 @@ function turnSegments(items: readonly TranscriptItem[]): TurnSegment[] {
   return segments
 }
 
-export function workKindOfTool(toolName: string): WorkKind {
+export function toolKindOfTool(toolName: string): ToolKind {
   const name = toolName.trim().toLowerCase()
   if (name === "read") return "read"
   if (name === "bash") return "command"
   return "tool"
 }
 
-function formatWorkKinds(kinds: readonly WorkKind[]): string {
-  const counts = new Map<WorkKind, number>()
+function formatToolKinds(kinds: readonly ToolKind[]): string {
+  const counts = new Map<ToolKind, number>()
   for (const kind of kinds) {
     counts.set(kind, (counts.get(kind) ?? 0) + 1)
   }
@@ -181,23 +186,23 @@ function formatWorkKinds(kinds: readonly WorkKind[]): string {
   return body ? `Ran ${body}` : ""
 }
 
-export function workFoldLabel(row: WorkRow): string {
+export function toolRowLabel(row: ToolRow): string {
   if (row.aborted) return "已停止"
-  return formatWorkKinds(row.kinds)
+  return formatToolKinds(row.kinds)
 }
 
 function emitClusters(
   rest: readonly TranscriptItem[],
   rows: TimelineRow[],
-  mode: WorkRow["mode"],
-  orphanThinking: boolean,
+  mode: ToolRow["mode"],
+  anchor: string,
 ) {
   let thinking: string[] = []
   let thinkingStreaming = false
   let tools: ToolCallView[] = []
-  let kinds: WorkKind[] = []
+  let kinds: ToolKind[] = []
   let aborted = false
-  let thinkAnchor: string | undefined
+  let cluster = 0
   let errorRun: AssistantTranscriptItem[] = []
 
   const reset = () => {
@@ -206,7 +211,6 @@ function emitClusters(
     tools = []
     kinds = []
     aborted = false
-    thinkAnchor = undefined
   }
 
   const flushErrors = () => {
@@ -216,14 +220,12 @@ function emitClusters(
     errorRun = []
   }
 
-  const flush = (allowThinkingOnly: boolean) => {
+  const flush = () => {
     flushErrors()
     if (tools.length === 0 && thinking.length === 0) return
-    if (tools.length === 0 && !allowThinkingOnly) return
-    const id = tools[0] ? `work:${tools[0].id}` : `work:think:${thinkAnchor ?? "head"}`
     rows.push({
-      id,
-      role: "work",
+      id: `tools:${anchor}:${cluster}`,
+      role: "tools",
       mode,
       thinking,
       thinkingStreaming,
@@ -231,6 +233,7 @@ function emitClusters(
       kinds,
       aborted,
     })
+    cluster += 1
     reset()
   }
 
@@ -238,7 +241,7 @@ function emitClusters(
     if (isToolItem(item)) {
       flushErrors()
       tools.push(toToolCallView(item))
-      kinds.push(workKindOfTool(item.toolName))
+      kinds.push(toolKindOfTool(item.toolName))
       continue
     }
     if (!isAssistantItem(item)) continue
@@ -248,11 +251,10 @@ function emitClusters(
       flushErrors()
       thinking.push(blocks.join("\n\n"))
       kinds.push("thought")
-      thinkAnchor ??= item.id
       if (item.status === "streaming") thinkingStreaming = true
     }
     if (transcriptText(item).length > 0) {
-      flush(mode === "fold")
+      flush()
       rows.push(toAssistantRow(item))
       continue
     }
@@ -264,30 +266,41 @@ function emitClusters(
       errorRun.push(item)
     }
   }
-  flush(mode === "fold" || orphanThinking)
+  flush()
 }
 
-/** 历史按正文切开工作组并折叠；进行中不折叠，连续工具占一行。 */
+/** 历史按正文切开工具行并折叠；进行中不折叠，连续工具占一行。 */
 export function buildTimelineRows(
   items: readonly TranscriptItem[],
   running: boolean,
 ): TimelineRow[] {
   const rows: TimelineRow[] = []
   const segments = turnSegments(items)
+  const wait = needsThinkingPlaceholder(running, items)
   for (let index = 0; index < segments.length; index += 1) {
     const segment = segments[index]!
-    const folding = Boolean(segment.user) && !(running && index === segments.length - 1)
+    const live = running && index === segments.length - 1
+    const folding = Boolean(segment.user) && !live
     if (segment.user) rows.push(toUserRow(segment.user))
-    emitClusters(segment.rest, rows, folding ? "fold" : "live", !segment.user)
+    emitClusters(segment.rest, rows, folding ? "fold" : "live", segment.user?.id ?? "orphan")
   }
-  if (needsThinkingPlaceholder(running, items)) {
-    rows.push({ id: THINKING_ROW_ID, role: "thinking" })
+  if (wait) {
+    const last = rows[rows.length - 1]
+    if (!last || !isToolRow(last) || last.mode !== "live") {
+      const anchor = segments[segments.length - 1]?.user?.id ?? "orphan"
+      const prefix = `tools:${anchor}:`
+      let cluster = 0
+      for (const row of rows) {
+        if (isToolRow(row) && row.id.startsWith(prefix)) cluster += 1
+      }
+      rows.push(emptyToolRow(`${prefix}${cluster}`))
+    }
   }
   return rows
 }
 
-export function workSteps(row: WorkRow): WorkStep[] {
-  const steps: WorkStep[] = []
+export function toolRowSteps(row: ToolRow): ToolRowStep[] {
+  const steps: ToolRowStep[] = []
   let thinkAt = 0
   let toolAt = 0
   for (const [index, kind] of row.kinds.entries()) {
@@ -313,11 +326,6 @@ export function toolCardOpen(item: ToolCallView, expanded: ReadonlyMap<string, b
   return expanded.get(item.id) === true
 }
 
-export function thinkCardOpen(
-  id: string,
-  streaming: boolean,
-  expanded: ReadonlyMap<string, boolean>,
-): boolean {
-  if (streaming) return true
+export function thinkCardOpen(id: string, expanded: ReadonlyMap<string, boolean>): boolean {
   return expanded.get(id) === true
 }
