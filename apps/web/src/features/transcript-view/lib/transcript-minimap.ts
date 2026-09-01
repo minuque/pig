@@ -1,4 +1,4 @@
-/** 对齐 Codex 导航轨：12px 等距，最后一格贴末条用户句。 */
+/** 对齐 Codex 导航轨：workbench 左侧居中，12px 等距刻度。 */
 
 import type { TimelineRow } from "@features/transcript-view/lib/transcript-rows.js"
 
@@ -55,32 +55,14 @@ export function deriveTranscriptMinimapItems(
 
 export function resolveMinimapHeightStyle(itemCount: number): string {
   if (itemCount <= 0) return "0px"
-  return "100cqh"
+  return `min(${itemCount * MINIMAP_RAIL_PITCH}px, 80%)`
 }
 
-export function resolveMinimapTickTops(input: {
-  lastAnchorY: number
-  itemCount: number
-  viewportHeight: number
-}): number[] {
-  const count = input.itemCount
-  if (count <= 0) return []
-  const pad = MINIMAP_RAIL_PITCH
-  const maxRail = Math.max(0, input.viewportHeight - pad * 2)
-  const rail = Math.min((count - 1) * MINIMAP_RAIL_PITCH, maxRail)
-  const pitch = count > 1 ? rail / (count - 1) : MINIMAP_RAIL_PITCH
-  let lastTick = input.lastAnchorY
-  let firstTick = lastTick - rail
-  if (firstTick < pad) {
-    firstTick = pad
-    lastTick = firstTick + rail
-  }
-  if (lastTick > input.viewportHeight - pad) {
-    lastTick = input.viewportHeight - pad
-    firstTick = lastTick - rail
-  }
-  if (firstTick < pad) firstTick = pad
-  return Array.from({ length: count }, (_, index) => Math.round(firstTick + index * pitch))
+export function resolveMinimapTopPercent(index: number, itemCount: number): number {
+  if (itemCount <= 0) return 0
+  if (itemCount === 1) return 50
+  const clamped = Math.max(0, Math.min(index, itemCount - 1))
+  return ((clamped + 0.5) / itemCount) * 100
 }
 
 function sideGutter(viewportWidth: number, contentWidth = MINIMAP_CONTENT_MAX_WIDTH): number {
@@ -106,8 +88,4 @@ export function resolveMinimapHitStripWidth(
 
 export function sameIdList(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((id, index) => id === right[index])
-}
-
-export function sameNumberList(left: readonly number[], right: readonly number[]): boolean {
-  return left.length === right.length && left.every((value, index) => value === right[index])
 }

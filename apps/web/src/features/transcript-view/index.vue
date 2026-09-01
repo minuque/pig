@@ -1,69 +1,70 @@
 <template>
-  <div
-    id="transcript-panel"
-    ref="viewport"
-    class="transcript-viewport"
-    @scroll="onTranscriptScroll"
-    @wheel="onWheel"
-    @pointerdown="releasePinnedToBottom"
-  >
+  <div class="transcript-shell">
     <TranscriptMinimap
       v-if="rows.length && minimapItems.length >= MINIMAP_MIN_ITEMS"
       :items="minimapItems"
       :in-view-ids="inViewIds"
-      :anchor-tops="anchorTops"
       :hit-strip-width="hitStripWidth"
       @select="selectMinimapItem"
     />
-    <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
-      <Button
-        class="scroll-latest-control"
-        type="button"
-        variant="outline"
-        size="icon-sm"
-        title="滚动到底部"
-        @click="scrollToLatest"
-      >
-        <ArrowDown />
-      </Button>
-    </div>
-    <div ref="inputBar" class="chat-input-bar">
-      <ChatInput
-        v-model:prompt="prompt"
-        v-model:preset="preset"
-        :catalog="catalog"
-        :running="running"
-        :aborting="aborting"
-        :error="sessionError"
-        :cwd="sessionCwd"
-        :usage="contextUsage"
-        :session-id="sessionId"
-        @send="submitFromInput"
-        @abort="abortSession"
-      />
-    </div>
-    <div v-if="rows.length" ref="column" class="transcript">
-      <div ref="list" class="transcript-list">
-        <div
-          v-for="row in rows"
-          :key="row.id"
-          class="row"
-          :data-minimap-row="row.role === 'user' ? row.id : undefined"
+    <div
+      id="transcript-panel"
+      ref="viewport"
+      class="transcript-viewport"
+      @scroll="onTranscriptScroll"
+      @wheel="onWheel"
+      @pointerdown="releasePinnedToBottom"
+    >
+      <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
+        <Button
+          class="scroll-latest-control"
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          title="滚动到底部"
+          @click="scrollToLatest"
         >
-          <UserMessage v-if="row.role === 'user'" :item="row" />
-          <AssistantMessage
-            v-else-if="row.role === 'assistant'"
-            :item="row"
-            :streaming="running && row.streaming"
-          />
-          <ToolRow
-            v-else-if="isToolRow(row)"
-            :row="row"
-            :fold-open="isFoldOpen(row.id)"
-            :expanded-tools="expandedTools"
-            @toggle-fold="onToggleFold(row.id, $event)"
-            @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
-          />
+          <ArrowDown />
+        </Button>
+      </div>
+      <div ref="inputBar" class="chat-input-bar">
+        <ChatInput
+          v-model:prompt="prompt"
+          v-model:preset="preset"
+          :catalog="catalog"
+          :running="running"
+          :aborting="aborting"
+          :error="sessionError"
+          :cwd="sessionCwd"
+          :usage="contextUsage"
+          :session-id="sessionId"
+          @send="submitFromInput"
+          @abort="abortSession"
+        />
+      </div>
+      <div v-if="rows.length" ref="column" class="transcript">
+        <div ref="list" class="transcript-list">
+          <div
+            v-for="row in rows"
+            :key="row.id"
+            class="row"
+            :data-minimap-row="row.role === 'user' ? row.id : undefined"
+          >
+            <UserMessage v-if="row.role === 'user'" :item="row" />
+            <AssistantMessage
+              v-else-if="row.role === 'assistant'"
+              :item="row"
+              :streaming="running && row.streaming"
+            />
+            <ToolRow
+              v-else-if="isToolRow(row)"
+              :row="row"
+              :fold-open="isFoldOpen(row.id)"
+              :expanded-tools="expandedTools"
+              @toggle-fold="onToggleFold(row.id, $event)"
+              @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -142,7 +143,6 @@ let sizeObserver: ResizeObserver | undefined
 const {
   items: minimapItems,
   inViewIds,
-  anchorTops,
   hitStripWidth,
   syncLayout,
 } = useTranscriptMinimap(rows, {
@@ -214,6 +214,13 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
 </script>
 
 <style scoped>
+.transcript-shell {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 .transcript-viewport {
   position: relative;
   container-type: size;

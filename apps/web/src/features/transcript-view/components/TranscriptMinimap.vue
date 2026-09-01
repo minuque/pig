@@ -3,14 +3,9 @@
     class="timeline-minimap"
     :class="{ interactive: hitStripWidth > 0 }"
     data-testid="timeline-minimap"
-    :style="{ width: hitAreaWidth }"
+    :style="{ width: hitAreaWidth, height: railHeight }"
   >
-    <div
-      class="minimap-stage"
-      :style="{ height: railHeight }"
-      @focusout="onStageFocusOut"
-      @mouseleave="hoverIndex = null"
-    >
+    <div class="minimap-stage" @focusout="onStageFocusOut" @mouseleave="hoverIndex = null">
       <button
         v-for="(item, index) in items"
         :key="item.id"
@@ -32,7 +27,7 @@
         class="minimap-preview"
         data-minimap-preview
         :style="{
-          top: `${tickTop(hoverIndex ?? 0)}px`,
+          top: `${resolveMinimapTopPercent(hoverIndex ?? 0, items.length)}%`,
           transform: `translateY(${previewTranslate})`,
         }"
       >
@@ -51,20 +46,16 @@
 import { computed, shallowRef, watch } from "vue"
 import type { TranscriptMinimapItem } from "@features/transcript-view/lib/transcript-minimap.js"
 import {
-  MINIMAP_RAIL_PITCH,
   MINIMAP_RAIL_WIDTH,
   resolveMinimapHeightStyle,
+  resolveMinimapTopPercent,
 } from "@features/transcript-view/lib/transcript-minimap.js"
 
-const props = withDefaults(
-  defineProps<{
-    items: readonly TranscriptMinimapItem[]
-    inViewIds: readonly string[]
-    hitStripWidth: number
-    anchorTops?: readonly number[]
-  }>(),
-  { anchorTops: () => [] },
-)
+const props = defineProps<{
+  items: readonly TranscriptMinimapItem[]
+  inViewIds: readonly string[]
+  hitStripWidth: number
+}>()
 
 const emit = defineEmits<{
   select: [item: TranscriptMinimapItem]
@@ -108,14 +99,11 @@ const previewTranslate = computed(() => {
 const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
-function tickTop(index: number): number {
-  return props.anchorTops[index] ?? 0
-}
-
 function tickStyle(index: number): { top: string; height: string } {
+  const count = Math.max(props.items.length, 1)
   return {
-    top: `${tickTop(index)}px`,
-    height: `${MINIMAP_RAIL_PITCH}px`,
+    top: `${(index / count) * 100}%`,
+    height: `${100 / count}%`,
   }
 }
 
@@ -137,14 +125,13 @@ function onStageFocusOut(event: FocusEvent) {
 <style scoped>
 .timeline-minimap {
   pointer-events: none;
-  position: sticky;
-  top: 0;
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-md);
   z-index: 3;
   display: none;
   width: 44px;
-  height: 0;
-  margin-inline-start: var(--spacing-md);
-  overflow: visible;
+  transform: translateY(-50%);
 }
 .timeline-minimap.interactive {
   pointer-events: auto;
@@ -153,7 +140,6 @@ function onStageFocusOut(event: FocusEvent) {
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
   user-select: none;
 }
 .minimap-tick {
@@ -164,7 +150,6 @@ function onStageFocusOut(event: FocusEvent) {
   border: 0;
   background: transparent;
   cursor: pointer;
-  transform: translateY(-50%);
 }
 .minimap-strip {
   pointer-events: none;
