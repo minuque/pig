@@ -29,14 +29,14 @@
     </div>
   </div>
   <div v-else class="tool-output" :class="{ 'is-embedded': embedded }">
-    <template v-if="collapsed">
+    <template v-if="showText && collapsed">
       <pre class="tool-output-pre" :class="preClass">{{ foldedHead }}</pre>
       <button type="button" class="omitted" @click="expanded = true">
         … 其余 {{ hiddenCount }} 行
       </button>
       <pre class="tool-output-pre" :class="preClass">{{ foldedTail }}</pre>
     </template>
-    <template v-else>
+    <template v-else-if="showText">
       <pre v-if="!virtual" class="tool-output-pre" :class="preClass">{{ text }}</pre>
       <pre
         v-else
@@ -51,11 +51,21 @@
       </pre>
       <p v-if="virtual && showCount" class="meta">{{ lines.length }} 行</p>
     </template>
+    <div v-if="images.length" class="images">
+      <TranscriptImage
+        v-for="(image, index) in images"
+        :key="index"
+        :data="image.data"
+        :mime-type="image.mimeType"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
+import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
+import type { TranscriptImage as ToolImage } from "@features/transcript-view/lib/transcript-rows.js"
 import {
   DEFAULT_LINE_HEIGHT_PX,
   DEFAULT_MAX_EXPAND_LINES,
@@ -79,6 +89,7 @@ const props = withDefaults(
     lines?: readonly string[]
     tokens?: { content: string; color?: string }[][]
     startLine?: number
+    images?: ToolImage[]
   }>(),
   {
     text: "",
@@ -91,11 +102,13 @@ const props = withDefaults(
     lines: () => [],
     tokens: () => [],
     startLine: 1,
+    images: () => [],
   },
 )
 const expanded = defineModel<boolean>("expanded", { default: false })
 
 const omitIndex = TOOL_FOLD_HEAD - 1
+const showText = computed(() => props.text.length > 0 || props.images.length === 0)
 const sourceLines = computed(() => (props.code ? [...props.lines] : splitLines(props.text)))
 const hiddenCount = computed(() => toolFoldHidden(sourceLines.value.length))
 const collapsed = computed(() => hiddenCount.value > 0 && !expanded.value)
@@ -142,6 +155,10 @@ function onScroll(event: Event) {
 .tool-output {
   font-size: var(--text-caption);
 }
+.tool-output.is-embedded {
+  min-width: 0;
+  padding: var(--spacing-sm) 0 0 var(--spacing-sm);
+}
 .tool-output-pre {
   position: relative;
   margin: var(--spacing-xxs) 0 0;
@@ -172,7 +189,9 @@ function onScroll(event: Event) {
   white-space: pre-wrap;
 }
 .tool-output-pre.is-embedded {
-  color: inherit;
+  color: var(--ink);
+  font-family: var(--font-code);
+  font-size: var(--text-caption);
 }
 .tool-output.is-embedded .meta {
   color: inherit;
@@ -194,6 +213,12 @@ function onScroll(event: Event) {
   margin: var(--spacing-xxs) 0 0;
   color: var(--ink-faint);
   font-size: inherit;
+}
+.images {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
 }
 .code-scroll {
   max-height: 480px;

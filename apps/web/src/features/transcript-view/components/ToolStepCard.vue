@@ -16,22 +16,13 @@
           <code class="command" :title="commandContent.command">{{ commandContent.command }}</code>
         </div>
       </ToolHeader>
-      <div class="output">
-        <ToolOutput
-          v-model:expanded="commandExpanded"
-          :text="commandContent.outputText || commandContent.emptyOutput"
-          :show-count="false"
-          embedded
-        />
-        <div v-if="commandContent.outputImages.length" class="images">
-          <TranscriptImage
-            v-for="(image, index) in commandContent.outputImages"
-            :key="index"
-            :data="image.data"
-            :mime-type="image.mimeType"
-          />
-        </div>
-      </div>
+      <ToolOutput
+        v-model:expanded="commandExpanded"
+        :text="commandContent.outputText || commandContent.emptyOutput"
+        :images="commandContent.outputImages"
+        :show-count="false"
+        embedded
+      />
     </template>
     <template v-else-if="readContent">
       <ToolHeader
@@ -72,14 +63,12 @@
           :foldable="inputHidden > 0"
           :hidden-count="inputHidden"
         />
-        <div class="output">
-          <ToolOutput
-            v-model:expanded="inputExpanded"
-            :text="toolContent.inputFull"
-            :show-count="false"
-            embedded
-          />
-        </div>
+        <ToolOutput
+          v-model:expanded="inputExpanded"
+          :text="toolContent.inputFull"
+          :show-count="false"
+          embedded
+        />
       </section>
       <section class="layer">
         <ToolHeader
@@ -90,23 +79,16 @@
           :foldable="outputHidden > 0"
           :hidden-count="outputHidden"
         />
-        <div class="output">
-          <ToolOutput
-            v-if="toolContent.outputText || !toolContent.outputImages.length"
-            v-model:expanded="outputExpanded"
-            :text="toolContent.outputText || toolContent.emptyOutput"
-            :show-count="false"
-            embedded
-          />
-          <div v-if="toolContent.outputImages.length" class="images">
-            <TranscriptImage
-              v-for="(image, index) in toolContent.outputImages"
-              :key="index"
-              :data="image.data"
-              :mime-type="image.mimeType"
-            />
-          </div>
-        </div>
+        <ToolOutput
+          v-model:expanded="outputExpanded"
+          :text="
+            toolContent.outputText ||
+            (toolContent.outputImages.length ? '' : toolContent.emptyOutput)
+          "
+          :images="toolContent.outputImages"
+          :show-count="false"
+          embedded
+        />
       </section>
     </template>
     <template v-else-if="thoughtContent">
@@ -121,7 +103,6 @@ import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import ThinkingBlocks from "@features/transcript-view/components/ThinkingBlocks.vue"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
-import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import { splitLines, toolFoldHidden } from "@features/transcript-view/lib/expandable-text.js"
 import {
@@ -331,21 +312,6 @@ watch(
 }
 .layer + .layer {
   border-top: var(--border-width) solid var(--hairline);
-}
-.output {
-  min-width: 0;
-  padding: var(--spacing-sm) 0 0 var(--spacing-sm);
-}
-.output :deep(.tool-output-pre) {
-  color: var(--ink);
-  font-family: var(--font-code);
-  font-size: var(--text-caption);
-}
-.images {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-xs);
 }
 .read-notice {
   margin: 0;
