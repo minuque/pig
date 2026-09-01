@@ -217,10 +217,11 @@ small,
 }
 *::-webkit-scrollbar-track {
   background: transparent;
+  border-radius: 0;
 }
 *::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 0;
+  border-radius: var(--radius-full);
   transition: background-color var(--duration-slow) var(--ease-out);
 }
 *::-webkit-scrollbar-thumb:hover {
