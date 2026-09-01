@@ -19,54 +19,24 @@
         aria-hidden="true"
       />
     </Button>
-    <div
-      :id="bodyId"
-      class="body"
-      :class="{ open: open || previewing }"
-      :inert="!open && !previewing"
-      :aria-hidden="!open && !previewing"
-    >
-      <div class="body-inner">
-        <ToolStepCard v-if="text" variant="thought">
-          <div
-            v-if="!open"
-            ref="preview"
-            class="preview"
-            role="region"
-            aria-label="实时思考预览"
-            tabindex="0"
-            @wheel.stop
-            @scroll.stop
-          >
-            {{ text }}
-          </div>
-          <ThinkingBlocks v-else :blocks="[text]" />
-        </ToolStepCard>
+    <Transition name="fold-reveal">
+      <div v-if="open || previewing" :id="bodyId" class="body">
+        <ToolStepCard v-if="text" variant="thought" :text="text" :previewing="!open" />
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, useId, useTemplateRef, watch } from "vue"
+import { computed, useId } from "vue"
 import { ChevronRight, Lightbulb } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
-import ThinkingBlocks from "./ThinkingBlocks.vue"
 import ToolStepCard from "./ToolStepCard.vue"
 
 const props = defineProps<{ text: string; streaming: boolean }>()
 const open = defineModel<boolean>("open", { required: true })
 const bodyId = useId()
-const preview = useTemplateRef<HTMLElement>("preview")
 const previewing = computed(() => props.streaming && !open.value)
-watch(
-  [() => props.text, preview],
-  () => {
-    const element = preview.value
-    if (element) element.scrollTop = element.scrollHeight
-  },
-  { flush: "post" },
-)
 </script>
 
 <style scoped>
@@ -98,33 +68,10 @@ watch(
   transform: rotate(90deg);
 }
 .body {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--duration-fast) var(--ease-out);
-}
-.body.open {
-  grid-template-rows: 1fr;
-  transition-duration: var(--duration-slow);
-}
-.body-inner {
-  min-height: 0;
-  overflow: hidden;
-  padding-inline-start: var(--spacing-lg);
-}
-.preview {
-  max-height: 5lh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  overflow-anchor: none;
-  color: var(--ink-muted);
-  font-size: var(--text-body-sm);
-  line-height: 1.55;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  scrollbar-width: thin;
+  min-width: 0;
+  margin: 4px 0 var(--spacing-xs);
 }
 @media (prefers-reduced-motion: reduce) {
-  .body,
   .caret {
     transition: none;
   }
