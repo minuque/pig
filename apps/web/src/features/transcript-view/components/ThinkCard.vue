@@ -27,19 +27,23 @@
       :aria-hidden="!open && !previewing"
     >
       <div class="body-inner">
-        <div
-          v-if="!open && text"
-          ref="preview"
-          class="preview"
-          role="region"
-          aria-label="实时思考预览"
-          tabindex="0"
-          @wheel.stop
-          @scroll.stop
-        >
-          {{ text }}
-        </div>
-        <ThinkingBlocks v-else-if="open && text" :blocks="[text]" />
+        <ToolStepCard v-if="text">
+          <div
+            v-if="!open"
+            ref="preview"
+            class="thought-content preview"
+            role="region"
+            aria-label="实时思考预览"
+            tabindex="0"
+            @wheel.stop
+            @scroll.stop
+          >
+            {{ text }}
+          </div>
+          <div v-else class="thought-content">
+            <ThinkingBlocks :blocks="[text]" />
+          </div>
+        </ToolStepCard>
       </div>
     </div>
   </div>
@@ -50,6 +54,7 @@ import { computed, useId, useTemplateRef, watch } from "vue"
 import { ChevronRight, Lightbulb } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
 import ThinkingBlocks from "./ThinkingBlocks.vue"
+import ToolStepCard from "./ToolStepCard.vue"
 
 const props = defineProps<{ text: string; streaming: boolean }>()
 const open = defineModel<boolean>("open", { required: true })
@@ -107,6 +112,9 @@ watch(
   min-height: 0;
   overflow: hidden;
   padding-inline-start: var(--spacing-lg);
+}
+.thought-content {
+  padding: var(--spacing-sm);
 }
 .preview {
   max-height: 5lh;

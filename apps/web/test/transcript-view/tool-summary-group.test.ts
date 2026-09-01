@@ -36,7 +36,7 @@ describe("命令工具组展示", () => {
 
     expect(html).toContain('class="tool-summary"')
     expect(html).toContain(' summary"')
-    expect(html).toContain('class="well"')
+    expect(html).toContain('class="tool-step-card"')
     expect(html).not.toContain(">Run<")
   })
 

@@ -25,7 +25,7 @@
     </button>
     <Transition name="fold-reveal">
       <div v-if="revealed && expandable" :id="bodyId" class="body">
-        <div class="well">
+        <ToolStepCard>
           <ToolReadPreview v-if="readPreview" :path="path" :preview="readPreview" />
           <template v-else-if="isCommand && command">
             <ToolWellHeader label="命令" :text="command">
@@ -74,7 +74,7 @@
               </div>
             </section>
           </template>
-        </div>
+        </ToolStepCard>
       </div>
     </Transition>
   </div>
@@ -85,6 +85,7 @@ import { computed, useId } from "vue"
 import { ChevronRight } from "lucide-vue-next"
 import ExpandableText from "@features/transcript-view/components/ExpandableText.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
+import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
 import ToolWellHeader from "@features/transcript-view/components/ToolWellHeader.vue"
 import ToolReadPreview from "@features/transcript-view/components/ToolReadPreview.vue"
 import {
@@ -223,12 +224,6 @@ const expandable = computed(
 }
 .direct .body {
   margin: 0;
-}
-.well {
-  overflow: hidden;
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-lg);
-  background: var(--canvas-soft);
 }
 .command-heading {
   display: flex;
