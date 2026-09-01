@@ -1,15 +1,18 @@
 <template>
-  <svg class="orb" :width="size" :height="size" :viewBox="`0 0 ${STAGE} ${STAGE}`">
-    <circle
-      v-for="dot in dots"
-      :key="dot.key"
-      class="dot"
-      :cx="CENTER + dot.rx"
-      :cy="CENTER + dot.ry"
-      :r="DOT_R"
-      :style="{ animationDelay: `${dot.delay}ms` }"
-    />
-  </svg>
+  <div class="placeholder">
+    <svg class="orb" :width="size" :height="size" :viewBox="`0 0 ${STAGE} ${STAGE}`">
+      <circle
+        v-for="dot in dots"
+        :key="dot.key"
+        class="dot"
+        :cx="CENTER + dot.rx"
+        :cy="CENTER + dot.ry"
+        :r="DOT_R"
+        :style="{ animationDelay: `${dot.delay}ms` }"
+      />
+    </svg>
+    <span v-if="text" class="shimmer">{{ text }}</span>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -32,13 +35,21 @@ const dots = Array.from({ length: RING_N }, (_, i) => {
 
 withDefaults(
   defineProps<{
+    text?: string
     size?: number
   }>(),
-  { size: 20 },
+  { text: "Working...", size: 20 },
 )
 </script>
 
 <style scoped>
+.placeholder {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+}
 .orb {
   display: block;
   flex: none;
@@ -46,13 +57,12 @@ withDefaults(
   border: 0;
   outline: none;
   fill: currentColor;
-  color: var(--ink-muted);
   pointer-events: none;
 }
 .dot {
   transform-box: fill-box;
   transform-origin: center;
-  animation: orb-ring-pulse 2s ease-in-out infinite both;
+  animation: orb-ring-pulse var(--duration-shimmer) var(--ease-in-out) infinite both;
 }
 @keyframes orb-ring-pulse {
   0%,

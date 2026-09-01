@@ -23,22 +23,13 @@
             />
             <span v-else class="title">{{ session.title }}</span>
             <span class="session-meta">
-              <span v-if="running || session.updatedAt" class="session-icon icon-swap">
-                <Spinner :size="12" class="session-spinner" :data-visible="running" />
-                <Clock
-                  :size="12"
-                  :stroke-width="1.5"
-                  class="session-clock"
-                  :data-visible="!running && Boolean(session.updatedAt)"
-                />
-              </span>
-              <time
-                v-if="!running && session.updatedAt"
-                class="session-time"
-                :datetime="new Date(session.updatedAt).toISOString()"
-              >
-                {{ relativeTime }}
-              </time>
+              <StreamPlaceholder v-if="running" :size="12" text="" />
+              <template v-else-if="session.updatedAt">
+                <Clock :size="12" :stroke-width="1.5" class="session-clock" />
+                <time class="session-time" :datetime="new Date(session.updatedAt).toISOString()">
+                  {{ relativeTime }}
+                </time>
+              </template>
             </span>
           </div>
           <div class="card-line card-foot">
@@ -106,8 +97,8 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
-import { Spinner } from "@components/ui/spinner/index.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
+import StreamPlaceholder from "@features/transcript-view/components/StreamPlaceholder.vue"
 import type { SidebarGrouping, SidebarSession } from "@features/session-nav/lib/session-list.js"
 import VendorMark from "@features/chat-input/components/VendorMark.vue"
 
@@ -312,12 +303,7 @@ function confirmDelete() {
   align-items: center;
   gap: var(--spacing-xxs);
 }
-.session-icon {
-  width: 12px;
-  height: 12px;
-}
-.session-clock,
-.session-spinner {
+.session-clock {
   flex: none;
   color: var(--ink-faint);
 }

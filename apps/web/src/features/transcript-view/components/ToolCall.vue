@@ -2,10 +2,12 @@
   <div class="tool-summary" :class="{ failed }">
     <Button type="button" static class="summary" @click="toggleGroup">
       <component :is="icon" class="tool-icon" :stroke-width="1.5" data-icon="inline-start" />
-      <span class="label">{{ label }}</span>
-      <span v-if="detail" class="detail" :title="detail">{{ detail }}</span>
+      <span class="label" :class="{ shimmer: running }">{{ label }}</span>
+      <span v-if="detail" class="detail" :class="{ shimmer: running }" :title="detail">{{
+        detail
+      }}</span>
       <ChevronRight
-        class="motion-turn"
+        class="motion-turn motion-hint"
         :class="{ 'is-on': open }"
         :stroke-width="1.5"
         data-icon="inline-end"
@@ -101,9 +103,11 @@ import { directGroupItem, toolSummary, toolSummaryDetail } from "../lib/tool-sum
 
 const props = defineProps<{ group: ToolGroup; expanded: Map<string, boolean> }>()
 const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
+
 const directItem = computed(() => directGroupItem(props.group))
 const open = computed(() => props.expanded.get(props.group.id) === true)
 const failed = computed(() => props.group.items.some((item) => item.isError))
+const running = computed(() => props.group.items.some((item) => item.running))
 const label = computed(() => toolSummary(props.group.items))
 const detail = computed(() => toolSummaryDetail(props.group.items))
 const icon = computed(() => {

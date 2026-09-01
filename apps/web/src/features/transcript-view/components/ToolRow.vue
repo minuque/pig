@@ -1,7 +1,7 @@
 <template>
   <section class="tool-row" :class="{ live, failed: row.aborted }">
     <Button type="button" static class="fold" @click="emit('toggle-fold', !revealed)">
-      <span>{{ label }}</span>
+      <span :class="{ shimmer: live }">{{ label }}</span>
       <ChevronRight
         class="motion-turn"
         :class="{ 'is-on': revealed }"
@@ -32,10 +32,7 @@
               @toggle="emit('toggle-tool', $event.id, $event.open)"
             />
           </template>
-          <div v-if="row.waiting" class="waiting">
-            <ThinkingOrb />
-            <ThinkingState text="思考中" />
-          </div>
+          <StreamPlaceholder v-if="row.waiting" />
         </div>
       </div>
     </div>
@@ -48,8 +45,7 @@ import { ChevronRight } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
 import AssistantMessage from "./AssistantMessage.vue"
 import ThinkCard from "./ThinkCard.vue"
-import ThinkingOrb from "./ThinkingOrb.vue"
-import ThinkingState from "./ThinkingState.vue"
+import StreamPlaceholder from "./StreamPlaceholder.vue"
 import ToolCall from "./ToolCall.vue"
 import { toolRowLabel, type ToolRow } from "../lib/transcript-rows.js"
 
@@ -133,12 +129,5 @@ watch(
   gap: var(--spacing-xs);
   padding-block: var(--spacing-xs);
   border-block-start: var(--border-width) solid var(--hairline);
-}
-.waiting {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--ink-muted);
-  font-size: var(--text-body-sm);
 }
 </style>

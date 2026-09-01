@@ -110,16 +110,7 @@
       </section>
     </template>
     <template v-else-if="thoughtContent">
-      <div
-        v-if="thoughtContent.previewing"
-        ref="thoughtPreview"
-        class="preview"
-        @wheel.stop
-        @scroll.stop
-      >
-        {{ thoughtContent.text }}
-      </div>
-      <ThinkingBlocks v-else :blocks="[thoughtContent.text]" />
+      <ThinkingBlocks :blocks="[thoughtContent.text]" />
     </template>
   </div>
 </template>
@@ -142,7 +133,6 @@ import type { TranscriptImage as ToolStepImage } from "@features/transcript-view
 const props = defineProps<{
   variant: "thought" | "command" | "read" | "tool"
   text?: string
-  previewing?: boolean
   command?: string
   cwd?: string
   outputText?: string
@@ -185,9 +175,7 @@ const toolContent = computed(() =>
     : null,
 )
 const thoughtContent = computed(() =>
-  props.variant === "thought"
-    ? { text: props.text ?? "", previewing: Boolean(props.previewing) }
-    : null,
+  props.variant === "thought" ? { text: props.text ?? "" } : null,
 )
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
@@ -195,16 +183,6 @@ const cardClasses = computed(() => ({
   "is-err": commandContent.value?.status === "error",
   "is-run": commandContent.value?.status === "running",
 }))
-const thoughtPreview = ref<HTMLElement | null>(null)
-watch(
-  [() => thoughtContent.value?.text, thoughtPreview],
-  () => {
-    const element = thoughtPreview.value
-    if (element) element.scrollTop = element.scrollHeight
-  },
-  { flush: "post" },
-)
-
 const { isDark } = useColorScheme()
 const commandExpanded = ref(false)
 const inputExpanded = ref(false)
@@ -376,18 +354,6 @@ watch(
   color: var(--ink-muted);
   font-size: var(--text-caption);
   overflow-wrap: anywhere;
-}
-.preview {
-  max-height: 5lh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  overflow-anchor: none;
-  color: var(--ink-muted);
-  font-size: var(--text-body-sm);
-  line-height: 1.55;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  scrollbar-width: thin;
 }
 @keyframes status-pulse {
   50% {

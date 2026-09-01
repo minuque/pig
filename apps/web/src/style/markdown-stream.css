@@ -98,11 +98,11 @@
 
 /* 容器 class 是 rounded-lg（本主题 12px），头/身按 --ms-radius（8px）切角，四角错位。 */
 [data-custom-id="chat"] .code-block-container {
-  --vscode-editor-font-size: var(--ms-text-body);
+  --vscode-editor-font-size: var(--text-code);
   border-radius: var(--ms-radius);
 }
 [data-custom-id="chat"] pre.code-pre-fallback {
-  font-size: var(--ms-text-body);
+  font-size: var(--text-code);
 }
 
 /* pre 带 z-index:2 且与 header 同层，会盖住绝对定位的 more 菜单。 */

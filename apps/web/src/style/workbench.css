@@ -3,41 +3,6 @@
   outline-offset: -1px;
 }
 
-::view-transition-group(root) {
-  animation-duration: var(--duration-theme);
-  animation-timing-function: var(--ease-smooth);
-}
-::view-transition-old(root) {
-  z-index: -1;
-  animation: none;
-}
-::view-transition-new(root) {
-  animation-name: reveal-light-theme;
-}
-.dark::view-transition-new(root) {
-  animation-name: reveal-dark-theme;
-}
-@keyframes reveal-dark-theme {
-  from {
-    clip-path: polygon(50% -71%, -50% 71%, -50% 71%, 50% -71%);
-    opacity: 0.5;
-  }
-  to {
-    clip-path: polygon(50% -71%, -50% 71%, 50% 171%, 171% 50%);
-    opacity: 1;
-  }
-}
-@keyframes reveal-light-theme {
-  from {
-    clip-path: polygon(171% 50%, 50% 171%, 50% 171%, 171% 50%);
-    opacity: 0.5;
-  }
-  to {
-    clip-path: polygon(171% 50%, 50% 171%, -50% 71%, 50% -71%);
-    opacity: 1;
-  }
-}
-
 body {
   background: var(--canvas-soft);
   color: var(--ink);
@@ -157,27 +122,6 @@ small,
   padding: var(--spacing-xxs);
   border-radius: var(--radius-xs);
   color: var(--ink-muted);
-}
-@keyframes shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
-.shimmer {
-  background: linear-gradient(90deg, var(--ink-faint) 25%, var(--ink) 50%, var(--ink-faint) 75%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer var(--duration-shimmer) var(--ease-in-out) infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .shimmer {
-    animation: none;
-  }
 }
 /* 520px 下 SessionNav 与工作台 header 共用的 session-status 对齐基线 */
 @media (max-width: 520px) {

@@ -6,7 +6,6 @@ import {
   sameIdList,
 } from "@features/transcript-view/lib/transcript-minimap.js"
 
-/** 可视区几何取滚动层，正文宽取内容列。 */
 export function useTranscriptMinimap(
   rows: MaybeRefOrGetter<readonly TimelineRow[]>,
   layout: {

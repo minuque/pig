@@ -13,6 +13,7 @@
 import MarkdownRender from "markstream-vue"
 import { computed } from "vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
+import { codeBlockTypography } from "@features/transcript-view/lib/code-block-options.js"
 
 defineProps<{
   blocks: readonly string[]
@@ -29,10 +30,7 @@ const thinkProps = computed(
       typewriter: false,
       smoothStreaming: false,
       isDark: isDark.value,
-      codeBlockOptions: {
-        fontSize: 14,
-        fontFamily: "var(--font-code)",
-      },
+      codeBlockOptions: codeBlockTypography(),
       codeBlockProps: { theme: "dark-plus" },
     }) as const,
 )

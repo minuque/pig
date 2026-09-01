@@ -14,6 +14,7 @@ import { computed } from "vue"
 import type { AssistantRow } from "@features/transcript-view/lib/transcript-rows.js"
 import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
+import { codeBlockTypography } from "@features/transcript-view/lib/code-block-options.js"
 
 function assistantMarkdownFlags(streaming: boolean) {
   return {
@@ -47,10 +48,8 @@ const statusLabel = computed(() => {
 })
 
 const codeBlockOptions = {
-  fontSize: 14,
-  // 与 stream-diffs 实际行高对齐
-  lineHeight: 18,
-  fontFamily: "var(--font-code)",
+  ...codeBlockTypography(),
+  diffStyle: "unified",
 } as const
 const agentMarkdown = computed(
   () =>
@@ -68,6 +67,12 @@ const agentMarkdown = computed(
         showExpandButton: true,
         theme: isDark.value ? "dark-plus" : "light-plus",
       },
+      mermaidProps: {
+        renderDebounceMs: 180,
+        contentStableDelayMs: 500,
+        showHeader: true,
+        showFullscreenButton: true,
+      },
       ...assistantMarkdownFlags(props.streaming),
     }) as const,
 )
@@ -80,16 +85,13 @@ const agentMarkdown = computed(
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
+
 .status {
-  display: inline-block;
-  margin-top: var(--spacing-xs);
-  padding: 2px var(--spacing-xs);
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
   color: var(--danger);
-  font-size: var(--text-caption);
+  font-size: var(--text-body-md);
   font-weight: var(--font-weight-medium);
 }
+
 .error-detail {
   margin: 6px 0 0;
   color: var(--danger);

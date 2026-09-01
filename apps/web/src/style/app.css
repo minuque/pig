@@ -2,6 +2,7 @@
 /* index.tailwind.css 不含运行时工具类（h-4 / rounded-lg 等）。
    官方要另接 markstream-vue/tailwind safelist；只引一半，代码卡片会缺尺寸。 */
 @import "markstream-vue/index.css";
+@import "katex/dist/katex.min.css";
 @import "./markdown-stream.css";
 @import "./motion.css";
 @import "./workbench.css";
@@ -85,7 +86,7 @@
   --font-mono:
     "SF Mono", "JetBrains Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, Courier,
     "PingFang SC", "Microsoft YaHei";
-  --font-code: "JetBrains Mono NL", "JetBrains Mono", var(--font-mono);
+  --font-code: "Sarasa Mono SC", "JetBrains Mono NL", "JetBrains Mono", var(--font-mono);
   --text-display-1: 64px;
   --text-display-1--line-height: 1;
   --tracking-display-1: -2.125px;
@@ -118,6 +119,8 @@
   --text-caption-mono: 12px;
   --text-caption-mono--line-height: 1.33;
   --tracking-caption-mono: 1.2px;
+  --text-code: 14px;
+  --text-code-line: 18px;
 
   /* Spacing — base unit 8px */
   --spacing-xxs: 4px;
@@ -288,8 +291,8 @@
   }
 }
 *::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;

@@ -28,7 +28,6 @@ describe("ToolRow 共享卡片", () => {
       createSSRApp(ToolStepCard, {
         variant: "thought",
         text: "检查工具输出",
-        previewing: true,
       }),
     )
 

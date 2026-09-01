@@ -1,13 +1,9 @@
-/** 对齐 Codex 导航轨：workbench 左侧居中，12px 等距刻度。 */
-
 import type { TimelineRow } from "@features/transcript-view/lib/transcript-rows.js"
 
 export const MINIMAP_MIN_ITEMS = 2
-/** 无实测正文宽时的 gutter 回退，对齐自适应上限。 */
 export const MINIMAP_CONTENT_MAX_WIDTH = 920
 export const MINIMAP_HIT_STRIP_LEFT = 12
 export const MINIMAP_HIT_STRIP_MAX_WIDTH = 40
-/** 与 Waku `NAVIGATION_RAIL_PITCH` / `w-11` 一致。 */
 export const MINIMAP_RAIL_PITCH = 12
 export const MINIMAP_RAIL_WIDTH = 44
 
