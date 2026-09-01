@@ -152,6 +152,34 @@
   filter: blur(4px);
 }
 
+.list-reveal-enter-active {
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out),
+    filter var(--duration-slow) var(--ease-out);
+}
+.list-reveal-leave-active {
+  position: absolute;
+  width: 100%;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
+}
+.list-reveal-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+  filter: blur(4px);
+}
+.list-reveal-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+  filter: blur(4px);
+}
+.list-reveal-move {
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
 .fold-height {
   display: grid;
   grid-template-rows: 0fr;
@@ -210,9 +238,19 @@
   .fold-reveal-enter-from,
   .fold-reveal-leave-to,
   .panel-reveal-enter-from,
-  .panel-reveal-leave-to {
+  .panel-reveal-leave-to,
+  .list-reveal-enter-from,
+  .list-reveal-leave-to {
     transform: none;
     filter: none;
+  }
+  .list-reveal-enter-active,
+  .list-reveal-leave-active {
+    position: static;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+  .list-reveal-move {
+    transition: none;
   }
   .fold-height,
   .fold-height.is-open {

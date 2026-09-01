@@ -35,7 +35,7 @@
     <div v-show="!collapsed" class="nav-main">
       <NavToolbar @new-session="onNewSession" @search="searchOpen = true" />
 
-      <div class="nav-body" v-bind="grouping === 'project' ? {} : containerProps">
+      <div class="nav-body">
         <nav class="session-list">
           <ul v-if="showList && grouping === 'project'">
             <li
@@ -56,7 +56,7 @@
                 class="fold-height"
                 :class="{ 'is-open': !row.collapsed }"
               >
-                <div class="group-body">
+                <TransitionGroup name="list-reveal" tag="div" class="group-body">
                   <SessionItem
                     v-for="session in row.sessions"
                     :key="session.id"
@@ -74,42 +74,43 @@
                   />
                   <button
                     v-if="row.more"
+                    :key="`${row.key}-more`"
                     class="more-button"
                     type="button"
                     @click="bumpGroup(row.key)"
                   >
                     显示更多
                   </button>
-                </div>
+                </TransitionGroup>
               </div>
             </li>
           </ul>
-          <ul v-else-if="showList" v-bind="wrapperProps">
-            <li v-for="item in list" :key="item.data.key" :class="`row-${item.data.kind}`">
+          <TransitionGroup v-else-if="showList" name="list-reveal" tag="ul">
+            <li v-for="row in rows" :key="row.key" :class="`row-${row.kind}`">
               <SessionItem
-                v-if="item.data.kind === 'session'"
-                :session="item.data.session"
-                :workspace-title="item.data.session.cwd ? workspaceName(item.data.session.cwd) : ''"
-                :active="item.data.session.id === activeSessionId"
-                :running="activeSessionRunning && item.data.session.id === activeSessionId"
+                v-if="row.kind === 'session'"
+                :session="row.session"
+                :workspace-title="row.session.cwd ? workspaceName(row.session.cwd) : ''"
+                :active="row.session.id === activeSessionId"
+                :running="activeSessionRunning && row.session.id === activeSessionId"
                 :grouping="grouping"
                 :now="now"
-                :message-count="cardFootById.get(item.data.session.id)?.messageCount ?? null"
-                :model-provider="cardFootById.get(item.data.session.id)?.modelProvider ?? ''"
-                @navigate="onSessionNavigate(item.data.session.cwd)"
+                :message-count="cardFootById.get(row.session.id)?.messageCount ?? null"
+                :model-provider="cardFootById.get(row.session.id)?.modelProvider ?? ''"
+                @navigate="onSessionNavigate(row.session.cwd)"
                 @rename="renameSession"
                 @delete="deleteSession"
               />
               <button
-                v-else-if="item.data.kind === 'more'"
+                v-else-if="row.kind === 'more'"
                 class="more-button"
                 type="button"
-                @click="bumpGroup(item.data.groupKey)"
+                @click="bumpGroup(row.groupKey)"
               >
                 显示更多
               </button>
             </li>
-          </ul>
+          </TransitionGroup>
           <div v-else class="empty-state">
             <template v-if="groups.length === 0">
               <span>还没有工作目录</span>
@@ -129,7 +130,7 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
-import { useTimestamp, useVirtualList } from "@vueuse/core"
+import { useTimestamp } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
 import { PanelLeft, Plus, Search, SquarePen } from "lucide-vue-next"
 import { notify } from "@components/ui/alert/index.js"
@@ -174,12 +175,6 @@ const showList = computed(() => rows.value.length > 0)
 const groupRows = computed(() =>
   rows.value.filter((row): row is Extract<SidebarRow, { kind: "group" }> => row.kind === "group"),
 )
-
-const SESSION_ROW_PX = 56
-const MORE_ROW_PX = 34
-const { list, containerProps, wrapperProps } = useVirtualList(rows, {
-  itemHeight: (index) => (rows.value[index]?.kind === "more" ? MORE_ROW_PX : SESSION_ROW_PX),
-})
 
 watch(workspaceError, (message) => {
   const text = message.trim()
@@ -328,6 +323,7 @@ html[data-pig-desktop-platform] .session-nav input {
   padding-inline-end: var(--spacing-xxs);
 }
 .session-list ul {
+  position: relative;
   display: flex;
   flex-direction: column;
   margin: 0;
@@ -364,6 +360,7 @@ html[data-pig-desktop-platform] .session-nav input {
   transition-duration: var(--duration-slow);
 }
 .group-body {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xxs);
