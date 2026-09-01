@@ -1,6 +1,5 @@
 <template>
-  <ToolCall v-if="directCommand" :item="directCommand" :open="true" direct />
-  <div v-else class="tool-summary" :class="{ failed }">
+  <div class="tool-summary" :class="{ failed }">
     <Button
       type="button"
       static
@@ -27,14 +26,17 @@
       />
     </Button>
     <div :id="bodyId" class="body" :class="{ open }" :inert="!open" :aria-hidden="!open">
-      <div class="body-inner">
-        <ToolCall
-          v-for="item in group.items"
-          :key="item.id"
-          :item="item"
-          :open="open && expanded.get(item.id) === true"
-          @update:open="emit('toggle', { id: item.id, open: $event })"
-        />
+      <div class="body-inner" :class="{ direct: directCommand }">
+        <ToolCall v-if="directCommand" :item="directCommand" :open="true" direct />
+        <template v-else>
+          <ToolCall
+            v-for="item in group.items"
+            :key="item.id"
+            :item="item"
+            :open="open && expanded.get(item.id) === true"
+            @update:open="emit('toggle', { id: item.id, open: $event })"
+          />
+        </template>
       </div>
     </div>
   </div>
@@ -58,7 +60,13 @@ const label = computed(() => toolSummary(props.group.items))
 const detail = computed(() => toolSummaryDetail(props.group.items))
 function toggleGroup() {
   const first = props.group.items[0]
-  if (!open.value && props.group.items.length === 1 && first && !props.expanded.has(first.id)) {
+  if (
+    !directCommand.value &&
+    !open.value &&
+    props.group.items.length === 1 &&
+    first &&
+    !props.expanded.has(first.id)
+  ) {
     emit("toggle", { id: first.id, open: true })
   }
   emit("toggle", { id: props.group.id, open: !open.value })
@@ -138,6 +146,9 @@ const icon = computed(() => {
   min-height: 0;
   overflow: hidden;
   padding-inline-start: var(--spacing-lg);
+}
+.body-inner.direct {
+  padding-inline-start: 0;
 }
 @media (prefers-reduced-motion: reduce) {
   .body,

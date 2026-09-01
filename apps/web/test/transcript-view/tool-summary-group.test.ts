@@ -18,11 +18,15 @@ function command(id: string): ToolCallView {
 }
 
 async function renderGroup(group: ToolGroup): Promise<string> {
-  return renderToString(createSSRApp(ToolSummaryGroup, { group, expanded: new Map() }))
+  const app = createSSRApp(ToolSummaryGroup, { group, expanded: new Map() })
+  app.config.warnHandler = (message) => {
+    if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
+  }
+  return renderToString(app)
 }
 
 describe("命令工具组展示", () => {
-  it("单条命令直接显示 command card，不渲染命令组和 Run 摘要", async () => {
+  it("单条命令保留命令组摘要，直接在其下显示 command card", async () => {
     const html = await renderGroup({
       type: "tools",
       id: "group:c1",
@@ -30,8 +34,9 @@ describe("命令工具组展示", () => {
       items: [command("c1")],
     })
 
+    expect(html).toContain('class="tool-summary"')
+    expect(html).toContain(' summary"')
     expect(html).toContain('class="well"')
-    expect(html).not.toContain("运行了 1 条命令")
     expect(html).not.toContain(">Run<")
   })
 
