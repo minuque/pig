@@ -17,7 +17,12 @@
       :inert="!open && !previewing"
     >
       <div>
-        <ToolStepCard v-if="text" variant="thought" :text="text" :previewing="!open" />
+        <ToolStepCard
+          v-if="text && (open || previewing)"
+          variant="thought"
+          :text="text"
+          :previewing="!open"
+        />
       </div>
     </div>
   </div>

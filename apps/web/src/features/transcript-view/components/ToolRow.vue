@@ -9,7 +9,7 @@
         data-icon="inline-end"
       />
     </Button>
-    <div class="fold-height" :class="{ 'is-open': revealed }" :inert="!revealed">
+    <div class="fold-height" :class="{ 'is-open': expanded }" :inert="!expanded">
       <div>
         <div v-if="rendered" class="steps">
           <template v-for="step in row.steps" :key="step.id">
@@ -65,10 +65,23 @@ const emit = defineEmits<{
 const live = computed(() => props.row.mode === "live")
 const revealed = computed(() => props.foldOpen ?? live.value)
 const rendered = shallowRef(revealed.value)
+const expanded = shallowRef(revealed.value)
 watch(
   revealed,
   (open) => {
-    if (open) rendered.value = true
+    if (!open) {
+      expanded.value = false
+      return
+    }
+    const first = !rendered.value
+    rendered.value = true
+    if (!first) {
+      expanded.value = true
+      return
+    }
+    requestAnimationFrame(() => {
+      if (revealed.value) expanded.value = true
+    })
   },
   { flush: "sync" },
 )
