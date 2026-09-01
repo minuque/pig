@@ -124,6 +124,14 @@
         </nav>
       </div>
     </div>
+    <button
+      class="icon-button settings-gear press-scale"
+      type="button"
+      title="设置"
+      @click="openSettings()"
+    >
+      <Settings class="size-icon" />
+    </button>
     <SessionSearch v-model:open="searchOpen" @navigate="onSessionNavigate" />
   </div>
 </template>
@@ -132,7 +140,7 @@
 import { computed, shallowRef, watch } from "vue"
 import { useTimestamp } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
-import { PanelLeft, Plus, Search, SquarePen } from "lucide-vue-next"
+import { PanelLeft, Plus, Search, Settings, SquarePen } from "lucide-vue-next"
 import { notify } from "@components/ui/alert/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
@@ -140,6 +148,7 @@ import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionSearch from "@features/session-nav/components/SessionSearch.vue"
+import { useSettings } from "@features/settings/index.js"
 import type { SidebarRow } from "@features/session-nav/lib/session-list.js"
 
 defineProps<{
@@ -167,6 +176,7 @@ const {
   deleteSession,
 } = useNav()
 const { creating, createSession } = useSession()
+const { openSettings } = useSettings()
 
 const searchOpen = shallowRef(false)
 const now = useTimestamp({ interval: 60_000 })
@@ -271,8 +281,12 @@ html[data-pig-desktop-platform] .session-nav input {
 .logo-mark:hover {
   background: var(--hover-quiet);
 }
+.settings-gear {
+  margin-top: auto;
+}
 .collapse-toggle,
-.rail-action {
+.rail-action,
+.settings-gear {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -285,14 +299,16 @@ html[data-pig-desktop-platform] .session-nav input {
   background: transparent;
   color: var(--ink-muted);
 }
-.rail-action {
+.rail-action,
+.settings-gear {
   transition:
     background var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
     scale var(--duration-fast) var(--ease-out);
 }
 .collapse-toggle:hover,
-.rail-action:hover:not(:disabled) {
+.rail-action:hover:not(:disabled),
+.settings-gear:hover {
   background: var(--hover-quiet);
   color: var(--ink);
 }
@@ -410,6 +426,7 @@ html[data-pig-desktop-platform] .session-nav input {
 }
 @media (prefers-reduced-motion: reduce) {
   .rail-action,
+  .settings-gear,
   .row-group,
   .row-group.is-open {
     transition: none;

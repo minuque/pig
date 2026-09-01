@@ -90,3 +90,15 @@ _避免使用_：Tool Call、函数、Extension
 **Extension（扩展）**：
 通过 Pi Extension API 接入、可动态拔插的能力单元。Git、Terminal、Browser、MCP、Custom Tool 以 Extension 存在，不是 pig 内置工具。
 _避免使用_：内置工具、插件
+
+**Skill（技能）**：
+Pi 按 Working Directory 加载、写入 Agent prompt 的能力说明。它不是 Tool，也不是 Extension。
+_避免使用_：插件、提示模板、Tool
+
+**设置（Settings）**：
+pig 拥有的 UI 偏好与资源查看弹框。不是 Pi SettingsManager，也不是 Session。
+_避免使用_：账号设置、Pi 配置编辑器
+
+**用量（Usage）**：
+跨时间窗的 Token 统计视图。不是当前 Session 的上下文占用。
+_避免使用_：上下文占用、配额、账单

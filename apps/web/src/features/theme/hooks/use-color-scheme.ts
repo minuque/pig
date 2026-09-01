@@ -3,17 +3,24 @@ import { computed, nextTick } from "vue"
 
 const STORAGE_KEY = "npg-theme"
 
-/** 主题读写只放 theme 模块；其它 feature 只消费 isDark / toggle。 */
-export function useColorScheme() {
-  const mode = useColorMode({ initialValue: "light", storageKey: STORAGE_KEY })
-  if (mode.store.value === "auto") mode.value = mode.system.value
+export type ColorScheme = "auto" | "light" | "dark"
 
-  const isDark = computed(() => mode.value === "dark")
+/** 主题读写只放 theme 模块；其它 feature 只消费 isDark / scheme / toggle / setScheme。 */
+export function useColorScheme() {
+  const mode = useColorMode({ initialValue: "auto", storageKey: STORAGE_KEY })
+  const isDark = computed(() => mode.state.value === "dark")
+  const scheme = computed<ColorScheme>(() =>
+    mode.store.value === "auto" ? "auto" : mode.state.value,
+  )
+
+  function setScheme(next: ColorScheme) {
+    mode.value = next
+  }
 
   function toggle() {
-    const next = isDark.value ? "light" : "dark"
+    const next: ColorScheme = isDark.value ? "light" : "dark"
     if (typeof document === "undefined") {
-      mode.value = next
+      setScheme(next)
       return
     }
 
@@ -21,7 +28,7 @@ export function useColorScheme() {
       const style = document.createElement("style")
       style.textContent = "*,*::before,*::after{transition:none!important}"
       document.head.append(style)
-      mode.value = next
+      setScheme(next)
       await nextTick()
       void document.body.offsetHeight
       requestAnimationFrame(() => requestAnimationFrame(() => style.remove()))
@@ -38,5 +45,5 @@ export function useColorScheme() {
     document.startViewTransition(updateTheme)
   }
 
-  return { isDark, toggle }
+  return { isDark, scheme, setScheme, toggle }
 }

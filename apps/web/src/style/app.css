@@ -149,6 +149,8 @@
   --size-content: 45.75rem; /* 会话列外回退；列内由 clamp(680px, 64%, 920px) 覆盖 */
   --size-chat-input: 46.75rem; /* 会话列外回退；列内为正文 + 16px */
   --size-modal: 32rem; /* dialog max width */
+  --size-settings: 56rem; /* 设置弹框宽度 */
+  --size-settings-nav: 15rem; /* 设置左栏宽度 */
   --size-icon: 15px;
   --size-icon-2xs: 18px;
   --size-icon-button: 28px;
