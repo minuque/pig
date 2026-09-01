@@ -165,6 +165,9 @@
   overflow: hidden;
   min-height: 0;
 }
+.fold-height.with-enter.is-open > * {
+  animation: enter-blur var(--duration-slow) var(--ease-out);
+}
 
 .fade-layer-enter-active,
 .fade-layer-leave-active {
@@ -214,6 +217,9 @@
   .fold-height,
   .fold-height.is-open {
     transition: none;
+  }
+  .fold-height.with-enter.is-open > * {
+    animation: none;
   }
   .fade-layer-enter-active,
   .fade-layer-leave-active {

@@ -18,14 +18,20 @@
       <span class="label">{{ label }}</span>
       <span v-if="detail" class="detail" :title="detail">{{ detail }}</span>
       <ChevronRight
-        class="caret"
-        :class="{ open }"
+        class="motion-turn"
+        :class="{ 'is-on': open }"
         :stroke-width="1.5"
         data-icon="inline-end"
         aria-hidden="true"
       />
     </Button>
-    <div :id="bodyId" class="body" :class="{ open }" :inert="!open" :aria-hidden="!open">
+    <div
+      :id="bodyId"
+      class="fold-height"
+      :class="{ 'is-open': open }"
+      :inert="!open"
+      :aria-hidden="!open"
+    >
       <div class="body-inner" :class="{ direct: Boolean(directItem) }">
         <div
           v-for="call in calls"
@@ -44,8 +50,8 @@
             @click="emit('toggle', { id: call.item.id, open: !call.itemOpen })"
           >
             <ChevronRight
-              class="caret"
-              :class="{ open: call.itemOpen, invisible: !call.expandable }"
+              class="motion-turn caret"
+              :class="{ 'is-on': call.itemOpen, invisible: !call.expandable }"
               :size="14"
               aria-hidden="true"
             />
@@ -274,24 +280,7 @@ function toggleGroup() {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.caret {
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-.caret.open {
-  transform: rotate(90deg);
-}
-.body {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--duration-fast) var(--ease-out);
-}
-.body.open {
-  grid-template-rows: 1fr;
-  transition-duration: var(--duration-slow);
-}
 .body-inner {
-  min-height: 0;
-  overflow: hidden;
   padding-inline-start: var(--spacing-lg);
 }
 .body-inner.direct {
@@ -363,15 +352,9 @@ function toggleGroup() {
 }
 .call-body {
   min-width: 0;
-  margin: 4px 0 var(--spacing-xs);
+  margin: var(--spacing-xxs) 0 var(--spacing-xs);
 }
 .direct .call-body {
   margin: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .body,
-  .caret {
-    transition: none;
-  }
 }
 </style>

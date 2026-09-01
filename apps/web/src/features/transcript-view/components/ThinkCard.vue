@@ -12,8 +12,8 @@
       <span>{{ streaming ? "思考中" : "思考" }}</span>
       <span v-if="previewing" class="hint">展开全文</span>
       <ChevronRight
-        class="caret"
-        :class="{ open }"
+        class="motion-turn"
+        :class="{ 'is-on': open }"
         :stroke-width="1.5"
         data-icon="inline-end"
         aria-hidden="true"
@@ -21,12 +21,12 @@
     </Button>
     <div
       :id="bodyId"
-      class="body"
-      :class="{ open: open || previewing }"
+      class="fold-height with-enter"
+      :class="{ 'is-open': open || previewing }"
       :inert="!open && !previewing"
       :aria-hidden="!open && !previewing"
     >
-      <div class="body-inner">
+      <div>
         <ToolStepCard v-if="text" variant="thought" :text="text" :previewing="!open" />
       </div>
     </div>
@@ -66,36 +66,5 @@ const previewing = computed(() => props.streaming && !open.value)
 }
 .hint {
   font-size: var(--text-caption);
-}
-.caret {
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-.caret.open {
-  transform: rotate(90deg);
-}
-.body {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--duration-fast) var(--ease-out);
-}
-.body.open {
-  grid-template-rows: 1fr;
-  transition-duration: var(--duration-slow);
-}
-.body.open > .body-inner {
-  animation: enter-blur var(--duration-slow) var(--ease-out);
-}
-.body-inner {
-  min-height: 0;
-  overflow: hidden;
-}
-@media (prefers-reduced-motion: reduce) {
-  .body,
-  .caret {
-    transition: none;
-  }
-  .body.open > .body-inner {
-    animation: none;
-  }
 }
 </style>

@@ -10,8 +10,8 @@
     >
       <span>{{ label }}</span>
       <ChevronRight
-        class="caret"
-        :class="{ open: revealed }"
+        class="motion-turn"
+        :class="{ 'is-on': revealed }"
         :stroke-width="1.5"
         data-icon="inline-end"
         aria-hidden="true"
@@ -19,12 +19,12 @@
     </Button>
     <div
       :id="bodyId"
-      class="body"
-      :class="{ open: revealed }"
+      class="fold-height"
+      :class="{ 'is-open': revealed }"
       :inert="!revealed"
       :aria-hidden="!revealed"
     >
-      <div class="body-inner">
+      <div>
         <div v-if="rendered" class="steps">
           <template v-for="step in row.steps" :key="step.id">
             <AssistantMessage
@@ -129,25 +129,6 @@ watch(
 .failed .fold {
   color: var(--danger);
 }
-.caret {
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-.caret.open {
-  transform: rotate(90deg);
-}
-.body {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--duration-fast) var(--ease-out);
-}
-.body.open {
-  grid-template-rows: 1fr;
-  transition-duration: var(--duration-slow);
-}
-.body-inner {
-  min-height: 0;
-  overflow: hidden;
-}
 .steps {
   display: flex;
   flex-direction: column;
@@ -161,11 +142,5 @@ watch(
   gap: var(--spacing-xs);
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
-}
-@media (prefers-reduced-motion: reduce) {
-  .body,
-  .caret {
-    transition: none;
-  }
 }
 </style>
