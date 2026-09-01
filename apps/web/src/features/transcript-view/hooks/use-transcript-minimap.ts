@@ -3,6 +3,7 @@ import type { TimelineRow } from "@features/transcript-view/lib/transcript-rows.
 import {
   deriveTranscriptMinimapItems,
   resolveMinimapHitStripWidth,
+  resolveMinimapTickTops,
   sameIdList,
   sameNumberList,
 } from "@features/transcript-view/lib/transcript-minimap.js"
@@ -30,17 +31,21 @@ export function useTranscriptMinimap(
     if (!port || ids.length === 0) return { inViewIds: [], anchorTops: [] }
     const box = port.getBoundingClientRect()
     const inView: string[] = []
-    const byId = new Map<string, number>()
+    let lastAnchorY = box.height / 2
     for (const el of port.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
       const row = el.getBoundingClientRect()
       const id = el.dataset.minimapRow
       if (!id) continue
       if (!(row.bottom <= box.top || row.top >= box.bottom)) inView.push(id)
-      byId.set(id, Math.round(row.top + row.height / 2 - box.top))
+      if (id === ids.at(-1)) lastAnchorY = row.top + row.height / 2 - box.top
     }
     return {
       inViewIds: inView,
-      anchorTops: ids.map((id) => byId.get(id) ?? 0),
+      anchorTops: resolveMinimapTickTops({
+        lastAnchorY,
+        itemCount: ids.length,
+        viewportHeight: box.height,
+      }),
     }
   }
 
