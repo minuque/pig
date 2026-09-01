@@ -1,4 +1,4 @@
-/** 对齐 Codex / Waku 导航轨：等距刻度，点击跳到用户句。 */
+/** 对齐 Codex 导航轨：刻度贴用户句视口位置，点击跳转。 */
 
 import type { TimelineRow } from "@features/transcript-view/lib/transcript-rows.js"
 
@@ -55,7 +55,7 @@ export function deriveTranscriptMinimapItems(
 
 export function resolveMinimapHeightStyle(itemCount: number): string {
   if (itemCount <= 0) return "0px"
-  return `min(${itemCount * MINIMAP_RAIL_PITCH}px, 80cqh)`
+  return "100cqh"
 }
 
 export function resolveMinimapTopPercent(index: number, itemCount: number): number {
@@ -88,4 +88,8 @@ export function resolveMinimapHitStripWidth(
 
 export function sameIdList(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((id, index) => id === right[index])
+}
+
+export function sameNumberList(left: readonly number[], right: readonly number[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index])
 }

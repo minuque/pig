@@ -11,6 +11,7 @@
       v-if="rows.length && minimapItems.length >= MINIMAP_MIN_ITEMS"
       :items="minimapItems"
       :in-view-ids="inViewIds"
+      :anchor-tops="anchorTops"
       :hit-strip-width="hitStripWidth"
       @select="selectMinimapItem"
     />
@@ -141,6 +142,7 @@ let sizeObserver: ResizeObserver | undefined
 const {
   items: minimapItems,
   inViewIds,
+  anchorTops,
   hitStripWidth,
   syncLayout,
 } = useTranscriptMinimap(rows, {

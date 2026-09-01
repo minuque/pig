@@ -32,7 +32,7 @@
         class="minimap-preview"
         data-minimap-preview
         :style="{
-          top: `${resolveMinimapTopPercent(hoverIndex ?? 0, items.length)}%`,
+          top: `${tickTop(hoverIndex ?? 0)}px`,
           transform: `translateY(${previewTranslate})`,
         }"
       >
@@ -51,16 +51,20 @@
 import { computed, shallowRef, watch } from "vue"
 import type { TranscriptMinimapItem } from "@features/transcript-view/lib/transcript-minimap.js"
 import {
+  MINIMAP_RAIL_PITCH,
   MINIMAP_RAIL_WIDTH,
   resolveMinimapHeightStyle,
-  resolveMinimapTopPercent,
 } from "@features/transcript-view/lib/transcript-minimap.js"
 
-const props = defineProps<{
-  items: readonly TranscriptMinimapItem[]
-  inViewIds: readonly string[]
-  hitStripWidth: number
-}>()
+const props = withDefaults(
+  defineProps<{
+    items: readonly TranscriptMinimapItem[]
+    inViewIds: readonly string[]
+    hitStripWidth: number
+    anchorTops?: readonly number[]
+  }>(),
+  { anchorTops: () => [] },
+)
 
 const emit = defineEmits<{
   select: [item: TranscriptMinimapItem]
@@ -104,11 +108,14 @@ const previewTranslate = computed(() => {
 const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
+function tickTop(index: number): number {
+  return props.anchorTops[index] ?? 0
+}
+
 function tickStyle(index: number): { top: string; height: string } {
-  const count = Math.max(props.items.length, 1)
   return {
-    top: `${(index / count) * 100}%`,
-    height: `${100 / count}%`,
+    top: `${tickTop(index)}px`,
+    height: `${MINIMAP_RAIL_PITCH}px`,
   }
 }
 
@@ -131,7 +138,7 @@ function onStageFocusOut(event: FocusEvent) {
 .timeline-minimap {
   pointer-events: none;
   position: sticky;
-  top: 50%;
+  top: 0;
   z-index: 3;
   display: none;
   width: 44px;
@@ -146,8 +153,8 @@ function onStageFocusOut(event: FocusEvent) {
   position: relative;
   width: 100%;
   height: 100%;
+  overflow: hidden;
   user-select: none;
-  transform: translateY(-50%);
 }
 .minimap-tick {
   position: absolute;
@@ -157,6 +164,7 @@ function onStageFocusOut(event: FocusEvent) {
   border: 0;
   background: transparent;
   cursor: pointer;
+  transform: translateY(-50%);
 }
 .minimap-strip {
   pointer-events: none;
