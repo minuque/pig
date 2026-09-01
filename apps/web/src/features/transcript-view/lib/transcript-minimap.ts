@@ -1,4 +1,4 @@
-/** 对齐 Waku ConversationNavigationRail：正文列左侧紧凑刻度，按用户句跳转。 */
+/** 对齐 Codex 会话 minimap：刻度按用户句锚点在正文里的实际位置。 */
 
 import type { TimelineRow } from "@features/transcript-view/lib/transcript-rows.js"
 
@@ -55,7 +55,12 @@ export function deriveTranscriptMinimapItems(
 
 export function resolveMinimapHeightStyle(itemCount: number): string {
   if (itemCount <= 0) return "0px"
-  return `min(${itemCount * MINIMAP_RAIL_PITCH}px, 80%)`
+  return "80cqh"
+}
+
+export function resolveMinimapAnchorPercent(offset: number, scrollHeight: number): number {
+  if (!(scrollHeight > 0) || !Number.isFinite(offset)) return 0
+  return Math.max(0, Math.min(100, Math.round((offset / scrollHeight) * 1000) / 10))
 }
 
 export function resolveMinimapTopPercent(index: number, itemCount: number): number {
@@ -88,4 +93,8 @@ export function resolveMinimapHitStripWidth(
 
 export function sameIdList(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((id, index) => id === right[index])
+}
+
+export function sameNumberList(left: readonly number[], right: readonly number[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index])
 }

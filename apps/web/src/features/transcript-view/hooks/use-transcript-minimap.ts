@@ -2,8 +2,11 @@ import { computed, onBeforeUnmount, shallowRef, watch, type MaybeRefOrGetter, to
 import type { TimelineRow } from "@features/transcript-view/lib/transcript-rows.js"
 import {
   deriveTranscriptMinimapItems,
+  resolveMinimapAnchorPercent,
   resolveMinimapHitStripWidth,
+  resolveMinimapTopPercent,
   sameIdList,
+  sameNumberList,
 } from "@features/transcript-view/lib/transcript-minimap.js"
 
 /** 可视区几何取滚动层，正文宽取内容列。 */
@@ -18,29 +21,47 @@ export function useTranscriptMinimap(
   const viewportWidth = shallowRef(0)
   const contentWidth = shallowRef(0)
   const inViewIds = shallowRef<readonly string[]>([])
+  const anchorTops = shallowRef<readonly number[]>([])
   const items = computed(() => deriveTranscriptMinimapItems(toValue(rows)))
   const hitStripWidth = computed(() =>
     resolveMinimapHitStripWidth(viewportWidth.value, contentWidth.value),
   )
 
-  function collectInViewIds(port: HTMLElement | null): string[] {
-    if (!port) return []
+  function collectLayout(
+    port: HTMLElement | null,
+    column: HTMLElement | null,
+  ): { inViewIds: string[]; anchorTops: number[] } {
+    const ids = items.value.map((item) => item.id)
+    const fallback = ids.map((_, index) => resolveMinimapTopPercent(index, ids.length))
+    if (!port || ids.length === 0) return { inViewIds: [], anchorTops: fallback }
     const box = port.getBoundingClientRect()
-    const ids: string[] = []
+    const body =
+      column?.firstElementChild instanceof HTMLElement ? column.firstElementChild : column
+    const bodyBox = body?.getBoundingClientRect()
+    const total = body?.offsetHeight ?? 0
+    const inView: string[] = []
+    const byId = new Map<string, number>()
     for (const el of port.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
       const row = el.getBoundingClientRect()
-      if (row.bottom <= box.top || row.top >= box.bottom) continue
       const id = el.dataset.minimapRow
-      if (id) ids.push(id)
+      if (!id) continue
+      if (!(row.bottom <= box.top || row.top >= box.bottom)) inView.push(id)
+      const offset = bodyBox ? row.top - bodyBox.top : row.top - box.top + port.scrollTop
+      byId.set(id, resolveMinimapAnchorPercent(offset, total))
     }
-    return ids
+    return {
+      inViewIds: inView,
+      anchorTops:
+        total <= 0 ? fallback : ids.map((id, index) => byId.get(id) ?? fallback[index] ?? 0),
+    }
   }
 
   function syncLayout(port: HTMLElement | null, column: HTMLElement | null) {
     viewportWidth.value = port?.clientWidth ?? 0
     contentWidth.value = column?.offsetWidth ?? 0
-    const next = collectInViewIds(port)
-    if (!sameIdList(inViewIds.value, next)) inViewIds.value = next
+    const next = collectLayout(port, column)
+    if (!sameIdList(inViewIds.value, next.inViewIds)) inViewIds.value = next.inViewIds
+    if (!sameNumberList(anchorTops.value, next.anchorTops)) anchorTops.value = next.anchorTops
   }
 
   function tick() {
@@ -72,5 +93,5 @@ export function useTranscriptMinimap(
 
   onBeforeUnmount(() => layoutObserver?.disconnect())
 
-  return { items, inViewIds, hitStripWidth, syncLayout }
+  return { items, inViewIds, anchorTops, hitStripWidth, syncLayout }
 }
