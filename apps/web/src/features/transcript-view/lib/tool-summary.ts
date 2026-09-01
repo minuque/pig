@@ -1,5 +1,5 @@
 import { isCommandTool, toolCallDetail } from "./transcript-format.js"
-import type { ToolCallView } from "./transcript-rows.js"
+import type { ToolCallView, ToolGroup } from "./transcript-rows.js"
 
 export function toolGroupKey(toolName: string): string {
   const name = toolName.trim().toLowerCase()
@@ -29,4 +29,8 @@ export function toolSummary(items: readonly ToolCallView[]): string {
 export function toolSummaryDetail(items: readonly ToolCallView[]): string {
   const first = items[0]
   return first && items.length === 1 ? toolCallDetail(first.toolName, first.input) : ""
+}
+
+export function directCommandItem(group: ToolGroup): ToolCallView | undefined {
+  return group.key === "command" && group.items.length === 1 ? group.items[0] : undefined
 }

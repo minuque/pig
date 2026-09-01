@@ -1,6 +1,7 @@
 <template>
-  <div class="call" :class="statusKind">
+  <div class="call" :class="[statusKind, { direct }]">
     <button
+      v-if="!direct"
       type="button"
       class="toggle"
       :class="{ open }"
@@ -23,7 +24,7 @@
       <span class="sr-only">{{ statusLabel }}</span>
     </button>
     <Transition name="fold-reveal">
-      <div v-if="open && expandable" :id="bodyId" class="body">
+      <div v-if="revealed && expandable" :id="bodyId" class="body">
         <div class="well">
           <ToolReadPreview v-if="readPreview" :path="path" :preview="readPreview" />
           <template v-else-if="isCommand && command">
@@ -98,9 +99,12 @@ import {
 import { pathBasename, readToolPreview } from "@features/transcript-view/lib/tool-presentation.js"
 import type { ToolCallView } from "@features/transcript-view/lib/transcript-rows.js"
 
-const props = defineProps<{ item: ToolCallView }>()
+const props = withDefaults(defineProps<{ item: ToolCallView; direct?: boolean }>(), {
+  direct: false,
+})
 const open = defineModel<boolean>("open", { required: true })
 const bodyId = useId()
+const revealed = computed(() => props.direct || open.value)
 const toolName = computed(() => props.item.toolName.trim().toLowerCase())
 const isRead = computed(() => toolName.value === "read")
 const isFile = computed(() => ["read", "write", "edit"].includes(toolName.value))
@@ -116,9 +120,9 @@ const detail = computed(() => toolCallDetail(props.item.toolName, props.item.inp
 const command = computed(() => toolCommand(props.item.input))
 const path = computed(() => toolPath(props.item.input))
 const cwd = computed(() => toolWorkingDirectory(props.item.input))
-const inputFull = computed(() => (open.value ? toolInputPretty(props.item.input) : ""))
-const outputText = computed(() => (open.value ? props.item.outputText : ""))
-const outputImages = computed(() => (open.value ? props.item.outputImages : []))
+const inputFull = computed(() => (revealed.value ? toolInputPretty(props.item.input) : ""))
+const outputText = computed(() => (revealed.value ? props.item.outputText : ""))
+const outputImages = computed(() => (revealed.value ? props.item.outputImages : []))
 const emptyOutput = computed(() => (props.item.running ? "(running…)" : "(no output)"))
 const readPreview = computed(() => {
   if (
@@ -216,6 +220,9 @@ const expandable = computed(
 .body {
   min-width: 0;
   margin: 4px 0 var(--spacing-xs);
+}
+.direct .body {
+  margin: 0;
 }
 .well {
   overflow: hidden;

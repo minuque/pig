@@ -1,5 +1,6 @@
 <template>
-  <div class="tool-summary" :class="{ failed }">
+  <ToolCall v-if="directCommand" :item="directCommand" :open="true" direct />
+  <div v-else class="tool-summary" :class="{ failed }">
     <Button
       type="button"
       static
@@ -45,11 +46,12 @@ import { ChevronRight, FileText, Pencil, Search, SquareTerminal, Wrench } from "
 import { Button } from "@components/ui/button/index.js"
 import ToolCall from "./ToolCall.vue"
 import type { ToolGroup } from "../lib/transcript-rows.js"
-import { toolSummary, toolSummaryDetail } from "../lib/tool-summary.js"
+import { directCommandItem, toolSummary, toolSummaryDetail } from "../lib/tool-summary.js"
 
 const props = defineProps<{ group: ToolGroup; expanded: Map<string, boolean> }>()
 const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
 const bodyId = useId()
+const directCommand = computed(() => directCommandItem(props.group))
 const open = computed(() => props.expanded.get(props.group.id) === true)
 const failed = computed(() => props.group.items.some((item) => item.isError))
 const label = computed(() => toolSummary(props.group.items))
