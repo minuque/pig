@@ -113,11 +113,10 @@ function tickStyle(index: number): { top: string; height: string } {
 }
 
 function stripWidth(index: number): string {
-  const peak = 38
-  if (hoverIndex.value === null) return index === emphasizedIndex.value ? `${peak}px` : "8px"
+  if (hoverIndex.value === null) return "8px"
   const distance = Math.abs(index - emphasizedIndex.value)
   const scale = distance === 0 ? 1 : distance === 1 ? 0.68 : distance === 2 ? 0.44 : 0.25
-  return `${Math.round(peak * scale)}px`
+  return `${Math.round(38 * scale)}px`
 }
 
 function onStageFocusOut(event: FocusEvent) {
