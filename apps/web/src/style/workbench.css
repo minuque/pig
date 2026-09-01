@@ -212,15 +212,15 @@ small,
   }
 }
 *::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: var(--radius-full);
+  border-radius: 0;
   transition: background-color var(--duration-slow) var(--ease-out);
 }
 *::-webkit-scrollbar-thumb:hover {
