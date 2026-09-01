@@ -3,7 +3,6 @@ import {
   isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
   transcriptFloorTop,
-  unpinBottomScrollTop,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 
 function userScrollBehavior() {
@@ -102,18 +101,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (event.deltaY < 0) atBottom.value = false
     const root = getRoot()
     if (!root) return
-    const nextTop = unpinBottomScrollTop(
-      root.scrollHeight,
-      root.scrollTop,
-      root.clientHeight,
-      event.deltaY,
-    )
-    if (nextTop !== null) {
-      event.preventDefault()
-      root.scrollTop = nextTop
-      lastWritten = nextTop
-      return
-    }
     const onScroller = event.target instanceof Node && root.contains(event.target)
     if (onScroller || event.deltaY === 0) return
     event.preventDefault()

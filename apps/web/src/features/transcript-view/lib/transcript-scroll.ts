@@ -25,17 +25,3 @@ export function isTranscriptVisuallyAtBottom(
 export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boolean): boolean {
   return transcriptLength > 0 && !atBottom
 }
-
-/** 贴底后明显上翻才解锁。1px 级惯性不能 preventDefault，否则永远触不了底。 */
-export function unpinBottomScrollTop(
-  scrollHeight: number,
-  scrollTop: number,
-  clientHeight: number,
-  deltaY: number,
-  threshold = 2,
-): number | null {
-  if (deltaY >= 0 || Math.abs(deltaY) <= threshold) return null
-  if (!isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, threshold)) return null
-  const maxTop = Math.max(0, scrollHeight - clientHeight)
-  return Math.max(0, Math.min(maxTop, scrollTop - Math.abs(deltaY)))
-}
