@@ -1,5 +1,5 @@
 <template>
-  <div class="well-header" :class="{ shaded }">
+  <div class="tool-header" :class="{ shaded }">
     <div class="heading">
       <slot
         ><span class="label" :title="label">{{ label }}</span></slot
@@ -7,6 +7,14 @@
     </div>
     <div class="actions">
       <slot name="meta" />
+      <button
+        v-if="foldable && hiddenCount > 0"
+        type="button"
+        class="fold"
+        @click="expanded = !expanded"
+      >
+        {{ expanded ? `收起中间 ${hiddenCount} 行` : `展开其余 ${hiddenCount} 行` }}
+      </button>
       <Button
         v-if="text"
         type="button"
@@ -41,9 +49,12 @@ const props = withDefaults(
     label: string
     text: string
     shaded?: boolean
+    foldable?: boolean
+    hiddenCount?: number
   }>(),
-  { shaded: false },
+  { shaded: false, foldable: false, hiddenCount: 0 },
 )
+const expanded = defineModel<boolean>("expanded", { default: false })
 
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const copyLabel = computed(() =>
@@ -68,7 +79,7 @@ async function copy() {
 </script>
 
 <style scoped>
-.well-header {
+.tool-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -102,6 +113,17 @@ async function copy() {
   color: var(--ink-muted);
   white-space: nowrap;
 }
+.fold {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.fold:hover {
+  color: var(--ink);
+}
 .copy {
   width: 24px;
   height: 24px;
@@ -129,7 +151,7 @@ async function copy() {
   height: 14px;
 }
 @media (max-width: 480px) {
-  .well-header {
+  .tool-header {
     flex-wrap: wrap;
   }
   .heading {
