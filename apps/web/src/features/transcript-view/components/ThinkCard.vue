@@ -19,11 +19,17 @@
         aria-hidden="true"
       />
     </Button>
-    <Transition name="fold-reveal">
-      <div v-if="open || previewing" :id="bodyId" class="body">
+    <div
+      :id="bodyId"
+      class="body"
+      :class="{ open: open || previewing }"
+      :inert="!open && !previewing"
+      :aria-hidden="!open && !previewing"
+    >
+      <div class="body-inner">
         <ToolStepCard v-if="text" variant="thought" :text="text" :previewing="!open" />
       </div>
-    </Transition>
+    </div>
   </div>
 </template>
 
@@ -68,10 +74,20 @@ const previewing = computed(() => props.streaming && !open.value)
   transform: rotate(90deg);
 }
 .body {
-  min-width: 0;
-  margin: 4px 0 var(--spacing-xs);
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-fast) var(--ease-out);
+}
+.body.open {
+  grid-template-rows: 1fr;
+  transition-duration: var(--duration-slow);
+}
+.body-inner {
+  min-height: 0;
+  overflow: hidden;
 }
 @media (prefers-reduced-motion: reduce) {
+  .body,
   .caret {
     transition: none;
   }
