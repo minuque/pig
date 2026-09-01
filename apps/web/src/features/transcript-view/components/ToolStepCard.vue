@@ -43,7 +43,8 @@
         :hidden-count="readHidden"
       >
         <template #meta>
-          <span class="language">{{ readContent.preview.languageLabel }}</span>
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <span class="language" :title="readContent.preview.languageLabel" v-html="languageIcon" />
         </template>
       </ToolHeader>
       <ToolOutput
@@ -119,6 +120,7 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from "vue"
+import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import ThinkingBlocks from "@features/transcript-view/components/ThinkingBlocks.vue"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
@@ -216,6 +218,11 @@ const outputHidden = computed(() =>
   ),
 )
 const readHidden = computed(() => toolFoldHidden(readContent.value?.preview.lines.length ?? 0))
+const languageIcon = computed(() => {
+  void languageIconsRevision.value
+  const lang = readContent.value?.preview.language
+  return lang ? getLanguageIcon(lang) : ""
+})
 watch(commandBody, () => {
   commandExpanded.value = false
 })
@@ -318,7 +325,14 @@ watch(
   white-space: nowrap;
 }
 .language {
-  font-family: var(--font-code);
+  display: inline-flex;
+  width: var(--size-icon);
+  height: var(--size-icon);
+  flex: none;
+}
+.language :deep(svg) {
+  width: 100%;
+  height: 100%;
 }
 .layer + .layer {
   border-top: var(--border-width) solid var(--hairline);
