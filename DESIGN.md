@@ -15,7 +15,7 @@ colors:
   ink-secondary: "#52514e"
   ink-muted: "#52514e"
   ink-faint: "#898781"
-  hairline: "#e2e2e1"
+  hairline: "#d8d8d6"
   accent-sunset: "#ee650d"
   accent-sunset-soft: "#ffc285"
   accent-dusk: "#7c3aed"
@@ -331,7 +331,7 @@ Pi Agent GUI 使用暖中性灰浅色表面和近黑深色表面。系统 UI 字
 
 - **Conversation** (`{colors.canvas}` / `{colors.surface}` — #fcfcfb)：对话列、卡片。
 - **Secondary well** (`{colors.canvas-soft}` — #f2f2f1)：次级井和代码背景。
-- **Hairline** (`{colors.hairline}` — #e2e2e1)：栏缝与控件边。
+- **Hairline** (`{colors.hairline}` — #d8d8d6)：栏缝与控件边。
 
 ### Text
 

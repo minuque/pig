@@ -14,7 +14,8 @@
 - Vue SFC：`template` → `script` → `style`。
 - 布局壳与 shadcn-vue 放 `src/components/`，领域 UI 放 `features/`，交互走 `@components/ui`。
 - 增改 shadcn-vue：`pnpm dlx shadcn-vue@latest add <name> --cwd apps/web --yes`。装完对齐 `@utils/utils.js`、`lucide-vue-next`；已改 token 的包装不加 `--overwrite`。
-- 色值写在 `apps/web/src/style/app.css` 的 token。
+- 组件样式只消费 `apps/web/src/style/app.css` 的 token（`var(--*)` 或 `@theme` 类）。缺档先补 `app.css`，再写组件；SFC 不声明 `--*`，不写裸 hex/rgb/`color-mix`。
+- 动画复用 `apps/web/src/style/motion.css` 的类与 `@keyframes`。缺档先补 `motion.css`，再写组件。
 
 ## 文档
 
