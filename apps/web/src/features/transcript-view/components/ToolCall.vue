@@ -26,7 +26,7 @@
       />
     </Button>
     <div :id="bodyId" class="body" :class="{ open }" :inert="!open" :aria-hidden="!open">
-      <div class="body-inner" :class="{ direct: Boolean(directCommand) }">
+      <div class="body-inner" :class="{ direct: Boolean(directItem) }">
         <div
           v-for="call in calls"
           :key="call.item.id"
@@ -119,12 +119,12 @@ import {
   type ReadToolPreview,
 } from "@features/transcript-view/lib/tool-presentation.js"
 import type { ToolCallView, ToolGroup } from "@features/transcript-view/lib/transcript-rows.js"
-import { directCommandItem, toolSummary, toolSummaryDetail } from "../lib/tool-summary.js"
+import { directGroupItem, toolSummary, toolSummaryDetail } from "../lib/tool-summary.js"
 
 const props = defineProps<{ group: ToolGroup; expanded: Map<string, boolean> }>()
 const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
 const bodyId = useId()
-const directCommand = computed(() => directCommandItem(props.group))
+const directItem = computed(() => directGroupItem(props.group))
 const open = computed(() => props.expanded.get(props.group.id) === true)
 const failed = computed(() => props.group.items.some((item) => item.isError))
 const label = computed(() => toolSummary(props.group.items))
@@ -221,7 +221,7 @@ function presentCall(item: ToolCallView, itemOpen: boolean, direct: boolean): Ca
 }
 
 const calls = computed(() => {
-  const direct = directCommand.value
+  const direct = directItem.value
   const items = direct ? [direct] : props.group.items
   return items.map((item) => {
     const itemOpen = direct ? true : open.value && props.expanded.get(item.id) === true
@@ -230,16 +230,6 @@ const calls = computed(() => {
 })
 
 function toggleGroup() {
-  const first = props.group.items[0]
-  if (
-    !directCommand.value &&
-    !open.value &&
-    props.group.items.length === 1 &&
-    first &&
-    !props.expanded.has(first.id)
-  ) {
-    emit("toggle", { id: first.id, open: true })
-  }
   emit("toggle", { id: props.group.id, open: !open.value })
 }
 </script>

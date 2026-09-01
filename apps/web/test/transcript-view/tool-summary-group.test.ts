@@ -3,7 +3,7 @@ import { renderToString } from "@vue/server-renderer"
 import { describe, expect, it } from "vitest"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import type { ToolCallView, ToolGroup } from "@features/transcript-view/lib/transcript-rows.js"
-import { directCommandItem } from "@features/transcript-view/lib/tool-summary.js"
+import { directGroupItem } from "@features/transcript-view/lib/tool-summary.js"
 
 function command(id: string): ToolCallView {
   return {
@@ -48,6 +48,29 @@ describe("命令工具组展示", () => {
       items: [command("c1"), command("c2")],
     }
 
-    expect(directCommandItem(group)).toBeUndefined()
+    expect(directGroupItem(group)).toBeUndefined()
+  })
+
+  it("单条 read 不显示重复的 Read 行，卡片贴齐摘要", async () => {
+    const html = await renderGroup({
+      type: "tools",
+      id: "group:r1",
+      key: "read",
+      items: [
+        {
+          id: "r1",
+          toolName: "read",
+          running: false,
+          isError: false,
+          input: { path: "G:/AICode/pig/CONTEXT.md" },
+          outputText: "# Pig\n",
+          outputImages: [],
+        },
+      ],
+    })
+
+    expect(html).toContain("direct body-inner")
+    expect(html).toContain("tool-step-card")
+    expect(html).not.toContain(">Read<")
   })
 })

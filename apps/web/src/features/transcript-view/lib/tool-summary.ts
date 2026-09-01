@@ -31,6 +31,6 @@ export function toolSummaryDetail(items: readonly ToolCallView[]): string {
   return first && items.length === 1 ? toolCallDetail(first.toolName, first.input) : ""
 }
 
-export function directCommandItem(group: ToolGroup): ToolCallView | undefined {
-  return group.key === "command" && group.items.length === 1 ? group.items[0] : undefined
+export function directGroupItem(group: ToolGroup): ToolCallView | undefined {
+  return group.items.length === 1 ? group.items[0] : undefined
 }
