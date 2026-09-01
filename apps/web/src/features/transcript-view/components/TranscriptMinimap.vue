@@ -32,7 +32,7 @@
         class="minimap-preview"
         data-minimap-preview
         :style="{
-          top: `${hoverTopPercent}%`,
+          top: `${resolveMinimapTopPercent(hoverIndex ?? 0, items.length)}%`,
           transform: `translateY(${previewTranslate})`,
         }"
       >
@@ -51,21 +51,16 @@
 import { computed, shallowRef, watch } from "vue"
 import type { TranscriptMinimapItem } from "@features/transcript-view/lib/transcript-minimap.js"
 import {
-  MINIMAP_RAIL_PITCH,
   MINIMAP_RAIL_WIDTH,
   resolveMinimapHeightStyle,
   resolveMinimapTopPercent,
 } from "@features/transcript-view/lib/transcript-minimap.js"
 
-const props = withDefaults(
-  defineProps<{
-    items: readonly TranscriptMinimapItem[]
-    inViewIds: readonly string[]
-    hitStripWidth: number
-    anchorTops?: readonly number[]
-  }>(),
-  { anchorTops: () => [] },
-)
+const props = defineProps<{
+  items: readonly TranscriptMinimapItem[]
+  inViewIds: readonly string[]
+  hitStripWidth: number
+}>()
 
 const emit = defineEmits<{
   select: [item: TranscriptMinimapItem]
@@ -106,22 +101,14 @@ const previewTranslate = computed(() => {
   if (index === lastIndex.value) return "-100%"
   return "-50%"
 })
-const hoverTopPercent = computed(() => {
-  const index = hoverIndex.value
-  if (index === null) return 0
-  return tickTop(index)
-})
 const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
-function tickTop(index: number): number {
-  return props.anchorTops[index] ?? resolveMinimapTopPercent(index, props.items.length)
-}
-
 function tickStyle(index: number): { top: string; height: string } {
+  const count = Math.max(props.items.length, 1)
   return {
-    top: `${tickTop(index)}%`,
-    height: `${MINIMAP_RAIL_PITCH}px`,
+    top: `${(index / count) * 100}%`,
+    height: `${100 / count}%`,
   }
 }
 
@@ -171,7 +158,6 @@ function onStageFocusOut(event: FocusEvent) {
   border: 0;
   background: transparent;
   cursor: pointer;
-  transform: translateY(-50%);
 }
 .minimap-strip {
   pointer-events: none;
