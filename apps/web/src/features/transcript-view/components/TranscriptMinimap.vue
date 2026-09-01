@@ -9,7 +9,7 @@
       class="minimap-stage"
       :style="{ height: railHeight }"
       @focusout="onStageFocusOut"
-      @mouseleave="activeIndex = null"
+      @mouseleave="hoverIndex = null"
     >
       <button
         v-for="(item, index) in items"
@@ -17,29 +17,29 @@
         class="minimap-tick"
         type="button"
         :style="tickStyle(index)"
-        @mouseenter="activeIndex = index"
-        @focus="activeIndex = index"
+        @mouseenter="hoverIndex = index"
+        @focus="hoverIndex = index"
         @click="emit('select', item)"
       >
         <span
           class="minimap-strip"
-          :class="resolvedActiveIndex === index ? 'strip-active' : 'strip-far'"
-          :data-in-view="inViewIds.includes(item.id) ? 'true' : 'false'"
+          :class="{ 'strip-active': emphasizedIndex === index }"
+          :style="{ width: stripWidth(index) }"
         ></span>
       </button>
       <span
-        v-if="activeItem"
+        v-if="hoverItem"
         class="minimap-preview"
         data-minimap-preview
         :style="{
-          top: `${activeTopPercent}%`,
+          top: `${hoverTopPercent}%`,
           transform: `translateY(${previewTranslate})`,
         }"
       >
         <span class="preview-card">
-          <span class="preview-user">{{ activeItem.userText ?? "用户句" }}</span>
-          <span v-if="activeItem.assistantText" class="preview-assistant">{{
-            activeItem.assistantText
+          <span class="preview-user">{{ hoverItem.userText ?? "用户句" }}</span>
+          <span v-if="hoverItem.assistantText" class="preview-assistant">{{
+            hoverItem.assistantText
           }}</span>
         </span>
       </span>
@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef } from "vue"
+import { computed, shallowRef, watch } from "vue"
 import type { TranscriptMinimapItem } from "@features/transcript-view/lib/transcript-minimap.js"
 import {
   MINIMAP_RAIL_PITCH,
@@ -71,25 +71,43 @@ const emit = defineEmits<{
   select: [item: TranscriptMinimapItem]
 }>()
 
-const activeIndex = shallowRef<number | null>(null)
+const hoverIndex = shallowRef<number | null>(null)
+const pinnedIndex = shallowRef(0)
 
-const resolvedActiveIndex = computed(() => {
-  const index = activeIndex.value
-  return index !== null && index < props.items.length ? index : null
+watch(
+  () => [props.inViewIds, props.items] as const,
+  ([ids, items]) => {
+    for (const id of ids) {
+      const index = items.findIndex((item) => item.id === id)
+      if (index >= 0) {
+        pinnedIndex.value = index
+        return
+      }
+    }
+    if (pinnedIndex.value >= items.length) pinnedIndex.value = Math.max(0, items.length - 1)
+  },
+  { immediate: true },
+)
+
+const lastIndex = computed(() => Math.max(0, props.items.length - 1))
+const emphasizedIndex = computed(() => {
+  const hover = hoverIndex.value
+  if (hover !== null && hover <= lastIndex.value) return hover
+  return Math.min(pinnedIndex.value, lastIndex.value)
 })
-const activeItem = computed(() => {
-  const index = resolvedActiveIndex.value
+const hoverItem = computed(() => {
+  const index = hoverIndex.value
   return index === null ? null : (props.items[index] ?? null)
 })
 const previewTranslate = computed(() => {
-  const index = resolvedActiveIndex.value
+  const index = hoverIndex.value
   if (index === null) return "-50%"
   if (index === 0) return "0%"
-  if (index === props.items.length - 1) return "-100%"
+  if (index === lastIndex.value) return "-100%"
   return "-50%"
 })
-const activeTopPercent = computed(() => {
-  const index = resolvedActiveIndex.value
+const hoverTopPercent = computed(() => {
+  const index = hoverIndex.value
   if (index === null) return 0
   return tickTop(index)
 })
@@ -107,11 +125,19 @@ function tickStyle(index: number): { top: string; height: string } {
   }
 }
 
+function stripWidth(index: number): string {
+  const peak = 38
+  if (hoverIndex.value === null) return index === emphasizedIndex.value ? `${peak}px` : "8px"
+  const distance = Math.abs(index - emphasizedIndex.value)
+  const scale = distance === 0 ? 1 : distance === 1 ? 0.68 : distance === 2 ? 0.44 : 0.25
+  return `${Math.round(peak * scale)}px`
+}
+
 function onStageFocusOut(event: FocusEvent) {
   const root = event.currentTarget
   const next = event.relatedTarget
   if (root instanceof Node && next instanceof Node && root.contains(next)) return
-  activeIndex.value = null
+  hoverIndex.value = null
 }
 </script>
 
@@ -156,18 +182,12 @@ function onStageFocusOut(event: FocusEvent) {
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--ink-muted) 35%, transparent);
   transform: translateY(-50%);
-  transition:
-    background var(--duration-fast) var(--ease-smooth),
-    width var(--duration-fast) var(--ease-smooth);
-}
-.minimap-strip[data-in-view="true"] {
-  background: color-mix(in srgb, var(--ink) 90%, transparent);
-}
-.minimap-strip.strip-far {
   width: 8px;
+  transition:
+    background var(--duration-icon) var(--ease-smooth),
+    width var(--duration-icon) var(--ease-smooth);
 }
 .minimap-strip.strip-active {
-  width: 38px;
   background: var(--ink);
 }
 .minimap-preview {
