@@ -27,11 +27,11 @@
       :aria-hidden="!open && !previewing"
     >
       <div class="body-inner">
-        <ToolStepCard v-if="text">
+        <ToolStepCard v-if="text" variant="thought">
           <div
             v-if="!open"
             ref="preview"
-            class="thought-content preview"
+            class="preview"
             role="region"
             aria-label="实时思考预览"
             tabindex="0"
@@ -40,9 +40,7 @@
           >
             {{ text }}
           </div>
-          <div v-else class="thought-content">
-            <ThinkingBlocks :blocks="[text]" />
-          </div>
+          <ThinkingBlocks v-else :blocks="[text]" />
         </ToolStepCard>
       </div>
     </div>
@@ -112,9 +110,6 @@ watch(
   min-height: 0;
   overflow: hidden;
   padding-inline-start: var(--spacing-lg);
-}
-.thought-content {
-  padding: var(--spacing-sm);
 }
 .preview {
   max-height: 5lh;

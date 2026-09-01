@@ -25,7 +25,7 @@
     </button>
     <Transition name="fold-reveal">
       <div v-if="revealed && expandable" :id="bodyId" class="body">
-        <ToolStepCard>
+        <ToolStepCard variant="tool">
           <ToolReadPreview v-if="readPreview" :path="path" :preview="readPreview" />
           <template v-else-if="isCommand && command">
             <ToolWellHeader label="命令" :text="command">
