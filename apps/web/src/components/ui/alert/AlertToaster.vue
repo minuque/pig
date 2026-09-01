@@ -51,7 +51,7 @@ function runAction(item: Notice): void {
 <style scoped>
 .alert-toaster {
   position: fixed;
-  top: var(--spacing-md);
+  top: calc(var(--size-control) + 3 * var(--spacing-xs));
   right: var(--spacing-md);
   z-index: var(--z-modal);
   display: flex;
@@ -121,7 +121,7 @@ function runAction(item: Notice): void {
   transform: translateX(8px);
 }
 html[data-pig-desktop-platform] .alert-toaster {
-  top: calc(var(--titlebar-inset) + var(--spacing-xs));
+  top: calc(var(--titlebar-inset) + var(--size-control) + 2 * var(--spacing-xs));
 }
 html[data-pig-desktop-platform="win32"] .alert-toaster {
   right: calc(var(--size-windows-caption) + var(--spacing-xs));
