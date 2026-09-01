@@ -42,10 +42,16 @@
         :foldable="readHidden > 0"
         :hidden-count="readHidden"
       >
-        <template #meta>
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <span class="language" :title="readContent.preview.languageLabel" v-html="languageIcon" />
-        </template>
+        <div class="read-heading">
+          <img
+            v-if="languageIconUrl"
+            class="icon-slot"
+            :src="languageIconUrl"
+            :title="readContent.preview.languageLabel"
+            alt=""
+          />
+          <span class="read-path" :title="readContent.path">{{ readContent.path }}</span>
+        </div>
       </ToolHeader>
       <ToolOutput
         v-model:expanded="readExpanded"
@@ -218,10 +224,11 @@ const outputHidden = computed(() =>
   ),
 )
 const readHidden = computed(() => toolFoldHidden(readContent.value?.preview.lines.length ?? 0))
-const languageIcon = computed(() => {
+const languageIconUrl = computed(() => {
   void languageIconsRevision.value
   const lang = readContent.value?.preview.language
-  return lang ? getLanguageIcon(lang) : ""
+  if (!lang) return ""
+  return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(lang))}`
 })
 watch(commandBody, () => {
   commandExpanded.value = false
@@ -324,15 +331,25 @@ watch(
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.language {
-  display: inline-flex;
+.read-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+.icon-slot {
+  display: block;
   width: var(--size-icon);
   height: var(--size-icon);
   flex: none;
 }
-.language :deep(svg) {
-  width: 100%;
-  height: 100%;
+.read-path {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--font-code);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .layer + .layer {
   border-top: var(--border-width) solid var(--hairline);
