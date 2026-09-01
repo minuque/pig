@@ -1,7 +1,7 @@
 import { createSSRApp } from "vue"
 import { renderToString } from "@vue/server-renderer"
 import { describe, expect, it } from "vitest"
-import ToolSummaryGroup from "@features/transcript-view/components/ToolSummaryGroup.vue"
+import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import type { ToolCallView, ToolGroup } from "@features/transcript-view/lib/transcript-rows.js"
 import { directCommandItem } from "@features/transcript-view/lib/tool-summary.js"
 
@@ -18,7 +18,7 @@ function command(id: string): ToolCallView {
 }
 
 async function renderGroup(group: ToolGroup): Promise<string> {
-  const app = createSSRApp(ToolSummaryGroup, { group, expanded: new Map() })
+  const app = createSSRApp(ToolCall, { group, expanded: new Map() })
   app.config.warnHandler = (message) => {
     if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
   }
@@ -36,7 +36,7 @@ describe("命令工具组展示", () => {
 
     expect(html).toContain('class="tool-summary"')
     expect(html).toContain(' summary"')
-    expect(html).toContain('class="tool-step-card"')
+    expect(html).toContain("tool-step-card")
     expect(html).not.toContain(">Run<")
   })
 

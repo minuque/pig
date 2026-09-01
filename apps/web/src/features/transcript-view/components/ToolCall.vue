@@ -1,93 +1,110 @@
 <template>
-  <div class="call" :class="[statusKind, { direct }]">
-    <button
-      v-if="!direct"
+  <div class="tool-summary" :class="{ failed }">
+    <Button
       type="button"
-      class="toggle"
-      :class="{ open }"
-      :aria-expanded="expandable ? open : undefined"
-      :aria-controls="expandable ? bodyId : undefined"
-      :disabled="!expandable"
-      @click="open = !open"
+      static
+      class="summary"
+      :aria-expanded="open"
+      :aria-controls="bodyId"
+      @click="toggleGroup"
     >
-      <ChevronRight
-        class="caret"
-        :class="{ open, invisible: !expandable }"
-        :size="14"
+      <component
+        :is="icon"
+        class="tool-icon"
+        :stroke-width="1.5"
+        data-icon="inline-start"
         aria-hidden="true"
       />
-      <span class="kind">{{ kind }}</span>
-      <span v-if="detail" class="separator" aria-hidden="true">·</span>
-      <span v-if="detail" class="detail" :class="{ 'file-path': isFile }" :title="detail">{{
-        detail
-      }}</span>
-      <span class="sr-only">{{ statusLabel }}</span>
-    </button>
-    <Transition name="fold-reveal">
-      <div v-if="revealed && expandable" :id="bodyId" class="body">
-        <ToolStepCard variant="tool">
-          <ToolReadPreview v-if="readPreview" :path="path" :preview="readPreview" />
-          <template v-else-if="isCommand && command">
-            <ToolWellHeader label="命令" :text="command">
-              <div class="command-heading">
-                <span class="status-dot" :title="statusLabel" />
-                <span v-if="cwd" class="cwd" :title="cwd">{{ pathBasename(cwd) }}</span>
-                <code class="command" :title="command">{{ command }}</code>
-              </div>
-            </ToolWellHeader>
-            <div class="output">
-              <ExpandableText :text="outputText || emptyOutput" :show-count="false" embedded />
-              <div v-if="outputImages.length" class="images">
-                <TranscriptImage
-                  v-for="(image, index) in outputImages"
-                  :key="index"
-                  :data="image.data"
-                  :mime-type="image.mimeType"
-                />
-              </div>
+      <span class="label">{{ label }}</span>
+      <span v-if="detail" class="detail" :title="detail">{{ detail }}</span>
+      <ChevronRight
+        class="caret"
+        :class="{ open }"
+        :stroke-width="1.5"
+        data-icon="inline-end"
+        aria-hidden="true"
+      />
+    </Button>
+    <div :id="bodyId" class="body" :class="{ open }" :inert="!open" :aria-hidden="!open">
+      <div class="body-inner" :class="{ direct: Boolean(directCommand) }">
+        <div
+          v-for="call in calls"
+          :key="call.item.id"
+          class="call"
+          :class="[call.statusKind, { direct: call.direct }]"
+        >
+          <button
+            v-if="!call.direct"
+            type="button"
+            class="toggle"
+            :class="{ open: call.itemOpen }"
+            :aria-expanded="call.expandable ? call.itemOpen : undefined"
+            :aria-controls="call.expandable ? `${bodyId}-${call.item.id}` : undefined"
+            :disabled="!call.expandable"
+            @click="emit('toggle', { id: call.item.id, open: !call.itemOpen })"
+          >
+            <ChevronRight
+              class="caret"
+              :class="{ open: call.itemOpen, invisible: !call.expandable }"
+              :size="14"
+              aria-hidden="true"
+            />
+            <span class="kind">{{ call.kind }}</span>
+            <span v-if="call.detail" class="separator" aria-hidden="true">·</span>
+            <span
+              v-if="call.detail"
+              class="item-detail"
+              :class="{ 'file-path': call.isFile }"
+              :title="call.detail"
+              >{{ call.detail }}</span
+            >
+            <span class="sr-only">{{ call.statusLabel }}</span>
+          </button>
+          <Transition name="fold-reveal">
+            <div
+              v-if="call.revealed && call.expandable"
+              :id="`${bodyId}-${call.item.id}`"
+              class="call-body"
+            >
+              <ToolStepCard
+                v-if="call.isCommand && call.command"
+                variant="command"
+                :command="call.command"
+                :cwd="call.cwd"
+                :output-text="call.outputText"
+                :output-images="call.outputImages"
+                :empty-output="call.emptyOutput"
+                :status="call.commandStatus"
+                :status-label="call.statusLabel"
+              />
+              <ToolStepCard
+                v-else-if="call.readPreview"
+                variant="read"
+                :path="call.path"
+                :preview="call.readPreview"
+              />
+              <ToolStepCard
+                v-else
+                variant="tool"
+                :input-full="call.isRead ? '' : call.inputFull"
+                :output-text="call.outputText"
+                :output-images="call.outputImages"
+                :empty-output="call.emptyOutput"
+                :output-label="call.isRead ? call.path || 'Read' : '输出'"
+              />
             </div>
-          </template>
-          <template v-else>
-            <section v-if="inputFull && !isRead" class="layer">
-              <ToolWellHeader label="入参" :text="inputFull" shaded />
-              <div class="output">
-                <ExpandableText :text="inputFull" :show-count="false" embedded />
-              </div>
-            </section>
-            <section class="layer">
-              <ToolWellHeader :label="isRead ? path || 'Read' : '输出'" :text="outputText" shaded />
-              <div class="output">
-                <ExpandableText
-                  v-if="outputText || !outputImages.length"
-                  :text="outputText || emptyOutput"
-                  :show-count="false"
-                  embedded
-                />
-                <div v-if="outputImages.length" class="images">
-                  <TranscriptImage
-                    v-for="(image, index) in outputImages"
-                    :key="index"
-                    :data="image.data"
-                    :mime-type="image.mimeType"
-                  />
-                </div>
-              </div>
-            </section>
-          </template>
-        </ToolStepCard>
+          </Transition>
+        </div>
       </div>
-    </Transition>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, useId } from "vue"
-import { ChevronRight } from "lucide-vue-next"
-import ExpandableText from "@features/transcript-view/components/ExpandableText.vue"
-import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
+import { ChevronRight, FileText, Pencil, Search, SquareTerminal, Wrench } from "lucide-vue-next"
+import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
-import ToolWellHeader from "@features/transcript-view/components/ToolWellHeader.vue"
-import ToolReadPreview from "@features/transcript-view/components/ToolReadPreview.vue"
 import {
   isCommandTool,
   toolCallDetail,
@@ -97,59 +114,199 @@ import {
   toolPath,
   toolWorkingDirectory,
 } from "@features/transcript-view/lib/transcript-format.js"
-import { pathBasename, readToolPreview } from "@features/transcript-view/lib/tool-presentation.js"
-import type { ToolCallView } from "@features/transcript-view/lib/transcript-rows.js"
+import {
+  readToolPreview,
+  type ReadToolPreview,
+} from "@features/transcript-view/lib/tool-presentation.js"
+import type { ToolCallView, ToolGroup } from "@features/transcript-view/lib/transcript-rows.js"
+import { directCommandItem, toolSummary, toolSummaryDetail } from "../lib/tool-summary.js"
 
-const props = withDefaults(defineProps<{ item: ToolCallView; direct?: boolean }>(), {
-  direct: false,
-})
-const open = defineModel<boolean>("open", { required: true })
+const props = defineProps<{ group: ToolGroup; expanded: Map<string, boolean> }>()
+const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
 const bodyId = useId()
-const revealed = computed(() => props.direct || open.value)
-const toolName = computed(() => props.item.toolName.trim().toLowerCase())
-const isRead = computed(() => toolName.value === "read")
-const isFile = computed(() => ["read", "write", "edit"].includes(toolName.value))
-const isCommand = computed(() => isCommandTool(toolName.value))
-const statusKind = computed(() =>
-  props.item.isError ? "is-err" : props.item.running ? "is-run" : "is-ok",
-)
-const statusLabel = computed(() =>
-  props.item.isError ? "执行失败" : props.item.running ? "正在执行" : "执行完成",
-)
-const kind = computed(() => toolCallKindLabel(props.item.toolName))
-const detail = computed(() => toolCallDetail(props.item.toolName, props.item.input))
-const command = computed(() => toolCommand(props.item.input))
-const path = computed(() => toolPath(props.item.input))
-const cwd = computed(() => toolWorkingDirectory(props.item.input))
-const inputFull = computed(() => (revealed.value ? toolInputPretty(props.item.input) : ""))
-const outputText = computed(() => (revealed.value ? props.item.outputText : ""))
-const outputImages = computed(() => (revealed.value ? props.item.outputImages : []))
-const emptyOutput = computed(() => (props.item.running ? "(running…)" : "(no output)"))
-const readPreview = computed(() => {
-  if (
-    !open.value ||
-    !isRead.value ||
-    !path.value ||
-    props.item.isError ||
-    props.item.running ||
-    outputImages.value.length
-  )
-    return null
-  if (!outputText.value || /^\[Line \d+ is .+ exceeds /.test(outputText.value)) return null
-  return readToolPreview(props.item.input, outputText.value)
+const directCommand = computed(() => directCommandItem(props.group))
+const open = computed(() => props.expanded.get(props.group.id) === true)
+const failed = computed(() => props.group.items.some((item) => item.isError))
+const label = computed(() => toolSummary(props.group.items))
+const detail = computed(() => toolSummaryDetail(props.group.items))
+const icon = computed(() => {
+  switch (props.group.key) {
+    case "read":
+      return FileText
+    case "edit":
+      return Pencil
+    case "search":
+      return Search
+    case "command":
+      return SquareTerminal
+    default:
+      return Wrench
+  }
 })
-const expandable = computed(
-  () =>
-    props.item.running ||
-    isRead.value ||
-    isCommand.value ||
-    toolInputPretty(props.item.input).length > 0 ||
-    props.item.outputText.length > 0 ||
-    props.item.outputImages.length > 0,
-)
+
+type CallView = {
+  item: ToolCallView
+  direct: boolean
+  itemOpen: boolean
+  revealed: boolean
+  statusKind: string
+  commandStatus: "error" | "running" | "success"
+  statusLabel: string
+  kind: string
+  detail: string
+  command: string
+  path: string
+  cwd: string
+  isFile: boolean
+  isRead: boolean
+  isCommand: boolean
+  inputFull: string
+  outputText: string
+  outputImages: ToolCallView["outputImages"]
+  emptyOutput: string
+  readPreview: ReadToolPreview | null
+  expandable: boolean
+}
+
+function presentCall(item: ToolCallView, itemOpen: boolean, direct: boolean): CallView {
+  const toolName = item.toolName.trim().toLowerCase()
+  const isRead = toolName === "read"
+  const isCommand = isCommandTool(toolName)
+  const revealed = direct || itemOpen
+  const outputText = revealed ? item.outputText : ""
+  const outputImages = revealed ? item.outputImages : []
+  const path = toolPath(item.input)
+  let readPreview: ReadToolPreview | null = null
+  if (
+    itemOpen &&
+    isRead &&
+    path &&
+    !item.isError &&
+    !item.running &&
+    outputImages.length === 0 &&
+    outputText &&
+    !/^\[Line \d+ is .+ exceeds /.test(outputText)
+  ) {
+    readPreview = readToolPreview(item.input, outputText)
+  }
+  return {
+    item,
+    direct,
+    itemOpen,
+    revealed,
+    statusKind: item.isError ? "is-err" : item.running ? "is-run" : "is-ok",
+    commandStatus: item.isError ? "error" : item.running ? "running" : "success",
+    statusLabel: item.isError ? "执行失败" : item.running ? "正在执行" : "执行完成",
+    kind: toolCallKindLabel(item.toolName),
+    detail: toolCallDetail(item.toolName, item.input),
+    command: toolCommand(item.input),
+    path,
+    cwd: toolWorkingDirectory(item.input),
+    isFile: ["read", "write", "edit"].includes(toolName),
+    isRead,
+    isCommand,
+    inputFull: revealed ? toolInputPretty(item.input) : "",
+    outputText,
+    outputImages,
+    emptyOutput: item.running ? "(running…)" : "(no output)",
+    readPreview,
+    expandable:
+      item.running ||
+      isRead ||
+      isCommand ||
+      toolInputPretty(item.input).length > 0 ||
+      item.outputText.length > 0 ||
+      item.outputImages.length > 0,
+  }
+}
+
+const calls = computed(() => {
+  const direct = directCommand.value
+  const items = direct ? [direct] : props.group.items
+  return items.map((item) => {
+    const itemOpen = direct ? true : open.value && props.expanded.get(item.id) === true
+    return presentCall(item, itemOpen, Boolean(direct))
+  })
+})
+
+function toggleGroup() {
+  const first = props.group.items[0]
+  if (
+    !directCommand.value &&
+    !open.value &&
+    props.group.items.length === 1 &&
+    first &&
+    !props.expanded.has(first.id)
+  ) {
+    emit("toggle", { id: first.id, open: true })
+  }
+  emit("toggle", { id: props.group.id, open: !open.value })
+}
 </script>
 
 <style scoped>
+.tool-summary {
+  min-width: 0;
+}
+.summary {
+  width: 100%;
+  height: auto;
+  min-height: 28px;
+  min-width: 0;
+  padding: 2px 0;
+  gap: var(--spacing-xs);
+  justify-content: flex-start;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-regular);
+  text-align: start;
+}
+.summary:hover {
+  background: transparent;
+  color: var(--ink-secondary);
+}
+.failed .tool-icon {
+  color: var(--danger);
+}
+.label {
+  flex: none;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.detail {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.caret {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.caret.open {
+  transform: rotate(90deg);
+}
+.body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-fast) var(--ease-out);
+}
+.body.open {
+  grid-template-rows: 1fr;
+  transition-duration: var(--duration-slow);
+}
+.body-inner {
+  min-height: 0;
+  overflow: hidden;
+  padding-inline-start: var(--spacing-lg);
+}
+.body-inner.direct {
+  padding-inline-start: 0;
+}
 .call {
   contain: layout style;
   min-width: 0;
@@ -186,13 +343,9 @@ const expandable = computed(
   outline: var(--focus-ring-width) solid var(--primary);
   outline-offset: var(--focus-ring-width);
 }
-.caret {
+.toggle .caret {
   flex: none;
   color: var(--ink-secondary);
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-.caret.open {
-  transform: rotate(90deg);
 }
 .invisible {
   visibility: hidden;
@@ -204,7 +357,7 @@ const expandable = computed(
 .separator {
   color: var(--ink-faint);
 }
-.detail {
+.item-detail {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -218,83 +371,17 @@ const expandable = computed(
 .is-run .caret {
   color: var(--primary);
 }
-.body {
+.call-body {
   min-width: 0;
   margin: 4px 0 var(--spacing-xs);
 }
-.direct .body {
+.direct .call-body {
   margin: 0;
 }
-.command-heading {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  min-width: 0;
-  font-family: var(--font-code);
-}
-.status-dot {
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--success);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 15%, transparent);
-}
-.is-err .status-dot {
-  background: var(--danger);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 15%, transparent);
-}
-.is-run .status-dot {
-  background: var(--primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent);
-  animation: status-pulse 1.2s ease-in-out infinite;
-}
-.cwd {
-  flex: 0 1 auto;
-  max-width: 16ch;
-  overflow: hidden;
-  color: var(--ink-muted);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.command {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  color: var(--ink);
-  font: inherit;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.layer + .layer {
-  border-top: var(--border-width) solid var(--hairline);
-}
-.output {
-  min-width: 0;
-  padding: var(--spacing-sm) 0 0 var(--spacing-sm);
-}
-.output :deep(.expand-text-pre) {
-  color: var(--ink);
-  font-family: var(--font-code);
-  font-size: var(--text-caption);
-}
-.images {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-xs);
-}
-@keyframes status-pulse {
-  50% {
-    opacity: 0.4;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
+  .body,
   .caret {
     transition: none;
-  }
-  .status-dot {
-    animation: none;
   }
 }
 </style>

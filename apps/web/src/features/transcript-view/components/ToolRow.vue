@@ -39,7 +39,7 @@
               :open="expandedTools.get(step.id) === true"
               @update:open="emit('toggle-tool', step.id, $event)"
             />
-            <ToolSummaryGroup
+            <ToolCall
               v-else
               :group="step"
               :expanded="expandedTools"
@@ -64,7 +64,7 @@ import AssistantMessage from "./AssistantMessage.vue"
 import ThinkCard from "./ThinkCard.vue"
 import ThinkingOrb from "./ThinkingOrb.vue"
 import ThinkingState from "./ThinkingState.vue"
-import ToolSummaryGroup from "./ToolSummaryGroup.vue"
+import ToolCall from "./ToolCall.vue"
 import { toolRowLabel, type ToolRow } from "../lib/transcript-rows.js"
 
 const props = defineProps<{
@@ -106,7 +106,6 @@ watch(
 <style scoped>
 .tool-row {
   min-width: 0;
-  margin-block-end: var(--spacing-md);
 }
 .fold {
   height: auto;
@@ -152,8 +151,8 @@ watch(
 .steps {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
-  padding-block: var(--spacing-sm);
+  gap: var(--spacing-xs);
+  padding-block: var(--spacing-xs);
   border-block-start: var(--border-width) solid var(--hairline);
 }
 .waiting {
