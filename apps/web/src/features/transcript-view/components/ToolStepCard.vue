@@ -43,7 +43,6 @@
         :hidden-count="readHidden"
       >
         <template #meta>
-          <span>{{ readSummary }}</span>
           <span class="language">{{ readContent.preview.languageLabel }}</span>
         </template>
       </ToolHeader>
@@ -217,13 +216,6 @@ const outputHidden = computed(() =>
   ),
 )
 const readHidden = computed(() => toolFoldHidden(readContent.value?.preview.lines.length ?? 0))
-const readSummary = computed(() => {
-  const preview = readContent.value?.preview
-  if (!preview) return ""
-  return preview.totalLines === null
-    ? `显示 ${preview.lines.length} 行`
-    : `显示 ${preview.lines.length} / ${preview.totalLines} 行`
-})
 watch(commandBody, () => {
   commandExpanded.value = false
 })
