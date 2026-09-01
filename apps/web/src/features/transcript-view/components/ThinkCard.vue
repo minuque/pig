@@ -82,6 +82,9 @@ const previewing = computed(() => props.streaming && !open.value)
   grid-template-rows: 1fr;
   transition-duration: var(--duration-slow);
 }
+.body.open > .body-inner {
+  animation: enter-blur var(--duration-slow) var(--ease-out);
+}
 .body-inner {
   min-height: 0;
   overflow: hidden;
@@ -90,6 +93,9 @@ const previewing = computed(() => props.streaming && !open.value)
   .body,
   .caret {
     transition: none;
+  }
+  .body.open > .body-inner {
+    animation: none;
   }
 }
 </style>
