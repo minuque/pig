@@ -50,7 +50,6 @@
       <ToolOutput
         v-model:expanded="readExpanded"
         code
-        :path="readContent.path"
         :lines="readContent.preview.lines"
         :tokens="readTokens"
         :start-line="readContent.preview.startLine"
@@ -109,9 +108,6 @@
         v-if="thoughtContent.previewing"
         ref="thoughtPreview"
         class="preview"
-        role="region"
-        aria-label="实时思考预览"
-        tabindex="0"
         @wheel.stop
         @scroll.stop
       >

@@ -1,14 +1,7 @@
 <template>
   <div class="thought">
-    <Button
-      type="button"
-      static
-      class="toggle"
-      :aria-expanded="open || previewing"
-      :aria-controls="bodyId"
-      @click="open = !open"
-    >
-      <Lightbulb :stroke-width="1.5" data-icon="inline-start" aria-hidden="true" />
+    <Button type="button" static class="toggle" @click="open = !open">
+      <Lightbulb :stroke-width="1.5" data-icon="inline-start" />
       <span>{{ streaming ? "思考中" : "思考" }}</span>
       <span v-if="previewing" class="hint">展开全文</span>
       <ChevronRight
@@ -16,15 +9,12 @@
         :class="{ 'is-on': open }"
         :stroke-width="1.5"
         data-icon="inline-end"
-        aria-hidden="true"
       />
     </Button>
     <div
-      :id="bodyId"
       class="fold-height with-enter"
       :class="{ 'is-open': open || previewing }"
       :inert="!open && !previewing"
-      :aria-hidden="!open && !previewing"
     >
       <div>
         <ToolStepCard v-if="text" variant="thought" :text="text" :previewing="!open" />
@@ -34,14 +24,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useId } from "vue"
+import { computed } from "vue"
 import { ChevronRight, Lightbulb } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "./ToolStepCard.vue"
 
 const props = defineProps<{ text: string; streaming: boolean }>()
 const open = defineModel<boolean>("open", { required: true })
-const bodyId = useId()
 const previewing = computed(() => props.streaming && !open.value)
 </script>
 

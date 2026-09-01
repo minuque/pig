@@ -22,18 +22,14 @@
         size="icon-2xs"
         class="copy"
         :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
-        :aria-label="copyLabel"
         :title="copyLabel"
         @click="copy"
       >
-        <span class="icon-swap" aria-hidden="true">
+        <span class="icon-swap">
           <Copy class="size-3.5" :data-visible="status !== 'copied'" />
           <Check class="size-3.5" :data-visible="status === 'copied'" />
         </span>
       </Button>
-      <span class="sr-only" role="status">{{
-        status === "copied" ? "已复制" : status === "error" ? "复制失败，请重试" : ""
-      }}</span>
     </div>
   </div>
 </template>

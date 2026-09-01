@@ -1,6 +1,6 @@
 <template>
   <div v-if="code" class="tool-output is-code">
-    <div class="code-scroll" tabindex="0" :aria-label="path ? `${path} 文件内容` : undefined">
+    <div class="code-scroll">
       <div class="code-lines" :style="{ '--line-number-width': `${lineNumberWidth}ch` }">
         <template v-for="line in visibleLines" :key="line.index">
           <button
@@ -12,7 +12,7 @@
             … 其余 {{ hiddenCount }} 行
           </button>
           <div v-else class="code-line">
-            <span class="line-number" aria-hidden="true">{{ startLine + line.index }}</span>
+            <span class="line-number">{{ startLine + line.index }}</span>
             <code
               ><template v-if="tokens[line.index]"
                 ><span
@@ -79,7 +79,6 @@ const props = withDefaults(
     lines?: readonly string[]
     tokens?: { content: string; color?: string }[][]
     startLine?: number
-    path?: string
   }>(),
   {
     text: "",
@@ -92,7 +91,6 @@ const props = withDefaults(
     lines: () => [],
     tokens: () => [],
     startLine: 1,
-    path: "",
   },
 )
 const expanded = defineModel<boolean>("expanded", { default: false })

@@ -4,7 +4,6 @@
       class="gap-0 overflow-hidden !p-0 sm:max-w-[min(36rem,calc(100vw-2rem))]"
       :show-close-button="false"
     >
-      <DialogTitle class="sr-only">搜索会话</DialogTitle>
       <div class="search-dialog">
         <div class="query-row">
           <Search class="size-icon query-icon" />
@@ -51,7 +50,7 @@ import { useTimestamp } from "@vueuse/core"
 import { useRouter } from "vue-router"
 import { CornerDownLeft, MessageSquare, Search, X } from "lucide-vue-next"
 import type { SessionMetadata } from "@earendil-works/pi-protocol"
-import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import {
   formatRelativeTime,

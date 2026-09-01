@@ -1,20 +1,7 @@
 <template>
   <div class="tool-summary" :class="{ failed }">
-    <Button
-      type="button"
-      static
-      class="summary"
-      :aria-expanded="open"
-      :aria-controls="bodyId"
-      @click="toggleGroup"
-    >
-      <component
-        :is="icon"
-        class="tool-icon"
-        :stroke-width="1.5"
-        data-icon="inline-start"
-        aria-hidden="true"
-      />
+    <Button type="button" static class="summary" @click="toggleGroup">
+      <component :is="icon" class="tool-icon" :stroke-width="1.5" data-icon="inline-start" />
       <span class="label">{{ label }}</span>
       <span v-if="detail" class="detail" :title="detail">{{ detail }}</span>
       <ChevronRight
@@ -22,16 +9,9 @@
         :class="{ 'is-on': open }"
         :stroke-width="1.5"
         data-icon="inline-end"
-        aria-hidden="true"
       />
     </Button>
-    <div
-      :id="bodyId"
-      class="fold-height"
-      :class="{ 'is-open': open }"
-      :inert="!open"
-      :aria-hidden="!open"
-    >
+    <div class="fold-height" :class="{ 'is-open': open }" :inert="!open">
       <div class="body-inner" :class="{ direct: Boolean(directItem) }">
         <div
           v-for="call in calls"
@@ -44,8 +24,6 @@
             type="button"
             class="toggle"
             :class="{ open: call.itemOpen }"
-            :aria-expanded="call.expandable ? call.itemOpen : undefined"
-            :aria-controls="call.expandable ? `${bodyId}-${call.item.id}` : undefined"
             :disabled="!call.expandable"
             @click="emit('toggle', { id: call.item.id, open: !call.itemOpen })"
           >
@@ -53,10 +31,9 @@
               class="motion-turn caret"
               :class="{ 'is-on': call.itemOpen, invisible: !call.expandable }"
               :size="14"
-              aria-hidden="true"
             />
             <span class="kind">{{ call.kind }}</span>
-            <span v-if="call.detail" class="separator" aria-hidden="true">·</span>
+            <span v-if="call.detail" class="separator">·</span>
             <span
               v-if="call.detail"
               class="item-detail"
@@ -64,14 +41,9 @@
               :title="call.detail"
               >{{ call.detail }}</span
             >
-            <span class="sr-only">{{ call.statusLabel }}</span>
           </button>
           <Transition name="fold-reveal">
-            <div
-              v-if="call.revealed && call.expandable"
-              :id="`${bodyId}-${call.item.id}`"
-              class="call-body"
-            >
+            <div v-if="call.revealed && call.expandable" class="call-body">
               <ToolStepCard
                 v-if="call.isCommand && call.command"
                 variant="command"
@@ -107,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useId } from "vue"
+import { computed } from "vue"
 import { ChevronRight, FileText, Pencil, Search, SquareTerminal, Wrench } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
@@ -129,7 +101,6 @@ import { directGroupItem, toolSummary, toolSummaryDetail } from "../lib/tool-sum
 
 const props = defineProps<{ group: ToolGroup; expanded: Map<string, boolean> }>()
 const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
-const bodyId = useId()
 const directItem = computed(() => directGroupItem(props.group))
 const open = computed(() => props.expanded.get(props.group.id) === true)
 const failed = computed(() => props.group.items.some((item) => item.isError))

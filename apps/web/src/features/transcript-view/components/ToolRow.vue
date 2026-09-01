@@ -1,29 +1,15 @@
 <template>
   <section class="tool-row" :class="{ live, failed: row.aborted }">
-    <Button
-      type="button"
-      static
-      class="fold"
-      :aria-expanded="revealed"
-      :aria-controls="bodyId"
-      @click="emit('toggle-fold', !revealed)"
-    >
+    <Button type="button" static class="fold" @click="emit('toggle-fold', !revealed)">
       <span>{{ label }}</span>
       <ChevronRight
         class="motion-turn"
         :class="{ 'is-on': revealed }"
         :stroke-width="1.5"
         data-icon="inline-end"
-        aria-hidden="true"
       />
     </Button>
-    <div
-      :id="bodyId"
-      class="fold-height"
-      :class="{ 'is-open': revealed }"
-      :inert="!revealed"
-      :aria-hidden="!revealed"
-    >
+    <div class="fold-height" :class="{ 'is-open': revealed }" :inert="!revealed">
       <div>
         <div v-if="rendered" class="steps">
           <template v-for="step in row.steps" :key="step.id">
@@ -57,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, useId, watch } from "vue"
+import { computed, shallowRef, watch } from "vue"
 import { ChevronRight } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
 import AssistantMessage from "./AssistantMessage.vue"
@@ -76,7 +62,6 @@ const emit = defineEmits<{
   "toggle-fold": [open: boolean]
   "toggle-tool": [id: string, open: boolean]
 }>()
-const bodyId = useId()
 const live = computed(() => props.row.mode === "live")
 const revealed = computed(() => props.foldOpen ?? live.value)
 const rendered = shallowRef(revealed.value)
