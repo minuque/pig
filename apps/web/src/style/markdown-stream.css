@@ -35,8 +35,8 @@
   --ms-flow-hr-y: 0.7em;
   --ms-radius: var(--radius-md);
   --ms-border-width: var(--border-width);
-  --ms-focus-ring-width: var(--focus-ring-width);
-  --ms-focus-ring-offset: var(--focus-ring-width);
+  --ms-focus-ring-width: 0px;
+  --ms-focus-ring-offset: 0px;
   --ms-foreground: from var(--ink) h s l;
   --ms-background: from var(--surface) h s l;
   --ms-muted: from var(--canvas-soft) h s l;
@@ -79,7 +79,7 @@
   --blockquote-fg: var(--ink-muted);
   --table-border: var(--hairline);
   --table-header-bg: var(--canvas-soft);
-  --focus-ring: var(--primary);
+  --focus-ring: transparent;
   --link-color: var(--link);
 }
 

@@ -133,10 +133,6 @@ function onStageFocusOut(event: FocusEvent) {
   background: transparent;
   cursor: pointer;
 }
-.minimap-tick:focus-visible {
-  outline: var(--focus-ring-width) solid var(--primary);
-  outline-offset: 2px;
-}
 .minimap-strip {
   pointer-events: none;
   position: absolute;

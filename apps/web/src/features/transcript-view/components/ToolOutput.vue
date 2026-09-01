@@ -201,10 +201,6 @@ function onScroll(event: Event) {
   padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) var(--spacing-lg);
   scrollbar-width: thin;
 }
-.code-scroll:focus-visible {
-  outline: var(--focus-ring-width) solid var(--primary);
-  outline-offset: calc(-1 * var(--focus-ring-width));
-}
 .code-lines {
   min-width: max-content;
   font-family: var(--font-code);

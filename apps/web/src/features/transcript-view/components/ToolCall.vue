@@ -289,10 +289,6 @@ function toggleGroup() {
 .toggle:not(:disabled):active {
   transform: none;
 }
-.toggle:focus-visible {
-  outline: var(--focus-ring-width) solid var(--primary);
-  outline-offset: var(--focus-ring-width);
-}
 .toggle .caret {
   flex: none;
   color: var(--ink-secondary);

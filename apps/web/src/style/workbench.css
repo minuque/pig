@@ -67,9 +67,7 @@ button:not(:where(.markstream-vue *, [data-slot])) {
 button:disabled {
   cursor: default;
 }
-input:focus-visible,
-textarea:focus-visible,
-[contenteditable]:focus-visible {
+:focus-visible {
   outline: none;
 }
 h1,

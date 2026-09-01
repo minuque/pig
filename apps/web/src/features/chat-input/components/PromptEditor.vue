@@ -195,9 +195,6 @@ defineExpose({ focus })
   white-space: pre-wrap;
   word-break: break-word;
 }
-.field:focus-visible {
-  outline: 0;
-}
 .field ::selection,
 .field::selection {
   background: Highlight;
