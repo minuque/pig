@@ -1,5 +1,5 @@
 <template>
-  <Loader2
+  <LoaderCircle
     :size="size"
     :stroke-width="1.5"
     class="animate-spin motion-reduce:animate-none"
@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { Loader2 } from "lucide-vue-next"
+import { LoaderCircle } from "lucide-vue-next"
 
 const props = withDefaults(
   defineProps<{
