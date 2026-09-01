@@ -29,19 +29,28 @@
     </div>
   </div>
   <div v-else class="tool-output" :class="{ 'is-embedded': embedded }">
-    <pre v-if="!virtual" class="tool-output-pre" :class="preClass">{{ text }}</pre>
-    <pre
-      v-else
-      class="tool-output-pre is-virtual"
-      :class="preClass"
-      :style="{ height: `${maxLines * lineHeight}px` }"
-      @scroll="onScroll"
-    >
-      <span class="canvas" :style="{ height: `${totalHeight}px` }">
-        <span class="window" :style="{ top: `${padTop}px` }">{{ visibleText }}</span>
-      </span>
-    </pre>
-    <p v-if="virtual && showCount" class="meta">{{ lines.length }} 行</p>
+    <template v-if="collapsed">
+      <pre class="tool-output-pre" :class="preClass">{{ foldedHead }}</pre>
+      <button type="button" class="omitted" @click="expanded = true">
+        … 其余 {{ hiddenCount }} 行
+      </button>
+      <pre class="tool-output-pre" :class="preClass">{{ foldedTail }}</pre>
+    </template>
+    <template v-else>
+      <pre v-if="!virtual" class="tool-output-pre" :class="preClass">{{ text }}</pre>
+      <pre
+        v-else
+        class="tool-output-pre is-virtual"
+        :class="preClass"
+        :style="{ height: `${maxLines * lineHeight}px` }"
+        @scroll="onScroll"
+      >
+        <span class="canvas" :style="{ height: `${totalHeight}px` }">
+          <span class="window" :style="{ top: `${padTop}px` }">{{ visibleText }}</span>
+        </span>
+      </pre>
+      <p v-if="virtual && showCount" class="meta">{{ lines.length }} 行</p>
+    </template>
   </div>
 </template>
 
@@ -86,12 +95,14 @@ const props = withDefaults(
     path: "",
   },
 )
-const expanded = defineModel<boolean>("expanded", { default: true })
+const expanded = defineModel<boolean>("expanded", { default: false })
 
+const omitIndex = TOOL_FOLD_HEAD - 1
 const sourceLines = computed(() => (props.code ? [...props.lines] : splitLines(props.text)))
 const hiddenCount = computed(() => toolFoldHidden(sourceLines.value.length))
-const collapsed = computed(() => props.code && hiddenCount.value > 0 && !expanded.value)
-const omitIndex = TOOL_FOLD_HEAD - 1
+const collapsed = computed(() => hiddenCount.value > 0 && !expanded.value)
+const foldedHead = computed(() => sourceLines.value.slice(0, omitIndex).join("\n"))
+const foldedTail = computed(() => sourceLines.value.slice(-TOOL_FOLD_TAIL).join("\n"))
 const visibleLines = computed(() => {
   const lines = sourceLines.value.map((text, index) => ({ text, index }))
   return collapsed.value
@@ -228,6 +239,10 @@ code {
   color: var(--ink-muted);
   font: inherit;
   cursor: pointer;
+}
+.tool-output:not(.is-code) .omitted {
+  margin: 4px 0;
+  margin-inline-start: 0;
 }
 .omitted:hover {
   color: var(--ink);

@@ -1,7 +1,13 @@
 <template>
   <div class="tool-step-card" :class="cardClasses">
     <template v-if="commandContent">
-      <ToolHeader label="命令" :text="commandContent.command">
+      <ToolHeader
+        v-model:expanded="commandExpanded"
+        label="命令"
+        :text="commandContent.command"
+        :foldable="commandHidden > 0"
+        :hidden-count="commandHidden"
+      >
         <div class="command-heading">
           <span class="status-dot" :title="commandContent.statusLabel" />
           <span v-if="commandContent.cwd" class="cwd" :title="commandContent.cwd">
@@ -12,6 +18,7 @@
       </ToolHeader>
       <div class="output">
         <ToolOutput
+          v-model:expanded="commandExpanded"
           :text="commandContent.outputText || commandContent.emptyOutput"
           :show-count="false"
           embedded
@@ -52,16 +59,36 @@
     </template>
     <template v-else-if="toolContent">
       <section v-if="toolContent.inputFull" class="layer">
-        <ToolHeader label="入参" :text="toolContent.inputFull" shaded />
+        <ToolHeader
+          v-model:expanded="inputExpanded"
+          label="入参"
+          :text="toolContent.inputFull"
+          shaded
+          :foldable="inputHidden > 0"
+          :hidden-count="inputHidden"
+        />
         <div class="output">
-          <ToolOutput :text="toolContent.inputFull" :show-count="false" embedded />
+          <ToolOutput
+            v-model:expanded="inputExpanded"
+            :text="toolContent.inputFull"
+            :show-count="false"
+            embedded
+          />
         </div>
       </section>
       <section class="layer">
-        <ToolHeader :label="toolContent.outputLabel" :text="toolContent.outputText" shaded />
+        <ToolHeader
+          v-model:expanded="outputExpanded"
+          :label="toolContent.outputLabel"
+          :text="toolContent.outputText"
+          shaded
+          :foldable="outputHidden > 0"
+          :hidden-count="outputHidden"
+        />
         <div class="output">
           <ToolOutput
             v-if="toolContent.outputText || !toolContent.outputImages.length"
+            v-model:expanded="outputExpanded"
             :text="toolContent.outputText || toolContent.emptyOutput"
             :show-count="false"
             embedded
@@ -102,7 +129,7 @@ import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
-import { toolFoldHidden } from "@features/transcript-view/lib/expandable-text.js"
+import { splitLines, toolFoldHidden } from "@features/transcript-view/lib/expandable-text.js"
 import {
   pathBasename,
   type ReadToolPreview,
@@ -176,8 +203,23 @@ watch(
 )
 
 const { isDark } = useColorScheme()
+const commandExpanded = ref(false)
+const inputExpanded = ref(false)
+const outputExpanded = ref(false)
 const readExpanded = ref(false)
 const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
+const commandBody = computed(
+  () => commandContent.value?.outputText || commandContent.value?.emptyOutput || "",
+)
+const commandHidden = computed(() => toolFoldHidden(splitLines(commandBody.value).length))
+const inputHidden = computed(() =>
+  toolFoldHidden(splitLines(toolContent.value?.inputFull ?? "").length),
+)
+const outputHidden = computed(() =>
+  toolFoldHidden(
+    splitLines(toolContent.value?.outputText || toolContent.value?.emptyOutput || "").length,
+  ),
+)
 const readHidden = computed(() => toolFoldHidden(readContent.value?.preview.lines.length ?? 0))
 const readSummary = computed(() => {
   const preview = readContent.value?.preview
@@ -186,6 +228,21 @@ const readSummary = computed(() => {
     ? `显示 ${preview.lines.length} 行`
     : `显示 ${preview.lines.length} / ${preview.totalLines} 行`
 })
+watch(commandBody, () => {
+  commandExpanded.value = false
+})
+watch(
+  () => toolContent.value?.inputFull,
+  () => {
+    inputExpanded.value = false
+  },
+)
+watch(
+  () => toolContent.value?.outputText,
+  () => {
+    outputExpanded.value = false
+  },
+)
 watch(
   () => readContent.value?.preview.code,
   () => {
