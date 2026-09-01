@@ -23,7 +23,7 @@ export function toolSummary(items: readonly ToolCallView[]): string {
     search: `${prefix}搜索 ${count} 次`,
   }
   const label = labels[key] ?? `${prefix}调用 ${first.toolName}${count > 1 ? ` ${count} 次` : ""}`
-  return first.isError ? `执行失败 · ${label}` : label
+  return label
 }
 
 export function toolSummaryDetail(items: readonly ToolCallView[]): string {

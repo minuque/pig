@@ -1,5 +1,5 @@
 <template>
-  <section class="tool-row" :class="{ live, failed: row.error || row.aborted }">
+  <section class="tool-row" :class="{ live, failed: row.aborted }">
     <Button
       type="button"
       static

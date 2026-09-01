@@ -8,7 +8,13 @@
       :aria-controls="bodyId"
       @click="toggleGroup"
     >
-      <component :is="icon" :stroke-width="1.5" data-icon="inline-start" aria-hidden="true" />
+      <component
+        :is="icon"
+        class="tool-icon"
+        :stroke-width="1.5"
+        data-icon="inline-start"
+        aria-hidden="true"
+      />
       <span class="label">{{ label }}</span>
       <span v-if="detail" class="detail" :title="detail">{{ detail }}</span>
       <ChevronRight
@@ -94,14 +100,15 @@ const icon = computed(() => {
   background: transparent;
   color: var(--ink-secondary);
 }
-.failed .summary {
+.failed .tool-icon {
   color: var(--danger);
 }
 .label {
-  flex-shrink: 1;
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  flex: none;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .detail {
   min-width: 0;

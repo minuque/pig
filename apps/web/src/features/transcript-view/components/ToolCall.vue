@@ -210,9 +210,6 @@ const expandable = computed(
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.is-err .caret {
-  color: var(--danger);
-}
 .is-run .caret {
   color: var(--primary);
 }

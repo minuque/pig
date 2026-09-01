@@ -9,6 +9,7 @@ import {
   isToolRow,
   toolRowLabel,
 } from "@features/transcript-view/lib/transcript-rows.js"
+import { toolSummary } from "@features/transcript-view/lib/tool-summary.js"
 
 const user: UserTranscriptItem = {
   id: "u1",
@@ -177,13 +178,18 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(work[1] && toolRowLabel(work[1], 12000)).toBe("执行中 · 用时 3秒")
   })
 
-  it("失败路径：工具失败单列，摘要保留错误，重试错误信息不丢失", () => {
+  it("失败路径：工具失败单列，摘要只描述工作与耗时，重试错误信息不丢失", () => {
     const work = buildTimelineRows(
       [user, tool("t1"), tool("bad", "read", "error"), tool("t2")],
       false,
+      [{ userId: "u1", startedAt: 1000, endedAt: 27000, outcome: "error" }],
     ).find(isToolRow)
     expect(work?.steps).toHaveLength(3)
-    expect(work && toolRowLabel(work)).toBe("执行出错")
+    expect(work && toolRowLabel(work)).toBe("用时 26秒")
+    const failedGroup = work?.steps.find(
+      (step) => step.type === "tools" && step.items.some((item) => item.isError),
+    )
+    expect(failedGroup?.type === "tools" && toolSummary(failedGroup.items)).toBe("已读取 1 个文件")
     const errors = buildTimelineRows(
       [user, assistant(1, [], "error"), assistant(2, [], "error")],
       false,

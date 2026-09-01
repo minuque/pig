@@ -234,13 +234,7 @@ export function buildTimelineRows(
 }
 
 export function toolRowLabel(row: ToolRow, now = Date.now()): string {
-  const status = row.aborted
-    ? "已停止"
-    : row.error
-      ? "执行出错"
-      : row.mode === "live"
-        ? "执行中"
-        : "执行过程"
+  const status = row.aborted ? "已停止" : row.mode === "live" ? "执行中" : "执行过程"
   if (!row.timing || (row.timing.endedAt === undefined && row.mode !== "live")) return status
   const seconds = Math.max(
     0,
@@ -248,7 +242,5 @@ export function toolRowLabel(row: ToolRow, now = Date.now()): string {
   )
   const duration =
     seconds >= 60 ? `${Math.floor(seconds / 60)}分钟 ${seconds % 60}秒` : `${seconds}秒`
-  return row.aborted || row.error || row.mode === "live"
-    ? `${status} · 用时 ${duration}`
-    : `用时 ${duration}`
+  return row.aborted || row.mode === "live" ? `${status} · 用时 ${duration}` : `用时 ${duration}`
 }
