@@ -9,9 +9,9 @@
 </template>
 
 <script setup lang="ts">
-import { useNav } from "@features/session-nav/index.js"
+import { useSettingsCwd } from "@features/settings/hooks/use-settings-cwd.js"
 
-const { lastCwd: cwd } = useNav()
+const cwd = useSettingsCwd()
 </script>
 
 <style scoped>
