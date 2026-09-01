@@ -154,11 +154,11 @@ defineExpose({ focus })
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
-  gap: 8px;
+  gap: var(--spacing-xs);
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 12px 18px;
+  padding: 10px var(--spacing-sm) 18px;
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -174,11 +174,10 @@ defineExpose({ focus })
   background: var(--chat-input);
   border: var(--border-width) solid var(--chat-input-ring);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-soft);
 }
 
 .editor-wrap {
-  padding: 14px 16px 48px;
+  padding: 14px var(--spacing-md) 48px;
 }
 .field {
   position: relative;
@@ -221,9 +220,9 @@ defineExpose({ focus })
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--spacing-xs);
   min-height: 44px;
-  padding: 6px 10px 8px 10px;
+  padding: 6px 10px var(--spacing-xs) 10px;
 }
 .left {
   display: flex;

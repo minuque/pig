@@ -138,15 +138,8 @@ onBeforeUnmount(() => {
   height: 96px;
   object-fit: contain;
   border-radius: var(--radius-xs);
-  box-shadow:
-    0 1px 2px rgba(15, 17, 21, 0.06),
-    0 8px 20px rgba(15, 17, 21, 0.08);
+  box-shadow: var(--shadow-logo);
   pointer-events: none;
-}
-:global(html.dark) .startup-logo {
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.28),
-    0 10px 24px rgba(0, 0, 0, 0.36);
 }
 .startup-wait.leaving .startup-logo {
   opacity: 0;

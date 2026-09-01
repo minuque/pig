@@ -33,7 +33,7 @@
   --ink-secondary: #52514e;
   --ink-muted: #52514e;
   --ink-faint: #898781;
-  --hairline: #e2e2e1;
+  --hairline: #d8d8d6;
   --tool-header: #f2f2f1;
   --transcript-guide: #cececc;
   --chat-input-ring: #e0e0df;
@@ -41,6 +41,9 @@
   --popover-border: #d7d7d5;
   --interaction-hover: #f3f3f3;
   --interaction-selected: #edece8;
+  --hover-quiet: color-mix(in srgb, var(--ink) 5%, transparent);
+  --hover-tint: color-mix(in srgb, var(--ink) 8%, transparent);
+  --hover-strong: color-mix(in srgb, var(--ink) 12%, transparent);
   --link: #184f95;
   --inline-code: #f2f2f1;
   --inline-code-ink: var(--ink);
@@ -121,6 +124,7 @@
   --spacing-xxl: 32px;
 
   /* Shapes */
+  --radius-2xs: 2px;
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -129,7 +133,7 @@
   --radius-full: 9999px;
 
   /* Sizes */
-  --size-control: 40px; /* buttons, icon buttons */
+  --size-control: 40px; /* 触控热区 */
   --size-menu: 140px; /* kebab 下拉菜单最小宽度 */
   --size-sidebar: 280px; /* left panel width */
   --size-sidebar-rail: 56px;
@@ -140,7 +144,11 @@
   --size-content: 45.75rem; /* 会话列外回退；列内由 clamp(680px, 64%, 920px) 覆盖 */
   --size-chat-input: 46.75rem; /* 会话列外回退；列内为正文 + 16px */
   --size-modal: 32rem; /* dialog max width */
-  --size-nav-action: 28px;
+  --size-icon: 15px;
+  --size-icon-2xs: 18px;
+  --size-icon-button: 28px;
+  --size-nav-rail: 36px;
+  --size-chat-input-overlay: 6rem;
 
   /* Font weights — DESIGN.md roles: 400/500/600/700 */
   --font-weight-regular: 400;
@@ -168,6 +176,8 @@
   /* Popover/menu 浮层阴影（输入区浮层共用） */
   --shadow-popover:
     0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 1px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-group: 0 1px 2px rgb(0 0 0 / 0.1), 0 2px 6px rgb(0 0 0 / 0.05);
+  --shadow-logo: 0 1px 2px rgba(15, 17, 21, 0.06), 0 8px 20px rgba(15, 17, 21, 0.08);
   /* 输入区反色主按钮（浅色主题深底浅字，深色主题反相） */
   --inverse-bg: #0b0b0b;
   --inverse-bg-hover: #292929;
@@ -212,7 +222,7 @@
   --ink-secondary: #e1e0d9;
   --ink-muted: #c3c2b7;
   --ink-faint: #898781;
-  --hairline: #292929;
+  --hairline: #333332;
   --tool-header: #20201f;
   --transcript-guide: #454545;
   --chat-input-ring: #313131;
@@ -245,6 +255,8 @@
   --shadow-elevated:
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
+  --shadow-group: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.22);
+  --shadow-logo: 0 1px 2px rgba(0, 0, 0, 0.28), 0 10px 24px rgba(0, 0, 0, 0.36);
   --inverse-bg: #f0efec;
   --inverse-bg-hover: #ffffff;
   --inverse-fg: #151515;
@@ -343,6 +355,7 @@
   --spacing-xl: var(--spacing-xl);
   --spacing-xxl: var(--spacing-xxl);
 
+  --radius-2xs: var(--radius-2xs);
   --radius-xs: var(--radius-xs);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);

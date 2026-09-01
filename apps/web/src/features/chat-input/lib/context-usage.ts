@@ -50,7 +50,7 @@ const SEGMENT_DEFS = [
   {
     id: "idle" as const,
     label: "空闲",
-    color: "color-mix(in srgb, var(--ink) 12%, transparent)",
+    color: "var(--hover-strong)",
     previewable: false,
   },
 ]

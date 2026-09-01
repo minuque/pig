@@ -43,7 +43,7 @@
           </div>
           <div class="card-line card-foot">
             <span v-if="grouping === 'updated'" class="card-project">
-              <Folder :size="16" :stroke-width="1.5" class="workspace-mark" />
+              <Folder :stroke-width="1.5" class="size-icon workspace-mark" />
               <span v-if="workspaceTitle" class="workspace-title">{{ workspaceTitle }}</span>
             </span>
             <span v-else class="card-count">{{
@@ -204,9 +204,9 @@ function confirmDelete() {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
   min-width: 0;
-  padding: 8px 10px;
+  padding: var(--spacing-xs) 10px;
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
@@ -234,7 +234,7 @@ function confirmDelete() {
 .card-head,
 .card-foot {
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--spacing-xs);
 }
 .card-project {
   display: inline-flex;
@@ -310,7 +310,7 @@ function confirmDelete() {
   flex: none;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacing-xxs);
 }
 .session-icon {
   width: 12px;
@@ -334,10 +334,10 @@ function confirmDelete() {
   flex: 1;
   height: 100%;
   margin: 0;
-  padding: 0 4px;
+  padding: 0 var(--spacing-xxs);
   border: 0;
   border-radius: var(--radius-xs);
-  background: color-mix(in srgb, var(--ink) 10%, var(--surface));
+  background: var(--interaction-hover);
   color: var(--ink);
   caret-color: var(--primary);
   font-size: var(--text-caption);

@@ -1,20 +1,20 @@
 <template>
-  <div class="group-head">
+  <div class="group-head" :class="{ 'is-open': !collapsed }">
     <button class="group-toggle" type="button" @click="emit('toggle')">
       <span class="mark icon-swap" :class="{ 'is-open': !collapsed }">
-        <Folder :size="16" :stroke-width="1.5" :data-visible="collapsed" />
-        <FolderOpen :size="16" :stroke-width="1.5" :data-visible="!collapsed" />
+        <Folder :stroke-width="1.5" :data-visible="collapsed" class="size-icon" />
+        <FolderOpen :stroke-width="1.5" :data-visible="!collapsed" class="size-icon" />
       </span>
       <span class="group-name">{{ name }}</span>
     </button>
     <button
-      class="group-new motion-hint"
+      class="group-new"
       type="button"
       :disabled="creating"
       title="新会话"
       @click.stop="emit('create')"
     >
-      <Plus :size="16" />
+      <Plus class="size-icon" />
     </button>
   </div>
 </template>
@@ -38,18 +38,18 @@ const emit = defineEmits<{
 .group-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
   height: 32px;
-  padding-inline: 8px;
+  padding-inline: var(--spacing-xs);
   border-radius: var(--radius-md);
 }
 .group-head:hover {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: var(--hover-quiet);
 }
 .group-toggle {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacing-xxs);
   min-width: 0;
   flex: 1;
   height: 100%;
@@ -61,8 +61,8 @@ const emit = defineEmits<{
 }
 .mark {
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: var(--size-icon);
+  height: var(--size-icon);
   color: var(--ink-faint);
   transition: color var(--duration-fast) var(--ease-smooth);
 }
@@ -77,29 +77,42 @@ const emit = defineEmits<{
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--ink);
+  color: var(--ink-muted);
   font-size: var(--text-body-md);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-md--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.group-head.is-open .group-name {
+  color: var(--ink);
+}
 .group-new {
   display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
+  width: var(--size-icon);
+  height: var(--size-icon);
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--ink-muted);
   line-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.group-head:hover .group-new,
+.group-new:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 .group-new:hover:not(:disabled),
 .group-new:focus-visible:not(:disabled) {
   color: var(--ink);
 }
-.group-new:disabled {
+.group-head:hover .group-new:disabled {
   opacity: 0.45;
+  pointer-events: none;
 }
 </style>

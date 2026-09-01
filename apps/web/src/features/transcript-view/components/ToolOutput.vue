@@ -193,7 +193,7 @@ function onScroll(event: Event) {
   display: block;
 }
 .meta {
-  margin: 4px 0 0;
+  margin: var(--spacing-xxs) 0 0;
   color: var(--ink-faint);
   font-size: inherit;
 }
@@ -241,7 +241,7 @@ code {
   cursor: pointer;
 }
 .tool-output:not(.is-code) .omitted {
-  margin: 4px 0;
+  margin: var(--spacing-xxs) 0;
   margin-inline-start: 0;
 }
 .omitted:hover {

@@ -90,7 +90,7 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
   gap: 6px;
   min-width: 0;
   max-width: 70%;
-  padding: 2px 8px;
+  padding: 2px var(--spacing-xs);
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--ink-muted);
@@ -111,8 +111,8 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 28px;
-  height: 28px;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -123,7 +123,7 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
 }
 .usage:hover {
   color: var(--ink-muted);
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: var(--hover-quiet);
 }
 .usage-ring {
   display: block;

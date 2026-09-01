@@ -1,7 +1,7 @@
 <template>
   <header class="workbench-header">
     <button class="icon-button header-toggle" type="button" @click="toggle">
-      <PanelLeft :size="16" />
+      <PanelLeft class="size-icon" />
     </button>
     <h1 v-if="title" id="current-title" class="header-crumb">
       <span class="header-session">{{ title }}</span>
@@ -46,6 +46,8 @@ const title = computed(() =>
 
 <style scoped>
 .workbench-header {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
@@ -53,10 +55,31 @@ const title = computed(() =>
   padding: var(--spacing-xxs) var(--spacing-sm);
   background: var(--surface);
 }
+.workbench-header::after {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: 24px;
+  background: linear-gradient(to bottom, var(--surface), transparent);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  mask-image: linear-gradient(to bottom, #000, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
+  content: "";
+}
+@media (prefers-reduced-transparency: reduce) {
+  .workbench-header::after {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}
 .header-toggle {
   flex: none;
-  width: var(--size-nav-action);
-  min-height: var(--size-nav-action);
+  width: var(--size-icon-button);
+  min-height: var(--size-icon-button);
   padding: 0;
   border: 0;
   background: transparent;

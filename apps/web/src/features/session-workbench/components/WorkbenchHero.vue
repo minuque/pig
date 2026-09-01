@@ -128,6 +128,6 @@ const label = computed(() =>
   white-space: nowrap;
 }
 .workbench-hero-option-active {
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--hover-tint);
 }
 </style>

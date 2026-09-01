@@ -73,7 +73,7 @@ function runAction(item: Notice): void {
   box-shadow: var(--shadow-elevated);
 }
 .alert-toaster-action {
-  min-height: 28px;
+  min-height: var(--size-icon-button);
   padding-inline: var(--spacing-xs);
   border-radius: var(--radius-sm);
   color: currentColor;
@@ -93,7 +93,7 @@ function runAction(item: Notice): void {
   width: 24px;
   height: 24px;
   padding: 0;
-  border: var(--border-width) solid color-mix(in srgb, var(--ink) 10%, transparent);
+  border: var(--border-width) solid var(--hover-tint);
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--surface) 88%, transparent);
   color: var(--ink-muted);

@@ -137,7 +137,7 @@ async function copy() {
   font-weight: var(--font-weight-regular);
 }
 .copy:hover {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 .copy.is-copied {

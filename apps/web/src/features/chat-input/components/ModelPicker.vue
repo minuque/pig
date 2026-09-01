@@ -30,7 +30,7 @@
             :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
             @click="scope = FAVORITES_SCOPE"
           >
-            <Star :size="16" :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'" />
+            <Star class="size-icon" :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'" />
           </button>
           <button
             v-for="vendor in catalog"
@@ -41,7 +41,7 @@
             :data-current="scope === vendor.id ? '' : undefined"
             @click="scope = vendor.id"
           >
-            <VendorMark :vendor="vendor.id" :name="vendor.name" :size="16" />
+            <VendorMark :vendor="vendor.id" :name="vendor.name" :size="15" />
           </button>
         </div>
 
@@ -59,7 +59,7 @@
                 :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
               >
                 <DropdownMenuItem
-                  class="model-item gap-2 rounded-(--radius-md) px-2.5 py-0 h-[52px] text-[13px] font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
+                  class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-2.5 py-0 h-[52px] text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
                   @select="select({ provider: item.data.vendor.id, id: item.data.model.id })"
                 >
                   <span class="model-body">
@@ -220,7 +220,7 @@ function onCloseAutoFocus(event: Event) {
   align-items: center;
   gap: 2px;
   min-height: 0;
-  padding: 6px 4px;
+  padding: 6px var(--spacing-xxs);
   overflow-y: auto;
   border-right: var(--border-width) solid var(--hairline);
   scrollbar-width: none;
@@ -232,8 +232,8 @@ function onCloseAutoFocus(event: Event) {
   display: grid;
   place-items: center;
   flex: none;
-  width: 32px;
-  height: 32px;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
@@ -242,11 +242,11 @@ function onCloseAutoFocus(event: Event) {
   cursor: pointer;
 }
 .rail-btn:hover {
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--hover-tint);
   color: var(--ink);
 }
 .rail-btn[data-current] {
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  background: var(--hover-strong);
   color: var(--ink);
 }
 .main {
@@ -261,7 +261,7 @@ function onCloseAutoFocus(event: Event) {
   align-items: center;
   gap: 6px;
   height: 32px;
-  padding: 0 8px;
+  padding: 0 var(--spacing-xs);
   margin-bottom: var(--spacing-xxs);
   border-radius: var(--radius-md);
   background: var(--canvas-soft);
@@ -278,7 +278,7 @@ function onCloseAutoFocus(event: Event) {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--text-eyebrow);
 }
 .search input::placeholder {
   color: var(--ink-faint);
@@ -304,7 +304,7 @@ function onCloseAutoFocus(event: Event) {
   background: var(--canvas-soft);
 }
 .model-row[data-current] {
-  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  background: var(--hover-tint);
 }
 .model-item {
   flex: 1 1 auto;
@@ -322,9 +322,9 @@ function onCloseAutoFocus(event: Event) {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--ink);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 18px;
+  font-size: var(--text-button);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--text-button--line-height);
 }
 .model-vendor {
   display: flex;
@@ -333,9 +333,9 @@ function onCloseAutoFocus(event: Event) {
   min-width: 0;
   overflow: hidden;
   color: var(--ink-faint);
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 14px;
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--text-eyebrow--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -359,8 +359,8 @@ function onCloseAutoFocus(event: Event) {
   color: var(--accent-sunset);
 }
 .empty {
-  padding: 24px 8px;
-  font-size: 12px;
+  padding: var(--spacing-lg) var(--spacing-xs);
+  font-size: var(--text-eyebrow);
   color: var(--ink-faint);
   text-align: center;
 }

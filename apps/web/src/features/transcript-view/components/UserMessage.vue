@@ -35,7 +35,7 @@ defineProps<{
   max-width: min(calc(var(--size-content) * 0.702), 86%);
   max-height: calc(1.5em * 16);
   margin: 0;
-  padding: 8px 14px;
+  padding: var(--spacing-xs) 14px;
   overflow: auto;
   border-radius: var(--radius-xl);
   background: var(--user-prompt-bg);

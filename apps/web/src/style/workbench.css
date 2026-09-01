@@ -93,29 +93,34 @@ textarea {
   border: var(--border-width) solid var(--hairline);
 }
 .icon-button {
-  width: var(--size-control);
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   padding: 0;
   color: var(--on-primary);
+}
+.size-icon {
+  width: var(--size-icon);
+  height: var(--size-icon);
 }
 .selector {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacing-xxs);
   min-height: 0;
-  padding: 4px 8px;
+  padding: var(--spacing-xxs) var(--spacing-xs);
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: transparent;
   color: var(--ink-faint);
   font-size: var(--text-caption);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth);
 }
 .selector:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--hover-tint);
   color: var(--ink);
 }
 .selector:disabled {

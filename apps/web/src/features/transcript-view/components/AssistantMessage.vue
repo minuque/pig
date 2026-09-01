@@ -77,13 +77,13 @@ const agentMarkdown = computed(
 .assistant {
   padding: 2px 0;
   color: var(--ink);
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
 }
 .status {
   display: inline-block;
   margin-top: var(--spacing-xs);
-  padding: 2px 8px;
+  padding: 2px var(--spacing-xs);
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--danger) 10%, transparent);
   color: var(--danger);

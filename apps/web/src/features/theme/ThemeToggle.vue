@@ -1,8 +1,8 @@
 <template>
   <button type="button" class="theme-toggle press-scale" @click="toggle">
     <span class="theme-icon icon-swap">
-      <Sun :size="16" :data-visible="!isDark" />
-      <Moon :size="16" :data-visible="isDark" />
+      <Sun class="size-icon" :data-visible="!isDark" />
+      <Moon class="size-icon" :data-visible="isDark" />
     </span>
   </button>
 </template>
@@ -19,8 +19,8 @@ const { isDark, toggle } = useColorScheme()
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-nav-action);
-  min-height: var(--size-nav-action);
+  width: var(--size-icon-button);
+  min-height: var(--size-icon-button);
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);
@@ -32,12 +32,12 @@ const { isDark, toggle } = useColorScheme()
     scale var(--duration-fast) var(--ease-out);
 }
 .theme-toggle:hover {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 .theme-icon {
-  width: 16px;
-  height: 16px;
+  width: var(--size-icon);
+  height: var(--size-icon);
 }
 @media (pointer: coarse) {
   .theme-toggle {

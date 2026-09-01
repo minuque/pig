@@ -48,12 +48,12 @@
           @mousedown.prevent
           @click="openFilePicker"
         >
-          <Plus :size="16" />
+          <Plus class="size-icon" />
         </button>
         <Tooltip v-if="error" :delay-duration="200">
           <TooltipTrigger as-child>
             <button type="button" class="error-indicator">
-              <CircleAlert :size="16" />
+              <CircleAlert class="size-icon" />
             </button>
           </TooltipTrigger>
           <TooltipContent class="max-w-[360px]">{{ error }}</TooltipContent>
@@ -77,7 +77,7 @@
             >
               <rect x="2" y="2" width="8" height="8" rx="1.5" />
             </svg>
-            <ArrowUp :size="16" :data-visible="!running" />
+            <ArrowUp :data-visible="!running" class="size-icon" />
           </span>
         </button>
       </template>
@@ -248,8 +248,8 @@ function onPrimaryAction() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -263,8 +263,8 @@ function onPrimaryAction() {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 28px;
-  height: 28px;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -278,7 +278,7 @@ function onPrimaryAction() {
     scale var(--duration-fast) var(--ease-out);
 }
 .plus:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--hover-tint);
   color: var(--ink);
 }
 .plus:disabled {
@@ -291,21 +291,17 @@ function onPrimaryAction() {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 28px;
-  height: 28px;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   min-height: 0;
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);
   background: var(--inverse-bg);
   color: var(--inverse-fg);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--inverse-fg) 16%, transparent),
-    0 1px 2px color-mix(in srgb, var(--inverse-bg) 24%, transparent);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),
-    box-shadow var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
     opacity var(--duration-fast) var(--ease-smooth),
     scale var(--duration-fast) var(--ease-out);
@@ -313,30 +309,21 @@ function onPrimaryAction() {
 .send:not(:disabled):hover {
   background: var(--inverse-bg-hover);
 }
-.send:not(:disabled):active {
-  box-shadow: none;
-}
-.send--abort {
-  background: color-mix(in srgb, var(--danger) 90%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--on-primary) 16%, transparent),
-    0 1px 2px color-mix(in srgb, var(--danger) 24%, transparent);
-}
+.send--abort,
 .send--abort:not(:disabled):hover {
   background: var(--danger);
 }
 .send:disabled {
   cursor: default;
   opacity: 0.3;
-  box-shadow: none;
   scale: 1;
 }
 .send--abort:disabled {
   opacity: 0.5;
 }
 .primary-icon {
-  width: 16px;
-  height: 16px;
+  width: var(--size-icon);
+  height: var(--size-icon);
 }
 @media (prefers-reduced-motion: reduce) {
   .plus,

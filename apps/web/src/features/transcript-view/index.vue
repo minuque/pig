@@ -221,7 +221,6 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
   overflow-y: auto;
   overflow-anchor: none;
   overscroll-behavior: contain;
-  --chat-input-overlay: 6rem;
 }
 @media (prefers-reduced-motion: reduce) {
   .session-floating-controls {
@@ -233,7 +232,7 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
 }
 .session-floating-controls {
   position: sticky;
-  top: calc(100cqh - var(--chat-input-overlay) - var(--spacing-sm));
+  top: calc(100cqh - var(--size-chat-input-overlay) - var(--spacing-sm));
   z-index: 3;
   display: flex;
   justify-content: center;
@@ -259,7 +258,7 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
 }
 .chat-input-bar {
   position: sticky;
-  top: calc(100cqh - var(--chat-input-overlay));
+  top: calc(100cqh - var(--size-chat-input-overlay));
   z-index: 2;
   height: 0;
   overflow: visible;
@@ -295,7 +294,7 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
   min-width: 0;
   margin-inline: auto;
   padding-top: var(--spacing-lg);
-  padding-bottom: calc(var(--spacing-lg) + var(--chat-input-overlay));
+  padding-bottom: calc(var(--spacing-lg) + var(--size-chat-input-overlay));
 }
 .transcript-list,
 .row {

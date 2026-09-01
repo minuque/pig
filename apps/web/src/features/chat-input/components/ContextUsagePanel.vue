@@ -5,7 +5,7 @@
         <div class="head">
           <h3 class="title">上下文占用</h3>
           <button type="button" class="close" @click="emit('close')">
-            <X :size="16" />
+            <X class="size-icon" />
           </button>
         </div>
         <div class="stats">
@@ -184,15 +184,15 @@ function onOpenAutoFocus(event: Event) {
 .usage-root {
   position: absolute;
   inset-inline: 0;
-  bottom: calc(100% + 8px);
-  z-index: 10;
+  bottom: calc(100% + var(--spacing-xs));
+  z-index: var(--z-drawer);
 }
 .usage-shell {
   position: relative;
 }
 .usage-host {
   position: relative;
-  padding: 12px 14px 10px;
+  padding: var(--spacing-sm) 14px 10px;
   background: var(--chat-input);
   border: var(--border-width) solid var(--chat-input-ring);
   border-radius: var(--radius-xl);
@@ -216,8 +216,8 @@ function onOpenAutoFocus(event: Event) {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 24px;
-  height: 24px;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -228,7 +228,7 @@ function onOpenAutoFocus(event: Event) {
 }
 .close:hover {
   color: var(--ink);
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--hover-tint);
 }
 .stats {
   display: flex;
@@ -253,7 +253,7 @@ function onOpenAutoFocus(event: Event) {
   height: 6px;
   margin-top: 10px;
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  background: var(--hover-strong);
 }
 .bar-seg {
   display: block;
@@ -264,15 +264,15 @@ function onOpenAutoFocus(event: Event) {
 .legend {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 12px 0 2px;
+  gap: var(--spacing-xs);
+  margin: var(--spacing-sm) 0 2px;
   padding: 0;
   list-style: none;
 }
 .legend-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
   width: 100%;
   min-height: 18px;
   padding: 0;
@@ -290,13 +290,13 @@ function onOpenAutoFocus(event: Event) {
 }
 .legend-row--button:hover {
   color: var(--ink);
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--hover-tint);
 }
 .swatch {
   flex: none;
   width: 8px;
   height: 8px;
-  border-radius: 2px;
+  border-radius: var(--radius-2xs);
 }
 .legend-label {
   min-width: 0;
@@ -319,7 +319,7 @@ function onOpenAutoFocus(event: Event) {
   flex: 1;
   overflow: hidden;
   color: var(--ink);
-  font-size: 15px;
+  font-size: var(--text-body-md);
   line-height: 1.7;
 }
 .preview-body:focus {
@@ -344,7 +344,7 @@ function onOpenAutoFocus(event: Event) {
   min-height: 21px;
   color: var(--ink-secondary);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-caption-mono);
   line-height: 21px;
   white-space: pre;
   tab-size: 2;

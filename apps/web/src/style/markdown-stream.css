@@ -3,7 +3,7 @@
 [data-custom-id="chat"] {
   --ms-font-sans: var(--font-sans);
   --ms-font-mono: var(--font-code);
-  --ms-text-body: 15px;
+  --ms-text-body: var(--text-body-md);
   --ms-leading-body: 1.7;
   --ms-text-h1: var(--text-heading-3);
   --ms-text-h2: var(--text-title);
@@ -87,6 +87,9 @@
 [data-custom-id="chat"] code {
   font-variant-ligatures: none;
 }
+[data-custom-id="chat"] .inline-code {
+  font-size: var(--ms-text-body);
+}
 
 /* 官方 li:has(.checkbox-node) 用负 margin，虚拟行会裁掉勾选标记 */
 [data-custom-id="chat"] li:has(.checkbox-node) {
@@ -95,7 +98,11 @@
 
 /* 容器 class 是 rounded-lg（本主题 12px），头/身按 --ms-radius（8px）切角，四角错位。 */
 [data-custom-id="chat"] .code-block-container {
+  --vscode-editor-font-size: var(--ms-text-body);
   border-radius: var(--ms-radius);
+}
+[data-custom-id="chat"] pre.code-pre-fallback {
+  font-size: var(--ms-text-body);
 }
 
 /* pre 带 z-index:2 且与 header 同层，会盖住绝对定位的 more 菜单。 */
@@ -104,8 +111,8 @@
 }
 /* 语言图标靠运行时 h-4 w-4，Tailwind 扫不到 markstream JS，SVG 会按固有尺寸撑开。 */
 [data-custom-id="chat"] .code-block-header .icon-slot {
-  width: 16px;
-  height: 16px;
+  width: var(--size-icon);
+  height: var(--size-icon);
   flex: none;
 }
 

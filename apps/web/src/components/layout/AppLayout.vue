@@ -88,7 +88,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   inset-block: 0;
   left: 0;
   width: 1px;
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--hover-tint);
   transition: background var(--duration-fast) var(--ease-smooth);
   content: "";
 }

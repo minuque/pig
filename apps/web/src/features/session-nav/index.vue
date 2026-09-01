@@ -8,7 +8,7 @@
         <img src="/logo.png" alt="" width="22" height="22" />
       </RouterLink>
       <button class="icon-button collapse-toggle" type="button" @click="emit('toggle')">
-        <PanelLeft :size="16" />
+        <PanelLeft class="size-icon" />
       </button>
     </div>
 
@@ -20,7 +20,7 @@
         title="新会话"
         @click="onNewSession()"
       >
-        <SquarePen :size="16" />
+        <SquarePen class="size-icon" />
       </button>
       <button
         class="icon-button rail-action press-scale"
@@ -28,7 +28,7 @@
         title="搜索"
         @click="searchOpen = true"
       >
-        <Search :size="16" />
+        <Search class="size-icon" />
       </button>
     </template>
 
@@ -197,8 +197,6 @@ function onSessionNavigate(cwd: string | undefined) {
 
 <style scoped>
 .session-nav {
-  --nav-row: 28px;
-  --nav-rail: 36px;
   position: relative;
   display: flex;
   flex: 1;
@@ -256,7 +254,7 @@ html[data-pig-desktop-platform] .session-nav input {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  min-height: var(--nav-rail);
+  min-height: var(--size-nav-rail);
   padding-inline: 2px;
   overflow-y: hidden;
   scrollbar-gutter: stable;
@@ -266,8 +264,8 @@ html[data-pig-desktop-platform] .session-nav input {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--nav-rail);
-  min-height: var(--nav-rail);
+  width: var(--size-nav-rail);
+  min-height: var(--size-nav-rail);
   border-radius: var(--radius-md);
 }
 .logo-mark img {
@@ -276,7 +274,7 @@ html[data-pig-desktop-platform] .session-nav input {
   object-fit: contain;
 }
 .logo-mark:hover {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: var(--hover-quiet);
 }
 .collapse-toggle,
 .rail-action {
@@ -284,8 +282,8 @@ html[data-pig-desktop-platform] .session-nav input {
   justify-content: center;
   align-items: center;
   flex: none;
-  width: var(--size-nav-action);
-  min-height: var(--size-nav-action);
+  width: var(--size-icon-button);
+  min-height: var(--size-icon-button);
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
@@ -300,7 +298,7 @@ html[data-pig-desktop-platform] .session-nav input {
 }
 .collapse-toggle:hover,
 .rail-action:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 .rail-action:disabled {
@@ -362,15 +360,8 @@ html[data-pig-desktop-platform] .session-nav input {
   padding: var(--spacing-xxs);
   border: 1px solid var(--color-border);
   background-color: var(--nav-well);
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.1),
-    0 2px 6px rgb(0 0 0 / 0.05);
+  box-shadow: var(--shadow-group);
   transition-duration: var(--duration-slow);
-}
-:global(html.dark) .row-group.is-open {
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.4),
-    0 2px 8px rgb(0 0 0 / 0.22);
 }
 .group-body {
   display: flex;
@@ -383,7 +374,7 @@ html[data-pig-desktop-platform] .session-nav input {
   align-items: center;
   width: 100%;
   height: 30px;
-  padding: 0 8px;
+  padding: 0 var(--spacing-xs);
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
@@ -398,8 +389,8 @@ html[data-pig-desktop-platform] .session-nav input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 24px 8px;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-lg) var(--spacing-xs);
   color: var(--ink-faint);
   font-size: var(--text-caption);
   text-align: center;
@@ -408,16 +399,16 @@ html[data-pig-desktop-platform] .session-nav input {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: var(--spacing-xxs) 10px;
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--ink-muted);
-  font-size: 11px;
+  font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-medium);
 }
 .empty-add:hover {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -430,7 +421,7 @@ html[data-pig-desktop-platform] .session-nav input {
 .session-nav.collapsed .logo-row {
   overflow: visible;
   scrollbar-gutter: auto;
-  width: var(--nav-rail);
+  width: var(--size-nav-rail);
   justify-content: center;
   padding-inline: 0;
 }

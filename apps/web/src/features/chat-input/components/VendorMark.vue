@@ -69,7 +69,7 @@ const monoStyle = computed(() => ({
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--canvas-soft);
   color: var(--ink-muted);
   font-weight: 600;

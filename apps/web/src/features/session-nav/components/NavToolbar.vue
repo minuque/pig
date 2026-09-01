@@ -7,13 +7,13 @@
       @click="emit('newSession')"
     >
       <span class="mark">
-        <SquarePen :size="16" />
+        <SquarePen class="size-icon" />
       </span>
       <span class="label">新会话</span>
     </button>
     <button class="toolbar-btn press-scale" type="button" @click="emit('search')">
       <span class="mark">
-        <Search :size="16" />
+        <Search class="size-icon" />
       </span>
       <span class="label">搜索</span>
     </button>
@@ -24,7 +24,7 @@
           <DropdownMenuTrigger as-child>
             <button class="toolbar-icon" type="button" title="筛选">
               <span class="mark">
-                <ListFilter :size="16" />
+                <ListFilter class="size-icon" />
               </span>
             </button>
           </DropdownMenuTrigger>
@@ -47,7 +47,7 @@
           @click="addWorkspace()"
         >
           <span class="mark">
-            <FolderPlus :size="16" />
+            <FolderPlus class="size-icon" />
           </span>
         </button>
       </span>
@@ -95,23 +95,25 @@ const groupingLabel = computed(() => (grouping.value === "project" ? "项目" : 
   height: 32px;
 }
 .toolbar-btn {
-  gap: 8px;
+  gap: var(--spacing-xs);
   width: 100%;
-  padding-inline: 8px;
-  line-height: 1;
+  padding-inline: var(--spacing-xs);
+  line-height: var(--text-body-sm--line-height);
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--ink);
+  color: var(--ink-muted);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
   text-align: left;
   transition:
     background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
     scale var(--duration-fast) var(--ease-out);
 }
 .toolbar-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: var(--hover-quiet);
+  color: var(--ink);
 }
 .toolbar-btn:disabled {
   opacity: 0.45;
@@ -121,19 +123,20 @@ const groupingLabel = computed(() => (grouping.value === "project" ? "项目" : 
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: var(--size-icon);
+  height: var(--size-icon);
 }
 .label {
   min-width: 0;
   flex: 1;
   overflow: hidden;
+  line-height: var(--text-body-sm--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .grouping-row {
-  gap: 4px;
-  padding-inline: 8px 0;
+  gap: var(--spacing-xxs);
+  padding-inline: var(--spacing-xs) 0;
   overflow: hidden;
 }
 .grouping-label {
@@ -152,15 +155,15 @@ const groupingLabel = computed(() => (grouping.value === "project" ? "项目" : 
   display: flex;
   flex: none;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacing-xxs);
 }
 .toolbar-icon {
   display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
@@ -168,7 +171,7 @@ const groupingLabel = computed(() => (grouping.value === "project" ? "项目" : 
   color: var(--ink-muted);
 }
 .toolbar-icon:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 .toolbar-icon:disabled {

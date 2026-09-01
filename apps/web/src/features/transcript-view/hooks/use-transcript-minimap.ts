@@ -50,7 +50,7 @@ export function useTranscriptMinimap(
     if (bar && host) {
       const inner = bar.firstElementChild
       const height = inner instanceof HTMLElement ? inner.offsetHeight : bar.scrollHeight
-      host.style.setProperty("--chat-input-overlay", `${height}px`)
+      host.style.setProperty("--size-chat-input-overlay", `${height}px`)
     }
   }
 

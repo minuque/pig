@@ -7,7 +7,7 @@
       <DialogTitle class="sr-only">搜索会话</DialogTitle>
       <div class="search-dialog">
         <div class="query-row">
-          <Search :size="16" class="query-icon" />
+          <Search class="size-icon query-icon" />
           <input
             ref="queryInput"
             v-model="query"
@@ -18,7 +18,7 @@
             @keydown="onQueryKeydown"
           />
           <button class="query-close" type="button" title="关闭" @click="open = false">
-            <X :size="16" />
+            <X class="size-icon" />
           </button>
         </div>
         <ul v-if="hits.length" ref="hitList" class="hits">
@@ -30,7 +30,7 @@
               @mouseenter="activeIndex = index"
               @click="pick(session)"
             >
-              <MessageSquare :size="16" :stroke-width="1.5" class="hit-icon" />
+              <MessageSquare :stroke-width="1.5" class="size-icon hit-icon" />
               <span class="hit-title">{{ sessionTitle(session) }}</span>
               <CornerDownLeft v-if="index === activeIndex" :size="14" class="hit-enter" />
               <time v-else class="hit-time">{{
@@ -125,7 +125,7 @@ function pick(session: SessionMetadata) {
 .query-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
   height: 48px;
   padding-inline: 14px 10px;
   border-bottom: var(--border-width) solid var(--hairline);
@@ -158,8 +158,8 @@ function pick(session: SessionMetadata) {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
@@ -167,7 +167,7 @@ function pick(session: SessionMetadata) {
   color: var(--ink-muted);
 }
 .query-close:hover {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 .hits {
@@ -176,7 +176,7 @@ function pick(session: SessionMetadata) {
   gap: 2px;
   max-height: min(50vh, 24rem);
   margin: 0;
-  padding: 8px;
+  padding: var(--spacing-xs);
   overflow: auto;
   list-style: none;
 }
@@ -220,7 +220,7 @@ function pick(session: SessionMetadata) {
 }
 .empty {
   margin: 0;
-  padding: 24px 16px;
+  padding: var(--spacing-lg) var(--spacing-md);
   color: var(--ink-faint);
   font-size: var(--text-caption);
   text-align: center;
