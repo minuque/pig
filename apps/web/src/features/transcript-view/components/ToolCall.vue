@@ -3,8 +3,14 @@
     <Button type="button" static class="summary" @click="toggleGroup">
       <component :is="icon" class="tool-icon" :stroke-width="1.5" data-icon="inline-start" />
       <span class="label" :class="{ shimmer: running }">{{ label }}</span>
-      <span v-if="detail" class="detail" :class="{ shimmer: running }" :title="detail">
-        {{ detail }}
+      <span
+        v-if="detail"
+        class="detail"
+        :class="{ shimmer: running }"
+        :title="detail.kind === 'file' ? detail.path : detail.text"
+      >
+        <img v-if="detailIcon" class="file-icon" :src="detailIcon" alt="" />
+        <span class="detail-text">{{ detail.kind === "file" ? detail.name : detail.text }}</span>
       </span>
       <ChevronRight
         class="motion-turn motion-hint"
@@ -95,6 +101,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
+import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import {
   ChevronRight,
   FileText,
@@ -116,6 +123,7 @@ import {
   toolWorkingDirectory,
 } from "@features/transcript-view/lib/transcript-format.js"
 import {
+  fileLanguage,
   readToolPreview,
   type ReadToolPreview,
 } from "@features/transcript-view/lib/tool-presentation.js"
@@ -142,7 +150,14 @@ const label = computed(() => {
   if (thought.value) return thought.value.streaming ? "思考中" : "思考"
   return toolSummary(group.value?.items ?? [])
 })
-const detail = computed(() => (group.value ? toolSummaryDetail(group.value.items) : ""))
+const detail = computed(() => (group.value ? toolSummaryDetail(group.value.items) : null))
+const detailIcon = computed(() => {
+  void languageIconsRevision.value
+  if (detail.value?.kind !== "file") return ""
+  const language = fileLanguage(detail.value.path)
+  if (language === "text") return ""
+  return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(language))}`
+})
 const icon = computed(() => {
   if (thought.value) return Lightbulb
   switch (group.value?.key) {
@@ -271,7 +286,7 @@ function toggleGroup() {
 }
 .summary:hover {
   background: transparent;
-  color: var(--ink-secondary);
+  color: var(--on-primary);
 }
 .failed .tool-icon {
   color: var(--danger);
@@ -284,11 +299,25 @@ function toggleGroup() {
   white-space: nowrap;
 }
 .detail {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
   min-width: 0;
   flex: 0 1 auto;
   overflow: hidden;
   white-space: nowrap;
+}
+.file-icon {
+  display: block;
+  width: var(--size-icon);
+  height: var(--size-icon);
+  flex: none;
+}
+.detail-text {
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .body-inner {
   padding-inline-start: var(--spacing-lg);

@@ -3,7 +3,7 @@ import { renderToString } from "@vue/server-renderer"
 import { describe, expect, it } from "vitest"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import type { ToolCallView, ToolGroup } from "@features/transcript-view/lib/transcript-rows.js"
-import { directGroupItem } from "@features/transcript-view/lib/tool-summary.js"
+import { directGroupItem, toolSummaryDetail } from "@features/transcript-view/lib/tool-summary.js"
 
 function command(id: string): ToolCallView {
   return {
@@ -24,6 +24,28 @@ async function renderGroup(group: ToolGroup): Promise<string> {
   }
   return renderToString(app)
 }
+
+describe("工具摘要详情", () => {
+  it("单条文件路径只保留文件名", () => {
+    expect(
+      toolSummaryDetail([
+        {
+          id: "r1",
+          toolName: "read",
+          running: false,
+          isError: false,
+          input: { path: "G:/AICode/pig/apps/web/src/App.vue" },
+          outputText: "",
+          outputImages: [],
+        },
+      ]),
+    ).toEqual({
+      kind: "file",
+      name: "App.vue",
+      path: "G:/AICode/pig/apps/web/src/App.vue",
+    })
+  })
+})
 
 describe("命令工具组展示", () => {
   it("单条命令保留命令组摘要，直接在其下显示 command card", async () => {

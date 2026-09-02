@@ -1,5 +1,9 @@
-import { isCommandTool, toolCallDetail } from "./transcript-format.js"
+import { isCommandTool, toolCallDetail, toolPath } from "./transcript-format.js"
+import { fileLanguage, pathBasename } from "./tool-presentation.js"
 import type { ToolCallView, ToolGroup } from "./transcript-rows.js"
+
+export type ToolSummaryDetail =
+  { kind: "file"; name: string; path: string } | { kind: "text"; text: string }
 
 export function toolGroupKey(toolName: string): string {
   const name = toolName.trim().toLowerCase()
@@ -26,9 +30,21 @@ export function toolSummary(items: readonly ToolCallView[]): string {
   return label
 }
 
-export function toolSummaryDetail(items: readonly ToolCallView[]): string {
+export function toolSummaryDetail(items: readonly ToolCallView[]): ToolSummaryDetail | null {
   const first = items[0]
-  return first && items.length === 1 ? toolCallDetail(first.toolName, first.input) : ""
+  if (!first || items.length !== 1) return null
+  const text = toolCallDetail(first.toolName, first.input)
+  if (!isCommandTool(first.toolName)) {
+    const path = toolPath(first.input) || (isFilePathDetail(text) ? text : "")
+    if (path) return { kind: "file", name: pathBasename(path), path }
+  }
+  return text ? { kind: "text", text } : null
+}
+
+function isFilePathDetail(text: string): boolean {
+  if (!text || /\s/.test(text) || text.includes("://")) return false
+  if (/[\\/]/.test(text)) return true
+  return text.includes(".") && fileLanguage(text) !== "text"
 }
 
 export function directGroupItem(group: ToolGroup): ToolCallView | undefined {

@@ -63,16 +63,23 @@ export function readToolPreview(input: unknown, output: string) {
       totalLines = Number(remaining[1]) + Number(remaining[2]) - 1
     }
   }
-  const extension = pathBasename(toolPath(input)).split(".").pop()?.toLowerCase() ?? ""
+  const path = toolPath(input)
+  const language = fileLanguage(path)
+  const extension = pathBasename(path).split(".").pop()?.toLowerCase() ?? ""
   return {
     code,
     lines: code ? code.split(/\r?\n/) : [],
     startLine,
     totalLines,
-    language: FILE_LANGUAGES[extension] ?? "text",
-    languageLabel: FILE_LANGUAGES[extension] ? extension : "text",
+    language,
+    languageLabel: language === "text" ? "text" : extension,
     notice: notice?.[1] ?? "",
   }
+}
+
+export function fileLanguage(path: string): SupportedLanguages {
+  const extension = pathBasename(path).split(".").pop()?.toLowerCase() ?? ""
+  return FILE_LANGUAGES[extension] ?? "text"
 }
 
 export type ReadToolPreview = ReturnType<typeof readToolPreview>
