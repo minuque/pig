@@ -33,9 +33,9 @@
       >
         <span class="preview-card">
           <span class="preview-user">{{ hoverItem.userText ?? "用户句" }}</span>
-          <span v-if="hoverItem.assistantText" class="preview-assistant">{{
-            hoverItem.assistantText
-          }}</span>
+          <span v-if="hoverItem.assistantText" class="preview-assistant">
+            {{ hoverItem.assistantText }}
+          </span>
         </span>
       </span>
     </div>

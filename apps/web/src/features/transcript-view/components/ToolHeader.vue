@@ -1,9 +1,9 @@
 <template>
   <div class="tool-header" :class="{ shaded }">
     <div class="heading">
-      <slot
-        ><span class="label" :title="label">{{ label }}</span></slot
-      >
+      <slot>
+        <span class="label" :title="label">{{ label }}</span>
+      </slot>
     </div>
     <div class="actions">
       <slot name="meta" />

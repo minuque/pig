@@ -13,16 +13,18 @@
           </button>
           <div v-else class="code-line">
             <span class="line-number">{{ startLine + line.index }}</span>
-            <code
-              ><template v-if="tokens[line.index]"
-                ><span
+            <code>
+              <template v-if="tokens[line.index]">
+                <span
                   v-for="(token, index) in tokens[line.index]"
                   :key="index"
                   :style="{ color: token.color }"
-                  >{{ token.content }}</span
-                ></template
-              ><template v-else>{{ line.text }}</template></code
-            >
+                >
+                  {{ token.content }}
+                </span>
+              </template>
+              <template v-else>{{ line.text }}</template>
+            </code>
           </div>
         </template>
       </div>

@@ -3,9 +3,9 @@
     <Button type="button" static class="summary" @click="toggleGroup">
       <component :is="icon" class="tool-icon" :stroke-width="1.5" data-icon="inline-start" />
       <span class="label" :class="{ shimmer: running }">{{ label }}</span>
-      <span v-if="detail" class="detail" :class="{ shimmer: running }" :title="detail">{{
-        detail
-      }}</span>
+      <span v-if="detail" class="detail" :class="{ shimmer: running }" :title="detail">
+        {{ detail }}
+      </span>
       <ChevronRight
         class="motion-turn motion-hint"
         :class="{ 'is-on': open }"
@@ -53,8 +53,9 @@
               class="item-detail"
               :class="{ 'file-path': call.isFile }"
               :title="call.detail"
-              >{{ call.detail }}</span
             >
+              {{ call.detail }}
+            </span>
           </button>
           <Transition name="fold-reveal">
             <div v-if="call.revealed && call.expandable" class="call-body">

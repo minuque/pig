@@ -37,9 +37,9 @@
               <Folder :stroke-width="1.5" class="size-icon workspace-mark" />
               <span v-if="workspaceTitle" class="workspace-title">{{ workspaceTitle }}</span>
             </span>
-            <span v-else class="card-count">{{
-              messageCount == null ? "" : `${messageCount} 条`
-            }}</span>
+            <span v-else class="card-count">
+              {{ messageCount == null ? "" : `${messageCount} 条` }}
+            </span>
             <span v-if="modelProvider" class="card-model">
               <VendorMark :vendor="modelProvider" :size="13" />
             </span>

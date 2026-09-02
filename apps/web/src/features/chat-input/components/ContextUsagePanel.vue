@@ -34,17 +34,17 @@
               <span class="swatch" :style="{ background: segment.color }"></span>
               <span class="legend-label">{{ segment.label }}</span>
               <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
-              <span class="legend-pct"
-                >{{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%</span
-              >
+              <span class="legend-pct">
+                {{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%
+              </span>
             </button>
             <div v-else class="legend-row">
               <span class="swatch" :style="{ background: segment.color }"></span>
               <span class="legend-label">{{ segment.label }}</span>
               <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
-              <span class="legend-pct"
-                >{{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%</span
-              >
+              <span class="legend-pct">
+                {{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%
+              </span>
             </div>
           </li>
         </ul>

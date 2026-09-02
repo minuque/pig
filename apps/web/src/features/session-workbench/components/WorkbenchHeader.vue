@@ -13,8 +13,9 @@
         <span
           class="status-mark"
           :style="{ color: running ? 'var(--primary)' : 'var(--ink-faint)' }"
-          >●</span
         >
+          ●
+        </span>
         {{ phaseText }}
       </p>
       <ThemeToggle />
