@@ -23,12 +23,3 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogOver
     <slot />
   </DialogOverlay>
 </template>
-
-<style scoped>
-@media (prefers-reduced-transparency: reduce) {
-  [data-slot="dialog-overlay"] {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-}
-</style>

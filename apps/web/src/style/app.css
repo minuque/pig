@@ -472,3 +472,14 @@ html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body * {
     transform: translateX(-50%);
   }
 }
+@media (prefers-reduced-transparency: reduce) {
+  :is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"]) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (pointer: coarse) {
+  :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
+    min-height: calc(var(--size-control) + var(--spacing-xxs));
+  }
+}

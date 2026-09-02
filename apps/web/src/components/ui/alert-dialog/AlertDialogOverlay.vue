@@ -22,12 +22,3 @@ const props = withDefaults(
 const delegatedProps = reactiveOmit(props, "class")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<AlertDialogOverlayProps>
 </script>
-
-<style scoped>
-@media (prefers-reduced-transparency: reduce) {
-  [data-slot="alert-dialog-overlay"] {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-}
-</style>
