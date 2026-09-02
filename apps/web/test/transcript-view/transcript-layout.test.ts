@@ -7,6 +7,7 @@ import type {
 import {
   buildTimelineRows,
   isToolRow,
+  thoughtStepLabel,
   toolRowLabel,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { toolSummary } from "@features/transcript-view/lib/tool-summary.js"
@@ -149,6 +150,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(buildTimelineRows([user, thinking], true).find(isToolRow)?.steps[0]).toMatchObject({
       type: "thought",
       streaming: true,
+      startedAt: thinking.timestamp,
     })
     const withText = assistant(
       1,
@@ -159,7 +161,22 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       isToolRow,
     )
     expect(work?.steps.map((step) => step.type)).toEqual(["thought", "assistant", "tools"])
-    expect(work?.steps[0]).toMatchObject({ streaming: false })
+    expect(work?.steps[0]).toMatchObject({ streaming: false, endedAt: 2000 })
+  })
+
+  it("完成的思考使用持久 Turn 结束时间计算耗时", () => {
+    const thinking = assistant(1, [{ type: "thinking", thinking: "逐步分析" }])
+    const work = buildTimelineRows([user, thinking], false, [
+      { userId: "u1", startedAt: 500, endedAt: 6001, outcome: "complete" },
+    ]).find(isToolRow)
+
+    expect(work?.steps[0]).toMatchObject({
+      type: "thought",
+      startedAt: 1001,
+      endedAt: 6001,
+    })
+    const thought = work?.steps[0]
+    expect(thought?.type === "thought" && thoughtStepLabel(thought)).toBe("思考了 5秒")
   })
 
   it("历史与当前轮次分开，真实耗时不受刷新或展示时刻影响", () => {

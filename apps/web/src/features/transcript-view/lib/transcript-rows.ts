@@ -36,10 +36,16 @@ export type ToolCallView = {
   outputImages: TranscriptImage[]
 }
 export type ToolGroup = { type: "tools"; id: string; key: string; items: ToolCallView[] }
+export type ThoughtStep = {
+  type: "thought"
+  id: string
+  text: string
+  streaming: boolean
+  startedAt: number
+  endedAt?: number
+}
 export type ToolRowStep =
-  | { type: "thought"; id: string; text: string; streaming: boolean }
-  | { type: "assistant"; id: string; item: AssistantRow }
-  | ToolGroup
+  ThoughtStep | { type: "assistant"; id: string; item: AssistantRow } | ToolGroup
 export type ToolRow = {
   id: string
   role: "tools"
@@ -83,7 +89,12 @@ function addAssistant(steps: ToolRowStep[], item: AssistantRow) {
   steps.push({ type: "assistant", id: item.id, item })
 }
 
-function orderedSteps(items: readonly TranscriptItem[], live: boolean, anchor: string) {
+function orderedSteps(
+  items: readonly TranscriptItem[],
+  live: boolean,
+  anchor: string,
+  timing: TurnTiming | undefined,
+) {
   const steps: ToolRowStep[] = []
   let lastTool = -1
   let aborted = false
@@ -121,11 +132,18 @@ function orderedSteps(items: readonly TranscriptItem[], live: boolean, anchor: s
     for (const [index, block] of item.content.entries()) {
       const id = `${anchor}:${item.timestamp}:${itemIndex}:${index}`
       if (block.type === "thinking" && block.thinking) {
+        const streaming = live && item.status === "streaming" && index === item.content.length - 1
+        const nextTimestamp = items
+          .slice(itemIndex + 1)
+          .find((next) => next.timestamp >= item.timestamp)?.timestamp
+        const endedAt = streaming ? undefined : (nextTimestamp ?? timing?.endedAt)
         steps.push({
           type: "thought",
           id: `thought:${id}`,
           text: block.thinking,
-          streaming: live && item.status === "streaming" && index === item.content.length - 1,
+          streaming,
+          startedAt: item.timestamp,
+          ...(endedAt === undefined ? {} : { endedAt: Math.max(item.timestamp, endedAt) }),
         })
       } else if (block.type === "text" && block.text) {
         const previous = steps.at(-1)
@@ -166,7 +184,8 @@ function appendTurn({
       images: transcriptImages(user),
     })
   const anchor = `tools:${user?.timestamp ?? "orphan"}:${turnIndex}`
-  const { steps, lastTool, aborted, error } = orderedSteps(rest, live, anchor)
+  const timing = timings.find((value) => value.userId === user?.id)
+  const { steps, lastTool, aborted, error } = orderedSteps(rest, live, anchor, timing)
   const last = rest.at(-1)
   const waiting =
     live &&
@@ -189,7 +208,6 @@ function appendTurn({
       answers.push(step.item)
     else work.push(step)
   }
-  const timing = timings.find((value) => value.userId === user?.id)
   if (work.length || waiting) {
     rows.push({
       id: anchor,
@@ -203,6 +221,12 @@ function appendTurn({
     })
   }
   rows.push(...answers)
+}
+
+export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt): string {
+  if (step.streaming) return "思考中"
+  const seconds = Math.max(1, Math.round(((completedAt ?? step.startedAt) - step.startedAt) / 1000))
+  return `思考了 ${seconds}秒`
 }
 
 function isAssistantItemSafe(item: TranscriptItem | undefined): item is AssistantTranscriptItem {

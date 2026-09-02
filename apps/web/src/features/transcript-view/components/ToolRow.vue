@@ -1,7 +1,8 @@
 <template>
   <section class="tool-row" :class="{ live, failed: row.aborted }">
     <Button type="button" static class="fold" @click="emit('toggle-fold', !revealed)">
-      <span :class="{ shimmer: live }">{{ label }}</span>
+      <GitBranch class="tool-row-icon" :class="{ 'is-live': live }" :stroke-width="1.5" />
+      <span>{{ label }}</span>
       <ChevronRight
         class="motion-turn"
         :class="{ 'is-on': revealed }"
@@ -12,7 +13,12 @@
     <div class="fold-height" :class="{ 'is-open': expanded }" :inert="!expanded">
       <div>
         <TransitionGroup v-if="rendered" name="timeline-step" tag="div" class="steps">
-          <div v-for="step in row.steps" :key="step.id" class="step">
+          <div
+            v-for="step in row.steps"
+            :key="step.id"
+            class="step"
+            :class="{ 'is-assistant': step.type === 'assistant' }"
+          >
             <AssistantMessage
               v-if="step.type === 'assistant'"
               :item="step.item"
@@ -25,7 +31,7 @@
               @toggle="emit('toggle-tool', $event.id, $event.open)"
             />
           </div>
-          <div v-if="row.waiting" key="waiting" class="step">
+          <div v-if="row.waiting" key="waiting" class="step is-waiting">
             <StreamPlaceholder />
           </div>
         </TransitionGroup>
@@ -36,7 +42,7 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
-import { ChevronRight } from "lucide-vue-next"
+import { ChevronRight, GitBranch } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
 import AssistantMessage from "./AssistantMessage.vue"
 import StreamPlaceholder from "./StreamPlaceholder.vue"
@@ -117,14 +123,51 @@ watch(
 .failed .fold {
   color: var(--danger);
 }
+.tool-row-icon {
+  flex: none;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+.tool-row-icon.is-live {
+  color: var(--primary);
+}
 .steps {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
   padding-block: var(--spacing-xs);
-  border-block-start: var(--border-width) solid var(--hairline);
+}
+.steps::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--size-icon) / 2);
+  width: var(--border-width);
+  background: var(--hairline);
+  content: "";
 }
 .step {
   min-width: 0;
+}
+.step.is-assistant,
+.step.is-waiting {
+  position: relative;
+  padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
+}
+.step.is-assistant::before,
+.step.is-waiting::before {
+  position: absolute;
+  inset-block-start: var(--spacing-xs);
+  inset-inline-start: calc((var(--size-icon) - var(--spacing-xxs)) / 2);
+  box-sizing: border-box;
+  width: var(--spacing-xxs);
+  height: var(--spacing-xxs);
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  content: "";
+}
+.step.is-waiting::before {
+  border-color: var(--surface);
+  background: var(--primary);
 }
 </style>

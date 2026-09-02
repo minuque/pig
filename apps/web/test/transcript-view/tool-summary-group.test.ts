@@ -2,7 +2,11 @@ import { createSSRApp } from "vue"
 import { renderToString } from "@vue/server-renderer"
 import { describe, expect, it } from "vitest"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
-import type { ToolCallView, ToolGroup } from "@features/transcript-view/lib/transcript-rows.js"
+import type {
+  ToolCallView,
+  ToolGroup,
+  ToolRowStep,
+} from "@features/transcript-view/lib/transcript-rows.js"
 import { directGroupItem, toolSummaryDetail } from "@features/transcript-view/lib/tool-summary.js"
 
 function command(id: string): ToolCallView {
@@ -19,6 +23,14 @@ function command(id: string): ToolCallView {
 
 async function renderGroup(group: ToolGroup): Promise<string> {
   const app = createSSRApp(ToolCall, { step: group, expanded: new Map() })
+  app.config.warnHandler = (message) => {
+    if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
+  }
+  return renderToString(app)
+}
+
+async function renderStep(step: Exclude<ToolRowStep, { type: "assistant" }>): Promise<string> {
+  const app = createSSRApp(ToolCall, { step, expanded: new Map() })
   app.config.warnHandler = (message) => {
     if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
   }
@@ -44,6 +56,34 @@ describe("工具摘要详情", () => {
       name: "App.vue",
       path: "G:/AICode/pig/apps/web/src/App.vue",
     })
+  })
+})
+
+describe("思考预览", () => {
+  it("流式思考自动展开并显示内容", async () => {
+    const html = await renderStep({
+      type: "thought",
+      id: "thought:1",
+      text: "正在检查时间线",
+      streaming: true,
+      startedAt: 1000,
+    })
+
+    expect(html).toContain("正在检查时间线")
+    expect(html).toContain("is-open")
+  })
+
+  it("完成后收起并显示思考耗时", async () => {
+    const html = await renderStep({
+      type: "thought",
+      id: "thought:1",
+      text: "检查完成",
+      streaming: false,
+      startedAt: 1000,
+      endedAt: 6000,
+    })
+
+    expect(html).not.toContain("is-open")
   })
 })
 
