@@ -1,6 +1,6 @@
 <template>
   <header class="workbench-header">
-    <button class="icon-button header-toggle" type="button" @click="toggle">
+    <button class="header-toggle" type="button" @click="toggle">
       <PanelLeft class="size-icon" />
     </button>
     <h1 v-if="title" id="current-title" class="header-crumb">
@@ -140,6 +140,7 @@ html[data-pig-desktop-platform="win32"] .workbench-header {
 }
 @media (max-width: 520px) {
   .header-right .session-status {
+    align-self: flex-start;
     width: var(--size-control);
     overflow: hidden;
     font-size: 0;

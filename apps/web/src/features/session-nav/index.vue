@@ -7,14 +7,14 @@
       <RouterLink v-if="!collapsed" to="/" class="logo-mark">
         <img src="/logo.png" alt="" width="22" height="22" />
       </RouterLink>
-      <button class="icon-button collapse-toggle" type="button" @click="emit('toggle')">
+      <button class="collapse-toggle" type="button" @click="emit('toggle')">
         <PanelLeft class="size-icon" />
       </button>
     </div>
 
     <template v-if="collapsed">
       <button
-        class="icon-button rail-action press-scale"
+        class="rail-action press-scale"
         type="button"
         :disabled="Boolean(creating)"
         title="新会话"
@@ -22,12 +22,7 @@
       >
         <SquarePen class="size-icon" />
       </button>
-      <button
-        class="icon-button rail-action press-scale"
-        type="button"
-        title="搜索"
-        @click="searchOpen = true"
-      >
+      <button class="rail-action press-scale" type="button" title="搜索" @click="searchOpen = true">
         <Search class="size-icon" />
       </button>
     </template>
@@ -124,12 +119,7 @@
         </nav>
       </div>
     </div>
-    <button
-      class="icon-button settings-gear press-scale"
-      type="button"
-      title="设置"
-      @click="openSettings()"
-    >
+    <button class="settings-gear press-scale" type="button" title="设置" @click="openSettings()">
       <Settings class="size-icon" />
     </button>
     <SessionSearch v-model:open="searchOpen" @navigate="onSessionNavigate" />

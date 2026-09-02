@@ -2,13 +2,13 @@
   <Dialog>
     <DialogTrigger as-child>
       <button type="button" class="thumb">
-        <img :src="src" :alt="alt" class="thumb-img media-inset-outline" />
+        <img :src="src" :alt="alt" class="thumb-img" />
       </button>
     </DialogTrigger>
     <DialogContent
       class="max-h-[90vh] w-full max-w-[min(56rem,calc(100vw-2rem))] overflow-auto p-(--spacing-sm) sm:max-w-[min(56rem,calc(100vw-2rem))]"
     >
-      <img :src="src" :alt="alt" class="full media-inset-outline" />
+      <img :src="src" :alt="alt" class="full" />
     </DialogContent>
   </Dialog>
 </template>
@@ -46,6 +46,8 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   display: block;
   width: 100%;
   height: auto;
+  outline: 1px solid var(--media-outline);
+  outline-offset: -1px;
 }
 .full {
   max-height: calc(90vh - 2rem);

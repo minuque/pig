@@ -203,6 +203,31 @@ function onCloseAutoFocus(event: Event) {
 </script>
 
 <style scoped>
+.selector {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  min-height: 0;
+  padding: var(--spacing-xxs) var(--spacing-xs);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+.selector:hover:not(:disabled) {
+  background: var(--hover-tint);
+  color: var(--ink);
+}
+.selector:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 .selector-name {
   max-width: 14rem;
   overflow: hidden;

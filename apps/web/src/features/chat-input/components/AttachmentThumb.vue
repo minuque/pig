@@ -9,21 +9,13 @@
           static
           class="preview size-12 overflow-hidden rounded-[var(--radius-lg)] p-0"
         >
-          <img
-            :src="src"
-            :alt="alt"
-            class="media-inset-outline absolute inset-0 size-full object-cover"
-          />
+          <img :src="src" :alt="alt" class="absolute inset-0 size-full object-cover" />
         </Button>
       </DialogTrigger>
       <DialogContent
         class="max-h-[90vh] w-full max-w-[min(56rem,calc(100vw-2rem))] overflow-auto p-(--spacing-sm) sm:max-w-[min(56rem,calc(100vw-2rem))]"
       >
-        <img
-          :src="src"
-          :alt="alt"
-          class="media-inset-outline max-h-[calc(90vh-2rem)] w-full object-contain"
-        />
+        <img :src="src" :alt="alt" class="max-h-[calc(90vh-2rem)] w-full object-contain" />
       </DialogContent>
     </Dialog>
     <Button type="button" size="icon-2xs" class="remove motion-hint" @click.stop="emit('remove')">
@@ -51,6 +43,10 @@ const alt = computed(() => props.name || "图片")
 </script>
 
 <style scoped>
+img {
+  outline: 1px solid var(--media-outline);
+  outline-offset: -1px;
+}
 .preview {
   border: 0;
 }

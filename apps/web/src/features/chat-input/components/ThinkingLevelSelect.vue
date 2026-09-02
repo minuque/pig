@@ -1,7 +1,7 @@
 <template>
   <button
     type="button"
-    class="selector thinking"
+    class="thinking"
     :class="{ off: isOff }"
     :disabled="disabled"
     :style="{ '--thinking-glow': glow }"
@@ -94,8 +94,29 @@ function cycle() {
 
 <style scoped>
 .thinking {
+  display: inline-flex;
+  align-items: center;
   gap: 0;
+  min-height: 0;
+  padding: var(--spacing-xxs) var(--spacing-xs);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth);
+}
+.thinking:hover:not(:disabled) {
+  background: var(--hover-tint);
+  color: var(--ink);
+}
+.thinking:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 .thinking:not(.off),
 .thinking:not(.off):hover:not(:disabled) {

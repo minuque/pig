@@ -5,7 +5,6 @@
 @import "katex/dist/katex.min.css";
 @import "./markdown-stream.css";
 @import "./motion.css";
-@import "./workbench.css";
 
 @property --size-content {
   syntax: "<length>";
@@ -420,4 +419,54 @@
   --shadow-float: var(--shadow-float);
   --shadow-drawer: var(--shadow-drawer);
   --shadow-modal: var(--shadow-modal);
+}
+
+@utility size-icon {
+  width: var(--size-icon);
+  height: var(--size-icon);
+}
+
+body {
+  background: var(--canvas-soft);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+@layer base {
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
+/* 原生 button 只做 reset。主色圆钮、图标钮在使用处显式写，避免漏设 min-height 被撑成药丸。
+   不进 .markstream-vue：未分层的 element reset 会压过卡片内 Tailwind 工具类。 */
+button:not(:where(.markstream-vue *, [data-slot])) {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+:focus-visible {
+  outline: none;
+}
+h1,
+h2,
+p {
+  overflow-wrap: anywhere;
+}
+html[data-pig-desktop-platform="darwin"] {
+  --size-sidebar-rail: var(--size-sidebar-rail-mac);
+}
+html[data-pig-desktop-platform]:has([data-slot="dialog-content"]) body *,
+html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body * {
+  -webkit-app-region: no-drag;
 }

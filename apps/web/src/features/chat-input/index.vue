@@ -334,4 +334,45 @@ function onPrimaryAction() {
 .file-input {
   display: none;
 }
+:global(html[data-pig-desktop-platform]) :deep(.glass-shell) {
+  isolation: isolate;
+}
+:global(html[data-pig-desktop-platform]) :deep(.glass-shell)::before {
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: var(--radius-xl);
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  content: "";
+}
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  :global(html[data-pig-desktop-platform]) :deep(.glass-shell)::before {
+    background: var(--glass-surface);
+  }
+}
+:global(html[data-pig-desktop-platform]) :deep(.glass-host) {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+:global(html[data-pig-desktop-platform]) :deep(.glass-host)::after {
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border: var(--border-width) solid var(--chat-input-ring);
+  border-radius: inherit;
+  box-shadow: none;
+  content: "";
+}
+@media (prefers-reduced-transparency: reduce) {
+  :global(html[data-pig-desktop-platform]) :deep(.glass-shell)::before {
+    background: var(--chat-input);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
 </style>

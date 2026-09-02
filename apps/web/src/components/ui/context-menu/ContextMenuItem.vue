@@ -36,3 +36,11 @@ const delegatedProps = reactiveOmit(props, "inset", "variant", "class")
 // reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<ContextMenuItemProps>
 </script>
+
+<style scoped>
+@media (pointer: coarse) {
+  [data-slot="context-menu-item"] {
+    min-height: calc(var(--size-control) + var(--spacing-xxs));
+  }
+}
+</style>
