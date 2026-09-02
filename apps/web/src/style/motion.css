@@ -173,32 +173,34 @@
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.timeline-row-enter-active,
-.timeline-step-enter-active {
+.timeline-row-enter-active {
   transition:
     opacity var(--duration-slow) var(--ease-out),
     transform var(--duration-slow) var(--ease-out);
 }
-.timeline-row-leave-active,
-.timeline-step-leave-active {
+.timeline-step-enter-active {
+  transition: opacity var(--duration-slow) var(--ease-out);
+}
+.timeline-row-leave-active {
   transition:
     opacity var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
 }
-.timeline-step-leave-active {
-  position: absolute;
-  width: 100%;
-  pointer-events: none;
-}
-.timeline-row-enter-from,
-.timeline-step-enter-from {
+.timeline-row-enter-from {
   opacity: 0;
   transform: translateY(12px);
 }
-.timeline-row-leave-to,
-.timeline-step-leave-to {
+.timeline-step-enter-from {
+  opacity: 0;
+}
+.timeline-row-leave-to {
   opacity: 0;
   transform: translateY(-12px);
+}
+.timeline-step-enter-active.is-waiting,
+.timeline-step-enter-from.is-waiting {
+  transition: none;
+  opacity: 1;
 }
 
 .fold-height {
@@ -209,6 +211,10 @@
 .fold-height.is-open {
   grid-template-rows: 1fr;
   transition-duration: var(--duration-slow);
+}
+.fold-height.instant,
+.fold-height.instant.is-open {
+  transition: none;
 }
 .fold-height > * {
   overflow: hidden;
@@ -330,14 +336,11 @@
   }
   .timeline-row-enter-active,
   .timeline-row-leave-active,
-  .timeline-step-enter-active,
-  .timeline-step-leave-active {
+  .timeline-step-enter-active {
     transition: opacity var(--duration-fast) var(--ease-out);
   }
   .timeline-row-enter-from,
-  .timeline-row-leave-to,
-  .timeline-step-enter-from,
-  .timeline-step-leave-to {
+  .timeline-row-leave-to {
     transform: none;
   }
   .fold-height,

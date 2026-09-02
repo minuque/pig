@@ -10,15 +10,14 @@
         data-icon="inline-end"
       />
     </Button>
-    <div class="fold-height" :class="{ 'is-open': expanded }" :inert="!expanded">
+    <div
+      class="fold-height"
+      :class="{ 'is-open': expanded, instant: live || !expanded }"
+      :inert="!expanded"
+    >
       <div>
         <TransitionGroup v-if="rendered" name="timeline-step" tag="div" class="steps">
-          <div
-            v-for="step in row.steps"
-            :key="step.id"
-            class="step"
-            :class="{ 'is-assistant': step.type === 'assistant' }"
-          >
+          <div v-for="step in row.steps" :key="step.id" class="step">
             <AssistantMessage
               v-if="step.type === 'assistant'"
               :item="step.item"
@@ -118,7 +117,7 @@ watch(
 }
 .fold:hover {
   background: transparent;
-  color: var(--ink-secondary);
+  color: var(--on-primary);
 }
 .failed .fold {
   color: var(--danger);
@@ -135,6 +134,7 @@ watch(
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
+  padding-left: 22px;
   padding-block: var(--spacing-xs);
 }
 .steps::before {
@@ -148,12 +148,10 @@ watch(
 .step {
   min-width: 0;
 }
-.step.is-assistant,
 .step.is-waiting {
   position: relative;
   padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
 }
-.step.is-assistant::before,
 .step.is-waiting::before {
   position: absolute;
   inset-block-start: var(--spacing-xs);

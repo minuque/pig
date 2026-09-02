@@ -18,7 +18,7 @@
         data-icon="inline-end"
       />
     </Button>
-    <div class="fold-height" :class="{ 'is-open': open }" :inert="!open">
+    <div class="fold-height" :class="{ 'is-open': open, instant: !open }" :inert="!open">
       <div v-if="thought">
         <ToolStepCard
           v-if="thought.text"
@@ -27,12 +27,7 @@
           :streaming="thought.streaming"
         />
       </div>
-      <TransitionGroup
-        v-else
-        name="timeline-step"
-        tag="div"
-        :class="[{ direct: Boolean(directItem) }, 'body-inner']"
-      >
+      <div v-else :class="[{ direct: Boolean(directItem) }, 'body-inner']">
         <div
           v-for="call in calls"
           :key="call.item.id"
@@ -64,38 +59,36 @@
               </span>
             </span>
           </button>
-          <Transition name="fold-reveal">
-            <div v-if="call.revealed && call.expandable" class="call-body">
-              <ToolStepCard
-                v-if="call.isCommand && call.command"
-                variant="command"
-                :command="call.command"
-                :cwd="call.cwd"
-                :output-text="call.outputText"
-                :output-images="call.outputImages"
-                :empty-output="call.emptyOutput"
-                :status="call.commandStatus"
-                :status-label="call.statusLabel"
-              />
-              <ToolStepCard
-                v-else-if="call.readPreview"
-                variant="read"
-                :path="call.path"
-                :preview="call.readPreview"
-              />
-              <ToolStepCard
-                v-else
-                variant="tool"
-                :input-full="call.isRead ? '' : call.inputFull"
-                :output-text="call.outputText"
-                :output-images="call.outputImages"
-                :empty-output="call.emptyOutput"
-                :output-label="call.isRead ? call.path || 'Read' : '输出'"
-              />
-            </div>
-          </Transition>
+          <div v-if="call.revealed && call.expandable" class="call-body">
+            <ToolStepCard
+              v-if="call.isCommand && call.command"
+              variant="command"
+              :command="call.command"
+              :cwd="call.cwd"
+              :output-text="call.outputText"
+              :output-images="call.outputImages"
+              :empty-output="call.emptyOutput"
+              :status="call.commandStatus"
+              :status-label="call.statusLabel"
+            />
+            <ToolStepCard
+              v-else-if="call.readPreview"
+              variant="read"
+              :path="call.path"
+              :preview="call.readPreview"
+            />
+            <ToolStepCard
+              v-else
+              variant="tool"
+              :input-full="call.isRead ? '' : call.inputFull"
+              :output-text="call.outputText"
+              :output-images="call.outputImages"
+              :empty-output="call.emptyOutput"
+              :output-label="call.isRead ? call.path || 'Read' : '输出'"
+            />
+          </div>
         </div>
-      </TransitionGroup>
+      </div>
     </div>
   </div>
 </template>
@@ -359,7 +352,6 @@ function toggleGroup() {
   padding-inline-start: 0;
 }
 .call {
-  contain: layout style;
   min-width: 0;
 }
 .toggle {
