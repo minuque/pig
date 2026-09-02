@@ -11,8 +11,8 @@
     </Button>
     <div class="fold-height" :class="{ 'is-open': expanded }" :inert="!expanded">
       <div>
-        <div v-if="rendered" class="steps">
-          <template v-for="step in row.steps" :key="step.id">
+        <TransitionGroup v-if="rendered" name="timeline-step" tag="div" class="steps">
+          <div v-for="step in row.steps" :key="step.id" class="step">
             <AssistantMessage
               v-if="step.type === 'assistant'"
               :item="step.item"
@@ -31,9 +31,11 @@
               :expanded="expandedTools"
               @toggle="emit('toggle-tool', $event.id, $event.open)"
             />
-          </template>
-          <StreamPlaceholder v-if="row.waiting" />
-        </div>
+          </div>
+          <div v-if="row.waiting" key="waiting" class="step">
+            <StreamPlaceholder />
+          </div>
+        </TransitionGroup>
       </div>
     </div>
   </section>
@@ -129,5 +131,8 @@ watch(
   gap: var(--spacing-xs);
   padding-block: var(--spacing-xs);
   border-block-start: var(--border-width) solid var(--hairline);
+}
+.step {
+  min-width: 0;
 }
 </style>

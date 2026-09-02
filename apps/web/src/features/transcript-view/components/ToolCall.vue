@@ -14,7 +14,11 @@
       />
     </Button>
     <div class="fold-height" :class="{ 'is-open': open }" :inert="!open">
-      <div class="body-inner" :class="{ direct: Boolean(directItem) }">
+      <TransitionGroup
+        name="timeline-step"
+        tag="div"
+        :class="[{ direct: Boolean(directItem) }, 'body-inner']"
+      >
         <div
           v-for="call in calls"
           :key="call.item.id"
@@ -75,7 +79,7 @@
             </div>
           </Transition>
         </div>
-      </div>
+      </TransitionGroup>
     </div>
   </div>
 </template>

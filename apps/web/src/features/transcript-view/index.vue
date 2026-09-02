@@ -44,27 +44,29 @@
       </div>
       <div v-if="rows.length" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
-          <div
-            v-for="row in rows"
-            :key="row.id"
-            class="row"
-            :data-minimap-row="row.role === 'user' ? row.id : undefined"
-          >
-            <UserMessage v-if="row.role === 'user'" :item="row" />
-            <AssistantMessage
-              v-else-if="row.role === 'assistant'"
-              :item="row"
-              :streaming="running && row.streaming"
-            />
-            <ToolRow
-              v-else-if="isToolRow(row)"
-              :row="row"
-              :fold-open="isFoldOpen(row.id)"
-              :expanded-tools="expandedTools"
-              @toggle-fold="onToggleFold(row.id, $event)"
-              @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
-            />
-          </div>
+          <TransitionGroup name="timeline-row" tag="div" class="timeline-rows">
+            <div
+              v-for="row in rows"
+              :key="row.id"
+              class="row"
+              :data-minimap-row="row.role === 'user' ? row.id : undefined"
+            >
+              <UserMessage v-if="row.role === 'user'" :item="row" />
+              <AssistantMessage
+                v-else-if="row.role === 'assistant'"
+                :item="row"
+                :streaming="running && row.streaming"
+              />
+              <ToolRow
+                v-else-if="isToolRow(row)"
+                :row="row"
+                :fold-open="isFoldOpen(row.id)"
+                :expanded-tools="expandedTools"
+                @toggle-fold="onToggleFold(row.id, $event)"
+                @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
+              />
+            </div>
+          </TransitionGroup>
         </div>
       </div>
     </div>
@@ -306,6 +308,7 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
   padding-bottom: calc(var(--spacing-lg) + var(--size-chat-input-overlay));
 }
 .transcript-list,
+.timeline-rows,
 .row {
   box-sizing: border-box;
   width: 100%;
