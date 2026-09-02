@@ -11,7 +11,7 @@
       />
     </Button>
     <div
-      class="fold-height"
+      class="tool-calls-group"
       :class="{ 'is-open': expanded, instant: live || !expanded }"
       :inert="!expanded"
     >

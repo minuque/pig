@@ -179,7 +179,12 @@
     transform var(--duration-slow) var(--ease-out);
 }
 .timeline-step-enter-active {
-  transition: opacity var(--duration-slow) var(--ease-out);
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+.timeline-step-move {
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 .timeline-row-leave-active {
   transition:
@@ -192,35 +197,30 @@
 }
 .timeline-step-enter-from {
   opacity: 0;
+  transform: translateY(4px);
 }
 .timeline-row-leave-to {
   opacity: 0;
   transform: translateY(-12px);
 }
-.timeline-step-enter-active.is-waiting,
-.timeline-step-enter-from.is-waiting {
-  transition: none;
-  opacity: 1;
-}
-
-.fold-height {
+:is(.tool-calls-group, .fold-height) {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows var(--duration-fast) var(--ease-out);
 }
-.fold-height.is-open {
+:is(.tool-calls-group, .fold-height).is-open {
   grid-template-rows: 1fr;
   transition-duration: var(--duration-slow);
 }
-.fold-height.instant,
-.fold-height.instant.is-open {
+:is(.tool-calls-group, .fold-height).instant,
+:is(.tool-calls-group, .fold-height).instant.is-open {
   transition: none;
 }
-.fold-height > * {
+:is(.tool-calls-group, .fold-height) > * {
   overflow: hidden;
   min-height: 0;
 }
-.fold-height.with-enter.is-open > * {
+:is(.tool-calls-group, .fold-height).with-enter.is-open > * {
   animation: enter-blur var(--duration-slow) var(--ease-out);
 }
 
@@ -340,14 +340,18 @@
     transition: opacity var(--duration-fast) var(--ease-out);
   }
   .timeline-row-enter-from,
-  .timeline-row-leave-to {
+  .timeline-row-leave-to,
+  .timeline-step-enter-from {
     transform: none;
   }
-  .fold-height,
-  .fold-height.is-open {
+  .timeline-step-move {
     transition: none;
   }
-  .fold-height.with-enter.is-open > * {
+  :is(.tool-calls-group, .fold-height),
+  :is(.tool-calls-group, .fold-height).is-open {
+    transition: none;
+  }
+  :is(.tool-calls-group, .fold-height).with-enter.is-open > * {
     animation: none;
   }
   .fade-layer-enter-active,

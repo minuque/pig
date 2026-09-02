@@ -9,7 +9,9 @@
         :title="detail.kind === 'file' ? detail.path : detail.text"
       >
         <img v-if="detailIcon" class="file-icon" :src="detailIcon" alt="" />
-        <span class="detail-text">{{ detail.kind === "file" ? detail.name : detail.text }}</span>
+        <span class="detail-text" :class="{ shimmer: running }">
+          {{ detail.kind === "file" ? detail.name : detail.text }}
+        </span>
       </span>
       <ChevronRight
         class="motion-turn motion-hint"
@@ -18,7 +20,7 @@
         data-icon="inline-end"
       />
     </Button>
-    <div class="fold-height" :class="{ 'is-open': open, instant: !open }" :inert="!open">
+    <div class="tool-calls-group" :class="{ 'is-open': open, instant: !open }" :inert="!open">
       <div v-if="thought">
         <ToolStepCard
           v-if="thought.text"
@@ -54,7 +56,13 @@
               :title="call.detail.kind === 'file' ? call.detail.path : call.detail.text"
             >
               <img v-if="call.detailIcon" class="file-icon" :src="call.detailIcon" alt="" />
-              <span class="detail-text" :class="{ 'file-path': call.detail.kind === 'file' }">
+              <span
+                class="detail-text"
+                :class="{
+                  'file-path': call.detail.kind === 'file',
+                  shimmer: call.statusKind === 'is-run',
+                }"
+              >
                 {{ call.detail.kind === "file" ? call.detail.name : call.detail.text }}
               </span>
             </span>
