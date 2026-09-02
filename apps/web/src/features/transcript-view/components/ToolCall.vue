@@ -13,8 +13,16 @@
         data-icon="inline-end"
       />
     </Button>
-    <div class="fold-height" :class="{ 'is-open': open }" :inert="!open">
+    <div
+      class="fold-height"
+      :class="{ 'is-open': open, 'with-enter': Boolean(thought) }"
+      :inert="!open"
+    >
+      <div v-if="thought">
+        <ToolStepCard v-if="thought.text && open" variant="thought" :text="thought.text" />
+      </div>
       <TransitionGroup
+        v-else
         name="timeline-step"
         tag="div"
         :class="[{ direct: Boolean(directItem) }, 'body-inner']"
@@ -86,7 +94,15 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { ChevronRight, FileText, Pencil, Search, SquareTerminal, Wrench } from "lucide-vue-next"
+import {
+  ChevronRight,
+  FileText,
+  Lightbulb,
+  Pencil,
+  Search,
+  SquareTerminal,
+  Wrench,
+} from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
 import {
@@ -102,20 +118,33 @@ import {
   readToolPreview,
   type ReadToolPreview,
 } from "@features/transcript-view/lib/tool-presentation.js"
-import type { ToolCallView, ToolGroup } from "@features/transcript-view/lib/transcript-rows.js"
+import type { ToolCallView, ToolRowStep } from "@features/transcript-view/lib/transcript-rows.js"
 import { directGroupItem, toolSummary, toolSummaryDetail } from "../lib/tool-summary.js"
 
-const props = defineProps<{ group: ToolGroup; expanded: Map<string, boolean> }>()
+const props = defineProps<{
+  step: Exclude<ToolRowStep, { type: "assistant" }>
+  expanded: Map<string, boolean>
+}>()
 const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
 
-const directItem = computed(() => directGroupItem(props.group))
-const open = computed(() => props.expanded.get(props.group.id) === true)
-const failed = computed(() => props.group.items.some((item) => item.isError))
-const running = computed(() => props.group.items.some((item) => item.running))
-const label = computed(() => toolSummary(props.group.items))
-const detail = computed(() => toolSummaryDetail(props.group.items))
+const thought = computed(() => (props.step.type === "thought" ? props.step : null))
+const group = computed(() => (props.step.type === "tools" ? props.step : null))
+const directItem = computed(() => (group.value ? directGroupItem(group.value) : undefined))
+const open = computed(() => props.expanded.get(props.step.id) === true)
+const failed = computed(() => group.value?.items.some((item) => item.isError) ?? false)
+const running = computed(() =>
+  thought.value
+    ? thought.value.streaming
+    : (group.value?.items.some((item) => item.running) ?? false),
+)
+const label = computed(() => {
+  if (thought.value) return thought.value.streaming ? "思考中" : "思考"
+  return toolSummary(group.value?.items ?? [])
+})
+const detail = computed(() => (group.value ? toolSummaryDetail(group.value.items) : ""))
 const icon = computed(() => {
-  switch (props.group.key) {
+  if (thought.value) return Lightbulb
+  switch (group.value?.key) {
     case "read":
       return FileText
     case "edit":
@@ -206,8 +235,9 @@ function presentCall(item: ToolCallView, itemOpen: boolean, direct: boolean): Ca
 }
 
 const calls = computed(() => {
+  if (!group.value) return []
   const direct = directItem.value
-  const items = direct ? [direct] : props.group.items
+  const items = direct ? [direct] : group.value.items
   return items.map((item) => {
     const itemOpen = direct ? true : open.value && props.expanded.get(item.id) === true
     return presentCall(item, itemOpen, Boolean(direct))
@@ -215,7 +245,7 @@ const calls = computed(() => {
 })
 
 function toggleGroup() {
-  emit("toggle", { id: props.group.id, open: !open.value })
+  emit("toggle", { id: props.step.id, open: !open.value })
 }
 </script>
 

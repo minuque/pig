@@ -18,7 +18,7 @@ function command(id: string): ToolCallView {
 }
 
 async function renderGroup(group: ToolGroup): Promise<string> {
-  const app = createSSRApp(ToolCall, { group, expanded: new Map() })
+  const app = createSSRApp(ToolCall, { step: group, expanded: new Map() })
   app.config.warnHandler = (message) => {
     if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
   }

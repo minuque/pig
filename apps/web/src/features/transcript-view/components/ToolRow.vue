@@ -18,16 +18,9 @@
               :item="step.item"
               :streaming="live && step.item.streaming"
             />
-            <ThinkCard
-              v-else-if="step.type === 'thought'"
-              :text="step.text"
-              :streaming="step.streaming"
-              :open="expandedTools.get(step.id) === true"
-              @update:open="emit('toggle-tool', step.id, $event)"
-            />
             <ToolCall
               v-else
-              :group="step"
+              :step="step"
               :expanded="expandedTools"
               @toggle="emit('toggle-tool', $event.id, $event.open)"
             />
@@ -46,7 +39,6 @@ import { computed, shallowRef, watch } from "vue"
 import { ChevronRight } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
 import AssistantMessage from "./AssistantMessage.vue"
-import ThinkCard from "./ThinkCard.vue"
 import StreamPlaceholder from "./StreamPlaceholder.vue"
 import ToolCall from "./ToolCall.vue"
 import { toolRowLabel, type ToolRow } from "../lib/transcript-rows.js"
