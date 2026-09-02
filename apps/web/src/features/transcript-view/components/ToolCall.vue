@@ -56,11 +56,13 @@
             <span v-if="call.detail" class="separator">·</span>
             <span
               v-if="call.detail"
-              class="item-detail"
-              :class="{ 'file-path': call.isFile }"
-              :title="call.detail"
+              class="detail"
+              :title="call.detail.kind === 'file' ? call.detail.path : call.detail.text"
             >
-              {{ call.detail }}
+              <img v-if="call.detailIcon" class="file-icon" :src="call.detailIcon" alt="" />
+              <span class="detail-text" :class="{ 'file-path': call.detail.kind === 'file' }">
+                {{ call.detail.kind === "file" ? call.detail.name : call.detail.text }}
+              </span>
             </span>
           </button>
           <Transition name="fold-reveal">
@@ -115,7 +117,6 @@ import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
 import {
   isCommandTool,
-  toolCallDetail,
   toolCallKindLabel,
   toolCommand,
   toolInputPretty,
@@ -128,7 +129,13 @@ import {
   type ReadToolPreview,
 } from "@features/transcript-view/lib/tool-presentation.js"
 import type { ToolCallView, ToolRowStep } from "@features/transcript-view/lib/transcript-rows.js"
-import { directGroupItem, toolSummary, toolSummaryDetail } from "../lib/tool-summary.js"
+import {
+  toolDetail,
+  toolSummary,
+  toolSummaryDetail,
+  type ToolSummaryDetail,
+  directGroupItem,
+} from "../lib/tool-summary.js"
 
 const props = defineProps<{
   step: Exclude<ToolRowStep, { type: "assistant" }>
@@ -151,13 +158,7 @@ const label = computed(() => {
   return toolSummary(group.value?.items ?? [])
 })
 const detail = computed(() => (group.value ? toolSummaryDetail(group.value.items) : null))
-const detailIcon = computed(() => {
-  void languageIconsRevision.value
-  if (detail.value?.kind !== "file") return ""
-  const language = fileLanguage(detail.value.path)
-  if (language === "text") return ""
-  return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(language))}`
-})
+const detailIcon = computed(() => fileDetailIcon(detail.value))
 const icon = computed(() => {
   if (thought.value) return Lightbulb
   switch (group.value?.key) {
@@ -183,11 +184,11 @@ type CallView = {
   commandStatus: "error" | "running" | "success"
   statusLabel: string
   kind: string
-  detail: string
+  detail: ToolSummaryDetail | null
+  detailIcon: string
   command: string
   path: string
   cwd: string
-  isFile: boolean
   isRead: boolean
   isCommand: boolean
   inputFull: string
@@ -219,6 +220,7 @@ function presentCall(item: ToolCallView, itemOpen: boolean, direct: boolean): Ca
   ) {
     readPreview = readToolPreview(item.input, outputText)
   }
+  const itemDetail = toolDetail(item.toolName, item.input)
   return {
     item,
     direct,
@@ -228,11 +230,11 @@ function presentCall(item: ToolCallView, itemOpen: boolean, direct: boolean): Ca
     commandStatus: item.isError ? "error" : item.running ? "running" : "success",
     statusLabel: item.isError ? "执行失败" : item.running ? "正在执行" : "执行完成",
     kind: toolCallKindLabel(item.toolName),
-    detail: toolCallDetail(item.toolName, item.input),
+    detail: itemDetail,
+    detailIcon: fileDetailIcon(itemDetail),
     command: toolCommand(item.input),
     path,
     cwd: toolWorkingDirectory(item.input),
-    isFile: ["read", "write", "edit"].includes(toolName),
     isRead,
     isCommand,
     inputFull: revealed ? toolInputPretty(item.input) : "",
@@ -259,6 +261,14 @@ const calls = computed(() => {
     return presentCall(item, itemOpen, Boolean(direct))
   })
 })
+
+function fileDetailIcon(detail: ToolSummaryDetail | null): string {
+  void languageIconsRevision.value
+  if (detail?.kind !== "file") return ""
+  const language = fileLanguage(detail.path)
+  if (language === "text") return ""
+  return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(language))}`
+}
 
 function toggleGroup() {
   emit("toggle", { id: props.step.id, open: !open.value })
@@ -370,12 +380,6 @@ function toggleGroup() {
 }
 .separator {
   color: var(--ink-faint);
-}
-.item-detail {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .file-path {
   color: var(--ink-secondary);

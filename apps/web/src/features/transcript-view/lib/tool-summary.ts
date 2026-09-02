@@ -30,15 +30,19 @@ export function toolSummary(items: readonly ToolCallView[]): string {
   return label
 }
 
-export function toolSummaryDetail(items: readonly ToolCallView[]): ToolSummaryDetail | null {
-  const first = items[0]
-  if (!first || items.length !== 1) return null
-  const text = toolCallDetail(first.toolName, first.input)
-  if (!isCommandTool(first.toolName)) {
-    const path = toolPath(first.input) || (isFilePathDetail(text) ? text : "")
+export function toolDetail(toolName: string, input: unknown): ToolSummaryDetail | null {
+  const text = toolCallDetail(toolName, input)
+  if (!isCommandTool(toolName)) {
+    const path = toolPath(input) || (isFilePathDetail(text) ? text : "")
     if (path) return { kind: "file", name: pathBasename(path), path }
   }
   return text ? { kind: "text", text } : null
+}
+
+export function toolSummaryDetail(items: readonly ToolCallView[]): ToolSummaryDetail | null {
+  const first = items[0]
+  if (!first || items.length !== 1) return null
+  return toolDetail(first.toolName, first.input)
 }
 
 function isFilePathDetail(text: string): boolean {
