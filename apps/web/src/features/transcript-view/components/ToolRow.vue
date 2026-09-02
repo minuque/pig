@@ -156,17 +156,4 @@ watch(
   pointer-events: none;
   content: "";
 }
-.step.is-waiting::before {
-  position: absolute;
-  z-index: 1;
-  inset-block-start: var(--spacing-xs);
-  inset-inline-start: calc((var(--size-icon) - var(--spacing-xxs)) / 2);
-  box-sizing: border-box;
-  width: var(--spacing-xxs);
-  height: var(--spacing-xxs);
-  border: var(--border-width) solid var(--surface);
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  content: "";
-}
 </style>
