@@ -47,15 +47,3 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Dia
     </DialogContent>
   </DialogPortal>
 </template>
-
-<style scoped>
-/* Tailwind translate-* 走 translate 属性，与 keyframes 的 transform 叠加会双重偏移 */
-:deep([data-slot="dialog-content"]) {
-  transform: translate(-50%, -50%);
-}
-@media (max-width: 639px) {
-  :deep([data-slot="dialog-content"]) {
-    transform: translateX(-50%);
-  }
-}
-</style>

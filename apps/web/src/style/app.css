@@ -463,3 +463,12 @@ html[data-pig-desktop-platform]:has([data-slot="dialog-content"]) body *,
 html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body * {
   -webkit-app-region: no-drag;
 }
+/* Tailwind translate-* 走 translate，与 keyframes 的 transform 叠加会偏；Teleport 后 scoped 打不中 */
+:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+  transform: translate(-50%, -50%);
+}
+@media (max-width: 639px) {
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+    transform: translateX(-50%);
+  }
+}
