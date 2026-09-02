@@ -44,8 +44,7 @@ export type ThoughtStep = {
   startedAt: number
   endedAt?: number
 }
-export type ToolRowStep =
-  ThoughtStep | { type: "assistant"; id: string; item: AssistantRow } | ToolGroup
+export type ToolRowStep = ThoughtStep | ToolGroup
 export type ToolRow = {
   id: string
   role: "tools"
@@ -74,91 +73,13 @@ function assistantRow(item: AssistantTranscriptItem, text = transcriptText(item)
   }
 }
 
-function addAssistant(steps: ToolRowStep[], item: AssistantRow) {
-  const last = steps.at(-1)
-  if (
-    !item.text &&
-    item.error &&
-    last?.type === "assistant" &&
-    last.item.error &&
-    !last.item.text
-  ) {
-    last.item = { ...item, retryCount: (last.item.retryCount ?? 1) + 1 }
+function addAssistant(rows: TimelineRow[], item: AssistantRow) {
+  const last = rows.at(-1)
+  if (!item.text && item.error && last?.role === "assistant" && last.error && !last.text) {
+    Object.assign(last, { ...item, retryCount: (last.retryCount ?? 1) + 1 })
     return
   }
-  steps.push({ type: "assistant", id: item.id, item })
-}
-
-function orderedSteps(
-  items: readonly TranscriptItem[],
-  live: boolean,
-  anchor: string,
-  timing: TurnTiming | undefined,
-) {
-  const steps: ToolRowStep[] = []
-  let lastTool = -1
-  let aborted = false
-  let error = false
-  for (const [itemIndex, item] of items.entries()) {
-    if (isToolItem(item)) {
-      const tool: ToolCallView = {
-        id: item.id,
-        toolName: item.toolName,
-        running: live && item.status === "running",
-        isError: item.isError,
-        input: item.input,
-        outputText: transcriptText(item),
-        outputImages: transcriptImages(item),
-      }
-      const key = toolGroupKey(tool.toolName)
-      const last = steps.at(-1)
-      if (
-        !tool.isError &&
-        last?.type === "tools" &&
-        last.key === key &&
-        !last.items.some((call) => call.isError)
-      ) {
-        last.items.push(tool)
-      } else {
-        steps.push({ type: "tools", id: `group:${item.id}`, key, items: [tool] })
-      }
-      lastTool = steps.length - 1
-      error ||= item.isError
-      continue
-    }
-    if (!isAssistantItem(item)) continue
-    aborted ||= item.status === "aborted"
-    error ||= item.status === "error"
-    for (const [index, block] of item.content.entries()) {
-      const id = `${anchor}:${item.timestamp}:${itemIndex}:${index}`
-      if (block.type === "thinking" && block.thinking) {
-        const streaming = live && item.status === "streaming" && index === item.content.length - 1
-        const nextTimestamp = items
-          .slice(itemIndex + 1)
-          .find((next) => next.timestamp >= item.timestamp)?.timestamp
-        const endedAt = streaming ? undefined : (nextTimestamp ?? timing?.endedAt)
-        steps.push({
-          type: "thought",
-          id: `thought:${id}`,
-          text: block.thinking,
-          streaming,
-          startedAt: item.timestamp,
-          ...(endedAt === undefined ? {} : { endedAt: Math.max(item.timestamp, endedAt) }),
-        })
-      } else if (block.type === "text" && block.text) {
-        const previous = steps.at(-1)
-        if (item.content[index - 1]?.type === "text" && previous?.type === "assistant") {
-          previous.item.text += block.text
-        } else addAssistant(steps, { ...assistantRow(item, block.text), id: `text:${id}` })
-      } else if (block.type === "toolCall") {
-        lastTool = steps.length - 1
-      }
-    }
-    if (!transcriptText(item) && (item.status === "error" || item.status === "aborted")) {
-      addAssistant(steps, assistantRow(item))
-    }
-  }
-  return { steps, lastTool, aborted, error }
+  rows.push(item)
 }
 
 function appendTurn({
@@ -185,7 +106,10 @@ function appendTurn({
     })
   const anchor = `tools:${user?.timestamp ?? "orphan"}:${turnIndex}`
   const timing = timings.find((value) => value.userId === user?.id)
-  const { steps, lastTool, aborted, error } = orderedSteps(rest, live, anchor, timing)
+  let steps: ToolRowStep[] = []
+  let segmentIndex = 0
+  let segmentAborted = false
+  let segmentError = false
   const last = rest.at(-1)
   const waiting =
     live &&
@@ -195,32 +119,94 @@ function appendTurn({
       last.content.some((part) => part.type === "text" && part.text)
     ) &&
     !(last && isToolItem(last) && last.status === "running") &&
-    !steps.some((step) => step.type === "thought" && step.streaming)
-  const work: ToolRowStep[] = []
-  const answers: AssistantRow[] = []
-  const hasTools = rest.some(
-    (item) =>
-      isToolItem(item) ||
-      (isAssistantItem(item) && item.content.some((block) => block.type === "toolCall")),
-  )
-  for (const [index, step] of steps.entries()) {
-    if (step.type === "assistant" && (!hasTools || (!live && index > lastTool)))
-      answers.push(step.item)
-    else work.push(step)
-  }
-  if (work.length || waiting) {
+    !rest.some(
+      (item) =>
+        isAssistantItem(item) &&
+        item.status === "streaming" &&
+        item.content.some((block) => block.type === "thinking" && block.thinking),
+    )
+
+  function flushTools(mode: ToolRow["mode"], includeWaiting = false) {
+    if (!steps.length && !includeWaiting) return
     rows.push({
-      id: anchor,
+      id: `${anchor}:${segmentIndex}`,
       role: "tools",
-      mode: live ? "live" : "fold",
-      steps: work,
-      waiting,
-      aborted: aborted || timing?.outcome === "aborted",
-      error: error || timing?.outcome === "error",
+      mode,
+      steps,
+      waiting: includeWaiting,
+      aborted: segmentAborted || (mode === "live" && timing?.outcome === "aborted"),
+      error: segmentError || (mode === "live" && timing?.outcome === "error"),
       ...(timing ? { timing } : {}),
     })
+    steps = []
+    segmentIndex += 1
+    segmentAborted = false
+    segmentError = false
   }
-  rows.push(...answers)
+
+  for (const [itemIndex, item] of rest.entries()) {
+    if (isToolItem(item)) {
+      const tool: ToolCallView = {
+        id: item.id,
+        toolName: item.toolName,
+        running: live && item.status === "running",
+        isError: item.isError,
+        input: item.input,
+        outputText: transcriptText(item),
+        outputImages: transcriptImages(item),
+      }
+      steps.push({
+        type: "tools",
+        id: `group:${item.id}`,
+        key: toolGroupKey(tool.toolName),
+        items: [tool],
+      })
+      segmentError ||= item.isError
+      continue
+    }
+    if (!isAssistantItem(item)) continue
+    segmentAborted ||= item.status === "aborted"
+    segmentError ||= item.status === "error"
+    let pendingText: AssistantRow | undefined
+    for (const [index, block] of item.content.entries()) {
+      const id = `${anchor}:${item.timestamp}:${itemIndex}:${index}`
+      if (block.type === "thinking" && block.thinking) {
+        if (pendingText) {
+          flushTools("fold")
+          addAssistant(rows, pendingText)
+          pendingText = undefined
+        }
+        const streaming = live && item.status === "streaming" && index === item.content.length - 1
+        const nextTimestamp = rest
+          .slice(itemIndex + 1)
+          .find((next) => next.timestamp >= item.timestamp)?.timestamp
+        const endedAt = streaming ? undefined : (nextTimestamp ?? timing?.endedAt)
+        steps.push({
+          type: "thought",
+          id: `thought:${id}`,
+          text: block.thinking,
+          streaming,
+          startedAt: item.timestamp,
+          ...(endedAt === undefined ? {} : { endedAt: Math.max(item.timestamp, endedAt) }),
+        })
+      } else if (block.type === "text" && block.text) {
+        if (pendingText) pendingText.text += block.text
+        else pendingText = { ...assistantRow(item, block.text), id: `text:${id}` }
+      } else if (pendingText) {
+        flushTools("fold")
+        addAssistant(rows, pendingText)
+        pendingText = undefined
+      }
+    }
+    if (pendingText) {
+      flushTools("fold")
+      addAssistant(rows, pendingText)
+    } else if (!transcriptText(item) && (item.status === "error" || item.status === "aborted")) {
+      flushTools("fold")
+      addAssistant(rows, assistantRow(item))
+    }
+  }
+  flushTools(live ? "live" : "fold", waiting)
 }
 
 export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt): string {
@@ -257,14 +243,25 @@ export function buildTimelineRows(
   return rows
 }
 
-export function toolRowLabel(row: ToolRow, now = Date.now()): string {
-  const status = row.aborted ? "已停止" : row.mode === "live" ? "执行中" : "执行过程"
-  if (!row.timing || (row.timing.endedAt === undefined && row.mode !== "live")) return status
-  const seconds = Math.max(
-    0,
-    Math.floor(((row.timing.endedAt ?? now) - row.timing.startedAt) / 1000),
-  )
-  const duration =
-    seconds >= 60 ? `${Math.floor(seconds / 60)}分钟 ${seconds % 60}秒` : `${seconds}秒`
-  return row.aborted || row.mode === "live" ? `${status} · 用时 ${duration}` : `用时 ${duration}`
+export function toolRowLabel(row: ToolRow, _now = Date.now()): string {
+  const thoughtCount = row.steps.filter((step) => step.type === "thought").length
+  const toolCounts = new Map<string, { count: number; name: string }>()
+  for (const step of row.steps) {
+    if (step.type !== "tools") continue
+    const name = step.items[0]?.toolName ?? "工具"
+    const current = toolCounts.get(step.key)
+    toolCounts.set(step.key, { count: (current?.count ?? 0) + step.items.length, name })
+  }
+  const toolLabels = [...toolCounts].map(([key, value]) => {
+    if (key === "read") return `读${value.count}次文件`
+    if (key === "search") return `搜${value.count}次`
+    if (key === "edit") return `编辑${value.count}次文件`
+    if (key === "command") return `运行${value.count}条命令`
+    return `调用 ${value.name}${value.count > 1 ? ` ${value.count}次` : ""}`
+  })
+  const summary = [thoughtCount ? `思考 ${thoughtCount}轮` : "", toolLabels.join("、")]
+    .filter(Boolean)
+    .join(" · ")
+  if (row.aborted) return summary ? `已停止 · ${summary}` : "已停止"
+  return summary || (row.mode === "live" ? "执行中" : "执行过程")
 }

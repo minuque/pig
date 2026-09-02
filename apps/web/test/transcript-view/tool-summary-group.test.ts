@@ -29,6 +29,17 @@ async function renderGroup(group: ToolGroup): Promise<string> {
   return renderToString(app)
 }
 
+async function renderOpenGroup(group: ToolGroup): Promise<string> {
+  const app = createSSRApp(ToolCall, {
+    step: group,
+    expanded: new Map([[group.id, true]]),
+  })
+  app.config.warnHandler = (message) => {
+    if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
+  }
+  return renderToString(app)
+}
+
 async function renderStep(step: Exclude<ToolRowStep, { type: "assistant" }>): Promise<string> {
   const app = createSSRApp(ToolCall, { step, expanded: new Map() })
   app.config.warnHandler = (message) => {
@@ -88,7 +99,7 @@ describe("思考预览", () => {
 })
 
 describe("命令工具组展示", () => {
-  it("单条命令保留命令组摘要，直接在其下显示 command card", async () => {
+  it("单条命令保留摘要，展开后在其下显示 command card", async () => {
     const html = await renderGroup({
       type: "tools",
       id: "group:c1",
@@ -98,8 +109,16 @@ describe("命令工具组展示", () => {
 
     expect(html).toContain('class="tool-summary"')
     expect(html).toContain(' summary"')
-    expect(html).toContain("tool-step-card")
+    expect(html).not.toContain("tool-step-card")
     expect(html).not.toContain(">Run<")
+    expect(
+      await renderOpenGroup({
+        type: "tools",
+        id: "group:c1",
+        key: "command",
+        items: [command("c1")],
+      }),
+    ).toContain("tool-step-card")
   })
 
   it("多条命令保留可折叠的命令组摘要", () => {
@@ -113,8 +132,8 @@ describe("命令工具组展示", () => {
     expect(directGroupItem(group)).toBeUndefined()
   })
 
-  it("单条 read 不显示重复的 Read 行，卡片贴齐摘要", async () => {
-    const html = await renderGroup({
+  it("单条 read 不显示重复的 Read 行，展开卡片贴齐摘要", async () => {
+    const group: ToolGroup = {
       type: "tools",
       id: "group:r1",
       key: "read",
@@ -129,7 +148,8 @@ describe("命令工具组展示", () => {
           outputImages: [],
         },
       ],
-    })
+    }
+    const html = await renderOpenGroup(group)
 
     expect(html).toContain("direct body-inner")
     expect(html).toContain("tool-step-card")

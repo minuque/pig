@@ -134,7 +134,7 @@ import {
 } from "../lib/tool-summary.js"
 
 const props = defineProps<{
-  step: Exclude<ToolRowStep, { type: "assistant" }>
+  step: ToolRowStep
   expanded: Map<string, boolean>
 }>()
 const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
@@ -210,7 +210,7 @@ function presentCall(item: ToolCallView, itemOpen: boolean, direct: boolean): Ca
   const toolName = item.toolName.trim().toLowerCase()
   const isRead = toolName === "read"
   const isCommand = isCommandTool(toolName)
-  const revealed = direct || itemOpen
+  const revealed = itemOpen
   const outputText = revealed ? item.outputText : ""
   const outputImages = revealed ? item.outputImages : []
   const path = toolPath(item.input)
@@ -264,7 +264,7 @@ const calls = computed(() => {
   const direct = directItem.value
   const items = direct ? [direct] : group.value.items
   return items.map((item) => {
-    const itemOpen = direct ? true : open.value && props.expanded.get(item.id) === true
+    const itemOpen = direct ? open.value : open.value && props.expanded.get(item.id) === true
     return presentCall(item, itemOpen, Boolean(direct))
   })
 })

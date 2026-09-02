@@ -98,7 +98,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     ])
   })
 
-  it("等待、工具运行、正文流式阶段复用同一过程，结束才把末次工具后的正文移出", () => {
+  it("每段助手正文切开工具过程，当前等待态独立留在末尾", () => {
     const waiting = buildTimelineRows([user], true).find(isToolRow)
     const messages = [
       user,
@@ -109,24 +109,32 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       text(3, "结论"),
     ]
     const live = buildTimelineRows(messages, true)
-    expect(live.map((row) => row.role)).toEqual(["user", "tools"])
-    expect(live.find(isToolRow)).toMatchObject({ id: waiting?.id, mode: "live" })
-    const done = buildTimelineRows(messages, false)
-    expect(done.map((row) => row.role)).toEqual(["user", "tools", "assistant"])
-    const work = done.find(isToolRow)
-    expect(work?.steps.map((step) => step.type)).toEqual([
+    expect(live.map((row) => row.role)).toEqual([
+      "user",
+      "assistant",
+      "tools",
       "assistant",
       "tools",
       "assistant",
       "tools",
     ])
-    expect(work).toMatchObject({ id: waiting?.id, mode: "fold" })
+    expect(live.filter(isToolRow).map((row) => row.mode)).toEqual(["fold", "fold", "live"])
+    expect(live.filter(isToolRow).at(-1)).toMatchObject({ waiting: true, steps: [] })
+    const done = buildTimelineRows(messages, false)
+    expect(done.map((row) => row.role)).toEqual([
+      "user",
+      "assistant",
+      "tools",
+      "assistant",
+      "tools",
+      "assistant",
+    ])
     expect(done.at(-1)).toMatchObject({ text: "结论" })
-    expect(work && toolRowLabel(work)).toBe("执行过程")
+    expect(waiting).toMatchObject({ mode: "live", waiting: true })
   })
 
-  it("工具按相邻种类合并，正文和不同未知工具断开分组", () => {
-    const work = buildTimelineRows(
+  it("同段工具统一进一行但每次调用保持独立，助手正文切开两行", () => {
+    const rows = buildTimelineRows(
       [
         user,
         tool("t1"),
@@ -137,12 +145,20 @@ describe("一轮工作 → 执行过程与最终回答", () => {
         tool("t5", "extension-b"),
       ],
       true,
-    ).find(isToolRow)
+    )
+    const work = rows.filter(isToolRow)
+    expect(rows.map((row) => row.role)).toEqual(["user", "tools", "assistant", "tools"])
     expect(
-      work?.steps.map((step) =>
-        step.type === "tools" ? step.items.map((item) => item.id) : step.type,
+      work.map((row) =>
+        row.steps.map((step) =>
+          step.type === "tools" ? step.items.map((item) => item.id) : step.type,
+        ),
       ),
-    ).toEqual([["t1", "t2"], "assistant", ["t3"], ["t4"], ["t5"]])
+    ).toEqual([
+      [["t1"], ["t2"]],
+      [["t3"], ["t4"], ["t5"]],
+    ])
+    expect(work[0] && toolRowLabel(work[0])).toBe("读2次文件")
   })
 
   it("思考按内容块顺序展示，正文开始时结束思考预览", () => {
@@ -157,11 +173,11 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       [...thinking.content, { type: "text", text: "开始读取" }],
       "streaming",
     )
-    const work = buildTimelineRows([user, withText, tool("t1", "read", "running")], true).find(
-      isToolRow,
-    )
-    expect(work?.steps.map((step) => step.type)).toEqual(["thought", "assistant", "tools"])
-    expect(work?.steps[0]).toMatchObject({ streaming: false, endedAt: 2000 })
+    const rows = buildTimelineRows([user, withText, tool("t1", "read", "running")], true)
+    const work = rows.filter(isToolRow)
+    expect(rows.map((row) => row.role)).toEqual(["user", "tools", "assistant", "tools"])
+    expect(work.map((row) => row.steps.map((step) => step.type))).toEqual([["thought"], ["tools"]])
+    expect(work[0]?.steps[0]).toMatchObject({ streaming: false, endedAt: 2000 })
   })
 
   it("完成的思考使用持久 Turn 结束时间计算耗时", () => {
@@ -179,7 +195,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(thought?.type === "thought" && thoughtStepLabel(thought)).toBe("思考了 5秒")
   })
 
-  it("历史与当前轮次分开，真实耗时不受刷新或展示时刻影响", () => {
+  it("历史与当前轮次分开，摘要按各自工具段统计", () => {
     const nextUser = { ...user, id: "u2", timestamp: 9000 }
     const rows = buildTimelineRows(
       [user, tool("t1"), text(1, "完成"), nextUser, tool("t2", "bash", "running")],
@@ -191,18 +207,18 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     )
     const work = rows.filter(isToolRow)
     expect(work.map((row) => row.mode)).toEqual(["fold", "live"])
-    expect(work[0] && toolRowLabel(work[0], 999999)).toBe("用时 1分钟 5秒")
-    expect(work[1] && toolRowLabel(work[1], 12000)).toBe("执行中 · 用时 3秒")
+    expect(work[0] && toolRowLabel(work[0], 999999)).toBe("读1次文件")
+    expect(work[1] && toolRowLabel(work[1], 12000)).toBe("运行1条命令")
   })
 
-  it("失败路径：工具失败单列，摘要只描述工作与耗时，重试错误信息不丢失", () => {
+  it("失败路径：工具失败单列，行摘要汇总工作，重试错误信息不丢失", () => {
     const work = buildTimelineRows(
       [user, tool("t1"), tool("bad", "read", "error"), tool("t2")],
       false,
       [{ userId: "u1", startedAt: 1000, endedAt: 27000, outcome: "error" }],
     ).find(isToolRow)
     expect(work?.steps).toHaveLength(3)
-    expect(work && toolRowLabel(work)).toBe("用时 26秒")
+    expect(work && toolRowLabel(work)).toBe("读3次文件")
     const failedGroup = work?.steps.find(
       (step) => step.type === "tools" && step.items.some((item) => item.isError),
     )
@@ -224,16 +240,46 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       false,
     )
     const work = rows.find(isToolRow)
-    expect(work && toolRowLabel(work)).toBe("已停止")
+    expect(work && toolRowLabel(work)).toBe("已停止 · 思考 1轮 · 运行1条命令")
     expect(work?.steps[0]).toMatchObject({ type: "tools", items: [{ running: false }] })
     expect(work?.steps[1]).toMatchObject({ type: "thought", streaming: false })
     expect(rows.at(-1)).toMatchObject({ aborted: true })
   })
 
-  it("失败路径：进程退出留下的开始记录不推算成历史耗时", () => {
+  it("失败路径：进程退出留下的开始记录仍显示实际工作摘要", () => {
     const work = buildTimelineRows([user, tool("t1")], false, [
       { userId: "u1", startedAt: 1000, outcome: "running" },
     ]).find(isToolRow)
-    expect(work && toolRowLabel(work, 999999)).toBe("执行过程")
+    expect(work && toolRowLabel(work, 999999)).toBe("读1次文件")
+  })
+
+  it("思考与多类工具按参考样式汇总为一个标题", () => {
+    const thinking = assistant(1, [
+      { type: "thinking", thinking: "先分析" },
+      { type: "thinking", thinking: "再确认" },
+    ])
+    const work = buildTimelineRows(
+      [user, thinking, tool("r1"), tool("s1", "grep"), tool("s2", "find")],
+      false,
+    ).find(isToolRow)
+
+    expect(work && toolRowLabel(work)).toBe("思考 2轮 · 读1次文件、搜2次")
+  })
+
+  it("同一内容流里的助手正文也会切开前后思考", () => {
+    const rows = buildTimelineRows(
+      [
+        user,
+        assistant(1, [
+          { type: "thinking", thinking: "前置思考" },
+          { type: "text", text: "阶段结论" },
+          { type: "thinking", thinking: "后置思考" },
+        ]),
+      ],
+      false,
+    )
+
+    expect(rows.map((row) => row.role)).toEqual(["user", "tools", "assistant", "tools"])
+    expect(rows.filter(isToolRow).map((row) => toolRowLabel(row))).toEqual(["思考 1轮", "思考 1轮"])
   })
 })

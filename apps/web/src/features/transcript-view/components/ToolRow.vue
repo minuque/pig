@@ -17,19 +17,8 @@
     >
       <div>
         <TransitionGroup v-if="rendered" name="timeline-step" tag="div" class="steps">
-          <div
-            v-for="step in row.steps"
-            :key="step.id"
-            class="step"
-            :class="{ 'is-assistant': step.type === 'assistant' }"
-          >
-            <AssistantMessage
-              v-if="step.type === 'assistant'"
-              :item="step.item"
-              :streaming="live && step.item.streaming"
-            />
+          <div v-for="step in row.steps" :key="step.id" class="step">
             <ToolCall
-              v-else
               :step="step"
               :expanded="expandedTools"
               @toggle="emit('toggle-tool', $event.id, $event.open)"
@@ -48,7 +37,6 @@
 import { computed, shallowRef, watch } from "vue"
 import { ChevronRight, GitBranch } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
-import AssistantMessage from "./AssistantMessage.vue"
 import StreamPlaceholder from "./StreamPlaceholder.vue"
 import ToolCall from "./ToolCall.vue"
 import { toolRowLabel, type ToolRow } from "../lib/transcript-rows.js"
@@ -144,10 +132,10 @@ watch(
   position: relative;
   min-width: 0;
 }
-.step:not(.is-assistant) {
+.step {
   padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
 }
-.step:not(.is-assistant)::after {
+.step::after {
   position: absolute;
   inset-block: calc(-1 * var(--spacing-xs));
   inset-inline-start: calc(var(--size-icon) / 2);
