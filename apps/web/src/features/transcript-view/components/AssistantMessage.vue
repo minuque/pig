@@ -82,8 +82,8 @@ const agentMarkdown = computed(
 .assistant {
   padding: 2px 0;
   color: var(--ink);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md--line-height);
 }
 
 .status {
