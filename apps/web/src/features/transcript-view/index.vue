@@ -42,13 +42,14 @@
           @abort="abortSession"
         />
       </div>
-      <div v-if="rows.length" ref="column" class="transcript">
+      <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
           <TransitionGroup name="timeline-row" tag="div" class="timeline-rows">
             <div
               v-for="row in rows"
               :key="row.id"
               class="row"
+              :class="`row-${row.role}`"
               :data-minimap-row="row.role === 'user' ? row.id : undefined"
             >
               <UserMessage v-if="row.role === 'user'" :item="row" />
@@ -60,11 +61,14 @@
               <ToolRow
                 v-else-if="isToolRow(row)"
                 :row="row"
-                :fold-open="isFoldOpen(row.id)"
+                :open="isFoldOpen(row.id)"
                 :expanded-tools="expandedTools"
-                @toggle-fold="onToggleFold(row.id, $event)"
+                @toggle="onToggleFold(row.id, $event)"
                 @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
               />
+            </div>
+            <div v-if="running" key="stream-placeholder" class="row row-streaming">
+              <StreamPlaceholder />
             </div>
           </TransitionGroup>
         </div>
@@ -78,6 +82,7 @@ import { computed, nextTick, onBeforeUnmount, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "lucide-vue-next"
 import ChatInput from "@features/chat-input/index.vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
+import StreamPlaceholder from "@features/transcript-view/components/StreamPlaceholder.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import ToolRow from "@features/transcript-view/components/ToolRow.vue"
@@ -312,5 +317,17 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
 .row {
   box-sizing: border-box;
   width: 100%;
+}
+.row + .row {
+  margin-block-start: var(--spacing-md);
+}
+.row-user + .row {
+  margin-block-start: var(--spacing-lg);
+}
+.row + .row-user {
+  margin-block-start: var(--spacing-xl);
+}
+.row-streaming {
+  padding-block: var(--spacing-xxs);
 }
 </style>

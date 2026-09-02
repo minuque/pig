@@ -2,6 +2,7 @@ import { createSSRApp } from "vue"
 import { renderToString } from "@vue/server-renderer"
 import { describe, expect, it } from "vitest"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
+import ToolRow from "@features/transcript-view/components/ToolRow.vue"
 import type {
   ToolCallView,
   ToolGroup,
@@ -154,5 +155,41 @@ describe("命令工具组展示", () => {
     expect(html).toContain("direct body-inner")
     expect(html).toContain("tool-step-card")
     expect(html).not.toContain(">Read<")
+  })
+})
+
+describe("运行态工具过程", () => {
+  it("实时过程忽略手动折叠并给摘要添加 shimmer", async () => {
+    const item = {
+      ...command("live"),
+      toolName: "read",
+      running: true,
+      input: { path: "G:/AICode/pig/apps/web/src/App.vue" },
+    }
+    const group: ToolGroup = {
+      type: "tools",
+      id: "group:live",
+      key: "read",
+      items: [item],
+    }
+    const app = createSSRApp(ToolRow, {
+      row: {
+        id: "tools:live",
+        role: "tools",
+        mode: "live",
+        steps: [group],
+        aborted: false,
+        error: false,
+      },
+      open: false,
+      expandedTools: new Map(),
+    })
+    app.config.warnHandler = (message) => {
+      if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
+    }
+
+    const html = await renderToString(app)
+    expect(html).toContain("is-open")
+    expect(html).toContain("shimmer")
   })
 })

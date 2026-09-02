@@ -1,8 +1,8 @@
 <template>
   <section class="tool-row" :class="{ live, failed: row.aborted }">
-    <Button type="button" static class="fold" @click="emit('toggle-fold', !revealed)">
-      <GitBranch class="tool-row-icon" :class="{ 'is-live': live }" :stroke-width="1.5" />
-      <span>{{ label }}</span>
+    <Button type="button" static class="summary-btn" @click="emit('toggle', !revealed)">
+      <GitBranch class="tool-row-icon" :stroke-width="1.5" />
+      <span :class="{ shimmer: live }">{{ label }}</span>
       <ChevronRight
         class="motion-turn"
         :class="{ 'is-on': revealed }"
@@ -24,9 +24,6 @@
               @toggle="emit('toggle-tool', $event.id, $event.open)"
             />
           </div>
-          <div v-if="row.waiting" key="waiting" class="step is-waiting">
-            <StreamPlaceholder />
-          </div>
         </TransitionGroup>
       </div>
     </div>
@@ -37,23 +34,23 @@
 import { computed, shallowRef, watch } from "vue"
 import { ChevronRight, GitBranch } from "lucide-vue-next"
 import { Button } from "@components/ui/button/index.js"
-import StreamPlaceholder from "./StreamPlaceholder.vue"
 import ToolCall from "./ToolCall.vue"
 import { toolRowLabel, type ToolRow } from "../lib/transcript-rows.js"
 
 const props = defineProps<{
   row: ToolRow
-  foldOpen: boolean | undefined
+  open: boolean | undefined
   expandedTools: Map<string, boolean>
 }>()
 const emit = defineEmits<{
-  "toggle-fold": [open: boolean]
+  toggle: [open: boolean]
   "toggle-tool": [id: string, open: boolean]
 }>()
 const live = computed(() => props.row.mode === "live")
-const revealed = computed(() => props.foldOpen ?? live.value)
+const revealed = computed(() => live.value || props.open === true)
 const rendered = shallowRef(revealed.value)
 const expanded = shallowRef(revealed.value)
+
 watch(
   revealed,
   (open) => {
@@ -73,6 +70,7 @@ watch(
   },
   { flush: "sync" },
 )
+
 const now = shallowRef(Date.now())
 const label = computed(() => toolRowLabel(props.row, now.value))
 watch(
@@ -93,7 +91,7 @@ watch(
 .tool-row {
   min-width: 0;
 }
-.fold {
+.summary-btn {
   height: auto;
   min-height: 28px;
   padding: 2px 0;
@@ -108,19 +106,16 @@ watch(
   text-align: start;
   font-variant-numeric: tabular-nums;
 }
-.fold:hover {
+.summary-btn:hover {
   background: transparent;
   color: var(--on-primary);
 }
-.failed .fold {
+.failed .summary-btn {
   color: var(--danger);
 }
 .tool-row-icon {
   flex: none;
   transition: color var(--duration-fast) var(--ease-out);
-}
-.tool-row-icon.is-live {
-  color: var(--primary);
 }
 .steps {
   display: flex;
@@ -131,8 +126,6 @@ watch(
 .step {
   position: relative;
   min-width: 0;
-}
-.step {
   padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
 }
 .step::after {
