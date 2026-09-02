@@ -26,11 +26,11 @@ const props = withDefaults(
 )
 
 const variantClasses: Record<AlertVariant, string> = {
-  default: "border-hairline bg-surface text-ink [&>svg]:text-ink-muted",
-  error: "border-destructive/30 bg-destructive/5 text-ink [&>svg]:text-destructive",
-  info: "border-info/30 bg-info/5 text-ink [&>svg]:text-info",
-  success: "border-success/30 bg-success/5 text-ink [&>svg]:text-success",
-  warning: "border-warning/30 bg-warning/5 text-ink [&>svg]:text-warning",
+  default: "border-hairline bg-popover text-ink [&>svg]:text-ink-muted",
+  error: "border-destructive/30 bg-popover text-ink [&>svg]:text-destructive",
+  info: "border-info/30 bg-popover text-ink [&>svg]:text-info",
+  success: "border-success/30 bg-popover text-ink [&>svg]:text-success",
+  warning: "border-warning/30 bg-popover text-ink [&>svg]:text-warning",
 }
 </script>
 

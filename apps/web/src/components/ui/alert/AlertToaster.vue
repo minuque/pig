@@ -14,7 +14,7 @@
             </AlertAction>
           </Alert>
           <button class="alert-toaster-close" type="button" @click="dismissNotice(item.id)">
-            <X />
+            <X class="size-icon" />
           </button>
         </div>
       </TransitionGroup>
@@ -85,28 +85,20 @@ function runAction(item: Notice): void {
 }
 .alert-toaster-close {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: var(--border-width) solid var(--hover-tint);
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
+  padding: var(--spacing-xxs);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
   color: var(--ink-muted);
-  box-shadow: var(--shadow-soft);
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  backdrop-filter: blur(var(--glass-blur));
-}
-.alert-toaster-close svg {
-  width: 12px;
-  height: 12px;
 }
 .alert-toaster-close:hover {
-  background: var(--surface);
   color: var(--ink);
 }
 .alert-toaster-enter-active,
