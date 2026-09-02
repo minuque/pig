@@ -48,7 +48,7 @@
               />
               <div
                 v-if="row.sessions.length > 0 || row.more"
-                class="fold-height"
+                class="session-list-group"
                 :class="{ 'is-open': !row.collapsed }"
               >
                 <TransitionGroup name="list-reveal" tag="div" class="group-body">
