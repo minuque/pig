@@ -1,12 +1,11 @@
 <template>
-  <div class="tool-summary" :class="{ failed }">
+  <div class="tool-summary" :class="{ failed, running }">
     <Button type="button" static class="summary" @click="toggleGroup">
       <component :is="icon" class="tool-icon" :stroke-width="1.5" data-icon="inline-start" />
-      <span class="label" :class="{ shimmer: running }">{{ label }}</span>
+      <span class="label">{{ label }}</span>
       <span
         v-if="detail"
         class="detail"
-        :class="{ shimmer: running }"
         :title="detail.kind === 'file' ? detail.path : detail.text"
       >
         <img v-if="detailIcon" class="file-icon" :src="detailIcon" alt="" />
@@ -19,13 +18,14 @@
         data-icon="inline-end"
       />
     </Button>
-    <div
-      class="fold-height"
-      :class="{ 'is-open': open, 'with-enter': Boolean(thought) }"
-      :inert="!open"
-    >
+    <div class="fold-height" :class="{ 'is-open': open }" :inert="!open">
       <div v-if="thought">
-        <ToolStepCard v-if="thought.text && open" variant="thought" :text="thought.text" />
+        <ToolStepCard
+          v-if="thought.text"
+          variant="thought"
+          :text="thought.text"
+          :streaming="thought.streaming"
+        />
       </div>
       <TransitionGroup
         v-else
@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, shallowRef, watch } from "vue"
 import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import {
   ChevronRight,
@@ -127,7 +127,11 @@ import {
   readToolPreview,
   type ReadToolPreview,
 } from "@features/transcript-view/lib/tool-presentation.js"
-import type { ToolCallView, ToolRowStep } from "@features/transcript-view/lib/transcript-rows.js"
+import {
+  thoughtStepLabel,
+  type ToolCallView,
+  type ToolRowStep,
+} from "@features/transcript-view/lib/transcript-rows.js"
 import {
   toolDetail,
   toolSummary,
@@ -145,15 +149,26 @@ const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
 const thought = computed(() => (props.step.type === "thought" ? props.step : null))
 const group = computed(() => (props.step.type === "tools" ? props.step : null))
 const directItem = computed(() => (group.value ? directGroupItem(group.value) : undefined))
-const open = computed(() => props.expanded.get(props.step.id) === true)
+const open = computed(
+  () => thought.value?.streaming === true || props.expanded.get(props.step.id) === true,
+)
 const failed = computed(() => group.value?.items.some((item) => item.isError) ?? false)
 const running = computed(() =>
   thought.value
     ? thought.value.streaming
     : (group.value?.items.some((item) => item.running) ?? false),
 )
+const liveThoughtEndedAt = shallowRef<number>()
+watch(
+  () => thought.value?.streaming,
+  (streaming, previous) => {
+    if (streaming) liveThoughtEndedAt.value = undefined
+    else if (previous) liveThoughtEndedAt.value = Date.now()
+  },
+  { flush: "sync" },
+)
 const label = computed(() => {
-  if (thought.value) return thought.value.streaming ? "思考中" : "思考"
+  if (thought.value) return thoughtStepLabel(thought.value, liveThoughtEndedAt.value)
   return toolSummary(group.value?.items ?? [])
 })
 const detail = computed(() => (group.value ? toolSummaryDetail(group.value.items) : null))
@@ -300,6 +315,15 @@ function toggleGroup() {
 .failed .tool-icon {
   color: var(--danger);
 }
+.tool-icon {
+  position: relative;
+  z-index: 1;
+  background: var(--surface);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+.running .tool-icon {
+  color: var(--primary);
+}
 .label {
   flex: none;
   max-width: 50%;
@@ -383,6 +407,10 @@ function toggleGroup() {
 .file-path {
   color: var(--ink-secondary);
   text-underline-offset: 3px;
+}
+.file-path:hover {
+  color: var(--primary-active);
+  text-decoration: underline;
 }
 .is-run .caret {
   color: var(--primary);

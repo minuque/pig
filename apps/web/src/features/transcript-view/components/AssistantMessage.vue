@@ -35,7 +35,7 @@ const props = withDefaults(
   { streaming: false },
 )
 
-const { isDark } = useColorScheme()
+const { isDark, codeBlockProps } = useColorScheme()
 const text = useTranscriptReveal(
   () => props.item.text,
   () => props.streaming,
@@ -61,11 +61,11 @@ const agentMarkdown = computed(
       viewportPriority: false,
       codeBlockOptions,
       codeBlockProps: {
+        ...codeBlockProps.value,
         showHeader: true,
         showCopyButton: true,
         showCollapseButton: true,
         showExpandButton: true,
-        theme: isDark.value ? "dark-plus" : "light-plus",
       },
       mermaidProps: {
         renderDebounceMs: 180,

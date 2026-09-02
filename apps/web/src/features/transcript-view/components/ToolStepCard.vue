@@ -92,7 +92,7 @@
       </section>
     </template>
     <template v-else-if="thoughtContent">
-      <ThinkingBlocks :blocks="[thoughtContent.text]" />
+      <ThinkingBlocks :blocks="[thoughtContent.text]" :streaming="thoughtContent.streaming" />
     </template>
   </div>
 </template>
@@ -114,6 +114,7 @@ import type { TranscriptImage as ToolStepImage } from "@features/transcript-view
 const props = defineProps<{
   variant: "thought" | "command" | "read" | "tool"
   text?: string
+  streaming?: boolean
   command?: string
   cwd?: string
   outputText?: string
@@ -156,7 +157,9 @@ const toolContent = computed(() =>
     : null,
 )
 const thoughtContent = computed(() =>
-  props.variant === "thought" ? { text: props.text ?? "" } : null,
+  props.variant === "thought"
+    ? { text: props.text ?? "", streaming: props.streaming ?? false }
+    : null,
 )
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
@@ -164,7 +167,7 @@ const cardClasses = computed(() => ({
   "is-err": commandContent.value?.status === "error",
   "is-run": commandContent.value?.status === "running",
 }))
-const { isDark } = useColorScheme()
+const { codeBlockProps } = useColorScheme()
 const commandExpanded = ref(false)
 const inputExpanded = ref(false)
 const outputExpanded = ref(false)
@@ -211,8 +214,8 @@ watch(
   },
 )
 watch(
-  [readContent, isDark],
-  async ([content, dark], _, onCleanup) => {
+  [readContent, codeBlockProps],
+  async ([content, blockProps], _, onCleanup) => {
     let active = true
     onCleanup(() => {
       active = false
@@ -223,7 +226,7 @@ watch(
       return
     }
     try {
-      const theme = dark ? "dark-plus" : "light-plus"
+      const theme = blockProps.theme
       const { getSharedHighlighter } = await import("stream-diffs/pierre")
       const highlighter = await getSharedHighlighter({ themes: [theme], langs: [preview.language] })
       if (!active) return
