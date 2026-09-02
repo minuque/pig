@@ -17,7 +17,12 @@
     >
       <div>
         <TransitionGroup v-if="rendered" name="timeline-step" tag="div" class="steps">
-          <div v-for="step in row.steps" :key="step.id" class="step">
+          <div
+            v-for="step in row.steps"
+            :key="step.id"
+            class="step"
+            :class="{ 'is-assistant': step.type === 'assistant' }"
+          >
             <AssistantMessage
               v-if="step.type === 'assistant'"
               :item="step.item"
@@ -130,42 +135,38 @@ watch(
   color: var(--primary);
 }
 .steps {
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
-  padding-left: 22px;
   padding-block: var(--spacing-xs);
 }
-.steps::before {
+.step {
+  position: relative;
+  min-width: 0;
+}
+.step:not(.is-assistant) {
+  padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
+}
+.step:not(.is-assistant)::after {
   position: absolute;
-  inset-block: 0;
+  inset-block: calc(-1 * var(--spacing-xs));
   inset-inline-start: calc(var(--size-icon) / 2);
   width: var(--border-width);
   background: var(--hairline);
+  pointer-events: none;
   content: "";
-}
-.step {
-  min-width: 0;
-}
-.step.is-waiting {
-  position: relative;
-  padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
 }
 .step.is-waiting::before {
   position: absolute;
+  z-index: 1;
   inset-block-start: var(--spacing-xs);
   inset-inline-start: calc((var(--size-icon) - var(--spacing-xxs)) / 2);
   box-sizing: border-box;
   width: var(--spacing-xxs);
   height: var(--spacing-xxs);
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--surface);
   border-radius: var(--radius-full);
-  background: var(--surface);
-  content: "";
-}
-.step.is-waiting::before {
-  border-color: var(--surface);
   background: var(--primary);
+  content: "";
 }
 </style>
