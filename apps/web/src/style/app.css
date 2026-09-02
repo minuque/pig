@@ -52,7 +52,7 @@
   --hover-strong: color-mix(in srgb, var(--ink) 12%, transparent);
   --link: #184f95;
   --inline-code: #f2f2f1;
-  --inline-code-ink: var(--ink);
+  --inline-code-ink: var(--ink-secondary);
   --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #aeaeac;
   --scrollbar-hover: #898781;

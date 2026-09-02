@@ -53,7 +53,6 @@
               :size="14"
             />
             <span class="kind">{{ call.kind }}</span>
-            <span v-if="call.detail" class="separator">·</span>
             <span
               v-if="call.detail"
               class="detail"
@@ -383,7 +382,6 @@ function toggleGroup() {
 }
 .file-path {
   color: var(--ink-secondary);
-  text-decoration: underline;
   text-underline-offset: 3px;
 }
 .is-run .caret {
