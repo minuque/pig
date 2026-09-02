@@ -7,8 +7,8 @@
   --ms-text-h2: var(--text-title);
   --ms-text-h3: var(--text-body-md);
   --ms-text-h4: var(--text-body-md);
-  --ms-text-h5: var(--text-caption);
-  --ms-text-h6: var(--text-caption);
+  --ms-text-h5: var(--text-body-md);
+  --ms-text-h6: var(--text-body-md);
   --ms-leading-h1: 1.27;
   --ms-leading-h2: 1.4;
   --ms-leading-h3: 1.43;
@@ -88,6 +88,15 @@
 [data-custom-id="chat"] .inline-code {
   font-size: var(--ms-text-body);
 }
+[data-custom-id="chat"] .heading-5,
+[data-custom-id="chat"] .heading-6 {
+  font-weight: var(--font-weight-semibold);
+}
+/* 节点包在 .node-slot 里，p+p 打不中相邻段。 */
+[data-custom-id="chat"] .paragraph-node + .paragraph-node,
+[data-custom-id="chat"] .node-slot:has(> .paragraph-node) + .node-slot:has(> .paragraph-node) {
+  margin-top: var(--spacing-md);
+}
 
 /* 官方 li:has(.checkbox-node) 用负 margin，虚拟行会裁掉勾选标记 */
 [data-custom-id="chat"] li:has(.checkbox-node) {
@@ -97,10 +106,12 @@
 /* 容器 class 是 rounded-lg（本主题 12px），头/身按 --ms-radius（8px）切角，四角错位。 */
 [data-custom-id="chat"] .code-block-container {
   --vscode-editor-font-size: var(--text-code);
+  --vscode-editor-line-height: var(--text-code-line);
   border-radius: var(--ms-radius);
 }
 [data-custom-id="chat"] pre.code-pre-fallback {
   font-size: var(--text-code);
+  line-height: var(--text-code-line);
 }
 
 /* pre 带 z-index:2 且与 header 同层，会盖住绝对定位的 more 菜单。 */

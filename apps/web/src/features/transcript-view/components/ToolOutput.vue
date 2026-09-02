@@ -172,7 +172,7 @@ function onScroll(event: Event) {
   color: var(--ink-secondary);
   font-family: var(--font-mono);
   font-size: inherit;
-  line-height: 21px;
+  line-height: var(--text-code-line);
   white-space: pre;
   tab-size: 2;
 }
@@ -232,7 +232,7 @@ function onScroll(event: Event) {
   min-width: max-content;
   font-family: var(--font-code);
   font-size: var(--text-caption);
-  line-height: 22px;
+  line-height: var(--text-code-line);
   tab-size: 4;
 }
 .code-line {

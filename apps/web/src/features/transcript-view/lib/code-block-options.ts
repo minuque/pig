@@ -7,7 +7,7 @@ function cssPx(name: string, fallback: number): number {
 export function codeBlockTypography() {
   return {
     fontSize: cssPx("--text-code", 14),
-    lineHeight: cssPx("--text-code-line", 18),
+    lineHeight: cssPx("--text-code-line", 22),
     fontFamily: "var(--font-code)",
   } as const
 }
