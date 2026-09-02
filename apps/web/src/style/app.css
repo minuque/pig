@@ -86,7 +86,7 @@
   --font-mono:
     "SF Mono", "JetBrains Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, Courier,
     "PingFang SC", "Microsoft YaHei";
-  --font-code: "Sarasa Mono SC", "JetBrains Mono NL", "JetBrains Mono", var(--font-mono);
+  --font-code: "JetBrains Mono NL", "JetBrains Mono", "Sarasa Mono SC", var(--font-mono);
   --text-display-1: 64px;
   --text-display-1--line-height: 1;
   --tracking-display-1: -2.125px;

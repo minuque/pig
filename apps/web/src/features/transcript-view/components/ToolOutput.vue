@@ -157,7 +157,7 @@ function onScroll(event: Event) {
 }
 .tool-output.is-embedded {
   min-width: 0;
-  padding: var(--spacing-sm) 0 0 var(--spacing-sm);
+  padding: var(--spacing-sm);
 }
 .tool-output-pre {
   position: relative;
