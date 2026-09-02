@@ -113,7 +113,7 @@ onBeforeUnmount(() => {
   position: absolute;
   z-index: 0;
   inset: 0;
-  background: color-mix(in srgb, var(--glass-surface) var(--glass-opacity), var(--canvas-soft));
+  background: color-mix(in srgb, var(--chat-input) var(--glass-opacity), var(--canvas-soft));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
 }

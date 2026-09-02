@@ -361,7 +361,7 @@ html[data-pig-desktop-platform] .session-nav input {
   margin-bottom: var(--spacing-xs);
   padding: var(--spacing-xxs);
   border: 1px solid var(--color-border);
-  background-color: var(--nav-well);
+  background-color: var(--surface);
   box-shadow: var(--shadow-group);
   transition-duration: var(--duration-slow);
 }

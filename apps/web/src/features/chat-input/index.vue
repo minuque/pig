@@ -343,14 +343,14 @@ function onPrimaryAction() {
   z-index: 0;
   inset: 0;
   border-radius: var(--radius-xl);
-  background: var(--glass-surface);
+  background: var(--chat-input);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   content: "";
 }
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   :global(html[data-pig-desktop-platform]) :deep(.glass-shell)::before {
-    background: var(--glass-surface);
+    background: var(--chat-input);
   }
 }
 :global(html[data-pig-desktop-platform]) :deep(.glass-host) {
