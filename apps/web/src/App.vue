@@ -2,7 +2,11 @@
   <Startup :connect="pi.connect" :initialize="session.initialize">
     <AppLayout>
       <template #sidebar="{ onNavigate, collapsed, toggle }">
-        <SessionNav :collapsed="collapsed" @navigate="onNavigate" @toggle="toggle" />
+        <SessionNav
+          :collapsed="collapsed"
+          @navigate="handleSidebarNavigate($event, onNavigate)"
+          @toggle="toggle"
+        />
       </template>
       <RouterView />
     </AppLayout>
@@ -28,4 +32,9 @@ const cwd = useLocalWorkspaces()
 const session = provideSession(pi, cwd)
 provideNav(pi, cwd, session)
 provideSettings()
+
+function handleSidebarNavigate(canonicalPath: string, closeMobilePanels: () => void): void {
+  cwd.selectCwd(canonicalPath)
+  closeMobilePanels()
+}
 </script>

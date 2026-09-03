@@ -138,19 +138,19 @@ export function useWorkspaceNav(
   function rowsFor(
     searching: MaybeRefOrGetter<boolean>,
     filteredSessions?: MaybeRefOrGetter<readonly SessionMetadata[]>,
+    excludedIds?: MaybeRefOrGetter<ReadonlySet<string>>,
   ) {
     return computed((): SidebarRow[] => {
       const searchingNow = toValue(searching)
-      const sessionList =
+      const source =
         filteredSessions === undefined ? listedSessions.value : toValue(filteredSessions)
+      const excluded = excludedIds === undefined ? undefined : toValue(excludedIds)
+      const sessionList = excluded ? source.filter((session) => !excluded.has(session.id)) : source
       const ids = new Set(sessionList.map((session) => session.id))
-      const groupList =
-        filteredSessions === undefined
-          ? groups.value
-          : groups.value.map((group) => ({
-              canonicalPath: group.canonicalPath,
-              sessions: group.sessions.filter((session) => ids.has(session.id)),
-            }))
+      const groupList = groups.value.map((group) => ({
+        canonicalPath: group.canonicalPath,
+        sessions: group.sessions.filter((session) => ids.has(session.id)),
+      }))
       return sidebarRows({
         grouping: grouping.value,
         sessions: sessionList,

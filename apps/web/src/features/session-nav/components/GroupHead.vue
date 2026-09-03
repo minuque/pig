@@ -1,36 +1,38 @@
 <template>
   <div class="group-head" :class="{ 'is-open': !collapsed }">
-    <button class="group-toggle" type="button" @click="emit('toggle')">
-      <span class="mark icon-swap" :class="{ 'is-open': !collapsed }">
+    <button class="group-toggle" type="button" :aria-expanded="!collapsed" @click="emit('toggle')">
+      <ChevronRight
+        v-if="kind !== 'directory'"
+        :stroke-width="1.5"
+        class="size-icon group-caret motion-turn"
+        :class="{ 'is-on': !collapsed }"
+      />
+      <Pin v-if="kind === 'pinned'" :stroke-width="1.5" class="size-icon pin-mark" />
+      <span v-if="kind === 'directory'" class="mark icon-swap" :class="{ 'is-open': !collapsed }">
         <Folder :stroke-width="1.5" :data-visible="collapsed" class="size-icon" />
         <FolderOpen :stroke-width="1.5" :data-visible="!collapsed" class="size-icon" />
       </span>
       <span class="group-name">{{ name }}</span>
-    </button>
-    <button
-      class="group-new"
-      type="button"
-      :disabled="creating"
-      title="新会话"
-      @click.stop="emit('create')"
-    >
-      <Plus class="size-icon" />
+      <span v-if="count !== undefined" class="group-count">{{ count }}</span>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Folder, FolderOpen, Plus } from "@lucide/vue"
+import { ChevronRight, Folder, FolderOpen, Pin } from "@lucide/vue"
 
-defineProps<{
-  name: string
-  collapsed?: boolean
-  creating?: boolean
-}>()
+withDefaults(
+  defineProps<{
+    name: string
+    collapsed?: boolean
+    kind?: "directory" | "time" | "pinned"
+    count?: number | undefined
+  }>(),
+  { kind: "directory", count: undefined },
+)
 
 const emit = defineEmits<{
   toggle: []
-  create: []
 }>()
 </script>
 
@@ -66,6 +68,14 @@ const emit = defineEmits<{
   color: var(--ink-faint);
   transition: color var(--duration-fast) var(--ease-smooth);
 }
+.group-caret,
+.pin-mark {
+  flex: none;
+  color: var(--ink-faint);
+}
+.pin-mark {
+  color: var(--primary);
+}
 .group-head:hover .mark {
   color: var(--ink-muted);
 }
@@ -84,35 +94,13 @@ const emit = defineEmits<{
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.group-count {
+  flex: none;
+  color: var(--ink-faint);
+  font-size: var(--text-eyebrow);
+  font-variant-numeric: tabular-nums;
+}
 .group-head.is-open .group-name {
   color: var(--ink);
-}
-.group-new {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink-muted);
-  line-height: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-.group-head:hover .group-new,
-.group-new:focus-visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-.group-new:hover:not(:disabled),
-.group-new:focus-visible:not(:disabled) {
-  color: var(--ink);
-}
-.group-head:hover .group-new:disabled {
-  opacity: 0.45;
-  pointer-events: none;
 }
 </style>

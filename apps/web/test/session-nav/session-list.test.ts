@@ -5,6 +5,8 @@ import {
   filterSessionsForSearch,
   groupSessionsByCwd,
   sessionCardFoot,
+  sessionOutcome,
+  sidebarTimeSections,
   sidebarRows,
   sortSessionsForSidebar,
 } from "@features/session-nav/lib/session-list.js"
@@ -146,6 +148,25 @@ describe("sidebar rows", () => {
   })
 })
 
+describe("sidebarTimeSections", () => {
+  it("按本地自然日分成今天和最近并保留原顺序", () => {
+    const now = new Date(2026, 8, 3, 12).getTime()
+    const sections = sidebarTimeSections(
+      [
+        { id: "today", title: "今天", updatedAt: new Date(2026, 8, 3, 8).getTime() },
+        { id: "recent", title: "最近", updatedAt: new Date(2026, 8, 2, 23).getTime() },
+      ],
+      now,
+    )
+    expect(
+      sections.map((section) => [section.key, section.sessions.map((item) => item.id)]),
+    ).toEqual([
+      ["today", ["today"]],
+      ["recent", ["recent"]],
+    ])
+  })
+})
+
 function transcriptItem(
   partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] },
 ): TranscriptItem {
@@ -168,6 +189,7 @@ describe("session card foot", () => {
       content: [],
     })
     expect(conversationItemCount([user, timeout, timeout])).toBe(1)
+    expect(sessionOutcome([user, timeout])).toBe("error")
 
     const extras = new Map([
       ["s1", { messageCount: 2, model: { provider: "openai", id: "gpt-4" } }],
@@ -178,10 +200,11 @@ describe("session card foot", () => {
         messageCount: 5,
         model: { provider: "anthropic", id: "claude" },
       }),
-    ).toEqual({ messageCount: 5, modelProvider: "anthropic" })
+    ).toEqual({ messageCount: 5, modelProvider: "anthropic", outcome: undefined })
     expect(sessionCardFoot("s1", extras, undefined)).toEqual({
       messageCount: 2,
       modelProvider: "openai",
+      outcome: undefined,
     })
   })
 })

@@ -7,6 +7,7 @@ export interface SessionCard {
   id: string
   messageCount: number
   model?: { provider: string; id: string }
+  outcome?: "complete" | "error"
 }
 
 function transcriptText(item: TranscriptItem): string {
@@ -48,4 +49,17 @@ export function modelFromBranch(
     model = { provider: entry.provider, id: entry.modelId }
   }
   return model
+}
+
+/** 侧栏只区分正常结束与失败；aborted 视为正常停止。 */
+export function outcomeFromBranch(
+  entries: readonly SessionEntry[],
+): "complete" | "error" | undefined {
+  const items = new TranscriptProjection().transcript(entries)
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const item = items[index]
+    if (item?.role !== "assistant") continue
+    return item.status === "error" ? "error" : "complete"
+  }
+  return undefined
 }

@@ -7,6 +7,7 @@ import type {
   SidebarGrouping,
   SidebarRow,
   SidebarSession,
+  SidebarTimeSection,
 } from "@features/session-nav/type.js"
 import { sessionRecency, sessionTitle, workspaceName } from "./format.js"
 
@@ -73,13 +74,32 @@ export function groupSessionsByCwd(
   ]
 }
 
-function sidebarSession(session: SessionMetadata): SidebarSession {
+export function toSidebarSession(session: SessionMetadata): SidebarSession {
   return {
     id: session.id,
     title: sessionTitle(session),
     ...(session.cwd !== undefined ? { cwd: session.cwd } : {}),
     updatedAt: sessionRecency(session),
   }
+}
+
+/** 更新时间模式固定分成今天与最近，空组不展示。 */
+export function sidebarTimeSections(
+  sessions: readonly SidebarSession[],
+  now = Date.now(),
+): SidebarTimeSection[] {
+  const todayStart = new Date(now)
+  todayStart.setHours(0, 0, 0, 0)
+  const today: SidebarSession[] = []
+  const recent: SidebarSession[] = []
+  for (const session of sessions) {
+    const bucket = session.updatedAt >= todayStart.getTime() ? today : recent
+    bucket.push(session)
+  }
+  return [
+    ...(today.length ? [{ key: "today", name: "今天", sessions: today } as const] : []),
+    ...(recent.length ? [{ key: "recent", name: "最近", sessions: recent } as const] : []),
+  ]
 }
 
 function sliceVisible(
@@ -92,7 +112,7 @@ function sliceVisible(
   const limit = searching ? sessions.length : (revealByGroup[groupKey] ?? page)
   const visible = sessions.slice(0, limit)
   return {
-    sessions: visible.map(sidebarSession),
+    sessions: visible.map(toSidebarSession),
     more: !searching && visible.length < sessions.length,
   }
 }
@@ -161,13 +181,18 @@ export function sessionCardFoot(
   sessionId: string,
   extras: ReadonlyMap<string, SessionCardExtra>,
   live: SessionCardLive | undefined,
-): { messageCount: number | undefined; modelProvider: string } {
+): {
+  messageCount: number | undefined
+  modelProvider: string
+  outcome: "complete" | "error" | undefined
+} {
   const extra = extras.get(sessionId)
   const isLive = live?.sessionId === sessionId
   const model = isLive ? live.model : extra?.model
   return {
     messageCount: isLive ? (live.messageCount ?? extra?.messageCount) : extra?.messageCount,
     modelProvider: model?.provider ?? "",
+    outcome: isLive ? (live.outcome ?? extra?.outcome) : extra?.outcome,
   }
 }
 
@@ -193,4 +218,14 @@ export function conversationItemCount(items: readonly TranscriptItem[]): number 
     count += 1
   }
   return count
+}
+
+/** 当前分支最后一条助手消息的结果，供打开中的会话即时覆盖磁盘卡片。 */
+export function sessionOutcome(items: readonly TranscriptItem[]): "complete" | "error" | undefined {
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const item = items[index]
+    if (item?.role !== "assistant") continue
+    return item.status === "error" ? "error" : "complete"
+  }
+  return undefined
 }

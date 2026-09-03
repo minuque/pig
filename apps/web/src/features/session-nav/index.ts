@@ -1,11 +1,17 @@
-import { computed, inject, provide, ref, type InjectionKey } from "vue"
+import { computed, inject, provide, shallowRef, type InjectionKey } from "vue"
 import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
 import type { SessionContext } from "@features/session-workbench/index.js"
 import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
+import { useSessionMarkers } from "@features/session-nav/hooks/use-session-markers.js"
 import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js"
-import { conversationItemCount, sessionCardFoot } from "@features/session-nav/lib/session-list.js"
+import {
+  conversationItemCount,
+  sessionCardFoot,
+  sessionOutcome,
+} from "@features/session-nav/lib/session-list.js"
+import type { SidebarSessionState } from "@features/session-nav/type.js"
 
 export { sessionTitle, workspaceName, UNTITLED_SESSION } from "@features/session-nav/lib/format.js"
 
@@ -18,8 +24,8 @@ function createNav(
   session: SessionContext,
 ) {
   const router = useRouter()
-  const navError = ref("")
-  const cards = useSessionCards(pi.connected, pi.sessions)
+  const navError = shallowRef("")
+  const cards = useSessionCards(pi.connected, pi.sessions, session.sessionId)
   const nav = useWorkspaceNav(
     pi.sessions,
     cwd,
@@ -31,21 +37,41 @@ function createNav(
     },
     cards.loadSessionCards,
   )
+  const markers = useSessionMarkers(nav.listedSessions, session.sessionId)
+  const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
 
   const cardFootById = computed(() => {
     const liveId = session.sessionId.value
+    const liveOutcome = sessionOutcome(session.transcript.value)
     const live =
       liveId && session.projection.value
         ? {
             sessionId: liveId,
             messageCount: conversationItemCount(session.transcript.value),
             model: session.projection.value.model,
+            ...(liveOutcome ? { outcome: liveOutcome } : {}),
           }
         : undefined
     const extras = cards.sessionCards.value
-    const feet = new Map<string, { messageCount: number | undefined; modelProvider: string }>()
+    const feet = new Map<
+      string,
+      {
+        messageCount: number | undefined
+        modelProvider: string
+        state: SidebarSessionState | undefined
+      }
+    >()
     for (const item of nav.listedSessions.value) {
-      feet.set(item.id, sessionCardFoot(item.id, extras, live))
+      const foot = sessionCardFoot(item.id, extras, live)
+      const state: SidebarSessionState | undefined =
+        liveId === item.id && activeSessionRunning.value
+          ? "running"
+          : foot.outcome === "error"
+            ? "error"
+            : markers.isUnread(item)
+              ? "unread"
+              : undefined
+      feet.set(item.id, { ...foot, state })
     }
     return feet
   })
@@ -59,13 +85,17 @@ function createNav(
     setGrouping: nav.setGrouping,
     bumpGroup: nav.bumpGroup,
     toggleGroup: nav.toggleGroup,
-    rowsFor: nav.rowsFor,
+    rowsFor: (searching: Parameters<typeof nav.rowsFor>[0]) =>
+      nav.rowsFor(searching, undefined, markers.pinnedIds),
+    pinnedIds: markers.pinnedIds,
+    pinnedSessions: markers.pinnedSessions,
+    togglePinned: markers.togglePinned,
     addingWorkspace: nav.addingWorkspace,
     navError,
     lastCwd: cwd.lastCwd,
     activeWorkspaceId: computed(() => session.projection.value?.cwd),
     activeSessionId: session.sessionId,
-    activeSessionRunning: computed(() => session.projection.value?.running ?? false),
+    activeSessionRunning,
     addWorkspace: nav.addWorkspace,
     renameSession: nav.renameSession,
     deleteSession: nav.deleteSession,

@@ -14,7 +14,14 @@ export interface SidebarSession {
   updatedAt: number
 }
 
+export interface SidebarTimeSection {
+  key: "today" | "recent"
+  name: "今天" | "最近"
+  sessions: SidebarSession[]
+}
+
 export type SidebarGrouping = "updated" | "project"
+export type SidebarSessionState = "running" | "unread" | "error"
 
 export type SidebarRow =
   | {
@@ -33,10 +40,12 @@ export type SidebarRow =
 export interface SessionCardExtra {
   messageCount: number
   model?: { provider: string; id: string }
+  outcome?: "complete" | "error"
 }
 
 export interface SessionCardLive {
   sessionId: string
   messageCount?: number
   model: { provider: string; id: string }
+  outcome?: "complete" | "error"
 }

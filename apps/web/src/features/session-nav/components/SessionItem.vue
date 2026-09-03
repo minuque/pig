@@ -10,7 +10,12 @@
           @click="onCardClick"
           @keydown="onCardKeydown"
         >
-          <div class="card-line card-head">
+          <div class="card-line">
+            <span class="session-state" :aria-label="stateLabel">
+              <StreamPlaceholder v-if="state === 'running'" :size="12" text="" />
+              <span v-else-if="state" class="state-dot" :class="state"></span>
+              <span v-else class="state-placeholder"></span>
+            </span>
             <input
               v-if="renaming"
               ref="nameInput"
@@ -22,24 +27,13 @@
               @blur="commitRename"
             />
             <span v-else class="title">{{ session.title }}</span>
-            <span class="session-meta">
-              <StreamPlaceholder v-if="running" :size="12" text="" />
-              <template v-else-if="session.updatedAt">
-                <Clock :size="12" :stroke-width="1.5" class="session-clock" />
-                <time class="session-time" :datetime="new Date(session.updatedAt).toISOString()">
-                  {{ relativeTime }}
-                </time>
-              </template>
-            </span>
-          </div>
-          <div class="card-line card-foot">
-            <span v-if="grouping === 'updated'" class="card-project">
-              <Folder :stroke-width="1.5" class="size-icon workspace-mark" />
-              <span v-if="workspaceTitle" class="workspace-title">{{ workspaceTitle }}</span>
-            </span>
-            <span v-else class="card-count">
-              {{ messageCount == null ? "" : `${messageCount} 条` }}
-            </span>
+            <time
+              v-if="session.updatedAt"
+              class="session-time"
+              :datetime="new Date(session.updatedAt).toISOString()"
+            >
+              {{ relativeTime }}
+            </time>
             <span v-if="modelProvider" class="card-model">
               <VendorMark :vendor="modelProvider" :size="13" />
             </span>
@@ -47,6 +41,11 @@
         </component>
       </ContextMenuTrigger>
       <ContextMenuContent class="select-none">
+        <ContextMenuItem @select="emit('togglePinned', session.id)">
+          <PinOff v-if="pinned" :size="14" />
+          <Pin v-else :size="14" />
+          {{ pinned ? "取消置顶" : "置顶" }}
+        </ContextMenuItem>
         <ContextMenuItem @select="startRename">
           <Pencil :size="14" />
           重命名
@@ -80,7 +79,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef } from "vue"
 import { RouterLink } from "vue-router"
-import { Clock, Folder, Pencil, Trash2 } from "@lucide/vue"
+import { Pencil, Pin, PinOff, Trash2 } from "@lucide/vue"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -99,30 +98,27 @@ import {
 } from "@components/ui/context-menu/index.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import StreamPlaceholder from "@features/transcript-view/components/StreamPlaceholder.vue"
-import type { SidebarGrouping, SidebarSession } from "@features/session-nav/type.js"
+import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import VendorMark from "@features/chat-input/components/VendorMark.vue"
 
 const props = withDefaults(
   defineProps<{
     session: SidebarSession
-    workspaceTitle?: string
     active?: boolean
-    running?: boolean
-    grouping?: SidebarGrouping
+    pinned?: boolean
+    state?: SidebarSessionState | undefined
     now: number
-    messageCount?: number | null
     modelProvider?: string
   }>(),
   {
-    workspaceTitle: "",
-    grouping: "updated",
-    messageCount: null,
     modelProvider: "",
+    state: undefined,
   },
 )
 
 const emit = defineEmits<{
   navigate: []
+  togglePinned: [id: string]
   rename: [id: string, name: string]
   delete: [id: string]
 }>()
@@ -133,6 +129,12 @@ const nameInput = ref<HTMLInputElement | null>(null)
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
+const stateLabel = computed(() => {
+  if (props.state === "running") return "运行中"
+  if (props.state === "unread") return "运行完成但未打开"
+  if (props.state === "error") return "运行失败"
+  return undefined
+})
 
 function onMenuOpenChange(open: boolean) {
   menuOpen.value = open
@@ -192,12 +194,13 @@ function confirmDelete() {
   min-width: 0;
 }
 .session-card {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: var(--spacing-xs);
+  align-items: center;
+  gap: 7px;
+  height: 36px;
   min-width: 0;
-  padding: var(--spacing-xs) 10px;
+  padding-inline: 8px;
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
@@ -210,50 +213,55 @@ function confirmDelete() {
 .session-card.active {
   background: var(--interaction-selected);
 }
-.workspace-mark {
-  flex: none;
-  color: var(--ink-muted);
-  transition: color var(--duration-fast) var(--ease-smooth);
+.session-card.active::before {
+  position: absolute;
+  inset-block: 9px;
+  inset-inline-start: 0;
+  width: 2px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  content: "";
 }
 .card-line {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   min-width: 0;
-  height: 18px;
+  width: 100%;
 }
-.card-head,
-.card-foot {
-  justify-content: space-between;
-  gap: var(--spacing-xs);
+.session-state {
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  flex: none;
 }
-.card-project {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  flex: 1;
+.state-dot,
+.state-placeholder {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
 }
-.workspace-title {
+.state-dot.unread {
+  background: var(--info);
+}
+.state-dot.error {
+  background: var(--danger);
+}
+.state-placeholder {
+  opacity: 0;
+}
+.title {
   min-width: 0;
   flex: 1;
   overflow: hidden;
   color: var(--ink-muted);
-  font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-eyebrow--line-height);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.card-count {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  color: var(--ink-faint);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-smooth);
 }
 .card-model {
   display: inline-flex;
@@ -268,23 +276,8 @@ function confirmDelete() {
     filter var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth);
 }
-.title {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  color: var(--ink-muted);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--text-caption--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: color var(--duration-fast) var(--ease-smooth);
-}
-
 .session-item:hover .title,
-.session-item:hover .workspace-mark,
 .session-card[data-state="open"] .title,
-.session-card[data-state="open"] .workspace-mark,
 .session-card.active .title {
   color: var(--ink);
 }
@@ -294,25 +287,15 @@ function confirmDelete() {
   filter: none;
   color: var(--ink);
 }
-.session-card.active .workspace-mark {
-  color: var(--primary);
-}
-.session-meta {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xxs);
-}
-.session-clock {
-  flex: none;
-  color: var(--ink-faint);
-}
 .session-time {
+  min-width: 34px;
+  flex: none;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-regular);
   line-height: 16px;
+  text-align: end;
   white-space: nowrap;
 }
 .rename-input {

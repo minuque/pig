@@ -22,7 +22,12 @@ import type {
 } from "@earendil-works/pi-server"
 import { canonicalizePath } from "../directory.js"
 import type { ContextPreviewKey, ContextUsageEstimate } from "./context-usage.js"
-import { conversationMessageCount, modelFromBranch, type SessionCard } from "./session-card.js"
+import {
+  conversationMessageCount,
+  modelFromBranch,
+  outcomeFromBranch,
+  type SessionCard,
+} from "./session-card.js"
 import { sessionListName } from "./session-label.js"
 import { PiHostSession } from "./session-runtime.js"
 import { TranscriptProjection } from "./transcript.js"
@@ -259,10 +264,12 @@ export class PiHostService implements PiServerService {
 function cardsFromInfos(infos: readonly SessionInfo[]): SessionCard[] {
   return infos.map((info) => {
     let model: SessionCard["model"]
+    let outcome: SessionCard["outcome"]
     let messageCount = info.messageCount
     try {
       const branch = SessionManager.open(info.path).getBranch()
       model = modelFromBranch(branch)
+      outcome = outcomeFromBranch(branch)
       messageCount = conversationMessageCount(branch)
     } catch {
       model = undefined
@@ -271,6 +278,7 @@ function cardsFromInfos(infos: readonly SessionInfo[]): SessionCard[] {
       id: info.id,
       messageCount,
       ...(model ? { model } : {}),
+      ...(outcome ? { outcome } : {}),
     }
   })
 }

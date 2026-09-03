@@ -6,6 +6,7 @@ import { listSessionCards } from "@client/platform.js"
 export function useSessionCards(
   connected: MaybeRefOrGetter<boolean>,
   sessions: MaybeRefOrGetter<readonly { id: string; updatedAt?: number; createdAt: number }[]>,
+  refreshKey?: MaybeRefOrGetter<string | undefined>,
 ) {
   const sessionCards = shallowRef(new Map<string, Omit<SessionCard, "id">>())
   const sessionStamp = computed(() =>
@@ -24,6 +25,7 @@ export function useSessionCards(
           {
             messageCount: card.messageCount,
             ...(card.model ? { model: card.model } : {}),
+            ...(card.outcome ? { outcome: card.outcome } : {}),
           },
         ]),
       )
@@ -42,6 +44,12 @@ export function useSessionCards(
   watch(sessionStamp, () => {
     void loadSessionCards()
   })
+  if (refreshKey !== undefined) {
+    watch(
+      () => toValue(refreshKey),
+      () => void loadSessionCards(),
+    )
+  }
 
   return { sessionCards, loadSessionCards }
 }
