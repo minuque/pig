@@ -66,7 +66,6 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   width: var(--left-width);
   min-width: 0;
   min-height: 0;
-  padding: var(--spacing-xs);
   overflow: hidden;
   background: var(--sidebar);
   contain: layout style;
@@ -125,9 +124,6 @@ main {
   }
 }
 @media (min-width: 901px) {
-  .sidebar.open {
-    padding-inline-end: 0;
-  }
   .shell.left-closed .sidebar {
     width: var(--size-sidebar-rail);
   }
@@ -161,7 +157,6 @@ html[data-pig-desktop-platform] .resizer {
     inset-block: 0;
     left: 0;
     width: min(88vw, var(--size-drawer));
-    padding: var(--spacing-md);
     visibility: hidden;
     transform: translateX(-105%);
     transition:

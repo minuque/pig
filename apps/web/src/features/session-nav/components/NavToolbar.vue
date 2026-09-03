@@ -19,7 +19,6 @@ const emit = defineEmits<{
 <style scoped>
 .nav-toolbar {
   flex: none;
-  padding-inline: 2px;
 }
 .search-button {
   display: flex;
@@ -27,7 +26,7 @@ const emit = defineEmits<{
   gap: var(--spacing-xs);
   width: 100%;
   height: 34px;
-  padding-inline: 10px 8px;
+  padding-inline: 10px var(--spacing-sm);
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-md);
   background: var(--surface);

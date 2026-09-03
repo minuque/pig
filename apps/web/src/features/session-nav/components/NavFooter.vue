@@ -72,13 +72,12 @@ const emit = defineEmits<{
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-xxs);
-  padding: var(--spacing-xs) 2px 0;
+  padding: var(--spacing-xs) var(--nav-inline, var(--spacing-xs));
   border-top: var(--border-width) solid var(--hairline);
 }
 .nav-footer.is-collapsed {
   flex-direction: column;
   margin-top: auto;
-  padding-top: var(--spacing-xs);
 }
 .footer-action {
   display: flex;
