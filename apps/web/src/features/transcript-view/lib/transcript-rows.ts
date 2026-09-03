@@ -13,7 +13,7 @@ import {
   transcriptImages,
   transcriptText,
 } from "./transcript-format.js"
-import { toolGroupKey } from "./tool-summary.js"
+import { toolGroupKey, type ToolGroupKey } from "./tool-summary.js"
 
 export type TranscriptImage = { data: string; mimeType: string }
 export type UserRow = { id: string; role: "user"; text: string; images: TranscriptImage[] }
@@ -36,7 +36,7 @@ export type ToolCallView = {
   outputText: string
   outputImages: TranscriptImage[]
 }
-export type ToolGroup = { type: "tools"; id: string; key: string; items: ToolCallView[] }
+export type ToolGroup = { type: "tools"; id: string; key: ToolGroupKey; items: ToolCallView[] }
 export type ThoughtStep = {
   type: "thought"
   id: string
@@ -259,19 +259,30 @@ export function buildTimelineRows(
 
 export function toolRowLabel(row: ToolRow, _now = Date.now()): string {
   const thoughtCount = row.steps.filter((step) => step.type === "thought").length
-  const toolCounts = new Map<string, { count: number; name: string }>()
+  const toolCounts = new Map<ToolGroupKey, number>()
   for (const step of row.steps) {
     if (step.type !== "tools") continue
-    const name = step.items[0]?.toolName ?? "工具"
-    const current = toolCounts.get(step.key)
-    toolCounts.set(step.key, { count: (current?.count ?? 0) + step.items.length, name })
+    toolCounts.set(step.key, (toolCounts.get(step.key) ?? 0) + step.items.length)
   }
-  const toolLabels = [...toolCounts].map(([key, value]) => {
-    if (key === "read") return `读${value.count}次文件`
-    if (key === "search") return `搜${value.count}次`
-    if (key === "edit") return `编辑${value.count}次文件`
-    if (key === "command") return `运行${value.count}条命令`
-    return `调用 ${value.name}${value.count > 1 ? ` ${value.count}次` : ""}`
+  const toolLabels = [...toolCounts].map(([key, count]) => {
+    switch (key) {
+      case "read":
+        return `读${count}次文件`
+      case "write":
+        return `写${count}次文件`
+      case "edit":
+        return `编辑${count}次文件`
+      case "command":
+        return `运行${count}条命令`
+      case "search":
+        return `搜${count}次`
+      case "tool":
+        return `工具${count}次`
+      default: {
+        const _exhaustive: never = key
+        return _exhaustive
+      }
+    }
   })
   const summary = [thoughtCount ? `思考 ${thoughtCount}轮` : "", toolLabels.join("、")]
     .filter(Boolean)

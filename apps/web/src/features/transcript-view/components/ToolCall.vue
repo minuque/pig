@@ -179,6 +179,7 @@ const icon = computed(() => {
   switch (group.value?.key) {
     case "read":
       return FileText
+    case "write":
     case "edit":
       return Pencil
     case "search":

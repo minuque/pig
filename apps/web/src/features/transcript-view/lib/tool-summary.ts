@@ -5,12 +5,17 @@ import type { ToolCallView, ToolGroup } from "./transcript-rows.js"
 export type ToolSummaryDetail =
   { kind: "file"; name: string; path: string } | { kind: "text"; text: string }
 
-export function toolGroupKey(toolName: string): string {
+/** Pi 内置：read / write / edit / bash|powershell / grep|find|ls，其余为 tool。 */
+export type ToolGroupKey = "read" | "write" | "edit" | "command" | "search" | "tool"
+
+export function toolGroupKey(toolName: string): ToolGroupKey {
   const name = toolName.trim().toLowerCase()
+  if (name === "read") return "read"
+  if (name === "write") return "write"
+  if (name === "edit") return "edit"
   if (isCommandTool(name)) return "command"
-  if (["write", "edit"].includes(name)) return "edit"
-  if (["grep", "find", "ls"].includes(name)) return "search"
-  return name
+  if (name === "grep" || name === "find" || name === "ls") return "search"
+  return "tool"
 }
 
 export function toolSummary(items: readonly ToolCallView[]): string {
@@ -20,14 +25,15 @@ export function toolSummary(items: readonly ToolCallView[]): string {
   const count = items.length
   const key = toolGroupKey(first.toolName)
   const prefix = running ? "正在" : "已"
-  const labels: Record<string, string> = {
+  const labels = {
     read: `${prefix}读取 ${count} 个文件`,
+    write: `${prefix}写入 ${count} 个文件`,
     command: `${running ? "正在运行" : "运行了"} ${count} 条命令`,
     edit: `${prefix}编辑 ${count} 次文件`,
     search: `${prefix}搜索 ${count} 次`,
-  }
-  const label = labels[key] ?? `${prefix}调用 ${first.toolName}${count > 1 ? ` ${count} 次` : ""}`
-  return label
+    tool: `${prefix}调用 ${count} 次工具`,
+  } satisfies Record<ToolGroupKey, string>
+  return labels[key]
 }
 
 export function toolDetail(toolName: string, input: unknown): ToolSummaryDetail | null {

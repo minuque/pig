@@ -168,6 +168,29 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(work[0] && toolRowLabel(work[0])).toBe("读2次文件")
   })
 
+  it("非原生工具行摘要不带工具名", () => {
+    const rows = buildTimelineRows(
+      [
+        user,
+        assistant(0, [
+          call("t1"),
+          call("w1", "write"),
+          call("t2", "lookup_wasm_documentation"),
+          call("t3", "extension-b"),
+        ]),
+        tool("t1"),
+        tool("w1", "write"),
+        tool("t2", "lookup_wasm_documentation"),
+        tool("t3", "extension-b"),
+      ],
+      false,
+    )
+    const work = rows.find(isToolRow)
+    expect(work && toolRowLabel(work)).toBe("读1次文件、写1次文件、工具2次")
+    const custom = work?.steps.find((step) => step.type === "tools" && step.key === "tool")
+    expect(custom?.type === "tools" && toolSummary(custom.items)).toBe("已调用 1 次工具")
+  })
+
   it("连续帧：toolCall 骨架按描述顺序原位更新，不重复也不跨助手正文迁移", () => {
     const descriptors = assistant(1, [call("t1"), call("t2")])
     const first = buildTimelineRows([user, descriptors], true)
