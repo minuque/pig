@@ -49,7 +49,7 @@ export type ToolRowStep = ThoughtStep | ToolGroup
 export type ToolRow = {
   id: string
   role: "tools"
-  mode: "live" | "fold"
+  mode: "live" | "done"
   turnStreaming: boolean
   steps: ToolRowStep[]
   aborted: boolean
@@ -172,7 +172,7 @@ function appendTurn({
       const id = `${anchor}:${item.timestamp}:${itemIndex}:${index}`
       if (block.type === "thinking" && block.thinking) {
         if (pendingText) {
-          flushTools("fold")
+          flushTools("done")
           addAssistant(rows, pendingText)
           pendingText = undefined
         }
@@ -191,7 +191,7 @@ function appendTurn({
         })
       } else if (block.type === "toolCall") {
         if (pendingText) {
-          flushTools("fold")
+          flushTools("done")
           addAssistant(rows, pendingText)
           pendingText = undefined
         }
@@ -211,20 +211,20 @@ function appendTurn({
         if (pendingText) pendingText.text += block.text
         else pendingText = { ...assistantRow(item, block.text), id: `text:${id}` }
       } else if (pendingText) {
-        flushTools("fold")
+        flushTools("done")
         addAssistant(rows, pendingText)
         pendingText = undefined
       }
     }
     if (pendingText) {
-      flushTools("fold")
+      flushTools("done")
       addAssistant(rows, pendingText)
     } else if (!transcriptText(item) && (item.status === "error" || item.status === "aborted")) {
-      flushTools("fold")
+      flushTools("done")
       addAssistant(rows, assistantRow(item))
     }
   }
-  flushTools(live ? "live" : "fold")
+  flushTools(live ? "live" : "done")
 }
 
 export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt): string {

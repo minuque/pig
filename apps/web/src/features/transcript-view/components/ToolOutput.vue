@@ -32,11 +32,11 @@
   </div>
   <div v-else class="tool-output" :class="{ 'is-embedded': embedded }">
     <template v-if="showText && collapsed">
-      <pre class="tool-output-pre" :class="preClass">{{ foldedHead }}</pre>
+      <pre class="tool-output-pre" :class="preClass">{{ omittedHead }}</pre>
       <button type="button" class="omitted" @click="expanded = true">
         … 其余 {{ hiddenCount }} 行
       </button>
-      <pre class="tool-output-pre" :class="preClass">{{ foldedTail }}</pre>
+      <pre class="tool-output-pre" :class="preClass">{{ omittedTail }}</pre>
     </template>
     <template v-else-if="showText">
       <pre v-if="!virtual" class="tool-output-pre" :class="preClass">{{ text }}</pre>
@@ -73,9 +73,9 @@ import {
   DEFAULT_MAX_EXPAND_LINES,
   DEFAULT_OVERSCAN_LINES,
   splitLines,
-  TOOL_FOLD_HEAD,
-  TOOL_FOLD_TAIL,
-  toolFoldHidden,
+  TOOL_OMIT_HEAD,
+  TOOL_OMIT_TAIL,
+  hiddenLineCount,
   visibleLineRange,
 } from "@features/transcript-view/lib/expandable-text.js"
 
@@ -109,17 +109,17 @@ const props = withDefaults(
 )
 const expanded = defineModel<boolean>("expanded", { default: false })
 
-const omitIndex = TOOL_FOLD_HEAD - 1
+const omitIndex = TOOL_OMIT_HEAD - 1
 const showText = computed(() => props.text.length > 0 || props.images.length === 0)
 const sourceLines = computed(() => (props.code ? [...props.lines] : splitLines(props.text)))
-const hiddenCount = computed(() => toolFoldHidden(sourceLines.value.length))
+const hiddenCount = computed(() => hiddenLineCount(sourceLines.value.length))
 const collapsed = computed(() => hiddenCount.value > 0 && !expanded.value)
-const foldedHead = computed(() => sourceLines.value.slice(0, omitIndex).join("\n"))
-const foldedTail = computed(() => sourceLines.value.slice(-TOOL_FOLD_TAIL).join("\n"))
+const omittedHead = computed(() => sourceLines.value.slice(0, omitIndex).join("\n"))
+const omittedTail = computed(() => sourceLines.value.slice(-TOOL_OMIT_TAIL).join("\n"))
 const visibleLines = computed(() => {
   const lines = sourceLines.value.map((text, index) => ({ text, index }))
   return collapsed.value
-    ? [...lines.slice(0, TOOL_FOLD_HEAD), ...lines.slice(-TOOL_FOLD_TAIL)]
+    ? [...lines.slice(0, TOOL_OMIT_HEAD), ...lines.slice(-TOOL_OMIT_TAIL)]
     : lines
 })
 const lineNumberWidth = computed(() =>

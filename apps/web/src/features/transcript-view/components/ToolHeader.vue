@@ -7,12 +7,7 @@
     </div>
     <div class="actions">
       <slot name="meta" />
-      <button
-        v-if="foldable && hiddenCount > 0"
-        type="button"
-        class="fold"
-        @click="expanded = !expanded"
-      >
+      <button v-if="hiddenCount > 0" type="button" class="expand" @click="expanded = !expanded">
         {{ expanded ? `收起中间 ${hiddenCount} 行` : `展开其余 ${hiddenCount} 行` }}
       </button>
       <Button
@@ -45,10 +40,9 @@ const props = withDefaults(
     label: string
     text: string
     shaded?: boolean
-    foldable?: boolean
     hiddenCount?: number
   }>(),
-  { shaded: false, foldable: false, hiddenCount: 0 },
+  { shaded: false, hiddenCount: 0 },
 )
 const expanded = defineModel<boolean>("expanded", { default: false })
 
@@ -109,7 +103,7 @@ async function copy() {
   color: var(--ink-muted);
   white-space: nowrap;
 }
-.fold {
+.expand {
   padding: 0;
   border: 0;
   background: transparent;
@@ -117,7 +111,7 @@ async function copy() {
   font: inherit;
   cursor: pointer;
 }
-.fold:hover {
+.expand:hover {
   color: var(--ink);
 }
 .copy {

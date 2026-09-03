@@ -202,7 +202,7 @@ describe("运行态工具过程", () => {
     const html = await renderToolRow({
       id: "tools:middle",
       role: "tools",
-      mode: "fold",
+      mode: "done",
       turnStreaming: true,
       steps: [
         {
@@ -224,7 +224,7 @@ describe("运行态工具过程", () => {
     const html = await renderToolRow({
       id: "tools:done",
       role: "tools",
-      mode: "fold",
+      mode: "done",
       turnStreaming: false,
       steps: [
         {

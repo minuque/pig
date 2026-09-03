@@ -3,22 +3,22 @@ import { reactive, watch, type MaybeRefOrGetter, toValue } from "vue"
 /** 展开态只活在当前 Session 内存，切 Session 清空。 */
 export function useTranscriptExpand(sessionId: MaybeRefOrGetter<string>) {
   const expandedTools = reactive(new Map<string, boolean>())
-  const expandedFolds = reactive(new Map<string, boolean>())
+  const expandedRows = reactive(new Map<string, boolean>())
 
   watch(
     () => toValue(sessionId),
     () => {
       expandedTools.clear()
-      expandedFolds.clear()
+      expandedRows.clear()
     },
   )
 
   function isExpand(id: string): boolean | undefined {
-    return expandedFolds.get(id)
+    return expandedRows.get(id)
   }
 
   function toggleExpand(id: string, open: boolean) {
-    expandedFolds.set(id, open)
+    expandedRows.set(id, open)
   }
 
   function toggleTool(id: string, open: boolean) {

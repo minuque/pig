@@ -124,7 +124,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       "tools",
       "assistant",
     ])
-    expect(live.filter(isToolRow).map((row) => row.mode)).toEqual(["fold", "fold"])
+    expect(live.filter(isToolRow).map((row) => row.mode)).toEqual(["done", "done"])
     expect(live.filter(isToolRow).every((row) => row.turnStreaming)).toBe(true)
     const done = buildTimelineRows(messages, false)
     expect(done.map((row) => row.role)).toEqual([
@@ -256,7 +256,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       ],
     )
     const work = rows.filter(isToolRow)
-    expect(work.map((row) => row.mode)).toEqual(["fold", "live"])
+    expect(work.map((row) => row.mode)).toEqual(["done", "live"])
     expect(work[0] && toolRowLabel(work[0], 999999)).toBe("读1次文件")
     expect(work[1] && toolRowLabel(work[1], 12000)).toBe("运行1条命令")
   })

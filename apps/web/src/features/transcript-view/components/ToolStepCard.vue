@@ -5,7 +5,6 @@
         v-model:expanded="commandExpanded"
         label="命令"
         :text="commandContent.command"
-        :foldable="commandHidden > 0"
         :hidden-count="commandHidden"
       >
         <div class="command-heading">
@@ -30,7 +29,6 @@
         :label="readContent.path"
         :text="readContent.preview.code"
         shaded
-        :foldable="readHidden > 0"
         :hidden-count="readHidden"
       >
         <div class="read-heading">
@@ -60,7 +58,6 @@
           label="入参"
           :text="toolContent.inputFull"
           shaded
-          :foldable="inputHidden > 0"
           :hidden-count="inputHidden"
         />
         <ToolOutput
@@ -76,7 +73,6 @@
           :label="toolContent.outputLabel"
           :text="toolContent.outputText"
           shaded
-          :foldable="outputHidden > 0"
           :hidden-count="outputHidden"
         />
         <ToolOutput
@@ -104,7 +100,7 @@ import ThinkingBlocks from "@features/transcript-view/components/ThinkingBlocks.
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
-import { splitLines, toolFoldHidden } from "@features/transcript-view/lib/expandable-text.js"
+import { splitLines, hiddenLineCount } from "@features/transcript-view/lib/expandable-text.js"
 import {
   pathBasename,
   type ReadToolPreview,
@@ -176,16 +172,16 @@ const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
 const commandBody = computed(
   () => commandContent.value?.outputText || commandContent.value?.emptyOutput || "",
 )
-const commandHidden = computed(() => toolFoldHidden(splitLines(commandBody.value).length))
+const commandHidden = computed(() => hiddenLineCount(splitLines(commandBody.value).length))
 const inputHidden = computed(() =>
-  toolFoldHidden(splitLines(toolContent.value?.inputFull ?? "").length),
+  hiddenLineCount(splitLines(toolContent.value?.inputFull ?? "").length),
 )
 const outputHidden = computed(() =>
-  toolFoldHidden(
+  hiddenLineCount(
     splitLines(toolContent.value?.outputText || toolContent.value?.emptyOutput || "").length,
   ),
 )
-const readHidden = computed(() => toolFoldHidden(readContent.value?.preview.lines.length ?? 0))
+const readHidden = computed(() => hiddenLineCount(readContent.value?.preview.lines.length ?? 0))
 const languageIconUrl = computed(() => {
   void languageIconsRevision.value
   const lang = readContent.value?.preview.language

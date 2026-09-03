@@ -2,11 +2,11 @@
 export const DEFAULT_MAX_EXPAND_LINES = 32
 export const DEFAULT_LINE_HEIGHT_PX = 21
 export const DEFAULT_OVERSCAN_LINES = 8
-export const TOOL_FOLD_HEAD = 5
-export const TOOL_FOLD_TAIL = 4
+export const TOOL_OMIT_HEAD = 5
+export const TOOL_OMIT_TAIL = 4
 
-export function toolFoldHidden(lineCount: number): number {
-  return Math.max(0, lineCount - TOOL_FOLD_HEAD - TOOL_FOLD_TAIL + 1)
+export function hiddenLineCount(lineCount: number): number {
+  return Math.max(0, lineCount - TOOL_OMIT_HEAD - TOOL_OMIT_TAIL + 1)
 }
 
 const MARKDOWN_VIRTUAL_CHARS = 8_000
