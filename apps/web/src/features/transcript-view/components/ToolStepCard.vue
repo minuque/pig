@@ -87,6 +87,19 @@
         />
       </section>
     </template>
+    <template v-else-if="editContent">
+      <StreamDiff
+        v-for="(hunk, index) in editContent.hunks"
+        :key="index"
+        class="edit-diff"
+        :original="hunk.original"
+        :modified="hunk.modified"
+        :language="editContent.language"
+        :file-name="editContent.fileName"
+        diff-style="unified"
+        :options="editDiffOptions"
+      />
+    </template>
     <template v-else-if="thoughtContent">
       <ThinkingBlocks :blocks="[thoughtContent.text]" :streaming="thoughtContent.streaming" />
     </template>
@@ -95,6 +108,7 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from "vue"
+import { StreamDiff } from "stream-diffs/vue"
 import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import ThinkingBlocks from "@features/transcript-view/components/ThinkingBlocks.vue"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
@@ -105,10 +119,13 @@ import {
   pathBasename,
   type ReadToolPreview,
 } from "@features/transcript-view/lib/tool-presentation.js"
-import type { TranscriptImage as ToolStepImage } from "@features/transcript-view/type.js"
+import type {
+  EditDiffPreview,
+  TranscriptImage as ToolStepImage,
+} from "@features/transcript-view/type.js"
 
 const props = defineProps<{
-  variant: "thought" | "command" | "read" | "tool"
+  variant: "thought" | "command" | "read" | "edit" | "tool"
   text?: string
   streaming?: boolean
   command?: string
@@ -122,6 +139,7 @@ const props = defineProps<{
   preview?: ReadToolPreview
   inputFull?: string
   outputLabel?: string
+  editPreview?: EditDiffPreview
 }>()
 const commandContent = computed(() =>
   props.variant === "command"
@@ -157,6 +175,9 @@ const thoughtContent = computed(() =>
     ? { text: props.text ?? "", streaming: props.streaming ?? false }
     : null,
 )
+const editContent = computed(() =>
+  props.variant === "edit" && props.editPreview?.hunks.length ? props.editPreview : null,
+)
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
   "is-command": props.variant === "command",
@@ -164,6 +185,7 @@ const cardClasses = computed(() => ({
   "is-run": commandContent.value?.status === "running",
 }))
 const { codeBlockProps } = useColorScheme()
+const editDiffOptions = computed(() => ({ theme: codeBlockProps.value.theme }))
 const commandExpanded = ref(false)
 const inputExpanded = ref(false)
 const outputExpanded = ref(false)
@@ -319,6 +341,13 @@ watch(
   color: var(--ink-muted);
   font-size: var(--text-caption);
   overflow-wrap: anywhere;
+}
+.edit-diff {
+  max-width: 100%;
+  overflow: auto;
+}
+.edit-diff + .edit-diff {
+  border-top: var(--border-width) solid var(--hairline);
 }
 @keyframes status-pulse {
   50% {

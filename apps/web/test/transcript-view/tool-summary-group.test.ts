@@ -9,7 +9,11 @@ import type {
   ToolRow as ToolRowViewModel,
   ToolRowStep,
 } from "@features/transcript-view/type.js"
-import { directGroupItem, toolSummaryDetail } from "@features/transcript-view/lib/tool-summary.js"
+import {
+  directGroupItem,
+  editDiffPreview,
+  toolSummaryDetail,
+} from "@features/transcript-view/lib/tool-summary.js"
 
 function command(id: string): ToolCallView {
   return {
@@ -130,6 +134,31 @@ describe("工具摘要详情", () => {
       name: "a.ts",
       path: "a.ts",
     })
+  })
+
+  it("成功编辑展开用 StreamDiff，失败仍走入参输出", async () => {
+    const input = {
+      path: "apps/web/src/types/session-type.ts",
+      edits: [{ oldText: "a\n", newText: "a\nb\n" }],
+    }
+    expect(editDiffPreview(input)?.hunks).toEqual([{ original: "a\n", modified: "a\nb\n" }])
+    expect(editDiffPreview({ path: "a.ts" })).toBeNull()
+    const open = await renderOpenGroup({
+      type: "tools",
+      id: "group:e1",
+      key: "edit",
+      items: [fileCall("edit", input)],
+    })
+    expect(open).toContain("stream-diffs-vue-diff")
+    expect(open).not.toContain(">入参<")
+    const failed = await renderOpenGroup({
+      type: "tools",
+      id: "group:e2",
+      key: "edit",
+      items: [{ ...fileCall("edit", input), isError: true }],
+    })
+    expect(failed).toContain(">入参<")
+    expect(failed).not.toContain("stream-diffs-vue-diff")
   })
 })
 

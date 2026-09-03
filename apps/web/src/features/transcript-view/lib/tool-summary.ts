@@ -1,4 +1,5 @@
 import type {
+  EditDiffPreview,
   ToolCallView,
   ToolGroup,
   ToolGroupKey,
@@ -88,6 +89,18 @@ function editReplacements(input: unknown): { oldText: string; newText: string }[
     pairs.push({ oldText: input.oldText, newText: input.newText })
   }
   return pairs
+}
+
+export function editDiffPreview(input: unknown): EditDiffPreview | null {
+  const pairs = editReplacements(input)
+  if (pairs.length === 0) return null
+  const path = toolPath(input)
+  return {
+    path,
+    fileName: path ? pathBasename(path) : "file",
+    language: fileLanguage(path),
+    hunks: pairs.map((pair) => ({ original: pair.oldText, modified: pair.newText })),
+  }
 }
 
 function withLineChange(

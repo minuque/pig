@@ -97,6 +97,11 @@
               :preview="call.readPreview"
             />
             <ToolStepCard
+              v-else-if="call.editPreview"
+              variant="edit"
+              :edit-preview="call.editPreview"
+            />
+            <ToolStepCard
               v-else
               variant="tool"
               :input-full="call.isRead ? '' : call.inputFull"
@@ -140,8 +145,15 @@ import {
   type ReadToolPreview,
 } from "@features/transcript-view/lib/tool-presentation.js"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-rows.js"
-import { directGroupItem, toolDetail, toolSummary, toolSummaryDetail } from "../lib/tool-summary.js"
+import {
+  directGroupItem,
+  editDiffPreview,
+  toolDetail,
+  toolSummary,
+  toolSummaryDetail,
+} from "../lib/tool-summary.js"
 import type {
+  EditDiffPreview,
   ToolCallView,
   ToolRowStep,
   ToolSummaryDetail,
@@ -224,6 +236,7 @@ type CallView = {
   outputImages: ToolCallView["outputImages"]
   emptyOutput: string
   readPreview: ReadToolPreview | null
+  editPreview: EditDiffPreview | null
   expandable: boolean
 }
 
@@ -248,6 +261,10 @@ function presentCall(item: ToolCallView, itemOpen: boolean, direct: boolean): Ca
   ) {
     readPreview = readToolPreview(item.input, outputText)
   }
+  const editPreview =
+    itemOpen && toolName === "edit" && !item.isError && !item.running
+      ? editDiffPreview(item.input)
+      : null
   const itemDetail = toolDetail(item.toolName, item.input)
   return {
     item,
@@ -270,6 +287,7 @@ function presentCall(item: ToolCallView, itemOpen: boolean, direct: boolean): Ca
     outputImages,
     emptyOutput: item.running ? "(running…)" : "(no output)",
     readPreview,
+    editPreview,
     expandable:
       item.running ||
       isRead ||

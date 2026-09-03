@@ -51,6 +51,14 @@ export type ToolSummaryDetail =
   | { kind: "file"; name: string; path: string; added?: number; removed?: number }
   | { kind: "text"; text: string }
 
+export type EditDiffHunk = { original: string; modified: string }
+export type EditDiffPreview = {
+  path: string
+  fileName: string
+  language: string
+  hunks: EditDiffHunk[]
+}
+
 export interface TranscriptMinimapItem {
   id: string
   rowIndex: number
