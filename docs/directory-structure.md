@@ -21,6 +21,7 @@ apps/web/src/
 │   ├── layout/     # 壳层
 │   └── ui/         # shadcn-vue 基础件
 ├── features/       # 领域模块
+├── types/          # 公共类型：xxx-type.ts；三方类型：common-type.ts
 ├── router/
 └── utils/
 ```
@@ -29,12 +30,14 @@ apps/web/src/
 
 `apps/web/test/` 镜像 `src/` 分层。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
 
+`types/`：被两条及以上路径依赖的类型，按业务写成 `xxx-type.ts`，消费写 `@/types/xxx-type.js`。三方依赖类型（如 `@earendil-works/*`）放 `types/common-type.ts` 再导出，消费写 `@/types/common-type.js`；运行时值仍从原包引入。模块或组件目录内多文件共用的类型放该目录 `type.ts`。只被一个文件使用的类型留在该文件。
+
 ### features/\<module\>/
 
 ```
 index.vue        唯一视图入口
 index.ts         provide / use（有跨树共享时才建）
-types.ts         对外契约；仅本模块用的类型可放 lib/
+type.ts          本目录多文件用的类型
 components/      私有视图
 hooks/           私有 composable
 lib/             两处及以上生产消费的纯逻辑
@@ -42,20 +45,10 @@ lib/             两处及以上生产消费的纯逻辑
 
 1. 跨模块引用视图写 `index.vue`，引用组合写 `index.js`，不省略文件名。跨模块用 `@features/<module>/...`，模块内可用相对路径。
 2. 模块级 `provide` / `use` 放根目录 `index.ts`，不进 `hooks/`。
-3. 单点消费的函数放回对应 `.vue` / `hooks/`，不为测试单独抽文件。根目录不平铺 `*.ts`（`types.ts` 除外）。没有可复用逻辑时不建 `lib/`。
+3. 单点消费的函数放回对应 `.vue` / `hooks/`，不为测试单独抽文件。根目录不平铺 `*.ts`（`type.ts` 除外）。没有可复用逻辑时不建 `lib/`。
 4. `lib/` 不按子领域再切。
-5. 一个 feature 只做一件领域事。跨模块共享的类型放被依赖方。
-
-| 模块                | 职责 |
-| ------------------- | ---- |
-| `chat-input`        | 对话输入卡 |
-| `transcript-view`   | 对话时间线：消息行、工具调用、小地图 |
-| `session-nav`       | 左侧导航：会话列表、工作目录筛选 |
-| `session-workbench` | 会话工作台：欢迎页、运行时、组合入口 |
-| `startup`           | 启动门、遮罩、失败页 |
-| `theme`             | 主题切换 |
-
-`components/ui/` 只放 shadcn-vue 基础件，业务样式不回流到这里。新领域先归既有模块，边界不清再拆 feature。
+5. 一个 feature 只做一件领域事。
+6. `components/ui/` 只放 shadcn-vue 基础件，业务样式不回流到这里。新领域先归既有模块，边界不清再拆 feature。
 
 ## packages/gateway/src
 

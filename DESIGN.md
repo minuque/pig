@@ -393,9 +393,9 @@ sunset 是装饰，orange 是语义。
 
 ### Font Family
 
-**`SystemUI`**：`-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif`。
+**`SystemUI`**：`-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif`。
 
-代码与 `{typography.caption-mono}`：Geist Mono / SF Mono / JetBrains Mono / Consolas。
+代码与 `{typography.caption-mono}`：ui-monospace / SF Mono / Menlo / Consolas。
 
 `{typography.caption-mono}` 用于阶段、栏目标签，大写 + 正 tracking。
 
