@@ -137,7 +137,10 @@ export function toolWorkingDirectory(input: unknown): string {
   return hintFromKeys(input, ["cwd", "workdir", "working_directory"])
 }
 
-const KIND_LABELS: Record<string, string> = {
+type BuiltinToolName =
+  "read" | "write" | "edit" | "bash" | "powershell" | "pwsh" | "grep" | "find" | "ls"
+
+const KIND_LABELS = {
   read: "Read",
   write: "Write",
   edit: "Edit",
@@ -147,11 +150,16 @@ const KIND_LABELS: Record<string, string> = {
   grep: "Search",
   find: "Find",
   ls: "List",
+} as const satisfies Record<BuiltinToolName, string>
+
+function isBuiltinToolName(name: string): name is BuiltinToolName {
+  return Object.hasOwn(KIND_LABELS, name)
 }
 
 export function toolCallKindLabel(toolName: string): string {
   const name = toolName.trim().toLowerCase()
-  return KIND_LABELS[name] ?? (toolName.trim() || "Tool")
+  if (isBuiltinToolName(name)) return KIND_LABELS[name]
+  return toolName.trim() || "Tool"
 }
 
 export function toolCallDetail(toolName: string, input: unknown): string {

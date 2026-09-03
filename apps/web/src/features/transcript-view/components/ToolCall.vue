@@ -176,7 +176,9 @@ const detail = computed(() => (group.value ? toolSummaryDetail(group.value.items
 const detailIcon = computed(() => fileDetailIcon(detail.value))
 const icon = computed(() => {
   if (thought.value) return Lightbulb
-  switch (group.value?.key) {
+  const key = group.value?.key
+  if (!key) return Wrench
+  switch (key) {
     case "read":
       return FileText
     case "write":
@@ -186,8 +188,12 @@ const icon = computed(() => {
       return Search
     case "command":
       return SquareTerminal
-    default:
+    case "tool":
       return Wrench
+    default: {
+      const _exhaustive: never = key
+      return _exhaustive
+    }
   }
 })
 
@@ -196,7 +202,7 @@ type CallView = {
   direct: boolean
   itemOpen: boolean
   revealed: boolean
-  statusKind: string
+  statusKind: "is-err" | "is-run" | "is-ok"
   commandStatus: "error" | "running" | "success"
   statusLabel: string
   kind: string
