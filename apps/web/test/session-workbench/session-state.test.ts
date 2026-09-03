@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { TranscriptItem, UserTranscriptItem } from "@earendil-works/pi-protocol"
+import type { TranscriptItem, UserTranscriptItem } from "@/types/common-type.js"
 import {
   isSessionOpening,
   mergeLiveTranscript,

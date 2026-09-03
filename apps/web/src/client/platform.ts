@@ -2,7 +2,7 @@
  * 具名 platform HTTP API。路径字符串只出现在本文件。
  */
 import { platformRequest } from "@client/http.js"
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import type { TranscriptItem } from "@/types/common-type.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
 import type { SessionCard } from "@/types/session-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"

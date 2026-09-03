@@ -3,9 +3,7 @@ import type {
   ToolTranscriptItem,
   TranscriptItem,
   UserTranscriptItem,
-} from "@earendil-works/pi-protocol"
-
-export type { TranscriptItem }
+} from "@/types/common-type.js"
 
 export type TranscriptImageBlock = { data: string; mimeType: string }
 

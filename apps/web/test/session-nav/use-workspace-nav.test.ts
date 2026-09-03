@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { readonly, ref } from "vue"
-import type { SessionMetadata } from "@earendil-works/pi-protocol"
+import type { SessionMetadata } from "@/types/common-type.js"
 
 const { platformRequestMock } = vi.hoisted(() => ({
   platformRequestMock: vi.fn(),

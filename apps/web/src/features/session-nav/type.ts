@@ -1,4 +1,4 @@
-import type { SessionMetadata } from "@earendil-works/pi-protocol"
+import type { SessionMetadata } from "@/types/common-type.js"
 
 /** 左侧导航按 cwd 分组。 */
 export interface SessionGroup {

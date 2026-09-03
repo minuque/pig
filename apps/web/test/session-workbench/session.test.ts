@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { computed, nextTick, ref, shallowRef } from "vue"
-import type { PiClient } from "@earendil-works/pi-client"
-import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
-import type { SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol"
+import type {
+  PiClient,
+  RemoteSessionState,
+  SessionSnapshot,
+  TranscriptItem,
+} from "@/types/common-type.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"

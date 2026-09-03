@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 import { nextTick, ref } from "vue"
-import type { SessionSnapshot } from "@earendil-works/pi-protocol"
+import type { SessionSnapshot } from "@/types/common-type.js"
 import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-binding.js"
 import type { ChatInputVendor } from "@/types/chat-input-type.js"
 

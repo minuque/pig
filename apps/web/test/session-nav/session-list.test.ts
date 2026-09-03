@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
+import type { SessionMetadata, TranscriptItem } from "@/types/common-type.js"
 import {
   conversationItemCount,
   filterSessionsForSearch,

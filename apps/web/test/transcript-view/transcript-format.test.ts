@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import type { TranscriptItem } from "@/types/common-type.js"
 import {
   isVisibleTranscriptItem,
   toolCallDetail,

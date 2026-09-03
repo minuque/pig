@@ -4,7 +4,7 @@ import {
   webSocketUrl,
   type WebSocketTransportOptions,
 } from "@client/transport.js"
-import type { ByteTransportHandlers } from "@earendil-works/pi-client"
+import type { ByteTransportHandlers } from "@/types/common-type.js"
 
 type WsEvent = { wasClean?: boolean; code?: number; data?: unknown }
 

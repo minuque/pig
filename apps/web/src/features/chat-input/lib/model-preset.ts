@@ -1,4 +1,4 @@
-import type { ModelMetadata, ThinkingLevel } from "@earendil-works/pi-protocol"
+import type { ModelMetadata, ThinkingLevel } from "@/types/common-type.js"
 import type {
   ChatInputModel,
   ChatInputModelInfo,

@@ -1,4 +1,4 @@
-import type { SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
+import type { SessionMetadata, TranscriptItem } from "@/types/common-type.js"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import type {
   SessionCardExtra,

@@ -1,6 +1,6 @@
 import { computed, ref, shallowRef, toValue, type MaybeRefOrGetter, type Ref } from "vue"
 import type { Router } from "vue-router"
-import type { SessionMetadata } from "@earendil-works/pi-protocol"
+import type { SessionMetadata } from "@/types/common-type.js"
 import { errorMessage } from "@client/http.js"
 import {
   deleteSession as requestDeleteSession,

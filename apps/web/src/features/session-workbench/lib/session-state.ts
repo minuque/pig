@@ -4,7 +4,7 @@ import type {
   SessionPhase,
   SessionSnapshot,
   TranscriptItem,
-} from "@earendil-works/pi-protocol"
+} from "@/types/common-type.js"
 import { sessionTitle, UNTITLED_SESSION } from "@features/session-nav/index.js"
 import type {
   OptimisticUserMessage,

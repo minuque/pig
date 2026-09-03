@@ -8,15 +8,15 @@ import {
   watch,
 } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import type { Unsubscribe } from "@earendil-works/pi-client"
 import { RemoteSession } from "@earendil-works/pi-coding-agent/client"
-import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
 import type {
   ModelRef,
+  RemoteSessionState,
   ThinkingLevel,
   TranscriptItem,
+  Unsubscribe,
   UserTranscriptItem,
-} from "@earendil-works/pi-protocol"
+} from "@/types/common-type.js"
 import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"

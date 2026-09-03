@@ -6,8 +6,7 @@
  */
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
 import { PiClient } from "@earendil-works/pi-client"
-import type { ConnectionState, Unsubscribe } from "@earendil-works/pi-client"
-import type { ServerSnapshot } from "@earendil-works/pi-protocol"
+import type { ConnectionState, ServerSnapshot, Unsubscribe } from "@/types/common-type.js"
 import { createWebSocketByteTransportFactory, webSocketUrl } from "@client/transport.js"
 
 export interface PiClientConnectionOptions {

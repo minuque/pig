@@ -3,7 +3,7 @@ import type {
   SessionPhase,
   ThinkingLevel,
   UserTranscriptItem,
-} from "@earendil-works/pi-protocol"
+} from "@/types/common-type.js"
 
 export interface OptimisticUserMessage {
   item: UserTranscriptItem

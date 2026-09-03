@@ -1,5 +1,5 @@
 import { ref, watch, type Ref } from "vue"
-import type { SessionPhase, ThinkingLevel } from "@earendil-works/pi-protocol"
+import type { SessionPhase, ThinkingLevel } from "@/types/common-type.js"
 import { errorMessage } from "@client/http.js"
 import type { ChatInputModel, ChatInputPreset, ChatInputVendor } from "@/types/chat-input-type.js"
 import {

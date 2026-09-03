@@ -1,4 +1,4 @@
-import type { SessionMetadata } from "@earendil-works/pi-protocol"
+import type { SessionMetadata } from "@/types/common-type.js"
 
 /** 取路径最后一段作为展示名；路径为空或仅分隔符时原样返回。 */
 export function workspaceName(path: string): string {

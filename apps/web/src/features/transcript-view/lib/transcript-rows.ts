@@ -3,7 +3,7 @@ import type {
   ToolTranscriptItem,
   TranscriptItem,
   UserTranscriptItem,
-} from "@earendil-works/pi-protocol"
+} from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import type {
   AssistantRow,

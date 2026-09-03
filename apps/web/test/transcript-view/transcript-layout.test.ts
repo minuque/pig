@@ -3,7 +3,7 @@ import type {
   AssistantTranscriptItem,
   ToolTranscriptItem,
   UserTranscriptItem,
-} from "@earendil-works/pi-protocol"
+} from "@/types/common-type.js"
 import {
   buildTimelineRows,
   isToolRow,
