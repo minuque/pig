@@ -311,7 +311,7 @@ function toggleGroup() {
 }
 .summary:hover {
   background: transparent;
-  color: var(--on-primary);
+  color: var(--ink);
 }
 .failed .tool-icon {
   color: var(--danger);

@@ -1,7 +1,7 @@
 <template>
   <section class="tool-row" :class="{ live, failed: row.aborted }">
     <Button type="button" static class="summary-btn" @click="emit('toggle-expand', !revealed)">
-      <RotateCwFadingClock class="tool-row-icon" :stroke-width="1.5" />
+      <RotateCwFadingClock class="tool-row-icon" :stroke-width="2" />
       <span :class="{ shimmer: live }">{{ label }}</span>
       <ChevronRight
         class="motion-turn"
@@ -108,7 +108,7 @@ watch(
 }
 .summary-btn:hover {
   background: transparent;
-  color: var(--on-primary);
+  color: var(--ink);
 }
 .failed .summary-btn {
   color: var(--danger);
