@@ -253,7 +253,7 @@ watch(
   align-items: center;
   gap: var(--spacing-sm);
   min-width: 0;
-  font-family: var(--font-code);
+  font-family: var(--font-mono);
 }
 .status-dot {
   flex: none;
@@ -305,7 +305,7 @@ watch(
   min-width: 0;
   overflow: hidden;
   color: var(--ink);
-  font-family: var(--font-code);
+  font-family: var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

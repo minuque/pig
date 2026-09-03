@@ -192,7 +192,7 @@ function onScroll(event: Event) {
 }
 .tool-output-pre.is-embedded {
   color: var(--ink);
-  font-family: var(--font-code);
+  font-family: var(--font-mono);
   font-size: var(--text-caption);
 }
 .tool-output.is-embedded .meta {
@@ -230,7 +230,7 @@ function onScroll(event: Event) {
 }
 .code-lines {
   min-width: max-content;
-  font-family: var(--font-code);
+  font-family: var(--font-mono);
   font-size: var(--text-caption);
   line-height: var(--text-code-line);
   tab-size: 4;

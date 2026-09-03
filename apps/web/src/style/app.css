@@ -33,6 +33,7 @@
   --bubble: #f0f0ef;
   --user-prompt-bg: var(--bubble);
   --ink: #0b0b0b;
+  --ink-markdown: #000000;
   --ink-secondary: #52514e;
   --ink-muted: #52514e;
   --ink-faint: #898781;
@@ -76,12 +77,9 @@
 
   /* Typography — SystemUI per DESIGN.md */
   --font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-mono:
-    "SF Mono", "JetBrains Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, Courier,
-    "PingFang SC", "Microsoft YaHei";
-  --font-code: "JetBrains Mono NL", "JetBrains Mono", "Sarasa Mono SC", var(--font-mono);
+    ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
   --text-display-1: 64px;
   --text-display-1--line-height: 1;
   --tracking-display-1: -2.125px;
@@ -222,6 +220,7 @@
   --chat-input: #20201f;
   --bubble: #212121;
   --ink: #f0efec;
+  --ink-markdown: #ffffff;
   --ink-secondary: #e1e0d9;
   --ink-muted: #c3c2b7;
   --ink-faint: #898781;

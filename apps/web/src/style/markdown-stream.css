@@ -1,7 +1,6 @@
 [data-custom-id="chat"] {
-  /* 拉丁走 JetBrains，汉字再落到 --font-sans */
-  --ms-font-sans: var(--font-code), var(--font-sans);
-  --ms-font-mono: var(--font-code);
+  --ms-font-sans: var(--font-sans);
+  --ms-font-mono: var(--font-mono);
   --ms-text-body: var(--text-body-md);
   --ms-leading-body: 1.7;
   --ms-text-h1: var(--text-heading-3);
@@ -36,7 +35,7 @@
   --ms-border-width: var(--border-width);
   --ms-focus-ring-width: 0px;
   --ms-focus-ring-offset: 0px;
-  --ms-foreground: from var(--ink) h s l;
+  --ms-foreground: from var(--ink-markdown) h s l;
   --ms-background: from var(--surface) h s l;
   --ms-muted: from var(--canvas-soft) h s l;
   --ms-muted-foreground: from var(--ink-muted) h s l;

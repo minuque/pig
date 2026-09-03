@@ -8,6 +8,6 @@ export function codeBlockTypography() {
   return {
     fontSize: cssPx("--text-code", 14),
     lineHeight: cssPx("--text-code-line", 22),
-    fontFamily: "var(--font-code)",
+    fontFamily: "var(--font-mono)",
   } as const
 }
