@@ -1,7 +1,7 @@
 <template>
   <div class="tool-summary" :class="{ failed, running }">
     <Button type="button" static class="summary" @click="toggleGroup">
-      <component :is="icon" class="tool-icon" :stroke-width="1.5" data-icon="inline-start" />
+      <component :is="icon" class="tool-icon" data-icon="inline-start" />
       <span class="label">{{ label }}</span>
       <span
         v-if="detail"
@@ -20,7 +20,6 @@
       <ChevronRight
         class="motion-turn motion-hint"
         :class="{ 'is-on': open }"
-        :stroke-width="1.5"
         data-icon="inline-end"
       />
     </Button>

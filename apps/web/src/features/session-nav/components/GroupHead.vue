@@ -3,14 +3,13 @@
     <button class="group-toggle" type="button" :aria-expanded="!collapsed" @click="emit('toggle')">
       <ChevronRight
         v-if="kind !== 'directory'"
-        :stroke-width="1.5"
         class="size-icon group-caret motion-turn"
         :class="{ 'is-on': !collapsed }"
       />
-      <Pin v-if="kind === 'pinned'" :stroke-width="1.5" class="size-icon pin-mark" />
+      <Pin v-if="kind === 'pinned'" class="size-icon pin-mark" />
       <span v-if="kind === 'directory'" class="mark icon-swap" :class="{ 'is-open': !collapsed }">
-        <Folder :stroke-width="1.5" :data-visible="collapsed" class="size-icon" />
-        <FolderOpen :stroke-width="1.5" :data-visible="!collapsed" class="size-icon" />
+        <Folder :data-visible="collapsed" class="size-icon" />
+        <FolderOpen :data-visible="!collapsed" class="size-icon" />
       </span>
       <span class="group-name">{{ name }}</span>
       <span v-if="count !== undefined" class="group-count">{{ count }}</span>

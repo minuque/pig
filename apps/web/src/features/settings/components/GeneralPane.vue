@@ -15,7 +15,7 @@
           :title="option.label"
           @click="setScheme(option.id)"
         >
-          <component :is="option.icon" class="size-icon" :stroke-width="1.75" />
+          <component :is="option.icon" class="size-icon" />
         </button>
       </div>
     </div>

@@ -15,7 +15,7 @@
             :aria-current="tab === item.id ? 'page' : undefined"
             @click="tab = item.id"
           >
-            <component :is="item.icon" class="size-icon" :stroke-width="1.75" />
+            <component :is="item.icon" class="size-icon" />
             {{ item.label }}
           </button>
         </nav>

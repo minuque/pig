@@ -29,7 +29,7 @@
               @mouseenter="activeIndex = index"
               @click="pick(session)"
             >
-              <MessageSquare :stroke-width="1.5" class="size-icon hit-icon" />
+              <MessageSquare class="size-icon hit-icon" />
               <span class="hit-title">{{ sessionTitle(session) }}</span>
               <CornerDownLeft v-if="index === activeIndex" :size="14" class="hit-enter" />
               <time v-else class="hit-time">

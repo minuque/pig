@@ -1,14 +1,9 @@
 <template>
   <section class="tool-row" :class="{ live, failed: row.aborted }">
     <Button type="button" static class="summary-btn" @click="emit('toggle-expand', !revealed)">
-      <RotateCwFadingClock class="tool-row-icon" :stroke-width="2" />
+      <RotateCwFadingClock class="tool-row-icon" />
       <span :class="{ shimmer: live }">{{ label }}</span>
-      <ChevronRight
-        class="motion-turn"
-        :class="{ 'is-on': revealed }"
-        :stroke-width="1.5"
-        data-icon="inline-end"
-      />
+      <ChevronRight class="motion-turn" :class="{ 'is-on': revealed }" data-icon="inline-end" />
     </Button>
     <div
       class="tool-calls-group"

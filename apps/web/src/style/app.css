@@ -431,6 +431,10 @@
   height: var(--size-icon);
 }
 
+.lucide {
+  stroke-width: 1.5;
+}
+
 body {
   background: var(--canvas-soft);
   color: var(--ink);

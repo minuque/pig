@@ -1,10 +1,5 @@
 <template>
-  <LoaderCircle
-    :size="size"
-    :stroke-width="1.5"
-    class="animate-spin motion-reduce:animate-none"
-    :class="props.class"
-  />
+  <LoaderCircle :size="size" class="animate-spin motion-reduce:animate-none" :class="props.class" />
 </template>
 
 <script setup lang="ts">
