@@ -1,0 +1,42 @@
+import type { SessionMetadata } from "@earendil-works/pi-protocol"
+
+/** 左侧导航按 cwd 分组。 */
+export interface SessionGroup {
+  canonicalPath: string
+  sessions: SessionMetadata[]
+}
+
+/** 侧栏会话行：id、标题、时间；cwd 供组名展示。 */
+export interface SidebarSession {
+  id: string
+  title: string
+  cwd?: string
+  updatedAt: number
+}
+
+export type SidebarGrouping = "updated" | "project"
+
+export type SidebarRow =
+  | {
+      kind: "group"
+      key: string
+      canonicalPath: string
+      first: boolean
+      collapsed: boolean
+      sessions: SidebarSession[]
+      more: boolean
+    }
+  | { kind: "session"; key: string; session: SidebarSession }
+  | { kind: "more"; key: string; groupKey: string }
+
+/** 协议列表不带的卡片脚注：消息数 + 当前模型。 */
+export interface SessionCardExtra {
+  messageCount: number
+  model?: { provider: string; id: string }
+}
+
+export interface SessionCardLive {
+  sessionId: string
+  messageCount?: number
+  model: { provider: string; id: string }
+}

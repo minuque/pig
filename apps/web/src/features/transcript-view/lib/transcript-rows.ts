@@ -4,7 +4,16 @@ import type {
   TranscriptItem,
   UserTranscriptItem,
 } from "@earendil-works/pi-protocol"
-import type { TurnTiming } from "@client/platform.js"
+import type { TurnTiming } from "@/types/turn-type.js"
+import type {
+  AssistantRow,
+  ThoughtStep,
+  TimelineRow,
+  ToolCallView,
+  ToolGroupKey,
+  ToolRow,
+  ToolRowStep,
+} from "@features/transcript-view/type.js"
 import {
   isAssistantItem,
   isToolItem,
@@ -13,50 +22,7 @@ import {
   transcriptImages,
   transcriptText,
 } from "./transcript-format.js"
-import { toolGroupKey, type ToolGroupKey } from "./tool-summary.js"
-
-export type TranscriptImage = { data: string; mimeType: string }
-export type UserRow = { id: string; role: "user"; text: string; images: TranscriptImage[] }
-export type AssistantRow = {
-  id: string
-  role: "assistant"
-  text: string
-  streaming: boolean
-  error: boolean
-  aborted: boolean
-  errorMessage?: string
-  retryCount?: number
-}
-export type ToolCallView = {
-  id: string
-  toolName: string
-  running: boolean
-  isError: boolean
-  input: unknown
-  outputText: string
-  outputImages: TranscriptImage[]
-}
-export type ToolGroup = { type: "tools"; id: string; key: ToolGroupKey; items: ToolCallView[] }
-export type ThoughtStep = {
-  type: "thought"
-  id: string
-  text: string
-  streaming: boolean
-  startedAt: number
-  endedAt?: number
-}
-export type ToolRowStep = ThoughtStep | ToolGroup
-export type ToolRow = {
-  id: string
-  role: "tools"
-  mode: "live" | "done"
-  turnStreaming: boolean
-  steps: ToolRowStep[]
-  aborted: boolean
-  error: boolean
-  timing?: TurnTiming
-}
-export type TimelineRow = UserRow | AssistantRow | ToolRow
+import { toolGroupKey } from "./tool-summary.js"
 
 export function isToolRow(row: TimelineRow): row is ToolRow {
   return row.role === "tools"

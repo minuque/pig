@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import type { ChatInputPreset } from "@features/chat-input/types.js"
+import type { ChatInputPreset } from "@/types/chat-input-type.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import ChatInput from "@features/chat-input/index.vue"

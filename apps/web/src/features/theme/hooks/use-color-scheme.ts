@@ -1,9 +1,8 @@
 import { useColorMode } from "@vueuse/core"
 import { computed, nextTick } from "vue"
+import type { ColorScheme } from "@/types/theme-type.js"
 
 const STORAGE_KEY = "npg-theme"
-
-export type ColorScheme = "auto" | "light" | "dark"
 
 /** 主题读写只放 theme 模块；其它 feature 只消费 isDark / scheme / codeBlockProps / toggle / setScheme。 */
 export function useColorScheme() {

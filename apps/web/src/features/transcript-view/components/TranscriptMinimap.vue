@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
-import type { TranscriptMinimapItem } from "@features/transcript-view/lib/transcript-minimap.js"
+import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {
   MINIMAP_RAIL_WIDTH,
   resolveMinimapHeightStyle,

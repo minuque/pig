@@ -3,27 +3,9 @@
  */
 import { platformRequest } from "@client/http.js"
 import type { TranscriptItem } from "@earendil-works/pi-protocol"
-
-export interface SessionCard {
-  id: string
-  messageCount: number
-  model?: { provider: string; id: string }
-}
-
-export interface ContextUsageEstimate {
-  used: number
-  window: number
-  segments: {
-    systemPrompt: number
-    memory: number
-    skills: number
-    tools: number
-    toolResults: number
-    conversation: number
-    other: number
-    idle: number
-  }
-}
+import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
+import type { SessionCard } from "@/types/session-type.js"
+import type { TurnTiming } from "@/types/turn-type.js"
 
 export async function selectDirectory(
   path?: string,
@@ -45,11 +27,6 @@ export async function listSessionCards(): Promise<SessionCard[]> {
   const result = await platformRequest<{ cards: SessionCard[] }>("/api/v1/platform/session-cards")
   return result.cards
 }
-
-export type TurnTiming = { userId: string; startedAt: number } & (
-  | { outcome: "running"; endedAt?: never }
-  | { outcome: "complete" | "error" | "aborted"; endedAt: number }
-)
 
 function isTurnTiming(value: unknown): value is TurnTiming {
   if (

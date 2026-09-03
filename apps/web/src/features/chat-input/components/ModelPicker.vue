@@ -103,12 +103,7 @@
 import { Search, Star } from "@lucide/vue"
 import { useVirtualList } from "@vueuse/core"
 import { computed, nextTick, ref, watch } from "vue"
-import {
-  modelLabel,
-  sameModel,
-  type ChatInputModel,
-  type ChatInputVendor,
-} from "@features/chat-input/types.js"
+import type { ChatInputModel, ChatInputVendor } from "@/types/chat-input-type.js"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,7 +115,9 @@ import { useModelFavorites } from "@features/chat-input/hooks/use-model-favorite
 import {
   FAVORITES_SCOPE,
   listPickerRows,
+  modelLabel,
   resolveModelInfo,
+  sameModel,
 } from "@features/chat-input/lib/model-preset.js"
 
 const props = withDefaults(

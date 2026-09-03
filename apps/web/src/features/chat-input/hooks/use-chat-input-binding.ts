@@ -1,15 +1,13 @@
 import { ref, watch, type Ref } from "vue"
 import type { SessionPhase, ThinkingLevel } from "@earendil-works/pi-protocol"
 import { errorMessage } from "@client/http.js"
-import { resolveModelInfo } from "@features/chat-input/lib/model-preset.js"
+import type { ChatInputModel, ChatInputPreset, ChatInputVendor } from "@/types/chat-input-type.js"
 import {
   defaultPresetFrom,
+  resolveModelInfo,
   sameModel,
   thinkingLevelOf,
-  type ChatInputModel,
-  type ChatInputPreset,
-  type ChatInputVendor,
-} from "@features/chat-input/types.js"
+} from "@features/chat-input/lib/model-preset.js"
 
 interface ChatInputSnapshot {
   model: ChatInputModel

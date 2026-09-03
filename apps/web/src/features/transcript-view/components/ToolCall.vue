@@ -128,18 +128,13 @@ import {
   readToolPreview,
   type ReadToolPreview,
 } from "@features/transcript-view/lib/tool-presentation.js"
-import {
-  thoughtStepLabel,
-  type ToolCallView,
-  type ToolRowStep,
-} from "@features/transcript-view/lib/transcript-rows.js"
-import {
-  toolDetail,
-  toolSummary,
-  toolSummaryDetail,
-  type ToolSummaryDetail,
-  directGroupItem,
-} from "../lib/tool-summary.js"
+import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-rows.js"
+import { directGroupItem, toolDetail, toolSummary, toolSummaryDetail } from "../lib/tool-summary.js"
+import type {
+  ToolCallView,
+  ToolRowStep,
+  ToolSummaryDetail,
+} from "@features/transcript-view/type.js"
 
 const props = defineProps<{
   step: ToolRowStep

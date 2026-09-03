@@ -1,5 +1,5 @@
 import { computed, onBeforeUnmount, shallowRef, watch, type MaybeRefOrGetter, toValue } from "vue"
-import type { TimelineRow } from "@features/transcript-view/lib/transcript-rows.js"
+import type { TimelineRow } from "@features/transcript-view/type.js"
 import {
   deriveTranscriptMinimapItems,
   resolveMinimapHitStripWidth,

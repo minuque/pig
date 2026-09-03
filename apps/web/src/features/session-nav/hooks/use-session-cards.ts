@@ -1,5 +1,6 @@
 import { computed, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
-import { listSessionCards, type SessionCard } from "@client/platform.js"
+import type { SessionCard } from "@/types/session-type.js"
+import { listSessionCards } from "@client/platform.js"
 
 /** 连接后与 Session id 集合变化时拉卡片；失败不挡列表。不用 updatedAt 当刷新键。 */
 export function useSessionCards(

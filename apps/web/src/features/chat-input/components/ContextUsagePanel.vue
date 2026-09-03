@@ -87,12 +87,11 @@ import {
   splitLines,
 } from "@features/transcript-view/lib/expandable-text.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
+import type { ContextUsage, ContextUsageSegment } from "@features/chat-input/type.js"
 import {
   contextUsageSummary,
   formatTokenCount,
   segmentShare,
-  type ContextUsage,
-  type ContextUsageSegment,
 } from "@features/chat-input/lib/context-usage.js"
 
 const props = defineProps<{

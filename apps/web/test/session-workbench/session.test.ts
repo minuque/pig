@@ -5,7 +5,7 @@ import type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
 import type { SessionSnapshot, TranscriptItem } from "@earendil-works/pi-protocol"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
-import type { ContextUsageEstimate } from "@features/chat-input/lib/context-usage.js"
+import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
 
 const {
   openMock,

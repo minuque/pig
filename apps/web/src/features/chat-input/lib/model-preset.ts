@@ -1,8 +1,11 @@
+import type { ModelMetadata, ThinkingLevel } from "@earendil-works/pi-protocol"
 import type {
   ChatInputModel,
   ChatInputModelInfo,
+  ChatInputPreset,
   ChatInputVendor,
-} from "@features/chat-input/types.js"
+} from "@/types/chat-input-type.js"
+import { vendorDisplayName } from "@features/chat-input/lib/vendor-logo.js"
 
 function filterCatalog(catalog: ChatInputVendor[], query: string): ChatInputVendor[] {
   const q = query.trim().toLowerCase()
@@ -49,4 +52,56 @@ export function resolveModelInfo(catalog: ChatInputVendor[], ref: ChatInputModel
   const vendor = catalog.find((item) => item.id === ref?.provider)
   const model = vendor?.models.find((item) => item.id === ref?.id)
   return { vendor, model, levels: model?.thinkingLevels ?? [] }
+}
+
+export function sameModel(a: ChatInputModel | undefined, b: ChatInputModel | undefined): boolean {
+  return a?.provider === b?.provider && a?.id === b?.id
+}
+
+export function modelLabel(model: ChatInputModel | undefined): string {
+  return model ? `${model.provider}/${model.id}` : "—"
+}
+
+/** 官方 ModelMetadata → 供应商目录；保留服务端顺序。 */
+export function catalogFromModels(models: readonly ModelMetadata[]): ChatInputVendor[] {
+  const vendors = new Map<string, ChatInputVendor>()
+  for (const model of models) {
+    const vendor = vendors.get(model.provider) ?? {
+      id: model.provider,
+      name: vendorDisplayName(model.provider),
+      models: [],
+    }
+    vendor.models.push({
+      id: model.id,
+      name: model.name,
+      thinkingLevels: [...model.supportedThinkingLevels],
+      contextWindow: model.contextWindow,
+    })
+    vendors.set(model.provider, vendor)
+  }
+  return [...vendors.values()]
+}
+
+/** 目录首个可用模型的默认执行档；目录为空时返回 undefined。 */
+export function defaultPresetFrom(
+  catalog: readonly ChatInputVendor[],
+): ChatInputPreset | undefined {
+  for (const vendor of catalog) {
+    const first = vendor.models[0]
+    if (!first) continue
+    return {
+      model: { provider: vendor.id, id: first.id },
+      thinkingLevel: first.thinkingLevels[0] ?? "",
+    }
+  }
+  return undefined
+}
+
+/** 字符串 thinkingLevel → 官方 ThinkingLevel；未知值回退 "off"。 */
+export function thinkingLevelOf(level: string): ThinkingLevel {
+  return (["off", "minimal", "low", "medium", "high", "xhigh", "max"] as const).includes(
+    level as ThinkingLevel,
+  )
+    ? (level as ThinkingLevel)
+    : "off"
 }

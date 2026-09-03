@@ -1,12 +1,11 @@
+import type {
+  ToolCallView,
+  ToolGroup,
+  ToolGroupKey,
+  ToolSummaryDetail,
+} from "@features/transcript-view/type.js"
 import { isCommandTool, toolCallDetail, toolPath } from "./transcript-format.js"
 import { fileLanguage, pathBasename } from "./tool-presentation.js"
-import type { ToolCallView, ToolGroup } from "./transcript-rows.js"
-
-export type ToolSummaryDetail =
-  { kind: "file"; name: string; path: string } | { kind: "text"; text: string }
-
-/** Pi 内置：read / write / edit / bash|powershell / grep|find|ls，其余为 tool。 */
-export type ToolGroupKey = "read" | "write" | "edit" | "command" | "search" | "tool"
 
 export function toolGroupKey(toolName: string): ToolGroupKey {
   const name = toolName.trim().toLowerCase()

@@ -7,8 +7,8 @@ import {
   sessionCardFoot,
   sidebarRows,
   sortSessionsForSidebar,
-  type SidebarRow,
 } from "@features/session-nav/lib/session-list.js"
+import type { SidebarRow } from "@features/session-nav/type.js"
 
 function flattenRowKinds(
   rows: readonly SidebarRow[],

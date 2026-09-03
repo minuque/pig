@@ -20,15 +20,12 @@ import type {
 import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
-import {
-  contextUsage,
-  sessionTranscript,
-  type ContextUsageEstimate,
-  type TurnTiming,
-} from "@client/platform.js"
+import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
+import type { TurnTiming } from "@/types/turn-type.js"
+import { contextUsage, sessionTranscript } from "@client/platform.js"
 import { projectContextUsage } from "@features/chat-input/lib/context-usage.js"
 import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-binding.js"
-import { catalogFromModels, thinkingLevelOf } from "@features/chat-input/types.js"
+import { catalogFromModels, thinkingLevelOf } from "@features/chat-input/lib/model-preset.js"
 import {
   isSessionOpening,
   mergeLiveTranscript,
@@ -36,8 +33,8 @@ import {
   projectOptimisticTranscript,
   projectSessionSnapshot,
   sessionState,
-  type SessionProjection,
 } from "@features/session-workbench/lib/session-state.js"
+import type { SessionProjection } from "@features/session-workbench/type.js"
 
 interface CreateSessionInput {
   cwd: string

@@ -110,18 +110,14 @@ import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel
 import ModelPicker from "@features/chat-input/components/ModelPicker.vue"
 import ThinkingLevelSelect from "@features/chat-input/components/ThinkingLevelSelect.vue"
 import PromptEditor from "@features/chat-input/components/PromptEditor.vue"
-import { type ContextUsage } from "@features/chat-input/lib/context-usage.js"
+import type { ChatInputModel, ChatInputPreset, ChatInputVendor } from "@/types/chat-input-type.js"
+import type { ContextUsage } from "@features/chat-input/type.js"
 import { resolveModelInfo } from "@features/chat-input/lib/model-preset.js"
 import {
   MAX_CHAT_INPUT_ATTACHMENTS,
   imageFilesFromClipboard,
   useChatInputAttachments,
 } from "@features/chat-input/hooks/use-chat-input-attachments.js"
-import type {
-  ChatInputModel,
-  ChatInputPreset,
-  ChatInputVendor,
-} from "@features/chat-input/types.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = withDefaults(

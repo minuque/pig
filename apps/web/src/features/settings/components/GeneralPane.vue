@@ -24,7 +24,8 @@
 
 <script setup lang="ts">
 import { Monitor, Moon, Sun } from "@lucide/vue"
-import { useColorScheme, type ColorScheme } from "@features/theme/hooks/use-color-scheme.js"
+import type { ColorScheme } from "@/types/theme-type.js"
+import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const { scheme, setScheme } = useColorScheme()
 

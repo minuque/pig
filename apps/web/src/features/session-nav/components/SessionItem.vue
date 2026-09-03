@@ -99,7 +99,7 @@ import {
 } from "@components/ui/context-menu/index.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import StreamPlaceholder from "@features/transcript-view/components/StreamPlaceholder.vue"
-import type { SidebarGrouping, SidebarSession } from "@features/session-nav/lib/session-list.js"
+import type { SidebarGrouping, SidebarSession } from "@features/session-nav/type.js"
 import VendorMark from "@features/chat-input/components/VendorMark.vue"
 
 const props = withDefaults(

@@ -139,7 +139,7 @@ import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionSearch from "@features/session-nav/components/SessionSearch.vue"
 import { useSettings } from "@features/settings/index.js"
-import type { SidebarRow } from "@features/session-nav/lib/session-list.js"
+import type { SidebarRow } from "@features/session-nav/type.js"
 
 defineProps<{
   collapsed?: boolean

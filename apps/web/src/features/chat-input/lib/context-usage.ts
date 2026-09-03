@@ -1,29 +1,5 @@
-import type { ContextUsageEstimate } from "@client/platform.js"
-
-export type { ContextUsageEstimate }
-
-export interface ContextUsageSegment {
-  id:
-    | "systemPrompt"
-    | "memory"
-    | "skills"
-    | "tools"
-    | "toolResults"
-    | "conversation"
-    | "other"
-    | "idle"
-  label: string
-  tokens: number
-  color: string
-  previewable: boolean
-}
-
-export interface ContextUsage {
-  used: number
-  window: number
-  percent: number
-  segments: ContextUsageSegment[]
-}
+import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
+import type { ContextUsage } from "@features/chat-input/type.js"
 
 function finiteTokens(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest"
 import { nextTick, ref } from "vue"
 import type { SessionSnapshot } from "@earendil-works/pi-protocol"
 import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-binding.js"
-import type { ChatInputVendor } from "@features/chat-input/types.js"
+import type { ChatInputVendor } from "@/types/chat-input-type.js"
 
 const catalog: ChatInputVendor[] = [
   { id: "a", name: "A", models: [{ id: "one", name: "One", thinkingLevels: ["high"] }] },

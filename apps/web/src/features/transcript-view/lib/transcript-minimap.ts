@@ -1,4 +1,4 @@
-import type { TimelineRow } from "@features/transcript-view/lib/transcript-rows.js"
+import type { TimelineRow, TranscriptMinimapItem } from "@features/transcript-view/type.js"
 
 export const MINIMAP_MIN_ITEMS = 2
 export const MINIMAP_CONTENT_MAX_WIDTH = 920
@@ -6,13 +6,6 @@ export const MINIMAP_HIT_STRIP_LEFT = 12
 export const MINIMAP_HIT_STRIP_MAX_WIDTH = 40
 export const MINIMAP_RAIL_PITCH = 12
 export const MINIMAP_RAIL_WIDTH = 44
-
-export interface TranscriptMinimapItem {
-  id: string
-  rowIndex: number
-  userText: string | null
-  assistantText: string | null
-}
 
 function compactMinimapPreview(text: string | null | undefined): string | null {
   const compact = text?.replace(/\s+/g, " ").trim() ?? ""

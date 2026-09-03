@@ -67,7 +67,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
-import type { TranscriptImage as ToolImage } from "@features/transcript-view/lib/transcript-rows.js"
+import type { TranscriptImage as ToolImage } from "@features/transcript-view/type.js"
 import {
   DEFAULT_LINE_HEIGHT_PX,
   DEFAULT_MAX_EXPAND_LINES,

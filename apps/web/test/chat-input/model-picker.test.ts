@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { catalogFromModels, type ChatInputVendor } from "@features/chat-input/types.js"
+import type { ChatInputVendor } from "@/types/chat-input-type.js"
+import { catalogFromModels } from "@features/chat-input/lib/model-preset.js"
 import { FAVORITES_SCOPE, listPickerRows } from "@features/chat-input/lib/model-preset.js"
 import {
   parseFavoriteModels,

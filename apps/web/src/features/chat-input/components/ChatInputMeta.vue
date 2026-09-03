@@ -31,7 +31,7 @@
 
 <script lang="ts">
 import { workspaceName } from "@features/session-nav/index.js"
-import type { ContextUsage } from "@features/chat-input/lib/context-usage.js"
+import type { ContextUsage } from "@features/chat-input/type.js"
 
 const RING_RADIUS = 6
 export const USAGE_RING_LENGTH = 2 * Math.PI * RING_RADIUS

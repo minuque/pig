@@ -8,7 +8,7 @@ import type {
   ToolGroup,
   ToolRow as ToolRowViewModel,
   ToolRowStep,
-} from "@features/transcript-view/lib/transcript-rows.js"
+} from "@features/transcript-view/type.js"
 import { directGroupItem, toolSummaryDetail } from "@features/transcript-view/lib/tool-summary.js"
 
 function command(id: string): ToolCallView {

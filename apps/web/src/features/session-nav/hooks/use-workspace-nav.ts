@@ -14,9 +14,8 @@ import {
   groupSessionsByCwd,
   listSessionsForSidebar,
   sidebarRows,
-  type SidebarGrouping,
-  type SidebarRow,
 } from "@features/session-nav/lib/session-list.js"
+import type { SidebarGrouping, SidebarRow } from "@features/session-nav/type.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 

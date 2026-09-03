@@ -90,12 +90,10 @@ import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
-import {
-  MINIMAP_MIN_ITEMS,
-  type TranscriptMinimapItem,
-} from "@features/transcript-view/lib/transcript-minimap.js"
+import type { TurnTiming } from "@/types/turn-type.js"
+import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TranscriptItem } from "@features/transcript-view/lib/transcript-format.js"
-import type { TurnTiming } from "@client/platform.js"
+import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import { buildTimelineRows, isToolRow } from "@features/transcript-view/lib/transcript-rows.js"
 import { shouldShowScrollToLatest } from "@features/transcript-view/lib/transcript-scroll.js"
 import { useSession } from "@features/session-workbench/index.js"

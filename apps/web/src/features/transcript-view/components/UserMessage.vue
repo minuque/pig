@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
-import type { UserRow } from "@features/transcript-view/lib/transcript-rows.js"
+import type { UserRow } from "@features/transcript-view/type.js"
 
 defineProps<{
   item: UserRow

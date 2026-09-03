@@ -1,25 +1,16 @@
 import { reactive } from "vue"
 import type {
-  ModelRef,
   SessionMetadata,
   SessionPhase,
   SessionSnapshot,
-  ThinkingLevel,
   TranscriptItem,
-  UserTranscriptItem,
 } from "@earendil-works/pi-protocol"
 import { sessionTitle, UNTITLED_SESSION } from "@features/session-nav/index.js"
-
-export interface OptimisticUserMessage {
-  item: UserTranscriptItem
-  knownItemIds: readonly string[]
-}
-
-/** 每 Session 的 UI 私有状态（草稿、乐观用户句），不进入任何 Agent Domain。 */
-export interface SessionClientState {
-  draft: string
-  optimisticUser: OptimisticUserMessage | null
-}
+import type {
+  OptimisticUserMessage,
+  SessionClientState,
+  SessionProjection,
+} from "@features/session-workbench/type.js"
 
 export function sessionState(states: Map<string, SessionClientState>, sessionId: string) {
   let state = states.get(sessionId)
@@ -96,18 +87,6 @@ export function projectOptimisticTranscript(
   if (confirmedIndex >= 0) return items
 
   return [...items.slice(0, insertionIndex), optimistic.item, ...items.slice(insertionIndex)]
-}
-
-/** SessionSnapshot 的 UI 展示投影：以快照为权威，重连后整体覆盖，不增量修补。 */
-export interface SessionProjection {
-  id: string
-  name: string
-  cwd: string
-  model: ModelRef
-  thinkingLevel: ThinkingLevel
-  phase: SessionPhase
-  running: boolean
-  updatedAt: number
 }
 
 export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjection {

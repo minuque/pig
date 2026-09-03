@@ -35,7 +35,8 @@ import { computed, shallowRef, watch } from "vue"
 import { ChevronRight, RotateCwFadingClock } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import ToolCall from "./ToolCall.vue"
-import { toolRowLabel, type ToolRow } from "../lib/transcript-rows.js"
+import { toolRowLabel } from "../lib/transcript-rows.js"
+import type { ToolRow } from "../type.js"
 
 const props = defineProps<{
   row: ToolRow

@@ -105,7 +105,7 @@ import {
   pathBasename,
   type ReadToolPreview,
 } from "@features/transcript-view/lib/tool-presentation.js"
-import type { TranscriptImage as ToolStepImage } from "@features/transcript-view/lib/transcript-rows.js"
+import type { TranscriptImage as ToolStepImage } from "@features/transcript-view/type.js"
 
 const props = defineProps<{
   variant: "thought" | "command" | "read" | "tool"
