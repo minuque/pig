@@ -24,7 +24,7 @@ function command(id: string): ToolCallView {
 }
 
 async function renderGroup(group: ToolGroup): Promise<string> {
-  const app = createSSRApp(ToolCall, { step: group, expanded: new Map() })
+  const app = createSSRApp(ToolCall, { step: group, isExpand: new Map() })
   app.config.warnHandler = (message) => {
     if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
   }
@@ -34,7 +34,7 @@ async function renderGroup(group: ToolGroup): Promise<string> {
 async function renderOpenGroup(group: ToolGroup): Promise<string> {
   const app = createSSRApp(ToolCall, {
     step: group,
-    expanded: new Map([[group.id, true]]),
+    isExpand: new Map([[group.id, true]]),
   })
   app.config.warnHandler = (message) => {
     if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
@@ -43,7 +43,7 @@ async function renderOpenGroup(group: ToolGroup): Promise<string> {
 }
 
 async function renderStep(step: Exclude<ToolRowStep, { type: "assistant" }>): Promise<string> {
-  const app = createSSRApp(ToolCall, { step, expanded: new Map() })
+  const app = createSSRApp(ToolCall, { step, isExpand: new Map() })
   app.config.warnHandler = (message) => {
     if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
   }
@@ -53,7 +53,7 @@ async function renderStep(step: Exclude<ToolRowStep, { type: "assistant" }>): Pr
 async function renderToolRow(row: ToolRowViewModel): Promise<string> {
   const app = createSSRApp(ToolRow, {
     row,
-    foldOpen: false,
+    isExpand: false,
     expandedTools: new Map(),
   })
   app.config.warnHandler = (message) => {

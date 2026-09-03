@@ -1,6 +1,6 @@
 <template>
   <section class="tool-row" :class="{ live, failed: row.aborted }">
-    <Button type="button" static class="summary-btn" @click="emit('toggle-fold', !revealed)">
+    <Button type="button" static class="summary-btn" @click="emit('toggle-expand', !revealed)">
       <GitBranch class="tool-row-icon" :stroke-width="1.5" />
       <span :class="{ shimmer: live }">{{ label }}</span>
       <ChevronRight
@@ -20,7 +20,7 @@
           <div v-for="step in row.steps" :key="step.id" class="step">
             <ToolCall
               :step="step"
-              :expanded="expandedTools"
+              :is-expand="expandedTools"
               @toggle="emit('toggle-tool', $event.id, $event.open)"
             />
           </div>
@@ -39,15 +39,15 @@ import { toolRowLabel, type ToolRow } from "../lib/transcript-rows.js"
 
 const props = defineProps<{
   row: ToolRow
-  foldOpen: boolean | undefined
+  isExpand: boolean | undefined
   expandedTools: Map<string, boolean>
 }>()
 const emit = defineEmits<{
-  "toggle-fold": [open: boolean]
+  "toggle-expand": [open: boolean]
   "toggle-tool": [id: string, open: boolean]
 }>()
 const live = computed(() => props.row.mode === "live")
-const revealed = computed(() => props.row.turnStreaming || props.foldOpen === true)
+const revealed = computed(() => props.row.turnStreaming || props.isExpand === true)
 const rendered = shallowRef(revealed.value)
 const expanded = shallowRef(revealed.value)
 

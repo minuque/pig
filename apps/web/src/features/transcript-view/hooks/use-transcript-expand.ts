@@ -13,11 +13,11 @@ export function useTranscriptExpand(sessionId: MaybeRefOrGetter<string>) {
     },
   )
 
-  function isFoldOpen(id: string): boolean | undefined {
+  function isExpand(id: string): boolean | undefined {
     return expandedFolds.get(id)
   }
 
-  function toggleFold(id: string, open: boolean) {
+  function toggleExpand(id: string, open: boolean) {
     expandedFolds.set(id, open)
   }
 
@@ -25,5 +25,5 @@ export function useTranscriptExpand(sessionId: MaybeRefOrGetter<string>) {
     expandedTools.set(id, open)
   }
 
-  return { expandedTools, isFoldOpen, toggleFold, toggleTool }
+  return { expandedTools, isExpand, toggleExpand, toggleTool }
 }

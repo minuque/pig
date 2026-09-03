@@ -61,9 +61,9 @@
               <ToolRow
                 v-else-if="isToolRow(row)"
                 :row="row"
-                :fold-open="isFoldOpen(row.id)"
+                :is-expand="isExpand(row.id)"
                 :expanded-tools="expandedTools"
-                @toggle-fold="onToggleFold(row.id, $event)"
+                @toggle-expand="onToggleExpand(row.id, $event)"
                 @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
               />
             </div>
@@ -119,7 +119,7 @@ const {
   submitText,
 } = useSession()
 const rows = computed(() => buildTimelineRows(props.transcript, props.running, props.timings))
-const { expandedTools, isFoldOpen, toggleFold, toggleTool } = useTranscriptExpand(
+const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
 )
 const viewport = useTemplateRef<HTMLElement>("viewport")
@@ -163,16 +163,16 @@ function onTranscriptScroll() {
   onScroll()
 }
 
-function onToggleFold(id: string, open: boolean) {
+function onToggleExpand(id: string, open: boolean) {
   releasePinnedToBottom()
   atBottom.value = false
-  toggleFold(id, open)
+  toggleExpand(id, open)
 }
 
 function onToggleTool(rowId: string, id: string, open: boolean) {
   releasePinnedToBottom()
   atBottom.value = false
-  if (open) toggleFold(rowId, true)
+  if (open) toggleExpand(rowId, true)
   toggleTool(id, open)
 }
 

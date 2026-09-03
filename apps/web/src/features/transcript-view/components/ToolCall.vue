@@ -143,7 +143,7 @@ import {
 
 const props = defineProps<{
   step: ToolRowStep
-  expanded: Map<string, boolean>
+  isExpand: Map<string, boolean>
 }>()
 const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
 
@@ -151,7 +151,7 @@ const thought = computed(() => (props.step.type === "thought" ? props.step : nul
 const group = computed(() => (props.step.type === "tools" ? props.step : null))
 const directItem = computed(() => (group.value ? directGroupItem(group.value) : undefined))
 const open = computed(
-  () => thought.value?.streaming === true || props.expanded.get(props.step.id) === true,
+  () => thought.value?.streaming === true || props.isExpand.get(props.step.id) === true,
 )
 const failed = computed(() => group.value?.items.some((item) => item.isError) ?? false)
 const running = computed(() =>
@@ -272,7 +272,7 @@ const calls = computed(() => {
   const direct = directItem.value
   const items = direct ? [direct] : group.value.items
   return items.map((item) => {
-    const itemOpen = direct ? open.value : open.value && props.expanded.get(item.id) === true
+    const itemOpen = direct ? open.value : open.value && props.isExpand.get(item.id) === true
     return presentCall(item, itemOpen, Boolean(direct))
   })
 })
