@@ -16,17 +16,6 @@ import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcr
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import { codeBlockTypography } from "@features/transcript-view/lib/code-block-options.js"
 
-function assistantMarkdownFlags(streaming: boolean) {
-  return {
-    final: !streaming,
-    typewriter: false as const,
-    smoothStreaming: false as const,
-    maxLiveNodes: 0,
-    nodeVirtual: false as const,
-    batchRendering: false,
-  }
-}
-
 const props = withDefaults(
   defineProps<{
     item: AssistantRow
@@ -73,7 +62,12 @@ const agentMarkdown = computed(
         showHeader: true,
         showFullscreenButton: true,
       },
-      ...assistantMarkdownFlags(props.streaming),
+      final: !props.streaming,
+      typewriter: false,
+      smoothStreaming: false,
+      maxLiveNodes: 0,
+      nodeVirtual: false,
+      batchRendering: false,
     }) as const,
 )
 </script>
@@ -81,9 +75,6 @@ const agentMarkdown = computed(
 <style scoped>
 .assistant {
   padding: 2px 0;
-  color: var(--ink);
-  font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
 }
 
 .status {

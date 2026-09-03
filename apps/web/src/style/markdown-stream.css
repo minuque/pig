@@ -79,6 +79,10 @@
   --table-header-bg: var(--canvas-soft);
   --focus-ring: transparent;
   --link-color: var(--link);
+
+  color: var(--ink-markdown);
+  font-size: var(--ms-text-body);
+  line-height: var(--ms-leading-body);
 }
 
 [data-custom-id="chat"] pre,
@@ -86,7 +90,7 @@
   font-variant-ligatures: none;
 }
 [data-custom-id="chat"] .inline-code {
-  font-size: var(--text-caption);
+  font-size: var(--ms-text-body);
   border-radius: var(--radius-xs);
   padding: 0.05em 0.4em;
 }
