@@ -25,6 +25,10 @@ colors:
   accent-orange: "#dd5b00"
   accent-orange-deep: "#793400"
   accent-green: "#1e9e3c"
+  danger-bg: "#fbe8e9"
+  success-bg: "#e8f3e8"
+  warning-bg: "#fbede5"
+  info-bg: "#e8effa"
 
 typography:
   display-1:
@@ -342,9 +346,10 @@ Pi Agent GUI 使用暖中性灰浅色表面和近黑深色表面。系统 UI 字
 
 ### Semantic
 
-- Success → `{colors.accent-green}`
-- Warning / 运行 → `{colors.accent-orange}`（强调 `{colors.accent-orange-deep}`）
-- Danger → `app.css` 独立红
+- Success → `{colors.accent-green}`，井 `{colors.success-bg}`
+- Warning / 运行 → `{colors.accent-orange}`（强调 `{colors.accent-orange-deep}`），井 `{colors.warning-bg}`
+- Info 井 `{colors.info-bg}`
+- Danger → `app.css` 独立红，井 `{colors.danger-bg}`
 
 sunset 是装饰，orange 是语义。
 

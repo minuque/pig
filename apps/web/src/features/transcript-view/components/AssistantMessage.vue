@@ -84,7 +84,6 @@ const agentMarkdown = computed(
 <style scoped>
 .status-alert {
   margin-top: var(--spacing-xs);
-  background: var(--surface);
 }
 .status-alert:first-child {
   margin-top: 0;

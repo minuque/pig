@@ -74,6 +74,11 @@
   --info: #4176e6;
   --warning: #dd5b00; /* accent-orange */
   --danger: #cd2054;
+  /* 状态井：实色在 surface 上 oklab 混 10% */
+  --success-bg: #e8f3e8;
+  --info-bg: #e8effa;
+  --warning-bg: #fbede5;
+  --danger-bg: #fbe8e9;
 
   /* Typography — SystemUI per DESIGN.md */
   --font-sans:
@@ -247,6 +252,10 @@
   --info: #679efe;
   --warning: #ff8a3d;
   --danger: #ff2c56;
+  --success-bg: #1c251c;
+  --info-bg: #1d2128;
+  --warning-bg: #29201b;
+  --danger-bg: #2a1b1b;
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.45);
   --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.5);
@@ -335,6 +344,10 @@
   --color-info: var(--info);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-success-bg: var(--success-bg);
+  --color-info-bg: var(--info-bg);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger-bg: var(--danger-bg);
   --color-ring: var(--primary);
   --color-ring-offset: var(--surface);
   --color-primary-foreground: var(--on-primary);
