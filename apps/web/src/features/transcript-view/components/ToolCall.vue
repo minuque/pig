@@ -12,6 +12,10 @@
         <span class="detail-text" :class="{ shimmer: running }">
           {{ detail.kind === "file" ? detail.name : detail.text }}
         </span>
+        <span v-if="detail.kind === 'file' && (detail.added || detail.removed)" class="line-stats">
+          <span class="added">+{{ detail.added }}</span>
+          <span class="removed">-{{ detail.removed }}</span>
+        </span>
       </span>
       <ChevronRight
         class="motion-turn motion-hint"
@@ -64,6 +68,13 @@
                 }"
               >
                 {{ call.detail.kind === "file" ? call.detail.name : call.detail.text }}
+              </span>
+              <span
+                v-if="call.detail.kind === 'file' && (call.detail.added || call.detail.removed)"
+                class="line-stats"
+              >
+                <span class="added">+{{ call.detail.added }}</span>
+                <span class="removed">-{{ call.detail.removed }}</span>
               </span>
             </span>
           </button>
@@ -354,6 +365,17 @@ function toggleGroup() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.line-stats {
+  display: inline-flex;
+  flex: none;
+  gap: var(--spacing-xs);
+}
+.added {
+  color: var(--success);
+}
+.removed {
+  color: var(--danger);
 }
 .body-inner {
   padding-inline-start: var(--spacing-lg);

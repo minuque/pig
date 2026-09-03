@@ -48,7 +48,8 @@ export type ToolRow = {
 export type TimelineRow = UserRow | AssistantRow | ToolRow
 
 export type ToolSummaryDetail =
-  { kind: "file"; name: string; path: string } | { kind: "text"; text: string }
+  | { kind: "file"; name: string; path: string; added?: number; removed?: number }
+  | { kind: "text"; text: string }
 
 export interface TranscriptMinimapItem {
   id: string

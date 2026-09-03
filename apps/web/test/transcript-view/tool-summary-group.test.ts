@@ -62,24 +62,73 @@ async function renderToolRow(row: ToolRowViewModel): Promise<string> {
   return renderToString(app)
 }
 
+function fileCall(toolName: string, input: unknown): ToolCallView {
+  return {
+    id: "f1",
+    toolName,
+    running: false,
+    isError: false,
+    input,
+    outputText: "",
+    outputImages: [],
+  }
+}
+
 describe("工具摘要详情", () => {
   it("单条文件路径只保留文件名", () => {
     expect(
-      toolSummaryDetail([
-        {
-          id: "r1",
-          toolName: "read",
-          running: false,
-          isError: false,
-          input: { path: "G:/AICode/pig/apps/web/src/App.vue" },
-          outputText: "",
-          outputImages: [],
-        },
-      ]),
+      toolSummaryDetail([fileCall("read", { path: "G:/AICode/pig/apps/web/src/App.vue" })]),
     ).toEqual({
       kind: "file",
       name: "App.vue",
       path: "G:/AICode/pig/apps/web/src/App.vue",
+    })
+  })
+
+  it("编辑工具按 oldText/newText 核增减行", () => {
+    expect(
+      toolSummaryDetail([
+        fileCall("edit", {
+          path: "apps/web/src/types/session-type.ts",
+          edits: [
+            {
+              oldText: "export interface SessionCard {\n  id: string\n}",
+              newText: "export interface SessionCard {\n  id: string\n  name: string\n}",
+            },
+          ],
+        }),
+      ]),
+    ).toEqual({
+      kind: "file",
+      name: "session-type.ts",
+      path: "apps/web/src/types/session-type.ts",
+      added: 1,
+      removed: 0,
+    })
+  })
+
+  it("写入工具按 content 行数记新增", () => {
+    expect(
+      toolSummaryDetail([fileCall("write", { path: "notes.md", content: "a\nb\nc\n" })]),
+    ).toEqual({
+      kind: "file",
+      name: "notes.md",
+      path: "notes.md",
+      added: 3,
+      removed: 0,
+    })
+  })
+
+  it("编辑入参不齐或写入空内容时不显示行统计", () => {
+    expect(toolSummaryDetail([fileCall("edit", { path: "a.ts" })])).toEqual({
+      kind: "file",
+      name: "a.ts",
+      path: "a.ts",
+    })
+    expect(toolSummaryDetail([fileCall("write", { path: "a.ts", content: "" })])).toEqual({
+      kind: "file",
+      name: "a.ts",
+      path: "a.ts",
     })
   })
 })
