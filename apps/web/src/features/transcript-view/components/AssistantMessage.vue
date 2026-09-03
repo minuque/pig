@@ -1,16 +1,25 @@
 <template>
-  <article class="assistant">
+  <article>
     <MarkdownRender v-if="text" v-bind="agentMarkdown" :content="text" />
-    <span v-if="item.error || item.aborted" class="status">
-      {{ statusLabel }}
-    </span>
-    <p v-if="item.errorMessage" class="error-detail">{{ item.errorMessage }}</p>
+    <Alert
+      v-if="item.error || item.aborted"
+      class="status-alert"
+      :variant="item.error ? 'error' : 'default'"
+    >
+      <CircleAlert />
+      <AlertTitle>{{ statusLabel }}</AlertTitle>
+      <AlertDescription v-if="item.errorMessage">{{ item.errorMessage }}</AlertDescription>
+    </Alert>
   </article>
 </template>
 
 <script setup lang="ts">
+import { CircleAlert } from "@lucide/vue"
 import MarkdownRender from "markstream-vue"
 import { computed } from "vue"
+import Alert from "@components/ui/alert/Alert.vue"
+import AlertDescription from "@components/ui/alert/AlertDescription.vue"
+import AlertTitle from "@components/ui/alert/AlertTitle.vue"
 import type { AssistantRow } from "@features/transcript-view/lib/transcript-rows.js"
 import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
@@ -73,20 +82,11 @@ const agentMarkdown = computed(
 </script>
 
 <style scoped>
-.assistant {
-  padding: 2px 0;
+.status-alert {
+  margin-top: var(--spacing-xs);
+  background: var(--surface);
 }
-
-.status {
-  color: var(--danger);
-  font-size: var(--text-body-md);
-  font-weight: var(--font-weight-medium);
-}
-
-.error-detail {
-  margin: 6px 0 0;
-  color: var(--danger);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+.status-alert:first-child {
+  margin-top: 0;
 }
 </style>
