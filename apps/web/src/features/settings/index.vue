@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Blocks, ChartNoAxesCombined, Puzzle, SlidersHorizontal } from "lucide-vue-next"
+import { Blocks, ChartNoAxesCombined, Puzzle, SlidersHorizontal } from "@lucide/vue"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import ExtensionsPane from "@features/settings/components/ExtensionsPane.vue"
 import GeneralPane from "@features/settings/components/GeneralPane.vue"

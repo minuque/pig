@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { CircleAlert } from "lucide-vue-next"
+import { CircleAlert } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { useStartupError } from "@features/startup/hooks/use-startup-error.js"
 

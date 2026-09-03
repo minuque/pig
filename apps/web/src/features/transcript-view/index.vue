@@ -79,7 +79,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, useTemplateRef, watch } from "vue"
-import { ArrowDown } from "lucide-vue-next"
+import { ArrowDown } from "@lucide/vue"
 import ChatInput from "@features/chat-input/index.vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import StreamPlaceholder from "@features/transcript-view/components/StreamPlaceholder.vue"

@@ -100,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Star } from "lucide-vue-next"
+import { Search, Star } from "@lucide/vue"
 import { useVirtualList } from "@vueuse/core"
 import { computed, nextTick, ref, watch } from "vue"
 import {

@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-vue-next"
+import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "@lucide/vue"
 import Alert from "@components/ui/alert/Alert.vue"
 import AlertAction from "@components/ui/alert/AlertAction.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"

@@ -80,7 +80,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef } from "vue"
 import { RouterLink } from "vue-router"
-import { Clock, Folder, Pencil, Trash2 } from "lucide-vue-next"
+import { Clock, Folder, Pencil, Trash2 } from "@lucide/vue"
 import {
   AlertDialog,
   AlertDialogAction,

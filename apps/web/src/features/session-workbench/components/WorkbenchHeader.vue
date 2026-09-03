@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { PanelLeft } from "lucide-vue-next"
+import { PanelLeft } from "@lucide/vue"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"

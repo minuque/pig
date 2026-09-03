@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { Moon, Sun } from "lucide-vue-next"
+import { Moon, Sun } from "@lucide/vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 
 const { isDark, toggle } = useColorScheme()

@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
 import { useVirtualList } from "@vueuse/core"
-import { X } from "lucide-vue-next"
+import { X } from "@lucide/vue"
 import MarkdownRender from "markstream-vue"
 import { contextPreview } from "@client/platform.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"

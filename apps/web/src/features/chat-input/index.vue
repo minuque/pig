@@ -103,7 +103,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { ArrowUp, CircleAlert, Plus } from "lucide-vue-next"
+import { ArrowUp, CircleAlert, Plus } from "@lucide/vue"
 import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue"
 import ChatInputMeta from "@features/chat-input/components/ChatInputMeta.vue"
 import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel.vue"

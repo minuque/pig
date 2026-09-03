@@ -112,7 +112,7 @@ import {
   Search,
   SquareTerminal,
   Wrench,
-} from "lucide-vue-next"
+} from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
 import {

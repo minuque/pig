@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { X } from "lucide-vue-next"
+import { X } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Dialog, DialogContent, DialogTrigger } from "@components/ui/dialog/index.js"
 

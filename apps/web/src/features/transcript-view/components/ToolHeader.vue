@@ -32,7 +32,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
-import { Check, Copy } from "lucide-vue-next"
+import { Check, Copy } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 
 const props = withDefaults(

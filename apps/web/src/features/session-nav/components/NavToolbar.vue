@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Check, FolderPlus, ListFilter, Search, SquarePen } from "lucide-vue-next"
+import { Check, FolderPlus, ListFilter, Search, SquarePen } from "@lucide/vue"
 import {
   DropdownMenu,
   DropdownMenuContent,

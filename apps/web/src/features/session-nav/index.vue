@@ -130,7 +130,7 @@
 import { computed, shallowRef, watch } from "vue"
 import { useTimestamp } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
-import { PanelLeft, Plus, Search, Settings, SquarePen } from "lucide-vue-next"
+import { PanelLeft, Plus, Search, Settings, SquarePen } from "@lucide/vue"
 import { notify } from "@components/ui/alert/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"

@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { Folder, FolderOpen, Plus } from "lucide-vue-next"
+import { Folder, FolderOpen, Plus } from "@lucide/vue"
 
 defineProps<{
   name: string

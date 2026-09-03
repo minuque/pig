@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { LoaderCircle } from "lucide-vue-next"
+import { LoaderCircle } from "@lucide/vue"
 
 const props = withDefaults(
   defineProps<{

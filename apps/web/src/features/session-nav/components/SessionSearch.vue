@@ -48,7 +48,7 @@
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { useTimestamp } from "@vueuse/core"
 import { useRouter } from "vue-router"
-import { CornerDownLeft, MessageSquare, Search, X } from "lucide-vue-next"
+import { CornerDownLeft, MessageSquare, Search, X } from "@lucide/vue"
 import type { SessionMetadata } from "@earendil-works/pi-protocol"
 import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
 import { useNav } from "@features/session-nav/index.js"
