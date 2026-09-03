@@ -27,7 +27,6 @@ defineProps<{
   flex-direction: column;
   align-items: flex-end;
   gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-lg);
 }
 .prompt {
   box-sizing: border-box;

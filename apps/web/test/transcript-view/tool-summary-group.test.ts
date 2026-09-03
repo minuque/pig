@@ -6,6 +6,7 @@ import ToolRow from "@features/transcript-view/components/ToolRow.vue"
 import type {
   ToolCallView,
   ToolGroup,
+  ToolRow as ToolRowViewModel,
   ToolRowStep,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { directGroupItem, toolSummaryDetail } from "@features/transcript-view/lib/tool-summary.js"
@@ -43,6 +44,18 @@ async function renderOpenGroup(group: ToolGroup): Promise<string> {
 
 async function renderStep(step: Exclude<ToolRowStep, { type: "assistant" }>): Promise<string> {
   const app = createSSRApp(ToolCall, { step, expanded: new Map() })
+  app.config.warnHandler = (message) => {
+    if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
+  }
+  return renderToString(app)
+}
+
+async function renderToolRow(row: ToolRowViewModel): Promise<string> {
+  const app = createSSRApp(ToolRow, {
+    row,
+    foldOpen: false,
+    expandedTools: new Map(),
+  })
   app.config.warnHandler = (message) => {
     if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
   }
@@ -172,24 +185,59 @@ describe("运行态工具过程", () => {
       key: "read",
       items: [item],
     }
-    const app = createSSRApp(ToolRow, {
-      row: {
-        id: "tools:live",
-        role: "tools",
-        mode: "live",
-        steps: [group],
-        aborted: false,
-        error: false,
-      },
-      open: false,
-      expandedTools: new Map(),
+    const html = await renderToolRow({
+      id: "tools:live",
+      role: "tools",
+      mode: "live",
+      turnStreaming: true,
+      steps: [group],
+      aborted: false,
+      error: false,
     })
-    app.config.warnHandler = (message) => {
-      if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
-    }
-
-    const html = await renderToString(app)
     expect(html).toContain("is-open")
     expect(html).toContain("shimmer")
+  })
+
+  it("流式 Turn 的中间工具行忽略折叠状态并保持展开", async () => {
+    const html = await renderToolRow({
+      id: "tools:middle",
+      role: "tools",
+      mode: "fold",
+      turnStreaming: true,
+      steps: [
+        {
+          type: "tools",
+          id: "group:middle",
+          key: "read",
+          items: [command("middle")],
+        },
+      ],
+      aborted: false,
+      error: false,
+    })
+
+    expect(html).toContain("is-open")
+    expect(html).toContain("echo middle")
+  })
+
+  it("Turn 完成后中间工具行按折叠状态收起", async () => {
+    const html = await renderToolRow({
+      id: "tools:done",
+      role: "tools",
+      mode: "fold",
+      turnStreaming: false,
+      steps: [
+        {
+          type: "tools",
+          id: "group:done",
+          key: "read",
+          items: [command("done")],
+        },
+      ],
+      aborted: false,
+      error: false,
+    })
+
+    expect(html).not.toContain("is-open")
   })
 })

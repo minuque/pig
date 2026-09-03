@@ -1,5 +1,6 @@
 import type {
   AssistantTranscriptItem,
+  ToolTranscriptItem,
   TranscriptItem,
   UserTranscriptItem,
 } from "@earendil-works/pi-protocol"
@@ -49,8 +50,8 @@ export type ToolRow = {
   id: string
   role: "tools"
   mode: "live" | "fold"
+  turnStreaming: boolean
   steps: ToolRowStep[]
-  waiting: boolean
   aborted: boolean
   error: boolean
   timing?: TurnTiming
@@ -110,30 +111,25 @@ function appendTurn({
   let segmentIndex = 0
   let segmentAborted = false
   let segmentError = false
-  const last = rest.at(-1)
-  const waiting =
-    live &&
-    !(
-      isAssistantItemSafe(last) &&
-      last.status === "streaming" &&
-      last.content.some((part) => part.type === "text" && part.text)
-    ) &&
-    !(last && isToolItem(last) && last.status === "running") &&
-    !rest.some(
-      (item) =>
-        isAssistantItem(item) &&
-        item.status === "streaming" &&
-        item.content.some((block) => block.type === "thinking" && block.thinking),
-    )
+  const toolResults = new Map<string, ToolTranscriptItem>()
+  const describedToolCalls = new Set<string>()
+  const renderedToolCalls = new Set<string>()
+  for (const item of rest) {
+    if (isToolItem(item)) toolResults.set(item.toolCallId, item)
+    if (!isAssistantItem(item)) continue
+    for (const block of item.content) {
+      if (block.type === "toolCall") describedToolCalls.add(block.toolCallId)
+    }
+  }
 
-  function flushTools(mode: ToolRow["mode"], includeWaiting = false) {
-    if (!steps.length && !includeWaiting) return
+  function flushTools(mode: ToolRow["mode"]) {
+    if (!steps.length) return
     rows.push({
       id: `${anchor}:${segmentIndex}`,
       role: "tools",
       mode,
+      turnStreaming: live,
       steps,
-      waiting: includeWaiting,
       aborted: segmentAborted || (mode === "live" && timing?.outcome === "aborted"),
       error: segmentError || (mode === "live" && timing?.outcome === "error"),
       ...(timing ? { timing } : {}),
@@ -144,24 +140,28 @@ function appendTurn({
     segmentError = false
   }
 
+  function appendTool(tool: ToolCallView) {
+    steps.push({
+      type: "tools",
+      id: `group:${tool.id}`,
+      key: toolGroupKey(tool.toolName),
+      items: [tool],
+    })
+    segmentError ||= tool.isError
+  }
+
   for (const [itemIndex, item] of rest.entries()) {
     if (isToolItem(item)) {
-      const tool: ToolCallView = {
-        id: item.id,
+      if (describedToolCalls.has(item.toolCallId) || live) continue
+      appendTool({
+        id: item.toolCallId,
         toolName: item.toolName,
-        running: live && item.status === "running",
+        running: false,
         isError: item.isError,
         input: item.input,
         outputText: transcriptText(item),
         outputImages: transcriptImages(item),
-      }
-      steps.push({
-        type: "tools",
-        id: `group:${item.id}`,
-        key: toolGroupKey(tool.toolName),
-        items: [tool],
       })
-      segmentError ||= item.isError
       continue
     }
     if (!isAssistantItem(item)) continue
@@ -189,6 +189,24 @@ function appendTurn({
           startedAt: item.timestamp,
           ...(endedAt === undefined ? {} : { endedAt: Math.max(item.timestamp, endedAt) }),
         })
+      } else if (block.type === "toolCall") {
+        if (pendingText) {
+          flushTools("fold")
+          addAssistant(rows, pendingText)
+          pendingText = undefined
+        }
+        if (renderedToolCalls.has(block.toolCallId)) continue
+        renderedToolCalls.add(block.toolCallId)
+        const result = toolResults.get(block.toolCallId)
+        appendTool({
+          id: block.toolCallId,
+          toolName: block.toolName,
+          running: live && (result?.status ?? "running") === "running",
+          isError: result?.isError ?? false,
+          input: block.input,
+          outputText: result ? transcriptText(result) : "",
+          outputImages: result ? transcriptImages(result) : [],
+        })
       } else if (block.type === "text" && block.text) {
         if (pendingText) pendingText.text += block.text
         else pendingText = { ...assistantRow(item, block.text), id: `text:${id}` }
@@ -206,17 +224,13 @@ function appendTurn({
       addAssistant(rows, assistantRow(item))
     }
   }
-  flushTools(live ? "live" : "fold", waiting)
+  flushTools(live ? "live" : "fold")
 }
 
 export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt): string {
   if (step.streaming) return "思考中"
   const seconds = Math.max(1, Math.round(((completedAt ?? step.startedAt) - step.startedAt) / 1000))
   return `思考了 ${seconds}秒`
-}
-
-function isAssistantItemSafe(item: TranscriptItem | undefined): item is AssistantTranscriptItem {
-  return item?.role === "assistant"
 }
 
 export function buildTimelineRows(

@@ -7,27 +7,34 @@
   >
     <StartupError v-if="pageError" v-bind="pageError" />
 
-    <!-- 1. 无 session -->
-    <SessionWelcome v-else-if="!sessionId" />
-
-    <div v-else class="session-stage">
+    <template v-else>
+      <!-- 1. 无 session；首次提交时作为覆盖层淡出，避免输入框硬切位置。 -->
       <Transition name="fade-layer">
-        <SessionLoading v-if="sessionPending && transcript.length === 0" />
+        <SessionWelcome
+          v-if="showWelcome"
+          :class="{ 'handoff-overlay': sessionId !== undefined }"
+        />
       </Transition>
 
-      <!-- 2. 空会话 -->
-      <SessionEmptyCanvas v-if="emptyCanvas" />
+      <div v-if="sessionId" class="session-stage">
+        <Transition name="fade-layer">
+          <SessionLoading v-if="sessionPending && transcript.length === 0" />
+        </Transition>
 
-      <!-- 3. 有 transcript：对话列。历史可先于 attach 到齐。 -->
-      <template v-else-if="transcript.length > 0 || !sessionPending">
-        <TranscriptView
-          :session-id="sessionId"
-          :transcript="transcript"
-          :running="running"
-          :timings="turnTimings"
-        />
-      </template>
-    </div>
+        <!-- 2. 空会话 -->
+        <SessionEmptyCanvas v-if="emptyCanvas" />
+
+        <!-- 3. 有 transcript：对话列。历史可先于 attach 到齐。 -->
+        <template v-else-if="transcript.length > 0 || !sessionPending">
+          <TranscriptView
+            :session-id="sessionId"
+            :transcript="transcript"
+            :running="running"
+            :timings="turnTimings"
+          />
+        </template>
+      </div>
+    </template>
 
     <template v-if="showContentHandles">
       <ContentWidthHandle
@@ -64,8 +71,16 @@ function isEmptyCanvas(transcriptLength: number, running: boolean, pending = fal
 }
 
 const route = useRoute()
-const { sessionId, transcript, turnTimings, running, sessionPending, connectionError, connected } =
-  useSession()
+const {
+  sessionId,
+  transcript,
+  turnTimings,
+  running,
+  sessionPending,
+  connectionError,
+  connected,
+  firstPromptHandoffId,
+} = useSession()
 
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
@@ -73,6 +88,11 @@ const pageError = computed(() => {
   }
   return route.name === "error" ? {} : null
 })
+const showWelcome = computed(
+  () =>
+    sessionId.value === undefined ||
+    (firstPromptHandoffId.value === sessionId.value && transcript.value.length === 0),
+)
 const emptyCanvas = computed(() =>
   isEmptyCanvas(transcript.value.length, running.value, sessionPending.value),
 )
@@ -110,6 +130,12 @@ const contentHandleSides = ["left", "right"] as const
 .conversation-column.is-content-resizing {
   cursor: col-resize;
   user-select: none;
+}
+.handoff-overlay {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  background: var(--surface);
 }
 .session-stage {
   position: relative;

@@ -174,26 +174,28 @@
 }
 
 .timeline-row-enter-active {
-  transition:
-    opacity var(--duration-slow) var(--ease-out),
-    transform var(--duration-slow) var(--ease-out);
+  transition: opacity var(--duration-slow) var(--ease-out);
+}
+.row-tools.timeline-row-enter-active {
+  transition: none;
 }
 .timeline-step-enter-active {
   transition:
     opacity var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
+  will-change: opacity, transform;
 }
 .timeline-step-move {
   transition: transform var(--duration-fast) var(--ease-out);
 }
 .timeline-row-leave-active {
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out);
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 .timeline-row-enter-from {
   opacity: 0;
-  transform: translateY(12px);
+}
+.row-tools.timeline-row-enter-from {
+  opacity: 1;
 }
 .timeline-step-enter-from {
   opacity: 0;
@@ -201,7 +203,6 @@
 }
 .timeline-row-leave-to {
   opacity: 0;
-  transform: translateY(-12px);
 }
 :is(.tool-calls-group, .session-list-group) {
   display: grid;

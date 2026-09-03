@@ -17,6 +17,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   let navRoot: HTMLElement | null = null
   let onNavEnd: (() => void) | null = null
   let navTimer = 0
+  let pinFrame = 0
   let lastWritten = 0
 
   function applyBottom(root: HTMLElement) {
@@ -36,10 +37,17 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (!root) return
     const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
     lastWritten = floor
-    root.scrollTop = floor
+    if (Math.abs(root.scrollTop - floor) > 0.5) root.scrollTop = floor
+  }
+
+  function cancelPinFrame() {
+    if (!pinFrame) return
+    window.cancelAnimationFrame(pinFrame)
+    pinFrame = 0
   }
 
   function releasePinnedToBottom() {
+    cancelPinFrame()
     navigating = false
     if (navTimer) {
       window.clearTimeout(navTimer)
@@ -51,7 +59,11 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   }
 
   function pinIfNeeded() {
-    if (!navigating && atBottom.value) jumpToBottom()
+    if (pinFrame || navigating || !atBottom.value) return
+    pinFrame = window.requestAnimationFrame(() => {
+      pinFrame = 0
+      if (!navigating && atBottom.value) jumpToBottom()
+    })
   }
 
   function finishNavigate() {

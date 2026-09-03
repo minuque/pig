@@ -61,16 +61,16 @@
               <ToolRow
                 v-else-if="isToolRow(row)"
                 :row="row"
-                :open="isFoldOpen(row.id)"
+                :fold-open="isFoldOpen(row.id)"
                 :expanded-tools="expandedTools"
-                @toggle="onToggleFold(row.id, $event)"
+                @toggle-fold="onToggleFold(row.id, $event)"
                 @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
               />
             </div>
-            <div v-if="running" key="stream-placeholder" class="row row-streaming">
-              <StreamPlaceholder />
-            </div>
           </TransitionGroup>
+          <div v-if="running" class="streaming-base">
+            <StreamPlaceholder />
+          </div>
         </div>
       </div>
     </div>
@@ -278,7 +278,6 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
   z-index: 2;
   height: 0;
   overflow: visible;
-  padding: 0 var(--spacing-md);
   pointer-events: none;
 }
 .chat-input-bar :deep(.prompt) {
@@ -314,7 +313,8 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
 }
 .transcript-list,
 .timeline-rows,
-.row {
+.row,
+.streaming-base {
   box-sizing: border-box;
   width: 100%;
 }
@@ -327,7 +327,14 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
 .row + .row-user {
   margin-block-start: var(--spacing-xl);
 }
-.row-streaming {
+.streaming-base {
   padding-block: var(--spacing-xxs);
+  pointer-events: none;
+}
+.timeline-rows:not(:empty) + .streaming-base {
+  margin-block-start: var(--spacing-md);
+}
+.timeline-rows:has(> .row-user:last-child) + .streaming-base {
+  margin-block-start: var(--spacing-lg);
 }
 </style>

@@ -87,8 +87,9 @@
   font-variant-ligatures: none;
 }
 [data-custom-id="chat"] .inline-code {
-  font-size: var(--ms-text-body);
-  padding: 0.01em 0.3em;
+  font-size: var(--text-caption);
+  border-radius: var(--radius-xs);
+  padding: 0.05em 0.4em;
 }
 [data-custom-id="chat"] .heading-5,
 [data-custom-id="chat"] .heading-6 {

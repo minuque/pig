@@ -79,10 +79,8 @@ export function useSessionLifecycle(
     snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined,
   )
   const liveTranscript = computed(() => {
-    const live = state.value?.transcript ?? []
-    const overlay = live.length > 0 ? live : heldLive.value
     const persisted = historySessionId.value === wantedId ? history.value : []
-    return mergeLiveTranscript(persisted, overlay)
+    return mergeLiveTranscript(persisted, heldLive.value)
   })
 
   function attach(next: RemoteSession) {
@@ -94,7 +92,8 @@ export function useSessionLifecycle(
     let usageRevision: number | undefined
     unsubscribeState = next.subscribe((nextState) => {
       state.value = nextState
-      if (nextState.transcript.length > 0) heldLive.value = [...nextState.transcript]
+      if (nextState.transcript.length > 0)
+        heldLive.value = mergeLiveTranscript(heldLive.value, nextState.transcript)
       const revision = nextState.snapshot?.revision
       const attachedId = next.id
       if (revision !== undefined && revision !== usageRevision && attachedId) {
@@ -196,6 +195,7 @@ export function useSessionLifecycle(
 
   /** 在指定 cwd 创建新 Session（cwd 来自本地 Workspace preference）。 */
   async function createRemoteSession(nextCwd: string, options?: Omit<CreateSessionInput, "cwd">) {
+    const routeSessionAtStart = sessionId.value
     return enqueueReplace(async () => {
       const target = pi.client.value
       if (!target) throw new Error("PiClient 未连接")
@@ -204,8 +204,13 @@ export function useSessionLifecycle(
         ...(options?.model !== undefined ? { model: options.model } : {}),
         ...(options?.thinkingLevel !== undefined ? { thinkingLevel: options.thinkingLevel } : {}),
       })
+      if (sessionId.value !== routeSessionAtStart) {
+        await next.dispose()
+        return undefined
+      }
       wantedId = next.id
       attach(next)
+      return next.id
     })
   }
 
@@ -277,6 +282,7 @@ export function useSessionLifecycle(
 
   const states = reactive(new Map<string, ReturnType<typeof sessionState>>())
   const creatingCwd = ref<string>()
+  const firstPromptHandoffId = shallowRef<string>()
   const submitting = ref(false)
   const aborting = ref(false)
 
@@ -291,23 +297,26 @@ export function useSessionLifecycle(
     },
   })
 
-  async function createSession(nextCwd: string) {
+  async function createSession(nextCwd: string, handoff = false) {
     if (creatingCwd.value) return
+    const routeSessionAtStart = sessionId.value
     creatingCwd.value = nextCwd
     sessionError.value = ""
     try {
       const next = preset.value
-      await createRemoteSession(
+      const nextId = await createRemoteSession(
         nextCwd,
         next
           ? { model: next.model, thinkingLevel: thinkingLevelOf(next.thinkingLevel) }
           : undefined,
       )
+      if (!nextId || sessionId.value !== routeSessionAtStart) return undefined
       cwd.selectCwd(nextCwd)
-      const nextId = remote.value?.id
-      if (nextId && nextId !== sessionId.value) {
+      if (handoff) firstPromptHandoffId.value = nextId
+      if (nextId !== sessionId.value) {
         await router.push({ name: "session", params: { sessionId: nextId } })
       }
+      return nextId
     } catch (error) {
       sessionError.value = errorMessage(error)
       throw error
@@ -361,8 +370,13 @@ export function useSessionLifecycle(
 
   /** 欢迎页首次 Prompt：创建 Session 后立即发送。 */
   async function createAndSubmit(nextCwd: string, text: string) {
-    await createSession(nextCwd)
-    await submitText(text)
+    try {
+      const nextId = await createSession(nextCwd, true)
+      if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return
+      await submitText(text)
+    } finally {
+      firstPromptHandoffId.value = undefined
+    }
   }
 
   const transcript = computed(() =>
@@ -405,6 +419,7 @@ export function useSessionLifecycle(
     clientState,
     sessionError,
     creating: creatingCwd,
+    firstPromptHandoffId,
     aborting,
     createSession,
     createAndSubmit,

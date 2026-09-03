@@ -318,6 +318,40 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     expect(created.submit).not.toHaveBeenCalled()
     expect(openMock).not.toHaveBeenCalled()
   })
+
+  it("失败路径：创建期间切换会话时不抢回路由且不误发 Prompt", async () => {
+    const { session } = setup()
+    const created = makeSession("created")
+    const selected = makeSession("selected")
+    let releaseCreate = () => {}
+    let markCreateStarted = () => {}
+    const createStarted = new Promise<void>((resolve) => {
+      markCreateStarted = resolve
+    })
+    const createGate = new Promise<void>((resolve) => {
+      releaseCreate = resolve
+    })
+    createMock.mockImplementation(async () => {
+      markCreateStarted()
+      await createGate
+      return created
+    })
+    openMock.mockResolvedValue(selected)
+    await session.initialize()
+
+    const request = session.createAndSubmit("/repo", "任务")
+    await createStarted
+    routeBox.params.sessionId = "selected"
+    await nextTick()
+    releaseCreate()
+    await request
+    await vi.waitFor(() => expect(session.remote.value).toBe(selected))
+
+    expect(routerPush).not.toHaveBeenCalled()
+    expect(created.disposeCalls).toBe(1)
+    expect(created.submit).not.toHaveBeenCalled()
+    expect(selected.submit).not.toHaveBeenCalled()
+  })
 })
 
 describe("提交失败恢复草稿", () => {
@@ -406,6 +440,48 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     )
     expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"])
     expect(session.turnTimings.value).toEqual([timing])
+  })
+
+  it("连续帧：空 snapshot 不清掉已有进度，后续工具只追加不回退", async () => {
+    const descriptor = {
+      id: "a1",
+      role: "assistant",
+      content: ["t1", "t2", "t3"].map((toolCallId) => ({
+        type: "toolCall" as const,
+        toolCallId,
+        toolName: "read",
+        input: { path: `${toolCallId}.ts` },
+      })),
+      model: { provider: "test", id: "model" },
+      timestamp: 2,
+      status: "streaming",
+    } satisfies TranscriptItem
+    const liveTool = (toolCallId: string) =>
+      ({
+        id: toolCallId,
+        role: "tool",
+        toolCallId,
+        toolName: "read",
+        input: { path: `${toolCallId}.ts` },
+        content: [],
+        timestamp: 3,
+        status: "running",
+        isError: false,
+      }) satisfies TranscriptItem
+    const { session } = setup()
+    const remote = makeSession("s1")
+    remote.state = { ...remote.state, transcript: [descriptor, liveTool("t1"), liveTool("t2")] }
+    openMock.mockResolvedValue(remote)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+
+    expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1", "t2"])
+    remote.state = { ...remote.state, snapshot: snapshot(2), transcript: [] }
+    remote.emit()
+    expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1", "t2"])
+    remote.state = { ...remote.state, transcript: [liveTool("t3")] }
+    remote.emit()
+    expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1", "t2", "t3"])
   })
 })
 
