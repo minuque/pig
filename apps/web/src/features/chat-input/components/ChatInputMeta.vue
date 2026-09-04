@@ -80,8 +80,9 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-xs);
-  background: var(--surface);
   min-height: 28px;
+  padding-block: var(--spacing-xxs) var(--spacing-xs);
+  background: var(--surface);
 }
 .cwd {
   display: inline-flex;

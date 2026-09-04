@@ -1,6 +1,5 @@
 @import "tailwindcss";
-/* index.tailwind.css 不含运行时工具类（h-4 / rounded-lg 等）。
-   官方要另接 markstream-vue/tailwind safelist；只引一半，代码卡片会缺尺寸。 */
+/* markstream-vue/index.css 不含运行时工具类，需另接官方 safelist，否则代码卡片缺尺寸。 */
 @import "markstream-vue/index.css";
 @import "katex/dist/katex.min.css";
 @import "./markdown-stream.css";
@@ -17,32 +16,36 @@
   initial-value: transparent;
 }
 
-/* 工作台 token；明暗中性色采自 .tmp/light.png 与 .tmp/dark.png。 */
 :root {
   color-scheme: light;
-  /* Colors */
+
+  /* 品牌 */
   --primary: #4176e6;
   --primary-active: #2d5fc4;
   --secondary: #0e3074;
   --on-primary: #ffffff;
+
+  /* 表面 */
   --canvas: #fcfcfb;
   --canvas-soft: #f2f2f1;
   --surface: #fcfcfb;
-  --sidebar: #fbfbf9;
+  --sidebar: #f7f8fa;
   --chat-input: #fefefe;
-  --bubble: #f0f0ef;
-  --user-prompt-bg: var(--bubble);
+  --user-prompt-bg: #f0f0ef;
+  --popover: #ffffff;
+  --code-header: #f2f2f1;
+  --code-body: #ffffff;
+
+  /* 文字 */
   --ink: #0b0b0b;
   --ink-markdown: #000000;
   --ink-secondary: #52514e;
   --ink-muted: #52514e;
   --ink-faint: #898781;
+
+  /* 结构 / 交互 */
   --hairline: #d8d8d6;
-  --tool-header: #f2f2f1;
-  --transcript-guide: #cececc;
   --chat-input-ring: #e0e0df;
-  --popover: #ffffff;
-  --popover-border: #d7d7d5;
   --interaction-hover: #f3f3f3;
   --interaction-selected: #edece8;
   --hover-quiet: color-mix(in srgb, var(--ink) 5%, transparent);
@@ -54,33 +57,34 @@
   --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #aeaeac;
   --scrollbar-hover: #898781;
+
+  /* 玻璃 */
   --glass-blur: 12px;
   --glass-opacity: 80%;
   --glass-saturation: 1;
-  /* 装饰色，不作结构填充 */
+
+  /* 装饰，不作结构填充 */
   --accent-sunset: #ee650d;
   --accent-sunset-soft: #ffc285;
   --accent-dusk: #7c3aed;
   --accent-twilight: #9a72d8;
   --accent-breeze: #6494d2;
   --accent-midnight: #0d1726;
-  /* Semantic status (not decoration) */
+
+  /* 语义 */
   --accent-orange: #dd5b00;
   --accent-orange-deep: #793400;
   --accent-green: #1e9e3c;
-
-  /* Status — UI Guidelines §6; DESIGN.md carries status via sticker colors */
   --success: #1e9e3c;
   --info: #4176e6;
-  --warning: #dd5b00; /* accent-orange */
+  --warning: #dd5b00;
   --danger: #cd2054;
-  /* 状态井：实色在 surface 上 oklab 混 10% */
   --success-bg: #e8f3e8;
   --info-bg: #e8effa;
   --warning-bg: #fbede5;
   --danger-bg: #fbe8e9;
 
-  /* Typography — SystemUI per DESIGN.md */
+  /* 字体 */
   --font-sans:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-mono:
@@ -119,8 +123,12 @@
   --tracking-caption-mono: 1.2px;
   --text-code: 14px;
   --text-code-line: 22px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 
-  /* Spacing — base unit 8px */
+  /* 间距 / 圆角 */
   --spacing-xxs: 4px;
   --spacing-xs: 8px;
   --spacing-sm: 12px;
@@ -128,8 +136,6 @@
   --spacing-lg: 24px;
   --spacing-xl: 28px;
   --spacing-xxl: 32px;
-
-  /* Shapes */
   --radius-2xs: 2px;
   --radius-xs: 4px;
   --radius-sm: 6px;
@@ -138,37 +144,28 @@
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Sizes */
-  --size-control: 40px; /* 触控热区 */
-  --size-menu: 140px; /* kebab 下拉菜单最小宽度 */
-  --size-sidebar: 280px; /* left panel width */
+  /* 尺寸 */
+  --size-control: 40px;
+  --size-menu: 140px;
+  --size-sidebar: 280px;
   --size-sidebar-rail: 56px;
   --size-sidebar-rail-mac: 90px;
   --titlebar-inset: 44px;
   --size-windows-caption: 138px;
-  --size-drawer: 360px; /* mobile drawer width */
-  --size-content: 45.75rem; /* 会话列外回退；列内由 clamp(680px, 64%, 920px) 覆盖 */
-  --size-chat-input: 46.75rem; /* 会话列外回退；列内为正文 + 16px */
-  --size-modal: 32rem; /* dialog max width */
-  --size-settings: 56rem; /* 设置弹框宽度 */
-  --size-settings-nav: 15rem; /* 设置左栏宽度 */
+  --size-drawer: 360px;
+  --size-content: 45.75rem;
+  --size-chat-input: 46.75rem;
+  --size-modal: 32rem;
+  --size-settings: 56rem;
+  --size-settings-nav: 15rem;
   --size-icon: 15px;
   --size-icon-2xs: 18px;
   --size-icon-button: 28px;
   --size-nav-rail: 36px;
   --size-chat-input-overlay: 6rem;
 
-  /* Font weights — DESIGN.md roles: 400/500/600/700 */
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  /* Borders */
-  --border-width: 1px; /* hairline */
-  --border-width-emphasis: 5px; /* streaming/error indicator bars */
-
-  /* Overlays & z-index */
+  /* 边框 / 遮罩 / 层级 */
+  --border-width: 1px;
   --scrim: rgba(0, 0, 0, 0.4);
   --scrim-blur: 4px;
   --z-resizer: 1;
@@ -176,21 +173,14 @@
   --z-modal: 20;
   --opacity-disabled: 0.55;
 
-  /* Shadows — additional workbench elevation levels */
-  --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.2); /* jump-to-latest button */
-  --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.2); /* mobile drawers */
-  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.18); /* dialog */
-  /* Popover/menu 浮层阴影（输入区浮层共用） */
+  /* 阴影 */
+  --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.2);
+  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.18);
   --shadow-popover:
     0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 1px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-group: 0 1px 2px rgb(0 0 0 / 0.1), 0 2px 6px rgb(0 0 0 / 0.05);
   --shadow-logo: 0 1px 2px rgba(15, 17, 21, 0.06), 0 8px 20px rgba(15, 17, 21, 0.08);
-  /* 输入区反色主按钮（浅色主题深底浅字，深色主题反相） */
-  --inverse-bg: #0b0b0b;
-  --inverse-bg-hover: #292929;
-  --inverse-fg: #ffffff;
-
-  /* Elevation — barely-there layered shadows */
   --shadow-soft:
     0 0.175px 1.041px rgba(0, 0, 0, 0.01), 0 0.8px 2.925px rgba(0, 0, 0, 0.02),
     0 2.025px 7.847px rgba(0, 0, 0, 0.027), 0 4px 18px rgba(0, 0, 0, 0.04);
@@ -198,7 +188,12 @@
     0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 12px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02),
     0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
 
-  /* Motion — project house easing/duration (AGENTS.md UI Rules) */
+  /* 反色主按钮 */
+  --inverse-bg: #0b0b0b;
+  --inverse-bg-hover: #292929;
+  --inverse-fg: #ffffff;
+
+  /* 动效 */
   --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.66, 0, 0.34, 1);
@@ -206,35 +201,38 @@
   --duration-normal: 200ms;
   --duration-slow: 280ms;
   --duration-icon: 300ms;
-  --duration-theme: 600ms; /* 主题切换 View Transition 时长 */
-  --duration-shimmer: 2s; /* loading 扫光循环 */
+  --duration-theme: 600ms;
+  --duration-shimmer: 2s;
   --ease-icon: cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* ─── Dark mode — 近黑工作台；仅覆盖颜色/阴影 token，尺寸/动效继承 :root ─── */
+/* 深色只覆盖颜色、阴影、玻璃 */
 .dark {
   color-scheme: dark;
+
   --primary: #679efe;
   --primary-active: #4d8af0;
+  --secondary: #5b7ad4;
   --on-primary: #ffffff;
-  --canvas: #151515;
+
+  --canvas: #070707;
   --canvas-soft: #272727;
-  --surface: #151515;
+  --surface: #070707;
   --sidebar: #111111;
-  --user-prompt-bg: var(--bubble);
   --chat-input: #20201f;
-  --bubble: #212121;
+  --user-prompt-bg: #212121;
+  --popover: #20201f;
+  --code-header: #1f1f1f;
+  --code-body: #1e1e1e;
+
   --ink: #f0efec;
   --ink-markdown: #ffffff;
   --ink-secondary: #e1e0d9;
-  --ink-muted: #c3c2b7;
+  --ink-muted: #7d7d7d;
   --ink-faint: #898781;
+
   --hairline: #333332;
-  --tool-header: #20201f;
-  --transcript-guide: #454545;
   --chat-input-ring: #313131;
-  --popover: #20201f;
-  --popover-border: #373736;
   --interaction-hover: #292929;
   --interaction-selected: #292929;
   --link: #6da7ec;
@@ -243,11 +241,13 @@
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #61615f;
   --scrollbar-hover: #898781;
-  /* 语义橙提亮（run 失败左条 / active session 文字） */
+
+  --glass-blur: 16px;
+  --glass-saturation: 1;
+
   --accent-orange: #ff8a3d;
   --accent-orange-deep: #d97706;
   --accent-green: #32d74b;
-  --secondary: #5b7ad4; /* 反相带/渐变端点提亮, ThinkingLevelSelect 低档文字 */
   --success: #32d74b;
   --info: #679efe;
   --warning: #ff8a3d;
@@ -256,28 +256,26 @@
   --info-bg: #1d2128;
   --warning-bg: #29201b;
   --danger-bg: #2a1b1b;
+
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.45);
   --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.5);
   --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --shadow-group: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.22);
+  --shadow-logo: 0 1px 2px rgba(0, 0, 0, 0.28), 0 10px 24px rgba(0, 0, 0, 0.36);
   --shadow-soft:
     0 0.175px 1.041px rgba(0, 0, 0, 0.3), 0 0.8px 2.925px rgba(0, 0, 0, 0.3),
     0 2.025px 7.847px rgba(0, 0, 0, 0.32), 0 4px 18px rgba(0, 0, 0, 0.4);
   --shadow-elevated:
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
-  --shadow-group: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.22);
-  --shadow-logo: 0 1px 2px rgba(0, 0, 0, 0.28), 0 10px 24px rgba(0, 0, 0, 0.36);
+
   --inverse-bg: #f0efec;
   --inverse-bg-hover: #ffffff;
-  --inverse-fg: #151515;
-  --glass-blur: 16px;
-  --glass-saturation: 1;
+  --inverse-fg: #070707;
 }
 
-/* 公共滚动条：默认隐藏，容器 hover 时淡入。
-   每个元素自己写 --scrollbar-thumb，避免 html:hover 传到所有条子。
-   伪元素靠继承拿颜色。Chromium 的 scrollbar-color 会盖掉 webkit 透明滑块，只给 Firefox。 */
+/* 滚动条默认隐藏，容器 hover 时淡入；各元素自写 --scrollbar-thumb，避免 html:hover 传到所有条子。 */
 * {
   --scrollbar-thumb: transparent;
 }
@@ -317,7 +315,7 @@
   }
 }
 
-/* Tailwind 仅映射实色 token，禁止 color-mix 定义进入 @theme。 */
+/* Tailwind 只映射实色 token，禁止 color-mix 进入 @theme。 */
 @theme inline {
   --color-primary: var(--primary);
   --color-primary-active: var(--primary-active);
@@ -431,10 +429,10 @@
   height: var(--size-icon);
 }
 
+/* 基础 */
 .lucide {
   stroke-width: 1.5;
 }
-
 body {
   background: var(--canvas-soft);
   color: var(--ink);
@@ -448,8 +446,7 @@ body {
     font: inherit;
   }
 }
-/* 原生 button 只做 reset。主色圆钮、图标钮在使用处显式写，避免漏设 min-height 被撑成药丸。
-   不进 .markstream-vue：未分层的 element reset 会压过卡片内 Tailwind 工具类。 */
+/* 原生 button 只做 reset；不进 .markstream-vue，避免压过卡片内 Tailwind。 */
 button:not(:where(.markstream-vue *, [data-slot])) {
   appearance: none;
   margin: 0;
@@ -472,6 +469,8 @@ h2,
 p {
   overflow-wrap: anywhere;
 }
+
+/* 桌面壳 */
 html[data-pig-desktop-platform="darwin"] {
   --size-sidebar-rail: var(--size-sidebar-rail-mac);
 }

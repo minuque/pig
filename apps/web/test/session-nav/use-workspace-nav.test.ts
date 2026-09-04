@@ -63,34 +63,35 @@ describe("useWorkspaceNav grouping", () => {
     vi.unstubAllGlobals()
   })
 
-  it("grouping 默认 updated，setGrouping 写入 localStorage 并清零 reveal", () => {
+  it("grouping 默认 project，setGrouping 写入 localStorage 并清零 reveal", () => {
     const sessions = ref(sessionsWithCwd(12))
     const nav = useWorkspaceNav(sessions, localWorkspaces(["/a"]), ref(""), admin())
 
-    expect(nav.grouping.value).toBe("updated")
-    expect(nav.rowsFor(false).value.filter((row) => row.kind === "session")).toHaveLength(10)
-
-    nav.bumpGroup("updated")
-    expect(nav.rowsFor(false).value.filter((row) => row.kind === "session")).toHaveLength(12)
-
-    nav.setGrouping("project")
     expect(nav.grouping.value).toBe("project")
-    expect(store.get(SIDEBAR_GROUPING_KEY)).toBe("project")
-    expect(nav.revealByGroup.value).toEqual({})
+    const first = nav.rowsFor(false).value.find((row) => row.kind === "group")
+    expect(first?.kind === "group" ? first.sessions.length : 0).toBe(5)
+
+    nav.bumpGroup("/a")
+    const expanded = nav.rowsFor(false).value.find((row) => row.kind === "group")
+    expect(expanded?.kind === "group" ? expanded.sessions.length : 0).toBe(10)
 
     nav.setGrouping("updated")
+    expect(nav.grouping.value).toBe("updated")
+    expect(store.get(SIDEBAR_GROUPING_KEY)).toBe("updated")
+    expect(nav.revealByGroup.value).toEqual({})
     expect(nav.rowsFor(false).value.filter((row) => row.kind === "session")).toHaveLength(10)
   })
 
   it("启动时读取已持久化的 grouping", () => {
-    store.set(SIDEBAR_GROUPING_KEY, "project")
+    store.set(SIDEBAR_GROUPING_KEY, "updated")
     const nav = useWorkspaceNav(ref(sessionsWithCwd(1)), localWorkspaces(["/a"]), ref(""), admin())
-    expect(nav.grouping.value).toBe("project")
+    expect(nav.grouping.value).toBe("updated")
   })
 
   it("更新时间分组截断后 bumpGroup 再露出一页；搜索不截断", () => {
     const sessions = ref(sessionsWithCwd(25))
     const nav = useWorkspaceNav(sessions, localWorkspaces(["/a"]), ref(""), admin())
+    nav.setGrouping("updated")
 
     const truncated = nav.rowsFor(false).value
     expect(truncated.filter((row) => row.kind === "session")).toHaveLength(10)

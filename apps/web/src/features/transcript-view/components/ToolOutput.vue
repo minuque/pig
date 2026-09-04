@@ -155,11 +155,12 @@ function onScroll(event: Event) {
 
 <style scoped>
 .tool-output {
-  font-size: var(--text-caption);
+  font-size: var(--text-code);
 }
 .tool-output.is-embedded {
   min-width: 0;
   padding: var(--spacing-sm);
+  padding-inline-end: 0;
 }
 .tool-output-pre {
   position: relative;
@@ -193,7 +194,7 @@ function onScroll(event: Event) {
 .tool-output-pre.is-embedded {
   color: var(--ink);
   font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-size: var(--text-code);
 }
 .tool-output.is-embedded .meta {
   color: inherit;
@@ -225,13 +226,14 @@ function onScroll(event: Event) {
 .code-scroll {
   max-height: 480px;
   overflow: auto;
-  padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) var(--spacing-lg);
+  padding-block: var(--spacing-sm);
+  padding-inline-start: var(--spacing-lg);
   scrollbar-width: thin;
 }
 .code-lines {
   min-width: max-content;
   font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-size: var(--text-code);
   line-height: var(--text-code-line);
   tab-size: 4;
 }

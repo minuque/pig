@@ -58,7 +58,7 @@
                 :item="row"
                 :streaming="running && row.streaming"
               />
-              <ToolRow
+              <ToolSteps
                 v-else-if="isToolRow(row)"
                 :row="row"
                 :is-expand="isExpand(row.id)"
@@ -68,9 +68,6 @@
               />
             </div>
           </TransitionGroup>
-          <div v-if="running" class="streaming-base">
-            <StreamPlaceholder />
-          </div>
         </div>
       </div>
     </div>
@@ -82,10 +79,9 @@ import { computed, nextTick, onBeforeUnmount, useTemplateRef, watch } from "vue"
 import { ArrowDown } from "@lucide/vue"
 import ChatInput from "@features/chat-input/index.vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
-import StreamPlaceholder from "@features/transcript-view/components/StreamPlaceholder.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
-import ToolRow from "@features/transcript-view/components/ToolRow.vue"
+import ToolSteps from "@features/transcript-view/components/ToolSteps.vue"
 import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
@@ -311,8 +307,7 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
 }
 .transcript-list,
 .timeline-rows,
-.row,
-.streaming-base {
+.row {
   box-sizing: border-box;
   width: 100%;
 }
@@ -324,15 +319,5 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
 }
 .row + .row-user {
   margin-block-start: var(--spacing-xl);
-}
-.streaming-base {
-  padding-block: var(--spacing-xxs);
-  pointer-events: none;
-}
-.timeline-rows:not(:empty) + .streaming-base {
-  margin-block-start: var(--spacing-md);
-}
-.timeline-rows:has(> .row-user:last-child) + .streaming-base {
-  margin-block-start: var(--spacing-lg);
 }
 </style>

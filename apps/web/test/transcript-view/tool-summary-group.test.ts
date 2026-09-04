@@ -2,7 +2,7 @@ import { createSSRApp } from "vue"
 import { renderToString } from "@vue/server-renderer"
 import { describe, expect, it } from "vitest"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
-import ToolRow from "@features/transcript-view/components/ToolRow.vue"
+import ToolSteps from "@features/transcript-view/components/ToolSteps.vue"
 import type {
   ToolCallView,
   ToolGroup,
@@ -55,7 +55,7 @@ async function renderStep(step: Exclude<ToolRowStep, { type: "assistant" }>): Pr
 }
 
 async function renderToolRow(row: ToolRowViewModel): Promise<string> {
-  const app = createSSRApp(ToolRow, {
+  const app = createSSRApp(ToolSteps, {
     row,
     isExpand: false,
     expandedTools: new Map(),
@@ -201,7 +201,7 @@ describe("命令工具组展示", () => {
 
     expect(html).toContain('class="tool-summary"')
     expect(html).toContain(' summary"')
-    expect(html).not.toContain("tool-step-card")
+    expect(html).toContain('style="display:none;"')
     expect(html).not.toContain(">Run<")
     expect(
       await renderOpenGroup({
@@ -243,7 +243,6 @@ describe("命令工具组展示", () => {
     }
     const html = await renderOpenGroup(group)
 
-    expect(html).toContain("direct body-inner")
     expect(html).toContain("tool-step-card")
     expect(html).not.toContain(">Read<")
   })

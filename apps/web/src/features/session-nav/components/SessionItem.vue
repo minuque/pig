@@ -1,5 +1,19 @@
 <template>
   <div class="session-item">
+    <!-- 置顶按钮 -->
+    <button
+      v-if="!renaming"
+      class="pin-toggle press-scale"
+      type="button"
+      :title="pinned ? '取消置顶' : '置顶'"
+      :aria-label="pinned ? '取消置顶' : '置顶'"
+      :aria-pressed="pinned"
+      @click.stop="emit('togglePinned', session.id)"
+    >
+      <PinOff v-if="pinned" class="size-icon" />
+      <Pin v-else class="size-icon" />
+    </button>
+
     <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
@@ -12,7 +26,7 @@
         >
           <div class="card-line">
             <span class="session-state" :aria-label="stateLabel">
-              <StreamPlaceholder v-if="state === 'running'" :size="12" text="" />
+              <Spinner v-if="state === 'running'" :size="12" />
               <span v-else-if="state" class="state-dot" :class="state"></span>
               <span v-else class="state-placeholder"></span>
             </span>
@@ -56,7 +70,6 @@
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
-
     <AlertDialog v-model:open="deleteOpen">
       <AlertDialogContent class="sm:max-w-[28rem]">
         <AlertDialogHeader>
@@ -97,7 +110,7 @@ import {
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
-import StreamPlaceholder from "@features/transcript-view/components/StreamPlaceholder.vue"
+import { Spinner } from "@components/ui/spinner/index.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import VendorMark from "@features/chat-input/components/VendorMark.vue"
 
@@ -213,19 +226,10 @@ function confirmDelete() {
 .session-card.active {
   background: var(--interaction-selected);
 }
-.session-card.active::before {
-  position: absolute;
-  inset-block: 9px;
-  inset-inline-start: 0;
-  width: 2px;
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  content: "";
-}
 .card-line {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--spacing-xs);
   min-width: 0;
   width: 100%;
 }
@@ -235,6 +239,38 @@ function confirmDelete() {
   width: 12px;
   height: 12px;
   flex: none;
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+}
+.session-item:hover .session-state,
+.session-item:has(.pin-toggle:focus-visible) .session-state {
+  opacity: 0;
+}
+.pin-toggle {
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: 5px;
+  inset-block-start: calc(50% - var(--size-icon-2xs) / 2);
+  display: grid;
+  place-items: center;
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--ink-muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+}
+.session-item:hover .pin-toggle,
+.pin-toggle:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.pin-toggle:hover,
+.pin-toggle:focus-visible {
+  color: var(--ink);
 }
 .state-dot,
 .state-placeholder {
@@ -288,7 +324,6 @@ function confirmDelete() {
   color: var(--ink);
 }
 .session-time {
-  min-width: 34px;
   flex: none;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);

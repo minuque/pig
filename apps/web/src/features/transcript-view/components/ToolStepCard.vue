@@ -28,7 +28,6 @@
         v-model:expanded="readExpanded"
         :label="readContent.path"
         :text="readContent.preview.code"
-        shaded
         :hidden-count="readHidden"
       >
         <div class="read-heading">
@@ -57,7 +56,6 @@
           v-model:expanded="inputExpanded"
           label="入参"
           :text="toolContent.inputFull"
-          shaded
           :hidden-count="inputHidden"
         />
         <ToolOutput
@@ -72,7 +70,6 @@
           v-model:expanded="outputExpanded"
           :label="toolContent.outputLabel"
           :text="toolContent.outputText"
-          shaded
           :hidden-count="outputHidden"
         />
         <ToolOutput
@@ -265,10 +262,11 @@ watch(
   overflow: hidden;
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-lg);
-  background: var(--canvas-soft);
+  background: var(--code-body);
 }
 .tool-step-card.is-thought {
   padding: var(--spacing-sm);
+  background: var(--canvas-soft);
 }
 .command-heading {
   display: flex;

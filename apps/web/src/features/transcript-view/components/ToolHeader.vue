@@ -1,5 +1,5 @@
 <template>
-  <div class="tool-header" :class="{ shaded }">
+  <div class="tool-header">
     <div class="heading">
       <slot>
         <span class="label" :title="label">{{ label }}</span>
@@ -39,10 +39,9 @@ const props = withDefaults(
   defineProps<{
     label: string
     text: string
-    shaded?: boolean
     hiddenCount?: number
   }>(),
-  { shaded: false, hiddenCount: 0 },
+  { hiddenCount: 0 },
 )
 const expanded = defineModel<boolean>("expanded", { default: false })
 
@@ -77,10 +76,8 @@ async function copy() {
   min-height: 36px;
   padding: 6px var(--spacing-sm);
   border-bottom: var(--border-width) solid var(--hairline);
+  background: var(--code-header);
   font-size: var(--text-caption);
-}
-.shaded {
-  background: var(--tool-header);
 }
 .heading {
   flex: 1;

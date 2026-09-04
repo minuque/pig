@@ -32,54 +32,11 @@
           :streaming="thought.streaming"
         />
       </div>
-      <div v-else :class="[{ direct: Boolean(directItem) }, 'body-inner']">
-        <div
-          v-for="call in calls"
-          :key="call.item.id"
-          class="call"
-          :class="[call.statusKind, { direct: call.direct }]"
-        >
-          <button
-            v-if="!call.direct"
-            type="button"
-            class="toggle"
-            :class="{ open: call.itemOpen }"
-            :disabled="!call.expandable"
-            @click="emit('toggle', { id: call.item.id, open: !call.itemOpen })"
-          >
-            <ChevronRight
-              class="motion-turn caret"
-              :class="{ 'is-on': call.itemOpen, invisible: !call.expandable }"
-              :size="14"
-            />
-            <span class="kind">{{ call.kind }}</span>
-            <span
-              v-if="call.detail"
-              class="detail"
-              :title="call.detail.kind === 'file' ? call.detail.path : call.detail.text"
-            >
-              <img v-if="call.detailIcon" class="file-icon" :src="call.detailIcon" alt="" />
-              <span
-                class="detail-text"
-                :class="{
-                  'file-path': call.detail.kind === 'file',
-                  shimmer: call.statusKind === 'is-run',
-                }"
-              >
-                {{ call.detail.kind === "file" ? call.detail.name : call.detail.text }}
-              </span>
-              <span
-                v-if="call.detail.kind === 'file' && (call.detail.added || call.detail.removed)"
-                class="line-stats"
-              >
-                <span class="added">+{{ call.detail.added }}</span>
-                <span class="removed">-{{ call.detail.removed }}</span>
-              </span>
-            </span>
-          </button>
-          <div v-if="call.revealed && call.expandable" class="call-body">
+      <div v-else class="calls">
+        <div v-for="call in calls" :key="call.item.id" class="call">
+          <div v-show="call.revealed && call.expandable" class="call-body">
             <ToolStepCard
-              v-if="call.isCommand && call.command"
+              v-if="call.variant === 'command'"
               variant="command"
               :command="call.command"
               :cwd="call.cwd"
@@ -90,24 +47,24 @@
               :status-label="call.statusLabel"
             />
             <ToolStepCard
-              v-else-if="call.readPreview"
+              v-else-if="call.variant === 'read'"
               variant="read"
               :path="call.path"
-              :preview="call.readPreview"
+              :preview="call.preview"
             />
             <ToolStepCard
-              v-else-if="call.editPreview"
+              v-else-if="call.variant === 'edit'"
               variant="edit"
               :edit-preview="call.editPreview"
             />
             <ToolStepCard
               v-else
               variant="tool"
-              :input-full="call.isRead ? '' : call.inputFull"
+              :input-full="call.inputFull"
               :output-text="call.outputText"
               :output-images="call.outputImages"
               :empty-output="call.emptyOutput"
-              :output-label="call.isRead ? call.path || 'Read' : '输出'"
+              :output-label="call.outputLabel"
             />
           </div>
         </div>
@@ -118,7 +75,6 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
-import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import {
   ChevronRight,
   FileText,
@@ -130,33 +86,10 @@ import {
 } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
-import {
-  isCommandTool,
-  toolCallKindLabel,
-  toolCommand,
-  toolInputPretty,
-  toolPath,
-  toolWorkingDirectory,
-} from "@features/transcript-view/lib/transcript-format.js"
-import {
-  fileLanguage,
-  readToolPreview,
-  type ReadToolPreview,
-} from "@features/transcript-view/lib/tool-presentation.js"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-rows.js"
-import {
-  directGroupItem,
-  editDiffPreview,
-  toolDetail,
-  toolSummary,
-  toolSummaryDetail,
-} from "../lib/tool-summary.js"
-import type {
-  EditDiffPreview,
-  ToolCallView,
-  ToolRowStep,
-  ToolSummaryDetail,
-} from "@features/transcript-view/type.js"
+import { fileDetailIcon, presentCall } from "@features/transcript-view/lib/present-call.js"
+import { toolSummary, toolSummaryDetail } from "../lib/tool-summary.js"
+import type { ToolRowStep } from "@features/transcript-view/type.js"
 
 const props = defineProps<{
   step: ToolRowStep
@@ -166,7 +99,6 @@ const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
 
 const thought = computed(() => (props.step.type === "thought" ? props.step : null))
 const group = computed(() => (props.step.type === "tools" ? props.step : null))
-const directItem = computed(() => (group.value ? directGroupItem(group.value) : undefined))
 const open = computed(
   () => thought.value?.streaming === true || props.isExpand.get(props.step.id) === true,
 )
@@ -214,106 +146,10 @@ const icon = computed(() => {
   }
 })
 
-type CallView = {
-  item: ToolCallView
-  direct: boolean
-  itemOpen: boolean
-  revealed: boolean
-  statusKind: "is-err" | "is-run" | "is-ok"
-  commandStatus: "error" | "running" | "success"
-  statusLabel: string
-  kind: string
-  detail: ToolSummaryDetail | null
-  detailIcon: string
-  command: string
-  path: string
-  cwd: string
-  isRead: boolean
-  isCommand: boolean
-  inputFull: string
-  outputText: string
-  outputImages: ToolCallView["outputImages"]
-  emptyOutput: string
-  readPreview: ReadToolPreview | null
-  editPreview: EditDiffPreview | null
-  expandable: boolean
-}
-
-function presentCall(item: ToolCallView, itemOpen: boolean, direct: boolean): CallView {
-  const toolName = item.toolName.trim().toLowerCase()
-  const isRead = toolName === "read"
-  const isCommand = isCommandTool(toolName)
-  const revealed = itemOpen
-  const outputText = revealed ? item.outputText : ""
-  const outputImages = revealed ? item.outputImages : []
-  const path = toolPath(item.input)
-  let readPreview: ReadToolPreview | null = null
-  if (
-    itemOpen &&
-    isRead &&
-    path &&
-    !item.isError &&
-    !item.running &&
-    outputImages.length === 0 &&
-    outputText &&
-    !/^\[Line \d+ is .+ exceeds /.test(outputText)
-  ) {
-    readPreview = readToolPreview(item.input, outputText)
-  }
-  const editPreview =
-    itemOpen && toolName === "edit" && !item.isError && !item.running
-      ? editDiffPreview(item.input)
-      : null
-  const itemDetail = toolDetail(item.toolName, item.input)
-  return {
-    item,
-    direct,
-    itemOpen,
-    revealed,
-    statusKind: item.isError ? "is-err" : item.running ? "is-run" : "is-ok",
-    commandStatus: item.isError ? "error" : item.running ? "running" : "success",
-    statusLabel: item.isError ? "执行失败" : item.running ? "正在执行" : "执行完成",
-    kind: toolCallKindLabel(item.toolName),
-    detail: itemDetail,
-    detailIcon: fileDetailIcon(itemDetail),
-    command: toolCommand(item.input),
-    path,
-    cwd: toolWorkingDirectory(item.input),
-    isRead,
-    isCommand,
-    inputFull: revealed ? toolInputPretty(item.input) : "",
-    outputText,
-    outputImages,
-    emptyOutput: item.running ? "(running…)" : "(no output)",
-    readPreview,
-    editPreview,
-    expandable:
-      item.running ||
-      isRead ||
-      isCommand ||
-      toolInputPretty(item.input).length > 0 ||
-      item.outputText.length > 0 ||
-      item.outputImages.length > 0,
-  }
-}
-
 const calls = computed(() => {
   if (!group.value) return []
-  const direct = directItem.value
-  const items = direct ? [direct] : group.value.items
-  return items.map((item) => {
-    const itemOpen = direct ? open.value : open.value && props.isExpand.get(item.id) === true
-    return presentCall(item, itemOpen, Boolean(direct))
-  })
+  return group.value.items.map((item) => presentCall(item, open.value))
 })
-
-function fileDetailIcon(detail: ToolSummaryDetail | null): string {
-  void languageIconsRevision.value
-  if (detail?.kind !== "file") return ""
-  const language = fileLanguage(detail.path)
-  if (language === "text") return ""
-  return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(language))}`
-}
 
 function toggleGroup() {
   emit("toggle", { id: props.step.id, open: !open.value })
@@ -323,6 +159,9 @@ function toggleGroup() {
 <style scoped>
 .tool-summary {
   min-width: 0;
+}
+.tool-calls-group.is-open {
+  margin-block-start: var(--spacing-xs);
 }
 .summary {
   width: 100%;
@@ -394,73 +233,15 @@ function toggleGroup() {
 .removed {
   color: var(--danger);
 }
-.body-inner {
-  padding-inline-start: var(--spacing-lg);
-}
-.body-inner.direct {
-  padding-inline-start: 0;
+.calls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
 }
 .call {
   min-width: 0;
 }
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  width: 100%;
-  min-width: 0;
-  min-height: 26px;
-  padding: 2px 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--ink-muted);
-  font-family: inherit;
-  font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-regular);
-  text-align: left;
-}
-.toggle:hover,
-.toggle.open .kind {
-  color: var(--ink-secondary);
-}
-.toggle:disabled {
-  cursor: default;
-  opacity: 1;
-}
-.toggle:not(:disabled):active {
-  transform: none;
-}
-.toggle .caret {
-  flex: none;
-  color: var(--ink-secondary);
-}
-.invisible {
-  visibility: hidden;
-}
-.kind,
-.separator {
-  flex: none;
-}
-.separator {
-  color: var(--ink-faint);
-}
-.file-path {
-  color: var(--ink-secondary);
-  text-underline-offset: 3px;
-}
-.file-path:hover {
-  color: var(--primary-active);
-  text-decoration: underline;
-}
-.is-run .caret {
-  color: var(--primary);
-}
 .call-body {
   min-width: 0;
-  margin: var(--spacing-xxs) 0 var(--spacing-xs);
-}
-.direct .call-body {
-  margin: 0;
 }
 </style>

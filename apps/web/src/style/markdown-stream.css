@@ -1,8 +1,10 @@
+/* markstream-vue 主题：--ms-* / --code-* 由库读取 */
 [data-custom-id="chat"] {
+  /* 字体 */
   --ms-font-sans: var(--font-sans);
   --ms-font-mono: var(--font-mono);
   --ms-text-body: var(--text-body-md);
-  --ms-leading-body: 1.7;
+  --ms-leading-body: 1.8;
   --ms-text-h1: var(--text-heading-3);
   --ms-text-h2: var(--text-title);
   --ms-text-h3: var(--text-body-md);
@@ -15,6 +17,8 @@
   --ms-weight-h1: var(--font-weight-semibold);
   --ms-weight-h2: var(--font-weight-semibold);
   --ms-weight-h3: var(--font-weight-semibold);
+
+  /* 块间距 */
   --ms-flow-heading-1-mt: 0.35em;
   --ms-flow-heading-1-mb: 0.65em;
   --ms-flow-heading-2-mt: 1.25em;
@@ -31,10 +35,14 @@
   --ms-flow-blockquote-y: 0.45em;
   --ms-flow-blockquote-indent: 0.85em;
   --ms-flow-hr-y: 0.7em;
+
+  /* 形状 */
   --ms-radius: var(--radius-md);
   --ms-border-width: var(--border-width);
   --ms-focus-ring-width: 0px;
   --ms-focus-ring-offset: 0px;
+
+  /* 色板 */
   --ms-foreground: from var(--ink-markdown) h s l;
   --ms-background: from var(--surface) h s l;
   --ms-muted: from var(--canvas-soft) h s l;
@@ -66,8 +74,9 @@
   --ms-shadow-modal: var(--shadow-modal);
   --ms-shadow-preview: var(--shadow-modal);
 
-  --code-bg: var(--canvas-soft);
-  --code-header-bg: var(--canvas-soft);
+  /* 代码 / 引用 / 表 */
+  --code-bg: var(--code-body);
+  --code-header-bg: var(--code-header);
   --code-fg: var(--ink);
   --code-border: var(--hairline);
   --inline-code-bg: var(--inline-code);
@@ -83,68 +92,63 @@
   color: var(--ink-markdown);
   font-size: var(--ms-text-body);
   line-height: var(--ms-leading-body);
-}
 
-[data-custom-id="chat"] pre,
-[data-custom-id="chat"] code {
-  font-variant-ligatures: none;
-}
-[data-custom-id="chat"] .inline-code {
-  font-size: var(--ms-text-body);
-  border-radius: var(--radius-xs);
-  padding: 0.05em 0.4em;
-}
-[data-custom-id="chat"] .heading-5,
-[data-custom-id="chat"] .heading-6 {
-  font-weight: var(--font-weight-semibold);
-}
-/* 节点包在 .node-slot 里，p+p 打不中相邻段。 */
-[data-custom-id="chat"] .paragraph-node + .paragraph-node,
-[data-custom-id="chat"] .node-slot:has(> .paragraph-node) + .node-slot:has(> .paragraph-node) {
-  margin-top: var(--spacing-md);
-}
-
-/* 官方 li:has(.checkbox-node) 用负 margin，虚拟行会裁掉勾选标记 */
-[data-custom-id="chat"] li:has(.checkbox-node) {
-  margin-inline-start: 0;
-}
-
-/* 容器 class 是 rounded-lg（本主题 12px），头/身按 --ms-radius（8px）切角，四角错位。 */
-[data-custom-id="chat"] .code-block-container {
-  --vscode-editor-font-size: var(--text-code);
-  --vscode-editor-line-height: var(--text-code-line);
-  border-radius: var(--ms-radius);
-}
-[data-custom-id="chat"] pre.code-pre-fallback {
-  font-size: var(--text-code);
-  line-height: var(--text-code-line);
-}
-
-/* pre 带 z-index:2 且与 header 同层，会盖住绝对定位的 more 菜单。 */
-[data-custom-id="chat"] .code-block-header {
-  z-index: 10;
-}
-/* 语言图标靠运行时 h-4 w-4，Tailwind 扫不到 markstream JS，SVG 会按固有尺寸撑开。 */
-[data-custom-id="chat"] .code-block-header .icon-slot {
-  width: var(--size-icon);
-  height: var(--size-icon);
-  flex: none;
-}
-
-/* 菜单溢出卡片后，后续 Markdown 节点会按 DOM 顺序盖上来。 */
-[data-custom-id="chat"] .code-block-container:has(.code-more-menu) {
-  position: relative;
-  z-index: 1;
-}
-
-/* contain:content 按矩形裁切，会吃掉 overflow:hidden + border-radius 的圆角。 */
-[data-custom-id="chat"] .code-block-shell-content,
-[data-custom-id="chat"] .code-loading-placeholder {
-  contain: none;
-}
-
-/* content-visibility:auto 在块要进视口时才换真实高度，虚拟时间线会抖 scrollHeight。 */
-[data-custom-id="chat"] .markdown-renderer {
-  content-visibility: visible !important;
-  contain-intrinsic-size: none !important;
+  pre,
+  code {
+    font-variant-ligatures: none;
+  }
+  .inline-code {
+    font-size: var(--ms-text-body);
+    border-radius: var(--radius-xs);
+    border: var(--ms-border-width) solid var(--inline-code-border);
+    padding: 0.05em 0.4em;
+  }
+  .heading-5,
+  .heading-6 {
+    font-weight: var(--font-weight-semibold);
+  }
+  /* 节点包在 .node-slot 里，p+p 打不中相邻段。 */
+  .paragraph-node + .paragraph-node,
+  .node-slot:has(> .paragraph-node) + .node-slot:has(> .paragraph-node) {
+    margin-top: var(--spacing-md);
+  }
+  /* 官方 li:has(.checkbox-node) 用负 margin，虚拟行会裁掉勾选标记 */
+  li:has(.checkbox-node) {
+    margin-inline-start: 0;
+  }
+  /* 容器 class 是 rounded-lg（12px），头/身按 --ms-radius（8px）切角，四角错位。 */
+  .code-block-container {
+    --vscode-editor-font-size: var(--text-code);
+    --vscode-editor-line-height: var(--text-code-line);
+    border-radius: var(--ms-radius);
+  }
+  pre.code-pre-fallback {
+    font-size: var(--text-code);
+    line-height: var(--text-code-line);
+  }
+  /* pre 带 z-index:2 且与 header 同层，会盖住绝对定位的 more 菜单。 */
+  .code-block-header {
+    z-index: 10;
+  }
+  /* 语言图标靠运行时 h-4 w-4，Tailwind 扫不到 markstream JS。 */
+  .code-block-header .icon-slot {
+    width: var(--size-icon);
+    height: var(--size-icon);
+    flex: none;
+  }
+  /* 菜单溢出卡片后，后续 Markdown 节点会按 DOM 顺序盖上来。 */
+  .code-block-container:has(.code-more-menu) {
+    position: relative;
+    z-index: 1;
+  }
+  /* contain:content 按矩形裁切，会吃掉 overflow:hidden + border-radius 的圆角。 */
+  .code-block-shell-content,
+  .code-loading-placeholder {
+    contain: none;
+  }
+  /* content-visibility:auto 在块进视口时才换真实高度，虚拟时间线会抖 scrollHeight。 */
+  .markdown-renderer {
+    content-visibility: visible !important;
+    contain-intrinsic-size: none !important;
+  }
 }

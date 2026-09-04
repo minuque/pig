@@ -248,6 +248,36 @@
   opacity: 0;
 }
 
+.slide-next-enter-active,
+.slide-next-leave-active,
+.slide-prev-enter-active,
+.slide-prev-leave-active {
+  transition:
+    opacity var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out);
+}
+.slide-next-leave-active,
+.slide-prev-leave-active {
+  position: absolute;
+  inset-inline: 0;
+}
+.slide-next-enter-from {
+  transform: translateX(40%);
+  opacity: 0;
+}
+.slide-next-leave-to {
+  transform: translateX(-40%);
+  opacity: 0;
+}
+.slide-prev-enter-from {
+  transform: translateX(-40%);
+  opacity: 0;
+}
+.slide-prev-leave-to {
+  transform: translateX(40%);
+  opacity: 0;
+}
+
 ::view-transition-group(root) {
   animation-duration: var(--duration-theme);
   animation-timing-function: var(--ease-smooth);
@@ -299,6 +329,32 @@
   color: transparent;
   -webkit-text-fill-color: transparent;
   animation: shimmer var(--duration-shimmer) var(--ease-in-out) infinite;
+}
+
+.motion-nudge {
+  animation: motion-nudge 1.4s var(--ease-in-out) infinite;
+}
+@keyframes motion-nudge {
+  50% {
+    transform: translateY(6px);
+  }
+}
+.motion-pulse {
+  position: relative;
+}
+.motion-pulse::after {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent);
+  animation: motion-pulse-ring 2s var(--ease-out) infinite;
+  content: "";
+}
+@keyframes motion-pulse-ring {
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -372,13 +428,27 @@
     animation: none;
   }
   .fade-layer-enter-active,
-  .fade-layer-leave-active {
+  .fade-layer-leave-active,
+  .slide-next-enter-active,
+  .slide-next-leave-active,
+  .slide-prev-enter-active,
+  .slide-prev-leave-active {
     transition: none;
+  }
+  .slide-next-enter-from,
+  .slide-next-leave-to,
+  .slide-prev-enter-from,
+  .slide-prev-leave-to {
+    transform: none;
   }
   .shimmer {
     animation: none;
     background: none;
     color: inherit;
     -webkit-text-fill-color: currentColor;
+  }
+  .motion-nudge,
+  .motion-pulse::after {
+    animation: none;
   }
 }

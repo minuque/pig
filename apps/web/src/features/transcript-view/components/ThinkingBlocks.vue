@@ -64,7 +64,6 @@ const thinkProps = computed(
 }
 .thinking-body :deep(p) {
   margin: 0 0 var(--spacing-xs);
-  color: var(--ink-muted);
   font-size: var(--text-body-sm);
   line-height: var(--text-body-sm--line-height);
   white-space: pre-wrap;

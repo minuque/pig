@@ -27,7 +27,12 @@
 
         <div class="nav-body">
           <nav class="session-list">
-            <section v-if="pinnedRows.length" class="nav-section pinned-section">
+            <!-- 置顶会话 -->
+            <section
+              v-if="pinnedRows.length"
+              class="nav-section pinned-section"
+              :class="{ 'is-open': !collapsedSections.pinned }"
+            >
               <GroupHead
                 name="置顶"
                 kind="pinned"
@@ -55,118 +60,111 @@
               </div>
             </section>
 
-            <ul v-if="showList && grouping === 'project'">
-              <li v-for="row in groupRows" :key="row.key" class="row-group">
-                <GroupHead
-                  :name="workspaceName(row.canonicalPath)"
-                  kind="directory"
-                  :count="row.sessions.length"
-                  :collapsed="row.collapsed"
-                  @toggle="toggleGroup(row.canonicalPath)"
-                />
-                <div
-                  v-if="row.sessions.length > 0 || row.more"
-                  class="session-list-group"
-                  :class="{ 'is-open': !row.collapsed }"
+            <Transition :name="groupSlide">
+              <ul v-if="showList && grouping === 'project'" key="project">
+                <li
+                  v-for="row in groupRows"
+                  :key="row.key"
+                  class="row-group"
+                  :class="{ 'is-open': !row.collapsed && (row.sessions.length > 0 || row.more) }"
                 >
-                  <TransitionGroup name="list-reveal" tag="div" class="group-body">
-                    <SessionItem
-                      v-for="session in row.sessions"
-                      :key="session.id"
-                      :session="session"
-                      :active="session.id === activeSessionId"
-                      :pinned="pinnedIds.has(session.id)"
-                      :state="sessionState(session.id)"
-                      :now="now"
-                      :model-provider="modelProvider(session.id)"
-                      @navigate="onSessionNavigate(session.cwd)"
-                      @toggle-pinned="togglePinned"
-                      @rename="renameSession"
-                      @delete="deleteSession"
-                    />
-                    <button
-                      v-if="row.more"
-                      :key="`${row.key}-more`"
-                      class="more-button"
-                      type="button"
-                      @click="bumpGroup(row.key)"
-                    >
-                      显示更多
-                    </button>
-                  </TransitionGroup>
-                </div>
-              </li>
-            </ul>
+                  <GroupHead
+                    :name="workspaceName(row.canonicalPath)"
+                    kind="directory"
+                    :count="row.sessions.length"
+                    :collapsed="row.collapsed"
+                    @toggle="toggleGroup(row.canonicalPath)"
+                    @create="onCreateInDir(row.canonicalPath)"
+                  />
+                  <div
+                    v-if="row.sessions.length > 0 || row.more"
+                    class="session-list-group"
+                    :class="{ 'is-open': !row.collapsed }"
+                  >
+                    <TransitionGroup name="list-reveal" tag="div" class="group-body">
+                      <SessionItem
+                        v-for="session in row.sessions"
+                        :key="session.id"
+                        :session="session"
+                        :active="session.id === activeSessionId"
+                        :pinned="pinnedIds.has(session.id)"
+                        :state="sessionState(session.id)"
+                        :now="now"
+                        :model-provider="modelProvider(session.id)"
+                        @navigate="onSessionNavigate(session.cwd)"
+                        @toggle-pinned="togglePinned"
+                        @rename="renameSession"
+                        @delete="deleteSession"
+                      />
+                      <button
+                        v-if="row.more"
+                        :key="`${row.key}-more`"
+                        class="more-button"
+                        type="button"
+                        @click="bumpGroup(row.key)"
+                      >
+                        显示更多
+                      </button>
+                    </TransitionGroup>
+                  </div>
+                </li>
+              </ul>
 
-            <ul v-else-if="showList" class="time-sections">
-              <li v-for="(section, index) in timeSections" :key="section.key" class="time-section">
-                <GroupHead
-                  :name="section.name"
-                  kind="time"
-                  :count="section.sessions.length"
-                  :collapsed="collapsedSections[section.key]"
-                  @toggle="toggleTimeSection(section.key)"
-                />
-                <div
-                  class="session-list-group"
+              <ul v-else-if="showList" key="updated" class="time-sections">
+                <li
+                  v-for="(section, index) in timeSections"
+                  :key="section.key"
+                  class="time-section"
                   :class="{ 'is-open': !collapsedSections[section.key] }"
                 >
-                  <TransitionGroup name="list-reveal" tag="div" class="group-body">
-                    <SessionItem
-                      v-for="session in section.sessions"
-                      :key="session.id"
-                      :session="session"
-                      :active="session.id === activeSessionId"
-                      :pinned="pinnedIds.has(session.id)"
-                      :state="sessionState(session.id)"
-                      :now="now"
-                      :model-provider="modelProvider(session.id)"
-                      @navigate="onSessionNavigate(session.cwd)"
-                      @toggle-pinned="togglePinned"
-                      @rename="renameSession"
-                      @delete="deleteSession"
-                    />
-                    <button
-                      v-if="hasMore && index === timeSections.length - 1"
-                      :key="`${section.key}-more`"
-                      class="more-button"
-                      type="button"
-                      @click="bumpGroup('updated')"
-                    >
-                      显示更多
-                    </button>
-                  </TransitionGroup>
-                </div>
-                <div v-if="collapsedSections[section.key]" class="collapsed-preview">
-                  <SessionItem
-                    v-if="section.sessions[0]"
-                    :session="section.sessions[0]"
-                    :active="section.sessions[0].id === activeSessionId"
-                    :pinned="pinnedIds.has(section.sessions[0].id)"
-                    :state="sessionState(section.sessions[0].id)"
-                    :now="now"
-                    :model-provider="modelProvider(section.sessions[0].id)"
-                    @navigate="onSessionNavigate(section.sessions[0].cwd)"
-                    @toggle-pinned="togglePinned"
-                    @rename="renameSession"
-                    @delete="deleteSession"
+                  <GroupHead
+                    :name="section.name"
+                    kind="time"
+                    :count="section.sessions.length"
+                    :collapsed="collapsedSections[section.key]"
+                    @toggle="toggleTimeSection(section.key)"
                   />
-                </div>
-              </li>
-            </ul>
+                  <div
+                    class="session-list-group"
+                    :class="{ 'is-open': !collapsedSections[section.key] }"
+                  >
+                    <TransitionGroup name="list-reveal" tag="div" class="group-body">
+                      <SessionItem
+                        v-for="session in section.sessions"
+                        :key="session.id"
+                        :session="session"
+                        :active="session.id === activeSessionId"
+                        :pinned="pinnedIds.has(session.id)"
+                        :state="sessionState(session.id)"
+                        :now="now"
+                        :model-provider="modelProvider(session.id)"
+                        @navigate="onSessionNavigate(session.cwd)"
+                        @toggle-pinned="togglePinned"
+                        @rename="renameSession"
+                        @delete="deleteSession"
+                      />
+                      <button
+                        v-if="hasMore && index === timeSections.length - 1"
+                        :key="`${section.key}-more`"
+                        class="more-button"
+                        type="button"
+                        @click="bumpGroup('updated')"
+                      >
+                        显示更多
+                      </button>
+                    </TransitionGroup>
+                  </div>
+                </li>
+              </ul>
 
-            <div v-else class="empty-state">
-              <template v-if="groups.length === 0">
-                <span>还没有工作目录</span>
-                <button class="empty-add" type="button" @click="addWorkspace()">
-                  <Plus :size="12" />
-                  添加本地目录
-                </button>
-              </template>
-              <span v-else>暂无会话</span>
-            </div>
+              <span v-else-if="groups.length" key="empty">暂无会话</span>
+            </Transition>
           </nav>
         </div>
+        <p v-if="!groups.length" class="add-guide">
+          点击添加工作目录
+          <ArrowDown class="size-icon motion-nudge" />
+        </p>
       </div>
     </div>
 
@@ -174,6 +172,7 @@
       :grouping="grouping"
       :adding-workspace="addingWorkspace"
       :collapsed="collapsed"
+      :hint-add="!groups.length"
       @add-workspace="addWorkspace"
       @set-grouping="setGrouping"
       @settings="openSettings"
@@ -185,8 +184,8 @@
 <script setup lang="ts">
 import { computed, reactive, shallowRef, watch } from "vue"
 import { useEventListener, useTimestamp } from "@vueuse/core"
-import { RouterLink } from "vue-router"
-import { PanelLeft, Plus, Search } from "@lucide/vue"
+import { RouterLink, useRouter } from "vue-router"
+import { ArrowDown, PanelLeft, Search } from "@lucide/vue"
 import { notify } from "@components/ui/alert/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
@@ -226,6 +225,7 @@ const {
   deleteSession,
 } = useNav()
 const { openSettings } = useSettings()
+const router = useRouter()
 
 const searchOpen = shallowRef(false)
 const now = useTimestamp({ interval: 60_000 })
@@ -241,6 +241,10 @@ const updatedSessions = computed(() =>
 const timeSections = computed(() => sidebarTimeSections(updatedSessions.value, now.value))
 const hasMore = computed(() => rows.value.some((row) => row.kind === "more"))
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
+const groupSlide = shallowRef("slide-next")
+watch(grouping, (next) => {
+  groupSlide.value = next === "updated" ? "slide-next" : "slide-prev"
+})
 
 useEventListener(window, "keydown", (event) => {
   if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return
@@ -267,6 +271,11 @@ function toggleTimeSection(key: "today" | "recent"): void {
 
 function onSessionNavigate(cwd: string | undefined): void {
   if (cwd) emit("navigate", cwd)
+}
+
+function onCreateInDir(canonicalPath: string): void {
+  emit("navigate", canonicalPath)
+  void router.push("/")
 }
 </script>
 
@@ -376,10 +385,15 @@ html[data-pig-desktop-platform] .session-nav :is(button, a, input) {
 }
 .nav-body {
   overflow: auto;
-  scrollbar-gutter: stable;
+  overflow-x: hidden;
+  /* 原生滚动条占宽会挤内容，与上下工具栏错位；隐藏后内容恒宽，滚动仍可用 */
+  scrollbar-width: none;
 }
 .session-list {
-  padding-inline-end: var(--spacing-xxs);
+  position: relative;
+}
+.nav-body::-webkit-scrollbar {
+  display: none;
 }
 .session-list ul {
   display: flex;
@@ -388,22 +402,38 @@ html[data-pig-desktop-platform] .session-nav :is(button, a, input) {
   padding: 0;
   list-style: none;
 }
-.session-list li {
-  padding-block-end: var(--spacing-xxs);
-}
 .nav-section,
 .row-group,
 .time-section {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin-block-end: 0;
+  padding: 0;
+  padding-block-end: var(--spacing-xxs);
+  border-radius: var(--radius-lg);
+  background-color: transparent;
+  box-shadow: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    padding var(--duration-fast) var(--ease-out),
+    margin-block-end var(--duration-fast) var(--ease-out);
+}
+.nav-section.is-open,
+.row-group.is-open,
+.time-section.is-open {
+  margin-block-end: var(--spacing-xs);
+  padding: var(--spacing-xxs);
+  border: var(--border-width) solid var(--color-border);
+  background-color: var(--surface);
+  box-shadow: var(--shadow-group);
+  transition-duration: var(--duration-slow);
 }
 .pinned-section {
   position: sticky;
   z-index: 2;
   top: 0;
-  margin-block-end: var(--spacing-sm);
-  padding-block-end: var(--spacing-xxs);
   background: var(--sidebar);
 }
 .group-body {
@@ -412,35 +442,6 @@ html[data-pig-desktop-platform] .session-nav :is(button, a, input) {
   flex-direction: column;
   gap: var(--spacing-xxs);
   padding-block-start: var(--spacing-xxs);
-}
-.time-section {
-  position: relative;
-  margin-block-end: var(--spacing-xs);
-}
-.collapsed-preview {
-  position: relative;
-  z-index: 1;
-  margin: var(--spacing-xxs) var(--spacing-xxs) var(--spacing-xs);
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-}
-.collapsed-preview::before,
-.collapsed-preview::after {
-  position: absolute;
-  z-index: -1;
-  inset-inline: var(--spacing-xs);
-  inset-block: 0;
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  content: "";
-  transform: translateY(5px);
-}
-.collapsed-preview::after {
-  inset-inline: var(--spacing-sm);
-  transform: translateY(9px);
-  opacity: 0.55;
 }
 .more-button {
   display: flex;
@@ -458,31 +459,29 @@ html[data-pig-desktop-platform] .session-nav :is(button, a, input) {
 .more-button:focus-visible {
   color: var(--ink);
 }
-.empty-state {
+.add-guide {
   display: flex;
+  flex: none;
   flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-lg) var(--spacing-xs);
+  align-items: flex-start;
+  gap: var(--spacing-xxs);
+  margin: 0;
+  padding-block: var(--spacing-xxs);
   color: var(--ink-faint);
-  font-size: var(--text-caption);
-  text-align: center;
-}
-.empty-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: var(--spacing-xxs) 10px;
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--ink-muted);
   font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-medium);
 }
-.empty-add:hover {
-  background: var(--hover-quiet);
-  color: var(--ink);
+.add-guide .motion-nudge {
+  margin-inline-start: calc((var(--size-icon-button) - var(--size-icon)) / 2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-section,
+  .row-group,
+  .time-section,
+  .nav-section.is-open,
+  .row-group.is-open,
+  .time-section.is-open {
+    transition: none;
+  }
 }
 .session-nav.collapsed .logo-row {
   width: var(--size-nav-rail);

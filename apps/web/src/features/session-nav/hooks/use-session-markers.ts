@@ -3,7 +3,6 @@ import type { SessionMetadata } from "@/types/common-type.js"
 import { sessionRecency } from "@features/session-nav/lib/format.js"
 
 const PINNED_KEY = "pig.sidebarPinnedSessions"
-const READ_AT_KEY = "pig.sidebarReadAt"
 
 function loadStringArray(key: string): string[] {
   try {
@@ -13,20 +12,6 @@ function loadStringArray(key: string): string[] {
       : []
   } catch {
     return []
-  }
-}
-
-function loadNumberRecord(key: string): Record<string, number> {
-  try {
-    const value: unknown = JSON.parse(localStorage.getItem(key) ?? "{}")
-    if (!value || typeof value !== "object" || Array.isArray(value)) return {}
-    const entries = Object.entries(value).filter(
-      (entry): entry is [string, number] =>
-        typeof entry[1] === "number" && Number.isFinite(entry[1]),
-    )
-    return Object.fromEntries(entries)
-  } catch {
-    return {}
   }
 }
 
@@ -43,7 +28,9 @@ export function useSessionMarkers(
   activeSessionId: MaybeRefOrGetter<string | undefined>,
 ) {
   const pinnedIdList = shallowRef(loadStringArray(PINNED_KEY))
-  const readAtById = shallowRef(loadNumberRecord(READ_AT_KEY))
+  // 读取记录只存在于本次运行：启动前完成的会话不算未读，应用关闭即销毁
+  const runStartAt = Date.now()
+  const readAtById = shallowRef<Record<string, number>>({})
   const pinnedIds = computed(() => new Set(pinnedIdList.value))
   const pinnedSessions = computed(() =>
     toValue(sessions).filter((session) => pinnedIds.value.has(session.id)),
@@ -58,7 +45,8 @@ export function useSessionMarkers(
 
   function isUnread(session: SessionMetadata): boolean {
     if (session.id === toValue(activeSessionId)) return false
-    return sessionRecency(session) > (readAtById.value[session.id] ?? 0)
+    // 未阅读过的会话默认按启动时刻起算，本次运行中完成的才算未读
+    return sessionRecency(session) > (readAtById.value[session.id] ?? runStartAt)
   }
 
   watch(
@@ -70,7 +58,6 @@ export function useSessionMarkers(
       const readAt = sessionRecency(session)
       if (readAtById.value[sessionId] === readAt) return
       readAtById.value = { ...readAtById.value, [sessionId]: readAt }
-      save(READ_AT_KEY, readAtById.value)
     },
     { immediate: true },
   )

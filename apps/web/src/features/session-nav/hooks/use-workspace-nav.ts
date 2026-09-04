@@ -23,14 +23,14 @@ export const SIDEBAR_GROUPING_KEY = "pig.sidebarGrouping"
 export const SIDEBAR_COLLAPSED_KEY = "pig.sidebarCollapsed"
 
 function parseGrouping(raw: string | null): SidebarGrouping {
-  return raw === "project" ? "project" : "updated"
+  return raw === "updated" ? "updated" : "project"
 }
 
 function loadGrouping(): SidebarGrouping {
   try {
     return parseGrouping(localStorage.getItem(SIDEBAR_GROUPING_KEY))
   } catch {
-    return "updated"
+    return "project"
   }
 }
 

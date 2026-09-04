@@ -1,7 +1,8 @@
 <template>
-  <section class="tool-row" :class="{ live, failed: row.aborted }">
+  <section class="tool-steps" :class="{ live, failed: row.aborted }">
     <Button type="button" static class="summary-btn" @click="emit('toggle-expand', !revealed)">
-      <RotateCwFadingClock class="tool-row-icon" />
+      <Spinner v-if="live" class="tool-steps-icon" />
+      <BadgeCheck v-else class="tool-steps-icon" />
       <span :class="{ shimmer: live }">{{ label }}</span>
       <ChevronRight class="motion-turn" :class="{ 'is-on': revealed }" data-icon="inline-end" />
     </Button>
@@ -27,8 +28,9 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
-import { ChevronRight, RotateCwFadingClock } from "@lucide/vue"
+import { ChevronRight, BadgeCheck } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
+import { Spinner } from "@components/ui/spinner/index.js"
 import ToolCall from "./ToolCall.vue"
 import { toolRowLabel } from "../lib/transcript-rows.js"
 import type { ToolRow } from "../type.js"
@@ -84,7 +86,7 @@ watch(
 </script>
 
 <style scoped>
-.tool-row {
+.tool-steps {
   min-width: 0;
 }
 .summary-btn {
@@ -109,7 +111,7 @@ watch(
 .failed .summary-btn {
   color: var(--danger);
 }
-.tool-row-icon {
+.tool-steps-icon {
   flex: none;
   transition: color var(--duration-fast) var(--ease-out);
 }
