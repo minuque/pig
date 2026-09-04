@@ -13,6 +13,10 @@ function prefersReducedMotion() {
   )
 }
 
+function canAnimate() {
+  return typeof requestAnimationFrame === "function"
+}
+
 function computeAdaptiveQueueStep(
   backlog: number,
   dtMs: number,
@@ -62,7 +66,7 @@ export function useTranscriptReveal(
 
   function tick(now: number) {
     raf = 0
-    if (!toValue(streaming) || prefersReducedMotion()) {
+    if (!toValue(streaming) || prefersReducedMotion() || !canAnimate()) {
       flush(toValue(source))
       return
     }
@@ -101,7 +105,7 @@ export function useTranscriptReveal(
   watch(
     () => [toValue(source), toValue(streaming)] as const,
     ([content, live]) => {
-      if (!live || prefersReducedMotion()) {
+      if (!live || prefersReducedMotion() || !canAnimate()) {
         flush(content)
         return
       }

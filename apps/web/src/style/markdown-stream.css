@@ -55,11 +55,11 @@
   --ms-accent: from var(--canvas-soft) h s l;
   --ms-accent-foreground: from var(--ink) h s l;
   --ms-destructive: from var(--danger) h s l;
-  --ms-destructive-foreground: from var(--on-primary) h s l;
+  --ms-destructive-foreground: from var(--danger-foreground) h s l;
   --ms-success: from var(--success) h s l;
-  --ms-success-foreground: from var(--on-primary) h s l;
+  --ms-success-foreground: from var(--success-foreground) h s l;
   --ms-warning: from var(--warning) h s l;
-  --ms-warning-foreground: from var(--ink) h s l;
+  --ms-warning-foreground: from var(--warning-foreground) h s l;
   --ms-info: from var(--primary) h s l;
   --ms-info-foreground: from var(--on-primary) h s l;
   --ms-diff-added: from color-mix(in srgb, var(--success) 88%, var(--surface)) h s l;
@@ -151,6 +151,13 @@
     content-visibility: visible !important;
     contain-intrinsic-size: none !important;
   }
+}
+
+/* pierre diffs 默认 13px，影子树只吃 --diffs-* */
+.stream-diffs-vue-diff {
+  --diffs-font-size: var(--text-code);
+  --diffs-line-height: var(--text-code-line);
+  --diffs-font-family: var(--font-mono);
 }
 
 /* 全屏 Teleport 到 body，不能挂在 [data-custom-id=chat] 下 */

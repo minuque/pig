@@ -98,7 +98,7 @@
       />
     </template>
     <template v-else-if="thoughtContent">
-      <ThinkingBlocks :blocks="[thoughtContent.text]" :streaming="thoughtContent.streaming" />
+      <ThinkingCard :blocks="[thoughtContent.text]" :streaming="thoughtContent.streaming" />
     </template>
   </div>
 </template>
@@ -107,7 +107,7 @@
 import { computed, ref, shallowRef, watch } from "vue"
 import { StreamDiff } from "stream-diffs/vue"
 import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
-import ThinkingBlocks from "@features/transcript-view/components/ThinkingBlocks.vue"
+import ThinkingCard from "@features/transcript-view/components/ThinkingCard.vue"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
@@ -259,14 +259,11 @@ watch(
 
 <style scoped>
 .tool-step-card {
+  min-width: 0;
   overflow: hidden;
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-lg);
   background: var(--code-body);
-}
-.tool-step-card.is-thought {
-  padding: var(--spacing-sm);
-  background: var(--canvas-soft);
 }
 .command-heading {
   display: flex;

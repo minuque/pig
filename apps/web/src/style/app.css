@@ -88,6 +88,9 @@
   --info: #4176e6;
   --warning: #dd5b00;
   --danger: #cd2054;
+  --success-foreground: var(--on-primary);
+  --warning-foreground: var(--ink);
+  --danger-foreground: var(--on-primary);
   --success-bg: #e8f3e8;
   --info-bg: #e8effa;
   --warning-bg: #fbede5;
@@ -256,13 +259,16 @@
   --glass-blur: 16px;
   --glass-saturation: 1;
 
-  --accent-orange: #ff8a3d;
-  --accent-orange-deep: #d97706;
-  --accent-green: #32d74b;
-  --success: #32d74b;
+  --accent-orange: #ffc799;
+  --accent-orange-deep: #ffc799;
+  --accent-green: #3bce87;
+  --success: #3bce87;
   --info: #679efe;
-  --warning: #ff8a3d;
-  --danger: #ff2c56;
+  --warning: #ffc799;
+  --danger: #ff8080;
+  --success-foreground: #000000;
+  --warning-foreground: #000000;
+  --danger-foreground: #000000;
   --success-bg: #1c251c;
   --info-bg: #1d2128;
   --warning-bg: #29201b;
@@ -362,7 +368,7 @@
   --color-primary-foreground: var(--on-primary);
   --color-secondary-foreground: var(--on-primary);
   --color-destructive: var(--danger);
-  --color-destructive-foreground: var(--on-primary);
+  --color-destructive-foreground: var(--danger-foreground);
   --color-input: var(--hairline);
   --color-background: var(--surface);
   --color-foreground: var(--ink);

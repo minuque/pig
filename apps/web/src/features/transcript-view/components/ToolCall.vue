@@ -23,49 +23,55 @@
         data-icon="inline-end"
       />
     </Button>
-    <div class="tool-calls-group" :class="{ 'is-open': open, instant: !open }" :inert="!open">
-      <ToolStepCard
-        v-if="thought && thought.text"
-        variant="thought"
-        :text="thought.text"
-        :streaming="thought.streaming"
-      />
-      <div v-else class="calls">
-        <template v-for="call in calls" :key="call.item.id">
-          <div v-if="open && call.expandable" class="call">
-            <ToolStepCard
-              v-if="call.variant === 'command'"
-              variant="command"
-              :command="call.command"
-              :cwd="call.cwd"
-              :output-text="call.outputText"
-              :output-images="call.outputImages"
-              :empty-output="call.emptyOutput"
-              :status="call.commandStatus"
-              :status-label="call.statusLabel"
-            />
-            <ToolStepCard
-              v-else-if="call.variant === 'read'"
-              variant="read"
-              :path="call.path"
-              :preview="call.preview"
-            />
-            <ToolStepCard
-              v-else-if="call.variant === 'edit'"
-              variant="edit"
-              :edit-preview="call.editPreview"
-            />
-            <ToolStepCard
-              v-else
-              variant="tool"
-              :input-full="call.inputFull"
-              :output-text="call.outputText"
-              :output-images="call.outputImages"
-              :empty-output="call.emptyOutput"
-              :output-label="call.outputLabel"
-            />
-          </div>
-        </template>
+    <div
+      class="tool-calls-group"
+      :class="{ 'is-open': open, instant: !open || running }"
+      :inert="!open"
+    >
+      <div>
+        <ToolStepCard
+          v-if="thought && thought.text"
+          variant="thought"
+          :text="thought.text"
+          :streaming="thought.streaming"
+        />
+        <div v-else class="calls">
+          <template v-for="call in calls" :key="call.item.id">
+            <div v-if="open && call.expandable" class="call">
+              <ToolStepCard
+                v-if="call.variant === 'command'"
+                variant="command"
+                :command="call.command"
+                :cwd="call.cwd"
+                :output-text="call.outputText"
+                :output-images="call.outputImages"
+                :empty-output="call.emptyOutput"
+                :status="call.commandStatus"
+                :status-label="call.statusLabel"
+              />
+              <ToolStepCard
+                v-else-if="call.variant === 'read'"
+                variant="read"
+                :path="call.path"
+                :preview="call.preview"
+              />
+              <ToolStepCard
+                v-else-if="call.variant === 'edit'"
+                variant="edit"
+                :edit-preview="call.editPreview"
+              />
+              <ToolStepCard
+                v-else
+                variant="tool"
+                :input-full="call.inputFull"
+                :output-text="call.outputText"
+                :output-images="call.outputImages"
+                :empty-output="call.emptyOutput"
+                :output-label="call.outputLabel"
+              />
+            </div>
+          </template>
+        </div>
       </div>
     </div>
   </div>

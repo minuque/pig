@@ -4,7 +4,7 @@
     <Alert
       v-if="item.error || item.aborted"
       class="status-alert"
-      :variant="item.error ? 'error' : 'default'"
+      :variant="item.error ? 'error' : 'warning'"
     >
       <CircleAlert />
       <AlertTitle>{{ statusLabel }}</AlertTitle>

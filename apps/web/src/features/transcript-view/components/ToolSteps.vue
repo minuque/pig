@@ -1,5 +1,5 @@
 <template>
-  <section class="tool-steps" :class="{ live, failed: row.aborted }">
+  <section class="tool-steps" :class="{ live, aborted: row.aborted }">
     <Button type="button" static class="summary-btn" @click="emit('toggle-expand', !revealed)">
       <Spinner v-if="live" class="tool-steps-icon" />
       <BadgeCheck v-else class="tool-steps-icon" />
@@ -108,8 +108,8 @@ watch(
   background: transparent;
   color: var(--ink);
 }
-.failed .summary-btn {
-  color: var(--danger);
+.aborted .summary-btn {
+  color: var(--warning);
 }
 .tool-steps-icon {
   flex: none;
