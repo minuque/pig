@@ -2,7 +2,7 @@
   <div class="nav-footer" :class="{ 'is-collapsed': collapsed }">
     <button
       class="footer-action press-scale"
-      :class="{ 'motion-pulse': hintAdd }"
+      :class="{ 'motion-pulse': hintAdd && !collapsed }"
       type="button"
       :disabled="addingWorkspace"
       title="新增工作区"

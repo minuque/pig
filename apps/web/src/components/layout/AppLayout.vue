@@ -128,15 +128,6 @@ main {
     width: var(--size-sidebar-rail);
   }
 }
-html[data-pig-desktop-platform] .sidebar {
-  -webkit-app-region: drag;
-}
-html[data-pig-desktop-platform]
-  .sidebar
-  :deep(:is(button, a, input, select, textarea, [role="button"], [role="link"])),
-html[data-pig-desktop-platform] .resizer {
-  -webkit-app-region: no-drag;
-}
 @media (max-width: 900px) {
   .shell,
   .shell.left-closed {

@@ -42,14 +42,17 @@ export function useTranscriptMinimap(
     if (!sameIdList(inViewIds.value, next)) inViewIds.value = next
   }
 
+  function overlayContent(bar: HTMLElement | null): HTMLElement | null {
+    const inner = bar?.firstElementChild
+    return inner instanceof HTMLElement ? inner : bar
+  }
+
   function tick() {
-    const bar = toValue(layout.inputBar)
     const host = toValue(layout.viewport)
+    const overlay = overlayContent(toValue(layout.inputBar))
     syncLayout(host, toValue(layout.column))
-    if (bar && host) {
-      const inner = bar.firstElementChild
-      const height = inner instanceof HTMLElement ? inner.offsetHeight : bar.scrollHeight
-      host.style.setProperty("--size-chat-input-overlay", `${height}px`)
+    if (overlay && host) {
+      host.style.setProperty("--size-chat-input-overlay", `${overlay.offsetHeight}px`)
     }
   }
 
@@ -62,7 +65,8 @@ export function useTranscriptMinimap(
       if (!el) return
       layoutObserver = new ResizeObserver(tick)
       layoutObserver.observe(el)
-      if (bar) layoutObserver.observe(bar)
+      const overlay = overlayContent(bar)
+      if (overlay) layoutObserver.observe(overlay)
       if (column) layoutObserver.observe(column)
       tick()
     },

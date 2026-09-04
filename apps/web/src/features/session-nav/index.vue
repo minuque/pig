@@ -322,7 +322,7 @@ html[data-pig-desktop-platform] .session-nav {
   padding-top: calc(6px + var(--titlebar-inset));
 }
 html[data-pig-desktop-platform="win32"] .session-nav {
-  padding-top: 10px;
+  padding-top: 0;
   padding-inline-start: 2px;
 }
 html[data-pig-desktop-platform="darwin"] .session-nav {
@@ -331,7 +331,10 @@ html[data-pig-desktop-platform="darwin"] .session-nav {
 html[data-pig-desktop-platform="darwin"] .session-nav.collapsed {
   padding-top: 48px;
 }
-html[data-pig-desktop-platform] .session-nav :is(button, a, input) {
+html[data-pig-desktop-platform] .logo-row {
+  -webkit-app-region: drag;
+}
+html[data-pig-desktop-platform] .logo-row :is(button, a) {
   -webkit-app-region: no-drag;
 }
 .logo-row {
@@ -340,6 +343,9 @@ html[data-pig-desktop-platform] .session-nav :is(button, a, input) {
   justify-content: space-between;
   width: 100%;
   min-height: var(--size-nav-rail);
+}
+html[data-pig-desktop-platform="win32"] .logo-row {
+  min-height: var(--titlebar-inset);
 }
 .logo-mark,
 .collapse-toggle,

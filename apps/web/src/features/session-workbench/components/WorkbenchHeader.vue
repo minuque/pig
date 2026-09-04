@@ -115,6 +115,7 @@ const title = computed(() =>
   }
 }
 html[data-pig-desktop-platform] .workbench-header {
+  min-height: var(--titlebar-inset);
   -webkit-app-region: drag;
 }
 html[data-pig-desktop-platform]
@@ -123,7 +124,6 @@ html[data-pig-desktop-platform]
   -webkit-app-region: no-drag;
 }
 html[data-pig-desktop-platform="win32"] .workbench-header {
-  min-height: var(--titlebar-inset);
   padding-right: var(--size-windows-caption);
 }
 @media (max-width: 520px) {
