@@ -152,3 +152,61 @@
     contain-intrinsic-size: none !important;
   }
 }
+
+/* 全屏 Teleport 到 body，不能挂在 [data-custom-id=chat] 下 */
+._mermaid svg {
+  color: var(--ink);
+}
+._mermaid svg .actor,
+._mermaid svg rect.actor,
+._mermaid svg .actor > rect,
+._mermaid svg .node rect,
+._mermaid svg .node polygon,
+._mermaid svg .node circle,
+._mermaid svg .node ellipse,
+._mermaid svg .node path,
+._mermaid svg .basic.label-container,
+._mermaid svg .cluster rect,
+._mermaid svg .labelBox,
+._mermaid svg .note {
+  fill: var(--code-body) !important;
+  stroke: var(--primary) !important;
+  stroke-width: 1.5px !important;
+}
+._mermaid svg .actor,
+._mermaid svg rect.actor,
+._mermaid svg .actor > rect,
+._mermaid svg .node rect {
+  rx: var(--radius-md);
+  ry: var(--radius-md);
+}
+._mermaid svg .actor-line {
+  stroke: var(--ink-muted) !important;
+  stroke-dasharray: 4 4;
+}
+._mermaid svg .loopLine {
+  stroke: var(--primary) !important;
+}
+._mermaid svg .activation0,
+._mermaid svg .activation1,
+._mermaid svg .activation2 {
+  fill: var(--code-body) !important;
+  stroke: var(--primary) !important;
+}
+._mermaid svg .messageText,
+._mermaid svg .labelText,
+._mermaid svg .loopText,
+._mermaid svg .noteText,
+._mermaid svg text.actor > tspan,
+._mermaid svg .nodeLabel,
+._mermaid svg .edgeLabel,
+._mermaid svg .cluster-label,
+._mermaid svg text {
+  fill: var(--ink) !important;
+  font-family: var(--font-sans);
+}
+._mermaid svg .nodeLabel,
+._mermaid svg .edgeLabel,
+._mermaid svg foreignObject {
+  color: var(--ink);
+}

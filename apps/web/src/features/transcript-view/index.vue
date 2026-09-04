@@ -15,32 +15,37 @@
       @wheel="onWheel"
       @pointerdown="releasePinnedToBottom"
     >
-      <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
-        <Button
-          class="scroll-latest-control"
-          type="button"
-          variant="outline"
-          size="icon-sm"
-          title="滚动到底部"
-          @click="scrollToLatest"
-        >
-          <ArrowDown />
-        </Button>
-      </div>
       <div ref="inputBar" class="chat-input-bar">
-        <ChatInput
-          v-model:prompt="prompt"
-          v-model:preset="preset"
-          :catalog="catalog"
-          :running="running"
-          :aborting="aborting"
-          :error="sessionError"
-          :cwd="sessionCwd"
-          :usage="contextUsage"
-          :session-id="sessionId"
-          @send="submitFromInput"
-          @abort="abortSession"
-        />
+        <div class="chat-input-stack">
+          <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
+            <Button
+              class="scroll-latest-control"
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              title="滚动到底部"
+              @click="scrollToLatest"
+            >
+              <span class="icon-swap">
+                <Ellipsis :data-visible="running" />
+                <ArrowDown :data-visible="!running" />
+              </span>
+            </Button>
+          </div>
+          <ChatInput
+            v-model:prompt="prompt"
+            v-model:preset="preset"
+            :catalog="catalog"
+            :running="running"
+            :aborting="aborting"
+            :error="sessionError"
+            :cwd="sessionCwd"
+            :usage="contextUsage"
+            :session-id="sessionId"
+            @send="submitFromInput"
+            @abort="abortSession"
+          />
+        </div>
       </div>
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
@@ -76,7 +81,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, useTemplateRef, watch } from "vue"
-import { ArrowDown } from "@lucide/vue"
+import { ArrowDown, Ellipsis } from "@lucide/vue"
 import ChatInput from "@features/chat-input/index.vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
@@ -240,13 +245,27 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
 .transcript-viewport:has(.code-more-menu) {
   z-index: 3;
 }
-.session-floating-controls {
+.chat-input-bar {
   position: sticky;
-  top: calc(100cqh - var(--size-chat-input-overlay) - var(--spacing-sm));
-  z-index: 3;
-  display: flex;
-  justify-content: center;
+  top: calc(100cqh - var(--size-chat-input-overlay));
+  z-index: 2;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.chat-input-stack {
+  position: relative;
   width: 100%;
+  max-width: var(--size-chat-input);
+  margin-inline: auto;
+}
+.session-floating-controls {
+  position: absolute;
+  top: 0;
+  right: var(--spacing-sm);
+  z-index: 11;
+  display: flex;
+  justify-content: flex-end;
   height: 0;
   overflow: visible;
   pointer-events: none;
@@ -260,19 +279,13 @@ onBeforeUnmount(() => sizeObserver?.disconnect())
   pointer-events: auto;
 }
 .scroll-latest-control {
+  width: var(--size-scroll-control);
+  height: var(--size-scroll-control);
   border-radius: var(--radius-full);
-  background: var(--canvas-soft);
+  background: var(--code-body);
   color: var(--ink-secondary);
-  box-shadow: var(--shadow-float);
-  transform: translateY(-100%);
-}
-.chat-input-bar {
-  position: sticky;
-  top: calc(100cqh - var(--size-chat-input-overlay));
-  z-index: 2;
-  height: 0;
-  overflow: visible;
-  pointer-events: none;
+  box-shadow: none;
+  transform: translateY(calc(-100% - var(--spacing-sm)));
 }
 .chat-input-bar :deep(.prompt) {
   pointer-events: auto;
