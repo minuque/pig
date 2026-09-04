@@ -18,6 +18,7 @@
       ref="promptEditor"
       v-model:prompt="prompt"
       :placeholder="placeholder"
+      :running="running"
       @submit="send"
     >
       <template v-if="attachments.length || $slots.chips" #chips>

@@ -7,13 +7,13 @@
         </div>
       </div>
     </div>
-    <div class="glass-shell">
+    <div class="glass-shell" :class="{ 'motion-card-glow': running }">
       <div class="glass-host">
         <div class="editor-wrap">
           <div
             ref="editor"
             class="field"
-            contenteditable="true"
+            contenteditable="plaintext-only"
             :data-empty="!hasText || undefined"
             :data-placeholder="placeholder"
             @input="syncFromEditor"
@@ -47,9 +47,11 @@ function shouldSubmitOnKeydown(e: {
 const props = withDefaults(
   defineProps<{
     placeholder?: string
+    running?: boolean
   }>(),
   {
     placeholder: "do what you want ...",
+    running: false,
   },
 )
 
