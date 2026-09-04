@@ -1,7 +1,6 @@
 import type {
   EditDiffPreview,
   ToolCallView,
-  ToolGroup,
   ToolGroupKey,
   ToolSummaryDetail,
 } from "@features/transcript-view/type.js"
@@ -149,8 +148,4 @@ function isFilePathDetail(text: string): boolean {
   if (!text || /\s/.test(text) || text.includes("://")) return false
   if (/[\\/]/.test(text)) return true
   return text.includes(".") && fileLanguage(text) !== "text"
-}
-
-export function directGroupItem(group: ToolGroup): ToolCallView | undefined {
-  return group.items.length === 1 ? group.items[0] : undefined
 }

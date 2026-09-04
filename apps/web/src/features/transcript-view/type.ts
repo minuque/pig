@@ -1,5 +1,4 @@
 import type { TurnTiming } from "@/types/turn-type.js"
-import type { ReadToolPreview } from "./lib/tool-presentation.js"
 
 export type TranscriptImage = { data: string; mimeType: string }
 export type UserRow = { id: string; role: "user"; text: string; images: TranscriptImage[] }
@@ -66,38 +65,3 @@ export interface TranscriptMinimapItem {
   userText: string | null
   assistantText: string | null
 }
-
-type CallBase = {
-  item: ToolCallView
-  revealed: boolean
-  expandable: boolean
-}
-
-export type CallView =
-  | (CallBase & {
-      variant: "command"
-      command: string
-      cwd: string
-      outputText: string
-      outputImages: TranscriptImage[]
-      emptyOutput: string
-      commandStatus: "error" | "running" | "success"
-      statusLabel: string
-    })
-  | (CallBase & {
-      variant: "read"
-      path: string
-      preview: ReadToolPreview
-    })
-  | (CallBase & {
-      variant: "edit"
-      editPreview: EditDiffPreview
-    })
-  | (CallBase & {
-      variant: "tool"
-      inputFull: string
-      outputText: string
-      outputImages: TranscriptImage[]
-      emptyOutput: string
-      outputLabel: string
-    })

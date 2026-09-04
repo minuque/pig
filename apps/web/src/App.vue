@@ -31,11 +31,9 @@ const pi = usePiClient()
 const cwd = useLocalWorkspaces()
 const session = provideSession(pi, cwd)
 
-// 提供侧边栏导航能力，依赖当前工作目录与会话状态
 provideNav(pi, cwd, session)
-// 提供设置能力
 provideSettings()
-// 点击侧边栏项时切换工作目录，并收起移动端面板
+
 function handleSidebarNavigate(canonicalPath: string, closeMobilePanels: () => void): void {
   cwd.selectCwd(canonicalPath)
   closeMobilePanels()

@@ -24,17 +24,15 @@
       />
     </Button>
     <div class="tool-calls-group" :class="{ 'is-open': open, instant: !open }" :inert="!open">
-      <div v-if="thought">
-        <ToolStepCard
-          v-if="thought.text"
-          variant="thought"
-          :text="thought.text"
-          :streaming="thought.streaming"
-        />
-      </div>
+      <ToolStepCard
+        v-if="thought && thought.text"
+        variant="thought"
+        :text="thought.text"
+        :streaming="thought.streaming"
+      />
       <div v-else class="calls">
-        <div v-for="call in calls" :key="call.item.id" class="call">
-          <div v-show="call.revealed && call.expandable" class="call-body">
+        <template v-for="call in calls" :key="call.item.id">
+          <div v-if="open && call.expandable" class="call">
             <ToolStepCard
               v-if="call.variant === 'command'"
               variant="command"
@@ -67,7 +65,7 @@
               :output-label="call.outputLabel"
             />
           </div>
-        </div>
+        </template>
       </div>
     </div>
   </div>
@@ -239,9 +237,6 @@ function toggleGroup() {
   gap: var(--spacing-xs);
 }
 .call {
-  min-width: 0;
-}
-.call-body {
   min-width: 0;
 }
 </style>

@@ -28,7 +28,7 @@ export function useSessionMarkers(
   activeSessionId: MaybeRefOrGetter<string | undefined>,
 ) {
   const pinnedIdList = shallowRef(loadStringArray(PINNED_KEY))
-  // 读取记录只存在于本次运行：启动前完成的会话不算未读，应用关闭即销毁
+  // 未读只活在本次运行：启动前完成的不算，关应用即丢
   const runStartAt = Date.now()
   const readAtById = shallowRef<Record<string, number>>({})
   const pinnedIds = computed(() => new Set(pinnedIdList.value))
@@ -45,7 +45,6 @@ export function useSessionMarkers(
 
   function isUnread(session: SessionMetadata): boolean {
     if (session.id === toValue(activeSessionId)) return false
-    // 未阅读过的会话默认按启动时刻起算，本次运行中完成的才算未读
     return sessionRecency(session) > (readAtById.value[session.id] ?? runStartAt)
   }
 

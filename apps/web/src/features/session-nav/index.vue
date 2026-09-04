@@ -241,10 +241,7 @@ const updatedSessions = computed(() =>
 const timeSections = computed(() => sidebarTimeSections(updatedSessions.value, now.value))
 const hasMore = computed(() => rows.value.some((row) => row.kind === "more"))
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
-const groupSlide = shallowRef("slide-next")
-watch(grouping, (next) => {
-  groupSlide.value = next === "updated" ? "slide-next" : "slide-prev"
-})
+const groupSlide = computed(() => (grouping.value === "updated" ? "slide-next" : "slide-prev"))
 
 useEventListener(window, "keydown", (event) => {
   if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return

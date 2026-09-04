@@ -1,4 +1,4 @@
-import { createSSRApp } from "vue"
+import { createSSRApp, type Component } from "vue"
 import { renderToString } from "@vue/server-renderer"
 import { describe, expect, it } from "vitest"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
@@ -9,11 +9,7 @@ import type {
   ToolRow as ToolRowViewModel,
   ToolRowStep,
 } from "@features/transcript-view/type.js"
-import {
-  directGroupItem,
-  editDiffPreview,
-  toolSummaryDetail,
-} from "@features/transcript-view/lib/tool-summary.js"
+import { editDiffPreview, toolSummaryDetail } from "@features/transcript-view/lib/tool-summary.js"
 
 function command(id: string): ToolCallView {
   return {
@@ -27,43 +23,28 @@ function command(id: string): ToolCallView {
   }
 }
 
-async function renderGroup(group: ToolGroup): Promise<string> {
-  const app = createSSRApp(ToolCall, { step: group, isExpand: new Map() })
+function ssr(component: Component, props: Record<string, unknown>): Promise<string> {
+  const app = createSSRApp(component, props)
   app.config.warnHandler = (message) => {
     if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
   }
   return renderToString(app)
 }
 
-async function renderOpenGroup(group: ToolGroup): Promise<string> {
-  const app = createSSRApp(ToolCall, {
-    step: group,
-    isExpand: new Map([[group.id, true]]),
-  })
-  app.config.warnHandler = (message) => {
-    if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
-  }
-  return renderToString(app)
+function renderGroup(group: ToolGroup): Promise<string> {
+  return ssr(ToolCall, { step: group, isExpand: new Map() })
 }
 
-async function renderStep(step: Exclude<ToolRowStep, { type: "assistant" }>): Promise<string> {
-  const app = createSSRApp(ToolCall, { step, isExpand: new Map() })
-  app.config.warnHandler = (message) => {
-    if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
-  }
-  return renderToString(app)
+function renderOpenGroup(group: ToolGroup): Promise<string> {
+  return ssr(ToolCall, { step: group, isExpand: new Map([[group.id, true]]) })
 }
 
-async function renderToolRow(row: ToolRowViewModel): Promise<string> {
-  const app = createSSRApp(ToolSteps, {
-    row,
-    isExpand: false,
-    expandedTools: new Map(),
-  })
-  app.config.warnHandler = (message) => {
-    if (!message.startsWith("SSR-optimized slot function")) throw new Error(message)
-  }
-  return renderToString(app)
+function renderStep(step: ToolRowStep): Promise<string> {
+  return ssr(ToolCall, { step, isExpand: new Map() })
+}
+
+function renderToolRow(row: ToolRowViewModel): Promise<string> {
+  return ssr(ToolSteps, { row, isExpand: false, expandedTools: new Map() })
 }
 
 function fileCall(toolName: string, input: unknown): ToolCallView {
@@ -200,8 +181,7 @@ describe("命令工具组展示", () => {
     })
 
     expect(html).toContain('class="tool-summary"')
-    expect(html).toContain(' summary"')
-    expect(html).toContain('style="display:none;"')
+    expect(html).not.toContain("tool-step-card")
     expect(html).not.toContain(">Run<")
     expect(
       await renderOpenGroup({
@@ -211,17 +191,6 @@ describe("命令工具组展示", () => {
         items: [command("c1")],
       }),
     ).toContain("tool-step-card")
-  })
-
-  it("多条命令保留可折叠的命令组摘要", () => {
-    const group: ToolGroup = {
-      type: "tools",
-      id: "group:c1",
-      key: "command",
-      items: [command("c1"), command("c2")],
-    }
-
-    expect(directGroupItem(group)).toBeUndefined()
   })
 
   it("单条 read 不显示重复的 Read 行，展开卡片贴齐摘要", async () => {

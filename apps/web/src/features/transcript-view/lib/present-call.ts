@@ -1,5 +1,10 @@
 import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
-import type { CallView, ToolCallView, ToolSummaryDetail } from "@features/transcript-view/type.js"
+import type {
+  EditDiffPreview,
+  ToolCallView,
+  ToolSummaryDetail,
+  TranscriptImage,
+} from "@features/transcript-view/type.js"
 import {
   isCommandTool,
   toolCommand,
@@ -7,7 +12,7 @@ import {
   toolPath,
   toolWorkingDirectory,
 } from "./transcript-format.js"
-import { fileLanguage, readToolPreview } from "./tool-presentation.js"
+import { fileLanguage, readToolPreview, type ReadToolPreview } from "./tool-presentation.js"
 import { editDiffPreview, toolGroupKey } from "./tool-summary.js"
 
 export function fileDetailIcon(detail: ToolSummaryDetail | null): string {
@@ -18,29 +23,45 @@ export function fileDetailIcon(detail: ToolSummaryDetail | null): string {
   return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(language))}`
 }
 
-function commandStatus(item: ToolCallView) {
-  if (item.isError) return { commandStatus: "error" as const, statusLabel: "执行失败" }
-  if (item.running) return { commandStatus: "running" as const, statusLabel: "正在执行" }
-  return { commandStatus: "success" as const, statusLabel: "执行完成" }
+type CallBase = {
+  item: ToolCallView
+  expandable: boolean
 }
 
-function base(item: ToolCallView, revealed: boolean, expandable: boolean) {
-  return { item, revealed, expandable }
-}
+type CallView =
+  | (CallBase & {
+      variant: "command"
+      command: string
+      cwd: string
+      outputText: string
+      outputImages: TranscriptImage[]
+      emptyOutput: string
+      commandStatus: "error" | "running" | "success"
+      statusLabel: string
+    })
+  | (CallBase & {
+      variant: "read"
+      path: string
+      preview: ReadToolPreview
+    })
+  | (CallBase & {
+      variant: "edit"
+      editPreview: EditDiffPreview
+    })
+  | (CallBase & {
+      variant: "tool"
+      inputFull: string
+      outputText: string
+      outputImages: TranscriptImage[]
+      emptyOutput: string
+      outputLabel: string
+    })
 
-function revealedOutput(item: ToolCallView, revealed: boolean) {
+function output(item: ToolCallView, open: boolean) {
   return {
-    outputText: revealed ? item.outputText : "",
-    outputImages: revealed ? item.outputImages : [],
+    outputText: open ? item.outputText : "",
+    outputImages: open ? item.outputImages : [],
     emptyOutput: item.running ? "(running…)" : "(no output)",
-  }
-}
-
-function toolBody(item: ToolCallView, revealed: boolean) {
-  return {
-    ...revealedOutput(item, revealed),
-    inputFull: revealed ? toolInputPretty(item.input) : "",
-    outputLabel: "输出" as const,
   }
 }
 
@@ -53,74 +74,65 @@ function hasBody(item: ToolCallView): boolean {
   )
 }
 
-function presentCommand(item: ToolCallView, open: boolean): CallView {
-  return {
-    ...base(item, open, true),
-    variant: "command",
-    command: toolCommand(item.input),
-    cwd: toolWorkingDirectory(item.input),
-    ...revealedOutput(item, open),
-    ...commandStatus(item),
-  }
-}
-
-function presentRead(item: ToolCallView, open: boolean): CallView {
-  const path = toolPath(item.input)
-  const out = revealedOutput(item, open)
-  const canPreview =
-    open &&
-    Boolean(path) &&
-    !item.isError &&
-    !item.running &&
-    out.outputImages.length === 0 &&
-    Boolean(out.outputText) &&
-    !/^\[Line \d+ is .+ exceeds /.test(out.outputText)
-  if (canPreview && path) {
-    return {
-      ...base(item, open, true),
-      variant: "read",
-      path,
-      preview: readToolPreview(item.input, out.outputText),
-    }
-  }
-  return {
-    ...base(item, open, true),
-    variant: "tool",
-    ...out,
-    inputFull: "",
-    outputLabel: path || "Read",
-  }
-}
-
-function presentEdit(item: ToolCallView, open: boolean): CallView {
-  const preview = open && !item.isError && !item.running ? editDiffPreview(item.input) : null
-  if (preview) {
-    return {
-      ...base(item, open, true),
-      variant: "edit",
-      editPreview: preview,
-    }
-  }
-  return {
-    ...base(item, open, hasBody(item)),
-    variant: "tool",
-    ...toolBody(item, open),
-  }
-}
-
-function presentTool(item: ToolCallView, open: boolean): CallView {
-  return {
-    ...base(item, open, hasBody(item)),
-    variant: "tool",
-    ...toolBody(item, open),
-  }
-}
-
 export function presentCall(item: ToolCallView, open: boolean): CallView {
   const name = item.toolName.trim().toLowerCase()
-  if (isCommandTool(name)) return presentCommand(item, open)
+  if (isCommandTool(name)) {
+    return {
+      item,
+      expandable: true,
+      variant: "command",
+      command: toolCommand(item.input),
+      cwd: toolWorkingDirectory(item.input),
+      ...output(item, open),
+      commandStatus: item.isError ? "error" : item.running ? "running" : "success",
+      statusLabel: item.isError ? "执行失败" : item.running ? "正在执行" : "执行完成",
+    }
+  }
+
   const key = toolGroupKey(item.toolName)
-  if (key === "read") return presentRead(item, open)
-  if (key === "edit") return presentEdit(item, open)
-  return presentTool(item, open)
+  if (key === "read") {
+    const path = toolPath(item.input)
+    const out = output(item, open)
+    const canPreview =
+      open &&
+      Boolean(path) &&
+      !item.isError &&
+      !item.running &&
+      out.outputImages.length === 0 &&
+      Boolean(out.outputText) &&
+      !/^\[Line \d+ is .+ exceeds /.test(out.outputText)
+    if (canPreview && path) {
+      return {
+        item,
+        expandable: true,
+        variant: "read",
+        path,
+        preview: readToolPreview(item.input, out.outputText),
+      }
+    }
+    return {
+      item,
+      expandable: true,
+      variant: "tool",
+      ...out,
+      inputFull: "",
+      outputLabel: path || "Read",
+    }
+  }
+
+  if (key === "edit") {
+    const preview = open && !item.isError && !item.running ? editDiffPreview(item.input) : null
+    if (preview) {
+      return { item, expandable: true, variant: "edit", editPreview: preview }
+    }
+  }
+
+  return {
+    item,
+    expandable: hasBody(item),
+    variant: "tool",
+    ...output(item, open),
+    inputFull: open ? toolInputPretty(item.input) : "",
+    outputLabel: "输出",
+  }
 }
