@@ -36,7 +36,7 @@
   --canvas-soft: #f2f2f1;
   --surface: #fcfcfb;
   --sidebar: #f7f8fa;
-  --chat-input: #fefefe;
+  --chat-input: var(--canvas-soft);
   --user-prompt-bg: #f0f0ef;
   --popover: #ffffff;
   --code-header: #f2f2f1;
@@ -236,7 +236,7 @@
   --canvas-soft: #272727;
   --surface: #070707;
   --sidebar: #111111;
-  --chat-input: #20201f;
+  --chat-input: color-mix(in srgb, var(--surface) 96%, #fff);
   --user-prompt-bg: #212121;
   --popover: #20201f;
   --code-header: #1f1f1f;
