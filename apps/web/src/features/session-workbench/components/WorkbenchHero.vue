@@ -1,5 +1,6 @@
 <template>
   <div class="workbench-hero">
+    <WorkbenchMascot />
     <h1 :id="titleId" class="hero-title">
       <span v-if="workspaceId">在</span>
       <DropdownMenu v-if="selectable" :modal="false">
@@ -42,6 +43,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
+import WorkbenchMascot from "./WorkbenchMascot.vue"
 
 withDefaults(
   defineProps<{
@@ -67,7 +69,10 @@ const label = computed(() =>
 <style scoped>
 .workbench-hero {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: var(--spacing-md);
   min-width: 0;
 }
 .hero-title {

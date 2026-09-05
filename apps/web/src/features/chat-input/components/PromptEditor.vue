@@ -8,16 +8,19 @@
       </div>
     </div>
     <div class="glass-shell" :class="{ 'motion-card-glow': running }">
-      <div class="glass-host">
+      <div class="glass-host" :class="{ 'motion-focus-ring': focused }">
         <div class="editor-wrap">
           <div
             ref="editor"
             class="field"
             contenteditable="plaintext-only"
+            data-prompt-field
             :data-empty="!hasText || undefined"
             :data-placeholder="placeholder"
             @input="syncFromEditor"
             @keydown="onEditorKeydown"
+            @focus="focused = true"
+            @blur="focused = false"
           ></div>
         </div>
         <div class="row">
@@ -34,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue"
+import { computed, onMounted, ref, shallowRef, watch } from "vue"
 
 function shouldSubmitOnKeydown(e: {
   key: string
@@ -64,6 +67,7 @@ const emit = defineEmits<{
 }>()
 
 const editor = ref<HTMLElement | null>(null)
+const focused = shallowRef(false)
 
 const hasText = computed(() => prompt.value.trim().length > 0)
 
@@ -188,6 +192,9 @@ defineExpose({ focus })
   background: transparent;
   border: var(--border-width) solid var(--chat-input-ring);
   border-radius: var(--radius-xl);
+  transition:
+    border-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth);
 }
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .glass-shell::before {

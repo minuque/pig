@@ -84,6 +84,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@blobatar/vue':
+        specifier: 2.7.0
+        version: 2.7.0(blobatar@2.7.0(react@19.2.8)(vue@3.5.40(typescript@6.0.3)))(vue@3.5.40(typescript@6.0.3))
       '@earendil-works/pi-client':
         specifier: 0.84.1
         version: 0.84.1
@@ -102,6 +105,9 @@ importers:
       '@vueuse/core':
         specifier: 14.4.0
         version: 14.4.0(vue@3.5.40(typescript@6.0.3))
+      blobatar:
+        specifier: 2.7.0
+        version: 2.7.0(react@19.2.8)(vue@3.5.40(typescript@6.0.3))
       katex:
         specifier: 0.18.4
         version: 0.18.4
@@ -829,6 +835,12 @@ packages:
   '@babel/types@7.29.8':
     resolution: {integrity: sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg==}
     engines: {node: '>=6.9.0'}
+
+  '@blobatar/vue@2.7.0':
+    resolution: {integrity: sha512-sE417mbyV8cCevxek3LN0M6vx5lCvjjf6wChEE9Fmc3QuMEN6M8yQHM0egMTERVwdAJV+zT78Y4BTiwyxzFEyA==}
+    peerDependencies:
+      blobatar: 2.x
+      vue: '>=3'
 
   '@braintree/sanitize-url@7.1.2':
     resolution: {integrity: sha512-jigsZK+sMF/cuiB7sERuo9V7N9jx+dhmHHnQyDSVdpZwVutaBu7WvNYqMDLSgFgfB30n452TP3vjDAvFC973mA==}
@@ -2382,6 +2394,17 @@ packages:
 
   birpc@4.1.0:
     resolution: {integrity: sha512-O8L9vALWGqdEe0cG4HJckauw3WeJETlJnDRPUYpgwB7wrU43b/5NGMdVjdVcRo+4ROgd3ih2wha1glDe4HRVgw==}
+
+  blobatar@2.7.0:
+    resolution: {integrity: sha512-tL1p2J3dXE/Z9U/ITwHqU7HBHmTH+Am+hif1J1hWAhvFT1VYC2HG+eXtN7081yuY+L2lrp9bs/VaF7dVH3S2jw==}
+    peerDependencies:
+      react: '>=18'
+      vue: '>=3'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      vue:
+        optional: true
 
   bluebird@3.7.2:
     resolution: {integrity: sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==}
@@ -6368,6 +6391,11 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
+  '@blobatar/vue@2.7.0(blobatar@2.7.0(react@19.2.8)(vue@3.5.40(typescript@6.0.3)))(vue@3.5.40(typescript@6.0.3))':
+    dependencies:
+      blobatar: 2.7.0(react@19.2.8)(vue@3.5.40(typescript@6.0.3))
+      vue: 3.5.40(typescript@6.0.3)
+
   '@braintree/sanitize-url@7.1.2': {}
 
   '@chenglou/pretext@0.0.8': {}
@@ -7997,6 +8025,11 @@ snapshots:
   birpc@2.9.0: {}
 
   birpc@4.1.0: {}
+
+  blobatar@2.7.0(react@19.2.8)(vue@3.5.40(typescript@6.0.3)):
+    optionalDependencies:
+      react: 19.2.8
+      vue: 3.5.40(typescript@6.0.3)
 
   bluebird@3.7.2: {}
 
