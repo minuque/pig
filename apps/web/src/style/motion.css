@@ -279,6 +279,32 @@
     opacity: 0;
   }
 }
+@keyframes modal-close {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+  transform-origin: center;
+  scale: 0.96;
+  opacity: 0;
+  transition:
+    scale var(--duration-slow) var(--ease-smooth),
+    opacity var(--duration-slow) var(--ease-smooth);
+}
+:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="open"] {
+  scale: 1;
+  opacity: 1;
+}
+:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
+  transition: none;
+  animation: modal-close var(--duration-fast) var(--ease-smooth);
+}
 
 .panel-reveal-enter-active {
   transition:
@@ -454,21 +480,38 @@
 }
 
 @keyframes shimmer {
-  from {
-    background-position: 200% 0;
+  0% {
+    background-position: 100% 0;
   }
-  to {
-    background-position: -200% 0;
+  100% {
+    background-position: 0% 0;
   }
 }
 .shimmer {
-  background: linear-gradient(90deg, var(--ink-faint) 25%, var(--ink) 50%, var(--ink-faint) 75%);
-  background-size: 200% 100%;
+  position: relative;
+  display: inline-block;
+  color: var(--ink-faint);
+}
+.shimmer::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 40%,
+    var(--ink) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 400% 100%;
+  background-repeat: no-repeat;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  animation: shimmer var(--duration-shimmer) var(--ease-in-out) infinite;
+  animation: shimmer var(--duration-shimmer) linear infinite;
 }
 
 .motion-nudge {
@@ -586,10 +629,20 @@
     transform: none;
   }
   .shimmer {
-    animation: none;
-    background: none;
     color: inherit;
-    -webkit-text-fill-color: currentColor;
+  }
+  .shimmer::before {
+    animation: none;
+    content: none;
+  }
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+    transition: none;
+    scale: 1;
+    opacity: 1;
+  }
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
+    animation: none;
+    opacity: 0;
   }
   .motion-nudge,
   .motion-pulse::after {

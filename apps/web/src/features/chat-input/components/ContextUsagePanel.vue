@@ -113,7 +113,7 @@ const previewPane = ref<HTMLElement>()
 let previewRequest = 0
 const previewLines = computed(() => splitLines(previewBody.value))
 const previewVirtual = computed(() => shouldVirtualizeMarkdown(previewBody.value))
-const PREVIEW_LINE_PX = 21
+const PREVIEW_LINE_PX = 22
 const { list, containerProps, wrapperProps } = useVirtualList(previewLines, {
   itemHeight: PREVIEW_LINE_PX,
   overscan: 12,
@@ -340,11 +340,11 @@ function onOpenAutoFocus(event: Event) {
 }
 .preview-line {
   margin: 0;
-  min-height: 21px;
+  min-height: var(--text-code-line);
   color: var(--ink-secondary);
   font-family: var(--font-mono);
-  font-size: var(--text-caption-mono);
-  line-height: 21px;
+  font-size: var(--text-code);
+  line-height: var(--text-code-line);
   white-space: pre;
   tab-size: 2;
 }

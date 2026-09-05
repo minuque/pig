@@ -2,9 +2,10 @@
   <Blobatar
     ref="blob"
     class="hero-mascot"
-    name="pig"
+    name="alain00"
     animate="always"
     :size="128"
+    :style="{ '--mo-head': 'var(--primary)' }"
     aria-hidden="true"
   />
 </template>

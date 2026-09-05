@@ -3,7 +3,7 @@
     <Button type="button" static class="summary-btn" @click="emit('toggle-expand', !revealed)">
       <Spinner v-if="live" class="tool-steps-icon" />
       <BadgeCheck v-else class="tool-steps-icon" />
-      <span :class="{ shimmer: live }">{{ label }}</span>
+      <span :class="{ shimmer: live }" :data-text="label">{{ label }}</span>
       <ChevronRight class="motion-turn" :class="{ 'is-on': revealed }" data-icon="inline-end" />
     </Button>
     <div

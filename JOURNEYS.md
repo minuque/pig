@@ -63,7 +63,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-  Welcome["SessionWelcome"] --> Guard{"有 cwd + preset + 非空 Prompt?"}
+  Idle["工作台 / ：Hero + 底栏 ChatInput"] --> Guard{"有 cwd + preset + 非空 Prompt?"}
   Guard --> Create["RemoteSession.create cwd/model/thinking"]
   Create --> Route["router.push /sessions/:id"]
   Route --> Open["同步 RemoteSession"]
@@ -85,8 +85,8 @@ flowchart TB
   Hist --> Merge["HTTP 历史 + live progress"]
   Snap --> Merge
   Merge --> View{"transcript?"}
-  View -->|空且 idle| Empty["空画布 + ChatInput"]
-  View -->|有内容| Timeline["TranscriptView + 底栏输入"]
+  View -->|空且 idle| Idle["Hero + 底栏 ChatInput"]
+  View -->|有内容| Timeline["TranscriptView + 底栏 ChatInput"]
   View -->|历史未到且 Remote 未齐| Loading["SessionLoading"]
 ```
 
@@ -135,14 +135,14 @@ Session Name 是显示标签，不是身份。Delete Session 永久删除 Pi Ses
 
 ```mermaid
 flowchart TB
-  Start[启动等待态] --> Welcome["/ 欢迎页"]
+  Start[启动等待态] --> Welcome["/ Hero + 底栏输入"]
   Start --> Error["/error"]
   Welcome -->|第一条 Prompt| Session["/sessions/:id"]
   Welcome -->|点已有 Session| Session
   Session --> Loading[附加中]
-  Loading --> Empty[空画布]
-  Loading --> Talk[时间线 + 输入]
-  Empty -->|Prompt| Talk
+  Loading --> Idle[Hero + 底栏输入]
+  Loading --> Talk[时间线 + 底栏输入]
+  Idle -->|Prompt| Talk
   Talk -->|新会话按钮| Welcome
   Talk -->|删除当前| Welcome
 ```

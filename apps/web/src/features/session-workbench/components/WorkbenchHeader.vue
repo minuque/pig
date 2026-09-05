@@ -7,8 +7,6 @@
       <span class="header-session">{{ title }}</span>
     </h1>
     <div class="header-right">
-      <p v-if="connecting && !projection" class="session-status">正在连接…</p>
-      <p v-else-if="sessionPending" class="session-status">正在加载会话…</p>
       <ThemeToggle />
     </div>
   </header>
@@ -24,7 +22,7 @@ import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-st
 import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
 const { toggle } = useLeftPanelToggle()
-const { sessionId, projection, connecting, sessionPending } = useSession()
+const { sessionId, projection } = useSession()
 const { listedSessions } = useNav()
 
 const title = computed(() =>
@@ -102,13 +100,6 @@ const title = computed(() =>
   margin-left: auto;
   gap: var(--spacing-xs);
 }
-.header-right .session-status {
-  margin: 0;
-  color: var(--ink-faint);
-  font-family: var(--font-mono);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
-}
 @media (min-width: 901px) {
   .header-toggle {
     display: none;
@@ -127,13 +118,6 @@ html[data-pig-desktop-platform="win32"] .workbench-header {
   padding-right: var(--size-windows-caption);
 }
 @media (max-width: 520px) {
-  .header-right .session-status {
-    align-self: flex-start;
-    width: var(--size-control);
-    overflow: hidden;
-    font-size: 0;
-    text-align: center;
-  }
   .workbench-header > .header-toggle {
     padding-inline: var(--spacing-sm);
   }

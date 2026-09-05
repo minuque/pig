@@ -35,7 +35,7 @@
   --canvas: #fcfcfb;
   --canvas-soft: #f2f2f1;
   --surface: #fcfcfb;
-  --sidebar: #f7f8fa;
+  --sidebar: #fbfbf9;
   --chat-input: var(--canvas-soft);
   --user-prompt-bg: #f0f0ef;
   --popover: #ffffff;
@@ -62,7 +62,7 @@
   --hover-strong: color-mix(in srgb, var(--ink) 12%, transparent);
   --link: #184f95;
   --inline-code: #f2f2f1;
-  --inline-code-ink: var(--ink-secondary);
+  --inline-code-ink: var(--ink);
   --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #aeaeac;
   --scrollbar-hover: #898781;
@@ -232,9 +232,9 @@
   --secondary: #5b7ad4;
   --on-primary: #ffffff;
 
-  --canvas: #070707;
+  --canvas: #0d0d0d;
   --canvas-soft: #272727;
-  --surface: #070707;
+  --surface: #0d0d0d;
   --sidebar: #111111;
   --chat-input: color-mix(in srgb, var(--surface) 96%, #fff);
   --user-prompt-bg: #212121;
@@ -254,7 +254,6 @@
   --interaction-selected: #292929;
   --link: #6da7ec;
   --inline-code: #272727;
-  --inline-code-ink: #e1e0d9;
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #61615f;
   --scrollbar-hover: #898781;
@@ -292,7 +291,7 @@
 
   --inverse-bg: #f0efec;
   --inverse-bg-hover: #ffffff;
-  --inverse-fg: #070707;
+  --inverse-fg: #0d0d0d;
 }
 
 /* 滚动条默认隐藏，容器 hover 时淡入；各元素自写 --scrollbar-thumb，避免 html:hover 传到所有条子。 */
