@@ -1,13 +1,10 @@
 <template>
-  <div class="startup-screen" :class="{ leaving }">
+  <div class="startup-screen" :class="{ leaving }" role="status" aria-label="正在启动">
     <div class="startup-veil"></div>
     <div class="drag-strip"></div>
     <div class="startup-content">
-      <img class="startup-logo" src="/logo.png" alt="" width="88" height="88" />
-      <div class="startup-brand">pig</div>
-      <div class="startup-status" aria-live="polite">
-        <span class="startup-status-indicator" aria-hidden="true"></span>
-        <span>正在准备工作台</span>
+      <div class="startup-mark motion-card-glow">
+        <img class="startup-logo" src="/logo.png" alt="" width="88" height="88" />
       </div>
     </div>
   </div>
