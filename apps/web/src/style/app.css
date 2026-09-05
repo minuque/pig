@@ -71,6 +71,7 @@
   --glass-blur: 12px;
   --glass-opacity: 80%;
   --glass-saturation: 1;
+  --startup-veil: color-mix(in srgb, var(--chat-input) var(--glass-opacity), var(--canvas-soft));
 
   /* 装饰，不作结构填充 */
   --accent-sunset: #ee650d;
@@ -176,6 +177,10 @@
   --size-scroll-control: 30px;
   --size-nav-rail: 36px;
   --size-chat-input-overlay: 6rem;
+  --startup-logo-size: 88px;
+  --startup-status-line-width: 28px;
+  --startup-status-line-height: 1px;
+  --startup-status-dot-size: 4px;
 
   /* 边框 / 遮罩 / 层级 */
   --border-width: 1px;

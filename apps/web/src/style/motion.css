@@ -1,4 +1,180 @@
 /* 工作台运动：token 在 app.css :root。此处只放可复用类与 Vue Transition 名。 */
+/* 首屏与工作台动效集中维护，避免重复加载和减少动态效果规则分散，因此本文件保留超过 500 行。 */
+
+.startup-screen {
+  position: fixed;
+  z-index: var(--z-modal, 20);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  -webkit-app-region: no-drag;
+}
+.startup-screen.leaving {
+  pointer-events: none;
+}
+.startup-veil {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: var(--startup-veil);
+}
+.startup-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs, 8px);
+  padding: var(--spacing-lg);
+  text-align: center;
+}
+.startup-logo {
+  width: var(--startup-logo-size, 88px);
+  height: var(--startup-logo-size, 88px);
+  object-fit: contain;
+  border-radius: var(--radius-xs, 4px);
+  box-shadow: var(--shadow-logo);
+  pointer-events: none;
+}
+.startup-brand {
+  margin-top: var(--spacing-xxs, 4px);
+  color: var(--ink);
+  font-size: var(--text-title, 16px);
+  font-weight: var(--font-weight-semibold, 600);
+  letter-spacing: 0.08em;
+  line-height: var(--text-title--line-height, 1.4);
+}
+.startup-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs, 8px);
+  margin-top: var(--spacing-xxs, 4px);
+  color: var(--ink-muted);
+  font-size: var(--text-caption, 13px);
+  line-height: var(--text-caption--line-height, 1.38);
+}
+.startup-status-indicator {
+  position: relative;
+  display: inline-block;
+  width: var(--startup-status-line-width, 28px);
+  height: var(--startup-status-line-height, 1px);
+  border-radius: var(--radius-full, 9999px);
+  background: var(--hairline);
+}
+.startup-status-indicator::after {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: var(--startup-status-dot-size, 4px);
+  height: var(--startup-status-dot-size, 4px);
+  border-radius: var(--radius-full, 9999px);
+  background: var(--primary);
+  transform: translate(-50%, -50%);
+  content: "";
+  animation: startup-wait-pulse 1.8s var(--ease-in-out, ease-in-out) 500ms infinite;
+}
+.startup-screen .drag-strip {
+  position: absolute;
+  z-index: 2;
+  inset: 0 0 auto;
+  height: var(--titlebar-inset, 44px);
+  -webkit-app-region: drag;
+}
+.startup-screen.leaving .startup-veil {
+  animation: startup-veil-leave var(--duration-normal, 200ms) var(--ease-out, ease-out) 60ms both;
+}
+.startup-screen.leaving .startup-content {
+  animation: startup-content-leave var(--duration-slow, 280ms) var(--ease-out, ease-out) both;
+}
+
+#startup-splash {
+  z-index: calc(var(--z-modal) + 1);
+}
+#startup-splash .startup-logo {
+  animation: startup-logo-enter var(--duration-slow) var(--ease-out) 60ms both;
+}
+#startup-splash .startup-brand {
+  animation: startup-label-enter var(--duration-normal) var(--ease-out) 140ms both;
+}
+#startup-splash .startup-status {
+  animation: startup-label-enter var(--duration-normal) var(--ease-out) 220ms both;
+}
+@keyframes startup-logo-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes startup-label-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes startup-wait-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(0.75);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes startup-veil-leave {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes startup-content-leave {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+    filter: blur(3px);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .startup-screen .startup-veil {
+    background: var(--surface);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #startup-splash .startup-logo,
+  #startup-splash .startup-brand,
+  #startup-splash .startup-status,
+  .startup-screen .startup-veil,
+  .startup-screen .startup-logo,
+  .startup-screen .startup-brand,
+  .startup-screen .startup-status,
+  .startup-status-indicator::after,
+  .startup-screen.leaving .startup-veil,
+  .startup-screen.leaving .startup-content {
+    animation: none;
+  }
+}
 
 .press-scale:not(:disabled):active {
   scale: 0.96;
