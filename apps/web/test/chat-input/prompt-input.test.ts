@@ -42,6 +42,10 @@ afterEach(() => {
 })
 
 describe("一轮工作 → 输入草稿后确认发送", () => {
+  it("失败路径：输入卡事件表达式语法错误时，实际组件编译必须失败", async () => {
+    await expect(import("@features/chat-input/index.vue")).resolves.toHaveProperty("default")
+  })
+
   it("Enter 发送；失败路径：中文候选确认和 Shift+Enter 不发送", () => {
     expect(shouldSubmitOnKeydown({ key: "Enter", shiftKey: false, isComposing: false })).toBe(true)
     expect(shouldSubmitOnKeydown({ key: "Enter", shiftKey: false, isComposing: true })).toBe(false)

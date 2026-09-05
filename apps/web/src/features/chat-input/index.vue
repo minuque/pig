@@ -30,10 +30,7 @@
           :key="item.id"
           :src="item.url"
           :name="item.name"
-          @remove="
-            remove(item.id)
-            focusEditor()
-          "
+          @remove="removeAttachment(item.id)"
         />
         <slot name="chips" />
       </template>
@@ -239,6 +236,11 @@ watch(
 
 function focusEditor() {
   promptEditor.value?.focus()
+}
+
+function removeAttachment(id: string) {
+  remove(id)
+  focusEditor()
 }
 
 function openFilePicker() {
