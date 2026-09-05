@@ -42,10 +42,10 @@
   -webkit-app-region: drag;
 }
 .startup-screen.leaving .startup-veil {
-  animation: startup-veil-leave var(--duration-normal, 200ms) var(--ease-out, ease-out) 60ms both;
+  animation: startup-veil-leave var(--duration-startup-leave) var(--ease-out, ease-out) both;
 }
 .startup-screen.leaving .startup-content {
-  animation: startup-content-leave var(--duration-normal) ease-out both;
+  animation: startup-content-leave var(--duration-startup-leave) ease-out both;
 }
 
 #startup-splash {
@@ -57,11 +57,11 @@
 @keyframes startup-logo-enter {
   0% {
     opacity: 0;
-    transform: translateY(10px) rotate(-6deg) scale(0.9);
+    transform: translateY(10px) rotate(-4deg) scale(0.9);
   }
   65% {
     opacity: 1;
-    transform: translateY(-2px) rotate(2deg) scale(1.025);
+    transform: translateY(-2px) rotate(2deg) scale(1.015);
   }
   100% {
     opacity: 1;
