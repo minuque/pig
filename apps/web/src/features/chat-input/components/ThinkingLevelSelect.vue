@@ -1,15 +1,17 @@
 <template>
-  <button
+  <Button
     type="button"
     class="thinking"
     :class="{ off: isOff }"
     :disabled="disabled"
-    :style="{ '--thinking-glow': glow }"
+    :style="{ color: isOff ? undefined : glow < 0.5 ? 'var(--secondary)' : 'var(--primary)' }"
+    :aria-label="`思考强度：${label}，点击切换为 ${nextThinkingLevel(levels, level)}`"
+    :title="`思考强度：${label}`"
     @mousedown.prevent
     @click="cycle"
   >
     <span class="bars-slot" :class="{ on: !isOff }">
-      <svg class="bars motion-icon" width="14" height="14" viewBox="0 0 14 14">
+      <svg class="bars motion-icon" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
         <rect x="1.5" y="8" width="2.5" height="4.5" rx="1" :style="{ opacity: barOpacities[0] }" />
         <rect
           x="5.75"
@@ -22,8 +24,8 @@
         <rect x="10" y="2" width="2.5" height="10.5" rx="1" :style="{ opacity: barOpacities[2] }" />
       </svg>
     </span>
-    <span class="level-name">{{ label }}</span>
-  </button>
+    <MorphingLabel class="level-name" :text="label" />
+  </Button>
 </template>
 
 <script lang="ts">
@@ -68,6 +70,8 @@ export function thinkingBarOpacities(
 
 <script setup lang="ts">
 import { computed } from "vue"
+import { Button } from "@components/ui/button/index.js"
+import MorphingLabel from "./MorphingLabel.vue"
 
 const props = withDefaults(
   defineProps<{
@@ -97,7 +101,8 @@ function cycle() {
   display: inline-flex;
   align-items: center;
   gap: 0;
-  min-height: 0;
+  min-height: var(--size-icon-button);
+  height: auto;
   padding: var(--spacing-xxs) var(--spacing-xs);
   border: 0;
   border-radius: var(--radius-full);
@@ -118,23 +123,23 @@ function cycle() {
   opacity: 0.5;
   cursor: default;
 }
-.thinking:not(.off),
-.thinking:not(.off):hover:not(:disabled) {
-  color: color-mix(in srgb, var(--primary) calc(var(--thinking-glow) * 100%), var(--secondary));
+.thinking:focus-visible {
+  outline: var(--border-width) solid var(--primary);
+  outline-offset: 2px;
 }
 .bars-slot {
   display: inline-flex;
   flex: none;
   width: 0;
-  margin-right: 0;
+  margin-inline-end: 0;
   overflow: hidden;
   transition:
     width var(--duration-icon) var(--ease-icon),
-    margin-right var(--duration-icon) var(--ease-icon);
+    margin-inline-end var(--duration-icon) var(--ease-icon);
 }
 .bars-slot.on {
   width: 14px;
-  margin-right: 4px;
+  margin-inline-end: var(--spacing-xxs);
 }
 .bars {
   flex: none;

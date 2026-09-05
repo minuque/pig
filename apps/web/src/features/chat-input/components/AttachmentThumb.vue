@@ -1,24 +1,56 @@
 <template>
-  <div class="group relative size-12 shrink-0" @mousedown.prevent>
+  <div class="group relative size-12 shrink-0">
     <Dialog>
       <DialogTrigger as-child>
         <Button
           type="button"
           variant="outline"
           size="icon"
-          static
+          :aria-label="`预览 ${alt}`"
           class="preview size-12 overflow-hidden rounded-[var(--radius-lg)] p-0"
         >
-          <img :src="src" :alt="alt" class="absolute inset-0 size-full object-cover" />
+          <img
+            :src="src"
+            :alt="alt"
+            class="absolute inset-0 size-full object-cover"
+            draggable="false"
+          />
         </Button>
       </DialogTrigger>
       <DialogContent
-        class="max-h-[90vh] w-full max-w-[min(56rem,calc(100vw-2rem))] overflow-auto p-(--spacing-sm) sm:max-w-[min(56rem,calc(100vw-2rem))]"
+        :show-close-button="false"
+        :aria-describedby="undefined"
+        class="max-h-[90dvh] w-full max-w-[min(56rem,calc(100vw-2rem))] overflow-auto p-(--spacing-sm) sm:max-w-[min(56rem,calc(100vw-2rem))]"
       >
-        <img :src="src" :alt="alt" class="max-h-[calc(90vh-2rem)] w-full object-contain" />
+        <div class="flex min-w-0 items-center justify-between gap-2">
+          <DialogTitle class="truncate">{{ alt }}</DialogTitle>
+          <DialogClose as-child>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              class="focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label="关闭图片预览"
+            >
+              <X />
+            </Button>
+          </DialogClose>
+        </div>
+        <img
+          :src="src"
+          :alt="alt"
+          class="max-h-[calc(90dvh-6rem)] w-full object-contain"
+          draggable="false"
+        />
       </DialogContent>
     </Dialog>
-    <Button type="button" size="icon-2xs" class="remove motion-hint" @click.stop="emit('remove')">
+    <Button
+      type="button"
+      size="icon-2xs"
+      class="remove motion-hint"
+      :aria-label="`移除 ${alt}`"
+      @click.stop="emit('remove')"
+    >
       <X />
     </Button>
   </div>
@@ -28,7 +60,13 @@
 import { computed } from "vue"
 import { X } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
-import { Dialog, DialogContent, DialogTrigger } from "@components/ui/dialog/index.js"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@components/ui/dialog/index.js"
 
 const props = defineProps<{
   src: string
@@ -48,28 +86,33 @@ img {
   outline-offset: -1px;
 }
 .preview {
+  position: relative;
   border: 0;
 }
-/* 全局 button reset 后本钮自行重盖：深色圆底不跟 ink 反相，白图也能看清。 */
+.preview:focus-visible,
+.remove:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
 .remove {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: -4px;
+  inset-inline-end: -4px;
   z-index: 1;
-  width: 16px;
-  height: 16px;
-  min-width: 16px;
+  width: var(--spacing-lg);
+  height: var(--spacing-lg);
+  min-width: var(--spacing-lg);
   min-height: 0;
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);
-  background: var(--accent-midnight);
-  color: var(--on-primary);
+  background: var(--inverse-bg);
+  color: var(--inverse-fg);
   box-shadow: none;
 }
 .remove:hover,
 .remove:focus-visible {
-  background: var(--accent-midnight);
-  color: var(--on-primary);
+  background: var(--inverse-bg-hover);
+  color: var(--inverse-fg);
 }
 </style>

@@ -1,5 +1,12 @@
 <template>
-  <div class="chat-input" @mousedown="onChatInputMousedown">
+  <div
+    ref="container"
+    class="chat-input motion-composer"
+    :data-expanded="expanded"
+    @mousedown="onChatInputMousedown"
+    @focusin="focused = true"
+    @focusout="onFocusOut"
+  >
     <div class="attach-tray" :data-open="$slots.chips ? '' : undefined">
       <div class="attach-inner">
         <div class="chips">
@@ -13,22 +20,25 @@
           <div
             ref="editor"
             class="field"
-            contenteditable="plaintext-only"
+            :contenteditable="readonly ? 'false' : 'plaintext-only'"
+            role="textbox"
+            aria-label="Prompt"
+            aria-multiline="true"
+            :aria-readonly="readonly"
+            tabindex="0"
             data-prompt-field
             :data-empty="!hasText || undefined"
             :data-placeholder="placeholder"
             @input="syncFromEditor"
             @keydown="onEditorKeydown"
-            @focus="focused = true"
-            @blur="focused = false"
           ></div>
         </div>
         <div class="row">
-          <div class="left">
+          <div class="left" :inert="!expanded" :aria-hidden="!expanded">
             <slot name="left" />
           </div>
           <div class="right">
-            <slot name="right" />
+            <slot name="right" :expanded="expanded" />
           </div>
         </div>
       </div>
@@ -36,25 +46,33 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed, onMounted, ref, shallowRef, watch } from "vue"
-
-function shouldSubmitOnKeydown(e: {
+<script lang="ts">
+export function shouldSubmitOnKeydown(e: {
   key: string
   shiftKey: boolean
   isComposing: boolean
 }): boolean {
   return e.key === "Enter" && !e.shiftKey && !e.isComposing
 }
+</script>
+
+<script setup lang="ts">
+import { computed, onMounted, ref, shallowRef, watch } from "vue"
 
 const props = withDefaults(
   defineProps<{
     placeholder?: string
     running?: boolean
+    active?: boolean
+    hasChips?: boolean
+    readonly?: boolean
   }>(),
   {
     placeholder: "do what you want ...",
     running: false,
+    active: false,
+    hasChips: false,
+    readonly: false,
   },
 )
 
@@ -68,8 +86,16 @@ const emit = defineEmits<{
 
 const editor = ref<HTMLElement | null>(null)
 const focused = shallowRef(false)
+const container = ref<HTMLElement | null>(null)
+const hasText = computed(() => prompt.value.length > 0)
+const expanded = computed(
+  () => focused.value || hasText.value || props.hasChips || props.running || props.active,
+)
 
-const hasText = computed(() => prompt.value.trim().length > 0)
+function onFocusOut(event: FocusEvent) {
+  focused.value =
+    event.relatedTarget instanceof Node && Boolean(container.value?.contains(event.relatedTarget))
+}
 
 /** 聚焦并把光标移到末尾 */
 function focusEnd() {
@@ -94,8 +120,7 @@ function syncFromEditor() {
   prompt.value = el.innerText
 }
 
-// 外部改写 prompt（draft 恢复等）时同步进编辑器。
-// 挂载时也同步一次：重挂载且 prompt 初始非空时，保证编辑器显示既有草稿（watch 非 immediate，setup 阶段 editor 尚未挂载）。
+// 挂载与外部草稿恢复时同步，避免重建编辑器丢掉光标。
 function syncFromPrompt() {
   const el = editor.value
   if (!el) return
@@ -104,12 +129,15 @@ function syncFromPrompt() {
     const focused = sel && el.contains(sel.anchorNode)
     el.innerText = prompt.value
     if (focused) focusEnd()
+    if (props.readonly) el.scrollTop = el.scrollHeight
   }
 }
 watch(prompt, syncFromPrompt)
 onMounted(syncFromPrompt)
 
 function onEditorKeydown(e: KeyboardEvent) {
+  if (props.readonly) return
+  if (e.key === "Escape" && !e.isComposing && !hasText.value) editor.value?.blur()
   if (shouldSubmitOnKeydown(e)) {
     e.preventDefault()
     emit("submit")
@@ -120,7 +148,7 @@ function onEditorKeydown(e: KeyboardEvent) {
 function onChatInputMousedown(e: MouseEvent) {
   const el = e.target
   if (!(el instanceof Element)) return
-  if (el.closest("button, input, textarea, [contenteditable]")) return
+  if (el.closest("button, input, textarea, a, [role='menuitem'], [contenteditable]")) return
   e.preventDefault()
   focus()
 }
@@ -137,7 +165,6 @@ defineExpose({ focus })
   z-index: 0;
   height: 0;
   overflow: hidden;
-  transition: height var(--duration-fast) var(--ease-smooth);
 }
 .attach-tray[data-open] {
   height: 68px;
@@ -145,8 +172,7 @@ defineExpose({ focus })
 }
 .attach-inner {
   position: absolute;
-  left: 20px;
-  right: 20px;
+  inset-inline: var(--spacing-md);
   top: 0;
   bottom: -8px;
   display: flex;
@@ -179,9 +205,8 @@ defineExpose({ focus })
   z-index: 0;
   inset: 0;
   border-radius: var(--radius-xl);
-  background: color-mix(in srgb, var(--chat-input) var(--glass-opacity), transparent);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  background: var(--chat-input);
+  box-shadow: var(--shadow-soft);
   content: "";
 }
 .glass-host {
@@ -194,21 +219,15 @@ defineExpose({ focus })
   border-radius: var(--radius-xl);
   transition: box-shadow var(--duration-fast) var(--ease-smooth);
 }
-@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  .glass-shell::before {
-    background: var(--chat-input);
-  }
-}
-@media (prefers-reduced-transparency: reduce) {
-  .glass-shell::before {
-    background: var(--chat-input);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-
 .editor-wrap {
+  padding: var(--spacing-sm) var(--spacing-md);
+  padding-inline-end: calc(var(--size-icon-button) + var(--spacing-lg));
+}
+.chat-input[data-expanded="true"] .editor-wrap {
   padding: 14px var(--spacing-md) 48px;
+}
+.chat-input[data-expanded="true"] .field {
+  min-height: 44px;
 }
 .field {
   position: relative;
@@ -220,8 +239,9 @@ defineExpose({ focus })
   font: inherit;
   font-size: var(--text-body-md);
   line-height: 1.5;
-  min-height: 44px;
+  min-height: 22px;
   max-height: 160px;
+  overscroll-behavior: contain;
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
@@ -235,7 +255,7 @@ defineExpose({ focus })
   content: attr(data-placeholder);
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   color: var(--ink-faint);
   pointer-events: none;
 }
@@ -255,8 +275,17 @@ defineExpose({ focus })
 .left {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--spacing-xxs);
   min-width: 0;
+  flex: 1;
+}
+.chat-input[data-expanded="false"] .left {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(var(--spacing-xxs));
+}
+.chat-input[data-expanded="false"] .row {
+  inset-inline-start: auto;
 }
 .right {
   display: flex;
@@ -266,7 +295,6 @@ defineExpose({ focus })
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .attach-tray,
   .glass-host {
     transition: none;
   }

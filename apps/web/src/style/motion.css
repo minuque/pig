@@ -214,6 +214,39 @@
   }
 }
 
+.motion-label-width {
+  transition: width var(--duration-fast) var(--ease-out);
+}
+.label-swap-enter-active,
+.label-swap-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+.label-swap-enter-from {
+  opacity: 0;
+  transform: translateY(var(--spacing-xxs));
+}
+.label-swap-leave-to {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--spacing-xxs)));
+}
+.motion-composer .attach-tray {
+  transition: height var(--duration-normal) var(--ease-out);
+}
+.motion-composer .editor-wrap {
+  transition: padding var(--duration-normal) var(--ease-out);
+}
+.motion-composer .field {
+  transition: min-height var(--duration-normal) var(--ease-out);
+}
+.motion-composer .left {
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    visibility var(--duration-fast);
+}
+
 .motion-turn {
   transition: transform var(--duration-fast) var(--ease-smooth);
 }
@@ -643,6 +676,19 @@
   :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
     animation: none;
     opacity: 0;
+  }
+  .motion-label-width,
+  .label-swap-enter-active,
+  .label-swap-leave-active,
+  .motion-composer .attach-tray,
+  .motion-composer .editor-wrap,
+  .motion-composer .field,
+  .motion-composer .left {
+    transition: none;
+  }
+  .label-swap-enter-from,
+  .label-swap-leave-to {
+    transform: none;
   }
   .motion-nudge,
   .motion-pulse::after {

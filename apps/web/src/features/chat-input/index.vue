@@ -19,6 +19,9 @@
       v-model:prompt="prompt"
       :placeholder="placeholder"
       :running="running"
+      :active="modelPickerActive || voiceActive"
+      :has-chips="attachments.length > 0 || Boolean($slots.chips)"
+      :readonly="voiceActive"
       @submit="send"
     >
       <template v-if="attachments.length || $slots.chips" #chips>
@@ -27,62 +30,82 @@
           :key="item.id"
           :src="item.url"
           :name="item.name"
-          @remove="remove(item.id)"
+          @remove="
+            remove(item.id)
+            focusEditor()
+          "
         />
         <slot name="chips" />
       </template>
       <template #left>
-        <slot name="left" />
-        <ModelPicker v-model:model="model" :catalog="catalog" :disabled="running" />
-        <ThinkingLevelSelect
-          v-if="modelLevels.length > 1"
-          v-model:level="level"
-          :levels="modelLevels"
-          :disabled="running"
-        />
+        <template v-if="!voiceActive">
+          <slot name="left" />
+          <ModelPicker
+            v-model:open="modelPickerOpen"
+            v-model:active="modelPickerActive"
+            v-model:model="model"
+            :catalog="catalog"
+            :disabled="running || voiceActive"
+          />
+          <ThinkingLevelSelect
+            v-if="modelLevels.length > 1"
+            v-model:level="level"
+            :levels="modelLevels"
+            :disabled="running || voiceActive"
+          />
+        </template>
       </template>
-      <template #right>
-        <button
+      <template #right="{ expanded }">
+        <span v-if="voiceActive" class="voice-status" role="status">正在聆听…</span>
+        <Button
+          v-show="expanded && !voiceActive"
           type="button"
+          size="icon"
           class="plus press-scale"
+          aria-label="添加图片，最多 6 张，仅本地预览"
+          title="添加图片，仅本地预览"
           :disabled="attachments.length >= MAX_CHAT_INPUT_ATTACHMENTS"
           @mousedown.prevent
           @click="openFilePicker"
         >
           <Plus class="size-icon" />
-        </button>
+        </Button>
         <Tooltip v-if="error" :delay-duration="200">
           <TooltipTrigger as-child>
-            <button type="button" class="error-indicator">
+            <Button type="button" size="icon" class="error-indicator" :aria-label="error">
               <CircleAlert class="size-icon" />
-            </button>
+            </Button>
           </TooltipTrigger>
           <TooltipContent class="max-w-[360px]">{{ error }}</TooltipContent>
         </Tooltip>
-        <button
+        <Button
           type="button"
+          size="icon"
           class="send press-scale"
-          :class="{ 'send--abort': running }"
-          :title="running ? '停止当前 Turn' : '发送 Prompt'"
-          :disabled="running ? aborting : !sendActive"
+          :class="{ 'send--abort': running || voiceActive, 'motion-pulse': voiceActive }"
+          :title="primaryLabel"
+          :aria-label="primaryLabel"
+          :disabled="running ? aborting : !voiceActive && !showVoice && !sendActive"
           @mousedown.prevent
           @click="onPrimaryAction"
         >
-          <span class="primary-icon icon-swap">
+          <span class="primary-icon icon-swap" aria-hidden="true">
             <svg
               width="12"
               height="12"
               viewBox="0 0 12 12"
               fill="currentColor"
-              :data-visible="running"
+              :data-visible="running || voiceActive"
             >
               <rect x="2" y="2" width="8" height="8" rx="1.5" />
             </svg>
-            <ArrowUp :data-visible="!running" class="size-icon" />
+            <ArrowUp :data-visible="!running && !voiceActive && !showVoice" class="size-icon" />
+            <Mic :data-visible="!running && !voiceActive && showVoice" class="size-icon" />
           </span>
-        </button>
+        </Button>
       </template>
     </PromptEditor>
+    <p v-if="voiceMessage" class="voice-message" role="status">{{ voiceMessage }}</p>
     <ChatInputMeta :cwd="cwd" :usage="usage" :open="usageOpen" @toggle="usageOpen = !usageOpen" />
     <input
       ref="fileInput"
@@ -98,7 +121,9 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { ArrowUp, CircleAlert, Plus } from "@lucide/vue"
+import { ArrowUp, CircleAlert, Mic, Plus } from "@lucide/vue"
+import { Button } from "@components/ui/button/index.js"
+import { useVoiceInput } from "@features/chat-input/hooks/use-voice-input.js"
 import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue"
 import ChatInputMeta from "@features/chat-input/components/ChatInputMeta.vue"
 import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel.vue"
@@ -174,11 +199,41 @@ const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisab
 const promptEditor = ref<{ focus: () => void } | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const usageOpen = ref(false)
+const modelPickerOpen = ref(false)
+const modelPickerActive = ref(false)
+const {
+  active: voiceActive,
+  message: voiceMessage,
+  start: startVoice,
+  stop: stopVoice,
+  cancel: cancelVoice,
+} = useVoiceInput(prompt)
+const showVoice = computed(() => prompt.value.trim() === "" && attachments.value.length === 0)
+const primaryLabel = computed(() =>
+  props.running
+    ? "停止当前 Turn"
+    : voiceActive.value
+      ? "结束语音输入"
+      : showVoice.value
+        ? "语音输入，由浏览器识别"
+        : "发送 Prompt",
+)
+
+watch(
+  () => props.running,
+  (running) => {
+    if (running) cancelVoice()
+  },
+)
 
 watch(
   () => [props.cwd, props.sessionId] as const,
   () => {
     usageOpen.value = false
+    modelPickerOpen.value = false
+    modelPickerActive.value = false
+    voiceMessage.value = ""
+    cancelVoice()
   },
 )
 
@@ -191,13 +246,18 @@ function openFilePicker() {
 }
 
 function onFilesPicked(e: Event) {
-  const input = e.target as HTMLInputElement
+  const input = e.target
+  if (!(input instanceof HTMLInputElement)) return
   addFiles(input.files)
   input.value = ""
   focusEditor()
 }
 
 function onPaste(e: ClipboardEvent) {
+  if (voiceActive.value) {
+    e.preventDefault()
+    return
+  }
   const files = imageFilesFromClipboard(e.clipboardData)
   if (files.length === 0) return
   e.preventDefault()
@@ -206,7 +266,7 @@ function onPaste(e: ClipboardEvent) {
 }
 
 function send() {
-  if (props.running || !sendActive.value) return
+  if (props.running || voiceActive.value || !sendActive.value) return
   const text = prompt.value
   emit("send", text)
   clear()
@@ -214,7 +274,15 @@ function send() {
 
 function onPrimaryAction() {
   if (props.running) {
-    emit("abort")
+    if (!props.aborting) emit("abort")
+    return
+  }
+  if (voiceActive.value) {
+    stopVoice()
+    return
+  }
+  if (showVoice.value) {
+    startVoice()
     return
   }
   send()
@@ -320,6 +388,20 @@ function onPrimaryAction() {
   .send {
     transition: none;
   }
+}
+.plus:focus-visible,
+.send:focus-visible,
+.error-indicator:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.voice-status,
+.voice-message {
+  color: var(--ink-muted);
+  font-size: var(--text-eyebrow);
+}
+.voice-message {
+  margin: var(--spacing-xs) var(--spacing-sm);
 }
 .file-input {
   display: none;

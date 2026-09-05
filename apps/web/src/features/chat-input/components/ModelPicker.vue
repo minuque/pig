@@ -1,29 +1,36 @@
 <template>
   <DropdownMenu v-model:open="open" :modal="false">
     <DropdownMenuTrigger as-child>
-      <button type="button" class="selector" :disabled="disabled">
+      <Button
+        type="button"
+        class="selector"
+        :disabled="disabled"
+        :aria-label="`选择模型，当前：${label}`"
+        :title="label"
+      >
         <VendorMark
           v-if="current.vendor"
           :vendor="current.vendor.id"
           :name="current.vendor.name"
           :size="14"
         />
-        <span class="selector-name">{{ label }}</span>
-      </button>
+        <MorphingLabel class="selector-name" :text="label" />
+        <ChevronDown aria-hidden="true" />
+      </Button>
     </DropdownMenuTrigger>
 
     <DropdownMenuContent
       side="top"
       align="start"
       :side-offset="6"
-      class="z-30 w-[min(400px,calc(100vw-24px))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden overflow-y-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
+      class="w-[min(400px,calc(100vw-24px))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden overflow-y-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
       @open-auto-focus="onOpenAutoFocus"
       @pointer-down-outside="suppressFocusRestore"
       @close-auto-focus="onCloseAutoFocus"
     >
       <div class="picker">
         <div class="rail">
-          <button
+          <Button
             type="button"
             class="rail-btn"
             title="收藏模型"
@@ -31,8 +38,8 @@
             @click="scope = FAVORITES_SCOPE"
           >
             <Star class="size-icon" :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'" />
-          </button>
-          <button
+          </Button>
+          <Button
             v-for="vendor in catalog"
             :key="vendor.id"
             type="button"
@@ -42,16 +49,22 @@
             @click="scope = vendor.id"
           >
             <VendorMark :vendor="vendor.id" :name="vendor.name" :size="15" />
-          </button>
+          </Button>
         </div>
 
         <div class="main">
           <div class="search">
             <Search :size="13" class="search-icon" />
-            <input ref="searchRef" v-model="query" type="text" placeholder="搜索模型" />
+            <input
+              ref="searchRef"
+              v-model="query"
+              type="text"
+              placeholder="搜索模型"
+              aria-label="搜索模型"
+            />
           </div>
           <div v-bind="containerProps" class="groups">
-            <div v-if="items.length" v-bind="wrapperProps">
+            <DropdownMenuGroup v-if="items.length" v-bind="wrapperProps">
               <div
                 v-for="item in list"
                 :key="`${item.data.vendor.id}/${item.data.model.id}`"
@@ -62,6 +75,10 @@
                   class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-2.5 py-0 h-[52px] text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
                   @select="select({ provider: item.data.vendor.id, id: item.data.model.id })"
                 >
+                  <Check
+                    v-if="isCurrent(item.data.vendor.id, item.data.model.id)"
+                    aria-label="当前模型"
+                  />
                   <span class="model-body">
                     <span class="model-name">{{ item.data.model.name }}</span>
                     <span class="model-vendor">
@@ -74,10 +91,11 @@
                     </span>
                   </span>
                 </DropdownMenuItem>
-                <button
+                <Button
                   type="button"
                   class="fav"
-                  tabindex="-1"
+                  :aria-label="`${isFavorite(item.data.vendor.id, item.data.model.id) ? '取消收藏' : '收藏'} ${item.data.model.name}`"
+                  :aria-pressed="isFavorite(item.data.vendor.id, item.data.model.id)"
                   :class="{ on: isFavorite(item.data.vendor.id, item.data.model.id) }"
                   @pointerdown.stop
                   @click.stop="toggleFavorite(item.data.vendor.id, item.data.model.id)"
@@ -88,9 +106,9 @@
                       isFavorite(item.data.vendor.id, item.data.model.id) ? 'currentColor' : 'none'
                     "
                   />
-                </button>
+                </Button>
               </div>
-            </div>
+            </DropdownMenuGroup>
             <div v-else class="empty">{{ emptyText }}</div>
           </div>
         </div>
@@ -100,16 +118,19 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Star } from "@lucide/vue"
+import { Check, ChevronDown, Search, Star } from "@lucide/vue"
 import { useVirtualList } from "@vueuse/core"
 import { computed, nextTick, ref, watch } from "vue"
 import type { ChatInputModel, ChatInputVendor } from "@/types/chat-input-type.js"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
+import { Button } from "@components/ui/button/index.js"
+import MorphingLabel from "./MorphingLabel.vue"
 import VendorMark from "@features/chat-input/components/VendorMark.vue"
 import { useModelFavorites } from "@features/chat-input/hooks/use-model-favorites.js"
 import {
@@ -133,7 +154,8 @@ const emit = defineEmits<{
   "update:model": [value: ChatInputModel]
 }>()
 
-const open = ref(false)
+const open = defineModel<boolean>("open", { default: false })
+const active = defineModel<boolean>("active", { default: false })
 const query = ref("")
 const scope = ref(FAVORITES_SCOPE)
 const searchRef = ref<HTMLInputElement | null>(null)
@@ -167,6 +189,7 @@ const emptyText = computed(() =>
 
 watch(open, (isOpen) => {
   if (!isOpen) return
+  active.value = true
   query.value = ""
   scope.value = current.value.vendor?.id ?? props.catalog[0]?.id ?? FAVORITES_SCOPE
 })
@@ -196,6 +219,9 @@ function suppressFocusRestore() {
 function onCloseAutoFocus(event: Event) {
   if (suppressRestore) event.preventDefault()
   suppressRestore = false
+  void nextTick(() => {
+    active.value = open.value
+  })
 }
 </script>
 
@@ -204,7 +230,10 @@ function onCloseAutoFocus(event: Event) {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-xxs);
-  min-height: 0;
+  min-width: 0;
+  min-height: var(--size-icon-button);
+  height: auto;
+  flex-shrink: 1;
   padding: var(--spacing-xxs) var(--spacing-xs);
   border: 0;
   border-radius: var(--radius-full);
@@ -224,6 +253,16 @@ function onCloseAutoFocus(event: Event) {
 .selector:disabled {
   opacity: 0.5;
   cursor: default;
+}
+.selector:focus-visible,
+.rail-btn:focus-visible,
+.fav:focus-visible {
+  outline: var(--border-width) solid var(--primary);
+  outline-offset: -2px;
+}
+.selector[data-state="open"] {
+  background: var(--hover-tint);
+  color: var(--ink);
 }
 .selector-name {
   max-width: 14rem;
@@ -318,7 +357,6 @@ function onCloseAutoFocus(event: Event) {
   display: flex;
   align-items: center;
   height: 52px;
-  margin-bottom: var(--spacing-xxs);
   border-radius: var(--radius-md);
 }
 .model-row:hover,
