@@ -3,7 +3,7 @@
     <div class="startup-veil"></div>
     <div class="drag-strip"></div>
     <div class="startup-content">
-      <div class="startup-mark motion-card-glow">
+      <div class="startup-mark">
         <img class="startup-logo" src="/logo.png" alt="" width="88" height="88" />
       </div>
     </div>

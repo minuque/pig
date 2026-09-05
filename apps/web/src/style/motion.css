@@ -25,10 +25,6 @@
   z-index: 1;
   padding: var(--spacing-lg);
 }
-.startup-content .startup-mark {
-  padding: var(--spacing-xxs);
-  border-radius: var(--radius-md);
-}
 .startup-logo {
   display: block;
   width: var(--startup-logo-size, 88px);
@@ -49,25 +45,27 @@
   animation: startup-veil-leave var(--duration-normal, 200ms) var(--ease-out, ease-out) 60ms both;
 }
 .startup-screen.leaving .startup-content {
-  animation: startup-content-leave var(--duration-slow, 280ms) var(--ease-out, ease-out) both;
+  animation: startup-content-leave var(--duration-normal) ease-out both;
 }
 
 #startup-splash {
   z-index: calc(var(--z-modal) + 1);
 }
 #startup-splash .startup-mark {
-  animation: startup-logo-enter var(--duration-slow) var(--ease-out) 60ms both;
+  animation: startup-logo-enter var(--duration-slow) ease-out both;
 }
 @keyframes startup-logo-enter {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(8px);
-    filter: blur(3px);
+    transform: translateY(10px) rotate(-6deg) scale(0.9);
   }
-  to {
+  65% {
     opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
+    transform: translateY(-2px) rotate(2deg) scale(1.025);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
   }
 }
 @keyframes startup-veil-leave {
@@ -81,13 +79,11 @@
 @keyframes startup-content-leave {
   from {
     opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
+    transform: translateY(0) rotate(0deg) scale(1);
   }
   to {
     opacity: 0;
-    transform: translateY(-8px);
-    filter: blur(3px);
+    transform: translateY(-4px) rotate(3deg) scale(0.94);
   }
 }
 
