@@ -136,7 +136,9 @@ const {
   submitText,
   createAndSubmit,
 } = useSession()
-const { workspaces, lastCwd, addingWorkspace, addWorkspace } = useNav()
+const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
+/** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
+const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
