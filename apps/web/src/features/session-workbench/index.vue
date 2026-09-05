@@ -144,7 +144,9 @@ const pageError = computed(() => {
   }
   return route.name === "error" ? {} : null
 })
-const showHero = computed(() => transcript.value.length === 0 && !running.value)
+const showHero = computed(
+  () => sessionId.value === undefined || (transcript.value.length === 0 && !running.value),
+)
 const showLoading = computed(
   () =>
     Boolean(sessionId.value) &&

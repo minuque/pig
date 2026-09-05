@@ -187,6 +187,31 @@ describe("打开已有 Session", () => {
     expect(session.remote.value).toBe(a)
   })
 
+  it("从 Session 回到 / 时清空 Transcript", async () => {
+    const item = {
+      id: "u1",
+      role: "user" as const,
+      content: [{ type: "text" as const, text: "hi" }],
+      timestamp: 1,
+    }
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) return { items: [item], timings: [] }
+      return { usage: usageEstimate }
+    })
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1), transcript: [item] }
+    openMock.mockResolvedValue(a)
+    await session.initialize()
+    routeBox.params.sessionId = "s1"
+    await nextTick()
+    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
+    routeBox.params.sessionId = undefined
+    await nextTick()
+    expect(session.transcript.value).toEqual([])
+    expect(session.remote.value).toBeUndefined()
+  })
+
   it("open 失败：不附加、回到首页", async () => {
     const { session } = setup()
     openMock.mockRejectedValue(new Error("boom"))

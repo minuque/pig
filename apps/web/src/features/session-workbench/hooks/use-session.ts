@@ -58,7 +58,7 @@ export function useSessionLifecycle(
   const remote = shallowRef<RemoteSession>()
   const state = shallowRef<RemoteSessionState>()
   let unsubscribeState: Unsubscribe | undefined
-  let disposePromise: Promise<void> | undefined
+
   // 替换操作串行化：同一时刻至多一个 open/create，避免并发 lease
   let replaceChain: Promise<void> = Promise.resolve()
   // 最新想打开的 session：快速连点时跳过中间 id，只落地最后一次
@@ -228,11 +228,9 @@ export function useSessionLifecycle(
   }
   async function dispose() {
     wantedId = undefined
-    if (disposePromise) return disposePromise
     const current = remote.value
     detach()
-    disposePromise = current?.dispose() ?? Promise.resolve()
-    return disposePromise
+    if (current) await current.dispose()
   }
 
   let initialized = false
