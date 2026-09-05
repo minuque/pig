@@ -192,6 +192,7 @@ defineExpose({ focus })
   background: transparent;
   border: var(--border-width) solid var(--chat-input-ring);
   border-radius: var(--radius-xl);
+  transition: box-shadow var(--duration-fast) var(--ease-smooth);
 }
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .glass-shell::before {
