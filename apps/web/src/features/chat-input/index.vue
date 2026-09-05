@@ -83,13 +83,7 @@
         </button>
       </template>
     </PromptEditor>
-    <ChatInputMeta
-      v-if="showMeta"
-      :cwd="cwd"
-      :usage="usage"
-      :open="usageOpen"
-      @toggle="usageOpen = !usageOpen"
-    />
+    <ChatInputMeta :cwd="cwd" :usage="usage" :open="usageOpen" @toggle="usageOpen = !usageOpen" />
     <input
       ref="fileInput"
       type="file"
@@ -180,7 +174,6 @@ const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisab
 const promptEditor = ref<{ focus: () => void } | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const usageOpen = ref(false)
-const showMeta = computed(() => props.cwd !== undefined || props.usage !== undefined)
 
 watch(
   () => [props.cwd, props.sessionId] as const,
