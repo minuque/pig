@@ -1,38 +1,75 @@
 <template>
   <WorkbenchHeader />
   <div
-    :ref="bindColumn"
+    :ref="bindWorkbenchColumn"
     class="conversation-column"
     :class="{ 'is-content-resizing': contentResizing }"
   >
     <StartupError v-if="pageError" v-bind="pageError" />
 
     <template v-else>
-      <!-- 1. 无 session；首次提交时作为覆盖层淡出，避免输入框硬切位置。 -->
-      <Transition name="fade-layer">
-        <SessionWelcome
-          v-if="showWelcome"
-          :class="{ 'handoff-overlay': sessionId !== undefined }"
-        />
-      </Transition>
-
-      <div v-if="sessionId" class="session-stage">
+      <div class="session-stage">
         <Transition name="fade-layer">
-          <SessionLoading v-if="sessionPending && transcript.length === 0" />
+          <div v-if="showHero" class="idle-hero">
+            <WorkbenchHero
+              v-model:workspace-id="heroWorkspaceId"
+              title-id="workbench-hero-title"
+              class="stagger-in"
+              :workspaces="workspaces"
+              :selectable="sessionId === undefined"
+              :adding="addingWorkspace"
+              @add="addWorkspace()"
+            />
+          </div>
         </Transition>
 
-        <!-- 2. 空会话 -->
-        <SessionEmptyCanvas v-if="emptyCanvas" />
+        <Transition name="fade-layer">
+          <SessionLoading v-if="showLoading" />
+        </Transition>
 
-        <!-- 3. 有 transcript：对话列。历史可先于 attach 到齐。 -->
-        <template v-else-if="transcript.length > 0 || !sessionPending">
-          <TranscriptView
-            :session-id="sessionId"
-            :transcript="transcript"
+        <TranscriptView
+          v-if="sessionId"
+          ref="transcriptView"
+          :session-id="sessionId"
+          :transcript="transcript"
+          :running="running"
+          :timings="turnTimings"
+        />
+      </div>
+
+      <div class="chat-input-bar">
+        <div ref="inputStack" class="chat-input-stack">
+          <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
+            <Button
+              class="scroll-latest-control"
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              title="滚动到底部"
+              @click="scrollToLatest"
+            >
+              <span class="icon-swap">
+                <Ellipsis :data-visible="running" />
+                <ArrowDown :data-visible="!running" />
+              </span>
+            </Button>
+          </div>
+          <ChatInput
+            v-model:prompt="prompt"
+            v-model:preset="preset"
+            :catalog="catalog"
             :running="running"
-            :timings="turnTimings"
+            :aborting="aborting"
+            :error="sessionError"
+            :cwd="sessionId ? sessionCwd : undefined"
+            :usage="sessionId ? contextUsage : undefined"
+            :session-id="sessionId"
+            :send-disabled="sendDisabled"
+            placeholder="do what you want ..."
+            @send="onSend"
+            @abort="abortSession"
           />
-        </template>
+        </div>
       </div>
     </template>
 
@@ -53,21 +90,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { useRoute } from "vue-router"
+import { ArrowDown, Ellipsis } from "@lucide/vue"
+import { Button } from "@components/ui/button/index.js"
+import ChatInput from "@features/chat-input/index.vue"
+import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
-import SessionEmptyCanvas from "@features/session-workbench/components/SessionEmptyCanvas.vue"
 import SessionLoading from "@features/session-workbench/components/SessionLoading.vue"
-import SessionWelcome from "@features/session-workbench/components/SessionWelcome.vue"
-import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
-import TranscriptView from "@features/transcript-view/index.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
+import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
+import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
 import StartupError from "@features/startup/components/StartupError.vue"
+import TranscriptView from "@features/transcript-view/index.vue"
 
-function isEmptyCanvas(transcriptLength: number, running: boolean, pending = false): boolean {
-  if (pending) return false
-  return transcriptLength === 0 && !running
+function nextWelcomeWorkspaceId(
+  items: readonly string[],
+  current: string | undefined,
+  lastCwd: string | undefined,
+): string | undefined {
+  if (items.includes(current ?? "")) return current
+  if (lastCwd !== undefined && items.includes(lastCwd)) return lastCwd
+  return items[0]
 }
 
 const route = useRoute()
@@ -79,8 +124,19 @@ const {
   sessionPending,
   connectionError,
   connected,
-  firstPromptHandoffId,
+  catalog,
+  preset,
+  prompt,
+  aborting,
+  sessionError,
+  sessionCwd,
+  contextUsage,
+  creating,
+  abortSession,
+  submitText,
+  createAndSubmit,
 } = useSession()
+const { workspaces, lastCwd, addingWorkspace, addWorkspace } = useNav()
 
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
@@ -88,14 +144,54 @@ const pageError = computed(() => {
   }
   return route.name === "error" ? {} : null
 })
-const showWelcome = computed(
+const showHero = computed(() => transcript.value.length === 0 && !running.value)
+const showLoading = computed(
   () =>
-    sessionId.value === undefined ||
-    (firstPromptHandoffId.value === sessionId.value && transcript.value.length === 0),
+    Boolean(sessionId.value) &&
+    sessionPending.value &&
+    transcript.value.length === 0 &&
+    !creating.value,
 )
-const emptyCanvas = computed(() =>
-  isEmptyCanvas(transcript.value.length, running.value, sessionPending.value),
+const welcomeWorkspaceId = shallowRef<string>()
+const heroWorkspaceId = computed({
+  get: () => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value),
+  set: (id) => {
+    if (!sessionId.value) welcomeWorkspaceId.value = id
+  },
+})
+const composerCwd = computed(() => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value))
+const sendDisabled = computed(
+  () => !composerCwd.value || preset.value === undefined || Boolean(creating.value),
 )
+
+watch(
+  [workspaces, lastCwd],
+  ([items, last]) => {
+    welcomeWorkspaceId.value = nextWelcomeWorkspaceId(items, welcomeWorkspaceId.value, last)
+  },
+  { immediate: true },
+)
+
+const transcriptView = useTemplateRef<{
+  showScrollToLatest: boolean
+  scrollToLatest: () => void
+}>("transcriptView")
+const showScrollToLatest = computed(() => transcriptView.value?.showScrollToLatest ?? false)
+function scrollToLatest() {
+  transcriptView.value?.scrollToLatest()
+}
+
+function onSend(text: string) {
+  if (sessionId.value) {
+    scrollToLatest()
+    void submitText(text)
+    return
+  }
+  const cwd = welcomeWorkspaceId.value
+  if (!cwd) return
+  void createAndSubmit(cwd, text)
+}
+
 const {
   resizing: contentResizing,
   bindColumn,
@@ -106,8 +202,38 @@ const {
   endResize,
   nudgeWidth,
 } = useConversationWidth()
+const columnEl = shallowRef<HTMLElement | null>(null)
+const inputStack = useTemplateRef<HTMLElement>("inputStack")
+let overlayObserver: ResizeObserver | undefined
+
+function bindWorkbenchColumn(el: unknown) {
+  columnEl.value = el instanceof HTMLElement ? el : null
+  bindColumn(el)
+}
+
+function publishOverlayHeight() {
+  const column = columnEl.value
+  const stack = inputStack.value
+  if (!column || !stack) return
+  column.style.setProperty("--size-chat-input-overlay", `${stack.offsetHeight}px`)
+}
+
+watch(
+  [columnEl, inputStack],
+  ([column, stack]) => {
+    overlayObserver?.disconnect()
+    overlayObserver = undefined
+    if (!column || !stack) return
+    overlayObserver = new ResizeObserver(publishOverlayHeight)
+    overlayObserver.observe(stack)
+    publishOverlayHeight()
+  },
+  { flush: "post" },
+)
+onBeforeUnmount(() => overlayObserver?.disconnect())
+
 const showContentHandles = computed(
-  () => Boolean(sessionId.value) && !emptyCanvas.value && !sessionPending.value,
+  () => Boolean(sessionId.value) && !showHero.value && !sessionPending.value,
 )
 const contentHandleSides = ["left", "right"] as const
 </script>
@@ -131,17 +257,74 @@ const contentHandleSides = ["left", "right"] as const
   cursor: col-resize;
   user-select: none;
 }
-.handoff-overlay {
-  position: absolute;
-  z-index: 5;
-  inset: 0;
-  background: var(--surface);
-}
 .session-stage {
   position: relative;
   min-height: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+.idle-hero {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 var(--spacing-md) var(--size-chat-input-overlay);
+}
+.chat-input-bar {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+}
+.chat-input-stack {
+  position: relative;
+  width: 100%;
+  max-width: var(--size-chat-input);
+  margin-inline: auto;
+}
+.session-floating-controls {
+  position: absolute;
+  top: 0;
+  right: var(--spacing-sm);
+  z-index: 11;
+  display: flex;
+  justify-content: flex-end;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+.session-floating-controls.shown {
+  opacity: 1;
+}
+.session-floating-controls.shown .scroll-latest-control {
+  pointer-events: auto;
+}
+.scroll-latest-control {
+  width: var(--size-scroll-control);
+  height: var(--size-scroll-control);
+  border-radius: var(--radius-full);
+  background: var(--code-body);
+  color: var(--ink-secondary);
+  box-shadow: none;
+  transform: translateY(calc(-100% - var(--spacing-sm)));
+}
+.chat-input-bar :deep(.prompt) {
+  pointer-events: auto;
+}
+@media (max-width: 900px) {
+  .chat-input-bar {
+    padding-inline: var(--spacing-sm);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .session-floating-controls {
+    transition: none;
+  }
 }
 </style>

@@ -309,6 +309,16 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     expect(cwd.selectCwd).toHaveBeenCalledWith("/repo")
   })
 
+  it("无 session 时 prompt 写入独立草稿，提交后清空", async () => {
+    const { session } = setup()
+    session.prompt.value = "草稿"
+    expect(session.prompt.value).toBe("草稿")
+    const created = makeSession("s2")
+    createMock.mockResolvedValue(created)
+    await session.createAndSubmit("/repo", "任务")
+    expect(session.prompt.value).toBe("")
+  })
+
   it("创建失败时不提交", async () => {
     const { session } = setup()
     const created = makeSession("s2")

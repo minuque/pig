@@ -279,7 +279,7 @@ export function useSessionLifecycle(
 
   const states = reactive(new Map<string, ReturnType<typeof sessionState>>())
   const creatingCwd = ref<string>()
-  const firstPromptHandoffId = shallowRef<string>()
+  const idleDraft = shallowRef("")
   const submitting = ref(false)
   const aborting = ref(false)
 
@@ -288,13 +288,14 @@ export function useSessionLifecycle(
     return id ? sessionState(states, id) : undefined
   })
   const prompt = computed({
-    get: () => clientState.value?.draft ?? "",
+    get: () => clientState.value?.draft ?? idleDraft.value,
     set: (value: string) => {
       if (clientState.value) clientState.value.draft = value
+      else idleDraft.value = value
     },
   })
 
-  async function createSession(nextCwd: string, handoff = false) {
+  async function createSession(nextCwd: string) {
     if (creatingCwd.value) return
     const routeSessionAtStart = sessionId.value
     creatingCwd.value = nextCwd
@@ -309,7 +310,6 @@ export function useSessionLifecycle(
       )
       if (!nextId || sessionId.value !== routeSessionAtStart) return undefined
       cwd.selectCwd(nextCwd)
-      if (handoff) firstPromptHandoffId.value = nextId
       if (nextId !== sessionId.value) {
         await router.push({ name: "session", params: { sessionId: nextId } })
       }
@@ -368,11 +368,11 @@ export function useSessionLifecycle(
   /** 欢迎页首次 Prompt：创建 Session 后立即发送。 */
   async function createAndSubmit(nextCwd: string, text: string) {
     try {
-      const nextId = await createSession(nextCwd, true)
+      const nextId = await createSession(nextCwd)
       if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return
       await submitText(text)
     } finally {
-      firstPromptHandoffId.value = undefined
+      idleDraft.value = ""
     }
   }
 
@@ -416,7 +416,6 @@ export function useSessionLifecycle(
     clientState,
     sessionError,
     creating: creatingCwd,
-    firstPromptHandoffId,
     aborting,
     createSession,
     createAndSubmit,

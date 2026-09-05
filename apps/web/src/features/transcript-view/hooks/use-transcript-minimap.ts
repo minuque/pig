@@ -10,7 +10,6 @@ export function useTranscriptMinimap(
   rows: MaybeRefOrGetter<readonly TimelineRow[]>,
   layout: {
     viewport: MaybeRefOrGetter<HTMLElement | null>
-    inputBar: MaybeRefOrGetter<HTMLElement | null>
     column: MaybeRefOrGetter<HTMLElement | null>
   },
 ) {
@@ -42,31 +41,19 @@ export function useTranscriptMinimap(
     if (!sameIdList(inViewIds.value, next)) inViewIds.value = next
   }
 
-  function overlayContent(bar: HTMLElement | null): HTMLElement | null {
-    const inner = bar?.firstElementChild
-    return inner instanceof HTMLElement ? inner : bar
-  }
-
   function tick() {
-    const host = toValue(layout.viewport)
-    const overlay = overlayContent(toValue(layout.inputBar))
-    syncLayout(host, toValue(layout.column))
-    if (overlay && host) {
-      host.style.setProperty("--size-chat-input-overlay", `${overlay.offsetHeight}px`)
-    }
+    syncLayout(toValue(layout.viewport), toValue(layout.column))
   }
 
   let layoutObserver: ResizeObserver | undefined
   watch(
-    () => [toValue(layout.viewport), toValue(layout.inputBar), toValue(layout.column)] as const,
-    ([el, bar, column]) => {
+    () => [toValue(layout.viewport), toValue(layout.column)] as const,
+    ([el, column]) => {
       layoutObserver?.disconnect()
       layoutObserver = undefined
       if (!el) return
       layoutObserver = new ResizeObserver(tick)
       layoutObserver.observe(el)
-      const overlay = overlayContent(bar)
-      if (overlay) layoutObserver.observe(overlay)
       if (column) layoutObserver.observe(column)
       tick()
     },
