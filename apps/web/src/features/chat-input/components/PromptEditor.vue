@@ -186,18 +186,8 @@ defineExpose({ focus })
   display: flex;
   flex-direction: column;
   background: transparent;
-  border: var(--border-width) solid transparent;
-  border-radius: var(--radius-xl);
-}
-.glass-host::after {
-  pointer-events: none;
-  position: absolute;
-  z-index: 1;
-  inset: 0;
   border: var(--border-width) solid var(--chat-input-ring);
-  border-radius: inherit;
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent);
-  content: "";
+  border-radius: var(--radius-xl);
 }
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .glass-shell::before {
