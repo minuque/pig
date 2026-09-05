@@ -1,34 +1,34 @@
 ---
 version: alpha
 name: pig Workbench
-description: A Pi Agent GUI with warm neutral surfaces in light mode and near-black surfaces in dark mode. Action and focus blue is separate from link blue. Sidebar selection is neutral. Sunset and dusk colors are decorative only. The layout uses a sidebar and an opaque transcript column. Navigation and window controls use lower contrast than transcript content.
+description: A Pi Agent GUI with cool gray surfaces in light mode and elevated blue-gray surfaces in dark mode. Action and focus blue is separate from link blue. Sidebar selection is neutral. Sunset and dusk colors are decorative only. The layout uses a sidebar and an opaque transcript column. Navigation and window controls use lower contrast than transcript content.
 
 colors:
-  primary: "#4176e6"
-  primary-active: "#2d5fc4"
-  secondary: "#0e3074"
+  primary: "#637cd2"
+  primary-active: "#4d64b7"
+  secondary: "#495fad"
   on-primary: "#ffffff"
-  canvas: "#fcfcfb"
-  canvas-soft: "#f2f2f1"
-  surface: "#fcfcfb"
-  ink: "#0b0b0b"
-  ink-secondary: "#52514e"
-  ink-muted: "#52514e"
-  ink-faint: "#898781"
-  hairline: "#d8d8d6"
+  canvas: "#f1f2f3"
+  canvas-soft: "#fafafb"
+  surface: "#ffffff"
+  ink: "#1f2124"
+  ink-secondary: "#62656b"
+  ink-muted: "#62656b"
+  ink-faint: "#9a9da3"
+  hairline: "#ecedef"
   accent-sunset: "#ee650d"
   accent-sunset-soft: "#ffc285"
   accent-dusk: "#7c3aed"
   accent-twilight: "#9a72d8"
   accent-breeze: "#6494d2"
   accent-midnight: "#0d1726"
-  accent-orange: "#dd5b00"
-  accent-orange-deep: "#793400"
-  accent-green: "#1e9e3c"
-  danger-bg: "#fbe8e9"
-  success-bg: "#e8f3e8"
-  warning-bg: "#fbede5"
-  info-bg: "#e8effa"
+  accent-orange: "#ef720d"
+  accent-orange-deep: "#9c3b00"
+  accent-green: "#199a4d"
+  danger-bg: "#fcecec"
+  success-bg: "#e8f5ed"
+  warning-bg: "#fdf1e5"
+  info-bg: "#e6eaf8"
 
 typography:
   display-1:
@@ -307,11 +307,11 @@ components:
 
 ## Overview
 
-Pi Agent GUI 使用暖中性灰浅色表面和近黑深色表面。系统 UI 字号默认 14px。业务蓝用于动作和焦点，链接使用独立蓝色，侧栏选中使用中性灰。布局包含侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
+Pi Agent GUI 使用冷灰浅色表面和抬升的蓝灰深色表面。系统 UI 字号默认 14px。动作蓝用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
 
-浅色侧栏 `#f7f8fa`，对话列 `{colors.surface}`。深色侧栏 `#111111`、对话列 `#070707`。结构色 `{colors.primary}`（#4176e6）用于动作和焦点。控件圆角 `{rounded.lg}`（12px）。
+浅色侧栏 `{colors.canvas-soft}`，对话列 `{colors.surface}`。深色侧栏 `#17181a`、对话列 `#232427`。结构色 `{colors.primary}`（#637cd2）用于动作和焦点。控件圆角 `{rounded.lg}`（12px）。
 
-深色是同一套分面的近黑反相：对话 `#070707`、侧栏 `#111111`、输入卡 `#20201f`、用户气泡 `#212121`、缝 `#292929`。次级井仍用 `#272727`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
+深色是同一套分面的冷灰反相：对话 `#232427`、侧栏 `#17181a`、输入卡 `#2b2c2f`、用户气泡 `#1f2022`、缝 `#2e3033`。次级井用 `#1c1d1f`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
 
 窗体、输入卡和菜单均不透明。侧栏走 `--sidebar`，对话列 `surface`。输入卡和菜单使用不透明填充，浏览器与桌面颜色一致。浅色是默认入口。
 
@@ -319,9 +319,9 @@ Pi Agent GUI 使用暖中性灰浅色表面和近黑深色表面。系统 UI 字
 
 ### Brand & Accent
 
-- **Business Blue** (`{colors.primary}` — #4176e6)：动作、焦点和控件选中指示。深色提亮为 `#679efe`。链接走 `--link`，侧栏选中背景走 `--interaction-selected`。
-- **Pressed Blue** (`{colors.primary-active}` — #2d5fc4)：主按钮按下。
-- **Deep Navy** (`{colors.secondary}` — #0e3074)：反相带。
+- **Action Blue** (`{colors.primary}` — #637cd2)：动作、焦点和控件选中指示。深色提亮为 `#89a2f3`，主按钮字色为黑。链接走 `--link`（#495fad / `#acc2ff`），侧栏选中背景走 `--interaction-selected`。
+- **Pressed Blue** (`{colors.primary-active}` — #4d64b7)：主按钮按下。
+- **Link Blue** (`{colors.secondary}` — #495fad)：链接用更深的同一色相。
 
 装饰（状态点、插图、次要标记）：
 
@@ -333,16 +333,17 @@ Pi Agent GUI 使用暖中性灰浅色表面和近黑深色表面。系统 UI 字
 
 ### Surface
 
-- **Conversation** (`{colors.canvas}` / `{colors.surface}` — #fcfcfb)：对话列、卡片。
-- **Secondary well** (`{colors.canvas-soft}` — #f2f2f1)：次级井和代码背景。
-- **Hairline** (`{colors.hairline}` — #d8d8d6)：栏缝与控件边。
+- **Conversation** (`{colors.surface}` — #ffffff)：对话列、卡片。
+- **Canvas** (`{colors.canvas}` — #f1f2f3)：次级井。
+- **Secondary well** (`{colors.canvas-soft}` — #fafafb)：侧栏和页面底。
+- **Hairline** (`{colors.hairline}` — #ecedef)：栏缝与控件边。
 
 ### Text
 
-- **Ink** (`{colors.ink}` — #0b0b0b)
-- **Charcoal** (`{colors.ink-secondary}` — #52514e)
-- **Slate** (`{colors.ink-muted}` — #52514e)
-- **Ash** (`{colors.ink-faint}` — #898781)
+- **Ink** (`{colors.ink}` — #1f2124)
+- **Charcoal** (`{colors.ink-secondary}` — #62656b)
+- **Slate** (`{colors.ink-muted}` — #62656b)
+- **Ash** (`{colors.ink-faint}` — #9a9da3)
 
 ### Semantic
 
@@ -359,36 +360,36 @@ sunset 是装饰，orange 是语义。
 
 | 角色         | 浅色      | 深色      |
 | ------------ | --------- | --------- |
-| 对话底       | `#fcfcfb` | `#070707` |
-| 侧栏         | `#f7f8fa` | `#111111` |
-| 选中行       | `#edece8` | `#292929` |
-| 输入卡       | `#fefefe` | `#20201f` |
-| 输入边框     | `#e0e0df` | `#313131` |
-| 菜单         | `#ffffff` | `#20201f` |
-| 菜单边框     | `#d7d7d5` | `#373736` |
-| 用户气泡     | `#f0f0ef` | `#212121` |
-| 链接         | `#184f95` | `#6da7ec` |
-| 行内代码     | `#f2f2f1` | `#272727` |
-| 行内代码文字 | `#0b0b0b` | `#e1e0d9` |
-| 行内代码边   | `#d8d8d6` | `#333332` |
+| 对话底       | `#ffffff` | `#232427` |
+| 侧栏         | `#fafafb` | `#17181a` |
+| 选中行       | `#e7e9eb` | `#313236` |
+| 输入卡       | `#f2f2f3` | `#2b2c2f` |
+| 输入边框     | `#e0e2e5` | `#3a3c40` |
+| 菜单         | `#ffffff` | `#232427` |
+| 菜单边框     | `#ecedef` | `#2e3033` |
+| 用户气泡     | `#f7f8f9` | `#1f2022` |
+| 链接         | `#495fad` | `#acc2ff` |
+| 行内代码     | `#f2f2f3` | `#2b2c2f` |
+| 行内代码文字 | `#1f2124` | `#f2f3f4` |
+| 行内代码边   | `#ecedef` | `#2e3033` |
 
-参考图没有展示的动作蓝、警告橙和装饰色保留原值。
+动作蓝以 `#637cd2` 为准。sunset / dusk 仍只作分类装饰。
 
 ### Dark
 
-同一套分面的近灰反相，写在 `app.css` `.dark`。
+同一套分面的冷灰反相，写在 `app.css` `.dark`。
 
 | 角色     | 值        |
 | -------- | --------- |
-| 对话底   | `#070707` |
-| 侧栏     | `#111111` |
-| 输入卡   | `#20201f` |
-| 用户气泡 | `#212121` |
-| 主字     | `#f0efec` |
-| 次级字   | `#7d7d7d` |
-| 弱字     | `#898781` |
-| 缝       | `#292929` |
-| primary  | `#679efe` |
+| 对话底   | `#232427` |
+| 侧栏     | `#17181a` |
+| 输入卡   | `#2b2c2f` |
+| 用户气泡 | `#1f2022` |
+| 主字     | `#f2f3f4` |
+| 次级字   | `#a5a8ad` |
+| 弱字     | `#6c6f75` |
+| 缝       | `#2e3033` |
+| primary  | `#89a2f3` |
 
 ## Typography
 
@@ -465,7 +466,7 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 ## Do's and Don'ts
 
 - 浅色：侧栏软底，对话白底。
-- 深色：对话 `#070707`、侧栏 `#111111`、输入卡 `#20201f`、用户气泡 `#212121`、缝 `#292929`。
+- 深色：对话 `#232427`、侧栏 `#17181a`、输入卡 `#2b2c2f`、用户气泡 `#1f2022`、缝 `#2e3033`。
 - `{colors.primary}` 用于动作和选中。
 - 工作台 14px 系统字；标签可用等宽大写。
 - chatInput / New Session：`{rounded.lg}`。
