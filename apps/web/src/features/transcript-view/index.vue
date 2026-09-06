@@ -18,7 +18,7 @@
     >
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
-          <TransitionGroup name="timeline-row" tag="div" class="timeline-rows">
+          <TransitionGroup name="timeline-row" tag="div" class="timeline-rows" :css="liveEnter">
             <div
               v-for="row in rows"
               :key="row.id"
@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, useTemplateRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
@@ -151,18 +151,38 @@ function observeSizes() {
   if (body) sizeObserver.observe(body)
 }
 
-watch(() => props.sessionId, reset, { flush: "pre" })
+const liveEnter = shallowRef(false)
+
+function enableLiveEnter() {
+  if (liveEnter.value) return
+  void nextTick(() => {
+    liveEnter.value = true
+  })
+}
+
+watch(
+  () => props.sessionId,
+  () => {
+    liveEnter.value = false
+    reset()
+  },
+  { flush: "pre" },
+)
 
 watch(rows, (next, prev) => {
-  if ((prev?.length ?? 0) === 0 && next.length > 0) scrollToLatest()
+  if ((prev?.length ?? 0) === 0 && next.length > 0) scrollToLatest("auto")
   else if (atBottom.value) void nextTick(pinIfNeeded)
+  if (next.length > 0) enableLiveEnter()
 })
 
 watch(
   [viewport, list],
   ([, body], prev) => {
     observeSizes()
-    if (body && !prev?.[1]) scrollToLatest()
+    if (body && !prev?.[1]) {
+      scrollToLatest("auto")
+      if (rows.value.length > 0) enableLiveEnter()
+    }
   },
   { flush: "post" },
 )

@@ -9,8 +9,8 @@
 
     <template v-else>
       <div class="session-stage">
-        <Transition name="fade-layer">
-          <div v-if="showHero" class="idle-hero">
+        <Transition name="stage-layer">
+          <div v-if="showHero" key="hero" class="idle-hero">
             <WorkbenchHero
               v-model:workspace-id="heroWorkspaceId"
               title-id="workbench-hero-title"
@@ -21,20 +21,20 @@
               @add="addWorkspace()"
             />
           </div>
+          <TranscriptView
+            v-else-if="sessionId"
+            :key="sessionId"
+            ref="transcriptView"
+            :session-id="sessionId"
+            :transcript="transcript"
+            :running="running"
+            :timings="turnTimings"
+          />
         </Transition>
 
         <Transition name="fade-layer">
           <SessionLoading v-if="showLoading" />
         </Transition>
-
-        <TranscriptView
-          v-if="sessionId"
-          ref="transcriptView"
-          :session-id="sessionId"
-          :transcript="transcript"
-          :running="running"
-          :timings="turnTimings"
-        />
       </div>
 
       <div class="chat-input-bar">
@@ -46,7 +46,7 @@
               variant="outline"
               size="icon-sm"
               title="滚动到底部"
-              @click="scrollToLatest"
+              @click="scrollToLatest('smooth')"
             >
               <span class="icon-swap">
                 <Ellipsis :data-visible="running" />
@@ -147,9 +147,11 @@ const pageError = computed(() => {
   return route.name === "error" ? {} : null
 })
 
-const showHero = computed(
-  () => sessionId.value === undefined || (transcript.value.length === 0 && !running.value),
-)
+const showHero = computed(() => {
+  if (sessionId.value === undefined) return true
+  if (sessionPending.value && !creating.value) return false
+  return transcript.value.length === 0 && !running.value
+})
 const showLoading = computed(
   () =>
     Boolean(sessionId.value) &&
@@ -180,17 +182,17 @@ watch(
 
 const transcriptView = useTemplateRef<{
   showScrollToLatest: boolean
-  scrollToLatest: () => void
+  scrollToLatest: (behavior?: "auto" | "smooth") => void
 }>("transcriptView")
 const showScrollToLatest = computed(() => transcriptView.value?.showScrollToLatest ?? false)
 
-function scrollToLatest() {
-  transcriptView.value?.scrollToLatest()
+function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
+  transcriptView.value?.scrollToLatest(behavior)
 }
 
 function onSend(text: string) {
   if (sessionId.value) {
-    scrollToLatest()
+    scrollToLatest("auto")
     void submitText(text)
     return
   }
@@ -276,11 +278,10 @@ const contentHandleSides = ["left", "right"] as const
 }
 
 .idle-hero {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
   display: grid;
+  flex: 1;
   place-items: center;
+  min-height: 0;
   padding: 0 var(--spacing-md) var(--size-chat-input-overlay);
 }
 

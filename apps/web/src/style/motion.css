@@ -387,7 +387,10 @@
 }
 
 .timeline-row-enter-active {
-  transition: opacity var(--duration-slow) var(--ease-out);
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out),
+    filter var(--duration-slow) var(--ease-out);
 }
 .row-tools.timeline-row-enter-active {
   transition: none;
@@ -406,9 +409,13 @@
 }
 .timeline-row-enter-from {
   opacity: 0;
+  transform: translateY(12px);
+  filter: blur(4px);
 }
 .row-tools.timeline-row-enter-from {
   opacity: 1;
+  transform: none;
+  filter: none;
 }
 .timeline-step-enter-from {
   opacity: 0;
@@ -445,6 +452,32 @@
 .fade-layer-enter-from,
 .fade-layer-leave-to {
   opacity: 0;
+}
+
+.stage-layer-enter-active {
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out),
+    filter var(--duration-slow) var(--ease-out);
+}
+.stage-layer-leave-active {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
+}
+.stage-layer-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+  filter: blur(4px);
+}
+.stage-layer-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+  filter: blur(4px);
 }
 
 .slide-next-enter-active,
@@ -636,6 +669,7 @@
   .timeline-row-leave-to,
   .timeline-step-enter-from {
     transform: none;
+    filter: none;
   }
   .timeline-step-move {
     transition: none;
@@ -649,17 +683,25 @@
   }
   .fade-layer-enter-active,
   .fade-layer-leave-active,
+  .stage-layer-enter-active,
+  .stage-layer-leave-active,
   .slide-next-enter-active,
   .slide-next-leave-active,
   .slide-prev-enter-active,
   .slide-prev-leave-active {
     transition: none;
   }
+  .stage-layer-leave-active {
+    position: static;
+  }
   .slide-next-enter-from,
   .slide-next-leave-to,
   .slide-prev-enter-from,
-  .slide-prev-leave-to {
+  .slide-prev-leave-to,
+  .stage-layer-enter-from,
+  .stage-layer-leave-to {
     transform: none;
+    filter: none;
   }
   .shimmer {
     color: inherit;

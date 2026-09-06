@@ -5,11 +5,17 @@ import {
   transcriptFloorTop,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 
-function userScrollBehavior() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+export type TranscriptScrollBehavior = "auto" | "smooth"
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
 }
 
-/** 在底部则内容变高时自动贴底；只有上翻才停。 */
+function userScrollBehavior(): TranscriptScrollBehavior {
+  return prefersReducedMotion() ? "auto" : "smooth"
+}
+
+/** 贴底时内容增高立刻跟上；上翻才停。平滑滚动只用于用户点「回到底部」。 */
 export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   const atBottom = shallowRef(false)
   const visuallyAtBottom = shallowRef(false)
@@ -17,7 +23,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   let navRoot: HTMLElement | null = null
   let onNavEnd: (() => void) | null = null
   let navTimer = 0
-  let pinFrame = 0
   let lastWritten = 0
 
   function applyBottom(root: HTMLElement) {
@@ -40,14 +45,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (Math.abs(root.scrollTop - floor) > 0.5) root.scrollTop = floor
   }
 
-  function cancelPinFrame() {
-    if (!pinFrame) return
-    window.cancelAnimationFrame(pinFrame)
-    pinFrame = 0
-  }
-
   function releasePinnedToBottom() {
-    cancelPinFrame()
     navigating = false
     if (navTimer) {
       window.clearTimeout(navTimer)
@@ -59,11 +57,8 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   }
 
   function pinIfNeeded() {
-    if (pinFrame || navigating || !atBottom.value) return
-    pinFrame = window.requestAnimationFrame(() => {
-      pinFrame = 0
-      if (!navigating && atBottom.value) jumpToBottom()
-    })
+    if (navigating || !atBottom.value) return
+    jumpToBottom()
   }
 
   function finishNavigate() {
@@ -119,20 +114,21 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     root.scrollTop += event.deltaY
   }
 
-  function scrollToLatest() {
+  function scrollToLatest(behavior: TranscriptScrollBehavior = "auto") {
     atBottom.value = true
     visuallyAtBottom.value = true
     const root = getRoot()
     if (!root) return
     const top = transcriptFloorTop(root.scrollHeight, root.clientHeight)
     lastWritten = top
-    if (Math.abs(root.scrollTop - top) <= 2) {
+    const instant = behavior === "auto" || prefersReducedMotion()
+    if (instant || Math.abs(root.scrollTop - top) <= 2) {
       releasePinnedToBottom()
       jumpToBottom()
       return
     }
     beginNavigate(root)
-    root.scrollTo({ top, behavior: userScrollBehavior() })
+    root.scrollTo({ top, behavior: "smooth" })
   }
 
   function scrollToElement(el: HTMLElement) {

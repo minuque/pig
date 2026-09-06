@@ -12,15 +12,13 @@ type FakeRoot = {
   scrollHeight: number
   scrollTop: number
   readonly scrollWrites: number
+  scrollTo: ReturnType<typeof vi.fn>
 }
 
-const frames = new Map<number, FrameRequestCallback>()
-let nextFrame = 0
-
-function createRoot(): FakeRoot & HTMLElement {
-  let top = 100
+function createRoot(scrollTop = 100): FakeRoot & HTMLElement {
+  let top = scrollTop
   let writes = 0
-  return {
+  const root = {
     clientHeight: 500,
     scrollHeight: 600,
     get scrollTop() {
@@ -32,29 +30,20 @@ function createRoot(): FakeRoot & HTMLElement {
     },
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
+    scrollTo: vi.fn((opts: { top: number }) => {
+      writes += 1
+      top = opts.top
+    }),
     get scrollWrites() {
       return writes
     },
-  } as unknown as FakeRoot & HTMLElement
-}
-
-function flushFrame() {
-  const pending = [...frames]
-  frames.clear()
-  for (const [id, callback] of pending) callback(id)
+  }
+  return root as unknown as FakeRoot & HTMLElement
 }
 
 describe("useTranscriptFollow", () => {
   beforeEach(() => {
-    nextFrame = 0
-    frames.clear()
     vi.stubGlobal("window", {
-      requestAnimationFrame: (callback: FrameRequestCallback) => {
-        const id = ++nextFrame
-        frames.set(id, callback)
-        return id
-      },
-      cancelAnimationFrame: (id: number) => frames.delete(id),
       setTimeout: () => 1,
       clearTimeout: vi.fn(),
       matchMedia: () => ({ matches: false }),
@@ -65,76 +54,78 @@ describe("useTranscriptFollow", () => {
     vi.unstubAllGlobals()
   })
 
-  it("合并同一帧的多次贴底请求，只写入一次最新位置", () => {
+  it("贴底时内容变高立刻写到最新底部", () => {
     const root = createRoot()
     const follow = useTranscriptFollow(() => root)
 
-    follow.scrollToLatest()
+    follow.scrollToLatest("auto")
     root.scrollHeight = 700
     follow.pinIfNeeded()
     follow.pinIfNeeded()
-    follow.pinIfNeeded()
-
-    expect(frames.size).toBe(1)
-    expect(root.scrollTop).toBe(100)
-
-    flushFrame()
 
     expect(root.scrollTop).toBe(200)
-    expect(root.scrollWrites).toBe(1)
   })
 
-  it("非贴底状态不排队滚动写入", () => {
+  it("非贴底状态不写入滚动位置", () => {
     const root = createRoot()
     const follow = useTranscriptFollow(() => root)
 
     follow.pinIfNeeded()
 
-    expect(frames.size).toBe(0)
     expect(root.scrollWrites).toBe(0)
   })
 
-  it("释放跟随时取消待执行的贴底帧", () => {
-    const root = createRoot()
+  it("程序化贴底不进入平滑导航，后续增高仍能跟上", () => {
+    const root = createRoot(0)
     const follow = useTranscriptFollow(() => root)
 
-    follow.scrollToLatest()
-    root.scrollHeight = 700
+    follow.scrollToLatest("auto")
+    expect(root.scrollTo).not.toHaveBeenCalled()
+    expect(root.scrollTop).toBe(100)
+
+    root.scrollHeight = 800
     follow.pinIfNeeded()
-    expect(frames.size).toBe(1)
+    expect(root.scrollTop).toBe(300)
+  })
+
+  it("用户平滑回底部期间不贴底，结束后才跟上", () => {
+    const root = createRoot(0)
+    const follow = useTranscriptFollow(() => root)
+
+    follow.scrollToLatest("smooth")
+    expect(root.scrollTo).toHaveBeenCalledWith({ top: 100, behavior: "smooth" })
+
+    root.scrollHeight = 800
+    follow.pinIfNeeded()
+    expect(root.scrollTop).toBe(100)
 
     follow.releasePinnedToBottom()
-    flushFrame()
-
-    expect(root.scrollTop).toBe(100)
-    expect(root.scrollWrites).toBe(0)
+    follow.pinIfNeeded()
+    expect(root.scrollTop).toBe(300)
   })
 
-  it("贴底帧执行前再次确认未导航且仍贴底", () => {
+  it("导航到元素期间不写入贴底位置", () => {
     const target = { scrollIntoView: vi.fn() } as unknown as HTMLElement
+    const root = createRoot()
+    const follow = useTranscriptFollow(() => root)
 
-    const navigatingRoot = createRoot()
-    const navigating = useTranscriptFollow(() => navigatingRoot)
-    navigating.scrollToLatest()
-    navigatingRoot.scrollHeight = 700
-    navigating.pinIfNeeded()
-    const navigatingFrame = [...frames.values()][0]
-    if (!navigatingFrame) throw new Error("expected a pending pin frame")
-    navigating.scrollToElement(target)
-    navigating.atBottom.value = true
-    navigatingFrame(0)
-    expect(navigatingRoot.scrollWrites).toBe(0)
+    follow.scrollToLatest("auto")
+    follow.scrollToElement(target)
+    root.scrollHeight = 700
+    follow.pinIfNeeded()
 
-    frames.clear()
-    const leftBottomRoot = createRoot()
-    const leftBottom = useTranscriptFollow(() => leftBottomRoot)
-    leftBottom.scrollToLatest()
-    leftBottomRoot.scrollHeight = 700
-    leftBottom.pinIfNeeded()
-    const leftBottomFrame = [...frames.values()][0]
-    if (!leftBottomFrame) throw new Error("expected a pending pin frame")
-    leftBottom.atBottom.value = false
-    leftBottomFrame(0)
-    expect(leftBottomRoot.scrollWrites).toBe(0)
+    expect(root.scrollTop).toBe(100)
+  })
+
+  it("离开底部后不写入贴底位置", () => {
+    const root = createRoot()
+    const follow = useTranscriptFollow(() => root)
+
+    follow.scrollToLatest("auto")
+    follow.atBottom.value = false
+    root.scrollHeight = 700
+    follow.pinIfNeeded()
+
+    expect(root.scrollTop).toBe(100)
   })
 })
