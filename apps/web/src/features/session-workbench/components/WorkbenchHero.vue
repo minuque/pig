@@ -75,6 +75,7 @@ const label = computed(() =>
   gap: var(--spacing-md);
   min-width: 0;
 }
+
 .hero-title {
   display: flex;
   flex-wrap: wrap;
@@ -90,6 +91,7 @@ const label = computed(() =>
   letter-spacing: var(--tracking-heading-2);
   text-align: center;
 }
+
 .hero-picker {
   display: inline-flex;
   max-width: min(100%, 16rem);
@@ -113,6 +115,7 @@ const label = computed(() =>
 .hero-picker:not(:disabled):active {
   transform: none;
 }
+
 .hero-name {
   min-width: 0;
   overflow: hidden;
@@ -127,11 +130,13 @@ const label = computed(() =>
   min-width: 10rem;
   max-width: 16rem;
 }
+
 .workbench-hero-option-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .workbench-hero-option-active {
   background: var(--hover-tint);
 }

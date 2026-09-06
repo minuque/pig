@@ -13,12 +13,14 @@ const webRoot = webRootArg
   : fileURLToPath(new URL("../web/", import.meta.url))
 const requested = Number.parseInt(process.env.PORT ?? "8787", 10)
 const listenPort = Number.isInteger(requested) && requested > 0 ? requested : 8787
+
 const gateway = new Gateway({
   webRoot,
   port: listenPort,
   ...(process.env.PIG_SESSION_DIR ? { sessionDir: resolve(process.env.PIG_SESSION_DIR) } : {}),
   ...(process.env.PIG_CWD ? { cwd: resolve(process.env.PIG_CWD) } : {}),
 })
+
 const port = await gateway.start()
 const origin = `http://127.0.0.1:${port}`
 console.log(`Gateway listening on ${origin}`)

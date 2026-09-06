@@ -15,7 +15,6 @@ const props = withDefaults(
     sideOffset: 4,
   },
 )
-
 const emits = defineEmits<TooltipContentEmits>()
 
 const delegatedProps = reactiveOmit(props, "class")

@@ -23,12 +23,14 @@ function computeAdaptiveQueueStep(
   debt: number,
 ): { revealChars: number; debt: number; speedCps: number } {
   if (backlog <= 0 || dtMs <= 0) return { revealChars: 0, debt: 0, speedCps: 0 }
+
   const speedCps = Math.min(
     QUEUE_MAX_SPEED_CPS,
     QUEUE_BASE_SPEED_CPS + backlog ** QUEUE_ACCEL_EXPONENT * QUEUE_PRESSURE,
   )
   const accumulated = Math.max(0, debt) + speedCps * (dtMs / 1000)
   const revealChars = Math.min(backlog, Math.floor(accumulated))
+
   return {
     revealChars,
     debt: revealChars >= backlog ? 0 : accumulated - revealChars,
@@ -42,6 +44,7 @@ export function useTranscriptReveal(
   streaming: MaybeRefOrGetter<boolean>,
 ) {
   const displayed = shallowRef("")
+
   let target = ""
   let targetChars: string[] = []
   let shown = 0
@@ -81,6 +84,7 @@ export function useTranscriptReveal(
       raf = requestAnimationFrame(tick)
       return
     }
+
     const dt = Math.min(REVEAL_MAX_FRAME_MS, Math.max(0, now - lastTs))
     lastTs = now
     const step = computeAdaptiveQueueStep(backlog, dt, debt)
@@ -125,5 +129,6 @@ export function useTranscriptReveal(
   )
 
   onBeforeUnmount(stop)
+
   return displayed
 }

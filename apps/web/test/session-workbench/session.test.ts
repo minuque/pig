@@ -33,18 +33,22 @@ const {
     setModel = vi.fn(async () => undefined)
     setThinking = vi.fn(async () => undefined)
     reconnect = vi.fn(async () => undefined)
+
     constructor(id?: string) {
       this.id = id
     }
+
     subscribe(listener: (state: RemoteSessionState) => void) {
       this.subscribeCalls += 1
       this.listeners.add(listener)
       listener(this.state)
       return () => this.listeners.delete(listener)
     }
+
     emit() {
       for (const listener of this.listeners) listener(this.state)
     }
+
     dispose() {
       this.disposeCalls += 1
       return Promise.resolve()
@@ -85,6 +89,7 @@ vi.mock("vue-router", async () => {
 import { useSessionLifecycle } from "@features/session-workbench/hooks/use-session.js"
 
 type SessionLifecycle = ReturnType<typeof useSessionLifecycle>
+
 let lifecycle: SessionLifecycle | undefined
 
 afterEach(() => {
@@ -166,6 +171,7 @@ function setup() {
     lastCwd: ref("/repo"),
     selectCwd: vi.fn(),
   }
+
   lifecycle?.teardown()
   const session = useSessionLifecycle(
     pi as unknown as ReturnType<typeof usePiClient>,

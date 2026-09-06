@@ -45,6 +45,7 @@ export function useConversationWidth(): {
   const rootEl = shallowRef<HTMLElement | null>(null)
   const resizing = shallowRef(false)
   const panel = inject(leftPanelKey, null)
+
   let observer: ResizeObserver | undefined
   let sidebarFrozen = false
 
@@ -79,6 +80,7 @@ export function useConversationWidth(): {
       rootEl.value = null
       return
     }
+
     rootEl.value = el
     observer = new ResizeObserver(() => {
       publish(el)

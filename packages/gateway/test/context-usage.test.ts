@@ -30,6 +30,7 @@ describe("estimateContextUsage", () => {
   it("以 Pi 总占用校准来源估算，差额归入其他，剩余归入空闲", () => {
     const usage = estimateContextUsage(source())
     const { idle, ...usedSegments } = usage.segments
+
     expect(usage.used).toBe(300)
     expect(usage.window).toBe(1000)
     expect(Object.values(usedSegments).reduce((sum: number, value) => sum + Number(value), 0)).toBe(

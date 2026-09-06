@@ -24,9 +24,11 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
     async (outcome) => {
       vi.useFakeTimers({ toFake: ["Date"] })
       vi.setSystemTime(1000)
+
       const directory = await mkdtemp(join(tmpdir(), "pig-timing-"))
       directories.push(directory)
       const manager = SessionManager.create(directory, directory)
+
       let notify: (event: AgentSessionEvent) => void = () => {}
       let finish: () => void = () => {}
       const pending = new Promise<void>((resolve) => {
@@ -72,6 +74,7 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
         AgentSession,
         "sessionManager" | "isIdle" | "subscribe" | "prompt" | "abort" | "waitForIdle" | "dispose"
       >
+
       const runtime = new PiHostSession(session as unknown as AgentSession)
       const prompt = runtime.prompt({ text: "执行任务" })
       await Promise.resolve()
@@ -79,11 +82,13 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
       expect(active.timings).toEqual([
         { userId: active.items[0]?.id, startedAt: 1000, outcome: "running" },
       ])
+
       vi.setSystemTime(66000)
       if (outcome === "aborted") await runtime.abort()
       else finish()
       if (outcome === "error") await expect(prompt).rejects.toThrow("网络断开")
       else await prompt
+
       const history = runtime.historyTranscript()
       expect(history.timings).toEqual([
         { userId: history.items[0]?.id, startedAt: 1000, endedAt: 66000, outcome },
@@ -91,6 +96,7 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
       expect(history.items.every((item) => item.role === "user" || item.role === "assistant")).toBe(
         true,
       )
+
       const file = manager.getSessionFile()
       expect(file).toBeDefined()
       if (!file) throw new Error("Missing persisted session")

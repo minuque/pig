@@ -59,6 +59,7 @@ for (const block of cssText.matchAll(/(?::root|\.dark) \{([\s\S]*?)\n\}/g)) {
   for (const [name, value] of parseVars(block[1]))
     defs.set(`${name} ${block[0].slice(0, 5)}`, value)
 }
+
 const mixTheme = []
 for (const m of themeBlock.matchAll(/--color-[\w-]+:\s*var\((--[\w-]+)\)/g)) {
   const target = m[1]
@@ -79,6 +80,7 @@ if (missing.length === 0 && differ.length === 0) {
   console.log(`✓ DESIGN.md tokens 与 app.css :root 一致（${officialVars.size} 项比对）`)
   process.exit(0)
 }
+
 console.error(`✗ DESIGN.md tokens 与 app.css :root 不一致:`)
 for (const l of missing) console.error(`  缺失  ${l}`)
 for (const l of differ) console.error(`  差异  ${l}`)

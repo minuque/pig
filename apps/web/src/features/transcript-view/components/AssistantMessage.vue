@@ -1,6 +1,7 @@
 <template>
   <article>
     <MarkdownRender v-if="text" v-bind="agentMarkdown" :content="text" />
+
     <Alert
       v-if="item.error || item.aborted"
       class="status-alert"
@@ -34,10 +35,12 @@ const props = withDefaults(
 )
 
 const { isDark, codeBlockProps } = useColorScheme()
+
 const text = useTranscriptReveal(
   () => props.item.text,
   () => props.streaming,
 )
+
 const statusLabel = computed(() => {
   const base = props.item.error ? "出错" : "已中止"
   const retries = props.item.retryCount

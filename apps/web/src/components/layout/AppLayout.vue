@@ -58,6 +58,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   display: flex;
   overflow: hidden;
 }
+
 .sidebar {
   position: relative;
   display: flex;
@@ -71,6 +72,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   contain: layout style;
   transition: width var(--duration-normal) var(--ease-smooth);
 }
+
 .resizer {
   position: absolute;
   inset-block: 0;
@@ -95,6 +97,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
 .shell.is-resizing .resizer::after {
   background: var(--hairline);
 }
+
 .shell.is-resizing {
   cursor: col-resize;
   user-select: none;
@@ -106,6 +109,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
 .shell.is-resizing main {
   pointer-events: none;
 }
+
 main {
   flex: 1;
   min-width: 0;
@@ -117,17 +121,20 @@ main {
   isolation: isolate;
   background: var(--surface);
 }
+
 @media (prefers-reduced-motion: reduce) {
   .sidebar,
   .resizer {
     transition: none;
   }
 }
+
 @media (min-width: 901px) {
   .shell.left-closed .sidebar {
     width: var(--size-sidebar-rail);
   }
 }
+
 @media (max-width: 900px) {
   .shell,
   .shell.left-closed {
@@ -164,6 +171,7 @@ main {
       visibility 0s linear;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   /* 置于末尾，覆盖上方 media 块内的 transition */
   .sidebar,

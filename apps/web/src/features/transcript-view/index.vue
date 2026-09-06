@@ -7,6 +7,7 @@
       :hit-strip-width="hitStripWidth"
       @select="selectMinimapItem"
     />
+
     <div
       id="transcript-panel"
       ref="viewport"
@@ -71,9 +72,11 @@ const props = defineProps<{
 }>()
 
 const rows = computed(() => buildTimelineRows(props.transcript, props.running, props.timings))
+
 const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
 )
+
 const viewport = useTemplateRef<HTMLElement>("viewport")
 const column = useTemplateRef<HTMLElement>("column")
 const list = useTemplateRef<HTMLElement>("list")
@@ -93,9 +96,11 @@ const {
   scrollToLatest,
   scrollToElement,
 } = useTranscriptFollow(scrollerRoot)
+
 const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
+
 let sizeObserver: ResizeObserver | undefined
 
 const {
@@ -147,10 +152,12 @@ function observeSizes() {
 }
 
 watch(() => props.sessionId, reset, { flush: "pre" })
+
 watch(rows, (next, prev) => {
   if ((prev?.length ?? 0) === 0 && next.length > 0) scrollToLatest()
   else if (atBottom.value) void nextTick(pinIfNeeded)
 })
+
 watch(
   [viewport, list],
   ([, body], prev) => {
@@ -173,6 +180,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   display: flex;
   flex-direction: column;
 }
+
 .transcript-viewport {
   position: relative;
   container-type: size;
@@ -186,6 +194,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .transcript-viewport:has(.code-more-menu) {
   z-index: 3;
 }
+
 .transcript {
   box-sizing: border-box;
   width: min(100%, var(--size-content));
@@ -200,6 +209,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   box-sizing: border-box;
   width: 100%;
 }
+
 .row + .row {
   margin-block-start: var(--spacing-md);
 }

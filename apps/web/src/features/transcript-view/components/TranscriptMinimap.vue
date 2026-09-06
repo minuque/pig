@@ -96,6 +96,7 @@ const previewTranslate = computed(() => {
   if (index === lastIndex.value) return "-100%"
   return "-50%"
 })
+
 const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
@@ -136,12 +137,14 @@ function onStageFocusOut(event: FocusEvent) {
 .timeline-minimap.interactive {
   pointer-events: auto;
 }
+
 .minimap-stage {
   position: relative;
   width: 100%;
   height: 100%;
   user-select: none;
 }
+
 .minimap-tick {
   position: absolute;
   left: 0;
@@ -151,6 +154,7 @@ function onStageFocusOut(event: FocusEvent) {
   background: transparent;
   cursor: pointer;
 }
+
 .minimap-strip {
   pointer-events: none;
   position: absolute;
@@ -168,6 +172,7 @@ function onStageFocusOut(event: FocusEvent) {
 .minimap-strip.strip-active {
   background: var(--ink);
 }
+
 .minimap-preview {
   pointer-events: auto;
   position: absolute;
@@ -207,11 +212,13 @@ function onStageFocusOut(event: FocusEvent) {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
+
 @media (pointer: fine) {
   .timeline-minimap {
     display: block;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .minimap-strip {
     transition: none;

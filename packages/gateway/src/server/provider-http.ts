@@ -12,6 +12,7 @@ function noProxy(): string {
 /** 与 Pi CLI 一样走 HTTPS_PROXY；直连 api.x.ai 在污染 DNS 上会 10s 连超时。 */
 export function installProviderHttp(cwd = process.cwd()): void {
   if (installed) return
+
   const timeoutMs = SettingsManager.create(cwd).getHttpIdleTimeoutMs()
   const dispatcher = new EnvHttpProxyAgent({
     allowH2: false,
@@ -20,6 +21,7 @@ export function installProviderHttp(cwd = process.cwd()): void {
     connect: { autoSelectFamilyAttemptTimeout: 2_000 },
     noProxy: noProxy(),
   })
+
   setGlobalDispatcher(dispatcher)
   install?.()
   installed = dispatcher

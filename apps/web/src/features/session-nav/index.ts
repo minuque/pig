@@ -38,8 +38,8 @@ function createNav(
     cards.loadSessionCards,
   )
   const markers = useSessionMarkers(nav.listedSessions, session.sessionId)
-  const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
 
+  const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
   const cardFootById = computed(() => {
     const liveId = session.sessionId.value
     const liveOutcome = sessionOutcome(session.transcript.value)
@@ -52,6 +52,7 @@ function createNav(
             ...(liveOutcome ? { outcome: liveOutcome } : {}),
           }
         : undefined
+
     const extras = cards.sessionCards.value
     const feet = new Map<
       string,

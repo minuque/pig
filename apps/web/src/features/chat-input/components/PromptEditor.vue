@@ -87,6 +87,7 @@ const emit = defineEmits<{
 const editor = ref<HTMLElement | null>(null)
 const focused = shallowRef(false)
 const container = ref<HTMLElement | null>(null)
+
 const hasText = computed(() => prompt.value.length > 0)
 const expanded = computed(
   () => focused.value || hasText.value || props.hasChips || props.running || props.active,
@@ -109,6 +110,7 @@ function focusEnd() {
   sel?.removeAllRanges()
   sel?.addRange(range)
 }
+
 /** 供父组件（发送/选文件后）重新聚焦编辑器 */
 function focus() {
   editor.value?.focus()
@@ -160,6 +162,7 @@ defineExpose({ focus })
 .chat-input {
   position: relative;
 }
+
 .attach-tray {
   position: relative;
   z-index: 0;
@@ -194,6 +197,7 @@ defineExpose({ focus })
   overflow-x: auto;
   overflow-y: hidden;
 }
+
 .glass-shell {
   position: relative;
   z-index: 10;
@@ -219,6 +223,7 @@ defineExpose({ focus })
   border-radius: var(--radius-xl);
   transition: box-shadow var(--duration-fast) var(--ease-smooth);
 }
+
 .editor-wrap {
   padding: var(--spacing-sm) var(--spacing-md);
   padding-inline-end: calc(var(--size-icon-button) + var(--spacing-lg));
@@ -226,6 +231,7 @@ defineExpose({ focus })
 .chat-input[data-expanded="true"] .editor-wrap {
   padding: 14px var(--spacing-md) 48px;
 }
+
 .chat-input[data-expanded="true"] .field {
   min-height: 44px;
 }

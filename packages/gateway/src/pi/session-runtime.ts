@@ -69,6 +69,7 @@ export class PiHostSession implements PiSessionRuntime {
     const { session } = this
     const model = session.model
     if (!model) throw new Error("Session has no active model")
+
     const manager = session.sessionManager
     // 只投影当前分支：getEntries 含被 branch 放弃的条目，会显示错误的 Transcript
     const entries = manager.getBranch()
@@ -78,6 +79,7 @@ export class PiHostSession implements PiSessionRuntime {
       name: session.sessionName,
       firstMessage: firstUserMessageText(entries),
     })
+
     return {
       id: session.sessionId,
       ...(listName === undefined ? {} : { name: listName }),
@@ -184,6 +186,7 @@ export class PiHostSession implements PiSessionRuntime {
   /** 互斥操作：冲突操作直接拒绝（协议要求 reject rather than queue）。 */
   private async exclusive<T>(operation: () => Promise<T>): Promise<T> {
     if (this.busy) throw new SessionBusyError("Session is busy")
+
     const run = operation()
     this.busy = run.then(
       () => undefined,
@@ -206,11 +209,13 @@ export class PiHostSession implements PiSessionRuntime {
         )
       }
     }
+
     const progress = this.projection.progress(event)
     if (progress) {
       this.revision += 1
       this.emit({ type: "progress", progress })
     }
+
     if (event.type === "message_end") {
       // 官方在通知订阅者之后才持久化 message_end；延迟一拍广播，保证快照
       // 已包含该条目，否则客户端会用旧快照重建并清掉刚收到的 progress。

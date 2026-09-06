@@ -69,6 +69,7 @@ function onOpen(next: boolean) {
   flex: 1;
   overflow: hidden;
 }
+
 .nav {
   display: flex;
   flex: none;
@@ -103,6 +104,7 @@ function onOpen(next: boolean) {
   background: var(--interaction-selected);
   color: var(--ink);
 }
+
 .main {
   display: flex;
   min-width: 0;

@@ -6,6 +6,7 @@
       <span :class="{ shimmer: live }" :data-text="label">{{ label }}</span>
       <ChevronRight class="motion-turn" :class="{ 'is-on': revealed }" data-icon="inline-end" />
     </Button>
+
     <div
       class="tool-calls-group"
       :class="{ 'is-open': expanded, instant: live || !expanded }"
@@ -44,6 +45,7 @@ const emit = defineEmits<{
   "toggle-expand": [open: boolean]
   "toggle-tool": [id: string, open: boolean]
 }>()
+
 const live = computed(() => props.row.mode === "live")
 const revealed = computed(() => props.row.turnStreaming || props.isExpand === true)
 const rendered = shallowRef(revealed.value)
@@ -76,6 +78,7 @@ const label = computed(() => toolRowLabel(props.row))
 .tool-steps {
   min-width: 0;
 }
+
 .summary-btn {
   height: auto;
   min-height: 28px;
@@ -98,10 +101,12 @@ const label = computed(() => toolRowLabel(props.row))
 .aborted .summary-btn {
   color: var(--warning);
 }
+
 .tool-steps-icon {
   flex: none;
   transition: color var(--duration-fast) var(--ease-out);
 }
+
 .steps {
   display: flex;
   flex-direction: column;

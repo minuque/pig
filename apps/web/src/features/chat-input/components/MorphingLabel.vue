@@ -12,6 +12,7 @@ import { useElementSize } from "@vueuse/core"
 import { useTemplateRef } from "vue"
 
 defineProps<{ text: string }>()
+
 const measure = useTemplateRef<HTMLElement>("measure")
 const { width } = useElementSize(measure)
 </script>
@@ -25,11 +26,13 @@ const { width } = useElementSize(measure)
   overflow: hidden;
   vertical-align: bottom;
 }
+
 .measure {
   display: inline-block;
   visibility: hidden;
   white-space: nowrap;
 }
+
 .label {
   position: absolute;
   inset: 0;

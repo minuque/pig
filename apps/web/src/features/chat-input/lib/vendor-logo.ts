@@ -131,6 +131,7 @@ function familyOf(id: string): string {
   if (!key) return key
   if (ALIASES[key]) return ALIASES[key]!
   if (NAMES[key] || ICONS[key]) return key
+
   if (key.startsWith("qwen")) return "qwen"
   if (key.startsWith("zai")) return "zhipu"
   if (key.startsWith("kimi") || key.startsWith("moonshot")) return "kimi"

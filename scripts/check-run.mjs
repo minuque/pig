@@ -16,6 +16,7 @@ export function runPnpm(args, cwd) {
     const env = { ...process.env, FORCE_COLOR: "0" }
     const child = spawnPnpm(args, cwd, env)
     let out = ""
+
     child.stdout.on("data", (chunk) => {
       out += chunk
     })

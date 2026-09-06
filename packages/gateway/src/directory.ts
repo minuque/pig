@@ -151,6 +151,7 @@ export class WindowsDirectoryPort implements DirectoryPort {
           { encoding: "utf8", windowsHide: true, timeout: PICKER_TIMEOUT_MS },
         )
         if (!stdout.trim()) return undefined
+
         const selected: unknown = JSON.parse(stdout)
         if (typeof selected !== "string" || !selected.trim()) throw new Error("invalid folder path")
         return validateDirectory(selected)
@@ -167,8 +168,10 @@ export class WindowsDirectoryPort implements DirectoryPort {
 
 export class ManualDirectoryPort implements DirectoryPort {
   readonly requiresManualInput = true
+
   async selectDirectory(): Promise<undefined> {
     return undefined
   }
+
   validateDirectory = validateDirectory
 }

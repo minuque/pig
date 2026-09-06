@@ -138,6 +138,7 @@ const props = defineProps<{
   outputLabel?: string
   editPreview?: EditDiffPreview
 }>()
+
 const commandContent = computed(() =>
   props.variant === "command"
     ? {
@@ -175,19 +176,23 @@ const thoughtContent = computed(() =>
 const editContent = computed(() =>
   props.variant === "edit" && props.editPreview?.hunks.length ? props.editPreview : null,
 )
+
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
   "is-command": props.variant === "command",
   "is-err": commandContent.value?.status === "error",
   "is-run": commandContent.value?.status === "running",
 }))
+
 const { codeBlockProps } = useColorScheme()
 const editDiffOptions = computed(() => ({ theme: codeBlockProps.value.theme }))
+
 const commandExpanded = ref(false)
 const inputExpanded = ref(false)
 const outputExpanded = ref(false)
 const readExpanded = ref(false)
 const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
+
 const commandBody = computed(
   () => commandContent.value?.outputText || commandContent.value?.emptyOutput || "",
 )
@@ -201,33 +206,39 @@ const outputHidden = computed(() =>
   ),
 )
 const readHidden = computed(() => hiddenLineCount(readContent.value?.preview.lines.length ?? 0))
+
 const languageIconUrl = computed(() => {
   void languageIconsRevision.value
   const lang = readContent.value?.preview.language
   if (!lang) return ""
   return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(lang))}`
 })
+
 watch(commandBody, () => {
   commandExpanded.value = false
 })
+
 watch(
   () => toolContent.value?.inputFull,
   () => {
     inputExpanded.value = false
   },
 )
+
 watch(
   () => toolContent.value?.outputText,
   () => {
     outputExpanded.value = false
   },
 )
+
 watch(
   () => readContent.value?.preview.code,
   () => {
     readExpanded.value = false
   },
 )
+
 watch(
   [readContent, codeBlockProps],
   async ([content, blockProps], _, onCleanup) => {
@@ -265,6 +276,7 @@ watch(
   border-radius: var(--radius-lg);
   background: var(--code-body);
 }
+
 .command-heading {
   display: flex;
   align-items: center;
@@ -306,6 +318,7 @@ watch(
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .read-heading {
   display: flex;
   align-items: center;
@@ -326,9 +339,11 @@ watch(
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .layer + .layer {
   border-top: var(--border-width) solid var(--hairline);
 }
+
 .read-notice {
   margin: 0;
   padding: var(--spacing-xs) var(--spacing-sm);
@@ -337,6 +352,7 @@ watch(
   font-size: var(--text-caption);
   overflow-wrap: anywhere;
 }
+
 .edit-diff {
   max-width: 100%;
   overflow: auto;
@@ -344,11 +360,13 @@ watch(
 .edit-diff + .edit-diff {
   border-top: var(--border-width) solid var(--hairline);
 }
+
 @keyframes status-pulse {
   50% {
     opacity: 0.4;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .status-dot {
     animation: none;

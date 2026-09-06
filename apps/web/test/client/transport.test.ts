@@ -15,12 +15,14 @@ class FakeWebSocket {
   sent: ArrayBuffer[] = []
   closeCount = 0
   private handlers = new Map<string, Set<(event: WsEvent) => void>>()
+
   constructor(
     public url: string,
     public protocols?: string | string[],
   ) {
     FakeWebSocket.instances.push(this)
   }
+
   addEventListener(type: string, fn: (event: WsEvent) => void) {
     let set = this.handlers.get(type)
     if (!set) {
@@ -29,13 +31,17 @@ class FakeWebSocket {
     }
     set.add(fn)
   }
+
   removeEventListener() {}
+
   emit(type: string, event: WsEvent = {}) {
     for (const fn of this.handlers.get(type) ?? []) fn(event)
   }
+
   send(data: ArrayBuffer) {
     this.sent.push(data)
   }
+
   close() {
     this.closeCount += 1
   }
@@ -45,6 +51,7 @@ beforeEach(() => {
   FakeWebSocket.instances = []
   vi.stubGlobal("WebSocket", FakeWebSocket)
 })
+
 afterEach(() => {
   vi.unstubAllGlobals()
 })

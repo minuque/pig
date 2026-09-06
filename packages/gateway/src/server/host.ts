@@ -35,6 +35,7 @@ export class Gateway {
     this.platformPort =
       options.platformPort ??
       (process.platform === "win32" ? new WindowsDirectoryPort() : new ManualDirectoryPort())
+
     this.hostService = new PiHostService({
       ...(options.sessionDir ? { sessionDir: options.sessionDir } : {}),
       ...(options.cwd ? { cwd: options.cwd } : {}),
@@ -56,6 +57,7 @@ export class Gateway {
       raw += chunk
       if (raw.length > 1_000_000) throw new Error("body too large")
     }
+
     const parsed: unknown = JSON.parse(raw)
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
       throw new Error("invalid body")
@@ -64,6 +66,7 @@ export class Gateway {
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse) {
     const url = new URL(req.url ?? "/", "http://127.0.0.1")
+
     if (url.pathname === "/health" && req.method === "GET")
       return this.send(res, 200, { status: "ok" })
     if (

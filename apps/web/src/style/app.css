@@ -452,11 +452,13 @@
 .lucide {
   stroke-width: 1.5;
 }
+
 body {
   background: var(--canvas-soft);
   color: var(--ink);
   font-family: var(--font-sans);
 }
+
 @layer base {
   button,
   input,
@@ -465,6 +467,7 @@ body {
     font: inherit;
   }
 }
+
 /* 原生 button 只做 reset；不进 .markstream-vue，避免压过卡片内 Tailwind。 */
 button:not(:where(.markstream-vue *, [data-slot])) {
   appearance: none;
@@ -480,9 +483,11 @@ button:not(:where(.markstream-vue *, [data-slot])) {
 button:disabled {
   cursor: default;
 }
+
 :focus-visible {
   outline: none;
 }
+
 h1,
 h2,
 p {
@@ -493,25 +498,30 @@ p {
 html[data-pig-desktop-platform="darwin"] {
   --size-sidebar-rail: var(--size-sidebar-rail-mac);
 }
+
 html[data-pig-desktop-platform]:has([data-slot="dialog-content"]) body *,
 html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body * {
   -webkit-app-region: no-drag;
 }
+
 /* Tailwind translate-* 走 translate，与 keyframes 的 transform 叠加会偏；Teleport 后 scoped 打不中 */
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
   transform: translate(-50%, -50%);
 }
+
 @media (max-width: 639px) {
   :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
     transform: translateX(-50%);
   }
 }
+
 @media (prefers-reduced-transparency: reduce) {
   :is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"]) {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 }
+
 @media (pointer: coarse) {
   :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
     min-height: calc(var(--size-control) + var(--spacing-xxs));

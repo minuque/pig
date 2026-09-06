@@ -16,6 +16,7 @@ export function useTranscriptMinimap(
   const viewportWidth = shallowRef(0)
   const contentWidth = shallowRef(0)
   const inViewIds = shallowRef<readonly string[]>([])
+
   const items = computed(() => deriveTranscriptMinimapItems(toValue(rows)))
   const hitStripWidth = computed(() =>
     resolveMinimapHitStripWidth(viewportWidth.value, contentWidth.value),

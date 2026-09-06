@@ -33,6 +33,7 @@ const letter = computed(() => {
   const label = vendorDisplayName(props.vendor || props.name) || props.name || props.vendor
   return label.charAt(0).toUpperCase() || "?"
 })
+
 const box = computed(() => ({
   width: `${props.size}px`,
   height: `${props.size}px`,
@@ -55,6 +56,7 @@ const monoStyle = computed(() => ({
   object-fit: contain;
   vertical-align: middle;
 }
+
 .vendor-mark-mono {
   color: var(--ink);
   background-color: currentColor;
@@ -65,6 +67,7 @@ const monoStyle = computed(() => ({
   mask-position: center;
   mask-size: contain;
 }
+
 .vendor-fallback {
   display: inline-flex;
   align-items: center;

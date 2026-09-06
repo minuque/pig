@@ -6,7 +6,9 @@ export type {
   PiClient,
   Unsubscribe,
 } from "@earendil-works/pi-client"
+
 export type { RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
+
 export type {
   AssistantTranscriptItem,
   ModelMetadata,

@@ -18,6 +18,7 @@ const user: UserTranscriptItem = {
   timestamp: 1000,
   content: [{ type: "text", text: "问" }],
 }
+
 function assistant(
   id: number,
   content: AssistantTranscriptItem["content"],
@@ -35,15 +36,19 @@ function assistant(
   if (status === "aborted") return { ...base, status, stopReason: "aborted" }
   return { ...base, status, stopReason: "stop" }
 }
+
 function text(id: number, value: string) {
   return assistant(id, [{ type: "text", text: value }])
 }
+
 function call(id: string, name = "read"): AssistantTranscriptItem["content"][number] {
   return { type: "toolCall", toolCallId: id, toolName: name, input: { path: `${id}.ts` } }
 }
+
 function textAndCalls(id: number, value: string, ...calls: string[]) {
   return assistant(id, [{ type: "text", text: value }, ...calls.map((value) => call(value))])
 }
+
 function tool(
   id: string,
   name = "read",
@@ -88,6 +93,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     )
     expect(new Set(ids).size).toBe(ids.length)
     expect(rows.filter((row) => row.role === "assistant")).toMatchObject([{ text: "完整回答" }])
+
     const persisted = messages.map((item) =>
       item.role === "tool" ? item : { ...item, id: `persisted-${item.id}` },
     )
@@ -97,6 +103,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
         .map((row) => [row.id, row.steps.map((step) => step.id)]),
     ).toEqual(rows.filter(isToolRow).map((row) => [row.id, row.steps.map((step) => step.id)]))
   })
+
   it("普通回答不增加过程壳，空闲空会话不占行", () => {
     expect(buildTimelineRows([], false)).toEqual([])
     expect(buildTimelineRows([user, text(1, "答")], false)).toMatchObject([
@@ -126,6 +133,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     ])
     expect(live.filter(isToolRow).map((row) => row.mode)).toEqual(["done", "done"])
     expect(live.filter(isToolRow).every((row) => row.turnStreaming)).toBe(true)
+
     const done = buildTimelineRows(messages, false)
     expect(done.map((row) => row.role)).toEqual([
       "user",

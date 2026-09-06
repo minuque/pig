@@ -42,6 +42,7 @@ const options: { id: ColorScheme; label: string; icon: typeof Monitor }[] = [
   flex-direction: column;
   gap: var(--spacing-lg);
 }
+
 .row {
   display: flex;
   align-items: center;
@@ -51,6 +52,7 @@ const options: { id: ColorScheme; label: string; icon: typeof Monitor }[] = [
   padding-block: var(--spacing-sm);
   border-bottom: var(--border-width) solid var(--hairline);
 }
+
 .label {
   margin: 0;
   color: var(--ink);
@@ -58,6 +60,7 @@ const options: { id: ColorScheme; label: string; icon: typeof Monitor }[] = [
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-md--line-height);
 }
+
 .scheme {
   display: inline-flex;
   gap: var(--spacing-xxs);

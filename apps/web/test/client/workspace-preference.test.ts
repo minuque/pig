@@ -26,6 +26,7 @@ describe("parseLocalWorkspaces", () => {
     expect(parseLocalWorkspaces("not-json")).toEqual([])
     expect(parseLocalWorkspaces('"str"')).toEqual([])
   })
+
   it("keeps only non-empty strings and canonicalizes old Windows paths", () => {
     expect(parseLocalWorkspaces('["/a/", "", 42, "C:\\\\Foo\\\\"]')).toEqual(["/a", "c:/Foo"])
   })
@@ -39,6 +40,7 @@ describe("local workspace preference persistence", () => {
     expect(loadLocalWorkspaces(storage)).toEqual(["/a", "/b"])
     expect(loadLastCwd(storage)).toBe("/a")
   })
+
   it("treats corrupt values as empty", () => {
     STORAGE.set(LOCAL_WORKSPACES_KEY, "{broken")
     STORAGE.set(LAST_CWD_KEY, "x")

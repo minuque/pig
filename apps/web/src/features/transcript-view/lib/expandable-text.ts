@@ -2,6 +2,7 @@
 export const DEFAULT_MAX_EXPAND_LINES = 32
 export const DEFAULT_LINE_HEIGHT_PX = 21
 export const DEFAULT_OVERSCAN_LINES = 8
+
 export const TOOL_OMIT_HEAD = 5
 export const TOOL_OMIT_TAIL = 4
 
@@ -25,9 +26,11 @@ export function visibleLineRange(
   overscan: number,
 ): { start: number; end: number } {
   if (totalLines === 0) return { start: 0, end: 0 }
+
   const first = Math.max(0, Math.floor(Math.max(0, scrollTop) / lineHeight))
   const start = Math.max(0, first - overscan)
   const end = Math.min(totalLines, first + viewportLines + overscan)
+
   return { start, end }
 }
 

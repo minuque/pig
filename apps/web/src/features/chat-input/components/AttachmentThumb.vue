@@ -85,6 +85,7 @@ img {
   outline: 1px solid var(--media-outline);
   outline-offset: -1px;
 }
+
 .preview {
   position: relative;
   border: 0;
@@ -94,6 +95,7 @@ img {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
 .remove {
   position: absolute;
   top: -4px;

@@ -224,6 +224,7 @@ const {
   renameSession,
   deleteSession,
 } = useNav()
+
 const { openSettings } = useSettings()
 const router = useRouter()
 
@@ -231,6 +232,7 @@ const searchOpen = shallowRef(false)
 const now = useTimestamp({ interval: 60_000 })
 const collapsedSections = reactive({ pinned: false, today: false, recent: false })
 const rows = rowsFor(false)
+
 const showList = computed(() => rows.value.some((row) => row.kind !== "more"))
 const groupRows = computed(() =>
   rows.value.filter((row): row is Extract<SidebarRow, { kind: "group" }> => row.kind === "group"),
@@ -290,6 +292,7 @@ function onCreateInDir(canonicalPath: string): void {
   overflow: hidden;
   user-select: none;
 }
+
 .nav-inset {
   display: flex;
   flex: 1;
@@ -302,6 +305,7 @@ function onCreateInDir(canonicalPath: string): void {
 .session-nav.collapsed .nav-inset {
   align-items: center;
 }
+
 .titlebar-drag {
   display: none;
   position: absolute;
@@ -318,6 +322,7 @@ html[data-pig-desktop-platform="win32"] .titlebar-drag {
 html[data-pig-desktop-platform="darwin"] .session-nav.collapsed .titlebar-drag {
   height: 32px;
 }
+
 html[data-pig-desktop-platform] .session-nav {
   padding-top: calc(6px + var(--titlebar-inset));
 }
@@ -331,6 +336,7 @@ html[data-pig-desktop-platform="darwin"] .session-nav {
 html[data-pig-desktop-platform="darwin"] .session-nav.collapsed {
   padding-top: 48px;
 }
+
 html[data-pig-desktop-platform] .logo-row {
   -webkit-app-region: drag;
 }
@@ -375,6 +381,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   background: var(--hover-quiet);
   color: var(--ink);
 }
+
 .nav-main,
 .nav-body {
   display: flex;
@@ -405,6 +412,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   padding: 0;
   list-style: none;
 }
+
 .nav-section,
 .row-group,
 .time-section {
@@ -439,6 +447,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   top: 0;
   background: var(--sidebar);
 }
+
 .group-body {
   position: relative;
   display: flex;
@@ -446,6 +455,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   gap: var(--spacing-xxs);
   padding-block-start: var(--spacing-xxs);
 }
+
 .more-button {
   display: flex;
   align-items: center;
@@ -462,6 +472,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 .more-button:focus-visible {
   color: var(--ink);
 }
+
 .add-guide {
   display: flex;
   flex: none;
@@ -476,6 +487,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 .add-guide .motion-nudge {
   margin-inline-start: calc((var(--size-icon-button) - var(--size-icon)) / 2);
 }
+
 @media (prefers-reduced-motion: reduce) {
   .nav-section,
   .row-group,
@@ -486,10 +498,12 @@ html[data-pig-desktop-platform="win32"] .logo-row {
     transition: none;
   }
 }
+
 .session-nav.collapsed .logo-row {
   width: var(--size-nav-rail);
   justify-content: center;
 }
+
 @media (max-width: 900px) {
   .session-nav {
     --nav-inline: var(--spacing-md);

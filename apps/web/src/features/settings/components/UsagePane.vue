@@ -10,6 +10,7 @@
   flex-direction: column;
   gap: var(--spacing-sm);
 }
+
 .empty {
   margin: 0;
   color: var(--ink-faint);

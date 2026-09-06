@@ -146,6 +146,7 @@ const pageError = computed(() => {
   }
   return route.name === "error" ? {} : null
 })
+
 const showHero = computed(
   () => sessionId.value === undefined || (transcript.value.length === 0 && !running.value),
 )
@@ -156,6 +157,7 @@ const showLoading = computed(
     transcript.value.length === 0 &&
     !creating.value,
 )
+
 const welcomeWorkspaceId = shallowRef<string>()
 const heroWorkspaceId = computed({
   get: () => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value),
@@ -181,6 +183,7 @@ const transcriptView = useTemplateRef<{
   scrollToLatest: () => void
 }>("transcriptView")
 const showScrollToLatest = computed(() => transcriptView.value?.showScrollToLatest ?? false)
+
 function scrollToLatest() {
   transcriptView.value?.scrollToLatest()
 }
@@ -208,6 +211,7 @@ const {
 } = useConversationWidth()
 const columnEl = shallowRef<HTMLElement | null>(null)
 const inputStack = useTemplateRef<HTMLElement>("inputStack")
+
 let overlayObserver: ResizeObserver | undefined
 
 function bindWorkbenchColumn(el: unknown) {
@@ -234,6 +238,7 @@ watch(
   },
   { flush: "post" },
 )
+
 onBeforeUnmount(() => overlayObserver?.disconnect())
 
 const showContentHandles = computed(
@@ -261,6 +266,7 @@ const contentHandleSides = ["left", "right"] as const
   cursor: col-resize;
   user-select: none;
 }
+
 .session-stage {
   position: relative;
   min-height: 0;
@@ -268,6 +274,7 @@ const contentHandleSides = ["left", "right"] as const
   display: flex;
   flex-direction: column;
 }
+
 .idle-hero {
   position: absolute;
   z-index: 1;
@@ -276,6 +283,7 @@ const contentHandleSides = ["left", "right"] as const
   place-items: center;
   padding: 0 var(--spacing-md) var(--size-chat-input-overlay);
 }
+
 .chat-input-bar {
   position: absolute;
   z-index: 2;
@@ -284,12 +292,14 @@ const contentHandleSides = ["left", "right"] as const
   left: 0;
   pointer-events: none;
 }
+
 .chat-input-stack {
   position: relative;
   width: 100%;
   max-width: var(--size-chat-input);
   margin-inline: auto;
 }
+
 .session-floating-controls {
   position: absolute;
   top: 0;
@@ -309,6 +319,7 @@ const contentHandleSides = ["left", "right"] as const
 .session-floating-controls.shown .scroll-latest-control {
   pointer-events: auto;
 }
+
 .scroll-latest-control {
   width: var(--size-scroll-control);
   height: var(--size-scroll-control);
@@ -318,14 +329,17 @@ const contentHandleSides = ["left", "right"] as const
   box-shadow: none;
   transform: translateY(calc(-100% - var(--spacing-sm)));
 }
+
 .chat-input-bar :deep(.prompt) {
   pointer-events: auto;
 }
+
 @media (max-width: 900px) {
   .chat-input-bar {
     padding-inline: var(--spacing-sm);
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .session-floating-controls {
     transition: none;

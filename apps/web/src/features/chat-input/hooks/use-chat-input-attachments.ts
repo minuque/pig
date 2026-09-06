@@ -48,6 +48,7 @@ export function useChatInputAttachments(max = MAX_CHAT_INPUT_ATTACHMENTS) {
     const images = imageFilesFrom(files)
     const room = roomForAttachments(attachments.value.length, images.length, max)
     if (room === 0) return
+
     const added = images.slice(0, room).map((file) => ({
       id: crypto.randomUUID(),
       name: file.name || "image",
@@ -55,6 +56,7 @@ export function useChatInputAttachments(max = MAX_CHAT_INPUT_ATTACHMENTS) {
       url: URL.createObjectURL(file),
       file,
     }))
+
     attachments.value = [...attachments.value, ...added]
   }
 
@@ -64,6 +66,7 @@ export function useChatInputAttachments(max = MAX_CHAT_INPUT_ATTACHMENTS) {
       if (item.id === id) URL.revokeObjectURL(item.url)
       else kept.push(item)
     }
+
     attachments.value = kept
   }
 

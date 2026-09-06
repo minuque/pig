@@ -27,6 +27,7 @@ const props = withDefaults(
 )
 
 const stored = useStartupError()
+
 const copy = computed(() => props.detail.trim() || stored.value.trim() || "启动过程中出现错误。")
 
 function retry() {
@@ -42,6 +43,7 @@ function retry() {
   place-items: center;
   padding: 0 var(--spacing-md);
 }
+
 .error-cluster {
   display: flex;
   flex-direction: column;
@@ -50,10 +52,12 @@ function retry() {
   max-width: var(--size-chat-input);
   text-align: center;
 }
+
 .error-icon {
   flex: none;
   color: var(--ink-faint);
 }
+
 .error-title {
   margin: 0;
   color: var(--ink);
@@ -61,6 +65,7 @@ function retry() {
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-sm--line-height);
 }
+
 .error-detail {
   margin: 0;
   color: var(--ink-faint);

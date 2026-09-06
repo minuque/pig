@@ -23,6 +23,7 @@ describe("production web server", () => {
     await writeFile(join(root, "app.js"), "console.log('app')")
     outside = `${root}.txt`
     await writeFile(outside, "secret")
+
     gateway = new Gateway({ webRoot: root })
     const origin = `http://127.0.0.1:${await gateway.start()}`
 

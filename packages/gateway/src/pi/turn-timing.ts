@@ -1,6 +1,7 @@
 import type { SessionEntry, SessionManager } from "@earendil-works/pi-coding-agent"
 
 const CUSTOM_TYPE = "pig.turn-timing"
+
 type Outcome = "complete" | "error" | "aborted"
 export type TurnTiming = { userId: string; startedAt: number } & (
   { outcome: "running"; endedAt?: never } | { outcome: Outcome; endedAt: number }
@@ -69,6 +70,7 @@ export class TurnTimingRecorder {
   persistStart() {
     const current = this.current
     if (!current || current.userId || current.userTimestamp === undefined) return
+
     const user = this.manager
       .getBranch()
       .reverse()
@@ -79,6 +81,7 @@ export class TurnTimingRecorder {
           entry.message.timestamp === current.userTimestamp,
       )
     if (!user) return
+
     current.userId = user.id
     this.manager.appendCustomEntry(CUSTOM_TYPE, {
       userId: user.id,
@@ -92,6 +95,7 @@ export class TurnTimingRecorder {
     const current = this.current
     this.current = undefined
     if (!current?.userId) return
+
     this.manager.appendCustomEntry(CUSTOM_TYPE, {
       userId: current.userId,
       startedAt: current.startedAt,

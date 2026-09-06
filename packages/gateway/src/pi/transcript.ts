@@ -85,6 +85,7 @@ export class TranscriptProjection {
       entries.every((entry, index) => entry.id === this.cachedEntries[index]?.id)
     )
       return this.cachedTranscript
+
     const toolCalls = new Map<string, JsonValue>()
     const items: TranscriptItem[] = []
     for (const entry of entries) {
@@ -101,6 +102,7 @@ export class TranscriptProjection {
         items.push(this.toolItem(message, args))
       }
     }
+
     this.cachedEntries = entries
     this.cachedTranscript = items
     return items

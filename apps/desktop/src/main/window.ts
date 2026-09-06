@@ -16,6 +16,7 @@ export function createMainWindow(preloadPath: string): BrowserWindow {
       preload: preloadPath,
     },
   })
+
   stripNativeMenu(window)
   window.once("ready-to-show", () => {
     window.show()

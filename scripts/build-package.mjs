@@ -5,6 +5,7 @@ import { join, resolve } from "node:path"
 
 const root = resolve(import.meta.dirname, "..")
 const gateway = join(root, "packages/gateway")
+
 const run = (command, args) => {
   const result = spawnSync(command, args, {
     cwd: root,

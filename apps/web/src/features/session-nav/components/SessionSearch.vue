@@ -67,10 +67,12 @@ const emit = defineEmits<{
 const router = useRouter()
 const { listedSessions } = useNav()
 const now = useTimestamp({ interval: 60_000 })
+
 const query = shallowRef("")
 const activeIndex = shallowRef(0)
 const queryInput = useTemplateRef<HTMLInputElement>("queryInput")
 const hitList = useTemplateRef<HTMLElement>("hitList")
+
 const hits = computed(() => filterSessionsForSearch(listedSessions.value, query.value))
 
 watch(open, (isOpen) => {
@@ -121,6 +123,7 @@ function pick(session: SessionMetadata) {
   flex-direction: column;
   min-width: 0;
 }
+
 .query-row {
   display: flex;
   align-items: center;
@@ -169,6 +172,7 @@ function pick(session: SessionMetadata) {
   background: var(--hover-quiet);
   color: var(--ink);
 }
+
 .hits {
   display: flex;
   flex-direction: column;
@@ -179,6 +183,7 @@ function pick(session: SessionMetadata) {
   overflow: auto;
   list-style: none;
 }
+
 .hit {
   display: flex;
   align-items: center;
@@ -217,6 +222,7 @@ function pick(session: SessionMetadata) {
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;
 }
+
 .empty {
   margin: 0;
   padding: var(--spacing-lg) var(--spacing-md);

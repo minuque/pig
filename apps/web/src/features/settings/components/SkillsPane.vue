@@ -20,6 +20,7 @@ const cwd = useSettingsCwd()
   flex-direction: column;
   gap: var(--spacing-sm);
 }
+
 .cwd {
   margin: 0;
   color: var(--ink-muted);
@@ -27,6 +28,7 @@ const cwd = useSettingsCwd()
   line-height: var(--text-eyebrow--line-height);
   word-break: break-all;
 }
+
 .empty {
   margin: 0;
   color: var(--ink-faint);

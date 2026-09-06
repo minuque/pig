@@ -34,6 +34,7 @@ describe("createElectronDirectoryPort", () => {
     const selected = join(tempRoot, "workspace")
     await mkdir(selected)
     const expected = canonicalizePath(await realpath(selected))
+
     const port = createElectronDirectoryPort(
       () => undefined,
       async () => ({ canceled: false, filePaths: [selected] }),

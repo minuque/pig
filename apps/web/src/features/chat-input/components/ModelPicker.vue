@@ -156,6 +156,7 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>("open", { default: false })
 const active = defineModel<boolean>("active", { default: false })
+
 const query = ref("")
 const scope = ref(FAVORITES_SCOPE)
 const searchRef = ref<HTMLInputElement | null>(null)
@@ -203,6 +204,7 @@ const label = computed(() => {
 function isCurrent(provider: string, id: string) {
   return sameModel(props.model, { provider, id })
 }
+
 function select(model: ChatInputModel) {
   emit("update:model", model)
 }
@@ -213,9 +215,11 @@ function onOpenAutoFocus(event: Event) {
 }
 
 let suppressRestore = false
+
 function suppressFocusRestore() {
   suppressRestore = true
 }
+
 function onCloseAutoFocus(event: Event) {
   if (suppressRestore) event.preventDefault()
   suppressRestore = false
@@ -270,11 +274,13 @@ function onCloseAutoFocus(event: Event) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .picker {
   display: grid;
   grid-template-columns: 44px 1fr;
   height: min(320px, var(--reka-dropdown-menu-content-available-height, 70vh));
 }
+
 .rail {
   display: flex;
   flex-direction: column;
@@ -310,6 +316,7 @@ function onCloseAutoFocus(event: Event) {
   background: var(--hover-strong);
   color: var(--ink);
 }
+
 .main {
   display: flex;
   flex-direction: column;
@@ -317,6 +324,7 @@ function onCloseAutoFocus(event: Event) {
   min-width: 0;
   min-height: 0;
 }
+
 .search {
   display: flex;
   align-items: center;
@@ -344,6 +352,7 @@ function onCloseAutoFocus(event: Event) {
 .search input::placeholder {
   color: var(--ink-faint);
 }
+
 .groups {
   flex: 1;
   min-height: 0;
@@ -353,6 +362,7 @@ function onCloseAutoFocus(event: Event) {
 .groups::-webkit-scrollbar {
   display: none;
 }
+
 .model-row {
   display: flex;
   align-items: center;
@@ -399,6 +409,7 @@ function onCloseAutoFocus(event: Event) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .fav {
   display: grid;
   place-items: center;
@@ -418,6 +429,7 @@ function onCloseAutoFocus(event: Event) {
 .fav.on {
   color: var(--accent-sunset);
 }
+
 .empty {
   padding: var(--spacing-lg) var(--spacing-xs);
   font-size: var(--text-eyebrow);

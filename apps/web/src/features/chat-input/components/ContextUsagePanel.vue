@@ -105,6 +105,7 @@ const emit = defineEmits<{
 
 const tokenSummary = computed(() => contextUsageSummary(props.usage))
 const { isDark } = useColorScheme()
+
 const previewOpen = ref(false)
 const previewLoading = ref(false)
 const previewTitle = ref("")
@@ -118,6 +119,7 @@ const { list, containerProps, wrapperProps } = useVirtualList(previewLines, {
   itemHeight: PREVIEW_LINE_PX,
   overscan: 12,
 })
+
 const previewMarkdown = computed(
   () =>
     ({
@@ -197,6 +199,7 @@ function onOpenAutoFocus(event: Event) {
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
 }
+
 .head {
   display: flex;
   align-items: center;
@@ -229,6 +232,7 @@ function onOpenAutoFocus(event: Event) {
   color: var(--ink);
   background: var(--hover-tint);
 }
+
 .stats {
   display: flex;
   align-items: baseline;
@@ -246,6 +250,7 @@ function onOpenAutoFocus(event: Event) {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
+
 .bar {
   display: flex;
   overflow: hidden;
@@ -260,6 +265,7 @@ function onOpenAutoFocus(event: Event) {
   height: 100%;
   min-width: 0;
 }
+
 .legend {
   display: flex;
   flex-direction: column;
@@ -311,6 +317,7 @@ function onOpenAutoFocus(event: Event) {
   min-width: 3.5em;
   text-align: end;
 }
+
 .preview-body {
   display: flex;
   flex-direction: column;

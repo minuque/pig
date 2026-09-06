@@ -135,11 +135,13 @@ function onPointerCancel() {
 .width-handle[data-dragging]::after {
   opacity: 1;
 }
+
 @media (max-width: 900px) {
   .width-handle {
     display: none;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .width-handle::after {
     transition: none;

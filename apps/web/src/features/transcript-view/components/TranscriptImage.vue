@@ -41,6 +41,7 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   background: var(--canvas-soft);
   cursor: zoom-in;
 }
+
 .thumb-img,
 .full {
   display: block;

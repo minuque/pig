@@ -19,6 +19,7 @@ function dirtyFiles() {
     ...spawnSync("git", ["diff", "--name-only", "--cached"], opts).stdout.split(/\r?\n/),
     ...spawnSync("git", ["ls-files", "--others", "--exclude-standard"], opts).stdout.split(/\r?\n/),
   ]
+
   return [...new Set(names.map((line) => line.trim()).filter(Boolean))]
 }
 

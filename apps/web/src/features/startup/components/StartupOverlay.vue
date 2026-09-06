@@ -23,6 +23,7 @@ const emit = defineEmits<{
 
 const leaving = shallowRef(false)
 const LEAVE_MS = 220
+
 let finished = false
 let leaveTimer = 0
 let reducedMotion = false

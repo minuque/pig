@@ -13,12 +13,14 @@ export const settingsKey: InjectionKey<SettingsContext> = Symbol("settings")
 export function provideSettings(): SettingsContext {
   const open = ref(false)
   const tab = ref<SettingsTab>("general")
+
   function openSettings() {
     tab.value = "general"
     open.value = true
   }
   const settings = { open, tab, openSettings }
   provide(settingsKey, settings)
+
   return settings
 }
 

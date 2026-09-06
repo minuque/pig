@@ -18,6 +18,7 @@
 
 <script setup lang="ts">
 import { CircleAlert, X } from "@lucide/vue"
+
 import Alert from "@components/ui/alert/Alert.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
 import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
@@ -33,16 +34,19 @@ import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
   width: min(22.5rem, calc(100vw - var(--spacing-xl)));
   pointer-events: none;
 }
+
 .alert-toaster-stack {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
   width: 100%;
 }
+
 .alert-toaster-item {
   position: relative;
   pointer-events: auto;
 }
+
 .alert-toaster-alert {
   padding-right: var(--spacing-xl);
   box-shadow: var(--shadow-elevated);
@@ -65,6 +69,7 @@ import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
 .alert-toaster-close:hover {
   color: var(--ink);
 }
+
 .alert-toaster-enter-active,
 .alert-toaster-leave-active {
   transition:
@@ -76,12 +81,14 @@ import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
   opacity: 0;
   transform: translateX(8px);
 }
+
 html[data-pig-desktop-platform] .alert-toaster {
   top: calc(var(--titlebar-inset) + var(--size-control) + 2 * var(--spacing-xs));
 }
 html[data-pig-desktop-platform="win32"] .alert-toaster {
   right: calc(var(--size-windows-caption) + var(--spacing-xs));
 }
+
 @media (prefers-reduced-motion: reduce) {
   .alert-toaster-enter-active,
   .alert-toaster-leave-active {

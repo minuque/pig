@@ -58,6 +58,7 @@ async function handleSelectDirectory(
       send(res, 200, { path: null, requiresManualInput: true })
       return
     }
+
     const path = input
       ? await platformPort.validateDirectory(input)
       : await platformPort.selectDirectory()
@@ -86,6 +87,7 @@ async function handleTranscript(res: ServerResponse, url: URL, deps: PlatformReq
     send(res, 400, { code: "INVALID_REQUEST" })
     return
   }
+
   try {
     send(res, 200, await hostService.sessionTranscript(sessionId))
   } catch (error) {
@@ -101,11 +103,13 @@ async function handleContextUsage(res: ServerResponse, url: URL, deps: PlatformR
       send(res, 400, { code: "INVALID_REQUEST" })
       return
     }
+
     const previewParam = url.searchParams.get("preview")
     if (previewParam && !isContextPreviewKey(previewParam)) {
       send(res, 400, { code: "INVALID_REQUEST" })
       return
     }
+
     const usage = hostService.contextUsage(
       sessionId,
       isContextPreviewKey(previewParam) ? previewParam : undefined,
@@ -156,11 +160,13 @@ async function handleRenameSession(
   const { send, hostService } = deps
   const payload = await readObjectBody(req, res, deps)
   if (!payload) return
+
   const id = typeof payload.id === "string" ? payload.id : ""
   if (!id) {
     send(res, 400, { code: "INVALID_REQUEST" })
     return
   }
+
   try {
     const name = typeof payload.name === "string" ? payload.name : ""
     await hostService.renameSession(id, name)
@@ -178,11 +184,13 @@ async function handleDeleteSession(
   const { send, hostService } = deps
   const payload = await readObjectBody(req, res, deps)
   if (!payload) return
+
   const id = typeof payload.id === "string" ? payload.id : ""
   if (!id) {
     send(res, 400, { code: "INVALID_REQUEST" })
     return
   }
+
   try {
     await hostService.deleteSession(id)
     send(res, 200, { ok: true })

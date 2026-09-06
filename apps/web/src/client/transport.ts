@@ -41,8 +41,10 @@ export function createWebSocketByteTransportFactory(
   return (handlers: ByteTransportHandlers): ByteTransport => {
     const socket = new WebSocket(options.url)
     socket.binaryType = "arraybuffer"
+
     let closed = false
     let opened = false
+
     let openResolve: () => void = () => {}
     let openReject: (reason?: unknown) => void = () => {}
     const openPromise = new Promise<void>((resolve, reject) => {
@@ -59,6 +61,7 @@ export function createWebSocketByteTransportFactory(
       openReject(error)
       handlers.onError(error)
     }
+
     /** 有序终态：恰好一次，onClose 与 onError 互斥。 */
     function finish() {
       if (closed) return

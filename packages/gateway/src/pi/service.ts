@@ -102,6 +102,7 @@ export class PiHostService implements PiServerService {
     const path = manager.getSessionFile()
     const header = manager.getHeader()
     if (!path || !header) throw new Error("Pi did not create a persistent session")
+
     // 立即落盘 header，保证 PiServer 分配的 id 持久化（Pi 仅在出现助手消息后写文件）。
     // SDK 无 ensurePersisted API，写入后用 SessionManager 回读校验替代。
     await mkdir(dirname(path), { recursive: true })
@@ -110,8 +111,10 @@ export class PiHostService implements PiServerService {
       await rm(path, { force: true })
       throw new Error("Pi session persistence format validation failed")
     }
+
     this.sessionsCache = undefined
     this.sessionPaths.set(options.id, path)
+
     const model = options.model
       ? runtime.getModel(options.model.provider, options.model.id)
       : undefined
@@ -122,6 +125,7 @@ export class PiHostService implements PiServerService {
         `Model ${options.model.provider}/${options.model.id} is unavailable`,
       )
     }
+
     try {
       await this.warmResources().catch(() => undefined)
       const { session } = await this.sessionFactory()({
@@ -143,12 +147,14 @@ export class PiHostService implements PiServerService {
   async renameSession(sessionId: string, name: string): Promise<void> {
     const trimmed = name.trim()
     if (!trimmed) throw new PiServerError("invalid_request", "会话名不能为空")
+
     const live = this.activeSessions.get(sessionId)
     if (live) {
       live.setSessionName(trimmed)
       this.sessionsCache = undefined
       return
     }
+
     const path = await this.findSessionPath(sessionId)
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     SessionManager.open(path).appendSessionInfo(trimmed)
@@ -168,6 +174,7 @@ export class PiHostService implements PiServerService {
     const runtime = await this.runtime()
     const path = await this.findSessionPath(sessionId)
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
+
     await this.warmResources().catch(() => undefined)
     const { session } = await this.sessionFactory()({
       cwd: SessionManager.open(path).getCwd(),
@@ -190,6 +197,7 @@ export class PiHostService implements PiServerService {
   ): Promise<{ items: TranscriptItem[]; timings: TurnTiming[] }> {
     const live = this.activeSessions.get(sessionId)
     if (live) return live.historyTranscript()
+
     const path = await this.findSessionPath(sessionId)
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     const entries = SessionManager.open(path).getBranch()
@@ -203,6 +211,7 @@ export class PiHostService implements PiServerService {
   private async refreshSessionPaths(): Promise<SessionInfo[]> {
     const now = Date.now()
     if (this.sessionsCache && this.sessionsCache.expiresAt > now) return this.sessionsCache.infos
+
     const infos = await SessionManager.listAll(this.options.sessionDir)
     this.sessionPaths.clear()
     for (const info of infos) this.sessionPaths.set(info.id, info.path)
@@ -274,6 +283,7 @@ function cardsFromInfos(infos: readonly SessionInfo[]): SessionCard[] {
     } catch {
       model = undefined
     }
+
     return {
       id: info.id,
       messageCount,

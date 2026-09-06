@@ -20,6 +20,7 @@ export function toolGroupKey(toolName: string): ToolGroupKey {
 export function toolSummary(items: readonly ToolCallView[]): string {
   const first = items[0]
   if (!first) return "工具调用"
+
   const running = items.some((item) => item.running)
   const count = items.length
   const key = toolGroupKey(first.toolName)
@@ -32,6 +33,7 @@ export function toolSummary(items: readonly ToolCallView[]): string {
     search: `${prefix}搜索 ${count} 次`,
     tool: `${prefix}调用 ${count} 次工具`,
   } satisfies Record<ToolGroupKey, string>
+
   return labels[key]
 }
 
@@ -49,9 +51,11 @@ function splitLines(text: string): string[] {
 function lineChange(oldText: string, newText: string): { added: number; removed: number } {
   const oldLines = splitLines(oldText)
   const newLines = splitLines(newText)
+
   let start = 0
   const shared = Math.min(oldLines.length, newLines.length)
   while (start < shared && oldLines[start] === newLines[start]) start += 1
+
   let end = 0
   while (
     end < oldLines.length - start &&
@@ -60,6 +64,7 @@ function lineChange(oldText: string, newText: string): { added: number; removed:
   ) {
     end += 1
   }
+
   return {
     added: newLines.length - start - end,
     removed: oldLines.length - start - end,
@@ -68,6 +73,7 @@ function lineChange(oldText: string, newText: string): { added: number; removed:
 
 function editReplacements(input: unknown): { oldText: string; newText: string }[] {
   if (!isRecord(input)) return []
+
   let edits: unknown = input.edits
   if (typeof edits === "string") {
     try {
@@ -76,6 +82,7 @@ function editReplacements(input: unknown): { oldText: string; newText: string }[
       edits = []
     }
   }
+
   const pairs: { oldText: string; newText: string }[] = []
   if (Array.isArray(edits)) {
     for (const item of edits) {
@@ -87,13 +94,16 @@ function editReplacements(input: unknown): { oldText: string; newText: string }[
   if (typeof input.oldText === "string" && typeof input.newText === "string") {
     pairs.push({ oldText: input.oldText, newText: input.newText })
   }
+
   return pairs
 }
 
 export function editDiffPreview(input: unknown): EditDiffPreview | null {
   const pairs = editReplacements(input)
   if (pairs.length === 0) return null
+
   const path = toolPath(input)
+
   return {
     path,
     fileName: path ? pathBasename(path) : "file",

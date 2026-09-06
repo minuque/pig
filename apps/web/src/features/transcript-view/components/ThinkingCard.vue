@@ -40,15 +40,19 @@ const props = withDefaults(
 )
 
 const { isDark, codeBlockProps } = useColorScheme()
+
 const text = useTranscriptReveal(
   () => props.blocks.join("\n"),
   () => props.streaming,
 )
+
 const lines = computed(() => splitLines(text.value))
 const virtual = computed(() => !props.streaming && shouldVirtualizeMarkdown(text.value))
+
 const scrollTop = shallowRef(0)
 const viewport = useTemplateRef<HTMLElement>("viewport")
 const viewportPx = MAX_LINES * DEFAULT_LINE_HEIGHT_PX
+
 const range = computed(() =>
   virtual.value
     ? visibleLineRange(
@@ -101,6 +105,7 @@ function onScroll(event: Event) {
   min-width: 0;
   padding: var(--spacing-sm);
 }
+
 .thinking-body {
   min-width: 0;
   max-height: calc(var(--text-body-sm) * var(--text-body-sm--line-height) * 12);
@@ -119,6 +124,7 @@ function onScroll(event: Event) {
   white-space: pre;
   tab-size: 2;
 }
+
 .canvas {
   position: relative;
   display: block;
@@ -129,6 +135,7 @@ function onScroll(event: Event) {
   display: block;
   white-space: pre;
 }
+
 .thinking-body :deep(p),
 .thinking-body :deep(.paragraph-node) {
   margin: 0 0 var(--spacing-xs);

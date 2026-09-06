@@ -5,8 +5,11 @@
  * SDK 实例用 shallowRef 保存（不深追踪），纯派生用 computed。
  */
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
+
 import { PiClient } from "@earendil-works/pi-client"
+
 import type { ConnectionState, ServerSnapshot, Unsubscribe } from "@/types/common-type.js"
+
 import { createWebSocketByteTransportFactory, webSocketUrl } from "@client/transport.js"
 
 export interface PiClientConnectionOptions {

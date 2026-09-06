@@ -96,6 +96,7 @@ function finishPreview(key: ContextPreviewKey, chunks: string[]): ContextUsagePr
     kept.push(chunk)
     total += chunk.length + 2
   }
+
   let content = kept.join("\n\n") || PREVIEW_META[key].empty
   if (chunks.length > kept.length || content.length > PREVIEW_MAX_CHARS) {
     content = `${content.slice(0, PREVIEW_MAX_CHARS)}\n\n…（后续已截断）`
@@ -250,6 +251,7 @@ export function resolveUsedTokens(
     usage?.percent !== null && usage?.percent !== undefined && contextWindow > 0
       ? Math.round((usage.percent / 100) * contextWindow)
       : undefined
+
   let resolved = reported ?? fromPercent ?? estimated
   if (reported !== null && reported !== undefined && fromPercent !== undefined) {
     const tolerance = Math.max(32, Math.round(contextWindow * 0.001))
@@ -275,11 +277,13 @@ export function estimateContextUsage(
     if (previewKey === "memory")
       memoryChunks.push(`## ${file.path}\n\n${previewValue(file.content)}`)
   }
+
   const skillsText = formatSkillsForPrompt(source.resourceLoader.getSkills().skills ?? []).trim()
   const skills = embeddedTokens(prompt, skillsText)
   const systemPrompt = Math.max(0, estimateText(prompt) - memory - skills)
   const tools = collectTools(source, previewKey === "tools")
   const walked = walkEntries(source.sessionManager.buildContextEntries(), previewKey)
+
   const known =
     systemPrompt + memory + skills + tools.tokens + walked.toolResults + walked.conversation
   const reported = source.getContextUsage()

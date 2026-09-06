@@ -24,6 +24,7 @@ const props = withDefaults(
   >(),
   { class: undefined, variant: "default" },
 )
+
 const delegatedProps = reactiveOmit(props, "class", "variant")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<AlertDialogActionProps>
 </script>

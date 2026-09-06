@@ -53,6 +53,7 @@ describe("WindowsDirectoryPort", () => {
     const selected = join(tempRoot, "workspace")
     await mkdir(selected)
     const expected = canonicalizePath(await realpath(selected))
+
     const port = new WindowsDirectoryPort(async () => ({ stdout: JSON.stringify(selected) }))
     expect(await port.selectDirectory()).toBe(expected)
   })
@@ -70,6 +71,7 @@ describe("WindowsDirectoryPort", () => {
       }
       return { stdout: JSON.stringify(tempRoot) }
     }
+
     const port = new WindowsDirectoryPort(exec)
     expect(await port.selectDirectory()).toBe(expected)
     expect(tried).toEqual(["pwsh", "powershell.exe"])

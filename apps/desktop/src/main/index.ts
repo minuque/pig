@@ -38,6 +38,7 @@ async function loadGatewayModule(isPackaged: boolean): Promise<GatewayModule> {
 async function shutdown(): Promise<void> {
   if (stopping) return
   stopping = true
+
   if (vite) killVite(vite)
   vite = undefined
   try {

@@ -72,10 +72,12 @@ export function useLeftPanel() {
   function setPanelWidth(desired: number) {
     leftWidth.value = panelWidthFor(desired, window.innerWidth)
   }
+
   function resizeBy(delta: number) {
     setPanelWidth(leftWidth.value + delta)
     persistWidth(leftWidth.value)
   }
+
   function startResize(event: PointerEvent) {
     const handle = event.currentTarget
     if (!(handle instanceof HTMLElement)) return
@@ -86,6 +88,7 @@ export function useLeftPanel() {
     resizing.value = true
     document.body.style.cursor = "col-resize"
     document.body.style.userSelect = "none"
+
     // pointermove 用 rAF 合帧：每帧至多计算一次宽度，pointerup 后补一次最终位置
     let frame = 0
     let pendingX = startX
@@ -97,6 +100,7 @@ export function useLeftPanel() {
         setPanelWidth(startWidth + (pendingX - startX))
       })
     }
+
     const stop = () => {
       handle.removeEventListener("pointermove", move)
       handle.removeEventListener("pointerup", stop)
@@ -109,28 +113,35 @@ export function useLeftPanel() {
       document.body.style.removeProperty("user-select")
       if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId)
     }
+
     handle.addEventListener("pointermove", move)
     handle.addEventListener("pointerup", stop)
     handle.addEventListener("pointercancel", stop)
   }
+
   function toggle() {
     leftOpen.value = !leftOpen.value
   }
+
   function closeMobilePanels() {
     if (narrowViewport.matches) leftOpen.value = false
   }
+
   function fitPanels() {
     if (narrowViewport.matches || !leftOpen.value) return
     leftWidth.value = fitPanelWidth(leftWidth.value, window.innerWidth)
   }
+
   function handleViewportChange(event: MediaQueryListEvent) {
     isNarrow.value = event.matches
     if (event.matches) closeMobilePanels()
     else fitPanels()
   }
+
   narrowViewport.addEventListener("change", handleViewportChange)
   window.addEventListener("resize", fitPanels)
   fitPanels()
+
   watch(leftOpen, () => void fitPanels())
   onBeforeUnmount(() => {
     narrowViewport.removeEventListener("change", handleViewportChange)
@@ -138,6 +149,7 @@ export function useLeftPanel() {
     document.body.style.removeProperty("cursor")
     document.body.style.removeProperty("user-select")
   })
+
   return {
     leftOpen: readonly(leftOpen),
     leftWidth: readonly(leftWidth),

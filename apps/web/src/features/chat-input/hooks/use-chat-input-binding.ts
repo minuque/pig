@@ -35,6 +35,7 @@ export function useChatInputBinding(options: ChatInputBindingOptions) {
       if (model && level && !pendingModel.value) preset.value = { model, thinkingLevel: level }
     },
   )
+
   // 切模型或目录变化后，当前 thinkingLevel 不在新档位里则回落到第一档
   watch([() => preset.value?.model, () => preset.value?.thinkingLevel, options.catalog], () => {
     const current = preset.value
@@ -67,6 +68,7 @@ export function useChatInputBinding(options: ChatInputBindingOptions) {
       })()
     },
   )
+
   watch([() => preset.value?.thinkingLevel, pendingModel], ([level]) => {
     const snapshot = options.snapshot.value
     if (
@@ -81,6 +83,7 @@ export function useChatInputBinding(options: ChatInputBindingOptions) {
       .setThinking(thinkingLevelOf(level))
       .catch((error) => (options.error.value = errorMessage(error)))
   })
+
   watch(
     options.catalog,
     (items) => {

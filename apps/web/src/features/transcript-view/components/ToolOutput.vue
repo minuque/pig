@@ -53,6 +53,7 @@
       </pre>
       <p v-if="virtual && showCount" class="meta">{{ lines.length }} 行</p>
     </template>
+
     <div v-if="images.length" class="images">
       <TranscriptImage
         v-for="(image, index) in images"
@@ -130,6 +131,7 @@ const preClass = computed(() => ({
   "is-plain": props.tone === "plain",
   "is-embedded": props.embedded,
 }))
+
 const scrollTop = shallowRef(0)
 const lines = computed(() => splitLines(props.text))
 const virtual = computed(() => lines.value.length > props.maxLines)
@@ -162,6 +164,7 @@ function onScroll(event: Event) {
   padding: var(--spacing-sm);
   padding-inline-end: 0;
 }
+
 .tool-output-pre {
   position: relative;
   margin: var(--spacing-xxs) 0 0;
@@ -203,6 +206,7 @@ function onScroll(event: Event) {
 .tool-output-pre.is-virtual {
   overflow: auto;
 }
+
 .canvas {
   position: relative;
   display: block;
@@ -212,17 +216,20 @@ function onScroll(event: Event) {
   inset-inline: 0;
   display: block;
 }
+
 .meta {
   margin: var(--spacing-xxs) 0 0;
   color: var(--ink-faint);
   font-size: inherit;
 }
+
 .images {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
   margin-top: var(--spacing-xs);
 }
+
 .code-scroll {
   max-height: 480px;
   overflow: auto;
@@ -253,6 +260,7 @@ code {
   font: inherit;
   white-space: pre;
 }
+
 .omitted {
   display: block;
   margin-inline-start: 2ch;

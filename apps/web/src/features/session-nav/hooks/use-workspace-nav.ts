@@ -91,6 +91,7 @@ export function useWorkspaceNav(
   const addingWorkspace = ref(false)
   const titleById = shallowRef<Record<string, string>>({})
   const workspaces = local.workspaces
+
   const groups = computed(() =>
     groupSessionsByCwd(sessions.value, local.workspaces.value).map((group) => ({
       ...group,
@@ -98,6 +99,7 @@ export function useWorkspaceNav(
     })),
   )
   const listedSessions = computed(() => applyTitles(listSessionsForSidebar(sessions.value)))
+
   const grouping = ref<SidebarGrouping>(loadGrouping())
   const revealByGroup = shallowRef<Record<string, number>>({})
   const collapsedByGroup = shallowRef<Record<string, boolean>>(loadCollapsed())
@@ -182,6 +184,7 @@ export function useWorkspaceNav(
       addingWorkspace.value = false
     }
   }
+
   async function renameSession(id: string, name: string) {
     error.value = ""
     titleById.value = { ...titleById.value, [id]: name }
@@ -199,6 +202,7 @@ export function useWorkspaceNav(
     })
     void refreshSessionCards()
   }
+
   async function deleteSession(id: string) {
     error.value = ""
     try {
@@ -210,6 +214,7 @@ export function useWorkspaceNav(
       error.value = errorMessage(cause)
     }
   }
+
   return {
     addingWorkspace,
     workspaces,

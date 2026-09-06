@@ -26,6 +26,7 @@ const props = withDefaults(
   { class: undefined },
 )
 const emits = defineEmits<AlertDialogContentEmits>()
+
 const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardPropsEmits(
   delegatedProps,

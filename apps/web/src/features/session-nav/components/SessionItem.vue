@@ -141,6 +141,7 @@ const draft = ref("")
 const nameInput = ref<HTMLInputElement | null>(null)
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
+
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
 const stateLabel = computed(() => {
   if (props.state === "running") return "运行中"
@@ -152,6 +153,7 @@ const stateLabel = computed(() => {
 function onMenuOpenChange(open: boolean) {
   menuOpen.value = open
 }
+
 function onCardClick(event: MouseEvent) {
   if (menuOpen.value || renaming.value) {
     event.preventDefault()
@@ -160,6 +162,7 @@ function onCardClick(event: MouseEvent) {
   }
   emit("navigate")
 }
+
 function onCardKeydown(event: KeyboardEvent) {
   if (event.key !== "F10" || !event.shiftKey) return
   event.preventDefault()
@@ -176,6 +179,7 @@ function onCardKeydown(event: KeyboardEvent) {
     }),
   )
 }
+
 function startRename() {
   draft.value = props.session.title
   renaming.value = true
@@ -184,9 +188,11 @@ function startRename() {
     nameInput.value?.select()
   })
 }
+
 function cancelRename() {
   renaming.value = false
 }
+
 function commitRename() {
   if (!renaming.value) return
   renaming.value = false
@@ -194,6 +200,7 @@ function commitRename() {
   if (!name || name === props.session.title) return
   emit("rename", props.session.id, name)
 }
+
 function confirmDelete() {
   deleteOpen.value = false
   emit("delete", props.session.id)
@@ -206,6 +213,7 @@ function confirmDelete() {
   width: 100%;
   min-width: 0;
 }
+
 .session-card {
   position: relative;
   display: flex;
@@ -226,6 +234,7 @@ function confirmDelete() {
 .session-card.active {
   background: var(--interaction-selected);
 }
+
 .card-line {
   display: flex;
   align-items: center;
@@ -233,6 +242,7 @@ function confirmDelete() {
   min-width: 0;
   width: 100%;
 }
+
 .session-state {
   display: grid;
   place-items: center;
@@ -245,6 +255,7 @@ function confirmDelete() {
 .session-item:has(.pin-toggle:focus-visible) .session-state {
   opacity: 0;
 }
+
 .pin-toggle {
   position: absolute;
   z-index: 1;
@@ -272,6 +283,7 @@ function confirmDelete() {
 .pin-toggle:focus-visible {
   color: var(--ink);
 }
+
 .state-dot,
 .state-placeholder {
   width: 7px;
@@ -287,6 +299,7 @@ function confirmDelete() {
 .state-placeholder {
   opacity: 0;
 }
+
 .title {
   min-width: 0;
   flex: 1;
@@ -299,6 +312,7 @@ function confirmDelete() {
   white-space: nowrap;
   transition: color var(--duration-fast) var(--ease-smooth);
 }
+
 .card-model {
   display: inline-flex;
   flex: none;
@@ -312,6 +326,7 @@ function confirmDelete() {
     filter var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth);
 }
+
 .session-item:hover .title,
 .session-card[data-state="open"] .title,
 .session-card.active .title {
@@ -323,6 +338,7 @@ function confirmDelete() {
   filter: none;
   color: var(--ink);
 }
+
 .session-time {
   flex: none;
   color: var(--ink-faint);
@@ -333,6 +349,7 @@ function confirmDelete() {
   text-align: end;
   white-space: nowrap;
 }
+
 .rename-input {
   min-width: 0;
   flex: 1;

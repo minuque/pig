@@ -28,9 +28,11 @@ export function useSessionMarkers(
   activeSessionId: MaybeRefOrGetter<string | undefined>,
 ) {
   const pinnedIdList = shallowRef(loadStringArray(PINNED_KEY))
+
   // 未读只活在本次运行：启动前完成的不算，关应用即丢
   const runStartAt = Date.now()
   const readAtById = shallowRef<Record<string, number>>({})
+
   const pinnedIds = computed(() => new Set(pinnedIdList.value))
   const pinnedSessions = computed(() =>
     toValue(sessions).filter((session) => pinnedIds.value.has(session.id)),

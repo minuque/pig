@@ -49,8 +49,10 @@ export function projectContextUsage(
   estimate: ContextUsageEstimate | undefined,
 ): ContextUsage | undefined {
   if (!estimate) return undefined
+
   const window = Math.max(0, estimate.window)
   const used = Math.max(0, estimate.used)
+
   return {
     used,
     window,

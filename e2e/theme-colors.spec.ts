@@ -56,6 +56,7 @@ for (const palette of palettes) {
       .locator(".field[contenteditable]")
       .evaluate((element) => getComputedStyle(element, "::before").color)
     expect(placeholder).toBe(palette.faint)
+
     await page.locator(".field[contenteditable]").fill("颜色回归测试，不发送")
     await expect(page.locator("button.send")).toBeEnabled()
     await page.getByRole("button", { name: "筛选", exact: true }).click()
@@ -68,6 +69,7 @@ for (const palette of palettes) {
     await expect(menuItem).toHaveCSS("background-color", palette.hover)
     await page.screenshot({ path: info.outputPath(`${palette.theme}-menu.png`) })
     await page.keyboard.press("Escape")
+
     const bounds = await input.boundingBox()
     if (!bounds) throw new Error("Input is not painted")
     const fillSample = {

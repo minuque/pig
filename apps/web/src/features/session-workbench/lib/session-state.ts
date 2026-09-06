@@ -33,6 +33,7 @@ export function isSessionOpening(
   historySessionId: string | undefined,
 ): boolean {
   if (!sessionId) return false
+
   return sessionId !== remoteId || historySessionId !== sessionId
 }
 
@@ -43,17 +44,20 @@ export function mergeLiveTranscript(
 ): TranscriptItem[] {
   if (live.length === 0) return [...persisted]
   if (persisted.length === 0) return [...live]
+
   const overlay = new Map(live.map((item) => [item.id, item]))
   const persistedIds = new Set(persisted.map((item) => item.id))
   const merged = persisted.map((item) => overlay.get(item.id) ?? item)
   const limit = Math.min(merged.length, live.length)
   let covered = 0
+
   for (let count = limit; count >= 1; count -= 1) {
     if (merged.slice(-count).every((item, index) => sameTranscriptItem(item, live[index]!))) {
       covered = count
       break
     }
   }
+
   return merged.concat(live.slice(covered).filter((item) => !persistedIds.has(item.id)))
 }
 

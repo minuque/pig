@@ -25,6 +25,7 @@ export function classifyTouched(files) {
   for (const pkg of PACKAGES) {
     if (normalized.some((file) => file.startsWith(pkg.prefix))) packages.push(pkg.id)
   }
+
   const scripts = normalized.some((file) => file.startsWith("scripts/"))
   const tokens = normalized.some(
     (file) =>
@@ -36,6 +37,7 @@ export function classifyTouched(files) {
   const rootTooling = normalized.some((file) => ROOT_TOOLING.test(file))
   const prettierFiles = normalized.filter((file) => PRETTIER.test(file))
   const lintFiles = normalized.filter((file) => LINTABLE.test(file))
+
   return {
     packages,
     scripts,

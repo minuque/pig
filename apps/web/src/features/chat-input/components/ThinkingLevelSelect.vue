@@ -127,6 +127,7 @@ function cycle() {
   outline: var(--border-width) solid var(--primary);
   outline-offset: 2px;
 }
+
 .bars-slot {
   display: inline-flex;
   flex: none;
@@ -156,10 +157,12 @@ function cycle() {
 .bars rect {
   transition: opacity var(--duration-fast) var(--ease-out);
 }
+
 .level-name {
   text-transform: capitalize;
   font-weight: inherit;
 }
+
 @media (prefers-reduced-motion: reduce) {
   .bars-slot,
   .bars rect {

@@ -79,6 +79,7 @@ async function copy() {
   background: var(--code-header);
   font-size: var(--text-caption);
 }
+
 .heading {
   flex: 1;
   min-width: 0;
@@ -92,6 +93,7 @@ async function copy() {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .actions {
   display: flex;
   flex: none;
@@ -111,6 +113,7 @@ async function copy() {
 .expand:hover {
   color: var(--ink);
 }
+
 .copy {
   width: 24px;
   height: 24px;
@@ -133,10 +136,12 @@ async function copy() {
 .copy.is-error {
   color: var(--danger);
 }
+
 .icon-swap {
   width: 14px;
   height: 14px;
 }
+
 @media (max-width: 480px) {
   .tool-header {
     flex-wrap: wrap;

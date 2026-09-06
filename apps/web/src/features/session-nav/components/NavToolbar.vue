@@ -20,6 +20,7 @@ const emit = defineEmits<{
 .nav-toolbar {
   flex: none;
 }
+
 .search-button {
   display: flex;
   align-items: center;
@@ -41,6 +42,7 @@ const emit = defineEmits<{
   border-color: var(--ink-faint);
   color: var(--ink);
 }
+
 .search-label {
   min-width: 0;
   flex: 1;
@@ -50,6 +52,7 @@ const emit = defineEmits<{
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .search-shortcut {
   flex: none;
   padding: 1px var(--spacing-xxs);
@@ -59,6 +62,7 @@ const emit = defineEmits<{
   color: var(--ink-faint);
   font: var(--text-caption-mono) / var(--text-caption-mono--line-height) var(--font-mono);
 }
+
 @media (prefers-reduced-motion: reduce) {
   .search-button {
     transition: none;

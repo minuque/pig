@@ -27,6 +27,7 @@
         data-icon="inline-end"
       />
     </Button>
+
     <div
       class="tool-calls-group"
       :class="{ 'is-open': open, instant: !open || running }"
@@ -257,6 +258,7 @@ const running = computed(() =>
     ? thought.value.streaming
     : (group.value?.items.some((item) => item.running) ?? false),
 )
+
 const liveThoughtEndedAt = shallowRef<number>()
 watch(
   () => thought.value?.streaming,
@@ -266,6 +268,7 @@ watch(
   },
   { flush: "sync" },
 )
+
 const label = computed(() => {
   if (thought.value) return thoughtStepLabel(thought.value, liveThoughtEndedAt.value)
   return toolSummary(group.value?.items ?? [])
@@ -309,9 +312,11 @@ function toggleGroup() {
 .tool-summary {
   min-width: 0;
 }
+
 .tool-calls-group.is-open {
   margin-block-start: var(--spacing-xs);
 }
+
 .summary {
   width: 100%;
   height: auto;
@@ -331,6 +336,7 @@ function toggleGroup() {
   background: transparent;
   color: var(--ink);
 }
+
 .failed .tool-icon {
   color: var(--danger);
 }
@@ -343,6 +349,7 @@ function toggleGroup() {
 .running .tool-icon {
   color: var(--primary);
 }
+
 .label {
   flex: none;
   max-width: 50%;
@@ -382,6 +389,7 @@ function toggleGroup() {
 .removed {
   color: var(--danger);
 }
+
 .calls {
   display: flex;
   flex-direction: column;

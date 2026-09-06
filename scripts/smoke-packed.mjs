@@ -7,6 +7,7 @@ const root = resolve(import.meta.dirname, "..")
 const gateway = join(root, "packages/gateway")
 const staging = await mkdtemp(join(tmpdir(), "nono-pack-"))
 const install = await mkdtemp(join(tmpdir(), "nono-install-"))
+
 const run = (command, args, cwd = root, capture = false) => {
   const result = spawnSync(command, args, {
     cwd,
@@ -57,6 +58,7 @@ try {
     install,
     true,
   )
+
   const bin =
     process.platform === "win32"
       ? join(install, "node_modules/.bin/pig.cmd")

@@ -17,6 +17,7 @@ export async function serveWebFile(root: string, pathname: string, res: ServerRe
   } catch {
     return false
   }
+
   const file = resolve(root, requested)
   // 路径穿越防御：解析后的真实路径必须仍在 webRoot 内
   const pathFromRoot = relative(resolve(root), file)

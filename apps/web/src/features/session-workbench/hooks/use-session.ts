@@ -63,8 +63,10 @@ export function useSessionLifecycle(
   let replaceChain: Promise<void> = Promise.resolve()
   // 最新想打开的 session：快速连点时跳过中间 id，只落地最后一次
   let wantedId: string | undefined
+
   const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
   let contextUsageRequest = 0
+
   const history = shallowRef<TranscriptItem[]>([])
   const turnTimings = shallowRef<TurnTiming[]>([])
   const historySessionId = shallowRef<string>()
@@ -100,6 +102,7 @@ export function useSessionLifecycle(
       }
     })
   }
+
   function detach() {
     contextUsageRequest += 1
     unsubscribeState?.()
@@ -144,6 +147,7 @@ export function useSessionLifecycle(
       // 占用估算是辅助信息；失败时保留上次结果，不覆盖会话主错误。
     }
   }
+
   function release() {
     const previous = remote.value
     detach()
@@ -214,18 +218,23 @@ export function useSessionLifecycle(
   async function submitRemote(text: string) {
     await remote.value?.submit(text)
   }
+
   async function abortRemote() {
     await remote.value?.abort()
   }
+
   async function setModel(model: ModelRef) {
     await remote.value?.setModel(model)
   }
+
   async function setThinking(thinkingLevel: ThinkingLevel) {
     await remote.value?.setThinking(thinkingLevel)
   }
+
   async function reconnect() {
     await remote.value?.reconnect()
   }
+
   async function dispose() {
     wantedId = undefined
     const current = remote.value
@@ -245,9 +254,11 @@ export function useSessionLifecycle(
       if (sessionId.value) await router.replace("/")
     }
   }
+
   const stopRouteSync = watch(sessionId, () => {
     if (initialized) void syncRoute()
   })
+
   async function initialize() {
     initialized = true
     await syncRoute()
@@ -266,6 +277,7 @@ export function useSessionLifecycle(
     const current = phase.value
     return running.value && current ? phaseLabel(current) : ""
   })
+
   const { preset } = useChatInputBinding({
     catalog,
     snapshot,
@@ -390,6 +402,7 @@ export function useSessionLifecycle(
     pi.bindAttachedReconnect()
     void dispose()
   }
+
   if (getCurrentInstance()) onBeforeUnmount(teardown)
 
   return {

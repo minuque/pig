@@ -24,6 +24,7 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
   const { server } = options
   const maxFrameLength = DEFAULT_MAX_FRAME_LENGTH
   const maxPendingBytes = DEFAULT_MAX_PENDING_BYTES
+
   const wss = new WebSocketServer({
     noServer: true,
     // ws 的 maxPayload 是整条 WebSocket 消息上限；PiServer maxFrameLength 只算 CBOR
@@ -101,6 +102,7 @@ class WebSocketByteConnection implements ByteConnection {
       this.socket.terminate()
       return Promise.resolve()
     }
+
     this.pendingBytes += chunk.byteLength
     return new Promise((resolve, reject) => {
       this.socket.send(chunk, (error) => {
@@ -119,6 +121,7 @@ class WebSocketByteConnection implements ByteConnection {
       this.socket.terminate()
       return Promise.resolve()
     }
+
     const finished = new Promise<void>((resolve) => {
       this.socket.once("close", () => resolve())
     })

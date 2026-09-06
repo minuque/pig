@@ -38,6 +38,7 @@ export function listPickerRows(
   const q = query.trim()
   const vendors =
     q || scope === FAVORITES_SCOPE ? catalog : catalog.filter((vendor) => vendor.id === scope)
+
   const rows: ModelPickerRow[] = []
   for (const vendor of filterCatalog(vendors, query)) {
     for (const model of vendor.models) {

@@ -25,6 +25,7 @@ function prepareWindowsConsole(): void {
 
 function attachWindowsConsole(child: ChildProcess): void {
   prepareWindowsConsole()
+
   const forward = (src: NodeJS.ReadableStream | null, dest: NodeJS.WriteStream) => {
     if (!src) return
     src.on("data", (chunk: Buffer | string) => {

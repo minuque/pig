@@ -35,6 +35,7 @@ export const test = base.extend<TestFixtures>({
       await mkdir(workspaceDir)
       await mkdir(sessionDir)
       await writeFile(join(workspaceDir, ".keep"), "")
+
       const workspaceId = canonicalizeWorkspacePath(workspaceDir)
       const platformPort: DirectoryPort = {
         async selectDirectory() {
@@ -53,6 +54,7 @@ export const test = base.extend<TestFixtures>({
       })
       const port = await gateway.start()
       const origin = `http://127.0.0.1:${port}`
+
       try {
         await use({
           origin,

@@ -18,9 +18,11 @@
         } catch (e) {
           /* localStorage 不可用时继续使用系统偏好 */
         }
+
         var dark =
           stored === "dark" ||
           (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+
         if (dark) document.documentElement.classList.add("dark")
       })()
     </script>

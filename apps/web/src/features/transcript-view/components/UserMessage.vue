@@ -1,6 +1,7 @@
 <template>
   <article class="user">
     <p v-if="item.text" class="prompt">{{ item.text }}</p>
+
     <div v-if="item.images.length" class="images">
       <TranscriptImage
         v-for="(image, index) in item.images"
@@ -28,6 +29,7 @@ defineProps<{
   align-items: flex-end;
   gap: var(--spacing-xs);
 }
+
 .prompt {
   box-sizing: border-box;
   width: fit-content;

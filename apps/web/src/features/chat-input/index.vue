@@ -189,6 +189,7 @@ const level = computed({
     if (preset.value) preset.value = { ...preset.value, thinkingLevel }
   },
 })
+
 const { attachments, addFiles, remove, clear } = useChatInputAttachments()
 // 附件不进协议，不能单独放行
 const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisabled)
@@ -198,6 +199,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const usageOpen = ref(false)
 const modelPickerOpen = ref(false)
 const modelPickerActive = ref(false)
+
 const {
   active: voiceActive,
   message: voiceMessage,
@@ -385,18 +387,21 @@ function onPrimaryAction() {
   width: var(--size-icon);
   height: var(--size-icon);
 }
+
 @media (prefers-reduced-motion: reduce) {
   .plus,
   .send {
     transition: none;
   }
 }
+
 .plus:focus-visible,
 .send:focus-visible,
 .error-indicator:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
 .voice-status,
 .voice-message {
   color: var(--ink-muted);
@@ -405,6 +410,7 @@ function onPrimaryAction() {
 .voice-message {
   margin: var(--spacing-xs) var(--spacing-sm);
 }
+
 .file-input {
   display: none;
 }

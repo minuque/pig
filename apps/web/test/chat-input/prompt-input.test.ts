@@ -11,15 +11,18 @@ class Recognition {
   start = vi.fn()
   stop = vi.fn()
   abort = vi.fn()
+
   constructor() {
     Recognition.instances.push(this)
   }
+
   result(text: string) {
     this.onresult?.({ results: [[{ transcript: text }]] })
   }
 }
 
 const scopes: ReturnType<typeof effectScope>[] = []
+
 function setup() {
   vi.stubGlobal("window", { SpeechRecognition: Recognition })
   const prompt = ref("")
@@ -29,6 +32,7 @@ function setup() {
   if (!voice) throw new Error("语音作用域未创建")
   return { prompt, voice, scope }
 }
+
 function latestRecognition() {
   const recognition = Recognition.instances.at(-1)
   if (!recognition) throw new Error("识别器未创建")

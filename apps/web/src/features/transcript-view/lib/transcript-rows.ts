@@ -71,15 +71,18 @@ function appendTurn({
       text: transcriptText(user),
       images: transcriptImages(user),
     })
+
   const anchor = `tools:${user?.timestamp ?? "orphan"}:${turnIndex}`
   const timing = timings.find((value) => value.userId === user?.id)
   let steps: ToolRowStep[] = []
   let segmentIndex = 0
   let segmentAborted = false
   let segmentError = false
+
   const toolResults = new Map<string, ToolTranscriptItem>()
   const describedToolCalls = new Set<string>()
   const renderedToolCalls = new Set<string>()
+
   for (const item of rest) {
     if (isToolItem(item)) toolResults.set(item.toolCallId, item)
     if (!isAssistantItem(item)) continue
@@ -190,11 +193,13 @@ function appendTurn({
       addAssistant(rows, assistantRow(item))
     }
   }
+
   flushTools(live ? "live" : "done")
 }
 
 export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt): string {
   if (step.streaming) return "思考中"
+
   const seconds = Math.max(1, Math.round(((completedAt ?? step.startedAt) - step.startedAt) / 1000))
   return `思考了 ${seconds}秒`
 }
@@ -218,8 +223,10 @@ export function buildTimelineRows(
       rest = []
     } else rest.push(item)
   }
+
   if (user || rest.length || running)
     appendTurn({ rows, user, rest, live: running, timings, turnIndex })
+
   return rows
 }
 
@@ -230,6 +237,7 @@ export function toolRowLabel(row: ToolRow): string {
     if (step.type !== "tools") continue
     toolCounts.set(step.key, (toolCounts.get(step.key) ?? 0) + step.items.length)
   }
+
   const toolLabels = [...toolCounts].map(([key, count]) => {
     switch (key) {
       case "read":
@@ -253,6 +261,7 @@ export function toolRowLabel(row: ToolRow): string {
   const summary = [thoughtCount ? `思考 ${thoughtCount}轮` : "", toolLabels.join("、")]
     .filter(Boolean)
     .join(" · ")
+
   if (row.aborted) return summary ? `已停止 · ${summary}` : "已停止"
   return summary || (row.mode === "live" ? "执行中" : "执行过程")
 }

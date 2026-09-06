@@ -35,16 +35,19 @@ const { isDark, toggle } = useColorScheme()
   background: var(--hover-quiet);
   color: var(--ink);
 }
+
 .theme-icon {
   width: var(--size-icon);
   height: var(--size-icon);
 }
+
 @media (pointer: coarse) {
   .theme-toggle {
     width: var(--size-control);
     min-height: var(--size-control);
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .theme-toggle {
     transition: none;

@@ -62,6 +62,7 @@ const emit = defineEmits<{
 .group-head:hover {
   background: var(--hover-quiet);
 }
+
 .group-toggle {
   display: flex;
   align-items: center;
@@ -75,6 +76,7 @@ const emit = defineEmits<{
   color: inherit;
   text-align: left;
 }
+
 .mark {
   flex: none;
   width: var(--size-icon);
@@ -89,6 +91,7 @@ const emit = defineEmits<{
 .group-head:hover .mark.is-open {
   color: var(--primary);
 }
+
 .group-name {
   min-width: 0;
   flex: 1;
@@ -99,17 +102,20 @@ const emit = defineEmits<{
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .group-count {
   flex: none;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;
 }
+
 .trail {
   flex: none;
   min-width: var(--size-icon);
   justify-items: end;
 }
+
 .group-new {
   display: flex;
   align-items: center;
@@ -124,6 +130,7 @@ const emit = defineEmits<{
 .group-new:focus-visible {
   color: var(--ink);
 }
+
 @media (hover: hover) {
   .trail .group-new {
     opacity: 0;
@@ -145,11 +152,13 @@ const emit = defineEmits<{
     pointer-events: auto;
   }
 }
+
 @media (hover: none) {
   .trail .group-count {
     opacity: 0;
   }
 }
+
 .group-head.is-open .group-name {
   color: var(--ink);
 }

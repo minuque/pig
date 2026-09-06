@@ -69,6 +69,7 @@ const emit = defineEmits<{
 }>()
 
 const RING = USAGE_RING_LENGTH
+
 const cwdLabel = computed(() => chatInputCwdLabel(props.cwd))
 const usageLabel = computed(() => contextUsageTitle(props.usage))
 const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
@@ -84,6 +85,7 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
   padding-block: var(--spacing-xxs) var(--spacing-xs);
   background: var(--surface);
 }
+
 .cwd {
   display: inline-flex;
   align-items: center;
@@ -106,6 +108,7 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
 .cwd-spacer {
   min-width: 0;
 }
+
 .usage {
   display: inline-flex;
   align-items: center;

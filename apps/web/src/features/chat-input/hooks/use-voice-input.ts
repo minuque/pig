@@ -65,5 +65,6 @@ export function useVoiceInput(prompt: Ref<string>) {
   }
 
   onScopeDispose(cancel)
+
   return { active, message, start, stop, cancel }
 }

@@ -66,6 +66,7 @@ const title = computed(() =>
     -webkit-mask-image: none;
   }
 }
+
 .header-toggle {
   flex: none;
   width: var(--size-icon-button);
@@ -75,6 +76,7 @@ const title = computed(() =>
   background: transparent;
   color: var(--ink-muted);
 }
+
 .header-crumb {
   display: flex;
   align-items: center;
@@ -87,6 +89,7 @@ const title = computed(() =>
   font-weight: var(--font-weight-regular);
   line-height: var(--text-caption--line-height);
 }
+
 .header-session {
   min-width: 0;
   overflow: hidden;
@@ -94,17 +97,20 @@ const title = computed(() =>
   white-space: nowrap;
   flex: 1;
 }
+
 .header-right {
   display: flex;
   align-items: center;
   margin-left: auto;
   gap: var(--spacing-xs);
 }
+
 @media (min-width: 901px) {
   .header-toggle {
     display: none;
   }
 }
+
 html[data-pig-desktop-platform] .workbench-header {
   min-height: var(--titlebar-inset);
   -webkit-app-region: drag;
@@ -117,6 +123,7 @@ html[data-pig-desktop-platform]
 html[data-pig-desktop-platform="win32"] .workbench-header {
   padding-right: var(--size-windows-caption);
 }
+
 @media (max-width: 520px) {
   .workbench-header > .header-toggle {
     padding-inline: var(--spacing-sm);

@@ -80,6 +80,7 @@ const emit = defineEmits<{
   flex-direction: column;
   margin-top: auto;
 }
+
 .footer-action {
   display: flex;
   flex: none;
@@ -104,6 +105,7 @@ const emit = defineEmits<{
 .footer-action:disabled {
   opacity: 0.45;
 }
+
 .mode-indicator {
   display: flex;
   align-items: center;
@@ -128,6 +130,7 @@ const emit = defineEmits<{
 .mode-indicator-dot.future {
   opacity: 0.55;
 }
+
 @media (prefers-reduced-motion: reduce) {
   .footer-action {
     transition: none;

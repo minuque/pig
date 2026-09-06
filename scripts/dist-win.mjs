@@ -51,6 +51,7 @@ async function assertDesktopGatewaySurface() {
   const instance = new Gateway({ webRoot, port: 0 })
   const port = await instance.start()
   const origin = `http://127.0.0.1:${port}`
+
   try {
     const health = await fetch(`${origin}/health`)
     if (!health.ok) throw new Error(`/health ${health.status}`)

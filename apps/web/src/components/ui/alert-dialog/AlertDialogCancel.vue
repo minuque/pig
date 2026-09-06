@@ -19,6 +19,7 @@ const props = withDefaults(
   defineProps<AlertDialogCancelProps & { class?: HTMLAttributes["class"] }>(),
   { class: undefined },
 )
+
 const delegatedProps = reactiveOmit(props, "class")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<AlertDialogCancelProps>
 </script>

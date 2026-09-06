@@ -12,6 +12,7 @@ export type AssistantRow = {
   errorMessage?: string
   retryCount?: number
 }
+
 export type ToolCallView = {
   id: string
   toolName: string

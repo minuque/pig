@@ -81,15 +81,18 @@ export function useLocalWorkspaces() {
     workspaces.value = [...workspaces.value, canonicalPath]
     saveLocalWorkspaces(workspaces.value)
   }
+
   function remove(path: string) {
     const canonicalPath = canonicalizeWorkspacePath(path)
     workspaces.value = workspaces.value.filter((item) => item !== canonicalPath)
     saveLocalWorkspaces(workspaces.value)
   }
+
   function selectCwd(path: string) {
     lastCwd.value = canonicalizeWorkspacePath(path)
     saveLastCwd(lastCwd.value)
   }
+
   return {
     workspaces: readonly(workspaces),
     lastCwd: readonly(lastCwd),
