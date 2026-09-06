@@ -12,7 +12,6 @@ import { createWebSocketByteTransportFactory, webSocketUrl } from "@client/trans
 export interface PiClientConnectionOptions {
   /** 覆盖默认的本机 WebSocket URL。 */
   url?: string
-  maxFrameLength?: number
 }
 
 const RECONNECT_ATTEMPTS = 5
@@ -55,7 +54,6 @@ export function usePiClient() {
       transportFactory: createWebSocketByteTransportFactory({
         url: options.url ?? webSocketUrl(),
       }),
-      ...(options.maxFrameLength !== undefined ? { maxFrameLength: options.maxFrameLength } : {}),
       onListenerError: (error) => {
         connectionError.value = error
       },

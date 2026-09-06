@@ -69,20 +69,7 @@ watch(
   { flush: "sync" },
 )
 
-const now = shallowRef(Date.now())
-const label = computed(() => toolRowLabel(props.row, now.value))
-watch(
-  () => live.value && props.row.timing?.endedAt === undefined && props.row.timing !== undefined,
-  (active, _, cleanup) => {
-    if (!active) return
-    now.value = Date.now()
-    const timer = setInterval(() => {
-      now.value = Date.now()
-    }, 1000)
-    cleanup(() => clearInterval(timer))
-  },
-  { immediate: true },
-)
+const label = computed(() => toolRowLabel(props.row))
 </script>
 
 <style scoped>

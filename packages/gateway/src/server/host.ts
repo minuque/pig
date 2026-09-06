@@ -13,8 +13,6 @@ export interface GatewayOptions {
   cwd?: string
   /** 目录选择平台端口，测试可注入假件。 */
   platformPort?: DirectoryPort
-  maxFrameLength?: number
-  maxPendingBytes?: number
   /** HTTP 监听端口。缺省 0，由系统分配。 */
   port?: number
 }
@@ -30,7 +28,6 @@ export class Gateway {
   private readonly webRoot: string | undefined
   private readonly platformPort: DirectoryPort
   private readonly listenPort: number
-  private port = 0
 
   constructor(options: GatewayOptions = {}) {
     this.webRoot = options.webRoot
@@ -43,18 +40,7 @@ export class Gateway {
       ...(options.cwd ? { cwd: options.cwd } : {}),
     })
     this.piServer = new PiServer(this.hostService, {
-      listeners: [
-        createWebSocketListener({
-          server: this.server,
-          ...(options.maxFrameLength !== undefined
-            ? { maxFrameLength: options.maxFrameLength }
-            : {}),
-          ...(options.maxPendingBytes !== undefined
-            ? { maxPendingBytes: options.maxPendingBytes }
-            : {}),
-        }),
-      ],
-      ...(options.maxFrameLength !== undefined ? { maxFrameLength: options.maxFrameLength } : {}),
+      listeners: [createWebSocketListener({ server: this.server })],
       onError: (error) => console.error("PiServer error:", error),
     })
   }
@@ -106,8 +92,12 @@ export class Gateway {
       this.server.once("error", reject)
       this.server.listen(this.listenPort, "127.0.0.1", () => {
         this.server.off("error", reject)
-        this.port = (this.server.address() as { port: number }).port
-        resolveStart(this.port)
+        const address = this.server.address()
+        if (!address || typeof address === "string" || address.port === 0) {
+          reject(new Error("Gateway HTTP server has no TCP port"))
+          return
+        }
+        resolveStart(address.port)
       })
     })
   }
@@ -117,10 +107,6 @@ export class Gateway {
     await new Promise<void>((resolveStop, reject) =>
       this.server.close((error) => (error ? reject(error) : resolveStop())),
     )
-  }
-
-  getPort() {
-    return this.port
   }
 }
 

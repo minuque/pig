@@ -6,6 +6,7 @@ import type {
   TranscriptItem,
 } from "@/types/common-type.js"
 import { sessionTitle, UNTITLED_SESSION } from "@features/session-nav/index.js"
+import { transcriptText } from "@features/transcript-view/lib/transcript-format.js"
 import type {
   OptimisticUserMessage,
   SessionClientState,
@@ -22,11 +23,7 @@ export function sessionState(states: Map<string, SessionClientState>, sessionId:
 }
 
 function userText(item: TranscriptItem): string {
-  if (item.role !== "user") return ""
-  return item.content
-    .filter((block): block is { type: "text"; text: string } => block.type === "text")
-    .map((block) => block.text)
-    .join("")
+  return item.role === "user" ? transcriptText(item) : ""
 }
 
 /** 路由已有 session，但 lease 未齐或历史 HTTP 未落地。 */

@@ -14,10 +14,6 @@ const run = (command, args) => {
   if (result.status) throw new Error(`${command} failed`)
 }
 
-if (process.argv[2] === "restore") {
-  process.exit()
-}
-
 const temp = await mkdtemp(join(tmpdir(), "nono-package-"))
 try {
   run("pnpm", ["--filter", "@pig/web", "build"])

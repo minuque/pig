@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url"
 import type { ChildProcess } from "node:child_process"
 import { app, dialog, Menu, type BrowserWindow } from "electron"
 
-import { VITE_DEV_ORIGIN, appUrl, gatewayOrigin, isDesktopDev } from "./urls.js"
+import { VITE_DEV_ORIGIN, gatewayOrigin, isDesktopDev } from "./urls.js"
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
@@ -101,9 +101,7 @@ void app.whenReady().then(async () => {
 
     mainWindow = createMainWindow(preloadPath)
 
-    await mainWindow.loadURL(
-      appUrl(isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port), process.platform),
-    )
+    await mainWindow.loadURL(isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port))
   } catch (error) {
     dialog.showErrorBox("无法启动", error instanceof Error ? error.message : String(error))
     await shutdown()

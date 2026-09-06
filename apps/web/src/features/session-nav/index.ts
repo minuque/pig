@@ -86,7 +86,7 @@ function createNav(
     bumpGroup: nav.bumpGroup,
     toggleGroup: nav.toggleGroup,
     rowsFor: (searching: Parameters<typeof nav.rowsFor>[0]) =>
-      nav.rowsFor(searching, undefined, markers.pinnedIds),
+      nav.rowsFor(searching, markers.pinnedIds),
     pinnedIds: markers.pinnedIds,
     pinnedSessions: markers.pinnedSessions,
     togglePinned: markers.togglePinned,

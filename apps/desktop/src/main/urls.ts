@@ -4,17 +4,6 @@ export function gatewayOrigin(port: number): string {
   return `http://127.0.0.1:${port}`
 }
 
-const DESKTOP_PLATFORMS = new Set(["darwin", "win32", "linux"])
-
-/** 组装窗口要 load 的 URL。合法桌面平台会带 pig-desktop-platform。 */
-export function appUrl(origin: string, platform?: string): string {
-  const url = new URL(origin)
-  if (platform && DESKTOP_PLATFORMS.has(platform)) {
-    url.searchParams.set("pig-desktop-platform", platform)
-  }
-  return url.href
-}
-
 export function isDesktopDev(argv: readonly string[] = process.argv): boolean {
   return argv.includes("--dev")
 }

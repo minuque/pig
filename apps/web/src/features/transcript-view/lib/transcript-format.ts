@@ -34,13 +34,6 @@ export function transcriptImages(item: TranscriptItem): TranscriptImageBlock[] {
     .map((block) => ({ data: block.data, mimeType: block.mimeType }))
 }
 
-export function assistantThinking(item: AssistantTranscriptItem): string[] {
-  return item.content
-    .filter((block): block is { type: "thinking"; thinking: string } => block.type === "thinking")
-    .map((block) => block.thinking)
-    .filter(Boolean)
-}
-
 export function transcriptImageSrc(data: string, mimeType: string): string {
   if (data.startsWith("data:")) return data
   return `data:${mimeType};base64,${data}`
@@ -135,44 +128,11 @@ export function toolWorkingDirectory(input: unknown): string {
   return hintFromKeys(input, ["cwd", "workdir", "working_directory"])
 }
 
-type BuiltinToolName =
-  "read" | "write" | "edit" | "bash" | "powershell" | "pwsh" | "grep" | "find" | "ls"
-
-const KIND_LABELS = {
-  read: "Read",
-  write: "Write",
-  edit: "Edit",
-  bash: "Run",
-  powershell: "Pwsh",
-  pwsh: "Pwsh",
-  grep: "Search",
-  find: "Find",
-  ls: "List",
-} as const satisfies Record<BuiltinToolName, string>
-
-function isBuiltinToolName(name: string): name is BuiltinToolName {
-  return Object.hasOwn(KIND_LABELS, name)
-}
-
-export function toolCallKindLabel(toolName: string): string {
-  const name = toolName.trim().toLowerCase()
-  if (isBuiltinToolName(name)) return KIND_LABELS[name]
-  return toolName.trim() || "Tool"
-}
-
 export function toolCallDetail(toolName: string, input: unknown): string {
   const name = toolName.trim().toLowerCase()
   if (isCommandTool(name)) {
     const description = hintFromKeys(input, ["description"])
     return description || toolCommand(input)
   }
-  const hint = toolInputHint(input)
-  return hint
-}
-
-/** 顶栏标题：种类 + 入参对象。 */
-export function toolCallTitle(toolName: string, input: unknown): string {
-  const kind = toolCallKindLabel(toolName)
-  const detail = toolCallDetail(toolName, input)
-  return detail ? `${kind} ${detail}` : kind
+  return toolInputHint(input)
 }

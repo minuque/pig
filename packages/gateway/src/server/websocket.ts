@@ -14,11 +14,6 @@ const WEBSOCKET_PATH = "/api/v1/pi"
 export interface WebSocketListenerOptions {
   /** 承载升级的 HTTP server（只绑定 127.0.0.1）。 */
   server: Server
-  /** 单帧上限：同时作为 ws 接收 payload 上限，需与 PiServer maxFrameLength 一致。 */
-  maxFrameLength?: number
-  /** 每连接待发送积压上限：慢客户端超限时断开。 */
-  maxPendingBytes?: number
-  onError?: (error: Error) => void
 }
 
 const DEFAULT_MAX_PENDING_BYTES = 16 * 1024 * 1024
@@ -27,9 +22,8 @@ const GRACEFUL_CLOSE_TIMEOUT_MS = 5_000
 /** PiServerListener 的 WebSocket 实现：路径匹配后把连接交给 PiServer。 */
 export function createWebSocketListener(options: WebSocketListenerOptions): PiServerListener {
   const { server } = options
-  const maxFrameLength = options.maxFrameLength ?? DEFAULT_MAX_FRAME_LENGTH
-  const maxPendingBytes = options.maxPendingBytes ?? DEFAULT_MAX_PENDING_BYTES
-  const onError = options.onError
+  const maxFrameLength = DEFAULT_MAX_FRAME_LENGTH
+  const maxPendingBytes = DEFAULT_MAX_PENDING_BYTES
   const wss = new WebSocketServer({
     noServer: true,
     // ws 的 maxPayload 是整条 WebSocket 消息上限；PiServer maxFrameLength 只算 CBOR
@@ -52,7 +46,7 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
         ws.close(1013, "host is not ready")
         return
       }
-      const handler = accept(new WebSocketByteConnection(ws, maxPendingBytes, onError))
+      const handler = accept(new WebSocketByteConnection(ws, maxPendingBytes))
       ws.on("message", (data, isBinary) => {
         if (!isBinary) {
           ws.close(1003, "binary frames only")
@@ -89,7 +83,6 @@ class WebSocketByteConnection implements ByteConnection {
   constructor(
     private readonly socket: WebSocket,
     private readonly maxPendingBytes: number,
-    private readonly onError?: (error: Error) => void,
   ) {
     socket.on("close", () => {
       this.closedValue = true
@@ -104,7 +97,6 @@ class WebSocketByteConnection implements ByteConnection {
     if (this.closedValue) return Promise.reject(new Error("WebSocket connection is closed"))
     if (this.pendingBytes + chunk.byteLength > this.maxPendingBytes) {
       // 慢客户端：待发送积压超限，断开
-      this.onError?.(new Error(`WebSocket send backlog exceeded ${this.maxPendingBytes} bytes`))
       this.closedValue = true
       this.socket.terminate()
       return Promise.resolve()

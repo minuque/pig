@@ -97,7 +97,6 @@ try {
     if (child.exitCode === null) await new Promise((resolveExit) => child.once("exit", resolveExit))
   }
 } finally {
-  run(process.execPath, [join(root, "scripts/build-package.mjs"), "restore"])
   await rm(join(gateway, "dist"), { recursive: true, force: true })
   await rm(join(gateway, "web"), { recursive: true, force: true })
   await rm(staging, { recursive: true, force: true })

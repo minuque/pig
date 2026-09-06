@@ -3,7 +3,6 @@ import type { TranscriptItem } from "@/types/common-type.js"
 import {
   isVisibleTranscriptItem,
   toolCallDetail,
-  toolCallTitle,
   toolInputPretty,
   transcriptImages,
 } from "@features/transcript-view/lib/transcript-format.js"
@@ -58,16 +57,13 @@ describe("isVisibleTranscriptItem", () => {
   })
 })
 
-describe("tool call title", () => {
-  it("种类加路径或命令，命令工具优先用描述", () => {
-    expect(toolCallTitle("read", { path: "src/app/page.tsx" })).toBe("Read src/app/page.tsx")
-    expect(toolCallTitle("bash", { command: "git status" })).toBe("Run git status")
-    expect(toolCallTitle("web_search", { query: "vue sfc" })).toBe("web_search vue sfc")
+describe("tool call detail", () => {
+  it("命令工具优先用描述", () => {
     const description = "检查 Web 类型与依赖"
     const command = "git status --short"
     expect(toolCallDetail("bash", { command, description })).toBe(description)
     expect(toolCallDetail("powershell", { cmd: command })).toBe(command)
-    expect(toolCallTitle("powershell", { cmd: command, description })).toBe(`Pwsh ${description}`)
+    expect(toolCallDetail("read", { path: "src/app/page.tsx" })).toBe("src/app/page.tsx")
     expect(toolInputPretty({ command, description })).toBe(
       JSON.stringify({ command, description }, null, 2),
     )

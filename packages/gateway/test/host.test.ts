@@ -90,8 +90,8 @@ describe("thin host HTTP shell", () => {
 
 describe("thin host WebSocket", () => {
   it("rejects upgrades on unknown paths", async () => {
-    await startGateway()
-    const port = gateway!.getPort()
+    const base = await startGateway()
+    const port = new URL(base).port
     const status = await new Promise<number>((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error("upgrade 未返回 unexpected-response")), 3000)
       const socket = new WebSocket(`ws://127.0.0.1:${port}/nope`)
@@ -108,8 +108,8 @@ describe("thin host WebSocket", () => {
   })
 
   it("hands connections to PiServer after upgrade", async () => {
-    await startGateway()
-    const port = gateway!.getPort()
+    const base = await startGateway()
+    const port = new URL(base).port
     const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`)
     const result = await new Promise<{ message: unknown; closed: boolean }>((resolve, reject) => {
       const decoder = new ServerMessageDecoder()

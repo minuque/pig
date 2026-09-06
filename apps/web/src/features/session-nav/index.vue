@@ -186,7 +186,7 @@ import { computed, reactive, shallowRef, watch } from "vue"
 import { useEventListener, useTimestamp } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
 import { ArrowDown, PanelLeft, Search } from "@lucide/vue"
-import { notify } from "@components/ui/alert/index.js"
+import { notifyError } from "@components/ui/alert/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
@@ -251,7 +251,7 @@ useEventListener(window, "keydown", (event) => {
 
 watch(workspaceError, (message) => {
   const text = message.trim()
-  if (text) notify.error(text)
+  if (text) notifyError(text)
 })
 
 function sessionState(id: string): SidebarSessionState | undefined {

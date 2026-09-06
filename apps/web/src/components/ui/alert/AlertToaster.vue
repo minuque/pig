@@ -3,15 +3,9 @@
     <div class="alert-toaster">
       <TransitionGroup name="alert-toaster" tag="div" class="alert-toaster-stack">
         <div v-for="item in noticeQueue" :key="item.id" class="alert-toaster-item">
-          <Alert :variant="item.variant" class="alert-toaster-alert">
-            <component :is="noticeIcons[item.variant]" />
-            <AlertTitle v-if="item.title">{{ item.title }}</AlertTitle>
+          <Alert variant="error" class="alert-toaster-alert">
+            <CircleAlert />
             <AlertDescription>{{ item.message }}</AlertDescription>
-            <AlertAction v-if="item.action">
-              <button class="alert-toaster-action" type="button" @click="runAction(item)">
-                {{ item.action.label }}
-              </button>
-            </AlertAction>
           </Alert>
           <button class="alert-toaster-close" type="button" @click="dismissNotice(item.id)">
             <X class="size-icon" />
@@ -23,29 +17,10 @@
 </template>
 
 <script setup lang="ts">
-import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "@lucide/vue"
+import { CircleAlert, X } from "@lucide/vue"
 import Alert from "@components/ui/alert/Alert.vue"
-import AlertAction from "@components/ui/alert/AlertAction.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
-import AlertTitle from "@components/ui/alert/AlertTitle.vue"
-import {
-  dismissNotice,
-  noticeQueue,
-  type Notice,
-  type NoticeVariant,
-} from "@components/ui/alert/notify.js"
-
-const noticeIcons = {
-  error: CircleAlert,
-  info: Info,
-  success: CircleCheck,
-  warning: TriangleAlert,
-} satisfies Record<NoticeVariant, typeof CircleAlert>
-
-function runAction(item: Notice): void {
-  dismissNotice(item.id)
-  item.action?.onSelect()
-}
+import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
 </script>
 
 <style scoped>
@@ -71,17 +46,6 @@ function runAction(item: Notice): void {
 .alert-toaster-alert {
   padding-right: var(--spacing-xl);
   box-shadow: var(--shadow-elevated);
-}
-.alert-toaster-action {
-  min-height: var(--size-icon-button);
-  padding-inline: var(--spacing-xs);
-  border-radius: var(--radius-sm);
-  color: currentColor;
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-}
-.alert-toaster-action:hover {
-  background: color-mix(in srgb, currentColor 8%, transparent);
 }
 .alert-toaster-close {
   position: absolute;

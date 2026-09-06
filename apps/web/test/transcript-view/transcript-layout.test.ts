@@ -280,8 +280,8 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     )
     const work = rows.filter(isToolRow)
     expect(work.map((row) => row.mode)).toEqual(["done", "live"])
-    expect(work[0] && toolRowLabel(work[0], 999999)).toBe("读1次文件")
-    expect(work[1] && toolRowLabel(work[1], 12000)).toBe("运行1条命令")
+    expect(work[0] && toolRowLabel(work[0])).toBe("读1次文件")
+    expect(work[1] && toolRowLabel(work[1])).toBe("运行1条命令")
   })
 
   it("失败路径：工具失败单列，行摘要汇总工作，重试错误信息不丢失", () => {
@@ -323,7 +323,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     const work = buildTimelineRows([user, tool("t1")], false, [
       { userId: "u1", startedAt: 1000, outcome: "running" },
     ]).find(isToolRow)
-    expect(work && toolRowLabel(work, 999999)).toBe("读1次文件")
+    expect(work && toolRowLabel(work)).toBe("读1次文件")
   })
 
   it("思考与多类工具按参考样式汇总为一个标题", () => {

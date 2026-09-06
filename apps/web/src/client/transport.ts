@@ -15,10 +15,6 @@ export const WEBSOCKET_PATH = "/api/v1/pi"
 export interface WebSocketTransportOptions {
   /** 目标 WebSocket URL。 */
   url: string
-  /** 传给 WebSocket 构造器的子协议列表。 */
-  protocols?: string | string[]
-  /** 二进制消息类型，默认 "arraybuffer"。 */
-  binaryType?: BinaryType
 }
 
 /**
@@ -43,8 +39,8 @@ export function createWebSocketByteTransportFactory(
   options: WebSocketTransportOptions,
 ): ByteTransportFactory {
   return (handlers: ByteTransportHandlers): ByteTransport => {
-    const socket = new WebSocket(options.url, options.protocols)
-    socket.binaryType = options.binaryType ?? "arraybuffer"
+    const socket = new WebSocket(options.url)
+    socket.binaryType = "arraybuffer"
     let closed = false
     let opened = false
     let openResolve: () => void = () => {}

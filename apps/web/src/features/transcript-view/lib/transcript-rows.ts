@@ -223,7 +223,7 @@ export function buildTimelineRows(
   return rows
 }
 
-export function toolRowLabel(row: ToolRow, _now = Date.now()): string {
+export function toolRowLabel(row: ToolRow): string {
   const thoughtCount = row.steps.filter((step) => step.type === "thought").length
   const toolCounts = new Map<ToolGroupKey, number>()
   for (const step of row.steps) {

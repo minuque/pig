@@ -1,5 +1,6 @@
 import type { SessionMetadata, TranscriptItem } from "@/types/common-type.js"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
+import { transcriptText } from "@features/transcript-view/lib/transcript-format.js"
 import type {
   SessionCardExtra,
   SessionCardLive,
@@ -194,13 +195,6 @@ export function sessionCardFoot(
     modelProvider: model?.provider ?? "",
     outcome: isLive ? (live.outcome ?? extra?.outcome) : extra?.outcome,
   }
-}
-
-function transcriptText(item: TranscriptItem): string {
-  return item.content
-    .filter((block): block is { type: "text"; text: string } => block.type === "text")
-    .map((block) => block.text)
-    .join("")
 }
 
 function isRetryErrorItem(item: TranscriptItem): boolean {
