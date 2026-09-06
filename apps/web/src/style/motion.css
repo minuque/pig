@@ -111,11 +111,6 @@
   border-radius: var(--radius-xl);
   box-shadow: 0 0 var(--spacing-sm) var(--card-glow-soft);
 }
-.motion-focus-ring {
-  box-shadow:
-    0 0 0 var(--border-width) var(--card-glow-trail),
-    0 0 var(--spacing-xs) var(--card-glow-width) var(--card-glow-soft);
-}
 .motion-card-glow::after {
   position: absolute;
   z-index: 11;

@@ -1,12 +1,8 @@
 <template>
   <Startup :connect="pi.connect" :initialize="session.initialize">
     <AppLayout>
-      <template #sidebar="{ onNavigate, collapsed, toggle }">
-        <SessionNav
-          :collapsed="collapsed"
-          @navigate="handleSidebarNavigate($event, onNavigate)"
-          @toggle="toggle"
-        />
+      <template #sidebar="{ onNavigate, toggle }">
+        <SessionNav @navigate="handleSidebarNavigate($event, onNavigate)" @toggle="toggle" />
       </template>
       <RouterView />
     </AppLayout>

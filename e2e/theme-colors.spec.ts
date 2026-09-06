@@ -5,8 +5,8 @@ const palettes = [
     theme: "light",
     surface: "rgb(255, 255, 255)",
     sidebar: "rgb(250, 250, 251)",
-    input: "rgb(242, 242, 243)",
-    inputBorder: "rgb(224, 226, 229)",
+    input: "rgb(255, 255, 255)",
+    inputBorder: "rgb(236, 237, 239)",
     ink: "rgb(31, 33, 36)",
     faint: "rgb(154, 157, 163)",
     popover: "rgb(255, 255, 255)",
@@ -17,8 +17,8 @@ const palettes = [
     theme: "dark",
     surface: "rgb(35, 36, 39)",
     sidebar: "rgb(23, 24, 26)",
-    input: "rgb(43, 44, 47)",
-    inputBorder: "rgb(58, 60, 64)",
+    input: "rgb(35, 36, 39)",
+    inputBorder: "rgb(46, 48, 51)",
     ink: "rgb(242, 243, 244)",
     faint: "rgb(108, 111, 117)",
     popover: "rgb(35, 36, 39)",
@@ -51,6 +51,8 @@ for (const palette of palettes) {
     await expect(page.locator("main")).toHaveCSS("background-color", palette.surface)
     await expect(input).toHaveCSS("background-color", palette.input)
     await expect(input).toHaveCSS("border-top-color", palette.inputBorder)
+    await expect(input).toHaveCSS("border-top-width", "1px")
+    await expect(input).toHaveCSS("box-shadow", "none")
     await expect(page.locator(".field[contenteditable]")).toHaveCSS("color", palette.ink)
     const placeholder = await page
       .locator(".field[contenteditable]")
@@ -59,6 +61,8 @@ for (const palette of palettes) {
 
     await page.locator(".field[contenteditable]").fill("颜色回归测试，不发送")
     await expect(page.locator("button.send")).toBeEnabled()
+    await expect(input).toHaveCSS("border-top-width", "1px")
+    await expect(input).toHaveCSS("box-shadow", "none")
     await page.getByRole("button", { name: "筛选", exact: true }).click()
     const menu = page.locator('[data-slot="dropdown-menu-content"]')
     await expect(menu).toBeVisible()
@@ -83,18 +87,6 @@ for (const palette of palettes) {
     await page.evaluate(() => {
       document.documentElement.dataset.pigDesktopPlatform = "win32"
     })
-    const desktopInput = await page.locator(".glass-shell").evaluate((element) => {
-      const style = getComputedStyle(element, "::before")
-      return { background: style.backgroundColor, content: style.content, display: style.display }
-    })
-    expect(desktopInput.background).toBe(palette.input)
-    expect(desktopInput.content).toBe('""')
-    expect(desktopInput.display).not.toBe("none")
-    const desktopBorder = await input.evaluate((element) => {
-      const style = getComputedStyle(element, "::after")
-      return { color: style.borderTopColor, width: style.borderTopWidth, content: style.content }
-    })
-    expect(desktopBorder).toEqual({ color: palette.inputBorder, width: "1px", content: '""' })
     const desktopFill = await page.screenshot({ clip: fillSample, animations: "disabled" })
     expect(desktopFill.equals(webFill)).toBe(true)
     await page.screenshot({ path: info.outputPath(`${palette.theme}-desktop.png`) })

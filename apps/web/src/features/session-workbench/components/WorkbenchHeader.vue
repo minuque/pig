@@ -1,6 +1,6 @@
 <template>
   <header class="workbench-header">
-    <button class="header-toggle" type="button" @click="toggle">
+    <button v-if="!leftOpen" class="header-toggle" type="button" title="打开侧边栏" @click="toggle">
       <PanelLeft class="size-icon" />
     </button>
     <h1 v-if="title" id="current-title" class="header-crumb">
@@ -21,7 +21,7 @@ import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
 import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
-const { toggle } = useLeftPanelToggle()
+const { leftOpen, toggle } = useLeftPanelToggle()
 const { sessionId, projection } = useSession()
 const { listedSessions } = useNav()
 
@@ -103,12 +103,6 @@ const title = computed(() =>
   align-items: center;
   margin-left: auto;
   gap: var(--spacing-xs);
-}
-
-@media (min-width: 901px) {
-  .header-toggle {
-    display: none;
-  }
 }
 
 html[data-pig-desktop-platform] .workbench-header {

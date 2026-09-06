@@ -161,8 +161,6 @@
   --size-control: 40px;
   --size-menu: 140px;
   --size-sidebar: 280px;
-  --size-sidebar-rail: 56px;
-  --size-sidebar-rail-mac: 90px;
   --titlebar-inset: 44px;
   --size-windows-caption: 138px;
   --size-drawer: 360px;
@@ -492,11 +490,6 @@ h1,
 h2,
 p {
   overflow-wrap: anywhere;
-}
-
-/* 桌面壳 */
-html[data-pig-desktop-platform="darwin"] {
-  --size-sidebar-rail: var(--size-sidebar-rail-mac);
 }
 
 html[data-pig-desktop-platform]:has([data-slot="dialog-content"]) body *,

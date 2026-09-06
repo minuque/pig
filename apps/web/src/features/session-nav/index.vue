@@ -1,10 +1,10 @@
 <template>
-  <div class="session-nav" :class="{ collapsed }">
+  <div class="session-nav">
     <div class="titlebar-drag"></div>
 
     <div class="nav-inset">
       <div class="logo-row">
-        <RouterLink v-if="!collapsed" to="/" class="logo-mark">
+        <RouterLink to="/" class="logo-mark">
           <img src="/logo.png" alt="" width="22" height="22" />
         </RouterLink>
         <button class="collapse-toggle" type="button" title="折叠侧边栏" @click="emit('toggle')">
@@ -12,17 +12,7 @@
         </button>
       </div>
 
-      <button
-        v-if="collapsed"
-        class="rail-action press-scale"
-        type="button"
-        title="搜索"
-        @click="searchOpen = true"
-      >
-        <Search class="size-icon" />
-      </button>
-
-      <div v-show="!collapsed" class="nav-main">
+      <div class="nav-main">
         <NavToolbar @search="searchOpen = true" />
 
         <div class="nav-body">
@@ -171,7 +161,6 @@
     <NavFooter
       :grouping="grouping"
       :adding-workspace="addingWorkspace"
-      :collapsed="collapsed"
       :hint-add="!groups.length"
       @add-workspace="addWorkspace"
       @set-grouping="setGrouping"
@@ -185,7 +174,7 @@
 import { computed, reactive, shallowRef, watch } from "vue"
 import { useEventListener, useTimestamp } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
-import { ArrowDown, PanelLeft, Search } from "@lucide/vue"
+import { ArrowDown, PanelLeft } from "@lucide/vue"
 import { notifyError } from "@components/ui/alert/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
@@ -196,10 +185,6 @@ import SessionSearch from "@features/session-nav/components/SessionSearch.vue"
 import { sidebarTimeSections, toSidebarSession } from "@features/session-nav/lib/session-list.js"
 import { useSettings } from "@features/settings/index.js"
 import type { SidebarRow, SidebarSessionState } from "@features/session-nav/type.js"
-
-defineProps<{
-  collapsed?: boolean
-}>()
 
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
@@ -302,10 +287,6 @@ function onCreateInDir(canonicalPath: string): void {
   min-height: 0;
   padding-inline: var(--nav-inline);
 }
-.session-nav.collapsed .nav-inset {
-  align-items: center;
-}
-
 .titlebar-drag {
   display: none;
   position: absolute;
@@ -319,10 +300,6 @@ html[data-pig-desktop-platform] .titlebar-drag {
 html[data-pig-desktop-platform="win32"] .titlebar-drag {
   display: none;
 }
-html[data-pig-desktop-platform="darwin"] .session-nav.collapsed .titlebar-drag {
-  height: 32px;
-}
-
 html[data-pig-desktop-platform] .session-nav {
   padding-top: calc(6px + var(--titlebar-inset));
 }
@@ -333,10 +310,6 @@ html[data-pig-desktop-platform="win32"] .session-nav {
 html[data-pig-desktop-platform="darwin"] .session-nav {
   padding-top: 32px;
 }
-html[data-pig-desktop-platform="darwin"] .session-nav.collapsed {
-  padding-top: 48px;
-}
-
 html[data-pig-desktop-platform] .logo-row {
   -webkit-app-region: drag;
 }
@@ -354,8 +327,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   min-height: var(--titlebar-inset);
 }
 .logo-mark,
-.collapse-toggle,
-.rail-action {
+.collapse-toggle {
   display: flex;
   flex: none;
   align-items: center;
@@ -377,7 +349,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   height: 22px;
   object-fit: contain;
 }
-:is(.logo-mark, .collapse-toggle, .rail-action):hover {
+:is(.logo-mark, .collapse-toggle):hover {
   background: var(--hover-quiet);
   color: var(--ink);
 }
@@ -497,11 +469,6 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   .time-section.is-open {
     transition: none;
   }
-}
-
-.session-nav.collapsed .logo-row {
-  width: var(--size-nav-rail);
-  justify-content: center;
 }
 
 @media (max-width: 900px) {

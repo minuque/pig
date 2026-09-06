@@ -15,7 +15,7 @@
       </div>
     </div>
     <div class="glass-shell" :class="{ 'motion-card-glow': running }">
-      <div class="glass-host" :class="{ 'motion-focus-ring': focused }">
+      <div class="glass-host">
         <div class="editor-wrap">
           <div
             ref="editor"
@@ -180,8 +180,8 @@ defineExpose({ focus })
   bottom: -8px;
   display: flex;
   align-items: flex-start;
-  background: var(--chat-input);
-  border: var(--border-width) solid var(--chat-input-ring);
+  background: var(--surface);
+  border: var(--border-width) solid var(--hairline);
   border-bottom: 0;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
@@ -201,27 +201,14 @@ defineExpose({ focus })
 .glass-shell {
   position: relative;
   z-index: 10;
-  isolation: isolate;
-}
-.glass-shell::before {
-  pointer-events: none;
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  border-radius: var(--radius-xl);
-  background: var(--chat-input);
-  box-shadow: var(--shadow-soft);
-  content: "";
 }
 .glass-host {
   position: relative;
-  z-index: 10;
   display: flex;
   flex-direction: column;
-  background: transparent;
-  border: var(--border-width) solid var(--chat-input-ring);
+  background: var(--surface);
+  border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-xl);
-  transition: box-shadow var(--duration-fast) var(--ease-smooth);
 }
 
 .editor-wrap {
@@ -298,11 +285,5 @@ defineExpose({ focus })
   align-items: center;
   gap: 6px;
   flex: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .glass-host {
-    transition: none;
-  }
 }
 </style>

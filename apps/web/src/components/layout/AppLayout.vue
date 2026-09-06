@@ -4,13 +4,8 @@
     :class="{ 'left-closed': !leftOpen, 'is-resizing': resizing }"
     :style="{ '--left-width': `${leftWidth}px` }"
   >
-    <aside class="sidebar" :class="{ open: leftOpen }">
-      <slot
-        name="sidebar"
-        :on-navigate="closeMobilePanels"
-        :collapsed="!leftOpen && !isNarrow"
-        :toggle="toggle"
-      />
+    <aside class="sidebar" :class="{ open: leftOpen }" :inert="!leftOpen">
+      <slot name="sidebar" :on-navigate="closeMobilePanels" :toggle="toggle" />
     </aside>
     <div
       v-if="leftOpen"
@@ -33,19 +28,11 @@ import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-pa
 
 defineSlots<{
   default(): unknown
-  sidebar(props: { onNavigate: () => void; collapsed: boolean; toggle: () => void }): unknown
+  sidebar(props: { onNavigate: () => void; toggle: () => void }): unknown
 }>()
 
-const {
-  leftOpen,
-  leftWidth,
-  isNarrow,
-  resizing,
-  toggle,
-  resizeBy,
-  startResize,
-  closeMobilePanels,
-} = useLeftPanel()
+const { leftOpen, leftWidth, resizing, toggle, resizeBy, startResize, closeMobilePanels } =
+  useLeftPanel()
 
 provide(leftPanelKey, { leftOpen, toggle, resizing })
 </script>
@@ -131,7 +118,7 @@ main {
 
 @media (min-width: 901px) {
   .shell.left-closed .sidebar {
-    width: var(--size-sidebar-rail);
+    width: 0;
   }
 }
 

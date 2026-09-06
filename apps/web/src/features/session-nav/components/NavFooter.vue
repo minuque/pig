@@ -1,8 +1,8 @@
 <template>
-  <div class="nav-footer" :class="{ 'is-collapsed': collapsed }">
+  <div class="nav-footer">
     <button
       class="footer-action press-scale"
-      :class="{ 'motion-pulse': hintAdd && !collapsed }"
+      :class="{ 'motion-pulse': hintAdd }"
       type="button"
       :disabled="addingWorkspace"
       title="新增工作区"
@@ -10,7 +10,7 @@
     >
       <Plus class="size-icon" />
     </button>
-    <div v-if="!collapsed" class="mode-indicator" aria-label="会话分组方式">
+    <div class="mode-indicator" aria-label="会话分组方式">
       <button
         class="mode-hit"
         type="button"
@@ -33,15 +33,6 @@
         <span class="mode-indicator-dot future"></span>
       </button>
     </div>
-    <button
-      v-else
-      class="footer-action press-scale"
-      type="button"
-      title="切换会话分组方式"
-      @click="emit('setGrouping', grouping === 'project' ? 'updated' : 'project')"
-    >
-      <ListFilter class="size-icon" />
-    </button>
     <button class="footer-action press-scale" type="button" title="设置" @click="emit('settings')">
       <Settings class="size-icon" />
     </button>
@@ -49,13 +40,12 @@
 </template>
 
 <script setup lang="ts">
-import { ListFilter, Plus, Settings } from "@lucide/vue"
+import { Plus, Settings } from "@lucide/vue"
 import type { SidebarGrouping } from "@features/session-nav/type.js"
 
 defineProps<{
   grouping: SidebarGrouping
   addingWorkspace?: boolean
-  collapsed?: boolean
   hintAdd?: boolean
 }>()
 
@@ -76,11 +66,6 @@ const emit = defineEmits<{
   padding: var(--spacing-xs) var(--nav-inline, var(--spacing-xs));
   border-top: var(--border-width) solid var(--hairline);
 }
-.nav-footer.is-collapsed {
-  flex-direction: column;
-  margin-top: auto;
-}
-
 .footer-action {
   display: flex;
   flex: none;
