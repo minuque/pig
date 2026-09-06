@@ -19,7 +19,7 @@
     <span v-if="kind === 'directory'" class="trail icon-swap">
       <span v-if="count !== undefined" class="group-count">{{ count }}</span>
       <button
-        class="group-new"
+        class="group-new motion-hint"
         type="button"
         title="新会话"
         aria-label="在此目录新建会话"
@@ -132,24 +132,17 @@ const emit = defineEmits<{
 }
 
 @media (hover: hover) {
-  .trail .group-new {
-    opacity: 0;
-    scale: 0.25;
-    filter: blur(4px);
-    pointer-events: none;
-  }
-  .group-head:hover .trail .group-count,
-  .trail:has(.group-new:focus-visible) .group-count {
-    opacity: 0;
-    scale: 0.25;
-    filter: blur(4px);
-  }
-  .group-head:hover .trail .group-new,
-  .trail .group-new:focus-visible {
+  .group-head:is(:hover, :focus-within) .motion-hint,
+  .motion-hint:focus-visible {
     opacity: 1;
     scale: 1;
     filter: blur(0);
     pointer-events: auto;
+  }
+  .group-head:is(:hover, :focus-within) .group-count {
+    opacity: 0;
+    scale: 0.25;
+    filter: blur(4px);
   }
 }
 

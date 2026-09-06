@@ -24,7 +24,7 @@
         <rect x="10" y="2" width="2.5" height="10.5" rx="1" :style="{ opacity: barOpacities[2] }" />
       </svg>
     </span>
-    <MorphingLabel class="level-name" :text="label" />
+    <span class="level-name">{{ label }}</span>
   </Button>
 </template>
 
@@ -71,7 +71,6 @@ export function thinkingBarOpacities(
 <script setup lang="ts">
 import { computed } from "vue"
 import { Button } from "@components/ui/button/index.js"
-import MorphingLabel from "./MorphingLabel.vue"
 
 const props = withDefaults(
   defineProps<{

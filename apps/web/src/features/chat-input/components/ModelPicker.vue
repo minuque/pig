@@ -14,7 +14,7 @@
           :name="current.vendor.name"
           :size="14"
         />
-        <MorphingLabel class="selector-name" :text="label" />
+        <span class="selector-name">{{ label }}</span>
         <ChevronDown aria-hidden="true" />
       </Button>
     </DropdownMenuTrigger>
@@ -130,7 +130,6 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Button } from "@components/ui/button/index.js"
-import MorphingLabel from "./MorphingLabel.vue"
 import VendorMark from "@features/chat-input/components/VendorMark.vue"
 import { useModelFavorites } from "@features/chat-input/hooks/use-model-favorites.js"
 import {
@@ -155,7 +154,6 @@ const emit = defineEmits<{
 }>()
 
 const open = defineModel<boolean>("open", { default: false })
-const active = defineModel<boolean>("active", { default: false })
 
 const query = ref("")
 const scope = ref(FAVORITES_SCOPE)
@@ -190,7 +188,6 @@ const emptyText = computed(() =>
 
 watch(open, (isOpen) => {
   if (!isOpen) return
-  active.value = true
   query.value = ""
   scope.value = current.value.vendor?.id ?? props.catalog[0]?.id ?? FAVORITES_SCOPE
 })
@@ -223,9 +220,6 @@ function suppressFocusRestore() {
 function onCloseAutoFocus(event: Event) {
   if (suppressRestore) event.preventDefault()
   suppressRestore = false
-  void nextTick(() => {
-    active.value = open.value
-  })
 }
 </script>
 

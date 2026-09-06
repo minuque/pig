@@ -51,72 +51,28 @@
             </section>
 
             <Transition :name="groupSlide">
-              <ul v-if="showList && grouping === 'project'" key="project">
+              <ul
+                v-if="showList"
+                :key="grouping"
+                :class="{ 'time-sections': grouping === 'updated' }"
+              >
                 <li
-                  v-for="row in groupRows"
-                  :key="row.key"
-                  class="row-group"
-                  :class="{ 'is-open': !row.collapsed && (row.sessions.length > 0 || row.more) }"
-                >
-                  <GroupHead
-                    :name="workspaceName(row.canonicalPath)"
-                    kind="directory"
-                    :count="row.sessions.length"
-                    :collapsed="row.collapsed"
-                    @toggle="toggleGroup(row.canonicalPath)"
-                    @create="onCreateInDir(row.canonicalPath)"
-                  />
-                  <div
-                    v-if="row.sessions.length > 0 || row.more"
-                    class="session-list-group"
-                    :class="{ 'is-open': !row.collapsed }"
-                  >
-                    <TransitionGroup name="list-reveal" tag="div" class="group-body">
-                      <SessionItem
-                        v-for="session in row.sessions"
-                        :key="session.id"
-                        :session="session"
-                        :active="session.id === activeSessionId"
-                        :pinned="pinnedIds.has(session.id)"
-                        :state="sessionState(session.id)"
-                        :now="now"
-                        :model-provider="modelProvider(session.id)"
-                        @navigate="onSessionNavigate(session.cwd)"
-                        @toggle-pinned="togglePinned"
-                        @rename="renameSession"
-                        @delete="deleteSession"
-                      />
-                      <button
-                        v-if="row.more"
-                        :key="`${row.key}-more`"
-                        class="more-button"
-                        type="button"
-                        @click="bumpGroup(row.key)"
-                      >
-                        显示更多
-                      </button>
-                    </TransitionGroup>
-                  </div>
-                </li>
-              </ul>
-
-              <ul v-else-if="showList" key="updated" class="time-sections">
-                <li
-                  v-for="(section, index) in timeSections"
+                  v-for="section in listSections"
                   :key="section.key"
-                  class="time-section"
-                  :class="{ 'is-open': !collapsedSections[section.key] }"
+                  :class="[section.rowClass, { 'is-open': section.open }]"
                 >
                   <GroupHead
                     :name="section.name"
-                    kind="time"
-                    :count="section.sessions.length"
-                    :collapsed="collapsedSections[section.key]"
-                    @toggle="toggleTimeSection(section.key)"
+                    :kind="section.kind"
+                    :count="section.count"
+                    :collapsed="section.collapsed"
+                    @toggle="section.toggle"
+                    @create="section.create?.()"
                   />
                   <div
+                    v-if="section.sessions.length > 0 || section.more"
                     class="session-list-group"
-                    :class="{ 'is-open': !collapsedSections[section.key] }"
+                    :class="{ 'is-open': !section.collapsed }"
                   >
                     <TransitionGroup name="list-reveal" tag="div" class="group-body">
                       <SessionItem
@@ -134,11 +90,11 @@
                         @delete="deleteSession"
                       />
                       <button
-                        v-if="hasMore && index === timeSections.length - 1"
+                        v-if="section.more"
                         :key="`${section.key}-more`"
                         class="more-button"
                         type="button"
-                        @click="bumpGroup('updated')"
+                        @click="section.bump"
                       >
                         显示更多
                       </button>
@@ -229,6 +185,38 @@ const timeSections = computed(() => sidebarTimeSections(updatedSessions.value, n
 const hasMore = computed(() => rows.value.some((row) => row.kind === "more"))
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
 const groupSlide = computed(() => (grouping.value === "updated" ? "slide-next" : "slide-prev"))
+const listSections = computed(() => {
+  if (grouping.value === "project") {
+    return groupRows.value.map((row) => ({
+      key: row.key,
+      rowClass: "row-group",
+      name: workspaceName(row.canonicalPath),
+      kind: "directory" as const,
+      count: row.sessions.length,
+      collapsed: row.collapsed,
+      open: !row.collapsed && (row.sessions.length > 0 || row.more),
+      sessions: row.sessions,
+      more: row.more,
+      bump: () => bumpGroup(row.key),
+      toggle: () => toggleGroup(row.canonicalPath),
+      create: () => onCreateInDir(row.canonicalPath),
+    }))
+  }
+  return timeSections.value.map((section, index) => ({
+    key: section.key,
+    rowClass: "time-section",
+    name: section.name,
+    kind: "time" as const,
+    count: section.sessions.length,
+    collapsed: collapsedSections[section.key],
+    open: !collapsedSections[section.key],
+    sessions: section.sessions,
+    more: hasMore.value && index === timeSections.value.length - 1,
+    bump: () => bumpGroup("updated"),
+    toggle: () => toggleTimeSection(section.key),
+    create: undefined as (() => void) | undefined,
+  }))
+})
 
 useEventListener(window, "keydown", (event) => {
   if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return

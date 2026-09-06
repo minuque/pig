@@ -17,21 +17,17 @@
     <div class="glass-shell" :class="{ 'motion-card-glow': running }">
       <div class="glass-host">
         <div class="editor-wrap">
-          <div
+          <textarea
             ref="editor"
+            v-model="prompt"
             class="field"
-            :contenteditable="readonly ? 'false' : 'plaintext-only'"
-            role="textbox"
+            :placeholder="placeholder"
+            :readonly="readonly"
             aria-label="Prompt"
-            aria-multiline="true"
             :aria-readonly="readonly"
-            tabindex="0"
-            data-prompt-field
-            :data-empty="!hasText || undefined"
-            :data-placeholder="placeholder"
-            @input="syncFromEditor"
+            rows="1"
             @keydown="onEditorKeydown"
-          ></div>
+          ></textarea>
         </div>
         <div class="row">
           <div class="left" :inert="!expanded" :aria-hidden="!expanded">
@@ -57,7 +53,7 @@ export function shouldSubmitOnKeydown(e: {
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef, watch } from "vue"
+import { computed, ref, shallowRef, watch } from "vue"
 
 const props = withDefaults(
   defineProps<{
@@ -76,15 +72,13 @@ const props = withDefaults(
   },
 )
 
-/** 与外部 prompt 双向绑定：输入/增强结果写回外部，外部草稿恢复时同步进编辑器 */
 const prompt = defineModel<string>("prompt", { required: true })
 
 const emit = defineEmits<{
-  /** 裸 Enter：是否真正发送由父组件守卫 */
   submit: []
 }>()
 
-const editor = ref<HTMLElement | null>(null)
+const editor = ref<HTMLTextAreaElement | null>(null)
 const focused = shallowRef(false)
 const container = ref<HTMLElement | null>(null)
 
@@ -98,44 +92,18 @@ function onFocusOut(event: FocusEvent) {
     event.relatedTarget instanceof Node && Boolean(container.value?.contains(event.relatedTarget))
 }
 
-/** 聚焦并把光标移到末尾 */
-function focusEnd() {
+function focus() {
   const el = editor.value
   if (!el) return
   el.focus()
-  const range = document.createRange()
-  range.selectNodeContents(el)
-  range.collapse(false)
-  const sel = window.getSelection()
-  sel?.removeAllRanges()
-  sel?.addRange(range)
+  el.selectionStart = el.selectionEnd = el.value.length
 }
 
-/** 供父组件（发送/选文件后）重新聚焦编辑器 */
-function focus() {
-  editor.value?.focus()
-}
-
-function syncFromEditor() {
+watch(prompt, () => {
+  if (!props.readonly) return
   const el = editor.value
-  if (!el) return
-  prompt.value = el.innerText
-}
-
-// 挂载与外部草稿恢复时同步，避免重建编辑器丢掉光标。
-function syncFromPrompt() {
-  const el = editor.value
-  if (!el) return
-  if (el.innerText !== prompt.value) {
-    const sel = window.getSelection()
-    const focused = sel && el.contains(sel.anchorNode)
-    el.innerText = prompt.value
-    if (focused) focusEnd()
-    if (props.readonly) el.scrollTop = el.scrollHeight
-  }
-}
-watch(prompt, syncFromPrompt)
-onMounted(syncFromPrompt)
+  if (el) el.scrollTop = el.scrollHeight
+})
 
 function onEditorKeydown(e: KeyboardEvent) {
   if (props.readonly) return
@@ -146,11 +114,10 @@ function onEditorKeydown(e: KeyboardEvent) {
   }
 }
 
-/** 点卡空白处聚焦；控件（按钮/输入/编辑器）放行，避免抢走自身交互。 */
 function onChatInputMousedown(e: MouseEvent) {
   const el = e.target
   if (!(el instanceof Element)) return
-  if (el.closest("button, input, textarea, a, [role='menuitem'], [contenteditable]")) return
+  if (el.closest("button, input, textarea, a, [role='menuitem']")) return
   e.preventDefault()
   focus()
 }
@@ -223,10 +190,13 @@ defineExpose({ focus })
   min-height: 44px;
 }
 .field {
-  position: relative;
+  display: block;
   width: 100%;
   margin: 0;
+  padding: 0;
+  border: 0;
   outline: 0;
+  resize: none;
   background: transparent;
   color: var(--ink);
   font: inherit;
@@ -239,18 +209,13 @@ defineExpose({ focus })
   white-space: pre-wrap;
   word-break: break-word;
 }
+.field::placeholder {
+  color: var(--ink-faint);
+}
 .field ::selection,
 .field::selection {
   background: Highlight;
   color: HighlightText;
-}
-.field[data-empty]::before {
-  content: attr(data-placeholder);
-  position: absolute;
-  top: 0;
-  inset-inline-start: 0;
-  color: var(--ink-faint);
-  pointer-events: none;
 }
 
 .row {

@@ -19,7 +19,7 @@
       v-model:prompt="prompt"
       :placeholder="placeholder"
       :running="running"
-      :active="modelPickerActive || voiceActive"
+      :active="modelPickerOpen || voiceActive"
       :has-chips="attachments.length > 0 || Boolean($slots.chips)"
       :readonly="voiceActive"
       @submit="send"
@@ -39,7 +39,6 @@
           <slot name="left" />
           <ModelPicker
             v-model:open="modelPickerOpen"
-            v-model:active="modelPickerActive"
             v-model:model="model"
             :catalog="catalog"
             :disabled="running || voiceActive"
@@ -198,7 +197,6 @@ const promptEditor = ref<{ focus: () => void } | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const usageOpen = ref(false)
 const modelPickerOpen = ref(false)
-const modelPickerActive = ref(false)
 
 const {
   active: voiceActive,
@@ -230,7 +228,6 @@ watch(
   () => {
     usageOpen.value = false
     modelPickerOpen.value = false
-    modelPickerActive.value = false
     voiceMessage.value = ""
     cancelVoice()
   },
@@ -320,34 +317,7 @@ function onPrimaryAction() {
   cursor: help;
 }
 
-.plus {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--ink-faint);
-  cursor: pointer;
-  transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth),
-    scale var(--duration-fast) var(--ease-out);
-}
-.plus:hover:not(:disabled) {
-  background: var(--hover-tint);
-  color: var(--ink);
-}
-.plus:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
+.plus,
 .send {
   display: inline-flex;
   align-items: center;
@@ -359,14 +329,29 @@ function onPrimaryAction() {
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);
-  background: var(--inverse-bg);
-  color: var(--inverse-fg);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
     opacity var(--duration-fast) var(--ease-smooth),
     scale var(--duration-fast) var(--ease-out);
+}
+.plus {
+  background: transparent;
+  color: var(--ink-faint);
+}
+.plus:hover:not(:disabled) {
+  background: var(--hover-tint);
+  color: var(--ink);
+}
+.plus:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.send {
+  background: var(--inverse-bg);
+  color: var(--inverse-fg);
 }
 .send:not(:disabled):hover {
   background: var(--inverse-bg-hover);
