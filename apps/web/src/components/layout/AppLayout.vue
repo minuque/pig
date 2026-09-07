@@ -106,7 +106,7 @@ main {
   overflow: hidden;
   /* 困住栏内 z-index，避免 dock 底色盖住分栏把手 */
   isolation: isolate;
-  background: var(--surface);
+  background: var(--main);
 }
 
 @media (prefers-reduced-motion: reduce) {

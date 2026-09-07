@@ -35,8 +35,9 @@
   --canvas: #f1f2f3;
   --canvas-soft: #fafafb;
   --surface: #ffffff;
+  --main: #ffffff;
   --sidebar: #fafafb;
-  --composer: #f2f2f3;
+  --panel: #faf6f0;
   --user-prompt-bg: #f7f8f9;
   --popover: #ffffff;
   --code-header: #f2f2f3;
@@ -71,7 +72,7 @@
   --glass-blur: 12px;
   --glass-opacity: 80%;
   --glass-saturation: 1;
-  --startup-veil: color-mix(in srgb, var(--composer) var(--glass-opacity), var(--canvas-soft));
+  --startup-veil: color-mix(in srgb, var(--panel) var(--glass-opacity), var(--canvas-soft));
 
   /* 装饰，不作结构填充 */
   --accent-sunset: #ee650d;
@@ -233,8 +234,9 @@
   --canvas: #1c1d1f;
   --canvas-soft: #17181a;
   --surface: #232427;
+  --main: #111214;
   --sidebar: #17181a;
-  --composer: #2b2c2f;
+  --panel: #232427;
   --user-prompt-bg: #1f2022;
   --popover: #232427;
   --code-header: #2b2c2f;
@@ -341,6 +343,8 @@
   --color-canvas: var(--canvas);
   --color-canvas-soft: var(--canvas-soft);
   --color-surface: var(--surface);
+  --color-main: var(--main);
+  --color-panel: var(--panel);
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-muted: var(--ink-muted);
@@ -370,7 +374,7 @@
   --color-destructive: var(--danger);
   --color-destructive-foreground: var(--danger-foreground);
   --color-input: var(--hairline);
-  --color-background: var(--surface);
+  --color-background: var(--main);
   --color-foreground: var(--ink);
   --color-card: var(--surface);
   --color-card-foreground: var(--ink);

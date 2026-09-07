@@ -43,7 +43,7 @@ const title = computed(() =>
   gap: var(--spacing-xs);
   min-height: calc(var(--size-control) + 2 * var(--spacing-xs));
   padding: var(--spacing-xxs) var(--spacing-sm);
-  background: var(--surface);
+  background: var(--main);
 }
 .workbench-header::after {
   pointer-events: none;
@@ -51,7 +51,7 @@ const title = computed(() =>
   inset-inline: 0;
   top: 100%;
   height: 24px;
-  background: linear-gradient(to bottom, var(--surface), transparent);
+  background: linear-gradient(to bottom, var(--main), transparent);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   mask-image: linear-gradient(to bottom, #000, transparent);

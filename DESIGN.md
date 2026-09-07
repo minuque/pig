@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: pig Workbench
-description: A Pi Agent GUI with cool gray surfaces in light mode and elevated blue-gray surfaces in dark mode. Action and focus blue is separate from link blue. Sidebar selection is neutral. Sunset and dusk colors are decorative only. The layout uses a sidebar and an opaque transcript column. Navigation and window controls use lower contrast than transcript content.
+description: A Pi Agent GUI with cream raised panels in light mode and elevated blue-gray surfaces in dark mode. Action and focus blue is separate from link blue. Sidebar selection is neutral. Sunset and dusk colors are decorative only. The layout uses a sidebar and an opaque transcript column. Navigation and window controls use lower contrast than transcript content.
 
 colors:
   primary: "#637cd2"
@@ -11,6 +11,8 @@ colors:
   canvas: "#f1f2f3"
   canvas-soft: "#fafafb"
   surface: "#ffffff"
+  main: "#ffffff"
+  panel: "#faf6f0"
   ink: "#1f2124"
   ink-secondary: "#62656b"
   ink-muted: "#62656b"
@@ -307,13 +309,13 @@ components:
 
 ## Overview
 
-Pi Agent GUI 使用冷灰浅色表面和抬升的蓝灰深色表面。系统 UI 字号默认 14px。动作蓝用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
+Pi Agent GUI 浅色用奶油色抬升面板，深色用抬升的蓝灰表面。系统 UI 字号默认 14px。动作蓝用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
 
-浅色侧栏 `{colors.canvas-soft}`，对话列 `{colors.surface}`。深色侧栏 `#17181a`、对话列 `#232427`。结构色 `{colors.primary}`（#637cd2）用于动作和焦点。控件圆角 `{rounded.lg}`（12px）。
+浅色侧栏 `{colors.canvas-soft}`，对话列 `{colors.main}`，分组与输入卡 `{colors.panel}`。深色侧栏 `#17181a`、对话列 `#111214`、分组与输入卡 `#232427`。结构色 `{colors.primary}`（#637cd2）用于动作和焦点。控件圆角 `{rounded.lg}`（12px）。
 
-深色是同一套分面的冷灰反相：对话 `#232427`、侧栏 `#17181a`、输入卡 `#2b2c2f`、用户气泡 `#1f2022`、缝 `#2e3033`。次级井用 `#1c1d1f`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
+深色是同一套分面的冷灰反相：对话 `#111214`、侧栏 `#17181a`、输入卡与分组 `#232427`、用户气泡 `#1f2022`、缝 `#2e3033`。次级井用 `#1c1d1f`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
 
-窗体、输入卡和菜单均不透明。侧栏走 `--sidebar`，对话列 `surface`。输入卡和菜单使用不透明填充，浏览器与桌面颜色一致。浅色是默认入口。
+窗体、输入卡和菜单均不透明。侧栏走 `--sidebar`，对话列 `--main`，分组与输入卡 `--panel`。输入卡和菜单使用不透明填充，浏览器与桌面颜色一致。浅色是默认入口。
 
 ## Colors
 
@@ -333,7 +335,9 @@ Pi Agent GUI 使用冷灰浅色表面和抬升的蓝灰深色表面。系统 UI 
 
 ### Surface
 
-- **Conversation** (`{colors.surface}` — #ffffff)：对话列、卡片。
+- **Conversation** (`{colors.main}` — #ffffff)：对话列。
+- **Panel** (`{colors.panel}` — #faf6f0)：侧栏分组与输入卡。
+- **Surface** (`{colors.surface}` — #ffffff)：卡片。
 - **Canvas** (`{colors.canvas}` — #f1f2f3)：次级井。
 - **Secondary well** (`{colors.canvas-soft}` — #fafafb)：侧栏和页面底。
 - **Hairline** (`{colors.hairline}` — #ecedef)：栏缝与控件边。
@@ -360,10 +364,10 @@ sunset 是装饰，orange 是语义。
 
 | 角色         | 浅色      | 深色      |
 | ------------ | --------- | --------- |
-| 对话底       | `#ffffff` | `#232427` |
+| 对话底       | `#ffffff` | `#111214` |
 | 侧栏         | `#fafafb` | `#17181a` |
 | 选中行       | `#e7e9eb` | `#313236` |
-| 输入卡       | `#f2f2f3` | `#2b2c2f` |
+| 输入卡/分组  | `#faf6f0` | `#232427` |
 | 输入边框     | `#e0e2e5` | `#3a3c40` |
 | 菜单         | `#ffffff` | `#232427` |
 | 菜单边框     | `#ecedef` | `#2e3033` |
@@ -379,17 +383,17 @@ sunset 是装饰，orange 是语义。
 
 同一套分面的冷灰反相，写在 `app.css` `.dark`。
 
-| 角色     | 值        |
-| -------- | --------- |
-| 对话底   | `#232427` |
-| 侧栏     | `#17181a` |
-| 输入卡   | `#2b2c2f` |
-| 用户气泡 | `#1f2022` |
-| 主字     | `#f2f3f4` |
-| 次级字   | `#a5a8ad` |
-| 弱字     | `#6c6f75` |
-| 缝       | `#2e3033` |
-| primary  | `#89a2f3` |
+| 角色        | 值        |
+| ----------- | --------- |
+| 对话底      | `#111214` |
+| 侧栏        | `#17181a` |
+| 输入卡/分组 | `#232427` |
+| 用户气泡    | `#1f2022` |
+| 主字        | `#f2f3f4` |
+| 次级字      | `#a5a8ad` |
+| 弱字        | `#6c6f75` |
+| 缝          | `#2e3033` |
+| primary     | `#89a2f3` |
 
 ## Typography
 
@@ -465,8 +469,8 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 
 ## Do's and Don'ts
 
-- 浅色：侧栏软底，对话白底。
-- 深色：对话 `#232427`、侧栏 `#17181a`、输入卡 `#2b2c2f`、用户气泡 `#1f2022`、缝 `#2e3033`。
+- 浅色：侧栏软底，对话白底，分组与输入卡奶油色。
+- 深色：对话 `#111214`、侧栏 `#17181a`、输入卡与分组 `#232427`、用户气泡 `#1f2022`、缝 `#2e3033`。
 - `{colors.primary}` 用于动作和选中。
 - 工作台 14px 系统字；标签可用等宽大写。
 - composer / New Session：`{rounded.lg}`。

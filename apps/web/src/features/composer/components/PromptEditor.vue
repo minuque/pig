@@ -147,7 +147,7 @@ defineExpose({ focus })
   bottom: -8px;
   display: flex;
   align-items: flex-start;
-  background: var(--surface);
+  background: var(--panel);
   border: var(--border-width) solid var(--hairline);
   border-bottom: 0;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
@@ -173,7 +173,7 @@ defineExpose({ focus })
   position: relative;
   display: flex;
   flex-direction: column;
-  background: var(--surface);
+  background: var(--panel);
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-xl);
 }

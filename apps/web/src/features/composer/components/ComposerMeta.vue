@@ -83,7 +83,7 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
   gap: var(--spacing-xs);
   min-height: 28px;
   padding-block: var(--spacing-xxs) var(--spacing-xs);
-  background: var(--surface);
+  background: var(--panel);
 }
 
 .cwd {

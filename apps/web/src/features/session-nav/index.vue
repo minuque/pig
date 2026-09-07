@@ -397,7 +397,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   margin-block-end: var(--spacing-xs);
   padding: var(--spacing-xxs);
   border: var(--border-width) solid var(--color-border);
-  background-color: var(--surface);
+  background-color: var(--panel);
   box-shadow: var(--shadow-group);
   transition-duration: var(--duration-slow);
 }
