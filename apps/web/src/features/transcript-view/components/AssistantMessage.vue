@@ -11,7 +11,7 @@
       <AlertTitle>{{ statusLabel }}</AlertTitle>
       <AlertDescription v-if="item.errorMessage">{{ item.errorMessage }}</AlertDescription>
     </Alert>
-    <MessageTimestamp class="message-stamp" :timestamp="item.timestamp" />
+    <MessageTimestamp v-if="item.showTimestamp" class="message-stamp" :timestamp="item.timestamp" />
   </article>
 </template>
 

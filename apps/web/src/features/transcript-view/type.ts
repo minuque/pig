@@ -16,6 +16,7 @@ export type AssistantRow = {
   error: boolean
   aborted: boolean
   timestamp: number
+  showTimestamp?: boolean
   errorMessage?: string
   retryCount?: number
 }

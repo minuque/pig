@@ -71,6 +71,7 @@ function appendTurn({
   timings: readonly TurnTiming[]
   turnIndex: number
 }) {
+  const turnStart = rows.length
   if (user)
     rows.push({
       id: user.id,
@@ -203,6 +204,17 @@ function appendTurn({
   }
 
   flushTools(live ? "live" : "done")
+  markLastAssistantTimestamp(rows, turnStart)
+}
+
+function markLastAssistantTimestamp(rows: TimelineRow[], start: number) {
+  for (let i = rows.length - 1; i >= start; i -= 1) {
+    const row = rows[i]
+    if (row?.role === "assistant") {
+      row.showTimestamp = true
+      return
+    }
+  }
 }
 
 export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt): string {
