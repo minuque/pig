@@ -11,6 +11,7 @@
       <AlertTitle>{{ statusLabel }}</AlertTitle>
       <AlertDescription v-if="item.errorMessage">{{ item.errorMessage }}</AlertDescription>
     </Alert>
+    <MessageTimestamp class="message-stamp" :timestamp="item.timestamp" />
   </article>
 </template>
 
@@ -21,6 +22,7 @@ import { computed } from "vue"
 import Alert from "@components/ui/alert/Alert.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
 import AlertTitle from "@components/ui/alert/AlertTitle.vue"
+import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import type { AssistantRow } from "@features/transcript-view/type.js"
 import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
@@ -90,5 +92,8 @@ const agentMarkdown = computed(
 }
 .status-alert:first-child {
   margin-top: 0;
+}
+.message-stamp {
+  margin-top: var(--spacing-xs);
 }
 </style>

@@ -1,7 +1,13 @@
 import type { TurnTiming } from "@/types/turn-type.js"
 
 export type TranscriptImage = { data: string; mimeType: string }
-export type UserRow = { id: string; role: "user"; text: string; images: TranscriptImage[] }
+export type UserRow = {
+  id: string
+  role: "user"
+  text: string
+  images: TranscriptImage[]
+  timestamp: number
+}
 export type AssistantRow = {
   id: string
   role: "assistant"
@@ -9,6 +15,7 @@ export type AssistantRow = {
   streaming: boolean
   error: boolean
   aborted: boolean
+  timestamp: number
   errorMessage?: string
   retryCount?: number
 }

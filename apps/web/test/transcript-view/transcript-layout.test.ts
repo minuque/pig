@@ -71,8 +71,8 @@ describe("一轮工作 → 执行过程与最终回答", () => {
   it("普通回答不增加过程壳，空闲空会话不占行", () => {
     expect(buildTimelineRows([], false)).toEqual([])
     expect(buildTimelineRows([user, text(1, "答")], false)).toMatchObject([
-      { role: "user", text: "问" },
-      { role: "assistant", text: "答" },
+      { role: "user", text: "问", timestamp: 1000 },
+      { role: "assistant", text: "答", timestamp: 1001 },
     ])
   })
 

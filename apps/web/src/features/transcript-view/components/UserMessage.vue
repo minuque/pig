@@ -10,10 +10,12 @@
         :mime-type="image.mimeType"
       />
     </div>
+    <MessageTimestamp :timestamp="item.timestamp" />
   </article>
 </template>
 
 <script setup lang="ts">
+import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import type { UserRow } from "@features/transcript-view/type.js"
 

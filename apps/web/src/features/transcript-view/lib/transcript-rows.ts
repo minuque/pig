@@ -42,6 +42,7 @@ function assistantRow(item: AssistantTranscriptItem, text = transcriptText(item)
     streaming: item.status === "streaming",
     error: item.status === "error",
     aborted: item.status === "aborted",
+    timestamp: item.timestamp,
     ...("errorMessage" in item && item.errorMessage ? { errorMessage: item.errorMessage } : {}),
   }
 }
@@ -76,6 +77,7 @@ function appendTurn({
       role: "user",
       text: transcriptText(user),
       images: transcriptImages(user),
+      timestamp: user.timestamp,
     })
 
   const anchor = `tools:${user?.timestamp ?? "orphan"}:${turnIndex}`
