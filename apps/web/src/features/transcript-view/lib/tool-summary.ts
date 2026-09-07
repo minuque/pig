@@ -161,6 +161,10 @@ export function toolDetail(toolName: string, input: unknown): ToolSummaryDetail 
 export function toolSummaryDetail(items: readonly ToolCallView[]): ToolSummaryDetail | null {
   const first = items[0]
   if (!first || items.length !== 1) return null
+  if (toolGroupKey(first.toolName) === "tool") {
+    const name = first.toolName.trim()
+    return name ? { kind: "text", text: name } : null
+  }
   return toolDetail(first.toolName, first.input)
 }
 

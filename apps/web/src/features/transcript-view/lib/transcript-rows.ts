@@ -250,35 +250,31 @@ export function buildTimelineRows(
   return rows
 }
 
+const TOOL_ROW_ORDER = ["read", "write", "edit", "command", "search", "tool"] as const
+const TOOL_ROW_LABEL = {
+  read: (n) => `读${n}次文件`,
+  write: (n) => `写${n}次文件`,
+  edit: (n) => `编辑${n}次文件`,
+  command: (n) => `运行${n}条命令`,
+  search: (n) => `搜${n}次`,
+  tool: (n) => `调用工具${n}次`,
+} as const satisfies Record<ToolGroupKey, (count: number) => string>
+
 export function toolRowLabel(row: ToolRow): string {
-  const thoughtCount = row.steps.filter((step) => step.type === "thought").length
-  const toolCounts = new Map<ToolGroupKey, number>()
+  const counts = new Map<ToolGroupKey, number>()
+  let thoughts = 0
   for (const step of row.steps) {
-    if (step.type !== "tools") continue
-    toolCounts.set(step.key, (toolCounts.get(step.key) ?? 0) + step.items.length)
+    if (step.type === "thought") thoughts += 1
+    else counts.set(step.key, (counts.get(step.key) ?? 0) + step.items.length)
   }
 
-  const toolLabels = [...toolCounts].map(([key, count]) => {
-    switch (key) {
-      case "read":
-        return `读${count}次文件`
-      case "write":
-        return `写${count}次文件`
-      case "edit":
-        return `编辑${count}次文件`
-      case "command":
-        return `运行${count}条命令`
-      case "search":
-        return `搜${count}次`
-      case "tool":
-        return `工具${count}次`
-      default: {
-        const _exhaustive: never = key
-        return _exhaustive
-      }
-    }
-  })
-  const summary = [thoughtCount ? `思考 ${thoughtCount}轮` : "", toolLabels.join("、")]
+  const summary = [
+    thoughts ? `思考 ${thoughts}轮` : "",
+    ...TOOL_ROW_ORDER.map((key) => {
+      const count = counts.get(key)
+      return count ? TOOL_ROW_LABEL[key](count) : ""
+    }),
+  ]
     .filter(Boolean)
     .join(" · ")
 
