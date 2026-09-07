@@ -245,4 +245,23 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .row + .row-user {
   margin-block-start: var(--spacing-xl);
 }
+
+.row :deep(.stamp) {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+.row:hover :deep(.stamp),
+.row:focus-within :deep(.stamp),
+.row :deep(.stamp.is-copied),
+.row :deep(.stamp.is-error) {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (hover: none) {
+  .row :deep(.stamp) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
 </style>

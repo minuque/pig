@@ -10,7 +10,7 @@
         :mime-type="image.mimeType"
       />
     </div>
-    <MessageTimestamp :timestamp="item.timestamp" />
+    <MessageTimestamp copy-before :timestamp="item.timestamp" />
   </article>
 </template>
 

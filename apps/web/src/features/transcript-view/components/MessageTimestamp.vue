@@ -2,7 +2,11 @@
   <div
     v-if="valid"
     class="stamp"
-    :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
+    :class="{
+      'is-copied': status === 'copied',
+      'is-error': status === 'error',
+      'copy-before': copyBefore,
+    }"
   >
     <time :datetime="iso" :title="full">{{ clock }}</time>
     <Button
@@ -28,9 +32,13 @@ import { useTimeoutFn } from "@vueuse/core"
 import { Check, Copy } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 
-const props = defineProps<{
-  timestamp: number
-}>()
+const props = withDefaults(
+  defineProps<{
+    timestamp: number
+    copyBefore?: boolean
+  }>(),
+  { copyBefore: false },
+)
 
 const valid = computed(() => Number.isFinite(props.timestamp) && props.timestamp > 0)
 const date = computed(() => new Date(props.timestamp))
@@ -85,20 +93,19 @@ async function copy() {
 
 <style scoped>
 .stamp {
-  position: relative;
   display: inline-flex;
   align-items: center;
+  gap: var(--spacing-xxs);
   width: fit-content;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
 }
+.stamp.copy-before {
+  flex-direction: row-reverse;
+}
 
 .copy {
-  position: absolute;
-  inset-inline-start: 100%;
-  inset-block-start: 50%;
-  translate: var(--spacing-xxs) -50%;
   width: var(--size-icon-2xs);
   height: var(--size-icon-2xs);
   padding: 0;
@@ -107,19 +114,9 @@ async function copy() {
   background: transparent;
   color: var(--ink-secondary);
   box-shadow: none;
-  opacity: 0;
-  pointer-events: none;
   transition:
-    opacity var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out);
-}
-.stamp:hover .copy,
-.stamp:focus-within .copy,
-.stamp.is-copied .copy,
-.stamp.is-error .copy {
-  opacity: 1;
-  pointer-events: auto;
 }
 .copy:hover {
   background: var(--hover-quiet);
@@ -135,12 +132,5 @@ async function copy() {
 .icon-swap {
   width: 12px;
   height: 12px;
-}
-
-@media (hover: none) {
-  .copy {
-    opacity: 1;
-    pointer-events: auto;
-  }
 }
 </style>
