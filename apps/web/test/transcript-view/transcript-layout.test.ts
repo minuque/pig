@@ -8,6 +8,7 @@ import {
   buildTimelineRows,
   isToolRow,
   thoughtStepLabel,
+  timelineRowKeys,
   toolRowLabel,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { toolSummary } from "@features/transcript-view/lib/tool-summary.js"
@@ -345,6 +346,16 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     ).find(isToolRow)
 
     expect(work && toolRowLabel(work)).toBe("思考 2轮 · 读1次文件、搜2次")
+  })
+
+  it("乐观用户句换成服务端 id 时 DOM key 不变，避免气泡拆旧挂新", () => {
+    const optimistic = { ...user, id: "optimistic-1" }
+    const confirmed = { ...user, id: "server-u1" }
+    expect(timelineRowKeys(buildTimelineRows([optimistic], true))[0]).toBe("user:0")
+    expect(timelineRowKeys(buildTimelineRows([confirmed, text(1, "好")], true))[0]).toBe("user:0")
+    expect(
+      timelineRowKeys(buildTimelineRows([user, { ...user, id: "u2", timestamp: 9000 }], false)),
+    ).toEqual(["user:0", "user:1"])
   })
 
   it("同一内容流里的助手正文也会切开前后思考", () => {

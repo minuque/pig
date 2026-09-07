@@ -20,8 +20,8 @@
         <div ref="list" class="transcript-list">
           <TransitionGroup name="timeline-row" tag="div" class="timeline-rows" :css="liveEnter">
             <div
-              v-for="row in rows"
-              :key="row.id"
+              v-for="(row, index) in rows"
+              :key="rowKeys[index] ?? row.id"
               class="row"
               :class="`row-${row.role}`"
               :data-minimap-row="row.role === 'user' ? row.id : undefined"
@@ -61,7 +61,11 @@ import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
-import { buildTimelineRows, isToolRow } from "@features/transcript-view/lib/transcript-rows.js"
+import {
+  buildTimelineRows,
+  isToolRow,
+  timelineRowKeys,
+} from "@features/transcript-view/lib/transcript-rows.js"
 import { shouldShowScrollToLatest } from "@features/transcript-view/lib/transcript-scroll.js"
 
 const props = defineProps<{
@@ -72,6 +76,7 @@ const props = defineProps<{
 }>()
 
 const rows = computed(() => buildTimelineRows(props.transcript, props.running, props.timings))
+const rowKeys = computed(() => timelineRowKeys(rows.value))
 
 const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
@@ -182,6 +187,7 @@ watch(
     if (body && !prev?.[1]) {
       scrollToLatest("auto")
       if (rows.value.length > 0) enableLiveEnter()
+      else liveEnter.value = true
     }
   },
   { flush: "post" },

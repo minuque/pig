@@ -28,6 +28,12 @@ export function isToolRow(row: TimelineRow): row is ToolRow {
   return row.role === "tools"
 }
 
+/** 用户句 DOM key 用序号，避免乐观 id 换成服务端 id 时拆旧挂新。 */
+export function timelineRowKeys(rows: readonly TimelineRow[]): string[] {
+  let users = 0
+  return rows.map((row) => (row.role === "user" ? `user:${users++}` : row.id))
+}
+
 function assistantRow(item: AssistantTranscriptItem, text = transcriptText(item)): AssistantRow {
   return {
     id: item.id,

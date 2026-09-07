@@ -300,30 +300,38 @@
 .timeline-row-enter-active {
   transition:
     opacity var(--duration-slow) var(--ease-out),
-    transform var(--duration-slow) var(--ease-out),
-    filter var(--duration-slow) var(--ease-out);
+    transform var(--duration-slow) var(--ease-out);
 }
 .panel-reveal-enter-active {
-  transition-duration: var(--duration-normal);
+  transition:
+    opacity var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out),
+    filter var(--duration-normal) var(--ease-out);
 }
 .panel-reveal-leave-active,
 .stage-layer-leave-active {
   transition:
     opacity var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out),
-    filter var(--duration-fast) var(--ease-out);
+    transform var(--duration-fast) var(--ease-out);
+}
+.panel-reveal-leave-active {
+  transition-property: opacity, transform, filter;
 }
 .panel-reveal-enter-from,
 .stage-layer-enter-from,
 .timeline-row-enter-from {
   opacity: 0;
   transform: translateY(12px);
+}
+.panel-reveal-enter-from {
   filter: blur(4px);
 }
 .panel-reveal-leave-to,
 .stage-layer-leave-to {
   opacity: 0;
   transform: translateY(-12px);
+}
+.panel-reveal-leave-to {
   filter: blur(4px);
 }
 
@@ -361,6 +369,8 @@
   transition: transform var(--duration-fast) var(--ease-out);
 }
 .timeline-row-leave-active {
+  position: absolute;
+  width: 100%;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 .row-tools.timeline-row-enter-from {
@@ -631,6 +641,9 @@
   .timeline-row-leave-active,
   .timeline-step-enter-active {
     transition: opacity var(--duration-fast) var(--ease-out);
+  }
+  .timeline-row-leave-active {
+    position: static;
   }
   .timeline-row-enter-from,
   .timeline-row-leave-to,
