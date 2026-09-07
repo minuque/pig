@@ -10,6 +10,7 @@
   >
     <time :datetime="iso" :title="full">{{ clock }}</time>
     <Button
+      v-if="text"
       type="button"
       variant="outline"
       size="icon-2xs"
@@ -19,8 +20,8 @@
       @click="copy"
     >
       <span class="icon-swap">
-        <Copy class="size-3" :data-visible="status !== 'copied'" />
-        <Check class="size-3" :data-visible="status === 'copied'" />
+        <Copy :data-visible="status !== 'copied'" />
+        <Check :data-visible="status === 'copied'" />
       </span>
     </Button>
   </div>
@@ -35,9 +36,10 @@ import { Button } from "@components/ui/button/index.js"
 const props = withDefaults(
   defineProps<{
     timestamp: number
+    text?: string
     copyBefore?: boolean
   }>(),
-  { copyBefore: false },
+  { text: "", copyBefore: false },
 )
 
 const valid = computed(() => Number.isFinite(props.timestamp) && props.timestamp > 0)
@@ -74,15 +76,15 @@ const copyLabel = computed(() =>
     ? "已复制"
     : status.value === "error"
       ? "复制失败，点击重试"
-      : "复制时间",
+      : "复制消息",
 )
 const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { immediate: false })
 
 async function copy() {
-  if (!iso.value) return
+  if (!props.text) return
   stop()
   try {
-    await navigator.clipboard.writeText(iso.value)
+    await navigator.clipboard.writeText(props.text)
     status.value = "copied"
     start()
   } catch {
@@ -98,16 +100,16 @@ async function copy() {
   gap: var(--spacing-xxs);
   width: fit-content;
   color: var(--ink-faint);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
 }
 .stamp.copy-before {
   flex-direction: row-reverse;
 }
 
 .copy {
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
+  width: 1em;
+  height: 1em;
   padding: 0;
   border: 0;
   border-radius: var(--radius-xs);
@@ -129,8 +131,9 @@ async function copy() {
   color: var(--danger);
 }
 
-.icon-swap {
-  width: 12px;
-  height: 12px;
+.icon-swap,
+.icon-swap :deep(svg) {
+  width: 1em;
+  height: 1em;
 }
 </style>
