@@ -1,20 +1,32 @@
 <template>
-  <button
+  <div
     v-if="valid"
-    type="button"
-    class="stamp press-scale"
+    class="stamp"
     :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
-    :title="title"
-    :aria-label="title"
-    @click="copy"
   >
-    <time :datetime="iso">{{ label }}</time>
-  </button>
+    <time :datetime="iso" :title="full">{{ clock }}</time>
+    <Button
+      type="button"
+      variant="outline"
+      size="icon-2xs"
+      class="copy"
+      :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
+      :title="copyLabel"
+      @click="copy"
+    >
+      <span class="icon-swap">
+        <Copy class="size-3" :data-visible="status !== 'copied'" />
+        <Check class="size-3" :data-visible="status === 'copied'" />
+      </span>
+    </Button>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
+import { Check, Copy } from "@lucide/vue"
+import { Button } from "@components/ui/button/index.js"
 
 const props = defineProps<{
   timestamp: number
@@ -49,15 +61,12 @@ const full = computed(() =>
 )
 
 const status = shallowRef<"idle" | "copied" | "error">("idle")
-const label = computed(() =>
-  status.value === "copied" ? "已复制" : status.value === "error" ? "复制失败" : clock.value,
-)
-const title = computed(() =>
+const copyLabel = computed(() =>
   status.value === "copied"
     ? "已复制"
     : status.value === "error"
       ? "复制失败，点击重试"
-      : `${full.value} · 点击复制`,
+      : "复制时间",
 )
 const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { immediate: false })
 
@@ -76,26 +85,62 @@ async function copy() {
 
 <style scoped>
 .stamp {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
   width: fit-content;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
-  cursor: pointer;
+}
+
+.copy {
+  position: absolute;
+  inset-inline-start: 100%;
+  inset-block-start: 50%;
+  translate: var(--spacing-xxs) -50%;
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--ink-secondary);
+  box-shadow: none;
+  opacity: 0;
+  pointer-events: none;
   transition:
+    opacity var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
-    scale var(--duration-fast) var(--ease-out);
+    background-color var(--duration-fast) var(--ease-out);
 }
-.stamp:hover {
-  color: var(--ink-muted);
+.stamp:hover .copy,
+.stamp:focus-within .copy,
+.stamp.is-copied .copy,
+.stamp.is-error .copy {
+  opacity: 1;
+  pointer-events: auto;
 }
-.stamp.is-copied {
+.copy:hover {
+  background: var(--hover-quiet);
+  color: var(--ink);
+}
+.copy.is-copied {
   color: var(--success);
 }
-.stamp.is-error {
+.copy.is-error {
   color: var(--danger);
+}
+
+.icon-swap {
+  width: 12px;
+  height: 12px;
+}
+
+@media (hover: none) {
+  .copy {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 </style>
