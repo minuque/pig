@@ -1,9 +1,9 @@
 <template>
   <div
     ref="container"
-    class="chat-input motion-composer"
+    class="composer motion-composer"
     :data-expanded="expanded"
-    @mousedown="onChatInputMousedown"
+    @mousedown="onComposerMousedown"
     @focusin="focused = true"
     @focusout="onFocusOut"
   >
@@ -114,7 +114,7 @@ function onEditorKeydown(e: KeyboardEvent) {
   }
 }
 
-function onChatInputMousedown(e: MouseEvent) {
+function onComposerMousedown(e: MouseEvent) {
   const el = e.target
   if (!(el instanceof Element)) return
   if (el.closest("button, input, textarea, a, [role='menuitem']")) return
@@ -126,7 +126,7 @@ defineExpose({ focus })
 </script>
 
 <style scoped>
-.chat-input {
+.composer {
   position: relative;
 }
 
@@ -182,11 +182,11 @@ defineExpose({ focus })
   padding: var(--spacing-sm) var(--spacing-md);
   padding-inline-end: calc(var(--size-icon-button) + var(--spacing-lg));
 }
-.chat-input[data-expanded="true"] .editor-wrap {
+.composer[data-expanded="true"] .editor-wrap {
   padding: 14px var(--spacing-md) 48px;
 }
 
-.chat-input[data-expanded="true"] .field {
+.composer[data-expanded="true"] .field {
   min-height: 44px;
 }
 .field {
@@ -237,12 +237,12 @@ defineExpose({ focus })
   min-width: 0;
   flex: 1;
 }
-.chat-input[data-expanded="false"] .left {
+.composer[data-expanded="false"] .left {
   visibility: hidden;
   opacity: 0;
   transform: translateY(var(--spacing-xxs));
 }
-.chat-input[data-expanded="false"] .row {
+.composer[data-expanded="false"] .row {
   inset-inline-start: auto;
 }
 .right {

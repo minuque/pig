@@ -112,7 +112,7 @@ import {
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
-import VendorMark from "@features/chat-input/components/VendorMark.vue"
+import VendorMark from "@features/composer/components/VendorMark.vue"
 
 const props = withDefaults(
   defineProps<{

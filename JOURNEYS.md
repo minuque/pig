@@ -63,7 +63,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-  Idle["工作台 / ：Hero + 底栏 ChatInput"] --> Guard{"有 cwd + preset + 非空 Prompt?"}
+  Idle["工作台 / ：Hero + 底栏 Composer"] --> Guard{"有 cwd + preset + 非空 Prompt?"}
   Guard --> Create["RemoteSession.create cwd/model/thinking"]
   Create --> Route["router.push /sessions/:id"]
   Route --> Open["同步 RemoteSession"]
@@ -85,8 +85,8 @@ flowchart TB
   Hist --> Merge["HTTP 历史 + live progress"]
   Snap --> Merge
   Merge --> View{"transcript?"}
-  View -->|空且 idle| Idle["Hero + 底栏 ChatInput"]
-  View -->|有内容| Timeline["TranscriptView + 底栏 ChatInput"]
+  View -->|空且 idle| Idle["Hero + 底栏 Composer"]
+  View -->|有内容| Timeline["TranscriptView + 底栏 Composer"]
   View -->|历史未到且 Remote 未齐| Loading["SessionLoading"]
 ```
 
@@ -96,7 +96,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-  Idle["phase idle"] --> Send["ChatInput 发送"]
+  Idle["phase idle"] --> Send["Composer 发送"]
   Send --> Opt["乐观 User Message"]
   Opt --> Submit["RemoteSession.submit"]
   Submit --> Agent["AgentSession.prompt"]

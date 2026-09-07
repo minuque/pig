@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest"
-import type { ChatInputVendor } from "@/types/chat-input-type.js"
-import { catalogFromModels } from "@features/chat-input/lib/model-preset.js"
-import { FAVORITES_SCOPE, listPickerRows } from "@features/chat-input/lib/model-preset.js"
+import type { ComposerVendor } from "@/types/composer-type.js"
+import { catalogFromModels } from "@features/composer/lib/model-preset.js"
+import { FAVORITES_SCOPE, listPickerRows } from "@features/composer/lib/model-preset.js"
 import {
   parseFavoriteModels,
   toggleFavoriteKey,
   useModelFavorites,
-} from "@features/chat-input/hooks/use-model-favorites.js"
+} from "@features/composer/hooks/use-model-favorites.js"
 
-const catalog: ChatInputVendor[] = [
+const catalog: ComposerVendor[] = [
   {
     id: "anthropic",
     name: "Anthropic",

@@ -37,8 +37,8 @@
         </Transition>
       </div>
 
-      <div class="chat-input-bar">
-        <div ref="inputStack" class="chat-input-stack">
+      <div class="composer-bar">
+        <div ref="inputStack" class="composer-stack">
           <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
             <Button
               class="scroll-latest-control"
@@ -54,7 +54,7 @@
               </span>
             </Button>
           </div>
-          <ChatInput
+          <Composer
             v-model:prompt="prompt"
             v-model:preset="preset"
             :catalog="catalog"
@@ -94,7 +94,7 @@ import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vu
 import { useRoute } from "vue-router"
 import { ArrowDown, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
-import ChatInput from "@features/chat-input/index.vue"
+import Composer from "@features/composer/index.vue"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
@@ -225,7 +225,7 @@ function publishOverlayHeight() {
   const column = columnEl.value
   const stack = inputStack.value
   if (!column || !stack) return
-  column.style.setProperty("--size-chat-input-overlay", `${stack.offsetHeight}px`)
+  column.style.setProperty("--size-composer-overlay", `${stack.offsetHeight}px`)
 }
 
 watch(
@@ -262,7 +262,7 @@ const contentHandleSides = ["left", "right"] as const
     --chat-user-width,
     clamp(680px, calc(var(--conversation-column-width, 0px) * 0.64), 920px)
   );
-  --size-chat-input: calc(var(--size-content) + var(--spacing-md));
+  --size-composer: calc(var(--size-content) + var(--spacing-md));
 }
 .conversation-column.is-content-resizing {
   cursor: col-resize;
@@ -282,10 +282,10 @@ const contentHandleSides = ["left", "right"] as const
   flex: 1;
   place-items: center;
   min-height: 0;
-  padding: 0 var(--spacing-md) var(--size-chat-input-overlay);
+  padding: 0 var(--spacing-md) var(--size-composer-overlay);
 }
 
-.chat-input-bar {
+.composer-bar {
   position: absolute;
   z-index: 2;
   right: 0;
@@ -294,10 +294,10 @@ const contentHandleSides = ["left", "right"] as const
   pointer-events: none;
 }
 
-.chat-input-stack {
+.composer-stack {
   position: relative;
   width: 100%;
-  max-width: var(--size-chat-input);
+  max-width: var(--size-composer);
   margin-inline: auto;
 }
 
@@ -331,12 +331,12 @@ const contentHandleSides = ["left", "right"] as const
   transform: translateY(calc(-100% - var(--spacing-sm)));
 }
 
-.chat-input-bar :deep(.prompt) {
+.composer-bar :deep(.prompt) {
   pointer-events: auto;
 }
 
 @media (max-width: 900px) {
-  .chat-input-bar {
+  .composer-bar {
     padding-inline: var(--spacing-sm);
   }
 }

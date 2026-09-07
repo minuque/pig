@@ -1,5 +1,5 @@
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
-import type { ContextUsage } from "@features/chat-input/type.js"
+import type { ContextUsage } from "@features/composer/type.js"
 
 function finiteTokens(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0

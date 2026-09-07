@@ -1,31 +1,31 @@
 import { ref, watch, type Ref } from "vue"
 import type { SessionPhase, ThinkingLevel } from "@/types/common-type.js"
 import { errorMessage } from "@client/http.js"
-import type { ChatInputModel, ChatInputPreset, ChatInputVendor } from "@/types/chat-input-type.js"
+import type { ComposerModel, ComposerPreset, ComposerVendor } from "@/types/composer-type.js"
 import {
   defaultPresetFrom,
   resolveModelInfo,
   sameModel,
   thinkingLevelOf,
-} from "@features/chat-input/lib/model-preset.js"
+} from "@features/composer/lib/model-preset.js"
 
-interface ChatInputSnapshot {
-  model: ChatInputModel
+interface ComposerSnapshot {
+  model: ComposerModel
   thinkingLevel: ThinkingLevel
 }
 
-interface ChatInputBindingOptions {
-  catalog: Ref<ChatInputVendor[]>
-  snapshot: Ref<ChatInputSnapshot | undefined>
+interface ComposerBindingOptions {
+  catalog: Ref<ComposerVendor[]>
+  snapshot: Ref<ComposerSnapshot | undefined>
   phase: Ref<SessionPhase | undefined>
   error: Ref<string>
-  setModel(model: ChatInputModel): Promise<void>
+  setModel(model: ComposerModel): Promise<void>
   setThinking(level: ThinkingLevel): Promise<void>
 }
 
 /** Session 快照与模型选择器之间唯一的双向同步点。 */
-export function useChatInputBinding(options: ChatInputBindingOptions) {
-  const preset = ref<ChatInputPreset>()
+export function useComposerBinding(options: ComposerBindingOptions) {
+  const preset = ref<ComposerPreset>()
   // 回声抑制：setModel 在途时快照仍是旧模型，不让快照回写覆盖用户刚选的值
   const pendingModel = ref(false)
 

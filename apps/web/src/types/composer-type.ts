@@ -1,24 +1,24 @@
 /** 模型选择目录的本地 UI 类型：由官方 ModelMetadata 投影。 */
-export interface ChatInputModelInfo {
+export interface ComposerModelInfo {
   id: string
   name: string
   thinkingLevels: string[]
   contextWindow?: number
 }
 
-export interface ChatInputVendor {
+export interface ComposerVendor {
   id: string
   name: string
-  models: ChatInputModelInfo[]
+  models: ComposerModelInfo[]
 }
 
-export interface ChatInputModel {
+export interface ComposerModel {
   provider: string
   id: string
 }
 
 /** 输入卡执行档：本地模型引用与思考档位。 */
-export interface ChatInputPreset {
-  model: ChatInputModel
+export interface ComposerPreset {
+  model: ComposerModel
   thinkingLevel: string
 }

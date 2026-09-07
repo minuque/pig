@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from "vitest"
 import { nextTick, ref } from "vue"
 import type { SessionSnapshot } from "@/types/common-type.js"
-import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-binding.js"
-import type { ChatInputVendor } from "@/types/chat-input-type.js"
+import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
+import type { ComposerVendor } from "@/types/composer-type.js"
 
-const catalog: ChatInputVendor[] = [
+const catalog: ComposerVendor[] = [
   { id: "a", name: "A", models: [{ id: "one", name: "One", thinkingLevels: ["high"] }] },
   { id: "b", name: "B", models: [{ id: "two", name: "Two", thinkingLevels: ["low"] }] },
 ]
 
-const pickerCatalog: ChatInputVendor[] = [
+const pickerCatalog: ComposerVendor[] = [
   {
     id: "anthropic",
     name: "Anthropic",
@@ -43,7 +43,7 @@ function snapshot(model = { provider: "a", id: "one" }, thinkingLevel = "high") 
   } as SessionSnapshot
 }
 
-describe("useChatInputBinding", () => {
+describe("useComposerBinding", () => {
   it("切换模型时保留自动修正的 thinking，并在模型回执后下发", async () => {
     const state = ref(snapshot())
     let release!: () => void
@@ -60,7 +60,7 @@ describe("useChatInputBinding", () => {
       state.value = snapshot({ provider: "b", id: "two" }, level)
     })
     const phase = ref<"idle" | undefined>("idle")
-    const { preset } = useChatInputBinding({
+    const { preset } = useComposerBinding({
       catalog: ref(catalog),
       snapshot: state,
       phase,
@@ -100,7 +100,7 @@ describe("useChatInputBinding", () => {
       state.value = snapshot(state.value.model, level)
     })
     const phase = ref<"idle" | undefined>("idle")
-    const { preset } = useChatInputBinding({
+    const { preset } = useComposerBinding({
       catalog: ref(pickerCatalog),
       snapshot: state,
       phase,
@@ -125,9 +125,9 @@ describe("useChatInputBinding", () => {
 
   it("空 catalog 补齐后非法档位按新目录回落", async () => {
     const gpt = { provider: "openai", id: "gpt-4o" }
-    const catalogRef = ref<ChatInputVendor[]>([])
+    const catalogRef = ref<ComposerVendor[]>([])
     const state = ref<SessionSnapshot | undefined>()
-    const { preset } = useChatInputBinding({
+    const { preset } = useComposerBinding({
       catalog: catalogRef,
       snapshot: state,
       phase: ref<"idle" | undefined>("idle"),

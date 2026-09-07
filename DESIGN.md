@@ -445,7 +445,7 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 | Level    | Treatment  | Use            |
 | -------- | ---------- | -------------- |
 | 0 — Flat | hairline   | 栏、列表、对话 |
-| 1 — Soft | 一层轻阴影 | chatInput 卡   |
+| 1 — Soft | 一层轻阴影 | composer 卡    |
 | 2 — Pop  | 稍深，仍短 | 菜单、抽屉     |
 
 深色卡和栏用 hairline。输入卡和菜单填充 100%，避免底下的文字改变其颜色。
@@ -469,6 +469,6 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 - 深色：对话 `#232427`、侧栏 `#17181a`、输入卡 `#2b2c2f`、用户气泡 `#1f2022`、缝 `#2e3033`。
 - `{colors.primary}` 用于动作和选中。
 - 工作台 14px 系统字；标签可用等宽大写。
-- chatInput / New Session：`{rounded.lg}`。
+- composer / New Session：`{rounded.lg}`。
 - 桌面与网页的输入卡、菜单均用实色。桌面折叠保留 rail。
 - 装饰走 sunset / dusk / breeze。

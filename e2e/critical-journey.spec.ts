@@ -30,9 +30,9 @@ test("Chromium production SPA 关键旅程", async ({ page, gateway }) => {
   await expect(prompt).toBeVisible()
   await expect(send).toBeDisabled()
   await expect(page.locator(".selector-name")).toBeVisible()
-  await prompt.fill("e2e chat-input")
+  await prompt.fill("e2e composer")
   await expect(send).toBeEnabled()
-  await checkpoint(page, "04-chat-input")
+  await checkpoint(page, "04-composer")
 
   await page.locator("button.theme-toggle").click()
   await expect(page.locator("html")).toHaveClass(/dark/)

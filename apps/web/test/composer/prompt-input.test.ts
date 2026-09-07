@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { effectScope, ref } from "vue"
-import { shouldSubmitOnKeydown } from "@features/chat-input/components/PromptEditor.vue"
-import { useVoiceInput } from "@features/chat-input/hooks/use-voice-input.js"
+import { shouldSubmitOnKeydown } from "@features/composer/components/PromptEditor.vue"
+import { useVoiceInput } from "@features/composer/hooks/use-voice-input.js"
 
 class Recognition {
   static instances: Recognition[] = []
@@ -47,7 +47,7 @@ afterEach(() => {
 
 describe("一轮工作 → 输入草稿后确认发送", () => {
   it("失败路径：输入卡事件表达式语法错误时，实际组件编译必须失败", async () => {
-    await expect(import("@features/chat-input/index.vue")).resolves.toHaveProperty("default")
+    await expect(import("@features/composer/index.vue")).resolves.toHaveProperty("default")
   })
 
   it("Enter 发送；失败路径：中文候选确认和 Shift+Enter 不发送", () => {

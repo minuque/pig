@@ -221,7 +221,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   min-width: 0;
   margin-inline: auto;
   padding-top: var(--spacing-lg);
-  padding-bottom: calc(var(--spacing-lg) + var(--size-chat-input-overlay));
+  padding-bottom: calc(var(--spacing-lg) + var(--size-composer-overlay));
 }
 .transcript-list,
 .timeline-rows,

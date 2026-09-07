@@ -23,9 +23,9 @@ import type { usePiClient } from "@client/pi-client.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { contextUsage, sessionTranscript } from "@client/platform.js"
-import { projectContextUsage } from "@features/chat-input/lib/context-usage.js"
-import { useChatInputBinding } from "@features/chat-input/hooks/use-chat-input-binding.js"
-import { catalogFromModels, thinkingLevelOf } from "@features/chat-input/lib/model-preset.js"
+import { projectContextUsage } from "@features/composer/lib/context-usage.js"
+import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
+import { catalogFromModels, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
 import {
   isSessionOpening,
   mergeLiveTranscript,
@@ -278,7 +278,7 @@ export function useSessionLifecycle(
     return running.value && current ? phaseLabel(current) : ""
   })
 
-  const { preset } = useChatInputBinding({
+  const { preset } = useComposerBinding({
     catalog,
     snapshot,
     phase,

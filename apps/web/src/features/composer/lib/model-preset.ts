@@ -1,13 +1,13 @@
 import type { ModelMetadata, ThinkingLevel } from "@/types/common-type.js"
 import type {
-  ChatInputModel,
-  ChatInputModelInfo,
-  ChatInputPreset,
-  ChatInputVendor,
-} from "@/types/chat-input-type.js"
-import { vendorDisplayName } from "@features/chat-input/lib/vendor-logo.js"
+  ComposerModel,
+  ComposerModelInfo,
+  ComposerPreset,
+  ComposerVendor,
+} from "@/types/composer-type.js"
+import { vendorDisplayName } from "@features/composer/lib/vendor-logo.js"
 
-function filterCatalog(catalog: ChatInputVendor[], query: string): ChatInputVendor[] {
+function filterCatalog(catalog: ComposerVendor[], query: string): ComposerVendor[] {
   const q = query.trim().toLowerCase()
   if (!q) return catalog
   return catalog
@@ -26,11 +26,11 @@ function filterCatalog(catalog: ChatInputVendor[], query: string): ChatInputVend
 
 export const FAVORITES_SCOPE = "__favorites__"
 
-export type ModelPickerRow = { vendor: ChatInputVendor; model: ChatInputModelInfo }
+export type ModelPickerRow = { vendor: ComposerVendor; model: ComposerModelInfo }
 
 /** 有搜索时全目录匹配；无搜索按供应商或收藏过滤。 */
 export function listPickerRows(
-  catalog: ChatInputVendor[],
+  catalog: ComposerVendor[],
   query: string,
   scope: string,
   favorites: ReadonlySet<string>,
@@ -49,23 +49,23 @@ export function listPickerRows(
   return rows
 }
 
-export function resolveModelInfo(catalog: ChatInputVendor[], ref: ChatInputModel | undefined) {
+export function resolveModelInfo(catalog: ComposerVendor[], ref: ComposerModel | undefined) {
   const vendor = catalog.find((item) => item.id === ref?.provider)
   const model = vendor?.models.find((item) => item.id === ref?.id)
   return { vendor, model, levels: model?.thinkingLevels ?? [] }
 }
 
-export function sameModel(a: ChatInputModel | undefined, b: ChatInputModel | undefined): boolean {
+export function sameModel(a: ComposerModel | undefined, b: ComposerModel | undefined): boolean {
   return a?.provider === b?.provider && a?.id === b?.id
 }
 
-export function modelLabel(model: ChatInputModel | undefined): string {
+export function modelLabel(model: ComposerModel | undefined): string {
   return model ? `${model.provider}/${model.id}` : "—"
 }
 
 /** 官方 ModelMetadata → 供应商目录；保留服务端顺序。 */
-export function catalogFromModels(models: readonly ModelMetadata[]): ChatInputVendor[] {
-  const vendors = new Map<string, ChatInputVendor>()
+export function catalogFromModels(models: readonly ModelMetadata[]): ComposerVendor[] {
+  const vendors = new Map<string, ComposerVendor>()
   for (const model of models) {
     const vendor = vendors.get(model.provider) ?? {
       id: model.provider,
@@ -84,9 +84,7 @@ export function catalogFromModels(models: readonly ModelMetadata[]): ChatInputVe
 }
 
 /** 目录首个可用模型的默认执行档；目录为空时返回 undefined。 */
-export function defaultPresetFrom(
-  catalog: readonly ChatInputVendor[],
-): ChatInputPreset | undefined {
+export function defaultPresetFrom(catalog: readonly ComposerVendor[]): ComposerPreset | undefined {
   for (const vendor of catalog) {
     const first = vendor.models[0]
     if (!first) continue

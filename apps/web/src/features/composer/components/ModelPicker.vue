@@ -121,7 +121,7 @@
 import { Check, ChevronDown, Search, Star } from "@lucide/vue"
 import { useVirtualList } from "@vueuse/core"
 import { computed, nextTick, ref, watch } from "vue"
-import type { ChatInputModel, ChatInputVendor } from "@/types/chat-input-type.js"
+import type { ComposerModel, ComposerVendor } from "@/types/composer-type.js"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -130,27 +130,27 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Button } from "@components/ui/button/index.js"
-import VendorMark from "@features/chat-input/components/VendorMark.vue"
-import { useModelFavorites } from "@features/chat-input/hooks/use-model-favorites.js"
+import VendorMark from "@features/composer/components/VendorMark.vue"
+import { useModelFavorites } from "@features/composer/hooks/use-model-favorites.js"
 import {
   FAVORITES_SCOPE,
   listPickerRows,
   modelLabel,
   resolveModelInfo,
   sameModel,
-} from "@features/chat-input/lib/model-preset.js"
+} from "@features/composer/lib/model-preset.js"
 
 const props = withDefaults(
   defineProps<{
-    catalog: ChatInputVendor[]
-    model: ChatInputModel | undefined
+    catalog: ComposerVendor[]
+    model: ComposerModel | undefined
     disabled?: boolean
   }>(),
   { disabled: false },
 )
 
 const emit = defineEmits<{
-  "update:model": [value: ChatInputModel]
+  "update:model": [value: ComposerModel]
 }>()
 
 const open = defineModel<boolean>("open", { default: false })
@@ -202,7 +202,7 @@ function isCurrent(provider: string, id: string) {
   return sameModel(props.model, { provider, id })
 }
 
-function select(model: ChatInputModel) {
+function select(model: ComposerModel) {
   emit("update:model", model)
 }
 

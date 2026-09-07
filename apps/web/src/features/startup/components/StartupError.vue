@@ -49,7 +49,7 @@ function retry() {
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-xs);
-  max-width: var(--size-chat-input);
+  max-width: var(--size-composer);
   text-align: center;
 }
 

@@ -36,7 +36,7 @@
   --canvas-soft: #fafafb;
   --surface: #ffffff;
   --sidebar: #fafafb;
-  --chat-input: #f2f2f3;
+  --composer: #f2f2f3;
   --user-prompt-bg: #f7f8f9;
   --popover: #ffffff;
   --code-header: #f2f2f3;
@@ -51,7 +51,7 @@
 
   /* 结构 / 交互 */
   --hairline: #ecedef;
-  --chat-input-ring: #e0e2e5;
+  --composer-ring: #e0e2e5;
   --card-glow-soft: color-mix(in srgb, var(--primary) 24%, transparent);
   --card-glow-trail: color-mix(in srgb, var(--primary) 55%, transparent);
   --card-glow-width: 2px;
@@ -71,7 +71,7 @@
   --glass-blur: 12px;
   --glass-opacity: 80%;
   --glass-saturation: 1;
-  --startup-veil: color-mix(in srgb, var(--chat-input) var(--glass-opacity), var(--canvas-soft));
+  --startup-veil: color-mix(in srgb, var(--composer) var(--glass-opacity), var(--canvas-soft));
 
   /* 装饰，不作结构填充 */
   --accent-sunset: #ee650d;
@@ -165,7 +165,7 @@
   --size-windows-caption: 138px;
   --size-drawer: 360px;
   --size-content: 45.75rem;
-  --size-chat-input: 46.75rem;
+  --size-composer: 46.75rem;
   --size-modal: 32rem;
   --size-settings: 56rem;
   --size-settings-nav: 15rem;
@@ -174,7 +174,7 @@
   --size-icon-button: 28px;
   --size-scroll-control: 30px;
   --size-nav-rail: 36px;
-  --size-chat-input-overlay: 6rem;
+  --size-composer-overlay: 6rem;
   --startup-logo-size: 88px;
 
   /* 边框 / 遮罩 / 层级 */
@@ -234,7 +234,7 @@
   --canvas-soft: #17181a;
   --surface: #232427;
   --sidebar: #17181a;
-  --chat-input: #2b2c2f;
+  --composer: #2b2c2f;
   --user-prompt-bg: #1f2022;
   --popover: #232427;
   --code-header: #2b2c2f;
@@ -247,7 +247,7 @@
   --ink-faint: #6c6f75;
 
   --hairline: #2e3033;
-  --chat-input-ring: #3a3c40;
+  --composer-ring: #3a3c40;
   --interaction-hover: #2a2b2e;
   --interaction-selected: #313236;
   --link: #acc2ff;

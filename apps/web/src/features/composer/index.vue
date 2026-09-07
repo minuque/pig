@@ -60,7 +60,7 @@
           class="plus press-scale"
           aria-label="添加图片，最多 6 张，仅本地预览"
           title="添加图片，仅本地预览"
-          :disabled="attachments.length >= MAX_CHAT_INPUT_ATTACHMENTS"
+          :disabled="attachments.length >= MAX_COMPOSER_ATTACHMENTS"
           @mousedown.prevent
           @click="openFilePicker"
         >
@@ -102,7 +102,7 @@
       </template>
     </PromptEditor>
     <p v-if="voiceMessage" class="voice-message" role="status">{{ voiceMessage }}</p>
-    <ChatInputMeta :cwd="cwd" :usage="usage" :open="usageOpen" @toggle="usageOpen = !usageOpen" />
+    <ComposerMeta :cwd="cwd" :usage="usage" :open="usageOpen" @toggle="usageOpen = !usageOpen" />
     <input
       ref="fileInput"
       type="file"
@@ -119,26 +119,26 @@
 import { computed, ref, watch } from "vue"
 import { ArrowUp, CircleAlert, Mic, Plus } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
-import { useVoiceInput } from "@features/chat-input/hooks/use-voice-input.js"
-import AttachmentThumb from "@features/chat-input/components/AttachmentThumb.vue"
-import ChatInputMeta from "@features/chat-input/components/ChatInputMeta.vue"
-import ContextUsagePanel from "@features/chat-input/components/ContextUsagePanel.vue"
-import ModelPicker from "@features/chat-input/components/ModelPicker.vue"
-import ThinkingLevelSelect from "@features/chat-input/components/ThinkingLevelSelect.vue"
-import PromptEditor from "@features/chat-input/components/PromptEditor.vue"
-import type { ChatInputModel, ChatInputPreset, ChatInputVendor } from "@/types/chat-input-type.js"
-import type { ContextUsage } from "@features/chat-input/type.js"
-import { resolveModelInfo } from "@features/chat-input/lib/model-preset.js"
+import { useVoiceInput } from "@features/composer/hooks/use-voice-input.js"
+import AttachmentThumb from "@features/composer/components/AttachmentThumb.vue"
+import ComposerMeta from "@features/composer/components/ComposerMeta.vue"
+import ContextUsagePanel from "@features/composer/components/ContextUsagePanel.vue"
+import ModelPicker from "@features/composer/components/ModelPicker.vue"
+import ThinkingLevelSelect from "@features/composer/components/ThinkingLevelSelect.vue"
+import PromptEditor from "@features/composer/components/PromptEditor.vue"
+import type { ComposerModel, ComposerPreset, ComposerVendor } from "@/types/composer-type.js"
+import type { ContextUsage } from "@features/composer/type.js"
+import { resolveModelInfo } from "@features/composer/lib/model-preset.js"
 import {
-  MAX_CHAT_INPUT_ATTACHMENTS,
+  MAX_COMPOSER_ATTACHMENTS,
   imageFilesFromClipboard,
-  useChatInputAttachments,
-} from "@features/chat-input/hooks/use-chat-input-attachments.js"
+  useComposerAttachments,
+} from "@features/composer/hooks/use-composer-attachments.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = withDefaults(
   defineProps<{
-    catalog: ChatInputVendor[]
+    catalog: ComposerVendor[]
     /** 运行中把发送钮改成停止 */
     running?: boolean
     /** Abort 请求进行中：保持停止态并禁用重复点击 */
@@ -168,7 +168,7 @@ const props = withDefaults(
 )
 
 const prompt = defineModel<string>("prompt", { required: true })
-const preset = defineModel<ChatInputPreset | undefined>("preset")
+const preset = defineModel<ComposerPreset | undefined>("preset")
 
 const emit = defineEmits<{
   send: [text: string]
@@ -177,7 +177,7 @@ const emit = defineEmits<{
 
 const model = computed({
   get: () => preset.value?.model,
-  set: (next: ChatInputModel | undefined) => {
+  set: (next: ComposerModel | undefined) => {
     if (next) preset.value = { model: next, thinkingLevel: preset.value?.thinkingLevel ?? "" }
   },
 })
@@ -189,7 +189,7 @@ const level = computed({
   },
 })
 
-const { attachments, addFiles, remove, clear } = useChatInputAttachments()
+const { attachments, addFiles, remove, clear } = useComposerAttachments()
 // 附件不进协议，不能单独放行
 const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisabled)
 
@@ -300,7 +300,7 @@ function onPrimaryAction() {
 }
 .prompt:not(.bare) {
   width: 100%;
-  max-width: var(--size-chat-input);
+  max-width: var(--size-composer);
   margin-inline: auto;
 }
 .error-indicator {

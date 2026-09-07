@@ -87,12 +87,12 @@ import {
   splitLines,
 } from "@features/transcript-view/lib/expandable-text.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
-import type { ContextUsage, ContextUsageSegment } from "@features/chat-input/type.js"
+import type { ContextUsage, ContextUsageSegment } from "@features/composer/type.js"
 import {
   contextUsageSummary,
   formatTokenCount,
   segmentShare,
-} from "@features/chat-input/lib/context-usage.js"
+} from "@features/composer/lib/context-usage.js"
 
 const props = defineProps<{
   usage: ContextUsage
@@ -194,8 +194,8 @@ function onOpenAutoFocus(event: Event) {
 .usage-host {
   position: relative;
   padding: var(--spacing-sm) 14px 10px;
-  background: var(--chat-input);
-  border: var(--border-width) solid var(--chat-input-ring);
+  background: var(--composer);
+  border: var(--border-width) solid var(--composer-ring);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
 }
