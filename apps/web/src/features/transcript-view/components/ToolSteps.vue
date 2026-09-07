@@ -58,7 +58,6 @@
             <div
               v-for="(step, index) in row.steps"
               :key="step.id"
-              :ref="(el) => bindStep(step.id, el)"
               class="step"
               :data-active="index === activeIndex"
               @mouseenter="onPointerEnter(index)"
@@ -137,7 +136,6 @@ const activeIndex = computed(() => {
 })
 
 const listEl = shallowRef<HTMLElement | null>(null)
-const stepEls = new Map<string, HTMLElement>()
 const centers = shallowRef<number[]>([])
 const railReady = shallowRef(false)
 const hoverIndex = shallowRef<number | null>(null)
@@ -145,19 +143,14 @@ const pointerInside = shallowRef(false)
 const focusInside = shallowRef(false)
 let listObserver: ResizeObserver | undefined
 
-function bindStep(id: string, el: unknown) {
-  if (el instanceof HTMLElement) stepEls.set(id, el)
-  else stepEls.delete(id)
-}
-
 function measure() {
   const root = listEl.value
   if (!root) return
-  centers.value = props.row.steps.map((step) => {
-    const node = stepEls.get(step.id)
-    if (!node) return 0
+  const rootTop = root.getBoundingClientRect().top
+  centers.value = [...root.querySelectorAll<HTMLElement>(":scope .step")].map((node) => {
     const hit = node.querySelector<HTMLElement>(".summary") ?? node
-    return hit.offsetTop + hit.offsetHeight / 2
+    const rect = hit.getBoundingClientRect()
+    return rect.top - rootTop + rect.height / 2
   })
   if (!railReady.value && centers.value.some((y) => y > 0)) {
     requestAnimationFrame(() => {
