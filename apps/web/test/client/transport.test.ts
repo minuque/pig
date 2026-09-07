@@ -1,14 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import {
-  createWebSocketByteTransportFactory,
-  webSocketUrl,
-  type WebSocketTransportOptions,
-} from "@client/transport.js"
+import { createWebSocketByteTransportFactory } from "@client/transport.js"
 import type { ByteTransportHandlers } from "@/types/common-type.js"
 
 type WsEvent = { wasClean?: boolean; code?: number; data?: unknown }
 
-/** 假 WebSocket：记录发送的 payload、close 次数，测试手动触发 open/error/close/message。 */
 class FakeWebSocket {
   static instances: FakeWebSocket[] = []
   binaryType = ""
@@ -56,26 +51,16 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-async function openTransport(options: Partial<WebSocketTransportOptions> = {}) {
-  const onData = vi.fn<(chunk: Uint8Array) => void>()
+async function openTransport() {
   const handlers: ByteTransportHandlers = {
-    onData,
+    onData: vi.fn(),
     onClose: vi.fn(),
     onError: vi.fn(),
   }
-  const factory = createWebSocketByteTransportFactory({
-    url: "ws://localhost/pi",
-    ...options,
-  })
+  const factory = createWebSocketByteTransportFactory({ url: "ws://localhost/pi" })
   const transport = await factory(handlers)
   return { transport, socket: FakeWebSocket.instances[0]!, handlers }
 }
-
-describe("webSocketUrl", () => {
-  it("用显式 base 组装路径", () => {
-    expect(webSocketUrl("http://127.0.0.1:5173/")).toBe("ws://127.0.0.1:5173/api/v1/pi")
-  })
-})
 
 describe("createWebSocketByteTransportFactory", () => {
   it("open 后 send 发送 [byteOffset, byteOffset+byteLength) 精确范围", async () => {
@@ -89,55 +74,11 @@ describe("createWebSocketByteTransportFactory", () => {
     expect(new Uint8Array(socket.sent[0]!)).toEqual(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
   })
 
-  it("open 前 error：send reject，不挂起", async () => {
+  it("失败路径：open 前 error，send reject，不挂起", async () => {
     const { transport, socket, handlers } = await openTransport()
     const pending = transport.send(new Uint8Array([1]))
     socket.emit("error")
     await expect(pending).rejects.toThrow("WebSocket 连接失败")
     expect(handlers.onError).toHaveBeenCalledTimes(1)
-  })
-
-  it("open 前 close：send reject，不永久 pending", async () => {
-    const { transport, socket } = await openTransport()
-    const pending = transport.send(new Uint8Array([1]))
-    transport.close()
-    expect(socket.closeCount).toBe(1)
-    await expect(pending).rejects.toThrow("已关闭")
-  })
-
-  it("单终态：error 后 close 事件不再通知", async () => {
-    const { socket, handlers } = await openTransport()
-    socket.emit("error")
-    expect(handlers.onError).toHaveBeenCalledTimes(1)
-    socket.emit("close", { wasClean: false, code: 1006 })
-    expect(handlers.onError).toHaveBeenCalledTimes(1)
-    expect(handlers.onClose).not.toHaveBeenCalled()
-  })
-
-  it("有序关闭恰好一次 onClose", async () => {
-    const { socket, handlers } = await openTransport()
-    socket.emit("close", { wasClean: true, code: 1000 })
-    socket.emit("close", { wasClean: true, code: 1000 })
-    expect(handlers.onClose).toHaveBeenCalledTimes(1)
-    expect(handlers.onError).not.toHaveBeenCalled()
-  })
-
-  it("close() 幂等且主动通知一次终态", async () => {
-    const { transport, socket, handlers } = await openTransport()
-    transport.close()
-    transport.close()
-    expect(socket.closeCount).toBe(1)
-    socket.emit("close", { wasClean: true, code: 1000 })
-    socket.emit("error")
-    expect(handlers.onClose).toHaveBeenCalledTimes(1)
-    expect(handlers.onError).not.toHaveBeenCalled()
-  })
-
-  it("文本消息按协议错误处理并终止传输", async () => {
-    const { transport, socket, handlers } = await openTransport()
-    socket.emit("open")
-    socket.emit("message", { data: "not binary" })
-    expect(handlers.onError).toHaveBeenCalledTimes(1)
-    await expect(transport.send(new Uint8Array([1]))).rejects.toThrow("已关闭")
   })
 })

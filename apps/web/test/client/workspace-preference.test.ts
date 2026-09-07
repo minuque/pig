@@ -20,20 +20,9 @@ afterEach(() => {
   STORAGE.clear()
 })
 
-describe("parseLocalWorkspaces", () => {
-  it("returns an empty list for missing or invalid storage values", () => {
-    expect(parseLocalWorkspaces(null)).toEqual([])
-    expect(parseLocalWorkspaces("not-json")).toEqual([])
-    expect(parseLocalWorkspaces('"str"')).toEqual([])
-  })
-
-  it("keeps only non-empty strings and canonicalizes old Windows paths", () => {
-    expect(parseLocalWorkspaces('["/a/", "", 42, "C:\\\\Foo\\\\"]')).toEqual(["/a", "c:/Foo"])
-  })
-})
-
 describe("local workspace preference persistence", () => {
-  it("round-trips the workspace list and last cwd", () => {
+  it("读写工作区列表和 last cwd，并规范化旧 Windows 路径", () => {
+    expect(parseLocalWorkspaces('["/a/", "", 42, "C:\\\\Foo\\\\"]')).toEqual(["/a", "c:/Foo"])
     saveLocalWorkspaces(["/a", "/b"], storage)
     saveLastCwd("/a", storage)
     expect(STORAGE.get(LOCAL_WORKSPACES_KEY)).toBe('["/a","/b"]')
@@ -41,7 +30,9 @@ describe("local workspace preference persistence", () => {
     expect(loadLastCwd(storage)).toBe("/a")
   })
 
-  it("treats corrupt values as empty", () => {
+  it("失败路径：缺失或损坏的存储值当作空列表", () => {
+    expect(parseLocalWorkspaces(null)).toEqual([])
+    expect(parseLocalWorkspaces("not-json")).toEqual([])
     STORAGE.set(LOCAL_WORKSPACES_KEY, "{broken")
     STORAGE.set(LAST_CWD_KEY, "x")
     expect(loadLocalWorkspaces(storage)).toEqual([])

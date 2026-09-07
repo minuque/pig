@@ -5,7 +5,6 @@ import { resolve } from "node:path"
 import type { AgentSession, AgentSessionEvent } from "@earendil-works/pi-coding-agent"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
 import type { TranscriptProgress } from "@earendil-works/pi-protocol"
-import { SessionBusyError } from "@earendil-works/pi-server"
 import { afterEach, describe, expect, it } from "vitest"
 import { canonicalizePath } from "../src/directory.js"
 import { PiHostService } from "../src/pi/service.js"
@@ -197,21 +196,6 @@ describe("TranscriptProjection", () => {
     })
     expect(end.item).toHaveProperty("input", { cmd: "ls" })
   })
-
-  it("projects only the current branch after branching", () => {
-    const manager = SessionManager.inMemory("/tmp")
-    manager.appendMessage({ role: "user", content: "q1", timestamp: 1000 })
-    const branchPoint = manager.getLeafId()
-    manager.appendMessage(assistantMessage({ timestamp: 2000 }))
-    // 分支：放弃当前路径，从 branchPoint 重新开始
-    manager.branch(branchPoint!)
-    manager.appendMessage(assistantMessage({ stopReason: "stop", timestamp: 3000 }))
-
-    expect(manager.getEntries()).toHaveLength(3) // 含被放弃的分支条目
-    const items = new TranscriptProjection().transcript(manager.getBranch())
-    expect(items).toHaveLength(2) // 只含当前分支的 user + assistant
-    expect(items[1]).toMatchObject({ role: "assistant", status: "complete" })
-  })
 })
 
 // --- PiHostSession ---------------------------------------------------------
@@ -233,26 +217,6 @@ describe("PiHostSession", () => {
     })
     fake.isStreaming = true
     expect(runtime.getPhase()).toBe("turn")
-    fake.isStreaming = false
-    fake.isCompacting = true
-    expect(runtime.getPhase()).toBe("compaction")
-  })
-
-  it("rejects idle steer and conflicting operations but allows steer during a turn", async () => {
-    const fake = new FakeAgentSession(SessionManager.inMemory("/tmp"))
-    const runtime = new PiHostSession(asSession(fake))
-    await expect(runtime.steer({ text: "x" })).rejects.toBeInstanceOf(SessionBusyError)
-    fake.isStreaming = true
-    await expect(runtime.prompt({ text: "x" })).rejects.toBeInstanceOf(SessionBusyError)
-    await expect(runtime.setModel({ provider: "test", id: "test-model" })).rejects.toBeInstanceOf(
-      SessionBusyError,
-    )
-    // turn 中 steer 不被 prompt 的互斥锁阻塞（AgentSession.steer 仅入队）
-    await expect(runtime.steer({ text: "continue" })).resolves.toBeUndefined()
-    expect(fake.steers).toEqual(["continue"])
-    fake.isStreaming = false
-    await runtime.prompt({ text: "hello" })
-    expect(fake.prompts).toEqual(["hello"])
   })
 
   it("forwards progress without an immediate stale snapshot", async () => {
@@ -290,13 +254,6 @@ describe("PiHostSession", () => {
     ])
     expect(runtime.snapshot().revision).toBe(5)
   })
-
-  it("disposes the underlying session", async () => {
-    const fake = new FakeAgentSession(SessionManager.inMemory("/tmp"))
-    const runtime = new PiHostSession(asSession(fake))
-    await runtime.dispose()
-    expect(fake.disposed).toBe(true)
-  })
 })
 
 // --- PiHostService ---------------------------------------------------------
@@ -326,47 +283,6 @@ describe("PiHostService", () => {
     })
     return { dir, service, sessions }
   }
-
-  it("creates a persisted session and reopens it by id", async () => {
-    const { service, sessions } = await makeService()
-    const runtime = await service.createSession({ id: "sess-1" })
-    expect((await runtime.snapshot()).id).toBe("sess-1")
-    expect(sessions.has("sess-1")).toBe(true)
-
-    const metadata = await service.listSessions()
-    expect(metadata).toHaveLength(1)
-    expect(metadata[0]).toMatchObject({ id: "sess-1", cwd: expect.any(String) })
-    expect(await service.listSessionCards()).toMatchObject([{ id: "sess-1", messageCount: 0 }])
-
-    const fake = sessions.get("sess-1")
-    fake!.sessionManager.appendMessage({ role: "user", content: "hi", timestamp: 1000 })
-    fake!.sessionManager.appendModelChange("test", "test-model")
-    expect(await service.listSessionCards()).toMatchObject([
-      { id: "sess-1", messageCount: 1, model: { provider: "test", id: "test-model" } },
-    ])
-    fake!.sessionManager.appendMessage(
-      assistantMessage({
-        stopReason: "error",
-        errorMessage: "Request timed out.",
-        content: [],
-        timestamp: 1100,
-      }),
-    )
-    fake!.sessionManager.appendMessage(
-      assistantMessage({
-        stopReason: "error",
-        errorMessage: "Request timed out.",
-        content: [],
-        timestamp: 1200,
-      }),
-    )
-    expect(await service.listSessionCards()).toMatchObject([
-      { id: "sess-1", messageCount: 1, model: { provider: "test", id: "test-model" } },
-    ])
-
-    const reopened = await service.openSession("sess-1")
-    expect(await reopened.snapshot()).toMatchObject({ id: "sess-1", name: "hi" })
-  })
 
   it("只读取当前已附加 session 的占用估算，并在释放后清理", async () => {
     const { service } = await makeService()

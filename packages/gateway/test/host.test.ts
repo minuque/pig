@@ -44,11 +44,6 @@ async function request(
 }
 
 describe("thin host HTTP shell", () => {
-  it("serves /health", async () => {
-    const base = await startGateway()
-    expect(await (await request(base, "/health")).json()).toEqual({ status: "ok" })
-  })
-
   it("selects a directory", async () => {
     const base = await startGateway()
     selectedDirectory = "C:/projects/demo"

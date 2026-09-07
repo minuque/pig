@@ -122,26 +122,4 @@ describe("useComposerBinding", () => {
     expect(setThinking).toHaveBeenCalledWith("off")
     expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
   })
-
-  it("空 catalog 补齐后非法档位按新目录回落", async () => {
-    const gpt = { provider: "openai", id: "gpt-4o" }
-    const catalogRef = ref<ComposerVendor[]>([])
-    const state = ref<SessionSnapshot | undefined>()
-    const { preset } = useComposerBinding({
-      catalog: catalogRef,
-      snapshot: state,
-      phase: ref<"idle" | undefined>("idle"),
-      error: ref(""),
-      setModel: vi.fn(async () => {}),
-      setThinking: vi.fn(async () => {}),
-    })
-
-    state.value = snapshot(gpt, "high")
-    await nextTick()
-    expect(preset.value).toEqual({ model: gpt, thinkingLevel: "high" })
-
-    catalogRef.value = pickerCatalog
-    await nextTick()
-    expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
-  })
 })

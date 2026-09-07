@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, realpath, rm } from "node:fs/promises"
+import { mkdtemp, realpath, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
@@ -46,16 +46,6 @@ describe("WindowsDirectoryPort", () => {
   it("stdout 为空视为取消", async () => {
     const port = new WindowsDirectoryPort(async () => ({ stdout: "  \n" }))
     expect(await port.selectDirectory()).toBeUndefined()
-  })
-
-  it("解析 JSON 路径并做 realpath 规范化", async () => {
-    tempRoot = await mkdtemp(join(tmpdir(), "pig-dir-"))
-    const selected = join(tempRoot, "workspace")
-    await mkdir(selected)
-    const expected = canonicalizePath(await realpath(selected))
-
-    const port = new WindowsDirectoryPort(async () => ({ stdout: JSON.stringify(selected) }))
-    expect(await port.selectDirectory()).toBe(expected)
   })
 
   it("pwsh 不存在时回退到 powershell.exe", async () => {

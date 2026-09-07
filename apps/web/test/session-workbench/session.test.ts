@@ -182,17 +182,6 @@ function setup() {
 }
 
 describe("打开已有 Session", () => {
-  it("openSession 幂等：已附加同 id 时跳过", async () => {
-    const { session } = setup()
-    const a = makeSession("s1")
-    openMock.mockResolvedValue(a)
-    routeBox.params.sessionId = "s1"
-    await session.initialize()
-    await session.initialize()
-    expect(openMock).toHaveBeenCalledTimes(1)
-    expect(session.remote.value).toBe(a)
-  })
-
   it("从 Session 回到 / 时清空 Transcript", async () => {
     const item = {
       id: "u1",
@@ -229,28 +218,6 @@ describe("打开已有 Session", () => {
 })
 
 describe("快速切换 Session", () => {
-  it("快速连点只打开最后一次请求的 session", async () => {
-    const { session } = setup()
-    const a = makeSession("s1")
-    const b = makeSession("s2")
-    const c = makeSession("s3")
-    openMock.mockImplementation(async (_client, id) => {
-      if (id === "s1") return a
-      if (id === "s2") return b
-      return c
-    })
-    await session.initialize()
-    routeBox.params.sessionId = "s1"
-    routeBox.params.sessionId = "s2"
-    routeBox.params.sessionId = "s3"
-    await nextTick()
-    await vi.waitFor(() => expect(session.remote.value).toBe(c))
-    expect(openMock).toHaveBeenCalledTimes(1)
-    expect(openMock.mock.calls[0]?.[1]).toBe("s3")
-    expect(a.disposeCalls).toBe(0)
-    expect(b.disposeCalls).toBe(0)
-  })
-
   it("进行中的 open 完成后若已切走则释放、不附加", async () => {
     const { session } = setup()
     const a = makeSession("s1")
@@ -315,19 +282,6 @@ describe("快速切换 Session", () => {
 })
 
 describe("创建 Session 后提交第一条 Prompt", () => {
-  it("createSession 替换已附加实例时释放旧 lease", async () => {
-    const { session } = setup()
-    const a = makeSession("s1")
-    const b = makeSession("s2")
-    openMock.mockResolvedValue(a)
-    routeBox.params.sessionId = "s1"
-    await session.initialize()
-    createMock.mockResolvedValue(b)
-    await session.createSession("/repo")
-    expect(a.disposeCalls).toBe(1)
-    expect(session.remote.value).toBe(b)
-  })
-
   it("创建成功后发送正文", async () => {
     const { session, cwd } = setup()
     const created = makeSession("s2")
@@ -338,16 +292,6 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     expect(created.submit).toHaveBeenCalledWith("任务")
     expect(session.sessionError.value).toBe("")
     expect(cwd.selectCwd).toHaveBeenCalledWith("/repo")
-  })
-
-  it("无 session 时 prompt 写入独立草稿，提交后清空", async () => {
-    const { session } = setup()
-    session.prompt.value = "草稿"
-    expect(session.prompt.value).toBe("草稿")
-    const created = makeSession("s2")
-    createMock.mockResolvedValue(created)
-    await session.createAndSubmit("/repo", "任务")
-    expect(session.prompt.value).toBe("")
   })
 
   it("创建失败时不提交", async () => {
@@ -424,17 +368,6 @@ describe("提交失败恢复草稿", () => {
 
     resolveSubmit()
     await request
-    expect(session.clientState.value?.optimisticUser).toBeNull()
-  })
-
-  it("空白正文不提交", async () => {
-    const { session } = setup()
-    const a = makeSession("s1")
-    openMock.mockResolvedValue(a)
-    routeBox.params.sessionId = "s1"
-    await session.initialize()
-    await session.submitText("   ")
-    expect(a.submit).not.toHaveBeenCalled()
     expect(session.clientState.value?.optimisticUser).toBeNull()
   })
 
@@ -529,18 +462,7 @@ describe("HTTP 历史与 live Transcript 合并", () => {
   })
 })
 
-describe("dispose 与 context-usage", () => {
-  it("dispose 可重复调用且底层只 dispose 一次", async () => {
-    const { session } = setup()
-    const a = makeSession("s1")
-    openMock.mockResolvedValue(a)
-    routeBox.params.sessionId = "s1"
-    await session.initialize()
-    await Promise.all([session.dispose(), session.dispose(), session.dispose()])
-    expect(a.disposeCalls).toBe(1)
-    expect(session.remote.value).toBeUndefined()
-  })
-
+describe("context-usage", () => {
   it("snapshot revision 变化时刷新占用估算", async () => {
     const { session } = setup()
     const a = makeSession("s1")

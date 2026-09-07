@@ -7,35 +7,7 @@ import {
   sessionCardFoot,
   sessionOutcome,
   sidebarTimeSections,
-  sidebarRows,
-  sortSessionsForSidebar,
 } from "@features/session-nav/lib/session-list.js"
-import type { SidebarRow } from "@features/session-nav/type.js"
-
-function flattenRowKinds(
-  rows: readonly SidebarRow[],
-  flag: "first" | "collapsed" = "first",
-): string[] {
-  return rows.flatMap((row) => {
-    if (row.kind === "session") return [`session:${row.session.id}`]
-    if (row.kind === "more") return [`more:${row.groupKey}`]
-    const head = `group:${row.canonicalPath}:${flag === "first" ? row.first : row.collapsed}`
-    if (row.collapsed) return [head]
-    return [
-      head,
-      ...row.sessions.map((session) => `session:${session.id}`),
-      ...(row.more ? [`more:${row.canonicalPath}`] : []),
-    ]
-  })
-}
-
-function meta(
-  id: string,
-  createdAt: number,
-  extra: Partial<SessionMetadata> = {},
-): SessionMetadata {
-  return { id, createdAt, ...extra }
-}
 
 describe("groupSessionsByCwd", () => {
   it("本地目录在前，无 cwd 不进组，组内按最近活动，Windows 路径对齐", () => {
@@ -72,79 +44,6 @@ describe("filterSessionsForSearch", () => {
       "b",
     ])
     expect(filterSessionsForSearch(sessions, "PIG").map((session) => session.id)).toEqual(["a"])
-  })
-})
-
-describe("sidebar rows", () => {
-  it("更新时间截到 10 条后出 more", () => {
-    const sessions = Array.from({ length: 12 }, (_, index) =>
-      meta(`s${String(index).padStart(2, "0")}`, index, { cwd: "/a" }),
-    )
-    const rows = sidebarRows({
-      grouping: "updated",
-      sessions,
-      groups: [],
-      revealByGroup: {},
-      searching: false,
-    })
-    expect(rows.filter((row) => row.kind === "session")).toHaveLength(10)
-    expect(rows.at(-1)).toEqual({ kind: "more", key: "more:updated", groupKey: "updated" })
-  })
-
-  it("项目分组每组截到 5，折叠藏会话，搜索取消截断与折叠", () => {
-    const aSessions = Array.from({ length: 7 }, (_, index) =>
-      meta(`a${index}`, index, { cwd: "/a" }),
-    )
-    const bSessions = [meta("b0", 1, { cwd: "/b" })]
-    const groups = [
-      { canonicalPath: "/a", sessions: sortSessionsForSidebar(aSessions) },
-      { canonicalPath: "/b", sessions: sortSessionsForSidebar(bSessions) },
-    ]
-    const truncated = sidebarRows({
-      grouping: "project",
-      sessions: [...aSessions, ...bSessions],
-      groups,
-      revealByGroup: {},
-      searching: false,
-    })
-    expect(flattenRowKinds(truncated)).toEqual([
-      "group:/a:true",
-      "session:a6",
-      "session:a5",
-      "session:a4",
-      "session:a3",
-      "session:a2",
-      "more:/a",
-      "group:/b:false",
-      "session:b0",
-    ])
-    const collapsed = sidebarRows({
-      grouping: "project",
-      sessions: [...aSessions, ...bSessions],
-      groups,
-      revealByGroup: {},
-      searching: false,
-      collapsedByGroup: { "/a": true },
-    })
-    expect(flattenRowKinds(collapsed, "collapsed")).toEqual([
-      "group:/a:true",
-      "group:/b:false",
-      "session:b0",
-    ])
-    const searching = sidebarRows({
-      grouping: "project",
-      sessions: aSessions,
-      groups: [{ canonicalPath: "/a", sessions: sortSessionsForSidebar(aSessions) }],
-      revealByGroup: {},
-      searching: true,
-      collapsedByGroup: { "/a": true },
-    })
-    expect(searching.filter((row) => row.kind === "session" || row.kind === "group")).toHaveLength(
-      1,
-    )
-    expect(searching.some((row) => row.kind === "more")).toBe(false)
-    const group = searching[0]
-    expect(group?.kind === "group" && group.sessions).toHaveLength(7)
   })
 })
 

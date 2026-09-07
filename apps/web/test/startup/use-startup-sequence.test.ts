@@ -17,7 +17,8 @@ describe("startup sequence", () => {
     replace.mockClear()
   })
 
-  it("runs connect then initialize without closing the overlay", async () => {
+  it("connect 后 initialize；从 /error 成功启动则回到 /", async () => {
+    currentRoute.value = { name: "error" }
     const order: string[] = []
     const { start, ready, visible, settled } = useStartupSequence({
       connect: async () => {
@@ -33,46 +34,35 @@ describe("startup sequence", () => {
     expect(ready.value).toBe(true)
     expect(settled.value).toBe(true)
     expect(visible.value).toBe(true)
-    expect(replace).not.toHaveBeenCalled()
-  })
-
-  it("leaves the error route after a successful boot", async () => {
-    currentRoute.value = { name: "error" }
-    const { start } = useStartupSequence({
-      connect: async () => undefined,
-      initialize: async () => undefined,
-      connectTimeoutMs: 0,
-    })
-    await start()
     expect(replace).toHaveBeenCalledWith("/")
   })
 
-  it("opens /error without tearing down the overlay when boot fails", async () => {
-    const { start, visible, ready, failed, settled } = useStartupSequence({
+  it("失败路径：connect 抛错或超时都进 /error，不拆 overlay", async () => {
+    const thrown = useStartupSequence({
       connect: async () => {
         throw new Error("连接失败")
       },
       initialize: async () => undefined,
       connectTimeoutMs: 0,
     })
-    await start()
-    expect(ready.value).toBe(false)
-    expect(failed.value).toBe(true)
-    expect(settled.value).toBe(true)
-    expect(visible.value).toBe(true)
+    await thrown.start()
+    expect(thrown.ready.value).toBe(false)
+    expect(thrown.failed.value).toBe(true)
+    expect(thrown.settled.value).toBe(true)
+    expect(thrown.visible.value).toBe(true)
     expect(useStartupError().value).toBe("请求失败。请检查本地服务后重试。")
     expect(replace).toHaveBeenCalledWith({ name: "error" })
-  })
 
-  it("treats a hung connect as a startup error", async () => {
-    const { start, failed, visible } = useStartupSequence({
+    replace.mockClear()
+    setStartupError("")
+    const hung = useStartupSequence({
       connect: () => new Promise(() => {}),
       initialize: async () => undefined,
       connectTimeoutMs: 20,
     })
-    await start()
-    expect(failed.value).toBe(true)
-    expect(visible.value).toBe(true)
+    await hung.start()
+    expect(hung.failed.value).toBe(true)
+    expect(hung.visible.value).toBe(true)
     expect(replace).toHaveBeenCalledWith({ name: "error" })
   })
 })
