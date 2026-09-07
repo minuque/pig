@@ -1,11 +1,5 @@
 <template>
-  <component
-    :is="bare ? 'div' : 'form'"
-    class="prompt"
-    :class="{ bare }"
-    @submit.prevent="send"
-    @paste="onPaste"
-  >
+  <form class="prompt" @submit.prevent="send" @paste="onPaste">
     <Transition name="panel-reveal">
       <ContextUsagePanel
         v-if="usageOpen && usage"
@@ -20,11 +14,10 @@
       :placeholder="placeholder"
       :running="running"
       :active="modelPickerOpen || voiceActive"
-      :has-chips="attachments.length > 0 || Boolean($slots.chips)"
       :readonly="voiceActive"
       @submit="send"
     >
-      <template v-if="attachments.length || $slots.chips" #chips>
+      <template v-if="attachments.length" #chips>
         <AttachmentThumb
           v-for="item in attachments"
           :key="item.id"
@@ -32,11 +25,9 @@
           :name="item.name"
           @remove="removeAttachment(item.id)"
         />
-        <slot name="chips" />
       </template>
       <template #left>
         <template v-if="!voiceActive">
-          <slot name="left" />
           <ModelPicker
             v-model:open="modelPickerOpen"
             v-model:model="model"
@@ -100,9 +91,16 @@
           </span>
         </Button>
       </template>
+      <template #meta>
+        <ComposerMeta
+          :cwd="cwd"
+          :usage="usage"
+          :open="usageOpen"
+          @toggle="usageOpen = !usageOpen"
+        />
+      </template>
     </PromptEditor>
     <p v-if="voiceMessage" class="voice-message" role="status">{{ voiceMessage }}</p>
-    <ComposerMeta :cwd="cwd" :usage="usage" :open="usageOpen" @toggle="usageOpen = !usageOpen" />
     <input
       ref="fileInput"
       type="file"
@@ -112,7 +110,7 @@
       tabindex="-1"
       @change="onFilesPicked"
     />
-  </component>
+  </form>
 </template>
 
 <script setup lang="ts">
@@ -147,8 +145,6 @@ const props = withDefaults(
     /** 外部禁用发送（如 welcome 的 workspace/预设/提交中守卫） */
     sendDisabled?: boolean
     placeholder?: string
-    /** 嵌入其他布局时以 div 渲染，避免嵌套 form */
-    bare?: boolean
     /** 当前工作目录，底栏展示末段名 */
     cwd?: string | undefined
     usage?: ContextUsage | undefined
@@ -160,7 +156,6 @@ const props = withDefaults(
     error: "",
     sendDisabled: false,
     placeholder: "do what you want ...",
-    bare: false,
     cwd: undefined,
     usage: undefined,
     sessionId: undefined,
@@ -293,15 +288,11 @@ function onPrimaryAction() {
 <style scoped>
 .prompt {
   position: relative;
+  width: 100%;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
-}
-.prompt:not(.bare) {
-  width: 100%;
-  max-width: var(--size-composer);
-  margin-inline: auto;
 }
 .error-indicator {
   display: inline-flex;

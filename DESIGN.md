@@ -12,7 +12,7 @@ colors:
   canvas-soft: "#fafafb"
   surface: "#ffffff"
   main: "#ffffff"
-  panel: "#faf6f0"
+  panel: "#fcfbf8"
   ink: "#1f2124"
   ink-secondary: "#62656b"
   ink-muted: "#62656b"
@@ -336,7 +336,7 @@ Pi Agent GUI 浅色用奶油色抬升面板，深色用抬升的蓝灰表面。�
 ### Surface
 
 - **Conversation** (`{colors.main}` — #ffffff)：对话列。
-- **Panel** (`{colors.panel}` — #faf6f0)：侧栏分组与输入卡。
+- **Panel** (`{colors.panel}` — #fcfbf8)：侧栏分组与输入卡。
 - **Surface** (`{colors.surface}` — #ffffff)：卡片。
 - **Canvas** (`{colors.canvas}` — #f1f2f3)：次级井。
 - **Secondary well** (`{colors.canvas-soft}` — #fafafb)：侧栏和页面底。
@@ -367,7 +367,7 @@ sunset 是装饰，orange 是语义。
 | 对话底       | `#ffffff` | `#111214` |
 | 侧栏         | `#fafafb` | `#17181a` |
 | 选中行       | `#e7e9eb` | `#313236` |
-| 输入卡/分组  | `#faf6f0` | `#232427` |
+| 输入卡/分组  | `#fcfbf8` | `#232427` |
 | 输入边框     | `#e0e2e5` | `#3a3c40` |
 | 菜单         | `#ffffff` | `#232427` |
 | 菜单边框     | `#ecedef` | `#2e3033` |

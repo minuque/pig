@@ -29,31 +29,11 @@
   </div>
 </template>
 
-<script lang="ts">
-import { workspaceName } from "@features/session-nav/index.js"
-import type { ContextUsage } from "@features/composer/type.js"
-
-const RING_RADIUS = 6
-export const USAGE_RING_LENGTH = 2 * Math.PI * RING_RADIUS
-
-export function usageRingOffset(percent: number, length = USAGE_RING_LENGTH): number {
-  const clamped = Math.min(100, Math.max(0, percent))
-  return length * (1 - clamped / 100)
-}
-
-export function composerCwdLabel(cwd: string | undefined): string {
-  return cwd ? workspaceName(cwd) : ""
-}
-
-export function contextUsageTitle(usage: ContextUsage | undefined): string {
-  const percent = usage?.percent ?? 0
-  return `上下文占用 ${percent}%`
-}
-</script>
-
 <script setup lang="ts">
 import { computed } from "vue"
 import { Folder } from "@lucide/vue"
+import { workspaceName } from "@features/session-nav/index.js"
+import type { ContextUsage } from "@features/composer/type.js"
 
 const props = withDefaults(
   defineProps<{
@@ -68,11 +48,14 @@ const emit = defineEmits<{
   toggle: []
 }>()
 
-const RING = USAGE_RING_LENGTH
+const RING = 2 * Math.PI * 6
 
-const cwdLabel = computed(() => composerCwdLabel(props.cwd))
-const usageLabel = computed(() => contextUsageTitle(props.usage))
-const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
+const cwdLabel = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
+const usageLabel = computed(() => `上下文占用 ${props.usage?.percent ?? 0}%`)
+const ringOffset = computed(() => {
+  const clamped = Math.min(100, Math.max(0, props.usage?.percent ?? 0))
+  return RING * (1 - clamped / 100)
+})
 </script>
 
 <style scoped>
@@ -83,7 +66,6 @@ const ringOffset = computed(() => usageRingOffset(props.usage?.percent ?? 0))
   gap: var(--spacing-xs);
   min-height: 28px;
   padding-block: var(--spacing-xxs) var(--spacing-xs);
-  background: var(--panel);
 }
 
 .cwd {

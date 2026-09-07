@@ -5,7 +5,7 @@ const palettes = [
     theme: "light",
     surface: "rgb(255, 255, 255)",
     sidebar: "rgb(250, 250, 251)",
-    input: "rgb(250, 246, 240)",
+    input: "rgb(252, 251, 248)",
     inputBorder: "rgb(236, 237, 239)",
     ink: "rgb(31, 33, 36)",
     faint: "rgb(154, 157, 163)",

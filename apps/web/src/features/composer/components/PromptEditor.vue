@@ -39,6 +39,9 @@
         </div>
       </div>
     </div>
+    <div v-if="$slots.meta" class="footer">
+      <slot name="meta" />
+    </div>
   </div>
 </template>
 
@@ -53,21 +56,19 @@ export function shouldSubmitOnKeydown(e: {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from "vue"
+import { computed, ref, shallowRef, useSlots, watch } from "vue"
 
 const props = withDefaults(
   defineProps<{
     placeholder?: string
     running?: boolean
     active?: boolean
-    hasChips?: boolean
     readonly?: boolean
   }>(),
   {
     placeholder: "do what you want ...",
     running: false,
     active: false,
-    hasChips: false,
     readonly: false,
   },
 )
@@ -82,9 +83,10 @@ const editor = ref<HTMLTextAreaElement | null>(null)
 const focused = shallowRef(false)
 const container = ref<HTMLElement | null>(null)
 
+const slots = useSlots()
 const hasText = computed(() => prompt.value.length > 0)
 const expanded = computed(
-  () => focused.value || hasText.value || props.hasChips || props.running || props.active,
+  () => focused.value || hasText.value || Boolean(slots.chips) || props.running || props.active,
 )
 
 function onFocusOut(event: FocusEvent) {
@@ -173,9 +175,14 @@ defineExpose({ focus })
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background: var(--panel);
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-xl);
+}
+.footer {
+  min-width: 0;
+  padding-inline: var(--spacing-md);
 }
 
 .editor-wrap {
