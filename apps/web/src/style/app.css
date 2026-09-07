@@ -26,47 +26,55 @@
   color-scheme: light;
 
   /* 品牌 */
-  --primary: #637cd2;
-  --primary-active: #4d64b7;
-  --secondary: #495fad;
+  --primary: #2563eb;
+  --primary-active: #1d4ed8;
+  --secondary: #1d4ed8;
   --on-primary: #ffffff;
 
   /* 表面 */
-  --canvas: #f1f2f3;
-  --canvas-soft: #fafafb;
+  --canvas: #f5f5f5;
+  --canvas-soft: #fafafa;
   --surface: #ffffff;
   --main: #ffffff;
-  --sidebar: #fafafb;
-  --panel: #fcfbf8;
-  --user-prompt-bg: #f7f8f9;
+  --sidebar: #fafafa;
+  --panel: #ffffff;
+  --user-prompt-bg: #f5f5f5;
   --popover: #ffffff;
-  --code-header: #f2f2f3;
+  --code-header: #f5f5f5;
   --code-body: #ffffff;
 
   /* 文字 */
-  --ink: #1f2124;
-  --ink-markdown: #1f2124;
-  --ink-secondary: #62656b;
-  --ink-muted: #62656b;
-  --ink-faint: #9a9da3;
+  --ink: #0a0a0a;
+  --ink-markdown: #0a0a0a;
+  --ink-secondary: #525252;
+  --ink-muted: #525252;
+  --ink-faint: #666666;
 
   /* 结构 / 交互 */
-  --hairline: #ecedef;
-  --composer-ring: #e0e2e5;
+  --hairline: #e5e5e5;
+  --composer-ring: #d4d4d4;
   --card-glow-soft: color-mix(in srgb, var(--primary) 24%, transparent);
   --card-glow-trail: color-mix(in srgb, var(--primary) 55%, transparent);
   --card-glow-width: 2px;
-  --interaction-hover: #f4f5f6;
-  --interaction-selected: #e7e9eb;
+  --interaction-hover: #f5f5f5;
+  --interaction-selected: #e5e5e5;
   --hover-quiet: color-mix(in srgb, var(--ink) 5%, transparent);
   --hover-tint: color-mix(in srgb, var(--ink) 8%, transparent);
   --hover-strong: color-mix(in srgb, var(--ink) 12%, transparent);
-  --link: #495fad;
-  --inline-code: #f2f2f3;
+  --selection-bg: color-mix(in srgb, var(--primary) 35%, transparent);
+  --chart-track: color-mix(in srgb, var(--ink) 18%, transparent);
+  --minimap-marker: color-mix(in srgb, var(--ink-muted) 35%, transparent);
+  --link-underline: color-mix(in srgb, var(--ink) 38%, transparent);
+  --link-underline-hover: color-mix(in srgb, var(--ink) 72%, transparent);
+  --success-halo: color-mix(in srgb, var(--success) 15%, transparent);
+  --danger-halo: color-mix(in srgb, var(--danger) 15%, transparent);
+  --info-halo: color-mix(in srgb, var(--primary) 15%, transparent);
+  --link: #1d4ed8;
+  --inline-code: #f5f5f5;
   --inline-code-ink: var(--ink);
   --media-outline: rgba(0, 0, 0, 0.1);
-  --scrollbar-color: #9a9da3;
-  --scrollbar-hover: #62656b;
+  --scrollbar-color: #737373;
+  --scrollbar-hover: #525252;
 
   /* 玻璃 */
   --glass-blur: 12px;
@@ -83,20 +91,20 @@
   --accent-midnight: #0d1726;
 
   /* 语义 */
-  --accent-orange: #ef720d;
-  --accent-orange-deep: #9c3b00;
-  --accent-green: #199a4d;
-  --success: #199a4d;
-  --info: #637cd2;
-  --warning: #ef720d;
-  --danger: #e3474c;
+  --accent-orange: #854d0e;
+  --accent-orange-deep: #854d0e;
+  --accent-green: #166534;
+  --success: #166534;
+  --info: #2563eb;
+  --warning: #854d0e;
+  --danger: #b91c1c;
   --success-foreground: var(--on-primary);
-  --warning-foreground: var(--ink);
+  --warning-foreground: var(--on-primary);
   --danger-foreground: var(--on-primary);
-  --success-bg: #e8f5ed;
-  --info-bg: #e6eaf8;
-  --warning-bg: #fdf1e5;
-  --danger-bg: #fcecec;
+  --success-bg: #dcfce7;
+  --info-bg: #dbeafe;
+  --warning-bg: #fef9c3;
+  --danger-bg: #fee2e2;
 
   /* 字体 */
   --font-sans:
@@ -203,8 +211,8 @@
     0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
 
   /* 反色主按钮 */
-  --inverse-bg: #1f2124;
-  --inverse-bg-hover: #323336;
+  --inverse-bg: #0a0a0a;
+  --inverse-bg-hover: #262626;
   --inverse-fg: #ffffff;
 
   /* 动效 */
@@ -226,55 +234,55 @@
 .dark {
   color-scheme: dark;
 
-  --primary: #89a2f3;
-  --primary-active: #768fe2;
-  --secondary: #acc2ff;
+  --primary: #60a5fa;
+  --primary-active: #93c5fd;
+  --secondary: #93c5fd;
   --on-primary: #000000;
 
-  --canvas: #1c1d1f;
-  --canvas-soft: #17181a;
-  --surface: #232427;
-  --main: #111214;
-  --sidebar: #17181a;
-  --panel: #232427;
-  --user-prompt-bg: #1f2022;
-  --popover: #232427;
-  --code-header: #2b2c2f;
-  --code-body: #1f2022;
+  --canvas: #171717;
+  --canvas-soft: #171717;
+  --surface: #262626;
+  --main: #121212;
+  --sidebar: #171717;
+  --panel: #262626;
+  --user-prompt-bg: #262626;
+  --popover: #262626;
+  --code-header: #262626;
+  --code-body: #262626;
 
-  --ink: #f2f3f4;
-  --ink-markdown: #f2f3f4;
-  --ink-secondary: #a5a8ad;
-  --ink-muted: #a5a8ad;
-  --ink-faint: #6c6f75;
+  --ink: #fafafa;
+  --ink-markdown: #fafafa;
+  --ink-secondary: #a3a3a3;
+  --ink-muted: #a3a3a3;
+  --ink-faint: #a3a3a3;
 
-  --hairline: #2e3033;
-  --composer-ring: #3a3c40;
-  --interaction-hover: #2a2b2e;
-  --interaction-selected: #313236;
-  --link: #acc2ff;
-  --inline-code: #2b2c2f;
+  --hairline: #404040;
+  --composer-ring: #525252;
+  --interaction-hover: #404040;
+  --interaction-selected: #333333;
+  --link: #93c5fd;
+  --inline-code: #262626;
   --media-outline: rgba(255, 255, 255, 0.1);
-  --scrollbar-color: #6c6f75;
-  --scrollbar-hover: #a5a8ad;
+  --scrollbar-color: #a3a3a3;
+  --scrollbar-hover: #a3a3a3;
 
   --glass-blur: 16px;
   --glass-saturation: 1;
 
-  --accent-orange: #f68f3c;
-  --accent-orange-deep: #f68f3c;
-  --accent-green: #3cbb72;
-  --success: #3cbb72;
-  --info: #89a2f3;
-  --warning: #f68f3c;
-  --danger: #ee5c61;
+  --accent-orange: #facc15;
+  --accent-orange-deep: #facc15;
+  --accent-green: #4ade80;
+  --success: #4ade80;
+  --info: #60a5fa;
+  --warning: #facc15;
+  --danger: #f87171;
   --success-foreground: #000000;
   --warning-foreground: #000000;
   --danger-foreground: #000000;
-  --success-bg: #273932;
-  --info-bg: #333848;
-  --warning-bg: #41332a;
-  --danger-bg: #3f2c2f;
+  --success-bg: #142c1e;
+  --info-bg: #172554;
+  --warning-bg: #30270e;
+  --danger-bg: #38191b;
 
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.45);
@@ -289,9 +297,9 @@
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
 
-  --inverse-bg: #f2f3f4;
+  --inverse-bg: #fafafa;
   --inverse-bg-hover: #ffffff;
-  --inverse-fg: #17181a;
+  --inverse-fg: #171717;
 }
 
 /* 滚动条默认隐藏，容器 hover 时淡入；各元素自写 --scrollbar-thumb，避免 html:hover 传到所有条子。 */
@@ -373,7 +381,7 @@
   --color-secondary-foreground: var(--on-primary);
   --color-destructive: var(--danger);
   --color-destructive-foreground: var(--danger-foreground);
-  --color-input: var(--hairline);
+  --color-input: var(--composer-ring);
   --color-background: var(--main);
   --color-foreground: var(--ink);
   --color-card: var(--surface);

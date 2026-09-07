@@ -99,7 +99,7 @@ const label = computed(() =>
   margin: 0;
   padding: 0;
   border: 0;
-  border-bottom: 1px dotted color-mix(in srgb, var(--ink) 38%, transparent);
+  border-bottom: 1px dotted var(--link-underline);
   border-radius: 0;
   background: transparent;
   color: inherit;
@@ -110,7 +110,7 @@ const label = computed(() =>
   cursor: pointer;
 }
 .hero-picker:hover:not(:disabled) {
-  border-bottom-color: color-mix(in srgb, var(--ink) 72%, transparent);
+  border-bottom-color: var(--link-underline-hover);
 }
 .hero-picker:not(:disabled):active {
   transform: none;

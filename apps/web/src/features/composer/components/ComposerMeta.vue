@@ -121,7 +121,7 @@ const ringOffset = computed(() => {
   stroke-width: 2.5;
 }
 .usage-ring-track {
-  stroke: color-mix(in srgb, var(--ink) 18%, transparent);
+  stroke: var(--chart-track);
 }
 .usage-ring-fill {
   stroke: currentColor;

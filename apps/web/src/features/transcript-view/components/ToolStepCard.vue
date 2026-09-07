@@ -290,15 +290,15 @@ watch(
   height: 6px;
   border-radius: var(--radius-full);
   background: var(--success);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 15%, transparent);
+  box-shadow: 0 0 0 2px var(--success-halo);
 }
 .is-err .status-dot {
   background: var(--danger);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 15%, transparent);
+  box-shadow: 0 0 0 2px var(--danger-halo);
 }
 .is-run .status-dot {
   background: var(--primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent);
+  box-shadow: 0 0 0 2px var(--info-halo);
   animation: status-pulse 1.2s ease-in-out infinite;
 }
 .cwd {

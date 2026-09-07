@@ -162,7 +162,7 @@ function onStageFocusOut(event: FocusEvent) {
   top: 50%;
   height: 2px;
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--ink-muted) 35%, transparent);
+  background: var(--minimap-marker);
   transform: translateY(-50%);
   width: 8px;
   transition:

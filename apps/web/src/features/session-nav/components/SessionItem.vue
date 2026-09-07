@@ -369,7 +369,7 @@ function confirmDelete() {
   user-select: text;
 }
 .rename-input::selection {
-  background: color-mix(in srgb, var(--primary) 35%, transparent);
+  background: var(--selection-bg);
   color: var(--ink);
 }
 </style>

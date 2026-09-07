@@ -341,15 +341,16 @@ function onPrimaryAction() {
 }
 
 .send {
-  background: var(--inverse-bg);
-  color: var(--inverse-fg);
+  background: var(--primary);
+  color: var(--on-primary);
 }
 .send:not(:disabled):hover {
-  background: var(--inverse-bg-hover);
+  background: var(--primary-active);
 }
 .send--abort,
 .send--abort:not(:disabled):hover {
   background: var(--danger);
+  color: var(--danger-foreground);
 }
 .send:disabled {
   cursor: default;

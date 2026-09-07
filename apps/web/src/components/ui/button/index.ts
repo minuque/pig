@@ -6,10 +6,10 @@ export const buttonBase =
 export const buttonPress = "active:not-disabled:scale-[0.96] motion-reduce:active:scale-100"
 
 export const buttonVariant = {
-  default: "bg-primary text-primary-foreground hover:bg-primary/90",
+  default: "bg-primary text-primary-foreground hover:bg-primary-active active:bg-primary-active",
   destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
   outline:
-    "border bg-background shadow-soft hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+    "border border-input bg-surface text-ink shadow-soft hover:bg-accent hover:text-accent-foreground",
 } as const
 
 export const buttonSize = {
