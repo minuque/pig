@@ -103,12 +103,22 @@ export function editDiffPreview(input: unknown): EditDiffPreview | null {
   if (pairs.length === 0) return null
 
   const path = toolPath(input)
+  let added = 0
+  let removed = 0
+  const hunks = pairs.map((pair) => {
+    const change = lineChange(pair.oldText, pair.newText)
+    added += change.added
+    removed += change.removed
+    return { original: pair.oldText, modified: pair.newText }
+  })
 
   return {
     path,
     fileName: path ? pathBasename(path) : "file",
     language: fileLanguage(path),
-    hunks: pairs.map((pair) => ({ original: pair.oldText, modified: pair.newText })),
+    hunks,
+    added,
+    removed,
   }
 }
 

@@ -58,6 +58,8 @@ export type EditDiffPreview = {
   fileName: string
   language: string
   hunks: EditDiffHunk[]
+  added: number
+  removed: number
 }
 
 export interface TranscriptMinimapItem {

@@ -85,6 +85,24 @@
       </section>
     </template>
     <template v-else-if="editContent">
+      <ToolHeader :label="editHeading" :text="editCopyText">
+        <div class="read-heading">
+          <img
+            v-if="editLanguageIconUrl"
+            class="icon-slot"
+            :src="editLanguageIconUrl"
+            :title="editContent.language"
+            alt=""
+          />
+          <span class="read-path" :title="editHeading">{{ editHeading }}</span>
+        </div>
+        <template #meta>
+          <span v-if="editContent.removed || editContent.added" class="line-stats">
+            <span v-if="editContent.removed" class="removed">-{{ editContent.removed }}</span>
+            <span v-if="editContent.added" class="added">+{{ editContent.added }}</span>
+          </span>
+        </template>
+      </ToolHeader>
       <StreamDiff
         v-for="(hunk, index) in editContent.hunks"
         :key="index"
@@ -185,7 +203,10 @@ const cardClasses = computed(() => ({
 }))
 
 const { codeBlockProps } = useColorScheme()
-const editDiffOptions = computed(() => ({ theme: codeBlockProps.value.theme }))
+const editDiffOptions = computed(() => ({
+  theme: codeBlockProps.value.theme,
+  disableFileHeader: true,
+}))
 
 const commandExpanded = ref(false)
 const inputExpanded = ref(false)
@@ -207,12 +228,18 @@ const outputHidden = computed(() =>
 )
 const readHidden = computed(() => hiddenLineCount(readContent.value?.preview.lines.length ?? 0))
 
-const languageIconUrl = computed(() => {
+const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
+const editLanguageIconUrl = computed(() => languageIconDataUrl(editContent.value?.language))
+const editHeading = computed(() => editContent.value?.path || editContent.value?.fileName || "")
+const editCopyText = computed(
+  () => editContent.value?.hunks.map((hunk) => hunk.modified).join("\n") ?? "",
+)
+
+function languageIconDataUrl(lang: string | undefined) {
   void languageIconsRevision.value
-  const lang = readContent.value?.preview.language
-  if (!lang) return ""
+  if (!lang || lang === "text") return ""
   return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(lang))}`
-})
+}
 
 watch(commandBody, () => {
   commandExpanded.value = false
@@ -353,9 +380,28 @@ watch(
   overflow-wrap: anywhere;
 }
 
+.line-stats {
+  display: inline-flex;
+  gap: var(--spacing-xs);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.added {
+  color: var(--success);
+}
+.removed {
+  color: var(--danger);
+}
+
 .edit-diff {
   max-width: 100%;
   overflow: auto;
+}
+.edit-diff :deep(.stream-diffs-vue-diff) {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .edit-diff + .edit-diff {
   border-top: var(--border-width) solid var(--hairline);
