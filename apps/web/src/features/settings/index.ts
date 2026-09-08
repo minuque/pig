@@ -18,6 +18,7 @@ export function provideSettings(): SettingsContext {
     tab.value = "general"
     open.value = true
   }
+
   const settings = { open, tab, openSettings }
   provide(settingsKey, settings)
 

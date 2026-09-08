@@ -1,8 +1,15 @@
 import js from "@eslint/js"
+import stylistic from "@stylistic/eslint-plugin"
 import eslintConfigPrettier from "eslint-config-prettier/flat"
 import pluginVue from "eslint-plugin-vue"
 import globals from "globals"
 import tseslint from "typescript-eslint"
+
+const functionDecl = [
+  "function",
+  { selector: "ExportNamedDeclaration[declaration.type='FunctionDeclaration']" },
+  { selector: "ExportDefaultDeclaration[declaration.type='FunctionDeclaration']" },
+]
 
 export default tseslint.config(
   {
@@ -13,6 +20,7 @@ export default tseslint.config(
       "packages/gateway/web/**",
       "release/**",
       "docs/**",
+      ".tmp/**",
       ".worktrees/**",
       "playwright-report/**",
       "test-results/**",
@@ -59,8 +67,17 @@ export default tseslint.config(
   },
   eslintConfigPrettier,
   {
+    plugins: {
+      "@stylistic": stylistic,
+    },
     rules: {
       semi: ["error", "never"],
+      "@stylistic/padding-line-between-statements": [
+        "error",
+        { blankLine: "always", prev: functionDecl, next: functionDecl },
+        { blankLine: "always", prev: ["const", "let", "var"], next: functionDecl },
+        { blankLine: "always", prev: functionDecl, next: ["const", "let", "var"] },
+      ],
     },
   },
 )

@@ -34,9 +34,10 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@playwright/test": "1.62.1",
     "@eslint/js": "10.0.1",
     "@google/design.md": "0.3.0",
+    "@playwright/test": "1.62.1",
+    "@stylistic/eslint-plugin": "5.10.0",
     "@types/node": "24.13.3",
     "eslint": "10.8.0",
     "eslint-config-prettier": "10.1.8",

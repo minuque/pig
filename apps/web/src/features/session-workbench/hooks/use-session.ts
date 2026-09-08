@@ -243,6 +243,7 @@ export function useSessionLifecycle(
   }
 
   let initialized = false
+
   /** 路由参数与 RemoteSession 生命周期同步。 */
   async function syncRoute() {
     const id = sessionId.value

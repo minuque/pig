@@ -47,6 +47,7 @@ async function main() {
   })
 
   let stopping = false
+
   // Windows 上 web.kill() 只杀直接子进程,pnpm 下的 vite 会变孤儿,必须杀整棵树
   function killTree(pid: number) {
     if (process.platform === "win32") {
