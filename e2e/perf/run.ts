@@ -15,7 +15,6 @@ import {
   median,
   newBenchContext,
   openSession,
-  openSessionUntilLatest,
   prepareBenchPage,
   readPaint,
   scrollTranscript,
@@ -26,7 +25,6 @@ import {
   EMPTY_SESSION_NAME,
   LONG_SESSION_NAME,
   SHORT_SESSION_NAME,
-  STRESS_SESSION_NAME,
   seedBenchSessions,
 } from "./seed.js"
 
@@ -41,9 +39,6 @@ type BenchMetrics = {
   coldFcp: number
   sessionFirstOpen: number
   emptyOpen: number
-  stressLatestVisible: number
-  stressComposer: number
-  stressScrollWorstMs: number
   composerKeyToFrame: number
   switchLong: number
   switchShortRevisit: number
@@ -164,19 +159,12 @@ function printReport(now: BenchMetrics, prev: BenchMetrics | undefined) {
   ])
   reportTable("会话打开与切换", [
     row("短会话首次", "sessionFirstOpen"),
-    row("40 轮会话", "switchLong"),
+    row("50 轮会话", "switchLong"),
     row("短会话重访", "switchShortRevisit"),
     row("空会话", "emptyOpen"),
-    row("大会话可继续", "stressLatestVisible"),
   ])
-  reportTable("输入响应", [
-    row("欢迎页按键到双 rAF", "composerKeyToFrame"),
-    row("大会话按键到双 rAF", "stressComposer"),
-  ])
-  reportTable("滚动卡顿", [
-    row("40 轮会话最差耗时", "longScrollWorstMs"),
-    row("大会话最差耗时", "stressScrollWorstMs"),
-  ])
+  reportTable("输入响应", [row("欢迎页按键到双 rAF", "composerKeyToFrame")])
+  reportTable("滚动卡顿", [row("50 轮会话最差耗时", "longScrollWorstMs")])
 }
 
 async function loadPrevious(
@@ -238,9 +226,6 @@ async function main() {
     const composer: number[] = []
     const scrollWorst: number[] = []
     const emptyOpen: number[] = []
-    const stressLatestVisible: number[] = []
-    const stressComposer: number[] = []
-    const stressScrollWorst: number[] = []
 
     for (let run = 1; run <= args.runs; run += 1) {
       console.log(`测量 ${run}/${args.runs}`)
@@ -259,9 +244,6 @@ async function main() {
         await openSession(page, LONG_SESSION_NAME)
         scrollWorst.push(await scrollTranscript(page))
         emptyOpen.push(await openSession(page, EMPTY_SESSION_NAME))
-        stressLatestVisible.push(await openSessionUntilLatest(page, STRESS_SESSION_NAME))
-        stressComposer.push(await measureComposer(page, 7))
-        stressScrollWorst.push(await scrollTranscript(page))
       } catch (error) {
         await captureBenchFailure(page, failShot)
         throw error
@@ -276,9 +258,6 @@ async function main() {
       coldFcp: median(coldFcp),
       sessionFirstOpen: median(firstOpen),
       emptyOpen: median(emptyOpen),
-      stressLatestVisible: median(stressLatestVisible),
-      stressComposer: median(stressComposer),
-      stressScrollWorstMs: median(stressScrollWorst),
       composerKeyToFrame: median(composer),
       switchLong: median(switchLong),
       switchShortRevisit: median(switchRevisit),
@@ -286,7 +265,7 @@ async function main() {
     }
 
     const config = {
-      version: 4,
+      version: 5,
       runs: args.runs,
       headed: args.headed,
       browser: browser.version(),
@@ -298,7 +277,7 @@ async function main() {
     await mkdir(join(root, "test-results"), { recursive: true })
     await writeFile(
       resultPath,
-      `${JSON.stringify({ config, metrics, samples: { coldTo, coldLcp, coldFcp, firstOpen, switchLong, switchRevisit, composer, scrollWorst, emptyOpen, stressLatestVisible, stressComposer, stressScrollWorst } }, null, 2)}\n`,
+      `${JSON.stringify({ config, metrics, samples: { coldTo, coldLcp, coldFcp, firstOpen, switchLong, switchRevisit, composer, scrollWorst, emptyOpen } }, null, 2)}\n`,
     )
     printReport(metrics, previous)
     console.log(`结果已写入 ${resultPath}`)

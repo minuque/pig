@@ -244,14 +244,6 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   )
 }
 
-/** 打开大会话到最新回答进入视口且可输入。 */
-export async function openSessionUntilLatest(page: Page, name: BenchSessionName): Promise<number> {
-  const started = performance.now()
-  await clickSessionCard(page, name)
-  await waitForLatestInViewport(page)
-  return performance.now() - started
-}
-
 /** 时间线滚到顶再到底，返回最差 longtask。 */
 export async function scrollTranscript(page: Page): Promise<number> {
   const viewport = page.locator(".transcript-viewport")
