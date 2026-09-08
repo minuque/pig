@@ -6,6 +6,7 @@ import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
 import Gateway from "../../packages/gateway/src/index.js"
+import { runEdgeBench } from "./edges.js"
 import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import {
   inpValue,
@@ -55,27 +56,29 @@ type BenchMetrics = {
   longScrollWorstMs: number
 }
 
-type Args = { runs: number; skipBuild: boolean; headed: boolean }
+type Args = { runs: number; skipBuild: boolean; headed: boolean; edgesOnly: boolean }
 
 function parseArgs(argv: string[]): Args {
   let runs = 3
   let skipBuild = false
   let headed = false
+  let edgesOnly = false
   for (const arg of argv) {
     if (arg === "--help" || arg === "-h") {
-      console.log("用法: pnpm test:bench --runs=3 --skip-build --headed")
+      console.log("用法: pnpm test:bench --runs=3 --skip-build --headed --edges-only")
       process.exit(0)
     }
     if (arg === "--") continue
     if (arg === "--skip-build") skipBuild = true
     else if (arg === "--headed") headed = true
+    else if (arg === "--edges-only") edgesOnly = true
     else if (arg.startsWith("--runs=")) {
       const value = Number(arg.slice("--runs=".length))
       if (!Number.isSafeInteger(value) || value < 1) throw new Error("--runs 必须是正安全整数")
       runs = value
     } else throw new Error(`未知参数 ${arg}`)
   }
-  return { runs, skipBuild, headed }
+  return { runs, skipBuild, headed, edgesOnly }
 }
 
 function canonicalizeWorkspacePath(path: string): string {
@@ -275,6 +278,10 @@ async function main() {
     console.log(`Gateway ${origin}`)
 
     browser = await chromium.launch({ headless: !args.headed })
+    if (args.edgesOnly) {
+      await runEdgeBench(browser, origin, workspaceId, args.runs, join(root, "test-results"))
+      return
+    }
     const warmup = await openPage(browser, origin, workspaceId)
     await warmup.context.close()
 
@@ -376,6 +383,7 @@ async function main() {
     )
     printReport(metrics, previous)
     console.log(`结果已写入 ${resultPath}`)
+    await runEdgeBench(browser, origin, workspaceId, args.runs, join(root, "test-results"))
   } finally {
     try {
       await browser?.close()

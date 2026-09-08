@@ -1,3 +1,22 @@
+<template>
+  <Primitive
+    data-slot="button"
+    :data-variant="variant"
+    :data-size="size"
+    :as="as"
+    :as-child="asChild"
+    :class="[
+      buttonBase,
+      !props.static && buttonPress,
+      buttonVariant[variant],
+      buttonSize[size],
+      props.class,
+    ]"
+  >
+    <slot />
+  </Primitive>
+</template>
+
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
@@ -27,22 +46,3 @@ const props = withDefaults(defineProps<Props>(), {
   static: false,
 })
 </script>
-
-<template>
-  <Primitive
-    data-slot="button"
-    :data-variant="variant"
-    :data-size="size"
-    :as="as"
-    :as-child="asChild"
-    :class="[
-      buttonBase,
-      !props.static && buttonPress,
-      buttonVariant[variant],
-      buttonSize[size],
-      props.class,
-    ]"
-  >
-    <slot />
-  </Primitive>
-</template>
