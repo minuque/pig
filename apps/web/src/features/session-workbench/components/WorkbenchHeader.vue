@@ -118,7 +118,13 @@ html[data-pig-desktop-platform]
 }
 
 html[data-pig-desktop-platform="win32"] .workbench-header {
-  padding-right: var(--size-windows-caption);
+  padding-inline-end: calc(
+    var(--spacing-sm) +
+      max(
+        var(--size-windows-caption),
+        100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw)
+      )
+  );
 }
 
 @media (max-width: 520px) {
