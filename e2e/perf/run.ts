@@ -169,6 +169,7 @@ function printReport(now: BenchMetrics, prev: BenchMetrics | undefined) {
     row("短会话重访", "switchShortRevisit"),
     row("空会话", "emptyOpen"),
   ])
+  console.log("首轮是本进程第一次；p90 是 90% 样本不超过的值，3 轮时接近最慢一次。")
   reportTable("会话打开（首轮 / p90）", [
     row("短会话首次 首轮", "sessionFirstOpenFirst"),
     row("短会话首次 p90", "sessionFirstOpenP90"),

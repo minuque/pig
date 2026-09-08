@@ -248,7 +248,7 @@ function assistantItem(
   }
 }
 
-/** 欢迎页创建并发送：首条用户句、首 token、流式跟上、点停止。 */
+/** 欢迎页发送：用户句进时间线就停表；路由落地只给后续回合夹具。 */
 async function measureTurn(page: Page, bridge: Bridge) {
   const send = page.locator("button.send")
   const stop = page.getByRole("button", { name: STOP_TURN, exact: true })
@@ -258,9 +258,11 @@ async function measureTurn(page: Page, bridge: Bridge) {
   await expect(send).toBeEnabled()
   const started = performance.now()
   await send.click()
-  await seen(FIRST_PROMPT)
-  await page.waitForURL(/\/sessions\/[^/?#]+$/)
+  await expect(page.locator(".row-user").getByText(FIRST_PROMPT, { exact: true })).toBeVisible({
+    timeout: WORKBENCH_TIMEOUT_MS,
+  })
   const createFirstPromptMs = performance.now() - started
+  await page.waitForURL(/\/sessions\/[^/?#]+$/)
   const sessionId = await bridge.waitForPrompt()
   const snapshot = bridge.snapshots.get(sessionId)
   if (!snapshot) throw new Error("回合场景缺少真实 SessionSnapshot")
@@ -366,19 +368,22 @@ export async function runEdgeBench(
   await mkdir(resultDir, { recursive: true })
   await writeFile(
     join(resultDir, "perf-edges.json"),
-    JSON.stringify({ version: 3, runs, browser: browser.version(), metrics, samples }, null, 2) +
+    JSON.stringify({ version: 4, runs, browser: browser.version(), metrics, samples }, null, 2) +
       "\n",
   )
   console.log("\n边界场景全部通过；耗时包含驱动与断言开销，回合为协议夹具。")
+  console.log(
+    "发送后自己的话 = 时间线用户句可见，不等路由。首轮是本进程第一次；p90 是 90% 样本不超过的值，3 轮时接近最慢一次。",
+  )
   reportTable("回合体验", [
-    { label: "欢迎页创建并打出第一条", value: metrics.createFirstPromptMs },
+    { label: "发送后自己的话可见", value: metrics.createFirstPromptMs },
     { label: "发送后首条助手可见", value: metrics.firstTokenMs },
     { label: "流式跟上（最慢一帧）", value: metrics.streamKeepUpMs },
     { label: "点停止到回合结束", value: metrics.abortMs },
   ])
   reportTable("回合体验（首轮 / p90）", [
-    { label: "欢迎页创建并打出第一条 首轮", value: metrics.createFirstPromptMsFirst },
-    { label: "欢迎页创建并打出第一条 p90", value: metrics.createFirstPromptMsP90 },
+    { label: "发送后自己的话可见 首轮", value: metrics.createFirstPromptMsFirst },
+    { label: "发送后自己的话可见 p90", value: metrics.createFirstPromptMsP90 },
   ])
   reportTable("边界恢复", [
     { label: "旧历史晚到，最终会话就绪", value: metrics.rapidSwitchMs },
