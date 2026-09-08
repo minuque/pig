@@ -309,12 +309,14 @@
 *:hover {
   --scrollbar-thumb: var(--scrollbar-color);
 }
+
 @supports (-moz-appearance: none) {
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) transparent;
   }
 }
+
 *::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -331,11 +333,13 @@
 *::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-hover);
 }
+
 @media (pointer: coarse) {
   * {
     --scrollbar-thumb: var(--scrollbar-color);
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   *::-webkit-scrollbar-thumb {
     transition: none;

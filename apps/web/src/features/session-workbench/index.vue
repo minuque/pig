@@ -317,6 +317,7 @@ const contentHandleSides = ["left", "right"] as const
 .session-floating-controls.shown {
   opacity: 1;
 }
+
 .session-floating-controls.shown .scroll-latest-control {
   pointer-events: auto;
 }

@@ -142,6 +142,7 @@ defineExpose({ focus })
   height: 68px;
   overflow: visible;
 }
+
 .attach-inner {
   position: absolute;
   inset-inline: var(--spacing-md);
@@ -154,6 +155,7 @@ defineExpose({ focus })
   border-bottom: 0;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
+
 .chips {
   display: flex;
   flex-wrap: nowrap;
@@ -171,6 +173,7 @@ defineExpose({ focus })
   position: relative;
   z-index: 10;
 }
+
 .glass-host {
   position: relative;
   display: flex;
@@ -180,6 +183,7 @@ defineExpose({ focus })
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-xl);
 }
+
 .footer {
   min-width: 0;
   padding-inline: var(--spacing-xxs);
@@ -237,6 +241,7 @@ defineExpose({ focus })
   min-height: 44px;
   padding: 6px 10px var(--spacing-xs) 10px;
 }
+
 .left {
   display: flex;
   align-items: center;
@@ -249,9 +254,11 @@ defineExpose({ focus })
   opacity: 0;
   transform: translateY(var(--spacing-xxs));
 }
+
 .composer[data-expanded="false"] .row {
   inset-inline-start: auto;
 }
+
 .right {
   display: flex;
   align-items: center;

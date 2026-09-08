@@ -274,11 +274,13 @@ onBeforeUnmount(() => listObserver?.disconnect())
   position: relative;
   padding-block: var(--spacing-xs);
 }
+
 .step-list {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
 }
+
 .step {
   min-width: 0;
   padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
@@ -287,6 +289,7 @@ onBeforeUnmount(() => listObserver?.disconnect())
 .hook-stem {
   background-image: repeating-linear-gradient(to top, transparent 0 2px, currentColor 2px 4px);
 }
+
 .hook-rail.accent {
   color: var(--ink-muted);
 }

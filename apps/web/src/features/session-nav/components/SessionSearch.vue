@@ -132,10 +132,12 @@ function pick(session: SessionMetadata) {
   padding-inline: 14px 10px;
   border-bottom: var(--border-width) solid var(--hairline);
 }
+
 .query-icon {
   flex: none;
   color: var(--ink-faint);
 }
+
 .query-input {
   min-width: 0;
   flex: 1;
@@ -155,6 +157,7 @@ function pick(session: SessionMetadata) {
 .query-input::-webkit-search-cancel-button {
   display: none;
 }
+
 .query-close {
   display: flex;
   flex: none;
@@ -200,10 +203,12 @@ function pick(session: SessionMetadata) {
 .hit.is-active {
   background: var(--interaction-selected);
 }
+
 .hit-icon {
   flex: none;
   color: var(--ink-muted);
 }
+
 .hit-title {
   min-width: 0;
   flex: 1;
@@ -213,6 +218,7 @@ function pick(session: SessionMetadata) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .hit-enter,
 .hit-time {
   flex: none;

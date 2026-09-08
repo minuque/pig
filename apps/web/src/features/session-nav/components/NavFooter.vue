@@ -66,6 +66,7 @@ const emit = defineEmits<{
   padding: var(--spacing-xs) var(--nav-inline, var(--spacing-xs));
   border-top: var(--border-width) solid var(--hairline);
 }
+
 .footer-action {
   display: flex;
   flex: none;
@@ -97,6 +98,7 @@ const emit = defineEmits<{
   justify-content: center;
   height: var(--size-icon-button);
 }
+
 .mode-hit {
   display: grid;
   place-items: center;
@@ -106,6 +108,7 @@ const emit = defineEmits<{
   border: 0;
   background: transparent;
 }
+
 .mode-indicator-dot {
   background: var(--hairline);
 }

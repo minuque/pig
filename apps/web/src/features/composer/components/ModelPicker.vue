@@ -262,6 +262,7 @@ function onCloseAutoFocus(event: Event) {
   background: var(--hover-tint);
   color: var(--ink);
 }
+
 .selector-name {
   max-width: 14rem;
   overflow: hidden;
@@ -289,6 +290,7 @@ function onCloseAutoFocus(event: Event) {
 .rail::-webkit-scrollbar {
   display: none;
 }
+
 .rail-btn {
   display: grid;
   place-items: center;
@@ -329,10 +331,12 @@ function onCloseAutoFocus(event: Event) {
   border-radius: var(--radius-md);
   background: var(--canvas-soft);
 }
+
 .search-icon {
   flex: none;
   color: var(--ink-faint);
 }
+
 .search input {
   flex: 1;
   min-width: 0;
@@ -370,10 +374,12 @@ function onCloseAutoFocus(event: Event) {
 .model-row[data-current] {
   background: var(--hover-tint);
 }
+
 .model-item {
   flex: 1 1 auto;
   min-width: 0;
 }
+
 .model-body {
   flex: 1 1 auto;
   min-width: 0;
@@ -381,6 +387,7 @@ function onCloseAutoFocus(event: Event) {
   flex-direction: column;
   gap: 2px;
 }
+
 .model-name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -390,6 +397,7 @@ function onCloseAutoFocus(event: Event) {
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-button--line-height);
 }
+
 .model-vendor {
   display: flex;
   align-items: center;

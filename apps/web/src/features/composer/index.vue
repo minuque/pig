@@ -294,6 +294,7 @@ function onPrimaryAction() {
   border-radius: 0;
   background: var(--main);
 }
+
 .error-indicator {
   display: inline-flex;
   align-items: center;
@@ -360,6 +361,7 @@ function onPrimaryAction() {
 .send--abort:disabled {
   opacity: 0.5;
 }
+
 .primary-icon {
   width: var(--size-icon);
   height: var(--size-icon);

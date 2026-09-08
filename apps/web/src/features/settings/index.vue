@@ -81,6 +81,7 @@ function onOpen(next: boolean) {
   border-inline-end: var(--border-width) solid var(--hairline);
   background: var(--sidebar);
 }
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -113,6 +114,7 @@ function onOpen(next: boolean) {
   flex-direction: column;
   background: var(--surface);
 }
+
 .main-head {
   display: flex;
   flex: none;
@@ -120,6 +122,7 @@ function onOpen(next: boolean) {
   min-height: var(--size-control);
   padding: var(--spacing-md) var(--spacing-xxl) var(--spacing-sm) var(--spacing-lg);
 }
+
 .main-body {
   min-height: 0;
   flex: 1;

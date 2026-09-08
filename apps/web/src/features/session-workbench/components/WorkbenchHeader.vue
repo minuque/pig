@@ -58,6 +58,7 @@ const title = computed(() =>
   -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
   content: "";
 }
+
 @media (prefers-reduced-transparency: reduce) {
   .workbench-header::after {
     backdrop-filter: none;
@@ -109,11 +110,13 @@ html[data-pig-desktop-platform] .workbench-header {
   min-height: var(--titlebar-inset);
   -webkit-app-region: drag;
 }
+
 html[data-pig-desktop-platform]
   .workbench-header
   :deep(:is(button, a, input, select, textarea, [role="button"], [role="link"])) {
   -webkit-app-region: no-drag;
 }
+
 html[data-pig-desktop-platform="win32"] .workbench-header {
   padding-right: var(--size-windows-caption);
 }

@@ -51,6 +51,7 @@ import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
   padding-right: var(--spacing-xl);
   box-shadow: var(--shadow-elevated);
 }
+
 .alert-toaster-close {
   position: absolute;
   top: var(--spacing-xs);

@@ -85,6 +85,7 @@ async function copy() {
   min-width: 0;
   overflow: hidden;
 }
+
 .label {
   display: block;
   overflow: hidden;
@@ -102,6 +103,7 @@ async function copy() {
   color: var(--ink-muted);
   white-space: nowrap;
 }
+
 .expand {
   padding: 0;
   border: 0;
@@ -146,9 +148,11 @@ async function copy() {
   .tool-header {
     flex-wrap: wrap;
   }
+
   .heading {
     flex-basis: 100%;
   }
+
   .actions {
     margin-inline-start: auto;
   }

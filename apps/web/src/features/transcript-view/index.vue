@@ -229,6 +229,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   padding-top: var(--spacing-lg);
   padding-bottom: calc(var(--spacing-lg) + var(--size-composer-overlay));
 }
+
 .transcript-list,
 .timeline-rows,
 .row {
@@ -242,6 +243,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .row-user + .row {
   margin-block-start: var(--spacing-lg);
 }
+
 .row + .row-user {
   margin-block-start: var(--spacing-xl);
 }
@@ -258,6 +260,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   opacity: 1;
   pointer-events: auto;
 }
+
 @media (hover: none) {
   .row :deep(.stamp) {
     opacity: 1;

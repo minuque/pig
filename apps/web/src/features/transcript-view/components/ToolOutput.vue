@@ -199,10 +199,12 @@ function onScroll(event: Event) {
   font-family: var(--font-mono);
   font-size: var(--text-code);
 }
+
 .tool-output.is-embedded .meta {
   color: inherit;
   opacity: 0.7;
 }
+
 .tool-output-pre.is-virtual {
   overflow: auto;
 }
@@ -211,6 +213,7 @@ function onScroll(event: Event) {
   position: relative;
   display: block;
 }
+
 .window {
   position: absolute;
   inset-inline: 0;
@@ -237,6 +240,7 @@ function onScroll(event: Event) {
   padding-inline-start: var(--spacing-lg);
   scrollbar-width: thin;
 }
+
 .code-lines {
   min-width: max-content;
   font-family: var(--font-mono);
@@ -244,10 +248,12 @@ function onScroll(event: Event) {
   line-height: var(--text-code-line);
   tab-size: 4;
 }
+
 .code-line {
   display: flex;
   gap: var(--spacing-sm);
 }
+
 .line-number {
   flex: none;
   min-width: var(--line-number-width);
@@ -255,6 +261,7 @@ function onScroll(event: Event) {
   text-align: right;
   user-select: none;
 }
+
 code {
   color: var(--ink);
   font: inherit;

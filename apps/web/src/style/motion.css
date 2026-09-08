@@ -14,17 +14,20 @@
 .startup-screen.leaving {
   pointer-events: none;
 }
+
 .startup-veil {
   position: absolute;
   z-index: 0;
   inset: 0;
   background: var(--startup-veil);
 }
+
 .startup-content {
   position: relative;
   z-index: 1;
   padding: var(--spacing-lg);
 }
+
 .startup-logo {
   display: block;
   width: var(--startup-logo-size, 88px);
@@ -34,6 +37,7 @@
   box-shadow: var(--shadow-logo);
   pointer-events: none;
 }
+
 .startup-screen .drag-strip {
   position: absolute;
   z-index: 2;
@@ -41,9 +45,11 @@
   height: var(--titlebar-inset, 44px);
   -webkit-app-region: drag;
 }
+
 .startup-screen.leaving .startup-veil {
   animation: startup-veil-leave var(--duration-startup-leave) var(--ease-out, ease-out) both;
 }
+
 .startup-screen.leaving .startup-content {
   animation: startup-content-leave var(--duration-startup-leave) ease-out both;
 }
@@ -51,9 +57,11 @@
 #startup-splash {
   z-index: calc(var(--z-modal) + 1);
 }
+
 #startup-splash .startup-mark {
   animation: startup-logo-enter var(--duration-slow) ease-out both;
 }
+
 @keyframes startup-logo-enter {
   0% {
     opacity: 0;
@@ -68,6 +76,7 @@
     transform: translateY(0) rotate(0deg) scale(1);
   }
 }
+
 @keyframes startup-veil-leave {
   from {
     opacity: 1;
@@ -76,6 +85,7 @@
     opacity: 0;
   }
 }
+
 @keyframes startup-content-leave {
   from {
     opacity: 1;
@@ -133,6 +143,7 @@
   animation: card-glow-orbit var(--duration-card-glow) linear infinite;
   content: "";
 }
+
 @keyframes card-glow-orbit {
   to {
     --card-glow-angle: 360deg;
@@ -161,6 +172,7 @@
   display: grid;
   place-items: center;
 }
+
 .icon-swap > * {
   grid-area: 1 / 1;
   transition:
@@ -168,6 +180,7 @@
     scale var(--duration-icon) var(--ease-icon),
     filter var(--duration-icon) var(--ease-icon);
 }
+
 .icon-swap > [data-visible="false"] {
   opacity: 0;
   scale: 0.25;
@@ -180,6 +193,7 @@
     scale var(--duration-icon) var(--ease-icon),
     filter var(--duration-icon) var(--ease-icon);
 }
+
 .motion-hint {
   opacity: 0;
   scale: 0.25;
@@ -190,6 +204,7 @@
     scale var(--duration-icon) var(--ease-icon),
     filter var(--duration-icon) var(--ease-icon);
 }
+
 @media (hover: hover) {
   :hover > .motion-hint,
   :focus-within > .motion-hint,
@@ -200,6 +215,7 @@
     pointer-events: auto;
   }
 }
+
 @media (hover: none) {
   .motion-hint {
     opacity: 1;
@@ -212,12 +228,15 @@
 .motion-composer .attach-tray {
   transition: height var(--duration-normal) var(--ease-out);
 }
+
 .motion-composer .editor-wrap {
   transition: padding var(--duration-normal) var(--ease-out);
 }
+
 .motion-composer .field {
   transition: min-height var(--duration-normal) var(--ease-out);
 }
+
 .motion-composer .left {
   transition:
     opacity var(--duration-fast) var(--ease-out),
@@ -248,6 +267,7 @@
     filter: blur(0);
   }
 }
+
 @keyframes exit-soft {
   from {
     opacity: 1;
@@ -260,6 +280,7 @@
     filter: blur(4px);
   }
 }
+
 @keyframes exit-fade {
   from {
     opacity: 1;
@@ -268,6 +289,7 @@
     opacity: 0;
   }
 }
+
 @keyframes modal-close {
   from {
     opacity: 1;
@@ -278,6 +300,7 @@
     scale: 0.96;
   }
 }
+
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
   transform-origin: center;
   scale: 0.96;
@@ -286,10 +309,12 @@
     scale var(--duration-slow) var(--ease-smooth),
     opacity var(--duration-slow) var(--ease-smooth);
 }
+
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="open"] {
   scale: 1;
   opacity: 1;
 }
+
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
   transition: none;
   animation: modal-close var(--duration-fast) var(--ease-smooth);
@@ -359,6 +384,7 @@
 .row-tools.timeline-row-enter-active {
   transition: none;
 }
+
 .timeline-step-enter-active {
   transition:
     opacity var(--duration-fast) var(--ease-out),
@@ -368,6 +394,7 @@
 .timeline-step-move {
   transition: transform var(--duration-fast) var(--ease-out);
 }
+
 .timeline-row-leave-active {
   position: absolute;
   width: 100%;
@@ -378,18 +405,22 @@
   transform: none;
   filter: none;
 }
+
 .timeline-step-enter-from {
   opacity: 0;
   transform: translateY(4px);
 }
+
 .timeline-row-leave-to {
   opacity: 0;
 }
+
 :is(.tool-calls-group, .session-list-group) {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows var(--duration-fast) var(--ease-out);
 }
+
 :is(.tool-calls-group, .session-list-group).is-open {
   grid-template-rows: 1fr;
   transition-duration: var(--duration-slow);
@@ -398,6 +429,7 @@
 :is(.tool-calls-group, .session-list-group).instant.is-open {
   transition: none;
 }
+
 :is(.tool-calls-group, .session-list-group) > * {
   overflow: hidden;
   min-height: 0;
@@ -417,6 +449,7 @@
 .hook-rail.is-on {
   opacity: 1;
 }
+
 .hook-stem,
 .hook-corner {
   position: absolute;
@@ -473,6 +506,7 @@
   transform: translateX(-40%);
   opacity: 0;
 }
+
 .slide-prev-enter-from {
   transform: translateX(-40%);
   opacity: 0;
@@ -486,16 +520,20 @@
   animation-duration: var(--duration-theme);
   animation-timing-function: var(--ease-smooth);
 }
+
 ::view-transition-old(root) {
   z-index: -1;
   animation: none;
 }
+
 ::view-transition-new(root) {
   animation-name: reveal-light-theme;
 }
+
 .dark::view-transition-new(root) {
   animation-name: reveal-dark-theme;
 }
+
 @keyframes reveal-dark-theme {
   from {
     clip-path: polygon(50% -71%, -50% 71%, -50% 71%, 50% -71%);
@@ -506,6 +544,7 @@
     opacity: 1;
   }
 }
+
 @keyframes reveal-light-theme {
   from {
     clip-path: polygon(171% 50%, 50% 171%, 50% 171%, 171% 50%);
@@ -525,6 +564,7 @@
     background-position: 0% 0;
   }
 }
+
 .shimmer {
   position: relative;
   display: inline-block;
@@ -555,11 +595,13 @@
 .motion-nudge {
   animation: motion-nudge 1.4s var(--ease-in-out) infinite;
 }
+
 @keyframes motion-nudge {
   50% {
     transform: translateY(6px);
   }
 }
+
 .motion-pulse {
   position: relative;
 }
@@ -572,6 +614,7 @@
   animation: motion-pulse-ring 2s var(--ease-out) infinite;
   content: "";
 }
+
 @keyframes motion-pulse-ring {
   70% {
     box-shadow: 0 0 0 8px transparent;
@@ -583,37 +626,45 @@
     animation: none;
     background: var(--card-glow-trail);
   }
+
   .press-scale:not(:disabled):active {
     scale: 1;
   }
+
   .mode-indicator-dot {
     transition: none;
   }
   .mode-indicator-dot:hover:not(:disabled) {
     scale: 1;
   }
+
   .icon-swap > *,
   .motion-icon,
   .motion-hint,
   .motion-turn {
     transition: none;
   }
+
   .icon-swap > [data-visible="false"] {
     filter: none;
   }
+
   .motion-hint {
     filter: none;
   }
+
   .stagger-in {
     animation: none;
     opacity: 1;
     transform: none;
     filter: none;
   }
+
   .panel-reveal-enter-active,
   .panel-reveal-leave-active {
     transition: opacity var(--duration-fast) var(--ease-out);
   }
+
   .stage-layer-enter-active,
   .stage-layer-leave-active {
     transition: none;
@@ -625,6 +676,7 @@
     transform: none;
     filter: none;
   }
+
   .list-reveal-enter-from,
   .list-reveal-leave-to {
     scale: 1;
@@ -637,6 +689,7 @@
   .list-reveal-move {
     transition: none;
   }
+
   .timeline-row-enter-active,
   .timeline-row-leave-active,
   .timeline-step-enter-active {
@@ -654,18 +707,22 @@
   .timeline-step-move {
     transition: none;
   }
+
   :is(.tool-calls-group, .session-list-group),
   :is(.tool-calls-group, .session-list-group).is-open {
     transition: none;
   }
+
   :is(.tool-calls-group, .session-list-group).with-enter.is-open > * {
     animation: none;
   }
+
   .hook-rail,
   .hook-stem,
   .hook-corner {
     transition: none;
   }
+
   .fade-layer-enter-active,
   .fade-layer-leave-active,
   .slide-next-enter-active,
@@ -674,9 +731,11 @@
   .slide-prev-leave-active {
     transition: none;
   }
+
   .stage-layer-leave-active {
     position: static;
   }
+
   .slide-next-enter-from,
   .slide-next-leave-to,
   .slide-prev-enter-from,
@@ -684,6 +743,7 @@
     transform: none;
     filter: none;
   }
+
   .shimmer {
     color: inherit;
   }
@@ -691,21 +751,25 @@
     animation: none;
     content: none;
   }
+
   :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
     transition: none;
     scale: 1;
     opacity: 1;
   }
+
   :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
     animation: none;
     opacity: 0;
   }
+
   .motion-composer .attach-tray,
   .motion-composer .editor-wrap,
   .motion-composer .field,
   .motion-composer .left {
     transition: none;
   }
+
   .motion-nudge,
   .motion-pulse::after {
     animation: none;

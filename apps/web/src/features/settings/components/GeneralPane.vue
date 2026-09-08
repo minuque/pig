@@ -69,6 +69,7 @@ const options: { id: ColorScheme; label: string; icon: typeof Monitor }[] = [
   border-radius: var(--radius-md);
   background: var(--canvas-soft);
 }
+
 .scheme-btn {
   display: grid;
   place-items: center;

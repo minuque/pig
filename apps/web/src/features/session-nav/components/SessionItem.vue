@@ -296,6 +296,7 @@ function confirmDelete() {
 .state-dot.error {
   background: var(--danger);
 }
+
 .state-placeholder {
   opacity: 0;
 }
@@ -318,6 +319,7 @@ function confirmDelete() {
   flex: none;
   align-items: center;
 }
+
 .card-model :deep(.vendor-mark) {
   display: block;
   line-height: 0;
@@ -332,6 +334,7 @@ function confirmDelete() {
 .session-card.active .title {
   color: var(--ink);
 }
+
 .session-item:hover .card-model :deep(.vendor-mark),
 .session-card[data-state="open"] .card-model :deep(.vendor-mark),
 .session-card.active .card-model :deep(.vendor-mark) {

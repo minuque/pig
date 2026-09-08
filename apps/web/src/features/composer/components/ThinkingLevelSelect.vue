@@ -141,6 +141,7 @@ function cycle() {
   width: 14px;
   margin-inline-end: var(--spacing-xxs);
 }
+
 .bars {
   flex: none;
   fill: currentColor;
@@ -153,6 +154,7 @@ function cycle() {
   scale: 1;
   filter: blur(0);
 }
+
 .bars rect {
   transition: opacity var(--duration-fast) var(--ease-out);
 }

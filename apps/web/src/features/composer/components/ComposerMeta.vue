@@ -81,12 +81,14 @@ const ringOffset = computed(() => {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
+
 .cwd-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .cwd-spacer {
   min-width: 0;
 }
@@ -110,11 +112,13 @@ const ringOffset = computed(() => {
   color: var(--ink-muted);
   background: var(--hover-quiet);
 }
+
 .usage-ring {
   display: block;
   overflow: visible;
   transform: rotate(-90deg);
 }
+
 .usage-ring-track,
 .usage-ring-fill {
   fill: none;
@@ -123,6 +127,7 @@ const ringOffset = computed(() => {
 .usage-ring-track {
   stroke: var(--chart-track);
 }
+
 .usage-ring-fill {
   stroke: currentColor;
   stroke-linecap: round;

@@ -89,10 +89,12 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   cursor: col-resize;
   user-select: none;
 }
+
 .shell.is-resizing .sidebar {
   transition: none;
   will-change: width;
 }
+
 .shell.is-resizing main {
   pointer-events: none;
 }
@@ -129,12 +131,15 @@ main {
     display: block;
     padding: 0;
   }
+
   main {
     height: 100dvh;
   }
+
   .resizer {
     display: none;
   }
+
   .sidebar,
   .left-closed .sidebar {
     position: fixed;

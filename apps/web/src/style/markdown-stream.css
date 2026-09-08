@@ -164,6 +164,7 @@
 ._mermaid svg {
   color: var(--ink);
 }
+
 ._mermaid svg .actor,
 ._mermaid svg rect.actor,
 ._mermaid svg .actor > rect,
@@ -187,19 +188,23 @@
   rx: var(--radius-md);
   ry: var(--radius-md);
 }
+
 ._mermaid svg .actor-line {
   stroke: var(--ink-muted) !important;
   stroke-dasharray: 4 4;
 }
+
 ._mermaid svg .loopLine {
   stroke: var(--primary) !important;
 }
+
 ._mermaid svg .activation0,
 ._mermaid svg .activation1,
 ._mermaid svg .activation2 {
   fill: var(--code-body) !important;
   stroke: var(--primary) !important;
 }
+
 ._mermaid svg .messageText,
 ._mermaid svg .labelText,
 ._mermaid svg .loopText,

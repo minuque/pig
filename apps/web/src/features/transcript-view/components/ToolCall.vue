@@ -356,6 +356,7 @@ function toggleGroup() {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .detail {
   display: inline-flex;
   align-items: center;
@@ -365,26 +366,31 @@ function toggleGroup() {
   overflow: hidden;
   white-space: nowrap;
 }
+
 .file-icon {
   display: block;
   width: var(--size-icon);
   height: var(--size-icon);
   flex: none;
 }
+
 .detail-text {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .line-stats {
   display: inline-flex;
   flex: none;
   gap: var(--spacing-xs);
 }
+
 .added {
   color: var(--success);
 }
+
 .removed {
   color: var(--danger);
 }
@@ -394,6 +400,7 @@ function toggleGroup() {
   flex-direction: column;
   gap: var(--spacing-xs);
 }
+
 .call {
   min-width: 0;
 }

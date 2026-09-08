@@ -98,6 +98,7 @@ const agentMarkdown = computed(
 .status-alert:first-child {
   margin-top: 0;
 }
+
 .message-stamp {
   margin-top: var(--spacing-xs);
 }

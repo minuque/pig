@@ -311,6 +311,7 @@ watch(
   min-width: 0;
   font-family: var(--font-mono);
 }
+
 .status-dot {
   flex: none;
   width: 6px;
@@ -328,6 +329,7 @@ watch(
   box-shadow: 0 0 0 2px var(--info-halo);
   animation: status-pulse 1.2s ease-in-out infinite;
 }
+
 .cwd {
   flex: 0 1 auto;
   max-width: 16ch;
@@ -336,6 +338,7 @@ watch(
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .command {
   flex: 1;
   min-width: 0;
@@ -352,12 +355,14 @@ watch(
   gap: var(--spacing-xs);
   min-width: 0;
 }
+
 .icon-slot {
   display: block;
   width: var(--size-icon);
   height: var(--size-icon);
   flex: none;
 }
+
 .read-path {
   min-width: 0;
   overflow: hidden;
@@ -386,9 +391,11 @@ watch(
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
+
 .added {
   color: var(--success);
 }
+
 .removed {
   color: var(--danger);
 }
@@ -397,12 +404,14 @@ watch(
   max-width: 100%;
   overflow: auto;
 }
+
 .edit-diff :deep(.stream-diffs-vue-diff) {
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
 }
+
 .edit-diff + .edit-diff {
   border-top: var(--border-width) solid var(--hairline);
 }

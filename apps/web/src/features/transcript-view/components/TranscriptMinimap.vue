@@ -181,6 +181,7 @@ function onStageFocusOut(event: FocusEvent) {
   cursor: text;
   user-select: text;
 }
+
 .preview-card {
   display: block;
   padding: var(--spacing-sm);
@@ -191,6 +192,7 @@ function onStageFocusOut(event: FocusEvent) {
   box-shadow: var(--shadow-popover);
   text-align: left;
 }
+
 .preview-user {
   display: block;
   overflow: hidden;
@@ -200,6 +202,7 @@ function onStageFocusOut(event: FocusEvent) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .preview-assistant {
   display: -webkit-box;
   max-height: 3.75rem;

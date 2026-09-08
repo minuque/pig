@@ -41,6 +41,7 @@ const variantClasses: Record<AlertVariant, string> = {
 .alert:has(> svg) {
   grid-template-columns: 1rem minmax(0, 1fr) auto;
 }
+
 .alert > :deep(svg) {
   grid-column: 1;
   grid-row: 1 / span 2;
@@ -48,18 +49,22 @@ const variantClasses: Record<AlertVariant, string> = {
   height: 1rem;
   margin-top: 2px;
 }
+
 .alert > :deep([data-slot="alert-title"]),
 .alert > :deep([data-slot="alert-description"]) {
   grid-column: 1;
 }
+
 .alert:has(> svg) > :deep([data-slot="alert-title"]),
 .alert:has(> svg) > :deep([data-slot="alert-description"]) {
   grid-column: 2;
 }
+
 .alert > :deep([data-slot="alert-action"]) {
   grid-column: 2;
   grid-row: 1 / span 2;
 }
+
 .alert:has(> svg) > :deep([data-slot="alert-action"]) {
   grid-column: 3;
 }

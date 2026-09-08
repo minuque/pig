@@ -275,6 +275,7 @@ function onCreateInDir(canonicalPath: string): void {
   min-height: 0;
   padding-inline: var(--nav-inline);
 }
+
 .titlebar-drag {
   display: none;
   position: absolute;
@@ -288,6 +289,7 @@ html[data-pig-desktop-platform] .titlebar-drag {
 html[data-pig-desktop-platform="win32"] .titlebar-drag {
   display: none;
 }
+
 html[data-pig-desktop-platform] .session-nav {
   padding-top: calc(6px + var(--titlebar-inset));
 }
@@ -298,12 +300,15 @@ html[data-pig-desktop-platform="win32"] .session-nav {
 html[data-pig-desktop-platform="darwin"] .session-nav {
   padding-top: 32px;
 }
+
 html[data-pig-desktop-platform] .logo-row {
   -webkit-app-region: drag;
 }
+
 html[data-pig-desktop-platform] .logo-row :is(button, a) {
   -webkit-app-region: no-drag;
 }
+
 .logo-row {
   display: flex;
   align-items: center;
@@ -314,6 +319,7 @@ html[data-pig-desktop-platform] .logo-row :is(button, a) {
 html[data-pig-desktop-platform="win32"] .logo-row {
   min-height: var(--titlebar-inset);
 }
+
 .logo-mark,
 .collapse-toggle {
   display: flex;
@@ -332,11 +338,13 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   width: var(--size-nav-rail);
   height: var(--size-nav-rail);
 }
+
 .logo-mark img {
   width: 22px;
   height: 22px;
   object-fit: contain;
 }
+
 :is(.logo-mark, .collapse-toggle):hover {
   background: var(--hover-quiet);
   color: var(--ink);
@@ -353,18 +361,22 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 .nav-main {
   gap: var(--spacing-xs);
 }
+
 .nav-body {
   overflow: auto;
   overflow-x: hidden;
   /* 原生滚动条占宽会挤内容，与上下工具栏错位；隐藏后内容恒宽，滚动仍可用 */
   scrollbar-width: none;
 }
+
 .session-list {
   position: relative;
 }
+
 .nav-body::-webkit-scrollbar {
   display: none;
 }
+
 .session-list ul {
   display: flex;
   flex-direction: column;
@@ -401,6 +413,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   box-shadow: var(--shadow-group);
   transition-duration: var(--duration-slow);
 }
+
 .pinned-section {
   position: sticky;
   z-index: 2;
@@ -444,6 +457,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
 }
+
 .add-guide .motion-nudge {
   margin-inline-start: calc((var(--size-icon-button) - var(--size-icon)) / 2);
 }

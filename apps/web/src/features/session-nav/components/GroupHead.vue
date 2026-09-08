@@ -139,6 +139,7 @@ const emit = defineEmits<{
     filter: blur(0);
     pointer-events: auto;
   }
+
   .group-head:is(:hover, :focus-within) .group-count {
     opacity: 0;
     scale: 0.25;
