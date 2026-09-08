@@ -9,6 +9,7 @@ import {
   isToolRow,
   thoughtStepLabel,
 } from "@features/transcript-view/lib/transcript-rows.js"
+import { lastTurnStartIndex } from "@features/transcript-view/lib/transcript-window.js"
 
 const user: UserTranscriptItem = {
   id: "u1",
@@ -65,6 +66,18 @@ function tool(
   if (status === "running") return { ...base, status, isError: false }
   if (status === "error") return { ...base, status, isError: true }
   return { ...base, status, isError: false }
+}
+
+function manyTurns(count: number) {
+  return Array.from({ length: count }, (_, i) => [
+    {
+      id: `u${i}`,
+      role: "user" as const,
+      timestamp: 1000 + i * 10,
+      content: [{ type: "text" as const, text: `问${i}` }],
+    },
+    text(200 + i, `答${i}`),
+  ]).flat()
 }
 
 describe("一轮工作 → 执行过程与最终回答", () => {
@@ -160,5 +173,18 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(work?.steps[0]).toMatchObject({ type: "tools", items: [{ running: false }] })
     expect(work?.steps[1]).toMatchObject({ type: "thought", streaming: false })
     expect(rows.at(-1)).toMatchObject({ aborted: true })
+  })
+})
+
+describe("打开已有会话 → 长列表尾部先挂载", () => {
+  it("长列表尾窗口下标", () => {
+    const rows = buildTimelineRows(manyTurns(10), false)
+    expect(rows).toHaveLength(20)
+    expect(lastTurnStartIndex(rows)).toBe(12)
+  })
+
+  it("回合不足时返回 0", () => {
+    expect(lastTurnStartIndex([])).toBe(0)
+    expect(lastTurnStartIndex(buildTimelineRows(manyTurns(3), false))).toBe(0)
   })
 })

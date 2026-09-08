@@ -20,8 +20,8 @@
         <div ref="list" class="transcript-list">
           <TransitionGroup name="timeline-row" tag="div" class="timeline-rows" :css="liveEnter">
             <div
-              v-for="(row, index) in rows"
-              :key="rowKeys[index] ?? row.id"
+              v-for="(row, index) in mountedRows"
+              :key="mountedKeys[index] ?? row.id"
               class="row"
               :class="`row-${row.role}`"
               :data-minimap-row="row.role === 'user' ? row.id : undefined"
@@ -67,6 +67,9 @@ import {
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { shouldShowScrollToLatest } from "@features/transcript-view/lib/transcript-scroll.js"
+import { lastTurnStartIndex } from "@features/transcript-view/lib/transcript-window.js"
+
+const BACKFILL_PER_FRAME = 8
 
 const props = defineProps<{
   sessionId: string
@@ -77,6 +80,9 @@ const props = defineProps<{
 
 const rows = computed(() => buildTimelineRows(props.transcript, props.running, props.timings))
 const rowKeys = computed(() => timelineRowKeys(rows.value))
+const windowStart = shallowRef(lastTurnStartIndex(rows.value))
+const mountedRows = computed(() => rows.value.slice(windowStart.value))
+const mountedKeys = computed(() => rowKeys.value.slice(windowStart.value))
 
 const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
@@ -113,7 +119,7 @@ const {
   inViewIds,
   hitStripWidth,
   syncLayout,
-} = useTranscriptMinimap(rows, {
+} = useTranscriptMinimap(mountedRows, {
   viewport,
   column,
 })
@@ -157,6 +163,8 @@ function observeSizes() {
 }
 
 const liveEnter = shallowRef(false)
+let backfillRaf = 0
+let backfillGen = 0
 
 function enableLiveEnter() {
   if (liveEnter.value) return
@@ -165,19 +173,82 @@ function enableLiveEnter() {
   })
 }
 
+function finishBackfill() {
+  if (rows.value.length > 0) enableLiveEnter()
+  else liveEnter.value = true
+}
+
+function stopBackfill() {
+  backfillGen += 1
+  if (!backfillRaf) return
+  cancelAnimationFrame(backfillRaf)
+  backfillRaf = 0
+}
+
+function runBackfill(gen: number) {
+  backfillRaf = 0
+  if (gen !== backfillGen) return
+  if (windowStart.value <= 0) {
+    finishBackfill()
+    return
+  }
+  const root = viewport.value
+  const prevHeight = root?.scrollHeight ?? 0
+  windowStart.value = Math.max(0, windowStart.value - BACKFILL_PER_FRAME)
+  void nextTick(() => {
+    if (gen !== backfillGen) return
+    const el = viewport.value
+    if (el) {
+      if (atBottom.value) pinIfNeeded()
+      else el.scrollTop += el.scrollHeight - prevHeight
+    }
+    if (windowStart.value > 0) backfillRaf = requestAnimationFrame(() => runBackfill(gen))
+    else finishBackfill()
+  })
+}
+
+function scheduleBackfillAfterPaint() {
+  stopBackfill()
+  if (windowStart.value <= 0) {
+    finishBackfill()
+    return
+  }
+  liveEnter.value = false
+  const gen = backfillGen
+  backfillRaf = requestAnimationFrame(() => {
+    if (gen !== backfillGen) return
+    backfillRaf = requestAnimationFrame(() => runBackfill(gen))
+  })
+}
+
+function armTailWindow() {
+  liveEnter.value = false
+  stopBackfill()
+  windowStart.value = lastTurnStartIndex(rows.value)
+}
+
 watch(
   () => props.sessionId,
   () => {
-    liveEnter.value = false
+    armTailWindow()
     reset()
+    void nextTick(() => {
+      scrollToLatest("auto")
+      scheduleBackfillAfterPaint()
+    })
   },
   { flush: "pre" },
 )
 
 watch(rows, (next, prev) => {
-  if ((prev?.length ?? 0) === 0 && next.length > 0) scrollToLatest("auto")
+  if ((prev?.length ?? 0) === 0 && next.length > 0) {
+    armTailWindow()
+    scrollToLatest("auto")
+    scheduleBackfillAfterPaint()
+    return
+  }
+  if (windowStart.value > next.length) windowStart.value = lastTurnStartIndex(next)
   else if (atBottom.value) void nextTick(pinIfNeeded)
-  if (next.length > 0) enableLiveEnter()
 })
 
 watch(
@@ -186,14 +257,16 @@ watch(
     observeSizes()
     if (body && !prev?.[1]) {
       scrollToLatest("auto")
-      if (rows.value.length > 0) enableLiveEnter()
-      else liveEnter.value = true
+      scheduleBackfillAfterPaint()
     }
   },
   { flush: "post" },
 )
 
-onBeforeUnmount(() => sizeObserver?.disconnect())
+onBeforeUnmount(() => {
+  sizeObserver?.disconnect()
+  stopBackfill()
+})
 
 defineExpose({ showScrollToLatest, scrollToLatest })
 </script>
