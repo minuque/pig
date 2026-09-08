@@ -18,6 +18,7 @@ import {
   p90,
   prepareBenchPage,
   readPaint,
+  scrollSessionList,
   scrollTranscript,
   waitForWorkbench,
 } from "./measure.js"
@@ -36,6 +37,7 @@ type BenchMetrics = {
   sessionFirstOpen: number
   switchLong: number
   longScrollWorstMs: number
+  listScrollWorstMs: number
   switchShortRevisit: number
   composerKeyToFrame: number
   ownMessageMs: number
@@ -166,6 +168,7 @@ function printReport(
     row("短会话打开", "sessionFirstOpen"),
     row("长会话打开", "switchLong"),
     row("长会话滚动卡顿", "longScrollWorstMs"),
+    row("侧栏列表滚动卡顿", "listScrollWorstMs"),
     row("切回短会话", "switchShortRevisit"),
     row("发送后自己的话", "ownMessageMs"),
     row("发送后首条助手", "firstTokenMs"),
@@ -226,6 +229,7 @@ async function main() {
       firstOpen: [] as number[],
       switchLong: [] as number[],
       scroll: [] as number[],
+      listScroll: [] as number[],
       switchRevisit: [] as number[],
       composer: [] as number[],
     }
@@ -242,6 +246,7 @@ async function main() {
           open.coldFcp.push(cold.fcp)
           open.coldLcp.push(cold.lcp)
           open.composer.push(await measureComposer(page, 7))
+          open.listScroll.push(await scrollSessionList(page))
           open.firstOpen.push(await openSession(page, SHORT_SESSION_NAME))
           open.switchLong.push(await openSession(page, LONG_SESSION_NAME))
           open.scroll.push(await scrollTranscript(page, LONG_SESSION_NAME))
@@ -276,6 +281,7 @@ async function main() {
     const firstOpen = open.firstOpen.length ? collect(open.firstOpen) : undefined
     const switchLong = open.switchLong.length ? collect(open.switchLong) : undefined
     const scroll = open.scroll.length ? collect(open.scroll) : undefined
+    const listScroll = open.listScroll.length ? collect(open.listScroll) : undefined
     const switchRevisit = open.switchRevisit.length ? collect(open.switchRevisit) : undefined
     const ownStat = collect(own)
     const tokenStat = collect(token)
@@ -291,6 +297,7 @@ async function main() {
       sessionFirstOpen: firstOpen?.median ?? Number.NaN,
       switchLong: switchLong?.median ?? Number.NaN,
       longScrollWorstMs: scroll?.median ?? Number.NaN,
+      listScrollWorstMs: listScroll?.median ?? Number.NaN,
       switchShortRevisit: switchRevisit?.median ?? Number.NaN,
       composerKeyToFrame: composer?.median ?? Number.NaN,
       ownMessageMs: ownStat.median,
@@ -307,6 +314,7 @@ async function main() {
       sessionFirstOpen: firstOpen?.p90,
       switchLong: switchLong?.p90,
       longScrollWorstMs: scroll?.p90,
+      listScrollWorstMs: listScroll?.p90,
       switchShortRevisit: switchRevisit?.p90,
       composerKeyToFrame: composer?.p90,
       ownMessageMs: ownStat.p90,
@@ -318,7 +326,7 @@ async function main() {
     }
 
     const config = {
-      version: 9,
+      version: 10,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,

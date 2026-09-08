@@ -3,6 +3,7 @@ import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 
 import {
+  BENCH_SESSION_TOTAL,
   SHORT_SESSION_NAME,
   sessionIdOf,
   sessionPrompt,
@@ -26,16 +27,35 @@ export function sessionCard(page: Page, name: BenchSessionName) {
   return page.locator(".session-card", { has: page.getByText(name, { exact: true }) })
 }
 
+function listMoreButton(page: Page) {
+  return page.locator("nav.session-list button.more-button")
+}
+
 /** 侧栏折叠时点「显示更多」，直到目标卡片进 DOM。 */
 export async function revealSessionCard(page: Page, name: BenchSessionName) {
   const card = sessionCard(page, name)
-  const more = page.locator("nav.session-list button.more-button")
-  for (let step = 0; step < 10; step += 1) {
+  const more = listMoreButton(page)
+  for (let step = 0; step < 20; step += 1) {
     if ((await card.count()) > 0) return card
     if ((await more.count()) === 0) break
     await more.click()
   }
   return card
+}
+
+/** 点完「显示更多」，直到侧栏种子会话全部挂上。 */
+export async function revealAllSessionCards(page: Page) {
+  const more = listMoreButton(page)
+  for (let step = 0; step < 20; step += 1) {
+    if ((await more.count()) === 0) break
+    await more.click()
+  }
+  if ((await more.count()) > 0) throw new Error("侧栏仍有未展开的会话")
+  await page.waitForFunction(
+    (expected) => document.querySelectorAll(".session-card").length >= expected,
+    BENCH_SESSION_TOTAL,
+    { timeout: WORKBENCH_TIMEOUT_MS },
+  )
 }
 
 /** 点开会话卡片，不等待后续网络空闲。 */
@@ -249,6 +269,42 @@ async function waitMs(page: Page, ms: number) {
   await page.evaluate((delay) => new Promise<void>((resolve) => setTimeout(resolve, delay)), ms)
 }
 
+async function scrollOverflowWorstLongTask(
+  page: Page,
+  selector: string,
+  emptyMessage: string,
+): Promise<number> {
+  const root = page.locator(selector)
+  await root.hover()
+  const started = await page.evaluate(() => performance.now())
+  const distance = await root.evaluate((node) => node.scrollHeight - node.clientHeight)
+  if (distance <= 0) throw new Error(emptyMessage)
+  for (const direction of [-1, 1]) {
+    for (let step = 0; step < 20; step += 1) {
+      await page.mouse.wheel(0, direction * Math.ceil(distance / 20))
+      await waitMs(page, 32)
+    }
+    await page.waitForFunction(
+      ({ sel, dir }) => {
+        const node = document.querySelector(sel)
+        if (!node) return false
+        return dir < 0
+          ? node.scrollTop <= 1
+          : node.scrollHeight - node.clientHeight - node.scrollTop <= 1
+      },
+      { sel: selector, dir: direction },
+    )
+  }
+  const ended = await page.evaluate(() => performance.now())
+  await waitMs(page, 100)
+  const tasks = (await readLongTasks(page)).filter(
+    (task) => task.start >= started && task.start < ended,
+  )
+  let worst = 0
+  for (const task of tasks) if (task.duration > worst) worst = task.duration
+  return worst
+}
+
 /** 等历史全部挂上后，时间线滚到顶再到底，返回最差 longtask。 */
 export async function scrollTranscript(page: Page, name: BenchSessionName): Promise<number> {
   const turns = sessionTurns(name)
@@ -262,35 +318,13 @@ export async function scrollTranscript(page: Page, name: BenchSessionName): Prom
     turns,
     { timeout: WORKBENCH_TIMEOUT_MS },
   )
-  const viewport = page.locator(".transcript-viewport")
-  await viewport.hover()
-  const started = await page.evaluate(() => performance.now())
-  const distance = await viewport.evaluate((node) => node.scrollHeight - node.clientHeight)
-  if (distance <= 0) throw new Error("长会话未产生可滚动内容")
-  for (const direction of [-1, 1]) {
-    for (let step = 0; step < 20; step += 1) {
-      await page.mouse.wheel(0, direction * Math.ceil(distance / 20))
-      await waitMs(page, 32)
-    }
-    await page.waitForFunction(
-      ({ dir }) => {
-        const node = document.querySelector(".transcript-viewport")
-        if (!node) return false
-        return dir < 0
-          ? node.scrollTop <= 1
-          : node.scrollHeight - node.clientHeight - node.scrollTop <= 1
-      },
-      { dir: direction },
-    )
-  }
-  const ended = await page.evaluate(() => performance.now())
-  await waitMs(page, 100)
-  const tasks = (await readLongTasks(page)).filter(
-    (task) => task.start >= started && task.start < ended,
-  )
-  let worst = 0
-  for (const task of tasks) if (task.duration > worst) worst = task.duration
-  return worst
+  return scrollOverflowWorstLongTask(page, ".transcript-viewport", "长会话未产生可滚动内容")
+}
+
+/** 展开侧栏全部会话后滚到顶再到底，返回最差 longtask。 */
+export async function scrollSessionList(page: Page): Promise<number> {
+  await revealAllSessionCards(page)
+  return scrollOverflowWorstLongTask(page, ".nav-body", "侧栏未产生可滚动内容")
 }
 
 export function quantile(values: readonly number[], q: number): number {

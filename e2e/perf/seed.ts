@@ -10,12 +10,15 @@ export const EMPTY_SESSION_NAME = "空会话"
 
 export const SHORT_TURNS = 2
 export const LONG_TURNS = 50
+export const LIST_SESSION_COUNT = 40
 
 const SESSIONS = {
   [SHORT_SESSION_NAME]: { id: SHORT_SESSION_ID, turns: SHORT_TURNS },
   [LONG_SESSION_NAME]: { id: LONG_SESSION_ID, turns: LONG_TURNS },
   [EMPTY_SESSION_NAME]: { id: EMPTY_SESSION_ID, turns: 0 },
 } as const
+
+export const BENCH_SESSION_TOTAL = LIST_SESSION_COUNT + Object.keys(SESSIONS).length
 
 export type BenchSessionName = keyof typeof SESSIONS
 
@@ -129,8 +132,23 @@ function appendAgentTurn(manager: SessionManager, index: number, timestamp: numb
   manager.appendMessage(assistantMessage(content, timestamp + 30_000))
 }
 
-/** 在 sessionDir 写入短/长会话，供打开、切换、滚动测量。 */
+function seedListSessions(sessionDir: string, cwd: string) {
+  for (let index = 0; index < LIST_SESSION_COUNT; index += 1) {
+    const n = index + 1
+    seedConversation(
+      sessionDir,
+      cwd,
+      `bench-list-${String(n).padStart(2, "0")}`,
+      `列表会话 ${n}`,
+      0,
+      "",
+    )
+  }
+}
+
+/** 在 sessionDir 写入短/长会话和侧栏列表填充，供打开、切换、滚动测量。 */
 export function seedBenchSessions(sessionDir: string, cwd: string) {
+  seedListSessions(sessionDir, cwd)
   seedConversation(sessionDir, cwd, SHORT_SESSION_ID, SHORT_SESSION_NAME, SHORT_TURNS, "已记录。")
   seedConversation(
     sessionDir,
