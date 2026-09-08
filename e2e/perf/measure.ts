@@ -1,4 +1,4 @@
-import type { Browser, BrowserContext, Page, Request } from "@playwright/test"
+import type { Browser, BrowserContext, Page } from "@playwright/test"
 import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 
@@ -13,18 +13,6 @@ import {
 export const WORKBENCH_TIMEOUT_MS = 30_000
 export const HISTORY_ROUTE = "**/api/v1/platform/transcript?*"
 
-const PLATFORM_TRANSCRIPT = "/api/v1/platform/transcript"
-const PLATFORM_CONTEXT_USAGE = "/api/v1/platform/context-usage"
-
-export type SessionOpenPhases = {
-  totalMs: number
-  remoteAttachMs: number
-  latestVisibleMs: number
-  fullHistoryMs: number
-  historyRequests: number
-  historyHttpMs: number
-}
-
 type LongTask = { start: number; duration: number }
 
 type PageBench = {
@@ -34,7 +22,7 @@ type PageBench = {
   interactions: { id: number; duration: number }[]
 }
 
-const composerField = (page: Page) => page.locator(".composer .field, .field").first()
+export const composerInput = (page: Page) => page.locator(".composer .field, .field").first()
 
 export function sessionCard(page: Page, name: BenchSessionName) {
   return page.locator(".session-card", { has: page.getByText(name, { exact: true }) })
@@ -127,7 +115,7 @@ export async function waitForWorkbench(page: Page) {
     .locator("nav.session-list")
     .waitFor({ state: "visible", timeout: WORKBENCH_TIMEOUT_MS })
   await page.locator(".startup-screen").waitFor({ state: "hidden", timeout: WORKBENCH_TIMEOUT_MS })
-  await composerField(page).waitFor({ state: "visible", timeout: WORKBENCH_TIMEOUT_MS })
+  await composerInput(page).waitFor({ state: "visible", timeout: WORKBENCH_TIMEOUT_MS })
   await page.locator(".session-card .title", { hasText: SHORT_SESSION_NAME }).waitFor({
     state: "visible",
     timeout: WORKBENCH_TIMEOUT_MS,
@@ -152,7 +140,7 @@ export async function waitForSession(page: Page, name: BenchSessionName) {
   await page.locator(".session-loading").waitFor({ state: "hidden", timeout: WORKBENCH_TIMEOUT_MS })
 }
 
-async function waitForLatestInViewport(page: Page) {
+export async function waitForLatestInViewport(page: Page) {
   await page.waitForFunction(() => {
     const viewport = document.querySelector<HTMLElement>(".transcript-viewport")
     const assistants = document.querySelectorAll<HTMLElement>(".row-assistant")
@@ -187,24 +175,8 @@ export async function readLongTasks(page: Page): Promise<LongTask[]> {
   })
 }
 
-export async function readInpSamples(page: Page): Promise<number[]> {
-  return page.evaluate(() => {
-    const bench = (window as unknown as { __pigBench: PageBench }).__pigBench
-    return bench.interactions.map((item) => item.duration)
-  })
-}
-
-/** FCP 到工作台可用之间，超过 50ms 的长任务计入 TBT。 */
-export function totalBlockingTime(tasks: readonly LongTask[], fcp: number, end: number): number {
-  let total = 0
-  for (const task of tasks) {
-    total += Math.max(0, Math.min(task.start + task.duration, end) - Math.max(task.start + 50, fcp))
-  }
-  return total
-}
-
 export async function keyToNextFrame(page: Page): Promise<number> {
-  await composerField(page).click()
+  await composerInput(page).click()
   await page.evaluate(() => {
     const slot = window as unknown as { __pigK2f: number | null }
     slot.__pigK2f = null
@@ -254,61 +226,14 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   )
 }
 
-/** 拆分历史 HTTP、Remote 附加、最新回答首屏与完整历史挂载。 */
-export async function openSessionPhases(
-  page: Page,
-  name: BenchSessionName,
-): Promise<SessionOpenPhases> {
-  const targetId = sessionIdOf(name)
+export async function openSessionUntilLatest(page: Page, name: BenchSessionName): Promise<number> {
   const started = performance.now()
-  const requests = new Map<Request, number>()
-  const historyDurations: number[] = []
-  let historyRequests = 0
-  let remoteAttachMs: number | undefined
-
-  const onRequest = (request: Request) => {
-    const url = new URL(request.url())
-    if (url.searchParams.get("sessionId") !== targetId) return
-    if (url.pathname === PLATFORM_TRANSCRIPT) {
-      historyRequests += 1
-      requests.set(request, performance.now())
-    } else if (url.pathname === PLATFORM_CONTEXT_USAGE && remoteAttachMs === undefined) {
-      remoteAttachMs = performance.now() - started
-    }
-  }
-  const onRequestFinished = (request: Request) => {
-    const requestStarted = requests.get(request)
-    if (requestStarted === undefined) return
-    historyDurations.push(performance.now() - requestStarted)
-    requests.delete(request)
-  }
-
-  page.on("request", onRequest)
-  page.on("requestfinished", onRequestFinished)
-  try {
-    await sessionCard(page, name).click()
-    const [latestVisibleMs, fullHistoryMs] = await Promise.all([
-      waitForLatestInViewport(page).then(() => performance.now() - started),
-      waitForSession(page, name).then(() => performance.now() - started),
-    ])
-    if (remoteAttachMs === undefined) throw new Error("未观测到 Remote 附加完成信号")
-    if (historyRequests === 0 || requests.size > 0 || historyDurations.length !== historyRequests)
-      throw new Error("历史 HTTP 阶段未完整采集")
-    return {
-      totalMs: Math.max(latestVisibleMs, fullHistoryMs),
-      remoteAttachMs,
-      latestVisibleMs,
-      fullHistoryMs,
-      historyRequests,
-      historyHttpMs: Math.max(...historyDurations),
-    }
-  } finally {
-    page.off("request", onRequest)
-    page.off("requestfinished", onRequestFinished)
-  }
+  await sessionCard(page, name).click()
+  await waitForLatestInViewport(page)
+  return performance.now() - started
 }
 
-export async function scrollTranscript(page: Page): Promise<{ count: number; worst: number }> {
+export async function scrollTranscript(page: Page): Promise<number> {
   const viewport = page.locator(".transcript-viewport")
   await viewport.hover()
   const started = await page.evaluate(() => performance.now())
@@ -336,7 +261,7 @@ export async function scrollTranscript(page: Page): Promise<{ count: number; wor
   )
   let worst = 0
   for (const task of tasks) if (task.duration > worst) worst = task.duration
-  return { count: tasks.length, worst }
+  return worst
 }
 
 export function quantile(values: readonly number[], q: number): number {
@@ -360,10 +285,4 @@ export function quantile(values: readonly number[], q: number): number {
 
 export function median(values: readonly number[]): number {
   return quantile(values, 0.5)
-}
-
-/** 仅统计本页被 Event Timing 捕获的交互，不作为完整 INP。 */
-export function inpValue(samples: readonly number[]): number | null {
-  if (samples.length === 0) return null
-  return [...samples].sort((a, b) => b - a)[Math.floor(samples.length / 50)] ?? null
 }

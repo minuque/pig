@@ -1,7 +1,9 @@
 import { expect, type Browser, type Page, type Route, type WebSocketRoute } from "@playwright/test"
 
 import {
+  ClientMessageDecoder,
   ServerMessageDecoder,
+  encodeClientMessage,
   encodeServerMessage,
   type SessionSnapshot,
   type TranscriptItem,
@@ -12,13 +14,14 @@ import { join } from "node:path"
 import {
   HISTORY_ROUTE,
   captureBenchFailure,
-  keyToNextFrame,
+  composerInput,
   median,
   newBenchContext,
   nextPaint,
   openSession,
   prepareBenchPage,
   sessionCard,
+  waitForLatestInViewport,
   waitForSession,
   waitForWorkbench,
 } from "./measure.js"
@@ -31,6 +34,17 @@ import {
   SHORT_SESSION_NAME,
   SHORT_TURNS,
 } from "./seed.js"
+
+const FIRST_PROMPT = "基准首条提问"
+const FIRST_TOKEN = "基准首 token"
+const STREAM_ITEM_ID = "bench-turn"
+const STOP_TURN = "停止当前 Turn"
+
+type Bridge = Awaited<ReturnType<typeof installBridge>>
+
+function asBytes(data: Buffer | ArrayBuffer | Uint8Array): Uint8Array {
+  return data instanceof Uint8Array ? data : new Uint8Array(data)
+}
 
 async function rapidSwitch(page: Page) {
   await openSession(page, EMPTY_SESSION_NAME)
@@ -92,30 +106,86 @@ async function historyRecovery(page: Page) {
   } finally {
     await page.unroute(HISTORY_ROUTE, fail)
   }
-  const elapsed = await openSession(page, SHORT_SESSION_NAME)
+  await openSession(page, SHORT_SESSION_NAME)
   await expect(page.locator(".row-user")).toHaveCount(SHORT_TURNS)
-  return elapsed
 }
 
 async function installBridge(page: Page) {
   let socket: WebSocketRoute | undefined
   let upstream: WebSocketRoute | undefined
   let connections = 0
+  let promptSessionId: string | undefined
+  let resolvePrompt: ((id: string) => void) | undefined
   const snapshots = new Map<string, SessionSnapshot>()
   await page.routeWebSocket("**/api/v1/pi", (route) => {
     socket = route
     upstream = route.connectToServer()
     connections += 1
-    const decoder = new ServerMessageDecoder()
+    const serverDecoder = new ServerMessageDecoder()
+    const clientDecoder = new ClientMessageDecoder()
+    const send = (message: Parameters<typeof encodeServerMessage>[0]) => {
+      if (!socket) throw new Error("基准 WebSocket 尚未建立")
+      socket.send(Buffer.from(encodeServerMessage(message)))
+    }
+    const reply = (id: string, command: "prompt" | "abort", session: SessionSnapshot) => {
+      send({ type: "response", id, ok: true, result: { command, session } })
+    }
+    const patch = (sessionId: string, phase: "turn" | "idle") => {
+      const current = snapshots.get(sessionId)
+      if (!current) throw new Error(`基准缺少 SessionSnapshot ${sessionId}`)
+      const next = { ...current, phase, revision: current.revision + 1 }
+      snapshots.set(sessionId, next)
+      return next
+    }
     upstream.onMessage((data) => {
       if (typeof data === "string") throw new Error("基准收到非二进制协议消息")
-      for (const message of decoder.push(data)) {
+      for (const message of serverDecoder.push(asBytes(data))) {
         if (message.type === "event" && message.event.type === "session_snapshot")
           snapshots.set(message.event.snapshot.id, message.event.snapshot)
         if (message.type === "response" && message.ok && "session" in message.result)
           snapshots.set(message.result.session.id, message.result.session)
       }
       route.send(data)
+    })
+    route.onMessage((data) => {
+      if (typeof data === "string") throw new Error("基准收到非二进制协议消息")
+      if (!upstream) throw new Error("基准 WebSocket 尚未连接上游")
+      for (const message of clientDecoder.push(asBytes(data))) {
+        if (message.type === "request" && message.request.command === "prompt") {
+          const sessionId = message.request.sessionId
+          reply(message.id, "prompt", patch(sessionId, "turn"))
+          promptSessionId = sessionId
+          resolvePrompt?.(sessionId)
+          continue
+        }
+        if (message.type === "request" && message.request.command === "abort") {
+          const sessionId = message.request.sessionId
+          const session = patch(sessionId, "idle")
+          send({
+            type: "event",
+            event: {
+              type: "session_progress",
+              sessionId,
+              progress: {
+                type: "item_finished",
+                item: {
+                  id: STREAM_ITEM_ID,
+                  role: "assistant",
+                  content: [{ type: "text", text: FIRST_TOKEN }],
+                  model: session.model,
+                  timestamp: 1_700_000_000_000,
+                  status: "aborted",
+                  stopReason: "aborted",
+                },
+              },
+            },
+          })
+          send({ type: "event", event: { type: "session_snapshot", snapshot: session } })
+          reply(message.id, "abort", session)
+          continue
+        }
+        upstream.send(Buffer.from(encodeClientMessage(message)))
+      }
     })
   })
   return {
@@ -125,6 +195,12 @@ async function installBridge(page: Page) {
       if (!socket) throw new Error("基准 WebSocket 尚未建立")
       socket.send(Buffer.from(encodeServerMessage(message)))
     },
+    waitForPrompt() {
+      if (promptSessionId) return Promise.resolve(promptSessionId)
+      return new Promise<string>((resolve) => {
+        resolvePrompt = resolve
+      })
+    },
     async disconnect() {
       snapshots.clear()
       await Promise.all([socket?.close({ code: 1011, reason: "基准断线" }), upstream?.close()])
@@ -132,71 +208,73 @@ async function installBridge(page: Page) {
   }
 }
 
-async function stream(page: Page, bridge: Awaited<ReturnType<typeof installBridge>>) {
-  const snapshot = bridge.snapshots.get(SHORT_SESSION_ID)
-  if (!snapshot) throw new Error("流式场景缺少真实 SessionSnapshot")
-  const phase = (value: "turn" | "idle") =>
-    bridge.send({
-      type: "event",
-      event: { type: "session_snapshot", snapshot: { ...snapshot, phase: value } },
-    })
-  const item = (
-    text: string,
-  ): Extract<TranscriptItem, { role: "assistant"; status: "streaming" }> => ({
-    id: "bench-stream",
+function assistantItem(
+  snapshot: SessionSnapshot,
+  text: string,
+): Extract<TranscriptItem, { role: "assistant"; status: "streaming" }> {
+  return {
+    id: STREAM_ITEM_ID,
     role: "assistant",
     content: [{ type: "text", text }],
     model: snapshot.model,
     timestamp: 1_700_000_000_000,
     status: "streaming",
-  })
-  phase("turn")
-  bridge.send({
-    type: "event",
-    event: {
-      type: "session_progress",
-      sessionId: SHORT_SESSION_ID,
-      progress: { type: "item_started", item: item("流式基准 0") },
-    },
-  })
-  await expect(page.getByRole("button", { name: "停止当前 Turn", exact: true })).toBeVisible()
-  await expect(page.getByText("流式基准 0", { exact: true })).toBeVisible()
-  const paints: number[] = []
-  const keys: number[] = []
-  for (let index = 1; index <= 12; index += 1) {
-    const text = `流式基准 ${index}：${"增量内容。".repeat(index * 10)}`
-    const started = performance.now()
+  }
+}
+
+async function measureTurn(page: Page, bridge: Bridge) {
+  const send = page.locator("button.send")
+  const stop = page.getByRole("button", { name: STOP_TURN, exact: true })
+  await composerInput(page).fill(FIRST_PROMPT)
+  await expect(send).toBeEnabled()
+  const started = performance.now()
+  await send.click()
+  await expect(page.getByText(FIRST_PROMPT, { exact: true })).toBeVisible()
+  await page.waitForURL(/\/sessions\/[^/?#]+$/)
+  const createFirstPromptMs = performance.now() - started
+  const sessionId = await bridge.waitForPrompt()
+  const snapshot = bridge.snapshots.get(sessionId)
+  if (!snapshot) throw new Error("回合场景缺少真实 SessionSnapshot")
+  const emit = (
+    type: "item_started" | "item_updated",
+    item: Extract<TranscriptItem, { role: "assistant"; status: "streaming" }>,
+  ) => {
+    if (type === "item_started") {
+      bridge.send({
+        type: "event",
+        event: { type: "session_progress", sessionId, progress: { type, item } },
+      })
+      return
+    }
     bridge.send({
       type: "event",
-      event: {
-        type: "session_progress",
-        sessionId: SHORT_SESSION_ID,
-        progress: { type: "item_updated", item: item(text) },
-      },
+      event: { type: "session_progress", sessionId, progress: { type, item } },
     })
-    await expect(page.getByText(text, { exact: true })).toBeVisible()
-    await nextPaint(page)
-    paints.push(performance.now() - started)
-    if (index % 3 === 0) keys.push(await keyToNextFrame(page))
   }
-  const finalText = "流式基准完成"
-  bridge.send({
-    type: "event",
-    event: {
-      type: "session_progress",
-      sessionId: SHORT_SESSION_ID,
-      progress: {
-        type: "item_finished",
-        item: { ...item(finalText), status: "complete", stopReason: "stop" },
-      },
-    },
-  })
-  phase("idle")
-  await expect(page.getByText(finalText, { exact: true })).toHaveCount(1)
-  await expect(page.locator(".row-assistant")).toHaveCount(SHORT_TURNS + 1)
-  await expect(page.locator(".row-user")).toHaveCount(SHORT_TURNS)
-  await expect(page.getByRole("button", { name: "停止当前 Turn", exact: true })).toHaveCount(0)
-  return { streamUpdate: median(paints), streamComposer: median(keys), paints, keys }
+  emit("item_started", assistantItem(snapshot, FIRST_TOKEN))
+  await expect(page.getByText(FIRST_TOKEN, { exact: true })).toBeVisible()
+  const firstTokenMs = performance.now() - started
+  await expect(stop).toBeVisible()
+  const lags: number[] = []
+  let latest = FIRST_TOKEN
+  for (let index = 1; index <= 6; index += 1) {
+    latest = `${FIRST_TOKEN} ${"增量。".repeat(index * 8)}`
+    const chunkStarted = performance.now()
+    emit("item_updated", assistantItem(snapshot, latest))
+    await expect(page.getByText(latest, { exact: true })).toBeVisible()
+    await waitForLatestInViewport(page)
+    lags.push(performance.now() - chunkStarted)
+  }
+  const abortStarted = performance.now()
+  await stop.click()
+  await expect(stop).toHaveCount(0)
+  await expect(page.getByText(latest, { exact: true })).toBeVisible()
+  return {
+    createFirstPromptMs,
+    firstTokenMs,
+    streamKeepUpMs: Math.max(...lags),
+    abortMs: performance.now() - abortStarted,
+  }
 }
 
 export async function runEdgeBench(
@@ -216,10 +294,9 @@ export async function runEdgeBench(
       const bridge = await installBridge(page)
       await page.goto(origin)
       await waitForWorkbench(page)
+      const turn = await measureTurn(page, bridge)
       const rapidSwitchMs = await rapidSwitch(page)
-      const historyRecoveryMs = await historyRecovery(page)
-      const streamed = await stream(page, bridge)
-      // 流式夹具不落盘，重连验证先回到真实历史，避免把保留 live 数据误判为失败。
+      await historyRecovery(page)
       await openSession(page, EMPTY_SESSION_NAME)
       await openSession(page, SHORT_SESSION_NAME)
       const count = bridge.connections()
@@ -231,9 +308,9 @@ export async function runEdgeBench(
       await waitForSession(page, SHORT_SESSION_NAME)
       await nextPaint(page)
       const reconnectMs = performance.now() - started
-      await expect(page.getByText("流式基准完成", { exact: true })).toHaveCount(0)
+      await expect(page.getByText(FIRST_TOKEN, { exact: true })).toHaveCount(0)
       await expect(page.locator(".row-assistant")).toHaveCount(SHORT_TURNS)
-      samples.push({ rapidSwitchMs, historyRecoveryMs, ...streamed, reconnectMs })
+      samples.push({ ...turn, rapidSwitchMs, reconnectMs })
     } catch (error) {
       await captureBenchFailure(page, join(resultDir, "perf-edges-fail.png"))
       throw error
@@ -242,27 +319,29 @@ export async function runEdgeBench(
     }
   }
   const metrics = {
+    createFirstPromptMs: median(samples.map((sample) => sample.createFirstPromptMs)),
+    firstTokenMs: median(samples.map((sample) => sample.firstTokenMs)),
+    streamKeepUpMs: median(samples.map((sample) => sample.streamKeepUpMs)),
+    abortMs: median(samples.map((sample) => sample.abortMs)),
     rapidSwitchMs: median(samples.map((sample) => sample.rapidSwitchMs)),
-    historyRecoveryMs: median(samples.map((sample) => sample.historyRecoveryMs)),
-    streamUpdateMs: median(samples.map((sample) => sample.streamUpdate)),
-    streamComposerMs: median(samples.map((sample) => sample.streamComposer)),
     reconnectMs: median(samples.map((sample) => sample.reconnectMs)),
   }
   await mkdir(resultDir, { recursive: true })
   await writeFile(
     join(resultDir, "perf-edges.json"),
-    JSON.stringify({ version: 1, runs, browser: browser.version(), metrics, samples }, null, 2) +
+    JSON.stringify({ version: 2, runs, browser: browser.version(), metrics, samples }, null, 2) +
       "\n",
   )
-  console.log("\n边界场景全部通过；耗时包含驱动与断言开销，流式为协议夹具。")
+  console.log("\n边界场景全部通过；耗时包含驱动与断言开销，回合为协议夹具。")
+  reportTable("回合体验", [
+    { label: "欢迎页创建并打出第一条", value: metrics.createFirstPromptMs },
+    { label: "发送后首条助手可见", value: metrics.firstTokenMs },
+    { label: "流式跟上（最慢一帧）", value: metrics.streamKeepUpMs },
+    { label: "点停止到回合结束", value: metrics.abortMs },
+  ])
   reportTable("边界恢复", [
     { label: "旧历史晚到，最终会话就绪", value: metrics.rapidSwitchMs },
-    { label: "历史 503 后重新进入", value: metrics.historyRecoveryMs },
     { label: "WebSocket 断线后历史恢复", value: metrics.reconnectMs },
-  ])
-  reportTable("模拟流式输出", [
-    { label: "增量消息到双 rAF", value: metrics.streamUpdateMs },
-    { label: "输出期间按键到双 rAF", value: metrics.streamComposerMs },
   ])
   console.log(`结果已写入 ${join(resultDir, "perf-edges.json")}`)
 }

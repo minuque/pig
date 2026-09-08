@@ -11,18 +11,14 @@ import { canonicalizeWorkspacePath } from "../fixtures.js"
 import { runEdgeBench } from "./edges.js"
 import {
   captureBenchFailure,
-  inpValue,
   keyToNextFrame,
   median,
   newBenchContext,
   openSession,
-  openSessionPhases,
+  openSessionUntilLatest,
   prepareBenchPage,
-  readInpSamples,
-  readLongTasks,
   readPaint,
   scrollTranscript,
-  totalBlockingTime,
   waitForWorkbench,
 } from "./measure.js"
 import { reportTable } from "./report.js"
@@ -43,24 +39,14 @@ type BenchMetrics = {
   coldToWorkbench: number
   coldLcp: number
   coldFcp: number
-  coldTbt: number
-  hotToWorkbench: number
   sessionFirstOpen: number
-  eventTimingP98: number | null
   emptyOpen: number
-  stressOpen: number
-  stressRemoteAttach: number
-  stressHistoryHttp: number
-  stressHistoryRequests: number
   stressLatestVisible: number
-  stressFullHistory: number
   stressComposer: number
-  stressScrollLongTasks: number
   stressScrollWorstMs: number
   composerKeyToFrame: number
   switchLong: number
   switchShortRevisit: number
-  longScrollLongTasks: number
   longScrollWorstMs: number
 }
 
@@ -148,13 +134,7 @@ async function openPage(
 
 async function measureStart(page: Page) {
   const paint = await readPaint(page)
-  const tasks = await readLongTasks(page)
-  return {
-    toWorkbench: paint.now,
-    fcp: paint.fcp,
-    lcp: paint.lcp,
-    tbt: totalBlockingTime(tasks, paint.fcp, paint.now),
-  }
+  return { toWorkbench: paint.now, fcp: paint.fcp, lcp: paint.lcp }
 }
 
 async function measureComposer(page: Page, samples: number): Promise<number> {
@@ -179,33 +159,21 @@ function printReport(now: BenchMetrics, prev: BenchMetrics | undefined) {
     row("冷启动到工作台", "coldToWorkbench"),
     row("就绪时 LCP 候选值", "coldLcp"),
     row("冷启动 FCP", "coldFcp"),
-    row("就绪前总阻塞时间", "coldTbt"),
-    row("热重启到工作台", "hotToWorkbench"),
   ])
   reportTable("会话打开与切换", [
     row("短会话首次", "sessionFirstOpen"),
     row("40 轮会话", "switchLong"),
     row("短会话重访", "switchShortRevisit"),
     row("空会话", "emptyOpen"),
-    row("200 轮混合会话", "stressOpen"),
-  ])
-  reportTable("200 轮混合会话阶段", [
-    row("Remote 附加完成", "stressRemoteAttach"),
-    row("历史 HTTP 最慢请求", "stressHistoryHttp"),
-    row("历史 HTTP 请求数", "stressHistoryRequests", "个"),
-    row("最新回答进入视口且 Composer 可用", "stressLatestVisible"),
-    row("完整历史可访问", "stressFullHistory"),
+    row("大会话可继续", "stressLatestVisible"),
   ])
   reportTable("输入响应", [
-    row("Event Timing 样本 p98（非完整 INP）", "eventTimingP98"),
     row("欢迎页按键到双 rAF", "composerKeyToFrame"),
-    row("混合会话按键到双 rAF", "stressComposer"),
+    row("大会话按键到双 rAF", "stressComposer"),
   ])
-  reportTable("滚动长任务", [
-    row("40 轮会话数量", "longScrollLongTasks", "个"),
+  reportTable("滚动卡顿", [
     row("40 轮会话最差耗时", "longScrollWorstMs"),
-    row("混合会话数量", "stressScrollLongTasks", "个"),
-    row("混合会话最差耗时", "stressScrollWorstMs"),
+    row("大会话最差耗时", "stressScrollWorstMs"),
   ])
 }
 
@@ -222,7 +190,6 @@ async function loadPrevious(
     if (!previous || typeof previous !== "object") return undefined
     for (const key of Object.keys(metrics)) {
       const value: unknown = Reflect.get(previous, key)
-      if (key === "eventTimingP98" && value === null) continue
       if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return undefined
     }
     return previous as BenchMetrics
@@ -263,24 +230,14 @@ async function main() {
     const coldTo: number[] = []
     const coldLcp: number[] = []
     const coldFcp: number[] = []
-    const coldTbt: number[] = []
-    const hotTo: number[] = []
     const firstOpen: number[] = []
     const switchLong: number[] = []
     const switchRevisit: number[] = []
     const composer: number[] = []
-    const scrollCounts: number[] = []
     const scrollWorst: number[] = []
-    const inpSamples: number[] = []
     const emptyOpen: number[] = []
-    const stressOpen: number[] = []
-    const stressRemoteAttach: number[] = []
-    const stressHistoryHttp: number[] = []
-    const stressHistoryRequests: number[] = []
     const stressLatestVisible: number[] = []
-    const stressFullHistory: number[] = []
     const stressComposer: number[] = []
-    const stressScrollCounts: number[] = []
     const stressScrollWorst: number[] = []
 
     for (let run = 1; run <= args.runs; run += 1) {
@@ -291,37 +248,18 @@ async function main() {
         coldTo.push(cold.toWorkbench)
         coldLcp.push(cold.lcp)
         coldFcp.push(cold.fcp)
-        coldTbt.push(cold.tbt)
-
-        await page.reload({ waitUntil: "commit" })
-        await waitForWorkbench(page)
-        hotTo.push((await measureStart(page)).toWorkbench)
 
         composer.push(await measureComposer(page, 7))
 
-        const opened = await openSession(page, SHORT_SESSION_NAME)
-        firstOpen.push(opened)
+        firstOpen.push(await openSession(page, SHORT_SESSION_NAME))
         switchLong.push(await openSession(page, LONG_SESSION_NAME))
         switchRevisit.push(await openSession(page, SHORT_SESSION_NAME))
         await openSession(page, LONG_SESSION_NAME)
-        const scrolled = await scrollTranscript(page)
-        scrollCounts.push(scrolled.count)
-        scrollWorst.push(scrolled.worst)
+        scrollWorst.push(await scrollTranscript(page))
         emptyOpen.push(await openSession(page, EMPTY_SESSION_NAME))
-        const stress = await openSessionPhases(page, STRESS_SESSION_NAME)
-        stressOpen.push(stress.totalMs)
-        stressRemoteAttach.push(stress.remoteAttachMs)
-        stressHistoryHttp.push(stress.historyHttpMs)
-        stressHistoryRequests.push(stress.historyRequests)
-        stressLatestVisible.push(stress.latestVisibleMs)
-        stressFullHistory.push(stress.fullHistoryMs)
+        stressLatestVisible.push(await openSessionUntilLatest(page, STRESS_SESSION_NAME))
         stressComposer.push(await measureComposer(page, 7))
-        const stressScrolled = await scrollTranscript(page)
-        stressScrollCounts.push(stressScrolled.count)
-        stressScrollWorst.push(stressScrolled.worst)
-        const eventInp = await readInpSamples(page)
-        const eventP98 = inpValue(eventInp)
-        if (eventP98 !== null) inpSamples.push(eventP98)
+        stressScrollWorst.push(await scrollTranscript(page))
       } catch (error) {
         await captureBenchFailure(page, failShot)
         throw error
@@ -334,29 +272,19 @@ async function main() {
       coldToWorkbench: median(coldTo),
       coldLcp: median(coldLcp),
       coldFcp: median(coldFcp),
-      coldTbt: median(coldTbt),
-      hotToWorkbench: median(hotTo),
       sessionFirstOpen: median(firstOpen),
-      eventTimingP98: inpSamples.length ? median(inpSamples) : null,
       emptyOpen: median(emptyOpen),
-      stressOpen: median(stressOpen),
-      stressRemoteAttach: median(stressRemoteAttach),
-      stressHistoryHttp: median(stressHistoryHttp),
-      stressHistoryRequests: Math.round(median(stressHistoryRequests)),
       stressLatestVisible: median(stressLatestVisible),
-      stressFullHistory: median(stressFullHistory),
       stressComposer: median(stressComposer),
-      stressScrollLongTasks: Math.round(median(stressScrollCounts)),
       stressScrollWorstMs: median(stressScrollWorst),
       composerKeyToFrame: median(composer),
       switchLong: median(switchLong),
       switchShortRevisit: median(switchRevisit),
-      longScrollLongTasks: Math.round(median(scrollCounts)),
       longScrollWorstMs: median(scrollWorst),
     }
 
     const config = {
-      version: 3,
+      version: 4,
       runs: args.runs,
       headed: args.headed,
       browser: browser.version(),
@@ -368,7 +296,7 @@ async function main() {
     await mkdir(join(root, "test-results"), { recursive: true })
     await writeFile(
       resultPath,
-      `${JSON.stringify({ config, metrics, samples: { coldTo, coldLcp, coldFcp, coldTbt, hotTo, firstOpen, switchLong, switchRevisit, composer, scrollCounts, scrollWorst, inpSamples, emptyOpen, stressOpen, stressRemoteAttach, stressHistoryHttp, stressHistoryRequests, stressLatestVisible, stressFullHistory, stressComposer, stressScrollCounts, stressScrollWorst } }, null, 2)}\n`,
+      `${JSON.stringify({ config, metrics, samples: { coldTo, coldLcp, coldFcp, firstOpen, switchLong, switchRevisit, composer, scrollWorst, emptyOpen, stressLatestVisible, stressComposer, stressScrollWorst } }, null, 2)}\n`,
     )
     printReport(metrics, previous)
     console.log(`结果已写入 ${resultPath}`)
