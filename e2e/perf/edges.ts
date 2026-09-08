@@ -46,6 +46,7 @@ function asBytes(data: Buffer | ArrayBuffer | Uint8Array): Uint8Array {
   return data instanceof Uint8Array ? data : new Uint8Array(data)
 }
 
+/** 卡住长会话历史后立刻切短会话，量最终就绪。 */
 async function rapidSwitch(page: Page) {
   await openSession(page, EMPTY_SESSION_NAME)
   let received = 0
@@ -85,6 +86,7 @@ async function rapidSwitch(page: Page) {
   }
 }
 
+/** 短会话历史 503 时不转圈，恢复后能再打开。 */
 async function historyRecovery(page: Page) {
   await openSession(page, EMPTY_SESSION_NAME)
   let failures = 0
@@ -222,6 +224,7 @@ function assistantItem(
   }
 }
 
+/** 欢迎页创建并发送：首条用户句、首 token、流式跟上、点停止。 */
 async function measureTurn(page: Page, bridge: Bridge) {
   const send = page.locator("button.send")
   const stop = page.getByRole("button", { name: STOP_TURN, exact: true })
@@ -277,6 +280,24 @@ async function measureTurn(page: Page, bridge: Bridge) {
   }
 }
 
+/** WebSocket 断线后短会话历史恢复，夹具流式文案不得残留。 */
+async function reconnect(page: Page, bridge: Bridge) {
+  await openSession(page, EMPTY_SESSION_NAME)
+  await openSession(page, SHORT_SESSION_NAME)
+  const count = bridge.connections()
+  const started = performance.now()
+  await bridge.disconnect()
+  await expect.poll(() => bridge.connections(), { timeout: 30_000 }).toBeGreaterThan(count)
+  await expect.poll(() => bridge.snapshots.has(SHORT_SESSION_ID)).toBe(true)
+  await expect(page.getByText("连接失败", { exact: true })).toHaveCount(0)
+  await waitForSession(page, SHORT_SESSION_NAME)
+  await nextPaint(page)
+  const elapsed = performance.now() - started
+  await expect(page.getByText(FIRST_TOKEN, { exact: true })).toHaveCount(0)
+  await expect(page.locator(".row-assistant")).toHaveCount(SHORT_TURNS)
+  return elapsed
+}
+
 export async function runEdgeBench(
   browser: Browser,
   origin: string,
@@ -297,19 +318,7 @@ export async function runEdgeBench(
       const turn = await measureTurn(page, bridge)
       const rapidSwitchMs = await rapidSwitch(page)
       await historyRecovery(page)
-      await openSession(page, EMPTY_SESSION_NAME)
-      await openSession(page, SHORT_SESSION_NAME)
-      const count = bridge.connections()
-      const started = performance.now()
-      await bridge.disconnect()
-      await expect.poll(() => bridge.connections(), { timeout: 30_000 }).toBeGreaterThan(count)
-      await expect.poll(() => bridge.snapshots.has(SHORT_SESSION_ID)).toBe(true)
-      await expect(page.getByText("连接失败", { exact: true })).toHaveCount(0)
-      await waitForSession(page, SHORT_SESSION_NAME)
-      await nextPaint(page)
-      const reconnectMs = performance.now() - started
-      await expect(page.getByText(FIRST_TOKEN, { exact: true })).toHaveCount(0)
-      await expect(page.locator(".row-assistant")).toHaveCount(SHORT_TURNS)
+      const reconnectMs = await reconnect(page, bridge)
       samples.push({ ...turn, rapidSwitchMs, reconnectMs })
     } catch (error) {
       await captureBenchFailure(page, join(resultDir, "perf-edges-fail.png"))

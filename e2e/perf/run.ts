@@ -132,11 +132,13 @@ async function openPage(
   return { context, page }
 }
 
+/** 冷启动到工作台可用，并采集 FCP / LCP。 */
 async function measureStart(page: Page) {
   const paint = await readPaint(page)
   return { toWorkbench: paint.now, fcp: paint.fcp, lcp: paint.lcp }
 }
 
+/** 按键到双 rAF，丢弃首次后取中位数。 */
 async function measureComposer(page: Page, samples: number): Promise<number> {
   const values: number[] = []
   for (let index = 0; index < samples + 1; index += 1) {

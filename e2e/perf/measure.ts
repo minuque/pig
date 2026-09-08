@@ -175,6 +175,7 @@ export async function readLongTasks(page: Page): Promise<LongTask[]> {
   })
 }
 
+/** Composer 按下一键到双 rAF。 */
 export async function keyToNextFrame(page: Page): Promise<number> {
   await composerInput(page).click()
   await page.evaluate(() => {
@@ -204,6 +205,7 @@ export async function keyToNextFrame(page: Page): Promise<number> {
   return page.evaluate(() => (window as unknown as { __pigK2f: number }).__pigK2f)
 }
 
+/** 点侧栏卡片到该会话历史就绪。 */
 export async function openSession(page: Page, name: BenchSessionName): Promise<number> {
   const card = sessionCard(page, name)
   await card.evaluate((node) => {
@@ -226,6 +228,7 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   )
 }
 
+/** 打开大会话到最新回答进入视口且可输入。 */
 export async function openSessionUntilLatest(page: Page, name: BenchSessionName): Promise<number> {
   const started = performance.now()
   await sessionCard(page, name).click()
@@ -233,6 +236,7 @@ export async function openSessionUntilLatest(page: Page, name: BenchSessionName)
   return performance.now() - started
 }
 
+/** 时间线滚到顶再到底，返回最差 longtask。 */
 export async function scrollTranscript(page: Page): Promise<number> {
   const viewport = page.locator(".transcript-viewport")
   await viewport.hover()
