@@ -145,10 +145,6 @@ export async function waitForSession(page: Page, name: BenchSessionName) {
       state: "visible",
       timeout: WORKBENCH_TIMEOUT_MS,
     })
-    await page.waitForFunction(
-      (expected) => document.querySelectorAll(".row-user").length === expected,
-      turns,
-    )
   }
   await page.locator(".session-loading").waitFor({ state: "hidden", timeout: WORKBENCH_TIMEOUT_MS })
 }

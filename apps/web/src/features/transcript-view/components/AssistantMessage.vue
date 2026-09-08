@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { CircleAlert } from "@lucide/vue"
-import MarkdownRender from "markstream-vue"
+import MarkdownRender, { type NodeRendererProps } from "markstream-vue"
 import { computed } from "vue"
 import Alert from "@components/ui/alert/Alert.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
@@ -59,36 +59,38 @@ const codeBlockOptions = {
   ...codeBlockTypography(),
   diffStyle: "unified",
 } as const
-const agentMarkdown = computed(
-  () =>
-    ({
-      customId: "chat",
-      mode: "chat",
-      fade: false,
-      isDark: isDark.value,
-      viewportPriority: false,
-      codeBlockOptions,
-      codeBlockProps: {
-        ...codeBlockProps.value,
-        showHeader: true,
-        showCopyButton: true,
-        showCollapseButton: true,
-        showExpandButton: true,
-      },
-      mermaidProps: {
-        renderDebounceMs: 180,
-        contentStableDelayMs: 500,
-        showHeader: true,
-        showFullscreenButton: true,
-      },
-      final: !props.streaming,
-      typewriter: false,
-      smoothStreaming: false,
-      maxLiveNodes: 0,
-      nodeVirtual: false,
-      batchRendering: false,
-    }) as const,
-)
+
+const agentMarkdown = computed((): NodeRendererProps => {
+  const streaming = props.streaming
+  return {
+    customId: "chat",
+    mode: "chat",
+    fade: false,
+    isDark: isDark.value,
+    viewportPriority: !streaming,
+    codeBlockOptions,
+    codeBlockProps: {
+      ...codeBlockProps.value,
+      showHeader: true,
+      showCopyButton: true,
+      showCollapseButton: true,
+      showExpandButton: true,
+    },
+    mermaidProps: {
+      renderDebounceMs: 180,
+      contentStableDelayMs: 500,
+      showHeader: true,
+      showFullscreenButton: true,
+    },
+    final: !streaming,
+    typewriter: false,
+    smoothStreaming: false,
+    nodeVirtual: !streaming,
+    batchRendering: !streaming,
+    // 历史不传 maxLiveNodes，chat 才能在 final 恢复时开节点窗口
+    ...(streaming ? { maxLiveNodes: 0 } : {}),
+  }
+})
 </script>
 
 <style scoped>

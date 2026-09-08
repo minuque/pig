@@ -10,35 +10,36 @@
 
     <div
       id="transcript-panel"
-      ref="viewport"
       class="transcript-viewport"
+      v-bind="containerProps"
       @scroll="onTranscriptScroll"
       @wheel="onWheel"
       @pointerdown="releasePinnedToBottom"
     >
       <div v-if="rows.length || running" ref="column" class="transcript">
-        <div ref="list" class="transcript-list">
+        <div ref="list" class="transcript-list" v-bind="wrapperProps">
           <TransitionGroup name="timeline-row" tag="div" class="timeline-rows" :css="liveEnter">
             <div
-              v-for="(row, index) in rows"
-              :key="rowKeys[index] ?? row.id"
+              v-for="item in windowList"
+              :key="item.data.key"
               class="row"
-              :class="`row-${row.role}`"
-              :data-minimap-row="row.role === 'user' ? row.id : undefined"
+              :class="[`row-${item.data.row.role}`, gapClass(item.index)]"
+              :data-row-index="item.index"
+              :data-minimap-row="item.data.row.role === 'user' ? item.data.row.id : undefined"
             >
-              <UserMessage v-if="row.role === 'user'" :item="row" />
+              <UserMessage v-if="item.data.row.role === 'user'" :item="item.data.row" />
               <AssistantMessage
-                v-else-if="row.role === 'assistant'"
-                :item="row"
-                :streaming="running && row.streaming"
+                v-else-if="item.data.row.role === 'assistant'"
+                :item="item.data.row"
+                :streaming="running && item.data.row.streaming"
               />
               <ToolSteps
-                v-else-if="isToolRow(row)"
-                :row="row"
-                :is-expand="isExpand(row.id)"
+                v-else-if="isToolRow(item.data.row)"
+                :row="item.data.row"
+                :is-expand="isExpand(item.data.row.id)"
                 :expanded-tools="expandedTools"
-                @toggle-expand="onToggleExpand(row.id, $event)"
-                @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
+                @toggle-expand="onToggleExpand(item.data.row.id, $event)"
+                @toggle-tool="(id, open) => onToggleTool(item.data.row.id, id, open)"
               />
             </div>
           </TransitionGroup>
@@ -57,6 +58,7 @@ import ToolSteps from "@features/transcript-view/components/ToolSteps.vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
+import { useTranscriptWindow } from "@features/transcript-view/hooks/use-transcript-window.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
@@ -82,12 +84,31 @@ const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpan
   () => props.sessionId,
 )
 
-const viewport = useTemplateRef<HTMLElement>("viewport")
 const column = useTemplateRef<HTMLElement>("column")
 const list = useTemplateRef<HTMLElement>("list")
 
+const {
+  list: windowList,
+  containerProps,
+  wrapperProps,
+  measureVisible,
+  stickToLatest,
+  revealRow,
+  resetHeights,
+} = useTranscriptWindow(rows, rowKeys)
+
+const viewport = containerProps.ref
+
 function scrollerRoot(): HTMLElement | null {
   return viewport.value
+}
+
+function gapClass(index: number): string | undefined {
+  const next = rows.value[index + 1]
+  if (!next) return undefined
+  if (next.role === "user") return "gap-before-user"
+  if (rows.value[index]?.role === "user") return "gap-after-user"
+  return "gap-default"
 }
 
 const {
@@ -119,6 +140,7 @@ const {
 })
 
 function onTranscriptScroll() {
+  containerProps.onScroll()
   syncLayout(viewport.value, column.value)
   onScroll()
 }
@@ -136,10 +158,9 @@ function onToggleTool(rowId: string, id: string, open: boolean) {
   toggleTool(id, open)
 }
 
-function selectMinimapItem(item: TranscriptMinimapItem) {
-  const root = scrollerRoot()
-  const target = root?.querySelector<HTMLElement>(`[data-minimap-row="${CSS.escape(item.id)}"]`)
-  if (target) scrollToElement(target)
+async function selectMinimapItem(item: TranscriptMinimapItem) {
+  const row = await revealRow(item.rowIndex)
+  if (row) scrollToElement(row)
 }
 
 function observeSizes() {
@@ -149,8 +170,10 @@ function observeSizes() {
   const body = list.value
   if (!root && !body) return
   sizeObserver = new ResizeObserver(() => {
+    const changed = measureVisible(root)
     syncLayout(viewport.value, column.value)
-    pinIfNeeded()
+    if (changed) void nextTick(pinIfNeeded)
+    else pinIfNeeded()
   })
   if (root) sizeObserver.observe(root)
   if (body) sizeObserver.observe(body)
@@ -169,14 +192,17 @@ watch(
   () => props.sessionId,
   () => {
     liveEnter.value = false
+    resetHeights()
     reset()
   },
   { flush: "pre" },
 )
 
 watch(rows, (next, prev) => {
-  if ((prev?.length ?? 0) === 0 && next.length > 0) scrollToLatest("auto")
-  else if (atBottom.value) void nextTick(pinIfNeeded)
+  if ((prev?.length ?? 0) === 0 && next.length > 0) {
+    stickToLatest()
+    scrollToLatest("auto")
+  } else if (atBottom.value) void nextTick(pinIfNeeded)
   if (next.length > 0) enableLiveEnter()
 })
 
@@ -185,6 +211,7 @@ watch(
   ([, body], prev) => {
     observeSizes()
     if (body && !prev?.[1]) {
+      stickToLatest()
       scrollToLatest("auto")
       if (rows.value.length > 0) enableLiveEnter()
       else liveEnter.value = true
@@ -236,16 +263,14 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   box-sizing: border-box;
   width: 100%;
 }
-
-.row + .row {
-  margin-block-start: var(--spacing-md);
+.row.gap-default {
+  padding-block-end: var(--spacing-md);
 }
-.row-user + .row {
-  margin-block-start: var(--spacing-lg);
+.row.gap-after-user {
+  padding-block-end: var(--spacing-lg);
 }
-
-.row + .row-user {
-  margin-block-start: var(--spacing-xl);
+.row.gap-before-user {
+  padding-block-end: var(--spacing-xl);
 }
 
 .row :deep(.stamp) {
