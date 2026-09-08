@@ -40,11 +40,6 @@ export function formatTokenCount(tokens: number): string {
   return `${Math.round(kilo)}K`
 }
 
-export function contextUsagePercent(used: number, window: number): number {
-  if (window <= 0 || used <= 0) return 0
-  return Math.min(100, Math.round((used / window) * 100))
-}
-
 export function projectContextUsage(
   estimate: ContextUsageEstimate | undefined,
 ): ContextUsage | undefined {
@@ -56,7 +51,7 @@ export function projectContextUsage(
   return {
     used,
     window,
-    percent: contextUsagePercent(used, window),
+    percent: window <= 0 || used <= 0 ? 0 : Math.min(100, Math.round((used / window) * 100)),
     segments: SEGMENT_DEFS.map((def) => ({
       id: def.id,
       label: def.label,

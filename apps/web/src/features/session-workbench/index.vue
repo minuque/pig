@@ -328,7 +328,14 @@ const contentHandleSides = ["left", "right"] as const
   background: var(--code-body);
   color: var(--ink-secondary);
   box-shadow: none;
+  cursor: pointer;
   transform: translateY(calc(-100% - var(--spacing-sm)));
+}
+
+.scroll-latest-control:hover {
+  background: var(--hover-strong);
+  color: var(--ink);
+  border-width: 2px;
 }
 
 .composer-bar :deep(.prompt) {

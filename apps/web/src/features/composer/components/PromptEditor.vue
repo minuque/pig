@@ -182,7 +182,7 @@ defineExpose({ focus })
 }
 .footer {
   min-width: 0;
-  padding-inline: var(--spacing-md);
+  padding-inline: var(--spacing-xxs);
 }
 
 .editor-wrap {

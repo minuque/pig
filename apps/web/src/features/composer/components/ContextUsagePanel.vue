@@ -25,11 +25,12 @@
         </div>
         <ul v-if="usage.segments.length" class="legend">
           <li v-for="segment in usage.segments" :key="segment.id">
-            <button
-              v-if="sessionId && segment.previewable"
-              type="button"
-              class="legend-row legend-row--button"
-              @click="openPreview(segment)"
+            <component
+              :is="canPreview(segment) ? 'button' : 'div'"
+              :type="canPreview(segment) ? 'button' : undefined"
+              class="legend-row"
+              :class="{ 'legend-row--button': canPreview(segment) }"
+              @click="onLegendClick(segment)"
             >
               <span class="swatch" :style="{ background: segment.color }"></span>
               <span class="legend-label">{{ segment.label }}</span>
@@ -37,15 +38,7 @@
               <span class="legend-pct">
                 {{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%
               </span>
-            </button>
-            <div v-else class="legend-row">
-              <span class="swatch" :style="{ background: segment.color }"></span>
-              <span class="legend-label">{{ segment.label }}</span>
-              <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
-              <span class="legend-pct">
-                {{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%
-              </span>
-            </div>
+            </component>
           </li>
         </ul>
       </div>
@@ -105,6 +98,14 @@ const emit = defineEmits<{
 
 const tokenSummary = computed(() => contextUsageSummary(props.usage))
 const { isDark } = useColorScheme()
+
+function canPreview(segment: ContextUsageSegment): boolean {
+  return Boolean(props.sessionId && segment.previewable)
+}
+
+function onLegendClick(segment: ContextUsageSegment) {
+  if (canPreview(segment)) void openPreview(segment)
+}
 
 const previewOpen = ref(false)
 const previewLoading = ref(false)

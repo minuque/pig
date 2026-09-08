@@ -1,15 +1,8 @@
 import { computed, ref } from "vue"
 
-export const FAVORITE_MODELS_KEY = "pig.favoriteModels"
+const FAVORITE_MODELS_KEY = "pig.favoriteModels"
 
-export type FavoriteStorage = Pick<Storage, "getItem" | "setItem">
-
-export function favoriteKey(provider: string, id: string): string {
-  return `${provider}/${id}`
-}
-
-/** 解析收藏列表：非法 JSON 或非字符串项一律丢弃。 */
-export function parseFavoriteModels(json: string | null): string[] {
+function parseFavoriteModels(json: string | null): string[] {
   if (!json) return []
   try {
     const value: unknown = JSON.parse(json)
@@ -20,42 +13,34 @@ export function parseFavoriteModels(json: string | null): string[] {
   }
 }
 
-export function loadFavoriteModels(storage: FavoriteStorage = localStorage): string[] {
+function loadFavoriteModels(): string[] {
   try {
-    return parseFavoriteModels(storage.getItem(FAVORITE_MODELS_KEY))
+    return parseFavoriteModels(localStorage.getItem(FAVORITE_MODELS_KEY))
   } catch {
     return []
   }
 }
 
-export function saveFavoriteModels(
-  keys: readonly string[],
-  storage: FavoriteStorage = localStorage,
-): void {
-  try {
-    storage.setItem(FAVORITE_MODELS_KEY, JSON.stringify(keys))
-  } catch {
-    /* 隐私模式等场景下存储不可用，偏好仅存活于本页 */
-  }
-}
-
-export function toggleFavoriteKey(keys: readonly string[], key: string): string[] {
-  return keys.includes(key) ? keys.filter((item) => item !== key) : [...keys, key]
-}
-
 /** 收藏模型：localStorage 持久化，切换立即写回。 */
-export function useModelFavorites(storage: FavoriteStorage = localStorage) {
-  const keys = ref(loadFavoriteModels(storage))
+export function useModelFavorites() {
+  const keys = ref(loadFavoriteModels())
   const set = computed(() => new Set(keys.value))
 
   function isFavorite(provider: string, id: string) {
-    return set.value.has(favoriteKey(provider, id))
+    return set.value.has(`${provider}/${id}`)
   }
 
   function toggle(provider: string, id: string) {
-    keys.value = toggleFavoriteKey(keys.value, favoriteKey(provider, id))
-    saveFavoriteModels(keys.value, storage)
+    const key = `${provider}/${id}`
+    keys.value = keys.value.includes(key)
+      ? keys.value.filter((item) => item !== key)
+      : [...keys.value, key]
+    try {
+      localStorage.setItem(FAVORITE_MODELS_KEY, JSON.stringify(keys.value))
+    } catch {
+      /* 隐私模式等场景下存储不可用，偏好仅存活于本页 */
+    }
   }
 
-  return { keys, set, isFavorite, toggle }
+  return { set, isFavorite, toggle }
 }

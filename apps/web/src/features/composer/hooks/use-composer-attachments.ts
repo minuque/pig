@@ -11,18 +11,9 @@ export interface ComposerAttachment {
 }
 
 /** 只保留 image/*；FileList / File[] / 空值均可。 */
-export function imageFilesFrom(list: FileList | File[] | null | undefined): File[] {
+function imageFilesFrom(list: FileList | File[] | null | undefined): File[] {
   if (!list) return []
   return Array.from(list).filter((file) => file.type.startsWith("image/"))
-}
-
-/** 当前已有张数下还能再收几张（上限 6）。 */
-export function roomForAttachments(
-  currentCount: number,
-  incomingCount: number,
-  max = MAX_COMPOSER_ATTACHMENTS,
-): number {
-  return Math.max(0, Math.min(incomingCount, max - currentCount))
 }
 
 /** 剪贴板里的图片；没有图返回空，调用方据此决定是否拦截粘贴。 */
@@ -41,12 +32,15 @@ export function imageFilesFromClipboard(data: DataTransfer | null | undefined): 
 }
 
 /** 输入卡本地附图：blob URL 只活在输入卡，不进协议。 */
-export function useComposerAttachments(max = MAX_COMPOSER_ATTACHMENTS) {
+export function useComposerAttachments() {
   const attachments = ref<ComposerAttachment[]>([])
 
   function addFiles(files: FileList | File[] | null | undefined) {
     const images = imageFilesFrom(files)
-    const room = roomForAttachments(attachments.value.length, images.length, max)
+    const room = Math.max(
+      0,
+      Math.min(images.length, MAX_COMPOSER_ATTACHMENTS - attachments.value.length),
+    )
     if (room === 0) return
 
     const added = images.slice(0, room).map((file) => ({

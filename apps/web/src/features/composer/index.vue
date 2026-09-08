@@ -292,7 +292,7 @@ function onPrimaryAction() {
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: transparent;
+  background: var(--main);
 }
 .error-indicator {
   display: inline-flex;

@@ -343,7 +343,6 @@ function toggleGroup() {
 .tool-icon {
   position: relative;
   z-index: 1;
-  background: var(--surface);
   transition: color var(--duration-fast) var(--ease-out);
 }
 .running .tool-icon {

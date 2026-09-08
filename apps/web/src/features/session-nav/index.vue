@@ -351,7 +351,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   min-height: 0;
 }
 .nav-main {
-  gap: var(--spacing-xxs);
+  gap: var(--spacing-xs);
 }
 .nav-body {
   overflow: auto;
