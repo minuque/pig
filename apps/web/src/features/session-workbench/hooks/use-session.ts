@@ -25,6 +25,7 @@ import { contextUsage, sessionTranscript } from "@client/platform.js"
 import { projectContextUsage } from "@features/composer/lib/context-usage.js"
 import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
 import { catalogFromModels, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
+import { isOpenAborted, raceRemoteOpen } from "@features/session-workbench/lib/abortable-open.js"
 import {
   adoptWelcomeOptimistic,
   isSessionOpening,
@@ -65,6 +66,7 @@ export function useSessionLifecycle(
   let replaceChain: Promise<void> = Promise.resolve()
   // 最新想打开的 session：快速连点时跳过中间 id，只落地最后一次
   let wantedId: string | undefined
+  let abortInflightOpen: (() => void) | undefined
 
   const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
   let contextUsageRequest = 0
@@ -168,6 +170,7 @@ export function useSessionLifecycle(
 
   /** 打开已有 Session：历史走 HTTP，协议 snapshot 不含全文。已附加同 id 时幂等跳过。 */
   async function openRemoteSession(id: string) {
+    if (wantedId !== id) abortInflightOpen?.()
     wantedId = id
     if (historySessionId.value !== id) {
       history.value = []
@@ -182,16 +185,20 @@ export function useSessionLifecycle(
       const target = pi.client.value
       if (!target) throw new Error("PiClient 未连接")
       release()
+      const raced = raceRemoteOpen(() => RemoteSession.open(target, id))
+      abortInflightOpen = raced.abort
       try {
-        const next = await RemoteSession.open(target, id)
+        const next = await raced.promise
         if (wantedId !== id) {
           await next.dispose()
           return
         }
         attach(next)
       } catch (error) {
-        if (wantedId !== id) return
+        if (wantedId !== id || isOpenAborted(error)) return
         throw error
+      } finally {
+        if (abortInflightOpen === raced.abort) abortInflightOpen = undefined
       }
     })
   }
@@ -239,6 +246,8 @@ export function useSessionLifecycle(
 
   async function dispose() {
     wantedId = undefined
+    abortInflightOpen?.()
+    abortInflightOpen = undefined
     const current = remote.value
     detach()
     if (current) await current.dispose()

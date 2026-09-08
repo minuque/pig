@@ -218,7 +218,7 @@ describe("打开已有 Session", () => {
 })
 
 describe("快速切换 Session", () => {
-  it("进行中的 open 完成后若已切走则释放、不附加", async () => {
+  it("切换时中止仍在 open 的会话，不等它结束就打开目标", async () => {
     const { session } = setup()
     const a = makeSession("s1")
     const b = makeSession("s2")
@@ -243,12 +243,12 @@ describe("快速切换 Session", () => {
     await enteredS1
     routeBox.params.sessionId = "s2"
     await nextTick()
+    await vi.waitFor(() => expect(session.remote.value).toBe(b))
+    expect(a.subscribeCalls).toBe(0)
     releaseA()
     await first
-    await vi.waitFor(() => expect(session.remote.value).toBe(b))
+    await vi.waitFor(() => expect(a.disposeCalls).toBe(1))
     expect(openMock.mock.calls.map((call) => call[1])).toEqual(["s1", "s2"])
-    expect(a.disposeCalls).toBe(1)
-    expect(a.subscribeCalls).toBe(0)
   })
 
   it("已过期的 open 失败不上抛、不挡后续", async () => {
@@ -275,9 +275,9 @@ describe("快速切换 Session", () => {
     await enteredS1
     routeBox.params.sessionId = "s2"
     await nextTick()
-    releaseA()
-    await expect(first).resolves.toBeUndefined()
     await vi.waitFor(() => expect(session.remote.value).toBe(b))
+    await expect(first).resolves.toBeUndefined()
+    releaseA()
   })
 })
 
