@@ -18,6 +18,7 @@ import {
   p90,
   prepareBenchPage,
   readPaint,
+  scrollTranscript,
   waitForWorkbench,
 } from "./measure.js"
 import { reportTable, type MetricRow } from "./report.js"
@@ -34,6 +35,7 @@ type BenchMetrics = {
   coldLcp: number
   sessionFirstOpen: number
   switchLong: number
+  longScrollWorstMs: number
   switchShortRevisit: number
   composerKeyToFrame: number
   ownMessageMs: number
@@ -145,7 +147,7 @@ function collect(values: number[]) {
 
 function printReport(
   now: Partial<BenchMetrics>,
-  p90s: Partial<Record<keyof BenchMetrics, number>>,
+  p90s: Partial<Record<keyof BenchMetrics, number | undefined>>,
   prev: Partial<BenchMetrics> | undefined,
 ) {
   console.log("\npig 工作台")
@@ -163,6 +165,7 @@ function printReport(
     row("输入跟手", "composerKeyToFrame"),
     row("短会话打开", "sessionFirstOpen"),
     row("长会话打开", "switchLong"),
+    row("长会话滚动卡顿", "longScrollWorstMs"),
     row("切回短会话", "switchShortRevisit"),
     row("发送后自己的话", "ownMessageMs"),
     row("发送后首条助手", "firstTokenMs"),
@@ -222,6 +225,7 @@ async function main() {
       coldLcp: [] as number[],
       firstOpen: [] as number[],
       switchLong: [] as number[],
+      scroll: [] as number[],
       switchRevisit: [] as number[],
       composer: [] as number[],
     }
@@ -240,6 +244,7 @@ async function main() {
           open.composer.push(await measureComposer(page, 7))
           open.firstOpen.push(await openSession(page, SHORT_SESSION_NAME))
           open.switchLong.push(await openSession(page, LONG_SESSION_NAME))
+          open.scroll.push(await scrollTranscript(page, LONG_SESSION_NAME))
           open.switchRevisit.push(await openSession(page, SHORT_SESSION_NAME))
         } catch (error) {
           await captureBenchFailure(page, failShot)
@@ -270,6 +275,7 @@ async function main() {
     const composer = open.composer.length ? collect(open.composer) : undefined
     const firstOpen = open.firstOpen.length ? collect(open.firstOpen) : undefined
     const switchLong = open.switchLong.length ? collect(open.switchLong) : undefined
+    const scroll = open.scroll.length ? collect(open.scroll) : undefined
     const switchRevisit = open.switchRevisit.length ? collect(open.switchRevisit) : undefined
     const ownStat = collect(own)
     const tokenStat = collect(token)
@@ -284,6 +290,7 @@ async function main() {
       coldLcp: lcp?.median ?? Number.NaN,
       sessionFirstOpen: firstOpen?.median ?? Number.NaN,
       switchLong: switchLong?.median ?? Number.NaN,
+      longScrollWorstMs: scroll?.median ?? Number.NaN,
       switchShortRevisit: switchRevisit?.median ?? Number.NaN,
       composerKeyToFrame: composer?.median ?? Number.NaN,
       ownMessageMs: ownStat.median,
@@ -293,12 +300,13 @@ async function main() {
       rapidSwitchMs: rapidStat.median,
       reconnectMs: reconnectStat.median,
     }
-    const p90s: Partial<Record<keyof BenchMetrics, number>> = {
+    const p90s: Partial<Record<keyof BenchMetrics, number | undefined>> = {
       coldToWorkbench: cold?.p90,
       coldFcp: fcp?.p90,
       coldLcp: lcp?.p90,
       sessionFirstOpen: firstOpen?.p90,
       switchLong: switchLong?.p90,
+      longScrollWorstMs: scroll?.p90,
       switchShortRevisit: switchRevisit?.p90,
       composerKeyToFrame: composer?.p90,
       ownMessageMs: ownStat.p90,
@@ -310,7 +318,7 @@ async function main() {
     }
 
     const config = {
-      version: 8,
+      version: 9,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,

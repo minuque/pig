@@ -235,6 +235,64 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   )
 }
 
+type LongTask = { start: number; duration: number }
+
+async function readLongTasks(page: Page): Promise<LongTask[]> {
+  return page.evaluate(() => {
+    const bench = (window as unknown as { __pigBench?: PageBench }).__pigBench
+    if (!bench) throw new Error("未安装基准观察器，不能读 longtask")
+    return bench.longTasks.map((task) => ({ start: task.start, duration: task.duration }))
+  })
+}
+
+async function waitMs(page: Page, ms: number) {
+  await page.evaluate((delay) => new Promise<void>((resolve) => setTimeout(resolve, delay)), ms)
+}
+
+/** 等历史全部挂上后，时间线滚到顶再到底，返回最差 longtask。 */
+export async function scrollTranscript(page: Page, name: BenchSessionName): Promise<number> {
+  const turns = sessionTurns(name)
+  if (turns === 0) throw new Error("空会话没有可滚动历史")
+  await page.getByText(sessionPrompt(name, 1), { exact: true }).waitFor({
+    state: "attached",
+    timeout: WORKBENCH_TIMEOUT_MS,
+  })
+  await page.waitForFunction(
+    (expected) => document.querySelectorAll(".row-user").length >= expected,
+    turns,
+    { timeout: WORKBENCH_TIMEOUT_MS },
+  )
+  const viewport = page.locator(".transcript-viewport")
+  await viewport.hover()
+  const started = await page.evaluate(() => performance.now())
+  const distance = await viewport.evaluate((node) => node.scrollHeight - node.clientHeight)
+  if (distance <= 0) throw new Error("长会话未产生可滚动内容")
+  for (const direction of [-1, 1]) {
+    for (let step = 0; step < 20; step += 1) {
+      await page.mouse.wheel(0, direction * Math.ceil(distance / 20))
+      await waitMs(page, 32)
+    }
+    await page.waitForFunction(
+      ({ dir }) => {
+        const node = document.querySelector(".transcript-viewport")
+        if (!node) return false
+        return dir < 0
+          ? node.scrollTop <= 1
+          : node.scrollHeight - node.clientHeight - node.scrollTop <= 1
+      },
+      { dir: direction },
+    )
+  }
+  const ended = await page.evaluate(() => performance.now())
+  await waitMs(page, 100)
+  const tasks = (await readLongTasks(page)).filter(
+    (task) => task.start >= started && task.start < ended,
+  )
+  let worst = 0
+  for (const task of tasks) if (task.duration > worst) worst = task.duration
+  return worst
+}
+
 export function quantile(values: readonly number[], q: number): number {
   if (values.length === 0) throw new Error("测量样本为空")
   if (
