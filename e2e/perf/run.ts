@@ -265,7 +265,7 @@ async function main() {
     }
 
     const config = {
-      version: 5,
+      version: 6,
       runs: args.runs,
       headed: args.headed,
       browser: browser.version(),

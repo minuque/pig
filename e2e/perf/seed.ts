@@ -28,16 +28,38 @@ export function sessionTurns(name: BenchSessionName): number {
 }
 
 type AppendMessage = Parameters<SessionManager["appendMessage"]>[0]
+type AssistantMessage = Extract<AppendMessage, { role: "assistant" }>
+type AssistantContent = AssistantMessage["content"]
 
-const LONG_REPLY = "把 Snapshot 投到时间线，把 Composer 留在底栏。".repeat(3)
+const PLAIN_REPLY = "把 Snapshot 投到时间线，把 Composer 留在底栏。".repeat(3)
+
+const MARKDOWN_REPLY = `## 处理结果
+
+| 项目 | 状态 |
+| --- | --- |
+| 历史 | 已加载 |
+
+\`\`\`typescript
+const value = 42
+\`\`\`
+
+${PLAIN_REPLY}`
+
+type SeedTool = {
+  id: string
+  name: string
+  args: Record<string, unknown>
+  output: string
+}
 
 function assistantMessage(
-  text: string,
+  content: AssistantContent,
   timestamp: number,
-): Extract<AppendMessage, { role: "assistant" }> {
+  stopReason: AssistantMessage["stopReason"] = "stop",
+): AssistantMessage {
   return {
     role: "assistant",
-    content: [{ type: "text", text }],
+    content,
     api: "openai-completions",
     provider: "test-provider",
     model: "test-model",
@@ -49,15 +71,76 @@ function assistantMessage(
       totalTokens: 2,
       cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
     },
-    stopReason: "stop",
+    stopReason,
     timestamp,
   }
+}
+
+function toolFor(index: number): SeedTool | undefined {
+  if (index % 5 !== 0) return undefined
+  const id = `tool-${index}`
+  const kind = (index / 5) % 3
+  if (kind === 0)
+    return {
+      id,
+      name: "read",
+      args: { path: "src/example.ts" },
+      output: "const value = 42\n".repeat(30),
+    }
+  if (kind === 1)
+    return {
+      id,
+      name: "bash",
+      args: { command: "git status" },
+      output: "On branch master\nnothing to commit, working tree clean\n",
+    }
+  return {
+    id,
+    name: "edit",
+    args: { path: "src/example.ts", oldText: "const value = 42", newText: "const value = 43" },
+    output: "updated",
+  }
+}
+
+function appendAgentTurn(manager: SessionManager, index: number, timestamp: number, reply: string) {
+  const thinking =
+    index % 3 === 0
+      ? { type: "thinking" as const, thinking: `先看第 ${index + 1} 轮要不要动工具。` }
+      : undefined
+  const tool = toolFor(index)
+  if (tool) {
+    const content: AssistantContent = thinking ? [thinking] : []
+    content.push({ type: "toolCall", id: tool.id, name: tool.name, arguments: tool.args })
+    manager.appendMessage(assistantMessage(content, timestamp + 20_000, "toolUse"))
+    manager.appendMessage({
+      role: "toolResult",
+      toolCallId: tool.id,
+      toolName: tool.name,
+      content: [{ type: "text", text: tool.output }],
+      isError: false,
+      timestamp: timestamp + 25_000,
+    })
+    manager.appendMessage(assistantMessage([{ type: "text", text: reply }], timestamp + 30_000))
+    return
+  }
+  const content: AssistantContent = thinking
+    ? [thinking, { type: "text", text: reply }]
+    : [{ type: "text", text: reply }]
+  manager.appendMessage(assistantMessage(content, timestamp + 30_000))
 }
 
 /** 在 sessionDir 写入短/长会话，供打开、切换、滚动测量。 */
 export function seedBenchSessions(sessionDir: string, cwd: string) {
   seedConversation(sessionDir, cwd, SHORT_SESSION_ID, SHORT_SESSION_NAME, SHORT_TURNS, "已记录。")
-  seedConversation(sessionDir, cwd, LONG_SESSION_ID, LONG_SESSION_NAME, LONG_TURNS, LONG_REPLY)
+  seedConversation(
+    sessionDir,
+    cwd,
+    LONG_SESSION_ID,
+    LONG_SESSION_NAME,
+    LONG_TURNS,
+    MARKDOWN_REPLY,
+    true,
+  )
   seedConversation(sessionDir, cwd, EMPTY_SESSION_ID, EMPTY_SESSION_NAME, 0, "")
 }
 
@@ -72,6 +155,7 @@ function seedConversation(
   name: string,
   turns: number,
   reply: string,
+  agent = false,
 ) {
   const manager = SessionManager.create(cwd, sessionDir, { id })
   manager.appendSessionInfo(name)
@@ -94,6 +178,8 @@ function seedConversation(
       content: sessionPrompt(name, index + 1),
       timestamp,
     })
-    manager.appendMessage(assistantMessage(reply, timestamp + 30_000))
+    if (agent) appendAgentTurn(manager, index, timestamp, reply)
+    else
+      manager.appendMessage(assistantMessage([{ type: "text", text: reply }], timestamp + 30_000))
   }
 }
