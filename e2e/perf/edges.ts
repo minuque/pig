@@ -1,4 +1,5 @@
 import { expect, type Browser, type Page, type Route, type WebSocketRoute } from "@playwright/test"
+
 import {
   ServerMessageDecoder,
   encodeServerMessage,
@@ -7,15 +8,21 @@ import {
 } from "@earendil-works/pi-protocol"
 import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { reportTable } from "./report.js"
+
 import {
+  HISTORY_ROUTE,
+  captureBenchFailure,
   keyToNextFrame,
   median,
+  newBenchContext,
+  nextPaint,
   openSession,
-  seedWorkspace,
+  prepareBenchPage,
+  sessionCard,
   waitForSession,
   waitForWorkbench,
 } from "./measure.js"
+import { reportTable } from "./report.js"
 import {
   EMPTY_SESSION_NAME,
   LONG_SESSION_ID,
@@ -24,19 +31,6 @@ import {
   SHORT_SESSION_NAME,
   SHORT_TURNS,
 } from "./seed.js"
-
-const historyUrl = "**/api/v1/platform/transcript?*"
-const card = (page: Page, name: string) =>
-  page.locator(".session-card", { has: page.getByText(name, { exact: true }) })
-
-async function nextPaint(page: Page) {
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-      ),
-  )
-}
 
 async function rapidSwitch(page: Page) {
   await openSession(page, EMPTY_SESSION_NAME)
@@ -55,12 +49,12 @@ async function rapidSwitch(page: Page) {
     await route.fulfill({ response })
     delivered += 1
   }
-  await page.route(historyUrl, delayed)
+  await page.route(HISTORY_ROUTE, delayed)
   try {
-    await card(page, LONG_SESSION_NAME).click()
+    await sessionCard(page, LONG_SESSION_NAME).click()
     await expect.poll(() => received, { message: "连切场景必须捕获旧历史请求" }).toBeGreaterThan(0)
     const started = performance.now()
-    await card(page, SHORT_SESSION_NAME).click()
+    await sessionCard(page, SHORT_SESSION_NAME).click()
     await waitForSession(page, SHORT_SESSION_NAME)
     await nextPaint(page)
     const elapsed = performance.now() - started
@@ -73,7 +67,7 @@ async function rapidSwitch(page: Page) {
     return elapsed
   } finally {
     release()
-    await page.unroute(historyUrl, delayed)
+    await page.unroute(HISTORY_ROUTE, delayed)
   }
 }
 
@@ -86,9 +80,9 @@ async function historyRecovery(page: Page) {
     failures += 1
     await route.fulfill({ status: 503, json: { code: "BENCH_UNAVAILABLE" } })
   }
-  await page.route(historyUrl, fail)
+  await page.route(HISTORY_ROUTE, fail)
   try {
-    await card(page, SHORT_SESSION_NAME).click()
+    await sessionCard(page, SHORT_SESSION_NAME).click()
     await expect.poll(() => failures).toBeGreaterThan(0)
     await expect(page.locator(".session-loading")).toHaveCount(0)
     await expect(page.locator(".idle-hero")).toBeVisible()
@@ -96,7 +90,7 @@ async function historyRecovery(page: Page) {
     await expect(page.locator(".field")).toBeVisible()
     await openSession(page, EMPTY_SESSION_NAME)
   } finally {
-    await page.unroute(historyUrl, fail)
+    await page.unroute(HISTORY_ROUTE, fail)
   }
   const elapsed = await openSession(page, SHORT_SESSION_NAME)
   await expect(page.locator(".row-user")).toHaveCount(SHORT_TURNS)
@@ -215,17 +209,10 @@ export async function runEdgeBench(
   const samples = []
   for (let index = 0; index < runs; index += 1) {
     console.log(`边界场景 ${index + 1}/${runs}`)
-    const context = await browser.newContext({
-      viewport: { width: 1280, height: 800 },
-      locale: "zh-CN",
-      colorScheme: "light",
-      serviceWorkers: "block",
-    })
+    const context = await newBenchContext(browser)
     const page = await context.newPage()
-    page.setDefaultTimeout(30_000)
+    await prepareBenchPage(page, workspaceId, false)
     try {
-      await page.emulateMedia({ reducedMotion: "reduce" })
-      await seedWorkspace(page, workspaceId)
       const bridge = await installBridge(page)
       await page.goto(origin)
       await waitForWorkbench(page)
@@ -248,8 +235,7 @@ export async function runEdgeBench(
       await expect(page.locator(".row-assistant")).toHaveCount(SHORT_TURNS)
       samples.push({ rapidSwitchMs, historyRecoveryMs, ...streamed, reconnectMs })
     } catch (error) {
-      await mkdir(resultDir, { recursive: true })
-      await page.screenshot({ path: join(resultDir, "perf-edges-fail.png") }).catch(() => undefined)
+      await captureBenchFailure(page, join(resultDir, "perf-edges-fail.png"))
       throw error
     } finally {
       await context.close()

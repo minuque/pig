@@ -1,17 +1,29 @@
-import type { Page } from "@playwright/test"
+import type { Browser, BrowserContext, Page, Request } from "@playwright/test"
+import { mkdir } from "node:fs/promises"
+import { dirname } from "node:path"
 
 import {
-  EMPTY_SESSION_NAME,
-  LONG_SESSION_NAME,
-  LONG_TURNS,
   SHORT_SESSION_NAME,
-  SHORT_TURNS,
-  STRESS_SESSION_NAME,
-  STRESS_TURNS,
+  sessionIdOf,
   sessionPrompt,
+  sessionTurns,
+  type BenchSessionName,
 } from "./seed.js"
 
 export const WORKBENCH_TIMEOUT_MS = 30_000
+export const HISTORY_ROUTE = "**/api/v1/platform/transcript?*"
+
+const PLATFORM_TRANSCRIPT = "/api/v1/platform/transcript"
+const PLATFORM_CONTEXT_USAGE = "/api/v1/platform/context-usage"
+
+export type SessionOpenPhases = {
+  totalMs: number
+  remoteAttachMs: number
+  latestVisibleMs: number
+  fullHistoryMs: number
+  historyRequests: number
+  historyHttpMs: number
+}
 
 type LongTask = { start: number; duration: number }
 
@@ -20,6 +32,31 @@ type PageBench = {
   lcp: number
   longTasks: LongTask[]
   interactions: { id: number; duration: number }[]
+}
+
+const composerField = (page: Page) => page.locator(".composer .field, .field").first()
+
+export function sessionCard(page: Page, name: BenchSessionName) {
+  return page.locator(".session-card", { has: page.getByText(name, { exact: true }) })
+}
+
+export async function nextPaint(page: Page) {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  )
+}
+
+export async function newBenchContext(browser: Browser): Promise<BrowserContext> {
+  return browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    deviceScaleFactor: 1,
+    locale: "zh-CN",
+    colorScheme: "light",
+    serviceWorkers: "block",
+  })
 }
 
 /** 注入 FCP / LCP / longtask / Event Timing，须在首次 goto 前调用。 */
@@ -72,7 +109,17 @@ export async function seedWorkspace(page: Page, workspaceId: string) {
   )
 }
 
-const composerField = (page: Page) => page.locator(".composer .field, .field").first()
+export async function prepareBenchPage(page: Page, workspaceId: string, observers: boolean) {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, workspaceId)
+  if (observers) await installObservers(page)
+  page.setDefaultTimeout(WORKBENCH_TIMEOUT_MS)
+}
+
+export async function captureBenchFailure(page: Page, path: string) {
+  await mkdir(dirname(path), { recursive: true })
+  await page.screenshot({ path }).catch(() => undefined)
+}
 
 /** 侧栏列表与 Composer 可用，启动遮罩已离场。 */
 export async function waitForWorkbench(page: Page) {
@@ -87,17 +134,12 @@ export async function waitForWorkbench(page: Page) {
   })
 }
 
-export async function waitForSession(page: Page, name: string) {
-  if (name === EMPTY_SESSION_NAME) {
-    await page.waitForURL("**/sessions/bench-empty")
+export async function waitForSession(page: Page, name: BenchSessionName) {
+  const turns = sessionTurns(name)
+  if (turns === 0) {
+    await page.waitForURL(`**/sessions/${sessionIdOf(name)}`)
     await page.locator(".idle-hero").waitFor({ state: "visible" })
   } else {
-    const turns =
-      name === LONG_SESSION_NAME
-        ? LONG_TURNS
-        : name === STRESS_SESSION_NAME
-          ? STRESS_TURNS
-          : SHORT_TURNS
     await page.getByText(sessionPrompt(name, turns), { exact: true }).waitFor({
       state: "visible",
       timeout: WORKBENCH_TIMEOUT_MS,
@@ -110,13 +152,21 @@ export async function waitForSession(page: Page, name: string) {
   await page.locator(".session-loading").waitFor({ state: "hidden", timeout: WORKBENCH_TIMEOUT_MS })
 }
 
+async function waitForLatestInViewport(page: Page) {
+  await page.waitForFunction(() => {
+    const viewport = document.querySelector<HTMLElement>(".transcript-viewport")
+    const assistants = document.querySelectorAll<HTMLElement>(".row-assistant")
+    const latest = assistants.item(assistants.length - 1)
+    const composer = document.querySelector<HTMLTextAreaElement>(".composer .field, .field")
+    if (!viewport || !latest || !composer || composer.readOnly || composer.disabled) return false
+    const viewportBox = viewport.getBoundingClientRect()
+    const latestBox = latest.getBoundingClientRect()
+    return latestBox.bottom > viewportBox.top && latestBox.top < viewportBox.bottom
+  })
+}
+
 export async function readPaint(page: Page): Promise<{ fcp: number; lcp: number; now: number }> {
-  await page.evaluate(
-    () =>
-      new Promise((resolve) => {
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve(undefined)))
-      }),
-  )
+  await nextPaint(page)
   return page.evaluate(() => {
     const bench = (window as unknown as { __pigBench: PageBench }).__pigBench
     const paints = performance.getEntriesByType("paint")
@@ -182,8 +232,8 @@ export async function keyToNextFrame(page: Page): Promise<number> {
   return page.evaluate(() => (window as unknown as { __pigK2f: number }).__pigK2f)
 }
 
-export async function openSession(page: Page, name: string): Promise<number> {
-  const card = page.locator(".session-card", { has: page.getByText(name, { exact: true }) })
+export async function openSession(page: Page, name: BenchSessionName): Promise<number> {
+  const card = sessionCard(page, name)
   await card.evaluate((node) => {
     node.addEventListener("click", () => performance.mark("session-open"), { once: true })
   })
@@ -202,6 +252,60 @@ export async function openSession(page: Page, name: string): Promise<number> {
         )
       }),
   )
+}
+
+/** 拆分历史 HTTP、Remote 附加、最新回答首屏与完整历史挂载。 */
+export async function openSessionPhases(
+  page: Page,
+  name: BenchSessionName,
+): Promise<SessionOpenPhases> {
+  const targetId = sessionIdOf(name)
+  const started = performance.now()
+  const requests = new Map<Request, number>()
+  const historyDurations: number[] = []
+  let historyRequests = 0
+  let remoteAttachMs: number | undefined
+
+  const onRequest = (request: Request) => {
+    const url = new URL(request.url())
+    if (url.searchParams.get("sessionId") !== targetId) return
+    if (url.pathname === PLATFORM_TRANSCRIPT) {
+      historyRequests += 1
+      requests.set(request, performance.now())
+    } else if (url.pathname === PLATFORM_CONTEXT_USAGE && remoteAttachMs === undefined) {
+      remoteAttachMs = performance.now() - started
+    }
+  }
+  const onRequestFinished = (request: Request) => {
+    const requestStarted = requests.get(request)
+    if (requestStarted === undefined) return
+    historyDurations.push(performance.now() - requestStarted)
+    requests.delete(request)
+  }
+
+  page.on("request", onRequest)
+  page.on("requestfinished", onRequestFinished)
+  try {
+    await sessionCard(page, name).click()
+    const [latestVisibleMs, fullHistoryMs] = await Promise.all([
+      waitForLatestInViewport(page).then(() => performance.now() - started),
+      waitForSession(page, name).then(() => performance.now() - started),
+    ])
+    if (remoteAttachMs === undefined) throw new Error("未观测到 Remote 附加完成信号")
+    if (historyRequests === 0 || requests.size > 0 || historyDurations.length !== historyRequests)
+      throw new Error("历史 HTTP 阶段未完整采集")
+    return {
+      totalMs: Math.max(latestVisibleMs, fullHistoryMs),
+      remoteAttachMs,
+      latestVisibleMs,
+      fullHistoryMs,
+      historyRequests,
+      historyHttpMs: Math.max(...historyDurations),
+    }
+  } finally {
+    page.off("request", onRequest)
+    page.off("requestfinished", onRequestFinished)
+  }
 }
 
 export async function scrollTranscript(page: Page): Promise<{ count: number; worst: number }> {

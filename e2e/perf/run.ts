@@ -6,28 +6,31 @@ import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
 import Gateway from "../../packages/gateway/src/index.js"
-import { runEdgeBench } from "./edges.js"
-import { reportTable } from "./report.js"
 import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
+import { canonicalizeWorkspacePath } from "../fixtures.js"
+import { runEdgeBench } from "./edges.js"
 import {
+  captureBenchFailure,
   inpValue,
-  installObservers,
   keyToNextFrame,
   median,
+  newBenchContext,
   openSession,
+  openSessionPhases,
+  prepareBenchPage,
   readInpSamples,
   readLongTasks,
   readPaint,
   scrollTranscript,
-  seedWorkspace,
   totalBlockingTime,
   waitForWorkbench,
 } from "./measure.js"
+import { reportTable } from "./report.js"
 import {
   EMPTY_SESSION_NAME,
-  STRESS_SESSION_NAME,
   LONG_SESSION_NAME,
   SHORT_SESSION_NAME,
+  STRESS_SESSION_NAME,
   seedBenchSessions,
 } from "./seed.js"
 
@@ -46,11 +49,15 @@ type BenchMetrics = {
   eventTimingP98: number | null
   emptyOpen: number
   stressOpen: number
+  stressRemoteAttach: number
+  stressHistoryHttp: number
+  stressHistoryRequests: number
+  stressLatestVisible: number
+  stressFullHistory: number
   stressComposer: number
   stressScrollLongTasks: number
   stressScrollWorstMs: number
   composerKeyToFrame: number
-  switchShortFirst: number
   switchLong: number
   switchShortRevisit: number
   longScrollLongTasks: number
@@ -80,13 +87,6 @@ function parseArgs(argv: string[]): Args {
     } else throw new Error(`未知参数 ${arg}`)
   }
   return { runs, skipBuild, headed, edgesOnly }
-}
-
-function canonicalizeWorkspacePath(path: string): string {
-  const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "")
-  return /^[A-Z]:/.test(normalized)
-    ? normalized[0]!.toLowerCase() + normalized.slice(1)
-    : normalized
 }
 
 function buildWeb() {
@@ -132,24 +132,14 @@ async function openPage(
   origin: string,
   workspaceId: string,
 ): Promise<{ context: BrowserContext; page: Page }> {
-  const context = await browser.newContext({
-    viewport: { width: 1280, height: 800 },
-    deviceScaleFactor: 1,
-    locale: "zh-CN",
-    colorScheme: "light",
-    serviceWorkers: "block",
-  })
+  const context = await newBenchContext(browser)
   const page = await context.newPage()
-  await page.emulateMedia({ reducedMotion: "reduce" })
-  await seedWorkspace(page, workspaceId)
-  await installObservers(page)
-  page.setDefaultTimeout(30_000)
+  await prepareBenchPage(page, workspaceId, true)
   try {
     await page.goto(origin, { waitUntil: "commit" })
     await waitForWorkbench(page)
   } catch (error) {
-    await mkdir(join(root, "test-results"), { recursive: true })
-    await page.screenshot({ path: failShot }).catch(() => undefined)
+    await captureBenchFailure(page, failShot)
     await context.close()
     throw error
   }
@@ -198,6 +188,13 @@ function printReport(now: BenchMetrics, prev: BenchMetrics | undefined) {
     row("短会话重访", "switchShortRevisit"),
     row("空会话", "emptyOpen"),
     row("200 轮混合会话", "stressOpen"),
+  ])
+  reportTable("200 轮混合会话阶段", [
+    row("Remote 附加完成", "stressRemoteAttach"),
+    row("历史 HTTP 最慢请求", "stressHistoryHttp"),
+    row("历史 HTTP 请求数", "stressHistoryRequests", "个"),
+    row("最新回答进入视口且 Composer 可用", "stressLatestVisible"),
+    row("完整历史可访问", "stressFullHistory"),
   ])
   reportTable("输入响应", [
     row("Event Timing 样本 p98（非完整 INP）", "eventTimingP98"),
@@ -277,6 +274,11 @@ async function main() {
     const inpSamples: number[] = []
     const emptyOpen: number[] = []
     const stressOpen: number[] = []
+    const stressRemoteAttach: number[] = []
+    const stressHistoryHttp: number[] = []
+    const stressHistoryRequests: number[] = []
+    const stressLatestVisible: number[] = []
+    const stressFullHistory: number[] = []
     const stressComposer: number[] = []
     const stressScrollCounts: number[] = []
     const stressScrollWorst: number[] = []
@@ -306,7 +308,13 @@ async function main() {
         scrollCounts.push(scrolled.count)
         scrollWorst.push(scrolled.worst)
         emptyOpen.push(await openSession(page, EMPTY_SESSION_NAME))
-        stressOpen.push(await openSession(page, STRESS_SESSION_NAME))
+        const stress = await openSessionPhases(page, STRESS_SESSION_NAME)
+        stressOpen.push(stress.totalMs)
+        stressRemoteAttach.push(stress.remoteAttachMs)
+        stressHistoryHttp.push(stress.historyHttpMs)
+        stressHistoryRequests.push(stress.historyRequests)
+        stressLatestVisible.push(stress.latestVisibleMs)
+        stressFullHistory.push(stress.fullHistoryMs)
         stressComposer.push(await measureComposer(page, 7))
         const stressScrolled = await scrollTranscript(page)
         stressScrollCounts.push(stressScrolled.count)
@@ -315,8 +323,7 @@ async function main() {
         const eventP98 = inpValue(eventInp)
         if (eventP98 !== null) inpSamples.push(eventP98)
       } catch (error) {
-        await mkdir(join(root, "test-results"), { recursive: true })
-        await page.screenshot({ path: failShot }).catch(() => undefined)
+        await captureBenchFailure(page, failShot)
         throw error
       } finally {
         await context.close()
@@ -333,11 +340,15 @@ async function main() {
       eventTimingP98: inpSamples.length ? median(inpSamples) : null,
       emptyOpen: median(emptyOpen),
       stressOpen: median(stressOpen),
+      stressRemoteAttach: median(stressRemoteAttach),
+      stressHistoryHttp: median(stressHistoryHttp),
+      stressHistoryRequests: Math.round(median(stressHistoryRequests)),
+      stressLatestVisible: median(stressLatestVisible),
+      stressFullHistory: median(stressFullHistory),
       stressComposer: median(stressComposer),
       stressScrollLongTasks: Math.round(median(stressScrollCounts)),
       stressScrollWorstMs: median(stressScrollWorst),
       composerKeyToFrame: median(composer),
-      switchShortFirst: median(firstOpen),
       switchLong: median(switchLong),
       switchShortRevisit: median(switchRevisit),
       longScrollLongTasks: Math.round(median(scrollCounts)),
@@ -345,7 +356,7 @@ async function main() {
     }
 
     const config = {
-      version: 2,
+      version: 3,
       runs: args.runs,
       headed: args.headed,
       browser: browser.version(),
@@ -357,7 +368,7 @@ async function main() {
     await mkdir(join(root, "test-results"), { recursive: true })
     await writeFile(
       resultPath,
-      `${JSON.stringify({ config, metrics, samples: { coldTo, coldLcp, coldFcp, coldTbt, hotTo, firstOpen, switchLong, switchRevisit, composer, scrollCounts, scrollWorst, inpSamples, emptyOpen, stressOpen, stressComposer, stressScrollCounts, stressScrollWorst } }, null, 2)}\n`,
+      `${JSON.stringify({ config, metrics, samples: { coldTo, coldLcp, coldFcp, coldTbt, hotTo, firstOpen, switchLong, switchRevisit, composer, scrollCounts, scrollWorst, inpSamples, emptyOpen, stressOpen, stressRemoteAttach, stressHistoryHttp, stressHistoryRequests, stressLatestVisible, stressFullHistory, stressComposer, stressScrollCounts, stressScrollWorst } }, null, 2)}\n`,
     )
     printReport(metrics, previous)
     console.log(`结果已写入 ${resultPath}`)

@@ -3,6 +3,8 @@ import { writeFileSync } from "node:fs"
 
 export const SHORT_SESSION_ID = "bench-short"
 export const LONG_SESSION_ID = "bench-long"
+export const EMPTY_SESSION_ID = "bench-empty"
+export const STRESS_SESSION_ID = "bench-stress"
 export const SHORT_SESSION_NAME = "短会话"
 export const LONG_SESSION_NAME = "长会话"
 export const EMPTY_SESSION_NAME = "空会话"
@@ -11,6 +13,23 @@ export const STRESS_SESSION_NAME = "混合大会话"
 export const SHORT_TURNS = 2
 export const LONG_TURNS = 40
 export const STRESS_TURNS = 200
+
+const SESSIONS = {
+  [SHORT_SESSION_NAME]: { id: SHORT_SESSION_ID, turns: SHORT_TURNS },
+  [LONG_SESSION_NAME]: { id: LONG_SESSION_ID, turns: LONG_TURNS },
+  [EMPTY_SESSION_NAME]: { id: EMPTY_SESSION_ID, turns: 0 },
+  [STRESS_SESSION_NAME]: { id: STRESS_SESSION_ID, turns: STRESS_TURNS },
+} as const
+
+export type BenchSessionName = keyof typeof SESSIONS
+
+export function sessionIdOf(name: BenchSessionName): string {
+  return SESSIONS[name].id
+}
+
+export function sessionTurns(name: BenchSessionName): number {
+  return SESSIONS[name].turns
+}
 
 type AppendMessage = Parameters<SessionManager["appendMessage"]>[0]
 
@@ -43,11 +62,11 @@ function assistantMessage(
 export function seedBenchSessions(sessionDir: string, cwd: string) {
   seedConversation(sessionDir, cwd, SHORT_SESSION_ID, SHORT_SESSION_NAME, SHORT_TURNS, "已记录。")
   seedConversation(sessionDir, cwd, LONG_SESSION_ID, LONG_SESSION_NAME, LONG_TURNS, LONG_REPLY)
-  seedConversation(sessionDir, cwd, "bench-empty", EMPTY_SESSION_NAME, 0, "")
+  seedConversation(sessionDir, cwd, EMPTY_SESSION_ID, EMPTY_SESSION_NAME, 0, "")
   seedConversation(
     sessionDir,
     cwd,
-    "bench-stress",
+    STRESS_SESSION_ID,
     STRESS_SESSION_NAME,
     STRESS_TURNS,
     "## 处理结果\n\n| 项目 | 状态 |\n| --- | --- |\n| 历史 | 已加载 |\n\n```typescript\nconst value = 42\n```\n\n" +
