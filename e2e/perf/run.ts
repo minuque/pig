@@ -1,4 +1,4 @@
-/** 工作台性能基准。用法: pnpm test:bench --runs=3 --skip-build --headed */
+/** 工作台体验基准。用法: pnpm test:bench --runs=3 --skip-build --headed --turn-only */
 import { chromium, type Browser, type BrowserContext, type Page } from "@playwright/test"
 import { spawnSync } from "node:child_process"
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
@@ -8,10 +8,9 @@ import { join, resolve } from "node:path"
 import Gateway from "../../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import { canonicalizeWorkspacePath } from "../fixtures.js"
-import { runEdgeBench } from "./edges.js"
+import { runTurnBench } from "./edges.js"
 import {
   captureBenchFailure,
-  firstSample,
   keyToNextFrame,
   median,
   newBenchContext,
@@ -19,16 +18,10 @@ import {
   p90,
   prepareBenchPage,
   readPaint,
-  scrollTranscript,
   waitForWorkbench,
 } from "./measure.js"
-import { reportTable } from "./report.js"
-import {
-  EMPTY_SESSION_NAME,
-  LONG_SESSION_NAME,
-  SHORT_SESSION_NAME,
-  seedBenchSessions,
-} from "./seed.js"
+import { reportTable, type MetricRow } from "./report.js"
+import { LONG_SESSION_NAME, SHORT_SESSION_NAME, seedBenchSessions } from "./seed.js"
 
 const root = resolve(import.meta.dirname, "../..")
 const webRoot = join(root, "apps/web/dist")
@@ -37,43 +30,43 @@ const failShot = join(root, "test-results", "perf-fail.png")
 
 type BenchMetrics = {
   coldToWorkbench: number
-  coldLcp: number
   coldFcp: number
+  coldLcp: number
   sessionFirstOpen: number
-  sessionFirstOpenFirst: number
-  sessionFirstOpenP90: number
-  emptyOpen: number
-  composerKeyToFrame: number
   switchLong: number
-  switchLongFirst: number
-  switchLongP90: number
   switchShortRevisit: number
-  longScrollWorstMs: number
+  composerKeyToFrame: number
+  ownMessageMs: number
+  firstTokenMs: number
+  streamKeepUpMs: number
+  abortMs: number
+  rapidSwitchMs: number
+  reconnectMs: number
 }
 
-type Args = { runs: number; skipBuild: boolean; headed: boolean; edgesOnly: boolean }
+type Args = { runs: number; skipBuild: boolean; headed: boolean; turnOnly: boolean }
 
 function parseArgs(argv: string[]): Args {
   let runs = 3
   let skipBuild = false
   let headed = false
-  let edgesOnly = false
+  let turnOnly = false
   for (const arg of argv) {
     if (arg === "--help" || arg === "-h") {
-      console.log("用法: pnpm test:bench --runs=3 --skip-build --headed --edges-only")
+      console.log("用法: pnpm test:bench --runs=3 --skip-build --headed --turn-only")
       process.exit(0)
     }
     if (arg === "--") continue
     if (arg === "--skip-build") skipBuild = true
     else if (arg === "--headed") headed = true
-    else if (arg === "--edges-only") edgesOnly = true
+    else if (arg === "--turn-only" || arg === "--edges-only") turnOnly = true
     else if (arg.startsWith("--runs=")) {
       const value = Number(arg.slice("--runs=".length))
       if (!Number.isSafeInteger(value) || value < 1) throw new Error("--runs 必须是正安全整数")
       runs = value
     } else throw new Error(`未知参数 ${arg}`)
   }
-  return { runs, skipBuild, headed, edgesOnly }
+  return { runs, skipBuild, headed, turnOnly }
 }
 
 function buildWeb() {
@@ -133,13 +126,10 @@ async function openPage(
   return { context, page }
 }
 
-/** 冷启动到工作台可用，并采集 FCP / LCP。 */
 async function measureStart(page: Page) {
-  const paint = await readPaint(page)
-  return { toWorkbench: paint.now, fcp: paint.fcp, lcp: paint.lcp }
+  return readPaint(page)
 }
 
-/** 按键到双 rAF，丢弃首次后取中位数。 */
 async function measureComposer(page: Page, samples: number): Promise<number> {
   const values: number[] = []
   for (let index = 0; index < samples + 1; index += 1) {
@@ -149,41 +139,44 @@ async function measureComposer(page: Page, samples: number): Promise<number> {
   return median(values)
 }
 
-function printReport(now: BenchMetrics, prev: BenchMetrics | undefined) {
-  console.log("\npig 工作台性能")
-  console.log("Gateway 已启动；冷启动 = 新浏览器上下文。reduced-motion。中位数。")
-  const row = (label: string, key: keyof BenchMetrics, unit: "ms" | "个" = "ms") => ({
+function collect(values: number[]) {
+  return { median: median(values), p90: p90(values) }
+}
+
+function printReport(
+  now: Partial<BenchMetrics>,
+  p90s: Partial<Record<keyof BenchMetrics, number>>,
+  prev: Partial<BenchMetrics> | undefined,
+) {
+  console.log("\npig 工作台")
+  console.log("中位；p90 为 90% 样本上限（3 轮时接近最慢一次）；变快为绿。")
+  const row = (label: string, key: keyof BenchMetrics): MetricRow => ({
     label,
-    value: now[key],
+    value: now[key] ?? null,
+    p90: p90s[key] ?? null,
     previous: prev?.[key] ?? null,
-    unit,
   })
-  reportTable("启动", [
-    row("冷启动到工作台", "coldToWorkbench"),
-    row("就绪时 LCP 候选值", "coldLcp"),
+  reportTable([
+    row("打开工作台", "coldToWorkbench"),
     row("冷启动 FCP", "coldFcp"),
+    row("就绪时 LCP", "coldLcp"),
+    row("输入跟手", "composerKeyToFrame"),
+    row("短会话打开", "sessionFirstOpen"),
+    row("长会话打开", "switchLong"),
+    row("切回短会话", "switchShortRevisit"),
+    row("发送后自己的话", "ownMessageMs"),
+    row("发送后首条助手", "firstTokenMs"),
+    row("流式跟上", "streamKeepUpMs"),
+    row("点停止", "abortMs"),
+    row("连切到短会话", "rapidSwitchMs"),
+    row("断线后恢复", "reconnectMs"),
   ])
-  reportTable("会话打开与切换", [
-    row("短会话首次", "sessionFirstOpen"),
-    row("50 轮会话", "switchLong"),
-    row("短会话重访", "switchShortRevisit"),
-    row("空会话", "emptyOpen"),
-  ])
-  console.log("首轮是本进程第一次；p90 是 90% 样本不超过的值，3 轮时接近最慢一次。")
-  reportTable("会话打开（首轮 / p90）", [
-    row("短会话首次 首轮", "sessionFirstOpenFirst"),
-    row("短会话首次 p90", "sessionFirstOpenP90"),
-    row("50 轮会话 首轮", "switchLongFirst"),
-    row("50 轮会话 p90", "switchLongP90"),
-  ])
-  reportTable("输入响应", [row("欢迎页按键到双 rAF", "composerKeyToFrame")])
-  reportTable("滚动卡顿", [row("50 轮会话最差耗时", "longScrollWorstMs")])
 }
 
 async function loadPrevious(
   config: object,
   metrics: BenchMetrics,
-): Promise<BenchMetrics | undefined> {
+): Promise<Partial<BenchMetrics> | undefined> {
   try {
     const raw = JSON.parse(await readFile(resultPath, "utf8")) as unknown
     if (!raw || typeof raw !== "object" || !("config" in raw) || !("metrics" in raw))
@@ -223,82 +216,120 @@ async function main() {
     console.log(`Gateway ${origin}`)
 
     browser = await chromium.launch({ headless: !args.headed })
-    if (args.edgesOnly) {
-      await runEdgeBench(browser, origin, workspaceId, args.runs, join(root, "test-results"))
-      return
+    const open = {
+      coldTo: [] as number[],
+      coldFcp: [] as number[],
+      coldLcp: [] as number[],
+      firstOpen: [] as number[],
+      switchLong: [] as number[],
+      switchRevisit: [] as number[],
+      composer: [] as number[],
     }
-    const warmup = await openPage(browser, origin, workspaceId)
-    await warmup.context.close()
 
-    const coldTo: number[] = []
-    const coldLcp: number[] = []
-    const coldFcp: number[] = []
-    const firstOpen: number[] = []
-    const switchLong: number[] = []
-    const switchRevisit: number[] = []
-    const composer: number[] = []
-    const scrollWorst: number[] = []
-    const emptyOpen: number[] = []
-
-    for (let run = 1; run <= args.runs; run += 1) {
-      console.log(`测量 ${run}/${args.runs}`)
-      const { context, page } = await openPage(browser, origin, workspaceId)
-      try {
-        const cold = await measureStart(page)
-        coldTo.push(cold.toWorkbench)
-        coldLcp.push(cold.lcp)
-        coldFcp.push(cold.fcp)
-
-        composer.push(await measureComposer(page, 7))
-
-        firstOpen.push(await openSession(page, SHORT_SESSION_NAME))
-        switchLong.push(await openSession(page, LONG_SESSION_NAME))
-        switchRevisit.push(await openSession(page, SHORT_SESSION_NAME))
-        await openSession(page, LONG_SESSION_NAME)
-        scrollWorst.push(await scrollTranscript(page))
-        emptyOpen.push(await openSession(page, EMPTY_SESSION_NAME))
-      } catch (error) {
-        await captureBenchFailure(page, failShot)
-        throw error
-      } finally {
-        await context.close()
+    if (!args.turnOnly) {
+      const warmup = await openPage(browser, origin, workspaceId)
+      await warmup.context.close()
+      for (let run = 1; run <= args.runs; run += 1) {
+        console.log(`打开 ${run}/${args.runs}`)
+        const { context, page } = await openPage(browser, origin, workspaceId)
+        try {
+          const cold = await measureStart(page)
+          open.coldTo.push(cold.now)
+          open.coldFcp.push(cold.fcp)
+          open.coldLcp.push(cold.lcp)
+          open.composer.push(await measureComposer(page, 7))
+          open.firstOpen.push(await openSession(page, SHORT_SESSION_NAME))
+          open.switchLong.push(await openSession(page, LONG_SESSION_NAME))
+          open.switchRevisit.push(await openSession(page, SHORT_SESSION_NAME))
+        } catch (error) {
+          await captureBenchFailure(page, failShot)
+          throw error
+        } finally {
+          await context.close()
+        }
       }
     }
 
+    const turns = await runTurnBench(
+      browser,
+      origin,
+      workspaceId,
+      args.runs,
+      join(root, "test-results"),
+    )
+    const own = turns.samples.map((sample) => sample.ownMessageMs)
+    const token = turns.samples.map((sample) => sample.firstTokenMs)
+    const stream = turns.samples.map((sample) => sample.streamKeepUpMs)
+    const abort = turns.samples.map((sample) => sample.abortMs)
+    const rapid = turns.samples.map((sample) => sample.rapidSwitchMs)
+    const reconnect = turns.samples.map((sample) => sample.reconnectMs)
+
+    const cold = open.coldTo.length ? collect(open.coldTo) : undefined
+    const fcp = open.coldFcp.length ? collect(open.coldFcp) : undefined
+    const lcp = open.coldLcp.length ? collect(open.coldLcp) : undefined
+    const composer = open.composer.length ? collect(open.composer) : undefined
+    const firstOpen = open.firstOpen.length ? collect(open.firstOpen) : undefined
+    const switchLong = open.switchLong.length ? collect(open.switchLong) : undefined
+    const switchRevisit = open.switchRevisit.length ? collect(open.switchRevisit) : undefined
+    const ownStat = collect(own)
+    const tokenStat = collect(token)
+    const streamStat = collect(stream)
+    const abortStat = collect(abort)
+    const rapidStat = collect(rapid)
+    const reconnectStat = collect(reconnect)
+
     const metrics: BenchMetrics = {
-      coldToWorkbench: median(coldTo),
-      coldLcp: median(coldLcp),
-      coldFcp: median(coldFcp),
-      sessionFirstOpen: median(firstOpen),
-      sessionFirstOpenFirst: firstSample(firstOpen),
-      sessionFirstOpenP90: p90(firstOpen),
-      emptyOpen: median(emptyOpen),
-      composerKeyToFrame: median(composer),
-      switchLong: median(switchLong),
-      switchLongFirst: firstSample(switchLong),
-      switchLongP90: p90(switchLong),
-      switchShortRevisit: median(switchRevisit),
-      longScrollWorstMs: median(scrollWorst),
+      coldToWorkbench: cold?.median ?? Number.NaN,
+      coldFcp: fcp?.median ?? Number.NaN,
+      coldLcp: lcp?.median ?? Number.NaN,
+      sessionFirstOpen: firstOpen?.median ?? Number.NaN,
+      switchLong: switchLong?.median ?? Number.NaN,
+      switchShortRevisit: switchRevisit?.median ?? Number.NaN,
+      composerKeyToFrame: composer?.median ?? Number.NaN,
+      ownMessageMs: ownStat.median,
+      firstTokenMs: tokenStat.median,
+      streamKeepUpMs: streamStat.median,
+      abortMs: abortStat.median,
+      rapidSwitchMs: rapidStat.median,
+      reconnectMs: reconnectStat.median,
+    }
+    const p90s: Partial<Record<keyof BenchMetrics, number>> = {
+      coldToWorkbench: cold?.p90,
+      coldFcp: fcp?.p90,
+      coldLcp: lcp?.p90,
+      sessionFirstOpen: firstOpen?.p90,
+      switchLong: switchLong?.p90,
+      switchShortRevisit: switchRevisit?.p90,
+      composerKeyToFrame: composer?.p90,
+      ownMessageMs: ownStat.p90,
+      firstTokenMs: tokenStat.p90,
+      streamKeepUpMs: streamStat.p90,
+      abortMs: abortStat.p90,
+      rapidSwitchMs: rapidStat.p90,
+      reconnectMs: reconnectStat.p90,
     }
 
     const config = {
-      version: 7,
+      version: 8,
       runs: args.runs,
       headed: args.headed,
+      turnOnly: args.turnOnly,
       browser: browser.version(),
       platform: process.platform,
       arch: process.arch,
       node: process.version,
     }
-    const previous = await loadPrevious(config, metrics)
+    const stored = Object.fromEntries(
+      Object.entries(metrics).filter(([, value]) => Number.isFinite(value)),
+    ) as Partial<BenchMetrics>
+    const comparable = args.turnOnly ? undefined : await loadPrevious(config, metrics)
     await mkdir(join(root, "test-results"), { recursive: true })
     await writeFile(
       resultPath,
-      `${JSON.stringify({ config, metrics, samples: { coldTo, coldLcp, coldFcp, firstOpen, switchLong, switchRevisit, composer, scrollWorst, emptyOpen } }, null, 2)}\n`,
+      `${JSON.stringify({ config, metrics: stored, p90s, samples: { ...open, own, token, stream, abort, rapid, reconnect } }, null, 2)}\n`,
     )
-    printReport(metrics, previous)
+    printReport(stored, p90s, comparable)
     console.log(`结果已写入 ${resultPath}`)
-    await runEdgeBench(browser, origin, workspaceId, args.runs, join(root, "test-results"))
   } finally {
     try {
       await browser?.close()

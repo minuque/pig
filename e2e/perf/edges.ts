@@ -8,7 +8,6 @@ import {
   type SessionSnapshot,
   type TranscriptItem,
 } from "@earendil-works/pi-protocol"
-import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 
 import {
@@ -16,19 +15,15 @@ import {
   WORKBENCH_TIMEOUT_MS,
   captureBenchFailure,
   composerInput,
-  firstSample,
-  median,
   newBenchContext,
   nextPaint,
   openSession,
-  p90,
   prepareBenchPage,
   clickSessionCard,
   waitForLatestInViewport,
   waitForSession,
   waitForWorkbench,
 } from "./measure.js"
-import { reportTable } from "./report.js"
 import {
   EMPTY_SESSION_NAME,
   LONG_SESSION_ID,
@@ -91,32 +86,6 @@ async function rapidSwitch(page: Page) {
     release()
     await page.unroute(HISTORY_ROUTE, delayed)
   }
-}
-
-/** 短会话历史 503 时不转圈，恢复后能再打开。 */
-async function historyRecovery(page: Page) {
-  await openSession(page, EMPTY_SESSION_NAME)
-  let failures = 0
-  const fail = async (route: Route) => {
-    if (new URL(route.request().url()).searchParams.get("sessionId") !== SHORT_SESSION_ID)
-      return route.continue()
-    failures += 1
-    await route.fulfill({ status: 503, json: { code: "BENCH_UNAVAILABLE" } })
-  }
-  await page.route(HISTORY_ROUTE, fail)
-  try {
-    await clickSessionCard(page, SHORT_SESSION_NAME)
-    await expect.poll(() => failures).toBeGreaterThan(0)
-    await expect(page.locator(".session-loading")).toHaveCount(0)
-    await expect(page.locator(".idle-hero")).toBeVisible()
-    await expect(page.locator(".row-user")).toHaveCount(0)
-    await expect(page.locator(".field")).toBeVisible()
-    await openSession(page, EMPTY_SESSION_NAME)
-  } finally {
-    await page.unroute(HISTORY_ROUTE, fail)
-  }
-  await openSession(page, SHORT_SESSION_NAME)
-  await expect(page.locator(".row-user")).toHaveCount(SHORT_TURNS)
 }
 
 async function installBridge(page: Page) {
@@ -261,7 +230,7 @@ async function measureTurn(page: Page, bridge: Bridge) {
   await expect(page.locator(".row-user").getByText(FIRST_PROMPT, { exact: true })).toBeVisible({
     timeout: WORKBENCH_TIMEOUT_MS,
   })
-  const createFirstPromptMs = performance.now() - started
+  const ownMessageMs = performance.now() - started
   await page.waitForURL(/\/sessions\/[^/?#]+$/)
   const sessionId = await bridge.waitForPrompt()
   const snapshot = bridge.snapshots.get(sessionId)
@@ -300,7 +269,7 @@ async function measureTurn(page: Page, bridge: Bridge) {
   await expect(stop).toHaveCount(0)
   await seen(FIRST_PROMPT)
   return {
-    createFirstPromptMs,
+    ownMessageMs,
     firstTokenMs,
     streamKeepUpMs: Math.max(...lags),
     abortMs: performance.now() - abortStarted,
@@ -325,69 +294,42 @@ async function reconnect(page: Page, bridge: Bridge) {
   return elapsed
 }
 
-export async function runEdgeBench(
+export type EdgeSample = {
+  ownMessageMs: number
+  firstTokenMs: number
+  streamKeepUpMs: number
+  abortMs: number
+  rapidSwitchMs: number
+  reconnectMs: number
+}
+
+export async function runTurnBench(
   browser: Browser,
   origin: string,
   workspaceId: string,
   runs: number,
   resultDir: string,
-) {
-  const samples = []
+): Promise<{ samples: EdgeSample[] }> {
+  const samples: EdgeSample[] = []
   for (let index = 0; index < runs; index += 1) {
-    console.log(`边界场景 ${index + 1}/${runs}`)
+    console.log(`回合 ${index + 1}/${runs}`)
     const context = await newBenchContext(browser)
     const page = await context.newPage()
-    await prepareBenchPage(page, workspaceId, false)
+    await prepareBenchPage(page, workspaceId)
     try {
       const bridge = await installBridge(page)
       await page.goto(origin)
       await waitForWorkbench(page)
       const turn = await measureTurn(page, bridge)
       const rapidSwitchMs = await rapidSwitch(page)
-      await historyRecovery(page)
       const reconnectMs = await reconnect(page, bridge)
       samples.push({ ...turn, rapidSwitchMs, reconnectMs })
     } catch (error) {
-      await captureBenchFailure(page, join(resultDir, "perf-edges-fail.png"))
+      await captureBenchFailure(page, join(resultDir, "perf-fail.png"))
       throw error
     } finally {
       await context.close()
     }
   }
-  const firstPrompt = samples.map((sample) => sample.createFirstPromptMs)
-  const metrics = {
-    createFirstPromptMs: median(firstPrompt),
-    createFirstPromptMsFirst: firstSample(firstPrompt),
-    createFirstPromptMsP90: p90(firstPrompt),
-    firstTokenMs: median(samples.map((sample) => sample.firstTokenMs)),
-    streamKeepUpMs: median(samples.map((sample) => sample.streamKeepUpMs)),
-    abortMs: median(samples.map((sample) => sample.abortMs)),
-    rapidSwitchMs: median(samples.map((sample) => sample.rapidSwitchMs)),
-    reconnectMs: median(samples.map((sample) => sample.reconnectMs)),
-  }
-  await mkdir(resultDir, { recursive: true })
-  await writeFile(
-    join(resultDir, "perf-edges.json"),
-    JSON.stringify({ version: 4, runs, browser: browser.version(), metrics, samples }, null, 2) +
-      "\n",
-  )
-  console.log("\n边界场景全部通过；耗时包含驱动与断言开销，回合为协议夹具。")
-  console.log(
-    "发送后自己的话 = 时间线用户句可见，不等路由。首轮是本进程第一次；p90 是 90% 样本不超过的值，3 轮时接近最慢一次。",
-  )
-  reportTable("回合体验", [
-    { label: "发送后自己的话可见", value: metrics.createFirstPromptMs },
-    { label: "发送后首条助手可见", value: metrics.firstTokenMs },
-    { label: "流式跟上（最慢一帧）", value: metrics.streamKeepUpMs },
-    { label: "点停止到回合结束", value: metrics.abortMs },
-  ])
-  reportTable("回合体验（首轮 / p90）", [
-    { label: "发送后自己的话可见 首轮", value: metrics.createFirstPromptMsFirst },
-    { label: "发送后自己的话可见 p90", value: metrics.createFirstPromptMsP90 },
-  ])
-  reportTable("边界恢复", [
-    { label: "旧历史晚到，最终会话就绪", value: metrics.rapidSwitchMs },
-    { label: "WebSocket 断线后历史恢复", value: metrics.reconnectMs },
-  ])
-  console.log(`结果已写入 ${join(resultDir, "perf-edges.json")}`)
+  return { samples }
 }

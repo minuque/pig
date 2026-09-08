@@ -13,12 +13,10 @@ import {
 export const WORKBENCH_TIMEOUT_MS = 30_000
 export const HISTORY_ROUTE = "**/api/v1/platform/transcript?*"
 
-type LongTask = { start: number; duration: number }
-
 type PageBench = {
   fcp: number
   lcp: number
-  longTasks: LongTask[]
+  longTasks: { start: number; duration: number }[]
   interactions: { id: number; duration: number }[]
 }
 
@@ -114,7 +112,7 @@ export async function seedWorkspace(page: Page, workspaceId: string) {
   )
 }
 
-export async function prepareBenchPage(page: Page, workspaceId: string, observers: boolean) {
+export async function prepareBenchPage(page: Page, workspaceId: string, observers = false) {
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, workspaceId)
   if (observers) await installObservers(page)
@@ -184,13 +182,6 @@ export async function readPaint(page: Page): Promise<{ fcp: number; lcp: number;
   })
 }
 
-export async function readLongTasks(page: Page): Promise<LongTask[]> {
-  return page.evaluate(() => {
-    const bench = (window as unknown as { __pigBench: PageBench }).__pigBench
-    return bench.longTasks.map((task) => ({ start: task.start, duration: task.duration }))
-  })
-}
-
 /** Composer 按下一键到双 rAF。 */
 export async function keyToNextFrame(page: Page): Promise<number> {
   await composerInput(page).click()
@@ -244,38 +235,6 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   )
 }
 
-/** 时间线滚到顶再到底，返回最差 longtask。 */
-export async function scrollTranscript(page: Page): Promise<number> {
-  const viewport = page.locator(".transcript-viewport")
-  await viewport.hover()
-  const started = await page.evaluate(() => performance.now())
-  const distance = await viewport.evaluate((node) => node.scrollHeight - node.clientHeight)
-  if (distance <= 0) throw new Error("长会话未产生可滚动内容")
-  for (const direction of [-1, 1]) {
-    for (let step = 0; step < 20; step += 1) {
-      await page.mouse.wheel(0, direction * Math.ceil(distance / 20))
-      await page.waitForTimeout(32)
-    }
-    await page.waitForFunction(
-      ({ direction }) => {
-        const node = document.querySelector(".transcript-viewport")!
-        return direction < 0
-          ? node.scrollTop <= 1
-          : node.scrollHeight - node.clientHeight - node.scrollTop <= 1
-      },
-      { direction },
-    )
-  }
-  const ended = await page.evaluate(() => performance.now())
-  await page.waitForTimeout(100)
-  const tasks = (await readLongTasks(page)).filter(
-    (task) => task.start >= started && task.start < ended,
-  )
-  let worst = 0
-  for (const task of tasks) if (task.duration > worst) worst = task.duration
-  return worst
-}
-
 export function quantile(values: readonly number[], q: number): number {
   if (values.length === 0) throw new Error("测量样本为空")
   if (
@@ -301,11 +260,4 @@ export function median(values: readonly number[]): number {
 
 export function p90(values: readonly number[]): number {
   return quantile(values, 0.9)
-}
-
-export function firstSample(values: readonly number[]): number {
-  if (values.length === 0) throw new Error("测量样本为空")
-  const value = values[0]
-  if (value == null || !Number.isFinite(value) || value < 0) throw new Error("测量样本或分位数无效")
-  return value
 }
