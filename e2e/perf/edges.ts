@@ -7,6 +7,7 @@ import {
 } from "@earendil-works/pi-protocol"
 import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
+import { reportTable } from "./report.js"
 import {
   keyToNextFrame,
   median,
@@ -39,41 +40,39 @@ async function nextPaint(page: Page) {
 
 async function rapidSwitch(page: Page) {
   await openSession(page, EMPTY_SESSION_NAME)
-  const received = Promise.withResolvers<void>()
-  const release = Promise.withResolvers<void>()
-  const delivered = Promise.withResolvers<void>()
+  let received = 0
+  let delivered = 0
+  let release = () => {}
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve
+  })
   const delayed = async (route: Route) => {
     if (new URL(route.request().url()).searchParams.get("sessionId") !== LONG_SESSION_ID)
       return route.continue()
     const response = await route.fetch()
-    received.resolve()
-    await release.promise
+    received += 1
+    await blocked
     await route.fulfill({ response })
-    delivered.resolve()
+    delivered += 1
   }
   await page.route(historyUrl, delayed)
   try {
     await card(page, LONG_SESSION_NAME).click()
-    await Promise.race([
-      received.promise,
-      page.waitForTimeout(10_000).then(() => {
-        throw new Error("连切场景未捕获长会话历史请求")
-      }),
-    ])
+    await expect.poll(() => received, { message: "连切场景必须捕获旧历史请求" }).toBeGreaterThan(0)
     const started = performance.now()
     await card(page, SHORT_SESSION_NAME).click()
     await waitForSession(page, SHORT_SESSION_NAME)
     await nextPaint(page)
     const elapsed = performance.now() - started
-    release.resolve()
-    await delivered.promise
+    release()
+    await expect.poll(() => delivered).toBe(received)
     await nextPaint(page)
     await expect(page).toHaveURL(new RegExp(`/sessions/${SHORT_SESSION_ID}$`))
     await expect(page.locator(".row-user")).toHaveCount(SHORT_TURNS)
     await expect(page.getByText(`${LONG_SESSION_NAME} 提问 1`, { exact: true })).toHaveCount(0)
     return elapsed
   } finally {
-    release.resolve()
+    release()
     await page.unroute(historyUrl, delayed)
   }
 }
@@ -94,7 +93,7 @@ async function historyRecovery(page: Page) {
     await expect(page.locator(".session-loading")).toHaveCount(0)
     await expect(page.locator(".idle-hero")).toBeVisible()
     await expect(page.locator(".row-user")).toHaveCount(0)
-    await expect(page.locator(".field[contenteditable]")).toBeVisible()
+    await expect(page.locator(".field")).toBeVisible()
     await openSession(page, EMPTY_SESSION_NAME)
   } finally {
     await page.unroute(historyUrl, fail)
@@ -233,11 +232,15 @@ export async function runEdgeBench(
       const rapidSwitchMs = await rapidSwitch(page)
       const historyRecoveryMs = await historyRecovery(page)
       const streamed = await stream(page, bridge)
+      // 流式夹具不落盘，重连验证先回到真实历史，避免把保留 live 数据误判为失败。
+      await openSession(page, EMPTY_SESSION_NAME)
+      await openSession(page, SHORT_SESSION_NAME)
       const count = bridge.connections()
       const started = performance.now()
       await bridge.disconnect()
       await expect.poll(() => bridge.connections(), { timeout: 30_000 }).toBeGreaterThan(count)
       await expect.poll(() => bridge.snapshots.has(SHORT_SESSION_ID)).toBe(true)
+      await expect(page.getByText("连接失败", { exact: true })).toHaveCount(0)
       await waitForSession(page, SHORT_SESSION_NAME)
       await nextPaint(page)
       const reconnectMs = performance.now() - started
@@ -265,5 +268,15 @@ export async function runEdgeBench(
     JSON.stringify({ version: 1, runs, browser: browser.version(), metrics, samples }, null, 2) +
       "\n",
   )
-  console.log("边界场景通过（流式为协议夹具；耗时包含驱动与断言开销）", metrics)
+  console.log("\n边界场景全部通过；耗时包含驱动与断言开销，流式为协议夹具。")
+  reportTable("边界恢复", [
+    { label: "旧历史晚到，最终会话就绪", value: metrics.rapidSwitchMs },
+    { label: "历史 503 后重新进入", value: metrics.historyRecoveryMs },
+    { label: "WebSocket 断线后历史恢复", value: metrics.reconnectMs },
+  ])
+  reportTable("模拟流式输出", [
+    { label: "增量消息到双 rAF", value: metrics.streamUpdateMs },
+    { label: "输出期间按键到双 rAF", value: metrics.streamComposerMs },
+  ])
+  console.log(`结果已写入 ${join(resultDir, "perf-edges.json")}`)
 }

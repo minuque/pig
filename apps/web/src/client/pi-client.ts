@@ -65,7 +65,8 @@ export function usePiClient() {
     unsubscribes.push(
       next.onConnectionStateChange((change) => {
         connectionState.value = change.state
-        if (change.error) connectionError.value = change.error
+        if (change.state === "connected") connectionError.value = undefined
+        else if (change.error) connectionError.value = change.error
       }),
       next.subscribe((snapshot) => {
         serverSnapshot.value = snapshot

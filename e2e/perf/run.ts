@@ -7,6 +7,7 @@ import { join, resolve } from "node:path"
 
 import Gateway from "../../packages/gateway/src/index.js"
 import { runEdgeBench } from "./edges.js"
+import { reportTable } from "./report.js"
 import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import {
   inpValue,
@@ -175,63 +176,40 @@ async function measureComposer(page: Page, samples: number): Promise<number> {
   return median(values)
 }
 
-function formatMs(ms: number): string {
-  if (!Number.isFinite(ms)) return "n/a"
-  if (ms < 10 && Math.abs(ms - Math.round(ms)) >= 0.05) return `${ms.toFixed(1)} ms`
-  return `${Math.round(ms)} ms`
-}
-
-function deltaText(now: number, prev: number | undefined): string {
-  if (prev === undefined || !Number.isFinite(prev) || prev === 0) return ""
-  const diff = now - prev
-  const ratio = Math.abs(diff / prev)
-  if (Math.abs(diff) < 1 || ratio < 0.02) return "（未变）"
-  const pct = (ratio * 100).toFixed(0)
-  return diff < 0
-    ? `（${Math.round(diff)}ms，快 ${pct}%）`
-    : `（+${Math.round(diff)}ms，慢 ${pct}%）`
-}
-
-function line(label: string, now: number, prev?: number): string {
-  return `• ${label}：${formatMs(now)}${deltaText(now, prev)}`
-}
-
 function printReport(now: BenchMetrics, prev: BenchMetrics | undefined) {
-  console.log("")
-  console.log("pig 工作台性能")
+  console.log("\npig 工作台性能")
   console.log("Gateway 已启动；冷启动 = 新浏览器上下文。reduced-motion。中位数。")
-  console.log("")
-  console.log("启动")
-  console.log(line("冷启动到工作台", now.coldToWorkbench, prev?.coldToWorkbench))
-  console.log(line("工作台就绪时 LCP 候选值", now.coldLcp, prev?.coldLcp))
-  console.log(line("冷启动 FCP", now.coldFcp, prev?.coldFcp))
-  console.log(line("到工作台的总阻塞时间", now.coldTbt, prev?.coldTbt))
-  console.log(line("热重启到工作台", now.hotToWorkbench, prev?.hotToWorkbench))
-  console.log("")
-  console.log("交互")
-  console.log(line("侧栏会话首次打开", now.sessionFirstOpen, prev?.sessionFirstOpen))
-  const inp = now.eventTimingP98 === null ? "无样本" : formatMs(now.eventTimingP98)
-  const inpDelta =
-    now.eventTimingP98 === null || prev?.eventTimingP98 == null
-      ? ""
-      : deltaText(now.eventTimingP98, prev.eventTimingP98)
-  console.log(`• Event Timing 样本 p98（非完整 INP）：${inp}${inpDelta}`)
-  console.log(line("Composer 按键到双 rAF", now.composerKeyToFrame, prev?.composerKeyToFrame))
-  console.log(
-    `• 会话切换：${formatMs(now.switchShortFirst)} 短会话首次，${formatMs(now.switchLong)} 长会话，${formatMs(now.switchShortRevisit)} 重访`,
-  )
-  const scroll =
-    now.longScrollLongTasks === 0
-      ? "零长任务"
-      : `${now.longScrollLongTasks} 个长任务，最差 ${formatMs(now.longScrollWorstMs)}`
-  console.log(`• 长 Transcript 滚动：${scroll}`)
-  console.log(line("空会话打开", now.emptyOpen, prev?.emptyOpen))
-  console.log(line("200 轮混合会话打开", now.stressOpen, prev?.stressOpen))
-  console.log(line("混合会话 Composer 按键到双 rAF", now.stressComposer, prev?.stressComposer))
-  console.log(
-    `• 混合会话滚动：${now.stressScrollLongTasks} 个长任务，最差 ${formatMs(now.stressScrollWorstMs)}`,
-  )
-  console.log("")
+  const row = (label: string, key: keyof BenchMetrics, unit: "ms" | "个" = "ms") => ({
+    label,
+    value: now[key],
+    previous: prev?.[key] ?? null,
+    unit,
+  })
+  reportTable("启动", [
+    row("冷启动到工作台", "coldToWorkbench"),
+    row("就绪时 LCP 候选值", "coldLcp"),
+    row("冷启动 FCP", "coldFcp"),
+    row("就绪前总阻塞时间", "coldTbt"),
+    row("热重启到工作台", "hotToWorkbench"),
+  ])
+  reportTable("会话打开与切换", [
+    row("短会话首次", "sessionFirstOpen"),
+    row("40 轮会话", "switchLong"),
+    row("短会话重访", "switchShortRevisit"),
+    row("空会话", "emptyOpen"),
+    row("200 轮混合会话", "stressOpen"),
+  ])
+  reportTable("输入响应", [
+    row("Event Timing 样本 p98（非完整 INP）", "eventTimingP98"),
+    row("欢迎页按键到双 rAF", "composerKeyToFrame"),
+    row("混合会话按键到双 rAF", "stressComposer"),
+  ])
+  reportTable("滚动长任务", [
+    row("40 轮会话数量", "longScrollLongTasks", "个"),
+    row("40 轮会话最差耗时", "longScrollWorstMs"),
+    row("混合会话数量", "stressScrollLongTasks", "个"),
+    row("混合会话最差耗时", "stressScrollWorstMs"),
+  ])
 }
 
 async function loadPrevious(
