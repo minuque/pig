@@ -87,7 +87,6 @@ const agentMarkdown = computed((): NodeRendererProps => {
     smoothStreaming: false,
     nodeVirtual: !streaming,
     batchRendering: !streaming,
-    // 历史不传 maxLiveNodes，chat 才能在 final 恢复时开节点窗口
     ...(streaming ? { maxLiveNodes: 0 } : {}),
   }
 })

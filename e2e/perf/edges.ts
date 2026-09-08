@@ -21,7 +21,7 @@ import {
   nextPaint,
   openSession,
   prepareBenchPage,
-  revealSessionCard,
+  clickSessionCard,
   waitForLatestInViewport,
   waitForSession,
   waitForWorkbench,
@@ -71,10 +71,10 @@ async function rapidSwitch(page: Page) {
   }
   await page.route(HISTORY_ROUTE, delayed)
   try {
-    await (await revealSessionCard(page, LONG_SESSION_NAME)).click()
+    await clickSessionCard(page, LONG_SESSION_NAME)
     await expect.poll(() => received, { message: "连切场景必须捕获旧历史请求" }).toBeGreaterThan(0)
     const started = performance.now()
-    await (await revealSessionCard(page, SHORT_SESSION_NAME)).click()
+    await clickSessionCard(page, SHORT_SESSION_NAME)
     await waitForSession(page, SHORT_SESSION_NAME)
     await nextPaint(page)
     const elapsed = performance.now() - started
@@ -103,7 +103,7 @@ async function historyRecovery(page: Page) {
   }
   await page.route(HISTORY_ROUTE, fail)
   try {
-    await (await revealSessionCard(page, SHORT_SESSION_NAME)).click()
+    await clickSessionCard(page, SHORT_SESSION_NAME)
     await expect.poll(() => failures).toBeGreaterThan(0)
     await expect(page.locator(".session-loading")).toHaveCount(0)
     await expect(page.locator(".idle-hero")).toBeVisible()

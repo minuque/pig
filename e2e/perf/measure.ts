@@ -40,6 +40,11 @@ export async function revealSessionCard(page: Page, name: BenchSessionName) {
   return card
 }
 
+/** 点开会话卡片，不等待后续网络空闲。 */
+export async function clickSessionCard(page: Page, name: BenchSessionName) {
+  await (await revealSessionCard(page, name)).click({ force: true, noWaitAfter: true })
+}
+
 export async function nextPaint(page: Page) {
   await page.evaluate(
     () =>
@@ -137,8 +142,10 @@ export async function waitForWorkbench(page: Page) {
 
 export async function waitForSession(page: Page, name: BenchSessionName) {
   const turns = sessionTurns(name)
+  await page.waitForURL(new RegExp(`/sessions/${sessionIdOf(name)}(?:[?#]|$)`), {
+    timeout: WORKBENCH_TIMEOUT_MS,
+  })
   if (turns === 0) {
-    await page.waitForURL(`**/sessions/${sessionIdOf(name)}`)
     await page.locator(".idle-hero").waitFor({ state: "visible" })
   } else {
     await page.getByText(sessionPrompt(name, turns), { exact: true }).waitFor({
@@ -220,7 +227,7 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   await card.evaluate((node) => {
     node.addEventListener("click", () => performance.mark("session-open"), { once: true })
   })
-  await card.click()
+  await clickSessionCard(page, name)
   await waitForSession(page, name)
   return page.evaluate(
     () =>
@@ -240,7 +247,7 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
 /** 打开大会话到最新回答进入视口且可输入。 */
 export async function openSessionUntilLatest(page: Page, name: BenchSessionName): Promise<number> {
   const started = performance.now()
-  await (await revealSessionCard(page, name)).click()
+  await clickSessionCard(page, name)
   await waitForLatestInViewport(page)
   return performance.now() - started
 }
