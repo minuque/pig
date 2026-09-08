@@ -18,8 +18,21 @@ export function createMainWindow(preloadPath: string): BrowserWindow {
   })
 
   stripNativeMenu(window)
+  stampDesktopPlatform(window)
   window.once("ready-to-show", () => {
     window.show()
   })
   return window
+}
+
+const DESKTOP_PLATFORMS = new Set(["darwin", "win32", "linux"])
+
+/** html 解析会掉 preload 先写的标记，dom-ready 再写一次。 */
+function stampDesktopPlatform(window: BrowserWindow): void {
+  const platform = process.platform
+  if (!DESKTOP_PLATFORMS.has(platform)) return
+  const script = `document.documentElement.dataset.pigDesktopPlatform=${JSON.stringify(platform)}`
+  window.webContents.on("dom-ready", () => {
+    void window.webContents.executeJavaScript(script)
+  })
 }

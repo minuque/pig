@@ -6,6 +6,21 @@
     <title>pig</title>
     <link rel="icon" href="/logo.png" type="image/png" />
     <script>
+      // Electron 页面解析会换掉 html，preload 里先打的桌面标记会丢；首屏就写上，拖拽和窗控避让才生效
+      ;(function () {
+        var ua = navigator.userAgent
+        if (ua.indexOf("Electron/") === -1) return
+        var platform = /Windows/i.test(ua)
+          ? "win32"
+          : /Mac OS X|Macintosh/i.test(ua)
+            ? "darwin"
+            : /Linux/i.test(ua)
+              ? "linux"
+              : ""
+        if (platform) document.documentElement.dataset.pigDesktopPlatform = platform
+      })()
+    </script>
+    <script>
       // 首屏主题引导：与 vueuse useColorMode(storageKey: "npg-theme") 同格式；非法/缺失视为 auto
       ;(function () {
         var stored

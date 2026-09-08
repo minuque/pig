@@ -108,13 +108,16 @@ const title = computed(() =>
 
 html[data-pig-desktop-platform] .workbench-header {
   min-height: var(--titlebar-inset);
+  user-select: none;
   -webkit-app-region: drag;
+  app-region: drag;
 }
 
 html[data-pig-desktop-platform]
   .workbench-header
   :deep(:is(button, a, input, select, textarea, [role="button"], [role="link"])) {
   -webkit-app-region: no-drag;
+  app-region: no-drag;
 }
 
 html[data-pig-desktop-platform="win32"] .workbench-header {

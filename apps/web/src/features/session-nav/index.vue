@@ -282,6 +282,7 @@ function onCreateInDir(canonicalPath: string): void {
   inset: 0 0 auto;
   height: var(--titlebar-inset);
   -webkit-app-region: drag;
+  app-region: drag;
 }
 html[data-pig-desktop-platform] .titlebar-drag {
   display: block;
@@ -303,10 +304,12 @@ html[data-pig-desktop-platform="darwin"] .session-nav {
 
 html[data-pig-desktop-platform] .logo-row {
   -webkit-app-region: drag;
+  app-region: drag;
 }
 
 html[data-pig-desktop-platform] .logo-row :is(button, a) {
   -webkit-app-region: no-drag;
+  app-region: no-drag;
 }
 
 .logo-row {

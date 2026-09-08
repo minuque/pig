@@ -511,6 +511,7 @@ p {
 html[data-pig-desktop-platform]:has([data-slot="dialog-content"]) body *,
 html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body * {
   -webkit-app-region: no-drag;
+  app-region: no-drag;
 }
 
 /* Tailwind translate-* 走 translate，与 keyframes 的 transform 叠加会偏；Teleport 后 scoped 打不中 */
