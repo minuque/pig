@@ -298,3 +298,14 @@ export function quantile(values: readonly number[], q: number): number {
 export function median(values: readonly number[]): number {
   return quantile(values, 0.5)
 }
+
+export function p90(values: readonly number[]): number {
+  return quantile(values, 0.9)
+}
+
+export function firstSample(values: readonly number[]): number {
+  if (values.length === 0) throw new Error("测量样本为空")
+  const value = values[0]
+  if (value == null || !Number.isFinite(value) || value < 0) throw new Error("测量样本或分位数无效")
+  return value
+}

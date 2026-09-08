@@ -16,10 +16,12 @@ import {
   WORKBENCH_TIMEOUT_MS,
   captureBenchFailure,
   composerInput,
+  firstSample,
   median,
   newBenchContext,
   nextPaint,
   openSession,
+  p90,
   prepareBenchPage,
   clickSessionCard,
   waitForLatestInViewport,
@@ -350,8 +352,11 @@ export async function runEdgeBench(
       await context.close()
     }
   }
+  const firstPrompt = samples.map((sample) => sample.createFirstPromptMs)
   const metrics = {
-    createFirstPromptMs: median(samples.map((sample) => sample.createFirstPromptMs)),
+    createFirstPromptMs: median(firstPrompt),
+    createFirstPromptMsFirst: firstSample(firstPrompt),
+    createFirstPromptMsP90: p90(firstPrompt),
     firstTokenMs: median(samples.map((sample) => sample.firstTokenMs)),
     streamKeepUpMs: median(samples.map((sample) => sample.streamKeepUpMs)),
     abortMs: median(samples.map((sample) => sample.abortMs)),
@@ -361,7 +366,7 @@ export async function runEdgeBench(
   await mkdir(resultDir, { recursive: true })
   await writeFile(
     join(resultDir, "perf-edges.json"),
-    JSON.stringify({ version: 2, runs, browser: browser.version(), metrics, samples }, null, 2) +
+    JSON.stringify({ version: 3, runs, browser: browser.version(), metrics, samples }, null, 2) +
       "\n",
   )
   console.log("\n边界场景全部通过；耗时包含驱动与断言开销，回合为协议夹具。")
@@ -370,6 +375,10 @@ export async function runEdgeBench(
     { label: "发送后首条助手可见", value: metrics.firstTokenMs },
     { label: "流式跟上（最慢一帧）", value: metrics.streamKeepUpMs },
     { label: "点停止到回合结束", value: metrics.abortMs },
+  ])
+  reportTable("回合体验（首轮 / p90）", [
+    { label: "欢迎页创建并打出第一条 首轮", value: metrics.createFirstPromptMsFirst },
+    { label: "欢迎页创建并打出第一条 p90", value: metrics.createFirstPromptMsP90 },
   ])
   reportTable("边界恢复", [
     { label: "旧历史晚到，最终会话就绪", value: metrics.rapidSwitchMs },

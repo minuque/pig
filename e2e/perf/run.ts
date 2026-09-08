@@ -11,10 +11,12 @@ import { canonicalizeWorkspacePath } from "../fixtures.js"
 import { runEdgeBench } from "./edges.js"
 import {
   captureBenchFailure,
+  firstSample,
   keyToNextFrame,
   median,
   newBenchContext,
   openSession,
+  p90,
   prepareBenchPage,
   readPaint,
   scrollTranscript,
@@ -38,9 +40,13 @@ type BenchMetrics = {
   coldLcp: number
   coldFcp: number
   sessionFirstOpen: number
+  sessionFirstOpenFirst: number
+  sessionFirstOpenP90: number
   emptyOpen: number
   composerKeyToFrame: number
   switchLong: number
+  switchLongFirst: number
+  switchLongP90: number
   switchShortRevisit: number
   longScrollWorstMs: number
 }
@@ -163,6 +169,12 @@ function printReport(now: BenchMetrics, prev: BenchMetrics | undefined) {
     row("短会话重访", "switchShortRevisit"),
     row("空会话", "emptyOpen"),
   ])
+  reportTable("会话打开（首轮 / p90）", [
+    row("短会话首次 首轮", "sessionFirstOpenFirst"),
+    row("短会话首次 p90", "sessionFirstOpenP90"),
+    row("50 轮会话 首轮", "switchLongFirst"),
+    row("50 轮会话 p90", "switchLongP90"),
+  ])
   reportTable("输入响应", [row("欢迎页按键到双 rAF", "composerKeyToFrame")])
   reportTable("滚动卡顿", [row("50 轮会话最差耗时", "longScrollWorstMs")])
 }
@@ -257,15 +269,19 @@ async function main() {
       coldLcp: median(coldLcp),
       coldFcp: median(coldFcp),
       sessionFirstOpen: median(firstOpen),
+      sessionFirstOpenFirst: firstSample(firstOpen),
+      sessionFirstOpenP90: p90(firstOpen),
       emptyOpen: median(emptyOpen),
       composerKeyToFrame: median(composer),
       switchLong: median(switchLong),
+      switchLongFirst: firstSample(switchLong),
+      switchLongP90: p90(switchLong),
       switchShortRevisit: median(switchRevisit),
       longScrollWorstMs: median(scrollWorst),
     }
 
     const config = {
-      version: 6,
+      version: 7,
       runs: args.runs,
       headed: args.headed,
       browser: browser.version(),
