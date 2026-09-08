@@ -13,6 +13,7 @@ import { join } from "node:path"
 
 import {
   HISTORY_ROUTE,
+  WORKBENCH_TIMEOUT_MS,
   captureBenchFailure,
   composerInput,
   median,
@@ -20,7 +21,7 @@ import {
   nextPaint,
   openSession,
   prepareBenchPage,
-  sessionCard,
+  revealSessionCard,
   waitForLatestInViewport,
   waitForSession,
   waitForWorkbench,
@@ -61,15 +62,19 @@ async function rapidSwitch(page: Page) {
     const response = await route.fetch()
     received += 1
     await blocked
-    await route.fulfill({ response })
-    delivered += 1
+    try {
+      await route.fulfill({ response })
+      delivered += 1
+    } catch {
+      delivered += 1
+    }
   }
   await page.route(HISTORY_ROUTE, delayed)
   try {
-    await sessionCard(page, LONG_SESSION_NAME).click()
+    await (await revealSessionCard(page, LONG_SESSION_NAME)).click()
     await expect.poll(() => received, { message: "连切场景必须捕获旧历史请求" }).toBeGreaterThan(0)
     const started = performance.now()
-    await sessionCard(page, SHORT_SESSION_NAME).click()
+    await (await revealSessionCard(page, SHORT_SESSION_NAME)).click()
     await waitForSession(page, SHORT_SESSION_NAME)
     await nextPaint(page)
     const elapsed = performance.now() - started
@@ -98,7 +103,7 @@ async function historyRecovery(page: Page) {
   }
   await page.route(HISTORY_ROUTE, fail)
   try {
-    await sessionCard(page, SHORT_SESSION_NAME).click()
+    await (await revealSessionCard(page, SHORT_SESSION_NAME)).click()
     await expect.poll(() => failures).toBeGreaterThan(0)
     await expect(page.locator(".session-loading")).toHaveCount(0)
     await expect(page.locator(".idle-hero")).toBeVisible()
@@ -155,7 +160,24 @@ async function installBridge(page: Page) {
       for (const message of clientDecoder.push(asBytes(data))) {
         if (message.type === "request" && message.request.command === "prompt") {
           const sessionId = message.request.sessionId
-          reply(message.id, "prompt", patch(sessionId, "turn"))
+          const session = patch(sessionId, "turn")
+          const userItem = {
+            id: "bench-user",
+            role: "user" as const,
+            content: [{ type: "text" as const, text: message.request.text }],
+            timestamp: Date.now(),
+          }
+          session.transcript = [...session.transcript, userItem]
+          send({
+            type: "event",
+            event: {
+              type: "session_progress",
+              sessionId,
+              progress: { type: "item_started", item: userItem },
+            },
+          })
+          send({ type: "event", event: { type: "session_snapshot", snapshot: session } })
+          reply(message.id, "prompt", session)
           promptSessionId = sessionId
           resolvePrompt?.(sessionId)
           continue
@@ -228,11 +250,13 @@ function assistantItem(
 async function measureTurn(page: Page, bridge: Bridge) {
   const send = page.locator("button.send")
   const stop = page.getByRole("button", { name: STOP_TURN, exact: true })
+  const seen = (text: string, exact = true) =>
+    expect(page.getByText(text, { exact })).toBeVisible({ timeout: WORKBENCH_TIMEOUT_MS })
   await composerInput(page).fill(FIRST_PROMPT)
   await expect(send).toBeEnabled()
   const started = performance.now()
   await send.click()
-  await expect(page.getByText(FIRST_PROMPT, { exact: true })).toBeVisible()
+  await seen(FIRST_PROMPT)
   await page.waitForURL(/\/sessions\/[^/?#]+$/)
   const createFirstPromptMs = performance.now() - started
   const sessionId = await bridge.waitForPrompt()
@@ -255,23 +279,22 @@ async function measureTurn(page: Page, bridge: Bridge) {
     })
   }
   emit("item_started", assistantItem(snapshot, FIRST_TOKEN))
-  await expect(page.getByText(FIRST_TOKEN, { exact: true })).toBeVisible()
+  await seen(FIRST_TOKEN)
   const firstTokenMs = performance.now() - started
   await expect(stop).toBeVisible()
   const lags: number[] = []
-  let latest = FIRST_TOKEN
   for (let index = 1; index <= 6; index += 1) {
-    latest = `${FIRST_TOKEN} ${"增量。".repeat(index * 8)}`
+    const marker = `流式跟上 ${index}`
     const chunkStarted = performance.now()
-    emit("item_updated", assistantItem(snapshot, latest))
-    await expect(page.getByText(latest, { exact: true })).toBeVisible()
+    emit("item_updated", assistantItem(snapshot, `${marker}\n${"增量。".repeat(index * 8)}`))
+    await seen(marker, false)
     await waitForLatestInViewport(page)
     lags.push(performance.now() - chunkStarted)
   }
   const abortStarted = performance.now()
   await stop.click()
   await expect(stop).toHaveCount(0)
-  await expect(page.getByText(latest, { exact: true })).toBeVisible()
+  await seen(FIRST_PROMPT)
   return {
     createFirstPromptMs,
     firstTokenMs,

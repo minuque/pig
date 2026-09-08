@@ -28,6 +28,18 @@ export function sessionCard(page: Page, name: BenchSessionName) {
   return page.locator(".session-card", { has: page.getByText(name, { exact: true }) })
 }
 
+/** 侧栏折叠时点「显示更多」，直到目标卡片进 DOM。 */
+export async function revealSessionCard(page: Page, name: BenchSessionName) {
+  const card = sessionCard(page, name)
+  const more = page.locator("nav.session-list button.more-button")
+  for (let step = 0; step < 10; step += 1) {
+    if ((await card.count()) > 0) return card
+    if ((await more.count()) === 0) break
+    await more.click()
+  }
+  return card
+}
+
 export async function nextPaint(page: Page) {
   await page.evaluate(
     () =>
@@ -116,7 +128,8 @@ export async function waitForWorkbench(page: Page) {
     .waitFor({ state: "visible", timeout: WORKBENCH_TIMEOUT_MS })
   await page.locator(".startup-screen").waitFor({ state: "hidden", timeout: WORKBENCH_TIMEOUT_MS })
   await composerInput(page).waitFor({ state: "visible", timeout: WORKBENCH_TIMEOUT_MS })
-  await page.locator(".session-card .title", { hasText: SHORT_SESSION_NAME }).waitFor({
+  await revealSessionCard(page, SHORT_SESSION_NAME)
+  await sessionCard(page, SHORT_SESSION_NAME).waitFor({
     state: "visible",
     timeout: WORKBENCH_TIMEOUT_MS,
   })
@@ -207,7 +220,7 @@ export async function keyToNextFrame(page: Page): Promise<number> {
 
 /** 点侧栏卡片到该会话历史就绪。 */
 export async function openSession(page: Page, name: BenchSessionName): Promise<number> {
-  const card = sessionCard(page, name)
+  const card = await revealSessionCard(page, name)
   await card.evaluate((node) => {
     node.addEventListener("click", () => performance.mark("session-open"), { once: true })
   })
@@ -231,7 +244,7 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
 /** 打开大会话到最新回答进入视口且可输入。 */
 export async function openSessionUntilLatest(page: Page, name: BenchSessionName): Promise<number> {
   const started = performance.now()
-  await sessionCard(page, name).click()
+  await (await revealSessionCard(page, name)).click()
   await waitForLatestInViewport(page)
   return performance.now() - started
 }
