@@ -149,7 +149,7 @@ function printReport(
   prev: Partial<BenchMetrics> | undefined,
 ) {
   console.log("\npig 工作台")
-  console.log("中位；p90 为 90% 样本上限（3 轮时接近最慢一次）；变快为绿。")
+  console.log("中位；p90 为 90% 样本上限（3 轮时接近最慢一次）。变快为绿，变慢超过 10% 为红。")
   const row = (label: string, key: keyof BenchMetrics): MetricRow => ({
     label,
     value: now[key] ?? null,
