@@ -15,7 +15,6 @@ import type {
   ThinkingLevel,
   TranscriptItem,
   Unsubscribe,
-  UserTranscriptItem,
 } from "@/types/common-type.js"
 import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
@@ -27,14 +26,17 @@ import { projectContextUsage } from "@features/composer/lib/context-usage.js"
 import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
 import { catalogFromModels, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
 import {
+  adoptWelcomeOptimistic,
   isSessionOpening,
   mergeLiveTranscript,
+  optimisticUserMessage,
+  PENDING_SESSION_ID,
   phaseLabel,
   projectOptimisticTranscript,
   projectSessionSnapshot,
   sessionState,
 } from "@features/session-workbench/lib/session-state.js"
-import type { SessionProjection } from "@features/session-workbench/type.js"
+import type { OptimisticUserMessage, SessionProjection } from "@features/session-workbench/type.js"
 
 interface CreateSessionInput {
   cwd: string
@@ -293,6 +295,7 @@ export function useSessionLifecycle(
   const idleDraft = shallowRef("")
   const submitting = ref(false)
   const aborting = ref(false)
+  const welcomeOptimistic = shallowRef<OptimisticUserMessage | null>(null)
 
   const clientState = computed(() => {
     const id = sessionId.value
@@ -321,6 +324,7 @@ export function useSessionLifecycle(
       )
       if (!nextId || sessionId.value !== routeSessionAtStart) return undefined
       cwd.selectCwd(nextCwd)
+      adoptWelcomeOptimistic(states, nextId, welcomeOptimistic.value)
       if (nextId !== sessionId.value) {
         await router.push({ name: "session", params: { sessionId: nextId } })
       }
@@ -340,16 +344,14 @@ export function useSessionLifecycle(
 
     submitting.value = true
     sessionError.value = ""
-    const optimisticItem: UserTranscriptItem = {
-      id: `optimistic-${sessionId.value}-${Date.now()}`,
-      role: "user",
-      content: [{ type: "text", text: normalized }],
-      timestamp: Date.now(),
-    }
-    current.optimisticUser = {
-      item: optimisticItem,
-      knownItemIds: liveTranscript.value.map((item) => item.id),
-    }
+    const optimistic =
+      current.optimisticUser ??
+      optimisticUserMessage(
+        sessionId.value ?? PENDING_SESSION_ID,
+        normalized,
+        liveTranscript.value.map((item) => item.id),
+      )
+    current.optimisticUser = optimistic
     current.draft = ""
 
     try {
@@ -359,7 +361,7 @@ export function useSessionLifecycle(
       sessionError.value = errorMessage(error)
       throw error
     } finally {
-      if (current.optimisticUser?.item.id === optimisticItem.id) current.optimisticUser = null
+      if (current.optimisticUser?.item.id === optimistic.item.id) current.optimisticUser = null
       submitting.value = false
     }
   }
@@ -376,19 +378,32 @@ export function useSessionLifecycle(
     }
   }
 
-  /** 欢迎页首次 Prompt：创建 Session 后立即发送。 */
+  /** 欢迎页首次 Prompt：立刻投影用户句，再创建 Session 并发送。 */
   async function createAndSubmit(nextCwd: string, text: string) {
+    const normalized = text.trim()
+    if (!normalized || creatingCwd.value || welcomeOptimistic.value) return
+
+    const previousDraft = idleDraft.value
+    welcomeOptimistic.value = optimisticUserMessage(PENDING_SESSION_ID, normalized)
+    idleDraft.value = ""
+
     try {
       const nextId = await createSession(nextCwd)
       if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return
       await submitText(text)
+    } catch (error) {
+      if (!sessionId.value && !idleDraft.value) idleDraft.value = previousDraft || text
+      throw error
     } finally {
-      idleDraft.value = ""
+      welcomeOptimistic.value = null
     }
   }
 
   const transcript = computed(() =>
-    projectOptimisticTranscript(liveTranscript.value, clientState.value?.optimisticUser ?? null),
+    projectOptimisticTranscript(
+      liveTranscript.value,
+      clientState.value?.optimisticUser ?? (sessionId.value ? null : welcomeOptimistic.value),
+    ),
   )
   const sessionCwd = computed(() => projection.value?.cwd ?? cwd.lastCwd.value)
   const projectedUsage = computed(() => projectContextUsage(contextUsageEstimate.value))

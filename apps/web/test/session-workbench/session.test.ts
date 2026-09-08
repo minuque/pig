@@ -294,6 +294,39 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     expect(cwd.selectCwd).toHaveBeenCalledWith("/repo")
   })
 
+  it("创建未完成时 transcript 已含乐观用户句", async () => {
+    const { session } = setup()
+    const created = makeSession("s2")
+    let releaseCreate = () => {}
+    let markCreateStarted = () => {}
+    const createStarted = new Promise<void>((resolve) => {
+      markCreateStarted = resolve
+    })
+    const createGate = new Promise<void>((resolve) => {
+      releaseCreate = resolve
+    })
+    createMock.mockImplementation(async () => {
+      markCreateStarted()
+      await createGate
+      return created
+    })
+    session.prompt.value = "任务"
+    const request = session.createAndSubmit("/repo", "任务")
+    await createStarted
+
+    expect(session.prompt.value).toBe("")
+    expect(session.sessionId.value).toBeUndefined()
+    expect(session.transcript.value).toHaveLength(1)
+    expect(session.transcript.value[0]).toMatchObject({
+      role: "user",
+      content: [{ type: "text", text: "任务" }],
+    })
+
+    releaseCreate()
+    await request
+    expect(created.submit).toHaveBeenCalledWith("任务")
+  })
+
   it("创建失败时不提交", async () => {
     const { session } = setup()
     const created = makeSession("s2")
@@ -305,6 +338,19 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     expect(createMock).toHaveBeenCalledTimes(1)
     expect(created.submit).not.toHaveBeenCalled()
     expect(openMock).not.toHaveBeenCalled()
+  })
+
+  it("失败路径：创建失败恢复草稿并清掉乐观句", async () => {
+    const { session } = setup()
+    createMock.mockRejectedValue(new Error("创建失败"))
+    session.prompt.value = "任务"
+
+    await expect(session.createAndSubmit("/repo", "任务")).rejects.toThrow("创建失败")
+
+    expect(session.transcript.value).toEqual([])
+    expect(session.prompt.value).toBe("任务")
+    expect(session.sessionId.value).toBeUndefined()
+    expect(routerPush).not.toHaveBeenCalled()
   })
 
   it("失败路径：创建期间切换会话时不抢回路由且不误发 Prompt", async () => {

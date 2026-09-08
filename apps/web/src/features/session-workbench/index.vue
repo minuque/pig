@@ -22,10 +22,10 @@
             />
           </div>
           <TranscriptView
-            v-else-if="sessionId"
-            :key="sessionId"
+            v-else-if="displaySessionId"
+            :key="displaySessionId"
             ref="transcriptView"
-            :session-id="sessionId"
+            :session-id="displaySessionId"
             :transcript="transcript"
             :running="running"
             :timings="turnTimings"
@@ -102,6 +102,7 @@ import SessionLoading from "@features/session-workbench/components/SessionLoadin
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
+import { PENDING_SESSION_ID } from "@features/session-workbench/lib/session-state.js"
 import StartupError from "@features/startup/components/StartupError.vue"
 import TranscriptView from "@features/transcript-view/index.vue"
 
@@ -147,10 +148,14 @@ const pageError = computed(() => {
   return route.name === "error" ? {} : null
 })
 
+const displaySessionId = computed(
+  () => sessionId.value ?? (transcript.value.length > 0 ? PENDING_SESSION_ID : undefined),
+)
 const showHero = computed(() => {
+  if (transcript.value.length > 0 || running.value) return false
   if (sessionId.value === undefined) return true
   if (sessionPending.value && !creating.value) return false
-  return transcript.value.length === 0 && !running.value
+  return true
 })
 const showLoading = computed(
   () =>

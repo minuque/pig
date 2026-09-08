@@ -13,6 +13,9 @@ import type {
   SessionProjection,
 } from "@features/session-workbench/type.js"
 
+/** 欢迎页第一条 Prompt 还没有真实 sessionId 时的占位。 */
+export const PENDING_SESSION_ID = "pending"
+
 export function sessionState(states: Map<string, SessionClientState>, sessionId: string) {
   let state = states.get(sessionId)
   if (!state) {
@@ -20,6 +23,33 @@ export function sessionState(states: Map<string, SessionClientState>, sessionId:
     states.set(sessionId, state)
   }
   return state
+}
+
+export function optimisticUserMessage(
+  sessionKey: string,
+  text: string,
+  knownItemIds: readonly string[] = [],
+): OptimisticUserMessage {
+  return {
+    item: {
+      id: `optimistic-${sessionKey}-${Date.now()}`,
+      role: "user",
+      content: [{ type: "text", text }],
+      timestamp: Date.now(),
+    },
+    knownItemIds,
+  }
+}
+
+/** 交给真实 Session；已有乐观句则不覆盖，避免两条叠在一起。 */
+export function adoptWelcomeOptimistic(
+  states: Map<string, SessionClientState>,
+  sessionId: string,
+  welcome: OptimisticUserMessage | null,
+): void {
+  if (!welcome) return
+  const state = sessionState(states, sessionId)
+  if (!state.optimisticUser) state.optimisticUser = welcome
 }
 
 function userText(item: TranscriptItem): string {
