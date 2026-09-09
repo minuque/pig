@@ -10,6 +10,7 @@ import {
   thoughtStepLabel,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { lastTurnStartIndex } from "@features/transcript-view/lib/transcript-window.js"
+import { estimateMarkdownSlotPx } from "@features/transcript-view/lib/transcript-markdown.js"
 
 const user: UserTranscriptItem = {
   id: "u1",
@@ -186,5 +187,12 @@ describe("打开已有会话 → 长列表尾部先挂载", () => {
   it("回合不足时返回 0", () => {
     expect(lastTurnStartIndex([])).toBe(0)
     expect(lastTurnStartIndex(buildTimelineRows(manyTurns(3), false))).toBe(0)
+  })
+
+  it("未挂载 Markdown 时按行数估占位高度", () => {
+    expect(estimateMarkdownSlotPx("")).toBe(48)
+    expect(estimateMarkdownSlotPx("一行")).toBe(48)
+    expect(estimateMarkdownSlotPx("a\nb")).toBe(52)
+    expect(estimateMarkdownSlotPx("a\n".repeat(40))).toBe(640)
   })
 })

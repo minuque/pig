@@ -49,7 +49,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  provide,
+  shallowRef,
+  useTemplateRef,
+  watch,
+} from "vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
@@ -68,6 +76,7 @@ import {
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { shouldShowScrollToLatest } from "@features/transcript-view/lib/transcript-scroll.js"
 import { lastTurnStartIndex } from "@features/transcript-view/lib/transcript-window.js"
+import { transcriptScrollRootKey } from "@features/transcript-view/lib/transcript-markdown.js"
 
 const BACKFILL_PER_FRAME = 8
 
@@ -95,6 +104,8 @@ const list = useTemplateRef<HTMLElement>("list")
 function scrollerRoot(): HTMLElement | null {
   return viewport.value
 }
+
+provide(transcriptScrollRootKey, scrollerRoot)
 
 const {
   atBottom,
