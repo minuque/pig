@@ -79,7 +79,7 @@ function onOpen(next: boolean) {
   padding: var(--spacing-sm);
   overflow: auto;
   border-inline-end: var(--border-width) solid var(--hairline);
-  background: var(--surface);
+  background: var(--sidebar);
 }
 
 .nav-item {

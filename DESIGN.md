@@ -11,6 +11,7 @@ colors:
   canvas: "#f5f5f5"
   canvas-soft: "#fafafa"
   surface: "#ffffff"
+  sidebar: "#ffffff"
   panel: "#ffffff"
   ink: "#0a0a0a"
   ink-secondary: "#525252"
@@ -310,11 +311,11 @@ components:
 
 Pi Agent GUI 浅色用中性白色抬升面板，深色用抬升的中性灰表面。系统 UI 字号默认 14px。动作蓝用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
 
-浅色壳层 `{colors.surface}`，分组与输入卡 `{colors.panel}`。深色壳层 `#121212`、分组与输入卡 `#262626`。结构色 `{colors.primary}`（#2563eb）用于动作和焦点。控件圆角 `{rounded.lg}`（12px）。
+浅色侧栏与对话列 `{colors.sidebar}` / `{colors.surface}`，分组与输入卡 `{colors.panel}`。深色侧栏 `#0a0a0a`、对话列 `#121212`、分组与输入卡 `#262626`。结构色 `{colors.primary}`（#2563eb）用于动作和焦点。控件圆角 `{rounded.lg}`（12px）。
 
-深色是同一套分面的中性灰反相：壳层 `#121212`、输入卡与分组 `#262626`、用户气泡 `#262626`、缝 `#404040`。次级井用 `#171717`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
+深色是同一套分面的中性灰反相：侧栏 `#0a0a0a`、对话列 `#121212`、输入卡与分组 `#262626`、用户气泡 `#262626`、缝 `#404040`。次级井用 `#171717`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
 
-窗体、输入卡和菜单均不透明。壳层走 `--surface`，分组与输入卡 `--panel`。输入卡和菜单使用不透明填充，浏览器与桌面颜色一致。浅色是默认入口。
+窗体、输入卡和菜单均不透明。侧栏走 `--sidebar`，对话列 `--surface`，分组与输入卡 `--panel`。输入卡和菜单使用不透明填充，浏览器与桌面颜色一致。浅色是默认入口。
 
 ## Colors
 
@@ -334,7 +335,8 @@ Pi Agent GUI 浅色用中性白色抬升面板，深色用抬升的中性灰表�
 
 ### Surface
 
-- **Surface** (`{colors.surface}` — #ffffff)：壳层（侧栏与对话列）。
+- **Surface** (`{colors.surface}` — #ffffff)：对话列。
+- **Sidebar** (`{colors.sidebar}` — #ffffff)：侧栏画布。
 - **Panel** (`{colors.panel}` — #ffffff)：侧栏分组与输入卡。
 - **Canvas** (`{colors.canvas}` — #f5f5f5)：次级井。
 - **Secondary well** (`{colors.canvas-soft}` — #fafafa)：页面底。
@@ -362,7 +364,8 @@ sunset 是装饰，orange 保留兼容命名，映射到黄色警告色。
 
 | 角色         | 浅色      | 深色      |
 | ------------ | --------- | --------- |
-| 壳层         | `#ffffff` | `#121212` |
+| 对话列       | `#ffffff` | `#121212` |
+| 侧栏         | `#ffffff` | `#0a0a0a` |
 | 选中行       | `#e5e5e5` | `#333333` |
 | 输入卡/分组  | `#ffffff` | `#262626` |
 | 输入边框     | `#d4d4d4` | `#525252` |
@@ -382,7 +385,8 @@ sunset 是装饰，orange 保留兼容命名，映射到黄色警告色。
 
 | 角色        | 值        |
 | ----------- | --------- |
-| 壳层        | `#121212` |
+| 对话列      | `#121212` |
+| 侧栏        | `#0a0a0a` |
 | 输入卡/分组 | `#262626` |
 | 用户气泡    | `#262626` |
 | 主字        | `#fafafa` |
@@ -465,8 +469,8 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 
 ## Do's and Don'ts
 
-- 浅色：壳层白底，分组与输入卡中性白色。
-- 深色：壳层 `#121212`、输入卡与分组 `#262626`、用户气泡 `#262626`、缝 `#404040`。
+- 浅色：侧栏与对话列白底，分组与输入卡中性白色。
+- 深色：侧栏 `#0a0a0a`、对话列 `#121212`、输入卡与分组 `#262626`、用户气泡 `#262626`、缝 `#404040`。
 - `{colors.primary}` 用于动作和选中。
 - 工作台 14px 系统字；标签可用等宽大写。
 - composer / New Session：`{rounded.lg}`。

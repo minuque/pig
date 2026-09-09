@@ -55,17 +55,18 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--sidebar);
   contain: layout style;
   transition: width var(--duration-normal) var(--ease-smooth);
 }
 
 .resizer {
   position: absolute;
-  inset-block: 0;
-  left: var(--left-width);
+  inset-block: var(--nav-shell-pad);
+  left: calc(var(--left-width) - var(--nav-shell-pad));
   z-index: var(--z-resizer);
-  width: 16px;
+  width: var(--spacing-md);
+  margin-inline-start: calc(-1 * var(--spacing-xs));
   cursor: col-resize;
   touch-action: none;
   background: transparent;
@@ -74,7 +75,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   pointer-events: none;
   position: absolute;
   inset-block: 0;
-  left: 0;
+  left: var(--spacing-xs);
   width: 1px;
   background: var(--hover-tint);
   transition: background var(--duration-fast) var(--ease-smooth);
@@ -83,6 +84,16 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
 .resizer:hover::after,
 .shell.is-resizing .resizer::after {
   background: var(--hairline);
+}
+
+html[data-pig-desktop-platform] .resizer {
+  inset-block-start: calc(6px + var(--titlebar-inset));
+}
+html[data-pig-desktop-platform="win32"] .resizer {
+  inset-block-start: var(--nav-shell-pad);
+}
+html[data-pig-desktop-platform="darwin"] .resizer {
+  inset-block-start: 32px;
 }
 
 .shell.is-resizing {
@@ -152,7 +163,7 @@ main {
     transition:
       transform var(--duration-normal) var(--ease-smooth),
       visibility 0s linear var(--duration-normal);
-    background: var(--surface);
+    background: var(--sidebar);
     box-shadow: var(--shadow-drawer);
   }
   .sidebar.open {

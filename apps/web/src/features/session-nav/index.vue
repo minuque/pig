@@ -261,7 +261,7 @@ function onCreateInDir(canonicalPath: string): void {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding: var(--spacing-xs);
+  padding: var(--nav-shell-pad);
   overflow: hidden;
   user-select: none;
 }
@@ -423,37 +423,33 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   flex-direction: column;
   gap: var(--spacing-xxs);
   padding-block-start: var(--spacing-xxs);
-  padding-inline-start: calc(var(--spacing-xs) + var(--size-icon));
-}
-.group-body::before {
-  position: absolute;
-  inset-inline-start: calc(var(--spacing-xs) + var(--size-icon) / 2);
-  top: 0;
-  bottom: 0;
-  border-inline-start: var(--border-width) solid var(--hairline);
-  pointer-events: none;
-  content: "";
+  padding-inline-start: calc(var(--spacing-xs) + var(--size-icon) + var(--spacing-xs));
 }
 .group-body > * {
   position: relative;
 }
-.group-body > *::after {
+.group-body > *::before {
   position: absolute;
-  inset-inline-start: calc(-1 * var(--size-icon) / 2);
-  top: 50%;
-  width: calc(var(--size-icon) / 2);
-  border-block-start: var(--border-width) solid var(--hairline);
+  inset-inline-start: calc(-1 * (var(--size-icon) / 2 + var(--spacing-xs)));
+  top: 0;
+  width: calc(var(--size-icon) / 2 + var(--spacing-xs));
+  height: 50%;
+  border-inline-start: var(--border-width) solid var(--hairline);
+  border-block-end: var(--border-width) solid var(--hairline);
+  border-end-start-radius: var(--radius-md);
   pointer-events: none;
   content: "";
 }
-.group-body > :last-child::before {
+.group-body > :first-child::before {
+  top: calc(-1 * var(--spacing-xxs));
+  height: calc(50% + var(--spacing-xxs));
+}
+.group-body > *:not(:last-child)::after {
   position: absolute;
-  z-index: 1;
-  inset-inline-start: calc(-1 * var(--size-icon) / 2 - 1px);
+  inset-inline-start: calc(-1 * (var(--size-icon) / 2 + var(--spacing-xs)));
   top: 50%;
-  bottom: 0;
-  width: 3px;
-  background: var(--panel);
+  bottom: calc(-1 * var(--spacing-xxs));
+  border-inline-start: var(--border-width) solid var(--hairline);
   pointer-events: none;
   content: "";
 }

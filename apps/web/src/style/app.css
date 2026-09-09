@@ -35,6 +35,7 @@
   --canvas: #f5f5f5;
   --canvas-soft: #fafafa;
   --surface: #ffffff;
+  --sidebar: #ffffff;
   --panel: #ffffff;
   --user-prompt-bg: #f5f5f5;
   --popover: #ffffff;
@@ -168,6 +169,7 @@
   --size-control: 40px;
   --size-menu: 140px;
   --size-sidebar: 280px;
+  --nav-shell-pad: var(--spacing-xs);
   --titlebar-inset: 44px;
   --size-windows-caption: 138px;
   --size-drawer: 360px;
@@ -240,6 +242,7 @@
   --canvas: #171717;
   --canvas-soft: #171717;
   --surface: #121212;
+  --sidebar: #0a0a0a;
   --panel: #262626;
   --user-prompt-bg: #262626;
   --popover: #262626;
@@ -351,6 +354,7 @@
   --color-canvas: var(--canvas);
   --color-canvas-soft: var(--canvas-soft);
   --color-surface: var(--surface);
+  --color-sidebar: var(--sidebar);
   --color-panel: var(--panel);
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
