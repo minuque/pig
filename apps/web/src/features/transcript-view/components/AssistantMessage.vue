@@ -1,6 +1,6 @@
 <template>
   <article>
-    <MarkdownRender v-if="item.text" v-bind="agentMarkdown" :content="item.text" />
+    <MarkdownRender v-if="text" v-bind="agentMarkdown" :content="text" />
 
     <Alert
       v-if="item.error || item.aborted"
@@ -30,6 +30,7 @@ import AlertTitle from "@components/ui/alert/AlertTitle.vue"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import type { AssistantRow } from "@features/transcript-view/type.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
+import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { chatMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 
 const props = withDefaults(
@@ -41,6 +42,10 @@ const props = withDefaults(
 )
 
 const { isDark, codeBlockProps } = useColorScheme()
+const text = useTranscriptReveal(
+  () => props.item.text,
+  () => props.streaming,
+)
 
 const statusLabel = computed(() => {
   const base = props.item.error ? "出错" : "已中止"

@@ -17,7 +17,7 @@ const chatCodeChrome = {
   showExpandButton: true,
 } as const
 
-/** 聊天正文：流式用官网 chat 默认；历史一次画完，不窗口、不推迟重节点。 */
+/** 聊天正文：吐字由 useTranscriptReveal 控节奏；历史一次画完。 */
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean
@@ -31,7 +31,7 @@ export function chatMarkdownProps(input: {
     isDark: input.isDark,
     final: !streaming,
     typewriter: false,
-    smoothStreaming: streaming ? "auto" : false,
+    smoothStreaming: false,
     viewportPriority: false,
     deferNodesUntilVisible: false,
     nodeVirtual: false,
@@ -63,7 +63,7 @@ export function plainMarkdownProps(input: {
     fade: false,
     final: !streaming,
     typewriter: false,
-    smoothStreaming: streaming ? "auto" : false,
+    smoothStreaming: false,
     isDark: input.isDark,
     codeBlockOptions: codeBlockTypography(),
     ...(input.codeBlockProps ? { codeBlockProps: input.codeBlockProps } : {}),
