@@ -423,33 +423,39 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   flex-direction: column;
   gap: var(--spacing-xxs);
   padding-block-start: var(--spacing-xxs);
-  padding-inline-start: calc(var(--spacing-xs) + var(--size-icon) / 2);
+  padding-inline-start: calc(var(--spacing-xs) + var(--size-icon));
+}
+.group-body::before {
+  position: absolute;
+  inset-inline-start: calc(var(--spacing-xs) + var(--size-icon) / 2);
+  top: 0;
+  bottom: 0;
+  border-inline-start: var(--border-width) solid var(--hairline);
+  pointer-events: none;
+  content: "";
 }
 .group-body > * {
   position: relative;
 }
-.group-body > *::before,
 .group-body > *::after {
   position: absolute;
-  inset-inline-start: calc(-1 * (var(--spacing-xs) + var(--size-icon) / 2));
+  inset-inline-start: calc(-1 * var(--size-icon) / 2);
+  top: 50%;
+  width: calc(var(--size-icon) / 2);
+  border-block-start: var(--border-width) solid var(--hairline);
   pointer-events: none;
   content: "";
 }
-.group-body > *::before {
-  top: 0;
-  bottom: 0;
-  border-inline-start: var(--border-width) solid var(--hairline);
-}
-.group-body > :first-child::before {
-  top: calc(-1 * var(--spacing-xxs));
-}
 .group-body > :last-child::before {
-  bottom: 50%;
-}
-.group-body > *::after {
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: calc(-1 * var(--size-icon) / 2 - 1px);
   top: 50%;
-  width: calc(var(--spacing-xs) + var(--size-icon) / 2);
-  border-block-start: var(--border-width) solid var(--hairline);
+  bottom: 0;
+  width: 3px;
+  background: var(--panel);
+  pointer-events: none;
+  content: "";
 }
 
 .more-button {
