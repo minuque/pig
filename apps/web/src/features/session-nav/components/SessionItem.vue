@@ -1,8 +1,11 @@
 <template>
   <div class="session-item">
-    <span v-if="state && !renaming" class="session-state" :aria-label="stateLabel">
-      <Spinner v-if="state === 'running'" :size="12" />
-      <span v-else class="state-dot" :class="state"></span>
+    <span
+      v-if="state && state !== 'running' && !renaming"
+      class="session-state"
+      :aria-label="stateLabel"
+    >
+      <span class="state-dot" :class="state"></span>
     </span>
 
     <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
@@ -27,8 +30,11 @@
               @blur="commitRename"
             />
             <span v-else class="title">{{ session.title }}</span>
+            <span v-if="streaming" class="session-spin" :aria-label="stateLabel">
+              <Spinner :size="12" />
+            </span>
             <time
-              v-if="session.updatedAt"
+              v-else-if="session.updatedAt"
               class="session-time"
               :datetime="new Date(session.updatedAt).toISOString()"
             >
@@ -123,6 +129,7 @@ const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
 
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
+const streaming = computed(() => props.state === "running" && !renaming.value)
 const stateLabel = computed(() => {
   if (props.state === "running") return "运行中"
   if (props.state === "unread") return "运行完成但未打开"
@@ -262,6 +269,12 @@ function confirmDelete() {
 .session-card[data-state="open"] .title,
 .session-card.active .title {
   color: var(--ink);
+}
+
+.session-spin {
+  flex: none;
+  display: flex;
+  color: var(--ink-muted);
 }
 
 .session-time {

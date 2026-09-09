@@ -415,6 +415,9 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 }
 
 .group-body {
+  --tree-y: calc(var(--size-nav-rail) / 2);
+  --tree-r: var(--radius-sm);
+  --tree-elbow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='19' fill='none' shape-rendering='geometricPrecision'%3E%3Cpath d='M.5 0V12Q.5 18 6.5 18H15.5' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E");
   position: relative;
   display: flex;
   flex-direction: column;
@@ -430,22 +433,23 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 .group-body > *:not(:last-child)::after {
   box-sizing: border-box;
   position: absolute;
-  inset-inline-start: calc(-1 * (var(--size-icon) / 2 + var(--spacing-xs)));
+  inset-inline-start: calc(-1 * var(--spacing-md));
   pointer-events: none;
   content: "";
 }
 .group-body > *::before {
   top: 0;
-  width: calc(var(--size-icon) / 2 + var(--spacing-xs));
-  height: 50%;
-  border-inline-start: var(--border-width) solid var(--ink-muted);
-  border-block-end: var(--border-width) solid var(--ink-muted);
-  border-end-start-radius: var(--radius-sm);
+  width: var(--spacing-md);
+  height: calc(var(--tree-y) + 1px);
+  background: var(--ink-muted);
+  -webkit-mask: var(--tree-elbow) no-repeat;
+  mask: var(--tree-elbow) no-repeat;
 }
 .group-body > *:not(:last-child)::after {
-  top: calc(50% - var(--radius-sm));
+  top: calc(var(--tree-y) - var(--tree-r));
   bottom: 0;
-  border-inline-start: var(--border-width) solid var(--ink-muted);
+  width: var(--border-width);
+  background: var(--ink-muted);
 }
 
 .more-button {

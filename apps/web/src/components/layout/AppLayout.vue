@@ -75,16 +75,21 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
 .resizer::after {
   pointer-events: none;
   position: absolute;
-  inset-block: 0;
+  inset-block-start: 50%;
   left: var(--spacing-xs);
-  width: 1px;
-  background: var(--hover-tint);
-  transition: background var(--duration-fast) var(--ease-smooth);
+  width: var(--spacing-xxs);
+  height: var(--spacing-lg);
+  margin-inline-start: calc(var(--spacing-xxs) / -2);
+  margin-block-start: calc(var(--spacing-lg) / -2);
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
   content: "";
 }
 .resizer:hover::after,
 .shell.is-resizing .resizer::after {
-  background: var(--hairline);
+  opacity: 1;
 }
 
 html[data-pig-desktop-platform] .resizer {
@@ -125,7 +130,8 @@ main {
 
 @media (prefers-reduced-motion: reduce) {
   .sidebar,
-  .resizer {
+  .resizer,
+  .resizer::after {
     transition: none;
   }
 }
@@ -179,7 +185,8 @@ main {
 @media (prefers-reduced-motion: reduce) {
   /* 置于末尾，覆盖上方 media 块内的 transition */
   .sidebar,
-  .resizer {
+  .resizer,
+  .resizer::after {
     transition: none;
     animation: none;
   }

@@ -25,7 +25,10 @@ import { contextUsage, sessionTranscript } from "@client/platform.js"
 import { projectContextUsage } from "@features/composer/lib/context-usage.js"
 import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
 import { catalogFromModels, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
-import { isOpenAborted, raceRemoteOpen } from "@features/session-workbench/lib/abortable-open.js"
+import {
+  createAbortableOpen,
+  isOpenAborted,
+} from "@features/session-workbench/lib/abortable-open.js"
 import {
   adoptWelcomeOptimistic,
   isSessionOpening,
@@ -67,6 +70,7 @@ export function useSessionLifecycle(
   // 最新想打开的 session：快速连点时跳过中间 id，只落地最后一次
   let wantedId: string | undefined
   let abortInflightOpen: (() => void) | undefined
+  const { raceRemoteOpen, discard } = createAbortableOpen()
 
   const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
   let contextUsageRequest = 0
@@ -89,8 +93,7 @@ export function useSessionLifecycle(
   function attach(next: RemoteSession) {
     const previous = remote.value
     detach()
-    // 替换旧实例：释放其 lease（RemoteSession.dispose 幂等，可重复调用）
-    if (previous && previous !== next) void previous.dispose()
+    if (previous && previous !== next) void discard(previous)
     remote.value = next
     let usageRevision: number | undefined
     unsubscribeState = next.subscribe((nextState) => {
@@ -155,7 +158,7 @@ export function useSessionLifecycle(
   function release() {
     const previous = remote.value
     detach()
-    if (previous) void previous.dispose()
+    if (previous) void discard(previous)
   }
 
   /** 串行执行替换操作：前一次失败不阻塞后续。 */
@@ -185,12 +188,12 @@ export function useSessionLifecycle(
       const target = pi.client.value
       if (!target) throw new Error("PiClient 未连接")
       release()
-      const raced = raceRemoteOpen(() => RemoteSession.open(target, id))
+      const raced = raceRemoteOpen(id, () => RemoteSession.open(target, id))
       abortInflightOpen = raced.abort
       try {
         const next = await raced.promise
         if (wantedId !== id) {
-          await next.dispose()
+          await discard(next)
           return
         }
         attach(next)
@@ -215,7 +218,7 @@ export function useSessionLifecycle(
         ...(options?.thinkingLevel !== undefined ? { thinkingLevel: options.thinkingLevel } : {}),
       })
       if (sessionId.value !== routeSessionAtStart) {
-        await next.dispose()
+        await discard(next)
         return undefined
       }
       wantedId = next.id
@@ -250,7 +253,7 @@ export function useSessionLifecycle(
     abortInflightOpen = undefined
     const current = remote.value
     detach()
-    if (current) await current.dispose()
+    if (current) await discard(current)
   }
 
   let initialized = false
