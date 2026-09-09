@@ -99,10 +99,9 @@ describe("session card foot", () => {
         messageCount: 5,
         model: { provider: "anthropic", id: "claude" },
       }),
-    ).toEqual({ messageCount: 5, modelProvider: "anthropic", outcome: undefined })
+    ).toEqual({ messageCount: 5, outcome: undefined })
     expect(sessionCardFoot("s1", extras, undefined)).toEqual({
       messageCount: 2,
-      modelProvider: "openai",
       outcome: undefined,
     })
   })

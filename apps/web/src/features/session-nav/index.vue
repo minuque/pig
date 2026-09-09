@@ -41,7 +41,6 @@
                       :pinned="true"
                       :state="sessionState(session.id)"
                       :now="now"
-                      :model-provider="modelProvider(session.id)"
                       @navigate="onSessionNavigate(session.cwd)"
                       @toggle-pinned="togglePinned"
                       @rename="renameSession"
@@ -84,7 +83,6 @@
                           :pinned="pinnedIds.has(session.id)"
                           :state="sessionState(session.id)"
                           :now="now"
-                          :model-provider="modelProvider(session.id)"
                           @navigate="onSessionNavigate(session.cwd)"
                           @toggle-pinned="togglePinned"
                           @rename="renameSession"
@@ -232,10 +230,6 @@ watch(workspaceError, (message) => {
 
 function sessionState(id: string): SidebarSessionState | undefined {
   return cardFootById.value.get(id)?.state
-}
-
-function modelProvider(id: string): string {
-  return cardFootById.value.get(id)?.modelProvider ?? ""
 }
 
 function toggleTimeSection(key: "today" | "recent"): void {

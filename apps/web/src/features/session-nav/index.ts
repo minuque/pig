@@ -58,7 +58,6 @@ function createNav(
       string,
       {
         messageCount: number | undefined
-        modelProvider: string
         state: SidebarSessionState | undefined
       }
     >()

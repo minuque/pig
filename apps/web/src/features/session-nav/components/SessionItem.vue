@@ -1,22 +1,9 @@
 <template>
   <div class="session-item">
-    <!-- 置顶按钮 -->
     <span v-if="state && !renaming" class="session-state" :aria-label="stateLabel">
       <Spinner v-if="state === 'running'" :size="12" />
       <span v-else class="state-dot" :class="state"></span>
     </span>
-    <button
-      v-if="!renaming"
-      class="pin-toggle press-scale"
-      type="button"
-      :title="pinned ? '取消置顶' : '置顶'"
-      :aria-label="pinned ? '取消置顶' : '置顶'"
-      :aria-pressed="pinned"
-      @click.stop="emit('togglePinned', session.id)"
-    >
-      <PinOff v-if="pinned" class="size-icon" />
-      <Pin v-else class="size-icon" />
-    </button>
 
     <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
@@ -47,9 +34,6 @@
             >
               {{ relativeTime }}
             </time>
-            <span v-if="modelProvider" class="card-model">
-              <VendorMark :vendor="modelProvider" :size="13" />
-            </span>
           </div>
         </component>
       </ContextMenuTrigger>
@@ -111,7 +95,6 @@ import {
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
-import VendorMark from "@features/composer/components/VendorMark.vue"
 
 const props = withDefaults(
   defineProps<{
@@ -120,10 +103,8 @@ const props = withDefaults(
     pinned?: boolean
     state?: SidebarSessionState | undefined
     now: number
-    modelProvider?: string
   }>(),
   {
-    modelProvider: "",
     state: undefined,
   },
 )
@@ -241,8 +222,7 @@ function confirmDelete() {
   width: 100%;
 }
 
-.session-state,
-.pin-toggle {
+.session-state {
   position: absolute;
   z-index: 1;
   inset-inline-start: calc(-1 * var(--size-icon-2xs));
@@ -251,30 +231,7 @@ function confirmDelete() {
   place-items: center;
   width: var(--size-icon-2xs);
   height: var(--size-icon-2xs);
-  transition: opacity var(--duration-fast) var(--ease-smooth);
-}
-.session-item:hover .session-state,
-.session-item:has(.pin-toggle:focus-visible) .session-state {
-  opacity: 0;
-}
-
-.pin-toggle {
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-xs);
-  background: transparent;
-  color: var(--ink-muted);
-  opacity: 0;
   pointer-events: none;
-}
-.session-item:hover .pin-toggle,
-.pin-toggle:focus-visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-.pin-toggle:hover,
-.pin-toggle:focus-visible {
-  color: var(--ink);
 }
 
 .state-dot {
@@ -301,32 +258,9 @@ function confirmDelete() {
   white-space: nowrap;
   transition: color var(--duration-fast) var(--ease-smooth);
 }
-
-.card-model {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-}
-
-.card-model :deep(.vendor-mark) {
-  display: block;
-  line-height: 0;
-  filter: brightness(0.72);
-  transition:
-    filter var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
-}
-
 .session-item:hover .title,
 .session-card[data-state="open"] .title,
 .session-card.active .title {
-  color: var(--ink);
-}
-
-.session-item:hover .card-model :deep(.vendor-mark),
-.session-card[data-state="open"] .card-model :deep(.vendor-mark),
-.session-card.active .card-model :deep(.vendor-mark) {
-  filter: none;
   color: var(--ink);
 }
 

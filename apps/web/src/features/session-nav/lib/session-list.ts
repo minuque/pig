@@ -187,16 +187,13 @@ export function sessionCardFoot(
   live: SessionCardLive | undefined,
 ): {
   messageCount: number | undefined
-  modelProvider: string
   outcome: "complete" | "error" | undefined
 } {
   const extra = extras.get(sessionId)
   const isLive = live?.sessionId === sessionId
-  const model = isLive ? live.model : extra?.model
 
   return {
     messageCount: isLive ? (live.messageCount ?? extra?.messageCount) : extra?.messageCount,
-    modelProvider: model?.provider ?? "",
     outcome: isLive ? (live.outcome ?? extra?.outcome) : extra?.outcome,
   }
 }
