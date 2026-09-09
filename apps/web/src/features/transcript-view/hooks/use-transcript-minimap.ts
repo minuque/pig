@@ -1,4 +1,12 @@
-import { computed, onBeforeUnmount, shallowRef, watch, type MaybeRefOrGetter, toValue } from "vue"
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  shallowRef,
+  watch,
+  type MaybeRefOrGetter,
+  toValue,
+} from "vue"
 import type { TimelineRow } from "@features/transcript-view/type.js"
 import {
   deriveTranscriptMinimapItems,
@@ -12,56 +20,90 @@ export function useTranscriptMinimap(
     viewport: MaybeRefOrGetter<HTMLElement | null>
     column: MaybeRefOrGetter<HTMLElement | null>
   },
+  mountedKeys: MaybeRefOrGetter<readonly string[]>,
 ) {
   const viewportWidth = shallowRef(0)
   const contentWidth = shallowRef(0)
   const inViewIds = shallowRef<readonly string[]>([])
+  const visible = new Set<string>()
 
   const items = computed(() => deriveTranscriptMinimapItems(toValue(rows)))
   const hitStripWidth = computed(() =>
     resolveMinimapHitStripWidth(viewportWidth.value, contentWidth.value),
   )
 
-  function collectInViewIds(port: HTMLElement | null): string[] {
-    if (!port) return []
-    const box = port.getBoundingClientRect()
-    const ids: string[] = []
-    for (const el of port.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
-      const row = el.getBoundingClientRect()
-      if (row.bottom <= box.top || row.top >= box.bottom) continue
-      const id = el.dataset.minimapRow
-      if (id) ids.push(id)
-    }
-    return ids
-  }
+  let inViewObserver: IntersectionObserver | undefined
+  let sizeObserver: ResizeObserver | undefined
 
-  function syncLayout(port: HTMLElement | null, column: HTMLElement | null) {
-    viewportWidth.value = port?.clientWidth ?? 0
-    contentWidth.value = column?.offsetWidth ?? 0
-    const next = collectInViewIds(port)
+  function publishInView() {
+    const next = toValue(rows)
+      .filter((row) => row.role === "user" && visible.has(row.id))
+      .map((row) => row.id)
     if (!sameIdList(inViewIds.value, next)) inViewIds.value = next
   }
 
-  function tick() {
-    syncLayout(toValue(layout.viewport), toValue(layout.column))
+  function onIntersect(entries: IntersectionObserverEntry[]) {
+    for (const entry of entries) {
+      const id = (entry.target as HTMLElement).dataset.minimapRow
+      if (!id) continue
+      if (entry.isIntersecting) visible.add(id)
+      else visible.delete(id)
+    }
+    publishInView()
   }
 
-  let layoutObserver: ResizeObserver | undefined
+  function syncWidths() {
+    const port = toValue(layout.viewport)
+    const column = toValue(layout.column)
+    viewportWidth.value = port?.clientWidth ?? 0
+    contentWidth.value = column?.offsetWidth ?? 0
+  }
+
+  function observeInView() {
+    inViewObserver?.disconnect()
+    inViewObserver = undefined
+    visible.clear()
+    const port = toValue(layout.viewport)
+    if (!port) {
+      publishInView()
+      return
+    }
+    inViewObserver = new IntersectionObserver(onIntersect, { root: port, threshold: 0 })
+    for (const el of port.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
+      inViewObserver.observe(el)
+    }
+  }
+
   watch(
     () => [toValue(layout.viewport), toValue(layout.column)] as const,
-    ([el, column]) => {
-      layoutObserver?.disconnect()
-      layoutObserver = undefined
-      if (!el) return
-      layoutObserver = new ResizeObserver(tick)
-      layoutObserver.observe(el)
-      if (column) layoutObserver.observe(column)
-      tick()
+    ([port, column]) => {
+      sizeObserver?.disconnect()
+      sizeObserver = undefined
+      if (!port) {
+        viewportWidth.value = 0
+        contentWidth.value = 0
+        return
+      }
+      sizeObserver = new ResizeObserver(syncWidths)
+      sizeObserver.observe(port)
+      if (column) sizeObserver.observe(column)
+      syncWidths()
     },
     { flush: "post" },
   )
 
-  onBeforeUnmount(() => layoutObserver?.disconnect())
+  watch(
+    () => [toValue(layout.viewport), toValue(mountedKeys).join("\0")] as const,
+    () => {
+      void nextTick(observeInView)
+    },
+    { flush: "post" },
+  )
 
-  return { items, inViewIds, hitStripWidth, syncLayout }
+  onBeforeUnmount(() => {
+    inViewObserver?.disconnect()
+    sizeObserver?.disconnect()
+  })
+
+  return { items, inViewIds, hitStripWidth }
 }

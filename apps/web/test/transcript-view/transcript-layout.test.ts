@@ -9,7 +9,10 @@ import {
   isToolRow,
   thoughtStepLabel,
 } from "@features/transcript-view/lib/transcript-rows.js"
-import { lastTurnStartIndex } from "@features/transcript-view/lib/transcript-window.js"
+import {
+  lastTurnStartIndex,
+  resolveTranscriptWindow,
+} from "@features/transcript-view/lib/transcript-window.js"
 
 const user: UserTranscriptItem = {
   id: "u1",
@@ -186,5 +189,46 @@ describe("打开已有会话 → 长列表尾部先挂载", () => {
   it("回合不足时返回 0", () => {
     expect(lastTurnStartIndex([])).toBe(0)
     expect(lastTurnStartIndex(buildTimelineRows(manyTurns(3), false))).toBe(0)
+  })
+
+  it("窗口切片下标", () => {
+    const heights = [80, 80, 80, 80, 80, 80]
+    expect(resolveTranscriptWindow(heights, 0, 160, 0)).toEqual({
+      start: 0,
+      end: 2,
+      padTop: 0,
+      padBottom: 320,
+    })
+    expect(resolveTranscriptWindow(heights, 200, 80, 0)).toEqual({
+      start: 2,
+      end: 4,
+      padTop: 160,
+      padBottom: 160,
+    })
+  })
+
+  it("overscan 向外扩下行下标", () => {
+    const heights = [80, 80, 80, 80, 80, 80]
+    expect(resolveTranscriptWindow(heights, 200, 80, 1)).toEqual({
+      start: 1,
+      end: 5,
+      padTop: 80,
+      padBottom: 80,
+    })
+  })
+
+  it("空 heights 时返回全量或 0..n", () => {
+    expect(resolveTranscriptWindow([], 0, 400, 2)).toEqual({
+      start: 0,
+      end: 0,
+      padTop: 0,
+      padBottom: 0,
+    })
+    expect(resolveTranscriptWindow([0, 0, 0, 0], 120, 100, 1)).toEqual({
+      start: 0,
+      end: 4,
+      padTop: 0,
+      padBottom: 0,
+    })
   })
 })

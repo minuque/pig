@@ -18,12 +18,24 @@
     >
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
-          <TransitionGroup name="timeline-row" tag="div" class="timeline-rows" :css="liveEnter">
+          <div
+            v-if="padTop > 0"
+            class="timeline-spacer"
+            :style="{ height: `${padTop}px` }"
+            aria-hidden="true"
+          ></div>
+          <TransitionGroup
+            name="timeline-row"
+            tag="div"
+            class="timeline-rows"
+            :css="liveEnter && !windowed"
+          >
             <div
               v-for="(row, index) in mountedRows"
               :key="mountedKeys[index] ?? row.id"
+              :ref="(el) => bindRow(el, mountedKeys[index] ?? row.id)"
               class="row"
-              :class="`row-${row.role}`"
+              :class="[`row-${row.role}`, transcriptRowGapClass(mountedFrom + index, rows)]"
               :data-minimap-row="row.role === 'user' ? row.id : undefined"
             >
               <UserMessage v-if="row.role === 'user'" :item="row" />
@@ -42,6 +54,12 @@
               />
             </div>
           </TransitionGroup>
+          <div
+            v-if="padBottom > 0"
+            class="timeline-spacer"
+            :style="{ height: `${padBottom}px` }"
+            aria-hidden="true"
+          ></div>
         </div>
       </div>
     </div>
@@ -49,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, useTemplateRef, watch } from "vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
@@ -57,6 +75,7 @@ import ToolSteps from "@features/transcript-view/components/ToolSteps.vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
+import { useTranscriptWindow } from "@features/transcript-view/hooks/use-transcript-window.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
@@ -67,9 +86,7 @@ import {
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { shouldShowScrollToLatest } from "@features/transcript-view/lib/transcript-scroll.js"
-import { lastTurnStartIndex } from "@features/transcript-view/lib/transcript-window.js"
-
-const BACKFILL_PER_FRAME = 8
+import { transcriptRowGapClass } from "@features/transcript-view/lib/transcript-window.js"
 
 const props = defineProps<{
   sessionId: string
@@ -80,9 +97,6 @@ const props = defineProps<{
 
 const rows = computed(() => buildTimelineRows(props.transcript, props.running, props.timings))
 const rowKeys = computed(() => timelineRowKeys(rows.value))
-const windowStart = shallowRef(lastTurnStartIndex(rows.value))
-const mountedRows = computed(() => rows.value.slice(windowStart.value))
-const mountedKeys = computed(() => rowKeys.value.slice(windowStart.value))
 
 const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
@@ -112,21 +126,41 @@ const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
 
+const {
+  mountedFrom,
+  mountedRows,
+  mountedKeys,
+  padTop,
+  padBottom,
+  liveEnter,
+  windowed,
+  bindRow,
+  rowOffset,
+  scheduleWindow,
+  applyViewportWindow,
+  armTailWindow,
+  scheduleBackfillAfterPaint,
+  stopBackfill,
+} = useTranscriptWindow({
+  rows,
+  keys: rowKeys,
+  running: () => props.running,
+  atBottom,
+  viewport,
+  pinIfNeeded,
+})
+
 let sizeObserver: ResizeObserver | undefined
 
 const {
   items: minimapItems,
   inViewIds,
   hitStripWidth,
-  syncLayout,
-} = useTranscriptMinimap(mountedRows, {
-  viewport,
-  column,
-})
+} = useTranscriptMinimap(rows, { viewport, column }, mountedKeys)
 
 function onTranscriptScroll() {
-  syncLayout(viewport.value, column.value)
   onScroll()
+  scheduleWindow()
 }
 
 function onToggleExpand(id: string, open: boolean) {
@@ -145,7 +179,19 @@ function onToggleTool(rowId: string, id: string, open: boolean) {
 function selectMinimapItem(item: TranscriptMinimapItem) {
   const root = scrollerRoot()
   const target = root?.querySelector<HTMLElement>(`[data-minimap-row="${CSS.escape(item.id)}"]`)
-  if (target) scrollToElement(target)
+  if (target) {
+    scrollToElement(target)
+    return
+  }
+  if (!root) return
+  releasePinnedToBottom()
+  atBottom.value = false
+  root.scrollTop = rowOffset(item.rowIndex)
+  applyViewportWindow()
+  void nextTick(() => {
+    const el = root.querySelector<HTMLElement>(`[data-minimap-row="${CSS.escape(item.id)}"]`)
+    if (el) scrollToElement(el)
+  })
 }
 
 function observeSizes() {
@@ -155,76 +201,10 @@ function observeSizes() {
   const body = list.value
   if (!root && !body) return
   sizeObserver = new ResizeObserver(() => {
-    syncLayout(viewport.value, column.value)
     pinIfNeeded()
   })
   if (root) sizeObserver.observe(root)
   if (body) sizeObserver.observe(body)
-}
-
-const liveEnter = shallowRef(false)
-let backfillRaf = 0
-let backfillGen = 0
-
-function enableLiveEnter() {
-  if (liveEnter.value) return
-  void nextTick(() => {
-    liveEnter.value = true
-  })
-}
-
-function finishBackfill() {
-  if (rows.value.length > 0) enableLiveEnter()
-  else liveEnter.value = true
-}
-
-function stopBackfill() {
-  backfillGen += 1
-  if (!backfillRaf) return
-  cancelAnimationFrame(backfillRaf)
-  backfillRaf = 0
-}
-
-function runBackfill(gen: number) {
-  backfillRaf = 0
-  if (gen !== backfillGen) return
-  if (windowStart.value <= 0) {
-    finishBackfill()
-    return
-  }
-  const root = viewport.value
-  const prevHeight = root?.scrollHeight ?? 0
-  windowStart.value = Math.max(0, windowStart.value - BACKFILL_PER_FRAME)
-  void nextTick(() => {
-    if (gen !== backfillGen) return
-    const el = viewport.value
-    if (el) {
-      if (atBottom.value) pinIfNeeded()
-      else el.scrollTop += el.scrollHeight - prevHeight
-    }
-    if (windowStart.value > 0) backfillRaf = requestAnimationFrame(() => runBackfill(gen))
-    else finishBackfill()
-  })
-}
-
-function scheduleBackfillAfterPaint() {
-  stopBackfill()
-  if (windowStart.value <= 0) {
-    finishBackfill()
-    return
-  }
-  liveEnter.value = false
-  const gen = backfillGen
-  backfillRaf = requestAnimationFrame(() => {
-    if (gen !== backfillGen) return
-    backfillRaf = requestAnimationFrame(() => runBackfill(gen))
-  })
-}
-
-function armTailWindow() {
-  liveEnter.value = false
-  stopBackfill()
-  windowStart.value = lastTurnStartIndex(rows.value)
 }
 
 watch(
@@ -245,10 +225,7 @@ watch(rows, (next, prev) => {
     armTailWindow()
     scrollToLatest("auto")
     scheduleBackfillAfterPaint()
-    return
   }
-  if (windowStart.value > next.length) windowStart.value = lastTurnStartIndex(next)
-  else if (atBottom.value) void nextTick(pinIfNeeded)
 })
 
 watch(
@@ -282,7 +259,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 
 .transcript-viewport {
   position: relative;
-  container-type: size;
   min-height: 0;
   flex: 1;
   overflow-x: hidden;
@@ -304,21 +280,31 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 }
 
 .transcript-list,
-.timeline-rows,
-.row {
+.timeline-rows {
   box-sizing: border-box;
   width: 100%;
 }
 
-.row + .row {
-  margin-block-start: var(--spacing-md);
-}
-.row-user + .row {
-  margin-block-start: var(--spacing-lg);
+.timeline-spacer {
+  box-sizing: border-box;
+  width: 100%;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
-.row + .row-user {
-  margin-block-start: var(--spacing-xl);
+.row {
+  box-sizing: border-box;
+  width: 100%;
+  contain: layout style;
+}
+.row-gap {
+  padding-top: var(--spacing-md);
+}
+.row-gap-turn {
+  padding-top: var(--spacing-lg);
+}
+.row-gap-user {
+  padding-top: var(--spacing-xl);
 }
 
 .row :deep(.stamp) {
