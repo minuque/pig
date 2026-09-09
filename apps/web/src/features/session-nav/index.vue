@@ -441,14 +441,14 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   top: 0;
   width: calc(var(--size-icon) / 2 + var(--spacing-xs));
   height: 50%;
-  border-inline-start: var(--border-width) solid var(--hairline);
-  border-block-end: var(--border-width) solid var(--hairline);
+  border-inline-start: var(--border-width) solid var(--ink-muted);
+  border-block-end: var(--border-width) solid var(--ink-muted);
   border-end-start-radius: var(--radius-sm);
 }
 .group-body > *:not(:last-child)::after {
   top: calc(50% - var(--radius-sm));
   bottom: 0;
-  border-inline-start: var(--border-width) solid var(--hairline);
+  border-inline-start: var(--border-width) solid var(--ink-muted);
 }
 
 .more-button {
