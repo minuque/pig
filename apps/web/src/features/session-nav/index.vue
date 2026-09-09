@@ -421,37 +421,34 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xxs);
-  padding-block-start: var(--spacing-xxs);
   padding-inline-start: calc(var(--spacing-xs) + var(--size-icon) + var(--spacing-xs));
 }
 .group-body > * {
   position: relative;
 }
-.group-body > *::before {
+.group-body > *:not(:last-child) {
+  padding-block-end: var(--spacing-xxs);
+}
+.group-body > *::before,
+.group-body > *:not(:last-child)::after {
+  box-sizing: border-box;
   position: absolute;
   inset-inline-start: calc(-1 * (var(--size-icon) / 2 + var(--spacing-xs)));
+  pointer-events: none;
+  content: "";
+}
+.group-body > *::before {
   top: 0;
   width: calc(var(--size-icon) / 2 + var(--spacing-xs));
   height: 50%;
-  border-inline-start: var(--border-width) solid var(--hairline);
-  border-block-end: var(--border-width) solid var(--hairline);
-  border-end-start-radius: var(--radius-md);
-  pointer-events: none;
-  content: "";
-}
-.group-body > :first-child::before {
-  top: calc(-1 * var(--spacing-xxs));
-  height: calc(50% + var(--spacing-xxs));
+  border-inline-start: var(--nav-tree-line) solid var(--hairline);
+  border-block-end: var(--nav-tree-line) solid var(--hairline);
+  border-end-start-radius: var(--nav-tree-line);
 }
 .group-body > *:not(:last-child)::after {
-  position: absolute;
-  inset-inline-start: calc(-1 * (var(--size-icon) / 2 + var(--spacing-xs)));
-  top: 50%;
-  bottom: calc(-1 * var(--spacing-xxs));
-  border-inline-start: var(--border-width) solid var(--hairline);
-  pointer-events: none;
-  content: "";
+  top: calc(50% - var(--nav-tree-line));
+  bottom: 0;
+  border-inline-start: var(--nav-tree-line) solid var(--hairline);
 }
 
 .more-button {
