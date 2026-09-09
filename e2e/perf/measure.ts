@@ -132,12 +132,31 @@ export async function seedWorkspace(page: Page, workspaceId: string) {
   )
 }
 
+/** tsx keepNames 会给函数包 __name，Playwright 把源码 eval 进页面后会找不到。 */
+function withNameShim(fn: unknown): unknown {
+  if (typeof fn !== "function") return fn
+  return new Function(
+    "...args",
+    `const __name = (f) => f;\nreturn (${fn.toString()}).apply(null, args);`,
+  )
+}
+
+function shimPageFunctions(page: Page) {
+  const evaluate = page.evaluate.bind(page)
+  page.evaluate = ((fn: never, arg?: never) =>
+    evaluate(withNameShim(fn) as never, arg)) as typeof page.evaluate
+  const waitForFunction = page.waitForFunction.bind(page)
+  page.waitForFunction = ((fn: never, arg?: never, options?: never) =>
+    waitForFunction(withNameShim(fn) as never, arg, options)) as typeof page.waitForFunction
+}
+
 export async function prepareBenchPage(
   page: Page,
   workspaceId: string,
   observers = false,
   options?: { reducedMotion?: boolean },
 ) {
+  shimPageFunctions(page)
   if (options?.reducedMotion !== false) await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, workspaceId)
   if (observers) await installObservers(page)
@@ -281,12 +300,17 @@ async function beginScrollFrames(page: Page) {
     slot.__pigScrollStop = () => {
       running = false
     }
-    const tick = (now: number) => {
-      if (last) slot.__pigScrollFrames.push(now - last)
-      last = now
-      if (running) requestAnimationFrame(tick)
-    }
-    requestAnimationFrame(tick)
+    const step: FrameRequestCallback[] = [
+      (now) => {
+        if (last) slot.__pigScrollFrames.push(now - last)
+        last = now
+        const next = step[0]
+        if (running && next) requestAnimationFrame(next)
+      },
+    ]
+    const first = step[0]
+    if (!first) throw new Error("滚动帧回调未安装")
+    requestAnimationFrame(first)
   })
 }
 
