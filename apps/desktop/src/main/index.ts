@@ -60,6 +60,21 @@ async function shutdown(): Promise<void> {
   }
 }
 
+function onInterrupt(): void {
+  if (vite) {
+    killVite(vite)
+    vite = undefined
+  }
+  void shutdown()
+}
+
+process.once("SIGINT", onInterrupt)
+process.once("SIGTERM", onInterrupt)
+if (process.platform === "win32") process.once("SIGBREAK", onInterrupt)
+process.once("exit", () => {
+  if (vite) killVite(vite)
+})
+
 app.on("window-all-closed", () => {
   // 单窗口本地工具：关窗必须释放端口，darwin 也退出
   void shutdown()

@@ -157,8 +157,6 @@ function printReport(
   runtime: string,
 ) {
   console.log(`\npig 工作台（${runtime}）`)
-  console.log("中位；p90 为 90% 样本上限（3 轮时接近最慢一次）。变快为绿，变慢超过 10% 为红。")
-  console.log("滚动项为期间最差动画帧；旁注为该帧折合 fps。")
   const row = (label: string, key: keyof BenchMetrics, frame = false): MetricRow => ({
     label,
     value: now[key] ?? null,

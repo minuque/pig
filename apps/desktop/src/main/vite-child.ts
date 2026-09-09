@@ -1,6 +1,8 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process"
 import { fileURLToPath } from "node:url"
 
+import { VITE_DEV_ORIGIN } from "./urls.js"
+
 const REPO_ROOT = fileURLToPath(new URL("../../../../", import.meta.url))
 
 /** CSI / OSC 等 ANSI。Electron 在 Windows 上通常没开 VT，ESC 会显示成 ←[32m。 */
@@ -68,19 +70,74 @@ export function spawnVite(env: { GATEWAY_TARGET: string }): ChildProcess {
   return child
 }
 
-/** Windows 上 child.kill() 只杀直接子进程，pnpm 下的 vite 会变孤儿，必须杀整棵树。 */
-export function killVite(child: ChildProcess): void {
-  const pid = child.pid
-  if (pid === undefined) return
+function viteDevPort(): number {
+  const port = Number(new URL(VITE_DEV_ORIGIN).port)
+  return Number.isSafeInteger(port) && port > 0 ? port : 5173
+}
+
+function parsePids(stdout: string | null | undefined): number[] {
+  if (!stdout) return []
+  const pids = new Set<number>()
+  for (const token of stdout.split(/[\s,]+/)) {
+    const pid = Number(token)
+    if (Number.isSafeInteger(pid) && pid > 0) pids.add(pid)
+  }
+  return [...pids]
+}
+
+function listListeningPids(port: number): number[] {
   if (process.platform === "win32") {
-    spawn("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore" })
+    const netstat = spawnSync("netstat", ["-ano", "-p", "TCP"], {
+      encoding: "utf8",
+      windowsHide: true,
+    })
+    const pids = new Set<number>()
+    const lineRe = new RegExp(`[:\\[]${port}(?:\\]|\\s).*(?:LISTENING|侦听)\\s+(\\d+)\\s*$`, "i")
+    for (const line of (netstat.stdout ?? "").split(/\r?\n/)) {
+      const match = line.match(lineRe)
+      const pid = Number(match?.[1])
+      if (Number.isSafeInteger(pid) && pid > 0) pids.add(pid)
+    }
+    return [...pids]
+  }
+  const lsof = spawnSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-t"], {
+    encoding: "utf8",
+  })
+  return parsePids(lsof.stdout)
+}
+
+function killPidTree(pid: number): void {
+  if (process.platform === "win32") {
+    spawnSync("taskkill", ["/pid", String(pid), "/T", "/F"], {
+      stdio: "ignore",
+      windowsHide: true,
+    })
     return
   }
   try {
     process.kill(-pid, "SIGTERM")
   } catch {
-    // 已退出
+    try {
+      process.kill(pid, "SIGTERM")
+    } catch {
+      // 已退出
+    }
   }
+}
+
+/** Electron 被 SIGINT 打死之后，Vite 会脱离进程树，只能按端口补刀。 */
+export function killPortListeners(port: number = viteDevPort()): void {
+  for (const pid of listListeningPids(port)) {
+    if (pid === process.pid) continue
+    killPidTree(pid)
+  }
+}
+
+/** Windows 上 child.kill() 只杀直接子进程，pnpm 下的 vite 会变孤儿，必须杀整棵树。 */
+export function killVite(child: ChildProcess): void {
+  const pid = child.pid
+  if (pid !== undefined) killPidTree(pid)
+  killPortListeners()
 }
 
 export async function waitForHttp(url: string, timeoutMs = 60_000): Promise<void> {

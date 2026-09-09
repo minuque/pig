@@ -6,7 +6,7 @@
   "type": "module",
   "main": "./electron-main.mjs",
   "scripts": {
-    "dev": "electron . -- --dev",
+    "dev": "tsx src/dev-cli.ts",
     "start": "electron .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
