@@ -10,29 +10,6 @@
     >
       <Plus class="size-icon" />
     </button>
-    <div class="mode-indicator" aria-label="会话分组方式">
-      <button
-        class="mode-hit"
-        type="button"
-        aria-label="按目录"
-        :aria-pressed="grouping === 'project'"
-        @click="emit('setGrouping', 'project')"
-      >
-        <span class="mode-indicator-dot" :class="{ active: grouping === 'project' }"></span>
-      </button>
-      <button
-        class="mode-hit"
-        type="button"
-        aria-label="按更新时间"
-        :aria-pressed="grouping === 'updated'"
-        @click="emit('setGrouping', 'updated')"
-      >
-        <span class="mode-indicator-dot" :class="{ active: grouping === 'updated' }"></span>
-      </button>
-      <button class="mode-hit" type="button" aria-label="预留扩展" disabled>
-        <span class="mode-indicator-dot future"></span>
-      </button>
-    </div>
     <button class="footer-action press-scale" type="button" title="设置" @click="emit('settings')">
       <Settings class="size-icon" />
     </button>
@@ -41,17 +18,14 @@
 
 <script setup lang="ts">
 import { Plus, Settings } from "@lucide/vue"
-import type { SidebarGrouping } from "@features/session-nav/type.js"
 
 defineProps<{
-  grouping: SidebarGrouping
   addingWorkspace?: boolean
   hintAdd?: boolean
 }>()
 
 const emit = defineEmits<{
   addWorkspace: []
-  setGrouping: [grouping: SidebarGrouping]
   settings: []
 }>()
 </script>
@@ -90,33 +64,6 @@ const emit = defineEmits<{
 }
 .footer-action:disabled {
   opacity: 0.45;
-}
-
-.mode-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--size-icon-button);
-}
-
-.mode-hit {
-  display: grid;
-  place-items: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.mode-indicator-dot {
-  background: var(--hairline);
-}
-.mode-indicator-dot.active {
-  background: var(--primary);
-}
-.mode-indicator-dot.future {
-  opacity: 0.55;
 }
 
 @media (prefers-reduced-motion: reduce) {

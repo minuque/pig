@@ -152,22 +152,34 @@
   }
 }
 
-.mode-indicator-dot {
-  width: 7px;
-  height: 7px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-full);
+.nav-shift-hit {
+  opacity: 0;
+  pointer-events: none;
   transition:
-    width var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out),
-    scale var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out);
 }
-.mode-indicator-dot:hover:not(:disabled) {
-  scale: 1.3;
+.session-nav:hover .nav-shift-hit,
+.nav-shift-hit:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
-.mode-indicator-dot.active {
-  width: 18px;
+.session-nav:hover .nav-shift-hit:disabled,
+.nav-shift-hit:disabled:focus-visible {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}
+
+@media (hover: none) {
+  .nav-shift-hit {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .nav-shift-hit:disabled {
+    opacity: var(--opacity-disabled);
+    pointer-events: none;
+  }
 }
 
 .icon-swap {
@@ -633,11 +645,8 @@
     scale: 1;
   }
 
-  .mode-indicator-dot {
+  .nav-shift-hit {
     transition: none;
-  }
-  .mode-indicator-dot:hover:not(:disabled) {
-    scale: 1;
   }
 
   .icon-swap > *,

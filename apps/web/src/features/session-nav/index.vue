@@ -115,13 +115,12 @@
     </div>
 
     <NavFooter
-      :grouping="grouping"
       :adding-workspace="addingWorkspace"
       :hint-add="!groups.length"
       @add-workspace="addWorkspace"
-      @set-grouping="setGrouping"
       @settings="openSettings"
     />
+    <NavShift :grouping="grouping" @set-grouping="setGrouping" />
     <SessionSearch v-model:open="searchOpen" @navigate="onSessionNavigate" />
   </div>
 </template>
@@ -135,6 +134,7 @@ import { notifyError } from "@components/ui/alert/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
+import NavShift from "@features/session-nav/components/NavShift.vue"
 import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionSearch from "@features/session-nav/components/SessionSearch.vue"
