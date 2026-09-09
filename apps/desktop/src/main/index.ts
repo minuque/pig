@@ -115,7 +115,7 @@ void app.whenReady().then(async () => {
       await waitForHttp(VITE_DEV_ORIGIN)
     }
 
-    mainWindow = createMainWindow(preloadPath)
+    mainWindow = createMainWindow(preloadPath, { openDevTools: isDev })
 
     const origin = isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port)
     process.env.PIG_GATEWAY_ORIGIN = origin

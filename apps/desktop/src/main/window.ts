@@ -1,8 +1,11 @@
-import { BrowserWindow, nativeTheme } from "electron"
+import { BrowserWindow, nativeTheme, type Input } from "electron"
 import { stripNativeMenu, windowChromeFor } from "./window-chrome.js"
 
 /** 创建主窗口：先隐藏，ready-to-show 后再显示。 */
-export function createMainWindow(preloadPath: string): BrowserWindow {
+export function createMainWindow(
+  preloadPath: string,
+  options: { openDevTools?: boolean } = {},
+): BrowserWindow {
   const chrome = windowChromeFor(process.platform)
   const window = new BrowserWindow({
     title: "pig",
@@ -19,10 +22,29 @@ export function createMainWindow(preloadPath: string): BrowserWindow {
 
   stripNativeMenu(window)
   stampDesktopPlatform(window)
+  if (options.openDevTools) attachDevTools(window)
   window.once("ready-to-show", () => {
     window.show()
+    if (options.openDevTools) window.webContents.openDevTools({ mode: "detach" })
   })
   return window
+}
+
+/** 开发态：F12 / Ctrl+Shift+I（macOS 为 Cmd+Option+I）开关 DevTools。 */
+function attachDevTools(window: BrowserWindow): void {
+  window.webContents.on("before-input-event", (event, input) => {
+    if (!isToggleDevToolsShortcut(input)) return
+    event.preventDefault()
+    window.webContents.toggleDevTools()
+  })
+}
+
+function isToggleDevToolsShortcut(input: Input): boolean {
+  if (input.type !== "keyDown") return false
+  if (input.key === "F12") return true
+  if (input.key.toLowerCase() !== "i") return false
+  if (process.platform === "darwin") return Boolean(input.meta && input.alt && !input.control)
+  return Boolean(input.control && input.shift && !input.meta)
 }
 
 const DESKTOP_PLATFORMS = new Set(["darwin", "win32", "linux"])
