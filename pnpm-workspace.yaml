@@ -13,3 +13,6 @@ allowBuilds:
   esbuild: true
   protobufjs: false
   vue-demi: true
+
+minimumReleaseAgeExclude:
+  - electron@44.3.0
