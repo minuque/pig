@@ -443,10 +443,10 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   height: 50%;
   border-inline-start: var(--border-width) solid var(--hairline);
   border-block-end: var(--border-width) solid var(--hairline);
-  border-end-start-radius: var(--radius-md);
+  border-end-start-radius: var(--radius-sm);
 }
 .group-body > *:not(:last-child)::after {
-  top: calc(50% - var(--border-width));
+  top: calc(50% - var(--radius-sm));
   bottom: 0;
   border-inline-start: var(--border-width) solid var(--hairline);
 }
