@@ -305,11 +305,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 
 .row {
   contain: layout style;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 10rem;
-}
-.row:has(.code-more-menu) {
-  content-visibility: visible;
 }
 
 .row + .row {
