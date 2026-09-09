@@ -158,12 +158,13 @@ function printReport(
 ) {
   console.log(`\npig 工作台（${runtime}）`)
   console.log("中位；p90 为 90% 样本上限（3 轮时接近最慢一次）。变快为绿，变慢超过 10% 为红。")
-  console.log("滚动卡顿为滚动期间最差动画帧。")
-  const row = (label: string, key: keyof BenchMetrics): MetricRow => ({
+  console.log("滚动项为期间最差动画帧；旁注为该帧折合 fps。")
+  const row = (label: string, key: keyof BenchMetrics, frame = false): MetricRow => ({
     label,
     value: now[key] ?? null,
     p90: p90s[key] ?? null,
     previous: prev?.[key] ?? null,
+    frame,
   })
   reportTable([
     row("打开工作台", "coldToWorkbench"),
@@ -172,8 +173,8 @@ function printReport(
     row("输入跟手", "composerKeyToFrame"),
     row("短会话打开", "sessionFirstOpen"),
     row("长会话打开", "switchLong"),
-    row("长会话滚动卡顿", "longScrollWorstMs"),
-    row("侧栏列表滚动卡顿", "listScrollWorstMs"),
+    row("长会话滚动", "longScrollWorstMs", true),
+    row("侧栏列表滚动", "listScrollWorstMs", true),
     row("切回短会话", "switchShortRevisit"),
     row("发送后自己的话", "ownMessageMs"),
     row("发送后首条助手", "firstTokenMs"),

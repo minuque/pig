@@ -8,6 +8,7 @@ export type MetricRow = {
   value: number | null
   p90?: number | null
   previous?: number | null
+  frame?: boolean
 }
 
 function paint(text: string, color: "green" | "red" | null) {
@@ -29,8 +30,11 @@ function pad(text: string, width: number, align: "left" | "right") {
   return align === "right" ? space + text : text + space
 }
 
-function formatMs(value: number | null | undefined) {
-  return value == null || !Number.isFinite(value) ? "—" : `${Number(value.toFixed(1))} ms`
+function formatMs(value: number | null | undefined, frame = false) {
+  if (value == null || !Number.isFinite(value)) return "—"
+  const ms = `${Number(value.toFixed(1))} ms`
+  if (!frame || !(value > 0)) return ms
+  return `${ms}（约 ${Math.round(1000 / value)} fps）`
 }
 
 function changeText(value: number | null, previous: number | null) {
@@ -72,11 +76,12 @@ export function reportTable(rows: readonly MetricRow[]) {
 
   const cells = visible.map((row) => {
     const color = tone(row.value, row.previous ?? null)
+    const frame = Boolean(row.frame)
     return {
       label: row.label,
-      now: paint(formatMs(row.value), color),
-      p90: formatMs(row.p90 ?? null),
-      prev: formatMs(row.previous ?? null),
+      now: paint(formatMs(row.value, frame), color),
+      p90: formatMs(row.p90 ?? null, frame),
+      prev: formatMs(row.previous ?? null, frame),
       change: paint(changeText(row.value, row.previous ?? null), color),
     }
   })
