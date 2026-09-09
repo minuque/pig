@@ -52,6 +52,7 @@ const emit = defineEmits<{
 
 <style scoped>
 .group-head {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
@@ -61,6 +62,15 @@ const emit = defineEmits<{
 }
 .group-head:hover {
   background: var(--hover-quiet);
+}
+.group-head.is-open::after {
+  position: absolute;
+  inset-inline-start: calc(var(--spacing-xs) + var(--size-icon) / 2);
+  top: 50%;
+  bottom: 0;
+  border-inline-start: var(--border-width) solid var(--hairline);
+  pointer-events: none;
+  content: "";
 }
 
 .group-toggle {

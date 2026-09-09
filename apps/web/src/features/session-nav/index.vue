@@ -2,124 +2,125 @@
   <div class="session-nav">
     <div class="titlebar-drag"></div>
 
-    <div class="nav-inset">
-      <div class="logo-row">
-        <RouterLink to="/" class="logo-mark">
-          <img src="/logo.png" alt="" width="22" height="22" />
-        </RouterLink>
-        <button class="collapse-toggle" type="button" title="折叠侧边栏" @click="emit('toggle')">
-          <PanelLeft class="size-icon" />
-        </button>
-      </div>
-
-      <div class="nav-main">
-        <NavToolbar @search="searchOpen = true" />
-
-        <div class="nav-body">
-          <nav class="session-list">
-            <!-- 置顶会话 -->
-            <section
-              v-if="pinnedRows.length"
-              class="nav-section pinned-section"
-              :class="{ 'is-open': !collapsedSections.pinned }"
-            >
-              <GroupHead
-                name="置顶"
-                kind="pinned"
-                :count="pinnedRows.length"
-                :collapsed="collapsedSections.pinned"
-                @toggle="collapsedSections.pinned = !collapsedSections.pinned"
-              />
-              <div class="session-list-group" :class="{ 'is-open': !collapsedSections.pinned }">
-                <div class="group-body">
-                  <SessionItem
-                    v-for="session in pinnedRows"
-                    :key="session.id"
-                    :session="session"
-                    :active="session.id === activeSessionId"
-                    :pinned="true"
-                    :state="sessionState(session.id)"
-                    :now="now"
-                    :model-provider="modelProvider(session.id)"
-                    @navigate="onSessionNavigate(session.cwd)"
-                    @toggle-pinned="togglePinned"
-                    @rename="renameSession"
-                    @delete="deleteSession"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <Transition :name="groupSlide">
-              <ul
-                v-if="showList"
-                :key="grouping"
-                :class="{ 'time-sections': grouping === 'updated' }"
-              >
-                <li
-                  v-for="section in listSections"
-                  :key="section.key"
-                  :class="[section.rowClass, { 'is-open': section.open }]"
-                >
-                  <GroupHead
-                    :name="section.name"
-                    :kind="section.kind"
-                    :count="section.count"
-                    :collapsed="section.collapsed"
-                    @toggle="section.toggle"
-                    @create="section.create?.()"
-                  />
-                  <div
-                    v-if="section.sessions.length > 0 || section.more"
-                    class="session-list-group"
-                    :class="{ 'is-open': !section.collapsed }"
-                  >
-                    <TransitionGroup name="list-reveal" tag="div" class="group-body">
-                      <SessionItem
-                        v-for="session in section.sessions"
-                        :key="session.id"
-                        :session="session"
-                        :active="session.id === activeSessionId"
-                        :pinned="pinnedIds.has(session.id)"
-                        :state="sessionState(session.id)"
-                        :now="now"
-                        :model-provider="modelProvider(session.id)"
-                        @navigate="onSessionNavigate(session.cwd)"
-                        @toggle-pinned="togglePinned"
-                        @rename="renameSession"
-                        @delete="deleteSession"
-                      />
-                      <button
-                        v-if="section.more"
-                        :key="`${section.key}-more`"
-                        class="more-button"
-                        type="button"
-                        @click="section.bump"
-                      >
-                        显示更多
-                      </button>
-                    </TransitionGroup>
-                  </div>
-                </li>
-              </ul>
-
-              <span v-else-if="groups.length" key="empty">暂无会话</span>
-            </Transition>
-          </nav>
+    <div class="nav-card">
+      <div class="nav-inset">
+        <div class="logo-row">
+          <RouterLink to="/" class="logo-mark">
+            <img src="/logo.png" alt="" width="22" height="22" />
+          </RouterLink>
+          <button class="collapse-toggle" type="button" title="折叠侧边栏" @click="emit('toggle')">
+            <PanelLeft class="size-icon" />
+          </button>
         </div>
-        <p v-if="!groups.length" class="add-guide">
-          点击添加工作目录
-          <ArrowDown class="size-icon motion-nudge" />
-        </p>
-      </div>
-    </div>
 
-    <NavFooter
-      :adding-workspace="addingWorkspace"
-      :hint-add="!groups.length"
-      @add-workspace="addWorkspace"
-      @settings="openSettings"
-    />
+        <div class="nav-main">
+          <NavToolbar @search="searchOpen = true" />
+
+          <div class="nav-body">
+            <nav class="session-list">
+              <section
+                v-if="pinnedRows.length"
+                class="nav-section pinned-section"
+                :class="{ 'is-open': !collapsedSections.pinned }"
+              >
+                <GroupHead
+                  name="置顶"
+                  kind="pinned"
+                  :count="pinnedRows.length"
+                  :collapsed="collapsedSections.pinned"
+                  @toggle="collapsedSections.pinned = !collapsedSections.pinned"
+                />
+                <div class="session-list-group" :class="{ 'is-open': !collapsedSections.pinned }">
+                  <div class="group-body">
+                    <SessionItem
+                      v-for="session in pinnedRows"
+                      :key="session.id"
+                      :session="session"
+                      :active="session.id === activeSessionId"
+                      :pinned="true"
+                      :state="sessionState(session.id)"
+                      :now="now"
+                      :model-provider="modelProvider(session.id)"
+                      @navigate="onSessionNavigate(session.cwd)"
+                      @toggle-pinned="togglePinned"
+                      @rename="renameSession"
+                      @delete="deleteSession"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <Transition :name="groupSlide">
+                <ul
+                  v-if="showList"
+                  :key="grouping"
+                  :class="{ 'time-sections': grouping === 'updated' }"
+                >
+                  <li
+                    v-for="section in listSections"
+                    :key="section.key"
+                    :class="[section.rowClass, { 'is-open': section.open }]"
+                  >
+                    <GroupHead
+                      :name="section.name"
+                      :kind="section.kind"
+                      :count="section.count"
+                      :collapsed="section.collapsed"
+                      @toggle="section.toggle"
+                      @create="section.create?.()"
+                    />
+                    <div
+                      v-if="section.sessions.length > 0 || section.more"
+                      class="session-list-group"
+                      :class="{ 'is-open': !section.collapsed }"
+                    >
+                      <TransitionGroup name="list-reveal" tag="div" class="group-body">
+                        <SessionItem
+                          v-for="session in section.sessions"
+                          :key="session.id"
+                          :session="session"
+                          :active="session.id === activeSessionId"
+                          :pinned="pinnedIds.has(session.id)"
+                          :state="sessionState(session.id)"
+                          :now="now"
+                          :model-provider="modelProvider(session.id)"
+                          @navigate="onSessionNavigate(session.cwd)"
+                          @toggle-pinned="togglePinned"
+                          @rename="renameSession"
+                          @delete="deleteSession"
+                        />
+                        <button
+                          v-if="section.more"
+                          :key="`${section.key}-more`"
+                          class="more-button"
+                          type="button"
+                          @click="section.bump"
+                        >
+                          显示更多
+                        </button>
+                      </TransitionGroup>
+                    </div>
+                  </li>
+                </ul>
+
+                <span v-else-if="groups.length" key="empty">暂无会话</span>
+              </Transition>
+            </nav>
+          </div>
+          <p v-if="!groups.length" class="add-guide">
+            点击添加工作目录
+            <ArrowDown class="size-icon motion-nudge" />
+          </p>
+        </div>
+      </div>
+
+      <NavFooter
+        :adding-workspace="addingWorkspace"
+        :hint-add="!groups.length"
+        @add-workspace="addWorkspace"
+        @settings="openSettings"
+      />
+    </div>
     <NavShift :grouping="grouping" @set-grouping="setGrouping" />
     <SessionSearch v-model:open="searchOpen" @navigate="onSessionNavigate" />
   </div>
@@ -258,12 +259,23 @@ function onCreateInDir(canonicalPath: string): void {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--spacing-xs);
   min-width: 0;
   min-height: 0;
-  padding-block-start: var(--spacing-xs);
+  padding: var(--spacing-xs);
   overflow: hidden;
   user-select: none;
+}
+
+.nav-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--panel);
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-xs);
 }
 
 .nav-inset {
@@ -296,7 +308,6 @@ html[data-pig-desktop-platform] .session-nav {
 }
 html[data-pig-desktop-platform="win32"] .session-nav {
   padding-top: 0;
-  padding-inline-start: 2px;
 }
 html[data-pig-desktop-platform="darwin"] .session-nav {
   padding-top: 32px;
@@ -368,12 +379,14 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 .nav-body {
   overflow: auto;
   overflow-x: hidden;
-  /* 原生滚动条占宽会挤内容，与上下工具栏错位；隐藏后内容恒宽，滚动仍可用 */
   scrollbar-width: none;
 }
 
 .session-list {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
 }
 
 .nav-body::-webkit-scrollbar {
@@ -383,6 +396,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 .session-list ul {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-xs);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -394,34 +408,13 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  margin-block-end: 0;
-  padding: 0;
-  padding-block-end: var(--spacing-xxs);
-  border-radius: var(--radius-lg);
-  background-color: transparent;
-  box-shadow: none;
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out),
-    padding var(--duration-fast) var(--ease-out),
-    margin-block-end var(--duration-fast) var(--ease-out);
-}
-.nav-section.is-open,
-.row-group.is-open,
-.time-section.is-open {
-  margin-block-end: var(--spacing-xs);
-  padding: var(--spacing-xxs);
-  border: var(--border-width) solid var(--color-border);
-  background-color: var(--panel);
-  box-shadow: var(--shadow-group);
-  transition-duration: var(--duration-slow);
 }
 
 .pinned-section {
   position: sticky;
   z-index: 2;
   top: 0;
-  background: var(--sidebar);
+  background: var(--panel);
 }
 
 .group-body {
@@ -430,6 +423,33 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   flex-direction: column;
   gap: var(--spacing-xxs);
   padding-block-start: var(--spacing-xxs);
+  padding-inline-start: calc(var(--spacing-xs) + var(--size-icon) / 2);
+}
+.group-body > * {
+  position: relative;
+}
+.group-body > *::before,
+.group-body > *::after {
+  position: absolute;
+  inset-inline-start: calc(-1 * (var(--spacing-xs) + var(--size-icon) / 2));
+  pointer-events: none;
+  content: "";
+}
+.group-body > *::before {
+  top: 0;
+  bottom: 0;
+  border-inline-start: var(--border-width) solid var(--hairline);
+}
+.group-body > :first-child::before {
+  top: calc(-1 * var(--spacing-xxs));
+}
+.group-body > :last-child::before {
+  bottom: 50%;
+}
+.group-body > *::after {
+  top: 50%;
+  width: calc(var(--spacing-xs) + var(--size-icon) / 2);
+  border-block-start: var(--border-width) solid var(--hairline);
 }
 
 .more-button {
@@ -465,21 +485,10 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   margin-inline-start: calc((var(--size-icon-button) - var(--size-icon)) / 2);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .nav-section,
-  .row-group,
-  .time-section,
-  .nav-section.is-open,
-  .row-group.is-open,
-  .time-section.is-open {
-    transition: none;
-  }
-}
-
 @media (max-width: 900px) {
   .session-nav {
     --nav-inline: var(--spacing-md);
-    padding-block-start: var(--spacing-md);
+    padding: var(--spacing-md);
   }
 }
 </style>
