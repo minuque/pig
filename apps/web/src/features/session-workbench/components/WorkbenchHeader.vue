@@ -1,12 +1,11 @@
 <template>
   <header class="workbench-header">
-    <div class="titlebar-drag" aria-hidden="true"></div>
     <button v-if="!leftOpen" class="header-toggle" type="button" title="打开侧边栏" @click="toggle">
       <PanelLeft class="size-icon" />
     </button>
-    <h1 v-if="title" id="current-title" class="header-crumb">
-      <span class="header-session">{{ title }}</span>
-    </h1>
+    <div class="header-crumb">
+      <h1 v-if="title" id="current-title" class="header-session">{{ title }}</h1>
+    </div>
     <div class="header-right">
       <ThemeToggle />
     </div>
@@ -42,6 +41,7 @@ const title = computed(() =>
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
+  width: 100%;
   min-height: calc(var(--size-control) + 2 * var(--spacing-xs));
   padding: var(--spacing-xxs) var(--spacing-sm);
   background: var(--surface);
@@ -70,8 +70,6 @@ const title = computed(() =>
 }
 
 .header-toggle {
-  position: relative;
-  z-index: 1;
   flex: none;
   width: var(--size-icon-button);
   min-height: var(--size-icon-button);
@@ -82,46 +80,32 @@ const title = computed(() =>
 }
 
 .header-crumb {
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  flex: 1 1 auto;
+  align-self: stretch;
   min-width: 0;
-  max-width: 60vw;
+}
+
+.header-session {
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--ink-muted);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-regular);
   line-height: var(--text-caption--line-height);
 }
 
-.header-session {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-}
-
 .header-right {
-  position: relative;
-  z-index: 1;
   display: flex;
+  flex: none;
   align-items: center;
-  margin-left: auto;
   gap: var(--spacing-xs);
 }
 
-.titlebar-drag {
-  display: none;
-}
-html[data-pig-desktop-platform] .titlebar-drag {
-  display: block;
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  z-index: 0;
-  height: var(--titlebar-inset);
+html[data-pig-desktop-platform] .workbench-header,
+html[data-pig-desktop-platform] .header-crumb,
+html[data-pig-desktop-platform] .header-session {
   -webkit-app-region: drag;
   app-region: drag;
 }

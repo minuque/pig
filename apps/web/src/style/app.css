@@ -512,17 +512,7 @@ html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body * {
   app-region: no-drag;
 }
 
-/* 滚动与控件不进拖窗命中测试；拖拽只留标题条专用层 */
-html[data-pig-desktop-platform]
-  :is(.nav-body, .session-list, .conversation-column, .transcript-viewport) {
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-}
-html[data-pig-desktop-platform]
-  :is(button, a, input, select, textarea, [role="button"], [role="link"]) {
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-}
+/* 控件 no-drag 只写在拖拽层内部。大块滚动容器标 no-drag 时，滚出视口的盒仍会扣掉顶栏拖拽区。 */
 
 /* Tailwind translate-* 走 translate，与 keyframes 的 transform 叠加会偏；Teleport 后 scoped 打不中 */
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {

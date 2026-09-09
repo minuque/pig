@@ -5,7 +5,6 @@
     <div class="nav-card">
       <div class="nav-inset">
         <div class="logo-row">
-          <div class="titlebar-drag" aria-hidden="true"></div>
           <RouterLink to="/" class="logo-mark">
             <img src="/logo.png" alt="" width="22" height="22" />
           </RouterLink>
@@ -282,7 +281,7 @@ function onCreateInDir(canonicalPath: string): void {
   padding-inline: var(--nav-inline);
 }
 
-.titlebar-drag {
+.session-nav > .titlebar-drag {
   display: none;
   position: absolute;
   inset: 0 0 auto;
@@ -290,7 +289,7 @@ function onCreateInDir(canonicalPath: string): void {
   -webkit-app-region: drag;
   app-region: drag;
 }
-html[data-pig-desktop-platform] .titlebar-drag {
+html[data-pig-desktop-platform] .session-nav > .titlebar-drag {
   display: block;
 }
 html[data-pig-desktop-platform="win32"] .session-nav > .titlebar-drag {
@@ -301,26 +300,24 @@ html[data-pig-desktop-platform] .session-nav {
   padding-top: calc(6px + var(--titlebar-inset));
 }
 html[data-pig-desktop-platform="win32"] .session-nav {
-  padding-top: 0;
+  padding-top: var(--spacing-xs);
 }
 html[data-pig-desktop-platform="darwin"] .session-nav {
   padding-top: 32px;
 }
 
+html[data-pig-desktop-platform] .logo-row {
+  background: var(--sidebar);
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
 html[data-pig-desktop-platform] .logo-row :is(button, a) {
-  position: relative;
-  z-index: 1;
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
 
-.logo-row > .titlebar-drag {
-  inset: 0;
-  height: auto;
-}
-
 .logo-row {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;

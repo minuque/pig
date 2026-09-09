@@ -21,6 +21,7 @@ export function windowChromeFor(platform: string): BrowserWindowConstructorOptio
   if (platform === "win32") {
     return {
       titleBarStyle: "hidden",
+      // 非 0 alpha 会吃掉留白点击；拖拽交给页面 app-region
       titleBarOverlay: { color: "#00000000", symbolColor: "#737373", height: 44 },
       thickFrame: true,
       roundedCorners: true,
