@@ -1,4 +1,4 @@
-import { expect, type Browser, type Page, type Route, type WebSocketRoute } from "@playwright/test"
+import { expect, type Page, type Route, type WebSocketRoute } from "@playwright/test"
 
 import {
   ClientMessageDecoder,
@@ -10,15 +10,14 @@ import {
 } from "@earendil-works/pi-protocol"
 import { join } from "node:path"
 
+import type { BenchHarness } from "./harness.js"
 import {
   HISTORY_ROUTE,
   WORKBENCH_TIMEOUT_MS,
   captureBenchFailure,
   composerInput,
-  newBenchContext,
   nextPaint,
   openSession,
-  prepareBenchPage,
   clickSessionCard,
   waitForLatestInViewport,
   waitForSession,
@@ -304,21 +303,18 @@ export type EdgeSample = {
 }
 
 export async function runTurnBench(
-  browser: Browser,
-  origin: string,
-  workspaceId: string,
+  harness: BenchHarness,
   runs: number,
   resultDir: string,
 ): Promise<{ samples: EdgeSample[] }> {
   const samples: EdgeSample[] = []
   for (let index = 0; index < runs; index += 1) {
     console.log(`回合 ${index + 1}/${runs}`)
-    const context = await newBenchContext(browser)
-    const page = await context.newPage()
-    await prepareBenchPage(page, workspaceId)
+    const session = await harness.open(false)
+    const { page } = session
     try {
       const bridge = await installBridge(page)
-      await page.goto(origin)
+      await page.goto(session.origin)
       await waitForWorkbench(page)
       const turn = await measureTurn(page, bridge)
       const rapidSwitchMs = await rapidSwitch(page)
@@ -328,7 +324,7 @@ export async function runTurnBench(
       await captureBenchFailure(page, join(resultDir, "perf-fail.png"))
       throw error
     } finally {
-      await context.close()
+      await session.close()
     }
   }
   return { samples }

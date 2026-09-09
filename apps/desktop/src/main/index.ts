@@ -1,9 +1,10 @@
 import { access } from "node:fs/promises"
+import { resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import type { ChildProcess } from "node:child_process"
 import { app, dialog, Menu, type BrowserWindow } from "electron"
 
-import { VITE_DEV_ORIGIN, gatewayOrigin, isDesktopDev } from "./urls.js"
+import { VITE_DEV_ORIGIN, gatewayOrigin, isDesktopBench, isDesktopDev } from "./urls.js"
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
@@ -15,8 +16,18 @@ type GatewayInstance = {
 }
 
 type GatewayModule = {
-  default: new (options: { platformPort: DirectoryPort; webRoot?: string }) => GatewayInstance
+  default: new (options: {
+    platformPort: DirectoryPort
+    webRoot?: string
+    sessionDir?: string
+    cwd?: string
+  }) => GatewayInstance
   canonicalizePath: (path: string) => string
+}
+
+function envDir(name: "PIG_SESSION_DIR" | "PIG_CWD"): string | undefined {
+  const value = process.env[name]
+  return value ? resolve(value) : undefined
 }
 
 let gateway: GatewayInstance | undefined
@@ -84,6 +95,8 @@ void app.whenReady().then(async () => {
       }
     }
 
+    const sessionDir = envDir("PIG_SESSION_DIR")
+    const cwd = envDir("PIG_CWD")
     gateway = new gatewayMod.default({
       platformPort: createElectronDirectoryPort(
         () => mainWindow,
@@ -92,6 +105,8 @@ void app.whenReady().then(async () => {
         gatewayMod.canonicalizePath,
       ),
       ...(webRoot ? { webRoot } : {}),
+      ...(sessionDir ? { sessionDir } : {}),
+      ...(cwd ? { cwd } : {}),
     })
     const port = await gateway.start()
 
@@ -102,7 +117,9 @@ void app.whenReady().then(async () => {
 
     mainWindow = createMainWindow(preloadPath)
 
-    await mainWindow.loadURL(isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port))
+    const origin = isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port)
+    process.env.PIG_GATEWAY_ORIGIN = origin
+    await mainWindow.loadURL(isDesktopBench() ? "about:blank" : origin)
   } catch (error) {
     dialog.showErrorBox("无法启动", error instanceof Error ? error.message : String(error))
     await shutdown()

@@ -1,5 +1,5 @@
-/** 工作台体验基准。用法: pnpm test:bench --runs=3 --skip-build --headed --turn-only */
-import { chromium, type Browser, type BrowserContext, type Page } from "@playwright/test"
+/** 工作台体验基准。用法: pnpm test:bench --runs=3 --skip-build --web --headed --turn-only */
+import type { Page } from "@playwright/test"
 import { spawnSync } from "node:child_process"
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
@@ -9,14 +9,13 @@ import Gateway from "../../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import { canonicalizeWorkspacePath } from "../fixtures.js"
 import { runTurnBench } from "./edges.js"
+import { createDesktopHarness, createWebHarness, type BenchHarness } from "./harness.js"
 import {
   captureBenchFailure,
   keyToNextFrame,
   median,
-  newBenchContext,
   openSession,
   p90,
-  prepareBenchPage,
   readPaint,
   scrollSessionList,
   scrollTranscript,
@@ -48,21 +47,30 @@ type BenchMetrics = {
   reconnectMs: number
 }
 
-type Args = { runs: number; skipBuild: boolean; headed: boolean; turnOnly: boolean }
+type Args = {
+  runs: number
+  skipBuild: boolean
+  headed: boolean
+  turnOnly: boolean
+  web: boolean
+}
 
 function parseArgs(argv: string[]): Args {
   let runs = 3
   let skipBuild = false
   let headed = false
   let turnOnly = false
+  let web = false
   for (const arg of argv) {
     if (arg === "--help" || arg === "-h") {
-      console.log("用法: pnpm test:bench --runs=3 --skip-build --headed --turn-only")
+      console.log("用法: pnpm test:bench --runs=3 --skip-build --web --headed --turn-only")
+      console.log("默认桌面端 Electron。--web 用 Playwright Chromium 做对照。")
       process.exit(0)
     }
     if (arg === "--") continue
     if (arg === "--skip-build") skipBuild = true
     else if (arg === "--headed") headed = true
+    else if (arg === "--web") web = true
     else if (arg === "--turn-only" || arg === "--edges-only") turnOnly = true
     else if (arg.startsWith("--runs=")) {
       const value = Number(arg.slice("--runs=".length))
@@ -70,7 +78,7 @@ function parseArgs(argv: string[]): Args {
       runs = value
     } else throw new Error(`未知参数 ${arg}`)
   }
-  return { runs, skipBuild, headed, turnOnly }
+  return { runs, skipBuild, headed, turnOnly, web }
 }
 
 function buildWeb() {
@@ -111,23 +119,18 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
   }
 }
 
-async function openPage(
-  browser: Browser,
-  origin: string,
-  workspaceId: string,
-): Promise<{ context: BrowserContext; page: Page }> {
-  const context = await newBenchContext(browser)
-  const page = await context.newPage()
-  await prepareBenchPage(page, workspaceId, true)
+async function openReadyPage(harness: BenchHarness, observers: boolean) {
+  const started = performance.now()
+  const session = await harness.open(observers)
   try {
-    await page.goto(origin, { waitUntil: "commit" })
-    await waitForWorkbench(page)
+    await session.page.goto(session.origin, { waitUntil: "commit" })
+    await waitForWorkbench(session.page)
+    return { ...session, coldTo: performance.now() - started }
   } catch (error) {
-    await captureBenchFailure(page, failShot)
-    await context.close()
+    await captureBenchFailure(session.page, failShot)
+    await session.close()
     throw error
   }
-  return { context, page }
 }
 
 async function measureStart(page: Page) {
@@ -151,9 +154,11 @@ function printReport(
   now: Partial<BenchMetrics>,
   p90s: Partial<Record<keyof BenchMetrics, number | undefined>>,
   prev: Partial<BenchMetrics> | undefined,
+  runtime: string,
 ) {
-  console.log("\npig 工作台")
+  console.log(`\npig 工作台（${runtime}）`)
   console.log("中位；p90 为 90% 样本上限（3 轮时接近最慢一次）。变快为绿，变慢超过 10% 为红。")
+  console.log("滚动卡顿为滚动期间最差动画帧。")
   const row = (label: string, key: keyof BenchMetrics): MetricRow => ({
     label,
     value: now[key] ?? null,
@@ -206,7 +211,7 @@ async function main() {
 
   const temp = await mkdtemp(join(tmpdir(), "pig-bench-"))
   let gateway: Gateway | undefined
-  let browser: Browser | undefined
+  let harness: BenchHarness | undefined
   try {
     const workspaceDir = join(temp, "workspace")
     const sessionDir = join(temp, "sessions")
@@ -216,12 +221,18 @@ async function main() {
     seedBenchSessions(sessionDir, workspaceDir)
     const workspaceId = canonicalizeWorkspacePath(workspaceDir)
 
-    const started = await startGateway(workspaceDir, sessionDir)
-    gateway = started.gateway
-    const { origin } = started
-    console.log(`Gateway ${origin}`)
-
-    browser = await chromium.launch({ headless: !args.headed })
+    let origin = ""
+    if (args.web) {
+      const started = await startGateway(workspaceDir, sessionDir)
+      gateway = started.gateway
+      origin = started.origin
+      console.log(`Gateway ${origin}`)
+      harness = await createWebHarness({ headed: args.headed, origin, workspaceId })
+    } else {
+      if (args.headed) console.log("桌面端基准始终开窗，--headed 只对 --web 生效")
+      harness = await createDesktopHarness({ workspaceId, workspaceDir, sessionDir })
+    }
+    if (!harness) throw new Error("未创建基准运行时")
     const open = {
       coldTo: [] as number[],
       coldFcp: [] as number[],
@@ -235,14 +246,15 @@ async function main() {
     }
 
     if (!args.turnOnly) {
-      const warmup = await openPage(browser, origin, workspaceId)
-      await warmup.context.close()
+      const warmup = await openReadyPage(harness, true)
+      await warmup.close()
       for (let run = 1; run <= args.runs; run += 1) {
         console.log(`打开 ${run}/${args.runs}`)
-        const { context, page } = await openPage(browser, origin, workspaceId)
+        const session = await openReadyPage(harness, true)
+        const { page } = session
         try {
           const cold = await measureStart(page)
-          open.coldTo.push(cold.now)
+          open.coldTo.push(session.coldTo)
           open.coldFcp.push(cold.fcp)
           open.coldLcp.push(cold.lcp)
           open.composer.push(await measureComposer(page, 7))
@@ -255,18 +267,12 @@ async function main() {
           await captureBenchFailure(page, failShot)
           throw error
         } finally {
-          await context.close()
+          await session.close()
         }
       }
     }
 
-    const turns = await runTurnBench(
-      browser,
-      origin,
-      workspaceId,
-      args.runs,
-      join(root, "test-results"),
-    )
+    const turns = await runTurnBench(harness, args.runs, join(root, "test-results"))
     const own = turns.samples.map((sample) => sample.ownMessageMs)
     const token = turns.samples.map((sample) => sample.firstTokenMs)
     const stream = turns.samples.map((sample) => sample.streamKeepUpMs)
@@ -326,11 +332,13 @@ async function main() {
     }
 
     const config = {
-      version: 10,
+      version: 11,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,
-      browser: browser.version(),
+      web: args.web,
+      runtime: harness.runtime,
+      browser: harness.runtimeLabel,
       platform: process.platform,
       arch: process.arch,
       node: process.version,
@@ -344,11 +352,11 @@ async function main() {
       resultPath,
       `${JSON.stringify({ config, metrics: stored, p90s, samples: { ...open, own, token, stream, abort, rapid, reconnect } }, null, 2)}\n`,
     )
-    printReport(stored, p90s, comparable)
+    printReport(stored, p90s, comparable, harness.runtimeLabel)
     console.log(`结果已写入 ${resultPath}`)
   } finally {
     try {
-      await browser?.close()
+      await harness?.close()
     } finally {
       try {
         await gateway?.stop()
@@ -366,6 +374,9 @@ try {
   console.error(message)
   if (message.includes("Executable doesn't exist") || message.includes("browserType.launch")) {
     console.error("未找到 Chromium。请先运行: pnpm exec playwright install chromium")
+  }
+  if (message.includes("electron.launch") || message.includes("Electron failed")) {
+    console.error("未启动 Electron。请先运行: pnpm --filter @pig/desktop exec electron --version")
   }
   process.exitCode = 1
 }

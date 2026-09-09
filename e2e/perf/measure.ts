@@ -132,8 +132,13 @@ export async function seedWorkspace(page: Page, workspaceId: string) {
   )
 }
 
-export async function prepareBenchPage(page: Page, workspaceId: string, observers = false) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
+export async function prepareBenchPage(
+  page: Page,
+  workspaceId: string,
+  observers = false,
+  options?: { reducedMotion?: boolean },
+) {
+  if (options?.reducedMotion !== false) await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, workspaceId)
   if (observers) await installObservers(page)
   page.setDefaultTimeout(WORKBENCH_TIMEOUT_MS)
@@ -149,7 +154,13 @@ export async function waitForWorkbench(page: Page) {
   await page
     .locator("nav.session-list")
     .waitFor({ state: "visible", timeout: WORKBENCH_TIMEOUT_MS })
-  await page.locator(".startup-screen").waitFor({ state: "hidden", timeout: WORKBENCH_TIMEOUT_MS })
+  await page.waitForFunction(
+    () => document.querySelectorAll(".startup-screen").length === 0,
+    null,
+    {
+      timeout: WORKBENCH_TIMEOUT_MS,
+    },
+  )
   await composerInput(page).waitFor({ state: "visible", timeout: WORKBENCH_TIMEOUT_MS })
   await revealSessionCard(page, SHORT_SESSION_NAME)
   await sessionCard(page, SHORT_SESSION_NAME).waitFor({
@@ -255,57 +266,79 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   )
 }
 
-type LongTask = { start: number; duration: number }
-
-async function readLongTasks(page: Page): Promise<LongTask[]> {
-  return page.evaluate(() => {
-    const bench = (window as unknown as { __pigBench?: PageBench }).__pigBench
-    if (!bench) throw new Error("未安装基准观察器，不能读 longtask")
-    return bench.longTasks.map((task) => ({ start: task.start, duration: task.duration }))
-  })
-}
-
 async function waitMs(page: Page, ms: number) {
   await page.evaluate((delay) => new Promise<void>((resolve) => setTimeout(resolve, delay)), ms)
 }
 
-async function scrollOverflowWorstLongTask(
+type ScrollFrames = { __pigScrollFrames: number[]; __pigScrollStop: () => void }
+
+async function beginScrollFrames(page: Page) {
+  await page.evaluate(() => {
+    const slot = window as unknown as ScrollFrames
+    slot.__pigScrollFrames = []
+    let last = 0
+    let running = true
+    slot.__pigScrollStop = () => {
+      running = false
+    }
+    const tick = (now: number) => {
+      if (last) slot.__pigScrollFrames.push(now - last)
+      last = now
+      if (running) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  })
+}
+
+async function endScrollWorstFrame(page: Page): Promise<number> {
+  const worst = await page.evaluate(() => {
+    const slot = window as unknown as ScrollFrames
+    slot.__pigScrollStop()
+    const frames = slot.__pigScrollFrames.filter((ms) => ms < 1_000)
+    if (frames.length === 0) throw new Error("滚动期间未采到动画帧")
+    return frames.reduce((max, ms) => Math.max(max, ms), 0)
+  })
+  if (!(worst > 0)) throw new Error("滚动最差帧无效")
+  return worst
+}
+
+async function scrollOverflowWorstFrame(
   page: Page,
   selector: string,
   emptyMessage: string,
 ): Promise<number> {
   const root = page.locator(selector)
   await root.hover()
-  const started = await page.evaluate(() => performance.now())
   const distance = await root.evaluate((node) => node.scrollHeight - node.clientHeight)
   if (distance <= 0) throw new Error(emptyMessage)
-  for (const direction of [-1, 1]) {
-    for (let step = 0; step < 20; step += 1) {
-      await page.mouse.wheel(0, direction * Math.ceil(distance / 20))
-      await waitMs(page, 32)
+  await beginScrollFrames(page)
+  try {
+    for (const direction of [-1, 1]) {
+      for (let step = 0; step < 20; step += 1) {
+        await page.mouse.wheel(0, direction * Math.ceil(distance / 20))
+        await waitMs(page, 32)
+      }
+      await page.waitForFunction(
+        ({ sel, dir }) => {
+          const node = document.querySelector(sel)
+          if (!node) return false
+          return dir < 0
+            ? node.scrollTop <= 1
+            : node.scrollHeight - node.clientHeight - node.scrollTop <= 1
+        },
+        { sel: selector, dir: direction },
+      )
     }
-    await page.waitForFunction(
-      ({ sel, dir }) => {
-        const node = document.querySelector(sel)
-        if (!node) return false
-        return dir < 0
-          ? node.scrollTop <= 1
-          : node.scrollHeight - node.clientHeight - node.scrollTop <= 1
-      },
-      { sel: selector, dir: direction },
-    )
+    return await endScrollWorstFrame(page)
+  } catch (error) {
+    await page
+      .evaluate(() => (window as unknown as Partial<ScrollFrames>).__pigScrollStop?.())
+      .catch(() => undefined)
+    throw error
   }
-  const ended = await page.evaluate(() => performance.now())
-  await waitMs(page, 100)
-  const tasks = (await readLongTasks(page)).filter(
-    (task) => task.start >= started && task.start < ended,
-  )
-  let worst = 0
-  for (const task of tasks) if (task.duration > worst) worst = task.duration
-  return worst
 }
 
-/** 等历史全部挂上后，时间线滚到顶再到底，返回最差 longtask。 */
+/** 等历史全部挂上后，时间线滚到顶再到底，返回最差动画帧。 */
 export async function scrollTranscript(page: Page, name: BenchSessionName): Promise<number> {
   const turns = sessionTurns(name)
   if (turns === 0) throw new Error("空会话没有可滚动历史")
@@ -318,13 +351,13 @@ export async function scrollTranscript(page: Page, name: BenchSessionName): Prom
     turns,
     { timeout: WORKBENCH_TIMEOUT_MS },
   )
-  return scrollOverflowWorstLongTask(page, ".transcript-viewport", "长会话未产生可滚动内容")
+  return scrollOverflowWorstFrame(page, ".transcript-viewport", "长会话未产生可滚动内容")
 }
 
-/** 展开侧栏全部会话后滚到顶再到底，返回最差 longtask。 */
+/** 展开侧栏全部会话后滚到顶再到底，返回最差动画帧。 */
 export async function scrollSessionList(page: Page): Promise<number> {
   await revealAllSessionCards(page)
-  return scrollOverflowWorstLongTask(page, ".nav-body", "侧栏未产生可滚动内容")
+  return scrollOverflowWorstFrame(page, ".nav-body", "侧栏未产生可滚动内容")
 }
 
 export function quantile(values: readonly number[], q: number): number {
