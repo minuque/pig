@@ -178,8 +178,23 @@ function enableLiveEnter() {
   })
 }
 
+function stampRowIntrinsicSizes(body: HTMLElement) {
+  for (const row of body.querySelectorAll<HTMLElement>(".row")) {
+    const height = row.getBoundingClientRect().height
+    if (height > 0) row.style.containIntrinsicBlockSize = `${Math.ceil(height)}px`
+  }
+}
+
+function clearRowIntrinsicSizes(body: HTMLElement | null) {
+  if (!body) return
+  for (const row of body.querySelectorAll<HTMLElement>(".row")) {
+    row.style.containIntrinsicBlockSize = ""
+  }
+}
+
 function cancelPaintSkip() {
   paintSkip.value = false
+  clearRowIntrinsicSizes(list.value)
   if (paintSkipTimer) {
     window.clearTimeout(paintSkipTimer)
     paintSkipTimer = 0
@@ -199,6 +214,7 @@ function armPaintSkip() {
     paintSkipTimer = 0
     paintSkipObserver?.disconnect()
     paintSkipObserver = undefined
+    stampRowIntrinsicSizes(body)
     paintSkip.value = true
   }
   paintSkipObserver = new ResizeObserver(() => {
@@ -350,7 +366,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 
 .timeline-rows.is-paint-skip .row {
   content-visibility: auto;
-  contain-intrinsic-size: auto none;
 }
 
 .row + .row {

@@ -332,7 +332,9 @@ async function scrollOverflowWorstFrame(
   emptyMessage: string,
 ): Promise<number> {
   const root = page.locator(selector)
-  await root.hover()
+  const box = await root.boundingBox()
+  if (!box) throw new Error(emptyMessage)
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
   const distance = await root.evaluate((node) => node.scrollHeight - node.clientHeight)
   if (distance <= 0) throw new Error(emptyMessage)
   await beginScrollFrames(page)
