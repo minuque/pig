@@ -45,7 +45,7 @@
     </div>
     <Dialog :open="previewOpen" @update:open="onPreviewOpen">
       <DialogContent
-        class="flex h-[min(80vh,40rem)] w-[min(48rem,calc(100vw-2rem))] max-w-[min(48rem,calc(100vw-2rem))] flex-col gap-3 overflow-hidden sm:max-w-[min(48rem,calc(100vw-2rem))]"
+        class="flex h-[70vh] w-[70vw] max-w-[70vw] flex-col gap-3 overflow-hidden sm:max-w-[70vw]"
         @open-auto-focus="onOpenAutoFocus"
       >
         <DialogTitle>{{ previewTitle }}</DialogTitle>
@@ -293,7 +293,6 @@ function onOpenAutoFocus(event: Event) {
 }
 .legend-row--button:hover {
   color: var(--ink);
-  background: var(--hover-tint);
 }
 
 .swatch {
