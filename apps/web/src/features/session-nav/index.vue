@@ -273,7 +273,7 @@ function onCreateInDir(canonicalPath: string): void {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--panel);
+  background: var(--sidebar);
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-md);
 }
@@ -414,7 +414,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   position: sticky;
   z-index: 2;
   top: 0;
-  background: var(--panel);
+  background: var(--sidebar);
 }
 
 .group-body {

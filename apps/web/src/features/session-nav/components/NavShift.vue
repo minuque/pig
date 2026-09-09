@@ -68,7 +68,7 @@ function shift(mode: SidebarGrouping | undefined) {
   padding: 0;
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-full);
-  background: var(--panel);
+  background: var(--sidebar);
   color: var(--ink-muted);
   translate: 0 -50%;
   -webkit-app-region: no-drag;

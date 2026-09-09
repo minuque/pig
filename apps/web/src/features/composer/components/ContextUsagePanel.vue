@@ -197,7 +197,7 @@ function onOpenAutoFocus(event: Event) {
 .usage-host {
   position: relative;
   padding: var(--spacing-sm) 14px 10px;
-  background: var(--panel);
+  background: var(--composer-bg);
   border: var(--border-width) solid var(--composer-ring);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);

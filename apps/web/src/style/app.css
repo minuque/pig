@@ -36,7 +36,7 @@
   --canvas-soft: #fafafa;
   --surface: #ffffff;
   --sidebar: #ffffff;
-  --panel: #ffffff;
+  --composer-bg: #ffffff;
   --user-prompt-bg: #f5f5f5;
   --popover: #ffffff;
   --code-header: #f5f5f5;
@@ -79,7 +79,7 @@
   --glass-blur: 12px;
   --glass-opacity: 80%;
   --glass-saturation: 1;
-  --startup-veil: color-mix(in srgb, var(--panel) var(--glass-opacity), var(--canvas-soft));
+  --startup-veil: color-mix(in srgb, var(--composer-bg) var(--glass-opacity), var(--canvas-soft));
 
   /* 装饰，不作结构填充 */
   --accent-sunset: #ee650d;
@@ -243,8 +243,8 @@
   --canvas: #171717;
   --canvas-soft: #171717;
   --surface: #121212;
-  --sidebar: #0a0a0a;
-  --panel: #262626;
+  --sidebar: #171717;
+  --composer-bg: #262626;
   --user-prompt-bg: #262626;
   --popover: #262626;
   --code-header: #262626;
@@ -356,7 +356,7 @@
   --color-canvas-soft: var(--canvas-soft);
   --color-surface: var(--surface);
   --color-sidebar: var(--sidebar);
-  --color-panel: var(--panel);
+  --color-composer-bg: var(--composer-bg);
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-muted: var(--ink-muted);

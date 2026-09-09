@@ -44,6 +44,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   height: 100vh;
   display: flex;
   overflow: hidden;
+  background: var(--surface);
 }
 
 .sidebar {
@@ -55,7 +56,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--sidebar);
+  background: var(--surface);
   contain: layout style;
   transition: width var(--duration-normal) var(--ease-smooth);
 }
@@ -163,7 +164,7 @@ main {
     transition:
       transform var(--duration-normal) var(--ease-smooth),
       visibility 0s linear var(--duration-normal);
-    background: var(--sidebar);
+    background: var(--surface);
     box-shadow: var(--shadow-drawer);
   }
   .sidebar.open {

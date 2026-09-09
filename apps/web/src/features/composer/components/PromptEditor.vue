@@ -150,7 +150,7 @@ defineExpose({ focus })
   bottom: -8px;
   display: flex;
   align-items: flex-start;
-  background: var(--panel);
+  background: var(--composer-bg);
   border: var(--border-width) solid var(--hairline);
   border-bottom: 0;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
@@ -179,7 +179,7 @@ defineExpose({ focus })
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--panel);
+  background: var(--composer-bg);
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-xl);
 }

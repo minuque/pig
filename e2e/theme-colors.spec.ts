@@ -16,7 +16,7 @@ const palettes = [
   {
     theme: "dark",
     surface: "rgb(18, 18, 18)",
-    sidebar: "rgb(10, 10, 10)",
+    sidebar: "rgb(23, 23, 23)",
     input: "rgb(35, 36, 39)",
     inputBorder: "rgb(46, 48, 51)",
     ink: "rgb(242, 243, 244)",
@@ -47,7 +47,8 @@ for (const palette of palettes) {
     if (palette.theme === "dark") await page.locator("button.theme-toggle").click()
 
     const input = page.locator(".glass-host")
-    await expect(page.locator("aside.sidebar")).toHaveCSS("background-color", palette.sidebar)
+    await expect(page.locator("aside.sidebar")).toHaveCSS("background-color", palette.surface)
+    await expect(page.locator(".nav-card")).toHaveCSS("background-color", palette.sidebar)
     await expect(page.locator("main")).toHaveCSS("background-color", palette.surface)
     await expect(input).toHaveCSS("background-color", palette.input)
     await expect(input).toHaveCSS("border-top-color", palette.inputBorder)
