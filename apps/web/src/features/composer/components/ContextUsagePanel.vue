@@ -53,13 +53,8 @@
           <div v-if="previewLoading" class="preview-status">
             <Spinner :size="24" />
           </div>
-          <div v-else-if="previewVirtual" class="preview-virtual" v-bind="containerProps">
-            <div v-bind="wrapperProps">
-              <pre v-for="item in list" :key="item.index" class="preview-line">{{ item.data }}</pre>
-            </div>
-          </div>
           <div v-else-if="previewBody" class="preview-markdown">
-            <MarkdownRender v-bind="previewMarkdown" :content="previewBody" />
+            <MarkdownRender v-bind="previewMarkdown" :content="previewFenced" />
           </div>
         </div>
       </DialogContent>
@@ -69,23 +64,19 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
-import { useVirtualList } from "@vueuse/core"
 import { X } from "@lucide/vue"
 import MarkdownRender from "markstream-vue"
 import { contextPreview } from "@client/platform.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
-import {
-  shouldVirtualizeMarkdown,
-  splitLines,
-} from "@features/transcript-view/lib/expandable-text.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
-import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
+import { chatMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 import type { ContextUsage, ContextUsageSegment } from "@features/composer/type.js"
 import {
   contextUsageSummary,
   formatTokenCount,
   segmentShare,
+  wrapAsMarkdownCodeBlock,
 } from "@features/composer/lib/context-usage.js"
 
 const props = defineProps<{
@@ -98,7 +89,7 @@ const emit = defineEmits<{
 }>()
 
 const tokenSummary = computed(() => contextUsageSummary(props.usage))
-const { isDark } = useColorScheme()
+const { isDark, codeBlockProps } = useColorScheme()
 
 function canPreview(segment: ContextUsageSegment): boolean {
   return Boolean(props.sessionId && segment.previewable)
@@ -114,15 +105,14 @@ const previewTitle = ref("")
 const previewBody = ref("")
 const previewPane = ref<HTMLElement>()
 let previewRequest = 0
-const previewLines = computed(() => splitLines(previewBody.value))
-const previewVirtual = computed(() => shouldVirtualizeMarkdown(previewBody.value))
-const PREVIEW_LINE_PX = 22
-const { list, containerProps, wrapperProps } = useVirtualList(previewLines, {
-  itemHeight: PREVIEW_LINE_PX,
-  overscan: 12,
-})
-
-const previewMarkdown = computed(() => plainMarkdownProps({ isDark: isDark.value }))
+const previewFenced = computed(() => wrapAsMarkdownCodeBlock(previewBody.value))
+const previewMarkdown = computed(() =>
+  chatMarkdownProps({
+    streaming: false,
+    isDark: isDark.value,
+    codeBlockProps: codeBlockProps.value,
+  }),
+)
 
 async function openPreview(segment: ContextUsageSegment) {
   const sessionId = props.sessionId
@@ -333,7 +323,6 @@ function onOpenAutoFocus(event: Event) {
 }
 
 .preview-status,
-.preview-virtual,
 .preview-markdown {
   min-height: 0;
   flex: 1;
@@ -343,19 +332,7 @@ function onOpenAutoFocus(event: Event) {
   place-items: center;
 }
 
-.preview-virtual,
 .preview-markdown {
   overflow: auto;
-}
-
-.preview-line {
-  margin: 0;
-  min-height: var(--text-code-line);
-  color: var(--ink-secondary);
-  font-family: var(--font-mono);
-  font-size: var(--text-code);
-  line-height: var(--text-code-line);
-  white-space: pre;
-  tab-size: 2;
 }
 </style>

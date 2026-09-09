@@ -70,3 +70,11 @@ export function segmentShare(tokens: number, window: number): number {
 export function contextUsageSummary(usage: ContextUsage): string {
   return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} tokens`
 }
+
+/** 预览按代码块展示，避免正文被当成 Markdown 结构解析。 */
+export function wrapAsMarkdownCodeBlock(text: string): string {
+  let fence = "```"
+  while (text.includes(fence)) fence += "`"
+  const body = text.endsWith("\n") ? text : `${text}\n`
+  return `${fence}\n${body}${fence}`
+}
