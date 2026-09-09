@@ -2,10 +2,7 @@ import { BrowserWindow, nativeTheme, type Input } from "electron"
 import { stripNativeMenu, windowChromeFor } from "./window-chrome.js"
 
 /** 创建主窗口：先隐藏，ready-to-show 后再显示。 */
-export function createMainWindow(
-  preloadPath: string,
-  options: { openDevTools?: boolean } = {},
-): BrowserWindow {
+export function createMainWindow(preloadPath: string): BrowserWindow {
   const chrome = windowChromeFor(process.platform)
   const window = new BrowserWindow({
     title: "pig",
@@ -22,15 +19,14 @@ export function createMainWindow(
 
   stripNativeMenu(window)
   stampDesktopPlatform(window)
-  if (options.openDevTools) attachDevTools(window)
+  attachDevTools(window)
   window.once("ready-to-show", () => {
     window.show()
-    if (options.openDevTools) window.webContents.openDevTools({ mode: "detach" })
   })
   return window
 }
 
-/** 开发态：F12 / Ctrl+Shift+I（macOS 为 Cmd+Option+I）开关 DevTools。 */
+/** F12 / Ctrl+Shift+I（macOS 为 Cmd+Option+I）开关 DevTools。 */
 function attachDevTools(window: BrowserWindow): void {
   window.webContents.on("before-input-event", (event, input) => {
     if (!isToggleDevToolsShortcut(input)) return
