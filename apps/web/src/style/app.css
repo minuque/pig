@@ -1,6 +1,5 @@
 @import "tailwindcss";
-/* markstream-vue/index.css 不含运行时工具类，需另接官方 safelist，否则代码卡片缺尺寸。 */
-@import "markstream-vue/index.css";
+@import "markstream-vue/index.css" layer(components);
 @import "katex/dist/katex.min.css";
 @import "./markdown-stream.css";
 @import "./motion.css";

@@ -18,7 +18,13 @@
     >
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
-          <TransitionGroup name="timeline-row" tag="div" class="timeline-rows" :css="liveEnter">
+          <TransitionGroup
+            name="timeline-row"
+            tag="div"
+            class="timeline-rows"
+            :class="{ 'is-paint-skip': paintSkip }"
+            :css="liveEnter"
+          >
             <div
               v-for="(row, index) in mountedRows"
               :key="mountedKeys[index] ?? row.id"
@@ -157,8 +163,13 @@ function observeSizes() {
 }
 
 const liveEnter = shallowRef(false)
+const paintSkip = shallowRef(false)
 let backfillRaf = 0
 let backfillGen = 0
+let paintSkipTimer = 0
+let paintSkipObserver: ResizeObserver | undefined
+
+const PAINT_SKIP_SETTLE_MS = 80
 
 function enableLiveEnter() {
   if (liveEnter.value) return
@@ -167,9 +178,41 @@ function enableLiveEnter() {
   })
 }
 
+function cancelPaintSkip() {
+  paintSkip.value = false
+  if (paintSkipTimer) {
+    window.clearTimeout(paintSkipTimer)
+    paintSkipTimer = 0
+  }
+  paintSkipObserver?.disconnect()
+  paintSkipObserver = undefined
+}
+
+function armPaintSkip() {
+  cancelPaintSkip()
+  const body = list.value
+  if (!body) {
+    paintSkip.value = true
+    return
+  }
+  const settle = () => {
+    paintSkipTimer = 0
+    paintSkipObserver?.disconnect()
+    paintSkipObserver = undefined
+    paintSkip.value = true
+  }
+  paintSkipObserver = new ResizeObserver(() => {
+    if (paintSkipTimer) window.clearTimeout(paintSkipTimer)
+    paintSkipTimer = window.setTimeout(settle, PAINT_SKIP_SETTLE_MS)
+  })
+  paintSkipObserver.observe(body)
+  paintSkipTimer = window.setTimeout(settle, PAINT_SKIP_SETTLE_MS)
+}
+
 function finishBackfill() {
   if (rows.value.length > 0) enableLiveEnter()
   else liveEnter.value = true
+  armPaintSkip()
 }
 
 function stopBackfill() {
@@ -217,6 +260,7 @@ function scheduleBackfillAfterPaint() {
 
 function armTailWindow() {
   liveEnter.value = false
+  cancelPaintSkip()
   stopBackfill()
   windowStart.value = lastTurnStartIndex(rows.value)
 }
@@ -259,6 +303,7 @@ watch(
 
 onBeforeUnmount(() => {
   sizeObserver?.disconnect()
+  cancelPaintSkip()
   stopBackfill()
 })
 
@@ -303,8 +348,9 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   width: 100%;
 }
 
-.row {
-  contain: layout style;
+.timeline-rows.is-paint-skip .row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto none;
 }
 
 .row + .row {

@@ -112,10 +112,6 @@
   .node-slot:has(> .paragraph-node) + .node-slot:has(> .paragraph-node) {
     margin-top: var(--spacing-md);
   }
-  /* 官方 li:has(.checkbox-node) 用负 margin，虚拟行会裁掉勾选标记 */
-  li:has(.checkbox-node) {
-    margin-inline-start: 0;
-  }
   /* 容器 class 是 rounded-lg（12px），头/身按 --ms-radius（8px）切角，四角错位。 */
   .code-block-container {
     --vscode-editor-font-size: var(--text-code);
@@ -146,10 +142,10 @@
   .code-loading-placeholder {
     contain: none;
   }
-  /* content-visibility:auto 在块进视口时才换真实高度，虚拟时间线会抖 scrollHeight。 */
+  /* 库默认 800×600 占位会撑高聊天行；跳过绘制改由时间线行在首画后开启。 */
   .markdown-renderer {
-    content-visibility: visible !important;
-    contain-intrinsic-size: none !important;
+    content-visibility: visible;
+    contain-intrinsic-size: auto none;
   }
 }
 

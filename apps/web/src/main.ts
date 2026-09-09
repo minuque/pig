@@ -1,16 +1,12 @@
 import { createApp } from "vue"
 
-import { setKaTeXWorker, setMermaidWorker } from "markstream-vue"
-import KatexWorker from "markstream-vue/workers/katexRenderer.worker?worker&inline"
-import MermaidWorker from "markstream-vue/workers/mermaidParser.worker?worker&inline"
-
 import "@style/app.css"
 
 import App from "./App.vue"
 import router from "@router/index.js"
+import { installMarkdownRuntime } from "@features/transcript-view/lib/markdown-runtime.js"
 
-setMermaidWorker(new MermaidWorker())
-setKaTeXWorker(new KatexWorker())
+installMarkdownRuntime()
 
 const app = createApp(App)
 app.use(router)

@@ -1,6 +1,6 @@
 <template>
   <article>
-    <MarkdownRender v-if="text" v-bind="agentMarkdown" :content="text" />
+    <MarkdownRender v-if="item.text" v-bind="agentMarkdown" :content="item.text" />
 
     <Alert
       v-if="item.error || item.aborted"
@@ -22,16 +22,15 @@
 
 <script setup lang="ts">
 import { CircleAlert } from "@lucide/vue"
-import MarkdownRender, { type NodeRendererProps } from "markstream-vue"
+import MarkdownRender from "markstream-vue"
 import { computed } from "vue"
 import Alert from "@components/ui/alert/Alert.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
 import AlertTitle from "@components/ui/alert/AlertTitle.vue"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import type { AssistantRow } from "@features/transcript-view/type.js"
-import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
-import { codeBlockTypography } from "@features/transcript-view/lib/code-block-options.js"
+import { chatMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 
 const props = withDefaults(
   defineProps<{
@@ -43,11 +42,6 @@ const props = withDefaults(
 
 const { isDark, codeBlockProps } = useColorScheme()
 
-const text = useTranscriptReveal(
-  () => props.item.text,
-  () => props.streaming,
-)
-
 const statusLabel = computed(() => {
   const base = props.item.error ? "出错" : "已中止"
   const retries = props.item.retryCount
@@ -55,41 +49,13 @@ const statusLabel = computed(() => {
   return base
 })
 
-const codeBlockOptions = {
-  ...codeBlockTypography(),
-  diffStyle: "unified",
-} as const
-
-const agentMarkdown = computed((): NodeRendererProps => {
-  const streaming = props.streaming
-  return {
-    customId: "chat",
-    mode: "chat",
-    fade: false,
+const agentMarkdown = computed(() =>
+  chatMarkdownProps({
+    streaming: props.streaming,
     isDark: isDark.value,
-    viewportPriority: !streaming,
-    codeBlockOptions,
-    codeBlockProps: {
-      ...codeBlockProps.value,
-      showHeader: true,
-      showCopyButton: true,
-      showCollapseButton: true,
-      showExpandButton: true,
-    },
-    mermaidProps: {
-      renderDebounceMs: 180,
-      contentStableDelayMs: 500,
-      showHeader: true,
-      showFullscreenButton: true,
-    },
-    final: !streaming,
-    typewriter: false,
-    smoothStreaming: false,
-    nodeVirtual: !streaming,
-    batchRendering: !streaming,
-    ...(streaming ? { maxLiveNodes: 0 } : {}),
-  }
-})
+    codeBlockProps: codeBlockProps.value,
+  }),
+)
 </script>
 
 <style scoped>

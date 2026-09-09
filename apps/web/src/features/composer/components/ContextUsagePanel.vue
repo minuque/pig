@@ -80,6 +80,7 @@ import {
   splitLines,
 } from "@features/transcript-view/lib/expandable-text.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
+import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 import type { ContextUsage, ContextUsageSegment } from "@features/composer/type.js"
 import {
   contextUsageSummary,
@@ -121,19 +122,7 @@ const { list, containerProps, wrapperProps } = useVirtualList(previewLines, {
   overscan: 12,
 })
 
-const previewMarkdown = computed(
-  () =>
-    ({
-      customId: "chat",
-      mode: "minimal",
-      renderCodeBlocksAsPre: true,
-      fade: false,
-      final: true,
-      typewriter: false,
-      smoothStreaming: false,
-      isDark: isDark.value,
-    }) as const,
-)
+const previewMarkdown = computed(() => plainMarkdownProps({ isDark: isDark.value }))
 
 async function openPreview(segment: ContextUsageSegment) {
   const sessionId = props.sessionId

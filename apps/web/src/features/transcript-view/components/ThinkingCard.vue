@@ -1,17 +1,19 @@
 <template>
   <div class="thinking-card">
     <div ref="viewport" class="thinking-body">
-      <MarkdownRender v-if="text" v-bind="thinkProps" :content="text" />
+      <div ref="content">
+        <MarkdownRender v-if="text" v-bind="thinkProps" :content="text" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import MarkdownRender from "markstream-vue"
+import { useStickToBottom } from "markstream-vue/utils"
 import { computed, nextTick, useTemplateRef, watch } from "vue"
-import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
-import { codeBlockTypography } from "@features/transcript-view/lib/code-block-options.js"
+import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 
 const props = withDefaults(
   defineProps<{
@@ -23,24 +25,16 @@ const props = withDefaults(
 
 const { isDark, codeBlockProps } = useColorScheme()
 const viewport = useTemplateRef<HTMLElement>("viewport")
-const text = useTranscriptReveal(
-  () => props.blocks.join("\n"),
-  () => props.streaming,
-)
+const content = useTemplateRef<HTMLElement>("content")
+const text = computed(() => props.blocks.join("\n"))
+const { scheduleScrollToBottom } = useStickToBottom(viewport, content)
 
-const thinkProps = computed(
-  () =>
-    ({
-      customId: "chat",
-      mode: "minimal",
-      renderCodeBlocksAsPre: true,
-      final: !props.streaming,
-      typewriter: false,
-      smoothStreaming: false,
-      isDark: isDark.value,
-      codeBlockOptions: codeBlockTypography(),
-      codeBlockProps: codeBlockProps.value,
-    }) as const,
+const thinkProps = computed(() =>
+  plainMarkdownProps({
+    streaming: props.streaming,
+    isDark: isDark.value,
+    codeBlockProps: codeBlockProps.value,
+  }),
 )
 
 watch(
@@ -48,8 +42,7 @@ watch(
   async ([, streaming]) => {
     if (!streaming) return
     await nextTick()
-    const root = viewport.value
-    if (root) root.scrollTop = root.scrollHeight
+    scheduleScrollToBottom()
   },
   { flush: "post" },
 )
