@@ -80,12 +80,16 @@ const title = computed(() =>
 }
 
 .header-crumb {
+  display: flex;
   flex: 1 1 auto;
+  align-items: center;
   align-self: stretch;
   min-width: 0;
 }
 
 .header-session {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
