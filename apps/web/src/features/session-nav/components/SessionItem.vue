@@ -1,6 +1,10 @@
 <template>
   <div class="session-item">
     <!-- 置顶按钮 -->
+    <span v-if="state && !renaming" class="session-state" :aria-label="stateLabel">
+      <Spinner v-if="state === 'running'" :size="12" />
+      <span v-else class="state-dot" :class="state"></span>
+    </span>
     <button
       v-if="!renaming"
       class="pin-toggle press-scale"
@@ -25,11 +29,6 @@
           @keydown="onCardKeydown"
         >
           <div class="card-line">
-            <span class="session-state" :aria-label="stateLabel">
-              <Spinner v-if="state === 'running'" :size="12" />
-              <span v-else-if="state" class="state-dot" :class="state"></span>
-              <span v-else class="state-placeholder"></span>
-            </span>
             <input
               v-if="renaming"
               ref="nameInput"
@@ -218,10 +217,9 @@ function confirmDelete() {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 7px;
   height: 36px;
   min-width: 0;
-  padding-inline: 8px;
+  padding-inline: var(--spacing-xxs) var(--spacing-xs);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
@@ -243,12 +241,16 @@ function confirmDelete() {
   width: 100%;
 }
 
-.session-state {
+.session-state,
+.pin-toggle {
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: calc(-1 * var(--size-icon-2xs));
+  inset-block-start: calc(50% - var(--size-icon-2xs) / 2);
   display: grid;
   place-items: center;
-  width: 12px;
-  height: 12px;
-  flex: none;
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
   transition: opacity var(--duration-fast) var(--ease-smooth);
 }
 .session-item:hover .session-state,
@@ -257,14 +259,6 @@ function confirmDelete() {
 }
 
 .pin-toggle {
-  position: absolute;
-  z-index: 1;
-  inset-inline-start: 5px;
-  inset-block-start: calc(50% - var(--size-icon-2xs) / 2);
-  display: grid;
-  place-items: center;
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
   padding: 0;
   border: 0;
   border-radius: var(--radius-xs);
@@ -272,7 +266,6 @@ function confirmDelete() {
   color: var(--ink-muted);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-smooth);
 }
 .session-item:hover .pin-toggle,
 .pin-toggle:focus-visible {
@@ -284,8 +277,7 @@ function confirmDelete() {
   color: var(--ink);
 }
 
-.state-dot,
-.state-placeholder {
+.state-dot {
   width: 7px;
   height: 7px;
   border-radius: var(--radius-full);
@@ -295,10 +287,6 @@ function confirmDelete() {
 }
 .state-dot.error {
   background: var(--danger);
-}
-
-.state-placeholder {
-  opacity: 0;
 }
 
 .title {

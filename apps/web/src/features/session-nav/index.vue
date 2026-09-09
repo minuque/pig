@@ -456,7 +456,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   align-items: center;
   width: 100%;
   height: 30px;
-  padding-inline: var(--spacing-xs);
+  padding-inline: var(--spacing-xxs) var(--spacing-xs);
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
