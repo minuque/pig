@@ -362,18 +362,19 @@ async function scrollOverflowWorstFrame(
   }
 }
 
-/** 等尾部就绪且可滚动后，时间线滚到顶再到底，返回最差动画帧。 */
+/** 等历史全部挂上后，时间线滚到顶再到底，返回最差动画帧。 */
 export async function scrollTranscript(page: Page, name: BenchSessionName): Promise<number> {
   const turns = sessionTurns(name)
   if (turns === 0) throw new Error("空会话没有可滚动历史")
-  await page.getByText(sessionPrompt(name, turns), { exact: true }).waitFor({
-    state: "visible",
-    timeout: WORKBENCH_TIMEOUT_MS,
-  })
-  await page.locator(".transcript-viewport .timeline-spacer").waitFor({
+  await page.getByText(sessionPrompt(name, 1), { exact: true }).waitFor({
     state: "attached",
     timeout: WORKBENCH_TIMEOUT_MS,
   })
+  await page.waitForFunction(
+    (expected) => document.querySelectorAll(".row-user").length >= expected,
+    turns,
+    { timeout: WORKBENCH_TIMEOUT_MS },
+  )
   return scrollOverflowWorstFrame(page, ".transcript-viewport", "长会话未产生可滚动内容")
 }
 
