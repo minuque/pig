@@ -180,11 +180,12 @@ describe("打开已有会话 → 长列表尾部先挂载", () => {
   it("长列表尾窗口下标", () => {
     const rows = buildTimelineRows(manyTurns(10), false)
     expect(rows).toHaveLength(20)
-    expect(lastTurnStartIndex(rows)).toBe(12)
+    expect(lastTurnStartIndex(rows)).toBe(18)
+    expect(lastTurnStartIndex(rows, 4)).toBe(12)
   })
 
-  it("回合不足时返回 0", () => {
+  it("不足一轮时返回 0", () => {
     expect(lastTurnStartIndex([])).toBe(0)
-    expect(lastTurnStartIndex(buildTimelineRows(manyTurns(3), false))).toBe(0)
+    expect(lastTurnStartIndex(buildTimelineRows(manyTurns(1), false))).toBe(0)
   })
 })

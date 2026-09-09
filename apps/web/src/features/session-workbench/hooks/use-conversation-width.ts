@@ -48,9 +48,16 @@ export function useConversationWidth(): {
 
   let observer: ResizeObserver | undefined
   let sidebarFrozen = false
+  let lastColumnWidth = 0
 
-  function publish(root: HTMLElement) {
-    const column = root.offsetWidth
+  function columnWidthOf(root: HTMLElement, measured?: number): number {
+    return measured ?? root.offsetWidth
+  }
+
+  function publish(root: HTMLElement, measured?: number) {
+    const column = Math.round(columnWidthOf(root, measured))
+    if (column === lastColumnWidth && measured !== undefined) return
+    lastColumnWidth = column
     root.style.setProperty("--conversation-column-width", `${column}px`)
     if (sidebarFrozen) return
     const preference = readPreference()
@@ -78,15 +85,19 @@ export function useConversationWidth(): {
     observer = undefined
     if (!(el instanceof HTMLElement)) {
       rootEl.value = null
+      lastColumnWidth = 0
       return
     }
 
     rootEl.value = el
-    observer = new ResizeObserver(() => {
-      publish(el)
+    lastColumnWidth = 0
+    observer = new ResizeObserver((entries) => {
+      const box = entries[0]?.contentBoxSize?.[0]
+      const width = box?.inlineSize ?? entries[0]?.contentRect.width
+      if (width == null) return
+      publish(el, width)
     })
     observer.observe(el)
-    publish(el)
   }
 
   function readDisplayedWidth(root: HTMLElement): number {

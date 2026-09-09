@@ -14,7 +14,7 @@
       class="transcript-viewport"
       @scroll="onTranscriptScroll"
       @wheel="onWheel"
-      @pointerdown="releasePinnedToBottom"
+      @pointerdown="onTranscriptPointerDown"
     >
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
@@ -55,7 +55,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  shallowRef,
+  useTemplateRef,
+  watch,
+} from "vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
@@ -75,7 +83,7 @@ import {
 import { shouldShowScrollToLatest } from "@features/transcript-view/lib/transcript-scroll.js"
 import { lastTurnStartIndex } from "@features/transcript-view/lib/transcript-window.js"
 
-const BACKFILL_PER_FRAME = 8
+const BACKFILL_PER_FRAME = 2
 
 const props = defineProps<{
   sessionId: string
@@ -106,6 +114,8 @@ const {
   atBottom,
   visuallyAtBottom,
   pinIfNeeded,
+  holdTail,
+  releaseTail,
   releasePinnedToBottom,
   reset,
   onScroll,
@@ -119,6 +129,15 @@ const showScrollToLatest = computed(() =>
 )
 
 let sizeObserver: ResizeObserver | undefined
+let pinRaf = 0
+
+function schedulePin() {
+  if (pinRaf) return
+  pinRaf = requestAnimationFrame(() => {
+    pinRaf = 0
+    pinIfNeeded()
+  })
+}
 
 const {
   items: minimapItems,
@@ -128,6 +147,11 @@ const {
 
 function onTranscriptScroll() {
   onScroll()
+}
+
+function onTranscriptPointerDown() {
+  releaseTail()
+  releasePinnedToBottom()
 }
 
 function onToggleExpand(id: string, open: boolean) {
@@ -155,9 +179,7 @@ function observeSizes() {
   const root = viewport.value
   const body = list.value
   if (!root && !body) return
-  sizeObserver = new ResizeObserver(() => {
-    pinIfNeeded()
-  })
+  sizeObserver = new ResizeObserver(schedulePin)
   if (root) sizeObserver.observe(root)
   if (body) sizeObserver.observe(body)
 }
@@ -178,23 +200,8 @@ function enableLiveEnter() {
   })
 }
 
-function stampRowIntrinsicSizes(body: HTMLElement) {
-  for (const row of body.querySelectorAll<HTMLElement>(".row")) {
-    const height = row.getBoundingClientRect().height
-    if (height > 0) row.style.containIntrinsicBlockSize = `${Math.ceil(height)}px`
-  }
-}
-
-function clearRowIntrinsicSizes(body: HTMLElement | null) {
-  if (!body) return
-  for (const row of body.querySelectorAll<HTMLElement>(".row")) {
-    row.style.containIntrinsicBlockSize = ""
-  }
-}
-
 function cancelPaintSkip() {
   paintSkip.value = false
-  clearRowIntrinsicSizes(list.value)
   if (paintSkipTimer) {
     window.clearTimeout(paintSkipTimer)
     paintSkipTimer = 0
@@ -206,16 +213,17 @@ function cancelPaintSkip() {
 function armPaintSkip() {
   cancelPaintSkip()
   const body = list.value
-  if (!body) {
-    paintSkip.value = true
-    return
-  }
   const settle = () => {
     paintSkipTimer = 0
     paintSkipObserver?.disconnect()
     paintSkipObserver = undefined
-    stampRowIntrinsicSizes(body)
+    pinIfNeeded()
     paintSkip.value = true
+    releaseTail()
+  }
+  if (!body) {
+    paintSkip.value = true
+    return
   }
   paintSkipObserver = new ResizeObserver(() => {
     if (paintSkipTimer) window.clearTimeout(paintSkipTimer)
@@ -233,6 +241,7 @@ function finishBackfill() {
 
 function stopBackfill() {
   backfillGen += 1
+  releaseTail()
   if (!backfillRaf) return
   cancelAnimationFrame(backfillRaf)
   backfillRaf = 0
@@ -245,16 +254,10 @@ function runBackfill(gen: number) {
     finishBackfill()
     return
   }
-  const root = viewport.value
-  const prevHeight = root?.scrollHeight ?? 0
   windowStart.value = Math.max(0, windowStart.value - BACKFILL_PER_FRAME)
   void nextTick(() => {
     if (gen !== backfillGen) return
-    const el = viewport.value
-    if (el) {
-      if (atBottom.value) pinIfNeeded()
-      else el.scrollTop += el.scrollHeight - prevHeight
-    }
+    pinIfNeeded()
     if (windowStart.value > 0) backfillRaf = requestAnimationFrame(() => runBackfill(gen))
     else finishBackfill()
   })
@@ -262,6 +265,7 @@ function runBackfill(gen: number) {
 
 function scheduleBackfillAfterPaint() {
   stopBackfill()
+  holdTail()
   if (windowStart.value <= 0) {
     finishBackfill()
     return
@@ -281,6 +285,12 @@ function armTailWindow() {
   windowStart.value = lastTurnStartIndex(rows.value)
 }
 
+onMounted(() => {
+  holdTail()
+  scrollToLatest("auto")
+  scheduleBackfillAfterPaint()
+})
+
 watch(
   () => props.sessionId,
   () => {
@@ -297,8 +307,10 @@ watch(
 watch(rows, (next, prev) => {
   if ((prev?.length ?? 0) === 0 && next.length > 0) {
     armTailWindow()
-    scrollToLatest("auto")
-    scheduleBackfillAfterPaint()
+    void nextTick(() => {
+      scrollToLatest("auto")
+      scheduleBackfillAfterPaint()
+    })
     return
   }
   if (windowStart.value > next.length) windowStart.value = lastTurnStartIndex(next)
@@ -319,6 +331,7 @@ watch(
 
 onBeforeUnmount(() => {
   sizeObserver?.disconnect()
+  if (pinRaf) cancelAnimationFrame(pinRaf)
   cancelPaintSkip()
   stopBackfill()
 })
@@ -362,10 +375,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .row {
   box-sizing: border-box;
   width: 100%;
-}
-
-.timeline-rows.is-paint-skip .row {
-  content-visibility: auto;
 }
 
 .row + .row {

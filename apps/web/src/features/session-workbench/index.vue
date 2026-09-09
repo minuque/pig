@@ -226,11 +226,12 @@ function bindWorkbenchColumn(el: unknown) {
   bindColumn(el)
 }
 
-function publishOverlayHeight() {
+function publishOverlayHeight(height: number) {
   const column = columnEl.value
-  const stack = inputStack.value
-  if (!column || !stack) return
-  column.style.setProperty("--size-composer-overlay", `${stack.offsetHeight}px`)
+  if (!column) return
+  const next = Math.round(height)
+  if (column.style.getPropertyValue("--size-composer-overlay") === `${next}px`) return
+  column.style.setProperty("--size-composer-overlay", `${next}px`)
 }
 
 watch(
@@ -239,9 +240,13 @@ watch(
     overlayObserver?.disconnect()
     overlayObserver = undefined
     if (!column || !stack) return
-    overlayObserver = new ResizeObserver(publishOverlayHeight)
+    overlayObserver = new ResizeObserver((entries) => {
+      const box = entries[0]?.contentBoxSize?.[0]
+      const height = box?.blockSize ?? entries[0]?.contentRect.height
+      if (height == null) return
+      publishOverlayHeight(height)
+    })
     overlayObserver.observe(stack)
-    publishOverlayHeight()
   },
   { flush: "post" },
 )

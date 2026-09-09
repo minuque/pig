@@ -17,7 +17,7 @@ const chatCodeChrome = {
   showExpandButton: true,
 } as const
 
-/** 聊天正文：吐字由 useTranscriptReveal 控节奏；历史一次画完。 */
+/** 流式关虚拟化按批吐字；历史走节点窗口，避免长文一次铺满。 */
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean
@@ -32,11 +32,9 @@ export function chatMarkdownProps(input: {
     final: !streaming,
     typewriter: false,
     smoothStreaming: false,
-    viewportPriority: false,
-    deferNodesUntilVisible: false,
-    nodeVirtual: false,
+    viewportPriority: !streaming,
     batchRendering: streaming,
-    maxLiveNodes: 0,
+    maxLiveNodes: streaming ? 0 : 320,
     codeBlockOptions: {
       ...codeBlockTypography(),
       diffStyle: "unified",

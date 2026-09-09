@@ -52,11 +52,12 @@ export function useTranscriptMinimap(
     publishInView()
   }
 
-  function syncWidths() {
+  function applySize(target: Element, width: number) {
+    const next = Math.round(width)
     const port = toValue(layout.viewport)
     const column = toValue(layout.column)
-    viewportWidth.value = port?.clientWidth ?? 0
-    contentWidth.value = column?.offsetWidth ?? 0
+    if (target === port && viewportWidth.value !== next) viewportWidth.value = next
+    if (target === column && contentWidth.value !== next) contentWidth.value = next
   }
 
   function observeInView() {
@@ -84,10 +85,15 @@ export function useTranscriptMinimap(
         contentWidth.value = 0
         return
       }
-      sizeObserver = new ResizeObserver(syncWidths)
+      sizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const box = entry.contentBoxSize?.[0]
+          const width = box?.inlineSize ?? entry.contentRect.width
+          applySize(entry.target, width)
+        }
+      })
       sizeObserver.observe(port)
       if (column) sizeObserver.observe(column)
-      syncWidths()
     },
     { flush: "post" },
   )
