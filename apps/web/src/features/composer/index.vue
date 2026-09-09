@@ -292,7 +292,7 @@ function onPrimaryAction() {
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: var(--main);
+  background: var(--surface);
 }
 
 .error-indicator {

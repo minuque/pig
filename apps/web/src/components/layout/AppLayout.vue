@@ -55,7 +55,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--sidebar);
+  background: var(--surface);
   contain: layout style;
   transition: width var(--duration-normal) var(--ease-smooth);
 }
@@ -108,7 +108,7 @@ main {
   overflow: hidden;
   /* 困住栏内 z-index，避免 dock 底色盖住分栏把手 */
   isolation: isolate;
-  background: var(--main);
+  background: var(--surface);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -152,7 +152,7 @@ main {
     transition:
       transform var(--duration-normal) var(--ease-smooth),
       visibility 0s linear var(--duration-normal);
-    background: var(--sidebar);
+    background: var(--surface);
     box-shadow: var(--shadow-drawer);
   }
   .sidebar.open {

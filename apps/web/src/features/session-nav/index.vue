@@ -275,7 +275,7 @@ function onCreateInDir(canonicalPath: string): void {
   overflow: hidden;
   background: var(--panel);
   border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-md);
 }
 
 .nav-inset {

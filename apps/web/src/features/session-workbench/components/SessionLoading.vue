@@ -15,6 +15,6 @@ import { Spinner } from "@components/ui/spinner/index.js"
   z-index: 4;
   display: grid;
   place-items: center;
-  background: var(--main);
+  background: var(--surface);
 }
 </style>
