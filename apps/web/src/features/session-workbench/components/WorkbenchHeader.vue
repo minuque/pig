@@ -1,5 +1,6 @@
 <template>
   <header class="workbench-header">
+    <div class="titlebar-drag" aria-hidden="true"></div>
     <button v-if="!leftOpen" class="header-toggle" type="button" title="打开侧边栏" @click="toggle">
       <PanelLeft class="size-icon" />
     </button>
@@ -69,6 +70,8 @@ const title = computed(() =>
 }
 
 .header-toggle {
+  position: relative;
+  z-index: 1;
   flex: none;
   width: var(--size-icon-button);
   min-height: var(--size-icon-button);
@@ -79,6 +82,7 @@ const title = computed(() =>
 }
 
 .header-crumb {
+  pointer-events: none;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -100,17 +104,31 @@ const title = computed(() =>
 }
 
 .header-right {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   margin-left: auto;
   gap: var(--spacing-xs);
 }
 
+.titlebar-drag {
+  display: none;
+}
+html[data-pig-desktop-platform] .titlebar-drag {
+  display: block;
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 0;
+  height: var(--titlebar-inset);
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
 html[data-pig-desktop-platform] .workbench-header {
   min-height: var(--titlebar-inset);
   user-select: none;
-  -webkit-app-region: drag;
-  app-region: drag;
 }
 
 html[data-pig-desktop-platform]

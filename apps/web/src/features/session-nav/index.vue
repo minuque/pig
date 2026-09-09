@@ -1,10 +1,11 @@
 <template>
   <div class="session-nav">
-    <div class="titlebar-drag"></div>
+    <div class="titlebar-drag" aria-hidden="true"></div>
 
     <div class="nav-card">
       <div class="nav-inset">
         <div class="logo-row">
+          <div class="titlebar-drag" aria-hidden="true"></div>
           <RouterLink to="/" class="logo-mark">
             <img src="/logo.png" alt="" width="22" height="22" />
           </RouterLink>
@@ -74,7 +75,7 @@
                       class="session-list-group"
                       :class="{ 'is-open': !section.collapsed }"
                     >
-                      <TransitionGroup name="list-reveal" tag="div" class="group-body">
+                      <div class="group-body">
                         <SessionItem
                           v-for="session in section.sessions"
                           :key="session.id"
@@ -91,14 +92,13 @@
                         />
                         <button
                           v-if="section.more"
-                          :key="`${section.key}-more`"
                           class="more-button"
                           type="button"
                           @click="section.bump"
                         >
                           显示更多
                         </button>
-                      </TransitionGroup>
+                      </div>
                     </div>
                   </li>
                 </ul>
@@ -299,7 +299,7 @@ function onCreateInDir(canonicalPath: string): void {
 html[data-pig-desktop-platform] .titlebar-drag {
   display: block;
 }
-html[data-pig-desktop-platform="win32"] .titlebar-drag {
+html[data-pig-desktop-platform="win32"] .session-nav > .titlebar-drag {
   display: none;
 }
 
@@ -313,17 +313,20 @@ html[data-pig-desktop-platform="darwin"] .session-nav {
   padding-top: 32px;
 }
 
-html[data-pig-desktop-platform] .logo-row {
-  -webkit-app-region: drag;
-  app-region: drag;
-}
-
 html[data-pig-desktop-platform] .logo-row :is(button, a) {
+  position: relative;
+  z-index: 1;
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
 
+.logo-row > .titlebar-drag {
+  inset: 0;
+  height: auto;
+}
+
 .logo-row {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
