@@ -267,14 +267,14 @@ watch(
 )
 
 watch(
-  [readContent, codeBlockProps, readExpanded],
-  async ([content, blockProps, expanded], _, onCleanup) => {
+  [readContent, codeBlockProps],
+  async ([content, blockProps], _, onCleanup) => {
     let active = true
     onCleanup(() => {
       active = false
     })
     const preview = content?.preview
-    if (!expanded || !preview || preview.language === "text" || preview.code.length > 100_000) {
+    if (!preview || preview.language === "text" || preview.code.length > 100_000) {
       readTokens.value = []
       return
     }
