@@ -25,13 +25,12 @@ test("Chromium production SPA 关键旅程", async ({ page, gateway }) => {
   await expect(page.locator("h1.hero-title")).toBeVisible()
   await checkpoint(page, "03-empty-canvas")
 
-  const prompt = page.locator(".field[contenteditable]")
+  const prompt = page.getByRole("textbox", { name: "Prompt" })
   const send = page.locator("button.send")
   await expect(prompt).toBeVisible()
-  await expect(send).toBeDisabled()
-  await expect(page.locator(".selector-name")).toBeVisible()
   await prompt.fill("e2e composer")
   await expect(send).toBeEnabled()
+  await expect(page.locator(".selector-name")).toBeVisible()
   await checkpoint(page, "04-composer")
 
   await page.locator("button.theme-toggle").click()

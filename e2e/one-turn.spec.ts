@@ -37,7 +37,7 @@ test("一轮工作：复杂历史上发送、流式、中止", async ({ page, co
   await card.click()
   await expect(page).toHaveURL(new RegExp(`/sessions/${COMPLEX_SESSION_ID}$`))
   await expect(page.getByText(COMPLEX_MARKER, { exact: true })).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByText(TABLE_MARKER, { exact: true })).toBeVisible()
+  await expect(page.getByText(TABLE_MARKER, { exact: true }).first()).toBeVisible()
   await expect(page.locator(".row-tools").first()).toBeVisible()
   await checkpoint(page, "07-complex-history")
 

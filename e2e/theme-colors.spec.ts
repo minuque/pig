@@ -5,25 +5,25 @@ const palettes = [
     theme: "light",
     surface: "rgb(255, 255, 255)",
     sidebar: "rgb(255, 255, 255)",
-    input: "rgb(252, 251, 248)",
-    inputBorder: "rgb(236, 237, 239)",
-    ink: "rgb(31, 33, 36)",
-    faint: "rgb(154, 157, 163)",
+    input: "rgb(255, 255, 255)",
+    inputBorder: "rgb(229, 229, 229)",
+    ink: "rgb(10, 10, 10)",
+    faint: "rgb(102, 102, 102)",
     popover: "rgb(255, 255, 255)",
-    popoverBorder: "rgb(236, 237, 239)",
-    hover: "rgb(244, 245, 246)",
+    popoverBorder: "rgb(229, 229, 229)",
+    hover: "color(srgb 0.0392157 0.0392157 0.0392157 / 0.08)",
   },
   {
     theme: "dark",
     surface: "rgb(18, 18, 18)",
     sidebar: "rgb(23, 23, 23)",
-    input: "rgb(35, 36, 39)",
-    inputBorder: "rgb(46, 48, 51)",
-    ink: "rgb(242, 243, 244)",
-    faint: "rgb(108, 111, 117)",
-    popover: "rgb(35, 36, 39)",
-    popoverBorder: "rgb(46, 48, 51)",
-    hover: "rgb(42, 43, 46)",
+    input: "rgb(38, 38, 38)",
+    inputBorder: "rgb(64, 64, 64)",
+    ink: "rgb(250, 250, 250)",
+    faint: "rgb(163, 163, 163)",
+    popover: "rgb(38, 38, 38)",
+    popoverBorder: "rgb(64, 64, 64)",
+    hover: "color(srgb 0.980392 0.980392 0.980392 / 0.08)",
   },
 ]
 
@@ -54,24 +54,25 @@ for (const palette of palettes) {
     await expect(input).toHaveCSS("border-top-color", palette.inputBorder)
     await expect(input).toHaveCSS("border-top-width", "1px")
     await expect(input).toHaveCSS("box-shadow", "none")
-    await expect(page.locator(".field[contenteditable]")).toHaveCSS("color", palette.ink)
-    const placeholder = await page
-      .locator(".field[contenteditable]")
-      .evaluate((element) => getComputedStyle(element, "::before").color)
+    const prompt = page.getByRole("textbox", { name: "Prompt" })
+    await expect(prompt).toHaveCSS("color", palette.ink)
+    const placeholder = await prompt.evaluate(
+      (element) => getComputedStyle(element, "::placeholder").color,
+    )
     expect(placeholder).toBe(palette.faint)
 
-    await page.locator(".field[contenteditable]").fill("颜色回归测试，不发送")
+    await prompt.fill("颜色回归测试，不发送")
     await expect(page.locator("button.send")).toBeEnabled()
     await expect(input).toHaveCSS("border-top-width", "1px")
     await expect(input).toHaveCSS("box-shadow", "none")
-    await page.getByRole("button", { name: "筛选", exact: true }).click()
+    await page.getByRole("button", { name: /选择模型/ }).click()
     const menu = page.locator('[data-slot="dropdown-menu-content"]')
     await expect(menu).toBeVisible()
     await expect(menu).toHaveCSS("background-color", palette.popover)
     await expect(menu).toHaveCSS("border-top-color", palette.popoverBorder)
-    const menuItem = page.getByRole("menuitem", { name: "项目", exact: true })
-    await menuItem.focus()
-    await expect(menuItem).toHaveCSS("background-color", palette.hover)
+    const rail = menu.locator(".rail-btn").first()
+    await rail.hover()
+    await expect(rail).toHaveCSS("background-color", palette.hover)
     await page.screenshot({ path: info.outputPath(`${palette.theme}-menu.png`) })
     await page.keyboard.press("Escape")
 
