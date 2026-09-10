@@ -36,7 +36,7 @@
                       v-for="session in pinnedRows"
                       :key="session.id"
                       :session="session"
-                      :active="session.id === activeSessionId"
+                      :active="session.id === highlightedSessionId"
                       :pinned="true"
                       :state="sessionState(session.id)"
                       :now="now"
@@ -78,7 +78,7 @@
                           v-for="session in section.sessions"
                           :key="session.id"
                           :session="session"
-                          :active="session.id === activeSessionId"
+                          :active="session.id === highlightedSessionId"
                           :pinned="pinnedIds.has(session.id)"
                           :state="sessionState(session.id)"
                           :now="now"
@@ -157,7 +157,8 @@ const {
   pinnedSessions,
   togglePinned,
   addingWorkspace,
-  activeSessionId,
+  highlightedSessionId,
+  cancelPendingOpen,
   navError: workspaceError,
   addWorkspace,
   renameSession,
@@ -240,6 +241,7 @@ function onSessionNavigate(cwd: string | undefined): void {
 }
 
 function onCreateInDir(canonicalPath: string): void {
+  cancelPendingOpen()
   emit("navigate", canonicalPath)
   void router.push("/")
 }

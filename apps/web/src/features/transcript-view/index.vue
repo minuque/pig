@@ -81,7 +81,11 @@ import {
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { shouldShowScrollToLatest } from "@features/transcript-view/lib/transcript-scroll.js"
-import { lastTurnStartIndex } from "@features/transcript-view/lib/transcript-window.js"
+import {
+  historyPrepended,
+  lastTurnStartIndex,
+  recutWindowStartOnPrepend,
+} from "@features/transcript-view/lib/transcript-window.js"
 
 const BACKFILL_PER_FRAME = 2
 
@@ -90,6 +94,10 @@ const props = defineProps<{
   transcript: readonly TranscriptItem[]
   running: boolean
   timings?: readonly TurnTiming[]
+}>()
+
+const emit = defineEmits<{
+  firstTextPaint: []
 }>()
 
 const rows = computed(() => buildTimelineRows(props.transcript, props.running, props.timings))
@@ -188,6 +196,9 @@ const liveEnter = shallowRef(false)
 const paintSkip = shallowRef(false)
 let backfillRaf = 0
 let backfillGen = 0
+let idleStart = 0
+let idleViaRic = false
+let paintRaf = 0
 let paintSkipTimer = 0
 let paintSkipObserver: ResizeObserver | undefined
 
@@ -239,8 +250,23 @@ function finishBackfill() {
   armPaintSkip()
 }
 
+function cancelIdleStart() {
+  if (!idleStart) return
+  if (idleViaRic && typeof cancelIdleCallback === "function") cancelIdleCallback(idleStart)
+  else window.clearTimeout(idleStart)
+  idleStart = 0
+}
+
+function cancelPaintRaf() {
+  if (!paintRaf) return
+  cancelAnimationFrame(paintRaf)
+  paintRaf = 0
+}
+
 function stopBackfill() {
   backfillGen += 1
+  cancelIdleStart()
+  cancelPaintRaf()
   releaseTail()
   if (!backfillRaf) return
   cancelAnimationFrame(backfillRaf)
@@ -263,18 +289,39 @@ function runBackfill(gen: number) {
   })
 }
 
+function scheduleIdleBackfill(gen: number) {
+  const start = () => {
+    idleStart = 0
+    if (gen !== backfillGen) return
+    backfillRaf = requestAnimationFrame(() => runBackfill(gen))
+  }
+  if (typeof requestIdleCallback === "function") {
+    idleViaRic = true
+    idleStart = requestIdleCallback(start, { timeout: 200 })
+    return
+  }
+  idleViaRic = false
+  idleStart = window.setTimeout(start, 0)
+}
+
+/** 末条纯文字 paint 后再 idle 回填，避免首屏挂上更早的表。 */
 function scheduleBackfillAfterPaint() {
   stopBackfill()
   holdTail()
-  if (windowStart.value <= 0) {
-    finishBackfill()
-    return
-  }
-  liveEnter.value = false
   const gen = backfillGen
-  backfillRaf = requestAnimationFrame(() => {
+  void nextTick(() => {
     if (gen !== backfillGen) return
-    backfillRaf = requestAnimationFrame(() => runBackfill(gen))
+    paintRaf = requestAnimationFrame(() => {
+      paintRaf = 0
+      if (gen !== backfillGen) return
+      if (rows.value.length > 0) emit("firstTextPaint")
+      if (windowStart.value <= 0) {
+        finishBackfill()
+        return
+      }
+      liveEnter.value = false
+      scheduleIdleBackfill(gen)
+    })
   })
 }
 
@@ -305,7 +352,8 @@ watch(
 )
 
 watch(rows, (next, prev) => {
-  if ((prev?.length ?? 0) === 0 && next.length > 0) {
+  const previous = prev ?? []
+  if (previous.length === 0 && next.length > 0) {
     armTailWindow()
     void nextTick(() => {
       scrollToLatest("auto")
@@ -313,8 +361,19 @@ watch(rows, (next, prev) => {
     })
     return
   }
-  if (windowStart.value > next.length) windowStart.value = lastTurnStartIndex(next)
-  else if (atBottom.value) void nextTick(pinIfNeeded)
+  const recut = recutWindowStartOnPrepend(previous, next, windowStart.value, atBottom.value)
+  if (recut !== windowStart.value) {
+    windowStart.value = recut
+    if (historyPrepended(previous, next) && atBottom.value) {
+      holdTail()
+      void nextTick(() => {
+        scrollToLatest("auto")
+        scheduleBackfillAfterPaint()
+      })
+      return
+    }
+  }
+  if (atBottom.value) void nextTick(pinIfNeeded)
 })
 
 watch(

@@ -98,6 +98,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
+import { useNav } from "@features/session-nav/index.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
@@ -122,6 +123,7 @@ const emit = defineEmits<{
   delete: [id: string]
 }>()
 
+const { openSession } = useNav()
 const renaming = ref(false)
 const draft = ref("")
 const nameInput = ref<HTMLInputElement | null>(null)
@@ -141,6 +143,10 @@ function onMenuOpenChange(open: boolean) {
   menuOpen.value = open
 }
 
+function isModifiedSessionClick(event: MouseEvent) {
+  return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+}
+
 function onCardClick(event: MouseEvent) {
   if (menuOpen.value || renaming.value) {
     event.preventDefault()
@@ -148,6 +154,9 @@ function onCardClick(event: MouseEvent) {
     return
   }
   emit("navigate")
+  if (isModifiedSessionClick(event)) return
+  event.preventDefault()
+  openSession(props.session.id)
 }
 
 function onCardKeydown(event: KeyboardEvent) {

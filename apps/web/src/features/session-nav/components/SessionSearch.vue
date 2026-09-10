@@ -47,7 +47,6 @@
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { useTimestamp } from "@vueuse/core"
-import { useRouter } from "vue-router"
 import { CornerDownLeft, MessageSquare, Search, X } from "@lucide/vue"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
@@ -64,8 +63,7 @@ const emit = defineEmits<{
   navigate: [canonicalPath: string]
 }>()
 
-const router = useRouter()
-const { listedSessions } = useNav()
+const { listedSessions, openSession } = useNav()
 const now = useTimestamp({ interval: 60_000 })
 
 const query = shallowRef("")
@@ -113,7 +111,7 @@ function onQueryKeydown(event: KeyboardEvent) {
 function pick(session: SessionMetadata) {
   open.value = false
   if (session.cwd) emit("navigate", session.cwd)
-  void router.push({ name: "session", params: { sessionId: session.id } })
+  openSession(session.id)
 }
 </script>
 

@@ -29,12 +29,11 @@
             :transcript="transcript"
             :running="running"
             :timings="turnTimings"
+            @first-text-paint="onFirstTextPaint"
           />
         </Transition>
 
-        <Transition name="fade-layer">
-          <SessionLoading v-if="showLoading" />
-        </Transition>
+        <SessionLoading v-if="showLoading" />
       </div>
 
       <div class="composer-bar">
@@ -157,13 +156,24 @@ const showHero = computed(() => {
   if (sessionPending.value && !creating.value) return false
   return true
 })
-const showLoading = computed(
-  () =>
-    Boolean(sessionId.value) &&
-    sessionPending.value &&
-    transcript.value.length === 0 &&
-    !creating.value,
+const firstTextPainted = shallowRef(false)
+const showLoading = computed(() => {
+  if (!sessionId.value || creating.value) return false
+  if (transcript.value.length === 0) return sessionPending.value
+  return !firstTextPainted.value
+})
+
+watch(
+  displaySessionId,
+  () => {
+    firstTextPainted.value = false
+  },
+  { flush: "sync" },
 )
+
+function onFirstTextPaint() {
+  firstTextPainted.value = true
+}
 
 const welcomeWorkspaceId = shallowRef<string>()
 const heroWorkspaceId = computed({
