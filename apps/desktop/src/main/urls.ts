@@ -23,6 +23,20 @@ export function isDesktopDev(argv: readonly string[] = process.argv): boolean {
   return argv.includes("--dev")
 }
 
+export const DESKTOP_CDP_PORT = "9333"
+
+/** `--dev` 默认 9333；`PIG_CDP` 覆盖，`0`/`off` 关闭。 */
+export function desktopCdpPort(
+  argv: readonly string[] = process.argv,
+  env: NodeJS.ProcessEnv = process.env,
+): string | undefined {
+  const raw = env.PIG_CDP?.trim()
+  if (raw === "0" || raw === "off") return undefined
+  if (raw) return raw
+  if (isDesktopDev(argv)) return DESKTOP_CDP_PORT
+  return undefined
+}
+
 /** 基准进程：窗口先空着，由 Playwright 注入观察器后再打开工作台。 */
 export function isDesktopBench(env: NodeJS.ProcessEnv = process.env): boolean {
   return env.PIG_BENCH === "1"

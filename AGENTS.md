@@ -30,3 +30,5 @@
 
 - 一个逻辑任务改完后，对本会话改过的文件执行 `pnpm exec prettier --write <paths>`，再跑 `pnpm check:touched`；文档改动除外。检查失败后定向修复，输入未变时不重复检查。
 - 浏览器验收交给用户；不启动调试服务器或 CDP，除非用户要求。
+- Electron 验收用 `pnpm dev:desktop`（`--dev` 在主进程挂 CDP 9333）。不要直接跑 `electron.exe`：命令行 `--remote-debugging-port` 无效，且 `--dev` 依赖 pnpm 注入的 Node。已有 pig 窗口则复用，不要另起。
+- 清理临时窗口按 PID 或 `user-data-dir`，不要匹配命令行 `--dev`（会误伤 `--device-scale-factor`）。

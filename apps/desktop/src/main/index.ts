@@ -5,13 +5,27 @@ import type { ChildProcess } from "node:child_process"
 import { app, dialog, Menu, type BrowserWindow } from "electron"
 
 import { handlePigProtocol, registerPigScheme } from "./protocol.js"
-import { VITE_DEV_ORIGIN, gatewayOrigin, isDesktopBench, isDesktopDev, pigAppUrl } from "./urls.js"
+import {
+  VITE_DEV_ORIGIN,
+  desktopCdpPort,
+  gatewayOrigin,
+  isDesktopBench,
+  isDesktopDev,
+  pigAppUrl,
+} from "./urls.js"
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
 import { resolveWebRoot } from "./paths.js"
 
 registerPigScheme()
+
+const cdpPort = desktopCdpPort()
+if (cdpPort) {
+  // 命令行 --remote-debugging-port 在本壳无效，须 ready 前 appendSwitch。
+  app.commandLine.appendSwitch("remote-debugging-port", cdpPort)
+  app.commandLine.appendSwitch("remote-allow-origins", "*")
+}
 
 type GatewayInstance = {
   start(): Promise<number>
