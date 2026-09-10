@@ -4,11 +4,14 @@ import { fileURLToPath } from "node:url"
 import type { ChildProcess } from "node:child_process"
 import { app, dialog, Menu, type BrowserWindow } from "electron"
 
-import { VITE_DEV_ORIGIN, gatewayOrigin, isDesktopBench, isDesktopDev } from "./urls.js"
+import { handlePigProtocol, registerPigScheme } from "./protocol.js"
+import { VITE_DEV_ORIGIN, gatewayOrigin, isDesktopBench, isDesktopDev, pigAppUrl } from "./urls.js"
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
 import { resolveWebRoot } from "./paths.js"
+
+registerPigScheme()
 
 type GatewayInstance = {
   start(): Promise<number>
@@ -124,15 +127,18 @@ void app.whenReady().then(async () => {
       ...(cwd ? { cwd } : {}),
     })
     const port = await gateway.start()
+    const httpOrigin = gatewayOrigin(port)
 
     if (isDev) {
-      vite = spawnVite({ GATEWAY_TARGET: gatewayOrigin(port) })
+      vite = spawnVite({ GATEWAY_TARGET: httpOrigin })
       await waitForHttp(VITE_DEV_ORIGIN)
+    } else {
+      handlePigProtocol(httpOrigin)
     }
 
-    mainWindow = createMainWindow(preloadPath)
+    mainWindow = createMainWindow(preloadPath, isDev ? undefined : httpOrigin)
 
-    const origin = isDev ? VITE_DEV_ORIGIN : gatewayOrigin(port)
+    const origin = isDev ? VITE_DEV_ORIGIN : pigAppUrl()
     process.env.PIG_GATEWAY_ORIGIN = origin
     await mainWindow.loadURL(isDesktopBench() ? "about:blank" : origin)
   } catch (error) {

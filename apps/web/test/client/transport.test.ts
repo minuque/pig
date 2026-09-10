@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { createWebSocketByteTransportFactory } from "@client/transport.js"
+import { createWebSocketByteTransportFactory, webSocketUrl } from "@client/transport.js"
 import type { ByteTransportHandlers } from "@/types/common-type.js"
 
 type WsEvent = { wasClean?: boolean; code?: number; data?: unknown }
@@ -61,6 +61,26 @@ async function openTransport() {
   const transport = await factory(handlers)
   return { transport, socket: FakeWebSocket.instances[0]!, handlers }
 }
+
+describe("webSocketUrl", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it("显式 base 与桌面壳 dataset 都指向 Gateway", () => {
+    expect(webSocketUrl("http://127.0.0.1:9")).toBe("ws://127.0.0.1:9/api/v1/pi")
+    vi.stubGlobal("document", {
+      documentElement: { dataset: { pigGatewayOrigin: "http://127.0.0.1:9000" } },
+    })
+    expect(webSocketUrl()).toBe("ws://127.0.0.1:9000/api/v1/pi")
+  })
+
+  it("失败路径：pig:// 页且无 Gateway 戳记则抛错", () => {
+    vi.stubGlobal("document", { documentElement: { dataset: {} } })
+    vi.stubGlobal("window", { location: { href: "pig://app/" } })
+    expect(() => webSocketUrl()).toThrow("WebSocket 需要 Gateway 地址")
+  })
+})
 
 describe("createWebSocketByteTransportFactory", () => {
   it("open 后 send 发送 [byteOffset, byteOffset+byteLength) 精确范围", async () => {
