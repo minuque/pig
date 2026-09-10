@@ -196,6 +196,38 @@ describe("TranscriptProjection", () => {
     })
     expect(end.item).toHaveProperty("input", { cmd: "ls" })
   })
+
+  it("历史条目保留 markdown / 表 / 公式 / Tool Call", () => {
+    const manager = SessionManager.inMemory("/tmp")
+    manager.appendMessage({ role: "user", content: "看表", timestamp: 1000 })
+    manager.appendMessage(
+      assistantMessage({
+        stopReason: "toolUse",
+        content: [
+          {
+            type: "text",
+            text: "| a | b |\n| --- | --- |\n$$E = mc^2$$\n```mermaid\nflowchart LR\nA-->B\n```",
+          },
+          { type: "toolCall", id: "call-1", name: "read", arguments: { path: "a.ts" } },
+        ],
+        timestamp: 2000,
+      }),
+    )
+    manager.appendMessage(toolResultMessage({ toolName: "read", timestamp: 3000 }))
+    const items = new TranscriptProjection().transcript(manager.getBranch())
+    expect(items.map((item) => item.role)).toEqual(["user", "assistant", "tool"])
+    const assistant = items[1]
+    expect(assistant?.role).toBe("assistant")
+    if (assistant?.role !== "assistant") throw new Error("expected assistant")
+    const text = assistant.content
+      .filter((block): block is { type: "text"; text: string } => block.type === "text")
+      .map((block) => block.text)
+      .join("")
+    expect(text).toContain("| --- |")
+    expect(text).toContain("$$E = mc^2$$")
+    expect(text).toContain("```mermaid")
+    expect(items[2]).toMatchObject({ role: "tool", toolCallId: "call-1", toolName: "read" })
+  })
 })
 
 // --- PiHostSession ---------------------------------------------------------

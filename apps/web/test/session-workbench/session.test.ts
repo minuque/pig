@@ -508,6 +508,76 @@ describe("HTTP 历史与 live Transcript 合并", () => {
   })
 })
 
+describe("一轮工作", () => {
+  it("已有复杂 Transcript 时提交：乐观用户句追加在历史后", async () => {
+    const history: TranscriptItem[] = [
+      {
+        id: "u1",
+        role: "user",
+        content: [{ type: "text", text: "看表" }],
+        timestamp: 1,
+      },
+      {
+        id: "a1",
+        role: "assistant",
+        content: [{ type: "text", text: "| a | b |\n| --- | --- |\n$$E = mc^2$$" }],
+        model: { provider: "test", id: "model" },
+        timestamp: 2,
+        status: "complete",
+        stopReason: "stop",
+      },
+      {
+        id: "t1",
+        role: "tool",
+        toolCallId: "t1",
+        toolName: "read",
+        input: { path: "a.ts" },
+        content: [{ type: "text", text: "out" }],
+        timestamp: 3,
+        status: "complete",
+        isError: false,
+      },
+    ]
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) return { items: history, timings: [] }
+      return { usage: usageEstimate }
+    })
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1), transcript: [] }
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await vi.waitFor(() =>
+      expect(session.transcript.value.map((row) => row.id)).toEqual(["u1", "a1", "t1"]),
+    )
+
+    const request = session.submitText("继续")
+    expect(session.transcript.value.map((row) => row.role)).toEqual([
+      "user",
+      "assistant",
+      "tool",
+      "user",
+    ])
+    expect(session.transcript.value.at(-1)).toMatchObject({
+      role: "user",
+      content: [{ type: "text", text: "继续" }],
+    })
+    await request
+    expect(a.submit).toHaveBeenCalledWith("继续")
+  })
+
+  it("失败路径：Abort 调用 remote.abort", async () => {
+    const { session } = setup()
+    const a = makeSession("s1")
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await session.abortSession()
+    expect(a.abort).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe("context-usage", () => {
   it("snapshot revision 变化时刷新占用估算", async () => {
     const { session } = setup()

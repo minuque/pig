@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { TranscriptItem, UserTranscriptItem } from "@/types/common-type.js"
+import type { ToolTranscriptItem, TranscriptItem, UserTranscriptItem } from "@/types/common-type.js"
 import {
   isSessionOpening,
   mergeLiveTranscript,
@@ -38,6 +38,30 @@ describe("mergeLiveTranscript", () => {
         row("m2", "assistant", "嗯"),
       ]).map((item) => item.id),
     ).toEqual(["disk-u", "m2"])
+  })
+
+  it("新 Turn 的 live 条目追加在 markdown / Tool Call 历史之后", () => {
+    const tool: ToolTranscriptItem = {
+      id: "t1",
+      role: "tool",
+      toolCallId: "t1",
+      toolName: "read",
+      input: { path: "a.ts" },
+      content: [{ type: "text", text: "out" }],
+      timestamp: 3,
+      status: "complete",
+      isError: false,
+    }
+    const history = [
+      row("u1", "user", "| a | b |\n| --- | --- |"),
+      row("a1", "assistant", "$$E = mc^2$$"),
+      tool,
+    ]
+    expect(
+      mergeLiveTranscript(history, [row("u2", "user", "继续"), row("a2", "assistant", "好")]).map(
+        (item) => item.id,
+      ),
+    ).toEqual(["u1", "a1", "t1", "u2", "a2"])
   })
 })
 
