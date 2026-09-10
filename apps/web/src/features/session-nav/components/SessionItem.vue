@@ -1,13 +1,5 @@
 <template>
   <div class="session-item">
-    <span
-      v-if="state && state !== 'running' && !renaming"
-      class="session-state"
-      :aria-label="stateLabel"
-    >
-      <span class="state-dot" :class="state"></span>
-    </span>
-
     <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
@@ -36,9 +28,12 @@
             <time
               v-else-if="session.updatedAt"
               class="session-time"
+              :class="{ 'has-state': stateDot }"
               :datetime="new Date(session.updatedAt).toISOString()"
+              :aria-label="stateDot ? stateLabel : undefined"
             >
-              {{ relativeTime }}
+              <span v-if="stateDot" class="state-dot" :class="state"></span>
+              <span class="time-text">{{ relativeTime }}</span>
             </time>
           </div>
         </component>
@@ -132,6 +127,9 @@ const deleteOpen = shallowRef(false)
 
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
 const streaming = computed(() => props.state === "running" && !renaming.value)
+const stateDot = computed(
+  () => (props.state === "unread" || props.state === "error") && !renaming.value,
+)
 const stateLabel = computed(() => {
   if (props.state === "running") return "运行中"
   if (props.state === "unread") return "运行完成但未打开"
@@ -205,7 +203,6 @@ function confirmDelete() {
 
 <style scoped>
 .session-item {
-  position: relative;
   width: 100%;
   min-width: 0;
 }
@@ -238,22 +235,15 @@ function confirmDelete() {
   width: 100%;
 }
 
-.session-state {
-  position: absolute;
-  z-index: 1;
-  inset-inline-start: calc(-1 * var(--size-icon-2xs));
-  inset-block-start: calc(50% - var(--size-icon-2xs) / 2);
-  display: grid;
-  place-items: center;
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
-  pointer-events: none;
-}
-
 .state-dot {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
   width: 7px;
   height: 7px;
+  margin-block: auto;
   border-radius: var(--radius-full);
+  pointer-events: none;
 }
 .state-dot.unread {
   background: var(--info);
@@ -287,6 +277,7 @@ function confirmDelete() {
 }
 
 .session-time {
+  position: relative;
   flex: none;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
@@ -295,6 +286,9 @@ function confirmDelete() {
   line-height: 16px;
   text-align: end;
   white-space: nowrap;
+}
+.session-time.has-state .time-text {
+  visibility: hidden;
 }
 
 .rename-input {
