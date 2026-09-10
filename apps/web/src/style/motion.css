@@ -243,19 +243,8 @@
   transition: height var(--duration-normal) var(--ease-out);
 }
 
-.motion-composer .editor-wrap {
+.motion-composer .glass-host {
   transition: padding var(--duration-normal) var(--ease-out);
-}
-
-.motion-composer .field {
-  transition: min-height var(--duration-normal) var(--ease-out);
-}
-
-.motion-composer .left {
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out),
-    visibility var(--duration-fast);
 }
 
 .motion-turn {
@@ -775,9 +764,7 @@
   }
 
   .motion-composer .attach-tray,
-  .motion-composer .editor-wrap,
-  .motion-composer .field,
-  .motion-composer .left {
+  .motion-composer .glass-host {
     transition: none;
   }
 

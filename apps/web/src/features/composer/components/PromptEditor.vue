@@ -3,9 +3,8 @@
     ref="container"
     class="composer motion-composer"
     :data-expanded="expanded"
+    :data-multiline="multiline"
     @mousedown="onComposerMousedown"
-    @focusin="focused = true"
-    @focusout="onFocusOut"
   >
     <div class="attach-tray" :data-open="$slots.chips ? '' : undefined">
       <div class="attach-inner">
@@ -16,6 +15,9 @@
     </div>
     <div class="glass-shell" :class="{ 'motion-card-glow': running }">
       <div class="glass-host">
+        <div v-if="$slots.leading" class="leading">
+          <slot name="leading" />
+        </div>
         <div class="editor-wrap">
           <textarea
             ref="editor"
@@ -29,13 +31,11 @@
             @keydown="onEditorKeydown"
           ></textarea>
         </div>
-        <div class="row">
-          <div class="left" :inert="!expanded" :aria-hidden="!expanded">
-            <slot name="left" />
-          </div>
-          <div class="right">
-            <slot name="right" :expanded="expanded" />
-          </div>
+        <div class="left">
+          <slot name="left" />
+        </div>
+        <div class="right">
+          <slot name="right" :expanded="expanded" />
         </div>
       </div>
     </div>
@@ -56,19 +56,17 @@ export function shouldSubmitOnKeydown(e: {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, useSlots, watch } from "vue"
+import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
 
 const props = withDefaults(
   defineProps<{
     placeholder?: string
     running?: boolean
-    active?: boolean
     readonly?: boolean
   }>(),
   {
     placeholder: "do what you want ...",
     running: false,
-    active: false,
     readonly: false,
   },
 )
@@ -80,19 +78,56 @@ const emit = defineEmits<{
 }>()
 
 const editor = ref<HTMLTextAreaElement | null>(null)
-const focused = shallowRef(false)
 const container = ref<HTMLElement | null>(null)
 
-const slots = useSlots()
 const hasText = computed(() => prompt.value.length > 0)
-const expanded = computed(
-  () => focused.value || hasText.value || Boolean(slots.chips) || props.running || props.active,
+const expanded = computed(() => prompt.value.includes("\n"))
+const multiline = shallowRef(false)
+
+let widthObserver: ResizeObserver | undefined
+let lastWidth = 0
+
+function fitEditor() {
+  const el = editor.value
+  if (!el) return
+  el.style.height = "auto"
+  const next = el.scrollHeight
+  el.style.height = `${next}px`
+  const line = Number.parseFloat(getComputedStyle(el).lineHeight) || 22
+  multiline.value = next > line + 2 || el.value.includes("\n")
+}
+
+watch(
+  prompt,
+  () => {
+    fitEditor()
+    if (!props.readonly) return
+    const el = editor.value
+    if (el) el.scrollTop = el.scrollHeight
+  },
+  { flush: "post" },
 )
 
-function onFocusOut(event: FocusEvent) {
-  focused.value =
-    event.relatedTarget instanceof Node && Boolean(container.value?.contains(event.relatedTarget))
-}
+watch(
+  container,
+  (el) => {
+    widthObserver?.disconnect()
+    widthObserver = undefined
+    lastWidth = 0
+    if (!el) return
+    widthObserver = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? 0
+      if (width === lastWidth) return
+      lastWidth = width
+      fitEditor()
+    })
+    widthObserver.observe(el)
+    fitEditor()
+  },
+  { flush: "post" },
+)
+
+onBeforeUnmount(() => widthObserver?.disconnect())
 
 function focus() {
   const el = editor.value
@@ -100,12 +135,6 @@ function focus() {
   el.focus()
   el.selectionStart = el.selectionEnd = el.value.length
 }
-
-watch(prompt, () => {
-  if (!props.readonly) return
-  const el = editor.value
-  if (el) el.scrollTop = el.scrollHeight
-})
 
 function onEditorKeydown(e: KeyboardEvent) {
   if (props.readonly) return
@@ -151,7 +180,7 @@ defineExpose({ focus })
   display: flex;
   align-items: flex-start;
   background: var(--composer-bg);
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--composer-ring);
   border-bottom: 0;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
@@ -172,16 +201,33 @@ defineExpose({ focus })
 .glass-shell {
   position: relative;
   z-index: 10;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
 }
 
 .glass-host {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "leading editor left right";
+  align-items: center;
+  column-gap: var(--spacing-xxs);
+  padding: var(--spacing-xs);
   overflow: hidden;
   background: var(--composer-bg);
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--composer-ring);
   border-radius: var(--radius-xl);
+}
+.composer[data-expanded="true"] .glass-host {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "editor editor editor"
+    "leading left right";
+  align-items: end;
+  row-gap: var(--spacing-xxs);
+  padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-xs);
+}
+.composer[data-multiline="true"] .glass-host {
+  align-items: end;
 }
 
 .footer {
@@ -189,17 +235,32 @@ defineExpose({ focus })
   padding-inline: var(--spacing-xxs);
 }
 
-.editor-wrap {
-  padding: var(--spacing-sm) var(--spacing-md);
-  padding-inline-end: calc(var(--size-icon-button) + var(--spacing-lg));
+.leading,
+.left,
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  flex: none;
 }
-.composer[data-expanded="true"] .editor-wrap {
-  padding: 14px var(--spacing-md) 48px;
+.leading {
+  grid-area: leading;
+}
+.left {
+  grid-area: left;
+  min-width: 0;
+}
+.right {
+  grid-area: right;
 }
 
-.composer[data-expanded="true"] .field {
-  min-height: 44px;
+.editor-wrap {
+  grid-area: editor;
+  min-width: 0;
+  padding-block-start: 3px;
+  padding-inline: var(--spacing-xxs);
 }
+
 .field {
   display: block;
   width: 100%;
@@ -227,42 +288,5 @@ defineExpose({ focus })
 .field::selection {
   background: Highlight;
   color: HighlightText;
-}
-
-.row {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-xs);
-  min-height: 44px;
-  padding: 6px 10px var(--spacing-xs) 10px;
-}
-
-.left {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xxs);
-  min-width: 0;
-  flex: 1;
-}
-.composer[data-expanded="false"] .left {
-  visibility: hidden;
-  opacity: 0;
-  transform: translateY(var(--spacing-xxs));
-}
-
-.composer[data-expanded="false"] .row {
-  inset-inline-start: auto;
-}
-
-.right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: none;
 }
 </style>

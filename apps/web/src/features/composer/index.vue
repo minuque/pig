@@ -13,7 +13,6 @@
       v-model:prompt="prompt"
       :placeholder="placeholder"
       :running="running"
-      :active="modelPickerOpen || voiceActive"
       :readonly="voiceActive"
       @submit="send"
     >
@@ -25,6 +24,21 @@
           :name="item.name"
           @remove="removeAttachment(item.id)"
         />
+      </template>
+      <template #leading>
+        <Button
+          v-if="!voiceActive"
+          type="button"
+          size="icon"
+          class="plus press-scale"
+          aria-label="添加图片，最多 6 张，仅本地预览"
+          title="添加图片，仅本地预览"
+          :disabled="attachments.length >= MAX_COMPOSER_ATTACHMENTS"
+          @mousedown.prevent
+          @click="openFilePicker"
+        >
+          <Plus class="size-icon" />
+        </Button>
       </template>
       <template #left>
         <template v-if="!voiceActive">
@@ -42,21 +56,8 @@
           />
         </template>
       </template>
-      <template #right="{ expanded }">
+      <template #right>
         <span v-if="voiceActive" class="voice-status" role="status">正在聆听…</span>
-        <Button
-          v-show="expanded && !voiceActive"
-          type="button"
-          size="icon"
-          class="plus press-scale"
-          aria-label="添加图片，最多 6 张，仅本地预览"
-          title="添加图片，仅本地预览"
-          :disabled="attachments.length >= MAX_COMPOSER_ATTACHMENTS"
-          @mousedown.prevent
-          @click="openFilePicker"
-        >
-          <Plus class="size-icon" />
-        </Button>
         <Tooltip v-if="error" :delay-duration="200">
           <TooltipTrigger as-child>
             <Button type="button" size="icon" class="error-indicator" :aria-label="error">
@@ -292,7 +293,7 @@ function onPrimaryAction() {
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: var(--surface);
+  background: transparent;
 }
 
 .error-indicator {
@@ -329,11 +330,11 @@ function onPrimaryAction() {
     scale var(--duration-fast) var(--ease-out);
 }
 .plus {
-  background: transparent;
-  color: var(--ink-faint);
+  background: var(--hover-tint);
+  color: var(--ink-muted);
 }
 .plus:hover:not(:disabled) {
-  background: var(--hover-tint);
+  background: var(--hover-strong);
   color: var(--ink);
 }
 .plus:disabled {
