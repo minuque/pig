@@ -6,6 +6,7 @@ type CodeBlockTheme = "dark-plus" | "light-plus"
 const mermaidProps = {
   renderDebounceMs: 180,
   contentStableDelayMs: 500,
+  estimatedPreviewHeightPx: 240,
   showHeader: true,
   showFullscreenButton: true,
 } as const
@@ -33,6 +34,7 @@ export function chatMarkdownProps(input: {
     typewriter: false,
     smoothStreaming: false,
     viewportPriority: !streaming,
+    deferNodesUntilVisible: !streaming,
     batchRendering: streaming,
     maxLiveNodes: streaming ? 0 : 320,
     codeBlockOptions: {

@@ -12,6 +12,7 @@
       id="transcript-panel"
       ref="viewport"
       class="transcript-viewport"
+      :class="{ 'is-following': atBottom }"
       @scroll="onTranscriptScroll"
       @wheel="onWheel"
       @pointerdown="onTranscriptPointerDown"
@@ -22,7 +23,7 @@
             name="timeline-row"
             tag="div"
             class="timeline-rows"
-            :class="{ 'is-paint-skip': paintSkip }"
+            :class="{ 'is-paint-skip': paintSkip || running }"
             :css="liveEnter"
           >
             <div
@@ -80,7 +81,10 @@ import {
   isToolRow,
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
-import { shouldShowScrollToLatest } from "@features/transcript-view/lib/transcript-scroll.js"
+import {
+  restoreScrollAfterPrepend,
+  shouldShowScrollToLatest,
+} from "@features/transcript-view/lib/transcript-scroll.js"
 import {
   historyPrepended,
   lastTurnStartIndex,
@@ -202,7 +206,7 @@ let paintRaf = 0
 let paintSkipTimer = 0
 let paintSkipObserver: ResizeObserver | undefined
 
-const PAINT_SKIP_SETTLE_MS = 80
+const PAINT_SKIP_SETTLE_MS = 120
 
 function enableLiveEnter() {
   if (liveEnter.value) return
@@ -221,19 +225,31 @@ function cancelPaintSkip() {
   paintSkipObserver = undefined
 }
 
-function armPaintSkip() {
+function revealLastTurn(gen: number) {
+  paintSkip.value = true
+  pinIfNeeded()
+  if (rows.value.length > 0) emit("firstTextPaint")
+  if (windowStart.value > 0) {
+    liveEnter.value = false
+    scheduleIdleBackfill(gen)
+    return
+  }
+  enableLiveEnter()
+  releaseTail()
+}
+
+function armPaintSkip(gen: number) {
   cancelPaintSkip()
   const body = list.value
   const settle = () => {
     paintSkipTimer = 0
     paintSkipObserver?.disconnect()
     paintSkipObserver = undefined
-    pinIfNeeded()
-    paintSkip.value = true
-    releaseTail()
+    if (gen !== backfillGen) return
+    revealLastTurn(gen)
   }
   if (!body) {
-    paintSkip.value = true
+    revealLastTurn(gen)
     return
   }
   paintSkipObserver = new ResizeObserver(() => {
@@ -247,7 +263,8 @@ function armPaintSkip() {
 function finishBackfill() {
   if (rows.value.length > 0) enableLiveEnter()
   else liveEnter.value = true
-  armPaintSkip()
+  pinIfNeeded()
+  releaseTail()
 }
 
 function cancelIdleStart() {
@@ -280,10 +297,14 @@ function runBackfill(gen: number) {
     finishBackfill()
     return
   }
+  const root = scrollerRoot()
+  const beforeHeight = root?.scrollHeight ?? 0
+  const beforeTop = root?.scrollTop ?? 0
   windowStart.value = Math.max(0, windowStart.value - BACKFILL_PER_FRAME)
   void nextTick(() => {
     if (gen !== backfillGen) return
-    pinIfNeeded()
+    if (atBottom.value) pinIfNeeded()
+    else if (root) restoreScrollAfterPrepend(root, beforeHeight, beforeTop)
     if (windowStart.value > 0) backfillRaf = requestAnimationFrame(() => runBackfill(gen))
     else finishBackfill()
   })
@@ -304,23 +325,23 @@ function scheduleIdleBackfill(gen: number) {
   idleStart = window.setTimeout(start, 0)
 }
 
-/** 末条纯文字 paint 后再 idle 回填，避免首屏挂上更早的表。 */
+/** 末条公式/Markdown 稳住后再揭开，随后 idle 回填更早行。 */
 function scheduleBackfillAfterPaint() {
+  const alreadyShown = paintSkip.value
   stopBackfill()
   holdTail()
   const gen = backfillGen
+  if (alreadyShown) {
+    if (windowStart.value > 0) scheduleIdleBackfill(gen)
+    else finishBackfill()
+    return
+  }
   void nextTick(() => {
     if (gen !== backfillGen) return
     paintRaf = requestAnimationFrame(() => {
       paintRaf = 0
       if (gen !== backfillGen) return
-      if (rows.value.length > 0) emit("firstTextPaint")
-      if (windowStart.value <= 0) {
-        finishBackfill()
-        return
-      }
-      liveEnter.value = false
-      scheduleIdleBackfill(gen)
+      armPaintSkip(gen)
     })
   })
 }
@@ -413,8 +434,11 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   flex: 1;
   overflow-x: hidden;
   overflow-y: auto;
-  overflow-anchor: none;
+  overflow-anchor: auto;
   overscroll-behavior: contain;
+}
+.transcript-viewport.is-following {
+  overflow-anchor: none;
 }
 .transcript-viewport:has(.code-more-menu) {
   z-index: 3;
@@ -434,6 +458,9 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .row {
   box-sizing: border-box;
   width: 100%;
+}
+.timeline-rows:not(.is-paint-skip) {
+  visibility: hidden;
 }
 
 .row + .row {
