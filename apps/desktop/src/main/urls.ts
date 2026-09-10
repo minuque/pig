@@ -1,3 +1,5 @@
+import { extname, isAbsolute, relative, resolve } from "node:path"
+
 export const VITE_DEV_ORIGIN = "http://127.0.0.1:5173"
 
 export const PIG_SCHEME = "pig"
@@ -52,8 +54,9 @@ export function parseGatewayOriginArg(argv: readonly string[]): string | undefin
   return new URL(value).origin
 }
 
-/** pig://app/... → Gateway 同源路径；其它 host 一律拒绝。 */
-export function gatewayTargetUrl(requestUrl: string, httpOrigin: string): URL | undefined {
+export function parsePigRequest(
+  requestUrl: string,
+): { pathname: string; search: string } | undefined {
   let url: URL
   try {
     url = new URL(requestUrl)
@@ -63,12 +66,52 @@ export function gatewayTargetUrl(requestUrl: string, httpOrigin: string): URL | 
   if (url.protocol !== `${PIG_SCHEME}:`) return undefined
   if (url.hostname !== PIG_APP_HOST) return undefined
   if (url.username !== "" || url.password !== "") return undefined
-  const path = url.pathname === "" ? "/" : url.pathname
-  return new URL(`${path}${url.search}`, httpOrigin)
+  const pathname = url.pathname === "" ? "/" : url.pathname
+  return { pathname, search: url.search }
+}
+
+export function isPigApiPath(pathname: string): boolean {
+  return pathname === "/api" || pathname.startsWith("/api/")
+}
+
+/** pig://app/... → Gateway 同源路径；其它 host 一律拒绝。 */
+export function gatewayTargetUrl(requestUrl: string, httpOrigin: string): URL | undefined {
+  const parsed = parsePigRequest(requestUrl)
+  if (!parsed) return undefined
+  return new URL(`${parsed.pathname}${parsed.search}`, httpOrigin)
+}
+
+/** 把 pig:// 路径落到 webRoot 内文件；穿越或坏编码返回 undefined。 */
+export function resolvePigWebFile(webRoot: string, pathname: string): string | undefined {
+  let requested: string
+  try {
+    requested = decodeURIComponent(pathname).replace(/^\/+/, "") || "index.html"
+  } catch {
+    return undefined
+  }
+  const root = resolve(webRoot)
+  const file = resolve(root, requested)
+  const pathFromRoot = relative(root, file)
+  if (pathFromRoot.startsWith("..") || isAbsolute(pathFromRoot)) return undefined
+  return file
+}
+
+export function pigSpaFallback(webRoot: string, pathname: string): string | undefined {
+  const requested = pathname.replace(/^\/+/, "")
+  if (requested !== "" && extname(requested)) return undefined
+  return resolvePigWebFile(webRoot, "/index.html")
 }
 
 export function injectGatewayOrigin(html: string, httpOrigin: string): string {
   const stamp = `<script>document.documentElement.dataset.pigGatewayOrigin=${JSON.stringify(httpOrigin)}</script>`
   const marked = html.replace(/<head>/i, `<head>${stamp}`)
   return marked === html ? `${stamp}${html}` : marked
+}
+
+/** 模块脚本始终走 CORS；pig:// 响应必须带允许源，否则 Vite 产物无法执行。 */
+export function pigCorsHeaders(headers: Headers): Headers {
+  const next = new Headers(headers)
+  next.set("Access-Control-Allow-Origin", PIG_APP_ORIGIN)
+  next.set("Cross-Origin-Resource-Policy", "cross-origin")
+  return next
 }

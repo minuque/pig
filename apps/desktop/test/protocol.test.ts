@@ -1,28 +1,40 @@
+import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 import {
   gatewayOriginArg,
   gatewayTargetUrl,
   injectGatewayOrigin,
   isLoopbackHttpOrigin,
+  isPigApiPath,
   parseGatewayOriginArg,
   pigAppUrl,
+  pigCorsHeaders,
+  pigSpaFallback,
+  resolvePigWebFile,
 } from "../src/main/urls.js"
 
 const GATEWAY = "http://127.0.0.1:8787"
+const WEB_ROOT = join("G:", "web")
 
 describe("pig protocol URL mapping", () => {
-  it("pig://app 路径转到 Gateway HTTP，含 API 与 SPA 路由", () => {
+  it("API 走 Gateway，静态资源落到 webRoot，SPA 回退 index.html", () => {
     expect(pigAppUrl()).toBe("pig://app/")
-    expect(gatewayTargetUrl("pig://app/", GATEWAY)?.href).toBe(`${GATEWAY}/`)
-    expect(gatewayTargetUrl("pig://app/sessions/abc", GATEWAY)?.href).toBe(
-      `${GATEWAY}/sessions/abc`,
-    )
+    expect(isPigApiPath("/api/v1/platform/session-cards")).toBe(true)
     expect(gatewayTargetUrl("pig://app/api/v1/platform/session-cards", GATEWAY)?.href).toBe(
       `${GATEWAY}/api/v1/platform/session-cards`,
     )
+    expect(
+      resolvePigWebFile(WEB_ROOT, "/assets/app.js")?.endsWith(join("web", "assets", "app.js")),
+    ).toBe(true)
+    expect(pigSpaFallback(WEB_ROOT, "/sessions/abc")?.endsWith(join("web", "index.html"))).toBe(
+      true,
+    )
+    expect(pigSpaFallback(WEB_ROOT, "/assets/app.js")).toBeUndefined()
   })
 
   it("失败路径：非 app 主机、凭据、坏 URL 一律拒绝", () => {
+    expect(isPigApiPath("/assets/app.js")).toBe(false)
+    expect(resolvePigWebFile(WEB_ROOT, "/../secret")).toBeUndefined()
     expect(gatewayTargetUrl("pig://other/", GATEWAY)).toBeUndefined()
     expect(gatewayTargetUrl("http://127.0.0.1:8787/", GATEWAY)).toBeUndefined()
     expect(gatewayTargetUrl("pig://user:pass@app/", GATEWAY)).toBeUndefined()
@@ -44,5 +56,11 @@ describe("Gateway origin 注入", () => {
     expect(isLoopbackHttpOrigin("http://127.0.0.1:8787/foo")).toBe(false)
     expect(parseGatewayOriginArg([gatewayOriginArg("http://8.8.8.8")])).toBeUndefined()
     expect(parseGatewayOriginArg([])).toBeUndefined()
+  })
+
+  it("pig:// 响应带模块脚本所需 CORS 头", () => {
+    const headers = pigCorsHeaders(new Headers({ "content-type": "text/javascript" }))
+    expect(headers.get("Access-Control-Allow-Origin")).toBe("pig://app")
+    expect(headers.get("Cross-Origin-Resource-Policy")).toBe("cross-origin")
   })
 })

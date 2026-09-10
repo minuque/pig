@@ -133,7 +133,8 @@ void app.whenReady().then(async () => {
       vite = spawnVite({ GATEWAY_TARGET: httpOrigin })
       await waitForHttp(VITE_DEV_ORIGIN)
     } else {
-      handlePigProtocol(httpOrigin)
+      if (!webRoot) throw new Error("桌面壳缺少 Web 资源")
+      handlePigProtocol(httpOrigin, webRoot)
     }
 
     mainWindow = createMainWindow(preloadPath, isDev ? undefined : httpOrigin)
