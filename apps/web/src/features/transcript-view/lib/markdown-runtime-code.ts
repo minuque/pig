@@ -2,7 +2,7 @@ import DiffsWorker from "@pierre/diffs/worker/worker.js?worker"
 import { getOrCreateWorkerPoolSingleton } from "@pierre/diffs/worker"
 import { preloadCodeBlockRuntime, setStreamDiffsWorkerPool } from "markstream-vue"
 
-export function installCodeRuntime() {
+export async function installCodeRuntime() {
   const poolSize = Math.min(4, navigator.hardwareConcurrency || 2)
   setStreamDiffsWorkerPool(
     getOrCreateWorkerPoolSingleton({
@@ -15,5 +15,5 @@ export function installCodeRuntime() {
       },
     }),
   )
-  void preloadCodeBlockRuntime()
+  await preloadCodeBlockRuntime()
 }

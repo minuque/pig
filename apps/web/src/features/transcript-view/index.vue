@@ -7,7 +7,6 @@
       :hit-strip-width="hitStripWidth"
       @select="selectMinimapItem"
     />
-
     <div
       id="transcript-panel"
       ref="viewport"
@@ -91,6 +90,7 @@ import {
   isToolRow,
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
+import { drainMarkdownAfterPaint } from "@features/transcript-view/lib/markdown-drain.js"
 import { paintSkipWaitMs } from "@features/transcript-view/lib/paint-skip.js"
 import {
   restoreScrollAfterPrepend,
@@ -248,33 +248,34 @@ let paintSkipObserver: ResizeObserver | undefined
 let paintSkipArmedAt = 0
 
 function enableLiveEnter() {
-  if (liveEnter.value) return
-  void nextTick(() => {
-    liveEnter.value = true
-  })
+  if (!liveEnter.value)
+    void nextTick(() => {
+      liveEnter.value = true
+    })
 }
 
 function cancelPaintSkip() {
   paintSkip.value = false
-  if (paintSkipTimer) {
-    window.clearTimeout(paintSkipTimer)
-    paintSkipTimer = 0
-  }
+  if (paintSkipTimer) window.clearTimeout(paintSkipTimer)
+  paintSkipTimer = 0
   paintSkipObserver?.disconnect()
   paintSkipObserver = undefined
 }
 
-function revealLastTurn(gen: number) {
+async function revealLastTurn(gen: number) {
   if (gen !== revealGen) return
   paintSkip.value = true
   pinIfNeeded()
+  markdownSettled.value = true
+  try {
+    await drainMarkdownAfterPaint()
+  } catch {
+    /* 运行时失败不挡揭开 */
+  }
+  if (gen !== revealGen) return
   if (rows.value.length > 0) emit("firstTextPaint")
   enableLiveEnter()
   releaseTail()
-  void nextTick(() => {
-    if (gen !== revealGen) return
-    markdownSettled.value = true
-  })
 }
 
 function armPaintSkip(gen: number) {
@@ -473,7 +474,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .row-user + .row {
   margin-block-start: var(--spacing-lg);
 }
-
 .row + .row-user {
   margin-block-start: var(--spacing-xl);
 }

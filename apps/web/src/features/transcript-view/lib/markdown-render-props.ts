@@ -18,7 +18,7 @@ const chatCodeChrome = {
   showExpandButton: true,
 } as const
 
-/** 流式按批吐字；历史先按可见性铺，揭开后再铺完，避免上翻才挂节点。 */
+/** 流式按批吐字；历史先按可见性铺，撤 loading 前铺完剩余节点。 */
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean
@@ -37,6 +37,7 @@ export function chatMarkdownProps(input: {
     smoothStreaming: false,
     viewportPriority: !streaming && !settle,
     deferNodesUntilVisible: !streaming && !settle,
+    codeBlockStream: streaming,
     batchRendering: streaming,
     maxLiveNodes: streaming ? 0 : 320,
     codeBlockOptions: {

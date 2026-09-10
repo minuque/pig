@@ -30,7 +30,7 @@ async function apply(need: MarkdownRuntimeNeed) {
     }
     if (next.code) {
       const { installCodeRuntime } = await import("./markdown-runtime-code.js")
-      installCodeRuntime()
+      await installCodeRuntime()
     }
   } catch (error) {
     if (next.katex) installed.katex = false
@@ -59,9 +59,16 @@ export function ensureCodeRuntime() {
   void apply({ mermaid: false, katex: false, code: true })
 }
 
-/** 正文揭开后再装 worker，避免挡住蒙层离场。 */
-export function flushMarkdownRuntime() {
+/** 正文揭开前装齐已排队的运行时，避免 loading 刚撤上翻时再拉 worker。 */
+export async function flushMarkdownRuntime() {
   painted = true
   const texts = queued.splice(0)
-  for (const text of texts) ensureMarkdownRuntime(text)
+  const need = { mermaid: false, katex: false, code: false }
+  for (const text of texts) {
+    const next = markdownRuntimeNeeds(text)
+    need.mermaid = need.mermaid || next.mermaid
+    need.katex = need.katex || next.katex
+    need.code = need.code || next.code
+  }
+  await apply(need)
 }
