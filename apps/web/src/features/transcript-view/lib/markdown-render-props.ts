@@ -18,13 +18,15 @@ const chatCodeChrome = {
   showExpandButton: true,
 } as const
 
-/** 流式关虚拟化按批吐字；历史走节点窗口，避免长文一次铺满。 */
+/** 流式按批吐字；历史先按可见性铺，揭开后再铺完，避免上翻才挂节点。 */
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean
   codeBlockProps: { theme: CodeBlockTheme }
+  settleMarkdown?: boolean
 }): NodeRendererProps {
   const streaming = input.streaming
+  const settle = Boolean(input.settleMarkdown)
   return {
     customId: "chat",
     mode: "chat",
@@ -33,8 +35,8 @@ export function chatMarkdownProps(input: {
     final: !streaming,
     typewriter: false,
     smoothStreaming: false,
-    viewportPriority: !streaming,
-    deferNodesUntilVisible: !streaming,
+    viewportPriority: !streaming && !settle,
+    deferNodesUntilVisible: !streaming && !settle,
     batchRendering: streaming,
     maxLiveNodes: streaming ? 0 : 320,
     codeBlockOptions: {

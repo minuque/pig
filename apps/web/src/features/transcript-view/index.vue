@@ -47,6 +47,7 @@
                 v-else-if="row.role === 'assistant'"
                 :item="row"
                 :streaming="running && row.streaming"
+                :eager="markdownSettled"
               />
               <ToolSteps
                 v-else-if="isToolRow(row)"
@@ -239,6 +240,7 @@ function observeSizes() {
 
 const liveEnter = shallowRef(false)
 const paintSkip = shallowRef(false)
+const markdownSettled = shallowRef(false)
 let revealGen = 0
 let paintRaf = 0
 let paintSkipTimer = 0
@@ -269,6 +271,10 @@ function revealLastTurn(gen: number) {
   if (rows.value.length > 0) emit("firstTextPaint")
   enableLiveEnter()
   releaseTail()
+  void nextTick(() => {
+    if (gen !== revealGen) return
+    markdownSettled.value = true
+  })
 }
 
 function armPaintSkip(gen: number) {
@@ -329,6 +335,7 @@ function scheduleRevealAfterPaint() {
 
 function armTailWindow() {
   liveEnter.value = false
+  markdownSettled.value = false
   loadOlderArmed = true
   paintSkipArmedAt = 0
   cancelPaintSkip()
