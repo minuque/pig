@@ -50,7 +50,7 @@ describe("startup sequence", () => {
     expect(thrown.failed.value).toBe(true)
     expect(thrown.settled.value).toBe(true)
     expect(thrown.visible.value).toBe(true)
-    expect(useStartupError().value).toBe("请求失败。请检查本地服务后重试。")
+    expect(useStartupError().value).toBe("连接失败")
     expect(replace).toHaveBeenCalledWith({ name: "error" })
 
     replace.mockClear()
@@ -63,6 +63,7 @@ describe("startup sequence", () => {
     await hung.start()
     expect(hung.failed.value).toBe(true)
     expect(hung.visible.value).toBe(true)
+    expect(useStartupError().value).toBe("连接网关超时")
     expect(replace).toHaveBeenCalledWith({ name: "error" })
   })
 })

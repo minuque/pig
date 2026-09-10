@@ -430,4 +430,13 @@ describe("PiHostService", () => {
       expect.objectContaining({ provider: "test", id: "test-model", authenticated: true }),
     ])
   })
+
+  it("warm 预热会话列表和模型目录", async () => {
+    const { service } = await makeService()
+    await service.warm()
+    expect(await service.listSessions()).toEqual([])
+    expect(await service.listModels()).toEqual([
+      expect.objectContaining({ provider: "test", id: "test-model" }),
+    ])
+  })
 })

@@ -1,3 +1,6 @@
+import { mkdtemp, rm } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
 import { ServerMessageDecoder } from "@earendil-works/pi-protocol"
 import { WebSocket } from "ws"
@@ -16,15 +19,27 @@ const directoryPort: DirectoryPort = {
 }
 
 let gateway: Gateway | undefined
+let sessionDir: string | undefined
 afterEach(async () => {
   selectedDirectory = undefined
   await gateway?.stop()
   gateway = undefined
+  if (sessionDir) await rm(sessionDir, { recursive: true, force: true })
+  sessionDir = undefined
 })
 
+const idleRuntime = {
+  getAvailable: async () => [],
+  hasConfiguredAuth: () => false,
+  getModel: () => undefined,
+}
+
 async function startGateway(options?: ConstructorParameters<typeof Gateway>[0]) {
+  sessionDir = await mkdtemp(join(tmpdir(), "pig-host-"))
   gateway = new Gateway({
     platformPort: directoryPort,
+    createRuntime: async () => idleRuntime as never,
+    sessionDir,
     ...options,
   })
   return `http://127.0.0.1:${await gateway.start()}`

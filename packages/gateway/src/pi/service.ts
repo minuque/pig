@@ -95,6 +95,11 @@ export class PiHostService implements PiServerService {
     )
   }
 
+  /** 监听前预热会话列表和模型目录，避免首次握手超过 PiServer 默认 5s。 */
+  async warm(): Promise<void> {
+    await Promise.all([this.listSessions(), this.listModels()])
+  }
+
   async createSession(options: CreateSessionOptions): Promise<PiSessionRuntime> {
     const runtime = await this.runtime()
     const cwd = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd())

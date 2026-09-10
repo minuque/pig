@@ -24,7 +24,16 @@ describe("production web server", () => {
     outside = `${root}.txt`
     await writeFile(outside, "secret")
 
-    gateway = new Gateway({ webRoot: root })
+    gateway = new Gateway({
+      webRoot: root,
+      sessionDir: root,
+      createRuntime: async () =>
+        ({
+          getAvailable: async () => [],
+          hasConfiguredAuth: () => false,
+          getModel: () => undefined,
+        }) as never,
+    })
     const origin = `http://127.0.0.1:${await gateway.start()}`
 
     expect(await (await fetch(origin)).text()).toBe("<main>app</main>")

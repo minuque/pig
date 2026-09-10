@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
 import { PiServer } from "@earendil-works/pi-server"
-import { PiHostService } from "../pi/service.js"
+import { PiHostService, type PiHostServiceOptions } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
 import { handlePlatformRequest } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
@@ -15,6 +15,8 @@ export interface GatewayOptions {
   platformPort?: DirectoryPort
   /** HTTP 监听端口。缺省 0，由系统分配。 */
   port?: number
+  /** 测试注入：ModelRuntime 工厂。 */
+  createRuntime?: PiHostServiceOptions["createRuntime"]
 }
 
 /**
@@ -39,10 +41,12 @@ export class Gateway {
     this.hostService = new PiHostService({
       ...(options.sessionDir ? { sessionDir: options.sessionDir } : {}),
       ...(options.cwd ? { cwd: options.cwd } : {}),
+      ...(options.createRuntime ? { createRuntime: options.createRuntime } : {}),
     })
     this.piServer = new PiServer(this.hostService, {
       listeners: [createWebSocketListener({ server: this.server })],
       onError: (error) => console.error("PiServer error:", error),
+      handshakeTimeoutMs: 30_000,
     })
   }
 
@@ -90,6 +94,7 @@ export class Gateway {
 
   async start() {
     installProviderHttp()
+    await this.hostService.warm()
     await this.piServer.start()
     return new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject)
