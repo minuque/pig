@@ -118,8 +118,8 @@
         @add-workspace="addWorkspace"
         @settings="openSettings"
       />
+      <NavShift :grouping="grouping" @set-grouping="setGrouping" />
     </div>
-    <NavShift :grouping="grouping" @set-grouping="setGrouping" />
     <SessionSearch v-model:open="searchOpen" @navigate="onSessionNavigate" />
   </div>
 </template>
@@ -264,6 +264,7 @@ function onCreateInDir(canonicalPath: string): void {
 }
 
 .nav-card {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;

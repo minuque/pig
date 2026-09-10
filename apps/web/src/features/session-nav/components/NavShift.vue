@@ -75,10 +75,10 @@ function shift(mode: SidebarGrouping | undefined) {
   app-region: no-drag;
 }
 .nav-shift-hit[data-side="prev"] {
-  inset-inline-start: var(--spacing-xxs);
+  inset-inline-start: var(--spacing-xs);
 }
 .nav-shift-hit[data-side="next"] {
-  inset-inline-end: var(--spacing-xxs);
+  inset-inline-end: var(--spacing-xs);
 }
 .nav-shift-hit:hover:not(:disabled) {
   color: var(--ink);
