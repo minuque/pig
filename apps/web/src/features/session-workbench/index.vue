@@ -18,6 +18,7 @@
               :workspaces="workspaces"
               :selectable="sessionId === undefined"
               :adding="addingWorkspace"
+              :ready="connected"
               @add="addWorkspace()"
             />
           </div>

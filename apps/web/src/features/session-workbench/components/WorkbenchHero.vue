@@ -1,7 +1,7 @@
 <template>
   <div class="workbench-hero">
     <WorkbenchMascot />
-    <h1 :id="titleId" class="hero-title">
+    <h1 v-if="workspaceId || ready" :id="titleId" class="hero-title">
       <span v-if="workspaceId">在</span>
       <DropdownMenu v-if="selectable" :modal="false">
         <DropdownMenuTrigger as-child>
@@ -52,8 +52,10 @@ withDefaults(
     /** 空 Session 已绑定 cwd，标题只展示不切换。 */
     selectable?: boolean
     adding?: boolean
+    /** 未就绪时不把缺目录画成引导。 */
+    ready?: boolean
   }>(),
-  { selectable: true, adding: false },
+  { selectable: true, adding: false, ready: true },
 )
 
 const emit = defineEmits<{

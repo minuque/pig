@@ -33,9 +33,14 @@ function connectWithTimeout(connect: () => Promise<unknown>, ms: number): Promis
   })
 }
 
+function routeHasSession(router: ReturnType<typeof useRouter>): boolean {
+  const raw = router.currentRoute.value.params.sessionId
+  return typeof raw === "string" && raw.length > 0
+}
+
 /**
  * 启动序列：connect 与 initialize 并行，与毛玻璃遮罩并行。
- * 失败只写入错误并进 `/error`，settled 后由遮罩自行离场。
+ * 有 sessionId 时 initialize 完成即可揭开；欢迎页等连接结束。失败进 `/error`。
  */
 export function useStartupSequence(options: StartupSequenceOptions) {
   const router = useRouter()
@@ -55,7 +60,7 @@ export function useStartupSequence(options: StartupSequenceOptions) {
     )
     const initializing = Promise.resolve(options.initialize())
     void initializing.then(() => {
-      if (!failed.value) settled.value = true
+      if (!failed.value && routeHasSession(router)) settled.value = true
     })
     try {
       await Promise.all([connecting, initializing])

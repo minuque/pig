@@ -104,7 +104,8 @@
               </Transition>
             </nav>
           </div>
-          <p v-if="!groups.length" class="add-guide">
+
+          <p v-if="connected && !groups.length" class="add-guide">
             点击添加工作目录
             <ArrowDown class="size-icon motion-nudge" />
           </p>
@@ -113,7 +114,7 @@
 
       <NavFooter
         :adding-workspace="addingWorkspace"
-        :hint-add="!groups.length"
+        :hint-add="connected && !groups.length"
         @add-workspace="addWorkspace"
         @settings="openSettings"
       />
@@ -157,6 +158,7 @@ const {
   pinnedSessions,
   togglePinned,
   addingWorkspace,
+  connected,
   highlightedSessionId,
   cancelPendingOpen,
   navError: workspaceError,

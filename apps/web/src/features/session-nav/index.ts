@@ -122,6 +122,7 @@ function createNav(
     pinnedSessions: markers.pinnedSessions,
     togglePinned: markers.togglePinned,
     addingWorkspace: nav.addingWorkspace,
+    connected: pi.connected,
     navError,
     lastCwd: cwd.lastCwd,
     activeWorkspaceId: computed(() => session.projection.value?.cwd),

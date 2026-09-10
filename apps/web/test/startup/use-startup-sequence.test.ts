@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const replace = vi.fn(async () => undefined)
-const currentRoute = { value: { name: undefined as string | undefined } }
+const currentRoute = {
+  value: { name: undefined as string | undefined, params: {} as Record<string, unknown> },
+}
 
 vi.mock("vue-router", () => ({
   useRouter: () => ({ currentRoute, replace }),
@@ -13,12 +15,12 @@ import { useStartupSequence } from "@features/startup/hooks/use-startup-sequence
 describe("startup sequence", () => {
   beforeEach(() => {
     setStartupError("")
-    currentRoute.value = { name: undefined }
+    currentRoute.value = { name: undefined, params: {} }
     replace.mockClear()
   })
 
   it("connect 与 initialize 并行；从 /error 成功启动则回到 /", async () => {
-    currentRoute.value = { name: "error" }
+    currentRoute.value = { name: "error", params: {} }
     let inFlight = 0
     let overlapped = false
     const { start, ready, visible, settled } = useStartupSequence({
@@ -76,5 +78,47 @@ describe("startup sequence", () => {
     expect(hung.visible.value).toBe(true)
     expect(useStartupError().value).toBe("连接网关超时")
     expect(replace).toHaveBeenCalledWith({ name: "error" })
+  })
+
+  it("欢迎页 initialize 先完成不揭开遮罩", async () => {
+    let releaseConnect = () => {}
+    const connecting = new Promise<void>((resolve) => {
+      releaseConnect = resolve
+    })
+    let initializeDone = false
+    const seq = useStartupSequence({
+      connect: () => connecting,
+      initialize: async () => {
+        initializeDone = true
+      },
+      connectTimeoutMs: 0,
+    })
+    const started = seq.start()
+    await vi.waitFor(() => expect(initializeDone).toBe(true))
+    expect(seq.settled.value).toBe(false)
+    expect(seq.ready.value).toBe(false)
+    releaseConnect()
+    await started
+    expect(seq.settled.value).toBe(true)
+    expect(seq.ready.value).toBe(true)
+  })
+
+  it("有 sessionId 时 initialize 完成即可揭开遮罩", async () => {
+    currentRoute.value = { name: "session", params: { sessionId: "s1" } }
+    let releaseConnect = () => {}
+    const connecting = new Promise<void>((resolve) => {
+      releaseConnect = resolve
+    })
+    const seq = useStartupSequence({
+      connect: () => connecting,
+      initialize: async () => undefined,
+      connectTimeoutMs: 0,
+    })
+    const started = seq.start()
+    await vi.waitFor(() => expect(seq.settled.value).toBe(true))
+    expect(seq.ready.value).toBe(false)
+    releaseConnect()
+    await started
+    expect(seq.ready.value).toBe(true)
   })
 })
