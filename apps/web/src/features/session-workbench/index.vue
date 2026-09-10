@@ -322,7 +322,6 @@ const contentHandleSides = ["left", "right"] as const
   bottom: 0;
   left: 0;
   pointer-events: none;
-  background: var(--surface);
 }
 
 .composer-stack {
@@ -330,6 +329,7 @@ const contentHandleSides = ["left", "right"] as const
   width: 100%;
   max-width: var(--size-composer);
   margin-inline: auto;
+  background: var(--surface);
 }
 
 .session-floating-controls {
