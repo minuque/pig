@@ -322,6 +322,7 @@ const contentHandleSides = ["left", "right"] as const
   bottom: 0;
   left: 0;
   pointer-events: none;
+  background: var(--surface);
 }
 
 .composer-stack {
