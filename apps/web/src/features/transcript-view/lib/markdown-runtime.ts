@@ -3,8 +3,6 @@ import {
   type MarkdownRuntimeNeed,
 } from "@features/transcript-view/lib/markdown-runtime-needs.js"
 
-export { markdownRuntimeNeeds, needsMarkdownRuntime } from "./markdown-runtime-needs.js"
-
 const installed = { mermaid: false, katex: false, code: false }
 const queued: string[] = []
 let painted = false

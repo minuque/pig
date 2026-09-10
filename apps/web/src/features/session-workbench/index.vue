@@ -180,9 +180,6 @@ watch(
 
 function onFirstTextPaint() {
   firstTextPainted.value = true
-  void import("@features/transcript-view/lib/markdown-runtime.js").then((mod) => {
-    mod.flushMarkdownRuntime()
-  })
 }
 
 const welcomeWorkspaceId = shallowRef<string>()

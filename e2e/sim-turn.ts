@@ -21,6 +21,7 @@ function asBytes(data: Buffer | ArrayBuffer | Uint8Array): Uint8Array {
 export async function installTurnBridge(page: Page) {
   let socket: WebSocketRoute | undefined
   let upstream: WebSocketRoute | undefined
+  let connections = 0
   let promptSessionId: string | undefined
   let resolvePrompt: ((id: string) => void) | undefined
   const snapshots = new Map<string, SessionSnapshot>()
@@ -28,6 +29,7 @@ export async function installTurnBridge(page: Page) {
   await page.routeWebSocket("**/api/v1/pi", (route) => {
     socket = route
     upstream = route.connectToServer()
+    connections += 1
     const serverDecoder = new ServerMessageDecoder()
     const clientDecoder = new ClientMessageDecoder()
     const send = (message: Parameters<typeof encodeServerMessage>[0]) => {
@@ -115,6 +117,7 @@ export async function installTurnBridge(page: Page) {
 
   return {
     snapshots,
+    connections: () => connections,
     send(message: Parameters<typeof encodeServerMessage>[0]) {
       if (!socket) throw new Error("e2e WebSocket 尚未建立")
       socket.send(Buffer.from(encodeServerMessage(message)))
@@ -124,6 +127,10 @@ export async function installTurnBridge(page: Page) {
       return new Promise<string>((resolve) => {
         resolvePrompt = resolve
       })
+    },
+    async disconnect() {
+      snapshots.clear()
+      await Promise.all([socket?.close({ code: 1011, reason: "断线" }), upstream?.close()])
     },
   }
 }

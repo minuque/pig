@@ -35,7 +35,7 @@
             :css="liveEnter"
           >
             <div
-              v-for="row in mountedRows"
+              v-for="row in rows"
               :key="row.id"
               class="row"
               :class="`row-${row.role}`"
@@ -118,7 +118,6 @@ const emit = defineEmits<{
 }>()
 
 const rows = computed(() => buildTimelineRows(props.transcript, props.running, props.timings))
-const mountedRows = rows
 const mountedKeys = computed(() => timelineRowKeys(rows.value))
 
 const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(

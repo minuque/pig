@@ -13,12 +13,10 @@ export function isDisconnectedError(error: unknown) {
 }
 
 function swallowDispose(session: RemoteSession) {
-  return Promise.resolve()
-    .then(() => session.dispose())
-    .then(
-      () => undefined,
-      () => undefined,
-    )
+  return session.dispose().then(
+    () => undefined,
+    () => undefined,
+  )
 }
 
 interface Opening {
@@ -97,18 +95,13 @@ export function createAbortableOpen() {
         opening.waiters -= 1
         rejectAbort(new Error(OPEN_ABORTED))
       },
-      promise: Promise.race([opening.promise, abortWait]).then(
-        async (session) => {
-          if (aborted) {
-            if (opening.waiters === 0) await discard(session)
-            throw new Error(OPEN_ABORTED)
-          }
-          return session
-        },
-        (error: unknown) => {
-          throw error
-        },
-      ),
+      promise: Promise.race([opening.promise, abortWait]).then(async (session) => {
+        if (aborted) {
+          if (opening.waiters === 0) await discard(session)
+          throw new Error(OPEN_ABORTED)
+        }
+        return session
+      }),
     }
   }
 

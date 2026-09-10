@@ -12,8 +12,3 @@ export function markdownRuntimeNeeds(text: string): MarkdownRuntimeNeed {
     code: /```/.test(text),
   }
 }
-
-export function needsMarkdownRuntime(text: string): boolean {
-  const need = markdownRuntimeNeeds(text)
-  return need.mermaid || need.katex || need.code
-}

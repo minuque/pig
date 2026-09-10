@@ -16,10 +16,6 @@ import {
   shouldLoadOlderTranscript,
   transcriptOverflows,
 } from "@features/transcript-view/lib/transcript-scroll.js"
-import {
-  lastTurnStartIndex,
-  recutWindowStartOnPrepend,
-} from "@features/transcript-view/lib/transcript-window.js"
 
 const user: UserTranscriptItem = {
   id: "u1",
@@ -187,30 +183,6 @@ describe("一轮工作 → 执行过程与最终回答", () => {
 })
 
 describe("打开已有会话 → 长列表尾部先挂载", () => {
-  it("长列表尾窗口下标", () => {
-    const rows = buildTimelineRows(manyTurns(10), false)
-    expect(rows).toHaveLength(20)
-    expect(lastTurnStartIndex(rows)).toBe(18)
-    expect(lastTurnStartIndex(rows, 4)).toBe(12)
-  })
-
-  it("不足一轮时返回 0", () => {
-    expect(lastTurnStartIndex([])).toBe(0)
-    expect(lastTurnStartIndex(buildTimelineRows(manyTurns(1), false))).toBe(0)
-  })
-
-  it("短 live 后面来全文 → 窗口仍是最后一轮", () => {
-    const full = buildTimelineRows(manyTurns(10), false)
-    const live = full.slice(-2)
-    expect(recutWindowStartOnPrepend(live, full, 0, true)).toBe(18)
-  })
-
-  it("短 live 后面来全文且已上翻 → 不拽回尾部", () => {
-    const full = buildTimelineRows(manyTurns(10), false)
-    const live = full.slice(-2)
-    expect(recutWindowStartOnPrepend(live, full, 0, false)).toBe(0)
-  })
-
   it("贴底、加载中或未溢出不上翻拉取", () => {
     expect(shouldLoadOlderTranscript(true, false, true, 0)).toBe(false)
     expect(shouldLoadOlderTranscript(true, true, false, 0)).toBe(false)

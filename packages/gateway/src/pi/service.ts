@@ -200,7 +200,7 @@ export class PiHostService implements PiServerService {
   /** 历史 Transcript：默认最后一轮；before 取更早页。不进协议 snapshot。 */
   async sessionTranscript(
     sessionId: string,
-    query?: { before?: string; turns?: number },
+    query?: { before?: string },
   ): Promise<{ items: TranscriptItem[]; timings: TurnTiming[]; hasMore: boolean }> {
     const live = this.activeSessions.get(sessionId)
     const full = live ? live.historyTranscript() : await this.readDiskTranscript(sessionId)
