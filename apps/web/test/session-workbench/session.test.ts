@@ -207,13 +207,66 @@ describe("打开已有 Session", () => {
     expect(session.remote.value).toBeUndefined()
   })
 
-  it("open 失败：不附加、回到首页", async () => {
+  it("open 失败且尚无历史：不附加、回到首页", async () => {
     const { session } = setup()
     openMock.mockRejectedValue(new Error("boom"))
     routeBox.params.sessionId = "s1"
     await session.initialize()
+    await vi.waitFor(() => expect(routerReplace).toHaveBeenCalledWith("/"))
     expect(session.remote.value).toBeUndefined()
-    expect(routerReplace).toHaveBeenCalledWith("/")
+  })
+
+  it("open 失败但历史已到：留在会话页", async () => {
+    const item = {
+      id: "u1",
+      role: "user" as const,
+      content: [{ type: "text" as const, text: "hi" }],
+      timestamp: 1,
+    }
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) return { items: [item], timings: [] }
+      return { usage: usageEstimate }
+    })
+    const { session } = setup()
+    openMock.mockRejectedValue(new Error("boom"))
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
+    expect(routerReplace).not.toHaveBeenCalled()
+    expect(session.remote.value).toBeUndefined()
+  })
+
+  it("PiClient 未连接时 initialize 仍能拉到磁盘历史", async () => {
+    const item = {
+      id: "u1",
+      role: "user" as const,
+      content: [{ type: "text" as const, text: "hi" }],
+      timestamp: 1,
+    }
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) return { items: [item], timings: [] }
+      return { usage: usageEstimate }
+    })
+    const pi = {
+      client: ref(undefined as unknown as PiClient | undefined),
+      connected: computed(() => false),
+      connectionState: ref("idle"),
+      connectionError: shallowRef<Error | undefined>(undefined),
+      models: ref([]),
+      sessions: ref([]),
+      bindAttachedReconnect: vi.fn(),
+    }
+    const cwd = { lastCwd: ref("/repo"), selectCwd: vi.fn() }
+    lifecycle?.teardown()
+    const session = useSessionLifecycle(
+      pi as unknown as ReturnType<typeof usePiClient>,
+      cwd as unknown as ReturnType<typeof useLocalWorkspaces>,
+    )
+    lifecycle = session
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"])
+    expect(openMock).not.toHaveBeenCalled()
   })
 })
 
@@ -401,6 +454,7 @@ describe("提交失败恢复草稿", () => {
     openMock.mockResolvedValue(a)
     routeBox.params.sessionId = "s1"
     await session.initialize()
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
     session.prompt.value = "  新任务  "
 
     const request = session.submitText(session.prompt.value)
@@ -424,6 +478,7 @@ describe("提交失败恢复草稿", () => {
     openMock.mockResolvedValue(a)
     routeBox.params.sessionId = "s1"
     await session.initialize()
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
     session.prompt.value = "任务"
 
     await expect(session.submitText("任务")).rejects.toThrow("发送失败")
@@ -530,8 +585,9 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     openMock.mockResolvedValue(remote)
     routeBox.params.sessionId = "s1"
     await session.initialize()
-
-    expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1", "t2"])
+    await vi.waitFor(() =>
+      expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1", "t2"]),
+    )
     remote.state = { ...remote.state, snapshot: snapshot(2), transcript: [] }
     remote.emit()
     expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1", "t2"])
@@ -581,6 +637,7 @@ describe("一轮工作", () => {
     openMock.mockResolvedValue(a)
     routeBox.params.sessionId = "s1"
     await session.initialize()
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
     await vi.waitFor(() =>
       expect(session.transcript.value.map((row) => row.id)).toEqual(["u1", "a1", "t1"]),
     )
@@ -606,6 +663,7 @@ describe("一轮工作", () => {
     openMock.mockResolvedValue(a)
     routeBox.params.sessionId = "s1"
     await session.initialize()
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
     await session.abortSession()
     expect(a.abort).toHaveBeenCalledTimes(1)
   })

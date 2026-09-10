@@ -6,7 +6,7 @@
       <div class="nav-inset">
         <div class="logo-row">
           <RouterLink to="/" class="logo-mark">
-            <img src="/logo.png" alt="" width="22" height="22" />
+            <img src="/pwa-icon-192.png" alt="" width="22" height="22" />
           </RouterLink>
           <button class="collapse-toggle" type="button" title="折叠侧边栏" @click="emit('toggle')">
             <PanelLeft class="size-icon" />

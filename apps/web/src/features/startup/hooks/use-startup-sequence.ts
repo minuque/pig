@@ -34,7 +34,7 @@ function connectWithTimeout(connect: () => Promise<unknown>, ms: number): Promis
 }
 
 /**
- * 启动序列：connect → initialize，与毛玻璃遮罩并行。
+ * 启动序列：connect 与 initialize 并行，与毛玻璃遮罩并行。
  * 失败只写入错误并进 `/error`，settled 后由遮罩自行离场。
  */
 export function useStartupSequence(options: StartupSequenceOptions) {
@@ -49,12 +49,16 @@ export function useStartupSequence(options: StartupSequenceOptions) {
   }
 
   async function start() {
+    const connecting = connectWithTimeout(
+      options.connect,
+      options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS,
+    )
+    const initializing = Promise.resolve(options.initialize())
+    void initializing.then(() => {
+      if (!failed.value) settled.value = true
+    })
     try {
-      await connectWithTimeout(
-        options.connect,
-        options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS,
-      )
-      await options.initialize()
+      await Promise.all([connecting, initializing])
       ready.value = true
       if (router.currentRoute.value.name === "error") await router.replace("/")
     } catch (error) {

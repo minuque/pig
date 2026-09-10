@@ -1,50 +1,67 @@
-import DiffsWorker from "@pierre/diffs/worker/worker.js?worker"
-import { getOrCreateWorkerPoolSingleton } from "@pierre/diffs/worker"
-import katexAms from "katex/dist/fonts/KaTeX_AMS-Regular.woff2?url"
-import katexMain from "katex/dist/fonts/KaTeX_Main-Regular.woff2?url"
-import katexMath from "katex/dist/fonts/KaTeX_Math-Italic.woff2?url"
-import katexSize1 from "katex/dist/fonts/KaTeX_Size1-Regular.woff2?url"
-import katexSize2 from "katex/dist/fonts/KaTeX_Size2-Regular.woff2?url"
 import {
-  preloadCodeBlockRuntime,
-  setKaTeXWorker,
-  setMermaidWorker,
-  setStreamDiffsWorkerPool,
-} from "markstream-vue"
-import KatexWorker from "markstream-vue/workers/katexRenderer.worker?worker&inline"
-import MermaidWorker from "markstream-vue/workers/mermaidParser.worker?worker&inline"
+  markdownRuntimeNeeds,
+  type MarkdownRuntimeNeed,
+} from "@features/transcript-view/lib/markdown-runtime-needs.js"
 
-const KATEX_FONT_URLS = [katexMain, katexMath, katexSize1, katexSize2, katexAms]
+export { markdownRuntimeNeeds, needsMarkdownRuntime } from "./markdown-runtime-needs.js"
 
-/** 公式字体进缓存，避免首屏 KaTeX 换字撑开。 */
-function preloadKatexFonts() {
-  for (const href of KATEX_FONT_URLS) {
-    const link = document.createElement("link")
-    link.rel = "preload"
-    link.as = "font"
-    link.type = "font/woff2"
-    link.crossOrigin = "anonymous"
-    link.href = href
-    document.head.appendChild(link)
+const installed = { mermaid: false, katex: false, code: false }
+const queued: string[] = []
+let painted = false
+
+async function apply(need: MarkdownRuntimeNeed) {
+  const next = {
+    katex: need.katex && !installed.katex,
+    mermaid: need.mermaid && !installed.mermaid,
+    code: need.code && !installed.code,
+  }
+  if (!next.katex && !next.mermaid && !next.code) return
+  if (next.katex) installed.katex = true
+  if (next.mermaid) installed.mermaid = true
+  if (next.code) installed.code = true
+  try {
+    if (next.katex) {
+      const { installKatexRuntime } = await import("./markdown-runtime-katex.js")
+      installKatexRuntime()
+    }
+    if (next.mermaid) {
+      const { installMermaidRuntime } = await import("./markdown-runtime-mermaid.js")
+      installMermaidRuntime()
+    }
+    if (next.code) {
+      const { installCodeRuntime } = await import("./markdown-runtime-code.js")
+      installCodeRuntime()
+    }
+  } catch (error) {
+    if (next.katex) installed.katex = false
+    if (next.mermaid) installed.mermaid = false
+    if (next.code) installed.code = false
+    throw error
   }
 }
 
-/** 安装 KaTeX/Mermaid worker 与代码高亮线程池。 */
-export function installMarkdownRuntime() {
-  preloadKatexFonts()
-  setMermaidWorker(new MermaidWorker())
-  setKaTeXWorker(new KatexWorker())
-  const poolSize = Math.min(4, navigator.hardwareConcurrency || 2)
-  setStreamDiffsWorkerPool(
-    getOrCreateWorkerPoolSingleton({
-      poolOptions: {
-        poolSize,
-        workerFactory: () => new DiffsWorker(),
-      },
-      highlighterOptions: {
-        theme: { dark: "dark-plus", light: "light-plus" },
-      },
-    }),
-  )
-  void preloadCodeBlockRuntime()
+/** 按文本需要动态装 KaTeX / Mermaid / Shiki；纯文字不拉 worker。 */
+export function ensureMarkdownRuntime(text: string) {
+  const need = markdownRuntimeNeeds(text)
+  if (!need.katex && !need.mermaid && !need.code) return
+  if (!painted) {
+    queued.push(text)
+    return
+  }
+  void apply(need)
+}
+
+export function ensureCodeRuntime() {
+  if (!painted) {
+    queued.push("```\n")
+    return
+  }
+  void apply({ mermaid: false, katex: false, code: true })
+}
+
+/** 正文揭开后再装 worker，避免挡住蒙层离场。 */
+export function flushMarkdownRuntime() {
+  painted = true
+  const texts = queued.splice(0)
+  for (const text of texts) ensureMarkdownRuntime(text)
 }

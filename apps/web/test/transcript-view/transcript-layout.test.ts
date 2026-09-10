@@ -10,6 +10,7 @@ import {
   thoughtStepLabel,
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
+import { paintSkipWaitMs } from "@features/transcript-view/lib/paint-skip.js"
 import {
   restoreScrollAfterPrepend,
   shouldLoadOlderTranscript,
@@ -226,6 +227,14 @@ describe("打开已有会话 → 长列表尾部先挂载", () => {
     const full = buildTimelineRows(all, false)
     expect(full.map((row) => row.id).slice(-tail.length)).toEqual(tail.map((row) => row.id))
     expect(timelineRowKeys(full).slice(-tail.length)).toEqual(timelineRowKeys(tail))
+  })
+
+  it("揭开等待有上限，后续撑高不能无限推迟", () => {
+    expect(paintSkipWaitMs(0)).toBe(120)
+    expect(paintSkipWaitMs(200)).toBe(120)
+    expect(paintSkipWaitMs(300)).toBe(60)
+    expect(paintSkipWaitMs(360)).toBe(0)
+    expect(paintSkipWaitMs(400)).toBe(0)
   })
 
   it("上翻回填时补偿 scrollTop，视口不跟着跳", () => {

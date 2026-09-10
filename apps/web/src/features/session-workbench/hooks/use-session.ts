@@ -27,6 +27,7 @@ import { useComposerBinding } from "@features/composer/hooks/use-composer-bindin
 import { catalogFromModels, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
 import {
   createAbortableOpen,
+  isDisconnectedError,
   isOpenAborted,
 } from "@features/session-workbench/lib/abortable-open.js"
 import {
@@ -221,22 +222,31 @@ export function useSessionLifecycle(
       if (wantedId !== id) return
       if (remote.value?.id === id) return
       const target = pi.client.value
-      if (!target) throw new Error("PiClient 未连接")
+      if (!target) return
       release()
-      const raced = raceRemoteOpen(id, () => RemoteSession.open(target, id))
-      abortInflightOpen = raced.abort
-      try {
-        const next = await raced.promise
-        if (wantedId !== id) {
-          await discard(next)
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const current = pi.client.value
+        if (!current || wantedId !== id) return
+        const raced = raceRemoteOpen(id, () => RemoteSession.open(current, id))
+        abortInflightOpen = raced.abort
+        try {
+          const next = await raced.promise
+          if (wantedId !== id) {
+            await discard(next)
+            return
+          }
+          attach(next)
           return
+        } catch (error) {
+          if (wantedId !== id || isOpenAborted(error)) return
+          if (isDisconnectedError(error) && historySessionId.value === id) return
+          if (!isDisconnectedError(error) || attempt === 7) throw error
+          await new Promise((resolve) => {
+            window.setTimeout(resolve, 40 * (attempt + 1))
+          })
+        } finally {
+          if (abortInflightOpen === raced.abort) abortInflightOpen = undefined
         }
-        attach(next)
-      } catch (error) {
-        if (wantedId !== id || isOpenAborted(error)) return
-        throw error
-      } finally {
-        if (abortInflightOpen === raced.abort) abortInflightOpen = undefined
       }
     })
   }
@@ -301,7 +311,7 @@ export function useSessionLifecycle(
       await openRemoteSession(id)
     } catch (error) {
       sessionError.value = errorMessage(error)
-      if (sessionId.value) await router.replace("/")
+      if (sessionId.value && history.value.length === 0) await router.replace("/")
     }
   }
 
@@ -309,9 +319,21 @@ export function useSessionLifecycle(
     if (initialized) void syncRoute()
   })
 
+  const stopClientSync = watch(
+    () => pi.connected.value,
+    (connected) => {
+      if (initialized && connected) void syncRoute()
+    },
+  )
+
   async function initialize() {
     initialized = true
-    await syncRoute()
+    const id = sessionId.value
+    if (id) {
+      wantedId = id
+      await loadHistory(id)
+    } else await dispose()
+    if (pi.connected.value) void syncRoute()
   }
 
   const sessionPending = computed(() =>
@@ -462,6 +484,7 @@ export function useSessionLifecycle(
 
   function teardown() {
     stopRouteSync()
+    stopClientSync()
     pi.bindAttachedReconnect()
     void dispose()
   }

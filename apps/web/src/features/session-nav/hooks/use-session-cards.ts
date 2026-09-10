@@ -2,7 +2,7 @@ import { computed, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue
 import type { SessionCard } from "@/types/session-type.js"
 import { listSessionCards } from "@client/platform.js"
 
-/** 连接后与 Session id 集合变化时拉卡片；失败不挡列表。不用 updatedAt 当刷新键。 */
+/** HTTP 拉卡片，不挡 WebSocket；失败不挡列表。不用 updatedAt 当刷新键。 */
 export function useSessionCards(
   connected: MaybeRefOrGetter<boolean>,
   sessions: MaybeRefOrGetter<readonly { id: string; updatedAt?: number; createdAt: number }[]>,
@@ -16,7 +16,6 @@ export function useSessionCards(
   )
 
   async function loadSessionCards() {
-    if (!toValue(connected)) return
     try {
       const cards = await listSessionCards()
       sessionCards.value = new Map(
@@ -36,8 +35,8 @@ export function useSessionCards(
 
   watch(
     () => toValue(connected),
-    (isConnected) => {
-      if (isConnected) void loadSessionCards()
+    () => {
+      void loadSessionCards()
     },
     { immediate: true },
   )

@@ -15,6 +15,7 @@ import { computed, nextTick, useTemplateRef, watch } from "vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
+import { ensureMarkdownRuntime } from "@features/transcript-view/lib/markdown-runtime.js"
 
 const props = withDefaults(
   defineProps<{
@@ -39,6 +40,14 @@ const thinkProps = computed(() =>
     isDark: isDark.value,
     codeBlockProps: codeBlockProps.value,
   }),
+)
+
+watch(
+  text,
+  (value) => {
+    if (value) ensureMarkdownRuntime(value)
+  },
+  { immediate: true },
 )
 
 watch(

@@ -62,8 +62,10 @@ export function usePiClient() {
       },
     })
     client.value = next
+    let handshake = true
     unsubscribes.push(
       next.onConnectionStateChange((change) => {
+        if (handshake && change.state === "connected") return
         connectionState.value = change.state
         if (change.state === "connected") connectionError.value = undefined
         else if (change.error) connectionError.value = change.error
@@ -74,7 +76,11 @@ export function usePiClient() {
     )
     try {
       serverSnapshot.value = await next.connect()
+      handshake = false
+      connectionState.value = "connected"
+      connectionError.value = undefined
     } catch (error) {
+      handshake = false
       connectionError.value = error instanceof Error ? error : new Error(String(error))
       throw error
     }

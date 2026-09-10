@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "markstream-vue/index.css" layer(components);
-@import "katex/dist/katex.min.css";
 @import "./markdown-stream.css";
 @import "./motion.css";
 

@@ -46,7 +46,9 @@ test("一轮工作：复杂历史上发送、流式、中止", async ({ page, co
   await prompt.fill(TURN_PROMPT)
   await expect(send).toBeEnabled()
   await send.click()
-  await expect(page.locator(".row-user").getByText(TURN_PROMPT, { exact: true })).toBeVisible()
+  await expect(
+    page.locator(".row-user").getByText(TURN_PROMPT, { exact: true }).first(),
+  ).toBeVisible()
   const sessionId = await bridge.waitForPrompt()
   const snapshot = bridge.snapshots.get(sessionId)
   if (!snapshot) throw new Error("一轮工作缺少 SessionSnapshot")

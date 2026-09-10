@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pig</title>
-    <link rel="icon" href="/logo.png" type="image/png" />
+    <link rel="icon" href="/pwa-icon-192.png" type="image/png" />
     <script>
       // Electron 页面解析会换掉 html，preload 里先打的桌面标记会丢；首屏就写上，拖拽和窗控避让才生效
       ;(function () {
@@ -57,7 +57,14 @@
       <div class="drag-strip"></div>
       <div class="startup-content">
         <div class="startup-mark">
-          <img class="startup-logo" src="/logo.png" width="88" height="88" alt="" />
+          <img
+            class="startup-logo"
+            src="/logo.png"
+            width="88"
+            height="88"
+            alt=""
+            fetchpriority="low"
+          />
         </div>
       </div>
     </div>

@@ -90,6 +90,7 @@ import {
   isToolRow,
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
+import { paintSkipWaitMs } from "@features/transcript-view/lib/paint-skip.js"
 import {
   restoreScrollAfterPrepend,
   shouldLoadOlderTranscript,
@@ -242,8 +243,7 @@ let revealGen = 0
 let paintRaf = 0
 let paintSkipTimer = 0
 let paintSkipObserver: ResizeObserver | undefined
-
-const PAINT_SKIP_SETTLE_MS = 120
+let paintSkipArmedAt = 0
 
 function enableLiveEnter() {
   if (liveEnter.value) return
@@ -284,12 +284,19 @@ function armPaintSkip(gen: number) {
     revealLastTurn(gen)
     return
   }
-  paintSkipObserver = new ResizeObserver(() => {
+  if (!paintSkipArmedAt) paintSkipArmedAt = performance.now()
+  const schedule = () => {
+    const wait = paintSkipWaitMs(performance.now() - paintSkipArmedAt)
+    if (wait === 0) {
+      settle()
+      return
+    }
     if (paintSkipTimer) window.clearTimeout(paintSkipTimer)
-    paintSkipTimer = window.setTimeout(settle, PAINT_SKIP_SETTLE_MS)
-  })
+    paintSkipTimer = window.setTimeout(settle, wait)
+  }
+  paintSkipObserver = new ResizeObserver(schedule)
   paintSkipObserver.observe(body)
-  paintSkipTimer = window.setTimeout(settle, PAINT_SKIP_SETTLE_MS)
+  schedule()
 }
 
 function stopReveal() {
@@ -323,6 +330,7 @@ function scheduleRevealAfterPaint() {
 function armTailWindow() {
   liveEnter.value = false
   loadOlderArmed = true
+  paintSkipArmedAt = 0
   cancelPaintSkip()
   stopReveal()
 }

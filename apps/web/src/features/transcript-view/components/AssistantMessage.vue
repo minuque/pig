@@ -23,7 +23,7 @@
 <script setup lang="ts">
 import { CircleAlert } from "@lucide/vue"
 import MarkdownRender from "markstream-vue"
-import { computed } from "vue"
+import { computed, watch } from "vue"
 import Alert from "@components/ui/alert/Alert.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
 import AlertTitle from "@components/ui/alert/AlertTitle.vue"
@@ -32,6 +32,7 @@ import type { AssistantRow } from "@features/transcript-view/type.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { chatMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
+import { ensureMarkdownRuntime } from "@features/transcript-view/lib/markdown-runtime.js"
 
 const props = withDefaults(
   defineProps<{
@@ -45,6 +46,14 @@ const { isDark, codeBlockProps } = useColorScheme()
 const text = useTranscriptReveal(
   () => props.item.text,
   () => props.streaming,
+)
+
+watch(
+  text,
+  (value) => {
+    if (value) ensureMarkdownRuntime(value)
+  },
+  { immediate: true },
 )
 
 const statusLabel = computed(() => {

@@ -6,6 +6,12 @@ export function isOpenAborted(error: unknown) {
   return error instanceof Error && error.message === OPEN_ABORTED
 }
 
+export function isDisconnectedError(error: unknown) {
+  if (!error || typeof error !== "object") return false
+  if ("name" in error && error.name === "PiDisconnectedError") return true
+  return error instanceof Error && /disconnected/i.test(error.message)
+}
+
 function swallowDispose(session: RemoteSession) {
   return Promise.resolve()
     .then(() => session.dispose())

@@ -77,7 +77,12 @@ export class Gateway {
       this.webRoot &&
       req.method === "GET" &&
       !url.pathname.startsWith("/api/") &&
-      (await serveWebFile(this.webRoot, url.pathname, res))
+      (await serveWebFile(
+        this.webRoot,
+        url.pathname,
+        res,
+        typeof req.headers["accept-encoding"] === "string" ? req.headers["accept-encoding"] : "",
+      ))
     )
       return
     if (url.pathname.startsWith("/api/v1/platform/")) {

@@ -17,20 +17,31 @@ describe("startup sequence", () => {
     replace.mockClear()
   })
 
-  it("connect 后 initialize；从 /error 成功启动则回到 /", async () => {
+  it("connect 与 initialize 并行；从 /error 成功启动则回到 /", async () => {
     currentRoute.value = { name: "error" }
-    const order: string[] = []
+    let inFlight = 0
+    let overlapped = false
     const { start, ready, visible, settled } = useStartupSequence({
       connect: async () => {
-        order.push("connect")
+        inFlight += 1
+        if (inFlight > 1) overlapped = true
+        await new Promise((resolve) => {
+          setTimeout(resolve, 20)
+        })
+        inFlight -= 1
       },
       initialize: async () => {
-        order.push("initialize")
+        inFlight += 1
+        if (inFlight > 1) overlapped = true
+        await new Promise((resolve) => {
+          setTimeout(resolve, 20)
+        })
+        inFlight -= 1
       },
       connectTimeoutMs: 0,
     })
     await start()
-    expect(order).toEqual(["connect", "initialize"])
+    expect(overlapped).toBe(true)
     expect(ready.value).toBe(true)
     expect(settled.value).toBe(true)
     expect(visible.value).toBe(true)
