@@ -8,10 +8,12 @@ import {
   buildTimelineRows,
   isToolRow,
   thoughtStepLabel,
+  timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import {
   restoreScrollAfterPrepend,
   shouldLoadOlderTranscript,
+  transcriptOverflows,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 import {
   lastTurnStartIndex,
@@ -208,11 +210,22 @@ describe("打开已有会话 → 长列表尾部先挂载", () => {
     expect(recutWindowStartOnPrepend(live, full, 0, false)).toBe(0)
   })
 
-  it("贴底或加载中不上翻拉取", () => {
+  it("贴底、加载中或未溢出不上翻拉取", () => {
     expect(shouldLoadOlderTranscript(true, false, true, 0)).toBe(false)
     expect(shouldLoadOlderTranscript(true, true, false, 0)).toBe(false)
     expect(shouldLoadOlderTranscript(false, false, false, 0)).toBe(false)
+    expect(shouldLoadOlderTranscript(true, false, false, 0, { overflow: false })).toBe(false)
     expect(shouldLoadOlderTranscript(true, false, false, 0)).toBe(true)
+    expect(transcriptOverflows(884, 884)).toBe(false)
+    expect(transcriptOverflows(1000, 884)).toBe(true)
+  })
+
+  it("上翻 prepend 不改已有行 id", () => {
+    const all = manyTurns(2)
+    const tail = buildTimelineRows(all.slice(-2), false)
+    const full = buildTimelineRows(all, false)
+    expect(full.map((row) => row.id).slice(-tail.length)).toEqual(tail.map((row) => row.id))
+    expect(timelineRowKeys(full).slice(-tail.length)).toEqual(timelineRowKeys(tail))
   })
 
   it("上翻回填时补偿 scrollTop，视口不跟着跳", () => {

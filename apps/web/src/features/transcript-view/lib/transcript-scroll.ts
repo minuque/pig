@@ -26,15 +26,25 @@ export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boo
   return transcriptLength > 0 && !atBottom
 }
 
-/** 已离开底部且靠近顶部时，上翻再拉更早一页。 */
+export function transcriptOverflows(
+  scrollHeight: number,
+  clientHeight: number,
+  threshold = 48,
+): boolean {
+  return scrollHeight - clientHeight > threshold
+}
+
+/** 已离开底部、列表溢出且靠近顶部时，上翻再拉更早一页。 */
 export function shouldLoadOlderTranscript(
   hasMore: boolean,
   loading: boolean,
   atBottom: boolean,
   scrollTop: number,
-  threshold = 48,
+  options: { threshold?: number; overflow?: boolean } = {},
 ): boolean {
-  return hasMore && !loading && !atBottom && scrollTop <= threshold
+  const threshold = options.threshold ?? 48
+  const overflow = options.overflow ?? true
+  return hasMore && !loading && !atBottom && overflow && scrollTop <= threshold
 }
 
 /** 上方插入内容后把 scrollTop 加上增高，视口里的字不动。 */

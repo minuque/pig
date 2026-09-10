@@ -28,10 +28,9 @@ export function isToolRow(row: TimelineRow): row is ToolRow {
   return row.role === "tools"
 }
 
-/** 用户句 DOM key 用序号，避免乐观 id 换成服务端 id 时拆旧挂新。 */
+/** DOM key 跟行 id，prepend 时已有行不能换 key。 */
 export function timelineRowKeys(rows: readonly TimelineRow[]): string[] {
-  let users = 0
-  return rows.map((row) => (row.role === "user" ? `user:${users++}` : row.id))
+  return rows.map((row) => row.id)
 }
 
 function assistantRow(item: AssistantTranscriptItem, text = transcriptText(item)): AssistantRow {
@@ -62,14 +61,12 @@ function appendTurn({
   rest,
   live,
   timings,
-  turnIndex,
 }: {
   rows: TimelineRow[]
   user: UserTranscriptItem | undefined
   rest: TranscriptItem[]
   live: boolean
   timings: readonly TurnTiming[]
-  turnIndex: number
 }) {
   const turnStart = rows.length
   if (user)
@@ -81,7 +78,7 @@ function appendTurn({
       timestamp: user.timestamp,
     })
 
-  const anchor = `tools:${user?.timestamp ?? "orphan"}:${turnIndex}`
+  const anchor = `tools:${user?.id ?? rest[0]?.id ?? "orphan"}`
   const timing = timings.find((value) => value.userId === user?.id)
   let steps: ToolRowStep[] = []
   let segmentIndex = 0
@@ -232,20 +229,15 @@ export function buildTimelineRows(
   const rows: TimelineRow[] = []
   let user: UserTranscriptItem | undefined
   let rest: TranscriptItem[] = []
-  let turnIndex = 0
   for (const item of items) {
     if (isUserItem(item) && isVisibleTranscriptItem(item)) {
-      if (user || rest.length) {
-        appendTurn({ rows, user, rest, live: false, timings, turnIndex })
-        turnIndex += 1
-      }
+      if (user || rest.length) appendTurn({ rows, user, rest, live: false, timings })
       user = item
       rest = []
     } else rest.push(item)
   }
 
-  if (user || rest.length || running)
-    appendTurn({ rows, user, rest, live: running, timings, turnIndex })
+  if (user || rest.length || running) appendTurn({ rows, user, rest, live: running, timings })
 
   return rows
 }

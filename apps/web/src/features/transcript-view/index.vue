@@ -19,7 +19,15 @@
     >
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
-          <div v-if="loadingOlder" class="older-busy">加载更早消息</div>
+          <button
+            v-if="hasMore"
+            type="button"
+            class="older-busy"
+            :disabled="loadingOlder"
+            @click="requestOlder"
+          >
+            加载更早消息
+          </button>
           <TransitionGroup
             name="timeline-row"
             tag="div"
@@ -28,8 +36,8 @@
             :css="liveEnter"
           >
             <div
-              v-for="(row, index) in mountedRows"
-              :key="mountedKeys[index] ?? row.id"
+              v-for="row in mountedRows"
+              :key="row.id"
               class="row"
               :class="`row-${row.role}`"
               :data-minimap-row="row.role === 'user' ? row.id : undefined"
@@ -86,6 +94,7 @@ import {
   restoreScrollAfterPrepend,
   shouldLoadOlderTranscript,
   shouldShowScrollToLatest,
+  transcriptOverflows,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 import { historyPrepended } from "@features/transcript-view/lib/transcript-window.js"
 
@@ -157,10 +166,29 @@ const {
   hitStripWidth,
 } = useTranscriptMinimap(rows, { viewport, column }, mountedKeys)
 
-function maybeLoadOlder() {
-  const top = scrollerRoot()?.scrollTop ?? 0
-  if (!shouldLoadOlderTranscript(props.hasMore, props.loadingOlder, atBottom.value, top)) return
+const LOAD_OLDER_TOP = 48
+let loadOlderArmed = true
+
+function requestOlder() {
+  if (!props.hasMore || props.loadingOlder) return
+  loadOlderArmed = false
   emit("loadOlder")
+}
+
+function maybeLoadOlder() {
+  const root = scrollerRoot()
+  const top = root?.scrollTop ?? 0
+  if (top > LOAD_OLDER_TOP) loadOlderArmed = true
+  if (!loadOlderArmed) return
+  const overflow = transcriptOverflows(root?.scrollHeight ?? 0, root?.clientHeight ?? 0)
+  if (
+    !shouldLoadOlderTranscript(props.hasMore, props.loadingOlder, atBottom.value, top, {
+      threshold: LOAD_OLDER_TOP,
+      overflow,
+    })
+  )
+    return
+  requestOlder()
 }
 
 function onTranscriptScroll() {
@@ -294,6 +322,7 @@ function scheduleRevealAfterPaint() {
 
 function armTailWindow() {
   liveEnter.value = false
+  loadOlderArmed = true
   cancelPaintSkip()
   stopReveal()
 }
@@ -328,11 +357,13 @@ watch(rows, (next, prev) => {
     return
   }
   if (historyPrepended(previous, next) && !atBottom.value) {
+    liveEnter.value = false
     const root = scrollerRoot()
     const beforeHeight = root?.scrollHeight ?? 0
     const beforeTop = root?.scrollTop ?? 0
     void nextTick(() => {
       if (root) restoreScrollAfterPrepend(root, beforeHeight, beforeTop)
+      enableLiveEnter()
     })
     return
   }
@@ -403,10 +434,19 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 }
 
 .older-busy {
+  display: block;
+  width: 100%;
   padding: var(--spacing-sm) 0;
+  border: 0;
+  background: transparent;
   color: var(--ink-muted);
+  font: inherit;
   font-size: var(--text-body-sm);
   text-align: center;
+  cursor: pointer;
+}
+.older-busy:disabled {
+  cursor: default;
 }
 .timeline-rows:not(.is-paint-skip) {
   visibility: hidden;
