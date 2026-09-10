@@ -14,11 +14,12 @@
       class="transcript-viewport"
       :class="{ 'is-following': atBottom }"
       @scroll="onTranscriptScroll"
-      @wheel="onWheel"
+      @wheel="onTranscriptWheel"
       @pointerdown="onTranscriptPointerDown"
     >
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
+          <div v-if="loadingOlder" class="older-busy">加载更早消息</div>
           <TransitionGroup
             name="timeline-row"
             tag="div"
@@ -83,32 +84,31 @@ import {
 } from "@features/transcript-view/lib/transcript-rows.js"
 import {
   restoreScrollAfterPrepend,
+  shouldLoadOlderTranscript,
   shouldShowScrollToLatest,
 } from "@features/transcript-view/lib/transcript-scroll.js"
-import {
-  historyPrepended,
-  lastTurnStartIndex,
-  recutWindowStartOnPrepend,
-} from "@features/transcript-view/lib/transcript-window.js"
+import { historyPrepended } from "@features/transcript-view/lib/transcript-window.js"
 
-const BACKFILL_PER_FRAME = 2
-
-const props = defineProps<{
-  sessionId: string
-  transcript: readonly TranscriptItem[]
-  running: boolean
-  timings?: readonly TurnTiming[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    sessionId: string
+    transcript: readonly TranscriptItem[]
+    running: boolean
+    timings?: readonly TurnTiming[]
+    hasMore?: boolean
+    loadingOlder?: boolean
+  }>(),
+  { hasMore: false, loadingOlder: false },
+)
 
 const emit = defineEmits<{
   firstTextPaint: []
+  loadOlder: []
 }>()
 
 const rows = computed(() => buildTimelineRows(props.transcript, props.running, props.timings))
-const rowKeys = computed(() => timelineRowKeys(rows.value))
-const windowStart = shallowRef(lastTurnStartIndex(rows.value))
-const mountedRows = computed(() => rows.value.slice(windowStart.value))
-const mountedKeys = computed(() => rowKeys.value.slice(windowStart.value))
+const mountedRows = rows
+const mountedKeys = computed(() => timelineRowKeys(rows.value))
 
 const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
@@ -157,8 +157,20 @@ const {
   hitStripWidth,
 } = useTranscriptMinimap(rows, { viewport, column }, mountedKeys)
 
+function maybeLoadOlder() {
+  const top = scrollerRoot()?.scrollTop ?? 0
+  if (!shouldLoadOlderTranscript(props.hasMore, props.loadingOlder, atBottom.value, top)) return
+  emit("loadOlder")
+}
+
 function onTranscriptScroll() {
   onScroll()
+  maybeLoadOlder()
+}
+
+function onTranscriptWheel(event: WheelEvent) {
+  onWheel(event)
+  maybeLoadOlder()
 }
 
 function onTranscriptPointerDown() {
@@ -198,10 +210,7 @@ function observeSizes() {
 
 const liveEnter = shallowRef(false)
 const paintSkip = shallowRef(false)
-let backfillRaf = 0
-let backfillGen = 0
-let idleStart = 0
-let idleViaRic = false
+let revealGen = 0
 let paintRaf = 0
 let paintSkipTimer = 0
 let paintSkipObserver: ResizeObserver | undefined
@@ -226,14 +235,10 @@ function cancelPaintSkip() {
 }
 
 function revealLastTurn(gen: number) {
+  if (gen !== revealGen) return
   paintSkip.value = true
   pinIfNeeded()
   if (rows.value.length > 0) emit("firstTextPaint")
-  if (windowStart.value > 0) {
-    liveEnter.value = false
-    scheduleIdleBackfill(gen)
-    return
-  }
   enableLiveEnter()
   releaseTail()
 }
@@ -245,7 +250,6 @@ function armPaintSkip(gen: number) {
     paintSkipTimer = 0
     paintSkipObserver?.disconnect()
     paintSkipObserver = undefined
-    if (gen !== backfillGen) return
     revealLastTurn(gen)
   }
   if (!body) {
@@ -260,87 +264,29 @@ function armPaintSkip(gen: number) {
   paintSkipTimer = window.setTimeout(settle, PAINT_SKIP_SETTLE_MS)
 }
 
-function finishBackfill() {
-  if (rows.value.length > 0) enableLiveEnter()
-  else liveEnter.value = true
-  pinIfNeeded()
+function stopReveal() {
+  revealGen += 1
+  if (paintRaf) {
+    cancelAnimationFrame(paintRaf)
+    paintRaf = 0
+  }
   releaseTail()
 }
 
-function cancelIdleStart() {
-  if (!idleStart) return
-  if (idleViaRic && typeof cancelIdleCallback === "function") cancelIdleCallback(idleStart)
-  else window.clearTimeout(idleStart)
-  idleStart = 0
-}
-
-function cancelPaintRaf() {
-  if (!paintRaf) return
-  cancelAnimationFrame(paintRaf)
-  paintRaf = 0
-}
-
-function stopBackfill() {
-  backfillGen += 1
-  cancelIdleStart()
-  cancelPaintRaf()
-  releaseTail()
-  if (!backfillRaf) return
-  cancelAnimationFrame(backfillRaf)
-  backfillRaf = 0
-}
-
-function runBackfill(gen: number) {
-  backfillRaf = 0
-  if (gen !== backfillGen) return
-  if (windowStart.value <= 0) {
-    finishBackfill()
+/** 当前页稳住后再揭开。更早内容只在上翻时分页拉取。 */
+function scheduleRevealAfterPaint() {
+  if (paintSkip.value) {
+    pinIfNeeded()
     return
   }
-  const root = scrollerRoot()
-  const beforeHeight = root?.scrollHeight ?? 0
-  const beforeTop = root?.scrollTop ?? 0
-  windowStart.value = Math.max(0, windowStart.value - BACKFILL_PER_FRAME)
-  void nextTick(() => {
-    if (gen !== backfillGen) return
-    if (atBottom.value) pinIfNeeded()
-    else if (root) restoreScrollAfterPrepend(root, beforeHeight, beforeTop)
-    if (windowStart.value > 0) backfillRaf = requestAnimationFrame(() => runBackfill(gen))
-    else finishBackfill()
-  })
-}
-
-function scheduleIdleBackfill(gen: number) {
-  const start = () => {
-    idleStart = 0
-    if (gen !== backfillGen) return
-    backfillRaf = requestAnimationFrame(() => runBackfill(gen))
-  }
-  if (typeof requestIdleCallback === "function") {
-    idleViaRic = true
-    idleStart = requestIdleCallback(start, { timeout: 200 })
-    return
-  }
-  idleViaRic = false
-  idleStart = window.setTimeout(start, 0)
-}
-
-/** 末条公式/Markdown 稳住后再揭开，随后 idle 回填更早行。 */
-function scheduleBackfillAfterPaint() {
-  const alreadyShown = paintSkip.value
-  stopBackfill()
+  stopReveal()
   holdTail()
-  const gen = backfillGen
-  if (alreadyShown) {
-    if (windowStart.value > 0) scheduleIdleBackfill(gen)
-    else finishBackfill()
-    return
-  }
+  const gen = revealGen
   void nextTick(() => {
-    if (gen !== backfillGen) return
+    if (gen !== revealGen) return
     paintRaf = requestAnimationFrame(() => {
       paintRaf = 0
-      if (gen !== backfillGen) return
+      if (gen !== revealGen) return
       armPaintSkip(gen)
     })
   })
@@ -349,14 +295,13 @@ function scheduleBackfillAfterPaint() {
 function armTailWindow() {
   liveEnter.value = false
   cancelPaintSkip()
-  stopBackfill()
-  windowStart.value = lastTurnStartIndex(rows.value)
+  stopReveal()
 }
 
 onMounted(() => {
   holdTail()
   scrollToLatest("auto")
-  scheduleBackfillAfterPaint()
+  scheduleRevealAfterPaint()
 })
 
 watch(
@@ -366,7 +311,7 @@ watch(
     reset()
     void nextTick(() => {
       scrollToLatest("auto")
-      scheduleBackfillAfterPaint()
+      scheduleRevealAfterPaint()
     })
   },
   { flush: "pre" },
@@ -378,21 +323,18 @@ watch(rows, (next, prev) => {
     armTailWindow()
     void nextTick(() => {
       scrollToLatest("auto")
-      scheduleBackfillAfterPaint()
+      scheduleRevealAfterPaint()
     })
     return
   }
-  const recut = recutWindowStartOnPrepend(previous, next, windowStart.value, atBottom.value)
-  if (recut !== windowStart.value) {
-    windowStart.value = recut
-    if (historyPrepended(previous, next) && atBottom.value) {
-      holdTail()
-      void nextTick(() => {
-        scrollToLatest("auto")
-        scheduleBackfillAfterPaint()
-      })
-      return
-    }
+  if (historyPrepended(previous, next) && !atBottom.value) {
+    const root = scrollerRoot()
+    const beforeHeight = root?.scrollHeight ?? 0
+    const beforeTop = root?.scrollTop ?? 0
+    void nextTick(() => {
+      if (root) restoreScrollAfterPrepend(root, beforeHeight, beforeTop)
+    })
+    return
   }
   if (atBottom.value) void nextTick(pinIfNeeded)
 })
@@ -403,7 +345,7 @@ watch(
     observeSizes()
     if (body && !prev?.[1]) {
       scrollToLatest("auto")
-      scheduleBackfillAfterPaint()
+      scheduleRevealAfterPaint()
     }
   },
   { flush: "post" },
@@ -413,7 +355,7 @@ onBeforeUnmount(() => {
   sizeObserver?.disconnect()
   if (pinRaf) cancelAnimationFrame(pinRaf)
   cancelPaintSkip()
-  stopBackfill()
+  stopReveal()
 })
 
 defineExpose({ showScrollToLatest, scrollToLatest })
@@ -458,6 +400,13 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .row {
   box-sizing: border-box;
   width: 100%;
+}
+
+.older-busy {
+  padding: var(--spacing-sm) 0;
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+  text-align: center;
 }
 .timeline-rows:not(.is-paint-skip) {
   visibility: hidden;

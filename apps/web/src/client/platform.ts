@@ -52,13 +52,19 @@ function isTurnTiming(value: unknown): value is TurnTiming {
 
 export async function sessionTranscript(
   sessionId: string,
-): Promise<{ items: TranscriptItem[]; timings: TurnTiming[] }> {
-  const result = await platformRequest<{ items: TranscriptItem[]; timings?: unknown[] }>(
-    `/api/v1/platform/transcript?sessionId=${encodeURIComponent(sessionId)}`,
-  )
+  before?: string,
+): Promise<{ items: TranscriptItem[]; timings: TurnTiming[]; hasMore: boolean }> {
+  const query = new URLSearchParams({ sessionId })
+  if (before) query.set("before", before)
+  const result = await platformRequest<{
+    items: TranscriptItem[]
+    timings?: unknown[]
+    hasMore?: boolean
+  }>(`/api/v1/platform/transcript?${query.toString()}`)
   return {
     items: Array.isArray(result.items) ? result.items : [],
     timings: Array.isArray(result.timings) ? result.timings.filter(isTurnTiming) : [],
+    hasMore: Boolean(result.hasMore),
   }
 }
 

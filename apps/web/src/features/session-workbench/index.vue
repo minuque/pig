@@ -29,7 +29,10 @@
             :transcript="transcript"
             :running="running"
             :timings="turnTimings"
+            :has-more="historyHasMore"
+            :loading-older="loadingOlder"
             @first-text-paint="onFirstTextPaint"
+            @load-older="loadOlderHistory"
           />
         </Transition>
 
@@ -119,6 +122,9 @@ const route = useRoute()
 const {
   sessionId,
   transcript,
+  historyHasMore,
+  loadingOlder,
+  loadOlderHistory,
   turnTimings,
   running,
   sessionPending,

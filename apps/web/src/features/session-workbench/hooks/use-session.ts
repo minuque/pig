@@ -78,8 +78,11 @@ export function useSessionLifecycle(
   const history = shallowRef<TranscriptItem[]>([])
   const turnTimings = shallowRef<TurnTiming[]>([])
   const historySessionId = shallowRef<string>()
+  const historyHasMore = shallowRef(false)
+  const loadingOlder = shallowRef(false)
   const heldLive = shallowRef<TranscriptItem[]>([])
   let historyRequest = 0
+  let olderRequest = 0
 
   const snapshot = computed(() => state.value?.snapshot)
   const remoteProjection = computed<SessionProjection | undefined>(() =>
@@ -105,7 +108,7 @@ export function useSessionLifecycle(
       if (revision !== undefined && revision !== usageRevision && attachedId) {
         usageRevision = revision
         void refreshContextUsage(attachedId)
-        void loadHistory(attachedId)
+        if (historySessionId.value !== attachedId) void loadHistory(attachedId)
       }
     })
   }
@@ -121,25 +124,56 @@ export function useSessionLifecycle(
       history.value = []
       turnTimings.value = []
       historySessionId.value = undefined
+      historyHasMore.value = false
     }
     heldLive.value = []
   }
 
   async function loadHistory(id: string) {
     const request = ++historyRequest
+    olderRequest += 1
+    loadingOlder.value = false
     try {
-      const { items, timings } = await sessionTranscript(id)
+      const { items, timings, hasMore } = await sessionTranscript(id)
       if (request !== historyRequest || wantedId !== id) return
       history.value = items
       turnTimings.value = timings
+      historyHasMore.value = hasMore
       historySessionId.value = id
     } catch {
       if (request !== historyRequest || wantedId !== id) return
       if (historySessionId.value !== id) {
         history.value = []
         turnTimings.value = []
+        historyHasMore.value = false
         historySessionId.value = id
       }
+    }
+  }
+
+  async function loadOlderHistory() {
+    const id = wantedId
+    const before = history.value[0]?.id
+    if (!id || !before || !historyHasMore.value || loadingOlder.value) return
+    const request = ++olderRequest
+    loadingOlder.value = true
+    try {
+      const { items, timings, hasMore } = await sessionTranscript(id, before)
+      if (request !== olderRequest || wantedId !== id) return
+      const known = new Set(history.value.map((item) => item.id))
+      const older = items.filter((item) => !known.has(item.id))
+      if (older.length > 0) {
+        history.value = older.concat(history.value)
+        const seen = new Set(turnTimings.value.map((item) => item.userId))
+        turnTimings.value = turnTimings.value.concat(
+          timings.filter((item) => !seen.has(item.userId)),
+        )
+      }
+      historyHasMore.value = hasMore
+    } catch {
+      if (request !== olderRequest || wantedId !== id) return
+    } finally {
+      if (request === olderRequest) loadingOlder.value = false
     }
   }
 
@@ -180,6 +214,7 @@ export function useSessionLifecycle(
       turnTimings.value = []
       heldLive.value = []
       historySessionId.value = undefined
+      historyHasMore.value = false
     }
     void loadHistory(id)
     return enqueueReplace(async () => {
@@ -444,6 +479,9 @@ export function useSessionLifecycle(
     connected: pi.connected,
     connectionError: pi.connectionError,
     transcript,
+    historyHasMore,
+    loadingOlder,
+    loadOlderHistory,
     turnTimings: computed(() =>
       historySessionId.value === sessionId.value ? turnTimings.value : [],
     ),

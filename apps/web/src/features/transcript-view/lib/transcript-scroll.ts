@@ -26,6 +26,17 @@ export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boo
   return transcriptLength > 0 && !atBottom
 }
 
+/** 已离开底部且靠近顶部时，上翻再拉更早一页。 */
+export function shouldLoadOlderTranscript(
+  hasMore: boolean,
+  loading: boolean,
+  atBottom: boolean,
+  scrollTop: number,
+  threshold = 48,
+): boolean {
+  return hasMore && !loading && !atBottom && scrollTop <= threshold
+}
+
 /** 上方插入内容后把 scrollTop 加上增高，视口里的字不动。 */
 export function restoreScrollAfterPrepend(
   root: { scrollTop: number; scrollHeight: number },

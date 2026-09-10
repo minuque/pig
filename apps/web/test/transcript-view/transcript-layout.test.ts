@@ -9,7 +9,10 @@ import {
   isToolRow,
   thoughtStepLabel,
 } from "@features/transcript-view/lib/transcript-rows.js"
-import { restoreScrollAfterPrepend } from "@features/transcript-view/lib/transcript-scroll.js"
+import {
+  restoreScrollAfterPrepend,
+  shouldLoadOlderTranscript,
+} from "@features/transcript-view/lib/transcript-scroll.js"
 import {
   lastTurnStartIndex,
   recutWindowStartOnPrepend,
@@ -203,6 +206,13 @@ describe("打开已有会话 → 长列表尾部先挂载", () => {
     const full = buildTimelineRows(manyTurns(10), false)
     const live = full.slice(-2)
     expect(recutWindowStartOnPrepend(live, full, 0, false)).toBe(0)
+  })
+
+  it("贴底或加载中不上翻拉取", () => {
+    expect(shouldLoadOlderTranscript(true, false, true, 0)).toBe(false)
+    expect(shouldLoadOlderTranscript(true, true, false, 0)).toBe(false)
+    expect(shouldLoadOlderTranscript(false, false, false, 0)).toBe(false)
+    expect(shouldLoadOlderTranscript(true, false, false, 0)).toBe(true)
   })
 
   it("上翻回填时补偿 scrollTop，视口不跟着跳", () => {

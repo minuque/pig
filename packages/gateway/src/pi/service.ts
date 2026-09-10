@@ -31,6 +31,7 @@ import {
 import { sessionListName } from "./session-label.js"
 import { PiHostSession } from "./session-runtime.js"
 import { TranscriptProjection } from "./transcript.js"
+import { pageTranscriptItems, pageTurnTimings } from "./transcript-page.js"
 import { readTurnTimings, type TurnTiming } from "./turn-timing.js"
 
 type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
@@ -191,13 +192,22 @@ export class PiHostService implements PiServerService {
     return this.activeSessions.get(sessionId)?.contextUsage(previewKey)
   }
 
-  /** 历史 Transcript：已附加用 live 投影，否则读盘。不进协议 snapshot。 */
+  /** 历史 Transcript：默认最后一轮；before 取更早页。不进协议 snapshot。 */
   async sessionTranscript(
     sessionId: string,
-  ): Promise<{ items: TranscriptItem[]; timings: TurnTiming[] }> {
+    query?: { before?: string; turns?: number },
+  ): Promise<{ items: TranscriptItem[]; timings: TurnTiming[]; hasMore: boolean }> {
     const live = this.activeSessions.get(sessionId)
-    if (live) return live.historyTranscript()
+    const full = live ? live.historyTranscript() : await this.readDiskTranscript(sessionId)
+    const page = pageTranscriptItems(full.items, query)
+    return {
+      items: page.items,
+      timings: pageTurnTimings(full.timings, page.items),
+      hasMore: page.hasMore,
+    }
+  }
 
+  private async readDiskTranscript(sessionId: string) {
     const path = await this.findSessionPath(sessionId)
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     const entries = SessionManager.open(path).getBranch()

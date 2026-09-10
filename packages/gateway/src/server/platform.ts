@@ -3,6 +3,7 @@ import { PiServerError, SessionNotFoundError } from "@earendil-works/pi-server"
 import type { DirectoryPort } from "../directory.js"
 import { isContextPreviewKey } from "../pi/context-usage.js"
 import type { PiHostService } from "../pi/service.js"
+import { parseTranscriptPageTurns } from "../pi/transcript-page.js"
 
 export type PlatformRequestDeps = {
   send(res: ServerResponse, status: number, body?: unknown): void
@@ -87,9 +88,23 @@ async function handleTranscript(res: ServerResponse, url: URL, deps: PlatformReq
     send(res, 400, { code: "INVALID_REQUEST" })
     return
   }
+  const turnsParam = url.searchParams.get("turns")
+  const turns = parseTranscriptPageTurns(turnsParam)
+  if (turnsParam && turns === undefined) {
+    send(res, 400, { code: "INVALID_REQUEST" })
+    return
+  }
+  const before = url.searchParams.get("before") ?? undefined
 
   try {
-    send(res, 200, await hostService.sessionTranscript(sessionId))
+    send(
+      res,
+      200,
+      await hostService.sessionTranscript(sessionId, {
+        ...(before ? { before } : {}),
+        ...(turns !== undefined ? { turns } : {}),
+      }),
+    )
   } catch (error) {
     sendSessionWriteError(error, res, send, "transcript")
   }

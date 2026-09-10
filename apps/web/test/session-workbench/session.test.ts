@@ -434,6 +434,39 @@ describe("提交失败恢复草稿", () => {
 })
 
 describe("HTTP 历史与 live Transcript 合并", () => {
+  it("打开已有会话只拉最新一页，上翻再 prepend 更早", async () => {
+    const older = {
+      id: "u0",
+      role: "user" as const,
+      content: [{ type: "text" as const, text: "更早" }],
+      timestamp: 1,
+    }
+    const latest = {
+      id: "u1",
+      role: "user" as const,
+      content: [{ type: "text" as const, text: "最近" }],
+      timestamp: 2,
+    }
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) {
+        if (path.includes("before=")) return { items: [older], hasMore: false, timings: [] }
+        return { items: [latest], hasMore: true, timings: [] }
+      }
+      return { usage: usageEstimate }
+    })
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1), transcript: [] }
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
+    expect(session.historyHasMore.value).toBe(true)
+    await session.loadOlderHistory()
+    expect(session.transcript.value.map((row) => row.id)).toEqual(["u0", "u1"])
+    expect(session.historyHasMore.value).toBe(false)
+  })
+
   it("打开会话恢复 HTTP 历史和耗时，空 snapshot 不冲掉", async () => {
     const item = {
       id: "u1",
