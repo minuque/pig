@@ -28,21 +28,23 @@ export const FAVORITES_SCOPE = "__favorites__"
 
 export type ModelPickerRow = { vendor: ComposerVendor; model: ComposerModelInfo }
 
-/** 有搜索时全目录匹配；无搜索按供应商或收藏过滤。 */
+/** 有搜索（含空 query）时全目录匹配；无搜索按供应商或收藏过滤。 */
 export function listPickerRows(
   catalog: ComposerVendor[],
   query: string,
   scope: string,
   favorites: ReadonlySet<string>,
+  searchAll = false,
 ): ModelPickerRow[] {
   const q = query.trim()
+  const all = Boolean(q || searchAll)
   const vendors =
-    q || scope === FAVORITES_SCOPE ? catalog : catalog.filter((vendor) => vendor.id === scope)
+    all || scope === FAVORITES_SCOPE ? catalog : catalog.filter((vendor) => vendor.id === scope)
 
   const rows: ModelPickerRow[] = []
   for (const vendor of filterCatalog(vendors, query)) {
     for (const model of vendor.models) {
-      if (!q && scope === FAVORITES_SCOPE && !favorites.has(`${vendor.id}/${model.id}`)) continue
+      if (!all && scope === FAVORITES_SCOPE && !favorites.has(`${vendor.id}/${model.id}`)) continue
       rows.push({ vendor, model })
     }
   }

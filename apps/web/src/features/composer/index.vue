@@ -44,13 +44,8 @@
           <ModelPicker
             v-model:open="modelPickerOpen"
             v-model:model="model"
-            :catalog="catalog"
-            :disabled="running || voiceActive"
-          />
-          <ThinkingLevelSelect
-            v-if="modelLevels.length > 1"
             v-model:level="level"
-            :levels="modelLevels"
+            :catalog="catalog"
             :disabled="running || voiceActive"
           />
         </template>
@@ -122,11 +117,9 @@ import AttachmentThumb from "@features/composer/components/AttachmentThumb.vue"
 import ComposerMeta from "@features/composer/components/ComposerMeta.vue"
 import ContextUsagePanel from "@features/composer/components/ContextUsagePanel.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
-import ThinkingLevelSelect from "@features/composer/components/ThinkingLevelSelect.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import type { ComposerModel, ComposerPreset, ComposerVendor } from "@/types/composer-type.js"
 import type { ContextUsage } from "@features/composer/type.js"
-import { resolveModelInfo } from "@features/composer/lib/model-preset.js"
 import {
   MAX_COMPOSER_ATTACHMENTS,
   imageFilesFromClipboard,
@@ -176,7 +169,6 @@ const model = computed({
     if (next) preset.value = { model: next, thinkingLevel: preset.value?.thinkingLevel ?? "" }
   },
 })
-const modelLevels = computed(() => resolveModelInfo(props.catalog, model.value).levels)
 const level = computed({
   get: () => preset.value?.thinkingLevel ?? "",
   set: (thinkingLevel: string) => {

@@ -5,8 +5,8 @@
         type="button"
         class="selector"
         :disabled="disabled"
-        :aria-label="`选择模型，当前：${label}`"
-        :title="label"
+        :aria-label="`选择模型，当前：${triggerText}`"
+        :title="triggerText"
       >
         <VendorMark
           v-if="current.vendor"
@@ -24,18 +24,19 @@
       align="start"
       :side-offset="6"
       class="w-[min(var(--size-drawer),calc(100vw-var(--spacing-lg)))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden overflow-y-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
-      @open-auto-focus="onOpenAutoFocus"
-      @pointer-down-outside="suppressFocusRestore"
+      @open-auto-focus.prevent="nextTick(focusRail)"
+      @pointer-down-outside="onPointerDownOutside"
+      @focus-outside="onFocusOutside"
       @close-auto-focus="onCloseAutoFocus"
     >
-      <div class="picker">
+      <div ref="pickerRef" class="picker" @keydown.capture="onPanelKeydown">
         <div class="rail">
           <Button
             type="button"
             class="rail-btn"
             title="收藏模型"
             :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
-            @click="scope = FAVORITES_SCOPE"
+            @click="selectScope(FAVORITES_SCOPE)"
           >
             <Star class="size-icon" :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'" />
           </Button>
@@ -46,22 +47,29 @@
             class="rail-btn"
             :title="vendor.name"
             :data-current="scope === vendor.id ? '' : undefined"
-            @click="scope = vendor.id"
+            @click="selectScope(vendor.id)"
           >
             <VendorMark :vendor="vendor.id" :name="vendor.name" :size="15" />
           </Button>
         </div>
 
         <div class="main">
-          <div class="search">
-            <Search :size="13" class="search-icon" />
+          <div v-if="searching" class="search">
+            <Search :size="13" class="text-ink-faint shrink-0" />
             <input
               ref="searchRef"
               v-model="query"
               type="text"
               placeholder="搜索模型"
               aria-label="搜索模型"
+              @keydown="onSearchKeydown"
             />
+          </div>
+          <div v-else class="heading">
+            <span class="text-ink text-eyebrow font-semibold">模型</span>
+            <button type="button" class="search-hint" @mousedown.prevent @click="enterSearch">
+              快速搜索
+            </button>
           </div>
           <div v-bind="containerProps" class="groups">
             <DropdownMenuGroup v-if="items.length" v-bind="wrapperProps">
@@ -73,7 +81,7 @@
               >
                 <DropdownMenuItem
                   class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-(--spacing-xs) py-0 h-[52px] text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
-                  @select="select({ provider: item.data.vendor.id, id: item.data.model.id })"
+                  @select="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
                 >
                   <Check
                     v-if="isCurrent(item.data.vendor.id, item.data.model.id)"
@@ -81,7 +89,7 @@
                   />
                   <span class="model-body">
                     <span class="model-name">{{ item.data.model.name }}</span>
-                    <span class="model-vendor">
+                    <span v-if="showVendor" class="model-vendor">
                       <VendorMark
                         :vendor="item.data.vendor.id"
                         :name="item.data.vendor.name"
@@ -91,6 +99,12 @@
                     </span>
                   </span>
                 </DropdownMenuItem>
+                <ModelEffortMenu
+                  v-if="showEffort(item.data)"
+                  :levels="item.data.model.thinkingLevels"
+                  :level="level"
+                  @update:level="emit('update:level', $event)"
+                />
                 <Button
                   type="button"
                   class="fav"
@@ -120,7 +134,7 @@
 <script setup lang="ts">
 import { Check, ChevronDown, Search, Star } from "@lucide/vue"
 import { useVirtualList } from "@vueuse/core"
-import { computed, nextTick, ref, watch } from "vue"
+import { computed, nextTick, watch } from "vue"
 import type { ComposerModel, ComposerVendor } from "@/types/composer-type.js"
 import {
   DropdownMenu,
@@ -130,96 +144,104 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Button } from "@components/ui/button/index.js"
+import ModelEffortMenu from "@features/composer/components/ModelEffortMenu.vue"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { useModelFavorites } from "@features/composer/hooks/use-model-favorites.js"
+import { useModelPickerPanel } from "@features/composer/hooks/use-model-picker-panel.js"
 import {
   FAVORITES_SCOPE,
   listPickerRows,
   modelLabel,
   resolveModelInfo,
   sameModel,
+  type ModelPickerRow,
 } from "@features/composer/lib/model-preset.js"
+import { pickerTriggerText } from "@features/composer/lib/thinking-level.js"
 
 const props = withDefaults(
   defineProps<{
     catalog: ComposerVendor[]
     model: ComposerModel | undefined
+    level?: string
     disabled?: boolean
   }>(),
-  { disabled: false },
+  { disabled: false, level: "" },
 )
 
 const emit = defineEmits<{
   "update:model": [value: ComposerModel]
+  "update:level": [value: string]
 }>()
 
 const open = defineModel<boolean>("open", { default: false })
 
-const query = ref("")
-const scope = ref(FAVORITES_SCOPE)
-const searchRef = ref<HTMLInputElement | null>(null)
 const EMPTY_FAVORITES = new Set<string>()
 const { set: favoriteSet, isFavorite, toggle: toggleFavorite } = useModelFavorites()
-
 const current = computed(() => resolveModelInfo(props.catalog, props.model))
 
+const {
+  query,
+  scope,
+  searching,
+  searchRef,
+  pickerRef,
+  enterSearch,
+  selectScope,
+  exitSearchTo,
+  onPanelKeydown,
+  onSearchKeydown,
+  onPointerDownOutside,
+  onFocusOutside,
+  onCloseAutoFocus,
+  focusRail,
+} = useModelPickerPanel(
+  open,
+  () => current.value.vendor?.id,
+  () => props.catalog[0]?.id,
+)
+
+const showVendor = computed(() => searching.value || scope.value === FAVORITES_SCOPE)
 const items = computed(() =>
   listPickerRows(
     props.catalog,
     query.value,
     scope.value,
     scope.value === FAVORITES_SCOPE ? favoriteSet.value : EMPTY_FAVORITES,
+    searching.value,
   ),
 )
-
-const ITEM_HEIGHT = 52
-const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, {
-  itemHeight: ITEM_HEIGHT,
-})
-
-watch([query, scope], async () => {
-  await nextTick()
-  scrollTo(0)
-})
-
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, { itemHeight: 52 })
 const emptyText = computed(() =>
-  scope.value === FAVORITES_SCOPE && !query.value.trim() ? "还没有收藏的模型" : "没有匹配的模型",
+  searching.value || scope.value !== FAVORITES_SCOPE || query.value.trim()
+    ? "没有匹配的模型"
+    : "还没有收藏的模型",
 )
-
-watch(open, (isOpen) => {
-  if (!isOpen) return
-  query.value = ""
-  scope.value = current.value.vendor?.id ?? props.catalog[0]?.id ?? FAVORITES_SCOPE
-})
-
 const label = computed(() => {
   const { vendor, model } = current.value
-  if (!vendor || !model) return modelLabel(props.model)
-  return model.name
+  return vendor && model ? model.name : modelLabel(props.model)
+})
+const triggerText = computed(() =>
+  pickerTriggerText(label.value, props.level, current.value.levels),
+)
+
+watch([query, scope, searching], async () => {
+  await nextTick()
+  scrollTo(0)
 })
 
 function isCurrent(provider: string, id: string) {
   return sameModel(props.model, { provider, id })
 }
 
-function select(model: ComposerModel) {
-  emit("update:model", model)
+function showEffort(row: ModelPickerRow) {
+  return isCurrent(row.vendor.id, row.model.id) && row.model.thinkingLevels.length > 1
 }
 
-function onOpenAutoFocus(event: Event) {
+function onSelectModel(event: Event, provider: string, id: string) {
   event.preventDefault()
-  searchRef.value?.focus()
-}
-
-let suppressRestore = false
-
-function suppressFocusRestore() {
-  suppressRestore = true
-}
-
-function onCloseAutoFocus(event: Event) {
-  if (suppressRestore) event.preventDefault()
-  suppressRestore = false
+  emit("update:model", { provider, id })
+  if (!query.value.trim() && !searching.value) return
+  exitSearchTo(provider)
 }
 </script>
 
@@ -254,7 +276,8 @@ function onCloseAutoFocus(event: Event) {
 }
 .selector:focus-visible,
 .rail-btn:focus-visible,
-.fav:focus-visible {
+.fav:focus-visible,
+.search-hint:focus-visible {
   outline: var(--border-width) solid var(--primary);
   outline-offset: -2px;
 }
@@ -263,11 +286,16 @@ function onCloseAutoFocus(event: Event) {
   color: var(--ink);
 }
 
-.selector-name {
-  max-width: 14rem;
+.selector-name,
+.model-name,
+.model-vendor {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.selector-name {
+  max-width: 14rem;
 }
 
 .picker {
@@ -286,9 +314,6 @@ function onCloseAutoFocus(event: Event) {
   overflow-y: auto;
   border-inline-end: var(--border-width) solid var(--hairline);
   scrollbar-width: none;
-}
-.rail::-webkit-scrollbar {
-  display: none;
 }
 
 .rail-btn {
@@ -321,20 +346,21 @@ function onCloseAutoFocus(event: Event) {
   min-height: 0;
 }
 
-.search {
+.search,
+.heading {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xxs);
   height: 32px;
-  padding: 0 var(--spacing-xs);
   margin-bottom: var(--spacing-xxs);
+  padding: 0 var(--spacing-xs);
+}
+.search {
+  gap: var(--spacing-xxs);
   border-radius: var(--radius-md);
   background: var(--canvas-soft);
 }
-
-.search-icon {
-  flex: none;
-  color: var(--ink-faint);
+.heading {
+  justify-content: space-between;
 }
 
 .search input {
@@ -351,12 +377,26 @@ function onCloseAutoFocus(event: Event) {
   color: var(--ink-faint);
 }
 
+.search-hint {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  font: inherit;
+  font-size: var(--text-eyebrow);
+  cursor: pointer;
+}
+.search-hint:hover {
+  color: var(--ink-muted);
+}
+
 .groups {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: none;
 }
+.rail::-webkit-scrollbar,
 .groups::-webkit-scrollbar {
   display: none;
 }
@@ -375,23 +415,19 @@ function onCloseAutoFocus(event: Event) {
   background: var(--hover-tint);
 }
 
-.model-item {
+.model-item,
+.model-body {
   flex: 1 1 auto;
   min-width: 0;
 }
 
 .model-body {
-  flex: 1 1 auto;
-  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xxs);
 }
 
 .model-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   color: var(--ink);
   font-size: var(--text-button);
   font-weight: var(--font-weight-semibold);
@@ -403,13 +439,10 @@ function onCloseAutoFocus(event: Event) {
   align-items: center;
   gap: var(--spacing-xxs);
   min-width: 0;
-  overflow: hidden;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-regular);
   line-height: var(--text-eyebrow--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .fav {
