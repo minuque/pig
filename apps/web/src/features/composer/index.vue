@@ -12,7 +12,6 @@
       ref="promptEditor"
       v-model:prompt="prompt"
       :placeholder="placeholder"
-      :running="running"
       :readonly="voiceActive"
       @submit="send"
     >

@@ -118,40 +118,6 @@
   scale: 0.96;
 }
 
-.motion-card-glow {
-  position: relative;
-  border-radius: var(--radius-xl);
-  box-shadow: 0 0 var(--spacing-sm) var(--card-glow-soft);
-}
-.motion-card-glow::after {
-  position: absolute;
-  z-index: 11;
-  inset: 0;
-  padding: var(--card-glow-width);
-  border-radius: inherit;
-  pointer-events: none;
-  background: conic-gradient(
-    from var(--card-glow-angle),
-    transparent 0% 55%,
-    var(--card-glow-soft) 70%,
-    var(--card-glow-trail) 85%,
-    var(--primary) 95%,
-    transparent 100%
-  );
-  mask:
-    linear-gradient(var(--on-primary) 0 0) content-box,
-    linear-gradient(var(--on-primary) 0 0);
-  mask-composite: exclude;
-  animation: card-glow-orbit var(--duration-card-glow) linear infinite;
-  content: "";
-}
-
-@keyframes card-glow-orbit {
-  to {
-    --card-glow-angle: 360deg;
-  }
-}
-
 .nav-shift-hit {
   opacity: 0;
   pointer-events: none;
@@ -625,11 +591,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .motion-card-glow::after {
-    animation: none;
-    background: var(--card-glow-trail);
-  }
-
   .press-scale:not(:disabled):active {
     scale: 1;
   }

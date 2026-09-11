@@ -53,9 +53,7 @@
           <div v-if="previewLoading" class="preview-status">
             <Spinner :size="24" />
           </div>
-          <div v-else-if="previewBody" class="preview-markdown">
-            <MarkdownRender v-bind="previewMarkdown" :content="previewFenced" />
-          </div>
+          <pre v-else-if="previewBody" class="preview-text">{{ previewBody }}</pre>
         </div>
       </DialogContent>
     </Dialog>
@@ -65,18 +63,14 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
 import { X } from "@lucide/vue"
-import MarkdownRender from "markstream-vue"
 import { contextPreview } from "@client/platform.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
-import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
-import { chatMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 import type { ContextUsage, ContextUsageSegment } from "@features/composer/type.js"
 import {
   contextUsageSummary,
   formatTokenCount,
   segmentShare,
-  wrapAsMarkdownCodeBlock,
 } from "@features/composer/lib/context-usage.js"
 
 const props = defineProps<{
@@ -89,7 +83,6 @@ const emit = defineEmits<{
 }>()
 
 const tokenSummary = computed(() => contextUsageSummary(props.usage))
-const { isDark, codeBlockProps } = useColorScheme()
 
 function canPreview(segment: ContextUsageSegment): boolean {
   return Boolean(props.sessionId && segment.previewable)
@@ -105,14 +98,6 @@ const previewTitle = ref("")
 const previewBody = ref("")
 const previewPane = ref<HTMLElement>()
 let previewRequest = 0
-const previewFenced = computed(() => wrapAsMarkdownCodeBlock(previewBody.value))
-const previewMarkdown = computed(() =>
-  chatMarkdownProps({
-    streaming: false,
-    isDark: isDark.value,
-    codeBlockProps: codeBlockProps.value,
-  }),
-)
 
 async function openPreview(segment: ContextUsageSegment) {
   const sessionId = props.sessionId
@@ -314,7 +299,7 @@ function onOpenAutoFocus(event: Event) {
   min-height: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--ink);
+  color: var(--ink-markdown);
   font-size: var(--text-body-md);
   line-height: 1.7;
 }
@@ -323,7 +308,7 @@ function onOpenAutoFocus(event: Event) {
 }
 
 .preview-status,
-.preview-markdown {
+.preview-text {
   min-height: 0;
   flex: 1;
 }
@@ -332,7 +317,14 @@ function onOpenAutoFocus(event: Event) {
   place-items: center;
 }
 
-.preview-markdown {
+.preview-text {
+  margin: 0;
   overflow: auto;
+  color: var(--ink-markdown);
+  font: inherit;
+  font-size: var(--text-body-md);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 </style>

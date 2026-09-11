@@ -13,7 +13,7 @@
         </div>
       </div>
     </div>
-    <div class="glass-shell" :class="{ 'motion-card-glow': running }">
+    <div class="glass-shell">
       <div class="glass-host">
         <div v-if="$slots.leading" class="leading">
           <slot name="leading" />
@@ -61,12 +61,10 @@ import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
 const props = withDefaults(
   defineProps<{
     placeholder?: string
-    running?: boolean
     readonly?: boolean
   }>(),
   {
     placeholder: "do what you want ...",
-    running: false,
     readonly: false,
   },
 )

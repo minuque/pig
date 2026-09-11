@@ -13,11 +13,6 @@
   inherits: true;
   initial-value: transparent;
 }
-@property --card-glow-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
 
 /* 全局 token、浅深色覆盖与 Tailwind 映射须集中维护，因此本文件保留超过 500 行。 */
 :root {
@@ -50,9 +45,6 @@
   /* 结构 / 交互 */
   --hairline: #e5e5e5;
   --composer-ring: #d4d4d4;
-  --card-glow-soft: color-mix(in srgb, var(--primary) 24%, transparent);
-  --card-glow-trail: color-mix(in srgb, var(--primary) 55%, transparent);
-  --card-glow-width: 2px;
   --interaction-hover: #f5f5f5;
   --interaction-selected: #e5e5e5;
   --hover-quiet: color-mix(in srgb, var(--ink) 5%, transparent);
@@ -224,7 +216,6 @@
   --duration-icon: 300ms;
   --duration-theme: 600ms;
   --duration-shimmer: 2s;
-  --duration-card-glow: 4s;
   --ease-icon: cubic-bezier(0.2, 0, 0, 1);
 }
 
