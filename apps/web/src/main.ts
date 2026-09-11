@@ -1,12 +1,13 @@
 import { createApp } from "vue"
+import { enableKatex, enableMermaid } from "markstream-vue"
 
 import "@style/app.css"
 
 import App from "./App.vue"
 import router from "@router/index.js"
-import { installMarkdownRuntime } from "@features/transcript-view/lib/markdown-runtime.js"
 
-installMarkdownRuntime()
+enableMermaid()
+enableKatex()
 
 const app = createApp(App)
 app.use(router)
