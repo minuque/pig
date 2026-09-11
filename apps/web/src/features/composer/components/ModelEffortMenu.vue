@@ -10,6 +10,7 @@
         @click.stop
       >
         {{ label }}
+        <ChevronRight class="chip-caret" aria-hidden="true" />
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent
@@ -25,7 +26,9 @@
         class="gap-(--spacing-xs) text-button"
         @select="onSelect($event, item)"
       >
-        <Check v-if="item === current" aria-hidden="true" />
+        <span class="check-slot">
+          <Check v-if="item === current" aria-hidden="true" />
+        </span>
         {{ formatThinkingLevel(item) }}
       </DropdownMenuItem>
     </DropdownMenuContent>
@@ -33,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { Check } from "@lucide/vue"
+import { Check, ChevronRight } from "@lucide/vue"
 import { computed, ref } from "vue"
 import {
   DropdownMenu,
@@ -69,6 +72,7 @@ function onSelect(event: Event, value: string) {
 .chip {
   display: inline-flex;
   align-items: center;
+  gap: var(--spacing-xxs);
   flex: none;
   min-width: 0;
   min-height: 0;
@@ -93,5 +97,29 @@ function onSelect(event: Event, value: string) {
 .chip[data-state="open"] {
   background: var(--hover-strong);
   color: var(--ink);
+}
+
+.chip-caret {
+  flex: none;
+  width: 1em;
+  height: 1em;
+  transition: rotate var(--duration-fast) var(--ease-smooth);
+}
+.chip[data-state="open"] .chip-caret {
+  rotate: 90deg;
+}
+
+.check-slot {
+  display: grid;
+  flex: none;
+  width: var(--size-icon);
+  height: var(--size-icon);
+  place-items: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-caret {
+    transition: none;
+  }
 }
 </style>

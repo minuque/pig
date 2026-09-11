@@ -21,8 +21,9 @@
 
     <DropdownMenuContent
       side="top"
-      align="start"
+      align="end"
       :side-offset="6"
+      :collision-padding="16"
       class="w-[min(var(--size-drawer),calc(100vw-var(--spacing-lg)))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden overflow-y-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
       @open-auto-focus.prevent="nextTick(focusRail)"
       @pointer-down-outside="onPointerDownOutside"
@@ -69,6 +70,7 @@
             <span class="text-ink text-eyebrow font-semibold">模型</span>
             <button type="button" class="search-hint" @mousedown.prevent @click="enterSearch">
               快速搜索
+              <Search :size="13" aria-hidden="true" />
             </button>
           </div>
           <div v-bind="containerProps" class="groups">
@@ -80,23 +82,17 @@
                 :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
               >
                 <DropdownMenuItem
-                  class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-(--spacing-xs) py-0 h-[52px] text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
+                  class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-(--spacing-xs) py-0 h-(--size-control) text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
                   @select="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
                 >
-                  <Check
-                    v-if="isCurrent(item.data.vendor.id, item.data.model.id)"
-                    aria-label="当前模型"
+                  <VendorMark
+                    :vendor="item.data.vendor.id"
+                    :name="item.data.vendor.name"
+                    :size="15"
                   />
                   <span class="model-body">
                     <span class="model-name">{{ item.data.model.name }}</span>
-                    <span v-if="showVendor" class="model-vendor">
-                      <VendorMark
-                        :vendor="item.data.vendor.id"
-                        :name="item.data.vendor.name"
-                        :size="12"
-                      />
-                      {{ item.data.vendor.name }}
-                    </span>
+                    <span v-if="showVendor" class="model-vendor">{{ item.data.vendor.name }}</span>
                   </span>
                 </DropdownMenuItem>
                 <ModelEffortMenu
@@ -121,6 +117,14 @@
                     "
                   />
                 </Button>
+                <span
+                  class="radio"
+                  :data-checked="
+                    isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined
+                  "
+                  aria-hidden="true"
+                  @click.stop="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
+                />
               </div>
             </DropdownMenuGroup>
             <div v-else class="empty">{{ emptyText }}</div>
@@ -132,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { Check, ChevronDown, Search, Star } from "@lucide/vue"
+import { ChevronDown, Search, Star } from "@lucide/vue"
 import { useVirtualList } from "@vueuse/core"
 import { computed, nextTick, watch } from "vue"
 import type { ComposerModel, ComposerVendor } from "@/types/composer-type.js"
@@ -210,7 +214,10 @@ const items = computed(() =>
     searching.value,
   ),
 )
-const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, { itemHeight: 52 })
+const ROW_HEIGHT = 40
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, {
+  itemHeight: ROW_HEIGHT,
+})
 const emptyText = computed(() =>
   searching.value || scope.value !== FAVORITES_SCOPE || query.value.trim()
     ? "没有匹配的模型"
@@ -378,6 +385,9 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .search-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
   padding: 0;
   border: 0;
   background: transparent;
@@ -404,7 +414,8 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .model-row {
   display: flex;
   align-items: center;
-  height: 52px;
+  height: var(--size-control);
+  padding-inline-end: var(--spacing-xs);
   border-radius: var(--radius-md);
 }
 .model-row:hover,
@@ -423,7 +434,8 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .model-body {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: baseline;
   gap: var(--spacing-xxs);
 }
 
@@ -435,14 +447,24 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .model-vendor {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xxs);
   min-width: 0;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-regular);
   line-height: var(--text-eyebrow--line-height);
+}
+
+.radio {
+  flex: none;
+  width: var(--size-icon);
+  height: var(--size-icon);
+  border: var(--border-width) solid var(--ink-faint);
+  border-radius: var(--radius-full);
+  background: transparent;
+}
+.radio[data-checked] {
+  border-color: var(--primary);
+  background: var(--primary);
 }
 
 .fav {
