@@ -279,9 +279,6 @@ watch(
       return
     }
     try {
-      const { ensureCodeRuntime } =
-        await import("@features/transcript-view/lib/markdown-runtime.js")
-      ensureCodeRuntime()
       const theme = blockProps.theme
       const { getSharedHighlighter } = await import("stream-diffs/pierre")
       const highlighter = await getSharedHighlighter({ themes: [theme], langs: [preview.language] })

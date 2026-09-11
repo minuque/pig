@@ -7,8 +7,7 @@ import vueDevTools from "vite-plugin-vue-devtools"
 
 /** 正文 LCP 需要 markstream；Dialog/floating-ui 不预加载，避免 HTTP/1.1 抢槽。 */
 function preloadTranscriptGraph(): Plugin {
-  const skip =
-    /DialogContent|floating-ui|mermaid|katex|shiki|worker|markdown-runtime-(mermaid|katex|code)/
+  const skip = /DialogContent|floating-ui|mermaid|katex|shiki|worker/
   return {
     name: "preload-transcript-graph",
     apply: "build",

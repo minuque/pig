@@ -90,7 +90,6 @@ import {
   isToolRow,
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
-import { drainMarkdownAfterPaint } from "@features/transcript-view/lib/markdown-drain.js"
 import { paintSkipWaitMs } from "@features/transcript-view/lib/paint-skip.js"
 import {
   restoreScrollAfterPrepend,
@@ -261,20 +260,17 @@ function cancelPaintSkip() {
   paintSkipObserver = undefined
 }
 
-async function revealLastTurn(gen: number) {
+function revealLastTurn(gen: number) {
   if (gen !== revealGen) return
   paintSkip.value = true
   pinIfNeeded()
-  markdownSettled.value = true
-  try {
-    await drainMarkdownAfterPaint()
-  } catch {
-    /* 运行时失败不挡揭开 */
-  }
-  if (gen !== revealGen) return
   if (rows.value.length > 0) emit("firstTextPaint")
   enableLiveEnter()
   releaseTail()
+  void nextTick(() => {
+    if (gen !== revealGen) return
+    markdownSettled.value = true
+  })
 }
 
 function armPaintSkip(gen: number) {
