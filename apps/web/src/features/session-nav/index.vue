@@ -272,7 +272,7 @@ function onCreateInDir(canonicalPath: string): void {
   min-height: 0;
   overflow: hidden;
   background: var(--sidebar);
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--sidebar-ring);
   border-radius: var(--radius-md);
 }
 

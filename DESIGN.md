@@ -12,6 +12,7 @@ colors:
   canvas-soft: "#fafafa"
   surface: "#ffffff"
   sidebar: "#ffffff"
+  sidebar-ring: "#eeeeee"
   composer-bg: "#ffffff"
   ink: "#0a0a0a"
   ink-secondary: "#525252"
@@ -337,10 +338,11 @@ Pi Agent GUI 浅色用中性白色抬升面板，深色用抬升的中性灰表�
 
 - **Surface** (`{colors.surface}` — #ffffff)：壳层（对话列）。
 - **Sidebar** (`{colors.sidebar}` — #ffffff)：侧栏卡片。
+- **Sidebar ring** (`{colors.sidebar-ring}` — #eeeeee)：侧栏卡片轮廓，浅于 hairline，避免和桌面窗口边重合。
 - **Composer** (`{colors.composer-bg}` — #ffffff)：输入卡。
 - **Canvas** (`{colors.canvas}` — #f5f5f5)：次级井。
 - **Secondary well** (`{colors.canvas-soft}` — #fafafa)：页面底。
-- **Hairline** (`{colors.hairline}` — #e5e5e5)：栏缝与控件边。
+- **Hairline** (`{colors.hairline}` — #e5e5e5)：控件边与对话栏缝，不用在侧栏卡片轮廓。
 
 ### Text
 
@@ -366,6 +368,7 @@ sunset 是装饰，orange 保留兼容命名，映射到黄色警告色。
 | ------------ | --------- | --------- |
 | 壳层         | `#ffffff` | `#121212` |
 | 侧栏卡片     | `#ffffff` | `#171717` |
+| 侧栏轮廓     | `#eeeeee` | `#2a2a2a` |
 | 选中行       | `#e5e5e5` | `#333333` |
 | 输入卡       | `#ffffff` | `#262626` |
 | 输入边框     | `#d4d4d4` | `#525252` |
@@ -387,6 +390,7 @@ sunset 是装饰，orange 保留兼容命名，映射到黄色警告色。
 | -------- | --------- |
 | 壳层     | `#121212` |
 | 侧栏卡片 | `#171717` |
+| 侧栏轮廓 | `#2a2a2a` |
 | 输入卡   | `#262626` |
 | 用户气泡 | `#262626` |
 | 主字     | `#fafafa` |
@@ -446,13 +450,13 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 
 ## Elevation & Depth
 
-| Level    | Treatment  | Use            |
-| -------- | ---------- | -------------- |
-| 0 — Flat | hairline   | 栏、列表、对话 |
-| 1 — Soft | 一层轻阴影 | composer 卡    |
-| 2 — Pop  | 稍深，仍短 | 菜单、抽屉     |
+| Level    | Treatment               | Use                                                |
+| -------- | ----------------------- | -------------------------------------------------- |
+| 0 — Flat | hairline / sidebar-ring | 列表、对话用 hairline；侧栏卡片轮廓用 sidebar-ring |
+| 1 — Soft | 一层轻阴影              | composer 卡                                        |
+| 2 — Pop  | 稍深，仍短              | 菜单、抽屉                                         |
 
-深色卡和栏用 hairline。输入卡和菜单填充 100%，避免底下的文字改变其颜色。
+深色卡和栏用 hairline；侧栏卡片轮廓用 `{colors.sidebar-ring}`。输入卡和菜单填充 100%，避免底下的文字改变其颜色。
 
 ## Shapes
 
