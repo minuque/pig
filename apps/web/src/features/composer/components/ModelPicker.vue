@@ -23,7 +23,7 @@
       side="top"
       align="start"
       :side-offset="6"
-      class="w-[min(400px,calc(100vw-24px))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden overflow-y-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
+      class="w-[min(var(--size-drawer),calc(100vw-var(--spacing-lg)))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden overflow-y-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
       @open-auto-focus="onOpenAutoFocus"
       @pointer-down-outside="suppressFocusRestore"
       @close-auto-focus="onCloseAutoFocus"
@@ -72,7 +72,7 @@
                 :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
               >
                 <DropdownMenuItem
-                  class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-2.5 py-0 h-[52px] text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
+                  class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-(--spacing-xs) py-0 h-[52px] text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
                   @select="select({ provider: item.data.vendor.id, id: item.data.model.id })"
                 >
                   <Check
@@ -272,7 +272,7 @@ function onCloseAutoFocus(event: Event) {
 
 .picker {
   display: grid;
-  grid-template-columns: 44px 1fr;
+  grid-template-columns: var(--titlebar-inset) 1fr;
   height: min(320px, var(--reka-dropdown-menu-content-available-height, 70vh));
 }
 
@@ -280,11 +280,11 @@ function onCloseAutoFocus(event: Event) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: var(--spacing-xxs);
   min-height: 0;
-  padding: 6px var(--spacing-xxs);
+  padding: var(--spacing-xxs);
   overflow-y: auto;
-  border-right: var(--border-width) solid var(--hairline);
+  border-inline-end: var(--border-width) solid var(--hairline);
   scrollbar-width: none;
 }
 .rail::-webkit-scrollbar {
@@ -324,7 +324,7 @@ function onCloseAutoFocus(event: Event) {
 .search {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--spacing-xxs);
   height: 32px;
   padding: 0 var(--spacing-xs);
   margin-bottom: var(--spacing-xxs);
@@ -385,7 +385,7 @@ function onCloseAutoFocus(event: Event) {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--spacing-xxs);
 }
 
 .model-name {
@@ -401,7 +401,7 @@ function onCloseAutoFocus(event: Event) {
 .model-vendor {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--spacing-xxs);
   min-width: 0;
   overflow: hidden;
   color: var(--ink-faint);

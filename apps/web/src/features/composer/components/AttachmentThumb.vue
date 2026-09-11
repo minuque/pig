@@ -22,7 +22,7 @@
         :aria-describedby="undefined"
         class="max-h-[90dvh] w-full max-w-[min(56rem,calc(100vw-2rem))] overflow-auto p-(--spacing-sm) sm:max-w-[min(56rem,calc(100vw-2rem))]"
       >
-        <div class="flex min-w-0 items-center justify-between gap-2">
+        <div class="flex min-w-0 items-center justify-between gap-(--spacing-xs)">
           <DialogTitle class="truncate">{{ alt }}</DialogTitle>
           <DialogClose as-child>
             <Button
@@ -98,8 +98,8 @@ img {
 
 .remove {
   position: absolute;
-  top: -4px;
-  inset-inline-end: -4px;
+  inset-block-start: calc(-1 * var(--spacing-xxs));
+  inset-inline-end: calc(-1 * var(--spacing-xxs));
   z-index: 1;
   width: var(--spacing-lg);
   height: var(--spacing-lg);

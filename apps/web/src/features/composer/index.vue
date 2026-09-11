@@ -63,7 +63,7 @@
               <CircleAlert class="size-icon" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent class="max-w-[360px]">{{ error }}</TooltipContent>
+          <TooltipContent class="max-w-(--size-drawer)">{{ error }}</TooltipContent>
         </Tooltip>
         <Button
           type="button"

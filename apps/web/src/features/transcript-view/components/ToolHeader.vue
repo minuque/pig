@@ -74,7 +74,7 @@ async function copy() {
   justify-content: space-between;
   gap: var(--spacing-sm);
   min-height: 36px;
-  padding: 6px var(--spacing-sm);
+  padding: var(--spacing-xxs) var(--spacing-sm);
   border-bottom: var(--border-width) solid var(--hairline);
   background: var(--code-header);
   font-size: var(--text-caption);

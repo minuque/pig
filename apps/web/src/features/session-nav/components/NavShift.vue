@@ -59,7 +59,7 @@ function shift(mode: SidebarGrouping | undefined) {
 
 .nav-shift-hit {
   position: absolute;
-  top: 50%;
+  inset-block-start: 50%;
   display: flex;
   align-items: center;
   justify-content: center;

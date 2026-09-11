@@ -45,7 +45,7 @@
     </div>
     <Dialog :open="previewOpen" @update:open="onPreviewOpen">
       <DialogContent
-        class="flex h-[70vh] w-[70vw] max-w-[70vw] flex-col gap-3 overflow-hidden sm:max-w-[70vw]"
+        class="flex h-[70vh] w-[70vw] max-w-[70vw] flex-col gap-(--spacing-sm) overflow-hidden sm:max-w-[70vw]"
         @open-auto-focus="onOpenAutoFocus"
       >
         <DialogTitle>{{ previewTitle }}</DialogTitle>
@@ -160,7 +160,7 @@ function onOpenAutoFocus(event: Event) {
 
 .usage-host {
   position: relative;
-  padding: var(--spacing-sm) 14px 10px;
+  padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs);
   background: var(--composer-bg);
   border: var(--border-width) solid var(--composer-ring);
   border-radius: var(--radius-xl);
@@ -207,7 +207,7 @@ function onOpenAutoFocus(event: Event) {
   align-items: baseline;
   justify-content: space-between;
   gap: var(--spacing-xs);
-  margin-top: 6px;
+  margin-top: var(--spacing-xxs);
 }
 
 .percent {
@@ -226,7 +226,7 @@ function onOpenAutoFocus(event: Event) {
   display: flex;
   overflow: hidden;
   height: 6px;
-  margin-top: 10px;
+  margin-top: var(--spacing-xs);
   border-radius: var(--radius-full);
   background: var(--hover-strong);
 }
@@ -242,7 +242,7 @@ function onOpenAutoFocus(event: Event) {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
-  margin: var(--spacing-sm) 0 2px;
+  margin: var(--spacing-sm) 0 var(--spacing-xxs);
   padding: 0;
   list-style: none;
 }

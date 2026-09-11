@@ -55,7 +55,7 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  height: 32px;
+  height: var(--size-nav-rail);
   padding-inline: var(--spacing-xs);
   border-radius: var(--radius-md);
 }
@@ -74,7 +74,7 @@ const emit = defineEmits<{
   border: 0;
   background: transparent;
   color: inherit;
-  text-align: left;
+  text-align: start;
 }
 
 .mark {

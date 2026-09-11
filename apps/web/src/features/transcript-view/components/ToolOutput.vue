@@ -258,7 +258,7 @@ function onScroll(event: Event) {
   flex: none;
   min-width: var(--line-number-width);
   color: var(--ink-muted);
-  text-align: right;
+  text-align: end;
   user-select: none;
 }
 

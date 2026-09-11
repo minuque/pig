@@ -71,10 +71,10 @@ const ringOffset = computed(() => {
 .cwd {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--spacing-xxs);
   min-width: 0;
   max-width: 70%;
-  padding: 2px var(--spacing-xs);
+  padding: var(--spacing-xxs) var(--spacing-xs);
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--ink-muted);

@@ -315,9 +315,8 @@ const contentHandleSides = ["left", "right"] as const
 .composer-bar {
   position: absolute;
   z-index: 2;
-  right: 0;
+  inset-inline: 0;
   bottom: 0;
-  left: 0;
   pointer-events: none;
 }
 
@@ -331,8 +330,8 @@ const contentHandleSides = ["left", "right"] as const
 
 .session-floating-controls {
   position: absolute;
-  top: 0;
-  right: var(--spacing-sm);
+  inset-block-start: 0;
+  inset-inline-end: var(--spacing-sm);
   z-index: 11;
   display: flex;
   justify-content: flex-end;

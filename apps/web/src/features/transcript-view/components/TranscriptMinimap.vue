@@ -128,7 +128,7 @@ function onStageFocusOut(event: FocusEvent) {
   pointer-events: none;
   position: absolute;
   top: 50%;
-  left: var(--spacing-md);
+  inset-inline-start: var(--spacing-md);
   z-index: 3;
   display: none;
   width: 44px;
@@ -147,7 +147,7 @@ function onStageFocusOut(event: FocusEvent) {
 
 .minimap-tick {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
   padding: 0;
   border: 0;
@@ -158,7 +158,7 @@ function onStageFocusOut(event: FocusEvent) {
 .minimap-strip {
   pointer-events: none;
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 50%;
   height: 2px;
   border-radius: var(--radius-full);
@@ -176,7 +176,7 @@ function onStageFocusOut(event: FocusEvent) {
 .minimap-preview {
   pointer-events: auto;
   position: absolute;
-  left: 60px;
+  inset-inline-start: 60px;
   width: 20rem;
   cursor: text;
   user-select: text;
@@ -190,7 +190,7 @@ function onStageFocusOut(event: FocusEvent) {
   background: var(--surface);
   color: var(--ink);
   box-shadow: var(--shadow-popover);
-  text-align: left;
+  text-align: start;
 }
 
 .preview-user {
@@ -206,7 +206,7 @@ function onStageFocusOut(event: FocusEvent) {
 .preview-assistant {
   display: -webkit-box;
   max-height: 3.75rem;
-  margin-top: 4px;
+  margin-top: var(--spacing-xxs);
   overflow: hidden;
   color: var(--ink-muted);
   font-size: var(--text-body-sm);

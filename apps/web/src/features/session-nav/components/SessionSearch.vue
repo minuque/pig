@@ -127,7 +127,7 @@ function pick(session: SessionMetadata) {
   align-items: center;
   gap: var(--spacing-xs);
   height: 48px;
-  padding-inline: 14px 10px;
+  padding-inline: var(--spacing-sm) var(--spacing-xs);
   border-bottom: var(--border-width) solid var(--hairline);
 }
 
@@ -188,15 +188,15 @@ function pick(session: SessionMetadata) {
 .hit {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-xs);
   width: 100%;
-  height: 36px;
-  padding-inline: 10px;
+  height: var(--size-nav-rail);
+  padding-inline: var(--spacing-xs);
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--ink);
-  text-align: left;
+  text-align: start;
 }
 .hit.is-active {
   background: var(--interaction-selected);

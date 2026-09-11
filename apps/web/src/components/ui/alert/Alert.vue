@@ -3,7 +3,7 @@
     data-slot="alert"
     :data-variant="variant"
     :class="[
-      'alert relative grid w-full items-start gap-x-(--spacing-sm) gap-y-0.5 rounded-(--radius-lg) border px-3.5 py-(--spacing-sm) text-body-sm',
+      'alert relative grid w-full items-start gap-x-(--spacing-sm) gap-y-0.5 rounded-(--radius-lg) border px-(--spacing-sm) py-(--spacing-sm) text-body-sm',
       variantClasses[variant],
       props.class,
     ]"

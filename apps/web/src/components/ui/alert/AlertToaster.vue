@@ -27,8 +27,8 @@ import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
 <style scoped>
 .alert-toaster {
   position: fixed;
-  top: calc(var(--size-control) + 3 * var(--spacing-xs));
-  right: var(--spacing-md);
+  inset-block-start: calc(var(--size-control) + 3 * var(--spacing-xs));
+  inset-inline-end: var(--spacing-md);
   z-index: var(--z-modal);
   display: flex;
   width: min(22.5rem, calc(100vw - var(--spacing-xl)));
@@ -48,14 +48,14 @@ import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
 }
 
 .alert-toaster-alert {
-  padding-right: var(--spacing-xl);
+  padding-inline-end: var(--spacing-xl);
   box-shadow: var(--shadow-elevated);
 }
 
 .alert-toaster-close {
   position: absolute;
-  top: var(--spacing-xs);
-  right: var(--spacing-xs);
+  inset-block-start: var(--spacing-xs);
+  inset-inline-end: var(--spacing-xs);
   display: inline-flex;
   align-items: center;
   justify-content: center;

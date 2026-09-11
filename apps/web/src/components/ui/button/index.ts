@@ -13,7 +13,7 @@ export const buttonVariant = {
 } as const
 
 export const buttonSize = {
-  default: "h-8 px-3 py-1.5 has-[>svg]:px-2.5",
+  default: "h-8 px-(--spacing-sm) py-1.5 has-[>svg]:px-2.5",
   icon: "size-(--size-icon-button)",
   "icon-2xs": "size-(--size-icon-2xs) rounded-full [&_svg:not([class*='size-'])]:size-3",
   "icon-sm": "size-6 [&_svg:not([class*='size-'])]:size-3.5",

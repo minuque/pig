@@ -26,8 +26,8 @@ const emit = defineEmits<{
   align-items: center;
   gap: var(--spacing-xs);
   width: 100%;
-  height: 34px;
-  padding-inline: 10px var(--spacing-sm);
+  height: var(--size-nav-rail);
+  padding-inline: var(--spacing-xs) var(--spacing-sm);
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-md);
   background: var(--surface);

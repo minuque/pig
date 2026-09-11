@@ -64,7 +64,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
 .resizer {
   position: absolute;
   inset-block: var(--nav-shell-pad);
-  left: calc(var(--left-width) - var(--nav-shell-pad));
+  inset-inline-start: calc(var(--left-width) - var(--nav-shell-pad));
   z-index: var(--z-resizer);
   width: var(--spacing-md);
   margin-inline-start: calc(-1 * var(--spacing-xs));
@@ -76,7 +76,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   pointer-events: none;
   position: absolute;
   inset-block-start: 50%;
-  left: var(--spacing-xs);
+  inset-inline-start: var(--spacing-xs);
   width: var(--spacing-xxs);
   height: var(--spacing-lg);
   margin-inline-start: calc(var(--spacing-xxs) / -2);
@@ -163,7 +163,7 @@ main {
     position: fixed;
     z-index: var(--z-drawer);
     inset-block: 0;
-    left: 0;
+    inset-inline-start: 0;
     width: min(88vw, var(--size-drawer));
     visibility: hidden;
     transform: translateX(-105%);

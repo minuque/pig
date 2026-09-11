@@ -174,7 +174,7 @@ defineExpose({ focus })
   position: absolute;
   inset-inline: var(--spacing-md);
   top: 0;
-  bottom: -8px;
+  bottom: calc(-1 * var(--spacing-xs));
   display: flex;
   align-items: flex-start;
   background: var(--composer-bg);
@@ -191,7 +191,7 @@ defineExpose({ focus })
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
-  padding: 10px var(--spacing-sm) 18px;
+  padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-md);
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -255,7 +255,7 @@ defineExpose({ focus })
 .editor-wrap {
   grid-area: editor;
   min-width: 0;
-  padding-block-start: 3px;
+  padding-block-start: var(--spacing-xxs);
   padding-inline: var(--spacing-xxs);
 }
 

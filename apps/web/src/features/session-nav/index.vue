@@ -308,7 +308,7 @@ html[data-pig-desktop-platform="win32"] .session-nav {
   padding-top: var(--spacing-xs);
 }
 html[data-pig-desktop-platform="darwin"] .session-nav {
-  padding-top: 32px;
+  padding-top: var(--spacing-xxl);
 }
 
 html[data-pig-desktop-platform] .logo-row {
@@ -412,7 +412,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 .pinned-section {
   position: sticky;
   z-index: 2;
-  top: 0;
+  inset-block-start: 0;
   background: var(--sidebar);
 }
 
@@ -428,7 +428,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   display: flex;
   align-items: center;
   width: 100%;
-  height: 30px;
+  height: var(--size-scroll-control);
   padding-inline: calc(var(--spacing-xs) + var(--size-icon) + var(--spacing-xxs)) var(--spacing-xs);
   border: 0;
   border-radius: var(--radius-md);

@@ -225,7 +225,7 @@ function confirmDelete() {
   position: relative;
   display: flex;
   align-items: center;
-  height: 36px;
+  height: var(--size-nav-rail);
   min-width: 0;
   padding-inline: var(--spacing-xs);
   border-radius: var(--radius-md);
