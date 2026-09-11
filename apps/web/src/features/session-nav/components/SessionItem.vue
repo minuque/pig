@@ -1,5 +1,17 @@
 <template>
   <div class="session-item">
+    <button
+      v-if="!renaming"
+      class="pin-toggle press-scale"
+      type="button"
+      :title="pinned ? '取消置顶' : '置顶'"
+      :aria-label="pinned ? '取消置顶' : '置顶'"
+      :aria-pressed="pinned"
+      @click.stop="emit('togglePinned', session.id)"
+    >
+      <PinOff v-if="pinned" class="size-icon" />
+      <Pin v-else class="size-icon" />
+    </button>
     <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
@@ -11,6 +23,7 @@
           @keydown="onCardKeydown"
         >
           <div class="card-line">
+            <span class="pin-slot" aria-hidden="true"></span>
             <input
               v-if="renaming"
               ref="nameInput"
@@ -203,6 +216,7 @@ function confirmDelete() {
 
 <style scoped>
 .session-item {
+  position: relative;
   width: 100%;
   min-width: 0;
 }
@@ -233,6 +247,40 @@ function confirmDelete() {
   gap: var(--spacing-xs);
   min-width: 0;
   width: 100%;
+}
+
+.pin-slot {
+  flex: none;
+  width: var(--spacing-sm);
+  height: var(--spacing-sm);
+}
+
+.pin-toggle {
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: var(--spacing-xxs);
+  inset-block-start: calc(50% - var(--size-icon-2xs) / 2);
+  display: grid;
+  place-items: center;
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--ink-muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+}
+.session-item:hover .pin-toggle,
+.pin-toggle:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.pin-toggle:hover,
+.pin-toggle:focus-visible {
+  color: var(--ink);
 }
 
 .state-dot {
