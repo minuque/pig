@@ -20,6 +20,7 @@ import { AlertToaster } from "@components/ui/alert/index.js"
 import { useLocalWorkspaces } from "@client/local-cwd.js"
 import { usePiClient } from "@client/pi-client.js"
 
+import { useClickSound } from "@features/click-sound/hooks/use-click-sound.js"
 import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
 import { provideSettings } from "@features/settings/index.js"
@@ -34,6 +35,7 @@ const session = provideSession(pi, cwd)
 
 provideNav(pi, cwd, session)
 provideSettings()
+useClickSound()
 
 function handleSidebarNavigate(canonicalPath: string, closeMobilePanels: () => void): void {
   cwd.selectCwd(canonicalPath)

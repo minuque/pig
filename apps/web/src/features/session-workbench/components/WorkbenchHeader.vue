@@ -7,6 +7,7 @@
       <h1 v-if="title" id="current-title" class="header-session">{{ title }}</h1>
     </div>
     <div class="header-right">
+      <SoundToggle />
       <ThemeToggle />
     </div>
   </header>
@@ -19,6 +20,7 @@ import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
+import SoundToggle from "@features/click-sound/SoundToggle.vue"
 import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
 const { leftOpen, toggle } = useLeftPanelToggle()
