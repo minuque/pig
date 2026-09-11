@@ -227,7 +227,7 @@ function confirmDelete() {
   align-items: center;
   height: 36px;
   min-width: 0;
-  padding-inline: var(--spacing-xxs) var(--spacing-xs);
+  padding-inline: var(--spacing-xs);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
@@ -244,26 +244,26 @@ function confirmDelete() {
 .card-line {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-xxs);
   min-width: 0;
   width: 100%;
 }
 
 .pin-slot {
   flex: none;
-  width: var(--spacing-sm);
-  height: var(--spacing-sm);
+  width: var(--size-icon);
+  height: var(--size-icon);
 }
 
 .pin-toggle {
   position: absolute;
   z-index: 1;
-  inset-inline-start: var(--spacing-xxs);
-  inset-block-start: calc(50% - var(--size-icon-2xs) / 2);
+  inset-inline-start: var(--spacing-xs);
+  inset-block-start: calc(50% - var(--size-icon) / 2);
   display: grid;
   place-items: center;
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
+  width: var(--size-icon);
+  height: var(--size-icon);
   padding: 0;
   border: 0;
   border-radius: var(--radius-xs);
@@ -321,12 +321,14 @@ function confirmDelete() {
 .session-spin {
   flex: none;
   display: flex;
+  margin-inline-start: var(--spacing-xxs);
   color: var(--ink-muted);
 }
 
 .session-time {
   position: relative;
   flex: none;
+  margin-inline-start: var(--spacing-xxs);
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;

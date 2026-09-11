@@ -419,7 +419,6 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 .group-body {
   display: flex;
   flex-direction: column;
-  padding-inline-start: calc(var(--spacing-xs) + var(--size-icon) + var(--spacing-xs));
 }
 .group-body > *:not(:last-child) {
   padding-block-end: var(--spacing-xxs);
@@ -430,7 +429,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   align-items: center;
   width: 100%;
   height: 30px;
-  padding-inline: var(--spacing-xxs) var(--spacing-xs);
+  padding-inline: calc(var(--spacing-xs) + var(--size-icon) + var(--spacing-xxs)) var(--spacing-xs);
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
