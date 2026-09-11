@@ -28,16 +28,15 @@ export const FAVORITES_SCOPE = "__favorites__"
 
 export type ModelPickerRow = { vendor: ComposerVendor; model: ComposerModelInfo }
 
-/** 有搜索（含空 query）时全目录匹配；无搜索按供应商或收藏过滤。 */
+/** 有搜索词时全目录匹配；无搜索按供应商或收藏过滤。 */
 export function listPickerRows(
   catalog: ComposerVendor[],
   query: string,
   scope: string,
   favorites: ReadonlySet<string>,
-  searchAll = false,
 ): ModelPickerRow[] {
   const q = query.trim()
-  const all = Boolean(q || searchAll)
+  const all = Boolean(q)
   const vendors =
     all || scope === FAVORITES_SCOPE ? catalog : catalog.filter((vendor) => vendor.id === scope)
 

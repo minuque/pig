@@ -25,7 +25,7 @@
       :side-offset="6"
       :collision-padding="16"
       class="w-[min(var(--size-drawer),calc(100vw-var(--spacing-lg)))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden overflow-y-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
-      @open-auto-focus.prevent="nextTick(focusRail)"
+      @open-auto-focus.prevent="nextTick(focusSearch)"
       @pointer-down-outside="onPointerDownOutside"
       @focus-outside="onFocusOutside"
       @close-auto-focus="onCloseAutoFocus"
@@ -55,7 +55,7 @@
         </div>
 
         <div class="main">
-          <div v-if="searching" class="search">
+          <div class="search">
             <Search :size="13" class="text-ink-faint shrink-0" />
             <input
               ref="searchRef"
@@ -65,13 +65,6 @@
               aria-label="搜索模型"
               @keydown="onSearchKeydown"
             />
-          </div>
-          <div v-else class="heading">
-            <span class="text-ink text-eyebrow font-semibold">模型</span>
-            <button type="button" class="search-hint" @mousedown.prevent @click="enterSearch">
-              快速搜索
-              <Search :size="13" aria-hidden="true" />
-            </button>
           </div>
           <div v-bind="containerProps" class="groups">
             <DropdownMenuGroup v-if="items.length" v-bind="wrapperProps">
@@ -117,14 +110,6 @@
                     "
                   />
                 </Button>
-                <span
-                  class="radio"
-                  :data-checked="
-                    isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined
-                  "
-                  aria-hidden="true"
-                  @click.stop="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
-                />
               </div>
             </DropdownMenuGroup>
             <div v-else class="empty">{{ emptyText }}</div>
@@ -186,10 +171,8 @@ const current = computed(() => resolveModelInfo(props.catalog, props.model))
 const {
   query,
   scope,
-  searching,
   searchRef,
   pickerRef,
-  enterSearch,
   selectScope,
   exitSearchTo,
   onPanelKeydown,
@@ -197,21 +180,20 @@ const {
   onPointerDownOutside,
   onFocusOutside,
   onCloseAutoFocus,
-  focusRail,
+  focusSearch,
 } = useModelPickerPanel(
   open,
   () => current.value.vendor?.id,
   () => props.catalog[0]?.id,
 )
 
-const showVendor = computed(() => searching.value || scope.value === FAVORITES_SCOPE)
+const showVendor = computed(() => Boolean(query.value.trim()) || scope.value === FAVORITES_SCOPE)
 const items = computed(() =>
   listPickerRows(
     props.catalog,
     query.value,
     scope.value,
     scope.value === FAVORITES_SCOPE ? favoriteSet.value : EMPTY_FAVORITES,
-    searching.value,
   ),
 )
 const ROW_HEIGHT = 40
@@ -219,9 +201,7 @@ const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, {
   itemHeight: ROW_HEIGHT,
 })
 const emptyText = computed(() =>
-  searching.value || scope.value !== FAVORITES_SCOPE || query.value.trim()
-    ? "没有匹配的模型"
-    : "还没有收藏的模型",
+  query.value.trim() || scope.value !== FAVORITES_SCOPE ? "没有匹配的模型" : "还没有收藏的模型",
 )
 const label = computed(() => {
   const { vendor, model } = current.value
@@ -231,7 +211,7 @@ const triggerText = computed(() =>
   pickerTriggerText(label.value, props.level, current.value.levels),
 )
 
-watch([query, scope, searching], async () => {
+watch([query, scope], async () => {
   await nextTick()
   scrollTo(0)
 })
@@ -247,7 +227,7 @@ function showEffort(row: ModelPickerRow) {
 function onSelectModel(event: Event, provider: string, id: string) {
   event.preventDefault()
   emit("update:model", { provider, id })
-  if (!query.value.trim() && !searching.value) return
+  if (!query.value.trim()) return
   exitSearchTo(provider)
 }
 </script>
@@ -283,8 +263,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 .selector:focus-visible,
 .rail-btn:focus-visible,
-.fav:focus-visible,
-.search-hint:focus-visible {
+.fav:focus-visible {
   outline: var(--border-width) solid var(--primary);
   outline-offset: -2px;
 }
@@ -353,23 +332,16 @@ function onSelectModel(event: Event, provider: string, id: string) {
   min-height: 0;
 }
 
-.search,
-.heading {
+.search {
   display: flex;
   align-items: center;
+  gap: var(--spacing-xxs);
   height: 32px;
   margin-bottom: var(--spacing-xxs);
   padding: 0 var(--spacing-xs);
-}
-.search {
-  gap: var(--spacing-xxs);
   border-radius: var(--radius-md);
   background: var(--canvas-soft);
 }
-.heading {
-  justify-content: space-between;
-}
-
 .search input {
   flex: 1;
   min-width: 0;
@@ -382,22 +354,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 .search input::placeholder {
   color: var(--ink-faint);
-}
-
-.search-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xxs);
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink-faint);
-  font: inherit;
-  font-size: var(--text-eyebrow);
-  cursor: pointer;
-}
-.search-hint:hover {
-  color: var(--ink-muted);
 }
 
 .groups {
@@ -452,19 +408,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-regular);
   line-height: var(--text-eyebrow--line-height);
-}
-
-.radio {
-  flex: none;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  border: var(--border-width) solid var(--ink-faint);
-  border-radius: var(--radius-full);
-  background: transparent;
-}
-.radio[data-checked] {
-  border-color: var(--primary);
-  background: var(--primary);
 }
 
 .fav {

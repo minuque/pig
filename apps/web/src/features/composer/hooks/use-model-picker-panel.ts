@@ -14,13 +14,6 @@ function isEffortMenuEvent(event: Event): boolean {
   return Boolean(el?.closest("[data-model-effort-menu]"))
 }
 
-function focusPickerRail(root: HTMLElement | null) {
-  const el =
-    root?.querySelector<HTMLElement>(".rail-btn[data-current]") ??
-    root?.querySelector<HTMLElement>(".search-hint")
-  el?.focus()
-}
-
 /** 打开态：搜索、厂商轨、嵌套思考档菜单不关外层。 */
 export function useModelPickerPanel(
   open: Ref<boolean>,
@@ -29,7 +22,6 @@ export function useModelPickerPanel(
 ) {
   const query = ref("")
   const scope = ref(FAVORITES_SCOPE)
-  const searching = ref(false)
   const searchRef = ref<HTMLInputElement | null>(null)
   const pickerRef = ref<HTMLElement | null>(null)
   let suppressRestore = false
@@ -37,43 +29,37 @@ export function useModelPickerPanel(
   watch(open, (isOpen) => {
     if (!isOpen) return
     query.value = ""
-    searching.value = false
     scope.value = currentVendorId() ?? fallbackVendorId() ?? FAVORITES_SCOPE
+    void nextTick(focusSearch)
   })
 
-  function enterSearch() {
-    searching.value = true
-    void nextTick(() => searchRef.value?.focus())
+  function focusSearch() {
+    searchRef.value?.focus()
   }
 
   function selectScope(next: string) {
     query.value = ""
-    searching.value = false
     scope.value = next
   }
 
   function exitSearchTo(provider: string) {
     query.value = ""
-    searching.value = false
     scope.value = provider
-    focusPickerRail(pickerRef.value)
   }
 
   function onPanelKeydown(event: KeyboardEvent) {
-    if (event.key !== "/" || searching.value) return
+    if (event.key !== "/") return
     const target = event.target
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return
     event.preventDefault()
     event.stopPropagation()
-    enterSearch()
+    focusSearch()
   }
 
   function onSearchKeydown(event: KeyboardEvent) {
     if (event.key !== "Escape" || !query.value) return
     event.preventDefault()
     query.value = ""
-    focusPickerRail(pickerRef.value)
-    searching.value = false
   }
 
   function onPointerDownOutside(event: Event) {
@@ -93,17 +79,11 @@ export function useModelPickerPanel(
     suppressRestore = false
   }
 
-  function focusRail() {
-    focusPickerRail(pickerRef.value)
-  }
-
   return {
     query,
     scope,
-    searching,
     searchRef,
     pickerRef,
-    enterSearch,
     selectScope,
     exitSearchTo,
     onPanelKeydown,
@@ -111,6 +91,6 @@ export function useModelPickerPanel(
     onPointerDownOutside,
     onFocusOutside,
     onCloseAutoFocus,
-    focusRail,
+    focusSearch,
   }
 }
