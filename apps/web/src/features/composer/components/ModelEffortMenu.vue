@@ -30,16 +30,14 @@
           <div class="effort-ticks" aria-hidden="true">
             <i v-for="item in levels" :key="item" />
           </div>
-          <input
+          <Slider
             class="effort-slider"
-            type="range"
+            :model-value="[index]"
             :min="0"
             :max="maxIndex"
-            step="1"
-            :value="index"
+            :step="1"
             :aria-label="`思考强度：${label}`"
-            :aria-valuetext="label"
-            @input="onSlide"
+            @update:model-value="onSlide"
           />
         </div>
       </div>
@@ -56,6 +54,7 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Button } from "@components/ui/button/index.js"
+import { Slider } from "@components/ui/slider/index.js"
 import { displayThinkingLevel, formatThinkingLevel } from "@features/composer/lib/thinking-level.js"
 
 const props = defineProps<{
@@ -77,10 +76,8 @@ const index = computed(() => {
   return i < 0 ? 0 : i
 })
 
-function onSlide(event: Event) {
-  const target = event.target
-  if (!(target instanceof HTMLInputElement)) return
-  const next = props.levels[Number(target.value)]
+function onSlide(value: number[] | undefined) {
+  const next = props.levels[value?.[0] ?? -1]
   if (next) emit("update:level", next)
 }
 </script>
@@ -163,7 +160,10 @@ function onSlide(event: Event) {
 .effort-ticks {
   position: absolute;
   inset-inline: calc(var(--size-icon) / 2);
+  inset-block: 0;
+  z-index: 0;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   pointer-events: none;
 }
@@ -177,51 +177,6 @@ function onSlide(event: Event) {
 .effort-slider {
   position: relative;
   z-index: 1;
-  width: 100%;
-  margin: 0;
-  appearance: none;
-  background: transparent;
-  cursor: pointer;
-}
-.effort-slider::-webkit-slider-runnable-track {
-  height: var(--spacing-xxs);
-  border-radius: var(--radius-full);
-  background: var(--hover-strong);
-}
-.effort-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  margin-block-start: calc((var(--spacing-xxs) - var(--size-icon)) / 2);
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-full);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-}
-.effort-slider::-moz-range-track {
-  height: var(--spacing-xxs);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: var(--hover-strong);
-}
-.effort-slider::-moz-range-thumb {
-  width: var(--size-icon);
-  height: var(--size-icon);
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-full);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-}
-.effort-slider:focus-visible {
-  outline: none;
-}
-.effort-slider:focus-visible::-webkit-slider-thumb {
-  outline: var(--border-width) solid var(--primary);
-  outline-offset: 2px;
-}
-.effort-slider:focus-visible::-moz-range-thumb {
-  outline: var(--border-width) solid var(--primary);
-  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
