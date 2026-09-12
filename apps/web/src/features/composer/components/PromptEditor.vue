@@ -81,8 +81,11 @@ function fitEditor() {
   el.style.height = "auto"
   const next = el.scrollHeight
   el.style.height = `${next}px`
-  const line = Number.parseFloat(getComputedStyle(el).lineHeight) || 22
-  multiline.value = next > line + 2 || el.value.includes("\n")
+  const style = getComputedStyle(el)
+  const line = Number.parseFloat(style.lineHeight) || 22
+  const padY =
+    (Number.parseFloat(style.paddingTop) || 0) + (Number.parseFloat(style.paddingBottom) || 0)
+  multiline.value = next > line + padY + 2 || el.value.includes("\n")
 }
 
 watch(
