@@ -12,7 +12,6 @@ import {
 } from "./seed.js"
 
 export const WORKBENCH_TIMEOUT_MS = 30_000
-export const HISTORY_ROUTE = "**/api/v1/platform/transcript?*"
 
 type PageBench = {
   fcp: number

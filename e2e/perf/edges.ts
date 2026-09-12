@@ -1,11 +1,10 @@
-import { expect, type Page, type Route } from "@playwright/test"
+import { expect, type Page } from "@playwright/test"
 import { join } from "node:path"
 
 import { TRANSCRIPT_PAGE_TURNS } from "../../packages/gateway/src/pi/transcript-page.js"
 import { STOP_TURN, TURN_TOKEN, installTurnBridge, streamingAssistant } from "../sim-turn.js"
 import type { BenchHarness } from "./harness.js"
 import {
-  HISTORY_ROUTE,
   WORKBENCH_TIMEOUT_MS,
   captureBenchFailure,
   composerInput,
@@ -29,47 +28,121 @@ const FIRST_TOKEN = "基准首 token"
 
 type Bridge = Awaited<ReturnType<typeof installTurnBridge>>
 
+const HISTORY_HOLD_KEY = "__pigHistoryHold"
+
+/** pig:// 不进 Playwright route，卡住页面 fetch 才拦得到桌面端历史。 */
+async function holdTranscriptFetch(page: Page, sessionId: string) {
+  await page.evaluate(
+    ({ key, id }) => {
+      type Hold = {
+        native: typeof fetch
+        sessionId: string
+        received: number
+        delivered: number
+        blocked: boolean
+        waiters: Array<() => void>
+      }
+      const previous = Reflect.get(window, key) as Hold | undefined
+      if (previous) {
+        for (const resume of previous.waiters) resume()
+        window.fetch = previous.native
+      }
+      const hold: Hold = {
+        native: window.fetch.bind(window),
+        sessionId: id,
+        received: 0,
+        delivered: 0,
+        blocked: true,
+        waiters: [],
+      }
+      Reflect.set(window, key, hold)
+      window.fetch = (input, init) => {
+        const href =
+          typeof input === "string" ? input : input instanceof URL ? input.href : input.url
+        const url = new URL(href, window.location.href)
+        if (url.pathname !== "/api/v1/platform/transcript") return hold.native(input, init)
+        if (url.searchParams.get("sessionId") !== hold.sessionId) return hold.native(input, init)
+        return hold.native(input, init).then((response) => {
+          hold.received += 1
+          const gate = hold.blocked
+            ? new Promise<void>((resolve) => {
+                hold.waiters.push(resolve)
+              })
+            : Promise.resolve()
+          return gate.then(() => {
+            hold.delivered += 1
+            return response
+          })
+        })
+      }
+    },
+    { key: HISTORY_HOLD_KEY, id: sessionId },
+  )
+  return {
+    counts: () =>
+      page.evaluate((key) => {
+        const hold = Reflect.get(window, key) as { received: number; delivered: number } | undefined
+        return { received: hold?.received ?? 0, delivered: hold?.delivered ?? 0 }
+      }, HISTORY_HOLD_KEY),
+    async release() {
+      await page.evaluate((key) => {
+        const hold = Reflect.get(window, key) as
+          { blocked: boolean; waiters: Array<() => void> } | undefined
+        if (!hold) return
+        hold.blocked = false
+        for (const resume of hold.waiters) resume()
+        hold.waiters.length = 0
+      }, HISTORY_HOLD_KEY)
+    },
+    async dispose() {
+      await page.evaluate((key) => {
+        const hold = Reflect.get(window, key) as
+          { native: typeof fetch; blocked: boolean; waiters: Array<() => void> } | undefined
+        if (!hold) return
+        hold.blocked = false
+        for (const resume of hold.waiters) resume()
+        hold.waiters.length = 0
+        window.fetch = hold.native
+        Reflect.deleteProperty(window, key)
+      }, HISTORY_HOLD_KEY)
+    },
+  }
+}
+
 /** 卡住长会话历史后立刻切短会话，量最终就绪。 */
 async function rapidSwitch(page: Page) {
   await openSession(page, EMPTY_SESSION_NAME)
-  let received = 0
-  let delivered = 0
-  let release = () => {}
-  const blocked = new Promise<void>((resolve) => {
-    release = resolve
-  })
-  const delayed = async (route: Route) => {
-    if (new URL(route.request().url()).searchParams.get("sessionId") !== LONG_SESSION_ID)
-      return route.continue()
-    const response = await route.fetch()
-    received += 1
-    await blocked
-    try {
-      await route.fulfill({ response })
-      delivered += 1
-    } catch {
-      delivered += 1
-    }
-  }
-  await page.route(HISTORY_ROUTE, delayed)
+  const hold = await holdTranscriptFetch(page, LONG_SESSION_ID)
   try {
     await clickSessionCard(page, LONG_SESSION_NAME)
-    await expect.poll(() => received, { message: "连切场景必须捕获旧历史请求" }).toBeGreaterThan(0)
+    await expect
+      .poll(async () => (await hold.counts()).received, {
+        timeout: WORKBENCH_TIMEOUT_MS,
+        message: "连切场景必须捕获旧历史请求",
+      })
+      .toBeGreaterThan(0)
     const started = performance.now()
     await clickSessionCard(page, SHORT_SESSION_NAME)
     await waitForSession(page, SHORT_SESSION_NAME)
     await nextPaint(page)
     const elapsed = performance.now() - started
-    release()
-    await expect.poll(() => delivered).toBe(received)
+    await hold.release()
+    await expect
+      .poll(
+        async () => {
+          const counts = await hold.counts()
+          return counts.delivered === counts.received
+        },
+        { timeout: WORKBENCH_TIMEOUT_MS },
+      )
+      .toBe(true)
     await nextPaint(page)
     await expect(page).toHaveURL(new RegExp(`/sessions/${SHORT_SESSION_ID}$`))
     await expect(page.locator(".row-user")).toHaveCount(TRANSCRIPT_PAGE_TURNS)
     await expect(page.getByText(`${LONG_SESSION_NAME} 提问 1`, { exact: true })).toHaveCount(0)
     return elapsed
   } finally {
-    release()
-    await page.unroute(HISTORY_ROUTE, delayed)
+    await hold.dispose()
   }
 }
 
