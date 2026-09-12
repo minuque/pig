@@ -324,6 +324,43 @@
   background: var(--scrollbar-hover);
 }
 
+/* 两端三角按钮：按钮长度等于条宽，三角贴按钮外缘，与 thumb 留 3px 空隙。 */
+*::-webkit-scrollbar-button:vertical:start:decrement,
+*::-webkit-scrollbar-button:vertical:end:increment {
+  display: block;
+  height: 6px;
+  background-color: transparent;
+  background-repeat: no-repeat;
+}
+*::-webkit-scrollbar-button:vertical:start:decrement {
+  background-image:
+    linear-gradient(to bottom right, transparent 50%, var(--scrollbar-thumb) 50%),
+    linear-gradient(to bottom left, transparent 50%, var(--scrollbar-thumb) 50%);
+  background-size: 3px 3px;
+  background-position:
+    0 0,
+    3px 0;
+}
+*::-webkit-scrollbar-button:vertical:start:decrement:hover {
+  background-image:
+    linear-gradient(to bottom right, transparent 50%, var(--scrollbar-hover) 50%),
+    linear-gradient(to bottom left, transparent 50%, var(--scrollbar-hover) 50%);
+}
+*::-webkit-scrollbar-button:vertical:end:increment {
+  background-image:
+    linear-gradient(to top right, transparent 50%, var(--scrollbar-thumb) 50%),
+    linear-gradient(to top left, transparent 50%, var(--scrollbar-thumb) 50%);
+  background-size: 3px 3px;
+  background-position:
+    0 3px,
+    3px 3px;
+}
+*::-webkit-scrollbar-button:vertical:end:increment:hover {
+  background-image:
+    linear-gradient(to top right, transparent 50%, var(--scrollbar-hover) 50%),
+    linear-gradient(to top left, transparent 50%, var(--scrollbar-hover) 50%);
+}
+
 @media (pointer: coarse) {
   * {
     --scrollbar-thumb: var(--scrollbar-color);

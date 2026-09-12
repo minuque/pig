@@ -238,7 +238,6 @@ function onScroll(event: Event) {
   overflow: auto;
   padding-block: var(--spacing-sm);
   padding-inline-start: var(--spacing-lg);
-  scrollbar-width: thin;
 }
 
 .code-lines {
