@@ -53,6 +53,7 @@
                 :row="row"
                 :is-expand="isExpand(row.id)"
                 :expanded-tools="expandedTools"
+                :eager="markdownSettled"
                 @toggle-expand="onToggleExpand(row.id, $event)"
                 @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
               />

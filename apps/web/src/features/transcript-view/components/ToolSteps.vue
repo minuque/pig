@@ -1,5 +1,5 @@
 <template>
-  <section class="tool-steps" :class="{ live, aborted: row.aborted }">
+  <section ref="rootEl" class="tool-steps" :class="{ live, aborted: row.aborted }">
     <Button type="button" static class="summary-btn" @click="emit('toggle-expand', !revealed)">
       <Spinner v-if="live" class="tool-steps-icon" />
       <BadgeCheck v-else class="tool-steps-icon" />
@@ -54,7 +54,7 @@
               <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
             </svg>
           </span>
-          <TransitionGroup appear name="timeline-step" tag="div" class="step-list">
+          <TransitionGroup :appear="live" name="timeline-step" tag="div" class="step-list">
             <div
               v-for="(step, index) in row.steps"
               :key="step.id"
@@ -87,11 +87,15 @@ import type { ToolRow, ToolRowStep } from "../type.js"
 
 const HOOK_CORNER = 6
 
-const props = defineProps<{
-  row: ToolRow
-  isExpand: boolean | undefined
-  expandedTools: Map<string, boolean>
-}>()
+const props = withDefaults(
+  defineProps<{
+    row: ToolRow
+    isExpand: boolean | undefined
+    expandedTools: Map<string, boolean>
+    eager?: boolean
+  }>(),
+  { eager: false },
+)
 const emit = defineEmits<{
   "toggle-expand": [open: boolean]
   "toggle-tool": [id: string, open: boolean]
@@ -101,6 +105,7 @@ const live = computed(() => props.row.mode === "live")
 const revealed = computed(() => props.row.turnStreaming || props.isExpand === true)
 const rendered = shallowRef(revealed.value)
 const expanded = shallowRef(revealed.value)
+const rootEl = shallowRef<HTMLElement | null>(null)
 
 watch(
   revealed,
@@ -120,6 +125,76 @@ watch(
     })
   },
   { flush: "sync" },
+)
+
+let viewportObserver: IntersectionObserver | undefined
+let idleHandle: number | undefined
+let idleViaTimeout = false
+
+function cancelIdle() {
+  if (idleHandle == null) return
+  if (idleViaTimeout) window.clearTimeout(idleHandle)
+  else cancelIdleCallback(idleHandle)
+  idleHandle = undefined
+}
+
+function scheduleIdleMount() {
+  if (rendered.value) return
+  cancelIdle()
+  const mount = () => {
+    idleHandle = undefined
+    if (!rendered.value) rendered.value = true
+  }
+  if (typeof requestIdleCallback === "function") {
+    idleViaTimeout = false
+    // timeout 避免主线程一直忙时永不挂载
+    idleHandle = requestIdleCallback(mount, { timeout: 1000 })
+    return
+  }
+  idleViaTimeout = true
+  idleHandle = window.setTimeout(mount, 1)
+}
+
+function stopViewportWatch() {
+  viewportObserver?.disconnect()
+  viewportObserver = undefined
+  cancelIdle()
+}
+
+function onViewport(entries: IntersectionObserverEntry[]) {
+  if (rendered.value) {
+    stopViewportWatch()
+    return
+  }
+  if (entries.some((entry) => entry.isIntersecting)) {
+    scheduleIdleMount()
+    return
+  }
+  cancelIdle()
+}
+
+function startViewportWatch() {
+  stopViewportWatch()
+  if (!props.eager || rendered.value) return
+  const target = rootEl.value
+  if (!target) return
+  viewportObserver = new IntersectionObserver(onViewport, {
+    root: target.closest("#transcript-panel"),
+    threshold: 0,
+  })
+  viewportObserver.observe(target)
+}
+
+watch(
+  [() => props.eager, rendered, rootEl],
+  () => {
+    if (rendered.value || !props.eager) {
+      stopViewportWatch()
+      return
+    }
+    startViewportWatch()
+  },
+  { flush: "post", immediate: true },
 )
 
 const label = computed(() => toolRowLabel(props.row))
@@ -234,7 +309,10 @@ watch(
   { flush: "post" },
 )
 
-onBeforeUnmount(() => listObserver?.disconnect())
+onBeforeUnmount(() => {
+  listObserver?.disconnect()
+  stopViewportWatch()
+})
 </script>
 
 <style scoped>
