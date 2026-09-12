@@ -151,8 +151,12 @@ defineExpose({ focus })
 
 .glass-shell {
   position: relative;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-full);
   box-shadow: var(--shadow-soft);
+}
+.composer[data-expanded="true"] .glass-shell,
+.composer[data-multiline="true"] .glass-shell {
+  border-radius: var(--radius-xl);
 }
 
 .glass-host {
@@ -161,11 +165,12 @@ defineExpose({ focus })
   grid-template-areas: "editor left right";
   align-items: center;
   column-gap: var(--spacing-xxs);
-  padding: var(--spacing-xs);
+  padding-block: var(--spacing-xs);
+  padding-inline: var(--spacing-sm);
   overflow: hidden;
   background: var(--composer-bg);
   border: var(--border-width) solid var(--composer-ring);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-full);
 }
 .composer[data-expanded="true"] .glass-host {
   grid-template-columns: minmax(0, 1fr) auto;
@@ -174,10 +179,12 @@ defineExpose({ focus })
     "left right";
   align-items: end;
   row-gap: var(--spacing-xxs);
-  padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs);
+  border-radius: var(--radius-xl);
 }
 .composer[data-multiline="true"] .glass-host {
   align-items: end;
+  border-radius: var(--radius-xl);
 }
 
 .footer {
@@ -203,7 +210,6 @@ defineExpose({ focus })
 .editor-wrap {
   grid-area: editor;
   min-width: 0;
-  padding-block-start: var(--spacing-xxs);
   padding-inline: var(--spacing-xxs);
 }
 
@@ -211,7 +217,8 @@ defineExpose({ focus })
   display: block;
   width: 100%;
   margin: 0;
-  padding: 0;
+  padding-block: calc((var(--size-icon-button) - 1.5em) / 2);
+  padding-inline: 0;
   border: 0;
   outline: 0;
   resize: none;
@@ -220,7 +227,7 @@ defineExpose({ focus })
   font: inherit;
   font-size: var(--text-body-md);
   line-height: 1.5;
-  min-height: 22px;
+  min-height: var(--size-icon-button);
   max-height: 160px;
   overscroll-behavior: contain;
   overflow-y: auto;
