@@ -26,6 +26,7 @@
         />
       </svg>
     </button>
+    <span v-else class="usage-slot" aria-hidden="true"></span>
   </div>
 </template>
 
@@ -64,7 +65,7 @@ const ringOffset = computed(() => {
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-xs);
-  min-height: 28px;
+  height: calc(var(--size-icon-button) + var(--spacing-xxs) + var(--spacing-xs));
   padding-block: var(--spacing-xxs) var(--spacing-xs);
 }
 
@@ -93,7 +94,8 @@ const ringOffset = computed(() => {
   min-width: 0;
 }
 
-.usage {
+.usage,
+.usage-slot {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -101,6 +103,8 @@ const ringOffset = computed(() => {
   width: var(--size-icon-button);
   height: var(--size-icon-button);
   min-height: 0;
+}
+.usage {
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);

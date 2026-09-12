@@ -1,10 +1,23 @@
 import { describe, expect, it } from "vitest"
 import type { ToolTranscriptItem, TranscriptItem, UserTranscriptItem } from "@/types/common-type.js"
 import {
+  applyUserRowAliases,
+  confirmedUserRowAlias,
+  isSessionIdUpgrade,
   isSessionOpening,
   mergeLiveTranscript,
   projectOptimisticTranscript,
 } from "@features/session-workbench/lib/session-state.js"
+
+describe("isSessionIdUpgrade", () => {
+  it("pending 换成真 id 仍是同一条对话，其它切换不是", () => {
+    expect(isSessionIdUpgrade("pending", "s1")).toBe(true)
+    expect(isSessionIdUpgrade("s1", "s2")).toBe(false)
+    expect(isSessionIdUpgrade(undefined, "s1")).toBe(false)
+    expect(isSessionIdUpgrade("pending", "pending")).toBe(false)
+    expect(isSessionIdUpgrade("pending", undefined)).toBe(false)
+  })
+})
 
 describe("isSessionOpening", () => {
   it("lease 已齐但历史未到时仍算打开中，避免空画布闪一下", () => {
@@ -104,6 +117,20 @@ describe("projectOptimisticTranscript", () => {
         knownItemIds: [previous.id],
       }),
     ).toBe(items)
+  })
+
+  it("服务端同文确认后渲染 id 仍用发送时那条", () => {
+    const send = { item: optimistic, knownItemIds: [previous.id] }
+    const confirmed = { ...optimistic, id: "server-u2" }
+    const items = [previous, confirmed]
+    expect(confirmedUserRowAlias(items, send)).toEqual({
+      serverId: "server-u2",
+      clientId: "optimistic-1",
+    })
+    expect(
+      applyUserRowAliases(items, { "server-u2": "optimistic-1" }).map((item) => item.id),
+    ).toEqual([previous.id, "optimistic-1"])
+    expect(confirmedUserRowAlias(items, null)).toBeUndefined()
   })
 
   it("已知历史之外的同文用户句不算确认", () => {

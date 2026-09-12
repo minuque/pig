@@ -32,6 +32,8 @@ import {
 } from "@features/session-workbench/lib/abortable-open.js"
 import {
   adoptWelcomeOptimistic,
+  applyUserRowAliases,
+  confirmedUserRowAlias,
   isSessionOpening,
   mergeLiveTranscript,
   optimisticUserMessage,
@@ -430,6 +432,8 @@ export function useSessionLifecycle(
       sessionError.value = errorMessage(error)
       throw error
     } finally {
+      const alias = confirmedUserRowAlias(liveTranscript.value, optimistic)
+      if (alias) current.userRowIds[alias.serverId] = alias.clientId
       if (current.optimisticUser?.item.id === optimistic.item.id) current.optimisticUser = null
       submitting.value = false
     }
@@ -468,10 +472,24 @@ export function useSessionLifecycle(
     }
   }
 
+  watch(
+    [liveTranscript, () => clientState.value?.optimisticUser],
+    ([items, optimistic]) => {
+      const current = clientState.value
+      if (!current || !optimistic) return
+      const alias = confirmedUserRowAlias(items, optimistic)
+      if (alias) current.userRowIds[alias.serverId] = alias.clientId
+    },
+    { flush: "sync" },
+  )
+
   const transcript = computed(() =>
-    projectOptimisticTranscript(
-      liveTranscript.value,
-      clientState.value?.optimisticUser ?? (sessionId.value ? null : welcomeOptimistic.value),
+    applyUserRowAliases(
+      projectOptimisticTranscript(
+        liveTranscript.value,
+        clientState.value?.optimisticUser ?? (sessionId.value ? null : welcomeOptimistic.value),
+      ),
+      clientState.value?.userRowIds,
     ),
   )
   const sessionCwd = computed(() => projection.value?.cwd ?? cwd.lastCwd.value)

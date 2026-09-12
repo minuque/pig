@@ -84,6 +84,7 @@ import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcr
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
+import { isSessionIdUpgrade } from "@features/session-workbench/lib/session-state.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {
@@ -347,7 +348,8 @@ onMounted(() => {
 
 watch(
   () => props.sessionId,
-  () => {
+  (next, prev) => {
+    if (isSessionIdUpgrade(prev, next)) return
     armTailWindow()
     reset()
     void nextTick(() => {

@@ -1,4 +1,5 @@
 import { reactive, watch, type MaybeRefOrGetter, toValue } from "vue"
+import { isSessionIdUpgrade } from "@features/session-workbench/lib/session-state.js"
 
 /** 展开态只活在当前 Session 内存，切 Session 清空。 */
 export function useTranscriptExpand(sessionId: MaybeRefOrGetter<string>) {
@@ -7,7 +8,8 @@ export function useTranscriptExpand(sessionId: MaybeRefOrGetter<string>) {
 
   watch(
     () => toValue(sessionId),
-    () => {
+    (next, prev) => {
+      if (isSessionIdUpgrade(prev, next)) return
       expandedTools.clear()
       expandedRows.clear()
     },

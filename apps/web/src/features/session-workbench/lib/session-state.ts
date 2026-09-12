@@ -16,10 +16,15 @@ import type {
 /** 欢迎页第一条 Prompt 还没有真实 sessionId 时的占位。 */
 export const PENDING_SESSION_ID = "pending"
 
+/** pending 投影升级成真 Session，仍是同一条对话。 */
+export function isSessionIdUpgrade(prev: string | undefined, next: string | undefined): boolean {
+  return prev === PENDING_SESSION_ID && Boolean(next) && next !== PENDING_SESSION_ID
+}
+
 export function sessionState(states: Map<string, SessionClientState>, sessionId: string) {
   let state = states.get(sessionId)
   if (!state) {
-    state = reactive({ draft: "", optimisticUser: null })
+    state = reactive({ draft: "", optimisticUser: null, userRowIds: {} })
     states.set(sessionId, state)
   }
   return state
@@ -54,6 +59,53 @@ export function adoptWelcomeOptimistic(
 
 function userText(item: TranscriptItem): string {
   return item.role === "user" ? transcriptText(item) : ""
+}
+
+function confirmedUserIndex(
+  items: readonly TranscriptItem[],
+  optimistic: OptimisticUserMessage,
+): number {
+  const known = new Set(optimistic.knownItemIds)
+  let insertionIndex = 0
+  for (let index = 0; index < items.length; index += 1) {
+    if (known.has(items[index]!.id)) insertionIndex = index + 1
+  }
+
+  return items.findIndex(
+    (item, index) =>
+      index >= insertionIndex &&
+      !known.has(item.id) &&
+      userText(item) === userText(optimistic.item),
+  )
+}
+
+/** 乐观用户句被服务端同文确认时，记下渲染 id。 */
+export function confirmedUserRowAlias(
+  items: readonly TranscriptItem[],
+  optimistic: OptimisticUserMessage | null,
+): { serverId: string; clientId: string } | undefined {
+  if (!optimistic) return undefined
+  const confirmedIndex = confirmedUserIndex(items, optimistic)
+  if (confirmedIndex < 0) return undefined
+  const serverId = items[confirmedIndex]!.id
+  if (serverId === optimistic.item.id) return undefined
+  return { serverId, clientId: optimistic.item.id }
+}
+
+/** 把已确认用户句的渲染 id 钉在发送时那条上。 */
+export function applyUserRowAliases(
+  items: readonly TranscriptItem[],
+  aliases: Readonly<Record<string, string>> | undefined,
+): readonly TranscriptItem[] {
+  if (!aliases || Object.keys(aliases).length === 0) return items
+  let changed = false
+  const next = items.map((item) => {
+    const id = aliases[item.id]
+    if (!id || id === item.id) return item
+    changed = true
+    return { ...item, id }
+  })
+  return changed ? next : items
 }
 
 /** 路由已有 session，但 lease 未齐或历史 HTTP 未落地。 */
@@ -103,19 +155,12 @@ export function projectOptimisticTranscript(
   optimistic: OptimisticUserMessage | null,
 ): readonly TranscriptItem[] {
   if (!optimistic) return items
+  if (confirmedUserIndex(items, optimistic) >= 0) return items
   const known = new Set(optimistic.knownItemIds)
   let insertionIndex = 0
   for (let index = 0; index < items.length; index += 1) {
     if (known.has(items[index]!.id)) insertionIndex = index + 1
   }
-
-  const confirmedIndex = items.findIndex(
-    (item, index) =>
-      index >= insertionIndex &&
-      !known.has(item.id) &&
-      userText(item) === userText(optimistic.item),
-  )
-  if (confirmedIndex >= 0) return items
 
   return [...items.slice(0, insertionIndex), optimistic.item, ...items.slice(insertionIndex)]
 }

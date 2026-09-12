@@ -14,6 +14,8 @@ export interface OptimisticUserMessage {
 export interface SessionClientState {
   draft: string
   optimisticUser: OptimisticUserMessage | null
+  /** 发送时的用户句 id；服务端确认后仍用来渲染，气泡不当新行进场。 */
+  userRowIds: Record<string, string>
 }
 
 /** SessionSnapshot 的 UI 展示投影：以快照为权威，重连后整体覆盖，不增量修补。 */

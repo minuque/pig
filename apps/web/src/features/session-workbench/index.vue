@@ -24,7 +24,6 @@
           </div>
           <TranscriptView
             v-else-if="displaySessionId"
-            :key="displaySessionId"
             ref="transcriptView"
             :session-id="displaySessionId"
             :transcript="transcript"
@@ -64,7 +63,7 @@
             :running="running"
             :aborting="aborting"
             :error="sessionError"
-            :cwd="sessionId ? sessionCwd : undefined"
+            :cwd="composerCwd"
             :usage="sessionId ? contextUsage : undefined"
             :session-id="sessionId"
             :send-disabled="sendDisabled"
@@ -105,7 +104,10 @@ import SessionLoading from "@features/session-workbench/components/SessionLoadin
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
-import { PENDING_SESSION_ID } from "@features/session-workbench/lib/session-state.js"
+import {
+  isSessionIdUpgrade,
+  PENDING_SESSION_ID,
+} from "@features/session-workbench/lib/session-state.js"
 import StartupError from "@features/startup/components/StartupError.vue"
 import TranscriptView from "@features/transcript-view/index.vue"
 
@@ -172,7 +174,8 @@ const showLoading = computed(() => {
 
 watch(
   displaySessionId,
-  () => {
+  (next, prev) => {
+    if (isSessionIdUpgrade(prev, next)) return
     firstTextPainted.value = false
   },
   { flush: "sync" },
