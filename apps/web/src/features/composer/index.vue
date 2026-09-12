@@ -67,17 +67,19 @@
           :class="{ 'send--abort': running || voiceActive, 'motion-pulse': voiceActive }"
           :title="primaryLabel"
           :aria-label="primaryLabel"
+          :aria-keyshortcuts="running ? 'Escape' : undefined"
           :disabled="running ? aborting : !voiceActive && !showVoice && !sendActive"
           @mousedown.prevent
           @click="onPrimaryAction"
         >
           <span class="primary-icon icon-swap" aria-hidden="true">
+            <span class="send-esc" :data-visible="running">Esc</span>
             <svg
               width="12"
               height="12"
               viewBox="0 0 12 12"
               fill="currentColor"
-              :data-visible="running || voiceActive"
+              :data-visible="!running && voiceActive"
             >
               <rect x="2" y="2" width="8" height="8" rx="1.5" />
             </svg>
@@ -110,6 +112,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
+import { useEventListener } from "@vueuse/core"
 import { ArrowUp, CircleAlert, Mic, Plus } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { useVoiceInput } from "@features/composer/hooks/use-voice-input.js"
@@ -220,6 +223,8 @@ watch(
   },
 )
 
+useEventListener(window, "keydown", onAbortHotkey, { capture: true })
+
 function focusEditor() {
   promptEditor.value?.focus()
 }
@@ -275,6 +280,24 @@ function onPrimaryAction() {
   }
   send()
 }
+
+function onAbortHotkey(event: KeyboardEvent) {
+  if (event.key !== "Escape" || event.isComposing) return
+  if (event.altKey || event.ctrlKey || event.metaKey) return
+  if (!props.running || props.aborting || modelPickerOpen.value) return
+  const active = document.activeElement
+  if (
+    active instanceof Element &&
+    active.closest(
+      "[data-slot='dialog-content'], [data-slot='alert-dialog-content'], [data-slot='dropdown-menu-content'], [data-slot='context-menu-content']",
+    )
+  ) {
+    return
+  }
+  event.preventDefault()
+  event.stopPropagation()
+  emit("abort")
+}
 </script>
 
 <style scoped>
@@ -309,6 +332,7 @@ function onPrimaryAction() {
   flex: none;
   width: var(--size-icon-button);
   height: var(--size-icon-button);
+  min-width: var(--size-icon-button);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -355,8 +379,17 @@ function onPrimaryAction() {
 }
 
 .primary-icon {
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.send-esc {
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  letter-spacing: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
