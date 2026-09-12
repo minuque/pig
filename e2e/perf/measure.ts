@@ -368,13 +368,21 @@ async function loadAllTranscriptPages(page: Page, name: BenchSessionName, pages:
   const firstPrompt = page.getByText(sessionPrompt(name, 1), { exact: true })
   const more = page.locator(".older-busy")
   for (let pageIndex = 0; pageIndex < pages && (await firstPrompt.count()) === 0; pageIndex += 1) {
-    if ((await more.count()) === 0) break
+    await page.waitForFunction(() => {
+      const button = document.querySelector<HTMLButtonElement>(".older-busy")
+      return button == null || !button.disabled
+    })
+    if ((await firstPrompt.count()) > 0 || (await more.count()) === 0) break
     const previous = await page.locator(".row-user").count()
     await more.click()
     await page.waitForFunction(
-      (count) =>
-        document.querySelectorAll(".row-user").length > count ||
-        document.querySelectorAll(".older-busy").length === 0,
+      (count) => {
+        const button = document.querySelector<HTMLButtonElement>(".older-busy")
+        return (
+          document.querySelectorAll(".row-user").length > count &&
+          (button == null || !button.disabled)
+        )
+      },
       previous,
       { timeout: WORKBENCH_TIMEOUT_MS },
     )
