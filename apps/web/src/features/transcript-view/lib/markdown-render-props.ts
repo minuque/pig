@@ -18,7 +18,7 @@ const chatCodeChrome = {
   showExpandButton: true,
 } as const
 
-/** 流式按批吐字；历史先按可见性铺，揭开后再铺完。 */
+/** 吐字只切字；气泡关掉批挂和虚拟化，避免 800×600 占位。历史揭开前仍推迟重节点。 */
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean
@@ -35,10 +35,12 @@ export function chatMarkdownProps(input: {
     final: !streaming,
     typewriter: false,
     smoothStreaming: false,
+    nodeVirtual: false,
+    maxLiveNodes: 0,
+    batchRendering: false,
     viewportPriority: !streaming && !settle,
     deferNodesUntilVisible: !streaming && !settle,
     codeBlockStream: streaming,
-    batchRendering: streaming,
     codeBlockOptions: {
       ...codeBlockTypography(),
       diffStyle: "unified",
@@ -66,6 +68,9 @@ export function plainMarkdownProps(input: {
     final: !streaming,
     typewriter: false,
     smoothStreaming: false,
+    nodeVirtual: false,
+    maxLiveNodes: 0,
+    batchRendering: false,
     isDark: input.isDark,
     codeBlockOptions: codeBlockTypography(),
     ...(input.codeBlockProps ? { codeBlockProps: input.codeBlockProps } : {}),
