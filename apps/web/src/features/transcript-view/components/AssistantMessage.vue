@@ -1,6 +1,6 @@
 <template>
   <article>
-    <MarkdownRender v-if="text" :key="item.id" v-bind="agentMarkdown" :content="text" />
+    <MarkdownRender v-if="text" :key="renderKey" v-bind="agentMarkdown" :content="text" />
 
     <Alert
       v-if="item.error || item.aborted"
@@ -46,6 +46,8 @@ const text = useTranscriptReveal(
   () => props.item.text,
   () => props.streaming,
 )
+
+const renderKey = computed(() => `${props.item.id}:${props.streaming ? "live" : "full"}`)
 
 const statusLabel = computed(() => {
   const base = props.item.error ? "出错" : "已中止"

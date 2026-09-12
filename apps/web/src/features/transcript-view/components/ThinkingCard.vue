@@ -2,7 +2,7 @@
   <div class="thinking-card">
     <div ref="viewport" class="thinking-body">
       <div ref="content">
-        <MarkdownRender v-if="text" v-bind="thinkProps" :content="text" />
+        <MarkdownRender v-if="text" :key="renderKey" v-bind="thinkProps" :content="text" />
       </div>
     </div>
   </div>
@@ -40,6 +40,8 @@ const thinkProps = computed(() =>
     codeBlockProps: codeBlockProps.value,
   }),
 )
+
+const renderKey = computed(() => (props.streaming ? "live" : "full"))
 
 watch(
   () => [text.value, props.streaming] as const,

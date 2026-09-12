@@ -116,6 +116,12 @@
   }
 }
 
+/* 库默认 800×600 占位；必须打在同一元素，后代选择器无效。 */
+[data-custom-id="chat"].markdown-renderer {
+  content-visibility: visible;
+  contain-intrinsic-size: auto none;
+}
+
 /* pierre diffs 默认 13px，影子树只吃 --diffs-* */
 .stream-diffs-vue-diff {
   --diffs-font-size: var(--text-code);
