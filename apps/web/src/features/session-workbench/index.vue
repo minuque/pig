@@ -1,7 +1,7 @@
 <template>
   <WorkbenchHeader />
   <div
-    :ref="bindWorkbenchColumn"
+    :ref="bindColumn"
     class="conversation-column"
     :class="{ 'is-content-resizing': contentResizing }"
   >
@@ -40,7 +40,7 @@
       </div>
 
       <div class="composer-bar">
-        <div ref="inputStack" class="composer-stack">
+        <div class="composer-stack">
           <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
             <Button
               class="scroll-latest-control"
@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useRoute } from "vue-router"
 import { ArrowDown, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
@@ -224,42 +224,6 @@ const {
   endResize,
   nudgeWidth,
 } = useConversationWidth()
-const columnEl = shallowRef<HTMLElement | null>(null)
-const inputStack = useTemplateRef<HTMLElement>("inputStack")
-
-let overlayObserver: ResizeObserver | undefined
-
-function bindWorkbenchColumn(el: unknown) {
-  columnEl.value = el instanceof HTMLElement ? el : null
-  bindColumn(el)
-}
-
-function publishOverlayHeight(height: number) {
-  const column = columnEl.value
-  if (!column) return
-  const next = Math.round(height)
-  if (column.style.getPropertyValue("--size-composer-overlay") === `${next}px`) return
-  column.style.setProperty("--size-composer-overlay", `${next}px`)
-}
-
-watch(
-  [columnEl, inputStack],
-  ([column, stack]) => {
-    overlayObserver?.disconnect()
-    overlayObserver = undefined
-    if (!column || !stack) return
-    overlayObserver = new ResizeObserver((entries) => {
-      const box = entries[0]?.contentBoxSize?.[0]
-      const height = box?.blockSize ?? entries[0]?.contentRect.height
-      if (height == null) return
-      publishOverlayHeight(height)
-    })
-    overlayObserver.observe(stack)
-  },
-  { flush: "post" },
-)
-
-onBeforeUnmount(() => overlayObserver?.disconnect())
 
 const showContentHandles = computed(
   () => Boolean(sessionId.value) && !showHero.value && !sessionPending.value,
@@ -300,15 +264,13 @@ const contentHandleSides = ["left", "right"] as const
   flex: 1;
   place-items: center;
   min-height: 0;
-  padding: 0 var(--spacing-md) var(--size-composer-overlay);
+  padding-inline: var(--spacing-md);
 }
 
 .composer-bar {
-  position: absolute;
+  position: relative;
   z-index: 2;
-  inset-inline: 0;
-  bottom: 0;
-  pointer-events: none;
+  flex-shrink: 0;
 }
 
 .composer-stack {
@@ -355,10 +317,6 @@ const contentHandleSides = ["left", "right"] as const
   background: var(--hover-strong);
   color: var(--ink);
   border-width: 2px;
-}
-
-.composer-bar :deep(.prompt) {
-  pointer-events: auto;
 }
 
 @media (max-width: 900px) {

@@ -435,8 +435,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   width: min(100%, var(--size-content));
   min-width: 0;
   margin-inline: auto;
-  padding-top: var(--spacing-lg);
-  padding-bottom: calc(var(--spacing-lg) + var(--size-composer-overlay));
+  padding-block: var(--spacing-lg);
 }
 
 .transcript-list,
