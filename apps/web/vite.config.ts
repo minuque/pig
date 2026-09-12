@@ -1,45 +1,9 @@
 import tailwindcss from "@tailwindcss/vite"
 import { fileURLToPath, URL } from "node:url"
 import vue from "@vitejs/plugin-vue"
-import { defineConfig, type Plugin } from "vite"
+import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 import vueDevTools from "vite-plugin-vue-devtools"
-
-/** 正文 LCP 需要 markstream；Dialog/floating-ui 不预加载，避免 HTTP/1.1 抢槽。 */
-function preloadTranscriptGraph(): Plugin {
-  const skip = /DialogContent|floating-ui|mermaid|katex|shiki|worker/
-  return {
-    name: "preload-transcript-graph",
-    apply: "build",
-    transformIndexHtml: {
-      order: "post",
-      handler(html, ctx) {
-        if (!ctx.bundle) return html
-        let next = html.replace(
-          /<link rel="modulepreload"[^>]+href="\/assets\/(?:DialogContent|floating-ui)[^"]+"[^>]*>\s*/g,
-          "",
-        )
-        const existing = new Set([...next.matchAll(/href="(\/assets\/[^"]+)"/g)].map((m) => m[1]))
-        const extra: string[] = []
-        for (const [fileName, piece] of Object.entries(ctx.bundle)) {
-          if (piece.type !== "chunk" || !fileName.endsWith(".js")) continue
-          if (skip.test(fileName) || skip.test(piece.name ?? "")) continue
-          const href = `/${fileName}`
-          if (existing.has(href)) continue
-          const base = fileName.replace(/^assets\//, "")
-          const wanted =
-            base.startsWith("session-workbench-") || /^index2-/.test(base) || /^exports-/.test(base)
-          if (wanted) extra.push(href)
-        }
-        if (extra.length === 0) return next
-        const tags = extra
-          .map((href) => `<link rel="modulepreload" crossorigin href="${href}">`)
-          .join("\n    ")
-        return next.replace("</head>", `    ${tags}\n  </head>`)
-      },
-    },
-  }
-}
 
 const gatewayTarget = process.env.GATEWAY_TARGET
 // 给客户端：Pi WebSocket 直连 Gateway，不经 Vite 的 WS 代理
@@ -49,7 +13,6 @@ export default defineConfig({
   plugins: [
     vue(),
     vueDevTools(),
-    preloadTranscriptGraph(),
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
