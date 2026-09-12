@@ -51,7 +51,8 @@ const title = computed(() =>
 .workbench-header::after {
   pointer-events: none;
   position: absolute;
-  inset-inline: 0;
+  /* 让开滚动条列，否则渐隐会压住两端的三角按钮 */
+  inset-inline: 0 var(--size-scrollbar);
   top: 100%;
   height: 24px;
   background: linear-gradient(to bottom, var(--surface), transparent);

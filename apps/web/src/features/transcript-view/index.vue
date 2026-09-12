@@ -322,6 +322,9 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   overflow-y: auto;
   overflow-anchor: auto;
   overscroll-behavior: contain;
+  /* 主视口滚动条常显，并始终占位，内容不因溢出与否来回横移 */
+  --scrollbar-thumb: var(--scrollbar-color);
+  scrollbar-gutter: stable;
 }
 .transcript-viewport.is-following {
   overflow-anchor: none;
