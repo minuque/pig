@@ -14,7 +14,7 @@
     >
       <div>
         <div
-          v-if="rendered"
+          v-if="renderedSteps.length"
           ref="listEl"
           class="steps"
           @mouseleave="pointerInside = false"
@@ -54,9 +54,15 @@
               <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
             </svg>
           </span>
-          <TransitionGroup :appear="live" name="timeline-step" tag="div" class="step-list">
+          <TransitionGroup
+            :appear="live"
+            :css="live"
+            name="timeline-step"
+            tag="div"
+            class="step-list"
+          >
             <div
-              v-for="(step, index) in row.steps"
+              v-for="(step, index) in renderedSteps"
               :key="step.id"
               class="step"
               :data-active="index === activeIndex"
@@ -86,6 +92,8 @@ import { toolRowLabel } from "../lib/transcript-rows.js"
 import type { ToolRow, ToolRowStep } from "../type.js"
 
 const HOOK_CORNER = 6
+const FIRST_MOUNT_SIZE = 1
+const MOUNT_BATCH_SIZE = 2
 
 const props = withDefaults(
   defineProps<{
@@ -103,33 +111,22 @@ const emit = defineEmits<{
 
 const live = computed(() => props.row.mode === "live")
 const revealed = computed(() => props.row.turnStreaming || props.isExpand === true)
-const rendered = shallowRef(revealed.value)
+const renderedCount = shallowRef(revealed.value ? props.row.steps.length : 0)
+const renderedSteps = computed(() => props.row.steps.slice(0, renderedCount.value))
+const prepared = computed(() => renderedCount.value >= props.row.steps.length)
 const expanded = shallowRef(revealed.value)
 const rootEl = shallowRef<HTMLElement | null>(null)
-
-watch(
-  revealed,
-  (open) => {
-    if (!open) {
-      expanded.value = false
-      return
-    }
-    const first = !rendered.value
-    rendered.value = true
-    if (!first) {
-      expanded.value = true
-      return
-    }
-    requestAnimationFrame(() => {
-      if (revealed.value) expanded.value = true
-    })
-  },
-  { flush: "sync" },
-)
 
 let viewportObserver: IntersectionObserver | undefined
 let idleHandle: number | undefined
 let idleViaTimeout = false
+let revealRaf = 0
+let mountRaf = 0
+let inViewport = false
+
+function mountBatch(size = MOUNT_BATCH_SIZE) {
+  renderedCount.value = Math.min(props.row.steps.length, renderedCount.value + size)
+}
 
 function cancelIdle() {
   if (idleHandle == null) return
@@ -138,44 +135,98 @@ function cancelIdle() {
   idleHandle = undefined
 }
 
-function scheduleIdleMount() {
-  if (rendered.value) return
+function cancelForegroundMount() {
+  if (revealRaf) cancelAnimationFrame(revealRaf)
+  if (mountRaf) cancelAnimationFrame(mountRaf)
+  revealRaf = 0
+  mountRaf = 0
+}
+
+function scheduleForegroundMount() {
   cancelIdle()
+  if (prepared.value || !revealed.value || mountRaf) return
+  mountRaf = requestAnimationFrame(() => {
+    mountRaf = 0
+    if (!revealed.value) return
+    mountBatch()
+    if (!prepared.value) scheduleForegroundMount()
+  })
+}
+
+watch(
+  revealed,
+  (open) => {
+    if (!open) {
+      cancelForegroundMount()
+      expanded.value = false
+      if (props.eager && inViewport) scheduleIdleMount()
+      return
+    }
+    const first = renderedCount.value === 0
+    if (first) mountBatch(FIRST_MOUNT_SIZE)
+    if (!first) {
+      expanded.value = true
+      scheduleForegroundMount()
+      return
+    }
+    revealRaf = requestAnimationFrame(() => {
+      revealRaf = 0
+      if (!revealed.value) return
+      expanded.value = true
+      scheduleForegroundMount()
+    })
+  },
+  { flush: "sync" },
+)
+
+watch(
+  [live, () => props.row.steps.length],
+  ([isLive, length]) => {
+    if (isLive || revealed.value) renderedCount.value = length
+    else renderedCount.value = Math.min(renderedCount.value, length)
+  },
+  { flush: "sync" },
+)
+
+function scheduleIdleMount() {
+  if (prepared.value || idleHandle != null || !inViewport) return
   const mount = () => {
     idleHandle = undefined
-    if (!rendered.value) rendered.value = true
+    if (!prepared.value && inViewport && !revealed.value) mountBatch()
+    void nextTick(() => {
+      if (!prepared.value && inViewport && !revealed.value) scheduleIdleMount()
+    })
   }
   if (typeof requestIdleCallback === "function") {
     idleViaTimeout = false
-    // timeout 避免主线程一直忙时永不挂载
+    // 超时只挂一小批，避免后台准备重新形成长任务
     idleHandle = requestIdleCallback(mount, { timeout: 1000 })
     return
   }
   idleViaTimeout = true
-  idleHandle = window.setTimeout(mount, 1)
+  idleHandle = window.setTimeout(mount, 16)
 }
 
 function stopViewportWatch() {
   viewportObserver?.disconnect()
   viewportObserver = undefined
+  inViewport = false
   cancelIdle()
 }
 
 function onViewport(entries: IntersectionObserverEntry[]) {
-  if (rendered.value) {
+  if (prepared.value) {
     stopViewportWatch()
     return
   }
-  if (entries.some((entry) => entry.isIntersecting)) {
-    scheduleIdleMount()
-    return
-  }
-  cancelIdle()
+  inViewport = entries.some((entry) => entry.isIntersecting)
+  if (inViewport) scheduleIdleMount()
+  else cancelIdle()
 }
 
 function startViewportWatch() {
   stopViewportWatch()
-  if (!props.eager || rendered.value) return
+  if (!props.eager || prepared.value) return
   const target = rootEl.value
   if (!target) return
   viewportObserver = new IntersectionObserver(onViewport, {
@@ -186,9 +237,9 @@ function startViewportWatch() {
 }
 
 watch(
-  [() => props.eager, rendered, rootEl],
+  [() => props.eager, prepared, rootEl],
   () => {
-    if (rendered.value || !props.eager) {
+    if (prepared.value || !props.eager) {
       stopViewportWatch()
       return
     }
@@ -217,31 +268,50 @@ const hoverIndex = shallowRef<number | null>(null)
 const pointerInside = shallowRef(false)
 const focusInside = shallowRef(false)
 let listObserver: ResizeObserver | undefined
+let measureRaf = 0
+let railReadyRaf = 0
 
 function measure() {
   const root = listEl.value
-  if (!root) return
+  if (!root || !expanded.value || !prepared.value) return
   const rootTop = root.getBoundingClientRect().top
-  centers.value = [...root.querySelectorAll<HTMLElement>(":scope .step")].map((node) => {
+  const nodes = root.querySelectorAll<HTMLElement>(":scope .step")
+  const next: number[] = []
+  for (const index of new Set([activeIndex.value, hoverIndex.value])) {
+    if (index == null || index < 0) continue
+    const node = nodes.item(index)
+    if (!node) continue
     const hit = node.querySelector<HTMLElement>(".summary") ?? node
     const rect = hit.getBoundingClientRect()
-    return rect.top - rootTop + rect.height / 2
-  })
-  if (!railReady.value && centers.value.some((y) => y > 0)) {
-    requestAnimationFrame(() => {
-      railReady.value = true
+    next[index] = rect.top - rootTop + rect.height / 2
+  }
+  centers.value = next
+  if (!railReady.value && next.some((y) => y > 0) && !railReadyRaf) {
+    railReadyRaf = requestAnimationFrame(() => {
+      railReadyRaf = 0
+      if (expanded.value && prepared.value) railReady.value = true
     })
   }
+}
+
+function scheduleMeasure() {
+  if (!expanded.value || !prepared.value || measureRaf) return
+  measureRaf = requestAnimationFrame(() => {
+    measureRaf = 0
+    measure()
+  })
 }
 
 function onPointerEnter(index: number) {
   hoverIndex.value = index
   pointerInside.value = true
+  scheduleMeasure()
 }
 
 function onFocusIn(index: number) {
   hoverIndex.value = index
   focusInside.value = true
+  scheduleMeasure()
 }
 
 function onFocusOut(event: FocusEvent) {
@@ -289,22 +359,23 @@ const accentCornerStyle = computed(() => accentBox.value.corner)
 const hoverStemStyle = computed(() => hoverBox.value.stem)
 const hoverCornerStyle = computed(() => hoverBox.value.corner)
 
-watch([expanded, () => props.row.steps.map((step) => step.id).join("\0")], () => {
-  void nextTick(measure)
+watch([activeIndex, () => props.row.steps.map((step) => step.id).join("\0")], scheduleMeasure, {
+  flush: "post",
 })
 
 watch(
-  listEl,
-  (root) => {
+  [listEl, expanded, prepared],
+  ([root, open, ready]) => {
     listObserver?.disconnect()
     listObserver = undefined
-    if (!root) {
+    if (!root || !open || !ready) {
+      centers.value = []
       railReady.value = false
       return
     }
-    listObserver = new ResizeObserver(() => measure())
+    listObserver = new ResizeObserver(scheduleMeasure)
     listObserver.observe(root)
-    void nextTick(measure)
+    void nextTick(scheduleMeasure)
   },
   { flush: "post" },
 )
@@ -312,6 +383,9 @@ watch(
 onBeforeUnmount(() => {
   listObserver?.disconnect()
   stopViewportWatch()
+  cancelForegroundMount()
+  if (measureRaf) cancelAnimationFrame(measureRaf)
+  if (railReadyRaf) cancelAnimationFrame(railReadyRaf)
 })
 </script>
 

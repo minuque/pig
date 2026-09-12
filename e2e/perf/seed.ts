@@ -4,18 +4,22 @@ import { writeFileSync } from "node:fs"
 export const SHORT_SESSION_ID = "bench-short"
 export const LONG_SESSION_ID = "bench-long"
 export const EMPTY_SESSION_ID = "bench-empty"
+export const TOOL_SESSION_ID = "bench-tools"
 export const SHORT_SESSION_NAME = "短会话"
 export const LONG_SESSION_NAME = "长会话"
 export const EMPTY_SESSION_NAME = "空会话"
+export const TOOL_SESSION_NAME = "工具步骤会话"
 
 export const SHORT_TURNS = 2
 export const LONG_TURNS = 50
+export const TOOL_STEPS = 17
 export const LIST_SESSION_COUNT = 40
 
 const SESSIONS = {
   [SHORT_SESSION_NAME]: { id: SHORT_SESSION_ID, turns: SHORT_TURNS },
   [LONG_SESSION_NAME]: { id: LONG_SESSION_ID, turns: LONG_TURNS },
   [EMPTY_SESSION_NAME]: { id: EMPTY_SESSION_ID, turns: 0 },
+  [TOOL_SESSION_NAME]: { id: TOOL_SESSION_ID, turns: 1 },
 } as const
 
 export const BENCH_SESSION_TOTAL = LIST_SESSION_COUNT + Object.keys(SESSIONS).length
@@ -160,6 +164,43 @@ export function seedBenchSessions(sessionDir: string, cwd: string) {
     true,
   )
   seedConversation(sessionDir, cwd, EMPTY_SESSION_ID, EMPTY_SESSION_NAME, 0, "")
+  seedToolStepsSession(sessionDir, cwd)
+}
+
+function seedToolStepsSession(sessionDir: string, cwd: string) {
+  const manager = SessionManager.create(cwd, sessionDir, { id: TOOL_SESSION_ID })
+  manager.appendSessionInfo(TOOL_SESSION_NAME)
+  const timestamp = Date.now() - 120_000
+  manager.appendMessage({
+    role: "user",
+    content: sessionPrompt(TOOL_SESSION_NAME),
+    timestamp,
+  })
+  for (let index = 0; index < TOOL_STEPS; index += 1) {
+    const id = `tool-step-${index + 1}`
+    const path = `src/fixture-${index + 1}.ts`
+    manager.appendMessage(
+      assistantMessage(
+        [{ type: "toolCall", id, name: "read", arguments: { path } }],
+        timestamp + index * 2_000 + 1_000,
+        "toolUse",
+      ),
+    )
+    manager.appendMessage({
+      role: "toolResult",
+      toolCallId: id,
+      toolName: "read",
+      content: [{ type: "text", text: `export const fixture${index + 1} = true\n` }],
+      isError: false,
+      timestamp: timestamp + index * 2_000 + 1_500,
+    })
+  }
+  manager.appendMessage(
+    assistantMessage(
+      [{ type: "text", text: "工具步骤已完成。" }],
+      timestamp + TOOL_STEPS * 2_000 + 1_000,
+    ),
+  )
 }
 
 export function sessionPrompt(name: string, turn = 1): string {

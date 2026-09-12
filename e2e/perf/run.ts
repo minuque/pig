@@ -22,7 +22,14 @@ import {
   waitForWorkbench,
 } from "./measure.js"
 import { reportTable, type MetricRow } from "./report.js"
-import { LONG_SESSION_NAME, SHORT_SESSION_NAME, seedBenchSessions } from "./seed.js"
+import { expandToolSteps } from "./tool-expand.js"
+import {
+  LONG_SESSION_NAME,
+  SHORT_SESSION_NAME,
+  TOOL_SESSION_NAME,
+  TOOL_STEPS,
+  seedBenchSessions,
+} from "./seed.js"
 
 const root = resolve(import.meta.dirname, "../..")
 const webRoot = join(root, "apps/web/dist")
@@ -38,6 +45,9 @@ type BenchMetrics = {
   longScrollWorstMs: number
   listScrollWorstMs: number
   switchShortRevisit: number
+  toolExpandFirstFrame: number
+  toolExpandComplete: number
+  toolExpandWorstLongTask: number
   composerKeyToFrame: number
   ownMessageMs: number
   firstTokenMs: number
@@ -174,6 +184,9 @@ function printReport(
     row("长会话滚动", "longScrollWorstMs", true),
     row("侧栏列表滚动", "listScrollWorstMs", true),
     row("切回短会话", "switchShortRevisit"),
+    row("工具组首次展开首帧", "toolExpandFirstFrame"),
+    row("工具组首次展开完成", "toolExpandComplete"),
+    row("工具组首次展开长任务", "toolExpandWorstLongTask"),
     row("发送后自己的话", "ownMessageMs"),
     row("发送后首条助手", "firstTokenMs"),
     row("流式跟上", "streamKeepUpMs"),
@@ -241,6 +254,9 @@ async function main() {
       scroll: [] as number[],
       listScroll: [] as number[],
       switchRevisit: [] as number[],
+      toolExpandFirstFrame: [] as number[],
+      toolExpandComplete: [] as number[],
+      toolExpandLongTask: [] as number[],
       composer: [] as number[],
     }
 
@@ -262,6 +278,10 @@ async function main() {
           open.switchLong.push(await openSession(page, LONG_SESSION_NAME))
           open.scroll.push(await scrollTranscript(page, LONG_SESSION_NAME))
           open.switchRevisit.push(await openSession(page, SHORT_SESSION_NAME))
+          const toolExpand = await expandToolSteps(page, TOOL_SESSION_NAME, TOOL_STEPS)
+          open.toolExpandFirstFrame.push(toolExpand.firstFrameMs)
+          open.toolExpandComplete.push(toolExpand.completeMs)
+          open.toolExpandLongTask.push(toolExpand.worstLongTaskMs)
         } catch (error) {
           await captureBenchFailure(page, failShot)
           throw error
@@ -288,6 +308,15 @@ async function main() {
     const scroll = open.scroll.length ? collect(open.scroll) : undefined
     const listScroll = open.listScroll.length ? collect(open.listScroll) : undefined
     const switchRevisit = open.switchRevisit.length ? collect(open.switchRevisit) : undefined
+    const toolExpandFirstFrame = open.toolExpandFirstFrame.length
+      ? collect(open.toolExpandFirstFrame)
+      : undefined
+    const toolExpandComplete = open.toolExpandComplete.length
+      ? collect(open.toolExpandComplete)
+      : undefined
+    const toolExpandLongTask = open.toolExpandLongTask.length
+      ? collect(open.toolExpandLongTask)
+      : undefined
     const ownStat = collect(own)
     const tokenStat = collect(token)
     const streamStat = collect(stream)
@@ -304,6 +333,9 @@ async function main() {
       longScrollWorstMs: scroll?.median ?? Number.NaN,
       listScrollWorstMs: listScroll?.median ?? Number.NaN,
       switchShortRevisit: switchRevisit?.median ?? Number.NaN,
+      toolExpandFirstFrame: toolExpandFirstFrame?.median ?? Number.NaN,
+      toolExpandComplete: toolExpandComplete?.median ?? Number.NaN,
+      toolExpandWorstLongTask: toolExpandLongTask?.median ?? Number.NaN,
       composerKeyToFrame: composer?.median ?? Number.NaN,
       ownMessageMs: ownStat.median,
       firstTokenMs: tokenStat.median,
@@ -321,6 +353,9 @@ async function main() {
       longScrollWorstMs: scroll?.p90,
       listScrollWorstMs: listScroll?.p90,
       switchShortRevisit: switchRevisit?.p90,
+      toolExpandFirstFrame: toolExpandFirstFrame?.p90,
+      toolExpandComplete: toolExpandComplete?.p90,
+      toolExpandWorstLongTask: toolExpandLongTask?.p90,
       composerKeyToFrame: composer?.p90,
       ownMessageMs: ownStat.p90,
       firstTokenMs: tokenStat.p90,
@@ -331,7 +366,7 @@ async function main() {
     }
 
     const config = {
-      version: 11,
+      version: 12,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,
