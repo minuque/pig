@@ -364,14 +364,29 @@ async function scrollOverflowWorstFrame(
   }
 }
 
-/** 等历史全部挂上后，时间线滚到顶再到底，返回最差动画帧。 */
+async function loadAllTranscriptPages(page: Page, name: BenchSessionName, pages: number) {
+  const firstPrompt = page.getByText(sessionPrompt(name, 1), { exact: true })
+  const more = page.locator(".older-busy")
+  for (let pageIndex = 0; pageIndex < pages && (await firstPrompt.count()) === 0; pageIndex += 1) {
+    if ((await more.count()) === 0) break
+    const previous = await page.locator(".row-user").count()
+    await more.click()
+    await page.waitForFunction(
+      (count) =>
+        document.querySelectorAll(".row-user").length > count ||
+        document.querySelectorAll(".older-busy").length === 0,
+      previous,
+      { timeout: WORKBENCH_TIMEOUT_MS },
+    )
+  }
+  await firstPrompt.waitFor({ state: "attached", timeout: WORKBENCH_TIMEOUT_MS })
+}
+
+/** 分页拉完历史后，时间线滚到顶再到底，返回最差动画帧。 */
 export async function scrollTranscript(page: Page, name: BenchSessionName): Promise<number> {
   const turns = sessionTurns(name)
   if (turns === 0) throw new Error("空会话没有可滚动历史")
-  await page.getByText(sessionPrompt(name, 1), { exact: true }).waitFor({
-    state: "attached",
-    timeout: WORKBENCH_TIMEOUT_MS,
-  })
+  await loadAllTranscriptPages(page, name, turns)
   await page.waitForFunction(
     (expected) => document.querySelectorAll(".row-user").length >= expected,
     turns,

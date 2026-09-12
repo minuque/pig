@@ -1,6 +1,7 @@
 import { expect, type Page, type Route } from "@playwright/test"
 import { join } from "node:path"
 
+import { TRANSCRIPT_PAGE_TURNS } from "../../packages/gateway/src/pi/transcript-page.js"
 import { STOP_TURN, TURN_TOKEN, installTurnBridge, streamingAssistant } from "../sim-turn.js"
 import type { BenchHarness } from "./harness.js"
 import {
@@ -21,7 +22,6 @@ import {
   LONG_SESSION_NAME,
   SHORT_SESSION_ID,
   SHORT_SESSION_NAME,
-  SHORT_TURNS,
 } from "./seed.js"
 
 const FIRST_PROMPT = "基准首条提问"
@@ -64,7 +64,7 @@ async function rapidSwitch(page: Page) {
     await expect.poll(() => delivered).toBe(received)
     await nextPaint(page)
     await expect(page).toHaveURL(new RegExp(`/sessions/${SHORT_SESSION_ID}$`))
-    await expect(page.locator(".row-user")).toHaveCount(SHORT_TURNS)
+    await expect(page.locator(".row-user")).toHaveCount(TRANSCRIPT_PAGE_TURNS)
     await expect(page.getByText(`${LONG_SESSION_NAME} 提问 1`, { exact: true })).toHaveCount(0)
     return elapsed
   } finally {
@@ -147,7 +147,7 @@ async function reconnect(page: Page, bridge: Bridge) {
   const elapsed = performance.now() - started
   await expect(page.getByText(FIRST_TOKEN, { exact: true })).toHaveCount(0)
   await expect(page.getByText(TURN_TOKEN, { exact: true })).toHaveCount(0)
-  await expect(page.locator(".row-assistant")).toHaveCount(SHORT_TURNS)
+  await expect(page.locator(".row-assistant")).toHaveCount(TRANSCRIPT_PAGE_TURNS)
   return elapsed
 }
 
