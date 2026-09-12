@@ -1,5 +1,5 @@
 <template>
-  <form class="prompt" @submit.prevent="send" @paste="onPaste">
+  <form class="prompt" @submit.prevent="send">
     <Transition name="panel-reveal">
       <ContextUsagePanel
         v-if="usageOpen && usage"
@@ -9,36 +9,11 @@
       />
     </Transition>
     <PromptEditor
-      ref="promptEditor"
       v-model:prompt="prompt"
       :placeholder="placeholder"
       :readonly="voiceActive"
       @submit="send"
     >
-      <template v-if="attachments.length" #chips>
-        <AttachmentThumb
-          v-for="item in attachments"
-          :key="item.id"
-          :src="item.url"
-          :name="item.name"
-          @remove="removeAttachment(item.id)"
-        />
-      </template>
-      <template #leading>
-        <Button
-          v-if="!voiceActive"
-          type="button"
-          size="icon"
-          class="plus press-scale"
-          aria-label="添加图片，最多 6 张，仅本地预览"
-          title="添加图片，仅本地预览"
-          :disabled="attachments.length >= MAX_COMPOSER_ATTACHMENTS"
-          @mousedown.prevent
-          @click="openFilePicker"
-        >
-          <Plus class="size-icon" />
-        </Button>
-      </template>
       <template #left>
         <template v-if="!voiceActive">
           <ModelPicker
@@ -98,36 +73,21 @@
       </template>
     </PromptEditor>
     <p v-if="voiceMessage" class="voice-message" role="status">{{ voiceMessage }}</p>
-    <input
-      ref="fileInput"
-      type="file"
-      class="file-input"
-      accept="image/*"
-      multiple
-      tabindex="-1"
-      @change="onFilesPicked"
-    />
   </form>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { ArrowUp, CircleAlert, Mic, Plus } from "@lucide/vue"
+import { ArrowUp, CircleAlert, Mic } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { useVoiceInput } from "@features/composer/hooks/use-voice-input.js"
-import AttachmentThumb from "@features/composer/components/AttachmentThumb.vue"
 import ComposerMeta from "@features/composer/components/ComposerMeta.vue"
 import ContextUsagePanel from "@features/composer/components/ContextUsagePanel.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import type { ComposerModel, ComposerPreset, ComposerVendor } from "@/types/composer-type.js"
 import type { ContextUsage } from "@features/composer/type.js"
-import {
-  MAX_COMPOSER_ATTACHMENTS,
-  imageFilesFromClipboard,
-  useComposerAttachments,
-} from "@features/composer/hooks/use-composer-attachments.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = withDefaults(
@@ -179,12 +139,9 @@ const level = computed({
   },
 })
 
-const { attachments, addFiles, remove, clear } = useComposerAttachments()
-// 附件不进协议，不能单独放行
+// 图片未进协议，不露出附件入口
 const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisabled)
 
-const promptEditor = ref<{ focus: () => void } | null>(null)
-const fileInput = ref<HTMLInputElement | null>(null)
 const usageOpen = ref(false)
 const modelPickerOpen = ref(false)
 
@@ -195,7 +152,7 @@ const {
   stop: stopVoice,
   cancel: cancelVoice,
 } = useVoiceInput(prompt)
-const showVoice = computed(() => prompt.value.trim() === "" && attachments.value.length === 0)
+const showVoice = computed(() => prompt.value.trim() === "")
 const primaryLabel = computed(() =>
   props.running
     ? "停止当前 Turn"
@@ -225,44 +182,9 @@ watch(
 
 useEventListener(window, "keydown", onAbortHotkey, { capture: true })
 
-function focusEditor() {
-  promptEditor.value?.focus()
-}
-
-function removeAttachment(id: string) {
-  remove(id)
-  focusEditor()
-}
-
-function openFilePicker() {
-  fileInput.value?.click()
-}
-
-function onFilesPicked(e: Event) {
-  const input = e.target
-  if (!(input instanceof HTMLInputElement)) return
-  addFiles(input.files)
-  input.value = ""
-  focusEditor()
-}
-
-function onPaste(e: ClipboardEvent) {
-  if (voiceActive.value) {
-    e.preventDefault()
-    return
-  }
-  const files = imageFilesFromClipboard(e.clipboardData)
-  if (files.length === 0) return
-  e.preventDefault()
-  addFiles(files)
-  focusEditor()
-}
-
 function send() {
   if (props.running || voiceActive.value || !sendActive.value) return
-  const text = prompt.value
-  emit("send", text)
-  clear()
+  emit("send", prompt.value)
 }
 
 function onPrimaryAction() {
@@ -324,7 +246,6 @@ function onAbortHotkey(event: KeyboardEvent) {
   cursor: help;
 }
 
-.plus,
 .send {
   display: inline-flex;
   align-items: center;
@@ -343,21 +264,6 @@ function onAbortHotkey(event: KeyboardEvent) {
     color var(--duration-fast) var(--ease-smooth),
     opacity var(--duration-fast) var(--ease-smooth),
     scale var(--duration-fast) var(--ease-out);
-}
-.plus {
-  background: var(--hover-tint);
-  color: var(--ink-muted);
-}
-.plus:hover:not(:disabled) {
-  background: var(--hover-strong);
-  color: var(--ink);
-}
-.plus:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.send {
   background: var(--primary);
   color: var(--on-primary);
 }
@@ -393,13 +299,11 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .plus,
   .send {
     transition: none;
   }
 }
 
-.plus:focus-visible,
 .send:focus-visible,
 .error-indicator:focus-visible {
   outline: 2px solid var(--primary);
@@ -413,9 +317,5 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 .voice-message {
   margin: var(--spacing-xs) var(--spacing-sm);
-}
-
-.file-input {
-  display: none;
 }
 </style>

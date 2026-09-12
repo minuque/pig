@@ -6,18 +6,8 @@
     :data-multiline="multiline"
     @mousedown="onComposerMousedown"
   >
-    <div class="attach-tray" :data-open="$slots.chips ? '' : undefined">
-      <div class="attach-inner">
-        <div class="chips">
-          <slot name="chips" />
-        </div>
-      </div>
-    </div>
     <div class="glass-shell">
       <div class="glass-host">
-        <div v-if="$slots.leading" class="leading">
-          <slot name="leading" />
-        </div>
         <div class="editor-wrap">
           <textarea
             ref="editor"
@@ -159,54 +149,16 @@ defineExpose({ focus })
   position: relative;
 }
 
-.attach-tray {
-  position: relative;
-  z-index: 0;
-  height: 0;
-  overflow: hidden;
-}
-.attach-tray[data-open] {
-  height: 68px;
-  overflow: visible;
-}
-
-.attach-inner {
-  position: absolute;
-  inset-inline: var(--spacing-md);
-  top: 0;
-  bottom: calc(-1 * var(--spacing-xs));
-  display: flex;
-  align-items: flex-start;
-  background: var(--composer-bg);
-  border: var(--border-width) solid var(--composer-ring);
-  border-bottom: 0;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  gap: var(--spacing-xs);
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
-  padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-md);
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
 .glass-shell {
   position: relative;
-  z-index: 10;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
 }
 
 .glass-host {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  grid-template-areas: "leading editor left right";
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: "editor left right";
   align-items: center;
   column-gap: var(--spacing-xxs);
   padding: var(--spacing-xs);
@@ -216,10 +168,10 @@ defineExpose({ focus })
   border-radius: var(--radius-xl);
 }
 .composer[data-expanded="true"] .glass-host {
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    "editor editor editor"
-    "leading left right";
+    "editor editor"
+    "left right";
   align-items: end;
   row-gap: var(--spacing-xxs);
   padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-xs);
@@ -233,16 +185,12 @@ defineExpose({ focus })
   padding-inline: var(--spacing-xxs);
 }
 
-.leading,
 .left,
 .right {
   display: flex;
   align-items: center;
   gap: var(--spacing-xxs);
   flex: none;
-}
-.leading {
-  grid-area: leading;
 }
 .left {
   grid-area: left;
