@@ -40,7 +40,7 @@ import {
   projectSessionSnapshot,
   sessionState,
 } from "@features/session-workbench/lib/session-state.js"
-import type { SessionClientState, SessionProjection } from "@features/session-workbench/type.js"
+import type { SessionClientState } from "@features/session-workbench/type.js"
 
 interface CreateSessionInput {
   cwd: string
@@ -65,9 +65,7 @@ export function useSessionLifecycle(
   const state = shallowRef<RemoteSessionState>()
   let unsubscribeState: Unsubscribe | undefined
 
-  // 替换操作串行化：同一时刻至多一个 open/create，避免并发 lease
   let replaceChain: Promise<void> = Promise.resolve()
-  // 最新想打开的 session：快速连点时跳过中间 id，只落地最后一次
   let wantedId: string | undefined
   let abortInflightOpen: (() => void) | undefined
   const { raceRemoteOpen, discard } = createAbortableOpen()
@@ -85,9 +83,6 @@ export function useSessionLifecycle(
   let olderRequest = 0
 
   const snapshot = computed(() => state.value?.snapshot)
-  const remoteProjection = computed<SessionProjection | undefined>(() =>
-    snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined,
-  )
   const liveTranscript = computed(() => {
     const persisted = historySessionId.value === wantedId ? history.value : []
     return mergeLiveTranscript(persisted, heldLive.value)
@@ -105,11 +100,11 @@ export function useSessionLifecycle(
         heldLive.value = mergeLiveTranscript(heldLive.value, nextState.transcript)
       const revision = nextState.snapshot?.revision
       const attachedId = next.id
-      if (revision !== undefined && revision !== usageRevision && attachedId) {
-        usageRevision = revision
-        void refreshContextUsage(attachedId)
-        if (historySessionId.value !== attachedId) void loadHistory(attachedId)
-      }
+      if (revision === undefined || revision === usageRevision || !attachedId) return
+      const hadRevision = usageRevision !== undefined
+      usageRevision = revision
+      void refreshContextUsage(attachedId)
+      if (historySessionId.value !== attachedId || hadRevision) void loadHistory(attachedId)
     })
   }
 
@@ -185,7 +180,7 @@ export function useSessionLifecycle(
       if (request !== contextUsageRequest || remote.value?.id !== id) return
       contextUsageEstimate.value = usage ?? undefined
     } catch {
-      // 占用估算是辅助信息；失败时保留上次结果，不覆盖会话主错误。
+      /* 占用估算失败不挡主流程 */
     }
   }
 
@@ -195,7 +190,6 @@ export function useSessionLifecycle(
     if (previous) void discard(previous)
   }
 
-  /** 串行执行替换操作：前一次失败不阻塞后续。 */
   function enqueueReplace<T>(run: () => Promise<T>): Promise<T> {
     const next = replaceChain.then(run, run)
     replaceChain = next.then(
@@ -205,7 +199,7 @@ export function useSessionLifecycle(
     return next
   }
 
-  /** 打开已有 Session：历史走 HTTP，协议 snapshot 不含全文。已附加同 id 时幂等跳过。 */
+  /** 打开已有 Session：历史走 HTTP。断线等 pi.connected 再 open 一次。 */
   async function openRemoteSession(id: string) {
     if (wantedId !== id) abortInflightOpen?.()
     wantedId = id
@@ -218,12 +212,10 @@ export function useSessionLifecycle(
     }
     void loadHistory(id)
     return enqueueReplace(async () => {
-      if (wantedId !== id) return
-      if (remote.value?.id === id) return
-      const target = pi.client.value
-      if (!target) return
+      if (wantedId !== id || remote.value?.id === id) return
+      if (!pi.client.value) return
       release()
-      for (let attempt = 0; attempt < 8; attempt += 1) {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
         const current = pi.client.value
         if (!current || wantedId !== id) return
         const raced = raceRemoteOpen(id, () => RemoteSession.open(current, id))
@@ -238,11 +230,10 @@ export function useSessionLifecycle(
           return
         } catch (error) {
           if (wantedId !== id || isOpenAborted(error)) return
-          if (isDisconnectedError(error) && historySessionId.value === id) return
-          if (!isDisconnectedError(error) || attempt === 7) throw error
-          await new Promise((resolve) => {
-            window.setTimeout(resolve, 40 * (attempt + 1))
-          })
+          if (!isDisconnectedError(error)) throw error
+          if (attempt === 0 && pi.connected.value) continue
+          if (pi.connected.value) throw error
+          return
         } finally {
           if (abortInflightOpen === raced.abort) abortInflightOpen = undefined
         }
@@ -250,7 +241,6 @@ export function useSessionLifecycle(
     })
   }
 
-  /** 在指定 cwd 创建新 Session（cwd 来自本地 Workspace preference）。 */
   async function createRemoteSession(nextCwd: string, options?: Omit<CreateSessionInput, "cwd">) {
     const routeSessionAtStart = sessionId.value
     return enqueueReplace(async () => {
@@ -302,7 +292,6 @@ export function useSessionLifecycle(
 
   let initialized = false
 
-  /** 路由参数与 RemoteSession 生命周期同步。 */
   async function syncRoute() {
     const id = sessionId.value
     if (!id) return dispose()
@@ -338,16 +327,14 @@ export function useSessionLifecycle(
   const sessionPending = computed(() =>
     isSessionOpening(sessionId.value, remote.value?.id, historySessionId.value),
   )
-  const projection = computed(() => (sessionPending.value ? undefined : remoteProjection.value))
+  const projection = computed(() => {
+    const current = snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined
+    return !sessionId.value || current?.id === sessionId.value ? current : undefined
+  })
   const catalog = computed(() => catalogFromModels(pi.models.value))
   const phase = computed(() => projection.value?.phase)
-  const running = computed(() =>
-    sessionPending.value ? false : (projection.value?.running ?? false),
-  )
-  const phaseText = computed(() => {
-    const current = phase.value
-    return running.value && current ? phaseLabel(current) : ""
-  })
+  const running = computed(() => projection.value?.running ?? false)
+  const phaseText = computed(() => (running.value && phase.value ? phaseLabel(phase.value) : ""))
 
   const { preset } = useComposerBinding({
     catalog,
@@ -406,7 +393,6 @@ export function useSessionLifecycle(
     }
   }
 
-  /** 先写入本地用户句，没有远端会话再 create；用户句 id 发送时定死。 */
   async function sendPrompt(text: string, cwd?: string) {
     const normalized = text.trim()
     if (!normalized || submitting.value) return
@@ -455,7 +441,12 @@ export function useSessionLifecycle(
   const transcript = computed(() =>
     projectClientTranscript(liveTranscript.value, clientState.value.sends),
   )
-  const sessionCwd = computed(() => projection.value?.cwd ?? cwd.lastCwd.value)
+  const sessionCwd = computed(
+    () =>
+      projection.value?.cwd ??
+      pi.sessions.value.find((item) => item.id === sessionId.value)?.cwd ??
+      (sessionId.value ? undefined : cwd.lastCwd.value),
+  )
   const projectedUsage = computed(() => projectContextUsage(contextUsageEstimate.value))
 
   pi.bindAttachedReconnect(async () => {

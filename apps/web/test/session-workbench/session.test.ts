@@ -157,18 +157,22 @@ const historyItem: TranscriptItem = {
   timestamp: 1,
 }
 
-function setup() {
+function setup(options?: {
+  lastCwd?: string
+  sessions?: { id: string; createdAt: number; cwd: string }[]
+  connected?: { readonly value: boolean }
+}) {
   const pi = {
     client: ref({} as unknown as PiClient),
-    connected: computed(() => true),
+    connected: computed(() => options?.connected?.value ?? true),
     connectionState: ref("connected"),
     connectionError: shallowRef<Error | undefined>(undefined),
     models: ref([]),
-    sessions: ref([]),
+    sessions: ref(options?.sessions ?? []),
     bindAttachedReconnect: vi.fn(),
   }
   const cwd = {
-    lastCwd: ref("/repo"),
+    lastCwd: ref(options?.lastCwd ?? "/repo"),
     selectCwd: vi.fn(),
   }
 
@@ -179,6 +183,12 @@ function setup() {
   )
   lifecycle = session
   return { session, cwd }
+}
+
+function disconnectedError() {
+  const error = new Error("disconnected")
+  error.name = "PiDisconnectedError"
+  return error
 }
 
 describe("打开已有 Session", () => {
@@ -233,6 +243,120 @@ describe("打开已有 Session", () => {
     await session.initialize()
     await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
     expect(routerReplace).not.toHaveBeenCalled()
+    expect(session.remote.value).toBeUndefined()
+  })
+
+  it("打开中 cwd 用列表或 snapshot，不误用 lastCwd", async () => {
+    let releaseOpen = () => {}
+    const opened = new Promise<void>((resolve) => {
+      releaseOpen = resolve
+    })
+    const { session } = setup({
+      lastCwd: "/wrong",
+      sessions: [{ id: "s1", createdAt: 1, cwd: "/from-list" }],
+    })
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: { ...snapshot(1), cwd: "/from-snap" } }
+    openMock.mockImplementation(async () => {
+      await opened
+      return a
+    })
+    routeBox.params.sessionId = "s1"
+    const pending = session.initialize()
+    await vi.waitFor(() => expect(session.sessionPending.value).toBe(true))
+    expect(session.sessionCwd.value).toBe("/from-list")
+    expect(session.sessionCwd.value).not.toBe("/wrong")
+    releaseOpen()
+    await pending
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
+    expect(session.projection.value?.cwd).toBe("/from-snap")
+    expect(session.sessionCwd.value).toBe("/from-snap")
+  })
+
+  it("lease 已齐历史未到时仍投影 snapshot 壳层", async () => {
+    let releaseHistory = () => {}
+    let historyGate = Promise.resolve()
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) {
+        await historyGate
+        return { items: [historyItem], timings: [] }
+      }
+      return { usage: usageEstimate }
+    })
+    const { session } = setup({
+      lastCwd: "/wrong",
+      sessions: [
+        { id: "s1", createdAt: 1, cwd: "/a" },
+        { id: "s2", createdAt: 2, cwd: "/b" },
+      ],
+    })
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: { ...snapshot(1), id: "s1", cwd: "/a" } }
+    const b = makeSession("s2")
+    b.state = {
+      ...b.state,
+      snapshot: { ...snapshot(1), id: "s2", cwd: "/b", phase: "turn" },
+    }
+    openMock.mockImplementation(async (_client, id) => (id === "s1" ? a : b))
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
+    historyGate = new Promise<void>((resolve) => {
+      releaseHistory = resolve
+    })
+    routeBox.params.sessionId = "s2"
+    await nextTick()
+    await vi.waitFor(() => expect(session.remote.value).toBe(b))
+    expect(session.sessionPending.value).toBe(true)
+    expect(session.projection.value?.cwd).toBe("/b")
+    expect(session.sessionCwd.value).toBe("/b")
+    expect(session.running.value).toBe(true)
+    releaseHistory()
+    await vi.waitFor(() => expect(session.sessionPending.value).toBe(false))
+  })
+
+  it("失败路径：open 遇 disconnected 且仍连接时再试一次", async () => {
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1) }
+    openMock.mockRejectedValueOnce(disconnectedError()).mockResolvedValueOnce(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
+    expect(openMock).toHaveBeenCalledTimes(2)
+  })
+
+  it("失败路径：disconnected 后等 pi.connected 再打开", async () => {
+    const connected = ref(true)
+    const { session } = setup({ connected })
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1) }
+    let first = true
+    openMock.mockImplementation(async () => {
+      if (first) {
+        first = false
+        connected.value = false
+        throw disconnectedError()
+      }
+      return a
+    })
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await vi.waitFor(() => expect(openMock).toHaveBeenCalledTimes(1))
+    expect(session.remote.value).toBeUndefined()
+    connected.value = true
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
+    expect(openMock).toHaveBeenCalledTimes(2)
+  })
+
+  it("失败路径：两次 disconnected 则报错回首页", async () => {
+    const { session } = setup()
+    openMock.mockRejectedValue(disconnectedError())
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await vi.waitFor(() => expect(routerReplace).toHaveBeenCalledWith("/"))
+    expect(openMock.mock.calls.length).toBeGreaterThanOrEqual(2)
+    expect(openMock.mock.calls.length).toBeLessThan(8)
     expect(session.remote.value).toBeUndefined()
   })
 
@@ -553,6 +677,39 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     )
     expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"])
     expect(session.turnTimings.value).toEqual([timing])
+  })
+
+  it("Turn 结束后再拉一页历史，临时 id 换成磁盘 id", async () => {
+    const live = {
+      id: "m1",
+      role: "user" as const,
+      content: [{ type: "text" as const, text: "hi" }],
+      timestamp: 1,
+    }
+    const disk = { ...live, id: "u1" }
+    let persisted: (typeof disk)[] = []
+    const transcriptCalls = () =>
+      platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("/transcript"))
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) return { items: persisted, timings: [] }
+      return { usage: usageEstimate }
+    })
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1), transcript: [] }
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
+    a.state = { ...a.state, transcript: [live] }
+    a.emit()
+    expect(session.transcript.value.map((row) => row.id)).toEqual(["m1"])
+    const beforeIdle = transcriptCalls().length
+    persisted = [disk]
+    a.state = { ...a.state, snapshot: { ...snapshot(2), phase: "idle" }, transcript: [live] }
+    a.emit()
+    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
+    expect(transcriptCalls().length).toBe(beforeIdle + 1)
   })
 
   it("连续帧：空 snapshot 不清掉已有进度，后续工具只追加不回退", async () => {
