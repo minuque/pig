@@ -63,7 +63,6 @@
                     <GroupHead
                       :name="section.name"
                       :kind="section.kind"
-                      :count="section.count"
                       :collapsed="section.collapsed"
                       @toggle="section.toggle"
                       @create="section.create?.()"
@@ -193,7 +192,6 @@ const listSections = computed(() => {
       rowClass: "row-group",
       name: workspaceName(row.canonicalPath),
       kind: "directory" as const,
-      count: row.sessions.length,
       collapsed: row.collapsed,
       open: !row.collapsed && (row.sessions.length > 0 || row.more),
       sessions: row.sessions,
@@ -208,7 +206,6 @@ const listSections = computed(() => {
     rowClass: "time-section",
     name: section.name,
     kind: "time" as const,
-    count: section.sessions.length,
     collapsed: collapsedSections[section.key],
     open: !collapsedSections[section.key],
     sessions: section.sessions,
@@ -419,9 +416,8 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 .group-body {
   display: flex;
   flex-direction: column;
-}
-.group-body > *:not(:last-child) {
-  padding-block-end: var(--spacing-xxs);
+  gap: var(--spacing-xxs);
+  padding-block-start: var(--spacing-xxs);
 }
 
 .more-button {

@@ -70,10 +70,10 @@ async function openSessionBodyPaint(
       __pigBody: { bodyVisible: number; lcpAll: BodyPaint["officialLcp"][] }
     }
     if (!slot.__pigBody.bodyVisible) slot.__pigBody.bodyVisible = performance.now()
-    return {
-      bodyVisible: slot.__pigBody.bodyVisible,
-      officialLcp: slot.__pigBody.lcpAll.at(-1),
-    }
+    const officialLcp = slot.__pigBody.lcpAll.at(-1)
+    return officialLcp
+      ? { bodyVisible: slot.__pigBody.bodyVisible, officialLcp }
+      : { bodyVisible: slot.__pigBody.bodyVisible }
   }, marker)
 }
 

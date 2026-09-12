@@ -48,7 +48,7 @@ if (gatewayTarget) process.env.VITE_GATEWAY_TARGET = gatewayTarget
 export default defineConfig({
   plugins: [
     vue(),
-    { ...vueDevTools(), apply: "serve" },
+    vueDevTools(),
     preloadTranscriptGraph(),
     tailwindcss(),
     VitePWA({

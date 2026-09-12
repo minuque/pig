@@ -1,5 +1,5 @@
 <template>
-  <div class="session-item">
+  <div class="session-item" :class="{ 'is-menu-open': menuOpen }">
     <button
       v-if="!renaming"
       class="pin-toggle press-scale"
@@ -11,6 +11,19 @@
     >
       <PinOff v-if="pinned" class="size-icon" />
       <Pin v-else class="size-icon" />
+    </button>
+    <button
+      v-if="!renaming"
+      class="more-toggle motion-hint press-scale"
+      type="button"
+      title="更多"
+      aria-label="更多"
+      aria-haspopup="menu"
+      :aria-expanded="menuOpen"
+      @click.stop="openSessionMenu"
+      @contextmenu.prevent.stop="openSessionMenu"
+    >
+      <Ellipsis class="size-icon" />
     </button>
     <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
@@ -89,7 +102,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef } from "vue"
 import { RouterLink } from "vue-router"
-import { Pencil, Pin, PinOff, Trash2 } from "@lucide/vue"
+import { Ellipsis, Pencil, Pin, PinOff, Trash2 } from "@lucide/vue"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -170,21 +183,33 @@ function onCardClick(event: MouseEvent) {
   openSession(props.session.id)
 }
 
+function openContextMenuAt(target: HTMLElement, clientX: number, clientY: number) {
+  target.dispatchEvent(
+    new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      clientX,
+      clientY,
+      view: window,
+    }),
+  )
+}
+
+function openSessionMenu(event: MouseEvent) {
+  const item = (event.currentTarget as HTMLElement).closest(".session-item")
+  const card = item?.querySelector(".session-card")
+  if (!(card instanceof HTMLElement)) return
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  openContextMenuAt(card, rect.left + rect.width / 2, rect.bottom)
+}
+
 function onCardKeydown(event: KeyboardEvent) {
   if (event.key !== "F10" || !event.shiftKey) return
   event.preventDefault()
   const el = event.currentTarget
   if (!(el instanceof HTMLElement)) return
   const rect = el.getBoundingClientRect()
-  el.dispatchEvent(
-    new MouseEvent("contextmenu", {
-      bubbles: true,
-      cancelable: true,
-      clientX: rect.left + 8,
-      clientY: rect.top + 8,
-      view: window,
-    }),
-  )
+  openContextMenuAt(el, rect.left + 8, rect.top + 8)
 }
 
 function startRename() {
@@ -225,12 +250,14 @@ function confirmDelete() {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
   height: var(--size-nav-rail);
   min-width: 0;
   padding-inline: var(--spacing-xs);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
+  line-height: 0;
   text-decoration: none;
 }
 .session-item:hover .session-card,
@@ -247,10 +274,14 @@ function confirmDelete() {
   gap: var(--spacing-xxs);
   min-width: 0;
   width: 100%;
+  height: 100%;
+  line-height: 0;
 }
 
 .pin-slot {
   flex: none;
+  display: grid;
+  place-items: center;
   width: var(--size-icon);
   height: var(--size-icon);
 }
@@ -259,11 +290,12 @@ function confirmDelete() {
   position: absolute;
   z-index: 1;
   inset-inline-start: var(--spacing-xs);
-  inset-block-start: calc(50% - var(--size-icon) / 2);
+  inset-block: 0;
   display: grid;
   place-items: center;
   width: var(--size-icon);
   height: var(--size-icon);
+  margin-block: auto;
   padding: 0;
   border: 0;
   border-radius: var(--radius-xs);
@@ -281,6 +313,33 @@ function confirmDelete() {
 .pin-toggle:hover,
 .pin-toggle:focus-visible {
   color: var(--ink);
+}
+
+.more-toggle {
+  position: absolute;
+  z-index: 1;
+  inset-inline-end: var(--spacing-xs);
+  inset-block: 0;
+  display: grid;
+  place-items: center;
+  width: var(--size-icon);
+  height: var(--size-icon);
+  margin-block: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--ink-muted);
+}
+.more-toggle:hover,
+.more-toggle:focus-visible {
+  color: var(--ink);
+}
+.session-item.is-menu-open .more-toggle {
+  opacity: 1;
+  scale: 1;
+  filter: blur(0);
+  pointer-events: auto;
 }
 
 .state-dot {
@@ -321,24 +380,55 @@ function confirmDelete() {
 .session-spin {
   flex: none;
   display: flex;
+  align-items: center;
   margin-inline-start: var(--spacing-xxs);
   color: var(--ink-muted);
+  transition:
+    opacity var(--duration-icon) var(--ease-icon),
+    scale var(--duration-icon) var(--ease-icon),
+    filter var(--duration-icon) var(--ease-icon);
 }
 
 .session-time {
   position: relative;
+  display: flex;
   flex: none;
+  align-items: center;
   margin-inline-start: var(--spacing-xxs);
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-regular);
-  line-height: 16px;
+  line-height: var(--text-eyebrow--line-height);
   text-align: end;
   white-space: nowrap;
+  transition:
+    opacity var(--duration-icon) var(--ease-icon),
+    scale var(--duration-icon) var(--ease-icon),
+    filter var(--duration-icon) var(--ease-icon);
 }
 .session-time.has-state .time-text {
   visibility: hidden;
+}
+
+@media (hover: hover) {
+  .session-item:is(:hover, :focus-within) .session-time,
+  .session-item:is(:hover, :focus-within) .session-spin,
+  .session-item.is-menu-open .session-time,
+  .session-item.is-menu-open .session-spin {
+    opacity: 0;
+    scale: 0.25;
+    filter: blur(4px);
+  }
+}
+
+@media (hover: none) {
+  .session-time,
+  .session-spin {
+    opacity: 0;
+    scale: 0.25;
+    filter: blur(4px);
+  }
 }
 
 .rename-input {

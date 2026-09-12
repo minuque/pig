@@ -501,7 +501,8 @@ p {
 }
 
 html[data-pig-desktop-platform]:has([data-slot="dialog-content"]) body *,
-html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body * {
+html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body *,
+html[data-pig-desktop-platform]:has(.mermaid-modal-overlay) body * {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }

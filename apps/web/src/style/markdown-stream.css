@@ -93,59 +93,26 @@
   font-size: var(--ms-text-body);
   line-height: var(--ms-leading-body);
 
-  pre,
-  code {
-    font-variant-ligatures: none;
-  }
   .inline-code {
     font-size: var(--ms-text-body);
     border-radius: var(--radius-xs);
     border: var(--ms-border-width) solid var(--inline-code-border);
     padding: 0.05em 0.4em;
   }
-  .heading-5,
-  .heading-6 {
-    font-weight: var(--font-weight-semibold);
+
+  /* 折叠后只剩顶栏：四角同半径，底色跟 header，避免底角落出 code-bg */
+  .code-block-container:has(.code-block-shell-content--collapsed),
+  .code-block-container:has(.code-editor-layer--collapsed) {
+    background: var(--code-header-bg);
   }
-  /* 节点包在 .node-slot 里，p+p 打不中相邻段。 */
-  .paragraph-node + .paragraph-node,
-  .node-slot:has(> .paragraph-node) + .node-slot:has(> .paragraph-node) {
-    margin-top: var(--spacing-md);
-  }
-  /* 容器 class 是 rounded-lg（12px），头/身按 --ms-radius（8px）切角，四角错位。 */
-  .code-block-container {
-    --vscode-editor-font-size: var(--text-code);
-    --vscode-editor-line-height: var(--text-code-line);
+
+  .code-block-container:has(.code-block-shell-content--collapsed) .code-block-header,
+  .code-block-container:has(.code-editor-layer--collapsed) .code-block-header {
     border-radius: var(--ms-radius);
   }
-  pre.code-pre-fallback {
-    font-size: var(--text-code);
-    line-height: var(--text-code-line);
-  }
-  /* pre 带 z-index:2 且与 header 同层，会盖住绝对定位的 more 菜单。 */
-  .code-block-header {
-    z-index: 10;
-  }
-  /* 语言图标靠运行时 h-4 w-4，Tailwind 扫不到 markstream JS。 */
-  .code-block-header .icon-slot {
-    width: var(--size-icon);
-    height: var(--size-icon);
-    flex: none;
-  }
-  /* 菜单溢出卡片后，后续 Markdown 节点会按 DOM 顺序盖上来。 */
-  .code-block-container:has(.code-more-menu) {
-    position: relative;
-    z-index: 1;
-  }
-  /* contain:content 按矩形裁切，会吃掉 overflow:hidden + border-radius 的圆角。 */
-  .code-block-shell-content,
-  .code-loading-placeholder {
-    contain: none;
-  }
-  /* 库默认 800×600 占位会撑高聊天行；跳过绘制改由时间线行在首画后开启。 */
-  .markdown-renderer {
-    content-visibility: visible;
-    contain-intrinsic-size: auto none;
+
+  .code-block-shell-content--collapsed {
+    border-radius: 0;
   }
 }
 
@@ -157,6 +124,16 @@
 }
 
 /* 全屏 Teleport 到 body，不能挂在 [data-custom-id=chat] 下 */
+html[data-pig-desktop-platform] .mermaid-modal-overlay {
+  padding-block-start: calc(var(--titlebar-inset) + var(--spacing-xs));
+}
+
+.mermaid-action-btn:hover,
+.mermaid-action-btn:focus-visible {
+  background: var(--hover-quiet);
+  color: var(--ink);
+}
+
 ._mermaid svg {
   color: var(--ink);
 }

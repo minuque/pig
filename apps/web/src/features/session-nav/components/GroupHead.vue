@@ -12,12 +12,11 @@
       />
       <Clock v-else class="size-icon mark" :class="{ 'is-open': !collapsed }" />
       <span class="group-name">{{ name }}</span>
-      <span v-if="kind !== 'directory' && count !== undefined" class="group-count">
+      <span v-if="kind === 'pinned' && count !== undefined" class="group-count">
         {{ count }}
       </span>
     </button>
-    <span v-if="kind === 'directory'" class="trail icon-swap">
-      <span v-if="count !== undefined" class="group-count">{{ count }}</span>
+    <span v-if="kind === 'directory'" class="trail">
       <button
         class="group-new motion-hint"
         type="button"
@@ -58,6 +57,7 @@ const emit = defineEmits<{
   height: var(--size-nav-rail);
   padding-inline: var(--spacing-xs);
   border-radius: var(--radius-md);
+  line-height: 0;
 }
 .group-head:hover {
   background: var(--hover-quiet);
@@ -74,11 +74,14 @@ const emit = defineEmits<{
   border: 0;
   background: transparent;
   color: inherit;
+  line-height: 0;
   text-align: start;
 }
 
 .mark {
   flex: none;
+  display: grid;
+  place-items: center;
   width: var(--size-icon);
   height: var(--size-icon);
   color: var(--ink-faint);
@@ -104,16 +107,19 @@ const emit = defineEmits<{
 }
 
 .group-count {
+  display: flex;
   flex: none;
+  align-items: center;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;
+  line-height: var(--text-eyebrow--line-height);
 }
 
 .trail {
   flex: none;
+  align-self: center;
   min-width: var(--size-icon);
-  justify-items: end;
 }
 
 .group-new {
@@ -138,18 +144,6 @@ const emit = defineEmits<{
     scale: 1;
     filter: blur(0);
     pointer-events: auto;
-  }
-
-  .group-head:is(:hover, :focus-within) .group-count {
-    opacity: 0;
-    scale: 0.25;
-    filter: blur(4px);
-  }
-}
-
-@media (hover: none) {
-  .trail .group-count {
-    opacity: 0;
   }
 }
 

@@ -13,10 +13,6 @@
 
 > A **Pi Agent GUI** that follows Pi's design philosophy: no extra built-in tools; all capabilities come from the Pi Extension API.
 
-<p align="center">
-  <img src="apps/web/public/preview.png" alt="pig desktop preview" />
-</p>
-
 ## Quick start
 
 ```bash

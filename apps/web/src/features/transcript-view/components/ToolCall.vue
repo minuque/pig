@@ -2,18 +2,14 @@
   <div class="tool-summary" :class="{ failed, running }">
     <Button type="button" static class="summary" @click="toggleGroup">
       <component :is="icon" class="tool-icon" data-icon="inline-start" />
-      <span class="label">{{ label }}</span>
+      <span :class="{ shimmer: running, label }">{{ label }}</span>
       <span
         v-if="detail"
         class="detail"
         :title="detail.kind === 'file' ? detail.path : detail.text"
       >
         <img v-if="detailIcon" class="file-icon" :src="detailIcon" alt="" />
-        <span
-          class="detail-text"
-          :class="{ shimmer: running }"
-          :data-text="detail.kind === 'file' ? detail.name : detail.text"
-        >
+        <span class="detail-text" :data-text="detail.kind === 'file' ? detail.name : detail.text">
           {{ detail.kind === "file" ? detail.name : detail.text }}
         </span>
         <span v-if="detail.kind === 'file' && (detail.added || detail.removed)" class="line-stats">
