@@ -1,12 +1,12 @@
 <template>
   <article ref="rootEl">
     <MarkdownRender
-      v-if="showHeavy && text"
+      v-if="showHeavy && item.text"
       :key="item.id"
       v-bind="agentMarkdown"
-      :content="text"
+      :content="item.text"
     />
-    <div v-else-if="text" class="md-pending" aria-hidden="true"></div>
+    <div v-else-if="item.text" class="md-pending" aria-hidden="true"></div>
 
     <Alert
       v-if="item.error || item.aborted"
@@ -37,7 +37,6 @@ import MessageTimestamp from "@features/transcript-view/components/MessageTimest
 import { transcriptScrollIdleKey } from "@features/transcript-view/hooks/use-transcript-scroll-idle.js"
 import type { AssistantRow } from "@features/transcript-view/type.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
-import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { chatMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 import { shouldHydrateHeavy } from "@features/transcript-view/lib/transcript-hydrate.js"
 
@@ -50,10 +49,6 @@ const props = withDefaults(
 )
 
 const { isDark, codeBlockProps } = useColorScheme()
-const text = useTranscriptReveal(
-  () => props.item.text,
-  () => props.streaming,
-)
 const scrollIdle = inject(transcriptScrollIdleKey, shallowRef(true))
 const inView = shallowRef(false)
 const hydrated = shallowRef(false)

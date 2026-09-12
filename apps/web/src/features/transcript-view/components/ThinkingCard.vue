@@ -13,7 +13,6 @@ import MarkdownRender from "markstream-vue"
 import { useStickToBottom } from "markstream-vue/utils"
 import { computed, nextTick, useTemplateRef, watch } from "vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
-import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
 import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 
 const props = withDefaults(
@@ -27,10 +26,7 @@ const props = withDefaults(
 const { isDark, codeBlockProps } = useColorScheme()
 const viewport = useTemplateRef<HTMLElement>("viewport")
 const content = useTemplateRef<HTMLElement>("content")
-const text = useTranscriptReveal(
-  () => props.blocks.join("\n"),
-  () => props.streaming,
-)
+const text = computed(() => props.blocks.join("\n"))
 const { scheduleScrollToBottom } = useStickToBottom(viewport, content)
 
 const thinkProps = computed(() =>
