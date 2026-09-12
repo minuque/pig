@@ -7,12 +7,9 @@ import {
 const theme = { isDark: true, codeBlockProps: { theme: "dark-plus" as const } }
 
 describe("chatMarkdownProps", () => {
-  it("历史揭开前推迟节点，揭开后铺完", () => {
+  it("非流式推迟重节点直到进视口", () => {
     expect(chatMarkdownProps({ ...theme, streaming: false }).deferNodesUntilVisible).toBe(true)
-    expect(
-      chatMarkdownProps({ ...theme, streaming: false, settleMarkdown: true })
-        .deferNodesUntilVisible,
-    ).toBe(false)
+    expect(chatMarkdownProps({ ...theme, streaming: false }).viewportPriority).toBe(true)
   })
 
   it("流式不按可见性推迟，且不批挂、不虚拟化", () => {

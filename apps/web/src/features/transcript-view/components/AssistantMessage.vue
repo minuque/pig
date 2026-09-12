@@ -37,9 +37,8 @@ const props = withDefaults(
   defineProps<{
     item: AssistantRow
     streaming?: boolean
-    eager?: boolean
   }>(),
-  { streaming: false, eager: false },
+  { streaming: false },
 )
 
 const { isDark, codeBlockProps } = useColorScheme()
@@ -60,7 +59,6 @@ const agentMarkdown = computed(() =>
     streaming: props.streaming,
     isDark: isDark.value,
     codeBlockProps: codeBlockProps.value,
-    settleMarkdown: props.eager && !props.streaming,
   }),
 )
 </script>

@@ -40,14 +40,12 @@
                 v-else-if="row.role === 'assistant'"
                 :item="row"
                 :streaming="running && row.streaming"
-                :eager="markdownSettled"
               />
               <ToolSteps
                 v-else-if="isToolRow(row)"
                 :row="row"
                 :is-expand="isExpand(row.id)"
                 :expanded-tools="expandedTools"
-                :eager="markdownSettled"
                 @toggle-expand="onToggleExpand(row.id, $event)"
                 @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
               />
@@ -228,7 +226,6 @@ function observeSizes() {
 }
 
 const liveEnter = shallowRef(false)
-const markdownSettled = shallowRef(false)
 
 function enableLiveEnter() {
   if (!liveEnter.value)
@@ -245,14 +242,10 @@ function pinLatest() {
 function settlePaint() {
   if (rows.value.length > 0) emit("firstTextPaint")
   enableLiveEnter()
-  void nextTick(() => {
-    markdownSettled.value = true
-  })
 }
 
 function armTailWindow() {
   liveEnter.value = false
-  markdownSettled.value = false
   loadOlderArmed = true
 }
 
@@ -346,10 +339,25 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 }
 
 .transcript-list,
-.timeline-rows,
+.timeline-rows {
+  box-sizing: border-box;
+  width: 100%;
+}
+
 .row {
   box-sizing: border-box;
   width: 100%;
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 3);
+}
+.row-user {
+  contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 2);
+}
+.row-assistant {
+  contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 6);
+}
+.row-tool {
+  contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 2);
 }
 
 .older-busy {

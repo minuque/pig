@@ -1,5 +1,5 @@
 <template>
-  <section ref="rootEl" class="tool-steps" :class="{ live, aborted: row.aborted }">
+  <section class="tool-steps" :class="{ live, aborted: row.aborted }">
     <Button type="button" static class="summary-btn" @click="emit('toggle-expand', !revealed)">
       <Spinner v-if="live" class="tool-steps-icon" />
       <BadgeCheck v-else class="tool-steps-icon" />
@@ -95,15 +95,11 @@ const HOOK_CORNER = 6
 const FIRST_MOUNT_SIZE = 1
 const MOUNT_BATCH_SIZE = 2
 
-const props = withDefaults(
-  defineProps<{
-    row: ToolRow
-    isExpand: boolean | undefined
-    expandedTools: Map<string, boolean>
-    eager?: boolean
-  }>(),
-  { eager: false },
-)
+const props = defineProps<{
+  row: ToolRow
+  isExpand: boolean | undefined
+  expandedTools: Map<string, boolean>
+}>()
 const emit = defineEmits<{
   "toggle-expand": [open: boolean]
   "toggle-tool": [id: string, open: boolean]
@@ -115,24 +111,12 @@ const renderedCount = shallowRef(revealed.value ? props.row.steps.length : 0)
 const renderedSteps = computed(() => props.row.steps.slice(0, renderedCount.value))
 const prepared = computed(() => renderedCount.value >= props.row.steps.length)
 const expanded = shallowRef(revealed.value)
-const rootEl = shallowRef<HTMLElement | null>(null)
 
-let viewportObserver: IntersectionObserver | undefined
-let idleHandle: number | undefined
-let idleViaTimeout = false
 let revealRaf = 0
 let mountRaf = 0
-let inViewport = false
 
 function mountBatch(size = MOUNT_BATCH_SIZE) {
   renderedCount.value = Math.min(props.row.steps.length, renderedCount.value + size)
-}
-
-function cancelIdle() {
-  if (idleHandle == null) return
-  if (idleViaTimeout) window.clearTimeout(idleHandle)
-  else cancelIdleCallback(idleHandle)
-  idleHandle = undefined
 }
 
 function cancelForegroundMount() {
@@ -143,7 +127,6 @@ function cancelForegroundMount() {
 }
 
 function scheduleForegroundMount() {
-  cancelIdle()
   if (prepared.value || !revealed.value || mountRaf) return
   mountRaf = requestAnimationFrame(() => {
     mountRaf = 0
@@ -159,7 +142,6 @@ watch(
     if (!open) {
       cancelForegroundMount()
       expanded.value = false
-      if (props.eager && inViewport) scheduleIdleMount()
       return
     }
     const first = renderedCount.value === 0
@@ -186,66 +168,6 @@ watch(
     else renderedCount.value = Math.min(renderedCount.value, length)
   },
   { flush: "sync" },
-)
-
-function scheduleIdleMount() {
-  if (prepared.value || idleHandle != null || !inViewport) return
-  const mount = () => {
-    idleHandle = undefined
-    if (!prepared.value && inViewport && !revealed.value) mountBatch()
-    void nextTick(() => {
-      if (!prepared.value && inViewport && !revealed.value) scheduleIdleMount()
-    })
-  }
-  if (typeof requestIdleCallback === "function") {
-    idleViaTimeout = false
-    // 超时只挂一小批，避免后台准备重新形成长任务
-    idleHandle = requestIdleCallback(mount, { timeout: 1000 })
-    return
-  }
-  idleViaTimeout = true
-  idleHandle = window.setTimeout(mount, 16)
-}
-
-function stopViewportWatch() {
-  viewportObserver?.disconnect()
-  viewportObserver = undefined
-  inViewport = false
-  cancelIdle()
-}
-
-function onViewport(entries: IntersectionObserverEntry[]) {
-  if (prepared.value) {
-    stopViewportWatch()
-    return
-  }
-  inViewport = entries.some((entry) => entry.isIntersecting)
-  if (inViewport) scheduleIdleMount()
-  else cancelIdle()
-}
-
-function startViewportWatch() {
-  stopViewportWatch()
-  if (!props.eager || prepared.value) return
-  const target = rootEl.value
-  if (!target) return
-  viewportObserver = new IntersectionObserver(onViewport, {
-    root: target.closest("#transcript-panel"),
-    threshold: 0,
-  })
-  viewportObserver.observe(target)
-}
-
-watch(
-  [() => props.eager, prepared, rootEl],
-  () => {
-    if (prepared.value || !props.eager) {
-      stopViewportWatch()
-      return
-    }
-    startViewportWatch()
-  },
-  { flush: "post", immediate: true },
 )
 
 const label = computed(() => toolRowLabel(props.row))
@@ -382,7 +304,6 @@ watch(
 
 onBeforeUnmount(() => {
   listObserver?.disconnect()
-  stopViewportWatch()
   cancelForegroundMount()
   if (measureRaf) cancelAnimationFrame(measureRaf)
   if (railReadyRaf) cancelAnimationFrame(railReadyRaf)
