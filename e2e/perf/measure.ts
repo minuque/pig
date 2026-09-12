@@ -340,10 +340,22 @@ async function scrollOverflowWorstFrame(
   await beginScrollFrames(page)
   try {
     for (const direction of [-1, 1]) {
-      for (let step = 0; step < 20; step += 1) {
-        await page.mouse.wheel(0, direction * Math.ceil(distance / 20))
+      for (let step = 0; step < 40; step += 1) {
+        const remaining = await root.evaluate((node, dir) => {
+          if (dir < 0) return node.scrollTop
+          return node.scrollHeight - node.clientHeight - node.scrollTop
+        }, direction)
+        if (remaining <= 1) break
+        await page.mouse.wheel(0, direction * Math.max(1, Math.ceil(remaining / 20)))
         await waitMs(page, 32)
       }
+      await root.evaluate((node, dir) => {
+        node.scrollTop = dir < 0 ? 0 : node.scrollHeight
+      }, direction)
+      await waitMs(page, 150)
+      await root.evaluate((node, dir) => {
+        node.scrollTop = dir < 0 ? 0 : node.scrollHeight
+      }, direction)
       await page.waitForFunction(
         ({ sel, dir }) => {
           const node = document.querySelector(sel)
