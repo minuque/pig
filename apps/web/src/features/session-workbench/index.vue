@@ -23,9 +23,9 @@
             />
           </div>
           <TranscriptView
-            v-else-if="displaySessionId"
+            v-else-if="!showHero"
             ref="transcriptView"
-            :session-id="displaySessionId"
+            :session-id="sessionId ?? ''"
             :transcript="transcript"
             :running="running"
             :timings="turnTimings"
@@ -104,10 +104,6 @@ import SessionLoading from "@features/session-workbench/components/SessionLoadin
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
-import {
-  isSessionIdUpgrade,
-  PENDING_SESSION_ID,
-} from "@features/session-workbench/lib/session-state.js"
 import StartupError from "@features/startup/components/StartupError.vue"
 import TranscriptView from "@features/transcript-view/index.vue"
 
@@ -142,8 +138,7 @@ const {
   contextUsage,
   creating,
   abortSession,
-  submitText,
-  createAndSubmit,
+  sendPrompt,
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
@@ -156,9 +151,6 @@ const pageError = computed(() => {
   return route.name === "error" ? {} : null
 })
 
-const displaySessionId = computed(
-  () => sessionId.value ?? (transcript.value.length > 0 ? PENDING_SESSION_ID : undefined),
-)
 const showHero = computed(() => {
   if (transcript.value.length > 0 || running.value) return false
   if (sessionId.value === undefined) return true
@@ -173,9 +165,10 @@ const showLoading = computed(() => {
 })
 
 watch(
-  displaySessionId,
+  sessionId,
   (next, prev) => {
-    if (isSessionIdUpgrade(prev, next)) return
+    if (!next || next === prev) return
+    if (!prev && creating.value) return
     firstTextPainted.value = false
   },
   { flush: "sync" },
@@ -216,14 +209,9 @@ function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
 }
 
 function onSend(text: string) {
-  if (sessionId.value) {
-    scrollToLatest("auto")
-    void submitText(text)
-    return
-  }
-  const cwd = welcomeWorkspaceId.value
-  if (!cwd) return
-  void createAndSubmit(cwd, text)
+  if (sessionId.value) scrollToLatest("auto")
+  else if (!welcomeWorkspaceId.value) return
+  void sendPrompt(text, sessionId.value ? undefined : welcomeWorkspaceId.value)
 }
 
 const {

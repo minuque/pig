@@ -339,7 +339,7 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     const { session, cwd } = setup()
     const created = makeSession("s2")
     createMock.mockResolvedValue(created)
-    await session.createAndSubmit("/repo", "  任务  ")
+    await session.sendPrompt("  任务  ", "/repo")
 
     expect(createMock).toHaveBeenCalledWith(expect.anything(), { cwd: "/repo" })
     expect(created.submit).toHaveBeenCalledWith("任务")
@@ -364,7 +364,7 @@ describe("创建 Session 后提交第一条 Prompt", () => {
       return created
     })
     session.prompt.value = "任务"
-    const request = session.createAndSubmit("/repo", "任务")
+    const request = session.sendPrompt("任务", "/repo")
     await createStarted
 
     expect(session.prompt.value).toBe("")
@@ -386,7 +386,7 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     createMock.mockRejectedValue(new Error("创建失败"))
     created.submit.mockClear()
 
-    await expect(session.createAndSubmit("/repo", "任务")).rejects.toThrow("创建失败")
+    await expect(session.sendPrompt("任务", "/repo")).rejects.toThrow("创建失败")
 
     expect(createMock).toHaveBeenCalledTimes(1)
     expect(created.submit).not.toHaveBeenCalled()
@@ -398,7 +398,7 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     createMock.mockRejectedValue(new Error("创建失败"))
     session.prompt.value = "任务"
 
-    await expect(session.createAndSubmit("/repo", "任务")).rejects.toThrow("创建失败")
+    await expect(session.sendPrompt("任务", "/repo")).rejects.toThrow("创建失败")
 
     expect(session.transcript.value).toEqual([])
     expect(session.prompt.value).toBe("任务")
@@ -426,7 +426,7 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     openMock.mockResolvedValue(selected)
     await session.initialize()
 
-    const request = session.createAndSubmit("/repo", "任务")
+    const request = session.sendPrompt("任务", "/repo")
     await createStarted
     routeBox.params.sessionId = "selected"
     await nextTick()
@@ -457,18 +457,20 @@ describe("提交失败恢复草稿", () => {
     await vi.waitFor(() => expect(session.remote.value).toBe(a))
     session.prompt.value = "  新任务  "
 
-    const request = session.submitText(session.prompt.value)
+    const request = session.sendPrompt(session.prompt.value)
 
     expect(session.prompt.value).toBe("")
-    expect(session.clientState.value?.optimisticUser).toMatchObject({
-      item: { role: "user", content: [{ type: "text", text: "新任务" }] },
-      knownItemIds: ["u1"],
-    })
+    expect(session.clientState.value.sends).toMatchObject([
+      {
+        item: { role: "user", content: [{ type: "text", text: "新任务" }] },
+        knownItemIds: ["u1"],
+      },
+    ])
     expect(a.submit).toHaveBeenCalledWith("新任务")
 
     resolveSubmit()
     await request
-    expect(session.clientState.value?.optimisticUser).toBeNull()
+    expect(session.clientState.value.sends).toHaveLength(1)
   })
 
   it("提交失败时恢复未被新输入覆盖的草稿", async () => {
@@ -481,10 +483,10 @@ describe("提交失败恢复草稿", () => {
     await vi.waitFor(() => expect(session.remote.value).toBe(a))
     session.prompt.value = "任务"
 
-    await expect(session.submitText("任务")).rejects.toThrow("发送失败")
+    await expect(session.sendPrompt("任务")).rejects.toThrow("发送失败")
 
     expect(session.prompt.value).toBe("任务")
-    expect(session.clientState.value?.optimisticUser).toBeNull()
+    expect(session.clientState.value.sends).toEqual([])
   })
 })
 
@@ -642,7 +644,7 @@ describe("一轮工作", () => {
       expect(session.transcript.value.map((row) => row.id)).toEqual(["u1", "a1", "t1"]),
     )
 
-    const request = session.submitText("继续")
+    const request = session.sendPrompt("继续")
     expect(session.transcript.value.map((row) => row.role)).toEqual([
       "user",
       "assistant",

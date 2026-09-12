@@ -31,19 +31,16 @@ import {
   isOpenAborted,
 } from "@features/session-workbench/lib/abortable-open.js"
 import {
-  adoptWelcomeOptimistic,
-  applyUserRowAliases,
-  confirmedUserRowAlias,
+  bindIdleSends,
   isSessionOpening,
   mergeLiveTranscript,
   optimisticUserMessage,
-  PENDING_SESSION_ID,
   phaseLabel,
-  projectOptimisticTranscript,
+  projectClientTranscript,
   projectSessionSnapshot,
   sessionState,
 } from "@features/session-workbench/lib/session-state.js"
-import type { OptimisticUserMessage, SessionProjection } from "@features/session-workbench/type.js"
+import type { SessionClientState, SessionProjection } from "@features/session-workbench/type.js"
 
 interface CreateSessionInput {
   cwd: string
@@ -362,21 +359,19 @@ export function useSessionLifecycle(
   })
 
   const states = reactive(new Map<string, ReturnType<typeof sessionState>>())
+  const idleState = reactive<SessionClientState>({ draft: "", sends: [] })
   const creatingCwd = ref<string>()
-  const idleDraft = shallowRef("")
   const submitting = ref(false)
   const aborting = ref(false)
-  const welcomeOptimistic = shallowRef<OptimisticUserMessage | null>(null)
 
   const clientState = computed(() => {
     const id = sessionId.value
-    return id ? sessionState(states, id) : undefined
+    return id ? sessionState(states, id) : idleState
   })
   const prompt = computed({
-    get: () => clientState.value?.draft ?? idleDraft.value,
+    get: () => clientState.value.draft,
     set: (value: string) => {
-      if (clientState.value) clientState.value.draft = value
-      else idleDraft.value = value
+      clientState.value.draft = value
     },
   })
 
@@ -393,9 +388,12 @@ export function useSessionLifecycle(
           ? { model: next.model, thinkingLevel: thinkingLevelOf(next.thinkingLevel) }
           : undefined,
       )
-      if (!nextId || sessionId.value !== routeSessionAtStart) return undefined
+      if (!nextId || sessionId.value !== routeSessionAtStart) {
+        idleState.sends = []
+        return undefined
+      }
       cwd.selectCwd(nextCwd)
-      adoptWelcomeOptimistic(states, nextId, welcomeOptimistic.value)
+      bindIdleSends(states, nextId, idleState)
       if (nextId !== sessionId.value) {
         await router.push({ name: "session", params: { sessionId: nextId } })
       }
@@ -408,33 +406,36 @@ export function useSessionLifecycle(
     }
   }
 
-  async function submitText(text: string) {
-    const current = clientState.value
+  /** 先写入本地用户句，没有远端会话再 create；用户句 id 发送时定死。 */
+  async function sendPrompt(text: string, cwd?: string) {
     const normalized = text.trim()
-    if (!current || !normalized || submitting.value) return
+    if (!normalized || submitting.value) return
+    if (!sessionId.value && (!cwd || creatingCwd.value)) return
 
     submitting.value = true
     sessionError.value = ""
-    const optimistic =
-      current.optimisticUser ??
-      optimisticUserMessage(
-        sessionId.value ?? PENDING_SESSION_ID,
-        normalized,
-        liveTranscript.value.map((item) => item.id),
-      )
-    current.optimisticUser = optimistic
-    current.draft = ""
-
+    const thread = clientState.value
+    const previousDraft = thread.draft
+    const send = optimisticUserMessage(
+      normalized,
+      liveTranscript.value.map((item) => item.id),
+    )
+    thread.sends.push(send)
+    thread.draft = ""
     try {
+      if (!sessionId.value) {
+        const nextId = await createSession(cwd!)
+        if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return
+      }
       await submitRemote(normalized)
     } catch (error) {
-      if (!current.draft) current.draft = text
+      const current = clientState.value
+      if (!current.draft) current.draft = previousDraft || text
+      const index = current.sends.findIndex((item) => item.item.id === send.item.id)
+      if (index >= 0) current.sends.splice(index, 1)
       sessionError.value = errorMessage(error)
       throw error
     } finally {
-      const alias = confirmedUserRowAlias(liveTranscript.value, optimistic)
-      if (alias) current.userRowIds[alias.serverId] = alias.clientId
-      if (current.optimisticUser?.item.id === optimistic.item.id) current.optimisticUser = null
       submitting.value = false
     }
   }
@@ -451,46 +452,8 @@ export function useSessionLifecycle(
     }
   }
 
-  /** 欢迎页首次 Prompt：立刻投影用户句，再创建 Session 并发送。 */
-  async function createAndSubmit(nextCwd: string, text: string) {
-    const normalized = text.trim()
-    if (!normalized || creatingCwd.value || welcomeOptimistic.value) return
-
-    const previousDraft = idleDraft.value
-    welcomeOptimistic.value = optimisticUserMessage(PENDING_SESSION_ID, normalized)
-    idleDraft.value = ""
-
-    try {
-      const nextId = await createSession(nextCwd)
-      if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return
-      await submitText(text)
-    } catch (error) {
-      if (!sessionId.value && !idleDraft.value) idleDraft.value = previousDraft || text
-      throw error
-    } finally {
-      welcomeOptimistic.value = null
-    }
-  }
-
-  watch(
-    [liveTranscript, () => clientState.value?.optimisticUser],
-    ([items, optimistic]) => {
-      const current = clientState.value
-      if (!current || !optimistic) return
-      const alias = confirmedUserRowAlias(items, optimistic)
-      if (alias) current.userRowIds[alias.serverId] = alias.clientId
-    },
-    { flush: "sync" },
-  )
-
   const transcript = computed(() =>
-    applyUserRowAliases(
-      projectOptimisticTranscript(
-        liveTranscript.value,
-        clientState.value?.optimisticUser ?? (sessionId.value ? null : welcomeOptimistic.value),
-      ),
-      clientState.value?.userRowIds,
-    ),
+    projectClientTranscript(liveTranscript.value, clientState.value.sends),
   )
   const sessionCwd = computed(() => projection.value?.cwd ?? cwd.lastCwd.value)
   const projectedUsage = computed(() => projectContextUsage(contextUsageEstimate.value))
@@ -536,8 +499,7 @@ export function useSessionLifecycle(
     creating: creatingCwd,
     aborting,
     createSession,
-    createAndSubmit,
-    submitText,
+    sendPrompt,
     abortSession,
     initialize,
     remote,

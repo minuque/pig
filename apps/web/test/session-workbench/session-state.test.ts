@@ -1,23 +1,10 @@
 import { describe, expect, it } from "vitest"
 import type { ToolTranscriptItem, TranscriptItem, UserTranscriptItem } from "@/types/common-type.js"
 import {
-  applyUserRowAliases,
-  confirmedUserRowAlias,
-  isSessionIdUpgrade,
   isSessionOpening,
   mergeLiveTranscript,
-  projectOptimisticTranscript,
+  projectClientTranscript,
 } from "@features/session-workbench/lib/session-state.js"
-
-describe("isSessionIdUpgrade", () => {
-  it("pending 换成真 id 仍是同一条对话，其它切换不是", () => {
-    expect(isSessionIdUpgrade("pending", "s1")).toBe(true)
-    expect(isSessionIdUpgrade("s1", "s2")).toBe(false)
-    expect(isSessionIdUpgrade(undefined, "s1")).toBe(false)
-    expect(isSessionIdUpgrade("pending", "pending")).toBe(false)
-    expect(isSessionIdUpgrade("pending", undefined)).toBe(false)
-  })
-})
 
 describe("isSessionOpening", () => {
   it("lease 已齐但历史未到时仍算打开中，避免空画布闪一下", () => {
@@ -78,9 +65,9 @@ describe("mergeLiveTranscript", () => {
   })
 })
 
-describe("projectOptimisticTranscript", () => {
+describe("projectClientTranscript", () => {
   const optimistic: UserTranscriptItem = {
-    id: "optimistic-1",
+    id: "user-1",
     role: "user",
     content: [{ type: "text", text: "新任务" }],
     timestamp: 2,
@@ -98,48 +85,32 @@ describe("projectOptimisticTranscript", () => {
     status: "streaming",
     timestamp: 3,
   } as TranscriptItem
+  const send = { item: optimistic, knownItemIds: [previous.id] }
 
-  it("把乐观用户句插在提交前历史之后、后续流式内容之前", () => {
-    expect(
-      projectOptimisticTranscript([previous, assistant], {
-        item: optimistic,
-        knownItemIds: [previous.id],
-      }).map((item) => item.id),
-    ).toEqual([previous.id, optimistic.id, assistant.id])
+  it("把本地用户句插在提交前历史之后、后续流式内容之前", () => {
+    expect(projectClientTranscript([previous, assistant], [send]).map((item) => item.id)).toEqual([
+      previous.id,
+      optimistic.id,
+      assistant.id,
+    ])
   })
 
-  it("收到新的同文服务端用户句后移除乐观投影", () => {
+  it("服务端同文确认后仍用发送时的 id", () => {
     const confirmed = { ...optimistic, id: "server-u2" }
     const items = [previous, confirmed, assistant]
-    expect(
-      projectOptimisticTranscript(items, {
-        item: optimistic,
-        knownItemIds: [previous.id],
-      }),
-    ).toBe(items)
-  })
-
-  it("服务端同文确认后渲染 id 仍用发送时那条", () => {
-    const send = { item: optimistic, knownItemIds: [previous.id] }
-    const confirmed = { ...optimistic, id: "server-u2" }
-    const items = [previous, confirmed]
-    expect(confirmedUserRowAlias(items, send)).toEqual({
-      serverId: "server-u2",
-      clientId: "optimistic-1",
-    })
-    expect(
-      applyUserRowAliases(items, { "server-u2": "optimistic-1" }).map((item) => item.id),
-    ).toEqual([previous.id, "optimistic-1"])
-    expect(confirmedUserRowAlias(items, null)).toBeUndefined()
+    expect(projectClientTranscript(items, [send]).map((item) => item.id)).toEqual([
+      previous.id,
+      optimistic.id,
+      assistant.id,
+    ])
   })
 
   it("已知历史之外的同文用户句不算确认", () => {
     const earlierDuplicate = { ...optimistic, id: "earlier-u0", timestamp: 0 }
     expect(
-      projectOptimisticTranscript([earlierDuplicate, previous, assistant], {
-        item: optimistic,
-        knownItemIds: [previous.id],
-      }).map((item) => item.id),
+      projectClientTranscript([earlierDuplicate, previous, assistant], [send]).map(
+        (item) => item.id,
+      ),
     ).toEqual([earlierDuplicate.id, previous.id, optimistic.id, assistant.id])
   })
 })
