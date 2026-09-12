@@ -374,7 +374,12 @@ async function loadAllTranscriptPages(page: Page, name: BenchSessionName, pages:
     })
     if ((await firstPrompt.count()) > 0 || (await more.count()) === 0) break
     const previous = await page.locator(".row-user").count()
-    await more.click()
+    await page.locator(".transcript-viewport").evaluate((root) => {
+      root.scrollTop = 0
+      const button = root.querySelector<HTMLButtonElement>(".older-busy")
+      if (!button || button.disabled) throw new Error("加载更早不可点")
+      button.click()
+    })
     await page.waitForFunction(
       (count) => {
         const button = document.querySelector<HTMLButtonElement>(".older-busy")
