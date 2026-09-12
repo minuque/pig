@@ -63,6 +63,7 @@ import {
   nextTick,
   onBeforeUnmount,
   onMounted,
+  provide,
   shallowRef,
   useTemplateRef,
   watch,
@@ -74,6 +75,10 @@ import ToolSteps from "@features/transcript-view/components/ToolSteps.vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
+import {
+  transcriptScrollIdleKey,
+  useTranscriptScrollIdle,
+} from "@features/transcript-view/hooks/use-transcript-scroll-idle.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
@@ -118,6 +123,10 @@ const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpan
 const viewport = useTemplateRef<HTMLElement>("viewport")
 const column = useTemplateRef<HTMLElement>("column")
 const list = useTemplateRef<HTMLElement>("list")
+
+const scrollIdle = useTranscriptScrollIdle(viewport)
+
+provide(transcriptScrollIdleKey, scrollIdle)
 
 function scrollerRoot(): HTMLElement | null {
   return viewport.value

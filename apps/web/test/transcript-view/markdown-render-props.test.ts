@@ -3,6 +3,7 @@ import {
   chatMarkdownProps,
   plainMarkdownProps,
 } from "@features/transcript-view/lib/markdown-render-props.js"
+import { shouldHydrateHeavy } from "@features/transcript-view/lib/transcript-hydrate.js"
 
 const theme = { isDark: true, codeBlockProps: { theme: "dark-plus" as const } }
 
@@ -18,6 +19,15 @@ describe("chatMarkdownProps", () => {
     expect(props.batchRendering).toBe(false)
     expect(props.nodeVirtual).toBe(false)
     expect(props.maxLiveNodes).toBe(0)
+  })
+})
+
+describe("shouldHydrateHeavy", () => {
+  it("流式立刻画，历史等进视口且滚动停下", () => {
+    expect(shouldHydrateHeavy(true, false, false)).toBe(true)
+    expect(shouldHydrateHeavy(false, true, true)).toBe(true)
+    expect(shouldHydrateHeavy(false, true, false)).toBe(false)
+    expect(shouldHydrateHeavy(false, false, true)).toBe(false)
   })
 })
 
