@@ -15,13 +15,11 @@ function userScrollBehavior(): TranscriptScrollBehavior {
   return prefersReducedMotion() ? "auto" : "smooth"
 }
 
-/** 贴底时内容增高立刻跟上；上翻才停。平滑滚动只用于用户点「回到底部」。 */
+/** 贴底时内容增高写一次 scrollTop；上翻才停。平滑滚动只用于用户点「回到底部」。 */
 export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   const atBottom = shallowRef(false)
   const visuallyAtBottom = shallowRef(false)
   let navigating = false
-  let holdingTail = false
-  let holdRaf = 0
   let navRoot: HTMLElement | null = null
   let onNavEnd: (() => void) | null = null
   let navTimer = 0
@@ -59,14 +57,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   }
 
   function pinIfNeeded() {
-    if (navigating) return
-    if (holdingTail) {
-      atBottom.value = true
-      visuallyAtBottom.value = true
-      jumpToBottom()
-      return
-    }
-    if (!atBottom.value) return
+    if (navigating || !atBottom.value) return
     jumpToBottom()
   }
 
@@ -88,39 +79,14 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   }
 
   function reset() {
-    releaseTail()
     releasePinnedToBottom()
     atBottom.value = false
     visuallyAtBottom.value = false
   }
 
-  function holdTail() {
-    holdingTail = true
-    if (holdRaf) return
-    const tick = () => {
-      if (!holdingTail) {
-        holdRaf = 0
-        return
-      }
-      atBottom.value = true
-      visuallyAtBottom.value = true
-      jumpToBottom()
-      holdRaf = requestAnimationFrame(tick)
-    }
-    holdRaf = requestAnimationFrame(tick)
-  }
-
-  function releaseTail() {
-    holdingTail = false
-    if (holdRaf) {
-      cancelAnimationFrame(holdRaf)
-      holdRaf = 0
-    }
-  }
-
   function onScroll() {
     const root = getRoot()
-    if (!root || navigating || holdingTail) return
+    if (!root || navigating) return
     if (atBottom.value) {
       if (root.scrollTop + 2 < lastWritten) {
         atBottom.value = false
@@ -138,7 +104,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   }
 
   function onWheel(event: WheelEvent) {
-    releaseTail()
     releasePinnedToBottom()
     if (event.deltaY < 0) atBottom.value = false
     const root = getRoot()
@@ -174,17 +139,12 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     el.scrollIntoView({ block: "start", behavior: userScrollBehavior() })
   }
 
-  onBeforeUnmount(() => {
-    releaseTail()
-    releasePinnedToBottom()
-  })
+  onBeforeUnmount(releasePinnedToBottom)
 
   return {
     atBottom,
     visuallyAtBottom,
     pinIfNeeded,
-    holdTail,
-    releaseTail,
     releasePinnedToBottom,
     reset,
     onScroll,

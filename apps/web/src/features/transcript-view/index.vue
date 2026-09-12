@@ -27,13 +27,7 @@
           >
             加载更早消息
           </button>
-          <TransitionGroup
-            name="timeline-row"
-            tag="div"
-            class="timeline-rows"
-            :class="{ 'is-paint-skip': paintSkip || running }"
-            :css="liveEnter"
-          >
+          <TransitionGroup name="timeline-row" tag="div" class="timeline-rows" :css="liveEnter">
             <div
               v-for="row in rows"
               :key="row.id"
@@ -91,7 +85,6 @@ import {
   isToolRow,
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
-import { paintSkipWaitMs } from "@features/transcript-view/lib/paint-skip.js"
 import {
   restoreScrollAfterPrepend,
   shouldLoadOlderTranscript,
@@ -136,8 +129,6 @@ const {
   atBottom,
   visuallyAtBottom,
   pinIfNeeded,
-  holdTail,
-  releaseTail,
   releasePinnedToBottom,
   reset,
   onScroll,
@@ -203,7 +194,6 @@ function onTranscriptWheel(event: WheelEvent) {
 }
 
 function onTranscriptPointerDown() {
-  releaseTail()
   releasePinnedToBottom()
 }
 
@@ -238,13 +228,7 @@ function observeSizes() {
 }
 
 const liveEnter = shallowRef(false)
-const paintSkip = shallowRef(false)
 const markdownSettled = shallowRef(false)
-let revealGen = 0
-let paintRaf = 0
-let paintSkipTimer = 0
-let paintSkipObserver: ResizeObserver | undefined
-let paintSkipArmedAt = 0
 
 function enableLiveEnter() {
   if (!liveEnter.value)
@@ -253,80 +237,16 @@ function enableLiveEnter() {
     })
 }
 
-function cancelPaintSkip() {
-  paintSkip.value = false
-  if (paintSkipTimer) window.clearTimeout(paintSkipTimer)
-  paintSkipTimer = 0
-  paintSkipObserver?.disconnect()
-  paintSkipObserver = undefined
+function pinLatest() {
+  scrollToLatest("auto")
+  pinIfNeeded()
 }
 
-function revealLastTurn(gen: number) {
-  if (gen !== revealGen) return
-  paintSkip.value = true
-  pinIfNeeded()
+function settlePaint() {
   if (rows.value.length > 0) emit("firstTextPaint")
   enableLiveEnter()
-  releaseTail()
   void nextTick(() => {
-    if (gen !== revealGen) return
     markdownSettled.value = true
-  })
-}
-
-function armPaintSkip(gen: number) {
-  cancelPaintSkip()
-  const body = list.value
-  const settle = () => {
-    paintSkipTimer = 0
-    paintSkipObserver?.disconnect()
-    paintSkipObserver = undefined
-    revealLastTurn(gen)
-  }
-  if (!body) {
-    revealLastTurn(gen)
-    return
-  }
-  if (!paintSkipArmedAt) paintSkipArmedAt = performance.now()
-  const schedule = () => {
-    const wait = paintSkipWaitMs(performance.now() - paintSkipArmedAt)
-    if (wait === 0) {
-      settle()
-      return
-    }
-    if (paintSkipTimer) window.clearTimeout(paintSkipTimer)
-    paintSkipTimer = window.setTimeout(settle, wait)
-  }
-  paintSkipObserver = new ResizeObserver(schedule)
-  paintSkipObserver.observe(body)
-  schedule()
-}
-
-function stopReveal() {
-  revealGen += 1
-  if (paintRaf) {
-    cancelAnimationFrame(paintRaf)
-    paintRaf = 0
-  }
-  releaseTail()
-}
-
-/** 当前页稳住后再揭开。更早内容只在上翻时分页拉取。 */
-function scheduleRevealAfterPaint() {
-  if (paintSkip.value) {
-    pinIfNeeded()
-    return
-  }
-  stopReveal()
-  holdTail()
-  const gen = revealGen
-  void nextTick(() => {
-    if (gen !== revealGen) return
-    paintRaf = requestAnimationFrame(() => {
-      paintRaf = 0
-      if (gen !== revealGen) return
-      armPaintSkip(gen)
-    })
   })
 }
 
@@ -334,15 +254,11 @@ function armTailWindow() {
   liveEnter.value = false
   markdownSettled.value = false
   loadOlderArmed = true
-  paintSkipArmedAt = 0
-  cancelPaintSkip()
-  stopReveal()
 }
 
 onMounted(() => {
-  holdTail()
-  scrollToLatest("auto")
-  scheduleRevealAfterPaint()
+  pinLatest()
+  settlePaint()
 })
 
 watch(
@@ -351,10 +267,8 @@ watch(
     if (!prev || !next || prev === next) return
     armTailWindow()
     reset()
-    void nextTick(() => {
-      scrollToLatest("auto")
-      scheduleRevealAfterPaint()
-    })
+    settlePaint()
+    void nextTick(pinLatest)
   },
   { flush: "pre" },
 )
@@ -363,10 +277,8 @@ watch(rows, (next, prev) => {
   const previous = prev ?? []
   if (previous.length === 0 && next.length > 0) {
     armTailWindow()
-    void nextTick(() => {
-      scrollToLatest("auto")
-      scheduleRevealAfterPaint()
-    })
+    settlePaint()
+    void nextTick(pinLatest)
     return
   }
   if (historyPrepended(previous, next) && !atBottom.value) {
@@ -387,10 +299,7 @@ watch(
   [viewport, list],
   ([, body], prev) => {
     observeSizes()
-    if (body && !prev?.[1]) {
-      scrollToLatest("auto")
-      scheduleRevealAfterPaint()
-    }
+    if (body && !prev?.[1]) pinLatest()
   },
   { flush: "post" },
 )
@@ -398,8 +307,6 @@ watch(
 onBeforeUnmount(() => {
   sizeObserver?.disconnect()
   if (pinRaf) cancelAnimationFrame(pinRaf)
-  cancelPaintSkip()
-  stopReveal()
 })
 
 defineExpose({ showScrollToLatest, scrollToLatest })
@@ -459,9 +366,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 }
 .older-busy:disabled {
   cursor: default;
-}
-.timeline-rows:not(.is-paint-skip) {
-  visibility: hidden;
 }
 
 .row + .row {

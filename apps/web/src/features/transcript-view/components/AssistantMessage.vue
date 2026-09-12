@@ -1,11 +1,6 @@
 <template>
   <article>
-    <MarkdownRender
-      v-if="text"
-      :key="`${item.id}:${eager && !streaming ? 'full' : 'live'}`"
-      v-bind="agentMarkdown"
-      :content="text"
-    />
+    <MarkdownRender v-if="text" :key="item.id" v-bind="agentMarkdown" :content="text" />
 
     <Alert
       v-if="item.error || item.aborted"
