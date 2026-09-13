@@ -9,7 +9,7 @@
 
     <div
       class="tool-calls-group"
-      :class="{ 'is-open': expanded, instant: live || !expanded }"
+      :class="{ 'is-open': expanded, instant: skipHeightMotion }"
       :inert="!expanded"
     >
       <div>
@@ -59,7 +59,7 @@
               v-for="(step, index) in renderedSteps"
               :key="step.id"
               class="step"
-              :data-active="index === activeIndex"
+              :data-active="index === displayActiveIndex"
               @mouseenter="onPointerEnter(index)"
               @focusin="onFocusIn(index)"
             >
@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from "vue"
+import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
 import { ChevronRight, BadgeCheck } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
@@ -87,7 +87,8 @@ import type { ToolRow, ToolRowStep } from "../type.js"
 
 const HOOK_CORNER = 6
 const FIRST_MOUNT_SIZE = 1
-const MOUNT_BATCH_SIZE = 2
+const MOUNT_BATCH_SIZE = 4
+const ANIMATED_EXPAND_LIMIT = 4
 
 const props = defineProps<{
   row: ToolRow
@@ -100,11 +101,18 @@ const emit = defineEmits<{
 }>()
 
 const live = computed(() => props.row.mode === "live")
-const revealed = computed(() => props.row.turnStreaming || props.isExpand === true)
+const revealed = computed(() => live.value || props.isExpand === true)
 const renderedCount = shallowRef(revealed.value ? props.row.steps.length : 0)
 const renderedSteps = computed(() => props.row.steps.slice(0, renderedCount.value))
 const prepared = computed(() => renderedCount.value >= props.row.steps.length)
 const expanded = shallowRef(revealed.value)
+const skipHeightMotion = computed(
+  () =>
+    live.value ||
+    !expanded.value ||
+    !prepared.value ||
+    props.row.steps.length > ANIMATED_EXPAND_LIMIT,
+)
 
 let revealRaf = 0
 let mountRaf = 0
@@ -176,6 +184,11 @@ const activeIndex = computed(() => {
   if (running >= 0) return running
   return steps.length > 0 ? steps.length - 1 : -1
 })
+const displayActiveIndex = computed(() => {
+  const count = renderedCount.value
+  if (count === 0 || activeIndex.value < 0) return -1
+  return Math.min(activeIndex.value, count - 1)
+})
 
 const listEl = shallowRef<HTMLElement | null>(null)
 const centers = shallowRef<number[]>([])
@@ -185,15 +198,14 @@ const pointerInside = shallowRef(false)
 const focusInside = shallowRef(false)
 let listObserver: ResizeObserver | undefined
 let measureRaf = 0
-let railReadyRaf = 0
 
 function measure() {
   const root = listEl.value
-  if (!root || !expanded.value || !prepared.value) return
+  if (!root || !expanded.value) return
   const rootTop = root.getBoundingClientRect().top
   const nodes = root.querySelectorAll<HTMLElement>(":scope .step")
   const next: number[] = []
-  for (const index of new Set([activeIndex.value, hoverIndex.value])) {
+  for (const index of new Set([displayActiveIndex.value, hoverIndex.value])) {
     if (index == null || index < 0) continue
     const node = nodes.item(index)
     if (!node) continue
@@ -202,16 +214,11 @@ function measure() {
     next[index] = rect.top - rootTop + rect.height / 2
   }
   centers.value = next
-  if (!railReady.value && next.some((y) => y > 0) && !railReadyRaf) {
-    railReadyRaf = requestAnimationFrame(() => {
-      railReadyRaf = 0
-      if (expanded.value && prepared.value) railReady.value = true
-    })
-  }
+  if (!railReady.value && next.some((y) => y > 0)) railReady.value = true
 }
 
 function scheduleMeasure() {
-  if (!expanded.value || !prepared.value || measureRaf) return
+  if (!expanded.value || measureRaf) return
   measureRaf = requestAnimationFrame(() => {
     measureRaf = 0
     measure()
@@ -244,7 +251,7 @@ function railBox(from: number, y: number) {
 }
 
 const activeY = computed(() => {
-  const y = centers.value[activeIndex.value]
+  const y = centers.value[displayActiveIndex.value]
   return y == null ? null : y
 })
 const hoverY = computed(() => {
@@ -264,7 +271,7 @@ const accentVisible = computed(() => activeY.value != null)
 const hoverVisible = computed(
   () =>
     (pointerInside.value || focusInside.value) &&
-    hoverIndex.value !== activeIndex.value &&
+    hoverIndex.value !== displayActiveIndex.value &&
     hoverY.value != null,
 )
 
@@ -275,23 +282,27 @@ const accentCornerStyle = computed(() => accentBox.value.corner)
 const hoverStemStyle = computed(() => hoverBox.value.stem)
 const hoverCornerStyle = computed(() => hoverBox.value.corner)
 
-watch([activeIndex, () => props.row.steps.map((step) => step.id).join("\0")], scheduleMeasure, {
-  flush: "post",
-})
+watch(
+  [displayActiveIndex, renderedCount, expanded],
+  () => {
+    if (expanded.value) measure()
+  },
+  { flush: "post" },
+)
 
 watch(
-  [listEl, expanded, prepared],
-  ([root, open, ready]) => {
+  [listEl, expanded],
+  ([root, open]) => {
     listObserver?.disconnect()
     listObserver = undefined
-    if (!root || !open || !ready) {
+    if (!root || !open) {
       centers.value = []
       railReady.value = false
       return
     }
     listObserver = new ResizeObserver(scheduleMeasure)
     listObserver.observe(root)
-    void nextTick(scheduleMeasure)
+    measure()
   },
   { flush: "post" },
 )
@@ -300,23 +311,28 @@ onBeforeUnmount(() => {
   listObserver?.disconnect()
   cancelForegroundMount()
   if (measureRaf) cancelAnimationFrame(measureRaf)
-  if (railReadyRaf) cancelAnimationFrame(railReadyRaf)
 })
 </script>
 
 <style scoped>
 .tool-steps {
+  isolation: isolate;
   min-width: 0;
 }
 
 .summary-btn {
-  height: auto;
-  min-height: 28px;
-  padding: 2px 0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--size-icon-button);
+  min-height: var(--size-icon-button);
+  padding: 0;
   gap: var(--spacing-xs);
   justify-content: flex-start;
   border-radius: 0;
-  background: transparent;
+  background: var(--surface);
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-regular);
@@ -325,11 +341,16 @@ onBeforeUnmount(() => {
   font-variant-numeric: tabular-nums;
 }
 .summary-btn:hover {
-  background: transparent;
+  background: var(--surface);
   color: var(--ink);
 }
 .aborted .summary-btn {
   color: var(--warning);
+}
+
+.tool-calls-group {
+  position: relative;
+  z-index: 0;
 }
 
 .tool-steps-icon {
@@ -339,6 +360,7 @@ onBeforeUnmount(() => {
 
 .steps {
   position: relative;
+  min-width: 0;
   padding-block: var(--spacing-xs);
 }
 
@@ -346,6 +368,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
+  min-width: 0;
 }
 
 .step {
@@ -365,5 +388,10 @@ onBeforeUnmount(() => {
 }
 .aborted .hook-rail.accent {
   color: var(--warning);
+}
+
+.live .hook-stem,
+.live .hook-corner {
+  transition: none;
 }
 </style>

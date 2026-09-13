@@ -359,6 +359,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 3);
 }
 .row-user {
+  content-visibility: visible;
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 2);
 }
 .row-assistant {
@@ -366,6 +367,9 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 }
 .row-tool {
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 2);
+}
+.row-tools {
+  content-visibility: visible;
 }
 
 .older-busy {

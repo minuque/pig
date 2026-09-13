@@ -113,6 +113,12 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       "tools",
       "assistant",
     ])
+    expect(
+      live.filter(isToolRow).map((row) => ({ mode: row.mode, turnStreaming: row.turnStreaming })),
+    ).toEqual([
+      { mode: "done", turnStreaming: true },
+      { mode: "done", turnStreaming: true },
+    ])
     expect(live.at(-1)).toMatchObject({ text: "结论", showTimestamp: true })
     expect(live.filter((row) => row.role === "assistant").map((row) => row.showTimestamp)).toEqual([
       undefined,
@@ -123,6 +129,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     const descriptors = assistant(1, [call("t1"), call("t2")])
     const first = buildTimelineRows([user, descriptors], true)
     const initialRow = first.find(isToolRow)
+    expect(initialRow).toMatchObject({ mode: "live", turnStreaming: true })
     expect(
       initialRow?.steps.flatMap((step) => (step.type === "tools" ? step.items : [])),
     ).toMatchObject([

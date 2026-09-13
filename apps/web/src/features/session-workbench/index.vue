@@ -9,6 +9,18 @@
 
     <template v-else>
       <div class="session-stage">
+        <TranscriptView
+          v-if="!showHero"
+          ref="transcriptView"
+          :session-id="sessionId ?? ''"
+          :transcript="transcript"
+          :running="running"
+          :timings="turnTimings"
+          :has-more="historyHasMore"
+          :loading-older="loadingOlder"
+          @first-text-paint="onFirstTextPaint"
+          @load-older="loadOlderHistory"
+        />
         <Transition name="stage-layer">
           <div v-if="showHero" key="hero" class="idle-hero">
             <WorkbenchHero
@@ -22,18 +34,6 @@
               @add="addWorkspace()"
             />
           </div>
-          <TranscriptView
-            v-else-if="!showHero"
-            ref="transcriptView"
-            :session-id="sessionId ?? ''"
-            :transcript="transcript"
-            :running="running"
-            :timings="turnTimings"
-            :has-more="historyHasMore"
-            :loading-older="loadingOlder"
-            @first-text-paint="onFirstTextPaint"
-            @load-older="loadOlderHistory"
-          />
         </Transition>
 
         <SessionLoading v-if="showLoading" />

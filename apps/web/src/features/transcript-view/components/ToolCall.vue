@@ -31,7 +31,7 @@
     >
       <div>
         <ToolStepCard
-          v-if="thought && thought.text"
+          v-if="open && thought && thought.text"
           variant="thought"
           :text="thought.text"
           :streaming="thought.streaming"
