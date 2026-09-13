@@ -1,8 +1,8 @@
 <template>
-  <div class="startup-screen" role="status" aria-label="正在启动">
+  <div class="startup-screen" :class="{ leaving }" role="status" aria-label="正在启动">
     <div class="startup-veil"></div>
     <div class="drag-strip"></div>
-    <div class="startup-content">
+    <div class="startup-content" @animationend.self="handleLeaveEnd">
       <div class="startup-mark">
         <img
           class="startup-logo"
@@ -13,12 +13,17 @@
           fetchpriority="low"
         />
       </div>
+      <div class="startup-progress" aria-hidden="true">
+        <span class="startup-progress-track"><span></span></span>
+        <span class="startup-progress-track"><span></span></span>
+        <span class="startup-progress-track"><span></span></span>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, watch } from "vue"
+import { onBeforeUnmount, onMounted, shallowRef, watch } from "vue"
 
 const props = defineProps<{
   dismiss: boolean
@@ -30,6 +35,7 @@ const emit = defineEmits<{
 
 let finished = false
 let splashGone = false
+const leaving = shallowRef(false)
 
 function finish() {
   if (finished) return
@@ -38,8 +44,16 @@ function finish() {
 }
 
 function beginLeave() {
-  if (!splashGone || finished) return
-  finish()
+  if (!splashGone || finished || leaving.value) return
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    finish()
+    return
+  }
+  leaving.value = true
+}
+
+function handleLeaveEnd() {
+  if (leaving.value) finish()
 }
 
 function markSplashGone() {

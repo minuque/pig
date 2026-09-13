@@ -26,6 +26,9 @@
 .startup-content {
   position: relative;
   z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: var(--spacing-md);
   padding: var(--spacing-lg);
 }
 
@@ -64,6 +67,55 @@
   animation: startup-logo-enter var(--duration-slow) ease-out both;
 }
 
+.startup-progress {
+  display: grid;
+  justify-items: center;
+  gap: var(--spacing-xxs);
+  width: calc(var(--startup-logo-size) * 1.5);
+}
+
+.startup-progress-track {
+  display: block;
+  width: 100%;
+  height: var(--spacing-xxs);
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--hairline);
+}
+.startup-progress-track:nth-child(2) {
+  width: 78%;
+}
+.startup-progress-track:nth-child(3) {
+  width: 56%;
+}
+
+.startup-progress-track > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+  box-shadow: 0 0 var(--spacing-sm) currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: startup-progress-beam 1.8s var(--ease-in-out) infinite both;
+}
+.startup-progress-track:nth-child(1) {
+  color: var(--primary);
+}
+.startup-progress-track:nth-child(2) {
+  color: var(--accent-sunset);
+}
+.startup-progress-track:nth-child(2) > span {
+  animation-delay: 120ms;
+}
+.startup-progress-track:nth-child(3) {
+  color: var(--accent-twilight);
+}
+.startup-progress-track:nth-child(3) > span {
+  animation-delay: 240ms;
+}
+
 @keyframes startup-logo-enter {
   0% {
     opacity: 0;
@@ -76,6 +128,31 @@
   100% {
     opacity: 1;
     transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes startup-progress-beam {
+  0%,
+  12% {
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  42% {
+    opacity: 1;
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  58% {
+    opacity: 1;
+    transform: scaleX(1);
+    transform-origin: right;
+  }
+  88%,
+  100% {
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: right;
   }
 }
 
@@ -107,10 +184,16 @@
 
 @media (prefers-reduced-motion: reduce) {
   #startup-splash .startup-mark,
+  .startup-progress-track > span,
   .startup-screen .startup-veil,
   .startup-screen.leaving .startup-veil,
   .startup-screen.leaving .startup-content {
     animation: none;
+  }
+
+  .startup-progress-track > span {
+    opacity: 1;
+    transform: scaleX(0.72);
   }
 }
 
