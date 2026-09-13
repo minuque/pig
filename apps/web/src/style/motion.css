@@ -68,9 +68,7 @@
 }
 
 .startup-progress {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+  position: relative;
   width: calc(var(--startup-logo-size) * 2);
 }
 
@@ -104,13 +102,17 @@
 }
 
 .startup-progress-value {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: calc(100% + var(--spacing-sm));
   min-width: 4ch;
   color: var(--ink-muted);
   font-family: var(--font-mono);
   font-size: var(--text-caption-mono);
   font-variant-numeric: tabular-nums;
   line-height: var(--text-caption-mono--line-height);
-  text-align: end;
+  text-align: start;
+  translate: 0 -50%;
 }
 
 @keyframes startup-logo-enter {
