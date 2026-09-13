@@ -1,6 +1,5 @@
 import { ref, watch, type Ref } from "vue"
 import type { SessionPhase, ThinkingLevel } from "@/types/common-type.js"
-import { errorMessage } from "@client/http.js"
 import type { ComposerModel, ComposerPreset, ComposerVendor } from "@/types/composer-type.js"
 import {
   defaultPresetFrom,
@@ -18,7 +17,6 @@ interface ComposerBindingOptions {
   catalog: Ref<ComposerVendor[]>
   snapshot: Ref<ComposerSnapshot | undefined>
   phase: Ref<SessionPhase | undefined>
-  error: Ref<string>
   setModel(model: ComposerModel): Promise<void>
   setThinking(level: ThinkingLevel): Promise<void>
 }
@@ -60,8 +58,8 @@ export function useComposerBinding(options: ComposerBindingOptions) {
             : undefined
           if (desired && desired !== options.snapshot.value?.thinkingLevel)
             await options.setThinking(thinkingLevelOf(desired))
-        } catch (error) {
-          options.error.value = errorMessage(error)
+        } catch {
+          /* 切模型失败不在输入卡展示 */
         } finally {
           pendingModel.value = false
         }
@@ -79,9 +77,9 @@ export function useComposerBinding(options: ComposerBindingOptions) {
       level === snapshot.thinkingLevel
     )
       return
-    void options
-      .setThinking(thinkingLevelOf(level))
-      .catch((error) => (options.error.value = errorMessage(error)))
+    void options.setThinking(thinkingLevelOf(level)).catch(() => {
+      /* 切档位失败不在输入卡展示 */
+    })
   })
 
   watch(

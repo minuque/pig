@@ -2,7 +2,7 @@
   <div class="tool-summary" :class="{ failed, running }">
     <Button type="button" static class="summary" @click="toggleGroup">
       <component :is="icon" class="tool-icon" data-icon="inline-start" />
-      <span :class="{ shimmer: running, label }">{{ label }}</span>
+      <span :class="{ shimmer: running, label }" :data-text="label">{{ label }}</span>
       <span
         v-if="detail"
         class="detail"

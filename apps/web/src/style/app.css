@@ -64,10 +64,8 @@
   --inline-code: #f5f5f5;
   --inline-code-ink: var(--ink);
   --media-outline: rgba(0, 0, 0, 0.1);
-  --scrollbar-color: #737373;
-  --scrollbar-hover: #525252;
-  --scrollbar-arrow-up-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 4'%3E%3Cpath fill='%23737373' d='M3 .25 5.75 3.75H.25Z'/%3E%3C/svg%3E");
-  --scrollbar-arrow-down-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 4'%3E%3Cpath fill='%23737373' d='M.25 .25h5.5L3 3.75Z'/%3E%3C/svg%3E");
+  --scrollbar-color: #a3a3a3;
+  --scrollbar-hover: #737373;
 
   /* 玻璃 */
   --glass-blur: 12px;
@@ -256,10 +254,8 @@
   --link: #93c5fd;
   --inline-code: #262626;
   --media-outline: rgba(255, 255, 255, 0.1);
-  --scrollbar-color: #a3a3a3;
+  --scrollbar-color: #737373;
   --scrollbar-hover: #a3a3a3;
-  --scrollbar-arrow-up-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 4'%3E%3Cpath fill='%23a3a3a3' d='M3 .25 5.75 3.75H.25Z'/%3E%3C/svg%3E");
-  --scrollbar-arrow-down-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 4'%3E%3Cpath fill='%23a3a3a3' d='M.25 .25h5.5L3 3.75Z'/%3E%3C/svg%3E");
 
   --glass-blur: 16px;
   --glass-saturation: 1;
@@ -300,13 +296,9 @@
 /* 滚动条默认隐藏，容器 hover 时淡入；各元素自写 --scrollbar-thumb，避免 html:hover 传到所有条子。 */
 * {
   --scrollbar-thumb: transparent;
-  --scrollbar-arrow-up: none;
-  --scrollbar-arrow-down: none;
 }
 *:hover {
   --scrollbar-thumb: var(--scrollbar-color);
-  --scrollbar-arrow-up: var(--scrollbar-arrow-up-image);
-  --scrollbar-arrow-down: var(--scrollbar-arrow-down-image);
 }
 
 @supports (-moz-appearance: none) {
@@ -333,22 +325,8 @@
   background: var(--scrollbar-hover);
 }
 
-/* Chromium 只提供原生滚动按钮行为，三角字形用 SVG 精确绘制。 */
-*::-webkit-scrollbar-button:vertical:start:decrement,
-*::-webkit-scrollbar-button:vertical:end:increment {
-  display: block;
-  height: 8px;
-  background-color: transparent;
-  background-repeat: no-repeat;
-  background-size: var(--size-scrollbar) 4px;
-}
-*::-webkit-scrollbar-button:vertical:start:decrement {
-  background-image: var(--scrollbar-arrow-up);
-  background-position: center top;
-}
-*::-webkit-scrollbar-button:vertical:end:increment {
-  background-image: var(--scrollbar-arrow-down);
-  background-position: center bottom;
+*::-webkit-scrollbar-button {
+  display: none;
 }
 
 @media (pointer: coarse) {

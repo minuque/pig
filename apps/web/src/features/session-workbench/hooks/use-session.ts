@@ -340,7 +340,6 @@ export function useSessionLifecycle(
     catalog,
     snapshot,
     phase,
-    error: sessionError,
     setModel,
     setThinking,
   })

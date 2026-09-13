@@ -27,14 +27,6 @@
       </template>
       <template #right>
         <span v-if="voiceActive" class="voice-status" role="status">正在聆听…</span>
-        <Tooltip v-if="error" :delay-duration="200">
-          <TooltipTrigger as-child>
-            <Button type="button" size="icon" class="error-indicator" :aria-label="error">
-              <CircleAlert class="size-icon" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent class="max-w-(--size-drawer)">{{ error }}</TooltipContent>
-        </Tooltip>
         <Button
           type="button"
           size="icon"
@@ -79,7 +71,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { ArrowUp, CircleAlert, Mic } from "@lucide/vue"
+import { ArrowUp, Mic } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { useVoiceInput } from "@features/composer/hooks/use-voice-input.js"
 import ComposerMeta from "@features/composer/components/ComposerMeta.vue"
@@ -88,7 +80,6 @@ import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import type { ComposerModel, ComposerPreset, ComposerVendor } from "@/types/composer-type.js"
 import type { ContextUsage } from "@features/composer/type.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = withDefaults(
   defineProps<{
@@ -97,7 +88,6 @@ const props = withDefaults(
     running?: boolean
     /** Abort 请求进行中：保持停止态并禁用重复点击 */
     aborting?: boolean
-    error?: string
     /** 外部禁用发送（如 welcome 的 workspace/预设/提交中守卫） */
     sendDisabled?: boolean
     placeholder?: string
@@ -109,7 +99,6 @@ const props = withDefaults(
   {
     running: false,
     aborting: false,
-    error: "",
     sendDisabled: false,
     placeholder: "do what you want ...",
     cwd: undefined,
@@ -232,20 +221,6 @@ function onAbortHotkey(event: KeyboardEvent) {
   background: transparent;
 }
 
-.error-indicator {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--danger);
-  cursor: help;
-}
-
 .send {
   display: inline-flex;
   align-items: center;
@@ -304,8 +279,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   }
 }
 
-.send:focus-visible,
-.error-indicator:focus-visible {
+.send:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }

@@ -18,7 +18,7 @@ const chatCodeChrome = {
   showExpandButton: true,
 } as const
 
-/** 吐字只切字；非流式推迟代码块等到进视口。 */
+/** 流式不切字；非流式推迟代码块等到进视口。 */
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean

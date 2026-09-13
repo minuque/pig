@@ -366,7 +366,7 @@ async function main() {
     }
 
     const config = {
-      version: 12,
+      version: 13,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,

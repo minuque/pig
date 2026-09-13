@@ -62,7 +62,6 @@
             :catalog="catalog"
             :running="running"
             :aborting="aborting"
-            :error="sessionError"
             :cwd="composerCwd"
             :usage="sessionId ? contextUsage : undefined"
             :session-id="sessionId"
@@ -133,7 +132,6 @@ const {
   preset,
   prompt,
   aborting,
-  sessionError,
   sessionCwd,
   contextUsage,
   creating,

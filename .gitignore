@@ -166,6 +166,7 @@ sessions.jsonl
 
 # doc
 HUMAN.md
+ISSUES.md
 
 # Windows NSIS 产物
 release/

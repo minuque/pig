@@ -64,7 +64,6 @@ describe("useComposerBinding", () => {
       catalog: ref(catalog),
       snapshot: state,
       phase,
-      error: ref(""),
       setModel,
       setThinking,
     })
@@ -104,7 +103,6 @@ describe("useComposerBinding", () => {
       catalog: ref(pickerCatalog),
       snapshot: state,
       phase,
-      error: ref(""),
       setModel,
       setThinking,
     })

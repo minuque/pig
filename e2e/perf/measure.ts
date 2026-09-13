@@ -156,7 +156,9 @@ export async function prepareBenchPage(
   options?: { reducedMotion?: boolean },
 ) {
   shimPageFunctions(page)
-  if (options?.reducedMotion !== false) await page.emulateMedia({ reducedMotion: "reduce" })
+  await page.emulateMedia({
+    reducedMotion: options?.reducedMotion ? "reduce" : "no-preference",
+  })
   await seedWorkspace(page, workspaceId)
   if (observers) await installObservers(page)
   page.setDefaultTimeout(WORKBENCH_TIMEOUT_MS)
