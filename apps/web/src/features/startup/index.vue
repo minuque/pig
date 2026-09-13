@@ -2,7 +2,7 @@
   <div class="startup-gate" :inert="visible || undefined">
     <slot />
   </div>
-  <StartupOverlay v-if="visible" :dismiss="settled" @finished="finish" />
+  <StartupOverlay v-if="visible" :dismiss="settled" :progress="progress" @finished="finish" />
 </template>
 
 <script setup lang="ts">
@@ -15,7 +15,7 @@ const props = defineProps<{
   initialize: () => Promise<unknown>
 }>()
 
-const { visible, settled, finish, start } = useStartupSequence(props)
+const { visible, settled, progress, finish, start } = useStartupSequence(props)
 
 onMounted(() => {
   void start()

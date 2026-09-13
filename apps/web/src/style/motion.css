@@ -68,52 +68,49 @@
 }
 
 .startup-progress {
-  display: grid;
-  justify-items: center;
-  gap: var(--spacing-xxs);
-  width: calc(var(--startup-logo-size) * 1.5);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: calc(var(--startup-logo-size) * 2);
 }
 
 .startup-progress-track {
+  position: relative;
   display: block;
-  width: 100%;
+  flex: 1;
   height: var(--spacing-xxs);
   overflow: hidden;
   border-radius: var(--radius-full);
-  background: var(--hairline);
+  background: var(--chart-track);
 }
-.startup-progress-track:nth-child(2) {
-  width: 78%;
-}
-.startup-progress-track:nth-child(3) {
-  width: 56%;
+.startup-progress-track::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 30%, var(--primary) 50%, transparent 70%);
+  opacity: 0.45;
+  transform: translateX(-100%);
+  animation: startup-progress-shine 1.2s linear infinite;
+  content: "";
 }
 
-.startup-progress-track > span {
+.startup-progress-fill {
   display: block;
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  background: currentColor;
-  box-shadow: 0 0 var(--spacing-sm) currentColor;
-  transform: scaleX(0);
+  background: var(--primary);
   transform-origin: left;
-  animation: startup-progress-beam 1.8s var(--ease-in-out) infinite both;
+  transition: transform var(--duration-slow) var(--ease-out);
 }
-.startup-progress-track:nth-child(1) {
-  color: var(--primary);
-}
-.startup-progress-track:nth-child(2) {
-  color: var(--accent-sunset);
-}
-.startup-progress-track:nth-child(2) > span {
-  animation-delay: 120ms;
-}
-.startup-progress-track:nth-child(3) {
-  color: var(--accent-twilight);
-}
-.startup-progress-track:nth-child(3) > span {
-  animation-delay: 240ms;
+
+.startup-progress-value {
+  min-width: 4ch;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption-mono);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--text-caption-mono--line-height);
+  text-align: end;
 }
 
 @keyframes startup-logo-enter {
@@ -131,28 +128,9 @@
   }
 }
 
-@keyframes startup-progress-beam {
-  0%,
-  12% {
-    opacity: 0;
-    transform: scaleX(0);
-    transform-origin: left;
-  }
-  42% {
-    opacity: 1;
-    transform: scaleX(1);
-    transform-origin: left;
-  }
-  58% {
-    opacity: 1;
-    transform: scaleX(1);
-    transform-origin: right;
-  }
-  88%,
-  100% {
-    opacity: 0;
-    transform: scaleX(0);
-    transform-origin: right;
+@keyframes startup-progress-shine {
+  to {
+    transform: translateX(100%);
   }
 }
 
@@ -184,16 +162,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   #startup-splash .startup-mark,
-  .startup-progress-track > span,
+  .startup-progress-track::after,
   .startup-screen .startup-veil,
   .startup-screen.leaving .startup-veil,
   .startup-screen.leaving .startup-content {
     animation: none;
   }
 
-  .startup-progress-track > span {
-    opacity: 1;
-    transform: scaleX(0.72);
+  .startup-progress-fill {
+    transition: none;
   }
 }
 

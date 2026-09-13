@@ -13,10 +13,21 @@
           fetchpriority="low"
         />
       </div>
-      <div class="startup-progress" aria-hidden="true">
-        <span class="startup-progress-track"><span></span></span>
-        <span class="startup-progress-track"><span></span></span>
-        <span class="startup-progress-track"><span></span></span>
+      <div
+        class="startup-progress"
+        role="progressbar"
+        aria-label="启动进度"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-valuenow="progress"
+      >
+        <span class="startup-progress-track">
+          <span
+            class="startup-progress-fill"
+            :style="{ transform: `scaleX(${progress / 100})` }"
+          ></span>
+        </span>
+        <span class="startup-progress-value">{{ progress }}%</span>
       </div>
     </div>
   </div>
@@ -27,6 +38,7 @@ import { onBeforeUnmount, onMounted, shallowRef, watch } from "vue"
 
 const props = defineProps<{
   dismiss: boolean
+  progress: number
 }>()
 
 const emit = defineEmits<{
