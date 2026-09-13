@@ -27,7 +27,7 @@
           >
             加载更早消息
           </button>
-          <TransitionGroup name="timeline-row" tag="div" class="timeline-rows" :css="liveEnter">
+          <div class="timeline-rows">
             <div
               v-for="row in rows"
               :key="row.id"
@@ -50,7 +50,7 @@
                 @toggle-tool="(id, open) => onToggleTool(row.id, id, open)"
               />
             </div>
-          </TransitionGroup>
+          </div>
         </div>
       </div>
     </div>
@@ -82,10 +82,11 @@ import {
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
-import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
+import type { TimelineRow, TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {
   buildTimelineRows,
   isToolRow,
+  reuseTimelineRows,
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import {
@@ -113,8 +114,16 @@ const emit = defineEmits<{
   loadOlder: []
 }>()
 
-const rows = computed(() => buildTimelineRows(props.transcript, props.running, props.timings))
+const rows = shallowRef<TimelineRow[]>([])
 const mountedKeys = computed(() => timelineRowKeys(rows.value))
+
+watch(
+  () => buildTimelineRows(props.transcript, props.running, props.timings),
+  (next) => {
+    rows.value = reuseTimelineRows(rows.value, next)
+  },
+  { flush: "sync", immediate: true },
+)
 
 const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
@@ -234,15 +243,6 @@ function observeSizes() {
   if (body) sizeObserver.observe(body)
 }
 
-const liveEnter = shallowRef(false)
-
-function enableLiveEnter() {
-  if (!liveEnter.value)
-    void nextTick(() => {
-      liveEnter.value = true
-    })
-}
-
 function pinLatest() {
   scrollToLatest("auto")
   pinIfNeeded()
@@ -250,11 +250,9 @@ function pinLatest() {
 
 function settlePaint() {
   if (rows.value.length > 0) emit("firstTextPaint")
-  enableLiveEnter()
 }
 
 function armTailWindow() {
-  liveEnter.value = false
   loadOlderArmed = true
 }
 
@@ -284,13 +282,11 @@ watch(rows, (next, prev) => {
     return
   }
   if (historyPrepended(previous, next) && !atBottom.value) {
-    liveEnter.value = false
     const root = scrollerRoot()
     const beforeHeight = root?.scrollHeight ?? 0
     const beforeTop = root?.scrollTop ?? 0
     void nextTick(() => {
       if (root) restoreScrollAfterPrepend(root, beforeHeight, beforeTop)
-      enableLiveEnter()
     })
     return
   }

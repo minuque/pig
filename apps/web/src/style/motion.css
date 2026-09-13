@@ -290,8 +290,7 @@
 }
 
 .panel-reveal-enter-active,
-.stage-layer-enter-active,
-.timeline-row-enter-active {
+.stage-layer-enter-active {
   transition:
     opacity var(--duration-slow) var(--ease-out),
     transform var(--duration-slow) var(--ease-out);
@@ -312,8 +311,7 @@
   transition-property: opacity, transform, filter;
 }
 .panel-reveal-enter-from,
-.stage-layer-enter-from,
-.timeline-row-enter-from {
+.stage-layer-enter-from {
   opacity: 0;
   transform: translateY(12px);
 }
@@ -348,40 +346,6 @@
 }
 .list-reveal-move {
   transition: transform var(--duration-fast) var(--ease-out);
-}
-
-.row-tools.timeline-row-enter-active {
-  transition: none;
-}
-
-.timeline-step-enter-active {
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out);
-  will-change: opacity, transform;
-}
-.timeline-step-move {
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-
-.timeline-row-leave-active {
-  position: absolute;
-  width: 100%;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-.row-tools.timeline-row-enter-from {
-  opacity: 1;
-  transform: none;
-  filter: none;
-}
-
-.timeline-step-enter-from {
-  opacity: 0;
-  transform: translateY(4px);
-}
-
-.timeline-row-leave-to {
-  opacity: 0;
 }
 
 :is(.tool-calls-group, .session-list-group) {
@@ -648,24 +612,6 @@
     transition: opacity var(--duration-fast) var(--ease-out);
   }
   .list-reveal-move {
-    transition: none;
-  }
-
-  .timeline-row-enter-active,
-  .timeline-row-leave-active,
-  .timeline-step-enter-active {
-    transition: opacity var(--duration-fast) var(--ease-out);
-  }
-  .timeline-row-leave-active {
-    position: static;
-  }
-  .timeline-row-enter-from,
-  .timeline-row-leave-to,
-  .timeline-step-enter-from {
-    transform: none;
-    filter: none;
-  }
-  .timeline-step-move {
     transition: none;
   }
 

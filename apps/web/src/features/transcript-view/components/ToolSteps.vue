@@ -54,13 +54,7 @@
               <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
             </svg>
           </span>
-          <TransitionGroup
-            :appear="live"
-            :css="live"
-            name="timeline-step"
-            tag="div"
-            class="step-list"
-          >
+          <div class="step-list">
             <div
               v-for="(step, index) in renderedSteps"
               :key="step.id"
@@ -75,7 +69,7 @@
                 @toggle="emit('toggle-tool', $event.id, $event.open)"
               />
             </div>
-          </TransitionGroup>
+          </div>
         </div>
       </div>
     </div>
