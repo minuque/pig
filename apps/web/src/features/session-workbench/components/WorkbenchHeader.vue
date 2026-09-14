@@ -63,7 +63,9 @@ const title = computed(() =>
   background: linear-gradient(to bottom, var(--surface), transparent);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
+  /* stylelint-disable-next-line color-no-hex -- 遮罩通道用黑，不是色板 */
   mask-image: linear-gradient(to bottom, #000, transparent);
+  /* stylelint-disable-next-line color-no-hex -- 遮罩通道用黑，不是色板 */
   -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
   content: "";
 }

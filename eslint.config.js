@@ -81,14 +81,6 @@ export default defineConfig(
         ],
       ],
 
-      // 多行元素：开标签 / 内容 / 闭标签换行，内容上下不要再加空行
-      "vue/multiline-html-element-content-newline": [
-        "error",
-        {
-          allowEmptyLines: false,
-        },
-      ],
-
       // SFC 块之间空一行：<template> / <script> / <style>
       "vue/padding-line-between-blocks": ["error", "always"],
     },
@@ -100,7 +92,6 @@ export default defineConfig(
       "@stylistic": stylistic,
     },
     rules: {
-      "no-multiple-empty-lines": ["error", { max: 1 }],
       "@stylistic/padding-line-between-statements": [
         "error",
 
@@ -133,11 +124,11 @@ export default defineConfig(
           next: "*",
         },
 
-        // 控制流、return 前
+        // 控制流前；短函数里 return 前不强制空行
         {
           blankLine: "always",
           prev: "*",
-          next: ["return", "if", "switch", "try", "for", "while", "do"],
+          next: ["if", "switch", "try", "for", "while", "do"],
         },
 
         // 块状语句后

@@ -7,7 +7,7 @@ export const PACKAGES = [
 ]
 
 const ROOT_TOOLING =
-  /^(eslint\.config\.|stylelint\.config\.|scripts\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|prettier\.config)/
+  /^(eslint\.config\.|stylelint\.config\.|scripts\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
 
 const LINTABLE = /\.(?:[cm]?[jt]sx?|vue)$/
 

@@ -15,6 +15,7 @@ describe("classifyTouched", () => {
     assert.equal(classifyTouched(["eslint.config.js"]).escalate, true)
     assert.equal(classifyTouched(["stylelint.config.js"]).escalate, true)
     assert.equal(classifyTouched(["scripts/lint-ignores.mjs"]).escalate, true)
+    assert.equal(classifyTouched([".prettierignore"]).escalate, true)
     assert.equal(classifyTouched(["package.json"]).escalate, true)
   })
 

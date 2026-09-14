@@ -1,4 +1,4 @@
-# 生成物目录与 scripts/lint-ignores.mjs 对齐
+# ESLint / Stylelint / Prettier 共用忽略
 node_modules
 dist
 out
