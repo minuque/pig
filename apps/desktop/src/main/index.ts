@@ -2,7 +2,7 @@ import { access } from "node:fs/promises"
 import { resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import type { ChildProcess } from "node:child_process"
-import { app, dialog, Menu, type BrowserWindow } from "electron"
+import { app, dialog, Menu, screen, type BrowserWindow } from "electron"
 
 import { handlePigProtocol, registerPigScheme } from "./protocol.js"
 import {
@@ -17,6 +17,12 @@ import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
 import { resolveWebRoot } from "./paths.js"
+import {
+  readWindowStateFile,
+  restoreWindowFrame,
+  windowStatePath,
+  writeWindowStateFile,
+} from "./window-state.js"
 
 registerPigScheme()
 
@@ -166,7 +172,14 @@ void app.whenReady().then(async () => {
       handlePigProtocol(httpOrigin, webRoot)
     }
 
-    mainWindow = createMainWindow(preloadPath, isDev ? undefined : httpOrigin)
+    const stateFile = windowStatePath(app.getPath("userData"))
+    const displays = screen.getAllDisplays().map((display) => display.bounds)
+    const frame = restoreWindowFrame(readWindowStateFile(stateFile), displays)
+    mainWindow = createMainWindow(preloadPath, {
+      ...(isDev ? {} : { gatewayOrigin: httpOrigin }),
+      frame,
+      persistState: (state) => writeWindowStateFile(stateFile, state),
+    })
 
     const origin = isDev ? VITE_DEV_ORIGIN : pigAppUrl()
     process.env.PIG_GATEWAY_ORIGIN = origin

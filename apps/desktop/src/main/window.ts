@@ -2,33 +2,82 @@ import { BrowserWindow, nativeTheme, type Input } from "electron"
 
 import { gatewayOriginArg } from "./urls.js"
 import { stripNativeMenu, windowChromeFor } from "./window-chrome.js"
+import {
+  DEFAULT_WINDOW_SIZE,
+  captureWindowState,
+  type WindowFrame,
+  type WindowState,
+} from "./window-state.js"
+
+const SAVE_DEBOUNCE_MS = 300
+
+export type CreateMainWindowOptions = {
+  gatewayOrigin?: string
+  frame?: WindowFrame
+  persistState?: (state: WindowState) => void
+}
 
 /** 创建主窗口：先隐藏，ready-to-show 后再显示。 */
-export function createMainWindow(preloadPath: string, gatewayOrigin?: string): BrowserWindow {
+export function createMainWindow(
+  preloadPath: string,
+  options: CreateMainWindowOptions = {},
+): BrowserWindow {
   const chrome = windowChromeFor(process.platform)
+  const frame = options.frame ?? { ...DEFAULT_WINDOW_SIZE, isMaximized: false }
 
   const window = new BrowserWindow({
     title: "pig",
-    width: 1280,
-    height: 800,
+    width: frame.width,
+    height: frame.height,
+    ...(frame.x !== undefined && frame.y !== undefined ? { x: frame.x, y: frame.y } : {}),
     show: false,
     backgroundColor: nativeTheme.shouldUseDarkColors ? "#121212" : "#ffffff",
     ...chrome,
     webPreferences: {
       ...chrome.webPreferences,
       preload: preloadPath,
-      ...(gatewayOrigin ? { additionalArguments: [gatewayOriginArg(gatewayOrigin)] } : {}),
+      ...(options.gatewayOrigin
+        ? { additionalArguments: [gatewayOriginArg(options.gatewayOrigin)] }
+        : {}),
     },
   })
 
   stripNativeMenu(window)
   stampDesktopPlatform(window)
   attachDevTools(window)
+
+  if (options.persistState) persistWindowState(window, options.persistState)
   window.once("ready-to-show", () => {
+    if (frame.isMaximized) window.maximize()
     window.show()
   })
 
   return window
+}
+
+/** resize/move 节流写入；close 再刷一次。 */
+function persistWindowState(
+  window: BrowserWindow,
+  persistState: (state: WindowState) => void,
+): void {
+  let timer: ReturnType<typeof setTimeout> | undefined
+
+  const flush = (): void => {
+    if (timer !== undefined) clearTimeout(timer)
+    timer = undefined
+
+    if (window.isDestroyed()) return
+    persistState(captureWindowState(window))
+  }
+
+  const schedule = (): void => {
+    if (timer !== undefined) clearTimeout(timer)
+    timer = setTimeout(flush, SAVE_DEBOUNCE_MS)
+  }
+
+  window.on("resize", schedule)
+  window.on("move", schedule)
+  window.on("close", flush)
 }
 
 /** F12 / Ctrl+Shift+I（macOS 为 Cmd+Option+I）开关 DevTools。 */
