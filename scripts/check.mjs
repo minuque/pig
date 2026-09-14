@@ -14,8 +14,10 @@ const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
 
 const CHECK_STEPS = [
-  { name: "format", args: ["format:check"] },
-  { name: "lint", args: ["lint"] },
+  { name: "format", args: ["exec", "prettier", "--check", "."] },
+  { name: "eslint", args: ["exec", "eslint", "."] },
+  { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
+  { name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] },
   { name: "typecheck", args: ["typecheck"] },
   { name: "test", args: ["test"] },
   { name: "design-tokens", args: ["check:design-tokens"] },
@@ -117,7 +119,7 @@ async function checkTouched(scope, files) {
   }
 
   if (scope.lintFiles.length) {
-    steps.push({ name: "lint", args: ["exec", "eslint", ...scope.lintFiles] })
+    steps.push({ name: "eslint", args: ["exec", "eslint", ...scope.lintFiles] })
   }
 
   if (scope.stylelintFiles.length) {
