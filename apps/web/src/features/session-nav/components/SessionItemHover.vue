@@ -1,14 +1,14 @@
 <template>
   <Popover :open="open">
     <PopoverAnchor as-child>
-      <div class="hover-anchor" @pointerenter="onEnter" @pointerleave="onLeave">
+      <div ref="anchor" class="hover-anchor" @pointerenter="onEnter" @pointerleave="onLeave">
         <slot />
       </div>
     </PopoverAnchor>
 
     <PopoverContent
       side="right"
-      align="center"
+      align="start"
       @open-auto-focus.prevent
       @pointerenter="onEnter"
       @pointerleave="onLeave"
@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref, watch } from "vue"
+import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue"
 import { Popover, PopoverAnchor, PopoverContent } from "@components/ui/popover/index.js"
 
 const props = defineProps<{
@@ -37,6 +37,8 @@ let openTimer: ReturnType<typeof setTimeout> | undefined
 let closeTimer: ReturnType<typeof setTimeout> | undefined
 
 let hideActive: (() => void) | undefined
+
+const anchor = useTemplateRef<HTMLElement>("anchor")
 
 function canHover() {
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches
@@ -84,6 +86,13 @@ function onEnter() {
   }, OPEN_MS)
 }
 
+function onCardActivate(event: Event) {
+  const target = event.target
+
+  if (!(target instanceof Element) || !target.closest(".session-card")) return
+  hide()
+}
+
 function onLeave() {
   if (openTimer !== undefined) clearTimeout(openTimer)
   openTimer = undefined
@@ -104,7 +113,14 @@ watch(
   },
 )
 
-onUnmounted(hide)
+onMounted(() => {
+  anchor.value?.addEventListener("pointerdown", onCardActivate, true)
+})
+
+onUnmounted(() => {
+  anchor.value?.removeEventListener("pointerdown", onCardActivate, true)
+  hide()
+})
 </script>
 
 <style scoped>
