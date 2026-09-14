@@ -31,7 +31,6 @@ export function useVoiceInput(prompt: Ref<string>) {
 
     if (!Constructor) {
       message.value = "当前浏览器不支持语音输入，请使用键盘输入。"
-
       return
     }
 
@@ -75,6 +74,5 @@ export function useVoiceInput(prompt: Ref<string>) {
   }
 
   onScopeDispose(cancel)
-
   return { active, message, start, stop, cancel }
 }

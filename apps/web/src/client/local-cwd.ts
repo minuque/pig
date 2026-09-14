@@ -17,7 +17,6 @@ export type WorkspaceStorage = Pick<Storage, "getItem" | "setItem">
 // 规范化逻辑（分隔符/大小写/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizeWorkspacePath(path: string): string {
   const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "")
-
   return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
 }
 
@@ -45,7 +44,6 @@ export function parseLocalWorkspaces(json: string | null): string[] {
     const value: unknown = JSON.parse(json)
 
     if (!Array.isArray(value)) return []
-
     return uniqueCanonicalPaths(
       value.filter((item): item is string => typeof item === "string" && item.length > 0),
     )

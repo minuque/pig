@@ -117,7 +117,6 @@ function nextWelcomeWorkspaceId(
   if (items.includes(current ?? "")) return current
 
   if (lastCwd !== undefined && items.includes(lastCwd)) return lastCwd
-
   return items[0]
 }
 
@@ -164,7 +163,6 @@ const showHero = computed(() => {
   if (sessionId.value === undefined) return true
 
   if (sessionPending.value && !creating.value) return false
-
   return true
 })
 
@@ -174,7 +172,6 @@ const showLoading = computed(() => {
   if (!sessionId.value || creating.value) return false
 
   if (transcript.value.length === 0) return sessionPending.value
-
   return !firstTextPainted.value
 })
 

@@ -113,10 +113,8 @@ export function useWorkspaceNav(
     const titles = titleById.value
 
     if (Object.keys(titles).length === 0) return [...list]
-
     return list.map((session) => {
       const sessionName = titles[session.id]
-
       return sessionName === undefined ? session : { ...session, sessionName }
     })
   }
@@ -164,7 +162,6 @@ export function useWorkspaceNav(
         canonicalPath: group.canonicalPath,
         sessions: group.sessions.filter((session) => ids.has(session.id)),
       }))
-
       return sidebarRows({
         grouping: grouping.value,
         sessions: sessionList,
@@ -213,7 +210,6 @@ export function useWorkspaceNav(
       delete next[id]
       titleById.value = next
       error.value = errorMessage(cause)
-
       return
     }
 

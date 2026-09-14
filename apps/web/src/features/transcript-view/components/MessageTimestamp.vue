@@ -53,7 +53,6 @@ const clock = computed(() => {
   if (!valid.value) return ""
   const now = new Date()
   const sameDay = date.value.toDateString() === now.toDateString()
-
   return new Intl.DateTimeFormat(
     "zh-CN",
     sameDay

@@ -7,7 +7,6 @@ let installed: Dispatcher | undefined
 
 function noProxy(): string {
   const fromEnv = process.env.NO_PROXY ?? process.env.no_proxy ?? ""
-
   return [fromEnv, LOOPBACK_NO_PROXY].filter((item) => item.length > 0).join(",")
 }
 

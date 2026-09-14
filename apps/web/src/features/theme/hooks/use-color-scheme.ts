@@ -26,7 +26,6 @@ export function useColorScheme() {
 
     if (typeof document === "undefined") {
       setScheme(next)
-
       return
     }
 
@@ -45,7 +44,6 @@ export function useColorScheme() {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
       void updateTheme()
-
       return
     }
 

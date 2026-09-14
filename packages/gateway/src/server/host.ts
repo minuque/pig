@@ -68,7 +68,6 @@ export class Gateway {
 
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
       throw new Error("invalid body")
-
     return parsed as Record<string, unknown>
   }
 
@@ -109,7 +108,6 @@ export class Gateway {
     installProviderHttp()
     await this.hostService.warm()
     await this.piServer.start()
-
     return new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject)
       this.server.listen(this.listenPort, "127.0.0.1", () => {
@@ -118,7 +116,6 @@ export class Gateway {
 
         if (!address || typeof address === "string" || address.port === 0) {
           reject(new Error("Gateway HTTP server has no TCP port"))
-
           return
         }
 

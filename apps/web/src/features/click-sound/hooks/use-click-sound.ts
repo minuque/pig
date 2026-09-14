@@ -51,7 +51,6 @@ function envelope(ctx: AudioContext, peak: number, attack: number, decay: number
   gain.gain.setValueAtTime(0.0001, now)
   gain.gain.exponentialRampToValueAtTime(peak * MASTER, now + attack)
   gain.gain.exponentialRampToValueAtTime(0.0001, now + attack + decay)
-
   return gain
 }
 
@@ -63,7 +62,6 @@ function plug(
 ): void {
   if (!filter) {
     node.connect(gain).connect(ctx.destination)
-
     return
   }
 
@@ -126,7 +124,6 @@ function emit(audio: AudioContext, cue: Cue): void {
     case "press":
       noise(audio, 0.02, 0.0003, 0.009, 0.13, { type: "highpass", frequency: 2400 })
       tone(audio, "sine", 680, 0.0006, 0.03, 0.24)
-
       return
     case "tick":
       tone(audio, "square", 2100, 0.0004, 0.028, 0.24, {
@@ -134,15 +131,12 @@ function emit(audio: AudioContext, cue: Cue): void {
         frequency: 2600,
         Q: 1.6,
       })
-
       return
     case "release":
       noise(audio, 0.06, 0.001, 0.055, 0.32, { type: "lowpass", frequency: 1600, Q: 0.9 })
-
       return
     case "page":
       tone(audio, "sine", { start: 430, end: 640 }, 0.002, 0.14, 0.4)
-
       return
     case "pulse":
       tone(audio, "sine", 330, 0.002, 0.17, 0.5, { type: "lowpass", frequency: 2200 })
@@ -189,7 +183,6 @@ function cueFor(element: Element): Cue {
   if (PRIMARY.test(label)) return "pulse"
 
   if (element.matches("input, textarea")) return "tick"
-
   return "press"
 }
 
@@ -228,6 +221,5 @@ export function useClickSound() {
   load()
   onMounted(bind)
   onUnmounted(unbind)
-
   return { enabled: readonly(enabled), toggle }
 }

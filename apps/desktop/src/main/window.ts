@@ -51,7 +51,6 @@ export function createMainWindow(
     if (frame.isMaximized) window.maximize()
     window.show()
   })
-
   return window
 }
 
@@ -97,7 +96,6 @@ function isToggleDevToolsShortcut(input: Input): boolean {
   if (input.key.toLowerCase() !== "i") return false
 
   if (process.platform === "darwin") return Boolean(input.meta && input.alt && !input.control)
-
   return Boolean(input.control && input.shift && !input.meta)
 }
 

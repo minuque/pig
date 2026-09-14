@@ -11,6 +11,5 @@ export function resolveWebRoot(
   if (isDev) return undefined
 
   if (isPackaged) return join(resourcesPath, "web")
-
   return fileURLToPath(new URL("../../../web/dist", moduleUrl))
 }

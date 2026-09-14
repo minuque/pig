@@ -32,6 +32,5 @@ export function useSessionCards(connected: MaybeRefOrGetter<boolean>) {
     },
     { immediate: true },
   )
-
   return { sessionCards, loadSessionCards }
 }

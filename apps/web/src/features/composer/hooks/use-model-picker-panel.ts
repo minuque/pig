@@ -5,7 +5,6 @@ function eventElement(target: EventTarget | null): Element | null {
   if (target instanceof Element) return target
 
   if (target instanceof Node) return target.parentElement
-
   return null
 }
 
@@ -13,7 +12,6 @@ function eventElement(target: EventTarget | null): Element | null {
 function isEffortMenuEvent(event: Event): boolean {
   const detail = (event as CustomEvent<{ originalEvent?: Event }>).detail
   const el = eventElement(detail?.originalEvent?.target ?? event.target)
-
   return Boolean(el?.closest("[data-model-effort-menu]"))
 }
 
@@ -69,7 +67,6 @@ export function useModelPickerPanel(
   function onPointerDownOutside(event: Event) {
     if (isEffortMenuEvent(event)) {
       event.preventDefault()
-
       return
     }
 

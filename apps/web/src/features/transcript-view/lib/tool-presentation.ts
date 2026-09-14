@@ -73,7 +73,6 @@ export function readToolPreview(input: unknown, output: string) {
   const path = toolPath(input)
   const language = fileLanguage(path)
   const extension = pathBasename(path).split(".").pop()?.toLowerCase() ?? ""
-
   return {
     code,
     lines: code ? code.split(/\r?\n/) : [],
@@ -87,7 +86,6 @@ export function readToolPreview(input: unknown, output: string) {
 
 export function fileLanguage(path: string): SupportedLanguages {
   const extension = pathBasename(path).split(".").pop()?.toLowerCase() ?? ""
-
   return FILE_LANGUAGES[extension] ?? "text"
 }
 

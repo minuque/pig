@@ -15,7 +15,6 @@ function electronExecutable(): string {
 
   if (typeof value !== "string" || value.length === 0)
     throw new Error("未解析到 Electron 可执行文件")
-
   return value
 }
 
@@ -27,7 +26,6 @@ function electronPackageVersion(): string {
   const version: unknown = Reflect.get(value, "version")
 
   if (typeof version !== "string" || version.length === 0) throw new Error("Electron 包版本无效")
-
   return version
 }
 
@@ -62,7 +60,6 @@ export async function createWebHarness(options: {
   workspaceId: string
 }): Promise<BenchHarness> {
   const browser: Browser = await chromium.launch({ headless: !options.headed })
-
   return {
     runtime: "web",
     runtimeLabel: `chromium ${browser.version()}`,
@@ -70,7 +67,6 @@ export async function createWebHarness(options: {
       const context = await newBenchContext(browser)
       const page = await context.newPage()
       await prepareBenchPage(page, options.workspaceId, observers)
-
       return {
         page,
         origin: options.origin,
@@ -91,7 +87,6 @@ export async function createDesktopHarness(options: {
   sessionDir: string
 }): Promise<BenchHarness> {
   let runtimeLabel = `electron ${electronPackageVersion()}`
-
   return {
     runtime: "desktop",
     get runtimeLabel() {
@@ -138,7 +133,6 @@ export async function createDesktopHarness(options: {
 
         runtimeLabel = `electron ${versions.electron} chromium ${versions.chrome}`
         await prepareBenchPage(page, options.workspaceId, observers, { reducedMotion: false })
-
         return { page, origin, close: dispose }
       } catch (error) {
         await dispose()

@@ -53,7 +53,6 @@ function addAssistant(rows: TimelineRow[], item: AssistantRow) {
 
   if (!item.text && item.error && last?.role === "assistant" && last.error && !last.text) {
     Object.assign(last, { ...item, retryCount: (last.retryCount ?? 1) + 1 })
-
     return
   }
 
@@ -227,7 +226,6 @@ function markLastAssistantTimestamp(rows: TimelineRow[], start: number) {
 
     if (row?.role === "assistant") {
       row.showTimestamp = true
-
       return
     }
   }
@@ -237,7 +235,6 @@ export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt):
   if (step.streaming) return "思考中"
 
   const seconds = Math.max(1, Math.round(((completedAt ?? step.startedAt) - step.startedAt) / 1000))
-
   return `思考了 ${seconds}秒`
 }
 
@@ -259,7 +256,6 @@ export function buildTimelineRows(
   }
 
   if (user || rest.length || running) appendTurn({ rows, user, rest, live: running, timings })
-
   return rows
 }
 
@@ -267,10 +263,8 @@ function sameImages(left: readonly TranscriptImage[], right: readonly Transcript
   if (left === right) return true
 
   if (left.length !== right.length) return false
-
   return left.every((image, index) => {
     const other = right[index]
-
     return other != null && image.data === other.data && image.mimeType === other.mimeType
   })
 }
@@ -279,7 +273,6 @@ function sameTiming(left: TurnTiming | undefined, right: TurnTiming | undefined)
   if (left === right) return true
 
   if (!left || !right) return false
-
   return (
     left.userId === right.userId &&
     left.startedAt === right.startedAt &&
@@ -341,10 +334,8 @@ function sameToolRow(left: ToolRow, right: ToolRow) {
     if (step.type !== "tools" || other.type !== "tools") return false
 
     if (step.key !== other.key || step.items.length !== other.items.length) return false
-
     return step.items.every((item, itemIndex) => {
       const nextItem = other.items[itemIndex]
-
       return (
         nextItem != null &&
         item.id === nextItem.id &&
@@ -364,7 +355,6 @@ function sameRow(left: TimelineRow, right: TimelineRow) {
   if (left.role === "assistant" && right.role === "assistant") return sameAssistantRow(left, right)
 
   if (left.role === "tools" && right.role === "tools") return sameToolRow(left, right)
-
   return false
 }
 
@@ -382,10 +372,8 @@ export function reuseTimelineRows(
     const reused = prev && sameRow(prev, row) ? prev : row
 
     if (reused !== previous[index]) changed = true
-
     return reused
   })
-
   return changed ? rows : (previous as TimelineRow[])
 }
 
@@ -432,7 +420,6 @@ export function toolRowLabelParts(row: ToolRow): ToolRowLabelPart[] {
       : [{ kind: "text", text: "已停止" }]
 
   if (parts.length) return parts
-
   return [{ kind: "text", text: row.mode === "live" ? "执行中" : "执行过程" }]
 }
 

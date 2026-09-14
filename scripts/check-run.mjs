@@ -4,7 +4,6 @@ function spawnPnpm(args, cwd, env) {
   const pnpmJs = process.env.npm_execpath
 
   if (pnpmJs) return spawn(process.execPath, [pnpmJs, ...args], { cwd, windowsHide: true, env })
-
   return spawn(process.platform === "win32" ? "pnpm.cmd" : "pnpm", args, {
     cwd,
     windowsHide: true,
@@ -57,7 +56,6 @@ export function reportResults(title, results) {
   if (failed.length) {
     console.error(`${title} failed: ${failed.join(", ")}`)
     process.exitCode = 1
-
     return
   }
 

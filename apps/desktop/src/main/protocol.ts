@@ -54,7 +54,6 @@ async function proxyPigRequest(
   if (!parsed) return notFound()
 
   if (isPigApiPath(parsed.pathname)) return proxyGateway(request, httpOrigin)
-
   return serveWebFile(webRoot, parsed.pathname, httpOrigin)
 }
 
@@ -65,7 +64,6 @@ async function proxyGateway(request: Request, httpOrigin: string): Promise<Respo
 
   try {
     const response = await net.fetch(target.href, fetchInit(request))
-
     return withCors(response)
   } catch {
     return new Response("Bad Gateway", { status: 502, headers: pigCorsHeaders(new Headers()) })
@@ -83,7 +81,6 @@ async function serveWebFile(
 
   try {
     await access(file)
-
     return sendFile(file, httpOrigin)
   } catch {
     const fallback = pigSpaFallback(webRoot, pathname)
@@ -92,7 +89,6 @@ async function serveWebFile(
 
     try {
       await access(fallback)
-
       return sendFile(fallback, httpOrigin)
     } catch {
       return notFound()
@@ -103,7 +99,6 @@ async function serveWebFile(
 async function sendFile(file: string, httpOrigin: string): Promise<Response> {
   if (extname(file).toLowerCase() === ".html") {
     const response = await net.fetch(pathToFileURL(file).href)
-
     return stampHtmlResponse(response, httpOrigin)
   }
 
@@ -155,7 +150,6 @@ async function stampHtmlResponse(response: Response, httpOrigin: string): Promis
   const headers = pigCorsHeaders(response.headers)
   headers.delete("content-length")
   headers.set("content-type", "text/html; charset=utf-8")
-
   return new Response(injectGatewayOrigin(html, httpOrigin), {
     status: response.status,
     statusText: response.statusText,

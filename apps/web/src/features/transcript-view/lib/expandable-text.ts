@@ -34,7 +34,6 @@ export function visibleLineRange(
   const first = Math.max(0, Math.floor(Math.max(0, scrollTop) / lineHeight))
   const start = Math.max(0, first - overscan)
   const end = Math.min(totalLines, first + viewportLines + overscan)
-
   return { start, end }
 }
 

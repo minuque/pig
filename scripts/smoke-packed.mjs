@@ -21,7 +21,6 @@ const run = (command, args, cwd = root, capture = false) => {
 
   if (result.status)
     throw new Error(`${command} failed${result.stderr ? `: ${result.stderr}` : ""}`)
-
   return result.stdout ?? ""
 }
 

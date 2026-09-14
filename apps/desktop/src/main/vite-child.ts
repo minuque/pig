@@ -14,7 +14,6 @@ const ANSI_RE = /\u001B\[[\d;?]*[ -/]*[@-~]|\u001B\][^\u0007]*(?:\u0007|\u001B\\
  */
 export function prepareInheritedConsoleChunk(raw: string | Buffer): string {
   const text = typeof raw === "string" ? raw : raw.toString("utf8")
-
   return text.replace(ANSI_RE, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n")
 }
 
@@ -45,7 +44,6 @@ export function nodeExecutable(env: NodeJS.ProcessEnv = process.env): string {
   const node = env.npm_node_execpath
 
   if (!node) throw new Error("未找到 Node 可执行文件（缺少 npm_node_execpath）")
-
   return node
 }
 
@@ -53,7 +51,6 @@ export function pnpmExecutable(env: NodeJS.ProcessEnv = process.env): string {
   const pnpm = env.npm_execpath
 
   if (!pnpm) throw new Error("未找到 pnpm 可执行文件（缺少 npm_execpath）")
-
   return pnpm
 }
 
@@ -75,13 +72,11 @@ export function spawnVite(env: { GATEWAY_TARGET: string }): ChildProcess {
   })
 
   if (windows) attachWindowsConsole(child)
-
   return child
 }
 
 function viteDevPort(): number {
   const port = Number(new URL(VITE_DEV_ORIGIN).port)
-
   return Number.isSafeInteger(port) && port > 0 ? port : 5173
 }
 
@@ -121,7 +116,6 @@ function listListeningPids(port: number): number[] {
   const lsof = spawnSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-t"], {
     encoding: "utf8",
   })
-
   return parsePids(lsof.stdout)
 }
 
@@ -131,7 +125,6 @@ function killPidTree(pid: number): void {
       stdio: "ignore",
       windowsHide: true,
     })
-
     return
   }
 
@@ -168,7 +161,6 @@ export async function waitForHttp(url: string, timeoutMs = 60_000): Promise<void
   for (;;) {
     try {
       await fetch(url)
-
       return
     } catch {
       // 尚未监听

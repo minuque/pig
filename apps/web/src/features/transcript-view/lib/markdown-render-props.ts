@@ -29,7 +29,6 @@ export function chatMarkdownProps(input: {
   isDark: boolean
 }): NodeRendererProps {
   const streaming = input.streaming
-
   return {
     customId: "chat",
     mode: "chat",
@@ -62,7 +61,6 @@ export function plainMarkdownProps(input: {
   isDark: boolean
 }): NodeRendererProps {
   const streaming = Boolean(input.streaming)
-
   return {
     customId: "chat",
     mode: "minimal",

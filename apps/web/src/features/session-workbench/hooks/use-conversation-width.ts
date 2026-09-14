@@ -10,13 +10,11 @@ const CONTENT_EDGE_BUDGET = 176 // 每侧 88px
 function parseContentWidth(raw: string | null): number | null {
   if (raw == null || raw.trim() === "") return null
   const n = Number(raw)
-
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
 function resolveContentWidth(columnWidth: number, preference: number): number {
   const max = Math.max(CONTENT_DRAG_MIN, columnWidth - CONTENT_EDGE_BUDGET)
-
   return Math.min(Math.max(preference, CONTENT_DRAG_MIN), max)
 }
 
@@ -70,7 +68,6 @@ export function useConversationWidth(): {
 
     if (preference === null) {
       root.style.removeProperty("--chat-user-width")
-
       return
     }
 
@@ -85,7 +82,6 @@ export function useConversationWidth(): {
     if (active) {
       sidebarFrozen = true
       root.style.setProperty("--chat-user-width", `${snapshotWidth()}px`)
-
       return
     }
 
@@ -100,7 +96,6 @@ export function useConversationWidth(): {
     if (!(el instanceof HTMLElement)) {
       rootEl.value = null
       lastColumnWidth = 0
-
       return
     }
 
@@ -118,7 +113,6 @@ export function useConversationWidth(): {
 
   function readDisplayedWidth(root: HTMLElement): number {
     const n = Number.parseFloat(getComputedStyle(root).getPropertyValue("--size-content"))
-
     return Number.isFinite(n) && n > 0 ? n : CONTENT_DRAG_MIN
   }
 
@@ -126,7 +120,6 @@ export function useConversationWidth(): {
     const root = rootEl.value
 
     if (!root) return CONTENT_DRAG_MIN
-
     return resolveContentWidth(root.offsetWidth, readPreference() ?? readDisplayedWidth(root))
   }
 
@@ -174,7 +167,6 @@ export function useConversationWidth(): {
   onBeforeUnmount(() => {
     observer?.disconnect()
   })
-
   return {
     resizing,
     bindColumn,

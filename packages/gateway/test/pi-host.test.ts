@@ -46,7 +46,6 @@ class FakeAgentSession {
   }
   subscribe(listener: (event: AgentSessionEvent) => void) {
     this.listeners.add(listener)
-
     return () => this.listeners.delete(listener)
   }
   async prompt(text: string) {
@@ -324,11 +323,9 @@ describe("PiHostService", () => {
 
         if (options.model) fake.model = options.model as { provider: string; id: string }
         sessions.set(fake.sessionId, fake)
-
         return { session: fake as unknown as AgentSession }
       }) as never,
     })
-
     return { dir, service, sessions }
   }
 

@@ -27,7 +27,6 @@ function stampedGatewayOrigin(): string | undefined {
     const url = new URL(value)
 
     if (url.protocol !== "http:" || url.hostname !== "127.0.0.1") return undefined
-
     return url.origin
   } catch {
     return undefined
@@ -55,7 +54,6 @@ export function webSocketUrl(base?: string | URL): string {
   }
 
   url.protocol = url.protocol === "https:" || url.protocol === "wss:" ? "wss:" : "ws:"
-
   return url.href
 }
 
@@ -120,7 +118,6 @@ export function createWebSocketByteTransportFactory(
         // 协议错误：立即终态并主动关闭底层 socket
         fail(new Error("意外收到文本消息，PiServer 应以二进制帧通信"))
         socket.close()
-
         return
       }
 
@@ -130,7 +127,6 @@ export function createWebSocketByteTransportFactory(
       if (event.wasClean && event.code === 1000) finish()
       else fail(new Error(`WebSocket 关闭（code=${event.code}）`))
     })
-
     return {
       async send(chunk: Uint8Array) {
         await openPromise

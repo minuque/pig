@@ -156,7 +156,6 @@ const deleteOpen = shallowRef(false)
 
 const preview = computed(() => {
   const foot = cardFootById.value.get(props.session.id)
-
   return {
     title: props.session.title,
     ...(foot?.model ? { model: foot.model } : {}),
@@ -178,7 +177,6 @@ const stateLabel = computed(() => {
   if (props.state === "unread") return "运行完成但未打开"
 
   if (props.state === "error") return "运行失败"
-
   return undefined
 })
 
@@ -194,7 +192,6 @@ function onCardClick(event: MouseEvent) {
   if (menuOpen.value || renaming.value) {
     event.preventDefault()
     event.stopPropagation()
-
     return
   }
 

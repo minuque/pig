@@ -36,7 +36,6 @@ export function transcriptImages(item: TranscriptItem): TranscriptImageBlock[] {
 
 export function transcriptImageSrc(data: string, mimeType: string): string {
   if (data.startsWith("data:")) return data
-
   return `data:${mimeType};base64,${data}`
 }
 
@@ -45,7 +44,6 @@ export function isVisibleTranscriptItem(item: TranscriptItem): boolean {
   if (isUserItem(item)) return transcriptText(item).length > 0 || transcriptImages(item).length > 0
 
   if (isAssistantItem(item)) return transcriptText(item).length > 0
-
   return true
 }
 
@@ -86,7 +84,6 @@ function hasToolInput(input: unknown): boolean {
   if (Array.isArray(input)) return input.length > 0
 
   if (isRecord(input)) return Object.keys(input).length > 0
-
   return true
 }
 
@@ -122,7 +119,6 @@ export function toolInputHint(input: unknown): string {
   }
 
   const compact = jsonText(input)
-
   return compact === "{}" || compact === "[]" || compact === "null" ? "" : compact
 }
 
@@ -151,7 +147,6 @@ export function toolCallDetail(toolName: string, input: unknown): string {
 
   if (isCommandTool(name)) {
     const description = hintFromKeys(input, ["description"])
-
     return description || toolCommand(input)
   }
 

@@ -139,7 +139,6 @@ export async function seedWorkspace(page: Page, workspaceId: string) {
 /** tsx keepNames 会给函数包 __name，Playwright 把源码 eval 进页面后会找不到。 */
 function withNameShim(fn: unknown): unknown {
   if (typeof fn !== "function") return fn
-
   return new Function(
     "...args",
     `const __name = (f) => f;\nreturn (${fn.toString()}).apply(null, args);`,
@@ -224,14 +223,12 @@ export async function waitForLatestInViewport(page: Page) {
     if (!viewport || !latest || !composer || composer.readOnly || composer.disabled) return false
     const viewportBox = viewport.getBoundingClientRect()
     const latestBox = latest.getBoundingClientRect()
-
     return latestBox.bottom > viewportBox.top && latestBox.top < viewportBox.bottom
   })
 }
 
 export async function readPaint(page: Page): Promise<{ fcp: number; lcp: number; now: number }> {
   await nextPaint(page)
-
   return page.evaluate(() => {
     const bench = (window as unknown as { __pigBench: PageBench }).__pigBench
     const paints = performance.getEntriesByType("paint")
@@ -242,7 +239,6 @@ export async function readPaint(page: Page): Promise<{ fcp: number; lcp: number;
     const lcp = bench.lcp || lcpFallback || 0
 
     if (!fcp || !lcp) throw new Error("未采集到 FCP/LCP，不能生成启动结果")
-
     return { fcp, lcp, now: performance.now() }
   })
 }
@@ -275,7 +271,6 @@ export async function keyToNextFrame(page: Page): Promise<number> {
     null,
     { timeout: 5_000 },
   )
-
   return page.evaluate(() => (window as unknown as { __pigK2f: number }).__pigK2f)
 }
 
@@ -287,7 +282,6 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   })
   await clickSessionCard(page, name)
   await waitForSession(page, name)
-
   return page.evaluate(
     () =>
       new Promise<number>((resolve) => {
@@ -343,12 +337,10 @@ async function endScrollWorstFrame(page: Page): Promise<number> {
     const frames = slot.__pigScrollFrames.filter((ms) => ms < 1_000)
 
     if (frames.length === 0) throw new Error("滚动期间未采到动画帧")
-
     return frames.reduce((max, ms) => Math.max(max, ms), 0)
   })
 
   if (!(worst > 0)) throw new Error("滚动最差帧无效")
-
   return worst
 }
 
@@ -372,7 +364,6 @@ async function scrollOverflowWorstFrame(
       for (let step = 0; step < 40; step += 1) {
         const remaining = await root.evaluate((node, dir) => {
           if (dir < 0) return node.scrollTop
-
           return node.scrollHeight - node.clientHeight - node.scrollTop
         }, direction)
 
@@ -393,7 +384,6 @@ async function scrollOverflowWorstFrame(
           const node = document.querySelector(sel)
 
           if (!node) return false
-
           return dir < 0
             ? node.scrollTop <= 1
             : node.scrollHeight - node.clientHeight - node.scrollTop <= 1
@@ -418,7 +408,6 @@ async function loadAllTranscriptPages(page: Page, name: BenchSessionName, pages:
   for (let pageIndex = 0; pageIndex < pages && (await firstPrompt.count()) === 0; pageIndex += 1) {
     await page.waitForFunction(() => {
       const button = document.querySelector<HTMLButtonElement>(".older-busy")
-
       return button == null || !button.disabled
     })
 
@@ -434,7 +423,6 @@ async function loadAllTranscriptPages(page: Page, name: BenchSessionName, pages:
     await page.waitForFunction(
       (count) => {
         const button = document.querySelector<HTMLButtonElement>(".older-busy")
-
         return (
           document.querySelectorAll(".row-user").length > count &&
           (button == null || !button.disabled)
@@ -459,14 +447,12 @@ export async function scrollTranscript(page: Page, name: BenchSessionName): Prom
     turns,
     { timeout: WORKBENCH_TIMEOUT_MS },
   )
-
   return scrollOverflowWorstFrame(page, ".transcript-viewport", "长会话未产生可滚动内容")
 }
 
 /** 展开侧栏全部会话后滚到顶再到底，返回最差动画帧。 */
 export async function scrollSessionList(page: Page): Promise<number> {
   await revealAllSessionCards(page)
-
   return scrollOverflowWorstFrame(page, ".nav-body", "侧栏未产生可滚动内容")
 }
 
@@ -488,7 +474,6 @@ export function quantile(values: readonly number[], q: number): number {
 
   if (low === high) return lowValue
   const highValue = sorted[high] ?? lowValue
-
   return lowValue + (highValue - lowValue) * (index - low)
 }
 

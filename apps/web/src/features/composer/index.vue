@@ -191,19 +191,16 @@ function send() {
 function onPrimaryAction() {
   if (props.running) {
     if (!props.aborting) emit("abort")
-
     return
   }
 
   if (voiceActive.value) {
     stopVoice()
-
     return
   }
 
   if (showVoice.value) {
     startVoice()
-
     return
   }
 

@@ -20,37 +20,31 @@ export async function handlePlatformRequest(
 ): Promise<boolean> {
   if (url.pathname === "/api/v1/platform/select-directory" && req.method === "POST") {
     await handleSelectDirectory(req, res, deps)
-
     return true
   }
 
   if (url.pathname === "/api/v1/platform/session-cards" && req.method === "GET") {
     await handleSessionCards(res, deps)
-
     return true
   }
 
   if (url.pathname === "/api/v1/platform/context-usage" && req.method === "GET") {
     await handleContextUsage(res, url, deps)
-
     return true
   }
 
   if (url.pathname === "/api/v1/platform/transcript" && req.method === "GET") {
     await handleTranscript(res, url, deps)
-
     return true
   }
 
   if (url.pathname === "/api/v1/platform/rename-session" && req.method === "POST") {
     await handleRenameSession(req, res, deps)
-
     return true
   }
 
   if (url.pathname === "/api/v1/platform/delete-session" && req.method === "POST") {
     await handleDeleteSession(req, res, deps)
-
     return true
   }
 
@@ -70,7 +64,6 @@ async function handleSelectDirectory(
 
     if (platformPort.requiresManualInput && !input) {
       send(res, 200, { path: null, requiresManualInput: true })
-
       return
     }
 
@@ -103,7 +96,6 @@ async function handleTranscript(res: ServerResponse, url: URL, deps: PlatformReq
 
   if (!sessionId) {
     send(res, 400, { code: "INVALID_REQUEST" })
-
     return
   }
 
@@ -124,7 +116,6 @@ async function handleContextUsage(res: ServerResponse, url: URL, deps: PlatformR
 
     if (!sessionId) {
       send(res, 400, { code: "INVALID_REQUEST" })
-
       return
     }
 
@@ -132,7 +123,6 @@ async function handleContextUsage(res: ServerResponse, url: URL, deps: PlatformR
 
     if (previewParam && !isContextPreviewKey(previewParam)) {
       send(res, 400, { code: "INVALID_REQUEST" })
-
       return
     }
 
@@ -157,7 +147,6 @@ async function readObjectBody(
     return await deps.body(req)
   } catch {
     deps.send(res, 400, { code: "INVALID_REQUEST" })
-
     return undefined
   }
 }
@@ -170,13 +159,11 @@ function sendSessionWriteError(
 ) {
   if (error instanceof SessionNotFoundError) {
     send(res, 404, { code: "NOT_FOUND" })
-
     return
   }
 
   if (error instanceof PiServerError && error.code === "invalid_request") {
     send(res, 400, { code: "INVALID_REQUEST" })
-
     return
   }
 
@@ -198,7 +185,6 @@ async function handleRenameSession(
 
   if (!id) {
     send(res, 400, { code: "INVALID_REQUEST" })
-
     return
   }
 
@@ -225,7 +211,6 @@ async function handleDeleteSession(
 
   if (!id) {
     send(res, 400, { code: "INVALID_REQUEST" })
-
     return
   }
 

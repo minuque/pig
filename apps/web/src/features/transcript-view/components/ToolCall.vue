@@ -133,7 +133,6 @@ function fileDetailIcon(detail: ToolSummaryDetail | null): string {
   const language = fileLanguage(detail.path)
 
   if (language === "text") return ""
-
   return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(language))}`
 }
 
@@ -185,7 +184,6 @@ function callStatus(item: ToolCallView) {
   if (item.isError) return { status: "error" as const, statusLabel: "执行失败" }
 
   if (item.running) return { status: "running" as const, statusLabel: "正在执行" }
-
   return { status: "success" as const, statusLabel: "执行完成" }
 }
 
@@ -258,7 +256,6 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
   }
 
   const heading = toolInputHint(item.input) || item.toolName
-
   return {
     item,
     expandable: hasBody(item),
@@ -306,7 +303,6 @@ watch(
 
 const label = computed(() => {
   if (thought.value) return thoughtStepLabel(thought.value, liveThoughtEndedAt.value)
-
   return toolSummary(group.value?.items ?? [])
 })
 
@@ -334,7 +330,6 @@ const icon = computed(() => {
       return Wrench
     default: {
       const _exhaustive: never = key
-
       return _exhaustive
     }
   }
@@ -342,7 +337,6 @@ const icon = computed(() => {
 
 const calls = computed(() => {
   if (!group.value) return []
-
   return group.value.items.map((item) => presentCall(item, open.value))
 })
 

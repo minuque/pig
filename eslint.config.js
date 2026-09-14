@@ -124,12 +124,15 @@ export default defineConfig(
           next: "*",
         },
 
-        // 控制流前；短函数里 return 前不强制空行
+        // 控制流前
         {
           blankLine: "always",
           prev: "*",
           next: ["if", "switch", "try", "for", "while", "do"],
         },
+
+        // return 前不空行；下一条块后规则盖住 if/for 块后面的 return
+        { blankLine: "never", prev: "*", next: "return" },
 
         // 块状语句后
         { blankLine: "always", prev: "block-like", next: "*" },

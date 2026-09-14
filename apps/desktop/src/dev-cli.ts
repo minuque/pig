@@ -27,7 +27,6 @@ function killPidTree(pid: number): void {
       stdio: "ignore",
       windowsHide: true,
     })
-
     return
   }
 

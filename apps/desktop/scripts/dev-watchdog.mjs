@@ -11,7 +11,6 @@ function alive(pid) {
 
   try {
     process.kill(pid, 0)
-
     return true
   } catch {
     return false
@@ -58,7 +57,6 @@ function listeningPids(listenPort) {
   const lsof = spawnSync("lsof", ["-nP", `-iTCP:${listenPort}`, "-sTCP:LISTEN", "-t"], {
     encoding: "utf8",
   })
-
   return parsePids(lsof.stdout)
 }
 
@@ -68,7 +66,6 @@ function killPidTree(pid) {
       stdio: "ignore",
       windowsHide: true,
     })
-
     return
   }
 

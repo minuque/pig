@@ -95,6 +95,5 @@ export function useComposerBinding(options: ComposerBindingOptions) {
     },
     { immediate: true },
   )
-
   return { preset }
 }

@@ -87,7 +87,6 @@ function createNav(
 
     return feet
   })
-
   return {
     groups: nav.groups,
     workspaces: nav.workspaces,
@@ -125,7 +124,6 @@ export function provideNav(
 ) {
   const nav = createNav(pi, cwd, session)
   provide(navKey, nav)
-
   return nav
 }
 
@@ -133,6 +131,5 @@ export function useNav(): NavContext {
   const nav = inject(navKey)
 
   if (!nav) throw new Error("useNav() 需要在 provideNav() 之后调用")
-
   return nav
 }

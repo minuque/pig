@@ -60,7 +60,6 @@ async function openSessionBodyPaint(
   await expect(page.getByText(marker).first()).toBeVisible({ timeout: 30_000 })
   await page.locator(".startup-screen").waitFor({ state: "detached" })
   await page.locator(".session-loading").waitFor({ state: "hidden" })
-
   return page.evaluate((text) => {
     const rows = document.querySelector(".timeline-rows")
 
@@ -77,7 +76,6 @@ async function openSessionBodyPaint(
 
     if (!slot.__pigBody.bodyVisible) slot.__pigBody.bodyVisible = performance.now()
     const officialLcp = slot.__pigBody.lcpAll.at(-1)
-
     return officialLcp
       ? { bodyVisible: slot.__pigBody.bodyVisible, officialLcp }
       : { bodyVisible: slot.__pigBody.bodyVisible }

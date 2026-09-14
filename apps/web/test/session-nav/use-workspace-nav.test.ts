@@ -8,7 +8,6 @@ const { platformRequestMock } = vi.hoisted(() => ({
 
 vi.mock("@client/http.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@client/http.js")>()
-
   return { ...actual, platformRequest: platformRequestMock }
 })
 
@@ -22,7 +21,6 @@ const store = new Map<string, string>()
 function localWorkspaces(paths: string[]) {
   const workspaces = ref(paths)
   const lastCwd = ref<string | undefined>(paths[0])
-
   return {
     workspaces: readonly(workspaces),
     lastCwd: readonly(lastCwd),

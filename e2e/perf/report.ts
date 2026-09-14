@@ -18,7 +18,6 @@ function paint(text: string, color: "green" | "red" | null) {
   if (color === "green") return `${GREEN}${text}${RESET}`
 
   if (color === "red") return `${RED}${text}${RESET}`
-
   return text
 }
 
@@ -27,14 +26,12 @@ function displayWidth(text: string): number {
   let width = 0
 
   for (const ch of plain) width += ch.charCodeAt(0) > 127 ? 2 : 1
-
   return width
 }
 
 function pad(text: string, width: number, align: "left" | "right") {
   const extra = Math.max(0, width - displayWidth(text))
   const space = " ".repeat(extra)
-
   return align === "right" ? space + text : text + space
 }
 
@@ -43,7 +40,6 @@ function formatMs(value: number | null | undefined, frame = false) {
   const ms = `${Number(value.toFixed(1))} ms`
 
   if (!frame || !(value > 0)) return ms
-
   return `${ms}（约 ${Math.round(1000 / value)} fps）`
 }
 
@@ -54,7 +50,6 @@ function changeText(value: number | null, previous: number | null) {
 
   const percent =
     previous === 0 ? "" : ` (${diff > 0 ? "+" : ""}${((diff / previous) * 100).toFixed(1)}%)`
-
   return `${diff > 0 ? "+" : ""}${formatMs(diff)}${percent}`
 }
 
@@ -65,7 +60,6 @@ function tone(value: number | null, previous: number | null): "green" | "red" | 
   if (value < previous) return "green"
 
   if (previous > 0 && (value - previous) / previous > SLOW_RATIO) return "red"
-
   return null
 }
 
@@ -81,7 +75,6 @@ function rowLine(
   const inner = parts
     .map((part, index) => ` ${pad(part, widths[index] ?? 0, aligns[index] ?? "left")} `)
     .join("│")
-
   return `│${inner}│`
 }
 
@@ -94,7 +87,6 @@ export function reportTable(rows: readonly MetricRow[]) {
   const cells = visible.map((row) => {
     const color = tone(row.value, row.previous ?? null)
     const frame = Boolean(row.frame)
-
     return {
       label: row.label,
       now: paint(formatMs(row.value, frame), color),

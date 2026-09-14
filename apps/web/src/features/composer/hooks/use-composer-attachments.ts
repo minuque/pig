@@ -13,7 +13,6 @@ export interface ComposerAttachment {
 /** 只保留 image/*；FileList / File[] / 空值均可。 */
 function imageFilesFrom(list: FileList | File[] | null | undefined): File[] {
   if (!list) return []
-
   return Array.from(list).filter((file) => file.type.startsWith("image/"))
 }
 
@@ -79,6 +78,5 @@ export function useComposerAttachments() {
   }
 
   onUnmounted(clear)
-
   return { attachments, addFiles, remove, clear }
 }

@@ -20,6 +20,5 @@ function toLintGlob(line) {
   }
 
   const dir = line.replace(/\/$/, "")
-
   return [`${dir}/**`, `**/${dir}/**`]
 }

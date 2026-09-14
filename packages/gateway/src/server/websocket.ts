@@ -43,7 +43,6 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
     if (url.pathname !== WEBSOCKET_PATH) {
       socket.write("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n")
       socket.destroy()
-
       return
     }
 
@@ -51,7 +50,6 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
       if (!accept) {
         // PiServer 尚未就绪（启动中/关闭中）
         ws.close(1013, "host is not ready")
-
         return
       }
 
@@ -59,7 +57,6 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
       ws.on("message", (data, isBinary) => {
         if (!isBinary) {
           ws.close(1003, "binary frames only")
-
           return
         }
 
@@ -71,7 +68,6 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
   }
 
   server.on("upgrade", onUpgrade)
-
   return {
     async start(acceptor: ByteConnectionAcceptor) {
       accept = acceptor
@@ -112,12 +108,10 @@ class WebSocketByteConnection implements ByteConnection {
       // 慢客户端：待发送积压超限，断开
       this.closedValue = true
       this.socket.terminate()
-
       return Promise.resolve()
     }
 
     this.pendingBytes += chunk.byteLength
-
     return new Promise((resolve, reject) => {
       this.socket.send(chunk, (error) => {
         this.pendingBytes -= chunk.byteLength
@@ -135,7 +129,6 @@ class WebSocketByteConnection implements ByteConnection {
     if (this.socket.readyState !== WebSocket.OPEN) {
       // 已关闭/正在关闭：close 事件不会再可靠触发，直接断开
       this.socket.terminate()
-
       return Promise.resolve()
     }
 
@@ -153,13 +146,11 @@ class WebSocketByteConnection implements ByteConnection {
     // 对端不确认关闭时强制断开，避免挂起
     const timer = setTimeout(() => this.socket.terminate(), GRACEFUL_CLOSE_TIMEOUT_MS)
     timer.unref()
-
     return finished.then(() => clearTimeout(timer))
   }
 }
 
 function toUint8Array(data: RawData): Uint8Array {
   if (Array.isArray(data)) return Buffer.concat(data)
-
   return new Uint8Array(data)
 }

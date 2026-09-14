@@ -40,7 +40,6 @@ export function desktopCdpPort(
   if (raw) return raw
 
   if (isDesktopDev(argv)) return DESKTOP_CDP_PORT
-
   return undefined
 }
 
@@ -53,7 +52,6 @@ export function isDesktopBench(env: NodeJS.ProcessEnv = process.env): boolean {
 export function isLoopbackHttpOrigin(value: string): boolean {
   try {
     const url = new URL(value)
-
     return (
       url.protocol === "http:" &&
       url.hostname === "127.0.0.1" &&
@@ -75,7 +73,6 @@ export function parseGatewayOriginArg(argv: readonly string[]): string | undefin
   const value = arg.slice(GATEWAY_ORIGIN_ARG_PREFIX.length)
 
   if (!isLoopbackHttpOrigin(value)) return undefined
-
   return new URL(value).origin
 }
 
@@ -96,7 +93,6 @@ export function parsePigRequest(
 
   if (url.username !== "" || url.password !== "") return undefined
   const pathname = url.pathname === "" ? "/" : url.pathname
-
   return { pathname, search: url.search }
 }
 
@@ -109,7 +105,6 @@ export function gatewayTargetUrl(requestUrl: string, httpOrigin: string): URL | 
   const parsed = parsePigRequest(requestUrl)
 
   if (!parsed) return undefined
-
   return new URL(`${parsed.pathname}${parsed.search}`, httpOrigin)
 }
 
@@ -128,7 +123,6 @@ export function resolvePigWebFile(webRoot: string, pathname: string): string | u
   const pathFromRoot = relative(root, file)
 
   if (pathFromRoot.startsWith("..") || isAbsolute(pathFromRoot)) return undefined
-
   return file
 }
 
@@ -136,14 +130,12 @@ export function pigSpaFallback(webRoot: string, pathname: string): string | unde
   const requested = pathname.replace(/^\/+/, "")
 
   if (requested !== "" && extname(requested)) return undefined
-
   return resolvePigWebFile(webRoot, "/index.html")
 }
 
 export function injectGatewayOrigin(html: string, httpOrigin: string): string {
   const stamp = `<script>document.documentElement.dataset.pigGatewayOrigin=${JSON.stringify(httpOrigin)}</script>`
   const marked = html.replace(/<head>/i, `<head>${stamp}`)
-
   return marked === html ? `${stamp}${html}` : marked
 }
 
@@ -152,6 +144,5 @@ export function pigCorsHeaders(headers: Headers): Headers {
   const next = new Headers(headers)
   next.set("Access-Control-Allow-Origin", PIG_APP_ORIGIN)
   next.set("Cross-Origin-Resource-Policy", "cross-origin")
-
   return next
 }

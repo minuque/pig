@@ -80,7 +80,6 @@ const maxIndex = computed(() => Math.max(props.levels.length - 1, 0))
 
 const index = computed(() => {
   const i = props.levels.indexOf(current.value)
-
   return i < 0 ? 0 : i
 })
 

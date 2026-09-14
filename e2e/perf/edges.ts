@@ -70,7 +70,6 @@ async function holdTranscriptFetch(page: Page, sessionId: string) {
         if (url.pathname !== "/api/v1/platform/transcript") return hold.native(input, init)
 
         if (url.searchParams.get("sessionId") !== hold.sessionId) return hold.native(input, init)
-
         return hold.native(input, init).then((response) => {
           hold.received += 1
 
@@ -79,10 +78,8 @@ async function holdTranscriptFetch(page: Page, sessionId: string) {
                 hold.waiters.push(resolve)
               })
             : Promise.resolve()
-
           return gate.then(() => {
             hold.delivered += 1
-
             return response
           })
         })
@@ -90,12 +87,10 @@ async function holdTranscriptFetch(page: Page, sessionId: string) {
     },
     { key: HISTORY_HOLD_KEY, id: sessionId },
   )
-
   return {
     counts: () =>
       page.evaluate((key) => {
         const hold = Reflect.get(window, key) as { received: number; delivered: number } | undefined
-
         return { received: hold?.received ?? 0, delivered: hold?.delivered ?? 0 }
       }, HISTORY_HOLD_KEY),
     async release() {
@@ -150,7 +145,6 @@ async function rapidSwitch(page: Page) {
       .poll(
         async () => {
           const counts = await hold.counts()
-
           return counts.delivered === counts.received
         },
         { timeout: WORKBENCH_TIMEOUT_MS },
@@ -160,7 +154,6 @@ async function rapidSwitch(page: Page) {
     await expect(page).toHaveURL(new RegExp(`/sessions/${SHORT_SESSION_ID}$`))
     await expect(page.locator(".row-user")).toHaveCount(TRANSCRIPT_PAGE_TURNS)
     await expect(page.getByText(`${LONG_SESSION_NAME} 提问 1`, { exact: true })).toHaveCount(0)
-
     return elapsed
   } finally {
     await hold.dispose()
@@ -198,7 +191,6 @@ async function measureTurn(page: Page, bridge: Bridge) {
         type: "event",
         event: { type: "session_progress", sessionId, progress: { type, item } },
       })
-
       return
     }
 
@@ -227,7 +219,6 @@ async function measureTurn(page: Page, bridge: Bridge) {
   await stop.click()
   await expect(stop).toHaveCount(0)
   await seen(FIRST_PROMPT)
-
   return {
     ownMessageMs,
     firstTokenMs,
@@ -252,7 +243,6 @@ async function reconnect(page: Page, bridge: Bridge) {
   await expect(page.getByText(FIRST_TOKEN, { exact: true })).toHaveCount(0)
   await expect(page.getByText(TURN_TOKEN, { exact: true })).toHaveCount(0)
   await expect(page.locator(".row-assistant")).toHaveCount(TRANSCRIPT_PAGE_TURNS)
-
   return elapsed
 }
 

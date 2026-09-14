@@ -75,7 +75,6 @@ export function useTranscriptMinimap(
 
     if (!port) {
       publishInView()
-
       return
     }
 
@@ -95,7 +94,6 @@ export function useTranscriptMinimap(
       if (!port) {
         viewportWidth.value = 0
         contentWidth.value = 0
-
         return
       }
 
@@ -125,6 +123,5 @@ export function useTranscriptMinimap(
     inViewObserver?.disconnect()
     sizeObserver?.disconnect()
   })
-
   return { items, inViewIds, hitStripWidth }
 }

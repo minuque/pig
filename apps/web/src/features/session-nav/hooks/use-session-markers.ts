@@ -7,7 +7,6 @@ const PINNED_KEY = "pig.sidebarPinnedSessions"
 function loadStringArray(key: string): string[] {
   try {
     const value: unknown = JSON.parse(localStorage.getItem(key) ?? "[]")
-
     return Array.isArray(value)
       ? value.filter((item): item is string => typeof item === "string")
       : []
@@ -49,7 +48,6 @@ export function useSessionMarkers(
 
   function isUnread(session: SessionMetadata): boolean {
     if (session.id === toValue(activeSessionId)) return false
-
     return sessionRecency(session) > (readAtById.value[session.id] ?? runStartAt)
   }
 
@@ -67,6 +65,5 @@ export function useSessionMarkers(
     },
     { immediate: true },
   )
-
   return { pinnedIds, pinnedSessions, togglePinned, isUnread }
 }

@@ -135,7 +135,6 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
 
   try {
     const port = await gateway.start()
-
     return { gateway, origin: `http://127.0.0.1:${port}` }
   } catch (error) {
     await gateway.stop()
@@ -150,7 +149,6 @@ async function openReadyPage(harness: BenchHarness, observers: boolean) {
   try {
     await session.page.goto(session.origin, { waitUntil: "commit" })
     await waitForWorkbench(session.page)
-
     return { ...session, coldTo: performance.now() - started }
   } catch (error) {
     await captureBenchFailure(session.page, failShot)

@@ -48,7 +48,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
 
     if (!root || navigating || !atBottom.value) {
       stopFollow()
-
       return
     }
 
@@ -58,14 +57,12 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
       atBottom.value = false
       applyBottom(root)
       stopFollow()
-
       return
     }
 
     if (prefersReducedMotion() || floor - position <= 0.5) {
       stopFollow()
       jumpToBottom()
-
       return
     }
 
@@ -136,7 +133,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (prefersReducedMotion()) {
       stopFollow()
       jumpToBottom()
-
       return
     }
 
@@ -145,7 +141,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
 
     if (floor - root.scrollTop <= 0.5) {
       jumpToBottom()
-
       return
     }
 
@@ -197,7 +192,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
           root.scrollTop,
           root.clientHeight,
         )
-
         return
       }
 
@@ -207,7 +201,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
         root.clientHeight,
       )
       pinIfNeeded()
-
       return
     }
 
@@ -241,7 +234,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (instant || Math.abs(root.scrollTop - top) <= 2) {
       releasePinnedToBottom()
       jumpToBottom()
-
       return
     }
 
@@ -259,7 +251,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   }
 
   onBeforeUnmount(releasePinnedToBottom)
-
   return {
     atBottom,
     visuallyAtBottom,

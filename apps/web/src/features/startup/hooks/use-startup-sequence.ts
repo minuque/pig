@@ -16,7 +16,6 @@ function connectWithTimeout(connect: () => Promise<unknown>, ms: number): Promis
   const connecting = Promise.resolve(connect())
 
   if (ms <= 0) return connecting
-
   return new Promise((resolve, reject) => {
     const timer = globalThis.setTimeout(() => {
       void connecting.catch(() => {})
@@ -38,7 +37,6 @@ function connectWithTimeout(connect: () => Promise<unknown>, ms: number): Promis
 
 function routeHasSession(router: ReturnType<typeof useRouter>): boolean {
   const raw = router.currentRoute.value.params.sessionId
-
   return typeof raw === "string" && raw.length > 0
 }
 
@@ -73,7 +71,6 @@ export function useStartupSequence(options: StartupSequenceOptions) {
       options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS,
     ).then((value) => {
       if (!sessionRoute) completeStep()
-
       return value
     })
 
@@ -81,7 +78,6 @@ export function useStartupSequence(options: StartupSequenceOptions) {
       completeStep()
 
       if (!failed.value && sessionRoute) settled.value = true
-
       return value
     })
 

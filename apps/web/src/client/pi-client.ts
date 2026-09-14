@@ -115,7 +115,6 @@ export function usePiClient() {
   watch(connectionState, (state) => {
     if (state === "connected") {
       wasConnected = true
-
       return
     }
 
@@ -144,7 +143,6 @@ export function usePiClient() {
   onBeforeUnmount(() => {
     void dispose()
   })
-
   return {
     client,
     connectionState,

@@ -65,10 +65,8 @@ export class PiHostService implements PiServerService {
 
   async listSessions(): Promise<SessionMetadata[]> {
     const infos = await this.refreshSessionPaths()
-
     return infos.map((info) => {
       const sessionName = sessionListName(info)
-
       return {
         id: info.id,
         createdAt: info.created.getTime(),
@@ -86,7 +84,6 @@ export class PiHostService implements PiServerService {
   async listSessionCards(): Promise<SessionCard[]> {
     this.sessionsCache = undefined
     const infos = await this.refreshSessionPaths()
-
     return cardsFromInfos(infos)
   }
 
@@ -94,7 +91,6 @@ export class PiHostService implements PiServerService {
     const runtime = await this.runtime()
     void this.warmResources().catch(() => undefined)
     const models = await runtime.getAvailable()
-
     return models.map((model) =>
       toProtocolModelMetadata(model, runtime.hasConfiguredAuth(model.provider)),
     )
@@ -151,7 +147,6 @@ export class PiHostService implements PiServerService {
         ...(model ? { model } : {}),
         ...(options.thinkingLevel ? { thinkingLevel: options.thinkingLevel } : {}),
       })
-
       return this.trackSession(session)
     } catch (error) {
       // AgentSession 创建失败（如无可用模型）时回滚，避免遗留空会话文件
@@ -171,7 +166,6 @@ export class PiHostService implements PiServerService {
     if (live) {
       live.setSessionName(trimmed)
       this.sessionsCache = undefined
-
       return
     }
 
@@ -205,7 +199,6 @@ export class PiHostService implements PiServerService {
       modelRuntime: runtime,
       sessionManager: SessionManager.open(path),
     })
-
     return this.trackSession(session)
   }
 
@@ -224,7 +217,6 @@ export class PiHostService implements PiServerService {
     const live = this.activeSessions.get(sessionId)
     const full = live ? live.historyTranscript() : await this.readDiskTranscript(sessionId)
     const page = pageTranscriptItems(full.items, query)
-
     return {
       items: page.items,
       timings: pageTurnTimings(full.timings, page.items),
@@ -237,7 +229,6 @@ export class PiHostService implements PiServerService {
 
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     const entries = SessionManager.open(path).getBranch()
-
     return {
       items: new TranscriptProjection().transcript(entries),
       timings: readTurnTimings(entries),
@@ -256,7 +247,6 @@ export class PiHostService implements PiServerService {
     for (const info of infos) this.sessionPaths.set(info.id, info.path)
     // ponytail: 短 TTL 代替无界扫盘；SDK 有 Session 变更通知后改精确失效。
     this.sessionsCache = { expiresAt: now + 2_000, infos }
-
     return infos
   }
 
@@ -265,7 +255,6 @@ export class PiHostService implements PiServerService {
 
     if (cached) return cached
     await this.refreshSessionPaths()
-
     return this.sessionPaths.get(sessionId)
   }
 
@@ -276,7 +265,6 @@ export class PiHostService implements PiServerService {
   /** 连接时预热扩展/技能；测试注入 session 工厂时跳过。 */
   private warmResources(): Promise<void> {
     if (this.options.createSession) return Promise.resolve()
-
     return (this.resourceWarm ??= this.reloadDefaultResources().catch((error: unknown) => {
       delete this.resourceWarm
       throw error
@@ -303,7 +291,6 @@ export class PiHostService implements PiServerService {
       }
     })
     this.activeSessions.set(session.sessionId, host)
-
     return host
   }
 

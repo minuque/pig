@@ -14,7 +14,6 @@ describe("canonicalizePath", () => {
   it("把盘符改成小写、反斜杠改成斜杠，并去掉末尾斜杠", () => {
     if (process.platform === "win32") {
       expect(canonicalizePath("C:\\Projects\\Demo\\")).toBe("c:/projects/demo")
-
       return
     }
 
@@ -24,7 +23,6 @@ describe("canonicalizePath", () => {
   it("解析相对段后再规范化", () => {
     if (process.platform === "win32") {
       expect(canonicalizePath("C:\\Projects\\Demo\\..\\App")).toBe("c:/projects/app")
-
       return
     }
 
@@ -79,7 +77,6 @@ describe("WindowsDirectoryPort", () => {
 
     const port = new WindowsDirectoryPort(async (file) => {
       tried.push(file)
-
       return { stdout: "null" }
     })
 

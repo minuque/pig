@@ -107,14 +107,12 @@ function onQueryKeydown(event: KeyboardEvent) {
 
     if (hits.value.length === 0) return
     activeIndex.value = Math.min(activeIndex.value + 1, hits.value.length - 1)
-
     return
   }
 
   if (event.key === "ArrowUp") {
     event.preventDefault()
     activeIndex.value = Math.max(activeIndex.value - 1, 0)
-
     return
   }
 

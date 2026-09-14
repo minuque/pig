@@ -132,7 +132,6 @@ export function canonicalizePath(path: string): string {
   const normalized = resolve(path).replaceAll("\\", "/").replace(/\/+$/, "")
 
   if (process.platform === "win32") return normalized.toLowerCase()
-
   return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
 }
 
@@ -159,7 +158,6 @@ export class WindowsDirectoryPort implements DirectoryPort {
         const selected: unknown = JSON.parse(stdout)
 
         if (typeof selected !== "string" || !selected.trim()) throw new Error("invalid folder path")
-
         return validateDirectory(selected)
       } catch (error) {
         lastError = error

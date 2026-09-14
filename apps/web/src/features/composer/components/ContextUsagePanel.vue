@@ -150,7 +150,6 @@ function closePreview() {
 function onPreviewOpen(open: boolean) {
   if (open) {
     previewOpen.value = true
-
     return
   }
 

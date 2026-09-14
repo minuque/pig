@@ -31,7 +31,6 @@ function dirtyFiles() {
     ...spawnSync("git", ["diff", "--name-only", "--cached"], opts).stdout.split(/\r?\n/),
     ...spawnSync("git", ["ls-files", "--others", "--exclude-standard"], opts).stdout.split(/\r?\n/),
   ]
-
   return [...new Set(names.map((line) => line.trim()).filter(Boolean))]
 }
 
@@ -43,7 +42,6 @@ function existingTouched() {
   scope.prettierFiles = keep(scope.prettierFiles)
   scope.lintFiles = keep(scope.lintFiles)
   scope.stylelintFiles = keep(scope.stylelintFiles)
-
   return { files, scope }
 }
 
@@ -51,7 +49,6 @@ async function runAll() {
   const results = await Promise.all(
     CHECK_STEPS.map(async (step) => {
       const ran = await runPnpm(step.args, root)
-
       return { name: step.name, ...ran }
     }),
   )
@@ -80,7 +77,6 @@ async function fixTouched(scope) {
 
   if (steps.length === 0) {
     console.log("fix:touched: 无文件需要格式化")
-
     return
   }
 
@@ -93,7 +89,6 @@ async function fixTouched(scope) {
 
     if (ran.code !== 0) {
       reportResults("fix:touched", results)
-
       return
     }
   }
@@ -107,7 +102,6 @@ async function checkTouched(scope, files) {
     const ran = await runPnpm(["check"], root)
     process.stdout.write(ran.out)
     process.exitCode = ran.code
-
     return
   }
 
@@ -146,7 +140,6 @@ async function checkTouched(scope, files) {
 
   if (steps.length === 0) {
     console.log(`check:touched: ${files.length} 个脏文件无需脚本/测试/lint`)
-
     return
   }
 
@@ -155,7 +148,6 @@ async function checkTouched(scope, files) {
   const results = await Promise.all(
     steps.map(async (step) => {
       const ran = await runPnpm(step.args, root)
-
       return { name: step.name, ...ran }
     }),
   )

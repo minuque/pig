@@ -42,7 +42,6 @@ function fixture() {
 
   follow = useTranscriptFollow(() => root as HTMLElement)
   follow.scrollToLatest()
-
   return { root, follow }
 }
 
@@ -54,7 +53,6 @@ beforeEach(() => {
   vi.stubGlobal("window", { matchMedia: () => ({ matches: false }) })
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
     frames.set(++sequence, callback)
-
     return sequence
   })
   vi.stubGlobal("cancelAnimationFrame", (id: number) => frames.delete(id))

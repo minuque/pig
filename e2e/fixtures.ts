@@ -15,7 +15,6 @@ const webRoot = join(root, "apps/web/dist")
 /** 与 web canonicalizeWorkspacePath 对齐，供 localStorage 种子。 */
 export function canonicalizeWorkspacePath(path: string): string {
   const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "")
-
   return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
 }
 

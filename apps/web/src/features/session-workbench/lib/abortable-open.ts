@@ -10,7 +10,6 @@ export function isDisconnectedError(error: unknown) {
   if (!error || typeof error !== "object") return false
 
   if ("name" in error && error.name === "PiDisconnectedError") return true
-
   return error instanceof Error && /disconnected/i.test(error.message)
 }
 
@@ -43,7 +42,6 @@ export function createAbortableOpen() {
     void chained.finally(() => {
       if (disposals.get(id) === chained) disposals.delete(id)
     })
-
     return chained
   }
 
@@ -51,7 +49,6 @@ export function createAbortableOpen() {
     const id = session.id
 
     if (!id) return swallowDispose(session)
-
     return trackDisposal(id, swallowDispose(session))
   }
 
@@ -59,7 +56,6 @@ export function createAbortableOpen() {
     const pending = disposals.get(id)
 
     if (pending) await pending
-
     return start()
   }
 
@@ -90,7 +86,6 @@ export function createAbortableOpen() {
         if (openings.get(id) === created) openings.delete(id)
       },
     )
-
     return created
   }
 
@@ -103,7 +98,6 @@ export function createAbortableOpen() {
     const abortWait = new Promise<never>((_, reject) => {
       rejectAbort = reject
     })
-
     return {
       abort() {
         if (aborted) return

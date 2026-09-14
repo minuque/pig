@@ -11,7 +11,6 @@ export function useLeftPanelToggle() {
   const ctx = inject(leftPanelKey)
 
   if (!ctx) throw new Error("useLeftPanelToggle() 需要在 AppLayout 内调用")
-
   return ctx
 }
 
@@ -24,7 +23,6 @@ export const CONTENT_MIN_WIDTH = 332
 export function parseLeftPanelWidth(raw: string | null): number | undefined {
   if (raw == null || raw.trim() === "") return undefined
   const n = Number(raw)
-
   return Number.isFinite(n) ? n : undefined
 }
 
@@ -49,14 +47,12 @@ const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width))
 /** 期望宽度按侧栏上下限与视口可用空间裁剪。 */
 export function panelWidthFor(desired: number, viewportWidth: number): number {
   const room = viewportWidth - CONTENT_MIN_WIDTH
-
   return Math.min(clampPanelWidth(desired), Math.max(240, room))
 }
 
 /** 宽度超出可用空间时收缩到刚好放下，否则原样保留。 */
 export function fitPanelWidth(width: number, viewportWidth: number): number {
   const excess = width - (viewportWidth - CONTENT_MIN_WIDTH)
-
   return excess > 0 ? Math.max(240, width - excess) : width
 }
 
@@ -162,7 +158,6 @@ export function useLeftPanel() {
     document.body.style.removeProperty("cursor")
     document.body.style.removeProperty("user-select")
   })
-
   return {
     leftOpen: readonly(leftOpen),
     leftWidth: readonly(leftWidth),

@@ -42,7 +42,6 @@ const {
       this.subscribeCalls += 1
       this.listeners.add(listener)
       listener(this.state)
-
       return () => this.listeners.delete(listener)
     }
 
@@ -52,11 +51,9 @@ const {
 
     dispose() {
       this.disposeCalls += 1
-
       return Promise.resolve()
     }
   }
-
   return {
     openMock: vi.fn<(client: PiClient, sessionId: string) => Promise<FakeRemoteSession>>(),
     createMock: vi.fn<(client: PiClient, options: unknown) => Promise<FakeRemoteSession>>(),
@@ -77,14 +74,12 @@ vi.mock("@earendil-works/pi-coding-agent/client", () => ({
 
 vi.mock("@client/http.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@client/http.js")>()
-
   return { ...actual, platformRequest: platformRequestMock }
 })
 
 vi.mock("vue-router", async () => {
   const { reactive } = await import("vue")
   routeBox.params = reactive({ sessionId: undefined as string | undefined })
-
   return {
     useRoute: () => ({ params: routeBox.params }),
     useRouter: () => ({ push: routerPush, replace: routerReplace }),
@@ -113,7 +108,6 @@ beforeEach(() => {
     if (path.includes("/transcript")) return { items: [] }
 
     if (path.includes("context-usage")) return { usage: usageEstimate }
-
     return {}
   })
   routerPush.mockImplementation(async (to: { params: { sessionId: string } }) => {
@@ -192,14 +186,12 @@ function setup(options?: {
   )
 
   lifecycle = session
-
   return { session, cwd }
 }
 
 function disconnectedError() {
   const error = new Error("disconnected")
   error.name = "PiDisconnectedError"
-
   return error
 }
 
@@ -214,7 +206,6 @@ describe("打开已有 Session", () => {
 
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: [item], timings: [] }
-
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -250,7 +241,6 @@ describe("打开已有 Session", () => {
 
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: [item], timings: [] }
-
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -278,7 +268,6 @@ describe("打开已有 Session", () => {
     a.state = { ...a.state, snapshot: { ...snapshot(1), cwd: "/from-snap" } }
     openMock.mockImplementation(async () => {
       await opened
-
       return a
     })
     routeBox.params.sessionId = "s1"
@@ -300,7 +289,6 @@ describe("打开已有 Session", () => {
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) {
         await historyGate
-
         return { items: [historyItem], timings: [] }
       }
 
@@ -396,7 +384,6 @@ describe("打开已有 Session", () => {
 
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: [item], timings: [] }
-
       return { usage: usageEstimate }
     })
 
@@ -447,7 +434,6 @@ describe("快速切换 Session", () => {
       if (id === "s1") {
         hitS1()
         await gateA
-
         return a
       }
 
@@ -532,7 +518,6 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     createMock.mockImplementation(async () => {
       markCreateStarted()
       await createGate
-
       return created
     })
     session.prompt.value = "任务"
@@ -597,7 +582,6 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     createMock.mockImplementation(async () => {
       markCreateStarted()
       await createGate
-
       return created
     })
     openMock.mockResolvedValue(selected)
@@ -688,7 +672,6 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) {
         if (path.includes("before=")) return { items: [older], hasMore: false, timings: [] }
-
         return { items: [latest], hasMore: true, timings: [] }
       }
 
@@ -718,7 +701,6 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     const timing = { userId: "u1", startedAt: 1000, endedAt: 66000, outcome: "complete" }
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: [item], timings: [timing] }
-
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -756,7 +738,6 @@ describe("HTTP 历史与 live Transcript 合并", () => {
 
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: persisted, timings: [] }
-
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -856,7 +837,6 @@ describe("一轮工作", () => {
 
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: history, timings: [] }
-
       return { usage: usageEstimate }
     })
     const { session } = setup()

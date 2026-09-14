@@ -220,7 +220,6 @@ const emptyText = computed(() =>
 
 const label = computed(() => {
   const { vendor, model } = current.value
-
   return vendor && model ? model.name : modelLabel(props.model)
 })
 

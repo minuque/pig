@@ -62,7 +62,6 @@ async function openTransport() {
 
   const factory = createWebSocketByteTransportFactory({ url: "ws://localhost/pi" })
   const transport = await factory(handlers)
-
   return { transport, socket: FakeWebSocket.instances[0]!, handlers }
 }
 

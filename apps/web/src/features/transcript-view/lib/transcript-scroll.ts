@@ -44,7 +44,6 @@ export function shouldLoadOlderTranscript(
 ): boolean {
   const threshold = options.threshold ?? 48
   const overflow = options.overflow ?? true
-
   return hasMore && !loading && !atBottom && overflow && scrollTop <= threshold
 }
 

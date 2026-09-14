@@ -50,7 +50,6 @@ export function parseWindowState(raw: unknown): WindowState | undefined {
   if (typeof raw.isMaximized !== "boolean") return undefined
 
   if (width <= 0 || height <= 0) return undefined
-
   return { x, y, width, height, isMaximized: raw.isMaximized }
 }
 
@@ -92,7 +91,6 @@ export function captureWindowState(window: {
   isMaximized(): boolean
 }): WindowState {
   const bounds = window.getNormalBounds()
-
   return {
     x: bounds.x,
     y: bounds.y,
@@ -113,6 +111,5 @@ function isOnAnyDisplay(bounds: WindowBounds, displays: readonly WindowBounds[])
 function overlapArea(a: WindowBounds, b: WindowBounds): number {
   const width = Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x))
   const height = Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y))
-
   return width * height
 }

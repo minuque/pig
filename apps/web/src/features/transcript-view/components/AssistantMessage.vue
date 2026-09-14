@@ -67,7 +67,6 @@ const statusLabel = computed(() => {
   const retries = props.item.retryCount
 
   if (retries && retries > 1) return `${base} · ${retries} 次`
-
   return base
 })
 

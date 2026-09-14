@@ -51,7 +51,6 @@ type GatewayModule = {
 
 function envDir(name: "PIG_SESSION_DIR" | "PIG_CWD"): string | undefined {
   const value = process.env[name]
-
   return value ? resolve(value) : undefined
 }
 
@@ -67,13 +66,11 @@ async function loadGatewayModule(isPackaged: boolean): Promise<GatewayModule> {
   if (isPackaged) {
     // 非字面量，避免 tsc emit 把 gateway 源码拉进 rootDir
     const spec = "@pig/gateway"
-
     return (await import(spec)) as GatewayModule
   }
 
   // exports 指向 dist，开发时可能没有
   const url = new URL("../../../../packages/gateway/src/index.js", import.meta.url).href
-
   return (await import(url)) as GatewayModule
 }
 
@@ -143,7 +140,6 @@ void app.whenReady().then(async () => {
             : "未找到 Web 构建产物（apps/web/dist）。请先执行 pnpm --filter @pig/web build。",
         )
         await shutdown()
-
         return
       }
     }

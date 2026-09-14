@@ -67,7 +67,6 @@ export function isContextPreviewKey(value: string | null): value is ContextPrevi
 function estimateText(value: unknown): number {
   if (!value) return 0
   const text = typeof value === "string" ? value : JSON.stringify(value)
-
   return Math.max(0, Math.ceil(text.length / 4))
 }
 
@@ -75,14 +74,12 @@ function previewValue(value: unknown): string {
   if (typeof value === "string") return value
 
   if (value == null) return ""
-
   return `\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\``
 }
 
 function countMessage(message: object): number {
   try {
     const tokens = estimateTokens(message as Parameters<typeof estimateTokens>[0])
-
     return Number.isFinite(tokens) ? Math.max(0, tokens) : 0
   } catch {
     return estimateText(message)
@@ -118,7 +115,6 @@ function finishPreview(key: ContextPreviewKey, chunks: string[]): ContextUsagePr
 /** 只统计确实嵌进 system prompt 的片段，避免源文件预览把占用加两遍。 */
 function embeddedTokens(prompt: string, chunk: string): number {
   if (!chunk || !prompt.includes(chunk)) return 0
-
   return estimateText(chunk)
 }
 
@@ -267,7 +263,6 @@ function capVariable(
 
   if (budget === 0) return { toolResults: 0, conversation: 0 }
   const toolResults = Math.round((raw.toolResults / estimated) * budget)
-
   return { toolResults, conversation: budget - toolResults }
 }
 
@@ -292,7 +287,6 @@ export function resolveUsedTokens(
   }
 
   if (estimated > 0 && resolved < estimated * 0.25) resolved = estimated
-
   return Math.max(0, Math.round(resolved))
 }
 
@@ -359,6 +353,5 @@ export function estimateContextUsage(
             : previewKey === "toolResults"
               ? finishPreview("toolResults", walked.toolChunks)
               : finishPreview("conversation", walked.contextChunks)
-
   return { ...estimate, preview }
 }

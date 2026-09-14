@@ -115,7 +115,6 @@ function toolFor(index: number): SeedTool | undefined {
       args: { command: "git status" },
       output: "On branch master\nnothing to commit, working tree clean\n",
     }
-
   return {
     id,
     name: "edit",
@@ -145,7 +144,6 @@ function appendAgentTurn(manager: SessionManager, index: number, timestamp: numb
       timestamp: timestamp + 25_000,
     })
     manager.appendMessage(assistantMessage([{ type: "text", text: reply }], timestamp + 30_000))
-
     return
   }
 

@@ -41,11 +41,9 @@ export function filterSessionsForSearch(
   const needle = query.trim().toLowerCase()
 
   if (!needle) return [...sessions]
-
   return sessions.filter((session) => {
     if (sessionTitle(session).toLowerCase().includes(needle)) return true
     const cwd = session.cwd
-
     return Boolean(cwd && workspaceName(cwd).toLowerCase().includes(needle))
   })
 }
@@ -69,7 +67,6 @@ export function groupSessionsByCwd(
 
   const localPaths = uniqueCanonicalPaths(localWorkspaces)
   const local = new Set(localPaths)
-
   return [
     ...localPaths.map((canonicalPath) => ({
       canonicalPath,
@@ -123,7 +120,6 @@ function sliceVisible(
 ): { sessions: SidebarSession[]; more: boolean } {
   const limit = searching ? sessions.length : (revealByGroup[groupKey] ?? page)
   const visible = sessions.slice(0, limit)
-
   return {
     sessions: visible.map(toSidebarSession),
     more: !searching && visible.length < sessions.length,
@@ -168,7 +164,6 @@ export function sidebarRows(input: {
       revealByGroup,
       searching,
     )
-
     return rows
   }
 
@@ -210,7 +205,6 @@ export function sessionCardFoot(
 } {
   const extra = extras.get(sessionId)
   const isLive = live?.sessionId === sessionId
-
   return {
     messageCount: isLive ? (live.messageCount ?? extra?.messageCount) : extra?.messageCount,
     outcome: isLive ? (live.outcome ?? extra?.outcome) : extra?.outcome,
@@ -222,7 +216,6 @@ function isRetryErrorItem(item: TranscriptItem): boolean {
   if (item.role !== "assistant") return false
 
   if (item.status !== "error" && item.status !== "aborted") return false
-
   return transcriptText(item).length === 0
 }
 
@@ -246,7 +239,6 @@ export function sessionOutcome(items: readonly TranscriptItem[]): "complete" | "
     const item = items[index]
 
     if (item?.role !== "assistant") continue
-
     return item.status === "error" ? "error" : "complete"
   }
 

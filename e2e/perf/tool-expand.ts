@@ -35,7 +35,6 @@ async function holdIdleCallbacks(page: Page) {
       const handle = nextHandle
       nextHandle += 1
       held.add(handle)
-
       return handle
     }
 
@@ -98,7 +97,6 @@ export async function expandToolSteps(
     )
     await nextPaint(page)
     await page.evaluate(() => new Promise<void>((resolve) => setTimeout(resolve, 0)))
-
     return page.evaluate(() => {
       const slot = window as typeof window & IdleGate
       const mark = slot.__pigToolExpand
@@ -110,7 +108,6 @@ export async function expandToolSteps(
       const longTasks = bench.longTasks.filter(
         (task) => task.start >= mark.started && task.start <= performance.now(),
       )
-
       return {
         firstFrameMs: mark.firstFrameMs,
         completeMs,

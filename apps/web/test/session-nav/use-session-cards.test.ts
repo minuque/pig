@@ -7,7 +7,6 @@ const { listSessionCardsMock } = vi.hoisted(() => ({
 
 vi.mock("@client/platform.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@client/platform.js")>()
-
   return { ...actual, listSessionCards: listSessionCardsMock }
 })
 

@@ -75,7 +75,6 @@ function advanceProgress() {
 
   if (displayedProgress.value < props.progress) {
     progressFrame = window.requestAnimationFrame(advanceProgress)
-
     return
   }
 
@@ -86,7 +85,6 @@ function syncProgress() {
   if (prefersReducedMotion()) {
     displayedProgress.value = props.progress
     maybeBeginLeave()
-
     return
   }
 
@@ -106,7 +104,6 @@ function beginLeave() {
 
   if (prefersReducedMotion()) {
     finish()
-
     return
   }
 

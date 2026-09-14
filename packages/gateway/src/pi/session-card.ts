@@ -22,7 +22,6 @@ function isRetryErrorItem(item: TranscriptItem): boolean {
   if (item.role !== "assistant") return false
 
   if (item.status !== "error" && item.status !== "aborted") return false
-
   return transcriptText(item).length === 0
 }
 
@@ -68,7 +67,6 @@ export function outcomeFromBranch(
     const item = items[index]
 
     if (item?.role !== "assistant") continue
-
     return item.status === "error" ? "error" : "complete"
   }
 

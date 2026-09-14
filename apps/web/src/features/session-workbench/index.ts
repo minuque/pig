@@ -13,7 +13,6 @@ export function provideSession(
 ) {
   const session = useSessionLifecycle(pi, cwd)
   provide(sessionKey, session)
-
   return session
 }
 
@@ -21,6 +20,5 @@ export function useSession(): SessionContext {
   const session = inject(sessionKey)
 
   if (!session) throw new Error("useSession() 需要在 provideSession() 之后调用")
-
   return session
 }

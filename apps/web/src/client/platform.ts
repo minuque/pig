@@ -17,7 +17,6 @@ export async function selectDirectory(
     "/api/v1/platform/select-directory",
     path === undefined ? { method: "POST" } : { method: "POST", body: JSON.stringify({ path }) },
   )
-
   return {
     path: result.path,
     requiresManualInput: Boolean(result.requiresManualInput),
@@ -26,7 +25,6 @@ export async function selectDirectory(
 
 export async function listSessionCards(): Promise<SessionCard[]> {
   const result = await platformRequest<{ cards: SessionCard[] }>("/api/v1/platform/session-cards")
-
   return result.cards
 }
 
@@ -44,7 +42,6 @@ function isTurnTiming(value: unknown): value is TurnTiming {
     return false
 
   if (value.outcome === "running") return !("endedAt" in value)
-
   return (
     (value.outcome === "complete" || value.outcome === "error" || value.outcome === "aborted") &&
     "endedAt" in value &&
@@ -67,7 +64,6 @@ export async function sessionTranscript(
     timings?: unknown[]
     hasMore?: boolean
   }>(`/api/v1/platform/transcript?${query.toString()}`)
-
   return {
     items: Array.isArray(result.items) ? result.items : [],
     timings: Array.isArray(result.timings) ? result.timings.filter(isTurnTiming) : [],
@@ -79,7 +75,6 @@ export async function contextUsage(sessionId: string): Promise<ContextUsageEstim
   const result = await platformRequest<{ usage: ContextUsageEstimate | null }>(
     `/api/v1/platform/context-usage?sessionId=${encodeURIComponent(sessionId)}`,
   )
-
   return result.usage
 }
 
@@ -92,7 +87,6 @@ export async function contextPreview(
   }>(
     `/api/v1/platform/context-usage?sessionId=${encodeURIComponent(sessionId)}&preview=${encodeURIComponent(segmentId)}`,
   )
-
   return result.preview
 }
 

@@ -60,6 +60,5 @@ export function useTranscriptScrollIdle(root: MaybeRefOrGetter<HTMLElement | nul
     bind(null)
     clearTimer()
   })
-
   return idle
 }

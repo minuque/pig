@@ -62,7 +62,6 @@ export class TranscriptProjection {
         }
 
         this.toolCalls.set(event.toolCallId, input)
-
         return {
           type: "item_started",
           item: {
@@ -114,7 +113,6 @@ export class TranscriptProjection {
 
     this.cachedEntries = entries
     this.cachedTranscript = items
-
     return items
   }
 
@@ -126,7 +124,6 @@ export class TranscriptProjection {
       case "user":
         // user 条目不会变化，且 item_finished 不接受 user，只在开始时发一次
         if (stage !== "started") return undefined
-
         return {
           type: "item_started",
           item: toProtocolUserMessage(message, { id: this.allocateId() }),
@@ -146,12 +143,10 @@ export class TranscriptProjection {
 
           // item_finished 只接受终态（无 stopReason 的 streaming 成员被收窄排除）
           if ("stopReason" in item) return { type: "item_finished", item }
-
           return undefined
         }
 
         if (stage === "updated") return { type: "item_updated", item }
-
         return { type: "item_started", item }
       }
 
@@ -163,7 +158,6 @@ export class TranscriptProjection {
         if (args === undefined) return undefined
         this.toolCalls.delete(message.toolCallId)
         const item = this.toolItem(message, args)
-
         // finished 阶段 toProtocolToolResultMessage 只产出终态（running 占位已由 tool_execution_start 发出）
         return {
           type: "item_finished",
@@ -206,7 +200,6 @@ export class TranscriptProjection {
 
   private allocateId(): string {
     this.nextMessageId += 1
-
     return `m${this.nextMessageId}`
   }
 }
@@ -214,6 +207,5 @@ export class TranscriptProjection {
 /** 协议 ToolCall 要求参数为 JSON 对象；非对象参数按空对象处理（运行时同义）。 */
 function toolCallArguments(value: JsonValue): Record<string, unknown> {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) return value
-
   return {}
 }

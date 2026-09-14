@@ -75,7 +75,6 @@ watch(
 
       if (index >= 0) {
         pinnedIndex.value = index
-
         return
       }
     }
@@ -91,13 +90,11 @@ const emphasizedIndex = computed(() => {
   const hover = hoverIndex.value
 
   if (hover !== null && hover <= lastIndex.value) return hover
-
   return Math.min(pinnedIndex.value, lastIndex.value)
 })
 
 const hoverItem = computed(() => {
   const index = hoverIndex.value
-
   return index === null ? null : (props.items[index] ?? null)
 })
 
@@ -109,7 +106,6 @@ const previewTranslate = computed(() => {
   if (index === 0) return "0%"
 
   if (index === lastIndex.value) return "-100%"
-
   return "-50%"
 })
 
@@ -119,7 +115,6 @@ const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
 function tickStyle(index: number): { top: string; height: string } {
   const count = Math.max(props.items.length, 1)
-
   return {
     top: `${(index / count) * 100}%`,
     height: `${100 / count}%`,
@@ -130,7 +125,6 @@ function stripWidth(index: number): string {
   if (hoverIndex.value === null) return "8px"
   const distance = Math.abs(index - emphasizedIndex.value)
   const scale = distance === 0 ? 1 : distance === 1 ? 0.68 : distance === 2 ? 0.44 : 0.25
-
   return `${Math.round(38 * scale)}px`
 }
 

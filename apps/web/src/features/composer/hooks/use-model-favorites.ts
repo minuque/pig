@@ -9,7 +9,6 @@ function parseFavoriteModels(json: string | null): string[] {
     const value: unknown = JSON.parse(json)
 
     if (!Array.isArray(value)) return []
-
     return value.filter((item): item is string => typeof item === "string" && item.includes("/"))
   } catch {
     return []

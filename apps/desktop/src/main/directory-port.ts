@@ -30,7 +30,6 @@ export function createElectronDirectoryPort(
       const selected = result.filePaths[0]
 
       if (result.canceled || !selected) return undefined
-
       return canonicalizePath(await realpath(selected))
     },
     async validateDirectory(path) {

@@ -154,7 +154,6 @@ function familyOf(id: string): string {
   if (key.startsWith("github")) return "copilot"
 
   if (key.startsWith("google")) return "google"
-
   return key
 }
 
@@ -162,7 +161,6 @@ export function vendorDisplayName(id: string): string {
   const key = id.trim()
 
   if (!key) return key
-
   return NAMES[familyOf(key)] ?? key
 }
 

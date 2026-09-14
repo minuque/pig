@@ -42,7 +42,6 @@ function assistant(
   if (status === "error") return { ...base, status, stopReason: "error", errorMessage: "请求超时" }
 
   if (status === "aborted") return { ...base, status, stopReason: "aborted" }
-
   return { ...base, status, stopReason: "stop" }
 }
 
@@ -77,7 +76,6 @@ function tool(
   if (status === "running") return { ...base, status, isError: false }
 
   if (status === "error") return { ...base, status, isError: true }
-
   return { ...base, status, isError: false }
 }
 

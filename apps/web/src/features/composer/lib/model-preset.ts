@@ -11,7 +11,6 @@ function filterCatalog(catalog: ComposerVendor[], query: string): ComposerVendor
   const q = query.trim().toLowerCase()
 
   if (!q) return catalog
-
   return catalog
     .map((vendor) => ({
       ...vendor,
@@ -58,7 +57,6 @@ export function listPickerRows(
 export function resolveModelInfo(catalog: ComposerVendor[], ref: ComposerModel | undefined) {
   const vendor = catalog.find((item) => item.id === ref?.provider)
   const model = vendor?.models.find((item) => item.id === ref?.id)
-
   return { vendor, model, levels: model?.thinkingLevels ?? [] }
 }
 
@@ -99,7 +97,6 @@ export function defaultPresetFrom(catalog: readonly ComposerVendor[]): ComposerP
     const first = vendor.models[0]
 
     if (!first) continue
-
     return {
       model: { provider: vendor.id, id: first.id },
       thinkingLevel: first.thinkingLevels[0] ?? "",

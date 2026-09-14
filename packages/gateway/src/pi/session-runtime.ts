@@ -62,7 +62,6 @@ export class PiHostSession implements PiSessionRuntime {
 
   historyTranscript() {
     const entries = this.session.sessionManager.getBranch()
-
     return { items: this.projection.transcript(entries), timings: readTurnTimings(entries) }
   }
 
@@ -82,7 +81,6 @@ export class PiHostSession implements PiSessionRuntime {
       name: session.sessionName,
       firstMessage: firstUserMessageText(entries),
     })
-
     return {
       id: session.sessionId,
       ...(listName === undefined ? {} : { name: listName }),
@@ -116,7 +114,6 @@ export class PiHostSession implements PiSessionRuntime {
     if (session.retryAttempt > 0) return "retry"
 
     if (session.isStreaming) return "turn"
-
     return "idle"
   }
 
@@ -182,7 +179,6 @@ export class PiHostSession implements PiSessionRuntime {
 
   subscribe(listener: (event: PiSessionRuntimeEvent) => void): () => void {
     this.listeners.add(listener)
-
     return () => this.listeners.delete(listener)
   }
 
@@ -238,7 +234,6 @@ export class PiHostSession implements PiSessionRuntime {
         this.timing.persistStart()
         this.broadcastSnapshot()
       })
-
       return
     }
 
@@ -260,7 +255,6 @@ export class PiHostSession implements PiSessionRuntime {
 
     if (timestamp === undefined) return Date.now()
     const parsed = Date.parse(timestamp)
-
     return Number.isFinite(parsed) ? parsed : Date.now()
   }
 
@@ -270,7 +264,6 @@ export class PiHostSession implements PiSessionRuntime {
 
     if (!last) return createdAt
     const parsed = Date.parse(last.timestamp)
-
     return Number.isFinite(parsed) ? parsed : createdAt
   }
 }

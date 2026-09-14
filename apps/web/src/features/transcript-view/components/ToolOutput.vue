@@ -136,7 +136,6 @@ const omittedTail = computed(() => sourceLines.value.slice(-TOOL_OMIT_TAIL).join
 
 const visibleLines = computed(() => {
   const lines = sourceLines.value.map((text, index) => ({ text, index }))
-
   return collapsed.value
     ? [...lines.slice(0, TOOL_OMIT_HEAD), ...lines.slice(-TOOL_OMIT_TAIL)]
     : lines

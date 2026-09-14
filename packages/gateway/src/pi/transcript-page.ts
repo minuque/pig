@@ -40,6 +40,5 @@ export function pageTurnTimings(
   items: readonly TranscriptItem[],
 ): TurnTiming[] {
   const users = new Set(items.filter((item) => item.role === "user").map((item) => item.id))
-
   return timings.filter((timing) => users.has(timing.userId))
 }

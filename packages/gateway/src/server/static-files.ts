@@ -27,7 +27,6 @@ function wantsGzip(acceptEncoding: string): boolean {
   const match = /(?:^|,)\s*gzip(?:\s*;\s*q\s*=\s*([\d.]+))?/i.exec(acceptEncoding)
 
   if (!match) return false
-
   return match[1] === undefined || Number(match[1]) > 0
 }
 
@@ -35,7 +34,6 @@ function cacheControl(requested: string): string | undefined {
   if (requested.startsWith("assets/")) return "public, max-age=31536000, immutable"
 
   if (requested === "index.html" || !extname(requested)) return "no-cache"
-
   return undefined
 }
 
@@ -53,7 +51,6 @@ async function loadFile(file: string, ext: string): Promise<CachedFile> {
   }
 
   fileCache.set(file, cached)
-
   return cached
 }
 
@@ -105,7 +102,6 @@ export async function serveWebFile(
   try {
     const ext = extname(file).toLowerCase()
     sendFile(res, await loadFile(file, ext), ext, requested, acceptEncoding)
-
     return true
   } catch {
     // 无扩展名的路径回退 index.html（SPA 前端路由）；带扩展名的静态资源缺失按 404 处理
@@ -114,7 +110,6 @@ export async function serveWebFile(
     try {
       const index = resolve(root, "index.html")
       sendFile(res, await loadFile(index, ".html"), ".html", "index.html", acceptEncoding)
-
       return true
     } catch {
       return false

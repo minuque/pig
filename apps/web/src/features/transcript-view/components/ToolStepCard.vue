@@ -139,7 +139,6 @@ const runContent = computed(() => {
   if (props.variant === "command") {
     const command = props.command ?? ""
     const cwd = props.cwd ?? ""
-
     return {
       meta: cwd ? pathBasename(cwd) : "",
       metaTitle: cwd,
@@ -156,7 +155,6 @@ const runContent = computed(() => {
 
   if (props.variant !== "tool") return null
   const heading = props.heading ?? ""
-
   return {
     meta: "",
     metaTitle: "",
@@ -227,7 +225,6 @@ function languageIconDataUrl(lang: string | undefined) {
   void languageIconsRevision.value
 
   if (!lang || lang === "text") return ""
-
   return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(lang))}`
 }
 
@@ -253,7 +250,6 @@ watch(
 
     if (!preview || preview.language === "text" || preview.code.length > 100_000) {
       readTokens.value = []
-
       return
     }
 

@@ -51,7 +51,6 @@ export async function installTurnBridge(page: Page) {
       if (!current) throw new Error(`e2e 缺少 SessionSnapshot ${sessionId}`)
       const next = { ...current, phase, revision: current.revision + 1 }
       snapshots.set(sessionId, next)
-
       return next
     }
 
@@ -132,7 +131,6 @@ export async function installTurnBridge(page: Page) {
       }
     })
   })
-
   return {
     snapshots,
     connections: () => connections,
@@ -142,7 +140,6 @@ export async function installTurnBridge(page: Page) {
     },
     waitForPrompt() {
       if (promptSessionId) return Promise.resolve(promptSessionId)
-
       return new Promise<string>((resolve) => {
         resolvePrompt = resolve
       })

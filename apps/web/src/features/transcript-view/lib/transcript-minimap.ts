@@ -14,7 +14,6 @@ export const MINIMAP_RAIL_WIDTH = 44
 
 function compactMinimapPreview(text: string | null | undefined): string | null {
   const compact = text?.replace(/\s+/g, " ").trim() ?? ""
-
   return compact.length > 0 ? compact : null
 }
 
@@ -51,13 +50,11 @@ export function deriveTranscriptMinimapItems(
   }
 
   items.reverse()
-
   return items
 }
 
 export function resolveMinimapHeightStyle(itemCount: number): string {
   if (itemCount <= 0) return "0px"
-
   return `min(${itemCount * MINIMAP_RAIL_PITCH}px, 80%)`
 }
 
@@ -67,7 +64,6 @@ export function resolveMinimapTopPercent(index: number, itemCount: number): numb
   if (itemCount === 1) return 50
 
   const clamped = Math.max(0, Math.min(index, itemCount - 1))
-
   return ((clamped + 0.5) / itemCount) * 100
 }
 
@@ -78,7 +74,6 @@ function sideGutter(viewportWidth: number, contentWidth = MINIMAP_CONTENT_MAX_WI
     Number.isFinite(contentWidth) && contentWidth > 0
       ? Math.min(viewportWidth, contentWidth)
       : Math.min(viewportWidth, MINIMAP_CONTENT_MAX_WIDTH)
-
   return Math.max(0, (viewportWidth - used) / 2)
 }
 
@@ -89,7 +84,6 @@ export function resolveMinimapHitStripWidth(
   const gutter = sideGutter(viewportWidth, contentWidth)
 
   if (gutter <= 0) return 0
-
   return Math.max(
     0,
     Math.min(MINIMAP_HIT_STRIP_MAX_WIDTH, Math.floor(gutter) - MINIMAP_HIT_STRIP_LEFT),

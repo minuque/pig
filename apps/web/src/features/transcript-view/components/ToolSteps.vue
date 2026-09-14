@@ -193,7 +193,6 @@ const activeIndex = computed(() => {
   const runningIndex = steps.findIndex(isStepRunning)
 
   if (runningIndex >= 0) return runningIndex
-
   return steps.length > 0 ? steps.length - 1 : -1
 })
 
@@ -203,7 +202,6 @@ const displayActiveIndex = computed(() => {
   const last = moreIndex.value >= 0 ? moreIndex.value : renderedSteps.value.length - 1
 
   if (last < 0 || activeIndex.value < 0) return -1
-
   return Math.min(activeIndex.value, last)
 })
 
@@ -282,7 +280,6 @@ function railBox(from: number, y: number) {
 
 const activeY = computed(() => {
   const y = centers.value[displayActiveIndex.value]
-
   return y == null ? null : y
 })
 
@@ -291,7 +288,6 @@ const hoverY = computed(() => {
 
   if (index == null) return null
   const y = centers.value[index]
-
   return y == null ? null : y
 })
 
@@ -300,7 +296,6 @@ const hoverFrom = computed(() => {
   const hover = hoverY.value
 
   if (accent != null && hover != null && hover <= accent) return Math.max(0, hover - HOOK_CORNER)
-
   return accent ?? 0
 })
 
@@ -342,7 +337,6 @@ watch(
     if (!root || !open) {
       centers.value = []
       railReady.value = false
-
       return
     }
 

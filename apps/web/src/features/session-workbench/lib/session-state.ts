@@ -73,7 +73,6 @@ function sendAnchor(
     (item, index) =>
       index >= insertionIndex && !known.has(item.id) && userText(item) === userText(send.item),
   )
-
   return { confirmedIndex, insertionIndex }
 }
 
@@ -103,7 +102,6 @@ export function projectClientTranscript(
   const rewritten = Object.keys(clientIdByServerId).length
     ? items.map((item) => {
         const id = clientIdByServerId[item.id]
-
         return id && id !== item.id ? { ...item, id } : item
       })
     : items
@@ -129,7 +127,6 @@ export function isSessionOpening(
   historySessionId: string | undefined,
 ): boolean {
   if (!sessionId) return false
-
   return sessionId !== remoteId || historySessionId !== sessionId
 }
 
@@ -162,7 +159,6 @@ function sameTranscriptItem(a: TranscriptItem, b: TranscriptItem): boolean {
   if (a.id === b.id) return true
 
   if (a.role === "tool" && b.role === "tool") return a.toolCallId === b.toolCallId
-
   return a.role === b.role && JSON.stringify(a.content) === JSON.stringify(b.content)
 }
 
@@ -205,6 +201,5 @@ export function workbenchHeaderTitle(input: {
   const meta = input.listed.find((session) => session.id === input.sessionId)
 
   if (meta) return sessionTitle(meta)
-
   return input.projectionName?.trim() || UNTITLED_SESSION
 }

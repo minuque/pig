@@ -33,7 +33,6 @@ const icon = computed(() => vendorIcon(props.vendor || props.name))
 
 const letter = computed(() => {
   const label = vendorDisplayName(props.vendor || props.name) || props.name || props.vendor
-
   return label.charAt(0).toUpperCase() || "?"
 })
 

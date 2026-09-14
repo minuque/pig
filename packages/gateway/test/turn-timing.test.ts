@@ -45,7 +45,6 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
         isIdle: true,
         subscribe(listener: (event: AgentSessionEvent) => void) {
           notify = listener
-
           return () => {}
         },
         async prompt() {

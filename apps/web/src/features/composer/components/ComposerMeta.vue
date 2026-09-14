@@ -61,7 +61,6 @@ const usageLabel = computed(() => `上下文占用 ${props.usage?.percent ?? 0}%
 
 const ringOffset = computed(() => {
   const clamped = Math.min(100, Math.max(0, props.usage?.percent ?? 0))
-
   return RING * (1 - clamped / 100)
 })
 </script>

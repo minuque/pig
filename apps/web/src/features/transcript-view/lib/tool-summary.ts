@@ -19,7 +19,6 @@ export function toolGroupKey(toolName: string): ToolGroupKey {
   if (isCommandTool(name)) return "command"
 
   if (name === "grep" || name === "find" || name === "ls") return "search"
-
   return "tool"
 }
 
@@ -41,7 +40,6 @@ export function toolSummary(items: readonly ToolCallView[]): string {
     search: `${prefix}搜索 ${count} 次`,
     tool: `${prefix}调用 ${count} 次工具`,
   } satisfies Record<ToolGroupKey, string>
-
   return labels[key]
 }
 
@@ -54,7 +52,6 @@ function splitLines(text: string): string[] {
   const lines = text.split(/\r?\n/)
 
   if (lines[lines.length - 1] === "") lines.pop()
-
   return lines
 }
 
@@ -126,10 +123,8 @@ export function editDiffPreview(input: unknown): EditDiffPreview | null {
     const change = lineChange(pair.oldText, pair.newText)
     added += change.added
     removed += change.removed
-
     return { original: pair.oldText, modified: pair.newText }
   })
-
   return {
     path,
     fileName: path ? pathBasename(path) : "file",
@@ -146,7 +141,6 @@ function withLineChange(
   removed: number,
 ): ToolSummaryDetail {
   if (added === 0 && removed === 0) return detail
-
   return { ...detail, added, removed }
 }
 
@@ -175,7 +169,6 @@ export function toolDetail(toolName: string, input: unknown): ToolSummaryDetail 
 
       if (name === "write") {
         const content = isRecord(input) && typeof input.content === "string" ? input.content : ""
-
         return withLineChange(file, splitLines(content).length, 0)
       }
 
@@ -193,7 +186,6 @@ export function toolSummaryDetail(items: readonly ToolCallView[]): ToolSummaryDe
 
   if (toolGroupKey(first.toolName) === "tool") {
     const name = first.toolName.trim()
-
     return name ? { kind: "text", text: name } : null
   }
 
@@ -204,6 +196,5 @@ function isFilePathDetail(text: string): boolean {
   if (!text || /\s/.test(text) || text.includes("://")) return false
 
   if (/[\\/]/.test(text)) return true
-
   return text.includes(".") && fileLanguage(text) !== "text"
 }

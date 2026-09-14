@@ -59,7 +59,6 @@ export function useSessionLifecycle(
 
   const sessionId = computed(() => {
     const raw = route.params.sessionId
-
     return typeof raw === "string" && raw.length > 0 ? raw : undefined
   })
 
@@ -88,7 +87,6 @@ export function useSessionLifecycle(
 
   const liveTranscript = computed(() => {
     const persisted = historySessionId.value === wantedId ? history.value : []
-
     return mergeLiveTranscript(persisted, heldLive.value)
   })
 
@@ -217,7 +215,6 @@ export function useSessionLifecycle(
       () => undefined,
       () => undefined,
     )
-
     return next
   }
 
@@ -235,7 +232,6 @@ export function useSessionLifecycle(
     }
 
     void loadHistory(id)
-
     return enqueueReplace(async () => {
       if (wantedId !== id || remote.value?.id === id) return
 
@@ -254,12 +250,10 @@ export function useSessionLifecycle(
 
           if (wantedId !== id) {
             await discard(next)
-
             return
           }
 
           attach(next)
-
           return
         } catch (error) {
           if (wantedId !== id || isOpenAborted(error)) return
@@ -269,7 +263,6 @@ export function useSessionLifecycle(
           if (attempt === 0 && pi.connected.value) continue
 
           if (pi.connected.value) throw error
-
           return
         } finally {
           if (abortInflightOpen === raced.abort) abortInflightOpen = undefined
@@ -280,7 +273,6 @@ export function useSessionLifecycle(
 
   async function createRemoteSession(nextCwd: string, options?: Omit<CreateSessionInput, "cwd">) {
     const routeSessionAtStart = sessionId.value
-
     return enqueueReplace(async () => {
       const target = pi.client.value
 
@@ -294,13 +286,11 @@ export function useSessionLifecycle(
 
       if (sessionId.value !== routeSessionAtStart) {
         await discard(next)
-
         return undefined
       }
 
       wantedId = next.id
       attach(next)
-
       return next.id
     })
   }
@@ -380,7 +370,6 @@ export function useSessionLifecycle(
 
   const projection = computed(() => {
     const current = snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined
-
     return !sessionId.value || current?.id === sessionId.value ? current : undefined
   })
 
@@ -405,7 +394,6 @@ export function useSessionLifecycle(
 
   const clientState = computed(() => {
     const id = sessionId.value
-
     return id ? sessionState(states, id) : idleState
   })
 
@@ -434,7 +422,6 @@ export function useSessionLifecycle(
 
       if (!nextId || sessionId.value !== routeSessionAtStart) {
         idleState.sends = []
-
         return undefined
       }
 
@@ -535,7 +522,6 @@ export function useSessionLifecycle(
   }
 
   if (getCurrentInstance()) onBeforeUnmount(teardown)
-
   return {
     sessionId,
     projection,

@@ -73,7 +73,6 @@ function onEnter() {
 
   if (hideActive && hideActive !== hide) {
     reveal()
-
     return
   }
 

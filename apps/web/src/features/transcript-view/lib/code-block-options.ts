@@ -8,7 +8,6 @@ function cssPx(name: string, fallback: number): number {
   const n = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))
   const value = Number.isFinite(n) ? n : fallback
   cssPxCache.set(name, value)
-
   return value
 }
 

@@ -13,7 +13,6 @@ export function firstUserMessageText(entries: readonly SessionEntry[]): string |
 function userContentText(content: unknown): string | undefined {
   if (typeof content === "string") {
     const text = content.replace(/\s+/g, " ").trim()
-
     return text || undefined
   }
 
@@ -28,7 +27,6 @@ function userContentText(content: unknown): string | undefined {
   }
 
   const text = parts.join(" ").replace(/\s+/g, " ").trim()
-
   return text || undefined
 }
 
@@ -43,6 +41,5 @@ export function sessionListName(info: {
   const first = info.firstMessage?.replace(/\s+/g, " ").trim()
 
   if (!first) return undefined
-
   return first.length > 48 ? `${first.slice(0, 48)}…` : first
 }

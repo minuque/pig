@@ -39,7 +39,6 @@ export function formatTokenCount(tokens: number): string {
   const kilo = abs / 1000
 
   if (abs < 100_000) return `${kilo.toFixed(1)}K`
-
   return `${Math.round(kilo)}K`
 }
 
@@ -50,7 +49,6 @@ export function projectContextUsage(
 
   const window = Math.max(0, estimate.window)
   const used = Math.max(0, estimate.used)
-
   return {
     used,
     window,
@@ -67,7 +65,6 @@ export function projectContextUsage(
 
 export function segmentShare(tokens: number, window: number): number {
   if (window <= 0 || !(tokens > 0)) return 0
-
   return Math.min(100, (tokens / window) * 100)
 }
 

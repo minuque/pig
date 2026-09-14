@@ -80,7 +80,6 @@ function assistantMessage(
 function resolveSource(): string | undefined {
   const override = process.env.PIG_FIXTURE_SESSION?.trim()
   const path = override && override.length > 0 ? override : DEFAULT_FIXTURE_SESSION
-
   return existsSync(path) ? path : undefined
 }
 
@@ -134,7 +133,6 @@ export function prebuildComplexSession(
   const file = manager.getSessionFile()
 
   if (!file) throw new Error("预构建未写出会话文件")
-
   return { id: COMPLEX_SESSION_ID, name: COMPLEX_SESSION_NAME, forked: Boolean(source) }
 }
 

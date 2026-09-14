@@ -46,7 +46,6 @@ async function startGateway(options?: ConstructorParameters<typeof Gateway>[0]) 
     sessionDir,
     ...options,
   })
-
   return `http://127.0.0.1:${await gateway.start()}`
 }
 

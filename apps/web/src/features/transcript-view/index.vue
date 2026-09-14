@@ -297,7 +297,6 @@ watch(rows, (next, prev) => {
     armTailWindow()
     settlePaint()
     void nextTick(pinLatest)
-
     return
   }
 
@@ -308,7 +307,6 @@ watch(rows, (next, prev) => {
     void nextTick(() => {
       if (root) restoreScrollAfterPrepend(root, beforeHeight, beforeTop)
     })
-
     return
   }
 

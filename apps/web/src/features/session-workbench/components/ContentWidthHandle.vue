@@ -43,7 +43,6 @@ let frame = 0
 function outwardWidth(): number {
   const dx = latestX - originX
   const outward = props.side === "right" ? dx : -dx
-
   return baseWidth + outward * 2
 }
 

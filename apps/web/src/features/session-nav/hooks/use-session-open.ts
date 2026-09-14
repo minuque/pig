@@ -12,7 +12,6 @@ export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<
   function openSession(id: string) {
     if (id === sessionId.value) {
       cancelPendingOpen()
-
       return
     }
 
@@ -35,6 +34,5 @@ export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<
   watch(sessionId, () => {
     pendingSessionId.value = undefined
   })
-
   return { highlightedSessionId, openSession, cancelPendingOpen }
 }
