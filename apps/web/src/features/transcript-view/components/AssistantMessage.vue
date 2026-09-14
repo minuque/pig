@@ -48,17 +48,24 @@ const props = withDefaults(
   { streaming: false },
 )
 
-const { isDark, codeBlockProps } = useColorScheme()
+const { isDark } = useColorScheme()
+
 const scrollIdle = inject(transcriptScrollIdleKey, shallowRef(true))
+
 const inView = shallowRef(false)
+
 const hydrated = shallowRef(false)
+
 const rootEl = shallowRef<HTMLElement | null>(null)
+
 const showHeavy = computed(() => props.streaming || hydrated.value)
 
 const statusLabel = computed(() => {
   const base = props.item.error ? "出错" : "已中止"
   const retries = props.item.retryCount
+
   if (retries && retries > 1) return `${base} · ${retries} 次`
+
   return base
 })
 
@@ -66,7 +73,6 @@ const agentMarkdown = computed(() =>
   chatMarkdownProps({
     streaming: props.streaming,
     isDark: isDark.value,
-    codeBlockProps: codeBlockProps.value,
   }),
 )
 
@@ -79,6 +85,7 @@ function stopViewWatch() {
 
 function tryHydrate() {
   if (hydrated.value) return
+
   if (!shouldHydrateHeavy(props.streaming, inView.value, scrollIdle.value)) return
   hydrated.value = true
   stopViewWatch()
@@ -88,8 +95,10 @@ watch([() => props.streaming, inView, scrollIdle], tryHydrate, { flush: "sync" }
 
 onMounted(() => {
   tryHydrate()
+
   if (hydrated.value) return
   const target = rootEl.value
+
   if (!target) return
   viewObserver = new IntersectionObserver(
     (entries) => {

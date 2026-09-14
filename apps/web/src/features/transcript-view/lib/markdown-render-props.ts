@@ -3,6 +3,11 @@ import { codeBlockTypography } from "@features/transcript-view/lib/code-block-op
 
 type CodeBlockTheme = "dark-plus" | "light-plus"
 
+const codeBlockTheme = { dark: "dark-plus", light: "light-plus" } as const satisfies Record<
+  "dark" | "light",
+  CodeBlockTheme
+>
+
 const mermaidProps = {
   renderDebounceMs: 180,
   contentStableDelayMs: 500,
@@ -22,9 +27,9 @@ const chatCodeChrome = {
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean
-  codeBlockProps: { theme: CodeBlockTheme }
 }): NodeRendererProps {
   const streaming = input.streaming
+
   return {
     customId: "chat",
     mode: "chat",
@@ -44,7 +49,7 @@ export function chatMarkdownProps(input: {
       diffStyle: "unified",
     },
     codeBlockProps: {
-      ...input.codeBlockProps,
+      theme: codeBlockTheme,
       ...chatCodeChrome,
     },
     mermaidProps,
@@ -55,9 +60,9 @@ export function chatMarkdownProps(input: {
 export function plainMarkdownProps(input: {
   streaming?: boolean
   isDark: boolean
-  codeBlockProps?: { theme: CodeBlockTheme }
 }): NodeRendererProps {
   const streaming = Boolean(input.streaming)
+
   return {
     customId: "chat",
     mode: "minimal",
@@ -71,6 +76,6 @@ export function plainMarkdownProps(input: {
     batchRendering: false,
     isDark: input.isDark,
     codeBlockOptions: codeBlockTypography(),
-    ...(input.codeBlockProps ? { codeBlockProps: input.codeBlockProps } : {}),
+    codeBlockProps: { theme: codeBlockTheme },
   }
 }

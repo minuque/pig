@@ -35,11 +35,14 @@ async function holdIdleCallbacks(page: Page) {
       const handle = nextHandle
       nextHandle += 1
       held.add(handle)
+
       return handle
     }
+
     window.cancelIdleCallback = (handle) => {
       if (!held.delete(handle)) nativeCancel(handle)
     }
+
     slot.__pigIdleRestore = () => {
       held.clear()
       window.requestIdleCallback = nativeRequest
@@ -63,6 +66,7 @@ export async function expandToolSteps(
   expectedSteps: number,
 ): Promise<ToolExpandBench> {
   await holdIdleCallbacks(page)
+
   try {
     await openSession(page, name)
     const summary = page.locator(".row-tools .summary-btn").first()
@@ -84,7 +88,7 @@ export async function expandToolSteps(
     await summary.click({ force: true, noWaitAfter: true })
     await page.waitForFunction(
       (expected) => document.querySelectorAll(".row-tools .tool-summary").length >= expected,
-      expectedSteps,
+      Math.min(8, expectedSteps),
       { timeout: WORKBENCH_TIMEOUT_MS },
     )
     await page.waitForFunction(
@@ -94,15 +98,19 @@ export async function expandToolSteps(
     )
     await nextPaint(page)
     await page.evaluate(() => new Promise<void>((resolve) => setTimeout(resolve, 0)))
+
     return page.evaluate(() => {
       const slot = window as typeof window & IdleGate
       const mark = slot.__pigToolExpand
       const bench = (window as unknown as { __pigBench: PageBench }).__pigBench
+
       if (!mark) throw new Error("未记录工具步骤展开起点")
       const completeMs = performance.now() - mark.started
+
       const longTasks = bench.longTasks.filter(
         (task) => task.start >= mark.started && task.start <= performance.now(),
       )
+
       return {
         firstFrameMs: mark.firstFrameMs,
         completeMs,

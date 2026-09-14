@@ -50,10 +50,13 @@ function assistantRow(item: AssistantTranscriptItem, text = transcriptText(item)
 
 function addAssistant(rows: TimelineRow[], item: AssistantRow) {
   const last = rows.at(-1)
+
   if (!item.text && item.error && last?.role === "assistant" && last.error && !last.text) {
     Object.assign(last, { ...item, retryCount: (last.retryCount ?? 1) + 1 })
+
     return
   }
+
   rows.push(item)
 }
 
@@ -71,6 +74,7 @@ function appendTurn({
   timings: readonly TurnTiming[]
 }) {
   const turnStart = rows.length
+
   if (user)
     rows.push({
       id: user.id,
@@ -93,7 +97,9 @@ function appendTurn({
 
   for (const item of rest) {
     if (isToolItem(item)) toolResults.set(item.toolCallId, item)
+
     if (!isAssistantItem(item)) continue
+
     for (const block of item.content) {
       if (block.type === "toolCall") describedToolCalls.add(block.toolCallId)
     }
@@ -141,22 +147,28 @@ function appendTurn({
       })
       continue
     }
+
     if (!isAssistantItem(item)) continue
     segmentAborted ||= item.status === "aborted"
     segmentError ||= item.status === "error"
     let pendingText: AssistantRow | undefined
+
     for (const [index, block] of item.content.entries()) {
       const id = `${anchor}:${item.timestamp}:${itemIndex}:${index}`
+
       if (block.type === "thinking" && block.thinking) {
         if (pendingText) {
           flushTools("done")
           addAssistant(rows, pendingText)
           pendingText = undefined
         }
+
         const streaming = live && item.status === "streaming" && index === item.content.length - 1
+
         const nextTimestamp = rest
           .slice(itemIndex + 1)
           .find((next) => next.timestamp >= item.timestamp)?.timestamp
+
         const endedAt = streaming ? undefined : (nextTimestamp ?? timing?.endedAt)
         steps.push({
           type: "thought",
@@ -172,6 +184,7 @@ function appendTurn({
           addAssistant(rows, pendingText)
           pendingText = undefined
         }
+
         if (renderedToolCalls.has(block.toolCallId)) continue
         renderedToolCalls.add(block.toolCallId)
         const result = toolResults.get(block.toolCallId)
@@ -193,6 +206,7 @@ function appendTurn({
         pendingText = undefined
       }
     }
+
     if (pendingText) {
       flushTools("done")
       addAssistant(rows, pendingText)
@@ -203,14 +217,17 @@ function appendTurn({
   }
 
   flushTools(live ? "live" : "done")
-  markLastAssistantTimestamp(rows, turnStart)
+
+  if (!live) markLastAssistantTimestamp(rows, turnStart)
 }
 
 function markLastAssistantTimestamp(rows: TimelineRow[], start: number) {
   for (let i = rows.length - 1; i >= start; i -= 1) {
     const row = rows[i]
+
     if (row?.role === "assistant") {
       row.showTimestamp = true
+
       return
     }
   }
@@ -220,6 +237,7 @@ export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt):
   if (step.streaming) return "思考中"
 
   const seconds = Math.max(1, Math.round(((completedAt ?? step.startedAt) - step.startedAt) / 1000))
+
   return `思考了 ${seconds}秒`
 }
 
@@ -231,6 +249,7 @@ export function buildTimelineRows(
   const rows: TimelineRow[] = []
   let user: UserTranscriptItem | undefined
   let rest: TranscriptItem[] = []
+
   for (const item of items) {
     if (isUserItem(item) && isVisibleTranscriptItem(item)) {
       if (user || rest.length) appendTurn({ rows, user, rest, live: false, timings })
@@ -246,16 +265,21 @@ export function buildTimelineRows(
 
 function sameImages(left: readonly TranscriptImage[], right: readonly TranscriptImage[]) {
   if (left === right) return true
+
   if (left.length !== right.length) return false
+
   return left.every((image, index) => {
     const other = right[index]
+
     return other != null && image.data === other.data && image.mimeType === other.mimeType
   })
 }
 
 function sameTiming(left: TurnTiming | undefined, right: TurnTiming | undefined) {
   if (left === right) return true
+
   if (!left || !right) return false
+
   return (
     left.userId === right.userId &&
     left.startedAt === right.startedAt &&
@@ -299,9 +323,12 @@ function sameToolRow(left: ToolRow, right: ToolRow) {
   ) {
     return false
   }
+
   return left.steps.every((step, index) => {
     const other = right.steps[index]
+
     if (!other || step.id !== other.id || step.type !== other.type) return false
+
     if (step.type === "thought" && other.type === "thought") {
       return (
         step.text === other.text &&
@@ -310,10 +337,14 @@ function sameToolRow(left: ToolRow, right: ToolRow) {
         step.endedAt === other.endedAt
       )
     }
+
     if (step.type !== "tools" || other.type !== "tools") return false
+
     if (step.key !== other.key || step.items.length !== other.items.length) return false
+
     return step.items.every((item, itemIndex) => {
       const nextItem = other.items[itemIndex]
+
       return (
         nextItem != null &&
         item.id === nextItem.id &&
@@ -327,9 +358,13 @@ function sameToolRow(left: ToolRow, right: ToolRow) {
 
 function sameRow(left: TimelineRow, right: TimelineRow) {
   if (left.role !== right.role) return false
+
   if (left.role === "user" && right.role === "user") return sameUserRow(left, right)
+
   if (left.role === "assistant" && right.role === "assistant") return sameAssistantRow(left, right)
+
   if (left.role === "tools" && right.role === "tools") return sameToolRow(left, right)
+
   return false
 }
 
@@ -341,43 +376,82 @@ export function reuseTimelineRows(
   if (previous.length === 0) return next as TimelineRow[]
   const prevById = new Map(previous.map((row) => [row.id, row]))
   let changed = previous.length !== next.length
+
   const rows = next.map((row, index) => {
     const prev = prevById.get(row.id)
     const reused = prev && sameRow(prev, row) ? prev : row
+
     if (reused !== previous[index]) changed = true
+
     return reused
   })
+
   return changed ? rows : (previous as TimelineRow[])
 }
 
 const TOOL_ROW_ORDER = ["read", "write", "edit", "command", "search", "tool"] as const
+
 const TOOL_ROW_LABEL = {
-  read: (n) => `读${n}次文件`,
-  write: (n) => `写${n}次文件`,
-  edit: (n) => `编辑${n}次文件`,
-  command: (n) => `运行${n}条命令`,
-  search: (n) => `搜${n}次`,
-  tool: (n) => `调用工具${n}次`,
+  read: (n) => `读 ${n} 次文件`,
+  write: (n) => `写 ${n} 次文件`,
+  edit: (n) => `编辑 ${n} 次文件`,
+  command: (n) => `运行 ${n} 条命令`,
+  search: (n) => `搜 ${n} 次`,
+  tool: (n) => `调用工具 ${n} 次`,
 } as const satisfies Record<ToolGroupKey, (count: number) => string>
 
-export function toolRowLabel(row: ToolRow): string {
+export type ToolRowLabelPart =
+  { kind: "text"; text: string } | { kind: "count"; prefix: string; count: number; suffix: string }
+
+export function toolRowLabelParts(row: ToolRow): ToolRowLabelPart[] {
   const counts = new Map<ToolGroupKey, number>()
   let thoughts = 0
+
   for (const step of row.steps) {
     if (step.type === "thought") thoughts += 1
     else counts.set(step.key, (counts.get(step.key) ?? 0) + step.items.length)
   }
 
-  const summary = [
-    thoughts ? `思考 ${thoughts}轮` : "",
-    ...TOOL_ROW_ORDER.map((key) => {
-      const count = counts.get(key)
-      return count ? TOOL_ROW_LABEL[key](count) : ""
-    }),
-  ]
-    .filter(Boolean)
-    .join(" · ")
+  const parts: ToolRowLabelPart[] = []
 
-  if (row.aborted) return summary ? `已停止 · ${summary}` : "已停止"
-  return summary || (row.mode === "live" ? "执行中" : "执行过程")
+  if (thoughts) parts.push({ kind: "text", text: `思考 ${thoughts} 轮` })
+
+  for (const key of TOOL_ROW_ORDER) {
+    const count = counts.get(key)
+
+    if (!count) continue
+
+    if (key === "write") parts.push({ kind: "count", prefix: "写", count, suffix: "次文件" })
+    else if (key === "edit") parts.push({ kind: "count", prefix: "编辑", count, suffix: "次文件" })
+    else parts.push({ kind: "text", text: TOOL_ROW_LABEL[key](count) })
+  }
+
+  if (row.aborted)
+    return parts.length
+      ? [{ kind: "text", text: "已停止" }, ...parts]
+      : [{ kind: "text", text: "已停止" }]
+
+  if (parts.length) return parts
+
+  return [{ kind: "text", text: row.mode === "live" ? "执行中" : "执行过程" }]
+}
+
+export function toolRowLabel(row: ToolRow): string {
+  return toolRowLabelParts(row)
+    .map((part) =>
+      part.kind === "text" ? part.text : `${part.prefix} ${part.count} ${part.suffix}`,
+    )
+    .join(" · ")
+}
+
+export function toolRowFailCount(row: ToolRow): number {
+  let count = 0
+
+  for (const step of row.steps) {
+    if (step.type !== "tools") continue
+
+    for (const item of step.items) if (item.isError) count += 1
+  }
+
+  return count
 }

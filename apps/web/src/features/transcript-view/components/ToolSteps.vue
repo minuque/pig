@@ -1,9 +1,17 @@
 <template>
-  <section class="tool-steps" :class="{ live, aborted: row.aborted }">
-    <Button type="button" static class="summary-btn" @click="emit('toggle-expand', !revealed)">
-      <Spinner v-if="live" class="tool-steps-icon" />
+  <section class="tool-steps" :class="{ running, aborted: row.aborted }">
+    <Button
+      type="button"
+      static
+      class="summary-btn"
+      :style="statusColor"
+      @click="emit('toggle-expand', !revealed)"
+    >
+      <Spinner v-if="running" class="tool-steps-icon" />
+      <ClockAlert v-else-if="row.aborted || row.error" class="tool-steps-icon" />
       <BadgeCheck v-else class="tool-steps-icon" />
-      <span :class="{ shimmer: live }" :data-text="label">{{ label }}</span>
+      <!-- prettier-ignore -->
+      <span :class="{ shimmer: running }" :data-text="label"><template v-for="(part, i) in labelParts" :key="i"><template v-if="i"> · </template><template v-if="part.kind === 'text'">{{ part.text }}</template><template v-else>{{ part.prefix }} <span class="success-n">{{ part.count }}</span> {{ part.suffix }}</template></template><template v-if="failCount"> · 执行失败 <span class="fail-n">{{ failCount }}</span> 次</template></span>
       <ChevronRight class="motion-turn" :class="{ 'is-on': revealed }" data-icon="inline-end" />
     </Button>
 
@@ -40,6 +48,7 @@
           <span
             class="hook-rail accent"
             :class="{ 'is-on': accentVisible, 'is-ready': railReady }"
+            :style="statusColor"
             aria-hidden="true"
           >
             <span class="hook-stem" :style="accentStemStyle" />
@@ -69,6 +78,20 @@
                 @toggle="emit('toggle-tool', $event.id, $event.open)"
               />
             </div>
+            <div
+              v-if="hiddenCount"
+              class="step"
+              :data-active="displayActiveIndex === renderedSteps.length"
+              @mouseenter="onPointerEnter(renderedSteps.length)"
+              @focusin="onFocusIn(renderedSteps.length)"
+            >
+              <div class="tool-summary">
+                <Button type="button" static class="summary" @click="loadMore">
+                  <Ellipsis class="tool-icon" data-icon="inline-start" />
+                  <span class="label" data-text="加载更多">加载更多</span>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -78,101 +101,83 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
-import { ChevronRight, BadgeCheck } from "@lucide/vue"
+import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import ToolCall from "./ToolCall.vue"
-import { toolRowLabel } from "../lib/transcript-rows.js"
+import { toolRowFailCount, toolRowLabel, toolRowLabelParts } from "../lib/transcript-rows.js"
 import type { ToolRow, ToolRowStep } from "../type.js"
 
 const HOOK_CORNER = 6
-const FIRST_MOUNT_SIZE = 1
-const MOUNT_BATCH_SIZE = 4
-const ANIMATED_EXPAND_LIMIT = 4
+
+const PAGE_SIZE = 8
+
+const ANIMATED_EXPAND_LIMIT = 8
 
 const props = defineProps<{
   row: ToolRow
   isExpand: boolean | undefined
   expandedTools: Map<string, boolean>
 }>()
+
 const emit = defineEmits<{
   "toggle-expand": [open: boolean]
   "toggle-tool": [id: string, open: boolean]
 }>()
 
-const live = computed(() => props.row.mode === "live")
-const revealed = computed(() => live.value || props.isExpand === true)
-const renderedCount = shallowRef(revealed.value ? props.row.steps.length : 0)
-const renderedSteps = computed(() => props.row.steps.slice(0, renderedCount.value))
-const prepared = computed(() => renderedCount.value >= props.row.steps.length)
+const running = computed(() => props.row.mode === "live")
+
+const statusColor = computed(() => (props.row.aborted ? { color: "var(--warning)" } : undefined))
+
+const revealed = computed(() => running.value || props.isExpand === true)
+
 const expanded = shallowRef(revealed.value)
-const skipHeightMotion = computed(
-  () =>
-    live.value ||
-    !expanded.value ||
-    !prepared.value ||
-    props.row.steps.length > ANIMATED_EXPAND_LIMIT,
+
+const keptMounted = shallowRef(revealed.value)
+
+const pageLimit = shallowRef(
+  running.value ? Math.max(PAGE_SIZE, props.row.steps.length) : PAGE_SIZE,
 )
 
-let revealRaf = 0
-let mountRaf = 0
+const renderedSteps = computed(() =>
+  keptMounted.value ? props.row.steps.slice(0, pageLimit.value) : [],
+)
 
-function mountBatch(size = MOUNT_BATCH_SIZE) {
-  renderedCount.value = Math.min(props.row.steps.length, renderedCount.value + size)
-}
+const hiddenCount = computed(() =>
+  keptMounted.value ? Math.max(0, props.row.steps.length - renderedSteps.value.length) : 0,
+)
 
-function cancelForegroundMount() {
-  if (revealRaf) cancelAnimationFrame(revealRaf)
-  if (mountRaf) cancelAnimationFrame(mountRaf)
-  revealRaf = 0
-  mountRaf = 0
-}
+const skipHeightMotion = computed(
+  () => running.value || !expanded.value || renderedSteps.value.length > ANIMATED_EXPAND_LIMIT,
+)
 
-function scheduleForegroundMount() {
-  if (prepared.value || !revealed.value || mountRaf) return
-  mountRaf = requestAnimationFrame(() => {
-    mountRaf = 0
-    if (!revealed.value) return
-    mountBatch()
-    if (!prepared.value) scheduleForegroundMount()
-  })
+function loadMore() {
+  pageLimit.value = Math.min(props.row.steps.length, pageLimit.value + PAGE_SIZE)
 }
 
 watch(
   revealed,
   (open) => {
-    if (!open) {
-      cancelForegroundMount()
-      expanded.value = false
-      return
-    }
-    const first = renderedCount.value === 0
-    if (first) mountBatch(FIRST_MOUNT_SIZE)
-    if (!first) {
-      expanded.value = true
-      scheduleForegroundMount()
-      return
-    }
-    revealRaf = requestAnimationFrame(() => {
-      revealRaf = 0
-      if (!revealed.value) return
-      expanded.value = true
-      scheduleForegroundMount()
-    })
+    if (open) keptMounted.value = true
+    expanded.value = open
   },
   { flush: "sync" },
 )
 
 watch(
-  [live, () => props.row.steps.length],
-  ([isLive, length]) => {
-    if (isLive || revealed.value) renderedCount.value = length
-    else renderedCount.value = Math.min(renderedCount.value, length)
+  [running, () => props.row.steps.length],
+  ([isRunning, length]) => {
+    if (isRunning) pageLimit.value = Math.max(PAGE_SIZE, length)
+    else pageLimit.value = Math.min(Math.max(PAGE_SIZE, pageLimit.value), length)
   },
   { flush: "sync" },
 )
 
 const label = computed(() => toolRowLabel(props.row))
+
+const labelParts = computed(() => toolRowLabelParts(props.row))
+
+const failCount = computed(() => toolRowFailCount(props.row))
 
 function isStepRunning(step: ToolRowStep) {
   return step.type === "thought" ? step.streaming : step.items.some((item) => item.running)
@@ -180,40 +185,59 @@ function isStepRunning(step: ToolRowStep) {
 
 const activeIndex = computed(() => {
   const steps = props.row.steps
-  const running = steps.findIndex(isStepRunning)
-  if (running >= 0) return running
+  const runningIndex = steps.findIndex(isStepRunning)
+
+  if (runningIndex >= 0) return runningIndex
+
   return steps.length > 0 ? steps.length - 1 : -1
 })
+
+const moreIndex = computed(() => (hiddenCount.value ? renderedSteps.value.length : -1))
+
 const displayActiveIndex = computed(() => {
-  const count = renderedCount.value
-  if (count === 0 || activeIndex.value < 0) return -1
-  return Math.min(activeIndex.value, count - 1)
+  const last = moreIndex.value >= 0 ? moreIndex.value : renderedSteps.value.length - 1
+
+  if (last < 0 || activeIndex.value < 0) return -1
+
+  return Math.min(activeIndex.value, last)
 })
 
 const listEl = shallowRef<HTMLElement | null>(null)
+
 const centers = shallowRef<number[]>([])
+
 const railReady = shallowRef(false)
+
 const hoverIndex = shallowRef<number | null>(null)
+
 const pointerInside = shallowRef(false)
+
 const focusInside = shallowRef(false)
+
 let listObserver: ResizeObserver | undefined
+
 let measureRaf = 0
 
 function measure() {
   const root = listEl.value
+
   if (!root || !expanded.value) return
   const rootTop = root.getBoundingClientRect().top
   const nodes = root.querySelectorAll<HTMLElement>(":scope .step")
   const next: number[] = []
+
   for (const index of new Set([displayActiveIndex.value, hoverIndex.value])) {
     if (index == null || index < 0) continue
     const node = nodes.item(index)
+
     if (!node) continue
     const hit = node.querySelector<HTMLElement>(".summary") ?? node
     const rect = hit.getBoundingClientRect()
     next[index] = rect.top - rootTop + rect.height / 2
   }
+
   centers.value = next
+
   if (!railReady.value && next.some((y) => y > 0)) railReady.value = true
 }
 
@@ -239,6 +263,7 @@ function onFocusIn(index: number) {
 
 function onFocusOut(event: FocusEvent) {
   const root = listEl.value
+
   if (root && event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return
   focusInside.value = false
 }
@@ -252,22 +277,30 @@ function railBox(from: number, y: number) {
 
 const activeY = computed(() => {
   const y = centers.value[displayActiveIndex.value]
+
   return y == null ? null : y
 })
+
 const hoverY = computed(() => {
   const index = hoverIndex.value
+
   if (index == null) return null
   const y = centers.value[index]
+
   return y == null ? null : y
 })
+
 const hoverFrom = computed(() => {
   const accent = activeY.value
   const hover = hoverY.value
+
   if (accent != null && hover != null && hover <= accent) return Math.max(0, hover - HOOK_CORNER)
+
   return accent ?? 0
 })
 
 const accentVisible = computed(() => activeY.value != null)
+
 const hoverVisible = computed(
   () =>
     (pointerInside.value || focusInside.value) &&
@@ -276,14 +309,19 @@ const hoverVisible = computed(
 )
 
 const accentBox = computed(() => railBox(0, activeY.value ?? 0))
+
 const hoverBox = computed(() => railBox(hoverFrom.value, hoverY.value ?? 0))
+
 const accentStemStyle = computed(() => accentBox.value.stem)
+
 const accentCornerStyle = computed(() => accentBox.value.corner)
+
 const hoverStemStyle = computed(() => hoverBox.value.stem)
+
 const hoverCornerStyle = computed(() => hoverBox.value.corner)
 
 watch(
-  [displayActiveIndex, renderedCount, expanded],
+  [displayActiveIndex, moreIndex, expanded],
   () => {
     if (expanded.value) measure()
   },
@@ -295,11 +333,14 @@ watch(
   ([root, open]) => {
     listObserver?.disconnect()
     listObserver = undefined
+
     if (!root || !open) {
       centers.value = []
       railReady.value = false
+
       return
     }
+
     listObserver = new ResizeObserver(scheduleMeasure)
     listObserver.observe(root)
     measure()
@@ -309,7 +350,7 @@ watch(
 
 onBeforeUnmount(() => {
   listObserver?.disconnect()
-  cancelForegroundMount()
+
   if (measureRaf) cancelAnimationFrame(measureRaf)
 })
 </script>
@@ -358,6 +399,14 @@ onBeforeUnmount(() => {
   transition: color var(--duration-fast) var(--ease-out);
 }
 
+.fail-n {
+  color: var(--danger);
+}
+
+.success-n {
+  color: var(--success);
+}
+
 .steps {
   position: relative;
   min-width: 0;
@@ -376,6 +425,43 @@ onBeforeUnmount(() => {
   padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
 }
 
+.tool-summary {
+  min-width: 0;
+}
+
+.summary {
+  width: 100%;
+  height: auto;
+  min-height: var(--size-icon-button);
+  min-width: 0;
+  padding: 2px 0;
+  gap: var(--spacing-xs);
+  justify-content: flex-start;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-regular);
+  text-align: start;
+}
+.summary:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+.tool-icon {
+  position: relative;
+  z-index: 1;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.label {
+  flex: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .hook-stem {
   background-image: repeating-linear-gradient(to top, transparent 0 2px, currentColor 2px 4px);
 }
@@ -383,15 +469,15 @@ onBeforeUnmount(() => {
 .hook-rail.accent {
   color: var(--ink-muted);
 }
-.live .hook-rail.accent {
+.running .hook-rail.accent {
   color: var(--primary);
 }
 .aborted .hook-rail.accent {
   color: var(--warning);
 }
 
-.live .hook-stem,
-.live .hook-corner {
+.running .hook-stem,
+.running .hook-corner {
   transition: none;
 }
 </style>

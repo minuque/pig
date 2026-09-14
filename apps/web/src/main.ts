@@ -1,5 +1,7 @@
 import { createApp } from "vue"
-import { enableKatex, enableMermaid } from "markstream-vue"
+import { enableKatex, enableMermaid, setKaTeXWorker, setMermaidWorker } from "markstream-vue"
+import KatexWorker from "markstream-vue/workers/katexRenderer.worker?worker&inline"
+import MermaidWorker from "markstream-vue/workers/mermaidParser.worker?worker&inline"
 
 import "@style/app.css"
 
@@ -7,8 +9,15 @@ import App from "./App.vue"
 import router from "@router/index.js"
 
 enableMermaid()
+
 enableKatex()
 
+setMermaidWorker(new MermaidWorker())
+
+setKaTeXWorker(new KatexWorker())
+
 const app = createApp(App)
+
 app.use(router)
+
 app.mount("#app")

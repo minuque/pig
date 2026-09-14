@@ -1,24 +1,24 @@
 <template>
   <div class="tool-step-card" :class="cardClasses">
-    <template v-if="commandContent">
+    <template v-if="runContent">
       <ToolHeader
-        v-model:expanded="commandExpanded"
-        label="命令"
-        :text="commandContent.command"
-        :hidden-count="commandHidden"
+        v-model:expanded="runExpanded"
+        :label="runContent.copyLabel"
+        :text="runContent.copyText"
+        :hidden-count="runHidden"
       >
         <div class="command-heading">
-          <span class="status-dot" :title="commandContent.statusLabel" />
-          <span v-if="commandContent.cwd" class="cwd" :title="commandContent.cwd">
-            {{ pathBasename(commandContent.cwd) }}
+          <span class="status-dot" :title="runContent.statusLabel" />
+          <span v-if="runContent.meta" class="cwd" :title="runContent.metaTitle">
+            {{ runContent.meta }}
           </span>
-          <code class="command" :title="commandContent.command">{{ commandContent.command }}</code>
+          <code class="command" :title="runContent.heading">{{ runContent.heading }}</code>
         </div>
       </ToolHeader>
       <ToolOutput
-        v-model:expanded="commandExpanded"
-        :text="commandContent.outputText || commandContent.emptyOutput"
-        :images="commandContent.outputImages"
+        v-model:expanded="runExpanded"
+        :text="runContent.outputText || runContent.emptyOutput"
+        :images="runContent.outputImages"
         :show-count="false"
         embedded
       />
@@ -49,40 +49,6 @@
         :start-line="readContent.preview.startLine"
       />
       <p v-if="readContent.preview.notice" class="read-notice">{{ readContent.preview.notice }}</p>
-    </template>
-    <template v-else-if="toolContent">
-      <section v-if="toolContent.inputFull" class="layer">
-        <ToolHeader
-          v-model:expanded="inputExpanded"
-          label="入参"
-          :text="toolContent.inputFull"
-          :hidden-count="inputHidden"
-        />
-        <ToolOutput
-          v-model:expanded="inputExpanded"
-          :text="toolContent.inputFull"
-          :show-count="false"
-          embedded
-        />
-      </section>
-      <section class="layer">
-        <ToolHeader
-          v-model:expanded="outputExpanded"
-          :label="toolContent.outputLabel"
-          :text="toolContent.outputText"
-          :hidden-count="outputHidden"
-        />
-        <ToolOutput
-          v-model:expanded="outputExpanded"
-          :text="
-            toolContent.outputText ||
-            (toolContent.outputImages.length ? '' : toolContent.emptyOutput)
-          "
-          :images="toolContent.outputImages"
-          :show-count="false"
-          embedded
-        />
-      </section>
     </template>
     <template v-else-if="editContent">
       <ToolHeader :label="editHeading" :text="editCopyText">
@@ -152,112 +118,110 @@ const props = defineProps<{
   statusLabel?: string
   path?: string
   preview?: ReadToolPreview
+  heading?: string
   inputFull?: string
-  outputLabel?: string
   editPreview?: EditDiffPreview
 }>()
 
-const commandContent = computed(() =>
-  props.variant === "command"
-    ? {
-        command: props.command ?? "",
-        cwd: props.cwd ?? "",
-        outputText: props.outputText ?? "",
-        outputImages: props.outputImages ?? [],
-        emptyOutput: props.emptyOutput ?? "",
-        status: props.status ?? "success",
-        statusLabel: props.statusLabel ?? "",
-      }
-    : null,
-)
+const runContent = computed(() => {
+  if (props.variant === "command") {
+    const command = props.command ?? ""
+    const cwd = props.cwd ?? ""
+
+    return {
+      meta: cwd ? pathBasename(cwd) : "",
+      metaTitle: cwd,
+      heading: command,
+      copyLabel: "命令",
+      copyText: command,
+      outputText: props.outputText ?? "",
+      outputImages: props.outputImages ?? [],
+      emptyOutput: props.emptyOutput ?? "",
+      status: props.status ?? "success",
+      statusLabel: props.statusLabel ?? "",
+    }
+  }
+
+  if (props.variant !== "tool") return null
+  const heading = props.heading ?? ""
+
+  return {
+    meta: "",
+    metaTitle: "",
+    heading,
+    copyLabel: "入参",
+    copyText: props.inputFull || heading,
+    outputText: props.outputText ?? "",
+    outputImages: props.outputImages ?? [],
+    emptyOutput: props.emptyOutput ?? "",
+    status: props.status ?? "success",
+    statusLabel: props.statusLabel ?? "",
+  }
+})
+
 const readContent = computed(() =>
   props.variant === "read" && props.path && props.preview
     ? { path: props.path, preview: props.preview }
     : null,
 )
-const toolContent = computed(() =>
-  props.variant === "tool"
-    ? {
-        inputFull: props.inputFull ?? "",
-        outputText: props.outputText ?? "",
-        outputImages: props.outputImages ?? [],
-        emptyOutput: props.emptyOutput ?? "",
-        outputLabel: props.outputLabel ?? "输出",
-      }
-    : null,
-)
+
 const thoughtContent = computed(() =>
   props.variant === "thought"
     ? { text: props.text ?? "", streaming: props.streaming ?? false }
     : null,
 )
+
 const editContent = computed(() =>
   props.variant === "edit" && props.editPreview?.hunks.length ? props.editPreview : null,
 )
 
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
-  "is-command": props.variant === "command",
-  "is-err": commandContent.value?.status === "error",
-  "is-run": commandContent.value?.status === "running",
+  "is-command": props.variant === "command" || props.variant === "tool",
+  "is-err": runContent.value?.status === "error",
+  "is-run": runContent.value?.status === "running",
 }))
 
 const { codeBlockProps } = useColorScheme()
+
 const editDiffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
   disableFileHeader: true,
 }))
 
-const commandExpanded = ref(false)
-const inputExpanded = ref(false)
-const outputExpanded = ref(false)
+const runExpanded = ref(false)
+
 const readExpanded = ref(false)
+
 const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
 
-const commandBody = computed(
-  () => commandContent.value?.outputText || commandContent.value?.emptyOutput || "",
-)
-const commandHidden = computed(() => hiddenLineCount(splitLines(commandBody.value).length))
-const inputHidden = computed(() =>
-  hiddenLineCount(splitLines(toolContent.value?.inputFull ?? "").length),
-)
-const outputHidden = computed(() =>
-  hiddenLineCount(
-    splitLines(toolContent.value?.outputText || toolContent.value?.emptyOutput || "").length,
-  ),
-)
+const runBody = computed(() => runContent.value?.outputText || runContent.value?.emptyOutput || "")
+
+const runHidden = computed(() => hiddenLineCount(splitLines(runBody.value).length))
+
 const readHidden = computed(() => hiddenLineCount(readContent.value?.preview.lines.length ?? 0))
 
 const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
+
 const editLanguageIconUrl = computed(() => languageIconDataUrl(editContent.value?.language))
+
 const editHeading = computed(() => editContent.value?.path || editContent.value?.fileName || "")
+
 const editCopyText = computed(
   () => editContent.value?.hunks.map((hunk) => hunk.modified).join("\n") ?? "",
 )
 
 function languageIconDataUrl(lang: string | undefined) {
   void languageIconsRevision.value
+
   if (!lang || lang === "text") return ""
+
   return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(lang))}`
 }
 
-watch(commandBody, () => {
-  commandExpanded.value = false
+watch(runBody, () => {
+  runExpanded.value = false
 })
-
-watch(
-  () => toolContent.value?.inputFull,
-  () => {
-    inputExpanded.value = false
-  },
-)
-
-watch(
-  () => toolContent.value?.outputText,
-  () => {
-    outputExpanded.value = false
-  },
-)
 
 watch(
   () => readContent.value?.preview.code,
@@ -274,14 +238,18 @@ watch(
       active = false
     })
     const preview = content?.preview
+
     if (!preview || preview.language === "text" || preview.code.length > 100_000) {
       readTokens.value = []
+
       return
     }
+
     try {
       const theme = blockProps.theme
       const { getSharedHighlighter } = await import("stream-diffs/pierre")
       const highlighter = await getSharedHighlighter({ themes: [theme], langs: [preview.language] })
+
       if (!active) return
       readTokens.value = highlighter.codeToTokens(preview.code, {
         lang: preview.language,
@@ -298,7 +266,8 @@ watch(
 <style scoped>
 .tool-step-card {
   min-width: 0;
-  overflow: hidden;
+  max-width: 100%;
+  overflow: visible;
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-lg);
   background: var(--code-body);
@@ -370,10 +339,6 @@ watch(
   font-family: var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.layer + .layer {
-  border-top: var(--border-width) solid var(--hairline);
 }
 
 .read-notice {

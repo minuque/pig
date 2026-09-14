@@ -24,7 +24,9 @@ import SoundToggle from "@features/click-sound/SoundToggle.vue"
 import ThemeToggle from "@features/theme/ThemeToggle.vue"
 
 const { leftOpen, toggle } = useLeftPanelToggle()
+
 const { sessionId, projection } = useSession()
+
 const { listedSessions } = useNav()
 
 const title = computed(() =>
@@ -54,7 +56,7 @@ const title = computed(() =>
   /* 让开滚动条列，否则渐隐会压住两端的三角按钮 */
   inset-inline: 0 var(--size-scrollbar);
   top: 100%;
-  height: 24px;
+  height: var(--spacing-sm);
   background: linear-gradient(to bottom, var(--surface), transparent);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));

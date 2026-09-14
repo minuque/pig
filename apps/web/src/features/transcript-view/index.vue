@@ -115,6 +115,7 @@ const emit = defineEmits<{
 }>()
 
 const rows = shallowRef<TimelineRow[]>([])
+
 const mountedKeys = computed(() => timelineRowKeys(rows.value))
 
 watch(
@@ -130,7 +131,9 @@ const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpan
 )
 
 const viewport = useTemplateRef<HTMLElement>("viewport")
+
 const column = useTemplateRef<HTMLElement>("column")
+
 const list = useTemplateRef<HTMLElement>("list")
 
 const scrollIdle = useTranscriptScrollIdle(viewport)
@@ -158,6 +161,7 @@ const showScrollToLatest = computed(() =>
 )
 
 let sizeObserver: ResizeObserver | undefined
+
 let pinRaf = 0
 
 function schedulePin() {
@@ -175,6 +179,7 @@ const {
 } = useTranscriptMinimap(rows, { viewport, column }, mountedKeys)
 
 const LOAD_OLDER_TOP = 48
+
 let loadOlderArmed = true
 
 function requestOlder() {
@@ -186,9 +191,12 @@ function requestOlder() {
 function maybeLoadOlder() {
   const root = scrollerRoot()
   const top = root?.scrollTop ?? 0
+
   if (top > LOAD_OLDER_TOP) loadOlderArmed = true
+
   if (!loadOlderArmed) return
   const overflow = transcriptOverflows(root?.scrollHeight ?? 0, root?.clientHeight ?? 0)
+
   if (
     !shouldLoadOlderTranscript(props.hasMore, props.loadingOlder, atBottom.value, top, {
       threshold: LOAD_OLDER_TOP,
@@ -222,6 +230,7 @@ function onToggleExpand(id: string, open: boolean) {
 function onToggleTool(rowId: string, id: string, open: boolean) {
   releasePinnedToBottom()
   atBottom.value = false
+
   if (open) toggleExpand(rowId, true)
   toggleTool(id, open)
 }
@@ -229,6 +238,7 @@ function onToggleTool(rowId: string, id: string, open: boolean) {
 function selectMinimapItem(item: TranscriptMinimapItem) {
   const root = scrollerRoot()
   const target = root?.querySelector<HTMLElement>(`[data-minimap-row="${CSS.escape(item.id)}"]`)
+
   if (target) scrollToElement(target)
 }
 
@@ -237,9 +247,12 @@ function observeSizes() {
   sizeObserver = undefined
   const root = viewport.value
   const body = list.value
+
   if (!root && !body) return
   sizeObserver = new ResizeObserver(schedulePin)
+
   if (root) sizeObserver.observe(root)
+
   if (body) sizeObserver.observe(body)
 }
 
@@ -275,12 +288,15 @@ watch(
 
 watch(rows, (next, prev) => {
   const previous = prev ?? []
+
   if (previous.length === 0 && next.length > 0) {
     armTailWindow()
     settlePaint()
     void nextTick(pinLatest)
+
     return
   }
+
   if (historyPrepended(previous, next) && !atBottom.value) {
     const root = scrollerRoot()
     const beforeHeight = root?.scrollHeight ?? 0
@@ -288,8 +304,10 @@ watch(rows, (next, prev) => {
     void nextTick(() => {
       if (root) restoreScrollAfterPrepend(root, beforeHeight, beforeTop)
     })
+
     return
   }
+
   if (atBottom.value) void nextTick(pinIfNeeded)
 })
 
@@ -297,6 +315,7 @@ watch(
   [viewport, list],
   ([, body], prev) => {
     observeSizes()
+
     if (body && !prev?.[1]) pinLatest()
   },
   { flush: "post" },
@@ -304,6 +323,7 @@ watch(
 
 onBeforeUnmount(() => {
   sizeObserver?.disconnect()
+
   if (pinRaf) cancelAnimationFrame(pinRaf)
 })
 
@@ -340,7 +360,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 
 .transcript {
   box-sizing: border-box;
-  width: min(100%, var(--size-content));
+  width: min(100%, var(--size-content) - var(--spacing-lg));
   min-width: 0;
   margin-inline: auto;
   padding-block: var(--spacing-lg);

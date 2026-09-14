@@ -68,7 +68,7 @@
   --scrollbar-hover: #737373;
 
   /* 玻璃 */
-  --glass-blur: 12px;
+  --glass-blur: 2px;
   --glass-opacity: 80%;
   --glass-saturation: 1;
   --startup-veil: color-mix(in srgb, var(--composer-bg) var(--glass-opacity), var(--canvas-soft));
@@ -256,9 +256,6 @@
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #737373;
   --scrollbar-hover: #a3a3a3;
-
-  --glass-blur: 16px;
-  --glass-saturation: 1;
 
   --accent-orange: #facc15;
   --accent-orange-deep: #facc15;

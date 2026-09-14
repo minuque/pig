@@ -47,7 +47,7 @@
                 :output-text="call.outputText"
                 :output-images="call.outputImages"
                 :empty-output="call.emptyOutput"
-                :status="call.commandStatus"
+                :status="call.status"
                 :status-label="call.statusLabel"
               />
               <ToolStepCard
@@ -64,11 +64,13 @@
               <ToolStepCard
                 v-else
                 variant="tool"
+                :heading="call.heading"
                 :input-full="call.inputFull"
                 :output-text="call.outputText"
                 :output-images="call.outputImages"
                 :empty-output="call.emptyOutput"
-                :output-label="call.outputLabel"
+                :status="call.status"
+                :status-label="call.statusLabel"
               />
             </div>
           </template>
@@ -96,6 +98,7 @@ import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-rows.
 import {
   isCommandTool,
   toolCommand,
+  toolInputHint,
   toolInputPretty,
   toolPath,
   toolWorkingDirectory,
@@ -117,9 +120,12 @@ import type {
 
 function fileDetailIcon(detail: ToolSummaryDetail | null): string {
   void languageIconsRevision.value
+
   if (detail?.kind !== "file") return ""
   const language = fileLanguage(detail.path)
+
   if (language === "text") return ""
+
   return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(language))}`
 }
 
@@ -136,7 +142,7 @@ type CallView =
       outputText: string
       outputImages: TranscriptImage[]
       emptyOutput: string
-      commandStatus: "error" | "running" | "success"
+      status: "error" | "running" | "success"
       statusLabel: string
     })
   | (CallBase & {
@@ -150,11 +156,13 @@ type CallView =
     })
   | (CallBase & {
       variant: "tool"
+      heading: string
       inputFull: string
       outputText: string
       outputImages: TranscriptImage[]
       emptyOutput: string
-      outputLabel: string
+      status: "error" | "running" | "success"
+      statusLabel: string
     })
 
 function output(item: ToolCallView, open: boolean) {
@@ -163,6 +171,14 @@ function output(item: ToolCallView, open: boolean) {
     outputImages: open ? item.outputImages : [],
     emptyOutput: item.running ? "(running…)" : "(no output)",
   }
+}
+
+function callStatus(item: ToolCallView) {
+  if (item.isError) return { status: "error" as const, statusLabel: "执行失败" }
+
+  if (item.running) return { status: "running" as const, statusLabel: "正在执行" }
+
+  return { status: "success" as const, statusLabel: "执行完成" }
 }
 
 function hasBody(item: ToolCallView): boolean {
@@ -176,6 +192,7 @@ function hasBody(item: ToolCallView): boolean {
 
 function presentCall(item: ToolCallView, open: boolean): CallView {
   const name = item.toolName.trim().toLowerCase()
+
   if (isCommandTool(name)) {
     return {
       item,
@@ -184,15 +201,16 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
       command: toolCommand(item.input),
       cwd: toolWorkingDirectory(item.input),
       ...output(item, open),
-      commandStatus: item.isError ? "error" : item.running ? "running" : "success",
-      statusLabel: item.isError ? "执行失败" : item.running ? "正在执行" : "执行完成",
+      ...callStatus(item),
     }
   }
 
   const key = toolGroupKey(item.toolName)
+
   if (key === "read") {
     const path = toolPath(item.input)
     const out = output(item, open)
+
     const canPreview =
       open &&
       Boolean(path) &&
@@ -201,6 +219,7 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
       out.outputImages.length === 0 &&
       Boolean(out.outputText) &&
       !/^\[Line \d+ is .+ exceeds /.test(out.outputText)
+
     if (canPreview && path) {
       return {
         item,
@@ -210,30 +229,36 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
         preview: readToolPreview(item.input, out.outputText),
       }
     }
+
     return {
       item,
       expandable: true,
       variant: "tool",
-      ...out,
+      heading: path || "Read",
       inputFull: "",
-      outputLabel: path || "Read",
+      ...out,
+      ...callStatus(item),
     }
   }
 
   if (key === "edit") {
     const preview = open && !item.isError && !item.running ? editDiffPreview(item.input) : null
+
     if (preview) {
       return { item, expandable: true, variant: "edit", editPreview: preview }
     }
   }
 
+  const heading = toolInputHint(item.input) || item.toolName
+
   return {
     item,
     expandable: hasBody(item),
     variant: "tool",
-    ...output(item, open),
+    heading,
     inputFull: open ? toolInputPretty(item.input) : "",
-    outputLabel: "输出",
+    ...output(item, open),
+    ...callStatus(item),
   }
 }
 
@@ -241,14 +266,19 @@ const props = defineProps<{
   step: ToolRowStep
   isExpand: Map<string, boolean>
 }>()
+
 const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
 
 const thought = computed(() => (props.step.type === "thought" ? props.step : null))
+
 const group = computed(() => (props.step.type === "tools" ? props.step : null))
+
 const open = computed(
   () => thought.value?.streaming === true || props.isExpand.get(props.step.id) === true,
 )
+
 const failed = computed(() => group.value?.items.some((item) => item.isError) ?? false)
+
 const running = computed(() =>
   thought.value
     ? thought.value.streaming
@@ -256,6 +286,7 @@ const running = computed(() =>
 )
 
 const liveThoughtEndedAt = shallowRef<number>()
+
 watch(
   () => thought.value?.streaming,
   (streaming, previous) => {
@@ -267,14 +298,20 @@ watch(
 
 const label = computed(() => {
   if (thought.value) return thoughtStepLabel(thought.value, liveThoughtEndedAt.value)
+
   return toolSummary(group.value?.items ?? [])
 })
+
 const detail = computed(() => (group.value ? toolSummaryDetail(group.value.items) : null))
+
 const detailIcon = computed(() => fileDetailIcon(detail.value))
+
 const icon = computed(() => {
   if (thought.value) return Lightbulb
   const key = group.value?.key
+
   if (!key) return Wrench
+
   switch (key) {
     case "read":
       return FileText
@@ -289,6 +326,7 @@ const icon = computed(() => {
       return Wrench
     default: {
       const _exhaustive: never = key
+
       return _exhaustive
     }
   }
@@ -296,6 +334,7 @@ const icon = computed(() => {
 
 const calls = computed(() => {
   if (!group.value) return []
+
   return group.value.items.map((item) => presentCall(item, open.value))
 })
 

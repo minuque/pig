@@ -23,17 +23,20 @@ const props = withDefaults(
   { streaming: false },
 )
 
-const { isDark, codeBlockProps } = useColorScheme()
+const { isDark } = useColorScheme()
+
 const viewport = useTemplateRef<HTMLElement>("viewport")
+
 const content = useTemplateRef<HTMLElement>("content")
+
 const text = computed(() => props.blocks.join("\n"))
+
 const { scheduleScrollToBottom } = useStickToBottom(viewport, content)
 
 const thinkProps = computed(() =>
   plainMarkdownProps({
     streaming: props.streaming,
     isDark: isDark.value,
-    codeBlockProps: codeBlockProps.value,
   }),
 )
 

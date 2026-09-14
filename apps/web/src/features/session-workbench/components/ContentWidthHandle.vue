@@ -31,14 +31,19 @@ const emit = defineEmits<{
 }>()
 
 const dragging = shallowRef(false)
+
 let originX = 0
+
 let latestX = 0
+
 let baseWidth = 0
+
 let frame = 0
 
 function outwardWidth(): number {
   const dx = latestX - originX
   const outward = props.side === "right" ? dx : -dx
+
   return baseWidth + outward * 2
 }
 
@@ -50,6 +55,7 @@ function cancelFrame() {
 
 function onPointerDown(event: PointerEvent) {
   const handle = event.currentTarget
+
   if (!(handle instanceof HTMLElement)) return
   event.preventDefault()
   handle.setPointerCapture(event.pointerId)
@@ -62,11 +68,14 @@ function onPointerDown(event: PointerEvent) {
 
 function onPointerMove(event: PointerEvent) {
   const handle = event.currentTarget
+
   if (!(handle instanceof HTMLElement)) return
   const box = handle.getBoundingClientRect()
   handle.style.setProperty("--width-handle-pointer-y", `${event.clientY - box.top}px`)
+
   if (!handle.hasPointerCapture(event.pointerId)) return
   latestX = event.clientX
+
   if (frame) return
   frame = requestAnimationFrame(() => {
     frame = 0
@@ -76,11 +85,14 @@ function onPointerMove(event: PointerEvent) {
 
 function onPointerUp(event: PointerEvent) {
   const handle = event.currentTarget
+
   if (!(handle instanceof HTMLElement)) return
+
   if (!handle.hasPointerCapture(event.pointerId)) return
   handle.releasePointerCapture(event.pointerId)
   cancelFrame()
   latestX = event.clientX
+
   if (latestX !== originX) emit("commit", outwardWidth())
   dragging.value = false
   emit("end")
@@ -98,7 +110,7 @@ function onPointerCancel() {
   position: absolute;
   inset-block: 0;
   z-index: var(--z-resizer);
-  width: min(var(--size-control), calc((100% - var(--size-content)) / 2 - 48px));
+  width: min(calc(var(--size-control) / 2), calc((100% - var(--size-content)) / 4 - 24px));
   cursor: col-resize;
   touch-action: none;
 }
