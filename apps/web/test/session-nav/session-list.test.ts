@@ -19,13 +19,13 @@ describe("groupSessionsByCwd", () => {
         { id: "old", createdAt: 1, cwd: "/a" },
         { id: "open", createdAt: 1, cwd: "G:\\AICode\\pig" },
       ],
-      ["/a", "/b", "g:/AICode/pig", "/empty"],
+      ["/a", "/b", "g:/AICode/pig", "G:\\aicode\\pig", "/empty"],
     )
 
     expect(groups.map((group) => group.canonicalPath)).toEqual([
       "/a",
       "/b",
-      "g:/AICode/pig",
+      "g:/aicode/pig",
       "/empty",
     ])
     expect(groups[0]?.sessions.map((session) => session.id)).toEqual(["s2", "old"])
@@ -106,10 +106,15 @@ describe("session card foot", () => {
         messageCount: 5,
         model: { provider: "anthropic", id: "claude" },
       }),
-    ).toEqual({ messageCount: 5, outcome: undefined })
+    ).toEqual({
+      messageCount: 5,
+      outcome: undefined,
+      model: { provider: "anthropic", id: "claude" },
+    })
     expect(sessionCardFoot("s1", extras, undefined)).toEqual({
       messageCount: 2,
       outcome: undefined,
+      model: { provider: "openai", id: "gpt-4" },
     })
   })
 })

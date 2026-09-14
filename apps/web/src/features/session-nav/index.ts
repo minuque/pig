@@ -33,19 +33,13 @@ function createNav(
   )
 
   const navError = shallowRef("")
-  const cards = useSessionCards(pi.connected, pi.sessions, session.sessionId)
+  const cards = useSessionCards(pi.connected)
 
-  const nav = useWorkspaceNav(
-    pi.sessions,
-    cwd,
-    navError,
-    {
-      sessionId: session.sessionId,
-      router,
-      refreshSessions: pi.refreshSessions,
-    },
-    cards.loadSessionCards,
-  )
+  const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
+    sessionId: session.sessionId,
+    router,
+    refreshSessions: pi.refreshSessions,
+  })
 
   const markers = useSessionMarkers(nav.listedSessions, session.sessionId)
 
@@ -71,6 +65,7 @@ function createNav(
       string,
       {
         messageCount: number | undefined
+        model: { provider: string; id: string } | undefined
         state: SidebarSessionState | undefined
       }
     >()

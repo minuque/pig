@@ -91,7 +91,6 @@ export function useWorkspaceNav(
     router: Router
     refreshSessions(): Promise<void>
   },
-  refreshSessionCards: () => Promise<void> = async () => undefined,
 ) {
   const addingWorkspace = ref(false)
   const titleById = shallowRef<Record<string, string>>({})
@@ -221,7 +220,6 @@ export function useWorkspaceNav(
     void admin.refreshSessions().catch((cause) => {
       error.value = errorMessage(cause)
     })
-    void refreshSessionCards()
   }
 
   async function deleteSession(id: string) {
@@ -232,7 +230,6 @@ export function useWorkspaceNav(
 
       if (admin.sessionId.value === id) await admin.router.replace("/")
       await admin.refreshSessions()
-      void refreshSessionCards()
     } catch (cause) {
       error.value = errorMessage(cause)
     }

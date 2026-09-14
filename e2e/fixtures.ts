@@ -16,9 +16,7 @@ const webRoot = join(root, "apps/web/dist")
 export function canonicalizeWorkspacePath(path: string): string {
   const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "")
 
-  return /^[A-Z]:/.test(normalized)
-    ? normalized[0]!.toLowerCase() + normalized.slice(1)
-    : normalized
+  return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
 }
 
 export interface E2eGateway {

@@ -127,13 +127,13 @@ export type DirectoryExecFile = (
 ) => Promise<{ stdout: string }>
 
 // 与 web 端 apps/web/src/client/local-cwd.ts 的 canonicalizeWorkspacePath 是同一套
-// 规范化逻辑（分隔符/盘符/尾斜杠），跨包各自维护，修改时需两处同步。
+// 规范化逻辑（分隔符/大小写/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizePath(path: string): string {
-  const normalized = resolve(path).replaceAll("\\", "/").replace(/\/$/, "")
+  const normalized = resolve(path).replaceAll("\\", "/").replace(/\/+$/, "")
 
-  return /^[A-Z]:/.test(normalized)
-    ? normalized[0]!.toLowerCase() + normalized.slice(1)
-    : normalized
+  if (process.platform === "win32") return normalized.toLowerCase()
+
+  return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
 }
 
 async function validateDirectory(path: string): Promise<string> {

@@ -1,5 +1,5 @@
 import type { SessionMetadata, TranscriptItem } from "@/types/common-type.js"
-import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
+import { canonicalizeWorkspacePath, uniqueCanonicalPaths } from "@client/local-cwd.js"
 import { transcriptText } from "@features/transcript-view/lib/transcript-format.js"
 import type {
   SessionCardExtra,
@@ -67,7 +67,7 @@ export function groupSessionsByCwd(
     else byPath.set(cwd, [session])
   }
 
-  const localPaths = localWorkspaces.map(canonicalizeWorkspacePath)
+  const localPaths = uniqueCanonicalPaths(localWorkspaces)
   const local = new Set(localPaths)
 
   return [
@@ -206,6 +206,7 @@ export function sessionCardFoot(
 ): {
   messageCount: number | undefined
   outcome: "complete" | "error" | undefined
+  model: { provider: string; id: string } | undefined
 } {
   const extra = extras.get(sessionId)
   const isLive = live?.sessionId === sessionId
@@ -213,6 +214,7 @@ export function sessionCardFoot(
   return {
     messageCount: isLive ? (live.messageCount ?? extra?.messageCount) : extra?.messageCount,
     outcome: isLive ? (live.outcome ?? extra?.outcome) : extra?.outcome,
+    model: isLive ? (live.model ?? extra?.model) : extra?.model,
   }
 }
 

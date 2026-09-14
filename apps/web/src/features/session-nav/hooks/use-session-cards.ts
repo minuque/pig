@@ -1,20 +1,10 @@
-import { computed, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
+import { shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
 import type { SessionCard } from "@/types/session-type.js"
 import { listSessionCards } from "@client/platform.js"
 
-/** HTTP 拉卡片，不挡 WebSocket；失败不挡列表。不用 updatedAt 当刷新键。 */
-export function useSessionCards(
-  connected: MaybeRefOrGetter<boolean>,
-  sessions: MaybeRefOrGetter<readonly { id: string; updatedAt?: number; createdAt: number }[]>,
-  refreshKey?: MaybeRefOrGetter<string | undefined>,
-) {
+/** 连上后全量拉一次卡片；按工作目录局部刷新另接。失败不挡列表。 */
+export function useSessionCards(connected: MaybeRefOrGetter<boolean>) {
   const sessionCards = shallowRef(new Map<string, Omit<SessionCard, "id">>())
-
-  const sessionStamp = computed(() =>
-    toValue(sessions)
-      .map((session) => session.id)
-      .join("|"),
-  )
 
   async function loadSessionCards() {
     try {
@@ -36,21 +26,12 @@ export function useSessionCards(
 
   watch(
     () => toValue(connected),
-    () => {
+    (isConnected) => {
+      if (!isConnected) return
       void loadSessionCards()
     },
     { immediate: true },
   )
-  watch(sessionStamp, () => {
-    void loadSessionCards()
-  })
-
-  if (refreshKey !== undefined) {
-    watch(
-      () => toValue(refreshKey),
-      () => void loadSessionCards(),
-    )
-  }
 
   return { sessionCards, loadSessionCards }
 }

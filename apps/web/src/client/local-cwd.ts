@@ -12,15 +12,29 @@ export const LAST_CWD_KEY = "pig.lastCwd"
 
 export type WorkspaceStorage = Pick<Storage, "getItem" | "setItem">
 
-/** 兼容旧偏好：统一分隔符、盘符大小写与尾斜杠。新路径由 Host realpath。 */
+/** 兼容旧偏好：统一分隔符、尾斜杠；Windows 盘符路径整段小写。新路径由 Host realpath。 */
 // 与 gateway 端 packages/gateway/src/directory.ts 的 canonicalizePath 是同一套
-// 规范化逻辑（分隔符/盘符/尾斜杠），跨包各自维护，修改时需两处同步。
+// 规范化逻辑（分隔符/大小写/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizeWorkspacePath(path: string): string {
   const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "")
 
-  return /^[A-Z]:/.test(normalized)
-    ? normalized[0]!.toLowerCase() + normalized.slice(1)
-    : normalized
+  return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
+}
+
+/** 规范化后按键去重，保留首次出现顺序。 */
+export function uniqueCanonicalPaths(paths: readonly string[]): string[] {
+  const seen = new Set<string>()
+  const next: string[] = []
+
+  for (const path of paths) {
+    const canonical = canonicalizeWorkspacePath(path)
+
+    if (!canonical || seen.has(canonical)) continue
+    seen.add(canonical)
+    next.push(canonical)
+  }
+
+  return next
 }
 
 /** 解析持久化的目录列表：非法 JSON 或非字符串项一律丢弃。 */
@@ -32,9 +46,9 @@ export function parseLocalWorkspaces(json: string | null): string[] {
 
     if (!Array.isArray(value)) return []
 
-    return value
-      .filter((item): item is string => typeof item === "string" && item.length > 0)
-      .map(canonicalizeWorkspacePath)
+    return uniqueCanonicalPaths(
+      value.filter((item): item is string => typeof item === "string" && item.length > 0),
+    )
   } catch {
     return []
   }

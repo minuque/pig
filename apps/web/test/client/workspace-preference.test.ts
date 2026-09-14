@@ -23,7 +23,10 @@ afterEach(() => {
 
 describe("local workspace preference persistence", () => {
   it("读写工作区列表和 last cwd，并规范化旧 Windows 路径", () => {
-    expect(parseLocalWorkspaces('["/a/", "", 42, "C:\\\\Foo\\\\"]')).toEqual(["/a", "c:/Foo"])
+    expect(parseLocalWorkspaces('["/a/", "", 42, "C:\\\\Foo\\\\"]')).toEqual(["/a", "c:/foo"])
+    expect(parseLocalWorkspaces('["G:\\\\AICode\\\\pig","g:/aicode/pig"]')).toEqual([
+      "g:/aicode/pig",
+    ])
     saveLocalWorkspaces(["/a", "/b"], storage)
     saveLastCwd("/a", storage)
     expect(STORAGE.get(LOCAL_WORKSPACES_KEY)).toBe('["/a","/b"]')
