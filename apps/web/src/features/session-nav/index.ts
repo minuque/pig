@@ -17,6 +17,7 @@ import type { SidebarSessionState } from "@features/session-nav/type.js"
 export { sessionTitle, workspaceName, UNTITLED_SESSION } from "@features/session-nav/lib/format.js"
 
 export type NavContext = ReturnType<typeof createNav>
+
 export const navKey: InjectionKey<NavContext> = Symbol("nav")
 
 function createNav(
@@ -25,6 +26,7 @@ function createNav(
   session: SessionContext,
 ) {
   const router = useRouter()
+
   const { highlightedSessionId, openSession, cancelPendingOpen } = useSessionOpen(
     session.sessionId,
     router,
@@ -32,6 +34,7 @@ function createNav(
 
   const navError = shallowRef("")
   const cards = useSessionCards(pi.connected, pi.sessions, session.sessionId)
+
   const nav = useWorkspaceNav(
     pi.sessions,
     cwd,
@@ -43,12 +46,15 @@ function createNav(
     },
     cards.loadSessionCards,
   )
+
   const markers = useSessionMarkers(nav.listedSessions, session.sessionId)
 
   const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
+
   const cardFootById = computed(() => {
     const liveId = session.sessionId.value
     const liveOutcome = sessionOutcome(session.transcript.value)
+
     const live =
       liveId && session.projection.value
         ? {
@@ -60,6 +66,7 @@ function createNav(
         : undefined
 
     const extras = cards.sessionCards.value
+
     const feet = new Map<
       string,
       {
@@ -67,8 +74,10 @@ function createNav(
         state: SidebarSessionState | undefined
       }
     >()
+
     for (const item of nav.listedSessions.value) {
       const foot = sessionCardFoot(item.id, extras, live)
+
       const state: SidebarSessionState | undefined =
         liveId === item.id && activeSessionRunning.value
           ? "running"
@@ -77,8 +86,10 @@ function createNav(
             : markers.isUnread(item)
               ? "unread"
               : undefined
+
       feet.set(item.id, { ...foot, state })
     }
+
     return feet
   })
 
@@ -119,11 +130,14 @@ export function provideNav(
 ) {
   const nav = createNav(pi, cwd, session)
   provide(navKey, nav)
+
   return nav
 }
 
 export function useNav(): NavContext {
   const nav = inject(navKey)
+
   if (!nav) throw new Error("useNav() 需要在 provideNav() 之后调用")
+
   return nav
 }

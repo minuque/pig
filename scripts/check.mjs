@@ -20,7 +20,9 @@ const CHECK_STEPS = [
 const results = await Promise.all(
   CHECK_STEPS.map(async (step) => {
     const ran = await runPnpm(step.args, root)
+
     return { name: step.name, ...ran }
   }),
 )
+
 reportResults("check", results)

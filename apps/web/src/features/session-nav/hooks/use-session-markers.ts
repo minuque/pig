@@ -7,6 +7,7 @@ const PINNED_KEY = "pig.sidebarPinnedSessions"
 function loadStringArray(key: string): string[] {
   try {
     const value: unknown = JSON.parse(localStorage.getItem(key) ?? "[]")
+
     return Array.isArray(value)
       ? value.filter((item): item is string => typeof item === "string")
       : []
@@ -34,6 +35,7 @@ export function useSessionMarkers(
   const readAtById = shallowRef<Record<string, number>>({})
 
   const pinnedIds = computed(() => new Set(pinnedIdList.value))
+
   const pinnedSessions = computed(() =>
     toValue(sessions).filter((session) => pinnedIds.value.has(session.id)),
   )
@@ -47,6 +49,7 @@ export function useSessionMarkers(
 
   function isUnread(session: SessionMetadata): boolean {
     if (session.id === toValue(activeSessionId)) return false
+
     return sessionRecency(session) > (readAtById.value[session.id] ?? runStartAt)
   }
 
@@ -55,8 +58,10 @@ export function useSessionMarkers(
     ([sessionId, currentSessions]) => {
       if (!sessionId) return
       const session = currentSessions.find((item) => item.id === sessionId)
+
       if (!session) return
       const readAt = sessionRecency(session)
+
       if (readAtById.value[sessionId] === readAt) return
       readAtById.value = { ...readAtById.value, [sessionId]: readAt }
     },

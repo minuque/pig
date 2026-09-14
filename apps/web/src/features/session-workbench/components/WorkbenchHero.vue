@@ -1,14 +1,17 @@
 <template>
   <div class="workbench-hero">
     <WorkbenchMascot />
+
     <h1 v-if="workspaceId || ready" :id="titleId" class="hero-title">
       <span v-if="workspaceId">在</span>
+
       <DropdownMenu v-if="selectable" :modal="false">
         <DropdownMenuTrigger as-child>
           <button type="button" class="hero-picker">
             <span class="hero-name">{{ label }}</span>
           </button>
         </DropdownMenuTrigger>
+
         <DropdownMenuContent align="center" :side-offset="6" class="workbench-hero-menu">
           <DropdownMenuItem
             v-for="item in workspaces"
@@ -19,13 +22,16 @@
           >
             <span class="workbench-hero-option-label">{{ workspaceName(item) }}</span>
           </DropdownMenuItem>
+
           <DropdownMenuSeparator v-if="workspaces.length" />
+
           <DropdownMenuItem :disabled="adding" @select="emit('add')">
             <FolderPlus :size="14" />
             添加本地目录
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
       <span v-else class="hero-name">{{ label }}</span>
       <span v-if="workspaceId">开始</span>
     </h1>
@@ -63,6 +69,7 @@ const emit = defineEmits<{
 }>()
 
 const workspaceId = defineModel<string | undefined>("workspaceId")
+
 const label = computed(() =>
   workspaceId.value ? workspaceName(workspaceId.value) : "选择工作目录",
 )
@@ -111,9 +118,11 @@ const label = computed(() =>
   line-height: inherit;
   cursor: pointer;
 }
+
 .hero-picker:hover:not(:disabled) {
   border-bottom-color: var(--link-underline-hover);
 }
+
 .hero-picker:not(:disabled):active {
   transform: none;
 }

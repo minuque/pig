@@ -20,10 +20,14 @@ export interface WebSocketTransportOptions {
 function stampedGatewayOrigin(): string | undefined {
   if (typeof document === "undefined") return undefined
   const value = document.documentElement.dataset.pigGatewayOrigin
+
   if (!value) return undefined
+
   try {
     const url = new URL(value)
+
     if (url.protocol !== "http:" || url.hostname !== "127.0.0.1") return undefined
+
     return url.origin
   } catch {
     return undefined
@@ -38,7 +42,9 @@ function stampedGatewayOrigin(): string | undefined {
 export function webSocketUrl(base?: string | URL): string {
   const resolved =
     base ?? import.meta.env.VITE_GATEWAY_TARGET ?? stampedGatewayOrigin() ?? window.location.href
+
   const url = new URL(WEBSOCKET_PATH, resolved)
+
   if (
     url.protocol !== "http:" &&
     url.protocol !== "https:" &&
@@ -47,7 +53,9 @@ export function webSocketUrl(base?: string | URL): string {
   ) {
     throw new Error("WebSocket 需要 Gateway 地址")
   }
+
   url.protocol = url.protocol === "https:" || url.protocol === "wss:" ? "wss:" : "ws:"
+
   return url.href
 }
 
@@ -67,11 +75,14 @@ export function createWebSocketByteTransportFactory(
     let opened = false
 
     let openResolve: () => void = () => {}
+
     let openReject: (reason?: unknown) => void = () => {}
+
     const openPromise = new Promise<void>((resolve, reject) => {
       openResolve = resolve
       openReject = reject
     })
+
     // 无 send 消费者时（open 前失败）也避免 unhandled rejection；await 方仍正常收到 reject
     openPromise.catch(() => {})
 
@@ -104,12 +115,15 @@ export function createWebSocketByteTransportFactory(
     socket.addEventListener("message", (event) => {
       if (closed) return
       const data = event.data
+
       if (typeof data === "string") {
         // 协议错误：立即终态并主动关闭底层 socket
         fail(new Error("意外收到文本消息，PiServer 应以二进制帧通信"))
         socket.close()
+
         return
       }
+
       handlers.onData(data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array(data))
     })
     socket.addEventListener("close", (event) => {
@@ -120,7 +134,9 @@ export function createWebSocketByteTransportFactory(
     return {
       async send(chunk: Uint8Array) {
         await openPromise
+
         if (closed) throw new Error("WebSocket transport 已关闭")
+
         // 精确发送 [byteOffset, byteOffset+byteLength) 范围；SharedArrayBuffer 防御拷贝
         const payload =
           chunk.buffer instanceof ArrayBuffer &&
@@ -128,10 +144,12 @@ export function createWebSocketByteTransportFactory(
           chunk.byteLength === chunk.buffer.byteLength
             ? chunk.buffer
             : chunk.slice().buffer
+
         socket.send(payload)
       },
       close() {
         if (closed) return
+
         // open 前关闭：settle openPromise，避免 send 永久 pending
         if (!opened) openReject(new Error("WebSocket transport 已关闭"))
         finish()

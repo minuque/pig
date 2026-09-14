@@ -6,6 +6,7 @@
       v-bind="agentMarkdown"
       :content="item.text"
     />
+
     <div v-else-if="item.text" class="md-pending" aria-hidden="true"></div>
 
     <Alert
@@ -17,6 +18,7 @@
       <AlertTitle>{{ statusLabel }}</AlertTitle>
       <AlertDescription v-if="item.errorMessage">{{ item.errorMessage }}</AlertDescription>
     </Alert>
+
     <MessageTimestamp
       v-if="item.showTimestamp"
       class="message-stamp"
@@ -120,6 +122,7 @@ onBeforeUnmount(stopViewWatch)
 .status-alert {
   margin-top: var(--spacing-xs);
 }
+
 .status-alert:first-child {
   margin-top: 0;
 }

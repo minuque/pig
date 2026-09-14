@@ -10,6 +10,7 @@
     >
       <Plus class="size-icon" />
     </button>
+
     <button class="footer-action press-scale" type="button" title="设置" @click="emit('settings')">
       <Settings class="size-icon" />
     </button>
@@ -58,10 +59,12 @@ const emit = defineEmits<{
     color var(--duration-fast) var(--ease-out),
     scale var(--duration-fast) var(--ease-out);
 }
+
 .footer-action:hover:not(:disabled) {
   background: var(--hover-quiet);
   color: var(--ink);
 }
+
 .footer-action:disabled {
   opacity: 0.45;
 }

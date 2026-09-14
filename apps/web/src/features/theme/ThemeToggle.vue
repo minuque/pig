@@ -31,6 +31,7 @@ const { isDark, toggle } = useColorScheme()
     color var(--duration-fast) var(--ease-smooth),
     scale var(--duration-fast) var(--ease-out);
 }
+
 .theme-toggle:hover {
   background: var(--hover-quiet);
   color: var(--ink);

@@ -32,8 +32,10 @@ const props = withDefaults(
     sideOffset: 4,
   },
 )
+
 const emits = defineEmits<TooltipContentEmits>()
 
 const delegatedProps = reactiveOmit(props, "class")
+
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<TooltipContentProps>
 </script>

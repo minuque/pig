@@ -7,6 +7,7 @@
             <CircleAlert />
             <AlertDescription>{{ item.message }}</AlertDescription>
           </Alert>
+
           <button class="alert-toaster-close" type="button" @click="dismissNotice(item.id)">
             <X class="size-icon" />
           </button>
@@ -67,6 +68,7 @@ import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
   background: transparent;
   color: var(--ink-muted);
 }
+
 .alert-toaster-close:hover {
   color: var(--ink);
 }
@@ -77,6 +79,7 @@ import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
     opacity var(--duration-normal) var(--ease-smooth),
     transform var(--duration-normal) var(--ease-smooth);
 }
+
 .alert-toaster-enter-from,
 .alert-toaster-leave-to {
   opacity: 0;
@@ -86,6 +89,7 @@ import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
 html[data-pig-desktop-platform] .alert-toaster {
   top: calc(var(--titlebar-inset) + var(--size-control) + 2 * var(--spacing-xs));
 }
+
 html[data-pig-desktop-platform="win32"] .alert-toaster {
   right: calc(var(--size-windows-caption) + var(--spacing-xs));
 }

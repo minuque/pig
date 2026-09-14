@@ -6,6 +6,7 @@ function setup(current?: string) {
   const sessionId = ref(current)
   const push = vi.fn()
   const open = useSessionOpen(sessionId, { push })
+
   return { sessionId, push, ...open }
 }
 

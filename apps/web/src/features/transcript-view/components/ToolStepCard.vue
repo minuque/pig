@@ -9,12 +9,15 @@
       >
         <div class="command-heading">
           <span class="status-dot" :title="runContent.statusLabel" />
+
           <span v-if="runContent.meta" class="cwd" :title="runContent.metaTitle">
             {{ runContent.meta }}
           </span>
+
           <code class="command" :title="runContent.heading">{{ runContent.heading }}</code>
         </div>
       </ToolHeader>
+
       <ToolOutput
         v-model:expanded="runExpanded"
         :text="runContent.outputText || runContent.emptyOutput"
@@ -23,6 +26,7 @@
         embedded
       />
     </template>
+
     <template v-else-if="readContent">
       <ToolHeader
         v-model:expanded="readExpanded"
@@ -38,9 +42,11 @@
             :title="readContent.preview.languageLabel"
             alt=""
           />
+
           <span class="read-path" :title="readContent.path">{{ readContent.path }}</span>
         </div>
       </ToolHeader>
+
       <ToolOutput
         v-model:expanded="readExpanded"
         code
@@ -48,8 +54,10 @@
         :tokens="readTokens"
         :start-line="readContent.preview.startLine"
       />
+
       <p v-if="readContent.preview.notice" class="read-notice">{{ readContent.preview.notice }}</p>
     </template>
+
     <template v-else-if="editContent">
       <ToolHeader :label="editHeading" :text="editCopyText">
         <div class="read-heading">
@@ -60,8 +68,10 @@
             :title="editContent.language"
             alt=""
           />
+
           <span class="read-path" :title="editHeading">{{ editHeading }}</span>
         </div>
+
         <template #meta>
           <span v-if="editContent.removed || editContent.added" class="line-stats">
             <span v-if="editContent.removed" class="removed">-{{ editContent.removed }}</span>
@@ -69,6 +79,7 @@
           </span>
         </template>
       </ToolHeader>
+
       <StreamDiff
         v-for="(hunk, index) in editContent.hunks"
         :key="index"
@@ -81,6 +92,7 @@
         :options="editDiffOptions"
       />
     </template>
+
     <template v-else-if="thoughtContent">
       <ThinkingCard :blocks="[thoughtContent.text]" :streaming="thoughtContent.streaming" />
     </template>
@@ -289,10 +301,12 @@ watch(
   background: var(--success);
   box-shadow: 0 0 0 2px var(--success-halo);
 }
+
 .is-err .status-dot {
   background: var(--danger);
   box-shadow: 0 0 0 2px var(--danger-halo);
 }
+
 .is-run .status-dot {
   background: var(--primary);
   box-shadow: 0 0 0 2px var(--info-halo);

@@ -43,19 +43,25 @@ const FILE_LANGUAGES: Record<string, SupportedLanguages> = {
 
 export function readToolPreview(input: unknown, output: string) {
   let startLine = 1
+
   if (typeof input === "object" && input !== null && "offset" in input) {
     const offset = input.offset
+
     if (typeof offset === "number" && Number.isSafeInteger(offset) && offset > 0) startLine = offset
   }
+
   let code = output
   let totalLines: number | null = null
+
   const notice = output.match(
     /\r?\n\r?\n(\[(?:Showing lines \d+-\d+ of \d+(?: \([^\]\r\n]+\))?\. Use offset=\d+ to continue\.|\d+ more lines in file\. Use offset=\d+ to continue\.)\])$/,
   )
+
   if (notice) {
     code = output.slice(0, notice.index)
     const range = notice[1]?.match(/Showing lines (\d+)-\d+ of (\d+)/)
     const remaining = notice[1]?.match(/(\d+) more lines in file\. Use offset=(\d+)/)
+
     if (range) {
       startLine = Number(range[1])
       totalLines = Number(range[2])
@@ -63,6 +69,7 @@ export function readToolPreview(input: unknown, output: string) {
       totalLines = Number(remaining[1]) + Number(remaining[2]) - 1
     }
   }
+
   const path = toolPath(input)
   const language = fileLanguage(path)
   const extension = pathBasename(path).split(".").pop()?.toLowerCase() ?? ""
@@ -80,6 +87,7 @@ export function readToolPreview(input: unknown, output: string) {
 
 export function fileLanguage(path: string): SupportedLanguages {
   const extension = pathBasename(path).split(".").pop()?.toLowerCase() ?? ""
+
   return FILE_LANGUAGES[extension] ?? "text"
 }
 

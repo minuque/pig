@@ -9,6 +9,8 @@ export function resolveWebRoot(
   resourcesPath: string,
 ): string | undefined {
   if (isDev) return undefined
+
   if (isPackaged) return join(resourcesPath, "web")
+
   return fileURLToPath(new URL("../../../web/dist", moduleUrl))
 }

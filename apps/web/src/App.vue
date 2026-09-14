@@ -4,6 +4,7 @@
       <template #sidebar="{ onNavigate, toggle }">
         <SessionNav @navigate="handleSidebarNavigate($event, onNavigate)" @toggle="toggle" />
       </template>
+
       <RouterView />
     </AppLayout>
   </Startup>
@@ -30,11 +31,15 @@ import { provideSession } from "@features/session-workbench/index.js"
 const Settings = defineAsyncComponent(() => import("@features/settings/index.vue"))
 
 const pi = usePiClient()
+
 const cwd = useLocalWorkspaces()
+
 const session = provideSession(pi, cwd)
 
 provideNav(pi, cwd, session)
+
 provideSettings()
+
 useClickSound()
 
 function handleSidebarNavigate(canonicalPath: string, closeMobilePanels: () => void): void {

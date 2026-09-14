@@ -2,17 +2,27 @@ import { SessionManager } from "@earendil-works/pi-coding-agent"
 import { writeFileSync } from "node:fs"
 
 export const SHORT_SESSION_ID = "bench-short"
+
 export const LONG_SESSION_ID = "bench-long"
+
 export const EMPTY_SESSION_ID = "bench-empty"
+
 export const TOOL_SESSION_ID = "bench-tools"
+
 export const SHORT_SESSION_NAME = "短会话"
+
 export const LONG_SESSION_NAME = "长会话"
+
 export const EMPTY_SESSION_NAME = "空会话"
+
 export const TOOL_SESSION_NAME = "工具步骤会话"
 
 export const SHORT_TURNS = 2
+
 export const LONG_TURNS = 50
+
 export const TOOL_STEPS = 17
+
 export const LIST_SESSION_COUNT = 40
 
 const SESSIONS = {
@@ -35,7 +45,9 @@ export function sessionTurns(name: BenchSessionName): number {
 }
 
 type AppendMessage = Parameters<SessionManager["appendMessage"]>[0]
+
 type AssistantMessage = Extract<AppendMessage, { role: "assistant" }>
+
 type AssistantContent = AssistantMessage["content"]
 
 const PLAIN_REPLY = "把 Snapshot 投到时间线，把 Composer 留在底栏。".repeat(3)
@@ -87,6 +99,7 @@ function toolFor(index: number): SeedTool | undefined {
   if (index % 5 !== 0) return undefined
   const id = `tool-${index}`
   const kind = (index / 5) % 3
+
   if (kind === 0)
     return {
       id,
@@ -94,6 +107,7 @@ function toolFor(index: number): SeedTool | undefined {
       args: { path: "src/example.ts" },
       output: "const value = 42\n".repeat(30),
     }
+
   if (kind === 1)
     return {
       id,
@@ -101,6 +115,7 @@ function toolFor(index: number): SeedTool | undefined {
       args: { command: "git status" },
       output: "On branch master\nnothing to commit, working tree clean\n",
     }
+
   return {
     id,
     name: "edit",
@@ -114,7 +129,9 @@ function appendAgentTurn(manager: SessionManager, index: number, timestamp: numb
     index % 3 === 0
       ? { type: "thinking" as const, thinking: `先看第 ${index + 1} 轮要不要动工具。` }
       : undefined
+
   const tool = toolFor(index)
+
   if (tool) {
     const content: AssistantContent = thinking ? [thinking] : []
     content.push({ type: "toolCall", id: tool.id, name: tool.name, arguments: tool.args })
@@ -128,11 +145,14 @@ function appendAgentTurn(manager: SessionManager, index: number, timestamp: numb
       timestamp: timestamp + 25_000,
     })
     manager.appendMessage(assistantMessage([{ type: "text", text: reply }], timestamp + 30_000))
+
     return
   }
+
   const content: AssistantContent = thinking
     ? [thinking, { type: "text", text: reply }]
     : [{ type: "text", text: reply }]
+
   manager.appendMessage(assistantMessage(content, timestamp + 30_000))
 }
 
@@ -176,6 +196,7 @@ function seedToolStepsSession(sessionDir: string, cwd: string) {
     content: sessionPrompt(TOOL_SESSION_NAME),
     timestamp,
   })
+
   for (let index = 0; index < TOOL_STEPS; index += 1) {
     const id = `tool-step-${index + 1}`
     const path = `src/fixture-${index + 1}.ts`
@@ -195,6 +216,7 @@ function seedToolStepsSession(sessionDir: string, cwd: string) {
       timestamp: timestamp + index * 2_000 + 1_500,
     })
   }
+
   manager.appendMessage(
     assistantMessage(
       [{ type: "text", text: "工具步骤已完成。" }],
@@ -218,8 +240,10 @@ function seedConversation(
 ) {
   const manager = SessionManager.create(cwd, sessionDir, { id })
   manager.appendSessionInfo(name)
+
   if (turns === 0) {
     const file = manager.getSessionFile()
+
     if (!file) throw new Error("空会话种子缺少文件路径")
     // SDK 会延迟到首条助手消息才落盘，空历史夹具显式写入公开条目。
     writeFileSync(
@@ -229,7 +253,9 @@ function seedConversation(
         .join("\n") + "\n",
     )
   }
+
   const started = Date.now() - turns * 120_000
+
   for (let index = 0; index < turns; index += 1) {
     const timestamp = started + index * 120_000
     manager.appendMessage({
@@ -237,6 +263,7 @@ function seedConversation(
       content: sessionPrompt(name, index + 1),
       timestamp,
     })
+
     if (agent) appendAgentTurn(manager, index, timestamp, reply)
     else
       manager.appendMessage(assistantMessage([{ type: "text", text: reply }], timestamp + 30_000))

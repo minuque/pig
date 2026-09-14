@@ -22,10 +22,10 @@
     "test:e2e": "playwright test -c e2e/playwright.config.ts",
     "test:bench": "tsx e2e/perf/run.ts",
     "typecheck": "tsc --noEmit -p scripts/tsconfig.json && tsc --noEmit -p e2e/tsconfig.json && pnpm -r --if-present typecheck",
-    "lint": "eslint . && designmd lint DESIGN.md",
+    "lint": "eslint . && stylelint \"**/*.{css,vue}\" && designmd lint DESIGN.md",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "fix": "pnpm format && eslint . --fix",
+    "fix": "pnpm format && eslint . --fix && stylelint \"**/*.{css,vue}\" --fix",
     "check": "node scripts/check.mjs",
     "check:touched": "node scripts/check-touched.mjs",
     "check:design-tokens": "node scripts/verify-design-tokens.mjs",
@@ -45,17 +45,28 @@
     "globals": "17.12.0",
     "husky": "9.1.7",
     "lint-staged": "17.5.1",
+    "postcss-html": "2.0.0",
     "prettier": "3.9.6",
+    "stylelint": "17.15.0",
     "tsx": "4.23.13",
     "typescript": "6.0.3",
     "typescript-eslint": "8.70.0",
     "vitest": "3.2.7"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts,vue}": [
+    "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}": [
       "prettier --write",
       "eslint --fix"
     ],
-    "*.{json,jsonc,css,html,md,yml,yaml}": "prettier --write"
+    "*.vue": [
+      "prettier --write",
+      "eslint --fix",
+      "stylelint --fix"
+    ],
+    "*.css": [
+      "prettier --write",
+      "stylelint --fix"
+    ],
+    "*.{json,jsonc,html,md,yml,yaml}": "prettier --write"
   }
 }

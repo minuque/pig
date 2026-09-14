@@ -3,20 +3,24 @@
     <Button type="button" static class="summary" @click="toggleGroup">
       <component :is="icon" class="tool-icon" data-icon="inline-start" />
       <span :class="{ shimmer: running, label }" :data-text="label">{{ label }}</span>
+
       <span
         v-if="detail"
         class="detail"
         :title="detail.kind === 'file' ? detail.path : detail.text"
       >
         <img v-if="detailIcon" class="file-icon" :src="detailIcon" alt="" />
+
         <span class="detail-text" :data-text="detail.kind === 'file' ? detail.name : detail.text">
           {{ detail.kind === "file" ? detail.name : detail.text }}
         </span>
+
         <span v-if="detail.kind === 'file' && (detail.added || detail.removed)" class="line-stats">
           <span class="added">+{{ detail.added }}</span>
           <span class="removed">-{{ detail.removed }}</span>
         </span>
       </span>
+
       <ChevronRight
         class="motion-turn motion-hint"
         :class="{ 'is-on': open }"
@@ -36,6 +40,7 @@
           :text="thought.text"
           :streaming="thought.streaming"
         />
+
         <div v-else class="calls">
           <template v-for="call in calls" :key="call.item.id">
             <div v-if="open && call.expandable" class="call">
@@ -50,17 +55,20 @@
                 :status="call.status"
                 :status-label="call.statusLabel"
               />
+
               <ToolStepCard
                 v-else-if="call.variant === 'read'"
                 variant="read"
                 :path="call.path"
                 :preview="call.preview"
               />
+
               <ToolStepCard
                 v-else-if="call.variant === 'edit'"
                 variant="edit"
                 :edit-preview="call.editPreview"
               />
+
               <ToolStepCard
                 v-else
                 variant="tool"
@@ -367,6 +375,7 @@ function toggleGroup() {
   font-weight: var(--font-weight-regular);
   text-align: start;
 }
+
 .summary:hover {
   background: transparent;
   color: var(--ink);
@@ -375,11 +384,13 @@ function toggleGroup() {
 .failed .tool-icon {
   color: var(--danger);
 }
+
 .tool-icon {
   position: relative;
   z-index: 1;
   transition: color var(--duration-fast) var(--ease-out);
 }
+
 .running .tool-icon {
   color: var(--primary);
 }

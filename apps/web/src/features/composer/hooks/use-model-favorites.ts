@@ -4,9 +4,12 @@ const FAVORITE_MODELS_KEY = "pig.favoriteModels"
 
 function parseFavoriteModels(json: string | null): string[] {
   if (!json) return []
+
   try {
     const value: unknown = JSON.parse(json)
+
     if (!Array.isArray(value)) return []
+
     return value.filter((item): item is string => typeof item === "string" && item.includes("/"))
   } catch {
     return []
@@ -35,6 +38,7 @@ export function useModelFavorites() {
     keys.value = keys.value.includes(key)
       ? keys.value.filter((item) => item !== key)
       : [...keys.value, key]
+
     try {
       localStorage.setItem(FAVORITE_MODELS_KEY, JSON.stringify(keys.value))
     } catch {

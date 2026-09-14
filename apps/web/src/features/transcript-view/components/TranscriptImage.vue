@@ -5,6 +5,7 @@
         <img :src="src" :alt="alt" class="thumb-img" />
       </button>
     </DialogTrigger>
+
     <DialogContent
       class="max-h-[90vh] w-full max-w-[min(56rem,calc(100vw-2rem))] overflow-auto p-(--spacing-sm) sm:max-w-[min(56rem,calc(100vw-2rem))]"
     >
@@ -50,6 +51,7 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   outline: 1px solid var(--media-outline);
   outline-offset: -1px;
 }
+
 .full {
   max-height: calc(90vh - 2rem);
   object-fit: contain;

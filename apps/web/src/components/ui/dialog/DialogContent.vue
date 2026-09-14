@@ -1,6 +1,7 @@
 <template>
   <DialogPortal>
     <DialogOverlay />
+
     <DialogContent
       data-slot="dialog-content"
       v-bind="{ ...$attrs, ...forwarded }"
@@ -41,8 +42,10 @@ const props = withDefaults(
     showCloseButton: true,
   },
 )
+
 const emits = defineEmits<DialogContentEmits>()
 
 const delegatedProps = reactiveOmit(props, "class")
+
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<DialogContentProps>
 </script>

@@ -21,6 +21,7 @@ describe("groupSessionsByCwd", () => {
       ],
       ["/a", "/b", "g:/AICode/pig", "/empty"],
     )
+
     expect(groups.map((group) => group.canonicalPath)).toEqual([
       "/a",
       "/b",
@@ -39,6 +40,7 @@ describe("filterSessionsForSearch", () => {
       { id: "a", createdAt: 1, cwd: "/repo/pig", sessionName: "渲染性能" },
       { id: "b", createdAt: 2, cwd: "/repo/tmp", sessionName: "Friendly Greeting" },
     ]
+
     expect(filterSessionsForSearch(sessions, "").map((session) => session.id)).toEqual(["a", "b"])
     expect(filterSessionsForSearch(sessions, "  greeting ").map((session) => session.id)).toEqual([
       "b",
@@ -50,6 +52,7 @@ describe("filterSessionsForSearch", () => {
 describe("sidebarTimeSections", () => {
   it("按本地自然日分成今天和最近并保留原顺序", () => {
     const now = new Date(2026, 8, 3, 12).getTime()
+
     const sections = sidebarTimeSections(
       [
         { id: "today", title: "今天", updatedAt: new Date(2026, 8, 3, 8).getTime() },
@@ -57,6 +60,7 @@ describe("sidebarTimeSections", () => {
       ],
       now,
     )
+
     expect(
       sections.map((section) => [section.key, section.sessions.map((item) => item.id)]),
     ).toEqual([
@@ -80,6 +84,7 @@ function transcriptItem(
 describe("session card foot", () => {
   it("空失败助手句不计条数；打开中用 live 覆盖磁盘卡片", () => {
     const user = transcriptItem({ role: "user", content: [{ type: "text", text: "ping" }] })
+
     const timeout = transcriptItem({
       id: "a1",
       role: "assistant",
@@ -87,12 +92,14 @@ describe("session card foot", () => {
       errorMessage: "Request timed out.",
       content: [],
     })
+
     expect(conversationItemCount([user, timeout, timeout])).toBe(1)
     expect(sessionOutcome([user, timeout])).toBe("error")
 
     const extras = new Map([
       ["s1", { messageCount: 2, model: { provider: "openai", id: "gpt-4" } }],
     ])
+
     expect(
       sessionCardFoot("s1", extras, {
         sessionId: "s1",

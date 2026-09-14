@@ -60,17 +60,24 @@ async function openSessionBodyPaint(
   await expect(page.getByText(marker).first()).toBeVisible({ timeout: 30_000 })
   await page.locator(".startup-screen").waitFor({ state: "detached" })
   await page.locator(".session-loading").waitFor({ state: "hidden" })
+
   return page.evaluate((text) => {
     const rows = document.querySelector(".timeline-rows")
+
     if (!rows?.classList.contains("is-paint-skip")) throw new Error("时间线尚未揭开")
+
     if (getComputedStyle(rows).visibility === "hidden") throw new Error("时间线仍隐藏")
     const panel = document.getElementById("transcript-panel")
+
     if (!panel?.innerText.includes(text)) throw new Error("正文标记不在时间线")
+
     const slot = window as unknown as {
       __pigBody: { bodyVisible: number; lcpAll: BodyPaint["officialLcp"][] }
     }
+
     if (!slot.__pigBody.bodyVisible) slot.__pigBody.bodyVisible = performance.now()
     const officialLcp = slot.__pigBody.lcpAll.at(-1)
+
     return officialLcp
       ? { bodyVisible: slot.__pigBody.bodyVisible, officialLcp }
       : { bodyVisible: slot.__pigBody.bodyVisible }
@@ -79,9 +86,11 @@ async function openSessionBodyPaint(
 
 function assertBodyVisible(paint: BodyPaint, sessionId: string) {
   const official = paint.officialLcp
+
   if (official?.logo) {
     expect(official.t, "logo 时刻不得冒充正文 LCP").not.toBe(paint.bodyVisible)
   }
+
   expect(
     paint.bodyVisible,
     `${sessionId} 正文可见 ${Math.round(paint.bodyVisible)}ms（官方 LCP ${official?.logo ? "logo" : official?.tag} ${official ? Math.round(official.t) : "?"}ms）`,
@@ -90,6 +99,7 @@ function assertBodyVisible(paint: BodyPaint, sessionId: string) {
 
 test("冷打开复杂存量会话：正文可见 5s 内且不计 logo", async ({ page, bodyLcpGateway }) => {
   test.setTimeout(90_000)
+
   const paint = await openSessionBodyPaint(
     page,
     bodyLcpGateway.origin,
@@ -97,11 +107,13 @@ test("冷打开复杂存量会话：正文可见 5s 内且不计 logo", async ({
     COMPLEX_SESSION_ID,
     COMPLEX_MARKER,
   )
+
   assertBodyVisible(paint, COMPLEX_SESSION_ID)
 })
 
 test("冷打开短末条存量会话：正文可见 5s 内且不计 logo", async ({ page, bodyLcpGateway }) => {
   test.setTimeout(90_000)
+
   const paint = await openSessionBodyPaint(
     page,
     bodyLcpGateway.origin,
@@ -109,5 +121,6 @@ test("冷打开短末条存量会话：正文可见 5s 内且不计 logo", async
     SHORT_BODY_SESSION_ID,
     SHORT_BODY_MARKER,
   )
+
   assertBodyVisible(paint, SHORT_BODY_SESSION_ID)
 })

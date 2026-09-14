@@ -28,7 +28,9 @@ export function createElectronDirectoryPort(
     async selectDirectory() {
       const result = await pickDirectory(getWindow(), DIALOG_OPTIONS)
       const selected = result.filePaths[0]
+
       if (result.canceled || !selected) return undefined
+
       return canonicalizePath(await realpath(selected))
     },
     async validateDirectory(path) {

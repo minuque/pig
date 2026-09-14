@@ -2,6 +2,7 @@
   <div class="startup-gate" :inert="visible || undefined">
     <slot />
   </div>
+
   <StartupOverlay v-if="visible" :dismiss="settled" :progress="progress" @finished="finish" />
 </template>
 

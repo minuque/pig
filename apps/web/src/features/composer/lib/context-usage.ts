@@ -34,9 +34,12 @@ const SEGMENT_DEFS = [
 /** <1K 整数；1K–100K 一位小数；更大取整。 */
 export function formatTokenCount(tokens: number): string {
   const abs = finiteTokens(tokens)
+
   if (abs < 1000) return String(Math.round(abs))
   const kilo = abs / 1000
+
   if (abs < 100_000) return `${kilo.toFixed(1)}K`
+
   return `${Math.round(kilo)}K`
 }
 
@@ -64,6 +67,7 @@ export function projectContextUsage(
 
 export function segmentShare(tokens: number, window: number): number {
   if (window <= 0 || !(tokens > 0)) return 0
+
   return Math.min(100, (tokens / window) * 100)
 }
 

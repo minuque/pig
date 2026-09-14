@@ -2,6 +2,7 @@
   <div class="startup-screen" :class="{ leaving }" role="status" aria-label="正在启动">
     <div class="startup-veil"></div>
     <div class="drag-strip"></div>
+
     <div class="startup-content" @animationend.self="handleLeaveEnd">
       <div class="startup-mark">
         <img
@@ -13,6 +14,7 @@
           fetchpriority="low"
         />
       </div>
+
       <div
         class="startup-progress"
         role="progressbar"
@@ -27,6 +29,7 @@
             :style="{ transform: `scaleX(${displayedProgress / 100})` }"
           ></span>
         </span>
+
         <span class="startup-progress-value">{{ displayedProgress }}%</span>
       </div>
     </div>
@@ -46,9 +49,13 @@ const emit = defineEmits<{
 }>()
 
 let finished = false
+
 let splashGone = false
+
 let progressFrame: number | undefined
+
 const leaving = shallowRef(false)
+
 const displayedProgress = shallowRef(0)
 
 function prefersReducedMotion() {
@@ -57,16 +64,21 @@ function prefersReducedMotion() {
 
 function maybeBeginLeave() {
   if (!props.dismiss) return
+
   if (props.progress < 100 || displayedProgress.value === 100) beginLeave()
 }
 
 function advanceProgress() {
   progressFrame = undefined
+
   if (displayedProgress.value < props.progress) displayedProgress.value += 1
+
   if (displayedProgress.value < props.progress) {
     progressFrame = window.requestAnimationFrame(advanceProgress)
+
     return
   }
+
   maybeBeginLeave()
 }
 
@@ -74,8 +86,10 @@ function syncProgress() {
   if (prefersReducedMotion()) {
     displayedProgress.value = props.progress
     maybeBeginLeave()
+
     return
   }
+
   if (progressFrame === undefined && displayedProgress.value < props.progress) {
     progressFrame = window.requestAnimationFrame(advanceProgress)
   }
@@ -89,10 +103,13 @@ function finish() {
 
 function beginLeave() {
   if (!splashGone || finished || leaving.value) return
+
   if (prefersReducedMotion()) {
     finish()
+
     return
   }
+
   leaving.value = true
 }
 

@@ -13,6 +13,7 @@ export interface ComposerAttachment {
 /** 只保留 image/*；FileList / File[] / 空值均可。 */
 function imageFilesFrom(list: FileList | File[] | null | undefined): File[] {
   if (!list) return []
+
   return Array.from(list).filter((file) => file.type.startsWith("image/"))
 }
 
@@ -20,14 +21,19 @@ function imageFilesFrom(list: FileList | File[] | null | undefined): File[] {
 export function imageFilesFromClipboard(data: DataTransfer | null | undefined): File[] {
   if (!data) return []
   const fromFiles = imageFilesFrom(data.files)
+
   if (fromFiles.length > 0) return fromFiles
   const picked: File[] = []
+
   for (let i = 0; i < data.items.length; i++) {
     const item = data.items[i]
+
     if (!item || item.kind !== "file") continue
     const file = item.getAsFile()
+
     if (file) picked.push(file)
   }
+
   return imageFilesFrom(picked)
 }
 
@@ -37,10 +43,12 @@ export function useComposerAttachments() {
 
   function addFiles(files: FileList | File[] | null | undefined) {
     const images = imageFilesFrom(files)
+
     const room = Math.max(
       0,
       Math.min(images.length, MAX_COMPOSER_ATTACHMENTS - attachments.value.length),
     )
+
     if (room === 0) return
 
     const added = images.slice(0, room).map((file) => ({
@@ -56,6 +64,7 @@ export function useComposerAttachments() {
 
   function remove(id: string) {
     const kept: ComposerAttachment[] = []
+
     for (const item of attachments.value) {
       if (item.id === id) URL.revokeObjectURL(item.url)
       else kept.push(item)

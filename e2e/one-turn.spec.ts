@@ -34,9 +34,11 @@ for (const reducedMotion of [false, true]) {
 
     await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
     await expect(page.getByText("正在连接…")).toHaveCount(0)
+
     const card = page.locator(".session-card", {
       has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }),
     })
+
     await expect(card).toBeVisible()
     await card.click()
     await expect(page).toHaveURL(new RegExp(`/sessions/${COMPLEX_SESSION_ID}$`))
@@ -55,6 +57,7 @@ for (const reducedMotion of [false, true]) {
     ).toBeVisible()
     const sessionId = await bridge.waitForPrompt()
     const snapshot = bridge.snapshots.get(sessionId)
+
     if (!snapshot) throw new Error("一轮工作缺少 SessionSnapshot")
     bridge.send({
       type: "event",

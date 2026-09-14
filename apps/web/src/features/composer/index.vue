@@ -8,6 +8,7 @@
         @close="usageOpen = false"
       />
     </Transition>
+
     <PromptEditor
       v-model:prompt="prompt"
       :placeholder="placeholder"
@@ -25,8 +26,10 @@
           />
         </template>
       </template>
+
       <template #right>
         <span v-if="voiceActive" class="voice-status" role="status">正在聆听…</span>
+
         <Button
           type="button"
           size="icon"
@@ -41,6 +44,7 @@
         >
           <span class="primary-icon icon-swap" aria-hidden="true">
             <span class="send-esc" :data-visible="running">Esc</span>
+
             <svg
               width="12"
               height="12"
@@ -50,11 +54,13 @@
             >
               <rect x="2" y="2" width="8" height="8" rx="1.5" />
             </svg>
+
             <ArrowUp :data-visible="!running && !voiceActive && !showVoice" class="size-icon" />
             <Mic :data-visible="!running && !voiceActive && showVoice" class="size-icon" />
           </span>
         </Button>
       </template>
+
       <template #meta>
         <ComposerMeta
           :cwd="cwd"
@@ -64,6 +70,7 @@
         />
       </template>
     </PromptEditor>
+
     <p v-if="voiceMessage" class="voice-message" role="status">{{ voiceMessage }}</p>
   </form>
 </template>
@@ -108,6 +115,7 @@ const props = withDefaults(
 )
 
 const prompt = defineModel<string>("prompt", { required: true })
+
 const preset = defineModel<ComposerPreset | undefined>("preset")
 
 const emit = defineEmits<{
@@ -121,6 +129,7 @@ const model = computed({
     if (next) preset.value = { model: next, thinkingLevel: preset.value?.thinkingLevel ?? "" }
   },
 })
+
 const level = computed({
   get: () => preset.value?.thinkingLevel ?? "",
   set: (thinkingLevel: string) => {
@@ -132,6 +141,7 @@ const level = computed({
 const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisabled)
 
 const usageOpen = ref(false)
+
 const modelPickerOpen = ref(false)
 
 const {
@@ -141,7 +151,9 @@ const {
   stop: stopVoice,
   cancel: cancelVoice,
 } = useVoiceInput(prompt)
+
 const showVoice = computed(() => prompt.value.trim() === "")
+
 const primaryLabel = computed(() =>
   props.running
     ? "停止当前 Turn"
@@ -179,24 +191,33 @@ function send() {
 function onPrimaryAction() {
   if (props.running) {
     if (!props.aborting) emit("abort")
+
     return
   }
+
   if (voiceActive.value) {
     stopVoice()
+
     return
   }
+
   if (showVoice.value) {
     startVoice()
+
     return
   }
+
   send()
 }
 
 function onAbortHotkey(event: KeyboardEvent) {
   if (event.key !== "Escape" || event.isComposing) return
+
   if (event.altKey || event.ctrlKey || event.metaKey) return
+
   if (!props.running || props.aborting || modelPickerOpen.value) return
   const active = document.activeElement
+
   if (
     active instanceof Element &&
     active.closest(
@@ -205,6 +226,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   ) {
     return
   }
+
   event.preventDefault()
   event.stopPropagation()
   emit("abort")
@@ -242,19 +264,23 @@ function onAbortHotkey(event: KeyboardEvent) {
   background: var(--primary);
   color: var(--on-primary);
 }
+
 .send:not(:disabled):hover {
   background: var(--primary-active);
 }
+
 .send--abort,
 .send--abort:not(:disabled):hover {
   background: var(--danger);
   color: var(--danger-foreground);
 }
+
 .send:disabled {
   cursor: default;
   opacity: 0.3;
   scale: 1;
 }
+
 .send--abort:disabled {
   opacity: 0.5;
 }
@@ -289,6 +315,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   color: var(--ink-muted);
   font-size: var(--text-eyebrow);
 }
+
 .voice-message {
   margin: var(--spacing-xs) var(--spacing-sm);
 }

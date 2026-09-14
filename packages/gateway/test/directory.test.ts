@@ -14,16 +14,20 @@ describe("canonicalizePath", () => {
   it("把盘符改成小写、反斜杠改成斜杠，并去掉末尾斜杠", () => {
     if (process.platform === "win32") {
       expect(canonicalizePath("C:\\Projects\\Demo\\")).toBe("c:/Projects/Demo")
+
       return
     }
+
     expect(canonicalizePath("/Projects/Demo/")).toBe("/Projects/Demo")
   })
 
   it("解析相对段后再规范化", () => {
     if (process.platform === "win32") {
       expect(canonicalizePath("C:\\Projects\\Demo\\..\\App")).toBe("c:/Projects/App")
+
       return
     }
+
     expect(canonicalizePath("/Projects/Demo/../App")).toBe("/Projects/App")
   })
 })
@@ -52,13 +56,16 @@ describe("WindowsDirectoryPort", () => {
     tempRoot = await mkdtemp(join(tmpdir(), "pig-dir-"))
     const expected = canonicalizePath(await realpath(tempRoot))
     const tried: string[] = []
+
     const exec: DirectoryExecFile = async (file) => {
       tried.push(file)
+
       if (file === "pwsh") {
         const error = new Error("not found") as NodeJS.ErrnoException
         error.code = "ENOENT"
         throw error
       }
+
       return { stdout: JSON.stringify(tempRoot) }
     }
 
@@ -69,10 +76,13 @@ describe("WindowsDirectoryPort", () => {
 
   it("非法 JSON 路径直接失败，不回退", async () => {
     const tried: string[] = []
+
     const port = new WindowsDirectoryPort(async (file) => {
       tried.push(file)
+
       return { stdout: "null" }
     })
+
     await expect(port.selectDirectory()).rejects.toThrow("invalid folder path")
     expect(tried).toEqual(["pwsh"])
   })

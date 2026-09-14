@@ -3,7 +3,9 @@ import { FAVORITES_SCOPE } from "@features/composer/lib/model-preset.js"
 
 function eventElement(target: EventTarget | null): Element | null {
   if (target instanceof Element) return target
+
   if (target instanceof Node) return target.parentElement
+
   return null
 }
 
@@ -11,6 +13,7 @@ function eventElement(target: EventTarget | null): Element | null {
 function isEffortMenuEvent(event: Event): boolean {
   const detail = (event as CustomEvent<{ originalEvent?: Event }>).detail
   const el = eventElement(detail?.originalEvent?.target ?? event.target)
+
   return Boolean(el?.closest("[data-model-effort-menu]"))
 }
 
@@ -50,6 +53,7 @@ export function useModelPickerPanel(
   function onPanelKeydown(event: KeyboardEvent) {
     if (event.key !== "/") return
     const target = event.target
+
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return
     event.preventDefault()
     event.stopPropagation()
@@ -65,8 +69,10 @@ export function useModelPickerPanel(
   function onPointerDownOutside(event: Event) {
     if (isEffortMenuEvent(event)) {
       event.preventDefault()
+
       return
     }
+
     suppressRestore = true
   }
 

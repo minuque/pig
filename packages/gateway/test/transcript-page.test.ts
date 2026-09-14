@@ -14,6 +14,7 @@ describe("打开已有会话 → 历史分页", () => {
       item("u2", "user"),
       item("a2", "assistant"),
     ]
+
     const page = pageTranscriptItems(items)
     expect(page.items.map((row) => row.id)).toEqual(["u2", "a2"])
     expect(page.hasMore).toBe(true)
@@ -26,6 +27,7 @@ describe("打开已有会话 → 历史分页", () => {
       item("u2", "user"),
       item("a2", "assistant"),
     ]
+
     const page = pageTranscriptItems(items, { before: "u2" })
     expect(page.items.map((row) => row.id)).toEqual(["u1", "a1"])
     expect(page.hasMore).toBe(false)

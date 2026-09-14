@@ -9,6 +9,7 @@ import Gateway from "../src/index.js"
 import type { DirectoryPort } from "../src/directory.js"
 
 let selectedDirectory: string | undefined
+
 const directoryPort: DirectoryPort = {
   async selectDirectory() {
     return selectedDirectory
@@ -19,11 +20,14 @@ const directoryPort: DirectoryPort = {
 }
 
 let gateway: Gateway | undefined
+
 let sessionDir: string | undefined
+
 afterEach(async () => {
   selectedDirectory = undefined
   await gateway?.stop()
   gateway = undefined
+
   if (sessionDir) await rm(sessionDir, { recursive: true, force: true })
   sessionDir = undefined
 })
@@ -42,6 +46,7 @@ async function startGateway(options?: ConstructorParameters<typeof Gateway>[0]) 
     sessionDir,
     ...options,
   })
+
   return `http://127.0.0.1:${await gateway.start()}`
 }
 
@@ -102,6 +107,7 @@ describe("thin host WebSocket", () => {
   it("rejects upgrades on unknown paths", async () => {
     const base = await startGateway()
     const port = new URL(base).port
+
     const status = await new Promise<number>((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error("upgrade 未返回 unexpected-response")), 3000)
       const socket = new WebSocket(`ws://127.0.0.1:${port}/nope`)
@@ -114,6 +120,7 @@ describe("thin host WebSocket", () => {
         // unexpected-response 后底层 socket 被销毁也会触发 error，忽略
       })
     })
+
     expect(status).toBe(404)
   })
 
@@ -121,10 +128,12 @@ describe("thin host WebSocket", () => {
     const base = await startGateway()
     const port = new URL(base).port
     const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`)
+
     const result = await new Promise<{ message: unknown; closed: boolean }>((resolve, reject) => {
       const decoder = new ServerMessageDecoder()
       socket.on("message", (data) => {
         const messages = decoder.push(data as Buffer)
+
         for (const message of messages) {
           if (message.type === "hello_error") {
             socket.close()

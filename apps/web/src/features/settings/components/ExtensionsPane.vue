@@ -1,6 +1,7 @@
 <template>
   <section class="pane">
     <p v-if="!cwd" class="empty">先添加工作目录</p>
+
     <template v-else>
       <p class="cwd">{{ cwd }}</p>
       <p class="empty">当前工作目录没有扩展</p>

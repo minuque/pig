@@ -20,17 +20,22 @@ function transcriptText(item: TranscriptItem): string {
 /** 空失败助手句与侧栏同一口径：无正文且 error/aborted。 */
 function isRetryErrorItem(item: TranscriptItem): boolean {
   if (item.role !== "assistant") return false
+
   if (item.status !== "error" && item.status !== "aborted") return false
+
   return transcriptText(item).length === 0
 }
 
 function conversationItemCount(items: readonly TranscriptItem[]): number {
   let count = 0
+
   for (const item of items) {
     if (item.role !== "user" && item.role !== "assistant" && item.role !== "tool") continue
+
     if (isRetryErrorItem(item)) continue
     count += 1
   }
+
   return count
 }
 
@@ -44,10 +49,12 @@ export function modelFromBranch(
   entries: readonly SessionEntry[],
 ): { provider: string; id: string } | undefined {
   let model: { provider: string; id: string } | undefined
+
   for (const entry of entries) {
     if (entry.type !== "model_change") continue
     model = { provider: entry.provider, id: entry.modelId }
   }
+
   return model
 }
 
@@ -56,10 +63,14 @@ export function outcomeFromBranch(
   entries: readonly SessionEntry[],
 ): "complete" | "error" | undefined {
   const items = new TranscriptProjection().transcript(entries)
+
   for (let index = items.length - 1; index >= 0; index -= 1) {
     const item = items[index]
+
     if (item?.role !== "assistant") continue
+
     return item.status === "error" ? "error" : "complete"
   }
+
   return undefined
 }

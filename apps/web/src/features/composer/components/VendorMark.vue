@@ -7,6 +7,7 @@
     :height="size"
     alt=""
   />
+
   <span v-else-if="icon" class="vendor-mark vendor-mark-mono" :style="monoStyle"></span>
   <span v-else class="vendor-mark vendor-fallback" :style="fallbackStyle">{{ letter }}</span>
 </template>
@@ -29,8 +30,10 @@ const props = withDefaults(
 )
 
 const icon = computed(() => vendorIcon(props.vendor || props.name))
+
 const letter = computed(() => {
   const label = vendorDisplayName(props.vendor || props.name) || props.name || props.vendor
+
   return label.charAt(0).toUpperCase() || "?"
 })
 
@@ -38,10 +41,12 @@ const box = computed(() => ({
   width: `${props.size}px`,
   height: `${props.size}px`,
 }))
+
 const fallbackStyle = computed(() => ({
   ...box.value,
   fontSize: `${Math.max(8, props.size * 0.6)}px`,
 }))
+
 const monoStyle = computed(() => ({
   ...box.value,
   webkitMaskImage: `url("${icon.value?.src}")`,

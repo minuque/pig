@@ -1,6 +1,7 @@
 import type { TurnTiming } from "@/types/turn-type.js"
 
 export type TranscriptImage = { data: string; mimeType: string }
+
 export type UserRow = {
   id: string
   role: "user"
@@ -8,6 +9,7 @@ export type UserRow = {
   images: TranscriptImage[]
   timestamp: number
 }
+
 export type AssistantRow = {
   id: string
   role: "assistant"
@@ -35,6 +37,7 @@ export type ToolCallView = {
 export type ToolGroupKey = "read" | "write" | "edit" | "command" | "search" | "tool"
 
 export type ToolGroup = { type: "tools"; id: string; key: ToolGroupKey; items: ToolCallView[] }
+
 export type ThoughtStep = {
   type: "thought"
   id: string
@@ -43,7 +46,9 @@ export type ThoughtStep = {
   startedAt: number
   endedAt?: number
 }
+
 export type ToolRowStep = ThoughtStep | ToolGroup
+
 export type ToolRow = {
   id: string
   role: "tools"
@@ -54,6 +59,7 @@ export type ToolRow = {
   error: boolean
   timing?: TurnTiming
 }
+
 export type TimelineRow = UserRow | AssistantRow | ToolRow
 
 export type ToolSummaryDetail =
@@ -61,6 +67,7 @@ export type ToolSummaryDetail =
   | { kind: "text"; text: string }
 
 export type EditDiffHunk = { original: string; modified: string }
+
 export type EditDiffPreview = {
   path: string
   fileName: string

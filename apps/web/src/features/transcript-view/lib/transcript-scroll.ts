@@ -44,6 +44,7 @@ export function shouldLoadOlderTranscript(
 ): boolean {
   const threshold = options.threshold ?? 48
   const overflow = options.overflow ?? true
+
   return hasMore && !loading && !atBottom && overflow && scrollTop <= threshold
 }
 
@@ -54,6 +55,7 @@ export function restoreScrollAfterPrepend(
   beforeTop: number,
 ): void {
   const delta = root.scrollHeight - beforeHeight
+
   if (delta === 0) return
   root.scrollTop = beforeTop + delta
 }

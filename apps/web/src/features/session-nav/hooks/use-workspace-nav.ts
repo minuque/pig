@@ -20,6 +20,7 @@ import type { SidebarGrouping, SidebarRow } from "@features/session-nav/type.js"
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
 export const SIDEBAR_GROUPING_KEY = "pig.sidebarGrouping"
+
 export const SIDEBAR_COLLAPSED_KEY = "pig.sidebarCollapsed"
 
 function parseGrouping(raw: string | null): SidebarGrouping {
@@ -44,14 +45,18 @@ function saveGrouping(value: SidebarGrouping): void {
 
 function parseCollapsed(json: string | null): Record<string, boolean> {
   if (!json) return {}
+
   try {
     const value: unknown = JSON.parse(json)
+
     if (!Array.isArray(value)) return {}
     const next: Record<string, boolean> = {}
+
     for (const item of value) {
       if (typeof item !== "string" || item.length === 0) continue
       next[canonicalizeWorkspacePath(item)] = true
     }
+
     return next
   } catch {
     return {}
@@ -98,6 +103,7 @@ export function useWorkspaceNav(
       sessions: applyTitles(group.sessions),
     })),
   )
+
   const listedSessions = computed(() => applyTitles(listSessionsForSidebar(sessions.value)))
 
   const grouping = ref<SidebarGrouping>(loadGrouping())
@@ -106,9 +112,12 @@ export function useWorkspaceNav(
 
   function applyTitles(list: readonly SessionMetadata[]): SessionMetadata[] {
     const titles = titleById.value
+
     if (Object.keys(titles).length === 0) return [...list]
+
     return list.map((session) => {
       const sessionName = titles[session.id]
+
       return sessionName === undefined ? session : { ...session, sessionName }
     })
   }
@@ -118,6 +127,7 @@ export function useWorkspaceNav(
       grouping.value = next
       revealByGroup.value = {}
     }
+
     saveGrouping(next)
   }
 
@@ -144,14 +154,18 @@ export function useWorkspaceNav(
     return computed((): SidebarRow[] => {
       const searchingNow = toValue(searching)
       const excluded = excludedIds === undefined ? undefined : toValue(excludedIds)
+
       const sessionList = excluded
         ? listedSessions.value.filter((session) => !excluded.has(session.id))
         : listedSessions.value
+
       const ids = new Set(sessionList.map((session) => session.id))
+
       const groupList = groups.value.map((group) => ({
         canonicalPath: group.canonicalPath,
         sessions: group.sessions.filter((session) => ids.has(session.id)),
       }))
+
       return sidebarRows({
         grouping: grouping.value,
         sessions: sessionList,
@@ -167,13 +181,17 @@ export function useWorkspaceNav(
     if (addingWorkspace.value) return
     addingWorkspace.value = true
     error.value = ""
+
     try {
       let result = await selectDirectory()
+
       if (result.requiresManualInput) {
         const path = window.prompt("输入本地目录路径")
+
         if (!path) return
         result = await selectDirectory(path)
       }
+
       if (result.path) {
         local.add(result.path)
         local.selectCwd(result.path)
@@ -188,6 +206,7 @@ export function useWorkspaceNav(
   async function renameSession(id: string, name: string) {
     error.value = ""
     titleById.value = { ...titleById.value, [id]: name }
+
     try {
       await requestRenameSession(id, name)
     } catch (cause) {
@@ -195,8 +214,10 @@ export function useWorkspaceNav(
       delete next[id]
       titleById.value = next
       error.value = errorMessage(cause)
+
       return
     }
+
     void admin.refreshSessions().catch((cause) => {
       error.value = errorMessage(cause)
     })
@@ -205,8 +226,10 @@ export function useWorkspaceNav(
 
   async function deleteSession(id: string) {
     error.value = ""
+
     try {
       await requestDeleteSession(id)
+
       if (admin.sessionId.value === id) await admin.router.replace("/")
       await admin.refreshSessions()
       void refreshSessionCards()

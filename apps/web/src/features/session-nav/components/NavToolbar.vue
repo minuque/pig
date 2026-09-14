@@ -38,6 +38,7 @@ const emit = defineEmits<{
     color var(--duration-fast) var(--ease-out),
     scale var(--duration-fast) var(--ease-out);
 }
+
 .search-button:hover {
   border-color: var(--ink-faint);
   color: var(--ink);

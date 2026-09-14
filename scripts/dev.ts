@@ -5,13 +5,16 @@ import Gateway from "../packages/gateway/src/index.js"
 // Git Bash (MSYS) 不会把 Ctrl+C 转发给 Windows 原生子进程链,信号到不了这里。
 // 解法:用 winpty 重新启动自己,winpty 把 Ctrl+C 转成真实 console 信号,即可正常停止。
 const WRAPPED = "NPNG_DEV_WINPTY"
+
 // mintty 下 node 的 stdin 是 tty;管道/CI 环境不是,winpty 需要 tty,只有交互终端才包装
 if (process.env.MSYSTEM && !process.env[WRAPPED] && process.stdin.isTTY) {
   const startedAt = Date.now()
+
   const winpty = spawn("winpty", [process.execPath, ...process.argv.slice(1)], {
     env: { ...process.env, [WRAPPED]: "1" },
     stdio: "inherit",
   })
+
   winpty.on("error", () => {
     console.warn("[dev] 未找到 winpty,Ctrl+C 可能无法停止进程。")
     void main()
@@ -35,7 +38,9 @@ async function main() {
   console.info(`[dev] http://127.0.0.1:5173`)
 
   const pnpm = process.env.npm_execpath
+
   if (!pnpm) throw new Error("pnpm executable not found")
+
   const web = spawn(process.execPath, [pnpm, "--filter", "@pig/web", "dev"], {
     env: {
       ...process.env,

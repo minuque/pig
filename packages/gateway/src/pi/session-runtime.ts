@@ -62,12 +62,14 @@ export class PiHostSession implements PiSessionRuntime {
 
   historyTranscript() {
     const entries = this.session.sessionManager.getBranch()
+
     return { items: this.projection.transcript(entries), timings: readTurnTimings(entries) }
   }
 
   snapshot(): SessionSnapshot {
     const { session } = this
     const model = session.model
+
     if (!model) throw new Error("Session has no active model")
 
     const manager = session.sessionManager
@@ -75,6 +77,7 @@ export class PiHostSession implements PiSessionRuntime {
     const entries = manager.getBranch()
     const createdAt = this.sessionCreatedAt()
     const steering = session.getSteeringMessages()
+
     const listName = sessionListName({
       name: session.sessionName,
       firstMessage: firstUserMessageText(entries),
@@ -107,9 +110,13 @@ export class PiHostSession implements PiSessionRuntime {
 
   getPhase(): SessionPhase {
     const { session } = this
+
     if (session.isCompacting) return "compaction"
+
     if (session.retryAttempt > 0) return "retry"
+
     if (session.isStreaming) return "turn"
+
     return "idle"
   }
 
@@ -117,8 +124,10 @@ export class PiHostSession implements PiSessionRuntime {
     await this.exclusive(async () => {
       if (!this.session.isIdle) throw new SessionBusyError("A prompt is already running")
       this.timing.start()
+
       try {
         await this.session.prompt(input.text)
+
         if (!this.session.isIdle) await this.session.waitForIdle()
       } catch (error) {
         this.timing.outcome("error")
@@ -147,12 +156,14 @@ export class PiHostSession implements PiSessionRuntime {
     await this.exclusive(async () => {
       if (!this.session.isIdle) throw new SessionBusyError("Session is busy")
       const resolved = this.session.modelRuntime.getModel(model.provider, model.id)
+
       if (!resolved) {
         throw new PiServerError(
           "invalid_request",
           `Model ${model.provider}/${model.id} is unavailable`,
         )
       }
+
       await this.session.setModel(resolved)
     })
   }
@@ -171,6 +182,7 @@ export class PiHostSession implements PiSessionRuntime {
 
   subscribe(listener: (event: PiSessionRuntimeEvent) => void): () => void {
     this.listeners.add(listener)
+
     return () => this.listeners.delete(listener)
   }
 
@@ -192,6 +204,7 @@ export class PiHostSession implements PiSessionRuntime {
       () => undefined,
       () => undefined,
     )
+
     try {
       return await run
     } finally {
@@ -202,6 +215,7 @@ export class PiHostSession implements PiSessionRuntime {
   private handleEvent(event: AgentSessionEvent): void {
     if (event.type === "message_end") {
       if (event.message.role === "user") this.timing.user(event.message.timestamp)
+
       if (event.message.role === "assistant") {
         const reason = event.message.stopReason
         this.timing.outcome(
@@ -211,6 +225,7 @@ export class PiHostSession implements PiSessionRuntime {
     }
 
     const progress = this.projection.progress(event)
+
     if (progress) {
       this.revision += 1
       this.emit({ type: "progress", progress })
@@ -223,8 +238,10 @@ export class PiHostSession implements PiSessionRuntime {
         this.timing.persistStart()
         this.broadcastSnapshot()
       })
+
       return
     }
+
     if (!SNAPSHOT_SKIP_EVENTS.has(event.type)) this.broadcastSnapshot()
   }
 
@@ -240,16 +257,20 @@ export class PiHostSession implements PiSessionRuntime {
   private sessionCreatedAt(): number {
     const header = this.session.sessionManager.getHeader()
     const timestamp = header?.timestamp
+
     if (timestamp === undefined) return Date.now()
     const parsed = Date.parse(timestamp)
+
     return Number.isFinite(parsed) ? parsed : Date.now()
   }
 
   /** 最新条目的时间戳；解析失败或空会话时退回创建时间。 */
   private sessionUpdatedAt(entries: readonly { timestamp: string }[], createdAt: number): number {
     const last = entries[entries.length - 1]
+
     if (!last) return createdAt
     const parsed = Date.parse(last.timestamp)
+
     return Number.isFinite(parsed) ? parsed : createdAt
   }
 }

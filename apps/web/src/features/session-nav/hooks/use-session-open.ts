@@ -12,8 +12,10 @@ export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<
   function openSession(id: string) {
     if (id === sessionId.value) {
       cancelPendingOpen()
+
       return
     }
+
     pendingSessionId.value = id
     pushSession(id)
   }
@@ -21,8 +23,10 @@ export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<
   function cancelPendingOpen() {
     const pending = pendingSessionId.value
     pendingSessionId.value = undefined
+
     if (!pending) return
     const current = sessionId.value
+
     // 再 push 当前路由以取消未完成跳转
     if (current) pushSession(current)
     else void router.push("/")

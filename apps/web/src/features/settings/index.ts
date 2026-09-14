@@ -27,6 +27,8 @@ export function provideSettings(): SettingsContext {
 
 export function useSettings(): SettingsContext {
   const settings = inject(settingsKey)
+
   if (!settings) throw new Error("useSettings() 需要在 provideSettings() 之后调用")
+
   return settings
 }

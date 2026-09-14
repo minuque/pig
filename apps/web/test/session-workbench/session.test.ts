@@ -42,6 +42,7 @@ const {
       this.subscribeCalls += 1
       this.listeners.add(listener)
       listener(this.state)
+
       return () => this.listeners.delete(listener)
     }
 
@@ -51,9 +52,11 @@ const {
 
     dispose() {
       this.disposeCalls += 1
+
       return Promise.resolve()
     }
   }
+
   return {
     openMock: vi.fn<(client: PiClient, sessionId: string) => Promise<FakeRemoteSession>>(),
     createMock: vi.fn<(client: PiClient, options: unknown) => Promise<FakeRemoteSession>>(),
@@ -74,12 +77,14 @@ vi.mock("@earendil-works/pi-coding-agent/client", () => ({
 
 vi.mock("@client/http.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@client/http.js")>()
+
   return { ...actual, platformRequest: platformRequestMock }
 })
 
 vi.mock("vue-router", async () => {
   const { reactive } = await import("vue")
   routeBox.params = reactive({ sessionId: undefined as string | undefined })
+
   return {
     useRoute: () => ({ params: routeBox.params }),
     useRouter: () => ({ push: routerPush, replace: routerReplace }),
@@ -106,7 +111,9 @@ beforeEach(() => {
   routeBox.params.sessionId = undefined
   platformRequestMock.mockImplementation(async (path: string) => {
     if (path.includes("/transcript")) return { items: [] }
+
     if (path.includes("context-usage")) return { usage: usageEstimate }
+
     return {}
   })
   routerPush.mockImplementation(async (to: { params: { sessionId: string } }) => {
@@ -171,23 +178,28 @@ function setup(options?: {
     sessions: ref(options?.sessions ?? []),
     bindAttachedReconnect: vi.fn(),
   }
+
   const cwd = {
     lastCwd: ref(options?.lastCwd ?? "/repo"),
     selectCwd: vi.fn(),
   }
 
   lifecycle?.teardown()
+
   const session = useSessionLifecycle(
     pi as unknown as ReturnType<typeof usePiClient>,
     cwd as unknown as ReturnType<typeof useLocalWorkspaces>,
   )
+
   lifecycle = session
+
   return { session, cwd }
 }
 
 function disconnectedError() {
   const error = new Error("disconnected")
   error.name = "PiDisconnectedError"
+
   return error
 }
 
@@ -199,8 +211,10 @@ describe("打开已有 Session", () => {
       content: [{ type: "text" as const, text: "hi" }],
       timestamp: 1,
     }
+
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: [item], timings: [] }
+
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -233,8 +247,10 @@ describe("打开已有 Session", () => {
       content: [{ type: "text" as const, text: "hi" }],
       timestamp: 1,
     }
+
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: [item], timings: [] }
+
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -248,17 +264,21 @@ describe("打开已有 Session", () => {
 
   it("打开中 cwd 用列表或 snapshot，不误用 lastCwd", async () => {
     let releaseOpen = () => {}
+
     const opened = new Promise<void>((resolve) => {
       releaseOpen = resolve
     })
+
     const { session } = setup({
       lastCwd: "/wrong",
       sessions: [{ id: "s1", createdAt: 1, cwd: "/from-list" }],
     })
+
     const a = makeSession("s1")
     a.state = { ...a.state, snapshot: { ...snapshot(1), cwd: "/from-snap" } }
     openMock.mockImplementation(async () => {
       await opened
+
       return a
     })
     routeBox.params.sessionId = "s1"
@@ -275,14 +295,18 @@ describe("打开已有 Session", () => {
 
   it("lease 已齐历史未到时仍投影 snapshot 壳层", async () => {
     let releaseHistory = () => {}
+
     let historyGate = Promise.resolve()
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) {
         await historyGate
+
         return { items: [historyItem], timings: [] }
       }
+
       return { usage: usageEstimate }
     })
+
     const { session } = setup({
       lastCwd: "/wrong",
       sessions: [
@@ -290,6 +314,7 @@ describe("打开已有 Session", () => {
         { id: "s2", createdAt: 2, cwd: "/b" },
       ],
     })
+
     const a = makeSession("s1")
     a.state = { ...a.state, snapshot: { ...snapshot(1), id: "s1", cwd: "/a" } }
     const b = makeSession("s2")
@@ -338,6 +363,7 @@ describe("打开已有 Session", () => {
         connected.value = false
         throw disconnectedError()
       }
+
       return a
     })
     routeBox.params.sessionId = "s1"
@@ -367,10 +393,13 @@ describe("打开已有 Session", () => {
       content: [{ type: "text" as const, text: "hi" }],
       timestamp: 1,
     }
+
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: [item], timings: [] }
+
       return { usage: usageEstimate }
     })
+
     const pi = {
       client: ref(undefined as unknown as PiClient | undefined),
       connected: computed(() => false),
@@ -380,12 +409,15 @@ describe("打开已有 Session", () => {
       sessions: ref([]),
       bindAttachedReconnect: vi.fn(),
     }
+
     const cwd = { lastCwd: ref("/repo"), selectCwd: vi.fn() }
     lifecycle?.teardown()
+
     const session = useSessionLifecycle(
       pi as unknown as ReturnType<typeof usePiClient>,
       cwd as unknown as ReturnType<typeof useLocalWorkspaces>,
     )
+
     lifecycle = session
     routeBox.params.sessionId = "s1"
     await session.initialize()
@@ -400,19 +432,25 @@ describe("快速切换 Session", () => {
     const a = makeSession("s1")
     const b = makeSession("s2")
     let releaseA = () => {}
+
     let hitS1 = () => {}
+
     const enteredS1 = new Promise<void>((resolve) => {
       hitS1 = resolve
     })
+
     const gateA = new Promise<void>((resolve) => {
       releaseA = resolve
     })
+
     openMock.mockImplementation(async (_client, id) => {
       if (id === "s1") {
         hitS1()
         await gateA
+
         return a
       }
+
       return b
     })
     routeBox.params.sessionId = "s1"
@@ -432,19 +470,24 @@ describe("快速切换 Session", () => {
     const { session } = setup()
     const b = makeSession("s2")
     let releaseA = () => {}
+
     let hitS1 = () => {}
+
     const enteredS1 = new Promise<void>((resolve) => {
       hitS1 = resolve
     })
+
     const gateA = new Promise<void>((resolve) => {
       releaseA = resolve
     })
+
     openMock.mockImplementation(async (_client, id) => {
       if (id === "s1") {
         hitS1()
         await gateA
         throw new Error("boom")
       }
+
       return b
     })
     routeBox.params.sessionId = "s1"
@@ -475,16 +518,21 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     const { session } = setup()
     const created = makeSession("s2")
     let releaseCreate = () => {}
+
     let markCreateStarted = () => {}
+
     const createStarted = new Promise<void>((resolve) => {
       markCreateStarted = resolve
     })
+
     const createGate = new Promise<void>((resolve) => {
       releaseCreate = resolve
     })
+
     createMock.mockImplementation(async () => {
       markCreateStarted()
       await createGate
+
       return created
     })
     session.prompt.value = "任务"
@@ -535,16 +583,21 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     const created = makeSession("created")
     const selected = makeSession("selected")
     let releaseCreate = () => {}
+
     let markCreateStarted = () => {}
+
     const createStarted = new Promise<void>((resolve) => {
       markCreateStarted = resolve
     })
+
     const createGate = new Promise<void>((resolve) => {
       releaseCreate = resolve
     })
+
     createMock.mockImplementation(async () => {
       markCreateStarted()
       await createGate
+
       return created
     })
     openMock.mockResolvedValue(selected)
@@ -571,9 +624,11 @@ describe("提交失败恢复草稿", () => {
     const a = makeSession("s1")
     a.state = { ...a.state, transcript: [historyItem] }
     let resolveSubmit = () => {}
+
     const pending = new Promise<undefined>((resolve) => {
       resolveSubmit = () => resolve(undefined)
     })
+
     a.submit.mockImplementation(() => pending)
     openMock.mockResolvedValue(a)
     routeBox.params.sessionId = "s1"
@@ -622,17 +677,21 @@ describe("HTTP 历史与 live Transcript 合并", () => {
       content: [{ type: "text" as const, text: "更早" }],
       timestamp: 1,
     }
+
     const latest = {
       id: "u1",
       role: "user" as const,
       content: [{ type: "text" as const, text: "最近" }],
       timestamp: 2,
     }
+
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) {
         if (path.includes("before=")) return { items: [older], hasMore: false, timings: [] }
+
         return { items: [latest], hasMore: true, timings: [] }
       }
+
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -655,9 +714,11 @@ describe("HTTP 历史与 live Transcript 合并", () => {
       content: [{ type: "text" as const, text: "hi" }],
       timestamp: 1,
     }
+
     const timing = { userId: "u1", startedAt: 1000, endedAt: 66000, outcome: "complete" }
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: [item], timings: [timing] }
+
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -686,12 +747,16 @@ describe("HTTP 历史与 live Transcript 合并", () => {
       content: [{ type: "text" as const, text: "hi" }],
       timestamp: 1,
     }
+
     const disk = { ...live, id: "u1" }
     let persisted: (typeof disk)[] = []
+
     const transcriptCalls = () =>
       platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("/transcript"))
+
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: persisted, timings: [] }
+
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -726,6 +791,7 @@ describe("HTTP 历史与 live Transcript 合并", () => {
       timestamp: 2,
       status: "streaming",
     } satisfies TranscriptItem
+
     const liveTool = (toolCallId: string) =>
       ({
         id: toolCallId,
@@ -738,6 +804,7 @@ describe("HTTP 历史与 live Transcript 合并", () => {
         status: "running",
         isError: false,
       }) satisfies TranscriptItem
+
     const { session } = setup()
     const remote = makeSession("s1")
     remote.state = { ...remote.state, transcript: [descriptor, liveTool("t1"), liveTool("t2")] }
@@ -786,8 +853,10 @@ describe("一轮工作", () => {
         isError: false,
       },
     ]
+
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) return { items: history, timings: [] }
+
       return { usage: usageEstimate }
     })
     const { session } = setup()
@@ -842,6 +911,7 @@ describe("context-usage", () => {
 
     const usageCalls = () =>
       platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("context-usage"))
+
     expect(usageCalls()).toHaveLength(1)
     a.emit()
     expect(usageCalls()).toHaveLength(1)

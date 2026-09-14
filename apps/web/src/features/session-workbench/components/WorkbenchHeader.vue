@@ -3,9 +3,11 @@
     <button v-if="!leftOpen" class="header-toggle" type="button" title="打开侧边栏" @click="toggle">
       <PanelLeft class="size-icon" />
     </button>
+
     <div class="header-crumb">
       <h1 v-if="title" id="current-title" class="header-session">{{ title }}</h1>
     </div>
+
     <div class="header-right">
       <SoundToggle />
       <ThemeToggle />
@@ -50,6 +52,7 @@ const title = computed(() =>
   padding: var(--spacing-xxs) var(--spacing-sm);
   background: var(--surface);
 }
+
 .workbench-header::after {
   pointer-events: none;
   position: absolute;

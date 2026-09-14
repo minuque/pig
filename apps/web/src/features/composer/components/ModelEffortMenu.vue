@@ -13,6 +13,7 @@
         <ChevronRight class="chip-caret" aria-hidden="true" />
       </Button>
     </DropdownMenuTrigger>
+
     <DropdownMenuContent
       side="top"
       align="end"
@@ -22,14 +23,17 @@
     >
       <div class="effort" @pointerdown.stop>
         <p class="effort-title">思考强度 {{ label }}</p>
+
         <div class="effort-scale">
           <span>更快</span>
           <span>更强</span>
         </div>
+
         <div class="effort-bar">
           <div class="effort-ticks" aria-hidden="true">
             <i v-for="item in levels" :key="item" />
           </div>
+
           <Slider
             class="effort-slider"
             :model-value="[index]"
@@ -69,15 +73,20 @@ const emit = defineEmits<{
 const open = ref(false)
 
 const current = computed(() => displayThinkingLevel(props.level, props.levels))
+
 const label = computed(() => formatThinkingLevel(current.value))
+
 const maxIndex = computed(() => Math.max(props.levels.length - 1, 0))
+
 const index = computed(() => {
   const i = props.levels.indexOf(current.value)
+
   return i < 0 ? 0 : i
 })
 
 function onSlide(value: number[] | undefined) {
   const next = props.levels[value?.[0] ?? -1]
+
   if (next) emit("update:level", next)
 }
 </script>
@@ -100,14 +109,17 @@ function onSlide(value: number[] | undefined) {
   font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
+
 .chip:hover {
   background: var(--hover-strong);
   color: var(--ink);
 }
+
 .chip:focus-visible {
   outline: var(--border-width) solid var(--primary);
   outline-offset: -2px;
 }
+
 .chip[data-state="open"] {
   background: var(--hover-strong);
   color: var(--ink);
@@ -119,6 +131,7 @@ function onSlide(value: number[] | undefined) {
   height: 1em;
   transition: rotate var(--duration-fast) var(--ease-smooth);
 }
+
 .chip[data-state="open"] .chip-caret {
   rotate: 90deg;
 }
@@ -167,6 +180,7 @@ function onSlide(value: number[] | undefined) {
   justify-content: space-between;
   pointer-events: none;
 }
+
 .effort-ticks i {
   width: var(--border-width);
   height: var(--spacing-xs);

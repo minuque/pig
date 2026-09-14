@@ -11,6 +11,7 @@ import { PiHostSession } from "../src/pi/session-runtime.js"
 import { readTurnTimings } from "../src/pi/turn-timing.js"
 
 const directories: string[] = []
+
 afterEach(async () => {
   vi.useRealTimers()
   await Promise.all(
@@ -30,16 +31,21 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
       const manager = SessionManager.create(directory, directory)
 
       let notify: (event: AgentSessionEvent) => void = () => {}
+
       let finish: () => void = () => {}
+
       const pending = new Promise<void>((resolve) => {
         finish = resolve
       })
+
       const user = { role: "user", content: "执行任务", timestamp: 1000 } as const
+
       const session = {
         sessionManager: manager,
         isIdle: true,
         subscribe(listener: (event: AgentSessionEvent) => void) {
           notify = listener
+
           return () => {}
         },
         async prompt() {
@@ -63,6 +69,7 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
               cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
             },
           })
+
           if (outcome === "error") throw new Error("网络断开")
         },
         async abort() {
@@ -84,8 +91,10 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
       ])
 
       vi.setSystemTime(66000)
+
       if (outcome === "aborted") await runtime.abort()
       else finish()
+
       if (outcome === "error") await expect(prompt).rejects.toThrow("网络断开")
       else await prompt
 
@@ -99,6 +108,7 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
 
       const file = manager.getSessionFile()
       expect(file).toBeDefined()
+
       if (!file) throw new Error("Missing persisted session")
       expect(readTurnTimings(SessionManager.open(file).getBranch())).toEqual(history.timings)
       await runtime.dispose()

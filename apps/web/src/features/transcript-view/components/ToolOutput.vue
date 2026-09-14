@@ -11,8 +11,10 @@
           >
             … 其余 {{ hiddenCount }} 行
           </button>
+
           <div v-else class="code-line">
             <span class="line-number">{{ startLine + line.index }}</span>
+
             <code>
               <template v-if="tokens[line.index]">
                 <span
@@ -23,6 +25,7 @@
                   {{ token.content }}
                 </span>
               </template>
+
               <template v-else>{{ line.text }}</template>
             </code>
           </div>
@@ -30,16 +33,21 @@
       </div>
     </div>
   </div>
+
   <div v-else class="tool-output" :class="{ 'is-embedded': embedded }">
     <template v-if="showText && collapsed">
       <pre class="tool-output-pre" :class="preClass">{{ omittedHead }}</pre>
+
       <button type="button" class="omitted" @click="expanded = true">
         … 其余 {{ hiddenCount }} 行
       </button>
+
       <pre class="tool-output-pre" :class="preClass">{{ omittedTail }}</pre>
     </template>
+
     <template v-else-if="showText">
       <pre v-if="!virtual" class="tool-output-pre" :class="preClass">{{ text }}</pre>
+
       <pre
         v-else
         class="tool-output-pre is-virtual"
@@ -51,6 +59,7 @@
           <span class="window" :style="{ top: `${padTop}px` }">{{ visibleText }}</span>
         </span>
       </pre>
+
       <p v-if="virtual && showCount" class="meta">{{ lines.length }} 行</p>
     </template>
 
@@ -108,21 +117,31 @@ const props = withDefaults(
     images: () => [],
   },
 )
+
 const expanded = defineModel<boolean>("expanded", { default: false })
 
 const omitIndex = TOOL_OMIT_HEAD - 1
+
 const showText = computed(() => props.text.length > 0 || props.images.length === 0)
+
 const sourceLines = computed(() => (props.code ? [...props.lines] : splitLines(props.text)))
+
 const hiddenCount = computed(() => hiddenLineCount(sourceLines.value.length))
+
 const collapsed = computed(() => hiddenCount.value > 0 && !expanded.value)
+
 const omittedHead = computed(() => sourceLines.value.slice(0, omitIndex).join("\n"))
+
 const omittedTail = computed(() => sourceLines.value.slice(-TOOL_OMIT_TAIL).join("\n"))
+
 const visibleLines = computed(() => {
   const lines = sourceLines.value.map((text, index) => ({ text, index }))
+
   return collapsed.value
     ? [...lines.slice(0, TOOL_OMIT_HEAD), ...lines.slice(-TOOL_OMIT_TAIL)]
     : lines
 })
+
 const lineNumberWidth = computed(() =>
   Math.max(3, String(props.startLine + sourceLines.value.length - 1).length),
 )
@@ -133,8 +152,11 @@ const preClass = computed(() => ({
 }))
 
 const scrollTop = shallowRef(0)
+
 const lines = computed(() => splitLines(props.text))
+
 const virtual = computed(() => lines.value.length > props.maxLines)
+
 const range = computed(() =>
   virtual.value
     ? visibleLineRange(
@@ -146,8 +168,11 @@ const range = computed(() =>
       )
     : { start: 0, end: lines.value.length },
 )
+
 const visibleText = computed(() => lines.value.slice(range.value.start, range.value.end).join("\n"))
+
 const padTop = computed(() => range.value.start * props.lineHeight)
+
 const totalHeight = computed(() => lines.value.length * props.lineHeight)
 
 function onScroll(event: Event) {
@@ -159,6 +184,7 @@ function onScroll(event: Event) {
 .tool-output {
   font-size: var(--text-code);
 }
+
 .tool-output.is-embedded {
   min-width: 0;
   padding: var(--spacing-sm);
@@ -180,6 +206,7 @@ function onScroll(event: Event) {
   white-space: pre;
   tab-size: 2;
 }
+
 .tool-output-pre.is-plain,
 .tool-output-pre.is-embedded {
   margin: 0;
@@ -187,6 +214,7 @@ function onScroll(event: Event) {
   border: 0;
   background: transparent;
 }
+
 .tool-output-pre.is-plain {
   color: inherit;
   font-family: inherit;
@@ -194,6 +222,7 @@ function onScroll(event: Event) {
   line-height: inherit;
   white-space: pre-wrap;
 }
+
 .tool-output-pre.is-embedded {
   color: var(--ink);
   font-family: var(--font-mono);
@@ -277,10 +306,12 @@ code {
   font: inherit;
   cursor: pointer;
 }
+
 .tool-output:not(.is-code) .omitted {
   margin: var(--spacing-xxs) 0;
   margin-inline-start: 0;
 }
+
 .omitted:hover {
   color: var(--ink);
 }

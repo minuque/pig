@@ -9,22 +9,30 @@ import { fileLanguage, pathBasename } from "./tool-presentation.js"
 
 export function toolGroupKey(toolName: string): ToolGroupKey {
   const name = toolName.trim().toLowerCase()
+
   if (name === "read") return "read"
+
   if (name === "write") return "write"
+
   if (name === "edit") return "edit"
+
   if (isCommandTool(name)) return "command"
+
   if (name === "grep" || name === "find" || name === "ls") return "search"
+
   return "tool"
 }
 
 export function toolSummary(items: readonly ToolCallView[]): string {
   const first = items[0]
+
   if (!first) return "工具调用"
 
   const running = items.some((item) => item.running)
   const count = items.length
   const key = toolGroupKey(first.toolName)
   const prefix = running ? "正在" : "已"
+
   const labels = {
     read: `${prefix}读取 ${count} 个文件`,
     write: count === 1 ? `${prefix}写入` : `${prefix}写入 ${count} 个文件`,
@@ -44,7 +52,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function splitLines(text: string): string[] {
   if (!text) return []
   const lines = text.split(/\r?\n/)
+
   if (lines[lines.length - 1] === "") lines.pop()
+
   return lines
 }
 
@@ -54,9 +64,11 @@ function lineChange(oldText: string, newText: string): { added: number; removed:
 
   let start = 0
   const shared = Math.min(oldLines.length, newLines.length)
+
   while (start < shared && oldLines[start] === newLines[start]) start += 1
 
   let end = 0
+
   while (
     end < oldLines.length - start &&
     end < newLines.length - start &&
@@ -75,6 +87,7 @@ function editReplacements(input: unknown): { oldText: string; newText: string }[
   if (!isRecord(input)) return []
 
   let edits: unknown = input.edits
+
   if (typeof edits === "string") {
     try {
       edits = JSON.parse(edits) as unknown
@@ -84,6 +97,7 @@ function editReplacements(input: unknown): { oldText: string; newText: string }[
   }
 
   const pairs: { oldText: string; newText: string }[] = []
+
   if (Array.isArray(edits)) {
     for (const item of edits) {
       if (isRecord(item) && typeof item.oldText === "string" && typeof item.newText === "string") {
@@ -91,6 +105,7 @@ function editReplacements(input: unknown): { oldText: string; newText: string }[
       }
     }
   }
+
   if (typeof input.oldText === "string" && typeof input.newText === "string") {
     pairs.push({ oldText: input.oldText, newText: input.newText })
   }
@@ -100,15 +115,18 @@ function editReplacements(input: unknown): { oldText: string; newText: string }[
 
 export function editDiffPreview(input: unknown): EditDiffPreview | null {
   const pairs = editReplacements(input)
+
   if (pairs.length === 0) return null
 
   const path = toolPath(input)
   let added = 0
   let removed = 0
+
   const hunks = pairs.map((pair) => {
     const change = lineChange(pair.oldText, pair.newText)
     added += change.added
     removed += change.removed
+
     return { original: pair.oldText, modified: pair.newText }
   })
 
@@ -128,48 +146,64 @@ function withLineChange(
   removed: number,
 ): ToolSummaryDetail {
   if (added === 0 && removed === 0) return detail
+
   return { ...detail, added, removed }
 }
 
 export function toolDetail(toolName: string, input: unknown): ToolSummaryDetail | null {
   const text = toolCallDetail(toolName, input)
+
   if (!isCommandTool(toolName)) {
     const path = toolPath(input) || (isFilePathDetail(text) ? text : "")
+
     if (path) {
       const file = { kind: "file" as const, name: pathBasename(path), path }
       const name = toolName.trim().toLowerCase()
+
       if (name === "edit") {
         let added = 0
         let removed = 0
+
         for (const pair of editReplacements(input)) {
           const change = lineChange(pair.oldText, pair.newText)
           added += change.added
           removed += change.removed
         }
+
         return withLineChange(file, added, removed)
       }
+
       if (name === "write") {
         const content = isRecord(input) && typeof input.content === "string" ? input.content : ""
+
         return withLineChange(file, splitLines(content).length, 0)
       }
+
       return file
     }
   }
+
   return text ? { kind: "text", text } : null
 }
 
 export function toolSummaryDetail(items: readonly ToolCallView[]): ToolSummaryDetail | null {
   const first = items[0]
+
   if (!first || items.length !== 1) return null
+
   if (toolGroupKey(first.toolName) === "tool") {
     const name = first.toolName.trim()
+
     return name ? { kind: "text", text: name } : null
   }
+
   return toolDetail(first.toolName, first.input)
 }
 
 function isFilePathDetail(text: string): boolean {
   if (!text || /\s/.test(text) || text.includes("://")) return false
+
   if (/[\\/]/.test(text)) return true
+
   return text.includes(".") && fileLanguage(text) !== "text"
 }

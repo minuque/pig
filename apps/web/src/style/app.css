@@ -9,6 +9,7 @@
   inherits: true;
   initial-value: 45.75rem;
 }
+
 @property --scrollbar-thumb {
   syntax: "<color>";
   inherits: true;
@@ -294,6 +295,7 @@
 * {
   --scrollbar-thumb: transparent;
 }
+
 *:hover {
   --scrollbar-thumb: var(--scrollbar-color);
 }
@@ -309,15 +311,18 @@
   width: var(--size-scrollbar);
   height: var(--size-scrollbar);
 }
+
 *::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 0;
 }
+
 *::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: var(--radius-full);
   transition: background-color var(--duration-slow) var(--ease-out);
 }
+
 *::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-hover);
 }
@@ -487,6 +492,7 @@ button:not(:where(.markstream-vue *, [data-slot])) {
   color: inherit;
   cursor: pointer;
 }
+
 button:disabled {
   cursor: default;
 }

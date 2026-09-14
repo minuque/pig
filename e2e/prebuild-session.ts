@@ -4,14 +4,23 @@ import { join } from "node:path"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
 
 export const COMPLEX_SESSION_ID = "e2e-complex"
+
 export const COMPLEX_SESSION_NAME = "复杂会话"
+
 export const COMPLEX_MARKER = "e2e 复杂样本"
+
 export const TABLE_MARKER = "e2e-table"
+
 export const FORMULA_MARKER = "e2e-formula"
+
 export const MERMAID_MARKER = "e2e-mermaid"
+
 export const TOOL_MARKER = "e2e-tool"
+
 export const SHORT_BODY_SESSION_ID = "e2e-body-short"
+
 export const SHORT_BODY_SESSION_NAME = "短末条"
+
 export const SHORT_BODY_MARKER = "e2e 短末条可见"
 
 /** 本机扫描后推荐：pig、135 条、表+Mermaid+工具、无密钥。PIG_FIXTURE_SESSION 可覆盖。 */
@@ -21,6 +30,7 @@ export const DEFAULT_FIXTURE_SESSION = join(
 )
 
 type AppendMessage = Parameters<SessionManager["appendMessage"]>[0]
+
 type AssistantMessage = Extract<AppendMessage, { role: "assistant" }>
 
 const USAGE = {
@@ -70,6 +80,7 @@ function assistantMessage(
 function resolveSource(): string | undefined {
   const override = process.env.PIG_FIXTURE_SESSION?.trim()
   const path = override && override.length > 0 ? override : DEFAULT_FIXTURE_SESSION
+
   return existsSync(path) ? path : undefined
 }
 
@@ -113,13 +124,17 @@ export function prebuildComplexSession(
   forked: boolean
 } {
   const source = resolveSource()
+
   const manager = source
     ? SessionManager.forkFrom(source, cwd, sessionDir, { id: COMPLEX_SESSION_ID })
     : SessionManager.create(cwd, sessionDir, { id: COMPLEX_SESSION_ID })
+
   manager.appendSessionInfo(COMPLEX_SESSION_NAME)
   appendMarkerTurn(manager, Date.now())
   const file = manager.getSessionFile()
+
   if (!file) throw new Error("预构建未写出会话文件")
+
   return { id: COMPLEX_SESSION_ID, name: COMPLEX_SESSION_NAME, forked: Boolean(source) }
 }
 

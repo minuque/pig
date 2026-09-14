@@ -1,6 +1,7 @@
 <template>
   <AlertDialogPortal>
     <AlertDialogOverlay />
+
     <AlertDialogContent
       data-slot="alert-dialog-content"
       v-bind="{ ...$attrs, ...forwarded }"
@@ -25,9 +26,11 @@ const props = withDefaults(
   defineProps<AlertDialogContentProps & { class?: HTMLAttributes["class"] }>(),
   { class: undefined },
 )
+
 const emits = defineEmits<AlertDialogContentEmits>()
 
 const delegatedProps = reactiveOmit(props, "class")
+
 const forwarded = useForwardPropsEmits(
   delegatedProps,
   emits,

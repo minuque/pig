@@ -20,4 +20,5 @@ export const buttonSize = {
 } as const
 
 export type ButtonVariant = keyof typeof buttonVariant
+
 export type ButtonSize = keyof typeof buttonSize

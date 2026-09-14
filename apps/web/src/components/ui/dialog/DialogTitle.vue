@@ -20,5 +20,6 @@ const props = withDefaults(defineProps<DialogTitleProps & { class?: HTMLAttribut
 })
 
 const delegatedProps = reactiveOmit(props, "class")
+
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogTitleProps>
 </script>

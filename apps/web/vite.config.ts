@@ -6,6 +6,7 @@ import { VitePWA } from "vite-plugin-pwa"
 import vueDevTools from "vite-plugin-vue-devtools"
 
 const gatewayTarget = process.env.GATEWAY_TARGET
+
 // 给客户端：Pi WebSocket 直连 Gateway，不经 Vite 的 WS 代理
 if (gatewayTarget) process.env.VITE_GATEWAY_TARGET = gatewayTarget
 

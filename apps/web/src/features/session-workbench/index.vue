@@ -1,5 +1,6 @@
 <template>
   <WorkbenchHeader />
+
   <div
     :ref="bindColumn"
     class="conversation-column"
@@ -21,6 +22,7 @@
           @first-text-paint="onFirstTextPaint"
           @load-older="loadOlderHistory"
         />
+
         <Transition name="stage-layer">
           <div v-if="showHero" key="hero" class="idle-hero">
             <WorkbenchHero
@@ -56,6 +58,7 @@
               </span>
             </Button>
           </div>
+
           <Composer
             v-model:prompt="prompt"
             v-model:preset="preset"
@@ -112,11 +115,14 @@ function nextWelcomeWorkspaceId(
   lastCwd: string | undefined,
 ): string | undefined {
   if (items.includes(current ?? "")) return current
+
   if (lastCwd !== undefined && items.includes(lastCwd)) return lastCwd
+
   return items[0]
 }
 
 const route = useRoute()
+
 const {
   sessionId,
   transcript,
@@ -138,7 +144,9 @@ const {
   abortSession,
   sendPrompt,
 } = useSession()
+
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
+
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 
@@ -146,19 +154,27 @@ const pageError = computed(() => {
   if (connectionError.value && connected.value) {
     return { title: "连接失败", detail: connectionError.value.message }
   }
+
   return route.name === "error" ? {} : null
 })
 
 const showHero = computed(() => {
   if (transcript.value.length > 0 || running.value) return false
+
   if (sessionId.value === undefined) return true
+
   if (sessionPending.value && !creating.value) return false
+
   return true
 })
+
 const firstTextPainted = shallowRef(false)
+
 const showLoading = computed(() => {
   if (!sessionId.value || creating.value) return false
+
   if (transcript.value.length === 0) return sessionPending.value
+
   return !firstTextPainted.value
 })
 
@@ -166,6 +182,7 @@ watch(
   sessionId,
   (next, prev) => {
     if (!next || next === prev) return
+
     if (!prev && creating.value) return
     firstTextPainted.value = false
   },
@@ -177,13 +194,16 @@ function onFirstTextPaint() {
 }
 
 const welcomeWorkspaceId = shallowRef<string>()
+
 const heroWorkspaceId = computed({
   get: () => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value),
   set: (id) => {
     if (!sessionId.value) welcomeWorkspaceId.value = id
   },
 })
+
 const composerCwd = computed(() => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value))
+
 const sendDisabled = computed(
   () => !composerCwd.value || preset.value === undefined || Boolean(creating.value),
 )
@@ -200,6 +220,7 @@ const transcriptView = useTemplateRef<{
   showScrollToLatest: boolean
   scrollToLatest: (behavior?: "auto" | "smooth") => void
 }>("transcriptView")
+
 const showScrollToLatest = computed(() => transcriptView.value?.showScrollToLatest ?? false)
 
 function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
@@ -226,6 +247,7 @@ const {
 const showContentHandles = computed(
   () => Boolean(sessionId.value) && !showHero.value && !sessionPending.value,
 )
+
 const contentHandleSides = ["left", "right"] as const
 </script>
 
@@ -244,6 +266,7 @@ const contentHandleSides = ["left", "right"] as const
   );
   --size-composer: calc(var(--size-content) + var(--spacing-md));
 }
+
 .conversation-column.is-content-resizing {
   cursor: col-resize;
   user-select: none;
@@ -292,6 +315,7 @@ const contentHandleSides = ["left", "right"] as const
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
+
 .session-floating-controls.shown {
   opacity: 1;
 }

@@ -7,6 +7,7 @@
       <div class="search-dialog">
         <div class="query-row">
           <Search class="size-icon query-icon" />
+
           <input
             ref="queryInput"
             v-model="query"
@@ -16,10 +17,12 @@
             autocomplete="off"
             @keydown="onQueryKeydown"
           />
+
           <button class="query-close" type="button" title="关闭" @click="open = false">
             <X class="size-icon" />
           </button>
         </div>
+
         <ul v-if="hits.length" ref="hitList" class="hits">
           <li v-for="(session, index) in hits" :key="session.id">
             <button
@@ -32,12 +35,14 @@
               <MessageSquare class="size-icon hit-icon" />
               <span class="hit-title">{{ sessionTitle(session) }}</span>
               <CornerDownLeft v-if="index === activeIndex" :size="14" class="hit-enter" />
+
               <time v-else class="hit-time">
                 {{ formatRelativeTime(sessionRecency(session), now) }}
               </time>
             </button>
           </li>
         </ul>
+
         <p v-else class="empty">没有匹配的会话</p>
       </div>
     </DialogContent>
@@ -59,16 +64,21 @@ import {
 import { filterSessionsForSearch } from "@features/session-nav/lib/session-list.js"
 
 const open = defineModel<boolean>("open", { default: false })
+
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
 }>()
 
 const { listedSessions, openSession } = useNav()
+
 const now = useTimestamp({ interval: 60_000 })
 
 const query = shallowRef("")
+
 const activeIndex = shallowRef(0)
+
 const queryInput = useTemplateRef<HTMLInputElement>("queryInput")
+
 const hitList = useTemplateRef<HTMLElement>("hitList")
 
 const hits = computed(() => filterSessionsForSearch(listedSessions.value, query.value))
@@ -91,25 +101,33 @@ watch(activeIndex, async () => {
 
 function onQueryKeydown(event: KeyboardEvent) {
   if (event.isComposing) return
+
   if (event.key === "ArrowDown") {
     event.preventDefault()
+
     if (hits.value.length === 0) return
     activeIndex.value = Math.min(activeIndex.value + 1, hits.value.length - 1)
+
     return
   }
+
   if (event.key === "ArrowUp") {
     event.preventDefault()
     activeIndex.value = Math.max(activeIndex.value - 1, 0)
+
     return
   }
+
   if (event.key !== "Enter") return
   event.preventDefault()
   const session = hits.value[activeIndex.value]
+
   if (session) pick(session)
 }
 
 function pick(session: SessionMetadata) {
   open.value = false
+
   if (session.cwd) emit("navigate", session.cwd)
   openSession(session.id)
 }
@@ -149,9 +167,11 @@ function pick(session: SessionMetadata) {
   appearance: none;
   user-select: text;
 }
+
 .query-input::placeholder {
   color: var(--ink-faint);
 }
+
 .query-input::-webkit-search-cancel-button {
   display: none;
 }
@@ -169,6 +189,7 @@ function pick(session: SessionMetadata) {
   background: transparent;
   color: var(--ink-muted);
 }
+
 .query-close:hover {
   background: var(--hover-quiet);
   color: var(--ink);
@@ -198,6 +219,7 @@ function pick(session: SessionMetadata) {
   color: var(--ink);
   text-align: start;
 }
+
 .hit.is-active {
   background: var(--interaction-selected);
 }
@@ -222,6 +244,7 @@ function pick(session: SessionMetadata) {
   flex: none;
   color: var(--ink-faint);
 }
+
 .hit-time {
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;

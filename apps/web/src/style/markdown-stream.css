@@ -160,6 +160,7 @@ html[data-pig-desktop-platform] .mermaid-modal-overlay {
   stroke: var(--primary) !important;
   stroke-width: 1.5px !important;
 }
+
 ._mermaid svg .actor,
 ._mermaid svg rect.actor,
 ._mermaid svg .actor > rect,
@@ -196,6 +197,7 @@ html[data-pig-desktop-platform] .mermaid-modal-overlay {
   fill: var(--ink) !important;
   font-family: var(--font-sans);
 }
+
 ._mermaid svg .nodeLabel,
 ._mermaid svg .edgeLabel,
 ._mermaid svg foreignObject {

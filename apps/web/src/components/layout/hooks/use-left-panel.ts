@@ -9,7 +9,9 @@ export const leftPanelKey: InjectionKey<{
 /** 消费 AppLayout 提供的左栏开关，供主列顶栏切换抽屉。 */
 export function useLeftPanelToggle() {
   const ctx = inject(leftPanelKey)
+
   if (!ctx) throw new Error("useLeftPanelToggle() 需要在 AppLayout 内调用")
+
   return ctx
 }
 
@@ -22,6 +24,7 @@ export const CONTENT_MIN_WIDTH = 332
 export function parseLeftPanelWidth(raw: string | null): number | undefined {
   if (raw == null || raw.trim() === "") return undefined
   const n = Number(raw)
+
   return Number.isFinite(n) ? n : undefined
 }
 
@@ -46,12 +49,14 @@ const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width))
 /** 期望宽度按侧栏上下限与视口可用空间裁剪。 */
 export function panelWidthFor(desired: number, viewportWidth: number): number {
   const room = viewportWidth - CONTENT_MIN_WIDTH
+
   return Math.min(clampPanelWidth(desired), Math.max(240, room))
 }
 
 /** 宽度超出可用空间时收缩到刚好放下，否则原样保留。 */
 export function fitPanelWidth(width: number, viewportWidth: number): number {
   const excess = width - (viewportWidth - CONTENT_MIN_WIDTH)
+
   return excess > 0 ? Math.max(240, width - excess) : width
 }
 
@@ -61,12 +66,14 @@ export function useLeftPanel() {
   const leftOpen = ref(!narrowViewport.matches)
   /** 当前是否为 max-width: 900px 窄视口。 */
   const isNarrow = ref(narrowViewport.matches)
+
   const leftWidth = ref(
     panelWidthFor(
       loadStoredWidth() ?? clampPanelWidth(window.innerWidth * 0.18),
       window.innerWidth,
     ),
   )
+
   const resizing = ref(false)
 
   function setPanelWidth(desired: number) {
@@ -80,6 +87,7 @@ export function useLeftPanel() {
 
   function startResize(event: PointerEvent) {
     const handle = event.currentTarget
+
     if (!(handle instanceof HTMLElement)) return
     event.preventDefault()
     handle.setPointerCapture(event.pointerId)
@@ -92,8 +100,10 @@ export function useLeftPanel() {
     // pointermove 用 rAF 合帧：每帧至多计算一次宽度，pointerup 后补一次最终位置
     let frame = 0
     let pendingX = startX
+
     const move = (next: PointerEvent) => {
       pendingX = next.clientX
+
       if (frame) return
       frame = requestAnimationFrame(() => {
         frame = 0
@@ -105,12 +115,14 @@ export function useLeftPanel() {
       handle.removeEventListener("pointermove", move)
       handle.removeEventListener("pointerup", stop)
       handle.removeEventListener("pointercancel", stop)
+
       if (frame) cancelAnimationFrame(frame)
       setPanelWidth(startWidth + (pendingX - startX))
       persistWidth(leftWidth.value)
       resizing.value = false
       document.body.style.removeProperty("cursor")
       document.body.style.removeProperty("user-select")
+
       if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId)
     }
 
@@ -134,6 +146,7 @@ export function useLeftPanel() {
 
   function handleViewportChange(event: MediaQueryListEvent) {
     isNarrow.value = event.matches
+
     if (event.matches) closeMobilePanels()
     else fitPanels()
   }

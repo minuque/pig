@@ -14,6 +14,7 @@ const ANSI_RE = /\u001B\[[\d;?]*[ -/]*[@-~]|\u001B\][^\u0007]*(?:\u0007|\u001B\\
  */
 export function prepareInheritedConsoleChunk(raw: string | Buffer): string {
   const text = typeof raw === "string" ? raw : raw.toString("utf8")
+
   return text.replace(ANSI_RE, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n")
 }
 
@@ -34,6 +35,7 @@ function attachWindowsConsole(child: ChildProcess): void {
       dest.write(prepareInheritedConsoleChunk(chunk))
     })
   }
+
   forward(child.stdout, process.stdout)
   forward(child.stderr, process.stderr)
 }
@@ -41,13 +43,17 @@ function attachWindowsConsole(child: ChildProcess): void {
 /** Electron 的 process.execPath 是 electron 本体，必须用 pnpm 注入的 Node。 */
 export function nodeExecutable(env: NodeJS.ProcessEnv = process.env): string {
   const node = env.npm_node_execpath
+
   if (!node) throw new Error("未找到 Node 可执行文件（缺少 npm_node_execpath）")
+
   return node
 }
 
 export function pnpmExecutable(env: NodeJS.ProcessEnv = process.env): string {
   const pnpm = env.npm_execpath
+
   if (!pnpm) throw new Error("未找到 pnpm 可执行文件（缺少 npm_execpath）")
+
   return pnpm
 }
 
@@ -59,6 +65,7 @@ export function spawnVite(env: { GATEWAY_TARGET: string }): ChildProcess {
   childEnv.GATEWAY_TARGET = env.GATEWAY_TARGET
 
   const windows = process.platform === "win32"
+
   const child = spawn(node, [pnpm, "--filter", "@pig/web", "dev"], {
     cwd: REPO_ROOT,
     env: childEnv,
@@ -66,22 +73,28 @@ export function spawnVite(env: { GATEWAY_TARGET: string }): ChildProcess {
     // 非 Windows 用独立进程组，便于整树终止
     detached: !windows,
   })
+
   if (windows) attachWindowsConsole(child)
+
   return child
 }
 
 function viteDevPort(): number {
   const port = Number(new URL(VITE_DEV_ORIGIN).port)
+
   return Number.isSafeInteger(port) && port > 0 ? port : 5173
 }
 
 function parsePids(stdout: string | null | undefined): number[] {
   if (!stdout) return []
   const pids = new Set<number>()
+
   for (const token of stdout.split(/[\s,]+/)) {
     const pid = Number(token)
+
     if (Number.isSafeInteger(pid) && pid > 0) pids.add(pid)
   }
+
   return [...pids]
 }
 
@@ -91,18 +104,24 @@ function listListeningPids(port: number): number[] {
       encoding: "utf8",
       windowsHide: true,
     })
+
     const pids = new Set<number>()
     const lineRe = new RegExp(`[:\\[]${port}(?:\\]|\\s).*(?:LISTENING|侦听)\\s+(\\d+)\\s*$`, "i")
+
     for (const line of (netstat.stdout ?? "").split(/\r?\n/)) {
       const match = line.match(lineRe)
       const pid = Number(match?.[1])
+
       if (Number.isSafeInteger(pid) && pid > 0) pids.add(pid)
     }
+
     return [...pids]
   }
+
   const lsof = spawnSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-t"], {
     encoding: "utf8",
   })
+
   return parsePids(lsof.stdout)
 }
 
@@ -112,8 +131,10 @@ function killPidTree(pid: number): void {
       stdio: "ignore",
       windowsHide: true,
     })
+
     return
   }
+
   try {
     process.kill(-pid, "SIGTERM")
   } catch {
@@ -136,19 +157,23 @@ export function killPortListeners(port: number = viteDevPort()): void {
 /** Windows 上 child.kill() 只杀直接子进程，pnpm 下的 vite 会变孤儿，必须杀整棵树。 */
 export function killVite(child: ChildProcess): void {
   const pid = child.pid
+
   if (pid !== undefined) killPidTree(pid)
   killPortListeners()
 }
 
 export async function waitForHttp(url: string, timeoutMs = 60_000): Promise<void> {
   const deadline = Date.now() + timeoutMs
+
   for (;;) {
     try {
       await fetch(url)
+
       return
     } catch {
       // 尚未监听
     }
+
     if (Date.now() >= deadline) throw new Error("Vite 开发服务未就绪")
     await new Promise((resolve) => setTimeout(resolve, 200))
   }

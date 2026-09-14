@@ -5,6 +5,7 @@
       class="settings-dialog flex h-[min(80vh,52rem)] w-[min(var(--size-settings),calc(100vw-2rem))] max-w-[min(var(--size-settings),calc(100vw-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(var(--size-settings),calc(100vw-2rem))] sm:p-0"
     >
       <p id="settings-copy" class="sr-only">外观、用量、技能与扩展</p>
+
       <div class="settings">
         <nav class="nav" aria-label="设置">
           <button
@@ -19,10 +20,12 @@
             {{ item.label }}
           </button>
         </nav>
+
         <section class="main">
           <header class="main-head">
             <DialogTitle>{{ activeLabel }}</DialogTitle>
           </header>
+
           <div class="main-body">
             <GeneralPane v-if="tab === 'general'" />
             <UsagePane v-else-if="tab === 'usage'" />
@@ -97,10 +100,12 @@ function onOpen(next: boolean) {
   line-height: var(--text-body-sm--line-height);
   text-align: start;
 }
+
 .nav-item:hover {
   background: var(--hover-quiet);
   color: var(--ink);
 }
+
 .nav-item[aria-current="page"] {
   background: var(--interaction-selected);
   color: var(--ink);

@@ -4,6 +4,7 @@ import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
 const root = resolve(import.meta.dirname, "..")
+
 const gateway = join(root, "packages/gateway")
 
 const run = (command, args) => {
@@ -12,10 +13,12 @@ const run = (command, args) => {
     shell: process.platform === "win32",
     stdio: "inherit",
   })
+
   if (result.status) throw new Error(`${command} failed`)
 }
 
 const temp = await mkdtemp(join(tmpdir(), "nono-package-"))
+
 try {
   run("pnpm", ["--filter", "@pig/web", "build"])
   await rm(join(gateway, "dist"), { recursive: true, force: true })

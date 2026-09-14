@@ -11,6 +11,7 @@
     >
       <ChevronLeft class="size-icon" />
     </button>
+
     <button
       class="nav-shift-hit press-scale"
       type="button"
@@ -41,7 +42,9 @@ const emit = defineEmits<{
 }>()
 
 const index = computed(() => groupingOrder.indexOf(props.grouping))
+
 const prev = computed(() => groupingOrder[index.value - 1])
+
 const next = computed(() => groupingOrder[index.value + 1])
 
 function shift(mode: SidebarGrouping | undefined) {
@@ -74,12 +77,15 @@ function shift(mode: SidebarGrouping | undefined) {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
+
 .nav-shift-hit[data-side="prev"] {
   inset-inline-start: var(--spacing-xs);
 }
+
 .nav-shift-hit[data-side="next"] {
   inset-inline-end: var(--spacing-xs);
 }
+
 .nav-shift-hit:hover:not(:disabled) {
   color: var(--ink);
   background: var(--hover-quiet);

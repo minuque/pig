@@ -77,6 +77,7 @@ watch(
   line-height: var(--text-body-sm--line-height);
   white-space: pre-wrap;
 }
+
 .thinking-body > :last-child :deep(p:last-child),
 .thinking-body > :last-child :deep(.paragraph-node:last-child) {
   margin-bottom: 0;

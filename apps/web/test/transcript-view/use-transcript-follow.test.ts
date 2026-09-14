@@ -11,19 +11,23 @@ vi.mock("vue", async (original) => ({
 }))
 
 let now = 0
+
 let sequence = 0
+
 const frames = new Map<number, FrameRequestCallback>()
 
 function frame(ms = 1000 / 60) {
   now += ms
   const pending = [...frames.values()]
   frames.clear()
+
   for (const callback of pending) callback(now)
 }
 
 function fixture() {
   let top = 600
   let follow: ReturnType<typeof useTranscriptFollow>
+
   const root = {
     scrollHeight: 1000,
     clientHeight: 400,
@@ -35,8 +39,10 @@ function fixture() {
       follow?.onScroll()
     },
   }
+
   follow = useTranscriptFollow(() => root as HTMLElement)
   follow.scrollToLatest()
+
   return { root, follow }
 }
 
@@ -48,6 +54,7 @@ beforeEach(() => {
   vi.stubGlobal("window", { matchMedia: () => ({ matches: false }) })
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
     frames.set(++sequence, callback)
+
     return sequence
   })
   vi.stubGlobal("cancelAnimationFrame", (id: number) => frames.delete(id))
@@ -67,6 +74,7 @@ describe("一轮工作：流式视口跟随", () => {
     follow.pinIfNeeded()
     expect(frames.size).toBe(1)
     expect(root.scrollTop).toBe(600)
+
     for (let index = 0; index < 60; index++) frame()
     expect(root.scrollTop).toBe(840)
     expect(follow.atBottom.value).toBe(true)

@@ -21,6 +21,7 @@ import { resolveWebRoot } from "./paths.js"
 registerPigScheme()
 
 const cdpPort = desktopCdpPort()
+
 if (cdpPort) {
   // 命令行 --remote-debugging-port 在本壳无效，须 ready 前 appendSwitch。
   app.commandLine.appendSwitch("remote-debugging-port", cdpPort)
@@ -44,22 +45,29 @@ type GatewayModule = {
 
 function envDir(name: "PIG_SESSION_DIR" | "PIG_CWD"): string | undefined {
   const value = process.env[name]
+
   return value ? resolve(value) : undefined
 }
 
 let gateway: GatewayInstance | undefined
+
 let vite: ChildProcess | undefined
+
 let mainWindow: BrowserWindow | undefined
+
 let stopping = false
 
 async function loadGatewayModule(isPackaged: boolean): Promise<GatewayModule> {
   if (isPackaged) {
     // 非字面量，避免 tsc emit 把 gateway 源码拉进 rootDir
     const spec = "@pig/gateway"
+
     return (await import(spec)) as GatewayModule
   }
+
   // exports 指向 dist，开发时可能没有
   const url = new URL("../../../../packages/gateway/src/index.js", import.meta.url).href
+
   return (await import(url)) as GatewayModule
 }
 
@@ -69,6 +77,7 @@ async function shutdown(): Promise<void> {
 
   if (vite) killVite(vite)
   vite = undefined
+
   try {
     await gateway?.stop()
   } finally {
@@ -82,12 +91,16 @@ function onInterrupt(): void {
     killVite(vite)
     vite = undefined
   }
+
   void shutdown()
 }
 
 process.once("SIGINT", onInterrupt)
+
 process.once("SIGTERM", onInterrupt)
+
 if (process.platform === "win32") process.once("SIGBREAK", onInterrupt)
+
 process.once("exit", () => {
   if (vite) killVite(vite)
 })
@@ -105,6 +118,7 @@ app.on("before-quit", (event) => {
 
 void app.whenReady().then(async () => {
   Menu.setApplicationMenu(null)
+
   try {
     const isDev = isDesktopDev()
     const isPackaged = app.isPackaged
@@ -123,6 +137,7 @@ void app.whenReady().then(async () => {
             : "未找到 Web 构建产物（apps/web/dist）。请先执行 pnpm --filter @pig/web build。",
         )
         await shutdown()
+
         return
       }
     }

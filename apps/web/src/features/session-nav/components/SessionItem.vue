@@ -12,6 +12,7 @@
       <PinOff v-if="pinned" class="size-icon" />
       <Pin v-else class="size-icon" />
     </button>
+
     <button
       v-if="!renaming"
       class="more-toggle motion-hint press-scale"
@@ -25,6 +26,7 @@
     >
       <Ellipsis class="size-icon" />
     </button>
+
     <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
@@ -37,6 +39,7 @@
         >
           <div class="card-line">
             <span class="pin-slot" aria-hidden="true"></span>
+
             <input
               v-if="renaming"
               ref="nameInput"
@@ -47,10 +50,13 @@
               @keydown.escape.prevent="cancelRename"
               @blur="commitRename"
             />
+
             <span v-else class="title">{{ session.title }}</span>
+
             <span v-if="streaming" class="session-spin" :aria-label="stateLabel">
               <Spinner :size="12" />
             </span>
+
             <time
               v-else-if="session.updatedAt"
               class="session-time"
@@ -64,32 +70,39 @@
           </div>
         </component>
       </ContextMenuTrigger>
+
       <ContextMenuContent class="select-none">
         <ContextMenuItem @select="emit('togglePinned', session.id)">
           <PinOff v-if="pinned" :size="14" />
           <Pin v-else :size="14" />
           {{ pinned ? "取消置顶" : "置顶" }}
         </ContextMenuItem>
+
         <ContextMenuItem @select="startRename">
           <Pencil :size="14" />
           重命名
         </ContextMenuItem>
+
         <ContextMenuItem variant="destructive" @select="deleteOpen = true">
           <Trash2 :size="14" />
           删除
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
+
     <AlertDialog v-model:open="deleteOpen">
       <AlertDialogContent class="sm:max-w-[28rem]">
         <AlertDialogHeader>
           <AlertDialogTitle>删除会话</AlertDialogTitle>
+
           <AlertDialogDescription>
             确定删除“{{ session.title }}”吗？此操作不可恢复。
           </AlertDialogDescription>
         </AlertDialogHeader>
+
         <AlertDialogFooter>
           <AlertDialogCancel>取消</AlertDialogCancel>
+
           <AlertDialogAction variant="destructive" @click="confirmDelete">
             删除会话
           </AlertDialogAction>
@@ -145,21 +158,32 @@ const emit = defineEmits<{
 }>()
 
 const { openSession } = useNav()
+
 const renaming = ref(false)
+
 const draft = ref("")
+
 const nameInput = ref<HTMLInputElement | null>(null)
+
 const menuOpen = ref(false)
+
 const deleteOpen = shallowRef(false)
 
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
+
 const streaming = computed(() => props.state === "running" && !renaming.value)
+
 const stateDot = computed(
   () => (props.state === "unread" || props.state === "error") && !renaming.value,
 )
+
 const stateLabel = computed(() => {
   if (props.state === "running") return "运行中"
+
   if (props.state === "unread") return "运行完成但未打开"
+
   if (props.state === "error") return "运行失败"
+
   return undefined
 })
 
@@ -175,9 +199,12 @@ function onCardClick(event: MouseEvent) {
   if (menuOpen.value || renaming.value) {
     event.preventDefault()
     event.stopPropagation()
+
     return
   }
+
   emit("navigate")
+
   if (isModifiedSessionClick(event)) return
   event.preventDefault()
   openSession(props.session.id)
@@ -198,6 +225,7 @@ function openContextMenuAt(target: HTMLElement, clientX: number, clientY: number
 function openSessionMenu(event: MouseEvent) {
   const item = (event.currentTarget as HTMLElement).closest(".session-item")
   const card = item?.querySelector(".session-card")
+
   if (!(card instanceof HTMLElement)) return
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
   openContextMenuAt(card, rect.left + rect.width / 2, rect.bottom)
@@ -207,6 +235,7 @@ function onCardKeydown(event: KeyboardEvent) {
   if (event.key !== "F10" || !event.shiftKey) return
   event.preventDefault()
   const el = event.currentTarget
+
   if (!(el instanceof HTMLElement)) return
   const rect = el.getBoundingClientRect()
   openContextMenuAt(el, rect.left + 8, rect.top + 8)
@@ -229,6 +258,7 @@ function commitRename() {
   if (!renaming.value) return
   renaming.value = false
   const name = draft.value.trim()
+
   if (!name || name === props.session.title) return
   emit("rename", props.session.id, name)
 }
@@ -260,10 +290,12 @@ function confirmDelete() {
   line-height: 0;
   text-decoration: none;
 }
+
 .session-item:hover .session-card,
 .session-card[data-state="open"] {
   background: var(--interaction-hover);
 }
+
 .session-card.active {
   background: var(--interaction-selected);
 }
@@ -305,11 +337,13 @@ function confirmDelete() {
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-smooth);
 }
+
 .session-item:hover .pin-toggle,
 .pin-toggle:focus-visible {
   opacity: 1;
   pointer-events: auto;
 }
+
 .pin-toggle:hover,
 .pin-toggle:focus-visible {
   color: var(--ink);
@@ -331,10 +365,12 @@ function confirmDelete() {
   background: transparent;
   color: var(--ink-muted);
 }
+
 .more-toggle:hover,
 .more-toggle:focus-visible {
   color: var(--ink);
 }
+
 .session-item.is-menu-open .more-toggle {
   opacity: 1;
   scale: 1;
@@ -352,9 +388,11 @@ function confirmDelete() {
   border-radius: var(--radius-full);
   pointer-events: none;
 }
+
 .state-dot.unread {
   background: var(--info);
 }
+
 .state-dot.error {
   background: var(--danger);
 }
@@ -371,6 +409,7 @@ function confirmDelete() {
   white-space: nowrap;
   transition: color var(--duration-fast) var(--ease-smooth);
 }
+
 .session-item:hover .title,
 .session-card[data-state="open"] .title,
 .session-card.active .title {
@@ -407,6 +446,7 @@ function confirmDelete() {
     scale var(--duration-icon) var(--ease-icon),
     filter var(--duration-icon) var(--ease-icon);
 }
+
 .session-time.has-state .time-text {
   visibility: hidden;
 }
@@ -449,6 +489,7 @@ function confirmDelete() {
   box-shadow: inset 0 0 0 1px var(--primary);
   user-select: text;
 }
+
 .rename-input::selection {
   background: var(--selection-bg);
   color: var(--ink);

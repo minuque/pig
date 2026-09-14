@@ -1,7 +1,12 @@
+# 生成物目录与 scripts/lint-ignores.mjs 对齐
 node_modules
 dist
+out
 docs
+.tmp
 .worktrees
+packages/gateway/web
+release
 playwright-report
 test-results
 .smoke-ui

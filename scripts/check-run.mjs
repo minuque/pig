@@ -2,7 +2,9 @@ import { spawn } from "node:child_process"
 
 function spawnPnpm(args, cwd, env) {
   const pnpmJs = process.env.npm_execpath
+
   if (pnpmJs) return spawn(process.execPath, [pnpmJs, ...args], { cwd, windowsHide: true, env })
+
   return spawn(process.platform === "win32" ? "pnpm.cmd" : "pnpm", args, {
     cwd,
     windowsHide: true,
@@ -38,19 +40,26 @@ export function runPnpm(args, cwd) {
 
 export function reportResults(title, results) {
   const failed = []
+
   for (const result of results) {
     const status = result.code === 0 ? "ok" : "FAIL"
     const sec = (result.ms / 1000).toFixed(1)
     console.log(`\n=== ${result.name} (${sec}s, ${status}) ===`)
     const body = result.out.trimEnd()
+
     if (body) console.log(body)
+
     if (result.code !== 0) failed.push(result.name)
   }
+
   console.log("")
+
   if (failed.length) {
     console.error(`${title} failed: ${failed.join(", ")}`)
     process.exitCode = 1
+
     return
   }
+
   console.log(`${title} passed`)
 }

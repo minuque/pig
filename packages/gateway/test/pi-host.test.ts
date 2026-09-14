@@ -46,6 +46,7 @@ class FakeAgentSession {
   }
   subscribe(listener: (event: AgentSessionEvent) => void) {
     this.listeners.add(listener)
+
     return () => this.listeners.delete(listener)
   }
   async prompt(text: string) {
@@ -148,10 +149,12 @@ const toolResultMessage = (overrides: Record<string, unknown> = {}): TestMessage
 describe("TranscriptProjection", () => {
   it("maps assistant message events to streaming progress with a stable id", () => {
     const projection = new TranscriptProjection()
+
     const start = projection.progress({
       type: "message_start",
       message: assistantMessage(),
     } as AgentSessionEvent) as Extract<TranscriptProgress, { type: "item_started" }>
+
     expect(start.type).toBe("item_started")
     expect(start.item).toMatchObject({ role: "assistant", status: "streaming" })
 
@@ -165,29 +168,34 @@ describe("TranscriptProjection", () => {
         partial: assistantMessage(),
       },
     } as AgentSessionEvent) as Extract<TranscriptProgress, { type: "item_updated" }>
+
     expect(update.item.id).toBe(start.item.id)
 
     const end = projection.progress({
       type: "message_end",
       message: assistantMessage({ stopReason: "stop", content: [{ type: "text", text: "hello" }] }),
     } as AgentSessionEvent) as Extract<TranscriptProgress, { type: "item_finished" }>
+
     expect(end.item).toMatchObject({ id: start.item.id, status: "complete", stopReason: "stop" })
   })
 
   it("maps tool execution start and tool result end to the same toolCallId", () => {
     const projection = new TranscriptProjection()
+
     const start = projection.progress({
       type: "tool_execution_start",
       toolCallId: "call-1",
       toolName: "bash",
       args: { cmd: "ls" },
     } as AgentSessionEvent) as Extract<TranscriptProgress, { type: "item_started" }>
+
     expect(start.item).toMatchObject({ role: "tool", status: "running", toolCallId: "call-1" })
 
     const end = projection.progress({
       type: "message_end",
       message: toolResultMessage(),
     } as AgentSessionEvent) as Extract<TranscriptProgress, { type: "item_finished" }>
+
     expect(end.item).toMatchObject({
       id: "call-1",
       role: "tool",
@@ -218,11 +226,14 @@ describe("TranscriptProjection", () => {
     expect(items.map((item) => item.role)).toEqual(["user", "assistant", "tool"])
     const assistant = items[1]
     expect(assistant?.role).toBe("assistant")
+
     if (assistant?.role !== "assistant") throw new Error("expected assistant")
+
     const text = assistant.content
       .filter((block): block is { type: "text"; text: string } => block.type === "text")
       .map((block) => block.text)
       .join("")
+
     expect(text).toContain("| --- |")
     expect(text).toContain("$$E = mc^2$$")
     expect(text).toContain("```mermaid")
@@ -299,8 +310,10 @@ describe("PiHostService", () => {
 
   const makeService = async (sessionDir?: string) => {
     const dir = sessionDir ?? (await mkdtemp(join(tmpdir(), "pig-pi-host-")))
+
     if (!sessionDir) temps.push(dir)
     const sessions = new Map<string, FakeAgentSession>()
+
     const service = new PiHostService({
       sessionDir: dir,
       cwd: dir,
@@ -308,11 +321,14 @@ describe("PiHostService", () => {
       createSession: (async (options: { sessionManager: SessionManager; model?: unknown }) => {
         const fake = new FakeAgentSession(options.sessionManager)
         fake.sessionId = options.sessionManager.getSessionId()
+
         if (options.model) fake.model = options.model as { provider: string; id: string }
         sessions.set(fake.sessionId, fake)
+
         return { session: fake as unknown as AgentSession }
       }) as never,
     })
+
     return { dir, service, sessions }
   }
 
@@ -377,9 +393,11 @@ describe("PiHostService", () => {
     const runtime = await service.createSession({ id: "sess-long" })
     const manager = sessions.get("sess-long")!.sessionManager
     const total = 45
+
     for (let i = 0; i < total; i += 1) {
       manager.appendMessage({ role: "user", content: `m${i}`, timestamp: 1000 + i })
     }
+
     const snapshot = await runtime.snapshot()
     expect(snapshot.transcript).toEqual([])
     const first = await service.sessionTranscript("sess-long")

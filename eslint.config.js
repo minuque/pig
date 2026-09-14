@@ -7,29 +7,10 @@ import eslintConfigPrettier from "eslint-config-prettier/flat"
 import pluginVue from "eslint-plugin-vue"
 import tseslint from "typescript-eslint"
 
-/** 函数声明，含 `export function` / `export default function` */
-const functionDecl = [
-  "function",
-  { selector: "ExportNamedDeclaration[declaration.type='FunctionDeclaration']" },
-  { selector: "ExportDefaultDeclaration[declaration.type='FunctionDeclaration']" },
-]
+import { lintIgnores } from "./scripts/lint-ignores.mjs"
 
 export default defineConfig(
-  globalIgnores(
-    [
-      "**/dist/**",
-      "**/node_modules/**",
-      "**/out/**",
-      "packages/gateway/web/**",
-      "release/**",
-      "docs/**",
-      ".tmp/**",
-      ".worktrees/**",
-      "playwright-report/**",
-      "test-results/**",
-    ],
-    "pig/ignores",
-  ),
+  globalIgnores(lintIgnores, "pig/ignores"),
 
   {
     name: "pig/globals",
@@ -87,17 +68,94 @@ export default defineConfig(
   eslintConfigPrettier,
 
   {
+    name: "pig/vue-template",
+    files: ["**/*.vue"],
+    rules: {
+      // 兄弟标签空行：多行块前后空一行，相邻单行标签不空
+      "vue/padding-line-between-tags": [
+        "error",
+        [
+          { blankLine: "always", prev: "*:multi-line", next: "*" },
+          { blankLine: "always", prev: "*", next: "*:multi-line" },
+          { blankLine: "never", prev: "*:single-line", next: "*:single-line" },
+        ],
+      ],
+
+      // 多行元素：开标签 / 内容 / 闭标签换行，内容上下不要再加空行
+      "vue/multiline-html-element-content-newline": [
+        "error",
+        {
+          allowEmptyLines: false,
+        },
+      ],
+
+      // SFC 块之间空一行：<template> / <script> / <style>
+      "vue/padding-line-between-blocks": ["error", "always"],
+    },
+  },
+
+  {
     name: "pig/style",
     plugins: {
       "@stylistic": stylistic,
     },
     rules: {
-      // 顶层函数之间、变量声明与函数之间空一行
+      "no-multiple-empty-lines": ["error", { max: 1 }],
       "@stylistic/padding-line-between-statements": [
         "error",
-        { blankLine: "always", prev: functionDecl, next: functionDecl },
-        { blankLine: "always", prev: ["const", "let", "var"], next: functionDecl },
-        { blankLine: "always", prev: functionDecl, next: ["const", "let", "var"] },
+
+        // 顶层非 import 前空一行（含 import 块之后）
+        {
+          blankLine: "always",
+          prev: "*",
+          next: { selector: "Program > :not(ImportDeclaration)" },
+        },
+
+        // 块内 function / class / interface / type 前
+        {
+          blankLine: "always",
+          prev: "*",
+          next: ["function", "class", "interface", "type"],
+        },
+
+        // type 别名不是 block-like，块后规则盖不住
+        { blankLine: "always", prev: "type", next: "*" },
+
+        // 多行绑定前后；函数里相邻短 const/let 仍可挤在一起
+        {
+          blankLine: "always",
+          prev: "*",
+          next: ["multiline-const", "multiline-let", "multiline-var", "multiline-using"],
+        },
+        {
+          blankLine: "always",
+          prev: ["multiline-const", "multiline-let", "multiline-var", "multiline-using"],
+          next: "*",
+        },
+
+        // 控制流、return 前
+        {
+          blankLine: "always",
+          prev: "*",
+          next: ["return", "if", "switch", "try", "for", "while", "do"],
+        },
+
+        // 块状语句后
+        { blankLine: "always", prev: "block-like", next: "*" },
+
+        // —— 例外放最后 ——
+        { blankLine: "any", prev: "import", next: "import" },
+        {
+          blankLine: "any",
+          prev: {
+            selector:
+              ':matches(TSDeclareFunction, ExportNamedDeclaration[declaration.type="TSDeclareFunction"])',
+          },
+          next: {
+            selector:
+              ':matches(TSDeclareFunction, FunctionDeclaration, ExportNamedDeclaration[declaration.type="TSDeclareFunction"], ExportNamedDeclaration[declaration.type="FunctionDeclaration"])',
+          },
+        },
       ],
     },
   },

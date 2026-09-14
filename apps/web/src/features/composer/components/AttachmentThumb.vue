@@ -17,6 +17,7 @@
           />
         </Button>
       </DialogTrigger>
+
       <DialogContent
         :show-close-button="false"
         :aria-describedby="undefined"
@@ -24,6 +25,7 @@
       >
         <div class="flex min-w-0 items-center justify-between gap-(--spacing-xs)">
           <DialogTitle class="truncate">{{ alt }}</DialogTitle>
+
           <DialogClose as-child>
             <Button
               type="button"
@@ -36,6 +38,7 @@
             </Button>
           </DialogClose>
         </div>
+
         <img
           :src="src"
           :alt="alt"
@@ -44,6 +47,7 @@
         />
       </DialogContent>
     </Dialog>
+
     <Button
       type="button"
       size="icon-2xs"
@@ -90,6 +94,7 @@ img {
   position: relative;
   border: 0;
 }
+
 .preview:focus-visible,
 .remove:focus-visible {
   outline: 2px solid var(--primary);
@@ -112,6 +117,7 @@ img {
   color: var(--inverse-fg);
   box-shadow: none;
 }
+
 .remove:hover,
 .remove:focus-visible {
   background: var(--inverse-bg-hover);

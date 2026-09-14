@@ -14,12 +14,15 @@ const DEFAULT_CONNECT_TIMEOUT_MS = 30_000
 
 function connectWithTimeout(connect: () => Promise<unknown>, ms: number): Promise<unknown> {
   const connecting = Promise.resolve(connect())
+
   if (ms <= 0) return connecting
+
   return new Promise((resolve, reject) => {
     const timer = globalThis.setTimeout(() => {
       void connecting.catch(() => {})
       reject(new Error("连接网关超时"))
     }, ms)
+
     connecting.then(
       (value) => {
         globalThis.clearTimeout(timer)
@@ -35,6 +38,7 @@ function connectWithTimeout(connect: () => Promise<unknown>, ms: number): Promis
 
 function routeHasSession(router: ReturnType<typeof useRouter>): boolean {
   const raw = router.currentRoute.value.params.sessionId
+
   return typeof raw === "string" && raw.length > 0
 }
 
@@ -69,16 +73,22 @@ export function useStartupSequence(options: StartupSequenceOptions) {
       options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS,
     ).then((value) => {
       if (!sessionRoute) completeStep()
+
       return value
     })
+
     const initializing = Promise.resolve(options.initialize()).then((value) => {
       completeStep()
+
       if (!failed.value && sessionRoute) settled.value = true
+
       return value
     })
+
     try {
       await Promise.all([connecting, initializing])
       ready.value = true
+
       if (router.currentRoute.value.name === "error") await router.replace("/")
     } catch (error) {
       failed.value = true

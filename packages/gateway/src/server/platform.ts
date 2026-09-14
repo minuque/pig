@@ -20,28 +20,40 @@ export async function handlePlatformRequest(
 ): Promise<boolean> {
   if (url.pathname === "/api/v1/platform/select-directory" && req.method === "POST") {
     await handleSelectDirectory(req, res, deps)
+
     return true
   }
+
   if (url.pathname === "/api/v1/platform/session-cards" && req.method === "GET") {
     await handleSessionCards(res, deps)
+
     return true
   }
+
   if (url.pathname === "/api/v1/platform/context-usage" && req.method === "GET") {
     await handleContextUsage(res, url, deps)
+
     return true
   }
+
   if (url.pathname === "/api/v1/platform/transcript" && req.method === "GET") {
     await handleTranscript(res, url, deps)
+
     return true
   }
+
   if (url.pathname === "/api/v1/platform/rename-session" && req.method === "POST") {
     await handleRenameSession(req, res, deps)
+
     return true
   }
+
   if (url.pathname === "/api/v1/platform/delete-session" && req.method === "POST") {
     await handleDeleteSession(req, res, deps)
+
     return true
   }
+
   return false
 }
 
@@ -51,17 +63,21 @@ async function handleSelectDirectory(
   deps: PlatformRequestDeps,
 ) {
   const { send, body, platformPort } = deps
+
   try {
     const payload = await body(req).catch((): Record<string, unknown> => ({}))
     const input = typeof payload.path === "string" ? payload.path : undefined
+
     if (platformPort.requiresManualInput && !input) {
       send(res, 200, { path: null, requiresManualInput: true })
+
       return
     }
 
     const path = input
       ? await platformPort.validateDirectory(input)
       : await platformPort.selectDirectory()
+
     send(res, 200, { path: path ?? null, requiresManualInput: false })
   } catch (error) {
     console.error("select-directory failed:", error)
@@ -71,6 +87,7 @@ async function handleSelectDirectory(
 
 async function handleSessionCards(res: ServerResponse, deps: PlatformRequestDeps) {
   const { send, hostService } = deps
+
   try {
     const cards = await hostService.listSessionCards()
     send(res, 200, { cards })
@@ -83,10 +100,13 @@ async function handleSessionCards(res: ServerResponse, deps: PlatformRequestDeps
 async function handleTranscript(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
   const { send, hostService } = deps
   const sessionId = url.searchParams.get("sessionId") ?? ""
+
   if (!sessionId) {
     send(res, 400, { code: "INVALID_REQUEST" })
+
     return
   }
+
   const before = url.searchParams.get("before") ?? undefined
 
   try {
@@ -98,16 +118,21 @@ async function handleTranscript(res: ServerResponse, url: URL, deps: PlatformReq
 
 async function handleContextUsage(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
   const { send, hostService } = deps
+
   try {
     const sessionId = url.searchParams.get("sessionId") ?? ""
+
     if (!sessionId) {
       send(res, 400, { code: "INVALID_REQUEST" })
+
       return
     }
 
     const previewParam = url.searchParams.get("preview")
+
     if (previewParam && !isContextPreviewKey(previewParam)) {
       send(res, 400, { code: "INVALID_REQUEST" })
+
       return
     }
 
@@ -115,6 +140,7 @@ async function handleContextUsage(res: ServerResponse, url: URL, deps: PlatformR
       sessionId,
       isContextPreviewKey(previewParam) ? previewParam : undefined,
     )
+
     send(res, 200, { usage: usage ?? null, preview: usage?.preview ?? null })
   } catch (error) {
     console.error("context-usage failed:", error)
@@ -131,6 +157,7 @@ async function readObjectBody(
     return await deps.body(req)
   } catch {
     deps.send(res, 400, { code: "INVALID_REQUEST" })
+
     return undefined
   }
 }
@@ -143,12 +170,16 @@ function sendSessionWriteError(
 ) {
   if (error instanceof SessionNotFoundError) {
     send(res, 404, { code: "NOT_FOUND" })
+
     return
   }
+
   if (error instanceof PiServerError && error.code === "invalid_request") {
     send(res, 400, { code: "INVALID_REQUEST" })
+
     return
   }
+
   console.error(`${label} failed:`, error)
   send(res, 500, { code: "INTERNAL_ERROR" })
 }
@@ -160,11 +191,14 @@ async function handleRenameSession(
 ) {
   const { send, hostService } = deps
   const payload = await readObjectBody(req, res, deps)
+
   if (!payload) return
 
   const id = typeof payload.id === "string" ? payload.id : ""
+
   if (!id) {
     send(res, 400, { code: "INVALID_REQUEST" })
+
     return
   }
 
@@ -184,11 +218,14 @@ async function handleDeleteSession(
 ) {
   const { send, hostService } = deps
   const payload = await readObjectBody(req, res, deps)
+
   if (!payload) return
 
   const id = typeof payload.id === "string" ? payload.id : ""
+
   if (!id) {
     send(res, 400, { code: "INVALID_REQUEST" })
+
     return
   }
 

@@ -21,6 +21,7 @@ import { Volume2, VolumeX } from "@lucide/vue"
 import { useClickSound } from "@features/click-sound/hooks/use-click-sound.js"
 
 const { enabled, toggle } = useClickSound()
+
 const label = computed(() => (enabled.value ? "关闭点击音效" : "开启点击音效"))
 </script>
 
@@ -41,6 +42,7 @@ const label = computed(() => (enabled.value ? "关闭点击音效" : "开启点�
     color var(--duration-fast) var(--ease-smooth),
     scale var(--duration-fast) var(--ease-out);
 }
+
 .sound-toggle:hover {
   background: var(--hover-quiet);
   color: var(--ink);

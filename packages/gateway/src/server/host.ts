@@ -57,14 +57,18 @@ export class Gateway {
 
   private async body(req: IncomingMessage): Promise<Record<string, unknown>> {
     let raw = ""
+
     for await (const chunk of req) {
       raw += chunk
+
       if (raw.length > 1_000_000) throw new Error("body too large")
     }
 
     const parsed: unknown = JSON.parse(raw)
+
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
       throw new Error("invalid body")
+
     return parsed as Record<string, unknown>
   }
 
@@ -73,6 +77,7 @@ export class Gateway {
 
     if (url.pathname === "/health" && req.method === "GET")
       return this.send(res, 200, { status: "ok" })
+
     if (
       this.webRoot &&
       req.method === "GET" &&
@@ -85,6 +90,7 @@ export class Gateway {
       ))
     )
       return
+
     if (url.pathname.startsWith("/api/v1/platform/")) {
       const handled = await handlePlatformRequest(req, res, url, {
         send: this.send.bind(this),
@@ -92,8 +98,10 @@ export class Gateway {
         hostService: this.hostService,
         platformPort: this.platformPort,
       })
+
       if (handled) return
     }
+
     return this.send(res, 404)
   }
 
@@ -101,15 +109,19 @@ export class Gateway {
     installProviderHttp()
     await this.hostService.warm()
     await this.piServer.start()
+
     return new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject)
       this.server.listen(this.listenPort, "127.0.0.1", () => {
         this.server.off("error", reject)
         const address = this.server.address()
+
         if (!address || typeof address === "string" || address.port === 0) {
           reject(new Error("Gateway HTTP server has no TCP port"))
+
           return
         }
+
         resolveStart(address.port)
       })
     })

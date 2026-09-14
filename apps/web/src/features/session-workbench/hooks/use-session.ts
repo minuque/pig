@@ -56,8 +56,10 @@ export function useSessionLifecycle(
   const route = useRoute()
   const router = useRouter()
   const sessionError = ref("")
+
   const sessionId = computed(() => {
     const raw = route.params.sessionId
+
     return typeof raw === "string" && raw.length > 0 ? raw : undefined
   })
 
@@ -83,27 +85,33 @@ export function useSessionLifecycle(
   let olderRequest = 0
 
   const snapshot = computed(() => state.value?.snapshot)
+
   const liveTranscript = computed(() => {
     const persisted = historySessionId.value === wantedId ? history.value : []
+
     return mergeLiveTranscript(persisted, heldLive.value)
   })
 
   function attach(next: RemoteSession) {
     const previous = remote.value
     detach()
+
     if (previous && previous !== next) void discard(previous)
     remote.value = next
     let usageRevision: number | undefined
     unsubscribeState = next.subscribe((nextState) => {
       state.value = nextState
+
       if (nextState.transcript.length > 0)
         heldLive.value = mergeLiveTranscript(heldLive.value, nextState.transcript)
       const revision = nextState.snapshot?.revision
       const attachedId = next.id
+
       if (revision === undefined || revision === usageRevision || !attachedId) return
       const hadRevision = usageRevision !== undefined
       usageRevision = revision
       void refreshContextUsage(attachedId)
+
       if (historySessionId.value !== attachedId || hadRevision) void loadHistory(attachedId)
     })
   }
@@ -115,12 +123,14 @@ export function useSessionLifecycle(
     remote.value = undefined
     state.value = undefined
     contextUsageEstimate.value = undefined
+
     if (historySessionId.value !== wantedId) {
       history.value = []
       turnTimings.value = []
       historySessionId.value = undefined
       historyHasMore.value = false
     }
+
     heldLive.value = []
   }
 
@@ -128,8 +138,10 @@ export function useSessionLifecycle(
     const request = ++historyRequest
     olderRequest += 1
     loadingOlder.value = false
+
     try {
       const { items, timings, hasMore } = await sessionTranscript(id)
+
       if (request !== historyRequest || wantedId !== id) return
       history.value = items
       turnTimings.value = timings
@@ -137,6 +149,7 @@ export function useSessionLifecycle(
       historySessionId.value = id
     } catch {
       if (request !== historyRequest || wantedId !== id) return
+
       if (historySessionId.value !== id) {
         history.value = []
         turnTimings.value = []
@@ -149,14 +162,18 @@ export function useSessionLifecycle(
   async function loadOlderHistory() {
     const id = wantedId
     const before = history.value[0]?.id
+
     if (!id || !before || !historyHasMore.value || loadingOlder.value) return
     const request = ++olderRequest
     loadingOlder.value = true
+
     try {
       const { items, timings, hasMore } = await sessionTranscript(id, before)
+
       if (request !== olderRequest || wantedId !== id) return
       const known = new Set(history.value.map((item) => item.id))
       const older = items.filter((item) => !known.has(item.id))
+
       if (older.length > 0) {
         history.value = older.concat(history.value)
         const seen = new Set(turnTimings.value.map((item) => item.userId))
@@ -164,6 +181,7 @@ export function useSessionLifecycle(
           timings.filter((item) => !seen.has(item.userId)),
         )
       }
+
       historyHasMore.value = hasMore
     } catch {
       if (request !== olderRequest || wantedId !== id) return
@@ -175,8 +193,10 @@ export function useSessionLifecycle(
   async function refreshContextUsage(id: string | undefined) {
     if (!id) return
     const request = ++contextUsageRequest
+
     try {
       const usage = await contextUsage(id)
+
       if (request !== contextUsageRequest || remote.value?.id !== id) return
       contextUsageEstimate.value = usage ?? undefined
     } catch {
@@ -187,6 +207,7 @@ export function useSessionLifecycle(
   function release() {
     const previous = remote.value
     detach()
+
     if (previous) void discard(previous)
   }
 
@@ -196,6 +217,7 @@ export function useSessionLifecycle(
       () => undefined,
       () => undefined,
     )
+
     return next
   }
 
@@ -203,6 +225,7 @@ export function useSessionLifecycle(
   async function openRemoteSession(id: string) {
     if (wantedId !== id) abortInflightOpen?.()
     wantedId = id
+
     if (historySessionId.value !== id) {
       history.value = []
       turnTimings.value = []
@@ -210,29 +233,43 @@ export function useSessionLifecycle(
       historySessionId.value = undefined
       historyHasMore.value = false
     }
+
     void loadHistory(id)
+
     return enqueueReplace(async () => {
       if (wantedId !== id || remote.value?.id === id) return
+
       if (!pi.client.value) return
       release()
+
       for (let attempt = 0; attempt < 2; attempt += 1) {
         const current = pi.client.value
+
         if (!current || wantedId !== id) return
         const raced = raceRemoteOpen(id, () => RemoteSession.open(current, id))
         abortInflightOpen = raced.abort
+
         try {
           const next = await raced.promise
+
           if (wantedId !== id) {
             await discard(next)
+
             return
           }
+
           attach(next)
+
           return
         } catch (error) {
           if (wantedId !== id || isOpenAborted(error)) return
+
           if (!isDisconnectedError(error)) throw error
+
           if (attempt === 0 && pi.connected.value) continue
+
           if (pi.connected.value) throw error
+
           return
         } finally {
           if (abortInflightOpen === raced.abort) abortInflightOpen = undefined
@@ -243,20 +280,27 @@ export function useSessionLifecycle(
 
   async function createRemoteSession(nextCwd: string, options?: Omit<CreateSessionInput, "cwd">) {
     const routeSessionAtStart = sessionId.value
+
     return enqueueReplace(async () => {
       const target = pi.client.value
+
       if (!target) throw new Error("PiClient 未连接")
+
       const next = await RemoteSession.create(target, {
         cwd: nextCwd,
         ...(options?.model !== undefined ? { model: options.model } : {}),
         ...(options?.thinkingLevel !== undefined ? { thinkingLevel: options.thinkingLevel } : {}),
       })
+
       if (sessionId.value !== routeSessionAtStart) {
         await discard(next)
+
         return undefined
       }
+
       wantedId = next.id
       attach(next)
+
       return next.id
     })
   }
@@ -287,6 +331,7 @@ export function useSessionLifecycle(
     abortInflightOpen = undefined
     const current = remote.value
     detach()
+
     if (current) await discard(current)
   }
 
@@ -294,11 +339,14 @@ export function useSessionLifecycle(
 
   async function syncRoute() {
     const id = sessionId.value
+
     if (!id) return dispose()
+
     try {
       await openRemoteSession(id)
     } catch (error) {
       sessionError.value = errorMessage(error)
+
       if (sessionId.value && history.value.length === 0) await router.replace("/")
     }
   }
@@ -317,20 +365,25 @@ export function useSessionLifecycle(
   async function initialize() {
     initialized = true
     const id = sessionId.value
+
     if (id) {
       wantedId = id
       await loadHistory(id)
     } else await dispose()
+
     if (pi.connected.value) void syncRoute()
   }
 
   const sessionPending = computed(() =>
     isSessionOpening(sessionId.value, remote.value?.id, historySessionId.value),
   )
+
   const projection = computed(() => {
     const current = snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined
+
     return !sessionId.value || current?.id === sessionId.value ? current : undefined
   })
+
   const catalog = computed(() => catalogFromModels(pi.models.value))
   const phase = computed(() => projection.value?.phase)
   const running = computed(() => projection.value?.running ?? false)
@@ -352,8 +405,10 @@ export function useSessionLifecycle(
 
   const clientState = computed(() => {
     const id = sessionId.value
+
     return id ? sessionState(states, id) : idleState
   })
+
   const prompt = computed({
     get: () => clientState.value.draft,
     set: (value: string) => {
@@ -366,23 +421,30 @@ export function useSessionLifecycle(
     const routeSessionAtStart = sessionId.value
     creatingCwd.value = nextCwd
     sessionError.value = ""
+
     try {
       const next = preset.value
+
       const nextId = await createRemoteSession(
         nextCwd,
         next
           ? { model: next.model, thinkingLevel: thinkingLevelOf(next.thinkingLevel) }
           : undefined,
       )
+
       if (!nextId || sessionId.value !== routeSessionAtStart) {
         idleState.sends = []
+
         return undefined
       }
+
       cwd.selectCwd(nextCwd)
       bindIdleSends(states, nextId, idleState)
+
       if (nextId !== sessionId.value) {
         await router.push({ name: "session", params: { sessionId: nextId } })
       }
+
       return nextId
     } catch (error) {
       sessionError.value = errorMessage(error)
@@ -394,29 +456,38 @@ export function useSessionLifecycle(
 
   async function sendPrompt(text: string, cwd?: string) {
     const normalized = text.trim()
+
     if (!normalized || submitting.value) return
+
     if (!sessionId.value && (!cwd || creatingCwd.value)) return
 
     submitting.value = true
     sessionError.value = ""
     const thread = clientState.value
     const previousDraft = thread.draft
+
     const send = optimisticUserMessage(
       normalized,
       liveTranscript.value.map((item) => item.id),
     )
+
     thread.sends.push(send)
     thread.draft = ""
+
     try {
       if (!sessionId.value) {
         const nextId = await createSession(cwd!)
+
         if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return
       }
+
       await submitRemote(normalized)
     } catch (error) {
       const current = clientState.value
+
       if (!current.draft) current.draft = previousDraft || text
       const index = current.sends.findIndex((item) => item.item.id === send.item.id)
+
       if (index >= 0) current.sends.splice(index, 1)
       sessionError.value = errorMessage(error)
       throw error
@@ -428,6 +499,7 @@ export function useSessionLifecycle(
   async function abortSession() {
     if (aborting.value) return
     aborting.value = true
+
     try {
       await abortRemote()
     } catch (error) {
@@ -440,12 +512,14 @@ export function useSessionLifecycle(
   const transcript = computed(() =>
     projectClientTranscript(liveTranscript.value, clientState.value.sends),
   )
+
   const sessionCwd = computed(
     () =>
       projection.value?.cwd ??
       pi.sessions.value.find((item) => item.id === sessionId.value)?.cwd ??
       (sessionId.value ? undefined : cwd.lastCwd.value),
   )
+
   const projectedUsage = computed(() => projectContextUsage(contextUsageEstimate.value))
 
   pi.bindAttachedReconnect(async () => {

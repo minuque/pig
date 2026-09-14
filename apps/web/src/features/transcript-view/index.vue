@@ -7,6 +7,7 @@
       :hit-strip-width="hitStripWidth"
       @select="selectMinimapItem"
     />
+
     <div
       id="transcript-panel"
       ref="viewport"
@@ -27,6 +28,7 @@
           >
             加载更早消息
           </button>
+
           <div class="timeline-rows">
             <div
               v-for="row in rows"
@@ -36,11 +38,13 @@
               :data-minimap-row="row.role === 'user' ? row.id : undefined"
             >
               <UserMessage v-if="row.role === 'user'" :item="row" />
+
               <AssistantMessage
                 v-else-if="row.role === 'assistant'"
                 :item="row"
                 :streaming="running && row.streaming"
               />
+
               <ToolSteps
                 v-else-if="isToolRow(row)"
                 :row="row"
@@ -351,9 +355,11 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-gutter: stable;
 }
+
 .transcript-viewport.is-following {
   overflow-anchor: none;
 }
+
 .transcript-viewport:has(.code-more-menu) {
   z-index: 3;
 }
@@ -378,16 +384,20 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   content-visibility: auto;
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 3);
 }
+
 .row-user {
   content-visibility: visible;
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 2);
 }
+
 .row-assistant {
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 6);
 }
+
 .row-tool {
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 2);
 }
+
 .row-tools {
   content-visibility: visible;
 }
@@ -404,6 +414,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   text-align: center;
   cursor: pointer;
 }
+
 .older-busy:disabled {
   cursor: default;
 }
@@ -411,9 +422,11 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .row + .row {
   margin-block-start: var(--spacing-md);
 }
+
 .row-user + .row {
   margin-block-start: var(--spacing-lg);
 }
+
 .row + .row-user {
   margin-block-start: var(--spacing-xl);
 }
@@ -423,6 +436,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
+
 .row:hover :deep(.stamp),
 .row:focus-within :deep(.stamp),
 .row :deep(.stamp.is-copied),

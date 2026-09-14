@@ -32,8 +32,11 @@ import {
 } from "./seed.js"
 
 const root = resolve(import.meta.dirname, "../..")
+
 const webRoot = join(root, "apps/web/dist")
+
 const resultPath = join(root, "test-results", "perf.json")
+
 const failShot = join(root, "test-results", "perf-fail.png")
 
 type BenchMetrics = {
@@ -71,35 +74,43 @@ function parseArgs(argv: string[]): Args {
   let headed = false
   let turnOnly = false
   let web = false
+
   for (const arg of argv) {
     if (arg === "--help" || arg === "-h") {
       console.log("用法: pnpm test:bench --runs=3 --skip-build --web --headed --turn-only")
       console.log("默认桌面端 Electron。--web 用 Playwright Chromium 做对照。")
       process.exit(0)
     }
+
     if (arg === "--") continue
+
     if (arg === "--skip-build") skipBuild = true
     else if (arg === "--headed") headed = true
     else if (arg === "--web") web = true
     else if (arg === "--turn-only" || arg === "--edges-only") turnOnly = true
     else if (arg.startsWith("--runs=")) {
       const value = Number(arg.slice("--runs=".length))
+
       if (!Number.isSafeInteger(value) || value < 1) throw new Error("--runs 必须是正安全整数")
       runs = value
     } else throw new Error(`未知参数 ${arg}`)
   }
+
   return { runs, skipBuild, headed, turnOnly, web }
 }
 
 function buildWeb() {
   const pnpm = process.env.npm_execpath
+
   if (!pnpm) throw new Error("未找到 pnpm，请用 pnpm test:bench 运行")
   console.log("构建 web…")
+
   const result = spawnSync(process.execPath, [pnpm, "build"], {
     cwd: root,
     stdio: "inherit",
     windowsHide: true,
   })
+
   if (result.error || result.status !== 0)
     throw new Error("pnpm build 失败", { cause: result.error })
 }
@@ -113,6 +124,7 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
       return path
     },
   }
+
   const gateway = new Gateway({
     webRoot,
     sessionDir,
@@ -120,8 +132,10 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
     platformPort,
     port: 0,
   })
+
   try {
     const port = await gateway.start()
+
     return { gateway, origin: `http://127.0.0.1:${port}` }
   } catch (error) {
     await gateway.stop()
@@ -132,9 +146,11 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
 async function openReadyPage(harness: BenchHarness, observers: boolean) {
   const started = performance.now()
   const session = await harness.open(observers)
+
   try {
     await session.page.goto(session.origin, { waitUntil: "commit" })
     await waitForWorkbench(session.page)
+
     return { ...session, coldTo: performance.now() - started }
   } catch (error) {
     await captureBenchFailure(session.page, failShot)
@@ -149,10 +165,13 @@ async function measureStart(page: Page) {
 
 async function measureComposer(page: Page, samples: number): Promise<number> {
   const values: number[] = []
+
   for (let index = 0; index < samples + 1; index += 1) {
     const ms = await keyToNextFrame(page)
+
     if (index > 0) values.push(ms)
   }
+
   return median(values)
 }
 
@@ -167,6 +186,7 @@ function printReport(
   runtime: string,
 ) {
   console.log(`\npig 工作台（${runtime}）`)
+
   const row = (label: string, key: keyof BenchMetrics, frame = false): MetricRow => ({
     label,
     value: now[key] ?? null,
@@ -174,6 +194,7 @@ function printReport(
     previous: prev?.[key] ?? null,
     frame,
   })
+
   reportTable([
     row("打开工作台", "coldToWorkbench"),
     row("冷启动 FCP", "coldFcp"),
@@ -202,15 +223,21 @@ async function loadPrevious(
 ): Promise<Partial<BenchMetrics> | undefined> {
   try {
     const raw = JSON.parse(await readFile(resultPath, "utf8")) as unknown
+
     if (!raw || typeof raw !== "object" || !("config" in raw) || !("metrics" in raw))
       return undefined
+
     if (JSON.stringify(raw.config) !== JSON.stringify(config)) return undefined
     const previous = raw.metrics
+
     if (!previous || typeof previous !== "object") return undefined
+
     for (const key of Object.keys(metrics)) {
       const value: unknown = Reflect.get(previous, key)
+
       if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return undefined
     }
+
     return previous as BenchMetrics
   } catch {
     return undefined
@@ -219,11 +246,13 @@ async function loadPrevious(
 
 async function main() {
   const args = parseArgs(process.argv.slice(2))
+
   if (!args.skipBuild) buildWeb()
 
   const temp = await mkdtemp(join(tmpdir(), "pig-bench-"))
   let gateway: Gateway | undefined
   let harness: BenchHarness | undefined
+
   try {
     const workspaceDir = join(temp, "workspace")
     const sessionDir = join(temp, "sessions")
@@ -234,6 +263,7 @@ async function main() {
     const workspaceId = canonicalizeWorkspacePath(workspaceDir)
 
     let origin = ""
+
     if (args.web) {
       const started = await startGateway(workspaceDir, sessionDir)
       gateway = started.gateway
@@ -244,7 +274,9 @@ async function main() {
       if (args.headed) console.log("桌面端基准始终开窗，--headed 只对 --web 生效")
       harness = await createDesktopHarness({ workspaceId, workspaceDir, sessionDir })
     }
+
     if (!harness) throw new Error("未创建基准运行时")
+
     const open = {
       coldTo: [] as number[],
       coldFcp: [] as number[],
@@ -263,10 +295,12 @@ async function main() {
     if (!args.turnOnly) {
       const warmup = await openReadyPage(harness, true)
       await warmup.close()
+
       for (let run = 1; run <= args.runs; run += 1) {
         console.log(`打开 ${run}/${args.runs}`)
         const session = await openReadyPage(harness, true)
         const { page } = session
+
         try {
           const cold = await measureStart(page)
           open.coldTo.push(session.coldTo)
@@ -308,15 +342,19 @@ async function main() {
     const scroll = open.scroll.length ? collect(open.scroll) : undefined
     const listScroll = open.listScroll.length ? collect(open.listScroll) : undefined
     const switchRevisit = open.switchRevisit.length ? collect(open.switchRevisit) : undefined
+
     const toolExpandFirstFrame = open.toolExpandFirstFrame.length
       ? collect(open.toolExpandFirstFrame)
       : undefined
+
     const toolExpandComplete = open.toolExpandComplete.length
       ? collect(open.toolExpandComplete)
       : undefined
+
     const toolExpandLongTask = open.toolExpandLongTask.length
       ? collect(open.toolExpandLongTask)
       : undefined
+
     const ownStat = collect(own)
     const tokenStat = collect(token)
     const streamStat = collect(stream)
@@ -344,6 +382,7 @@ async function main() {
       rapidSwitchMs: rapidStat.median,
       reconnectMs: reconnectStat.median,
     }
+
     const p90s: Partial<Record<keyof BenchMetrics, number | undefined>> = {
       coldToWorkbench: cold?.p90,
       coldFcp: fcp?.p90,
@@ -377,9 +416,11 @@ async function main() {
       arch: process.arch,
       node: process.version,
     }
+
     const stored = Object.fromEntries(
       Object.entries(metrics).filter(([, value]) => Number.isFinite(value)),
     ) as Partial<BenchMetrics>
+
     const comparable = args.turnOnly ? undefined : await loadPrevious(config, metrics)
     await mkdir(join(root, "test-results"), { recursive: true })
     await writeFile(
@@ -406,11 +447,14 @@ try {
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error)
   console.error(message)
+
   if (message.includes("Executable doesn't exist") || message.includes("browserType.launch")) {
     console.error("未找到 Chromium。请先运行: pnpm exec playwright install chromium")
   }
+
   if (message.includes("electron.launch") || message.includes("Electron failed")) {
     console.error("未启动 Electron。请先运行: pnpm --filter @pig/desktop exec electron --version")
   }
+
   process.exitCode = 1
 }

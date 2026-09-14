@@ -36,13 +36,16 @@ export function transcriptImages(item: TranscriptItem): TranscriptImageBlock[] {
 
 export function transcriptImageSrc(data: string, mimeType: string): string {
   if (data.startsWith("data:")) return data
+
   return `data:${mimeType};base64,${data}`
 }
 
 /** 用户句有字或图才占行；助手句只凭正文占行，仅思考不占行。 */
 export function isVisibleTranscriptItem(item: TranscriptItem): boolean {
   if (isUserItem(item)) return transcriptText(item).length > 0 || transcriptImages(item).length > 0
+
   if (isAssistantItem(item)) return transcriptText(item).length > 0
+
   return true
 }
 
@@ -62,6 +65,7 @@ const TOOL_HINT_KEYS = [...PATH_CMD_KEYS, "query", "pattern", "glob", "url"] as 
 
 function jsonText(value: unknown, pretty = false): string {
   if (value === undefined) return ""
+
   try {
     return (pretty ? JSON.stringify(value, null, 2) : JSON.stringify(value)) ?? ""
   } catch {
@@ -76,35 +80,49 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 /** 空对象 / 空数组不当作可展示入参，避免展开后出现无意义的 `{}`。 */
 function hasToolInput(input: unknown): boolean {
   if (input === undefined || input === null) return false
+
   if (typeof input === "string") return input.length > 0
+
   if (Array.isArray(input)) return input.length > 0
+
   if (isRecord(input)) return Object.keys(input).length > 0
+
   return true
 }
 
 function hintFromKeys(input: unknown, keys: readonly string[]): string {
   if (!isRecord(input)) return ""
+
   for (const key of keys) {
     const value = input[key]
+
     if (typeof value === "string" && value.trim().length > 0) return value
   }
+
   return ""
 }
 
 /** 顶栏一句话：优先 path / query / cmd 等常用键，否则压成单行 JSON。 */
 export function toolInputHint(input: unknown): string {
   if (typeof input === "string") return input
+
   if (!hasToolInput(input)) return ""
   const named = hintFromKeys(input, TOOL_HINT_KEYS)
+
   if (named) return named
+
   if (isRecord(input)) {
     const keys = Object.keys(input)
+
     if (keys.length === 1) {
       const value = input[keys[0]!]
+
       if (typeof value === "string" && value.trim().length > 0) return value
     }
   }
+
   const compact = jsonText(input)
+
   return compact === "{}" || compact === "[]" || compact === "null" ? "" : compact
 }
 
@@ -130,9 +148,12 @@ export function toolWorkingDirectory(input: unknown): string {
 
 export function toolCallDetail(toolName: string, input: unknown): string {
   const name = toolName.trim().toLowerCase()
+
   if (isCommandTool(name)) {
     const description = hintFromKeys(input, ["description"])
+
     return description || toolCommand(input)
   }
+
   return toolInputHint(input)
 }

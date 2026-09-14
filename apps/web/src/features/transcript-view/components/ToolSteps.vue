@@ -34,6 +34,7 @@
             aria-hidden="true"
           >
             <span class="hook-stem" :style="hoverStemStyle" />
+
             <svg
               class="hook-corner"
               :style="hoverCornerStyle"
@@ -45,6 +46,7 @@
               <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
             </svg>
           </span>
+
           <span
             class="hook-rail accent"
             :class="{ 'is-on': accentVisible, 'is-ready': railReady }"
@@ -52,6 +54,7 @@
             aria-hidden="true"
           >
             <span class="hook-stem" :style="accentStemStyle" />
+
             <svg
               class="hook-corner"
               :style="accentCornerStyle"
@@ -63,6 +66,7 @@
               <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
             </svg>
           </span>
+
           <div class="step-list">
             <div
               v-for="(step, index) in renderedSteps"
@@ -78,6 +82,7 @@
                 @toggle="emit('toggle-tool', $event.id, $event.open)"
               />
             </div>
+
             <div
               v-if="hiddenCount"
               class="step"
@@ -381,10 +386,12 @@ onBeforeUnmount(() => {
   text-align: start;
   font-variant-numeric: tabular-nums;
 }
+
 .summary-btn:hover {
   background: var(--surface);
   color: var(--ink);
 }
+
 .aborted .summary-btn {
   color: var(--warning);
 }
@@ -444,6 +451,7 @@ onBeforeUnmount(() => {
   font-weight: var(--font-weight-regular);
   text-align: start;
 }
+
 .summary:hover {
   background: transparent;
   color: var(--ink);
@@ -469,9 +477,11 @@ onBeforeUnmount(() => {
 .hook-rail.accent {
   color: var(--ink-muted);
 }
+
 .running .hook-rail.accent {
   color: var(--primary);
 }
+
 .aborted .hook-rail.accent {
   color: var(--warning);
 }

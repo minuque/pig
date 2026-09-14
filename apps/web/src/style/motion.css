@@ -12,6 +12,7 @@
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
+
 .startup-screen.leaving {
   pointer-events: none;
 }
@@ -81,6 +82,7 @@
   border-radius: var(--radius-full);
   background: var(--chart-track);
 }
+
 .startup-progress-track::after {
   position: absolute;
   inset: 0;
@@ -120,10 +122,12 @@
     opacity: 0;
     transform: translateY(10px) rotate(-4deg) scale(0.9);
   }
+
   65% {
     opacity: 1;
     transform: translateY(-2px) rotate(2deg) scale(1.015);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) rotate(0deg) scale(1);
@@ -140,6 +144,7 @@
   from {
     opacity: 1;
   }
+
   to {
     opacity: 0;
   }
@@ -150,6 +155,7 @@
     opacity: 1;
     transform: translateY(0) rotate(0deg) scale(1);
   }
+
   to {
     opacity: 0;
     transform: translateY(-4px) rotate(3deg) scale(0.94);
@@ -188,11 +194,13 @@
     background-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
 }
+
 .session-nav:hover .nav-shift-hit,
 .nav-shift-hit:focus-visible {
   opacity: 1;
   pointer-events: auto;
 }
+
 .session-nav:hover .nav-shift-hit:disabled,
 .nav-shift-hit:disabled:focus-visible {
   opacity: var(--opacity-disabled);
@@ -204,6 +212,7 @@
     opacity: 1;
     pointer-events: auto;
   }
+
   .nav-shift-hit:disabled {
     opacity: var(--opacity-disabled);
     pointer-events: none;
@@ -278,6 +287,7 @@
 .motion-turn {
   transition: transform var(--duration-fast) var(--ease-smooth);
 }
+
 .motion-turn.is-on {
   transform: rotate(90deg);
 }
@@ -292,6 +302,7 @@
     transform: translateY(12px);
     filter: blur(4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -305,6 +316,7 @@
     translate: 0;
     filter: blur(0);
   }
+
   to {
     opacity: 0;
     translate: 0 12px;
@@ -316,6 +328,7 @@
   from {
     opacity: 1;
   }
+
   to {
     opacity: 0;
   }
@@ -326,6 +339,7 @@
     opacity: 1;
     scale: 1;
   }
+
   to {
     opacity: 0;
     scale: 0.96;
@@ -357,34 +371,41 @@
     opacity var(--duration-slow) var(--ease-out),
     transform var(--duration-slow) var(--ease-out);
 }
+
 .panel-reveal-enter-active {
   transition:
     opacity var(--duration-normal) var(--ease-out),
     transform var(--duration-normal) var(--ease-out),
     filter var(--duration-normal) var(--ease-out);
 }
+
 .panel-reveal-leave-active,
 .stage-layer-leave-active {
   transition:
     opacity var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
 }
+
 .panel-reveal-leave-active {
   transition-property: opacity, transform, filter;
 }
+
 .panel-reveal-enter-from,
 .stage-layer-enter-from {
   opacity: 0;
   transform: translateY(12px);
 }
+
 .panel-reveal-enter-from {
   filter: blur(4px);
 }
+
 .panel-reveal-leave-to,
 .stage-layer-leave-to {
   opacity: 0;
   transform: translateY(-12px);
 }
+
 .panel-reveal-leave-to {
   filter: blur(4px);
 }
@@ -394,6 +415,7 @@
     opacity var(--duration-normal) var(--ease-out),
     scale var(--duration-normal) var(--ease-out);
 }
+
 .list-reveal-leave-active {
   position: absolute;
   width: 100%;
@@ -401,11 +423,13 @@
     opacity var(--duration-fast) var(--ease-out),
     scale var(--duration-fast) var(--ease-out);
 }
+
 .list-reveal-enter-from,
 .list-reveal-leave-to {
   opacity: 0;
   scale: 0.98;
 }
+
 .list-reveal-move {
   transition: transform var(--duration-fast) var(--ease-out);
 }
@@ -421,6 +445,7 @@
   grid-template-rows: 1fr;
   transition-duration: var(--duration-slow);
 }
+
 :is(.tool-calls-group, .session-list-group).instant,
 :is(.tool-calls-group, .session-list-group).instant.is-open {
   transition: none;
@@ -431,6 +456,7 @@
   min-width: 0;
   min-height: 0;
 }
+
 .tool-calls-group.is-open > * {
   overflow: visible;
 }
@@ -447,6 +473,7 @@
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
+
 .hook-rail.is-on {
   opacity: 1;
 }
@@ -459,13 +486,16 @@
     top var(--duration-slow) var(--ease-smooth),
     height var(--duration-slow) var(--ease-smooth);
 }
+
 .hook-stem {
   width: var(--border-width);
 }
+
 .hook-rail:not(.is-ready) .hook-stem,
 .hook-rail:not(.is-ready) .hook-corner {
   transition: none;
 }
+
 [dir="rtl"] .hook-corner {
   transform: scaleX(-1);
   transform-origin: 0 50%;
@@ -475,6 +505,7 @@
 .fade-layer-leave-active {
   transition: opacity var(--duration-normal) var(--ease-out);
 }
+
 .fade-layer-enter-from,
 .fade-layer-leave-to {
   opacity: 0;
@@ -494,15 +525,18 @@
     opacity var(--duration-normal) var(--ease-out),
     transform var(--duration-normal) var(--ease-out);
 }
+
 .slide-next-leave-active,
 .slide-prev-leave-active {
   position: absolute;
   inset-inline: 0;
 }
+
 .slide-next-enter-from {
   transform: translateX(40%);
   opacity: 0;
 }
+
 .slide-next-leave-to {
   transform: translateX(-40%);
   opacity: 0;
@@ -512,6 +546,7 @@
   transform: translateX(-40%);
   opacity: 0;
 }
+
 .slide-prev-leave-to {
   transform: translateX(40%);
   opacity: 0;
@@ -540,6 +575,7 @@
     clip-path: polygon(50% -71%, -50% 71%, -50% 71%, 50% -71%);
     opacity: 0.5;
   }
+
   to {
     clip-path: polygon(50% -71%, -50% 71%, 50% 171%, 171% 50%);
     opacity: 1;
@@ -551,6 +587,7 @@
     clip-path: polygon(171% 50%, 50% 171%, 50% 171%, 171% 50%);
     opacity: 0.5;
   }
+
   to {
     clip-path: polygon(171% 50%, 50% 171%, -50% 71%, 50% -71%);
     opacity: 1;
@@ -561,6 +598,7 @@
   0% {
     background-position: 100% 0;
   }
+
   100% {
     background-position: 0% 0;
   }
@@ -571,6 +609,7 @@
   display: inline-block;
   color: var(--ink-faint);
 }
+
 .shimmer::before {
   content: attr(data-text);
   position: absolute;
@@ -606,6 +645,7 @@
 .motion-pulse {
   position: relative;
 }
+
 .motion-pulse::after {
   pointer-events: none;
   position: absolute;
@@ -662,6 +702,7 @@
   .stage-layer-leave-active {
     transition: none;
   }
+
   .panel-reveal-enter-from,
   .panel-reveal-leave-to,
   .stage-layer-enter-from,
@@ -674,11 +715,13 @@
   .list-reveal-leave-to {
     scale: 1;
   }
+
   .list-reveal-enter-active,
   .list-reveal-leave-active {
     position: static;
     transition: opacity var(--duration-fast) var(--ease-out);
   }
+
   .list-reveal-move {
     transition: none;
   }
@@ -722,6 +765,7 @@
   .shimmer {
     color: inherit;
   }
+
   .shimmer::before {
     animation: none;
     content: none;

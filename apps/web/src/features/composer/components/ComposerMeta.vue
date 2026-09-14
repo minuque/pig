@@ -4,7 +4,9 @@
       <Folder :size="14" />
       <span class="cwd-name">{{ cwdLabel }}</span>
     </span>
+
     <span v-else class="cwd-spacer"></span>
+
     <button
       v-if="usage"
       type="button"
@@ -16,6 +18,7 @@
     >
       <svg class="usage-ring" width="16" height="16" viewBox="0 0 16 16">
         <circle class="usage-ring-track" cx="8" cy="8" r="6" />
+
         <circle
           class="usage-ring-fill"
           cx="8"
@@ -26,6 +29,7 @@
         />
       </svg>
     </button>
+
     <span v-else class="usage-slot" aria-hidden="true"></span>
   </div>
 </template>
@@ -52,9 +56,12 @@ const emit = defineEmits<{
 const RING = 2 * Math.PI * 6
 
 const cwdLabel = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
+
 const usageLabel = computed(() => `上下文占用 ${props.usage?.percent ?? 0}%`)
+
 const ringOffset = computed(() => {
   const clamped = Math.min(100, Math.max(0, props.usage?.percent ?? 0))
+
   return RING * (1 - clamped / 100)
 })
 </script>
@@ -104,6 +111,7 @@ const ringOffset = computed(() => {
   height: var(--size-icon-button);
   min-height: 0;
 }
+
 .usage {
   padding: 0;
   border: 0;
@@ -112,6 +120,7 @@ const ringOffset = computed(() => {
   color: var(--primary-active);
   cursor: pointer;
 }
+
 .usage:hover {
   color: var(--ink-muted);
   background: var(--hover-quiet);
@@ -128,6 +137,7 @@ const ringOffset = computed(() => {
   fill: none;
   stroke-width: 2.5;
 }
+
 .usage-ring-track {
   stroke: var(--chart-track);
 }

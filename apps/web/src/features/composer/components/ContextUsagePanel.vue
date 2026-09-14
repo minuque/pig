@@ -4,14 +4,17 @@
       <div class="glass-host usage-host">
         <div class="head">
           <h3 class="title">上下文占用</h3>
+
           <button type="button" class="close" @click="emit('close')">
             <X class="size-icon" />
           </button>
         </div>
+
         <div class="stats">
           <span class="percent">{{ usage.percent }}% 已用</span>
           <span class="tokens">{{ tokenSummary }}</span>
         </div>
+
         <div class="bar">
           <span
             v-for="segment in usage.segments"
@@ -23,6 +26,7 @@
             }"
           ></span>
         </div>
+
         <ul v-if="usage.segments.length" class="legend">
           <li v-for="segment in usage.segments" :key="segment.id">
             <component
@@ -35,6 +39,7 @@
               <span class="swatch" :style="{ background: segment.color }"></span>
               <span class="legend-label">{{ segment.label }}</span>
               <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
+
               <span class="legend-pct">
                 {{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%
               </span>
@@ -43,16 +48,19 @@
         </ul>
       </div>
     </div>
+
     <Dialog :open="previewOpen" @update:open="onPreviewOpen">
       <DialogContent
         class="flex h-[70vh] w-[70vw] max-w-[70vw] flex-col gap-(--spacing-sm) overflow-hidden sm:max-w-[70vw]"
         @open-auto-focus="onOpenAutoFocus"
       >
         <DialogTitle>{{ previewTitle }}</DialogTitle>
+
         <div ref="previewPane" class="preview-body" tabindex="-1">
           <div v-if="previewLoading" class="preview-status">
             <Spinner :size="24" />
           </div>
+
           <pre v-else-if="previewBody" class="preview-text">{{ previewBody }}</pre>
         </div>
       </DialogContent>
@@ -93,14 +101,20 @@ function onLegendClick(segment: ContextUsageSegment) {
 }
 
 const previewOpen = ref(false)
+
 const previewLoading = ref(false)
+
 const previewTitle = ref("")
+
 const previewBody = ref("")
+
 const previewPane = ref<HTMLElement>()
+
 let previewRequest = 0
 
 async function openPreview(segment: ContextUsageSegment) {
   const sessionId = props.sessionId
+
   if (!sessionId) return
   const request = ++previewRequest
   previewTitle.value = segment.label
@@ -108,9 +122,12 @@ async function openPreview(segment: ContextUsageSegment) {
   previewLoading.value = true
   previewOpen.value = true
   await nextTick()
+
   if (request !== previewRequest) return
+
   try {
     const preview = await contextPreview(sessionId, segment.id)
+
     if (request !== previewRequest) return
     previewTitle.value = preview?.title || segment.label
     previewBody.value = preview?.content || "没有可预览的内容。"
@@ -133,8 +150,10 @@ function closePreview() {
 function onPreviewOpen(open: boolean) {
   if (open) {
     previewOpen.value = true
+
     return
   }
+
   closePreview()
 }
 
@@ -197,6 +216,7 @@ function onOpenAutoFocus(event: Event) {
   color: var(--ink-faint);
   cursor: pointer;
 }
+
 .close:hover {
   color: var(--ink);
   background: var(--hover-tint);
@@ -262,10 +282,12 @@ function onOpenAutoFocus(event: Event) {
   line-height: var(--text-caption--line-height);
   text-align: start;
 }
+
 .legend-row--button {
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
+
 .legend-row--button:hover {
   color: var(--ink);
 }
@@ -288,6 +310,7 @@ function onOpenAutoFocus(event: Event) {
   color: var(--ink-faint);
   font-variant-numeric: tabular-nums;
 }
+
 .legend-pct {
   min-width: 3.5em;
   text-align: end;
@@ -303,6 +326,7 @@ function onOpenAutoFocus(event: Event) {
   font-size: var(--text-body-md);
   line-height: 1.7;
 }
+
 .preview-body:focus {
   outline: none;
 }
@@ -312,6 +336,7 @@ function onOpenAutoFocus(event: Event) {
   min-height: 0;
   flex: 1;
 }
+
 .preview-status {
   display: grid;
   place-items: center;

@@ -37,6 +37,7 @@ for (const palette of palettes) {
       ({ workspaceId }) => {
         localStorage.setItem("pig.localWorkspaces", JSON.stringify([workspaceId]))
         localStorage.setItem("pig.lastCwd", workspaceId)
+
         if (!localStorage.getItem("npg-theme")) localStorage.setItem("npg-theme", "light")
       },
       { workspaceId: gateway.workspaceId },
@@ -44,6 +45,7 @@ for (const palette of palettes) {
     await page.goto(gateway.origin)
     await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
     await expect(page.getByText("正在连接…")).toHaveCount(0)
+
     if (palette.theme === "dark") await page.locator("button.theme-toggle").click()
 
     const input = page.locator(".glass-host")
@@ -56,9 +58,11 @@ for (const palette of palettes) {
     await expect(input).toHaveCSS("box-shadow", "none")
     const prompt = page.getByRole("textbox", { name: "Prompt" })
     await expect(prompt).toHaveCSS("color", palette.ink)
+
     const placeholder = await prompt.evaluate(
       (element) => getComputedStyle(element, "::placeholder").color,
     )
+
     expect(placeholder).toBe(palette.faint)
 
     await prompt.fill("颜色回归测试，不发送")
@@ -77,13 +81,16 @@ for (const palette of palettes) {
     await page.keyboard.press("Escape")
 
     const bounds = await input.boundingBox()
+
     if (!bounds) throw new Error("Input is not painted")
+
     const fillSample = {
       x: Math.floor(bounds.x + bounds.width / 2),
       y: Math.floor(bounds.y + 8),
       width: 2,
       height: 2,
     }
+
     const webFill = await page.screenshot({ clip: fillSample, animations: "disabled" })
 
     await page.evaluate(() => {

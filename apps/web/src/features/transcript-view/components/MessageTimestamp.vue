@@ -9,6 +9,7 @@
     }"
   >
     <time :datetime="iso" :title="full">{{ clock }}</time>
+
     <Button
       v-if="text"
       type="button"
@@ -43,12 +44,16 @@ const props = withDefaults(
 )
 
 const valid = computed(() => Number.isFinite(props.timestamp) && props.timestamp > 0)
+
 const date = computed(() => new Date(props.timestamp))
+
 const iso = computed(() => (valid.value ? date.value.toISOString() : ""))
+
 const clock = computed(() => {
   if (!valid.value) return ""
   const now = new Date()
   const sameDay = date.value.toDateString() === now.toDateString()
+
   return new Intl.DateTimeFormat(
     "zh-CN",
     sameDay
@@ -56,6 +61,7 @@ const clock = computed(() => {
       : { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false },
   ).format(date.value)
 })
+
 const full = computed(() =>
   valid.value
     ? new Intl.DateTimeFormat("zh-CN", {
@@ -71,6 +77,7 @@ const full = computed(() =>
 )
 
 const status = shallowRef<"idle" | "copied" | "error">("idle")
+
 const copyLabel = computed(() =>
   status.value === "copied"
     ? "已复制"
@@ -78,11 +85,13 @@ const copyLabel = computed(() =>
       ? "复制失败，点击重试"
       : "复制消息",
 )
+
 const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { immediate: false })
 
 async function copy() {
   if (!props.text) return
   stop()
+
   try {
     await navigator.clipboard.writeText(props.text)
     status.value = "copied"
@@ -103,6 +112,7 @@ async function copy() {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
+
 .stamp.copy-before {
   flex-direction: row-reverse;
 }
@@ -120,13 +130,16 @@ async function copy() {
     color var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out);
 }
+
 .copy:hover {
   background: var(--hover-quiet);
   color: var(--ink);
 }
+
 .copy.is-copied {
   color: var(--success);
 }
+
 .copy.is-error {
   color: var(--danger);
 }

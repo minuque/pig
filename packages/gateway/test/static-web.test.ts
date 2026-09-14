@@ -27,12 +27,16 @@ function getRaw(url: string, acceptEncoding: string) {
 }
 
 let gateway: Gateway | undefined
+
 let root: string | undefined
+
 let outside: string | undefined
 
 afterEach(async () => {
   await gateway?.stop()
+
   if (root) await rm(root, { recursive: true, force: true })
+
   if (outside) await rm(outside, { force: true })
 })
 

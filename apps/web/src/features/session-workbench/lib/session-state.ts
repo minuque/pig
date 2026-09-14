@@ -15,10 +15,12 @@ import type {
 
 export function sessionState(states: Map<string, SessionClientState>, sessionId: string) {
   let state = states.get(sessionId)
+
   if (!state) {
     state = reactive<SessionClientState>({ draft: "", sends: [] })
     states.set(sessionId, state)
   }
+
   return state
 }
 
@@ -45,6 +47,7 @@ export function bindIdleSends(
 ): void {
   if (idle.sends.length === 0) return
   const state = sessionState(states, sessionId)
+
   if (state.sends.length === 0) {
     state.sends = idle.sends
     idle.sends = []
@@ -61,13 +64,16 @@ function sendAnchor(
 ): { confirmedIndex: number; insertionIndex: number } {
   const known = new Set(send.knownItemIds)
   let insertionIndex = 0
+
   for (let index = 0; index < items.length; index += 1) {
     if (known.has(items[index]!.id)) insertionIndex = index + 1
   }
+
   const confirmedIndex = items.findIndex(
     (item, index) =>
       index >= insertionIndex && !known.has(item.id) && userText(item) === userText(send.item),
   )
+
   return { confirmedIndex, insertionIndex }
 }
 
@@ -83,29 +89,36 @@ export function projectClientTranscript(
 
   for (const send of sends) {
     const { confirmedIndex, insertionIndex } = sendAnchor(items, send)
+
     if (confirmedIndex >= 0) {
       const serverId = items[confirmedIndex]!.id
+
       if (serverId !== send.item.id) clientIdByServerId[serverId] = send.item.id
       continue
     }
+
     extras.push({ insertionIndex, item: send.item })
   }
 
   const rewritten = Object.keys(clientIdByServerId).length
     ? items.map((item) => {
         const id = clientIdByServerId[item.id]
+
         return id && id !== item.id ? { ...item, id } : item
       })
     : items
+
   if (extras.length === 0) return rewritten
 
   let next = rewritten
   let inserted = 0
+
   for (const extra of extras) {
     const at = extra.insertionIndex + inserted
     next = [...next.slice(0, at), extra.item, ...next.slice(at)]
     inserted += 1
   }
+
   return next
 }
 
@@ -126,6 +139,7 @@ export function mergeLiveTranscript(
   live: readonly TranscriptItem[],
 ): TranscriptItem[] {
   if (live.length === 0) return [...persisted]
+
   if (persisted.length === 0) return [...live]
 
   const overlay = new Map(live.map((item) => [item.id, item]))
@@ -146,7 +160,9 @@ export function mergeLiveTranscript(
 
 function sameTranscriptItem(a: TranscriptItem, b: TranscriptItem): boolean {
   if (a.id === b.id) return true
+
   if (a.role === "tool" && b.role === "tool") return a.toolCallId === b.toolCallId
+
   return a.role === b.role && JSON.stringify(a.content) === JSON.stringify(b.content)
 }
 
@@ -187,6 +203,8 @@ export function workbenchHeaderTitle(input: {
 }): string {
   if (!input.sessionId) return ""
   const meta = input.listed.find((session) => session.id === input.sessionId)
+
   if (meta) return sessionTitle(meta)
+
   return input.projectionName?.trim() || UNTITLED_SESSION
 }

@@ -9,7 +9,9 @@ import { vendorDisplayName } from "@features/composer/lib/vendor-logo.js"
 
 function filterCatalog(catalog: ComposerVendor[], query: string): ComposerVendor[] {
   const q = query.trim().toLowerCase()
+
   if (!q) return catalog
+
   return catalog
     .map((vendor) => ({
       ...vendor,
@@ -37,22 +39,26 @@ export function listPickerRows(
 ): ModelPickerRow[] {
   const q = query.trim()
   const all = Boolean(q)
+
   const vendors =
     all || scope === FAVORITES_SCOPE ? catalog : catalog.filter((vendor) => vendor.id === scope)
 
   const rows: ModelPickerRow[] = []
+
   for (const vendor of filterCatalog(vendors, query)) {
     for (const model of vendor.models) {
       if (!all && scope === FAVORITES_SCOPE && !favorites.has(`${vendor.id}/${model.id}`)) continue
       rows.push({ vendor, model })
     }
   }
+
   return rows
 }
 
 export function resolveModelInfo(catalog: ComposerVendor[], ref: ComposerModel | undefined) {
   const vendor = catalog.find((item) => item.id === ref?.provider)
   const model = vendor?.models.find((item) => item.id === ref?.id)
+
   return { vendor, model, levels: model?.thinkingLevels ?? [] }
 }
 
@@ -67,12 +73,14 @@ export function modelLabel(model: ComposerModel | undefined): string {
 /** 官方 ModelMetadata → 供应商目录；保留服务端顺序。 */
 export function catalogFromModels(models: readonly ModelMetadata[]): ComposerVendor[] {
   const vendors = new Map<string, ComposerVendor>()
+
   for (const model of models) {
     const vendor = vendors.get(model.provider) ?? {
       id: model.provider,
       name: vendorDisplayName(model.provider),
       models: [],
     }
+
     vendor.models.push({
       id: model.id,
       name: model.name,
@@ -81,6 +89,7 @@ export function catalogFromModels(models: readonly ModelMetadata[]): ComposerVen
     })
     vendors.set(model.provider, vendor)
   }
+
   return [...vendors.values()]
 }
 
@@ -88,12 +97,15 @@ export function catalogFromModels(models: readonly ModelMetadata[]): ComposerVen
 export function defaultPresetFrom(catalog: readonly ComposerVendor[]): ComposerPreset | undefined {
   for (const vendor of catalog) {
     const first = vendor.models[0]
+
     if (!first) continue
+
     return {
       model: { provider: vendor.id, id: first.id },
       thinkingLevel: first.thinkingLevels[0] ?? "",
     }
   }
+
   return undefined
 }
 

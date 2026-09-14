@@ -14,6 +14,7 @@
           :name="current.vendor.name"
           :size="14"
         />
+
         <span class="selector-name">{{ label }}</span>
         <ChevronDown aria-hidden="true" />
       </Button>
@@ -41,6 +42,7 @@
           >
             <Star class="size-icon" :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'" />
           </Button>
+
           <Button
             v-for="vendor in catalog"
             :key="vendor.id"
@@ -57,6 +59,7 @@
         <div class="main">
           <div class="search">
             <Search :size="13" class="text-ink-faint shrink-0" />
+
             <input
               ref="searchRef"
               v-model="query"
@@ -66,6 +69,7 @@
               @keydown="onSearchKeydown"
             />
           </div>
+
           <div v-bind="containerProps" class="groups">
             <DropdownMenuGroup v-if="items.length" v-bind="wrapperProps">
               <div
@@ -83,17 +87,20 @@
                     :name="item.data.vendor.name"
                     :size="15"
                   />
+
                   <span class="model-body">
                     <span class="model-name">{{ item.data.model.name }}</span>
                     <span v-if="showVendor" class="model-vendor">{{ item.data.vendor.name }}</span>
                   </span>
                 </DropdownMenuItem>
+
                 <ModelEffortMenu
                   v-if="showEffort(item.data)"
                   :levels="item.data.model.thinkingLevels"
                   :level="level"
                   @update:level="emit('update:level', $event)"
                 />
+
                 <Button
                   type="button"
                   class="fav"
@@ -112,6 +119,7 @@
                 </Button>
               </div>
             </DropdownMenuGroup>
+
             <div v-else class="empty">{{ emptyText }}</div>
           </div>
         </div>
@@ -165,7 +173,9 @@ const emit = defineEmits<{
 const open = defineModel<boolean>("open", { default: false })
 
 const EMPTY_FAVORITES = new Set<string>()
+
 const { set: favoriteSet, isFavorite, toggle: toggleFavorite } = useModelFavorites()
+
 const current = computed(() => resolveModelInfo(props.catalog, props.model))
 
 const {
@@ -188,6 +198,7 @@ const {
 )
 
 const showVendor = computed(() => Boolean(query.value.trim()) || scope.value === FAVORITES_SCOPE)
+
 const items = computed(() =>
   listPickerRows(
     props.catalog,
@@ -196,17 +207,23 @@ const items = computed(() =>
     scope.value === FAVORITES_SCOPE ? favoriteSet.value : EMPTY_FAVORITES,
   ),
 )
+
 const ROW_HEIGHT = 40
+
 const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, {
   itemHeight: ROW_HEIGHT,
 })
+
 const emptyText = computed(() =>
   query.value.trim() || scope.value !== FAVORITES_SCOPE ? "没有匹配的模型" : "还没有收藏的模型",
 )
+
 const label = computed(() => {
   const { vendor, model } = current.value
+
   return vendor && model ? model.name : modelLabel(props.model)
 })
+
 const triggerText = computed(() =>
   pickerTriggerText(label.value, props.level, current.value.levels),
 )
@@ -227,6 +244,7 @@ function showEffort(row: ModelPickerRow) {
 function onSelectModel(event: Event, provider: string, id: string) {
   event.preventDefault()
   emit("update:model", { provider, id })
+
   if (!query.value.trim()) return
   exitSearchTo(provider)
 }
@@ -253,20 +271,24 @@ function onSelectModel(event: Event, provider: string, id: string) {
     background var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth);
 }
+
 .selector:hover:not(:disabled) {
   background: var(--hover-tint);
   color: var(--ink);
 }
+
 .selector:disabled {
   opacity: 0.5;
   cursor: default;
 }
+
 .selector:focus-visible,
 .rail-btn:focus-visible,
 .fav:focus-visible {
   outline: var(--border-width) solid var(--primary);
   outline-offset: -2px;
 }
+
 .selector[data-state="open"] {
   background: var(--hover-tint);
   color: var(--ink);
@@ -315,10 +337,12 @@ function onSelectModel(event: Event, provider: string, id: string) {
   color: var(--ink-muted);
   cursor: pointer;
 }
+
 .rail-btn:hover {
   background: var(--hover-tint);
   color: var(--ink);
 }
+
 .rail-btn[data-current] {
   background: var(--hover-strong);
   color: var(--ink);
@@ -342,6 +366,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border-radius: var(--radius-md);
   background: var(--canvas-soft);
 }
+
 .search input {
   flex: 1;
   min-width: 0;
@@ -352,6 +377,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   font: inherit;
   font-size: var(--text-eyebrow);
 }
+
 .search input::placeholder {
   color: var(--ink-faint);
 }
@@ -362,6 +388,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   overflow-y: auto;
   scrollbar-width: none;
 }
+
 .rail::-webkit-scrollbar,
 .groups::-webkit-scrollbar {
   display: none;
@@ -374,10 +401,12 @@ function onSelectModel(event: Event, provider: string, id: string) {
   padding-inline-end: var(--spacing-xs);
   border-radius: var(--radius-md);
 }
+
 .model-row:hover,
 .model-row:focus-within {
   background: var(--canvas-soft);
 }
+
 .model-row[data-current] {
   background: var(--hover-tint);
 }
@@ -423,9 +452,11 @@ function onSelectModel(event: Event, provider: string, id: string) {
   color: var(--ink-faint);
   cursor: pointer;
 }
+
 .fav:hover {
   color: var(--ink-muted);
 }
+
 .fav.on {
   color: var(--accent-sunset);
 }

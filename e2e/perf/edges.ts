@@ -24,6 +24,7 @@ import {
 } from "./seed.js"
 
 const FIRST_PROMPT = "基准首条提问"
+
 const FIRST_TOKEN = "基准首 token"
 
 type Bridge = Awaited<ReturnType<typeof installTurnBridge>>
@@ -42,11 +43,14 @@ async function holdTranscriptFetch(page: Page, sessionId: string) {
         blocked: boolean
         waiters: Array<() => void>
       }
+
       const previous = Reflect.get(window, key) as Hold | undefined
+
       if (previous) {
         for (const resume of previous.waiters) resume()
         window.fetch = previous.native
       }
+
       const hold: Hold = {
         native: window.fetch.bind(window),
         sessionId: id,
@@ -55,22 +59,30 @@ async function holdTranscriptFetch(page: Page, sessionId: string) {
         blocked: true,
         waiters: [],
       }
+
       Reflect.set(window, key, hold)
       window.fetch = (input, init) => {
         const href =
           typeof input === "string" ? input : input instanceof URL ? input.href : input.url
+
         const url = new URL(href, window.location.href)
+
         if (url.pathname !== "/api/v1/platform/transcript") return hold.native(input, init)
+
         if (url.searchParams.get("sessionId") !== hold.sessionId) return hold.native(input, init)
+
         return hold.native(input, init).then((response) => {
           hold.received += 1
+
           const gate = hold.blocked
             ? new Promise<void>((resolve) => {
                 hold.waiters.push(resolve)
               })
             : Promise.resolve()
+
           return gate.then(() => {
             hold.delivered += 1
+
             return response
           })
         })
@@ -78,18 +90,22 @@ async function holdTranscriptFetch(page: Page, sessionId: string) {
     },
     { key: HISTORY_HOLD_KEY, id: sessionId },
   )
+
   return {
     counts: () =>
       page.evaluate((key) => {
         const hold = Reflect.get(window, key) as { received: number; delivered: number } | undefined
+
         return { received: hold?.received ?? 0, delivered: hold?.delivered ?? 0 }
       }, HISTORY_HOLD_KEY),
     async release() {
       await page.evaluate((key) => {
         const hold = Reflect.get(window, key) as
           { blocked: boolean; waiters: Array<() => void> } | undefined
+
         if (!hold) return
         hold.blocked = false
+
         for (const resume of hold.waiters) resume()
         hold.waiters.length = 0
       }, HISTORY_HOLD_KEY)
@@ -98,8 +114,10 @@ async function holdTranscriptFetch(page: Page, sessionId: string) {
       await page.evaluate((key) => {
         const hold = Reflect.get(window, key) as
           { native: typeof fetch; blocked: boolean; waiters: Array<() => void> } | undefined
+
         if (!hold) return
         hold.blocked = false
+
         for (const resume of hold.waiters) resume()
         hold.waiters.length = 0
         window.fetch = hold.native
@@ -113,6 +131,7 @@ async function holdTranscriptFetch(page: Page, sessionId: string) {
 async function rapidSwitch(page: Page) {
   await openSession(page, EMPTY_SESSION_NAME)
   const hold = await holdTranscriptFetch(page, LONG_SESSION_ID)
+
   try {
     await clickSessionCard(page, LONG_SESSION_NAME)
     await expect
@@ -131,6 +150,7 @@ async function rapidSwitch(page: Page) {
       .poll(
         async () => {
           const counts = await hold.counts()
+
           return counts.delivered === counts.received
         },
         { timeout: WORKBENCH_TIMEOUT_MS },
@@ -140,6 +160,7 @@ async function rapidSwitch(page: Page) {
     await expect(page).toHaveURL(new RegExp(`/sessions/${SHORT_SESSION_ID}$`))
     await expect(page.locator(".row-user")).toHaveCount(TRANSCRIPT_PAGE_TURNS)
     await expect(page.getByText(`${LONG_SESSION_NAME} 提问 1`, { exact: true })).toHaveCount(0)
+
     return elapsed
   } finally {
     await hold.dispose()
@@ -150,8 +171,10 @@ async function rapidSwitch(page: Page) {
 async function measureTurn(page: Page, bridge: Bridge) {
   const send = page.locator("button.send")
   const stop = page.getByRole("button", { name: STOP_TURN, exact: true })
+
   const seen = (text: string, exact = true) =>
     expect(page.getByText(text, { exact })).toBeVisible({ timeout: WORKBENCH_TIMEOUT_MS })
+
   await composerInput(page).fill(FIRST_PROMPT)
   await expect(send).toBeEnabled()
   const started = performance.now()
@@ -163,7 +186,9 @@ async function measureTurn(page: Page, bridge: Bridge) {
   await page.waitForURL(/\/sessions\/[^/?#]+$/)
   const sessionId = await bridge.waitForPrompt()
   const snapshot = bridge.snapshots.get(sessionId)
+
   if (!snapshot) throw new Error("回合场景缺少真实 SessionSnapshot")
+
   const emit = (
     type: "item_started" | "item_updated",
     item: ReturnType<typeof streamingAssistant>,
@@ -173,18 +198,22 @@ async function measureTurn(page: Page, bridge: Bridge) {
         type: "event",
         event: { type: "session_progress", sessionId, progress: { type, item } },
       })
+
       return
     }
+
     bridge.send({
       type: "event",
       event: { type: "session_progress", sessionId, progress: { type, item } },
     })
   }
+
   emit("item_started", streamingAssistant(snapshot, FIRST_TOKEN))
   await seen(FIRST_TOKEN)
   const firstTokenMs = performance.now() - started
   await expect(stop).toBeVisible()
   const lags: number[] = []
+
   for (let index = 1; index <= 6; index += 1) {
     const marker = `流式跟上 ${index}`
     const chunkStarted = performance.now()
@@ -193,10 +222,12 @@ async function measureTurn(page: Page, bridge: Bridge) {
     await waitForLatestInViewport(page)
     lags.push(performance.now() - chunkStarted)
   }
+
   const abortStarted = performance.now()
   await stop.click()
   await expect(stop).toHaveCount(0)
   await seen(FIRST_PROMPT)
+
   return {
     ownMessageMs,
     firstTokenMs,
@@ -221,6 +252,7 @@ async function reconnect(page: Page, bridge: Bridge) {
   await expect(page.getByText(FIRST_TOKEN, { exact: true })).toHaveCount(0)
   await expect(page.getByText(TURN_TOKEN, { exact: true })).toHaveCount(0)
   await expect(page.locator(".row-assistant")).toHaveCount(TRANSCRIPT_PAGE_TURNS)
+
   return elapsed
 }
 
@@ -239,10 +271,12 @@ export async function runTurnBench(
   resultDir: string,
 ): Promise<{ samples: EdgeSample[] }> {
   const samples: EdgeSample[] = []
+
   for (let index = 0; index < runs; index += 1) {
     console.log(`回合 ${index + 1}/${runs}`)
     const session = await harness.open(false)
     const { page } = session
+
     try {
       const bridge = await installTurnBridge(page)
       await page.goto(session.origin)
@@ -258,5 +292,6 @@ export async function runTurnBench(
       await session.close()
     }
   }
+
   return { samples }
 }

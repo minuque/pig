@@ -5,17 +5,21 @@
         <Folder :data-visible="collapsed" class="size-icon" />
         <FolderOpen :data-visible="!collapsed" class="size-icon" />
       </span>
+
       <Pin
         v-else-if="kind === 'pinned'"
         class="size-icon mark"
         :class="{ 'is-open': !collapsed }"
       />
+
       <Clock v-else class="size-icon mark" :class="{ 'is-open': !collapsed }" />
       <span class="group-name">{{ name }}</span>
+
       <span v-if="kind === 'pinned' && count !== undefined" class="group-count">
         {{ count }}
       </span>
     </button>
+
     <span v-if="kind === 'directory'" class="trail">
       <button
         class="group-new motion-hint"
@@ -59,6 +63,7 @@ const emit = defineEmits<{
   border-radius: var(--radius-md);
   line-height: 0;
 }
+
 .group-head:hover {
   background: var(--hover-quiet);
 }
@@ -87,9 +92,11 @@ const emit = defineEmits<{
   color: var(--ink-faint);
   transition: color var(--duration-fast) var(--ease-smooth);
 }
+
 .group-head:hover .mark {
   color: var(--ink-muted);
 }
+
 .mark.is-open,
 .group-head:hover .mark.is-open {
   color: var(--primary);
@@ -132,6 +139,7 @@ const emit = defineEmits<{
   color: var(--ink-muted);
   line-height: 0;
 }
+
 .group-new:hover,
 .group-new:focus-visible {
   color: var(--ink);

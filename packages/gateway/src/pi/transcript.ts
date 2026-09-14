@@ -14,7 +14,9 @@ import {
 
 /** 会话条目携带的消息（pi-ai 未直接依赖，从官方会话类型提取）。 */
 type AgentMessage = Extract<SessionEntry, { type: "message" }>["message"]
+
 type AssistantMessage = Extract<AgentMessage, { role: "assistant" }>
+
 type ToolResultMessage = Extract<AgentMessage, { role: "toolResult" }>
 
 /** 消息事件携带的消息；自定义角色（bash/custom/compaction 等）不进入 transcript。 */
@@ -52,12 +54,15 @@ export class TranscriptProjection {
         return this.messageProgress(event.message, "finished")
       case "tool_execution_start": {
         let input: JsonValue
+
         try {
           input = toProtocolJsonValue(event.args)
         } catch {
           return undefined // 非 JSON 参数（不应发生），跳过该条目
         }
+
         this.toolCalls.set(event.toolCallId, input)
+
         return {
           type: "item_started",
           item: {
@@ -73,6 +78,7 @@ export class TranscriptProjection {
           },
         }
       }
+
       default:
         return undefined
     }
@@ -88,9 +94,11 @@ export class TranscriptProjection {
 
     const toolCalls = new Map<string, JsonValue>()
     const items: TranscriptItem[] = []
+
     for (const entry of entries) {
       if (entry.type !== "message") continue
       const message = entry.message
+
       if (message.role === "user") {
         items.push(toProtocolUserMessage(message, { id: entry.id }))
       } else if (message.role === "assistant") {
@@ -98,6 +106,7 @@ export class TranscriptProjection {
         items.push(toProtocolAssistantMessage(message, { id: entry.id }))
       } else if (message.role === "toolResult") {
         const args = toolCalls.get(message.toolCallId)
+
         if (args === undefined) continue // 找不到对应调用，无法构造输入
         items.push(this.toolItem(message, args))
       }
@@ -105,6 +114,7 @@ export class TranscriptProjection {
 
     this.cachedEntries = entries
     this.cachedTranscript = items
+
     return items
   }
 
@@ -116,39 +126,51 @@ export class TranscriptProjection {
       case "user":
         // user 条目不会变化，且 item_finished 不接受 user，只在开始时发一次
         if (stage !== "started") return undefined
+
         return {
           type: "item_started",
           item: toProtocolUserMessage(message, { id: this.allocateId() }),
         }
       case "assistant": {
         this.indexToolCalls(message.content, this.toolCalls)
+
         const id =
           stage === "started"
             ? (this.streamingMessageId = this.allocateId())
             : (this.streamingMessageId ?? this.allocateId())
+
         const item = toProtocolAssistantMessage(message, { id })
+
         if (stage === "finished") {
           this.streamingMessageId = undefined
+
           // item_finished 只接受终态（无 stopReason 的 streaming 成员被收窄排除）
           if ("stopReason" in item) return { type: "item_finished", item }
+
           return undefined
         }
+
         if (stage === "updated") return { type: "item_updated", item }
+
         return { type: "item_started", item }
       }
+
       case "toolResult": {
         // running 占位已由 tool_execution_start 发出；完成态在结束时发一次
         if (stage !== "finished") return undefined
         const args = this.toolCalls.get(message.toolCallId)
+
         if (args === undefined) return undefined
         this.toolCalls.delete(message.toolCallId)
         const item = this.toolItem(message, args)
+
         // finished 阶段 toProtocolToolResultMessage 只产出终态（running 占位已由 tool_execution_start 发出）
         return {
           type: "item_finished",
           item: item as Extract<ToolTranscriptItem, { status: "complete" | "error" }>,
         }
       }
+
       default:
         return undefined // 自定义消息（bash/custom/compaction 等）不进 transcript
     }
@@ -173,6 +195,7 @@ export class TranscriptProjection {
   ): void {
     for (const part of content) {
       if (part.type !== "toolCall") continue
+
       try {
         index.set(part.id, toProtocolJsonValue(part.arguments))
       } catch {
@@ -183,6 +206,7 @@ export class TranscriptProjection {
 
   private allocateId(): string {
     this.nextMessageId += 1
+
     return `m${this.nextMessageId}`
   }
 }
@@ -190,5 +214,6 @@ export class TranscriptProjection {
 /** 协议 ToolCall 要求参数为 JSON 对象；非对象参数按空对象处理（运行时同义）。 */
 function toolCallArguments(value: JsonValue): Record<string, unknown> {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) return value
+
   return {}
 }

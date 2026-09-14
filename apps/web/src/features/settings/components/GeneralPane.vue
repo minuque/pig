@@ -4,6 +4,7 @@
       <div class="copy">
         <h3 class="label">外观</h3>
       </div>
+
       <div class="scheme" role="radiogroup" aria-label="外观">
         <button
           v-for="option in options"
@@ -81,10 +82,12 @@ const options: { id: ColorScheme; label: string; icon: typeof Monitor }[] = [
   background: transparent;
   color: var(--ink-muted);
 }
+
 .scheme-btn:hover {
   color: var(--ink);
   background: var(--hover-quiet);
 }
+
 .scheme-btn[aria-checked="true"] {
   color: var(--ink);
   background: var(--surface);

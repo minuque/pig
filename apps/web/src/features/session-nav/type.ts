@@ -21,6 +21,7 @@ export interface SidebarTimeSection {
 }
 
 export type SidebarGrouping = "updated" | "project"
+
 export type SidebarSessionState = "running" | "unread" | "error"
 
 export type SidebarRow =

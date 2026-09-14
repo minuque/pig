@@ -4,6 +4,7 @@ import { resolve } from "node:path"
 import { promisify } from "node:util"
 
 const execFileAsync = promisify(execFile)
+
 const PICKER_TIMEOUT_MS = 60_000
 
 /** IFileOpenDialog + Per-Monitor V2：现代资源管理器对话框，避免 WinForms FolderBrowser 被系统拉伸发糊。 */
@@ -129,6 +130,7 @@ export type DirectoryExecFile = (
 // 规范化逻辑（分隔符/盘符/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizePath(path: string): string {
   const normalized = resolve(path).replaceAll("\\", "/").replace(/\/$/, "")
+
   return /^[A-Z]:/.test(normalized)
     ? normalized[0]!.toLowerCase() + normalized.slice(1)
     : normalized
@@ -143,6 +145,7 @@ export class WindowsDirectoryPort implements DirectoryPort {
 
   async selectDirectory(): Promise<string | undefined> {
     let lastError: unknown
+
     for (const executable of ["pwsh", "powershell.exe"]) {
       try {
         const { stdout } = await this.exec(
@@ -150,16 +153,21 @@ export class WindowsDirectoryPort implements DirectoryPort {
           ["-NoLogo", "-NoProfile", "-NonInteractive", "-STA", "-Command", folderPickerScript],
           { encoding: "utf8", windowsHide: true, timeout: PICKER_TIMEOUT_MS },
         )
+
         if (!stdout.trim()) return undefined
 
         const selected: unknown = JSON.parse(stdout)
+
         if (typeof selected !== "string" || !selected.trim()) throw new Error("invalid folder path")
+
         return validateDirectory(selected)
       } catch (error) {
         lastError = error
+
         if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error
       }
     }
+
     throw lastError
   }
 

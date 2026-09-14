@@ -128,26 +128,41 @@ const ICONS: Record<string, VendorIcon> = {
 
 function familyOf(id: string): string {
   const key = id.trim().toLowerCase()
+
   if (!key) return key
+
   if (ALIASES[key]) return ALIASES[key]!
+
   if (NAMES[key] || ICONS[key]) return key
 
   if (key.startsWith("qwen")) return "qwen"
+
   if (key.startsWith("zai")) return "zhipu"
+
   if (key.startsWith("kimi") || key.startsWith("moonshot")) return "kimi"
+
   if (key.startsWith("minimax")) return "minimax"
+
   if (key.startsWith("xiaomi")) return "xiaomi"
+
   if (key.startsWith("cloudflare-workers")) return "workersai"
+
   if (key.startsWith("cloudflare")) return "cloudflare"
+
   if (key.startsWith("vercel")) return "vercel"
+
   if (key.startsWith("github")) return "copilot"
+
   if (key.startsWith("google")) return "google"
+
   return key
 }
 
 export function vendorDisplayName(id: string): string {
   const key = id.trim()
+
   if (!key) return key
+
   return NAMES[familyOf(key)] ?? key
 }
 

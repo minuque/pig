@@ -22,6 +22,7 @@
           :style="{ width: stripWidth(index) }"
         ></span>
       </button>
+
       <span
         v-if="hoverItem"
         class="minimap-preview"
@@ -33,6 +34,7 @@
       >
         <span class="preview-card">
           <span class="preview-user">{{ hoverItem.userText ?? "用户句" }}</span>
+
           <span v-if="hoverItem.assistantText" class="preview-assistant">
             {{ hoverItem.assistantText }}
           </span>
@@ -62,6 +64,7 @@ const emit = defineEmits<{
 }>()
 
 const hoverIndex = shallowRef<number | null>(null)
+
 const pinnedIndex = shallowRef(0)
 
 watch(
@@ -69,39 +72,54 @@ watch(
   ([ids, items]) => {
     for (const id of ids) {
       const index = items.findIndex((item) => item.id === id)
+
       if (index >= 0) {
         pinnedIndex.value = index
+
         return
       }
     }
+
     if (pinnedIndex.value >= items.length) pinnedIndex.value = Math.max(0, items.length - 1)
   },
   { immediate: true },
 )
 
 const lastIndex = computed(() => Math.max(0, props.items.length - 1))
+
 const emphasizedIndex = computed(() => {
   const hover = hoverIndex.value
+
   if (hover !== null && hover <= lastIndex.value) return hover
+
   return Math.min(pinnedIndex.value, lastIndex.value)
 })
+
 const hoverItem = computed(() => {
   const index = hoverIndex.value
+
   return index === null ? null : (props.items[index] ?? null)
 })
+
 const previewTranslate = computed(() => {
   const index = hoverIndex.value
+
   if (index === null) return "-50%"
+
   if (index === 0) return "0%"
+
   if (index === lastIndex.value) return "-100%"
+
   return "-50%"
 })
 
 const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
+
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
 function tickStyle(index: number): { top: string; height: string } {
   const count = Math.max(props.items.length, 1)
+
   return {
     top: `${(index / count) * 100}%`,
     height: `${100 / count}%`,
@@ -112,12 +130,14 @@ function stripWidth(index: number): string {
   if (hoverIndex.value === null) return "8px"
   const distance = Math.abs(index - emphasizedIndex.value)
   const scale = distance === 0 ? 1 : distance === 1 ? 0.68 : distance === 2 ? 0.44 : 0.25
+
   return `${Math.round(38 * scale)}px`
 }
 
 function onStageFocusOut(event: FocusEvent) {
   const root = event.currentTarget
   const next = event.relatedTarget
+
   if (root instanceof Node && next instanceof Node && root.contains(next)) return
   hoverIndex.value = null
 }
@@ -134,6 +154,7 @@ function onStageFocusOut(event: FocusEvent) {
   width: 44px;
   transform: translateY(-50%);
 }
+
 .timeline-minimap.interactive {
   pointer-events: auto;
 }
@@ -169,6 +190,7 @@ function onStageFocusOut(event: FocusEvent) {
     background var(--duration-icon) var(--ease-smooth),
     width var(--duration-icon) var(--ease-smooth);
 }
+
 .minimap-strip.strip-active {
   background: var(--ink);
 }

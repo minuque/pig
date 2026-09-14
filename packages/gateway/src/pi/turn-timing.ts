@@ -3,6 +3,7 @@ import type { SessionEntry, SessionManager } from "@earendil-works/pi-coding-age
 const CUSTOM_TYPE = "pig.turn-timing"
 
 type Outcome = "complete" | "error" | "aborted"
+
 export type TurnTiming = { userId: string; startedAt: number } & (
   { outcome: "running"; endedAt?: never } | { outcome: Outcome; endedAt: number }
 )
@@ -20,7 +21,9 @@ function parseTiming(data: unknown): TurnTiming | undefined {
   )
     return undefined
   const base = { userId: data.userId, startedAt: data.startedAt }
+
   if (data.outcome === "running") return { ...base, outcome: "running" }
+
   if (
     (data.outcome === "complete" || data.outcome === "error" || data.outcome === "aborted") &&
     "endedAt" in data &&
@@ -30,6 +33,7 @@ function parseTiming(data: unknown): TurnTiming | undefined {
   ) {
     return { ...base, outcome: data.outcome, endedAt: data.endedAt }
   }
+
   return undefined
 }
 
@@ -39,12 +43,16 @@ export function readTurnTimings(entries: readonly SessionEntry[]): TurnTiming[] 
       .filter((entry) => entry.type === "message" && entry.message.role === "user")
       .map((entry) => entry.id),
   )
+
   const timings = new Map<string, TurnTiming>()
+
   for (const entry of entries) {
     if (entry.type !== "custom" || entry.customType !== CUSTOM_TYPE) continue
     const timing = parseTiming(entry.data)
+
     if (timing && users.has(timing.userId)) timings.set(timing.userId, timing)
   }
+
   return [...timings.values()]
 }
 
@@ -69,6 +77,7 @@ export class TurnTimingRecorder {
 
   persistStart() {
     const current = this.current
+
     if (!current || current.userId || current.userTimestamp === undefined) return
 
     const user = this.manager
@@ -80,6 +89,7 @@ export class TurnTimingRecorder {
           entry.message.role === "user" &&
           entry.message.timestamp === current.userTimestamp,
       )
+
     if (!user) return
 
     current.userId = user.id
@@ -94,6 +104,7 @@ export class TurnTimingRecorder {
     this.persistStart()
     const current = this.current
     this.current = undefined
+
     if (!current?.userId) return
 
     this.manager.appendCustomEntry(CUSTOM_TYPE, {

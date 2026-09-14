@@ -35,6 +35,7 @@ import { pageTranscriptItems, pageTurnTimings } from "./transcript-page.js"
 import { readTurnTimings, type TurnTiming } from "./turn-timing.js"
 
 type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
+
 type SessionFactory = typeof createAgentSession
 
 export interface PiHostServiceOptions {
@@ -64,8 +65,10 @@ export class PiHostService implements PiServerService {
 
   async listSessions(): Promise<SessionMetadata[]> {
     const infos = await this.refreshSessionPaths()
+
     return infos.map((info) => {
       const sessionName = sessionListName(info)
+
       return {
         id: info.id,
         createdAt: info.created.getTime(),
@@ -83,6 +86,7 @@ export class PiHostService implements PiServerService {
   async listSessionCards(): Promise<SessionCard[]> {
     this.sessionsCache = undefined
     const infos = await this.refreshSessionPaths()
+
     return cardsFromInfos(infos)
   }
 
@@ -90,6 +94,7 @@ export class PiHostService implements PiServerService {
     const runtime = await this.runtime()
     void this.warmResources().catch(() => undefined)
     const models = await runtime.getAvailable()
+
     return models.map((model) =>
       toProtocolModelMetadata(model, runtime.hasConfiguredAuth(model.provider)),
     )
@@ -104,15 +109,18 @@ export class PiHostService implements PiServerService {
     const runtime = await this.runtime()
     const cwd = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd())
     const manager = SessionManager.create(cwd, this.options.sessionDir, { id: options.id })
+
     if (options.name) manager.appendSessionInfo(options.name)
     const path = manager.getSessionFile()
     const header = manager.getHeader()
+
     if (!path || !header) throw new Error("Pi did not create a persistent session")
 
     // 立即落盘 header，保证 PiServer 分配的 id 持久化（Pi 仅在出现助手消息后写文件）。
     // SDK 无 ensurePersisted API，写入后用 SessionManager 回读校验替代。
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, serializeEntries(header, manager.getEntries()), { flag: "wx" })
+
     if (SessionManager.open(path).getHeader()?.id !== options.id) {
       await rm(path, { force: true })
       throw new Error("Pi session persistence format validation failed")
@@ -124,6 +132,7 @@ export class PiHostService implements PiServerService {
     const model = options.model
       ? runtime.getModel(options.model.provider, options.model.id)
       : undefined
+
     if (options.model && !model) {
       await this.rollbackSession(options.id, path)
       throw new PiServerError(
@@ -134,6 +143,7 @@ export class PiHostService implements PiServerService {
 
     try {
       await this.warmResources().catch(() => undefined)
+
       const { session } = await this.sessionFactory()({
         cwd,
         modelRuntime: runtime,
@@ -141,6 +151,7 @@ export class PiHostService implements PiServerService {
         ...(model ? { model } : {}),
         ...(options.thinkingLevel ? { thinkingLevel: options.thinkingLevel } : {}),
       })
+
       return this.trackSession(session)
     } catch (error) {
       // AgentSession 创建失败（如无可用模型）时回滚，避免遗留空会话文件
@@ -152,16 +163,20 @@ export class PiHostService implements PiServerService {
   /** 已打开的会话改 live 名；未打开的只追加 session_info。 */
   async renameSession(sessionId: string, name: string): Promise<void> {
     const trimmed = name.trim()
+
     if (!trimmed) throw new PiServerError("invalid_request", "会话名不能为空")
 
     const live = this.activeSessions.get(sessionId)
+
     if (live) {
       live.setSessionName(trimmed)
       this.sessionsCache = undefined
+
       return
     }
 
     const path = await this.findSessionPath(sessionId)
+
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     SessionManager.open(path).appendSessionInfo(trimmed)
     this.sessionsCache = undefined
@@ -170,6 +185,7 @@ export class PiHostService implements PiServerService {
   /** 删除 Pi 会话文件。 */
   async deleteSession(sessionId: string): Promise<void> {
     const path = await this.findSessionPath(sessionId)
+
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     await rm(path, { force: true })
     this.sessionPaths.delete(sessionId)
@@ -179,14 +195,17 @@ export class PiHostService implements PiServerService {
   async openSession(sessionId: string): Promise<PiSessionRuntime> {
     const runtime = await this.runtime()
     const path = await this.findSessionPath(sessionId)
+
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
 
     await this.warmResources().catch(() => undefined)
+
     const { session } = await this.sessionFactory()({
       cwd: SessionManager.open(path).getCwd(),
       modelRuntime: runtime,
       sessionManager: SessionManager.open(path),
     })
+
     return this.trackSession(session)
   }
 
@@ -205,6 +224,7 @@ export class PiHostService implements PiServerService {
     const live = this.activeSessions.get(sessionId)
     const full = live ? live.historyTranscript() : await this.readDiskTranscript(sessionId)
     const page = pageTranscriptItems(full.items, query)
+
     return {
       items: page.items,
       timings: pageTurnTimings(full.timings, page.items),
@@ -214,8 +234,10 @@ export class PiHostService implements PiServerService {
 
   private async readDiskTranscript(sessionId: string) {
     const path = await this.findSessionPath(sessionId)
+
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     const entries = SessionManager.open(path).getBranch()
+
     return {
       items: new TranscriptProjection().transcript(entries),
       timings: readTurnTimings(entries),
@@ -225,20 +247,25 @@ export class PiHostService implements PiServerService {
   /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */
   private async refreshSessionPaths(): Promise<SessionInfo[]> {
     const now = Date.now()
+
     if (this.sessionsCache && this.sessionsCache.expiresAt > now) return this.sessionsCache.infos
 
     const infos = await SessionManager.listAll(this.options.sessionDir)
     this.sessionPaths.clear()
+
     for (const info of infos) this.sessionPaths.set(info.id, info.path)
     // ponytail: 短 TTL 代替无界扫盘；SDK 有 Session 变更通知后改精确失效。
     this.sessionsCache = { expiresAt: now + 2_000, infos }
+
     return infos
   }
 
   private async findSessionPath(sessionId: string): Promise<string | undefined> {
     const cached = this.sessionPaths.get(sessionId)
+
     if (cached) return cached
     await this.refreshSessionPaths()
+
     return this.sessionPaths.get(sessionId)
   }
 
@@ -249,6 +276,7 @@ export class PiHostService implements PiServerService {
   /** 连接时预热扩展/技能；测试注入 session 工厂时跳过。 */
   private warmResources(): Promise<void> {
     if (this.options.createSession) return Promise.resolve()
+
     return (this.resourceWarm ??= this.reloadDefaultResources().catch((error: unknown) => {
       delete this.resourceWarm
       throw error
@@ -275,6 +303,7 @@ export class PiHostService implements PiServerService {
       }
     })
     this.activeSessions.set(session.sessionId, host)
+
     return host
   }
 
@@ -290,6 +319,7 @@ function cardsFromInfos(infos: readonly SessionInfo[]): SessionCard[] {
     let model: SessionCard["model"]
     let outcome: SessionCard["outcome"]
     let messageCount = info.messageCount
+
     try {
       const branch = SessionManager.open(info.path).getBranch()
       model = modelFromBranch(branch)

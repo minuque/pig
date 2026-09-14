@@ -21,5 +21,6 @@ const props = withDefaults(
 )
 
 const delegatedProps = reactiveOmit(props, "class")
+
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<AlertDialogTitleProps>
 </script>

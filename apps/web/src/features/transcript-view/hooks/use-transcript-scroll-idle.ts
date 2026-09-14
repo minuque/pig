@@ -37,11 +37,14 @@ export function useTranscriptScrollIdle(root: MaybeRefOrGetter<HTMLElement | nul
 
   function bind(next: HTMLElement | null) {
     if (attached === next) return
+
     if (attached) {
       attached.removeEventListener("scroll", markBusy)
       attached.removeEventListener("scrollend", markIdle)
     }
+
     attached = next
+
     if (!next) return
     next.addEventListener("scroll", markBusy, { passive: true })
     next.addEventListener("scrollend", markIdle)

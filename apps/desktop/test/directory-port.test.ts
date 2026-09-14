@@ -19,6 +19,7 @@ describe("createElectronDirectoryPort", () => {
       async () => ({ canceled: true, filePaths: [] }),
       canonicalizePath,
     )
+
     expect(await canceled.selectDirectory()).toBeUndefined()
 
     const empty = createElectronDirectoryPort(
@@ -26,6 +27,7 @@ describe("createElectronDirectoryPort", () => {
       async () => ({ canceled: false, filePaths: [] }),
       canonicalizePath,
     )
+
     expect(await empty.selectDirectory()).toBeUndefined()
   })
 
@@ -40,6 +42,7 @@ describe("createElectronDirectoryPort", () => {
       async () => ({ canceled: false, filePaths: [selected] }),
       canonicalizePath,
     )
+
     expect(await port.selectDirectory()).toBe(expected)
   })
 })

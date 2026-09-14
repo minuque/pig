@@ -37,8 +37,10 @@ export function useComposerBinding(options: ComposerBindingOptions) {
   // 切模型或目录变化后，当前 thinkingLevel 不在新档位里则回落到第一档
   watch([() => preset.value?.model, () => preset.value?.thinkingLevel, options.catalog], () => {
     const current = preset.value
+
     if (!current) return
     const levels = resolveModelInfo(options.catalog.value, current.model).levels
+
     if (levels.length && !levels.includes(current.thinkingLevel)) {
       preset.value = { ...current, thinkingLevel: levels[0]! }
     }
@@ -47,15 +49,18 @@ export function useComposerBinding(options: ComposerBindingOptions) {
     () => preset.value?.model,
     (model) => {
       const snapshot = options.snapshot.value
+
       if (!model || !snapshot || options.phase.value !== "idle" || sameModel(model, snapshot.model))
         return
       pendingModel.value = true
       void (async () => {
         try {
           await options.setModel({ provider: model.provider, id: model.id })
+
           const desired = sameModel(preset.value?.model, model)
             ? preset.value?.thinkingLevel
             : undefined
+
           if (desired && desired !== options.snapshot.value?.thinkingLevel)
             await options.setThinking(thinkingLevelOf(desired))
         } catch {
@@ -69,6 +74,7 @@ export function useComposerBinding(options: ComposerBindingOptions) {
 
   watch([() => preset.value?.thinkingLevel, pendingModel], ([level]) => {
     const snapshot = options.snapshot.value
+
     if (
       !level ||
       !snapshot ||

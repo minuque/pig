@@ -9,6 +9,7 @@ export function useSessionCards(
   refreshKey?: MaybeRefOrGetter<string | undefined>,
 ) {
   const sessionCards = shallowRef(new Map<string, Omit<SessionCard, "id">>())
+
   const sessionStamp = computed(() =>
     toValue(sessions)
       .map((session) => session.id)
@@ -43,6 +44,7 @@ export function useSessionCards(
   watch(sessionStamp, () => {
     void loadSessionCards()
   })
+
   if (refreshKey !== undefined) {
     watch(
       () => toValue(refreshKey),

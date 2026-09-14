@@ -28,6 +28,7 @@ export function useTranscriptMinimap(
   const visible = new Set<string>()
 
   const items = computed(() => deriveTranscriptMinimapItems(toValue(rows)))
+
   const hitStripWidth = computed(() =>
     resolveMinimapHitStripWidth(viewportWidth.value, contentWidth.value),
   )
@@ -39,16 +40,20 @@ export function useTranscriptMinimap(
     const next = toValue(rows)
       .filter((row) => row.role === "user" && visible.has(row.id))
       .map((row) => row.id)
+
     if (!sameIdList(inViewIds.value, next)) inViewIds.value = next
   }
 
   function onIntersect(entries: IntersectionObserverEntry[]) {
     for (const entry of entries) {
       const id = (entry.target as HTMLElement).dataset.minimapRow
+
       if (!id) continue
+
       if (entry.isIntersecting) visible.add(id)
       else visible.delete(id)
     }
+
     publishInView()
   }
 
@@ -56,7 +61,9 @@ export function useTranscriptMinimap(
     const next = Math.round(width)
     const port = toValue(layout.viewport)
     const column = toValue(layout.column)
+
     if (target === port && viewportWidth.value !== next) viewportWidth.value = next
+
     if (target === column && contentWidth.value !== next) contentWidth.value = next
   }
 
@@ -65,11 +72,15 @@ export function useTranscriptMinimap(
     inViewObserver = undefined
     visible.clear()
     const port = toValue(layout.viewport)
+
     if (!port) {
       publishInView()
+
       return
     }
+
     inViewObserver = new IntersectionObserver(onIntersect, { root: port, threshold: 0 })
+
     for (const el of port.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
       inViewObserver.observe(el)
     }
@@ -80,11 +91,14 @@ export function useTranscriptMinimap(
     ([port, column]) => {
       sizeObserver?.disconnect()
       sizeObserver = undefined
+
       if (!port) {
         viewportWidth.value = 0
         contentWidth.value = 0
+
         return
       }
+
       sizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
           const box = entry.contentBoxSize?.[0]
@@ -93,6 +107,7 @@ export function useTranscriptMinimap(
         }
       })
       sizeObserver.observe(port)
+
       if (column) sizeObserver.observe(column)
     },
     { flush: "post" },

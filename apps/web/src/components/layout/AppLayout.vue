@@ -7,6 +7,7 @@
     <aside class="sidebar" :class="{ open: leftOpen }" :inert="!leftOpen">
       <slot name="sidebar" :on-navigate="closeMobilePanels" :toggle="toggle" />
     </aside>
+
     <div
       v-if="leftOpen"
       class="resizer"
@@ -72,6 +73,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   touch-action: none;
   background: transparent;
 }
+
 .resizer::after {
   pointer-events: none;
   position: absolute;
@@ -87,6 +89,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   transition: opacity var(--duration-fast) var(--ease-out);
   content: "";
 }
+
 .resizer:hover::after,
 .shell.is-resizing .resizer::after {
   opacity: 1;
@@ -95,9 +98,11 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
 html[data-pig-desktop-platform] .resizer {
   inset-block-start: calc(6px + var(--titlebar-inset));
 }
+
 html[data-pig-desktop-platform="win32"] .resizer {
   inset-block-start: var(--nav-shell-pad);
 }
+
 html[data-pig-desktop-platform="darwin"] .resizer {
   inset-block-start: 32px;
 }
@@ -173,6 +178,7 @@ main {
     background: var(--surface);
     box-shadow: var(--shadow-drawer);
   }
+
   .sidebar.open {
     visibility: visible;
     transform: translateX(0);

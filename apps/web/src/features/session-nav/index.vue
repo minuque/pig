@@ -8,6 +8,7 @@
           <RouterLink to="/" class="logo-mark">
             <img src="/pwa-icon-192.png" alt="" width="22" height="22" />
           </RouterLink>
+
           <button class="collapse-toggle" type="button" title="折叠侧边栏" @click="emit('toggle')">
             <PanelLeft class="size-icon" />
           </button>
@@ -30,6 +31,7 @@
                   :collapsed="collapsedSections.pinned"
                   @toggle="collapsedSections.pinned = !collapsedSections.pinned"
                 />
+
                 <div class="session-list-group" :class="{ 'is-open': !collapsedSections.pinned }">
                   <div class="group-body">
                     <SessionItem
@@ -67,6 +69,7 @@
                       @toggle="section.toggle"
                       @create="section.create?.()"
                     />
+
                     <div
                       v-if="section.sessions.length > 0 || section.more"
                       class="session-list-group"
@@ -86,6 +89,7 @@
                           @rename="renameSession"
                           @delete="deleteSession"
                         />
+
                         <button
                           v-if="section.more"
                           class="more-button"
@@ -117,8 +121,10 @@
         @add-workspace="addWorkspace"
         @settings="openSettings"
       />
+
       <NavShift :grouping="grouping" @set-grouping="setGrouping" />
     </div>
+
     <SessionSearch v-model:open="searchOpen" @navigate="onSessionNavigate" />
   </div>
 </template>
@@ -167,24 +173,35 @@ const {
 } = useNav()
 
 const { openSettings } = useSettings()
+
 const router = useRouter()
 
 const searchOpen = shallowRef(false)
+
 const now = useTimestamp({ interval: 60_000 })
+
 const collapsedSections = reactive({ pinned: false, today: false, recent: false })
+
 const rows = rowsFor(false)
 
 const showList = computed(() => rows.value.some((row) => row.kind !== "more"))
+
 const groupRows = computed(() =>
   rows.value.filter((row): row is Extract<SidebarRow, { kind: "group" }> => row.kind === "group"),
 )
+
 const updatedSessions = computed(() =>
   rows.value.flatMap((row) => (row.kind === "session" ? [row.session] : [])),
 )
+
 const timeSections = computed(() => sidebarTimeSections(updatedSessions.value, now.value))
+
 const hasMore = computed(() => rows.value.some((row) => row.kind === "more"))
+
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
+
 const groupSlide = computed(() => (grouping.value === "updated" ? "slide-next" : "slide-prev"))
+
 const listSections = computed(() => {
   if (grouping.value === "project") {
     return groupRows.value.map((row) => ({
@@ -201,6 +218,7 @@ const listSections = computed(() => {
       create: () => onCreateInDir(row.canonicalPath),
     }))
   }
+
   return timeSections.value.map((section, index) => ({
     key: section.key,
     rowClass: "time-section",
@@ -224,6 +242,7 @@ useEventListener(window, "keydown", (event) => {
 
 watch(workspaceError, (message) => {
   const text = message.trim()
+
   if (text) notifyError(text)
 })
 
@@ -291,9 +310,11 @@ function onCreateInDir(canonicalPath: string): void {
   -webkit-app-region: drag;
   app-region: drag;
 }
+
 html[data-pig-desktop-platform] .session-nav > .titlebar-drag {
   display: block;
 }
+
 html[data-pig-desktop-platform="win32"] .session-nav > .titlebar-drag {
   display: none;
 }
@@ -301,9 +322,11 @@ html[data-pig-desktop-platform="win32"] .session-nav > .titlebar-drag {
 html[data-pig-desktop-platform] .session-nav {
   padding-top: calc(6px + var(--titlebar-inset));
 }
+
 html[data-pig-desktop-platform="win32"] .session-nav {
   padding-top: var(--spacing-xs);
 }
+
 html[data-pig-desktop-platform="darwin"] .session-nav {
   padding-top: var(--spacing-xxl);
 }
@@ -326,6 +349,7 @@ html[data-pig-desktop-platform] .logo-row :is(button, a) {
   width: 100%;
   min-height: var(--size-nav-rail);
 }
+
 html[data-pig-desktop-platform="win32"] .logo-row {
   min-height: var(--titlebar-inset);
 }
@@ -344,6 +368,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   background: transparent;
   color: var(--ink-muted);
 }
+
 .logo-mark {
   width: var(--size-nav-rail);
   height: var(--size-nav-rail);
@@ -368,6 +393,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   min-width: 0;
   min-height: 0;
 }
+
 .nav-main {
   gap: var(--spacing-xs);
 }
@@ -432,6 +458,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   color: var(--ink-muted);
   font-size: var(--text-caption);
 }
+
 .more-button:hover,
 .more-button:focus-visible {
   color: var(--ink);

@@ -20,10 +20,12 @@ class FakeWebSocket {
 
   addEventListener(type: string, fn: (event: WsEvent) => void) {
     let set = this.handlers.get(type)
+
     if (!set) {
       set = new Set()
       this.handlers.set(type, set)
     }
+
     set.add(fn)
   }
 
@@ -57,8 +59,10 @@ async function openTransport() {
     onClose: vi.fn(),
     onError: vi.fn(),
   }
+
   const factory = createWebSocketByteTransportFactory({ url: "ws://localhost/pi" })
   const transport = await factory(handlers)
+
   return { transport, socket: FakeWebSocket.instances[0]!, handlers }
 }
 

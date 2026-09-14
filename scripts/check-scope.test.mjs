@@ -13,7 +13,19 @@ describe("classifyTouched", () => {
 
   it("根配置改动升级全量 check", () => {
     assert.equal(classifyTouched(["eslint.config.js"]).escalate, true)
+    assert.equal(classifyTouched(["stylelint.config.js"]).escalate, true)
+    assert.equal(classifyTouched(["scripts/lint-ignores.mjs"]).escalate, true)
     assert.equal(classifyTouched(["package.json"]).escalate, true)
+  })
+
+  it("css 与 vue 走 stylelint", () => {
+    const css = classifyTouched(["apps/web/src/style/app.css"])
+    assert.deepEqual(css.stylelintFiles, ["apps/web/src/style/app.css"])
+    assert.deepEqual(css.lintFiles, [])
+
+    const vue = classifyTouched(["apps/web/src/App.vue"])
+    assert.deepEqual(vue.stylelintFiles, ["apps/web/src/App.vue"])
+    assert.deepEqual(vue.lintFiles, ["apps/web/src/App.vue"])
   })
 
   it("删除的包内路径仍映射到所属包", () => {

@@ -6,11 +6,14 @@
           <span class="label" :title="label">{{ label }}</span>
         </slot>
       </div>
+
       <div class="actions">
         <slot name="meta" />
+
         <button v-if="hiddenCount > 0" type="button" class="expand" @click="expanded = !expanded">
           {{ expanded ? `收起中间 ${hiddenCount} 行` : `展开其余 ${hiddenCount} 行` }}
         </button>
+
         <Button
           v-if="text"
           type="button"
@@ -148,6 +151,7 @@ async function copy() {
   font: inherit;
   cursor: pointer;
 }
+
 .expand:hover {
   color: var(--ink);
 }
@@ -164,13 +168,16 @@ async function copy() {
   font-size: inherit;
   font-weight: var(--font-weight-regular);
 }
+
 .copy:hover {
   background: var(--hover-quiet);
   color: var(--ink);
 }
+
 .copy.is-copied {
   color: var(--success);
 }
+
 .copy.is-error {
   color: var(--danger);
 }

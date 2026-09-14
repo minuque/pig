@@ -7,6 +7,7 @@
 import { readonly, ref } from "vue"
 
 export const LOCAL_WORKSPACES_KEY = "pig.localWorkspaces"
+
 export const LAST_CWD_KEY = "pig.lastCwd"
 
 export type WorkspaceStorage = Pick<Storage, "getItem" | "setItem">
@@ -16,6 +17,7 @@ export type WorkspaceStorage = Pick<Storage, "getItem" | "setItem">
 // 规范化逻辑（分隔符/盘符/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizeWorkspacePath(path: string): string {
   const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "")
+
   return /^[A-Z]:/.test(normalized)
     ? normalized[0]!.toLowerCase() + normalized.slice(1)
     : normalized
@@ -24,9 +26,12 @@ export function canonicalizeWorkspacePath(path: string): string {
 /** 解析持久化的目录列表：非法 JSON 或非字符串项一律丢弃。 */
 export function parseLocalWorkspaces(json: string | null): string[] {
   if (!json) return []
+
   try {
     const value: unknown = JSON.parse(json)
+
     if (!Array.isArray(value)) return []
+
     return value
       .filter((item): item is string => typeof item === "string" && item.length > 0)
       .map(canonicalizeWorkspacePath)
@@ -77,6 +82,7 @@ export function useLocalWorkspaces() {
 
   function add(path: string) {
     const canonicalPath = canonicalizeWorkspacePath(path)
+
     if (!canonicalPath || workspaces.value.includes(canonicalPath)) return
     workspaces.value = [...workspaces.value, canonicalPath]
     saveLocalWorkspaces(workspaces.value)

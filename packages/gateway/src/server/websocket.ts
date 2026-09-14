@@ -6,6 +6,7 @@ import { WebSocket, WebSocketServer, type RawData } from "ws"
 
 // pi-server 未从入口导出 connection 类型，从 PiServerListener 签名反推
 type ByteConnection = Parameters<Parameters<PiServerListener["start"]>[0]>[0]
+
 type ByteConnectionAcceptor = Parameters<PiServerListener["start"]>[0]
 
 // 与 web 端 apps/web/src/client/transport.ts 的 WEBSOCKET_PATH 必须一致。
@@ -17,6 +18,7 @@ export interface WebSocketListenerOptions {
 }
 
 const DEFAULT_MAX_PENDING_BYTES = 16 * 1024 * 1024
+
 const GRACEFUL_CLOSE_TIMEOUT_MS = 5_000
 
 /** PiServerListener 的 WebSocket 实现：路径匹配后把连接交给 PiServer。 */
@@ -32,33 +34,42 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
     maxPayload: maxFrameLength + 4,
     perMessageDeflate: false,
   })
+
   let accept: ByteConnectionAcceptor | undefined
 
   const onUpgrade = (req: IncomingMessage, socket: Duplex, head: Buffer) => {
     const url = new URL(req.url ?? "/", "http://127.0.0.1")
+
     if (url.pathname !== WEBSOCKET_PATH) {
       socket.write("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n")
       socket.destroy()
+
       return
     }
+
     wss.handleUpgrade(req, socket, head, (ws) => {
       if (!accept) {
         // PiServer 尚未就绪（启动中/关闭中）
         ws.close(1013, "host is not ready")
+
         return
       }
+
       const handler = accept(new WebSocketByteConnection(ws, maxPendingBytes))
       ws.on("message", (data, isBinary) => {
         if (!isBinary) {
           ws.close(1003, "binary frames only")
+
           return
         }
+
         handler.onData(toUint8Array(data))
       })
       ws.on("close", () => handler.onClose())
       ws.on("error", (error) => handler.onError(error))
     })
   }
+
   server.on("upgrade", onUpgrade)
 
   return {
@@ -96,17 +107,21 @@ class WebSocketByteConnection implements ByteConnection {
 
   send(chunk: Uint8Array): Promise<void> {
     if (this.closedValue) return Promise.reject(new Error("WebSocket connection is closed"))
+
     if (this.pendingBytes + chunk.byteLength > this.maxPendingBytes) {
       // 慢客户端：待发送积压超限，断开
       this.closedValue = true
       this.socket.terminate()
+
       return Promise.resolve()
     }
 
     this.pendingBytes += chunk.byteLength
+
     return new Promise((resolve, reject) => {
       this.socket.send(chunk, (error) => {
         this.pendingBytes -= chunk.byteLength
+
         if (error) reject(error)
         else resolve()
       })
@@ -116,29 +131,35 @@ class WebSocketByteConnection implements ByteConnection {
   close(finalChunk?: Uint8Array): Promise<void> {
     if (this.closedValue) return Promise.resolve()
     this.closedValue = true
+
     if (this.socket.readyState !== WebSocket.OPEN) {
       // 已关闭/正在关闭：close 事件不会再可靠触发，直接断开
       this.socket.terminate()
+
       return Promise.resolve()
     }
 
     const finished = new Promise<void>((resolve) => {
       this.socket.once("close", () => resolve())
     })
+
     if (finalChunk !== undefined) {
       // 先冲刷 final 帧再发 close 帧，保证对端收到完整结尾
       this.socket.send(finalChunk, () => this.socket.close(1000))
     } else {
       this.socket.close(1000)
     }
+
     // 对端不确认关闭时强制断开，避免挂起
     const timer = setTimeout(() => this.socket.terminate(), GRACEFUL_CLOSE_TIMEOUT_MS)
     timer.unref()
+
     return finished.then(() => clearTimeout(timer))
   }
 }
 
 function toUint8Array(data: RawData): Uint8Array {
   if (Array.isArray(data)) return Buffer.concat(data)
+
   return new Uint8Array(data)
 }

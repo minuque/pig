@@ -8,7 +8,9 @@ export function isOpenAborted(error: unknown) {
 
 export function isDisconnectedError(error: unknown) {
   if (!error || typeof error !== "object") return false
+
   if ("name" in error && error.name === "PiDisconnectedError") return true
+
   return error instanceof Error && /disconnected/i.test(error.message)
 }
 
@@ -31,32 +33,41 @@ export function createAbortableOpen() {
 
   function trackDisposal(id: string, work: Promise<void>) {
     const previous = disposals.get(id) ?? Promise.resolve()
+
     const chained = previous.then(
       () => work,
       () => work,
     )
+
     disposals.set(id, chained)
     void chained.finally(() => {
       if (disposals.get(id) === chained) disposals.delete(id)
     })
+
     return chained
   }
 
   function discard(session: RemoteSession) {
     const id = session.id
+
     if (!id) return swallowDispose(session)
+
     return trackDisposal(id, swallowDispose(session))
   }
 
   async function beginOpen(id: string, start: () => Promise<RemoteSession>) {
     const pending = disposals.get(id)
+
     if (pending) await pending
+
     return start()
   }
 
   function ensureOpening(id: string, start: () => Promise<RemoteSession>) {
     const existing = openings.get(id)
+
     if (existing) return existing
+
     const created: Opening = {
       waiters: 0,
       promise: beginOpen(id, start).then(async (session) => {
@@ -65,9 +76,11 @@ export function createAbortableOpen() {
           await discard(session)
           throw new Error(OPEN_ABORTED)
         }
+
         return session
       }),
     }
+
     openings.set(id, created)
     void created.promise.then(
       () => {
@@ -77,6 +90,7 @@ export function createAbortableOpen() {
         if (openings.get(id) === created) openings.delete(id)
       },
     )
+
     return created
   }
 
@@ -85,9 +99,11 @@ export function createAbortableOpen() {
     opening.waiters += 1
     let aborted = false
     let rejectAbort = (_error: Error) => {}
+
     const abortWait = new Promise<never>((_, reject) => {
       rejectAbort = reject
     })
+
     return {
       abort() {
         if (aborted) return
@@ -100,6 +116,7 @@ export function createAbortableOpen() {
           if (opening.waiters === 0) await discard(session)
           throw new Error(OPEN_ABORTED)
         }
+
         return session
       }),
     }

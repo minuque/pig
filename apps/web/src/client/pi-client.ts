@@ -61,12 +61,14 @@ export function usePiClient() {
         connectionError.value = error
       },
     })
+
     client.value = next
     let handshake = true
     unsubscribes.push(
       next.onConnectionStateChange((change) => {
         if (handshake && change.state === "connected") return
         connectionState.value = change.state
+
         if (change.state === "connected") connectionError.value = undefined
         else if (change.error) connectionError.value = change.error
       }),
@@ -74,6 +76,7 @@ export function usePiClient() {
         serverSnapshot.value = snapshot
       }),
     )
+
     try {
       serverSnapshot.value = await next.connect()
       handshake = false
@@ -84,6 +87,7 @@ export function usePiClient() {
       connectionError.value = error instanceof Error ? error : new Error(String(error))
       throw error
     }
+
     return next
   }
 
@@ -91,6 +95,7 @@ export function usePiClient() {
   async function refreshSessions() {
     const current = client.value
     const snapshot = serverSnapshot.value
+
     if (!current || !snapshot) return
     const sessions = await current.listSessions()
     serverSnapshot.value = { ...snapshot, sessions: [...sessions] }
@@ -110,15 +115,19 @@ export function usePiClient() {
   watch(connectionState, (state) => {
     if (state === "connected") {
       wasConnected = true
+
       return
     }
+
     if (state !== "disconnected" || !wasConnected || reconnecting || disposed) return
     reconnecting = true
     void (async () => {
       try {
         for (let attempt = 1; attempt <= RECONNECT_ATTEMPTS; attempt++) {
           await new Promise((resolve) => setTimeout(resolve, 400 * attempt))
+
           if (disposed || connectionState.value === "connected") break
+
           try {
             if (attachedReconnect) await attachedReconnect()
             else await client.value?.reconnect()

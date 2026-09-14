@@ -3,12 +3,15 @@ import { spawnSync } from "node:child_process"
 import { setTimeout as sleep } from "node:timers/promises"
 
 const parentPid = Number(process.argv[2])
+
 const port = Number(process.argv[3])
 
 function alive(pid) {
   if (!Number.isSafeInteger(pid) || pid <= 0) return false
+
   try {
     process.kill(pid, 0)
+
     return true
   } catch {
     return false
@@ -18,10 +21,13 @@ function alive(pid) {
 function parsePids(stdout) {
   if (!stdout) return []
   const pids = new Set()
+
   for (const token of stdout.split(/[\s,]+/)) {
     const pid = Number(token)
+
     if (Number.isSafeInteger(pid) && pid > 0) pids.add(pid)
   }
+
   return [...pids]
 }
 
@@ -31,21 +37,28 @@ function listeningPids(listenPort) {
       encoding: "utf8",
       windowsHide: true,
     })
+
     const pids = new Set()
+
     const lineRe = new RegExp(
       `[:\\[]${listenPort}(?:\\]|\\s).*(?:LISTENING|侦听)\\s+(\\d+)\\s*$`,
       "i",
     )
+
     for (const line of (netstat.stdout ?? "").split(/\r?\n/)) {
       const match = line.match(lineRe)
       const pid = Number(match?.[1])
+
       if (Number.isSafeInteger(pid) && pid > 0) pids.add(pid)
     }
+
     return [...pids]
   }
+
   const lsof = spawnSync("lsof", ["-nP", `-iTCP:${listenPort}`, "-sTCP:LISTEN", "-t"], {
     encoding: "utf8",
   })
+
   return parsePids(lsof.stdout)
 }
 
@@ -55,8 +68,10 @@ function killPidTree(pid) {
       stdio: "ignore",
       windowsHide: true,
     })
+
     return
   }
+
   try {
     process.kill(pid, "SIGTERM")
   } catch {

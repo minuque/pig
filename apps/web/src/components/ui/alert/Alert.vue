@@ -38,6 +38,7 @@ const variantClasses: Record<AlertVariant, string> = {
 .alert {
   grid-template-columns: minmax(0, 1fr) auto;
 }
+
 .alert:has(> svg) {
   grid-template-columns: 1rem minmax(0, 1fr) auto;
 }

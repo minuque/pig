@@ -21,14 +21,17 @@
             @keydown="onEditorKeydown"
           ></textarea>
         </div>
+
         <div class="left">
           <slot name="left" />
         </div>
+
         <div class="right">
           <slot name="right" :expanded="expanded" />
         </div>
       </div>
     </div>
+
     <div v-if="$slots.meta" class="footer">
       <slot name="meta" />
     </div>
@@ -66,25 +69,32 @@ const emit = defineEmits<{
 }>()
 
 const editor = ref<HTMLTextAreaElement | null>(null)
+
 const container = ref<HTMLElement | null>(null)
 
 const hasText = computed(() => prompt.value.length > 0)
+
 const expanded = computed(() => prompt.value.includes("\n"))
+
 const multiline = shallowRef(false)
 
 let widthObserver: ResizeObserver | undefined
+
 let lastWidth = 0
 
 function fitEditor() {
   const el = editor.value
+
   if (!el) return
   el.style.height = "auto"
   const next = el.scrollHeight
   el.style.height = `${next}px`
   const style = getComputedStyle(el)
   const line = Number.parseFloat(style.lineHeight) || 22
+
   const padY =
     (Number.parseFloat(style.paddingTop) || 0) + (Number.parseFloat(style.paddingBottom) || 0)
+
   multiline.value = next > line + padY + 2 || el.value.includes("\n")
 }
 
@@ -92,8 +102,10 @@ watch(
   prompt,
   () => {
     fitEditor()
+
     if (!props.readonly) return
     const el = editor.value
+
     if (el) el.scrollTop = el.scrollHeight
   },
   { flush: "post" },
@@ -105,9 +117,11 @@ watch(
     widthObserver?.disconnect()
     widthObserver = undefined
     lastWidth = 0
+
     if (!el) return
     widthObserver = new ResizeObserver((entries) => {
       const width = entries[0]?.contentRect.width ?? 0
+
       if (width === lastWidth) return
       lastWidth = width
       fitEditor()
@@ -122,6 +136,7 @@ onBeforeUnmount(() => widthObserver?.disconnect())
 
 function focus() {
   const el = editor.value
+
   if (!el) return
   el.focus()
   el.selectionStart = el.selectionEnd = el.value.length
@@ -129,7 +144,9 @@ function focus() {
 
 function onEditorKeydown(e: KeyboardEvent) {
   if (props.readonly) return
+
   if (e.key === "Escape" && !e.isComposing && !hasText.value) editor.value?.blur()
+
   if (shouldSubmitOnKeydown(e)) {
     e.preventDefault()
     emit("submit")
@@ -138,7 +155,9 @@ function onEditorKeydown(e: KeyboardEvent) {
 
 function onComposerMousedown(e: MouseEvent) {
   const el = e.target
+
   if (!(el instanceof Element)) return
+
   if (el.closest("button, input, textarea, a, [role='menuitem']")) return
   e.preventDefault()
   focus()
@@ -157,6 +176,7 @@ defineExpose({ focus })
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-soft);
 }
+
 .composer[data-expanded="true"] .glass-shell,
 .composer[data-multiline="true"] .glass-shell {
   border-radius: var(--radius-xl);
@@ -175,6 +195,7 @@ defineExpose({ focus })
   border: var(--border-width) solid var(--composer-ring);
   border-radius: var(--radius-full);
 }
+
 .composer[data-expanded="true"] .glass-host {
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
@@ -185,6 +206,7 @@ defineExpose({ focus })
   padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs);
   border-radius: var(--radius-xl);
 }
+
 .composer[data-multiline="true"] .glass-host {
   align-items: end;
   border-radius: var(--radius-xl);
@@ -202,10 +224,12 @@ defineExpose({ focus })
   gap: var(--spacing-xxs);
   flex: none;
 }
+
 .left {
   grid-area: left;
   min-width: 0;
 }
+
 .right {
   grid-area: right;
 }
@@ -237,9 +261,11 @@ defineExpose({ focus })
   white-space: pre-wrap;
   word-break: break-word;
 }
+
 .field::placeholder {
   color: var(--ink-faint);
 }
+
 .field ::selection,
 .field::selection {
   background: Highlight;

@@ -114,12 +114,15 @@ function onPointerCancel() {
   cursor: col-resize;
   touch-action: none;
 }
+
 .width-handle[data-side="left"] {
   inset-inline-end: calc(50% + var(--size-content) / 2 + var(--spacing-lg));
 }
+
 .width-handle[data-side="right"] {
   inset-inline-start: calc(50% + var(--size-content) / 2 + var(--spacing-lg));
 }
+
 .width-handle::after {
   pointer-events: none;
   position: absolute;
@@ -137,12 +140,15 @@ function onPointerCancel() {
   transition: opacity var(--duration-fast) var(--ease-out);
   content: "";
 }
+
 .width-handle[data-side="left"]::after {
   inset-inline-end: var(--spacing-md);
 }
+
 .width-handle[data-side="right"]::after {
   inset-inline-start: var(--spacing-md);
 }
+
 .width-handle:hover::after,
 .width-handle[data-dragging]::after {
   opacity: 1;
