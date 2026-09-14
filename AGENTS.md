@@ -23,8 +23,7 @@
 
 ## 验收
 
-- 一个逻辑任务改完后，对本会话改过的文件执行 `pnpm exec prettier --write <paths>`，再对 JS/TS/Vue 执行 `pnpm exec eslint --fix <paths>`，对 CSS/Vue 执行 `pnpm exec stylelint --fix <paths>`，然后跑 `pnpm check:touched`；文档改动除外。检查失败后定向修复，输入未变时不重复检查。
-- 任务执行完成后验收按场景补跑：首屏、加载顺序、UI 旅程→`pnpm test:e2e e2e/<spec>`；滚动、流式渲染、响应耗时→`pnpm test:bench`；Electron 验收用 `pnpm dev:desktop`（`--dev` 在主进程挂 CDP 9333）。若已有 pig 窗口则复用，不要另起。
-- `check:touched` 按 git 脏文件跑所属包的 typecheck + vitest；根配置（`package.json`、lockfile、`eslint.config.*`、`stylelint.config.*`、`scripts/lint-ignores.mjs`、`.prettierignore`、`tsconfig.base.json`、`.prettierrc*`）改动时它自动升级为全量 `pnpm check`。
-- 未命中不主动跑 `pnpm build`、全量 `pnpm test` 或全量 `pnpm test:e2e`。
-- 清理临时窗口按 PID 或 `user-data-dir`，不要匹配命令行 `--dev`（会误伤 `--device-scale-factor`）。
+- 改完后跑 `pnpm fix:touched`，再跑 `pnpm check:touched`。文档除外。失败只修本次引入的；输入未变不重跑。
+- 场景补跑：UI 旅程 `pnpm test:e2e e2e/<spec>`；滚动、流式、耗时 `pnpm test:bench`；Electron `pnpm dev:desktop`（主进程 CDP 9333；已有窗口则复用）。
+- 根配置改动时 `check:touched` 升级为 `pnpm check`。不主动跑 `pnpm build`、全量 `pnpm test` 或全量 `pnpm test:e2e`。
+- 清临时窗口按 PID 或 `user-data-dir`，不要匹配命令行 `--dev`。
