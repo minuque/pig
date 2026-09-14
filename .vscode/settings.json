@@ -1,4 +1,5 @@
 {
+  "files.autoSave": "afterDelay",
   "files.exclude": {
     "**/.vscode": false
   },
@@ -8,7 +9,6 @@
     "source.fixAll.eslint": "always",
     "source.fixAll.stylelint": "always"
   },
-  "eslint.validate": ["javascript", "typescript", "vue"],
   "stylelint.validate": ["css", "vue"],
   "stylelint.packageManager": "pnpm",
   "[vue]": {
@@ -21,9 +21,6 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[css]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }

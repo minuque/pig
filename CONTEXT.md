@@ -39,6 +39,14 @@ _避免使用_：User Message、查询
 Agent 从接受 Prompt 到 Session 恢复空闲期间的一段工作。
 _避免使用_：运行、请求
 
+**Idle（空闲）**：
+Session 没有正在进行的 Turn、Retry 或 Compaction。
+_避免使用_：停止、完成、Abort
+
+**Running（进行中）**：
+Session 未空闲，或一段 Turn / 一次 Tool Call 已开始且尚未结束。不是 Assistant Message 或 Thinking 的进行态。
+_避免使用_：live、streaming、运行
+
 **Retry（重试）**：
 Pi 在遇到可恢复问题后自动重复 Agent 工作的 Session 阶段。
 _避免使用_：新 Turn、手动重试
@@ -52,8 +60,12 @@ _避免使用_：删除 Transcript、摘要请求
 _避免使用_：后续 Prompt、排队消息
 
 **Abort（中止）**：
-提前终止活动 Turn，但不删除其 Session。
-_避免使用_：取消 Session、删除
+用户提前结束活动 Turn；Session 与已写入的 Transcript 保留。被中止的条目不是 Error。
+_避免使用_：取消 Session、删除、Error、停止
+
+**Error（出错）**：
+Turn、Assistant Message 或 Tool Call 因失败而结束，不是 Abort。
+_避免使用_：Abort、中止、异常
 
 **User Message（用户句）**：
 Transcript 中 `role` 为 `user` 的条目，含文字与图片。
@@ -66,6 +78,10 @@ _避免使用_：Agent、Agent 输出
 **Thinking（思考）**：
 Assistant Message 里的推理内容，不是 Transcript 条目，也不是 Tool Call。
 _避免使用_：reasoning、Activity、思考行
+
+**Streaming（流式）**：
+Assistant Message 或 Thinking 仍在接收内容。Session、Turn、Tool Call 的进行态是 Running。
+_避免使用_：running、live、打字
 
 **Tool Call（工具调用）**：
 Transcript 中 `role` 为 `tool` 的条目：一次调用的入参、输出与状态。
