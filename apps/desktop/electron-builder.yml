@@ -21,10 +21,17 @@ files:
   - "!node_modules/@pig/gateway/src{,/**/*}"
   - "!node_modules/@pig/gateway/test{,/**/*}"
   - "!node_modules/@pig/gateway/web{,/**/*}"
+  - "!**/*.map"
+  - "!**/*.d.ts"
+  - "!**/docs{,/**/*}"
 
 extraResources:
   - from: ../web/dist
     to: web
+
+electronLanguages:
+  - zh-CN
+  - en-US
 
 win:
   target:
