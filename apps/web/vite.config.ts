@@ -23,7 +23,6 @@ export default defineConfig({
           "index.html",
           "assets/index-*.{js,css}",
           "assets/session-workbench-*.{js,css}",
-          "**/*.{ico,svg,woff2}",
           "pwa-icon-*.png",
         ],
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
