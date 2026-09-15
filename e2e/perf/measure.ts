@@ -274,6 +274,32 @@ export async function keyToNextFrame(page: Page): Promise<number> {
   return page.evaluate(() => (window as unknown as { __pigK2f: number }).__pigK2f)
 }
 
+/** 遮罩揭开后立刻滚主视口，量最差动画帧。 */
+export async function scrollMainAfterOpen(page: Page): Promise<number> {
+  const root = page.locator(".transcript-viewport")
+  const box = await root.boundingBox()
+
+  if (!box) throw new Error("主视口不存在")
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await beginScrollFrames(page)
+
+  try {
+    for (const direction of [-1, 1]) {
+      for (let step = 0; step < 12; step += 1) {
+        await page.mouse.wheel(0, direction * 80)
+        await waitMs(page, 32)
+      }
+    }
+
+    return await endScrollWorstFrame(page)
+  } catch (error) {
+    await page
+      .evaluate(() => (window as unknown as Partial<ScrollFrames>).__pigScrollStop?.())
+      .catch(() => undefined)
+    throw error
+  }
+}
+
 /** 点侧栏卡片到该会话历史就绪。 */
 export async function openSession(page: Page, name: BenchSessionName): Promise<number> {
   const card = await revealSessionCard(page, name)

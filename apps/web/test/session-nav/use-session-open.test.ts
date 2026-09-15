@@ -10,12 +10,13 @@ function setup(current?: string) {
 }
 
 describe("useSessionOpen", () => {
-  it("点其他会话立刻改路由，高亮用正在打开的 id", () => {
+  it("点其他会话立刻高亮，画出一帧后再改路由", async () => {
     const nav = setup("a")
     nav.openSession("b")
-    expect(nav.push).toHaveBeenCalledTimes(1)
-    expect(nav.push).toHaveBeenCalledWith({ name: "session", params: { sessionId: "b" } })
     expect(nav.highlightedSessionId.value).toBe("b")
+    expect(nav.push).not.toHaveBeenCalled()
+    await vi.waitFor(() => expect(nav.push).toHaveBeenCalledTimes(1))
+    expect(nav.push).toHaveBeenCalledWith({ name: "session", params: { sessionId: "b" } })
   })
 
   it("路由落地后高亮跟 sessionId", async () => {
@@ -26,7 +27,7 @@ describe("useSessionOpen", () => {
     expect(nav.highlightedSessionId.value).toBe("b")
   })
 
-  it("点当前已打开会话则取消未完成跳转", () => {
+  it("点当前已打开会话则取消未完成跳转", async () => {
     const idle = setup("a")
     idle.openSession("a")
     expect(idle.push).not.toHaveBeenCalled()
@@ -38,5 +39,7 @@ describe("useSessionOpen", () => {
     expect(nav.push).toHaveBeenCalledTimes(1)
     expect(nav.push).toHaveBeenCalledWith({ name: "session", params: { sessionId: "a" } })
     expect(nav.highlightedSessionId.value).toBe("a")
+    await Promise.resolve()
+    expect(nav.push).toHaveBeenCalledTimes(1)
   })
 })

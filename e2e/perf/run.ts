@@ -17,6 +17,7 @@ import {
   openSession,
   p90,
   readPaint,
+  scrollMainAfterOpen,
   scrollSessionList,
   scrollTranscript,
   waitForWorkbench,
@@ -45,6 +46,7 @@ type BenchMetrics = {
   coldLcp: number
   sessionFirstOpen: number
   switchLong: number
+  switchScrollWorstMs: number
   longScrollWorstMs: number
   listScrollWorstMs: number
   switchShortRevisit: number
@@ -200,6 +202,7 @@ function printReport(
     row("输入跟手", "composerKeyToFrame"),
     row("短会话打开", "sessionFirstOpen"),
     row("长会话打开", "switchLong"),
+    row("切后立刻滚动", "switchScrollWorstMs", true),
     row("长会话滚动", "longScrollWorstMs", true),
     row("侧栏列表滚动", "listScrollWorstMs", true),
     row("切回短会话", "switchShortRevisit"),
@@ -281,6 +284,7 @@ async function main() {
       coldLcp: [] as number[],
       firstOpen: [] as number[],
       switchLong: [] as number[],
+      switchScroll: [] as number[],
       scroll: [] as number[],
       listScroll: [] as number[],
       switchRevisit: [] as number[],
@@ -308,6 +312,7 @@ async function main() {
           open.listScroll.push(await scrollSessionList(page))
           open.firstOpen.push(await openSession(page, SHORT_SESSION_NAME))
           open.switchLong.push(await openSession(page, LONG_SESSION_NAME))
+          open.switchScroll.push(await scrollMainAfterOpen(page))
           open.scroll.push(await scrollTranscript(page, LONG_SESSION_NAME))
           open.switchRevisit.push(await openSession(page, SHORT_SESSION_NAME))
           const toolExpand = await expandToolSteps(page, TOOL_SESSION_NAME, TOOL_STEPS)
@@ -337,6 +342,7 @@ async function main() {
     const composer = open.composer.length ? collect(open.composer) : undefined
     const firstOpen = open.firstOpen.length ? collect(open.firstOpen) : undefined
     const switchLong = open.switchLong.length ? collect(open.switchLong) : undefined
+    const switchScroll = open.switchScroll.length ? collect(open.switchScroll) : undefined
     const scroll = open.scroll.length ? collect(open.scroll) : undefined
     const listScroll = open.listScroll.length ? collect(open.listScroll) : undefined
     const switchRevisit = open.switchRevisit.length ? collect(open.switchRevisit) : undefined
@@ -366,6 +372,7 @@ async function main() {
       coldLcp: lcp?.median ?? Number.NaN,
       sessionFirstOpen: firstOpen?.median ?? Number.NaN,
       switchLong: switchLong?.median ?? Number.NaN,
+      switchScrollWorstMs: switchScroll?.median ?? Number.NaN,
       longScrollWorstMs: scroll?.median ?? Number.NaN,
       listScrollWorstMs: listScroll?.median ?? Number.NaN,
       switchShortRevisit: switchRevisit?.median ?? Number.NaN,
@@ -387,6 +394,7 @@ async function main() {
       coldLcp: lcp?.p90,
       sessionFirstOpen: firstOpen?.p90,
       switchLong: switchLong?.p90,
+      switchScrollWorstMs: switchScroll?.p90,
       longScrollWorstMs: scroll?.p90,
       listScrollWorstMs: listScroll?.p90,
       switchShortRevisit: switchRevisit?.p90,
@@ -403,7 +411,7 @@ async function main() {
     }
 
     const config = {
-      version: 13,
+      version: 14,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,

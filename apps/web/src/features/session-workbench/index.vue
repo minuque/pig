@@ -10,18 +10,20 @@
 
     <template v-else>
       <div class="session-stage">
-        <TranscriptView
-          v-if="!showHero"
-          ref="transcriptView"
-          :session-id="sessionId ?? ''"
-          :transcript="transcript"
-          :running="running"
-          :timings="turnTimings"
-          :has-more="historyHasMore"
-          :loading-older="loadingOlder"
-          @first-text-paint="onFirstTextPaint"
-          @load-older="loadOlderHistory"
-        />
+        <KeepAlive :max="SESSION_VIEW_CACHE">
+          <TranscriptView
+            v-if="sessionId && !showHero"
+            :key="sessionId"
+            ref="transcriptView"
+            :session-id="sessionId ?? ''"
+            :transcript="transcript"
+            :running="running"
+            :timings="turnTimings"
+            :has-more="historyHasMore"
+            :loading-older="loadingOlder"
+            @load-older="loadOlderHistory"
+          />
+        </KeepAlive>
 
         <Transition name="stage-layer">
           <div v-if="showHero" key="hero" class="idle-hero">
@@ -37,8 +39,6 @@
             />
           </div>
         </Transition>
-
-        <SessionLoading v-if="showLoading" />
       </div>
 
       <div class="composer-bar">
@@ -102,9 +102,9 @@ import Composer from "@features/composer/index.vue"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
-import SessionLoading from "@features/session-workbench/components/SessionLoading.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
+import { SESSION_VIEW_CACHE } from "@features/session-workbench/lib/session-history-cache.js"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
 import StartupError from "@features/startup/components/StartupError.vue"
 import TranscriptView from "@features/transcript-view/index.vue"
@@ -165,30 +165,6 @@ const showHero = computed(() => {
   if (sessionPending.value && !creating.value) return false
   return true
 })
-
-const firstTextPainted = shallowRef(false)
-
-const showLoading = computed(() => {
-  if (!sessionId.value || creating.value) return false
-
-  if (transcript.value.length === 0) return sessionPending.value
-  return !firstTextPainted.value
-})
-
-watch(
-  sessionId,
-  (next, prev) => {
-    if (!next || next === prev) return
-
-    if (!prev && creating.value) return
-    firstTextPainted.value = false
-  },
-  { flush: "sync" },
-)
-
-function onFirstTextPaint() {
-  firstTextPainted.value = true
-}
 
 const welcomeWorkspaceId = shallowRef<string>()
 
