@@ -1,0 +1,150 @@
+/* mermaid 默认主题：浅色 github-light，深色 github-dark。 */
+
+._mermaid {
+  --mermaid-text: var(--mermaid-fg);
+  --mermaid-text-sec: color-mix(in srgb, var(--mermaid-fg) 60%, var(--mermaid-bg));
+  --mermaid-text-muted: var(--mermaid-muted);
+  --mermaid-connector: var(--mermaid-line);
+  --mermaid-arrow: var(--mermaid-accent);
+  --mermaid-node-fill: color-mix(in srgb, var(--mermaid-fg) 3%, var(--mermaid-bg));
+  --mermaid-node-stroke: color-mix(in srgb, var(--mermaid-fg) 20%, var(--mermaid-bg));
+  --mermaid-group-fill: var(--mermaid-bg);
+  --mermaid-group-header: color-mix(in srgb, var(--mermaid-fg) 5%, var(--mermaid-bg));
+  --mermaid-inner-stroke: color-mix(in srgb, var(--mermaid-fg) 12%, var(--mermaid-bg));
+}
+
+html[data-pig-desktop-platform] .mermaid-modal-overlay {
+  padding-block-start: calc(var(--titlebar-inset) + var(--spacing-xs));
+}
+
+.mermaid-action-btn:hover,
+.mermaid-action-btn:focus-visible {
+  background: var(--hover-quiet);
+  color: var(--ink);
+}
+
+._mermaid svg .actor,
+._mermaid svg rect.actor,
+._mermaid svg .actor > rect,
+._mermaid svg .node rect,
+._mermaid svg .classGroup > rect,
+._mermaid svg .statediagram-state > rect {
+  rx: var(--radius-md);
+  ry: var(--radius-md);
+}
+
+._mermaid svg,
+._mermaid svg text,
+._mermaid svg .nodeLabel,
+._mermaid svg .edgeLabel,
+._mermaid svg .cluster-label,
+._mermaid svg .messageText,
+._mermaid svg .labelText,
+._mermaid svg .loopText,
+._mermaid svg .noteText,
+._mermaid svg text.actor > tspan {
+  font-family: var(--font-sans);
+}
+
+._mermaid svg .node > :is(rect, circle, ellipse, polygon, path):not([style*="fill"]),
+._mermaid svg .actor:not([style*="fill"]),
+._mermaid svg rect.actor:not([style*="fill"]),
+._mermaid svg .actor > rect:not([style*="fill"]),
+._mermaid svg .classGroup > rect:not([style*="fill"]),
+._mermaid svg .statediagram-state > rect:not([style*="fill"]),
+._mermaid svg .er.entityBox:not([style*="fill"]),
+._mermaid svg .labelBox:not([style*="fill"]),
+._mermaid svg .activation0:not([style*="fill"]),
+._mermaid svg .activation1:not([style*="fill"]),
+._mermaid svg .activation2:not([style*="fill"]) {
+  fill: var(--mermaid-node-fill) !important;
+  stroke: var(--mermaid-node-stroke) !important;
+}
+
+._mermaid svg .cluster rect:not([style*="fill"]),
+._mermaid svg .cluster path:not([style*="fill"]) {
+  fill: var(--mermaid-group-fill) !important;
+  stroke: var(--mermaid-inner-stroke) !important;
+}
+
+._mermaid svg .note:not([style*="fill"]),
+._mermaid svg rect.note:not([style*="fill"]) {
+  fill: var(--mermaid-group-header) !important;
+  stroke: var(--mermaid-node-stroke) !important;
+}
+
+._mermaid svg .edgePath .path:not([style*="stroke"]),
+._mermaid svg .flowchart-link:not([style*="stroke"]),
+._mermaid svg .messageLine0:not([style*="stroke"]),
+._mermaid svg .messageLine1:not([style*="stroke"]),
+._mermaid svg .actor-line:not([style*="stroke"]),
+._mermaid svg .loopLine:not([style*="stroke"]),
+._mermaid svg .transition:not([style*="stroke"]),
+._mermaid svg .relation:not([style*="stroke"]),
+._mermaid svg .relationshipLine:not([style*="stroke"]) {
+  stroke: var(--mermaid-connector) !important;
+}
+
+._mermaid svg .arrowheadPath:not([style*="fill"]),
+._mermaid svg [id$="-arrowhead"] path:not([style*="fill"]),
+._mermaid svg [id$="-crosshead"] path:not([style*="fill"]),
+._mermaid svg marker path:not([style*="fill"]) {
+  fill: var(--mermaid-arrow) !important;
+  stroke: var(--mermaid-arrow) !important;
+}
+
+._mermaid svg text,
+._mermaid svg text > tspan {
+  fill: var(--mermaid-text) !important;
+}
+
+._mermaid svg .nodeLabel,
+._mermaid svg .label,
+._mermaid svg foreignObject,
+._mermaid svg .messageText,
+._mermaid svg .labelText,
+._mermaid svg .noteText {
+  color: var(--mermaid-text) !important;
+}
+
+._mermaid svg .cluster-label,
+._mermaid svg .loopText,
+._mermaid svg .sectionTitle,
+._mermaid svg .sectionTitle > tspan,
+._mermaid svg .loopText > tspan {
+  fill: var(--mermaid-text-sec) !important;
+  color: var(--mermaid-text-sec) !important;
+}
+
+._mermaid svg .edgeLabel,
+._mermaid svg .edgeLabel span,
+._mermaid svg .edgeLabel p,
+._mermaid svg .edgeLabel text,
+._mermaid svg .edgeLabel tspan {
+  color: var(--mermaid-text-muted) !important;
+  fill: var(--mermaid-text-muted) !important;
+}
+
+._mermaid svg .edgeLabel rect {
+  fill: var(--mermaid-bg);
+  fill-opacity: 1;
+  opacity: 1;
+  stroke: var(--mermaid-bg);
+  stroke-width: calc(var(--spacing-xs) * 2);
+  paint-order: stroke fill;
+  outline: var(--border-width) solid var(--mermaid-line);
+  outline-offset: var(--spacing-xs);
+  rx: var(--radius-xs);
+  ry: var(--radius-xs);
+}
+
+._mermaid svg .labelBkg {
+  display: inline-block;
+  box-sizing: border-box;
+  background-color: var(--mermaid-bg);
+  border: var(--border-width) solid var(--mermaid-line);
+  border-radius: var(--radius-xs);
+  padding-block: var(--spacing-xxs);
+  padding-inline: var(--spacing-xs);
+  opacity: 1;
+}
