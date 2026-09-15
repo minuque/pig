@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   nextHydrateId,
+  nextRichId,
   shouldHydrateHeavy,
 } from "@features/transcript-view/lib/transcript-hydrate.js"
 
@@ -31,5 +32,22 @@ describe("nextHydrateId", () => {
     expect(nextHydrateId(rows, new Set(["a1", "a3"]), inView, true)).toBeUndefined()
     expect(nextHydrateId(rows, new Set(), inView, true, true)).toBeUndefined()
     expect(nextHydrateId(rows, new Set(), inView, true, false, false)).toBeUndefined()
+  })
+})
+
+describe("nextRichId", () => {
+  const rows = [
+    { id: "u1", role: "user" },
+    { id: "a1", role: "assistant" },
+    { id: "a3", role: "assistant" },
+  ]
+
+  it("只升级已轻量且仍可见的助手句", () => {
+    const inView = new Set(["a1", "a3"])
+    const hydrated = new Set(["a1"])
+    expect(nextRichId(rows, hydrated, new Set(), inView, false)).toBeUndefined()
+    expect(nextRichId(rows, hydrated, new Set(), inView, true)).toBe("a1")
+    expect(nextRichId(rows, hydrated, new Set(["a1"]), inView, true)).toBeUndefined()
+    expect(nextRichId(rows, new Set(), new Set(), inView, true)).toBeUndefined()
   })
 })

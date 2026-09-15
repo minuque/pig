@@ -27,12 +27,23 @@ const HISTORY_LIVE_NODES = 96
 
 const BATCH_BUDGET_MS = 8
 
-/** 流式分帧；历史长文开窗口，单帧预算压在 8ms。 */
+const HEAVY_FENCE = /```(?:infographic|mermaid|d2)[^\n]*\n[\s\S]*?```/gi
+
+/** 轻量档去掉图和图表围栏，避免第一下就把主线程卡死。 */
+export function withoutHeavyBlocks(text: string): string {
+  return text.replace(HEAVY_FENCE, "").trim()
+}
+
+/** 流式分帧；历史先轻量，停稳再上 infographic / Mermaid / 高亮。 */
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean
+  rich?: boolean
 }): NodeRendererProps {
   const streaming = input.streaming
+  const rich = streaming || input.rich === true
+
+  if (!rich) return plainMarkdownProps({ streaming: false, isDark: input.isDark })
   return {
     customId: "chat",
     mode: "chat",

@@ -45,6 +45,7 @@
                 :item="row"
                 :streaming="running && row.streaming"
                 :hydrated="isHydrated(row.id)"
+                :rich="isRich(row.id)"
               />
 
               <ToolSteps
@@ -267,7 +268,12 @@ function pinLatest() {
 
 const { readyFrame } = useTranscriptReveal(rows, pinLatest)
 
-const { isHydrated, observe } = useTranscriptHydrate(rows, scrollIdle, scrollerRoot, readyFrame)
+const { isHydrated, isRich, observe } = useTranscriptHydrate(
+  rows,
+  scrollIdle,
+  scrollerRoot,
+  readyFrame,
+)
 
 function armTailWindow() {
   loadOlderArmed = true

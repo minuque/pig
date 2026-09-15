@@ -27,3 +27,24 @@ export function nextHydrateId(
     return row.id
   }
 }
+
+export function nextRichId(
+  rows: readonly { id: string; role: string; streaming?: boolean }[],
+  hydrated: ReadonlySet<string>,
+  rich: ReadonlySet<string>,
+  inView: ReadonlySet<string>,
+  scrollIdle: boolean,
+  pendingInput = false,
+  openedQuiet = true,
+): string | undefined {
+  if (!scrollIdle || pendingInput || !openedQuiet) return undefined
+
+  for (const row of rows) {
+    if (row.role !== "assistant" || row.streaming) continue
+
+    if (!hydrated.has(row.id) || rich.has(row.id)) continue
+
+    if (!inView.has(row.id)) continue
+    return row.id
+  }
+}

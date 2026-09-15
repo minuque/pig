@@ -1,6 +1,6 @@
 import { nextTick, onBeforeUnmount, shallowRef, watch, type Ref } from "vue"
 import type { TimelineRow } from "@features/transcript-view/type.js"
-import { nextHydrateId } from "@features/transcript-view/lib/transcript-hydrate.js"
+import { nextHydrateId, nextRichId } from "@features/transcript-view/lib/transcript-hydrate.js"
 import {
   inputPending,
   yieldToBackground,
@@ -9,7 +9,7 @@ import {
 
 const OPEN_HOLD_MS = 150
 
-/** 揭开并停稳后再挂可见助手 Markdown；刚打开和滚动中保持纯文本。 */
+/** 揭开后先挂轻量 Markdown；停稳再上 infographic。滚动中保持纯文本。 */
 export function useTranscriptHydrate(
   rows: Ref<readonly TimelineRow[]>,
   scrollIdle: Ref<boolean>,
@@ -17,6 +17,7 @@ export function useTranscriptHydrate(
   readyFrame: Ref<boolean>,
 ) {
   const hydrated = shallowRef(new Set<string>())
+  const rich = shallowRef(new Set<string>())
   const inView = shallowRef(new Set<string>())
   const openedQuiet = shallowRef(false)
   let observer: IntersectionObserver | undefined
@@ -24,16 +25,18 @@ export function useTranscriptHydrate(
   let generation = 0
   let holdTimer = 0
 
-  function mark(id: string) {
-    if (hydrated.value.has(id)) return
-    const next = new Set(hydrated.value)
+  function add(bucket: typeof hydrated, id: string) {
+    if (bucket.value.has(id)) return
+    const next = new Set(bucket.value)
     next.add(id)
-    hydrated.value = next
+    bucket.value = next
   }
 
   function markStreaming() {
     for (const row of rows.value) {
-      if (row.role === "assistant" && row.streaming) mark(row.id)
+      if (row.role !== "assistant" || !row.streaming) continue
+      add(hydrated, row.id)
+      add(rich, row.id)
     }
   }
 
@@ -41,7 +44,11 @@ export function useTranscriptHydrate(
     return hydrated.value.has(id)
   }
 
-  function peek(): string | undefined {
+  function isRich(id: string) {
+    return rich.value.has(id)
+  }
+
+  function peekLight(): string | undefined {
     if (!readyFrame.value || !openedQuiet.value) return undefined
     return nextHydrateId(
       rows.value,
@@ -51,6 +58,28 @@ export function useTranscriptHydrate(
       inputPending(),
       true,
     )
+  }
+
+  function peekRich(): string | undefined {
+    if (!readyFrame.value || !openedQuiet.value) return undefined
+    return nextRichId(
+      rows.value,
+      hydrated.value,
+      rich.value,
+      inView.value,
+      scrollIdle.value,
+      inputPending(),
+      true,
+    )
+  }
+
+  function peek(): { id: string; full: boolean } | undefined {
+    const light = peekLight()
+
+    if (light) return { id: light, full: false }
+    const next = peekRich()
+
+    if (next) return { id: next, full: true }
   }
 
   function observe() {
@@ -88,9 +117,9 @@ export function useTranscriptHydrate(
     try {
       while (mine === generation) {
         if (!readyFrame.value || !openedQuiet.value || !scrollIdle.value) break
-        const id = peek()
+        const found = peek()
 
-        if (!id) {
+        if (!found) {
           if (inputPending()) {
             await yieldToBackground()
             continue
@@ -106,7 +135,9 @@ export function useTranscriptHydrate(
         const next = peek()
 
         if (!next) continue
-        mark(next)
+
+        if (next.full) add(rich, next.id)
+        else add(hydrated, next.id)
         await yieldToMain()
       }
     } finally {
@@ -156,5 +187,5 @@ export function useTranscriptHydrate(
     if (holdTimer) window.clearTimeout(holdTimer)
     observer?.disconnect()
   })
-  return { isHydrated, observe }
+  return { isHydrated, isRich, observe }
 }
