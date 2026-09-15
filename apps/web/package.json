@@ -20,7 +20,6 @@
     "@lucide/vue": "1.44.0",
     "@vueuse/core": "14.4.0",
     "blobatar": "2.7.0",
-    "katex": "0.18.7",
     "markstream-vue": "2.0.11",
     "mermaid": "11.17.2",
     "reka-ui": "2.10.4",
