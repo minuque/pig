@@ -265,9 +265,9 @@ function pinLatest() {
   pinIfNeeded()
 }
 
-const { isHydrated, observe } = useTranscriptHydrate(rows, scrollIdle, scrollerRoot)
-
 const { readyFrame } = useTranscriptReveal(rows, pinLatest)
+
+const { isHydrated, observe } = useTranscriptHydrate(rows, scrollIdle, scrollerRoot, readyFrame)
 
 function armTailWindow() {
   loadOlderArmed = true

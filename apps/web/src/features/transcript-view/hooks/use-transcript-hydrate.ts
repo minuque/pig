@@ -7,17 +7,22 @@ import {
   yieldToMain,
 } from "@features/transcript-view/lib/yield-to-main.js"
 
-/** 首帧之后在后台挂可见助手 Markdown；滚动或有输入就停。 */
+const OPEN_HOLD_MS = 150
+
+/** 揭开并停稳后再挂可见助手 Markdown；刚打开和滚动中保持纯文本。 */
 export function useTranscriptHydrate(
   rows: Ref<readonly TimelineRow[]>,
   scrollIdle: Ref<boolean>,
   getViewport: () => HTMLElement | null,
+  readyFrame: Ref<boolean>,
 ) {
   const hydrated = shallowRef(new Set<string>())
   const inView = shallowRef(new Set<string>())
+  const openedQuiet = shallowRef(false)
   let observer: IntersectionObserver | undefined
   let pumping = false
   let generation = 0
+  let holdTimer = 0
 
   function mark(id: string) {
     if (hydrated.value.has(id)) return
@@ -37,7 +42,15 @@ export function useTranscriptHydrate(
   }
 
   function peek(): string | undefined {
-    return nextHydrateId(rows.value, hydrated.value, inView.value, scrollIdle.value, inputPending())
+    if (!readyFrame.value || !openedQuiet.value) return undefined
+    return nextHydrateId(
+      rows.value,
+      hydrated.value,
+      inView.value,
+      scrollIdle.value,
+      inputPending(),
+      true,
+    )
   }
 
   function observe() {
@@ -74,7 +87,7 @@ export function useTranscriptHydrate(
 
     try {
       while (mine === generation) {
-        if (!scrollIdle.value) break
+        if (!readyFrame.value || !openedQuiet.value || !scrollIdle.value) break
         const id = peek()
 
         if (!id) {
@@ -88,7 +101,8 @@ export function useTranscriptHydrate(
 
         await yieldToBackground()
 
-        if (mine !== generation || !scrollIdle.value) break
+        if (mine !== generation || !readyFrame.value || !openedQuiet.value || !scrollIdle.value)
+          break
         const next = peek()
 
         if (!next) continue
@@ -100,7 +114,30 @@ export function useTranscriptHydrate(
     }
   }
 
-  watch([rows, scrollIdle, inView], () => {
+  watch(
+    readyFrame,
+    (ready) => {
+      if (holdTimer) {
+        window.clearTimeout(holdTimer)
+        holdTimer = 0
+      }
+
+      if (!ready) {
+        openedQuiet.value = false
+        return
+      }
+
+      openedQuiet.value = false
+      holdTimer = window.setTimeout(() => {
+        holdTimer = 0
+        openedQuiet.value = true
+        void pump()
+      }, OPEN_HOLD_MS)
+    },
+    { immediate: true },
+  )
+
+  watch([rows, scrollIdle, inView, openedQuiet], () => {
     markStreaming()
     void pump()
   })
@@ -115,6 +152,8 @@ export function useTranscriptHydrate(
 
   onBeforeUnmount(() => {
     generation += 1
+
+    if (holdTimer) window.clearTimeout(holdTimer)
     observer?.disconnect()
   })
   return { isHydrated, observe }
