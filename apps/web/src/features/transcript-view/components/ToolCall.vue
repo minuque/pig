@@ -76,7 +76,6 @@
                 :output-text="call.outputText"
                 :output-images="call.outputImages"
                 :empty-output="call.emptyOutput"
-                :output-label="call.outputLabel"
               />
             </div>
           </template>
@@ -164,7 +163,6 @@ type CallView =
       outputText: string
       outputImages: TranscriptImage[]
       emptyOutput: string
-      outputLabel: string
     })
 
 function output(item: ToolCallView, open: boolean) {
@@ -237,7 +235,6 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
       variant: "tool",
       inputFull: "",
       ...out,
-      outputLabel: path || "Read",
     }
   }
 
@@ -255,7 +252,6 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
     variant: "tool",
     inputFull: open ? toolInputPretty(item.input) : "",
     ...output(item, open),
-    outputLabel: "输出",
   }
 }
 

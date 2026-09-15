@@ -59,44 +59,19 @@
     </template>
 
     <template v-else-if="toolContent">
-      <section v-if="toolContent.inputFull" class="layer">
-        <ToolHeader
-          v-model:expanded="inputExpanded"
-          label="入参"
-          :text="toolContent.inputFull"
-          :hidden-count="inputHidden"
-        >
-          <pre class="input-json" :title="toolContent.inputFull">{{ toolContent.inputFull }}</pre>
-        </ToolHeader>
+      <ToolHeader v-if="toolContent.inputFull" label="入参" :text="toolContent.inputFull">
+        <pre class="input-json">{{ toolContent.inputFull }}</pre>
+      </ToolHeader>
 
-        <ToolOutput
-          v-if="inputExpanded && inputHidden > 0"
-          v-model:expanded="inputExpanded"
-          :text="inputRest"
-          :show-count="false"
-          embedded
-        />
-      </section>
-
-      <section class="layer">
-        <ToolHeader
-          v-model:expanded="outputExpanded"
-          :label="toolContent.outputLabel"
-          :text="toolContent.outputText"
-          :hidden-count="outputHidden"
-        />
-
-        <ToolOutput
-          v-model:expanded="outputExpanded"
-          :text="
-            toolContent.outputText ||
-            (toolContent.outputImages.length ? '' : toolContent.emptyOutput)
-          "
-          :images="toolContent.outputImages"
-          :show-count="false"
-          embedded
-        />
-      </section>
+      <ToolOutput
+        v-model:expanded="outputExpanded"
+        :text="
+          toolContent.outputText || (toolContent.outputImages.length ? '' : toolContent.emptyOutput)
+        "
+        :images="toolContent.outputImages"
+        :show-count="false"
+        embedded
+      />
     </template>
 
     <template v-else-if="editContent">
@@ -172,11 +147,8 @@ const props = defineProps<{
   path?: string
   preview?: ReadToolPreview
   inputFull?: string
-  outputLabel?: string
   editPreview?: EditDiffPreview
 }>()
-
-const INPUT_PREVIEW_LINES = 2
 
 const runContent = computed(() => {
   if (props.variant !== "command") return null
@@ -209,7 +181,6 @@ const toolContent = computed(() =>
         outputText: props.outputText ?? "",
         outputImages: props.outputImages ?? [],
         emptyOutput: props.emptyOutput ?? "",
-        outputLabel: props.outputLabel ?? "输出",
       }
     : null,
 )
@@ -227,6 +198,7 @@ const editContent = computed(() =>
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
   "is-command": props.variant === "command",
+  "is-tool": props.variant === "tool",
   "is-err": runContent.value?.status === "error",
   "is-run": runContent.value?.status === "running",
 }))
@@ -240,8 +212,6 @@ const editDiffOptions = computed(() => ({
 
 const runExpanded = ref(false)
 
-const inputExpanded = ref(false)
-
 const outputExpanded = ref(false)
 
 const readExpanded = ref(false)
@@ -251,18 +221,6 @@ const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
 const runBody = computed(() => runContent.value?.outputText || runContent.value?.emptyOutput || "")
 
 const runHidden = computed(() => hiddenLineCount(splitLines(runBody.value).length))
-
-const inputLines = computed(() => splitLines(toolContent.value?.inputFull ?? ""))
-
-const inputHidden = computed(() => Math.max(0, inputLines.value.length - INPUT_PREVIEW_LINES))
-
-const inputRest = computed(() => inputLines.value.slice(INPUT_PREVIEW_LINES).join("\n"))
-
-const outputHidden = computed(() =>
-  hiddenLineCount(
-    splitLines(toolContent.value?.outputText || toolContent.value?.emptyOutput || "").length,
-  ),
-)
 
 const readHidden = computed(() => hiddenLineCount(readContent.value?.preview.lines.length ?? 0))
 
@@ -288,9 +246,8 @@ watch(runBody, () => {
 })
 
 watch(
-  () => [toolContent.value?.inputFull, toolContent.value?.outputText] as const,
+  () => toolContent.value?.outputText,
   () => {
-    inputExpanded.value = false
     outputExpanded.value = false
   },
 )
@@ -391,36 +348,26 @@ watch(
   white-space: nowrap;
 }
 
-.layer + .layer {
-  border-top: var(--border-width) solid var(--hairline);
-}
-
-.layer:not(:last-child) :deep(.tool-header) {
-  border-bottom: 0;
-}
-
-.layer + .layer :deep(.tool-header) {
-  border-start-start-radius: 0;
-  border-start-end-radius: 0;
-}
-
-.layer :deep(.tool-header-pin) {
+.is-tool :deep(.tool-header-pin) {
   position: static;
   container-type: normal;
 }
 
+.is-tool :deep(.tool-header) {
+  align-items: flex-start;
+}
+
+.is-tool :deep(.heading) {
+  overflow: visible;
+}
+
 .input-json {
-  display: -webkit-box;
   margin: 0;
-  overflow: hidden;
   color: var(--ink);
   font-family: var(--font-mono);
   line-height: var(--text-caption--line-height);
-  line-clamp: 2;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .read-heading {
