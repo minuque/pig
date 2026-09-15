@@ -13,18 +13,17 @@ import type {
   ModelRef,
   RemoteSessionState,
   ThinkingLevel,
-  TranscriptItem,
   Unsubscribe,
 } from "@/types/common-type.js"
 import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
-import type { TurnTiming } from "@/types/turn-type.js"
-import { contextUsage, sessionTranscript } from "@client/platform.js"
+import { contextUsage } from "@client/platform.js"
 import { projectContextUsage } from "@features/composer/lib/context-usage.js"
 import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
 import { catalogFromModels, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
+import { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"
 import {
   createAbortableOpen,
   isDisconnectedError,
@@ -33,7 +32,6 @@ import {
 import {
   bindIdleSends,
   isSessionOpening,
-  mergeLiveTranscript,
   optimisticUserMessage,
   phaseLabel,
   projectClientTranscript,
@@ -67,28 +65,16 @@ export function useSessionLifecycle(
   let unsubscribeState: Unsubscribe | undefined
 
   let replaceChain: Promise<void> = Promise.resolve()
-  let wantedId: string | undefined
   let abortInflightOpen: (() => void) | undefined
   const { raceRemoteOpen, discard } = createAbortableOpen()
+  const history = useSessionHistory()
 
   const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
   let contextUsageRequest = 0
 
-  const history = shallowRef<TranscriptItem[]>([])
-  const turnTimings = shallowRef<TurnTiming[]>([])
-  const historySessionId = shallowRef<string>()
-  const historyHasMore = shallowRef(false)
-  const loadingOlder = shallowRef(false)
-  const heldLive = shallowRef<TranscriptItem[]>([])
-  let historyRequest = 0
-  let olderRequest = 0
-
   const snapshot = computed(() => state.value?.snapshot)
 
-  const liveTranscript = computed(() => {
-    const persisted = historySessionId.value === wantedId ? history.value : []
-    return mergeLiveTranscript(persisted, heldLive.value)
-  })
+  const liveTranscript = history.liveTranscript
 
   function attach(next: RemoteSession) {
     const previous = remote.value
@@ -99,18 +85,19 @@ export function useSessionLifecycle(
     let usageRevision: number | undefined
     unsubscribeState = next.subscribe((nextState) => {
       state.value = nextState
-
-      if (nextState.transcript.length > 0)
-        heldLive.value = mergeLiveTranscript(heldLive.value, nextState.transcript)
-      const revision = nextState.snapshot?.revision
       const attachedId = next.id
+
+      if (nextState.transcript.length > 0 && attachedId)
+        history.overlayLive(attachedId, nextState.transcript)
+      const revision = nextState.snapshot?.revision
 
       if (revision === undefined || revision === usageRevision || !attachedId) return
       const hadRevision = usageRevision !== undefined
       usageRevision = revision
       void refreshContextUsage(attachedId)
 
-      if (historySessionId.value !== attachedId || hadRevision) void loadHistory(attachedId)
+      if (history.historyReadyId.value !== attachedId || hadRevision)
+        void history.loadHistory(attachedId)
     })
   }
 
@@ -121,71 +108,6 @@ export function useSessionLifecycle(
     remote.value = undefined
     state.value = undefined
     contextUsageEstimate.value = undefined
-
-    if (historySessionId.value !== wantedId) {
-      history.value = []
-      turnTimings.value = []
-      historySessionId.value = undefined
-      historyHasMore.value = false
-    }
-
-    heldLive.value = []
-  }
-
-  async function loadHistory(id: string) {
-    const request = ++historyRequest
-    olderRequest += 1
-    loadingOlder.value = false
-
-    try {
-      const { items, timings, hasMore } = await sessionTranscript(id)
-
-      if (request !== historyRequest || wantedId !== id) return
-      history.value = items
-      turnTimings.value = timings
-      historyHasMore.value = hasMore
-      historySessionId.value = id
-    } catch {
-      if (request !== historyRequest || wantedId !== id) return
-
-      if (historySessionId.value !== id) {
-        history.value = []
-        turnTimings.value = []
-        historyHasMore.value = false
-        historySessionId.value = id
-      }
-    }
-  }
-
-  async function loadOlderHistory() {
-    const id = wantedId
-    const before = history.value[0]?.id
-
-    if (!id || !before || !historyHasMore.value || loadingOlder.value) return
-    const request = ++olderRequest
-    loadingOlder.value = true
-
-    try {
-      const { items, timings, hasMore } = await sessionTranscript(id, before)
-
-      if (request !== olderRequest || wantedId !== id) return
-      const known = new Set(history.value.map((item) => item.id))
-      const older = items.filter((item) => !known.has(item.id))
-
-      if (older.length > 0) {
-        history.value = older.concat(history.value)
-        const seen = new Set(turnTimings.value.map((item) => item.userId))
-        turnTimings.value = turnTimings.value.concat(
-          timings.filter((item) => !seen.has(item.userId)),
-        )
-      }
-
-      historyHasMore.value = hasMore
-    } catch {
-      if (request !== olderRequest || wantedId !== id) return
-    } finally {
-      if (request === olderRequest) loadingOlder.value = false
-    }
   }
 
   async function refreshContextUsage(id: string | undefined) {
@@ -220,20 +142,11 @@ export function useSessionLifecycle(
 
   /** 打开已有 Session：历史走 HTTP。断线等 pi.connected 再 open 一次。 */
   async function openRemoteSession(id: string) {
-    if (wantedId !== id) abortInflightOpen?.()
-    wantedId = id
-
-    if (historySessionId.value !== id) {
-      history.value = []
-      turnTimings.value = []
-      heldLive.value = []
-      historySessionId.value = undefined
-      historyHasMore.value = false
-    }
-
-    void loadHistory(id)
+    if (history.activeId.value !== id) abortInflightOpen?.()
+    history.setActive(id)
+    void history.loadHistory(id)
     return enqueueReplace(async () => {
-      if (wantedId !== id || remote.value?.id === id) return
+      if (history.activeId.value !== id || remote.value?.id === id) return
 
       if (!pi.client.value) return
       release()
@@ -241,14 +154,14 @@ export function useSessionLifecycle(
       for (let attempt = 0; attempt < 2; attempt += 1) {
         const current = pi.client.value
 
-        if (!current || wantedId !== id) return
+        if (!current || history.activeId.value !== id) return
         const raced = raceRemoteOpen(id, () => RemoteSession.open(current, id))
         abortInflightOpen = raced.abort
 
         try {
           const next = await raced.promise
 
-          if (wantedId !== id) {
+          if (history.activeId.value !== id) {
             await discard(next)
             return
           }
@@ -256,7 +169,7 @@ export function useSessionLifecycle(
           attach(next)
           return
         } catch (error) {
-          if (wantedId !== id || isOpenAborted(error)) return
+          if (history.activeId.value !== id || isOpenAborted(error)) return
 
           if (!isDisconnectedError(error)) throw error
 
@@ -289,7 +202,7 @@ export function useSessionLifecycle(
         return undefined
       }
 
-      wantedId = next.id
+      history.setActive(next.id)
       attach(next)
       return next.id
     })
@@ -316,7 +229,7 @@ export function useSessionLifecycle(
   }
 
   async function dispose() {
-    wantedId = undefined
+    history.setActive(undefined)
     abortInflightOpen?.()
     abortInflightOpen = undefined
     const current = remote.value
@@ -337,7 +250,7 @@ export function useSessionLifecycle(
     } catch (error) {
       sessionError.value = errorMessage(error)
 
-      if (sessionId.value && history.value.length === 0) await router.replace("/")
+      if (sessionId.value && liveTranscript.value.length === 0) await router.replace("/")
     }
   }
 
@@ -357,15 +270,15 @@ export function useSessionLifecycle(
     const id = sessionId.value
 
     if (id) {
-      wantedId = id
-      await loadHistory(id)
+      history.setActive(id)
+      await history.loadHistory(id)
     } else await dispose()
 
     if (pi.connected.value) void syncRoute()
   }
 
   const sessionPending = computed(() =>
-    isSessionOpening(sessionId.value, remote.value?.id, historySessionId.value),
+    isSessionOpening(sessionId.value, remote.value?.id, history.historyReadyId.value),
   )
 
   const projection = computed(() => {
@@ -533,12 +446,10 @@ export function useSessionLifecycle(
     connected: pi.connected,
     connectionError: pi.connectionError,
     transcript,
-    historyHasMore,
-    loadingOlder,
-    loadOlderHistory,
-    turnTimings: computed(() =>
-      historySessionId.value === sessionId.value ? turnTimings.value : [],
-    ),
+    historyHasMore: history.historyHasMore,
+    loadingOlder: history.loadingOlder,
+    loadOlderHistory: history.loadOlderHistory,
+    turnTimings: history.turnTimings,
     sessionCwd,
     contextUsage: projectedUsage,
     catalog,

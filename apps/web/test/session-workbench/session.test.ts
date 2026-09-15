@@ -222,6 +222,49 @@ describe("打开已有 Session", () => {
     expect(session.remote.value).toBeUndefined()
   })
 
+  it("切回已缓存会话立刻露出历史，不等第二次 HTTP", async () => {
+    const item = {
+      id: "u1",
+      role: "user" as const,
+      content: [{ type: "text" as const, text: "hi" }],
+      timestamp: 1,
+    }
+
+    let holdS1: Promise<void> = Promise.resolve()
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) {
+        if (path.includes("sessionId=s1")) await holdS1
+        return path.includes("sessionId=s1")
+          ? { items: [item], timings: [] }
+          : { items: [], timings: [] }
+      }
+
+      return { usage: usageEstimate }
+    })
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1), transcript: [item] }
+    const b = makeSession("s2")
+    b.state = { ...b.state, snapshot: { ...snapshot(1), id: "s2" } }
+    openMock.mockImplementation(async (_client, id) => (id === "s1" ? a : b))
+    await session.initialize()
+    routeBox.params.sessionId = "s1"
+    await nextTick()
+    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
+    routeBox.params.sessionId = "s2"
+    await nextTick()
+    await vi.waitFor(() => expect(session.remote.value).toBe(b))
+    let releaseS1 = () => {}
+
+    holdS1 = new Promise<void>((resolve) => {
+      releaseS1 = resolve
+    })
+    routeBox.params.sessionId = "s1"
+    await nextTick()
+    expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"])
+    releaseS1()
+  })
+
   it("open 失败且尚无历史：不附加、回到首页", async () => {
     const { session } = setup()
     openMock.mockRejectedValue(new Error("boom"))

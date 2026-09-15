@@ -36,6 +36,7 @@
               class="row"
               :class="`row-${row.role}`"
               :data-minimap-row="row.role === 'user' ? row.id : undefined"
+              :data-hydrate-id="row.role === 'assistant' ? row.id : undefined"
             >
               <UserMessage v-if="row.role === 'user'" :item="row" />
 
@@ -43,6 +44,7 @@
                 v-else-if="row.role === 'assistant'"
                 :item="row"
                 :streaming="running && row.streaming"
+                :hydrated="isHydrated(row.id)"
               />
 
               <ToolSteps
@@ -58,6 +60,8 @@
         </div>
       </div>
     </div>
+
+    <SessionLoading v-if="!readyFrame" />
   </div>
 </template>
 
@@ -65,24 +69,23 @@
 import {
   computed,
   nextTick,
+  onActivated,
   onBeforeUnmount,
-  onMounted,
-  provide,
   shallowRef,
   useTemplateRef,
   watch,
 } from "vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
+import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import ToolSteps from "@features/transcript-view/components/ToolSteps.vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
+import { useTranscriptHydrate } from "@features/transcript-view/hooks/use-transcript-hydrate.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
-import {
-  transcriptScrollIdleKey,
-  useTranscriptScrollIdle,
-} from "@features/transcript-view/hooks/use-transcript-scroll-idle.js"
+import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
+import { useTranscriptScrollIdle } from "@features/transcript-view/hooks/use-transcript-scroll-idle.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
@@ -114,7 +117,6 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  firstTextPaint: []
   loadOlder: []
 }>()
 
@@ -125,6 +127,7 @@ const mountedKeys = computed(() => timelineRowKeys(rows.value))
 watch(
   () => buildTimelineRows(props.transcript, props.running, props.timings),
   (next) => {
+    if (next.length === 0 && rows.value.length > 0) return
     rows.value = reuseTimelineRows(rows.value, next)
   },
   { flush: "sync", immediate: true },
@@ -142,8 +145,6 @@ const list = useTemplateRef<HTMLElement>("list")
 
 const scrollIdle = useTranscriptScrollIdle(viewport)
 
-provide(transcriptScrollIdleKey, scrollIdle)
-
 function scrollerRoot(): HTMLElement | null {
   return viewport.value
 }
@@ -153,7 +154,6 @@ const {
   visuallyAtBottom,
   pinIfNeeded,
   releasePinnedToBottom,
-  reset,
   onScroll,
   onWheel,
   scrollToLatest,
@@ -265,38 +265,19 @@ function pinLatest() {
   pinIfNeeded()
 }
 
-function settlePaint() {
-  if (rows.value.length > 0) emit("firstTextPaint")
-}
+const { isHydrated, observe } = useTranscriptHydrate(rows, scrollIdle, scrollerRoot)
+
+const { readyFrame } = useTranscriptReveal(rows, pinLatest)
 
 function armTailWindow() {
   loadOlderArmed = true
 }
-
-onMounted(() => {
-  pinLatest()
-  settlePaint()
-})
-
-watch(
-  () => props.sessionId,
-  (next, prev) => {
-    if (!prev || !next || prev === next) return
-    armTailWindow()
-    reset()
-    settlePaint()
-    void nextTick(pinLatest)
-  },
-  { flush: "pre" },
-)
 
 watch(rows, (next, prev) => {
   const previous = prev ?? []
 
   if (previous.length === 0 && next.length > 0) {
     armTailWindow()
-    settlePaint()
-    void nextTick(pinLatest)
     return
   }
 
@@ -317,11 +298,16 @@ watch(
   [viewport, list],
   ([, body], prev) => {
     observeSizes()
+    observe()
 
     if (body && !prev?.[1]) pinLatest()
   },
   { flush: "post" },
 )
+
+onActivated(() => {
+  observe()
+})
 
 onBeforeUnmount(() => {
   sizeObserver?.disconnect()

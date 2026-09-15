@@ -1,5 +1,5 @@
 <template>
-  <article ref="rootEl">
+  <article>
     <MarkdownRender
       v-if="showHeavy && item.text"
       :key="item.id"
@@ -7,7 +7,7 @@
       :content="item.text"
     />
 
-    <div v-else-if="item.text" class="md-pending" aria-hidden="true"></div>
+    <div v-else-if="item.text" class="md-plain">{{ item.text }}</div>
 
     <Alert
       v-if="item.error || item.aborted"
@@ -31,36 +31,27 @@
 <script setup lang="ts">
 import { CircleAlert } from "@lucide/vue"
 import MarkdownRender from "markstream-vue"
-import { computed, inject, onBeforeUnmount, onMounted, shallowRef, watch } from "vue"
+import { computed } from "vue"
 import Alert from "@components/ui/alert/Alert.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
 import AlertTitle from "@components/ui/alert/AlertTitle.vue"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
-import { transcriptScrollIdleKey } from "@features/transcript-view/hooks/use-transcript-scroll-idle.js"
 import type { AssistantRow } from "@features/transcript-view/type.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import { chatMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
-import { shouldHydrateHeavy } from "@features/transcript-view/lib/transcript-hydrate.js"
 
 const props = withDefaults(
   defineProps<{
     item: AssistantRow
     streaming?: boolean
+    hydrated?: boolean
   }>(),
-  { streaming: false },
+  { streaming: false, hydrated: false },
 )
 
 const { isDark } = useColorScheme()
 
-const scrollIdle = inject(transcriptScrollIdleKey, shallowRef(true))
-
-const inView = shallowRef(false)
-
-const hydrated = shallowRef(false)
-
-const rootEl = shallowRef<HTMLElement | null>(null)
-
-const showHeavy = computed(() => props.streaming || hydrated.value)
+const showHeavy = computed(() => props.streaming || props.hydrated)
 
 const statusLabel = computed(() => {
   const base = props.item.error ? "出错" : "已中止"
@@ -76,46 +67,15 @@ const agentMarkdown = computed(() =>
     isDark: isDark.value,
   }),
 )
-
-let viewObserver: IntersectionObserver | undefined
-
-function stopViewWatch() {
-  viewObserver?.disconnect()
-  viewObserver = undefined
-}
-
-function tryHydrate() {
-  if (hydrated.value) return
-
-  if (!shouldHydrateHeavy(props.streaming, inView.value, scrollIdle.value)) return
-  hydrated.value = true
-  stopViewWatch()
-}
-
-watch([() => props.streaming, inView, scrollIdle], tryHydrate, { flush: "sync" })
-
-onMounted(() => {
-  tryHydrate()
-
-  if (hydrated.value) return
-  const target = rootEl.value
-
-  if (!target) return
-  viewObserver = new IntersectionObserver(
-    (entries) => {
-      inView.value = entries.some((entry) => entry.isIntersecting)
-    },
-    { root: target.closest("#transcript-panel"), threshold: 0 },
-  )
-  viewObserver.observe(target)
-})
-
-onBeforeUnmount(stopViewWatch)
 </script>
 
 <style scoped>
-.md-pending {
-  min-height: calc(var(--spacing-lg) * 6);
+.md-plain {
+  color: var(--ink-markdown);
+  font-size: var(--text-body-md);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .status-alert {
