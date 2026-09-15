@@ -337,7 +337,7 @@ watch(
 .thought {
   max-height: calc(var(--text-body-sm) * var(--text-body-sm--line-height) * 12);
   margin: 0;
-  padding-inline-start: var(--spacing-sm);
+  padding: var(--spacing-xs) 0 0 var(--spacing-sm);
   overflow: hidden auto;
   border-inline-start: var(--border-width) solid var(--hairline);
   color: var(--ink-muted);
@@ -347,7 +347,7 @@ watch(
 }
 
 .thought :deep(:is([data-custom-id="chat"], p, .paragraph-node, h1, h2, h3, h4, h5, h6, li)) {
-  margin: 0 0 var(--spacing-xs);
+  margin: 0;
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
   line-height: var(--text-body-sm--line-height);
