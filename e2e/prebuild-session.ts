@@ -17,12 +17,6 @@ export const MERMAID_MARKER = "e2e-mermaid"
 
 export const TOOL_MARKER = "e2e-tool"
 
-export const SHORT_BODY_SESSION_ID = "e2e-body-short"
-
-export const SHORT_BODY_SESSION_NAME = "短末条"
-
-export const SHORT_BODY_MARKER = "e2e 短末条可见"
-
 /** 本机扫描后推荐：pig、135 条、表+Mermaid+工具、无密钥。PIG_FIXTURE_SESSION 可覆盖。 */
 export const DEFAULT_FIXTURE_SESSION = join(
   homedir(),
@@ -134,15 +128,4 @@ export function prebuildComplexSession(
 
   if (!file) throw new Error("预构建未写出会话文件")
   return { id: COMPLEX_SESSION_ID, name: COMPLEX_SESSION_NAME, forked: Boolean(source) }
-}
-
-/** 另一条已落盘短会话，供正文可见计时对照复杂历史。 */
-export function seedShortBodySession(sessionDir: string, cwd: string) {
-  const manager = SessionManager.create(cwd, sessionDir, { id: SHORT_BODY_SESSION_ID })
-  manager.appendSessionInfo(SHORT_BODY_SESSION_NAME)
-  const timestamp = Date.now()
-  manager.appendMessage({ role: "user", content: "短问", timestamp })
-  manager.appendMessage(
-    assistantMessage([{ type: "text", text: SHORT_BODY_MARKER }], timestamp + 1_000),
-  )
 }

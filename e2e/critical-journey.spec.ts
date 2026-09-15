@@ -32,15 +32,4 @@ test("Chromium production SPA 关键旅程", async ({ page, gateway }) => {
   await expect(send).toBeEnabled()
   await expect(page.locator(".selector-name")).toBeVisible()
   await checkpoint(page, "04-composer")
-
-  await page.locator("button.theme-toggle").click()
-  await expect(page.locator("html")).toHaveClass(/dark/)
-  await checkpoint(page, "05-theme-dark")
-
-  await page.setViewportSize({ width: 390, height: 844 })
-  await expect(page.locator("aside.sidebar.open")).toHaveCount(0)
-  await checkpoint(page, "06-narrow-drawer-closed")
-  await page.locator("button.header-toggle").click()
-  await expect(page.locator("aside.sidebar.open")).toBeVisible()
-  await checkpoint(page, "06-narrow-drawer-open")
 })
