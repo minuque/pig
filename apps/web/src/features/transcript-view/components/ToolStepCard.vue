@@ -109,21 +109,29 @@
       />
     </template>
 
-    <template v-else-if="thoughtContent">
-      <ThinkingCard :blocks="[thoughtContent.text]" :streaming="thoughtContent.streaming" />
-    </template>
+    <blockquote v-else-if="thoughtContent" ref="thoughtViewport" class="thought">
+      <div ref="thoughtInner">
+        <MarkdownRender
+          v-if="thoughtContent.text"
+          :key="thoughtContent.streaming ? 'live' : 'full'"
+          v-bind="thoughtProps"
+          :content="thoughtContent.text"
+        />
+      </div>
+    </blockquote>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from "vue"
+import { computed, nextTick, ref, shallowRef, useTemplateRef, watch } from "vue"
 import { StreamDiff } from "stream-diffs/vue"
-import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
-import ThinkingCard from "@features/transcript-view/components/ThinkingCard.vue"
+import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstream-vue"
+import { useStickToBottom } from "markstream-vue/utils"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import { splitLines, hiddenLineCount } from "@features/transcript-view/lib/expandable-text.js"
+import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 import {
   pathBasename,
   type ReadToolPreview,
@@ -191,6 +199,12 @@ const thoughtContent = computed(() =>
     : null,
 )
 
+const thoughtViewport = useTemplateRef<HTMLElement>("thoughtViewport")
+
+const thoughtInner = useTemplateRef<HTMLElement>("thoughtInner")
+
+const { scheduleScrollToBottom } = useStickToBottom(thoughtViewport, thoughtInner)
+
 const editContent = computed(() =>
   props.variant === "edit" && props.editPreview?.hunks.length ? props.editPreview : null,
 )
@@ -203,7 +217,11 @@ const cardClasses = computed(() => ({
   "is-run": runContent.value?.status === "running",
 }))
 
-const { codeBlockProps } = useColorScheme()
+const { codeBlockProps, isDark } = useColorScheme()
+
+const thoughtProps = computed(() =>
+  plainMarkdownProps({ streaming: Boolean(thoughtContent.value?.streaming), isDark: isDark.value }),
+)
 
 const editDiffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
@@ -260,6 +278,16 @@ watch(
 )
 
 watch(
+  () => [thoughtContent.value?.text, thoughtContent.value?.streaming] as const,
+  async ([, streaming]) => {
+    if (!streaming) return
+    await nextTick()
+    scheduleScrollToBottom()
+  },
+  { flush: "post" },
+)
+
+watch(
   [readContent, codeBlockProps],
   async ([content, blockProps], _, onCleanup) => {
     let active = true
@@ -299,6 +327,31 @@ watch(
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-lg);
   background: var(--code-body);
+}
+
+.is-thought {
+  border: 0;
+  background: transparent;
+}
+
+.thought {
+  min-width: 0;
+  max-height: calc(var(--text-body-sm) * var(--text-body-sm--line-height) * 12);
+  margin: 0;
+  padding-inline-start: var(--spacing-sm);
+  overflow: hidden auto;
+  border-inline-start: var(--border-width) solid var(--hairline);
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  overflow-wrap: anywhere;
+}
+
+.thought :deep(:is(p, .paragraph-node)) {
+  margin: 0 0 var(--spacing-xs);
+  font-size: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
 }
 
 .command-heading {
