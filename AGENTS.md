@@ -7,7 +7,7 @@
 - 单文件 <= 500 行，拆不开就写理由。
 - 一个逻辑任务完成并通过检查后做一次原子 commit，不按单次编辑提交；文档改动不 commit。
 - 依赖缺陷升级或提交上游，不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
-- 单测只覆盖 [`JOURNEYS.md`](JOURNEYS.md) 数据路径，每个分支一条；失败路径需点名。浏览器旅程在 `e2e/`。
+- 单测只覆盖 [`JOURNEYS.md`](JOURNEYS.md) 数据路径。
 
 ## UI
 
