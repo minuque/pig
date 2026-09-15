@@ -330,7 +330,7 @@ watch(
 }
 
 .is-thought {
-  padding-block-start: var(--spacing-xs);
+  padding-inline-start: var(--spacing-xs);
   border: 0;
   background: transparent;
 }
