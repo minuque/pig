@@ -58,6 +58,47 @@
       <p v-if="readContent.preview.notice" class="read-notice">{{ readContent.preview.notice }}</p>
     </template>
 
+    <template v-else-if="toolContent">
+      <section v-if="toolContent.inputFull" class="layer">
+        <ToolHeader
+          v-model:expanded="inputExpanded"
+          label="入参"
+          :text="toolContent.inputFull"
+          :hidden-count="inputHidden"
+        >
+          <pre class="input-json" :title="toolContent.inputFull">{{ toolContent.inputFull }}</pre>
+        </ToolHeader>
+
+        <ToolOutput
+          v-if="inputExpanded && inputHidden > 0"
+          v-model:expanded="inputExpanded"
+          :text="inputRest"
+          :show-count="false"
+          embedded
+        />
+      </section>
+
+      <section class="layer">
+        <ToolHeader
+          v-model:expanded="outputExpanded"
+          :label="toolContent.outputLabel"
+          :text="toolContent.outputText"
+          :hidden-count="outputHidden"
+        />
+
+        <ToolOutput
+          v-model:expanded="outputExpanded"
+          :text="
+            toolContent.outputText ||
+            (toolContent.outputImages.length ? '' : toolContent.emptyOutput)
+          "
+          :images="toolContent.outputImages"
+          :show-count="false"
+          embedded
+        />
+      </section>
+    </template>
+
     <template v-else-if="editContent">
       <ToolHeader :label="editHeading" :text="editCopyText">
         <div class="read-heading">
@@ -130,37 +171,23 @@ const props = defineProps<{
   statusLabel?: string
   path?: string
   preview?: ReadToolPreview
-  heading?: string
   inputFull?: string
+  outputLabel?: string
   editPreview?: EditDiffPreview
 }>()
 
-const runContent = computed(() => {
-  if (props.variant === "command") {
-    const command = props.command ?? ""
-    const cwd = props.cwd ?? ""
-    return {
-      meta: cwd ? pathBasename(cwd) : "",
-      metaTitle: cwd,
-      heading: command,
-      copyLabel: "命令",
-      copyText: command,
-      outputText: props.outputText ?? "",
-      outputImages: props.outputImages ?? [],
-      emptyOutput: props.emptyOutput ?? "",
-      status: props.status ?? "success",
-      statusLabel: props.statusLabel ?? "",
-    }
-  }
+const INPUT_PREVIEW_LINES = 2
 
-  if (props.variant !== "tool") return null
-  const heading = props.heading ?? ""
+const runContent = computed(() => {
+  if (props.variant !== "command") return null
+  const command = props.command ?? ""
+  const cwd = props.cwd ?? ""
   return {
-    meta: "",
-    metaTitle: "",
-    heading,
-    copyLabel: "入参",
-    copyText: props.inputFull || heading,
+    meta: cwd ? pathBasename(cwd) : "",
+    metaTitle: cwd,
+    heading: command,
+    copyLabel: "命令",
+    copyText: command,
     outputText: props.outputText ?? "",
     outputImages: props.outputImages ?? [],
     emptyOutput: props.emptyOutput ?? "",
@@ -172,6 +199,18 @@ const runContent = computed(() => {
 const readContent = computed(() =>
   props.variant === "read" && props.path && props.preview
     ? { path: props.path, preview: props.preview }
+    : null,
+)
+
+const toolContent = computed(() =>
+  props.variant === "tool"
+    ? {
+        inputFull: props.inputFull ?? "",
+        outputText: props.outputText ?? "",
+        outputImages: props.outputImages ?? [],
+        emptyOutput: props.emptyOutput ?? "",
+        outputLabel: props.outputLabel ?? "输出",
+      }
     : null,
 )
 
@@ -187,7 +226,7 @@ const editContent = computed(() =>
 
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
-  "is-command": props.variant === "command" || props.variant === "tool",
+  "is-command": props.variant === "command",
   "is-err": runContent.value?.status === "error",
   "is-run": runContent.value?.status === "running",
 }))
@@ -201,6 +240,10 @@ const editDiffOptions = computed(() => ({
 
 const runExpanded = ref(false)
 
+const inputExpanded = ref(false)
+
+const outputExpanded = ref(false)
+
 const readExpanded = ref(false)
 
 const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
@@ -208,6 +251,18 @@ const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
 const runBody = computed(() => runContent.value?.outputText || runContent.value?.emptyOutput || "")
 
 const runHidden = computed(() => hiddenLineCount(splitLines(runBody.value).length))
+
+const inputLines = computed(() => splitLines(toolContent.value?.inputFull ?? ""))
+
+const inputHidden = computed(() => Math.max(0, inputLines.value.length - INPUT_PREVIEW_LINES))
+
+const inputRest = computed(() => inputLines.value.slice(INPUT_PREVIEW_LINES).join("\n"))
+
+const outputHidden = computed(() =>
+  hiddenLineCount(
+    splitLines(toolContent.value?.outputText || toolContent.value?.emptyOutput || "").length,
+  ),
+)
 
 const readHidden = computed(() => hiddenLineCount(readContent.value?.preview.lines.length ?? 0))
 
@@ -231,6 +286,14 @@ function languageIconDataUrl(lang: string | undefined) {
 watch(runBody, () => {
   runExpanded.value = false
 })
+
+watch(
+  () => [toolContent.value?.inputFull, toolContent.value?.outputText] as const,
+  () => {
+    inputExpanded.value = false
+    outputExpanded.value = false
+  },
+)
 
 watch(
   () => readContent.value?.preview.code,
@@ -326,6 +389,38 @@ watch(
   font: inherit;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.layer + .layer {
+  border-top: var(--border-width) solid var(--hairline);
+}
+
+.layer:not(:last-child) :deep(.tool-header) {
+  border-bottom: 0;
+}
+
+.layer + .layer :deep(.tool-header) {
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+}
+
+.layer :deep(.tool-header-pin) {
+  position: static;
+  container-type: normal;
+}
+
+.input-json {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  line-height: var(--text-caption--line-height);
+  line-clamp: 2;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .read-heading {
