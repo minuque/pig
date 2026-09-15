@@ -1,3 +1,5 @@
-export { default as AlertToaster } from "./AlertToaster.vue"
+export { default as Alert } from "./Alert.vue"
 
-export { notifyError } from "./notify.js"
+export { default as AlertDescription } from "./AlertDescription.vue"
+
+export { default as AlertTitle } from "./AlertTitle.vue"

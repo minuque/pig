@@ -13,7 +13,7 @@
 import { computed } from "vue"
 import { CircleAlert } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
-import { useStartupError } from "@features/startup/hooks/use-startup-error.js"
+import { useStartupError } from "@features/startup/index.js"
 
 const props = withDefaults(
   defineProps<{

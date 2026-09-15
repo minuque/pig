@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest"
 import { nextTick, ref } from "vue"
 import type { SessionSnapshot } from "@/types/common-type.js"
 import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
-import type { ComposerVendor } from "@/types/composer-type.js"
+import type { ComposerVendor } from "@features/composer/type.js"
 
 const catalog: ComposerVendor[] = [
   { id: "a", name: "A", models: [{ id: "one", name: "One", thinkingLevels: ["high"] }] },

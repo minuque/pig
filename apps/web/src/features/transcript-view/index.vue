@@ -75,6 +75,7 @@ import {
   useTemplateRef,
   watch,
 } from "vue"
+import { enableMermaid, setMermaidWorker } from "markstream-vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
@@ -102,7 +103,37 @@ import {
   shouldShowScrollToLatest,
   transcriptOverflows,
 } from "@features/transcript-view/lib/transcript-scroll.js"
-import { historyPrepended } from "@features/transcript-view/lib/transcript-window.js"
+
+let markdownRuntimeStarted = false
+
+/** 第一次进 Transcript 再启 Mermaid worker，避免写进入口包。 */
+function ensureMarkdownRuntime(): void {
+  if (markdownRuntimeStarted) return
+  markdownRuntimeStarted = true
+  enableMermaid()
+  void import("markstream-vue/workers/mermaidParser.worker?worker").then(
+    ({ default: MermaidWorker }) => {
+      setMermaidWorker(new MermaidWorker())
+    },
+  )
+}
+
+ensureMarkdownRuntime()
+
+/** 更长列表的前缀是新历史，prev 仍作为后缀出现。 */
+function historyPrepended(
+  prev: readonly { readonly id: string }[],
+  next: readonly { readonly id: string }[],
+): boolean {
+  if (prev.length === 0 || next.length <= prev.length) return false
+  const offset = next.length - prev.length
+
+  for (let i = 0; i < prev.length; i += 1) {
+    if (next[offset + i]?.id !== prev[i]?.id) return false
+  }
+
+  return true
+}
 
 const props = withDefaults(
   defineProps<{

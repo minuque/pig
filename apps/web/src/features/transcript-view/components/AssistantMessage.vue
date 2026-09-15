@@ -37,7 +37,7 @@ import AlertDescription from "@components/ui/alert/AlertDescription.vue"
 import AlertTitle from "@components/ui/alert/AlertTitle.vue"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import type { AssistantRow } from "@features/transcript-view/type.js"
-import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
+import { useColorScheme } from "@features/theme/index.js"
 import { chatMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 
 const props = withDefaults(

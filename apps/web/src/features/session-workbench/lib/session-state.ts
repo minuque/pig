@@ -6,7 +6,7 @@ import type {
   TranscriptItem,
 } from "@/types/common-type.js"
 import { sessionTitle, UNTITLED_SESSION } from "@features/session-nav/index.js"
-import { transcriptText } from "@features/transcript-view/lib/transcript-format.js"
+import { transcriptText } from "@features/transcript-view/index.js"
 import type {
   OptimisticUserMessage,
   SessionClientState,

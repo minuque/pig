@@ -16,12 +16,12 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from "vue"
 import AppLayout from "@components/layout/AppLayout.vue"
-import { AlertToaster } from "@components/ui/alert/index.js"
+import AlertToaster from "@components/layout/AlertToaster.vue"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
 import { usePiClient } from "@client/pi-client.js"
 
-import { useClickSound } from "@features/click-sound/hooks/use-click-sound.js"
+import { useClickSound } from "@features/click-sound/index.js"
 import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
 import { provideSettings } from "@features/settings/index.js"

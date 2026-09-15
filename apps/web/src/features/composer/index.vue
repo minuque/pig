@@ -85,8 +85,12 @@ import ComposerMeta from "@features/composer/components/ComposerMeta.vue"
 import ContextUsagePanel from "@features/composer/components/ContextUsagePanel.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
-import type { ComposerModel, ComposerPreset, ComposerVendor } from "@/types/composer-type.js"
-import type { ContextUsage } from "@features/composer/type.js"
+import type {
+  ComposerModel,
+  ComposerPreset,
+  ComposerVendor,
+  ContextUsage,
+} from "@features/composer/type.js"
 
 const props = withDefaults(
   defineProps<{

@@ -129,7 +129,7 @@ import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstre
 import { useStickToBottom } from "markstream-vue/utils"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
-import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
+import { useColorScheme } from "@features/theme/index.js"
 import { splitLines, hiddenLineCount } from "@features/transcript-view/lib/expandable-text.js"
 import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 import {

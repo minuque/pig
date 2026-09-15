@@ -1,32 +1,21 @@
 <template>
-  <button
-    type="button"
-    class="sound-toggle press-scale"
-    :aria-pressed="enabled"
-    :aria-label="label"
-    :title="label"
-    :data-sound="enabled ? 'release' : 'pulse'"
-    @click="toggle"
-  >
-    <span class="sound-icon icon-swap" aria-hidden="true">
-      <Volume2 class="size-icon" :data-visible="enabled" />
-      <VolumeX class="size-icon" :data-visible="!enabled" />
+  <button type="button" class="theme-toggle press-scale" @click="toggle">
+    <span class="theme-icon icon-swap">
+      <Sun class="size-icon" :data-visible="!isDark" />
+      <Moon class="size-icon" :data-visible="isDark" />
     </span>
   </button>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
-import { Volume2, VolumeX } from "@lucide/vue"
-import { useClickSound } from "@features/click-sound/hooks/use-click-sound.js"
+import { Moon, Sun } from "@lucide/vue"
+import { useColorScheme } from "@features/theme/index.js"
 
-const { enabled, toggle } = useClickSound()
-
-const label = computed(() => (enabled.value ? "关闭点击音效" : "开启点击音效"))
+const { isDark, toggle } = useColorScheme()
 </script>
 
 <style scoped>
-.sound-toggle {
+.theme-toggle {
   display: grid;
   flex: none;
   place-items: center;
@@ -43,25 +32,25 @@ const label = computed(() => (enabled.value ? "关闭点击音效" : "开启点�
     scale var(--duration-fast) var(--ease-out);
 }
 
-.sound-toggle:hover {
+.theme-toggle:hover {
   background: var(--hover-quiet);
   color: var(--ink);
 }
 
-.sound-icon {
+.theme-icon {
   width: var(--size-icon);
   height: var(--size-icon);
 }
 
 @media (pointer: coarse) {
-  .sound-toggle {
+  .theme-toggle {
     width: var(--size-control);
     min-height: var(--size-control);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sound-toggle {
+  .theme-toggle {
     transition: none;
   }
 }

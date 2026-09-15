@@ -1,4 +1,4 @@
-import type { RemoteSession } from "@earendil-works/pi-coding-agent/client"
+import type { RemoteSession } from "@/types/common-type.js"
 
 const OPEN_ABORTED = "open-aborted"
 

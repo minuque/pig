@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from "vue"
 import type { SessionPhase, ThinkingLevel } from "@/types/common-type.js"
-import type { ComposerModel, ComposerPreset, ComposerVendor } from "@/types/composer-type.js"
+import type { ComposerModel, ComposerPreset, ComposerVendor } from "@features/composer/type.js"
 import {
   defaultPresetFrom,
   resolveModelInfo,

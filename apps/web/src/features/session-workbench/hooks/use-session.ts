@@ -20,15 +20,18 @@ import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
 import { contextUsage } from "@client/platform.js"
-import { projectContextUsage } from "@features/composer/lib/context-usage.js"
-import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
-import { catalogFromModels, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
+import {
+  catalogFromModels,
+  projectContextUsage,
+  thinkingLevelOf,
+  useComposerBinding,
+} from "@features/composer/index.js"
 import { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"
 import {
   createAbortableOpen,
   isDisconnectedError,
   isOpenAborted,
-} from "@features/session-workbench/lib/abortable-open.js"
+} from "@features/session-workbench/hooks/abortable-open.js"
 import {
   bindIdleSends,
   isSessionOpening,

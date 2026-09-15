@@ -1,11 +1,78 @@
 import { nextTick, onBeforeUnmount, shallowRef, watch, type Ref } from "vue"
 import type { TimelineRow } from "@features/transcript-view/type.js"
-import { nextHydrateId } from "@features/transcript-view/lib/transcript-hydrate.js"
-import {
-  inputPending,
-  yieldToBackground,
-  yieldToMain,
-} from "@features/transcript-view/lib/yield-to-main.js"
+
+type Scheduler = {
+  yield?: () => Promise<void>
+  postTask?: (
+    fn: () => void,
+    options?: { priority?: "user-blocking" | "user-visible" | "background" },
+  ) => Promise<void>
+}
+
+function scheduler(): Scheduler | undefined {
+  return (globalThis as { scheduler?: Scheduler }).scheduler
+}
+
+/** 把后续工作让给滚动和点击，有 scheduler.yield 就用。 */
+function yieldToMain(): Promise<void> {
+  const api = scheduler()
+
+  if (api?.yield) return api.yield()
+
+  if (api?.postTask) return api.postTask(() => undefined)
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0)
+  })
+}
+
+/** 低于输入优先级，揭开后挂 Markdown 用这个。 */
+function yieldToBackground(): Promise<void> {
+  const api = scheduler()
+
+  if (api?.postTask) return api.postTask(() => undefined, { priority: "background" })
+  return yieldToMain()
+}
+
+function inputPending(): boolean {
+  const scheduling = (
+    globalThis as {
+      navigator?: {
+        scheduling?: { isInputPending?: (opts?: { includeContinuous?: boolean }) => boolean }
+      }
+    }
+  ).navigator?.scheduling
+  return scheduling?.isInputPending?.({ includeContinuous: true }) === true
+}
+
+/** 流式立刻画；历史等揭开、停稳、没有待处理输入。刚打开不算停稳。 */
+function shouldHydrateHeavy(
+  streaming: boolean,
+  inView: boolean,
+  scrollIdle: boolean,
+  pendingInput = false,
+  openedQuiet = true,
+): boolean {
+  if (streaming) return true
+  return inView && scrollIdle && !pendingInput && openedQuiet
+}
+
+function nextHydrateId(
+  rows: readonly { id: string; role: string; streaming?: boolean }[],
+  hydrated: ReadonlySet<string>,
+  inView: ReadonlySet<string>,
+  scrollIdle: boolean,
+  pendingInput = false,
+  openedQuiet = true,
+): string | undefined {
+  if (!scrollIdle || pendingInput || !openedQuiet) return undefined
+
+  for (const row of rows) {
+    if (row.role !== "assistant" || row.streaming || hydrated.has(row.id)) continue
+
+    if (!shouldHydrateHeavy(false, inView.has(row.id), true, false, true)) continue
+    return row.id
+  }
+}
 
 const OPEN_HOLD_MS = 150
 

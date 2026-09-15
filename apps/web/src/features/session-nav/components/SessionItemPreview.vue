@@ -9,8 +9,18 @@
       <dt>模型</dt>
 
       <dd v-if="model" class="model">
-        <VendorMark :vendor="model.provider" :size="14" />
-        <span>{{ model.id }}</span>
+        <img
+          v-if="icon && !icon.tinted"
+          class="vendor-mark"
+          :src="icon.src"
+          width="14"
+          height="14"
+          alt=""
+        />
+
+        <span v-else-if="icon" class="vendor-mark vendor-mark-mono" :style="monoStyle"></span>
+        <span v-else class="vendor-mark vendor-fallback" :style="fallbackStyle">{{ letter }}</span>
+        <span class="model-id">{{ model.id }}</span>
       </dd>
 
       <dd v-else>—</dd>
@@ -24,13 +34,32 @@
 </template>
 
 <script setup lang="ts">
-import VendorMark from "@features/composer/components/VendorMark.vue"
+import { computed } from "vue"
+import { vendorDisplayName, vendorIcon } from "@features/composer/index.js"
 
-defineProps<{
+const props = defineProps<{
   title: string
   model?: { provider: string; id: string }
   messageCount?: number
 }>()
+
+const icon = computed(() => (props.model ? vendorIcon(props.model.provider) : undefined))
+
+const letter = computed(() => {
+  if (!props.model) return "?"
+  const label = vendorDisplayName(props.model.provider) || props.model.provider
+  return label.charAt(0).toUpperCase() || "?"
+})
+
+const box = { width: "14px", height: "14px" }
+
+const fallbackStyle = { ...box, fontSize: `${Math.max(8, 14 * 0.6)}px` }
+
+const monoStyle = computed(() => ({
+  ...box,
+  webkitMaskImage: `url("${icon.value?.src}")`,
+  maskImage: `url("${icon.value?.src}")`,
+}))
 </script>
 
 <style scoped>
@@ -77,8 +106,37 @@ dd {
   min-width: 0;
 }
 
-.model span {
+.model-id {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.vendor-mark {
+  display: inline-block;
+  flex: none;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.vendor-mark-mono {
+  color: var(--ink);
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.vendor-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--canvas-soft);
+  color: var(--ink-muted);
+  font-weight: 600;
+  line-height: 1;
 }
 </style>

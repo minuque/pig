@@ -4,7 +4,7 @@ import type {
   ComposerModelInfo,
   ComposerPreset,
   ComposerVendor,
-} from "@/types/composer-type.js"
+} from "@features/composer/type.js"
 import { vendorDisplayName } from "@features/composer/lib/vendor-logo.js"
 
 function filterCatalog(catalog: ComposerVendor[], query: string): ComposerVendor[] {

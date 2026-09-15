@@ -102,11 +102,11 @@ import Composer from "@features/composer/index.vue"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
+import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { SESSION_VIEW_CACHE } from "@features/session-workbench/lib/session-history-cache.js"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
-import StartupError from "@features/startup/components/StartupError.vue"
 import TranscriptView from "@features/transcript-view/index.vue"
 
 function nextWelcomeWorkspaceId(

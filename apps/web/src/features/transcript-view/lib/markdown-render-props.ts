@@ -1,7 +1,27 @@
 import type { NodeRendererProps } from "markstream-vue"
-import { codeBlockTypography } from "@features/transcript-view/lib/code-block-options.js"
 
 type CodeBlockTheme = "dark-plus" | "light-plus"
+
+const cssPxCache = new Map<string, number>()
+
+function cssPx(name: string, fallback: number): number {
+  if (typeof document === "undefined") return fallback
+  const hit = cssPxCache.get(name)
+
+  if (hit !== undefined) return hit
+  const n = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))
+  const value = Number.isFinite(n) ? n : fallback
+  cssPxCache.set(name, value)
+  return value
+}
+
+function codeBlockTypography() {
+  return {
+    fontSize: cssPx("--text-code", 14),
+    lineHeight: cssPx("--text-code-line", 22),
+    fontFamily: "var(--font-mono)",
+  } as const
+}
 
 const codeBlockTheme = { dark: "dark-plus", light: "light-plus" } as const satisfies Record<
   "dark" | "light",

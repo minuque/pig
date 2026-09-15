@@ -132,7 +132,7 @@
 import { ChevronDown, Search, Star } from "@lucide/vue"
 import { useVirtualList } from "@vueuse/core"
 import { computed, nextTick, watch } from "vue"
-import type { ComposerModel, ComposerVendor } from "@/types/composer-type.js"
+import type { ComposerModel, ComposerVendor } from "@features/composer/type.js"
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,7 +1,7 @@
 import { readonly, shallowRef } from "vue"
 import { useRouter } from "vue-router"
 import { errorMessage } from "@client/http.js"
-import { setStartupError } from "@features/startup/hooks/use-startup-error.js"
+import { setStartupError } from "@features/startup/index.js"
 
 export interface StartupSequenceOptions {
   connect: () => Promise<unknown>

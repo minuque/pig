@@ -1,6 +1,6 @@
 import type { SessionMetadata, TranscriptItem } from "@/types/common-type.js"
 import { canonicalizeWorkspacePath, uniqueCanonicalPaths } from "@client/local-cwd.js"
-import { transcriptText } from "@features/transcript-view/lib/transcript-format.js"
+import { transcriptText } from "@features/transcript-view/index.js"
 import type {
   SessionCardExtra,
   SessionCardLive,

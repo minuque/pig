@@ -22,7 +22,7 @@ import { CircleAlert, X } from "@lucide/vue"
 
 import Alert from "@components/ui/alert/Alert.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
-import { dismissNotice, noticeQueue } from "@components/ui/alert/notify.js"
+import { dismissNotice, noticeQueue } from "@components/layout/notify.js"
 </script>
 
 <style scoped>
