@@ -1,10 +1,10 @@
 <template>
   <article>
     <MarkdownRender
-      v-if="showMarkdown && item.text"
-      :key="`${item.id}-${showFull ? 'full' : 'light'}`"
+      v-if="showHeavy && item.text"
+      :key="item.id"
       v-bind="agentMarkdown"
-      :content="markdownText"
+      :content="item.text"
     />
 
     <div v-else-if="item.text" class="md-plain">{{ item.text }}</div>
@@ -38,26 +38,20 @@ import AlertTitle from "@components/ui/alert/AlertTitle.vue"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import type { AssistantRow } from "@features/transcript-view/type.js"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
-import {
-  chatMarkdownProps,
-  withoutHeavyBlocks,
-} from "@features/transcript-view/lib/markdown-render-props.js"
+import { chatMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 
 const props = withDefaults(
   defineProps<{
     item: AssistantRow
     streaming?: boolean
     hydrated?: boolean
-    rich?: boolean
   }>(),
-  { streaming: false, hydrated: false, rich: false },
+  { streaming: false, hydrated: false },
 )
 
 const { isDark } = useColorScheme()
 
-const showFull = computed(() => props.streaming || props.rich)
-
-const showMarkdown = computed(() => props.streaming || props.hydrated || props.rich)
+const showHeavy = computed(() => props.streaming || props.hydrated)
 
 const statusLabel = computed(() => {
   const base = props.item.error ? "出错" : "已中止"
@@ -67,15 +61,10 @@ const statusLabel = computed(() => {
   return base
 })
 
-const markdownText = computed(() =>
-  showFull.value ? props.item.text : withoutHeavyBlocks(props.item.text),
-)
-
 const agentMarkdown = computed(() =>
   chatMarkdownProps({
     streaming: props.streaming,
     isDark: isDark.value,
-    rich: showFull.value,
   }),
 )
 </script>
