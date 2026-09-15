@@ -69,7 +69,7 @@ function shift(mode: SidebarGrouping | undefined) {
   width: var(--size-icon-button);
   height: var(--size-icon-button);
   padding: 0;
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-full);
   background: var(--sidebar);
   color: var(--ink-muted);

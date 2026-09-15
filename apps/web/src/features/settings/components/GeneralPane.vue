@@ -51,7 +51,7 @@ const options: { id: ColorScheme; label: string; icon: typeof Monitor }[] = [
   gap: var(--spacing-md);
   min-height: var(--size-control);
   padding-block: var(--spacing-sm);
-  border-bottom: var(--border-width) solid var(--hairline);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .label {
@@ -66,7 +66,7 @@ const options: { id: ColorScheme; label: string; icon: typeof Monitor }[] = [
   display: inline-flex;
   gap: var(--spacing-xxs);
   padding: var(--spacing-xxs);
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
   background: var(--canvas-soft);
 }

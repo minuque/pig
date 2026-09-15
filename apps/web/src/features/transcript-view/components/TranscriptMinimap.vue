@@ -201,7 +201,7 @@ function onStageFocusOut(event: FocusEvent) {
 .preview-card {
   display: block;
   padding: var(--spacing-sm);
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
   color: var(--ink);

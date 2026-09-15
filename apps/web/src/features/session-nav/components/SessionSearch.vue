@@ -144,7 +144,7 @@ function pick(session: SessionMetadata) {
   gap: var(--spacing-xs);
   height: 48px;
   padding-inline: var(--spacing-sm) var(--spacing-xs);
-  border-bottom: var(--border-width) solid var(--hairline);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .query-icon {

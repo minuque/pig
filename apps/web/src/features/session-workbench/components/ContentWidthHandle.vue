@@ -131,8 +131,8 @@ function onPointerCancel() {
   background: linear-gradient(
     to bottom,
     transparent calc(var(--width-handle-pointer-y, 50%) - 52px),
-    var(--hairline) calc(var(--width-handle-pointer-y, 50%) - 12px),
-    var(--hairline) calc(var(--width-handle-pointer-y, 50%) + 12px),
+    var(--border) calc(var(--width-handle-pointer-y, 50%) - 12px),
+    var(--border) calc(var(--width-handle-pointer-y, 50%) + 12px),
     transparent calc(var(--width-handle-pointer-y, 50%) + 52px)
   );
   opacity: 0;

@@ -12,13 +12,13 @@ colors:
   canvas-soft: "#fafafa"
   surface: "#ffffff"
   sidebar: "#ffffff"
-  sidebar-ring: "#eeeeee"
+  border: "#e8e8e8"
+  border-subtle: "#eeeeee"
   composer-bg: "#ffffff"
   ink: "#0a0a0a"
   ink-secondary: "#525252"
   ink-muted: "#525252"
   ink-faint: "#666666"
-  hairline: "#e5e5e5"
   accent-sunset: "#ee650d"
   accent-sunset-soft: "#ffc285"
   accent-dusk: "#7c3aed"
@@ -251,7 +251,7 @@ components:
     description: "Quiet card on the conversation surface."
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
-    borderColor: "{colors.hairline}"
+    borderColor: "{colors.border}"
     rounded: "{rounded.lg}"
     padding: "{spacing.md}"
   ex-pricing-tier-featured:
@@ -270,7 +270,7 @@ components:
     backgroundColor: "{colors.surface}"
     rounded: "{rounded.lg}"
     padding: "{spacing.md}"
-    item-divider: "{colors.hairline}"
+    item-divider: "{colors.border}"
   ex-app-shell-row:
     description: "Sidebar row. Active ink is primary."
     backgroundColor: "{colors.canvas-soft}"
@@ -283,14 +283,14 @@ components:
     headerTypography: "{typography.eyebrow}"
     bodyTypography: "{typography.body-sm}"
     cellPadding: "{spacing.xs} {spacing.sm}"
-    rowBorder: "{colors.hairline}"
+    rowBorder: "{colors.border}"
   ex-auth-form-card:
     description: "Form card."
     backgroundColor: "{colors.surface}"
     rounded: "{rounded.lg}"
     padding: "{spacing.md}"
   ex-modal-card:
-    description: "Modal surface with hairline."
+    description: "Modal surface with border."
     backgroundColor: "{colors.surface}"
     rounded: "{rounded.lg}"
     padding: "{spacing.md}"
@@ -338,11 +338,11 @@ Pi Agent GUI 浅色用中性白色抬升面板，深色用抬升的中性灰表�
 
 - **Surface** (`{colors.surface}` — #ffffff)：壳层（对话列）。
 - **Sidebar** (`{colors.sidebar}` — #ffffff)：侧栏卡片。
-- **Sidebar ring** (`{colors.sidebar-ring}` — #eeeeee)：侧栏卡片轮廓，浅于 hairline，避免和桌面窗口边重合。
+- **Border subtle** (`{colors.border-subtle}` — #eeeeee)：浅档边，侧栏卡片轮廓，避免和桌面窗口边重合。
 - **Composer** (`{colors.composer-bg}` — #ffffff)：输入卡。
 - **Canvas** (`{colors.canvas}` — #f5f5f5)：次级井。
 - **Secondary well** (`{colors.canvas-soft}` — #fafafa)：页面底。
-- **Hairline** (`{colors.hairline}` — #e5e5e5)：控件边与对话栏缝，不用在侧栏卡片轮廓。
+- **Border** (`{colors.border}` — #e8e8e8)：深档边，控件与对话栏缝，比 border-subtle 深一档。
 
 ### Text
 
@@ -409,7 +409,7 @@ sunset 是装饰，orange 保留兼容命名，映射到黄色警告色。
 
 `{typography.caption-mono}` 用于阶段、栏目标签，大写 + 正 tracking。
 
-对话 Markdown 正文字号 `{typography.body-md}`，行高 `1.8`（`--ms-leading-body`）。行内代码底 `--inline-code`，边 `hairline`。
+对话 Markdown 正文字号 `{typography.body-md}`，行高 `1.8`（`--ms-leading-body`）。行内代码底 `--inline-code`，边 `--border`。
 
 ### Hierarchy
 
@@ -450,13 +450,13 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 
 ## Elevation & Depth
 
-| Level    | Treatment               | Use                                                |
-| -------- | ----------------------- | -------------------------------------------------- |
-| 0 — Flat | hairline / sidebar-ring | 列表、对话用 hairline；侧栏卡片轮廓用 sidebar-ring |
-| 1 — Soft | 一层轻阴影              | composer 卡                                        |
-| 2 — Pop  | 稍深，仍短              | 菜单、抽屉                                         |
+| Level    | Treatment              | Use                                               |
+| -------- | ---------------------- | ------------------------------------------------- |
+| 0 — Flat | border / border-subtle | 列表、对话用 border；侧栏卡片轮廓用 border-subtle |
+| 1 — Soft | 一层轻阴影             | composer 卡                                       |
+| 2 — Pop  | 稍深，仍短             | 菜单、抽屉                                        |
 
-深色卡和栏用 hairline；侧栏卡片轮廓用 `{colors.sidebar-ring}`。输入卡和菜单填充 100%，避免底下的文字改变其颜色。
+深色卡和栏用 `{colors.border}`；侧栏卡片轮廓用 `{colors.border-subtle}`。输入卡和菜单填充 100%，避免底下的文字改变其颜色。
 
 ## Shapes
 

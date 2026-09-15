@@ -45,8 +45,8 @@
   --ink-faint: #666666;
 
   /* 结构 / 交互 */
-  --hairline: #e5e5e5;
-  --sidebar-ring: #eeeeee;
+  --border: #e8e8e8;
+  --border-subtle: #eeeeee;
   --composer-ring: #d4d4d4;
   --interaction-hover: #f5f5f5;
   --interaction-selected: #e5e5e5;
@@ -247,8 +247,8 @@
   --ink-muted: #a3a3a3;
   --ink-faint: #a3a3a3;
 
-  --hairline: #404040;
-  --sidebar-ring: #2a2a2a;
+  --border: #333333;
+  --border-subtle: #2a2a2a;
   --composer-ring: #525252;
   --interaction-hover: #404040;
   --interaction-selected: #333333;
@@ -353,13 +353,12 @@
   --color-canvas-soft: var(--canvas-soft);
   --color-surface: var(--surface);
   --color-sidebar: var(--sidebar);
-  --color-sidebar-ring: var(--sidebar-ring);
+  --color-border-subtle: var(--border-subtle);
   --color-composer-bg: var(--composer-bg);
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
-  --color-hairline: var(--hairline);
   --color-accent-sunset: var(--accent-sunset);
   --color-accent-sunset-soft: var(--accent-sunset-soft);
   --color-accent-dusk: var(--accent-dusk);
@@ -392,7 +391,7 @@
   --color-popover-foreground: var(--ink);
   --color-muted: var(--canvas-soft);
   --color-muted-foreground: var(--ink-muted);
-  --color-border: var(--hairline);
+  --color-border: var(--border);
   --color-accent: var(--interaction-hover);
   --color-accent-foreground: var(--ink);
 

@@ -39,7 +39,7 @@ const emit = defineEmits<{
   justify-content: space-between;
   gap: var(--spacing-xxs);
   padding: var(--spacing-xs) var(--nav-inline, var(--spacing-xs));
-  border-top: var(--border-width) solid var(--hairline);
+  border-top: var(--border-width) solid var(--border);
 }
 
 .footer-action {

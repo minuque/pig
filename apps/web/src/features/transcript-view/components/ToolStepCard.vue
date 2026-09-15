@@ -276,7 +276,7 @@ watch(
   min-width: 0;
   max-width: 100%;
   overflow: visible;
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--code-body);
 }
@@ -354,7 +354,7 @@ watch(
 .read-notice {
   margin: 0;
   padding: var(--spacing-xs) var(--spacing-sm);
-  border-top: var(--border-width) solid var(--hairline);
+  border-top: var(--border-width) solid var(--border);
   color: var(--ink-muted);
   font-size: var(--text-caption);
   overflow-wrap: anywhere;
@@ -388,7 +388,7 @@ watch(
 }
 
 .edit-diff + .edit-diff {
-  border-top: var(--border-width) solid var(--hairline);
+  border-top: var(--border-width) solid var(--border);
 }
 
 @keyframes status-pulse {

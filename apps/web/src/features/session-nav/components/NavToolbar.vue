@@ -28,7 +28,7 @@ const emit = defineEmits<{
   width: 100%;
   height: var(--size-nav-rail);
   padding-inline: var(--spacing-xs) var(--spacing-sm);
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--ink-muted);
@@ -57,7 +57,7 @@ const emit = defineEmits<{
 .search-shortcut {
   flex: none;
   padding: 1px var(--spacing-xxs);
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-xs);
   background: var(--canvas-soft);
   color: var(--ink-faint);

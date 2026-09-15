@@ -192,8 +192,12 @@ defineExpose({ focus })
   padding-inline: var(--spacing-sm);
   overflow: hidden;
   background: var(--composer-bg);
-  border: var(--border-width) solid var(--composer-ring);
+  border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-full);
+}
+
+.glass-host:focus-within {
+  border-color: var(--border);
 }
 
 .composer[data-expanded="true"] .glass-host {

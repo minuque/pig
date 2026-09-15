@@ -81,7 +81,7 @@ function onOpen(next: boolean) {
   width: var(--size-settings-nav);
   padding: var(--spacing-sm);
   overflow: auto;
-  border-inline-end: var(--border-width) solid var(--hairline);
+  border-inline-end: var(--border-width) solid var(--border);
   background: var(--surface);
 }
 

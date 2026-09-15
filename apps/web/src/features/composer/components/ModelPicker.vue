@@ -319,7 +319,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   min-height: 0;
   padding: var(--spacing-xxs);
   overflow-y: auto;
-  border-inline-end: var(--border-width) solid var(--hairline);
+  border-inline-end: var(--border-width) solid var(--border);
   scrollbar-width: none;
 }
 

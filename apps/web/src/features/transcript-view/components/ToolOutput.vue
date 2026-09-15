@@ -195,7 +195,7 @@ function onScroll(event: Event) {
   margin: var(--spacing-xxs) 0 0;
   padding: var(--spacing-sm);
   overflow: auto;
-  border: var(--border-width) solid var(--hairline);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--ink-secondary);

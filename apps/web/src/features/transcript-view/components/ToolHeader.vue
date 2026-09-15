@@ -95,7 +95,7 @@ async function copy() {
   min-width: 0;
   min-height: 36px;
   padding: var(--spacing-xxs) var(--spacing-sm);
-  border-bottom: var(--border-width) solid var(--hairline);
+  border-bottom: var(--border-width) solid var(--border);
   border-start-start-radius: var(--radius-lg);
   border-start-end-radius: var(--radius-lg);
   background: var(--code-header);
@@ -109,7 +109,7 @@ async function copy() {
   .tool-header {
     border-start-start-radius: 0;
     border-start-end-radius: 0;
-    border-block-start: var(--border-width) solid var(--hairline);
+    border-block-start: var(--border-width) solid var(--border);
   }
 }
 

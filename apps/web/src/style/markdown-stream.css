@@ -47,7 +47,7 @@
   --ms-background: from var(--surface) h s l;
   --ms-muted: from var(--canvas-soft) h s l;
   --ms-muted-foreground: from var(--ink-muted) h s l;
-  --ms-border: from var(--hairline) h s l;
+  --ms-border: from var(--border) h s l;
   --ms-primary: from var(--primary) h s l;
   --ms-primary-foreground: from var(--on-primary) h s l;
   --ms-secondary: from var(--canvas-soft) h s l;
@@ -78,13 +78,13 @@
   --code-bg: var(--code-body);
   --code-header-bg: var(--code-header);
   --code-fg: var(--ink);
-  --code-border: var(--hairline);
+  --code-border: var(--border);
   --inline-code-bg: var(--inline-code);
   --inline-code-fg: var(--inline-code-ink);
-  --inline-code-border: var(--hairline);
-  --blockquote-border: var(--hairline);
+  --inline-code-border: var(--border);
+  --blockquote-border: var(--border);
   --blockquote-fg: var(--ink-muted);
-  --table-border: var(--hairline);
+  --table-border: var(--border);
   --table-header-bg: var(--canvas-soft);
   --focus-ring: transparent;
   --link-color: var(--link);
@@ -140,27 +140,6 @@ html[data-pig-desktop-platform] .mermaid-modal-overlay {
   color: var(--ink);
 }
 
-._mermaid svg {
-  color: var(--ink);
-}
-
-._mermaid svg .actor,
-._mermaid svg rect.actor,
-._mermaid svg .actor > rect,
-._mermaid svg .node rect,
-._mermaid svg .node polygon,
-._mermaid svg .node circle,
-._mermaid svg .node ellipse,
-._mermaid svg .node path,
-._mermaid svg .basic.label-container,
-._mermaid svg .cluster rect,
-._mermaid svg .labelBox,
-._mermaid svg .note {
-  fill: var(--code-body) !important;
-  stroke: var(--primary) !important;
-  stroke-width: 1.5px !important;
-}
-
 ._mermaid svg .actor,
 ._mermaid svg rect.actor,
 ._mermaid svg .actor > rect,
@@ -169,20 +148,28 @@ html[data-pig-desktop-platform] .mermaid-modal-overlay {
   ry: var(--radius-md);
 }
 
-._mermaid svg .actor-line {
-  stroke: var(--ink-muted) !important;
-  stroke-dasharray: 4 4;
+._mermaid svg .edgeLabel rect {
+  fill: var(--code-body);
+  fill-opacity: 1;
+  opacity: 1;
+  stroke: var(--code-body);
+  stroke-width: calc(var(--spacing-xs) * 2);
+  paint-order: stroke fill;
+  outline: var(--border-width) solid var(--border);
+  outline-offset: var(--spacing-xs);
+  rx: var(--radius-xs);
+  ry: var(--radius-xs);
 }
 
-._mermaid svg .loopLine {
-  stroke: var(--primary) !important;
-}
-
-._mermaid svg .activation0,
-._mermaid svg .activation1,
-._mermaid svg .activation2 {
-  fill: var(--code-body) !important;
-  stroke: var(--primary) !important;
+._mermaid svg .labelBkg {
+  display: inline-block;
+  box-sizing: border-box;
+  background-color: var(--code-body);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-xs);
+  padding-block: var(--spacing-xxs);
+  padding-inline: var(--spacing-xs);
+  opacity: 1;
 }
 
 ._mermaid svg .messageText,
@@ -194,12 +181,5 @@ html[data-pig-desktop-platform] .mermaid-modal-overlay {
 ._mermaid svg .edgeLabel,
 ._mermaid svg .cluster-label,
 ._mermaid svg text {
-  fill: var(--ink) !important;
   font-family: var(--font-sans);
-}
-
-._mermaid svg .nodeLabel,
-._mermaid svg .edgeLabel,
-._mermaid svg foreignObject {
-  color: var(--ink);
 }

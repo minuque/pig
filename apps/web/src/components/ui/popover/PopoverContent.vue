@@ -3,7 +3,7 @@
     <PopoverContent
       data-slot="popover-content"
       v-bind="{ ...$attrs, ...forwarded }"
-      class="bg-popover text-ink z-(--z-drawer) w-fit max-w-(--reka-popover-content-available-width) origin-(--reka-popover-content-transform-origin) rounded-(--radius-lg) border border-hairline p-(--spacing-sm) shadow-(--shadow-popover) outline-hidden translate-y-1 opacity-0 transition-[translate,opacity] duration-(--duration-fast) ease-(--ease-out) data-[state=open]:translate-y-0 data-[state=open]:opacity-100 data-[state=closed]:animate-[exit-soft_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
+      class="bg-popover text-ink z-(--z-drawer) w-fit max-w-(--reka-popover-content-available-width) origin-(--reka-popover-content-transform-origin) rounded-(--radius-lg) border border-border p-(--spacing-sm) shadow-(--shadow-popover) outline-hidden translate-y-1 opacity-0 transition-[translate,opacity] duration-(--duration-fast) ease-(--ease-out) data-[state=open]:translate-y-0 data-[state=open]:opacity-100 data-[state=closed]:animate-[exit-soft_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
       :class="props.class"
     >
       <slot />

@@ -5,7 +5,7 @@
     <AlertDialogContent
       data-slot="alert-dialog-content"
       v-bind="{ ...$attrs, ...forwarded }"
-      class="bg-surface text-body-md fixed bottom-0 inset-s-1/2 z-50 grid max-h-[calc(100dvh-3rem)] w-full gap-(--spacing-md) rounded-t-(--radius-xl) border border-hairline border-b-0 p-(--spacing-lg) shadow-(--shadow-modal) sm:top-[50%] sm:bottom-auto sm:max-w-(--size-modal) sm:rounded-(--radius-xl) sm:border-b"
+      class="bg-surface text-body-md fixed bottom-0 inset-s-1/2 z-50 grid max-h-[calc(100dvh-3rem)] w-full gap-(--spacing-md) rounded-t-(--radius-xl) border border-border border-b-0 p-(--spacing-lg) shadow-(--shadow-modal) sm:top-[50%] sm:bottom-auto sm:max-w-(--size-modal) sm:rounded-(--radius-xl) sm:border-b"
       :class="props.class"
     >
       <slot />

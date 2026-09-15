@@ -20,7 +20,7 @@
       v-for="(_, key) in modelValue"
       :key="key"
       data-slot="slider-thumb"
-      class="block size-(--size-icon) shrink-0 rounded-full border border-hairline bg-surface shadow-soft outline-none transition-[scale] duration-(--duration-fast) ease-(--ease-out) active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:ring-1 focus-visible:ring-primary"
+      class="block size-(--size-icon) shrink-0 rounded-full border border-border bg-surface shadow-soft outline-none transition-[scale] duration-(--duration-fast) ease-(--ease-out) active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:ring-1 focus-visible:ring-primary"
     />
   </SliderRoot>
 </template>
