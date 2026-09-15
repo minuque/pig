@@ -72,13 +72,10 @@
               <ToolStepCard
                 v-else
                 variant="tool"
-                :heading="call.heading"
                 :input-full="call.inputFull"
                 :output-text="call.outputText"
                 :output-images="call.outputImages"
                 :empty-output="call.emptyOutput"
-                :status="call.status"
-                :status-label="call.statusLabel"
               />
             </div>
           </template>
@@ -106,7 +103,6 @@ import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-rows.
 import {
   isCommandTool,
   toolCommand,
-  toolInputHint,
   toolInputPretty,
   toolPath,
   toolWorkingDirectory,
@@ -163,13 +159,10 @@ type CallView =
     })
   | (CallBase & {
       variant: "tool"
-      heading: string
       inputFull: string
       outputText: string
       outputImages: TranscriptImage[]
       emptyOutput: string
-      status: "error" | "running" | "success"
-      statusLabel: string
     })
 
 function output(item: ToolCallView, open: boolean) {
@@ -240,10 +233,8 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
       item,
       expandable: true,
       variant: "tool",
-      heading: path || "Read",
       inputFull: "",
       ...out,
-      ...callStatus(item),
     }
   }
 
@@ -255,15 +246,12 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
     }
   }
 
-  const heading = toolInputHint(item.input) || item.toolName
   return {
     item,
     expandable: hasBody(item),
     variant: "tool",
-    heading,
     inputFull: open ? toolInputPretty(item.input) : "",
     ...output(item, open),
-    ...callStatus(item),
   }
 }
 

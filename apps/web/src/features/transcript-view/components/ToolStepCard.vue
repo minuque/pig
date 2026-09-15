@@ -58,6 +58,22 @@
       <p v-if="readContent.preview.notice" class="read-notice">{{ readContent.preview.notice }}</p>
     </template>
 
+    <template v-else-if="toolContent">
+      <ToolHeader v-if="toolContent.inputFull" label="入参" :text="toolContent.inputFull">
+        <pre class="input-json">{{ toolContent.inputFull }}</pre>
+      </ToolHeader>
+
+      <ToolOutput
+        v-model:expanded="outputExpanded"
+        :text="
+          toolContent.outputText || (toolContent.outputImages.length ? '' : toolContent.emptyOutput)
+        "
+        :images="toolContent.outputImages"
+        :show-count="false"
+        embedded
+      />
+    </template>
+
     <template v-else-if="editContent">
       <ToolHeader :label="editHeading" :text="editCopyText">
         <div class="read-heading">
@@ -93,21 +109,29 @@
       />
     </template>
 
-    <template v-else-if="thoughtContent">
-      <ThinkingCard :blocks="[thoughtContent.text]" :streaming="thoughtContent.streaming" />
-    </template>
+    <blockquote v-else-if="thoughtContent" ref="thoughtViewport" class="thought">
+      <div ref="thoughtInner">
+        <MarkdownRender
+          v-if="thoughtContent.text"
+          :key="thoughtContent.streaming ? 'live' : 'full'"
+          v-bind="thoughtProps"
+          :content="thoughtContent.text"
+        />
+      </div>
+    </blockquote>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from "vue"
+import { computed, nextTick, ref, shallowRef, useTemplateRef, watch } from "vue"
 import { StreamDiff } from "stream-diffs/vue"
-import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
-import ThinkingCard from "@features/transcript-view/components/ThinkingCard.vue"
+import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstream-vue"
+import { useStickToBottom } from "markstream-vue/utils"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import { useColorScheme } from "@features/theme/hooks/use-color-scheme.js"
 import { splitLines, hiddenLineCount } from "@features/transcript-view/lib/expandable-text.js"
+import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 import {
   pathBasename,
   type ReadToolPreview,
@@ -130,37 +154,20 @@ const props = defineProps<{
   statusLabel?: string
   path?: string
   preview?: ReadToolPreview
-  heading?: string
   inputFull?: string
   editPreview?: EditDiffPreview
 }>()
 
 const runContent = computed(() => {
-  if (props.variant === "command") {
-    const command = props.command ?? ""
-    const cwd = props.cwd ?? ""
-    return {
-      meta: cwd ? pathBasename(cwd) : "",
-      metaTitle: cwd,
-      heading: command,
-      copyLabel: "命令",
-      copyText: command,
-      outputText: props.outputText ?? "",
-      outputImages: props.outputImages ?? [],
-      emptyOutput: props.emptyOutput ?? "",
-      status: props.status ?? "success",
-      statusLabel: props.statusLabel ?? "",
-    }
-  }
-
-  if (props.variant !== "tool") return null
-  const heading = props.heading ?? ""
+  if (props.variant !== "command") return null
+  const command = props.command ?? ""
+  const cwd = props.cwd ?? ""
   return {
-    meta: "",
-    metaTitle: "",
-    heading,
-    copyLabel: "入参",
-    copyText: props.inputFull || heading,
+    meta: cwd ? pathBasename(cwd) : "",
+    metaTitle: cwd,
+    heading: command,
+    copyLabel: "命令",
+    copyText: command,
     outputText: props.outputText ?? "",
     outputImages: props.outputImages ?? [],
     emptyOutput: props.emptyOutput ?? "",
@@ -175,11 +182,28 @@ const readContent = computed(() =>
     : null,
 )
 
+const toolContent = computed(() =>
+  props.variant === "tool"
+    ? {
+        inputFull: props.inputFull ?? "",
+        outputText: props.outputText ?? "",
+        outputImages: props.outputImages ?? [],
+        emptyOutput: props.emptyOutput ?? "",
+      }
+    : null,
+)
+
 const thoughtContent = computed(() =>
   props.variant === "thought"
     ? { text: props.text ?? "", streaming: props.streaming ?? false }
     : null,
 )
+
+const thoughtViewport = useTemplateRef<HTMLElement>("thoughtViewport")
+
+const thoughtInner = useTemplateRef<HTMLElement>("thoughtInner")
+
+const { scheduleScrollToBottom } = useStickToBottom(thoughtViewport, thoughtInner)
 
 const editContent = computed(() =>
   props.variant === "edit" && props.editPreview?.hunks.length ? props.editPreview : null,
@@ -187,12 +211,17 @@ const editContent = computed(() =>
 
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
-  "is-command": props.variant === "command" || props.variant === "tool",
+  "is-command": props.variant === "command",
+  "is-tool": props.variant === "tool",
   "is-err": runContent.value?.status === "error",
   "is-run": runContent.value?.status === "running",
 }))
 
-const { codeBlockProps } = useColorScheme()
+const { codeBlockProps, isDark } = useColorScheme()
+
+const thoughtProps = computed(() =>
+  plainMarkdownProps({ streaming: Boolean(thoughtContent.value?.streaming), isDark: isDark.value }),
+)
 
 const editDiffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
@@ -200,6 +229,8 @@ const editDiffOptions = computed(() => ({
 }))
 
 const runExpanded = ref(false)
+
+const outputExpanded = ref(false)
 
 const readExpanded = ref(false)
 
@@ -233,10 +264,27 @@ watch(runBody, () => {
 })
 
 watch(
+  () => toolContent.value?.outputText,
+  () => {
+    outputExpanded.value = false
+  },
+)
+
+watch(
   () => readContent.value?.preview.code,
   () => {
     readExpanded.value = false
   },
+)
+
+watch(
+  () => [thoughtContent.value?.text, thoughtContent.value?.streaming] as const,
+  async ([, streaming]) => {
+    if (!streaming) return
+    await nextTick()
+    scheduleScrollToBottom()
+  },
+  { flush: "post" },
 )
 
 watch(
@@ -279,6 +327,31 @@ watch(
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--code-body);
+}
+
+.is-thought {
+  padding-inline-start: var(--spacing-xs);
+  border: 0;
+  background: transparent;
+}
+
+.thought {
+  max-height: calc(var(--text-body-sm) * var(--text-body-sm--line-height) * 12);
+  margin: 0;
+  padding-inline-start: var(--spacing-sm);
+  overflow: hidden auto;
+  border-inline-start: var(--border-width) solid var(--hairline);
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+}
+
+.thought :deep(:is([data-custom-id="chat"], p, .paragraph-node, h1, h2, h3, h4, h5, h6, li)) {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  white-space: pre-wrap;
 }
 
 .command-heading {
@@ -326,6 +399,28 @@ watch(
   font: inherit;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.is-tool :deep(.tool-header-pin) {
+  position: static;
+  container-type: normal;
+}
+
+.is-tool :deep(.tool-header) {
+  align-items: flex-start;
+}
+
+.is-tool :deep(.heading) {
+  overflow: visible;
+}
+
+.input-json {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  line-height: var(--text-caption--line-height);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .read-heading {

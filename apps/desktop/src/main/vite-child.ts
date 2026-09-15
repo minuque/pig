@@ -1,7 +1,7 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process"
 import { fileURLToPath } from "node:url"
 
-import { VITE_DEV_ORIGIN } from "./urls.js"
+import { viteDevPort } from "./urls.js"
 
 const REPO_ROOT = fileURLToPath(new URL("../../../../", import.meta.url))
 
@@ -63,21 +63,22 @@ export function spawnVite(env: { GATEWAY_TARGET: string }): ChildProcess {
 
   const windows = process.platform === "win32"
 
-  const child = spawn(node, [pnpm, "--filter", "@pig/web", "dev"], {
-    cwd: REPO_ROOT,
-    env: childEnv,
-    stdio: windows ? ["ignore", "pipe", "pipe"] : "inherit",
-    // 非 Windows 用独立进程组，便于整树终止
-    detached: !windows,
-  })
+  const port = viteDevPort()
+
+  const child = spawn(
+    node,
+    [pnpm, "--filter", "@pig/web", "dev", "--port", String(port), "--strictPort"],
+    {
+      cwd: REPO_ROOT,
+      env: childEnv,
+      stdio: windows ? ["ignore", "pipe", "pipe"] : "inherit",
+      // 非 Windows 用独立进程组，便于整树终止
+      detached: !windows,
+    },
+  )
 
   if (windows) attachWindowsConsole(child)
   return child
-}
-
-function viteDevPort(): number {
-  const port = Number(new URL(VITE_DEV_ORIGIN).port)
-  return Number.isSafeInteger(port) && port > 0 ? port : 5173
 }
 
 function parsePids(stdout: string | null | undefined): number[] {

@@ -55,7 +55,7 @@ export function chatMarkdownProps(input: {
   }
 }
 
-/** 思考卡 / 预览：轻量 pre，不走增强代码卡片。 */
+/** 思考 / 预览：轻量 pre，不走增强代码卡片。 */
 export function plainMarkdownProps(input: {
   streaming?: boolean
   isDark: boolean

@@ -4,7 +4,7 @@ import { createRequire } from "node:module"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { VITE_DEV_ORIGIN } from "./main/urls.js"
+import { viteDevPort } from "./main/urls.js"
 import { killPortListeners } from "./main/vite-child.js"
 
 const desktopRoot = join(dirname(fileURLToPath(import.meta.url)), "..")
@@ -37,7 +37,7 @@ function killPidTree(pid: number): void {
   }
 }
 
-const vitePort = Number(new URL(VITE_DEV_ORIGIN).port) || 5173
+const vitePort = viteDevPort()
 
 const watchdog = spawn(
   process.execPath,
@@ -47,9 +47,9 @@ const watchdog = spawn(
 
 watchdog.unref()
 
-const electron = spawn(electronExecutable(), [".", "--", "--dev"], {
+const electron = spawn(electronExecutable(), [".", "--", "--dev", ...process.argv.slice(2)], {
   cwd: desktopRoot,
-  env: process.env,
+  env: { ...process.env, PIG_VITE_PORT: String(vitePort) },
   stdio: "inherit",
 })
 
