@@ -23,7 +23,11 @@ const chatCodeChrome = {
   showExpandButton: true,
 } as const
 
-/** 流式不切字；非流式推迟代码块等到进视口。 */
+const HISTORY_LIVE_NODES = 96
+
+const BATCH_BUDGET_MS = 8
+
+/** 流式分帧；历史长文开窗口，单帧预算压在 8ms。 */
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean
@@ -37,9 +41,13 @@ export function chatMarkdownProps(input: {
     final: !streaming,
     typewriter: false,
     smoothStreaming: false,
-    nodeVirtual: false,
-    maxLiveNodes: 0,
-    batchRendering: false,
+    nodeVirtual: streaming ? false : true,
+    maxLiveNodes: streaming ? 0 : HISTORY_LIVE_NODES,
+    batchRendering: true,
+    initialRenderBatchSize: streaming ? 8 : 12,
+    renderBatchSize: 16,
+    renderBatchDelay: 0,
+    renderBatchBudgetMs: BATCH_BUDGET_MS,
     viewportPriority: !streaming,
     deferNodesUntilVisible: !streaming,
     codeBlockStream: streaming,
@@ -71,7 +79,8 @@ export function plainMarkdownProps(input: {
     smoothStreaming: false,
     nodeVirtual: false,
     maxLiveNodes: 0,
-    batchRendering: false,
+    batchRendering: true,
+    renderBatchBudgetMs: BATCH_BUDGET_MS,
     isDark: input.isDark,
     codeBlockOptions: codeBlockTypography(),
     codeBlockProps: { theme: codeBlockTheme },

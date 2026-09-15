@@ -10,6 +10,7 @@ describe("shouldHydrateHeavy", () => {
     expect(shouldHydrateHeavy(false, true, true)).toBe(true)
     expect(shouldHydrateHeavy(false, true, false)).toBe(false)
     expect(shouldHydrateHeavy(false, false, true)).toBe(false)
+    expect(shouldHydrateHeavy(false, true, true, true)).toBe(false)
   })
 })
 
@@ -27,5 +28,6 @@ describe("nextHydrateId", () => {
     expect(nextHydrateId(rows, new Set(), inView, true)).toBe("a1")
     expect(nextHydrateId(rows, new Set(["a1"]), inView, true)).toBe("a3")
     expect(nextHydrateId(rows, new Set(["a1", "a3"]), inView, true)).toBeUndefined()
+    expect(nextHydrateId(rows, new Set(), inView, true, true)).toBeUndefined()
   })
 })

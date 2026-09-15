@@ -1,10 +1,12 @@
-/** 流式立刻画；历史重节点等进视口且滚动停下。 */
+/** 流式立刻画；历史重节点等进视口、滚动停下且没有待处理输入。 */
 export function shouldHydrateHeavy(
   streaming: boolean,
   inView: boolean,
   scrollIdle: boolean,
+  pendingInput = false,
 ): boolean {
-  return streaming || (inView && scrollIdle)
+  if (streaming) return true
+  return inView && scrollIdle && !pendingInput
 }
 
 export function nextHydrateId(
@@ -12,13 +14,14 @@ export function nextHydrateId(
   hydrated: ReadonlySet<string>,
   inView: ReadonlySet<string>,
   scrollIdle: boolean,
+  pendingInput = false,
 ): string | undefined {
-  if (!scrollIdle) return undefined
+  if (!scrollIdle || pendingInput) return undefined
 
   for (const row of rows) {
     if (row.role !== "assistant" || row.streaming || hydrated.has(row.id)) continue
 
-    if (!shouldHydrateHeavy(false, inView.has(row.id), true)) continue
+    if (!shouldHydrateHeavy(false, inView.has(row.id), true, false)) continue
     return row.id
   }
 }

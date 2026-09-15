@@ -1,9 +1,13 @@
 import { nextTick, onBeforeUnmount, shallowRef, watch, type Ref } from "vue"
 import type { TimelineRow } from "@features/transcript-view/type.js"
 import { nextHydrateId } from "@features/transcript-view/lib/transcript-hydrate.js"
-import { yieldToMain } from "@features/transcript-view/lib/yield-to-main.js"
+import {
+  inputPending,
+  yieldToBackground,
+  yieldToMain,
+} from "@features/transcript-view/lib/yield-to-main.js"
 
-/** 首帧之后一次只挂一条可见助手 Markdown，滚动中停。 */
+/** 首帧之后在后台挂可见助手 Markdown；滚动或有输入就停。 */
 export function useTranscriptHydrate(
   rows: Ref<readonly TimelineRow[]>,
   scrollIdle: Ref<boolean>,
@@ -30,6 +34,10 @@ export function useTranscriptHydrate(
 
   function isHydrated(id: string) {
     return hydrated.value.has(id)
+  }
+
+  function peek(): string | undefined {
+    return nextHydrateId(rows.value, hydrated.value, inView.value, scrollIdle.value, inputPending())
   }
 
   function observe() {
@@ -66,10 +74,25 @@ export function useTranscriptHydrate(
 
     try {
       while (mine === generation) {
-        const id = nextHydrateId(rows.value, hydrated.value, inView.value, scrollIdle.value)
+        if (!scrollIdle.value) break
+        const id = peek()
 
-        if (!id) break
-        mark(id)
+        if (!id) {
+          if (inputPending()) {
+            await yieldToBackground()
+            continue
+          }
+
+          break
+        }
+
+        await yieldToBackground()
+
+        if (mine !== generation || !scrollIdle.value) break
+        const next = peek()
+
+        if (!next) continue
+        mark(next)
         await yieldToMain()
       }
     } finally {
