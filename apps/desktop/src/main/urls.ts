@@ -1,6 +1,6 @@
 import { extname, isAbsolute, relative, resolve } from "node:path"
 
-export const VITE_DEV_ORIGIN = "http://127.0.0.1:5173"
+export const DEFAULT_VITE_DEV_PORT = 5173
 
 export const PIG_SCHEME = "pig"
 
@@ -24,6 +24,49 @@ export function gatewayOriginArg(origin: string): string {
 
 export function isDesktopDev(argv: readonly string[] = process.argv): boolean {
   return argv.includes("--dev")
+}
+
+function parsePortNumber(raw: string | undefined): number | undefined {
+  if (raw === undefined || raw.trim() === "") return undefined
+  const port = Number(raw)
+
+  if (!Number.isInteger(port) || port < 1 || port > 65535) return undefined
+  return port
+}
+
+/** `--port 5175` / `--port=5175`，其次 `PIG_VITE_PORT`，默认 5173。 */
+export function viteDevPort(
+  argv: readonly string[] = process.argv,
+  env: NodeJS.ProcessEnv = process.env,
+): number {
+  for (let i = 0; i < argv.length; i += 1) {
+    const item = argv[i]
+
+    if (item === undefined) continue
+
+    if (item === "--port") {
+      const port = parsePortNumber(argv[i + 1])
+
+      if (port === undefined) throw new Error("无效 --port")
+      return port
+    }
+
+    if (item.startsWith("--port=")) {
+      const port = parsePortNumber(item.slice("--port=".length))
+
+      if (port === undefined) throw new Error("无效 --port")
+      return port
+    }
+  }
+
+  return parsePortNumber(env.PIG_VITE_PORT) ?? DEFAULT_VITE_DEV_PORT
+}
+
+export function viteDevOrigin(
+  argv: readonly string[] = process.argv,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return `http://127.0.0.1:${viteDevPort(argv, env)}`
 }
 
 export const DESKTOP_CDP_PORT = "9333"

@@ -11,11 +11,28 @@ import {
   pigCorsHeaders,
   pigSpaFallback,
   resolvePigWebFile,
+  viteDevOrigin,
+  viteDevPort,
 } from "../src/main/urls.js"
 
 const GATEWAY = "http://127.0.0.1:8787"
 
 const WEB_ROOT = join("G:", "web")
+
+describe("Vite 开发端口", () => {
+  it("默认 5173，--port 优先于 PIG_VITE_PORT", () => {
+    expect(viteDevPort([], {})).toBe(5173)
+    expect(viteDevOrigin([], {})).toBe("http://127.0.0.1:5173")
+    expect(viteDevPort(["--port", "5175"], { PIG_VITE_PORT: "5180" })).toBe(5175)
+    expect(viteDevPort(["--port=5176"], {})).toBe(5176)
+    expect(viteDevPort([], { PIG_VITE_PORT: "5177" })).toBe(5177)
+  })
+
+  it("无效 --port 抛错", () => {
+    expect(() => viteDevPort(["--port", "0"], {})).toThrow("无效 --port")
+    expect(() => viteDevPort(["--port=abc"], {})).toThrow("无效 --port")
+  })
+})
 
 describe("pig protocol URL mapping", () => {
   it("API 走 Gateway，静态资源落到 webRoot，SPA 回退 index.html", () => {

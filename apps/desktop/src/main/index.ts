@@ -6,12 +6,12 @@ import { app, dialog, Menu, screen, type BrowserWindow } from "electron"
 
 import { handlePigProtocol, registerPigScheme } from "./protocol.js"
 import {
-  VITE_DEV_ORIGIN,
   desktopCdpPort,
   gatewayOrigin,
   isDesktopBench,
   isDesktopDev,
   pigAppUrl,
+  viteDevOrigin,
 } from "./urls.js"
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
@@ -162,7 +162,7 @@ void app.whenReady().then(async () => {
 
     if (isDev) {
       vite = spawnVite({ GATEWAY_TARGET: httpOrigin })
-      await waitForHttp(VITE_DEV_ORIGIN)
+      await waitForHttp(viteDevOrigin())
     } else {
       if (!webRoot) throw new Error("桌面壳缺少 Web 资源")
       handlePigProtocol(httpOrigin, webRoot)
@@ -177,7 +177,7 @@ void app.whenReady().then(async () => {
       persistState: (state) => writeWindowStateFile(stateFile, state),
     })
 
-    const origin = isDev ? VITE_DEV_ORIGIN : pigAppUrl()
+    const origin = isDev ? viteDevOrigin() : pigAppUrl()
     process.env.PIG_GATEWAY_ORIGIN = origin
     await mainWindow.loadURL(isDesktopBench() ? "about:blank" : origin)
   } catch (error) {
