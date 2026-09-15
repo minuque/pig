@@ -102,18 +102,28 @@ html[data-pig-desktop-platform] .mermaid-modal-overlay {
   stroke: var(--mermaid-arrow) !important;
 }
 
-._mermaid svg text,
-._mermaid svg text > tspan {
+/* 自定义 fill/color 的节点保留 classDef 文字色。 */
+._mermaid
+  svg
+  :is(.node, .classGroup, .statediagram-state):not(:has([style*="fill"])):not(
+    :has([style*="color"])
+  )
+  :is(text, tspan) {
   fill: var(--mermaid-text) !important;
 }
 
-._mermaid svg .nodeLabel,
-._mermaid svg .label,
-._mermaid svg foreignObject,
+._mermaid svg .nodeLabel:not([style^="color:"]):not([style*=";color:"]),
 ._mermaid svg .messageText,
 ._mermaid svg .labelText,
 ._mermaid svg .noteText {
   color: var(--mermaid-text) !important;
+}
+
+._mermaid svg .messageText,
+._mermaid svg .labelText,
+._mermaid svg .noteText,
+._mermaid svg text.actor > tspan {
+  fill: var(--mermaid-text) !important;
 }
 
 ._mermaid svg .cluster-label,
