@@ -335,7 +335,6 @@ watch(
 }
 
 .thought {
-  min-width: 0;
   max-height: calc(var(--text-body-sm) * var(--text-body-sm--line-height) * 12);
   margin: 0;
   padding-inline-start: var(--spacing-sm);
@@ -347,10 +346,11 @@ watch(
   overflow-wrap: anywhere;
 }
 
-.thought :deep(:is(p, .paragraph-node)) {
+.thought :deep(:is([data-custom-id="chat"], p, .paragraph-node, h1, h2, h3, h4, h5, h6, li)) {
   margin: 0 0 var(--spacing-xs);
-  font-size: inherit;
-  line-height: inherit;
+  color: var(--ink-muted);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
   white-space: pre-wrap;
 }
 
