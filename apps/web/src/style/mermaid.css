@@ -4,11 +4,20 @@
   --mermaid-text: var(--mermaid-fg);
   --mermaid-text-sec: color-mix(in srgb, var(--mermaid-fg) 60%, var(--mermaid-bg));
   --mermaid-text-muted: var(--mermaid-muted);
-  --mermaid-connector: var(--mermaid-line);
+  --mermaid-connector: color-mix(in srgb, var(--mermaid-fg) 28%, var(--mermaid-bg));
   --mermaid-arrow: var(--mermaid-accent);
-  --mermaid-node-fill: color-mix(in srgb, var(--mermaid-fg) 3%, var(--mermaid-bg));
-  --mermaid-node-stroke: color-mix(in srgb, var(--mermaid-fg) 20%, var(--mermaid-bg));
+  --mermaid-node-fill: color-mix(in srgb, var(--mermaid-fg) 10%, var(--mermaid-bg));
+  --mermaid-node-stroke: color-mix(in srgb, var(--mermaid-fg) 36%, var(--mermaid-bg));
   --mermaid-group-fill: var(--mermaid-bg);
+  --mermaid-group-header: color-mix(in srgb, var(--mermaid-fg) 8%, var(--mermaid-bg));
+  --mermaid-inner-stroke: color-mix(in srgb, var(--mermaid-fg) 22%, var(--mermaid-bg));
+}
+
+/* 深色卡片本身够暗，节点只保留轻微分色。 */
+.dark ._mermaid {
+  --mermaid-connector: var(--mermaid-line);
+  --mermaid-node-fill: color-mix(in srgb, var(--mermaid-fg) 6%, var(--mermaid-bg));
+  --mermaid-node-stroke: color-mix(in srgb, var(--mermaid-fg) 22%, var(--mermaid-bg));
   --mermaid-group-header: color-mix(in srgb, var(--mermaid-fg) 5%, var(--mermaid-bg));
   --mermaid-inner-stroke: color-mix(in srgb, var(--mermaid-fg) 12%, var(--mermaid-bg));
 }
@@ -132,7 +141,7 @@ html[data-pig-desktop-platform] .mermaid-modal-overlay {
   stroke: var(--mermaid-bg);
   stroke-width: calc(var(--spacing-xs) * 2);
   paint-order: stroke fill;
-  outline: var(--border-width) solid var(--mermaid-line);
+  outline: var(--border-width) solid var(--mermaid-node-stroke);
   outline-offset: var(--spacing-xs);
   rx: var(--radius-xs);
   ry: var(--radius-xs);
@@ -142,7 +151,7 @@ html[data-pig-desktop-platform] .mermaid-modal-overlay {
   display: inline-block;
   box-sizing: border-box;
   background-color: var(--mermaid-bg);
-  border: var(--border-width) solid var(--mermaid-line);
+  border: var(--border-width) solid var(--mermaid-node-stroke);
   border-radius: var(--radius-xs);
   padding-block: var(--spacing-xxs);
   padding-inline: var(--spacing-xs);
