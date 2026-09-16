@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, defineAsyncComponent, shallowRef, useTemplateRef, watch } from "vue"
 import { useRoute } from "vue-router"
 import { ArrowDown, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
@@ -107,7 +107,8 @@ import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHea
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { SESSION_VIEW_CACHE } from "@features/session-workbench/lib/session-history-cache.js"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
-import TranscriptView from "@features/transcript-view/index.vue"
+
+const TranscriptView = defineAsyncComponent(() => import("@features/transcript-view/index.vue"))
 
 function nextWelcomeWorkspaceId(
   items: readonly string[],

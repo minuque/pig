@@ -71,11 +71,12 @@ import {
   nextTick,
   onActivated,
   onBeforeUnmount,
+  onMounted,
   shallowRef,
   useTemplateRef,
   watch,
 } from "vue"
-import { enableMermaid, setMermaidWorker } from "markstream-vue"
+import { enableMermaid } from "markstream-vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
@@ -160,19 +161,12 @@ async function loadMermaid(): Promise<unknown> {
   return mermaid
 }
 
-/** 第一次进 Transcript 再启 Mermaid worker，避免写进入口包。 */
+/** 第一次进 Transcript 再加载 mermaid，解析走主线程，不打 3MB worker。 */
 function ensureMarkdownRuntime(): void {
   if (markdownRuntimeStarted) return
   markdownRuntimeStarted = true
   enableMermaid(loadMermaid)
-  void import("markstream-vue/workers/mermaidParser.worker?worker").then(
-    ({ default: MermaidWorker }) => {
-      setMermaidWorker(new MermaidWorker())
-    },
-  )
 }
-
-ensureMarkdownRuntime()
 
 /** 更长列表的前缀是新历史，prev 仍作为后缀出现。 */
 function historyPrepended(
@@ -389,6 +383,8 @@ watch(
   },
   { flush: "post" },
 )
+
+onMounted(ensureMarkdownRuntime)
 
 onActivated(() => {
   observe()
