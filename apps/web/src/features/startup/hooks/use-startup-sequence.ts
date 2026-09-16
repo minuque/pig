@@ -50,7 +50,6 @@ export function useStartupSequence(options: StartupSequenceOptions) {
   const settled = shallowRef(false)
   const ready = shallowRef(false)
   const failed = shallowRef(false)
-  const progress = shallowRef(0)
 
   function finish() {
     visible.value = false
@@ -58,25 +57,13 @@ export function useStartupSequence(options: StartupSequenceOptions) {
 
   async function start() {
     const sessionRoute = routeHasSession(router)
-    const totalSteps = sessionRoute ? 1 : 2
-    let completedSteps = 0
-
-    function completeStep() {
-      completedSteps += 1
-      progress.value = Math.round((completedSteps / totalSteps) * 100)
-    }
 
     const connecting = connectWithTimeout(
       options.connect,
       options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS,
-    ).then((value) => {
-      if (!sessionRoute) completeStep()
-      return value
-    })
+    )
 
     const initializing = Promise.resolve(options.initialize()).then((value) => {
-      completeStep()
-
       if (!failed.value && sessionRoute) settled.value = true
       return value
     })
@@ -100,7 +87,6 @@ export function useStartupSequence(options: StartupSequenceOptions) {
     settled: readonly(settled),
     ready: readonly(ready),
     failed: readonly(failed),
-    progress: readonly(progress),
     finish,
     start,
   }

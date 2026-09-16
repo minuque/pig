@@ -25,7 +25,7 @@ describe("startup sequence", () => {
     let inFlight = 0
     let overlapped = false
 
-    const { start, ready, visible, settled, progress } = useStartupSequence({
+    const { start, ready, visible, settled } = useStartupSequence({
       connect: async () => {
         inFlight += 1
 
@@ -51,7 +51,6 @@ describe("startup sequence", () => {
     expect(overlapped).toBe(true)
     expect(ready.value).toBe(true)
     expect(settled.value).toBe(true)
-    expect(progress.value).toBe(100)
     expect(visible.value).toBe(true)
     expect(replace).toHaveBeenCalledWith("/")
   })
@@ -110,12 +109,10 @@ describe("startup sequence", () => {
     await vi.waitFor(() => expect(initializeDone).toBe(true))
     expect(seq.settled.value).toBe(false)
     expect(seq.ready.value).toBe(false)
-    expect(seq.progress.value).toBe(50)
     releaseConnect()
     await started
     expect(seq.settled.value).toBe(true)
     expect(seq.ready.value).toBe(true)
-    expect(seq.progress.value).toBe(100)
   })
 
   it("有 sessionId 时 initialize 完成即可揭开遮罩", async () => {
@@ -135,7 +132,6 @@ describe("startup sequence", () => {
     const started = seq.start()
     await vi.waitFor(() => expect(seq.settled.value).toBe(true))
     expect(seq.ready.value).toBe(false)
-    expect(seq.progress.value).toBe(100)
     releaseConnect()
     await started
     expect(seq.ready.value).toBe(true)
