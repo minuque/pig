@@ -138,8 +138,13 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
 
     if (followRaf) return
     const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
+    const gap = floor - root.scrollTop
 
-    if (floor - root.scrollTop <= 0.5) {
+    // 大距离（切会话 / hydrate）直接跳；弹簧只跟流式那几像素。
+    if (
+      gap <= 0.5 ||
+      !isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
+    ) {
       jumpToBottom()
       return
     }

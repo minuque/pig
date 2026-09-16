@@ -50,10 +50,9 @@ function shouldHydrateHeavy(
   inView: boolean,
   scrollIdle: boolean,
   pendingInput = false,
-  openedQuiet = true,
 ): boolean {
   if (streaming) return true
-  return inView && scrollIdle && !pendingInput && openedQuiet
+  return inView && scrollIdle && !pendingInput
 }
 
 function nextHydrateId(
@@ -62,19 +61,16 @@ function nextHydrateId(
   inView: ReadonlySet<string>,
   scrollIdle: boolean,
   pendingInput = false,
-  openedQuiet = true,
 ): string | undefined {
-  if (!scrollIdle || pendingInput || !openedQuiet) return undefined
+  if (!scrollIdle || pendingInput) return undefined
 
   for (const row of rows) {
     if (row.role !== "assistant" || row.streaming || hydrated.has(row.id)) continue
 
-    if (!shouldHydrateHeavy(false, inView.has(row.id), true, false, true)) continue
+    if (!shouldHydrateHeavy(false, inView.has(row.id), true, false)) continue
     return row.id
   }
 }
-
-const OPEN_HOLD_MS = 150
 
 /** 揭开并停稳后再挂可见助手 Markdown；刚打开和滚动中保持纯文本。 */
 export function useTranscriptHydrate(
@@ -85,11 +81,9 @@ export function useTranscriptHydrate(
 ) {
   const hydrated = shallowRef(new Set<string>())
   const inView = shallowRef(new Set<string>())
-  const openedQuiet = shallowRef(false)
   let observer: IntersectionObserver | undefined
   let pumping = false
   let generation = 0
-  let holdTimer = 0
 
   function mark(id: string) {
     if (hydrated.value.has(id)) return
@@ -109,15 +103,8 @@ export function useTranscriptHydrate(
   }
 
   function peek(): string | undefined {
-    if (!readyFrame.value || !openedQuiet.value) return undefined
-    return nextHydrateId(
-      rows.value,
-      hydrated.value,
-      inView.value,
-      scrollIdle.value,
-      inputPending(),
-      true,
-    )
+    if (!readyFrame.value) return undefined
+    return nextHydrateId(rows.value, hydrated.value, inView.value, scrollIdle.value, inputPending())
   }
 
   function observe() {
@@ -154,7 +141,7 @@ export function useTranscriptHydrate(
 
     try {
       while (mine === generation) {
-        if (!readyFrame.value || !openedQuiet.value || !scrollIdle.value) break
+        if (!readyFrame.value || !scrollIdle.value) break
         const id = peek()
 
         if (!id) {
@@ -168,8 +155,7 @@ export function useTranscriptHydrate(
 
         await yieldToBackground()
 
-        if (mine !== generation || !readyFrame.value || !openedQuiet.value || !scrollIdle.value)
-          break
+        if (mine !== generation || !readyFrame.value || !scrollIdle.value) break
         const next = peek()
 
         if (!next) continue
@@ -181,30 +167,7 @@ export function useTranscriptHydrate(
     }
   }
 
-  watch(
-    readyFrame,
-    (ready) => {
-      if (holdTimer) {
-        window.clearTimeout(holdTimer)
-        holdTimer = 0
-      }
-
-      if (!ready) {
-        openedQuiet.value = false
-        return
-      }
-
-      openedQuiet.value = false
-      holdTimer = window.setTimeout(() => {
-        holdTimer = 0
-        openedQuiet.value = true
-        void pump()
-      }, OPEN_HOLD_MS)
-    },
-    { immediate: true },
-  )
-
-  watch([rows, scrollIdle, inView, openedQuiet], () => {
+  watch([readyFrame, rows, scrollIdle, inView], () => {
     markStreaming()
     void pump()
   })
@@ -219,8 +182,6 @@ export function useTranscriptHydrate(
 
   onBeforeUnmount(() => {
     generation += 1
-
-    if (holdTimer) window.clearTimeout(holdTimer)
     observer?.disconnect()
   })
   return { isHydrated, observe }

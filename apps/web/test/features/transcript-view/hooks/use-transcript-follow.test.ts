@@ -65,55 +65,64 @@ afterEach(() => {
 })
 
 describe("一轮工作：流式视口跟随", () => {
-  it("增高合并到唯一帧循环并贴底", () => {
+  it("小幅增高走弹簧并贴底", () => {
     const { root, follow } = fixture()
-    root.scrollHeight += 240
+    root.scrollHeight += 24
     follow.pinIfNeeded()
     follow.pinIfNeeded()
     expect(frames.size).toBe(1)
     expect(root.scrollTop).toBe(600)
 
     for (let index = 0; index < 60; index++) frame()
-    expect(root.scrollTop).toBe(840)
+    expect(root.scrollTop).toBe(624)
     expect(follow.atBottom.value).toBe(true)
     expect(follow.visuallyAtBottom.value).toBe(true)
     expect(frames.size).toBe(0)
   })
 
-  it("失败路径：自身写滚动不重启循环", () => {
+  it("大距离贴底直接跳，不开弹簧", () => {
     const { root, follow } = fixture()
     root.scrollHeight += 240
+    follow.pinIfNeeded()
+    expect(frames.size).toBe(0)
+    expect(root.scrollTop).toBe(840)
+    expect(follow.atBottom.value).toBe(true)
+  })
+
+  it("失败路径：自身写滚动不重启循环", () => {
+    const { root, follow } = fixture()
+    root.scrollHeight += 24
     follow.pinIfNeeded()
     frame()
     expect(frames.size).toBe(1)
     expect(root.scrollTop).toBeGreaterThan(600)
-    expect(root.scrollTop).toBeLessThan(700)
+    expect(root.scrollTop).toBeLessThan(624)
     follow.pinIfNeeded()
     expect(frames.size).toBe(1)
   })
 
   it("失败路径：用户上翻后不再抢滚动，显式回到底部才恢复", () => {
     const { root, follow } = fixture()
-    root.scrollHeight += 240
+    root.scrollHeight += 24
     follow.pinIfNeeded()
     frame()
     root.scrollTop -= 80
     follow.onScroll()
     const stopped = root.scrollTop
     expect(follow.atBottom.value).toBe(false)
-    root.scrollHeight += 240
+    root.scrollHeight += 24
     follow.pinIfNeeded()
     frame()
     expect(root.scrollTop).toBe(stopped)
     expect(frames.size).toBe(0)
     follow.scrollToLatest()
-    expect(root.scrollTop).toBe(1080)
+    expect(root.scrollTop).toBe(648)
     expect(follow.atBottom.value).toBe(true)
   })
 
   it("失败路径：滚动事件尚未派发时也不覆盖用户上翻", () => {
     const { root, follow } = fixture()
-    root.scrollHeight += 240
+    root.scrollHeight += 24
     follow.pinIfNeeded()
     root.scrollTop -= 80
     frame()
@@ -124,7 +133,7 @@ describe("一轮工作：流式视口跟随", () => {
 
   it("内容收缩的浏览器钳位不被误认为上翻", () => {
     const { root, follow } = fixture()
-    root.scrollHeight += 240
+    root.scrollHeight += 24
     follow.pinIfNeeded()
     frame()
     root.scrollHeight = 800
@@ -138,14 +147,14 @@ describe("一轮工作：流式视口跟随", () => {
 
   it("切换会话和卸载清理帧循环，不保留旧速度", () => {
     const { root, follow } = fixture()
-    root.scrollHeight += 240
+    root.scrollHeight += 24
     follow.pinIfNeeded()
     frame()
     follow.reset()
     expect(frames.size).toBe(0)
     expect(follow.atBottom.value).toBe(false)
     follow.scrollToLatest()
-    root.scrollHeight += 100
+    root.scrollHeight += 24
     follow.pinIfNeeded()
     expect(frames.size).toBe(1)
     lifecycle.unmount()

@@ -34,7 +34,7 @@
               v-for="row in rows"
               :key="row.id"
               class="row"
-              :class="`row-${row.role}`"
+              :class="[`row-${row.role}`, { 'is-expanded': toolsLayoutUnlocked(row) }]"
               :data-minimap-row="row.role === 'user' ? row.id : undefined"
               :data-hydrate-id="row.role === 'assistant' ? row.id : undefined"
             >
@@ -71,6 +71,7 @@ import {
   nextTick,
   onActivated,
   onBeforeUnmount,
+  onDeactivated,
   shallowRef,
   useTemplateRef,
   watch,
@@ -222,13 +223,17 @@ const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpan
   () => props.sessionId,
 )
 
+function toolsLayoutUnlocked(row: TimelineRow): boolean {
+  return isToolRow(row) && (row.mode === "live" || isExpand(row.id) === true)
+}
+
 const viewport = useTemplateRef<HTMLElement>("viewport")
 
 const column = useTemplateRef<HTMLElement>("column")
 
 const list = useTemplateRef<HTMLElement>("list")
 
-const scrollIdle = useTranscriptScrollIdle(viewport)
+const { idle: scrollIdle, hold: holdScrollIdle } = useTranscriptScrollIdle(viewport)
 
 function scrollerRoot(): HTMLElement | null {
   return viewport.value
@@ -298,6 +303,7 @@ function maybeLoadOlder() {
 
 function onTranscriptScroll() {
   onScroll()
+  rememberScroll()
   maybeLoadOlder()
 }
 
@@ -348,9 +354,14 @@ function observeSizes() {
 function pinLatest() {
   scrollToLatest("auto")
   pinIfNeeded()
+  rememberScroll()
 }
 
 const { readyFrame } = useTranscriptReveal(rows, pinLatest)
+
+watch(readyFrame, (ready) => {
+  if (ready) holdScrollIdle()
+})
 
 const { isHydrated, observe } = useTranscriptHydrate(rows, scrollIdle, scrollerRoot, readyFrame)
 
@@ -390,8 +401,31 @@ watch(
   { flush: "post" },
 )
 
+let savedTop = 0
+
+function rememberScroll() {
+  const root = scrollerRoot()
+
+  if (root) savedTop = root.scrollTop
+}
+
 onActivated(() => {
+  const top = savedTop
+  const root = scrollerRoot()
+
+  if (root) root.scrollTop = top
+  requestAnimationFrame(() => {
+    const el = scrollerRoot()
+
+    if (el) el.scrollTop = top
+  })
   observe()
+})
+
+onDeactivated(() => {
+  const root = scrollerRoot()
+
+  if (root && root.scrollTop > 0) savedTop = root.scrollTop
 })
 
 onBeforeUnmount(() => {
@@ -451,11 +485,11 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   box-sizing: border-box;
   width: 100%;
   content-visibility: auto;
+  contain: layout style;
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 3);
 }
 
 .row-user {
-  content-visibility: visible;
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 2);
 }
 
@@ -463,11 +497,11 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 6);
 }
 
-.row-tool {
+.row-tools {
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 2);
 }
 
-.row-tools {
+.row-tools.is-expanded {
   content-visibility: visible;
 }
 

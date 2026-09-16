@@ -12,9 +12,9 @@ export const transcriptScrollIdleKey: InjectionKey<Ref<boolean>> = Symbol("trans
 
 const IDLE_MS = 120
 
-/** 滚动中为 false；scrollend 或短超时后为 true。 */
+/** 滚动中为 false；刚挂上也不算停稳，scrollend 或短超时后为 true。 */
 export function useTranscriptScrollIdle(root: MaybeRefOrGetter<HTMLElement | null>) {
-  const idle = shallowRef(true)
+  const idle = shallowRef(false)
   let timer = 0
   let attached: HTMLElement | null = null
 
@@ -29,7 +29,7 @@ export function useTranscriptScrollIdle(root: MaybeRefOrGetter<HTMLElement | nul
     idle.value = true
   }
 
-  function markBusy() {
+  function hold() {
     idle.value = false
     clearTimer()
     timer = window.setTimeout(markIdle, IDLE_MS)
@@ -39,15 +39,16 @@ export function useTranscriptScrollIdle(root: MaybeRefOrGetter<HTMLElement | nul
     if (attached === next) return
 
     if (attached) {
-      attached.removeEventListener("scroll", markBusy)
+      attached.removeEventListener("scroll", hold)
       attached.removeEventListener("scrollend", markIdle)
     }
 
     attached = next
 
     if (!next) return
-    next.addEventListener("scroll", markBusy, { passive: true })
-    next.addEventListener("scrollend", markIdle)
+    next.addEventListener("scroll", hold, { passive: true })
+    next.addEventListener("scrollend", hold)
+    hold()
   }
 
   watch(
@@ -60,5 +61,5 @@ export function useTranscriptScrollIdle(root: MaybeRefOrGetter<HTMLElement | nul
     bind(null)
     clearTimer()
   })
-  return idle
+  return { idle, hold }
 }
