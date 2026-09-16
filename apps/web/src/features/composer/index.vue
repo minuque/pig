@@ -76,13 +76,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
+import { computed, defineAsyncComponent, ref, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { ArrowUp, Mic } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { useVoiceInput } from "@features/composer/hooks/use-voice-input.js"
 import ComposerMeta from "@features/composer/components/ComposerMeta.vue"
-import ContextUsagePanel from "@features/composer/components/ContextUsagePanel.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import type {
@@ -91,6 +90,10 @@ import type {
   ComposerVendor,
   ContextUsage,
 } from "@features/composer/type.js"
+
+const ContextUsagePanel = defineAsyncComponent(
+  () => import("@features/composer/components/ContextUsagePanel.vue"),
+)
 
 const props = withDefaults(
   defineProps<{
