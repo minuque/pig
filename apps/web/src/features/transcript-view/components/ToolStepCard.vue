@@ -27,6 +27,15 @@
       />
     </template>
 
+    <div v-else-if="readImages.length" class="read-images">
+      <TranscriptImage
+        v-for="(image, index) in readImages"
+        :key="index"
+        :data="image.data"
+        :mime-type="image.mimeType"
+      />
+    </div>
+
     <template v-else-if="readContent">
       <ToolHeader
         v-model:expanded="readExpanded"
@@ -129,6 +138,7 @@ import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstre
 import { useStickToBottom } from "markstream-vue/utils"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
+import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/index.js"
 import { splitLines, hiddenLineCount } from "@features/transcript-view/lib/expandable-text.js"
 import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
@@ -153,7 +163,7 @@ const props = defineProps<{
   status?: "error" | "running" | "success"
   statusLabel?: string
   path?: string
-  preview?: ReadToolPreview
+  preview?: ReadToolPreview | undefined
   inputFull?: string
   editPreview?: EditDiffPreview
 }>()
@@ -181,6 +191,8 @@ const readContent = computed(() =>
     ? { path: props.path, preview: props.preview }
     : null,
 )
+
+const readImages = computed(() => (props.variant === "read" ? (props.outputImages ?? []) : []))
 
 const toolContent = computed(() =>
   props.variant === "tool"
@@ -324,15 +336,17 @@ watch(
   min-width: 0;
   max-width: 100%;
   overflow: visible;
-  border: var(--border-width) solid var(--border);
+  border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-lg);
   background: var(--code-body);
+  box-shadow: var(--shadow-card);
 }
 
 .is-thought {
   padding-inline-start: var(--spacing-xs);
   border: 0;
   background: transparent;
+  box-shadow: none;
 }
 
 .thought {
@@ -453,6 +467,13 @@ watch(
   color: var(--ink-muted);
   font-size: var(--text-caption);
   overflow-wrap: anywhere;
+}
+
+.read-images {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
 }
 
 .line-stats {

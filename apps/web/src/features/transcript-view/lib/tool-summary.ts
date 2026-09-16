@@ -135,6 +135,21 @@ export function editDiffPreview(input: unknown): EditDiffPreview | null {
   }
 }
 
+/** write 没有旧文本，整份 content 当作新增。 */
+export function writeDiffPreview(input: unknown): EditDiffPreview | null {
+  if (!isRecord(input) || typeof input.content !== "string") return null
+  const path = toolPath(input)
+  const content = input.content
+  return {
+    path,
+    fileName: path ? pathBasename(path) : "file",
+    language: fileLanguage(path),
+    hunks: [{ original: "", modified: content }],
+    added: splitLines(content).length,
+    removed: 0,
+  }
+}
+
 function withLineChange(
   detail: Extract<ToolSummaryDetail, { kind: "file" }>,
   added: number,

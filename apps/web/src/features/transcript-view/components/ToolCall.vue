@@ -61,6 +61,7 @@
                 variant="read"
                 :path="call.path"
                 :preview="call.preview"
+                :output-images="call.images"
               />
 
               <ToolStepCard
@@ -113,6 +114,7 @@ import {
   toolGroupKey,
   toolSummary,
   toolSummaryDetail,
+  writeDiffPreview,
 } from "../lib/tool-summary.js"
 import type {
   EditDiffPreview,
@@ -151,7 +153,8 @@ type CallView =
   | (CallBase & {
       variant: "read"
       path: string
-      preview: ReadToolPreview
+      preview?: ReadToolPreview
+      images: TranscriptImage[]
     })
   | (CallBase & {
       variant: "edit"
@@ -210,12 +213,21 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
     const path = toolPath(item.input)
     const out = output(item, open)
 
+    if (open && out.outputImages.length > 0) {
+      return {
+        item,
+        expandable: true,
+        variant: "read",
+        path,
+        images: out.outputImages,
+      }
+    }
+
     const canPreview =
       open &&
       Boolean(path) &&
       !item.isError &&
       !item.running &&
-      out.outputImages.length === 0 &&
       Boolean(out.outputText) &&
       !/^\[Line \d+ is .+ exceeds /.test(out.outputText)
 
@@ -226,6 +238,7 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
         variant: "read",
         path,
         preview: readToolPreview(item.input, out.outputText),
+        images: [],
       }
     }
 
@@ -238,8 +251,13 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
     }
   }
 
-  if (key === "edit") {
-    const preview = open && !item.isError && !item.running ? editDiffPreview(item.input) : null
+  if (key === "edit" || key === "write") {
+    const preview =
+      open && !item.isError && !item.running
+        ? key === "write"
+          ? writeDiffPreview(item.input)
+          : editDiffPreview(item.input)
+        : null
 
     if (preview) {
       return { item, expandable: true, variant: "edit", editPreview: preview }
