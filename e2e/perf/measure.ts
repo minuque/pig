@@ -439,12 +439,10 @@ async function loadAllTranscriptPages(page: Page, name: BenchSessionName, pages:
 
     if ((await firstPrompt.count()) > 0 || (await more.count()) === 0) break
     const previous = await page.locator(".row-user").count()
-    await page.locator(".transcript-viewport").evaluate((root) => {
-      root.scrollTop = 0
-      const button = root.querySelector<HTMLButtonElement>(".older-busy")
-
-      if (!button || button.disabled) throw new Error("加载更早不可点")
-      button.click()
+    // DOM click：滚进视口会自己上翻，按钮随即 disabled。
+    await more.evaluate((node) => {
+      if (!(node instanceof HTMLButtonElement) || node.disabled) throw new Error("加载更早不可点")
+      node.click()
     })
     await page.waitForFunction(
       (count) => {
