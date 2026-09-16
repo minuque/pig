@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, defineAsyncComponent, onMounted, shallowRef, useTemplateRef, watch } from "vue"
 import { useRoute } from "vue-router"
 import { ArrowDown, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
@@ -107,8 +107,22 @@ import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHea
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { SESSION_VIEW_CACHE } from "@features/session-workbench/lib/session-history-cache.js"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
+import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 
-const TranscriptView = defineAsyncComponent(() => import("@features/transcript-view/index.vue"))
+const TranscriptView = defineAsyncComponent({
+  loader: () => import("@features/transcript-view/index.vue"),
+  loadingComponent: SessionLoading,
+  delay: 120,
+})
+
+onMounted(() => {
+  const prefetch = () => {
+    void import("@features/transcript-view/index.vue")
+  }
+
+  if (typeof requestIdleCallback === "function") requestIdleCallback(prefetch)
+  else setTimeout(prefetch, 1)
+})
 
 function nextWelcomeWorkspaceId(
   items: readonly string[],

@@ -399,6 +399,12 @@ onBeforeUnmount(() => {
 defineExpose({ showScrollToLatest, scrollToLatest })
 </script>
 
+<style>
+@import "markstream-vue/index.css" layer(components);
+@import "../../style/markdown-stream.css";
+@import "../../style/mermaid.css";
+</style>
+
 <style scoped>
 .transcript-shell {
   position: relative;

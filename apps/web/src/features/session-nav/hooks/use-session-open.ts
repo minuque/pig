@@ -23,6 +23,8 @@ export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<
   }
 
   function openSession(id: string) {
+    void import("@features/transcript-view/index.vue")
+
     if (id === sessionId.value) {
       cancelPendingOpen()
       return

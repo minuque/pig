@@ -15,7 +15,7 @@
         </div>
 
         <div class="nav-main">
-          <NavToolbar @search="searchOpen = true" />
+          <NavToolbar @search="openSearch" />
 
           <div class="nav-body">
             <nav class="session-list">
@@ -125,12 +125,12 @@
       <NavShift :grouping="grouping" @set-grouping="setGrouping" />
     </div>
 
-    <SessionSearch v-model:open="searchOpen" @navigate="onSessionNavigate" />
+    <SessionSearch v-if="searchOpen" v-model:open="searchOpen" @navigate="onSessionNavigate" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, shallowRef, watch } from "vue"
+import { computed, defineAsyncComponent, onMounted, reactive, shallowRef, watch } from "vue"
 import { useEventListener, useTimestamp } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
 import { ArrowDown, PanelLeft } from "@lucide/vue"
@@ -141,10 +141,13 @@ import NavFooter from "@features/session-nav/components/NavFooter.vue"
 import NavShift from "@features/session-nav/components/NavShift.vue"
 import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
-import SessionSearch from "@features/session-nav/components/SessionSearch.vue"
 import { sidebarTimeSections, toSidebarSession } from "@features/session-nav/lib/session-list.js"
 import { useSettings } from "@features/settings/index.js"
 import type { SidebarRow, SidebarSessionState } from "@features/session-nav/type.js"
+
+const SessionSearch = defineAsyncComponent(
+  () => import("@features/session-nav/components/SessionSearch.vue"),
+)
 
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
@@ -177,6 +180,15 @@ const { openSettings } = useSettings()
 const router = useRouter()
 
 const searchOpen = shallowRef(false)
+
+onMounted(() => {
+  const prefetch = () => {
+    void import("@features/session-nav/components/SessionSearch.vue")
+  }
+
+  if (typeof requestIdleCallback === "function") requestIdleCallback(prefetch)
+  else setTimeout(prefetch, 1)
+})
 
 const now = useTimestamp({ interval: 60_000 })
 
@@ -234,10 +246,15 @@ const listSections = computed(() => {
   }))
 })
 
+function openSearch() {
+  void import("@features/session-nav/components/SessionSearch.vue")
+  searchOpen.value = true
+}
+
 useEventListener(window, "keydown", (event) => {
   if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return
   event.preventDefault()
-  searchOpen.value = true
+  openSearch()
 })
 
 watch(workspaceError, (message) => {
