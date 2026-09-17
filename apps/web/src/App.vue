@@ -27,7 +27,7 @@ import { provideNav } from "@features/session-nav/index.js"
 import { provideSettings } from "@features/settings/index.js"
 import Startup from "@features/startup/index.vue"
 import { provideSession } from "@features/session-workbench/index.js"
-import { prefetchHighlighter } from "@features/transcript-view/lib/markdown-render-props.js"
+import { prefetchHighlighter } from "@features/transcript-view/index.js"
 
 const Settings = defineAsyncComponent(() => import("@features/settings/index.vue"))
 

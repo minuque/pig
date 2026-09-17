@@ -28,7 +28,3 @@ export function installProviderHttp(cwd = process.cwd()): void {
   install?.()
   installed = dispatcher
 }
-
-export function providerHttpInstalled(): boolean {
-  return installed !== undefined
-}
