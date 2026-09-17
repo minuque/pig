@@ -15,7 +15,7 @@ import googleColor from "@lobehub/icons-static-svg/icons/google-color.svg?url"
 import grok from "@lobehub/icons-static-svg/icons/grok.svg?url"
 import groq from "@lobehub/icons-static-svg/icons/groq.svg?url"
 import huggingfaceColor from "@lobehub/icons-static-svg/icons/huggingface-color.svg?url"
-import kimiColor from "@lobehub/icons-static-svg/icons/kimi-color.svg?url"
+import kimi from "@lobehub/icons-static-svg/icons/kimi.svg?url"
 import minimaxColor from "@lobehub/icons-static-svg/icons/minimax-color.svg?url"
 import mistralColor from "@lobehub/icons-static-svg/icons/mistral-color.svg?url"
 import nvidiaColor from "@lobehub/icons-static-svg/icons/nvidia-color.svg?url"
@@ -109,7 +109,7 @@ const ICONS: Record<string, VendorIcon> = {
   bedrock: { src: bedrockColor, tinted: false },
   qwen: { src: qwenColor, tinted: false },
   zhipu: { src: zhipuColor, tinted: false },
-  kimi: { src: kimiColor, tinted: false },
+  kimi: { src: kimi, tinted: true },
   minimax: { src: minimaxColor, tinted: false },
   huggingface: { src: huggingfaceColor, tinted: false },
   nvidia: { src: nvidiaColor, tinted: false },

@@ -3,6 +3,7 @@
     <DropdownMenuTrigger as-child>
       <Button
         type="button"
+        static
         class="selector"
         :disabled="disabled"
         :aria-label="`选择模型，当前：${triggerText}`"
@@ -16,7 +17,6 @@
         />
 
         <span class="selector-name">{{ label }}</span>
-        <ChevronDown aria-hidden="true" />
       </Button>
     </DropdownMenuTrigger>
 
@@ -129,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDown, Search, Star } from "@lucide/vue"
+import { Search, Star } from "@lucide/vue"
 import { useVirtualList } from "@vueuse/core"
 import { computed, nextTick, watch } from "vue"
 import type { ComposerModel, ComposerVendor } from "@features/composer/type.js"

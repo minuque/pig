@@ -1,6 +1,6 @@
 <template>
   <div class="nav-toolbar">
-    <button class="search-button press-scale" type="button" @click="emit('search')">
+    <button class="search-button" type="button" @click="emit('search')">
       <Search class="size-icon" />
       <span class="search-label">搜索会话</span>
       <kbd class="search-shortcut">Ctrl K</kbd>
@@ -35,12 +35,10 @@ const emit = defineEmits<{
   text-align: start;
   transition:
     border-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    scale var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out);
 }
 
 .search-button:hover {
-  border-color: var(--ink-faint);
   color: var(--ink);
 }
 

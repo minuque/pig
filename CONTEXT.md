@@ -115,6 +115,10 @@ _避免使用_：插件、提示模板、Tool
 pig 拥有的 UI 偏好与资源查看弹框。不是 Pi SettingsManager，也不是 Session。
 _避免使用_：账号设置、Pi 配置编辑器
 
+**侧栏分组（Sidebar Grouping）**：
+侧栏把 Session 聚成组的方式：按 Working Directory，或按最近活动时间段（今天 / 最近）。
+_避免使用_：项目、排序、Workspace
+
 **用量（Usage）**：
 跨时间窗的 Token 统计视图。不是当前 Session 的上下文占用。
 _避免使用_：上下文占用、配额、账单

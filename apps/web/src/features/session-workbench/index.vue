@@ -294,7 +294,7 @@ const contentHandleSides = ["left", "right"] as const
   position: absolute;
   inset-block-start: 0;
   inset-inline-end: var(--spacing-sm);
-  z-index: 11;
+  z-index: 1;
   display: flex;
   justify-content: flex-end;
   height: 0;

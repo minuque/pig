@@ -266,7 +266,7 @@ function onAbortHotkey(event: KeyboardEvent) {
     opacity var(--duration-fast) var(--ease-smooth),
     scale var(--duration-fast) var(--ease-out);
   background: var(--primary);
-  color: var(--on-primary);
+  color: var(--white);
 }
 
 .send:not(:disabled):hover {

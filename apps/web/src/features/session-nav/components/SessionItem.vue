@@ -14,20 +14,6 @@
         <Pin v-else class="size-icon" />
       </button>
 
-      <button
-        v-if="!renaming"
-        class="more-toggle motion-hint press-scale"
-        type="button"
-        title="更多"
-        aria-label="更多"
-        aria-haspopup="menu"
-        :aria-expanded="menuOpen"
-        @click.stop="openSessionMenu"
-        @contextmenu.prevent.stop="openSessionMenu"
-      >
-        <Ellipsis class="size-icon" />
-      </button>
-
       <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
         <ContextMenuTrigger as-child>
           <component
@@ -54,20 +40,35 @@
 
               <span v-else class="title">{{ session.title }}</span>
 
-              <span v-if="streaming" class="session-spin" :aria-label="stateLabel">
-                <Spinner :size="12" />
-              </span>
+              <span v-if="!renaming" class="trail-slot">
+                <span v-if="streaming" class="session-spin" :aria-label="stateLabel">
+                  <Spinner :size="12" />
+                </span>
 
-              <time
-                v-else-if="session.updatedAt"
-                class="session-time"
-                :class="{ 'has-state': stateDot }"
-                :datetime="new Date(session.updatedAt).toISOString()"
-                :aria-label="stateDot ? stateLabel : undefined"
-              >
-                <span v-if="stateDot" class="state-dot" :class="state"></span>
-                <span class="time-text">{{ relativeTime }}</span>
-              </time>
+                <time
+                  v-else-if="session.updatedAt"
+                  class="session-time"
+                  :class="{ 'has-state': stateDot }"
+                  :datetime="new Date(session.updatedAt).toISOString()"
+                  :aria-label="stateDot ? stateLabel : undefined"
+                >
+                  <span v-if="stateDot" class="state-dot" :class="state"></span>
+                  <span class="time-text">{{ relativeTime }}</span>
+                </time>
+
+                <button
+                  class="more-toggle press-scale"
+                  type="button"
+                  title="更多"
+                  aria-label="更多"
+                  aria-haspopup="menu"
+                  :aria-expanded="menuOpen"
+                  @click.prevent.stop="openSessionMenu"
+                  @contextmenu.prevent.stop="openSessionMenu"
+                >
+                  <Ellipsis class="size-icon" />
+                </button>
+              </span>
             </div>
           </component>
         </ContextMenuTrigger>
@@ -341,33 +342,47 @@ function confirmDelete() {
   color: var(--ink);
 }
 
+.trail-slot {
+  display: grid;
+  flex: none;
+  align-items: center;
+  justify-items: end;
+  min-width: var(--size-icon);
+  min-height: var(--size-icon);
+}
+
+.session-spin,
+.session-time,
 .more-toggle {
-  position: absolute;
-  z-index: 1;
-  inset-inline-end: var(--spacing-xs);
-  inset-block: 0;
+  grid-area: 1 / 1;
+}
+
+.more-toggle {
   display: grid;
   place-items: center;
   width: var(--size-icon);
   height: var(--size-icon);
-  margin-block: auto;
   padding: 0;
   border: 0;
   border-radius: var(--radius-xs);
   background: transparent;
   color: var(--ink-muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.session-item:hover .more-toggle,
+.session-item:focus-within .more-toggle,
+.more-toggle:focus-visible,
+.session-item.is-menu-open .more-toggle {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .more-toggle:hover,
 .more-toggle:focus-visible {
   color: var(--ink);
-}
-
-.session-item.is-menu-open .more-toggle {
-  opacity: 1;
-  scale: 1;
-  filter: blur(0);
-  pointer-events: auto;
 }
 
 .state-dot {
@@ -409,23 +424,16 @@ function confirmDelete() {
 }
 
 .session-spin {
-  flex: none;
   display: flex;
   align-items: center;
-  margin-inline-start: var(--spacing-xxs);
   color: var(--ink-muted);
-  transition:
-    opacity var(--duration-icon) var(--ease-icon),
-    scale var(--duration-icon) var(--ease-icon),
-    filter var(--duration-icon) var(--ease-icon);
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 .session-time {
   position: relative;
   display: flex;
-  flex: none;
   align-items: center;
-  margin-inline-start: var(--spacing-xxs);
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;
@@ -433,33 +441,33 @@ function confirmDelete() {
   line-height: var(--text-eyebrow--line-height);
   text-align: end;
   white-space: nowrap;
-  transition:
-    opacity var(--duration-icon) var(--ease-icon),
-    scale var(--duration-icon) var(--ease-icon),
-    filter var(--duration-icon) var(--ease-icon);
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 .session-time.has-state .time-text {
   visibility: hidden;
 }
 
-@media (hover: hover) {
-  .session-item:is(:hover, :focus-within) .session-time,
-  .session-item:is(:hover, :focus-within) .session-spin,
-  .session-item.is-menu-open .session-time,
-  .session-item.is-menu-open .session-spin {
-    opacity: 0;
-    scale: 0.25;
-    filter: blur(4px);
-  }
+.session-item:hover .session-time,
+.session-item:hover .session-spin,
+.session-item:focus-within .session-time,
+.session-item:focus-within .session-spin,
+.session-item.is-menu-open .session-time,
+.session-item.is-menu-open .session-spin {
+  opacity: 0;
+  pointer-events: none;
 }
 
 @media (hover: none) {
+  .more-toggle {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .session-time,
   .session-spin {
     opacity: 0;
-    scale: 0.25;
-    filter: blur(4px);
+    pointer-events: none;
   }
 }
 

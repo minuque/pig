@@ -22,16 +22,17 @@
   --primary-active: #1d4ed8;
   --secondary: #1d4ed8;
   --on-primary: #ffffff;
+  --white: #ffffff;
 
   /* 表面 */
   --canvas: #f5f5f5;
   --canvas-soft: #fafafa;
-  --surface: #ffffff;
+  --surface: #f8f9fb;
   --sidebar: #ffffff;
   --composer-bg: #ffffff;
-  --user-prompt-bg: #f5f5f5;
+  --user-prompt-bg: #e8ebf0;
   --popover: #ffffff;
-  --code-header: #f5f5f5;
+  --code-header: #ffffff;
   --code-body: #ffffff;
 
   /* mermaid 图，github-light */
@@ -45,15 +46,15 @@
   --ink: #0a0a0a;
   --ink-markdown: #0a0a0a;
   --ink-secondary: #525252;
-  --ink-muted: #525252;
-  --ink-faint: #666666;
+  --ink-muted: #666666;
+  --ink-faint: #737373;
 
   /* 结构 / 交互 */
-  --border: #e8e8e8;
-  --border-subtle: #eeeeee;
-  --composer-ring: #d4d4d4;
-  --interaction-hover: #f5f5f5;
-  --interaction-selected: #e5e5e5;
+  --border: #d8dae2;
+  --border-subtle: #e2e4ea;
+  --composer-ring: #c8cad0;
+  --interaction-hover: #e8eaef;
+  --interaction-selected: #dddfe6;
   --hover-quiet: color-mix(in srgb, var(--ink) 5%, transparent);
   --hover-tint: color-mix(in srgb, var(--ink) 8%, transparent);
   --hover-strong: color-mix(in srgb, var(--ink) 12%, transparent);
@@ -65,12 +66,15 @@
   --success-halo: color-mix(in srgb, var(--success) 15%, transparent);
   --danger-halo: color-mix(in srgb, var(--danger) 15%, transparent);
   --info-halo: color-mix(in srgb, var(--primary) 15%, transparent);
+  --effort-track: var(--border-subtle);
+  --effort-thumb: var(--white);
+  --effort-tick: var(--ink-muted);
   --link: #1d4ed8;
-  --inline-code: #f5f5f5;
+  --inline-code: #e8ebf0;
   --inline-code-ink: var(--ink);
   --media-outline: rgba(0, 0, 0, 0.1);
-  --scrollbar-color: #a3a3a3;
-  --scrollbar-hover: #737373;
+  --scrollbar-color: #8a8a8a;
+  --scrollbar-hover: #6b6b6b;
 
   /* 玻璃 */
   --glass-blur: 2px;
@@ -206,6 +210,7 @@
   --shadow-elevated:
     0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 12px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02),
     0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 8px rgb(0 0 0 / 0.04);
 
   /* 反色主按钮 */
   --inverse-bg: #0a0a0a;
@@ -216,6 +221,7 @@
   --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.66, 0, 0.34, 1);
+  --ease-spring: cubic-bezier(0.22, 1.18, 0.36, 1);
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 280ms;
@@ -237,16 +243,16 @@
 
   --canvas: #171717;
   --canvas-soft: #171717;
-  --surface: #121212;
-  --sidebar: #171717;
+  --surface: #0c0c0e;
+  --sidebar: #151518;
   --composer-bg: #262626;
   --user-prompt-bg: #262626;
   --popover: #262626;
-  --code-header: #262626;
-  --code-body: #1e1e1e;
+  --code-header: #151518;
+  --code-body: #151518;
 
   /* mermaid 图，github-dark */
-  --mermaid-bg: #0d1117;
+  --mermaid-bg: #151518;
   --mermaid-fg: #e6edf3;
   --mermaid-line: #3d444d;
   --mermaid-accent: #4493f8;
@@ -254,17 +260,20 @@
 
   --ink: #fafafa;
   --ink-markdown: #fafafa;
-  --ink-secondary: #a3a3a3;
+  --ink-secondary: #c4c4c4;
   --ink-muted: #a3a3a3;
-  --ink-faint: #a3a3a3;
+  --ink-faint: #8e8e8e;
 
-  --border: #333333;
-  --border-subtle: #2a2a2a;
-  --composer-ring: #525252;
-  --interaction-hover: #404040;
-  --interaction-selected: #333333;
+  --border: #3a3a40;
+  --border-subtle: #2e2e34;
+  --composer-ring: #5a5a62;
+  --interaction-hover: #2a2a30;
+  --interaction-selected: #3a3a42;
+  --effort-track: var(--hover-strong);
+  --effort-thumb: var(--ink-secondary);
+  --effort-tick: var(--ink-faint);
   --link: #93c5fd;
-  --inline-code: #262626;
+  --inline-code: #2a2a30;
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #737373;
   --scrollbar-hover: #a3a3a3;
@@ -296,6 +305,7 @@
   --shadow-elevated:
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.28);
 
   --inverse-bg: #fafafa;
   --inverse-bg-hover: #ffffff;
@@ -360,6 +370,7 @@
   --color-primary-active: var(--primary-active);
   --color-secondary: var(--secondary);
   --color-on-primary: var(--on-primary);
+  --color-white: var(--white);
   --color-canvas: var(--canvas);
   --color-canvas-soft: var(--canvas-soft);
   --color-surface: var(--surface);
@@ -463,6 +474,7 @@
   --shadow-float: var(--shadow-float);
   --shadow-drawer: var(--shadow-drawer);
   --shadow-modal: var(--shadow-modal);
+  --shadow-card: var(--shadow-card);
 }
 
 @utility size-icon {
@@ -548,4 +560,13 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay) body * {
   :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
     min-height: calc(var(--size-control) + var(--spacing-xxs));
   }
+}
+
+/* --effort-mix 写在滑条上，fill 必须在同一元素上算，不能在 :root 算死 */
+.effort-bar {
+  --effort-fill: color-mix(in srgb, var(--primary) var(--effort-mix, 40%), var(--white));
+}
+
+.dark .effort-bar {
+  --effort-fill: color-mix(in srgb, var(--primary) var(--effort-mix, 40%), var(--hover-strong));
 }

@@ -21,13 +21,12 @@
             <nav class="session-list">
               <section
                 v-if="pinnedRows.length"
-                class="nav-section pinned-section"
+                class="nav-section"
                 :class="{ 'is-open': !collapsedSections.pinned }"
               >
                 <GroupHead
-                  name="置顶"
+                  name="Pinned"
                   kind="pinned"
-                  :count="pinnedRows.length"
                   :collapsed="collapsedSections.pinned"
                   @toggle="collapsedSections.pinned = !collapsedSections.pinned"
                 />
@@ -51,60 +50,57 @@
                 </div>
               </section>
 
-              <Transition :name="groupSlide">
-                <ul
-                  v-if="showList"
-                  :key="grouping"
-                  :class="{ 'time-sections': grouping === 'updated' }"
+              <ul v-if="showList" :class="{ 'time-sections': grouping === 'updated' }">
+                <li
+                  v-for="(section, index) in listSections"
+                  :key="section.key"
+                  :class="[section.rowClass, { 'is-open': section.open }]"
                 >
-                  <li
-                    v-for="section in listSections"
-                    :key="section.key"
-                    :class="[section.rowClass, { 'is-open': section.open }]"
+                  <GroupHead
+                    :name="section.name"
+                    :kind="section.kind"
+                    :collapsed="section.collapsed"
+                    :grouping="grouping"
+                    :show-grouping="index === 0"
+                    @toggle="section.toggle"
+                    @create="section.create?.()"
+                    @set-grouping="setGrouping"
+                  />
+
+                  <div
+                    v-if="section.sessions.length > 0 || section.more"
+                    class="session-list-group"
+                    :class="{ 'is-open': !section.collapsed }"
                   >
-                    <GroupHead
-                      :name="section.name"
-                      :kind="section.kind"
-                      :collapsed="section.collapsed"
-                      @toggle="section.toggle"
-                      @create="section.create?.()"
-                    />
+                    <div class="group-body">
+                      <SessionItem
+                        v-for="session in section.sessions"
+                        :key="session.id"
+                        :session="session"
+                        :active="session.id === highlightedSessionId"
+                        :pinned="pinnedIds.has(session.id)"
+                        :state="sessionState(session.id)"
+                        :now="now"
+                        @navigate="onSessionNavigate(session.cwd)"
+                        @toggle-pinned="togglePinned"
+                        @rename="renameSession"
+                        @delete="deleteSession"
+                      />
 
-                    <div
-                      v-if="section.sessions.length > 0 || section.more"
-                      class="session-list-group"
-                      :class="{ 'is-open': !section.collapsed }"
-                    >
-                      <div class="group-body">
-                        <SessionItem
-                          v-for="session in section.sessions"
-                          :key="session.id"
-                          :session="session"
-                          :active="session.id === highlightedSessionId"
-                          :pinned="pinnedIds.has(session.id)"
-                          :state="sessionState(session.id)"
-                          :now="now"
-                          @navigate="onSessionNavigate(session.cwd)"
-                          @toggle-pinned="togglePinned"
-                          @rename="renameSession"
-                          @delete="deleteSession"
-                        />
-
-                        <button
-                          v-if="section.more"
-                          class="more-button"
-                          type="button"
-                          @click="section.bump"
-                        >
-                          显示更多
-                        </button>
-                      </div>
+                      <button
+                        v-if="section.more"
+                        class="more-button"
+                        type="button"
+                        @click="section.bump"
+                      >
+                        显示更多
+                      </button>
                     </div>
-                  </li>
-                </ul>
+                  </div>
+                </li>
+              </ul>
 
-                <span v-else-if="groups.length" key="empty">暂无会话</span>
-              </Transition>
+              <span v-else-if="groups.length">暂无会话</span>
             </nav>
           </div>
 
@@ -121,8 +117,6 @@
         @add-workspace="addWorkspace"
         @settings="openSettings"
       />
-
-      <NavShift :grouping="grouping" @set-grouping="setGrouping" />
     </div>
 
     <SessionSearch v-if="searchOpen" v-model:open="searchOpen" @navigate="onSessionNavigate" />
@@ -138,7 +132,6 @@ import { notifyError } from "@components/layout/notify.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
-import NavShift from "@features/session-nav/components/NavShift.vue"
 import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { sidebarTimeSections, toSidebarSession } from "@features/session-nav/lib/session-list.js"
@@ -211,8 +204,6 @@ const timeSections = computed(() => sidebarTimeSections(updatedSessions.value, n
 const hasMore = computed(() => rows.value.some((row) => row.kind === "more"))
 
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
-
-const groupSlide = computed(() => (grouping.value === "updated" ? "slide-next" : "slide-prev"))
 
 const listSections = computed(() => {
   if (grouping.value === "project") {
@@ -303,10 +294,10 @@ function onCreateInDir(canonicalPath: string): void {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
   background: var(--sidebar);
   border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
 }
 
 .nav-inset {
@@ -316,6 +307,8 @@ function onCreateInDir(canonicalPath: string): void {
   gap: var(--spacing-xs);
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
+  border-radius: inherit;
   padding-inline: var(--nav-inline);
 }
 
@@ -447,13 +440,6 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-
-.pinned-section {
-  position: sticky;
-  z-index: 2;
-  inset-block-start: 0;
-  background: var(--sidebar);
 }
 
 .group-body {

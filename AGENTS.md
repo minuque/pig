@@ -8,6 +8,7 @@
 - 一个逻辑任务完成并通过检查后做一次原子 commit，不按单次编辑提交；文档改动不 commit。
 - 依赖缺陷升级或提交上游，不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
 - 单测只覆盖 [`JOURNEYS.md`](JOURNEYS.md) 数据路径。
+- 合入、rebase、reset 前先看工作区。未提交路径和将写入的路径有交集：停下问用户，禁止 `restore`/`checkout` 清掉这些文件再合。合完用 `git status` 核同一批未提交路径还在、`git diff` 非空。备份只用 `git diff`/`git show` 写文件，不用 shell 重定向；apply 失败保留完整副本，禁止再 `restore` 覆盖。
 
 ## UI
 

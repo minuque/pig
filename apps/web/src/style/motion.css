@@ -126,39 +126,6 @@
   scale: 0.96;
 }
 
-.nav-shift-hit {
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.session-nav:hover .nav-shift-hit,
-.nav-shift-hit:focus-visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.session-nav:hover .nav-shift-hit:disabled,
-.nav-shift-hit:disabled:focus-visible {
-  opacity: var(--opacity-disabled);
-  pointer-events: none;
-}
-
-@media (hover: none) {
-  .nav-shift-hit {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .nav-shift-hit:disabled {
-    opacity: var(--opacity-disabled);
-    pointer-events: none;
-  }
-}
-
 .icon-swap {
   display: grid;
   place-items: center;
@@ -457,41 +424,6 @@
   z-index: 1;
 }
 
-.slide-next-enter-active,
-.slide-next-leave-active,
-.slide-prev-enter-active,
-.slide-prev-leave-active {
-  transition:
-    opacity var(--duration-normal) var(--ease-out),
-    transform var(--duration-normal) var(--ease-out);
-}
-
-.slide-next-leave-active,
-.slide-prev-leave-active {
-  position: absolute;
-  inset-inline: 0;
-}
-
-.slide-next-enter-from {
-  transform: translateX(40%);
-  opacity: 0;
-}
-
-.slide-next-leave-to {
-  transform: translateX(-40%);
-  opacity: 0;
-}
-
-.slide-prev-enter-from {
-  transform: translateX(-40%);
-  opacity: 0;
-}
-
-.slide-prev-leave-to {
-  transform: translateX(40%);
-  opacity: 0;
-}
-
 ::view-transition-group(root) {
   animation-duration: var(--duration-theme);
   animation-timing-function: var(--ease-smooth);
@@ -607,10 +539,6 @@
     scale: 1;
   }
 
-  .nav-shift-hit {
-    transition: none;
-  }
-
   .icon-swap > *,
   .motion-icon,
   .motion-hint,
@@ -682,24 +610,12 @@
   }
 
   .fade-layer-enter-active,
-  .fade-layer-leave-active,
-  .slide-next-enter-active,
-  .slide-next-leave-active,
-  .slide-prev-enter-active,
-  .slide-prev-leave-active {
+  .fade-layer-leave-active {
     transition: none;
   }
 
   .stage-layer-leave-active {
     position: static;
-  }
-
-  .slide-next-enter-from,
-  .slide-next-leave-to,
-  .slide-prev-enter-from,
-  .slide-prev-leave-to {
-    transform: none;
-    filter: none;
   }
 
   .shimmer {

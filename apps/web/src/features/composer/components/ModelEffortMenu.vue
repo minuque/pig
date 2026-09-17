@@ -3,6 +3,7 @@
     <DropdownMenuTrigger as-child>
       <Button
         type="button"
+        static
         class="chip"
         :aria-label="`思考强度：${label}`"
         :title="label"
@@ -21,15 +22,13 @@
       class="effort-pop"
       data-model-effort-menu
     >
-      <div class="effort" @pointerdown.stop>
-        <p class="effort-title">思考强度 {{ label }}</p>
-
+      <div class="effort" @pointerdown.stop @wheel.prevent="onWheel">
         <div class="effort-scale">
           <span>更快</span>
           <span>更强</span>
         </div>
 
-        <div class="effort-bar">
+        <div class="effort-bar" :style="{ '--effort-mix': `${effortMix}%` }">
           <div class="effort-ticks" aria-hidden="true">
             <i v-for="item in levels" :key="item" />
           </div>
@@ -83,10 +82,27 @@ const index = computed(() => {
   return i < 0 ? 0 : i
 })
 
-function onSlide(value: number[] | undefined) {
-  const next = props.levels[value?.[0] ?? -1]
+const effortMix = computed(() => {
+  if (maxIndex.value <= 0) return 40
+  return Math.round(28 + (index.value / maxIndex.value) * 72)
+})
 
-  if (next) emit("update:level", next)
+function setIndex(next: number) {
+  const clamped = Math.min(maxIndex.value, Math.max(0, next))
+  const level = props.levels[clamped]
+
+  if (level && level !== current.value) emit("update:level", level)
+}
+
+function onSlide(value: number[] | undefined) {
+  setIndex(value?.[0] ?? index.value)
+}
+
+function onWheel(event: WheelEvent) {
+  const delta = event.deltaY || event.deltaX
+
+  if (!delta) return
+  setIndex(index.value + (delta > 0 ? 1 : -1))
 }
 </script>
 
@@ -136,7 +152,7 @@ function onSlide(value: number[] | undefined) {
 }
 
 .effort-pop {
-  min-width: calc(var(--size-menu) + var(--size-control));
+  min-width: calc(var(--size-menu) * 1.6);
   padding: var(--spacing-sm);
 }
 
@@ -144,14 +160,6 @@ function onSlide(value: number[] | undefined) {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
-}
-
-.effort-title {
-  margin: 0;
-  color: var(--ink);
-  font-size: var(--text-button);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--text-button--line-height);
 }
 
 .effort-scale {
@@ -166,14 +174,14 @@ function onSlide(value: number[] | undefined) {
   position: relative;
   display: flex;
   align-items: center;
-  height: var(--size-icon-button);
+  height: var(--spacing-xl);
 }
 
 .effort-ticks {
   position: absolute;
-  inset-inline: calc(var(--size-icon) / 2);
+  inset-inline: var(--spacing-sm);
   inset-block: 0;
-  z-index: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -181,19 +189,48 @@ function onSlide(value: number[] | undefined) {
 }
 
 .effort-ticks i {
-  width: var(--border-width);
+  width: calc(var(--border-width) * 2);
   height: var(--spacing-xs);
-  background: var(--ink-faint);
+  background: var(--effort-tick);
   border-radius: var(--radius-full);
 }
 
 .effort-slider {
   position: relative;
-  z-index: 1;
+}
+
+.effort-slider :deep([data-slot="slider-track"]) {
+  height: calc(var(--spacing-md) + var(--spacing-xxs));
+  overflow: hidden;
+  background: var(--effort-track);
+  border-radius: var(--radius-full);
+}
+
+.effort-slider :deep([data-slot="slider-range"]) {
+  background-color: var(--effort-fill);
+  transition:
+    width var(--duration-slow) var(--ease-spring),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.effort-slider :deep([data-slot="slider-thumb"]) {
+  z-index: 2;
+  width: var(--spacing-sm);
+  height: var(--spacing-lg);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--effort-thumb);
+  box-shadow: var(--shadow-soft);
+  transition:
+    inset-inline-start var(--duration-slow) var(--ease-spring),
+    left var(--duration-slow) var(--ease-spring),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chip-caret {
+  .chip-caret,
+  .effort-slider :deep([data-slot="slider-range"]),
+  .effort-slider :deep([data-slot="slider-thumb"]) {
     transition: none;
   }
 }

@@ -69,7 +69,7 @@
   --ms-popover: from var(--popover) h s l;
   --ms-popover-foreground: from var(--ink) h s l;
   --ms-ring: from var(--primary) h s l;
-  --ms-shadow-subtle: var(--shadow-soft);
+  --ms-shadow-subtle: var(--shadow-card);
   --ms-shadow-popover: var(--shadow-popover);
   --ms-shadow-modal: var(--shadow-modal);
   --ms-shadow-preview: var(--shadow-modal);
@@ -77,15 +77,18 @@
   /* 代码 / 引用 / 表 */
   --code-bg: var(--code-body);
   --code-header-bg: var(--code-header);
+  --diagram-bg: var(--code-body);
+  --diagram-header-bg: var(--code-header);
+  --diagram-border: var(--border-subtle);
   --code-fg: var(--ink);
-  --code-border: var(--border);
+  --code-border: var(--border-subtle);
   --inline-code-bg: var(--inline-code);
   --inline-code-fg: var(--inline-code-ink);
   --inline-code-border: var(--border);
   --blockquote-border: var(--border);
   --blockquote-fg: var(--ink-muted);
   --table-border: var(--border);
-  --table-header-bg: var(--canvas-soft);
+  --table-header-bg: var(--code-body);
   --focus-ring: transparent;
   --link-color: var(--link);
 
@@ -94,10 +97,29 @@
   line-height: var(--ms-leading-body);
 
   .inline-code {
-    font-size: var(--ms-text-body);
-    border-radius: var(--radius-xs);
+    font-size: var(--text-body-sm);
+    border-radius: var(--radius-sm);
     border: var(--ms-border-width) solid var(--inline-code-border);
     padding: 0.05em 0.4em;
+  }
+
+  .code-block-container {
+    --markstream-code-theme-bg: var(--code-body) !important;
+    --markstream-code-fallback-bg: var(--code-body) !important;
+    --markstream-pre-resolved-theme-bg: var(--code-body) !important;
+  }
+
+  .mermaid-block-container {
+    background: var(--code-body);
+    box-shadow: var(--shadow-card);
+  }
+
+  .table-node tbody tr:hover {
+    background-color: transparent;
+  }
+
+  .table-node tbody tr:nth-child(2n):hover {
+    background-color: hsl(var(--ms-muted) / 0.35);
   }
 
   /* 折叠后只剩顶栏：四角同半径，底色跟 header，避免底角落出 code-bg */
@@ -122,9 +144,14 @@
   contain-intrinsic-size: auto none;
 }
 
-/* pierre diffs 默认 13px，影子树只吃 --diffs-* */
 .stream-diffs-vue-diff {
   --diffs-font-size: var(--text-code);
   --diffs-line-height: var(--text-code-line);
   --diffs-font-family: var(--font-mono);
+}
+
+/* 影子树 :host 写死 Shiki 底，只吃 --diffs-bg */
+diffs-container {
+  --diffs-bg: var(--code-body) !important;
+  background-color: var(--code-body) !important;
 }
