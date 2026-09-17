@@ -156,31 +156,21 @@ export function mergeLiveTranscript(
   return merged.concat(live.slice(covered).filter((item) => !persistedIds.has(item.id)))
 }
 
+type HistorySlice = {
+  items: readonly TranscriptItem[]
+  timings: readonly TurnTiming[]
+  hasMore: boolean
+}
+
 /** 已加载窗口只增不缩：最新页接到尾巴；空页不冲掉；hasMore 跟窗口第一条走。 */
-export function absorbLatestTranscriptPage(
-  loaded: {
-    items: readonly TranscriptItem[]
-    timings: readonly TurnTiming[]
-    hasMore: boolean
-  },
-  page: {
-    items: readonly TranscriptItem[]
-    timings: readonly TurnTiming[]
-    hasMore: boolean
-  },
-): { items: TranscriptItem[]; timings: TurnTiming[]; hasMore: boolean } {
-  const hadItems = loaded.items.length > 0
-  const timings = new Map<string, TurnTiming>()
-
-  if (hadItems) {
-    for (const timing of loaded.timings) timings.set(timing.userId, timing)
-  }
-
-  for (const timing of page.timings) timings.set(timing.userId, timing)
+export function absorbLatestTranscriptPage(loaded: HistorySlice | undefined, page: HistorySlice) {
+  const base = loaded?.items.length ? loaded : { items: [], timings: [], hasMore: page.hasMore }
   return {
-    items: mergeLiveTranscript(loaded.items, page.items),
-    timings: [...timings.values()],
-    hasMore: hadItems ? loaded.hasMore : page.hasMore,
+    items: mergeLiveTranscript(base.items, page.items),
+    timings: [
+      ...new Map([...base.timings, ...page.timings].map((item) => [item.userId, item])).values(),
+    ],
+    hasMore: base.hasMore,
   }
 }
 

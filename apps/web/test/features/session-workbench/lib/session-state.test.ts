@@ -16,10 +16,11 @@ describe("isSessionOpening", () => {
   })
 })
 
-describe("mergeLiveTranscript", () => {
-  const row = (id: string, role: "user" | "assistant", text: string): TranscriptItem =>
-    ({ id, role, content: [{ type: "text", text }], timestamp: 0 }) as TranscriptItem
+function row(id: string, role: "user" | "assistant", text: string): TranscriptItem {
+  return { id, role, content: [{ type: "text", text }], timestamp: 0 } as TranscriptItem
+}
 
+describe("mergeLiveTranscript", () => {
   it("同 id 覆盖，新 id 追加；临时 id 对齐历史后缀", () => {
     const overlay = mergeLiveTranscript(
       [row("u1", "user", "a"), row("a1", "assistant", "old")],
@@ -70,9 +71,6 @@ describe("mergeLiveTranscript", () => {
 })
 
 describe("absorbLatestTranscriptPage", () => {
-  const row = (id: string, role: "user" | "assistant", text: string): TranscriptItem =>
-    ({ id, role, content: [{ type: "text", text }], timestamp: 0 }) as TranscriptItem
-
   const timing = (userId: string, startedAt: number) => ({
     userId,
     startedAt,
@@ -80,18 +78,26 @@ describe("absorbLatestTranscriptPage", () => {
     outcome: "complete" as const,
   })
 
-  it("第一次有内容的页定义窗口，后续最新页只接到尾巴", () => {
-    const first = absorbLatestTranscriptPage(
-      { items: [], timings: [], hasMore: false },
-      {
-        items: [row("u1", "user", "一"), row("a1", "assistant", "答")],
-        timings: [timing("u1", 1)],
-        hasMore: false,
-      },
-    )
+  const ids = (items: readonly TranscriptItem[]) => items.map((item) => item.id)
 
-    expect(first.items.map((item) => item.id)).toEqual(["u1", "a1"])
-    expect(first.hasMore).toBe(false)
+  it("已加载窗口只增不缩", () => {
+    const opened = absorbLatestTranscriptPage(undefined, {
+      items: [row("u2", "user", "最近")],
+      timings: [timing("u2", 2)],
+      hasMore: true,
+    })
+
+    expect(ids(opened.items)).toEqual(["u2"])
+    expect(opened.hasMore).toBe(true)
+    expect(
+      ids(absorbLatestTranscriptPage(opened, { items: [], timings: [], hasMore: false }).items),
+    ).toEqual(["u2"])
+
+    const first = absorbLatestTranscriptPage(undefined, {
+      items: [row("u1", "user", "一"), row("a1", "assistant", "答")],
+      timings: [timing("u1", 1)],
+      hasMore: false,
+    })
 
     const second = absorbLatestTranscriptPage(first, {
       items: [row("u2", "user", "二")],
@@ -99,24 +105,9 @@ describe("absorbLatestTranscriptPage", () => {
       hasMore: true,
     })
 
-    expect(second.items.map((item) => item.id)).toEqual(["u1", "a1", "u2"])
+    expect(ids(second.items)).toEqual(["u1", "a1", "u2"])
     expect(second.timings.map((item) => item.userId)).toEqual(["u1", "u2"])
     expect(second.hasMore).toBe(false)
-  })
-
-  it("空页不冲掉已加载窗口，打开长会话仍以最后一轮为窗口", () => {
-    const loaded = absorbLatestTranscriptPage(
-      { items: [], timings: [], hasMore: false },
-      { items: [row("u2", "user", "最近")], timings: [timing("u2", 2)], hasMore: true },
-    )
-
-    expect(loaded.items.map((item) => item.id)).toEqual(["u2"])
-    expect(loaded.hasMore).toBe(true)
-    expect(
-      absorbLatestTranscriptPage(loaded, { items: [], timings: [], hasMore: false }).items.map(
-        (item) => item.id,
-      ),
-    ).toEqual(["u2"])
   })
 })
 

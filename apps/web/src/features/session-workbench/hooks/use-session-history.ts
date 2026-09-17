@@ -5,10 +5,7 @@ import {
   absorbLatestTranscriptPage,
   mergeLiveTranscript,
 } from "@features/session-workbench/lib/session-state.js"
-import {
-  createSessionHistoryCache,
-  emptyHistoryPage,
-} from "@features/session-workbench/lib/session-history-cache.js"
+import { createSessionHistoryCache } from "@features/session-workbench/lib/session-history-cache.js"
 
 /** HTTP 历史按 Session 留最近几份；切走不清掉，切回立刻能画。 */
 export function useSessionHistory() {
@@ -53,11 +50,7 @@ export function useSessionHistory() {
 
       if (requestById.get(id) !== request) return
 
-      const absorbed = absorbLatestTranscriptPage(cache.peek(id) ?? emptyHistoryPage(), {
-        items,
-        timings,
-        hasMore,
-      })
+      const absorbed = absorbLatestTranscriptPage(cache.peek(id), { items, timings, hasMore })
 
       cache.write(id, { ...absorbed, ready: true })
       bump()

@@ -803,32 +803,23 @@ describe("HTTP 历史与 live Transcript 合并", () => {
 
   it("同一会话第二轮吸收最新页，不丢掉第一轮、用户句不重复", async () => {
     const turn1: TranscriptItem[] = [
-      {
-        id: "u1",
-        role: "user",
-        content: [{ type: "text", text: "第一句" }],
-        timestamp: 1,
-      },
+      { id: "u1", role: "user", content: [{ type: "text", text: "一" }], timestamp: 1 },
       {
         id: "a1",
         role: "assistant",
-        content: [{ type: "text", text: "答一" }],
-        model: { provider: "test", id: "model" },
+        content: [{ type: "text", text: "答" }],
         timestamp: 2,
-        status: "complete",
-        stopReason: "stop",
-      },
+      } as TranscriptItem,
     ]
 
-    const turn2User: TranscriptItem = {
+    const u2: TranscriptItem = {
       id: "u2",
       role: "user",
-      content: [{ type: "text", text: "第二句" }],
+      content: [{ type: "text", text: "二" }],
       timestamp: 3,
     }
 
-    const liveTurn2 = { ...turn2User, id: "m2" }
-    let latestPage: TranscriptItem[] = turn1
+    let latestPage = turn1
 
     platformRequestMock.mockImplementation(async (path: string) => {
       if (path.includes("/transcript")) {
@@ -847,44 +838,14 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     await vi.waitFor(() =>
       expect(session.transcript.value.map((row) => row.id)).toEqual(["u1", "a1"]),
     )
-    expect(session.historyHasMore.value).toBe(false)
-    const firstUserId = session.transcript.value[0]?.id
-    a.state = { ...a.state, transcript: [liveTurn2] }
+    a.state = { ...a.state, transcript: [{ ...u2, id: "m2" }] }
     a.emit()
-    latestPage = [turn2User]
-    a.state = { ...a.state, snapshot: snapshot(2), transcript: [liveTurn2] }
+    latestPage = [u2]
+    a.state = { ...a.state, snapshot: snapshot(2), transcript: [{ ...u2, id: "m2" }] }
     a.emit()
     await vi.waitFor(() =>
       expect(session.transcript.value.map((row) => row.id)).toEqual(["u1", "a1", "u2"]),
     )
-    expect(session.transcript.value[0]?.id).toBe(firstUserId)
-    expect(session.historyHasMore.value).toBe(false)
-  })
-
-  it("后续空历史响应不冲掉已加载窗口", async () => {
-    let persisted: TranscriptItem[] = [historyItem]
-    platformRequestMock.mockImplementation(async (path: string) => {
-      if (path.includes("/transcript")) return { items: persisted, timings: [], hasMore: false }
-      return { usage: usageEstimate }
-    })
-    const { session } = setup()
-    const a = makeSession("s1")
-    a.state = { ...a.state, snapshot: snapshot(1), transcript: [] }
-    openMock.mockResolvedValue(a)
-    routeBox.params.sessionId = "s1"
-    await session.initialize()
-    await vi.waitFor(() => expect(session.remote.value).toBe(a))
-    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
-
-    const transcriptCalls = () =>
-      platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("/transcript"))
-
-    const beforeEmpty = transcriptCalls().length
-    persisted = []
-    a.state = { ...a.state, snapshot: snapshot(2), transcript: [historyItem] }
-    a.emit()
-    await vi.waitFor(() => expect(transcriptCalls().length).toBe(beforeEmpty + 1))
-    expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"])
   })
 
   it("连续帧：空 snapshot 不清掉已有进度，后续工具只追加不回退", async () => {
