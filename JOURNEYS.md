@@ -90,7 +90,7 @@ flowchart TB
   View -->|历史未到且 Remote 未齐| Loading["SessionLoading"]
 ```
 
-切 Session 会串行替换 lease。连点只落地最后一个 id。打开只拉最后一轮；之后已加载窗口只增不缩，最新页接到尾巴，不整页替换。live progress 按 id 覆盖当前回合。空 snapshot 不冲掉已拉到的历史。hasMore 跟窗口第一条走，上翻再 prepend。
+切 Session 会串行替换 lease。连点只落地最后一个 id。历史 HTTP 与 RemoteSession.open 并行：同一 Session 已 ready 或在飞不重复拉，revision 变化才再拉。未连接时 initialize 仍拉磁盘历史。打开只拉最后一轮；之后已加载窗口只增不缩，最新页接到尾巴，不整页替换。live progress 按 id 覆盖当前回合。空 snapshot 不冲掉已拉到的历史。hasMore 跟窗口第一条走，上翻再 prepend。
 
 ## 一轮工作
 

@@ -454,6 +454,61 @@ describe("打开已有 Session", () => {
     expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"])
     expect(openMock).not.toHaveBeenCalled()
   })
+
+  it("已连接打开会话只拉一次历史", async () => {
+    const item = {
+      id: "u1",
+      role: "user" as const,
+      content: [{ type: "text" as const, text: "hi" }],
+      timestamp: 1,
+    }
+
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) return { items: [item], timings: [] }
+      return { usage: usageEstimate }
+    })
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1), transcript: [] }
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
+    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
+    expect(
+      platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("/transcript")),
+    ).toHaveLength(1)
+  })
+
+  it("未连接拉过历史，连上后不因 ready 再拉", async () => {
+    const item = {
+      id: "u1",
+      role: "user" as const,
+      content: [{ type: "text" as const, text: "hi" }],
+      timestamp: 1,
+    }
+
+    const connected = ref(false)
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) return { items: [item], timings: [] }
+      return { usage: usageEstimate }
+    })
+    const { session } = setup({ connected })
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1), transcript: [] }
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"])
+
+    const transcriptCalls = () =>
+      platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("/transcript"))
+
+    expect(transcriptCalls()).toHaveLength(1)
+    connected.value = true
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
+    expect(transcriptCalls()).toHaveLength(1)
+  })
 })
 
 describe("快速切换 Session", () => {

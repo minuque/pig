@@ -14,6 +14,7 @@ export function useSessionHistory() {
   const version = shallowRef(0)
   const loadingOlder = shallowRef(false)
   const requestById = new Map<string, number>()
+  const inflight = new Map<string, Promise<void>>()
   let olderRequest = 0
 
   function bump() {
@@ -35,33 +36,44 @@ export function useSessionHistory() {
     bump()
   }
 
-  /** 打开拉最后一轮；之后把最新页吸收进已加载窗口。 */
-  async function loadHistory(id: string) {
-    const request = (requestById.get(id) ?? 0) + 1
-    requestById.set(id, request)
+  /** 打开拉最后一轮；已 ready 且非 force 不发网，同 id 在飞共用请求。 */
+  function loadHistory(id: string, options?: { force?: boolean }) {
+    if (!options?.force && cache.isReady(id)) return inflight.get(id) ?? Promise.resolve()
+    const pending = inflight.get(id)
 
-    if (activeId.value === id) {
-      olderRequest += 1
-      loadingOlder.value = false
-    }
+    if (pending && !options?.force) return pending
 
-    try {
-      const { items, timings, hasMore } = await sessionTranscript(id)
+    const run = (async () => {
+      const request = (requestById.get(id) ?? 0) + 1
+      requestById.set(id, request)
 
-      if (requestById.get(id) !== request) return
-
-      const absorbed = absorbLatestTranscriptPage(cache.peek(id), { items, timings, hasMore })
-
-      cache.write(id, { ...absorbed, ready: true })
-      bump()
-    } catch {
-      if (requestById.get(id) !== request) return
-
-      if (!cache.isReady(id)) {
-        cache.write(id, { items: [], timings: [], hasMore: false, ready: true })
-        bump()
+      if (activeId.value === id) {
+        olderRequest += 1
+        loadingOlder.value = false
       }
-    }
+
+      try {
+        const { items, timings, hasMore } = await sessionTranscript(id)
+
+        if (requestById.get(id) !== request) return
+        const absorbed = absorbLatestTranscriptPage(cache.peek(id), { items, timings, hasMore })
+        cache.write(id, { ...absorbed, ready: true })
+        bump()
+      } catch {
+        if (requestById.get(id) !== request) return
+
+        if (!cache.isReady(id)) {
+          cache.write(id, { items: [], timings: [], hasMore: false, ready: true })
+          bump()
+        }
+      }
+    })()
+
+    inflight.set(id, run)
+    void run.finally(() => {
+      if (inflight.get(id) === run) inflight.delete(id)
+    })
+    return run
   }
 
   async function loadOlderHistory() {

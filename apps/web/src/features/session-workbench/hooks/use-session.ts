@@ -99,8 +99,8 @@ export function useSessionLifecycle(
       usageRevision = revision
       void refreshContextUsage(attachedId)
 
-      if (history.historyReadyId.value !== attachedId || hadRevision)
-        void history.loadHistory(attachedId)
+      if (hadRevision) void history.loadHistory(attachedId, { force: true })
+      else void history.loadHistory(attachedId)
     })
   }
 
@@ -272,12 +272,11 @@ export function useSessionLifecycle(
     initialized = true
     const id = sessionId.value
 
-    if (id) {
-      history.setActive(id)
-      await history.loadHistory(id)
-    } else await dispose()
+    if (id) history.setActive(id)
+    else await dispose()
 
     if (pi.connected.value) void syncRoute()
+    else if (id) await history.loadHistory(id)
   }
 
   const sessionPending = computed(() =>
