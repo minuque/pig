@@ -82,7 +82,7 @@ flowchart TB
   Route --> Hist["GET platform/transcript"]
   Route --> Open["RemoteSession.open"]
   Open --> Snap["SessionSnapshot 不含全文"]
-  Hist --> Merge["HTTP 历史 + live progress"]
+  Hist --> Merge["已加载窗口 + live progress"]
   Snap --> Merge
   Merge --> View{"transcript?"}
   View -->|空且 idle| Idle["Hero + 底栏 Composer"]
@@ -90,7 +90,7 @@ flowchart TB
   View -->|历史未到且 Remote 未齐| Loading["SessionLoading"]
 ```
 
-切 Session 会串行替换 lease。连点只落地最后一个 id。历史以 platform HTTP 为准；live progress 按 id 覆盖。空 snapshot 不冲掉已拉到的历史。
+切 Session 会串行替换 lease。连点只落地最后一个 id。打开只拉最后一轮；之后已加载窗口只增不缩，最新页接到尾巴，不整页替换。live progress 按 id 覆盖当前回合。空 snapshot 不冲掉已拉到的历史。hasMore 跟窗口第一条走，上翻再 prepend。
 
 ## 一轮工作
 

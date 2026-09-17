@@ -1,8 +1,14 @@
 import { computed, shallowRef } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
 import { sessionTranscript } from "@client/platform.js"
-import { mergeLiveTranscript } from "@features/session-workbench/lib/session-state.js"
-import { createSessionHistoryCache } from "@features/session-workbench/lib/session-history-cache.js"
+import {
+  absorbLatestTranscriptPage,
+  mergeLiveTranscript,
+} from "@features/session-workbench/lib/session-state.js"
+import {
+  createSessionHistoryCache,
+  emptyHistoryPage,
+} from "@features/session-workbench/lib/session-history-cache.js"
 
 /** HTTP 历史按 Session 留最近几份；切走不清掉，切回立刻能画。 */
 export function useSessionHistory() {
@@ -32,6 +38,7 @@ export function useSessionHistory() {
     bump()
   }
 
+  /** 打开拉最后一轮；之后把最新页吸收进已加载窗口。 */
   async function loadHistory(id: string) {
     const request = (requestById.get(id) ?? 0) + 1
     requestById.set(id, request)
@@ -45,7 +52,14 @@ export function useSessionHistory() {
       const { items, timings, hasMore } = await sessionTranscript(id)
 
       if (requestById.get(id) !== request) return
-      cache.write(id, { items, timings, hasMore, ready: true })
+
+      const absorbed = absorbLatestTranscriptPage(cache.peek(id) ?? emptyHistoryPage(), {
+        items,
+        timings,
+        hasMore,
+      })
+
+      cache.write(id, { ...absorbed, ready: true })
       bump()
     } catch {
       if (requestById.get(id) !== request) return

@@ -5,6 +5,7 @@ import type {
   SessionSnapshot,
   TranscriptItem,
 } from "@/types/common-type.js"
+import type { TurnTiming } from "@/types/turn-type.js"
 import { sessionTitle, UNTITLED_SESSION } from "@features/session-nav/index.js"
 import { transcriptText } from "@features/transcript-view/index.js"
 import type {
@@ -153,6 +154,34 @@ export function mergeLiveTranscript(
   }
 
   return merged.concat(live.slice(covered).filter((item) => !persistedIds.has(item.id)))
+}
+
+/** 已加载窗口只增不缩：最新页接到尾巴；空页不冲掉；hasMore 跟窗口第一条走。 */
+export function absorbLatestTranscriptPage(
+  loaded: {
+    items: readonly TranscriptItem[]
+    timings: readonly TurnTiming[]
+    hasMore: boolean
+  },
+  page: {
+    items: readonly TranscriptItem[]
+    timings: readonly TurnTiming[]
+    hasMore: boolean
+  },
+): { items: TranscriptItem[]; timings: TurnTiming[]; hasMore: boolean } {
+  const hadItems = loaded.items.length > 0
+  const timings = new Map<string, TurnTiming>()
+
+  if (hadItems) {
+    for (const timing of loaded.timings) timings.set(timing.userId, timing)
+  }
+
+  for (const timing of page.timings) timings.set(timing.userId, timing)
+  return {
+    items: mergeLiveTranscript(loaded.items, page.items),
+    timings: [...timings.values()],
+    hasMore: hadItems ? loaded.hasMore : page.hasMore,
+  }
 }
 
 function sameTranscriptItem(a: TranscriptItem, b: TranscriptItem): boolean {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import type { ToolTranscriptItem, TranscriptItem, UserTranscriptItem } from "@/types/common-type.js"
 import {
+  absorbLatestTranscriptPage,
   isSessionOpening,
   mergeLiveTranscript,
   projectClientTranscript,
@@ -65,6 +66,57 @@ describe("mergeLiveTranscript", () => {
         (item) => item.id,
       ),
     ).toEqual(["u1", "a1", "t1", "u2", "a2"])
+  })
+})
+
+describe("absorbLatestTranscriptPage", () => {
+  const row = (id: string, role: "user" | "assistant", text: string): TranscriptItem =>
+    ({ id, role, content: [{ type: "text", text }], timestamp: 0 }) as TranscriptItem
+
+  const timing = (userId: string, startedAt: number) => ({
+    userId,
+    startedAt,
+    endedAt: startedAt + 1,
+    outcome: "complete" as const,
+  })
+
+  it("第一次有内容的页定义窗口，后续最新页只接到尾巴", () => {
+    const first = absorbLatestTranscriptPage(
+      { items: [], timings: [], hasMore: false },
+      {
+        items: [row("u1", "user", "一"), row("a1", "assistant", "答")],
+        timings: [timing("u1", 1)],
+        hasMore: false,
+      },
+    )
+
+    expect(first.items.map((item) => item.id)).toEqual(["u1", "a1"])
+    expect(first.hasMore).toBe(false)
+
+    const second = absorbLatestTranscriptPage(first, {
+      items: [row("u2", "user", "二")],
+      timings: [timing("u2", 2)],
+      hasMore: true,
+    })
+
+    expect(second.items.map((item) => item.id)).toEqual(["u1", "a1", "u2"])
+    expect(second.timings.map((item) => item.userId)).toEqual(["u1", "u2"])
+    expect(second.hasMore).toBe(false)
+  })
+
+  it("空页不冲掉已加载窗口，打开长会话仍以最后一轮为窗口", () => {
+    const loaded = absorbLatestTranscriptPage(
+      { items: [], timings: [], hasMore: false },
+      { items: [row("u2", "user", "最近")], timings: [timing("u2", 2)], hasMore: true },
+    )
+
+    expect(loaded.items.map((item) => item.id)).toEqual(["u2"])
+    expect(loaded.hasMore).toBe(true)
+    expect(
+      absorbLatestTranscriptPage(loaded, { items: [], timings: [], hasMore: false }).items.map(
+        (item) => item.id,
+      ),
+    ).toEqual(["u2"])
   })
 })
 
