@@ -30,56 +30,58 @@
 
     <div
       class="tool-calls-group"
-      :class="{ 'is-open': open, instant: !open || running }"
-      :inert="!open"
+      :class="{ 'is-open': expanded, instant: running }"
+      :inert="!expanded"
     >
       <div>
-        <ToolStepCard
-          v-if="open && thought && thought.text"
-          variant="thought"
-          :text="thought.text"
-          :streaming="thought.streaming"
-        />
+        <div ref="panelEl" class="panel-slide" :data-open="expanded ? 'true' : 'false'">
+          <ToolStepCard
+            v-if="keptMounted && thought && thought.text"
+            variant="thought"
+            :text="thought.text"
+            :streaming="thought.streaming"
+          />
 
-        <div v-else class="calls">
-          <template v-for="call in calls" :key="call.item.id">
-            <div v-if="open && call.expandable" class="call">
-              <ToolStepCard
-                v-if="call.variant === 'command'"
-                variant="command"
-                :command="call.command"
-                :cwd="call.cwd"
-                :output-text="call.outputText"
-                :output-images="call.outputImages"
-                :empty-output="call.emptyOutput"
-                :status="call.status"
-                :status-label="call.statusLabel"
-              />
+          <div v-else-if="keptMounted" class="calls">
+            <template v-for="call in calls" :key="call.item.id">
+              <div v-if="call.expandable" class="call">
+                <ToolStepCard
+                  v-if="call.variant === 'command'"
+                  variant="command"
+                  :command="call.command"
+                  :cwd="call.cwd"
+                  :output-text="call.outputText"
+                  :output-images="call.outputImages"
+                  :empty-output="call.emptyOutput"
+                  :status="call.status"
+                  :status-label="call.statusLabel"
+                />
 
-              <ToolStepCard
-                v-else-if="call.variant === 'read'"
-                variant="read"
-                :path="call.path"
-                :preview="call.preview"
-                :output-images="call.images"
-              />
+                <ToolStepCard
+                  v-else-if="call.variant === 'read'"
+                  variant="read"
+                  :path="call.path"
+                  :preview="call.preview"
+                  :output-images="call.images"
+                />
 
-              <ToolStepCard
-                v-else-if="call.variant === 'edit'"
-                variant="edit"
-                :edit-preview="call.editPreview"
-              />
+                <ToolStepCard
+                  v-else-if="call.variant === 'edit'"
+                  variant="edit"
+                  :edit-preview="call.editPreview"
+                />
 
-              <ToolStepCard
-                v-else
-                variant="tool"
-                :input-full="call.inputFull"
-                :output-text="call.outputText"
-                :output-images="call.outputImages"
-                :empty-output="call.emptyOutput"
-              />
-            </div>
-          </template>
+                <ToolStepCard
+                  v-else
+                  variant="tool"
+                  :input-full="call.inputFull"
+                  :output-text="call.outputText"
+                  :output-images="call.outputImages"
+                  :empty-output="call.emptyOutput"
+                />
+              </div>
+            </template>
+          </div>
         </div>
       </div>
     </div>
@@ -87,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue"
+import { computed, nextTick, shallowRef, watch } from "vue"
 import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import {
   ChevronRight,
@@ -296,6 +298,30 @@ const running = computed(() =>
     : (group.value?.items.some((item) => item.running) ?? false),
 )
 
+const expanded = shallowRef(open.value)
+
+const keptMounted = shallowRef(open.value)
+
+const panelEl = shallowRef<HTMLElement | null>(null)
+
+watch(
+  open,
+  (isOpen) => {
+    if (isOpen) keptMounted.value = true
+
+    if (!isOpen || running.value) {
+      expanded.value = isOpen
+      return
+    }
+
+    nextTick(() => {
+      void panelEl.value?.offsetHeight
+      expanded.value = open.value
+    })
+  },
+  { flush: "sync" },
+)
+
 const liveThoughtEndedAt = shallowRef<number>()
 
 watch(
@@ -343,7 +369,7 @@ const icon = computed(() => {
 
 const calls = computed(() => {
   if (!group.value) return []
-  return group.value.items.map((item) => presentCall(item, open.value))
+  return group.value.items.map((item) => presentCall(item, keptMounted.value))
 })
 
 function toggleGroup() {

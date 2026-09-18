@@ -352,6 +352,10 @@
   transition: grid-template-rows var(--duration-fast) var(--ease-out);
 }
 
+.tool-calls-group {
+  transition-timing-function: var(--ease-smooth);
+}
+
 :is(.tool-calls-group, .session-list-group).is-open {
   grid-template-rows: 1fr;
   transition-duration: var(--duration-slow);
@@ -374,6 +378,32 @@
 
 :is(.tool-calls-group, .session-list-group).with-enter.is-open > * {
   animation: enter-blur var(--duration-slow) var(--ease-out);
+}
+
+.panel-slide {
+  --panel-translate-y: 50%;
+  --panel-blur: 2px;
+  transform: translateY(var(--panel-translate-y));
+  opacity: 0;
+  filter: blur(var(--panel-blur));
+  pointer-events: none;
+  transition:
+    transform var(--duration-fast) var(--ease-smooth),
+    opacity var(--duration-fast) var(--ease-smooth),
+    filter var(--duration-fast) var(--ease-smooth);
+}
+
+.panel-slide[data-open="true"] {
+  transform: none;
+  opacity: 1;
+  filter: none;
+  pointer-events: auto;
+  transition-duration: var(--duration-slow);
+}
+
+.instant .panel-slide,
+.instant .panel-slide[data-open="true"] {
+  transition: none;
 }
 
 .hook-rail {
@@ -605,6 +635,13 @@
 
   :is(.tool-calls-group, .session-list-group).with-enter.is-open > * {
     animation: none;
+  }
+
+  .panel-slide,
+  .panel-slide[data-open="true"] {
+    transition: none;
+    transform: none;
+    filter: none;
   }
 
   .hook-rail,

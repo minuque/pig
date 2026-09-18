@@ -21,80 +21,82 @@
       :inert="!expanded"
     >
       <div>
-        <div
-          v-if="renderedSteps.length"
-          ref="listEl"
-          class="steps"
-          @mouseleave="pointerInside = false"
-          @focusout="onFocusOut"
-        >
-          <span
-            class="hook-rail"
-            :class="{ 'is-on': hoverVisible, 'is-ready': railReady }"
-            aria-hidden="true"
+        <div class="panel-slide" :data-open="expanded ? 'true' : 'false'">
+          <div
+            v-if="renderedSteps.length"
+            ref="listEl"
+            class="steps"
+            @mouseleave="pointerInside = false"
+            @focusout="onFocusOut"
           >
-            <span class="hook-stem" :style="hoverStemStyle" />
-
-            <svg
-              class="hook-corner"
-              :style="hoverCornerStyle"
-              width="12"
-              height="7"
-              viewBox="0 0 12 7"
-              fill="none"
+            <span
+              class="hook-rail"
+              :class="{ 'is-on': hoverVisible, 'is-ready': railReady }"
+              aria-hidden="true"
             >
-              <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
-            </svg>
-          </span>
+              <span class="hook-stem" :style="hoverStemStyle" />
 
-          <span
-            class="hook-rail accent"
-            :class="{ 'is-on': accentVisible, 'is-ready': railReady }"
-            :style="statusColor"
-            aria-hidden="true"
-          >
-            <span class="hook-stem" :style="accentStemStyle" />
+              <svg
+                class="hook-corner"
+                :style="hoverCornerStyle"
+                width="12"
+                height="7"
+                viewBox="0 0 12 7"
+                fill="none"
+              >
+                <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
+              </svg>
+            </span>
 
-            <svg
-              class="hook-corner"
-              :style="accentCornerStyle"
-              width="12"
-              height="7"
-              viewBox="0 0 12 7"
-              fill="none"
+            <span
+              class="hook-rail accent"
+              :class="{ 'is-on': accentVisible, 'is-ready': railReady }"
+              :style="statusColor"
+              aria-hidden="true"
             >
-              <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
-            </svg>
-          </span>
+              <span class="hook-stem" :style="accentStemStyle" />
 
-          <div class="step-list">
-            <div
-              v-for="(step, index) in renderedSteps"
-              :key="step.id"
-              class="step"
-              :data-active="index === displayActiveIndex"
-              @mouseenter="onPointerEnter(index)"
-              @focusin="onFocusIn(index)"
-            >
-              <ToolCall
-                :step="step"
-                :is-expand="expandedTools"
-                @toggle="emit('toggle-tool', $event.id, $event.open)"
-              />
-            </div>
+              <svg
+                class="hook-corner"
+                :style="accentCornerStyle"
+                width="12"
+                height="7"
+                viewBox="0 0 12 7"
+                fill="none"
+              >
+                <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
+              </svg>
+            </span>
 
-            <div
-              v-if="hiddenCount"
-              class="step"
-              :data-active="displayActiveIndex === renderedSteps.length"
-              @mouseenter="onPointerEnter(renderedSteps.length)"
-              @focusin="onFocusIn(renderedSteps.length)"
-            >
-              <div class="tool-summary">
-                <Button type="button" static class="summary" @click="loadMore">
-                  <Ellipsis class="tool-icon" data-icon="inline-start" />
-                  <span class="label" data-text="加载更多">加载更多</span>
-                </Button>
+            <div class="step-list">
+              <div
+                v-for="(step, index) in renderedSteps"
+                :key="step.id"
+                class="step"
+                :data-active="index === displayActiveIndex"
+                @mouseenter="onPointerEnter(index)"
+                @focusin="onFocusIn(index)"
+              >
+                <ToolCall
+                  :step="step"
+                  :is-expand="expandedTools"
+                  @toggle="emit('toggle-tool', $event.id, $event.open)"
+                />
+              </div>
+
+              <div
+                v-if="hiddenCount"
+                class="step"
+                :data-active="displayActiveIndex === renderedSteps.length"
+                @mouseenter="onPointerEnter(renderedSteps.length)"
+                @focusin="onFocusIn(renderedSteps.length)"
+              >
+                <div class="tool-summary">
+                  <Button type="button" static class="summary" @click="loadMore">
+                    <Ellipsis class="tool-icon" data-icon="inline-start" />
+                    <span class="label" data-text="加载更多">加载更多</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -105,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from "vue"
 import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
@@ -153,7 +155,7 @@ const hiddenCount = computed(() =>
 )
 
 const skipHeightMotion = computed(
-  () => running.value || !expanded.value || renderedSteps.value.length > ANIMATED_EXPAND_LIMIT,
+  () => running.value || renderedSteps.value.length > ANIMATED_EXPAND_LIMIT,
 )
 
 function loadMore() {
@@ -164,7 +166,16 @@ watch(
   revealed,
   (open) => {
     if (open) keptMounted.value = true
-    expanded.value = open
+
+    if (!open || skipHeightMotion.value) {
+      expanded.value = open
+      return
+    }
+
+    nextTick(() => {
+      void listEl.value?.offsetHeight
+      expanded.value = revealed.value
+    })
   },
   { flush: "sync" },
 )
