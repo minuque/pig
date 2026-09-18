@@ -17,86 +17,84 @@
 
     <div
       class="tool-calls-group"
-      :class="{ 'is-open': expanded, instant: skipHeightMotion }"
-      :inert="!expanded"
+      :class="{ 'is-open': revealed, instant: skipHeightMotion }"
+      :inert="!revealed"
     >
-      <div>
-        <div class="panel-slide" :data-open="expanded ? 'true' : 'false'">
-          <div
-            v-if="renderedSteps.length"
-            ref="listEl"
-            class="steps"
-            @mouseleave="pointerInside = false"
-            @focusout="onFocusOut"
+      <div class="panel-slide">
+        <div
+          v-if="renderedSteps.length"
+          ref="listEl"
+          class="steps"
+          @mouseleave="pointerInside = false"
+          @focusout="onFocusOut"
+        >
+          <span
+            class="hook-rail"
+            :class="{ 'is-on': hoverVisible, 'is-ready': railReady }"
+            aria-hidden="true"
           >
-            <span
-              class="hook-rail"
-              :class="{ 'is-on': hoverVisible, 'is-ready': railReady }"
-              aria-hidden="true"
+            <span class="hook-stem" :style="hoverStemStyle" />
+
+            <svg
+              class="hook-corner"
+              :style="hoverCornerStyle"
+              width="12"
+              height="7"
+              viewBox="0 0 12 7"
+              fill="none"
             >
-              <span class="hook-stem" :style="hoverStemStyle" />
+              <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
+            </svg>
+          </span>
 
-              <svg
-                class="hook-corner"
-                :style="hoverCornerStyle"
-                width="12"
-                height="7"
-                viewBox="0 0 12 7"
-                fill="none"
-              >
-                <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
-              </svg>
-            </span>
+          <span
+            class="hook-rail accent"
+            :class="{ 'is-on': accentVisible, 'is-ready': railReady }"
+            :style="statusColor"
+            aria-hidden="true"
+          >
+            <span class="hook-stem" :style="accentStemStyle" />
 
-            <span
-              class="hook-rail accent"
-              :class="{ 'is-on': accentVisible, 'is-ready': railReady }"
-              :style="statusColor"
-              aria-hidden="true"
+            <svg
+              class="hook-corner"
+              :style="accentCornerStyle"
+              width="12"
+              height="7"
+              viewBox="0 0 12 7"
+              fill="none"
             >
-              <span class="hook-stem" :style="accentStemStyle" />
+              <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
+            </svg>
+          </span>
 
-              <svg
-                class="hook-corner"
-                :style="accentCornerStyle"
-                width="12"
-                height="7"
-                viewBox="0 0 12 7"
-                fill="none"
-              >
-                <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
-              </svg>
-            </span>
+          <div class="step-list">
+            <div
+              v-for="(step, index) in renderedSteps"
+              :key="step.id"
+              class="step"
+              :data-active="index === displayActiveIndex"
+              @mouseenter="onPointerEnter(index)"
+              @focusin="onFocusIn(index)"
+            >
+              <ToolCall
+                :step="step"
+                :is-expand="expandedTools"
+                @toggle="emit('toggle-tool', $event.id, $event.open)"
+              />
+            </div>
 
-            <div class="step-list">
-              <div
-                v-for="(step, index) in renderedSteps"
-                :key="step.id"
-                class="step"
-                :data-active="index === displayActiveIndex"
-                @mouseenter="onPointerEnter(index)"
-                @focusin="onFocusIn(index)"
-              >
-                <ToolCall
-                  :step="step"
-                  :is-expand="expandedTools"
-                  @toggle="emit('toggle-tool', $event.id, $event.open)"
-                />
-              </div>
-
-              <div
-                v-if="hiddenCount"
-                class="step"
-                :data-active="displayActiveIndex === renderedSteps.length"
-                @mouseenter="onPointerEnter(renderedSteps.length)"
-                @focusin="onFocusIn(renderedSteps.length)"
-              >
-                <div class="tool-summary">
-                  <Button type="button" static class="summary" @click="loadMore">
-                    <Ellipsis class="tool-icon" data-icon="inline-start" />
-                    <span class="label" data-text="加载更多">加载更多</span>
-                  </Button>
-                </div>
+            <div
+              v-if="hiddenCount"
+              class="step"
+              :data-active="displayActiveIndex === renderedSteps.length"
+              @mouseenter="onPointerEnter(renderedSteps.length)"
+              @focusin="onFocusIn(renderedSteps.length)"
+            >
+              <div class="tool-summary">
+                <Button type="button" static class="summary" @click="loadMore">
+                  <Ellipsis class="tool-icon" data-icon="inline-start" />
+                  <span class="label" data-text="加载更多">加载更多</span>
+                </Button>
               </div>
             </div>
           </div>
@@ -107,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from "vue"
+import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
 import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
@@ -130,7 +128,6 @@ const emit = defineEmits<{
 const running = computed(() => props.row.mode === "live")
 const statusColor = computed(() => (props.row.aborted ? { color: "var(--warning)" } : undefined))
 const revealed = computed(() => running.value || props.isExpand === true)
-const expanded = shallowRef(revealed.value)
 const keptMounted = shallowRef(revealed.value)
 const pageLimit = shallowRef(
   running.value ? Math.max(PAGE_SIZE, props.row.steps.length) : PAGE_SIZE,
@@ -153,16 +150,6 @@ watch(
   revealed,
   (open) => {
     if (open) keptMounted.value = true
-
-    if (!open || skipHeightMotion.value) {
-      expanded.value = open
-      return
-    }
-
-    nextTick(() => {
-      void listEl.value?.offsetHeight
-      expanded.value = revealed.value
-    })
   },
   { flush: "sync" },
 )
@@ -210,7 +197,7 @@ let measureRaf = 0
 function measure() {
   const root = listEl.value
 
-  if (!root || !expanded.value) return
+  if (!root || !revealed.value) return
   const rootTop = root.getBoundingClientRect().top
   const nodes = root.querySelectorAll<HTMLElement>(":scope .step")
   const next: number[] = []
@@ -231,7 +218,7 @@ function measure() {
 }
 
 function scheduleMeasure() {
-  if (!expanded.value || measureRaf) return
+  if (!revealed.value || measureRaf) return
   measureRaf = requestAnimationFrame(() => {
     measureRaf = 0
     measure()
@@ -259,8 +246,11 @@ function onFocusOut(event: FocusEvent) {
 
 function railBox(from: number, y: number) {
   return {
-    stem: { top: `${from}px`, height: `${Math.max(0, y - HOOK_CORNER - from)}px` },
-    corner: { top: `${y - HOOK_CORNER}px` },
+    stem: {
+      "--hook-from": `${from}px`,
+      "--hook-stem-h": `${Math.max(0, y - HOOK_CORNER - from)}px`,
+    },
+    corner: { "--hook-y": `${y - HOOK_CORNER}px` },
   }
 }
 
@@ -297,15 +287,15 @@ const hoverStemStyle = computed(() => hoverBox.value.stem)
 const hoverCornerStyle = computed(() => hoverBox.value.corner)
 
 watch(
-  [displayActiveIndex, moreIndex, expanded],
+  [displayActiveIndex, moreIndex, revealed],
   () => {
-    if (expanded.value) measure()
+    if (revealed.value) measure()
   },
   { flush: "post" },
 )
 
 watch(
-  [listEl, expanded],
+  [listEl, revealed],
   ([root, open]) => {
     listObserver?.disconnect()
     listObserver = undefined

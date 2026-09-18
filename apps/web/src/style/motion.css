@@ -380,36 +380,56 @@
   animation: enter-blur var(--duration-slow) var(--ease-out);
 }
 
-.panel-slide {
-  --panel-translate-y: 50%;
-  --panel-blur: 2px;
-  transform: translateY(var(--panel-translate-y));
+.tool-calls-group > .panel-slide {
+  transform: translateY(12px);
   opacity: 0;
-  filter: blur(var(--panel-blur));
   pointer-events: none;
   transition:
     transform var(--duration-fast) var(--ease-smooth),
-    opacity var(--duration-fast) var(--ease-smooth),
-    filter var(--duration-fast) var(--ease-smooth);
+    opacity var(--duration-fast) var(--ease-smooth);
 }
 
-.panel-slide[data-open="true"] {
+.tool-calls-group.is-open > .panel-slide {
   transform: none;
   opacity: 1;
-  filter: none;
   pointer-events: auto;
   transition-duration: var(--duration-slow);
 }
 
-.instant .panel-slide,
-.instant .panel-slide[data-open="true"] {
+@starting-style {
+  .tool-calls-group.is-open:not(.instant) > .panel-slide {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+}
+
+.tool-calls-group.instant > .panel-slide {
   transition: none;
+}
+
+@property --hook-from {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --hook-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --hook-stem-h {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
 }
 
 .hook-rail {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  contain: layout paint;
   color: var(--ink-faint);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -422,14 +442,22 @@
 .hook-stem,
 .hook-corner {
   position: absolute;
+  top: 0;
   inset-inline-start: calc(var(--size-icon) / 2);
   transition:
-    top var(--duration-slow) var(--ease-smooth),
-    height var(--duration-slow) var(--ease-smooth);
+    --hook-from var(--duration-slow) var(--ease-smooth),
+    --hook-y var(--duration-slow) var(--ease-smooth),
+    --hook-stem-h var(--duration-slow) var(--ease-smooth);
 }
 
 .hook-stem {
   width: var(--border-width);
+  height: var(--hook-stem-h);
+  transform: translate3d(0, var(--hook-from), 0);
+}
+
+.hook-corner {
+  transform: translate3d(0, var(--hook-y), 0);
 }
 
 .hook-rail:not(.is-ready) .hook-stem,
@@ -438,7 +466,7 @@
 }
 
 [dir="rtl"] .hook-corner {
-  transform: scaleX(-1);
+  transform: translate3d(0, var(--hook-y, 0px), 0) scaleX(-1);
   transform-origin: 0 50%;
 }
 
@@ -637,11 +665,10 @@
     animation: none;
   }
 
-  .panel-slide,
-  .panel-slide[data-open="true"] {
+  .tool-calls-group > .panel-slide,
+  .tool-calls-group.is-open > .panel-slide {
     transition: none;
     transform: none;
-    filter: none;
   }
 
   .hook-rail,
