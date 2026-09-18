@@ -256,6 +256,38 @@ const contentHandleSides = ["left", "right"] as const
   flex-direction: column;
 }
 
+.session-stage::before {
+  pointer-events: none;
+  position: absolute;
+  /* 让开滚动条列，否则渐隐会压住两端的三角按钮 */
+  inset-inline: 0 var(--size-scrollbar);
+  top: 0;
+  z-index: 1;
+  height: var(--spacing-sm);
+  background: linear-gradient(to bottom, var(--surface), transparent);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  /* stylelint-disable-next-line color-no-hex -- 遮罩通道用黑，不是色板 */
+  mask-image: linear-gradient(to bottom, #000, transparent);
+  /* stylelint-disable-next-line color-no-hex -- 遮罩通道用黑，不是色板 */
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
+  content: "";
+}
+
+.session-stage :deep(.row-tools) {
+  position: relative;
+  z-index: 2;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .session-stage::before {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}
+
 .idle-hero {
   display: grid;
   flex: 1;

@@ -50,32 +50,6 @@ const title = computed(() =>
   background: var(--surface);
 }
 
-.workbench-header::after {
-  pointer-events: none;
-  position: absolute;
-  /* 让开滚动条列，否则渐隐会压住两端的三角按钮 */
-  inset-inline: 0 var(--size-scrollbar);
-  top: 100%;
-  height: var(--spacing-sm);
-  background: linear-gradient(to bottom, var(--surface), transparent);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  /* stylelint-disable-next-line color-no-hex -- 遮罩通道用黑，不是色板 */
-  mask-image: linear-gradient(to bottom, #000, transparent);
-  /* stylelint-disable-next-line color-no-hex -- 遮罩通道用黑，不是色板 */
-  -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
-  content: "";
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .workbench-header::after {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    mask-image: none;
-    -webkit-mask-image: none;
-  }
-}
-
 .header-toggle {
   flex: none;
   width: var(--size-icon-button);
