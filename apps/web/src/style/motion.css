@@ -191,6 +191,10 @@
   transition: padding var(--duration-normal) var(--ease-out);
 }
 
+.motion-composer .glass-host::after {
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+}
+
 .motion-turn {
   transition: transform var(--duration-fast) var(--ease-smooth);
 }
@@ -639,7 +643,8 @@
   }
 
   .motion-composer .attach-tray,
-  .motion-composer .glass-host {
+  .motion-composer .glass-host,
+  .motion-composer .glass-host::after {
     transition: none;
   }
 

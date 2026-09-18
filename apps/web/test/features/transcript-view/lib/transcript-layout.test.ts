@@ -201,7 +201,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       endedAt: 6001,
     })
     const thought = work?.steps[0]
-    expect(thought?.type === "thought" && thoughtStepLabel(thought)).toBe("思考了 5秒")
+    expect(thought?.type === "thought" && thoughtStepLabel(thought)).toBe("思考了 5 秒")
   })
 
   it("失败路径：工具失败单列，重试错误信息不丢失", () => {

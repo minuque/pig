@@ -113,7 +113,7 @@ const emit = defineEmits<{
 .group-toggle {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--spacing-xs);
   min-width: 0;
   flex: 1;
   height: 100%;
@@ -160,7 +160,7 @@ const emit = defineEmits<{
   flex: none;
   align-items: center;
   align-self: center;
-  gap: var(--spacing-xxs);
+  gap: var(--spacing-xs);
   min-width: var(--size-icon);
 }
 

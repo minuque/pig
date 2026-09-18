@@ -14,9 +14,7 @@
             v-model="prompt"
             class="field"
             :placeholder="placeholder"
-            :readonly="readonly"
             aria-label="Prompt"
-            :aria-readonly="readonly"
             rows="1"
             @keydown="onEditorKeydown"
           ></textarea>
@@ -51,14 +49,12 @@ export function shouldSubmitOnKeydown(e: {
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     placeholder?: string
-    readonly?: boolean
   }>(),
   {
     placeholder: "do what you want ...",
-    readonly: false,
   },
 )
 
@@ -98,18 +94,7 @@ function fitEditor() {
   multiline.value = next > line + padY + 2 || el.value.includes("\n")
 }
 
-watch(
-  prompt,
-  () => {
-    fitEditor()
-
-    if (!props.readonly) return
-    const el = editor.value
-
-    if (el) el.scrollTop = el.scrollHeight
-  },
-  { flush: "post" },
-)
+watch(prompt, fitEditor, { flush: "post" })
 
 watch(
   container,
@@ -143,8 +128,6 @@ function focus() {
 }
 
 function onEditorKeydown(e: KeyboardEvent) {
-  if (props.readonly) return
-
   if (e.key === "Escape" && !e.isComposing && !hasText.value) editor.value?.blur()
 
   if (shouldSubmitOnKeydown(e)) {
@@ -177,27 +160,34 @@ defineExpose({ focus })
   box-shadow: var(--shadow-soft);
 }
 
-.composer[data-expanded="true"] .glass-shell,
-.composer[data-multiline="true"] .glass-shell {
-  border-radius: var(--radius-xl);
-}
-
 .glass-host {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   grid-template-areas: "editor left right";
   align-items: center;
-  column-gap: var(--spacing-xxs);
-  padding-block: var(--spacing-xs);
-  padding-inline: var(--spacing-sm);
+  column-gap: var(--spacing-xs);
+  padding-block: calc(var(--spacing-xs) + var(--border-width));
+  padding-inline: calc(var(--spacing-sm) + var(--border-width));
   overflow: hidden;
   background: var(--composer-bg);
-  border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-full);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
 }
 
-.glass-host:focus-within {
-  border-color: var(--border);
+/* 聚焦环叠透明度，避免 border-color 过渡在圆角上锯齿 */
+.glass-host::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 var(--border-width) var(--composer-ring);
+  opacity: 0;
+}
+
+.glass-host:focus-within::after {
+  opacity: 1;
 }
 
 .composer[data-expanded="true"] .glass-host {
@@ -206,14 +196,13 @@ defineExpose({ focus })
     "editor editor"
     "left right";
   align-items: end;
-  row-gap: var(--spacing-xxs);
-  padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs);
-  border-radius: var(--radius-xl);
+  row-gap: var(--spacing-xs);
+  padding: calc(var(--spacing-sm) + var(--border-width));
 }
 
 .composer[data-multiline="true"] .glass-host {
   align-items: end;
-  border-radius: var(--radius-xl);
+  border-radius: 28px;
 }
 
 .footer {

@@ -114,12 +114,13 @@
     box-shadow: var(--shadow-card);
   }
 
-  .table-node tbody tr:hover {
-    background-color: transparent;
+  .table-node {
+    background: var(--code-body);
   }
 
-  .table-node tbody tr:nth-child(2n):hover {
-    background-color: hsl(var(--ms-muted) / 0.35);
+  .table-node tbody tr:nth-child(2n),
+  .table-node tbody tr:hover {
+    background-color: transparent;
   }
 
   /* 折叠后只剩顶栏：四角同半径，底色跟 header，避免底角落出 code-bg */
@@ -144,13 +145,14 @@
   contain-intrinsic-size: auto none;
 }
 
+/* pierre diffs 默认 13px，只吃 --diffs-* */
 .stream-diffs-vue-diff {
   --diffs-font-size: var(--text-code);
   --diffs-line-height: var(--text-code-line);
   --diffs-font-family: var(--font-mono);
 }
 
-/* 影子树 :host 写死 Shiki 底，只吃 --diffs-bg */
+/* 影子 :host 写死主题色，外层声明优先。 */
 diffs-container {
   --diffs-bg: var(--code-body) !important;
   background-color: var(--code-body) !important;

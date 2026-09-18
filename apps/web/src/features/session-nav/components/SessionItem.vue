@@ -1,108 +1,98 @@
 <template>
-  <SessionItemHover :disabled="renaming || menuOpen || deleteOpen">
-    <div class="session-item" :class="{ 'is-menu-open': menuOpen }">
-      <button
-        v-if="!renaming"
-        class="pin-toggle press-scale"
-        type="button"
-        :title="pinned ? '取消置顶' : '置顶'"
-        :aria-label="pinned ? '取消置顶' : '置顶'"
-        :aria-pressed="pinned"
-        @click.stop="emit('togglePinned', session.id)"
-      >
-        <PinOff v-if="pinned" class="size-icon" />
-        <Pin v-else class="size-icon" />
-      </button>
+  <div class="session-item" :class="{ 'is-menu-open': menuOpen }">
+    <button
+      v-if="!renaming"
+      class="pin-toggle press-scale"
+      type="button"
+      :title="pinned ? '取消置顶' : '置顶'"
+      :aria-label="pinned ? '取消置顶' : '置顶'"
+      :aria-pressed="pinned"
+      @click.stop="emit('togglePinned', session.id)"
+    >
+      <PinOff v-if="pinned" class="size-icon" />
+      <Pin v-else class="size-icon" />
+    </button>
 
-      <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
-        <ContextMenuTrigger as-child>
-          <component
-            :is="renaming ? 'div' : RouterLink"
-            class="session-card"
-            :class="{ active }"
-            :to="renaming ? undefined : { name: 'session', params: { sessionId: session.id } }"
-            @click="onCardClick"
-            @keydown="onCardKeydown"
-          >
-            <div class="card-line">
-              <span class="pin-slot" aria-hidden="true"></span>
+    <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
+      <ContextMenuTrigger as-child>
+        <component
+          :is="renaming ? 'div' : RouterLink"
+          class="session-card"
+          :class="{ active }"
+          :to="renaming ? undefined : { name: 'session', params: { sessionId: session.id } }"
+          @click="onCardClick"
+          @keydown="onCardKeydown"
+        >
+          <div class="card-line">
+            <span class="pin-slot" aria-hidden="true"></span>
 
-              <input
-                v-if="renaming"
-                ref="nameInput"
-                v-model="draft"
-                class="rename-input"
-                @click.stop
-                @keydown.enter.prevent="commitRename"
-                @keydown.escape.prevent="cancelRename"
-                @blur="commitRename"
-              />
+            <input
+              v-if="renaming"
+              ref="nameInput"
+              v-model="draft"
+              class="rename-input"
+              @click.stop
+              @keydown.enter.prevent="commitRename"
+              @keydown.escape.prevent="cancelRename"
+              @blur="commitRename"
+            />
 
-              <span v-else class="title">{{ session.title }}</span>
+            <span v-else class="title">{{ session.title }}</span>
 
-              <span v-if="!renaming" class="trail-slot">
-                <span v-if="streaming" class="session-spin" :aria-label="stateLabel">
-                  <Spinner :size="12" />
-                </span>
-
-                <time
-                  v-else-if="session.updatedAt"
-                  class="session-time"
-                  :class="{ 'has-state': stateDot }"
-                  :datetime="new Date(session.updatedAt).toISOString()"
-                  :aria-label="stateDot ? stateLabel : undefined"
-                >
-                  <span v-if="stateDot" class="state-dot" :class="state"></span>
-                  <span class="time-text">{{ relativeTime }}</span>
-                </time>
-
-                <button
-                  class="more-toggle press-scale"
-                  type="button"
-                  title="更多"
-                  aria-label="更多"
-                  aria-haspopup="menu"
-                  :aria-expanded="menuOpen"
-                  @click.prevent.stop="openSessionMenu"
-                  @contextmenu.prevent.stop="openSessionMenu"
-                >
-                  <Ellipsis class="size-icon" />
-                </button>
+            <span v-if="!renaming" class="trail-slot">
+              <span v-if="streaming" class="session-spin" :aria-label="stateLabel">
+                <Spinner :size="12" />
               </span>
-            </div>
-          </component>
-        </ContextMenuTrigger>
 
-        <ContextMenuContent class="select-none">
-          <ContextMenuItem @select="emit('togglePinned', session.id)">
-            <PinOff v-if="pinned" :size="14" />
-            <Pin v-else :size="14" />
-            {{ pinned ? "取消置顶" : "置顶" }}
-          </ContextMenuItem>
+              <time
+                v-else-if="session.updatedAt"
+                class="session-time"
+                :class="{ 'has-state': stateDot }"
+                :datetime="new Date(session.updatedAt).toISOString()"
+                :aria-label="stateDot ? stateLabel : undefined"
+              >
+                <span v-if="stateDot" class="state-dot" :class="state"></span>
+                <span class="time-text">{{ relativeTime }}</span>
+              </time>
 
-          <ContextMenuItem @select="startRename">
-            <Pencil :size="14" />
-            重命名
-          </ContextMenuItem>
+              <button
+                class="more-toggle press-scale"
+                type="button"
+                title="更多"
+                aria-label="更多"
+                aria-haspopup="menu"
+                :aria-expanded="menuOpen"
+                @click.prevent.stop="openSessionMenu"
+                @contextmenu.prevent.stop="openSessionMenu"
+              >
+                <Ellipsis class="size-icon" />
+              </button>
+            </span>
+          </div>
+        </component>
+      </ContextMenuTrigger>
 
-          <ContextMenuItem variant="destructive" @select="deleteOpen = true">
-            <Trash2 :size="14" />
-            删除
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+      <ContextMenuContent class="select-none">
+        <ContextMenuItem @select="emit('togglePinned', session.id)">
+          <PinOff v-if="pinned" :size="14" />
+          <Pin v-else :size="14" />
+          {{ pinned ? "取消置顶" : "置顶" }}
+        </ContextMenuItem>
 
-      <SessionItemDelete
-        v-model:open="deleteOpen"
-        :title="session.title"
-        @confirm="confirmDelete"
-      />
-    </div>
+        <ContextMenuItem @select="startRename">
+          <Pencil :size="14" />
+          重命名
+        </ContextMenuItem>
 
-    <template #preview>
-      <SessionItemPreview v-bind="preview" />
-    </template>
-  </SessionItemHover>
+        <ContextMenuItem variant="destructive" @select="deleteOpen = true">
+          <Trash2 :size="14" />
+          删除
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+
+    <SessionItemDelete v-model:open="deleteOpen" :title="session.title" @confirm="confirmDelete" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -119,8 +109,6 @@ import { useNav } from "@features/session-nav/index.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
-import SessionItemHover from "@features/session-nav/components/SessionItemHover.vue"
-import SessionItemPreview from "@features/session-nav/components/SessionItemPreview.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 
 const props = withDefaults(
@@ -143,7 +131,7 @@ const emit = defineEmits<{
   delete: [id: string]
 }>()
 
-const { openSession, cardFootById } = useNav()
+const { openSession } = useNav()
 
 const renaming = ref(false)
 
@@ -154,15 +142,6 @@ const nameInput = ref<HTMLInputElement | null>(null)
 const menuOpen = ref(false)
 
 const deleteOpen = shallowRef(false)
-
-const preview = computed(() => {
-  const foot = cardFootById.value.get(props.session.id)
-  return {
-    title: props.session.title,
-    ...(foot?.model ? { model: foot.model } : {}),
-    ...(foot?.messageCount !== undefined ? { messageCount: foot.messageCount } : {}),
-  }
-})
 
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
 

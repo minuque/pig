@@ -186,7 +186,7 @@ function onScroll(event: Event) {
 
 .tool-output.is-embedded {
   min-width: 0;
-  padding: var(--spacing-sm);
+  padding: var(--spacing-xs);
   padding-inline-end: 0;
 }
 
@@ -249,7 +249,7 @@ function onScroll(event: Event) {
 }
 
 .meta {
-  margin: var(--spacing-xxs) 0 0;
+  margin: var(--spacing-xs) 0 0;
   color: var(--ink-faint);
   font-size: inherit;
 }
@@ -262,10 +262,15 @@ function onScroll(event: Event) {
 }
 
 .code-scroll {
-  max-height: 480px;
+  max-height: 550px;
   overflow: auto;
-  padding-block: var(--spacing-sm);
-  padding-inline-start: var(--spacing-lg);
+  padding-block: var(--spacing-xs);
+  padding-inline-start: var(--spacing-xs);
+}
+
+.code-scroll::-webkit-scrollbar-track {
+  margin-inline: calc(var(--radius-lg) - var(--border-width));
+  margin-block-end: calc(var(--radius-lg) - var(--border-width));
 }
 
 .code-lines {
@@ -273,7 +278,7 @@ function onScroll(event: Event) {
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);
-  tab-size: 4;
+  tab-size: 2;
 }
 
 .code-line {

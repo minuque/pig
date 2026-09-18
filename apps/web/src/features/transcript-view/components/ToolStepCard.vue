@@ -1,5 +1,14 @@
 <template>
-  <div class="tool-step-card" :class="cardClasses">
+  <div v-if="readImages.length" class="read-images">
+    <TranscriptImage
+      v-for="(image, index) in readImages"
+      :key="index"
+      :data="image.data"
+      :mime-type="image.mimeType"
+    />
+  </div>
+
+  <div v-else class="tool-step-card" :class="cardClasses">
     <template v-if="runContent">
       <ToolHeader
         v-model:expanded="runExpanded"
@@ -26,15 +35,6 @@
         embedded
       />
     </template>
-
-    <div v-else-if="readImages.length" class="read-images">
-      <TranscriptImage
-        v-for="(image, index) in readImages"
-        :key="index"
-        :data="image.data"
-        :mime-type="image.mimeType"
-      />
-    </div>
 
     <template v-else-if="readContent">
       <ToolHeader
@@ -364,7 +364,6 @@ watch(
   margin: 0;
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
-  line-height: var(--text-body-sm--line-height);
   white-space: pre-wrap;
 }
 
@@ -380,6 +379,7 @@ watch(
   flex: none;
   width: 6px;
   height: 6px;
+  margin: 2px;
   border-radius: var(--radius-full);
   background: var(--success);
   box-shadow: 0 0 0 2px var(--success-halo);
@@ -422,10 +422,6 @@ watch(
 
 .is-tool :deep(.tool-header) {
   align-items: flex-start;
-}
-
-.is-tool :deep(.heading) {
-  overflow: visible;
 }
 
 .input-json {
@@ -472,8 +468,13 @@ watch(
 .read-images {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
+  max-width: 100%;
+}
+
+.read-images :deep(.thumb) {
+  max-width: 100%;
 }
 
 .line-stats {

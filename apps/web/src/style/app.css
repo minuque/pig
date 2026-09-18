@@ -35,8 +35,9 @@
   --code-header: #ffffff;
   --code-body: #ffffff;
 
-  /* mermaid 图，github-light */
+  /* mermaid 图 */
   --mermaid-bg: #ffffff;
+  --mermaid-fill: #eaeef2;
   --mermaid-fg: #1f2328;
   --mermaid-line: #d1d9e0;
   --mermaid-accent: #0969da;
@@ -73,7 +74,7 @@
   --inline-code: #e8ebf0;
   --inline-code-ink: var(--ink);
   --media-outline: rgba(0, 0, 0, 0.1);
-  --scrollbar-color: #8a8a8a;
+  --scrollbar-color: #dad8d8;
   --scrollbar-hover: #6b6b6b;
 
   /* 玻璃 */
@@ -183,7 +184,7 @@
   --size-icon-2xs: 18px;
   --size-icon-button: 28px;
   --size-scroll-control: 30px;
-  --size-scrollbar: 6px;
+  --size-scrollbar: 8px;
   --size-nav-rail: 36px;
   --startup-logo-size: 88px;
 
@@ -245,14 +246,15 @@
   --canvas-soft: #171717;
   --surface: #0c0c0e;
   --sidebar: #151518;
-  --composer-bg: #262626;
+  --composer-bg: #212128;
   --user-prompt-bg: #262626;
   --popover: #262626;
   --code-header: #151518;
   --code-body: #151518;
 
-  /* mermaid 图，github-dark */
+  /* mermaid 图 */
   --mermaid-bg: #151518;
+  --mermaid-fill: rgb(14, 36, 56);
   --mermaid-fg: #e6edf3;
   --mermaid-line: #3d444d;
   --mermaid-accent: #4493f8;
@@ -275,7 +277,7 @@
   --link: #93c5fd;
   --inline-code: #2a2a30;
   --media-outline: rgba(255, 255, 255, 0.1);
-  --scrollbar-color: #737373;
+  --scrollbar-color: #1c1c21;
   --scrollbar-hover: #a3a3a3;
 
   --accent-orange: #facc15;
@@ -312,12 +314,8 @@
   --inverse-fg: #171717;
 }
 
-/* 滚动条默认隐藏，容器 hover 时淡入；各元素自写 --scrollbar-thumb，避免 html:hover 传到所有条子。 */
+/* 滚动条常显；nav-card 内另行隐藏。各元素可自写 --scrollbar-thumb。 */
 * {
-  --scrollbar-thumb: transparent;
-}
-
-*:hover {
   --scrollbar-thumb: var(--scrollbar-color);
 }
 
@@ -352,10 +350,8 @@
   display: none;
 }
 
-@media (pointer: coarse) {
-  * {
-    --scrollbar-thumb: var(--scrollbar-color);
-  }
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {

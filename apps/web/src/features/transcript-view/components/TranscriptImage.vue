@@ -7,7 +7,7 @@
     </DialogTrigger>
 
     <DialogContent
-      class="max-h-[90vh] w-full max-w-[min(56rem,calc(100vw-2rem))] overflow-auto p-(--spacing-sm) sm:max-w-[min(56rem,calc(100vw-2rem))]"
+      class="!w-fit max-h-[90vh] max-w-[calc(100vw-2rem)] place-items-center overflow-auto p-(--spacing-sm) sm:!w-fit sm:!max-w-[calc(100vw-2rem)]"
     >
       <img :src="src" :alt="alt" class="full" />
     </DialogContent>
@@ -34,7 +34,7 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
 <style scoped>
 .thumb {
   display: block;
-  max-width: min(20rem, 86%);
+  width: 30%;
   padding: 0;
   overflow: hidden;
   border: 0;
@@ -46,14 +46,20 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
 .thumb-img,
 .full {
   display: block;
-  width: 100%;
   height: auto;
-  outline: 1px solid var(--media-outline);
+  border-radius: inherit;
+  outline: var(--border-width) solid var(--media-outline);
   outline-offset: -1px;
 }
 
+.thumb-img {
+  width: 100%;
+}
+
 .full {
-  max-height: calc(90vh - 2rem);
-  object-fit: contain;
+  width: auto;
+  max-width: none;
+  margin-inline: auto;
+  border-radius: var(--radius-lg);
 }
 </style>

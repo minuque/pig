@@ -122,7 +122,6 @@ async function copy() {
 .heading {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
 }
 
 .label {

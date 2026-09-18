@@ -235,7 +235,7 @@ export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt):
   if (step.streaming) return "思考中"
 
   const seconds = Math.max(1, Math.round(((completedAt ?? step.startedAt) - step.startedAt) / 1000))
-  return `思考了 ${seconds}秒`
+  return `思考了 ${seconds} 秒`
 }
 
 export function buildTimelineRows(
