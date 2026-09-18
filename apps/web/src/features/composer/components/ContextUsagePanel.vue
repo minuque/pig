@@ -85,11 +85,9 @@ const props = defineProps<{
   usage: ContextUsage
   sessionId?: string | undefined
 }>()
-
 const emit = defineEmits<{
   close: []
 }>()
-
 const tokenSummary = computed(() => contextUsageSummary(props.usage))
 
 function canPreview(segment: ContextUsageSegment): boolean {
@@ -101,15 +99,10 @@ function onLegendClick(segment: ContextUsageSegment) {
 }
 
 const previewOpen = ref(false)
-
 const previewLoading = ref(false)
-
 const previewTitle = ref("")
-
 const previewBody = ref("")
-
 const previewPane = ref<HTMLElement>()
-
 let previewRequest = 0
 
 async function openPreview(segment: ContextUsageSegment) {

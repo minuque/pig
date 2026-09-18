@@ -26,11 +26,8 @@ import SoundToggle from "@features/click-sound/index.vue"
 import ThemeToggle from "@features/theme/index.vue"
 
 const { leftOpen, toggle } = useLeftPanelToggle()
-
 const { sessionId, projection } = useSession()
-
 const { listedSessions } = useNav()
-
 const title = computed(() =>
   workbenchHeaderTitle({
     sessionId: sessionId.value,

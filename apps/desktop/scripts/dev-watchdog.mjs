@@ -3,7 +3,6 @@ import { spawnSync } from "node:child_process"
 import { setTimeout as sleep } from "node:timers/promises"
 
 const parentPid = Number(process.argv[2])
-
 const port = Number(process.argv[3])
 
 function alive(pid) {
@@ -36,9 +35,7 @@ function listeningPids(listenPort) {
       encoding: "utf8",
       windowsHide: true,
     })
-
     const pids = new Set()
-
     const lineRe = new RegExp(
       `[:\\[]${listenPort}(?:\\]|\\s).*(?:LISTENING|侦听)\\s+(\\d+)\\s*$`,
       "i",

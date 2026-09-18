@@ -52,7 +52,6 @@ describe("filterSessionsForSearch", () => {
 describe("sidebarTimeSections", () => {
   it("按本地自然日分成今天和最近并保留原顺序", () => {
     const now = new Date(2026, 8, 3, 12).getTime()
-
     const sections = sidebarTimeSections(
       [
         { id: "today", title: "今天", updatedAt: new Date(2026, 8, 3, 8).getTime() },
@@ -84,7 +83,6 @@ function transcriptItem(
 describe("session card foot", () => {
   it("空失败助手句不计条数；打开中用 live 覆盖磁盘卡片", () => {
     const user = transcriptItem({ role: "user", content: [{ type: "text", text: "ping" }] })
-
     const timeout = transcriptItem({
       id: "a1",
       role: "assistant",

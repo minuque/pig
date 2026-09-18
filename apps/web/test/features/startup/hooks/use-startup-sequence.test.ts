@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const replace = vi.fn(async () => undefined)
-
 const currentRoute = {
   value: { name: undefined as string | undefined, params: {} as Record<string, unknown> },
 }
@@ -24,7 +23,6 @@ describe("startup sequence", () => {
     currentRoute.value = { name: "error", params: {} }
     let inFlight = 0
     let overlapped = false
-
     const { start, ready, visible, settled } = useStartupSequence({
       connect: async () => {
         inFlight += 1
@@ -90,13 +88,10 @@ describe("startup sequence", () => {
 
   it("欢迎页 initialize 先完成不揭开遮罩", async () => {
     let releaseConnect = () => {}
-
     const connecting = new Promise<void>((resolve) => {
       releaseConnect = resolve
     })
-
     let initializeDone = false
-
     const seq = useStartupSequence({
       connect: () => connecting,
       initialize: async () => {
@@ -104,7 +99,6 @@ describe("startup sequence", () => {
       },
       connectTimeoutMs: 0,
     })
-
     const started = seq.start()
     await vi.waitFor(() => expect(initializeDone).toBe(true))
     expect(seq.settled.value).toBe(false)
@@ -118,17 +112,14 @@ describe("startup sequence", () => {
   it("有 sessionId 时 initialize 完成即可揭开遮罩", async () => {
     currentRoute.value = { name: "session", params: { sessionId: "s1" } }
     let releaseConnect = () => {}
-
     const connecting = new Promise<void>((resolve) => {
       releaseConnect = resolve
     })
-
     const seq = useStartupSequence({
       connect: () => connecting,
       initialize: async () => undefined,
       connectTimeoutMs: 0,
     })
-
     const started = seq.start()
     await vi.waitFor(() => expect(seq.settled.value).toBe(true))
     expect(seq.ready.value).toBe(false)

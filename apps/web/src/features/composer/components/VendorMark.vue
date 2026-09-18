@@ -28,24 +28,19 @@ const props = withDefaults(
     size: 12,
   },
 )
-
 const icon = computed(() => vendorIcon(props.vendor || props.name))
-
 const letter = computed(() => {
   const label = vendorDisplayName(props.vendor || props.name) || props.name || props.vendor
   return label.charAt(0).toUpperCase() || "?"
 })
-
 const box = computed(() => ({
   width: `${props.size}px`,
   height: `${props.size}px`,
 }))
-
 const fallbackStyle = computed(() => ({
   ...box.value,
   fontSize: `${Math.max(8, props.size * 0.6)}px`,
 }))
-
 const monoStyle = computed(() => ({
   ...box.value,
   webkitMaskImage: `url("${icon.value?.src}")`,

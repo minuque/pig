@@ -90,7 +90,6 @@ class FakeAgentSession {
 }
 
 const asSession = (fake: FakeAgentSession) => fake as unknown as AgentSession
-
 const baseRuntime = {
   getModel: (provider: string, id: string) =>
     provider === "test" && id === "test-model" ? { provider, id } : undefined,
@@ -131,7 +130,6 @@ const assistantMessage = (overrides: Record<string, unknown> = {}): TestMessage 
     timestamp: 1000,
     ...overrides,
   }) as TestMessage
-
 const toolResultMessage = (overrides: Record<string, unknown> = {}): TestMessage =>
   ({
     role: "toolResult",
@@ -148,7 +146,6 @@ const toolResultMessage = (overrides: Record<string, unknown> = {}): TestMessage
 describe("TranscriptProjection", () => {
   it("maps assistant message events to streaming progress with a stable id", () => {
     const projection = new TranscriptProjection()
-
     const start = projection.progress({
       type: "message_start",
       message: assistantMessage(),
@@ -180,7 +177,6 @@ describe("TranscriptProjection", () => {
 
   it("maps tool execution start and tool result end to the same toolCallId", () => {
     const projection = new TranscriptProjection()
-
     const start = projection.progress({
       type: "tool_execution_start",
       toolCallId: "call-1",
@@ -312,7 +308,6 @@ describe("PiHostService", () => {
 
     if (!sessionDir) temps.push(dir)
     const sessions = new Map<string, FakeAgentSession>()
-
     const service = new PiHostService({
       sessionDir: dir,
       cwd: dir,

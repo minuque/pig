@@ -136,7 +136,6 @@ function nextWelcomeWorkspaceId(
 }
 
 const route = useRoute()
-
 const {
   sessionId,
   transcript,
@@ -158,12 +157,9 @@ const {
   abortSession,
   sendPrompt,
 } = useSession()
-
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
-
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
-
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
     return { title: "连接失败", detail: connectionError.value.message }
@@ -171,7 +167,6 @@ const pageError = computed(() => {
 
   return route.name === "error" ? {} : null
 })
-
 const showHero = computed(() => {
   if (transcript.value.length > 0 || running.value) return false
 
@@ -180,18 +175,14 @@ const showHero = computed(() => {
   if (sessionPending.value && !creating.value) return false
   return true
 })
-
 const welcomeWorkspaceId = shallowRef<string>()
-
 const heroWorkspaceId = computed({
   get: () => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value),
   set: (id) => {
     if (!sessionId.value) welcomeWorkspaceId.value = id
   },
 })
-
 const composerCwd = computed(() => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value))
-
 const sendDisabled = computed(
   () => !composerCwd.value || preset.value === undefined || Boolean(creating.value),
 )
@@ -208,7 +199,6 @@ const transcriptView = useTemplateRef<{
   showScrollToLatest: boolean
   scrollToLatest: (behavior?: "auto" | "smooth") => void
 }>("transcriptView")
-
 const showScrollToLatest = computed(() => transcriptView.value?.showScrollToLatest ?? false)
 
 function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
@@ -231,11 +221,9 @@ const {
   endResize,
   nudgeWidth,
 } = useConversationWidth()
-
 const showContentHandles = computed(
   () => Boolean(sessionId.value) && !showHero.value && !sessionPending.value,
 )
-
 const contentHandleSides = ["left", "right"] as const
 </script>
 

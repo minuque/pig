@@ -272,12 +272,10 @@ export function resolveUsedTokens(
   contextWindow: number,
 ): number {
   const reported = usage?.tokens
-
   const fromPercent =
     usage?.percent !== null && usage?.percent !== undefined && contextWindow > 0
       ? Math.round((usage.percent / 100) * contextWindow)
       : undefined
-
   let resolved = reported ?? fromPercent ?? estimated
 
   if (reported !== null && reported !== undefined && fromPercent !== undefined) {
@@ -314,17 +312,14 @@ export function estimateContextUsage(
   const systemPrompt = Math.max(0, estimateText(prompt) - memory - skills)
   const tools = collectTools(source, previewKey === "tools")
   const walked = walkEntries(source.sessionManager.buildContextEntries(), previewKey)
-
   const known =
     systemPrompt + memory + skills + tools.tokens + walked.toolResults + walked.conversation
-
   const reported = source.getContextUsage()
   const window = Math.max(0, reported?.contextWindow ?? source.model?.contextWindow ?? 0)
   const fixed = systemPrompt + memory + skills + tools.tokens
   const used = Math.max(resolveUsedTokens(reported, known, window), fixed)
   const fitted = capVariable(walked, Math.max(0, used - fixed))
   const attributed = fixed + fitted.toolResults + fitted.conversation
-
   const estimate: ContextUsageEstimate = {
     used,
     window,

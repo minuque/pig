@@ -76,7 +76,6 @@ export class PiHostSession implements PiSessionRuntime {
     const entries = manager.getBranch()
     const createdAt = this.sessionCreatedAt()
     const steering = session.getSteeringMessages()
-
     const listName = sessionListName({
       name: session.sessionName,
       firstMessage: firstUserMessageText(entries),

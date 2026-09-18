@@ -15,7 +15,6 @@ const props = defineProps<{
   connect: () => Promise<unknown>
   initialize: () => Promise<unknown>
 }>()
-
 const { visible, settled, finish, start } = useStartupSequence(props)
 
 onMounted(() => {

@@ -21,7 +21,6 @@ import { Volume2, VolumeX } from "@lucide/vue"
 import { useClickSound } from "@features/click-sound/index.js"
 
 const { enabled, toggle } = useClickSound()
-
 const label = computed(() => (enabled.value ? "关闭点击音效" : "开启点击音效"))
 </script>
 

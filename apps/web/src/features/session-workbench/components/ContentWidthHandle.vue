@@ -21,7 +21,6 @@ const props = defineProps<{
   side: "left" | "right"
   measure: () => number
 }>()
-
 const emit = defineEmits<{
   start: []
   drag: [width: number]
@@ -29,15 +28,10 @@ const emit = defineEmits<{
   end: []
   nudge: [delta: number]
 }>()
-
 const dragging = shallowRef(false)
-
 let originX = 0
-
 let latestX = 0
-
 let baseWidth = 0
-
 let frame = 0
 
 function outwardWidth(): number {

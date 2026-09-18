@@ -1,12 +1,8 @@
 /** 展开后视口最多渲染这么多行；更长的内容在此窗口内虚拟滚动。 */
 export const DEFAULT_MAX_EXPAND_LINES = 32
-
 export const DEFAULT_LINE_HEIGHT_PX = 21
-
 export const DEFAULT_OVERSCAN_LINES = 8
-
 export const TOOL_OMIT_HEAD = 5
-
 export const TOOL_OMIT_TAIL = 4
 
 export function hiddenLineCount(lineCount: number): number {

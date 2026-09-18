@@ -116,44 +116,31 @@ import { toolRowFailCount, toolRowLabel, toolRowLabelParts } from "../lib/transc
 import type { ToolRow, ToolRowStep } from "../type.js"
 
 const HOOK_CORNER = 6
-
 const PAGE_SIZE = 8
-
 const ANIMATED_EXPAND_LIMIT = 8
-
 const props = defineProps<{
   row: ToolRow
   isExpand: boolean | undefined
   expandedTools: Map<string, boolean>
 }>()
-
 const emit = defineEmits<{
   "toggle-expand": [open: boolean]
   "toggle-tool": [id: string, open: boolean]
 }>()
-
 const running = computed(() => props.row.mode === "live")
-
 const statusColor = computed(() => (props.row.aborted ? { color: "var(--warning)" } : undefined))
-
 const revealed = computed(() => running.value || props.isExpand === true)
-
 const expanded = shallowRef(revealed.value)
-
 const keptMounted = shallowRef(revealed.value)
-
 const pageLimit = shallowRef(
   running.value ? Math.max(PAGE_SIZE, props.row.steps.length) : PAGE_SIZE,
 )
-
 const renderedSteps = computed(() =>
   keptMounted.value ? props.row.steps.slice(0, pageLimit.value) : [],
 )
-
 const hiddenCount = computed(() =>
   keptMounted.value ? Math.max(0, props.row.steps.length - renderedSteps.value.length) : 0,
 )
-
 const skipHeightMotion = computed(
   () => running.value || renderedSteps.value.length > ANIMATED_EXPAND_LIMIT,
 )
@@ -190,9 +177,7 @@ watch(
 )
 
 const label = computed(() => toolRowLabel(props.row))
-
 const labelParts = computed(() => toolRowLabelParts(props.row))
-
 const failCount = computed(() => toolRowFailCount(props.row))
 
 function isStepRunning(step: ToolRowStep) {
@@ -206,30 +191,20 @@ const activeIndex = computed(() => {
   if (runningIndex >= 0) return runningIndex
   return steps.length > 0 ? steps.length - 1 : -1
 })
-
 const moreIndex = computed(() => (hiddenCount.value ? renderedSteps.value.length : -1))
-
 const displayActiveIndex = computed(() => {
   const last = moreIndex.value >= 0 ? moreIndex.value : renderedSteps.value.length - 1
 
   if (last < 0 || activeIndex.value < 0) return -1
   return Math.min(activeIndex.value, last)
 })
-
 const listEl = shallowRef<HTMLElement | null>(null)
-
 const centers = shallowRef<number[]>([])
-
 const railReady = shallowRef(false)
-
 const hoverIndex = shallowRef<number | null>(null)
-
 const pointerInside = shallowRef(false)
-
 const focusInside = shallowRef(false)
-
 let listObserver: ResizeObserver | undefined
-
 let measureRaf = 0
 
 function measure() {
@@ -293,7 +268,6 @@ const activeY = computed(() => {
   const y = centers.value[displayActiveIndex.value]
   return y == null ? null : y
 })
-
 const hoverY = computed(() => {
   const index = hoverIndex.value
 
@@ -301,7 +275,6 @@ const hoverY = computed(() => {
   const y = centers.value[index]
   return y == null ? null : y
 })
-
 const hoverFrom = computed(() => {
   const accent = activeY.value
   const hover = hoverY.value
@@ -309,26 +282,18 @@ const hoverFrom = computed(() => {
   if (accent != null && hover != null && hover <= accent) return Math.max(0, hover - HOOK_CORNER)
   return accent ?? 0
 })
-
 const accentVisible = computed(() => activeY.value != null)
-
 const hoverVisible = computed(
   () =>
     (pointerInside.value || focusInside.value) &&
     hoverIndex.value !== displayActiveIndex.value &&
     hoverY.value != null,
 )
-
 const accentBox = computed(() => railBox(0, activeY.value ?? 0))
-
 const hoverBox = computed(() => railBox(hoverFrom.value, hoverY.value ?? 0))
-
 const accentStemStyle = computed(() => accentBox.value.stem)
-
 const accentCornerStyle = computed(() => accentBox.value.corner)
-
 const hoverStemStyle = computed(() => hoverBox.value.stem)
-
 const hoverCornerStyle = computed(() => hoverBox.value.corner)
 
 watch(

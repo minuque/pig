@@ -6,13 +6,9 @@ export interface Notice {
 }
 
 const DURATION_MS = 5000
-
 const notices = shallowRef<Notice[]>([])
-
 const timers = new Map<number, ReturnType<typeof setTimeout>>()
-
 let nextId = 1
-
 export const noticeQueue = readonly(notices)
 
 export function dismissNotice(id: number): void {

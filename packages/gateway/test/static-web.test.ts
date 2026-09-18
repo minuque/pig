@@ -27,9 +27,7 @@ function getRaw(url: string, acceptEncoding: string) {
 }
 
 let gateway: Gateway | undefined
-
 let root: string | undefined
-
 let outside: string | undefined
 
 afterEach(async () => {
@@ -87,7 +85,6 @@ describe("production web server", () => {
         }) as never,
     })
     const origin = `http://127.0.0.1:${await gateway.start()}`
-
     const gzipped = await getRaw(`${origin}/chunk.js`, "gzip")
     expect(gzipped.encoding).toBe("gzip")
     expect(gunzipSync(gzipped.body).toString()).toBe(script)

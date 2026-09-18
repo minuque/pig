@@ -11,9 +11,7 @@ vi.mock("vue", async (original) => ({
 }))
 
 let now = 0
-
 let sequence = 0
-
 const frames = new Map<number, FrameRequestCallback>()
 
 function frame(ms = 1000 / 60) {
@@ -27,7 +25,6 @@ function frame(ms = 1000 / 60) {
 function fixture() {
   let top = 600
   let follow: ReturnType<typeof useTranscriptFollow>
-
   const root = {
     scrollHeight: 1000,
     clientHeight: 400,

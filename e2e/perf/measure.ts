@@ -348,7 +348,6 @@ async function beginScrollFrames(page: Page) {
         if (running && next) requestAnimationFrame(next)
       },
     ]
-
     const first = step[0]
 
     if (!first) throw new Error("滚动帧回调未安装")

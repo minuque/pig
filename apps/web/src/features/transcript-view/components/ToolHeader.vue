@@ -48,11 +48,8 @@ const props = withDefaults(
   }>(),
   { hiddenCount: 0 },
 )
-
 const expanded = defineModel<boolean>("expanded", { default: false })
-
 const status = shallowRef<"idle" | "copied" | "error">("idle")
-
 const copyLabel = computed(() =>
   status.value === "copied"
     ? "已复制"
@@ -60,7 +57,6 @@ const copyLabel = computed(() =>
       ? "复制失败，点击重试"
       : `复制${props.label}`,
 )
-
 const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { immediate: false })
 
 async function copy() {

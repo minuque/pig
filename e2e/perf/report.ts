@@ -1,9 +1,6 @@
 const GREEN = "\x1b[32m"
-
 const RED = "\x1b[31m"
-
 const RESET = "\x1b[0m"
-
 const SLOW_RATIO = 0.1
 
 export type MetricRow = {
@@ -47,7 +44,6 @@ function changeText(value: number | null, previous: number | null) {
   if (value == null || previous == null || !Number.isFinite(value) || !Number.isFinite(previous))
     return "—"
   const diff = value - previous
-
   const percent =
     previous === 0 ? "" : ` (${diff > 0 ? "+" : ""}${((diff / previous) * 100).toFixed(1)}%)`
   return `${diff > 0 ? "+" : ""}${formatMs(diff)}${percent}`
@@ -95,7 +91,6 @@ export function reportTable(rows: readonly MetricRow[]) {
       change: paint(changeText(row.value, row.previous ?? null), color),
     }
   })
-
   const cols = [
     { key: "label" as const, title: "指标", align: "left" as const },
     { key: "now" as const, title: "本次", align: "right" as const },
@@ -103,11 +98,9 @@ export function reportTable(rows: readonly MetricRow[]) {
     { key: "prev" as const, title: "上次", align: "right" as const },
     { key: "change" as const, title: "变化", align: "right" as const },
   ]
-
   const widths = cols.map((col) =>
     Math.max(displayWidth(col.title), ...cells.map((cell) => displayWidth(cell[col.key]))),
   )
-
   const aligns = cols.map((col) => col.align)
   const keys = cols.map((col) => col.key)
 

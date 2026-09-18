@@ -7,7 +7,6 @@ import { join } from "node:path"
 import { newBenchContext, prepareBenchPage, WORKBENCH_TIMEOUT_MS } from "./measure.js"
 
 const desktopRoot = join(import.meta.dirname, "../../apps/desktop")
-
 const desktopRequire = createRequire(join(desktopRoot, "package.json"))
 
 function electronExecutable(): string {
@@ -94,7 +93,6 @@ export async function createDesktopHarness(options: {
     },
     async open(observers) {
       const userData = await mkdtemp(join(tmpdir(), "pig-bench-user-"))
-
       const app = await electron.launch({
         executablePath: electronExecutable(),
         args: [".", `--user-data-dir=${userData}`],
@@ -107,7 +105,6 @@ export async function createDesktopHarness(options: {
         colorScheme: "light",
         timeout: 60_000,
       })
-
       const dispose = async () => {
         try {
           await app.close()
@@ -118,7 +115,6 @@ export async function createDesktopHarness(options: {
 
       try {
         const page = await app.firstWindow({ timeout: WORKBENCH_TIMEOUT_MS })
-
         const origin = await app.evaluate(
           (_electron, name) => process.env[name] ?? "",
           "PIG_GATEWAY_ORIGIN",

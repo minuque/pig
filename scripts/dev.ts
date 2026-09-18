@@ -9,7 +9,6 @@ const WRAPPED = "NPNG_DEV_WINPTY"
 // mintty 下 node 的 stdin 是 tty;管道/CI 环境不是,winpty 需要 tty,只有交互终端才包装
 if (process.env.MSYSTEM && !process.env[WRAPPED] && process.stdin.isTTY) {
   const startedAt = Date.now()
-
   const winpty = spawn("winpty", [process.execPath, ...process.argv.slice(1)], {
     env: { ...process.env, [WRAPPED]: "1" },
     stdio: "inherit",
@@ -50,7 +49,6 @@ async function main() {
     // 非 Windows 用独立进程组,便于整树终止(见 killTree)
     detached: process.platform !== "win32",
   })
-
   let stopping = false
 
   // Windows 上 web.kill() 只杀直接子进程,pnpm 下的 vite 会变孤儿,必须杀整棵树

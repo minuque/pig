@@ -33,11 +33,8 @@ import {
 } from "./seed.js"
 
 const root = resolve(import.meta.dirname, "../..")
-
 const webRoot = join(root, "apps/web/dist")
-
 const resultPath = join(root, "test-results", "perf.json")
-
 const failShot = join(root, "test-results", "perf-fail.png")
 
 type BenchMetrics = {
@@ -126,7 +123,6 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
       return path
     },
   }
-
   const gateway = new Gateway({
     webRoot,
     sessionDir,
@@ -262,7 +258,6 @@ async function main() {
     await writeFile(join(workspaceDir, ".keep"), "")
     seedBenchSessions(sessionDir, workspaceDir)
     const workspaceId = canonicalizeWorkspacePath(workspaceDir)
-
     let origin = ""
 
     if (args.web) {
@@ -335,7 +330,6 @@ async function main() {
     const abort = turns.samples.map((sample) => sample.abortMs)
     const rapid = turns.samples.map((sample) => sample.rapidSwitchMs)
     const reconnect = turns.samples.map((sample) => sample.reconnectMs)
-
     const cold = open.coldTo.length ? collect(open.coldTo) : undefined
     const fcp = open.coldFcp.length ? collect(open.coldFcp) : undefined
     const lcp = open.coldLcp.length ? collect(open.coldLcp) : undefined
@@ -346,26 +340,21 @@ async function main() {
     const scroll = open.scroll.length ? collect(open.scroll) : undefined
     const listScroll = open.listScroll.length ? collect(open.listScroll) : undefined
     const switchRevisit = open.switchRevisit.length ? collect(open.switchRevisit) : undefined
-
     const toolExpandFirstFrame = open.toolExpandFirstFrame.length
       ? collect(open.toolExpandFirstFrame)
       : undefined
-
     const toolExpandComplete = open.toolExpandComplete.length
       ? collect(open.toolExpandComplete)
       : undefined
-
     const toolExpandLongTask = open.toolExpandLongTask.length
       ? collect(open.toolExpandLongTask)
       : undefined
-
     const ownStat = collect(own)
     const tokenStat = collect(token)
     const streamStat = collect(stream)
     const abortStat = collect(abort)
     const rapidStat = collect(rapid)
     const reconnectStat = collect(reconnect)
-
     const metrics: BenchMetrics = {
       coldToWorkbench: cold?.median ?? Number.NaN,
       coldFcp: fcp?.median ?? Number.NaN,
@@ -387,7 +376,6 @@ async function main() {
       rapidSwitchMs: rapidStat.median,
       reconnectMs: reconnectStat.median,
     }
-
     const p90s: Partial<Record<keyof BenchMetrics, number | undefined>> = {
       coldToWorkbench: cold?.p90,
       coldFcp: fcp?.p90,
@@ -409,7 +397,6 @@ async function main() {
       rapidSwitchMs: rapidStat.p90,
       reconnectMs: reconnectStat.p90,
     }
-
     const config = {
       version: 14,
       runs: args.runs,
@@ -422,11 +409,9 @@ async function main() {
       arch: process.arch,
       node: process.version,
     }
-
     const stored = Object.fromEntries(
       Object.entries(metrics).filter(([, value]) => Number.isFinite(value)),
     ) as Partial<BenchMetrics>
-
     const comparable = args.turnOnly ? undefined : await loadPrevious(config, metrics)
     await mkdir(join(root, "test-results"), { recursive: true })
     await writeFile(

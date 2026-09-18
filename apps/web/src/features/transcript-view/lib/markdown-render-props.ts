@@ -27,7 +27,6 @@ const codeBlockTheme = { dark: "dark-plus", light: "light-plus" } as const satis
   "dark" | "light",
   CodeBlockTheme
 >
-
 const mermaidProps = {
   renderDebounceMs: 180,
   contentStableDelayMs: 500,
@@ -35,16 +34,13 @@ const mermaidProps = {
   showHeader: true,
   showFullscreenButton: true,
 } as const
-
 const chatCodeChrome = {
   showHeader: true,
   showCopyButton: true,
   showCollapseButton: true,
   showExpandButton: true,
 } as const
-
 const HISTORY_LIVE_NODES = 96
-
 const BATCH_BUDGET_MS = 8
 
 /** 流式分帧；历史长文开窗口，单帧预算压在 8ms。 */

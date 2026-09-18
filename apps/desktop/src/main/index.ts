@@ -55,11 +55,8 @@ function envDir(name: "PIG_SESSION_DIR" | "PIG_CWD"): string | undefined {
 }
 
 let gateway: GatewayInstance | undefined
-
 let vite: ChildProcess | undefined
-
 let mainWindow: BrowserWindow | undefined
-
 let stopping = false
 
 async function loadGatewayModule(isPackaged: boolean): Promise<GatewayModule> {

@@ -24,7 +24,6 @@ const props = withDefaults(
   }>(),
   { class: undefined, variant: "default" },
 )
-
 const variantClasses: Record<AlertVariant, string> = {
   default: "border-border bg-popover text-ink [&>svg]:text-ink-muted",
   error: "border-destructive/30 bg-danger-bg text-ink [&>svg]:text-destructive",

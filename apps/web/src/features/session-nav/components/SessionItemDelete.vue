@@ -34,7 +34,6 @@ defineProps<{
 }>()
 
 const open = defineModel<boolean>("open", { default: false })
-
 const emit = defineEmits<{
   confirm: []
 }>()

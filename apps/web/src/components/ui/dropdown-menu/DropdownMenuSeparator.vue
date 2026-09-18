@@ -17,8 +17,6 @@ const props = withDefaults(
   defineProps<DropdownMenuSeparatorProps & { class?: HTMLAttributes["class"] }>(),
   { class: undefined },
 )
-
 const delegatedProps = reactiveOmit(props, "class")
-
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuSeparatorProps>
 </script>

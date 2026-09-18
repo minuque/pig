@@ -4,9 +4,7 @@ import { resolve } from "node:path"
 import { promisify } from "node:util"
 
 const execFileAsync = promisify(execFile)
-
 const PICKER_TIMEOUT_MS = 60_000
-
 /** IFileOpenDialog + Per-Monitor V2：现代资源管理器对话框，避免 WinForms FolderBrowser 被系统拉伸发糊。 */
 const folderPickerScript = `
 Add-Type -TypeDefinition @'

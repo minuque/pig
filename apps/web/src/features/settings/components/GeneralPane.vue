@@ -29,7 +29,6 @@ import type { ColorScheme } from "@/types/theme-type.js"
 import { useColorScheme } from "@features/theme/index.js"
 
 const { scheme, setScheme } = useColorScheme()
-
 const options: { id: ColorScheme; label: string; icon: typeof Monitor }[] = [
   { id: "auto", label: "系统", icon: Monitor },
   { id: "light", label: "浅色", icon: Sun },

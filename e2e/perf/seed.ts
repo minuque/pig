@@ -2,36 +2,23 @@ import { SessionManager } from "@earendil-works/pi-coding-agent"
 import { writeFileSync } from "node:fs"
 
 export const SHORT_SESSION_ID = "bench-short"
-
 export const LONG_SESSION_ID = "bench-long"
-
 export const EMPTY_SESSION_ID = "bench-empty"
-
 export const TOOL_SESSION_ID = "bench-tools"
-
 export const SHORT_SESSION_NAME = "短会话"
-
 export const LONG_SESSION_NAME = "长会话"
-
 export const EMPTY_SESSION_NAME = "空会话"
-
 export const TOOL_SESSION_NAME = "工具步骤会话"
-
 export const SHORT_TURNS = 2
-
 export const LONG_TURNS = 50
-
 export const TOOL_STEPS = 17
-
 export const LIST_SESSION_COUNT = 40
-
 const SESSIONS = {
   [SHORT_SESSION_NAME]: { id: SHORT_SESSION_ID, turns: SHORT_TURNS },
   [LONG_SESSION_NAME]: { id: LONG_SESSION_ID, turns: LONG_TURNS },
   [EMPTY_SESSION_NAME]: { id: EMPTY_SESSION_ID, turns: 0 },
   [TOOL_SESSION_NAME]: { id: TOOL_SESSION_ID, turns: 1 },
 } as const
-
 export const BENCH_SESSION_TOTAL = LIST_SESSION_COUNT + Object.keys(SESSIONS).length
 
 export type BenchSessionName = keyof typeof SESSIONS
@@ -51,7 +38,6 @@ type AssistantMessage = Extract<AppendMessage, { role: "assistant" }>
 type AssistantContent = AssistantMessage["content"]
 
 const PLAIN_REPLY = "把 Snapshot 投到时间线，把 Composer 留在底栏。".repeat(3)
-
 const MARKDOWN_REPLY = `## 处理结果
 
 | 项目 | 状态 |
@@ -128,7 +114,6 @@ function appendAgentTurn(manager: SessionManager, index: number, timestamp: numb
     index % 3 === 0
       ? { type: "thinking" as const, thinking: `先看第 ${index + 1} 轮要不要动工具。` }
       : undefined
-
   const tool = toolFor(index)
 
   if (tool) {

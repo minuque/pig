@@ -43,7 +43,6 @@ export function readTurnTimings(entries: readonly SessionEntry[]): TurnTiming[] 
       .filter((entry) => entry.type === "message" && entry.message.role === "user")
       .map((entry) => entry.id),
   )
-
   const timings = new Map<string, TurnTiming>()
 
   for (const entry of entries) {

@@ -24,7 +24,6 @@ export function createMainWindow(
 ): BrowserWindow {
   const chrome = windowChromeFor(process.platform)
   const frame = options.frame ?? { ...DEFAULT_WINDOW_SIZE, isMaximized: false }
-
   const window = new BrowserWindow({
     title: "pig",
     width: frame.width,
@@ -60,7 +59,6 @@ function persistWindowState(
   persistState: (state: WindowState) => void,
 ): void {
   let timer: ReturnType<typeof setTimeout> | undefined
-
   const flush = (): void => {
     if (timer !== undefined) clearTimeout(timer)
     timer = undefined
@@ -68,7 +66,6 @@ function persistWindowState(
     if (window.isDestroyed()) return
     persistState(captureWindowState(window))
   }
-
   const schedule = (): void => {
     if (timer !== undefined) clearTimeout(timer)
     timer = setTimeout(flush, SAVE_DEBOUNCE_MS)

@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url"
 import { viteDevPort } from "./urls.js"
 
 const REPO_ROOT = fileURLToPath(new URL("../../../../", import.meta.url))
-
 /** CSI / OSC 等 ANSI。Electron 在 Windows 上通常没开 VT，ESC 会显示成 ←[32m。 */
 const ANSI_RE = /\u001B\[[\d;?]*[ -/]*[@-~]|\u001B\][^\u0007]*(?:\u0007|\u001B\\)|\u001B[@-Z\\-_]/g
 
@@ -57,14 +56,11 @@ export function pnpmExecutable(env: NodeJS.ProcessEnv = process.env): string {
 export function spawnVite(env: { GATEWAY_TARGET: string }): ChildProcess {
   const node = nodeExecutable()
   const pnpm = pnpmExecutable()
-
   const childEnv: NodeJS.ProcessEnv = { ...process.env }
   childEnv.GATEWAY_TARGET = env.GATEWAY_TARGET
 
   const windows = process.platform === "win32"
-
   const port = viteDevPort()
-
   const child = spawn(
     node,
     [pnpm, "--filter", "@pig/web", "dev", "--port", String(port), "--strictPort"],
@@ -100,7 +96,6 @@ function listListeningPids(port: number): number[] {
       encoding: "utf8",
       windowsHide: true,
     })
-
     const pids = new Set<number>()
     const lineRe = new RegExp(`[:\\[]${port}(?:\\]|\\s).*(?:LISTENING|侦听)\\s+(\\d+)\\s*$`, "i")
 

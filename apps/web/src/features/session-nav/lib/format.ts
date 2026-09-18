@@ -21,9 +21,7 @@ export function sessionRecency(session: Pick<SessionMetadata, "createdAt" | "upd
 }
 
 const MINUTE = 60_000
-
 const HOUR = 60 * MINUTE
-
 const DAY = 24 * HOUR
 
 /** 侧栏相对时间：T3 compact（刚刚 / 48m / 2h / 1d）。 */

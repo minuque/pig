@@ -70,7 +70,6 @@ const NAMES: Record<string, string> = {
   "ant-ling": "Ant Ling",
   baseten: "Baseten",
 }
-
 const ALIASES: Record<string, string> = {
   "azure-openai-responses": "azure",
   "openai-codex": "openai",
@@ -91,7 +90,6 @@ const ALIASES: Record<string, string> = {
   opencode: "anthropic",
   "opencode-go": "opencode",
 }
-
 const ICONS: Record<string, VendorIcon> = {
   openai: { src: openai, tinted: true },
   anthropic: { src: claudeColor, tinted: false },

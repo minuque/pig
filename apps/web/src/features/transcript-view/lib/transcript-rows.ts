@@ -89,7 +89,6 @@ function appendTurn({
   let segmentIndex = 0
   let segmentAborted = false
   let segmentError = false
-
   const toolResults = new Map<string, ToolTranscriptItem>()
   const describedToolCalls = new Set<string>()
   const renderedToolCalls = new Set<string>()
@@ -163,11 +162,9 @@ function appendTurn({
         }
 
         const streaming = live && item.status === "streaming" && index === item.content.length - 1
-
         const nextTimestamp = rest
           .slice(itemIndex + 1)
           .find((next) => next.timestamp >= item.timestamp)?.timestamp
-
         const endedAt = streaming ? undefined : (nextTimestamp ?? timing?.endedAt)
         steps.push({
           type: "thought",
@@ -366,7 +363,6 @@ export function reuseTimelineRows(
   if (previous.length === 0) return next as TimelineRow[]
   const prevById = new Map(previous.map((row) => [row.id, row]))
   let changed = previous.length !== next.length
-
   const rows = next.map((row, index) => {
     const prev = prevById.get(row.id)
     const reused = prev && sameRow(prev, row) ? prev : row
@@ -378,7 +374,6 @@ export function reuseTimelineRows(
 }
 
 const TOOL_ROW_ORDER = ["read", "write", "edit", "command", "search", "tool"] as const
-
 const TOOL_ROW_LABEL = {
   read: (n) => `读 ${n} 次文件`,
   write: (n) => `写 ${n} 次文件`,

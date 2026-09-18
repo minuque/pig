@@ -59,23 +59,15 @@ withDefaults(
 )
 
 const prompt = defineModel<string>("prompt", { required: true })
-
 const emit = defineEmits<{
   submit: []
 }>()
-
 const editor = ref<HTMLTextAreaElement | null>(null)
-
 const container = ref<HTMLElement | null>(null)
-
 const hasText = computed(() => prompt.value.length > 0)
-
 const expanded = computed(() => prompt.value.includes("\n"))
-
 const multiline = shallowRef(false)
-
 let widthObserver: ResizeObserver | undefined
-
 let lastWidth = 0
 
 function fitEditor() {
@@ -87,7 +79,6 @@ function fitEditor() {
   el.style.height = `${next}px`
   const style = getComputedStyle(el)
   const line = Number.parseFloat(style.lineHeight) || 22
-
   const padY =
     (Number.parseFloat(style.paddingTop) || 0) + (Number.parseFloat(style.paddingBottom) || 0)
 

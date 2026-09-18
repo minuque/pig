@@ -13,9 +13,7 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
-
 const appCss = resolve(root, "apps/web/src/style/app.css")
-
 const official = execFileSync(
   process.execPath,
   [
@@ -40,13 +38,9 @@ function parseVars(css) {
 }
 
 const officialVars = parseVars(official)
-
 const curVars = parseVars(readFileSync(appCss, "utf8"))
-
 const SKIPPED_PREFIXES = ["--font-", "--font-weight-"]
-
 const missing = []
-
 const differ = []
 
 for (const [name, value] of officialVars) {
@@ -61,9 +55,7 @@ for (const [name, value] of officialVars) {
 }
 
 const cssText = readFileSync(appCss, "utf8")
-
 const themeBlock = cssText.match(/@theme inline \{([\s\S]*?)\n\}/)?.[1] ?? ""
-
 const defs = new Map()
 
 for (const block of cssText.matchAll(/(?::root|\.dark) \{([\s\S]*?)\n\}/g)) {

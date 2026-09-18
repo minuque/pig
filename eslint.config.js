@@ -138,6 +138,18 @@ export default defineConfig(
         { blankLine: "always", prev: "block-like", next: "*" },
 
         // —— 例外放最后 ——
+        // 相邻 const/let/var（含 export）不空行
+        {
+          blankLine: "never",
+          prev: {
+            selector:
+              ':matches(VariableDeclaration, ExportNamedDeclaration[declaration.type="VariableDeclaration"])',
+          },
+          next: {
+            selector:
+              ':matches(VariableDeclaration, ExportNamedDeclaration[declaration.type="VariableDeclaration"])',
+          },
+        },
         { blankLine: "any", prev: "import", next: "import" },
         {
           blankLine: "any",

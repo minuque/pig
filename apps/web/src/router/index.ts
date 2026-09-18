@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router"
 
 const SessionWorkbench = () => import("@features/session-workbench/index.vue")
-
 const router = createRouter({
   history: createWebHistory("/"),
   routes: [

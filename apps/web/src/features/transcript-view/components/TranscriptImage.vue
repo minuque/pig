@@ -27,7 +27,6 @@ const props = withDefaults(
   }>(),
   { alt: "图片" },
 )
-
 const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
 </script>
 

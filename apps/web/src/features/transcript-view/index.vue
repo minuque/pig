@@ -107,9 +107,7 @@ import {
 } from "@features/transcript-view/lib/transcript-scroll.js"
 
 let markdownRuntimeStarted = false
-
 const FILL_HEX = /(?:^|;)\s*fill:\s*(#[0-9a-fA-F]{3,8})/i
-
 const LABEL_COLOR = /(?:^|;)\s*color\s*:/i
 
 function fillLuminance(hex: string): number {
@@ -117,7 +115,6 @@ function fillLuminance(hex: string): number {
 
   if (h.length === 3) h = [...h].map((c) => c + c).join("")
   const n = Number.parseInt(h.slice(0, 6), 16)
-
   const lin = (v: number) => {
     const s = v / 255
     return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
@@ -135,7 +132,6 @@ function paintCustomNodeLabels(svg: string): string {
     const shape = node.querySelector(
       ":scope > rect, :scope > polygon, :scope > path, :scope > circle",
     )
-
     const label = node.querySelector(".nodeLabel")
 
     if (!shape || !label) continue
@@ -195,13 +191,10 @@ const props = withDefaults(
   }>(),
   { hasMore: false, loadingOlder: false },
 )
-
 const emit = defineEmits<{
   loadOlder: []
 }>()
-
 const rows = shallowRef<TimelineRow[]>([])
-
 const mountedKeys = computed(() => timelineRowKeys(rows.value))
 
 watch(
@@ -222,11 +215,8 @@ function toolsLayoutUnlocked(row: TimelineRow): boolean {
 }
 
 const viewport = useTemplateRef<HTMLElement>("viewport")
-
 const column = useTemplateRef<HTMLElement>("column")
-
 const list = useTemplateRef<HTMLElement>("list")
-
 const { idle: scrollIdle, hold: holdScrollIdle } = useTranscriptScrollIdle(viewport)
 
 function scrollerRoot(): HTMLElement | null {
@@ -243,13 +233,10 @@ const {
   scrollToLatest,
   scrollToElement,
 } = useTranscriptFollow(scrollerRoot)
-
 const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
-
 let sizeObserver: ResizeObserver | undefined
-
 let pinRaf = 0
 
 function schedulePin() {
@@ -265,9 +252,7 @@ const {
   inViewIds,
   hitStripWidth,
 } = useTranscriptMinimap(rows, { viewport, column }, mountedKeys)
-
 const LOAD_OLDER_TOP = 48
-
 let loadOlderArmed = true
 
 function requestOlder() {

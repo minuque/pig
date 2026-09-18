@@ -18,8 +18,6 @@ import { DialogTitle, useForwardProps } from "reka-ui"
 const props = withDefaults(defineProps<DialogTitleProps & { class?: HTMLAttributes["class"] }>(), {
   class: undefined,
 })
-
 const delegatedProps = reactiveOmit(props, "class")
-
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogTitleProps>
 </script>

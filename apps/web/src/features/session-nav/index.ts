@@ -26,29 +26,22 @@ function createNav(
   session: SessionContext,
 ) {
   const router = useRouter()
-
   const { highlightedSessionId, openSession, cancelPendingOpen } = useSessionOpen(
     session.sessionId,
     router,
   )
-
   const navError = shallowRef("")
   const cards = useSessionCards(pi.connected)
-
   const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
     sessionId: session.sessionId,
     router,
     refreshSessions: pi.refreshSessions,
   })
-
   const markers = useSessionMarkers(nav.listedSessions, session.sessionId)
-
   const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
-
   const cardFootById = computed(() => {
     const liveId = session.sessionId.value
     const liveOutcome = sessionOutcome(session.transcript.value)
-
     const live =
       liveId && session.projection.value
         ? {
@@ -58,9 +51,7 @@ function createNav(
             ...(liveOutcome ? { outcome: liveOutcome } : {}),
           }
         : undefined
-
     const extras = cards.sessionCards.value
-
     const feet = new Map<
       string,
       {
@@ -72,7 +63,6 @@ function createNav(
 
     for (const item of nav.listedSessions.value) {
       const foot = sessionCardFoot(item.id, extras, live)
-
       const state: SidebarSessionState | undefined =
         liveId === item.id && activeSessionRunning.value
           ? "running"

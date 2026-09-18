@@ -13,7 +13,6 @@ import type {
 import { sessionRecency, sessionTitle, workspaceName } from "./format.js"
 
 export const UPDATED_PAGE = 10
-
 export const PROJECT_PAGE = 5
 
 function sessionCwd(session: Pick<SessionMetadata, "cwd">): string | undefined {
@@ -171,7 +170,6 @@ export function sidebarRows(input: {
 
   for (const [index, group] of groups.entries()) {
     const collapsed = !searching && Boolean(collapsedByGroup[group.canonicalPath])
-
     const sliced = sliceVisible(
       group.sessions,
       group.canonicalPath,

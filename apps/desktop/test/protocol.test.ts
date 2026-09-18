@@ -16,7 +16,6 @@ import {
 } from "../src/main/urls.js"
 
 const GATEWAY = "http://127.0.0.1:8787"
-
 const WEB_ROOT = join("G:", "web")
 
 describe("Vite 开发端口", () => {

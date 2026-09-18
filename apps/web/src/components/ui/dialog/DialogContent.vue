@@ -42,10 +42,7 @@ const props = withDefaults(
     showCloseButton: true,
   },
 )
-
 const emits = defineEmits<DialogContentEmits>()
-
 const delegatedProps = reactiveOmit(props, "class")
-
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<DialogContentProps>
 </script>

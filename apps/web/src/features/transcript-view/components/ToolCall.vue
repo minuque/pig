@@ -279,29 +279,20 @@ const props = defineProps<{
   step: ToolRowStep
   isExpand: Map<string, boolean>
 }>()
-
 const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
-
 const thought = computed(() => (props.step.type === "thought" ? props.step : null))
-
 const group = computed(() => (props.step.type === "tools" ? props.step : null))
-
 const open = computed(
   () => thought.value?.streaming === true || props.isExpand.get(props.step.id) === true,
 )
-
 const failed = computed(() => group.value?.items.some((item) => item.isError) ?? false)
-
 const running = computed(() =>
   thought.value
     ? thought.value.streaming
     : (group.value?.items.some((item) => item.running) ?? false),
 )
-
 const expanded = shallowRef(open.value)
-
 const keptMounted = shallowRef(open.value)
-
 const panelEl = shallowRef<HTMLElement | null>(null)
 
 watch(
@@ -337,11 +328,8 @@ const label = computed(() => {
   if (thought.value) return thoughtStepLabel(thought.value, liveThoughtEndedAt.value)
   return toolSummary(group.value?.items ?? [])
 })
-
 const detail = computed(() => (group.value ? toolSummaryDetail(group.value.items) : null))
-
 const detailIcon = computed(() => fileDetailIcon(detail.value))
-
 const icon = computed(() => {
   if (thought.value) return Lightbulb
   const key = group.value?.key
@@ -366,7 +354,6 @@ const icon = computed(() => {
     }
   }
 })
-
 const calls = computed(() => {
   if (!group.value) return []
   return group.value.items.map((item) => presentCall(item, keptMounted.value))

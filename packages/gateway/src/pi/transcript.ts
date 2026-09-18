@@ -135,7 +135,6 @@ export class TranscriptProjection {
           stage === "started"
             ? (this.streamingMessageId = this.allocateId())
             : (this.streamingMessageId ?? this.allocateId())
-
         const item = toProtocolAssistantMessage(message, { id })
 
         if (stage === "finished") {

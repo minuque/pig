@@ -64,24 +64,17 @@ const props = defineProps<{
   levels: readonly string[]
   level: string
 }>()
-
 const emit = defineEmits<{
   "update:level": [value: string]
 }>()
-
 const open = ref(false)
-
 const current = computed(() => displayThinkingLevel(props.level, props.levels))
-
 const label = computed(() => formatThinkingLevel(current.value))
-
 const maxIndex = computed(() => Math.max(props.levels.length - 1, 0))
-
 const index = computed(() => {
   const i = props.levels.indexOf(current.value)
   return i < 0 ? 0 : i
 })
-
 const effortMix = computed(() => {
   if (maxIndex.value <= 0) return 40
   return Math.round(28 + (index.value / maxIndex.value) * 72)

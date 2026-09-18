@@ -56,9 +56,7 @@ const PATH_KEYS = [
   "target_file",
   "targetFile",
 ] as const
-
 const PATH_CMD_KEYS = [...PATH_KEYS, "command", "cmd"] as const
-
 const TOOL_HINT_KEYS = [...PATH_CMD_KEYS, "query", "pattern", "glob", "url"] as const
 
 function jsonText(value: unknown, pretty = false): string {

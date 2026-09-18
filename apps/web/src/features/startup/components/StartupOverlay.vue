@@ -24,15 +24,11 @@ import { onBeforeUnmount, onMounted, shallowRef, watch } from "vue"
 const props = defineProps<{
   dismiss: boolean
 }>()
-
 const emit = defineEmits<{
   finished: []
 }>()
-
 let finished = false
-
 let splashGone = false
-
 const leaving = shallowRef(false)
 
 function prefersReducedMotion() {

@@ -8,7 +8,6 @@ const catalog: ComposerVendor[] = [
   { id: "a", name: "A", models: [{ id: "one", name: "One", thinkingLevels: ["high"] }] },
   { id: "b", name: "B", models: [{ id: "two", name: "Two", thinkingLevels: ["low"] }] },
 ]
-
 const pickerCatalog: ComposerVendor[] = [
   {
     id: "anthropic",
@@ -47,7 +46,6 @@ describe("useComposerBinding", () => {
   it("切换模型时保留自动修正的 thinking，并在模型回执后下发", async () => {
     const state = ref(snapshot())
     let release!: () => void
-
     const setModel = vi.fn(
       async () =>
         new Promise<void>((resolve) => {
@@ -57,13 +55,10 @@ describe("useComposerBinding", () => {
           }
         }),
     )
-
     const setThinking = vi.fn(async (level: string) => {
       state.value = snapshot({ provider: "b", id: "two" }, level)
     })
-
     const phase = ref<"idle" | undefined>("idle")
-
     const { preset } = useComposerBinding({
       catalog: ref(catalog),
       snapshot: state,
@@ -90,7 +85,6 @@ describe("useComposerBinding", () => {
     const gpt = { provider: "openai", id: "gpt-4o" }
     const state = ref(snapshot(sonnet, "high"))
     let release!: () => void
-
     const setModel = vi.fn(
       async () =>
         new Promise<void>((resolve) => {
@@ -100,13 +94,10 @@ describe("useComposerBinding", () => {
           }
         }),
     )
-
     const setThinking = vi.fn(async (level: string) => {
       state.value = snapshot(state.value.model, level)
     })
-
     const phase = ref<"idle" | undefined>("idle")
-
     const { preset } = useComposerBinding({
       catalog: ref(pickerCatalog),
       snapshot: state,

@@ -24,7 +24,6 @@ import {
 } from "./seed.js"
 
 const FIRST_PROMPT = "基准首条提问"
-
 const FIRST_TOKEN = "基准首 token"
 
 type Bridge = Awaited<ReturnType<typeof installTurnBridge>>
@@ -64,7 +63,6 @@ async function holdTranscriptFetch(page: Page, sessionId: string) {
       window.fetch = (input, init) => {
         const href =
           typeof input === "string" ? input : input instanceof URL ? input.href : input.url
-
         const url = new URL(href, window.location.href)
 
         if (url.pathname !== "/api/v1/platform/transcript") return hold.native(input, init)
@@ -164,7 +162,6 @@ async function rapidSwitch(page: Page) {
 async function measureTurn(page: Page, bridge: Bridge) {
   const send = page.locator("button.send")
   const stop = page.getByRole("button", { name: STOP_TURN, exact: true })
-
   const seen = (text: string, exact = true) =>
     expect(page.getByText(text, { exact })).toBeVisible({ timeout: WORKBENCH_TIMEOUT_MS })
 

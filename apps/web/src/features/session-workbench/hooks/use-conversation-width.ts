@@ -2,9 +2,7 @@ import { inject, onBeforeUnmount, shallowRef, watch, type ShallowRef } from "vue
 import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
 
 const CONTENT_WIDTH_KEY = "pig.conversation.contentWidth"
-
 const CONTENT_DRAG_MIN = 640
-
 const CONTENT_EDGE_BUDGET = 176 // 每侧 88px
 
 function parseContentWidth(raw: string | null): number | null {
@@ -47,7 +45,6 @@ export function useConversationWidth(): {
   const rootEl = shallowRef<HTMLElement | null>(null)
   const resizing = shallowRef(false)
   const panel = inject(leftPanelKey, null)
-
   let observer: ResizeObserver | undefined
   let sidebarFrozen = false
   let lastColumnWidth = 0

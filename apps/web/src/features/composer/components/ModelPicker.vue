@@ -164,20 +164,14 @@ const props = withDefaults(
   }>(),
   { disabled: false, level: "" },
 )
-
 const emit = defineEmits<{
   "update:model": [value: ComposerModel]
   "update:level": [value: string]
 }>()
-
 const open = defineModel<boolean>("open", { default: false })
-
 const EMPTY_FAVORITES = new Set<string>()
-
 const { set: favoriteSet, isFavorite, toggle: toggleFavorite } = useModelFavorites()
-
 const current = computed(() => resolveModelInfo(props.catalog, props.model))
-
 const {
   query,
   scope,
@@ -196,9 +190,7 @@ const {
   () => current.value.vendor?.id,
   () => props.catalog[0]?.id,
 )
-
 const showVendor = computed(() => Boolean(query.value.trim()) || scope.value === FAVORITES_SCOPE)
-
 const items = computed(() =>
   listPickerRows(
     props.catalog,
@@ -207,22 +199,17 @@ const items = computed(() =>
     scope.value === FAVORITES_SCOPE ? favoriteSet.value : EMPTY_FAVORITES,
   ),
 )
-
 const ROW_HEIGHT = 40
-
 const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, {
   itemHeight: ROW_HEIGHT,
 })
-
 const emptyText = computed(() =>
   query.value.trim() || scope.value !== FAVORITES_SCOPE ? "没有匹配的模型" : "还没有收藏的模型",
 )
-
 const label = computed(() => {
   const { vendor, model } = current.value
   return vendor && model ? model.name : modelLabel(props.model)
 })
-
 const triggerText = computed(() =>
   pickerTriggerText(label.value, props.level, current.value.levels),
 )

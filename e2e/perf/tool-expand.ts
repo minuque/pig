@@ -104,7 +104,6 @@ export async function expandToolSteps(
 
       if (!mark) throw new Error("未记录工具步骤展开起点")
       const completeMs = performance.now() - mark.started
-
       const longTasks = bench.longTasks.filter(
         (task) => task.start >= mark.started && task.start <= performance.now(),
       )

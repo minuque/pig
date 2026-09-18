@@ -4,13 +4,9 @@ import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
 const root = resolve(import.meta.dirname, "..")
-
 const gateway = join(root, "packages/gateway")
-
 const staging = await mkdtemp(join(tmpdir(), "nono-pack-"))
-
 const install = await mkdtemp(join(tmpdir(), "nono-install-"))
-
 const run = (command, args, cwd = root, capture = false) => {
   const result = spawnSync(command, args, {
     cwd,
@@ -31,7 +27,6 @@ try {
     gateway,
     true,
   ).replaceAll("\r\n", "\n")
-
   const jsonStart = packOutput.lastIndexOf("[\n  {")
 
   if (jsonStart < 0) throw new Error("npm pack did not return JSON metadata")
@@ -72,7 +67,6 @@ try {
     process.platform === "win32"
       ? join(install, "node_modules/.bin/pig.cmd")
       : join(install, "node_modules/.bin/pig")
-
   const child = spawn(bin, [], {
     cwd: install,
     shell: process.platform === "win32",
@@ -93,7 +87,6 @@ try {
       child.once("exit", (code) => reject(new Error(`gateway exited ${code}`)))
       setTimeout(() => reject(new Error("gateway readiness timeout")), 10000).unref()
     })
-
     const health = await fetch(`${origin}/health`)
     const html = await (await fetch(origin)).text()
     const asset = html.match(/(?:src|href)="(\/assets\/[^"]+)"/)?.[1]

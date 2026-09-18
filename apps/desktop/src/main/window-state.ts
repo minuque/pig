@@ -2,9 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 
 export const DEFAULT_WINDOW_SIZE = { width: 1280, height: 800 } as const
-
 export const MIN_WINDOW_SIZE = { width: 400, height: 300 } as const
-
 export const WINDOW_STATE_FILE = "window-state.json"
 
 export type WindowBounds = {

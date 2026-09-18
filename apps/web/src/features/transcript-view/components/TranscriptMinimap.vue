@@ -58,13 +58,10 @@ const props = defineProps<{
   inViewIds: readonly string[]
   hitStripWidth: number
 }>()
-
 const emit = defineEmits<{
   select: [item: TranscriptMinimapItem]
 }>()
-
 const hoverIndex = shallowRef<number | null>(null)
-
 const pinnedIndex = shallowRef(0)
 
 watch(
@@ -85,19 +82,16 @@ watch(
 )
 
 const lastIndex = computed(() => Math.max(0, props.items.length - 1))
-
 const emphasizedIndex = computed(() => {
   const hover = hoverIndex.value
 
   if (hover !== null && hover <= lastIndex.value) return hover
   return Math.min(pinnedIndex.value, lastIndex.value)
 })
-
 const hoverItem = computed(() => {
   const index = hoverIndex.value
   return index === null ? null : (props.items[index] ?? null)
 })
-
 const previewTranslate = computed(() => {
   const index = hoverIndex.value
 
@@ -108,9 +102,7 @@ const previewTranslate = computed(() => {
   if (index === lastIndex.value) return "-100%"
   return "-50%"
 })
-
 const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
-
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
 function tickStyle(index: number): { top: string; height: string } {

@@ -167,7 +167,6 @@ const props = defineProps<{
   inputFull?: string
   editPreview?: EditDiffPreview
 }>()
-
 const runContent = computed(() => {
   if (props.variant !== "command") return null
   const command = props.command ?? ""
@@ -185,15 +184,12 @@ const runContent = computed(() => {
     statusLabel: props.statusLabel ?? "",
   }
 })
-
 const readContent = computed(() =>
   props.variant === "read" && props.path && props.preview
     ? { path: props.path, preview: props.preview }
     : null,
 )
-
 const readImages = computed(() => (props.variant === "read" ? (props.outputImages ?? []) : []))
-
 const toolContent = computed(() =>
   props.variant === "tool"
     ? {
@@ -204,23 +200,17 @@ const toolContent = computed(() =>
       }
     : null,
 )
-
 const thoughtContent = computed(() =>
   props.variant === "thought"
     ? { text: props.text ?? "", streaming: props.streaming ?? false }
     : null,
 )
-
 const thoughtViewport = useTemplateRef<HTMLElement>("thoughtViewport")
-
 const thoughtInner = useTemplateRef<HTMLElement>("thoughtInner")
-
 const { scheduleScrollToBottom } = useStickToBottom(thoughtViewport, thoughtInner)
-
 const editContent = computed(() =>
   props.variant === "edit" && props.editPreview?.hunks.length ? props.editPreview : null,
 )
-
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
   "is-command": props.variant === "command",
@@ -228,38 +218,24 @@ const cardClasses = computed(() => ({
   "is-err": runContent.value?.status === "error",
   "is-run": runContent.value?.status === "running",
 }))
-
 const { codeBlockProps, isDark } = useColorScheme()
-
 const thoughtProps = computed(() =>
   plainMarkdownProps({ streaming: Boolean(thoughtContent.value?.streaming), isDark: isDark.value }),
 )
-
 const editDiffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
   disableFileHeader: true,
 }))
-
 const runExpanded = ref(false)
-
 const outputExpanded = ref(false)
-
 const readExpanded = ref(false)
-
 const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
-
 const runBody = computed(() => runContent.value?.outputText || runContent.value?.emptyOutput || "")
-
 const runHidden = computed(() => hiddenLineCount(splitLines(runBody.value).length))
-
 const readHidden = computed(() => hiddenLineCount(readContent.value?.preview.lines.length ?? 0))
-
 const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
-
 const editLanguageIconUrl = computed(() => languageIconDataUrl(editContent.value?.language))
-
 const editHeading = computed(() => editContent.value?.path || editContent.value?.fileName || "")
-
 const editCopyText = computed(
   () => editContent.value?.hunks.map((hunk) => hunk.modified).join("\n") ?? "",
 )

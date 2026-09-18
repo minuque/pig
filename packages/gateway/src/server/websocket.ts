@@ -18,7 +18,6 @@ export interface WebSocketListenerOptions {
 }
 
 const DEFAULT_MAX_PENDING_BYTES = 16 * 1024 * 1024
-
 const GRACEFUL_CLOSE_TIMEOUT_MS = 5_000
 
 /** PiServerListener 的 WebSocket 实现：路径匹配后把连接交给 PiServer。 */
@@ -26,7 +25,6 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
   const { server } = options
   const maxFrameLength = DEFAULT_MAX_FRAME_LENGTH
   const maxPendingBytes = DEFAULT_MAX_PENDING_BYTES
-
   const wss = new WebSocketServer({
     noServer: true,
     // ws 的 maxPayload 是整条 WebSocket 消息上限；PiServer maxFrameLength 只算 CBOR
@@ -34,9 +32,7 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
     maxPayload: maxFrameLength + 4,
     perMessageDeflate: false,
   })
-
   let accept: ByteConnectionAcceptor | undefined
-
   const onUpgrade = (req: IncomingMessage, socket: Duplex, head: Buffer) => {
     const url = new URL(req.url ?? "/", "http://127.0.0.1")
 

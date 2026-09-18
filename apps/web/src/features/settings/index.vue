@@ -49,14 +49,12 @@ import UsagePane from "@features/settings/components/UsagePane.vue"
 import { useSettings, type SettingsTab } from "@features/settings/index.js"
 
 const { open, tab } = useSettings()
-
 const tabs: { id: SettingsTab; label: string; icon: typeof SlidersHorizontal }[] = [
   { id: "general", label: "通用", icon: SlidersHorizontal },
   { id: "usage", label: "用量", icon: ChartNoAxesCombined },
   { id: "skills", label: "技能", icon: Blocks },
   { id: "extensions", label: "扩展", icon: Puzzle },
 ]
-
 const activeLabel = computed(() => tabs.find((item) => item.id === tab.value)?.label ?? "通用")
 
 function onOpen(next: boolean) {

@@ -14,9 +14,7 @@ const contentTypes: Record<string, string> = {
   ".woff2": "font/woff2",
   ".webmanifest": "application/manifest+json",
 }
-
 const COMPRESSIBLE = new Set([".css", ".html", ".js", ".json", ".svg", ".webmanifest"])
-
 const MIN_GZIP_BYTES = 512
 
 type CachedFile = { raw: Buffer; gzip?: Buffer }
@@ -62,7 +60,6 @@ function sendFile(
   acceptEncoding: string,
 ) {
   const gzip = Boolean(cached.gzip && wantsGzip(acceptEncoding))
-
   const headers: Record<string, string> = {
     "Content-Type": contentTypes[ext] ?? "application/octet-stream",
   }

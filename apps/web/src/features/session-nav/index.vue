@@ -141,12 +141,10 @@ import type { SidebarRow, SidebarSessionState } from "@features/session-nav/type
 const SessionSearch = defineAsyncComponent(
   () => import("@features/session-nav/components/SessionSearch.vue"),
 )
-
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
   toggle: []
 }>()
-
 const {
   groups,
   cardFootById,
@@ -167,11 +165,8 @@ const {
   renameSession,
   deleteSession,
 } = useNav()
-
 const { openSettings } = useSettings()
-
 const router = useRouter()
-
 const searchOpen = shallowRef(false)
 
 onMounted(() => {
@@ -184,27 +179,18 @@ onMounted(() => {
 })
 
 const now = useTimestamp({ interval: 60_000 })
-
 const collapsedSections = reactive({ pinned: false, today: false, recent: false })
-
 const rows = rowsFor(false)
-
 const showList = computed(() => rows.value.some((row) => row.kind !== "more"))
-
 const groupRows = computed(() =>
   rows.value.filter((row): row is Extract<SidebarRow, { kind: "group" }> => row.kind === "group"),
 )
-
 const updatedSessions = computed(() =>
   rows.value.flatMap((row) => (row.kind === "session" ? [row.session] : [])),
 )
-
 const timeSections = computed(() => sidebarTimeSections(updatedSessions.value, now.value))
-
 const hasMore = computed(() => rows.value.some((row) => row.kind === "more"))
-
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
-
 const listSections = computed(() => {
   if (grouping.value === "project") {
     return groupRows.value.map((row) => ({

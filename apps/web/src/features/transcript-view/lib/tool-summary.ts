@@ -31,7 +31,6 @@ export function toolSummary(items: readonly ToolCallView[]): string {
   const count = items.length
   const key = toolGroupKey(first.toolName)
   const prefix = running ? "正在" : "已"
-
   const labels = {
     read: `${prefix}读取 ${count} 个文件`,
     write: count === 1 ? `${prefix}写入` : `${prefix}写入 ${count} 个文件`,
@@ -58,7 +57,6 @@ function splitLines(text: string): string[] {
 function lineChange(oldText: string, newText: string): { added: number; removed: number } {
   const oldLines = splitLines(oldText)
   const newLines = splitLines(newText)
-
   let start = 0
   const shared = Math.min(oldLines.length, newLines.length)
 
@@ -118,7 +116,6 @@ export function editDiffPreview(input: unknown): EditDiffPreview | null {
   const path = toolPath(input)
   let added = 0
   let removed = 0
-
   const hunks = pairs.map((pair) => {
     const change = lineChange(pair.oldText, pair.newText)
     added += change.added

@@ -20,7 +20,6 @@ import type { SidebarGrouping, SidebarRow } from "@features/session-nav/type.js"
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
 export const SIDEBAR_GROUPING_KEY = "pig.sidebarGrouping"
-
 export const SIDEBAR_COLLAPSED_KEY = "pig.sidebarCollapsed"
 
 function parseGrouping(raw: string | null): SidebarGrouping {
@@ -95,16 +94,13 @@ export function useWorkspaceNav(
   const addingWorkspace = ref(false)
   const titleById = shallowRef<Record<string, string>>({})
   const workspaces = local.workspaces
-
   const groups = computed(() =>
     groupSessionsByCwd(sessions.value, local.workspaces.value).map((group) => ({
       ...group,
       sessions: applyTitles(group.sessions),
     })),
   )
-
   const listedSessions = computed(() => applyTitles(listSessionsForSidebar(sessions.value)))
-
   const grouping = ref<SidebarGrouping>(loadGrouping())
   const revealByGroup = shallowRef<Record<string, number>>({})
   const collapsedByGroup = shallowRef<Record<string, boolean>>(loadCollapsed())
@@ -151,13 +147,10 @@ export function useWorkspaceNav(
     return computed((): SidebarRow[] => {
       const searchingNow = toValue(searching)
       const excluded = excludedIds === undefined ? undefined : toValue(excludedIds)
-
       const sessionList = excluded
         ? listedSessions.value.filter((session) => !excluded.has(session.id))
         : listedSessions.value
-
       const ids = new Set(sessionList.map((session) => session.id))
-
       const groupList = groups.value.map((group) => ({
         canonicalPath: group.canonicalPath,
         sessions: group.sessions.filter((session) => ids.has(session.id)),

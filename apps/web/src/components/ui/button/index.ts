@@ -2,16 +2,13 @@ export { default as Button } from "./Button.vue"
 
 export const buttonBase =
   "inline-flex items-center justify-center gap-(--spacing-xs) whitespace-nowrap rounded-md text-button font-medium transition-[background-color,color,box-shadow,opacity,scale] duration-(--duration-fast) ease-(--ease-out) disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-(--size-icon) shrink-0 [&_svg]:shrink-0 outline-none"
-
 export const buttonPress = "active:not-disabled:scale-[0.96] motion-reduce:active:scale-100"
-
 export const buttonVariant = {
   default: "bg-primary text-primary-foreground hover:bg-primary-active active:bg-primary-active",
   destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
   outline:
     "border border-input bg-surface text-ink shadow-soft hover:bg-accent hover:text-accent-foreground",
 } as const
-
 export const buttonSize = {
   default: "h-8 px-(--spacing-sm) py-1.5 has-[>svg]:px-2.5",
   icon: "size-(--size-icon-button)",

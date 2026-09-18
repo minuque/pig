@@ -57,12 +57,10 @@ export function useStartupSequence(options: StartupSequenceOptions) {
 
   async function start() {
     const sessionRoute = routeHasSession(router)
-
     const connecting = connectWithTimeout(
       options.connect,
       options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS,
     )
-
     const initializing = Promise.resolve(options.initialize()).then((value) => {
       if (!failed.value && sessionRoute) settled.value = true
       return value

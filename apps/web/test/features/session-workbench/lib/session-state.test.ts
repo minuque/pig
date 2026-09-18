@@ -55,7 +55,6 @@ describe("mergeLiveTranscript", () => {
       status: "complete",
       isError: false,
     }
-
     const history = [
       row("u1", "user", "| a | b |\n| --- | --- |"),
       row("a1", "assistant", "$$E = mc^2$$"),
@@ -77,7 +76,6 @@ describe("absorbLatestTranscriptPage", () => {
     endedAt: startedAt + 1,
     outcome: "complete" as const,
   })
-
   const ids = (items: readonly TranscriptItem[]) => items.map((item) => item.id)
 
   it("已加载窗口只增不缩", () => {
@@ -98,7 +96,6 @@ describe("absorbLatestTranscriptPage", () => {
       timings: [timing("u1", 1)],
       hasMore: false,
     })
-
     const second = absorbLatestTranscriptPage(first, {
       items: [row("u2", "user", "二")],
       timings: [timing("u2", 2)],
@@ -118,14 +115,12 @@ describe("projectClientTranscript", () => {
     content: [{ type: "text", text: "新任务" }],
     timestamp: 2,
   }
-
   const previous: UserTranscriptItem = {
     id: "u1",
     role: "user",
     content: [{ type: "text", text: "旧任务" }],
     timestamp: 1,
   }
-
   const assistant = {
     id: "a1",
     role: "assistant",
@@ -133,7 +128,6 @@ describe("projectClientTranscript", () => {
     status: "streaming",
     timestamp: 3,
   } as TranscriptItem
-
   const send = { item: optimistic, knownItemIds: [previous.id] }
 
   it("把本地用户句插在提交前历史之后、后续流式内容之前", () => {

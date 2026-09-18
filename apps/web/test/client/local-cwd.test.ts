@@ -11,7 +11,6 @@ import {
 } from "@client/local-cwd.js"
 
 const STORAGE = new Map<string, string>()
-
 const storage: WorkspaceStorage = {
   getItem: (key) => STORAGE.get(key) ?? null,
   setItem: (key, value) => void STORAGE.set(key, value),

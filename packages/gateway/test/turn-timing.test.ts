@@ -29,17 +29,12 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
       const directory = await mkdtemp(join(tmpdir(), "pig-timing-"))
       directories.push(directory)
       const manager = SessionManager.create(directory, directory)
-
       let notify: (event: AgentSessionEvent) => void = () => {}
-
       let finish: () => void = () => {}
-
       const pending = new Promise<void>((resolve) => {
         finish = resolve
       })
-
       const user = { role: "user", content: "执行任务", timestamp: 1000 } as const
-
       const session = {
         sessionManager: manager,
         isIdle: true,
@@ -80,7 +75,6 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
         AgentSession,
         "sessionManager" | "isIdle" | "subscribe" | "prompt" | "abort" | "waitForIdle" | "dispose"
       >
-
       const runtime = new PiHostSession(session as unknown as AgentSession)
       const prompt = runtime.prompt({ text: "执行任务" })
       await Promise.resolve()

@@ -52,7 +52,6 @@ export function readToolPreview(input: unknown, output: string) {
 
   let code = output
   let totalLines: number | null = null
-
   const notice = output.match(
     /\r?\n\r?\n(\[(?:Showing lines \d+-\d+ of \d+(?: \([^\]\r\n]+\))?\. Use offset=\d+ to continue\.|\d+ more lines in file\. Use offset=\d+ to continue\.)\])$/,
   )

@@ -48,11 +48,8 @@ const props = withDefaults(
   }>(),
   { streaming: false, hydrated: false },
 )
-
 const { isDark } = useColorScheme()
-
 const showHeavy = computed(() => props.streaming || props.hydrated)
-
 const statusLabel = computed(() => {
   const base = props.item.error ? "出错" : "已中止"
   const retries = props.item.retryCount
@@ -60,7 +57,6 @@ const statusLabel = computed(() => {
   if (retries && retries > 1) return `${base} · ${retries} 次`
   return base
 })
-
 const agentMarkdown = computed(() =>
   chatMarkdownProps({
     streaming: props.streaming,

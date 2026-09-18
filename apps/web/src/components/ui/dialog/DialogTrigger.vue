@@ -10,6 +10,5 @@ import type { ComputedRef } from "vue"
 import { DialogTrigger, useForwardProps } from "reka-ui"
 
 const props = defineProps<DialogTriggerProps>()
-
 const forwardedProps = useForwardProps(props) as ComputedRef<DialogTriggerProps>
 </script>

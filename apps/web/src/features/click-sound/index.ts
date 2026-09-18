@@ -1,14 +1,10 @@
 import { onMounted, onUnmounted, readonly, shallowRef } from "vue"
 
 const CLICK_SOUND_KEY = "pig.clickSound"
-
 const MASTER = 0.32
-
 const INTERACTIVE =
   "button, a[href], input:not([type='hidden']), select, textarea, summary, [role='button'], [role='checkbox'], [role='menuitem'], [role='menuitemcheckbox'], [role='menuitemradio'], [role='option'], [role='radio'], [role='switch'], [role='tab']"
-
 const DISMISS = /close|dismiss|remove|delete|collapse|cancel|clear|关闭|删除|取消|清除|折叠/i
-
 const PRIMARY = /send|save|submit|create|add|upgrade|发送|保存|提交|添加|新建|创建/i
 
 type Cue = "press" | "tick" | "release" | "page" | "pulse"
@@ -16,11 +12,8 @@ type Cue = "press" | "tick" | "release" | "page" | "pulse"
 type Filter = { type: BiquadFilterType; frequency: number; Q?: number }
 
 const enabled = shallowRef(true)
-
 let loaded = false
-
 let binds = 0
-
 let ctx: AudioContext | null = null
 
 function readEnabled(): boolean {

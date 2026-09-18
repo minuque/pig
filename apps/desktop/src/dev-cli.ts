@@ -8,7 +8,6 @@ import { viteDevPort } from "./main/urls.js"
 import { killPortListeners } from "./main/vite-child.js"
 
 const desktopRoot = join(dirname(fileURLToPath(import.meta.url)), "..")
-
 const desktopRequire = createRequire(join(desktopRoot, "package.json"))
 
 function electronExecutable(): string {
@@ -38,7 +37,6 @@ function killPidTree(pid: number): void {
 }
 
 const vitePort = viteDevPort()
-
 const watchdog = spawn(
   process.execPath,
   [join(desktopRoot, "scripts/dev-watchdog.mjs"), String(process.pid), String(vitePort)],
@@ -52,7 +50,6 @@ const electron = spawn(electronExecutable(), [".", "--", "--dev", ...process.arg
   env: { ...process.env, PIG_VITE_PORT: String(vitePort) },
   stdio: "inherit",
 })
-
 let stopping = false
 
 function stop(exitCode = 0): void {

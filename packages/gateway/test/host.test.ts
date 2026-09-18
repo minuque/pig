@@ -9,7 +9,6 @@ import Gateway from "../src/index.js"
 import type { DirectoryPort } from "../src/directory.js"
 
 let selectedDirectory: string | undefined
-
 const directoryPort: DirectoryPort = {
   async selectDirectory() {
     return selectedDirectory
@@ -18,9 +17,7 @@ const directoryPort: DirectoryPort = {
     return path
   },
 }
-
 let gateway: Gateway | undefined
-
 let sessionDir: string | undefined
 
 afterEach(async () => {
@@ -106,7 +103,6 @@ describe("thin host WebSocket", () => {
   it("rejects upgrades on unknown paths", async () => {
     const base = await startGateway()
     const port = new URL(base).port
-
     const status = await new Promise<number>((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error("upgrade 未返回 unexpected-response")), 3000)
       const socket = new WebSocket(`ws://127.0.0.1:${port}/nope`)
@@ -127,7 +123,6 @@ describe("thin host WebSocket", () => {
     const base = await startGateway()
     const port = new URL(base).port
     const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`)
-
     const result = await new Promise<{ message: unknown; closed: boolean }>((resolve, reject) => {
       const decoder = new ServerMessageDecoder()
       socket.on("message", (data) => {
@@ -144,7 +139,6 @@ describe("thin host WebSocket", () => {
       socket.once("error", reject)
       socket.once("open", () => socket.send(new Uint8Array([0x00, 0x00, 0x00, 0x01, 0xff])))
     })
-
     const message = result.message as { type: string; error?: { code: string } }
     expect(message.type).toBe("hello_error")
     expect(message.error?.code).toBe("invalid_request")

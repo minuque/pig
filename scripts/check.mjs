@@ -8,11 +8,8 @@ import { classifyTouched } from "./check-scope.mjs"
 import { reportResults, runPnpm } from "./check-run.mjs"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
-
 const touched = process.argv.includes("--touched")
-
 const fix = process.argv.includes("--fix")
-
 const CHECK_STEPS = [
   { name: "format", args: ["exec", "prettier", "--check", "."] },
   { name: "eslint", args: ["exec", "eslint", "."] },
@@ -25,7 +22,6 @@ const CHECK_STEPS = [
 
 function dirtyFiles() {
   const opts = { cwd: root, encoding: "utf8", windowsHide: true }
-
   const names = [
     ...spawnSync("git", ["diff", "--name-only"], opts).stdout.split(/\r?\n/),
     ...spawnSync("git", ["diff", "--name-only", "--cached"], opts).stdout.split(/\r?\n/),

@@ -64,23 +64,15 @@ import {
 import { filterSessionsForSearch } from "@features/session-nav/lib/session-list.js"
 
 const open = defineModel<boolean>("open", { default: false })
-
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
 }>()
-
 const { listedSessions, openSession } = useNav()
-
 const now = useTimestamp({ interval: 60_000 })
-
 const query = shallowRef("")
-
 const activeIndex = shallowRef(0)
-
 const queryInput = useTemplateRef<HTMLInputElement>("queryInput")
-
 const hitList = useTemplateRef<HTMLElement>("hitList")
-
 const hits = computed(() => filterSessionsForSearch(listedSessions.value, query.value))
 
 watch(open, (isOpen) => {

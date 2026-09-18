@@ -32,7 +32,6 @@ export function createAbortableOpen() {
 
   function trackDisposal(id: string, work: Promise<void>) {
     const previous = disposals.get(id) ?? Promise.resolve()
-
     const chained = previous.then(
       () => work,
       () => work,
@@ -94,7 +93,6 @@ export function createAbortableOpen() {
     opening.waiters += 1
     let aborted = false
     let rejectAbort = (_error: Error) => {}
-
     const abortWait = new Promise<never>((_, reject) => {
       rejectAbort = reject
     })

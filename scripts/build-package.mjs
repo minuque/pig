@@ -4,9 +4,7 @@ import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
 const root = resolve(import.meta.dirname, "..")
-
 const gateway = join(root, "packages/gateway")
-
 const run = (command, args) => {
   const result = spawnSync(command, args, {
     cwd: root,
@@ -16,7 +14,6 @@ const run = (command, args) => {
 
   if (result.status) throw new Error(`${command} failed`)
 }
-
 const temp = await mkdtemp(join(tmpdir(), "nono-package-"))
 
 try {

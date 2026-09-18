@@ -14,7 +14,6 @@ export class PlatformRequestError extends Error {
 /** JSON 请求；非 2xx 时抛出 PlatformRequestError。 */
 export async function platformRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const requestId = crypto.randomUUID()
-
   const response = await fetch(path, {
     ...init,
     headers: {

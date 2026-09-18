@@ -1,13 +1,9 @@
 import { extname, isAbsolute, relative, resolve } from "node:path"
 
 export const DEFAULT_VITE_DEV_PORT = 5173
-
 export const PIG_SCHEME = "pig"
-
 export const PIG_APP_HOST = "app"
-
 export const PIG_APP_ORIGIN = `${PIG_SCHEME}://${PIG_APP_HOST}`
-
 export const GATEWAY_ORIGIN_ARG_PREFIX = "--pig-gateway-origin="
 
 export function gatewayOrigin(port: number): string {

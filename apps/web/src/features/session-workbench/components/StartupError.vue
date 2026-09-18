@@ -25,9 +25,7 @@ const props = withDefaults(
     detail: "",
   },
 )
-
 const stored = useStartupError()
-
 const copy = computed(() => props.detail.trim() || stored.value.trim() || "启动过程中出现错误。")
 
 function retry() {

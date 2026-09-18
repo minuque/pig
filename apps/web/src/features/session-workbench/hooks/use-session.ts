@@ -57,26 +57,20 @@ export function useSessionLifecycle(
   const route = useRoute()
   const router = useRouter()
   const sessionError = ref("")
-
   const sessionId = computed(() => {
     const raw = route.params.sessionId
     return typeof raw === "string" && raw.length > 0 ? raw : undefined
   })
-
   const remote = shallowRef<RemoteSession>()
   const state = shallowRef<RemoteSessionState>()
   let unsubscribeState: Unsubscribe | undefined
-
   let replaceChain: Promise<void> = Promise.resolve()
   let abortInflightOpen: (() => void) | undefined
   const { raceRemoteOpen, discard } = createAbortableOpen()
   const history = useSessionHistory()
-
   const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
   let contextUsageRequest = 0
-
   const snapshot = computed(() => state.value?.snapshot)
-
   const liveTranscript = history.liveTranscript
 
   function attach(next: RemoteSession) {
@@ -260,7 +254,6 @@ export function useSessionLifecycle(
   const stopRouteSync = watch(sessionId, () => {
     if (initialized) void syncRoute()
   })
-
   const stopClientSync = watch(
     () => pi.connected.value,
     (connected) => {
@@ -282,17 +275,14 @@ export function useSessionLifecycle(
   const sessionPending = computed(() =>
     isSessionOpening(sessionId.value, remote.value?.id, history.historyReadyId.value),
   )
-
   const projection = computed(() => {
     const current = snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined
     return !sessionId.value || current?.id === sessionId.value ? current : undefined
   })
-
   const catalog = computed(() => catalogFromModels(pi.models.value))
   const phase = computed(() => projection.value?.phase)
   const running = computed(() => projection.value?.running ?? false)
   const phaseText = computed(() => (running.value && phase.value ? phaseLabel(phase.value) : ""))
-
   const { preset } = useComposerBinding({
     catalog,
     snapshot,
@@ -300,18 +290,15 @@ export function useSessionLifecycle(
     setModel,
     setThinking,
   })
-
   const states = reactive(new Map<string, ReturnType<typeof sessionState>>())
   const idleState = reactive<SessionClientState>({ draft: "", sends: [] })
   const creatingCwd = ref<string>()
   const submitting = ref(false)
   const aborting = ref(false)
-
   const clientState = computed(() => {
     const id = sessionId.value
     return id ? sessionState(states, id) : idleState
   })
-
   const prompt = computed({
     get: () => clientState.value.draft,
     set: (value: string) => {
@@ -327,7 +314,6 @@ export function useSessionLifecycle(
 
     try {
       const next = preset.value
-
       const nextId = await createRemoteSession(
         nextCwd,
         next
@@ -367,7 +353,6 @@ export function useSessionLifecycle(
     sessionError.value = ""
     const thread = clientState.value
     const previousDraft = thread.draft
-
     const send = optimisticUserMessage(
       normalized,
       liveTranscript.value.map((item) => item.id),
@@ -414,14 +399,12 @@ export function useSessionLifecycle(
   const transcript = computed(() =>
     projectClientTranscript(liveTranscript.value, clientState.value.sends),
   )
-
   const sessionCwd = computed(
     () =>
       projection.value?.cwd ??
       pi.sessions.value.find((item) => item.id === sessionId.value)?.cwd ??
       (sessionId.value ? undefined : cwd.lastCwd.value),
   )
-
   const projectedUsage = computed(() => projectContextUsage(contextUsageEstimate.value))
 
   pi.bindAttachedReconnect(async () => {

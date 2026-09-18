@@ -122,7 +122,6 @@ export function useSessionHistory() {
     const page = cache.peek(id)
     return page ? mergeLiveTranscript(page.items, page.heldLive) : []
   })
-
   const historyReadyId = computed(() => {
     const id = activeId.value
     const rev = version.value
@@ -130,7 +129,6 @@ export function useSessionHistory() {
     if (!id || rev < 0 || !cache.isReady(id)) return undefined
     return id
   })
-
   const historyHasMore = computed(() => {
     const id = activeId.value
     const rev = version.value
@@ -138,7 +136,6 @@ export function useSessionHistory() {
     if (!id || rev < 0) return false
     return cache.peek(id)?.hasMore ?? false
   })
-
   const turnTimings = computed(() => {
     const id = activeId.value
     const rev = version.value

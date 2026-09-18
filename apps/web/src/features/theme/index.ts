@@ -8,11 +8,9 @@ const STORAGE_KEY = "npg-theme"
 export function useColorScheme() {
   const mode = useColorMode({ initialValue: "auto", storageKey: STORAGE_KEY })
   const isDark = computed(() => mode.state.value === "dark")
-
   const scheme = computed<ColorScheme>(() =>
     mode.store.value === "auto" ? "auto" : mode.state.value,
   )
-
   const codeBlockProps = computed(() => ({
     theme: isDark.value ? ("dark-plus" as const) : ("light-plus" as const),
   }))

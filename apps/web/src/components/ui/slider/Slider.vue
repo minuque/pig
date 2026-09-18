@@ -34,10 +34,7 @@ import { SliderRange, SliderRoot, SliderThumb, SliderTrack, useForwardPropsEmits
 const props = withDefaults(defineProps<SliderRootProps & { class?: HTMLAttributes["class"] }>(), {
   class: undefined,
 })
-
 const emits = defineEmits<SliderRootEmits>()
-
 const delegatedProps = reactiveOmit(props, "class")
-
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<SliderRootProps>
 </script>

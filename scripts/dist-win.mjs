@@ -5,15 +5,10 @@ import { join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 
 const root = resolve(import.meta.dirname, "..")
-
 const desktop = join(root, "apps/desktop")
-
 const gateway = join(root, "packages/gateway")
-
 const injectedGateway = join(desktop, "node_modules/@pig/gateway")
-
 const webRoot = join(root, "apps/web/dist")
-
 const run = (command, args, cwd = root) => {
   const result = spawnSync(command, args, {
     cwd,
@@ -57,7 +52,6 @@ async function assertDesktopGatewaySurface() {
   const { default: Gateway } = await import(
     pathToFileURL(join(injectedGateway, "dist/index.js")).href
   )
-
   const instance = new Gateway({ webRoot, port: 0 })
   const port = await instance.start()
   const origin = `http://127.0.0.1:${port}`
@@ -73,7 +67,6 @@ async function assertDesktopGatewaySurface() {
     if (probe.status !== 400) throw new Error(`/api/v1/platform/context-usage ${probe.status}`)
     await new Promise((resolveOpen, reject) => {
       const socket = new WebSocket(`${origin.replace(/^http/, "ws")}/api/v1/pi`)
-
       const timer = setTimeout(() => {
         socket.close()
         reject(new Error("WebSocket 升级超时"))

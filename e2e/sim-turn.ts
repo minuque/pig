@@ -9,11 +9,8 @@ import {
 } from "@earendil-works/pi-protocol"
 
 export const TURN_PROMPT = "e2e 继续这一轮"
-
 export const TURN_TOKEN = "e2e 首 token"
-
 export const TURN_STREAM_ID = "e2e-turn"
-
 export const STOP_TURN = "停止当前 Turn"
 
 function asBytes(data: Buffer | ArrayBuffer | Uint8Array): Uint8Array {
@@ -35,16 +32,13 @@ export async function installTurnBridge(page: Page) {
     connections += 1
     const serverDecoder = new ServerMessageDecoder()
     const clientDecoder = new ClientMessageDecoder()
-
     const send = (message: Parameters<typeof encodeServerMessage>[0]) => {
       if (!socket) throw new Error("e2e WebSocket 尚未建立")
       socket.send(Buffer.from(encodeServerMessage(message)))
     }
-
     const reply = (id: string, command: "prompt" | "abort", session: SessionSnapshot) => {
       send({ type: "response", id, ok: true, result: { command, session } })
     }
-
     const patch = (sessionId: string, phase: "turn" | "idle") => {
       const current = snapshots.get(sessionId)
 
@@ -76,7 +70,6 @@ export async function installTurnBridge(page: Page) {
         if (message.type === "request" && message.request.command === "prompt") {
           const sessionId = message.request.sessionId
           const session = patch(sessionId, "turn")
-
           const userItem = {
             id: "e2e-user",
             role: "user" as const,

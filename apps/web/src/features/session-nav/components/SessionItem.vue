@@ -123,34 +123,23 @@ const props = withDefaults(
     state: undefined,
   },
 )
-
 const emit = defineEmits<{
   navigate: []
   togglePinned: [id: string]
   rename: [id: string, name: string]
   delete: [id: string]
 }>()
-
 const { openSession } = useNav()
-
 const renaming = ref(false)
-
 const draft = ref("")
-
 const nameInput = ref<HTMLInputElement | null>(null)
-
 const menuOpen = ref(false)
-
 const deleteOpen = shallowRef(false)
-
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
-
 const streaming = computed(() => props.state === "running" && !renaming.value)
-
 const stateDot = computed(
   () => (props.state === "unread" || props.state === "error") && !renaming.value,
 )
-
 const stateLabel = computed(() => {
   if (props.state === "running") return "运行中"
 

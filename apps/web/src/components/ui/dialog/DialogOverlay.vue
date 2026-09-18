@@ -19,8 +19,6 @@ const props = withDefaults(
   defineProps<DialogOverlayProps & { class?: HTMLAttributes["class"] }>(),
   { class: undefined },
 )
-
 const delegatedProps = reactiveOmit(props, "class")
-
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogOverlayProps>
 </script>

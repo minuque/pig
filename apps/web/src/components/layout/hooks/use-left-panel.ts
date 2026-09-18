@@ -15,7 +15,6 @@ export function useLeftPanelToggle() {
 }
 
 export const LEFT_PANEL_WIDTH_KEY = "pig.leftPanelWidth"
-
 /** 主内容区最小宽度（px）：侧栏调宽时始终为其保留的空间。 */
 export const CONTENT_MIN_WIDTH = 332
 
@@ -62,14 +61,12 @@ export function useLeftPanel() {
   const leftOpen = ref(!narrowViewport.matches)
   /** 当前是否为 max-width: 900px 窄视口。 */
   const isNarrow = ref(narrowViewport.matches)
-
   const leftWidth = ref(
     panelWidthFor(
       loadStoredWidth() ?? clampPanelWidth(window.innerWidth * 0.18),
       window.innerWidth,
     ),
   )
-
   const resizing = ref(false)
 
   function setPanelWidth(desired: number) {
@@ -96,7 +93,6 @@ export function useLeftPanel() {
     // pointermove 用 rAF 合帧：每帧至多计算一次宽度，pointerup 后补一次最终位置
     let frame = 0
     let pendingX = startX
-
     const move = (next: PointerEvent) => {
       pendingX = next.clientX
 
@@ -106,7 +102,6 @@ export function useLeftPanel() {
         setPanelWidth(startWidth + (pendingX - startX))
       })
     }
-
     const stop = () => {
       handle.removeEventListener("pointermove", move)
       handle.removeEventListener("pointerup", stop)

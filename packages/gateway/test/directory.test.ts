@@ -54,7 +54,6 @@ describe("WindowsDirectoryPort", () => {
     tempRoot = await mkdtemp(join(tmpdir(), "pig-dir-"))
     const expected = canonicalizePath(await realpath(tempRoot))
     const tried: string[] = []
-
     const exec: DirectoryExecFile = async (file) => {
       tried.push(file)
 
@@ -66,7 +65,6 @@ describe("WindowsDirectoryPort", () => {
 
       return { stdout: JSON.stringify(tempRoot) }
     }
-
     const port = new WindowsDirectoryPort(exec)
     expect(await port.selectDirectory()).toBe(expected)
     expect(tried).toEqual(["pwsh", "powershell.exe"])
@@ -74,7 +72,6 @@ describe("WindowsDirectoryPort", () => {
 
   it("非法 JSON 路径直接失败，不回退", async () => {
     const tried: string[] = []
-
     const port = new WindowsDirectoryPort(async (file) => {
       tried.push(file)
       return { stdout: "null" }

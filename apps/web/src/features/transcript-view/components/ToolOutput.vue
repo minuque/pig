@@ -117,45 +117,30 @@ const props = withDefaults(
     images: () => [],
   },
 )
-
 const expanded = defineModel<boolean>("expanded", { default: false })
-
 const omitIndex = TOOL_OMIT_HEAD - 1
-
 const showText = computed(() => props.text.length > 0 || props.images.length === 0)
-
 const sourceLines = computed(() => (props.code ? [...props.lines] : splitLines(props.text)))
-
 const hiddenCount = computed(() => hiddenLineCount(sourceLines.value.length))
-
 const collapsed = computed(() => hiddenCount.value > 0 && !expanded.value)
-
 const omittedHead = computed(() => sourceLines.value.slice(0, omitIndex).join("\n"))
-
 const omittedTail = computed(() => sourceLines.value.slice(-TOOL_OMIT_TAIL).join("\n"))
-
 const visibleLines = computed(() => {
   const lines = sourceLines.value.map((text, index) => ({ text, index }))
   return collapsed.value
     ? [...lines.slice(0, TOOL_OMIT_HEAD), ...lines.slice(-TOOL_OMIT_TAIL)]
     : lines
 })
-
 const lineNumberWidth = computed(() =>
   Math.max(3, String(props.startLine + sourceLines.value.length - 1).length),
 )
-
 const preClass = computed(() => ({
   "is-plain": props.tone === "plain",
   "is-embedded": props.embedded,
 }))
-
 const scrollTop = shallowRef(0)
-
 const lines = computed(() => splitLines(props.text))
-
 const virtual = computed(() => lines.value.length > props.maxLines)
-
 const range = computed(() =>
   virtual.value
     ? visibleLineRange(
@@ -167,11 +152,8 @@ const range = computed(() =>
       )
     : { start: 0, end: lines.value.length },
 )
-
 const visibleText = computed(() => lines.value.slice(range.value.start, range.value.end).join("\n"))
-
 const padTop = computed(() => range.value.start * props.lineHeight)
-
 const totalHeight = computed(() => lines.value.length * props.lineHeight)
 
 function onScroll(event: Event) {

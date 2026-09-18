@@ -30,11 +30,8 @@ import { provideSession } from "@features/session-workbench/index.js"
 import { prefetchHighlighter } from "@features/transcript-view/index.js"
 
 const Settings = defineAsyncComponent(() => import("@features/settings/index.vue"))
-
 const pi = usePiClient()
-
 const cwd = useLocalWorkspaces()
-
 const session = provideSession(pi, cwd)
 
 provideNav(pi, cwd, session)

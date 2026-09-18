@@ -48,17 +48,12 @@ const props = withDefaults(
   }>(),
   { cwd: undefined, usage: undefined, open: false },
 )
-
 const emit = defineEmits<{
   toggle: []
 }>()
-
 const RING = 2 * Math.PI * 6
-
 const cwdLabel = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
-
 const usageLabel = computed(() => `上下文占用 ${props.usage?.percent ?? 0}%`)
-
 const ringOffset = computed(() => {
   const clamped = Math.min(100, Math.max(0, props.usage?.percent ?? 0))
   return RING * (1 - clamped / 100)

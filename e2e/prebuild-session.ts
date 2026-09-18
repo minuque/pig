@@ -4,19 +4,12 @@ import { join } from "node:path"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
 
 export const COMPLEX_SESSION_ID = "e2e-complex"
-
 export const COMPLEX_SESSION_NAME = "复杂会话"
-
 export const COMPLEX_MARKER = "e2e 复杂样本"
-
 export const TABLE_MARKER = "e2e-table"
-
 export const FORMULA_MARKER = "e2e-formula"
-
 export const MERMAID_MARKER = "e2e-mermaid"
-
 export const TOOL_MARKER = "e2e-tool"
-
 /** 本机扫描后推荐：pig、135 条、表+Mermaid+工具、无密钥。PIG_FIXTURE_SESSION 可覆盖。 */
 export const DEFAULT_FIXTURE_SESSION = join(
   homedir(),
@@ -35,7 +28,6 @@ const USAGE = {
   totalTokens: 2,
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
 } as const
-
 const MARKER_REPLY = `### ${TABLE_MARKER}
 
 | 项目 | 状态 |
@@ -117,7 +109,6 @@ export function prebuildComplexSession(
   forked: boolean
 } {
   const source = resolveSource()
-
   const manager = source
     ? SessionManager.forkFrom(source, cwd, sessionDir, { id: COMPLEX_SESSION_ID })
     : SessionManager.create(cwd, sessionDir, { id: COMPLEX_SESSION_ID })

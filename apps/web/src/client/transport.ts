@@ -41,7 +41,6 @@ function stampedGatewayOrigin(): string | undefined {
 export function webSocketUrl(base?: string | URL): string {
   const resolved =
     base ?? import.meta.env.VITE_GATEWAY_TARGET ?? stampedGatewayOrigin() ?? window.location.href
-
   const url = new URL(WEBSOCKET_PATH, resolved)
 
   if (
@@ -71,11 +70,8 @@ export function createWebSocketByteTransportFactory(
 
     let closed = false
     let opened = false
-
     let openResolve: () => void = () => {}
-
     let openReject: (reason?: unknown) => void = () => {}
-
     const openPromise = new Promise<void>((resolve, reject) => {
       openResolve = resolve
       openReject = reject

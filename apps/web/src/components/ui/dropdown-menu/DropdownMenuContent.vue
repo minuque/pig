@@ -28,11 +28,8 @@ const props = withDefaults(
     sideOffset: 4,
   },
 )
-
 const emits = defineEmits<DropdownMenuContentEmits>()
-
 const delegatedProps = reactiveOmit(props, "class")
-
 // reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
 const forwarded = useForwardPropsEmits(
   delegatedProps,

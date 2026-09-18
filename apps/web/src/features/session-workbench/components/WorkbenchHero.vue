@@ -67,9 +67,7 @@ withDefaults(
 const emit = defineEmits<{
   add: []
 }>()
-
 const workspaceId = defineModel<string | undefined>("workspaceId")
-
 const label = computed(() =>
   workspaceId.value ? workspaceName(workspaceId.value) : "选择工作目录",
 )

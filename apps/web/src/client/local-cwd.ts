@@ -7,7 +7,6 @@
 import { readonly, ref } from "vue"
 
 export const LOCAL_WORKSPACES_KEY = "pig.localWorkspaces"
-
 export const LAST_CWD_KEY = "pig.lastCwd"
 
 export type WorkspaceStorage = Pick<Storage, "getItem" | "setItem">

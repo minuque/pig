@@ -9,7 +9,6 @@ import type { DirectoryPort } from "../packages/gateway/src/directory.js"
 import { prebuildComplexSession } from "./prebuild-session.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
-
 const webRoot = join(root, "apps/web/dist")
 
 /** 与 web canonicalizeWorkspacePath 对齐，供 localStorage 种子。 */
@@ -39,7 +38,6 @@ async function withGateway(
   seed(sessionDir, workspaceDir)
 
   const workspaceId = canonicalizeWorkspacePath(workspaceDir)
-
   const platformPort: DirectoryPort = {
     async selectDirectory() {
       return workspaceDir
@@ -48,7 +46,6 @@ async function withGateway(
       return path
     },
   }
-
   const gateway = new Gateway({
     webRoot,
     sessionDir,
@@ -56,7 +53,6 @@ async function withGateway(
     platformPort,
     port: 0,
   })
-
   const port = await gateway.start()
 
   try {

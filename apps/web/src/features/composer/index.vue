@@ -70,7 +70,6 @@ import type {
 const ContextUsagePanel = defineAsyncComponent(
   () => import("@features/composer/components/ContextUsagePanel.vue"),
 )
-
 const props = withDefaults(
   defineProps<{
     catalog: ComposerVendor[]
@@ -96,37 +95,28 @@ const props = withDefaults(
     sessionId: undefined,
   },
 )
-
 const prompt = defineModel<string>("prompt", { required: true })
-
 const preset = defineModel<ComposerPreset | undefined>("preset")
-
 const emit = defineEmits<{
   send: [text: string]
   abort: []
 }>()
-
 const model = computed({
   get: () => preset.value?.model,
   set: (next: ComposerModel | undefined) => {
     if (next) preset.value = { model: next, thinkingLevel: preset.value?.thinkingLevel ?? "" }
   },
 })
-
 const level = computed({
   get: () => preset.value?.thinkingLevel ?? "",
   set: (thinkingLevel: string) => {
     if (preset.value) preset.value = { ...preset.value, thinkingLevel }
   },
 })
-
 // 图片未进协议，不露出附件入口
 const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisabled)
-
 const usageOpen = ref(false)
-
 const modelPickerOpen = ref(false)
-
 const primaryLabel = computed(() => (props.running ? "停止当前 Turn" : "发送 Prompt"))
 
 watch(
