@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>pig 适配 Pi 0.85.1</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --primary: #679efe;
+      --canvas: #0a0a0a;
+      --surface: #121212;
+      --well: #1b1b1c;
+      --ink: #ebeef2;
+      --ink-secondary: #c5c8ce;
+      --ink-muted: #9aa0a8;
+      --ink-faint: #7a7e86;
+      --hairline: #2c2c2e;
+      --sunset: #ff8a3d;
+      --dusk: #c4b5fd;
+      --green: #33c35e;
+      --danger: #f07178;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+      --mono: "SF Mono", "JetBrains Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: var(--font);
+    }
+
+    button { font: inherit; }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--hairline);
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
+      backdrop-filter: blur(16px) saturate(1.1);
+    }
+
+    h1 { margin: 0; font-size: 16px; font-weight: 600; }
+
+    .subtitle {
+      margin: 2px 0 0;
+      color: var(--ink-muted);
+      font-size: 13px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 3px;
+      border: 1px solid var(--hairline);
+      border-radius: 10px;
+      background: var(--well);
+    }
+
+    .tabs button {
+      border: 0;
+      border-radius: 8px;
+      padding: 6px 11px;
+      background: transparent;
+      color: var(--ink-muted);
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .tabs button[aria-selected="true"] {
+      color: var(--ink);
+      background: var(--surface);
+      box-shadow: 0 0 0 1px var(--hairline);
+    }
+
+    main {
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 20px 24px 48px;
+    }
+
+    .view[hidden] { display: none; }
+
+    .view-head { margin-bottom: 16px; }
+
+    .view-head h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.25px;
+    }
+
+    .view-head p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--ink-muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .ver {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      padding: 16px 18px;
+      border: 1px solid var(--hairline);
+      border-radius: 16px;
+      background: var(--surface);
+    }
+
+    .card h3 { margin: 0 0 8px; font-size: 15px; }
+
+    .card p, .card li {
+      color: var(--ink-muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .card ul { margin: 0; padding-left: 18px; }
+
+    .arrow {
+      display: grid;
+      place-items: center;
+      color: var(--sunset);
+      font-family: var(--mono);
+      font-size: 22px;
+    }
+
+    .pill {
+      display: inline-flex;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--tone, var(--primary)) 18%, transparent);
+      color: var(--tone, var(--primary));
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .keep { --tone: var(--green); }
+    .break { --tone: var(--sunset); }
+    .wait { --tone: var(--dusk); }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    pre {
+      margin: 0;
+      overflow: auto;
+      padding: 14px 16px;
+      border: 1px solid var(--hairline);
+      border-radius: 14px;
+      background: var(--well);
+      color: var(--ink-secondary);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .files {
+      display: grid;
+      gap: 8px;
+    }
+
+    .file {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--hairline);
+      border-radius: 10px;
+      background: var(--well);
+    }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .tag.keep { color: var(--green); }
+    .tag.rewrite { color: var(--sunset); }
+    .tag.drop { color: var(--danger); }
+    .tag.wait { color: var(--dusk); }
+
+    .file b { display: block; font-size: 13px; font-weight: 600; }
+
+    .file small {
+      display: block;
+      margin-top: 2px;
+      color: var(--ink-muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    ol.steps {
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    ol.steps li {
+      margin: 0 0 10px;
+      color: var(--ink-secondary);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    ol.steps small {
+      display: block;
+      color: var(--ink-muted);
+      font-size: 12px;
+    }
+
+    .warn {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border: 1px dashed color-mix(in srgb, var(--sunset) 45%, var(--hairline));
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--sunset) 8%, var(--well));
+    }
+
+    .warn h3 { margin: 0 0 6px; font-size: 13px; color: var(--sunset); }
+
+    .warn p { margin: 0; color: var(--ink-muted); font-size: 12px; line-height: 1.5; }
+
+    @media (max-width: 840px) {
+      header { grid-template-columns: 1fr; padding: 12px 16px; }
+      main { padding: 16px 16px 40px; }
+      .ver, .grid2 { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); height: 24px; }
+      .file { grid-template-columns: 72px 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div>
+      <h1>适配 Pi 0.85.1</h1>
+      <p class="subtitle">pig 锁 0.84.1。最新 npm 是 0.85.1。这是协议换代，不是补丁升级。</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-gap" aria-controls="view-gap" aria-selected="true">差在哪</button>
+      <button type="button" role="tab" id="tab-shape" aria-controls="view-shape" aria-selected="false">目标形状</button>
+      <button type="button" role="tab" id="tab-files" aria-controls="view-files" aria-selected="false">改哪些文件</button>
+      <button type="button" role="tab" id="tab-plan" aria-controls="view-plan" aria-selected="false">怎么走</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="view" id="view-gap" role="tabpanel">
+      <div class="view-head">
+        <h2>0.84.1 → 0.85.1</h2>
+        <p>本地 SDK（SessionManager / createAgentSession）还在。远程 GUI 栈整层换了。0.85.1 还把 <code>pi-coding-agent/client</code> 收成 source-only 再导出。</p>
+      </div>
+      <div class="ver">
+        <article class="card">
+          <h3>pig 现在 <span class="pill">0.84.1</span></h3>
+          <ul>
+            <li>协议 v1：类型化 CBOR（hello / snapshot / command）</li>
+            <li><code>PiClient</code> + <code>RemoteSession</code></li>
+            <li><code>PiServer(PiHostService)</code></li>
+            <li>权威状态：ServerSnapshot / SessionSnapshot</li>
+          </ul>
+        </article>
+        <div class="arrow">→</div>
+        <article class="card">
+          <h3>最新 npm <span class="pill break">0.85.1</span></h3>
+          <ul>
+            <li>协议 v8：路由信封 + 不透明 JSON 载荷</li>
+            <li><code>Client</code> + Chord 服务（无 RemoteSession）</li>
+            <li><code>Server(ServerHost)</code></li>
+            <li>权威状态：Chord 复制状态；协议不管业务 schema</li>
+          </ul>
+        </article>
+      </div>
+      <div class="grid2">
+        <article class="card">
+          <h3><span class="pill keep">可留</span> 传输与壳层</h3>
+          <p>WebSocket 仍是有序字节流。platform HTTP 是 pig 自己的 Thin Host，Pi 协议不拥有它。</p>
+          <ul>
+            <li><code>ByteTransport</code> / <code>/api/v1/pi</code></li>
+            <li>选目录、卡片、历史分页、改名、删除、占用</li>
+            <li>本地 <code>SessionManager</code> 跑 Agent</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3><span class="pill break">必换</span> 远程领域层</h3>
+          <p>pig 现在当领域 API 用的那些符号，0.85.1 里已经不存在或语义变了。</p>
+          <ul>
+            <li><code>PiClient</code> / <code>RemoteSession</code></li>
+            <li><code>PiServer</code> / <code>PiServerService</code> / <code>PiSessionRuntime</code></li>
+            <li><code>ServerSnapshot</code> <code>SessionSnapshot</code> <code>TranscriptItem</code>（协议包不再导出）</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="view" id="view-shape" role="tabpanel" hidden>
+      <div class="view-head">
+        <h2>目标调用形状</h2>
+        <p>传输还是同一条 WS。上面换成「握手拿 serverId → Chord 服务目录 → attach Session」。UI 不再订阅一张总快照。</p>
+      </div>
+      <div class="grid2">
+        <pre>现在 0.84.1
+PiClient.connect()
+  → ServerSnapshot { sessions, models }
+RemoteSession.create / open
+  → SessionSnapshot
+submit / abort / setModel
+  → 同一连接上的 command
+历史全文
+  → pig HTTP /transcript</pre>
+        <pre>目标 0.85.1
+Client.connect({ serverId, transportFactory })
+  → ServerHello { version: 8, serverId }
+subscribeService(server, "SessionDirectory")
+subscribeService(server, "Models")
+SessionManagement.attach(sessionId)
+  → attachment { serverId, sessionId, attachmentId }
+request(sessionTarget, { serviceId, member, args })
+  → prompt / abort / setModel
+subscribeService(session, "Transcript")
+  → Chord snapshot + delta</pre>
+      </div>
+      <p class="subtitle" style="margin:14px 0 8px">握手之后，业务调用长这样：</p>
+      <pre>const client = await Client.connect({
+  serverId, // 逻辑身份，不是端口
+  transportFactory: createWebSocketByteTransportFactory({ url }),
+})
+
+const dir = await client.subscribeService(
+  { serverId: client.hello.serverId },
+  "SessionDirectory",
+  "singleton",
+  (update) => renderSessions(update),
+)
+dir.start()
+
+await client.request(
+  { serverId: client.hello.serverId },
+  { serviceId: "SessionManagement", member: "attach", args: [sessionId] },
+)
+// 真正的路由在 out-of-band attachment 消息里，不在 attach 返回值</pre>
+    </section>
+
+    <section class="view" id="view-files" role="tabpanel" hidden>
+      <div class="view-head">
+        <h2>按文件动刀</h2>
+        <p>只动远程协议边界。platform HTTP 和 UI 投影尽量留。类型从 <code>pi-protocol</code> 迁走。</p>
+      </div>
+      <div class="files">
+        <div class="file">
+          <span class="tag keep">留</span>
+          <div>
+            <b>apps/web/src/client/transport.ts</b>
+            <small>ByteTransport 仍适用。最多加 serverId 发现，不换 WS。</small>
+          </div>
+        </div>
+        <div class="file">
+          <span class="tag keep">留</span>
+          <div>
+            <b>apps/web/src/client/platform.ts · packages/gateway/src/server/platform.ts</b>
+            <small>选目录 / 卡片 / 历史分页 / 改名删除 / 占用。这是 pig Thin Host，不进 Pi 协议。</small>
+          </div>
+        </div>
+        <div class="file">
+          <span class="tag rewrite">重写</span>
+          <div>
+            <b>apps/web/src/client/pi-client.ts</b>
+            <small>PiClient → Client。connect 要带稳定 serverId。不再有 snapshot.sessions / models。</small>
+          </div>
+        </div>
+        <div class="file">
+          <span class="tag rewrite">重写</span>
+          <div>
+            <b>apps/web/src/features/session-workbench/hooks/use-session.ts</b>
+            <small>RemoteSession.create/open/submit/abort/setModel 换成 attach + Chord request/subscribe。</small>
+          </div>
+        </div>
+        <div class="file">
+          <span class="tag rewrite">重写</span>
+          <div>
+            <b>packages/gateway/src/server/host.ts · websocket.ts</b>
+            <small>PiServer → Server；PiServerListener → ServerListener。构造要传入 serverId。</small>
+          </div>
+        </div>
+        <div class="file">
+          <span class="tag rewrite">重写</span>
+          <div>
+            <b>packages/gateway/src/pi/service.ts · session-runtime.ts</b>
+            <small>PiServerService / PiSessionRuntime 没了。改实现 ServerHost：resolveSession / openSession / RoutedSessionHandle.invokeService。</small>
+          </div>
+        </div>
+        <div class="file">
+          <span class="tag drop">丢掉</span>
+          <div>
+            <b>apps/web/src/types/common-type.ts 里的协议类型</b>
+            <small>ServerSnapshot、SessionSnapshot、TranscriptItem 不再从 pi-protocol 出。改从 Chord 绑定或 pig 本地类型来。</small>
+          </div>
+        </div>
+        <div class="file">
+          <span class="tag wait">等 Pi</span>
+          <div>
+            <b>@earendil-works/pi-coding-agent/client</b>
+            <small>0.85.1 只 re-export pi-client，且 source-only。SessionDirectory / SessionManagement 还在 experimental CLI，未作为稳定 GUI SDK 发布。</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-plan" role="tabpanel" hidden>
+      <div class="view-head">
+        <h2>建议顺序</h2>
+        <p>先不要把 0.85.1 锁进仓库。官方自己说：支持的本地 SDK 和 stdio RPC 不变；实验 client/server 只给 <code>pi-test.sh</code>。</p>
+      </div>
+      <ol class="steps">
+        <li>
+          停在 0.84.1，或只升到 0.84.4
+          <small>同一套 PiClient / RemoteSession。修模型/工具缺陷可以吃到 0.84.x 补丁。</small>
+        </li>
+        <li>
+          等 Pi 发布稳定的 Session Chord 绑定
+          <small>至少要有可 import 的 SessionDirectory、SessionManagement、Transcript，而不是 coding-agent 源码里的 experimental CLI。</small>
+        </li>
+        <li>
+          先改 Gateway 宿主，再改 Web 客户端
+          <small>Server + serverId + WebSocket listener 能握手 v8，才接 UI。ByteTransport 可复用。</small>
+        </li>
+        <li>
+          UI 按服务拆订阅
+          <small>列表、模型目录、Transcript、Turn 控制分成独立 subscribe/request。不要再等一张 ServerSnapshot。</small>
+        </li>
+        <li>
+          platform HTTP 保持第二条总线
+          <small>长历史分页和侧栏卡片仍适合 HTTP。不要把它们塞进 Chord。</small>
+        </li>
+      </ol>
+      <div class="warn">
+        <h3>现在 bump 会断的东西</h3>
+        <p>Web 的 <code>RemoteSession</code> 导入会空。Gateway 的 <code>PiServer</code> / <code>PiServerService</code> 编译失败。<code>pi-protocol</code> 不再有 TranscriptItem。e2e 里按 v1 帧解码 hello 的用例也会立刻挂。</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const tabs = [
+      ["tab-gap", "view-gap"],
+      ["tab-shape", "view-shape"],
+      ["tab-files", "view-files"],
+      ["tab-plan", "view-plan"],
+    ]
+    for (const [id] of tabs) {
+      document.getElementById(id).addEventListener("click", () => {
+        for (const [tabId, viewId] of tabs) {
+          const on = tabId === id
+          document.getElementById(tabId).setAttribute("aria-selected", String(on))
+          document.getElementById(viewId).hidden = !on
+        }
+      })
+    }
+  </script>
+</body>
+
+</html>

@@ -446,10 +446,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   scrollbar-gutter: stable;
 }
 
-.transcript-viewport :deep(*) {
-  overscroll-behavior: contain;
-}
-
 .transcript-viewport.is-following {
   overflow-anchor: none;
 }
