@@ -10,23 +10,8 @@
 
     <template v-else>
       <div class="session-stage">
-        <KeepAlive :max="SESSION_VIEW_CACHE">
-          <TranscriptView
-            v-if="sessionId && !showHero && !welcomeSendOpen"
-            :key="sessionId"
-            ref="transcriptView"
-            :session-id="sessionId"
-            :transcript="transcript"
-            :running="turnPending"
-            :timings="turnTimings"
-            :has-more="historyHasMore"
-            :loading-older="loadingOlder"
-            @load-older="loadOlderHistory"
-          />
-        </KeepAlive>
-        <!-- 欢迎页发送：无 sessionId 也立刻画出乐观用户句，不进 KeepAlive 以免串台。 -->
         <TranscriptView
-          v-if="!showHero && (!sessionId || welcomeSendOpen)"
+          v-if="!showHero"
           ref="transcriptView"
           :session-id="sessionId ?? ''"
           :transcript="transcript"
@@ -117,7 +102,6 @@ import ContentWidthHandle from "@features/session-workbench/components/ContentWi
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
-import { SESSION_VIEW_CACHE } from "@features/session-workbench/lib/session-history-cache.js"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 
@@ -218,16 +202,9 @@ function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
   transcriptView.value?.scrollToLatest(behavior)
 }
 
-const welcomeSendOpen = shallowRef(false)
-
-watch(sessionId, (id, prev) => {
-  if (!id || (prev && prev !== id)) welcomeSendOpen.value = false
-})
-
 function onSend(text: string) {
   if (sessionId.value) scrollToLatest("auto")
   else if (!welcomeWorkspaceId.value) return
-  else welcomeSendOpen.value = true
   void sendPrompt(text, sessionId.value ? undefined : welcomeWorkspaceId.value)
 }
 

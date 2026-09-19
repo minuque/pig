@@ -1,4 +1,12 @@
-import { nextTick, onBeforeUnmount, shallowRef, watch, type Ref } from "vue"
+import {
+  nextTick,
+  onBeforeUnmount,
+  shallowRef,
+  watch,
+  type MaybeRefOrGetter,
+  type Ref,
+  toValue,
+} from "vue"
 import {
   isHighlighterReady,
   whenHighlighterReady,
@@ -77,15 +85,19 @@ function nextHydrateId(
 }
 
 /** 揭开并停稳后再挂可见助手 Markdown；刚打开和滚动中保持纯文本。 */
+const SESSION_SLOT_MAX = 5
+
 export function useTranscriptHydrate(
   rows: Ref<readonly TimelineRow[]>,
   scrollIdle: Ref<boolean>,
   getViewport: () => HTMLElement | null,
   readyFrame: Ref<boolean>,
+  sessionId: MaybeRefOrGetter<string>,
 ) {
   const hydrated = shallowRef(new Set<string>())
   const inView = shallowRef(new Set<string>())
   const highlightReady = shallowRef(isHighlighterReady())
+  const hydratedBySession = new Map<string, Set<string>>()
   let observer: IntersectionObserver | undefined
   let pumping = false
   let generation = 0
@@ -198,6 +210,29 @@ export function useTranscriptHydrate(
       void nextTick(observe)
     },
     { flush: "post" },
+  )
+
+  watch(
+    () => toValue(sessionId),
+    (id, prev) => {
+      if (!prev || prev === id) return
+      hydratedBySession.delete(prev)
+      hydratedBySession.set(prev, hydrated.value)
+
+      while (hydratedBySession.size > SESSION_SLOT_MAX) {
+        const oldest = hydratedBySession.keys().next().value
+
+        if (oldest === undefined || oldest === id) break
+        hydratedBySession.delete(oldest)
+      }
+
+      generation += 1
+      pumping = false
+      inView.value = new Set()
+      const slot = id ? hydratedBySession.get(id) : undefined
+      hydrated.value = slot ? new Set(slot) : new Set()
+      void nextTick(observe)
+    },
   )
 
   onBeforeUnmount(() => {

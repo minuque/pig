@@ -69,9 +69,7 @@
 import {
   computed,
   nextTick,
-  onActivated,
   onBeforeUnmount,
-  onDeactivated,
   onMounted,
   shallowRef,
   useTemplateRef,
@@ -198,8 +196,16 @@ const rows = shallowRef<TimelineRow[]>([])
 const mountedKeys = computed(() => timelineRowKeys(rows.value))
 
 watch(
-  () => buildTimelineRows(props.transcript, props.running, props.timings),
-  (next) => {
+  () => ({
+    sessionId: props.sessionId,
+    next: buildTimelineRows(props.transcript, props.running, props.timings),
+  }),
+  ({ sessionId, next }, prev) => {
+    if (prev && prev.sessionId !== sessionId) {
+      rows.value = next
+      return
+    }
+
     if (next.length === 0 && rows.value.length > 0) return
     rows.value = reuseTimelineRows(rows.value, next)
   },
@@ -228,6 +234,7 @@ const {
   visuallyAtBottom,
   pinIfNeeded,
   releasePinnedToBottom,
+  reset,
   onScroll,
   onWheel,
   scrollToLatest,
@@ -342,7 +349,13 @@ watch(readyFrame, (ready) => {
   if (ready) holdScrollIdle()
 })
 
-const { isHydrated, observe } = useTranscriptHydrate(rows, scrollIdle, scrollerRoot, readyFrame)
+const { isHydrated, observe } = useTranscriptHydrate(
+  rows,
+  scrollIdle,
+  scrollerRoot,
+  readyFrame,
+  () => props.sessionId,
+)
 
 function armTailWindow() {
   loadOlderArmed = true
@@ -380,34 +393,58 @@ watch(
   { flush: "post" },
 )
 
-let savedTop = 0
+const SESSION_SLOT_MAX = 5
+const scrollTopBySession = new Map<string, number>()
 
-function rememberScroll() {
+function rememberScroll(id = props.sessionId) {
   const root = scrollerRoot()
 
-  if (root) savedTop = root.scrollTop
+  if (!root || !id) return
+  scrollTopBySession.delete(id)
+  scrollTopBySession.set(id, root.scrollTop)
+
+  while (scrollTopBySession.size > SESSION_SLOT_MAX) {
+    const oldest = scrollTopBySession.keys().next().value
+
+    if (oldest === undefined || oldest === id) break
+    scrollTopBySession.delete(oldest)
+  }
 }
 
-onMounted(ensureMarkdownRuntime)
+function restoreOrPin(id: string) {
+  const el = scrollerRoot()
 
-onActivated(() => {
-  const top = savedTop
-  const root = scrollerRoot()
+  if (!el) return
+  const saved = scrollTopBySession.get(id)
 
-  if (root) root.scrollTop = top
-  requestAnimationFrame(() => {
-    const el = scrollerRoot()
+  if (saved == null) {
+    atBottom.value = true
+    pinLatest()
+  } else {
+    el.scrollTop = saved
+    requestAnimationFrame(() => {
+      const node = scrollerRoot()
 
-    if (el) el.scrollTop = top
-  })
+      if (node) node.scrollTop = saved
+    })
+  }
+
   observe()
-})
+  holdScrollIdle()
+}
 
-onDeactivated(() => {
-  const root = scrollerRoot()
+watch(
+  () => props.sessionId,
+  (id, prev) => {
+    if (!prev || prev === id) return
+    rememberScroll(prev)
+    reset()
+    loadOlderArmed = true
+    void nextTick(() => restoreOrPin(id))
+  },
+)
 
-  if (root && root.scrollTop > 0) savedTop = root.scrollTop
-})
+onMounted(ensureMarkdownRuntime)
 
 onBeforeUnmount(() => {
   sizeObserver?.disconnect()
@@ -459,7 +496,8 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   min-width: 0;
   margin-inline: auto;
   padding-block: var(--spacing-lg);
-  /* 横向裁在列内，避免视口 overflow-x 裁掉竖条 */
+  padding-inline: var(--border-width);
+  /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
 }
 

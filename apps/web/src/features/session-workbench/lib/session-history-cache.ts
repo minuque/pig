@@ -1,7 +1,7 @@
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 
-/** 与工作台 KeepAlive 份数对齐：切走的会话历史留着，切回立刻能画。 */
+/** 切走的会话历史留着，切回立刻能画。 */
 export const SESSION_VIEW_CACHE = 5
 
 /** items 是已加载窗口（只增不缩）；heldLive 是本次连接的 live 覆盖。 */
