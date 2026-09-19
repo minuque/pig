@@ -1,7 +1,7 @@
 import { onMounted, shallowRef, watch, type Ref } from "vue"
 import type { TimelineRow } from "@features/transcript-view/type.js"
 
-/** 行到了就揭开；贴底交给视口底锚，不在这里写 scrollTop。 */
+/** 行到了就揭开；贴底交给底锚和 spacer，不在揭开时写 scrollTop。 */
 export function useTranscriptReveal(rows: Ref<readonly TimelineRow[]>) {
   const readyFrame = shallowRef(rows.value.length > 0)
 

@@ -263,15 +263,11 @@ describe("一轮工作 → 执行过程与最终回答", () => {
 
 describe("打开已有会话 → 长列表尾部先挂载", () => {
   it("贴底、加载中或未溢出不上翻拉取", () => {
-    const box = { scrollHeight: 1000, clientHeight: 400 }
-    expect(shouldLoadOlderTranscript(true, false, true, 0, box)).toBe(false)
-    expect(shouldLoadOlderTranscript(true, true, false, 600, box)).toBe(false)
-    expect(shouldLoadOlderTranscript(false, false, false, 600, box)).toBe(false)
-    expect(shouldLoadOlderTranscript(true, false, false, 600, { ...box, overflow: false })).toBe(
-      false,
-    )
-    expect(shouldLoadOlderTranscript(true, false, false, 0, box)).toBe(false)
-    expect(shouldLoadOlderTranscript(true, false, false, 600, box)).toBe(true)
+    expect(shouldLoadOlderTranscript(true, false, true, 0)).toBe(false)
+    expect(shouldLoadOlderTranscript(true, true, false, 0)).toBe(false)
+    expect(shouldLoadOlderTranscript(false, false, false, 0)).toBe(false)
+    expect(shouldLoadOlderTranscript(true, false, false, 0, { overflow: false })).toBe(false)
+    expect(shouldLoadOlderTranscript(true, false, false, 0)).toBe(true)
     expect(transcriptOverflows(884, 884)).toBe(false)
     expect(transcriptOverflows(1000, 884)).toBe(true)
   })
@@ -290,6 +286,6 @@ describe("打开已有会话 → 长列表尾部先挂载", () => {
     expect(root.scrollTop).toBe(400)
     root.scrollHeight = 1300
     restoreScrollAfterPrepend(root, 1000, 400)
-    expect(root.scrollTop).toBe(400)
+    expect(root.scrollTop).toBe(700)
   })
 })

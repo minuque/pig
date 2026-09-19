@@ -1,15 +1,15 @@
-/** 视口 column-reverse：scrollTop 0 是最新（底）。 */
+/** 精确贴底：2px 内视为贴底。 */
 export function isTranscriptAtBottom(
-  _scrollHeight: number,
+  scrollHeight: number,
   scrollTop: number,
-  _clientHeight: number,
+  clientHeight: number,
   threshold = 2,
 ): boolean {
-  return scrollTop <= threshold
+  return scrollHeight - scrollTop - clientHeight <= threshold
 }
 
-export function transcriptFloorTop(_scrollHeight: number, _clientHeight: number): number {
-  return 0
+export function transcriptFloorTop(scrollHeight: number, clientHeight: number): number {
+  return Math.max(0, scrollHeight - clientHeight)
 }
 
 /** 视觉贴底：48px 内仍算在底部，不弹出回底部按钮。 */
@@ -34,29 +34,27 @@ export function transcriptOverflows(
   return scrollHeight - clientHeight > threshold
 }
 
-/** 已离开底部、列表溢出且靠近顶部（scrollTop 最大）时，上翻再拉更早一页。 */
+/** 已离开底部、列表溢出且靠近顶部时，上翻再拉更早一页。 */
 export function shouldLoadOlderTranscript(
   hasMore: boolean,
   loading: boolean,
   atBottom: boolean,
   scrollTop: number,
-  options: {
-    threshold?: number
-    overflow?: boolean
-    scrollHeight?: number
-    clientHeight?: number
-  } = {},
+  options: { threshold?: number; overflow?: boolean } = {},
 ): boolean {
   const threshold = options.threshold ?? 48
   const overflow = options.overflow ?? true
-  const max = Math.max(0, (options.scrollHeight ?? 0) - (options.clientHeight ?? 0))
-  const atTop = max === 0 ? false : scrollTop >= max - threshold
-  return hasMore && !loading && !atBottom && overflow && atTop
+  return hasMore && !loading && !atBottom && overflow && scrollTop <= threshold
 }
 
-/** 底锚时增高发生在顶，视口不用补 delta。 */
+/** 上方插入内容后把 scrollTop 加上增高，视口里的字不动。 */
 export function restoreScrollAfterPrepend(
-  _root: { scrollTop: number; scrollHeight: number },
-  _beforeHeight: number,
-  _beforeTop: number,
-): void {}
+  root: { scrollTop: number; scrollHeight: number },
+  beforeHeight: number,
+  beforeTop: number,
+): void {
+  const delta = root.scrollHeight - beforeHeight
+
+  if (delta === 0) return
+  root.scrollTop = beforeTop + delta
+}
