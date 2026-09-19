@@ -12,10 +12,10 @@
       <div class="session-stage">
         <KeepAlive :max="SESSION_VIEW_CACHE">
           <TranscriptView
-            v-if="sessionId && !showHero"
+            v-if="sessionId && !showHero && !welcomeSendOpen"
             :key="sessionId"
             ref="transcriptView"
-            :session-id="sessionId ?? ''"
+            :session-id="sessionId"
             :transcript="transcript"
             :running="running"
             :timings="turnTimings"
@@ -24,6 +24,18 @@
             @load-older="loadOlderHistory"
           />
         </KeepAlive>
+        <!-- 欢迎页发送：无 sessionId 也立刻画出乐观用户句，不进 KeepAlive 以免串台。 -->
+        <TranscriptView
+          v-if="!showHero && (!sessionId || welcomeSendOpen)"
+          ref="transcriptView"
+          :session-id="sessionId ?? ''"
+          :transcript="transcript"
+          :running="running"
+          :timings="turnTimings"
+          :has-more="historyHasMore"
+          :loading-older="loadingOlder"
+          @load-older="loadOlderHistory"
+        />
 
         <Transition name="stage-layer">
           <div v-if="showHero" key="hero" class="idle-hero">
@@ -205,9 +217,16 @@ function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
   transcriptView.value?.scrollToLatest(behavior)
 }
 
+const welcomeSendOpen = shallowRef(false)
+
+watch(sessionId, (id, prev) => {
+  if (!id || (prev && prev !== id)) welcomeSendOpen.value = false
+})
+
 function onSend(text: string) {
   if (sessionId.value) scrollToLatest("auto")
   else if (!welcomeWorkspaceId.value) return
+  else welcomeSendOpen.value = true
   void sendPrompt(text, sessionId.value ? undefined : welcomeWorkspaceId.value)
 }
 
