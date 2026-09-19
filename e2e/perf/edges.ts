@@ -4,13 +4,7 @@ import { join } from "node:path"
 import { TRANSCRIPT_PAGE_TURNS } from "../../packages/gateway/src/pi/transcript-page.js"
 import { STOP_TURN, TURN_TOKEN, installTurnBridge, streamingAssistant } from "../sim-turn.js"
 import type { BenchHarness } from "./harness.js"
-import {
-  armClickStamps,
-  armStamps,
-  clickStamps,
-  pageClockOffset,
-  type PageWaitSpec,
-} from "./in-page.js"
+import { armClickStamps, armStamps, clickStamps, pageClockOffset } from "./in-page.js"
 import {
   WORKBENCH_TIMEOUT_MS,
   captureBenchFailure,
@@ -195,33 +189,19 @@ async function measureTurn(page: Page, bridge: Bridge) {
   await seen(FIRST_TOKEN)
   const firstTokenMs = await clickStamps(page, "token")
   await expect(stop).toBeVisible()
-  const streamSteps: Record<string, PageWaitSpec> = {}
-
-  for (let index = 1; index <= 6; index += 1) {
-    streamSteps[`stream-${index}`] = {
-      bodyIncludes: `流式跟上 ${index}`,
-      latestInViewport: true,
-    }
-  }
-
-  await armStamps(page, streamSteps)
   const offset = await pageClockOffset(page)
-  const emitAt: number[] = []
+  const lags: number[] = []
 
   for (let index = 1; index <= 6; index += 1) {
     const marker = `流式跟上 ${index}`
-    emitAt.push(performance.now())
+    await armStamps(page, {
+      chunk: { bodyIncludes: marker, latestInViewport: true },
+    })
+    const emitAt = performance.now()
     emit("item_updated", streamingAssistant(snapshot, `${marker}\n${"增量。".repeat(index * 8)}`))
-    await seen(marker, false)
+    const hitAt = await clickStamps(page, "chunk")
+    lags.push(hitAt + offset - emitAt)
   }
-
-  const streamStamps = await clickStamps(page)
-  const lags = emitAt.map((nodeAt, index) => {
-    const stamp = streamStamps[`stream-${index + 1}`]
-
-    if (stamp == null) throw new Error(`未采到流式 step ${index + 1}`)
-    return stamp + offset - nodeAt
-  })
 
   await armClickStamps(page, stop, {
     aborted: { gone: [".send--abort"], rowText: FIRST_PROMPT },

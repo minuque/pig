@@ -64,8 +64,7 @@ const PAGE_WAIT_SOURCE = `(function () {
     var viewport = document.querySelector(".transcript-viewport");
     var assistants = document.querySelectorAll(".row-assistant");
     var latest = assistants[assistants.length - 1];
-    var composer = document.querySelector(".composer .field, .field");
-    if (!viewport || !latest || !composer || composer.readOnly || composer.disabled) return false;
+    if (!visible(viewport) || !visible(latest)) return false;
     var vr = viewport.getBoundingClientRect();
     var lr = latest.getBoundingClientRect();
     return lr.bottom > vr.top && lr.top < vr.bottom;
