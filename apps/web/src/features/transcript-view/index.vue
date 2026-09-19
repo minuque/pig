@@ -437,7 +437,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   position: relative;
   min-height: 0;
   flex: 1;
-  overflow-x: hidden;
   overflow-y: auto;
   overflow-anchor: auto;
   overscroll-behavior: contain;
@@ -460,6 +459,8 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   min-width: 0;
   margin-inline: auto;
   padding-block: var(--spacing-lg);
+  /* 横向裁在列内，避免视口 overflow-x 裁掉竖条 */
+  overflow-x: clip;
 }
 
 .transcript-list,
