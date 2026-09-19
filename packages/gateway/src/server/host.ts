@@ -106,9 +106,10 @@ export class Gateway {
 
   async start() {
     installProviderHttp()
-    await this.hostService.warm()
+    const warming = this.hostService.warm()
     await this.piServer.start()
-    return new Promise<number>((resolveStart, reject) => {
+
+    const port = await new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject)
       this.server.listen(this.listenPort, "127.0.0.1", () => {
         this.server.off("error", reject)
@@ -122,6 +123,9 @@ export class Gateway {
         resolveStart(address.port)
       })
     })
+
+    void warming.catch((error) => console.error("host warm failed:", error))
+    return port
   }
 
   async stop() {

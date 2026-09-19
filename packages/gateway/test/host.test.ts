@@ -60,6 +60,22 @@ async function request(
 }
 
 describe("thin host HTTP shell", () => {
+  it("start 不等待模型目录预热", async () => {
+    let release = () => {}
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const base = await startGateway({
+      createRuntime: async () => {
+        await gate
+        return idleRuntime as never
+      },
+    })
+
+    expect((await request(base, "/health")).status).toBe(200)
+    release()
+  })
+
   it("selects a directory", async () => {
     const base = await startGateway()
     selectedDirectory = "C:/projects/demo"
