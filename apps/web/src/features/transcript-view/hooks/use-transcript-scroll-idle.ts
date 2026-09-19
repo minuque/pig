@@ -9,7 +9,7 @@ import {
 } from "vue"
 
 export const transcriptScrollIdleKey: InjectionKey<Ref<boolean>> = Symbol("transcriptScrollIdle")
-const IDLE_MS = 120
+const IDLE_MS = 280
 
 /** 滚动中为 false；刚挂上也不算停稳，scrollend 或短超时后为 true。 */
 export function useTranscriptScrollIdle(root: MaybeRefOrGetter<HTMLElement | null>) {

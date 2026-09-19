@@ -103,18 +103,32 @@ export function plainMarkdownProps(input: {
   }
 }
 
-/** 空闲时预热 Shiki/wasm，避免第一条代码块卡滚动。 */
+let highlighterWork: Promise<void> | undefined
+let highlighterSettled = false
+
+export function isHighlighterReady(): boolean {
+  return highlighterSettled
+}
+
+export function whenHighlighterReady(): Promise<void> {
+  prefetchHighlighter()
+  return highlighterWork ?? Promise.resolve()
+}
+
+/** 首屏就预热 Shiki/wasm，不等空闲，避免第一条代码块卡滚动。 */
 export function prefetchHighlighter(): void {
-  const run = () => {
-    void import("stream-diffs/pierre").then(({ getSharedHighlighter }) => {
+  if (highlighterWork) return
+  highlighterWork = import("stream-diffs/pierre")
+    .then(({ getSharedHighlighter }) => {
       const dark = document.documentElement.classList.contains("dark")
       return getSharedHighlighter({
         themes: [dark ? "dark-plus" : "light-plus"],
         langs: ["typescript"],
       })
     })
-  }
-
-  if (typeof requestIdleCallback === "function") requestIdleCallback(run)
-  else setTimeout(run, 1)
+    .then(() => undefined)
+    .catch(() => undefined)
+    .finally(() => {
+      highlighterSettled = true
+    })
 }

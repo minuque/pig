@@ -1,4 +1,8 @@
 import { nextTick, onBeforeUnmount, shallowRef, watch, type Ref } from "vue"
+import {
+  isHighlighterReady,
+  whenHighlighterReady,
+} from "@features/transcript-view/lib/markdown-render-props.js"
 import type { TimelineRow } from "@features/transcript-view/type.js"
 
 type Scheduler = {
@@ -81,9 +85,16 @@ export function useTranscriptHydrate(
 ) {
   const hydrated = shallowRef(new Set<string>())
   const inView = shallowRef(new Set<string>())
+  const highlightReady = shallowRef(isHighlighterReady())
   let observer: IntersectionObserver | undefined
   let pumping = false
   let generation = 0
+
+  if (!highlightReady.value) {
+    void whenHighlighterReady().then(() => {
+      highlightReady.value = true
+    })
+  }
 
   function mark(id: string) {
     if (hydrated.value.has(id)) return
@@ -104,6 +115,15 @@ export function useTranscriptHydrate(
 
   function peek(): string | undefined {
     if (!readyFrame.value) return undefined
+
+    if (!highlightReady.value) {
+      for (const row of rows.value) {
+        if (row.role === "assistant" && row.streaming && !hydrated.value.has(row.id)) return row.id
+      }
+
+      return undefined
+    }
+
     return nextHydrateId(rows.value, hydrated.value, inView.value, scrollIdle.value, inputPending())
   }
 
@@ -167,7 +187,7 @@ export function useTranscriptHydrate(
     }
   }
 
-  watch([readyFrame, rows, scrollIdle, inView], () => {
+  watch([readyFrame, rows, scrollIdle, inView, highlightReady], () => {
     markStreaming()
     void pump()
   })
