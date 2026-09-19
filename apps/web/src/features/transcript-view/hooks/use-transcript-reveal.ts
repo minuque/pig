@@ -1,8 +1,8 @@
 import { onMounted, shallowRef, watch, type Ref } from "vue"
 import type { TimelineRow } from "@features/transcript-view/type.js"
 
-/** 行到了就贴底并揭开，不等 rAF。 */
-export function useTranscriptReveal(rows: Ref<readonly TimelineRow[]>, pinLatest: () => void) {
+/** 行到了就揭开；贴底交给视口底锚，不在这里写 scrollTop。 */
+export function useTranscriptReveal(rows: Ref<readonly TimelineRow[]>) {
   const readyFrame = shallowRef(rows.value.length > 0)
 
   function reveal() {
@@ -11,7 +11,6 @@ export function useTranscriptReveal(rows: Ref<readonly TimelineRow[]>, pinLatest
       return
     }
 
-    pinLatest()
     readyFrame.value = true
   }
 

@@ -57,6 +57,8 @@
               />
             </div>
           </div>
+
+          <div class="scroll-anchor" aria-hidden="true"></div>
         </div>
       </div>
     </div>
@@ -66,15 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  shallowRef,
-  useTemplateRef,
-  watch,
-} from "vue"
+import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from "vue"
 import { enableMermaid } from "markstream-vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
@@ -98,7 +92,6 @@ import {
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import {
-  restoreScrollAfterPrepend,
   shouldLoadOlderTranscript,
   shouldShowScrollToLatest,
   transcriptOverflows,
@@ -232,7 +225,6 @@ function scrollerRoot(): HTMLElement | null {
 const {
   atBottom,
   visuallyAtBottom,
-  pinIfNeeded,
   releasePinnedToBottom,
   reset,
   onScroll,
@@ -243,17 +235,6 @@ const {
 const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
-let sizeObserver: ResizeObserver | undefined
-let pinRaf = 0
-
-function schedulePin() {
-  if (pinRaf) return
-  pinRaf = requestAnimationFrame(() => {
-    pinRaf = 0
-    pinIfNeeded()
-  })
-}
-
 const {
   items: minimapItems,
   inViewIds,
@@ -271,16 +252,21 @@ function requestOlder() {
 function maybeLoadOlder() {
   const root = scrollerRoot()
   const top = root?.scrollTop ?? 0
+  const scrollHeight = root?.scrollHeight ?? 0
+  const clientHeight = root?.clientHeight ?? 0
+  const max = Math.max(0, scrollHeight - clientHeight)
 
-  if (top > LOAD_OLDER_TOP) loadOlderArmed = true
+  if (max > 0 && top < max - LOAD_OLDER_TOP) loadOlderArmed = true
 
   if (!loadOlderArmed) return
-  const overflow = transcriptOverflows(root?.scrollHeight ?? 0, root?.clientHeight ?? 0)
+  const overflow = transcriptOverflows(scrollHeight, clientHeight)
 
   if (
     !shouldLoadOlderTranscript(props.hasMore, props.loadingOlder, atBottom.value, top, {
       threshold: LOAD_OLDER_TOP,
       overflow,
+      scrollHeight,
+      clientHeight,
     })
   )
     return
@@ -323,30 +309,13 @@ function selectMinimapItem(item: TranscriptMinimapItem) {
   if (target) scrollToElement(target)
 }
 
-function observeSizes() {
-  sizeObserver?.disconnect()
-  sizeObserver = undefined
-  const root = viewport.value
-  const body = list.value
-
-  if (!root && !body) return
-  sizeObserver = new ResizeObserver(schedulePin)
-
-  if (root) sizeObserver.observe(root)
-
-  if (body) sizeObserver.observe(body)
-}
-
-function pinLatest() {
-  scrollToLatest("auto")
-  pinIfNeeded()
-  rememberScroll()
-}
-
-const { readyFrame } = useTranscriptReveal(rows, pinLatest)
+const { readyFrame } = useTranscriptReveal(rows)
 
 watch(readyFrame, (ready) => {
-  if (ready) holdScrollIdle()
+  if (!ready) return
+  atBottom.value = true
+  visuallyAtBottom.value = true
+  holdScrollIdle()
 })
 
 const { isHydrated, observe } = useTranscriptHydrate(
@@ -369,26 +338,13 @@ watch(rows, (next, prev) => {
     return
   }
 
-  if (historyPrepended(previous, next) && !atBottom.value) {
-    const root = scrollerRoot()
-    const beforeHeight = root?.scrollHeight ?? 0
-    const beforeTop = root?.scrollTop ?? 0
-    void nextTick(() => {
-      if (root) restoreScrollAfterPrepend(root, beforeHeight, beforeTop)
-    })
-    return
-  }
-
-  if (atBottom.value) void nextTick(pinIfNeeded)
+  if (historyPrepended(previous, next) && !atBottom.value) return
 })
 
 watch(
   [viewport, list],
-  ([, body], prev) => {
-    observeSizes()
+  () => {
     observe()
-
-    if (body && !prev?.[1]) pinLatest()
   },
   { flush: "post" },
 )
@@ -419,7 +375,7 @@ function restoreOrPin(id: string) {
 
   if (saved == null) {
     atBottom.value = true
-    pinLatest()
+    visuallyAtBottom.value = true
   } else {
     el.scrollTop = saved
     requestAnimationFrame(() => {
@@ -446,12 +402,6 @@ watch(
 
 onMounted(ensureMarkdownRuntime)
 
-onBeforeUnmount(() => {
-  sizeObserver?.disconnect()
-
-  if (pinRaf) cancelAnimationFrame(pinRaf)
-})
-
 defineExpose({ showScrollToLatest, scrollToLatest })
 </script>
 
@@ -474,16 +424,14 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   position: relative;
   min-height: 0;
   flex: 1;
+  display: flex;
+  flex-direction: column-reverse;
   overflow-y: auto;
   overflow-anchor: auto;
   overscroll-behavior: contain;
   /* 主视口滚动条常显，并始终占位，内容不因溢出与否来回横移 */
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-gutter: stable;
-}
-
-.transcript-viewport.is-following {
-  overflow-anchor: none;
 }
 
 .transcript-viewport:has(.code-more-menu) {
@@ -499,6 +447,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   padding-inline: var(--border-width);
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
+  flex: 0 0 auto;
 }
 
 .transcript-list,
@@ -510,9 +459,19 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .row {
   box-sizing: border-box;
   width: 100%;
+  overflow-anchor: none;
   content-visibility: auto;
   contain: layout style;
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 3);
+}
+
+.timeline-rows > .row:nth-last-child(-n + 8) {
+  content-visibility: visible;
+}
+
+.scroll-anchor {
+  height: 1px;
+  overflow-anchor: auto;
 }
 
 .row-user {
@@ -532,6 +491,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 }
 
 .older-busy {
+  overflow-anchor: none;
   display: block;
   width: 100%;
   padding: var(--spacing-sm) 0;

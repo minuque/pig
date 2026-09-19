@@ -199,6 +199,30 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(thought?.type === "thought" && thoughtStepLabel(thought)).toBe("思考了 5 秒")
   })
 
+  it("过程壳耗时按单组起止，不共用整轮 timing", () => {
+    const rows = buildTimelineRows(
+      [
+        user,
+        { ...assistant(1, [{ type: "thinking", thinking: "先想" }]), timestamp: 1000 },
+        { ...text(2, "阶段一"), timestamp: 4000 },
+        {
+          ...assistant(3, [{ type: "thinking", thinking: "再想" }, call("t1"), call("t2")]),
+          timestamp: 5000,
+        },
+        { ...tool("t1"), timestamp: 6000 },
+        { ...tool("t2"), timestamp: 12000 },
+        { ...text(4, "阶段二"), timestamp: 13000 },
+      ],
+      false,
+      [{ userId: "u1", startedAt: 500, endedAt: 90000, outcome: "complete" }],
+    )
+    const groups = rows.filter(isToolRow)
+
+    expect(groups).toHaveLength(2)
+    expect(groups[0]).toMatchObject({ startedAt: 1000, endedAt: 4000 })
+    expect(groups[1]).toMatchObject({ startedAt: 5000, endedAt: 12000 })
+  })
+
   it("失败路径：工具失败单列，重试错误信息不丢失", () => {
     const work = buildTimelineRows(
       [user, tool("t1"), tool("bad", "read", "error"), tool("t2")],
@@ -239,11 +263,15 @@ describe("一轮工作 → 执行过程与最终回答", () => {
 
 describe("打开已有会话 → 长列表尾部先挂载", () => {
   it("贴底、加载中或未溢出不上翻拉取", () => {
-    expect(shouldLoadOlderTranscript(true, false, true, 0)).toBe(false)
-    expect(shouldLoadOlderTranscript(true, true, false, 0)).toBe(false)
-    expect(shouldLoadOlderTranscript(false, false, false, 0)).toBe(false)
-    expect(shouldLoadOlderTranscript(true, false, false, 0, { overflow: false })).toBe(false)
-    expect(shouldLoadOlderTranscript(true, false, false, 0)).toBe(true)
+    const box = { scrollHeight: 1000, clientHeight: 400 }
+    expect(shouldLoadOlderTranscript(true, false, true, 0, box)).toBe(false)
+    expect(shouldLoadOlderTranscript(true, true, false, 600, box)).toBe(false)
+    expect(shouldLoadOlderTranscript(false, false, false, 600, box)).toBe(false)
+    expect(shouldLoadOlderTranscript(true, false, false, 600, { ...box, overflow: false })).toBe(
+      false,
+    )
+    expect(shouldLoadOlderTranscript(true, false, false, 0, box)).toBe(false)
+    expect(shouldLoadOlderTranscript(true, false, false, 600, box)).toBe(true)
     expect(transcriptOverflows(884, 884)).toBe(false)
     expect(transcriptOverflows(1000, 884)).toBe(true)
   })
@@ -262,6 +290,6 @@ describe("打开已有会话 → 长列表尾部先挂载", () => {
     expect(root.scrollTop).toBe(400)
     root.scrollHeight = 1300
     restoreScrollAfterPrepend(root, 1000, 400)
-    expect(root.scrollTop).toBe(700)
+    expect(root.scrollTop).toBe(400)
   })
 })

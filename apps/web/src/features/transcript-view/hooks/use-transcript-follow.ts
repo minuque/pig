@@ -2,7 +2,6 @@ import { onBeforeUnmount, shallowRef } from "vue"
 import {
   isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
-  transcriptFloorTop,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 
 export type TranscriptScrollBehavior = "auto" | "smooth"
@@ -24,65 +23,16 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   let onNavEnd: (() => void) | null = null
   let navTimer = 0
   let lastWritten = 0
-  let followRaf = 0
-  let lastFrame = 0
-  let position = 0
-  let velocity = 0
   let applying = false
 
   function stopFollow() {
-    if (followRaf) cancelAnimationFrame(followRaf)
-    followRaf = 0
-    lastFrame = 0
-    velocity = 0
+    lastWritten = 0
   }
 
   function writeScrollTop(root: HTMLElement, top: number) {
     applying = true
     root.scrollTop = top
     applying = false
-  }
-
-  function followFrame(now: number) {
-    const root = getRoot()
-
-    if (!root || navigating || !atBottom.value) {
-      stopFollow()
-      return
-    }
-
-    const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
-
-    if (root.scrollTop + 2 < Math.min(lastWritten, floor)) {
-      atBottom.value = false
-      applyBottom(root)
-      stopFollow()
-      return
-    }
-
-    if (prefersReducedMotion() || floor - position <= 0.5) {
-      stopFollow()
-      jumpToBottom()
-      return
-    }
-
-    const dt = Math.min(Math.max(0, now - lastFrame), 32) / 1000
-    lastFrame = now
-    // 临界阻尼弹簧的解析解，保留小数位置以免滚动像素取整阻止收敛。
-    const offset = position - floor
-    const impulse = velocity + 24 * offset
-    const decay = Math.exp(-24 * dt)
-    const next = floor + (offset + impulse * dt) * decay
-    velocity = (velocity - 24 * impulse * dt) * decay
-    position = Math.min(floor, Math.max(root.scrollTop, next))
-    writeScrollTop(root, position)
-    lastWritten = root.scrollTop
-    visuallyAtBottom.value = isTranscriptVisuallyAtBottom(
-      root.scrollHeight,
-      lastWritten,
-      root.clientHeight,
-    )
-    followRaf = requestAnimationFrame(followFrame)
   }
 
   function applyBottom(root: HTMLElement) {
@@ -102,10 +52,9 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     const root = getRoot()
 
     if (!root) return
-    const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
-    lastWritten = floor
+    lastWritten = 0
 
-    if (Math.abs(root.scrollTop - floor) > 0.5) writeScrollTop(root, floor)
+    if (root.scrollTop > 0.5) writeScrollTop(root, 0)
     lastWritten = root.scrollTop
     visuallyAtBottom.value = true
   }
@@ -126,33 +75,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
 
   function pinIfNeeded() {
     if (applying || navigating || !atBottom.value) return
-    const root = getRoot()
-
-    if (!root) return
-
-    if (prefersReducedMotion()) {
-      stopFollow()
-      jumpToBottom()
-      return
-    }
-
-    if (followRaf) return
-    const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
-    const gap = floor - root.scrollTop
-
-    // 大距离（切会话 / hydrate）直接跳；弹簧只跟流式那几像素。
-    if (
-      gap <= 0.5 ||
-      !isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
-    ) {
-      jumpToBottom()
-      return
-    }
-
-    position = root.scrollTop
-    lastWritten = root.scrollTop
-    lastFrame = performance.now()
-    followRaf = requestAnimationFrame(followFrame)
+    jumpToBottom()
   }
 
   function finishNavigate() {
@@ -187,9 +110,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (!root || navigating) return
 
     if (atBottom.value) {
-      const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
-
-      if (root.scrollTop + 2 < Math.min(lastWritten, floor)) {
+      if (root.scrollTop > 2) {
         stopFollow()
         atBottom.value = false
         visuallyAtBottom.value = isTranscriptVisuallyAtBottom(
@@ -200,12 +121,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
         return
       }
 
-      visuallyAtBottom.value = isTranscriptVisuallyAtBottom(
-        root.scrollHeight,
-        root.scrollTop,
-        root.clientHeight,
-      )
-      pinIfNeeded()
+      visuallyAtBottom.value = true
       return
     }
 
@@ -232,18 +148,17 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     const root = getRoot()
 
     if (!root) return
-    const top = transcriptFloorTop(root.scrollHeight, root.clientHeight)
-    lastWritten = top
+    lastWritten = 0
     const instant = behavior === "auto" || prefersReducedMotion()
 
-    if (instant || Math.abs(root.scrollTop - top) <= 2) {
+    if (instant || root.scrollTop <= 2) {
       releasePinnedToBottom()
       jumpToBottom()
       return
     }
 
     beginNavigate(root)
-    root.scrollTo({ top, behavior: "smooth" })
+    root.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   function scrollToElement(el: HTMLElement) {

@@ -10,18 +10,6 @@ vi.mock("vue", async (original) => ({
   },
 }))
 
-let now = 0
-let sequence = 0
-const frames = new Map<number, FrameRequestCallback>()
-
-function frame(ms = 1000 / 60) {
-  now += ms
-  const pending = [...frames.values()]
-  frames.clear()
-
-  for (const callback of pending) callback(now)
-}
-
 function fixture() {
   let top = 600
   let follow: ReturnType<typeof useTranscriptFollow>
@@ -43,16 +31,7 @@ function fixture() {
 }
 
 beforeEach(() => {
-  now = 0
-  sequence = 0
-  frames.clear()
-  vi.spyOn(performance, "now").mockImplementation(() => now)
   vi.stubGlobal("window", { matchMedia: () => ({ matches: false }) })
-  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
-    frames.set(++sequence, callback)
-    return sequence
-  })
-  vi.stubGlobal("cancelAnimationFrame", (id: number) => frames.delete(id))
 })
 
 afterEach(() => {
@@ -62,99 +41,37 @@ afterEach(() => {
 })
 
 describe("一轮工作：流式视口跟随", () => {
-  it("小幅增高走弹簧并贴底", () => {
+  it("底锚时增高不写 scrollTop", () => {
     const { root, follow } = fixture()
+    expect(root.scrollTop).toBe(0)
     root.scrollHeight += 24
     follow.pinIfNeeded()
-    follow.pinIfNeeded()
-    expect(frames.size).toBe(1)
-    expect(root.scrollTop).toBe(600)
-
-    for (let index = 0; index < 60; index++) frame()
-    expect(root.scrollTop).toBe(624)
+    expect(root.scrollTop).toBe(0)
     expect(follow.atBottom.value).toBe(true)
-    expect(follow.visuallyAtBottom.value).toBe(true)
-    expect(frames.size).toBe(0)
-  })
-
-  it("大距离贴底直接跳，不开弹簧", () => {
-    const { root, follow } = fixture()
-    root.scrollHeight += 240
-    follow.pinIfNeeded()
-    expect(frames.size).toBe(0)
-    expect(root.scrollTop).toBe(840)
-    expect(follow.atBottom.value).toBe(true)
-  })
-
-  it("失败路径：自身写滚动不重启循环", () => {
-    const { root, follow } = fixture()
-    root.scrollHeight += 24
-    follow.pinIfNeeded()
-    frame()
-    expect(frames.size).toBe(1)
-    expect(root.scrollTop).toBeGreaterThan(600)
-    expect(root.scrollTop).toBeLessThan(624)
-    follow.pinIfNeeded()
-    expect(frames.size).toBe(1)
   })
 
   it("失败路径：用户上翻后不再抢滚动，显式回到底部才恢复", () => {
     const { root, follow } = fixture()
-    root.scrollHeight += 24
-    follow.pinIfNeeded()
-    frame()
-    root.scrollTop -= 80
+    root.scrollTop = 80
     follow.onScroll()
-    const stopped = root.scrollTop
     expect(follow.atBottom.value).toBe(false)
     root.scrollHeight += 24
     follow.pinIfNeeded()
-    frame()
-    expect(root.scrollTop).toBe(stopped)
-    expect(frames.size).toBe(0)
+    expect(root.scrollTop).toBe(80)
     follow.scrollToLatest()
-    expect(root.scrollTop).toBe(648)
+    expect(root.scrollTop).toBe(0)
     expect(follow.atBottom.value).toBe(true)
   })
 
-  it("失败路径：滚动事件尚未派发时也不覆盖用户上翻", () => {
+  it("切换会话 reset 后不再贴底，直到显式回到底部", () => {
     const { root, follow } = fixture()
-    root.scrollHeight += 24
-    follow.pinIfNeeded()
-    root.scrollTop -= 80
-    frame()
-    expect(root.scrollTop).toBe(520)
-    expect(follow.atBottom.value).toBe(false)
-    expect(frames.size).toBe(0)
-  })
-
-  it("内容收缩的浏览器钳位不被误认为上翻", () => {
-    const { root, follow } = fixture()
-    root.scrollHeight += 24
-    follow.pinIfNeeded()
-    frame()
-    root.scrollHeight = 800
-    root.scrollTop = root.scrollHeight - root.clientHeight
-    follow.onScroll()
-    frame()
-    expect(root.scrollTop).toBe(400)
-    expect(follow.atBottom.value).toBe(true)
-    expect(frames.size).toBe(0)
-  })
-
-  it("切换会话和卸载清理帧循环，不保留旧速度", () => {
-    const { root, follow } = fixture()
-    root.scrollHeight += 24
-    follow.pinIfNeeded()
-    frame()
     follow.reset()
-    expect(frames.size).toBe(0)
     expect(follow.atBottom.value).toBe(false)
-    follow.scrollToLatest()
-    root.scrollHeight += 24
+    root.scrollTop = 80
     follow.pinIfNeeded()
-    expect(frames.size).toBe(1)
+    expect(root.scrollTop).toBe(80)
+    follow.scrollToLatest()
+    expect(root.scrollTop).toBe(0)
     lifecycle.unmount()
-    expect(frames.size).toBe(0)
   })
 })
