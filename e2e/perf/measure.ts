@@ -408,9 +408,9 @@ async function loadAllTranscriptPages(page: Page, name: BenchSessionName, pages:
 
     if ((await firstPrompt.count()) > 0 || (await more.count()) === 0) break
     const previous = await page.locator(".row-user").count()
-    // DOM click：滚进视口会自己上翻，按钮随即 disabled。
+    // 顶上按钮进视口会自己上翻；已 disabled 说明这一页已经在飞。
     await more.evaluate((node) => {
-      if (!(node instanceof HTMLButtonElement) || node.disabled) throw new Error("加载更早不可点")
+      if (!(node instanceof HTMLButtonElement) || node.disabled) return
       node.click()
     })
     await page.waitForFunction(
