@@ -481,6 +481,11 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   scrollbar-gutter: stable;
 }
 
+.transcript-viewport.is-following {
+  /* 跟随时由弹簧写滚位置，不能让原生锚定抢 */
+  overflow-anchor: none;
+}
+
 .transcript-viewport:has(.code-more-menu) {
   z-index: 3;
 }
