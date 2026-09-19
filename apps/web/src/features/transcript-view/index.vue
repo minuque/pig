@@ -19,8 +19,6 @@
     >
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
-          <div class="list-spacer" aria-hidden="true"></div>
-
           <button
             v-if="hasMore"
             type="button"
@@ -59,8 +57,6 @@
               />
             </div>
           </div>
-
-          <div class="scroll-anchor" aria-hidden="true"></div>
         </div>
       </div>
     </div>
@@ -341,13 +337,16 @@ function observeSizes() {
   if (body) sizeObserver.observe(body)
 }
 
-const { readyFrame } = useTranscriptReveal(rows)
+function pinLatest() {
+  scrollToLatest("auto")
+  pinIfNeeded()
+  rememberScroll()
+}
+
+const { readyFrame } = useTranscriptReveal(rows, pinLatest)
 
 watch(readyFrame, (ready) => {
-  if (!ready) return
-  atBottom.value = true
-  visuallyAtBottom.value = true
-  holdScrollIdle()
+  if (ready) holdScrollIdle()
 })
 
 const { isHydrated, observe } = useTranscriptHydrate(
@@ -385,9 +384,11 @@ watch(rows, (next, prev) => {
 
 watch(
   [viewport, list],
-  () => {
+  ([, body], prev) => {
     observeSizes()
     observe()
+
+    if (body && !prev?.[1]) pinLatest()
   },
   { flush: "post" },
 )
@@ -418,7 +419,7 @@ function restoreOrPin(id: string) {
 
   if (saved == null) {
     atBottom.value = true
-    visuallyAtBottom.value = true
+    pinLatest()
   } else {
     el.scrollTop = saved
     requestAnimationFrame(() => {
@@ -482,7 +483,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 }
 
 .transcript-viewport.is-following {
-  /* 跟随时由弹簧写滚位置，不能让原生锚定抢 */
   overflow-anchor: none;
 }
 
@@ -494,51 +494,25 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   box-sizing: border-box;
   width: min(100%, var(--size-content) - var(--spacing-lg));
   min-width: 0;
-  min-height: 100%;
   margin-inline: auto;
   padding-block: var(--spacing-lg);
   padding-inline: var(--border-width);
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
-  display: flex;
-  flex-direction: column;
 }
 
-.transcript-list {
-  box-sizing: border-box;
-  width: 100%;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-}
-
-.list-spacer {
-  flex: 1 0 0;
-  overflow-anchor: none;
-}
-
+.transcript-list,
 .timeline-rows {
   box-sizing: border-box;
   width: 100%;
 }
 
-.scroll-anchor {
-  height: 1px;
-  overflow-anchor: auto;
-}
-
 .row {
   box-sizing: border-box;
   width: 100%;
-  overflow-anchor: none;
   content-visibility: auto;
   contain: layout style;
   contain-intrinsic-block-size: auto calc(var(--spacing-lg) * 3);
-}
-
-.timeline-rows > .row:nth-last-child(-n + 8) {
-  content-visibility: visible;
 }
 
 .row-user {
