@@ -5,13 +5,19 @@ import { TRANSCRIPT_PAGE_TURNS } from "../../packages/gateway/src/pi/transcript-
 import { STOP_TURN, TURN_TOKEN, installTurnBridge, streamingAssistant } from "../sim-turn.js"
 import type { BenchHarness } from "./harness.js"
 import {
+  armClickStamps,
+  armStamps,
+  clickStamps,
+  pageClockOffset,
+  type PageWaitSpec,
+} from "./in-page.js"
+import {
   WORKBENCH_TIMEOUT_MS,
   captureBenchFailure,
   composerInput,
   nextPaint,
   openSession,
   clickSessionCard,
-  waitForLatestInViewport,
   waitForSession,
   waitForWorkbench,
 } from "./measure.js"
@@ -133,11 +139,7 @@ async function rapidSwitch(page: Page) {
         message: "连切场景必须捕获旧历史请求",
       })
       .toBeGreaterThan(0)
-    const started = performance.now()
-    await clickSessionCard(page, SHORT_SESSION_NAME)
-    await waitForSession(page, SHORT_SESSION_NAME)
-    await nextPaint(page)
-    const elapsed = performance.now() - started
+    const elapsed = await openSession(page, SHORT_SESSION_NAME)
     await hold.release()
     await expect
       .poll(
@@ -167,12 +169,12 @@ async function measureTurn(page: Page, bridge: Bridge) {
 
   await composerInput(page).fill(FIRST_PROMPT)
   await expect(send).toBeEnabled()
-  const started = performance.now()
-  await send.click()
-  await expect(page.locator(".row-user").getByText(FIRST_PROMPT, { exact: true })).toBeVisible({
-    timeout: WORKBENCH_TIMEOUT_MS,
+  await armClickStamps(page, send, {
+    own: { rowText: FIRST_PROMPT },
+    token: { bodyIncludes: FIRST_TOKEN },
   })
-  const ownMessageMs = performance.now() - started
+  await send.click()
+  const ownMessageMs = await clickStamps(page, "own")
   await page.waitForURL(/\/sessions\/[^/?#]+$/)
   const sessionId = await bridge.waitForPrompt()
   const snapshot = bridge.snapshots.get(sessionId)
@@ -183,14 +185,6 @@ async function measureTurn(page: Page, bridge: Bridge) {
     type: "item_started" | "item_updated",
     item: ReturnType<typeof streamingAssistant>,
   ) => {
-    if (type === "item_started") {
-      bridge.send({
-        type: "event",
-        event: { type: "session_progress", sessionId, progress: { type, item } },
-      })
-      return
-    }
-
     bridge.send({
       type: "event",
       event: { type: "session_progress", sessionId, progress: { type, item } },
@@ -199,28 +193,45 @@ async function measureTurn(page: Page, bridge: Bridge) {
 
   emit("item_started", streamingAssistant(snapshot, FIRST_TOKEN))
   await seen(FIRST_TOKEN)
-  const firstTokenMs = performance.now() - started
+  const firstTokenMs = await clickStamps(page, "token")
   await expect(stop).toBeVisible()
-  const lags: number[] = []
+  const streamSteps: Record<string, PageWaitSpec> = {}
+
+  for (let index = 1; index <= 6; index += 1) {
+    streamSteps[`stream-${index}`] = {
+      bodyIncludes: `流式跟上 ${index}`,
+      latestInViewport: true,
+    }
+  }
+
+  await armStamps(page, streamSteps)
+  const offset = await pageClockOffset(page)
+  const emitAt: number[] = []
 
   for (let index = 1; index <= 6; index += 1) {
     const marker = `流式跟上 ${index}`
-    const chunkStarted = performance.now()
+    emitAt.push(performance.now())
     emit("item_updated", streamingAssistant(snapshot, `${marker}\n${"增量。".repeat(index * 8)}`))
     await seen(marker, false)
-    await waitForLatestInViewport(page)
-    lags.push(performance.now() - chunkStarted)
   }
 
-  const abortStarted = performance.now()
+  const streamStamps = await clickStamps(page)
+  const lags = emitAt.map((nodeAt, index) => {
+    const stamp = streamStamps[`stream-${index + 1}`]
+
+    if (stamp == null) throw new Error(`未采到流式 step ${index + 1}`)
+    return stamp + offset - nodeAt
+  })
+
+  await armClickStamps(page, stop, {
+    aborted: { gone: [".send--abort"], rowText: FIRST_PROMPT },
+  })
   await stop.click()
-  await expect(stop).toHaveCount(0)
-  await seen(FIRST_PROMPT)
   return {
     ownMessageMs,
     firstTokenMs,
     streamKeepUpMs: Math.max(...lags),
-    abortMs: performance.now() - abortStarted,
+    abortMs: await clickStamps(page, "aborted"),
   }
 }
 

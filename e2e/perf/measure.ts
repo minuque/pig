@@ -2,6 +2,7 @@ import type { Browser, BrowserContext, Page } from "@playwright/test"
 import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 
+import { armClickStamps, clickStamps, installPageWaitFor, waitInPage } from "./in-page.js"
 import {
   BENCH_SESSION_TOTAL,
   SHORT_SESSION_NAME,
@@ -165,6 +166,7 @@ export async function prepareBenchPage(
     reducedMotion: options?.reducedMotion ? "reduce" : "no-preference",
   })
   await seedWorkspace(page, workspaceId)
+  await installPageWaitFor(page)
 
   if (observers) await installObservers(page)
   page.setDefaultTimeout(WORKBENCH_TIMEOUT_MS)
@@ -177,21 +179,11 @@ export async function captureBenchFailure(page: Page, path: string) {
 
 /** 侧栏列表与 Composer 可用，启动遮罩已离场。 */
 export async function waitForWorkbench(page: Page) {
-  await page
-    .locator("nav.session-list")
-    .waitFor({ state: "visible", timeout: WORKBENCH_TIMEOUT_MS })
-  await page.waitForFunction(
-    () => document.querySelectorAll(".startup-screen").length === 0,
-    null,
-    {
-      timeout: WORKBENCH_TIMEOUT_MS,
-    },
-  )
-  await composerInput(page).waitFor({ state: "visible", timeout: WORKBENCH_TIMEOUT_MS })
-  await revealSessionCard(page, SHORT_SESSION_NAME)
-  await sessionCard(page, SHORT_SESSION_NAME).waitFor({
-    state: "visible",
-    timeout: WORKBENCH_TIMEOUT_MS,
+  await waitInPage(page, {
+    present: ["nav.session-list", ".composer .field, .field"],
+    gone: [".startup-screen"],
+    textIn: { selector: ".session-card", text: SHORT_SESSION_NAME },
+    clickMore: "nav.session-list button.more-button",
   })
 }
 
@@ -211,20 +203,6 @@ export async function waitForSession(page: Page, name: BenchSessionName) {
   }
 
   await page.locator(".session-loading").waitFor({ state: "hidden", timeout: WORKBENCH_TIMEOUT_MS })
-}
-
-export async function waitForLatestInViewport(page: Page) {
-  await page.waitForFunction(() => {
-    const viewport = document.querySelector<HTMLElement>(".transcript-viewport")
-    const assistants = document.querySelectorAll<HTMLElement>(".row-assistant")
-    const latest = assistants.item(assistants.length - 1)
-    const composer = document.querySelector<HTMLTextAreaElement>(".composer .field, .field")
-
-    if (!viewport || !latest || !composer || composer.readOnly || composer.disabled) return false
-    const viewportBox = viewport.getBoundingClientRect()
-    const latestBox = latest.getBoundingClientRect()
-    return latestBox.bottom > viewportBox.top && latestBox.top < viewportBox.bottom
-  })
 }
 
 export async function readPaint(page: Page): Promise<{ fcp: number; lcp: number; now: number }> {
@@ -302,25 +280,17 @@ export async function scrollMainAfterOpen(page: Page): Promise<number> {
 
 /** 点侧栏卡片到该会话历史就绪。 */
 export async function openSession(page: Page, name: BenchSessionName): Promise<number> {
+  const turns = sessionTurns(name)
   const card = await revealSessionCard(page, name)
-  await card.evaluate((node) => {
-    node.addEventListener("click", () => performance.mark("session-open"), { once: true })
+  await armClickStamps(page, card, {
+    ready: {
+      urlPath: `/sessions/${sessionIdOf(name)}`,
+      gone: [".session-loading"],
+      ...(turns > 0 ? { rowText: sessionPrompt(name, turns) } : { present: [".idle-hero"] }),
+    },
   })
   await clickSessionCard(page, name)
-  await waitForSession(page, name)
-  return page.evaluate(
-    () =>
-      new Promise<number>((resolve) => {
-        requestAnimationFrame(() =>
-          requestAnimationFrame(() => {
-            resolve(
-              performance.now() - performance.getEntriesByName("session-open").at(-1)!.startTime,
-            )
-            performance.clearMarks("session-open")
-          }),
-        )
-      }),
-  )
+  return clickStamps(page, "ready")
 }
 
 async function waitMs(page: Page, ms: number) {

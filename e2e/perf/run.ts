@@ -398,7 +398,7 @@ async function main() {
       reconnectMs: reconnectStat.p90,
     }
     const config = {
-      version: 14,
+      version: 15,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,
