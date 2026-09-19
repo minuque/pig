@@ -123,7 +123,7 @@ export function usePiClient() {
     void (async () => {
       try {
         for (let attempt = 1; attempt <= RECONNECT_ATTEMPTS; attempt++) {
-          await new Promise((resolve) => setTimeout(resolve, 400 * attempt))
+          if (attempt > 1) await new Promise((resolve) => setTimeout(resolve, 400 * (attempt - 1)))
 
           if (disposed || connectionState.value === "connected") break
 
