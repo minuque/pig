@@ -40,6 +40,7 @@ import {
   projectClientTranscript,
   projectSessionSnapshot,
   sessionState,
+  withPendingAssistant,
 } from "@features/session-workbench/lib/session-state.js"
 import type { SessionClientState } from "@features/session-workbench/type.js"
 
@@ -295,6 +296,7 @@ export function useSessionLifecycle(
   const creatingCwd = ref<string>()
   const submitting = ref(false)
   const aborting = ref(false)
+  let sendEpoch = 0
   const clientState = computed(() => {
     const id = sessionId.value
     return id ? sessionState(states, id) : idleState
@@ -308,6 +310,7 @@ export function useSessionLifecycle(
 
   async function createSession(nextCwd: string) {
     if (creatingCwd.value) return
+    const epoch = sendEpoch
     const routeSessionAtStart = sessionId.value
     creatingCwd.value = nextCwd
     sessionError.value = ""
@@ -320,6 +323,17 @@ export function useSessionLifecycle(
           ? { model: next.model, thinkingLevel: thinkingLevelOf(next.thinkingLevel) }
           : undefined,
       )
+
+      if (epoch !== sendEpoch) {
+        idleState.sends = []
+
+        if (!sessionId.value) {
+          history.setActive(undefined)
+          release()
+        }
+
+        return undefined
+      }
 
       if (!nextId || sessionId.value !== routeSessionAtStart) {
         idleState.sends = []
@@ -348,6 +362,7 @@ export function useSessionLifecycle(
     if (!normalized || submitting.value) return
 
     if (!sessionId.value && (!cwd || creatingCwd.value)) return
+    const epoch = ++sendEpoch
 
     submitting.value = true
     sessionError.value = ""
@@ -365,11 +380,15 @@ export function useSessionLifecycle(
       if (!sessionId.value) {
         const nextId = await createSession(cwd!)
 
+        if (epoch !== sendEpoch) return
+
         if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return
       }
 
+      if (epoch !== sendEpoch) return
       await submitRemote(normalized)
     } catch (error) {
+      if (epoch !== sendEpoch) return
       const current = clientState.value
 
       if (!current.draft) current.draft = previousDraft || text
@@ -379,11 +398,19 @@ export function useSessionLifecycle(
       sessionError.value = errorMessage(error)
       throw error
     } finally {
-      submitting.value = false
+      if (epoch === sendEpoch) submitting.value = false
     }
   }
 
   async function abortSession() {
+    sendEpoch += 1
+    submitting.value = false
+
+    if (!remote.value) {
+      idleState.sends = []
+      clientState.value.sends = []
+    }
+
     if (aborting.value) return
     aborting.value = true
 
@@ -396,8 +423,12 @@ export function useSessionLifecycle(
     }
   }
 
+  const turnPending = computed(() => submitting.value || running.value)
   const transcript = computed(() =>
-    projectClientTranscript(liveTranscript.value, clientState.value.sends),
+    withPendingAssistant(
+      projectClientTranscript(liveTranscript.value, clientState.value.sends),
+      turnPending.value,
+    ),
   )
   const sessionCwd = computed(
     () =>
@@ -425,6 +456,7 @@ export function useSessionLifecycle(
     projection,
     phase,
     running,
+    turnPending,
     phaseText,
     sessionPending,
     connecting: computed(() => pi.connectionState.value === "connecting"),

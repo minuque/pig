@@ -5,6 +5,7 @@ import {
   isSessionOpening,
   mergeLiveTranscript,
   projectClientTranscript,
+  withPendingAssistant,
 } from "@features/session-workbench/lib/session-state.js"
 
 describe("isSessionOpening", () => {
@@ -155,5 +156,19 @@ describe("projectClientTranscript", () => {
         (item) => item.id,
       ),
     ).toEqual([earlierDuplicate.id, previous.id, optimistic.id, assistant.id])
+  })
+})
+
+describe("withPendingAssistant", () => {
+  it("末尾是用户句才补一条流式助手占位", () => {
+    const user = row("u1", "user", "问") as UserTranscriptItem
+    const pending = withPendingAssistant([user], true)
+    expect(pending.map((item) => item.role)).toEqual(["user", "assistant"])
+    expect(pending[1]).toMatchObject({ role: "assistant", status: "streaming", content: [] })
+    expect(withPendingAssistant([user], false)).toEqual([user])
+    expect(withPendingAssistant(pending, true).map((item) => item.role)).toEqual([
+      "user",
+      "assistant",
+    ])
   })
 })

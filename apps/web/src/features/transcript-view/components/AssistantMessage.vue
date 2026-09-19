@@ -8,6 +8,7 @@
     />
 
     <div v-else-if="item.text" class="md-plain">{{ item.text }}</div>
+    <div v-else-if="streaming" class="md-pending" aria-hidden="true"></div>
 
     <Alert
       v-if="item.error || item.aborted"
@@ -72,6 +73,10 @@ const agentMarkdown = computed(() =>
   line-height: 1.8;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.md-pending {
+  min-height: calc(var(--text-body-md) * 1.8);
 }
 
 .status-alert {

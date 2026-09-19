@@ -606,10 +606,16 @@ describe("创建 Session 后提交第一条 Prompt", () => {
 
     expect(session.prompt.value).toBe("")
     expect(session.sessionId.value).toBeUndefined()
-    expect(session.transcript.value).toHaveLength(1)
+    expect(session.turnPending.value).toBe(true)
+    expect(session.transcript.value).toHaveLength(2)
     expect(session.transcript.value[0]).toMatchObject({
       role: "user",
       content: [{ type: "text", text: "任务" }],
+    })
+    expect(session.transcript.value[1]).toMatchObject({
+      role: "assistant",
+      status: "streaming",
+      content: [],
     })
 
     releaseCreate()
@@ -628,6 +634,35 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     expect(createMock).toHaveBeenCalledTimes(1)
     expect(created.submit).not.toHaveBeenCalled()
     expect(openMock).not.toHaveBeenCalled()
+  })
+
+  it("创建期间 Abort 不再提交", async () => {
+    const { session } = setup()
+    const created = makeSession("s2")
+    let releaseCreate = () => {}
+    let markCreateStarted = () => {}
+    const createStarted = new Promise<void>((resolve) => {
+      markCreateStarted = resolve
+    })
+    const createGate = new Promise<void>((resolve) => {
+      releaseCreate = resolve
+    })
+
+    createMock.mockImplementation(async () => {
+      markCreateStarted()
+      await createGate
+      return created
+    })
+    const request = session.sendPrompt("任务", "/repo")
+    await createStarted
+    expect(session.turnPending.value).toBe(true)
+    await session.abortSession()
+    expect(session.turnPending.value).toBe(false)
+    expect(session.transcript.value).toEqual([])
+    releaseCreate()
+    await request
+    expect(created.submit).not.toHaveBeenCalled()
+    expect(routerPush).not.toHaveBeenCalled()
   })
 
   it("失败路径：创建失败恢复草稿并清掉乐观句", async () => {
@@ -971,8 +1006,9 @@ describe("一轮工作", () => {
       "assistant",
       "tool",
       "user",
+      "assistant",
     ])
-    expect(session.transcript.value.at(-1)).toMatchObject({
+    expect(session.transcript.value.at(-2)).toMatchObject({
       role: "user",
       content: [{ type: "text", text: "继续" }],
     })

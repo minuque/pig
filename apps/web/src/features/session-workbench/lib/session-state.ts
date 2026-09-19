@@ -1,5 +1,6 @@
 import { reactive } from "vue"
 import type {
+  AssistantTranscriptItem,
   SessionMetadata,
   SessionPhase,
   SessionSnapshot,
@@ -119,6 +120,31 @@ export function projectClientTranscript(
   }
 
   return next
+}
+
+const PENDING_ASSISTANT_ID = "pending-assistant"
+
+function pendingAssistant(timestamp: number): AssistantTranscriptItem {
+  return {
+    id: PENDING_ASSISTANT_ID,
+    role: "assistant",
+    content: [],
+    model: { provider: "pending", id: "pending" },
+    timestamp,
+    status: "streaming",
+  }
+}
+
+/** 发送后、首条助手未到时占一行，避免时间线空一拍。 */
+export function withPendingAssistant(
+  items: readonly TranscriptItem[],
+  pending: boolean,
+): readonly TranscriptItem[] {
+  if (!pending) return items
+  const last = items.at(-1)
+
+  if (last?.role !== "user") return items
+  return [...items, pendingAssistant(last.timestamp)]
 }
 
 /** 路由已有 session，但 lease 未齐或历史 HTTP 未落地。 */

@@ -17,7 +17,7 @@
             ref="transcriptView"
             :session-id="sessionId"
             :transcript="transcript"
-            :running="running"
+            :running="turnPending"
             :timings="turnTimings"
             :has-more="historyHasMore"
             :loading-older="loadingOlder"
@@ -30,7 +30,7 @@
           ref="transcriptView"
           :session-id="sessionId ?? ''"
           :transcript="transcript"
-          :running="running"
+          :running="turnPending"
           :timings="turnTimings"
           :has-more="historyHasMore"
           :loading-older="loadingOlder"
@@ -65,8 +65,8 @@
               @click="scrollToLatest('smooth')"
             >
               <span class="icon-swap">
-                <Ellipsis :data-visible="running" />
-                <ArrowDown :data-visible="!running" />
+                <Ellipsis :data-visible="turnPending" />
+                <ArrowDown :data-visible="!turnPending" />
               </span>
             </Button>
           </div>
@@ -75,7 +75,7 @@
             v-model:prompt="prompt"
             v-model:preset="preset"
             :catalog="catalog"
-            :running="running"
+            :running="turnPending"
             :aborting="aborting"
             :cwd="composerCwd"
             :usage="sessionId ? contextUsage : undefined"
@@ -156,6 +156,7 @@ const {
   loadOlderHistory,
   turnTimings,
   running,
+  turnPending,
   sessionPending,
   connectionError,
   connected,
