@@ -11,7 +11,7 @@
       <ClockAlert v-else-if="row.aborted || row.error" class="tool-steps-icon" />
       <BadgeCheck v-else class="tool-steps-icon" />
 
-      <span :class="{ shimmer: running }" :data-text="label">
+      <span>
         <template v-for="(part, i) in labelParts" :key="i">
           <template v-if="i">·</template>
           <template v-if="part.kind === 'text'">{{ part.text }}</template>
@@ -29,11 +29,7 @@
           次
         </template>
 
-        <template v-if="durationLabel">
-          ·
-          <Clock class="size-icon duration-icon" />
-          {{ durationLabel }}
-        </template>
+        <template v-if="durationLabel">· {{ durationLabel }}</template>
       </span>
 
       <ChevronRight class="motion-turn" :class="{ 'is-on': revealed }" data-icon="inline-end" />
@@ -130,11 +126,11 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
-import { ChevronRight, BadgeCheck, Clock, ClockAlert, Ellipsis } from "@lucide/vue"
+import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import ToolCall from "./ToolCall.vue"
-import { toolRowFailCount, toolRowLabel, toolRowLabelParts } from "../lib/transcript-rows.js"
+import { toolRowFailCount, toolRowLabelParts } from "../lib/transcript-rows.js"
 import type { ToolRow, ToolRowStep } from "../type.js"
 
 const HOOK_CORNER = 6
@@ -187,7 +183,6 @@ watch(
   { flush: "sync" },
 )
 
-const label = computed(() => toolRowLabel(props.row))
 const labelParts = computed(() => toolRowLabelParts(props.row))
 const failCount = computed(() => toolRowFailCount(props.row))
 const durationLabel = computed(() => {
@@ -407,11 +402,6 @@ onBeforeUnmount(() => {
 .tool-steps-icon {
   flex: none;
   transition: color var(--duration-fast) var(--ease-out);
-}
-
-.duration-icon {
-  display: inline;
-  vertical-align: -0.125em;
 }
 
 .fail-n {
