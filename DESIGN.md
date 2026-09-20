@@ -1,37 +1,35 @@
 ---
 version: alpha
 name: pig Workbench
-description: A Pi Agent GUI with a cool-gray conversation shell in light mode, opaque white sidebar and composer cards, and a deeper near-black shell in dark mode. Action and focus blue is separate from link blue. Sidebar selection is neutral. Sunset and dusk colors are decorative only. The layout uses a sidebar and an opaque transcript column. Navigation and window controls use lower contrast than transcript content.
+description: A Pi Agent GUI with a near-white conversation shell in light mode, flush opaque sidebar and composer, and a near-black shell in dark mode. Action and focus indigo is separate from link indigo. Sidebar selection is neutral. Category colors are skill, steel, teal, and gray. The layout uses a flush sidebar and an opaque transcript column. Navigation and window controls use lower contrast than transcript content.
 
 colors:
-  primary: "#2563eb"
-  primary-active: "#1d4ed8"
-  secondary: "#1d4ed8"
+  primary: "#5e6ad2"
+  primary-active: "#4f5bc4"
+  secondary: "#4c56c8"
   on-primary: "#ffffff"
-  canvas: "#f5f5f5"
-  canvas-soft: "#fafafa"
-  surface: "#f8f9fb"
+  canvas: "#f7f7f8"
+  canvas-soft: "#f7f7f8"
+  surface: "#fcfcfd"
   sidebar: "#ffffff"
-  border: "#d8dae2"
-  border-subtle: "#e2e4ea"
+  border: "#dedede"
+  border-subtle: "#e8e8e8"
   composer-bg: "#ffffff"
-  ink: "#0a0a0a"
-  ink-secondary: "#525252"
-  ink-muted: "#666666"
-  ink-faint: "#737373"
-  accent-sunset: "#ee650d"
-  accent-sunset-soft: "#ffc285"
-  accent-dusk: "#7c3aed"
-  accent-twilight: "#9a72d8"
-  accent-breeze: "#6494d2"
-  accent-midnight: "#0d1726"
+  ink: "#1b1b1b"
+  ink-secondary: "#5c5c5c"
+  ink-muted: "#6e6e6e"
+  ink-faint: "#8a8a8a"
+  accent-skill: "#8160d8"
+  accent-steel: "#5b7c9d"
+  accent-teal: "#2f8f7b"
+  accent-gray: "#8a8d94"
   accent-orange: "#854d0e"
   accent-orange-deep: "#854d0e"
   accent-green: "#166534"
   danger-bg: "#fee2e2"
   success-bg: "#dcfce7"
   warning-bg: "#fef9c3"
-  info-bg: "#dbeafe"
+  info-bg: "#eceef8"
 
 typography:
   display-1:
@@ -111,7 +109,7 @@ rounded:
   xs: 4px
   sm: 6px
   md: 8px
-  lg: 12px
+  lg: 8px
   xl: 16px
   full: 9999px
 
@@ -212,39 +210,33 @@ components:
   status-warn-deep:
     description: "Active-session / emphasis warning text."
     textColor: "{colors.accent-orange-deep}"
-  mark-sunset:
-    description: "Decorative sunset chip."
-    backgroundColor: "{colors.accent-sunset-soft}"
-    textColor: "{colors.accent-midnight}"
+  mark-skill:
+    description: "Category chip. Memory."
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.accent-skill}"
     rounded: "{rounded.xs}"
     padding: 2px 6px
-  mark-sunset-ink:
-    description: "Sunset ink on midnight."
-    backgroundColor: "{colors.accent-midnight}"
-    textColor: "{colors.accent-sunset}"
+  mark-steel:
+    description: "Category chip. Skills."
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.accent-steel}"
     rounded: "{rounded.xs}"
     padding: 2px 6px
-  mark-dusk:
-    description: "Decorative dusk/twilight chip."
-    backgroundColor: "{colors.accent-twilight}"
-    textColor: "{colors.accent-midnight}"
+  mark-teal:
+    description: "Category chip. Tools."
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.accent-teal}"
     rounded: "{rounded.xs}"
     padding: 2px 6px
-  mark-dusk-ink:
-    description: "Dusk fill chip."
-    backgroundColor: "{colors.accent-dusk}"
-    textColor: "{colors.on-primary}"
-    rounded: "{rounded.xs}"
-    padding: 2px 6px
-  mark-breeze:
-    description: "Decorative breeze chip."
-    backgroundColor: "{colors.accent-breeze}"
-    textColor: "{colors.accent-midnight}"
+  mark-gray:
+    description: "Category chip. Other."
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.accent-gray}"
     rounded: "{rounded.xs}"
     padding: 2px 6px
   illustration-well:
-    description: "Illustration well on midnight."
-    backgroundColor: "{colors.accent-midnight}"
+    description: "Illustration well on ink."
+    backgroundColor: "{colors.ink}"
     textColor: "{colors.on-primary}"
 
   ex-pricing-tier:
@@ -272,9 +264,9 @@ components:
     padding: "{spacing.md}"
     item-divider: "{colors.border}"
   ex-app-shell-row:
-    description: "Sidebar row. Active ink is primary."
+    description: "Sidebar row. Selection is neutral."
     backgroundColor: "{colors.canvas-soft}"
-    activeIndicator: "{colors.primary}"
+    activeIndicator: "{colors.ink}"
     rounded: "{rounded.md}"
     padding: "{spacing.xs} {spacing.sm}"
   ex-data-table-cell:
@@ -310,46 +302,43 @@ components:
 
 ## Overview
 
-Pi Agent GUI 浅色壳层用冷灰白，侧栏卡片和输入卡保持不透明白。深色壳层更深的近黑，侧栏卡片略抬升。系统 UI 字号默认 14px。动作蓝用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
+Pi Agent GUI 浅色壳层用近白，侧栏贴窗边，输入卡不透明白。深色壳层近黑，侧栏略抬升。系统 UI 字号默认 14px。动作靛用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含齐边侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
 
-浅色壳层 `{colors.surface}`（#f8f9fb），侧栏卡片 `{colors.sidebar}`，输入卡 `{colors.composer-bg}`。深色壳层 `#0c0c0e`、侧栏卡片 `#151518`、输入卡 `#262626`。结构色 `{colors.primary}`（#2563eb）用于动作和焦点。控件圆角 `{rounded.lg}`（12px）。
+浅色壳层 `{colors.surface}`（#fcfcfd），侧栏 `{colors.sidebar}`，输入卡 `{colors.composer-bg}`。深色壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`。结构色 `{colors.primary}`（#5e6ad2）用于动作和焦点。控件圆角 `{rounded.lg}`（8px）。
 
-深色是同一套分面的中性灰反相：壳层 `#0c0c0e`、侧栏卡片 `#151518`、输入卡 `#262626`、用户气泡 `#262626`、缝 `#3a3a40`。次级井用 `#171717`。装饰用 sunset / dusk / twilight / breeze。阶段与栏目标签可用 `{typography.caption-mono}`。
+深色是同一套分面的中性灰反相：壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`、用户气泡 `#262628`。次级井用 `#121214`。分类色用 skill / steel / teal / gray。阶段与栏目标签可用 `{typography.caption-mono}`。
 
-窗体、输入卡和菜单均不透明。壳层走 `--surface`，侧栏卡片 `--sidebar`，输入卡 `--composer-bg`。输入卡和菜单使用不透明填充，浏览器与桌面颜色一致。浅色是默认入口。
+窗体、侧栏、输入卡和菜单均不透明。壳层走 `--surface`，侧栏 `--sidebar`，输入卡 `--composer-bg`。输入卡和菜单使用不透明填充，浏览器与桌面颜色一致。浅色是默认入口。
 
 ## Colors
 
 ### Brand & Accent
 
-- **Action Blue** (`{colors.primary}` — #2563eb)：动作、焦点和控件选中指示。深色提亮为 `#60a5fa`，主按钮字色为黑。链接走 `--link`（#1d4ed8 / `#93c5fd`），侧栏选中背景走 `--interaction-selected`。
-- **Pressed Blue** (`{colors.primary-active}` — #1d4ed8)：主按钮按下。
-- **Link Blue** (`{colors.secondary}` — #1d4ed8)：链接用更深的同一色相。
+- **Action Indigo** (`{colors.primary}` — #5e6ad2)：动作、焦点。深色保持 `#606acc`，主按钮字色为白。链接走 `--link`（#4c56c8 / `#9aa3ea`），侧栏选中背景走 `--interaction-selected`。
+- **Pressed Indigo** (`{colors.primary-active}` — #4f5bc4)：主按钮按下。深色 `#555fbf`。
+- **Link Indigo** (`{colors.secondary}` — #4c56c8)：链接用更深的同一色相。深色 `#9aa3ea`。
 
-装饰（状态点、插图、次要标记）：
+分类（用量环、次要标记）：
 
-- `{colors.accent-sunset}` / `{colors.accent-sunset-soft}`
-- `{colors.accent-dusk}` / `{colors.accent-twilight}`
-- `{colors.accent-breeze}` / `{colors.accent-midnight}`
-
-`{colors.accent-midnight}` 只作插图井。
+- `{colors.accent-skill}` / `{colors.accent-steel}`
+- `{colors.accent-teal}` / `{colors.accent-gray}`
 
 ### Surface
 
-- **Surface** (`{colors.surface}` — #f8f9fb)：壳层（对话列）。
-- **Sidebar** (`{colors.sidebar}` — #ffffff)：侧栏卡片。
-- **Border subtle** (`{colors.border-subtle}` — #e2e4ea)：浅档边，侧栏卡片轮廓，避免和桌面窗口边重合。
+- **Surface** (`{colors.surface}` — #fcfcfd)：壳层（对话列）。
+- **Sidebar** (`{colors.sidebar}` — #ffffff)：侧栏，贴窗边。
+- **Border subtle** (`{colors.border-subtle}`)：墨 8%，内部分割线。
 - **Composer** (`{colors.composer-bg}` — #ffffff)：输入卡。
-- **Canvas** (`{colors.canvas}` — #f5f5f5)：次级井。
-- **Secondary well** (`{colors.canvas-soft}` — #fafafa)：页面底。
-- **Border** (`{colors.border}` — #d8dae2)：深档边，控件与对话栏缝，比 border-subtle 深一档。
+- **Canvas** (`{colors.canvas}` — #f7f7f8)：次级井。
+- **Secondary well** (`{colors.canvas-soft}` — #f7f7f8)：页面底。
+- **Border** (`{colors.border}`)：墨 12%，控件与对话列外沿，比 border-subtle 深一档。
 
 ### Text
 
-- **Ink** (`{colors.ink}` — #0a0a0a)
-- **Charcoal** (`{colors.ink-secondary}` — #525252)
-- **Slate** (`{colors.ink-muted}` — #666666)
-- **Ash** (`{colors.ink-faint}` — #737373)
+- **Ink** (`{colors.ink}` — #1b1b1b)
+- **Charcoal** (`{colors.ink-secondary}` — #5c5c5c)
+- **Slate** (`{colors.ink-muted}` — #6e6e6e)
+- **Ash** (`{colors.ink-faint}` — #8a8a8a)
 
 ### Semantic
 
@@ -358,29 +347,26 @@ Pi Agent GUI 浅色壳层用冷灰白，侧栏卡片和输入卡保持不透明�
 - Info 井 `{colors.info-bg}`
 - Danger → `app.css` 独立红，井 `{colors.danger-bg}`
 
-sunset 是装饰，orange 保留兼容命名，映射到黄色警告色。
+orange 保留兼容命名，映射到黄色警告色。
 
 ### Reference palette
 
-颜色采用 [BoardUI](https://www.boardui.com/components/color) 的中性表面与蓝色交互分层，辅助文字和状态色按可读性加深。
+颜色采用 Linear 近白/近黑表面与靛色交互分层。分割线按墨色透明度推导。辅助文字和状态色按可读性加深。
 
 | 角色         | 浅色      | 深色      |
 | ------------ | --------- | --------- |
-| 壳层         | `#f8f9fb` | `#0c0c0e` |
-| 侧栏卡片     | `#ffffff` | `#151518` |
-| 侧栏轮廓     | `#e2e4ea` | `#2e2e34` |
-| 选中行       | `#dddfe6` | `#3a3a42` |
-| 输入卡       | `#ffffff` | `#262626` |
-| 输入边框     | `#c8cad0` | `#5a5a62` |
-| 菜单         | `#ffffff` | `#262626` |
-| 菜单边框     | `#d8dae2` | `#3a3a40` |
-| 用户气泡     | `#e8ebf0` | `#262626` |
-| 链接         | `#1d4ed8` | `#93c5fd` |
-| 行内代码     | `#e8ebf0` | `#2a2a30` |
-| 行内代码文字 | `#0a0a0a` | `#fafafa` |
-| 行内代码边   | `#d8dae2` | `#3a3a40` |
+| 壳层         | `#fcfcfd` | `#0f0f11` |
+| 侧栏         | `#ffffff` | `#161618` |
+| 选中行       | `#e6e6e8` | `#2c2c31` |
+| 输入卡       | `#ffffff` | `#1c1c1f` |
+| 菜单         | `#ffffff` | `#1c1c1f` |
+| 用户气泡     | `#e8e8ea` | `#262628` |
+| 链接         | `#4c56c8` | `#9aa3ea` |
+| 行内代码     | `#e8e8ea` | `#262628` |
+| 行内代码文字 | `#1b1b1b` | `#e3e4e6` |
+| primary      | `#5e6ad2` | `#606acc` |
 
-动作蓝以 `#2563eb` 为准。sunset / dusk 仍只作分类装饰。
+动作靛以 `#5e6ad2` 为准。分类色不进品牌。
 
 ### Dark
 
@@ -388,17 +374,16 @@ sunset 是装饰，orange 保留兼容命名，映射到黄色警告色。
 
 | 角色     | 值        |
 | -------- | --------- |
-| 壳层     | `#0c0c0e` |
-| 侧栏卡片 | `#151518` |
-| 侧栏轮廓 | `#2e2e34` |
-| 输入卡   | `#262626` |
-| 用户气泡 | `#262626` |
-| 主字     | `#fafafa` |
-| 次级字   | `#c4c4c4` |
-| 弱字     | `#a3a3a3` |
-| 淡字     | `#8e8e8e` |
-| 缝       | `#3a3a40` |
-| primary  | `#60a5fa` |
+| 壳层     | `#0f0f11` |
+| 侧栏     | `#161618` |
+| 输入卡   | `#1c1c1f` |
+| 用户气泡 | `#262628` |
+| 主字     | `#e3e4e6` |
+| 次级字   | `#b8b9bc` |
+| 弱字     | `#9a9b9e` |
+| 淡字     | `#7e7f83` |
+| primary  | `#606acc` |
+| 主按钮字 | `#ffffff` |
 
 ## Typography
 
@@ -451,33 +436,33 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 
 ## Elevation & Depth
 
-| Level    | Treatment              | Use                                               |
-| -------- | ---------------------- | ------------------------------------------------- |
-| 0 — Flat | border / border-subtle | 列表、对话用 border；侧栏卡片轮廓用 border-subtle |
-| 1 — Soft | 一层轻阴影             | composer 卡                                       |
-| 2 — Pop  | 稍深，仍短             | 菜单、抽屉                                        |
+| Level    | Treatment              | Use                                                   |
+| -------- | ---------------------- | ----------------------------------------------------- |
+| 0 — Flat | border / border-subtle | 列表、对话列外沿用 border；内部分割线用 border-subtle |
+| 1 — Soft | 细线，不用阴影分层     | 输入卡                                                |
+| 2 — Pop  | 稍深，仍短             | 菜单、抽屉                                            |
 
-深色卡和栏用 `{colors.border}`；侧栏卡片轮廓用 `{colors.border-subtle}`。输入卡和菜单填充 100%，避免底下的文字改变其颜色。
+深色卡和栏用 `{colors.border}`。侧栏贴窗边，与对话列只留外沿细线。输入卡和菜单填充 100%，避免底下的文字改变其颜色。
 
 ## Shapes
 
-| Token            | Value  | Use                       |
-| ---------------- | ------ | ------------------------- |
-| `{rounded.xs}`   | 4px    | 小标签                    |
-| `{rounded.sm}`   | 6px    | 折叠条、次要芯片          |
-| `{rounded.md}`   | 8px    | 列表行                    |
-| `{rounded.lg}`   | 12px   | 输入卡、New Session、气泡 |
-| `{rounded.xl}`   | 16px   | 大容器                    |
-| `{rounded.full}` | 9999px | 圆形图标钮、徽章          |
+| Token            | Value  | Use                |
+| ---------------- | ------ | ------------------ |
+| `{rounded.xs}`   | 4px    | 小标签             |
+| `{rounded.sm}`   | 6px    | 折叠条、次要芯片   |
+| `{rounded.md}`   | 8px    | 列表行             |
+| `{rounded.lg}`   | 8px    | 菜单、气泡、主按钮 |
+| `{rounded.xl}`   | 16px   | 大容器             |
+| `{rounded.full}` | 9999px | 圆形图标钮、徽章   |
 
 壳层圆角 0。发送是 28px primary 圆钮。
 
 ## Do's and Don'ts
 
-- 浅色：壳层 `{colors.surface}`，侧栏卡片与输入卡白底。
-- 深色：壳层 `#0c0c0e`、侧栏卡片 `#151518`、输入卡 `#262626`、用户气泡 `#262626`、缝 `#3a3a40`。
-- `{colors.primary}` 用于动作和选中。
+- 浅色：壳层 `{colors.surface}`，侧栏与输入卡白底，侧栏贴窗边。
+- 深色：壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`、用户气泡 `#262628`。
+- `{colors.primary}` 用于动作和焦点。选中走中性灰。
 - 工作台 14px 系统字；标签可用等宽大写。
-- composer / New Session：`{rounded.lg}`。
+- 控件圆角 `{rounded.lg}`。输入卡用胶囊。
 - 桌面与网页的输入卡、菜单均用实色。桌面折叠保留 rail。
-- 装饰走 sunset / dusk / breeze。
+- 分类走 skill / steel / teal / gray。

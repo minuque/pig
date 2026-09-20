@@ -268,7 +268,7 @@ function onCreateInDir(canonicalPath: string): void {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding: var(--nav-shell-pad);
+  padding: 0;
   overflow: hidden;
   user-select: none;
 }
@@ -280,10 +280,7 @@ function onCreateInDir(canonicalPath: string): void {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--sidebar);
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  background: transparent;
 }
 
 .nav-inset {
@@ -472,7 +469,6 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 @media (max-width: 900px) {
   .session-nav {
     --nav-inline: var(--spacing-md);
-    padding: var(--spacing-md);
   }
 }
 </style>

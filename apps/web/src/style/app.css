@@ -18,19 +18,19 @@
   color-scheme: light;
 
   /* 品牌 */
-  --primary: #2563eb;
-  --primary-active: #1d4ed8;
-  --secondary: #1d4ed8;
+  --primary: #5e6ad2;
+  --primary-active: #4f5bc4;
+  --secondary: #4c56c8;
   --on-primary: #ffffff;
   --white: #ffffff;
 
   /* 表面 */
-  --canvas: #f5f5f5;
-  --canvas-soft: #fafafa;
-  --surface: #f8f9fb;
+  --canvas: #f7f7f8;
+  --canvas-soft: #f7f7f8;
+  --surface: #fcfcfd;
   --sidebar: #ffffff;
   --composer-bg: #ffffff;
-  --user-prompt-bg: #e8ebf0;
+  --user-prompt-bg: #e8e8ea;
   --popover: #ffffff;
   --code-header: #ffffff;
   --code-body: #ffffff;
@@ -38,24 +38,24 @@
   /* mermaid 图 */
   --mermaid-bg: #ffffff;
   --mermaid-fill: #eaeef2;
-  --mermaid-fg: #1f2328;
-  --mermaid-line: #d1d9e0;
-  --mermaid-accent: #0969da;
-  --mermaid-muted: #59636e;
+  --mermaid-fg: #1b1b1b;
+  --mermaid-line: #d4d4d4;
+  --mermaid-accent: #5e6ad2;
+  --mermaid-muted: #6e6e6e;
 
   /* 文字 */
-  --ink: #0a0a0a;
-  --ink-markdown: #0a0a0a;
-  --ink-secondary: #525252;
-  --ink-muted: #666666;
-  --ink-faint: #737373;
+  --ink: #1b1b1b;
+  --ink-markdown: #1b1b1b;
+  --ink-secondary: #5c5c5c;
+  --ink-muted: #6e6e6e;
+  --ink-faint: #8a8a8a;
 
   /* 结构 / 交互 */
-  --border: #d8dae2;
-  --border-subtle: #e2e4ea;
-  --composer-ring: #c8cad0;
-  --interaction-hover: #e8eaef;
-  --interaction-selected: #dddfe6;
+  --border: #dedede;
+  --border-subtle: #e8e8e8;
+  --composer-ring: #d1d1d1;
+  --interaction-hover: #ededed;
+  --interaction-selected: #e6e6e8;
   --hover-quiet: color-mix(in srgb, var(--ink) 5%, transparent);
   --hover-tint: color-mix(in srgb, var(--ink) 8%, transparent);
   --hover-strong: color-mix(in srgb, var(--ink) 12%, transparent);
@@ -70,8 +70,8 @@
   --effort-track: var(--border-subtle);
   --effort-thumb: var(--white);
   --effort-tick: var(--ink-muted);
-  --link: #1d4ed8;
-  --inline-code: #e8ebf0;
+  --link: #4c56c8;
+  --inline-code: #e8e8ea;
   --inline-code-ink: var(--ink);
   --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #dad8d8;
@@ -83,27 +83,25 @@
   --glass-saturation: 1;
   --startup-veil: color-mix(in srgb, var(--composer-bg) var(--glass-opacity), var(--canvas-soft));
 
-  /* 装饰，不作结构填充 */
-  --accent-sunset: #ee650d;
-  --accent-sunset-soft: #ffc285;
-  --accent-dusk: #7c3aed;
-  --accent-twilight: #9a72d8;
-  --accent-breeze: #6494d2;
-  --accent-midnight: #0d1726;
+  /* 分类色，不作结构填充 */
+  --accent-skill: #8160d8;
+  --accent-steel: #5b7c9d;
+  --accent-teal: #2f8f7b;
+  --accent-gray: #8a8d94;
 
   /* 语义 */
   --accent-orange: #854d0e;
   --accent-orange-deep: #854d0e;
   --accent-green: #166534;
   --success: #166534;
-  --info: #2563eb;
+  --info: #5e6ad2;
   --warning: #854d0e;
   --danger: #b91c1c;
   --success-foreground: var(--on-primary);
   --warning-foreground: var(--on-primary);
   --danger-foreground: var(--on-primary);
   --success-bg: #dcfce7;
-  --info-bg: #dbeafe;
+  --info-bg: #eceef8;
   --warning-bg: #fef9c3;
   --danger-bg: #fee2e2;
 
@@ -163,7 +161,7 @@
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-lg: 8px;
   --radius-xl: 16px;
   --radius-full: 9999px;
 
@@ -214,7 +212,7 @@
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 8px rgb(0 0 0 / 0.04);
 
   /* 反色主按钮 */
-  --inverse-bg: #0a0a0a;
+  --inverse-bg: #1b1b1b;
   --inverse-bg-hover: #262626;
   --inverse-fg: #ffffff;
 
@@ -237,61 +235,65 @@
 .dark {
   color-scheme: dark;
 
-  --primary: #60a5fa;
-  --primary-active: #93c5fd;
-  --secondary: #93c5fd;
-  --on-primary: #000000;
+  --primary: #606acc;
+  --primary-active: #555fbf;
+  --secondary: #9aa3ea;
+  --on-primary: #ffffff;
 
-  --canvas: #171717;
-  --canvas-soft: #171717;
-  --surface: #0c0c0e;
-  --sidebar: #151518;
-  --composer-bg: #212128;
-  --user-prompt-bg: #262626;
-  --popover: #262626;
-  --code-header: #151518;
-  --code-body: #151518;
+  --canvas: #121214;
+  --canvas-soft: #121214;
+  --surface: #0f0f11;
+  --sidebar: #161618;
+  --composer-bg: #1c1c1f;
+  --user-prompt-bg: #262628;
+  --popover: #1c1c1f;
+  --code-header: #161618;
+  --code-body: #161618;
 
   /* mermaid 图 */
-  --mermaid-bg: #151518;
-  --mermaid-fill: rgb(14, 36, 56);
-  --mermaid-fg: #e6edf3;
-  --mermaid-line: #3d444d;
-  --mermaid-accent: #4493f8;
-  --mermaid-muted: #9198a1;
+  --mermaid-bg: #161618;
+  --mermaid-fill: #1a1a22;
+  --mermaid-fg: #e3e4e6;
+  --mermaid-line: #333338;
+  --mermaid-accent: #9aa3ea;
+  --mermaid-muted: #9a9b9e;
 
-  --ink: #fafafa;
-  --ink-markdown: #fafafa;
-  --ink-secondary: #c4c4c4;
-  --ink-muted: #a3a3a3;
-  --ink-faint: #8e8e8e;
+  --ink: #e3e4e6;
+  --ink-markdown: #e3e4e6;
+  --ink-secondary: #b8b9bc;
+  --ink-muted: #9a9b9e;
+  --ink-faint: #7e7f83;
 
-  --border: #3a3a40;
-  --border-subtle: #2e2e34;
-  --composer-ring: #5a5a62;
-  --interaction-hover: #2a2a30;
-  --interaction-selected: #3a3a42;
+  --border: #28282a;
+  --border-subtle: #202022;
+  --composer-ring: #353537;
+  --interaction-hover: #1c1c1e;
+  --interaction-selected: #2c2c31;
   --effort-track: var(--hover-strong);
   --effort-thumb: var(--ink-secondary);
   --effort-tick: var(--ink-faint);
-  --link: #93c5fd;
-  --inline-code: #2a2a30;
+  --link: #9aa3ea;
+  --inline-code: #262628;
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #1c1c21;
   --scrollbar-hover: #a3a3a3;
 
+  --accent-skill: #c2a1ff;
+  --accent-steel: #8aa4c2;
+  --accent-teal: #5ec4ae;
+  --accent-gray: #9a9da4;
   --accent-orange: #facc15;
   --accent-orange-deep: #facc15;
   --accent-green: #4ade80;
   --success: #4ade80;
-  --info: #60a5fa;
+  --info: #606acc;
   --warning: #facc15;
   --danger: #f87171;
   --success-foreground: #000000;
   --warning-foreground: #000000;
   --danger-foreground: #000000;
   --success-bg: #142c1e;
-  --info-bg: #172554;
+  --info-bg: #1a1c33;
   --warning-bg: #30270e;
   --danger-bg: #38191b;
 
@@ -314,7 +316,7 @@
   --inverse-fg: #171717;
 }
 
-/* 滚动条常显；nav-card 内另行隐藏。各元素可自写 --scrollbar-thumb。 */
+/* 滚动条常显；侧栏列表内另行隐藏。各元素可自写 --scrollbar-thumb。 */
 * {
   --scrollbar-thumb: var(--scrollbar-color);
 }
@@ -377,12 +379,10 @@
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
-  --color-accent-sunset: var(--accent-sunset);
-  --color-accent-sunset-soft: var(--accent-sunset-soft);
-  --color-accent-dusk: var(--accent-dusk);
-  --color-accent-twilight: var(--accent-twilight);
-  --color-accent-breeze: var(--accent-breeze);
-  --color-accent-midnight: var(--accent-midnight);
+  --color-accent-skill: var(--accent-skill);
+  --color-accent-steel: var(--accent-steel);
+  --color-accent-teal: var(--accent-teal);
+  --color-accent-gray: var(--accent-gray);
   --color-accent-orange: var(--accent-orange);
   --color-accent-orange-deep: var(--accent-orange-deep);
   --color-accent-green: var(--accent-green);

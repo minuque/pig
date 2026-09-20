@@ -57,18 +57,19 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--sidebar);
+  border-inline-end: var(--border-width) solid var(--border);
   contain: layout style;
   transition: width var(--duration-normal) var(--ease-smooth);
 }
 
 .resizer {
   position: absolute;
-  inset-block: var(--nav-shell-pad);
-  inset-inline-start: calc(var(--left-width) - var(--nav-shell-pad));
+  inset-block: 0;
+  inset-inline-start: var(--left-width);
   z-index: var(--z-resizer);
   width: var(--spacing-md);
-  margin-inline-start: calc(-1 * var(--spacing-xs));
+  margin-inline-start: calc(-1 * var(--spacing-sm));
   cursor: col-resize;
   touch-action: none;
   background: transparent;
@@ -83,7 +84,7 @@ html[data-pig-desktop-platform] .resizer {
 }
 
 html[data-pig-desktop-platform="win32"] .resizer {
-  inset-block-start: var(--nav-shell-pad);
+  inset-block-start: 0;
 }
 
 html[data-pig-desktop-platform="darwin"] .resizer {
@@ -127,6 +128,7 @@ main {
 @media (min-width: 901px) {
   .shell.left-closed .sidebar {
     width: 0;
+    border-inline-end-width: 0;
   }
 }
 
@@ -158,7 +160,8 @@ main {
     transition:
       transform var(--duration-normal) var(--ease-smooth),
       visibility 0s linear var(--duration-normal);
-    background: var(--surface);
+    background: var(--sidebar);
+    border-inline-end: 0;
     box-shadow: var(--shadow-drawer);
   }
 

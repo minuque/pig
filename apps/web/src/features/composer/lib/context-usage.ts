@@ -7,13 +7,13 @@ function finiteTokens(value: unknown): number {
 
 const SEGMENT_DEFS = [
   { id: "systemPrompt" as const, label: "系统提示词", color: "var(--primary)", previewable: true },
-  { id: "memory" as const, label: "记忆", color: "var(--accent-dusk)", previewable: true },
-  { id: "skills" as const, label: "技能", color: "var(--accent-twilight)", previewable: true },
-  { id: "tools" as const, label: "工具定义", color: "var(--accent-sunset)", previewable: true },
+  { id: "memory" as const, label: "记忆", color: "var(--accent-skill)", previewable: true },
+  { id: "skills" as const, label: "技能", color: "var(--accent-steel)", previewable: true },
+  { id: "tools" as const, label: "工具定义", color: "var(--accent-teal)", previewable: true },
   {
     id: "toolResults" as const,
     label: "工具结果",
-    color: "var(--accent-orange)",
+    color: "var(--warning)",
     previewable: true,
   },
   {
@@ -22,7 +22,7 @@ const SEGMENT_DEFS = [
     color: "var(--accent-green)",
     previewable: true,
   },
-  { id: "other" as const, label: "其他", color: "var(--accent-breeze)", previewable: false },
+  { id: "other" as const, label: "其他", color: "var(--accent-gray)", previewable: false },
   {
     id: "idle" as const,
     label: "空闲",

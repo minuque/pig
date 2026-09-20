@@ -444,7 +444,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .fav.on {
-  color: var(--accent-sunset);
+  color: var(--primary);
 }
 
 .empty {
