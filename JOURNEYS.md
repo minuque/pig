@@ -1,6 +1,6 @@
 # 核心旅程
 
-pig 把用户动作接到 Pi 的 Session，再把 Snapshot / Transcript 投到工作台。领域词见 `CONTEXT.md`。
+pig 把用户动作接到 Pi 的 Session，再把 Snapshot / Transcript 投到工作台。
 
 两条总线：
 

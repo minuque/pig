@@ -12,7 +12,6 @@ test-results
 .smoke-ui
 .release-install
 release-artifact
-CONTEXT.md
 package-lock.json
 pnpm-lock.yaml
 yarn.lock

@@ -24,7 +24,6 @@ pnpm dev:desktop    # Electron desktop development
 ## Docs
 
 - [`DESIGN.md`](DESIGN.md) — design system
-- [`CONTEXT.md`](CONTEXT.md) — domain language
 - [`ROADMAP.md`](ROADMAP.md) — architecture & boundaries
 - [`docs/directory-structure.md`](docs/directory-structure.md) — directory & module conventions
 
