@@ -13,7 +13,7 @@
 
       <span>
         <template v-for="(part, i) in labelParts" :key="i">
-          <template v-if="i">·</template>
+          <span v-if="i" class="label-dot">·</span>
           <template v-if="part.kind === 'text'">{{ part.text }}</template>
 
           <template v-else>
@@ -24,12 +24,16 @@
         </template>
 
         <template v-if="failCount">
-          · 执行失败
+          <span class="label-dot">·</span>
+          <span>执行失败</span>
           <span class="fail-n">{{ failCount }}</span>
           次
         </template>
 
-        <template v-if="durationLabel">· {{ durationLabel }}</template>
+        <template v-if="durationLabel">
+          <span class="label-dot">·</span>
+          <span>{{ durationLabel }}</span>
+        </template>
       </span>
 
       <ChevronRight class="motion-turn" :class="{ 'is-on': revealed }" data-icon="inline-end" />
@@ -402,6 +406,11 @@ onBeforeUnmount(() => {
 .tool-steps-icon {
   flex: none;
   transition: color var(--duration-fast) var(--ease-out);
+}
+
+.label-dot {
+  font-weight: var(--font-weight-bold);
+  margin-inline: 0.35em;
 }
 
 .fail-n {
