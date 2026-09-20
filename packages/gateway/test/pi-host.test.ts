@@ -5,11 +5,14 @@ import { resolve } from "node:path"
 import type { AgentSession, AgentSessionEvent } from "@earendil-works/pi-coding-agent"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
 import type { TranscriptProgress } from "@earendil-works/pi-protocol"
+import type { PiSessionRuntimeEvent } from "@earendil-works/pi-server"
 import { afterEach, describe, expect, it } from "vitest"
 import { canonicalizePath } from "../src/directory.js"
 import { PiHostService } from "../src/pi/service.js"
 import { PiHostSession } from "../src/pi/session-runtime.js"
 import { TranscriptProjection } from "../src/pi/transcript.js"
+
+const PROGRESS_WINDOW_MS = 16
 
 // --- 测试替身 -------------------------------------------------------------
 
@@ -274,13 +277,15 @@ describe("PiHostSession", () => {
         partial: assistantMessage(),
       },
     } as AgentSessionEvent)
-    // message_start/message_update 只发 progress，不发 snapshot（旧快照会清掉流式 progress）
+    // message_start/message_update 只发 progress，不发 snapshot（旧快照会清掉流式 progress）；update 合流窗口内未发出
+    expect(events.map((e) => e.type)).toEqual(["progress", "snapshot"])
+    await new Promise((resolve) => setTimeout(resolve, PROGRESS_WINDOW_MS))
     expect(events.map((e) => e.type)).toEqual(["progress", "snapshot", "progress"])
     fake.emit({
       type: "message_end",
       message: assistantMessage({ stopReason: "stop", content: [{ type: "text", text: "hello" }] }),
     } as AgentSessionEvent)
-    // message_end 的 snapshot 延迟到持久化之后（queueMicrotask）
+    // item_finished 立即发出，未发送的 update 先冲刷；message_end 的 snapshot 延迟到持久化之后（queueMicrotask）
     expect(events.map((e) => e.type)).toEqual(["progress", "snapshot", "progress", "progress"])
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(events.map((e) => e.type)).toEqual([
@@ -291,6 +296,35 @@ describe("PiHostSession", () => {
       "snapshot",
     ])
     expect(runtime.snapshot().revision).toBe(5)
+  })
+
+  it("连续 item_updated 合流只发最后一帧", async () => {
+    const fake = new FakeAgentSession(SessionManager.inMemory("/tmp"))
+    const runtime = new PiHostSession(asSession(fake))
+    const events: PiSessionRuntimeEvent[] = []
+    runtime.subscribe((event) => events.push(event))
+    fake.emit({ type: "message_start", message: assistantMessage() } as AgentSessionEvent)
+
+    for (let index = 0; index < 5; index += 1) {
+      fake.emit({
+        type: "message_update",
+        message: assistantMessage(),
+        assistantMessageEvent: {
+          type: "text_delta",
+          contentIndex: 0,
+          delta: `d${index}`,
+          partial: assistantMessage(),
+        },
+      } as AgentSessionEvent)
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, PROGRESS_WINDOW_MS * 2))
+
+    const updates = events.filter(
+      (event) => event.type === "progress" && event.progress.type === "item_updated",
+    )
+
+    expect(updates).toHaveLength(1)
   })
 })
 

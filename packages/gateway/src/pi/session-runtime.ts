@@ -4,6 +4,7 @@ import type {
   SessionPhase,
   SessionSnapshot,
   ThinkingLevel,
+  TranscriptProgress,
 } from "@earendil-works/pi-protocol"
 import { PiServerError, SessionBusyError } from "@earendil-works/pi-server"
 import type {
@@ -31,6 +32,8 @@ const SNAPSHOT_SKIP_EVENTS = new Set([
   "tool_execution_update",
   "bash_execution_update",
 ])
+/** 同一条流式消息的连续 item_updated 合流窗口：只发最后一帧，降低 WS 与客户端克隆开销。 */
+const PROGRESS_COALESCE_MS = 16
 
 /**
  * 一个已获取的 AgentSession 的 PiServer 运行时。
@@ -47,6 +50,8 @@ export class PiHostSession implements PiSessionRuntime {
   private busy: Promise<void> | undefined
   private disposed = false
   private readonly timing: TurnTimingRecorder
+  private pendingUpdateProgress: Extract<TranscriptProgress, { type: "item_updated" }> | undefined
+  private pendingUpdateTimer: ReturnType<typeof setTimeout> | undefined
 
   constructor(
     private readonly session: AgentSession,
@@ -185,6 +190,7 @@ export class PiHostSession implements PiSessionRuntime {
     if (this.disposed) return
     this.disposed = true
     this.unsubscribeSession()
+    this.clearPendingUpdate()
     this.session.dispose()
     this.listeners.clear()
     this.onDispose?.()
@@ -221,10 +227,7 @@ export class PiHostSession implements PiSessionRuntime {
 
     const progress = this.projection.progress(event)
 
-    if (progress) {
-      this.revision += 1
-      this.emit({ type: "progress", progress })
-    }
+    if (progress) this.forwardProgress(progress)
 
     if (event.type === "message_end") {
       // 官方在通知订阅者之后才持久化 message_end；延迟一拍广播，保证快照
@@ -237,6 +240,42 @@ export class PiHostSession implements PiSessionRuntime {
     }
 
     if (!SNAPSHOT_SKIP_EVENTS.has(event.type)) this.broadcastSnapshot()
+  }
+
+  private forwardProgress(progress: TranscriptProgress): void {
+    if (progress.type === "item_updated") {
+      // 连续 delta 合并：保留最新一帧，窗口内只发一次
+      this.pendingUpdateProgress = progress
+      this.pendingUpdateTimer ??= setTimeout(() => {
+        this.pendingUpdateTimer = undefined
+        this.emitPendingUpdate()
+      }, PROGRESS_COALESCE_MS)
+      return
+    }
+
+    this.emitPendingUpdate()
+    this.revision += 1
+    this.emit({ type: "progress", progress })
+  }
+
+  private emitPendingUpdate(): void {
+    if (this.pendingUpdateTimer) {
+      clearTimeout(this.pendingUpdateTimer)
+      this.pendingUpdateTimer = undefined
+    }
+
+    const pending = this.pendingUpdateProgress
+
+    if (!pending) return
+    this.pendingUpdateProgress = undefined
+    this.revision += 1
+    this.emit({ type: "progress", progress: pending })
+  }
+
+  private clearPendingUpdate(): void {
+    if (this.pendingUpdateTimer) clearTimeout(this.pendingUpdateTimer)
+    this.pendingUpdateTimer = undefined
+    this.pendingUpdateProgress = undefined
   }
 
   private broadcastSnapshot(): void {

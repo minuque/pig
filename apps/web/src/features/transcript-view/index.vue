@@ -92,7 +92,7 @@ import type { TurnTiming } from "@/types/turn-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TimelineRow, TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {
-  buildTimelineRows,
+  createTimelineRowsBuilder,
   isToolRow,
   reuseTimelineRows,
   timelineRowKeys,
@@ -194,11 +194,12 @@ const emit = defineEmits<{
 }>()
 const rows = shallowRef<TimelineRow[]>([])
 const mountedKeys = computed(() => timelineRowKeys(rows.value))
+const rowsBuilder = createTimelineRowsBuilder()
 
 watch(
   () => ({
     sessionId: props.sessionId,
-    next: buildTimelineRows(props.transcript, props.running, props.timings),
+    next: rowsBuilder.build(props.transcript, props.running, props.timings),
   }),
   ({ sessionId, next }, prev) => {
     if (prev && prev.sessionId !== sessionId) {
@@ -438,6 +439,7 @@ watch(
   (id, prev) => {
     if (!prev || prev === id) return
     rememberScroll(prev)
+    rowsBuilder.reset()
     reset()
     loadOlderArmed = true
     void nextTick(() => restoreOrPin(id))

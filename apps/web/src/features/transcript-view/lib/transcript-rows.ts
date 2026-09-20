@@ -275,6 +275,78 @@ export function buildTimelineRows(
   return rows
 }
 
+interface TurnRowsEntry {
+  user: UserTranscriptItem | undefined
+  rest: readonly TranscriptItem[]
+  live: boolean
+  timing: TurnTiming | undefined
+  rows: TimelineRow[]
+}
+
+const TURN_CACHE_LIMIT = 200
+
+/**
+ * 增量时间线：按 turn 缓存 appendTurn 结果，输入条目引用没变就直接复用。
+ * 合并层对未变条目保持对象同一性，所以引用比对等价于内容比对。
+ */
+export function createTimelineRowsBuilder() {
+  const cache = new Map<string, TurnRowsEntry>()
+
+  function build(
+    items: readonly TranscriptItem[],
+    running: boolean,
+    timings: readonly TurnTiming[] = [],
+  ): TimelineRow[] {
+    const rows: TimelineRow[] = []
+    const timingByUser = new Map(timings.map((timing) => [timing.userId, timing]))
+    let user: UserTranscriptItem | undefined
+    let rest: TranscriptItem[] = []
+    const flush = (live: boolean) => {
+      if (!user && rest.length === 0) return
+      const timing = user ? timingByUser.get(user.id) : undefined
+      const key = user ? `u:${user.id}` : `o:${rest[0]?.id ?? "none"}`
+      const cached = cache.get(key)
+      const reusable =
+        cached !== undefined &&
+        cached.live === live &&
+        cached.timing === timing &&
+        cached.user === user &&
+        cached.rest.length === rest.length &&
+        cached.rest.every((item, index) => item === rest[index])
+
+      if (reusable && cached) {
+        rows.push(...cached.rows)
+      } else {
+        const turnRows: TimelineRow[] = []
+        appendTurn({ rows: turnRows, user, rest, live, timings })
+        cache.delete(key)
+        cache.set(key, { user, rest, live, timing, rows: turnRows })
+        rows.push(...turnRows)
+      }
+
+      while (cache.size > TURN_CACHE_LIMIT) {
+        const oldest = cache.keys().next().value
+
+        if (oldest === undefined || oldest === key) break
+        cache.delete(oldest)
+      }
+    }
+
+    for (const item of items) {
+      if (isUserItem(item) && isVisibleTranscriptItem(item)) {
+        flush(false)
+        user = item
+        rest = []
+      } else rest.push(item)
+    }
+
+    flush(running)
+    return rows
+  }
+
+  return { build, reset: () => cache.clear() }
+}
+
 function sameImages(left: readonly TranscriptImage[], right: readonly TranscriptImage[]) {
   if (left === right) return true
 
@@ -366,6 +438,8 @@ function sameToolRow(left: ToolRow, right: ToolRow) {
 }
 
 function sameRow(left: TimelineRow, right: TimelineRow) {
+  if (left === right) return true
+
   if (left.role !== right.role) return false
 
   if (left.role === "user" && right.role === "user") return sameUserRow(left, right)

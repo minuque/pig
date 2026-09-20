@@ -21,8 +21,11 @@ import {
   LONG_SESSION_NAME,
   SHORT_SESSION_ID,
   SHORT_SESSION_NAME,
+  SHORT_TURNS,
 } from "./seed.js"
 
+/** 短会话夹具轮数少于页大小时，首屏只显示夹具已有的行。 */
+const SHORT_PAGE_ROWS = Math.min(TRANSCRIPT_PAGE_TURNS, SHORT_TURNS)
 const FIRST_PROMPT = "基准首条提问"
 const FIRST_TOKEN = "基准首 token"
 
@@ -146,7 +149,7 @@ async function rapidSwitch(page: Page) {
       .toBe(true)
     await nextPaint(page)
     await expect(page).toHaveURL(new RegExp(`/sessions/${SHORT_SESSION_ID}$`))
-    await expect(page.locator(".row-user")).toHaveCount(TRANSCRIPT_PAGE_TURNS)
+    await expect(page.locator(".row-user")).toHaveCount(SHORT_PAGE_ROWS)
     await expect(page.getByText(`${LONG_SESSION_NAME} 提问 1`, { exact: true })).toHaveCount(0)
     return elapsed
   } finally {
@@ -230,7 +233,7 @@ async function reconnect(page: Page, bridge: Bridge) {
   const elapsed = performance.now() - started
   await expect(page.getByText(FIRST_TOKEN, { exact: true })).toHaveCount(0)
   await expect(page.getByText(TURN_TOKEN, { exact: true })).toHaveCount(0)
-  await expect(page.locator(".row-assistant")).toHaveCount(TRANSCRIPT_PAGE_TURNS)
+  await expect(page.locator(".row-assistant")).toHaveCount(SHORT_PAGE_ROWS)
   return elapsed
 }
 
