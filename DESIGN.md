@@ -446,14 +446,14 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 
 ## Shapes
 
-| Token            | Value  | Use                        |
-| ---------------- | ------ | -------------------------- |
-| `{rounded.xs}`   | 4px    | 小标签                     |
-| `{rounded.sm}`   | 6px    | 折叠条、次要芯片           |
-| `{rounded.md}`   | 8px    | 列表行                     |
-| `{rounded.lg}`   | 8px    | 输入卡、菜单、气泡、主按钮 |
-| `{rounded.xl}`   | 16px   | 大容器                     |
-| `{rounded.full}` | 9999px | 圆形图标钮、徽章           |
+| Token            | Value  | Use                    |
+| ---------------- | ------ | ---------------------- |
+| `{rounded.xs}`   | 4px    | 小标签                 |
+| `{rounded.sm}`   | 6px    | 折叠条、次要芯片       |
+| `{rounded.md}`   | 8px    | 列表行                 |
+| `{rounded.lg}`   | 8px    | 菜单、气泡、主按钮     |
+| `{rounded.xl}`   | 16px   | 多行输入卡、大容器     |
+| `{rounded.full}` | 9999px | 单行输入卡、圆形图标钮 |
 
 壳层圆角 0。发送是 28px primary 圆钮。
 
@@ -463,6 +463,6 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 - 深色：壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`、用户气泡 `#262628`。
 - `{colors.primary}` 用于动作和焦点。选中走中性灰。
 - 工作台 14px 系统字；标签可用等宽大写。
-- 控件圆角 `{rounded.lg}`。输入卡用 `{rounded.lg}`，发送仍是圆钮。
+- 控件圆角 `{rounded.lg}`。输入卡单行 `{rounded.full}`，多行 `{rounded.xl}`，发送仍是圆钮。
 - 桌面与网页的输入卡、菜单均用实色。桌面折叠保留 rail。
 - 分类走 skill / steel / teal / gray。
