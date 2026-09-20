@@ -32,6 +32,7 @@ import {
   isDisconnectedError,
   isOpenAborted,
 } from "@features/session-workbench/hooks/abortable-open.js"
+import { coalesceByFrame } from "@features/session-workbench/lib/coalesce-by-frame.js"
 import {
   bindIdleSends,
   isSessionOpening,
@@ -65,6 +66,7 @@ export function useSessionLifecycle(
   const remote = shallowRef<RemoteSession>()
   const state = shallowRef<RemoteSessionState>()
   let unsubscribeState: Unsubscribe | undefined
+  let cancelCoalesced: (() => void) | undefined
   let replaceChain: Promise<void> = Promise.resolve()
   let abortInflightOpen: (() => void) | undefined
   const { raceRemoteOpen, discard } = createAbortableOpen()
@@ -81,7 +83,8 @@ export function useSessionLifecycle(
     if (previous && previous !== next) void discard(previous)
     remote.value = next
     let usageRevision: number | undefined
-    unsubscribeState = next.subscribe((nextState) => {
+    // 每 token 一个事件，整流成每帧一次发布，避免每 token 重建整条时间线
+    const coalesced = coalesceByFrame<RemoteSessionState>((nextState) => {
       state.value = nextState
       const attachedId = next.id
 
@@ -97,12 +100,17 @@ export function useSessionLifecycle(
       if (hadRevision) void history.loadHistory(attachedId, { force: true })
       else void history.loadHistory(attachedId)
     })
+
+    cancelCoalesced = coalesced.cancel
+    unsubscribeState = next.subscribe((nextState) => coalesced.push(nextState))
   }
 
   function detach() {
     contextUsageRequest += 1
     unsubscribeState?.()
     unsubscribeState = undefined
+    cancelCoalesced?.()
+    cancelCoalesced = undefined
     remote.value = undefined
     state.value = undefined
     contextUsageEstimate.value = undefined

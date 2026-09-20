@@ -856,7 +856,7 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     await vi.waitFor(() => expect(session.remote.value).toBe(a))
     a.state = { ...a.state, transcript: [live] }
     a.emit()
-    expect(session.transcript.value.map((row) => row.id)).toEqual(["m1"])
+    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["m1"]))
     const beforeIdle = transcriptCalls().length
     persisted = [disk]
     a.state = { ...a.state, snapshot: { ...snapshot(2), phase: "idle" }, transcript: [live] }
@@ -950,7 +950,9 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1", "t2"])
     remote.state = { ...remote.state, transcript: [liveTool("t3")] }
     remote.emit()
-    expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1", "t2", "t3"])
+    await vi.waitFor(() =>
+      expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1", "t2", "t3"]),
+    )
   })
 })
 
