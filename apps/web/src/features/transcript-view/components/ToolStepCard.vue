@@ -122,7 +122,6 @@
       <div ref="thoughtInner">
         <MarkdownRender
           v-if="thoughtContent.text"
-          :key="thoughtContent.streaming ? 'live' : 'full'"
           v-bind="thoughtProps"
           :content="thoughtContent.text"
         />

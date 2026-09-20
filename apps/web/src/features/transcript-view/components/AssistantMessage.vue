@@ -5,6 +5,7 @@
       :key="item.id"
       v-bind="agentMarkdown"
       :content="item.text"
+      @virtual-state-change="onVirtualStateChange"
     />
 
     <div v-else-if="item.text" class="md-plain">{{ item.text }}</div>
@@ -32,6 +33,7 @@
 <script setup lang="ts">
 import { CircleAlert } from "@lucide/vue"
 import MarkdownRender from "markstream-vue"
+import type { MarkstreamVirtualState } from "markstream-vue"
 import { computed } from "vue"
 import Alert from "@components/ui/alert/Alert.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
@@ -40,6 +42,10 @@ import MessageTimestamp from "@features/transcript-view/components/MessageTimest
 import type { AssistantRow } from "@features/transcript-view/type.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { chatMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
+import {
+  saveMarkdownVirtualState,
+  takeMarkdownVirtualState,
+} from "@features/transcript-view/lib/markdown-virtual-state.js"
 
 const props = withDefaults(
   defineProps<{
@@ -58,12 +64,20 @@ const statusLabel = computed(() => {
   if (retries && retries > 1) return `${base} · ${retries} 次`
   return base
 })
-const agentMarkdown = computed(() =>
-  chatMarkdownProps({
+const agentMarkdown = computed(() => {
+  const key = `md:${props.item.id}`
+  return chatMarkdownProps({
     streaming: props.streaming,
     isDark: isDark.value,
-  }),
-)
+    sessionKey: key,
+    restoreState: takeMarkdownVirtualState(key),
+  })
+})
+
+function onVirtualStateChange(state: MarkstreamVirtualState) {
+  if (props.streaming) return
+  saveMarkdownVirtualState(`md:${props.item.id}`, state)
+}
 </script>
 
 <style scoped>

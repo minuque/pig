@@ -83,8 +83,8 @@ export function useSessionLifecycle(
     if (previous && previous !== next) void discard(previous)
     remote.value = next
     let usageRevision: number | undefined
-    // 每 token 一个事件，整流成每帧一次发布，避免每 token 重建整条时间线
-    const coalesced = coalesceByFrame<RemoteSessionState>((nextState) => {
+    // 每 token 一个事件，整流成每帧一次发布，避免每 token 重建整条时间线；8ms 兜底上限压低流式延迟
+    const publish = (nextState: RemoteSessionState) => {
       state.value = nextState
       const attachedId = next.id
 
@@ -99,7 +99,8 @@ export function useSessionLifecycle(
 
       if (hadRevision) void history.loadHistory(attachedId, { force: true })
       else void history.loadHistory(attachedId)
-    })
+    }
+    const coalesced = coalesceByFrame<RemoteSessionState>(publish, 8)
 
     cancelCoalesced = coalesced.cancel
     unsubscribeState = next.subscribe((nextState) => coalesced.push(nextState))

@@ -1,4 +1,4 @@
-import type { NodeRendererProps } from "markstream-vue"
+import type { MarkstreamVirtualState, NodeRendererProps } from "markstream-vue"
 
 type CodeBlockTheme = "dark-plus" | "light-plus"
 
@@ -40,16 +40,17 @@ const chatCodeChrome = {
   showCollapseButton: true,
   showExpandButton: true,
 } as const
-const HISTORY_LIVE_NODES = 96
 const BATCH_BUDGET_MS = 8
 
-/** 流式分帧；历史长文开窗口，单帧预算压在 8ms。 */
+/** Kimi chat 同款 profile：流式与历史同档，节点虚拟化交给库自动判定，单帧预算 8ms。 */
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean
+  sessionKey?: string
+  restoreState?: MarkstreamVirtualState | null
 }): NodeRendererProps {
   const streaming = input.streaming
-  return {
+  const props: NodeRendererProps = {
     customId: "chat",
     mode: "chat",
     fade: false,
@@ -57,15 +58,17 @@ export function chatMarkdownProps(input: {
     final: !streaming,
     typewriter: false,
     smoothStreaming: false,
-    nodeVirtual: streaming ? false : true,
-    maxLiveNodes: streaming ? 0 : HISTORY_LIVE_NODES,
+    nodeVirtual: "auto",
+    maxLiveNodes: 0,
+    liveNodeBuffer: 0,
     batchRendering: true,
-    initialRenderBatchSize: streaming ? 8 : 12,
-    renderBatchSize: 16,
-    renderBatchDelay: 0,
+    initialRenderBatchSize: 32,
+    renderBatchSize: 48,
+    renderBatchDelay: 6,
     renderBatchBudgetMs: BATCH_BUDGET_MS,
+    renderBatchIdleTimeoutMs: 60,
     viewportPriority: !streaming,
-    deferNodesUntilVisible: !streaming,
+    deferNodesUntilVisible: true,
     codeBlockStream: streaming,
     codeBlockOptions: {
       ...codeBlockTypography(),
@@ -77,6 +80,16 @@ export function chatMarkdownProps(input: {
     },
     mermaidProps,
   }
+
+  if (input.sessionKey !== undefined) {
+    props.virtualScroll = {
+      enabled: !streaming,
+      sessionKey: input.sessionKey,
+      restoreState: input.restoreState ?? null,
+    }
+  }
+
+  return props
 }
 
 /** 思考 / 预览：轻量 pre，不走增强代码卡片。 */
@@ -93,10 +106,15 @@ export function plainMarkdownProps(input: {
     final: !streaming,
     typewriter: false,
     smoothStreaming: false,
-    nodeVirtual: false,
+    nodeVirtual: "auto",
     maxLiveNodes: 0,
     batchRendering: true,
+    initialRenderBatchSize: 32,
+    renderBatchSize: 48,
+    renderBatchDelay: 6,
     renderBatchBudgetMs: BATCH_BUDGET_MS,
+    renderBatchIdleTimeoutMs: 60,
+    deferNodesUntilVisible: true,
     isDark: input.isDark,
     codeBlockOptions: codeBlockTypography(),
     codeBlockProps: { theme: codeBlockTheme },
