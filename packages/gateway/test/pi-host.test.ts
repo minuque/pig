@@ -393,21 +393,17 @@ describe("PiHostService", () => {
     const snapshot = await runtime.snapshot()
     expect(snapshot.transcript).toEqual([])
     const first = await service.sessionTranscript("sess-long")
-    expect(first.items).toHaveLength(1)
+    expect(first.items).toHaveLength(3)
     expect(first.hasMore).toBe(true)
-    expect(
-      first.items[0]?.role === "user" && first.items[0].content[0]?.type === "text"
-        ? first.items[0].content[0].text
-        : undefined,
-    ).toBe("m44")
+
+    const textOf = (item: (typeof first.items)[number]) =>
+      item.role === "user" && item.content[0]?.type === "text" ? item.content[0].text : undefined
+
+    expect(first.items.map(textOf)).toEqual(["m42", "m43", "m44"])
     const before = first.items[0]!.id
     const older = await service.sessionTranscript("sess-long", { before })
-    expect(older.items).toHaveLength(1)
-    expect(
-      older.items[0]?.role === "user" && older.items[0].content[0]?.type === "text"
-        ? older.items[0].content[0].text
-        : undefined,
-    ).toBe("m43")
+    expect(older.items).toHaveLength(3)
+    expect(older.items.map(textOf)).toEqual(["m39", "m40", "m41"])
     expect(await service.listSessionCards()).toMatchObject([
       { id: "sess-long", messageCount: total },
     ])

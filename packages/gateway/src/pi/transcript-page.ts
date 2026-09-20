@@ -1,8 +1,8 @@
 import type { TranscriptItem } from "@earendil-works/pi-protocol"
 import type { TurnTiming } from "./turn-timing.js"
 
-/** 打开会话只吐最后一轮，上翻再要更早。 */
-export const TRANSCRIPT_PAGE_TURNS = 1
+/** 打开会话只吐最近三轮，上翻再要更早。 */
+export const TRANSCRIPT_PAGE_TURNS = 3
 
 /** 从 before 之前（或全文末尾）往回取一轮用户句及其后内容。 */
 export function pageTranscriptItems(

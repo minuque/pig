@@ -7,7 +7,23 @@ function item(id: string, role: "user" | "assistant"): TranscriptItem {
 }
 
 describe("打开已有会话 → 历史分页", () => {
-  it("默认只返回最后一轮", () => {
+  it("默认返回最近三轮", () => {
+    const items = [
+      item("u1", "user"),
+      item("a1", "assistant"),
+      item("u2", "user"),
+      item("a2", "assistant"),
+      item("u3", "user"),
+      item("a3", "assistant"),
+      item("u4", "user"),
+      item("a4", "assistant"),
+    ]
+    const page = pageTranscriptItems(items)
+    expect(page.items.map((row) => row.id)).toEqual(["u2", "a2", "u3", "a3", "u4", "a4"])
+    expect(page.hasMore).toBe(true)
+  })
+
+  it("不足三轮返回全文，没有更早页", () => {
     const items = [
       item("u1", "user"),
       item("a1", "assistant"),
@@ -15,8 +31,8 @@ describe("打开已有会话 → 历史分页", () => {
       item("a2", "assistant"),
     ]
     const page = pageTranscriptItems(items)
-    expect(page.items.map((row) => row.id)).toEqual(["u2", "a2"])
-    expect(page.hasMore).toBe(true)
+    expect(page.items.map((row) => row.id)).toEqual(["u1", "a1", "u2", "a2"])
+    expect(page.hasMore).toBe(false)
   })
 
   it("before 取更早一轮", () => {
