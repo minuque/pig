@@ -27,18 +27,19 @@ const emit = defineEmits<{
   gap: var(--spacing-xs);
   width: 100%;
   height: var(--size-nav-rail);
-  padding-inline: var(--spacing-xs) var(--spacing-sm);
-  border: var(--border-width) solid var(--border);
+  padding-inline: var(--spacing-xs);
+  border: 0;
   border-radius: var(--radius-md);
-  background: var(--surface);
+  background: transparent;
   color: var(--ink-muted);
   text-align: start;
   transition:
-    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
 }
 
 .search-button:hover {
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 
@@ -54,10 +55,9 @@ const emit = defineEmits<{
 
 .search-shortcut {
   flex: none;
-  padding: 1px var(--spacing-xxs);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-xs);
-  background: var(--canvas-soft);
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--ink-faint);
   font: var(--text-caption-mono) / var(--text-caption-mono--line-height) var(--font-mono);
 }

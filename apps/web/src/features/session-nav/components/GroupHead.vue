@@ -141,7 +141,7 @@ const emit = defineEmits<{
 
 .mark.is-open,
 .group-head:hover .mark.is-open {
-  color: var(--primary);
+  color: var(--ink-muted);
 }
 
 .group-name {

@@ -147,8 +147,7 @@ defineExpose({ focus })
 
 .glass-shell {
   position: relative;
-  border-radius: var(--radius-full);
-  box-shadow: var(--shadow-soft);
+  border-radius: var(--radius-lg);
 }
 
 .glass-host {
@@ -162,7 +161,7 @@ defineExpose({ focus })
   padding-inline: calc(var(--spacing-sm) + var(--border-width));
   overflow: hidden;
   background: var(--composer-bg);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-lg);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
 }
 
@@ -193,7 +192,6 @@ defineExpose({ focus })
 
 .composer[data-multiline="true"] .glass-host {
   align-items: end;
-  border-radius: 28px;
 }
 
 .footer {
