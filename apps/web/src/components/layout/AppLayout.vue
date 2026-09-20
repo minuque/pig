@@ -75,6 +75,20 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   background: transparent;
 }
 
+.resizer::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--spacing-sm) - var(--border-width));
+  width: var(--border-width);
+  pointer-events: none;
+  background: var(--border);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.resizer:hover::after,
+.resizer:focus-visible::after,
 .shell.is-resizing .resizer::after {
   opacity: 1;
 }
