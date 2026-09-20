@@ -57,6 +57,8 @@ export type ToolRow = {
   steps: ToolRowStep[]
   aborted: boolean
   error: boolean
+  startedAt?: number
+  endedAt?: number
   timing?: TurnTiming
 }
 

@@ -189,7 +189,12 @@ function openSessionMenu(event: MouseEvent) {
 
   if (!(card instanceof HTMLElement)) return
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  openContextMenuAt(card, rect.left + rect.width / 2, rect.bottom)
+  const menuWidth =
+    Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--size-menu")) ||
+    140
+
+  // ContextMenu 固定 side=right / align=start，点在面板左上；左移一格让右上角贴图标
+  openContextMenuAt(card, rect.right - menuWidth - 2, rect.bottom)
 }
 
 function onCardKeydown(event: KeyboardEvent) {

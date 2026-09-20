@@ -74,23 +74,6 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   background: transparent;
 }
 
-.resizer::after {
-  pointer-events: none;
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: var(--spacing-xs);
-  width: var(--spacing-xxs);
-  height: var(--spacing-lg);
-  margin-inline-start: calc(var(--spacing-xxs) / -2);
-  margin-block-start: calc(var(--spacing-lg) / -2);
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
-  content: "";
-}
-
-.resizer:hover::after,
 .shell.is-resizing .resizer::after {
   opacity: 1;
 }

@@ -89,6 +89,8 @@ function appendTurn({
   let segmentIndex = 0
   let segmentAborted = false
   let segmentError = false
+  let segmentStartedAt: number | undefined
+  let segmentEndedAt: number | undefined
   const toolResults = new Map<string, ToolTranscriptItem>()
   const describedToolCalls = new Set<string>()
   const renderedToolCalls = new Set<string>()
@@ -103,6 +105,12 @@ function appendTurn({
     }
   }
 
+  function noteRange(start: number, end?: number) {
+    segmentStartedAt = Math.min(segmentStartedAt ?? start, start)
+
+    if (end != null) segmentEndedAt = Math.max(segmentEndedAt ?? end, end)
+  }
+
   function flushTools(mode: ToolRow["mode"]) {
     if (!steps.length) return
     rows.push({
@@ -113,12 +121,16 @@ function appendTurn({
       steps,
       aborted: segmentAborted || (mode === "live" && timing?.outcome === "aborted"),
       error: segmentError || (mode === "live" && timing?.outcome === "error"),
+      ...(segmentStartedAt == null ? {} : { startedAt: segmentStartedAt }),
+      ...(segmentEndedAt == null ? {} : { endedAt: segmentEndedAt }),
       ...(timing ? { timing } : {}),
     })
     steps = []
     segmentIndex += 1
     segmentAborted = false
     segmentError = false
+    segmentStartedAt = undefined
+    segmentEndedAt = undefined
   }
 
   function appendTool(tool: ToolCallView) {
@@ -143,6 +155,7 @@ function appendTurn({
         outputText: transcriptText(item),
         outputImages: transcriptImages(item),
       })
+      noteRange(item.timestamp, item.timestamp)
       continue
     }
 
@@ -166,14 +179,16 @@ function appendTurn({
           .slice(itemIndex + 1)
           .find((next) => next.timestamp >= item.timestamp)?.timestamp
         const endedAt = streaming ? undefined : (nextTimestamp ?? timing?.endedAt)
+        const thoughtEndedAt = endedAt === undefined ? undefined : Math.max(item.timestamp, endedAt)
         steps.push({
           type: "thought",
           id: `thought:${id}`,
           text: block.thinking,
           streaming,
           startedAt: item.timestamp,
-          ...(endedAt === undefined ? {} : { endedAt: Math.max(item.timestamp, endedAt) }),
+          ...(thoughtEndedAt === undefined ? {} : { endedAt: thoughtEndedAt }),
         })
+        noteRange(item.timestamp, thoughtEndedAt)
       } else if (block.type === "toolCall") {
         if (pendingText) {
           flushTools("done")
@@ -193,6 +208,10 @@ function appendTurn({
           outputText: result ? transcriptText(result) : "",
           outputImages: result ? transcriptImages(result) : [],
         })
+        noteRange(
+          item.timestamp,
+          result && result.status !== "running" ? result.timestamp : undefined,
+        )
       } else if (block.type === "text" && block.text) {
         if (pendingText) pendingText.text += block.text
         else pendingText = { ...assistantRow(item, block.text), id: `text:${id}` }
@@ -308,6 +327,8 @@ function sameToolRow(left: ToolRow, right: ToolRow) {
     left.turnStreaming !== right.turnStreaming ||
     left.aborted !== right.aborted ||
     left.error !== right.error ||
+    left.startedAt !== right.startedAt ||
+    left.endedAt !== right.endedAt ||
     !sameTiming(left.timing, right.timing) ||
     left.steps.length !== right.steps.length
   ) {

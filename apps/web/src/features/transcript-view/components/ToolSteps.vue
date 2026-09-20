@@ -10,8 +10,32 @@
       <Spinner v-if="running" class="tool-steps-icon" />
       <ClockAlert v-else-if="row.aborted || row.error" class="tool-steps-icon" />
       <BadgeCheck v-else class="tool-steps-icon" />
-      <!-- prettier-ignore -->
-      <span :class="{ shimmer: running }" :data-text="label"><template v-for="(part, i) in labelParts" :key="i"><template v-if="i"> · </template><template v-if="part.kind === 'text'">{{ part.text }}</template><template v-else>{{ part.prefix }} <span class="success-n">{{ part.count }}</span> {{ part.suffix }}</template></template><template v-if="failCount"> · 执行失败 <span class="fail-n">{{ failCount }}</span> 次</template></span>
+
+      <span :class="{ shimmer: running }" :data-text="label">
+        <template v-for="(part, i) in labelParts" :key="i">
+          <template v-if="i">·</template>
+          <template v-if="part.kind === 'text'">{{ part.text }}</template>
+
+          <template v-else>
+            {{ part.prefix }}
+            <span class="success-n">{{ part.count }}</span>
+            {{ part.suffix }}
+          </template>
+        </template>
+
+        <template v-if="failCount">
+          · 执行失败
+          <span class="fail-n">{{ failCount }}</span>
+          次
+        </template>
+
+        <template v-if="durationLabel">
+          ·
+          <Clock class="size-icon duration-icon" />
+          {{ durationLabel }}
+        </template>
+      </span>
+
       <ChevronRight class="motion-turn" :class="{ 'is-on': revealed }" data-icon="inline-end" />
     </Button>
 
@@ -106,7 +130,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
-import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis } from "@lucide/vue"
+import { ChevronRight, BadgeCheck, Clock, ClockAlert, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import ToolCall from "./ToolCall.vue"
@@ -166,6 +190,25 @@ watch(
 const label = computed(() => toolRowLabel(props.row))
 const labelParts = computed(() => toolRowLabelParts(props.row))
 const failCount = computed(() => toolRowFailCount(props.row))
+const durationLabel = computed(() => {
+  const start = props.row.startedAt
+  const end = props.row.endedAt
+
+  if (props.row.mode !== "done" || start == null || end == null || end <= start) return ""
+  const total = Math.round((end - start) / 1000)
+
+  if (total <= 0) return ""
+  const hours = Math.floor(total / 3600)
+  const minutes = Math.floor((total % 3600) / 60)
+  const seconds = total % 60
+  const parts: string[] = []
+
+  if (hours) parts.push(`${hours}h`)
+
+  if (hours || minutes) parts.push(`${minutes}m`)
+  parts.push(`${seconds}s`)
+  return parts.join(" ")
+})
 
 function isStepRunning(step: ToolRowStep) {
   return step.type === "thought" ? step.streaming : step.items.some((item) => item.running)
@@ -364,6 +407,11 @@ onBeforeUnmount(() => {
 .tool-steps-icon {
   flex: none;
   transition: color var(--duration-fast) var(--ease-out);
+}
+
+.duration-icon {
+  display: inline;
+  vertical-align: -0.125em;
 }
 
 .fail-n {

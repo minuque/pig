@@ -90,7 +90,7 @@ async function copy() {
   gap: var(--spacing-sm);
   min-width: 0;
   min-height: 36px;
-  padding: var(--spacing-xxs) var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
   border-bottom: var(--border-width) solid var(--border);
   border-start-start-radius: var(--radius-lg);
   border-start-end-radius: var(--radius-lg);
