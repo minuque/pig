@@ -67,7 +67,7 @@ export function useTranscriptWindow(options: {
   }
 
   function estimateOf(row: TimelineRow): number {
-    return Math.max(1, options.estimate ? options.estimate(row) : estimateRowHeight(row.role))
+    return Math.max(1, options.estimate ? options.estimate(row) : estimateRowHeight(row))
   }
 
   /** rows 变了就按实测缓存重建索引，新行先用估算值。 */

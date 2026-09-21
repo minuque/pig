@@ -163,14 +163,50 @@ describe("打开已有会话 → 长列表按视口窗口挂载", () => {
     expect(blocks.at(-2)).toMatchObject({ kind: "space", height: 1300 })
   })
 
-  it("行高估算按角色分档且都为正", () => {
+  it("行高估算跟内容走：折叠工具行只算摘要、正文按行数、用户气泡封顶", () => {
+    const toolRow = (mode: "done" | "live"): TimelineRow => ({
+      id: "t1",
+      role: "tools",
+      mode,
+      turnStreaming: false,
+      steps: [
+        { type: "tools", id: "s1", key: "read", items: [] },
+        { type: "tools", id: "s2", key: "read", items: [] },
+      ],
+      aborted: false,
+      error: false,
+    })
+    const assistantRow = (id: string, text: string): TimelineRow => ({
+      id,
+      role: "assistant",
+      text,
+      streaming: false,
+      error: false,
+      aborted: false,
+      timestamp: 0,
+    })
+    const short = assistantRow("a1", "一句话。")
+    const long = assistantRow("a2", `${"长正文。".repeat(60)}\n\n\`\`\`ts\nconst a = 1\n\`\`\``)
+    const user: TimelineRow = {
+      id: "u1",
+      role: "user",
+      text: "字".repeat(8000),
+      images: [],
+      timestamp: 0,
+    }
     const values = [
-      estimateRowHeight("user"),
-      estimateRowHeight("assistant"),
-      estimateRowHeight("tools"),
+      estimateRowHeight(short),
+      estimateRowHeight(long),
+      estimateRowHeight(toolRow("done")),
+      estimateRowHeight(toolRow("live")),
+      estimateRowHeight(user),
     ]
 
     expect(values.every((value) => value > 0)).toBe(true)
-    expect(new Set(values).size).toBe(3)
+    // 短句不该按固定 240 估；代码块与长正文拉开差距；折叠工具行小于运行中的工具行
+    expect(estimateRowHeight(short)).toBeLessThan(80)
+    expect(estimateRowHeight(long)).toBeGreaterThan(estimateRowHeight(short))
+    expect(estimateRowHeight(toolRow("done"))).toBeLessThan(estimateRowHeight(toolRow("live")))
+    expect(estimateRowHeight(user)).toBeLessThanOrEqual(392)
   })
 })

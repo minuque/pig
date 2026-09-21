@@ -1,11 +1,80 @@
 import type { TimelineRow } from "@features/transcript-view/type.js"
 
-/** 未测量前的行高初值：用户句短、助手正文长、工具过程居中。 */
-export function estimateRowHeight(role: TimelineRow["role"]): number {
-  if (role === "user") return 88
+const CHARS_PER_LINE = 88
+const TEXT_LINE = 26
+const CODE_LINE = 22
+const CODE_HEAD = 38
+const TABLE_ROW = 33
+const HEADING = 40
+const DIAGRAM = 240
+const PARAGRAPH_GAP = 8
+const TOOL_STEP = 44
+const TOOL_SUMMARY = 44
+const ROW_GAP = 16
+const USER_BASE = 72
+/** 用户气泡 CSS 限高 16 行。 */
+const USER_MAX = 392
 
-  if (role === "assistant") return 240
-  return 180
+/** 助手正文的 Markdown 估高：段落按折行算，代码块、表格、标题、图表按块算。 */
+function markdownHeight(text: string): number {
+  let height = 0
+  let inCode = false
+  let codeLines = 0
+  let language = ""
+  let paragraphs = 0
+
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim()
+
+    if (trimmed.startsWith("```")) {
+      if (inCode) {
+        height += language.includes("mermaid") ? DIAGRAM : CODE_HEAD + codeLines * CODE_LINE
+        inCode = false
+        codeLines = 0
+      } else {
+        inCode = true
+        language = trimmed.slice(3).trim().toLowerCase()
+      }
+
+      continue
+    }
+
+    if (inCode) {
+      codeLines += 1
+      continue
+    }
+
+    if (!trimmed) continue
+
+    if (/^#{1,6} /.test(trimmed)) height += HEADING
+    else if (trimmed.startsWith("|")) height += TABLE_ROW
+    else if (/^([-*+]|\d+\.) /.test(trimmed)) height += TEXT_LINE
+    else {
+      paragraphs += 1
+      height += Math.max(1, Math.ceil(trimmed.length / CHARS_PER_LINE)) * TEXT_LINE
+    }
+  }
+
+  if (inCode) height += CODE_HEAD + codeLines * CODE_LINE
+  return height + paragraphs * PARAGRAPH_GAP
+}
+
+/**
+ * 未测量前的行高初值：按行内容量估，估得越准滚动时挂载新行补的位移越小。
+ */
+export function estimateRowHeight(row: TimelineRow): number {
+  if (row.role === "tools")
+    // 折叠时只有摘要行；运行中的工具行会展开，每步再加一行摘要
+    return ROW_GAP + TOOL_SUMMARY + (row.mode === "live" ? row.steps.length * TOOL_STEP : 0)
+
+  const text = row.text ?? ""
+
+  if (row.role === "user") {
+    const lines = Math.max(1, Math.ceil(text.length / CHARS_PER_LINE))
+    return Math.min(USER_MAX, USER_BASE + lines * TEXT_LINE)
+  }
+
+  return ROW_GAP + Math.max(TEXT_LINE, markdownHeight(text))
 }
 
 const HEIGHT_DEADZONE = 0.25
