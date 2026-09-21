@@ -122,16 +122,6 @@ export function plainMarkdownProps(input: {
 }
 
 let highlighterWork: Promise<void> | undefined
-let highlighterSettled = false
-
-export function isHighlighterReady(): boolean {
-  return highlighterSettled
-}
-
-export function whenHighlighterReady(): Promise<void> {
-  prefetchHighlighter()
-  return highlighterWork ?? Promise.resolve()
-}
 
 /** 首屏就预热 Shiki/wasm，不等空闲，避免第一条代码块卡滚动。 */
 export function prefetchHighlighter(): void {
@@ -146,7 +136,4 @@ export function prefetchHighlighter(): void {
     })
     .then(() => undefined)
     .catch(() => undefined)
-    .finally(() => {
-      highlighterSettled = true
-    })
 }

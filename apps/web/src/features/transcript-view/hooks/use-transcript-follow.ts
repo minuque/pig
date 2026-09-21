@@ -1,11 +1,17 @@
-import { onBeforeUnmount, shallowRef } from "vue"
+import { onBeforeUnmount, onMounted, shallowRef } from "vue"
 import {
-  isTranscriptAtBottom,
   isTranscriptVisuallyAtBottom,
+  resolveFollowTarget,
   transcriptFloorTop,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 
 export type TranscriptScrollBehavior = "auto" | "smooth"
+
+const COOLDOWN_MS = 1000
+const SETTLE_MAX_FRAMES = 36
+const SETTLE_STABLE_FRAMES = 3
+const FLIP_FRAMES = 2
+const SCROLLBAR_HOT_PX = 12
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -15,105 +21,98 @@ function userScrollBehavior(): TranscriptScrollBehavior {
   return prefersReducedMotion() ? "auto" : "smooth"
 }
 
-/** 内容增高时按帧跟随；用户上翻立即停，首次打开和减少动态效果直接贴底。 */
+/**
+ * 内容增高时每帧贴底到布局稳定；用户上翻立即停，程序化滚动有冷却。
+ * 脱底/吸附带滞回，状态翻转等两个 rAF 确认。
+ */
 export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   const atBottom = shallowRef(false)
   const visuallyAtBottom = shallowRef(false)
+  let applying = false
+  let generation = 0
+  let settleActive = false
+  let settleRaf = 0
+  let settleFrames = 0
+  let stableFrames = 0
+  let signature = ""
+  let flipRaf = 0
+  let flipFrames = 0
+  let pendingFlip: boolean | null = null
+  let cooldownUntil = 0
+  let pointerDown = false
+  let userTookOver = false
   let navigating = false
   let navRoot: HTMLElement | null = null
   let onNavEnd: (() => void) | null = null
   let navTimer = 0
+  let lastScrollTop = 0
   let lastWritten = 0
-  let followRaf = 0
-  let lastFrame = 0
-  let position = 0
-  let velocity = 0
-  let applying = false
 
-  function stopFollow() {
-    if (followRaf) cancelAnimationFrame(followRaf)
-    followRaf = 0
-    lastFrame = 0
-    velocity = 0
+  function inCooldown() {
+    return performance.now() < cooldownUntil
+  }
+
+  /** 视口被拖到上次写入位置上方：内容收缩的浏览器钳位不算。 */
+  function userScrolledUp(root: HTMLElement) {
+    const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
+    return root.scrollTop + 2 < Math.min(lastWritten, floor)
+  }
+
+  function markProgrammatic() {
+    cooldownUntil = performance.now() + COOLDOWN_MS
+  }
+
+  function updateVisual(root: HTMLElement) {
+    visuallyAtBottom.value = isTranscriptVisuallyAtBottom(
+      root.scrollHeight,
+      root.scrollTop,
+      root.clientHeight,
+    )
   }
 
   function writeScrollTop(root: HTMLElement, top: number) {
     applying = true
     root.scrollTop = top
     applying = false
+    lastScrollTop = root.scrollTop
+    lastWritten = root.scrollTop
   }
 
-  function followFrame(now: number) {
-    const root = getRoot()
-
-    if (!root || navigating || !atBottom.value) {
-      stopFollow()
-      return
-    }
-
+  function scrollToBottomNow(root: HTMLElement) {
     const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
 
-    if (root.scrollTop + 2 < Math.min(lastWritten, floor)) {
-      atBottom.value = false
-      applyBottom(root)
-      stopFollow()
-      return
-    }
-
-    if (prefersReducedMotion() || floor - position <= 0.5) {
-      stopFollow()
-      jumpToBottom()
-      return
-    }
-
-    const dt = Math.min(Math.max(0, now - lastFrame), 32) / 1000
-    lastFrame = now
-    // 临界阻尼弹簧的解析解，保留小数位置以免滚动像素取整阻止收敛。
-    const offset = position - floor
-    const impulse = velocity + 24 * offset
-    const decay = Math.exp(-24 * dt)
-    const next = floor + (offset + impulse * dt) * decay
-    velocity = (velocity - 24 * impulse * dt) * decay
-    position = Math.min(floor, Math.max(root.scrollTop, next))
-    writeScrollTop(root, position)
-    lastWritten = root.scrollTop
-    visuallyAtBottom.value = isTranscriptVisuallyAtBottom(
-      root.scrollHeight,
-      lastWritten,
-      root.clientHeight,
-    )
-    followRaf = requestAnimationFrame(followFrame)
-  }
-
-  function applyBottom(root: HTMLElement) {
-    visuallyAtBottom.value = isTranscriptVisuallyAtBottom(
-      root.scrollHeight,
-      root.scrollTop,
-      root.clientHeight,
-    )
-
-    if (isTranscriptAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)) {
-      atBottom.value = true
+    if (Math.abs(root.scrollTop - floor) > 0.5) {
+      writeScrollTop(root, floor)
+    } else {
+      lastScrollTop = root.scrollTop
       lastWritten = root.scrollTop
     }
-  }
 
-  function jumpToBottom() {
-    const root = getRoot()
-
-    if (!root) return
-    const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
-    lastWritten = floor
-
-    if (Math.abs(root.scrollTop - floor) > 0.5) writeScrollTop(root, floor)
-    lastWritten = root.scrollTop
+    markProgrammatic()
     visuallyAtBottom.value = true
   }
 
-  function releasePinnedToBottom() {
-    stopFollow()
-    navigating = false
+  function clearSettle() {
+    if (settleRaf) cancelAnimationFrame(settleRaf)
+    settleRaf = 0
+    settleFrames = 0
+    stableFrames = 0
+    signature = ""
+  }
 
+  function stopSettle() {
+    settleActive = false
+    clearSettle()
+  }
+
+  function stopFlip() {
+    if (flipRaf) cancelAnimationFrame(flipRaf)
+    flipRaf = 0
+    flipFrames = 0
+    pendingFlip = null
+  }
+
+  function stopNavigate() {
     if (navTimer) {
       window.clearTimeout(navTimer)
       navTimer = 0
@@ -122,100 +121,177 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (navRoot && onNavEnd) navRoot.removeEventListener("scrollend", onNavEnd)
     navRoot = null
     onNavEnd = null
+    navigating = false
   }
 
-  function pinIfNeeded() {
-    if (applying || navigating || !atBottom.value) return
+  /** 用户接管：停自动滚动、停翻转、清冷却。 */
+  function detachFollow() {
+    stopSettle()
+    stopFlip()
+    stopNavigate()
+    cooldownUntil = 0
+  }
+
+  /** 有界收敛：每帧贴底，布局签名连续不变或到帧数上限就停。 */
+  function settle(maxFrames = SETTLE_MAX_FRAMES) {
+    const root = getRoot()
+
+    if (!root || !atBottom.value || userTookOver || pointerDown || settleActive) return
+    const mine = ++generation
+
+    settleActive = true
+    clearSettle()
+    settleRaf = requestAnimationFrame(step)
+
+    function step() {
+      settleRaf = 0
+
+      if (mine !== generation) {
+        settleActive = false
+        return
+      }
+
+      const node = getRoot()
+
+      if (!node || !atBottom.value || userTookOver || pointerDown) {
+        settleActive = false
+        return
+      }
+
+      scrollToBottomNow(node)
+      const next = `${node.scrollHeight}:${node.clientHeight}`
+
+      stableFrames = next === signature ? stableFrames + 1 : 0
+      signature = next
+      settleFrames += 1
+
+      if (settleFrames >= maxFrames || stableFrames >= SETTLE_STABLE_FRAMES) {
+        settleActive = false
+        return
+      }
+
+      settleRaf = requestAnimationFrame(step)
+    }
+  }
+
+  function commitFlip(value: boolean) {
+    if (atBottom.value === value) return
+    atBottom.value = value
     const root = getRoot()
 
     if (!root) return
 
-    if (prefersReducedMotion()) {
-      stopFollow()
-      jumpToBottom()
+    if (!value) {
+      stopSettle()
+      updateVisual(root)
       return
     }
 
-    if (followRaf) return
-    const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
-    const gap = floor - root.scrollTop
+    scrollToBottomNow(root)
+    settle()
+  }
 
-    // 大距离（切会话 / hydrate）直接跳；弹簧只跟流式那几像素。
-    if (
-      gap <= 0.5 ||
-      !isTranscriptVisuallyAtBottom(root.scrollHeight, root.scrollTop, root.clientHeight)
-    ) {
-      jumpToBottom()
+  function confirmFlip() {
+    flipRaf = 0
+    const value = pendingFlip
+
+    if (value === null) return
+    flipFrames += 1
+
+    if (flipFrames < FLIP_FRAMES) {
+      flipRaf = requestAnimationFrame(confirmFlip)
       return
     }
 
-    position = root.scrollTop
-    lastWritten = root.scrollTop
-    lastFrame = performance.now()
-    followRaf = requestAnimationFrame(followFrame)
+    pendingFlip = null
+    commitFlip(value)
+  }
+
+  function requestFlip(value: boolean) {
+    if (value === atBottom.value) {
+      stopFlip()
+      return
+    }
+
+    if (pendingFlip === value) return
+    pendingFlip = value
+    flipFrames = 0
+
+    if (flipRaf) cancelAnimationFrame(flipRaf)
+    flipRaf = requestAnimationFrame(confirmFlip)
+  }
+
+  function pinIfNeeded() {
+    if (applying || !atBottom.value || pointerDown || userTookOver) return
+    const root = getRoot()
+
+    if (!root) return
+
+    if (!settleRaf) scrollToBottomNow(root)
+    settle()
   }
 
   function finishNavigate() {
     if (!navigating) return
-    releasePinnedToBottom()
+    stopNavigate()
+
+    if (!atBottom.value) return
     const root = getRoot()
 
-    if (root) applyBottom(root)
-
-    if (atBottom.value) jumpToBottom()
+    if (!root) return
+    scrollToBottomNow(root)
+    settle()
   }
 
-  function beginNavigate(root: HTMLElement) {
-    releasePinnedToBottom()
+  function beginNavigate(root: HTMLElement, top: number) {
+    stopNavigate()
     navigating = true
     navRoot = root
+    markProgrammatic()
     onNavEnd = () => finishNavigate()
     root.addEventListener("scrollend", onNavEnd, { once: true })
-    navTimer = window.setTimeout(finishNavigate, 1000) // ponytail: 无 scrollend 时收尾；动画超过 1s 会提前恢复跟随
-  }
-
-  function reset() {
-    releasePinnedToBottom()
-    atBottom.value = false
-    visuallyAtBottom.value = false
+    navTimer = window.setTimeout(finishNavigate, COOLDOWN_MS) // ponytail: 无 scrollend 时收尾
+    root.scrollTo({ top, behavior: "smooth" })
   }
 
   function onScroll() {
     if (applying) return
     const root = getRoot()
 
-    if (!root || navigating) return
+    if (!root) return
+    const previous = lastScrollTop
 
-    if (atBottom.value) {
-      const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
+    lastScrollTop = root.scrollTop
+    updateVisual(root)
 
-      if (root.scrollTop + 2 < Math.min(lastWritten, floor)) {
-        stopFollow()
-        atBottom.value = false
-        visuallyAtBottom.value = isTranscriptVisuallyAtBottom(
-          root.scrollHeight,
-          root.scrollTop,
-          root.clientHeight,
-        )
-        return
-      }
+    if (navigating) return
 
-      visuallyAtBottom.value = isTranscriptVisuallyAtBottom(
-        root.scrollHeight,
-        root.scrollTop,
-        root.clientHeight,
-      )
-      pinIfNeeded()
+    // 越过上次程序化写入的位置就是用户接管，冷却也不拦
+    if (cooldownUntil !== 0 && userScrolledUp(root)) detachFollow()
+
+    if (pointerDown || userTookOver) return
+
+    if (inCooldown()) {
+      if (atBottom.value) pinIfNeeded()
       return
     }
 
-    applyBottom(root)
+    const target = resolveFollowTarget({
+      atBottom: atBottom.value,
+      distanceFromBottom: root.scrollHeight - root.scrollTop - root.clientHeight,
+      viewportHeight: root.clientHeight,
+      scrollingDown: root.scrollTop > previous,
+    })
+
+    requestFlip(target)
   }
 
   function onWheel(event: WheelEvent) {
-    releasePinnedToBottom()
+    if (event.deltaY < 0) {
+      detachFollow()
+      atBottom.value = false
+    }
 
-    if (event.deltaY < 0) atBottom.value = false
     const root = getRoot()
 
     if (!root) return
@@ -226,36 +302,83 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     root.scrollTop += event.deltaY
   }
 
+  /** 按在滚动条热区立刻脱底，按下期间不重新吸附。 */
+  function onPointerDown(event: PointerEvent) {
+    pointerDown = true
+    userTookOver = true
+    detachFollow()
+    const root = getRoot()
+
+    if (!root) return
+    const rect = root.getBoundingClientRect()
+    const hot = Math.max(root.offsetWidth - root.clientWidth, SCROLLBAR_HOT_PX)
+
+    if (event.clientX < rect.right - hot) return
+    atBottom.value = false
+    updateVisual(root)
+  }
+
+  function onPointerUp() {
+    pointerDown = false
+    userTookOver = false
+  }
+
+  function releasePinnedToBottom() {
+    detachFollow()
+  }
+
+  function reset() {
+    detachFollow()
+    pointerDown = false
+    userTookOver = false
+    atBottom.value = false
+    visuallyAtBottom.value = false
+  }
+
   function scrollToLatest(behavior: TranscriptScrollBehavior = "auto") {
     atBottom.value = true
     visuallyAtBottom.value = true
     const root = getRoot()
 
     if (!root) return
-    const top = transcriptFloorTop(root.scrollHeight, root.clientHeight)
-    lastWritten = top
+    const floor = transcriptFloorTop(root.scrollHeight, root.clientHeight)
     const instant = behavior === "auto" || prefersReducedMotion()
 
-    if (instant || Math.abs(root.scrollTop - top) <= 2) {
-      releasePinnedToBottom()
-      jumpToBottom()
+    if (instant || Math.abs(root.scrollTop - floor) <= 2) {
+      stopNavigate()
+      scrollToBottomNow(root)
+      settle()
       return
     }
 
-    beginNavigate(root)
-    root.scrollTo({ top, behavior: "smooth" })
+    beginNavigate(root, floor)
   }
 
   function scrollToElement(el: HTMLElement) {
-    const root = getRoot()
+    detachFollow()
     atBottom.value = false
     visuallyAtBottom.value = false
+    const root = getRoot()
 
-    if (root) beginNavigate(root)
+    if (root) {
+      navigating = true
+      navRoot = root
+      onNavEnd = () => finishNavigate()
+      navRoot.addEventListener("scrollend", onNavEnd, { once: true })
+      navTimer = window.setTimeout(finishNavigate, COOLDOWN_MS)
+    }
+
     el.scrollIntoView({ block: "start", behavior: userScrollBehavior() })
   }
 
-  onBeforeUnmount(releasePinnedToBottom)
+  onMounted(() => {
+    window.addEventListener("pointerup", onPointerUp, { passive: true })
+  })
+
+  onBeforeUnmount(() => {
+    window.removeEventListener("pointerup", onPointerUp)
+    detachFollow()
+  })
   return {
     atBottom,
     visuallyAtBottom,
@@ -264,6 +387,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     reset,
     onScroll,
     onWheel,
+    onPointerDown,
     scrollToLatest,
     scrollToElement,
   }

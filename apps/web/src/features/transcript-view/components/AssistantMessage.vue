@@ -51,12 +51,16 @@ const props = withDefaults(
   defineProps<{
     item: AssistantRow
     streaming?: boolean
-    hydrated?: boolean
+    heavy?: boolean
+    sessionId?: string
   }>(),
-  { streaming: false, hydrated: false },
+  { streaming: false, heavy: false, sessionId: "" },
 )
 const { isDark } = useColorScheme()
-const showHeavy = computed(() => props.streaming || props.hydrated)
+const showHeavy = computed(() => props.streaming || props.heavy)
+const markdownKey = computed(() =>
+  props.sessionId ? `${props.sessionId}/${props.item.id}` : props.item.id,
+)
 const statusLabel = computed(() => {
   const base = props.item.error ? "出错" : "已中止"
   const retries = props.item.retryCount
@@ -64,19 +68,18 @@ const statusLabel = computed(() => {
   if (retries && retries > 1) return `${base} · ${retries} 次`
   return base
 })
-const agentMarkdown = computed(() => {
-  const key = `md:${props.item.id}`
-  return chatMarkdownProps({
+const agentMarkdown = computed(() =>
+  chatMarkdownProps({
     streaming: props.streaming,
     isDark: isDark.value,
-    sessionKey: key,
-    restoreState: takeMarkdownVirtualState(key),
-  })
-})
+    sessionKey: markdownKey.value,
+    restoreState: takeMarkdownVirtualState(props.sessionId, props.item.id),
+  }),
+)
 
 function onVirtualStateChange(state: MarkstreamVirtualState) {
   if (props.streaming) return
-  saveMarkdownVirtualState(`md:${props.item.id}`, state)
+  saveMarkdownVirtualState(props.sessionId, props.item.id, state)
 }
 </script>
 

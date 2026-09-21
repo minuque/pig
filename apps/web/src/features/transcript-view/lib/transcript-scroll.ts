@@ -26,6 +26,22 @@ export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boo
   return transcriptLength > 0 && !atBottom
 }
 
+/** 距底 80px 内且继续下滚才重新吸附。 */
+export const FOLLOW_NEAR_BOTTOM_PX = 80
+
+/** 脱底/吸附滞回：离底超过半屏才脱底，中间不翻转。 */
+export function resolveFollowTarget(input: {
+  atBottom: boolean
+  distanceFromBottom: number
+  viewportHeight: number
+  scrollingDown: boolean
+}): boolean {
+  const far = Math.max(FOLLOW_NEAR_BOTTOM_PX, input.viewportHeight / 2)
+
+  if (input.atBottom) return input.distanceFromBottom <= far
+  return input.distanceFromBottom <= FOLLOW_NEAR_BOTTOM_PX && input.scrollingDown
+}
+
 export function transcriptOverflows(
   scrollHeight: number,
   clientHeight: number,
@@ -45,6 +61,21 @@ export function shouldLoadOlderTranscript(
   const threshold = options.threshold ?? 48
   const overflow = options.overflow ?? true
   return hasMore && !loading && !atBottom && overflow && scrollTop <= threshold
+}
+
+/** 更长列表的前缀是新历史，prev 仍作为后缀出现。 */
+export function historyPrepended(
+  prev: readonly { readonly id: string }[],
+  next: readonly { readonly id: string }[],
+): boolean {
+  if (prev.length === 0 || next.length <= prev.length) return false
+  const offset = next.length - prev.length
+
+  for (let i = 0; i < prev.length; i += 1) {
+    if (next[offset + i]?.id !== prev[i]?.id) return false
+  }
+
+  return true
 }
 
 /** 上方插入内容后把 scrollTop 加上增高，视口里的字不动。 */

@@ -396,37 +396,54 @@ async function scrollOverflowWorstFrame(
   }
 }
 
-async function loadAllTranscriptPages(page: Page, name: BenchSessionName, pages: number) {
-  const firstPrompt = page.getByText(sessionPrompt(name, 1), { exact: true })
+/** 点顶上按钮直到服务端没有更早历史；窗口化只挂视口附近的行，按总高增长判断这一页落地。 */
+async function loadAllTranscriptPages(page: Page, pages: number) {
   const more = page.locator(".older-busy")
+  const root = page.locator(".transcript-viewport")
 
-  for (let pageIndex = 0; pageIndex < pages && (await firstPrompt.count()) === 0; pageIndex += 1) {
+  for (let pageIndex = 0; pageIndex < pages && (await more.count()) > 0; pageIndex += 1) {
     await page.waitForFunction(() => {
       const button = document.querySelector<HTMLButtonElement>(".older-busy")
       return button == null || !button.disabled
     })
 
-    if ((await firstPrompt.count()) > 0 || (await more.count()) === 0) break
-    const previous = await page.locator(".row-user").count()
+    if ((await more.count()) === 0) break
+    const previous = await root.evaluate((node) => node.scrollHeight)
     // 顶上按钮进视口会自己上翻；已 disabled 说明这一页已经在飞。
     await more.evaluate((node) => {
       if (!(node instanceof HTMLButtonElement) || node.disabled) return
       node.click()
     })
     await page.waitForFunction(
-      (count) => {
+      (height) => {
+        const node = document.querySelector(".transcript-viewport")
         const button = document.querySelector<HTMLButtonElement>(".older-busy")
-        return (
-          document.querySelectorAll(".row-user").length > count &&
-          (button == null || !button.disabled)
-        )
+        return !!node && (button == null || (!button.disabled && node.scrollHeight > height))
       },
       previous,
       { timeout: WORKBENCH_TIMEOUT_MS },
     )
   }
 
-  await firstPrompt.waitFor({ state: "attached", timeout: WORKBENCH_TIMEOUT_MS })
+  if ((await more.count()) > 0) throw new Error("长会话仍有更早历史未加载")
+}
+
+/** 补齐 Markdown 和分批渲染收尾前不采样：连续 8 帧没纯文本行、帧长也在预算内。 */
+async function waitForSettledView(page: Page) {
+  await page.waitForFunction(
+    () => {
+      const win = window as unknown as { __pigQuiet?: { last: number; quiet: number } }
+      const now = performance.now()
+      const slot = (win.__pigQuiet ??= { last: now, quiet: 0 })
+      const busy = now - slot.last >= 24 || document.querySelectorAll(".md-plain").length > 0
+
+      slot.last = now
+      slot.quiet = busy ? 0 : slot.quiet + 1
+      return slot.quiet >= 8
+    },
+    null,
+    { timeout: WORKBENCH_TIMEOUT_MS },
+  )
 }
 
 /** 分页拉完历史后，时间线滚到顶再到底，返回最差动画帧。 */
@@ -434,12 +451,16 @@ export async function scrollTranscript(page: Page, name: BenchSessionName): Prom
   const turns = sessionTurns(name)
 
   if (turns === 0) throw new Error("空会话没有可滚动历史")
-  await loadAllTranscriptPages(page, name, turns)
-  await page.waitForFunction(
-    (expected) => document.querySelectorAll(".row-user").length >= expected,
-    turns,
-    { timeout: WORKBENCH_TIMEOUT_MS },
-  )
+  await loadAllTranscriptPages(page, turns)
+  // 窗口化只挂视口附近的行，滚到顶才算最早一轮真的落地
+  await page.locator(".transcript-viewport").evaluate((node) => {
+    node.scrollTop = 0
+  })
+  await page
+    .getByText(sessionPrompt(name, 1), { exact: true })
+    .waitFor({ state: "attached", timeout: WORKBENCH_TIMEOUT_MS })
+  // 停稳后窗口内的行才补 Markdown；等补齐且安静下来再采样，量的是滚动本身
+  await waitForSettledView(page)
   return scrollOverflowWorstFrame(page, ".transcript-viewport", "长会话未产生可滚动内容")
 }
 

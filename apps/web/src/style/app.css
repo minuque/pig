@@ -525,9 +525,13 @@ p {
   overflow-wrap: anywhere;
 }
 
-html[data-pig-desktop-platform]:has([data-slot="dialog-content"]) body *,
-html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"]) body *,
-html[data-pig-desktop-platform]:has(.mermaid-modal-overlay) body * {
+/* 弹层打开时只禁掉拖拽层本身：写 body * 会让每次挂载都全量重算样式。 */
+html[data-pig-desktop-platform]:has([data-slot="dialog-content"])
+  :is(.titlebar-drag, .logo-row, .drag-strip, .workbench-header, .header-crumb, .header-session),
+html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"])
+  :is(.titlebar-drag, .logo-row, .drag-strip, .workbench-header, .header-crumb, .header-session),
+html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
+  :is(.titlebar-drag, .logo-row, .drag-strip, .workbench-header, .header-crumb, .header-session) {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }

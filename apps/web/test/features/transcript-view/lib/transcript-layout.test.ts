@@ -12,6 +12,8 @@ import {
   timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import {
+  FOLLOW_NEAR_BOTTOM_PX,
+  resolveFollowTarget,
   restoreScrollAfterPrepend,
   shouldLoadOlderTranscript,
   transcriptOverflows,
@@ -258,6 +260,33 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(work?.steps[0]).toMatchObject({ type: "tools", items: [{ running: false }] })
     expect(work?.steps[1]).toMatchObject({ type: "thought", streaming: false })
     expect(rows.at(-1)).toMatchObject({ aborted: true, showTimestamp: true })
+  })
+})
+
+describe("一轮工作 → 视口跟随的脱底与吸附", () => {
+  function target(atBottom: boolean, distance: number, scrollingDown: boolean) {
+    return resolveFollowTarget({
+      atBottom,
+      distanceFromBottom: distance,
+      viewportHeight: 400,
+      scrollingDown,
+    })
+  }
+
+  it("离底超过半屏才脱底，下方继续滚不翻转", () => {
+    expect(target(true, 100, false)).toBe(true)
+    expect(target(true, 199, false)).toBe(true)
+    expect(target(true, 201, false)).toBe(false)
+    expect(target(true, 900, true)).toBe(false)
+  })
+
+  it("80px 内且向下滚才重新吸附，中间保持脱底", () => {
+    expect(FOLLOW_NEAR_BOTTOM_PX).toBe(80)
+    expect(target(false, 40, true)).toBe(true)
+    expect(target(false, 80, true)).toBe(true)
+    expect(target(false, 81, true)).toBe(false)
+    expect(target(false, 40, false)).toBe(false)
+    expect(target(false, 150, true)).toBe(false)
   })
 })
 

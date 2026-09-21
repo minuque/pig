@@ -1,11 +1,22 @@
 import { useColorMode } from "@vueuse/core"
-import { computed, nextTick } from "vue"
+import { computed, nextTick, type ComputedRef } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
 
 const STORAGE_KEY = "npg-theme"
 
-/** 主题读写只放 theme 模块；其它 feature 只消费 isDark / scheme / codeBlockProps / toggle / setScheme。 */
-export function useColorScheme() {
+type Theme = {
+  isDark: ComputedRef<boolean>
+  scheme: ComputedRef<ColorScheme>
+  codeBlockProps: ComputedRef<{ theme: "dark-plus" | "light-plus" }>
+  setScheme: (next: ColorScheme) => void
+  toggle: () => void
+}
+
+let shared: Theme | undefined
+
+/** 主题是全局面板和 html class，控制器只建一次；每行组件各自建会把 class 反复重写。 */
+function theme(): Theme {
+  if (shared) return shared
   const mode = useColorMode({ initialValue: "auto", storageKey: STORAGE_KEY })
   const isDark = computed(() => mode.state.value === "dark")
   const scheme = computed<ColorScheme>(() =>
@@ -48,5 +59,11 @@ export function useColorScheme() {
     document.startViewTransition(updateTheme)
   }
 
-  return { isDark, scheme, codeBlockProps, setScheme, toggle }
+  shared = { isDark, scheme, codeBlockProps, setScheme, toggle }
+  return shared
+}
+
+/** 主题读写只放 theme 模块；其它 feature 只消费 isDark / scheme / codeBlockProps / toggle / setScheme。 */
+export function useColorScheme() {
+  return theme()
 }
