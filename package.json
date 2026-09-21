@@ -29,6 +29,7 @@
     "check:design-tokens": "node scripts/verify-design-tokens.mjs",
     "check:release": "pnpm check && pnpm build && pnpm smoke:packed && pnpm test:e2e",
     "smoke:packed": "node scripts/smoke-packed.mjs",
+    "setup:worktree": "node scripts/setup-worktree.mjs",
     "prepare": "husky"
   },
   "devDependencies": {
