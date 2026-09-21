@@ -954,6 +954,51 @@ describe("HTTP 历史与 live Transcript 合并", () => {
       expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1", "t2", "t3"]),
     )
   })
+
+  it("同一帧：工具完成后紧跟空快照，完成态不被清掉", async () => {
+    const descriptor = {
+      id: "a1",
+      role: "assistant",
+      content: [
+        { type: "toolCall" as const, toolCallId: "t1", toolName: "read", input: { path: "t1.ts" } },
+      ],
+      model: { provider: "test", id: "model" },
+      timestamp: 2,
+      status: "streaming",
+    } satisfies TranscriptItem
+    const tool = (status: "running" | "complete") =>
+      ({
+        id: "t1",
+        role: "tool",
+        toolCallId: "t1",
+        toolName: "read",
+        input: { path: "t1.ts" },
+        content: status === "complete" ? [{ type: "text" as const, text: "out" }] : [],
+        timestamp: 3,
+        status,
+        isError: false,
+      }) satisfies TranscriptItem
+    const { session } = setup()
+    const remote = makeSession("s1")
+    remote.state = { ...remote.state, transcript: [descriptor, tool("running")] }
+    openMock.mockResolvedValue(remote)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await vi.waitFor(() =>
+      expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1"]),
+    )
+
+    // 同一帧里先到 item_finished，再到清空库内 progress 的空快照
+    remote.state = { ...remote.state, transcript: [descriptor, tool("complete")] }
+    remote.emit()
+    remote.state = { ...remote.state, snapshot: snapshot(2), transcript: [] }
+    remote.emit()
+
+    await vi.waitFor(() =>
+      expect(session.transcript.value.at(-1)).toMatchObject({ id: "t1", status: "complete" }),
+    )
+    expect(session.transcript.value.map((item) => item.id)).toEqual(["a1", "t1"])
+  })
 })
 
 describe("一轮工作", () => {

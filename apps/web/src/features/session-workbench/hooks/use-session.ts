@@ -13,6 +13,7 @@ import type {
   ModelRef,
   RemoteSessionState,
   ThinkingLevel,
+  TranscriptItem,
   Unsubscribe,
 } from "@/types/common-type.js"
 import { errorMessage } from "@client/http.js"
@@ -84,12 +85,13 @@ export function useSessionLifecycle(
     remote.value = next
     let usageRevision: number | undefined
     // 每 token 一个事件，整流成每帧一次发布，避免每 token 重建整条时间线；8ms 兜底上限压低流式延迟
+    // 快照广播会清空库内 progress，同一帧里后到的空快照会盖掉先到的 item_finished：按 id 逐事件累积
+    const liveItems = new Map<string, TranscriptItem>()
     const publish = (nextState: RemoteSessionState) => {
       state.value = nextState
       const attachedId = next.id
 
-      if (nextState.transcript.length > 0 && attachedId)
-        history.overlayLive(attachedId, nextState.transcript)
+      if (liveItems.size > 0 && attachedId) history.overlayLive(attachedId, [...liveItems.values()])
       const revision = nextState.snapshot?.revision
 
       if (revision === undefined || revision === usageRevision || !attachedId) return
@@ -103,7 +105,10 @@ export function useSessionLifecycle(
     const coalesced = coalesceByFrame<RemoteSessionState>(publish, 8)
 
     cancelCoalesced = coalesced.cancel
-    unsubscribeState = next.subscribe((nextState) => coalesced.push(nextState))
+    unsubscribeState = next.subscribe((nextState) => {
+      for (const item of nextState.transcript) liveItems.set(item.id, item)
+      coalesced.push(nextState)
+    })
   }
 
   function detach() {
