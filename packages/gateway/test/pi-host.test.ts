@@ -30,6 +30,7 @@ class FakeAgentSession {
   aborted = false
   disposed = false
   systemPrompt = "system prompt"
+  cwd: string | undefined
   messages: Array<{ role: "user"; content: string; timestamp: number }> = []
   resourceLoader = {
     getAgentsFiles: () => ({ agentsFiles: [] }),
@@ -346,9 +347,14 @@ describe("PiHostService", () => {
       sessionDir: dir,
       cwd: dir,
       createRuntime: async () => baseRuntime as never,
-      createSession: (async (options: { sessionManager: SessionManager; model?: unknown }) => {
+      createSession: (async (options: {
+        sessionManager: SessionManager
+        model?: unknown
+        cwd?: string
+      }) => {
         const fake = new FakeAgentSession(options.sessionManager)
         fake.sessionId = options.sessionManager.getSessionId()
+        fake.cwd = options.cwd
 
         if (options.model) fake.model = options.model as { provider: string; id: string }
         sessions.set(fake.sessionId, fake)
@@ -441,6 +447,18 @@ describe("PiHostService", () => {
     expect(await service.listSessionCards()).toMatchObject([
       { id: "sess-long", messageCount: total },
     ])
+  })
+
+  it("打开会话与新建会话交出同一套规范化 cwd", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "pig-pi-host-"))
+    temps.push(dir)
+    const { service, sessions } = await makeService(dir)
+    // 会话文件里存原生拼写；两条路径都要交规范化拼写，SDK 的扩展缓存才不翻面
+    SessionManager.create(dir, dir, { id: "sess-native" }).appendMessage(assistantMessage())
+    await service.openSession("sess-native")
+    await service.createSession({ id: "sess-new", cwd: dir })
+    expect(sessions.get("sess-native")?.cwd).toBe(canonicalizePath(dir))
+    expect(sessions.get("sess-new")?.cwd).toBe(canonicalizePath(dir))
   })
 
   it("renames via SessionManager and deletes the session file", async () => {

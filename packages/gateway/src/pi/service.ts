@@ -38,6 +38,14 @@ type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
 
 type SessionFactory = typeof createAgentSession
 
+/** 已 reload 的资源加载器；同目录只交给一个会话持有。 */
+type ResourceSlot = { loader: DefaultResourceLoader; inUse: boolean }
+
+/** 借出的加载器与归还回调。 */
+type Resource = { loader: DefaultResourceLoader; release: () => void }
+
+const MAX_RESOURCE_SLOTS = 4
+
 export interface PiHostServiceOptions {
   /** 统一会话目录；缺省用 Pi 默认（~/.pi/agent/sessions/<cwd>/）。 */
   sessionDir?: string
@@ -57,8 +65,9 @@ export class PiHostService implements PiServerService {
   /** sessionId → 会话文件路径（listSessions/openSession 时填充）。 */
   private readonly sessionPaths = new Map<string, string>()
   private readonly activeSessions = new Map<string, PiHostSession>()
+  /** 规范化 cwd → 该目录已 reload 的 loader。 */
+  private readonly resourceSlots = new Map<string, Promise<ResourceSlot>>()
   private runtimePromise?: Promise<Runtime>
-  private resourceWarm?: Promise<void>
   private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined
 
   constructor(private readonly options: PiHostServiceOptions = {}) {}
@@ -137,18 +146,22 @@ export class PiHostService implements PiServerService {
       )
     }
 
+    let resource: Resource | undefined
+
     try {
-      await this.warmResources().catch(() => undefined)
+      resource = await this.resources(cwd)
 
       const { session } = await this.sessionFactory()({
         cwd,
         modelRuntime: runtime,
         sessionManager: SessionManager.open(path),
+        ...(resource ? { resourceLoader: resource.loader } : {}),
         ...(model ? { model } : {}),
         ...(options.thinkingLevel ? { thinkingLevel: options.thinkingLevel } : {}),
       })
-      return this.trackSession(session)
+      return this.trackSession(session, resource?.release)
     } catch (error) {
+      resource?.release()
       // AgentSession 创建失败（如无可用模型）时回滚，避免遗留空会话文件
       await this.rollbackSession(options.id, path)
       throw error
@@ -192,14 +205,23 @@ export class PiHostService implements PiServerService {
 
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
 
-    await this.warmResources().catch(() => undefined)
+    const manager = SessionManager.open(path)
+    // 与 createSession 同一套规范化拼写，SDK 的扩展缓存才不会被会话文件的原生拼写顶掉
+    const cwd = canonicalizePath(manager.getCwd())
+    const resource = await this.resources(cwd)
 
-    const { session } = await this.sessionFactory()({
-      cwd: SessionManager.open(path).getCwd(),
-      modelRuntime: runtime,
-      sessionManager: SessionManager.open(path),
-    })
-    return this.trackSession(session)
+    try {
+      const { session } = await this.sessionFactory()({
+        cwd,
+        modelRuntime: runtime,
+        sessionManager: manager,
+        ...(resource ? { resourceLoader: resource.loader } : {}),
+      })
+      return this.trackSession(session, resource?.release)
+    } catch (error) {
+      resource?.release()
+      throw error
+    }
   }
 
   contextUsage(
@@ -263,32 +285,79 @@ export class PiHostService implements PiServerService {
   }
 
   /** 连接时预热扩展/技能；测试注入 session 工厂时跳过。 */
-  private warmResources(): Promise<void> {
-    if (this.options.createSession) return Promise.resolve()
-    return (this.resourceWarm ??= this.reloadDefaultResources().catch((error: unknown) => {
-      delete this.resourceWarm
-      throw error
-    }))
+  private async warmResources(): Promise<void> {
+    if (this.options.createSession) return
+    await this.slot(canonicalizePath(this.options.cwd ?? process.cwd()))
   }
 
-  private async reloadDefaultResources(): Promise<void> {
-    const cwd = canonicalizePath(this.options.cwd ?? process.cwd())
+  /**
+   * 取该目录已 reload 的 loader，交给会话复用，省掉 SDK 里的 reload 与扩展重新转译。
+   * 同目录已有会话持有时改用新实例：扩展运行时的绑定写在这份 extensionsResult 上。
+   */
+  private async resources(cwd: string): Promise<Resource | undefined> {
+    if (this.options.createSession) return undefined
+
+    const key = canonicalizePath(cwd)
+    const slot = await this.slot(key)
+
+    if (slot.inUse) return { loader: await this.createLoader(key), release: () => undefined }
+    slot.inUse = true
+    return {
+      loader: slot.loader,
+      release: () => {
+        slot.inUse = false
+      },
+    }
+  }
+
+  /** 每个目录一份 loader；并发请求共用同一次加载，超上限按插入顺序淘汰一项。 */
+  private slot(cwd: string): Promise<ResourceSlot> {
+    const cached = this.resourceSlots.get(cwd)
+
+    if (cached) return cached
+
+    if (this.resourceSlots.size >= MAX_RESOURCE_SLOTS) {
+      const oldest = this.resourceSlots.keys().next()
+
+      if (!oldest.done) this.resourceSlots.delete(oldest.value)
+    }
+
+    const pending = this.createLoader(cwd).then(
+      (loader) => ({ loader, inUse: false }),
+      (error: unknown) => {
+        this.resourceSlots.delete(cwd)
+        throw error
+      },
+    )
+
+    this.resourceSlots.set(cwd, pending)
+    return pending
+  }
+
+  /** 新建并 reload 一份 loader；同拼写下 SDK 复用扩展模块缓存，不重复转译。 */
+  private async createLoader(cwd: string): Promise<DefaultResourceLoader> {
     const agentDir = getAgentDir()
     const settingsManager = SettingsManager.create(cwd, agentDir)
     const loader = new DefaultResourceLoader({ cwd, agentDir, settingsManager })
     await loader.reload()
+    return loader
   }
 
   private sessionFactory(): SessionFactory {
     return this.options.createSession ?? createAgentSession
   }
 
-  private trackSession(session: Awaited<ReturnType<SessionFactory>>["session"]): PiHostSession {
+  private trackSession(
+    session: Awaited<ReturnType<SessionFactory>>["session"],
+    release?: () => void,
+  ): PiHostSession {
     let host!: PiHostSession
     host = new PiHostSession(session, () => {
       if (this.activeSessions.get(session.sessionId) === host) {
         this.activeSessions.delete(session.sessionId)
       }
+
+      release?.()
     })
     this.activeSessions.set(session.sessionId, host)
     return host
