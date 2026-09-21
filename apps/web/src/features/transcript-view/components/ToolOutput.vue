@@ -2,50 +2,29 @@
   <div v-if="code" class="tool-output is-code">
     <div class="code-scroll">
       <div class="code-lines" :style="{ '--line-number-width': `${lineNumberWidth}ch` }">
-        <template v-for="line in visibleLines" :key="line.index">
-          <button
-            v-if="line.index === omitIndex && collapsed"
-            type="button"
-            class="omitted"
-            @click="expanded = true"
-          >
-            … 其余 {{ hiddenCount }} 行
-          </button>
+        <div v-for="(line, index) in lines" :key="index" class="code-line">
+          <span class="line-number">{{ startLine + index }}</span>
 
-          <div v-else class="code-line">
-            <span class="line-number">{{ startLine + line.index }}</span>
+          <code>
+            <template v-if="tokens[index]">
+              <span
+                v-for="(token, tokenIndex) in tokens[index]"
+                :key="tokenIndex"
+                :style="{ color: token.color }"
+              >
+                {{ token.content }}
+              </span>
+            </template>
 
-            <code>
-              <template v-if="tokens[line.index]">
-                <span
-                  v-for="(token, index) in tokens[line.index]"
-                  :key="index"
-                  :style="{ color: token.color }"
-                >
-                  {{ token.content }}
-                </span>
-              </template>
-
-              <template v-else>{{ line.text }}</template>
-            </code>
-          </div>
-        </template>
+            <template v-else>{{ line }}</template>
+          </code>
+        </div>
       </div>
     </div>
   </div>
 
   <div v-else class="tool-output" :class="{ 'is-embedded': embedded }">
-    <template v-if="showText && collapsed">
-      <pre class="tool-output-pre" :class="preClass">{{ omittedHead }}</pre>
-
-      <button type="button" class="omitted" @click="expanded = true">
-        … 其余 {{ hiddenCount }} 行
-      </button>
-
-      <pre class="tool-output-pre" :class="preClass">{{ omittedTail }}</pre>
-    </template>
-
-    <template v-else-if="showText">
+    <template v-if="showText">
       <pre v-if="!virtual" class="tool-output-pre" :class="preClass">{{ text }}</pre>
 
       <pre
@@ -83,9 +62,6 @@ import {
   DEFAULT_MAX_EXPAND_LINES,
   DEFAULT_OVERSCAN_LINES,
   splitLines,
-  TOOL_OMIT_HEAD,
-  TOOL_OMIT_TAIL,
-  hiddenLineCount,
   visibleLineRange,
 } from "@features/transcript-view/lib/expandable-text.js"
 
@@ -117,29 +93,16 @@ const props = withDefaults(
     images: () => [],
   },
 )
-const expanded = defineModel<boolean>("expanded", { default: false })
-const omitIndex = TOOL_OMIT_HEAD - 1
 const showText = computed(() => props.text.length > 0 || props.images.length === 0)
-const sourceLines = computed(() => (props.code ? [...props.lines] : splitLines(props.text)))
-const hiddenCount = computed(() => hiddenLineCount(sourceLines.value.length))
-const collapsed = computed(() => hiddenCount.value > 0 && !expanded.value)
-const omittedHead = computed(() => sourceLines.value.slice(0, omitIndex).join("\n"))
-const omittedTail = computed(() => sourceLines.value.slice(-TOOL_OMIT_TAIL).join("\n"))
-const visibleLines = computed(() => {
-  const lines = sourceLines.value.map((text, index) => ({ text, index }))
-  return collapsed.value
-    ? [...lines.slice(0, TOOL_OMIT_HEAD), ...lines.slice(-TOOL_OMIT_TAIL)]
-    : lines
-})
+const lines = computed(() => (props.code ? [...props.lines] : splitLines(props.text)))
 const lineNumberWidth = computed(() =>
-  Math.max(3, String(props.startLine + sourceLines.value.length - 1).length),
+  Math.max(3, String(props.startLine + lines.value.length - 1).length),
 )
 const preClass = computed(() => ({
   "is-plain": props.tone === "plain",
   "is-embedded": props.embedded,
 }))
 const scrollTop = shallowRef(0)
-const lines = computed(() => splitLines(props.text))
 const virtual = computed(() => lines.value.length > props.maxLines)
 const range = computed(() =>
   virtual.value
@@ -280,25 +243,5 @@ code {
   color: var(--ink);
   font: inherit;
   white-space: pre;
-}
-
-.omitted {
-  display: block;
-  margin-inline-start: 2ch;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink-muted);
-  font: inherit;
-  cursor: pointer;
-}
-
-.tool-output:not(.is-code) .omitted {
-  margin: var(--spacing-xxs) 0;
-  margin-inline-start: 0;
-}
-
-.omitted:hover {
-  color: var(--ink);
 }
 </style>

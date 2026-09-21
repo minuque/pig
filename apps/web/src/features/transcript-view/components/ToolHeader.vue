@@ -10,10 +10,6 @@
       <div class="actions">
         <slot name="meta" />
 
-        <button v-if="hiddenCount > 0" type="button" class="expand" @click="expanded = !expanded">
-          {{ expanded ? `收起中间 ${hiddenCount} 行` : `展开其余 ${hiddenCount} 行` }}
-        </button>
-
         <Button
           v-if="text"
           type="button"
@@ -40,15 +36,10 @@ import { useTimeoutFn } from "@vueuse/core"
 import { Check, Copy } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 
-const props = withDefaults(
-  defineProps<{
-    label: string
-    text: string
-    hiddenCount?: number
-  }>(),
-  { hiddenCount: 0 },
-)
-const expanded = defineModel<boolean>("expanded", { default: false })
+const props = defineProps<{
+  label: string
+  text: string
+}>()
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const copyLabel = computed(() =>
   status.value === "copied"
@@ -136,19 +127,6 @@ async function copy() {
   gap: var(--spacing-xs);
   color: var(--ink-muted);
   white-space: nowrap;
-}
-
-.expand {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink-muted);
-  font: inherit;
-  cursor: pointer;
-}
-
-.expand:hover {
-  color: var(--ink);
 }
 
 .copy {

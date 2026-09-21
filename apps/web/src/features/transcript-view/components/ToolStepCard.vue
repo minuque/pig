@@ -10,12 +10,7 @@
 
   <div v-else class="tool-step-card" :class="cardClasses">
     <template v-if="runContent">
-      <ToolHeader
-        v-model:expanded="runExpanded"
-        :label="runContent.copyLabel"
-        :text="runContent.copyText"
-        :hidden-count="runHidden"
-      >
+      <ToolHeader :label="runContent.copyLabel" :text="runContent.copyText">
         <div class="command-heading">
           <span class="status-dot" :title="runContent.statusLabel" />
 
@@ -28,7 +23,6 @@
       </ToolHeader>
 
       <ToolOutput
-        v-model:expanded="runExpanded"
         :text="runContent.outputText || runContent.emptyOutput"
         :images="runContent.outputImages"
         :show-count="false"
@@ -37,12 +31,7 @@
     </template>
 
     <template v-else-if="readContent">
-      <ToolHeader
-        v-model:expanded="readExpanded"
-        :label="readContent.path"
-        :text="readContent.preview.code"
-        :hidden-count="readHidden"
-      >
+      <ToolHeader :label="readContent.path" :text="readContent.preview.code">
         <div class="read-heading">
           <img
             v-if="languageIconUrl"
@@ -57,7 +46,6 @@
       </ToolHeader>
 
       <ToolOutput
-        v-model:expanded="readExpanded"
         code
         :lines="readContent.preview.lines"
         :tokens="readTokens"
@@ -73,7 +61,6 @@
       </ToolHeader>
 
       <ToolOutput
-        v-model:expanded="outputExpanded"
         :text="
           toolContent.outputText || (toolContent.outputImages.length ? '' : toolContent.emptyOutput)
         "
@@ -131,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { StreamDiff } from "stream-diffs/vue"
 import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import { useStickToBottom } from "markstream-vue/utils"
@@ -139,7 +126,6 @@ import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/index.js"
-import { splitLines, hiddenLineCount } from "@features/transcript-view/lib/expandable-text.js"
 import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 import {
   pathBasename,
@@ -225,13 +211,7 @@ const editDiffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
   disableFileHeader: true,
 }))
-const runExpanded = ref(false)
-const outputExpanded = ref(false)
-const readExpanded = ref(false)
 const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
-const runBody = computed(() => runContent.value?.outputText || runContent.value?.emptyOutput || "")
-const runHidden = computed(() => hiddenLineCount(splitLines(runBody.value).length))
-const readHidden = computed(() => hiddenLineCount(readContent.value?.preview.lines.length ?? 0))
 const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
 const editLanguageIconUrl = computed(() => languageIconDataUrl(editContent.value?.language))
 const editHeading = computed(() => editContent.value?.path || editContent.value?.fileName || "")
@@ -245,24 +225,6 @@ function languageIconDataUrl(lang: string | undefined) {
   if (!lang || lang === "text") return ""
   return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(lang))}`
 }
-
-watch(runBody, () => {
-  runExpanded.value = false
-})
-
-watch(
-  () => toolContent.value?.outputText,
-  () => {
-    outputExpanded.value = false
-  },
-)
-
-watch(
-  () => readContent.value?.preview.code,
-  () => {
-    readExpanded.value = false
-  },
-)
 
 watch(
   () => [thoughtContent.value?.text, thoughtContent.value?.streaming] as const,
