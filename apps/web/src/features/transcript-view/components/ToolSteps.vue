@@ -25,7 +25,7 @@
 
         <template v-if="failCount">
           <span class="label-dot">·</span>
-          <span>执行失败</span>
+          执行失败
           <span class="fail-n">{{ failCount }}</span>
           次
         </template>

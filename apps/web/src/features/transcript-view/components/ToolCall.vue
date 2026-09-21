@@ -282,15 +282,8 @@ const running = computed(() =>
     ? thought.value.streaming
     : (group.value?.items.some((item) => item.running) ?? false),
 )
-const writeEditRunning = computed(() => {
-  const key = group.value?.key
-  return (key === "write" || key === "edit") && running.value
-})
 const open = computed(
-  () =>
-    thought.value?.streaming === true ||
-    writeEditRunning.value ||
-    props.isExpand.get(props.step.id) === true,
+  () => thought.value?.streaming === true || props.isExpand.get(props.step.id) === true,
 )
 const keptMounted = shallowRef(open.value)
 

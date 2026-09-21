@@ -31,7 +31,7 @@
     </template>
 
     <template v-else-if="readContent">
-      <ToolHeader :label="readContent.path" :text="readContent.preview.code">
+      <ToolHeader label="内容" :text="readContent.preview.code">
         <div class="read-heading">
           <img
             v-if="languageIconUrl"
@@ -71,7 +71,7 @@
     </template>
 
     <template v-else-if="editContent">
-      <ToolHeader :label="editHeading" :text="editCopyText">
+      <ToolHeader label="内容" :text="editCopyText">
         <div class="read-heading">
           <img
             v-if="editLanguageIconUrl"
@@ -431,7 +431,13 @@ watch(
 
 .edit-diff {
   max-width: 100%;
+  max-height: 550px;
   overflow: auto;
+}
+
+.edit-diff::-webkit-scrollbar-track {
+  margin-inline: calc(var(--radius-lg) - var(--border-width));
+  margin-block-end: calc(var(--radius-lg) - var(--border-width));
 }
 
 .edit-diff :deep(.stream-diffs-vue-diff) {
