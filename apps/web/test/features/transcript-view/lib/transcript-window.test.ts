@@ -4,7 +4,9 @@ import {
   buildFullBlocks,
   buildWindowBlocks,
   estimateRowHeight,
+  estimateTurnHeight,
   mergeMountedIndices,
+  pinTailIndices,
   resolveVisibleRange,
   shouldWindowTranscript,
   timelineTurnCount,
@@ -127,14 +129,14 @@ describe("打开已有会话 → 长列表按视口窗口挂载", () => {
 
     expect(blocks).toEqual([
       { kind: "space", key: "space:head", height: 100 },
-      { kind: "row", key: "b", row: rows[1], index: 1 },
-      { kind: "row", key: "c", row: rows[2], index: 2 },
-      { kind: "row", key: "d", row: rows[3], index: 3 },
+      { kind: "item", key: "b", item: rows[1], index: 1 },
+      { kind: "item", key: "c", item: rows[2], index: 2 },
+      { kind: "item", key: "d", item: rows[3], index: 3 },
       { kind: "space", key: "space:tail", height: 100 },
     ])
     expect(
       buildWindowBlocks(rows, [0, 1, 2, 3, 4], (at) => index.top(at), index.total).every(
-        (block) => block.kind === "row",
+        (block) => block.kind === "item",
       ),
     ).toBe(true)
     expect(buildWindowBlocks([], [], () => 0, 0)).toEqual([])
@@ -162,8 +164,8 @@ describe("打开已有会话 → 长列表按视口窗口挂载", () => {
     const kinds = blocks.map((block) => block.kind)
 
     expect(visible).toEqual({ start: 0, end: 5 })
-    expect(kinds).toEqual(["row", "row", "row", "row", "row", "row", "space", "row"])
-    expect(blocks.at(-1)).toMatchObject({ kind: "row", index: 19 })
+    expect(kinds).toEqual(["item", "item", "item", "item", "item", "item", "space", "item"])
+    expect(blocks.at(-1)).toMatchObject({ kind: "item", index: 19 })
     expect(blocks.at(-2)).toMatchObject({ kind: "space", height: 1300 })
   })
 
@@ -227,17 +229,43 @@ describe("打开已有会话 → 长列表按视口窗口挂载", () => {
     }))
 
     expect(timelineTurnCount(users)).toBe(WINDOW_TURN_LIMIT)
-    expect(shouldWindowTranscript(users)).toBe(false)
-    expect(shouldWindowTranscript([...users, users[0]!])).toBe(true)
+    expect(shouldWindowTranscript(WINDOW_TURN_LIMIT)).toBe(false)
+    expect(shouldWindowTranscript(WINDOW_TURN_LIMIT + 1)).toBe(true)
     expect(timelineTurnCount([row("orphan"), ...users])).toBe(WINDOW_TURN_LIMIT + 1)
   })
 
   it("短会话全量挂载不插 spacer", () => {
     const rows = ["a", "b", "c"].map(row)
     expect(buildFullBlocks(rows)).toEqual([
-      { kind: "row", key: "a", row: rows[0], index: 0 },
-      { kind: "row", key: "b", row: rows[1], index: 1 },
-      { kind: "row", key: "c", row: rows[2], index: 2 },
+      { kind: "item", key: "a", item: rows[0], index: 0 },
+      { kind: "item", key: "b", item: rows[1], index: 1 },
+      { kind: "item", key: "c", item: rows[2], index: 2 },
     ])
+  })
+
+  it("尾部钉轮有条数上限和像素上限，最后一轮即使超限也钉住", () => {
+    const sizes = [100, 100, 100, 100, 100, 2000]
+    expect(
+      pinTailIndices({
+        length: 6,
+        sizeOf: (at) => sizes[at] ?? 0,
+        viewportHeight: 100,
+        tail: 4,
+      }),
+    ).toEqual([5])
+    expect(
+      pinTailIndices({
+        length: 6,
+        sizeOf: () => 100,
+        viewportHeight: 1000,
+        tail: 4,
+      }),
+    ).toEqual([5, 4, 3, 2])
+    expect(pinTailIndices({ length: 0, sizeOf: () => 0, viewportHeight: 800 })).toEqual([])
+  })
+
+  it("轮高是行高之和", () => {
+    const short = row("a")
+    expect(estimateTurnHeight({ id: "t", rows: [short, short] })).toBe(estimateRowHeight(short) * 2)
   })
 })

@@ -8,16 +8,18 @@ import {
   type Ref,
   toValue,
 } from "vue"
-import type { TimelineRow } from "@features/transcript-view/type.js"
+import type { TimelineTurn } from "@features/transcript-view/type.js"
 import {
   buildFullBlocks,
   buildWindowBlocks,
-  estimateRowHeight,
+  estimateTurnHeight,
   mergeMountedIndices,
+  pinTailIndices,
   resolveVisibleRange,
   shouldWindowTranscript,
   TranscriptHeightIndex,
   WINDOW_DEFAULT_OVERSCAN,
+  WINDOW_DEFAULT_TAIL,
   type TranscriptWindowBlock,
 } from "@features/transcript-view/lib/transcript-window.js"
 import { useTranscriptKeepAlive } from "@features/transcript-view/hooks/use-transcript-keep-alive.js"
@@ -35,16 +37,17 @@ function nextFrame(): Promise<void> {
 }
 
 /**
- * 会话时间线窗口化：只挂视口附近的行 + 尾部常驻行，卸载行的 markstream 状态另有会话级缓存。
+ * 会话时间线窗口化：只挂视口附近的轮 + 尾部常驻轮。
  * 实测高度以视口顶部项为锚回写，估算只在没有实测值时生效。
  */
 export function useTranscriptWindow(options: {
-  rows: Ref<readonly TimelineRow[]>
+  items: Ref<readonly TimelineTurn[]>
   scrollRoot: MaybeRefOrGetter<HTMLElement | null>
   listRoot: MaybeRefOrGetter<HTMLElement | null>
   isFollowing: () => boolean
-  estimate?: (row: TimelineRow) => number
+  estimate?: (turn: TimelineTurn) => number
   overscan?: number
+  tail?: number
 }) {
   const index = new TranscriptHeightIndex()
   const measured = new Map<string, number>()
@@ -52,6 +55,7 @@ export function useTranscriptWindow(options: {
   const pendingHeights = new Map<string, number>()
   const observed = new Map<string, Element>()
   const idToIndex = new Map<string, number>()
+  const rowToTurnIndex = new Map<string, number>()
   const version = shallowRef(0)
   const scrollTop = shallowRef(0)
   const viewportHeight = shallowRef(0)
@@ -65,29 +69,33 @@ export function useTranscriptWindow(options: {
   let measureRaf = 0
   let pendingScrollDelta = 0
   let scrollWriteQueued = false
-  const windowed = computed(() => shouldWindowTranscript(options.rows.value))
+  const windowed = computed(() => shouldWindowTranscript(options.items.value.length))
 
   function indexOfId(id: string): number {
-    return idToIndex.get(id) ?? -1
+    return idToIndex.get(id) ?? rowToTurnIndex.get(id) ?? -1
   }
 
-  function estimateOf(row: TimelineRow): number {
-    return Math.max(1, options.estimate ? options.estimate(row) : estimateRowHeight(row))
+  function estimateOf(turn: TimelineTurn): number {
+    return Math.max(1, options.estimate ? options.estimate(turn) : estimateTurnHeight(turn))
   }
 
-  /** rows 变了就按实测缓存重建索引，新行先用估算值。 */
+  /** items 变了就按实测缓存重建索引，新轮先用估算值。 */
   function rebuild() {
-    const rows = options.rows.value
+    const items = options.items.value
     const sizes: number[] = []
     const flags: boolean[] = []
 
     idToIndex.clear()
+    rowToTurnIndex.clear()
 
-    for (const [position, row] of rows.entries()) {
-      const hit = measured.get(row.id)
+    for (const [position, turn] of items.entries()) {
+      const hit = measured.get(turn.id)
 
-      idToIndex.set(row.id, position)
-      sizes.push(hit ?? estimateOf(row))
+      idToIndex.set(turn.id, position)
+
+      for (const row of turn.rows) rowToTurnIndex.set(row.id, position)
+
+      sizes.push(hit ?? estimateOf(turn))
       flags.push(hit !== undefined)
     }
 
@@ -95,13 +103,16 @@ export function useTranscriptWindow(options: {
     version.value += 1
   }
 
-  /** 常驻行：尾部一行、流式行、选区/焦点行、临时锚点行。 */
+  /** 常驻轮：尾部若干轮（有像素上限）、流式轮、选区/焦点、临时锚点。 */
   function pinnedIndices(): number[] {
-    const rows = options.rows.value
-    const pinned: number[] = []
+    const items = options.items.value
+    const pinned = pinTailIndices({
+      length: items.length,
+      sizeOf: (at) => index.size(at),
+      viewportHeight: viewportHeight.value,
+      tail: options.tail ?? WINDOW_DEFAULT_TAIL,
+    })
     const now = performance.now()
-
-    if (rows.length > 0) pinned.push(rows.length - 1)
 
     for (const [id, expireAt] of tempPins) {
       if (expireAt < now) {
@@ -109,19 +120,19 @@ export function useTranscriptWindow(options: {
         continue
       }
 
-      const at = idToIndex.get(id)
+      const at = indexOfId(id)
 
-      if (at !== undefined) pinned.push(at)
+      if (at >= 0) pinned.push(at)
     }
 
     for (const id of keepAlive.value) {
-      const at = idToIndex.get(id)
+      const at = indexOfId(id)
 
-      if (at !== undefined) pinned.push(at)
+      if (at >= 0) pinned.push(at)
     }
 
-    for (const [position, row] of rows.entries()) {
-      if (row.role === "assistant" && row.streaming) pinned.push(position)
+    for (const [position, turn] of items.entries()) {
+      if (turn.rows.some((row) => row.role === "assistant" && row.streaming)) pinned.push(position)
     }
 
     return pinned
@@ -133,28 +144,28 @@ export function useTranscriptWindow(options: {
     if (!windowed.value) return 0
     return index.total
   })
-  const blocks = computed<TranscriptWindowBlock[]>(() => {
+  const blocks = computed<TranscriptWindowBlock<TimelineTurn>[]>(() => {
     void version.value
-    const rows = options.rows.value
+    const items = options.items.value
 
-    if (rows.length === 0) return []
+    if (items.length === 0) return []
 
-    if (!windowed.value) return buildFullBlocks(rows)
+    if (!windowed.value) return buildFullBlocks(items)
     const pinned = pinnedIndices()
     const height = viewportHeight.value
     const range =
       height > 0
         ? resolveVisibleRange({
-            length: rows.length,
+            length: items.length,
             scrollTop: scrollTop.value,
             viewportHeight: height,
             overscan: options.overscan ?? WINDOW_DEFAULT_OVERSCAN,
             at: (offset) => index.at(offset),
           })
-        : { start: rows.length, end: -1 } // 首帧几何没量出来时只挂常驻行，贴底不用等估算
+        : { start: items.length, end: -1 } // 首帧几何没量出来时只挂常驻轮，贴底不用等估算
     return buildWindowBlocks(
-      rows,
-      mergeMountedIndices(range, pinned, rows.length),
+      items,
+      mergeMountedIndices(range, pinned, items.length),
       (at) => index.top(at),
       index.total,
     )
@@ -194,10 +205,10 @@ export function useTranscriptWindow(options: {
     return (entry.target as HTMLElement).getBoundingClientRect().height
   }
 
-  /** 实测高度走 rAF 合批，避免逐行触发布局补偿。 */
+  /** 实测高度走 rAF 合批，避免逐轮触发布局补偿。 */
   function onRowResize(entries: ResizeObserverEntry[]) {
     for (const entry of entries) {
-      const id = (entry.target as HTMLElement).dataset.rowId
+      const id = (entry.target as HTMLElement).dataset.turnId
 
       if (!id) continue
       pendingHeights.set(id, heightOf(entry))
@@ -210,9 +221,9 @@ export function useTranscriptWindow(options: {
   function flushMeasurements() {
     measureRaf = 0
     const root = toValue(options.scrollRoot)
-    const rows = options.rows.value
-    const anchorRow = root ? rows[index.at(root.scrollTop)] : undefined
-    const anchor = anchorRow ? idToIndex.get(anchorRow.id) : undefined
+    const items = options.items.value
+    const anchorItem = root ? items[index.at(root.scrollTop)] : undefined
+    const anchor = anchorItem ? idToIndex.get(anchorItem.id) : undefined
     const before = anchor === undefined ? 0 : index.top(anchor)
     let changed = false
 
@@ -242,8 +253,8 @@ export function useTranscriptWindow(options: {
     if (!root || !rowObserver) return
     const seen = new Set<string>()
 
-    for (const el of root.querySelectorAll<HTMLElement>("[data-row-id]")) {
-      const id = el.dataset.rowId
+    for (const el of root.querySelectorAll<HTMLElement>("[data-turn-id]")) {
+      const id = el.dataset.turnId
 
       if (!id) continue
       seen.add(id)
@@ -267,9 +278,11 @@ export function useTranscriptWindow(options: {
     return root.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(id)}"]`)
   }
 
-  /** 强制挂载某行一小段时间，用于选区恢复和跳转。 */
+  /** 强制挂载某轮一小段时间；传入行 id 时映射到所在轮。 */
   function pinRow(id: string, ttlMs = TEMP_PIN_MS) {
-    tempPins.set(id, performance.now() + ttlMs)
+    const at = indexOfId(id)
+    const turnId = at >= 0 ? options.items.value[at]?.id : undefined
+    tempPins.set(turnId ?? id, performance.now() + ttlMs)
     version.value += 1
   }
 
@@ -288,13 +301,13 @@ export function useTranscriptWindow(options: {
     return findRow(id)
   }
 
-  /** 按高度表把某行放到视口指定偏移处，行没挂载也算得准。 */
+  /** 按高度表把某轮放到视口指定偏移处；行 id 映射到所在轮。 */
   function scrollToRow(id: string, offsetPx = 0) {
     const root = toValue(options.scrollRoot)
     const list = toValue(options.listRoot)
-    const at = idToIndex.get(id)
+    const at = indexOfId(id)
 
-    if (!root || !list || at === undefined) return
+    if (!root || !list || at < 0) return
 
     const base =
       list.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop
@@ -304,16 +317,15 @@ export function useTranscriptWindow(options: {
     writeScrollTop(root, top)
   }
 
-  /** 第一个可见行及其视口相对偏移，切会话用它复位。 */
-  /** 第一个可见行及其视口相对偏移，切会话用它复位。 */
+  /** 第一个可见轮及其视口相对偏移，切会话用它复位。 */
   function captureAnchor(): TranscriptAnchor | null {
     const root = toValue(options.scrollRoot)
 
     if (!root) return null
     const rootTop = root.getBoundingClientRect().top
 
-    for (const el of root.querySelectorAll<HTMLElement>("[data-row-id]")) {
-      const id = el.dataset.rowId
+    for (const el of root.querySelectorAll<HTMLElement>("[data-turn-id]")) {
+      const id = el.dataset.turnId
       const rect = el.getBoundingClientRect()
 
       if (!id || rect.bottom <= rootTop) continue
@@ -411,7 +423,7 @@ export function useTranscriptWindow(options: {
   )
 
   watch(blocks, () => void nextTick(syncObserved), { flush: "post" })
-  watch(options.rows, rebuild, { flush: "sync", immediate: true })
+  watch(options.items, rebuild, { flush: "sync", immediate: true })
 
   onBeforeUnmount(() => {
     rootObserver?.disconnect()

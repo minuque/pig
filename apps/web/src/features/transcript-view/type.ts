@@ -64,6 +64,12 @@ export type ToolRow = {
 
 export type TimelineRow = UserRow | AssistantRow | ToolRow
 
+/** 窗口项：一轮（user 条目 id，无 user 时用 orphan 锚点）。 */
+export type TimelineTurn = {
+  id: string
+  rows: TimelineRow[]
+}
+
 export type ToolSummaryDetail =
   | { kind: "file"; name: string; path: string; added?: number; removed?: number }
   | { kind: "text"; text: string }

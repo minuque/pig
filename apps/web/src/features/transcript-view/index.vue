@@ -31,31 +31,18 @@
 
           <div class="timeline-rows" :style="{ minHeight: `${totalHeight}px` }">
             <template v-for="block in blocks" :key="block.key">
-              <div
-                v-if="block.kind === 'row'"
-                class="row"
-                :class="rowClass(block.row, block.index)"
-                :data-row-id="block.row.id"
-                :data-minimap-row="block.row.role === 'user' ? block.row.id : undefined"
-              >
-                <UserMessage v-if="block.row.role === 'user'" :item="block.row" />
-
-                <AssistantMessage
-                  v-else-if="block.row.role === 'assistant'"
-                  :item="block.row"
-                  :session-id="sessionId"
-                  :streaming="running && block.row.streaming"
-                />
-
-                <ToolSteps
-                  v-else-if="isToolRow(block.row)"
-                  :row="block.row"
-                  :is-expand="isExpand(block.row.id)"
-                  :expanded-tools="expandedTools"
-                  @toggle-expand="onToggleExpand(block.row.id, $event)"
-                  @toggle-tool="(id, open) => onToggleTool(block.row.id, id, open)"
-                />
-              </div>
+              <TurnRow
+                v-if="block.kind === 'item'"
+                :turn="block.item"
+                :first="block.index === 0"
+                :previous-role="turns[block.index - 1]?.rows.at(-1)?.role"
+                :session-id="sessionId"
+                :running="running"
+                :is-expand="isExpand"
+                :expanded-tools="expandedTools"
+                @toggle-expand="onToggleExpand"
+                @toggle-tool="onToggleTool"
+              />
 
               <div
                 v-else
@@ -83,11 +70,9 @@ import {
   useTemplateRef,
   watch,
 } from "vue"
-import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
-import UserMessage from "@features/transcript-view/components/UserMessage.vue"
-import ToolSteps from "@features/transcript-view/components/ToolSteps.vue"
+import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
@@ -98,13 +83,12 @@ import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { ensureMermaidRuntime } from "@features/transcript-view/lib/mermaid-runtime.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
-import type { TimelineRow, TranscriptMinimapItem } from "@features/transcript-view/type.js"
+import type { TimelineTurn, TranscriptMinimapItem } from "@features/transcript-view/type.js"
+import { createTimelineRowsBuilder } from "@features/transcript-view/lib/transcript-rows.js"
 import {
-  createTimelineRowsBuilder,
-  isToolRow,
-  reuseTimelineRows,
-  timelineRowKeys,
-} from "@features/transcript-view/lib/transcript-rows.js"
+  groupTimelineTurns,
+  reuseTimelineTurns,
+} from "@features/transcript-view/lib/transcript-turns.js"
 import {
   historyPrepended,
   shouldShowScrollToLatest,
@@ -124,8 +108,8 @@ const props = withDefaults(
 const emit = defineEmits<{
   loadOlder: []
 }>()
-const rows = shallowRef<TimelineRow[]>([])
-const mountedKeys = computed(() => timelineRowKeys(rows.value))
+const turns = shallowRef<TimelineTurn[]>([])
+const rows = computed(() => turns.value.flatMap((turn) => turn.rows))
 const rowsBuilder = createTimelineRowsBuilder()
 
 watch(
@@ -134,13 +118,15 @@ watch(
     next: rowsBuilder.build(props.transcript, props.running, props.timings),
   }),
   ({ sessionId, next }, prev) => {
+    const grouped = groupTimelineTurns(next)
+
     if (prev && prev.sessionId !== sessionId) {
-      rows.value = next
+      turns.value = grouped
       return
     }
 
-    if (next.length === 0 && rows.value.length > 0) return
-    rows.value = reuseTimelineRows(rows.value, next)
+    if (grouped.length === 0 && turns.value.length > 0) return
+    turns.value = reuseTimelineTurns(turns.value, grouped)
   },
   { flush: "sync", immediate: true },
 )
@@ -148,15 +134,6 @@ watch(
 const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
 )
-
-function rowClass(row: TimelineRow, index: number) {
-  const previous = index > 0 ? rows.value[index - 1] : undefined
-  return [
-    `row-${row.role}`,
-    { "is-first": index === 0, "is-after-user": previous?.role === "user" },
-  ]
-}
-
 const viewport = useTemplateRef<HTMLElement>("viewport")
 const column = useTemplateRef<HTMLElement>("column")
 const list = useTemplateRef<HTMLElement>("list")
@@ -190,7 +167,7 @@ const {
   compensate,
   reset: resetWindow,
 } = useTranscriptWindow({
-  rows,
+  items: turns,
   scrollRoot: viewport,
   listRoot: list,
   isFollowing: () => atBottom.value,
@@ -213,7 +190,15 @@ const {
   items: minimapItems,
   inViewIds,
   hitStripWidth,
-} = useTranscriptMinimap(rows, { viewport, column }, mountedKeys)
+} = useTranscriptMinimap(
+  rows,
+  { viewport, column },
+  computed(() =>
+    blocks.value.flatMap((block) =>
+      block.kind === "item" ? block.item.rows.map((row) => row.id) : [],
+    ),
+  ),
+)
 const older = useTranscriptOlder({
   hasMore: () => props.hasMore,
   loading: () => props.loadingOlder,
@@ -294,14 +279,14 @@ function pinLatest() {
 const { readyFrame } = useTranscriptReveal(rows, pinLatest)
 
 watch(
-  () => rows.value.length,
+  () => turns.value.length,
   () => {
     if (hasPendingAnchor()) applyAnchor()
   },
   { flush: "post" },
 )
 
-watch(rows, (next, prev) => {
+watch(turns, (next, prev) => {
   const previous = prev ?? []
 
   if (previous.length === 0 && next.length > 0) {
@@ -415,25 +400,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   width: 100%;
 }
 
-/* 行距算进行高：间距走 padding，高度表量的是 border-box */
-.row {
-  box-sizing: border-box;
-  width: 100%;
-  padding-block-start: var(--spacing-md);
-}
-
-.row.is-after-user {
-  padding-block-start: var(--spacing-lg);
-}
-
-.row.row-user {
-  padding-block-start: var(--spacing-xl);
-}
-
-.row.is-first {
-  padding-block-start: 0;
-}
-
 .row-space {
   box-sizing: border-box;
   width: 100%;
@@ -455,26 +421,5 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 
 .older-busy:disabled {
   cursor: default;
-}
-
-.row :deep(.stamp) {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.row:hover :deep(.stamp),
-.row:focus-within :deep(.stamp),
-.row :deep(.stamp.is-copied),
-.row :deep(.stamp.is-error) {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-@media (hover: none) {
-  .row :deep(.stamp) {
-    opacity: 1;
-    pointer-events: auto;
-  }
 }
 </style>

@@ -1,4 +1,4 @@
-import type { TimelineRow } from "@features/transcript-view/type.js"
+import type { TimelineRow, TimelineTurn } from "@features/transcript-view/type.js"
 
 const CHARS_PER_LINE = 88
 const TEXT_LINE = 26
@@ -77,10 +77,19 @@ export function estimateRowHeight(row: TimelineRow): number {
   return ROW_GAP + Math.max(TEXT_LINE, markdownHeight(text))
 }
 
+export function estimateTurnHeight(turn: TimelineTurn): number {
+  let height = 0
+
+  for (const row of turn.rows) height += estimateRowHeight(row)
+  return Math.max(1, height)
+}
+
 const HEIGHT_DEADZONE = 0.25
 /** 视口外至少多挂这么高的内容，避免快速滚动时露白。 */
 export const WINDOW_MIN_BUFFER = 400
 export const WINDOW_DEFAULT_OVERSCAN = 1
+export const WINDOW_DEFAULT_TAIL = 4
+export const WINDOW_TAIL_MAX_VIEWPORTS = 2
 
 /** 行高索引：reset O(n)，apply O(log n)，top 前缀和，at 偏移反查下标。 */
 export class TranscriptHeightIndex {
@@ -231,9 +240,41 @@ export function mergeMountedIndices(
   return [...mounted].sort((left, right) => left - right)
 }
 
-export type TranscriptWindowBlock =
+/** 从尾部往前钉若干项，总高不超过视口倍数；最后一项即使超限也钉住。 */
+export function pinTailIndices(input: {
+  length: number
+  sizeOf: (index: number) => number
+  viewportHeight: number
+  tail?: number
+  maxViewports?: number
+}): number[] {
+  const { length } = input
+
+  if (length <= 0) return []
+  const tail = input.tail ?? WINDOW_DEFAULT_TAIL
+  const cap = Math.max(
+    WINDOW_MIN_BUFFER,
+    Math.max(0, input.viewportHeight) * (input.maxViewports ?? WINDOW_TAIL_MAX_VIEWPORTS),
+  )
+  const pinned: number[] = []
+  let height = 0
+
+  for (let at = length - 1; at >= 0 && pinned.length < tail; at -= 1) {
+    const size = input.sizeOf(at)
+
+    if (pinned.length > 0 && height + size > cap) break
+    pinned.push(at)
+    height += size
+  }
+
+  return pinned
+}
+
+export type WindowItem = { readonly id: string }
+
+export type TranscriptWindowBlock<T extends WindowItem = WindowItem> =
   | { kind: "space"; key: string; height: number }
-  | { kind: "row"; key: string; row: TimelineRow; index: number }
+  | { kind: "item"; key: string; item: T; index: number }
 
 /** 按 user 行计轮，无 user 前缀算一轮；超过 40 轮才窗口化。 */
 export const WINDOW_TURN_LIMIT = 40
@@ -246,30 +287,32 @@ export function timelineTurnCount(rows: readonly Pick<TimelineRow, "role">[]): n
   return rows[0]?.role === "user" ? users : users + 1
 }
 
-export function shouldWindowTranscript(rows: readonly Pick<TimelineRow, "role">[]): boolean {
-  return timelineTurnCount(rows) > WINDOW_TURN_LIMIT
+export function shouldWindowTranscript(count: number): boolean {
+  return count > WINDOW_TURN_LIMIT
 }
 
 /** 短会话全量挂载，不插 spacer。 */
-export function buildFullBlocks(rows: readonly TimelineRow[]): TranscriptWindowBlock[] {
-  return rows.map((row, index) => ({ kind: "row" as const, key: row.id, row, index }))
+export function buildFullBlocks<T extends WindowItem>(
+  items: readonly T[],
+): TranscriptWindowBlock<T>[] {
+  return items.map((item, index) => ({ kind: "item" as const, key: item.id, item, index }))
 }
 
 /** 要挂载的下标列表 → 块序列：空档用 space 补，首尾也补。 */
-export function buildWindowBlocks(
-  rows: readonly TimelineRow[],
+export function buildWindowBlocks<T extends WindowItem>(
+  items: readonly T[],
   mounted: readonly number[],
   topOf: (index: number) => number,
   total: number,
-): TranscriptWindowBlock[] {
-  if (rows.length === 0 || mounted.length === 0) return []
-  const blocks: TranscriptWindowBlock[] = []
+): TranscriptWindowBlock<T>[] {
+  if (items.length === 0 || mounted.length === 0) return []
+  const blocks: TranscriptWindowBlock<T>[] = []
   let cursor = 0
 
   for (const index of mounted) {
-    const row = rows[index]
+    const item = items[index]
 
-    if (!row) continue
+    if (!item) continue
 
     if (index > cursor) {
       const height = topOf(index) - topOf(cursor)
@@ -279,7 +322,7 @@ export function buildWindowBlocks(
       }
     }
 
-    blocks.push({ kind: "row", key: row.id, row, index })
+    blocks.push({ kind: "item", key: item.id, item, index })
     cursor = index + 1
   }
 
