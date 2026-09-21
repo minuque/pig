@@ -23,6 +23,14 @@ export async function selectDirectory(
   }
 }
 
+/** 通知 Host 这个目录马上要用来建会话；Host 在后台预热同一份扩展与技能。 */
+export async function warmWorkspace(path: string): Promise<void> {
+  await platformRequest("/api/v1/platform/warm-workspace", {
+    method: "POST",
+    body: JSON.stringify({ path }),
+  })
+}
+
 export async function listSessionCards(): Promise<SessionCard[]> {
   const result = await platformRequest<{ cards: SessionCard[] }>("/api/v1/platform/session-cards")
   return result.cards

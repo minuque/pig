@@ -11,7 +11,7 @@ export type PlatformRequestDeps = {
   platformPort: DirectoryPort
 }
 
-/** 平台 HTTP：目录选择、会话卡片、上下文用量、重命名与删除。true=已处理（含 400/404/500）。 */
+/** 平台 HTTP：目录选择与预热、会话卡片、上下文用量、重命名与删除。true=已处理（含 400/404/500）。 */
 export async function handlePlatformRequest(
   req: IncomingMessage,
   res: ServerResponse,
@@ -20,6 +20,11 @@ export async function handlePlatformRequest(
 ): Promise<boolean> {
   if (url.pathname === "/api/v1/platform/select-directory" && req.method === "POST") {
     await handleSelectDirectory(req, res, deps)
+    return true
+  }
+
+  if (url.pathname === "/api/v1/platform/warm-workspace" && req.method === "POST") {
+    await handleWarmWorkspace(req, res, deps)
     return true
   }
 
@@ -76,6 +81,27 @@ async function handleSelectDirectory(
     console.error("select-directory failed:", error)
     send(res, 500, { code: "INTERNAL_ERROR" })
   }
+}
+
+/** 客户端告知马上要用的工作目录；后台预热，建会话时直接复用同一份 loader。 */
+async function handleWarmWorkspace(
+  req: IncomingMessage,
+  res: ServerResponse,
+  deps: PlatformRequestDeps,
+) {
+  const { send, hostService } = deps
+  const payload = await readObjectBody(req, res, deps)
+
+  if (!payload) return
+  const path = typeof payload.path === "string" ? payload.path.trim() : ""
+
+  if (!path) {
+    send(res, 400, { code: "INVALID_REQUEST" })
+    return
+  }
+
+  hostService.prepareWorkspace(path)
+  send(res, 200, { ok: true })
 }
 
 async function handleSessionCards(res: ServerResponse, deps: PlatformRequestDeps) {

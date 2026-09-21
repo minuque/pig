@@ -94,6 +94,7 @@
 import { computed, defineAsyncComponent, onMounted, shallowRef, useTemplateRef, watch } from "vue"
 import { useRoute } from "vue-router"
 import { ArrowDown, Ellipsis } from "@lucide/vue"
+import { warmWorkspace } from "@client/platform.js"
 import { Button } from "@components/ui/button/index.js"
 import Composer from "@features/composer/index.vue"
 import { useNav } from "@features/session-nav/index.js"
@@ -188,6 +189,15 @@ watch(
   [workspaces, lastCwd],
   ([items, last]) => {
     welcomeWorkspaceId.value = nextWelcomeWorkspaceId(items, welcomeWorkspaceId.value, last)
+  },
+  { immediate: true },
+)
+
+// 第一条 Prompt 用这个目录建会话；连上后让 Host 后台预热同一目录的扩展与技能
+watch(
+  [connected, welcomeWorkspaceId],
+  ([live, id]) => {
+    if (live && id) void warmWorkspace(id).catch(() => undefined)
   },
   { immediate: true },
 )

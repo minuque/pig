@@ -98,16 +98,24 @@ export class PiHostService implements PiServerService {
 
   async listModels(): Promise<ModelMetadata[]> {
     const runtime = await this.runtime()
-    void this.warmResources().catch(() => undefined)
     const models = await runtime.getAvailable()
     return models.map((model) =>
       toProtocolModelMetadata(model, runtime.hasConfiguredAuth(model.provider)),
     )
   }
 
-  /** 监听前预热会话列表和模型目录，避免首次握手超过 PiServer 默认 5s。 */
+  /** 监听前预热会话列表、模型目录和最近用过的会话目录，避免首次握手与首次建会话超时。 */
   async warm(): Promise<void> {
-    await Promise.all([this.listSessions(), this.listModels()])
+    const [sessions] = await Promise.all([this.listSessions(), this.listModels()])
+    const cwd = recentSessionCwd(sessions)
+
+    if (cwd) this.prepareWorkspace(cwd)
+  }
+
+  /** 通知 Host 这个目录马上要用来建会话；预热与会话共用同一份 loader 缓存。 */
+  prepareWorkspace(cwd: string): void {
+    if (this.options.createSession) return
+    void this.slot(canonicalizePath(cwd)).catch(() => undefined)
   }
 
   async createSession(options: CreateSessionOptions): Promise<PiSessionRuntime> {
@@ -284,12 +292,6 @@ export class PiHostService implements PiServerService {
     return (this.runtimePromise ??= (this.options.createRuntime ?? createDefaultRuntime)())
   }
 
-  /** 连接时预热扩展/技能；测试注入 session 工厂时跳过。 */
-  private async warmResources(): Promise<void> {
-    if (this.options.createSession) return
-    await this.slot(canonicalizePath(this.options.cwd ?? process.cwd()))
-  }
-
   /**
    * 取该目录已 reload 的 loader，交给会话复用，省掉 SDK 里的 reload 与扩展重新转译。
    * 同目录已有会话持有时改用新实例：扩展运行时的绑定写在这份 extensionsResult 上。
@@ -392,6 +394,23 @@ function cardsFromInfos(infos: readonly SessionInfo[]): SessionCard[] {
       ...(outcome ? { outcome } : {}),
     }
   })
+}
+
+/** 最近使用过的会话目录；网关启动时按它预热，与会话文件里存的是同一个目录。 */
+export function recentSessionCwd(sessions: readonly SessionMetadata[]): string | undefined {
+  let latest: SessionMetadata | undefined
+
+  for (const session of sessions) {
+    if (!session.cwd) continue
+
+    if (!latest || usedAt(session) > usedAt(latest)) latest = session
+  }
+
+  return latest?.cwd
+}
+
+function usedAt(session: SessionMetadata): number {
+  return session.updatedAt ?? session.createdAt
 }
 
 /** 测试注入用默认 ModelRuntime：不做网络刷新，避免启动时拉取模型目录。 */
