@@ -254,6 +254,34 @@ export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt):
   return `思考了 ${seconds} 秒`
 }
 
+export function formatToolRowDuration(ms: number, showZero = false): string {
+  const total = Math.round(ms / 1000)
+
+  if (total < 0 || (total === 0 && !showZero)) return ""
+  const hours = Math.floor(total / 3600)
+  const minutes = Math.floor((total % 3600) / 60)
+  const seconds = total % 60
+  const parts: string[] = []
+
+  if (hours) parts.push(`${hours}h`)
+
+  if (hours || minutes) parts.push(`${minutes}m`)
+  parts.push(`${seconds}s`)
+  return parts.join(" ")
+}
+
+export function toolRowDurationLabel(row: ToolRow, now: number): string {
+  const start = row.startedAt
+
+  if (start == null) return ""
+
+  if (row.mode === "live") return formatToolRowDuration(now - start, true)
+  const end = row.endedAt
+
+  if (end == null || end <= start) return ""
+  return formatToolRowDuration(end - start)
+}
+
 export function buildTimelineRows(
   items: readonly TranscriptItem[],
   running: boolean,

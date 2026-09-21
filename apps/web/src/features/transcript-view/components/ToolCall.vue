@@ -5,7 +5,7 @@
       <span :class="{ shimmer: running, label }" :data-text="label">{{ label }}</span>
 
       <span
-        v-if="detail"
+        v-if="detail && !open"
         class="detail"
         :title="detail.kind === 'file' ? detail.path : detail.text"
       >
@@ -249,7 +249,7 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
 
   if (key === "edit" || key === "write") {
     const preview =
-      open && !item.isError && !item.running
+      open && !item.isError
         ? key === "write"
           ? writeDiffPreview(item.input)
           : editDiffPreview(item.input)
@@ -276,14 +276,21 @@ const props = defineProps<{
 const emit = defineEmits<{ toggle: [value: { id: string; open: boolean }] }>()
 const thought = computed(() => (props.step.type === "thought" ? props.step : null))
 const group = computed(() => (props.step.type === "tools" ? props.step : null))
-const open = computed(
-  () => thought.value?.streaming === true || props.isExpand.get(props.step.id) === true,
-)
 const failed = computed(() => group.value?.items.some((item) => item.isError) ?? false)
 const running = computed(() =>
   thought.value
     ? thought.value.streaming
     : (group.value?.items.some((item) => item.running) ?? false),
+)
+const writeEditRunning = computed(() => {
+  const key = group.value?.key
+  return (key === "write" || key === "edit") && running.value
+})
+const open = computed(
+  () =>
+    thought.value?.streaming === true ||
+    writeEditRunning.value ||
+    props.isExpand.get(props.step.id) === true,
 )
 const keptMounted = shallowRef(open.value)
 

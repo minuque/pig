@@ -130,11 +130,16 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
+import { useIntervalFn } from "@vueuse/core"
 import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import ToolCall from "./ToolCall.vue"
-import { toolRowFailCount, toolRowLabelParts } from "../lib/transcript-rows.js"
+import {
+  toolRowDurationLabel,
+  toolRowFailCount,
+  toolRowLabelParts,
+} from "../lib/transcript-rows.js"
 import type { ToolRow, ToolRowStep } from "../type.js"
 
 const HOOK_CORNER = 6
@@ -170,44 +175,35 @@ function loadMore() {
   pageLimit.value = Math.min(props.row.steps.length, pageLimit.value + PAGE_SIZE)
 }
 
-watch(
-  revealed,
-  (open) => {
-    if (open) keptMounted.value = true
+const now = shallowRef(Date.now())
+const tick = useIntervalFn(
+  () => {
+    now.value = Date.now()
   },
-  { flush: "sync" },
+  1000,
+  { immediate: false },
 )
 
 watch(
-  [running, () => props.row.steps.length],
-  ([isRunning, length]) => {
-    if (isRunning) pageLimit.value = Math.max(PAGE_SIZE, length)
-    else pageLimit.value = Math.min(Math.max(PAGE_SIZE, pageLimit.value), length)
+  [revealed, running, () => props.row.steps.length],
+  ([open, isRunning, length]) => {
+    if (open) keptMounted.value = true
+    now.value = Date.now()
+
+    if (isRunning) {
+      pageLimit.value = Math.max(PAGE_SIZE, length)
+      tick.resume()
+    } else {
+      pageLimit.value = Math.min(Math.max(PAGE_SIZE, pageLimit.value), length)
+      tick.pause()
+    }
   },
-  { flush: "sync" },
+  { flush: "sync", immediate: true },
 )
 
 const labelParts = computed(() => toolRowLabelParts(props.row))
 const failCount = computed(() => toolRowFailCount(props.row))
-const durationLabel = computed(() => {
-  const start = props.row.startedAt
-  const end = props.row.endedAt
-
-  if (props.row.mode !== "done" || start == null || end == null || end <= start) return ""
-  const total = Math.round((end - start) / 1000)
-
-  if (total <= 0) return ""
-  const hours = Math.floor(total / 3600)
-  const minutes = Math.floor((total % 3600) / 60)
-  const seconds = total % 60
-  const parts: string[] = []
-
-  if (hours) parts.push(`${hours}h`)
-
-  if (hours || minutes) parts.push(`${minutes}m`)
-  parts.push(`${seconds}s`)
-  return parts.join(" ")
-})
+const durationLabel = computed(() => toolRowDurationLabel(props.row, now.value))
 
 function isStepRunning(step: ToolRowStep) {
   return step.type === "thought" ? step.streaming : step.items.some((item) => item.running)
