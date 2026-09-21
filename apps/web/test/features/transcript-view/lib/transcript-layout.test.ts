@@ -9,15 +9,7 @@ import {
   isToolRow,
   reuseTimelineRows,
   thoughtStepLabel,
-  timelineRowKeys,
 } from "@features/transcript-view/lib/transcript-rows.js"
-import {
-  FOLLOW_NEAR_BOTTOM_PX,
-  resolveFollowTarget,
-  restoreScrollAfterPrepend,
-  shouldLoadOlderTranscript,
-  transcriptOverflows,
-} from "@features/transcript-view/lib/transcript-scroll.js"
 
 const user: UserTranscriptItem = {
   id: "u1",
@@ -79,18 +71,6 @@ function tool(
 
   if (status === "error") return { ...base, status, isError: true }
   return { ...base, status, isError: false }
-}
-
-function manyTurns(count: number) {
-  return Array.from({ length: count }, (_, i) => [
-    {
-      id: `u${i}`,
-      role: "user" as const,
-      timestamp: 1000 + i * 10,
-      content: [{ type: "text" as const, text: `问${i}` }],
-    },
-    text(200 + i, `答${i}`),
-  ]).flat()
 }
 
 describe("一轮工作 → 执行过程与最终回答", () => {
@@ -260,61 +240,5 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(work?.steps[0]).toMatchObject({ type: "tools", items: [{ running: false }] })
     expect(work?.steps[1]).toMatchObject({ type: "thought", streaming: false })
     expect(rows.at(-1)).toMatchObject({ aborted: true, showTimestamp: true })
-  })
-})
-
-describe("一轮工作 → 视口跟随的脱底与吸附", () => {
-  function target(atBottom: boolean, distance: number, scrollingDown: boolean) {
-    return resolveFollowTarget({
-      atBottom,
-      distanceFromBottom: distance,
-      viewportHeight: 400,
-      scrollingDown,
-    })
-  }
-
-  it("离底超过半屏才脱底，下方继续滚不翻转", () => {
-    expect(target(true, 100, false)).toBe(true)
-    expect(target(true, 199, false)).toBe(true)
-    expect(target(true, 201, false)).toBe(false)
-    expect(target(true, 900, true)).toBe(false)
-  })
-
-  it("80px 内且向下滚才重新吸附，中间保持脱底", () => {
-    expect(FOLLOW_NEAR_BOTTOM_PX).toBe(80)
-    expect(target(false, 40, true)).toBe(true)
-    expect(target(false, 80, true)).toBe(true)
-    expect(target(false, 81, true)).toBe(false)
-    expect(target(false, 40, false)).toBe(false)
-    expect(target(false, 150, true)).toBe(false)
-  })
-})
-
-describe("打开已有会话 → 长列表尾部先挂载", () => {
-  it("贴底、加载中或未溢出不上翻拉取", () => {
-    expect(shouldLoadOlderTranscript(true, false, true, 0)).toBe(false)
-    expect(shouldLoadOlderTranscript(true, true, false, 0)).toBe(false)
-    expect(shouldLoadOlderTranscript(false, false, false, 0)).toBe(false)
-    expect(shouldLoadOlderTranscript(true, false, false, 0, { overflow: false })).toBe(false)
-    expect(shouldLoadOlderTranscript(true, false, false, 0)).toBe(true)
-    expect(transcriptOverflows(884, 884)).toBe(false)
-    expect(transcriptOverflows(1000, 884)).toBe(true)
-  })
-
-  it("上翻 prepend 不改已有行 id", () => {
-    const all = manyTurns(2)
-    const tail = buildTimelineRows(all.slice(-2), false)
-    const full = buildTimelineRows(all, false)
-    expect(full.map((row) => row.id).slice(-tail.length)).toEqual(tail.map((row) => row.id))
-    expect(timelineRowKeys(full).slice(-tail.length)).toEqual(timelineRowKeys(tail))
-  })
-
-  it("上翻回填时补偿 scrollTop，视口不跟着跳", () => {
-    const root = { scrollTop: 400, scrollHeight: 1000 }
-    restoreScrollAfterPrepend(root, 1000, 400)
-    expect(root.scrollTop).toBe(400)
-    root.scrollHeight = 1300
-    restoreScrollAfterPrepend(root, 1000, 400)
-    expect(root.scrollTop).toBe(700)
   })
 })

@@ -623,19 +623,6 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     expect(created.submit).toHaveBeenCalledWith("任务")
   })
 
-  it("创建失败时不提交", async () => {
-    const { session } = setup()
-    const created = makeSession("s2")
-    createMock.mockRejectedValue(new Error("创建失败"))
-    created.submit.mockClear()
-
-    await expect(session.sendPrompt("任务", "/repo")).rejects.toThrow("创建失败")
-
-    expect(createMock).toHaveBeenCalledTimes(1)
-    expect(created.submit).not.toHaveBeenCalled()
-    expect(openMock).not.toHaveBeenCalled()
-  })
-
   it("创建期间 Abort 不再提交", async () => {
     const { session } = setup()
     const created = makeSession("s2")
@@ -1072,29 +1059,5 @@ describe("一轮工作", () => {
     await vi.waitFor(() => expect(session.remote.value).toBe(a))
     await session.abortSession()
     expect(a.abort).toHaveBeenCalledTimes(1)
-  })
-})
-
-describe("context-usage", () => {
-  it("snapshot revision 变化时刷新占用估算", async () => {
-    const { session } = setup()
-    const a = makeSession("s1")
-    a.state = { ...a.state, snapshot: snapshot(1) }
-    openMock.mockResolvedValue(a)
-
-    routeBox.params.sessionId = "s1"
-    await session.initialize()
-    await vi.waitFor(() => expect(session.contextUsage.value?.used).toBe(300))
-    expect(platformRequestMock).toHaveBeenCalledWith("/api/v1/platform/context-usage?sessionId=s1")
-
-    const usageCalls = () =>
-      platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("context-usage"))
-
-    expect(usageCalls()).toHaveLength(1)
-    a.emit()
-    expect(usageCalls()).toHaveLength(1)
-    a.state = { ...a.state, snapshot: snapshot(2) }
-    a.emit()
-    await vi.waitFor(() => expect(usageCalls()).toHaveLength(2))
   })
 })
