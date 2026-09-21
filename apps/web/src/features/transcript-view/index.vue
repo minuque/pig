@@ -12,7 +12,7 @@
       id="transcript-panel"
       ref="viewport"
       class="transcript-viewport"
-      :class="{ 'is-following': atBottom }"
+      :class="{ 'is-following': atBottom, 'is-windowed': windowed }"
       @scroll="onTranscriptScroll"
       @wheel="onTranscriptWheel"
       @pointerdown="onPointerDown"
@@ -45,7 +45,6 @@
                   :item="block.row"
                   :session-id="sessionId"
                   :streaming="running && block.row.streaming"
-                  :heavy="isHeavy(block.row.id)"
                 />
 
                 <ToolSteps
@@ -91,11 +90,9 @@ import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import ToolSteps from "@features/transcript-view/components/ToolSteps.vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
-import { useTranscriptHeavy } from "@features/transcript-view/hooks/use-transcript-heavy.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
 import { useTranscriptOlder } from "@features/transcript-view/hooks/use-transcript-older.js"
 import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
-import { useTranscriptScrollIdle } from "@features/transcript-view/hooks/use-transcript-scroll-idle.js"
 import { useTranscriptWindow } from "@features/transcript-view/hooks/use-transcript-window.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
@@ -110,7 +107,6 @@ import {
 } from "@features/transcript-view/lib/transcript-rows.js"
 import {
   historyPrepended,
-  restoreScrollAfterPrepend,
   shouldShowScrollToLatest,
 } from "@features/transcript-view/lib/transcript-scroll.js"
 
@@ -184,13 +180,14 @@ const {
 const {
   blocks,
   totalHeight,
+  windowed,
   revealRow,
   scrollToRow,
   rememberAnchor,
   takeAnchor,
   hasPendingAnchor,
   applyAnchor,
-  windowShift,
+  compensate,
   reset: resetWindow,
 } = useTranscriptWindow({
   rows,
@@ -250,14 +247,12 @@ function onTranscriptWheel(event: WheelEvent) {
 function onToggleExpand(id: string, open: boolean) {
   releasePinnedToBottom()
   atBottom.value = false
-  upgradeNow(id)
   toggleExpand(id, open)
 }
 
 function onToggleTool(rowId: string, id: string, open: boolean) {
   releasePinnedToBottom()
   atBottom.value = false
-  upgradeNow(rowId)
 
   if (open) toggleExpand(rowId, true)
   toggleTool(id, open)
@@ -265,8 +260,6 @@ function onToggleTool(rowId: string, id: string, open: boolean) {
 
 async function selectMinimapItem(item: TranscriptMinimapItem) {
   const el = await revealRow(item.id)
-
-  upgradeNow(item.id)
 
   if (el) {
     scrollToElement(el)
@@ -299,16 +292,6 @@ function pinLatest() {
 }
 
 const { readyFrame } = useTranscriptReveal(rows, pinLatest)
-const { idle: scrollIdle, hold: holdScrollIdle } = useTranscriptScrollIdle(viewport)
-/** 揭开前和滚动中都不算停稳，窗口内助手行先出纯文本。 */
-const heavyIdle = computed(() => readyFrame.value && scrollIdle.value)
-const windowRows = computed(() =>
-  blocks.value.flatMap((block) => (block.kind === "row" ? [block.row] : [])),
-)
-const { isHeavy, upgradeNow } = useTranscriptHeavy({
-  mounted: windowRows,
-  idle: heavyIdle,
-})
 
 watch(
   () => rows.value.length,
@@ -326,14 +309,12 @@ watch(rows, (next, prev) => {
     return
   }
 
-  if (historyPrepended(previous, next) && !atBottom.value) {
+  if (historyPrepended(previous, next) && !atBottom.value && windowed.value) {
     const root = scrollerRoot()
     const beforeHeight = root?.scrollHeight ?? 0
-    const beforeTop = root?.scrollTop ?? 0
     void nextTick(() => {
       if (!root) return
-      restoreScrollAfterPrepend(root, beforeHeight, beforeTop)
-      windowShift(root.scrollTop - beforeTop)
+      compensate(root.scrollHeight - beforeHeight)
     })
     return
   }
@@ -360,7 +341,6 @@ watch(
     reset()
     resetWindow()
     older.arm()
-    holdScrollIdle()
     const stored = takeAnchor(id)
 
     void nextTick(() => {
@@ -403,12 +383,15 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   min-height: 0;
   flex: 1;
   overflow-y: auto;
-  /* 窗口化自己按行高表锚定，关掉浏览器原生滚动锚定避免两边都补 */
-  overflow-anchor: none;
   overscroll-behavior: contain;
   /* 主视口滚动条常显，并始终占位，内容不因溢出与否来回横移 */
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-gutter: stable;
+}
+
+.transcript-viewport.is-windowed {
+  /* 窗口化自己按行高表锚定，关掉浏览器原生滚动锚定避免两边都补 */
+  overflow-anchor: none;
 }
 
 .transcript-viewport:has(.code-more-menu) {

@@ -1,14 +1,13 @@
 <template>
   <article>
     <MarkdownRender
-      v-if="showHeavy && item.text"
+      v-if="item.text"
       :key="item.id"
       v-bind="agentMarkdown"
       :content="item.text"
       @virtual-state-change="onVirtualStateChange"
     />
 
-    <div v-else-if="item.text" class="md-plain">{{ item.text }}</div>
     <div v-else-if="streaming" class="md-pending" aria-hidden="true"></div>
 
     <Alert
@@ -51,13 +50,11 @@ const props = withDefaults(
   defineProps<{
     item: AssistantRow
     streaming?: boolean
-    heavy?: boolean
     sessionId?: string
   }>(),
-  { streaming: false, heavy: false, sessionId: "" },
+  { streaming: false, sessionId: "" },
 )
 const { isDark } = useColorScheme()
-const showHeavy = computed(() => props.streaming || props.heavy)
 const markdownKey = computed(() =>
   props.sessionId ? `${props.sessionId}/${props.item.id}` : props.item.id,
 )
@@ -84,14 +81,6 @@ function onVirtualStateChange(state: MarkstreamVirtualState) {
 </script>
 
 <style scoped>
-.md-plain {
-  color: var(--ink-markdown);
-  font-size: var(--text-body-md);
-  line-height: 1.8;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
 .md-pending {
   min-height: calc(var(--text-body-md) * 1.8);
 }

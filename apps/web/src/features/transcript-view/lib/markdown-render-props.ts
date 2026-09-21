@@ -42,7 +42,7 @@ const chatCodeChrome = {
 } as const
 const BATCH_BUDGET_MS = 8
 
-/** Kimi chat 同款 profile：流式与历史同档，节点虚拟化交给库自动判定，单帧预算 8ms。 */
+/** 历史挂载即终态；流式仍 defer 分帧长高。节点虚拟化交给库，单帧预算 8ms。 */
 export function chatMarkdownProps(input: {
   streaming: boolean
   isDark: boolean
@@ -67,8 +67,8 @@ export function chatMarkdownProps(input: {
     renderBatchDelay: 6,
     renderBatchBudgetMs: BATCH_BUDGET_MS,
     renderBatchIdleTimeoutMs: 60,
-    viewportPriority: !streaming,
-    deferNodesUntilVisible: true,
+    viewportPriority: false,
+    deferNodesUntilVisible: streaming,
     codeBlockStream: streaming,
     codeBlockOptions: {
       ...codeBlockTypography(),

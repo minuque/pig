@@ -428,14 +428,14 @@ async function loadAllTranscriptPages(page: Page, pages: number) {
   if ((await more.count()) > 0) throw new Error("长会话仍有更早历史未加载")
 }
 
-/** 补齐 Markdown 和分批渲染收尾前不采样：连续 8 帧没纯文本行、帧长也在预算内。 */
+/** 分批渲染收尾前不采样：连续 8 帧帧长都在预算内。 */
 async function waitForSettledView(page: Page) {
   await page.waitForFunction(
     () => {
       const win = window as unknown as { __pigQuiet?: { last: number; quiet: number } }
       const now = performance.now()
       const slot = (win.__pigQuiet ??= { last: now, quiet: 0 })
-      const busy = now - slot.last >= 24 || document.querySelectorAll(".md-plain").length > 0
+      const busy = now - slot.last >= 24
 
       slot.last = now
       slot.quiet = busy ? 0 : slot.quiet + 1

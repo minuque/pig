@@ -10,10 +10,12 @@ import {
 } from "vue"
 import type { TimelineRow } from "@features/transcript-view/type.js"
 import {
+  buildFullBlocks,
   buildWindowBlocks,
   estimateRowHeight,
   mergeMountedIndices,
   resolveVisibleRange,
+  shouldWindowTranscript,
   TranscriptHeightIndex,
   WINDOW_DEFAULT_OVERSCAN,
   type TranscriptWindowBlock,
@@ -61,6 +63,9 @@ export function useTranscriptWindow(options: {
   let pendingAnchor: TranscriptAnchor | null = null
   let anchorSettled = false
   let measureRaf = 0
+  let pendingScrollDelta = 0
+  let scrollWriteQueued = false
+  const windowed = computed(() => shouldWindowTranscript(options.rows.value))
 
   function indexOfId(id: string): number {
     return idToIndex.get(id) ?? -1
@@ -124,6 +129,8 @@ export function useTranscriptWindow(options: {
 
   const totalHeight = computed(() => {
     void version.value
+
+    if (!windowed.value) return 0
     return index.total
   })
   const blocks = computed<TranscriptWindowBlock[]>(() => {
@@ -131,6 +138,8 @@ export function useTranscriptWindow(options: {
     const rows = options.rows.value
 
     if (rows.length === 0) return []
+
+    if (!windowed.value) return buildFullBlocks(rows)
     const pinned = pinnedIndices()
     const height = viewportHeight.value
     const range =
@@ -154,6 +163,28 @@ export function useTranscriptWindow(options: {
   function writeScrollTop(root: HTMLElement, top: number) {
     root.scrollTop = top
     scrollTop.value = root.scrollTop
+  }
+
+  function flushPendingScroll() {
+    scrollWriteQueued = false
+    const root = toValue(options.scrollRoot)
+    const delta = pendingScrollDelta
+    pendingScrollDelta = 0
+
+    if (!root || !delta || !windowed.value || options.isFollowing()) return
+
+    writeScrollTop(root, root.scrollTop + delta)
+  }
+
+  /** 本 tick 累加位移，跟随时丢弃；prepend 与测量走同一条写入。 */
+  function compensate(deltaPx: number) {
+    if (!deltaPx || !windowed.value || options.isFollowing()) return
+
+    pendingScrollDelta += deltaPx
+
+    if (scrollWriteQueued) return
+    scrollWriteQueued = true
+    void nextTick(flushPendingScroll)
   }
 
   function heightOf(entry: ResizeObserverEntry): number {
@@ -200,11 +231,9 @@ export function useTranscriptWindow(options: {
     if (!changed) return
     version.value += 1
 
-    if (!root || anchor === undefined || options.isFollowing()) return
+    if (!root || anchor === undefined || !windowed.value || options.isFollowing()) return
     // 只补锚点上方的高度差，下方的变化不影响视口起点
-    const delta = index.top(anchor) - before
-
-    if (delta !== 0) writeScrollTop(root, root.scrollTop + delta)
+    compensate(index.top(anchor) - before)
   }
 
   function syncObserved() {
@@ -335,12 +364,6 @@ export function useTranscriptWindow(options: {
     return true
   }
 
-  /** 前缀插入等外部改动 scrollTop 后同步窗口位置。 */
-  function windowShift(deltaPx: number) {
-    if (!deltaPx) return
-    scrollTop.value = Math.max(0, scrollTop.value + deltaPx)
-  }
-
   function bindRoot(el: HTMLElement | null) {
     rootObserver?.disconnect()
     rootObserver = undefined
@@ -373,6 +396,8 @@ export function useTranscriptWindow(options: {
     measured.clear()
     tempPins.clear()
     pendingHeights.clear()
+    pendingScrollDelta = 0
+    scrollWriteQueued = false
     const root = toValue(options.scrollRoot)
 
     scrollTop.value = root ? root.scrollTop : 0
@@ -395,17 +420,20 @@ export function useTranscriptWindow(options: {
     rowObserver = undefined
 
     if (measureRaf) cancelAnimationFrame(measureRaf)
+    pendingScrollDelta = 0
+    scrollWriteQueued = false
   })
   return {
     blocks,
     totalHeight,
+    windowed,
     revealRow,
     scrollToRow,
     rememberAnchor,
     takeAnchor,
     hasPendingAnchor,
     applyAnchor,
-    windowShift,
+    compensate,
     reset,
   }
 }

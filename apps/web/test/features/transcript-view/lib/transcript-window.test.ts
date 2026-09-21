@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest"
 import type { TimelineRow } from "@features/transcript-view/type.js"
 import {
+  buildFullBlocks,
   buildWindowBlocks,
   estimateRowHeight,
   mergeMountedIndices,
   resolveVisibleRange,
+  shouldWindowTranscript,
+  timelineTurnCount,
   TranscriptHeightIndex,
   WINDOW_MIN_BUFFER,
+  WINDOW_TURN_LIMIT,
 } from "@features/transcript-view/lib/transcript-window.js"
 
 function dense(count: number, height: number): TranscriptHeightIndex {
@@ -208,5 +212,32 @@ describe("打开已有会话 → 长列表按视口窗口挂载", () => {
     expect(estimateRowHeight(long)).toBeGreaterThan(estimateRowHeight(short))
     expect(estimateRowHeight(toolRow("done"))).toBeLessThan(estimateRowHeight(toolRow("live")))
     expect(estimateRowHeight(user)).toBeLessThanOrEqual(392)
+  })
+
+  it("轮数按 user 行计，无 user 前缀算一轮，超过 40 轮才窗口化", () => {
+    expect(timelineTurnCount([])).toBe(0)
+    expect(timelineTurnCount([row("a")])).toBe(1)
+
+    const users = Array.from({ length: WINDOW_TURN_LIMIT }, (_, at) => ({
+      id: `u${at}`,
+      role: "user" as const,
+      text: "问",
+      images: [],
+      timestamp: 0,
+    }))
+
+    expect(timelineTurnCount(users)).toBe(WINDOW_TURN_LIMIT)
+    expect(shouldWindowTranscript(users)).toBe(false)
+    expect(shouldWindowTranscript([...users, users[0]!])).toBe(true)
+    expect(timelineTurnCount([row("orphan"), ...users])).toBe(WINDOW_TURN_LIMIT + 1)
+  })
+
+  it("短会话全量挂载不插 spacer", () => {
+    const rows = ["a", "b", "c"].map(row)
+    expect(buildFullBlocks(rows)).toEqual([
+      { kind: "row", key: "a", row: rows[0], index: 0 },
+      { kind: "row", key: "b", row: rows[1], index: 1 },
+      { kind: "row", key: "c", row: rows[2], index: 2 },
+    ])
   })
 })

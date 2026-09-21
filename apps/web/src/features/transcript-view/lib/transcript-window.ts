@@ -235,6 +235,26 @@ export type TranscriptWindowBlock =
   | { kind: "space"; key: string; height: number }
   | { kind: "row"; key: string; row: TimelineRow; index: number }
 
+/** 按 user 行计轮，无 user 前缀算一轮；超过 40 轮才窗口化。 */
+export const WINDOW_TURN_LIMIT = 40
+
+export function timelineTurnCount(rows: readonly Pick<TimelineRow, "role">[]): number {
+  if (rows.length === 0) return 0
+  let users = 0
+
+  for (const row of rows) if (row.role === "user") users += 1
+  return rows[0]?.role === "user" ? users : users + 1
+}
+
+export function shouldWindowTranscript(rows: readonly Pick<TimelineRow, "role">[]): boolean {
+  return timelineTurnCount(rows) > WINDOW_TURN_LIMIT
+}
+
+/** 短会话全量挂载，不插 spacer。 */
+export function buildFullBlocks(rows: readonly TimelineRow[]): TranscriptWindowBlock[] {
+  return rows.map((row, index) => ({ kind: "row" as const, key: row.id, row, index }))
+}
+
 /** 要挂载的下标列表 → 块序列：空档用 space 补，首尾也补。 */
 export function buildWindowBlocks(
   rows: readonly TimelineRow[],
