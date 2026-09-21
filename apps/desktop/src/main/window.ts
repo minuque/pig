@@ -1,6 +1,6 @@
 import { BrowserWindow, nativeTheme, type Input } from "electron"
 
-import { gatewayOriginArg } from "./urls.js"
+import { gatewayOriginArg, isDesktopBench } from "./urls.js"
 import { stripNativeMenu, windowChromeFor } from "./window-chrome.js"
 import {
   DEFAULT_WINDOW_SIZE,
@@ -10,6 +10,8 @@ import {
 } from "./window-state.js"
 
 const SAVE_DEBOUNCE_MS = 300
+/** 基准窗口坐标：落在所有屏幕之外，但仍可见、仍参与合成。 */
+const BENCH_WINDOW_BOUND = -10_000
 
 export type CreateMainWindowOptions = {
   gatewayOrigin?: string
@@ -24,6 +26,7 @@ export function createMainWindow(
 ): BrowserWindow {
   const chrome = windowChromeFor(process.platform)
   const frame = options.frame ?? { ...DEFAULT_WINDOW_SIZE, isMaximized: false }
+  const bench = isDesktopBench()
   const window = new BrowserWindow({
     title: "pig",
     width: frame.width,
@@ -45,9 +48,12 @@ export function createMainWindow(
   stampDesktopPlatform(window)
   attachDevTools(window)
 
-  if (options.persistState) persistWindowState(window, options.persistState)
+  // 基准档窗口屏幕外显示，也不写回位置状态，用户下次启动不受影响
+  if (options.persistState && !bench) persistWindowState(window, options.persistState)
   window.once("ready-to-show", () => {
-    if (frame.isMaximized) window.maximize()
+    if (frame.isMaximized && !bench) window.maximize()
+
+    if (bench) window.setPosition(BENCH_WINDOW_BOUND, BENCH_WINDOW_BOUND)
     window.show()
   })
   return window

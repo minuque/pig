@@ -8,7 +8,7 @@ import { join, resolve } from "node:path"
 import Gateway from "../../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import { canonicalizeWorkspacePath } from "../fixtures.js"
-import { runTurnBench } from "./edges.js"
+import { runTurnScenarios, type EdgeSample } from "./edges.js"
 import { createDesktopHarness, createWebHarness, type BenchHarness } from "./harness.js"
 import {
   captureBenchFailure,
@@ -292,14 +292,21 @@ async function main() {
     if (!args.turnOnly) {
       const warmup = await openReadyPage(harness, true)
       await warmup.close()
+    }
 
-      for (let run = 1; run <= args.runs; run += 1) {
-        console.log(`打开 ${run}/${args.runs}`)
+    const turns: EdgeSample[] = []
+
+    for (let run = 1; run <= args.runs; run += 1) {
+      console.log(args.turnOnly ? `回合 ${run}/${args.runs}` : `打开+回合 ${run}/${args.runs}`)
+
+      // 打开段：一个实例只量冷启动、切换、滚动、工具展开
+      if (!args.turnOnly) {
         const session = await openReadyPage(harness, true)
-        const { page } = session
 
         try {
+          const { page } = session
           const cold = await measureStart(page)
+
           open.coldTo.push(session.coldTo)
           open.coldFcp.push(cold.fcp)
           open.coldLcp.push(cold.lcp)
@@ -311,25 +318,37 @@ async function main() {
           open.scroll.push(await scrollTranscript(page, LONG_SESSION_NAME))
           open.switchRevisit.push(await openSession(page, SHORT_SESSION_NAME))
           const toolExpand = await expandToolSteps(page, TOOL_SESSION_NAME, TOOL_STEPS)
+
           open.toolExpandFirstFrame.push(toolExpand.firstFrameMs)
           open.toolExpandComplete.push(toolExpand.completeMs)
           open.toolExpandLongTask.push(toolExpand.worstLongTaskMs)
         } catch (error) {
-          await captureBenchFailure(page, failShot)
+          await captureBenchFailure(session.page, failShot)
           throw error
         } finally {
           await session.close()
         }
       }
+
+      // 回合段：全新实例，避免上一段的会话状态压进建会话路径
+      const turn = await harness.open(false)
+
+      try {
+        turns.push(await runTurnScenarios(turn.page, turn.origin))
+      } catch (error) {
+        await captureBenchFailure(turn.page, failShot)
+        throw error
+      } finally {
+        await turn.close()
+      }
     }
 
-    const turns = await runTurnBench(harness, args.runs, join(root, "test-results"))
-    const own = turns.samples.map((sample) => sample.ownMessageMs)
-    const token = turns.samples.map((sample) => sample.firstTokenMs)
-    const stream = turns.samples.map((sample) => sample.streamKeepUpMs)
-    const abort = turns.samples.map((sample) => sample.abortMs)
-    const rapid = turns.samples.map((sample) => sample.rapidSwitchMs)
-    const reconnect = turns.samples.map((sample) => sample.reconnectMs)
+    const own = turns.map((sample) => sample.ownMessageMs)
+    const token = turns.map((sample) => sample.firstTokenMs)
+    const stream = turns.map((sample) => sample.streamKeepUpMs)
+    const abort = turns.map((sample) => sample.abortMs)
+    const rapid = turns.map((sample) => sample.rapidSwitchMs)
+    const reconnect = turns.map((sample) => sample.reconnectMs)
     const cold = open.coldTo.length ? collect(open.coldTo) : undefined
     const fcp = open.coldFcp.length ? collect(open.coldFcp) : undefined
     const lcp = open.coldLcp.length ? collect(open.coldLcp) : undefined

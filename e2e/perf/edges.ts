@@ -1,13 +1,10 @@
 import { expect, type Page } from "@playwright/test"
-import { join } from "node:path"
 
 import { TRANSCRIPT_PAGE_TURNS } from "../../packages/gateway/src/pi/transcript-page.js"
 import { STOP_TURN, TURN_TOKEN, installTurnBridge, streamingAssistant } from "../sim-turn.js"
-import type { BenchHarness } from "./harness.js"
 import { armClickStamps, armStamps, clickStamps, pageClockOffset } from "./in-page.js"
 import {
   WORKBENCH_TIMEOUT_MS,
-  captureBenchFailure,
   composerInput,
   nextPaint,
   openSession,
@@ -246,33 +243,17 @@ export type EdgeSample = {
   reconnectMs: number
 }
 
-export async function runTurnBench(
-  harness: BenchHarness,
-  runs: number,
-  resultDir: string,
-): Promise<{ samples: EdgeSample[] }> {
-  const samples: EdgeSample[] = []
+/** 在给定窗口上装桥接后打开工作台：桥接只接管新建的 WS 连接，回合场景跑在这个新文档里。 */
+export async function runTurnScenarios(page: Page, origin: string): Promise<EdgeSample> {
+  const bridge = await installTurnBridge(page)
 
-  for (let index = 0; index < runs; index += 1) {
-    console.log(`回合 ${index + 1}/${runs}`)
-    const session = await harness.open(false)
-    const { page } = session
+  await page.goto(origin)
+  await waitForWorkbench(page)
 
-    try {
-      const bridge = await installTurnBridge(page)
-      await page.goto(session.origin)
-      await waitForWorkbench(page)
-      const turn = await measureTurn(page, bridge)
-      const rapidSwitchMs = await rapidSwitch(page)
-      const reconnectMs = await reconnect(page, bridge)
-      samples.push({ ...turn, rapidSwitchMs, reconnectMs })
-    } catch (error) {
-      await captureBenchFailure(page, join(resultDir, "perf-fail.png"))
-      throw error
-    } finally {
-      await session.close()
-    }
-  }
+  if (bridge.connections() === 0) throw new Error("回合桥接未接管 WebSocket")
 
-  return { samples }
+  const turn = await measureTurn(page, bridge)
+  const rapidSwitchMs = await rapidSwitch(page)
+  const reconnectMs = await reconnect(page, bridge)
+  return { ...turn, rapidSwitchMs, reconnectMs }
 }
