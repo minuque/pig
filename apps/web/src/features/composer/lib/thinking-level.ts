@@ -9,8 +9,8 @@ export function displayThinkingLevel(level: string, levels: readonly string[]): 
   return levels.includes(level) ? level : (levels[0] ?? "")
 }
 
-/** 触发器 title / aria-label：模型名 + 当前思考档。 */
+/** 触发器文案：模型名 + 当前思考档，用「 · 」分隔。 */
 export function pickerTriggerText(name: string, level: string, levels: readonly string[]): string {
   const formatted = formatThinkingLevel(displayThinkingLevel(level, levels))
-  return formatted ? `${name}，思考强度：${formatted}` : name
+  return formatted ? `${name} · ${formatted}` : name
 }

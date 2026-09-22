@@ -8,7 +8,7 @@ function eventElement(target: EventTarget | null): Element | null {
   return null
 }
 
-/** 与 ModelEffortMenu content 的 data-model-effort-menu 对应。 */
+/** 与思考档子菜单 content 的 data-model-effort-menu 对应。 */
 function isEffortMenuEvent(event: Event): boolean {
   const detail = (event as CustomEvent<{ originalEvent?: Event }>).detail
   const el = eventElement(detail?.originalEvent?.target ?? event.target)
