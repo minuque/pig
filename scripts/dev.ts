@@ -34,7 +34,9 @@ if (process.env.MSYSTEM && !process.env[WRAPPED] && process.stdin.isTTY) {
 async function main() {
   const gateway = new Gateway()
   const port = await gateway.start()
+  const gatewayOrigin = `http://127.0.0.1:${port}`
   console.info(`[dev] http://127.0.0.1:5173`)
+  console.info(`[dev] ${gateway.authenticatedUrl(gatewayOrigin)}`)
 
   const pnpm = process.env.npm_execpath
 
@@ -43,7 +45,7 @@ async function main() {
   const web = spawn(process.execPath, [pnpm, "--filter", "@pig/web", "dev"], {
     env: {
       ...process.env,
-      GATEWAY_TARGET: `http://127.0.0.1:${port}`,
+      GATEWAY_TARGET: gatewayOrigin,
       GATEWAY_TOKEN: gateway.launchToken,
     },
     stdio: "inherit",
