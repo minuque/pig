@@ -90,20 +90,20 @@
   --accent-gray: #8a8d94;
 
   /* 语义 */
-  --accent-orange: #713f12;
-  --accent-orange-deep: #713f12;
-  --accent-green: #14532d;
-  --success: #14532d;
-  --info: #3b4cc0;
-  --warning: #713f12;
-  --danger: #991b1b;
+  --accent-orange: #d97706;
+  --accent-orange-deep: #d97706;
+  --accent-green: #52a450;
+  --success: #52a450;
+  --info: #5e6ad2;
+  --warning: #d97706;
+  --danger: #c94446;
   --success-foreground: var(--on-primary);
   --warning-foreground: var(--on-primary);
   --danger-foreground: var(--on-primary);
-  --success-bg: #7ddea8;
-  --info-bg: #d0d5f6;
-  --warning-bg: #f6d36a;
-  --danger-bg: #f3bcbc;
+  --success-bg: #dcfce7;
+  --info-bg: #eceef8;
+  --warning-bg: #fef9c3;
+  --danger-bg: #fee2e2;
 
   /* 字体 */
   --font-sans:
@@ -282,13 +282,13 @@
   --accent-steel: #8aa4c2;
   --accent-teal: #5ec4ae;
   --accent-gray: #9a9da4;
-  --accent-orange: #facc15;
-  --accent-orange-deep: #facc15;
-  --accent-green: #4ade80;
-  --success: #4ade80;
+  --accent-orange: #f5b44a;
+  --accent-orange-deep: #f5b44a;
+  --accent-green: #69c967;
+  --success: #69c967;
   --info: #606acc;
-  --warning: #facc15;
-  --danger: #f87171;
+  --warning: #f5b44a;
+  --danger: #ff7e78;
   --success-foreground: #000000;
   --warning-foreground: #000000;
   --danger-foreground: #000000;
