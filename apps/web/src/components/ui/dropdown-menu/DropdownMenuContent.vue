@@ -15,12 +15,8 @@
 import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui"
 import { computed, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import {
-  DropdownMenuContent,
-  DropdownMenuPortal,
-  injectDropdownMenuRootContext,
-  useForwardPropsEmits,
-} from "reka-ui"
+import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
+import { usePopperAnchor } from "@components/ui/popper-anchor.js"
 
 defineOptions({
   inheritAttrs: false,
@@ -35,8 +31,8 @@ const props = withDefaults(
 )
 const emits = defineEmits<DropdownMenuContentEmits>()
 // 被 Tooltip 包住时 MenuAnchor 会注册到 Tooltip 的 PopperRoot，须显式传触发元素当锚点
-const rootContext = injectDropdownMenuRootContext(null)
-const reference = computed(() => props.reference ?? rootContext?.triggerElement?.value)
+const anchor = usePopperAnchor()
+const reference = computed(() => props.reference ?? anchor?.value)
 const delegatedProps = reactiveOmit(props, "class")
 // reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
 const forwarded = useForwardPropsEmits(
