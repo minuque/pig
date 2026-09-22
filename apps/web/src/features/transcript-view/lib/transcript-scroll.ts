@@ -1,3 +1,18 @@
+/** 收起后把按钮留在点击时的视口位置，直到高度动画结束。 */
+export function holdClickedOffset(el: HTMLElement): void {
+  const scroller = el.closest("#transcript-panel")
+  const box = el.parentElement
+
+  if (!(scroller instanceof HTMLElement) || !box) return
+  const target = el.getBoundingClientRect().top
+  const observer = new ResizeObserver(() => {
+    scroller.scrollTop += el.getBoundingClientRect().top - target
+  })
+
+  observer.observe(box)
+  window.setTimeout(() => observer.disconnect(), 400)
+}
+
 /** 精确贴底：2px 内视为贴底。 */
 export function isTranscriptAtBottom(
   scrollHeight: number,

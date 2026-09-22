@@ -1,12 +1,6 @@
 <template>
   <section class="tool-steps" :class="{ running, aborted: row.aborted }">
-    <Button
-      type="button"
-      static
-      class="summary-btn"
-      :style="statusColor"
-      @click="emit('toggle-expand', !revealed)"
-    >
+    <Button type="button" static class="summary-btn" :style="statusColor" @click="toggleSteps">
       <Spinner v-if="running" class="tool-steps-icon" />
       <ClockAlert v-else-if="row.aborted || row.error" class="tool-steps-icon" />
       <BadgeCheck v-else class="tool-steps-icon" />
@@ -140,6 +134,7 @@ import {
   toolRowFailCount,
   toolRowLabelParts,
 } from "@features/transcript-view/lib/transcript-row-label.js"
+import { holdClickedOffset } from "@features/transcript-view/lib/transcript-scroll.js"
 import type { ToolRow, ToolRowStep } from "@features/transcript-view/type.js"
 
 const HOOK_CORNER = 6
@@ -157,6 +152,14 @@ const emit = defineEmits<{
 const running = computed(() => props.row.mode === "live")
 const statusColor = computed(() => (props.row.aborted ? { color: "var(--warning)" } : undefined))
 const revealed = computed(() => running.value || props.isExpand === true)
+
+function toggleSteps(event: MouseEvent) {
+  const button = event.currentTarget
+
+  if (revealed.value && button instanceof HTMLElement) holdClickedOffset(button)
+  emit("toggle-expand", !revealed.value)
+}
+
 const keptMounted = shallowRef(revealed.value)
 const pageLimit = shallowRef(
   running.value ? Math.max(PAGE_SIZE, props.row.steps.length) : PAGE_SIZE,

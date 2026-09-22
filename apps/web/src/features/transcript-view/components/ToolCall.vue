@@ -98,6 +98,7 @@ import {
 import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
+import { holdClickedOffset } from "@features/transcript-view/lib/transcript-scroll.js"
 import {
   isCommandTool,
   toolCommand,
@@ -353,7 +354,10 @@ const calls = computed(() => {
   return group.value.items.map((item) => presentCall(item, keptMounted.value))
 })
 
-function toggleGroup() {
+function toggleGroup(event: MouseEvent) {
+  const button = event.currentTarget
+
+  if (open.value && button instanceof HTMLElement) holdClickedOffset(button)
   emit("toggle", { id: props.step.id, open: !open.value })
 }
 </script>
