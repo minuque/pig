@@ -9,12 +9,13 @@
     "node": ">=22.19.0"
   },
   "scripts": {
-    "dev": "tsx scripts/dev.ts",
+    "dev:web": "tsx scripts/dev.ts",
     "dev:debug": "tsx --inspect=9229 scripts/dev.ts --debug",
     "dev:desktop": "pnpm --filter @pig/desktop dev",
-    "build": "pnpm --filter @pig/web build",
-    "start": "pnpm build && tsx packages/gateway/src/cli.ts apps/web/dist",
-    "start:desktop": "pnpm build && pnpm --filter @pig/desktop start",
+    "build": "pnpm --filter @pig/gateway build",
+    "build:web": "pnpm --filter @pig/web build",
+    "start:web": "pnpm build:web && tsx packages/gateway/src/cli.ts apps/web/dist",
+    "start:desktop": "pnpm build:web && pnpm --filter @pig/desktop start",
     "dist:win": "node scripts/dist-win.mjs",
     "preview": "pnpm --filter @pig/web preview",
     "test": "pnpm -r --if-present test && pnpm test:scripts",

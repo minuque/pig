@@ -104,14 +104,14 @@ function buildWeb() {
   if (!pnpm) throw new Error("未找到 pnpm，请用 pnpm test:bench 运行")
   console.log("构建 web…")
 
-  const result = spawnSync(process.execPath, [pnpm, "build"], {
+  const result = spawnSync(process.execPath, [pnpm, "build:web"], {
     cwd: root,
     stdio: "inherit",
     windowsHide: true,
   })
 
   if (result.error || result.status !== 0)
-    throw new Error("pnpm build 失败", { cause: result.error })
+    throw new Error("pnpm build:web 失败", { cause: result.error })
 }
 
 async function startGateway(workspaceDir: string, sessionDir: string) {

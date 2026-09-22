@@ -17,7 +17,7 @@
 
 ```bash
 pnpm install        # 安装依赖
-pnpm dev            # 启动 Gateway + Web
+pnpm dev:web        # 启动 Gateway + Web
 pnpm dev:desktop    # Electron 桌面开发
 ```
 

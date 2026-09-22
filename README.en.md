@@ -17,7 +17,7 @@
 
 ```bash
 pnpm install        # install dependencies
-pnpm dev            # start Gateway + Web, opens the browser
+pnpm dev:web        # start Gateway + Web, opens the browser
 pnpm dev:desktop    # Electron desktop development
 ```
 

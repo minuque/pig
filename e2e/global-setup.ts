@@ -9,10 +9,10 @@ export default function globalSetup() {
 
   if (!pnpm) throw new Error("pnpm executable not found; run via pnpm test:e2e")
 
-  const result = spawnSync(process.execPath, [pnpm, "build"], {
+  const result = spawnSync(process.execPath, [pnpm, "build:web"], {
     cwd: root,
     stdio: "inherit",
   })
 
-  if (result.status) throw new Error("pnpm build failed")
+  if (result.status) throw new Error("pnpm build:web failed")
 }

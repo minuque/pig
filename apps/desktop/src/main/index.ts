@@ -149,7 +149,7 @@ void app.whenReady().then(async () => {
           "无法启动",
           isPackaged
             ? "安装包资源缺失。"
-            : "未找到 Web 构建产物（apps/web/dist）。请先执行 pnpm --filter @pig/web build。",
+            : "未找到 Web 构建产物（apps/web/dist）。请先执行 pnpm build:web。",
         )
         await shutdown()
         return
