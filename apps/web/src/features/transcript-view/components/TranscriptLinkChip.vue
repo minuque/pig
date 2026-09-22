@@ -65,7 +65,8 @@ function onIconError(): void {
 <style scoped>
 .link-chip {
   display: inline-flex;
-  align-items: center;
+  /* 标签文字按基线对齐，图标单独居中，整行高度不变 */
+  align-items: baseline;
   max-width: 100%;
   margin-inline: 0.15em;
   color: var(--link);
@@ -81,6 +82,8 @@ function onIconError(): void {
 }
 
 .icon {
+  /* svg 没有基线，底边贴基线会整体偏高，改成随文字居中 */
+  align-self: center;
   width: 1em;
   height: 1em;
   flex: none;
