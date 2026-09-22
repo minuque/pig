@@ -11,11 +11,35 @@
         <slot name="meta" />
 
         <Button
+          type="button"
+          variant="outline"
+          size="icon-2xs"
+          class="icon-btn"
+          :aria-pressed="softWrap"
+          :title="softWrap ? '取消软换行' : '软换行'"
+          @click.stop="softWrap = !softWrap"
+        >
+          <WrapText v-if="!softWrap" class="size-3.5" />
+          <AlignLeft v-else class="size-3.5" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-2xs"
+          class="icon-btn"
+          title="收起面板"
+          @click.stop="emit('collapse')"
+        >
+          <ChevronsDownUp class="size-3.5" />
+        </Button>
+
+        <Button
           v-if="text"
           type="button"
           variant="outline"
           size="icon-2xs"
-          class="copy"
+          class="icon-btn copy"
           :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
           :title="copyLabel"
           @click="copy"
@@ -33,13 +57,15 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
-import { Check, Copy } from "@lucide/vue"
+import { AlignLeft, Check, ChevronsDownUp, Copy, WrapText } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 
 const props = defineProps<{
   label: string
   text: string
 }>()
+const softWrap = defineModel<boolean>("softWrap", { default: false })
+const emit = defineEmits<{ collapse: [] }>()
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const copyLabel = computed(() =>
   status.value === "copied"
@@ -129,6 +155,7 @@ async function copy() {
   white-space: nowrap;
 }
 
+.icon-btn,
 .copy {
   width: 24px;
   height: 24px;
@@ -142,6 +169,7 @@ async function copy() {
   font-weight: var(--font-weight-regular);
 }
 
+.icon-btn:hover,
 .copy:hover {
   background: var(--hover-quiet);
   color: var(--ink);

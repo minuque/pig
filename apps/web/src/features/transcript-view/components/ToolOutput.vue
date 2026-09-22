@@ -1,5 +1,5 @@
 <template>
-  <div v-if="code" class="tool-output is-code">
+  <div v-if="code" class="tool-output is-code" :class="{ 'is-soft-wrap': softWrap }">
     <div class="code-scroll">
       <div class="code-lines" :style="{ '--line-number-width': `${lineNumberWidth}ch` }">
         <div v-for="(line, index) in lines" :key="index" class="code-line">
@@ -23,7 +23,7 @@
     </div>
   </div>
 
-  <div v-else class="tool-output" :class="{ 'is-embedded': embedded }">
+  <div v-else class="tool-output" :class="{ 'is-embedded': embedded, 'is-soft-wrap': softWrap }">
     <template v-if="showText">
       <pre v-if="!virtual" class="tool-output-pre" :class="preClass">{{ text }}</pre>
 
@@ -90,6 +90,7 @@ const props = withDefaults(
     showCount?: boolean
     embedded?: boolean
     code?: boolean
+    softWrap?: boolean
     lines?: readonly string[]
     tokens?: { content: string; color?: string }[][]
     startLine?: number
@@ -103,6 +104,7 @@ const props = withDefaults(
     showCount: true,
     embedded: false,
     code: false,
+    softWrap: false,
     lines: () => [],
     tokens: () => [],
     startLine: 1,
@@ -119,7 +121,7 @@ const preClass = computed(() => ({
   "is-embedded": props.embedded,
 }))
 const scrollTop = shallowRef(0)
-const virtual = computed(() => lines.value.length > props.maxLines)
+const virtual = computed(() => false)
 const range = computed(() =>
   virtual.value
     ? visibleLineRange(
@@ -155,7 +157,7 @@ function onScroll(event: Event) {
   position: relative;
   margin: var(--spacing-xxs) 0 0;
   padding: var(--spacing-sm);
-  overflow: auto;
+  overflow: visible;
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface);
@@ -195,7 +197,7 @@ function onScroll(event: Event) {
 }
 
 .tool-output-pre.is-virtual {
-  overflow: auto;
+  overflow: visible;
 }
 
 .canvas {
@@ -223,8 +225,7 @@ function onScroll(event: Event) {
 }
 
 .code-scroll {
-  max-height: 550px;
-  overflow: auto;
+  overflow: visible;
   padding-block: var(--spacing-xs);
   padding-inline-start: var(--spacing-xs);
 }
@@ -235,7 +236,7 @@ function onScroll(event: Event) {
 }
 
 .code-lines {
-  min-width: max-content;
+  min-width: 0;
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);
@@ -259,5 +260,15 @@ code {
   color: var(--ink);
   font: inherit;
   white-space: pre;
+}
+
+.is-soft-wrap .code-lines {
+  min-width: 0;
+}
+
+.is-soft-wrap code,
+.is-soft-wrap .tool-output-pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 </style>

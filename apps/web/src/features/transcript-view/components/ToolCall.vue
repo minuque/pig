@@ -42,6 +42,7 @@
             <div v-if="call.expandable" class="call">
               <ToolStepCard
                 v-if="call.variant === 'command'"
+                @collapse="toggleGroup"
                 variant="command"
                 :command="call.command"
                 :cwd="call.cwd"
@@ -54,6 +55,7 @@
 
               <ToolStepCard
                 v-else-if="call.variant === 'read'"
+                @collapse="toggleGroup"
                 variant="read"
                 :path="call.path"
                 :preview="call.preview"
@@ -62,6 +64,7 @@
 
               <ToolStepCard
                 v-else-if="call.variant === 'edit'"
+                @collapse="toggleGroup"
                 variant="edit"
                 :edit-preview="call.editPreview"
                 :output-text="call.outputText"
@@ -70,6 +73,7 @@
               <ToolStepCard
                 v-else
                 variant="tool"
+                @collapse="toggleGroup"
                 :input-full="call.inputFull"
                 :output-text="call.outputText"
                 :output-images="call.outputImages"

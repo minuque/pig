@@ -10,7 +10,12 @@
 
   <div v-else class="tool-step-card" :class="cardClasses">
     <template v-if="runContent">
-      <ToolHeader label="输出" :text="runContent.shownOutput">
+      <ToolHeader
+        v-model:soft-wrap="softWrap"
+        label="输出"
+        :text="runContent.shownOutput"
+        @collapse="emit('collapse')"
+      >
         <div class="command-heading">
           <span class="status-dot" :title="runContent.statusLabel" />
 
@@ -23,6 +28,7 @@
       </ToolHeader>
 
       <ToolOutput
+        :soft-wrap="softWrap"
         :text="runContent.shownOutput"
         :images="runContent.outputImages"
         :show-count="false"
@@ -31,7 +37,12 @@
     </template>
 
     <template v-else-if="readContent">
-      <ToolHeader label="输出" :text="readContent.preview.code">
+      <ToolHeader
+        v-model:soft-wrap="softWrap"
+        label="输出"
+        :text="readContent.preview.code"
+        @collapse="emit('collapse')"
+      >
         <div class="read-heading">
           <img
             v-if="languageIconUrl"
@@ -47,24 +58,30 @@
 
       <ToolOutput
         code
+        :soft-wrap="softWrap"
         :lines="readContent.preview.lines"
         :tokens="readTokens"
         :start-line="readContent.preview.startLine"
       />
 
-      <p v-if="readContent.preview.notice" class="read-notice">{{ readContent.preview.notice }}</p>
+      <p v-if="readContent.preview.notice" class="read-notice">
+        {{ readContent.preview.notice }}
+      </p>
     </template>
 
     <template v-else-if="toolContent">
       <ToolHeader
         v-if="toolContent.inputFull || toolContent.shownOutput"
+        v-model:soft-wrap="softWrap"
         label="输出"
         :text="toolContent.shownOutput"
+        @collapse="emit('collapse')"
       >
         <pre v-if="toolContent.inputFull" class="input-json">{{ toolContent.inputFull }}</pre>
       </ToolHeader>
 
       <ToolOutput
+        :soft-wrap="softWrap"
         :text="toolContent.shownOutput"
         :images="toolContent.outputImages"
         :show-count="false"
@@ -73,7 +90,12 @@
     </template>
 
     <template v-else-if="editContent">
-      <ToolHeader label="输出" :text="editContent.outputText">
+      <ToolHeader
+        v-model:soft-wrap="softWrap"
+        label="输出"
+        :text="editContent.outputText"
+        @collapse="emit('collapse')"
+      >
         <div class="read-heading">
           <img
             v-if="editLanguageIconUrl"
@@ -98,6 +120,7 @@
         v-for="(hunk, index) in editContent.hunks"
         :key="index"
         class="edit-diff"
+        :class="{ 'is-soft-wrap': softWrap }"
         :original="hunk.original"
         :modified="hunk.modified"
         :language="editContent.language"
@@ -120,7 +143,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, nextTick, ref, shallowRef, useTemplateRef, watch } from "vue"
 import { StreamDiff } from "stream-diffs/vue"
 import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import { useStickToBottom } from "markstream-vue/utils"
@@ -138,6 +161,7 @@ import type {
   TranscriptImage as ToolStepImage,
 } from "@features/transcript-view/type.js"
 
+const emit = defineEmits<{ collapse: [] }>()
 const props = defineProps<{
   variant: "thought" | "command" | "read" | "edit" | "tool"
   text?: string
@@ -216,6 +240,7 @@ const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
 const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
 const editLanguageIconUrl = computed(() => languageIconDataUrl(editContent.value?.language))
 const editHeading = computed(() => editContent.value?.path || editContent.value?.fileName || "")
+const softWrap = ref(false)
 
 function languageIconDataUrl(lang: string | undefined) {
   void languageIconsRevision.value
@@ -429,8 +454,13 @@ watch(
 
 .edit-diff {
   max-width: 100%;
-  max-height: 550px;
-  overflow: auto;
+  overflow: visible;
+}
+
+.edit-diff.is-soft-wrap :deep(pre),
+.edit-diff.is-soft-wrap :deep(code) {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .edit-diff::-webkit-scrollbar-track {
