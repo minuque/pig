@@ -28,11 +28,7 @@
       />
     </Button>
 
-    <div
-      class="tool-calls-group"
-      :class="{ 'is-open': open, instant: running || closeInstant }"
-      :inert="!open"
-    >
+    <div class="tool-calls-group" :class="{ 'is-open': open, instant: running }" :inert="!open">
       <div class="panel-slide">
         <ToolStepCard
           v-if="keptMounted && thought && thought.text"
@@ -92,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import {
   ChevronRight,
@@ -306,8 +302,8 @@ const open = computed(
   () => thought.value?.streaming === true || props.isExpand.get(props.step.id) === true,
 )
 const keptMounted = shallowRef(open.value)
-const closeInstant = shallowRef(false)
 const rootEl = useTemplateRef<HTMLElement>("rootEl")
+let panelResize: ResizeObserver | undefined
 
 watch(
   open,
@@ -363,34 +359,43 @@ const calls = computed(() => {
   return group.value.items.map((item) => presentCall(item, keptMounted.value))
 })
 
+function holdVisibleScroll(scroller: HTMLElement, panel: HTMLElement) {
+  panelResize?.disconnect()
+  const turn = panel.closest("[data-turn-id]")
+  let height = panel.getBoundingClientRect().height
+  let top = panel.getBoundingClientRect().top
+
+  panelResize = new ResizeObserver(() => {
+    const box = panel.getBoundingClientRect()
+    const view = scroller.getBoundingClientRect()
+    const turnBox = turn?.getBoundingClientRect()
+    const viewInTurn = !turnBox || (turnBox.top < view.bottom && turnBox.bottom > view.top)
+    const lost = height - box.height
+    const removedAbove = Math.max(0, Math.min(view.top, top + height) - Math.max(top, box.bottom))
+
+    if (viewInTurn && lost > 0 && removedAbove > 0) scroller.scrollTop -= removedAbove
+    height = box.height
+    top = panel.getBoundingClientRect().top
+
+    if (!panel.classList.contains("is-open") && box.height < 1) {
+      panelResize?.disconnect()
+      panelResize = undefined
+    }
+  })
+  panelResize.observe(panel)
+}
+
 function toggleGroup() {
   const root = rootEl.value
   const scroller = root?.closest<HTMLElement>("#transcript-panel") ?? null
-  const summary = root?.querySelector<HTMLElement>(".summary") ?? null
   const panel = root?.querySelector<HTMLElement>(".tool-calls-group") ?? null
-  const closing = open.value
-  let pinSummary = false
 
-  if (closing && scroller && summary && panel) {
-    const scrollerTop = scroller.getBoundingClientRect().top
-    const summaryTop = summary.getBoundingClientRect().top
-    const panelHeight = panel.getBoundingClientRect().height
-    const distanceToBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight
-
-    closeInstant.value = panelHeight > scroller.clientHeight
-    pinSummary = closeInstant.value && summaryTop < scrollerTop && distanceToBottom > 48
-  } else {
-    closeInstant.value = false
-  }
-
+  if (open.value && scroller && panel) holdVisibleScroll(scroller, panel)
+  else panelResize?.disconnect()
   emit("toggle", { id: props.step.id, open: !open.value })
-
-  if (!pinSummary || !scroller || !summary) return
-  void nextTick(() => {
-    const scrollerTop = scroller.getBoundingClientRect().top
-    scroller.scrollTop += summary.getBoundingClientRect().top - scrollerTop
-  })
 }
+
+onBeforeUnmount(() => panelResize?.disconnect())
 </script>
 
 <style scoped>
