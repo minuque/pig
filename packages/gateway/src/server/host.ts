@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
 import { PiServer } from "@earendil-works/pi-server"
+import { BrowserSession, browserSecretFile } from "../auth/browser-session.js"
 import { PiHostService, type PiHostServiceOptions } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
 import { handlePlatformRequest } from "./platform.js"
@@ -17,6 +18,8 @@ export interface GatewayOptions {
   port?: number
   /** 测试注入：ModelRuntime 工厂。 */
   createRuntime?: PiHostServiceOptions["createRuntime"]
+  /** 浏览器通行证的签名文件。缺省跟会话目录或用户主目录走。 */
+  browserSecretFile?: string
 }
 
 /**
@@ -30,10 +33,14 @@ export class Gateway {
   private readonly webRoot: string | undefined
   private readonly platformPort: DirectoryPort
   private readonly listenPort: number
+  private readonly browser: BrowserSession
 
   constructor(options: GatewayOptions = {}) {
     this.webRoot = options.webRoot
     this.listenPort = options.port ?? 0
+    this.browser = new BrowserSession(
+      options.browserSecretFile ?? browserSecretFile(options.sessionDir),
+    )
     this.platformPort =
       options.platformPort ??
       (process.platform === "win32" ? new WindowsDirectoryPort() : new ManualDirectoryPort())
@@ -44,10 +51,27 @@ export class Gateway {
       ...(options.createRuntime ? { createRuntime: options.createRuntime } : {}),
     })
     this.piServer = new PiServer(this.hostService, {
-      listeners: [createWebSocketListener({ server: this.server })],
+      listeners: [
+        createWebSocketListener({
+          server: this.server,
+          allow: (req) => this.browser.rejection(req.headers),
+        }),
+      ],
       onError: (error) => console.error("PiServer error:", error),
       handshakeTimeoutMs: 30_000,
     })
+  }
+
+  get launchToken(): string {
+    return this.browser.launchToken
+  }
+
+  authorizationHeader(): string {
+    return this.browser.authorizationHeader()
+  }
+
+  authenticatedUrl(base: string): string {
+    return this.browser.authenticatedUrl(base)
   }
 
   private send(res: ServerResponse, status: number, body?: unknown) {
@@ -77,6 +101,13 @@ export class Gateway {
     if (url.pathname === "/health" && req.method === "GET")
       return this.send(res, 200, { status: "ok" })
 
+    const method = req.method ?? "GET"
+    const exchanging = method === "GET" && url.pathname === "/" && url.searchParams.has("token")
+
+    if (exchanging || (this.webRoot && isAppShell(url.pathname, method))) {
+      if (!this.browser.authorizeIndex(req, res)) return
+    }
+
     if (
       this.webRoot &&
       req.method === "GET" &&
@@ -89,6 +120,15 @@ export class Gateway {
       ))
     )
       return
+
+    if (url.pathname.startsWith("/api/")) {
+      const rejection = this.browser.rejection(req.headers)
+
+      if (rejection)
+        return this.send(res, rejection, {
+          code: rejection === 401 ? "UNAUTHENTICATED" : "FORBIDDEN",
+        })
+    }
 
     if (url.pathname.startsWith("/api/v1/platform/")) {
       const handled = await handlePlatformRequest(req, res, url, {
@@ -105,6 +145,7 @@ export class Gateway {
   }
 
   async start() {
+    await this.browser.open()
     installProviderHttp()
     const warming = this.hostService.warm()
     await this.piServer.start()
@@ -134,6 +175,14 @@ export class Gateway {
       this.server.close((error) => (error ? reject(error) : resolveStop())),
     )
   }
+}
+
+function isAppShell(pathname: string, method: string): boolean {
+  if (method !== "GET" && method !== "HEAD") return false
+
+  if (pathname.startsWith("/api/")) return false
+  const last = pathname.split("/").pop() ?? ""
+  return last === "" || last === "index.html" || !last.includes(".")
 }
 
 export default Gateway

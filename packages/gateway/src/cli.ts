@@ -20,14 +20,14 @@ const gateway = new Gateway({
   ...(process.env.PIG_CWD ? { cwd: resolve(process.env.PIG_CWD) } : {}),
 })
 const port = await gateway.start()
-const origin = `http://127.0.0.1:${port}`
+const entry = gateway.authenticatedUrl(`http://127.0.0.1:${port}`)
 
-console.log(`Gateway listening on ${origin}`)
+console.log(`Gateway listening on ${entry}`)
 
 if (openBrowser) {
   const command =
     process.platform === "win32" ? "cmd.exe" : process.platform === "darwin" ? "open" : "xdg-open"
-  const args = process.platform === "win32" ? ["/c", "start", "", origin] : [origin]
+  const args = process.platform === "win32" ? ["/c", "start", "", entry] : [entry]
   spawn(command, args, { detached: true, stdio: "ignore" }).unref()
 }
 

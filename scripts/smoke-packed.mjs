@@ -80,7 +80,7 @@ try {
     const origin = await new Promise((resolveOrigin, reject) => {
       child.stdout.setEncoding("utf8")
       child.stdout.on("data", (text) => {
-        const match = text.match(/http:\/\/127\.0\.0\.1:\d+/)
+        const match = text.match(/http:\/\/127\.0\.0\.1:\d+\/\?token=[^\s]+/)
 
         if (match) resolveOrigin(match[0])
       })

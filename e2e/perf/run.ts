@@ -133,7 +133,8 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
 
   try {
     const port = await gateway.start()
-    return { gateway, origin: `http://127.0.0.1:${port}` }
+    const origin = `http://127.0.0.1:${port}`
+    return { gateway, origin: gateway.authenticatedUrl(origin) }
   } catch (error) {
     await gateway.stop()
     throw error

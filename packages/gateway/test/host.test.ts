@@ -46,15 +46,26 @@ async function startGateway(options?: ConstructorParameters<typeof Gateway>[0]) 
   return `http://127.0.0.1:${await gateway.start()}`
 }
 
+function authHeaders(extra?: Record<string, string>): Record<string, string> {
+  return {
+    authorization: gateway?.authorizationHeader() ?? "",
+    ...extra,
+  }
+}
+
 async function request(
   base: string,
   path: string,
   body?: unknown,
   method = body === undefined ? "GET" : "POST",
+  headers: Record<string, string> = authHeaders(),
 ) {
   return fetch(`${base}${path}`, {
     method,
-    headers: body === undefined ? {} : { "content-type": "application/json" },
+    headers: {
+      ...headers,
+      ...(body === undefined ? {} : { "content-type": "application/json" }),
+    },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   })
 }
@@ -72,8 +83,37 @@ describe("thin host HTTP shell", () => {
       },
     })
 
-    expect((await request(base, "/health")).status).toBe(200)
+    expect((await request(base, "/health", undefined, "GET", {})).status).toBe(200)
     release()
+  })
+
+  it("没有通行证时拒绝平台接口，根路径上的 token 可换成 cookie", async () => {
+    const base = await startGateway()
+    expect(
+      (await request(base, "/api/v1/platform/session-cards", undefined, "GET", {})).status,
+    ).toBe(401)
+    expect(
+      (
+        await request(base, "/api/v1/platform/session-cards", undefined, "GET", {
+          authorization: gateway?.authorizationHeader() ?? "",
+          origin: "https://evil.example",
+          "sec-fetch-site": "cross-site",
+        })
+      ).status,
+    ).toBe(403)
+
+    const exchanged = await fetch(gateway?.authenticatedUrl(base) ?? base, { redirect: "manual" })
+    expect(exchanged.status).toBe(303)
+    expect(exchanged.headers.get("location")).toBe("/")
+    const setCookie = exchanged.headers.get("set-cookie") ?? ""
+    expect(setCookie).toContain("HttpOnly")
+    expect(setCookie).toContain("SameSite=Strict")
+
+    const authed = await request(base, "/api/v1/platform/session-cards", undefined, "GET", {
+      cookie: setCookie.split(";", 1)[0] ?? "",
+    })
+
+    expect(authed.status).toBe(200)
   })
 
   it("selects a directory", async () => {
@@ -138,7 +178,9 @@ describe("thin host WebSocket", () => {
   it("hands connections to PiServer after upgrade", async () => {
     const base = await startGateway()
     const port = new URL(base).port
-    const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`)
+    const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`, {
+      headers: { authorization: gateway?.authorizationHeader() ?? "" },
+    })
     const result = await new Promise<{ message: unknown; closed: boolean }>((resolve, reject) => {
       const decoder = new ServerMessageDecoder()
       socket.on("message", (data) => {

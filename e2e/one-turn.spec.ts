@@ -26,7 +26,7 @@ test("一轮工作：复杂历史上发送、流式、中止", async ({ page, co
     { workspaceId: complexGateway.workspaceId },
   )
   const bridge = await installTurnBridge(page)
-  await page.goto(complexGateway.origin)
+  await page.goto(complexGateway.entryUrl)
 
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
   await expect(page.getByText("正在连接…")).toHaveCount(0)

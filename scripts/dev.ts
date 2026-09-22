@@ -44,6 +44,7 @@ async function main() {
     env: {
       ...process.env,
       GATEWAY_TARGET: `http://127.0.0.1:${port}`,
+      GATEWAY_TOKEN: gateway.launchToken,
     },
     stdio: "inherit",
     // 非 Windows 用独立进程组,便于整树终止(见 killTree)

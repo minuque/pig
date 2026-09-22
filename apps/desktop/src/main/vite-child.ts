@@ -53,11 +53,12 @@ export function pnpmExecutable(env: NodeJS.ProcessEnv = process.env): string {
   return pnpm
 }
 
-export function spawnVite(env: { GATEWAY_TARGET: string }): ChildProcess {
+export function spawnVite(env: { GATEWAY_TARGET: string; GATEWAY_TOKEN: string }): ChildProcess {
   const node = nodeExecutable()
   const pnpm = pnpmExecutable()
   const childEnv: NodeJS.ProcessEnv = { ...process.env }
   childEnv.GATEWAY_TARGET = env.GATEWAY_TARGET
+  childEnv.GATEWAY_TOKEN = env.GATEWAY_TOKEN
 
   const windows = process.platform === "win32"
   const port = viteDevPort()

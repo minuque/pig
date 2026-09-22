@@ -36,14 +36,17 @@ export function registerPigScheme(): void {
   ])
 }
 
-export function handlePigProtocol(httpOrigin: string, webRoot: string): void {
-  protocol.handle(PIG_SCHEME, (request) => proxyPigRequest(request, httpOrigin, webRoot))
+export function handlePigProtocol(httpOrigin: string, webRoot: string, launchToken: string): void {
+  protocol.handle(PIG_SCHEME, (request) =>
+    proxyPigRequest(request, httpOrigin, webRoot, launchToken),
+  )
 }
 
 async function proxyPigRequest(
   request: Request,
   httpOrigin: string,
   webRoot: string,
+  launchToken: string,
 ): Promise<Response> {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: pigCorsHeaders(new Headers()) })
@@ -53,17 +56,21 @@ async function proxyPigRequest(
 
   if (!parsed) return notFound()
 
-  if (isPigApiPath(parsed.pathname)) return proxyGateway(request, httpOrigin)
+  if (isPigApiPath(parsed.pathname)) return proxyGateway(request, httpOrigin, launchToken)
   return serveWebFile(webRoot, parsed.pathname, httpOrigin)
 }
 
-async function proxyGateway(request: Request, httpOrigin: string): Promise<Response> {
+async function proxyGateway(
+  request: Request,
+  httpOrigin: string,
+  launchToken: string,
+): Promise<Response> {
   const target = gatewayTargetUrl(request.url, httpOrigin)
 
   if (!target) return notFound()
 
   try {
-    const response = await net.fetch(target.href, fetchInit(request))
+    const response = await net.fetch(target.href, fetchInit(request, launchToken))
     return withCors(response)
   } catch {
     return new Response("Bad Gateway", { status: 502, headers: pigCorsHeaders(new Headers()) })
@@ -117,10 +124,15 @@ function withCors(response: Response): Response {
   })
 }
 
-function fetchInit(request: Request): GatewayFetchInit {
+function fetchInit(request: Request, launchToken: string): GatewayFetchInit {
+  const headers = proxyHeaders(request.headers)
+  headers.delete("origin")
+  headers.delete("sec-fetch-site")
+  headers.set("authorization", `Bearer ${launchToken}`)
+
   const init: GatewayFetchInit = {
     method: request.method,
-    headers: proxyHeaders(request.headers),
+    headers,
     bypassCustomProtocolHandlers: true,
   }
 

@@ -15,6 +15,8 @@ const WEBSOCKET_PATH = "/api/v1/pi"
 export interface WebSocketListenerOptions {
   /** 承载升级的 HTTP server（只绑定 127.0.0.1）。 */
   server: Server
+  /** 升级前的本机通行证检查。返回 401 或 403 时拒绝。 */
+  allow(req: IncomingMessage): 401 | 403 | undefined
 }
 
 const DEFAULT_MAX_PENDING_BYTES = 16 * 1024 * 1024
@@ -22,7 +24,7 @@ const GRACEFUL_CLOSE_TIMEOUT_MS = 5_000
 
 /** PiServerListener 的 WebSocket 实现：路径匹配后把连接交给 PiServer。 */
 export function createWebSocketListener(options: WebSocketListenerOptions): PiServerListener {
-  const { server } = options
+  const { server, allow } = options
   const maxFrameLength = DEFAULT_MAX_FRAME_LENGTH
   const maxPendingBytes = DEFAULT_MAX_PENDING_BYTES
   const wss = new WebSocketServer({
@@ -38,6 +40,16 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
 
     if (url.pathname !== WEBSOCKET_PATH) {
       socket.write("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n")
+      socket.destroy()
+      return
+    }
+
+    const rejection = allow(req)
+
+    if (rejection) {
+      socket.write(
+        `HTTP/1.1 ${rejection} ${rejection === 401 ? "Unauthorized" : "Forbidden"}\r\nConnection: close\r\n\r\n`,
+      )
       socket.destroy()
       return
     }

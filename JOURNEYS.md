@@ -32,7 +32,8 @@ e2e 对应 `01-startup` → `02-session-inbox`。
 
 ```mermaid
 flowchart TB
-  Open["打开本机页"] --> WS["PiClient.connect WebSocket"]
+  Open["打开带启动凭证的本机页"] --> Cookie["换成浏览器通行证"]
+  Cookie --> WS["PiClient.connect WebSocket"]
   WS --> Snap["ServerSnapshot: sessions + models"]
   Snap --> Init["按路由 openSession"]
   Init --> Gate{"成功?"}
@@ -40,7 +41,7 @@ flowchart TB
   Gate -->|否| Err["/error"]
 ```
 
-启动门和 Logo 动画并行。超时 8s 进 `/error`。Gateway 只绑 127.0.0.1，不做启动认证。
+启动门和 Logo 动画并行。超时 8s 进 `/error`。Gateway 只绑 127.0.0.1。浏览器用一次性启动凭证换成通行证，之后的接口和 WebSocket 都要带上它。
 
 ## 选工作目录
 

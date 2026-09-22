@@ -2,7 +2,7 @@ import { access } from "node:fs/promises"
 import { resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import type { ChildProcess } from "node:child_process"
-import { app, dialog, Menu, screen, type BrowserWindow } from "electron"
+import { app, dialog, Menu, screen, session, type BrowserWindow } from "electron"
 
 import { handlePigProtocol, registerPigScheme } from "./protocol.js"
 import {
@@ -37,6 +37,7 @@ if (cdpPort) {
 type GatewayInstance = {
   start(): Promise<number>
   stop(): Promise<void>
+  launchToken: string
 }
 
 type GatewayModule = {
@@ -47,6 +48,20 @@ type GatewayModule = {
     cwd?: string
   }) => GatewayInstance
   canonicalizePath: (path: string) => string
+}
+
+function trustLoopback(token: string): void {
+  session.defaultSession.webRequest.onBeforeSendHeaders(
+    { urls: ["http://127.0.0.1/*", "ws://127.0.0.1/*"] },
+    (details, callback) => {
+      callback({
+        requestHeaders: {
+          ...details.requestHeaders,
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    },
+  )
 }
 
 function envDir(name: "PIG_SESSION_DIR" | "PIG_CWD"): string | undefined {
@@ -156,13 +171,15 @@ void app.whenReady().then(async () => {
     })
     const port = await gateway.start()
     const httpOrigin = gatewayOrigin(port)
+    const launchToken = gateway.launchToken
+    trustLoopback(launchToken)
 
     if (isDev) {
-      vite = spawnVite({ GATEWAY_TARGET: httpOrigin })
+      vite = spawnVite({ GATEWAY_TARGET: httpOrigin, GATEWAY_TOKEN: launchToken })
       await waitForHttp(viteDevOrigin())
     } else {
       if (!webRoot) throw new Error("桌面壳缺少 Web 资源")
-      handlePigProtocol(httpOrigin, webRoot)
+      handlePigProtocol(httpOrigin, webRoot, launchToken)
     }
 
     const stateFile = windowStatePath(app.getPath("userData"))

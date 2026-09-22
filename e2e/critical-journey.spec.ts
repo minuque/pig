@@ -12,7 +12,7 @@ test("Chromium production SPA 关键旅程", async ({ page, gateway }) => {
     { workspaceId: gateway.workspaceId },
   )
 
-  await page.goto(gateway.origin)
+  await page.goto(gateway.entryUrl)
   const sessionList = page.locator("nav.session-list")
   await expect(sessionList).toBeVisible({ timeout: 30_000 })
   await expect(page.getByText("正在连接…")).toHaveCount(0)

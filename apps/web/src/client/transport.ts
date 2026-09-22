@@ -35,7 +35,7 @@ function stampedGatewayOrigin(): string | undefined {
 
 /**
  * 组装本机 PiServer WebSocket URL。
- * 开发态直连 Gateway：Vite 的 `/api` 代理不转 WebSocket。
+ * 开发态走页面同源，由 Vite 转到 Gateway。
  * 桌面壳页 origin 是 pig://app，必须用注入的 Gateway 地址。
  */
 export function webSocketUrl(base?: string | URL): string {

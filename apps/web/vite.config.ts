@@ -6,9 +6,7 @@ import { VitePWA } from "vite-plugin-pwa"
 import vueDevTools from "vite-plugin-vue-devtools"
 
 const gatewayTarget = process.env.GATEWAY_TARGET
-
-// 给客户端：Pi WebSocket 直连 Gateway，不经 Vite 的 WS 代理
-if (gatewayTarget) process.env.VITE_GATEWAY_TARGET = gatewayTarget
+const gatewayToken = process.env.GATEWAY_TOKEN
 
 export default defineConfig({
   plugins: [
@@ -73,8 +71,22 @@ export default defineConfig({
     open: false,
     ...(gatewayTarget
       ? {
-          // 只反代 HTTP。WS 直连 Gateway，避免 Vite 代理把 upgrade 当普通 HTTP 回写。
-          proxy: { "/api": { target: gatewayTarget, changeOrigin: true } },
+          // 页面和 Gateway 不同源。代理补上本进程的启动凭证，浏览器不必保存它。
+          proxy: {
+            "/api": {
+              target: gatewayTarget,
+              changeOrigin: true,
+              ws: true,
+              configure: (proxy) => {
+                const stamp = (proxyReq: { setHeader(name: string, value: string): void }) => {
+                  if (gatewayToken) proxyReq.setHeader("authorization", `Bearer ${gatewayToken}`)
+                }
+
+                proxy.on("proxyReq", stamp)
+                proxy.on("proxyReqWs", stamp)
+              },
+            },
+          },
         }
       : {}),
   },

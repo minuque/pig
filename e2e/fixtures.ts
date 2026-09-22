@@ -19,6 +19,7 @@ export function canonicalizeWorkspacePath(path: string): string {
 
 export interface E2eGateway {
   readonly origin: string
+  readonly entryUrl: string
   readonly workspaceDir: string
   readonly workspaceId: string
 }
@@ -58,6 +59,7 @@ async function withGateway(
   try {
     await use({
       origin: `http://127.0.0.1:${port}`,
+      entryUrl: gateway.authenticatedUrl(`http://127.0.0.1:${port}`),
       workspaceDir,
       workspaceId,
     })

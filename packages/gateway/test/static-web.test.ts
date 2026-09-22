@@ -57,9 +57,9 @@ describe("production web server", () => {
         }) as never,
     })
     const origin = `http://127.0.0.1:${await gateway.start()}`
-
-    expect(await (await fetch(origin)).text()).toBe("<main>app</main>")
-    expect(await (await fetch(`${origin}/sessions/one`)).text()).toBe("<main>app</main>")
+    const shell = { headers: { authorization: gateway.authorizationHeader() } }
+    expect(await (await fetch(origin, shell)).text()).toBe("<main>app</main>")
+    expect(await (await fetch(`${origin}/sessions/one`, shell)).text()).toBe("<main>app</main>")
     expect((await fetch(`${origin}/app.js`)).headers.get("content-type")).toContain("javascript")
     expect((await fetch(`${origin}/missing.js`)).status).toBe(404)
     expect(

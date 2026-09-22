@@ -37,13 +37,9 @@ async function syncInjectedGateway() {
     await rm(destDist, { recursive: true, force: true })
     await cp(join(srcRoot, "dist"), destDist, { recursive: true })
   }
-
-  if (existsSync(join(destDist, "auth"))) {
-    throw new Error("注入的 @pig/gateway 仍含 dist/auth，asar 会打进过期鉴权")
-  }
 }
 
-/** 对即将打进安装包的 Gateway 做握手：401 或升级失败即中止打包。 */
+/** 对即将打进安装包的 Gateway 做握手：未认证必须 401，带通行证后升级必须成功。 */
 async function assertDesktopGatewaySurface() {
   if (!existsSync(join(webRoot, "index.html"))) {
     throw new Error("缺少 apps/web/dist，无法写入 extraResources")
@@ -60,13 +56,20 @@ async function assertDesktopGatewaySurface() {
     const health = await fetch(`${origin}/health`)
 
     if (!health.ok) throw new Error(`/health ${health.status}`)
-    const probe = await fetch(`${origin}/api/v1/platform/context-usage`)
+    const anonymous = await fetch(`${origin}/api/v1/platform/context-usage`)
 
-    if (probe.status === 401) throw new Error("注入的 Gateway 仍要求启动认证")
+    if (anonymous.status !== 401)
+      throw new Error(`未认证的平台接口应返回 401，实际 ${anonymous.status}`)
+
+    const probe = await fetch(`${origin}/api/v1/platform/context-usage`, {
+      headers: { authorization: instance.authorizationHeader() },
+    })
 
     if (probe.status !== 400) throw new Error(`/api/v1/platform/context-usage ${probe.status}`)
     await new Promise((resolveOpen, reject) => {
-      const socket = new WebSocket(`${origin.replace(/^http/, "ws")}/api/v1/pi`)
+      const socket = new WebSocket(`${origin.replace(/^http/, "ws")}/api/v1/pi`, {
+        headers: { authorization: instance.authorizationHeader() },
+      })
       const timer = setTimeout(() => {
         socket.close()
         reject(new Error("WebSocket 升级超时"))
