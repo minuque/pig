@@ -24,17 +24,6 @@
         </Button>
 
         <Button
-          type="button"
-          variant="outline"
-          size="icon-2xs"
-          class="icon-btn"
-          title="收起面板"
-          @click.stop="emit('collapse')"
-        >
-          <ChevronsDownUp class="size-3.5" />
-        </Button>
-
-        <Button
           v-if="text"
           type="button"
           variant="outline"
@@ -57,7 +46,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
-import { AlignLeft, Check, ChevronsDownUp, Copy, WrapText } from "@lucide/vue"
+import { AlignLeft, Check, Copy, WrapText } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 
 const props = defineProps<{
@@ -65,7 +54,6 @@ const props = defineProps<{
   text: string
 }>()
 const softWrap = defineModel<boolean>("softWrap", { default: false })
-const emit = defineEmits<{ collapse: [] }>()
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const copyLabel = computed(() =>
   status.value === "copied"
@@ -92,7 +80,7 @@ async function copy() {
 <style scoped>
 .tool-header-pin {
   position: sticky;
-  top: var(--size-icon-button);
+  top: calc(var(--size-icon-button) * 2);
   z-index: 1;
   width: 100%;
   min-width: 0;

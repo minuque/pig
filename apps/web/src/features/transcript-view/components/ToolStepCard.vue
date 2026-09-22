@@ -10,12 +10,7 @@
 
   <div v-else class="tool-step-card" :class="cardClasses">
     <template v-if="runContent">
-      <ToolHeader
-        v-model:soft-wrap="softWrap"
-        label="输出"
-        :text="runContent.shownOutput"
-        @collapse="emit('collapse')"
-      >
+      <ToolHeader v-model:soft-wrap="softWrap" label="输出" :text="runContent.shownOutput">
         <div class="command-heading">
           <span class="status-dot" :title="runContent.statusLabel" />
 
@@ -37,12 +32,7 @@
     </template>
 
     <template v-else-if="readContent">
-      <ToolHeader
-        v-model:soft-wrap="softWrap"
-        label="输出"
-        :text="readContent.preview.code"
-        @collapse="emit('collapse')"
-      >
+      <ToolHeader v-model:soft-wrap="softWrap" label="输出" :text="readContent.preview.code">
         <div class="read-heading">
           <img
             v-if="languageIconUrl"
@@ -75,7 +65,6 @@
         v-model:soft-wrap="softWrap"
         label="输出"
         :text="toolContent.shownOutput"
-        @collapse="emit('collapse')"
       >
         <pre v-if="toolContent.inputFull" class="input-json">{{ toolContent.inputFull }}</pre>
       </ToolHeader>
@@ -90,12 +79,7 @@
     </template>
 
     <template v-else-if="editContent">
-      <ToolHeader
-        v-model:soft-wrap="softWrap"
-        label="输出"
-        :text="editContent.outputText"
-        @collapse="emit('collapse')"
-      >
+      <ToolHeader v-model:soft-wrap="softWrap" label="输出" :text="editContent.outputText">
         <div class="read-heading">
           <img
             v-if="editLanguageIconUrl"
@@ -161,7 +145,6 @@ import type {
   TranscriptImage as ToolStepImage,
 } from "@features/transcript-view/type.js"
 
-const emit = defineEmits<{ collapse: [] }>()
 const props = defineProps<{
   variant: "thought" | "command" | "read" | "edit" | "tool"
   text?: string

@@ -1,6 +1,6 @@
 <template>
-  <div ref="rootEl" class="tool-summary" :class="{ failed, running }">
-    <Button type="button" static class="summary" @click="toggleGroup">
+  <div class="tool-summary" :class="{ failed, running }">
+    <Button type="button" static class="summary" :class="{ 'is-open': open }" @click="toggleGroup">
       <component :is="icon" class="tool-icon" data-icon="inline-start" />
       <span :class="{ shimmer: running, label }" :data-text="label">{{ label }}</span>
 
@@ -42,7 +42,6 @@
             <div v-if="call.expandable" class="call">
               <ToolStepCard
                 v-if="call.variant === 'command'"
-                @collapse="toggleGroup"
                 variant="command"
                 :command="call.command"
                 :cwd="call.cwd"
@@ -55,7 +54,6 @@
 
               <ToolStepCard
                 v-else-if="call.variant === 'read'"
-                @collapse="toggleGroup"
                 variant="read"
                 :path="call.path"
                 :preview="call.preview"
@@ -64,7 +62,6 @@
 
               <ToolStepCard
                 v-else-if="call.variant === 'edit'"
-                @collapse="toggleGroup"
                 variant="edit"
                 :edit-preview="call.editPreview"
                 :output-text="call.outputText"
@@ -73,7 +70,6 @@
               <ToolStepCard
                 v-else
                 variant="tool"
-                @collapse="toggleGroup"
                 :input-full="call.inputFull"
                 :output-text="call.outputText"
                 :output-images="call.outputImages"
@@ -88,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, shallowRef, watch } from "vue"
 import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import {
   ChevronRight,
@@ -302,8 +298,6 @@ const open = computed(
   () => thought.value?.streaming === true || props.isExpand.get(props.step.id) === true,
 )
 const keptMounted = shallowRef(open.value)
-const rootEl = useTemplateRef<HTMLElement>("rootEl")
-let panelResize: ResizeObserver | undefined
 
 watch(
   open,
@@ -359,43 +353,9 @@ const calls = computed(() => {
   return group.value.items.map((item) => presentCall(item, keptMounted.value))
 })
 
-function holdVisibleScroll(scroller: HTMLElement, panel: HTMLElement) {
-  panelResize?.disconnect()
-  const turn = panel.closest("[data-turn-id]")
-  let height = panel.getBoundingClientRect().height
-  let top = panel.getBoundingClientRect().top
-
-  panelResize = new ResizeObserver(() => {
-    const box = panel.getBoundingClientRect()
-    const view = scroller.getBoundingClientRect()
-    const turnBox = turn?.getBoundingClientRect()
-    const viewInTurn = !turnBox || (turnBox.top < view.bottom && turnBox.bottom > view.top)
-    const lost = height - box.height
-    const removedAbove = Math.max(0, Math.min(view.top, top + height) - Math.max(top, box.bottom))
-
-    if (viewInTurn && lost > 0 && removedAbove > 0) scroller.scrollTop -= removedAbove
-    height = box.height
-    top = panel.getBoundingClientRect().top
-
-    if (!panel.classList.contains("is-open") && box.height < 1) {
-      panelResize?.disconnect()
-      panelResize = undefined
-    }
-  })
-  panelResize.observe(panel)
-}
-
 function toggleGroup() {
-  const root = rootEl.value
-  const scroller = root?.closest<HTMLElement>("#transcript-panel") ?? null
-  const panel = root?.querySelector<HTMLElement>(".tool-calls-group") ?? null
-
-  if (open.value && scroller && panel) holdVisibleScroll(scroller, panel)
-  else panelResize?.disconnect()
   emit("toggle", { id: props.step.id, open: !open.value })
 }
-
-onBeforeUnmount(() => panelResize?.disconnect())
 </script>
 
 <style scoped>
@@ -405,6 +365,13 @@ onBeforeUnmount(() => panelResize?.disconnect())
 
 .tool-calls-group.is-open {
   margin-block-start: var(--spacing-xs);
+}
+
+.summary.is-open {
+  position: sticky;
+  top: var(--size-icon-button);
+  z-index: 1;
+  background: var(--surface);
 }
 
 .summary {
