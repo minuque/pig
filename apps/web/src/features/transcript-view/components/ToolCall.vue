@@ -1,5 +1,5 @@
 <template>
-  <div class="tool-summary" :class="{ failed, running }">
+  <div ref="rootEl" class="tool-summary" :class="{ failed, running }">
     <Button type="button" static class="summary" @click="toggleGroup">
       <component :is="icon" class="tool-icon" data-icon="inline-start" />
       <span :class="{ shimmer: running, label }" :data-text="label">{{ label }}</span>
@@ -28,7 +28,11 @@
       />
     </Button>
 
-    <div class="tool-calls-group" :class="{ 'is-open': open, instant: running }" :inert="!open">
+    <div
+      class="tool-calls-group"
+      :class="{ 'is-open': open, instant: running || closeInstant }"
+      :inert="!open"
+    >
       <div class="panel-slide">
         <ToolStepCard
           v-if="keptMounted && thought && thought.text"
@@ -88,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue"
+import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import {
   ChevronRight,
@@ -302,6 +306,8 @@ const open = computed(
   () => thought.value?.streaming === true || props.isExpand.get(props.step.id) === true,
 )
 const keptMounted = shallowRef(open.value)
+const closeInstant = shallowRef(false)
+const rootEl = useTemplateRef<HTMLElement>("rootEl")
 
 watch(
   open,
@@ -358,7 +364,32 @@ const calls = computed(() => {
 })
 
 function toggleGroup() {
+  const root = rootEl.value
+  const scroller = root?.closest<HTMLElement>("#transcript-panel") ?? null
+  const summary = root?.querySelector<HTMLElement>(".summary") ?? null
+  const panel = root?.querySelector<HTMLElement>(".tool-calls-group") ?? null
+  const closing = open.value
+  let pinSummary = false
+
+  if (closing && scroller && summary && panel) {
+    const scrollerTop = scroller.getBoundingClientRect().top
+    const summaryTop = summary.getBoundingClientRect().top
+    const panelHeight = panel.getBoundingClientRect().height
+    const distanceToBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight
+
+    closeInstant.value = panelHeight > scroller.clientHeight
+    pinSummary = closeInstant.value && summaryTop < scrollerTop && distanceToBottom > 48
+  } else {
+    closeInstant.value = false
+  }
+
   emit("toggle", { id: props.step.id, open: !open.value })
+
+  if (!pinSummary || !scroller || !summary) return
+  void nextTick(() => {
+    const scrollerTop = scroller.getBoundingClientRect().top
+    scroller.scrollTop += summary.getBoundingClientRect().top - scrollerTop
+  })
 }
 </script>
 
