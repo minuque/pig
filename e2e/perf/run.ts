@@ -53,6 +53,7 @@ type BenchMetrics = {
   composerKeyToFrame: number
   ownMessageMs: number
   firstTokenMs: number
+  streamWakeMs: number
   streamKeepUpMs: number
   abortMs: number
   rapidSwitchMs: number
@@ -208,7 +209,8 @@ function printReport(
     row("工具组首次展开长任务", "toolExpandWorstLongTask"),
     row("发送后自己的话", "ownMessageMs"),
     row("发送后首条助手", "firstTokenMs"),
-    row("流式跟上", "streamKeepUpMs"),
+    row("流式首帧唤醒", "streamWakeMs"),
+    row("流式跟上（稳态）", "streamKeepUpMs"),
     row("点停止", "abortMs"),
     row("连切到短会话", "rapidSwitchMs"),
     row("断线后恢复", "reconnectMs"),
@@ -346,6 +348,7 @@ async function main() {
 
     const own = turns.map((sample) => sample.ownMessageMs)
     const token = turns.map((sample) => sample.firstTokenMs)
+    const streamWake = turns.map((sample) => sample.streamWakeMs)
     const stream = turns.map((sample) => sample.streamKeepUpMs)
     const abort = turns.map((sample) => sample.abortMs)
     const rapid = turns.map((sample) => sample.rapidSwitchMs)
@@ -371,6 +374,7 @@ async function main() {
       : undefined
     const ownStat = collect(own)
     const tokenStat = collect(token)
+    const streamWakeStat = collect(streamWake)
     const streamStat = collect(stream)
     const abortStat = collect(abort)
     const rapidStat = collect(rapid)
@@ -391,6 +395,7 @@ async function main() {
       composerKeyToFrame: composer?.median ?? Number.NaN,
       ownMessageMs: ownStat.median,
       firstTokenMs: tokenStat.median,
+      streamWakeMs: streamWakeStat.median,
       streamKeepUpMs: streamStat.median,
       abortMs: abortStat.median,
       rapidSwitchMs: rapidStat.median,
@@ -412,13 +417,14 @@ async function main() {
       composerKeyToFrame: composer?.p90,
       ownMessageMs: ownStat.p90,
       firstTokenMs: tokenStat.p90,
+      streamWakeMs: streamWakeStat.p90,
       streamKeepUpMs: streamStat.p90,
       abortMs: abortStat.p90,
       rapidSwitchMs: rapidStat.p90,
       reconnectMs: reconnectStat.p90,
     }
     const config = {
-      version: 15,
+      version: 16,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,
@@ -436,7 +442,7 @@ async function main() {
     await mkdir(join(root, "test-results"), { recursive: true })
     await writeFile(
       resultPath,
-      `${JSON.stringify({ config, metrics: stored, p90s, samples: { ...open, own, token, stream, abort, rapid, reconnect } }, null, 2)}\n`,
+      `${JSON.stringify({ config, metrics: stored, p90s, samples: { ...open, own, token, streamWake, stream, abort, rapid, reconnect } }, null, 2)}\n`,
     )
     printReport(stored, p90s, comparable, harness.runtimeLabel)
     console.log(`结果已写入 ${resultPath}`)

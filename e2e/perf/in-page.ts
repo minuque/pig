@@ -221,3 +221,45 @@ export async function pageClockOffset(page: Page) {
   const nodeAfter = performance.now()
   return (nodeBefore + nodeAfter) / 2 - pageNow
 }
+
+const KEEP_ALIVE_KEY = "__pigKeepAlive"
+
+type KeepAlive = { running: boolean; frames: number }
+
+/** 起保活 rAF：每帧空动作，让浏览器持续出帧。 */
+export async function startKeepAlive(page: Page) {
+  await page.evaluate((key) => {
+    const previous = Reflect.get(window, key) as KeepAlive | undefined
+
+    if (previous) previous.running = false
+    const state: KeepAlive = { running: true, frames: 0 }
+    Reflect.set(window, key, state)
+
+    const tick = () => {
+      if (!state.running) return
+      state.frames += 1
+      requestAnimationFrame(tick)
+    }
+
+    requestAnimationFrame(tick)
+  }, KEEP_ALIVE_KEY)
+}
+
+/** 停掉保活 rAF 并摘掉句柄，回调不再排队。 */
+export async function stopKeepAlive(page: Page) {
+  await page.evaluate((key) => {
+    const state = Reflect.get(window, key) as KeepAlive | undefined
+
+    if (!state) return
+    state.running = false
+    Reflect.deleteProperty(window, key)
+  }, KEEP_ALIVE_KEY)
+}
+
+/** 清掉页面内计时句柄，上一遍的等待不再悬着。 */
+export async function clearStamps(page: Page) {
+  await page.evaluate(() => {
+    Reflect.deleteProperty(window, "__pigArmSteps")
+    Reflect.deleteProperty(window, "__pigArmResult")
+  })
+}
