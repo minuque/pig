@@ -373,7 +373,7 @@ function toggleGroup(event: MouseEvent) {
 
 .summary.is-open {
   position: sticky;
-  top: var(--size-icon-button);
+  top: var(--tool-summary-offset, var(--size-icon-button));
   z-index: 2;
   background: var(--surface);
 }

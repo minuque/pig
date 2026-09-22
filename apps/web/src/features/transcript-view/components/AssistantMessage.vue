@@ -141,7 +141,7 @@ function onVirtualStateChange(state: MarkstreamVirtualState) {
 
 <style scoped>
 .md-pending {
-  min-height: calc(var(--text-body-md) * 1.8);
+  min-height: calc(var(--text-body-md) * 1.625);
 }
 
 .status-alert {

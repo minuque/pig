@@ -4,28 +4,35 @@
   --ms-font-sans: var(--font-sans);
   --ms-font-mono: var(--font-mono);
   --ms-text-body: var(--text-body-md);
-  --ms-leading-body: 1.8;
-  --ms-text-h1: var(--text-heading-3);
-  --ms-text-h2: var(--text-title);
-  --ms-text-h3: var(--text-body-md);
-  --ms-text-h4: var(--text-body-md);
-  --ms-text-h5: var(--text-body-md);
-  --ms-text-h6: var(--text-body-md);
-  --ms-leading-h1: 1.27;
-  --ms-leading-h2: 1.4;
-  --ms-leading-h3: 1.43;
+  --ms-leading-body: 1.625;
+  --ms-text-h1: 1.75em;
+  --ms-text-h2: 1.55em;
+  --ms-text-h3: 1.35em;
+  --ms-text-h4: 1.2em;
+  --ms-text-h5: 1.1em;
+  --ms-text-h6: 1em;
+  --ms-leading-h1: 1.25;
+  --ms-leading-h2: 1.25;
+  --ms-leading-h3: 1.25;
   --ms-weight-h1: var(--font-weight-semibold);
   --ms-weight-h2: var(--font-weight-semibold);
   --ms-weight-h3: var(--font-weight-semibold);
+  --ms-weight-h4: var(--font-weight-semibold);
 
   /* 块间距 */
-  --ms-flow-heading-1-mt: 0.35em;
-  --ms-flow-heading-1-mb: 0.65em;
-  --ms-flow-heading-2-mt: 1.25em;
-  --ms-flow-heading-2-mb: 0.5em;
-  --ms-flow-heading-3-mt: 1em;
-  --ms-flow-heading-3-mb: 0.4em;
-  --ms-flow-paragraph-y: 0;
+  --ms-flow-heading-1-mt: 1.1em;
+  --ms-flow-heading-1-mb: 0.35em;
+  --ms-flow-heading-2-mt: 1.1em;
+  --ms-flow-heading-2-mb: 0.35em;
+  --ms-flow-heading-3-mt: 1.1em;
+  --ms-flow-heading-3-mb: 0.35em;
+  --ms-flow-heading-4-mt: 1.1em;
+  --ms-flow-heading-4-mb: 0.35em;
+  --ms-flow-heading-5-mt: 1.1em;
+  --ms-flow-heading-5-mb: 0.35em;
+  --ms-flow-heading-6-mt: 1.1em;
+  --ms-flow-heading-6-mb: 0.35em;
+  --ms-flow-paragraph-y: 0.65rem;
   --ms-flow-list-y: 0.55em;
   --ms-flow-list-item-y: 0.38em;
   --ms-flow-list-indent: 1.65em;
@@ -95,6 +102,33 @@
   color: var(--ink-markdown);
   font-size: var(--ms-text-body);
   line-height: var(--ms-leading-body);
+
+  > :first-child,
+  > .height-estimation-probes + .node-slot > .node-content > :first-child,
+  > .node-slot:first-child > .node-content > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child,
+  > .node-slot:last-child > .node-content > :last-child {
+    margin-bottom: 0;
+  }
+
+  .strong-node {
+    font-weight: var(--font-weight-medium);
+  }
+
+  .heading-6 {
+    color: var(--ink-muted);
+  }
+
+  .heading-1 + .heading-2,
+  .heading-2 + .heading-3,
+  .heading-3 + .heading-4,
+  .heading-4 + .heading-5,
+  .heading-5 + .heading-6 {
+    margin-top: 0.5em;
+  }
 
   .inline-code {
     font-size: var(--text-body-sm);

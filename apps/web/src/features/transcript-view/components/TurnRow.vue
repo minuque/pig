@@ -55,7 +55,10 @@ function rowClass(row: TimelineRow, rowIndex: number) {
   const previousRole = previous?.role ?? props.previousRole
   return [
     `row-${row.role}`,
-    { "is-first": props.first && rowIndex === 0, "is-after-user": previousRole === "user" },
+    {
+      "is-first": props.first && rowIndex === 0,
+      "is-after-user": previousRole === "user",
+    },
   ]
 }
 </script>
@@ -74,6 +77,10 @@ function rowClass(row: TimelineRow, rowIndex: number) {
 
 .row.is-after-user {
   padding-block-start: var(--spacing-lg);
+}
+
+.row.row-tools.is-after-user {
+  padding-block-start: var(--spacing-md);
 }
 
 .row.row-user {
