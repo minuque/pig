@@ -360,6 +360,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .tool-steps {
+  --tool-summary-offset: calc(var(--text-body-sm) * var(--text-body-sm--line-height));
   isolation: isolate;
   min-width: 0;
 }
@@ -370,8 +371,8 @@ onBeforeUnmount(() => {
   z-index: 2;
   box-sizing: border-box;
   width: 100%;
-  height: var(--size-icon-button);
-  min-height: var(--size-icon-button);
+  height: auto;
+  min-height: var(--tool-summary-offset);
   padding: 0;
   gap: var(--spacing-xs);
   justify-content: flex-start;

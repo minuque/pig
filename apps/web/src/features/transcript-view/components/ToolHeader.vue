@@ -92,7 +92,7 @@ async function copy() {
 <style scoped>
 .tool-header-pin {
   position: sticky;
-  top: var(--size-icon-button);
+  top: var(--tool-summary-offset, var(--size-icon-button));
   z-index: 1;
   width: 100%;
   min-width: 0;

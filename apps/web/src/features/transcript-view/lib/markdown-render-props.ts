@@ -1,4 +1,7 @@
 import type { MarkstreamVirtualState, NodeRendererProps } from "markstream-vue"
+import { installChatMarkdownComponents } from "@features/transcript-view/lib/markdown-components.js"
+
+installChatMarkdownComponents()
 
 type CodeBlockTheme = "dark-plus" | "light-plus"
 
