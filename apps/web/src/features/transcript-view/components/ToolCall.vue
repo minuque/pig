@@ -370,7 +370,7 @@ function toggleGroup() {
 .summary.is-open {
   position: sticky;
   top: var(--size-icon-button);
-  z-index: 1;
+  z-index: 2;
   background: var(--surface);
 }
 
@@ -393,6 +393,10 @@ function toggleGroup() {
 .summary:hover {
   background: transparent;
   color: var(--ink);
+}
+
+.summary.is-open:hover {
+  background: var(--surface);
 }
 
 .failed .tool-icon {
