@@ -408,6 +408,7 @@
       padding: 16px;
       border: 1px solid var(--hairline);
       border-radius: 16px;
+      overflow: hidden;
       background: var(--surface);
     }
 
@@ -436,7 +437,8 @@
       grid-template-columns: repeat(var(--steps, 6), minmax(118px, 1fr));
       gap: 20px;
       overflow-x: auto;
-      padding: 2px 2px 8px;
+      /* 上下左右留出高亮光晕（box-shadow 3px + hover 上移 1px）的空间，否则会被 overflow 裁掉 */
+      padding: 6px 6px 12px;
     }
 
     .step {
@@ -525,6 +527,326 @@
       line-height: 1.5;
     }
 
+    code {
+      color: var(--dusk);
+      font-family: var(--mono);
+      font-size: 0.92em;
+    }
+
+    .buses {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .bus {
+      padding: 14px 16px;
+      border: 1px solid var(--hairline);
+      border-radius: 14px;
+      background: var(--surface);
+    }
+
+    .bus.http {
+      --tone: var(--sunset);
+    }
+
+    .bus.ws {
+      --tone: var(--primary);
+    }
+
+    .bus h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 6px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .bus .path {
+      margin: 8px 0 0;
+    }
+
+    .bus p {
+      margin: 0;
+      color: var(--ink-muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--tone, var(--primary)) 18%, transparent);
+      color: var(--tone, var(--primary));
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .legend i.dot {
+      width: 8px;
+      height: 8px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--dot, var(--primary));
+    }
+
+    .api-map {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      border: 1px solid var(--hairline);
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .api-col {
+      padding: 14px 16px;
+      border-right: 1px solid var(--hairline);
+    }
+
+    .api-col:last-child {
+      border-right: 0;
+    }
+
+    .caller {
+      display: block;
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 9px 11px;
+      border: 1px solid var(--hairline);
+      border-radius: 10px;
+      background: var(--well);
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .caller[aria-pressed="true"],
+    .api[aria-pressed="true"] {
+      border-color: color-mix(in srgb, var(--tone, var(--primary)) 55%, var(--hairline));
+    }
+
+    .caller:hover,
+    .api:hover,
+    details:hover {
+      border-color: color-mix(in srgb, var(--tone, var(--line, var(--primary))) 45%, var(--hairline));
+    }
+
+    .caller:focus-visible,
+    .api:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .caller small,
+    .api small {
+      display: block;
+      margin-top: 2px;
+      color: var(--ink-muted);
+      font-size: 11px;
+    }
+
+    .api-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px;
+    }
+
+    .api {
+      --tone: var(--sunset);
+      padding: 9px 12px;
+      border: 1px solid var(--hairline);
+      border-radius: 10px;
+      background: var(--well);
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .api.ws {
+      --tone: var(--primary);
+    }
+
+    .method {
+      display: inline-block;
+      min-width: 2.6em;
+      color: var(--tone, var(--primary));
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .sub-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 6px 20px;
+      margin: 24px 0 12px;
+    }
+
+    .sub-head h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .sub-head p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--ink-muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    details {
+      border: 1px solid var(--hairline);
+      border-radius: 14px;
+      background: var(--surface);
+      scroll-margin-top: 84px;
+    }
+
+    details.http {
+      --tone: var(--sunset);
+    }
+
+    details.ws {
+      --tone: var(--primary);
+    }
+
+    summary {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 16px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary .name {
+      font-family: var(--mono);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .who {
+      color: var(--ink-muted);
+      font-size: 12px;
+    }
+
+    .io {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      border-top: 1px solid var(--hairline);
+      background: var(--hairline);
+    }
+
+    .io section {
+      padding: 12px 16px 14px;
+      background: var(--surface);
+    }
+
+    .io h4 {
+      margin: 0 0 8px;
+      color: var(--ink-faint);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .io pre {
+      margin: 0;
+      overflow: auto;
+      color: var(--ink-secondary);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .note {
+      padding: 10px 16px 14px;
+      border-top: 1px solid var(--hairline);
+      color: var(--ink-muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .err {
+      margin-top: 12px;
+      padding: 14px 16px;
+      border: 1px dashed var(--hairline);
+      border-radius: 12px;
+      background: var(--well);
+    }
+
+    .err h4 {
+      margin: 0 0 6px;
+      font-size: 13px;
+    }
+
+    .err p {
+      margin: 0;
+      color: var(--ink-muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .usage,
+    .flow-apis {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px 14px;
+      border-top: 1px solid var(--hairline);
+      color: var(--ink-muted);
+      font-size: 12px;
+    }
+
+    .flow-apis {
+      margin: 14px -16px -16px;
+    }
+
+    .usage button,
+    .flow-apis button {
+      padding: 1px 8px;
+      border: 1px solid var(--hairline);
+      border-radius: 999px;
+      background: var(--well);
+      color: var(--ink-secondary);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .usage button:hover,
+    .flow-apis button:hover {
+      border-color: color-mix(in srgb, var(--primary) 50%, var(--hairline));
+      color: var(--ink);
+    }
+
+    details.is-flash {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+    }
+
     @media (max-width: 980px) {
       header {
         grid-template-columns: 1fr;
@@ -542,8 +864,24 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .truth-grid {
+      .truth-grid,
+      .buses,
+      .api-map,
+      .io {
         grid-template-columns: 1fr;
+      }
+
+      .api-col {
+        border-right: 0;
+        border-bottom: 1px solid var(--hairline);
+      }
+
+      summary {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      .who {
+        grid-column: 1 / -1;
       }
     }
 
@@ -584,6 +922,7 @@
       <button type="button" role="tab" aria-selected="false" aria-controls="web">Web 子模块</button>
       <button type="button" role="tab" aria-selected="false" aria-controls="gateway">Gateway 与 Pi</button>
       <button type="button" role="tab" aria-selected="false" aria-controls="flows">关键数据流</button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="api">接口调用</button>
     </nav>
   </header>
 
@@ -604,36 +943,36 @@
             <article class="card" data-tone="runtime">
               <div class="path">apps/desktop/</div>
               <h3>Electron Desktop</h3>
-              <p>先起 Gateway（端口由系统分配）。开发态再起 Vite，窗口加载 5173；打包加载 Gateway 页。关窗释放端口。</p>
-              <div class="chips"><span>main</span><span>preload</span><span>DirectoryPort</span></div>
+              <p>先起 Gateway（端口由系统分配）。开发态再起 Vite 加载 5173；打包托管 pig://app 并把 Gateway 地址注入 HTML。关窗释放端口。</p>
+              <div class="chips"><span>main</span><span>preload</span><span>pig://app</span><span>DirectoryPort</span></div>
             </article>
             <article class="card" data-tone="runtime">
               <div class="path">scripts/</div>
               <h3>开发与构建脚本</h3>
-              <p>组织 dev、check、打包和 smoke，不进入业务运行时。</p>
+              <p>组织 dev、check、打包、smoke 和 worktree 初始化，不进入业务运行时。</p>
               <div class="chips"><span>dev.ts</span><span>check.mjs</span></div>
             </article>
             <article class="card" data-tone="runtime">
               <div class="path">e2e/</div>
               <h3>浏览器旅程</h3>
-              <p>跨 Web 构建物与 Gateway 验收完整用户路径。</p>
-              <div class="chips"><span>Playwright</span></div>
+              <p>跨 Web 构建物与 Gateway 验收用户路径；e2e/perf 量化滚动、流式与耗时。</p>
+              <div class="chips"><span>Playwright</span><span>perf</span></div>
             </article>
           </div>
         </section>
         <section class="layer">
           <div class="layer-head"><span class="kicker">L1 交互层</span><span class="layer-note">Vue
-              组合根创建连接、会话和导航上下文，领域模块消费上下文。</span></div>
+              组合根创建连接、会话、导航和设置上下文，领域模块消费上下文。</span></div>
           <div class="cards" style="--columns: 3">
             <article class="card" data-tone="web">
               <div class="path">apps/web/src/App.vue</div>
               <h3>组合根</h3>
-              <p>usePiClient + useLocalWorkspaces → provideSession → provideNav。Startup 包 AppLayout，根级 AlertToaster。</p>
+              <p>usePiClient + useLocalWorkspaces → provideSession / provideNav / provideSettings。Startup 包 AppLayout，Settings 懒加载，根级 AlertToaster。</p>
             </article>
             <article class="card" data-tone="web">
               <div class="path">apps/web/src/features/</div>
               <h3>领域 UI</h3>
-              <p>导航、工作台、时间线、输入、启动和主题。provide 只在 App.vue 创建。</p>
+              <p>导航、工作台、时间线、输入、设置、点击音、启动和主题。provide 只在 App.vue 创建。</p>
             </article>
             <article class="card" data-tone="base">
               <div class="path">apps/web/src/client/</div>
@@ -644,12 +983,12 @@
         </section>
         <section class="layer">
           <div class="layer-head"><span class="kicker">L2 本机 Host</span><span class="layer-note">只监听
-              127.0.0.1。无启动认证，loopback 即信任边界。</span></div>
+              127.0.0.1，平台 API 与 WebSocket 都要本机通行证。</span></div>
           <div class="cards" style="--columns: 4">
             <article class="card" data-tone="host">
               <div class="path">packages/gateway/src/server/</div>
               <h3>HTTP / WebSocket Host</h3>
-              <p>health、平台 API、SPA 静态托管，并把 /api/v1/pi 交给 PiServer。</p>
+              <p>先过本机通行证，再走 health、平台 API（目录、卡片、历史、占用）、SPA 静态托管，并把 /api/v1/pi 交给 PiServer。</p>
             </article>
             <article class="card" data-tone="host">
               <div class="path">packages/gateway/src/pi/</div>
@@ -701,7 +1040,7 @@
             <article class="card" data-tone="disk">
               <div class="path">~/.pi/agent/sessions/&lt;cwd&gt;/</div>
               <h3>Session JSONL</h3>
-              <p>header、消息、模型切换和 session_info。快照发当前分支全文。Gateway 不另建领域状态。</p>
+              <p>header、消息、模型切换、session_info，以及每轮耗时的自定义条目。快照只带元数据，正文走 platform HTTP。</p>
             </article>
             <article class="card" data-tone="runtime">
               <div class="path">Model providers</div>
@@ -737,7 +1076,7 @@
             <article class="card" data-tone="web">
               <div class="path">src/App.vue</div>
               <h3>应用接线</h3>
-              <p>PiClient、本地目录、Session、Nav 的唯一组装点。</p>
+              <p>PiClient、本地目录、Session、Nav、Settings 的唯一组装点。</p>
               <div class="chips"><span>Startup</span><span>AppLayout</span><span>RouterView</span><span>AlertToaster</span></div>
             </article>
             <article class="card" data-tone="web">
@@ -748,7 +1087,7 @@
             <article class="card" data-tone="base">
               <div class="path">src/main.ts</div>
               <h3>Vue 入口</h3>
-              <p>桌面展示标记、关闭 Mermaid、挂载应用、路由和全局样式。</p>
+              <p>挂载应用、路由和全局样式；关掉 KaTeX 渲染。</p>
             </article>
           </div>
         </section>
@@ -759,38 +1098,50 @@
             <article class="card" data-tone="web">
               <div class="path">features/session-workbench/</div>
               <h3>会话工作台</h3>
-              <p>index.ts 只 provide。useRemoteSessions 管 RemoteSession；useSessionRuntime 管创建、发送与中止。</p>
+              <p>index.ts 只 provide。useSessionLifecycle 管连接、创建、提交与中止，选中目录时预热工作区；useSessionHistory 管 HTTP 历史分页与 live 合并。</p>
               <div class="chips"><span>provideSession</span><span>useSession</span></div>
             </article>
             <article class="card" data-tone="web">
               <div class="path">features/session-nav/</div>
               <h3>会话导航</h3>
-              <p>按 cwd 分组，updated / project 两种排列。改名、删除、选目录走平台 API。</p>
+              <p>按 cwd 分组，updated / project 两种排列。置顶与未读只记在浏览器；改名、删除、选目录走平台 API。</p>
               <div class="chips"><span>provideNav</span><span>useNav</span></div>
             </article>
             <article class="card" data-tone="web">
               <div class="path">features/transcript-view/</div>
               <h3>时间线</h3>
-              <p>消息行、工具调用、思考折叠、小地图。底部叠输入卡，滚动铺满视口。</p>
+              <p>消息行、工具调用、思考折叠、小地图与更早分页。行按窗口挂载，滚动停稳后再挂 Markdown 高亮。</p>
             </article>
             <article class="card" data-tone="web">
               <div class="path">features/composer/</div>
               <h3>输入卡</h3>
-              <p>模型与 thinking 预设、附件、上下文占用。欢迎页、空画布和时间线底部共用。</p>
+              <p>模型选择器与 thinking 档位、上下文占用面板。欢迎页、空画布和时间线底部共用。</p>
             </article>
             <article class="card" data-tone="web">
               <div class="path">features/startup/</div>
               <h3>启动门</h3>
-              <p>connect 后 initialize。失败写入错误并跳 /error，不打断 Logo 离场。</p>
+              <p>connect 与 initialize 并行，连接超时 30s。失败写入错误并跳 /error，不打断遮罩离场。</p>
             </article>
             <article class="card" data-tone="web">
-              <div class="path">features/theme/ThemeToggle.vue</div>
+              <div class="path">features/theme/</div>
               <h3>主题</h3>
-              <p>跟踪和切换明暗色。挂在工作台顶栏。</p>
+              <p>全局只建一份明暗色控制器，带 auto 与视图过渡。挂在工作台顶栏，也驱动设置里的外观。</p>
+            </article>
+            <article class="card" data-tone="web">
+              <div class="path">features/settings/</div>
+              <h3>设置</h3>
+              <p>侧栏底栏打开，弹窗懒加载。通用页可切外观；用量、技能、扩展页还是占位。</p>
+              <div class="chips"><span>provideSettings</span><span>Dialog</span></div>
+            </article>
+            <article class="card" data-tone="web">
+              <div class="path">features/click-sound/</div>
+              <h3>点击音</h3>
+              <p>捕获全页点击并合成短音，按控件语义选音色；开关存本地，顶栏可切。</p>
+              <div class="chips"><span>useClickSound</span><span>SoundToggle</span></div>
             </article>
           </div>
-          <div class="boundary" style="--tone: var(--primary)">关键交叉：工作台挂时间线，并在欢迎页/空画布放输入卡；时间线底部再叠输入卡。导航读
-            session 卡片。启动失败由工作台渲染 StartupError。领域实例仍只在 App.vue 创建。</div>
+          <div class="boundary" style="--tone: var(--primary)">关键交叉：工作台挂时间线、点击音和主题开关，并在欢迎页/空画布放输入卡；时间线底部再叠输入卡。导航读
+            session 卡片，底栏打开设置。启动失败由工作台渲染 StartupError。领域实例仍只在 App.vue 创建。</div>
         </section>
         <section class="layer">
           <div class="layer-head"><span class="kicker">L2 壳与基础件</span><span class="layer-note">壳只管布局，ui 只放 shadcn-vue
@@ -804,7 +1155,7 @@
             <article class="card" data-tone="base">
               <div class="path">components/ui/</div>
               <h3>交互基础件</h3>
-              <p>button、dialog、tooltip、alert 等，不接会话规则。</p>
+              <p>button、dialog、下拉与右键菜单、tooltip、alert 等，不接会话规则。</p>
             </article>
           </div>
         </section>
@@ -815,12 +1166,12 @@
             <article class="card" data-tone="base">
               <div class="path">client/pi-client.ts</div>
               <h3>连接投影</h3>
-              <p>PiClient 生命周期、ServerSnapshot、五次退避重连。</p>
+              <p>PiClient 生命周期、ServerSnapshot、断线后立即重连并按次退避。</p>
             </article>
             <article class="card" data-tone="base">
               <div class="path">client/transport.ts</div>
               <h3>WebSocket 字节传输</h3>
-              <p>浏览器 WebSocket 适配为 Pi ByteTransport。开发态直连 Gateway，不经 Vite 代理。</p>
+              <p>浏览器 WebSocket 适配为 Pi ByteTransport。开发态直连 Gateway，桌面壳用页面注入的地址。</p>
             </article>
             <article class="card" data-tone="base">
               <div class="path">client/http.ts</div>
@@ -830,7 +1181,7 @@
             <article class="card" data-tone="base">
               <div class="path">client/platform.ts</div>
               <h3>平台 API</h3>
-              <p>选目录、会话卡片、上下文占用、重命名与删除。路径只出现在本文件。</p>
+              <p>选目录、工作区预热、历史 Transcript 分页、会话卡片、上下文占用、重命名与删除。路径只出现在本文件。</p>
             </article>
             <article class="card" data-tone="base">
               <div class="path">client/local-cwd.ts</div>
@@ -846,7 +1197,7 @@
             <article class="card" data-tone="base">
               <div class="path">src/style/</div>
               <h3>视觉 token</h3>
-              <p>app.css、reset 和 Markdown 流样式。</p>
+              <p>app.css token、Markdown 流、Mermaid 与 motion。</p>
             </article>
           </div>
         </section>
@@ -883,26 +1234,32 @@
         <section class="layer">
           <div class="layer-head"><span class="kicker">L1 Host</span><span class="layer-note">一个 Node HTTP server
               同时承载静态文件、平台 API 与 WebSocket upgrade。</span></div>
-          <div class="cards" style="--columns: 5">
+          <div class="cards" style="--columns: 6">
+            <article class="card" data-tone="host">
+              <div class="path">auth/browser-session.ts</div>
+              <h3>浏览器通行证</h3>
+              <p>启动 token 换 HttpOnly cookie，签名密钥落本机文件；HTTP 与 WebSocket 升级共用同一道校验。</p>
+              <div class="chips"><span>launchToken</span><span>Bearer</span><span>403 / 401</span></div>
+            </article>
             <article class="card" data-tone="host">
               <div class="path">server/host.ts</div>
               <h3>Gateway</h3>
-              <p>组装 PiHostService、PiServer 和 listener。另提供 GET /health。</p>
+              <p>组装 PiHostService、PiServer 和 listener，先听端口再后台预热。另提供 GET /health。</p>
             </article>
             <article class="card" data-tone="host">
               <div class="path">server/websocket.ts</div>
               <h3>WebSocket 连接</h3>
-              <p>只认 /api/v1/pi。匹配后限制帧长和积压，再交给 PiServer。</p>
+              <p>只认 /api/v1/pi。升级前先校验通行证，匹配后限制帧长和积压，再交给 PiServer。</p>
             </article>
             <article class="card" data-tone="host">
               <div class="path">server/static-files.ts</div>
               <h3>SPA 静态托管</h3>
-              <p>生产态提供 apps/web/dist。无扩展名回退 index.html。</p>
+              <p>生产态提供 apps/web/dist，命中内存缓存并按 gzip 发送。无扩展名回退 index.html。</p>
             </article>
             <article class="card" data-tone="host">
               <div class="path">server/platform.ts</div>
               <h3>平台 API</h3>
-              <p>选目录、会话卡片、上下文占用（含 preview）、重命名与删除。无 transcript 分页。</p>
+              <p>选目录与工作区预热、历史 Transcript 分页、会话卡片、上下文占用（含 preview）、重命名与删除。</p>
             </article>
             <article class="card" data-tone="host">
               <div class="path">server/provider-http.ts</div>
@@ -914,11 +1271,11 @@
         <section class="layer">
           <div class="layer-head"><span class="kicker">L2 Pi 服务适配</span><span class="layer-note">将 Pi SDK
               的对象和事件转换为官方服务接口及协议投影。</span></div>
-          <div class="cards" style="--columns: 4">
+          <div class="cards" style="--columns: 5">
             <article class="card" data-tone="pi">
               <div class="path">pi/service.ts</div>
               <h3>PiHostService</h3>
-              <p>list/create/open/rename/delete Session，以及 listModels。路径索引 TTL 2s。创建时立即落盘 header。</p>
+              <p>list/create/open/rename/delete Session、listModels、历史分页与工作区预热。路径索引 TTL 2s。创建时立即落盘 header。</p>
             </article>
             <article class="card" data-tone="pi">
               <div class="path">pi/session-runtime.ts</div>
@@ -928,7 +1285,12 @@
             <article class="card" data-tone="pi">
               <div class="path">pi/transcript.ts</div>
               <h3>TranscriptProjection</h3>
-              <p>AgentSession 事件映射为 progress。当前分支全部 message 条目进入 snapshot。</p>
+              <p>AgentSession 事件映射为 progress，工具参数按 toolCallId 索引。协议 snapshot 不带正文。</p>
+            </article>
+            <article class="card" data-tone="pi">
+              <div class="path">pi/transcript-page.ts + turn-timing.ts</div>
+              <h3>分页与计时</h3>
+              <p>历史按用户句分页，每次三轮；每轮起止写进 pig.turn-timing 自定义条目。</p>
             </article>
             <article class="card" data-tone="pi">
               <div class="path">pi/session-label.ts + session-card.ts + context-usage.ts</div>
@@ -970,12 +1332,12 @@
             <article class="card" data-tone="disk">
               <div class="path">Session JSONL</div>
               <h3>完整历史</h3>
-              <p>快照发当前分支全文。不另做 HTTP 分页。</p>
+              <p>快照不带正文；打开取最近三轮，上翻继续往 HTTP 要。</p>
             </article>
             <article class="card" data-tone="disk">
               <div class="path">session_info / model_change</div>
               <h3>元数据来源</h3>
-              <p>重命名追加 session_info，侧栏模型取当前分支最后一次 model_change。</p>
+              <p>重命名追加 session_info；侧栏模型取当前分支最后一次 model_change；每轮耗时另写自定义条目。</p>
             </article>
           </div>
         </section>
@@ -997,34 +1359,54 @@
           <div class="steps" style="--steps: 5">
             <div class="step"><span class="number">01 Desktop / CLI</span><strong>启动 Gateway</strong><small>只监听
                 127.0.0.1。Desktop 端口系统分配，CLI 默认 8787</small></div>
-            <div class="step"><span class="number">02 页面来源</span><strong>开发 Vite / 生产静态</strong><small>开发窗口加载
-                5173；打包和 CLI 加载 Gateway 页</small></div>
+            <div class="step"><span class="number">02 页面来源</span><strong>开发 Vite / 打包 pig://app</strong><small>开发窗口加载
+                5173；打包由主进程托管 pig://app 并把 Gateway 地址注入 HTML</small></div>
             <div class="step"><span class="number">03 Browser</span><strong>打开本机页</strong><small>HTTP 可走 Vite 代理；WS
-                直连 Gateway</small></div>
-            <div class="step"><span class="number">04 PiClient</span><strong>连接 /api/v1/pi</strong><small>路径匹配后交给
-                PiServer，无启动认证</small></div>
-            <div class="step"><span class="number">05 PiServer</span><strong>返回
+                用注入的 Gateway 地址直连</small></div>
+            <div class="step" data-api="connect"><span class="number">04 PiClient</span><strong>连接 /api/v1/pi</strong><small>升级前先校验本机通行证，通过后交给
+                PiServer</small></div>
+            <div class="step" data-api="connect"><span class="number">05 PiServer</span><strong>返回
                 ServerSnapshot</strong><small>sessions、models、连接状态进入 Vue</small></div>
+          </div>
+        </article>
+
+        <article class="flow" data-kind="http">
+          <div class="flow-head">
+            <h3>本机通行证</h3><span class="flow-meta">HTTP + WebSocket 前置</span>
+          </div>
+          <div class="steps" style="--steps: 4">
+            <div class="step"><span class="number">01 CLI / Desktop</span><strong>分发一次性 token</strong><small>CLI
+                把 launch token 拼进打印的地址，并把同一个交给 Vite；桌面壳对 127.0.0.1 的 http / ws 请求统一补
+                Authorization</small></div>
+            <div class="step"><span class="number">02 Browser</span><strong>GET /?token=… 换
+                cookie</strong><small>校验通过后 303 跳回干净地址，写 HttpOnly SameSite=Strict cookie（30 天），签名密钥落在
+                ~/.pig</small></div>
+            <div class="step"><span class="number">03 页面</span><strong>后续请求带凭据</strong><small>同源页面用
+                cookie；开发态 Vite 代理与桌面壳代理补 Bearer，页面本身不保存 token</small></div>
+            <div class="step"><span class="number">04 Gateway</span><strong>校验来源与通行证</strong><small>非回环
+                host、跨站或 origin 不是本机一律 403，缺通行证 401；静态页、平台 API 和 WebSocket 升级都走这道门</small></div>
           </div>
         </article>
 
         <article class="flow" data-kind="state">
           <div class="flow-head">
-            <h3>创建或打开会话</h3><span class="flow-meta">Pi 协议 + Vue route</span>
+            <h3>创建或打开会话</h3><span class="flow-meta">平台 HTTP + Pi 协议</span>
           </div>
-          <div class="steps" style="--steps: 6">
+          <div class="steps" style="--steps: 7">
             <div class="step"><span class="number">01 Router / Welcome</span><strong>得到 sessionId 或
                 cwd</strong><small>路由打开已有会话，欢迎页创建新会话</small></div>
-            <div class="step"><span class="number">02 useRemoteSessions</span><strong>open /
+            <div class="step" data-api="transcript"><span class="number">02 useSessionHistory</span><strong>GET
+                platform/transcript</strong><small>先要最近三轮，不阻塞连接</small></div>
+            <div class="step" data-api="open,create"><span class="number">03 useSessionLifecycle</span><strong>open /
                 create</strong><small>替换串行，快速切换只保留最后目标</small></div>
-            <div class="step"><span class="number">03 RemoteSession</span><strong>向 PiClient 发命令</strong><small>官方实例持有会话
+            <div class="step" data-api="open,create"><span class="number">04 RemoteSession</span><strong>向 PiClient 发命令</strong><small>官方实例持有会话
                 lease</small></div>
-            <div class="step"><span class="number">04 PiHostService</span><strong>打开或创建 AgentSession</strong><small>通过
+            <div class="step" data-api="open,create"><span class="number">05 PiHostService</span><strong>打开或创建 AgentSession</strong><small>通过
                 SessionManager 找到 JSONL</small></div>
-            <div class="step"><span class="number">05 PiHostSession</span><strong>生成
-                SessionSnapshot</strong><small>Transcript 取当前分支全部 message 条目</small></div>
-            <div class="step"><span class="number">06 Vue projection</span><strong>渲染
-                Workbench</strong><small>snapshot、phase、transcript 变成 computed</small></div>
+            <div class="step" data-api="open,create"><span class="number">06 PiHostSession</span><strong>生成
+                SessionSnapshot</strong><small>只带元数据，正文另走 HTTP</small></div>
+            <div class="step"><span class="number">07 Vue projection</span><strong>渲染
+                Workbench</strong><small>历史窗口与 live progress 按 id 合并</small></div>
           </div>
         </article>
 
@@ -1033,17 +1415,17 @@
             <h3>Prompt 与流式 Transcript</h3><span class="flow-meta">WebSocket 双向</span>
           </div>
           <div class="steps" style="--steps: 7">
-            <div class="step"><span class="number">01 Composer</span><strong>send →
-                submitText</strong><small>useSessionRuntime 先放 optimistic user item，清空草稿</small></div>
-            <div class="step"><span class="number">02 RemoteSession</span><strong>submit(text)</strong><small>PiClient
+            <div class="step" data-api="submit"><span class="number">01 Composer</span><strong>send →
+                submitText</strong><small>useSessionLifecycle 先放 optimistic user item，清空草稿</small></div>
+            <div class="step" data-api="submit"><span class="number">02 RemoteSession</span><strong>submit(text)</strong><small>PiClient
                 编码协议命令</small></div>
-            <div class="step"><span class="number">03 PiHostSession</span><strong>exclusive prompt</strong><small>非 idle
+            <div class="step" data-api="submit"><span class="number">03 PiHostSession</span><strong>exclusive prompt</strong><small>非 idle
                 或并发操作直接拒绝</small></div>
-            <div class="step"><span class="number">04 AgentSession</span><strong>执行 turn 与 tools</strong><small>产生
+            <div class="step" data-api="submit"><span class="number">04 AgentSession</span><strong>执行 turn 与 tools</strong><small>产生
                 message_* 和 tool_execution_* 事件</small></div>
-            <div class="step"><span class="number">05 Projection</span><strong>事件 → progress</strong><small>流式 assistant
-                与 tool 占位增量发送</small></div>
-            <div class="step"><span class="number">06 message_end</span><strong>微任务后发 snapshot</strong><small>等 Pi
+            <div class="step" data-api="submit"><span class="number">05 Projection</span><strong>事件 → progress</strong><small>同一条消息的连续
+delta 只发最后一版；tool 占位与完成条目按 toolCallId 合并</small></div>
+            <div class="step" data-api="submit"><span class="number">06 message_end</span><strong>微任务后发 snapshot</strong><small>等 Pi
                 写盘，再用权威快照收敛流式状态</small></div>
             <div class="step"><span class="number">07
                 TranscriptView</span><strong>合并并渲染</strong><small>RemoteSessionState 覆盖 optimistic item</small></div>
@@ -1057,11 +1439,11 @@
           <div class="steps" style="--steps: 4">
             <div class="step"><span class="number">01 RemoteSessionState</span><strong>snapshot
                 revision</strong><small>会话快照更新后刷新估算</small></div>
-            <div class="step"><span class="number">02 useRemoteSessions</span><strong>GET
-                /context-usage</strong><small>经 client/platform.ts</small></div>
-            <div class="step"><span class="number">03 PiHostService</span><strong>读活动
+            <div class="step" data-api="context-usage"><span class="number">02 useSessionLifecycle</span><strong>GET
+                /context-usage</strong><small>经 client/platform.ts，每次快照 revision 变化刷一次</small></div>
+            <div class="step" data-api="context-usage"><span class="number">03 PiHostService</span><strong>读活动
                 AgentSession</strong><small>未打开的会话返回 null</small></div>
-            <div class="step"><span class="number">04 输入卡</span><strong>展示占用</strong><small>可选 preview 拉分段正文</small>
+            <div class="step" data-api="context-usage,context-preview"><span class="number">04 输入卡</span><strong>展示占用</strong><small>可选 preview 拉分段正文</small>
             </div>
           </div>
         </article>
@@ -1071,21 +1453,135 @@
             <h3>目录与会话文件操作</h3><span class="flow-meta">平台 HTTP</span>
           </div>
           <div class="steps" style="--steps: 4">
-            <div class="step"><span class="number">01 SessionNav</span><strong>选择 / 改名 /
+            <div class="step" data-api="select-directory,rename-session,delete-session"><span class="number">01 SessionNav</span><strong>选择 / 改名 /
                 删除</strong><small>导航模块发平台请求</small></div>
-            <div class="step"><span class="number">02 Platform port</span><strong>选目录或操作文件</strong><small>Electron
+            <div class="step" data-api="select-directory,rename-session,delete-session"><span class="number">02 Platform port</span><strong>选目录或操作文件</strong><small>Electron
                 dialog 或手工路径；SessionManager 改 JSONL</small></div>
-            <div class="step"><span class="number">03 PiClient</span><strong>refreshSessions +
+            <div class="step" data-api="list-sessions,session-cards"><span class="number">03 PiClient</span><strong>refreshSessions +
                 cards</strong><small>覆盖 ServerSnapshot.sessions，并刷新侧栏卡片</small></div>
             <div class="step"><span class="number">04 Nav computed</span><strong>重新分组和渲染</strong><small>grouping 与本地目录名单只分组，不改
                 Session cwd</small></div>
           </div>
         </article>
+
+        <article class="flow" data-kind="http">
+          <div class="flow-head">
+            <h3>工作区预热</h3><span class="flow-meta">平台 HTTP</span>
+          </div>
+          <div class="steps" style="--steps: 4">
+            <div class="step"><span class="number">01 欢迎页</span><strong>选中工作目录</strong><small>连上后第一条 Prompt 会用它建会话</small>
+            </div>
+            <div class="step" data-api="warm-workspace"><span class="number">02 Platform port</span><strong>warmWorkspace(cwd)</strong><small>经 client/platform.ts 发
+                POST</small></div>
+            <div class="step" data-api="warm-workspace"><span class="number">03 PiHostService</span><strong>prepareWorkspace</strong><small>按 canonical cwd
+                取一份已 reload 的 loader</small></div>
+            <div class="step" data-api="create"><span class="number">04 AgentSession</span><strong>建会话复用同一份 loader</strong><small>省掉扩展重新转译；同目录同时只给一个会话</small>
+            </div>
+          </div>
+        </article>
+
+        <article class="flow" data-kind="http">
+          <div class="flow-head">
+            <h3>上翻更早历史</h3><span class="flow-meta">平台 HTTP</span>
+          </div>
+          <div class="steps" style="--steps: 4">
+            <div class="step"><span class="number">01 TranscriptView</span><strong>点加载更早消息</strong><small>窗口首项带
+                hasMore 才出现</small></div>
+            <div class="step" data-api="transcript"><span class="number">02 useSessionHistory</span><strong>GET transcript?before=…</strong><small>before
+                取当前窗口第一条 id</small></div>
+            <div class="step" data-api="transcript"><span class="number">03 sessionTranscript</span><strong>按用户句回三轮</strong><small>只取当前分支，附带每轮计时</small>
+            </div>
+            <div class="step"><span class="number">04 TranscriptView</span><strong>前插并保持位置</strong><small>窗口只增不缩，滚动位置按高度差补回</small>
+            </div>
+          </div>
+        </article>
+
+        <article class="flow">
+          <div class="flow-head">
+            <h3>中止活动 Turn</h3><span class="flow-meta">WebSocket 单向</span>
+          </div>
+          <div class="steps" style="--steps: 4">
+            <div class="step" data-api="abort"><span class="number">01 Composer</span><strong>发送钮变停止</strong><small>只有活动 Turn 才给停止钮，idle 不发</small></div>
+            <div class="step" data-api="abort"><span class="number">02 RemoteSession</span><strong>abort()</strong><small>PiClient 编码协议命令，不等当前 delta</small></div>
+            <div class="step"><span class="number">03 PiHostSession</span><strong>abort 始终安全</strong><small>不做 idle 检查，重复中止无副作用</small></div>
+            <div class="step"><span class="number">04 Transcript</span><strong>助手句标 aborted</strong><small>Session 与已写入内容保留，不当作 Error</small></div>
+          </div>
+        </article>
+
+        <article class="flow">
+          <div class="flow-head">
+            <h3>换模型与 thinking</h3><span class="flow-meta">WebSocket 单向</span>
+          </div>
+          <div class="steps" style="--steps: 3">
+            <div class="step" data-api="set-model,set-thinking"><span class="number">01 Composer</span><strong>空闲时选模型或切档位</strong><small>use-composer-binding 回声抑制：在途时不让快照回写覆盖</small></div>
+            <div class="step" data-api="set-model,set-thinking"><span class="number">02 RemoteSession</span><strong>setModel / setThinking</strong><small>不新建 Session，已有 Transcript 不变</small></div>
+            <div class="step"><span class="number">03 PiHostSession</span><strong>互斥且须 idle</strong><small>冲突操作直接拒绝，不排队</small></div>
+          </div>
+        </article>
       </div>
     </section>
 
+    <section class="view" id="api" role="tabpanel" hidden>
+      <div class="view-head">
+        <h2>接口调用</h2>
+        <p>两条总线：platform HTTP 管壳层读写，Pi WebSocket 管 Session 权威状态。UI 不直接拼路径也不发帧，都经 client 与 RemoteSession。流程卡片底部的接口行可跳到接口详情，详情底部的「出现流程」可跳回并高亮该步。</p>
+      </div>
+      <div class="buses">
+        <article class="bus http">
+          <h3>platform HTTP <span class="pill">JSON</span></h3>
+          <p>选目录、工作区预热、侧栏卡片、历史 Transcript、上下文占用、重命名、删除。不进 Agent Domain。</p>
+          <div class="path">/api/v1/platform/* · client/platform.ts</div>
+        </article>
+        <article class="bus ws">
+          <h3>Pi WebSocket <span class="pill">CBOR</span></h3>
+          <p>连接、Session 列表、创建/打开、Prompt / Abort、改 Model / Thinking。权威状态是 Snapshot。</p>
+          <div class="path">ws /api/v1/pi · PiClient / RemoteSession</div>
+        </article>
+      </div>
+      <div class="legend">
+        <span><i class="dot" style="--dot: var(--sunset)"></i>HTTP</span>
+        <span><i class="dot" style="--dot: var(--primary)"></i>WebSocket</span>
+        <span><i class="dot" style="--dot: var(--green)"></i>两种总线都要本机通行证</span>
+      </div>
+      <div class="api-map">
+        <div class="api-col">
+          <div class="kicker">调用方</div>
+          <button class="caller" type="button" data-caller="all" aria-pressed="true">全部<small>7 个 UI 入口</small></button>
+          <button class="caller" type="button" data-caller="nav" aria-pressed="false">session-nav<small>选目录 / 改名 / 删除</small></button>
+          <button class="caller" type="button" data-caller="cards" aria-pressed="false">use-session-cards<small>连上后拉一次卡片</small></button>
+          <button class="caller" type="button" data-caller="history" aria-pressed="false">use-session-history<small>打开会话 + 上翻</small></button>
+          <button class="caller" type="button" data-caller="session" aria-pressed="false">use-session<small>生命周期 + 占用</small></button>
+          <button class="caller" type="button" data-caller="workbench" aria-pressed="false">session-workbench<small>选中目录后预热</small></button>
+          <button class="caller" type="button" data-caller="composer" aria-pressed="false">composer<small>预览分段正文</small></button>
+          <button class="caller" type="button" data-caller="piclient" aria-pressed="false">usePiClient<small>连接与会话列表</small></button>
+        </div>
+        <div class="api-col">
+          <div class="kicker">接口 · 点一下跳到入参出参</div>
+          <div class="api-grid" id="api-grid"></div>
+        </div>
+      </div>
+
+      <div class="sub-head">
+        <h3>HTTP 入参出参</h3>
+        <p>路径只出现在 <code>apps/web/src/client/platform.ts</code>。请求头带 <code>x-request-id</code>，失败体是 <code>{ code }</code>。</p>
+      </div>
+      <div class="list" id="http-list"></div>
+      <div class="err">
+        <h4>状态码与通行证</h4>
+        <p><code>INVALID_REQUEST</code> 400 · <code>NOT_FOUND</code> 404 · <code>INTERNAL_ERROR</code> 500 · <code>UNAUTHENTICATED</code> 401 ·
+          <code>FORBIDDEN</code> 403。另有 <code>GET /health → { status: "ok" }</code>，UI 不调。非回环 host、跨站请求或 origin 不是
+          127.0.0.1 / localhost 一律 403；缺通行证 401。</p>
+      </div>
+
+      <div class="sub-head">
+        <h3>WebSocket 入参出参</h3>
+        <p>UI 不直接发帧，走 <code>PiClient</code> / <code>RemoteSession</code>。协议 snapshot 的 <code>transcript</code> 恒为空，全文走 HTTP。</p>
+      </div>
+      <div class="list" id="ws-list"></div>
+    </section>
+
     <footer>依据当前 apps/web、apps/desktop、packages/gateway 源码整理。生成于仓库工作树，不扫描
-      node_modules。</footer>
+      node_modules。最近核对 2026-09-22。</footer>
   </main>
 
   <script>
@@ -1136,13 +1632,19 @@
         ["会话工作台", "时间线", "import", "TranscriptView"],
         ["会话工作台", "输入卡", "import", "preset / submit"],
         ["会话工作台", "连接投影", "state", "RemoteSession"],
-        ["会话工作台", "平台 API", "http", "卡片 / 占用"],
+        ["会话工作台", "平台 API", "http", "卡片 / 历史 / 占用"],
         ["会话工作台", "主题", "import", "顶栏"],
         ["会话导航", "会话工作台", "state", "SessionContext"],
         ["会话导航", "平台 API", "http", "改名 / 删除"],
         ["会话导航", "本地目录偏好", "state", "分组"],
         ["时间线", "输入卡", "import", "底部输入"],
         ["输入卡", "交互基础件", "import", "UI"],
+        ["应用接线", "设置", "import", "provideSettings"],
+        ["应用接线", "点击音", "import", "useClickSound"],
+        ["会话工作台", "点击音", "import", "SoundToggle"],
+        ["会话导航", "设置", "state", "底栏打开"],
+        ["主题", "设置", "state", "外观选项"],
+        ["设置", "交互基础件", "import", "Dialog"],
         ["启动门", "连接投影", "state", "connect"],
         ["主题", "视觉 token", "state", "class"],
         ["App 壳", "交互基础件", "import", "UI"],
@@ -1167,12 +1669,418 @@
         ["PiHostService", "模型目录", "state", "ModelRuntime"],
         ["PiHostSession", "Agent Loop", "state", "prompt / event"],
         ["PiHostSession", "TranscriptProjection", "state", "progress"],
+        ["PiHostService", "分页与计时", "state", "transcript / timing"],
         ["PiHostService", "平台投影", "state", "cards / usage"],
         ["TranscriptProjection", "完整历史", "disk", "当前分支"],
         ["会话持久化", "完整历史", "disk", "JSONL"],
         ["会话持久化", "元数据来源", "disk", "entries"],
+        ["Gateway", "浏览器通行证", "import", "通行证"],
+        ["浏览器通行证", "WebSocket 连接", "http", "升级前校验"],
+        ["浏览器通行证", "平台 API", "http", "401 / 403"],
       ],
     }
+
+    const apis = [
+      {
+        id: "select-directory",
+        bus: "http",
+        method: "POST",
+        path: "/api/v1/platform/select-directory",
+        callers: ["nav"],
+        who: "use-workspace-nav.addWorkspace",
+        note: "无 path 时走系统选目录；浏览器端口先回 requiresManualInput，prompt 拿到路径后带 path 重发。",
+        inn: `{ path?: string }   // 可空 body`,
+        out: `{
+  path: string | null
+  requiresManualInput: boolean
+}`,
+      },
+      {
+        id: "warm-workspace",
+        bus: "http",
+        method: "POST",
+        path: "/api/v1/platform/warm-workspace",
+        callers: ["workbench"],
+        who: "session-workbench · 连上且选中目录",
+        note: "Host 后台预热同目录的扩展与技能，建会话时复用同一份 loader。path 去空白后为空 → 400。",
+        inn: `{ path: string }`,
+        out: `{ ok: true }`,
+      },
+      {
+        id: "session-cards",
+        bus: "http",
+        method: "GET",
+        path: "/api/v1/platform/session-cards",
+        callers: ["cards"],
+        who: "use-session-cards · 连上后全量一次",
+        note: "协议 SessionMetadata 不带条数与模型，卡片是平台侧补的投影。失败不挡侧栏主路径。",
+        inn: `无 query / 无 body`,
+        out: `{
+  cards: Array<{
+    id: string
+    messageCount: number
+    model?: { provider, id }
+    outcome?: "complete" | "error"
+  }>
+}`,
+      },
+      {
+        id: "transcript",
+        bus: "http",
+        method: "GET",
+        path: "/api/v1/platform/transcript",
+        callers: ["history"],
+        who: "use-session-history.loadHistory / loadOlderHistory",
+        note: "默认最近三轮用户句及其后内容；before 传当前窗口第一条 id 取更早一页。活动会话读内存，未打开直接读盘。缺 sessionId → 400，找不到 → 404。",
+        inn: `?sessionId=string
+&before?=itemId`,
+        out: `{
+  items: TranscriptItem[]   // user | assistant | tool
+  timings: Array<{
+    userId, startedAt
+    outcome: "running" | "complete" | "error" | "aborted"
+    endedAt?                 // running 无 endedAt
+  }>
+  hasMore: boolean
+}`,
+      },
+      {
+        id: "context-usage",
+        bus: "http",
+        method: "GET",
+        path: "/api/v1/platform/context-usage",
+        callers: ["session"],
+        who: "use-session.refreshContextUsage · 快照 revision 变化",
+        note: "只读已打开的 Session。未打开或没有用量 → usage: null。",
+        inn: `?sessionId=string`,
+        out: `{
+  usage: {
+    used, window
+    segments: {
+      systemPrompt, memory, skills, tools,
+      toolResults, conversation, other, idle
+    }
+  } | null
+  preview: null
+}`,
+      },
+      {
+        id: "context-preview",
+        bus: "http",
+        method: "GET",
+        path: "/api/v1/platform/context-usage",
+        chip: "GET context-usage?preview",
+        callers: ["composer"],
+        who: "ContextUsagePanel · 打开分段",
+        note: "同一路径加 preview。合法 key：systemPrompt | memory | skills | tools | toolResults | conversation；非法 key → 400。",
+        inn: `?sessionId=string
+&preview=segmentId`,
+        out: `{
+  usage: ContextUsageEstimate | null
+  preview: { title, content } | null
+}`,
+      },
+      {
+        id: "rename-session",
+        bus: "http",
+        method: "POST",
+        path: "/api/v1/platform/rename-session",
+        callers: ["nav"],
+        who: "use-workspace-nav.renameSession",
+        note: "名字去空白后为空 → 400。成功后 refreshSessions 覆盖快照里的会话名；活动会话同时改内存显示名。",
+        inn: `{ id: string, name: string }`,
+        out: `{ ok: true }`,
+      },
+      {
+        id: "delete-session",
+        bus: "http",
+        method: "POST",
+        path: "/api/v1/platform/delete-session",
+        callers: ["nav"],
+        who: "use-workspace-nav.deleteSession",
+        note: "永久删 Pi Session JSONL 与其 Transcript。删的是当前会话则先回 /，再 refreshSessions。",
+        inn: `{ id: string }`,
+        out: `{ ok: true }`,
+      },
+      {
+        id: "connect",
+        bus: "ws",
+        method: "WS",
+        path: "PiClient.connect()",
+        callers: ["piclient"],
+        who: "usePiClient.connect · 启动门",
+        note: "握手成功得到 ServerSnapshot。断线最多重连 5 次，每次退避 400ms 递增。",
+        inn: `transport: ws://127.0.0.1:<port>/api/v1/pi
+二进制 length-prefixed CBOR
+凭据：本机 cookie，或 Vite 代理 / 桌面壳补 Bearer`,
+        out: `ServerSnapshot {
+  serverId, protocolVersion: 1, revision
+  sessions: SessionMetadata[]
+  models: ModelMetadata[]
+}`,
+      },
+      {
+        id: "list-sessions",
+        bus: "ws",
+        method: "WS",
+        path: "PiClient.listSessions()",
+        callers: ["piclient", "nav"],
+        who: "refreshSessions · 改名 / 删除后",
+        note: "用官方 list 结果覆盖快照里的 sessions，不另建列表。",
+        inn: `无`,
+        out: `SessionMetadata[] {
+  id, createdAt
+  updatedAt?, parentSessionId?
+  sessionName?, cwd?
+}`,
+      },
+      {
+        id: "create",
+        bus: "ws",
+        method: "WS",
+        path: "RemoteSession.create()",
+        callers: ["session"],
+        who: "欢迎页第一条 Prompt",
+        note: "侧栏「新会话」只回 /，不立刻建。Session 在第一条 Prompt 时才创建，header 立即落盘。",
+        inn: `{
+  cwd: string
+  model?: { provider, id }
+  thinkingLevel?: off|minimal|low|medium|high|xhigh|max
+}`,
+        out: `RemoteSession
+  id
+  state.snapshot: SessionSnapshot   // transcript: []
+  state.transcript: live 增量`,
+      },
+      {
+        id: "open",
+        bus: "ws",
+        method: "WS",
+        path: "RemoteSession.open()",
+        callers: ["session"],
+        who: "use-session.openRemoteSession",
+        note: "与 HTTP transcript 并行。历史以 HTTP 为准，live progress 按 id 覆盖。断线时重试一次。",
+        inn: `sessionId: string`,
+        out: `SessionSnapshot {
+  id, name?, cwd, createdAt, updatedAt
+  phase: idle|turn|compaction|branch_summary|retry
+  model, thinkingLevel
+  attached, locked, revision
+  transcript: []          // 恒空
+  queuedSteer, queuedSteerCount
+}`,
+      },
+      {
+        id: "submit",
+        bus: "ws",
+        method: "WS",
+        path: "RemoteSession.submit(text)",
+        callers: ["session"],
+        who: "Composer 发送 · phase idle",
+        note: "协议里 turn 时 submit 是 steer；当前 UI 不做 Steering。先画乐观 User Message。",
+        inn: `text: string`,
+        out: `流式：Snapshot + Transcript 投影
+phase: idle → turn → idle
+条目：User / Assistant / Tool Call`,
+      },
+      {
+        id: "abort",
+        bus: "ws",
+        method: "WS",
+        path: "RemoteSession.abort()",
+        callers: ["session"],
+        who: "发送钮变停止时",
+        note: "提前结束活动 Turn。Session 与已写入 Transcript 保留。被中止条目不是 Error。",
+        inn: `无`,
+        out: `phase → idle
+助手句 status: aborted`,
+      },
+      {
+        id: "set-model",
+        bus: "ws",
+        method: "WS",
+        path: "RemoteSession.setModel()",
+        callers: ["composer", "session"],
+        who: "use-composer-binding · 空闲时",
+        note: "不新建 Session，已有 Transcript 不变。非 idle 或并发操作直接拒绝，不排队。",
+        inn: `{ provider: string, id: string }`,
+        out: `SessionSnapshot.model 更新`,
+      },
+      {
+        id: "set-thinking",
+        bus: "ws",
+        method: "WS",
+        path: "RemoteSession.setThinking()",
+        callers: ["composer", "session"],
+        who: "use-composer-binding · 空闲时",
+        note: "取值 off / minimal / low / medium / high / xhigh / max，按当前模型的 supportedThinkingLevels 收窄。",
+        inn: `thinkingLevel: ThinkingLevel`,
+        out: `SessionSnapshot.thinkingLevel 更新`,
+      },
+    ]
+
+    const apiGrid = document.getElementById("api-grid")
+    const httpList = document.getElementById("http-list")
+    const wsList = document.getElementById("ws-list")
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]))
+    }
+
+    function shortPath(api) {
+      if (api.bus === "ws") return api.path
+      return api.path.replace("/api/v1/platform/", "")
+    }
+
+    function renderApiGrid(filter) {
+      apiGrid.innerHTML = ""
+
+      for (const api of apis) {
+        const btn = document.createElement("button")
+        btn.className = `api ${api.bus}`
+        btn.type = "button"
+        if (filter !== "all" && !api.callers.includes(filter)) btn.classList.add("is-dim")
+        btn.innerHTML = `<span class="method">${api.method}</span> ${escapeHtml(shortPath(api))}<small>${escapeHtml(api.who)}</small>`
+        btn.addEventListener("click", () => jumpToApi(api))
+        apiGrid.appendChild(btn)
+      }
+    }
+
+    /** step 上的 data-api 反向索引：接口 → 出现它的流程与步骤，并在流程卡片底部挂接口行。 */
+    const apiUsages = new Map()
+
+    document.querySelectorAll(".flow").forEach((flow) => {
+      const flowName = flow.querySelector("h3")?.textContent ?? ""
+      const usedIds = []
+
+      flow.querySelectorAll(".step[data-api]").forEach((step) => {
+        const number = step.querySelector(".number")?.textContent?.split(" ")[0] ?? ""
+
+        for (const id of step.dataset.api.split(",")) {
+          const usages = apiUsages.get(id) ?? []
+          usages.push({ flowName, number, step })
+          apiUsages.set(id, usages)
+          if (!usedIds.includes(id)) usedIds.push(id)
+        }
+      })
+
+      if (usedIds.length) flow.appendChild(flowApisRow(usedIds))
+    })
+
+    /** 流程卡片底部的接口行：点一下切到接口调用页，展开并定位该接口。 */
+    function flowApisRow(ids) {
+      const row = document.createElement("div")
+      const label = document.createElement("span")
+      row.className = "flow-apis"
+      label.textContent = "本流程接口："
+      row.appendChild(label)
+
+      for (const id of ids) {
+        const api = apis.find((entry) => entry.id === id)
+
+        if (!api) continue
+        const btn = document.createElement("button")
+        btn.type = "button"
+        btn.textContent = api.chip ?? `${api.method} ${shortPath(api)}`
+        btn.addEventListener("click", () => openApi(id))
+        row.appendChild(btn)
+      }
+
+      return row
+    }
+
+    function tabFor(viewId) {
+      return tabs.find((tab) => tab.getAttribute("aria-controls") === viewId)
+    }
+
+    /** 步骤 → 接口详情：切到接口调用页，展开并定位。 */
+    function openApi(id) {
+      const target = document.getElementById(`api-${id}`)
+
+      if (!target) return
+      selectTab(tabFor("api"))
+      target.open = true
+      target.classList.add("is-flash")
+      setTimeout(() => target.classList.remove("is-flash"), 1200)
+      target.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+
+    /** 接口详情 → 流程步骤：切回关键数据流，高亮该步。 */
+    function focusFlowStep(usage) {
+      selectTab(tabFor("flows"))
+      highlight(usage.step)
+      usage.step.scrollIntoView({ behavior: "smooth", block: "center" })
+    }
+
+    function apiUsageRow(api) {
+      const usages = apiUsages.get(api.id) ?? []
+      const row = document.createElement("div")
+      const label = document.createElement("span")
+      row.className = "usage"
+      label.textContent = usages.length
+        ? "出现流程："
+        : "关键数据流里没有对应步骤，由 Composer 直接触发。"
+      row.appendChild(label)
+
+      for (const usage of usages) {
+        const btn = document.createElement("button")
+        btn.type = "button"
+        btn.textContent = `${usage.flowName} · ${usage.number}`
+        btn.addEventListener("click", () => focusFlowStep(usage))
+        row.appendChild(btn)
+      }
+
+      return row
+    }
+
+    function apiDetails(api) {
+      const el = document.createElement("details")
+      el.className = api.bus
+      el.id = `api-${api.id}`
+      el.innerHTML = `
+        <summary>
+          <span class="method">${api.method}</span>
+          <span class="name">${escapeHtml(api.path)}</span>
+          <span class="who">${escapeHtml(api.who)}</span>
+        </summary>
+        <div class="io">
+          <section>
+            <h4>入参</h4>
+            <pre>${escapeHtml(api.inn)}</pre>
+          </section>
+          <section>
+            <h4>出参</h4>
+            <pre>${escapeHtml(api.out)}</pre>
+          </section>
+        </div>
+        <div class="note">${escapeHtml(api.note)}</div>`
+      el.appendChild(apiUsageRow(api))
+      return el
+    }
+
+    for (const api of apis) {
+      if (api.bus === "http") httpList.appendChild(apiDetails(api))
+      else wsList.appendChild(apiDetails(api))
+    }
+
+    renderApiGrid("all")
+
+    document.querySelectorAll(".caller").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".caller").forEach((other) => {
+          other.setAttribute("aria-pressed", String(other === btn))
+        })
+        renderApiGrid(btn.dataset.caller)
+      })
+    })
+
+    function jumpToApi(api) {
+      const target = document.getElementById(`api-${api.id}`)
+      if (!target) return
+      target.open = true
+      target.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+
     let selectedItem
 
     interactiveItems.forEach((item) => {
@@ -1359,7 +2267,7 @@
       if (event.key === "Escape") clearHighlight()
     })
     document.querySelector("main").addEventListener("click", (event) => {
-      if (!event.target.closest(".card, .step, .truth") && selectedItem) clearHighlight()
+      if (!event.target.closest(".card, .step, .truth, .usage, .flow-apis, .caller, .api") && selectedItem) clearHighlight()
     })
     let resizeFrame
     window.addEventListener("resize", () => {

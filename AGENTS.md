@@ -5,10 +5,16 @@
 - `docs/*` 只读，用户点名才改。
 - 注释默认不超过 1 行。
 - 单文件 <= 500 行，拆不开就写理由。
+- 导入能对上现有别名就写别名，不写相对路径。同目录引用可以保持 `./`。
 - 一个逻辑任务完成并通过检查后做一次原子 commit，不按单次编辑提交；文档改动不 commit。
 - 依赖缺陷升级或提交上游，不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
 - 单测只覆盖 [`JOURNEYS.md`](JOURNEYS.md) 数据路径。
 - 合入、rebase、reset 前先看工作区。未提交路径和将写入的路径有交集：停下问用户，禁止 `restore`/`checkout` 清掉这些文件再合。合完用 `git status` 核同一批未提交路径还在、`git diff` 非空。备份只用 `git diff`/`git show` 写文件，不用 shell 重定向；apply 失败保留完整副本，禁止再 `restore` 覆盖。
+
+## 文档
+
+- 目录或领域边界：[`docs/directory-structure.md`](docs/directory-structure.md)
+- UI、桌面壳、交互、视觉：[`DESIGN.md`](DESIGN.md)
 
 ## UI
 
@@ -16,10 +22,11 @@
 - 组件样式只消费 `apps/web/src/style/app.css` 的 token（`var(--*)` 或 `@theme` 类）。缺档先补 `app.css`，再写组件；SFC 不声明 `--*`，不写裸 hex/rgb/`color-mix`。
 - 动画复用 `apps/web/src/style/motion.css` 的类与 `@keyframes`。缺档先补 `motion.css`，再写组件。
 
-## 文档
+## worktree
 
-- 目录或领域边界：[`docs/directory-structure.md`](docs/directory-structure.md)
-- UI、桌面壳、交互、视觉：[`DESIGN.md`](DESIGN.md)
+- 新建：`git worktree add ../<name> -b <branch>`，再在源仓库跑 `pnpm setup:worktree ../<name>`（装依赖 → 构建 gateway → 补 electron `path.txt` → 校验）。
+- 跑 bench/e2e 时 cwd 必须是该 worktree，否则量的是源仓库。
+- `apps/desktop/node_modules/.bin/pig` 缺失可忽略（desktop 与 bench 走 `@pig/gateway`），事后 `pnpm rebuild` 补不回来。
 
 ## 验收
 

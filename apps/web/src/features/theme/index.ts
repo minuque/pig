@@ -7,7 +7,7 @@ const STORAGE_KEY = "npg-theme"
 type Theme = {
   isDark: ComputedRef<boolean>
   scheme: ComputedRef<ColorScheme>
-  codeBlockProps: ComputedRef<{ theme: "dark-plus" | "light-plus" }>
+  codeBlockProps: ComputedRef<{ theme: "github-dark" | "github-light" }>
   setScheme: (next: ColorScheme) => void
   toggle: () => void
 }
@@ -23,7 +23,7 @@ function theme(): Theme {
     mode.store.value === "auto" ? "auto" : mode.state.value,
   )
   const codeBlockProps = computed(() => ({
-    theme: isDark.value ? ("dark-plus" as const) : ("light-plus" as const),
+    theme: isDark.value ? ("github-dark" as const) : ("github-light" as const),
   }))
 
   function setScheme(next: ColorScheme) {

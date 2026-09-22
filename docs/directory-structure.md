@@ -22,8 +22,7 @@ apps/web/src/
 │   └── ui/         # shadcn-vue 基础件
 ├── features/       # 领域模块
 ├── types/          # 公共类型：xxx-type.ts；三方类型：common-type.ts
-├── router/
-└── utils/
+└── router/
 ```
 
 `App.vue`：`usePiClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再把 `connect` / `initialize` 交给启动门。子树只用 `useSession()` / `useNav()`，不写创建/发送/重命名等领域规则。
@@ -40,12 +39,12 @@ index.ts         provide / use（有跨树共享时才建）
 type.ts          本目录多文件用的类型
 components/      私有视图
 hooks/           私有 composable
-lib/             两处及以上生产消费的纯逻辑
+lib/             多处生产消费，或有单测的纯逻辑
 ```
 
 1. 跨模块引用视图写 `index.vue`，引用组合写 `index.js`，不省略文件名。跨模块用 `@features/<module>/...`，模块内可用相对路径。
 2. 模块级 `provide` / `use` 放根目录 `index.ts`，不进 `hooks/`。
-3. 单点消费的函数放回对应 `.vue` / `hooks/`，不为测试单独抽文件。根目录不平铺 `*.ts`（`type.ts` 除外）。没有可复用逻辑时不建 `lib/`。
+3. 单点消费、且没有单测的函数放回对应 `.vue` / `hooks/`。有单测的纯函数可以留在 `lib/`，即使只有一处生产消费。根目录不平铺 `*.ts`（`type.ts` 除外）。没有可复用逻辑时不建 `lib/`。
 4. `lib/` 不按子领域再切。
 5. 一个 feature 只做一件领域事。
 6. `components/ui/` 只放 shadcn-vue 基础件，业务样式不回流到这里。新领域先归既有模块，边界不清再拆 feature。
@@ -57,7 +56,7 @@ packages/gateway/src/
 ├── cli.ts
 ├── index.ts        # 导出 Gateway、DirectoryPort
 ├── directory.ts    # 目录选择、canonicalizePath
-├── auth/           # bootstrap 凭证
+├── auth/           # 浏览器启动凭证与通行证
 ├── pi/             # Session 运行时、transcript、卡片
 └── server/         # HTTP / WebSocket host
 ```

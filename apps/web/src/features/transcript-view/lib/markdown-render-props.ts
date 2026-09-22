@@ -3,7 +3,7 @@ import { installChatMarkdownComponents } from "@features/transcript-view/lib/mar
 
 installChatMarkdownComponents()
 
-type CodeBlockTheme = "dark-plus" | "light-plus"
+type CodeBlockTheme = "github-dark" | "github-light"
 
 const cssPxCache = new Map<string, number>()
 
@@ -26,7 +26,7 @@ function codeBlockTypography() {
   } as const
 }
 
-const codeBlockTheme = { dark: "dark-plus", light: "light-plus" } as const satisfies Record<
+const codeBlockTheme = { dark: "github-dark", light: "github-light" } as const satisfies Record<
   "dark" | "light",
   CodeBlockTheme
 >
@@ -133,7 +133,7 @@ export function prefetchHighlighter(): void {
     .then(({ getSharedHighlighter }) => {
       const dark = document.documentElement.classList.contains("dark")
       return getSharedHighlighter({
-        themes: [dark ? "dark-plus" : "light-plus"],
+        themes: [dark ? "github-dark" : "github-light"],
         langs: ["typescript"],
       })
     })
