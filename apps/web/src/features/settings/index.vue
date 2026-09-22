@@ -29,8 +29,8 @@
           <div class="main-body">
             <GeneralPane v-if="tab === 'general'" />
             <UsagePane v-else-if="tab === 'usage'" />
-            <SkillsPane v-else-if="tab === 'skills'" />
-            <ExtensionsPane v-else />
+            <ResourcePane v-else-if="tab === 'skills'" empty="当前工作目录没有技能" />
+            <ResourcePane v-else empty="当前工作目录没有扩展" />
           </div>
         </section>
       </div>
@@ -42,9 +42,8 @@
 import { computed } from "vue"
 import { Blocks, ChartNoAxesCombined, Puzzle, SlidersHorizontal } from "@lucide/vue"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
-import ExtensionsPane from "@features/settings/components/ExtensionsPane.vue"
 import GeneralPane from "@features/settings/components/GeneralPane.vue"
-import SkillsPane from "@features/settings/components/SkillsPane.vue"
+import ResourcePane from "@features/settings/components/ResourcePane.vue"
 import UsagePane from "@features/settings/components/UsagePane.vue"
 import { useSettings, type SettingsTab } from "@features/settings/index.js"
 

@@ -57,13 +57,29 @@
 import { computed, shallowRef } from "vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import type { TranscriptImage as ToolImage } from "@features/transcript-view/type.js"
-import {
-  DEFAULT_LINE_HEIGHT_PX,
-  DEFAULT_MAX_EXPAND_LINES,
-  DEFAULT_OVERSCAN_LINES,
-  splitLines,
-  visibleLineRange,
-} from "@features/transcript-view/lib/expandable-text.js"
+
+const DEFAULT_MAX_EXPAND_LINES = 32
+const DEFAULT_LINE_HEIGHT_PX = 21
+const DEFAULT_OVERSCAN_LINES = 8
+
+function splitLines(text: string): string[] {
+  return text.length === 0 ? [] : text.split(/\r?\n/)
+}
+
+function visibleLineRange(
+  scrollTop: number,
+  lineHeight: number,
+  viewportLines: number,
+  totalLines: number,
+  overscan: number,
+): { start: number; end: number } {
+  if (totalLines === 0) return { start: 0, end: 0 }
+
+  const first = Math.max(0, Math.floor(Math.max(0, scrollTop) / lineHeight))
+  const start = Math.max(0, first - overscan)
+  const end = Math.min(totalLines, first + viewportLines + overscan)
+  return { start, end }
+}
 
 const props = withDefaults(
   defineProps<{

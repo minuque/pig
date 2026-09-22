@@ -139,7 +139,7 @@ import {
   toolRowDurationLabel,
   toolRowFailCount,
   toolRowLabelParts,
-} from "../lib/transcript-rows.js"
+} from "../lib/transcript-row-label.js"
 import type { ToolRow, ToolRowStep } from "../type.js"
 
 const HOOK_CORNER = 6

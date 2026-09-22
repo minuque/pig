@@ -96,7 +96,7 @@ import {
 } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
-import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-rows.js"
+import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
 import {
   isCommandTool,
   toolCommand,

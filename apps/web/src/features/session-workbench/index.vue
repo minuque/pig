@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, onMounted, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, onMounted, shallowRef, useTemplateRef, watch } from "vue"
 import { useRoute } from "vue-router"
 import { ArrowDown, Ellipsis } from "@lucide/vue"
 import { warmWorkspace } from "@client/platform.js"
@@ -104,21 +104,12 @@ import StartupError from "@features/session-workbench/components/StartupError.vu
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
-import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
-
-const TranscriptView = defineAsyncComponent({
-  loader: () => import("@features/transcript-view/index.vue"),
-  loadingComponent: SessionLoading,
-  delay: 120,
-})
+import TranscriptView from "@features/transcript-view/index.vue"
+import { prefetchTranscriptView } from "@features/transcript-view/index.js"
 
 onMounted(() => {
-  const prefetch = () => {
-    void import("@features/transcript-view/index.vue")
-  }
-
-  if (typeof requestIdleCallback === "function") requestIdleCallback(prefetch)
-  else setTimeout(prefetch, 1)
+  if (typeof requestIdleCallback === "function") requestIdleCallback(prefetchTranscriptView)
+  else setTimeout(prefetchTranscriptView, 1)
 })
 
 function nextWelcomeWorkspaceId(

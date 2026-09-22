@@ -21,12 +21,7 @@ import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
 import { contextUsage } from "@client/platform.js"
-import {
-  catalogFromModels,
-  projectContextUsage,
-  thinkingLevelOf,
-  useComposerBinding,
-} from "@features/composer/index.js"
+import { useSessionComposer } from "@features/composer/index.js"
 import { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"
 import {
   createAbortableOpen,
@@ -294,14 +289,14 @@ export function useSessionLifecycle(
     const current = snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined
     return !sessionId.value || current?.id === sessionId.value ? current : undefined
   })
-  const catalog = computed(() => catalogFromModels(pi.models.value))
   const phase = computed(() => projection.value?.phase)
   const running = computed(() => projection.value?.running ?? false)
   const phaseText = computed(() => (running.value && phase.value ? phaseLabel(phase.value) : ""))
-  const { preset } = useComposerBinding({
-    catalog,
+  const { catalog, preset, usage, createModel } = useSessionComposer({
+    models: pi.models,
     snapshot,
     phase,
+    estimate: contextUsageEstimate,
     setModel,
     setThinking,
   })
@@ -330,13 +325,7 @@ export function useSessionLifecycle(
     sessionError.value = ""
 
     try {
-      const next = preset.value
-      const nextId = await createRemoteSession(
-        nextCwd,
-        next
-          ? { model: next.model, thinkingLevel: thinkingLevelOf(next.thinkingLevel) }
-          : undefined,
-      )
+      const nextId = await createRemoteSession(nextCwd, createModel())
 
       if (epoch !== sendEpoch) {
         idleState.sends = []
@@ -450,7 +439,6 @@ export function useSessionLifecycle(
       pi.sessions.value.find((item) => item.id === sessionId.value)?.cwd ??
       (sessionId.value ? undefined : cwd.lastCwd.value),
   )
-  const projectedUsage = computed(() => projectContextUsage(contextUsageEstimate.value))
 
   pi.bindAttachedReconnect(async () => {
     if (remote.value) await reconnect()
@@ -482,7 +470,7 @@ export function useSessionLifecycle(
     loadOlderHistory: history.loadOlderHistory,
     turnTimings: history.turnTimings,
     sessionCwd,
-    contextUsage: projectedUsage,
+    contextUsage: usage,
     catalog,
     preset,
     prompt,

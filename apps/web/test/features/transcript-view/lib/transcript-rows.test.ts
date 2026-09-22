@@ -8,8 +8,8 @@ import {
   buildTimelineRows,
   isToolRow,
   reuseTimelineRows,
-  thoughtStepLabel,
 } from "@features/transcript-view/lib/transcript-rows.js"
+import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
 
 const user: UserTranscriptItem = {
   id: "u1",

@@ -3,7 +3,7 @@ import type { MarkstreamVirtualState } from "markstream-vue"
 import {
   saveMarkdownVirtualState,
   takeMarkdownVirtualState,
-} from "@features/transcript-view/lib/markdown-virtual-state.js"
+} from "@features/transcript-view/components/AssistantMessage.vue"
 
 function state(key: string): MarkstreamVirtualState {
   return { sessionKey: key } as MarkstreamVirtualState

@@ -4,13 +4,15 @@
 
     <template v-else>
       <p class="cwd">{{ cwd }}</p>
-      <p class="empty">当前工作目录没有扩展</p>
+      <p class="empty">{{ empty }}</p>
     </template>
   </section>
 </template>
 
 <script setup lang="ts">
 import { useSettingsCwd } from "@features/settings/hooks/use-settings-cwd.js"
+
+defineProps<{ empty: string }>()
 
 const cwd = useSettingsCwd()
 </script>
