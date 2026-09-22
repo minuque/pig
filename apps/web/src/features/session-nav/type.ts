@@ -14,13 +14,13 @@ export interface SidebarSession {
   updatedAt: number
 }
 
-export interface SidebarTimeSection {
-  key: "today" | "recent"
-  name: "今天" | "最近"
-  sessions: SidebarSession[]
-}
-
 export type SidebarGrouping = "updated" | "project"
+
+/** 平铺列表，或按工作目录分组。 */
+export type SidebarView = "flat" | "grouped"
+
+/** 分组时的目录顺序：记住的手动顺序，或按组内最近活动。 */
+export type SidebarSort = "manual" | "recent"
 
 export type SidebarSessionState = "running" | "unread" | "error"
 

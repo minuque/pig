@@ -26,56 +26,102 @@
         </div>
 
         <div class="nav-main">
-          <NavToolbar @search="openSearch" />
+          <NavToolbar @create="onCreateSession" @search="openSearch" />
 
           <div class="nav-body">
             <nav class="session-list">
-              <section
-                v-if="pinnedRows.length"
-                class="nav-section"
-                :class="{ 'is-open': !collapsedSections.pinned }"
-              >
-                <GroupHead
-                  name="Pinned"
-                  kind="pinned"
-                  :collapsed="collapsedSections.pinned"
-                  @toggle="collapsedSections.pinned = !collapsedSections.pinned"
-                />
+              <section v-if="pinnedRows.length" class="nav-section">
+                <div class="section-label">
+                  <span class="section-label-text">置顶</span>
 
-                <div class="session-list-group" :class="{ 'is-open': !collapsedSections.pinned }">
-                  <div class="group-body">
-                    <SessionItem
-                      v-for="session in pinnedRows"
-                      :key="session.id"
-                      :session="session"
-                      :active="session.id === highlightedSessionId"
-                      :pinned="true"
-                      :state="sessionState(session.id)"
-                      :now="now"
-                      @navigate="onSessionNavigate(session.cwd)"
-                      @toggle-pinned="togglePinned"
-                      @rename="renameSession"
-                      @delete="deleteSession"
-                    />
-                  </div>
+                  <button
+                    class="section-fold"
+                    type="button"
+                    :aria-expanded="!collapsedSections.pinned"
+                    :aria-label="collapsedSections.pinned ? '展开置顶' : '折叠置顶'"
+                    @click="collapsedSections.pinned = !collapsedSections.pinned"
+                  >
+                    <ChevronDown v-if="!collapsedSections.pinned" class="size-icon" />
+                    <ChevronRight v-else class="size-icon" />
+                  </button>
+                </div>
+
+                <div v-if="!collapsedSections.pinned" class="group-body">
+                  <SessionItem
+                    v-for="session in pinnedRows"
+                    :key="session.id"
+                    :session="session"
+                    :active="session.id === highlightedSessionId"
+                    :pinned="true"
+                    :show-path="true"
+                    :state="sessionState(session.id)"
+                    :now="now"
+                    @navigate="onSessionNavigate(session.cwd)"
+                    @toggle-pinned="togglePinned"
+                    @rename="renameSession"
+                    @delete="deleteSession"
+                  />
                 </div>
               </section>
 
-              <ul v-if="showList" :class="{ 'time-sections': grouping === 'updated' }">
+              <SessionsHead
+                v-if="connected || groups.length"
+                :view="view"
+                :sort="sort"
+                :all-collapsed="allCollapsed"
+                :can-fold="view === 'grouped' && groupRows.length > 0"
+                @toggle-all="toggleAllGroups"
+                @set-view="setView"
+                @set-sort="setSort"
+              />
+
+              <ul v-if="view === 'flat' && updatedSessions.length" class="flat-sessions">
+                <li v-for="session in updatedSessions" :key="session.id">
+                  <SessionItem
+                    :session="session"
+                    :active="session.id === highlightedSessionId"
+                    :pinned="pinnedIds.has(session.id)"
+                    :state="sessionState(session.id)"
+                    :now="now"
+                    @navigate="onSessionNavigate(session.cwd)"
+                    @toggle-pinned="togglePinned"
+                    @rename="renameSession"
+                    @delete="deleteSession"
+                  />
+                </li>
+
+                <li v-if="hasMore">
+                  <button class="more-button" type="button" @click="bumpGroup('updated')">
+                    显示更多
+                  </button>
+                </li>
+              </ul>
+
+              <ul v-else-if="view === 'grouped' && showList">
                 <li
-                  v-for="(section, index) in listSections"
+                  v-for="section in listSections"
                   :key="section.key"
-                  :class="[section.rowClass, { 'is-open': section.open }]"
+                  :class="[
+                    section.rowClass,
+                    {
+                      'is-open': section.open,
+                      'is-manual': sort === 'manual',
+                      'drop-before': dropLine?.key === section.key && dropLine.place === 'before',
+                      'drop-after': dropLine?.key === section.key && dropLine.place === 'after',
+                    },
+                  ]"
+                  @dragover.prevent="onGroupDragOver(section.key, $event)"
+                  @drop.prevent="onGroupDrop(section.key)"
+                  @dragend="clearGroupDrag"
                 >
                   <GroupHead
                     :name="section.name"
                     :kind="section.kind"
+                    :sortable="sort === 'manual'"
                     :collapsed="section.collapsed"
-                    :grouping="grouping"
-                    :show-grouping="index === 0"
+                    @dragstart="onGroupDragStart(section.key, $event)"
                     @toggle="section.toggle"
                     @create="section.create?.()"
-                    @set-grouping="setGrouping"
                   />
 
                   <div
@@ -123,8 +169,9 @@
       </div>
 
       <NavFooter
+        :label="footerLabel"
+        :can-add="footerCanAdd"
         :adding-workspace="addingWorkspace"
-        :hint-add="connected && !groups.length"
         @add-workspace="addWorkspace"
         @settings="openSettings"
       />
@@ -138,7 +185,8 @@
 import { computed, defineAsyncComponent, onMounted, reactive, shallowRef, watch } from "vue"
 import { useEventListener, useTimestamp } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
-import { ArrowDown, PanelLeft } from "@lucide/vue"
+import { ArrowDown, ChevronDown, ChevronRight, PanelLeft } from "@lucide/vue"
+import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { notifyError } from "@components/layout/notify.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
@@ -146,7 +194,8 @@ import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
 import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
-import { sidebarTimeSections, toSidebarSession } from "@features/session-nav/lib/session-list.js"
+import SessionsHead from "@features/session-nav/components/SessionsHead.vue"
+import { toSidebarSession } from "@features/session-nav/lib/session-list.js"
 import { useSettings } from "@features/settings/index.js"
 import type { SidebarRow, SidebarSessionState } from "@features/session-nav/type.js"
 
@@ -160,16 +209,21 @@ const emit = defineEmits<{
 const {
   groups,
   cardFootById,
-  grouping,
-  setGrouping,
+  view,
+  sort,
+  setView,
+  setSort,
+  reorderGroups,
   bumpGroup,
   toggleGroup,
+  setGroupsCollapsed,
   rowsFor,
   pinnedIds,
   pinnedSessions,
   togglePinned,
   addingWorkspace,
   connected,
+  lastCwd,
   highlightedSessionId,
   cancelPendingOpen,
   navError: workspaceError,
@@ -191,7 +245,9 @@ onMounted(() => {
 })
 
 const now = useTimestamp({ interval: 60_000 })
-const collapsedSections = reactive({ pinned: false, today: false, recent: false })
+const collapsedSections = reactive({ pinned: false })
+const dragGroupKey = shallowRef<string | null>(null)
+const dropLine = shallowRef<{ key: string; place: "before" | "after" } | null>(null)
 const rows = rowsFor(false)
 const showList = computed(() => rows.value.some((row) => row.kind !== "more"))
 const groupRows = computed(() =>
@@ -200,40 +256,103 @@ const groupRows = computed(() =>
 const updatedSessions = computed(() =>
   rows.value.flatMap((row) => (row.kind === "session" ? [row.session] : [])),
 )
-const timeSections = computed(() => sidebarTimeSections(updatedSessions.value, now.value))
 const hasMore = computed(() => rows.value.some((row) => row.kind === "more"))
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
-const listSections = computed(() => {
-  if (grouping.value === "project") {
-    return groupRows.value.map((row) => ({
-      key: row.key,
-      rowClass: "row-group",
-      name: workspaceName(row.canonicalPath),
-      kind: "directory" as const,
-      collapsed: row.collapsed,
-      open: !row.collapsed && (row.sessions.length > 0 || row.more),
-      sessions: row.sessions,
-      more: row.more,
-      bump: () => bumpGroup(row.key),
-      toggle: () => toggleGroup(row.canonicalPath),
-      create: () => onCreateInDir(row.canonicalPath),
-    }))
+
+function highlightedCwd(): string | undefined {
+  const id = highlightedSessionId.value
+
+  if (!id) return undefined
+
+  const pinned = pinnedRows.value.find((session) => session.id === id)
+
+  if (pinned?.cwd) return canonicalizeWorkspacePath(pinned.cwd)
+
+  for (const group of groups.value) {
+    if (group.sessions.some((session) => session.id === id)) return group.canonicalPath
   }
 
-  return timeSections.value.map((section, index) => ({
-    key: section.key,
-    rowClass: "time-section",
-    name: section.name,
-    kind: "time" as const,
-    collapsed: collapsedSections[section.key],
-    open: !collapsedSections[section.key],
-    sessions: section.sessions,
-    more: hasMore.value && index === timeSections.value.length - 1,
-    bump: () => bumpGroup("updated"),
-    toggle: () => toggleTimeSection(section.key),
-    create: undefined as (() => void) | undefined,
-  }))
+  return undefined
+}
+
+const activeDirectory = computed(() =>
+  highlightedSessionId.value ? highlightedCwd() : lastCwd.value,
+)
+const footerLabel = computed(() => {
+  const path = activeDirectory.value ?? lastCwd.value
+  return path ? workspaceName(path) : "添加工作目录"
 })
+const footerCanAdd = computed(() => !(activeDirectory.value ?? lastCwd.value))
+const listSections = computed(() =>
+  groupRows.value.map((row) => ({
+    key: row.key,
+    rowClass: "row-group",
+    name: workspaceName(row.canonicalPath),
+    kind: "directory" as const,
+    collapsed: row.collapsed,
+    open: !row.collapsed && (row.sessions.length > 0 || row.more),
+    sessions: row.sessions,
+    more: row.more,
+    bump: () => bumpGroup(row.key),
+    toggle: () => toggleGroup(row.canonicalPath),
+    create: () => onCreateInDir(row.canonicalPath),
+  })),
+)
+const allCollapsed = computed(
+  () => groupRows.value.length > 0 && groupRows.value.every((row) => row.collapsed),
+)
+
+function toggleAllGroups() {
+  setGroupsCollapsed(!allCollapsed.value)
+}
+
+function clearGroupDrag() {
+  dragGroupKey.value = null
+  dropLine.value = null
+}
+
+function onGroupDragStart(key: string, event: DragEvent) {
+  dragGroupKey.value = key
+  dropLine.value = null
+  event.dataTransfer?.setData("text/plain", key)
+
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = "move"
+}
+
+function onGroupDragOver(key: string, event: DragEvent) {
+  const from = dragGroupKey.value
+
+  if (!from || from === key) {
+    dropLine.value = null
+    return
+  }
+
+  const row = event.currentTarget
+
+  if (!(row instanceof HTMLElement)) return
+  const rect = row.getBoundingClientRect()
+  const place = event.clientY < rect.top + rect.height / 2 ? "before" : "after"
+
+  if (dropLine.value?.key === key && dropLine.value.place === place) return
+  dropLine.value = { key, place }
+}
+
+function onGroupDrop(key: string) {
+  const from = dragGroupKey.value
+  const place = dropLine.value?.key === key ? dropLine.value.place : "before"
+  clearGroupDrag()
+
+  if (!from || from === key) return
+  const paths = groupRows.value.map((row) => row.canonicalPath)
+  const next = paths.filter((path) => path !== from)
+  let index = next.indexOf(key)
+
+  if (index < 0) return
+
+  if (place === "after") index += 1
+  next.splice(index, 0, from)
+  reorderGroups(next)
+}
 
 function openSearch() {
   void import("@features/session-nav/components/SessionSearch.vue")
@@ -256,10 +375,6 @@ function sessionState(id: string): SidebarSessionState | undefined {
   return cardFootById.value.get(id)?.state
 }
 
-function toggleTimeSection(key: "today" | "recent"): void {
-  collapsedSections[key] = !collapsedSections[key]
-}
-
 function onSessionNavigate(cwd: string | undefined): void {
   if (cwd) emit("navigate", cwd)
 }
@@ -268,6 +383,13 @@ function onCreateInDir(canonicalPath: string): void {
   cancelPendingOpen()
   emit("navigate", canonicalPath)
   void router.push("/")
+}
+
+function onCreateSession(): void {
+  const path = highlightedCwd() ?? lastCwd.value ?? groups.value[0]?.canonicalPath
+
+  if (path) onCreateInDir(path)
+  else void addWorkspace()
 }
 </script>
 
@@ -430,11 +552,93 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 }
 
 .nav-section,
-.row-group,
-.time-section {
+.row-group {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.row-group.is-manual .group-head {
+  cursor: grab;
+}
+
+.row-group.drop-before,
+.row-group.drop-after {
+  position: relative;
+}
+
+.row-group.drop-before::before,
+.row-group.drop-after::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  right: var(--spacing-xs);
+  left: var(--spacing-xs);
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  pointer-events: none;
+}
+
+.row-group.drop-before::before {
+  top: calc(var(--spacing-xs) / -2);
+}
+
+.row-group.drop-after::after {
+  bottom: calc(var(--spacing-xs) / -2);
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xs);
+  min-height: var(--size-icon-button);
+  padding-inline: var(--spacing-xs);
+}
+
+.section-label-text {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-faint);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-eyebrow--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.section-fold {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-icon);
+  height: var(--size-icon);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink-muted);
+}
+
+.section-fold:hover,
+.section-fold:focus-visible {
+  color: var(--ink);
+}
+
+@media (hover: hover) {
+  .section-fold {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .section-label:is(:hover, :focus-within) .section-fold,
+  .section-fold:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .group-body {

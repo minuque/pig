@@ -7,38 +7,85 @@ import {
   renameSession as requestRenameSession,
   selectDirectory,
 } from "@client/platform.js"
-import { canonicalizeWorkspacePath, type useLocalWorkspaces } from "@client/local-cwd.js"
+import {
+  canonicalizeWorkspacePath,
+  uniqueCanonicalPaths,
+  type useLocalWorkspaces,
+} from "@client/local-cwd.js"
 import {
   PROJECT_PAGE,
   UPDATED_PAGE,
   groupSessionsByCwd,
   listSessionsForSidebar,
+  orderSessionGroups,
   sidebarRows,
 } from "@features/session-nav/lib/session-list.js"
-import type { SidebarGrouping, SidebarRow } from "@features/session-nav/type.js"
+import type {
+  SidebarGrouping,
+  SidebarRow,
+  SidebarSort,
+  SidebarView,
+} from "@features/session-nav/type.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
 export const SIDEBAR_GROUPING_KEY = "pig.sidebarGrouping"
+export const SIDEBAR_VIEW_KEY = "pig.sidebarView"
+export const SIDEBAR_SORT_KEY = "pig.sidebarSort"
+export const SIDEBAR_ORDER_KEY = "pig.sidebarWorkspaceOrder"
 export const SIDEBAR_COLLAPSED_KEY = "pig.sidebarCollapsed"
 
-function parseGrouping(raw: string | null): SidebarGrouping {
-  return raw === "updated" ? "updated" : "project"
-}
-
-function loadGrouping(): SidebarGrouping {
+function loadView(): SidebarView {
   try {
-    return parseGrouping(localStorage.getItem(SIDEBAR_GROUPING_KEY))
+    const stored = localStorage.getItem(SIDEBAR_VIEW_KEY)
+
+    if (stored === "flat" || stored === "grouped") return stored
+    return localStorage.getItem(SIDEBAR_GROUPING_KEY) === "updated" ? "flat" : "grouped"
   } catch {
-    return "project"
+    return "grouped"
   }
 }
 
-function saveGrouping(value: SidebarGrouping): void {
+function saveView(value: SidebarView): void {
   try {
-    localStorage.setItem(SIDEBAR_GROUPING_KEY, value)
+    localStorage.setItem(SIDEBAR_VIEW_KEY, value)
   } catch {
     /* 隐私模式等场景下存储不可用，偏好仅存活于本页 */
+  }
+}
+
+function loadSort(): SidebarSort {
+  try {
+    return localStorage.getItem(SIDEBAR_SORT_KEY) === "recent" ? "recent" : "manual"
+  } catch {
+    return "manual"
+  }
+}
+
+function saveSort(value: SidebarSort): void {
+  try {
+    localStorage.setItem(SIDEBAR_SORT_KEY, value)
+  } catch {
+    /* 同上 */
+  }
+}
+
+function loadOrder(): string[] {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(SIDEBAR_ORDER_KEY) ?? "[]")
+    return Array.isArray(value)
+      ? uniqueCanonicalPaths(value.filter((item): item is string => typeof item === "string"))
+      : []
+  } catch {
+    return []
+  }
+}
+
+function saveOrder(paths: readonly string[]): void {
+  try {
+    localStorage.setItem(SIDEBAR_ORDER_KEY, JSON.stringify(paths))
+  } catch {
+    /* 同上 */
   }
 }
 
@@ -95,13 +142,20 @@ export function useWorkspaceNav(
   const titleById = shallowRef<Record<string, string>>({})
   const workspaces = local.workspaces
   const groups = computed(() =>
-    groupSessionsByCwd(sessions.value, local.workspaces.value).map((group) => ({
-      ...group,
-      sessions: applyTitles(group.sessions),
-    })),
+    orderSessionGroups(
+      groupSessionsByCwd(sessions.value, local.workspaces.value).map((group) => ({
+        ...group,
+        sessions: applyTitles(group.sessions),
+      })),
+      sort.value,
+      manualOrder.value,
+    ),
   )
   const listedSessions = computed(() => applyTitles(listSessionsForSidebar(sessions.value)))
-  const grouping = ref<SidebarGrouping>(loadGrouping())
+  const view = ref<SidebarView>(loadView())
+  const sort = ref<SidebarSort>(loadSort())
+  const manualOrder = shallowRef<string[]>(loadOrder())
+  const grouping = computed<SidebarGrouping>(() => (view.value === "flat" ? "updated" : "project"))
   const revealByGroup = shallowRef<Record<string, number>>({})
   const collapsedByGroup = shallowRef<Record<string, boolean>>(loadCollapsed())
 
@@ -115,13 +169,25 @@ export function useWorkspaceNav(
     })
   }
 
-  function setGrouping(next: SidebarGrouping) {
-    if (next !== grouping.value) {
-      grouping.value = next
+  function setView(next: SidebarView) {
+    if (next !== view.value) {
+      view.value = next
       revealByGroup.value = {}
     }
 
-    saveGrouping(next)
+    saveView(next)
+  }
+
+  function setSort(next: SidebarSort) {
+    sort.value = next
+    saveSort(next)
+  }
+
+  function reorderGroups(paths: readonly string[]) {
+    manualOrder.value = uniqueCanonicalPaths(paths)
+    sort.value = "manual"
+    saveOrder(manualOrder.value)
+    saveSort("manual")
   }
 
   function bumpGroup(groupKey: string) {
@@ -138,6 +204,14 @@ export function useWorkspaceNav(
       [groupKey]: !collapsedByGroup.value[groupKey],
     }
     saveCollapsed(collapsedByGroup.value)
+  }
+
+  function setGroupsCollapsed(collapsed: boolean) {
+    const next = { ...collapsedByGroup.value }
+
+    for (const group of groups.value) next[group.canonicalPath] = collapsed
+    collapsedByGroup.value = next
+    saveCollapsed(next)
   }
 
   function rowsFor(
@@ -229,12 +303,17 @@ export function useWorkspaceNav(
     workspaces,
     groups,
     listedSessions,
+    view,
+    sort,
     grouping,
-    setGrouping,
+    setView,
+    setSort,
+    reorderGroups,
     revealByGroup,
     collapsedByGroup,
     bumpGroup,
     toggleGroup,
+    setGroupsCollapsed,
     rowsFor,
     addWorkspace,
     renameSession,

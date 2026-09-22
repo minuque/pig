@@ -1,21 +1,20 @@
 <template>
   <div class="nav-footer">
-    <Tooltip>
-      <TooltipTrigger as-child>
-        <button
-          class="footer-action press-scale"
-          :class="{ 'motion-pulse': hintAdd }"
-          type="button"
-          aria-label="新增工作区"
-          :disabled="addingWorkspace"
-          @click="emit('addWorkspace')"
-        >
-          <Plus class="size-icon" />
-        </button>
-      </TooltipTrigger>
+    <button
+      v-if="canAdd"
+      class="footer-identity"
+      type="button"
+      :disabled="addingWorkspace"
+      @click="emit('addWorkspace')"
+    >
+      <img src="/pwa-icon-192.png" alt="" width="24" height="24" />
+      <span class="footer-label">{{ label }}</span>
+    </button>
 
-      <TooltipContent>新增工作区</TooltipContent>
-    </Tooltip>
+    <div v-else class="footer-identity">
+      <img src="/pwa-icon-192.png" alt="" width="24" height="24" />
+      <span class="footer-label">{{ label }}</span>
+    </div>
 
     <Tooltip>
       <TooltipTrigger as-child>
@@ -35,12 +34,13 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Settings } from "@lucide/vue"
+import { Settings } from "@lucide/vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 defineProps<{
+  label: string
+  canAdd: boolean
   addingWorkspace?: boolean
-  hintAdd?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -55,9 +55,53 @@ const emit = defineEmits<{
   flex: none;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-xxs);
+  gap: var(--spacing-xs);
   padding: var(--spacing-xs) var(--nav-inline, var(--spacing-xs));
   border-top: var(--border-width) solid var(--border-subtle);
+}
+
+.footer-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: start;
+}
+
+button.footer-identity {
+  border-radius: var(--radius-md);
+}
+
+button.footer-identity:hover:not(:disabled) {
+  background: var(--hover-quiet);
+}
+
+button.footer-identity:disabled {
+  opacity: var(--opacity-disabled);
+}
+
+.footer-identity img {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  object-fit: cover;
+  border-radius: var(--radius-full);
+}
+
+.footer-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .footer-action {
@@ -78,13 +122,9 @@ const emit = defineEmits<{
     scale var(--duration-fast) var(--ease-out);
 }
 
-.footer-action:hover:not(:disabled) {
+.footer-action:hover {
   background: var(--hover-quiet);
   color: var(--ink);
-}
-
-.footer-action:disabled {
-  opacity: 0.45;
 }
 
 @media (prefers-reduced-motion: reduce) {

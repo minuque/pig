@@ -24,15 +24,22 @@ const MINUTE = 60_000
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 
-/** 侧栏相对时间：T3 compact（刚刚 / 48m / 2h / 1d）。 */
+/** 侧栏相对时间：刚刚，否则四舍五入到分钟、小时、天、周、月、年。 */
 export function formatRelativeTime(timestamp: number, now = Date.now()): string {
   if (!Number.isFinite(timestamp) || timestamp <= 0) return ""
   const delta = Math.max(0, now - timestamp)
 
   if (delta < MINUTE) return "刚刚"
 
-  if (delta < HOUR) return `${Math.floor(delta / MINUTE)}m`
+  if (delta < HOUR) return `${Math.round(delta / MINUTE)}m`
 
-  if (delta < DAY) return `${Math.floor(delta / HOUR)}h`
-  return `${Math.floor(delta / DAY)}d`
+  if (delta < DAY) return `${Math.round(delta / HOUR)}h`
+  const days = delta / DAY
+
+  if (days < 7) return `${Math.round(days)}d`
+
+  if (days < 30) return `${Math.round(days / 7)}w`
+
+  if (days < 365) return `${Math.round(days / 30)}mo`
+  return `${Math.round(days / 365)}y`
 }

@@ -7,8 +7,8 @@ import type {
   SessionGroup,
   SidebarGrouping,
   SidebarRow,
+  SidebarSort,
   SidebarSession,
-  SidebarTimeSection,
 } from "@features/session-nav/type.js"
 import { sessionRecency, sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
 
@@ -45,6 +45,45 @@ export function filterSessionsForSearch(
     const cwd = session.cwd
     return Boolean(cwd && workspaceName(cwd).toLowerCase().includes(needle))
   })
+}
+
+function groupRecency(group: SessionGroup): number {
+  return group.sessions.reduce((latest, session) => Math.max(latest, sessionRecency(session)), 0)
+}
+
+/** 分组目录顺序。手动按已记住的路径，未记录的保持原顺序排在后面；最近活动按组内最新会话。 */
+export function orderSessionGroups(
+  groups: readonly SessionGroup[],
+  sort: SidebarSort,
+  manualOrder: readonly string[],
+): SessionGroup[] {
+  if (sort === "recent") {
+    return groups
+      .map((group, index) => ({ group, index }))
+      .sort(
+        (left, right) =>
+          groupRecency(right.group) - groupRecency(left.group) ||
+          left.group.canonicalPath.localeCompare(right.group.canonicalPath) ||
+          left.index - right.index,
+      )
+      .map((item) => item.group)
+  }
+
+  const indexByPath = new Map(manualOrder.map((path, index) => [path, index]))
+  return groups
+    .map((group, index) => ({ group, index }))
+    .sort((left, right) => {
+      const leftOrder = indexByPath.get(left.group.canonicalPath)
+      const rightOrder = indexByPath.get(right.group.canonicalPath)
+
+      if (leftOrder !== undefined && rightOrder !== undefined) return leftOrder - rightOrder
+
+      if (leftOrder !== undefined) return -1
+
+      if (rightOrder !== undefined) return 1
+      return left.index - right.index
+    })
+    .map((item) => item.group)
 }
 
 /** 本地名单在前（含尚无会话的目录）；其余 Pi Session 按 cwd 跟上。组内按最近活动倒序。 */
@@ -87,27 +126,6 @@ export function toSidebarSession(session: SessionMetadata): SidebarSession {
     ...(session.cwd !== undefined ? { cwd: session.cwd } : {}),
     updatedAt: sessionRecency(session),
   }
-}
-
-/** 更新时间模式固定分成今天与最近，空组不展示。 */
-export function sidebarTimeSections(
-  sessions: readonly SidebarSession[],
-  now = Date.now(),
-): SidebarTimeSection[] {
-  const todayStart = new Date(now)
-  todayStart.setHours(0, 0, 0, 0)
-  const today: SidebarSession[] = []
-  const recent: SidebarSession[] = []
-
-  for (const session of sessions) {
-    const bucket = session.updatedAt >= todayStart.getTime() ? today : recent
-    bucket.push(session)
-  }
-
-  return [
-    ...(today.length ? [{ key: "today", name: "今天", sessions: today } as const] : []),
-    ...(recent.length ? [{ key: "recent", name: "最近", sessions: recent } as const] : []),
-  ]
 }
 
 function sliceVisible(

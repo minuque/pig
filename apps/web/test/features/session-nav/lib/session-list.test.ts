@@ -4,9 +4,9 @@ import {
   conversationItemCount,
   filterSessionsForSearch,
   groupSessionsByCwd,
+  orderSessionGroups,
   sessionCardFoot,
   sessionOutcome,
-  sidebarTimeSections,
 } from "@features/session-nav/lib/session-list.js"
 
 describe("groupSessionsByCwd", () => {
@@ -34,6 +34,28 @@ describe("groupSessionsByCwd", () => {
   })
 })
 
+describe("orderSessionGroups", () => {
+  const groups = [
+    { canonicalPath: "/a", sessions: [{ id: "a", createdAt: 10, cwd: "/a" }] },
+    { canonicalPath: "/b", sessions: [{ id: "b", createdAt: 30, cwd: "/b" }] },
+    { canonicalPath: "/empty", sessions: [] },
+  ]
+
+  it("按最近活动把更新的目录排前，空目录靠后", () => {
+    expect(orderSessionGroups(groups, "recent", []).map((group) => group.canonicalPath)).toEqual([
+      "/b",
+      "/a",
+      "/empty",
+    ])
+  })
+
+  it("手动顺序优先，未记录的目录保持原顺序跟在后面", () => {
+    expect(
+      orderSessionGroups(groups, "manual", ["/empty", "/a"]).map((group) => group.canonicalPath),
+    ).toEqual(["/empty", "/a", "/b"])
+  })
+})
+
 describe("filterSessionsForSearch", () => {
   it("按标题或目录名过滤，空查询原样返回", () => {
     const sessions: SessionMetadata[] = [
@@ -46,26 +68,6 @@ describe("filterSessionsForSearch", () => {
       "b",
     ])
     expect(filterSessionsForSearch(sessions, "PIG").map((session) => session.id)).toEqual(["a"])
-  })
-})
-
-describe("sidebarTimeSections", () => {
-  it("按本地自然日分成今天和最近并保留原顺序", () => {
-    const now = new Date(2026, 8, 3, 12).getTime()
-    const sections = sidebarTimeSections(
-      [
-        { id: "today", title: "今天", updatedAt: new Date(2026, 8, 3, 8).getTime() },
-        { id: "recent", title: "最近", updatedAt: new Date(2026, 8, 2, 23).getTime() },
-      ],
-      now,
-    )
-
-    expect(
-      sections.map((section) => [section.key, section.sessions.map((item) => item.id)]),
-    ).toEqual([
-      ["today", ["today"]],
-      ["recent", ["recent"]],
-    ])
   })
 })
 

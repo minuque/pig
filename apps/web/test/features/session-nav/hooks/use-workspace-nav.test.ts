@@ -12,7 +12,8 @@ vi.mock("@client/http.js", async (importOriginal) => {
 })
 
 import {
-  SIDEBAR_GROUPING_KEY,
+  SIDEBAR_SORT_KEY,
+  SIDEBAR_VIEW_KEY,
   useWorkspaceNav,
 } from "@features/session-nav/hooks/use-workspace-nav.js"
 
@@ -55,16 +56,21 @@ describe("useWorkspaceNav grouping", () => {
     vi.unstubAllGlobals()
   })
 
-  it("grouping 默认 project，setGrouping 写入 localStorage 并在下次启动读回", () => {
+  it("默认按工作区分组、手动排序，切换后写入并在下次启动读回", () => {
     const sessions = ref<SessionMetadata[]>([{ id: "s1", createdAt: 1, cwd: "/a" }])
     const nav = useWorkspaceNav(sessions, localWorkspaces(["/a"]), ref(""), admin())
+    expect(nav.view.value).toBe("grouped")
+    expect(nav.sort.value).toBe("manual")
     expect(nav.grouping.value).toBe("project")
 
-    nav.setGrouping("updated")
+    nav.setView("flat")
+    nav.setSort("recent")
     expect(nav.grouping.value).toBe("updated")
-    expect(store.get(SIDEBAR_GROUPING_KEY)).toBe("updated")
+    expect(store.get(SIDEBAR_VIEW_KEY)).toBe("flat")
+    expect(store.get(SIDEBAR_SORT_KEY)).toBe("recent")
 
     const restored = useWorkspaceNav(sessions, localWorkspaces(["/a"]), ref(""), admin())
-    expect(restored.grouping.value).toBe("updated")
+    expect(restored.view.value).toBe("flat")
+    expect(restored.sort.value).toBe("recent")
   })
 })

@@ -1,6 +1,6 @@
 <template>
   <div class="session-item" :class="{ 'is-menu-open': menuOpen }">
-    <Tooltip v-if="!renaming">
+    <Tooltip v-if="!renaming && !showPath">
       <TooltipTrigger as-child>
         <button
           class="pin-toggle press-scale"
@@ -22,13 +22,13 @@
         <component
           :is="renaming ? 'div' : RouterLink"
           class="session-card"
-          :class="{ active }"
+          :class="{ active, 'show-path': showPath }"
           :to="renaming ? undefined : { name: 'session', params: { sessionId: session.id } }"
           @click="onCardClick"
           @keydown="onCardKeydown"
         >
           <div class="card-line">
-            <span class="pin-slot" aria-hidden="true"></span>
+            <span v-if="!renaming && !showPath" class="pin-slot" aria-hidden="true"></span>
 
             <input
               v-if="renaming"
@@ -48,15 +48,28 @@
                 <Spinner :size="12" />
               </span>
 
+              <span
+                v-else-if="showPath"
+                class="status-ring"
+                :class="pathMark"
+                :role="pathMark === 'idle' ? undefined : 'img'"
+                :aria-hidden="pathMark === 'idle' ? true : undefined"
+                :aria-label="pathMark === 'idle' ? undefined : pathMarkLabel"
+              ></span>
+
+              <span
+                v-else-if="stateDot"
+                class="state-dot"
+                :class="state"
+                :aria-label="stateLabel"
+              ></span>
+
               <time
                 v-else-if="session.updatedAt"
                 class="session-time"
-                :class="{ 'has-state': stateDot }"
                 :datetime="new Date(session.updatedAt).toISOString()"
-                :aria-label="stateDot ? stateLabel : undefined"
               >
-                <span v-if="stateDot" class="state-dot" :class="state"></span>
-                <span class="time-text">{{ relativeTime }}</span>
+                {{ relativeTime }}
               </time>
 
               <Tooltip>
@@ -77,6 +90,11 @@
                 <TooltipContent>更多</TooltipContent>
               </Tooltip>
             </span>
+          </div>
+
+          <div v-if="showPath && session.cwd" class="path-line">
+            <Folder class="path-icon" :size="14" aria-hidden="true" />
+            <span class="path-text">{{ session.cwd }}</span>
           </div>
         </component>
       </ContextMenuTrigger>
@@ -107,7 +125,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef } from "vue"
 import { RouterLink } from "vue-router"
-import { Ellipsis, Pencil, Pin, PinOff, Trash2 } from "@lucide/vue"
+import { Ellipsis, Folder, Pencil, Pin, PinOff, Trash2 } from "@lucide/vue"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -126,10 +144,12 @@ const props = withDefaults(
     session: SidebarSession
     active?: boolean
     pinned?: boolean
+    showPath?: boolean
     state?: SidebarSessionState | undefined
     now: number
   }>(),
   {
+    showPath: false,
     state: undefined,
   },
 )
@@ -150,6 +170,26 @@ const streaming = computed(() => props.state === "running" && !renaming.value)
 const stateDot = computed(
   () => (props.state === "unread" || props.state === "error") && !renaming.value,
 )
+const pathMark = computed(() => {
+  if (props.state === "running") return "running"
+
+  if (props.state === "error") return "error"
+
+  if (props.active) return "active"
+
+  if (props.state === "unread") return "unread"
+  return "idle"
+})
+const pathMarkLabel = computed(() => {
+  if (pathMark.value === "running") return "运行中"
+
+  if (pathMark.value === "error") return "运行失败"
+
+  if (pathMark.value === "active") return "当前会话"
+
+  if (pathMark.value === "unread") return "运行完成但未打开"
+  return "空闲"
+})
 const stateLabel = computed(() => {
   if (props.state === "running") return "运行中"
 
@@ -267,12 +307,22 @@ function confirmDelete() {
   text-decoration: none;
 }
 
+.session-card.show-path {
+  flex-direction: column;
+  align-items: stretch;
+  height: auto;
+  padding: 6px var(--spacing-xs);
+  line-height: var(--text-caption--line-height);
+}
+
 .session-item:hover .session-card,
 .session-card[data-state="open"] {
   background: var(--interaction-hover);
 }
 
-.session-card.active {
+.session-card.active,
+.session-item:hover .session-card.active,
+.session-card.active[data-state="open"] {
   background: var(--interaction-selected);
 }
 
@@ -284,6 +334,11 @@ function confirmDelete() {
   width: 100%;
   height: 100%;
   line-height: 0;
+}
+
+.session-card.show-path .card-line {
+  height: auto;
+  min-height: calc(var(--text-caption) * var(--text-caption--line-height));
 }
 
 .pin-slot {
@@ -336,6 +391,8 @@ function confirmDelete() {
 
 .session-spin,
 .session-time,
+.state-dot,
+.status-ring,
 .more-toggle {
   grid-area: 1 / 1;
 }
@@ -368,15 +425,17 @@ function confirmDelete() {
   color: var(--ink);
 }
 
+.state-dot,
+.status-ring {
+  justify-self: end;
+  align-self: center;
+  border-radius: var(--radius-full);
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
 .state-dot {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
   width: 7px;
   height: 7px;
-  margin-block: auto;
-  border-radius: var(--radius-full);
-  pointer-events: none;
 }
 
 .state-dot.unread {
@@ -387,23 +446,62 @@ function confirmDelete() {
   background: var(--danger);
 }
 
+.status-ring {
+  width: 8px;
+  height: 8px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--ink-faint);
+}
+
+.status-ring.error {
+  background: var(--danger);
+  box-shadow: none;
+}
+
+.status-ring.active {
+  background: var(--primary);
+  box-shadow: none;
+}
+
+.status-ring.unread {
+  background: var(--info);
+  box-shadow: none;
+}
+
 .title {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--ink-muted);
+  color: var(--ink);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-regular);
   line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: color var(--duration-fast) var(--ease-smooth);
 }
 
-.session-item:hover .title,
-.session-card[data-state="open"] .title,
-.session-card.active .title {
-  color: var(--ink);
+.path-line {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  min-width: 0;
+  margin-block-start: var(--spacing-xxs);
+}
+
+.path-icon {
+  flex: none;
+  color: var(--ink-muted);
+}
+
+.path-text {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-faint);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--text-eyebrow--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .session-spin {
@@ -427,16 +525,18 @@ function confirmDelete() {
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.session-time.has-state .time-text {
-  visibility: hidden;
-}
-
 .session-item:hover .session-time,
 .session-item:hover .session-spin,
+.session-item:hover .state-dot,
+.session-item:hover .status-ring,
 .session-item:focus-within .session-time,
 .session-item:focus-within .session-spin,
+.session-item:focus-within .state-dot,
+.session-item:focus-within .status-ring,
 .session-item.is-menu-open .session-time,
-.session-item.is-menu-open .session-spin {
+.session-item.is-menu-open .session-spin,
+.session-item.is-menu-open .state-dot,
+.session-item.is-menu-open .status-ring {
   opacity: 0;
   pointer-events: none;
 }
@@ -448,7 +548,9 @@ function confirmDelete() {
   }
 
   .session-time,
-  .session-spin {
+  .session-spin,
+  .state-dot,
+  .status-ring {
     opacity: 0;
     pointer-events: none;
   }
@@ -471,6 +573,10 @@ function confirmDelete() {
   outline: none;
   box-shadow: inset 0 0 0 1px var(--primary);
   user-select: text;
+}
+
+.session-card.show-path .rename-input {
+  height: calc(var(--text-caption) * var(--text-caption--line-height));
 }
 
 .rename-input::selection {
