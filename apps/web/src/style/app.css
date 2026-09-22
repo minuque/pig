@@ -90,20 +90,20 @@
   --accent-gray: #8a8d94;
 
   /* 语义 */
-  --accent-orange: #854d0e;
-  --accent-orange-deep: #854d0e;
-  --accent-green: #166534;
-  --success: #166534;
-  --info: #5e6ad2;
-  --warning: #854d0e;
-  --danger: #b91c1c;
+  --accent-orange: #713f12;
+  --accent-orange-deep: #713f12;
+  --accent-green: #14532d;
+  --success: #14532d;
+  --info: #3b4cc0;
+  --warning: #713f12;
+  --danger: #991b1b;
   --success-foreground: var(--on-primary);
   --warning-foreground: var(--on-primary);
   --danger-foreground: var(--on-primary);
-  --success-bg: #dcfce7;
-  --info-bg: #eceef8;
-  --warning-bg: #fef9c3;
-  --danger-bg: #fee2e2;
+  --success-bg: #7ddea8;
+  --info-bg: #d0d5f6;
+  --warning-bg: #f6d36a;
+  --danger-bg: #f3bcbc;
 
   /* 字体 */
   --font-sans:

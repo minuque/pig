@@ -23,13 +23,13 @@ colors:
   accent-steel: "#5b7c9d"
   accent-teal: "#2f8f7b"
   accent-gray: "#8a8d94"
-  accent-orange: "#854d0e"
-  accent-orange-deep: "#854d0e"
-  accent-green: "#166534"
-  danger-bg: "#fee2e2"
-  success-bg: "#dcfce7"
-  warning-bg: "#fef9c3"
-  info-bg: "#eceef8"
+  accent-orange: "#713f12"
+  accent-orange-deep: "#713f12"
+  accent-green: "#14532d"
+  danger-bg: "#f3bcbc"
+  success-bg: "#7ddea8"
+  warning-bg: "#f6d36a"
+  info-bg: "#d0d5f6"
 
 typography:
   display-1:
