@@ -95,7 +95,6 @@ describe("thin host HTTP shell", () => {
     expect(
       (
         await request(base, "/api/v1/platform/session-cards", undefined, "GET", {
-          authorization: gateway?.authorizationHeader() ?? "",
           origin: "https://evil.example",
           "sec-fetch-site": "cross-site",
         })
@@ -114,6 +113,22 @@ describe("thin host HTTP shell", () => {
     })
 
     expect(authed.status).toBe(200)
+  })
+
+  it("桌面壳来源带进程内 Bearer 时放行，壳之外仍要 cookie", async () => {
+    const base = await startGateway()
+    const bearer = gateway?.authorizationHeader() ?? ""
+    const shellHeaders = {
+      authorization: bearer,
+      origin: "pig://app",
+      "sec-fetch-site": "cross-site",
+    }
+
+    expect(
+      (await request(base, "/api/v1/platform/session-cards", undefined, "GET", shellHeaders))
+        .status,
+    ).toBe(200)
+    expect((await request(base, "/health", undefined, "GET", shellHeaders)).status).toBe(200)
   })
 
   it("selects a directory", async () => {
