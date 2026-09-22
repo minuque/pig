@@ -64,6 +64,7 @@
                 v-else-if="call.variant === 'edit'"
                 variant="edit"
                 :edit-preview="call.editPreview"
+                :output-text="call.outputText"
               />
 
               <ToolStepCard
@@ -159,6 +160,7 @@ type CallView =
   | (CallBase & {
       variant: "edit"
       editPreview: EditDiffPreview
+      outputText: string
     })
   | (CallBase & {
       variant: "tool"
@@ -260,7 +262,13 @@ function presentCall(item: ToolCallView, open: boolean): CallView {
         : null
 
     if (preview) {
-      return { item, expandable: true, variant: "edit", editPreview: preview }
+      return {
+        item,
+        expandable: true,
+        variant: "edit",
+        editPreview: preview,
+        outputText: open ? item.outputText : "",
+      }
     }
   }
 

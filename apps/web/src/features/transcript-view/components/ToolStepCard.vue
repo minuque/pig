@@ -10,7 +10,7 @@
 
   <div v-else class="tool-step-card" :class="cardClasses">
     <template v-if="runContent">
-      <ToolHeader :label="runContent.copyLabel" :text="runContent.copyText">
+      <ToolHeader label="输出" :text="runContent.shownOutput">
         <div class="command-heading">
           <span class="status-dot" :title="runContent.statusLabel" />
 
@@ -23,7 +23,7 @@
       </ToolHeader>
 
       <ToolOutput
-        :text="runContent.outputText || runContent.emptyOutput"
+        :text="runContent.shownOutput"
         :images="runContent.outputImages"
         :show-count="false"
         embedded
@@ -31,7 +31,7 @@
     </template>
 
     <template v-else-if="readContent">
-      <ToolHeader label="内容" :text="readContent.preview.code">
+      <ToolHeader label="输出" :text="readContent.preview.code">
         <div class="read-heading">
           <img
             v-if="languageIconUrl"
@@ -56,14 +56,16 @@
     </template>
 
     <template v-else-if="toolContent">
-      <ToolHeader v-if="toolContent.inputFull" label="入参" :text="toolContent.inputFull">
-        <pre class="input-json">{{ toolContent.inputFull }}</pre>
+      <ToolHeader
+        v-if="toolContent.inputFull || toolContent.shownOutput"
+        label="输出"
+        :text="toolContent.shownOutput"
+      >
+        <pre v-if="toolContent.inputFull" class="input-json">{{ toolContent.inputFull }}</pre>
       </ToolHeader>
 
       <ToolOutput
-        :text="
-          toolContent.outputText || (toolContent.outputImages.length ? '' : toolContent.emptyOutput)
-        "
+        :text="toolContent.shownOutput"
         :images="toolContent.outputImages"
         :show-count="false"
         embedded
@@ -71,7 +73,7 @@
     </template>
 
     <template v-else-if="editContent">
-      <ToolHeader label="内容" :text="editCopyText">
+      <ToolHeader label="输出" :text="editContent.outputText">
         <div class="read-heading">
           <img
             v-if="editLanguageIconUrl"
@@ -160,11 +162,8 @@ const runContent = computed(() => {
     meta: cwd ? pathBasename(cwd) : "",
     metaTitle: cwd,
     heading: command,
-    copyLabel: "命令",
-    copyText: command,
-    outputText: props.outputText ?? "",
+    shownOutput: props.outputText || props.emptyOutput || "",
     outputImages: props.outputImages ?? [],
-    emptyOutput: props.emptyOutput ?? "",
     status: props.status ?? "success",
     statusLabel: props.statusLabel ?? "",
   }
@@ -179,9 +178,9 @@ const toolContent = computed(() =>
   props.variant === "tool"
     ? {
         inputFull: props.inputFull ?? "",
-        outputText: props.outputText ?? "",
+        shownOutput:
+          props.outputText || ((props.outputImages ?? []).length ? "" : (props.emptyOutput ?? "")),
         outputImages: props.outputImages ?? [],
-        emptyOutput: props.emptyOutput ?? "",
       }
     : null,
 )
@@ -194,7 +193,9 @@ const thoughtViewport = useTemplateRef<HTMLElement>("thoughtViewport")
 const thoughtInner = useTemplateRef<HTMLElement>("thoughtInner")
 const { scheduleScrollToBottom } = useStickToBottom(thoughtViewport, thoughtInner)
 const editContent = computed(() =>
-  props.variant === "edit" && props.editPreview?.hunks.length ? props.editPreview : null,
+  props.variant === "edit" && props.editPreview?.hunks.length
+    ? { ...props.editPreview, outputText: props.outputText ?? "" }
+    : null,
 )
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
@@ -215,9 +216,6 @@ const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
 const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
 const editLanguageIconUrl = computed(() => languageIconDataUrl(editContent.value?.language))
 const editHeading = computed(() => editContent.value?.path || editContent.value?.fileName || "")
-const editCopyText = computed(
-  () => editContent.value?.hunks.map((hunk) => hunk.modified).join("\n") ?? "",
-)
 
 function languageIconDataUrl(lang: string | undefined) {
   void languageIconsRevision.value
