@@ -350,8 +350,8 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 
 <style>
 @import "markstream-vue/index.css" layer(components);
-@import "../../../style/markdown-stream.css";
-@import "../../../style/mermaid.css";
+@import "@style/markdown-stream.css";
+@import "@style/mermaid.css";
 </style>
 
 <style scoped>

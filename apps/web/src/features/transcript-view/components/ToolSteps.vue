@@ -134,13 +134,13 @@ import { useIntervalFn } from "@vueuse/core"
 import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
-import ToolCall from "./ToolCall.vue"
+import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import {
   toolRowDurationLabel,
   toolRowFailCount,
   toolRowLabelParts,
-} from "../lib/transcript-row-label.js"
-import type { ToolRow, ToolRowStep } from "../type.js"
+} from "@features/transcript-view/lib/transcript-row-label.js"
+import type { ToolRow, ToolRowStep } from "@features/transcript-view/type.js"
 
 const HOOK_CORNER = 6
 const PAGE_SIZE = 8

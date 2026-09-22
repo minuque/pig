@@ -10,7 +10,7 @@ import type {
   SidebarSession,
   SidebarTimeSection,
 } from "@features/session-nav/type.js"
-import { sessionRecency, sessionTitle, workspaceName } from "./format.js"
+import { sessionRecency, sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
 
 export const UPDATED_PAGE = 10
 export const PROJECT_PAGE = 5

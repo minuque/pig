@@ -21,8 +21,8 @@ import {
   isVisibleTranscriptItem,
   transcriptImages,
   transcriptText,
-} from "./transcript-format.js"
-import { toolGroupKey } from "./tool-summary.js"
+} from "@features/transcript-view/lib/transcript-format.js"
+import { toolGroupKey } from "@features/transcript-view/lib/tool-summary.js"
 
 export function isToolRow(row: TimelineRow): row is ToolRow {
   return row.role === "tools"

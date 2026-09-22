@@ -104,14 +104,18 @@ import {
   toolPath,
   toolWorkingDirectory,
 } from "@features/transcript-view/lib/transcript-format.js"
-import { fileLanguage, readToolPreview, type ReadToolPreview } from "../lib/tool-presentation.js"
+import {
+  fileLanguage,
+  readToolPreview,
+  type ReadToolPreview,
+} from "@features/transcript-view/lib/tool-presentation.js"
 import {
   editDiffPreview,
   toolGroupKey,
   toolSummary,
   toolSummaryDetail,
   writeDiffPreview,
-} from "../lib/tool-summary.js"
+} from "@features/transcript-view/lib/tool-summary.js"
 import type {
   EditDiffPreview,
   ToolCallView,

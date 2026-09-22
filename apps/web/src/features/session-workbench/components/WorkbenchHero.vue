@@ -49,7 +49,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
-import WorkbenchMascot from "./WorkbenchMascot.vue"
+import WorkbenchMascot from "@features/session-workbench/components/WorkbenchMascot.vue"
 
 withDefaults(
   defineProps<{

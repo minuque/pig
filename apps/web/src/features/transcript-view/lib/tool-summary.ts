@@ -4,8 +4,12 @@ import type {
   ToolGroupKey,
   ToolSummaryDetail,
 } from "@features/transcript-view/type.js"
-import { isCommandTool, toolCallDetail, toolPath } from "./transcript-format.js"
-import { fileLanguage, pathBasename } from "./tool-presentation.js"
+import {
+  isCommandTool,
+  toolCallDetail,
+  toolPath,
+} from "@features/transcript-view/lib/transcript-format.js"
+import { fileLanguage, pathBasename } from "@features/transcript-view/lib/tool-presentation.js"
 
 export function toolGroupKey(toolName: string): ToolGroupKey {
   const name = toolName.trim().toLowerCase()
