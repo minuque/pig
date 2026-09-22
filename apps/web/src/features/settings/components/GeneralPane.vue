@@ -6,18 +6,22 @@
       </div>
 
       <div class="scheme" role="radiogroup" aria-label="外观">
-        <button
-          v-for="option in options"
-          :key="option.id"
-          type="button"
-          class="scheme-btn"
-          role="radio"
-          :aria-checked="scheme === option.id"
-          :title="option.label"
-          @click="setScheme(option.id)"
-        >
-          <component :is="option.icon" class="size-icon" />
-        </button>
+        <Tooltip v-for="option in options" :key="option.id">
+          <TooltipTrigger as-child>
+            <button
+              type="button"
+              class="scheme-btn"
+              role="radio"
+              :aria-label="option.label"
+              :aria-checked="scheme === option.id"
+              @click="setScheme(option.id)"
+            >
+              <component :is="option.icon" class="size-icon" />
+            </button>
+          </TooltipTrigger>
+
+          <TooltipContent>{{ option.label }}</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   </section>
@@ -26,6 +30,7 @@
 <script setup lang="ts">
 import { Monitor, Moon, Sun } from "@lucide/vue"
 import type { ColorScheme } from "@/types/theme-type.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 
 const { scheme, setScheme } = useColorScheme()

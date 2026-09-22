@@ -18,18 +18,23 @@
 
     <span v-if="showGrouping || (kind === 'directory' && !collapsed)" class="trail">
       <DropdownMenu v-if="showGrouping" :modal="false">
-        <DropdownMenuTrigger as-child>
-          <button
-            class="group-options press-scale"
-            type="button"
-            title="侧栏分组"
-            aria-label="侧栏分组"
-            @pointerdown.stop
-            @click.stop
-          >
-            <Settings2 class="size-icon" />
-          </button>
-        </DropdownMenuTrigger>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <DropdownMenuTrigger as-child>
+              <button
+                class="group-options press-scale"
+                type="button"
+                aria-label="侧栏分组"
+                @pointerdown.stop
+                @click.stop
+              >
+                <Settings2 class="size-icon" />
+              </button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+
+          <TooltipContent>侧栏分组</TooltipContent>
+        </Tooltip>
 
         <DropdownMenuContent align="end" :side-offset="4">
           <DropdownMenuItem
@@ -47,17 +52,21 @@
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <button
-        v-if="kind === 'directory' && (showGrouping || !collapsed)"
-        class="group-new"
-        :class="{ 'hover-only': !showGrouping }"
-        type="button"
-        title="新会话"
-        aria-label="在此目录新建会话"
-        @click.stop="emit('create')"
-      >
-        <MessageCirclePlus class="size-icon" />
-      </button>
+      <Tooltip v-if="kind === 'directory' && (showGrouping || !collapsed)">
+        <TooltipTrigger as-child>
+          <button
+            class="group-new"
+            :class="{ 'hover-only': !showGrouping }"
+            type="button"
+            aria-label="在此目录新建会话"
+            @click.stop="emit('create')"
+          >
+            <MessageCirclePlus class="size-icon" />
+          </button>
+        </TooltipTrigger>
+
+        <TooltipContent>新会话</TooltipContent>
+      </Tooltip>
     </span>
   </div>
 </template>
@@ -70,6 +79,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import type { SidebarGrouping } from "@features/session-nav/type.js"
 
 const groupingOptions = [

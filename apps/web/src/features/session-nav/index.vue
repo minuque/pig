@@ -9,9 +9,20 @@
             <img src="/pwa-icon-192.png" alt="" width="22" height="22" />
           </RouterLink>
 
-          <button class="collapse-toggle" type="button" title="折叠侧边栏" @click="emit('toggle')">
-            <PanelLeft class="size-icon" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <button
+                class="collapse-toggle"
+                type="button"
+                aria-label="折叠侧边栏"
+                @click="emit('toggle')"
+              >
+                <PanelLeft class="size-icon" />
+              </button>
+            </TooltipTrigger>
+
+            <TooltipContent>折叠侧边栏</TooltipContent>
+          </Tooltip>
         </div>
 
         <div class="nav-main">
@@ -129,6 +140,7 @@ import { useEventListener, useTimestamp } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
 import { ArrowDown, PanelLeft } from "@lucide/vue"
 import { notifyError } from "@components/layout/notify.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"

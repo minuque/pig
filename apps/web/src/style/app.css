@@ -34,6 +34,10 @@
   --popover: #ffffff;
   --code-header: #ffffff;
   --code-body: #ffffff;
+  /* 提示气泡：深浅主题都是浅底深字，不跟随 --ink */
+  --tooltip: #e8e8ea;
+  --tooltip-fg: #1b1b1b;
+  --tooltip-ring: #dedede;
 
   /* mermaid 图 */
   --mermaid-bg: #ffffff;
@@ -249,6 +253,9 @@
   --popover: #1c1c1f;
   --code-header: #161618;
   --code-body: #161618;
+  --tooltip: #eaeaea;
+  --tooltip-fg: #171717;
+  --tooltip-ring: transparent;
 
   /* mermaid 图 */
   --mermaid-bg: #161618;
@@ -407,6 +414,9 @@
   --color-card-foreground: var(--ink);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--ink);
+  --color-tooltip: var(--tooltip);
+  --color-tooltip-fg: var(--tooltip-fg);
+  --color-tooltip-ring: var(--tooltip-ring);
   --color-muted: var(--canvas-soft);
   --color-muted-foreground: var(--ink-muted);
   --color-border: var(--border);

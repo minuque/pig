@@ -1,24 +1,42 @@
 <template>
   <div class="nav-footer">
-    <button
-      class="footer-action press-scale"
-      :class="{ 'motion-pulse': hintAdd }"
-      type="button"
-      :disabled="addingWorkspace"
-      title="新增工作区"
-      @click="emit('addWorkspace')"
-    >
-      <Plus class="size-icon" />
-    </button>
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <button
+          class="footer-action press-scale"
+          :class="{ 'motion-pulse': hintAdd }"
+          type="button"
+          aria-label="新增工作区"
+          :disabled="addingWorkspace"
+          @click="emit('addWorkspace')"
+        >
+          <Plus class="size-icon" />
+        </button>
+      </TooltipTrigger>
 
-    <button class="footer-action press-scale" type="button" title="设置" @click="emit('settings')">
-      <Settings class="size-icon" />
-    </button>
+      <TooltipContent>新增工作区</TooltipContent>
+    </Tooltip>
+
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <button
+          class="footer-action press-scale"
+          type="button"
+          aria-label="设置"
+          @click="emit('settings')"
+        >
+          <Settings class="size-icon" />
+        </button>
+      </TooltipTrigger>
+
+      <TooltipContent>设置</TooltipContent>
+    </Tooltip>
   </div>
 </template>
 
 <script setup lang="ts">
 import { Plus, Settings } from "@lucide/vue"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 defineProps<{
   addingWorkspace?: boolean

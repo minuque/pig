@@ -1,8 +1,14 @@
 <template>
   <header class="workbench-header">
-    <button v-if="!leftOpen" class="header-toggle" type="button" title="打开侧边栏" @click="toggle">
-      <PanelLeft class="size-icon" />
-    </button>
+    <Tooltip v-if="!leftOpen">
+      <TooltipTrigger as-child>
+        <button class="header-toggle" type="button" aria-label="打开侧边栏" @click="toggle">
+          <PanelLeft class="size-icon" />
+        </button>
+      </TooltipTrigger>
+
+      <TooltipContent>打开侧边栏</TooltipContent>
+    </Tooltip>
 
     <div class="header-crumb">
       <h1 v-if="title" id="current-title" class="header-session">{{ title }}</h1>
@@ -19,6 +25,7 @@
 import { computed } from "vue"
 import { PanelLeft } from "@lucide/vue"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"

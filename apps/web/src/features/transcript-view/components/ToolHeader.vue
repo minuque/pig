@@ -10,34 +10,45 @@
       <div class="actions">
         <slot name="meta" />
 
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-2xs"
-          class="icon-btn"
-          :aria-pressed="softWrap"
-          :title="softWrap ? '取消软换行' : '软换行'"
-          @click.stop="softWrap = !softWrap"
-        >
-          <WrapText v-if="!softWrap" class="size-3.5" />
-          <AlignLeft v-else class="size-3.5" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-2xs"
+              class="icon-btn"
+              :aria-label="softWrap ? '取消软换行' : '软换行'"
+              :aria-pressed="softWrap"
+              @click.stop="softWrap = !softWrap"
+            >
+              <WrapText v-if="!softWrap" class="size-3.5" />
+              <AlignLeft v-else class="size-3.5" />
+            </Button>
+          </TooltipTrigger>
 
-        <Button
-          v-if="text"
-          type="button"
-          variant="outline"
-          size="icon-2xs"
-          class="icon-btn copy"
-          :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
-          :title="copyLabel"
-          @click="copy"
-        >
-          <span class="icon-swap">
-            <Copy class="size-3.5" :data-visible="status !== 'copied'" />
-            <Check class="size-3.5" :data-visible="status === 'copied'" />
-          </span>
-        </Button>
+          <TooltipContent>{{ softWrap ? "取消软换行" : "软换行" }}</TooltipContent>
+        </Tooltip>
+
+        <Tooltip v-if="text">
+          <TooltipTrigger as-child>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-2xs"
+              class="icon-btn copy"
+              :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
+              :aria-label="copyLabel"
+              @click="copy"
+            >
+              <span class="icon-swap">
+                <Copy class="size-3.5" :data-visible="status !== 'copied'" />
+                <Check class="size-3.5" :data-visible="status === 'copied'" />
+              </span>
+            </Button>
+          </TooltipTrigger>
+
+          <TooltipContent>{{ copyLabel }}</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   </div>
@@ -48,6 +59,7 @@ import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { AlignLeft, Check, Copy, WrapText } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = defineProps<{
   label: string

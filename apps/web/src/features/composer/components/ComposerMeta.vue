@@ -7,28 +7,33 @@
 
     <span v-else class="cwd-spacer"></span>
 
-    <button
-      v-if="usage"
-      type="button"
-      class="usage"
-      :class="{ open }"
-      :title="usageLabel"
-      @mousedown.prevent
-      @click="emit('toggle')"
-    >
-      <svg class="usage-ring" width="16" height="16" viewBox="0 0 16 16">
-        <circle class="usage-ring-track" cx="8" cy="8" r="6" />
+    <Tooltip v-if="usage">
+      <TooltipTrigger as-child>
+        <button
+          type="button"
+          class="usage"
+          :class="{ open }"
+          :aria-label="usageLabel"
+          @mousedown.prevent
+          @click="emit('toggle')"
+        >
+          <svg class="usage-ring" width="16" height="16" viewBox="0 0 16 16">
+            <circle class="usage-ring-track" cx="8" cy="8" r="6" />
 
-        <circle
-          class="usage-ring-fill"
-          cx="8"
-          cy="8"
-          r="6"
-          :stroke-dasharray="RING"
-          :stroke-dashoffset="ringOffset"
-        />
-      </svg>
-    </button>
+            <circle
+              class="usage-ring-fill"
+              cx="8"
+              cy="8"
+              r="6"
+              :stroke-dasharray="RING"
+              :stroke-dashoffset="ringOffset"
+            />
+          </svg>
+        </button>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ usageLabel }}</TooltipContent>
+    </Tooltip>
 
     <span v-else class="usage-slot" aria-hidden="true"></span>
   </div>
@@ -37,6 +42,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Folder } from "@lucide/vue"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { workspaceName } from "@features/session-nav/index.js"
 import type { ContextUsage } from "@features/composer/type.js"
 

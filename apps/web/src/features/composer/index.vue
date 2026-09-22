@@ -21,23 +21,32 @@
       </template>
 
       <template #right>
-        <Button
-          type="button"
-          size="icon"
-          class="send press-scale"
-          :class="{ 'send--abort': running }"
-          :title="primaryLabel"
-          :aria-label="primaryLabel"
-          :aria-keyshortcuts="running ? 'Escape' : undefined"
-          :disabled="running ? aborting : !sendActive"
-          @mousedown.prevent
-          @click="onPrimaryAction"
-        >
-          <span class="primary-icon icon-swap" aria-hidden="true">
-            <span class="send-esc" :data-visible="running">Esc</span>
-            <ArrowUp :data-visible="!running" class="size-icon send-arrow" />
-          </span>
-        </Button>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button
+              type="button"
+              size="icon"
+              class="send press-scale"
+              :class="{ 'send--abort': running }"
+              :aria-label="primaryLabel"
+              :aria-keyshortcuts="running ? 'Escape' : 'Enter'"
+              :disabled="running ? aborting : !sendActive"
+              @mousedown.prevent
+              @click="onPrimaryAction"
+            >
+              <span class="primary-icon icon-swap" aria-hidden="true">
+                <span class="send-esc" :data-visible="running">Esc</span>
+                <ArrowUp :data-visible="!running" class="size-icon send-arrow" />
+              </span>
+            </Button>
+          </TooltipTrigger>
+
+          <TooltipContent>
+            <!-- span 包住文案：两个元素间的换行空白会被编译器丢掉，间距只由 kbd 的 margin 决定 -->
+            <span>{{ primaryLabel }}</span>
+            <kbd v-if="!running" class="tooltip-hint">↵</kbd>
+          </TooltipContent>
+        </Tooltip>
       </template>
 
       <template #meta>
@@ -57,6 +66,7 @@ import { computed, defineAsyncComponent, ref, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { ArrowUp } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import ComposerMeta from "@features/composer/components/ComposerMeta.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
@@ -234,6 +244,12 @@ function onAbortHotkey(event: KeyboardEvent) {
 
 .send-arrow {
   stroke-width: 2.5px;
+}
+
+.tooltip-hint {
+  margin-inline-start: var(--spacing-xxs);
+  font: inherit;
+  opacity: 0.55;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -41,19 +41,25 @@
       <div class="composer-bar">
         <div class="composer-stack">
           <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
-            <Button
-              class="scroll-latest-control"
-              type="button"
-              variant="outline"
-              size="icon-sm"
-              title="滚动到底部"
-              @click="scrollToLatest('smooth')"
-            >
-              <span class="icon-swap">
-                <Ellipsis :data-visible="turnPending" />
-                <ArrowDown :data-visible="!turnPending" />
-              </span>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button
+                  class="scroll-latest-control"
+                  type="button"
+                  aria-label="滚动到底部"
+                  variant="outline"
+                  size="icon-sm"
+                  @click="scrollToLatest('smooth')"
+                >
+                  <span class="icon-swap">
+                    <Ellipsis :data-visible="turnPending" />
+                    <ArrowDown :data-visible="!turnPending" />
+                  </span>
+                </Button>
+              </TooltipTrigger>
+
+              <TooltipContent>滚动到底部</TooltipContent>
+            </Tooltip>
           </div>
 
           <Composer
@@ -96,6 +102,7 @@ import { useRoute } from "vue-router"
 import { ArrowDown, Ellipsis } from "@lucide/vue"
 import { warmWorkspace } from "@client/platform.js"
 import { Button } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import Composer from "@features/composer/index.vue"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"

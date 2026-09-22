@@ -1,17 +1,21 @@
 <template>
   <div class="session-item" :class="{ 'is-menu-open': menuOpen }">
-    <button
-      v-if="!renaming"
-      class="pin-toggle press-scale"
-      type="button"
-      :title="pinned ? '取消置顶' : '置顶'"
-      :aria-label="pinned ? '取消置顶' : '置顶'"
-      :aria-pressed="pinned"
-      @click.stop="emit('togglePinned', session.id)"
-    >
-      <PinOff v-if="pinned" class="size-icon" />
-      <Pin v-else class="size-icon" />
-    </button>
+    <Tooltip v-if="!renaming">
+      <TooltipTrigger as-child>
+        <button
+          class="pin-toggle press-scale"
+          type="button"
+          :aria-label="pinned ? '取消置顶' : '置顶'"
+          :aria-pressed="pinned"
+          @click.stop="emit('togglePinned', session.id)"
+        >
+          <PinOff v-if="pinned" class="size-icon" />
+          <Pin v-else class="size-icon" />
+        </button>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ pinned ? "取消置顶" : "置顶" }}</TooltipContent>
+    </Tooltip>
 
     <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
@@ -55,18 +59,23 @@
                 <span class="time-text">{{ relativeTime }}</span>
               </time>
 
-              <button
-                class="more-toggle press-scale"
-                type="button"
-                title="更多"
-                aria-label="更多"
-                aria-haspopup="menu"
-                :aria-expanded="menuOpen"
-                @click.prevent.stop="openSessionMenu"
-                @contextmenu.prevent.stop="openSessionMenu"
-              >
-                <Ellipsis class="size-icon" />
-              </button>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <button
+                    class="more-toggle press-scale"
+                    type="button"
+                    aria-label="更多"
+                    aria-haspopup="menu"
+                    :aria-expanded="menuOpen"
+                    @click.prevent.stop="openSessionMenu"
+                    @contextmenu.prevent.stop="openSessionMenu"
+                  >
+                    <Ellipsis class="size-icon" />
+                  </button>
+                </TooltipTrigger>
+
+                <TooltipContent>更多</TooltipContent>
+              </Tooltip>
             </span>
           </div>
         </component>
@@ -108,6 +117,7 @@ import {
 import { useNav } from "@features/session-nav/index.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import { Spinner } from "@components/ui/spinner/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 
