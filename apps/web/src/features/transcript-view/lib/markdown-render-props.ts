@@ -1,5 +1,21 @@
-import type { MarkstreamVirtualState, NodeRendererProps } from "markstream-vue"
-import { installChatMarkdownComponents } from "@features/transcript-view/lib/markdown-components.js"
+import {
+  setCustomComponents,
+  type MarkstreamVirtualState,
+  type NodeRendererProps,
+} from "markstream-vue"
+import ChatCodeBlock from "@features/transcript-view/components/ChatCodeBlock.vue"
+import TranscriptMarkdownLink from "@features/transcript-view/components/TranscriptMarkdownLink.vue"
+
+let installed = false
+
+function installChatMarkdownComponents(): void {
+  if (installed) return
+  installed = true
+  setCustomComponents("chat", {
+    link: TranscriptMarkdownLink,
+    code_block: ChatCodeBlock,
+  })
+}
 
 installChatMarkdownComponents()
 

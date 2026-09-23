@@ -76,8 +76,10 @@ import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
-import { useTranscriptOlder } from "@features/transcript-view/hooks/use-transcript-older.js"
-import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
+import {
+  useTranscriptOlder,
+  useTranscriptReveal,
+} from "@features/transcript-view/hooks/use-transcript-edge.js"
 import { useTranscriptWindow } from "@features/transcript-view/hooks/use-transcript-window.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"

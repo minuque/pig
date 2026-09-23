@@ -136,10 +136,7 @@ import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/index.js"
 import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
-import {
-  pathBasename,
-  type ReadToolPreview,
-} from "@features/transcript-view/lib/tool-presentation.js"
+import { pathBasename, type ReadToolPreview } from "@features/transcript-view/lib/tool-summary.js"
 import type {
   EditDiffPreview,
   TranscriptImage as ToolStepImage,

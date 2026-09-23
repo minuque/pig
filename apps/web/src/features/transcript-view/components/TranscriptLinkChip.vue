@@ -31,12 +31,12 @@
 import { Link } from "@lucide/vue"
 import { computed, ref, watch } from "vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { describeLinkChip } from "@features/transcript-view/lib/link-chip.js"
 import {
+  describeLinkChip,
   markSiteFaviconFailed,
   probeSiteFavicon,
   siteFaviconSrc,
-} from "@features/transcript-view/lib/site-favicon.js"
+} from "@features/transcript-view/lib/link-chip.js"
 
 const props = defineProps<{
   url: string
