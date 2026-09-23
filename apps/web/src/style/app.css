@@ -95,6 +95,7 @@
 
   /* 语义 */
   --accent-orange: #d97706;
+  --star: #fbbf24;
   --accent-orange-deep: #d97706;
   --accent-green: #52a450;
   --success: #52a450;
@@ -582,5 +583,5 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
 }
 
 .dark .effort-bar {
-  --effort-fill: color-mix(in srgb, var(--primary) var(--effort-mix, 40%), var(--hover-strong));
+  --effort-fill: color-mix(in srgb, var(--primary) var(--effort-mix, 40%), var(--white));
 }

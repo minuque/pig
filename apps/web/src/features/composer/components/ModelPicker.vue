@@ -412,10 +412,11 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .model-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px;
   align-items: center;
   height: var(--size-control);
-  padding-inline-end: var(--spacing-xs);
+  padding-inline-end: var(--spacing-xxs);
   border-radius: var(--radius-md);
 }
 
@@ -475,8 +476,9 @@ function onSelectModel(event: Event, provider: string, id: string) {
   color: var(--ink);
 }
 
-.fav.on {
-  color: var(--primary);
+.fav.on,
+.fav.on:hover {
+  color: var(--star);
 }
 
 .empty {
