@@ -223,11 +223,12 @@ const activeIndex = computed(() => {
   if (runningIndex >= 0) return runningIndex
   return steps.length > 0 ? steps.length - 1 : -1
 })
-const moreIndex = computed(() => (hiddenCount.value ? renderedSteps.value.length : -1))
+const moreIndex = computed(() => (showMoreToggle.value ? renderedSteps.value.length : -1))
 const displayActiveIndex = computed(() => {
-  const last = moreIndex.value >= 0 ? moreIndex.value : renderedSteps.value.length - 1
+  if (renderedSteps.value.length === 0 || activeIndex.value < 0) return -1
 
-  if (last < 0 || activeIndex.value < 0) return -1
+  if (moreIndex.value >= 0 && !running.value) return moreIndex.value
+  const last = moreIndex.value >= 0 ? moreIndex.value : renderedSteps.value.length - 1
   return Math.min(activeIndex.value, last)
 })
 const listEl = shallowRef<HTMLElement | null>(null)
@@ -464,7 +465,7 @@ onBeforeUnmount(() => {
 }
 
 .summary:hover {
-  background: var(--hover-quiet);
+  background: transparent;
   color: var(--ink);
 }
 

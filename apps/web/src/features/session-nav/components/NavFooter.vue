@@ -2,14 +2,16 @@
   <div class="nav-footer">
     <button class="footer-settings press-scale" type="button" @click="emit('settings')">
       <Settings class="size-icon" />
-      <span class="footer-label">设置</span>
+      <span>设置</span>
     </button>
 
     <DropdownMenu :modal="false">
       <Tooltip>
         <TooltipTrigger as-child>
           <DropdownMenuTrigger as-child>
-            <button class="footer-help press-scale" type="button" aria-label="帮助">?</button>
+            <button class="footer-help press-scale" type="button" aria-label="帮助">
+              <CircleHelp class="size-icon" />
+            </button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
 
@@ -39,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { Settings } from "@lucide/vue"
+import { CircleHelp, Settings } from "@lucide/vue"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,25 +62,26 @@ const emit = defineEmits<{
   display: flex;
   flex: none;
   align-items: center;
+  justify-content: space-between;
   gap: var(--spacing-xs);
   padding: var(--spacing-xs) var(--nav-inline, var(--spacing-xs));
+  border-top: var(--border-width) solid var(--border-subtle);
 }
 
 .footer-settings,
 .footer-help {
   border: 0;
-  background: var(--interaction-hover);
+  background: transparent;
   color: var(--ink);
   transition:
     background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
     scale var(--duration-fast) var(--ease-out);
 }
 
 .footer-settings:hover,
 .footer-help:hover,
 .footer-help[data-state="open"] {
-  background: var(--hover-strong);
+  background: var(--hover-quiet);
 }
 
 .footer-settings {
@@ -86,34 +89,22 @@ const emit = defineEmits<{
   align-items: center;
   gap: var(--spacing-xs);
   min-width: 0;
-  flex: 1;
   height: var(--size-nav-rail);
   padding-inline: var(--spacing-sm);
   border-radius: var(--radius-md);
-  text-align: start;
-}
-
-.footer-label {
-  min-width: 0;
-  overflow: hidden;
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-sm--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .footer-help {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-nav-rail);
-  height: var(--size-nav-rail);
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   padding: 0;
   border-radius: var(--radius-full);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-medium);
-  line-height: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
