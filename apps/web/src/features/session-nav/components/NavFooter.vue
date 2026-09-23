@@ -18,7 +18,7 @@
         <TooltipContent>帮助</TooltipContent>
       </Tooltip>
 
-      <DropdownMenuContent side="top" align="end" :side-offset="8" class="nav-help-menu">
+      <DropdownMenuContent side="top" align="end" :side-offset="8">
         <DropdownMenuItem class="nav-help-item" @select="emit('search')">
           <span>搜索会话</span>
           <span class="nav-help-kbd">Ctrl K</span>

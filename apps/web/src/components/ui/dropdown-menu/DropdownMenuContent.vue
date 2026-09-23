@@ -3,12 +3,8 @@
     <DropdownMenuContent
       data-slot="dropdown-menu-content"
       v-bind="{ ...$attrs, ...forwarded, ...(reference && { reference }) }"
-      :class="[
-        bare
-          ? 'bg-popover text-ink z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) origin-(--reka-dropdown-menu-content-transform-origin) overflow-hidden rounded-(--radius-lg) border border-border shadow-elevated'
-          : 'menu-surface z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) min-w-(--size-context-menu) origin-(--reka-dropdown-menu-content-transform-origin) text-ink opacity-0 transition-opacity duration-(--duration-fast) ease-(--ease-out) data-[state=open]:opacity-100 data-[state=closed]:animate-[exit-fade_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none',
-        props.class,
-      ]"
+      class="menu-surface z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) origin-(--reka-dropdown-menu-content-transform-origin) text-ink opacity-0 transition-opacity duration-(--duration-fast) ease-(--ease-out) data-[state=open]:opacity-100 data-[state=closed]:animate-[exit-fade_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
+      :class="[bare ? undefined : 'min-w-(--size-context-menu)', props.class]"
     >
       <div v-if="!bare" class="menu-list max-h-(--reka-dropdown-menu-content-available-height)">
         <slot />
@@ -34,7 +30,7 @@ const props = withDefaults(
   defineProps<
     DropdownMenuContentProps & {
       class?: HTMLAttributes["class"]
-      /** 大面板自管布局，不套菜单磨砂壳。 */
+      /** 大面板自管内边距，不套菜单列表壳。 */
       bare?: boolean
     }
   >(),

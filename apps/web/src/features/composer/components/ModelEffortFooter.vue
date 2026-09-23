@@ -23,13 +23,7 @@
         <TooltipContent>思考强度：{{ currentLabel }}</TooltipContent>
       </Tooltip>
 
-      <DropdownMenuContent
-        side="top"
-        align="end"
-        :side-offset="4"
-        class="effort-pop"
-        data-model-effort-menu
-      >
+      <DropdownMenuContent side="top" align="end" :side-offset="4" data-model-effort-menu>
         <DropdownMenuItem
           v-for="item in levels"
           :key="item"
@@ -128,10 +122,6 @@ function onSelect(item: string) {
   flex: none;
   width: 1em;
   height: 1em;
-}
-
-.effort-pop {
-  min-width: calc(var(--size-menu) * 1.2);
 }
 
 .effort-option {
