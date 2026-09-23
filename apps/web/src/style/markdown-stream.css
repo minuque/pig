@@ -141,6 +141,12 @@
     --markstream-code-theme-bg: var(--code-body) !important;
     --markstream-code-fallback-bg: var(--code-body) !important;
     --markstream-pre-resolved-theme-bg: var(--code-body) !important;
+    /* 行号左缘对齐顶栏文件图标 */
+    --markstream-pre-line-number-padding-left: var(--ms-inset-panel-x);
+    --markstream-code-padding-left: calc(
+      var(--ms-inset-panel-x) + var(--markstream-pre-line-number-width, 2ch) +
+        var(--markstream-pre-line-number-padding-right, 1ch) + 2px
+    );
   }
 
   .mermaid-block-container {

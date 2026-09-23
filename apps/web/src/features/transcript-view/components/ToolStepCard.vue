@@ -436,7 +436,6 @@ watch(
 
 .edit-diff {
   max-width: 100%;
-  padding: var(--spacing-xs);
   overflow: visible;
 }
 
