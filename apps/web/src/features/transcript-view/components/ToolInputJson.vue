@@ -1,33 +1,37 @@
 <template>
-  <pre class="input-json" :title="text">
-    <template v-if="tokens.length">
-      <template v-for="(line, lineIndex) in tokens" :key="lineIndex">
-        <span
-          v-for="(token, tokenIndex) in line"
-          :key="tokenIndex"
-          :style="{ color: token.color }"
-          >{{ token.content }}</span
-        >
-
-          <template v-if="lineIndex < tokens.length - 1">{{ "\n" }}</template>
-      </template>
-    </template>
-
-    <template v-else>{{ text }}</template>
-  </pre>
+  <div class="input-json">
+    <div v-for="(line, lineIndex) in lines" :key="lineIndex" class="json-line">
+      <span v-for="(token, tokenIndex) in line" :key="tokenIndex" :style="{ color: token.color }">
+        {{ token.content }}
+      </span>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { shallowRef, watch } from "vue"
+import { computed, shallowRef, watch } from "vue"
 import { useColorScheme } from "@features/theme/index.js"
 import { highlightCodeTokens } from "@features/transcript-view/lib/markdown-render-props.js"
 
+type JsonToken = { content: string; color?: string }
+
 const props = defineProps<{ text: string }>()
 const { codeBlockProps } = useColorScheme()
-const tokens = shallowRef<{ content: string; color?: string }[][]>([])
+const tokens = shallowRef<JsonToken[][]>([])
+const formatted = computed(() => {
+  try {
+    return JSON.stringify(JSON.parse(props.text), null, 2)
+  } catch {
+    return props.text
+  }
+})
+const lines = computed((): JsonToken[][] => {
+  if (tokens.value.length) return tokens.value
+  return formatted.value.split(/\r?\n/).map((line) => [{ content: line }])
+})
 
 watch(
-  () => [props.text, codeBlockProps.value.theme] as const,
+  () => [formatted.value, codeBlockProps.value.theme] as const,
   async ([text, theme], _, onCleanup) => {
     let active = true
     onCleanup(() => {
@@ -53,11 +57,15 @@ watch(
 
 <style scoped>
 .input-json {
-  margin: 0;
+  min-width: 0;
   color: var(--ink);
   font-family: var(--font-mono);
   line-height: var(--text-caption--line-height);
   overflow-wrap: anywhere;
-  white-space: pre-wrap;
+  tab-size: 2;
+}
+
+.json-line {
+  min-height: 1lh;
 }
 </style>
