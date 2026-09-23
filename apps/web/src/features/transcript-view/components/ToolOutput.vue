@@ -149,7 +149,7 @@ function onScroll(event: Event) {
 
 .tool-output.is-embedded {
   min-width: 0;
-  padding: 0 0 var(--spacing-xs);
+  padding: var(--spacing-xs);
   padding-inline-end: 0;
 }
 
@@ -226,8 +226,8 @@ function onScroll(event: Event) {
 
 .code-scroll {
   overflow: visible;
-  padding-block: 0 var(--spacing-xs);
-  padding-inline-start: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  padding-inline-end: 0;
 }
 
 .code-scroll::-webkit-scrollbar-track {

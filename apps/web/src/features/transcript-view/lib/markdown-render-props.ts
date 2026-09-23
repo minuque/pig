@@ -95,7 +95,6 @@ export function chatMarkdownProps(input: {
     codeBlockOptions: {
       ...codeBlockTypography(),
       diffStyle: "unified",
-      padding: 0,
     },
     codeBlockProps: {
       theme: codeBlockTheme,
