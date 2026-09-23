@@ -8,13 +8,13 @@
       :side-offset="4"
       :collision-padding="8"
       update-position-strategy="always"
-      class="context-menu-surface z-(--z-drawer) max-h-(--reka-context-menu-content-available-height) min-w-(--size-context-menu) origin-(--reka-context-menu-content-transform-origin) text-ink opacity-0 transition-opacity duration-(--duration-fast) ease-(--ease-out) data-[state=open]:opacity-100 data-[state=closed]:animate-[exit-fade_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
+      class="menu-surface z-(--z-drawer) max-h-(--reka-context-menu-content-available-height) min-w-(--size-context-menu) origin-(--reka-context-menu-content-transform-origin) text-ink opacity-0 transition-opacity duration-(--duration-fast) ease-(--ease-out) data-[state=open]:opacity-100 data-[state=closed]:animate-[exit-fade_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
       :class="props.class"
       :style="contentStyle"
       @close-auto-focus="onCloseAutoFocus"
       @interact-outside="onInteractOutside"
     >
-      <div class="context-menu-list">
+      <div class="menu-list max-h-(--reka-context-menu-content-available-height)">
         <slot />
       </div>
     </MenuContent>
@@ -74,31 +74,4 @@ function onInteractOutside(event: CustomEvent<{ originalEvent: Event }>) {
 }
 </script>
 
-<style>
-.context-menu-surface {
-  position: relative;
-  overflow: hidden;
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-xl);
-  background: var(--menu-surface);
-  box-shadow: var(--shadow-elevated);
-}
-
-.context-menu-surface::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  backdrop-filter: blur(var(--menu-blur)) saturate(1.5);
-}
-
-.context-menu-list {
-  position: relative;
-  z-index: 1;
-  max-height: var(--reka-context-menu-content-available-height);
-  overflow: auto;
-  padding: var(--spacing-xxs);
-}
-</style>
+<style src="../menu-surface.css"></style>

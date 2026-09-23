@@ -1,0 +1,25 @@
+.menu-surface {
+  position: relative;
+  overflow: hidden;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--menu-surface);
+  box-shadow: var(--shadow-elevated);
+}
+
+.menu-surface::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  backdrop-filter: blur(var(--menu-blur)) saturate(1.5);
+}
+
+.menu-list {
+  position: relative;
+  z-index: 1;
+  overflow: auto;
+  padding: var(--spacing-xxs);
+}

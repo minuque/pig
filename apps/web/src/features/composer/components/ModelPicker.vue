@@ -26,6 +26,7 @@
     </Tooltip>
 
     <DropdownMenuContent
+      bare
       side="top"
       align="end"
       :side-offset="6"
