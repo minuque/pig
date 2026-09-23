@@ -86,15 +86,22 @@ const emit = defineEmits<{
 
 .footer-settings {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: var(--spacing-xs);
   min-width: 0;
   height: var(--size-nav-rail);
   padding-inline: var(--spacing-sm);
   border-radius: var(--radius-md);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-button);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--text-button--line-height);
+}
+
+.footer-settings .size-icon,
+.footer-help .size-icon {
+  width: var(--text-button);
+  height: var(--text-button);
 }
 
 .footer-help {
