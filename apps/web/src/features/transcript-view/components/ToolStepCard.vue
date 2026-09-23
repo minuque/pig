@@ -132,7 +132,10 @@ import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/index.js"
-import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
+import {
+  diffsGutterAlignCss,
+  plainMarkdownProps,
+} from "@features/transcript-view/lib/markdown-render-props.js"
 import { pathBasename, type ReadToolPreview } from "@features/transcript-view/lib/tool-summary.js"
 import type {
   EditDiffPreview,
@@ -209,6 +212,7 @@ const thoughtProps = computed(() =>
 const editDiffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
   disableFileHeader: true,
+  unsafeCSS: diffsGutterAlignCss,
 }))
 const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
 const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
