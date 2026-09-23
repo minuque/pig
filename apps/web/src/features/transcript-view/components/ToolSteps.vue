@@ -102,16 +102,16 @@
             </div>
 
             <div
-              v-if="hiddenCount"
+              v-if="showMoreToggle"
               class="step"
               :data-active="displayActiveIndex === renderedSteps.length"
               @mouseenter="onPointerEnter(renderedSteps.length)"
               @focusin="onFocusIn(renderedSteps.length)"
             >
               <div class="tool-summary">
-                <Button type="button" static class="summary" @click="loadMore">
+                <Button type="button" static class="summary" @click="toggleMore">
                   <Ellipsis class="tool-icon" data-icon="inline-start" />
-                  <span class="label" data-text="加载更多">加载更多</span>
+                  <span class="label" :data-text="moreLabel">{{ moreLabel }}</span>
                 </Button>
               </div>
             </div>
@@ -170,12 +170,16 @@ const renderedSteps = computed(() =>
 const hiddenCount = computed(() =>
   keptMounted.value ? Math.max(0, props.row.steps.length - renderedSteps.value.length) : 0,
 )
+const showMoreToggle = computed(
+  () => keptMounted.value && !running.value && props.row.steps.length > PAGE_SIZE,
+)
+const moreLabel = computed(() => (hiddenCount.value ? "显示更多" : "收起"))
 const skipHeightMotion = computed(
   () => running.value || renderedSteps.value.length > ANIMATED_EXPAND_LIMIT,
 )
 
-function loadMore() {
-  pageLimit.value = Math.min(props.row.steps.length, pageLimit.value + PAGE_SIZE)
+function toggleMore() {
+  pageLimit.value = hiddenCount.value ? props.row.steps.length : PAGE_SIZE
 }
 
 const now = shallowRef(Date.now())
@@ -460,7 +464,7 @@ onBeforeUnmount(() => {
 }
 
 .summary:hover {
-  background: transparent;
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 

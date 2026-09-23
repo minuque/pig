@@ -88,7 +88,7 @@ function createNav(
     setView: nav.setView,
     setSort: nav.setSort,
     reorderGroups: nav.reorderGroups,
-    bumpGroup: nav.bumpGroup,
+    toggleGroupReveal: nav.toggleGroupReveal,
     toggleGroup: nav.toggleGroup,
     setGroupsCollapsed: nav.setGroupsCollapsed,
     rowsFor: (searching: Parameters<typeof nav.rowsFor>[0]) =>

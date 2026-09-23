@@ -70,6 +70,7 @@ import { dismissNotice, noticeQueue } from "@components/layout/notify.js"
 }
 
 .alert-toaster-close:hover {
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 

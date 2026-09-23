@@ -1,17 +1,19 @@
 <template>
-  <div class="group-head" :draggable="sortable" @dragstart="onDragStart">
+  <div
+    class="group-head"
+    :draggable="sortable"
+    @pointerdown="pointerFocus = true"
+    @dragstart="onDragStart"
+    @mouseleave="onHeadLeave"
+  >
     <button class="group-toggle" type="button" :aria-expanded="!collapsed" @click="emit('toggle')">
-      <span
-        v-if="kind === 'directory'"
-        class="mark"
-        :class="{ 'is-open': !collapsed, 'is-grip': sortable }"
-      >
+      <span v-if="kind === 'directory'" class="mark" :class="{ 'is-grip': sortable }">
         <Folder v-if="collapsed" class="size-icon folder-icon" />
         <FolderOpen v-else class="size-icon folder-icon" />
         <GripVertical v-if="sortable" class="size-icon grip-icon" />
       </span>
 
-      <Clock v-else class="size-icon mark" :class="{ 'is-open': !collapsed }" />
+      <Clock v-else class="size-icon mark" />
       <span class="group-name">{{ name }}</span>
     </button>
 
@@ -37,6 +39,7 @@
 </template>
 
 <script setup lang="ts">
+import { shallowRef } from "vue"
 import { Clock, Folder, FolderOpen, GripVertical, MessageCirclePlus } from "@lucide/vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
@@ -54,6 +57,18 @@ const emit = defineEmits<{
   create: []
   dragstart: [event: DragEvent]
 }>()
+const pointerFocus = shallowRef(false)
+
+function onHeadLeave(event: MouseEvent) {
+  const head = event.currentTarget
+  const active = document.activeElement
+  const fromPointer = pointerFocus.value
+  pointerFocus.value = false
+
+  if (!fromPointer || !(head instanceof HTMLElement) || !(active instanceof HTMLElement)) return
+
+  if (head.contains(active)) active.blur()
+}
 
 function onDragStart(event: DragEvent) {
   if (!props.sortable) {
@@ -123,8 +138,7 @@ function onDragStart(event: DragEvent) {
   color: var(--primary);
 }
 
-.group-head:hover .mark,
-.mark.is-open {
+.group-head:hover .mark {
   color: var(--ink-muted);
 }
 
@@ -154,6 +168,7 @@ function onDragStart(event: DragEvent) {
   justify-content: center;
   padding: 0;
   border: 0;
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--ink-muted);
   line-height: 0;
@@ -161,15 +176,16 @@ function onDragStart(event: DragEvent) {
 
 .group-new:hover,
 .group-new:focus-visible {
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 
 @media (hover: hover) {
-  .group-head:is(:hover, :focus-within) .mark.is-grip .folder-icon {
+  .group-head:hover .mark.is-grip .folder-icon {
     display: none;
   }
 
-  .group-head:is(:hover, :focus-within) .mark.is-grip .grip-icon {
+  .group-head:hover .mark.is-grip .grip-icon {
     display: block;
   }
 
@@ -183,13 +199,15 @@ function onDragStart(event: DragEvent) {
     transition: opacity var(--duration-fast) var(--ease-out);
   }
 
-  .group-head:is(:hover, :focus-within) .group-new.hover-only,
+  .group-head:hover .group-new.hover-only,
+  .group-head:has(:focus-visible) .group-new.hover-only,
   .group-new.hover-only:focus-visible {
     opacity: 1;
     pointer-events: auto;
   }
 
-  .group-head:is(:hover, :focus-within) .trail {
+  .group-head:hover .trail,
+  .group-head:has(:focus-visible) .trail {
     pointer-events: auto;
   }
 }

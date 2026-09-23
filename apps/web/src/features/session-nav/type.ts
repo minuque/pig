@@ -33,9 +33,10 @@ export type SidebarRow =
       collapsed: boolean
       sessions: SidebarSession[]
       more: boolean
+      revealed: boolean
     }
   | { kind: "session"; key: string; session: SidebarSession }
-  | { kind: "more"; key: string; groupKey: string }
+  | { kind: "more"; key: string; groupKey: string; revealed: boolean }
 
 /** 协议列表不带的卡片脚注：消息数 + 当前模型。 */
 export interface SessionCardExtra {

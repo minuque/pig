@@ -28,6 +28,11 @@
         <div class="nav-main">
           <NavToolbar @create="onCreateSession" @search="openSearch" />
 
+          <p v-if="connected && !groups.length" class="add-guide">
+            <ArrowUp class="size-icon motion-nudge" />
+            点击新建会话添加工作目录
+          </p>
+
           <div class="nav-body">
             <nav class="session-list">
               <section v-if="pinnedRows.length" class="nav-section">
@@ -90,9 +95,9 @@
                   />
                 </li>
 
-                <li v-if="hasMore">
-                  <button class="more-button" type="button" @click="bumpGroup('updated')">
-                    显示更多
+                <li v-if="updatedMore">
+                  <button class="more-button" type="button" @click="toggleGroupReveal('updated')">
+                    {{ updatedMore.revealed ? "收起" : "显示更多" }}
                   </button>
                 </li>
               </ul>
@@ -148,9 +153,9 @@
                         v-if="section.more"
                         class="more-button"
                         type="button"
-                        @click="section.bump"
+                        @click="section.toggleReveal"
                       >
-                        显示更多
+                        {{ section.revealed ? "收起" : "显示更多" }}
                       </button>
                     </div>
                   </div>
@@ -160,21 +165,10 @@
               <span v-else-if="groups.length">暂无会话</span>
             </nav>
           </div>
-
-          <p v-if="connected && !groups.length" class="add-guide">
-            点击添加工作目录
-            <ArrowDown class="size-icon motion-nudge" />
-          </p>
         </div>
       </div>
 
-      <NavFooter
-        :label="footerLabel"
-        :can-add="footerCanAdd"
-        :adding-workspace="addingWorkspace"
-        @add-workspace="addWorkspace"
-        @settings="openSettings"
-      />
+      <NavFooter @settings="openSettings" @search="openSearch" />
     </div>
 
     <SessionSearch v-if="searchOpen" v-model:open="searchOpen" @navigate="onSessionNavigate" />
@@ -185,7 +179,7 @@
 import { computed, defineAsyncComponent, onMounted, reactive, shallowRef, watch } from "vue"
 import { useEventListener, useTimestamp } from "@vueuse/core"
 import { RouterLink, useRouter } from "vue-router"
-import { ArrowDown, ChevronDown, ChevronRight, PanelLeft } from "@lucide/vue"
+import { ArrowUp, ChevronDown, ChevronRight, PanelLeft } from "@lucide/vue"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { notifyError } from "@components/layout/notify.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
@@ -214,14 +208,13 @@ const {
   setView,
   setSort,
   reorderGroups,
-  bumpGroup,
+  toggleGroupReveal,
   toggleGroup,
   setGroupsCollapsed,
   rowsFor,
   pinnedIds,
   pinnedSessions,
   togglePinned,
-  addingWorkspace,
   connected,
   lastCwd,
   highlightedSessionId,
@@ -256,7 +249,7 @@ const groupRows = computed(() =>
 const updatedSessions = computed(() =>
   rows.value.flatMap((row) => (row.kind === "session" ? [row.session] : [])),
 )
-const hasMore = computed(() => rows.value.some((row) => row.kind === "more"))
+const updatedMore = computed(() => rows.value.find((row) => row.kind === "more"))
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
 
 function highlightedCwd(): string | undefined {
@@ -275,14 +268,6 @@ function highlightedCwd(): string | undefined {
   return undefined
 }
 
-const activeDirectory = computed(() =>
-  highlightedSessionId.value ? highlightedCwd() : lastCwd.value,
-)
-const footerLabel = computed(() => {
-  const path = activeDirectory.value ?? lastCwd.value
-  return path ? workspaceName(path) : "添加工作目录"
-})
-const footerCanAdd = computed(() => !(activeDirectory.value ?? lastCwd.value))
 const listSections = computed(() =>
   groupRows.value.map((row) => ({
     key: row.key,
@@ -293,7 +278,8 @@ const listSections = computed(() =>
     open: !row.collapsed && (row.sessions.length > 0 || row.more),
     sessions: row.sessions,
     more: row.more,
-    bump: () => bumpGroup(row.key),
+    revealed: row.revealed,
+    toggleReveal: () => toggleGroupReveal(row.key),
     toggle: () => toggleGroup(row.canonicalPath),
     create: () => onCreateInDir(row.canonicalPath),
   })),
@@ -624,6 +610,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 
 .section-fold:hover,
 .section-fold:focus-visible {
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 
@@ -663,6 +650,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 
 .more-button:hover,
 .more-button:focus-visible {
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 
@@ -679,7 +667,7 @@ html[data-pig-desktop-platform="win32"] .logo-row {
 }
 
 .add-guide .motion-nudge {
-  margin-inline-start: calc((var(--size-icon-button) - var(--size-icon)) / 2);
+  margin-inline-start: var(--spacing-xs);
 }
 
 @media (max-width: 900px) {

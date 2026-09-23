@@ -377,6 +377,7 @@ function confirmDelete() {
 
 .pin-toggle:hover,
 .pin-toggle:focus-visible {
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 
@@ -422,6 +423,7 @@ function confirmDelete() {
 
 .more-toggle:hover,
 .more-toggle:focus-visible {
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 

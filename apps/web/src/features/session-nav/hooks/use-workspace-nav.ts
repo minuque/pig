@@ -13,8 +13,6 @@ import {
   type useLocalWorkspaces,
 } from "@client/local-cwd.js"
 import {
-  PROJECT_PAGE,
-  UPDATED_PAGE,
   groupSessionsByCwd,
   listSessionsForSidebar,
   orderSessionGroups,
@@ -156,7 +154,7 @@ export function useWorkspaceNav(
   const sort = ref<SidebarSort>(loadSort())
   const manualOrder = shallowRef<string[]>(loadOrder())
   const grouping = computed<SidebarGrouping>(() => (view.value === "flat" ? "updated" : "project"))
-  const revealByGroup = shallowRef<Record<string, number>>({})
+  const expandedByGroup = shallowRef<Record<string, boolean>>({})
   const collapsedByGroup = shallowRef<Record<string, boolean>>(loadCollapsed())
 
   function applyTitles(list: readonly SessionMetadata[]): SessionMetadata[] {
@@ -172,7 +170,7 @@ export function useWorkspaceNav(
   function setView(next: SidebarView) {
     if (next !== view.value) {
       view.value = next
-      revealByGroup.value = {}
+      expandedByGroup.value = {}
     }
 
     saveView(next)
@@ -190,11 +188,10 @@ export function useWorkspaceNav(
     saveSort("manual")
   }
 
-  function bumpGroup(groupKey: string) {
-    const page = grouping.value === "updated" ? UPDATED_PAGE : PROJECT_PAGE
-    revealByGroup.value = {
-      ...revealByGroup.value,
-      [groupKey]: (revealByGroup.value[groupKey] ?? page) + page,
+  function toggleGroupReveal(groupKey: string) {
+    expandedByGroup.value = {
+      ...expandedByGroup.value,
+      [groupKey]: !expandedByGroup.value[groupKey],
     }
   }
 
@@ -233,7 +230,7 @@ export function useWorkspaceNav(
         grouping: grouping.value,
         sessions: sessionList,
         groups: groupList,
-        revealByGroup: revealByGroup.value,
+        expandedByGroup: expandedByGroup.value,
         searching: searchingNow,
         collapsedByGroup: collapsedByGroup.value,
       })
@@ -309,9 +306,8 @@ export function useWorkspaceNav(
     setView,
     setSort,
     reorderGroups,
-    revealByGroup,
     collapsedByGroup,
-    bumpGroup,
+    toggleGroupReveal,
     toggleGroup,
     setGroupsCollapsed,
     rowsFor,

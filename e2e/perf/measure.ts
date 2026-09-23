@@ -28,7 +28,7 @@ export function sessionCard(page: Page, name: BenchSessionName) {
 }
 
 function listMoreButton(page: Page) {
-  return page.locator("nav.session-list button.more-button")
+  return page.locator("nav.session-list button.more-button", { hasText: "显示更多" })
 }
 
 /** 侧栏折叠时点「显示更多」，直到目标卡片进 DOM。 */

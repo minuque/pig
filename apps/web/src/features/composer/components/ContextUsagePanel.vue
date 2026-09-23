@@ -281,6 +281,7 @@ function onOpenAutoFocus(event: Event) {
 }
 
 .legend-row--button:hover {
+  background: var(--hover-tint);
   color: var(--ink);
 }
 

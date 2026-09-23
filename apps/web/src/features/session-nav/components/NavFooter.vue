@@ -1,51 +1,57 @@
 <template>
   <div class="nav-footer">
-    <button
-      v-if="canAdd"
-      class="footer-identity"
-      type="button"
-      :disabled="addingWorkspace"
-      @click="emit('addWorkspace')"
-    >
-      <img src="/pwa-icon-192.png" alt="" width="24" height="24" />
-      <span class="footer-label">{{ label }}</span>
+    <button class="footer-settings press-scale" type="button" @click="emit('settings')">
+      <Settings class="size-icon" />
+      <span class="footer-label">设置</span>
     </button>
 
-    <div v-else class="footer-identity">
-      <img src="/pwa-icon-192.png" alt="" width="24" height="24" />
-      <span class="footer-label">{{ label }}</span>
-    </div>
+    <DropdownMenu :modal="false">
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <DropdownMenuTrigger as-child>
+            <button class="footer-help press-scale" type="button" aria-label="帮助">?</button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
 
-    <Tooltip>
-      <TooltipTrigger as-child>
-        <button
-          class="footer-action press-scale"
-          type="button"
-          aria-label="设置"
-          @click="emit('settings')"
-        >
-          <Settings class="size-icon" />
-        </button>
-      </TooltipTrigger>
+        <TooltipContent>帮助</TooltipContent>
+      </Tooltip>
 
-      <TooltipContent>设置</TooltipContent>
-    </Tooltip>
+      <DropdownMenuContent side="top" align="end" :side-offset="8" class="nav-help-menu">
+        <DropdownMenuItem class="nav-help-item" @select="emit('search')">
+          <span>搜索会话</span>
+          <span class="nav-help-kbd">Ctrl K</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <div class="nav-help-note">
+          <span>发送</span>
+          <span class="nav-help-kbd">Enter</span>
+        </div>
+
+        <div class="nav-help-note">
+          <span>停止</span>
+          <span class="nav-help-kbd">Esc</span>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   </div>
 </template>
 
 <script setup lang="ts">
 import { Settings } from "@lucide/vue"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
-defineProps<{
-  label: string
-  canAdd: boolean
-  addingWorkspace?: boolean
-}>()
-
 const emit = defineEmits<{
-  addWorkspace: []
   settings: []
+  search: []
 }>()
 </script>
 
@@ -54,82 +60,91 @@ const emit = defineEmits<{
   display: flex;
   flex: none;
   align-items: center;
-  justify-content: space-between;
   gap: var(--spacing-xs);
   padding: var(--spacing-xs) var(--nav-inline, var(--spacing-xs));
-  border-top: var(--border-width) solid var(--border-subtle);
 }
 
-.footer-identity {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  min-width: 0;
-  flex: 1;
-  margin: 0;
-  padding: 0;
+.footer-settings,
+.footer-help {
   border: 0;
-  background: transparent;
+  background: var(--interaction-hover);
   color: var(--ink);
-  text-align: start;
-}
-
-button.footer-identity {
-  border-radius: var(--radius-md);
-}
-
-button.footer-identity:hover:not(:disabled) {
-  background: var(--hover-quiet);
-}
-
-button.footer-identity:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-.footer-identity img {
-  width: 24px;
-  height: 24px;
-  flex: none;
-  object-fit: cover;
-  border-radius: var(--radius-full);
-}
-
-.footer-label {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.footer-action {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--ink-muted);
   transition:
     background-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
     scale var(--duration-fast) var(--ease-out);
 }
 
-.footer-action:hover {
-  background: var(--hover-quiet);
-  color: var(--ink);
+.footer-settings:hover,
+.footer-help:hover,
+.footer-help[data-state="open"] {
+  background: var(--hover-strong);
+}
+
+.footer-settings {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+  flex: 1;
+  height: var(--size-nav-rail);
+  padding-inline: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  text-align: start;
+}
+
+.footer-label {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-body-sm--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footer-help {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--size-nav-rail);
+  height: var(--size-nav-rail);
+  padding: 0;
+  border-radius: var(--radius-full);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .footer-action {
+  .footer-settings,
+  .footer-help {
     transition: none;
   }
+}
+</style>
+
+<style>
+.nav-help-item {
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.nav-help-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  min-height: 1.75rem;
+  padding: var(--spacing-xxs) var(--spacing-xs);
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
+.nav-help-kbd {
+  flex: none;
+  color: var(--ink-faint);
+  font: var(--text-caption-mono) / var(--text-caption-mono--line-height) var(--font-mono);
 }
 </style>

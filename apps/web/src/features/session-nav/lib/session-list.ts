@@ -132,14 +132,17 @@ function sliceVisible(
   sessions: readonly SessionMetadata[],
   groupKey: string,
   page: number,
-  revealByGroup: Readonly<Record<string, number>>,
+  expandedByGroup: Readonly<Record<string, boolean>>,
   searching: boolean,
-): { sessions: SidebarSession[]; more: boolean } {
-  const limit = searching ? sessions.length : (revealByGroup[groupKey] ?? page)
+): { sessions: SidebarSession[]; more: boolean; revealed: boolean } {
+  const revealed = !searching && expandedByGroup[groupKey] === true
+  const limit = searching || revealed ? sessions.length : page
   const visible = sessions.slice(0, limit)
+  const more = !searching && sessions.length > page
   return {
     sessions: visible.map(toSidebarSession),
-    more: !searching && visible.length < sessions.length,
+    more,
+    revealed: more && revealed,
   }
 }
 
@@ -148,16 +151,18 @@ function appendGroupSessions(
   sessions: readonly SessionMetadata[],
   groupKey: string,
   page: number,
-  revealByGroup: Readonly<Record<string, number>>,
+  expandedByGroup: Readonly<Record<string, boolean>>,
   searching: boolean,
 ): void {
-  const sliced = sliceVisible(sessions, groupKey, page, revealByGroup, searching)
+  const sliced = sliceVisible(sessions, groupKey, page, expandedByGroup, searching)
 
   for (const session of sliced.sessions) {
     rows.push({ kind: "session", key: session.id, session })
   }
 
-  if (sliced.more) rows.push({ kind: "more", key: `more:${groupKey}`, groupKey })
+  if (sliced.more) {
+    rows.push({ kind: "more", key: `more:${groupKey}`, groupKey, revealed: sliced.revealed })
+  }
 }
 
 /** 侧栏虚拟列表行：更新时间平铺；项目按 groups 出组头。searching 取消截断与折叠。 */
@@ -165,11 +170,11 @@ export function sidebarRows(input: {
   grouping: SidebarGrouping
   sessions: readonly SessionMetadata[]
   groups: readonly SessionGroup[]
-  revealByGroup: Readonly<Record<string, number>>
+  expandedByGroup: Readonly<Record<string, boolean>>
   searching: boolean
   collapsedByGroup?: Readonly<Record<string, boolean>>
 }): SidebarRow[] {
-  const { grouping, sessions, groups, revealByGroup, searching, collapsedByGroup = {} } = input
+  const { grouping, sessions, groups, expandedByGroup, searching, collapsedByGroup = {} } = input
 
   if (grouping === "updated") {
     const rows: SidebarRow[] = []
@@ -178,7 +183,7 @@ export function sidebarRows(input: {
       listSessionsForSidebar(sessions),
       "updated",
       UPDATED_PAGE,
-      revealByGroup,
+      expandedByGroup,
       searching,
     )
     return rows
@@ -192,7 +197,7 @@ export function sidebarRows(input: {
       group.sessions,
       group.canonicalPath,
       PROJECT_PAGE,
-      revealByGroup,
+      expandedByGroup,
       searching,
     )
 
@@ -204,6 +209,7 @@ export function sidebarRows(input: {
       collapsed,
       sessions: sliced.sessions,
       more: sliced.more,
+      revealed: sliced.revealed,
     })
   }
 

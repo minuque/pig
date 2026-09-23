@@ -470,7 +470,8 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .fav:hover {
-  color: var(--ink-muted);
+  background: var(--hover-quiet);
+  color: var(--ink);
 }
 
 .fav.on {
