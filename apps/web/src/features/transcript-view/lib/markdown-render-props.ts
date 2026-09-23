@@ -57,7 +57,10 @@ const chatCodeChrome = {
   showHeader: true,
   showCopyButton: true,
   showCollapseButton: true,
-  showExpandButton: true,
+  showExpandButton: false,
+  showFontSizeButtons: false,
+  enableFontSizeControl: false,
+  showPreviewButton: false,
 } as const
 const BATCH_BUDGET_MS = 8
 
@@ -92,6 +95,7 @@ export function chatMarkdownProps(input: {
     codeBlockOptions: {
       ...codeBlockTypography(),
       diffStyle: "unified",
+      padding: 0,
     },
     codeBlockProps: {
       theme: codeBlockTheme,
@@ -118,7 +122,7 @@ export function plainMarkdownProps(input: {
 }): NodeRendererProps {
   const streaming = Boolean(input.streaming)
   return {
-    customId: "chat",
+    customId: "thought",
     mode: "minimal",
     renderCodeBlocksAsPre: true,
     fade: false,
@@ -136,7 +140,13 @@ export function plainMarkdownProps(input: {
     deferNodesUntilVisible: true,
     isDark: input.isDark,
     codeBlockOptions: codeBlockTypography(),
-    codeBlockProps: { theme: codeBlockTheme },
+    codeBlockProps: {
+      theme: codeBlockTheme,
+      showHeader: false,
+      showCopyButton: false,
+      showCollapseButton: false,
+      showExpandButton: false,
+    },
   }
 }
 

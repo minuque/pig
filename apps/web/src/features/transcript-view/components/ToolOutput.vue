@@ -149,7 +149,7 @@ function onScroll(event: Event) {
 
 .tool-output.is-embedded {
   min-width: 0;
-  padding: var(--spacing-xs);
+  padding: 0 0 var(--spacing-xs);
   padding-inline-end: 0;
 }
 
@@ -226,7 +226,7 @@ function onScroll(event: Event) {
 
 .code-scroll {
   overflow: visible;
-  padding-block: var(--spacing-xs);
+  padding-block: 0 var(--spacing-xs);
   padding-inline-start: var(--spacing-xs);
 }
 

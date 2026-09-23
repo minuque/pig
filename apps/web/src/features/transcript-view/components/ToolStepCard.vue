@@ -114,23 +114,20 @@
       />
     </template>
 
-    <blockquote v-else-if="thoughtContent" ref="thoughtViewport" class="thought">
-      <div ref="thoughtInner">
-        <MarkdownRender
-          v-if="thoughtContent.text"
-          v-bind="thoughtProps"
-          :content="thoughtContent.text"
-        />
-      </div>
+    <blockquote v-else-if="thoughtContent" class="thought">
+      <MarkdownRender
+        v-if="thoughtContent.text"
+        v-bind="thoughtProps"
+        :content="thoughtContent.text"
+      />
     </blockquote>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, ref, shallowRef, watch } from "vue"
 import { StreamDiff } from "stream-diffs/vue"
 import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstream-vue"
-import { useStickToBottom } from "markstream-vue/utils"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
@@ -193,9 +190,6 @@ const thoughtContent = computed(() =>
     ? { text: props.text ?? "", streaming: props.streaming ?? false }
     : null,
 )
-const thoughtViewport = useTemplateRef<HTMLElement>("thoughtViewport")
-const thoughtInner = useTemplateRef<HTMLElement>("thoughtInner")
-const { scheduleScrollToBottom } = useStickToBottom(thoughtViewport, thoughtInner)
 const editContent = computed(() =>
   props.variant === "edit" && props.editPreview?.hunks.length
     ? { ...props.editPreview, outputText: props.outputText ?? "" }
@@ -228,16 +222,6 @@ function languageIconDataUrl(lang: string | undefined) {
   if (!lang || lang === "text") return ""
   return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(lang))}`
 }
-
-watch(
-  () => [thoughtContent.value?.text, thoughtContent.value?.streaming] as const,
-  async ([, streaming]) => {
-    if (!streaming) return
-    await nextTick()
-    scheduleScrollToBottom()
-  },
-  { flush: "post" },
-)
 
 watch(
   [readContent, codeBlockProps],
@@ -290,21 +274,39 @@ watch(
 }
 
 .thought {
-  max-height: calc(var(--text-body-sm) * var(--text-body-sm--line-height) * 12);
   margin: 0;
   padding-inline-start: var(--spacing-sm);
-  overflow: hidden auto;
   border-inline-start: var(--border-width) solid var(--hairline);
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
   line-height: var(--text-body-sm--line-height);
 }
 
-.thought :deep(:is([data-custom-id="chat"], p, .paragraph-node, h1, h2, h3, h4, h5, h6, li)) {
+.thought
+  :deep(
+    :is([data-custom-id="thought"], p, .paragraph-node, h1, h2, h3, h4, h5, h6, li, pre, code)
+  ) {
   margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
+  font-family: inherit;
   white-space: pre-wrap;
+}
+
+.thought :deep(.code-block-header),
+.thought :deep(.code-header-actions) {
+  display: none;
+}
+
+.thought :deep(.code-block-container) {
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .command-heading {
