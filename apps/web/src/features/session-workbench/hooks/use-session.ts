@@ -22,6 +22,7 @@ import type { usePiClient } from "@client/pi-client.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
 import { contextUsage } from "@client/platform.js"
 import { useSessionComposer } from "@features/composer/index.js"
+import { sameModel, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
 import { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"
 import {
   createAbortableOpen,
@@ -31,7 +32,6 @@ import {
 import { coalesceByFrame } from "@features/session-workbench/lib/coalesce-by-frame.js"
 import {
   bindIdleSends,
-  isSessionOpening,
   optimisticUserMessage,
   phaseLabel,
   projectClientTranscript,
@@ -147,15 +147,20 @@ export function useSessionLifecycle(
     return next
   }
 
-  /** 打开已有 Session：历史走 HTTP。断线等 pi.connected 再 open 一次。 */
-  async function openRemoteSession(id: string) {
+  function showHistory(id: string) {
     if (history.activeId.value !== id) abortInflightOpen?.()
     history.setActive(id)
     void history.loadHistory(id)
-    return enqueueReplace(async () => {
-      if (history.activeId.value !== id || remote.value?.id === id) return
 
-      if (!pi.client.value) return
+    if (remote.value?.id === id) return
+    abortInflightOpen?.()
+    release()
+  }
+
+  function ensureRemote(id: string) {
+    if (remote.value?.id === id) return Promise.resolve()
+    return enqueueReplace(async () => {
+      if (history.activeId.value !== id || remote.value?.id === id || !pi.client.value) return
       release()
 
       for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -247,18 +252,11 @@ export function useSessionLifecycle(
 
   let initialized = false
 
-  async function syncRoute() {
+  function syncRoute() {
     const id = sessionId.value
 
     if (!id) return dispose()
-
-    try {
-      await openRemoteSession(id)
-    } catch (error) {
-      sessionError.value = errorMessage(error)
-
-      if (sessionId.value && liveTranscript.value.length === 0) await router.replace("/")
-    }
+    showHistory(id)
   }
 
   const stopRouteSync = watch(sessionId, () => {
@@ -278,13 +276,15 @@ export function useSessionLifecycle(
     if (id) history.setActive(id)
     else await dispose()
 
-    if (pi.connected.value) void syncRoute()
-    else if (id) await history.loadHistory(id)
+    if (id) showHistory(id)
   }
 
-  const sessionPending = computed(() =>
-    isSessionOpening(sessionId.value, remote.value?.id, history.historyReadyId.value),
-  )
+  const sessionPending = computed(() => {
+    const id = sessionId.value
+
+    if (!id) return false
+    return history.historyReadyId.value !== id
+  })
   const projection = computed(() => {
     const current = snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined
     return !sessionId.value || current?.id === sessionId.value ? current : undefined
@@ -292,7 +292,7 @@ export function useSessionLifecycle(
   const phase = computed(() => projection.value?.phase)
   const running = computed(() => projection.value?.running ?? false)
   const phaseText = computed(() => (running.value && phase.value ? phaseLabel(phase.value) : ""))
-  const { catalog, preset, usage, createModel } = useSessionComposer({
+  const { catalog, preset, usage, createModel, consumeDetachedEdit } = useSessionComposer({
     models: pi.models,
     snapshot,
     phase,
@@ -386,9 +386,24 @@ export function useSessionLifecycle(
         if (epoch !== sendEpoch) return
 
         if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return
+      } else {
+        const id = sessionId.value
+        const chosen = consumeDetachedEdit()
+        await ensureRemote(id)
+
+        if (epoch !== sendEpoch || sessionId.value !== id) return
+
+        if (remote.value?.id !== id) throw new Error("会话未连接")
+
+        if (chosen && snapshot.value) {
+          if (!sameModel(chosen.model, snapshot.value.model)) await setModel(chosen.model)
+
+          if (chosen.thinkingLevel !== snapshot.value.thinkingLevel)
+            await setThinking(thinkingLevelOf(chosen.thinkingLevel))
+        }
       }
 
-      if (epoch !== sendEpoch) return
+      if (epoch !== sendEpoch || remote.value?.id !== sessionId.value) return
       await submitRemote(normalized)
     } catch (error) {
       if (epoch !== sendEpoch) return

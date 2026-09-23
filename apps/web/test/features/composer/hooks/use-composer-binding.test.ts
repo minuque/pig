@@ -119,4 +119,27 @@ describe("useComposerBinding", () => {
     expect(setThinking).toHaveBeenCalledWith("off")
     expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
   })
+
+  it("未打开会话时目录默认不算用户修改，手选后不被随后的快照盖掉", async () => {
+    const state = ref<SessionSnapshot | undefined>(undefined)
+    const { preset, consumeDetachedEdit } = useComposerBinding({
+      catalog: ref(catalog),
+      snapshot: state,
+      phase: ref("idle"),
+      setModel: vi.fn(async () => undefined),
+      setThinking: vi.fn(async () => undefined),
+    })
+
+    await nextTick()
+    expect(consumeDetachedEdit()).toBeUndefined()
+    preset.value = { model: { provider: "b", id: "two" }, thinkingLevel: "low" }
+    await nextTick()
+    state.value = snapshot()
+    await nextTick()
+    expect(preset.value).toEqual({ model: { provider: "b", id: "two" }, thinkingLevel: "low" })
+    expect(consumeDetachedEdit()).toEqual({
+      model: { provider: "b", id: "two" },
+      thinkingLevel: "low",
+    })
+  })
 })
