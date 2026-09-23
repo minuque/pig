@@ -172,6 +172,9 @@
   /* 尺寸 */
   --size-control: 40px;
   --size-menu: 140px;
+  --size-context-menu: 12rem;
+  --menu-surface: color-mix(in srgb, var(--popover) 70%, transparent);
+  --menu-blur: 40px;
   --size-sidebar: 280px;
   --nav-shell-pad: var(--spacing-xs);
   --titlebar-inset: 44px;

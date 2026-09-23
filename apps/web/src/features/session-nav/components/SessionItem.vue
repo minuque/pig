@@ -17,7 +17,7 @@
       <TooltipContent>{{ pinned ? "取消置顶" : "置顶" }}</TooltipContent>
     </Tooltip>
 
-    <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
+    <ContextMenu :modal="false" :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
           :is="renaming ? 'div' : RouterLink"
@@ -101,18 +101,20 @@
 
       <ContextMenuContent class="select-none">
         <ContextMenuItem @select="emit('togglePinned', session.id)">
-          <PinOff v-if="pinned" :size="14" />
-          <Pin v-else :size="14" />
+          <PinOff v-if="pinned" />
+          <Pin v-else />
           {{ pinned ? "取消置顶" : "置顶" }}
         </ContextMenuItem>
 
         <ContextMenuItem @select="startRename">
-          <Pencil :size="14" />
+          <Pencil />
           重命名
         </ContextMenuItem>
 
+        <ContextMenuSeparator />
+
         <ContextMenuItem variant="destructive" @select="deleteOpen = true">
-          <Trash2 :size="14" />
+          <Trash2 />
           删除
         </ContextMenuItem>
       </ContextMenuContent>
@@ -130,6 +132,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
 import { useNav } from "@features/session-nav/index.js"
@@ -234,17 +237,12 @@ function openContextMenuAt(target: HTMLElement, clientX: number, clientY: number
 }
 
 function openSessionMenu(event: MouseEvent) {
-  const item = (event.currentTarget as HTMLElement).closest(".session-item")
-  const card = item?.querySelector(".session-card")
+  const button = event.currentTarget
+  const card = button instanceof HTMLElement ? button.closest(".session-card") : null
 
-  if (!(card instanceof HTMLElement)) return
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const menuWidth =
-    Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--size-menu")) ||
-    140
-
-  // ContextMenu 固定 side=right / align=start，点在面板左上；左移一格让右上角贴图标
-  openContextMenuAt(card, rect.right - menuWidth - 2, rect.bottom)
+  if (!(button instanceof HTMLElement) || !(card instanceof HTMLElement)) return
+  const rect = button.getBoundingClientRect()
+  openContextMenuAt(card, rect.left, rect.bottom)
 }
 
 function onCardKeydown(event: KeyboardEvent) {
