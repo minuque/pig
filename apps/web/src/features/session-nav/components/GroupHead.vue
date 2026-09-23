@@ -7,17 +7,16 @@
     @mouseleave="onHeadLeave"
   >
     <button class="group-toggle" type="button" :aria-expanded="!collapsed" @click="emit('toggle')">
-      <span v-if="kind === 'directory'" class="mark" :class="{ 'is-grip': sortable }">
+      <span class="mark" :class="{ 'is-grip': sortable }">
         <Folder v-if="collapsed" class="size-icon folder-icon" />
         <FolderOpen v-else class="size-icon folder-icon" />
         <GripVertical v-if="sortable" class="size-icon grip-icon" />
       </span>
 
-      <Clock v-else class="size-icon mark" />
       <span class="group-name">{{ name }}</span>
     </button>
 
-    <span v-if="kind === 'directory'" class="trail">
+    <span class="trail">
       <Tooltip>
         <TooltipTrigger as-child>
           <button
@@ -40,17 +39,16 @@
 
 <script setup lang="ts">
 import { shallowRef } from "vue"
-import { Clock, Folder, FolderOpen, GripVertical, MessageCirclePlus } from "@lucide/vue"
+import { Folder, FolderOpen, GripVertical, MessageCirclePlus } from "@lucide/vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = withDefaults(
   defineProps<{
     name: string
     collapsed?: boolean
-    kind?: "directory" | "time"
     sortable?: boolean
   }>(),
-  { kind: "directory", sortable: false },
+  { sortable: false },
 )
 const emit = defineEmits<{
   toggle: []

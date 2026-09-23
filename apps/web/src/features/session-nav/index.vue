@@ -3,8 +3,7 @@
     <div class="titlebar-drag" aria-hidden="true"></div>
 
     <div class="nav-inset">
-      <NavHeader @toggle="emit('toggle')" />
-      <NavToolbar @create="onCreateSession" @search="openSearch" />
+      <NavHeader @toggle="emit('toggle')" @create="onCreateSession" @search="openSearch" />
 
       <p v-if="connected && !groups.length" class="add-guide">
         <ArrowUp class="size-icon motion-nudge" />
@@ -29,7 +28,6 @@ import { notifyError } from "@components/layout/notify.js"
 import { useNav } from "@features/session-nav/index.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
 import NavHeader from "@features/session-nav/components/NavHeader.vue"
-import NavToolbar from "@features/session-nav/components/NavToolbar.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
 import { useSettings } from "@features/settings/index.js"
 

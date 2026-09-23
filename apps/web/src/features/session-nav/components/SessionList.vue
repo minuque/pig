@@ -69,7 +69,6 @@
       >
         <GroupHead
           :name="section.name"
-          :kind="section.kind"
           :sortable="sort === 'manual'"
           :collapsed="section.collapsed"
           @dragstart="onGroupDragStart(section.key, $event)"
@@ -164,7 +163,6 @@ const listSections = computed(() =>
   groupRows.value.map((row) => ({
     key: row.key,
     name: workspaceName(row.canonicalPath),
-    kind: "directory" as const,
     collapsed: row.collapsed,
     open: !row.collapsed && (row.sessions.length > 0 || row.more),
     sessions: row.sessions,
