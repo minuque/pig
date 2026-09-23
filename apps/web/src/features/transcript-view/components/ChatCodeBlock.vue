@@ -49,7 +49,8 @@ const host = useTemplateRef<HTMLElement>("host")
 const actionsHost = shallowRef<Element | null>(null)
 
 function bindActions() {
-  const next = host.value?.querySelector(".code-block-header .flex.items-center.gap-0.5") ?? null
+  const btn = host.value?.querySelector(".code-block-header .code-action-btn")
+  const next = btn?.parentElement ?? null
 
   if (next !== actionsHost.value) actionsHost.value = next
 }
