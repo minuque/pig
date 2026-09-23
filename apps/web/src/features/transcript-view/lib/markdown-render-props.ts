@@ -61,11 +61,9 @@ const chatCodeChrome = {
   showFontSizeButtons: false,
   enableFontSizeControl: false,
   showPreviewButton: false,
+  showLineNumbers: false,
 } as const
 const BATCH_BUDGET_MS = 8
-/** pierre 行号 gutter 写死 2ch，注入后与顶栏图标左缘对齐 */
-export const diffsGutterAlignCss =
-  "[data-gutter-buffer],[data-column-number]{padding-left:var(--ms-inset-panel-x)!important}"
 
 /** 历史挂载即终态；流式仍 defer 分帧长高。节点虚拟化交给库，单帧预算 8ms。 */
 export function chatMarkdownProps(input: {
@@ -98,7 +96,6 @@ export function chatMarkdownProps(input: {
     codeBlockOptions: {
       ...codeBlockTypography(),
       diffStyle: "unified",
-      unsafeCSS: diffsGutterAlignCss,
     },
     codeBlockProps: {
       theme: codeBlockTheme,
@@ -151,6 +148,16 @@ export function plainMarkdownProps(input: {
       showExpandButton: false,
     },
   }
+}
+
+export async function highlightCodeTokens(
+  code: string,
+  lang: string,
+  theme: CodeBlockTheme,
+): Promise<{ content: string; color?: string }[][]> {
+  const { getSharedHighlighter } = await import("stream-diffs/pierre")
+  const highlighter = await getSharedHighlighter({ themes: [theme], langs: [lang] })
+  return highlighter.codeToTokens(code, { lang, theme }).tokens
 }
 
 let highlighterWork: Promise<void> | undefined

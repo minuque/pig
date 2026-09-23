@@ -3,7 +3,7 @@
     <div class="code-scroll">
       <div class="code-lines" :style="{ '--line-number-width': `${lineNumberWidth}ch` }">
         <div v-for="(line, index) in lines" :key="index" class="code-line">
-          <span class="line-number">{{ startLine + index }}</span>
+          <span v-if="showLineNumbers" class="line-number">{{ startLine + index }}</span>
 
           <code>
             <template v-if="tokens[index]">
@@ -94,6 +94,7 @@ const props = withDefaults(
     lines?: readonly string[]
     tokens?: { content: string; color?: string }[][]
     startLine?: number
+    showLineNumbers?: boolean
     images?: ToolImage[]
   }>(),
   {
@@ -108,6 +109,7 @@ const props = withDefaults(
     lines: () => [],
     tokens: () => [],
     startLine: 1,
+    showLineNumbers: false,
     images: () => [],
   },
 )

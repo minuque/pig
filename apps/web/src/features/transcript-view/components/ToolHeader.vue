@@ -10,6 +10,24 @@
       <div class="actions">
         <slot name="meta" />
 
+        <Tooltip v-if="lineNumbers">
+          <TooltipTrigger as-child>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-2xs"
+              class="icon-btn"
+              :aria-label="showLineNumbers ? '隐藏行号' : '显示行号'"
+              :aria-pressed="showLineNumbers"
+              @click.stop="showLineNumbers = !showLineNumbers"
+            >
+              <ListOrdered class="size-3.5" />
+            </Button>
+          </TooltipTrigger>
+
+          <TooltipContent>{{ showLineNumbers ? "隐藏行号" : "显示行号" }}</TooltipContent>
+        </Tooltip>
+
         <Tooltip>
           <TooltipTrigger as-child>
             <Button
@@ -57,15 +75,17 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
-import { AlignLeft, Check, Copy, WrapText } from "@lucide/vue"
+import { AlignLeft, Check, Copy, ListOrdered, WrapText } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = defineProps<{
   label: string
   text: string
+  lineNumbers?: boolean
 }>()
 const softWrap = defineModel<boolean>("softWrap", { default: false })
+const showLineNumbers = defineModel<boolean>("showLineNumbers", { default: false })
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const copyLabel = computed(() =>
   status.value === "copied"

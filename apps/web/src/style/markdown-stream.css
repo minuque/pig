@@ -143,15 +143,6 @@
     --markstream-pre-resolved-theme-bg: var(--code-body) !important;
   }
 
-  /* 库在 pre 上内联 2ch，必须打在同一元素才能压过 */
-  .code-block-container pre {
-    --markstream-pre-line-number-padding-left: var(--ms-inset-panel-x) !important;
-    --markstream-code-padding-left: calc(
-      var(--ms-inset-panel-x) + var(--markstream-pre-line-number-width, 2ch) +
-        var(--markstream-pre-line-number-padding-right, 1ch) + 2px
-    ) !important;
-  }
-
   .mermaid-block-container {
     background: var(--code-body);
     box-shadow: var(--shadow-card);

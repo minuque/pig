@@ -32,7 +32,13 @@
     </template>
 
     <template v-else-if="readContent">
-      <ToolHeader v-model:soft-wrap="softWrap" label="输出" :text="readContent.preview.code">
+      <ToolHeader
+        v-model:soft-wrap="softWrap"
+        v-model:show-line-numbers="showLineNumbers"
+        line-numbers
+        label="输出"
+        :text="readContent.preview.code"
+      >
         <div class="read-heading">
           <img
             v-if="languageIconUrl"
@@ -49,6 +55,7 @@
       <ToolOutput
         code
         :soft-wrap="softWrap"
+        :show-line-numbers="showLineNumbers"
         :lines="readContent.preview.lines"
         :tokens="readTokens"
         :start-line="readContent.preview.startLine"
@@ -66,7 +73,7 @@
         label="输出"
         :text="toolContent.shownOutput"
       >
-        <pre v-if="toolContent.inputFull" class="input-json">{{ toolContent.inputFull }}</pre>
+        <ToolInputJson v-if="toolContent.inputFull" :text="toolContent.inputFull" />
       </ToolHeader>
 
       <ToolOutput
@@ -129,11 +136,12 @@ import { computed, ref, shallowRef, watch } from "vue"
 import { StreamDiff } from "stream-diffs/vue"
 import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
+import ToolInputJson from "@features/transcript-view/components/ToolInputJson.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/index.js"
 import {
-  diffsGutterAlignCss,
+  highlightCodeTokens,
   plainMarkdownProps,
 } from "@features/transcript-view/lib/markdown-render-props.js"
 import { pathBasename, type ReadToolPreview } from "@features/transcript-view/lib/tool-summary.js"
@@ -212,13 +220,13 @@ const thoughtProps = computed(() =>
 const editDiffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
   disableFileHeader: true,
-  unsafeCSS: diffsGutterAlignCss,
 }))
 const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
 const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
 const editLanguageIconUrl = computed(() => languageIconDataUrl(editContent.value?.language))
 const editHeading = computed(() => editContent.value?.path || editContent.value?.fileName || "")
 const softWrap = ref(false)
+const showLineNumbers = ref(false)
 
 function languageIconDataUrl(lang: string | undefined) {
   void languageIconsRevision.value
@@ -242,15 +250,10 @@ watch(
     }
 
     try {
-      const theme = blockProps.theme
-      const { getSharedHighlighter } = await import("stream-diffs/pierre")
-      const highlighter = await getSharedHighlighter({ themes: [theme], langs: [preview.language] })
+      const next = await highlightCodeTokens(preview.code, preview.language, blockProps.theme)
 
       if (!active) return
-      readTokens.value = highlighter.codeToTokens(preview.code, {
-        lang: preview.language,
-        theme,
-      }).tokens
+      readTokens.value = next
     } catch {
       if (active) readTokens.value = []
     }
@@ -368,15 +371,6 @@ watch(
 
 .is-tool :deep(.tool-header) {
   align-items: flex-start;
-}
-
-.input-json {
-  margin: 0;
-  color: var(--ink);
-  font-family: var(--font-mono);
-  line-height: var(--text-caption--line-height);
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
 }
 
 .read-heading {
