@@ -72,8 +72,9 @@
         v-model:soft-wrap="softWrap"
         label="输出"
         :text="toolContent.shownOutput"
-        :json="toolContent.inputFull"
-      />
+      >
+        <ToolInputJson v-if="toolContent.inputFull" :text="toolContent.inputFull" />
+      </ToolHeader>
 
       <ToolOutput
         :soft-wrap="softWrap"
@@ -135,6 +136,7 @@ import { computed, ref, shallowRef, watch } from "vue"
 import { StreamDiff } from "stream-diffs/vue"
 import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstream-vue"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
+import ToolInputJson from "@features/transcript-view/components/ToolInputJson.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/index.js"

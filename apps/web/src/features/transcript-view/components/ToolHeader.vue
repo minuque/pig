@@ -2,19 +2,7 @@
   <div class="tool-header-pin">
     <div class="tool-header">
       <div class="heading">
-        <div v-if="json" class="heading-json" :title="json">
-          <div v-for="(line, lineIndex) in jsonLines" :key="lineIndex" class="json-line">
-            <span
-              v-for="(token, tokenIndex) in line"
-              :key="tokenIndex"
-              :style="{ color: token.color }"
-            >
-              {{ token.content }}
-            </span>
-          </div>
-        </div>
-
-        <slot v-else>
+        <slot>
           <span class="label" :title="label">{{ label }}</span>
         </slot>
       </div>
@@ -85,20 +73,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue"
+import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { AlignLeft, Check, Copy, ListOrdered, WrapText } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { useColorScheme } from "@features/theme/index.js"
-import { highlightCodeTokens } from "@features/transcript-view/lib/markdown-render-props.js"
-
-type JsonToken = { content: string; color?: string }
 
 const props = defineProps<{
   label: string
   text: string
-  json?: string
   lineNumbers?: boolean
 }>()
 const softWrap = defineModel<boolean>("softWrap", { default: false })
@@ -112,38 +95,6 @@ const copyLabel = computed(() =>
       : `复制${props.label}`,
 )
 const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { immediate: false })
-const { codeBlockProps } = useColorScheme()
-const jsonTokens = shallowRef<JsonToken[][]>([])
-const jsonLines = computed((): JsonToken[][] => {
-  if (jsonTokens.value.length) return jsonTokens.value
-
-  if (!props.json) return []
-  return props.json.split(/\r?\n/).map((line) => [{ content: line }])
-})
-
-watch(
-  () => [props.json, codeBlockProps.value.theme] as const,
-  async ([json, theme], _, onCleanup) => {
-    let active = true
-    onCleanup(() => {
-      active = false
-    })
-
-    if (!json || json.length > 100_000) {
-      jsonTokens.value = []
-      return
-    }
-
-    try {
-      const next = await highlightCodeTokens(json, "json", theme)
-
-      if (active) jsonTokens.value = next
-    } catch {
-      if (active) jsonTokens.value = []
-    }
-  },
-  { immediate: true },
-)
 
 async function copy() {
   stop()
@@ -204,18 +155,6 @@ async function copy() {
 .heading {
   flex: 1;
   min-width: 0;
-}
-
-.heading-json {
-  min-width: 0;
-  color: var(--ink);
-  font-family: var(--font-mono);
-  line-height: var(--text-caption--line-height);
-  overflow-wrap: anywhere;
-}
-
-.json-line {
-  min-height: 1lh;
 }
 
 .label {
