@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises"
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
@@ -19,6 +19,8 @@ const directoryPort: DirectoryPort = {
 }
 let gateway: Gateway | undefined
 let sessionDir: string | undefined
+let attachmentRootDir: string | undefined
+let searchRoot: string | undefined
 
 afterEach(async () => {
   selectedDirectory = undefined
@@ -26,7 +28,13 @@ afterEach(async () => {
   gateway = undefined
 
   if (sessionDir) await rm(sessionDir, { recursive: true, force: true })
+
+  if (attachmentRootDir) await rm(attachmentRootDir, { recursive: true, force: true })
   sessionDir = undefined
+  attachmentRootDir = undefined
+
+  if (searchRoot) await rm(searchRoot, { recursive: true, force: true })
+  searchRoot = undefined
 })
 
 const idleRuntime = {
@@ -37,10 +45,12 @@ const idleRuntime = {
 
 async function startGateway(options?: ConstructorParameters<typeof Gateway>[0]) {
   sessionDir = await mkdtemp(join(tmpdir(), "pig-host-"))
+  attachmentRootDir = await mkdtemp(join(tmpdir(), "pig-attach-"))
   gateway = new Gateway({
     platformPort: directoryPort,
     createRuntime: async () => idleRuntime as never,
     sessionDir,
+    attachmentRootDir,
     ...options,
   })
   return `http://127.0.0.1:${await gateway.start()}`
@@ -148,6 +158,92 @@ describe("thin host HTTP shell", () => {
       path: null,
       requiresManualInput: false,
     })
+  })
+
+  it("附件暂存走原始流，bind 校验入参与 session", async () => {
+    const base = await startGateway()
+    const stage = (query: string, body: BodyInit) =>
+      fetch(`${base}/api/v1/platform/attachments/stage?${query}`, {
+        method: "POST",
+        headers: authHeaders(),
+        body,
+      })
+    const bytes = (text: string) => new TextEncoder().encode(text)
+    const staged = await stage(
+      "batch=b1&name=报告 v2.pdf&mimeType=application/pdf",
+      bytes("hello 附件"),
+    )
+
+    expect(staged.status).toBe(200)
+    await expect(staged.json()).resolves.toMatchObject({ id: expect.any(String) })
+
+    // batch 名带路径分隔符直接拒绝
+    expect((await stage("batch=../escape&name=a&mimeType=text/plain", bytes("x"))).status).toBe(400)
+
+    // 超过 25MB：413 回给客户端，服务端不留半成品
+    const oversized = await stage(
+      "batch=big&name=big.bin&mimeType=application/octet-stream",
+      new Uint8Array(25 * 1024 * 1024 + 1024),
+    )
+
+    expect(oversized.status).toBe(413)
+    await expect(oversized.json()).resolves.toEqual({ code: "PAYLOAD_TOO_LARGE" })
+
+    // bind：缺参数 400，session 不存在 404（batch 是否存在先不校验）
+    expect((await request(base, "/api/v1/platform/attachments/bind", { batch: "b1" })).status).toBe(
+      400,
+    )
+    expect(
+      (await request(base, "/api/v1/platform/attachments/bind", { sessionId: "s", batch: "b1" }))
+        .status,
+    ).toBe(404)
+
+    // discard：缺参数 400，未知 batch 幂等回 200
+    expect((await request(base, "/api/v1/platform/attachments/discard", {})).status).toBe(400)
+    expect(
+      (await request(base, "/api/v1/platform/attachments/discard", { batch: "b1" })).status,
+    ).toBe(200)
+    expect(
+      await (await request(base, "/api/v1/platform/attachments/discard", { batch: "nope" })).json(),
+    ).toEqual({ ok: true })
+  }, 15_000)
+
+  it("search-files 按文件名子串命中，空 query 不遍历", async () => {
+    const base = await startGateway()
+    searchRoot = await mkdtemp(join(tmpdir(), "pig-search-"))
+    await mkdir(join(searchRoot, "src", "deep"), { recursive: true })
+    await mkdir(join(searchRoot, "node_modules", "pkg"), { recursive: true })
+    await writeFile(join(searchRoot, "src", "SearchBox.vue"), "")
+    await writeFile(join(searchRoot, "src", "deep", "search-util.ts"), "")
+    await writeFile(join(searchRoot, "node_modules", "pkg", "search-dep.ts"), "")
+
+    const found = await request(base, "/api/v1/platform/search-files", {
+      cwd: searchRoot,
+      query: "SEARCH",
+    })
+
+    expect(found.status).toBe(200)
+    await expect(found.json()).resolves.toEqual({
+      files: [
+        { name: "SearchBox.vue", path: "src/SearchBox.vue" },
+        { name: "search-util.ts", path: "src/deep/search-util.ts" },
+      ],
+    })
+
+    // 空 query 直接空列表；cwd 不存在回 400
+    await expect(
+      (
+        await request(base, "/api/v1/platform/search-files", { cwd: searchRoot, query: "  " })
+      ).json(),
+    ).resolves.toEqual({ files: [] })
+    expect(
+      (
+        await request(base, "/api/v1/platform/search-files", {
+          cwd: join(searchRoot, "missing"),
+          query: "a",
+        })
+      ).status,
+    ).toBe(400)
   })
 
   it("renames and deletes sessions", async () => {

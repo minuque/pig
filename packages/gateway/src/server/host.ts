@@ -18,6 +18,8 @@ export interface GatewayOptions {
   port?: number
   /** 测试注入：ModelRuntime 工厂。 */
   createRuntime?: PiHostServiceOptions["createRuntime"]
+  /** 非图片附件的临时根目录；缺省 os.tmpdir()/pig-attachments。 */
+  attachmentRootDir?: string
   /** 浏览器通行证的签名文件。缺省跟会话目录或用户主目录走。 */
   browserSecretFile?: string
 }
@@ -48,6 +50,7 @@ export class Gateway {
     this.hostService = new PiHostService({
       ...(options.sessionDir ? { sessionDir: options.sessionDir } : {}),
       ...(options.cwd ? { cwd: options.cwd } : {}),
+      ...(options.attachmentRootDir ? { attachmentRootDir: options.attachmentRootDir } : {}),
       ...(options.createRuntime ? { createRuntime: options.createRuntime } : {}),
     })
     this.piServer = new PiServer(this.hostService, {
@@ -171,6 +174,7 @@ export class Gateway {
 
   async stop() {
     await this.piServer.close()
+    await this.hostService.dispose()
     await new Promise<void>((resolveStop, reject) =>
       this.server.close((error) => (error ? reject(error) : resolveStop())),
     )

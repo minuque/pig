@@ -14,6 +14,7 @@ import type {
   SteerInput,
 } from "@earendil-works/pi-server"
 import { canonicalizePath } from "../directory.js"
+import { composePrompt, type AttachmentSink } from "./attachments.js"
 import { estimateContextUsage, type ContextPreviewKey } from "./context-usage.js"
 import { firstUserMessageText, sessionListName } from "./session-label.js"
 import { TranscriptProjection } from "./transcript.js"
@@ -56,6 +57,7 @@ export class PiHostSession implements PiSessionRuntime {
   constructor(
     private readonly session: AgentSession,
     private readonly onDispose?: () => void,
+    private readonly attachments?: AttachmentSink,
   ) {
     this.timing = new TurnTimingRecorder(session.sessionManager)
     this.unsubscribeSession = session.subscribe((event) => this.handleEvent(event))
@@ -124,13 +126,20 @@ export class PiHostSession implements PiSessionRuntime {
   async prompt(input: PromptInput): Promise<void> {
     await this.exclusive(async () => {
       if (!this.session.isIdle) throw new SessionBusyError("A prompt is already running")
+      // 先取暂存附件：busy 已提前拒绝，取走后 prompt 失败要放回，避免附件静默丢失
+      const staged = this.attachments?.take(this.session.sessionId) ?? []
+      const composed = composePrompt(input.text, staged)
       this.timing.start()
 
       try {
-        await this.session.prompt(input.text)
+        await this.session.prompt(
+          composed.text,
+          composed.images.length ? { images: composed.images } : undefined,
+        )
 
         if (!this.session.isIdle) await this.session.waitForIdle()
       } catch (error) {
+        this.attachments?.restore(this.session.sessionId, staged)
         this.timing.outcome("error")
         throw error
       } finally {
