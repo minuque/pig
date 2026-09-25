@@ -80,14 +80,6 @@ export function toolRowLabelParts(row: ToolRow): ToolRowLabelPart[] {
   return [{ kind: "text", text: row.mode === "live" ? "执行中" : "执行过程" }]
 }
 
-export function toolRowLabel(row: ToolRow): string {
-  return toolRowLabelParts(row)
-    .map((part) =>
-      part.kind === "text" ? part.text : `${part.prefix} ${part.count} ${part.suffix}`,
-    )
-    .join(" · ")
-}
-
 export function toolRowFailCount(row: ToolRow): number {
   let count = 0
 

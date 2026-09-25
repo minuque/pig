@@ -86,7 +86,6 @@ test("一轮工作：工具步骤状态实时、hook-rail 跟随、历史重拉�
   const bridge = await installTurnBridge(page)
   await page.goto(complexGateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByText("正在连接…")).toHaveCount(0)
   await page
     .locator(".session-card", { has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }) })
     .click()

@@ -252,27 +252,6 @@ function markLastAssistantTimestamp(rows: TimelineRow[], start: number) {
   }
 }
 
-export function buildTimelineRows(
-  items: readonly TranscriptItem[],
-  running: boolean,
-  timings: readonly TurnTiming[] = [],
-): TimelineRow[] {
-  const rows: TimelineRow[] = []
-  let user: UserTranscriptItem | undefined
-  let rest: TranscriptItem[] = []
-
-  for (const item of items) {
-    if (isUserItem(item) && isVisibleTranscriptItem(item)) {
-      if (user || rest.length) appendTurn({ rows, user, rest, live: false, timings })
-      user = item
-      rest = []
-    } else rest.push(item)
-  }
-
-  if (user || rest.length || running) appendTurn({ rows, user, rest, live: running, timings })
-  return rows
-}
-
 interface TurnRowsEntry {
   user: UserTranscriptItem | undefined
   rest: readonly TranscriptItem[]

@@ -147,16 +147,6 @@ export function withPendingAssistant(
   return [...items, pendingAssistant(last.timestamp)]
 }
 
-/** 路由已有 session，但 lease 未齐或历史 HTTP 未落地。 */
-export function isSessionOpening(
-  sessionId: string | undefined,
-  remoteId: string | undefined,
-  historySessionId: string | undefined,
-): boolean {
-  if (!sessionId) return false
-  return sessionId !== remoteId || historySessionId !== sessionId
-}
-
 /** 磁盘历史为底，live 按 id 覆盖；当前回合的临时 id 对齐历史后缀，只追加还没落盘的尾巴。 */
 export function mergeLiveTranscript(
   persisted: readonly TranscriptItem[],

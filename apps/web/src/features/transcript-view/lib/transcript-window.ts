@@ -276,16 +276,8 @@ export type TranscriptWindowBlock<T extends WindowItem = WindowItem> =
   | { kind: "space"; key: string; height: number }
   | { kind: "item"; key: string; item: T; index: number }
 
-/** 按 user 行计轮，无 user 前缀算一轮；超过 40 轮才窗口化。 */
+/** 超过 40 轮才窗口化。 */
 export const WINDOW_TURN_LIMIT = 40
-
-export function timelineTurnCount(rows: readonly Pick<TimelineRow, "role">[]): number {
-  if (rows.length === 0) return 0
-  let users = 0
-
-  for (const row of rows) if (row.role === "user") users += 1
-  return rows[0]?.role === "user" ? users : users + 1
-}
 
 export function shouldWindowTranscript(count: number): boolean {
   return count > WINDOW_TURN_LIMIT

@@ -29,7 +29,6 @@ test("一轮工作：复杂历史上发送、流式、中止", async ({ page, co
   await page.goto(complexGateway.entryUrl)
 
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByText("正在连接…")).toHaveCount(0)
 
   const card = page.locator(".session-card", {
     has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }),

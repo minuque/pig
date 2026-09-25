@@ -138,17 +138,3 @@ export async function discardAttachments(batch: string): Promise<void> {
     body: JSON.stringify({ batch }),
   })
 }
-
-export interface SearchFileHit {
-  name: string
-  path: string
-}
-
-/** @提及 文件搜索：命中最多 50 条，path 为相对 cwd 的 POSIX 路径。 */
-export async function searchFiles(cwd: string, query: string): Promise<SearchFileHit[]> {
-  const result = await platformRequest<{ files?: SearchFileHit[] }>(
-    "/api/v1/platform/search-files",
-    { method: "POST", body: JSON.stringify({ cwd, query }) },
-  )
-  return Array.isArray(result.files) ? result.files : []
-}

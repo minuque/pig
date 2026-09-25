@@ -9,7 +9,6 @@ import {
   pinTailIndices,
   resolveVisibleRange,
   shouldWindowTranscript,
-  timelineTurnCount,
   TranscriptHeightIndex,
   WINDOW_MIN_BUFFER,
   WINDOW_TURN_LIMIT,
@@ -216,22 +215,9 @@ describe("打开已有会话 → 长列表按视口窗口挂载", () => {
     expect(estimateRowHeight(user)).toBeLessThanOrEqual(392)
   })
 
-  it("轮数按 user 行计，无 user 前缀算一轮，超过 40 轮才窗口化", () => {
-    expect(timelineTurnCount([])).toBe(0)
-    expect(timelineTurnCount([row("a")])).toBe(1)
-
-    const users = Array.from({ length: WINDOW_TURN_LIMIT }, (_, at) => ({
-      id: `u${at}`,
-      role: "user" as const,
-      text: "问",
-      images: [],
-      timestamp: 0,
-    }))
-
-    expect(timelineTurnCount(users)).toBe(WINDOW_TURN_LIMIT)
+  it("超过 40 轮才窗口化", () => {
     expect(shouldWindowTranscript(WINDOW_TURN_LIMIT)).toBe(false)
     expect(shouldWindowTranscript(WINDOW_TURN_LIMIT + 1)).toBe(true)
-    expect(timelineTurnCount([row("orphan"), ...users])).toBe(WINDOW_TURN_LIMIT + 1)
   })
 
   it("短会话全量挂载不插 spacer", () => {
