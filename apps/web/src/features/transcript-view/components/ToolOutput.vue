@@ -2,44 +2,26 @@
   <div v-if="code" class="tool-output is-code" :class="{ 'is-soft-wrap': softWrap }">
     <div class="code-scroll">
       <div class="code-lines" :style="{ '--line-number-width': `${lineNumberWidth}ch` }">
-        <div v-for="(line, index) in lines" :key="index" class="code-line">
+        <div v-for="(line, index) in shownLines" :key="index" class="code-line">
           <span v-if="showLineNumbers" class="line-number">{{ startLine + index }}</span>
-
-          <code>
-            <template v-if="tokens[index]">
-              <span
-                v-for="(token, tokenIndex) in tokens[index]"
-                :key="tokenIndex"
-                :style="{ color: token.color }"
-              >
-                {{ token.content }}
-              </span>
-            </template>
-
-            <template v-else>{{ line }}</template>
-          </code>
+          <code v-if="tokens[index]" v-token-line="tokens[index]" />
+          <code v-else>{{ line }}</code>
         </div>
       </div>
     </div>
+
+    <button v-if="hiddenLines" type="button" class="show-all" @click="expanded = true">
+      显示全部（还有 {{ hiddenLines }} 行）
+    </button>
   </div>
 
   <div v-else class="tool-output" :class="{ 'is-embedded': embedded, 'is-soft-wrap': softWrap }">
     <template v-if="showText">
-      <pre v-if="!virtual" class="tool-output-pre" :class="preClass">{{ text }}</pre>
+      <pre class="tool-output-pre" :class="preClass">{{ shownText }}</pre>
 
-      <pre
-        v-else
-        class="tool-output-pre is-virtual"
-        :class="preClass"
-        :style="{ height: `${maxLines * lineHeight}px` }"
-        @scroll="onScroll"
-      >
-        <span class="canvas" :style="{ height: `${totalHeight}px` }">
-          <span class="window" :style="{ top: `${padTop}px` }">{{ visibleText }}</span>
-        </span>
-      </pre>
-
-      <p v-if="virtual && showCount" class="meta">{{ lines.length }} 行</p>
+      <button v-if="hiddenLines" type="button" class="show-all" @click="expanded = true">
+        显示全部（还有 {{ hiddenLines }} 行）
+      </button>
     </template>
 
     <div v-if="images.length" class="images">
@@ -56,53 +38,40 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
+import { type CodeTokens, vTokenLine } from "@features/transcript-view/lib/markdown-render-props.js"
 import type { TranscriptImage as ToolImage } from "@features/transcript-view/type.js"
 
-const DEFAULT_MAX_EXPAND_LINES = 32
-const DEFAULT_LINE_HEIGHT_PX = 21
-const DEFAULT_OVERSCAN_LINES = 8
+const LINE_LIMIT = 500
 
-function splitLines(text: string): string[] {
-  return text.length === 0 ? [] : text.split(/\r?\n/)
-}
+/** 前 limit 行的结束位置和总行数；不超限时 end 为 -1。 */
+function lineCut(text: string, limit: number) {
+  let end = -1
+  let count = 1
 
-function visibleLineRange(
-  scrollTop: number,
-  lineHeight: number,
-  viewportLines: number,
-  totalLines: number,
-  overscan: number,
-): { start: number; end: number } {
-  if (totalLines === 0) return { start: 0, end: 0 }
+  for (let at = text.indexOf("\n"); at >= 0; at = text.indexOf("\n", at + 1)) {
+    if (count === limit) end = at
+    count += 1
+  }
 
-  const first = Math.max(0, Math.floor(Math.max(0, scrollTop) / lineHeight))
-  const start = Math.max(0, first - overscan)
-  const end = Math.min(totalLines, first + viewportLines + overscan)
-  return { start, end }
+  return { end: count > limit ? end : -1, count }
 }
 
 const props = withDefaults(
   defineProps<{
     text?: string
-    maxLines?: number
-    lineHeight?: number
     tone?: "code" | "plain"
-    showCount?: boolean
     embedded?: boolean
     code?: boolean
     softWrap?: boolean
     lines?: readonly string[]
-    tokens?: { content: string; color?: string }[][]
+    tokens?: CodeTokens
     startLine?: number
     showLineNumbers?: boolean
     images?: ToolImage[]
   }>(),
   {
     text: "",
-    maxLines: DEFAULT_MAX_EXPAND_LINES,
-    lineHeight: DEFAULT_LINE_HEIGHT_PX,
     tone: "code",
-    showCount: true,
     embedded: false,
     code: false,
     softWrap: false,
@@ -113,35 +82,28 @@ const props = withDefaults(
     images: () => [],
   },
 )
+const expanded = shallowRef(false)
 const showText = computed(() => props.text.length > 0 || props.images.length === 0)
-const lines = computed(() => (props.code ? [...props.lines] : splitLines(props.text)))
+const textCut = computed(() => (props.code ? null : lineCut(props.text, LINE_LIMIT)))
+const shownText = computed(() => {
+  const end = textCut.value?.end ?? -1
+  return expanded.value || end < 0 ? props.text : props.text.slice(0, end)
+})
+const shownLines = computed(() => (expanded.value ? props.lines : props.lines.slice(0, LINE_LIMIT)))
+const hiddenLines = computed(() => {
+  if (expanded.value) return 0
+
+  if (props.code) return Math.max(0, props.lines.length - LINE_LIMIT)
+  const cut = textCut.value
+  return cut && cut.end >= 0 ? cut.count - LINE_LIMIT : 0
+})
 const lineNumberWidth = computed(() =>
-  Math.max(3, String(props.startLine + lines.value.length - 1).length),
+  Math.max(3, String(props.startLine + props.lines.length - 1).length),
 )
 const preClass = computed(() => ({
   "is-plain": props.tone === "plain",
   "is-embedded": props.embedded,
 }))
-const scrollTop = shallowRef(0)
-const virtual = computed(() => false)
-const range = computed(() =>
-  virtual.value
-    ? visibleLineRange(
-        scrollTop.value,
-        props.lineHeight,
-        props.maxLines,
-        lines.value.length,
-        DEFAULT_OVERSCAN_LINES,
-      )
-    : { start: 0, end: lines.value.length },
-)
-const visibleText = computed(() => lines.value.slice(range.value.start, range.value.end).join("\n"))
-const padTop = computed(() => range.value.start * props.lineHeight)
-const totalHeight = computed(() => lines.value.length * props.lineHeight)
-
-function onScroll(event: Event) {
-  scrollTop.value = (event.currentTarget as HTMLElement).scrollTop
-}
 </script>
 
 <style scoped>
@@ -153,6 +115,9 @@ function onScroll(event: Event) {
   min-width: 0;
   padding: var(--spacing-xs);
   padding-inline-end: 0;
+  overflow-x: auto;
+  /* 卡片底比全局滚动条色深，滚动条会看不出，这里提到 ink 12% */
+  --scrollbar-thumb: var(--hover-strong);
 }
 
 .tool-output-pre {
@@ -160,9 +125,8 @@ function onScroll(event: Event) {
   margin: var(--spacing-xxs) 0 0;
   padding: var(--spacing-sm);
   overflow: visible;
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
+  border-radius: var(--radius-code);
+  background: var(--code-surface);
   color: var(--ink-secondary);
   font-family: var(--font-mono);
   font-size: inherit;
@@ -193,32 +157,6 @@ function onScroll(event: Event) {
   font-size: var(--text-code);
 }
 
-.tool-output.is-embedded .meta {
-  color: inherit;
-  opacity: 0.7;
-}
-
-.tool-output-pre.is-virtual {
-  overflow: visible;
-}
-
-.canvas {
-  position: relative;
-  display: block;
-}
-
-.window {
-  position: absolute;
-  inset-inline: 0;
-  display: block;
-}
-
-.meta {
-  margin: var(--spacing-xs) 0 0;
-  color: var(--ink-faint);
-  font-size: inherit;
-}
-
 .images {
   display: flex;
   flex-direction: column;
@@ -227,14 +165,16 @@ function onScroll(event: Event) {
 }
 
 .code-scroll {
-  overflow: visible;
+  overflow-x: auto;
   padding: var(--spacing-xs);
   padding-inline-end: 0;
+  --scrollbar-thumb: var(--hover-strong);
 }
 
-.code-scroll::-webkit-scrollbar-track {
-  margin-inline: calc(var(--radius-lg) - var(--border-width));
-  margin-block-end: calc(var(--radius-lg) - var(--border-width));
+/* 横向滚动条两端避开卡片圆角；只留横向滚动，不再需要 block 方向的让位 */
+.code-scroll::-webkit-scrollbar-track,
+.tool-output.is-embedded::-webkit-scrollbar-track {
+  margin-inline: calc(var(--radius-code) - var(--border-width));
 }
 
 .code-lines {
@@ -266,6 +206,26 @@ code {
 
 .is-soft-wrap .code-lines {
   min-width: 0;
+}
+
+.show-all {
+  position: sticky;
+  inset-inline-start: 0;
+  display: block;
+  width: 100%;
+  padding: var(--spacing-xs) 0;
+  border: 0;
+  border-top: var(--border-width) solid var(--border);
+  background: transparent;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: var(--text-caption);
+  text-align: center;
+  cursor: pointer;
+}
+
+.show-all:hover {
+  color: var(--ink);
 }
 
 .is-soft-wrap code,

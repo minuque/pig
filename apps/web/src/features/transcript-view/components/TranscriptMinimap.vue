@@ -133,7 +133,7 @@ function onStageFocusOut(event: FocusEvent) {
 .timeline-minimap {
   pointer-events: none;
   position: absolute;
-  top: 50%;
+  top: calc((100% - var(--composer-reserve, 0px)) / 2);
   inset-inline-start: var(--spacing-md);
   z-index: 3;
   display: none;

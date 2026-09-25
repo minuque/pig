@@ -9,6 +9,7 @@ export type MetricRow = {
   p90?: number | null
   previous?: number | null
   frame?: boolean
+  unit?: "ms" | "cls"
 }
 
 function paint(text: string, color: "green" | "red" | null) {
@@ -32,21 +33,28 @@ function pad(text: string, width: number, align: "left" | "right") {
   return align === "right" ? space + text : text + space
 }
 
-function formatMs(value: number | null | undefined, frame = false) {
+function formatMetric(value: number | null | undefined, frame = false, unit: "ms" | "cls" = "ms") {
   if (value == null || !Number.isFinite(value)) return "—"
+
+  if (unit === "cls") return Number(value.toFixed(3)).toString()
   const ms = `${Number(value.toFixed(1))} ms`
 
   if (!frame || !(value > 0)) return ms
   return `${ms}（约 ${Math.round(1000 / value)} fps）`
 }
 
-function changeText(value: number | null, previous: number | null) {
+function changeText(
+  value: number | null,
+  previous: number | null,
+  frame = false,
+  unit: "ms" | "cls" = "ms",
+) {
   if (value == null || previous == null || !Number.isFinite(value) || !Number.isFinite(previous))
     return "—"
   const diff = value - previous
   const percent =
     previous === 0 ? "" : ` (${diff > 0 ? "+" : ""}${((diff / previous) * 100).toFixed(1)}%)`
-  return `${diff > 0 ? "+" : ""}${formatMs(diff)}${percent}`
+  return `${diff > 0 ? "+" : ""}${formatMetric(diff, frame, unit)}${percent}`
 }
 
 function tone(value: number | null, previous: number | null): "green" | "red" | null {
@@ -83,12 +91,13 @@ export function reportTable(rows: readonly MetricRow[]) {
   const cells = visible.map((row) => {
     const color = tone(row.value, row.previous ?? null)
     const frame = Boolean(row.frame)
+    const unit = row.unit ?? "ms"
     return {
       label: row.label,
-      now: paint(formatMs(row.value, frame), color),
-      p90: formatMs(row.p90 ?? null, frame),
-      prev: formatMs(row.previous ?? null, frame),
-      change: paint(changeText(row.value, row.previous ?? null), color),
+      now: paint(formatMetric(row.value, frame, unit), color),
+      p90: formatMetric(row.p90 ?? null, frame, unit),
+      prev: formatMetric(row.previous ?? null, frame, unit),
+      change: paint(changeText(row.value, row.previous ?? null, frame, unit), color),
     }
   })
   const cols = [

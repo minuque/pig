@@ -159,7 +159,7 @@ html[data-pig-desktop-platform] .session-nav {
 }
 
 html[data-pig-desktop-platform="win32"] .session-nav {
-  padding-top: var(--spacing-xs);
+  padding-top: 0;
 }
 
 html[data-pig-desktop-platform="darwin"] .session-nav {

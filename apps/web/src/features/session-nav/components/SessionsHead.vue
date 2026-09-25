@@ -1,8 +1,8 @@
 <template>
-  <div class="sessions-head">
+  <div class="sessions-head" @click="canCollapse && emit('toggleCollapse')">
     <span class="sessions-label">会话</span>
 
-    <span class="sessions-actions">
+    <span class="sessions-actions" @click.stop>
       <Tooltip v-if="canFold">
         <TooltipTrigger as-child>
           <button
@@ -78,6 +78,18 @@
           </template>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <button
+        v-if="canCollapse"
+        class="sessions-action press-scale"
+        type="button"
+        :aria-expanded="!collapsed"
+        :aria-label="collapsed ? '展开会话' : '折叠会话'"
+        @click="emit('toggleCollapse')"
+      >
+        <ChevronDown v-if="!collapsed" class="size-icon" />
+        <ChevronRight v-else class="size-icon" />
+      </button>
     </span>
   </div>
 </template>
@@ -85,6 +97,8 @@
 <script setup lang="ts">
 import {
   Check,
+  ChevronDown,
+  ChevronRight,
   Clock,
   FolderTree,
   GripVertical,
@@ -107,10 +121,13 @@ defineProps<{
   sort: SidebarSort
   allCollapsed?: boolean
   canFold?: boolean
+  collapsed?: boolean
+  canCollapse?: boolean
 }>()
 
 const emit = defineEmits<{
   toggleAll: []
+  toggleCollapse: []
   setView: [view: SidebarView]
   setSort: [sort: SidebarSort]
 }>()
@@ -124,6 +141,11 @@ const emit = defineEmits<{
   gap: var(--spacing-xs);
   min-height: var(--size-icon-button);
   padding-inline: var(--spacing-xs) var(--spacing-xxs);
+  border-radius: var(--radius-md);
+}
+
+.sessions-head:hover {
+  background: var(--hover-quiet);
 }
 
 .sessions-label {
@@ -131,7 +153,7 @@ const emit = defineEmits<{
   overflow: hidden;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-bold);
   line-height: var(--text-eyebrow--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -141,17 +163,16 @@ const emit = defineEmits<{
   display: flex;
   flex: none;
   align-items: center;
+  gap: var(--spacing-xxs);
 }
 
 .sessions-action {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
 }
@@ -164,6 +185,19 @@ const emit = defineEmits<{
 
 .sessions-action:disabled {
   opacity: var(--opacity-disabled);
+}
+
+@media (hover: hover) {
+  .sessions-actions {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .sessions-head:is(:hover, :has(:focus-visible), :has([data-state="open"])) .sessions-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 </style>
 

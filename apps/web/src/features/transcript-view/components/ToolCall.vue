@@ -469,5 +469,7 @@ function toggleGroup(event: MouseEvent) {
 
 .call {
   min-width: 0;
+  /* 卡片内部重排不泄到外层；paint 等同 overflow: clip，不影响 sticky */
+  contain: layout paint;
 }
 </style>

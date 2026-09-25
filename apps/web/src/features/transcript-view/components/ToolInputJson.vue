@@ -1,23 +1,34 @@
 <template>
   <div class="input-json">
-    <div v-for="(line, lineIndex) in lines" :key="lineIndex" class="json-line">
-      <span v-for="(token, tokenIndex) in line" :key="tokenIndex" :style="{ color: token.color }">
-        {{ token.content }}
-      </span>
-    </div>
+    <template v-if="tokens.length">
+      <div
+        v-for="(line, lineIndex) in tokens"
+        :key="lineIndex"
+        v-token-line="line"
+        class="json-line"
+      />
+    </template>
+
+    <template v-else>
+      <div v-for="(line, lineIndex) in plainLines" :key="lineIndex" class="json-line">
+        {{ line }}
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
 import { useColorScheme } from "@features/theme/index.js"
-import { highlightCodeTokens } from "@features/transcript-view/lib/markdown-render-props.js"
-
-type JsonToken = { content: string; color?: string }
+import {
+  highlightCodeTokens,
+  type CodeTokens,
+  vTokenLine,
+} from "@features/transcript-view/lib/markdown-render-props.js"
 
 const props = defineProps<{ text: string }>()
 const { codeBlockProps } = useColorScheme()
-const tokens = shallowRef<JsonToken[][]>([])
+const tokens = shallowRef<CodeTokens>([])
 const formatted = computed(() => {
   try {
     return JSON.stringify(JSON.parse(props.text), null, 2)
@@ -25,13 +36,10 @@ const formatted = computed(() => {
     return props.text
   }
 })
-const lines = computed((): JsonToken[][] => {
-  if (tokens.value.length) return tokens.value
-  return formatted.value.split(/\r?\n/).map((line) => [{ content: line }])
-})
+const plainLines = computed(() => formatted.value.split(/\r?\n/))
 
 watch(
-  () => [formatted.value, codeBlockProps.value.theme] as const,
+  [formatted, () => codeBlockProps.value.theme],
   async ([text, theme], _, onCleanup) => {
     let active = true
     onCleanup(() => {

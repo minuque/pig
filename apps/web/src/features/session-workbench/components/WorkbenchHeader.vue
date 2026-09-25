@@ -54,17 +54,23 @@ const title = computed(() =>
   width: 100%;
   min-height: calc(var(--size-control) + 2 * var(--spacing-xs));
   padding: var(--spacing-xxs) var(--spacing-sm);
+  border-bottom: var(--border-width) solid var(--border-subtle);
   background: var(--surface);
 }
 
 .header-toggle {
   flex: none;
-  width: var(--size-icon-button);
-  min-height: var(--size-icon-button);
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
+}
+
+.header-toggle:hover,
+.header-toggle:focus-visible {
+  background: var(--hover-quiet);
+  color: var(--ink);
 }
 
 .header-crumb {

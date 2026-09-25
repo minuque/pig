@@ -1,7 +1,7 @@
 <template>
   <nav class="nav-body session-list">
     <section v-if="pinnedRows.length" class="nav-section">
-      <div class="section-label">
+      <div class="section-label" @click="collapsedSections.pinned = !collapsedSections.pinned">
         <span class="section-label-text">置顶</span>
 
         <button
@@ -9,7 +9,7 @@
           type="button"
           :aria-expanded="!collapsedSections.pinned"
           :aria-label="collapsedSections.pinned ? '展开置顶' : '折叠置顶'"
-          @click="collapsedSections.pinned = !collapsedSections.pinned"
+          @click.stop="collapsedSections.pinned = !collapsedSections.pinned"
         >
           <ChevronDown v-if="!collapsedSections.pinned" class="size-icon" />
           <ChevronRight v-else class="size-icon" />
@@ -35,12 +35,18 @@
       :sort="sort"
       :all-collapsed="allCollapsed"
       :can-fold="view === 'grouped' && groupRows.length > 0"
+      :collapsed="collapsedSections.sessions"
+      :can-collapse="hasList"
       @toggle-all="toggleAllGroups"
+      @toggle-collapse="collapsedSections.sessions = !collapsedSections.sessions"
       @set-view="setView"
       @set-sort="setSort"
     />
 
-    <ul v-if="view === 'flat' && updatedSessions.length" class="flat-sessions">
+    <ul
+      v-if="view === 'flat' && updatedSessions.length && !collapsedSections.sessions"
+      class="flat-sessions"
+    >
       <li v-for="session in updatedSessions" :key="session.id">
         <SessionItem
           v-bind="itemBind(session)"
@@ -58,7 +64,7 @@
       </li>
     </ul>
 
-    <ul v-else-if="view === 'grouped' && showList">
+    <ul v-else-if="view === 'grouped' && showList && !collapsedSections.sessions">
       <li
         v-for="section in listSections"
         :key="section.key"
@@ -105,7 +111,7 @@
       </li>
     </ul>
 
-    <span v-else-if="groups.length">暂无会话</span>
+    <span v-else-if="groups.length && !collapsedSections.sessions">暂无会话</span>
   </nav>
 </template>
 
@@ -146,7 +152,7 @@ const {
   deleteSession,
 } = useNav()
 const now = useTimestamp({ interval: 60_000 })
-const collapsedSections = reactive({ pinned: false })
+const collapsedSections = reactive({ pinned: false, sessions: false })
 const rows = rowsFor(false)
 const showList = computed(() => rows.value.some((row) => row.kind !== "more"))
 const groupRows = computed(() =>
@@ -158,6 +164,9 @@ const updatedSessions = computed(() =>
   rows.value.flatMap((row) => (row.kind === "session" ? [row.session] : [])),
 )
 const updatedMore = computed(() => rows.value.find((row) => row.kind === "more"))
+const hasList = computed(() =>
+  view.value === "flat" ? updatedSessions.value.length > 0 : showList.value,
+)
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
 const listSections = computed(() =>
   groupRows.value.map((row) => ({
@@ -281,6 +290,11 @@ function groupClass(key: string, open: boolean) {
   gap: var(--spacing-xs);
   min-height: var(--size-icon-button);
   padding-inline: var(--spacing-xs);
+  border-radius: var(--radius-md);
+}
+
+.section-label:hover {
+  background: var(--hover-quiet);
 }
 
 .section-label-text {
@@ -299,11 +313,9 @@ function groupClass(key: string, open: boolean) {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
 }

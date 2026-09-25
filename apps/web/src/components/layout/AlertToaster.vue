@@ -60,11 +60,9 @@ import { dismissNotice, noticeQueue } from "@components/layout/notify.js"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  padding: var(--spacing-xxs);
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
 }

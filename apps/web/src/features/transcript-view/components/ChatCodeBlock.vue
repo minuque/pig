@@ -14,6 +14,7 @@
       <Tooltip>
         <TooltipTrigger as-child>
           <button
+            ref="toggle"
             type="button"
             class="line-toggle"
             :aria-label="showLineNumbers ? '隐藏行号' : '显示行号'"
@@ -46,6 +47,7 @@ const fence = computed(() => parseCodeFenceInfo(props.node.language))
 const highlightNode = computed(() => fenceHighlightNode(props.node, fence.value))
 const showLineNumbers = ref(false)
 const host = useTemplateRef<HTMLElement>("host")
+const toggle = useTemplateRef<HTMLButtonElement>("toggle")
 const actionsHost = shallowRef<Element | null>(null)
 
 function bindActions() {
@@ -53,6 +55,10 @@ function bindActions() {
   const next = btn?.parentElement ?? null
 
   if (next !== actionsHost.value) actionsHost.value = next
+
+  // 行号开关排到复制之前
+  if (next && toggle.value?.parentElement === next && next.firstElementChild !== toggle.value)
+    next.prepend(toggle.value)
 }
 
 onMounted(bindActions)

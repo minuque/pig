@@ -37,17 +37,23 @@
   --ms-flow-list-item-y: 0.38em;
   --ms-flow-list-indent: 1.65em;
   --ms-flow-codeblock-y: 0.75em;
-  --ms-flow-table-y: 1em;
-  --ms-flow-table-cell: 0.7em 1em;
+  --ms-flow-table-y: 0.65rem;
+  --ms-flow-table-cell: var(--spacing-xxs) var(--spacing-xs);
   --ms-flow-blockquote-y: 0.45em;
   --ms-flow-blockquote-indent: 0.85em;
   --ms-flow-hr-y: 0.7em;
 
   /* 形状 */
-  --ms-radius: var(--radius-md);
+  --ms-radius: var(--radius-code);
   --ms-border-width: var(--border-width);
   --ms-focus-ring-width: 0px;
   --ms-focus-ring-offset: 0px;
+
+  /* 头部上下内边距对齐左右，动作钮 24px */
+  --ms-gap-header: 0.5rem;
+  --ms-inset-panel-x: 0.4rem;
+  --ms-inset-panel-y: 0.4rem;
+  --ms-action-btn-padding: 0.3125rem;
 
   /* 色板 */
   --ms-foreground: from var(--ink-markdown) h s l;
@@ -82,20 +88,19 @@
   --ms-shadow-preview: var(--shadow-modal);
 
   /* 代码 / 引用 / 表 */
-  --code-bg: var(--code-body);
-  --code-header-bg: var(--code-header);
-  --diagram-bg: var(--code-body);
-  --diagram-header-bg: var(--code-header);
+  --code-bg: var(--code-surface);
+  --code-header-bg: var(--code-surface);
+  --diagram-bg: var(--code-surface);
+  --diagram-header-bg: var(--code-surface);
   --diagram-border: var(--border-subtle);
   --code-fg: var(--ink);
   --code-border: var(--border-subtle);
-  --inline-code-bg: var(--inline-code);
-  --inline-code-fg: var(--inline-code-ink);
-  --inline-code-border: var(--border);
+  --inline-code-bg: var(--code-surface);
+  --inline-code-fg: var(--ink);
   --blockquote-border: var(--border);
   --blockquote-fg: var(--ink-muted);
   --table-border: var(--border);
-  --table-header-bg: var(--code-body);
+  --table-header-bg: transparent;
   --focus-ring: transparent;
   --link-color: var(--link);
 
@@ -131,25 +136,52 @@
   }
 
   .inline-code {
-    font-size: var(--text-body-sm);
+    font-size: var(--text-code);
     border-radius: var(--radius-sm);
-    border: var(--ms-border-width) solid var(--inline-code-border);
-    padding: 0.05em 0.4em;
+    padding: 0.1rem 0.35rem;
   }
 
+  /* Synara：单层底色，不放边框和阴影 */
   .code-block-container {
-    --markstream-code-theme-bg: var(--code-body) !important;
-    --markstream-code-fallback-bg: var(--code-body) !important;
-    --markstream-pre-resolved-theme-bg: var(--code-body) !important;
+    --markstream-code-theme-bg: var(--code-surface) !important;
+    --markstream-code-fallback-bg: var(--code-surface) !important;
+    --markstream-pre-resolved-theme-bg: var(--code-surface) !important;
+
+    border: 0;
+    box-shadow: none;
+  }
+
+  /* Synara：语言标签与文件名同样走等宽 */
+  .code-block-header :is(.code-header-title, .code-header-caption) {
+    font-family: var(--font-mono);
   }
 
   .mermaid-block-container {
-    background: var(--code-body);
-    box-shadow: var(--shadow-card);
+    background: var(--code-surface);
   }
 
-  .table-node {
-    background: var(--code-body);
+  /* Synara：collapse + 单元格全边框，不要卡片底和斑马纹 */
+  .table-node-wrapper .table-node {
+    table-layout: auto;
+    border-collapse: collapse;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .table-node-wrapper .table-node :is(th, td),
+  .table-node-wrapper .table-node :is(th, td):last-child,
+  .table-node-wrapper .table-node tbody tr:last-child td {
+    border: var(--border-width) solid var(--table-border);
+    text-align: start;
+  }
+
+  .table-node-wrapper .table-node thead th {
+    font-weight: var(--font-weight-semibold);
+    background-color: transparent;
+    border-bottom-width: var(--border-width);
   }
 
   .table-node tbody tr:nth-child(2n),
@@ -157,19 +189,9 @@
     background-color: transparent;
   }
 
-  /* 折叠后只剩顶栏：四角同半径，底色跟 header，避免底角落出 code-bg */
-  .code-block-container:has(.code-block-shell-content--collapsed),
-  .code-block-container:has(.code-editor-layer--collapsed) {
-    background: var(--code-header-bg);
-  }
-
   .code-block-container:has(.code-block-shell-content--collapsed) .code-block-header,
   .code-block-container:has(.code-editor-layer--collapsed) .code-block-header {
     border-radius: var(--ms-radius);
-  }
-
-  .code-block-shell-content--collapsed {
-    border-radius: 0;
   }
 }
 
@@ -188,6 +210,6 @@
 
 /* 影子 :host 写死主题色，外层声明优先。 */
 diffs-container {
-  --diffs-bg: var(--code-body) !important;
-  background-color: var(--code-body) !important;
+  --diffs-bg: var(--code-surface) !important;
+  background-color: var(--code-surface) !important;
 }

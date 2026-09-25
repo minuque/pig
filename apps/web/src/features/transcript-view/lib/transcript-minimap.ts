@@ -50,7 +50,7 @@ export function deriveTranscriptMinimapItems(
 
 export function resolveMinimapHeightStyle(itemCount: number): string {
   if (itemCount <= 0) return "0px"
-  return `min(${itemCount * MINIMAP_RAIL_PITCH}px, 80%)`
+  return `min(${itemCount * MINIMAP_RAIL_PITCH}px, calc((100% - var(--composer-reserve, 0px)) * 0.8))`
 }
 
 export function resolveMinimapTopPercent(index: number, itemCount: number): number {

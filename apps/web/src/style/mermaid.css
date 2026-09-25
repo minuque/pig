@@ -22,13 +22,9 @@
 }
 
 .mermaid-modal-overlay {
-  --diagram-bg: var(--code-body);
-  --diagram-header-bg: var(--code-header);
-  --modal-bg: var(--code-body);
-}
-
-html[data-pig-desktop-platform] .mermaid-modal-overlay {
-  padding-block-start: calc(var(--titlebar-inset) + var(--spacing-xs));
+  --diagram-bg: var(--code-surface);
+  --diagram-header-bg: var(--code-surface);
+  --modal-bg: var(--code-surface);
 }
 
 .mermaid-action-btn:hover,

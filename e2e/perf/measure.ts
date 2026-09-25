@@ -3,6 +3,7 @@ import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 
 import { armClickStamps, clickStamps, installPageWaitFor, waitInPage } from "./in-page.js"
+import { installObservers } from "./paint.js"
 import {
   BENCH_SESSION_TOTAL,
   SHORT_SESSION_NAME,
@@ -13,14 +14,6 @@ import {
 } from "./seed.js"
 
 export const WORKBENCH_TIMEOUT_MS = 30_000
-
-type PageBench = {
-  fcp: number
-  lcp: number
-  longTasks: { start: number; duration: number }[]
-  interactions: { id: number; duration: number }[]
-}
-
 export const composerInput = (page: Page) => page.locator(".composer .field, .field").first()
 
 export function sessionCard(page: Page, name: BenchSessionName) {
@@ -84,45 +77,6 @@ export async function newBenchContext(browser: Browser): Promise<BrowserContext>
     locale: "zh-CN",
     colorScheme: "light",
     serviceWorkers: "block",
-  })
-}
-
-/** 注入 FCP / LCP / longtask / Event Timing，须在首次 goto 前调用。 */
-export async function installObservers(page: Page) {
-  await page.addInitScript({
-    content: `window.__pigBench = { fcp: 0, lcp: 0, longTasks: [], interactions: [] };
-(function () {
-  var bench = window.__pigBench;
-  function observe(type, extra, fn) {
-    try {
-      var po = new PerformanceObserver(function (list) {
-        list.getEntries().forEach(fn);
-      });
-      var opts = Object.assign({ buffered: true }, extra || {});
-      try { po.observe(Object.assign({ type: type }, opts)); }
-      catch (e) { po.observe({ entryTypes: [type] }); }
-    } catch (e) {}
-  }
-  observe("paint", null, function (entry) {
-    if (entry.name === "first-contentful-paint") bench.fcp = entry.startTime;
-  });
-  observe("largest-contentful-paint", null, function (entry) {
-    bench.lcp = entry.startTime;
-  });
-  observe("longtask", null, function (entry) {
-    bench.longTasks.push({ start: entry.startTime, duration: entry.duration });
-  });
-  observe("event", { durationThreshold: 16 }, function (entry) {
-    var duration = entry.duration;
-    if (!duration) return;
-    var id = entry.interactionId;
-    if (id) {
-      var prev = bench.interactions.find(function (item) { return item.id === id; });
-      if (prev) { if (duration > prev.duration) prev.duration = duration; }
-      else bench.interactions.push({ id: id, duration: duration });
-    }
-  });
-})();`,
   })
 }
 
@@ -203,22 +157,6 @@ export async function waitForSession(page: Page, name: BenchSessionName) {
   }
 
   await page.locator(".session-loading").waitFor({ state: "hidden", timeout: WORKBENCH_TIMEOUT_MS })
-}
-
-export async function readPaint(page: Page): Promise<{ fcp: number; lcp: number; now: number }> {
-  await nextPaint(page)
-  return page.evaluate(() => {
-    const bench = (window as unknown as { __pigBench: PageBench }).__pigBench
-    const paints = performance.getEntriesByType("paint")
-    const fcpEntry = paints.find((entry) => entry.name === "first-contentful-paint")
-    const lcpEntries = performance.getEntriesByType("largest-contentful-paint")
-    const lcpFallback = lcpEntries.reduce((max, entry) => Math.max(max, entry.startTime), 0)
-    const fcp = bench.fcp || fcpEntry?.startTime || 0
-    const lcp = bench.lcp || lcpFallback || 0
-
-    if (!fcp || !lcp) throw new Error("未采集到 FCP/LCP，不能生成启动结果")
-    return { fcp, lcp, now: performance.now() }
-  })
 }
 
 /** Composer 按下一键到双 rAF。 */

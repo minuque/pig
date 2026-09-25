@@ -178,6 +178,8 @@ const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
 let sizeObserver: ResizeObserver | undefined
+let padObserver: ResizeObserver | undefined
+let lastPad = -1
 let pinRaf = 0
 
 function schedulePin() {
@@ -261,15 +263,30 @@ async function selectMinimapItem(item: TranscriptMinimapItem) {
 function observeSizes() {
   sizeObserver?.disconnect()
   sizeObserver = undefined
+  padObserver?.disconnect()
+  padObserver = undefined
   const root = viewport.value
   const body = list.value
+  const padded = column.value
 
-  if (!root && !body) return
+  if (!root && !body && !padded) return
   sizeObserver = new ResizeObserver(schedulePin)
 
   if (root) sizeObserver.observe(root)
 
   if (body) sizeObserver.observe(body)
+
+  // 内容盒不含 padding。输入条长高只改底部留白，要看边框盒才会在贴底时跟着滚。
+  if (!padded || padded === body) return
+  lastPad = Number.parseFloat(getComputedStyle(padded).paddingBottom)
+  padObserver = new ResizeObserver(() => {
+    const pad = Number.parseFloat(getComputedStyle(padded).paddingBottom)
+
+    if (pad === lastPad) return
+    lastPad = pad
+    pinIfNeeded()
+  })
+  padObserver.observe(padded, { box: "border-box" })
 }
 
 function pinLatest() {
@@ -310,7 +327,7 @@ watch(turns, (next, prev) => {
 })
 
 watch(
-  [viewport, list],
+  [viewport, list, column],
   ([, body], prev) => {
     observeSizes()
 
@@ -341,6 +358,7 @@ onMounted(ensureMermaidRuntime)
 
 onBeforeUnmount(() => {
   sizeObserver?.disconnect()
+  padObserver?.disconnect()
 
   if (pinRaf) cancelAnimationFrame(pinRaf)
 
@@ -371,6 +389,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scroll-padding-bottom: var(--composer-reserve, 0px);
   /* 主视口滚动条常显，并始终占位，内容不因溢出与否来回横移 */
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-gutter: stable;
@@ -390,7 +409,9 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   width: min(100%, var(--size-content) - var(--spacing-lg));
   min-width: 0;
   margin-inline: auto;
-  padding-block: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  /* 底部空白可滚进视口，贴底时最后一条停在悬浮输入条上方 */
+  padding-bottom: calc(var(--spacing-lg) + var(--composer-reserve, 0px));
   padding-inline: var(--border-width);
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;

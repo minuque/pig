@@ -31,6 +31,8 @@
 ## 验收
 
 - 改完后跑 `pnpm fix:touched`，再跑 `pnpm check:touched`。文档除外。失败只修本次引入的；输入未变不重跑。
-- 场景补跑：UI 旅程 `pnpm test:e2e e2e/<spec>`；滚动、流式、耗时 `pnpm test:bench`；Electron `pnpm dev:desktop`（主进程 CDP 9333；已有窗口则复用）。
+- 场景补跑：UI 旅程 `pnpm test:e2e e2e/<spec>`；滚动、流式、耗时 `pnpm test:bench`；Electron `pnpm dev:desktop`（`--dev` 默认 CDP 9333，`PIG_CDP` 可改，`0`/`off` 关；已有窗口则复用）。
+- 桌面交互走 agent-browser：`agent-browser --cdp 9333 snapshot -i -d 2`，先 `tab` 确认工作台页；DOM 用 `eval`。整页 snapshot 易超时，`screenshot` 在本壳常黑屏。
+- 本壳 CDP 在 app ready 前 `appendSwitch`；`connect <port>` 会另起 Chrome；连上后不要 `close` 桌面窗。
 - 根配置改动时 `check:touched` 升级为 `pnpm check`。不主动跑 `pnpm build`、全量 `pnpm test` 或全量 `pnpm test:e2e`。
 - 清临时窗口按 PID 或 `user-data-dir`，不要匹配命令行 `--dev`。

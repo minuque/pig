@@ -43,11 +43,20 @@ export type BenchHarness = {
   close(): Promise<void>
 }
 
+const LIVE_DEV_ENV = new Set([
+  "ELECTRON_RUN_AS_NODE",
+  "PIG_CDP",
+  "PIG_VITE_PORT",
+  "PIG_GATEWAY_ORIGIN",
+  "GATEWAY_TARGET",
+  "GATEWAY_TOKEN",
+])
+
 function processEnv(extra: Record<string, string>): Record<string, string> {
   const env: Record<string, string> = {}
 
   for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined && key !== "ELECTRON_RUN_AS_NODE") env[key] = value
+    if (value !== undefined && !LIVE_DEV_ENV.has(key)) env[key] = value
   }
 
   return Object.assign(env, extra)
@@ -99,6 +108,7 @@ export async function createDesktopHarness(options: {
         cwd: desktopRoot,
         env: processEnv({
           PIG_BENCH: "1",
+          PIG_CDP: "off",
           PIG_SESSION_DIR: options.sessionDir,
           PIG_CWD: options.workspaceDir,
         }),

@@ -64,6 +64,8 @@ html[data-pig-desktop-platform] .logo-row :is(button, a) {
   justify-content: space-between;
   width: 100%;
   min-height: var(--size-nav-rail);
+  /* 图标在 19/26 盒里只占 2px，补回 6px 才能和下方导航图标一样落在 16px 列上 */
+  padding-inline: calc(var(--spacing-xs) - var(--icon-button-pad));
 }
 
 html[data-pig-desktop-platform="win32"] .logo-row {
@@ -76,18 +78,11 @@ html[data-pig-desktop-platform="win32"] .logo-row {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
-}
-
-.logo-mark {
-  width: var(--size-nav-rail);
-  height: var(--size-nav-rail);
 }
 
 .logo-mark img {

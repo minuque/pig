@@ -350,16 +350,16 @@ function confirmDelete() {
 .pin-toggle {
   position: absolute;
   z-index: 1;
-  inset-inline-start: var(--spacing-xs);
+  inset-inline-start: calc(var(--spacing-xs) - var(--icon-button-pad));
   inset-block: 0;
   display: grid;
   place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: calc(var(--size-icon) + var(--icon-button-pad) * 2);
+  height: calc(var(--size-icon) + var(--icon-button-pad) * 2);
   margin-block: auto;
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
   opacity: 0;
@@ -399,11 +399,10 @@ function confirmDelete() {
 .more-toggle {
   display: grid;
   place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  padding: 0;
+  margin-inline: calc(var(--icon-button-pad) * -1);
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
   opacity: 0;

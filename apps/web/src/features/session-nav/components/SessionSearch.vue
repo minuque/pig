@@ -178,11 +178,9 @@ function pick(session: SessionMetadata) {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
 }

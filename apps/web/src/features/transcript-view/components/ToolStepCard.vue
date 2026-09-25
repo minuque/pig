@@ -26,7 +26,6 @@
         :soft-wrap="softWrap"
         :text="runContent.shownOutput"
         :images="runContent.outputImages"
-        :show-count="false"
         embedded
       />
     </template>
@@ -80,7 +79,6 @@
         :soft-wrap="softWrap"
         :text="toolContent.shownOutput"
         :images="toolContent.outputImages"
-        :show-count="false"
         embedded
       />
     </template>
@@ -143,6 +141,7 @@ import { useColorScheme } from "@features/theme/index.js"
 import {
   highlightCodeTokens,
   plainMarkdownProps,
+  type CodeTokens,
 } from "@features/transcript-view/lib/markdown-render-props.js"
 import { pathBasename, type ReadToolPreview } from "@features/transcript-view/lib/tool-summary.js"
 import type {
@@ -221,7 +220,7 @@ const editDiffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
   disableFileHeader: true,
 }))
-const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
+const readTokens = shallowRef<CodeTokens>([])
 const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
 const editLanguageIconUrl = computed(() => languageIconDataUrl(editContent.value?.language))
 const editHeading = computed(() => editContent.value?.path || editContent.value?.fileName || "")
@@ -236,21 +235,24 @@ function languageIconDataUrl(lang: string | undefined) {
 }
 
 watch(
-  [readContent, codeBlockProps],
-  async ([content, blockProps], _, onCleanup) => {
+  [
+    () => readContent.value?.preview.code,
+    () => readContent.value?.preview.language,
+    () => codeBlockProps.value.theme,
+  ],
+  async ([code, language, theme], _, onCleanup) => {
     let active = true
     onCleanup(() => {
       active = false
     })
-    const preview = content?.preview
 
-    if (!preview || preview.language === "text" || preview.code.length > 100_000) {
+    if (!code || !language || language === "text" || code.length > 100_000) {
       readTokens.value = []
       return
     }
 
     try {
-      const next = await highlightCodeTokens(preview.code, preview.language, blockProps.theme)
+      const next = await highlightCodeTokens(code, language, theme)
 
       if (!active) return
       readTokens.value = next
@@ -267,10 +269,8 @@ watch(
   min-width: 0;
   max-width: 100%;
   overflow: visible;
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  background: var(--code-body);
-  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-code);
+  background: var(--code-surface);
 }
 
 .is-thought {
@@ -444,8 +444,8 @@ watch(
 }
 
 .edit-diff::-webkit-scrollbar-track {
-  margin-inline: calc(var(--radius-lg) - var(--border-width));
-  margin-block-end: calc(var(--radius-lg) - var(--border-width));
+  margin-inline: calc(var(--radius-code) - var(--border-width));
+  margin-block-end: calc(var(--radius-code) - var(--border-width));
 }
 
 .edit-diff :deep(.stream-diffs-vue-diff) {

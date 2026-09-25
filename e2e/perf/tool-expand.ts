@@ -1,11 +1,8 @@
 import type { Page } from "@playwright/test"
 
 import { nextPaint, openSession, WORKBENCH_TIMEOUT_MS } from "./measure.js"
+import type { PageBench } from "./paint.js"
 import type { BenchSessionName } from "./seed.js"
-
-type PageBench = {
-  longTasks: { start: number; duration: number }[]
-}
 
 type ToolExpandMark = {
   started: number

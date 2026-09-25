@@ -3,10 +3,11 @@
     class="group-head"
     :draggable="sortable"
     @pointerdown="pointerFocus = true"
+    @click="emit('toggle')"
     @dragstart="onDragStart"
     @mouseleave="onHeadLeave"
   >
-    <button class="group-toggle" type="button" :aria-expanded="!collapsed" @click="emit('toggle')">
+    <button class="group-toggle" type="button" :aria-expanded="!collapsed">
       <span class="mark" :class="{ 'is-grip': sortable }">
         <Folder v-if="collapsed" class="size-icon folder-icon" />
         <FolderOpen v-else class="size-icon folder-icon" />
@@ -140,6 +141,10 @@ function onDragStart(event: DragEvent) {
   color: var(--ink-muted);
 }
 
+.group-head:hover .group-name {
+  color: var(--ink);
+}
+
 .group-name {
   min-width: 0;
   flex: 1;
@@ -150,6 +155,7 @@ function onDragStart(event: DragEvent) {
   line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-smooth);
 }
 
 .trail {
@@ -164,9 +170,9 @@ function onDragStart(event: DragEvent) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
   line-height: 0;

@@ -16,12 +16,12 @@ import {
   median,
   openSession,
   p90,
-  readPaint,
   scrollMainAfterOpen,
   scrollSessionList,
   scrollTranscript,
   waitForWorkbench,
 } from "./measure.js"
+import { readOpenVitals, readStartVitals } from "./paint.js"
 import { reportTable, type MetricRow } from "./report.js"
 import { expandToolSteps } from "./tool-expand.js"
 import {
@@ -39,8 +39,11 @@ const failShot = join(root, "test-results", "perf-fail.png")
 
 type BenchMetrics = {
   coldToWorkbench: number
+  coldTtfb: number
   coldFcp: number
   coldLcp: number
+  coldCls: number
+  openInp: number
   sessionFirstOpen: number
   switchLong: number
   switchScrollWorstMs: number
@@ -81,8 +84,6 @@ function parseArgs(argv: string[]): Args {
       console.log("默认桌面端 Electron。--web 用 Playwright Chromium 做对照。")
       process.exit(0)
     }
-
-    if (arg === "--") continue
 
     if (arg === "--skip-build") skipBuild = true
     else if (arg === "--headed") headed = true
@@ -157,10 +158,6 @@ async function openReadyPage(harness: BenchHarness, observers: boolean) {
   }
 }
 
-async function measureStart(page: Page) {
-  return readPaint(page)
-}
-
 async function measureComposer(page: Page, samples: number): Promise<number> {
   const values: number[] = []
 
@@ -185,24 +182,31 @@ function printReport(
 ) {
   console.log(`\npig 工作台（${runtime}）`)
 
-  const row = (label: string, key: keyof BenchMetrics, frame = false): MetricRow => ({
+  const row = (
+    label: string,
+    key: keyof BenchMetrics,
+    extra?: { frame?: boolean; unit?: "ms" | "cls" },
+  ): MetricRow => ({
     label,
     value: now[key] ?? null,
     p90: p90s[key] ?? null,
     previous: prev?.[key] ?? null,
-    frame,
+    ...extra,
   })
 
   reportTable([
     row("打开工作台", "coldToWorkbench"),
+    row("冷启动 TTFB", "coldTtfb"),
     row("冷启动 FCP", "coldFcp"),
     row("就绪时 LCP", "coldLcp"),
+    row("冷启动 CLS", "coldCls", { unit: "cls" }),
+    row("打开段 INP", "openInp"),
     row("输入跟手", "composerKeyToFrame"),
     row("短会话打开", "sessionFirstOpen"),
     row("长会话打开", "switchLong"),
-    row("切后立刻滚动", "switchScrollWorstMs", true),
-    row("长会话滚动", "longScrollWorstMs", true),
-    row("侧栏列表滚动", "listScrollWorstMs", true),
+    row("切后立刻滚动", "switchScrollWorstMs", { frame: true }),
+    row("长会话滚动", "longScrollWorstMs", { frame: true }),
+    row("侧栏列表滚动", "listScrollWorstMs", { frame: true }),
     row("切回短会话", "switchShortRevisit"),
     row("工具组首次展开首帧", "toolExpandFirstFrame"),
     row("工具组首次展开完成", "toolExpandComplete"),
@@ -278,8 +282,11 @@ async function main() {
 
     const open = {
       coldTo: [] as number[],
+      coldTtfb: [] as number[],
       coldFcp: [] as number[],
       coldLcp: [] as number[],
+      coldCls: [] as number[],
+      openInp: [] as number[],
       firstOpen: [] as number[],
       switchLong: [] as number[],
       switchScroll: [] as number[],
@@ -308,11 +315,13 @@ async function main() {
 
         try {
           const { page } = session
-          const cold = await measureStart(page)
+          const cold = await readStartVitals(page)
 
           open.coldTo.push(session.coldTo)
+          open.coldTtfb.push(cold.ttfb)
           open.coldFcp.push(cold.fcp)
           open.coldLcp.push(cold.lcp)
+          open.coldCls.push(cold.cls)
           open.composer.push(await measureComposer(page, 7))
           open.listScroll.push(await scrollSessionList(page))
           open.firstOpen.push(await openSession(page, SHORT_SESSION_NAME))
@@ -325,6 +334,7 @@ async function main() {
           open.toolExpandFirstFrame.push(toolExpand.firstFrameMs)
           open.toolExpandComplete.push(toolExpand.completeMs)
           open.toolExpandLongTask.push(toolExpand.worstLongTaskMs)
+          open.openInp.push((await readOpenVitals(page)).inp)
         } catch (error) {
           await captureBenchFailure(session.page, failShot)
           throw error
@@ -354,8 +364,11 @@ async function main() {
     const rapid = turns.map((sample) => sample.rapidSwitchMs)
     const reconnect = turns.map((sample) => sample.reconnectMs)
     const cold = open.coldTo.length ? collect(open.coldTo) : undefined
+    const ttfb = open.coldTtfb.length ? collect(open.coldTtfb) : undefined
     const fcp = open.coldFcp.length ? collect(open.coldFcp) : undefined
     const lcp = open.coldLcp.length ? collect(open.coldLcp) : undefined
+    const cls = open.coldCls.length ? collect(open.coldCls) : undefined
+    const openInp = open.openInp.length ? collect(open.openInp) : undefined
     const composer = open.composer.length ? collect(open.composer) : undefined
     const firstOpen = open.firstOpen.length ? collect(open.firstOpen) : undefined
     const switchLong = open.switchLong.length ? collect(open.switchLong) : undefined
@@ -381,8 +394,11 @@ async function main() {
     const reconnectStat = collect(reconnect)
     const metrics: BenchMetrics = {
       coldToWorkbench: cold?.median ?? Number.NaN,
+      coldTtfb: ttfb?.median ?? Number.NaN,
       coldFcp: fcp?.median ?? Number.NaN,
       coldLcp: lcp?.median ?? Number.NaN,
+      coldCls: cls?.median ?? Number.NaN,
+      openInp: openInp?.median ?? Number.NaN,
       sessionFirstOpen: firstOpen?.median ?? Number.NaN,
       switchLong: switchLong?.median ?? Number.NaN,
       switchScrollWorstMs: switchScroll?.median ?? Number.NaN,
@@ -403,8 +419,11 @@ async function main() {
     }
     const p90s: Partial<Record<keyof BenchMetrics, number | undefined>> = {
       coldToWorkbench: cold?.p90,
+      coldTtfb: ttfb?.p90,
       coldFcp: fcp?.p90,
       coldLcp: lcp?.p90,
+      coldCls: cls?.p90,
+      openInp: openInp?.p90,
       sessionFirstOpen: firstOpen?.p90,
       switchLong: switchLong?.p90,
       switchScrollWorstMs: switchScroll?.p90,
@@ -424,7 +443,7 @@ async function main() {
       reconnectMs: reconnectStat.p90,
     }
     const config = {
-      version: 16,
+      version: 17,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,
@@ -465,13 +484,11 @@ try {
   const message = error instanceof Error ? error.message : String(error)
   console.error(message)
 
-  if (message.includes("Executable doesn't exist") || message.includes("browserType.launch")) {
+  if (message.includes("Executable doesn't exist") || message.includes("browserType.launch"))
     console.error("未找到 Chromium。请先运行: pnpm exec playwright install chromium")
-  }
 
-  if (message.includes("electron.launch") || message.includes("Electron failed")) {
+  if (message.includes("electron.launch") || message.includes("Electron failed"))
     console.error("未启动 Electron。请先运行: pnpm --filter @pig/desktop exec electron --version")
-  }
 
   process.exitCode = 1
 }
