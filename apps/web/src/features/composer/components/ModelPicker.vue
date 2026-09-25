@@ -17,7 +17,8 @@
               :size="14"
             />
 
-            <span class="selector-name">{{ triggerText }}</span>
+            <span class="selector-name">{{ label }}</span>
+            <span v-if="effortLabel" class="selector-effort">{{ effortLabel }}</span>
           </Button>
         </DropdownMenuTrigger>
       </TooltipTrigger>
@@ -159,7 +160,11 @@ import {
   resolveModelInfo,
   sameModel,
 } from "@features/composer/lib/model-preset.js"
-import { pickerTriggerText } from "@features/composer/lib/thinking-level.js"
+import {
+  displayThinkingLevel,
+  formatThinkingLevel,
+  pickerTriggerText,
+} from "@features/composer/lib/thinking-level.js"
 
 const props = withDefaults(
   defineProps<{
@@ -215,6 +220,9 @@ const label = computed(() => {
   const { vendor, model } = current.value
   return vendor && model ? `${vendor.id}/${model.name}` : modelLabel(props.model)
 })
+const effortLabel = computed(() =>
+  formatThinkingLevel(displayThinkingLevel(props.level, current.value.levels)),
+)
 const triggerText = computed(() =>
   pickerTriggerText(label.value, props.level, current.value.levels),
 )
@@ -275,7 +283,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--ink-faint);
+  color: var(--ink);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
@@ -286,7 +294,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .selector:hover:not(:disabled) {
   background: var(--hover-tint);
-  color: var(--ink);
 }
 
 .selector:disabled {
@@ -303,7 +310,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .selector[data-state="open"] {
   background: var(--hover-tint);
-  color: var(--ink);
 }
 
 .selector-name,
@@ -315,6 +321,17 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .selector-name {
   max-width: 14rem;
+}
+
+.selector-effort {
+  flex: none;
+  color: var(--primary);
+}
+
+.selector-effort::before {
+  content: "·";
+  margin-inline: var(--spacing-xxs);
+  color: var(--ink-muted);
 }
 
 .picker {

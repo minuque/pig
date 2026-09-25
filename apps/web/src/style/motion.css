@@ -126,15 +126,18 @@
   scale: 0.96;
 }
 
+/* JS 驱动的高度形变：先写死旧高度，再改新高度，靠这条过渡出底锚增长的手感 */
+.morph-height {
+  transition: height var(--duration-normal) var(--ease-smooth);
+}
+
 .icon-toggle {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-icon-button);
-  min-height: var(--size-icon-button);
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
   transition:
@@ -210,18 +213,6 @@
     filter: blur(0);
     pointer-events: auto;
   }
-}
-
-.motion-composer .attach-tray {
-  transition: height var(--duration-normal) var(--ease-out);
-}
-
-.motion-composer .glass-host {
-  transition: padding var(--duration-normal) var(--ease-out);
-}
-
-.motion-composer .glass-host::after {
-  transition: opacity var(--duration-fast) var(--ease-smooth);
 }
 
 .motion-turn {
@@ -630,6 +621,10 @@
     scale: 1;
   }
 
+  .morph-height {
+    transition: none;
+  }
+
   .icon-toggle {
     transition: none;
   }
@@ -737,12 +732,6 @@
   :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
     animation: none;
     opacity: 0;
-  }
-
-  .motion-composer .attach-tray,
-  .motion-composer .glass-host,
-  .motion-composer .glass-host::after {
-    transition: none;
   }
 
   .motion-nudge,

@@ -1,20 +1,8 @@
 .menu-surface {
-  position: relative;
   overflow: hidden;
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-xl);
-  background: var(--menu-surface);
-  box-shadow: var(--shadow-elevated);
-}
-
-.menu-surface::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  backdrop-filter: blur(var(--menu-blur)) saturate(1.5);
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-popover);
+  --glass-opacity: var(--glass-menu-opacity);
 }
 
 .menu-list {
@@ -22,4 +10,10 @@
   z-index: 1;
   overflow: auto;
   padding: var(--spacing-xxs);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .menu-surface {
+    box-shadow: var(--shadow-elevated);
+  }
 }

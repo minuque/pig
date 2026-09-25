@@ -87,6 +87,7 @@ vi.mock("vue-router", async () => {
 })
 
 import { useSessionLifecycle } from "@features/session-workbench/hooks/use-session.js"
+import { PlatformRequestError } from "@client/http.js"
 
 type SessionLifecycle = ReturnType<typeof useSessionLifecycle>
 
@@ -552,7 +553,7 @@ describe("快速切换 Session", () => {
     routeBox.params.sessionId = "s2"
     await nextTick()
     releaseA()
-    await expect(sending).resolves.toBeUndefined()
+    await expect(sending).resolves.toBe(false)
     expect(session.remote.value).toBeUndefined()
     expect(session.sessionError.value).toBe("")
   })
@@ -563,7 +564,7 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     const { session, cwd } = setup()
     const created = makeSession("s2")
     createMock.mockResolvedValue(created)
-    await session.sendPrompt("  任务  ", "/repo")
+    await expect(session.sendPrompt("  任务  ", "/repo")).resolves.toBe(true)
 
     expect(createMock).toHaveBeenCalledWith(expect.anything(), { cwd: "/repo" })
     expect(created.submit).toHaveBeenCalledWith("任务")
@@ -1071,5 +1072,107 @@ describe("一轮工作", () => {
     await vi.waitFor(() => expect(session.remote.value).toBe(a))
     await session.abortSession()
     expect(a.abort).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe("附件随发送", () => {
+  function attachment(name: string, mimeType: string) {
+    return {
+      id: name,
+      name,
+      mimeType,
+      size: 4,
+      url: mimeType.startsWith("image/") ? `blob:${name}` : "",
+      file: new File([new Uint8Array(1)], name, { type: mimeType }),
+    }
+  }
+
+  const batch = {
+    batch: "batch-1",
+    files: [attachment("a.png", "image/png"), attachment("b.md", "text/markdown")],
+  }
+  const calls = () => platformRequestMock.mock.calls.map((call) => String(call[0]))
+
+  it("先逐个 stage 再 bind，最后提交正文，成功不丢弃批次", async () => {
+    const { session } = setup()
+    const created = makeSession("s2")
+
+    createMock.mockResolvedValue(created)
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/attachments/stage")) return { id: "staged" }
+      return {}
+    })
+
+    await expect(session.sendPrompt("任务", "/repo", batch)).resolves.toBe(true)
+
+    const staged = calls().filter((path) => path.includes("/attachments/stage"))
+
+    expect(staged).toHaveLength(2)
+    expect(staged[0]).toContain("batch=batch-1")
+    expect(staged[0]).toContain("name=a.png")
+    expect(staged[1]).toContain("mimeType=text%2Fmarkdown")
+    expect(calls().findIndex((path) => path.includes("/attachments/bind"))).toBeGreaterThan(
+      calls().findIndex((path) => path.includes("/attachments/stage")),
+    )
+    expect(created.submit).toHaveBeenCalledWith("任务")
+    expect(session.sessionError.value).toBe("")
+    expect(calls().some((path) => path.includes("/attachments/discard"))).toBe(false)
+  })
+
+  it("失败路径：bind 失败回填草稿、丢弃批次且不提交", async () => {
+    const { session } = setup()
+    const created = makeSession("s2")
+
+    createMock.mockResolvedValue(created)
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/attachments/stage")) return { id: "staged" }
+
+      if (path.includes("/attachments/bind"))
+        throw new PlatformRequestError("BATCH_NOT_FOUND", "r1")
+      return {}
+    })
+
+    await expect(session.sendPrompt("任务", "/repo", batch)).rejects.toThrow()
+
+    expect(created.submit).not.toHaveBeenCalled()
+    expect(session.prompt.value).toBe("任务")
+    expect(session.sessionError.value).not.toBe("")
+    expect(calls().some((path) => path.includes("/attachments/discard"))).toBe(true)
+  })
+
+  it("stage 中途被中止：不再 bind，丢弃批次并返回 false", async () => {
+    const { session } = setup()
+    const created = makeSession("s2")
+    let releaseStage = () => {}
+    let markStageStarted = () => {}
+    const stageStarted = new Promise<void>((resolve) => {
+      markStageStarted = resolve
+    })
+    const stageGate = new Promise<void>((resolve) => {
+      releaseStage = resolve
+    })
+
+    createMock.mockResolvedValue(created)
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/attachments/stage")) {
+        markStageStarted()
+        await stageGate
+        return { id: "staged" }
+      }
+
+      return {}
+    })
+
+    const request = session.sendPrompt("任务", "/repo", batch)
+
+    await stageStarted
+    await session.abortSession()
+    releaseStage()
+    await expect(request).resolves.toBe(false)
+
+    // 只 stage 了第一个文件，没 bind，批次被丢弃
+    expect(calls().filter((path) => path.includes("/attachments/stage"))).toHaveLength(1)
+    expect(calls().some((path) => path.includes("/attachments/bind"))).toBe(false)
+    expect(calls().some((path) => path.includes("/attachments/discard"))).toBe(true)
   })
 })

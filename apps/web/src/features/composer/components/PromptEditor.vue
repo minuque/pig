@@ -1,14 +1,12 @@
 <template>
-  <div
-    ref="container"
-    class="composer motion-composer"
-    :data-expanded="expanded"
-    :data-multiline="multiline"
-    @mousedown="onComposerMousedown"
-  >
-    <div class="glass-shell">
-      <div class="glass-host">
-        <div class="editor-wrap">
+  <div ref="container" class="composer" @mousedown="onComposerMousedown">
+    <div ref="card" class="composer-card glass" :class="expanded ? 'is-expanded' : 'is-compact'">
+      <div v-if="$slots.attachments" class="attachments">
+        <slot name="attachments" />
+      </div>
+
+      <div class="main">
+        <div ref="editorWrap" class="editor-wrap">
           <textarea
             ref="editor"
             v-model="prompt"
@@ -17,21 +15,22 @@
             aria-label="Prompt"
             rows="1"
             @keydown="onEditorKeydown"
+            @keyup="onEditorCaret"
+            @click.passive="onEditorCaret"
+            @paste="onEditorPaste"
           ></textarea>
         </div>
 
-        <div class="left">
-          <slot name="left" />
-        </div>
+        <div class="action-row">
+          <div class="cluster left">
+            <slot name="left" />
+          </div>
 
-        <div class="right">
-          <slot name="right" :expanded="expanded" />
+          <div class="cluster right">
+            <slot name="right" />
+          </div>
         </div>
       </div>
-    </div>
-
-    <div v-if="$slots.meta" class="footer">
-      <slot name="meta" />
     </div>
   </div>
 </template>
@@ -47,45 +46,157 @@ export function shouldSubmitOnKeydown(e: {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue"
+import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
+import { composerFlip, FLIP_MS, RESIZE_SETTLE_MS } from "@features/composer/lib/composer-flip.js"
+import { PROMPT_PLACEHOLDER } from "@features/composer/index.js"
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     placeholder?: string
+    /** 外层宽度手柄拖拽中：此期间不折叠。 */
+    resizing?: boolean
   }>(),
   {
-    placeholder: "do what you want ...",
+    placeholder: PROMPT_PLACEHOLDER,
+    resizing: false,
   },
 )
-
 const prompt = defineModel<string>("prompt", { required: true })
 const emit = defineEmits<{
   submit: []
+  "paste-files": [files: File[]]
+  /** 原始 keydown，先发给父级；父级处理补全后 preventDefault，内置提交逻辑跳过。 */
+  "editor-keydown": [e: KeyboardEvent]
+  /** 光标位置变化（输入/方向键/点击），父级据此评估 @ / 触发词。 */
+  caret: [position: number]
 }>()
 const editor = ref<HTMLTextAreaElement | null>(null)
+const editorWrap = ref<HTMLElement | null>(null)
 const container = ref<HTMLElement | null>(null)
+const card = ref<HTMLElement | null>(null)
+const expanded = ref(true)
 const hasText = computed(() => prompt.value.length > 0)
-const expanded = computed(() => prompt.value.includes("\n"))
-const multiline = shallowRef(false)
 let widthObserver: ResizeObserver | undefined
 let lastWidth = 0
+/** 紧凑态实测容量与当时容器宽度；展开态用宽度差平移，绝不用展开态测量值回灌。 */
+let lastCompactCapacity = 0
+let lastCompactContainerWidth = 0
+let firstFlip = true
+let measureCtx: CanvasRenderingContext2D | undefined
+const internalResizing = ref(false)
+let resizeTimer: ReturnType<typeof setTimeout> | undefined
+const resizing = computed(() => props.resizing || internalResizing.value)
 
 function fitEditor() {
   const el = editor.value
 
   if (!el) return
   el.style.height = "auto"
-  const next = el.scrollHeight
-  el.style.height = `${next}px`
-  const style = getComputedStyle(el)
-  const line = Number.parseFloat(style.lineHeight) || 22
-  const padY =
-    (Number.parseFloat(style.paddingTop) || 0) + (Number.parseFloat(style.paddingBottom) || 0)
-
-  multiline.value = next > line + padY + 2 || el.value.includes("\n")
+  el.style.height = `${Math.min(Math.max(el.scrollHeight, 56), 240)}px`
 }
 
-watch(prompt, fitEditor, { flush: "post" })
+function measureText(text: string) {
+  const el = editor.value
+
+  if (!el) return 0
+
+  if (!measureCtx) measureCtx = document.createElement("canvas").getContext("2d") ?? undefined
+
+  if (!measureCtx) return text.length * 8
+  const style = getComputedStyle(el)
+
+  measureCtx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+  return measureCtx.measureText(text).width
+}
+
+function currentCapacity() {
+  const wrap = editorWrap.value
+  const containerEl = container.value
+
+  if (!wrap || !containerEl) return 0
+
+  if (!expanded.value) {
+    lastCompactCapacity = wrap.clientWidth
+    lastCompactContainerWidth = containerEl.clientWidth
+  }
+
+  return Math.max(0, lastCompactCapacity + (containerEl.clientWidth - lastCompactContainerWidth))
+}
+
+function evaluate() {
+  const text = prompt.value
+  const hasNewline = text.includes("\n")
+  const textWidth = hasNewline ? 0 : measureText(text)
+  const next = composerFlip({
+    hasNewline,
+    textWidth,
+    capacity: currentCapacity(),
+    expanded: expanded.value,
+    resizing: resizing.value,
+  })
+
+  flipMode(next)
+}
+
+/** 底锚形变：胶囊底边不动，高度从旧值过渡到新值。 */
+function flipMode(next: boolean) {
+  if (next === expanded.value) return
+  const cardEl = card.value
+  const from = cardEl?.offsetHeight ?? 0
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
+  if (firstFlip || !cardEl || reduce) {
+    firstFlip = false
+    expanded.value = next
+
+    if (!next) clearFieldHeight()
+    else void nextTick().then(fitEditor)
+    return
+  }
+
+  expanded.value = next
+
+  if (!next) clearFieldHeight()
+
+  void nextTick().then(() => {
+    if (next) fitEditor()
+    requestAnimationFrame(() => {
+      const to = cardEl.offsetHeight
+
+      if (to <= 0 || Math.abs(from - to) < 1) return
+      cardEl.style.height = `${from}px`
+      void cardEl.offsetHeight
+      cardEl.style.height = `${to}px`
+
+      const done = (event?: TransitionEvent) => {
+        if (event && event.propertyName !== "height") return
+        cardEl.removeEventListener("transitionend", done)
+
+        if (cardEl.style.height) cardEl.style.height = ""
+      }
+
+      cardEl.addEventListener("transitionend", done)
+      setTimeout(done, FLIP_MS + 40)
+    })
+  })
+}
+
+function clearFieldHeight() {
+  const el = editor.value
+
+  if (el) el.style.height = ""
+}
+
+watch(
+  prompt,
+  () => {
+    if (expanded.value) fitEditor()
+    evaluate()
+    emit("caret", caretPosition())
+  },
+  { flush: "post" },
+)
 
 watch(
   container,
@@ -100,15 +211,34 @@ watch(
 
       if (width === lastWidth) return
       lastWidth = width
-      fitEditor()
+      internalResizing.value = true
+
+      if (resizeTimer) clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        internalResizing.value = false
+        evaluate()
+      }, RESIZE_SETTLE_MS)
+
+      if (expanded.value) fitEditor()
+      evaluate()
     })
     widthObserver.observe(el)
-    fitEditor()
+    evaluate()
   },
   { flush: "post" },
 )
 
-onBeforeUnmount(() => widthObserver?.disconnect())
+watch(resizing, () => evaluate())
+
+onBeforeUnmount(() => {
+  widthObserver?.disconnect()
+
+  if (resizeTimer) clearTimeout(resizeTimer)
+})
+
+function caretPosition() {
+  return editor.value?.selectionStart ?? prompt.value.length
+}
 
 function focus() {
   const el = editor.value
@@ -118,13 +248,45 @@ function focus() {
   el.selectionStart = el.selectionEnd = el.value.length
 }
 
+/** 补全接受：替换触发词区间并落光标。 */
+function replaceRange(start: number, end: number, text: string) {
+  const el = editor.value
+  const value = prompt.value
+
+  prompt.value = value.slice(0, start) + text + value.slice(end)
+
+  nextTick(() => {
+    const pos = start + text.length
+
+    el?.focus()
+    el?.setSelectionRange(pos, pos)
+  })
+}
+
 function onEditorKeydown(e: KeyboardEvent) {
+  emit("editor-keydown", e)
+
+  if (e.defaultPrevented) return
+
   if (e.key === "Escape" && !e.isComposing && !hasText.value) editor.value?.blur()
 
   if (shouldSubmitOnKeydown(e)) {
     e.preventDefault()
     emit("submit")
   }
+}
+
+function onEditorCaret(e: Event) {
+  emit("caret", e.target === editor.value ? caretPosition() : prompt.value.length)
+}
+
+/** 只在真的收到文件时拦截粘贴，纯文本粘贴仍走浏览器默认行为。 */
+function onEditorPaste(e: ClipboardEvent) {
+  const files = clipboardFiles(e.clipboardData)
+
+  if (!files.length) return
+  e.preventDefault()
+  emit("paste-files", files)
 }
 
 function onComposerMousedown(e: MouseEvent) {
@@ -137,102 +299,107 @@ function onComposerMousedown(e: MouseEvent) {
   focus()
 }
 
-defineExpose({ focus })
+defineExpose({ focus, replaceRange })
 </script>
 
 <style scoped>
 .composer {
   position: relative;
+  width: 100%;
+  margin-inline: auto;
+  border-radius: var(--composer-radius);
+  box-shadow: var(--composer-shadow);
 }
 
-.glass-shell {
-  position: relative;
-  border-radius: var(--radius-full);
-}
-
-.glass-host {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas: "editor left right";
-  align-items: center;
-  column-gap: var(--spacing-xs);
-  padding-block: calc(var(--spacing-xs) + var(--border-width));
-  padding-inline: calc(var(--spacing-sm) + var(--border-width));
+.composer-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   overflow: hidden;
-  background: var(--composer-bg);
-  border-radius: var(--radius-full);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
-}
-
-/* 聚焦环叠透明度，避免 border-color 过渡在圆角上锯齿 */
-.glass-host::after {
-  content: "";
-  position: absolute;
-  inset: 0;
+  border: var(--border-width) solid var(--surface-border);
   border-radius: inherit;
-  pointer-events: none;
-  box-shadow: inset 0 0 0 var(--border-width) var(--composer-ring);
-  opacity: 0;
+  transition: height var(--duration-composer-flip) var(--ease-composer-flip);
 }
 
-.glass-host:focus-within::after {
-  opacity: 1;
+@media (prefers-reduced-motion: reduce) {
+  .composer-card {
+    transition: none;
+  }
 }
 
-.composer[data-expanded="true"] .glass-host {
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "editor editor"
-    "left right";
-  align-items: end;
-  row-gap: var(--spacing-xs);
-  padding: calc(var(--spacing-sm) + var(--border-width));
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md) calc(var(--spacing-md) + var(--border-width)) 0;
 }
 
-.composer[data-multiline="true"] .glass-shell,
-.composer[data-multiline="true"] .glass-host {
-  border-radius: var(--radius-xl);
-}
-
-.composer[data-multiline="true"] .glass-host {
-  align-items: end;
-}
-
-.footer {
+.main {
+  display: flex;
+  align-items: center;
   min-width: 0;
-  padding-inline: var(--spacing-xxs);
 }
 
-.left,
-.right {
+.is-compact .main {
+  height: 49px;
+  gap: var(--spacing-xs);
+  padding-inline: calc(var(--spacing-sm) + var(--border-width));
+}
+
+.is-expanded .main {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* 紧凑态动作行拆进主行：回形针在输入框前，模型与发送在后 */
+.is-compact .action-row {
+  display: contents;
+}
+
+.is-compact .cluster.left {
+  order: -1;
+}
+
+.editor-wrap {
+  min-width: 0;
+}
+
+.is-compact .editor-wrap {
+  flex: 1;
+  padding-inline: var(--spacing-xs);
+}
+
+.is-expanded .editor-wrap {
+  padding: var(--spacing-md) calc(var(--spacing-md) + var(--border-width)) var(--spacing-xxs);
+}
+
+.action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xs);
+  height: 42px;
+  padding: 0 calc(var(--spacing-sm) + var(--border-width));
+}
+
+.cluster {
   display: flex;
   align-items: center;
   gap: var(--spacing-xxs);
   flex: none;
-}
-
-.left {
-  grid-area: left;
   min-width: 0;
 }
 
-.right {
-  grid-area: right;
-}
-
-.editor-wrap {
-  grid-area: editor;
-  min-width: 0;
-  padding-inline: var(--spacing-xxs);
+.is-compact .cluster.right {
+  /* 模型 chip 在紧凑态最多占胶囊宽 45% */
+  max-width: 45%;
 }
 
 .field {
   display: block;
   width: 100%;
   margin: 0;
-  padding-block: calc((var(--size-icon-button) - 1.5em) / 2);
-  padding-inline: 0;
+  padding: 0;
   border: 0;
   outline: 0;
   resize: none;
@@ -240,13 +407,21 @@ defineExpose({ focus })
   color: var(--ink);
   font: inherit;
   font-size: var(--text-body-md);
-  line-height: 1.5;
-  min-height: var(--size-icon-button);
-  max-height: 160px;
+  line-height: 1.625;
   overscroll-behavior: contain;
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.is-compact .field {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.is-expanded .field {
+  min-height: 56px;
+  max-height: 240px;
 }
 
 .field::placeholder {

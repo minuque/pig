@@ -20,7 +20,13 @@ import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
-import { contextUsage } from "@client/platform.js"
+import {
+  bindAttachments,
+  contextUsage,
+  discardAttachments,
+  stageAttachment,
+} from "@client/platform.js"
+import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
 import { useSessionComposer } from "@features/composer/index.js"
 import { sameModel, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
 import { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"
@@ -224,6 +230,32 @@ export function useSessionLifecycle(
     await remote.value?.submit(text)
   }
 
+  /**
+   * 顺序暂存每个文件字节，再把 batch 绑到当前 Session；下一次 prompt 消费它。
+   * 每次 await 后查 epoch：被中止或切走就返回 false，由调用方丢弃这个批次。
+   */
+  async function stageAttachments(batch: ComposerAttachmentBatch, epoch: number) {
+    const id = sessionId.value
+
+    if (!id) throw new Error("会话未连接")
+
+    for (const item of batch.files) {
+      await stageAttachment(batch.batch, item.file)
+
+      if (epoch !== sendEpoch || sessionId.value !== id) return false
+    }
+
+    if (epoch !== sendEpoch || sessionId.value !== id) return false
+    await bindAttachments(id, batch.batch)
+    return true
+  }
+
+  /** 丢弃批次：幂等清理，失败不挡主流程；成功路径不调用，Gateway 已消费。 */
+  function dropBatch(batch: string | undefined) {
+    if (!batch) return Promise.resolve()
+    return discardAttachments(batch).catch(() => undefined)
+  }
+
   async function abortRemote() {
     await remote.value?.abort()
   }
@@ -359,12 +391,20 @@ export function useSessionLifecycle(
     }
   }
 
-  async function sendPrompt(text: string, cwd?: string) {
+  /**
+   * 附件随这次提交走：先确保 Session 存在，再 stage + bind，最后提交正文。
+   * 只有真正提交成功才返回 true；被中止、切走或提前退出都返回 false。
+   */
+  async function sendPrompt(
+    text: string,
+    cwd?: string,
+    attachments?: ComposerAttachmentBatch,
+  ): Promise<boolean> {
     const normalized = text.trim()
 
-    if (!normalized || submitting.value) return
+    if (!normalized || submitting.value) return false
 
-    if (!sessionId.value && (!cwd || creatingCwd.value)) return
+    if (!sessionId.value && (!cwd || creatingCwd.value)) return false
     const epoch = ++sendEpoch
 
     submitting.value = true
@@ -383,15 +423,15 @@ export function useSessionLifecycle(
       if (!sessionId.value) {
         const nextId = await createSession(cwd!)
 
-        if (epoch !== sendEpoch) return
+        if (epoch !== sendEpoch) return false
 
-        if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return
+        if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return false
       } else {
         const id = sessionId.value
         const chosen = consumeDetachedEdit()
         await ensureRemote(id)
 
-        if (epoch !== sendEpoch || sessionId.value !== id) return
+        if (epoch !== sendEpoch || sessionId.value !== id) return false
 
         if (remote.value?.id !== id) throw new Error("会话未连接")
 
@@ -403,10 +443,24 @@ export function useSessionLifecycle(
         }
       }
 
-      if (epoch !== sendEpoch || remote.value?.id !== sessionId.value) return
+      if (epoch !== sendEpoch || remote.value?.id !== sessionId.value) return false
+
+      if (attachments && !(await stageAttachments(attachments, epoch))) {
+        await dropBatch(attachments.batch)
+        return false
+      }
+
+      if (epoch !== sendEpoch || remote.value?.id !== sessionId.value) {
+        await dropBatch(attachments?.batch)
+        return false
+      }
+
       await submitRemote(normalized)
+      return true
     } catch (error) {
-      if (epoch !== sendEpoch) return
+      await dropBatch(attachments?.batch)
+
+      if (epoch !== sendEpoch) return false
       const current = clientState.value
 
       if (!current.draft) current.draft = previousDraft || text
