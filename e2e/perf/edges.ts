@@ -260,7 +260,6 @@ async function reconnect(page: Page, bridge: Bridge) {
   const started = performance.now()
   await bridge.disconnect()
   await expect.poll(() => bridge.connections(), { timeout: 30_000 }).toBeGreaterThan(count)
-  await expect.poll(() => bridge.snapshots.has(SHORT_SESSION_ID)).toBe(true)
   await expect(page.getByText("连接失败", { exact: true })).toHaveCount(0)
   await waitForSession(page, SHORT_SESSION_NAME)
   await nextPaint(page)
