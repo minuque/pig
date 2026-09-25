@@ -136,6 +136,20 @@ function appendTurn({
     segmentError ||= tool.isError
   }
 
+  // 预先一次算出各下标向后第一个 >= 自身时间戳的 timestamp，从右往左单调栈
+  const nextTimestamps = new Array<number | undefined>(rest.length).fill(undefined)
+  const candidates: number[] = []
+
+  for (let index = rest.length - 1; index >= 0; index -= 1) {
+    const timestamp = rest[index]?.timestamp
+
+    if (timestamp == null) continue
+
+    while (candidates.length > 0 && (candidates.at(-1) ?? 0) < timestamp) candidates.pop()
+    nextTimestamps[index] = candidates.at(-1)
+    candidates.push(timestamp)
+  }
+
   for (const [itemIndex, item] of rest.entries()) {
     if (isToolItem(item)) {
       if (describedToolCalls.has(item.toolCallId) || live) continue
@@ -168,9 +182,7 @@ function appendTurn({
         }
 
         const streaming = live && item.status === "streaming" && index === item.content.length - 1
-        const nextTimestamp = rest
-          .slice(itemIndex + 1)
-          .find((next) => next.timestamp >= item.timestamp)?.timestamp
+        const nextTimestamp = nextTimestamps[itemIndex]
         const endedAt = streaming ? undefined : (nextTimestamp ?? timing?.endedAt)
         const thoughtEndedAt = endedAt === undefined ? undefined : Math.max(item.timestamp, endedAt)
         steps.push({

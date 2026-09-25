@@ -4,7 +4,7 @@
       v-if="item.text"
       :key="item.id"
       v-bind="agentMarkdown"
-      :content="item.text"
+      :content="displayText"
       @virtual-state-change="onVirtualStateChange"
     />
 
@@ -96,7 +96,7 @@ export function takeMarkdownVirtualState(
 <script setup lang="ts">
 import { CircleAlert } from "@lucide/vue"
 import MarkdownRender from "markstream-vue"
-import { computed } from "vue"
+import { computed, onBeforeUnmount, ref, watch } from "vue"
 import Alert from "@components/ui/alert/Alert.vue"
 import AlertDescription from "@components/ui/alert/AlertDescription.vue"
 import AlertTitle from "@components/ui/alert/AlertTitle.vue"
@@ -132,6 +132,55 @@ const agentMarkdown = computed(() =>
     restoreState: takeMarkdownVirtualState(props.sessionId, props.item.id),
   }),
 )
+const THROTTLE_MS = 75
+const throttledText = ref(props.item.text)
+let timer: ReturnType<typeof setTimeout> | undefined
+let pending: string | undefined
+const displayText = computed(() => (props.streaming ? throttledText.value : props.item.text))
+
+/** 结束当前窗口：有积压就补发并继续下一窗口，否则清空定时器。 */
+function flushWindow() {
+  if (pending === undefined) {
+    timer = undefined
+    return
+  }
+
+  throttledText.value = pending
+  pending = undefined
+  timer = setTimeout(flushWindow, THROTTLE_MS)
+}
+
+/** 丢弃节流状态，直接显示给定文本。 */
+function resetText(text: string) {
+  if (timer !== undefined) clearTimeout(timer)
+  timer = undefined
+  pending = undefined
+  throttledText.value = text
+}
+
+// 流式时把内容聚合到 ~75ms 一帧：窗口开始立即更新，窗口末尾补发最后一次
+watch(
+  () => props.item.text,
+  (text) => {
+    if (!props.streaming) {
+      resetText(text)
+      return
+    }
+
+    if (timer === undefined) {
+      throttledText.value = text
+      timer = setTimeout(flushWindow, THROTTLE_MS)
+      return
+    }
+
+    pending = text
+  },
+)
+
+// 流结束或换消息时，丢弃节流状态并立即显示当前全文
+watch([() => props.streaming, () => props.item.id], () => resetText(props.item.text))
+
+onBeforeUnmount(() => resetText(props.item.text))
 
 function onVirtualStateChange(state: MarkstreamVirtualState) {
   if (props.streaming) return

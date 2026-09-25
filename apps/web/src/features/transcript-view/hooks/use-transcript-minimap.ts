@@ -108,8 +108,9 @@ export function useTranscriptMinimap(
     { flush: "post" },
   )
 
+  // 多源 watch 逐项 Object.is 比较，行键内容不变时不重复观察
   watch(
-    () => [toValue(layout.viewport), toValue(mountedKeys).join("\0")] as const,
+    [() => toValue(layout.viewport), () => toValue(mountedKeys).join("\0")],
     () => {
       void nextTick(observeInView)
     },
