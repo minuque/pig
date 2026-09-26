@@ -1,6 +1,10 @@
 <template>
   <div ref="container" class="composer" @mousedown="onComposerMousedown">
-    <div ref="card" class="composer-card glass" :class="expanded ? 'is-expanded' : 'is-compact'">
+    <div
+      ref="card"
+      class="composer-card surface-float"
+      :class="expanded ? 'is-expanded' : 'is-compact'"
+    >
       <div v-if="$slots.attachments" class="attachments">
         <slot name="attachments" />
       </div>
@@ -15,18 +19,24 @@
             aria-label="Prompt"
             rows="1"
             @keydown="onEditorKeydown"
-            @keyup="onEditorCaret"
-            @click.passive="onEditorCaret"
             @paste="onEditorPaste"
           ></textarea>
         </div>
 
         <div class="action-row">
-          <div class="cluster left">
+          <div ref="leftCluster" class="cluster left">
             <slot name="left" />
           </div>
 
-          <div class="cluster right">
+          <div ref="usageCluster" class="cluster context">
+            <slot name="usage" />
+          </div>
+
+          <div ref="toolsCluster" class="cluster tools">
+            <slot name="tools" />
+          </div>
+
+          <div ref="rightCluster" class="cluster right">
             <slot name="right" />
           </div>
         </div>
@@ -48,7 +58,14 @@ export function shouldSubmitOnKeydown(e: {
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
-import { composerFlip, FLIP_MS, RESIZE_SETTLE_MS } from "@features/composer/lib/composer-flip.js"
+import {
+  clusterOffsets,
+  composerFlip,
+  flipMotion,
+  glideClusters,
+  RESIZE_SETTLE_MS,
+  type FlipMotion,
+} from "@features/composer/lib/composer-flip.js"
 import { PROMPT_PLACEHOLDER } from "@features/composer/index.js"
 
 const props = withDefaults(
@@ -56,25 +73,28 @@ const props = withDefaults(
     placeholder?: string
     /** 外层宽度手柄拖拽中：此期间不折叠。 */
     resizing?: boolean
+    /** 新会话首屏：输入卡恒展开。 */
+    hero?: boolean
   }>(),
   {
     placeholder: PROMPT_PLACEHOLDER,
     resizing: false,
+    hero: false,
   },
 )
 const prompt = defineModel<string>("prompt", { required: true })
 const emit = defineEmits<{
   submit: []
   "paste-files": [files: File[]]
-  /** 原始 keydown，先发给父级；父级处理补全后 preventDefault，内置提交逻辑跳过。 */
-  "editor-keydown": [e: KeyboardEvent]
-  /** 光标位置变化（输入/方向键/点击），父级据此评估 @ / 触发词。 */
-  caret: [position: number]
 }>()
 const editor = ref<HTMLTextAreaElement | null>(null)
 const editorWrap = ref<HTMLElement | null>(null)
 const container = ref<HTMLElement | null>(null)
 const card = ref<HTMLElement | null>(null)
+const leftCluster = ref<HTMLElement | null>(null)
+const usageCluster = ref<HTMLElement | null>(null)
+const toolsCluster = ref<HTMLElement | null>(null)
+const rightCluster = ref<HTMLElement | null>(null)
 const expanded = ref(true)
 const hasText = computed(() => prompt.value.length > 0)
 let widthObserver: ResizeObserver | undefined
@@ -110,25 +130,41 @@ function measureText(text: string) {
   return measureCtx.measureText(text).width
 }
 
+/** 紧凑态被内边距、动作行与间距占掉的水平空间：只在首次实测前用来估容量。 */
+function compactInset(el: HTMLElement) {
+  const style = getComputedStyle(el)
+  const token = (name: string) => Number.parseFloat(style.getPropertyValue(name)) || 0
+  // 两侧内边距 + 输入区左右内边距 + 主行两个间隙 + 回形针按钮
+  return (
+    2 * (token("--spacing-sm") + token("--border-width")) +
+    4 * token("--spacing-xs") +
+    token("--size-icon-button")
+  )
+}
+
 function currentCapacity() {
   const wrap = editorWrap.value
   const containerEl = container.value
 
   if (!wrap || !containerEl) return 0
+  const width = containerEl.clientWidth
 
   if (!expanded.value) {
     lastCompactCapacity = wrap.clientWidth
-    lastCompactContainerWidth = containerEl.clientWidth
+    lastCompactContainerWidth = width
   }
 
-  return Math.max(0, lastCompactCapacity + (containerEl.clientWidth - lastCompactContainerWidth))
+  // 还没量过紧凑态：先按 token 估算，实测后只用容器宽度差平移
+  if (!lastCompactContainerWidth) return Math.max(0, width - compactInset(containerEl))
+  return Math.max(0, lastCompactCapacity + (width - lastCompactContainerWidth))
 }
 
-function evaluate() {
+function evaluate(motion?: FlipMotion) {
   const text = prompt.value
   const hasNewline = text.includes("\n")
   const textWidth = hasNewline ? 0 : measureText(text)
   const next = composerFlip({
+    hero: props.hero,
     hasNewline,
     textWidth,
     capacity: currentCapacity(),
@@ -136,11 +172,17 @@ function evaluate() {
     resizing: resizing.value,
   })
 
-  flipMode(next)
+  flipMode(next, motion)
 }
 
-/** 底锚形变：胶囊底边不动，高度从旧值过渡到新值。 */
-function flipMode(next: boolean) {
+function clusters() {
+  return [leftCluster.value, usageCluster.value, toolsCluster.value, rightCluster.value].filter(
+    (el): el is HTMLElement => el !== null,
+  )
+}
+
+/** 底锚形变：胶囊底边不动，高度从旧值过渡到新值，动作组同钟换槽。 */
+function flipMode(next: boolean, motion?: FlipMotion) {
   if (next === expanded.value) return
   const cardEl = card.value
   const from = cardEl?.offsetHeight ?? 0
@@ -155,6 +197,10 @@ function flipMode(next: boolean) {
     return
   }
 
+  const timing = motion ?? flipMotion(cardEl)
+  const els = clusters()
+  const starts = clusterOffsets(cardEl, els)
+
   expanded.value = next
 
   if (!next) clearFieldHeight()
@@ -162,9 +208,12 @@ function flipMode(next: boolean) {
   void nextTick().then(() => {
     if (next) fitEditor()
     requestAnimationFrame(() => {
+      glideClusters(cardEl, els, starts, timing, toolsCluster.value)
       const to = cardEl.offsetHeight
 
       if (to <= 0 || Math.abs(from - to) < 1) return
+      cardEl.style.transitionDuration = `${timing.duration}ms`
+      cardEl.style.transitionTimingFunction = timing.easing
       cardEl.style.height = `${from}px`
       void cardEl.offsetHeight
       cardEl.style.height = `${to}px`
@@ -172,12 +221,13 @@ function flipMode(next: boolean) {
       const done = (event?: TransitionEvent) => {
         if (event && event.propertyName !== "height") return
         cardEl.removeEventListener("transitionend", done)
-
-        if (cardEl.style.height) cardEl.style.height = ""
+        cardEl.style.height = ""
+        cardEl.style.transitionDuration = ""
+        cardEl.style.transitionTimingFunction = ""
       }
 
       cardEl.addEventListener("transitionend", done)
-      setTimeout(done, FLIP_MS + 40)
+      setTimeout(done, timing.duration + 40)
     })
   })
 }
@@ -193,7 +243,6 @@ watch(
   () => {
     if (expanded.value) fitEditor()
     evaluate()
-    emit("caret", caretPosition())
   },
   { flush: "post" },
 )
@@ -230,15 +279,17 @@ watch(
 
 watch(resizing, () => evaluate())
 
+// 首屏↔会话的展开形变跟输入卡停靠同一条时间线
+watch(
+  () => props.hero,
+  (hero) => evaluate(card.value ? flipMotion(card.value, hero ? "out" : "in") : undefined),
+)
+
 onBeforeUnmount(() => {
   widthObserver?.disconnect()
 
   if (resizeTimer) clearTimeout(resizeTimer)
 })
-
-function caretPosition() {
-  return editor.value?.selectionStart ?? prompt.value.length
-}
 
 function focus() {
   const el = editor.value
@@ -248,36 +299,13 @@ function focus() {
   el.selectionStart = el.selectionEnd = el.value.length
 }
 
-/** 补全接受：替换触发词区间并落光标。 */
-function replaceRange(start: number, end: number, text: string) {
-  const el = editor.value
-  const value = prompt.value
-
-  prompt.value = value.slice(0, start) + text + value.slice(end)
-
-  nextTick(() => {
-    const pos = start + text.length
-
-    el?.focus()
-    el?.setSelectionRange(pos, pos)
-  })
-}
-
 function onEditorKeydown(e: KeyboardEvent) {
-  emit("editor-keydown", e)
-
-  if (e.defaultPrevented) return
-
   if (e.key === "Escape" && !e.isComposing && !hasText.value) editor.value?.blur()
 
   if (shouldSubmitOnKeydown(e)) {
     e.preventDefault()
     emit("submit")
   }
-}
-
-function onEditorCaret(e: Event) {
-  emit("caret", e.target === editor.value ? caretPosition() : prompt.value.length)
 }
 
 /** 只在真的收到文件时拦截粘贴，纯文本粘贴仍走浏览器默认行为。 */
@@ -299,7 +327,7 @@ function onComposerMousedown(e: MouseEvent) {
   focus()
 }
 
-defineExpose({ focus, replaceRange })
+defineExpose({ focus })
 </script>
 
 <style scoped>
@@ -351,7 +379,7 @@ defineExpose({ focus, replaceRange })
   align-items: stretch;
 }
 
-/* 紧凑态动作行拆进主行：回形针在输入框前，模型与发送在后 */
+/* 紧凑态动作行拆进主行：回形针在输入框前，模型、上下文与发送在后 */
 .is-compact .action-row {
   display: contents;
 }
@@ -373,11 +401,11 @@ defineExpose({ focus, replaceRange })
   padding: var(--spacing-md) calc(var(--spacing-md) + var(--border-width)) var(--spacing-xxs);
 }
 
+/* 展开态：回形针与模型靠左，上下文与发送靠右；紧凑态上下文跟模型并排 */
 .action-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-xxs);
   height: 42px;
   padding: 0 calc(var(--spacing-sm) + var(--border-width));
 }
@@ -390,7 +418,28 @@ defineExpose({ focus, replaceRange })
   min-width: 0;
 }
 
-.is-compact .cluster.right {
+.cluster.right {
+  order: 2;
+}
+
+/* 展开态只有上下文吃剩余空间，环就贴住发送钮 */
+.cluster.context {
+  order: 1;
+  margin-inline-start: auto;
+}
+
+.cluster.tools {
+  order: 0;
+  flex: 0 1 auto;
+}
+
+.is-compact .cluster.right,
+.is-compact .cluster.context {
+  order: 0;
+  margin-inline-start: 0;
+}
+
+.is-compact .cluster.tools {
   /* 模型 chip 在紧凑态最多占胶囊宽 45% */
   max-width: 45%;
 }

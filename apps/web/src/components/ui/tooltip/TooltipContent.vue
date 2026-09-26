@@ -3,7 +3,7 @@
     <TooltipContent
       data-slot="tooltip-content"
       v-bind="{ ...$attrs, ...forwarded }"
-      class="glass text-eyebrow z-50 max-w-(--reka-tooltip-content-available-width) origin-(--reka-tooltip-content-transform-origin) rounded-(--radius-popover) border border-[color:var(--hairline)] px-(--spacing-xs) py-(--spacing-xxs) text-ink translate-y-1 opacity-0 transition-[translate,opacity] duration-(--duration-fast) ease-(--ease-out) data-[state=delayed-open]:translate-y-0 data-[state=delayed-open]:opacity-100 data-[state=instant-open]:translate-y-0 data-[state=instant-open]:opacity-100 data-[state=closed]:animate-[exit-fade_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
+      class="surface-float text-eyebrow z-50 max-w-(--reka-tooltip-content-available-width) origin-(--reka-tooltip-content-transform-origin) rounded-(--radius-popover) border border-[color:var(--hairline)] px-(--spacing-xs) py-(--spacing-xxs) text-ink translate-y-1 opacity-0 transition-[translate,opacity] duration-(--duration-fast) ease-(--ease-out) data-[state=delayed-open]:translate-y-0 data-[state=delayed-open]:opacity-100 data-[state=instant-open]:translate-y-0 data-[state=instant-open]:opacity-100 data-[state=closed]:animate-[exit-fade_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
       :class="props.class"
     >
       <slot />

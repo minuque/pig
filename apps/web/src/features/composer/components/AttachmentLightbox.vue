@@ -38,8 +38,6 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
   place-items: center;
   padding: var(--spacing-xl);
   background: var(--scrim);
-  backdrop-filter: var(--scrim-blur);
-  -webkit-backdrop-filter: var(--scrim-blur);
   cursor: zoom-out;
 }
 

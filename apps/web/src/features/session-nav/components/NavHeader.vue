@@ -22,7 +22,7 @@
 
   <div class="nav-toolbar">
     <button class="nav-action" type="button" @click="emit('create')">
-      <CirclePlus class="size-icon" />
+      <MessageCirclePlus class="size-icon" />
       <span class="nav-label">新建会话</span>
     </button>
 
@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { RouterLink } from "vue-router"
-import { CirclePlus, PanelLeft, Search } from "@lucide/vue"
+import { MessageCirclePlus, PanelLeft, Search } from "@lucide/vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const emit = defineEmits<{

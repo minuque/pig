@@ -41,8 +41,8 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
 
   const panel = page.locator(".session-panel")
   const card = page.locator(".composer-card")
-  const note = page.getByRole("button", { name: "Remove note.md" })
-  const shot = page.getByRole("button", { name: "Remove shot.png" })
+  const note = page.getByRole("button", { name: "移除 note.md" })
+  const shot = page.getByRole("button", { name: "移除 shot.png" })
 
   await expect(panel).toBeVisible()
   await expect(note).toHaveCount(0)
@@ -73,7 +73,7 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
     data.items.add(new File(["x"], "paste.png", { type: "image/png" }))
     element.dispatchEvent(new ClipboardEvent("paste", { bubbles: true, clipboardData: data }))
   })
-  await expect(page.getByRole("button", { name: "Remove paste.png" })).toBeVisible()
+  await expect(page.getByRole("button", { name: "移除 paste.png" })).toBeVisible()
   await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
 
   // 非白名单图片（svg）没有预览，走文件卡片

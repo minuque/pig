@@ -5,7 +5,7 @@
     <DialogContent
       data-slot="dialog-content"
       v-bind="{ ...$attrs, ...forwarded }"
-      class="glass text-body-md fixed inset-s-1/2 bottom-0 z-50 grid max-h-[calc(100dvh-3rem)] w-full gap-(--spacing-md) overflow-hidden rounded-t-(--radius-xl) border border-[color:var(--hairline)] border-b-0 p-(--spacing-lg) sm:top-[50%] sm:bottom-auto sm:max-w-(--size-modal) sm:rounded-(--radius-xl) sm:border-b"
+      class="surface-float text-body-md fixed inset-s-1/2 bottom-0 z-50 grid max-h-[calc(100dvh-3rem)] w-full gap-(--spacing-md) overflow-hidden rounded-t-(--radius-xl) border border-[color:var(--hairline)] border-b-0 p-(--spacing-lg) sm:top-[50%] sm:bottom-auto sm:max-w-(--size-modal) sm:rounded-(--radius-xl) sm:border-b"
       :class="props.class"
     >
       <slot />

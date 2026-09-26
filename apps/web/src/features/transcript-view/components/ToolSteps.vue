@@ -135,6 +135,7 @@ import {
   toolRowLabelParts,
 } from "@features/transcript-view/lib/transcript-row-label.js"
 import { holdClickedOffset } from "@features/transcript-view/lib/transcript-scroll.js"
+import { toolGroupKey } from "@features/transcript-view/lib/tool-summary.js"
 import type { ToolRow, ToolRowStep } from "@features/transcript-view/type.js"
 
 const HOOK_CORNER = 6
@@ -151,7 +152,22 @@ const emit = defineEmits<{
 }>()
 const running = computed(() => props.row.mode === "live")
 const statusColor = computed(() => (props.row.aborted ? { color: "var(--warning)" } : undefined))
-const revealed = computed(() => running.value || props.isExpand === true)
+/** read 图片没有可折叠的正文，默认展开直接看；用户点过就听用户的。 */
+const hasReadImage = computed(() =>
+  props.row.steps.some(
+    (step) =>
+      step.type === "tools" &&
+      step.items.some(
+        (item) => toolGroupKey(item.toolName) === "read" && item.outputImages.length > 0,
+      ),
+  ),
+)
+const revealed = computed(() => {
+  if (running.value) return true
+
+  if (props.isExpand !== undefined) return props.isExpand
+  return hasReadImage.value
+})
 
 function toggleSteps(event: MouseEvent) {
   const button = event.currentTarget
@@ -174,8 +190,9 @@ const showMoreToggle = computed(
   () => keptMounted.value && !running.value && props.row.steps.length > PAGE_SIZE,
 )
 const moreLabel = computed(() => (hiddenCount.value ? "显示更多" : "收起"))
+// 长列表只跳过展开动画，收起仍走高度过渡
 const skipHeightMotion = computed(
-  () => running.value || renderedSteps.value.length > ANIMATED_EXPAND_LIMIT,
+  () => running.value || (revealed.value && renderedSteps.value.length > ANIMATED_EXPAND_LIMIT),
 )
 
 function toggleMore() {
@@ -406,6 +423,12 @@ onBeforeUnmount(() => {
 .tool-calls-group {
   position: relative;
   z-index: 0;
+}
+
+/* 箭头与折叠高度同钟 */
+.summary-btn .motion-turn {
+  transition-duration: var(--duration-tool-fold);
+  transition-timing-function: var(--ease-fold);
 }
 
 .tool-steps-icon {

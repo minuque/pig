@@ -223,8 +223,50 @@
   transform: rotate(90deg);
 }
 
-.stagger-in {
-  animation: enter-blur var(--duration-slow) var(--ease-out) both;
+/* 首屏↔会话：输入条滑动期间旧层先淡出，新层在行程中段淡入（Zeron dock） */
+.dock-thread-enter-active {
+  transition: opacity var(--duration-slow) var(--ease-out) var(--duration-fast);
+}
+
+.dock-thread-leave-active,
+.dock-hero-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.dock-thread-enter-from,
+.dock-thread-leave-to,
+.dock-hero-leave-to {
+  opacity: 0;
+}
+
+.dock-hero-enter-active,
+.dock-hero-appear-active {
+  transition:
+    opacity var(--duration-settle) var(--ease-settle) var(--duration-fast),
+    translate var(--duration-settle) var(--ease-settle) var(--duration-fast);
+}
+
+.dock-hero-enter-from,
+.dock-hero-appear-from {
+  opacity: 0;
+  translate: 0 -10px;
+}
+
+/* 首屏挂载时输入条与 Hero 同拍落位（Zeron settle_down） */
+.settle-in {
+  animation: settle-down var(--duration-settle) var(--ease-settle) var(--duration-fast) both;
+}
+
+@keyframes settle-down {
+  from {
+    opacity: 0;
+    translate: 0 -10px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0;
+  }
 }
 
 @keyframes enter-blur {
@@ -372,13 +414,16 @@
   transition: grid-template-rows var(--duration-fast) var(--ease-out);
 }
 
-.tool-calls-group {
-  transition-timing-function: var(--ease-smooth);
-}
-
 :is(.tool-calls-group, .session-list-group).is-open {
   grid-template-rows: 1fr;
   transition-duration: var(--duration-slow);
+}
+
+/* 工具组展开与收起同一只钟，中途反向从当前高度接着走（Zeron TOOL_FOLD） */
+.tool-calls-group,
+.tool-calls-group.is-open {
+  transition-duration: var(--duration-tool-fold);
+  transition-timing-function: var(--ease-fold);
 }
 
 :is(.tool-calls-group, .session-list-group).instant,
@@ -401,24 +446,23 @@
 }
 
 .tool-calls-group > .panel-slide {
-  transform: translateY(12px);
+  transform: translateY(4px);
   opacity: 0;
   pointer-events: none;
   transition:
-    transform var(--duration-fast) var(--ease-smooth),
-    opacity var(--duration-fast) var(--ease-smooth);
+    transform var(--duration-tool-fold) var(--ease-fold),
+    opacity var(--duration-tool-fold) var(--ease-fold);
 }
 
 .tool-calls-group.is-open > .panel-slide {
   transform: none;
   opacity: 1;
   pointer-events: auto;
-  transition-duration: var(--duration-slow);
 }
 
 @starting-style {
   .tool-calls-group.is-open:not(.instant) > .panel-slide {
-    transform: translateY(12px);
+    transform: translateY(4px);
     opacity: 0;
   }
 }
@@ -644,11 +688,16 @@
     filter: none;
   }
 
-  .stagger-in {
+  .settle-in {
     animation: none;
-    opacity: 1;
-    transform: none;
-    filter: none;
+  }
+
+  .dock-thread-enter-active,
+  .dock-thread-leave-active,
+  .dock-hero-enter-active,
+  .dock-hero-appear-active,
+  .dock-hero-leave-active {
+    transition: none;
   }
 
   .panel-reveal-enter-active,

@@ -25,24 +25,25 @@
 
       <template v-else>
         <div class="session-stage">
-          <TranscriptView
-            v-if="!showHero"
-            ref="transcriptView"
-            :session-id="sessionId ?? ''"
-            :transcript="transcript"
-            :running="turnPending"
-            :timings="turnTimings"
-            :has-more="historyHasMore"
-            :loading-older="loadingOlder"
-            @load-older="loadOlderHistory"
-          />
+          <Transition name="dock-thread">
+            <TranscriptView
+              v-if="!showHero"
+              ref="transcriptView"
+              :session-id="sessionId ?? ''"
+              :transcript="transcript"
+              :running="turnPending"
+              :timings="turnTimings"
+              :has-more="historyHasMore"
+              :loading-older="loadingOlder"
+              @load-older="loadOlderHistory"
+            />
+          </Transition>
 
-          <Transition name="stage-layer">
+          <Transition name="dock-hero" appear>
             <div v-if="showHero" key="hero" class="idle-hero">
               <WorkbenchHero
                 v-model:workspace-id="heroWorkspaceId"
                 title-id="workbench-hero-title"
-                class="stagger-in"
                 :workspaces="workspaces"
                 :selectable="sessionId === undefined"
                 :adding="addingWorkspace"
@@ -53,7 +54,11 @@
           </Transition>
         </div>
 
-        <div ref="composerBar" class="composer-bar">
+        <div
+          ref="composerBar"
+          class="composer-bar"
+          :class="{ 'is-hero': showHero, 'settle-in': settleIn }"
+        >
           <div class="composer-stack">
             <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
               <Tooltip>
@@ -89,11 +94,11 @@
               :cwd="composerCwd"
               :send-disabled="sendDisabled"
               :content-resizing="contentResizing"
+              :hero="showHero"
               :queue="composerQueue"
               @send="onSend"
               @queue="onQueue"
-              @abort="abortSession"
-              @new-session="router.push('/')"
+              @abort="onAbort"
             />
           </div>
         </div>
@@ -119,7 +124,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue"
 import { useEventListener, useResizeObserver } from "@vueuse/core"
-import { useRoute, useRouter } from "vue-router"
+import { useRoute } from "vue-router"
 import { ArrowDown, Ellipsis, FilePlus } from "@lucide/vue"
 import { warmWorkspace } from "@client/platform.js"
 import { Button } from "@components/ui/button/index.js"
@@ -130,12 +135,14 @@ import {
   type ComposerAttachmentBatch,
 } from "@features/composer/hooks/use-composer-attachments.js"
 import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
+import { playDoneSound } from "@features/click-sound/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
+import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
@@ -157,7 +164,6 @@ function nextWelcomeWorkspaceId(
 }
 
 const route = useRoute()
-const router = useRouter()
 const {
   sessionId,
   transcript,
@@ -232,6 +238,10 @@ const transcriptView = useTemplateRef<{
   scrollToLatest: (behavior?: "auto" | "smooth") => void
 }>("transcriptView")
 const composerBar = useTemplateRef<HTMLElement>("composerBar")
+/** 首屏挂载时输入条随 Hero 一起落位；之后的切换走停靠滑动。 */
+const settleIn = showHero.value
+
+useComposerDock(composerBar, showHero)
 
 /** 输入条脱离文档流后，把占位高度写给对话列，转录和空态都靠它留白。 */
 function publishComposerReserve(entries: readonly ResizeObserverEntry[]) {
@@ -285,29 +295,54 @@ function onSend(text: string, batch?: ComposerAttachmentBatch) {
 }
 
 function onQueue(text: string) {
-  composerQueue.enqueue(text, composerAttachments.consumeForSend())
-  // 入队即清空草稿，对齐 zeron 的队列行为
+  const batch = composerAttachments.consumeForSend()
+
+  composerQueue.enqueue(text, batch)
+
+  // 附件归队列持有：入队同时清掉输入卡暂存，否则同一批文件会再传一次
+  if (batch) composerAttachments.clear()
   prompt.value = ""
 }
 
-/** 轮次结束后泵队首：一条接一条，直到队列空、新一轮占住发送通道或发送失败。 */
+/** 轮次结束后泵队首一条：剩下的等下一次轮次结束再发，不会一次把队列全提交。 */
 async function pumpQueue() {
-  for (;;) {
-    if (!sessionId.value || turnPending.value) return
+  if (!sessionId.value || turnPending.value) return
 
-    const next = composerQueue.shift()
+  const next = composerQueue.shift()
 
-    if (!next) return
+  if (!next) return
 
-    const sent = await deliverPrompt(next.text, next.attachments)
+  const sent = await deliverPrompt(next.text, next.attachments)
 
-    // sendPrompt 失败时消息已回填输入框草稿，剩余队列停止避免连发
-    if (!sent) return
-  }
+  // sendPrompt 失败时消息已回填输入框草稿，剩余队列停止避免连发
+  if (!sent) return
 }
 
-watch(running, (now, was) => {
-  if (was && !now && sessionId.value) void pumpQueue()
+let abortedTurn = false
+
+function onAbort() {
+  abortedTurn = true
+  void abortSession()
+}
+
+/** 同一会话整轮收尾、队列已空、未被中止也未报错才响完成音（Zeron done）。 */
+function turnFinishedCleanly(): boolean {
+  const aborted = abortedTurn
+  const last = [...transcript.value].reverse().find((item) => item.role === "assistant")
+
+  abortedTurn = false
+
+  if (aborted || composerQueue.items.value.length > 0) return false
+  return last?.role !== "assistant" || (last.status !== "error" && last.status !== "aborted")
+}
+
+watch([running, sessionId], ([now, id], [was, prevId]) => {
+  if (id !== prevId) abortedTurn = false
+
+  if (!was || now || !id) return
+
+  if (id === prevId && turnFinishedCleanly()) void playDoneSound()
+  void pumpQueue()
 })
 
 const dropActive = ref(false)
@@ -457,6 +492,8 @@ const contentHandleSides = ["left", "right"] as const
     clamp(680px, calc(var(--conversation-column-width, 0px) * 0.64), 920px)
   );
   --size-composer: calc(var(--size-content) + var(--spacing-md));
+  /* 首屏输入条底边离列底的距离 */
+  --hero-dock: 34%;
 }
 
 .conversation-column.is-content-resizing {
@@ -481,12 +518,6 @@ const contentHandleSides = ["left", "right"] as const
   z-index: 1;
   height: var(--spacing-sm);
   background: linear-gradient(to bottom, var(--surface), transparent);
-  backdrop-filter: blur(var(--fade-blur));
-  -webkit-backdrop-filter: blur(var(--fade-blur));
-  /* stylelint-disable-next-line color-no-hex -- 遮罩通道用黑，不是色板 */
-  mask-image: linear-gradient(to bottom, #000, transparent);
-  /* stylelint-disable-next-line color-no-hex -- 遮罩通道用黑，不是色板 */
-  -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
   content: "";
 }
 
@@ -504,32 +535,17 @@ const contentHandleSides = ["left", "right"] as const
   z-index: 1;
   height: var(--spacing-xxl);
   background: linear-gradient(to top, var(--surface), transparent);
-  backdrop-filter: blur(var(--fade-blur));
-  -webkit-backdrop-filter: blur(var(--fade-blur));
-  /* stylelint-disable-next-line color-no-hex -- 遮罩通道用黑，不是色板 */
-  mask-image: linear-gradient(to top, #000, transparent);
-  /* stylelint-disable-next-line color-no-hex -- 遮罩通道用黑，不是色板 */
-  -webkit-mask-image: linear-gradient(to top, #000, transparent);
   content: "";
 }
 
-@media (prefers-reduced-transparency: reduce) {
-  .session-stage::before,
-  .session-stage::after {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    mask-image: none;
-    -webkit-mask-image: none;
-  }
-}
-
+/* 首屏：Hero 贴在输入条上沿，两者作为一组略高于垂直中线 */
 .idle-hero {
+  position: absolute;
+  inset: 0 0 calc(var(--hero-dock) + var(--composer-reserve));
   display: grid;
-  flex: 1;
-  place-items: center;
-  min-height: 0;
+  place-items: end center;
   padding-inline: var(--spacing-md);
-  padding-bottom: var(--composer-reserve);
+  padding-bottom: var(--spacing-xl);
 }
 
 .composer-bar {
@@ -539,6 +555,14 @@ const contentHandleSides = ["left", "right"] as const
   z-index: 2;
   padding-bottom: calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px));
   pointer-events: none;
+}
+
+.composer-bar.is-hero {
+  bottom: var(--hero-dock);
+}
+
+.composer-bar.is-hero::after {
+  content: none;
 }
 
 /* 悬浮输入条下方的留白条带补底色：滚动中的正文不该从胶囊下沿透出 */

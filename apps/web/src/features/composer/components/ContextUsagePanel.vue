@@ -1,7 +1,7 @@
 <template>
   <div class="usage-root">
     <div class="usage-shell">
-      <div class="usage-host glass">
+      <div class="usage-host surface-float">
         <div class="head">
           <h3 class="title">上下文占用</h3>
 

@@ -34,6 +34,7 @@
               <TurnRow
                 v-if="block.kind === 'item'"
                 :turn="block.item"
+                :class="{ 'turn-runway': block.item.id === runwayId }"
                 :first="block.index === 0"
                 :previous-role="turns[block.index - 1]?.rows.at(-1)?.role"
                 :session-id="sessionId"
@@ -305,11 +306,30 @@ watch(
   { flush: "post" },
 )
 
+/** 刚发送的一轮：预留一屏高度，把新消息滚到视口顶部。 */
+const runwayId = shallowRef<string>()
+
+function userTurnAppended(previous: readonly TimelineTurn[], next: readonly TimelineTurn[]) {
+  return (
+    previous.length > 0 &&
+    next.length === previous.length + 1 &&
+    next.at(-2)?.id === previous.at(-1)?.id &&
+    next.at(-1)?.rows[0]?.role === "user"
+  )
+}
+
 watch(turns, (next, prev) => {
   const previous = prev ?? []
 
   if (previous.length === 0 && next.length > 0) {
     older.arm()
+    return
+  }
+
+  if (userTurnAppended(previous, next)) {
+    runwayId.value = next.at(-1)?.id
+
+    if (atBottom.value) void nextTick(() => scrollToLatest("smooth"))
     return
   }
 
@@ -340,6 +360,7 @@ watch(
   () => props.sessionId,
   (id, prev) => {
     if (!prev || prev === id) return
+    runwayId.value = undefined
     rememberAnchor(prev)
     rowsBuilder.reset()
     reset()
@@ -390,9 +411,16 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   overflow-y: auto;
   overscroll-behavior: contain;
   scroll-padding-bottom: var(--composer-reserve, 0px);
+  /* 给 .turn-runway 的 cqh 提供视口高度 */
+  container-type: size;
   /* 主视口滚动条常显，并始终占位，内容不因溢出与否来回横移 */
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-gutter: stable;
+}
+
+/* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在视口顶部 */
+.turn-runway {
+  min-height: calc(100cqh - 2 * var(--spacing-lg) - var(--composer-reserve, 0px));
 }
 
 .transcript-viewport.is-windowed {

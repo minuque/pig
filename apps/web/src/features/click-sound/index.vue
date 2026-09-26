@@ -27,5 +27,5 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import { useClickSound } from "@features/click-sound/index.js"
 
 const { enabled, toggle } = useClickSound()
-const label = computed(() => (enabled.value ? "关闭点击音效" : "开启点击音效"))
+const label = computed(() => (enabled.value ? "关闭音效" : "开启音效"))
 </script>

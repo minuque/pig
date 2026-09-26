@@ -1,9 +1,10 @@
 <template>
-  <div class="queue-panel glass" role="list" aria-label="待发队列">
+  <div class="queue-panel surface-float" role="list" aria-label="待发队列">
     <div
       v-for="(item, i) in items"
       :key="item.id"
       class="row"
+      role="listitem"
       :class="{ 'is-dragging': item.id === draggingId }"
       draggable="true"
       @dragstart="onDragStart($event, item)"
@@ -28,7 +29,7 @@
           <Pencil class="action-icon" aria-hidden="true" />
         </button>
 
-        <button type="button" class="send-now" @click="emit('send-now', item)">Send now</button>
+        <button type="button" class="send-now" @click="emit('send-now', item)">立即发送</button>
       </span>
     </div>
   </div>

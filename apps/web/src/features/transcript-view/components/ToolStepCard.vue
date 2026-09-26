@@ -39,15 +39,7 @@
         :text="readContent.preview.code"
       >
         <div class="read-heading">
-          <img
-            v-if="languageIconUrl"
-            class="icon-slot"
-            :src="languageIconUrl"
-            :title="readContent.preview.languageLabel"
-            alt=""
-          />
-
-          <span class="read-path" :title="readContent.path">{{ readContent.path }}</span>
+          <TranscriptFileTag :path="readContent.path" :text="readContent.path" />
         </div>
       </ToolHeader>
 
@@ -86,15 +78,7 @@
     <template v-else-if="editContent">
       <ToolHeader v-model:soft-wrap="softWrap" label="输出" :text="editContent.outputText">
         <div class="read-heading">
-          <img
-            v-if="editLanguageIconUrl"
-            class="icon-slot"
-            :src="editLanguageIconUrl"
-            :title="editContent.language"
-            alt=""
-          />
-
-          <span class="read-path" :title="editHeading">{{ editHeading }}</span>
+          <TranscriptFileTag :path="editHeading" :text="editHeading" />
         </div>
 
         <template #meta>
@@ -132,10 +116,11 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from "vue"
 import { StreamDiff } from "stream-diffs/vue"
-import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstream-vue"
+import MarkdownRender from "markstream-vue"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolInputJson from "@features/transcript-view/components/ToolInputJson.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
+import TranscriptFileTag from "@features/transcript-view/components/TranscriptFileTag.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/index.js"
 import {
@@ -221,18 +206,9 @@ const editDiffOptions = computed(() => ({
   disableFileHeader: true,
 }))
 const readTokens = shallowRef<CodeTokens>([])
-const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
-const editLanguageIconUrl = computed(() => languageIconDataUrl(editContent.value?.language))
 const editHeading = computed(() => editContent.value?.path || editContent.value?.fileName || "")
 const softWrap = ref(false)
 const showLineNumbers = ref(false)
-
-function languageIconDataUrl(lang: string | undefined) {
-  void languageIconsRevision.value
-
-  if (!lang || lang === "text") return ""
-  return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(lang))}`
-}
 
 watch(
   [
@@ -378,22 +354,6 @@ watch(
   align-items: center;
   gap: var(--spacing-xs);
   min-width: 0;
-}
-
-.icon-slot {
-  display: block;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  flex: none;
-}
-
-.read-path {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--ink);
-  font-family: var(--font-mono);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .read-notice {

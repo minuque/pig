@@ -1,4 +1,5 @@
-import { computed, ref, shallowRef, type ComputedRef, type ShallowRef } from "vue"
+import { computed, shallowRef, type ComputedRef, type ShallowRef } from "vue"
+import { useSessionBuckets } from "@features/composer/hooks/use-session-buckets.js"
 import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
 
 export interface QueuedPrompt {
@@ -21,24 +22,12 @@ export interface ComposerQueueApi {
 
 /**
  * 本地待发队列：内存按 sessionId 分桶（welcome 为 ""）。
- * 普通 Map 存每个会话的显式 shallowRef：嵌套在 reactive Map 里的数组不保证触发 computed。
- * 轮次结束（running → false）由调用方 pump 队首；Send now 直接走 steer。
+ * 轮次结束（running → false）由调用方泵队首；立即发送走 steer。
  */
 export function useComposerQueue(): ComposerQueueApi {
-  const buckets = new Map<string, ShallowRef<QueuedPrompt[]>>()
-  const key = ref("")
+  const buckets = useSessionBuckets<ShallowRef<QueuedPrompt[]>>(() => shallowRef([]))
+  const bucket = buckets.current
   const items = computed(() => bucket().value)
-
-  function bucket(): ShallowRef<QueuedPrompt[]> {
-    let list = buckets.get(key.value)
-
-    if (!list) {
-      list = shallowRef([])
-      buckets.set(key.value, list)
-    }
-
-    return list
-  }
 
   function enqueue(text: string, attachments?: ComposerAttachmentBatch) {
     const normalized = text.trim()
@@ -83,9 +72,5 @@ export function useComposerQueue(): ComposerQueueApi {
     return head
   }
 
-  function setKey(sessionId: string | undefined) {
-    key.value = sessionId ?? ""
-  }
-
-  return { items, enqueue, remove, reorder, shift, setKey }
+  return { items, enqueue, remove, reorder, shift, setKey: buckets.setKey }
 }

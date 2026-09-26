@@ -28,7 +28,7 @@
       <button
         type="button"
         class="remove"
-        :aria-label="`Remove ${row.item.name}`"
+        :aria-label="`移除 ${row.item.name}`"
         @mousedown.prevent
         @click="emit('remove', row.item.id)"
       >

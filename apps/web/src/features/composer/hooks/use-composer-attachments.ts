@@ -1,4 +1,5 @@
 import { computed, getCurrentInstance, onUnmounted, ref, shallowRef, type Ref } from "vue"
+import { useSessionBuckets } from "@features/composer/hooks/use-session-buckets.js"
 
 /** 单个 batch 的附件数上限，与 Gateway 的 MAX_BATCH_ITEMS 对齐。 */
 export const MAX_COMPOSER_ATTACHMENTS = 8
@@ -80,22 +81,14 @@ export function clipboardFiles(data: DataTransfer | null | undefined): File[] {
  * 附件按会话暂存在内存，发送时由 sendPrompt 顺序 stage 每个文件再 bind。
  */
 export function useComposerAttachments(): ComposerAttachmentsApi {
-  // 普通 Map 存每个会话的显式 ref：嵌套在 reactive Map 里的数组 push 不保证触发 computed
-  const stashes = new Map<string, AttachmentStash>()
-  const key = ref("")
+  // 附件按会话暂存；卸载时释放 blob URL
+  const buckets = useSessionBuckets<AttachmentStash>(
+    () => ({ files: shallowRef([]), error: ref("") }),
+    (stash) => stash.files.value.forEach(release),
+  )
+  const bucket = buckets.current
   const files = computed(() => bucket().files.value)
   const error = computed(() => bucket().error.value)
-
-  function bucket(): AttachmentStash {
-    let stash = stashes.get(key.value)
-
-    if (!stash) {
-      stash = { files: shallowRef([]), error: ref("") }
-      stashes.set(key.value, stash)
-    }
-
-    return stash
-  }
 
   function release(item: ComposerAttachment) {
     if (item.url) URL.revokeObjectURL(item.url)
@@ -204,19 +197,7 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     return { batch: crypto.randomUUID(), files: [...stash.files.value] }
   }
 
-  function setKey(sessionId: string | undefined) {
-    key.value = sessionId ?? ""
-  }
-
-  function clearAll() {
-    for (const stash of stashes.values()) {
-      for (const item of stash.files.value) release(item)
-    }
-
-    stashes.clear()
-  }
-
-  if (getCurrentInstance()) onUnmounted(clearAll)
+  if (getCurrentInstance()) onUnmounted(() => buckets.clearAll())
   return {
     files,
     error,
@@ -225,6 +206,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     remove,
     clear,
     consumeForSend,
-    setKey,
+    setKey: buckets.setKey,
   }
 }

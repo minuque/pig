@@ -2,7 +2,7 @@
   overflow: hidden;
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-popover);
-  --glass-opacity: var(--glass-menu-opacity);
+  box-shadow: var(--shadow-elevated);
 }
 
 .menu-list {
@@ -10,10 +10,4 @@
   z-index: 1;
   overflow: auto;
   padding: var(--spacing-xxs);
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .menu-surface {
-    box-shadow: var(--shadow-elevated);
-  }
 }

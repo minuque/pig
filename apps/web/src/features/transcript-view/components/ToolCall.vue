@@ -9,11 +9,8 @@
         class="detail"
         :title="detail.kind === 'file' ? detail.path : detail.text"
       >
-        <img v-if="detailIcon" class="file-icon" :src="detailIcon" alt="" />
-
-        <span class="detail-text" :data-text="detail.kind === 'file' ? detail.name : detail.text">
-          {{ detail.kind === "file" ? detail.name : detail.text }}
-        </span>
+        <TranscriptFileTag v-if="detail.kind === 'file'" :path="detail.path" :text="detail.name" />
+        <span v-else class="detail-text" :data-text="detail.text">{{ detail.text }}</span>
 
         <span v-if="detail.kind === 'file' && (detail.added || detail.removed)" class="line-stats">
           <span class="added">+{{ detail.added }}</span>
@@ -85,18 +82,10 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
-import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
-import {
-  ChevronRight,
-  FileText,
-  Lightbulb,
-  Pencil,
-  Search,
-  SquareTerminal,
-  Wrench,
-} from "@lucide/vue"
+import { ChevronRight, Eye, Lightbulb, Pencil, Search, SquareTerminal, Wrench } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
+import TranscriptFileTag from "@features/transcript-view/components/TranscriptFileTag.vue"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
 import { holdClickedOffset } from "@features/transcript-view/lib/transcript-scroll.js"
 import {
@@ -108,7 +97,6 @@ import {
 } from "@features/transcript-view/lib/transcript-format.js"
 import {
   editDiffPreview,
-  fileLanguage,
   readToolPreview,
   toolGroupKey,
   toolSummary,
@@ -120,19 +108,8 @@ import type {
   EditDiffPreview,
   ToolCallView,
   ToolRowStep,
-  ToolSummaryDetail,
   TranscriptImage,
 } from "@features/transcript-view/type.js"
-
-function fileDetailIcon(detail: ToolSummaryDetail | null): string {
-  void languageIconsRevision.value
-
-  if (detail?.kind !== "file") return ""
-  const language = fileLanguage(detail.path)
-
-  if (language === "text") return ""
-  return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(language))}`
-}
 
 type CallBase = {
   item: ToolCallView
@@ -293,9 +270,20 @@ const running = computed(() =>
     ? thought.value.streaming
     : (group.value?.items.some((item) => item.running) ?? false),
 )
-const open = computed(
-  () => thought.value?.streaming === true || props.isExpand.get(props.step.id) === true,
+/** read 图片直接看，不必再点一次。 */
+const opensByDefault = computed(
+  () =>
+    group.value?.items.some(
+      (item) => toolGroupKey(item.toolName) === "read" && item.outputImages.length > 0,
+    ) ?? false,
 )
+const open = computed(() => {
+  if (thought.value?.streaming === true) return true
+  const stored = props.isExpand.get(props.step.id)
+
+  if (stored !== undefined) return stored
+  return opensByDefault.value
+})
 const keptMounted = shallowRef(open.value)
 
 watch(
@@ -322,7 +310,6 @@ const label = computed(() => {
   return toolSummary(group.value?.items ?? [])
 })
 const detail = computed(() => (group.value ? toolSummaryDetail(group.value.items) : null))
-const detailIcon = computed(() => fileDetailIcon(detail.value))
 const icon = computed(() => {
   if (thought.value) return Lightbulb
   const key = group.value?.key
@@ -331,7 +318,7 @@ const icon = computed(() => {
 
   switch (key) {
     case "read":
-      return FileText
+      return Eye
     case "write":
     case "edit":
       return Pencil
@@ -431,13 +418,6 @@ function toggleGroup(event: MouseEvent) {
   flex: 0 1 auto;
   overflow: hidden;
   white-space: nowrap;
-}
-
-.file-icon {
-  display: block;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  flex: none;
 }
 
 .detail-text {

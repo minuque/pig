@@ -1,19 +1,6 @@
 <template>
   <form class="prompt" @submit.prevent="onSubmit">
     <Transition name="panel-reveal">
-      <CompletionPopup
-        v-if="completion.state.value.kind"
-        :kind="completion.state.value.kind"
-        :items="completion.state.value.items"
-        :index="completion.state.value.index"
-        :loading="completion.state.value.loading"
-        :empty-text="completion.state.value.emptyText"
-        @pick="completion.accept"
-        @hover="onCompletionHover"
-      />
-    </Transition>
-
-    <Transition name="panel-reveal">
       <ContextUsagePanel
         v-if="usageOpen && usage"
         :usage="usage"
@@ -38,10 +25,9 @@
       v-model:prompt="prompt"
       :placeholder="placeholder"
       :resizing="contentResizing"
+      :hero="hero"
       @submit="onSubmit"
       @paste-files="attachments.addFiles"
-      @editor-keydown="onEditorKeydown"
-      @caret="onCaret"
     >
       <template v-if="attachmentFiles.length || attachmentError" #attachments>
         <div class="attach-tray">
@@ -84,21 +70,25 @@
         />
       </template>
 
-      <template #right>
+      <template #usage>
         <ContextUsageRing
           v-if="usage"
           :usage="usage"
           :open="usageOpen"
           @toggle="usageOpen = !usageOpen"
         />
+      </template>
 
+      <template #tools>
         <ModelPicker
           v-model:open="modelPickerOpen"
           v-model:model="model"
           v-model:level="level"
           :catalog="catalog"
         />
+      </template>
 
+      <template #right>
         <Tooltip>
           <TooltipTrigger as-child>
             <Button
@@ -114,8 +104,7 @@
             >
               <span class="primary-icon icon-swap" aria-hidden="true">
                 <span class="stop-square" :data-visible="primaryMode === 'stop'"></span>
-                <ListPlus :data-visible="primaryMode === 'queue'" class="size-icon send-arrow" />
-                <ArrowUp :data-visible="primaryMode === 'send'" class="size-icon send-arrow" />
+                <ArrowUp :data-visible="primaryMode !== 'stop'" class="size-icon send-arrow" />
               </span>
             </Button>
           </TooltipTrigger>
@@ -143,12 +132,12 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, ref, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { ArrowUp, ListPlus, Paperclip } from "@lucide/vue"
+import { ArrowUp, Paperclip } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
 import AttachmentLightbox from "@features/composer/components/AttachmentLightbox.vue"
-import CompletionPopup from "@features/composer/components/CompletionPopup.vue"
+import ContextUsageRing from "@features/composer/components/ContextUsageRing.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import QueuePanel from "@features/composer/components/QueuePanel.vue"
@@ -158,7 +147,6 @@ import {
   type ComposerAttachmentBatch,
   type ComposerAttachmentsApi,
 } from "@features/composer/hooks/use-composer-attachments.js"
-import { useComposerCompletion } from "@features/composer/hooks/use-composer-completion.js"
 import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import { PROMPT_PLACEHOLDER } from "@features/composer/index.js"
 import type {
@@ -188,6 +176,8 @@ const props = withDefaults(
     cwd?: string | undefined
     /** 对话列宽度手柄拖拽中，输入卡不折叠 */
     contentResizing?: boolean
+    /** 新会话首屏：输入卡恒展开 */
+    hero?: boolean
     queue: ComposerQueueApi
   }>(),
   {
@@ -199,6 +189,7 @@ const props = withDefaults(
     sessionId: undefined,
     cwd: undefined,
     contentResizing: false,
+    hero: false,
   },
 )
 const prompt = defineModel<string>("prompt", { required: true })
@@ -207,7 +198,6 @@ const emit = defineEmits<{
   send: [text: string, batch?: ComposerAttachmentBatch]
   queue: [text: string]
   abort: []
-  "new-session": []
 }>()
 const model = computed({
   get: () => preset.value?.model,
@@ -256,25 +246,12 @@ const primaryDisabled = computed(() => {
   if (primaryMode.value === "stop") return props.aborting
   return !sendActive.value
 })
-const completion = useComposerCompletion({
-  prompt,
-  cwd: computed(() => props.cwd),
-  onPick: (item, range) => {
-    // 命令的 insert 是空串：同样走 replaceRange 把 token 吃掉
-    editor.value?.replaceRange(range.start, range.end, item.insert)
-
-    if (item.id === "model") modelPickerOpen.value = true
-
-    if (item.id === "new") emit("new-session")
-  },
-})
 
 watch(
   () => props.sessionId,
   () => {
     usageOpen.value = false
     modelPickerOpen.value = false
-    completion.close()
   },
 )
 
@@ -290,20 +267,6 @@ function submitIntent() {
 
 function onSubmit() {
   submitIntent()
-}
-
-function onEditorKeydown(e: KeyboardEvent) {
-  if (e.isComposing) return
-
-  if (completion.handleKeydown(e)) e.preventDefault()
-}
-
-function onCaret(position: number) {
-  completion.update(position)
-}
-
-function onCompletionHover(index: number) {
-  completion.state.value.index = index
 }
 
 function onPrimaryAction() {
@@ -355,9 +318,8 @@ function onAbortHotkey(event: KeyboardEvent) {
 
   if (event.altKey || event.ctrlKey || event.metaKey) return
 
-  // 补全弹层打开时 Esc 先关弹层，不打断轮次
-  if (completion.state.value.kind || !props.running || props.aborting || modelPickerOpen.value)
-    return
+  // 灯箱与菜单各自消费 Esc，不打断轮次
+  if (previewItem.value || !props.running || props.aborting || modelPickerOpen.value) return
   const active = document.activeElement
 
   if (

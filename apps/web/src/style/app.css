@@ -30,15 +30,9 @@
   --surface: #fcfcfd;
   --sidebar: #ffffff;
   --composer-bg: #ffffff;
-  /* 队列托盘：比输入卡略深一档，托盘从胶囊背后探出 */
-  --composer-queue-bg: #f2f2f4;
   --user-prompt-bg: #e8e8ea;
   --popover: #ffffff;
   --code-surface: color-mix(in srgb, var(--ink) 4%, var(--surface));
-  /* 提示气泡：深浅主题都是浅底深字，不跟随 --ink；--tooltip-bg 也是库读取的名字 */
-  --tooltip-bg: #e8e8ea;
-  --tooltip-fg: #1b1b1b;
-  --tooltip-ring: #dedede;
 
   /* mermaid 图 */
   --mermaid-bg: #ffffff;
@@ -80,17 +74,9 @@
   --scrollbar-color: #dad8d8;
   --scrollbar-hover: #6b6b6b;
 
-  /* 玻璃：对齐 Zeron 霜化输入卡，模糊挂伪元素 */
-  --glass-blur: 16px;
-  --glass-opacity: 35%;
-  --glass-saturation: 1;
-  --glass-surface: var(--composer-bg);
-  --glass-menu-opacity: 45%;
-  --glass-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   --surface-border: hsl(210 18% 32% / 0.1);
   --hairline: hsl(0 0% 0% / 0.12);
   --composer-shadow: none;
-  --fade-blur: 2px;
   --startup-veil: color-mix(in srgb, var(--composer-bg) 80%, var(--canvas-soft));
 
   /* 分类色，不作结构填充 */
@@ -208,7 +194,6 @@
   /* 边框 / 遮罩 / 层级 */
   --border-width: 1px;
   --scrim: rgba(0, 0, 0, 0.4);
-  --scrim-blur: 4px;
   --z-resizer: 1;
   --z-drawer: 10;
   --z-modal: 20;
@@ -243,7 +228,17 @@
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-composer-flip: 180ms;
-  --ease-composer-flip: cubic-bezier(0, 0, 0.58, 1);
+  --ease-fold: cubic-bezier(0, 0, 0.58, 1);
+  --ease-composer-flip: var(--ease-fold);
+  /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms（Zeron dock） */
+  --duration-dock-in: 420ms;
+  --duration-dock-out: 470ms;
+  --ease-dock: var(--ease-smooth);
+  /* 首屏整体落位入场（Zeron settle_down） */
+  --duration-settle: 500ms;
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+  /* 工具组折叠与箭头同钟（Zeron TOOL_FOLD） */
+  --duration-tool-fold: 140ms;
   --duration-slow: 280ms;
   --duration-startup-leave: 220ms;
   --duration-icon: 300ms;
@@ -266,13 +261,9 @@
   --surface: #0f0f11;
   --sidebar: #161618;
   --composer-bg: #1c1c1f;
-  --composer-queue-bg: #232327;
   --user-prompt-bg: #262628;
   --popover: #1c1c1f;
   --code-surface: color-mix(in srgb, var(--ink) 5%, var(--surface));
-  --tooltip-bg: #eaeaea;
-  --tooltip-fg: #171717;
-  --tooltip-ring: transparent;
 
   /* mermaid 图 */
   --mermaid-bg: #161618;
@@ -333,8 +324,6 @@
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.28);
-  --glass-opacity: 15%;
-  --glass-menu-opacity: 50%;
   --surface-border: hsl(210 18% 78% / 0.09);
   --hairline: hsl(0 0% 100% / 0.1);
 
@@ -434,9 +423,6 @@
   --color-card-foreground: var(--ink);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--ink);
-  --color-tooltip: var(--tooltip-bg);
-  --color-tooltip-fg: var(--tooltip-fg);
-  --color-tooltip-ring: var(--tooltip-ring);
   --color-muted: var(--canvas-soft);
   --color-muted-foreground: var(--ink-muted);
   --color-border: var(--border);
@@ -508,31 +494,9 @@
   height: var(--size-icon);
 }
 
-.glass {
-  position: relative;
-  isolation: isolate;
-  background: color-mix(in srgb, var(--glass-surface) var(--glass-opacity), transparent);
-}
-
-.glass::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .glass {
-    background: var(--glass-surface);
-  }
-
-  .glass::before {
-    content: none;
-  }
+/* 浮层统一不透明底：输入卡、弹层、菜单、对话框 */
+.surface-float {
+  background: var(--composer-bg);
 }
 
 /* 基础 */
@@ -603,13 +567,6 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
 @media (max-width: 639px) {
   :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
     transform: translateX(-50%);
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  :is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"]) {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
   }
 }
 
