@@ -4,7 +4,6 @@ import type { DirectoryPort } from "../directory.js"
 import { AttachmentError, sanitizeMimeType, type AttachmentErrorCode } from "../pi/attachments.js"
 import { isContextPreviewKey } from "../pi/context-usage.js"
 import type { PiHostService } from "../pi/service.js"
-import { FileSearchError, searchFiles } from "./search-files.js"
 
 export type PlatformRequestDeps = {
   send(res: ServerResponse, status: number, body?: unknown): void
@@ -13,7 +12,7 @@ export type PlatformRequestDeps = {
   platformPort: DirectoryPort
 }
 
-/** 平台 HTTP：目录选择与预热、会话卡片、上下文用量、重命名与删除、文件搜索。true=已处理（含 400/404/500）。 */
+/** 平台 HTTP：目录选择与预热、会话卡片、上下文用量、重命名与删除。true=已处理（含 400/404/500）。 */
 export async function handlePlatformRequest(
   req: IncomingMessage,
   res: ServerResponse,
@@ -52,11 +51,6 @@ export async function handlePlatformRequest(
 
   if (url.pathname === "/api/v1/platform/delete-session" && req.method === "POST") {
     await handleDeleteSession(req, res, deps)
-    return true
-  }
-
-  if (url.pathname === "/api/v1/platform/search-files" && req.method === "POST") {
-    await handleSearchFiles(req, res, deps)
     return true
   }
 
@@ -365,32 +359,5 @@ async function handleDeleteSession(
     send(res, 200, { ok: true })
   } catch (error) {
     sendSessionWriteError(error, res, send, "delete-session")
-  }
-}
-
-/** composer 的 @提及：在 cwd 下按文件名找文件，path 相对 cwd。 */
-async function handleSearchFiles(
-  req: IncomingMessage,
-  res: ServerResponse,
-  deps: PlatformRequestDeps,
-) {
-  const { send } = deps
-  const payload = await readObjectBody(req, res, deps)
-
-  if (!payload) return
-
-  const cwd = typeof payload.cwd === "string" ? payload.cwd : ""
-  const query = typeof payload.query === "string" ? payload.query : ""
-
-  try {
-    send(res, 200, { files: await searchFiles(cwd, query) })
-  } catch (error) {
-    if (error instanceof FileSearchError) {
-      send(res, 400, { code: error.code })
-      return
-    }
-
-    console.error("search-files failed:", error)
-    send(res, 500, { code: "INTERNAL_ERROR" })
   }
 }

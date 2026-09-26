@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
+import { mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
@@ -20,7 +20,6 @@ const directoryPort: DirectoryPort = {
 let gateway: Gateway | undefined
 let sessionDir: string | undefined
 let attachmentRootDir: string | undefined
-let searchRoot: string | undefined
 
 afterEach(async () => {
   selectedDirectory = undefined
@@ -32,9 +31,6 @@ afterEach(async () => {
   if (attachmentRootDir) await rm(attachmentRootDir, { recursive: true, force: true })
   sessionDir = undefined
   attachmentRootDir = undefined
-
-  if (searchRoot) await rm(searchRoot, { recursive: true, force: true })
-  searchRoot = undefined
 })
 
 const idleRuntime = {
@@ -207,44 +203,6 @@ describe("thin host HTTP shell", () => {
       await (await request(base, "/api/v1/platform/attachments/discard", { batch: "nope" })).json(),
     ).toEqual({ ok: true })
   }, 15_000)
-
-  it("search-files 按文件名子串命中，空 query 不遍历", async () => {
-    const base = await startGateway()
-    searchRoot = await mkdtemp(join(tmpdir(), "pig-search-"))
-    await mkdir(join(searchRoot, "src", "deep"), { recursive: true })
-    await mkdir(join(searchRoot, "node_modules", "pkg"), { recursive: true })
-    await writeFile(join(searchRoot, "src", "SearchBox.vue"), "")
-    await writeFile(join(searchRoot, "src", "deep", "search-util.ts"), "")
-    await writeFile(join(searchRoot, "node_modules", "pkg", "search-dep.ts"), "")
-
-    const found = await request(base, "/api/v1/platform/search-files", {
-      cwd: searchRoot,
-      query: "SEARCH",
-    })
-
-    expect(found.status).toBe(200)
-    await expect(found.json()).resolves.toEqual({
-      files: [
-        { name: "SearchBox.vue", path: "src/SearchBox.vue" },
-        { name: "search-util.ts", path: "src/deep/search-util.ts" },
-      ],
-    })
-
-    // 空 query 直接空列表；cwd 不存在回 400
-    await expect(
-      (
-        await request(base, "/api/v1/platform/search-files", { cwd: searchRoot, query: "  " })
-      ).json(),
-    ).resolves.toEqual({ files: [] })
-    expect(
-      (
-        await request(base, "/api/v1/platform/search-files", {
-          cwd: join(searchRoot, "missing"),
-          query: "a",
-        })
-      ).status,
-    ).toBe(400)
-  })
 
   it("renames and deletes sessions", async () => {
     const base = await startGateway()
