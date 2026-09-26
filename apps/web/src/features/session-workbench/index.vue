@@ -529,12 +529,12 @@ const contentHandleSides = ["left", "right"] as const
 .session-stage::after {
   pointer-events: none;
   position: absolute;
-  /* 让开滚动条列，渐隐停在悬浮输入条上沿 */
+  /* 让开滚动条列，渐隐停在悬浮输入条上沿；下半做实色脚，半透区不留残字 */
   inset-inline: 0 var(--size-scrollbar);
   bottom: var(--composer-reserve);
   z-index: 1;
-  height: var(--spacing-xxl);
-  background: linear-gradient(to top, var(--surface), transparent);
+  height: calc(var(--spacing-xxl) + var(--spacing-md));
+  background: linear-gradient(to bottom, transparent, var(--surface) 50%);
   content: "";
 }
 

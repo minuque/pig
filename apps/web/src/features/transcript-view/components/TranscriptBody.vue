@@ -438,8 +438,8 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   min-width: 0;
   margin-inline: auto;
   padding-top: var(--spacing-lg);
-  /* 底部空白可滚进视口，贴底时最后一条停在悬浮输入条上方 */
-  padding-bottom: calc(var(--spacing-lg) + var(--composer-reserve, 0px));
+  /* 底部空白可滚进视口；渐隐带高 xxl+md，停靠行要停在带上沿之外，不压进半透区 */
+  padding-bottom: calc(var(--spacing-xxl) + var(--spacing-lg) + var(--composer-reserve, 0px));
   padding-inline: var(--border-width);
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;

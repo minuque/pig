@@ -40,7 +40,7 @@ import SoundToggle from "@features/click-sound/index.vue"
 import ThemeToggle from "@features/theme/index.vue"
 
 const props = defineProps<{
-  cwd?: string
+  cwd?: string | undefined
 }>()
 const { leftOpen, toggle } = useLeftPanelToggle()
 const { sessionId, projection } = useSession()
