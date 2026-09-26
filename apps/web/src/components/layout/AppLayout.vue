@@ -5,7 +5,7 @@
     :style="{ '--left-width': `${leftWidth}px` }"
   >
     <aside class="sidebar" :class="{ open: leftOpen }" :inert="!leftOpen">
-      <slot name="sidebar" :on-navigate="closeMobilePanels" :toggle="toggle" />
+      <slot name="sidebar" :on-navigate="closeMobilePanels" />
     </aside>
 
     <div
@@ -29,7 +29,7 @@ import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-pa
 
 defineSlots<{
   default(): unknown
-  sidebar(props: { onNavigate: () => void; toggle: () => void }): unknown
+  sidebar(props: { onNavigate: () => void }): unknown
 }>()
 
 const { leftOpen, leftWidth, resizing, toggle, resizeBy, startResize, closeMobilePanels } =

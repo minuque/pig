@@ -3,7 +3,28 @@
     <div class="titlebar-drag" aria-hidden="true"></div>
 
     <div class="nav-inset">
-      <NavHeader @toggle="emit('toggle')" @create="onCreateSession" @search="openSearch" />
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button class="nav-collapse" type="button" aria-label="收起侧边栏" @click="togglePanel">
+            <PanelLeft class="size-icon" />
+          </button>
+        </TooltipTrigger>
+
+        <TooltipContent>收起侧边栏</TooltipContent>
+      </Tooltip>
+
+      <div class="nav-toolbar">
+        <button class="nav-action" type="button" @click="onCreateSession">
+          <MessageCirclePlus class="size-icon" />
+          <span class="nav-label">新建会话</span>
+        </button>
+
+        <button class="nav-action" type="button" @click="openSearch">
+          <Search class="size-icon" />
+          <span class="nav-label">搜索</span>
+          <kbd class="search-shortcut">Ctrl K</kbd>
+        </button>
+      </div>
 
       <p v-if="connected && !groups.length" class="add-guide">
         <ArrowUp class="size-icon motion-nudge" />
@@ -22,12 +43,13 @@
 import { defineAsyncComponent, onMounted, shallowRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
-import { ArrowUp } from "@lucide/vue"
+import { ArrowUp, MessageCirclePlus, PanelLeft, Search } from "@lucide/vue"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
+import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyError } from "@components/layout/notify.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
-import NavHeader from "@features/session-nav/components/NavHeader.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
 import { useSettings } from "@features/settings/index.js"
 
@@ -36,8 +58,8 @@ const SessionSearch = defineAsyncComponent(
 )
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
-  toggle: []
 }>()
+const { toggle: togglePanel } = useLeftPanelToggle()
 const {
   groups,
   pinnedSessions,
@@ -134,7 +156,86 @@ function onCreateSession(): void {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  padding-block-start: var(--spacing-xxs);
   padding-inline: var(--nav-inline);
+}
+
+.nav-collapse {
+  display: none;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-end;
+  padding: var(--icon-button-pad);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+}
+
+.nav-collapse:hover,
+.nav-collapse:focus-visible {
+  background: var(--hover-quiet);
+  color: var(--ink);
+}
+
+.nav-toolbar {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+}
+
+.nav-action {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  width: 100%;
+  height: var(--size-nav-rail);
+  padding-inline: var(--spacing-xs);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-caption--line-height);
+  text-align: start;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.nav-action:hover {
+  background: var(--hover-quiet);
+}
+
+.nav-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-shortcut {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  font: var(--text-caption-mono) / var(--text-caption-mono--line-height) var(--font-mono);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.nav-action:hover .search-shortcut,
+.nav-action:focus-visible .search-shortcut {
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  .nav-collapse {
+    display: flex;
+  }
 }
 
 .session-nav > .titlebar-drag {
@@ -150,16 +251,12 @@ html[data-pig-desktop-platform] .session-nav > .titlebar-drag {
   display: block;
 }
 
-html[data-pig-desktop-platform="win32"] .session-nav > .titlebar-drag {
-  display: none;
-}
-
 html[data-pig-desktop-platform] .session-nav {
   padding-top: calc(6px + var(--titlebar-inset));
 }
 
 html[data-pig-desktop-platform="win32"] .session-nav {
-  padding-top: 0;
+  padding-top: var(--titlebar-inset);
 }
 
 html[data-pig-desktop-platform="darwin"] .session-nav {
@@ -185,6 +282,13 @@ html[data-pig-desktop-platform="darwin"] .session-nav {
 @media (max-width: 900px) {
   .session-nav {
     --nav-inline: var(--spacing-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-action,
+  .search-shortcut {
+    transition: none;
   }
 }
 </style>

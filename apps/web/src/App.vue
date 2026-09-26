@@ -2,8 +2,8 @@
   <TooltipProvider>
     <Startup :connect="pi.connect" :initialize="session.initialize">
       <AppLayout>
-        <template #sidebar="{ onNavigate, toggle }">
-          <SessionNav @navigate="handleSidebarNavigate($event, onNavigate)" @toggle="toggle" />
+        <template #sidebar="{ onNavigate }">
+          <SessionNav @navigate="handleSidebarNavigate($event, onNavigate)" />
         </template>
 
         <RouterView />

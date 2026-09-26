@@ -1,14 +1,21 @@
 <template>
   <header class="workbench-header">
-    <Tooltip v-if="!leftOpen">
+    <Tooltip>
       <TooltipTrigger as-child>
-        <button class="header-toggle" type="button" aria-label="打开侧边栏" @click="toggle">
+        <button
+          class="header-toggle"
+          type="button"
+          :aria-label="leftOpen ? '折叠侧边栏' : '打开侧边栏'"
+          @click="toggle"
+        >
           <PanelLeft class="size-icon" />
         </button>
       </TooltipTrigger>
 
-      <TooltipContent>打开侧边栏</TooltipContent>
+      <TooltipContent>{{ leftOpen ? "折叠侧边栏" : "打开侧边栏" }}</TooltipContent>
     </Tooltip>
+
+    <span v-if="cwdName" class="header-cwd" :title="cwd ?? ''">{{ cwdName }}</span>
 
     <div class="header-crumb">
       <h1 v-if="title" id="current-title" class="header-session">{{ title }}</h1>
@@ -26,12 +33,15 @@ import { computed } from "vue"
 import { PanelLeft } from "@lucide/vue"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { useNav } from "@features/session-nav/index.js"
+import { useNav, workspaceName } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
 import SoundToggle from "@features/click-sound/index.vue"
 import ThemeToggle from "@features/theme/index.vue"
 
+const props = defineProps<{
+  cwd?: string
+}>()
 const { leftOpen, toggle } = useLeftPanelToggle()
 const { sessionId, projection } = useSession()
 const { listedSessions } = useNav()
@@ -42,6 +52,7 @@ const title = computed(() =>
     projectionName: projection.value?.name,
   }),
 )
+const cwdName = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
 </script>
 
 <style scoped>
@@ -71,6 +82,21 @@ const title = computed(() =>
 .header-toggle:focus-visible {
   background: var(--hover-quiet);
   color: var(--ink);
+}
+
+.header-cwd {
+  flex: none;
+  max-width: 14rem;
+  padding: 2px var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  background: var(--hover-tint);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-crumb {

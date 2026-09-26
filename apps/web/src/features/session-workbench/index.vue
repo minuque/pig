@@ -14,7 +14,7 @@
       </span>
     </div>
 
-    <WorkbenchHeader />
+    <WorkbenchHeader :cwd="composerCwd" />
 
     <div
       :ref="bindColumn"
