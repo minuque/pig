@@ -3,15 +3,27 @@
     <div class="titlebar-drag" aria-hidden="true"></div>
 
     <div class="nav-inset">
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <button class="nav-collapse" type="button" aria-label="收起侧边栏" @click="togglePanel">
-            <PanelLeft class="size-icon" />
-          </button>
-        </TooltipTrigger>
+      <div class="nav-head">
+        <RouterLink to="/" class="nav-brand press-scale" aria-label="pig">
+          <img class="brand-mark" src="/pwa-icon-192.png" alt="" width="22" height="22" />
 
-        <TooltipContent>收起侧边栏</TooltipContent>
-      </Tooltip>
+          <span class="brand-word" aria-hidden="true">
+            <span class="brand-letter">p</span>
+            <span class="brand-letter">i</span>
+            <span class="brand-letter">g</span>
+          </span>
+        </RouterLink>
+
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <button class="nav-collapse" type="button" aria-label="收起侧边栏" @click="togglePanel">
+              <PanelLeft class="size-icon" />
+            </button>
+          </TooltipTrigger>
+
+          <TooltipContent>收起侧边栏</TooltipContent>
+        </Tooltip>
+      </div>
 
       <div class="nav-toolbar">
         <button class="nav-action" type="button" @click="onCreateSession">
@@ -160,13 +172,78 @@ function onCreateSession(): void {
   padding-inline: var(--nav-inline);
 }
 
+.nav-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.nav-brand {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+  margin-inline-start: calc(-1 * var(--spacing-xxs));
+  padding: var(--spacing-xxs);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  text-decoration: none;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.nav-brand:hover,
+.nav-brand:focus-visible {
+  background: var(--hover-quiet);
+}
+
+.brand-mark {
+  display: block;
+  flex: none;
+}
+
+.brand-word {
+  display: inline-flex;
+}
+
+.brand-letter {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  background-image: linear-gradient(135deg, var(--primary), var(--accent-skill));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.brand-letter:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.brand-letter:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.nav-brand:hover .brand-letter,
+.nav-brand:focus-visible .brand-letter {
+  animation: brand-hop var(--duration-settle) var(--ease-spring) both;
+}
+
 .nav-collapse {
   display: none;
   flex: none;
   align-items: center;
   justify-content: center;
-  align-self: flex-end;
+  margin-inline-start: auto;
   padding: var(--icon-button-pad);
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -255,12 +332,28 @@ html[data-pig-desktop-platform] .session-nav {
   padding-top: calc(6px + var(--titlebar-inset));
 }
 
+html[data-pig-desktop-platform] .nav-head {
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 auto;
+  height: calc(6px + var(--titlebar-inset));
+  padding-inline: var(--nav-inline);
+}
+
 html[data-pig-desktop-platform="win32"] .session-nav {
   padding-top: var(--titlebar-inset);
 }
 
+html[data-pig-desktop-platform="win32"] .nav-head {
+  height: var(--titlebar-inset);
+}
+
 html[data-pig-desktop-platform="darwin"] .session-nav {
   padding-top: var(--spacing-xxl);
+}
+
+html[data-pig-desktop-platform="darwin"] .nav-head {
+  height: var(--spacing-xxl);
 }
 
 .add-guide {
@@ -289,6 +382,11 @@ html[data-pig-desktop-platform="darwin"] .session-nav {
   .nav-action,
   .search-shortcut {
     transition: none;
+  }
+
+  .nav-brand:hover .brand-letter,
+  .nav-brand:focus-visible .brand-letter {
+    animation: none;
   }
 }
 </style>

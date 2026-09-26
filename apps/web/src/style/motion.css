@@ -640,6 +640,21 @@
   }
 }
 
+@keyframes brand-hop {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+
+  45% {
+    transform: translateY(-4px) scaleY(1.06);
+  }
+
+  72% {
+    transform: translateY(1px) scaleY(0.92);
+  }
+}
+
 .motion-pulse {
   position: relative;
 }
