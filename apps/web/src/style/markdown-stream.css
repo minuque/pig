@@ -136,7 +136,7 @@
   }
 
   .inline-code {
-    font-size: var(--text-code);
+    font-size: var(--ms-text-body);
     border-radius: var(--radius-sm);
     padding: 0.1rem 0.35rem;
   }
