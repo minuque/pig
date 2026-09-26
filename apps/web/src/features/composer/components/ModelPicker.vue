@@ -80,8 +80,8 @@
             ref="searchRef"
             v-model="query"
             type="text"
-            placeholder="搜索模型"
-            aria-label="搜索模型"
+            :placeholder="searchPlaceholder"
+            :aria-label="searchPlaceholder"
             @keydown="onSearchKeydown"
           />
         </div>
@@ -95,9 +95,15 @@
               :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
             >
               <DropdownMenuItem
-                class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-(--spacing-xs) py-0 h-(--size-control) text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
+                class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-(--spacing-xs) py-0 h-(--size-control) text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent data-[highlighted]:bg-transparent"
                 @select="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
               >
+                <VendorMark
+                  :vendor="item.data.vendor.id"
+                  :name="item.data.vendor.name"
+                  :size="15"
+                />
+
                 <span class="model-name">{{ item.data.vendor.id }}/{{ item.data.model.name }}</span>
                 <kbd v-if="i < 9" class="row-kbd">{{ kbdBadge(i) }}</kbd>
               </DropdownMenuItem>
@@ -216,6 +222,9 @@ const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, {
 const emptyText = computed(() =>
   query.value.trim() || scope.value !== FAVORITES_SCOPE ? "没有匹配的模型" : "还没有收藏的模型",
 )
+const searchPlaceholder = computed(() =>
+  scope.value === FAVORITES_SCOPE ? "搜索收藏" : "搜索模型",
+)
 const label = computed(() => {
   const { vendor, model } = current.value
   return vendor && model ? `${vendor.id}/${model.name}` : modelLabel(props.model)
@@ -234,7 +243,7 @@ watch([query, scope], async () => {
 })
 
 function kbdBadge(index: number) {
-  return isMac ? `⌘${index + 1}` : `Ctrl+${index + 1}`
+  return isMac ? `⌘${index + 1}` : `Ctrl ${index + 1}`
 }
 
 function isCurrent(provider: string, id: string) {
@@ -439,7 +448,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .model-row:hover,
 .model-row:focus-within {
-  background: var(--canvas-soft);
+  background: var(--interaction-hover);
 }
 
 .model-row[data-current] {
