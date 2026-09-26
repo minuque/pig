@@ -145,7 +145,7 @@ const emit = defineEmits<{
 }
 
 .sessions-head:hover {
-  background: var(--hover-quiet);
+  background: var(--interaction-hover);
 }
 
 .sessions-label {

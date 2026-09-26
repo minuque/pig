@@ -53,7 +53,7 @@
   --border: #dedede;
   --border-subtle: #e8e8e8;
   --composer-ring: #d1d1d1;
-  --interaction-hover: #ededed;
+  --interaction-hover: #e8e8eb;
   --interaction-selected: #e6e6e8;
   --hover-quiet: color-mix(in srgb, var(--ink) 5%, transparent);
   --hover-tint: color-mix(in srgb, var(--ink) 8%, transparent);
@@ -282,7 +282,7 @@
   --border: #28282a;
   --border-subtle: #202022;
   --composer-ring: #353537;
-  --interaction-hover: #1c1c1e;
+  --interaction-hover: #26262b;
   --interaction-selected: #2c2c31;
   --effort-track: var(--hover-strong);
   --effort-thumb: var(--ink-secondary);

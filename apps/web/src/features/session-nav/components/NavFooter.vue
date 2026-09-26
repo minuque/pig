@@ -95,7 +95,11 @@ const emit = defineEmits<{
     scale var(--duration-fast) var(--ease-out);
 }
 
-.footer-settings:hover,
+.footer-settings:hover {
+  background: var(--interaction-hover);
+  color: var(--ink);
+}
+
 .footer-help:hover,
 .footer-help[data-state="open"] {
   background: var(--hover-quiet);

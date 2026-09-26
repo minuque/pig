@@ -197,7 +197,7 @@ function onCreateSession(): void {
 
 .nav-brand:hover,
 .nav-brand:focus-visible {
-  background: var(--hover-quiet);
+  background: var(--interaction-hover);
 }
 
 .brand-mark {
@@ -282,7 +282,7 @@ function onCreateSession(): void {
 }
 
 .nav-action:hover {
-  background: var(--hover-quiet);
+  background: var(--interaction-hover);
 }
 
 .nav-label {

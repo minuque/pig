@@ -99,7 +99,7 @@ function onDragStart(event: DragEvent) {
 }
 
 .group-head:hover {
-  background: var(--hover-quiet);
+  background: var(--interaction-hover);
 }
 
 .group-toggle {

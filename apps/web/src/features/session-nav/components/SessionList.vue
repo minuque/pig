@@ -20,7 +20,12 @@
         <SessionItem
           v-for="session in pinnedRows"
           :key="session.id"
-          v-bind="itemBind(session, { pinned: true, showPath: true })"
+          v-bind="
+            itemBind(session, {
+              pinned: true,
+              dirTag: session.cwd ? workspaceName(session.cwd) : undefined,
+            })
+          "
           @navigate="emit('navigate', session.cwd)"
           @toggle-pinned="togglePinned"
           @rename="renameSession"
@@ -194,12 +199,16 @@ function sessionState(id: string): SidebarSessionState | undefined {
   return cardFootById.value.get(id)?.state
 }
 
-function itemBind(session: SidebarSession, extra?: { pinned?: boolean; showPath?: boolean }) {
+function itemBind(
+  session: SidebarSession,
+  extra?: { pinned?: boolean; showPath?: boolean; dirTag?: string | undefined },
+) {
   return {
     session,
     active: session.id === highlightedSessionId.value,
     pinned: extra?.pinned ?? pinnedIds.value.has(session.id),
     showPath: extra?.showPath ?? false,
+    dirTag: extra?.dirTag,
     state: sessionState(session.id),
     now: now.value,
   }
@@ -294,7 +303,7 @@ function groupClass(key: string, open: boolean) {
 }
 
 .section-label:hover {
-  background: var(--hover-quiet);
+  background: var(--interaction-hover);
 }
 
 .section-label-text {
@@ -362,7 +371,7 @@ function groupClass(key: string, open: boolean) {
 
 .more-button:hover,
 .more-button:focus-visible {
-  background: var(--hover-quiet);
+  background: var(--interaction-hover);
   color: var(--ink);
 }
 </style>

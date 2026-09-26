@@ -64,6 +64,10 @@
                 :aria-label="stateLabel"
               ></span>
 
+              <span v-else-if="dirTag" class="session-dir" :title="session.cwd">
+                {{ dirTag }}
+              </span>
+
               <time
                 v-else-if="session.updatedAt"
                 class="session-time"
@@ -148,11 +152,13 @@ const props = withDefaults(
     active?: boolean
     pinned?: boolean
     showPath?: boolean
+    dirTag?: string | undefined
     state?: SidebarSessionState | undefined
     now: number
   }>(),
   {
     showPath: false,
+    dirTag: undefined,
     state: undefined,
   },
 )
@@ -390,6 +396,7 @@ function confirmDelete() {
 
 .session-spin,
 .session-time,
+.session-dir,
 .state-dot,
 .status-ring,
 .more-toggle {
@@ -510,13 +517,13 @@ function confirmDelete() {
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.session-time {
+.session-time,
+.session-dir {
   position: relative;
   display: flex;
   align-items: center;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
-  font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-regular);
   line-height: var(--text-eyebrow--line-height);
   text-align: end;
@@ -524,16 +531,29 @@ function confirmDelete() {
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
+.session-time {
+  font-variant-numeric: tabular-nums;
+}
+
+.session-dir {
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .session-item:hover .session-time,
 .session-item:hover .session-spin,
+.session-item:hover .session-dir,
 .session-item:hover .state-dot,
 .session-item:hover .status-ring,
 .session-item:focus-within .session-time,
 .session-item:focus-within .session-spin,
+.session-item:focus-within .session-dir,
 .session-item:focus-within .state-dot,
 .session-item:focus-within .status-ring,
 .session-item.is-menu-open .session-time,
 .session-item.is-menu-open .session-spin,
+.session-item.is-menu-open .session-dir,
 .session-item.is-menu-open .state-dot,
 .session-item.is-menu-open .status-ring {
   opacity: 0;
@@ -548,6 +568,7 @@ function confirmDelete() {
 
   .session-time,
   .session-spin,
+  .session-dir,
   .state-dot,
   .status-ring {
     opacity: 0;
