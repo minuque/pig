@@ -1,7 +1,11 @@
 <template>
   <section class="tool-steps" :class="{ running, aborted: row.aborted }">
     <Button type="button" static class="summary-btn" :style="statusColor" @click="toggleSteps">
-      <Spinner v-if="running" class="tool-steps-icon" />
+      <LoaderCircle
+        v-if="running"
+        class="tool-steps-icon animate-spin motion-reduce:animate-none"
+      />
+
       <ClockAlert v-else-if="row.aborted || row.error" class="tool-steps-icon" />
       <BadgeCheck v-else class="tool-steps-icon" />
 
@@ -125,9 +129,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
-import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis } from "@lucide/vue"
+import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis, LoaderCircle } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
-import { Spinner } from "@components/ui/spinner/index.js"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import {
   toolRowDurationLabel,

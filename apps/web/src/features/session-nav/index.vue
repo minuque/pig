@@ -58,6 +58,7 @@ import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyError } from "@components/layout/notify.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { useSound } from "@features/click-sound/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
@@ -81,6 +82,7 @@ const {
   addWorkspace,
 } = useNav()
 const { openSettings } = useSettings()
+const { play } = useSound()
 const router = useRouter()
 const searchOpen = shallowRef(false)
 
@@ -110,6 +112,7 @@ function highlightedCwd(): string | undefined {
 }
 
 function openSearch() {
+  if (!searchOpen.value) void play("search")
   void import("@features/session-nav/components/SessionSearch.vue")
   searchOpen.value = true
 }
@@ -131,6 +134,7 @@ function onSessionNavigate(cwd: string | undefined): void {
 }
 
 function onCreateInDir(canonicalPath: string): void {
+  void play("create")
   cancelPendingOpen()
   emit("navigate", canonicalPath)
   void router.push("/")
@@ -139,8 +143,9 @@ function onCreateInDir(canonicalPath: string): void {
 function onCreateSession(): void {
   const path = highlightedCwd() ?? lastCwd.value ?? groups.value[0]?.canonicalPath
 
-  if (path) onCreateInDir(path)
-  else void addWorkspace()
+  if (path) return onCreateInDir(path)
+  void play("create")
+  void addWorkspace()
 }
 </script>
 

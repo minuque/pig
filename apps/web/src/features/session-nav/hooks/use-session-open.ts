@@ -1,5 +1,6 @@
 import { computed, nextTick, shallowRef, watch, type Ref } from "vue"
 import type { Router } from "vue-router"
+import { useSound } from "@features/click-sound/index.js"
 
 function afterPaint(): Promise<void> {
   const raf = globalThis.requestAnimationFrame?.bind(globalThis)
@@ -14,6 +15,7 @@ function afterPaint(): Promise<void> {
 }
 
 export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<Router, "push">) {
+  const { play } = useSound()
   const pendingSessionId = shallowRef<string>()
   const highlightedSessionId = computed(() => pendingSessionId.value ?? sessionId.value)
   let openToken = 0
@@ -30,6 +32,7 @@ export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<
       return
     }
 
+    void play("switch")
     pendingSessionId.value = id
     const token = ++openToken
     void nextTick(async () => {

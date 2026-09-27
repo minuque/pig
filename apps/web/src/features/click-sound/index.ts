@@ -1,13 +1,20 @@
-import { onMounted, onUnmounted, readonly, shallowRef } from "vue"
+import { readonly, shallowRef } from "vue"
 
 const CLICK_SOUND_KEY = "pig.clickSound"
 const MASTER = 0.32
-const INTERACTIVE =
-  "button, a[href], input:not([type='hidden']), select, textarea, summary, [role='button'], [role='checkbox'], [role='menuitem'], [role='menuitemcheckbox'], [role='menuitemradio'], [role='option'], [role='radio'], [role='switch'], [role='tab']"
-const DISMISS = /close|dismiss|remove|delete|collapse|cancel|clear|关闭|删除|取消|清除|折叠/i
-const PRIMARY = /send|save|submit|create|add|upgrade|发送|保存|提交|添加|新建|创建/i
 
-type Cue = "press" | "tick" | "release" | "page" | "pulse"
+type Cue = "press" | "release" | "page" | "pulse"
+
+/** 音效入口：发送、停止、切换会话、新建会话、打开搜索、轮次结束。 */
+export type SoundEvent = "send" | "stop" | "switch" | "create" | "search" | "done"
+
+const CUES: Record<Exclude<SoundEvent, "done">, Cue> = {
+  send: "pulse",
+  stop: "release",
+  switch: "page",
+  create: "pulse",
+  search: "press",
+}
 
 type Filter = { type: BiquadFilterType; frequency: number; Q?: number }
 
@@ -26,7 +33,6 @@ const DONE = {
 } as const
 const enabled = shallowRef(true)
 let loaded = false
-let binds = 0
 let ctx: AudioContext | null = null
 let doneBuffer: AudioBuffer | null = null
 
@@ -132,13 +138,6 @@ function emit(audio: AudioContext, cue: Cue): void {
       noise(audio, 0.02, 0.0003, 0.009, 0.13, { type: "highpass", frequency: 2400 })
       tone(audio, "sine", 680, 0.0006, 0.03, 0.24)
       return
-    case "tick":
-      tone(audio, "square", 2100, 0.0004, 0.028, 0.24, {
-        type: "bandpass",
-        frequency: 2600,
-        Q: 1.6,
-      })
-      return
     case "release":
       noise(audio, 0.06, 0.001, 0.055, 0.32, { type: "lowpass", frequency: 1600, Q: 0.9 })
       return
@@ -198,20 +197,19 @@ async function audioReady(): Promise<AudioContext | null> {
   return ctx.state === "running" ? ctx : null
 }
 
-async function play(cue: Cue): Promise<void> {
-  const audio = await audioReady()
-
-  if (audio) emit(audio, cue)
-}
-
-/** 整轮对话结束时播放；跟点击音效共用一个开关。 */
-export async function playDoneSound(): Promise<void> {
+async function play(event: SoundEvent): Promise<void> {
   load()
 
   if (!enabled.value) return
   const audio = await audioReady()
 
   if (!audio) return
+
+  if (event !== "done") {
+    emit(audio, CUES[event])
+    return
+  }
+
   doneBuffer ??= synthesizeDone(audio)
   const source = audio.createBufferSource()
   source.buffer = doneBuffer
@@ -219,73 +217,15 @@ export async function playDoneSound(): Promise<void> {
   source.start()
 }
 
-function cueFor(element: Element): Cue {
-  const override = element.getAttribute("data-sound")
-
-  if (
-    override === "press" ||
-    override === "tick" ||
-    override === "release" ||
-    override === "page" ||
-    override === "pulse"
-  ) {
-    return override
-  }
-
-  const label = `${element.getAttribute("aria-label") ?? ""} ${element.getAttribute("title") ?? ""} ${element.textContent ?? ""}`
-
-  if (DISMISS.test(label)) return "release"
-
-  if (
-    element.matches(
-      "input[type='checkbox'], input[type='radio'], select, [role='checkbox'], [role='radio'], [role='switch'], [role='tab'], [aria-pressed]",
-    )
-  ) {
-    return "tick"
-  }
-
-  if (element.matches("a[href]")) return "page"
-
-  if (PRIMARY.test(label)) return "pulse"
-
-  if (element.matches("input, textarea")) return "tick"
-  return "press"
-}
-
-function onClick(event: MouseEvent): void {
-  if (!enabled.value || !event.isTrusted) return
-
-  if (!(event.target instanceof Element)) return
-  const control = event.target.closest(INTERACTIVE)
-
-  if (!control || control.closest("[data-sound-silent]")) return
-
-  if (control.matches(":disabled, [aria-disabled='true']")) return
-  void play(cueFor(control))
-}
-
-function bind(): void {
-  if (binds === 0) document.addEventListener("click", onClick, true)
-  binds += 1
-}
-
-function unbind(): void {
-  binds = Math.max(0, binds - 1)
-
-  if (binds === 0) document.removeEventListener("click", onClick, true)
-}
-
 function toggle(): void {
   enabled.value = !enabled.value
   persist(enabled.value)
 
-  if (enabled.value) void play("pulse")
+  if (enabled.value) void play("send")
 }
 
-/** 全页捕获点击并合成短音；开关持久化在 localStorage，同时管完成提示音。 */
-export function useClickSound() {
+/** 按事件播放合成短音；开关持久化在 localStorage。 */
+export function useSound() {
   load()
-  onMounted(bind)
-  onUnmounted(unbind)
-  return { enabled: readonly(enabled), toggle }
+  return { enabled: readonly(enabled), toggle, play }
 }

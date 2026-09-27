@@ -44,24 +44,27 @@
             <span v-else class="title">{{ session.title }}</span>
 
             <span v-if="!renaming" class="trail-slot">
-              <span v-if="streaming" class="session-spin" :aria-label="stateLabel">
-                <Spinner :size="12" />
+              <span
+                v-if="stateIcon"
+                class="state-icon"
+                :class="state"
+                role="img"
+                :aria-label="stateLabel"
+              >
+                <component
+                  :is="stateIcon"
+                  :size="14"
+                  :class="{ 'animate-spin motion-reduce:animate-none': state === 'running' }"
+                />
               </span>
 
               <span
                 v-else-if="showPath"
                 class="status-ring"
-                :class="pathMark"
-                :role="pathMark === 'idle' ? undefined : 'img'"
-                :aria-hidden="pathMark === 'idle' ? true : undefined"
-                :aria-label="pathMark === 'idle' ? undefined : pathMarkLabel"
-              ></span>
-
-              <span
-                v-else-if="stateDot"
-                class="state-dot"
-                :class="state"
-                :aria-label="stateLabel"
+                :class="{ active }"
+                :role="active ? 'img' : undefined"
+                :aria-hidden="active ? undefined : true"
+                :aria-label="active ? '当前会话' : undefined"
               ></span>
 
               <span v-else-if="dirTag" class="session-dir" :title="session.cwd">
@@ -131,7 +134,17 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef } from "vue"
 import { RouterLink } from "vue-router"
-import { Ellipsis, Folder, Pencil, Pin, PinOff, Trash2 } from "@lucide/vue"
+import {
+  CircleAlert,
+  CircleCheck,
+  Ellipsis,
+  Folder,
+  LoaderCircle,
+  Pencil,
+  Pin,
+  PinOff,
+  Trash2,
+} from "@lucide/vue"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -141,7 +154,6 @@ import {
 } from "@components/ui/context-menu/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
-import { Spinner } from "@components/ui/spinner/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
@@ -175,38 +187,12 @@ const nameInput = ref<HTMLInputElement | null>(null)
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
-const streaming = computed(() => props.state === "running" && !renaming.value)
-const stateDot = computed(
-  () => (props.state === "unread" || props.state === "error") && !renaming.value,
+const STATE_ICONS = { running: LoaderCircle, unread: CircleCheck, error: CircleAlert }
+const STATE_LABELS = { running: "运行中", unread: "运行完成但未打开", error: "运行失败" }
+const stateIcon = computed(() =>
+  props.state && !renaming.value ? STATE_ICONS[props.state] : undefined,
 )
-const pathMark = computed(() => {
-  if (props.state === "running") return "running"
-
-  if (props.state === "error") return "error"
-
-  if (props.active) return "active"
-
-  if (props.state === "unread") return "unread"
-  return "idle"
-})
-const pathMarkLabel = computed(() => {
-  if (pathMark.value === "running") return "运行中"
-
-  if (pathMark.value === "error") return "运行失败"
-
-  if (pathMark.value === "active") return "当前会话"
-
-  if (pathMark.value === "unread") return "运行完成但未打开"
-  return "空闲"
-})
-const stateLabel = computed(() => {
-  if (props.state === "running") return "运行中"
-
-  if (props.state === "unread") return "运行完成但未打开"
-
-  if (props.state === "error") return "运行失败"
-  return undefined
-})
+const stateLabel = computed(() => (props.state ? STATE_LABELS[props.state] : undefined))
 
 function onMenuOpenChange(open: boolean) {
   menuOpen.value = open
@@ -394,10 +380,9 @@ function confirmDelete() {
   min-height: var(--size-icon);
 }
 
-.session-spin,
+.state-icon,
 .session-time,
 .session-dir,
-.state-dot,
 .status-ring,
 .more-toggle {
   grid-area: 1 / 1;
@@ -431,46 +416,19 @@ function confirmDelete() {
   color: var(--ink);
 }
 
-.state-dot,
 .status-ring {
   justify-self: end;
   align-self: center;
-  border-radius: var(--radius-full);
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.state-dot {
-  width: 7px;
-  height: 7px;
-}
-
-.state-dot.unread {
-  background: var(--info);
-}
-
-.state-dot.error {
-  background: var(--danger);
-}
-
-.status-ring {
   width: 8px;
   height: 8px;
+  border-radius: var(--radius-full);
   background: transparent;
   box-shadow: inset 0 0 0 1.5px var(--ink-faint);
-}
-
-.status-ring.error {
-  background: var(--danger);
-  box-shadow: none;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 .status-ring.active {
   background: var(--primary);
-  box-shadow: none;
-}
-
-.status-ring.unread {
-  background: var(--info);
   box-shadow: none;
 }
 
@@ -510,11 +468,22 @@ function confirmDelete() {
   white-space: nowrap;
 }
 
-.session-spin {
+.state-icon {
   display: flex;
   align-items: center;
-  color: var(--ink-muted);
   transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.state-icon.running {
+  color: var(--primary);
+}
+
+.state-icon.unread {
+  color: var(--success);
+}
+
+.state-icon.error {
+  color: var(--danger);
 }
 
 .session-time,
@@ -542,19 +511,16 @@ function confirmDelete() {
 }
 
 .session-item:hover .session-time,
-.session-item:hover .session-spin,
+.session-item:hover .state-icon,
 .session-item:hover .session-dir,
-.session-item:hover .state-dot,
 .session-item:hover .status-ring,
 .session-item:focus-within .session-time,
-.session-item:focus-within .session-spin,
+.session-item:focus-within .state-icon,
 .session-item:focus-within .session-dir,
-.session-item:focus-within .state-dot,
 .session-item:focus-within .status-ring,
 .session-item.is-menu-open .session-time,
-.session-item.is-menu-open .session-spin,
+.session-item.is-menu-open .state-icon,
 .session-item.is-menu-open .session-dir,
-.session-item.is-menu-open .state-dot,
 .session-item.is-menu-open .status-ring {
   opacity: 0;
   pointer-events: none;
@@ -567,9 +533,8 @@ function confirmDelete() {
   }
 
   .session-time,
-  .session-spin,
+  .state-icon,
   .session-dir,
-  .state-dot,
   .status-ring {
     opacity: 0;
     pointer-events: none;

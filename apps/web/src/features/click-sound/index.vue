@@ -6,7 +6,6 @@
         class="icon-toggle press-scale"
         :aria-pressed="enabled"
         :aria-label="label"
-        :data-sound="enabled ? 'release' : 'pulse'"
         @click="toggle"
       >
         <span class="size-icon icon-swap" aria-hidden="true">
@@ -24,8 +23,8 @@
 import { computed } from "vue"
 import { Volume2, VolumeX } from "@lucide/vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { useClickSound } from "@features/click-sound/index.js"
+import { useSound } from "@features/click-sound/index.js"
 
-const { enabled, toggle } = useClickSound()
+const { enabled, toggle } = useSound()
 const label = computed(() => (enabled.value ? "关闭音效" : "开启音效"))
 </script>

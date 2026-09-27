@@ -135,7 +135,7 @@ import {
   type ComposerAttachmentBatch,
 } from "@features/composer/hooks/use-composer-attachments.js"
 import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
-import { playDoneSound } from "@features/click-sound/index.js"
+import { useSound } from "@features/click-sound/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
@@ -265,6 +265,7 @@ function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
   transcriptView.value?.scrollToLatest(behavior)
 }
 
+const sound = useSound()
 const composerAttachments = useComposerAttachments()
 const composerQueue = useComposerQueue()
 
@@ -286,6 +287,7 @@ function deliverPrompt(text: string, batch?: ComposerAttachmentBatch) {
 }
 
 function onSend(text: string, batch?: ComposerAttachmentBatch) {
+  void sound.play("send")
   const source = batch ?? composerAttachments.consumeForSend()
 
   void deliverPrompt(text, source).then((sent) => {
@@ -295,6 +297,7 @@ function onSend(text: string, batch?: ComposerAttachmentBatch) {
 }
 
 function onQueue(text: string) {
+  void sound.play("send")
   const batch = composerAttachments.consumeForSend()
 
   composerQueue.enqueue(text, batch)
@@ -321,6 +324,7 @@ async function pumpQueue() {
 let abortedTurn = false
 
 function onAbort() {
+  void sound.play("stop")
   abortedTurn = true
   void abortSession()
 }
@@ -341,7 +345,7 @@ watch([running, sessionId], ([now, id], [was, prevId]) => {
 
   if (!was || now || !id) return
 
-  if (id === prevId && turnFinishedCleanly()) void playDoneSound()
+  if (id === prevId && turnFinishedCleanly()) void sound.play("done")
   void pumpQueue()
 })
 
