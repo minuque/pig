@@ -12,14 +12,12 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@blobatar/vue": "2.7.0",
     "@earendil-works/pi-client": "0.84.4",
     "@earendil-works/pi-coding-agent": "0.84.4",
     "@earendil-works/pi-protocol": "0.84.4",
     "@lobehub/icons-static-svg": "1.95.0",
     "@lucide/vue": "1.44.0",
     "@vueuse/core": "14.4.0",
-    "blobatar": "2.7.0",
     "markstream-vue": "2.0.11",
     "mermaid": "11.17.2",
     "reka-ui": "2.10.5",

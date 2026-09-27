@@ -79,6 +79,10 @@
   --composer-shadow: none;
   /* logo 拆层：蓝底图在此，小猪单独一层做探头；主蓝兜底图片未载入 */
   --brand-mark-bg: #5d77d0 url("/logo-bg.png") center / cover;
+  /* 吉祥物取 logo 小猪原色，深浅主题共用 */
+  --mascot-body: #fde3b4;
+  --mascot-snout: #fda88e;
+  --mascot-eye: #012d47;
 
   /* 分类色，不作结构填充 */
   --accent-skill: #8160d8;
