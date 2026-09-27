@@ -1,13 +1,18 @@
 <template>
-  <div class="startup-screen" :class="{ leaving }" role="status" aria-label="正在启动">
-    <div class="startup-veil"></div>
+  <div
+    class="startup-screen"
+    :class="{ leaving }"
+    role="status"
+    aria-label="正在启动"
+    @animationend.self="handleLeaveEnd"
+  >
     <div class="drag-strip"></div>
 
-    <div class="startup-content" @animationend.self="handleLeaveEnd">
+    <div class="startup-content">
       <div class="startup-mark">
         <img
           class="startup-logo"
-          src="/logo.png"
+          src="/logo-pig.png"
           alt=""
           width="88"
           height="88"
@@ -63,8 +68,11 @@ watch(
   },
 )
 
-onMounted(() => {
-  document.getElementById("startup-splash")?.remove()
+onMounted(async () => {
+  const splash = document.getElementById("startup-splash")
+  // 等静态开屏探头播完再接管，避免中途跳帧
+  await Promise.allSettled(splash?.getAnimations({ subtree: true }).map((a) => a.finished) ?? [])
+  splash?.remove()
   splashGone = true
   beginLeave()
 })

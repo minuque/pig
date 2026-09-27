@@ -77,7 +77,8 @@
   --surface-border: hsl(210 18% 32% / 0.1);
   --hairline: hsl(0 0% 0% / 0.12);
   --composer-shadow: none;
-  --startup-veil: color-mix(in srgb, var(--composer-bg) 80%, var(--canvas-soft));
+  /* logo 拆层：蓝底图在此，小猪单独一层做探头；主蓝兜底图片未载入 */
+  --brand-mark-bg: #5d77d0 url("/logo-bg.png") center / cover;
 
   /* 分类色，不作结构填充 */
   --accent-skill: #8160d8;
@@ -240,7 +241,9 @@
   /* 工具组折叠与箭头同钟（Zeron TOOL_FOLD） */
   --duration-tool-fold: 140ms;
   --duration-slow: 280ms;
-  --duration-startup-leave: 220ms;
+  /* 小猪探头：开屏与侧栏品牌共用同一节奏 */
+  --duration-pig-peek: 640ms;
+  --duration-startup-leave: 200ms;
   --duration-icon: 300ms;
   --duration-theme: 600ms;
   --duration-shimmer: 2s;

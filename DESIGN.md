@@ -111,6 +111,8 @@ rounded:
   md: 8px
   lg: 8px
   xl: 16px
+  popover: 12px
+  code: 0.65rem
   full: 9999px
 
 spacing:
@@ -302,9 +304,9 @@ components:
 
 ## Overview
 
-Pi Agent GUI 浅色壳层用近白，侧栏贴窗边，输入卡不透明白。深色壳层近黑，侧栏略抬升。系统 UI 字号默认 14px。动作靛用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含齐边侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
+Pi Agent GUI 浅色壳层用近白，侧栏贴窗边，输入卡不透明。深色壳层近黑，侧栏略抬升。系统 UI 字号默认 14px。动作靛用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含齐边侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
 
-浅色壳层 `{colors.surface}`（#fcfcfd），侧栏 `{colors.sidebar}`，输入卡 `{colors.composer-bg}`。深色壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`。结构色 `{colors.primary}`（#5e6ad2）用于动作和焦点。控件圆角 `{rounded.lg}`（8px）。
+浅色壳层 `{colors.surface}`（#fcfcfd），侧栏 `{colors.sidebar}`，输入卡 `{colors.composer-bg}`（#ffffff）。深色壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`。结构色 `{colors.primary}`（#5e6ad2）用于动作和焦点。控件圆角 `{rounded.lg}`（8px）。
 
 深色是同一套分面的中性灰反相：壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`、用户气泡 `#262628`。次级井用 `#121214`。分类色用 skill / steel / teal / gray。阶段与栏目标签可用 `{typography.caption-mono}`。
 
@@ -328,7 +330,7 @@ Pi Agent GUI 浅色壳层用近白，侧栏贴窗边，输入卡不透明白。�
 - **Surface** (`{colors.surface}` — #fcfcfd)：壳层（对话列）。
 - **Sidebar** (`{colors.sidebar}` — #ffffff)：侧栏，贴窗边。
 - **Border subtle** (`{colors.border-subtle}`)：墨 8%，内部分割线。
-- **Composer** (`{colors.composer-bg}` — #ffffff)：输入卡。
+- **Composer** (`{colors.composer-bg}` — #ffffff)：输入卡不透明填充，深色 `#1c1c1f`，底下的正文不会改变它的颜色。
 - **Canvas** (`{colors.canvas}` — #f7f7f8)：次级井。
 - **Secondary well** (`{colors.canvas-soft}` — #f7f7f8)：页面底。
 - **Border** (`{colors.border}`)：墨 12%，控件与对话列外沿，比 border-subtle 深一档。
@@ -442,19 +444,21 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 | 1 — Soft | 细线，不用阴影分层     | 输入卡                                                |
 | 2 — Pop  | 稍深，仍短             | 菜单、抽屉                                            |
 
-深色卡和栏用 `{colors.border}`。侧栏贴窗边，与对话列只留外沿细线。输入卡填充 100%，避免底下的文字改变其颜色；悬浮输入条下方的留白条带同样补底色，滚动中的正文不从胶囊下沿透出。
+深色卡和栏用 `{colors.border}`。侧栏贴窗边，与对话列只留外沿细线。输入卡填充 100%，避免底下的文字改变其颜色；悬浮输入条下方的留白条带同样补底色，滚动中的正文不从胶囊下沿透出。菜单、对话框与提示气泡共用同一份不透明底（`--composer-bg`），全站不用背景模糊。
 
 ## Shapes
 
-| Token                | Value  | Use                |
-| -------------------- | ------ | ------------------ |
-| `{rounded.xs}`       | 4px    | 小标签             |
-| `{rounded.sm}`       | 6px    | 折叠条、次要芯片   |
-| `{rounded.md}`       | 8px    | 列表行             |
-| `{rounded.lg}`       | 8px    | 菜单、气泡、主按钮 |
-| `{rounded.xl}`       | 16px   | 大容器             |
-| `{rounded.composer}` | 26px   | 输入卡胶囊         |
-| `{rounded.full}`     | 9999px | 圆形图标钮         |
+| Token               | Value   | Use                |
+| ------------------- | ------- | ------------------ |
+| `{rounded.xs}`      | 4px     | 小标签             |
+| `{rounded.sm}`      | 6px     | 折叠条、次要芯片   |
+| `{rounded.md}`      | 8px     | 列表行             |
+| `{rounded.lg}`      | 8px     | 菜单、气泡、主按钮 |
+| `{rounded.code}`    | 0.65rem | 代码块             |
+| `{rounded.popover}` | 12px    | 浮层、工具卡       |
+| `{rounded.xl}`      | 16px    | 大容器             |
+| `--composer-radius` | 26px    | 输入卡胶囊         |
+| `{rounded.full}`    | 9999px  | 圆形图标钮         |
 
 壳层圆角 0。发送是 28px primary 圆钮；运行中无文本时同一圆钮换成墨色实心圆 + 11px 圆角方块（停止）；输入卡为胶囊形：单行紧凑态与多行展开态共用底边锚定，动作行（回形针 + 模型 + 发送）贴胶囊底边。
 
@@ -464,6 +468,6 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 - 深色：壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`、用户气泡 `#262628`。
 - `{colors.primary}` 用于动作和焦点。选中走中性灰。
 - 工作台 14px 系统字；标签可用等宽大写。
-- 控件圆角 `{rounded.lg}`。输入卡胶囊 `{rounded.composer}`，发送仍是圆钮。
+- 控件圆角 `{rounded.lg}`。输入卡胶囊 `--composer-radius`（26px），发送仍是圆钮。
 - 桌面与网页的输入卡均用实色。桌面折叠保留 rail。
 - 分类走 skill / steel / teal / gray。

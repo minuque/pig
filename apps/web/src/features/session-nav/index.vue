@@ -5,13 +5,11 @@
     <div class="nav-inset">
       <div class="nav-head">
         <RouterLink to="/" class="nav-brand press-scale" aria-label="pig">
-          <img class="brand-mark" src="/pwa-icon-192.png" alt="" width="22" height="22" />
-
-          <span class="brand-word" aria-hidden="true">
-            <span class="brand-letter">p</span>
-            <span class="brand-letter">i</span>
-            <span class="brand-letter">g</span>
+          <span class="brand-mark">
+            <img class="brand-pig" src="/logo-pig.png" alt="" width="22" height="22" />
           </span>
+
+          <span class="brand-word" aria-hidden="true">pig</span>
         </RouterLink>
 
         <Tooltip>
@@ -203,36 +201,27 @@ function onCreateSession(): void {
 .brand-mark {
   display: block;
   flex: none;
+  overflow: hidden;
+  border-radius: var(--radius-xs);
+  background: var(--brand-mark-bg);
+}
+
+.brand-pig {
+  display: block;
+  transform-origin: 30% 100%;
+}
+
+.nav-brand:hover .brand-pig,
+.nav-brand:focus-visible .brand-pig {
+  animation: brand-peek var(--duration-pig-peek) both;
 }
 
 .brand-word {
-  display: inline-flex;
-}
-
-.brand-letter {
-  display: inline-block;
+  color: var(--primary);
   font-family: var(--font-mono);
   font-size: var(--text-title);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.04em;
-  background-image: linear-gradient(135deg, var(--primary), var(--accent-skill));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-
-.brand-letter:nth-child(2) {
-  animation-delay: 60ms;
-}
-
-.brand-letter:nth-child(3) {
-  animation-delay: 120ms;
-}
-
-.nav-brand:hover .brand-letter,
-.nav-brand:focus-visible .brand-letter {
-  animation: brand-hop var(--duration-settle) var(--ease-spring) both;
 }
 
 .nav-collapse {
@@ -384,8 +373,8 @@ html[data-pig-desktop-platform="darwin"] .nav-head {
     transition: none;
   }
 
-  .nav-brand:hover .brand-letter,
-  .nav-brand:focus-visible .brand-letter {
+  .nav-brand:hover .brand-pig,
+  .nav-brand:focus-visible .brand-pig {
     animation: none;
   }
 }

@@ -19,7 +19,7 @@ export type CreateMainWindowOptions = {
   persistState?: (state: WindowState) => void
 }
 
-/** 创建主窗口：先隐藏，ready-to-show 后再显示。 */
+/** 创建主窗口：底色对齐开屏 surface 并立即显示，开屏入场动画在可见后才开始。 */
 export function createMainWindow(
   preloadPath: string,
   options: CreateMainWindowOptions = {},
@@ -33,7 +33,7 @@ export function createMainWindow(
     height: frame.height,
     ...(frame.x !== undefined && frame.y !== undefined ? { x: frame.x, y: frame.y } : {}),
     show: false,
-    backgroundColor: nativeTheme.shouldUseDarkColors ? "#121212" : "#ffffff",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#0f0f11" : "#fcfcfd",
     ...chrome,
     webPreferences: {
       ...chrome.webPreferences,
@@ -50,12 +50,11 @@ export function createMainWindow(
 
   // 基准档窗口屏幕外显示，也不写回位置状态，用户下次启动不受影响
   if (options.persistState && !bench) persistWindowState(window, options.persistState)
-  window.once("ready-to-show", () => {
-    if (frame.isMaximized && !bench) window.maximize()
 
-    if (bench) window.setPosition(BENCH_WINDOW_BOUND, BENCH_WINDOW_BOUND)
-    window.show()
-  })
+  if (frame.isMaximized && !bench) window.maximize()
+
+  if (bench) window.setPosition(BENCH_WINDOW_BOUND, BENCH_WINDOW_BOUND)
+  window.show()
   return window
 }
 

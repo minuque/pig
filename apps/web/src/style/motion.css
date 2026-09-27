@@ -8,20 +8,20 @@
   display: grid;
   place-items: center;
   overflow: hidden;
+  background: var(--surface);
   font-family: var(--font-sans);
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
 
+/* 离场：小猪歪头缩回，整屏随即淡出 */
 .startup-screen.leaving {
   pointer-events: none;
+  animation: exit-fade var(--duration-startup-leave) var(--ease-smooth) both;
 }
 
-.startup-veil {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background: var(--startup-veil);
+.startup-screen.leaving .startup-logo {
+  animation: pig-duck var(--duration-fast) var(--ease-in-out) both;
 }
 
 .startup-content {
@@ -33,13 +33,19 @@
   padding: var(--spacing-lg);
 }
 
+.startup-mark {
+  overflow: hidden;
+  border-radius: var(--radius-xs, 4px);
+  background: var(--brand-mark-bg);
+  box-shadow: var(--shadow-logo);
+}
+
 .startup-logo {
   display: block;
   width: var(--startup-logo-size, 88px);
   height: var(--startup-logo-size, 88px);
   object-fit: contain;
-  border-radius: var(--radius-xs, 4px);
-  box-shadow: var(--shadow-logo);
+  transform-origin: 30% 100%;
   pointer-events: none;
 }
 
@@ -52,72 +58,47 @@
   app-region: drag;
 }
 
-.startup-screen.leaving .startup-veil {
-  animation: startup-veil-leave var(--duration-startup-leave) var(--ease-out, ease-out) both;
-}
-
-.startup-screen.leaving .startup-content {
-  animation: startup-content-leave var(--duration-startup-leave) ease-out both;
-}
-
 #startup-splash {
   z-index: calc(var(--z-modal) + 1);
 }
 
 #startup-splash .startup-mark {
-  animation: startup-logo-enter var(--duration-slow) ease-out both;
+  animation: startup-mark-enter var(--duration-normal) var(--ease-smooth) both;
 }
 
-@keyframes startup-logo-enter {
-  0% {
-    opacity: 0;
-    transform: translateY(10px) rotate(-4deg) scale(0.9);
-  }
+/* 入场：蓝框先落位，小猪歪着头探出并摆正；不回弹，底边始终贴住框底 */
+#startup-splash .startup-logo {
+  animation: pig-peek var(--duration-pig-peek) both;
+}
 
-  65% {
-    opacity: 1;
-    transform: translateY(-2px) rotate(2deg) scale(1.015);
+@keyframes startup-mark-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes pig-peek {
+  0%,
+  28% {
+    transform: translateY(100%) rotate(-14deg);
+    animation-timing-function: var(--ease-out);
   }
 
   100% {
-    opacity: 1;
-    transform: translateY(0) rotate(0deg) scale(1);
+    transform: none;
   }
 }
 
-@keyframes startup-veil-leave {
-  from {
-    opacity: 1;
-  }
-
+@keyframes pig-duck {
   to {
-    opacity: 0;
-  }
-}
-
-@keyframes startup-content-leave {
-  from {
-    opacity: 1;
-    transform: translateY(0) rotate(0deg) scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY(-4px) rotate(3deg) scale(0.94);
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .startup-screen .startup-veil {
-    background: var(--surface);
+    transform: translateY(100%) rotate(-10deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   #startup-splash .startup-mark,
-  .startup-screen .startup-veil,
-  .startup-screen.leaving .startup-veil,
-  .startup-screen.leaving .startup-content {
+  #startup-splash .startup-logo {
     animation: none;
   }
 }
@@ -640,18 +621,20 @@
   }
 }
 
-@keyframes brand-hop {
-  0%,
+/* 侧栏品牌悬停：小猪先缩下去，之后与开屏 pig-peek 同一段探头 */
+@keyframes brand-peek {
+  0% {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  28% {
+    transform: translateY(100%) rotate(-14deg);
+    animation-timing-function: var(--ease-out);
+  }
+
   100% {
-    transform: translateY(0) scaleY(1);
-  }
-
-  45% {
-    transform: translateY(-4px) scaleY(1.06);
-  }
-
-  72% {
-    transform: translateY(1px) scaleY(0.92);
+    transform: none;
   }
 }
 
