@@ -364,24 +364,27 @@
   filter: blur(4px);
 }
 
-.list-reveal-enter-active {
+/* 行增删：高度随行一起收放，下方内容跟着滑，不瞬跳；负上边距抵掉 --spacing-xxs 行距 */
+.list-reveal-enter-active,
+.list-reveal-leave-active {
+  overflow: hidden;
+  interpolate-size: allow-keywords;
   transition:
-    opacity var(--duration-normal) var(--ease-out),
-    scale var(--duration-normal) var(--ease-out);
+    height var(--duration-normal) var(--ease-smooth),
+    margin-block-start var(--duration-normal) var(--ease-smooth),
+    opacity var(--duration-normal) var(--ease-out);
 }
 
 .list-reveal-leave-active {
-  position: absolute;
-  width: 100%;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    scale var(--duration-fast) var(--ease-out);
+  pointer-events: none;
+  transition-duration: var(--duration-fast);
 }
 
 .list-reveal-enter-from,
 .list-reveal-leave-to {
+  height: 0;
+  margin-block-start: calc(var(--spacing-xxs) * -1);
   opacity: 0;
-  scale: 0.98;
 }
 
 .list-reveal-move {
@@ -716,15 +719,9 @@
     filter: none;
   }
 
-  .list-reveal-enter-from,
-  .list-reveal-leave-to {
-    scale: 1;
-  }
-
   .list-reveal-enter-active,
   .list-reveal-leave-active {
-    position: static;
-    transition: opacity var(--duration-fast) var(--ease-out);
+    transition: none;
   }
 
   .list-reveal-move {
