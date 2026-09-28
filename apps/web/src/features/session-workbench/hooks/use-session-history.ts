@@ -38,9 +38,18 @@ export function useSessionHistory() {
     bump()
   }
 
+  /** 连接断开：临时 id 的 live 覆盖作废，否则重连后与磁盘条目 id 对不上会重复；标记下次重拉。 */
+  function releaseLive(id: string) {
+    const page = cache.peek(id)
+
+    if (!page?.heldLive.length) return
+    cache.write(id, { heldLive: [], stale: true })
+    bump()
+  }
+
   /** 打开拉最后一轮；已 ready 且非 force 不发网，同 id 在飞共用请求。 */
   function loadHistory(id: string, options?: { force?: boolean }) {
-    if (!options?.force && cache.isReady(id)) return inflight.get(id) ?? Promise.resolve()
+    if (!options?.force && cache.isFresh(id)) return inflight.get(id) ?? Promise.resolve()
     const pending = inflight.get(id)
 
     if (pending && !options?.force) return pending
@@ -59,7 +68,7 @@ export function useSessionHistory() {
 
         if (requestById.get(id) !== request) return
         const absorbed = absorbLatestTranscriptPage(cache.peek(id), { items, timings, hasMore })
-        cache.write(id, { ...absorbed, ready: true })
+        cache.write(id, { ...absorbed, ready: true, stale: false })
         bump()
       } catch (error) {
         // 失败不标 ready：不把已有会话画成欢迎页，下次打开会重拉
@@ -152,6 +161,7 @@ export function useSessionHistory() {
     turnTimings,
     setActive,
     overlayLive,
+    releaseLive,
     loadHistory,
     loadOlderHistory,
   }

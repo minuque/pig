@@ -113,6 +113,9 @@ export function useSessionLifecycle(
   }
 
   function detach() {
+    const id = remote.value?.id
+
+    if (id) history.releaseLive(id)
     contextUsageRequest += 1
     unsubscribeState?.()
     unsubscribeState = undefined

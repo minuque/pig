@@ -898,6 +898,67 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     })
   })
 
+  it("running 时切走再切回发送：旧连接的临时条目不重复", async () => {
+    const assistant = (id: string, text: string) =>
+      ({
+        id,
+        role: "assistant",
+        content: [{ type: "text", text }],
+        model: { provider: "test", id: "model" },
+        timestamp: 2,
+        status: "streaming",
+      }) as TranscriptItem
+    const user = (id: string, text: string): TranscriptItem => ({
+      id,
+      role: "user",
+      content: [{ type: "text", text }],
+      timestamp: 1,
+    })
+    let disk: TranscriptItem[] = []
+    const texts = () =>
+      session.transcript.value
+        .filter((row) => row.id !== "pending-assistant")
+        .map((row) => row.content.map((part) => ("text" in part ? part.text : "")).join(""))
+
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript")) {
+        return { items: path.includes("sessionId=s1") ? disk : [], timings: [] }
+      }
+
+      return { usage: usageEstimate }
+    })
+    const { session } = setup()
+    const a = makeSession("s1")
+    const a2 = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1) }
+    a2.state = { ...a2.state, snapshot: snapshot(3) }
+    openMock.mockResolvedValueOnce(a).mockResolvedValueOnce(a2)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await session.sendPrompt("一")
+    a.state = { ...a.state, transcript: [user("m1", "一"), assistant("m2", "答到一半")] }
+    a.emit()
+    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toContain("m2"))
+
+    routeBox.params.sessionId = "s2"
+    await nextTick()
+    await vi.waitFor(() => expect(session.transcript.value).toEqual([]))
+    // 切走期间第一轮落盘
+    disk = [
+      user("u1", "一"),
+      { ...assistant("a1", "答完了"), status: "complete" } as TranscriptItem,
+    ]
+    routeBox.params.sessionId = "s1"
+    await nextTick()
+    await vi.waitFor(() => expect(texts()).toEqual(["一", "答完了"]))
+
+    await session.sendPrompt("二")
+    disk = [...disk, user("u2", "二")]
+    a2.state = { ...a2.state, snapshot: snapshot(4), transcript: [user("m3", "二")] }
+    a2.emit()
+    await vi.waitFor(() => expect(texts()).toEqual(["一", "答完了", "二"]))
+  })
+
   it("连续帧：空 snapshot 不清掉已有进度，后续工具只追加不回退", async () => {
     const descriptor = {
       id: "a1",
