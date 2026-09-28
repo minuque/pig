@@ -3,6 +3,8 @@ import { ref } from "vue"
 export interface SessionBuckets<T> {
   /** 当前会话的桶，不存在时创建。 */
   current(): T
+  /** 指定会话的桶（后台泵队等跨会话操作用），不存在时创建。 */
+  forKey(sessionId: string | undefined): T
   setKey(sessionId: string | undefined): void
   clearAll(): void
 }
@@ -18,11 +20,16 @@ export function useSessionBuckets<T>(
   const buckets = new Map<string, T>()
   const key = ref("")
 
-  function current(): T {
-    let value = buckets.get(key.value)
+  function forKey(sessionId: string | undefined): T {
+    const name = sessionId ?? ""
+    let value = buckets.get(name)
 
-    if (value === undefined) buckets.set(key.value, (value = create()))
+    if (value === undefined) buckets.set(name, (value = create()))
     return value
+  }
+
+  function current(): T {
+    return forKey(key.value)
   }
 
   function setKey(sessionId: string | undefined) {
@@ -34,5 +41,5 @@ export function useSessionBuckets<T>(
     buckets.clear()
   }
 
-  return { current, setKey, clearAll }
+  return { current, forKey, setKey, clearAll }
 }

@@ -145,6 +145,7 @@ import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHea
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
 import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
+import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
 
@@ -186,6 +187,9 @@ const {
   creating,
   abortSession,
   sendPrompt,
+  sendBackgroundPrompt,
+  setBackgroundIdleHandler,
+  transcriptFor,
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
@@ -287,6 +291,21 @@ function deliverPrompt(text: string, batch?: ComposerAttachmentBatch) {
   )
 }
 
+const { markAborted, onBackgroundIdle } = useTurnFinish({
+  sessionId: () => sessionId.value,
+  running: () => running.value,
+  pending: () => turnPending.value,
+  transcript: () => transcript.value,
+  queue: composerQueue,
+  sound,
+  sendForeground: deliverPrompt,
+  sendBackground: sendBackgroundPrompt,
+  transcriptFor,
+})
+
+// lifecycle 不认队列：后台会话跑完后的泵队与完成音由这里注入
+setBackgroundIdleHandler(onBackgroundIdle)
+
 function onSend(text: string) {
   void sound.play("send")
   const batch = composerAttachments.consumeForSend()
@@ -316,51 +335,11 @@ function onQueue(text: string) {
   prompt.value = ""
 }
 
-/** 轮次结束后泵队首一条：剩下的等下一次轮次结束再发，不会一次把队列全提交。 */
-async function pumpQueue() {
-  if (!sessionId.value || turnPending.value) return
-
-  const next = composerQueue.shift()
-
-  if (!next) return
-
-  const sent = await deliverPrompt(next.text, next.attachments)
-
-  // sendPrompt 失败时消息已回填输入框草稿，剩余队列停止避免连发
-  if (!sent) return
-}
-
-let abortedTurn = false
-
 function onAbort() {
   void sound.play("stop")
-  abortedTurn = true
+  markAborted()
   void abortSession()
 }
-
-/** 同一会话整轮收尾、队列已空、未被中止也未报错才响完成音（Zeron done）。 */
-function turnFinishedCleanly(): boolean {
-  const aborted = abortedTurn
-  const last = [...transcript.value].reverse().find((item) => item.role === "assistant")
-
-  abortedTurn = false
-
-  if (aborted || composerQueue.items.value.length > 0) return false
-  return last?.role !== "assistant" || (last.status !== "error" && last.status !== "aborted")
-}
-
-// 切会话时 running 的下降沿属于旧会话，不算本会话收尾
-watch([running, sessionId], ([now, id], [was, prevId]) => {
-  if (id !== prevId) {
-    abortedTurn = false
-    return
-  }
-
-  if (!was || now || !id) return
-
-  if (turnFinishedCleanly()) void sound.play("done")
-  void pumpQueue()
-})
 
 const dropActive = ref(false)
 

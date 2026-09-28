@@ -17,6 +17,12 @@ export interface ComposerQueueApi {
   reorder(id: string, toIndex: number): void
   /** 队首出队：idle 自动发送用。 */
   shift(): QueuedPrompt | undefined
+  /** 指定会话的队首出队；后台会话跑完自动泵队用。 */
+  shiftFor(sessionId: string): QueuedPrompt | undefined
+  /** 后台发送失败：把条目放回指定会话队首。 */
+  unshiftFor(sessionId: string, item: QueuedPrompt): void
+  /** 指定会话队列长度；后台会话该不该继续泵队用。 */
+  sizeFor(sessionId: string): number
   setKey(sessionId: string | undefined): void
 }
 
@@ -64,13 +70,40 @@ export function useComposerQueue(): ComposerQueueApi {
   }
 
   function shift(): QueuedPrompt | undefined {
-    const current = bucket().value
-    const head = current[0]
+    return shiftFrom(bucket())
+  }
 
-    if (!current.length || !head) return undefined
-    bucket().value = current.slice(1)
+  function shiftFrom(list: ShallowRef<QueuedPrompt[]>): QueuedPrompt | undefined {
+    const head = list.value[0]
+
+    if (!head) return undefined
+    list.value = list.value.slice(1)
     return head
   }
 
-  return { items, enqueue, remove, reorder, shift, setKey: buckets.setKey }
+  function shiftFor(sessionId: string): QueuedPrompt | undefined {
+    return shiftFrom(buckets.forKey(sessionId))
+  }
+
+  function unshiftFor(sessionId: string, item: QueuedPrompt) {
+    const list = buckets.forKey(sessionId)
+
+    list.value = [item, ...list.value]
+  }
+
+  function sizeFor(sessionId: string): number {
+    return buckets.forKey(sessionId).value.length
+  }
+
+  return {
+    items,
+    enqueue,
+    remove,
+    reorder,
+    shift,
+    shiftFor,
+    unshiftFor,
+    sizeFor,
+    setKey: buckets.setKey,
+  }
 }

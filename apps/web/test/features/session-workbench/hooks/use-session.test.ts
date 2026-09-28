@@ -87,6 +87,8 @@ vi.mock("vue-router", async () => {
 })
 
 import { useSessionLifecycle } from "@features/session-workbench/hooks/use-session.js"
+import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
+import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
 import { PlatformRequestError } from "@client/http.js"
 
 type SessionLifecycle = ReturnType<typeof useSessionLifecycle>
@@ -1211,6 +1213,195 @@ describe("后台订阅池", () => {
 
     await vi.waitFor(() => expect(a.disposeCalls).toBe(1))
     expect(session.backgroundRunningIds.value.has("s1")).toBe(false)
+  })
+})
+
+describe("后台会话跑完的队列泵送", () => {
+  const attachment = () => ({
+    id: "a.png",
+    name: "a.png",
+    mimeType: "image/png",
+    size: 4,
+    url: "blob:a.png",
+    file: new File([new Uint8Array(1)], "a.png", { type: "image/png" }),
+  })
+  const bodies = () => platformRequestMock.mock.calls.map((call) => String(call[1]?.body ?? ""))
+
+  /** 按 index.vue 的接线把队列交给 lifecycle：真实走 sendBackgroundPrompt。 */
+  function wirePump(session: SessionLifecycle) {
+    const queue = useComposerQueue()
+    const sound = { play: vi.fn() }
+    const turnFinish = useTurnFinish({
+      sessionId: () => session.sessionId.value,
+      running: () => session.running.value,
+      pending: () => session.turnPending.value,
+      transcript: () => session.transcript.value,
+      queue,
+      sound,
+      sendForeground: (text, batch) => session.sendPrompt(text, undefined, batch),
+      sendBackground: (id, text, batch) => session.sendBackgroundPrompt(id, text, batch),
+      transcriptFor: (id) => session.transcriptFor(id),
+    })
+
+    session.setBackgroundIdleHandler(turnFinish.onBackgroundIdle)
+    return { queue, sound, stop: turnFinish.stop }
+  }
+
+  async function runningInBackground(session: SessionLifecycle, a: ReturnType<typeof makeSession>) {
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await session.sendPrompt("一")
+    await vi.waitFor(() => expect(session.running.value).toBe(true))
+    routeBox.params.sessionId = "s2"
+    await nextTick()
+    expect(session.backgroundRunningIds.value.has("s1")).toBe(true)
+  }
+
+  it("后台 idle 且队列有货：直接发出并留在池里，队列空后才出池响完成音", async () => {
+    const { session } = setup()
+    const { queue, sound, stop } = wirePump(session)
+
+    try {
+      const a = makeSession("s1")
+      a.state = { ...a.state, snapshot: { ...snapshot(1), phase: "turn" } }
+
+      await runningInBackground(session, a)
+      queue.setKey("s1")
+      queue.enqueue("第二条")
+      queue.setKey("s2")
+
+      // 真实 submit 等整轮才回：这一轮先在后台顶回 running，泵队停下来等下一次 idle
+      a.submit.mockImplementation(async () => {
+        a.state = { ...a.state, snapshot: { ...snapshot(2), phase: "turn" } }
+        a.emit()
+        await nextFrame()
+      })
+
+      a.state = { ...a.state, snapshot: { ...snapshot(3), phase: "idle" } }
+      a.emit()
+      await vi.waitFor(() => expect(a.submit).toHaveBeenCalledTimes(2))
+      expect(a.submit).toHaveBeenLastCalledWith("第二条")
+      expect(queue.sizeFor("s1")).toBe(0)
+      expect(a.disposeCalls).toBe(0)
+      expect(sound.play).not.toHaveBeenCalled()
+
+      a.state = {
+        ...a.state,
+        snapshot: { ...snapshot(4), phase: "idle" },
+        transcript: [
+          {
+            id: "m2",
+            role: "assistant",
+            content: [{ type: "text", text: "好了" }],
+            model: { provider: "test", id: "model" },
+            timestamp: 3,
+            status: "complete",
+            stopReason: "stop",
+          },
+        ],
+      }
+      a.emit()
+
+      await vi.waitFor(() => expect(a.disposeCalls).toBe(1))
+      await vi.waitFor(() => expect(sound.play).toHaveBeenCalledWith("done"))
+      expect(session.backgroundRunningIds.value.has("s1")).toBe(false)
+    } finally {
+      stop()
+    }
+  })
+
+  it("submit 要等整轮才 resolve：期间的 idle 快照不丢，接着泵下一条直到出池", async () => {
+    const { session } = setup()
+    const { queue, sound, stop } = wirePump(session)
+
+    try {
+      const a = makeSession("s1")
+      a.state = { ...a.state, snapshot: { ...snapshot(1), phase: "turn" } }
+
+      await runningInBackground(session, a)
+      queue.setKey("s1")
+      queue.enqueue("第一条")
+      queue.enqueue("第二条")
+      queue.setKey("s2")
+
+      let revision = 1
+
+      // 真实 submit 等整轮才回：先广播 turn、再广播 idle（会被 idlePending 丢掉），最后才 resolve
+      a.submit.mockImplementation(async () => {
+        a.state = { ...a.state, snapshot: { ...snapshot((revision += 1)), phase: "turn" } }
+        a.emit()
+        await nextFrame()
+        a.state = { ...a.state, snapshot: { ...snapshot((revision += 1)), phase: "idle" } }
+        a.emit()
+        await nextFrame()
+      })
+
+      a.state = { ...a.state, snapshot: { ...snapshot((revision += 1)), phase: "idle" } }
+      a.emit()
+
+      await vi.waitFor(() => expect(a.disposeCalls).toBe(1))
+      expect(a.submit.mock.calls.map((call) => call[0])).toEqual(["一", "第一条", "第二条"])
+      expect(queue.sizeFor("s1")).toBe(0)
+      expect(sound.play).toHaveBeenCalledWith("done")
+      expect(sound.play).toHaveBeenCalledTimes(1)
+    } finally {
+      stop()
+    }
+  })
+
+  it("后台发送的附件 stage 与 bind 都绑到后台会话 id", async () => {
+    const { session } = setup()
+    const { queue, stop } = wirePump(session)
+
+    try {
+      const a = makeSession("s1")
+      a.state = { ...a.state, snapshot: { ...snapshot(1), phase: "turn" } }
+
+      await runningInBackground(session, a)
+      queue.setKey("s1")
+      queue.enqueue("带附件", { batch: "batch-9", files: [attachment()] })
+      queue.setKey("s2")
+
+      a.state = { ...a.state, snapshot: { ...snapshot(2), phase: "idle" } }
+      a.emit()
+      await vi.waitFor(() => expect(a.submit).toHaveBeenCalledTimes(2))
+
+      const staged = bodies().filter((body) => body.includes("batch-9"))
+
+      expect(staged.length).toBeGreaterThan(0)
+      expect(bodies().some((body) => body.includes('"sessionId":"s1"'))).toBe(true)
+      expect(bodies().some((body) => body.includes('"sessionId":"s2"'))).toBe(false)
+    } finally {
+      stop()
+    }
+  })
+
+  it("失败路径：后台发送失败把条目放回队首、停止泵队并出池", async () => {
+    const { session } = setup()
+    const { queue, sound, stop } = wirePump(session)
+
+    try {
+      const a = makeSession("s1")
+      a.state = { ...a.state, snapshot: { ...snapshot(1), phase: "turn" } }
+
+      await runningInBackground(session, a)
+      a.submit.mockRejectedValueOnce(new Error("boom"))
+      queue.setKey("s1")
+      queue.enqueue("第二条")
+      queue.enqueue("第三条")
+      queue.setKey("s2")
+
+      a.state = { ...a.state, snapshot: { ...snapshot(2), phase: "idle" } }
+      a.emit()
+
+      await vi.waitFor(() => expect(a.disposeCalls).toBe(1))
+      expect(queue.sizeFor("s1")).toBe(2)
+      expect(a.submit).toHaveBeenCalledTimes(2)
+      expect(sound.play).not.toHaveBeenCalledWith("done")
+    } finally {
+      stop()
+    }
   })
 })
 

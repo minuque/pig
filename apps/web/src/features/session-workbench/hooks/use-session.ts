@@ -13,10 +13,14 @@ import type { ModelRef, RemoteSessionState, ThinkingLevel } from "@/types/common
 import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
-import { bindAttachments, discardAttachments, stageAttachment } from "@client/platform.js"
 import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
 import { useSessionComposer } from "@features/composer/index.js"
 import { sameModel, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
+import {
+  createBackgroundSender,
+  dropBatch,
+  stageBatchFor,
+} from "@features/session-workbench/hooks/use-background-send.js"
 import { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"
 import {
   createAbortableOpen,
@@ -227,23 +231,11 @@ export function useSessionLifecycle(
     const id = sessionId.value
 
     if (!id) throw new Error("会话未连接")
-
-    for (const item of batch.files) {
-      await stageAttachment(batch.batch, item.file)
-
-      if (epoch !== sendEpoch || sessionId.value !== id) return false
-    }
-
-    if (epoch !== sendEpoch || sessionId.value !== id) return false
-    await bindAttachments(id, batch.batch)
-    return true
+    return stageBatchFor(id, batch, () => epoch !== sendEpoch || sessionId.value !== id)
   }
 
-  /** 丢弃批次：幂等清理，失败不挡主流程；成功路径不调用，Gateway 已消费。 */
-  function dropBatch(batch: string | undefined) {
-    if (!batch) return Promise.resolve()
-    return discardAttachments(batch).catch(() => undefined)
-  }
+  /** 接管后台会话空闲后的泵队与收尾；不注册就直接出池。 */
+  const setBackgroundIdleHandler = live.setBackgroundIdle
 
   async function abortRemote() {
     await remote.value?.abort()
@@ -329,6 +321,11 @@ export function useSessionLifecycle(
   })
   const states = reactive(new Map<string, ReturnType<typeof sessionState>>())
   const idleState = reactive<SessionClientState>({ draft: "", sends: [] })
+  const backgroundSend = createBackgroundSender({
+    states,
+    backgroundSubscription: live.backgroundSubscription,
+    transcriptFor: history.transcriptFor,
+  })
   const creatingCwd = ref<string>()
   const submitting = ref(false)
   const aborting = ref(false)
@@ -545,6 +542,9 @@ export function useSessionLifecycle(
     aborting,
     createSession,
     sendPrompt,
+    sendBackgroundPrompt: backgroundSend.send,
+    setBackgroundIdleHandler,
+    transcriptFor: history.transcriptFor,
     abortSession,
     initialize,
     remote,

@@ -123,13 +123,18 @@ export function useSessionHistory() {
     }
   }
 
-  const liveTranscript = computed(() => {
-    const id = activeId.value
+  /** 指定会话当前的合并转录（磁盘 + live 覆盖）；前台投影与后台泵队共用。 */
+  function transcriptFor(id: string): readonly TranscriptItem[] {
     const rev = version.value
 
-    if (!id || rev < 0) return []
+    if (rev < 0) return []
     const page = cache.peek(id)
     return page ? mergeLiveTranscript(page.items, page.heldLive) : []
+  }
+
+  const liveTranscript = computed(() => {
+    const id = activeId.value
+    return id ? transcriptFor(id) : []
   })
   const historyReadyId = computed(() => {
     const id = activeId.value
@@ -162,6 +167,7 @@ export function useSessionHistory() {
     setActive,
     overlayLive,
     releaseLive,
+    transcriptFor,
     loadHistory,
     loadOlderHistory,
   }

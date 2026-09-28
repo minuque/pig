@@ -11,11 +11,16 @@ export interface LiveSubscription {
   session: RemoteSession
   foreground: boolean
   running: boolean
+  /** 后台空闲正在交给接管者（泵队/收尾），期间重复的空闲快照不重复触发。 */
+  idlePending: boolean
   usageRevision: number | undefined
   lastState: RemoteSessionState | undefined
   liveItems: Map<string, TranscriptItem>
   stop: () => void
 }
+
+/** 后台空闲接管结果：sent 表示已泵出一条留在池里，done 表示可以出池收尾。 */
+export type BackgroundIdleResult = "sent" | "done"
 
 interface LiveDeps {
   history: ReturnType<typeof useSessionHistory>
@@ -31,6 +36,12 @@ export function useLiveSubscriptions(deps: LiveDeps) {
   const backgroundRunningIds = shallowRef<ReadonlySet<string>>(new Set())
   const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
   let contextUsageRequest = 0
+  let backgroundIdleHandler: ((id: string) => Promise<BackgroundIdleResult>) | undefined
+
+  /** 接管后台会话空闲后的泵队与收尾；不注册就直接出池。 */
+  function setBackgroundIdle(fn?: (id: string) => Promise<BackgroundIdleResult>) {
+    backgroundIdleHandler = fn
+  }
 
   /** 占用估算只给前台：切走或换会话就作废在飞的请求。 */
   function clearContextUsage() {
@@ -102,6 +113,7 @@ export function useLiveSubscriptions(deps: LiveDeps) {
       session,
       foreground,
       running: false,
+      idlePending: false,
       usageRevision: undefined,
       lastState: undefined,
       liveItems: new Map(),
@@ -142,8 +154,40 @@ export function useLiveSubscriptions(deps: LiveDeps) {
 
       if (sub.foreground || sub.running) return
 
-      if (!reloaded && id) void history.loadHistory(id, { force: true })
-      retireBackground(sub)
+      const handler = backgroundIdleHandler
+
+      if (!handler || !id) {
+        if (!reloaded && id) void history.loadHistory(id, { force: true })
+        retireBackground(sub)
+        return
+      }
+
+      if (sub.idlePending) return
+      sub.idlePending = true
+      void (async () => {
+        let handed = true
+
+        try {
+          // 先等磁盘 id 就位，泵出的乐观句锚点才对得上历史
+          if (!reloaded) await history.loadHistory(id, { force: true })
+
+          // submit 要等整轮才 resolve，期间到达的 idle 快照会被 idlePending 丢掉：
+          // 每泵出一条就重拉历史再跑一轮，直到队列空（done）或会话重新 running
+          while (handed && background.get(id) === sub && !sub.running) {
+            handed = (await handler(id)) === "sent"
+
+            if (handed && background.get(id) === sub && !sub.running)
+              await history.loadHistory(id, { force: true })
+          }
+        } catch {
+          /* 接管失败按收尾处理，队列回滚由接管者负责 */
+        } finally {
+          sub.idlePending = false
+        }
+
+        // 还在池里且彻底空闲才收尾；重新 running 的会话等下一个 idle 快照
+        if (background.get(id) === sub && !sub.running) retireBackground(sub)
+      })()
     }
     const coalesced = coalesceByFrame<RemoteSessionState>(publish, 8)
     // 快照广播会清空库内 progress，同一帧里后到的空快照会盖掉先到的 item_finished：按 id 逐事件累积
@@ -158,6 +202,11 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     }
 
     return sub
+  }
+
+  /** 后台池里该会话的订阅；后台泵队与接管前核对连接用。 */
+  function backgroundSubscription(id: string) {
+    return background.get(id)
   }
 
   /** 切走前台：还在运行就转后台继续订阅。 */
@@ -189,6 +238,8 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     subscribeLive,
     moveToBackground,
     promoteBackground,
+    backgroundSubscription,
+    setBackgroundIdle,
     takeBackground,
     dropBackground,
   }
