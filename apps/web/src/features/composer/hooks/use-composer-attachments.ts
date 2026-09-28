@@ -35,9 +35,10 @@ export interface ComposerAttachmentsApi {
   /** 拖入的文件：文件夹跳过并提示，其余走 addFiles。 */
   addDropped(data: DataTransfer | null | undefined): void
   remove(id: string): void
-  clear(): void
-  /** 本次发送要上传的批次；没有附件返回 undefined。成功后由调用方 clear()。 */
+  /** 本次发送要上传的批次；没有附件返回 undefined。成功后由调用方 settle()。 */
   consumeForSend(): ComposerAttachmentBatch | undefined
+  /** 从批次来源的桶里只移走这批文件，期间新加的留着。 */
+  settle(batch: ComposerAttachmentBatch): void
   /** 附件暂存按会话分桶（welcome 传 undefined），切走再回来还在。 */
   setKey(sessionId: string | undefined): void
 }
@@ -87,6 +88,8 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     (stash) => stash.files.value.forEach(release),
   )
   const bucket = buckets.current
+  // 批次记住来源桶：欢迎页发送后路由已切到新会话，仍要清欢迎页那桶
+  const sources = new WeakMap<ComposerAttachmentBatch, AttachmentStash>()
   const files = computed(() => bucket().files.value)
   const error = computed(() => bucket().error.value)
 
@@ -181,20 +184,32 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     stash.files.value = kept
   }
 
-  function clear() {
-    const stash = bucket()
-
-    for (const item of stash.files.value) release(item)
-    stash.files.value = []
-    stash.error.value = ""
-  }
-
   function consumeForSend(): ComposerAttachmentBatch | undefined {
     const stash = bucket()
 
     if (!stash.files.value.length) return undefined
     // 每次发送换新 batch：重试不会往上次的批次里追加，去重移除也真的生效
-    return { batch: crypto.randomUUID(), files: [...stash.files.value] }
+    const batch = { batch: crypto.randomUUID(), files: [...stash.files.value] }
+
+    sources.set(batch, stash)
+    return batch
+  }
+
+  function settle(batch: ComposerAttachmentBatch) {
+    const stash = sources.get(batch)
+
+    if (!stash) return
+    sources.delete(batch)
+    const sent = new Set(batch.files.map((item) => item.id))
+    const kept: ComposerAttachment[] = []
+
+    for (const item of stash.files.value) {
+      if (sent.has(item.id)) release(item)
+      else kept.push(item)
+    }
+
+    stash.files.value = kept
+    stash.error.value = ""
   }
 
   if (getCurrentInstance()) onUnmounted(() => buckets.clearAll())
@@ -204,8 +219,8 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     addFiles,
     addDropped,
     remove,
-    clear,
     consumeForSend,
+    settle,
     setKey: buckets.setKey,
   }
 }

@@ -20,6 +20,15 @@ describe("canonicalizePath", () => {
     expect(canonicalizePath("/Projects/Demo/")).toBe("/Projects/Demo")
   })
 
+  it("根路径保留尾斜杠", () => {
+    if (process.platform === "win32") {
+      expect(canonicalizePath("C:\\")).toBe("c:/")
+      return
+    }
+
+    expect(canonicalizePath("/")).toBe("/")
+  })
+
   it("解析相对段后再规范化", () => {
     if (process.platform === "win32") {
       expect(canonicalizePath("C:\\Projects\\Demo\\..\\App")).toBe("c:/projects/app")

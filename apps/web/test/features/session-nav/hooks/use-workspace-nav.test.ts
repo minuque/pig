@@ -34,6 +34,7 @@ function localWorkspaces(paths: string[]) {
 function admin() {
   return {
     sessionId: ref(undefined),
+    running: ref(false),
     router: { replace: vi.fn() } as never,
     refreshSessions: vi.fn(async () => undefined),
   }

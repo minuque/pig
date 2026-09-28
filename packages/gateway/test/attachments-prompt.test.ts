@@ -171,9 +171,9 @@ describe("PiHostService 附件通道", () => {
     // 删除会话走同一条清理路径：未消费的 pending 一并丢掉
     await stage(service.attachments, "svc-b2", PDF, Buffer.from("pdf"))
     service.attachments.bind(SESSION, "svc-b2")
+    await runtime.dispose()
     await service.deleteSession(SESSION)
     expect(service.attachments.take(SESSION)).toEqual([])
-    await runtime.dispose()
     await service.dispose()
   })
 })

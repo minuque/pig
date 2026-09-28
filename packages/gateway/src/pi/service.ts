@@ -12,6 +12,7 @@ import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/p
 import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   PiServerError,
+  SessionBusyError,
   SessionNotFoundError,
   toProtocolModelMetadata,
 } from "@earendil-works/pi-server"
@@ -206,8 +207,9 @@ export class PiHostService implements PiServerService {
     this.sessionsCache = undefined
   }
 
-  /** 删除 Pi 会话文件与它的附件暂存。 */
+  /** 删除 Pi 会话文件与它的附件暂存；仍有活 runtime 时拒绝，否则它会把文件写回来。 */
   async deleteSession(sessionId: string): Promise<void> {
+    if (this.activeSessions.has(sessionId)) throw new SessionBusyError("Session is still open")
     const path = await this.findSessionPath(sessionId)
 
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)

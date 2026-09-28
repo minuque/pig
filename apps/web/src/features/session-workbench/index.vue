@@ -97,6 +97,7 @@
               :hero="showHero"
               :queue="composerQueue"
               @send="onSend"
+              @send-now="onQueueSendNow"
               @queue="onQueue"
               @abort="onAbort"
             />
@@ -134,7 +135,7 @@ import {
   useComposerAttachments,
   type ComposerAttachmentBatch,
 } from "@features/composer/hooks/use-composer-attachments.js"
-import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
+import { useComposerQueue, type QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
@@ -286,13 +287,21 @@ function deliverPrompt(text: string, batch?: ComposerAttachmentBatch) {
   )
 }
 
-function onSend(text: string, batch?: ComposerAttachmentBatch) {
+function onSend(text: string) {
   void sound.play("send")
-  const source = batch ?? composerAttachments.consumeForSend()
+  const batch = composerAttachments.consumeForSend()
 
-  void deliverPrompt(text, source).then((sent) => {
-    // 只有真提交成功才清输入卡附件；队列快照不占输入卡，被中止或切走时 chips 留着
-    if (sent && !batch) composerAttachments.clear()
+  void deliverPrompt(text, batch).then((sent) => {
+    // 只移走这次发出的附件；发送途中新加的留着，被中止或切走时 chips 也留着
+    if (sent && batch) composerAttachments.settle(batch)
+  })
+}
+
+/** 发送成功才出队：被拒（提交中、中止、切走）时条目留在队列里。 */
+function onQueueSendNow(item: QueuedPrompt) {
+  void sound.play("send")
+  void deliverPrompt(item.text, item.attachments).then((sent) => {
+    if (sent) composerQueue.remove(item.id)
   })
 }
 
@@ -303,7 +312,7 @@ function onQueue(text: string) {
   composerQueue.enqueue(text, batch)
 
   // 附件归队列持有：入队同时清掉输入卡暂存，否则同一批文件会再传一次
-  if (batch) composerAttachments.clear()
+  if (batch) composerAttachments.settle(batch)
   prompt.value = ""
 }
 
@@ -340,12 +349,16 @@ function turnFinishedCleanly(): boolean {
   return last?.role !== "assistant" || (last.status !== "error" && last.status !== "aborted")
 }
 
+// 切会话时 running 的下降沿属于旧会话，不算本会话收尾
 watch([running, sessionId], ([now, id], [was, prevId]) => {
-  if (id !== prevId) abortedTurn = false
+  if (id !== prevId) {
+    abortedTurn = false
+    return
+  }
 
   if (!was || now || !id) return
 
-  if (id === prevId && turnFinishedCleanly()) void sound.play("done")
+  if (turnFinishedCleanly()) void sound.play("done")
   void pumpQueue()
 })
 

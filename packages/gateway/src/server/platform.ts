@@ -302,6 +302,11 @@ function sendSessionWriteError(
     return
   }
 
+  if (error instanceof PiServerError && error.code === "busy") {
+    send(res, 409, { code: "BUSY" })
+    return
+  }
+
   if (error instanceof PiServerError && error.code === "invalid_request") {
     send(res, 400, { code: "INVALID_REQUEST" })
     return

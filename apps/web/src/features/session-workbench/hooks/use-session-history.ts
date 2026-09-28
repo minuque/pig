@@ -1,5 +1,7 @@
 import { computed, shallowRef } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
+import { notifyError } from "@components/layout/notify.js"
+import { errorMessage } from "@client/http.js"
 import { sessionTranscript } from "@client/platform.js"
 import {
   absorbLatestTranscriptPage,
@@ -59,12 +61,10 @@ export function useSessionHistory() {
         const absorbed = absorbLatestTranscriptPage(cache.peek(id), { items, timings, hasMore })
         cache.write(id, { ...absorbed, ready: true })
         bump()
-      } catch {
-        if (requestById.get(id) !== request) return
-
-        if (!cache.isReady(id)) {
-          cache.write(id, { items: [], timings: [], hasMore: false, ready: true })
-          bump()
+      } catch (error) {
+        // 失败不标 ready：不把已有会话画成欢迎页，下次打开会重拉
+        if (requestById.get(id) === request && activeId.value === id) {
+          notifyError(`历史加载失败：${errorMessage(error)}`)
         }
       }
     })()

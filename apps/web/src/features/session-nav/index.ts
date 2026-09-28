@@ -32,13 +32,14 @@ function createNav(
   )
   const navError = shallowRef("")
   const cards = useSessionCards(pi.connected)
+  const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
   const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
     sessionId: session.sessionId,
+    running: activeSessionRunning,
     router,
     refreshSessions: pi.refreshSessions,
   })
   const markers = useSessionMarkers(nav.listedSessions, session.sessionId)
-  const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
   const cardFootById = computed(() => {
     const liveId = session.sessionId.value
     const liveOutcome = sessionOutcome(session.transcript.value)

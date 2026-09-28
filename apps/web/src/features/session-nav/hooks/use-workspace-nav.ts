@@ -1,7 +1,7 @@
 import { computed, ref, shallowRef, toValue, type MaybeRefOrGetter, type Ref } from "vue"
 import type { Router } from "vue-router"
 import type { SessionMetadata } from "@/types/common-type.js"
-import { errorMessage } from "@client/http.js"
+import { errorMessage, PlatformRequestError } from "@client/http.js"
 import {
   deleteSession as requestDeleteSession,
   renameSession as requestRenameSession,
@@ -32,6 +32,11 @@ export const SIDEBAR_VIEW_KEY = "pig.sidebarView"
 export const SIDEBAR_SORT_KEY = "pig.sidebarSort"
 export const SIDEBAR_ORDER_KEY = "pig.sidebarWorkspaceOrder"
 export const SIDEBAR_COLLAPSED_KEY = "pig.sidebarCollapsed"
+const DELETE_RETRY_MS = 400
+
+function isBusy(error: unknown): boolean {
+  return error instanceof PlatformRequestError && error.code === "BUSY"
+}
 
 function loadView(): SidebarView {
   try {
@@ -132,6 +137,7 @@ export function useWorkspaceNav(
   error: Ref<string>,
   admin: {
     sessionId: Ref<string | undefined>
+    running: Ref<boolean>
     router: Router
     refreshSessions(): Promise<void>
   },
@@ -282,16 +288,25 @@ export function useWorkspaceNav(
     })
   }
 
+  /** 先离开再删：服务端仍有活 runtime 时回 BUSY，等 detach 落地后重试一次。 */
   async function deleteSession(id: string) {
     error.value = ""
 
-    try {
-      await requestDeleteSession(id)
+    if (admin.sessionId.value === id && admin.running.value) {
+      error.value = "会话正在运行，请先停止再删除。"
+      return
+    }
 
+    try {
       if (admin.sessionId.value === id) await admin.router.replace("/")
+      await requestDeleteSession(id).catch(async (cause: unknown) => {
+        if (!isBusy(cause)) throw cause
+        await new Promise((resolve) => setTimeout(resolve, DELETE_RETRY_MS))
+        await requestDeleteSession(id)
+      })
       await admin.refreshSessions()
     } catch (cause) {
-      error.value = errorMessage(cause)
+      error.value = isBusy(cause) ? "会话仍在运行，请先停止再删除。" : errorMessage(cause)
     }
   }
 

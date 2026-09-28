@@ -406,9 +406,12 @@ function sameToolRow(left: ToolRow, right: ToolRow) {
       return (
         nextItem != null &&
         item.id === nextItem.id &&
+        item.toolName === nextItem.toolName &&
         item.running === nextItem.running &&
         item.isError === nextItem.isError &&
-        item.outputText === nextItem.outputText
+        item.input === nextItem.input &&
+        item.outputText === nextItem.outputText &&
+        sameImages(item.outputImages, nextItem.outputImages)
       )
     })
   })

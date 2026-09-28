@@ -123,18 +123,45 @@ describe("useComposerAttachments", () => {
     expect(error.value).toBe("")
   })
 
-  it("remove 与 clear 都撤销 blob URL", () => {
+  it("remove 与 settle 都撤销 blob URL", () => {
     const revoke = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined)
 
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
-    const { files, addFiles, remove, clear } = useComposerAttachments()
+    const { files, addFiles, remove, consumeForSend, settle } = useComposerAttachments()
 
     addFiles([file("a.png", "image/png"), file("b.png", "image/png")])
     remove(files.value[0]!.id)
     expect(revoke).toHaveBeenCalledWith("blob:1")
     expect(files.value.map((item) => item.name)).toEqual(["b.png"])
-    clear()
+    settle(consumeForSend()!)
     expect(revoke).toHaveBeenCalledTimes(2)
+    expect(files.value).toEqual([])
+  })
+
+  it("settle 只移走本批文件，发送途中新加的留着", () => {
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
+    const { files, addFiles, consumeForSend, settle } = useComposerAttachments()
+
+    addFiles([file("a.png", "image/png")])
+    const batch = consumeForSend()!
+
+    addFiles([file("b.png", "image/png")])
+    settle(batch)
+    expect(files.value.map((item) => item.name)).toEqual(["b.png"])
+  })
+
+  it("settle 清的是批次来源的桶，不是当前桶", () => {
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
+    const { files, addFiles, consumeForSend, settle, setKey } = useComposerAttachments()
+
+    addFiles([file("a.png", "image/png")])
+    const batch = consumeForSend()!
+
+    setKey("sess-new")
+    addFiles([file("b.png", "image/png")])
+    settle(batch)
+    expect(files.value.map((item) => item.name)).toEqual(["b.png"])
+    setKey(undefined)
     expect(files.value).toEqual([])
   })
 
@@ -156,9 +183,9 @@ describe("useComposerAttachments", () => {
     expect(clipboardFiles(null)).toEqual([])
   })
 
-  it("每次 consumeForSend 都换新 batch，clear 后不再返回批次", () => {
+  it("每次 consumeForSend 都换新 batch，settle 后不再返回批次", () => {
     vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
-    const { addFiles, consumeForSend, clear } = useComposerAttachments()
+    const { addFiles, consumeForSend, settle } = useComposerAttachments()
 
     expect(consumeForSend()).toBeUndefined()
     addFiles([file("a.png", "image/png")])
@@ -168,7 +195,7 @@ describe("useComposerAttachments", () => {
     expect(first?.batch).toMatch(/^[A-Za-z0-9-]{1,64}$/)
     expect(first?.files).toHaveLength(1)
     expect(second?.batch).not.toBe(first?.batch)
-    clear()
+    settle(first!)
     expect(consumeForSend()).toBeUndefined()
   })
 })

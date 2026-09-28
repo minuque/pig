@@ -15,7 +15,7 @@
         :items="queue.items.value"
         @reorder="queue.reorder"
         @edit="onQueueEdit"
-        @send-now="onQueueSendNow"
+        @send-now="emit('send-now', $event)"
         @remove="queue.remove"
       />
     </Transition>
@@ -144,7 +144,6 @@ import QueuePanel from "@features/composer/components/QueuePanel.vue"
 import {
   MAX_COMPOSER_ATTACHMENTS,
   type ComposerAttachment,
-  type ComposerAttachmentBatch,
   type ComposerAttachmentsApi,
 } from "@features/composer/hooks/use-composer-attachments.js"
 import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
@@ -195,7 +194,8 @@ const props = withDefaults(
 const prompt = defineModel<string>("prompt", { required: true })
 const preset = defineModel<ComposerPreset | undefined>("preset")
 const emit = defineEmits<{
-  send: [text: string, batch?: ComposerAttachmentBatch]
+  send: [text: string]
+  "send-now": [item: QueuedPrompt]
   queue: [text: string]
   abort: []
 }>()
@@ -285,11 +285,6 @@ function onQueueEdit(item: QueuedPrompt) {
   if (item.attachments) props.attachments.addFiles(item.attachments.files.map((f) => f.file))
   props.queue.remove(item.id)
   editor.value?.focus()
-}
-
-function onQueueSendNow(item: QueuedPrompt) {
-  props.queue.remove(item.id)
-  emit("send", item.text, item.attachments)
 }
 
 function pickFiles() {
