@@ -16,7 +16,12 @@
         </button>
       </div>
 
-      <div v-if="!collapsedSections.pinned" class="group-body">
+      <TransitionGroup
+        v-if="!collapsedSections.pinned"
+        name="list-reveal"
+        tag="div"
+        class="group-body"
+      >
         <SessionItem
           v-for="session in pinnedRows"
           :key="session.id"
@@ -31,7 +36,7 @@
           @rename="renameSession"
           @delete="deleteSession"
         />
-      </div>
+      </TransitionGroup>
     </section>
 
     <SessionsHead
@@ -48,8 +53,10 @@
       @set-sort="setSort"
     />
 
-    <ul
+    <TransitionGroup
       v-if="view === 'flat' && updatedSessions.length && !collapsedSections.sessions"
+      name="list-reveal"
+      tag="ul"
       class="flat-sessions"
     >
       <li v-for="session in updatedSessions" :key="session.id">
@@ -62,12 +69,12 @@
         />
       </li>
 
-      <li v-if="updatedMore">
+      <li v-if="updatedMore" key="more">
         <button class="more-button" type="button" @click="toggleGroupReveal('updated')">
           {{ updatedMore.revealed ? "收起" : "显示更多" }}
         </button>
       </li>
-    </ul>
+    </TransitionGroup>
 
     <ul v-else-if="view === 'grouped' && showList && !collapsedSections.sessions">
       <li
@@ -92,7 +99,7 @@
           class="session-list-group"
           :class="{ 'is-open': !section.collapsed }"
         >
-          <div class="group-body">
+          <TransitionGroup name="list-reveal" tag="div" class="group-body">
             <SessionItem
               v-for="session in section.sessions"
               :key="session.id"
@@ -105,13 +112,14 @@
 
             <button
               v-if="section.more"
+              key="more"
               class="more-button"
               type="button"
               @click="section.toggleReveal"
             >
               {{ section.revealed ? "收起" : "显示更多" }}
             </button>
-          </div>
+          </TransitionGroup>
         </div>
       </li>
     </ul>
@@ -247,6 +255,7 @@ function groupClass(key: string, open: boolean) {
 }
 
 .session-list ul {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xxs);
@@ -350,6 +359,7 @@ function groupClass(key: string, open: boolean) {
 }
 
 .group-body {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xxs);
