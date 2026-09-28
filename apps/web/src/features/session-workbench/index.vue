@@ -522,18 +522,6 @@ const contentHandleSides = ["left", "right"] as const
   z-index: 2;
 }
 
-.session-stage::after {
-  pointer-events: none;
-  position: absolute;
-  /* 让开滚动条列，渐隐停在悬浮输入条上沿；下半做实色脚，半透区不留残字 */
-  inset-inline: 0 var(--size-scrollbar);
-  bottom: var(--composer-reserve);
-  z-index: 1;
-  height: calc(var(--spacing-xxl) + var(--spacing-md));
-  background: linear-gradient(to bottom, transparent, var(--surface) 50%);
-  content: "";
-}
-
 /* 首屏：Hero 贴在输入条上沿，两者作为一组略高于垂直中线 */
 .idle-hero {
   position: absolute;
@@ -557,8 +545,20 @@ const contentHandleSides = ["left", "right"] as const
   bottom: var(--hero-dock);
 }
 
+.composer-bar.is-hero::before,
 .composer-bar.is-hero::after {
   content: none;
+}
+
+/* 让开滚动条列；下半做实色脚，半透区不留残字。挂在上沿，停靠/入场位移时不会裂开 */
+.composer-bar::before {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0 var(--size-scrollbar);
+  bottom: 100%;
+  height: calc(var(--spacing-xxl) + var(--spacing-md));
+  background: linear-gradient(to bottom, transparent, var(--surface) 50%);
+  content: "";
 }
 
 /* 悬浮输入条下方的留白条带补底色：滚动中的正文不该从胶囊下沿透出 */
