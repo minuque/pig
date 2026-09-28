@@ -145,9 +145,14 @@ export function useWorkspaceNav(
   const addingWorkspace = ref(false)
   const titleById = shallowRef<Record<string, string>>({})
   const workspaces = local.workspaces
+  /** 已确认删除、等落地的会话：先隐藏，失败再恢复。 */
+  const deletingIds = shallowRef<ReadonlySet<string>>(new Set())
+  const visibleSessions = computed(() =>
+    sessions.value.filter((session) => !deletingIds.value.has(session.id)),
+  )
   const groups = computed(() =>
     orderSessionGroups(
-      groupSessionsByCwd(sessions.value, local.workspaces.value).map((group) => ({
+      groupSessionsByCwd(visibleSessions.value, local.workspaces.value).map((group) => ({
         ...group,
         sessions: applyTitles(group.sessions),
       })),
@@ -155,7 +160,7 @@ export function useWorkspaceNav(
       manualOrder.value,
     ),
   )
-  const listedSessions = computed(() => applyTitles(listSessionsForSidebar(sessions.value)))
+  const listedSessions = computed(() => applyTitles(listSessionsForSidebar(visibleSessions.value)))
   const view = ref<SidebarView>(loadView())
   const sort = ref<SidebarSort>(loadSort())
   const manualOrder = shallowRef<string[]>(loadOrder())
@@ -171,6 +176,14 @@ export function useWorkspaceNav(
       const sessionName = titles[session.id]
       return sessionName === undefined ? session : { ...session, sessionName }
     })
+  }
+
+  function setDeleting(id: string, on: boolean): void {
+    const next = new Set(deletingIds.value)
+
+    if (on) next.add(id)
+    else next.delete(id)
+    deletingIds.value = next
   }
 
   function setView(next: SidebarView) {
@@ -297,6 +310,8 @@ export function useWorkspaceNav(
       return
     }
 
+    setDeleting(id, true)
+
     try {
       if (admin.sessionId.value === id) await admin.router.replace("/")
       await requestDeleteSession(id).catch(async (cause: unknown) => {
@@ -307,6 +322,9 @@ export function useWorkspaceNav(
       await admin.refreshSessions()
     } catch (cause) {
       error.value = isBusy(cause) ? "会话仍在运行，请先停止再删除。" : errorMessage(cause)
+    } finally {
+      // 成功时列表已刷新、该会话已不在，移除不会闪回；失败则用进场动画回到原位
+      setDeleting(id, false)
     }
   }
 
