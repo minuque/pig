@@ -64,14 +64,16 @@ function createNav(
 
     for (const item of nav.listedSessions.value) {
       const foot = sessionCardFoot(item.id, extras, live)
-      const state: SidebarSessionState | undefined =
-        liveId === item.id && activeSessionRunning.value
-          ? "running"
-          : foot.outcome === "error"
-            ? "error"
-            : markers.isUnread(item)
-              ? "unread"
-              : undefined
+      const isRunning =
+        (liveId === item.id && activeSessionRunning.value) ||
+        session.backgroundRunningIds.value.has(item.id)
+      const state: SidebarSessionState | undefined = isRunning
+        ? "running"
+        : foot.outcome === "error"
+          ? "error"
+          : markers.isUnread(item)
+            ? "unread"
+            : undefined
 
       feet.set(item.id, { ...foot, state })
     }

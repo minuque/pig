@@ -195,6 +195,11 @@ function disconnectedError() {
   return error
 }
 
+/** 等一个合帧周期（coalesceByFrame 的 8ms 兜底），让后台发布落地。 */
+function nextFrame() {
+  return new Promise((resolve) => setTimeout(resolve, 20))
+}
+
 describe("打开已有 Session", () => {
   it("从 Session 回到 / 时清空 Transcript", async () => {
     const item = {
@@ -1059,6 +1064,153 @@ describe("HTTP 历史与 live Transcript 合并", () => {
     expect(session.transcript.value.map((item) => item.id)).toEqual(
       expect.arrayContaining(["a1", "t1"]),
     )
+  })
+})
+
+describe("后台订阅池", () => {
+  it("运行中的会话切走再切回复用同一连接", async () => {
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: { ...snapshot(1), phase: "turn" } }
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await session.sendPrompt("一")
+    await vi.waitFor(() => expect(session.running.value).toBe(true))
+
+    routeBox.params.sessionId = "s2"
+    await nextTick()
+    expect(session.remote.value).toBeUndefined()
+    expect(session.backgroundRunningIds.value.has("s1")).toBe(true)
+
+    routeBox.params.sessionId = "s1"
+    await nextTick()
+    expect(session.remote.value).toBe(a)
+    expect(session.running.value).toBe(true)
+    expect(session.backgroundRunningIds.value.has("s1")).toBe(false)
+    expect(openMock).toHaveBeenCalledTimes(1)
+    expect(a.disposeCalls).toBe(0)
+  })
+
+  it("后台会话的 live 条目切回后可见且不重复", async () => {
+    const user = (id: string, text: string): TranscriptItem => ({
+      id,
+      role: "user",
+      content: [{ type: "text", text }],
+      timestamp: 1,
+    })
+    const assistant = (id: string, text: string): TranscriptItem => ({
+      id,
+      role: "assistant",
+      content: [{ type: "text", text }],
+      model: { provider: "test", id: "model" },
+      timestamp: 2,
+      status: "streaming",
+    })
+    const texts = () =>
+      session.transcript.value
+        .filter((row) => row.id !== "pending-assistant")
+        .map((row) => row.content.map((part) => ("text" in part ? part.text : "")).join(""))
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: { ...snapshot(1), phase: "turn" } }
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await session.sendPrompt("一")
+    await vi.waitFor(() => expect(session.running.value).toBe(true))
+
+    routeBox.params.sessionId = "s2"
+    await nextTick()
+    expect(session.backgroundRunningIds.value.has("s1")).toBe(true)
+
+    a.state = {
+      ...a.state,
+      snapshot: { ...snapshot(2), phase: "turn" },
+      transcript: [user("m1", "一"), assistant("m2", "答到一半")],
+    }
+    a.emit()
+    await nextFrame()
+    a.state = {
+      ...a.state,
+      snapshot: { ...snapshot(3), phase: "turn" },
+      transcript: [user("m1", "一"), assistant("m2", "答到一半"), assistant("m3", "又一段")],
+    }
+    a.emit()
+    await nextFrame()
+
+    routeBox.params.sessionId = "s1"
+    await nextTick()
+    await vi.waitFor(() => expect(texts()).toEqual(["一", "答到一半", "又一段"]))
+    expect(openMock).toHaveBeenCalledTimes(1)
+  })
+
+  it("后台会话变 idle 后放掉连接、作废临时条目并重拉历史", async () => {
+    let disk: TranscriptItem[] = []
+    const calls = () =>
+      platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("/transcript"))
+        .length
+
+    platformRequestMock.mockImplementation(async (path: string) => {
+      if (path.includes("/transcript"))
+        return { items: path.includes("sessionId=s1") ? disk : [], timings: [] }
+      return { usage: usageEstimate }
+    })
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: { ...snapshot(1), phase: "turn" } }
+    createMock.mockResolvedValue(a)
+    await session.initialize()
+    await session.createSession("/repo")
+    await nextTick()
+    await vi.waitFor(() => expect(session.running.value).toBe(true))
+
+    routeBox.params.sessionId = "s2"
+    await nextTick()
+    expect(session.backgroundRunningIds.value.has("s1")).toBe(true)
+
+    // 后台还在跑，先落一条临时条目的 live 覆盖
+    a.state = {
+      ...a.state,
+      snapshot: { ...snapshot(2), phase: "turn" },
+      transcript: [
+        { id: "m1", role: "user", content: [{ type: "text", text: "进行中" }], timestamp: 1 },
+      ],
+    }
+    a.emit()
+    await nextFrame()
+
+    const before = calls()
+    disk = [historyItem]
+    a.state = { ...a.state, snapshot: { ...snapshot(3), phase: "idle" }, transcript: [] }
+    a.emit()
+
+    await vi.waitFor(() => expect(a.disposeCalls).toBe(1))
+    expect(session.backgroundRunningIds.value.has("s1")).toBe(false)
+    expect(calls()).toBe(before + 1)
+
+    routeBox.params.sessionId = "s1"
+    await nextTick()
+    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
+    expect(session.remote.value).toBeUndefined()
+    expect(openMock).not.toHaveBeenCalled()
+  })
+
+  it("空闲会话切走仍然放掉连接", async () => {
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1) }
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await session.sendPrompt("一")
+    await vi.waitFor(() => expect(session.remote.value).toBe(a))
+
+    routeBox.params.sessionId = "s2"
+    await nextTick()
+
+    await vi.waitFor(() => expect(a.disposeCalls).toBe(1))
+    expect(session.backgroundRunningIds.value.has("s1")).toBe(false)
   })
 })
 
