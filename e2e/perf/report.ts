@@ -5,6 +5,7 @@ const SLOW_RATIO = 0.1
 
 export type MetricRow = {
   label: string
+  group?: string
   value: number | null
   p90?: number | null
   previous?: number | null
@@ -93,11 +94,13 @@ export function reportTable(rows: readonly MetricRow[]) {
     const frame = Boolean(row.frame)
     const unit = row.unit ?? "ms"
     return {
+      group: row.group ?? "",
       label: row.label,
       now: paint(formatMetric(row.value, frame, unit), color),
       p90: formatMetric(row.p90 ?? null, frame, unit),
       prev: formatMetric(row.previous ?? null, frame, unit),
-      change: paint(changeText(row.value, row.previous ?? null, frame, unit), color),
+      // 帧指标的差值换算 fps 无意义，变化列只显示 ms
+      change: paint(changeText(row.value, row.previous ?? null, false, unit), color),
     }
   })
   const cols = [
@@ -112,6 +115,7 @@ export function reportTable(rows: readonly MetricRow[]) {
   )
   const aligns = cols.map((col) => col.align)
   const keys = cols.map((col) => col.key)
+  const innerWidth = widths.reduce((sum, width) => sum + width + 2, 0) + (widths.length - 1)
 
   console.log(`\n${rule(widths, "┌", "┬", "┐")}`)
   console.log(
@@ -123,7 +127,14 @@ export function reportTable(rows: readonly MetricRow[]) {
   )
   console.log(rule(widths, "├", "┼", "┤"))
 
-  for (const cell of cells)
+  let group = ""
+
+  for (const cell of cells) {
+    if (cell.group && cell.group !== group) {
+      group = cell.group
+      console.log(`│${pad(` ${group}`, innerWidth, "left")}│`)
+    }
+
     console.log(
       rowLine(
         keys.map((key) => cell[key]),
@@ -131,5 +142,7 @@ export function reportTable(rows: readonly MetricRow[]) {
         aligns,
       ),
     )
+  }
+
   console.log(rule(widths, "└", "┴", "┘"))
 }

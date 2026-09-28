@@ -33,6 +33,8 @@ export type BenchRuntime = "desktop" | "web"
 export type BenchSession = {
   page: Page
   origin: string
+  size(): Promise<{ width: number; height: number }>
+  setSize(width: number, height: number): Promise<void>
   close(): Promise<void>
 }
 
@@ -78,6 +80,10 @@ export async function createWebHarness(options: {
       return {
         page,
         origin: options.origin,
+        size: async () => page.viewportSize() ?? { width: 1280, height: 800 },
+        setSize: async (width, height) => {
+          await page.setViewportSize({ width, height })
+        },
         async close() {
           await context.close()
         },
@@ -139,7 +145,27 @@ export async function createDesktopHarness(options: {
 
         runtimeLabel = `electron ${versions.electron} chromium ${versions.chrome}`
         await prepareBenchPage(page, options.workspaceId, observers, { reducedMotion: false })
-        return { page, origin, close: dispose }
+        return {
+          page,
+          origin,
+          size: () =>
+            app.evaluate(({ BrowserWindow }) => {
+              const win = BrowserWindow.getAllWindows()[0]
+
+              if (!win) throw new Error("桌面窗口不存在")
+              const [width, height] = win.getSize()
+              return { width, height }
+            }),
+          setSize: async (width, height) => {
+            await app.evaluate(
+              ({ BrowserWindow }, dims) => {
+                BrowserWindow.getAllWindows()[0]?.setSize(dims.width, dims.height)
+              },
+              { width, height },
+            )
+          },
+          close: dispose,
+        }
       } catch (error) {
         await dispose()
         throw error

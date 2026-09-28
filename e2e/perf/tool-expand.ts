@@ -17,8 +17,10 @@ type IdleGate = {
 export type ToolExpandBench = {
   firstFrameMs: number
   completeMs: number
-  worstLongTaskMs: number
 }
+
+/** longtask 只在超过 50 ms 时报，展开期间出现即视为阻塞主线程。 */
+const LONG_TASK_BUDGET_MS = 50
 
 async function holdIdleCallbacks(page: Page) {
   await page.evaluate(() => {
@@ -94,22 +96,28 @@ export async function expandToolSteps(
     )
     await nextPaint(page)
     await page.evaluate(() => new Promise<void>((resolve) => setTimeout(resolve, 0)))
-    return page.evaluate(() => {
-      const slot = window as typeof window & IdleGate
-      const mark = slot.__pigToolExpand
-      const bench = (window as unknown as { __pigBench: PageBench }).__pigBench
+    return page
+      .evaluate(() => {
+        const slot = window as typeof window & IdleGate
+        const mark = slot.__pigToolExpand
+        const bench = (window as unknown as { __pigBench: PageBench }).__pigBench
 
-      if (!mark) throw new Error("未记录工具步骤展开起点")
-      const completeMs = performance.now() - mark.started
-      const longTasks = bench.longTasks.filter(
-        (task) => task.start >= mark.started && task.start <= performance.now(),
-      )
-      return {
-        firstFrameMs: mark.firstFrameMs,
-        completeMs,
-        worstLongTaskMs: longTasks.reduce((max, task) => Math.max(max, task.duration), 0),
-      }
-    })
+        if (!mark) throw new Error("未记录工具步骤展开起点")
+        const completeMs = performance.now() - mark.started
+        const longTasks = bench.longTasks.filter(
+          (task) => task.start >= mark.started && task.start <= performance.now(),
+        )
+        return {
+          firstFrameMs: mark.firstFrameMs,
+          completeMs,
+          worstLongTaskMs: longTasks.reduce((max, task) => Math.max(max, task.duration), 0),
+        }
+      })
+      .then((bench) => {
+        if (bench.worstLongTaskMs > LONG_TASK_BUDGET_MS)
+          throw new Error(`工具组展开出现 ${bench.worstLongTaskMs.toFixed(0)} ms 长任务`)
+        return { firstFrameMs: bench.firstFrameMs, completeMs: bench.completeMs }
+      })
   } finally {
     await restoreIdleCallbacks(page)
   }

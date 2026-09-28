@@ -10,6 +10,7 @@ import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import { canonicalizeWorkspacePath } from "../fixtures.js"
 import { runTurnScenarios, type EdgeSample } from "./edges.js"
 import { createDesktopHarness, createWebHarness, type BenchHarness } from "./harness.js"
+import { sidebarDragWorst, sidebarToggleWorst, windowResizeWorst } from "./layout.js"
 import {
   captureBenchFailure,
   keyToNextFrame,
@@ -21,7 +22,7 @@ import {
   scrollTranscript,
   waitForWorkbench,
 } from "./measure.js"
-import { readOpenVitals, readStartVitals } from "./paint.js"
+import { readStartVitals } from "./paint.js"
 import { reportTable, type MetricRow } from "./report.js"
 import { expandToolSteps } from "./tool-expand.js"
 import {
@@ -39,11 +40,8 @@ const failShot = join(root, "test-results", "perf-fail.png")
 
 type BenchMetrics = {
   coldToWorkbench: number
-  coldTtfb: number
   coldFcp: number
-  coldLcp: number
   coldCls: number
-  openInp: number
   sessionFirstOpen: number
   switchLong: number
   switchScrollWorstMs: number
@@ -52,8 +50,10 @@ type BenchMetrics = {
   switchShortRevisit: number
   toolExpandFirstFrame: number
   toolExpandComplete: number
-  toolExpandWorstLongTask: number
   composerKeyToFrame: number
+  sidebarToggleWorstMs: number
+  sidebarDragWorstMs: number
+  windowResizeWorstMs: number
   ownMessageMs: number
   firstTokenMs: number
   streamWakeMs: number
@@ -185,9 +185,11 @@ function printReport(
   const row = (
     label: string,
     key: keyof BenchMetrics,
+    group: string,
     extra?: { frame?: boolean; unit?: "ms" | "cls" },
   ): MetricRow => ({
     label,
+    group,
     value: now[key] ?? null,
     p90: p90s[key] ?? null,
     previous: prev?.[key] ?? null,
@@ -195,29 +197,28 @@ function printReport(
   })
 
   reportTable([
-    row("打开工作台", "coldToWorkbench"),
-    row("冷启动 TTFB", "coldTtfb"),
-    row("冷启动 FCP", "coldFcp"),
-    row("就绪时 LCP", "coldLcp"),
-    row("冷启动 CLS", "coldCls", { unit: "cls" }),
-    row("打开段 INP", "openInp"),
-    row("输入跟手", "composerKeyToFrame"),
-    row("短会话打开", "sessionFirstOpen"),
-    row("长会话打开", "switchLong"),
-    row("切后立刻滚动", "switchScrollWorstMs", { frame: true }),
-    row("长会话滚动", "longScrollWorstMs", { frame: true }),
-    row("侧栏列表滚动", "listScrollWorstMs", { frame: true }),
-    row("切回短会话", "switchShortRevisit"),
-    row("工具组首次展开首帧", "toolExpandFirstFrame"),
-    row("工具组首次展开完成", "toolExpandComplete"),
-    row("工具组首次展开长任务", "toolExpandWorstLongTask"),
-    row("发送后自己的话", "ownMessageMs"),
-    row("发送后首条助手", "firstTokenMs"),
-    row("流式首帧唤醒", "streamWakeMs"),
-    row("流式跟上（稳态）", "streamKeepUpMs"),
-    row("点停止", "abortMs"),
-    row("连切到短会话", "rapidSwitchMs"),
-    row("断线后恢复", "reconnectMs"),
+    row("打开工作台", "coldToWorkbench", "启动"),
+    row("冷启动 FCP", "coldFcp", "启动"),
+    row("冷启动 CLS", "coldCls", "启动", { unit: "cls" }),
+    row("短会话打开", "sessionFirstOpen", "会话切换"),
+    row("长会话打开", "switchLong", "会话切换"),
+    row("切回短会话", "switchShortRevisit", "会话切换"),
+    row("连切到短会话", "rapidSwitchMs", "会话切换"),
+    row("切后立刻滚动", "switchScrollWorstMs", "滚动", { frame: true }),
+    row("长会话滚动", "longScrollWorstMs", "滚动", { frame: true }),
+    row("侧栏列表滚动", "listScrollWorstMs", "滚动", { frame: true }),
+    row("侧栏收起展开", "sidebarToggleWorstMs", "布局响应", { frame: true }),
+    row("侧栏拖拽调宽", "sidebarDragWorstMs", "布局响应", { frame: true }),
+    row("窗口 resize", "windowResizeWorstMs", "布局响应", { frame: true }),
+    row("工具组首次展开首帧", "toolExpandFirstFrame", "工具组展开"),
+    row("工具组首次展开完成", "toolExpandComplete", "工具组展开"),
+    row("输入跟手", "composerKeyToFrame", "输入与发送"),
+    row("发送后自己的话", "ownMessageMs", "输入与发送"),
+    row("发送后首条助手", "firstTokenMs", "输入与发送"),
+    row("点停止", "abortMs", "输入与发送"),
+    row("流式首帧唤醒", "streamWakeMs", "流式渲染"),
+    row("流式跟上（稳态）", "streamKeepUpMs", "流式渲染"),
+    row("断线后恢复", "reconnectMs", "可靠性"),
   ])
 }
 
@@ -282,11 +283,8 @@ async function main() {
 
     const open = {
       coldTo: [] as number[],
-      coldTtfb: [] as number[],
       coldFcp: [] as number[],
-      coldLcp: [] as number[],
       coldCls: [] as number[],
-      openInp: [] as number[],
       firstOpen: [] as number[],
       switchLong: [] as number[],
       switchScroll: [] as number[],
@@ -295,7 +293,9 @@ async function main() {
       switchRevisit: [] as number[],
       toolExpandFirstFrame: [] as number[],
       toolExpandComplete: [] as number[],
-      toolExpandLongTask: [] as number[],
+      sidebarToggle: [] as number[],
+      sidebarDrag: [] as number[],
+      windowResize: [] as number[],
       composer: [] as number[],
     }
 
@@ -318,9 +318,7 @@ async function main() {
           const cold = await readStartVitals(page)
 
           open.coldTo.push(session.coldTo)
-          open.coldTtfb.push(cold.ttfb)
           open.coldFcp.push(cold.fcp)
-          open.coldLcp.push(cold.lcp)
           open.coldCls.push(cold.cls)
           open.composer.push(await measureComposer(page, 7))
           open.listScroll.push(await scrollSessionList(page))
@@ -333,8 +331,9 @@ async function main() {
 
           open.toolExpandFirstFrame.push(toolExpand.firstFrameMs)
           open.toolExpandComplete.push(toolExpand.completeMs)
-          open.toolExpandLongTask.push(toolExpand.worstLongTaskMs)
-          open.openInp.push((await readOpenVitals(page)).inp)
+          open.sidebarToggle.push(await sidebarToggleWorst(page))
+          open.sidebarDrag.push(await sidebarDragWorst(page))
+          open.windowResize.push(await windowResizeWorst(page, session.size, session.setSize))
         } catch (error) {
           await captureBenchFailure(session.page, failShot)
           throw error
@@ -364,11 +363,8 @@ async function main() {
     const rapid = turns.map((sample) => sample.rapidSwitchMs)
     const reconnect = turns.map((sample) => sample.reconnectMs)
     const cold = open.coldTo.length ? collect(open.coldTo) : undefined
-    const ttfb = open.coldTtfb.length ? collect(open.coldTtfb) : undefined
     const fcp = open.coldFcp.length ? collect(open.coldFcp) : undefined
-    const lcp = open.coldLcp.length ? collect(open.coldLcp) : undefined
     const cls = open.coldCls.length ? collect(open.coldCls) : undefined
-    const openInp = open.openInp.length ? collect(open.openInp) : undefined
     const composer = open.composer.length ? collect(open.composer) : undefined
     const firstOpen = open.firstOpen.length ? collect(open.firstOpen) : undefined
     const switchLong = open.switchLong.length ? collect(open.switchLong) : undefined
@@ -382,9 +378,9 @@ async function main() {
     const toolExpandComplete = open.toolExpandComplete.length
       ? collect(open.toolExpandComplete)
       : undefined
-    const toolExpandLongTask = open.toolExpandLongTask.length
-      ? collect(open.toolExpandLongTask)
-      : undefined
+    const sidebarToggle = open.sidebarToggle.length ? collect(open.sidebarToggle) : undefined
+    const sidebarDrag = open.sidebarDrag.length ? collect(open.sidebarDrag) : undefined
+    const windowResize = open.windowResize.length ? collect(open.windowResize) : undefined
     const ownStat = collect(own)
     const tokenStat = collect(token)
     const streamWakeStat = collect(streamWake)
@@ -394,11 +390,8 @@ async function main() {
     const reconnectStat = collect(reconnect)
     const metrics: BenchMetrics = {
       coldToWorkbench: cold?.median ?? Number.NaN,
-      coldTtfb: ttfb?.median ?? Number.NaN,
       coldFcp: fcp?.median ?? Number.NaN,
-      coldLcp: lcp?.median ?? Number.NaN,
       coldCls: cls?.median ?? Number.NaN,
-      openInp: openInp?.median ?? Number.NaN,
       sessionFirstOpen: firstOpen?.median ?? Number.NaN,
       switchLong: switchLong?.median ?? Number.NaN,
       switchScrollWorstMs: switchScroll?.median ?? Number.NaN,
@@ -407,8 +400,10 @@ async function main() {
       switchShortRevisit: switchRevisit?.median ?? Number.NaN,
       toolExpandFirstFrame: toolExpandFirstFrame?.median ?? Number.NaN,
       toolExpandComplete: toolExpandComplete?.median ?? Number.NaN,
-      toolExpandWorstLongTask: toolExpandLongTask?.median ?? Number.NaN,
       composerKeyToFrame: composer?.median ?? Number.NaN,
+      sidebarToggleWorstMs: sidebarToggle?.median ?? Number.NaN,
+      sidebarDragWorstMs: sidebarDrag?.median ?? Number.NaN,
+      windowResizeWorstMs: windowResize?.median ?? Number.NaN,
       ownMessageMs: ownStat.median,
       firstTokenMs: tokenStat.median,
       streamWakeMs: streamWakeStat.median,
@@ -419,11 +414,8 @@ async function main() {
     }
     const p90s: Partial<Record<keyof BenchMetrics, number | undefined>> = {
       coldToWorkbench: cold?.p90,
-      coldTtfb: ttfb?.p90,
       coldFcp: fcp?.p90,
-      coldLcp: lcp?.p90,
       coldCls: cls?.p90,
-      openInp: openInp?.p90,
       sessionFirstOpen: firstOpen?.p90,
       switchLong: switchLong?.p90,
       switchScrollWorstMs: switchScroll?.p90,
@@ -432,8 +424,10 @@ async function main() {
       switchShortRevisit: switchRevisit?.p90,
       toolExpandFirstFrame: toolExpandFirstFrame?.p90,
       toolExpandComplete: toolExpandComplete?.p90,
-      toolExpandWorstLongTask: toolExpandLongTask?.p90,
       composerKeyToFrame: composer?.p90,
+      sidebarToggleWorstMs: sidebarToggle?.p90,
+      sidebarDragWorstMs: sidebarDrag?.p90,
+      windowResizeWorstMs: windowResize?.p90,
       ownMessageMs: ownStat.p90,
       firstTokenMs: tokenStat.p90,
       streamWakeMs: streamWakeStat.p90,
@@ -443,7 +437,7 @@ async function main() {
       reconnectMs: reconnectStat.p90,
     }
     const config = {
-      version: 17,
+      version: 18,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,

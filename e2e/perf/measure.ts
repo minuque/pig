@@ -197,23 +197,14 @@ export async function scrollMainAfterOpen(page: Page): Promise<number> {
 
   if (!box) throw new Error("主视口不存在")
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
-  await beginScrollFrames(page)
-
-  try {
+  return await worstFrameDuring(page, async () => {
     for (const direction of [-1, 1]) {
       for (let step = 0; step < 12; step += 1) {
         await page.mouse.wheel(0, direction * 80)
         await waitMs(page, 32)
       }
     }
-
-    return await endScrollWorstFrame(page)
-  } catch (error) {
-    await page
-      .evaluate(() => (window as unknown as Partial<ScrollFrames>).__pigScrollStop?.())
-      .catch(() => undefined)
-    throw error
-  }
+  })
 }
 
 /** 点侧栏卡片到该会话历史就绪。 */
@@ -231,13 +222,13 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   return clickStamps(page, "ready")
 }
 
-async function waitMs(page: Page, ms: number) {
+export async function waitMs(page: Page, ms: number) {
   await page.evaluate((delay) => new Promise<void>((resolve) => setTimeout(resolve, delay)), ms)
 }
 
 type ScrollFrames = { __pigScrollFrames: number[]; __pigScrollStop: () => void }
 
-async function beginScrollFrames(page: Page) {
+async function beginFrameSample(page: Page) {
   await page.evaluate(() => {
     const slot = window as unknown as ScrollFrames
     slot.__pigScrollFrames = []
@@ -263,18 +254,33 @@ async function beginScrollFrames(page: Page) {
   })
 }
 
-async function endScrollWorstFrame(page: Page): Promise<number> {
+async function endWorstFrameSample(page: Page): Promise<number> {
   const worst = await page.evaluate(() => {
     const slot = window as unknown as ScrollFrames
     slot.__pigScrollStop()
     const frames = slot.__pigScrollFrames.filter((ms) => ms < 1_000)
 
-    if (frames.length === 0) throw new Error("滚动期间未采到动画帧")
+    if (frames.length === 0) throw new Error("采样期间未采到动画帧")
     return frames.reduce((max, ms) => Math.max(max, ms), 0)
   })
 
-  if (!(worst > 0)) throw new Error("滚动最差帧无效")
+  if (!(worst > 0)) throw new Error("最差帧无效")
   return worst
+}
+
+/** 采样 action 期间的动画帧，返回最差帧长。 */
+export async function worstFrameDuring(page: Page, action: () => Promise<void>): Promise<number> {
+  await beginFrameSample(page)
+
+  try {
+    await action()
+    return await endWorstFrameSample(page)
+  } catch (error) {
+    await page
+      .evaluate(() => (window as unknown as Partial<ScrollFrames>).__pigScrollStop?.())
+      .catch(() => undefined)
+    throw error
+  }
 }
 
 async function scrollOverflowWorstFrame(
@@ -290,9 +296,7 @@ async function scrollOverflowWorstFrame(
   const distance = await root.evaluate((node) => node.scrollHeight - node.clientHeight)
 
   if (distance <= 0) throw new Error(emptyMessage)
-  await beginScrollFrames(page)
-
-  try {
+  return await worstFrameDuring(page, async () => {
     for (const direction of [-1, 1]) {
       for (let step = 0; step < 40; step += 1) {
         const remaining = await root.evaluate((node, dir) => {
@@ -324,14 +328,7 @@ async function scrollOverflowWorstFrame(
         { sel: selector, dir: direction },
       )
     }
-
-    return await endScrollWorstFrame(page)
-  } catch (error) {
-    await page
-      .evaluate(() => (window as unknown as Partial<ScrollFrames>).__pigScrollStop?.())
-      .catch(() => undefined)
-    throw error
-  }
+  })
 }
 
 /** 点顶上按钮直到服务端没有更早历史；窗口化只挂视口附近的行，按总高增长判断这一页落地。 */
