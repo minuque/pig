@@ -1,5 +1,6 @@
 const GREEN = "\x1b[32m"
 const RED = "\x1b[31m"
+const DIM = "\x1b[2m"
 const RESET = "\x1b[0m"
 const SLOW_RATIO = 0.1
 
@@ -9,6 +10,7 @@ export type MetricRow = {
   value: number | null
   p90?: number | null
   previous?: number | null
+  /** 值是最长帧，帧率列显示换算后的 fps */
   frame?: boolean
   unit?: "ms" | "cls"
 }
@@ -20,11 +22,30 @@ function paint(text: string, color: "green" | "red" | null) {
   return text
 }
 
+/** 全角占两格的码点。制表符、破折号按终端的单格宽算。 */
+function isWide(code: number): boolean {
+  return (
+    (code >= 0x1100 && code <= 0x115f) ||
+    (code >= 0x2e80 && code <= 0x303e) ||
+    (code >= 0x3041 && code <= 0x33ff) ||
+    (code >= 0x3400 && code <= 0x4dbf) ||
+    (code >= 0x4e00 && code <= 0x9fff) ||
+    (code >= 0xa000 && code <= 0xa4cf) ||
+    (code >= 0xac00 && code <= 0xd7a3) ||
+    (code >= 0xf900 && code <= 0xfaff) ||
+    (code >= 0xfe10 && code <= 0xfe19) ||
+    (code >= 0xfe30 && code <= 0xfe6f) ||
+    (code >= 0xff00 && code <= 0xff60) ||
+    (code >= 0xffe0 && code <= 0xffe6) ||
+    code >= 0x20000
+  )
+}
+
 function displayWidth(text: string): number {
   const plain = text.replace(/\x1b\[[0-9;]*m/g, "")
   let width = 0
 
-  for (const ch of plain) width += ch.charCodeAt(0) > 127 ? 2 : 1
+  for (const ch of plain) width += isWide(ch.codePointAt(0) ?? 0) ? 2 : 1
   return width
 }
 
@@ -34,28 +55,25 @@ function pad(text: string, width: number, align: "left" | "right") {
   return align === "right" ? space + text : text + space
 }
 
-function formatMetric(value: number | null | undefined, frame = false, unit: "ms" | "cls" = "ms") {
+function formatMetric(value: number | null | undefined, unit: "ms" | "cls" = "ms") {
   if (value == null || !Number.isFinite(value)) return "—"
 
   if (unit === "cls") return Number(value.toFixed(3)).toString()
-  const ms = `${Number(value.toFixed(1))} ms`
-
-  if (!frame || !(value > 0)) return ms
-  return `${ms}（约 ${Math.round(1000 / value)} fps）`
+  return `${Number(value.toFixed(1))} ms`
 }
 
-function changeText(
-  value: number | null,
-  previous: number | null,
-  frame = false,
-  unit: "ms" | "cls" = "ms",
-) {
+function formatFps(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value) || !(value > 0)) return "—"
+  return `约 ${Math.round(1000 / value)} fps`
+}
+
+function changeText(value: number | null, previous: number | null, unit: "ms" | "cls" = "ms") {
   if (value == null || previous == null || !Number.isFinite(value) || !Number.isFinite(previous))
     return "—"
   const diff = value - previous
   const percent =
     previous === 0 ? "" : ` (${diff > 0 ? "+" : ""}${((diff / previous) * 100).toFixed(1)}%)`
-  return `${diff > 0 ? "+" : ""}${formatMetric(diff, frame, unit)}${percent}`
+  return `${diff > 0 ? "+" : ""}${formatMetric(diff, unit)}${percent}`
 }
 
 function tone(value: number | null, previous: number | null): "green" | "red" | null {
@@ -83,6 +101,12 @@ function rowLine(
   return `│${inner}│`
 }
 
+/** 分组标题行：标题在左，横线填满剩余宽度。 */
+function sectionLine(label: string, innerWidth: number) {
+  const text = `${DIM}${label}${RESET} `
+  return `│ ${text}${"─".repeat(Math.max(0, innerWidth - displayWidth(text) - 2))} │`
+}
+
 /** 一张带边框的表。变快为绿，变慢超过 10% 为红。 */
 export function reportTable(rows: readonly MetricRow[]) {
   const visible = rows.filter((row) => row.value != null && Number.isFinite(row.value))
@@ -91,16 +115,17 @@ export function reportTable(rows: readonly MetricRow[]) {
 
   const cells = visible.map((row) => {
     const color = tone(row.value, row.previous ?? null)
-    const frame = Boolean(row.frame)
     const unit = row.unit ?? "ms"
     return {
       group: row.group ?? "",
       label: row.label,
-      now: paint(formatMetric(row.value, frame, unit), color),
-      p90: formatMetric(row.p90 ?? null, frame, unit),
-      prev: formatMetric(row.previous ?? null, frame, unit),
+      now: paint(formatMetric(row.value, unit), color),
+      p90: formatMetric(row.p90 ?? null, unit),
+      prev: formatMetric(row.previous ?? null, unit),
+      // fps 是派生量，单独成列，不塞进毫秒列
+      fps: row.frame ? formatFps(row.value) : "—",
       // 帧指标的差值换算 fps 无意义，变化列只显示 ms
-      change: paint(changeText(row.value, row.previous ?? null, false, unit), color),
+      change: paint(changeText(row.value, row.previous ?? null, unit), color),
     }
   })
   const cols = [
@@ -108,6 +133,7 @@ export function reportTable(rows: readonly MetricRow[]) {
     { key: "now" as const, title: "本次", align: "right" as const },
     { key: "p90" as const, title: "p90", align: "right" as const },
     { key: "prev" as const, title: "上次", align: "right" as const },
+    { key: "fps" as const, title: "帧率", align: "right" as const },
     { key: "change" as const, title: "变化", align: "right" as const },
   ]
   const widths = cols.map((col) =>
@@ -131,8 +157,9 @@ export function reportTable(rows: readonly MetricRow[]) {
 
   for (const cell of cells) {
     if (cell.group && cell.group !== group) {
+      if (group) console.log(rule(widths, "├", "┼", "┤"))
       group = cell.group
-      console.log(`│${pad(` ${group}`, innerWidth, "left")}│`)
+      console.log(sectionLine(group, innerWidth))
     }
 
     console.log(
