@@ -1,6 +1,6 @@
 const GREEN = "\x1b[32m"
 const RED = "\x1b[31m"
-const DIM = "\x1b[2m"
+const BOLD = "\x1b[1m"
 const RESET = "\x1b[0m"
 const SLOW_RATIO = 0.1
 
@@ -101,13 +101,17 @@ function rowLine(
   return `│${inner}│`
 }
 
-/** 分组标题行：标题在左，横线填满剩余宽度。 */
+/** 分组分隔线：标题居中夹在横线里，同时充当前一段的收尾线。 */
 function sectionLine(label: string, innerWidth: number) {
-  const text = `${DIM}${label}${RESET} `
-  return `│ ${text}${"─".repeat(Math.max(0, innerWidth - displayWidth(text) - 2))} │`
+  const text = `${BOLD}${label}${RESET}`
+  const rest = Math.max(0, innerWidth - displayWidth(text) - 2)
+  const left = Math.floor(rest / 2)
+  return `├${"─".repeat(left)} ${text} ${"─".repeat(rest - left)}┤`
 }
 
-/** 一张带边框的表。变快为绿，变慢超过 10% 为红。 */
+type CellKey = "label" | "now" | "p90" | "prev" | "fps" | "change"
+
+/** 一张带边框的表。变快为绿，变慢超过 10% 为红，整列都是「—」的列不打印。 */
 export function reportTable(rows: readonly MetricRow[]) {
   const visible = rows.filter((row) => row.value != null && Number.isFinite(row.value))
 
@@ -128,14 +132,20 @@ export function reportTable(rows: readonly MetricRow[]) {
       change: paint(changeText(row.value, row.previous ?? null, unit), color),
     }
   })
-  const cols = [
-    { key: "label" as const, title: "指标", align: "left" as const },
-    { key: "now" as const, title: "本次", align: "right" as const },
-    { key: "p90" as const, title: "p90", align: "right" as const },
-    { key: "prev" as const, title: "上次", align: "right" as const },
-    { key: "fps" as const, title: "帧率", align: "right" as const },
-    { key: "change" as const, title: "变化", align: "right" as const },
+  const cols: { key: CellKey; title: string; align: "left" | "right" }[] = [
+    { key: "label", title: "指标", align: "left" },
+    { key: "now", title: "本次", align: "right" },
+    { key: "p90", title: "p90", align: "right" },
   ]
+  // 整列都没有值就整列不打印：没可比数据时只有 runs>1 才有上次
+  const comparable = visible.some((row) => row.previous != null && Number.isFinite(row.previous))
+
+  if (comparable) cols.push({ key: "prev", title: "上次", align: "right" })
+
+  if (visible.some((row) => row.frame)) cols.push({ key: "fps", title: "帧率", align: "right" })
+
+  if (comparable) cols.push({ key: "change", title: "变化", align: "right" })
+
   const widths = cols.map((col) =>
     Math.max(displayWidth(col.title), ...cells.map((cell) => displayWidth(cell[col.key]))),
   )
@@ -151,17 +161,18 @@ export function reportTable(rows: readonly MetricRow[]) {
       aligns,
     ),
   )
-  console.log(rule(widths, "├", "┼", "┤"))
 
   let group = ""
+  let started = false
 
   for (const cell of cells) {
     if (cell.group && cell.group !== group) {
-      if (group) console.log(rule(widths, "├", "┼", "┤"))
       group = cell.group
+      // 分组线同时充当前面内容的收尾线，所以表头后不再单独打一条
       console.log(sectionLine(group, innerWidth))
-    }
+    } else if (!started) console.log(rule(widths, "├", "┼", "┤"))
 
+    started = true
     console.log(
       rowLine(
         keys.map((key) => cell[key]),
