@@ -1,5 +1,8 @@
 @import "tailwindcss";
 @import "./motion.css";
+@import "markstream-vue/index.css" layer(components);
+@import "./markdown-stream.css";
+@import "./mermaid.css";
 
 @property --size-content {
   syntax: "<length>";
