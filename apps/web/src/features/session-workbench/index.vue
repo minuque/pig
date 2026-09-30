@@ -72,7 +72,11 @@
                     @click="scrollToLatest('smooth')"
                   >
                     <span class="icon-swap">
-                      <Ellipsis :data-visible="turnPending" />
+                      <LoaderCircle
+                        :data-visible="turnPending"
+                        :class="{ 'animate-spin motion-reduce:animate-none': turnPending }"
+                      />
+
                       <ArrowDown :data-visible="!turnPending" />
                     </span>
                   </Button>
@@ -123,10 +127,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue"
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
-import { ArrowDown, Ellipsis, FilePlus } from "@lucide/vue"
+import { ArrowDown, FilePlus, LoaderCircle } from "@lucide/vue"
 import { warmWorkspace } from "@client/platform.js"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
@@ -150,7 +154,8 @@ import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
 
 onMounted(() => {
-  if (typeof requestIdleCallback === "function") requestIdleCallback(prefetchTranscriptView)
+  if (typeof requestIdleCallback === "function")
+    requestIdleCallback(prefetchTranscriptView, { timeout: 2000 })
   else setTimeout(prefetchTranscriptView, 1)
 })
 
@@ -221,10 +226,19 @@ const sendDisabled = computed(
   () => !composerCwd.value || preset.value === undefined || Boolean(creating.value),
 )
 
+// 侧栏点目录会写 lastCwd，Hero 跟随；workspaces 变化只兜底失效项，保住 Hero 手选
+watch(lastCwd, (last) => {
+  if (last !== undefined) welcomeWorkspaceId.value = last
+})
+
 watch(
-  [workspaces, lastCwd],
-  ([items, last]) => {
-    welcomeWorkspaceId.value = nextWelcomeWorkspaceId(items, welcomeWorkspaceId.value, last)
+  workspaces,
+  (items) => {
+    welcomeWorkspaceId.value = nextWelcomeWorkspaceId(
+      items,
+      welcomeWorkspaceId.value,
+      lastCwd.value,
+    )
   },
   { immediate: true },
 )
@@ -248,6 +262,9 @@ const settleIn = showHero.value
 
 useComposerDock(composerBar, showHero)
 
+const RESERVE_DEBOUNCE_MS = 120
+let reserveTimer = 0
+
 /** 输入条脱离文档流后，把占位高度写给对话列，转录和空态都靠它留白。 */
 function publishComposerReserve(entries: readonly ResizeObserverEntry[]) {
   const bar = composerBar.value
@@ -257,12 +274,26 @@ function publishComposerReserve(entries: readonly ResizeObserverEntry[]) {
 
   if (!(column instanceof HTMLElement) || height <= 0) return
   const next = `${Math.ceil(height)}px`
+  const prev = column.style.getPropertyValue("--composer-reserve")
 
-  if (column.style.getPropertyValue("--composer-reserve") === next) return
+  if (prev === next) return
+  window.clearTimeout(reserveTimer)
+
+  // 动画逐帧回写会让转录列每帧重排，合到尾沿写一次；首屏没有转录，Hero 直接跟着输入卡长高
+  if (prev && !showHero.value) {
+    reserveTimer = window.setTimeout(() => {
+      reserveTimer = 0
+      column.style.setProperty("--composer-reserve", next)
+    }, RESERVE_DEBOUNCE_MS)
+    return
+  }
+
   column.style.setProperty("--composer-reserve", next)
 }
 
 useResizeObserver(composerBar, publishComposerReserve, { box: "border-box" })
+
+onBeforeUnmount(() => window.clearTimeout(reserveTimer))
 
 const showScrollToLatest = computed(() => transcriptView.value?.showScrollToLatest ?? false)
 
@@ -547,26 +578,25 @@ const contentHandleSides = ["left", "right"] as const
   content: none;
 }
 
-/* 让开滚动条列；下半做实色脚，半透区不留残字。挂在上沿，停靠/入场位移时不会裂开 */
+/* 渐隐带，让开滚动条列 */
 .composer-bar::before {
   pointer-events: none;
   position: absolute;
   inset-inline: 0 var(--size-scrollbar);
   bottom: 100%;
-  height: calc(var(--spacing-xxl) + var(--spacing-md));
-  background: linear-gradient(to bottom, transparent, var(--surface) 50%);
+  height: var(--spacing-sm);
+  background: linear-gradient(to bottom, transparent, var(--surface));
   content: "";
 }
 
-/* 悬浮输入条下方的留白条带补底色：滚动中的正文不该从胶囊下沿透出 */
+/* 输入条区段补实底盖住圆角外侧与下方留白，负 z-index 沉在胶囊之下、transcript 之上 */
 .composer-bar::after {
   content: "";
   position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px));
+  inset: 0 var(--size-scrollbar) 0 0;
   background: var(--surface);
   pointer-events: none;
+  z-index: -1;
 }
 
 .composer-stack {
@@ -612,9 +642,8 @@ const contentHandleSides = ["left", "right"] as const
 }
 
 .scroll-latest-control:hover {
-  background: var(--hover-strong);
+  background: var(--interaction-hover);
   color: var(--ink);
-  border-width: 2px;
 }
 
 @media (max-width: 900px) {
