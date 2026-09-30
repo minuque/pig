@@ -162,7 +162,6 @@ import { useModelPickerPanel } from "@features/composer/hooks/use-model-picker-p
 import {
   FAVORITES_SCOPE,
   listPickerRows,
-  modelLabel,
   resolveModelInfo,
   sameModel,
 } from "@features/composer/lib/model-preset.js"
@@ -225,10 +224,7 @@ const emptyText = computed(() =>
 const searchPlaceholder = computed(() =>
   scope.value === FAVORITES_SCOPE ? "搜索收藏" : "搜索模型",
 )
-const label = computed(() => {
-  const { vendor, model } = current.value
-  return vendor && model ? `${vendor.id}/${model.name}` : modelLabel(props.model)
-})
+const label = computed(() => current.value.model?.name ?? props.model?.id ?? "—")
 const effortLabel = computed(() =>
   formatThinkingLevel(displayThinkingLevel(props.level, current.value.levels)),
 )
