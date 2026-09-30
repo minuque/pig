@@ -15,9 +15,9 @@
       class="status-alert"
       :variant="item.error ? 'error' : 'warning'"
     >
-      <CircleAlert />
-      <AlertTitle>{{ statusLabel }}</AlertTitle>
-      <AlertDescription v-if="item.errorMessage">{{ item.errorMessage }}</AlertDescription>
+      <template #icon><CircleAlert /></template>
+      <template #title>{{ statusLabel }}</template>
+      <template v-if="item.errorMessage" #default>{{ item.errorMessage }}</template>
     </Alert>
 
     <MessageTimestamp
@@ -98,8 +98,6 @@ import { CircleAlert } from "@lucide/vue"
 import MarkdownRender from "markstream-vue"
 import { computed, onBeforeUnmount, ref, watch } from "vue"
 import Alert from "@components/ui/alert/Alert.vue"
-import AlertDescription from "@components/ui/alert/AlertDescription.vue"
-import AlertTitle from "@components/ui/alert/AlertTitle.vue"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import type { AssistantRow } from "@features/transcript-view/type.js"
 import { useColorScheme } from "@features/theme/index.js"

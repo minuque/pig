@@ -3,14 +3,16 @@
     <div class="alert-toaster">
       <TransitionGroup name="alert-toaster" tag="div" class="alert-toaster-stack">
         <div v-for="item in noticeQueue" :key="item.id" class="alert-toaster-item">
-          <Alert variant="error" class="alert-toaster-alert">
-            <CircleAlert />
-            <AlertDescription>{{ item.message }}</AlertDescription>
+          <Alert
+            variant="error"
+            dismissible
+            class="alert-toaster-alert"
+            @close="dismissNotice(item.id)"
+          >
+            <template #icon><CircleAlert /></template>
+            <template #title>出错</template>
+            <template #default>{{ item.message }}</template>
           </Alert>
-
-          <button class="alert-toaster-close" type="button" @click="dismissNotice(item.id)">
-            <X class="size-icon" />
-          </button>
         </div>
       </TransitionGroup>
     </div>
@@ -18,10 +20,9 @@
 </template>
 
 <script setup lang="ts">
-import { CircleAlert, X } from "@lucide/vue"
+import { CircleAlert } from "@lucide/vue"
 
 import Alert from "@components/ui/alert/Alert.vue"
-import AlertDescription from "@components/ui/alert/AlertDescription.vue"
 import { dismissNotice, noticeQueue } from "@components/layout/notify.js"
 </script>
 
@@ -49,27 +50,7 @@ import { dismissNotice, noticeQueue } from "@components/layout/notify.js"
 }
 
 .alert-toaster-alert {
-  padding-inline-end: var(--spacing-xl);
   box-shadow: var(--shadow-elevated);
-}
-
-.alert-toaster-close {
-  position: absolute;
-  inset-block-start: var(--spacing-xs);
-  inset-inline-end: var(--spacing-xs);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--icon-button-pad);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--ink-muted);
-}
-
-.alert-toaster-close:hover {
-  background: var(--hover-quiet);
-  color: var(--ink);
 }
 
 .alert-toaster-enter-active,
