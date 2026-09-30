@@ -10,6 +10,12 @@
   initial-value: 45.75rem;
 }
 
+@property --left-width {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 280px;
+}
+
 @property --scrollbar-thumb {
   syntax: "<color>";
   inherits: true;

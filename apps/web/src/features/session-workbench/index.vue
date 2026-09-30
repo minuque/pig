@@ -482,11 +482,8 @@ const contentHandleSides = ["left", "right"] as const
   flex-direction: column;
   /* 测量前占位，挂上后由输入条边框盒覆盖 */
   --composer-reserve: 7rem;
-  /* 无偏好时正文宽：680 / 列宽 64% / 920 */
-  --size-content: var(
-    --chat-user-width,
-    clamp(680px, calc(var(--conversation-column-width, 0px) * 0.64), 920px)
-  );
+  /* 正文宽由 use-conversation-width 写入 --chat-user-width，测量前用下限占位 */
+  --size-content: var(--chat-user-width, 680px);
   --size-composer: calc(var(--size-content) + var(--spacing-md));
   /* 首屏输入条底边离列底的距离 */
   --hero-dock: 34%;

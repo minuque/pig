@@ -3,12 +3,18 @@ import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
 
 const CONTENT_WIDTH_KEY = "pig.conversation.contentWidth"
 const CONTENT_DRAG_MIN = 640
+const CONTENT_DEFAULT_MIN = 680
+const CONTENT_DEFAULT_MAX = 920
 const CONTENT_EDGE_BUDGET = 176 // 每侧 88px
 
 function parseContentWidth(raw: string | null): number | null {
   if (raw == null || raw.trim() === "") return null
   const n = Number(raw)
   return Number.isFinite(n) && n > 0 ? n : null
+}
+
+function defaultContentWidth(column: number): number {
+  return Math.min(CONTENT_DEFAULT_MAX, Math.max(CONTENT_DEFAULT_MIN, column * 0.64))
 }
 
 function resolveContentWidth(columnWidth: number, preference: number): number {
@@ -47,28 +53,24 @@ export function useConversationWidth(): {
   const panel = inject(leftPanelKey, null)
   let observer: ResizeObserver | undefined
   let sidebarFrozen = false
-  let lastColumnWidth = 0
+  let lastContentWidth = -1
 
-  function columnWidthOf(root: HTMLElement, measured?: number): number {
-    return measured ?? root.offsetWidth
+  // 唯一写入口：值没变就不碰样式，避免每帧触发子树重算
+  function apply(root: HTMLElement, next: number) {
+    if (next === lastContentWidth) return
+    lastContentWidth = next
+    root.style.setProperty("--chat-user-width", `${next}px`)
   }
 
   function publish(root: HTMLElement, measured?: number) {
-    const column = Math.round(columnWidthOf(root, measured))
-
-    if (column === lastColumnWidth && measured !== undefined) return
-    lastColumnWidth = column
-    root.style.setProperty("--conversation-column-width", `${column}px`)
-
     if (sidebarFrozen) return
+    const column = Math.round(measured ?? root.offsetWidth)
     const preference = readPreference()
 
-    if (preference === null) {
-      root.style.removeProperty("--chat-user-width")
-      return
-    }
-
-    root.style.setProperty("--chat-user-width", `${resolveContentWidth(column, preference)}px`)
+    apply(
+      root,
+      preference === null ? defaultContentWidth(column) : resolveContentWidth(column, preference),
+    )
   }
 
   function freezeForSidebar(active: boolean) {
@@ -78,7 +80,7 @@ export function useConversationWidth(): {
 
     if (active) {
       sidebarFrozen = true
-      root.style.setProperty("--chat-user-width", `${snapshotWidth()}px`)
+      apply(root, snapshotWidth())
       return
     }
 
@@ -92,12 +94,12 @@ export function useConversationWidth(): {
 
     if (!(el instanceof HTMLElement)) {
       rootEl.value = null
-      lastColumnWidth = 0
+      lastContentWidth = -1
       return
     }
 
     rootEl.value = el
-    lastColumnWidth = 0
+    lastContentWidth = -1
     observer = new ResizeObserver((entries) => {
       const box = entries[0]?.contentBoxSize?.[0]
       const width = box?.inlineSize ?? entries[0]?.contentRect.width
@@ -129,7 +131,7 @@ export function useConversationWidth(): {
 
     if (!root) return
     resizing.value = true
-    root.style.setProperty("--chat-user-width", `${resolveContentWidth(root.offsetWidth, width)}px`)
+    apply(root, resolveContentWidth(root.offsetWidth, width))
   }
 
   function commitWidth(width: number) {
