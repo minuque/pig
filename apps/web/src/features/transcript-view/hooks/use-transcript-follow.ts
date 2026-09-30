@@ -136,7 +136,10 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   function settle(maxFrames = SETTLE_MAX_FRAMES) {
     const root = getRoot()
 
-    if (!root || !atBottom.value || userTookOver || pointerDown || settleActive) return
+    if (!root || !atBottom.value || userTookOver || pointerDown || settleActive || navigating) {
+      return
+    }
+
     const mine = ++generation
 
     settleActive = true
@@ -221,8 +224,9 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     flipRaf = requestAnimationFrame(confirmFlip)
   }
 
+  /** 平滑滚动中不硬贴底，收尾时 finishNavigate 再贴。 */
   function pinIfNeeded() {
-    if (applying || !atBottom.value || pointerDown || userTookOver) return
+    if (applying || !atBottom.value || pointerDown || userTookOver || navigating) return
     const root = getRoot()
 
     if (!root) return
@@ -245,6 +249,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
 
   function beginNavigate(root: HTMLElement, top: number) {
     stopNavigate()
+    stopSettle()
     navigating = true
     navRoot = root
     markProgrammatic()

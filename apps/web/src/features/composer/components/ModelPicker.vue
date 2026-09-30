@@ -1,128 +1,141 @@
 <template>
   <DropdownMenu v-model:open="open" :modal="false">
-    <DropdownMenuTrigger as-child>
-      <Button
-        type="button"
-        static
-        class="selector"
-        :disabled="disabled"
-        :aria-label="`选择模型，当前：${triggerText}`"
-        :title="triggerText"
-      >
-        <VendorMark
-          v-if="current.vendor"
-          :vendor="current.vendor.id"
-          :name="current.vendor.name"
-          :size="14"
-        />
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <DropdownMenuTrigger as-child>
+          <Button
+            type="button"
+            static
+            class="selector"
+            :disabled="disabled"
+            :aria-label="`选择模型，当前：${triggerText}`"
+          >
+            <VendorMark
+              v-if="current.vendor"
+              :vendor="current.vendor.id"
+              :name="current.vendor.name"
+              :size="14"
+            />
 
-        <span class="selector-name">{{ label }}</span>
-      </Button>
-    </DropdownMenuTrigger>
+            <span class="selector-name">{{ label }}</span>
+            <span v-if="effortLabel" class="selector-effort">{{ effortLabel }}</span>
+          </Button>
+        </DropdownMenuTrigger>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ triggerText }}</TooltipContent>
+    </Tooltip>
 
     <DropdownMenuContent
+      bare
       side="top"
       align="end"
       :side-offset="6"
       :collision-padding="16"
-      class="w-[min(var(--size-drawer),calc(100vw-var(--spacing-lg)))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden overflow-y-hidden p-0 rounded-(--radius-lg) shadow-(--shadow-popover)"
+      class="w-[min(var(--size-drawer),calc(100vw-var(--spacing-lg)))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden"
       @open-auto-focus.prevent="nextTick(focusSearch)"
       @pointer-down-outside="onPointerDownOutside"
       @focus-outside="onFocusOutside"
       @close-auto-focus="onCloseAutoFocus"
     >
-      <div ref="pickerRef" class="picker" @keydown.capture="onPanelKeydown">
-        <div class="rail">
-          <Button
-            type="button"
-            class="rail-btn"
-            title="收藏模型"
-            :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
-            @click="selectScope(FAVORITES_SCOPE)"
-          >
-            <Star class="size-icon" :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'" />
-          </Button>
+      <div ref="pickerRef" class="picker" @keydown.capture="onPickerKeydown">
+        <div class="tabs">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                type="button"
+                class="tab-btn"
+                aria-label="收藏模型"
+                :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
+                @click="selectScope(FAVORITES_SCOPE)"
+              >
+                <Star :size="14" :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'" />
+              </Button>
+            </TooltipTrigger>
 
-          <Button
-            v-for="vendor in catalog"
-            :key="vendor.id"
-            type="button"
-            class="rail-btn"
-            :title="vendor.name"
-            :data-current="scope === vendor.id ? '' : undefined"
-            @click="selectScope(vendor.id)"
-          >
-            <VendorMark :vendor="vendor.id" :name="vendor.name" :size="15" />
-          </Button>
+            <TooltipContent>收藏模型</TooltipContent>
+          </Tooltip>
+
+          <Tooltip v-for="vendor in catalog" :key="vendor.id">
+            <TooltipTrigger as-child>
+              <Button
+                type="button"
+                class="tab-btn"
+                :aria-label="vendor.name"
+                :data-current="scope === vendor.id ? '' : undefined"
+                @click="selectScope(vendor.id)"
+              >
+                <VendorMark :vendor="vendor.id" :name="vendor.name" :size="15" />
+              </Button>
+            </TooltipTrigger>
+
+            <TooltipContent>{{ vendor.name }}</TooltipContent>
+          </Tooltip>
         </div>
 
-        <div class="main">
-          <div class="search">
-            <Search :size="13" class="text-ink-faint shrink-0" />
+        <div class="search">
+          <Search :size="13" class="text-ink-faint shrink-0" />
 
-            <input
-              ref="searchRef"
-              v-model="query"
-              type="text"
-              placeholder="搜索模型"
-              aria-label="搜索模型"
-              @keydown="onSearchKeydown"
-            />
-          </div>
+          <input
+            ref="searchRef"
+            v-model="query"
+            type="text"
+            :placeholder="searchPlaceholder"
+            :aria-label="searchPlaceholder"
+            @keydown="onSearchKeydown"
+          />
+        </div>
 
-          <div v-bind="containerProps" class="groups">
-            <DropdownMenuGroup v-if="items.length" v-bind="wrapperProps">
-              <div
-                v-for="item in list"
-                :key="`${item.data.vendor.id}/${item.data.model.id}`"
-                class="model-row"
-                :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
+        <div v-bind="containerProps" class="groups">
+          <DropdownMenuGroup v-if="items.length" v-bind="wrapperProps">
+            <div
+              v-for="(item, i) in list"
+              :key="`${item.data.vendor.id}/${item.data.model.id}`"
+              class="model-row"
+              :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
+            >
+              <DropdownMenuItem
+                class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-(--spacing-xs) py-0 h-(--size-control) text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent data-[highlighted]:bg-transparent"
+                @select="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
               >
-                <DropdownMenuItem
-                  class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-(--spacing-xs) py-0 h-(--size-control) text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent"
-                  @select="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
-                >
-                  <VendorMark
-                    :vendor="item.data.vendor.id"
-                    :name="item.data.vendor.name"
-                    :size="15"
-                  />
-
-                  <span class="model-body">
-                    <span class="model-name">{{ item.data.model.name }}</span>
-                    <span v-if="showVendor" class="model-vendor">{{ item.data.vendor.name }}</span>
-                  </span>
-                </DropdownMenuItem>
-
-                <ModelEffortMenu
-                  v-if="showEffort(item.data)"
-                  :levels="item.data.model.thinkingLevels"
-                  :level="level"
-                  @update:level="emit('update:level', $event)"
+                <VendorMark
+                  :vendor="item.data.vendor.id"
+                  :name="item.data.vendor.name"
+                  :size="15"
                 />
 
-                <Button
-                  type="button"
-                  class="fav"
-                  :aria-label="`${isFavorite(item.data.vendor.id, item.data.model.id) ? '取消收藏' : '收藏'} ${item.data.model.name}`"
-                  :aria-pressed="isFavorite(item.data.vendor.id, item.data.model.id)"
-                  :class="{ on: isFavorite(item.data.vendor.id, item.data.model.id) }"
-                  @pointerdown.stop
-                  @click.stop="toggleFavorite(item.data.vendor.id, item.data.model.id)"
-                >
-                  <Star
-                    :size="14"
-                    :fill="
-                      isFavorite(item.data.vendor.id, item.data.model.id) ? 'currentColor' : 'none'
-                    "
-                  />
-                </Button>
-              </div>
-            </DropdownMenuGroup>
+                <span class="model-name">{{ item.data.vendor.id }}/{{ item.data.model.name }}</span>
+                <kbd v-if="i < 9" class="row-kbd">{{ kbdBadge(i) }}</kbd>
+              </DropdownMenuItem>
 
-            <div v-else class="empty">{{ emptyText }}</div>
-          </div>
+              <Button
+                type="button"
+                class="fav"
+                :aria-label="`${isFavorite(item.data.vendor.id, item.data.model.id) ? '取消收藏' : '收藏'} ${item.data.model.name}`"
+                :aria-pressed="isFavorite(item.data.vendor.id, item.data.model.id)"
+                :class="{ on: isFavorite(item.data.vendor.id, item.data.model.id) }"
+                @pointerdown.stop
+                @click.stop="toggleFavorite(item.data.vendor.id, item.data.model.id)"
+              >
+                <Star
+                  :size="14"
+                  :fill="
+                    isFavorite(item.data.vendor.id, item.data.model.id) ? 'currentColor' : 'none'
+                  "
+                />
+              </Button>
+            </div>
+          </DropdownMenuGroup>
+
+          <div v-else class="empty">{{ emptyText }}</div>
         </div>
+
+        <ModelEffortFooter
+          v-if="current.levels.length"
+          :levels="current.levels"
+          :level="level"
+          @update:level="emit('update:level', $event)"
+        />
       </div>
     </DropdownMenuContent>
   </DropdownMenu>
@@ -141,19 +154,22 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Button } from "@components/ui/button/index.js"
-import ModelEffortMenu from "@features/composer/components/ModelEffortMenu.vue"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import ModelEffortFooter from "@features/composer/components/ModelEffortFooter.vue"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { useModelFavorites } from "@features/composer/hooks/use-model-favorites.js"
 import { useModelPickerPanel } from "@features/composer/hooks/use-model-picker-panel.js"
 import {
   FAVORITES_SCOPE,
   listPickerRows,
-  modelLabel,
   resolveModelInfo,
   sameModel,
-  type ModelPickerRow,
 } from "@features/composer/lib/model-preset.js"
-import { pickerTriggerText } from "@features/composer/lib/thinking-level.js"
+import {
+  displayThinkingLevel,
+  formatThinkingLevel,
+  pickerTriggerText,
+} from "@features/composer/lib/thinking-level.js"
 
 const props = withDefaults(
   defineProps<{
@@ -190,7 +206,6 @@ const {
   () => current.value.vendor?.id,
   () => props.catalog[0]?.id,
 )
-const showVendor = computed(() => Boolean(query.value.trim()) || scope.value === FAVORITES_SCOPE)
 const items = computed(() =>
   listPickerRows(
     props.catalog,
@@ -206,25 +221,49 @@ const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, {
 const emptyText = computed(() =>
   query.value.trim() || scope.value !== FAVORITES_SCOPE ? "没有匹配的模型" : "还没有收藏的模型",
 )
-const label = computed(() => {
-  const { vendor, model } = current.value
-  return vendor && model ? model.name : modelLabel(props.model)
-})
+const searchPlaceholder = computed(() =>
+  scope.value === FAVORITES_SCOPE ? "搜索收藏" : "搜索模型",
+)
+const label = computed(() => current.value.model?.name ?? props.model?.id ?? "—")
+const effortLabel = computed(() =>
+  formatThinkingLevel(displayThinkingLevel(props.level, current.value.levels)),
+)
 const triggerText = computed(() =>
   pickerTriggerText(label.value, props.level, current.value.levels),
 )
+const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
 
 watch([query, scope], async () => {
   await nextTick()
   scrollTo(0)
 })
 
+function kbdBadge(index: number) {
+  return isMac ? `⌘${index + 1}` : `Ctrl ${index + 1}`
+}
+
 function isCurrent(provider: string, id: string) {
   return sameModel(props.model, { provider, id })
 }
 
-function showEffort(row: ModelPickerRow) {
-  return isCurrent(row.vendor.id, row.model.id) && row.model.thinkingLevels.length > 1
+function onPickerKeydown(event: KeyboardEvent) {
+  if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey) {
+    const n = Number(event.key)
+
+    if (n >= 1 && n <= 9) {
+      event.preventDefault()
+      const row = list.value[n - 1]
+
+      if (row) {
+        emit("update:model", { provider: row.data.vendor.id, id: row.data.model.id })
+        open.value = false
+      }
+
+      return
+    }
+  }
+
+  onPanelKeydown(event)
 }
 
 function onSelectModel(event: Event, provider: string, id: string) {
@@ -249,7 +288,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--ink-faint);
+  color: var(--ink);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
@@ -260,7 +299,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .selector:hover:not(:disabled) {
   background: var(--hover-tint);
-  color: var(--ink);
 }
 
 .selector:disabled {
@@ -269,7 +307,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .selector:focus-visible,
-.rail-btn:focus-visible,
+.tab-btn:focus-visible,
 .fav:focus-visible {
   outline: var(--border-width) solid var(--primary);
   outline-offset: -2px;
@@ -277,12 +315,10 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .selector[data-state="open"] {
   background: var(--hover-tint);
-  color: var(--ink);
 }
 
 .selector-name,
-.model-name,
-.model-vendor {
+.model-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -292,25 +328,41 @@ function onSelectModel(event: Event, provider: string, id: string) {
   max-width: 14rem;
 }
 
-.picker {
-  display: grid;
-  grid-template-columns: var(--titlebar-inset) 1fr;
-  height: min(320px, var(--reka-dropdown-menu-content-available-height, 70vh));
+.selector-effort {
+  flex: none;
+  color: var(--primary);
 }
 
-.rail {
+.selector-effort::before {
+  content: "·";
+  margin-inline: var(--spacing-xxs);
+  color: var(--ink-muted);
+}
+
+.picker {
   display: flex;
   flex-direction: column;
+  height: min(320px, var(--reka-dropdown-menu-content-available-height, 70vh));
+  padding: var(--spacing-xxs);
+}
+
+.tabs {
+  display: flex;
   align-items: center;
   gap: var(--spacing-xxs);
-  min-height: 0;
-  padding: var(--spacing-xxs);
-  overflow-y: auto;
-  border-inline-end: var(--border-width) solid var(--border);
+  padding: var(--spacing-xxs) var(--spacing-xs);
+  border-bottom: var(--border-width) solid var(--border);
+  overflow-x: auto;
   scrollbar-width: none;
 }
 
-.rail-btn {
+.tabs::-webkit-scrollbar,
+.groups::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-btn {
+  position: relative;
   display: grid;
   place-items: center;
   flex: none;
@@ -324,22 +376,28 @@ function onSelectModel(event: Event, provider: string, id: string) {
   cursor: pointer;
 }
 
-.rail-btn:hover {
+.tab-btn::after {
+  content: "";
+  position: absolute;
+  inset-inline: 22%;
+  bottom: calc(-1 * var(--spacing-xxs) - var(--border-width));
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  opacity: 0;
+}
+
+.tab-btn:hover {
   background: var(--hover-tint);
   color: var(--ink);
 }
 
-.rail-btn[data-current] {
-  background: var(--hover-strong);
+.tab-btn[data-current] {
   color: var(--ink);
 }
 
-.main {
-  display: flex;
-  flex-direction: column;
-  padding: var(--spacing-xxs);
-  min-width: 0;
-  min-height: 0;
+.tab-btn[data-current]::after {
+  opacity: 1;
 }
 
 .search {
@@ -347,7 +405,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   align-items: center;
   gap: var(--spacing-xxs);
   height: 32px;
-  margin-bottom: var(--spacing-xxs);
+  margin: var(--spacing-xxs) 0;
   padding: 0 var(--spacing-xs);
   border-radius: var(--radius-md);
   background: var(--canvas-soft);
@@ -375,53 +433,49 @@ function onSelectModel(event: Event, provider: string, id: string) {
   scrollbar-width: none;
 }
 
-.rail::-webkit-scrollbar,
-.groups::-webkit-scrollbar {
-  display: none;
-}
-
 .model-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px;
   align-items: center;
   height: var(--size-control);
-  padding-inline-end: var(--spacing-xs);
+  padding-inline-end: var(--spacing-xxs);
   border-radius: var(--radius-md);
 }
 
 .model-row:hover,
 .model-row:focus-within {
-  background: var(--canvas-soft);
+  background: var(--interaction-hover);
 }
 
 .model-row[data-current] {
   background: var(--hover-tint);
 }
 
-.model-item,
-.model-body {
+.model-item {
   flex: 1 1 auto;
   min-width: 0;
 }
 
-.model-body {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  gap: var(--spacing-xxs);
-}
-
 .model-name {
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--ink);
   font-size: var(--text-button);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-button--line-height);
 }
 
-.model-vendor {
-  min-width: 0;
+.row-kbd {
+  flex: none;
+  margin-inline-start: auto;
+  padding: 0 var(--spacing-xxs);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--canvas-soft);
   color: var(--ink-faint);
+  font-family: inherit;
   font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-medium);
   line-height: var(--text-eyebrow--line-height);
 }
 
@@ -440,11 +494,13 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .fav:hover {
-  color: var(--ink-muted);
+  background: var(--hover-quiet);
+  color: var(--ink);
 }
 
-.fav.on {
-  color: var(--primary);
+.fav.on,
+.fav.on:hover {
+  color: var(--star);
 }
 
 .empty {

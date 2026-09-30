@@ -26,19 +26,24 @@ function createNav(
   session: SessionContext,
 ) {
   const router = useRouter()
-  const { highlightedSessionId, openSession, cancelPendingOpen } = useSessionOpen(
-    session.sessionId,
-    router,
-  )
+  const {
+    highlightedSessionId: baseHighlightedSessionId,
+    openSession,
+    cancelPendingOpen,
+  } = useSessionOpen(session.sessionId, router)
   const navError = shallowRef("")
   const cards = useSessionCards(pi.connected)
+  const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
   const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
     sessionId: session.sessionId,
+    running: activeSessionRunning,
     router,
     refreshSessions: pi.refreshSessions,
   })
   const markers = useSessionMarkers(nav.listedSessions, session.sessionId)
-  const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
+  const highlightedSessionId = computed(
+    () => baseHighlightedSessionId.value ?? nav.draftSessionId.value,
+  )
   const cardFootById = computed(() => {
     const liveId = session.sessionId.value
     const liveOutcome = sessionOutcome(session.transcript.value)
@@ -63,14 +68,16 @@ function createNav(
 
     for (const item of nav.listedSessions.value) {
       const foot = sessionCardFoot(item.id, extras, live)
-      const state: SidebarSessionState | undefined =
-        liveId === item.id && activeSessionRunning.value
-          ? "running"
-          : foot.outcome === "error"
-            ? "error"
-            : markers.isUnread(item)
-              ? "unread"
-              : undefined
+      const isRunning =
+        (liveId === item.id && activeSessionRunning.value) ||
+        session.backgroundRunningIds.value.has(item.id)
+      const state: SidebarSessionState | undefined = isRunning
+        ? "running"
+        : foot.outcome === "error"
+          ? "error"
+          : markers.isUnread(item)
+            ? "unread"
+            : undefined
 
       feet.set(item.id, { ...foot, state })
     }
@@ -82,10 +89,15 @@ function createNav(
     workspaces: nav.workspaces,
     listedSessions: nav.listedSessions,
     cardFootById,
+    view: nav.view,
+    sort: nav.sort,
     grouping: nav.grouping,
-    setGrouping: nav.setGrouping,
-    bumpGroup: nav.bumpGroup,
+    setView: nav.setView,
+    setSort: nav.setSort,
+    reorderGroups: nav.reorderGroups,
+    toggleGroupReveal: nav.toggleGroupReveal,
     toggleGroup: nav.toggleGroup,
+    setGroupsCollapsed: nav.setGroupsCollapsed,
     rowsFor: (searching: Parameters<typeof nav.rowsFor>[0]) =>
       nav.rowsFor(searching, markers.pinnedIds),
     pinnedIds: markers.pinnedIds,
@@ -100,6 +112,7 @@ function createNav(
     highlightedSessionId,
     openSession,
     cancelPendingOpen,
+    setDraftSession: nav.setDraftSession,
     activeSessionRunning,
     addWorkspace: nav.addWorkspace,
     renameSession: nav.renameSession,

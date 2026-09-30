@@ -15,11 +15,10 @@ test("Chromium production SPA 关键旅程", async ({ page, gateway }) => {
   await page.goto(gateway.entryUrl)
   const sessionList = page.locator("nav.session-list")
   await expect(sessionList).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByText("正在连接…")).toHaveCount(0)
   await checkpoint(page, "01-startup")
 
   await expect(sessionList).toBeVisible()
-  await expect(page.getByText("还没有工作目录")).toHaveCount(0)
+  await expect(page.getByText("点击新建会话添加工作目录")).toHaveCount(0)
   await checkpoint(page, "02-session-inbox")
 
   await expect(page.locator("h1.hero-title")).toBeVisible()

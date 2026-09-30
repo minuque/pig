@@ -19,6 +19,7 @@ const directoryPort: DirectoryPort = {
 }
 let gateway: Gateway | undefined
 let sessionDir: string | undefined
+let attachmentRootDir: string | undefined
 
 afterEach(async () => {
   selectedDirectory = undefined
@@ -26,7 +27,10 @@ afterEach(async () => {
   gateway = undefined
 
   if (sessionDir) await rm(sessionDir, { recursive: true, force: true })
+
+  if (attachmentRootDir) await rm(attachmentRootDir, { recursive: true, force: true })
   sessionDir = undefined
+  attachmentRootDir = undefined
 })
 
 const idleRuntime = {
@@ -37,10 +41,12 @@ const idleRuntime = {
 
 async function startGateway(options?: ConstructorParameters<typeof Gateway>[0]) {
   sessionDir = await mkdtemp(join(tmpdir(), "pig-host-"))
+  attachmentRootDir = await mkdtemp(join(tmpdir(), "pig-attach-"))
   gateway = new Gateway({
     platformPort: directoryPort,
     createRuntime: async () => idleRuntime as never,
     sessionDir,
+    attachmentRootDir,
     ...options,
   })
   return `http://127.0.0.1:${await gateway.start()}`
@@ -95,7 +101,6 @@ describe("thin host HTTP shell", () => {
     expect(
       (
         await request(base, "/api/v1/platform/session-cards", undefined, "GET", {
-          authorization: gateway?.authorizationHeader() ?? "",
           origin: "https://evil.example",
           "sec-fetch-site": "cross-site",
         })
@@ -116,6 +121,22 @@ describe("thin host HTTP shell", () => {
     expect(authed.status).toBe(200)
   })
 
+  it("桌面壳来源带进程内 Bearer 时放行，壳之外仍要 cookie", async () => {
+    const base = await startGateway()
+    const bearer = gateway?.authorizationHeader() ?? ""
+    const shellHeaders = {
+      authorization: bearer,
+      origin: "pig://app",
+      "sec-fetch-site": "cross-site",
+    }
+
+    expect(
+      (await request(base, "/api/v1/platform/session-cards", undefined, "GET", shellHeaders))
+        .status,
+    ).toBe(200)
+    expect((await request(base, "/health", undefined, "GET", shellHeaders)).status).toBe(200)
+  })
+
   it("selects a directory", async () => {
     const base = await startGateway()
     selectedDirectory = "C:/projects/demo"
@@ -134,6 +155,54 @@ describe("thin host HTTP shell", () => {
       requiresManualInput: false,
     })
   })
+
+  it("附件暂存走原始流，bind 校验入参与 session", async () => {
+    const base = await startGateway()
+    const stage = (query: string, body: BodyInit) =>
+      fetch(`${base}/api/v1/platform/attachments/stage?${query}`, {
+        method: "POST",
+        headers: authHeaders(),
+        body,
+      })
+    const bytes = (text: string) => new TextEncoder().encode(text)
+    const staged = await stage(
+      "batch=b1&name=报告 v2.pdf&mimeType=application/pdf",
+      bytes("hello 附件"),
+    )
+
+    expect(staged.status).toBe(200)
+    await expect(staged.json()).resolves.toMatchObject({ id: expect.any(String) })
+
+    // batch 名带路径分隔符直接拒绝
+    expect((await stage("batch=../escape&name=a&mimeType=text/plain", bytes("x"))).status).toBe(400)
+
+    // 超过 25MB：413 回给客户端，服务端不留半成品
+    const oversized = await stage(
+      "batch=big&name=big.bin&mimeType=application/octet-stream",
+      new Uint8Array(25 * 1024 * 1024 + 1024),
+    )
+
+    expect(oversized.status).toBe(413)
+    await expect(oversized.json()).resolves.toEqual({ code: "PAYLOAD_TOO_LARGE" })
+
+    // bind：缺参数 400，session 不存在 404（batch 是否存在先不校验）
+    expect((await request(base, "/api/v1/platform/attachments/bind", { batch: "b1" })).status).toBe(
+      400,
+    )
+    expect(
+      (await request(base, "/api/v1/platform/attachments/bind", { sessionId: "s", batch: "b1" }))
+        .status,
+    ).toBe(404)
+
+    // discard：缺参数 400，未知 batch 幂等回 200
+    expect((await request(base, "/api/v1/platform/attachments/discard", {})).status).toBe(400)
+    expect(
+      (await request(base, "/api/v1/platform/attachments/discard", { batch: "b1" })).status,
+    ).toBe(200)
+    expect(
+      await (await request(base, "/api/v1/platform/attachments/discard", { batch: "nope" })).json(),
+    ).toEqual({ ok: true })
+  }, 15_000)
 
   it("renames and deletes sessions", async () => {
     const base = await startGateway()

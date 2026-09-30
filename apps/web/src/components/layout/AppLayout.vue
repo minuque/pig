@@ -1,17 +1,14 @@
 <template>
-  <div
-    class="shell"
-    :class="{ 'left-closed': !leftOpen, 'is-resizing': resizing }"
-    :style="{ '--left-width': `${leftWidth}px` }"
-  >
-    <aside class="sidebar" :class="{ open: leftOpen }" :inert="!leftOpen">
-      <slot name="sidebar" :on-navigate="closeMobilePanels" :toggle="toggle" />
+  <div class="shell" :class="{ 'left-closed': !leftOpen, 'is-resizing': resizing }">
+    <aside class="sidebar" :class="{ open: leftOpen }" :inert="!leftOpen" :style="leftWidthStyle">
+      <slot name="sidebar" :on-navigate="closeMobilePanels" />
     </aside>
 
     <div
       v-if="leftOpen"
       class="resizer"
       tabindex="0"
+      :style="leftWidthStyle"
       @pointerdown="startResize($event)"
       @keydown.left.prevent="resizeBy(-16)"
       @keydown.right.prevent="resizeBy(16)"
@@ -24,23 +21,24 @@
 </template>
 
 <script setup lang="ts">
-import { provide } from "vue"
+import { computed, provide } from "vue"
 import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js"
 
 defineSlots<{
   default(): unknown
-  sidebar(props: { onNavigate: () => void; toggle: () => void }): unknown
+  sidebar(props: { onNavigate: () => void }): unknown
 }>()
 
 const { leftOpen, leftWidth, resizing, toggle, resizeBy, startResize, closeMobilePanels } =
   useLeftPanel()
+// --left-width 不可继承，只写在消费它的元素上，拖拽改宽不会让整棵子树重算样式
+const leftWidthStyle = computed(() => ({ "--left-width": `${leftWidth.value}px` }))
 
 provide(leftPanelKey, { leftOpen, toggle, resizing })
 </script>
 
 <style scoped>
 .shell {
-  --left-width: var(--size-sidebar);
   position: relative;
   height: 100vh;
   display: flex;
@@ -75,6 +73,10 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   background: transparent;
 }
 
+.resizer:hover {
+  cursor: ew-resize;
+}
+
 .resizer::after {
   content: "";
   position: absolute;
@@ -91,6 +93,10 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
 .resizer:focus-visible::after,
 .shell.is-resizing .resizer::after {
   opacity: 1;
+}
+
+.shell.is-resizing .resizer::after {
+  width: 2px;
 }
 
 html[data-pig-desktop-platform] .resizer {

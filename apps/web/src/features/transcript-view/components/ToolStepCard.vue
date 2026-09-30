@@ -26,29 +26,27 @@
         :soft-wrap="softWrap"
         :text="runContent.shownOutput"
         :images="runContent.outputImages"
-        :show-count="false"
         embedded
       />
     </template>
 
     <template v-else-if="readContent">
-      <ToolHeader v-model:soft-wrap="softWrap" label="输出" :text="readContent.preview.code">
+      <ToolHeader
+        v-model:soft-wrap="softWrap"
+        v-model:show-line-numbers="showLineNumbers"
+        line-numbers
+        label="输出"
+        :text="readContent.preview.code"
+      >
         <div class="read-heading">
-          <img
-            v-if="languageIconUrl"
-            class="icon-slot"
-            :src="languageIconUrl"
-            :title="readContent.preview.languageLabel"
-            alt=""
-          />
-
-          <span class="read-path" :title="readContent.path">{{ readContent.path }}</span>
+          <TranscriptFileTag :path="readContent.path" :text="readContent.path" />
         </div>
       </ToolHeader>
 
       <ToolOutput
         code
         :soft-wrap="softWrap"
+        :show-line-numbers="showLineNumbers"
         :lines="readContent.preview.lines"
         :tokens="readTokens"
         :start-line="readContent.preview.startLine"
@@ -66,14 +64,13 @@
         label="输出"
         :text="toolContent.shownOutput"
       >
-        <pre v-if="toolContent.inputFull" class="input-json">{{ toolContent.inputFull }}</pre>
+        <ToolInputJson v-if="toolContent.inputFull" :text="toolContent.inputFull" />
       </ToolHeader>
 
       <ToolOutput
         :soft-wrap="softWrap"
         :text="toolContent.shownOutput"
         :images="toolContent.outputImages"
-        :show-count="false"
         embedded
       />
     </template>
@@ -81,15 +78,7 @@
     <template v-else-if="editContent">
       <ToolHeader v-model:soft-wrap="softWrap" label="输出" :text="editContent.outputText">
         <div class="read-heading">
-          <img
-            v-if="editLanguageIconUrl"
-            class="icon-slot"
-            :src="editLanguageIconUrl"
-            :title="editContent.language"
-            alt=""
-          />
-
-          <span class="read-path" :title="editHeading">{{ editHeading }}</span>
+          <TranscriptFileTag :path="editHeading" :text="editHeading" />
         </div>
 
         <template #meta>
@@ -114,32 +103,32 @@
       />
     </template>
 
-    <blockquote v-else-if="thoughtContent" ref="thoughtViewport" class="thought">
-      <div ref="thoughtInner">
-        <MarkdownRender
-          v-if="thoughtContent.text"
-          v-bind="thoughtProps"
-          :content="thoughtContent.text"
-        />
-      </div>
+    <blockquote v-else-if="thoughtContent" class="thought">
+      <MarkdownRender
+        v-if="thoughtContent.text"
+        v-bind="thoughtProps"
+        :content="thoughtContent.text"
+      />
     </blockquote>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, ref, shallowRef, watch } from "vue"
 import { StreamDiff } from "stream-diffs/vue"
-import MarkdownRender, { getLanguageIcon, languageIconsRevision } from "markstream-vue"
-import { useStickToBottom } from "markstream-vue/utils"
+import MarkdownRender from "markstream-vue"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
+import ToolInputJson from "@features/transcript-view/components/ToolInputJson.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
+import TranscriptFileTag from "@features/transcript-view/components/TranscriptFileTag.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/index.js"
-import { plainMarkdownProps } from "@features/transcript-view/lib/markdown-render-props.js"
 import {
-  pathBasename,
-  type ReadToolPreview,
-} from "@features/transcript-view/lib/tool-presentation.js"
+  highlightCodeTokens,
+  plainMarkdownProps,
+  type CodeTokens,
+} from "@features/transcript-view/lib/markdown-render-props.js"
+import { pathBasename, type ReadToolPreview } from "@features/transcript-view/lib/tool-summary.js"
 import type {
   EditDiffPreview,
   TranscriptImage as ToolStepImage,
@@ -196,9 +185,6 @@ const thoughtContent = computed(() =>
     ? { text: props.text ?? "", streaming: props.streaming ?? false }
     : null,
 )
-const thoughtViewport = useTemplateRef<HTMLElement>("thoughtViewport")
-const thoughtInner = useTemplateRef<HTMLElement>("thoughtInner")
-const { scheduleScrollToBottom } = useStickToBottom(thoughtViewport, thoughtInner)
 const editContent = computed(() =>
   props.variant === "edit" && props.editPreview?.hunks.length
     ? { ...props.editPreview, outputText: props.outputText ?? "" }
@@ -219,53 +205,33 @@ const editDiffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
   disableFileHeader: true,
 }))
-const readTokens = shallowRef<{ content: string; color?: string }[][]>([])
-const languageIconUrl = computed(() => languageIconDataUrl(readContent.value?.preview.language))
-const editLanguageIconUrl = computed(() => languageIconDataUrl(editContent.value?.language))
+const readTokens = shallowRef<CodeTokens>([])
 const editHeading = computed(() => editContent.value?.path || editContent.value?.fileName || "")
 const softWrap = ref(false)
-
-function languageIconDataUrl(lang: string | undefined) {
-  void languageIconsRevision.value
-
-  if (!lang || lang === "text") return ""
-  return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(lang))}`
-}
+const showLineNumbers = ref(false)
 
 watch(
-  () => [thoughtContent.value?.text, thoughtContent.value?.streaming] as const,
-  async ([, streaming]) => {
-    if (!streaming) return
-    await nextTick()
-    scheduleScrollToBottom()
-  },
-  { flush: "post" },
-)
-
-watch(
-  [readContent, codeBlockProps],
-  async ([content, blockProps], _, onCleanup) => {
+  [
+    () => readContent.value?.preview.code,
+    () => readContent.value?.preview.language,
+    () => codeBlockProps.value.theme,
+  ],
+  async ([code, language, theme], _, onCleanup) => {
     let active = true
     onCleanup(() => {
       active = false
     })
-    const preview = content?.preview
 
-    if (!preview || preview.language === "text" || preview.code.length > 100_000) {
+    if (!code || !language || language === "text" || code.length > 100_000) {
       readTokens.value = []
       return
     }
 
     try {
-      const theme = blockProps.theme
-      const { getSharedHighlighter } = await import("stream-diffs/pierre")
-      const highlighter = await getSharedHighlighter({ themes: [theme], langs: [preview.language] })
+      const next = await highlightCodeTokens(code, language, theme)
 
       if (!active) return
-      readTokens.value = highlighter.codeToTokens(preview.code, {
-        lang: preview.language,
-        theme,
-      }).tokens
+      readTokens.value = next
     } catch {
       if (active) readTokens.value = []
     }
@@ -279,10 +245,8 @@ watch(
   min-width: 0;
   max-width: 100%;
   overflow: visible;
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  background: var(--code-body);
-  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-code);
+  background: var(--code-surface);
 }
 
 .is-thought {
@@ -293,21 +257,39 @@ watch(
 }
 
 .thought {
-  max-height: calc(var(--text-body-sm) * var(--text-body-sm--line-height) * 12);
   margin: 0;
   padding-inline-start: var(--spacing-sm);
-  overflow: hidden auto;
   border-inline-start: var(--border-width) solid var(--hairline);
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
   line-height: var(--text-body-sm--line-height);
 }
 
-.thought :deep(:is([data-custom-id="chat"], p, .paragraph-node, h1, h2, h3, h4, h5, h6, li)) {
+.thought
+  :deep(
+    :is([data-custom-id="thought"], p, .paragraph-node, h1, h2, h3, h4, h5, h6, li, pre, code)
+  ) {
   margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
+  font-family: inherit;
   white-space: pre-wrap;
+}
+
+.thought :deep(.code-block-header),
+.thought :deep(.code-header-actions) {
+  display: none;
+}
+
+.thought :deep(.code-block-container) {
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .command-heading {
@@ -367,36 +349,11 @@ watch(
   align-items: flex-start;
 }
 
-.input-json {
-  margin: 0;
-  color: var(--ink);
-  font-family: var(--font-mono);
-  line-height: var(--text-caption--line-height);
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-
 .read-heading {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
   min-width: 0;
-}
-
-.icon-slot {
-  display: block;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  flex: none;
-}
-
-.read-path {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--ink);
-  font-family: var(--font-mono);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .read-notice {
@@ -447,8 +404,8 @@ watch(
 }
 
 .edit-diff::-webkit-scrollbar-track {
-  margin-inline: calc(var(--radius-lg) - var(--border-width));
-  margin-block-end: calc(var(--radius-lg) - var(--border-width));
+  margin-inline: calc(var(--radius-code) - var(--border-width));
+  margin-block-end: calc(var(--radius-code) - var(--border-width));
 }
 
 .edit-diff :deep(.stream-diffs-vue-diff) {

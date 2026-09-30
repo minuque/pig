@@ -459,6 +459,9 @@ describe("PiHostService", () => {
     await service.renameSession("sess-1", "卸载插件")
     expect((await runtime.snapshot()).name).toBe("卸载插件")
     expect(await service.listSessions()).toMatchObject([{ id: "sess-1", sessionName: "卸载插件" }])
+    // 活 runtime 会把文件写回来，必须先释放再删
+    await expect(service.deleteSession("sess-1")).rejects.toMatchObject({ code: "busy" })
+    await runtime.dispose()
     await service.deleteSession("sess-1")
     expect(await service.listSessions()).toEqual([])
   })

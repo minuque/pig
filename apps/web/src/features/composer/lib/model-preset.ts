@@ -62,10 +62,6 @@ export function sameModel(a: ComposerModel | undefined, b: ComposerModel | undef
   return a?.provider === b?.provider && a?.id === b?.id
 }
 
-export function modelLabel(model: ComposerModel | undefined): string {
-  return model ? `${model.provider}/${model.id}` : "—"
-}
-
 /** 官方 ModelMetadata → 供应商目录；保留服务端顺序。 */
 export function catalogFromModels(models: readonly ModelMetadata[]): ComposerVendor[] {
   const vendors = new Map<string, ComposerVendor>()

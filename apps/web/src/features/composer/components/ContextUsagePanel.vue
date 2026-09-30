@@ -1,7 +1,7 @@
 <template>
   <div class="usage-root">
-    <div class="glass-shell usage-shell">
-      <div class="glass-host usage-host">
+    <div class="usage-shell">
+      <div class="usage-host surface-float">
         <div class="head">
           <h3 class="title">上下文占用</h3>
 
@@ -172,10 +172,8 @@ function onOpenAutoFocus(event: Event) {
 .usage-host {
   position: relative;
   padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs);
-  background: var(--composer-bg);
-  border: var(--border-width) solid var(--composer-ring);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-soft);
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-popover);
 }
 
 .head {
@@ -198,12 +196,9 @@ function onOpenAutoFocus(event: Event) {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  min-height: 0;
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-faint);
   cursor: pointer;
@@ -281,6 +276,7 @@ function onOpenAutoFocus(event: Event) {
 }
 
 .legend-row--button:hover {
+  background: var(--hover-tint);
   color: var(--ink);
 }
 

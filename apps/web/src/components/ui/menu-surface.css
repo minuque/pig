@@ -1,0 +1,13 @@
+.menu-surface {
+  overflow: hidden;
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-popover);
+  box-shadow: var(--shadow-elevated);
+}
+
+.menu-list {
+  position: relative;
+  z-index: 1;
+  overflow: auto;
+  padding: var(--spacing-xxs);
+}

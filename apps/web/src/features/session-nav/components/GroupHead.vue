@@ -1,102 +1,94 @@
 <template>
-  <div class="group-head" :class="{ 'is-open': !collapsed }">
-    <button class="group-toggle" type="button" :aria-expanded="!collapsed" @click="emit('toggle')">
-      <span v-if="kind === 'directory'" class="mark" :class="{ 'is-open': !collapsed }">
-        <Folder v-if="collapsed" class="size-icon" />
-        <FolderOpen v-else class="size-icon" />
+  <div
+    class="group-head"
+    :draggable="sortable"
+    @pointerdown="pointerFocus = true"
+    @click="emit('toggle')"
+    @dragstart="onDragStart"
+    @mouseleave="onHeadLeave"
+  >
+    <button class="group-toggle" type="button" :aria-expanded="!collapsed">
+      <span class="mark" :class="{ 'is-grip': sortable }">
+        <Folder v-if="collapsed" class="size-icon folder-icon" />
+        <FolderOpen v-else class="size-icon folder-icon" />
+        <GripVertical v-if="sortable" class="size-icon grip-icon" />
       </span>
 
-      <Pin
-        v-else-if="kind === 'pinned'"
-        class="size-icon mark"
-        :class="{ 'is-open': !collapsed }"
-      />
-
-      <Clock v-else class="size-icon mark" :class="{ 'is-open': !collapsed }" />
       <span class="group-name">{{ name }}</span>
     </button>
 
-    <span v-if="showGrouping || (kind === 'directory' && !collapsed)" class="trail">
-      <DropdownMenu v-if="showGrouping" :modal="false">
-        <DropdownMenuTrigger as-child>
+    <span class="trail">
+      <Tooltip>
+        <TooltipTrigger as-child>
           <button
-            class="group-options press-scale"
+            class="group-new hover-only"
             type="button"
-            title="侧栏分组"
-            aria-label="侧栏分组"
-            @pointerdown.stop
-            @click.stop
+            aria-label="在此目录新建会话"
+            draggable="false"
+            @click.stop="emit('create')"
+            @dragstart.stop.prevent
           >
-            <Settings2 class="size-icon" />
+            <MessageCirclePlus class="size-icon" />
           </button>
-        </DropdownMenuTrigger>
+        </TooltipTrigger>
 
-        <DropdownMenuContent align="end" :side-offset="4">
-          <DropdownMenuItem
-            v-for="option in groupingOptions"
-            :key="option.value"
-            class="group-head-option"
-            @select="emit('setGrouping', option.value)"
-          >
-            <span>{{ option.label }}</span>
-
-            <span class="group-head-option-check" aria-hidden="true">
-              <Check v-if="grouping === option.value" class="size-icon" />
-            </span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <button
-        v-if="kind === 'directory' && (showGrouping || !collapsed)"
-        class="group-new"
-        :class="{ 'hover-only': !showGrouping }"
-        type="button"
-        title="新会话"
-        aria-label="在此目录新建会话"
-        @click.stop="emit('create')"
-      >
-        <MessageCirclePlus class="size-icon" />
-      </button>
+        <TooltipContent>新会话</TooltipContent>
+      </Tooltip>
     </span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Check, Clock, Folder, FolderOpen, MessageCirclePlus, Pin, Settings2 } from "@lucide/vue"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
-import type { SidebarGrouping } from "@features/session-nav/type.js"
+import { shallowRef } from "vue"
+import { Folder, FolderOpen, GripVertical, MessageCirclePlus } from "@lucide/vue"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
-const groupingOptions = [
-  { value: "project", label: "按目录" },
-  { value: "updated", label: "按更新时间" },
-] as const satisfies readonly { value: SidebarGrouping; label: string }[]
-
-withDefaults(
+const props = withDefaults(
   defineProps<{
     name: string
     collapsed?: boolean
-    kind?: "directory" | "time" | "pinned"
-    grouping?: SidebarGrouping
-    showGrouping?: boolean
+    sortable?: boolean
   }>(),
-  { kind: "directory", showGrouping: false },
+  { sortable: false },
 )
-
 const emit = defineEmits<{
   toggle: []
   create: []
-  setGrouping: [grouping: SidebarGrouping]
+  dragstart: [event: DragEvent]
 }>()
+const pointerFocus = shallowRef(false)
+
+function onHeadLeave(event: MouseEvent) {
+  const head = event.currentTarget
+  const active = document.activeElement
+  const fromPointer = pointerFocus.value
+  pointerFocus.value = false
+
+  if (!fromPointer || !(head instanceof HTMLElement) || !(active instanceof HTMLElement)) return
+
+  if (head.contains(active)) active.blur()
+}
+
+function onDragStart(event: DragEvent) {
+  if (!props.sortable) {
+    event.preventDefault()
+    return
+  }
+
+  const head = event.currentTarget
+
+  if (head instanceof HTMLElement && event.dataTransfer) {
+    const rect = head.getBoundingClientRect()
+    event.dataTransfer.setDragImage(head, event.clientX - rect.left, event.clientY - rect.top)
+  }
+
+  emit("dragstart", event)
+}
 </script>
 
 <style scoped>
 .group-head {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
@@ -107,7 +99,7 @@ const emit = defineEmits<{
 }
 
 .group-head:hover {
-  background: var(--hover-quiet);
+  background: var(--interaction-hover);
 }
 
 .group-toggle {
@@ -135,13 +127,22 @@ const emit = defineEmits<{
   transition: color var(--duration-fast) var(--ease-smooth);
 }
 
+.mark.is-grip .folder-icon,
+.mark.is-grip .grip-icon {
+  grid-area: 1 / 1;
+}
+
+.grip-icon {
+  display: none;
+  color: var(--primary);
+}
+
 .group-head:hover .mark {
   color: var(--ink-muted);
 }
 
-.mark.is-open,
-.group-head:hover .mark.is-open {
-  color: var(--ink-muted);
+.group-head:hover .group-name {
+  color: var(--ink);
 }
 
 .group-name {
@@ -150,68 +151,68 @@ const emit = defineEmits<{
   overflow: hidden;
   color: var(--ink-muted);
   font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
   line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-smooth);
 }
 
 .trail {
+  position: absolute;
+  inset-inline-end: var(--spacing-xs);
   display: flex;
-  flex: none;
   align-items: center;
   align-self: center;
-  gap: var(--spacing-xs);
-  min-width: var(--size-icon);
 }
 
-.group-options,
 .group-new {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
   line-height: 0;
 }
 
-.group-options:hover,
-.group-options:focus-visible,
 .group-new:hover,
 .group-new:focus-visible {
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 
 @media (hover: hover) {
+  .group-head:hover .mark.is-grip .folder-icon {
+    display: none;
+  }
+
+  .group-head:hover .mark.is-grip .grip-icon {
+    display: block;
+  }
+
+  .trail {
+    pointer-events: none;
+  }
+
   .group-new.hover-only {
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--duration-fast) var(--ease-out);
   }
 
-  .group-head:is(:hover, :focus-within) .group-new.hover-only,
+  .group-head:hover .group-new.hover-only,
+  .group-head:has(:focus-visible) .group-new.hover-only,
   .group-new.hover-only:focus-visible {
     opacity: 1;
     pointer-events: auto;
   }
-}
 
-.group-head.is-open .group-name {
-  color: var(--ink);
-}
-</style>
-
-<style>
-/* 菜单经 Portal 挂到 body，scoped 选不中 */
-.group-head-option {
-  justify-content: space-between;
-}
-
-.group-head-option-check {
-  display: flex;
-  flex: none;
-  width: var(--size-icon);
-  height: var(--size-icon);
+  .group-head:hover .trail,
+  .group-head:has(:focus-visible) .trail {
+    pointer-events: auto;
+  }
 }
 </style>

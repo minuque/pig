@@ -1,27 +1,29 @@
 <template>
-  <Startup :connect="pi.connect" :initialize="session.initialize">
-    <AppLayout>
-      <template #sidebar="{ onNavigate, toggle }">
-        <SessionNav @navigate="handleSidebarNavigate($event, onNavigate)" @toggle="toggle" />
-      </template>
+  <TooltipProvider>
+    <Startup :connect="pi.connect" :initialize="session.initialize">
+      <AppLayout>
+        <template #sidebar="{ onNavigate }">
+          <SessionNav @navigate="handleSidebarNavigate($event, onNavigate)" />
+        </template>
 
-      <RouterView />
-    </AppLayout>
-  </Startup>
+        <RouterView />
+      </AppLayout>
+    </Startup>
 
-  <Settings />
-  <AlertToaster />
+    <Settings />
+    <AlertToaster />
+  </TooltipProvider>
 </template>
 
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue"
 import AppLayout from "@components/layout/AppLayout.vue"
 import AlertToaster from "@components/layout/AlertToaster.vue"
+import { TooltipProvider } from "@components/ui/tooltip/index.js"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
 import { usePiClient } from "@client/pi-client.js"
 
-import { useClickSound } from "@features/click-sound/index.js"
 import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
 import { provideSettings } from "@features/settings/index.js"
@@ -37,8 +39,6 @@ const session = provideSession(pi, cwd)
 provideNav(pi, cwd, session)
 
 provideSettings()
-
-useClickSound()
 
 onMounted(() => {
   prefetchHighlighter()

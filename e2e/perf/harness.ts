@@ -33,6 +33,8 @@ export type BenchRuntime = "desktop" | "web"
 export type BenchSession = {
   page: Page
   origin: string
+  size(): Promise<{ width: number; height: number }>
+  setSize(width: number, height: number): Promise<void>
   close(): Promise<void>
 }
 
@@ -43,11 +45,20 @@ export type BenchHarness = {
   close(): Promise<void>
 }
 
+const LIVE_DEV_ENV = new Set([
+  "ELECTRON_RUN_AS_NODE",
+  "PIG_CDP",
+  "PIG_VITE_PORT",
+  "PIG_GATEWAY_ORIGIN",
+  "GATEWAY_TARGET",
+  "GATEWAY_TOKEN",
+])
+
 function processEnv(extra: Record<string, string>): Record<string, string> {
   const env: Record<string, string> = {}
 
   for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined && key !== "ELECTRON_RUN_AS_NODE") env[key] = value
+    if (value !== undefined && !LIVE_DEV_ENV.has(key)) env[key] = value
   }
 
   return Object.assign(env, extra)
@@ -69,6 +80,10 @@ export async function createWebHarness(options: {
       return {
         page,
         origin: options.origin,
+        size: async () => page.viewportSize() ?? { width: 1280, height: 800 },
+        setSize: async (width, height) => {
+          await page.setViewportSize({ width, height })
+        },
         async close() {
           await context.close()
         },
@@ -99,6 +114,7 @@ export async function createDesktopHarness(options: {
         cwd: desktopRoot,
         env: processEnv({
           PIG_BENCH: "1",
+          PIG_CDP: "off",
           PIG_SESSION_DIR: options.sessionDir,
           PIG_CWD: options.workspaceDir,
         }),
@@ -129,7 +145,27 @@ export async function createDesktopHarness(options: {
 
         runtimeLabel = `electron ${versions.electron} chromium ${versions.chrome}`
         await prepareBenchPage(page, options.workspaceId, observers, { reducedMotion: false })
-        return { page, origin, close: dispose }
+        return {
+          page,
+          origin,
+          size: () =>
+            app.evaluate(({ BrowserWindow }) => {
+              const win = BrowserWindow.getAllWindows()[0]
+
+              if (!win) throw new Error("桌面窗口不存在")
+              const [width, height] = win.getSize()
+              return { width, height }
+            }),
+          setSize: async (width, height) => {
+            await app.evaluate(
+              ({ BrowserWindow }, dims) => {
+                BrowserWindow.getAllWindows()[0]?.setSize(dims.width, dims.height)
+              },
+              { width, height },
+            )
+          },
+          close: dispose,
+        }
       } catch (error) {
         await dispose()
         throw error

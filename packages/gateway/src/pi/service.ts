@@ -12,6 +12,7 @@ import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/p
 import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
 import {
   PiServerError,
+  SessionBusyError,
   SessionNotFoundError,
   toProtocolModelMetadata,
 } from "@earendil-works/pi-server"
@@ -21,6 +22,7 @@ import type {
   PiSessionRuntime,
 } from "@earendil-works/pi-server"
 import { canonicalizePath } from "../directory.js"
+import { AttachmentStore } from "./attachments.js"
 import type { ContextPreviewKey, ContextUsageEstimate } from "./context-usage.js"
 import {
   conversationMessageCount,
@@ -51,6 +53,8 @@ export interface PiHostServiceOptions {
   sessionDir?: string
   /** 默认工作目录（createSession 未指定 cwd 时使用）。 */
   cwd?: string
+  /** 非图片附件的临时根目录；缺省 os.tmpdir()/pig-attachments。 */
+  attachmentRootDir?: string
   /** 测试注入：ModelRuntime 工厂。 */
   createRuntime?: () => Promise<Runtime>
   /** 测试注入：AgentSession 工厂。 */
@@ -62,6 +66,8 @@ export interface PiHostServiceOptions {
  * PiServerService。会话真相以 Pi 持久化为准，本类不维护第二套领域状态。
  */
 export class PiHostService implements PiServerService {
+  /** 附件暂存：平台 HTTP 与 prompt 消费共用同一份。 */
+  readonly attachments: AttachmentStore
   /** sessionId → 会话文件路径（listSessions/openSession 时填充）。 */
   private readonly sessionPaths = new Map<string, string>()
   private readonly activeSessions = new Map<string, PiHostSession>()
@@ -70,7 +76,11 @@ export class PiHostService implements PiServerService {
   private runtimePromise?: Promise<Runtime>
   private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined
 
-  constructor(private readonly options: PiHostServiceOptions = {}) {}
+  constructor(private readonly options: PiHostServiceOptions = {}) {
+    this.attachments = new AttachmentStore(
+      options.attachmentRootDir ? { rootDir: options.attachmentRootDir } : {},
+    )
+  }
 
   async listSessions(): Promise<SessionMetadata[]> {
     const infos = await this.refreshSessionPaths()
@@ -197,14 +207,27 @@ export class PiHostService implements PiServerService {
     this.sessionsCache = undefined
   }
 
-  /** 删除 Pi 会话文件。 */
+  /** 删除 Pi 会话文件与它的附件暂存；仍有活 runtime 时拒绝，否则它会把文件写回来。 */
   async deleteSession(sessionId: string): Promise<void> {
+    if (this.activeSessions.has(sessionId)) throw new SessionBusyError("Session is still open")
     const path = await this.findSessionPath(sessionId)
 
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     await rm(path, { force: true })
+    await this.attachments.clearSession(sessionId)
     this.sessionPaths.delete(sessionId)
     this.sessionsCache = undefined
+  }
+
+  /** 会话是否已存在（活会话或磁盘上）；附件 bind 前校验用。 */
+  async hasSession(sessionId: string): Promise<boolean> {
+    if (this.activeSessions.has(sessionId)) return true
+    return Boolean(await this.findSessionPath(sessionId))
+  }
+
+  /** 停服：清掉附件清理定时器并删除本实例的临时文件。 */
+  dispose(): Promise<void> {
+    return this.attachments.dispose()
   }
 
   async openSession(sessionId: string): Promise<PiSessionRuntime> {
@@ -354,13 +377,17 @@ export class PiHostService implements PiServerService {
     release?: () => void,
   ): PiHostSession {
     let host!: PiHostSession
-    host = new PiHostSession(session, () => {
-      if (this.activeSessions.get(session.sessionId) === host) {
-        this.activeSessions.delete(session.sessionId)
-      }
+    host = new PiHostSession(
+      session,
+      () => {
+        if (this.activeSessions.get(session.sessionId) === host) {
+          this.activeSessions.delete(session.sessionId)
+        }
 
-      release?.()
-    })
+        release?.()
+      },
+      this.attachments,
+    )
     this.activeSessions.set(session.sessionId, host)
     return host
   }

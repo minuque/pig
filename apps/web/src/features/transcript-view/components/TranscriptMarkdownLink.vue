@@ -1,6 +1,7 @@
 <template>
   <TranscriptLinkChip v-if="external" :url="node.href" :label="label" />
-  <a v-else class="plain" :href="node.href">{{ node.text }}</a>
+  <a v-else-if="node.href.startsWith('#')" class="plain" :href="node.href">{{ node.text }}</a>
+  <span v-else>{{ node.text }}</span>
 </template>
 
 <script setup lang="ts">

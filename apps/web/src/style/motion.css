@@ -8,20 +8,20 @@
   display: grid;
   place-items: center;
   overflow: hidden;
+  background: var(--surface);
   font-family: var(--font-sans);
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
 
+/* 离场：小猪歪头缩回，整屏随即淡出 */
 .startup-screen.leaving {
   pointer-events: none;
+  animation: exit-fade var(--duration-startup-leave) var(--ease-smooth) both;
 }
 
-.startup-veil {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background: var(--startup-veil);
+.startup-screen.leaving .startup-logo {
+  animation: pig-duck var(--duration-fast) var(--ease-in-out) both;
 }
 
 .startup-content {
@@ -33,13 +33,19 @@
   padding: var(--spacing-lg);
 }
 
+.startup-mark {
+  overflow: hidden;
+  border-radius: var(--radius-xs, 4px);
+  background: var(--brand-mark-bg);
+  box-shadow: var(--shadow-logo);
+}
+
 .startup-logo {
   display: block;
   width: var(--startup-logo-size, 88px);
   height: var(--startup-logo-size, 88px);
   object-fit: contain;
-  border-radius: var(--radius-xs, 4px);
-  box-shadow: var(--shadow-logo);
+  transform-origin: 30% 100%;
   pointer-events: none;
 }
 
@@ -52,72 +58,47 @@
   app-region: drag;
 }
 
-.startup-screen.leaving .startup-veil {
-  animation: startup-veil-leave var(--duration-startup-leave) var(--ease-out, ease-out) both;
-}
-
-.startup-screen.leaving .startup-content {
-  animation: startup-content-leave var(--duration-startup-leave) ease-out both;
-}
-
 #startup-splash {
   z-index: calc(var(--z-modal) + 1);
 }
 
 #startup-splash .startup-mark {
-  animation: startup-logo-enter var(--duration-slow) ease-out both;
+  animation: startup-mark-enter var(--duration-normal) var(--ease-smooth) both;
 }
 
-@keyframes startup-logo-enter {
-  0% {
-    opacity: 0;
-    transform: translateY(10px) rotate(-4deg) scale(0.9);
-  }
+/* 入场：蓝框先落位，小猪歪着头探出并摆正；不回弹，底边始终贴住框底 */
+#startup-splash .startup-logo {
+  animation: pig-peek var(--duration-pig-peek) both;
+}
 
-  65% {
-    opacity: 1;
-    transform: translateY(-2px) rotate(2deg) scale(1.015);
+@keyframes startup-mark-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes pig-peek {
+  0%,
+  28% {
+    transform: translateY(100%) rotate(-14deg);
+    animation-timing-function: var(--ease-out);
   }
 
   100% {
-    opacity: 1;
-    transform: translateY(0) rotate(0deg) scale(1);
+    transform: none;
   }
 }
 
-@keyframes startup-veil-leave {
-  from {
-    opacity: 1;
-  }
-
+@keyframes pig-duck {
   to {
-    opacity: 0;
-  }
-}
-
-@keyframes startup-content-leave {
-  from {
-    opacity: 1;
-    transform: translateY(0) rotate(0deg) scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY(-4px) rotate(3deg) scale(0.94);
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .startup-screen .startup-veil {
-    background: var(--surface);
+    transform: translateY(100%) rotate(-10deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   #startup-splash .startup-mark,
-  .startup-screen .startup-veil,
-  .startup-screen.leaving .startup-veil,
-  .startup-screen.leaving .startup-content {
+  #startup-splash .startup-logo {
     animation: none;
   }
 }
@@ -126,15 +107,18 @@
   scale: 0.96;
 }
 
+/* JS 驱动的高度形变：先写死旧高度，再改新高度，靠这条过渡出底锚增长的手感 */
+.morph-height {
+  transition: height var(--duration-normal) var(--ease-smooth);
+}
+
 .icon-toggle {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-icon-button);
-  min-height: var(--size-icon-button);
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
   transition:
@@ -212,18 +196,6 @@
   }
 }
 
-.motion-composer .attach-tray {
-  transition: height var(--duration-normal) var(--ease-out);
-}
-
-.motion-composer .glass-host {
-  transition: padding var(--duration-normal) var(--ease-out);
-}
-
-.motion-composer .glass-host::after {
-  transition: opacity var(--duration-fast) var(--ease-smooth);
-}
-
 .motion-turn {
   transition: transform var(--duration-fast) var(--ease-smooth);
 }
@@ -232,8 +204,63 @@
   transform: rotate(90deg);
 }
 
-.stagger-in {
-  animation: enter-blur var(--duration-slow) var(--ease-out) both;
+/* 首屏↔会话：输入条滑动期间旧层先淡出，新层在行程中段淡入 */
+.dock-thread-enter-active {
+  transition: opacity var(--duration-slow) var(--ease-out) var(--duration-fast);
+}
+
+.dock-thread-leave-active,
+.dock-hero-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.dock-thread-enter-from,
+.dock-thread-leave-to,
+.dock-hero-leave-to {
+  opacity: 0;
+}
+
+.dock-hero-enter-active,
+.dock-hero-appear-active {
+  transition:
+    opacity var(--duration-settle) var(--ease-settle) var(--duration-fast),
+    translate var(--duration-settle) var(--ease-settle) var(--duration-fast);
+}
+
+.dock-hero-enter-from,
+.dock-hero-appear-from {
+  opacity: 0;
+  translate: 0 -10px;
+}
+
+/* 首屏挂载时输入条与 Hero 同拍落位 */
+.settle-in {
+  animation: settle-down var(--duration-settle) var(--ease-settle) var(--duration-fast) both;
+}
+
+@keyframes settle-down {
+  from {
+    opacity: 0;
+    translate: 0 -10px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0;
+  }
+}
+
+/* 工具步骤到达 */
+@keyframes step-arrive {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0;
+  }
 }
 
 @keyframes enter-blur {
@@ -350,24 +377,27 @@
   filter: blur(4px);
 }
 
-.list-reveal-enter-active {
+/* 行增删：高度随行一起收放，下方内容跟着滑，不瞬跳；负上边距抵掉 --spacing-xxs 行距 */
+.list-reveal-enter-active,
+.list-reveal-leave-active {
+  overflow: hidden;
+  interpolate-size: allow-keywords;
   transition:
-    opacity var(--duration-normal) var(--ease-out),
-    scale var(--duration-normal) var(--ease-out);
+    height var(--duration-normal) var(--ease-smooth),
+    margin-block-start var(--duration-normal) var(--ease-smooth),
+    opacity var(--duration-normal) var(--ease-out);
 }
 
 .list-reveal-leave-active {
-  position: absolute;
-  width: 100%;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    scale var(--duration-fast) var(--ease-out);
+  pointer-events: none;
+  transition-duration: var(--duration-fast);
 }
 
 .list-reveal-enter-from,
 .list-reveal-leave-to {
+  height: 0;
+  margin-block-start: calc(var(--spacing-xxs) * -1);
   opacity: 0;
-  scale: 0.98;
 }
 
 .list-reveal-move {
@@ -381,13 +411,16 @@
   transition: grid-template-rows var(--duration-fast) var(--ease-out);
 }
 
-.tool-calls-group {
-  transition-timing-function: var(--ease-smooth);
-}
-
 :is(.tool-calls-group, .session-list-group).is-open {
   grid-template-rows: 1fr;
   transition-duration: var(--duration-slow);
+}
+
+/* 工具组展开与收起同一只钟，中途反向从当前高度接着走 */
+.tool-calls-group,
+.tool-calls-group.is-open {
+  transition-duration: var(--duration-tool-fold);
+  transition-timing-function: var(--ease-fold);
 }
 
 :is(.tool-calls-group, .session-list-group).instant,
@@ -410,93 +443,29 @@
 }
 
 .tool-calls-group > .panel-slide {
-  transform: translateY(12px);
+  transform: translateY(4px);
   opacity: 0;
   pointer-events: none;
   transition:
-    transform var(--duration-fast) var(--ease-smooth),
-    opacity var(--duration-fast) var(--ease-smooth);
+    transform var(--duration-tool-fold) var(--ease-fold),
+    opacity var(--duration-tool-fold) var(--ease-fold);
 }
 
 .tool-calls-group.is-open > .panel-slide {
   transform: none;
   opacity: 1;
   pointer-events: auto;
-  transition-duration: var(--duration-slow);
 }
 
 @starting-style {
   .tool-calls-group.is-open:not(.instant) > .panel-slide {
-    transform: translateY(12px);
+    transform: translateY(4px);
     opacity: 0;
   }
 }
 
 .tool-calls-group.instant > .panel-slide {
   transition: none;
-}
-
-@property --hook-from {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-@property --hook-y {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-@property --hook-stem-h {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-.hook-rail {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  contain: layout paint;
-  color: var(--ink-faint);
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.hook-rail.is-on {
-  opacity: 1;
-}
-
-.hook-stem,
-.hook-corner {
-  position: absolute;
-  top: 0;
-  inset-inline-start: calc(var(--size-icon) / 2);
-  transition:
-    --hook-from var(--duration-slow) var(--ease-smooth),
-    --hook-y var(--duration-slow) var(--ease-smooth),
-    --hook-stem-h var(--duration-slow) var(--ease-smooth);
-}
-
-.hook-stem {
-  width: var(--border-width);
-  height: var(--hook-stem-h);
-  transform: translate3d(0, var(--hook-from), 0);
-}
-
-.hook-corner {
-  transform: translate3d(0, var(--hook-y), 0);
-}
-
-.hook-rail:not(.is-ready) .hook-stem,
-.hook-rail:not(.is-ready) .hook-corner {
-  transition: none;
-}
-
-[dir="rtl"] .hook-corner {
-  transform: translate3d(0, var(--hook-y, 0px), 0) scaleX(-1);
-  transform-origin: 0 50%;
 }
 
 .fade-layer-enter-active,
@@ -605,6 +574,23 @@
   }
 }
 
+/* 侧栏品牌悬停：小猪先缩下去，之后与开屏 pig-peek 同一段探头 */
+@keyframes brand-peek {
+  0% {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  28% {
+    transform: translateY(100%) rotate(-14deg);
+    animation-timing-function: var(--ease-out);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
 .motion-pulse {
   position: relative;
 }
@@ -630,6 +616,10 @@
     scale: 1;
   }
 
+  .morph-height {
+    transition: none;
+  }
+
   .icon-toggle {
     transition: none;
   }
@@ -649,11 +639,16 @@
     filter: none;
   }
 
-  .stagger-in {
+  .settle-in {
     animation: none;
-    opacity: 1;
-    transform: none;
-    filter: none;
+  }
+
+  .dock-thread-enter-active,
+  .dock-thread-leave-active,
+  .dock-hero-enter-active,
+  .dock-hero-appear-active,
+  .dock-hero-leave-active {
+    transition: none;
   }
 
   .panel-reveal-enter-active,
@@ -674,15 +669,9 @@
     filter: none;
   }
 
-  .list-reveal-enter-from,
-  .list-reveal-leave-to {
-    scale: 1;
-  }
-
   .list-reveal-enter-active,
   .list-reveal-leave-active {
-    position: static;
-    transition: opacity var(--duration-fast) var(--ease-out);
+    transition: none;
   }
 
   .list-reveal-move {
@@ -704,10 +693,8 @@
     transform: none;
   }
 
-  .hook-rail,
-  .hook-stem,
-  .hook-corner {
-    transition: none;
+  .step.is-arriving {
+    animation: none;
   }
 
   .fade-layer-enter-active,
@@ -737,12 +724,6 @@
   :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
     animation: none;
     opacity: 0;
-  }
-
-  .motion-composer .attach-tray,
-  .motion-composer .glass-host,
-  .motion-composer .glass-host::after {
-    transition: none;
   }
 
   .motion-nudge,

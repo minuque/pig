@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest"
 import type {
   AssistantTranscriptItem,
   ToolTranscriptItem,
+  TranscriptItem,
   UserTranscriptItem,
 } from "@/types/common-type.js"
+import type { TurnTiming } from "@/types/turn-type.js"
 import {
-  buildTimelineRows,
+  createTimelineRowsBuilder,
   isToolRow,
   reuseTimelineRows,
 } from "@features/transcript-view/lib/transcript-rows.js"
@@ -16,6 +18,14 @@ const user: UserTranscriptItem = {
   role: "user",
   timestamp: 1000,
   content: [{ type: "text", text: "问" }],
+}
+
+function buildRows(
+  items: readonly TranscriptItem[],
+  running: boolean,
+  timings: readonly TurnTiming[] = [],
+) {
+  return createTimelineRowsBuilder().build(items, running, timings)
 }
 
 function assistant(
@@ -75,8 +85,8 @@ function tool(
 
 describe("一轮工作 → 执行过程与最终回答", () => {
   it("普通回答不增加过程壳，空闲空会话不占行", () => {
-    expect(buildTimelineRows([], false)).toEqual([])
-    expect(buildTimelineRows([user, text(1, "答")], false)).toMatchObject([
+    expect(buildRows([], false)).toEqual([])
+    expect(buildRows([user, text(1, "答")], false)).toMatchObject([
       { role: "user", text: "问", timestamp: 1000 },
       { role: "assistant", text: "答", timestamp: 1001, showTimestamp: true },
     ])
@@ -91,7 +101,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       tool("t2"),
       text(3, "结论"),
     ]
-    const live = buildTimelineRows(messages, true)
+    const live = buildRows(messages, true)
     expect(live.map((row) => row.role)).toEqual([
       "user",
       "assistant",
@@ -112,7 +122,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       undefined,
       undefined,
     ])
-    const done = buildTimelineRows(messages, false)
+    const done = buildRows(messages, false)
     expect(done.filter((row) => row.role === "assistant").map((row) => row.showTimestamp)).toEqual([
       undefined,
       undefined,
@@ -120,7 +130,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     ])
 
     const descriptors = assistant(1, [call("t1"), call("t2")])
-    const first = buildTimelineRows([user, descriptors], true)
+    const first = buildRows([user, descriptors], true)
     const initialRow = first.find(isToolRow)
     expect(initialRow).toMatchObject({ mode: "live", turnStreaming: true })
     expect(
@@ -130,7 +140,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
       { id: "t2", running: true, outputText: "" },
     ])
 
-    const afterResult = buildTimelineRows(
+    const afterResult = buildRows(
       [user, descriptors, text(2, "阶段结果"), tool("t2", "read", "complete", "第二项")],
       true,
     )
@@ -141,10 +151,10 @@ describe("一轮工作 → 执行过程与最终回答", () => {
 
   it("流式正文增量复用未变化的行对象", () => {
     const messages = [user, textAndCalls(1, "先读取", "t1"), tool("t1"), text(2, "结论")]
-    const live = buildTimelineRows(messages, true)
+    const live = buildRows(messages, true)
     const streamed = reuseTimelineRows(
       live,
-      buildTimelineRows([...messages.slice(0, -1), text(2, "结论。")], true),
+      buildRows([...messages.slice(0, -1), text(2, "结论。")], true),
     )
 
     expect(streamed[0]).toBe(live[0])
@@ -155,9 +165,9 @@ describe("一轮工作 → 执行过程与最终回答", () => {
 
   it("失败路径：工具输出变化不复用该行", () => {
     const descriptors = assistant(1, [call("t1"), call("t2")])
-    const first = buildTimelineRows([user, descriptors], true)
+    const first = buildRows([user, descriptors], true)
     const initialRow = first.find(isToolRow)
-    const afterResult = buildTimelineRows(
+    const afterResult = buildRows(
       [user, descriptors, text(2, "阶段结果"), tool("t2", "read", "complete", "第二项")],
       true,
     )
@@ -168,7 +178,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
 
   it("完成的思考使用持久 Turn 结束时间计算耗时", () => {
     const thinking = assistant(1, [{ type: "thinking", thinking: "逐步分析" }])
-    const work = buildTimelineRows([user, thinking], false, [
+    const work = buildRows([user, thinking], false, [
       { userId: "u1", startedAt: 500, endedAt: 6001, outcome: "complete" },
     ]).find(isToolRow)
 
@@ -182,7 +192,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
   })
 
   it("过程壳耗时按单组起止，不共用整轮 timing", () => {
-    const rows = buildTimelineRows(
+    const rows = buildRows(
       [
         user,
         { ...assistant(1, [{ type: "thinking", thinking: "先想" }]), timestamp: 1000 },
@@ -206,18 +216,13 @@ describe("一轮工作 → 执行过程与最终回答", () => {
   })
 
   it("失败路径：工具失败单列，重试错误信息不丢失", () => {
-    const work = buildTimelineRows(
-      [user, tool("t1"), tool("bad", "read", "error"), tool("t2")],
-      false,
-      [{ userId: "u1", startedAt: 1000, endedAt: 27000, outcome: "error" }],
-    ).find(isToolRow)
+    const work = buildRows([user, tool("t1"), tool("bad", "read", "error"), tool("t2")], false, [
+      { userId: "u1", startedAt: 1000, endedAt: 27000, outcome: "error" },
+    ]).find(isToolRow)
 
     expect(work?.steps).toHaveLength(3)
 
-    const errors = buildTimelineRows(
-      [user, assistant(1, [], "error"), assistant(2, [], "error")],
-      false,
-    )
+    const errors = buildRows([user, assistant(1, [], "error"), assistant(2, [], "error")], false)
 
     expect(errors.at(-1)).toMatchObject({
       error: true,
@@ -228,7 +233,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
   })
 
   it("失败路径：中止后显示已停止，残留工具与思考不再显示运行态", () => {
-    const rows = buildTimelineRows(
+    const rows = buildRows(
       [
         user,
         tool("t1", "bash", "running"),

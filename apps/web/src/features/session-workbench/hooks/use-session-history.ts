@@ -1,5 +1,7 @@
 import { computed, shallowRef } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
+import { notifyError } from "@components/layout/notify.js"
+import { errorMessage } from "@client/http.js"
 import { sessionTranscript } from "@client/platform.js"
 import {
   absorbLatestTranscriptPage,
@@ -36,9 +38,18 @@ export function useSessionHistory() {
     bump()
   }
 
+  /** 连接断开：临时 id 的 live 覆盖作废，否则重连后与磁盘条目 id 对不上会重复；标记下次重拉。 */
+  function releaseLive(id: string) {
+    const page = cache.peek(id)
+
+    if (!page?.heldLive.length) return
+    cache.write(id, { heldLive: [], stale: true })
+    bump()
+  }
+
   /** 打开拉最后一轮；已 ready 且非 force 不发网，同 id 在飞共用请求。 */
   function loadHistory(id: string, options?: { force?: boolean }) {
-    if (!options?.force && cache.isReady(id)) return inflight.get(id) ?? Promise.resolve()
+    if (!options?.force && cache.isFresh(id)) return inflight.get(id) ?? Promise.resolve()
     const pending = inflight.get(id)
 
     if (pending && !options?.force) return pending
@@ -57,14 +68,12 @@ export function useSessionHistory() {
 
         if (requestById.get(id) !== request) return
         const absorbed = absorbLatestTranscriptPage(cache.peek(id), { items, timings, hasMore })
-        cache.write(id, { ...absorbed, ready: true })
+        cache.write(id, { ...absorbed, ready: true, stale: false })
         bump()
-      } catch {
-        if (requestById.get(id) !== request) return
-
-        if (!cache.isReady(id)) {
-          cache.write(id, { items: [], timings: [], hasMore: false, ready: true })
-          bump()
+      } catch (error) {
+        // 失败不标 ready：不把已有会话画成欢迎页，下次打开会重拉
+        if (requestById.get(id) === request && activeId.value === id) {
+          notifyError(`历史加载失败：${errorMessage(error)}`)
         }
       }
     })()
@@ -114,13 +123,18 @@ export function useSessionHistory() {
     }
   }
 
-  const liveTranscript = computed(() => {
-    const id = activeId.value
+  /** 指定会话当前的合并转录（磁盘 + live 覆盖）；前台投影与后台泵队共用。 */
+  function transcriptFor(id: string): readonly TranscriptItem[] {
     const rev = version.value
 
-    if (!id || rev < 0) return []
+    if (rev < 0) return []
     const page = cache.peek(id)
     return page ? mergeLiveTranscript(page.items, page.heldLive) : []
+  }
+
+  const liveTranscript = computed(() => {
+    const id = activeId.value
+    return id ? transcriptFor(id) : []
   })
   const historyReadyId = computed(() => {
     const id = activeId.value
@@ -152,6 +166,8 @@ export function useSessionHistory() {
     turnTimings,
     setActive,
     overlayLive,
+    releaseLive,
+    transcriptFor,
     loadHistory,
     loadOlderHistory,
   }

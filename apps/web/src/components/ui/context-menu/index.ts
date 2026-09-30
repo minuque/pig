@@ -4,4 +4,6 @@ export { default as ContextMenuContent } from "@components/ui/context-menu/Conte
 
 export { default as ContextMenuItem } from "@components/ui/context-menu/ContextMenuItem.vue"
 
+export { default as ContextMenuSeparator } from "@components/ui/context-menu/ContextMenuSeparator.vue"
+
 export { default as ContextMenuTrigger } from "@components/ui/context-menu/ContextMenuTrigger.vue"

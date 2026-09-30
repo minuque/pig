@@ -15,7 +15,10 @@ export type WorkspaceStorage = Pick<Storage, "getItem" | "setItem">
 // 与 gateway 端 packages/gateway/src/directory.ts 的 canonicalizePath 是同一套
 // 规范化逻辑（分隔符/大小写/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizeWorkspacePath(path: string): string {
-  const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "")
+  const trimmed = path.replaceAll("\\", "/").replace(/\/+$/, "")
+  // 根路径保留尾斜杠：`c:` 是该盘当前目录，不是盘符根
+  const normalized =
+    (trimmed === "" && path !== "") || /^[a-zA-Z]:$/.test(trimmed) ? `${trimmed}/` : trimmed
   return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
 }
 

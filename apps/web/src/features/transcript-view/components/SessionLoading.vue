@@ -11,7 +11,7 @@ import { Spinner } from "@components/ui/spinner/index.js"
 <style scoped>
 .session-loading {
   position: absolute;
-  inset: 0;
+  inset: 0 0 var(--composer-reserve, 0px) 0;
   z-index: 4;
   display: grid;
   place-items: center;

@@ -1,14 +1,16 @@
 <template>
-  <div
-    ref="container"
-    class="composer motion-composer"
-    :data-expanded="expanded"
-    :data-multiline="multiline"
-    @mousedown="onComposerMousedown"
-  >
-    <div class="glass-shell">
-      <div class="glass-host">
-        <div class="editor-wrap">
+  <div ref="container" class="composer" @mousedown="onComposerMousedown">
+    <div
+      ref="card"
+      class="composer-card surface-float"
+      :class="expanded ? 'is-expanded' : 'is-compact'"
+    >
+      <div v-if="$slots.attachments" class="attachments">
+        <slot name="attachments" />
+      </div>
+
+      <div class="main">
+        <div ref="editorWrap" class="editor-wrap">
           <textarea
             ref="editor"
             v-model="prompt"
@@ -17,21 +19,28 @@
             aria-label="Prompt"
             rows="1"
             @keydown="onEditorKeydown"
+            @paste="onEditorPaste"
           ></textarea>
         </div>
 
-        <div class="left">
-          <slot name="left" />
-        </div>
+        <div class="action-row">
+          <div ref="leftCluster" class="cluster left">
+            <slot name="left" />
+          </div>
 
-        <div class="right">
-          <slot name="right" :expanded="expanded" />
+          <div ref="usageCluster" class="cluster context">
+            <slot name="usage" />
+          </div>
+
+          <div ref="toolsCluster" class="cluster tools">
+            <slot name="tools" />
+          </div>
+
+          <div ref="rightCluster" class="cluster right">
+            <slot name="right" />
+          </div>
         </div>
       </div>
-    </div>
-
-    <div v-if="$slots.meta" class="footer">
-      <slot name="meta" />
     </div>
   </div>
 </template>
@@ -47,45 +56,196 @@ export function shouldSubmitOnKeydown(e: {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue"
+import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
+import {
+  clusterOffsets,
+  composerFlip,
+  flipMotion,
+  glideClusters,
+  RESIZE_SETTLE_MS,
+  type FlipMotion,
+} from "@features/composer/lib/composer-flip.js"
+import { PROMPT_PLACEHOLDER } from "@features/composer/index.js"
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     placeholder?: string
+    /** 外层宽度手柄拖拽中：此期间不折叠。 */
+    resizing?: boolean
+    /** 新会话首屏：输入卡恒展开。 */
+    hero?: boolean
   }>(),
   {
-    placeholder: "do what you want ...",
+    placeholder: PROMPT_PLACEHOLDER,
+    resizing: false,
+    hero: false,
   },
 )
-
 const prompt = defineModel<string>("prompt", { required: true })
 const emit = defineEmits<{
   submit: []
+  "paste-files": [files: File[]]
 }>()
 const editor = ref<HTMLTextAreaElement | null>(null)
+const editorWrap = ref<HTMLElement | null>(null)
 const container = ref<HTMLElement | null>(null)
+const card = ref<HTMLElement | null>(null)
+const leftCluster = ref<HTMLElement | null>(null)
+const usageCluster = ref<HTMLElement | null>(null)
+const toolsCluster = ref<HTMLElement | null>(null)
+const rightCluster = ref<HTMLElement | null>(null)
+const expanded = ref(true)
 const hasText = computed(() => prompt.value.length > 0)
-const expanded = computed(() => prompt.value.includes("\n"))
-const multiline = shallowRef(false)
 let widthObserver: ResizeObserver | undefined
 let lastWidth = 0
+/** 紧凑态实测容量与当时容器宽度；展开态用宽度差平移，绝不用展开态测量值回灌。 */
+let lastCompactCapacity = 0
+let lastCompactContainerWidth = 0
+let firstFlip = true
+let measureCtx: CanvasRenderingContext2D | undefined
+const internalResizing = ref(false)
+let resizeTimer: ReturnType<typeof setTimeout> | undefined
+const resizing = computed(() => props.resizing || internalResizing.value)
 
 function fitEditor() {
   const el = editor.value
 
   if (!el) return
   el.style.height = "auto"
-  const next = el.scrollHeight
-  el.style.height = `${next}px`
-  const style = getComputedStyle(el)
-  const line = Number.parseFloat(style.lineHeight) || 22
-  const padY =
-    (Number.parseFloat(style.paddingTop) || 0) + (Number.parseFloat(style.paddingBottom) || 0)
-
-  multiline.value = next > line + padY + 2 || el.value.includes("\n")
+  el.style.height = `${Math.min(Math.max(el.scrollHeight, 56), 240)}px`
 }
 
-watch(prompt, fitEditor, { flush: "post" })
+function measureText(text: string) {
+  const el = editor.value
+
+  if (!el) return 0
+
+  if (!measureCtx) measureCtx = document.createElement("canvas").getContext("2d") ?? undefined
+
+  if (!measureCtx) return text.length * 8
+  const style = getComputedStyle(el)
+
+  measureCtx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+  return measureCtx.measureText(text).width
+}
+
+/** 紧凑态被内边距、动作行与间距占掉的水平空间：只在首次实测前用来估容量。 */
+function compactInset(el: HTMLElement) {
+  const style = getComputedStyle(el)
+  const token = (name: string) => Number.parseFloat(style.getPropertyValue(name)) || 0
+  // 两侧内边距 + 输入区左右内边距 + 主行两个间隙 + 回形针按钮
+  return (
+    2 * (token("--spacing-sm") + token("--border-width")) +
+    4 * token("--spacing-xs") +
+    token("--size-icon-button")
+  )
+}
+
+function currentCapacity() {
+  const wrap = editorWrap.value
+  const containerEl = container.value
+
+  if (!wrap || !containerEl) return 0
+  const width = containerEl.clientWidth
+
+  if (!expanded.value) {
+    lastCompactCapacity = wrap.clientWidth
+    lastCompactContainerWidth = width
+  }
+
+  // 还没量过紧凑态：先按 token 估算，实测后只用容器宽度差平移
+  if (!lastCompactContainerWidth) return Math.max(0, width - compactInset(containerEl))
+  return Math.max(0, lastCompactCapacity + (width - lastCompactContainerWidth))
+}
+
+function evaluate(motion?: FlipMotion) {
+  const text = prompt.value
+  const hasNewline = text.includes("\n")
+  const textWidth = hasNewline ? 0 : measureText(text)
+  const next = composerFlip({
+    hero: props.hero,
+    hasNewline,
+    textWidth,
+    capacity: currentCapacity(),
+    expanded: expanded.value,
+    resizing: resizing.value,
+  })
+
+  flipMode(next, motion)
+}
+
+function clusters() {
+  return [leftCluster.value, usageCluster.value, toolsCluster.value, rightCluster.value].filter(
+    (el): el is HTMLElement => el !== null,
+  )
+}
+
+/** 底锚形变：胶囊底边不动，高度从旧值过渡到新值，动作组同钟换槽。 */
+function flipMode(next: boolean, motion?: FlipMotion) {
+  if (next === expanded.value) return
+  const cardEl = card.value
+  const from = cardEl?.offsetHeight ?? 0
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
+  if (firstFlip || !cardEl || reduce) {
+    firstFlip = false
+    expanded.value = next
+
+    if (!next) clearFieldHeight()
+    else void nextTick().then(fitEditor)
+    return
+  }
+
+  const timing = motion ?? flipMotion(cardEl)
+  const els = clusters()
+  const starts = clusterOffsets(cardEl, els)
+
+  expanded.value = next
+
+  if (!next) clearFieldHeight()
+
+  void nextTick().then(() => {
+    if (next) fitEditor()
+    requestAnimationFrame(() => {
+      glideClusters(cardEl, els, starts, timing, toolsCluster.value)
+      const to = cardEl.offsetHeight
+
+      if (to <= 0 || Math.abs(from - to) < 1) return
+      cardEl.style.transitionDuration = `${timing.duration}ms`
+      cardEl.style.transitionTimingFunction = timing.easing
+      cardEl.style.height = `${from}px`
+      void cardEl.offsetHeight
+      cardEl.style.height = `${to}px`
+
+      const done = (event?: TransitionEvent) => {
+        if (event && event.propertyName !== "height") return
+        cardEl.removeEventListener("transitionend", done)
+        cardEl.style.height = ""
+        cardEl.style.transitionDuration = ""
+        cardEl.style.transitionTimingFunction = ""
+      }
+
+      cardEl.addEventListener("transitionend", done)
+      setTimeout(done, timing.duration + 40)
+    })
+  })
+}
+
+function clearFieldHeight() {
+  const el = editor.value
+
+  if (el) el.style.height = ""
+}
+
+watch(
+  prompt,
+  () => {
+    if (expanded.value) fitEditor()
+    evaluate()
+  },
+  { flush: "post" },
+)
 
 watch(
   container,
@@ -100,15 +260,36 @@ watch(
 
       if (width === lastWidth) return
       lastWidth = width
-      fitEditor()
+      internalResizing.value = true
+
+      if (resizeTimer) clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        internalResizing.value = false
+        evaluate()
+      }, RESIZE_SETTLE_MS)
+
+      if (expanded.value) fitEditor()
+      evaluate()
     })
     widthObserver.observe(el)
-    fitEditor()
+    evaluate()
   },
   { flush: "post" },
 )
 
-onBeforeUnmount(() => widthObserver?.disconnect())
+watch(resizing, () => evaluate())
+
+// 首屏↔会话的展开形变跟输入卡停靠同一条时间线
+watch(
+  () => props.hero,
+  (hero) => evaluate(card.value ? flipMotion(card.value, hero ? "out" : "in") : undefined),
+)
+
+onBeforeUnmount(() => {
+  widthObserver?.disconnect()
+
+  if (resizeTimer) clearTimeout(resizeTimer)
+})
 
 function focus() {
   const el = editor.value
@@ -127,6 +308,15 @@ function onEditorKeydown(e: KeyboardEvent) {
   }
 }
 
+/** 只在真的收到文件时拦截粘贴，纯文本粘贴仍走浏览器默认行为。 */
+function onEditorPaste(e: ClipboardEvent) {
+  const files = clipboardFiles(e.clipboardData)
+
+  if (!files.length) return
+  e.preventDefault()
+  emit("paste-files", files)
+}
+
 function onComposerMousedown(e: MouseEvent) {
   const el = e.target
 
@@ -143,96 +333,131 @@ defineExpose({ focus })
 <style scoped>
 .composer {
   position: relative;
+  width: 100%;
+  margin-inline: auto;
+  border-radius: var(--composer-radius);
+  box-shadow: var(--composer-shadow);
 }
 
-.glass-shell {
+.composer-card {
   position: relative;
-  border-radius: var(--radius-full);
-}
-
-.glass-host {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas: "editor left right";
-  align-items: center;
-  column-gap: var(--spacing-xs);
-  padding-block: calc(var(--spacing-xs) + var(--border-width));
-  padding-inline: calc(var(--spacing-sm) + var(--border-width));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   overflow: hidden;
-  background: var(--composer-bg);
-  border-radius: var(--radius-full);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
+  border-radius: inherit;
+  transition: height var(--duration-composer-flip) var(--ease-composer-flip);
 }
 
-/* 聚焦环叠透明度，避免 border-color 过渡在圆角上锯齿 */
-.glass-host::after {
+/* 内描边不占布局 */
+.composer-card::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--border-width) var(--composer-border);
   pointer-events: none;
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.composer-card:focus-within::before {
   box-shadow: inset 0 0 0 var(--border-width) var(--composer-ring);
-  opacity: 0;
 }
 
-.glass-host:focus-within::after {
-  opacity: 1;
+@media (prefers-reduced-motion: reduce) {
+  .composer-card {
+    transition: none;
+  }
 }
 
-.composer[data-expanded="true"] .glass-host {
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "editor editor"
-    "left right";
-  align-items: end;
-  row-gap: var(--spacing-xs);
-  padding: calc(var(--spacing-sm) + var(--border-width));
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md) calc(var(--spacing-md) + var(--border-width)) 0;
 }
 
-.composer[data-multiline="true"] .glass-shell,
-.composer[data-multiline="true"] .glass-host {
-  border-radius: var(--radius-xl);
-}
-
-.composer[data-multiline="true"] .glass-host {
-  align-items: end;
-}
-
-.footer {
+.main {
+  display: flex;
+  align-items: center;
   min-width: 0;
-  padding-inline: var(--spacing-xxs);
 }
 
-.left,
-.right {
+.is-compact .main {
+  height: 49px;
+  gap: var(--spacing-xs);
+  padding-inline: calc(var(--spacing-sm) + var(--border-width));
+}
+
+.is-expanded .main {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* 紧凑态动作行拆进主行：回形针在输入框前，模型、上下文与发送在后 */
+.is-compact .action-row {
+  display: contents;
+}
+
+.is-compact .cluster.left {
+  order: -1;
+}
+
+.editor-wrap {
+  min-width: 0;
+}
+
+.is-compact .editor-wrap {
+  flex: 1;
+  padding-inline: var(--spacing-xs);
+}
+
+.is-expanded .editor-wrap {
+  padding: var(--spacing-md) calc(var(--spacing-md) + var(--border-width)) var(--spacing-xxs);
+}
+
+/* 展开态：回形针与模型靠左，上下文与发送靠右；紧凑态上下文跟模型并排 */
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  height: 42px;
+  padding: 0 calc(var(--spacing-sm) + var(--border-width));
+}
+
+.cluster {
   display: flex;
   align-items: center;
   gap: var(--spacing-xxs);
   flex: none;
-}
-
-.left {
-  grid-area: left;
   min-width: 0;
 }
 
-.right {
-  grid-area: right;
+/* 展开态动作行保持紧凑态槽位 */
+.cluster.context {
+  margin-inline-start: auto;
 }
 
-.editor-wrap {
-  grid-area: editor;
-  min-width: 0;
-  padding-inline: var(--spacing-xxs);
+.cluster.tools {
+  flex: 0 1 auto;
+}
+
+.is-compact .cluster.right,
+.is-compact .cluster.context {
+  order: 0;
+  margin-inline-start: 0;
+}
+
+.is-compact .cluster.tools {
+  /* 模型 chip 在紧凑态最多占胶囊宽 45% */
+  max-width: 45%;
 }
 
 .field {
   display: block;
   width: 100%;
   margin: 0;
-  padding-block: calc((var(--size-icon-button) - 1.5em) / 2);
-  padding-inline: 0;
+  padding: 0;
   border: 0;
   outline: 0;
   resize: none;
@@ -240,13 +465,21 @@ defineExpose({ focus })
   color: var(--ink);
   font: inherit;
   font-size: var(--text-body-md);
-  line-height: 1.5;
-  min-height: var(--size-icon-button);
-  max-height: 160px;
+  line-height: 1.625;
   overscroll-behavior: contain;
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.is-compact .field {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.is-expanded .field {
+  min-height: 56px;
+  max-height: 240px;
 }
 
 .field::placeholder {

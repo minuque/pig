@@ -10,21 +10,26 @@
   >
     <time :datetime="iso" :title="full">{{ clock }}</time>
 
-    <Button
-      v-if="text"
-      type="button"
-      variant="outline"
-      size="icon-2xs"
-      class="copy"
-      :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
-      :title="copyLabel"
-      @click="copy"
-    >
-      <span class="icon-swap">
-        <Copy :data-visible="status !== 'copied'" />
-        <Check :data-visible="status === 'copied'" />
-      </span>
-    </Button>
+    <Tooltip v-if="text">
+      <TooltipTrigger as-child>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-2xs"
+          class="copy"
+          :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
+          :aria-label="copyLabel"
+          @click="copy"
+        >
+          <span class="icon-swap">
+            <Copy :data-visible="status !== 'copied'" />
+            <Check :data-visible="status === 'copied'" />
+          </span>
+        </Button>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ copyLabel }}</TooltipContent>
+    </Tooltip>
   </div>
 </template>
 
@@ -33,6 +38,7 @@ import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { Check, Copy } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = withDefaults(
   defineProps<{

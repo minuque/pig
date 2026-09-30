@@ -34,6 +34,7 @@
               <TurnRow
                 v-if="block.kind === 'item'"
                 :turn="block.item"
+                :class="{ 'turn-runway': block.item.id === runwayId }"
                 :first="block.index === 0"
                 :previous-role="turns[block.index - 1]?.rows.at(-1)?.role"
                 :session-id="sessionId"
@@ -76,8 +77,10 @@ import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
-import { useTranscriptOlder } from "@features/transcript-view/hooks/use-transcript-older.js"
-import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-reveal.js"
+import {
+  useTranscriptOlder,
+  useTranscriptReveal,
+} from "@features/transcript-view/hooks/use-transcript-edge.js"
 import { useTranscriptWindow } from "@features/transcript-view/hooks/use-transcript-window.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
@@ -176,6 +179,8 @@ const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
 let sizeObserver: ResizeObserver | undefined
+let padObserver: ResizeObserver | undefined
+let lastPad = -1
 let pinRaf = 0
 
 function schedulePin() {
@@ -259,15 +264,30 @@ async function selectMinimapItem(item: TranscriptMinimapItem) {
 function observeSizes() {
   sizeObserver?.disconnect()
   sizeObserver = undefined
+  padObserver?.disconnect()
+  padObserver = undefined
   const root = viewport.value
   const body = list.value
+  const padded = column.value
 
-  if (!root && !body) return
+  if (!root && !body && !padded) return
   sizeObserver = new ResizeObserver(schedulePin)
 
   if (root) sizeObserver.observe(root)
 
   if (body) sizeObserver.observe(body)
+
+  // 内容盒不含 padding。输入条长高只改底部留白，要看边框盒才会在贴底时跟着滚。
+  if (!padded || padded === body) return
+  lastPad = Number.parseFloat(getComputedStyle(padded).paddingBottom)
+  padObserver = new ResizeObserver(() => {
+    const pad = Number.parseFloat(getComputedStyle(padded).paddingBottom)
+
+    if (pad === lastPad) return
+    lastPad = pad
+    pinIfNeeded()
+  })
+  padObserver.observe(padded, { box: "border-box" })
 }
 
 function pinLatest() {
@@ -286,11 +306,30 @@ watch(
   { flush: "post" },
 )
 
+/** 刚发送的一轮：预留一屏高度，把新消息滚到视口顶部。 */
+const runwayId = shallowRef<string>()
+
+function userTurnAppended(previous: readonly TimelineTurn[], next: readonly TimelineTurn[]) {
+  return (
+    previous.length > 0 &&
+    next.length === previous.length + 1 &&
+    next.at(-2)?.id === previous.at(-1)?.id &&
+    next.at(-1)?.rows[0]?.role === "user"
+  )
+}
+
 watch(turns, (next, prev) => {
   const previous = prev ?? []
 
   if (previous.length === 0 && next.length > 0) {
     older.arm()
+    return
+  }
+
+  if (userTurnAppended(previous, next)) {
+    runwayId.value = next.at(-1)?.id
+
+    if (atBottom.value) void nextTick(() => scrollToLatest("smooth"))
     return
   }
 
@@ -308,7 +347,7 @@ watch(turns, (next, prev) => {
 })
 
 watch(
-  [viewport, list],
+  [viewport, list, column],
   ([, body], prev) => {
     observeSizes()
 
@@ -321,6 +360,7 @@ watch(
   () => props.sessionId,
   (id, prev) => {
     if (!prev || prev === id) return
+    runwayId.value = undefined
     rememberAnchor(prev)
     rowsBuilder.reset()
     reset()
@@ -339,6 +379,7 @@ onMounted(ensureMermaidRuntime)
 
 onBeforeUnmount(() => {
   sizeObserver?.disconnect()
+  padObserver?.disconnect()
 
   if (pinRaf) cancelAnimationFrame(pinRaf)
 
@@ -347,12 +388,6 @@ onBeforeUnmount(() => {
 
 defineExpose({ showScrollToLatest, scrollToLatest })
 </script>
-
-<style>
-@import "markstream-vue/index.css" layer(components);
-@import "@style/markdown-stream.css";
-@import "@style/mermaid.css";
-</style>
 
 <style scoped>
 .transcript-shell {
@@ -369,9 +404,17 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scroll-padding-bottom: var(--composer-reserve, 0px);
+  /* 给 .turn-runway 的 cqh 提供视口高度 */
+  container-type: size;
   /* 主视口滚动条常显，并始终占位，内容不因溢出与否来回横移 */
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-gutter: stable;
+}
+
+/* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在视口顶部 */
+.turn-runway {
+  min-height: calc(100cqh - 2 * var(--spacing-lg) - var(--composer-reserve, 0px));
 }
 
 .transcript-viewport.is-windowed {
@@ -388,7 +431,9 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   width: min(100%, var(--size-content) - var(--spacing-lg));
   min-width: 0;
   margin-inline: auto;
-  padding-block: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  /* 底部留白：渐隐带高 + 输入条占位 */
+  padding-bottom: calc(var(--spacing-sm) + var(--spacing-lg) + var(--composer-reserve, 0px));
   padding-inline: var(--border-width);
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;

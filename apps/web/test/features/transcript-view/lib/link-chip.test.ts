@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 import { parseCodeFenceInfo } from "@features/transcript-view/lib/code-fence.js"
-import { siteFaviconSrc } from "@features/transcript-view/lib/site-favicon.js"
 import {
   describeLinkChip,
   linkChipLabel,
+  siteFaviconSrc,
   splitLinkText,
 } from "@features/transcript-view/lib/link-chip.js"
 

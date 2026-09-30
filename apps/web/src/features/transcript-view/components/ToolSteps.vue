@@ -1,7 +1,11 @@
 <template>
   <section class="tool-steps" :class="{ running, aborted: row.aborted }">
     <Button type="button" static class="summary-btn" :style="statusColor" @click="toggleSteps">
-      <Spinner v-if="running" class="tool-steps-icon" />
+      <LoaderCircle
+        v-if="running"
+        class="tool-steps-icon animate-spin motion-reduce:animate-none"
+      />
+
       <ClockAlert v-else-if="row.aborted || row.error" class="tool-steps-icon" />
       <BadgeCheck v-else class="tool-steps-icon" />
 
@@ -39,60 +43,19 @@
       :inert="!revealed"
     >
       <div class="panel-slide">
-        <div
-          v-if="renderedSteps.length"
-          ref="listEl"
-          class="steps"
-          @mouseleave="pointerInside = false"
-          @focusout="onFocusOut"
-        >
-          <span
-            class="hook-rail"
-            :class="{ 'is-on': hoverVisible, 'is-ready': railReady }"
-            aria-hidden="true"
-          >
-            <span class="hook-stem" :style="hoverStemStyle" />
-
-            <svg
-              class="hook-corner"
-              :style="hoverCornerStyle"
-              width="12"
-              height="7"
-              viewBox="0 0 12 7"
-              fill="none"
-            >
-              <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
-            </svg>
-          </span>
-
-          <span
-            class="hook-rail accent"
-            :class="{ 'is-on': accentVisible, 'is-ready': railReady }"
-            :style="statusColor"
-            aria-hidden="true"
-          >
-            <span class="hook-stem" :style="accentStemStyle" />
-
-            <svg
-              class="hook-corner"
-              :style="accentCornerStyle"
-              width="12"
-              height="7"
-              viewBox="0 0 12 7"
-              fill="none"
-            >
-              <path d="M0.5 0a6 6 0 0 0 6 6H12" stroke="currentColor" stroke-dasharray="2 2" />
-            </svg>
-          </span>
+        <div v-if="renderedSteps.length" ref="listEl" class="steps">
+          <svg class="step-rail" :style="statusColor" aria-hidden="true">
+            <path v-for="(path, i) in railPaths" :key="i" v-bind="path" />
+          </svg>
 
           <div class="step-list">
             <div
               v-for="(step, index) in renderedSteps"
               :key="step.id"
               class="step"
+              :class="{ 'is-arriving': starts.has(step.id) }"
               :data-active="index === displayActiveIndex"
-              @mouseenter="onPointerEnter(index)"
-              @focusin="onFocusIn(index)"
+              :style="arrivalStyle(step.id)"
             >
               <ToolCall
                 :step="step"
@@ -102,16 +65,14 @@
             </div>
 
             <div
-              v-if="hiddenCount"
+              v-if="showMoreToggle"
               class="step"
               :data-active="displayActiveIndex === renderedSteps.length"
-              @mouseenter="onPointerEnter(renderedSteps.length)"
-              @focusin="onFocusIn(renderedSteps.length)"
             >
               <div class="tool-summary">
-                <Button type="button" static class="summary" @click="loadMore">
+                <Button type="button" static class="summary" @click="toggleMore">
                   <Ellipsis class="tool-icon" data-icon="inline-start" />
-                  <span class="label" data-text="加载更多">加载更多</span>
+                  <span class="label" :data-text="moreLabel">{{ moreLabel }}</span>
                 </Button>
               </div>
             </div>
@@ -125,9 +86,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
-import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis } from "@lucide/vue"
+import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis, LoaderCircle } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
-import { Spinner } from "@components/ui/spinner/index.js"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import {
   toolRowDurationLabel,
@@ -135,9 +95,16 @@ import {
   toolRowLabelParts,
 } from "@features/transcript-view/lib/transcript-row-label.js"
 import { holdClickedOffset } from "@features/transcript-view/lib/transcript-scroll.js"
+import { toolGroupKey } from "@features/transcript-view/lib/tool-summary.js"
+import {
+  STEP_REVEAL_MS,
+  STEP_STAGGER_MS,
+  arrivalProgress,
+  buildRailPaths,
+  type RailPath,
+} from "@features/transcript-view/lib/step-rail.js"
 import type { ToolRow, ToolRowStep } from "@features/transcript-view/type.js"
 
-const HOOK_CORNER = 6
 const PAGE_SIZE = 8
 const ANIMATED_EXPAND_LIMIT = 8
 const props = defineProps<{
@@ -151,7 +118,22 @@ const emit = defineEmits<{
 }>()
 const running = computed(() => props.row.mode === "live")
 const statusColor = computed(() => (props.row.aborted ? { color: "var(--warning)" } : undefined))
-const revealed = computed(() => running.value || props.isExpand === true)
+/** read 图片没有可折叠的正文，默认展开直接看；用户点过就听用户的。 */
+const hasReadImage = computed(() =>
+  props.row.steps.some(
+    (step) =>
+      step.type === "tools" &&
+      step.items.some(
+        (item) => toolGroupKey(item.toolName) === "read" && item.outputImages.length > 0,
+      ),
+  ),
+)
+const revealed = computed(() => {
+  if (running.value) return true
+
+  if (props.isExpand !== undefined) return props.isExpand
+  return hasReadImage.value
+})
 
 function toggleSteps(event: MouseEvent) {
   const button = event.currentTarget
@@ -170,12 +152,17 @@ const renderedSteps = computed(() =>
 const hiddenCount = computed(() =>
   keptMounted.value ? Math.max(0, props.row.steps.length - renderedSteps.value.length) : 0,
 )
+const showMoreToggle = computed(
+  () => keptMounted.value && !running.value && props.row.steps.length > PAGE_SIZE,
+)
+const moreLabel = computed(() => (hiddenCount.value ? "显示更多" : "收起"))
+// 长列表只跳过展开动画，收起仍走高度过渡
 const skipHeightMotion = computed(
-  () => running.value || renderedSteps.value.length > ANIMATED_EXPAND_LIMIT,
+  () => running.value || (revealed.value && renderedSteps.value.length > ANIMATED_EXPAND_LIMIT),
 )
 
-function loadMore() {
-  pageLimit.value = Math.min(props.row.steps.length, pageLimit.value + PAGE_SIZE)
+function toggleMore() {
+  pageLimit.value = hiddenCount.value ? props.row.steps.length : PAGE_SIZE
 }
 
 const now = shallowRef(Date.now())
@@ -219,145 +206,122 @@ const activeIndex = computed(() => {
   if (runningIndex >= 0) return runningIndex
   return steps.length > 0 ? steps.length - 1 : -1
 })
-const moreIndex = computed(() => (hiddenCount.value ? renderedSteps.value.length : -1))
+const moreIndex = computed(() => (showMoreToggle.value ? renderedSteps.value.length : -1))
 const displayActiveIndex = computed(() => {
-  const last = moreIndex.value >= 0 ? moreIndex.value : renderedSteps.value.length - 1
+  if (renderedSteps.value.length === 0 || activeIndex.value < 0) return -1
 
-  if (last < 0 || activeIndex.value < 0) return -1
+  if (moreIndex.value >= 0 && !running.value) return moreIndex.value
+  const last = moreIndex.value >= 0 ? moreIndex.value : renderedSteps.value.length - 1
   return Math.min(activeIndex.value, last)
 })
 const listEl = shallowRef<HTMLElement | null>(null)
-const centers = shallowRef<number[]>([])
-const railReady = shallowRef(false)
-const hoverIndex = shallowRef<number | null>(null)
-const pointerInside = shallowRef(false)
-const focusInside = shallowRef(false)
+const railPaths = shallowRef<RailPath[]>([])
+// 挂载时已有的步骤算历史，不播 arrival；只有运行中新到的步骤才长线
+const seen = new Set(props.row.steps.map((step) => step.id))
+const starts = shallowRef(new Map<string, number>())
+const reduceMotion =
+  typeof window === "undefined"
+    ? { matches: false }
+    : window.matchMedia("(prefers-reduced-motion: reduce)")
 let listObserver: ResizeObserver | undefined
-let measureRaf = 0
+let railFrame = 0
+let railTimer: ReturnType<typeof setTimeout> | undefined
 
-function measure() {
+function arrivalStyle(id: string) {
+  const start = starts.value.get(id)
+  return start === undefined ? undefined : { animationDelay: `${start - Date.now()}ms` }
+}
+
+// offset* 只读布局位置，arrival 位移和面板滑入的 transform 都不干扰；summary 在行顶，sticky 时不跟着漂
+function rebuildRail() {
   const root = listEl.value
 
-  if (!root || !revealed.value) return
-  const rootTop = root.getBoundingClientRect().top
-  const nodes = root.querySelectorAll<HTMLElement>(":scope .step")
-  const next: number[] = []
+  if (!root) return
+  const centers: number[] = []
 
-  for (const index of new Set([displayActiveIndex.value, hoverIndex.value])) {
-    if (index == null || index < 0) continue
-    const node = nodes.item(index)
-
-    if (!node) continue
+  for (const node of root.querySelectorAll<HTMLElement>(":scope > .step-list > .step")) {
     const hit = node.querySelector<HTMLElement>(".summary") ?? node
-    const rect = hit.getBoundingClientRect()
-    next[index] = rect.top - rootTop + rect.height / 2
+    centers.push(node.offsetTop + hit.offsetHeight / 2)
   }
 
-  centers.value = next
-
-  if (!railReady.value && next.some((y) => y > 0)) railReady.value = true
+  const at = Date.now()
+  const progress = renderedSteps.value.map((step) => arrivalProgress(starts.value.get(step.id), at))
+  railPaths.value = buildRailPaths({ centers, progress })
 }
 
-function scheduleMeasure() {
-  if (!revealed.value || measureRaf) return
-  measureRaf = requestAnimationFrame(() => {
-    measureRaf = 0
-    measure()
-  })
+function stopRailLoop() {
+  cancelAnimationFrame(railFrame)
+  clearTimeout(railTimer)
+  railFrame = 0
 }
 
-function onPointerEnter(index: number) {
-  hoverIndex.value = index
-  pointerInside.value = true
-  scheduleMeasure()
-}
+function runRailLoop() {
+  const end = Math.max(...starts.value.values()) + STEP_REVEAL_MS
+  const tick = () => {
+    if (Date.now() < end) {
+      rebuildRail()
+      railFrame = requestAnimationFrame(tick)
+      return
+    }
 
-function onFocusIn(index: number) {
-  hoverIndex.value = index
-  focusInside.value = true
-  scheduleMeasure()
-}
-
-function onFocusOut(event: FocusEvent) {
-  const root = listEl.value
-
-  if (root && event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return
-  focusInside.value = false
-}
-
-function railBox(from: number, y: number) {
-  return {
-    stem: {
-      "--hook-from": `${from}px`,
-      "--hook-stem-h": `${Math.max(0, y - HOOK_CORNER - from)}px`,
-    },
-    corner: { "--hook-y": `${y - HOOK_CORNER}px` },
+    stopRailLoop()
+    starts.value = new Map()
   }
+
+  stopRailLoop()
+  railFrame = requestAnimationFrame(tick)
+  // 窗口遮挡时 rAF 不跑，超时直接落到终态
+  railTimer = setTimeout(tick, end - Date.now())
 }
-
-const activeY = computed(() => {
-  const y = centers.value[displayActiveIndex.value]
-  return y == null ? null : y
-})
-const hoverY = computed(() => {
-  const index = hoverIndex.value
-
-  if (index == null) return null
-  const y = centers.value[index]
-  return y == null ? null : y
-})
-const hoverFrom = computed(() => {
-  const accent = activeY.value
-  const hover = hoverY.value
-
-  if (accent != null && hover != null && hover <= accent) return Math.max(0, hover - HOOK_CORNER)
-  return accent ?? 0
-})
-const accentVisible = computed(() => activeY.value != null)
-const hoverVisible = computed(
-  () =>
-    (pointerInside.value || focusInside.value) &&
-    hoverIndex.value !== displayActiveIndex.value &&
-    hoverY.value != null,
-)
-const accentBox = computed(() => railBox(0, activeY.value ?? 0))
-const hoverBox = computed(() => railBox(hoverFrom.value, hoverY.value ?? 0))
-const accentStemStyle = computed(() => accentBox.value.stem)
-const accentCornerStyle = computed(() => accentBox.value.corner)
-const hoverStemStyle = computed(() => hoverBox.value.stem)
-const hoverCornerStyle = computed(() => hoverBox.value.corner)
 
 watch(
-  [displayActiveIndex, moreIndex, revealed],
-  () => {
-    if (revealed.value) measure()
+  renderedSteps,
+  (steps) => {
+    const now = Date.now()
+    let next: Map<string, number> | undefined
+    let rank = 0
+
+    for (const step of steps) {
+      if (seen.has(step.id)) continue
+      seen.add(step.id)
+
+      if (!running.value || reduceMotion.matches) continue
+      next ??= new Map(starts.value)
+      next.set(step.id, now + rank * STEP_STAGGER_MS)
+      rank += 1
+    }
+
+    if (next) starts.value = next
+  },
+  { flush: "sync" },
+)
+
+watch(
+  listEl,
+  (root) => {
+    listObserver?.disconnect()
+    listObserver = undefined
+
+    if (!root) return
+    // 步骤开合、换行都会改 .steps 尺寸；RO 在布局后、绘制前回调，同帧跟随
+    listObserver = new ResizeObserver(rebuildRail)
+    listObserver.observe(root)
   },
   { flush: "post" },
 )
 
 watch(
-  [listEl, revealed],
-  ([root, open]) => {
-    listObserver?.disconnect()
-    listObserver = undefined
-
-    if (!root || !open) {
-      centers.value = []
-      railReady.value = false
-      return
-    }
-
-    listObserver = new ResizeObserver(scheduleMeasure)
-    listObserver.observe(root)
-    measure()
+  starts,
+  (map) => {
+    if (map.size) runRailLoop()
+    else rebuildRail()
   },
   { flush: "post" },
 )
 
 onBeforeUnmount(() => {
   listObserver?.disconnect()
-
-  if (measureRaf) cancelAnimationFrame(measureRaf)
+  stopRailLoop()
 })
 </script>
 
@@ -403,6 +367,12 @@ onBeforeUnmount(() => {
   z-index: 0;
 }
 
+/* 箭头与折叠高度同钟 */
+.summary-btn .motion-turn {
+  transition-duration: var(--duration-tool-fold);
+  transition-timing-function: var(--ease-fold);
+}
+
 .tool-steps-icon {
   flex: none;
   transition: color var(--duration-fast) var(--ease-out);
@@ -427,6 +397,30 @@ onBeforeUnmount(() => {
   padding-block: var(--spacing-xs);
 }
 
+.step-rail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  color: var(--hairline);
+}
+
+.running .step-rail {
+  color: var(--primary);
+}
+
+.aborted .step-rail {
+  color: var(--warning);
+}
+
+.step-rail path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--border-width);
+}
+
 .step-list {
   display: flex;
   flex-direction: column;
@@ -437,6 +431,10 @@ onBeforeUnmount(() => {
 .step {
   min-width: 0;
   padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
+}
+
+.step.is-arriving {
+  animation: step-arrive var(--duration-settle) var(--ease-settle) both;
 }
 
 .tool-summary {
@@ -475,26 +473,5 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.hook-stem {
-  background-image: repeating-linear-gradient(to top, transparent 0 2px, currentColor 2px 4px);
-}
-
-.hook-rail.accent {
-  color: var(--ink-muted);
-}
-
-.running .hook-rail.accent {
-  color: var(--primary);
-}
-
-.aborted .hook-rail.accent {
-  color: var(--warning);
-}
-
-.running .hook-stem,
-.running .hook-corner {
-  transition: none;
 }
 </style>

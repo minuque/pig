@@ -10,18 +10,19 @@ import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import { canonicalizeWorkspacePath } from "../fixtures.js"
 import { runTurnScenarios, type EdgeSample } from "./edges.js"
 import { createDesktopHarness, createWebHarness, type BenchHarness } from "./harness.js"
+import { sidebarDragWorst, sidebarToggleWorst, windowResizeWorst } from "./layout.js"
 import {
   captureBenchFailure,
   keyToNextFrame,
   median,
   openSession,
   p90,
-  readPaint,
   scrollMainAfterOpen,
   scrollSessionList,
   scrollTranscript,
   waitForWorkbench,
 } from "./measure.js"
+import { readStartVitals } from "./paint.js"
 import { reportTable, type MetricRow } from "./report.js"
 import { expandToolSteps } from "./tool-expand.js"
 import {
@@ -40,7 +41,7 @@ const failShot = join(root, "test-results", "perf-fail.png")
 type BenchMetrics = {
   coldToWorkbench: number
   coldFcp: number
-  coldLcp: number
+  coldCls: number
   sessionFirstOpen: number
   switchLong: number
   switchScrollWorstMs: number
@@ -49,10 +50,13 @@ type BenchMetrics = {
   switchShortRevisit: number
   toolExpandFirstFrame: number
   toolExpandComplete: number
-  toolExpandWorstLongTask: number
   composerKeyToFrame: number
+  sidebarToggleWorstMs: number
+  sidebarDragWorstMs: number
+  windowResizeWorstMs: number
   ownMessageMs: number
   firstTokenMs: number
+  streamWakeMs: number
   streamKeepUpMs: number
   abortMs: number
   rapidSwitchMs: number
@@ -80,8 +84,6 @@ function parseArgs(argv: string[]): Args {
       console.log("默认桌面端 Electron。--web 用 Playwright Chromium 做对照。")
       process.exit(0)
     }
-
-    if (arg === "--") continue
 
     if (arg === "--skip-build") skipBuild = true
     else if (arg === "--headed") headed = true
@@ -156,10 +158,6 @@ async function openReadyPage(harness: BenchHarness, observers: boolean) {
   }
 }
 
-async function measureStart(page: Page) {
-  return readPaint(page)
-}
-
 async function measureComposer(page: Page, samples: number): Promise<number> {
   const values: number[] = []
 
@@ -184,34 +182,43 @@ function printReport(
 ) {
   console.log(`\npig 工作台（${runtime}）`)
 
-  const row = (label: string, key: keyof BenchMetrics, frame = false): MetricRow => ({
+  const row = (
+    label: string,
+    key: keyof BenchMetrics,
+    group: string,
+    extra?: { frame?: boolean; unit?: "ms" | "cls" },
+  ): MetricRow => ({
     label,
+    group,
     value: now[key] ?? null,
     p90: p90s[key] ?? null,
     previous: prev?.[key] ?? null,
-    frame,
+    ...extra,
   })
 
   reportTable([
-    row("打开工作台", "coldToWorkbench"),
-    row("冷启动 FCP", "coldFcp"),
-    row("就绪时 LCP", "coldLcp"),
-    row("输入跟手", "composerKeyToFrame"),
-    row("短会话打开", "sessionFirstOpen"),
-    row("长会话打开", "switchLong"),
-    row("切后立刻滚动", "switchScrollWorstMs", true),
-    row("长会话滚动", "longScrollWorstMs", true),
-    row("侧栏列表滚动", "listScrollWorstMs", true),
-    row("切回短会话", "switchShortRevisit"),
-    row("工具组首次展开首帧", "toolExpandFirstFrame"),
-    row("工具组首次展开完成", "toolExpandComplete"),
-    row("工具组首次展开长任务", "toolExpandWorstLongTask"),
-    row("发送后自己的话", "ownMessageMs"),
-    row("发送后首条助手", "firstTokenMs"),
-    row("流式跟上", "streamKeepUpMs"),
-    row("点停止", "abortMs"),
-    row("连切到短会话", "rapidSwitchMs"),
-    row("断线后恢复", "reconnectMs"),
+    row("打开工作台", "coldToWorkbench", "启动"),
+    row("冷启动 FCP", "coldFcp", "启动"),
+    row("冷启动 CLS", "coldCls", "启动", { unit: "cls" }),
+    row("短会话打开", "sessionFirstOpen", "会话切换"),
+    row("长会话打开", "switchLong", "会话切换"),
+    row("切回短会话", "switchShortRevisit", "会话切换"),
+    row("连切到短会话", "rapidSwitchMs", "会话切换"),
+    row("切后立刻滚动", "switchScrollWorstMs", "滚动", { frame: true }),
+    row("长会话滚动", "longScrollWorstMs", "滚动", { frame: true }),
+    row("侧栏列表滚动", "listScrollWorstMs", "滚动", { frame: true }),
+    row("侧栏收起展开", "sidebarToggleWorstMs", "布局响应", { frame: true }),
+    row("侧栏拖拽调宽", "sidebarDragWorstMs", "布局响应", { frame: true }),
+    row("窗口 resize", "windowResizeWorstMs", "布局响应", { frame: true }),
+    row("工具组首次展开首帧", "toolExpandFirstFrame", "工具组展开"),
+    row("工具组首次展开完成", "toolExpandComplete", "工具组展开"),
+    row("输入跟手", "composerKeyToFrame", "输入与发送"),
+    row("发送后自己的话", "ownMessageMs", "输入与发送"),
+    row("发送后首条助手", "firstTokenMs", "输入与发送"),
+    row("点停止", "abortMs", "输入与发送"),
+    row("流式首帧唤醒", "streamWakeMs", "流式渲染"),
+    row("流式跟上（稳态）", "streamKeepUpMs", "流式渲染"),
+    row("断线后恢复", "reconnectMs", "可靠性"),
   ])
 }
 
@@ -277,7 +284,7 @@ async function main() {
     const open = {
       coldTo: [] as number[],
       coldFcp: [] as number[],
-      coldLcp: [] as number[],
+      coldCls: [] as number[],
       firstOpen: [] as number[],
       switchLong: [] as number[],
       switchScroll: [] as number[],
@@ -286,7 +293,9 @@ async function main() {
       switchRevisit: [] as number[],
       toolExpandFirstFrame: [] as number[],
       toolExpandComplete: [] as number[],
-      toolExpandLongTask: [] as number[],
+      sidebarToggle: [] as number[],
+      sidebarDrag: [] as number[],
+      windowResize: [] as number[],
       composer: [] as number[],
     }
 
@@ -306,11 +315,11 @@ async function main() {
 
         try {
           const { page } = session
-          const cold = await measureStart(page)
+          const cold = await readStartVitals(page)
 
           open.coldTo.push(session.coldTo)
           open.coldFcp.push(cold.fcp)
-          open.coldLcp.push(cold.lcp)
+          open.coldCls.push(cold.cls)
           open.composer.push(await measureComposer(page, 7))
           open.listScroll.push(await scrollSessionList(page))
           open.firstOpen.push(await openSession(page, SHORT_SESSION_NAME))
@@ -322,7 +331,9 @@ async function main() {
 
           open.toolExpandFirstFrame.push(toolExpand.firstFrameMs)
           open.toolExpandComplete.push(toolExpand.completeMs)
-          open.toolExpandLongTask.push(toolExpand.worstLongTaskMs)
+          open.sidebarToggle.push(await sidebarToggleWorst(page))
+          open.sidebarDrag.push(await sidebarDragWorst(page))
+          open.windowResize.push(await windowResizeWorst(page, session.size, session.setSize))
         } catch (error) {
           await captureBenchFailure(session.page, failShot)
           throw error
@@ -346,13 +357,14 @@ async function main() {
 
     const own = turns.map((sample) => sample.ownMessageMs)
     const token = turns.map((sample) => sample.firstTokenMs)
+    const streamWake = turns.map((sample) => sample.streamWakeMs)
     const stream = turns.map((sample) => sample.streamKeepUpMs)
     const abort = turns.map((sample) => sample.abortMs)
     const rapid = turns.map((sample) => sample.rapidSwitchMs)
     const reconnect = turns.map((sample) => sample.reconnectMs)
     const cold = open.coldTo.length ? collect(open.coldTo) : undefined
     const fcp = open.coldFcp.length ? collect(open.coldFcp) : undefined
-    const lcp = open.coldLcp.length ? collect(open.coldLcp) : undefined
+    const cls = open.coldCls.length ? collect(open.coldCls) : undefined
     const composer = open.composer.length ? collect(open.composer) : undefined
     const firstOpen = open.firstOpen.length ? collect(open.firstOpen) : undefined
     const switchLong = open.switchLong.length ? collect(open.switchLong) : undefined
@@ -366,11 +378,12 @@ async function main() {
     const toolExpandComplete = open.toolExpandComplete.length
       ? collect(open.toolExpandComplete)
       : undefined
-    const toolExpandLongTask = open.toolExpandLongTask.length
-      ? collect(open.toolExpandLongTask)
-      : undefined
+    const sidebarToggle = open.sidebarToggle.length ? collect(open.sidebarToggle) : undefined
+    const sidebarDrag = open.sidebarDrag.length ? collect(open.sidebarDrag) : undefined
+    const windowResize = open.windowResize.length ? collect(open.windowResize) : undefined
     const ownStat = collect(own)
     const tokenStat = collect(token)
+    const streamWakeStat = collect(streamWake)
     const streamStat = collect(stream)
     const abortStat = collect(abort)
     const rapidStat = collect(rapid)
@@ -378,7 +391,7 @@ async function main() {
     const metrics: BenchMetrics = {
       coldToWorkbench: cold?.median ?? Number.NaN,
       coldFcp: fcp?.median ?? Number.NaN,
-      coldLcp: lcp?.median ?? Number.NaN,
+      coldCls: cls?.median ?? Number.NaN,
       sessionFirstOpen: firstOpen?.median ?? Number.NaN,
       switchLong: switchLong?.median ?? Number.NaN,
       switchScrollWorstMs: switchScroll?.median ?? Number.NaN,
@@ -387,10 +400,13 @@ async function main() {
       switchShortRevisit: switchRevisit?.median ?? Number.NaN,
       toolExpandFirstFrame: toolExpandFirstFrame?.median ?? Number.NaN,
       toolExpandComplete: toolExpandComplete?.median ?? Number.NaN,
-      toolExpandWorstLongTask: toolExpandLongTask?.median ?? Number.NaN,
       composerKeyToFrame: composer?.median ?? Number.NaN,
+      sidebarToggleWorstMs: sidebarToggle?.median ?? Number.NaN,
+      sidebarDragWorstMs: sidebarDrag?.median ?? Number.NaN,
+      windowResizeWorstMs: windowResize?.median ?? Number.NaN,
       ownMessageMs: ownStat.median,
       firstTokenMs: tokenStat.median,
+      streamWakeMs: streamWakeStat.median,
       streamKeepUpMs: streamStat.median,
       abortMs: abortStat.median,
       rapidSwitchMs: rapidStat.median,
@@ -399,7 +415,7 @@ async function main() {
     const p90s: Partial<Record<keyof BenchMetrics, number | undefined>> = {
       coldToWorkbench: cold?.p90,
       coldFcp: fcp?.p90,
-      coldLcp: lcp?.p90,
+      coldCls: cls?.p90,
       sessionFirstOpen: firstOpen?.p90,
       switchLong: switchLong?.p90,
       switchScrollWorstMs: switchScroll?.p90,
@@ -408,17 +424,20 @@ async function main() {
       switchShortRevisit: switchRevisit?.p90,
       toolExpandFirstFrame: toolExpandFirstFrame?.p90,
       toolExpandComplete: toolExpandComplete?.p90,
-      toolExpandWorstLongTask: toolExpandLongTask?.p90,
       composerKeyToFrame: composer?.p90,
+      sidebarToggleWorstMs: sidebarToggle?.p90,
+      sidebarDragWorstMs: sidebarDrag?.p90,
+      windowResizeWorstMs: windowResize?.p90,
       ownMessageMs: ownStat.p90,
       firstTokenMs: tokenStat.p90,
+      streamWakeMs: streamWakeStat.p90,
       streamKeepUpMs: streamStat.p90,
       abortMs: abortStat.p90,
       rapidSwitchMs: rapidStat.p90,
       reconnectMs: reconnectStat.p90,
     }
     const config = {
-      version: 15,
+      version: 18,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,
@@ -436,7 +455,7 @@ async function main() {
     await mkdir(join(root, "test-results"), { recursive: true })
     await writeFile(
       resultPath,
-      `${JSON.stringify({ config, metrics: stored, p90s, samples: { ...open, own, token, stream, abort, rapid, reconnect } }, null, 2)}\n`,
+      `${JSON.stringify({ config, metrics: stored, p90s, samples: { ...open, own, token, streamWake, stream, abort, rapid, reconnect } }, null, 2)}\n`,
     )
     printReport(stored, p90s, comparable, harness.runtimeLabel)
     console.log(`结果已写入 ${resultPath}`)
@@ -459,13 +478,11 @@ try {
   const message = error instanceof Error ? error.message : String(error)
   console.error(message)
 
-  if (message.includes("Executable doesn't exist") || message.includes("browserType.launch")) {
+  if (message.includes("Executable doesn't exist") || message.includes("browserType.launch"))
     console.error("未找到 Chromium。请先运行: pnpm exec playwright install chromium")
-  }
 
-  if (message.includes("electron.launch") || message.includes("Electron failed")) {
+  if (message.includes("electron.launch") || message.includes("Electron failed"))
     console.error("未启动 Electron。请先运行: pnpm --filter @pig/desktop exec electron --version")
-  }
 
   process.exitCode = 1
 }

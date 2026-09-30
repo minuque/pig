@@ -1,30 +1,39 @@
 <template>
-  <div class="session-item" :class="{ 'is-menu-open': menuOpen }">
-    <button
-      v-if="!renaming"
-      class="pin-toggle press-scale"
-      type="button"
-      :title="pinned ? '取消置顶' : '置顶'"
-      :aria-label="pinned ? '取消置顶' : '置顶'"
-      :aria-pressed="pinned"
-      @click.stop="emit('togglePinned', session.id)"
-    >
-      <PinOff v-if="pinned" class="size-icon" />
-      <Pin v-else class="size-icon" />
-    </button>
+  <div class="session-item" :class="{ 'is-menu-open': menuOpen, 'is-placeholder': placeholder }">
+    <Tooltip v-if="!placeholder && !renaming && !showPath">
+      <TooltipTrigger as-child>
+        <button
+          class="pin-toggle press-scale"
+          type="button"
+          :aria-label="pinned ? '取消置顶' : '置顶'"
+          :aria-pressed="pinned"
+          @click.stop="emit('togglePinned', session.id)"
+        >
+          <PinOff v-if="pinned" class="size-icon" />
+          <Pin v-else class="size-icon" />
+        </button>
+      </TooltipTrigger>
 
-    <ContextMenu :press-open-delay="500" @update:open="onMenuOpenChange">
+      <TooltipContent>{{ pinned ? "取消置顶" : "置顶" }}</TooltipContent>
+    </Tooltip>
+
+    <ContextMenu :modal="false" :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
-          :is="renaming ? 'div' : RouterLink"
+          :is="renaming || placeholder ? 'div' : RouterLink"
           class="session-card"
-          :class="{ active }"
-          :to="renaming ? undefined : { name: 'session', params: { sessionId: session.id } }"
+          :class="{ active, 'show-path': showPath, 'is-placeholder': placeholder }"
+          :to="
+            renaming || placeholder
+              ? undefined
+              : { name: 'session', params: { sessionId: session.id } }
+          "
           @click="onCardClick"
           @keydown="onCardKeydown"
+          @contextmenu="onCardContextMenu"
         >
           <div class="card-line">
-            <span class="pin-slot" aria-hidden="true"></span>
+            <span v-if="!renaming && !showPath" class="pin-slot" aria-hidden="true"></span>
 
             <input
               v-if="renaming"
@@ -40,74 +49,122 @@
             <span v-else class="title">{{ session.title }}</span>
 
             <span v-if="!renaming" class="trail-slot">
-              <span v-if="streaming" class="session-spin" :aria-label="stateLabel">
-                <Spinner :size="12" />
+              <span
+                v-if="stateIcon"
+                class="state-icon"
+                :class="state"
+                role="img"
+                :aria-label="stateLabel"
+              >
+                <component
+                  :is="stateIcon"
+                  :size="14"
+                  :class="{ 'animate-spin motion-reduce:animate-none': state === 'running' }"
+                />
+              </span>
+
+              <span
+                v-else-if="showPath"
+                class="status-ring"
+                :class="{ active }"
+                :role="active ? 'img' : undefined"
+                :aria-hidden="active ? undefined : true"
+                :aria-label="active ? '当前会话' : undefined"
+              ></span>
+
+              <span v-else-if="dirTag" class="session-dir" :title="session.cwd">
+                {{ dirTag }}
               </span>
 
               <time
                 v-else-if="session.updatedAt"
                 class="session-time"
-                :class="{ 'has-state': stateDot }"
                 :datetime="new Date(session.updatedAt).toISOString()"
-                :aria-label="stateDot ? stateLabel : undefined"
               >
-                <span v-if="stateDot" class="state-dot" :class="state"></span>
-                <span class="time-text">{{ relativeTime }}</span>
+                {{ relativeTime }}
               </time>
 
-              <button
-                class="more-toggle press-scale"
-                type="button"
-                title="更多"
-                aria-label="更多"
-                aria-haspopup="menu"
-                :aria-expanded="menuOpen"
-                @click.prevent.stop="openSessionMenu"
-                @contextmenu.prevent.stop="openSessionMenu"
-              >
-                <Ellipsis class="size-icon" />
-              </button>
+              <Tooltip v-if="!placeholder">
+                <TooltipTrigger as-child>
+                  <button
+                    class="more-toggle press-scale"
+                    type="button"
+                    aria-label="更多"
+                    aria-haspopup="menu"
+                    :aria-expanded="menuOpen"
+                    @click.prevent.stop="openSessionMenu"
+                    @contextmenu.prevent.stop="openSessionMenu"
+                  >
+                    <Ellipsis class="size-icon" />
+                  </button>
+                </TooltipTrigger>
+
+                <TooltipContent>更多</TooltipContent>
+              </Tooltip>
             </span>
+          </div>
+
+          <div v-if="showPath && session.cwd" class="path-line">
+            <Folder class="path-icon" :size="14" aria-hidden="true" />
+            <span class="path-text">{{ session.cwd }}</span>
           </div>
         </component>
       </ContextMenuTrigger>
 
-      <ContextMenuContent class="select-none">
+      <ContextMenuContent v-if="!placeholder" class="select-none">
         <ContextMenuItem @select="emit('togglePinned', session.id)">
-          <PinOff v-if="pinned" :size="14" />
-          <Pin v-else :size="14" />
+          <PinOff v-if="pinned" />
+          <Pin v-else />
           {{ pinned ? "取消置顶" : "置顶" }}
         </ContextMenuItem>
 
         <ContextMenuItem @select="startRename">
-          <Pencil :size="14" />
+          <Pencil />
           重命名
         </ContextMenuItem>
 
+        <ContextMenuSeparator />
+
         <ContextMenuItem variant="destructive" @select="deleteOpen = true">
-          <Trash2 :size="14" />
+          <Trash2 />
           删除
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
 
-    <SessionItemDelete v-model:open="deleteOpen" :title="session.title" @confirm="confirmDelete" />
+    <SessionItemDelete
+      v-if="!placeholder"
+      v-model:open="deleteOpen"
+      :title="session.title"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef } from "vue"
 import { RouterLink } from "vue-router"
-import { Ellipsis, Pencil, Pin, PinOff, Trash2 } from "@lucide/vue"
+import {
+  CircleAlert,
+  CircleCheck,
+  Ellipsis,
+  Folder,
+  LoaderCircle,
+  Pencil,
+  Pin,
+  PinOff,
+  Trash2,
+} from "@lucide/vue"
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
-import { Spinner } from "@components/ui/spinner/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 
@@ -116,11 +173,17 @@ const props = withDefaults(
     session: SidebarSession
     active?: boolean
     pinned?: boolean
+    showPath?: boolean
+    dirTag?: string | undefined
     state?: SidebarSessionState | undefined
+    placeholder?: boolean
     now: number
   }>(),
   {
+    showPath: false,
+    dirTag: undefined,
     state: undefined,
+    placeholder: false,
   },
 )
 const emit = defineEmits<{
@@ -136,18 +199,12 @@ const nameInput = ref<HTMLInputElement | null>(null)
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
-const streaming = computed(() => props.state === "running" && !renaming.value)
-const stateDot = computed(
-  () => (props.state === "unread" || props.state === "error") && !renaming.value,
+const STATE_ICONS = { running: LoaderCircle, unread: CircleCheck, error: CircleAlert }
+const STATE_LABELS = { running: "运行中", unread: "运行完成但未打开", error: "运行失败" }
+const stateIcon = computed(() =>
+  props.state && !renaming.value ? STATE_ICONS[props.state] : undefined,
 )
-const stateLabel = computed(() => {
-  if (props.state === "running") return "运行中"
-
-  if (props.state === "unread") return "运行完成但未打开"
-
-  if (props.state === "error") return "运行失败"
-  return undefined
-})
+const stateLabel = computed(() => (props.state ? STATE_LABELS[props.state] : undefined))
 
 function onMenuOpenChange(open: boolean) {
   menuOpen.value = open
@@ -158,7 +215,7 @@ function isModifiedSessionClick(event: MouseEvent) {
 }
 
 function onCardClick(event: MouseEvent) {
-  if (menuOpen.value || renaming.value) {
+  if (props.placeholder || menuOpen.value || renaming.value) {
     event.preventDefault()
     event.stopPropagation()
     return
@@ -184,20 +241,23 @@ function openContextMenuAt(target: HTMLElement, clientX: number, clientY: number
 }
 
 function openSessionMenu(event: MouseEvent) {
-  const item = (event.currentTarget as HTMLElement).closest(".session-item")
-  const card = item?.querySelector(".session-card")
+  const button = event.currentTarget
+  const card = button instanceof HTMLElement ? button.closest(".session-card") : null
 
-  if (!(card instanceof HTMLElement)) return
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const menuWidth =
-    Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--size-menu")) ||
-    140
+  if (!(button instanceof HTMLElement) || !(card instanceof HTMLElement)) return
+  const rect = button.getBoundingClientRect()
+  openContextMenuAt(card, rect.left, rect.bottom)
+}
 
-  // ContextMenu 固定 side=right / align=start，点在面板左上；左移一格让右上角贴图标
-  openContextMenuAt(card, rect.right - menuWidth - 2, rect.bottom)
+function onCardContextMenu(event: MouseEvent) {
+  if (!props.placeholder) return
+  event.preventDefault()
+  event.stopPropagation()
 }
 
 function onCardKeydown(event: KeyboardEvent) {
+  if (props.placeholder) return
+
   if (event.key !== "F10" || !event.shiftKey) return
   event.preventDefault()
   const el = event.currentTarget
@@ -257,12 +317,22 @@ function confirmDelete() {
   text-decoration: none;
 }
 
+.session-card.show-path {
+  flex-direction: column;
+  align-items: stretch;
+  height: auto;
+  padding: 6px var(--spacing-xs);
+  line-height: var(--text-caption--line-height);
+}
+
 .session-item:hover .session-card,
 .session-card[data-state="open"] {
   background: var(--interaction-hover);
 }
 
-.session-card.active {
+.session-card.active,
+.session-item:hover .session-card.active,
+.session-card.active[data-state="open"] {
   background: var(--interaction-selected);
 }
 
@@ -276,6 +346,11 @@ function confirmDelete() {
   line-height: 0;
 }
 
+.session-card.show-path .card-line {
+  height: auto;
+  min-height: calc(var(--text-caption) * var(--text-caption--line-height));
+}
+
 .pin-slot {
   flex: none;
   display: grid;
@@ -287,16 +362,16 @@ function confirmDelete() {
 .pin-toggle {
   position: absolute;
   z-index: 1;
-  inset-inline-start: var(--spacing-xs);
+  inset-inline-start: calc(var(--spacing-xs) - var(--icon-button-pad));
   inset-block: 0;
   display: grid;
   place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: calc(var(--size-icon) + var(--icon-button-pad) * 2);
+  height: calc(var(--size-icon) + var(--icon-button-pad) * 2);
   margin-block: auto;
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
   opacity: 0;
@@ -312,6 +387,7 @@ function confirmDelete() {
 
 .pin-toggle:hover,
 .pin-toggle:focus-visible {
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 
@@ -324,8 +400,10 @@ function confirmDelete() {
   min-height: var(--size-icon);
 }
 
-.session-spin,
+.state-icon,
 .session-time,
+.session-dir,
+.status-ring,
 .more-toggle {
   grid-area: 1 / 1;
 }
@@ -333,11 +411,10 @@ function confirmDelete() {
 .more-toggle {
   display: grid;
   place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  padding: 0;
+  margin-inline: calc(var(--icon-button-pad) * -1);
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
   opacity: 0;
@@ -355,61 +432,87 @@ function confirmDelete() {
 
 .more-toggle:hover,
 .more-toggle:focus-visible {
+  background: var(--hover-quiet);
   color: var(--ink);
 }
 
-.state-dot {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
-  width: 7px;
-  height: 7px;
-  margin-block: auto;
+.status-ring {
+  justify-self: end;
+  align-self: center;
+  width: 8px;
+  height: 8px;
   border-radius: var(--radius-full);
-  pointer-events: none;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--ink-faint);
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.state-dot.unread {
-  background: var(--info);
-}
-
-.state-dot.error {
-  background: var(--danger);
+.status-ring.active {
+  background: var(--primary);
+  box-shadow: none;
 }
 
 .title {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--ink-muted);
+  color: var(--ink);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-regular);
   line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: color var(--duration-fast) var(--ease-smooth);
 }
 
-.session-item:hover .title,
-.session-card[data-state="open"] .title,
-.session-card.active .title {
-  color: var(--ink);
-}
-
-.session-spin {
+.path-line {
   display: flex;
   align-items: center;
+  gap: var(--spacing-xxs);
+  min-width: 0;
+  margin-block-start: var(--spacing-xxs);
+}
+
+.path-icon {
+  flex: none;
   color: var(--ink-muted);
+}
+
+.path-text {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-faint);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--text-eyebrow--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.state-icon {
+  display: flex;
+  align-items: center;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.session-time {
+.state-icon.running {
+  color: var(--primary);
+}
+
+.state-icon.unread {
+  color: var(--success);
+}
+
+.state-icon.error {
+  color: var(--danger);
+}
+
+.session-time,
+.session-dir {
   position: relative;
   display: flex;
   align-items: center;
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
-  font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-regular);
   line-height: var(--text-eyebrow--line-height);
   text-align: end;
@@ -417,16 +520,28 @@ function confirmDelete() {
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.session-time.has-state .time-text {
-  visibility: hidden;
+.session-time {
+  font-variant-numeric: tabular-nums;
+}
+
+.session-dir {
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .session-item:hover .session-time,
-.session-item:hover .session-spin,
+.session-item:hover .state-icon,
+.session-item:hover .session-dir,
+.session-item:hover .status-ring,
 .session-item:focus-within .session-time,
-.session-item:focus-within .session-spin,
+.session-item:focus-within .state-icon,
+.session-item:focus-within .session-dir,
+.session-item:focus-within .status-ring,
 .session-item.is-menu-open .session-time,
-.session-item.is-menu-open .session-spin {
+.session-item.is-menu-open .state-icon,
+.session-item.is-menu-open .session-dir,
+.session-item.is-menu-open .status-ring {
   opacity: 0;
   pointer-events: none;
 }
@@ -438,7 +553,9 @@ function confirmDelete() {
   }
 
   .session-time,
-  .session-spin {
+  .state-icon,
+  .session-dir,
+  .status-ring {
     opacity: 0;
     pointer-events: none;
   }
@@ -461,6 +578,10 @@ function confirmDelete() {
   outline: none;
   box-shadow: inset 0 0 0 1px var(--primary);
   user-select: text;
+}
+
+.session-card.show-path .rename-input {
+  height: calc(var(--text-caption) * var(--text-caption--line-height));
 }
 
 .rename-input::selection {

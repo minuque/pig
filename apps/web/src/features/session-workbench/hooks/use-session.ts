@@ -9,29 +9,30 @@ import {
 } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { RemoteSession } from "@earendil-works/pi-coding-agent/client"
-import type {
-  ModelRef,
-  RemoteSessionState,
-  ThinkingLevel,
-  TranscriptItem,
-  Unsubscribe,
-} from "@/types/common-type.js"
+import type { ModelRef, RemoteSessionState, ThinkingLevel } from "@/types/common-type.js"
 import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
-import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
-import { contextUsage } from "@client/platform.js"
+import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
 import { useSessionComposer } from "@features/composer/index.js"
+import { sameModel, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
+import {
+  createBackgroundSender,
+  dropBatch,
+  stageBatchFor,
+} from "@features/session-workbench/hooks/use-background-send.js"
 import { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"
 import {
   createAbortableOpen,
   isDisconnectedError,
   isOpenAborted,
 } from "@features/session-workbench/hooks/abortable-open.js"
-import { coalesceByFrame } from "@features/session-workbench/lib/coalesce-by-frame.js"
+import {
+  useLiveSubscriptions,
+  type LiveSubscription,
+} from "@features/session-workbench/hooks/use-live-subscriptions.js"
 import {
   bindIdleSends,
-  isSessionOpening,
   optimisticUserMessage,
   phaseLabel,
   projectClientTranscript,
@@ -61,78 +62,73 @@ export function useSessionLifecycle(
   })
   const remote = shallowRef<RemoteSession>()
   const state = shallowRef<RemoteSessionState>()
-  let unsubscribeState: Unsubscribe | undefined
-  let cancelCoalesced: (() => void) | undefined
+  let activeSub: LiveSubscription | undefined
   let replaceChain: Promise<void> = Promise.resolve()
   let abortInflightOpen: (() => void) | undefined
   const { raceRemoteOpen, discard } = createAbortableOpen()
   const history = useSessionHistory()
-  const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
-  let contextUsageRequest = 0
+  const live = useLiveSubscriptions({
+    history,
+    discard,
+    foregroundId: () => remote.value?.id,
+    onForegroundState: (next) => {
+      state.value = next
+    },
+  })
+  const { backgroundRunningIds } = live
   const snapshot = computed(() => state.value?.snapshot)
   const liveTranscript = history.liveTranscript
 
+  /** 后台池命中就把该会话挂回前台，复用同一条连接。 */
+  function promote(id: string) {
+    const sub = live.promoteBackground(id)
+
+    if (!sub) return false
+    activeSub = sub
+    remote.value = sub.session
+
+    if (sub.lastState) state.value = sub.lastState
+    return true
+  }
+
+  function clearForeground() {
+    live.clearContextUsage()
+    remote.value = undefined
+    state.value = undefined
+  }
+
   function attach(next: RemoteSession) {
     const previous = remote.value
+
     detach()
 
     if (previous && previous !== next) void discard(previous)
+    activeSub = live.subscribeLive(next, true)
     remote.value = next
-    let usageRevision: number | undefined
-    // 每 token 一个事件，整流成每帧一次发布，避免每 token 重建整条时间线；8ms 兜底上限压低流式延迟
-    // 快照广播会清空库内 progress，同一帧里后到的空快照会盖掉先到的 item_finished：按 id 逐事件累积
-    const liveItems = new Map<string, TranscriptItem>()
-    const publish = (nextState: RemoteSessionState) => {
-      state.value = nextState
-      const attachedId = next.id
-
-      if (liveItems.size > 0 && attachedId) history.overlayLive(attachedId, [...liveItems.values()])
-      const revision = nextState.snapshot?.revision
-
-      if (revision === undefined || revision === usageRevision || !attachedId) return
-      const hadRevision = usageRevision !== undefined
-      usageRevision = revision
-      void refreshContextUsage(attachedId)
-
-      if (hadRevision) void history.loadHistory(attachedId, { force: true })
-      else void history.loadHistory(attachedId)
-    }
-    const coalesced = coalesceByFrame<RemoteSessionState>(publish, 8)
-
-    cancelCoalesced = coalesced.cancel
-    unsubscribeState = next.subscribe((nextState) => {
-      for (const item of nextState.transcript) liveItems.set(item.id, item)
-      coalesced.push(nextState)
-    })
   }
 
   function detach() {
-    contextUsageRequest += 1
-    unsubscribeState?.()
-    unsubscribeState = undefined
-    cancelCoalesced?.()
-    cancelCoalesced = undefined
-    remote.value = undefined
-    state.value = undefined
-    contextUsageEstimate.value = undefined
+    const id = remote.value?.id
+
+    if (id) history.releaseLive(id)
+    activeSub?.stop()
+    activeSub = undefined
+    clearForeground()
   }
 
-  async function refreshContextUsage(id: string | undefined) {
-    if (!id) return
-    const request = ++contextUsageRequest
-
-    try {
-      const usage = await contextUsage(id)
-
-      if (request !== contextUsageRequest || remote.value?.id !== id) return
-      contextUsageEstimate.value = usage ?? undefined
-    } catch {
-      /* 占用估算失败不挡主流程 */
-    }
-  }
-
+  /** 切走前台会话：还在运行就转入后台订阅池，空闲则放弃连接。 */
   function release() {
     const previous = remote.value
+    const sub = activeSub
+    const id = previous?.id
+
+    if (sub && id && sub.running) {
+      live.moveToBackground(sub)
+      activeSub = undefined
+      clearForeground()
+      return
+    }
+
     detach()
 
     if (previous) void discard(previous)
@@ -147,16 +143,24 @@ export function useSessionLifecycle(
     return next
   }
 
-  /** 打开已有 Session：历史走 HTTP。断线等 pi.connected 再 open 一次。 */
-  async function openRemoteSession(id: string) {
+  function showHistory(id: string) {
     if (history.activeId.value !== id) abortInflightOpen?.()
     history.setActive(id)
     void history.loadHistory(id)
-    return enqueueReplace(async () => {
-      if (history.activeId.value !== id || remote.value?.id === id) return
 
-      if (!pi.client.value) return
+    if (remote.value?.id === id) return
+    abortInflightOpen?.()
+    release()
+    promote(id)
+  }
+
+  function ensureRemote(id: string) {
+    if (remote.value?.id === id) return Promise.resolve()
+    return enqueueReplace(async () => {
+      if (history.activeId.value !== id || remote.value?.id === id || !pi.client.value) return
       release()
+
+      if (promote(id)) return
 
       for (let attempt = 0; attempt < 2; attempt += 1) {
         const current = pi.client.value
@@ -219,6 +223,20 @@ export function useSessionLifecycle(
     await remote.value?.submit(text)
   }
 
+  /**
+   * 顺序暂存每个文件字节，再把 batch 绑到当前 Session；下一次 prompt 消费它。
+   * 每次 await 后查 epoch：被中止或切走就返回 false，由调用方丢弃这个批次。
+   */
+  async function stageAttachments(batch: ComposerAttachmentBatch, epoch: number) {
+    const id = sessionId.value
+
+    if (!id) throw new Error("会话未连接")
+    return stageBatchFor(id, batch, () => epoch !== sendEpoch || sessionId.value !== id)
+  }
+
+  /** 接管后台会话空闲后的泵队与收尾；不注册就直接出池。 */
+  const setBackgroundIdleHandler = live.setBackgroundIdle
+
   async function abortRemote() {
     await remote.value?.abort()
   }
@@ -240,25 +258,22 @@ export function useSessionLifecycle(
     abortInflightOpen?.()
     abortInflightOpen = undefined
     const current = remote.value
+    const pooled = live.takeBackground()
+
     detach()
+
+    for (const sub of pooled) await discard(sub.session)
 
     if (current) await discard(current)
   }
 
   let initialized = false
 
-  async function syncRoute() {
+  function syncRoute() {
     const id = sessionId.value
 
     if (!id) return dispose()
-
-    try {
-      await openRemoteSession(id)
-    } catch (error) {
-      sessionError.value = errorMessage(error)
-
-      if (sessionId.value && liveTranscript.value.length === 0) await router.replace("/")
-    }
+    showHistory(id)
   }
 
   const stopRouteSync = watch(sessionId, () => {
@@ -267,6 +282,8 @@ export function useSessionLifecycle(
   const stopClientSync = watch(
     () => pi.connected.value,
     (connected) => {
+      if (!connected) live.dropBackground()
+
       if (initialized && connected) void syncRoute()
     },
   )
@@ -278,13 +295,15 @@ export function useSessionLifecycle(
     if (id) history.setActive(id)
     else await dispose()
 
-    if (pi.connected.value) void syncRoute()
-    else if (id) await history.loadHistory(id)
+    if (id) showHistory(id)
   }
 
-  const sessionPending = computed(() =>
-    isSessionOpening(sessionId.value, remote.value?.id, history.historyReadyId.value),
-  )
+  const sessionPending = computed(() => {
+    const id = sessionId.value
+
+    if (!id) return false
+    return history.historyReadyId.value !== id
+  })
   const projection = computed(() => {
     const current = snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined
     return !sessionId.value || current?.id === sessionId.value ? current : undefined
@@ -292,16 +311,21 @@ export function useSessionLifecycle(
   const phase = computed(() => projection.value?.phase)
   const running = computed(() => projection.value?.running ?? false)
   const phaseText = computed(() => (running.value && phase.value ? phaseLabel(phase.value) : ""))
-  const { catalog, preset, usage, createModel } = useSessionComposer({
+  const { catalog, preset, usage, createModel, consumeDetachedEdit } = useSessionComposer({
     models: pi.models,
     snapshot,
     phase,
-    estimate: contextUsageEstimate,
+    estimate: live.contextUsage,
     setModel,
     setThinking,
   })
   const states = reactive(new Map<string, ReturnType<typeof sessionState>>())
   const idleState = reactive<SessionClientState>({ draft: "", sends: [] })
+  const backgroundSend = createBackgroundSender({
+    states,
+    backgroundSubscription: live.backgroundSubscription,
+    transcriptFor: history.transcriptFor,
+  })
   const creatingCwd = ref<string>()
   const submitting = ref(false)
   const aborting = ref(false)
@@ -359,12 +383,20 @@ export function useSessionLifecycle(
     }
   }
 
-  async function sendPrompt(text: string, cwd?: string) {
+  /**
+   * 附件随这次提交走：先确保 Session 存在，再 stage + bind，最后提交正文。
+   * 只有真正提交成功才返回 true；被中止、切走或提前退出都返回 false。
+   */
+  async function sendPrompt(
+    text: string,
+    cwd?: string,
+    attachments?: ComposerAttachmentBatch,
+  ): Promise<boolean> {
     const normalized = text.trim()
 
-    if (!normalized || submitting.value) return
+    if (!normalized || submitting.value) return false
 
-    if (!sessionId.value && (!cwd || creatingCwd.value)) return
+    if (!sessionId.value && (!cwd || creatingCwd.value)) return false
     const epoch = ++sendEpoch
 
     submitting.value = true
@@ -383,15 +415,44 @@ export function useSessionLifecycle(
       if (!sessionId.value) {
         const nextId = await createSession(cwd!)
 
-        if (epoch !== sendEpoch) return
+        if (epoch !== sendEpoch) return false
 
-        if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return
+        if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return false
+      } else {
+        const id = sessionId.value
+        const chosen = consumeDetachedEdit()
+        await ensureRemote(id)
+
+        if (epoch !== sendEpoch || sessionId.value !== id) return false
+
+        if (remote.value?.id !== id) throw new Error("会话未连接")
+
+        if (chosen && snapshot.value) {
+          if (!sameModel(chosen.model, snapshot.value.model)) await setModel(chosen.model)
+
+          if (chosen.thinkingLevel !== snapshot.value.thinkingLevel)
+            await setThinking(thinkingLevelOf(chosen.thinkingLevel))
+        }
       }
 
-      if (epoch !== sendEpoch) return
+      if (epoch !== sendEpoch || remote.value?.id !== sessionId.value) return false
+
+      if (attachments && !(await stageAttachments(attachments, epoch))) {
+        await dropBatch(attachments.batch)
+        return false
+      }
+
+      if (epoch !== sendEpoch || remote.value?.id !== sessionId.value) {
+        await dropBatch(attachments?.batch)
+        return false
+      }
+
       await submitRemote(normalized)
+      return true
     } catch (error) {
-      if (epoch !== sendEpoch) return
+      await dropBatch(attachments?.batch)
+
+      if (epoch !== sendEpoch) return false
       const current = clientState.value
 
       if (!current.draft) current.draft = previousDraft || text
@@ -458,6 +519,7 @@ export function useSessionLifecycle(
     projection,
     phase,
     running,
+    backgroundRunningIds,
     turnPending,
     phaseText,
     sessionPending,
@@ -480,6 +542,9 @@ export function useSessionLifecycle(
     aborting,
     createSession,
     sendPrompt,
+    sendBackgroundPrompt: backgroundSend.send,
+    setBackgroundIdleHandler,
+    transcriptFor: history.transcriptFor,
     abortSession,
     initialize,
     remote,

@@ -136,7 +136,6 @@ const label = computed(() =>
 <style>
 /* 菜单经 Portal 挂到 body，scoped 选不中 */
 .workbench-hero-menu {
-  min-width: 10rem;
   max-width: 16rem;
 }
 

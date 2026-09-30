@@ -1,20 +1,40 @@
-import { onMounted, onUnmounted, readonly, shallowRef } from "vue"
+import { readonly, shallowRef } from "vue"
 
 const CLICK_SOUND_KEY = "pig.clickSound"
 const MASTER = 0.32
-const INTERACTIVE =
-  "button, a[href], input:not([type='hidden']), select, textarea, summary, [role='button'], [role='checkbox'], [role='menuitem'], [role='menuitemcheckbox'], [role='menuitemradio'], [role='option'], [role='radio'], [role='switch'], [role='tab']"
-const DISMISS = /close|dismiss|remove|delete|collapse|cancel|clear|关闭|删除|取消|清除|折叠/i
-const PRIMARY = /send|save|submit|create|add|upgrade|发送|保存|提交|添加|新建|创建/i
 
-type Cue = "press" | "tick" | "release" | "page" | "pulse"
+type Cue = "press" | "release" | "page" | "pulse"
+
+/** 音效入口：发送、停止、切换会话、新建会话、打开搜索、轮次结束。 */
+export type SoundEvent = "send" | "stop" | "switch" | "create" | "search" | "done"
+
+const CUES: Record<Exclude<SoundEvent, "done">, Cue> = {
+  send: "pulse",
+  stop: "release",
+  switch: "page",
+  create: "pulse",
+  search: "press",
+}
 
 type Filter = { type: BiquadFilterType; frequency: number; Q?: number }
 
+/** 轮次完成提示音：两声圆润轻击接 F4 短尾音。 */
+const DONE = {
+  seconds: 0.52,
+  gain: 0.55,
+  // [中心 s, 幅度, 宽度 s]
+  clicks: [
+    [0.009, 0.18, 0.00052],
+    [0.119, 0.21, 0.00085],
+  ],
+  // [起点 s, 频率 Hz, 幅度, 衰减 s]
+  tones: [[0.145, 349.23, 0.055, 0.1]],
+  reflections: [0.024, 0.032],
+} as const
 const enabled = shallowRef(true)
 let loaded = false
-let binds = 0
 let ctx: AudioContext | null = null
+let doneBuffer: AudioBuffer | null = null
 
 function readEnabled(): boolean {
   try {
@@ -118,13 +138,6 @@ function emit(audio: AudioContext, cue: Cue): void {
       noise(audio, 0.02, 0.0003, 0.009, 0.13, { type: "highpass", frequency: 2400 })
       tone(audio, "sine", 680, 0.0006, 0.03, 0.24)
       return
-    case "tick":
-      tone(audio, "square", 2100, 0.0004, 0.028, 0.24, {
-        type: "bandpass",
-        frequency: 2600,
-        Q: 1.6,
-      })
-      return
     case "release":
       noise(audio, 0.06, 0.001, 0.055, 0.32, { type: "lowpass", frequency: 1600, Q: 0.9 })
       return
@@ -136,83 +149,83 @@ function emit(audio: AudioContext, cue: Cue): void {
   }
 }
 
-async function play(cue: Cue): Promise<void> {
-  if (typeof AudioContext === "undefined") return
+/** 逐采样合成立体声：干声 + 两路小反射，尾部 75ms 线性淡出。 */
+function synthesizeDone(audio: AudioContext): AudioBuffer {
+  const rate = audio.sampleRate
+  const count = Math.round(rate * DONE.seconds)
+  const dry = new Float32Array(count)
+  const tail = new Float32Array(count)
+
+  for (let i = 0; i < count; i++) {
+    const t = i / rate
+
+    for (const [center, amplitude, width] of DONE.clicks) {
+      const p = (t - center) / width
+
+      if (Math.abs(p) < 5) dry[i]! += amplitude * (1 - 2 * p * p) * Math.exp(-p * p)
+    }
+
+    for (const [start, frequency, amplitude, decay] of DONE.tones) {
+      const u = t - start
+
+      if (u < 0) continue
+      const env = (1 - Math.exp(-u / 0.009)) * Math.exp(-u / decay)
+      const w = 2 * Math.PI * frequency * u
+      tail[i]! += amplitude * env * (Math.sin(w) + 0.12 * Math.sin(2 * w))
+    }
+  }
+
+  const buffer = audio.createBuffer(2, count, rate)
+  DONE.reflections.forEach((delay, channel) => {
+    const data = buffer.getChannelData(channel)
+    const offset = Math.round(delay * rate)
+
+    for (let i = 0; i < count; i++) {
+      const reflection = i >= offset ? 0.06 * tail[i - offset]! : 0
+      const fade = Math.min((count - i) / (0.075 * rate), 1)
+      data[i] = (dry[i]! + tail[i]! + reflection) * fade * DONE.gain
+    }
+  })
+  return buffer
+}
+
+async function audioReady(): Promise<AudioContext | null> {
+  if (typeof AudioContext === "undefined") return null
   ctx ??= new AudioContext()
 
   if (ctx.state === "suspended") await ctx.resume()
-
-  if (ctx.state !== "running") return
-  emit(ctx, cue)
+  return ctx.state === "running" ? ctx : null
 }
 
-function cueFor(element: Element): Cue {
-  const override = element.getAttribute("data-sound")
+async function play(event: SoundEvent): Promise<void> {
+  load()
 
-  if (
-    override === "press" ||
-    override === "tick" ||
-    override === "release" ||
-    override === "page" ||
-    override === "pulse"
-  ) {
-    return override
+  if (!enabled.value) return
+  const audio = await audioReady()
+
+  if (!audio) return
+
+  if (event !== "done") {
+    emit(audio, CUES[event])
+    return
   }
 
-  const label = `${element.getAttribute("aria-label") ?? ""} ${element.getAttribute("title") ?? ""} ${element.textContent ?? ""}`
-
-  if (DISMISS.test(label)) return "release"
-
-  if (
-    element.matches(
-      "input[type='checkbox'], input[type='radio'], select, [role='checkbox'], [role='radio'], [role='switch'], [role='tab'], [aria-pressed]",
-    )
-  ) {
-    return "tick"
-  }
-
-  if (element.matches("a[href]")) return "page"
-
-  if (PRIMARY.test(label)) return "pulse"
-
-  if (element.matches("input, textarea")) return "tick"
-  return "press"
-}
-
-function onClick(event: MouseEvent): void {
-  if (!enabled.value || !event.isTrusted) return
-
-  if (!(event.target instanceof Element)) return
-  const control = event.target.closest(INTERACTIVE)
-
-  if (!control || control.closest("[data-sound-silent]")) return
-
-  if (control.matches(":disabled, [aria-disabled='true']")) return
-  void play(cueFor(control))
-}
-
-function bind(): void {
-  if (binds === 0) document.addEventListener("click", onClick, true)
-  binds += 1
-}
-
-function unbind(): void {
-  binds = Math.max(0, binds - 1)
-
-  if (binds === 0) document.removeEventListener("click", onClick, true)
+  doneBuffer ??= synthesizeDone(audio)
+  const source = audio.createBufferSource()
+  source.buffer = doneBuffer
+  source.connect(audio.destination)
+  source.start()
 }
 
 function toggle(): void {
   enabled.value = !enabled.value
   persist(enabled.value)
 
-  if (enabled.value) void play("pulse")
+  if (enabled.value) void play("send")
 }
 
-/** 全页捕获点击并合成短音；开关持久化在 localStorage。 */
-export function useClickSound() {
+/** 按事件播放合成短音；开关持久化在 localStorage。 */
+export function useSound() {
   load()
-  onMounted(bind)
-  onUnmounted(unbind)
-  return { enabled: readonly(enabled), toggle }
+  return { enabled: readonly(enabled), toggle, play }
 }

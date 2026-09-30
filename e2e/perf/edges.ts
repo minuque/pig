@@ -2,7 +2,15 @@ import { expect, type Page } from "@playwright/test"
 
 import { TRANSCRIPT_PAGE_TURNS } from "../../packages/gateway/src/pi/transcript-page.js"
 import { STOP_TURN, TURN_TOKEN, installTurnBridge, streamingAssistant } from "../sim-turn.js"
-import { armClickStamps, armStamps, clickStamps, pageClockOffset } from "./in-page.js"
+import {
+  armClickStamps,
+  armStamps,
+  clearStamps,
+  clickStamps,
+  pageClockOffset,
+  startKeepAlive,
+  stopKeepAlive,
+} from "./in-page.js"
 import {
   WORKBENCH_TIMEOUT_MS,
   composerInput,
@@ -154,6 +162,41 @@ async function rapidSwitch(page: Page) {
   }
 }
 
+/** 连发六段增量，取最慢一段的显示延迟；保活决定页面是否持续出帧。 */
+async function streamLags(
+  page: Page,
+  emitChunk: (marker: string, index: number) => void,
+  offset: number,
+  tag: string,
+  keepAlive: boolean,
+) {
+  const lags: number[] = []
+
+  if (keepAlive) {
+    await startKeepAlive(page)
+    // 先让保活跑起来，量的是稳态而不是唤醒
+    await nextPaint(page)
+  }
+
+  try {
+    for (let index = 1; index <= 6; index += 1) {
+      const marker = `${tag} ${index}`
+      await armStamps(page, {
+        chunk: { bodyIncludes: marker, latestInViewport: true },
+      })
+      const emitAt = performance.now()
+      emitChunk(marker, index)
+      const hitAt = await clickStamps(page, "chunk")
+      lags.push(hitAt + offset - emitAt)
+    }
+  } finally {
+    if (keepAlive) await stopKeepAlive(page)
+    await clearStamps(page)
+  }
+
+  return Math.max(...lags)
+}
+
 /** 欢迎页发送：用户句进时间线就停表；路由落地只给后续回合夹具。 */
 async function measureTurn(page: Page, bridge: Bridge) {
   const send = page.locator("button.send")
@@ -190,18 +233,11 @@ async function measureTurn(page: Page, bridge: Bridge) {
   const firstTokenMs = await clickStamps(page, "token")
   await expect(stop).toBeVisible()
   const offset = await pageClockOffset(page)
-  const lags: number[] = []
-
-  for (let index = 1; index <= 6; index += 1) {
-    const marker = `流式跟上 ${index}`
-    await armStamps(page, {
-      chunk: { bodyIncludes: marker, latestInViewport: true },
-    })
-    const emitAt = performance.now()
+  const emitChunk = (marker: string, index: number) =>
     emit("item_updated", streamingAssistant(snapshot, `${marker}\n${"增量。".repeat(index * 8)}`))
-    const hitAt = await clickStamps(page, "chunk")
-    lags.push(hitAt + offset - emitAt)
-  }
+  // 两遍顺序固定：先量空闲唤醒，再量保活下的稳态
+  const streamWakeMs = await streamLags(page, emitChunk, offset, "流式首帧", false)
+  const streamKeepUpMs = await streamLags(page, emitChunk, offset, "流式稳态", true)
 
   await armClickStamps(page, stop, {
     aborted: { gone: [".send--abort"], rowText: FIRST_PROMPT },
@@ -210,7 +246,8 @@ async function measureTurn(page: Page, bridge: Bridge) {
   return {
     ownMessageMs,
     firstTokenMs,
-    streamKeepUpMs: Math.max(...lags),
+    streamWakeMs,
+    streamKeepUpMs,
     abortMs: await clickStamps(page, "aborted"),
   }
 }
@@ -223,7 +260,6 @@ async function reconnect(page: Page, bridge: Bridge) {
   const started = performance.now()
   await bridge.disconnect()
   await expect.poll(() => bridge.connections(), { timeout: 30_000 }).toBeGreaterThan(count)
-  await expect.poll(() => bridge.snapshots.has(SHORT_SESSION_ID)).toBe(true)
   await expect(page.getByText("连接失败", { exact: true })).toHaveCount(0)
   await waitForSession(page, SHORT_SESSION_NAME)
   await nextPaint(page)
@@ -237,6 +273,7 @@ async function reconnect(page: Page, bridge: Bridge) {
 export type EdgeSample = {
   ownMessageMs: number
   firstTokenMs: number
+  streamWakeMs: number
   streamKeepUpMs: number
   abortMs: number
   rapidSwitchMs: number

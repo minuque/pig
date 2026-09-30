@@ -136,6 +136,20 @@ function appendTurn({
     segmentError ||= tool.isError
   }
 
+  // 预先一次算出各下标向后第一个 >= 自身时间戳的 timestamp，从右往左单调栈
+  const nextTimestamps = new Array<number | undefined>(rest.length).fill(undefined)
+  const candidates: number[] = []
+
+  for (let index = rest.length - 1; index >= 0; index -= 1) {
+    const timestamp = rest[index]?.timestamp
+
+    if (timestamp == null) continue
+
+    while (candidates.length > 0 && (candidates.at(-1) ?? 0) < timestamp) candidates.pop()
+    nextTimestamps[index] = candidates.at(-1)
+    candidates.push(timestamp)
+  }
+
   for (const [itemIndex, item] of rest.entries()) {
     if (isToolItem(item)) {
       if (describedToolCalls.has(item.toolCallId) || live) continue
@@ -168,9 +182,7 @@ function appendTurn({
         }
 
         const streaming = live && item.status === "streaming" && index === item.content.length - 1
-        const nextTimestamp = rest
-          .slice(itemIndex + 1)
-          .find((next) => next.timestamp >= item.timestamp)?.timestamp
+        const nextTimestamp = nextTimestamps[itemIndex]
         const endedAt = streaming ? undefined : (nextTimestamp ?? timing?.endedAt)
         const thoughtEndedAt = endedAt === undefined ? undefined : Math.max(item.timestamp, endedAt)
         steps.push({
@@ -238,27 +250,6 @@ function markLastAssistantTimestamp(rows: TimelineRow[], start: number) {
       return
     }
   }
-}
-
-export function buildTimelineRows(
-  items: readonly TranscriptItem[],
-  running: boolean,
-  timings: readonly TurnTiming[] = [],
-): TimelineRow[] {
-  const rows: TimelineRow[] = []
-  let user: UserTranscriptItem | undefined
-  let rest: TranscriptItem[] = []
-
-  for (const item of items) {
-    if (isUserItem(item) && isVisibleTranscriptItem(item)) {
-      if (user || rest.length) appendTurn({ rows, user, rest, live: false, timings })
-      user = item
-      rest = []
-    } else rest.push(item)
-  }
-
-  if (user || rest.length || running) appendTurn({ rows, user, rest, live: running, timings })
-  return rows
 }
 
 interface TurnRowsEntry {
@@ -415,9 +406,12 @@ function sameToolRow(left: ToolRow, right: ToolRow) {
       return (
         nextItem != null &&
         item.id === nextItem.id &&
+        item.toolName === nextItem.toolName &&
         item.running === nextItem.running &&
         item.isError === nextItem.isError &&
-        item.outputText === nextItem.outputText
+        item.input === nextItem.input &&
+        item.outputText === nextItem.outputText &&
+        sameImages(item.outputImages, nextItem.outputImages)
       )
     })
   })

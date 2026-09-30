@@ -3,6 +3,7 @@ import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 
 import { armClickStamps, clickStamps, installPageWaitFor, waitInPage } from "./in-page.js"
+import { installObservers } from "./paint.js"
 import {
   BENCH_SESSION_TOTAL,
   SHORT_SESSION_NAME,
@@ -13,14 +14,6 @@ import {
 } from "./seed.js"
 
 export const WORKBENCH_TIMEOUT_MS = 30_000
-
-type PageBench = {
-  fcp: number
-  lcp: number
-  longTasks: { start: number; duration: number }[]
-  interactions: { id: number; duration: number }[]
-}
-
 export const composerInput = (page: Page) => page.locator(".composer .field, .field").first()
 
 export function sessionCard(page: Page, name: BenchSessionName) {
@@ -28,7 +21,7 @@ export function sessionCard(page: Page, name: BenchSessionName) {
 }
 
 function listMoreButton(page: Page) {
-  return page.locator("nav.session-list button.more-button")
+  return page.locator("nav.session-list button.more-button", { hasText: "显示更多" })
 }
 
 /** 侧栏折叠时点「显示更多」，直到目标卡片进 DOM。 */
@@ -84,45 +77,6 @@ export async function newBenchContext(browser: Browser): Promise<BrowserContext>
     locale: "zh-CN",
     colorScheme: "light",
     serviceWorkers: "block",
-  })
-}
-
-/** 注入 FCP / LCP / longtask / Event Timing，须在首次 goto 前调用。 */
-export async function installObservers(page: Page) {
-  await page.addInitScript({
-    content: `window.__pigBench = { fcp: 0, lcp: 0, longTasks: [], interactions: [] };
-(function () {
-  var bench = window.__pigBench;
-  function observe(type, extra, fn) {
-    try {
-      var po = new PerformanceObserver(function (list) {
-        list.getEntries().forEach(fn);
-      });
-      var opts = Object.assign({ buffered: true }, extra || {});
-      try { po.observe(Object.assign({ type: type }, opts)); }
-      catch (e) { po.observe({ entryTypes: [type] }); }
-    } catch (e) {}
-  }
-  observe("paint", null, function (entry) {
-    if (entry.name === "first-contentful-paint") bench.fcp = entry.startTime;
-  });
-  observe("largest-contentful-paint", null, function (entry) {
-    bench.lcp = entry.startTime;
-  });
-  observe("longtask", null, function (entry) {
-    bench.longTasks.push({ start: entry.startTime, duration: entry.duration });
-  });
-  observe("event", { durationThreshold: 16 }, function (entry) {
-    var duration = entry.duration;
-    if (!duration) return;
-    var id = entry.interactionId;
-    if (id) {
-      var prev = bench.interactions.find(function (item) { return item.id === id; });
-      if (prev) { if (duration > prev.duration) prev.duration = duration; }
-      else bench.interactions.push({ id: id, duration: duration });
-    }
-  });
-})();`,
   })
 }
 
@@ -205,22 +159,6 @@ export async function waitForSession(page: Page, name: BenchSessionName) {
   await page.locator(".session-loading").waitFor({ state: "hidden", timeout: WORKBENCH_TIMEOUT_MS })
 }
 
-export async function readPaint(page: Page): Promise<{ fcp: number; lcp: number; now: number }> {
-  await nextPaint(page)
-  return page.evaluate(() => {
-    const bench = (window as unknown as { __pigBench: PageBench }).__pigBench
-    const paints = performance.getEntriesByType("paint")
-    const fcpEntry = paints.find((entry) => entry.name === "first-contentful-paint")
-    const lcpEntries = performance.getEntriesByType("largest-contentful-paint")
-    const lcpFallback = lcpEntries.reduce((max, entry) => Math.max(max, entry.startTime), 0)
-    const fcp = bench.fcp || fcpEntry?.startTime || 0
-    const lcp = bench.lcp || lcpFallback || 0
-
-    if (!fcp || !lcp) throw new Error("未采集到 FCP/LCP，不能生成启动结果")
-    return { fcp, lcp, now: performance.now() }
-  })
-}
-
 /** Composer 按下一键到双 rAF。 */
 export async function keyToNextFrame(page: Page): Promise<number> {
   await composerInput(page).click()
@@ -259,23 +197,14 @@ export async function scrollMainAfterOpen(page: Page): Promise<number> {
 
   if (!box) throw new Error("主视口不存在")
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
-  await beginScrollFrames(page)
-
-  try {
+  return await worstFrameDuring(page, async () => {
     for (const direction of [-1, 1]) {
       for (let step = 0; step < 12; step += 1) {
         await page.mouse.wheel(0, direction * 80)
         await waitMs(page, 32)
       }
     }
-
-    return await endScrollWorstFrame(page)
-  } catch (error) {
-    await page
-      .evaluate(() => (window as unknown as Partial<ScrollFrames>).__pigScrollStop?.())
-      .catch(() => undefined)
-    throw error
-  }
+  })
 }
 
 /** 点侧栏卡片到该会话历史就绪。 */
@@ -293,13 +222,13 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   return clickStamps(page, "ready")
 }
 
-async function waitMs(page: Page, ms: number) {
+export async function waitMs(page: Page, ms: number) {
   await page.evaluate((delay) => new Promise<void>((resolve) => setTimeout(resolve, delay)), ms)
 }
 
 type ScrollFrames = { __pigScrollFrames: number[]; __pigScrollStop: () => void }
 
-async function beginScrollFrames(page: Page) {
+async function beginFrameSample(page: Page) {
   await page.evaluate(() => {
     const slot = window as unknown as ScrollFrames
     slot.__pigScrollFrames = []
@@ -325,18 +254,33 @@ async function beginScrollFrames(page: Page) {
   })
 }
 
-async function endScrollWorstFrame(page: Page): Promise<number> {
+async function endWorstFrameSample(page: Page): Promise<number> {
   const worst = await page.evaluate(() => {
     const slot = window as unknown as ScrollFrames
     slot.__pigScrollStop()
     const frames = slot.__pigScrollFrames.filter((ms) => ms < 1_000)
 
-    if (frames.length === 0) throw new Error("滚动期间未采到动画帧")
+    if (frames.length === 0) throw new Error("采样期间未采到动画帧")
     return frames.reduce((max, ms) => Math.max(max, ms), 0)
   })
 
-  if (!(worst > 0)) throw new Error("滚动最差帧无效")
+  if (!(worst > 0)) throw new Error("最差帧无效")
   return worst
+}
+
+/** 采样 action 期间的动画帧，返回最差帧长。 */
+export async function worstFrameDuring(page: Page, action: () => Promise<void>): Promise<number> {
+  await beginFrameSample(page)
+
+  try {
+    await action()
+    return await endWorstFrameSample(page)
+  } catch (error) {
+    await page
+      .evaluate(() => (window as unknown as Partial<ScrollFrames>).__pigScrollStop?.())
+      .catch(() => undefined)
+    throw error
+  }
 }
 
 async function scrollOverflowWorstFrame(
@@ -352,9 +296,7 @@ async function scrollOverflowWorstFrame(
   const distance = await root.evaluate((node) => node.scrollHeight - node.clientHeight)
 
   if (distance <= 0) throw new Error(emptyMessage)
-  await beginScrollFrames(page)
-
-  try {
+  return await worstFrameDuring(page, async () => {
     for (const direction of [-1, 1]) {
       for (let step = 0; step < 40; step += 1) {
         const remaining = await root.evaluate((node, dir) => {
@@ -386,14 +328,7 @@ async function scrollOverflowWorstFrame(
         { sel: selector, dir: direction },
       )
     }
-
-    return await endScrollWorstFrame(page)
-  } catch (error) {
-    await page
-      .evaluate(() => (window as unknown as Partial<ScrollFrames>).__pigScrollStop?.())
-      .catch(() => undefined)
-    throw error
-  }
+  })
 }
 
 /** 点顶上按钮直到服务端没有更早历史；窗口化只挂视口附近的行，按总高增长判断这一页落地。 */

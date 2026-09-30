@@ -1,6 +1,7 @@
 import { computed, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { sessionRecency } from "@features/session-nav/lib/format.js"
+import { isDraftSessionId } from "@features/session-nav/lib/session-list.js"
 
 const PINNED_KEY = "pig.sidebarPinnedSessions"
 
@@ -44,6 +45,8 @@ export function useSessionMarkers(
   }
 
   function isUnread(session: SessionMetadata): boolean {
+    if (isDraftSessionId(session.id)) return false
+
     if (session.id === toValue(activeSessionId)) return false
     return sessionRecency(session) > (readAtById.value[session.id] ?? runStartAt)
   }

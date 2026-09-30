@@ -18,9 +18,15 @@
             @keydown="onQueryKeydown"
           />
 
-          <button class="query-close" type="button" title="关闭" @click="open = false">
-            <X class="size-icon" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <button class="query-close" type="button" aria-label="关闭" @click="open = false">
+                <X class="size-icon" />
+              </button>
+            </TooltipTrigger>
+
+            <TooltipContent>关闭</TooltipContent>
+          </Tooltip>
         </div>
 
         <ul v-if="hits.length" ref="hitList" class="hits">
@@ -55,6 +61,7 @@ import { useTimestamp } from "@vueuse/core"
 import { CornerDownLeft, MessageSquare, Search, X } from "@lucide/vue"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import {
   formatRelativeTime,
@@ -171,11 +178,9 @@ function pick(session: SessionMetadata) {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
 }

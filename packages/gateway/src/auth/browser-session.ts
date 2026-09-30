@@ -155,6 +155,9 @@ export class BrowserSession {
 
     if (!host || !loopbackHost(host)) return 403
 
+    // 桌面壳的页面来源是 pig://app，凭证由壳按进程注入，带 Bearer 就不再按来源拦
+    if (this.bearerValid(headers)) return undefined
+
     if (header(headers, "sec-fetch-site") === "cross-site") return 403
     const origin = header(headers, "origin")
 
@@ -168,14 +171,16 @@ export class BrowserSession {
       }
     }
 
-    return this.accepts(headers) ? undefined : 401
+    return this.cookieValid(headers) ? undefined : 401
   }
 
   accepts(headers: IncomingMessage["headers"]): boolean {
-    const bearer = header(headers, "authorization")
+    return this.bearerValid(headers) || this.cookieValid(headers)
+  }
 
-    if (bearer && sameBytes(bearer, this.authorizationHeader())) return true
-    return this.cookieValid(headers)
+  private bearerValid(headers: IncomingMessage["headers"]): boolean {
+    const bearer = header(headers, "authorization")
+    return Boolean(bearer && sameBytes(bearer, this.authorizationHeader()))
   }
 
   /** 根路径上的 token 换成 cookie 并跳回干净地址。已有 cookie 则可以返回页面。 */

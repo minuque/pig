@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
 import { PiServerError, SessionNotFoundError } from "@earendil-works/pi-server"
 import type { DirectoryPort } from "../directory.js"
+import { AttachmentError, sanitizeMimeType, type AttachmentErrorCode } from "../pi/attachments.js"
 import { isContextPreviewKey } from "../pi/context-usage.js"
 import type { PiHostService } from "../pi/service.js"
 
@@ -53,7 +54,120 @@ export async function handlePlatformRequest(
     return true
   }
 
+  if (url.pathname === "/api/v1/platform/attachments/stage" && req.method === "POST") {
+    await handleStageAttachment(req, res, url, deps)
+    return true
+  }
+
+  if (url.pathname === "/api/v1/platform/attachments/bind" && req.method === "POST") {
+    await handleBindAttachments(req, res, deps)
+    return true
+  }
+
+  if (url.pathname === "/api/v1/platform/attachments/discard" && req.method === "POST") {
+    await handleDiscardAttachment(req, res, deps)
+    return true
+  }
+
   return false
+}
+
+/** 附件字节走原始流直写暂存，绕开 JSON body 的 1MB 上限。 */
+async function handleStageAttachment(
+  req: IncomingMessage,
+  res: ServerResponse,
+  url: URL,
+  deps: PlatformRequestDeps,
+) {
+  const { send, hostService } = deps
+
+  try {
+    const { id } = await hostService.attachments.stage({
+      batch: url.searchParams.get("batch") ?? "",
+      name: url.searchParams.get("name") ?? "",
+      // mimeType 会拼进 prompt 文本行，入口就按 type/subtype 形状净化
+      mimeType: sanitizeMimeType(url.searchParams.get("mimeType") ?? ""),
+      stream: req,
+    })
+
+    send(res, 200, { id })
+  } catch (error) {
+    if (error instanceof AttachmentError) {
+      send(res, attachmentStatus(error.code), { code: error.code })
+      return
+    }
+
+    console.error("attachments/stage failed:", error)
+    send(res, 500, { code: "INTERNAL_ERROR" })
+  }
+}
+
+async function handleBindAttachments(
+  req: IncomingMessage,
+  res: ServerResponse,
+  deps: PlatformRequestDeps,
+) {
+  const { send, hostService } = deps
+  const payload = await readObjectBody(req, res, deps)
+
+  if (!payload) return
+
+  const sessionId = typeof payload.sessionId === "string" ? payload.sessionId : ""
+  const batch = typeof payload.batch === "string" ? payload.batch : ""
+
+  if (!sessionId || !batch) {
+    send(res, 400, { code: "INVALID_REQUEST" })
+    return
+  }
+
+  if (!(await hostService.hasSession(sessionId))) {
+    send(res, 404, { code: "NOT_FOUND" })
+    return
+  }
+
+  try {
+    hostService.attachments.bind(sessionId, batch)
+    send(res, 200, { ok: true })
+  } catch (error) {
+    if (error instanceof AttachmentError) {
+      send(res, 400, { code: error.code })
+      return
+    }
+
+    console.error("attachments/bind failed:", error)
+    send(res, 500, { code: "INTERNAL_ERROR" })
+  }
+}
+
+function attachmentStatus(code: AttachmentErrorCode): number {
+  return code === "PAYLOAD_TOO_LARGE" ? 413 : 400
+}
+
+/** 撤销一次暂存。前端补偿路径：batch 不存在也回 200，静默成功即可。 */
+async function handleDiscardAttachment(
+  req: IncomingMessage,
+  res: ServerResponse,
+  deps: PlatformRequestDeps,
+) {
+  const { send, hostService } = deps
+  const payload = await readObjectBody(req, res, deps)
+
+  if (!payload) return
+
+  const batch = typeof payload.batch === "string" ? payload.batch : ""
+
+  if (!batch) {
+    send(res, 400, { code: "INVALID_REQUEST" })
+    return
+  }
+
+  try {
+    await hostService.attachments.discard(batch)
+    send(res, 200, { ok: true })
+  } catch (error) {
+    console.error("attachments/discard failed:", error)
+    send(res, 500, { code: "INTERNAL_ERROR" })
+  }
 }
 
 async function handleSelectDirectory(
@@ -185,6 +299,11 @@ function sendSessionWriteError(
 ) {
   if (error instanceof SessionNotFoundError) {
     send(res, 404, { code: "NOT_FOUND" })
+    return
+  }
+
+  if (error instanceof PiServerError && error.code === "busy") {
+    send(res, 409, { code: "BUSY" })
     return
   }
 

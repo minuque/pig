@@ -1,44 +1,95 @@
-import { computed, ref, shallowRef, toValue, type MaybeRefOrGetter, type Ref } from "vue"
+import { computed, ref, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue"
 import type { Router } from "vue-router"
 import type { SessionMetadata } from "@/types/common-type.js"
-import { errorMessage } from "@client/http.js"
+import { errorMessage, PlatformRequestError } from "@client/http.js"
 import {
   deleteSession as requestDeleteSession,
   renameSession as requestRenameSession,
   selectDirectory,
 } from "@client/platform.js"
-import { canonicalizeWorkspacePath, type useLocalWorkspaces } from "@client/local-cwd.js"
 import {
-  PROJECT_PAGE,
-  UPDATED_PAGE,
+  canonicalizeWorkspacePath,
+  uniqueCanonicalPaths,
+  type useLocalWorkspaces,
+} from "@client/local-cwd.js"
+import {
+  draftSessionId,
   groupSessionsByCwd,
   listSessionsForSidebar,
+  orderSessionGroups,
   sidebarRows,
 } from "@features/session-nav/lib/session-list.js"
-import type { SidebarGrouping, SidebarRow } from "@features/session-nav/type.js"
+import type {
+  SidebarGrouping,
+  SidebarRow,
+  SidebarSort,
+  SidebarView,
+} from "@features/session-nav/type.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
 export const SIDEBAR_GROUPING_KEY = "pig.sidebarGrouping"
+export const SIDEBAR_VIEW_KEY = "pig.sidebarView"
+export const SIDEBAR_SORT_KEY = "pig.sidebarSort"
+export const SIDEBAR_ORDER_KEY = "pig.sidebarWorkspaceOrder"
 export const SIDEBAR_COLLAPSED_KEY = "pig.sidebarCollapsed"
+const DELETE_RETRY_MS = 400
 
-function parseGrouping(raw: string | null): SidebarGrouping {
-  return raw === "updated" ? "updated" : "project"
+function isBusy(error: unknown): boolean {
+  return error instanceof PlatformRequestError && error.code === "BUSY"
 }
 
-function loadGrouping(): SidebarGrouping {
+function loadView(): SidebarView {
   try {
-    return parseGrouping(localStorage.getItem(SIDEBAR_GROUPING_KEY))
+    const stored = localStorage.getItem(SIDEBAR_VIEW_KEY)
+
+    if (stored === "flat" || stored === "grouped") return stored
+    return localStorage.getItem(SIDEBAR_GROUPING_KEY) === "updated" ? "flat" : "grouped"
   } catch {
-    return "project"
+    return "grouped"
   }
 }
 
-function saveGrouping(value: SidebarGrouping): void {
+function saveView(value: SidebarView): void {
   try {
-    localStorage.setItem(SIDEBAR_GROUPING_KEY, value)
+    localStorage.setItem(SIDEBAR_VIEW_KEY, value)
   } catch {
     /* 隐私模式等场景下存储不可用，偏好仅存活于本页 */
+  }
+}
+
+function loadSort(): SidebarSort {
+  try {
+    return localStorage.getItem(SIDEBAR_SORT_KEY) === "recent" ? "recent" : "manual"
+  } catch {
+    return "manual"
+  }
+}
+
+function saveSort(value: SidebarSort): void {
+  try {
+    localStorage.setItem(SIDEBAR_SORT_KEY, value)
+  } catch {
+    /* 同上 */
+  }
+}
+
+function loadOrder(): string[] {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(SIDEBAR_ORDER_KEY) ?? "[]")
+    return Array.isArray(value)
+      ? uniqueCanonicalPaths(value.filter((item): item is string => typeof item === "string"))
+      : []
+  } catch {
+    return []
+  }
+}
+
+function saveOrder(paths: readonly string[]): void {
+  try {
+    localStorage.setItem(SIDEBAR_ORDER_KEY, JSON.stringify(paths))
+  } catch {
+    /* 同上 */
   }
 }
 
@@ -87,6 +138,7 @@ export function useWorkspaceNav(
   error: Ref<string>,
   admin: {
     sessionId: Ref<string | undefined>
+    running: Ref<boolean>
     router: Router
     refreshSessions(): Promise<void>
   },
@@ -94,15 +146,54 @@ export function useWorkspaceNav(
   const addingWorkspace = ref(false)
   const titleById = shallowRef<Record<string, string>>({})
   const workspaces = local.workspaces
-  const groups = computed(() =>
-    groupSessionsByCwd(sessions.value, local.workspaces.value).map((group) => ({
-      ...group,
-      sessions: applyTitles(group.sessions),
-    })),
+  /** 已确认删除、等落地的会话：先隐藏，失败再恢复。 */
+  const deletingIds = shallowRef<ReadonlySet<string>>(new Set())
+  /** 未发送首条 Prompt 的临时新会话占位目录。 */
+  const draftSessionPath = shallowRef<string>()
+  const draftSessionIdRef = computed(() =>
+    draftSessionPath.value ? draftSessionId(draftSessionPath.value) : undefined,
   )
-  const listedSessions = computed(() => applyTitles(listSessionsForSidebar(sessions.value)))
-  const grouping = ref<SidebarGrouping>(loadGrouping())
-  const revealByGroup = shallowRef<Record<string, number>>({})
+  const draftSession = computed<SessionMetadata | undefined>(() => {
+    const path = draftSessionPath.value
+    const id = draftSessionIdRef.value
+
+    if (!path || !id) return undefined
+    return {
+      id,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      cwd: path,
+    }
+  })
+  const visibleSessions = computed(() => {
+    const list = sessions.value.filter((session) => !deletingIds.value.has(session.id))
+    const draft = draftSession.value
+    return draft && !list.some((session) => session.id === draft.id) ? [draft, ...list] : list
+  })
+
+  watch(
+    () => admin.sessionId.value,
+    (id) => {
+      if (id) draftSessionPath.value = undefined
+    },
+  )
+
+  const groups = computed(() =>
+    orderSessionGroups(
+      groupSessionsByCwd(visibleSessions.value, local.workspaces.value).map((group) => ({
+        ...group,
+        sessions: applyTitles(group.sessions),
+      })),
+      sort.value,
+      manualOrder.value,
+    ),
+  )
+  const listedSessions = computed(() => applyTitles(listSessionsForSidebar(visibleSessions.value)))
+  const view = ref<SidebarView>(loadView())
+  const sort = ref<SidebarSort>(loadSort())
+  const manualOrder = shallowRef<string[]>(loadOrder())
+  const grouping = computed<SidebarGrouping>(() => (view.value === "flat" ? "updated" : "project"))
+  const expandedByGroup = shallowRef<Record<string, boolean>>({})
   const collapsedByGroup = shallowRef<Record<string, boolean>>(loadCollapsed())
 
   function applyTitles(list: readonly SessionMetadata[]): SessionMetadata[] {
@@ -115,20 +206,50 @@ export function useWorkspaceNav(
     })
   }
 
-  function setGrouping(next: SidebarGrouping) {
-    if (next !== grouping.value) {
-      grouping.value = next
-      revealByGroup.value = {}
-    }
+  function setDeleting(id: string, on: boolean): void {
+    const next = new Set(deletingIds.value)
 
-    saveGrouping(next)
+    if (on) next.add(id)
+    else next.delete(id)
+    deletingIds.value = next
   }
 
-  function bumpGroup(groupKey: string) {
-    const page = grouping.value === "updated" ? UPDATED_PAGE : PROJECT_PAGE
-    revealByGroup.value = {
-      ...revealByGroup.value,
-      [groupKey]: (revealByGroup.value[groupKey] ?? page) + page,
+  function setDraftSession(canonicalPath: string): void {
+    const path = canonicalizeWorkspacePath(canonicalPath)
+
+    if (collapsedByGroup.value[path]) {
+      collapsedByGroup.value = { ...collapsedByGroup.value, [path]: false }
+      saveCollapsed(collapsedByGroup.value)
+    }
+
+    draftSessionPath.value = path
+  }
+
+  function setView(next: SidebarView) {
+    if (next !== view.value) {
+      view.value = next
+      expandedByGroup.value = {}
+    }
+
+    saveView(next)
+  }
+
+  function setSort(next: SidebarSort) {
+    sort.value = next
+    saveSort(next)
+  }
+
+  function reorderGroups(paths: readonly string[]) {
+    manualOrder.value = uniqueCanonicalPaths(paths)
+    sort.value = "manual"
+    saveOrder(manualOrder.value)
+    saveSort("manual")
+  }
+
+  function toggleGroupReveal(groupKey: string) {
+    expandedByGroup.value = {
+      ...expandedByGroup.value,
+      [groupKey]: !expandedByGroup.value[groupKey],
     }
   }
 
@@ -138,6 +259,14 @@ export function useWorkspaceNav(
       [groupKey]: !collapsedByGroup.value[groupKey],
     }
     saveCollapsed(collapsedByGroup.value)
+  }
+
+  function setGroupsCollapsed(collapsed: boolean) {
+    const next = { ...collapsedByGroup.value }
+
+    for (const group of groups.value) next[group.canonicalPath] = collapsed
+    collapsedByGroup.value = next
+    saveCollapsed(next)
   }
 
   function rowsFor(
@@ -159,7 +288,7 @@ export function useWorkspaceNav(
         grouping: grouping.value,
         sessions: sessionList,
         groups: groupList,
-        revealByGroup: revealByGroup.value,
+        expandedByGroup: expandedByGroup.value,
         searching: searchingNow,
         collapsedByGroup: collapsedByGroup.value,
       })
@@ -211,16 +340,30 @@ export function useWorkspaceNav(
     })
   }
 
+  /** 先离开再删：服务端仍有活 runtime 时回 BUSY，等 detach 落地后重试一次。 */
   async function deleteSession(id: string) {
     error.value = ""
 
-    try {
-      await requestDeleteSession(id)
+    if (admin.sessionId.value === id && admin.running.value) {
+      error.value = "会话正在运行，请先停止再删除。"
+      return
+    }
 
+    setDeleting(id, true)
+
+    try {
       if (admin.sessionId.value === id) await admin.router.replace("/")
+      await requestDeleteSession(id).catch(async (cause: unknown) => {
+        if (!isBusy(cause)) throw cause
+        await new Promise((resolve) => setTimeout(resolve, DELETE_RETRY_MS))
+        await requestDeleteSession(id)
+      })
       await admin.refreshSessions()
     } catch (cause) {
-      error.value = errorMessage(cause)
+      error.value = isBusy(cause) ? "会话仍在运行，请先停止再删除。" : errorMessage(cause)
+    } finally {
+      // 成功时列表已刷新、该会话已不在，移除不会闪回；失败则用进场动画回到原位
+      setDeleting(id, false)
     }
   }
 
@@ -229,15 +372,21 @@ export function useWorkspaceNav(
     workspaces,
     groups,
     listedSessions,
+    view,
+    sort,
     grouping,
-    setGrouping,
-    revealByGroup,
+    setView,
+    setSort,
+    reorderGroups,
     collapsedByGroup,
-    bumpGroup,
+    toggleGroupReveal,
     toggleGroup,
+    setGroupsCollapsed,
     rowsFor,
     addWorkspace,
     renameSession,
     deleteSession,
+    draftSessionId: draftSessionIdRef,
+    setDraftSession,
   }
 }

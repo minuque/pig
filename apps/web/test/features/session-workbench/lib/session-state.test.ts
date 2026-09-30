@@ -2,20 +2,10 @@ import { describe, expect, it } from "vitest"
 import type { ToolTranscriptItem, TranscriptItem, UserTranscriptItem } from "@/types/common-type.js"
 import {
   absorbLatestTranscriptPage,
-  isSessionOpening,
   mergeLiveTranscript,
   projectClientTranscript,
   withPendingAssistant,
 } from "@features/session-workbench/lib/session-state.js"
-
-describe("isSessionOpening", () => {
-  it("lease 已齐但历史未到时仍算打开中，避免空画布闪一下", () => {
-    expect(isSessionOpening("s2", "s2", undefined)).toBe(true)
-    expect(isSessionOpening("s2", "s1", undefined)).toBe(true)
-    expect(isSessionOpening("s2", "s2", "s2")).toBe(false)
-    expect(isSessionOpening(undefined, undefined, undefined)).toBe(false)
-  })
-})
 
 function row(id: string, role: "user" | "assistant", text: string): TranscriptItem {
   return { id, role, content: [{ type: "text", text }], timestamp: 0 } as TranscriptItem

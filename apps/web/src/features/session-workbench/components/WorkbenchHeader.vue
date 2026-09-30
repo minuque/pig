@@ -1,8 +1,21 @@
 <template>
   <header class="workbench-header">
-    <button v-if="!leftOpen" class="header-toggle" type="button" title="打开侧边栏" @click="toggle">
-      <PanelLeft class="size-icon" />
-    </button>
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <button
+          class="header-toggle"
+          type="button"
+          :aria-label="leftOpen ? '折叠侧边栏' : '打开侧边栏'"
+          @click="toggle"
+        >
+          <PanelLeft class="size-icon" />
+        </button>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ leftOpen ? "折叠侧边栏" : "打开侧边栏" }}</TooltipContent>
+    </Tooltip>
+
+    <span v-if="cwdName" class="header-cwd" :title="cwd ?? ''">{{ cwdName }}</span>
 
     <div class="header-crumb">
       <h1 v-if="title" id="current-title" class="header-session">{{ title }}</h1>
@@ -19,12 +32,16 @@
 import { computed } from "vue"
 import { PanelLeft } from "@lucide/vue"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
-import { useNav } from "@features/session-nav/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { useNav, workspaceName } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
 import SoundToggle from "@features/click-sound/index.vue"
 import ThemeToggle from "@features/theme/index.vue"
 
+const props = defineProps<{
+  cwd?: string | undefined
+}>()
 const { leftOpen, toggle } = useLeftPanelToggle()
 const { sessionId, projection } = useSession()
 const { listedSessions } = useNav()
@@ -35,6 +52,7 @@ const title = computed(() =>
     projectionName: projection.value?.name,
   }),
 )
+const cwdName = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
 </script>
 
 <style scoped>
@@ -47,17 +65,38 @@ const title = computed(() =>
   width: 100%;
   min-height: calc(var(--size-control) + 2 * var(--spacing-xs));
   padding: var(--spacing-xxs) var(--spacing-sm);
+  border-bottom: var(--border-width) solid var(--border-subtle);
   background: var(--surface);
 }
 
 .header-toggle {
   flex: none;
-  width: var(--size-icon-button);
-  min-height: var(--size-icon-button);
-  padding: 0;
+  padding: var(--icon-button-pad);
   border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
+}
+
+.header-toggle:hover,
+.header-toggle:focus-visible {
+  background: var(--hover-quiet);
+  color: var(--ink);
+}
+
+.header-cwd {
+  flex: none;
+  max-width: 14rem;
+  padding: 2px var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  background: var(--hover-tint);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-crumb {

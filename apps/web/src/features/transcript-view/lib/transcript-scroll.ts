@@ -92,15 +92,3 @@ export function historyPrepended(
 
   return true
 }
-
-/** 上方插入内容后把 scrollTop 加上增高，视口里的字不动。 */
-export function restoreScrollAfterPrepend(
-  root: { scrollTop: number; scrollHeight: number },
-  beforeHeight: number,
-  beforeTop: number,
-): void {
-  const delta = root.scrollHeight - beforeHeight
-
-  if (delta === 0) return
-  root.scrollTop = beforeTop + delta
-}

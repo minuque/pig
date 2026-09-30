@@ -239,10 +239,10 @@ export function useTranscriptWindow(options: {
 
     pendingHeights.clear()
 
-    if (!changed) return
+    if (!changed || !windowed.value) return
     version.value += 1
 
-    if (!root || anchor === undefined || !windowed.value || options.isFollowing()) return
+    if (!root || anchor === undefined || options.isFollowing()) return
     // 只补锚点上方的高度差，下方的变化不影响视口起点
     compensate(index.top(anchor) - before)
   }

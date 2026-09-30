@@ -1,6 +1,6 @@
 <template>
   <div class="tool-header-pin">
-    <div class="tool-header">
+    <div ref="header" class="tool-header" @pointerenter="arm" @focusin="armFromFocus">
       <div class="heading">
         <slot>
           <span class="label" :title="label">{{ label }}</span>
@@ -8,52 +8,74 @@
       </div>
 
       <div class="actions">
-        <slot name="meta" />
+        <div v-if="$slots.meta" class="meta">
+          <slot name="meta" />
+        </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-2xs"
-          class="icon-btn"
-          :aria-pressed="softWrap"
-          :title="softWrap ? '取消软换行' : '软换行'"
-          @click.stop="softWrap = !softWrap"
-        >
-          <WrapText v-if="!softWrap" class="size-3.5" />
-          <AlignLeft v-else class="size-3.5" />
-        </Button>
+        <LazyTip v-if="lineNumbers" :tip="showLineNumbers ? '隐藏行号' : '显示行号'">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-2xs"
+            class="icon-btn"
+            :aria-label="showLineNumbers ? '隐藏行号' : '显示行号'"
+            :aria-pressed="showLineNumbers"
+            @click.stop="showLineNumbers = !showLineNumbers"
+          >
+            <ListOrdered class="size-3.5" />
+          </Button>
+        </LazyTip>
 
-        <Button
-          v-if="text"
-          type="button"
-          variant="outline"
-          size="icon-2xs"
-          class="icon-btn copy"
-          :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
-          :title="copyLabel"
-          @click="copy"
-        >
-          <span class="icon-swap">
-            <Copy class="size-3.5" :data-visible="status !== 'copied'" />
-            <Check class="size-3.5" :data-visible="status === 'copied'" />
-          </span>
-        </Button>
+        <LazyTip :tip="softWrap ? '取消软换行' : '软换行'">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-2xs"
+            class="icon-btn"
+            :aria-label="softWrap ? '取消软换行' : '软换行'"
+            :aria-pressed="softWrap"
+            @click.stop="softWrap = !softWrap"
+          >
+            <WrapText v-if="!softWrap" class="size-3.5" />
+            <AlignLeft v-else class="size-3.5" />
+          </Button>
+        </LazyTip>
+
+        <LazyTip v-if="text" :tip="copyLabel">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-2xs"
+            class="icon-btn copy"
+            :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
+            :aria-label="copyLabel"
+            @click="copy"
+          >
+            <span class="icon-swap">
+              <Copy class="size-3.5" :data-visible="status !== 'copied'" />
+              <Check class="size-3.5" :data-visible="status === 'copied'" />
+            </span>
+          </Button>
+        </LazyTip>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef } from "vue"
+import { computed, h, nextTick, shallowRef, useTemplateRef, type FunctionalComponent } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
-import { AlignLeft, Check, Copy, WrapText } from "@lucide/vue"
+import { AlignLeft, Check, Copy, ListOrdered, WrapText } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const props = defineProps<{
   label: string
   text: string
+  lineNumbers?: boolean
 }>()
 const softWrap = defineModel<boolean>("softWrap", { default: false })
+const showLineNumbers = defineModel<boolean>("showLineNumbers", { default: false })
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const copyLabel = computed(() =>
   status.value === "copied"
@@ -62,6 +84,33 @@ const copyLabel = computed(() =>
       ? "复制失败，点击重试"
       : `复制${props.label}`,
 )
+const header = useTemplateRef("header")
+const armed = shallowRef(false)
+/** 指针进入或聚焦前只渲染按钮，省掉每张卡片的 Tooltip 挂载。 */
+const LazyTip: FunctionalComponent<{ tip: string }> = (tipProps, { slots }) =>
+  armed.value
+    ? h(Tooltip, null, {
+        default: () => [
+          h(TooltipTrigger, { asChild: true }, slots),
+          h(TooltipContent, null, () => tipProps.tip),
+        ],
+      })
+    : slots.default?.()
+
+function arm() {
+  armed.value = true
+}
+
+/** 切换会重建按钮，按下标恢复键盘焦点。 */
+async function armFromFocus(event: FocusEvent) {
+  if (armed.value || !header.value) return
+  const buttons = [...header.value.querySelectorAll("button")]
+  const at = buttons.indexOf(event.target as HTMLButtonElement)
+  arm()
+  await nextTick()
+  header.value?.querySelectorAll("button")[at]?.focus()
+}
+
 const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { immediate: false })
 
 async function copy() {
@@ -94,12 +143,11 @@ async function copy() {
   justify-content: space-between;
   gap: var(--spacing-sm);
   min-width: 0;
-  min-height: 36px;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: 0.4rem 0.4rem 0.4rem 0.6rem;
   border-bottom: var(--border-width) solid var(--border);
-  border-start-start-radius: var(--radius-lg);
-  border-start-end-radius: var(--radius-lg);
-  background: var(--code-header);
+  border-start-start-radius: var(--radius-code);
+  border-start-end-radius: var(--radius-code);
+  background: var(--code-surface);
   font-size: var(--text-caption);
   transition:
     border-start-start-radius var(--duration-fast) var(--ease-out),
@@ -138,9 +186,16 @@ async function copy() {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 2px;
   color: var(--ink-muted);
   white-space: nowrap;
+}
+
+/* 计数文本和右侧按钮组之间多留一点，和按钮图标的视觉间距对齐 */
+.meta {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: var(--spacing-xxs);
 }
 
 .icon-btn,

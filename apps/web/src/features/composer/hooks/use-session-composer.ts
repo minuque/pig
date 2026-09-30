@@ -23,7 +23,7 @@ interface SessionComposerOptions {
 /** 目录、执行档和上下文投影。Session 只提供快照和写入。 */
 export function useSessionComposer(options: SessionComposerOptions) {
   const catalog = computed(() => catalogFromModels(options.models.value))
-  const { preset } = useComposerBinding({
+  const { preset, consumeDetachedEdit } = useComposerBinding({
     catalog,
     snapshot: options.snapshot,
     phase: options.phase,
@@ -40,5 +40,5 @@ export function useSessionComposer(options: SessionComposerOptions) {
     return { model: next.model, thinkingLevel: thinkingLevelOf(next.thinkingLevel) }
   }
 
-  return { catalog, preset, usage, createModel }
+  return { catalog, preset, usage, createModel, consumeDetachedEdit }
 }

@@ -111,3 +111,30 @@ export async function deleteSession(id: string): Promise<void> {
     body: JSON.stringify({ id }),
   })
 }
+
+/** 暂存一个附件：字节走原始 body，batch 由输入卡生成。 */
+export async function stageAttachment(batch: string, file: File): Promise<string> {
+  const mimeType = file.type || "application/octet-stream"
+  const query = new URLSearchParams({ batch, name: file.name, mimeType })
+  const result = await platformRequest<{ id: string }>(
+    `/api/v1/platform/attachments/stage?${query.toString()}`,
+    { method: "POST", body: file, headers: { "content-type": mimeType } },
+  )
+  return result.id
+}
+
+/** 把 batch 绑到 Session：该 Session 下一次 prompt 消费这批附件。 */
+export async function bindAttachments(sessionId: string, batch: string): Promise<void> {
+  await platformRequest("/api/v1/platform/attachments/bind", {
+    method: "POST",
+    body: JSON.stringify({ sessionId, batch }),
+  })
+}
+
+/** 丢弃一个批次：幂等，成功路径不要调用，Gateway 已经消费掉它。 */
+export async function discardAttachments(batch: string): Promise<void> {
+  await platformRequest("/api/v1/platform/attachments/discard", {
+    method: "POST",
+    body: JSON.stringify({ batch }),
+  })
+}
