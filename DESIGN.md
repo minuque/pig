@@ -10,8 +10,8 @@ colors:
   on-primary: "#ffffff"
   canvas: "#f7f7f8"
   canvas-soft: "#f7f7f8"
-  surface: "#fcfcfd"
-  sidebar: "#ffffff"
+  surface: "#ffffff"
+  sidebar: "#fcfcfd"
   border: "#dedede"
   border-subtle: "#e8e8e8"
   composer-bg: "#ffffff"
@@ -304,11 +304,11 @@ components:
 
 ## Overview
 
-Pi Agent GUI 浅色壳层用近白，侧栏贴窗边，输入卡不透明。深色壳层近黑，侧栏略抬升。系统 UI 字号默认 14px。动作靛用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含齐边侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
+Pig 浅色壳层用近白，侧栏贴窗边，输入卡不透明。深色壳层近黑，侧栏略抬升。系统 UI 字号默认 14px。动作靛用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含齐边侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
 
-浅色壳层 `{colors.surface}`（#fcfcfd），侧栏 `{colors.sidebar}`，输入卡 `{colors.composer-bg}`（#ffffff）。深色壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`。结构色 `{colors.primary}`（#5e6ad2）用于动作和焦点。控件圆角 `{rounded.lg}`（8px）。
+浅色壳层 `{colors.surface}`（#ffffff），侧栏 `{colors.sidebar}`，输入卡 `{colors.composer-bg}`（#ffffff）。深色壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#27272a`。结构色 `{colors.primary}`（#5e6ad2）用于动作和焦点。控件圆角 `{rounded.lg}`（8px）。
 
-深色是同一套分面的中性灰反相：壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`、用户气泡 `#262628`。次级井用 `#121214`。分类色用 skill / steel / teal / gray。阶段与栏目标签可用 `{typography.caption-mono}`。
+深色是同一套分面的中性灰反相：壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#27272a`、用户气泡 `#262628`。次级井用 `#121214`。分类色用 skill / steel / teal / gray。阶段与栏目标签可用 `{typography.caption-mono}`。
 
 壳层走 `--surface`，侧栏 `--sidebar`，输入卡 `--composer-bg`。浏览器与桌面颜色一致。浅色是默认入口。
 
@@ -327,10 +327,10 @@ Pi Agent GUI 浅色壳层用近白，侧栏贴窗边，输入卡不透明。深�
 
 ### Surface
 
-- **Surface** (`{colors.surface}` — #fcfcfd)：壳层（对话列）。
-- **Sidebar** (`{colors.sidebar}` — #ffffff)：侧栏，贴窗边。
+- **Surface** (`{colors.surface}` — #ffffff)：壳层（对话列）。
+- **Sidebar** (`{colors.sidebar}` — #fcfcfd)：侧栏，贴窗边。
 - **Border subtle** (`{colors.border-subtle}`)：墨 8%，内部分割线。
-- **Composer** (`{colors.composer-bg}` — #ffffff)：输入卡不透明填充，深色 `#1c1c1f`，底下的正文不会改变它的颜色。
+- **Composer** (`{colors.composer-bg}` — #ffffff)：输入卡不透明填充，深色 `#27272a`，底下的正文不会改变它的颜色。
 - **Canvas** (`{colors.canvas}` — #f7f7f8)：次级井。
 - **Secondary well** (`{colors.canvas-soft}` — #f7f7f8)：页面底。
 - **Border** (`{colors.border}`)：墨 12%，控件与对话列外沿，比 border-subtle 深一档。
@@ -357,10 +357,10 @@ orange 保留兼容命名，映射到黄色警告色。
 
 | 角色         | 浅色      | 深色      |
 | ------------ | --------- | --------- |
-| 壳层         | `#fcfcfd` | `#0f0f11` |
-| 侧栏         | `#ffffff` | `#161618` |
+| 壳层         | `#ffffff` | `#0f0f11` |
+| 侧栏         | `#fcfcfd` | `#161618` |
 | 选中行       | `#e6e6e8` | `#2c2c31` |
-| 输入卡       | `#ffffff` | `#1c1c1f` |
+| 输入卡       | `#ffffff` | `#27272a` |
 | 菜单         | `#ffffff` | `#1c1c1f` |
 | 用户气泡     | `#e8e8ea` | `#262628` |
 | 链接         | `#4c56c8` | `#9aa3ea` |
@@ -378,7 +378,7 @@ orange 保留兼容命名，映射到黄色警告色。
 | -------- | --------- |
 | 壳层     | `#0f0f11` |
 | 侧栏     | `#161618` |
-| 输入卡   | `#1c1c1f` |
+| 输入卡   | `#27272a` |
 | 用户气泡 | `#262628` |
 | 主字     | `#e3e4e6` |
 | 次级字   | `#b8b9bc` |
@@ -465,7 +465,7 @@ headline 只在展示场合。欢迎短句用 heading-2。栏标题 600，按钮
 ## Do's and Don'ts
 
 - 浅色：壳层 `{colors.surface}`，侧栏与输入卡白底，侧栏贴窗边。
-- 深色：壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#1c1c1f`、用户气泡 `#262628`。
+- 深色：壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#27272a`、用户气泡 `#262628`。
 - `{colors.primary}` 用于动作和焦点。选中走中性灰。
 - 工作台 14px 系统字；标签可用等宽大写。
 - 控件圆角 `{rounded.lg}`。输入卡胶囊 `--composer-radius`（26px），发送仍是圆钮。

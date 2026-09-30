@@ -27,9 +27,10 @@
   /* 表面 */
   --canvas: #f7f7f8;
   --canvas-soft: #f7f7f8;
-  --surface: #fcfcfd;
-  --sidebar: #ffffff;
+  --surface: #ffffff;
+  --sidebar: #fcfcfd;
   --composer-bg: #ffffff;
+  --composer-border: rgb(0 0 0 / 0.06);
   --user-prompt-bg: #e8e8ea;
   --popover: #ffffff;
   --code-surface: color-mix(in srgb, var(--ink) 4%, var(--surface));
@@ -52,7 +53,7 @@
   /* 结构 / 交互 */
   --border: #dedede;
   --border-subtle: #e8e8e8;
-  --composer-ring: #d1d1d1;
+  --composer-ring: rgb(0 0 0 / 0.28);
   --interaction-hover: #e8e8eb;
   --interaction-selected: #e6e6e8;
   --hover-quiet: color-mix(in srgb, var(--ink) 5%, transparent);
@@ -267,7 +268,8 @@
   --canvas-soft: #121214;
   --surface: #0f0f11;
   --sidebar: #161618;
-  --composer-bg: #1c1c1f;
+  --composer-bg: #27272a;
+  --composer-border: rgb(255 255 255 / 0.06);
   --user-prompt-bg: #262628;
   --popover: #1c1c1f;
   --code-surface: color-mix(in srgb, var(--ink) 5%, var(--surface));
@@ -288,7 +290,7 @@
 
   --border: #28282a;
   --border-subtle: #202022;
-  --composer-ring: #353537;
+  --composer-ring: rgb(255 255 255 / 0.3);
   --interaction-hover: #26262b;
   --interaction-selected: #2c2c31;
   --effort-track: var(--hover-strong);
