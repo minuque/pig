@@ -224,7 +224,7 @@ const attachmentsFull = computed(() => attachmentFiles.value.length >= MAX_COMPO
 
 /**
  * 主钮三态：idle+文本 Send / running+文本 Queue / running+空 Stop。
- * 空白时 Enter 永不打断（zeron issue #406 教训），Stop 只留在按钮和 Esc。
+ * 空白时 Enter 永不打断，Stop 只留在按钮和 Esc。
  */
 type PrimaryMode = "send" | "queue" | "stop"
 
@@ -414,7 +414,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   background: var(--primary-active);
 }
 
-/* 停止态：实心墨色圆 + 内部圆角方块（zeron 的 stop 形态），hover 只降不透明度 */
+/* 停止态：实心墨色圆 + 内部圆角方块，hover 只降不透明度 */
 .send--abort,
 .send--abort:not(:disabled):hover {
   background: var(--ink);

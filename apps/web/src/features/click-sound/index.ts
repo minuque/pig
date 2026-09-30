@@ -18,7 +18,7 @@ const CUES: Record<Exclude<SoundEvent, "done">, Cue> = {
 
 type Filter = { type: BiquadFilterType; frequency: number; Q?: number }
 
-/** 轮次完成提示音（Zeron done）：两声圆润轻击接 F4 短尾音。 */
+/** 轮次完成提示音：两声圆润轻击接 F4 短尾音。 */
 const DONE = {
   seconds: 0.52,
   gain: 0.55,

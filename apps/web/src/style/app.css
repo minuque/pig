@@ -173,7 +173,7 @@
   --radius-code: 0.65rem;
   --radius-full: 9999px;
 
-  /* 输入卡胶囊：对齐 zeron composer 的 26px 圆角；宽度跟随内容宽度手柄 */
+  /* 输入卡胶囊：26px 圆角；宽度跟随内容宽度手柄 */
   --composer-radius: 26px;
 
   /* 尺寸 */
@@ -239,14 +239,14 @@
   --duration-composer-flip: 180ms;
   --ease-fold: cubic-bezier(0, 0, 0.58, 1);
   --ease-composer-flip: var(--ease-fold);
-  /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms（Zeron dock） */
+  /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms */
   --duration-dock-in: 420ms;
   --duration-dock-out: 470ms;
   --ease-dock: var(--ease-smooth);
-  /* 首屏整体落位入场（Zeron settle_down） */
+  /* 首屏整体落位入场 */
   --duration-settle: 500ms;
   --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
-  /* 工具组折叠与箭头同钟（Zeron TOOL_FOLD） */
+  /* 工具组折叠与箭头同钟 */
   --duration-tool-fold: 140ms;
   --duration-slow: 280ms;
   /* 小猪探头：开屏与侧栏品牌共用同一节奏 */

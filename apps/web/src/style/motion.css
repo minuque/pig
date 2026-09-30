@@ -204,7 +204,7 @@
   transform: rotate(90deg);
 }
 
-/* 首屏↔会话：输入条滑动期间旧层先淡出，新层在行程中段淡入（Zeron dock） */
+/* 首屏↔会话：输入条滑动期间旧层先淡出，新层在行程中段淡入 */
 .dock-thread-enter-active {
   transition: opacity var(--duration-slow) var(--ease-out) var(--duration-fast);
 }
@@ -233,7 +233,7 @@
   translate: 0 -10px;
 }
 
-/* 首屏挂载时输入条与 Hero 同拍落位（Zeron settle_down） */
+/* 首屏挂载时输入条与 Hero 同拍落位 */
 .settle-in {
   animation: settle-down var(--duration-settle) var(--ease-settle) var(--duration-fast) both;
 }
@@ -403,7 +403,7 @@
   transition-duration: var(--duration-slow);
 }
 
-/* 工具组展开与收起同一只钟，中途反向从当前高度接着走（Zeron TOOL_FOLD） */
+/* 工具组展开与收起同一只钟，中途反向从当前高度接着走 */
 .tool-calls-group,
 .tool-calls-group.is-open {
   transition-duration: var(--duration-tool-fold);
