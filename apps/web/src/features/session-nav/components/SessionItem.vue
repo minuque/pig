@@ -1,6 +1,6 @@
 <template>
-  <div class="session-item" :class="{ 'is-menu-open': menuOpen }">
-    <Tooltip v-if="!renaming && !showPath">
+  <div class="session-item" :class="{ 'is-menu-open': menuOpen, 'is-placeholder': placeholder }">
+    <Tooltip v-if="!placeholder && !renaming && !showPath">
       <TooltipTrigger as-child>
         <button
           class="pin-toggle press-scale"
@@ -20,12 +20,17 @@
     <ContextMenu :modal="false" :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
-          :is="renaming ? 'div' : RouterLink"
+          :is="renaming || placeholder ? 'div' : RouterLink"
           class="session-card"
-          :class="{ active, 'show-path': showPath }"
-          :to="renaming ? undefined : { name: 'session', params: { sessionId: session.id } }"
+          :class="{ active, 'show-path': showPath, 'is-placeholder': placeholder }"
+          :to="
+            renaming || placeholder
+              ? undefined
+              : { name: 'session', params: { sessionId: session.id } }
+          "
           @click="onCardClick"
           @keydown="onCardKeydown"
+          @contextmenu="onCardContextMenu"
         >
           <div class="card-line">
             <span v-if="!renaming && !showPath" class="pin-slot" aria-hidden="true"></span>
@@ -79,7 +84,7 @@
                 {{ relativeTime }}
               </time>
 
-              <Tooltip>
+              <Tooltip v-if="!placeholder">
                 <TooltipTrigger as-child>
                   <button
                     class="more-toggle press-scale"
@@ -106,7 +111,7 @@
         </component>
       </ContextMenuTrigger>
 
-      <ContextMenuContent class="select-none">
+      <ContextMenuContent v-if="!placeholder" class="select-none">
         <ContextMenuItem @select="emit('togglePinned', session.id)">
           <PinOff v-if="pinned" />
           <Pin v-else />
@@ -127,7 +132,12 @@
       </ContextMenuContent>
     </ContextMenu>
 
-    <SessionItemDelete v-model:open="deleteOpen" :title="session.title" @confirm="confirmDelete" />
+    <SessionItemDelete
+      v-if="!placeholder"
+      v-model:open="deleteOpen"
+      :title="session.title"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -166,12 +176,14 @@ const props = withDefaults(
     showPath?: boolean
     dirTag?: string | undefined
     state?: SidebarSessionState | undefined
+    placeholder?: boolean
     now: number
   }>(),
   {
     showPath: false,
     dirTag: undefined,
     state: undefined,
+    placeholder: false,
   },
 )
 const emit = defineEmits<{
@@ -203,7 +215,7 @@ function isModifiedSessionClick(event: MouseEvent) {
 }
 
 function onCardClick(event: MouseEvent) {
-  if (menuOpen.value || renaming.value) {
+  if (props.placeholder || menuOpen.value || renaming.value) {
     event.preventDefault()
     event.stopPropagation()
     return
@@ -237,7 +249,15 @@ function openSessionMenu(event: MouseEvent) {
   openContextMenuAt(card, rect.left, rect.bottom)
 }
 
+function onCardContextMenu(event: MouseEvent) {
+  if (!props.placeholder) return
+  event.preventDefault()
+  event.stopPropagation()
+}
+
 function onCardKeydown(event: KeyboardEvent) {
+  if (props.placeholder) return
+
   if (event.key !== "F10" || !event.shiftKey) return
   event.preventDefault()
   const el = event.currentTarget

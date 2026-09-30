@@ -80,6 +80,7 @@ const {
   cancelPendingOpen,
   navError: workspaceError,
   addWorkspace,
+  setDraftSession,
 } = useNav()
 const { openSettings } = useSettings()
 const { play } = useSound()
@@ -136,6 +137,7 @@ function onSessionNavigate(cwd: string | undefined): void {
 function onCreateInDir(canonicalPath: string): void {
   void play("create")
   cancelPendingOpen()
+  setDraftSession(canonicalPath)
   emit("navigate", canonicalPath)
   void router.push("/")
 }

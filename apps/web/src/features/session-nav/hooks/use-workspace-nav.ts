@@ -1,4 +1,4 @@
-import { computed, ref, shallowRef, toValue, type MaybeRefOrGetter, type Ref } from "vue"
+import { computed, ref, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue"
 import type { Router } from "vue-router"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { errorMessage, PlatformRequestError } from "@client/http.js"
@@ -13,6 +13,7 @@ import {
   type useLocalWorkspaces,
 } from "@client/local-cwd.js"
 import {
+  draftSessionId,
   groupSessionsByCwd,
   listSessionsForSidebar,
   orderSessionGroups,
@@ -147,9 +148,36 @@ export function useWorkspaceNav(
   const workspaces = local.workspaces
   /** 已确认删除、等落地的会话：先隐藏，失败再恢复。 */
   const deletingIds = shallowRef<ReadonlySet<string>>(new Set())
-  const visibleSessions = computed(() =>
-    sessions.value.filter((session) => !deletingIds.value.has(session.id)),
+  /** 未发送首条 Prompt 的临时新会话占位目录。 */
+  const draftSessionPath = shallowRef<string>()
+  const draftSessionIdRef = computed(() =>
+    draftSessionPath.value ? draftSessionId(draftSessionPath.value) : undefined,
   )
+  const draftSession = computed<SessionMetadata | undefined>(() => {
+    const path = draftSessionPath.value
+    const id = draftSessionIdRef.value
+
+    if (!path || !id) return undefined
+    return {
+      id,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      cwd: path,
+    }
+  })
+  const visibleSessions = computed(() => {
+    const list = sessions.value.filter((session) => !deletingIds.value.has(session.id))
+    const draft = draftSession.value
+    return draft && !list.some((session) => session.id === draft.id) ? [draft, ...list] : list
+  })
+
+  watch(
+    () => admin.sessionId.value,
+    (id) => {
+      if (id) draftSessionPath.value = undefined
+    },
+  )
+
   const groups = computed(() =>
     orderSessionGroups(
       groupSessionsByCwd(visibleSessions.value, local.workspaces.value).map((group) => ({
@@ -184,6 +212,17 @@ export function useWorkspaceNav(
     if (on) next.add(id)
     else next.delete(id)
     deletingIds.value = next
+  }
+
+  function setDraftSession(canonicalPath: string): void {
+    const path = canonicalizeWorkspacePath(canonicalPath)
+
+    if (collapsedByGroup.value[path]) {
+      collapsedByGroup.value = { ...collapsedByGroup.value, [path]: false }
+      saveCollapsed(collapsedByGroup.value)
+    }
+
+    draftSessionPath.value = path
   }
 
   function setView(next: SidebarView) {
@@ -347,5 +386,7 @@ export function useWorkspaceNav(
     addWorkspace,
     renameSession,
     deleteSession,
+    draftSessionId: draftSessionIdRef,
+    setDraftSession,
   }
 }

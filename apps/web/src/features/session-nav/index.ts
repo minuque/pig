@@ -26,10 +26,11 @@ function createNav(
   session: SessionContext,
 ) {
   const router = useRouter()
-  const { highlightedSessionId, openSession, cancelPendingOpen } = useSessionOpen(
-    session.sessionId,
-    router,
-  )
+  const {
+    highlightedSessionId: baseHighlightedSessionId,
+    openSession,
+    cancelPendingOpen,
+  } = useSessionOpen(session.sessionId, router)
   const navError = shallowRef("")
   const cards = useSessionCards(pi.connected)
   const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
@@ -40,6 +41,9 @@ function createNav(
     refreshSessions: pi.refreshSessions,
   })
   const markers = useSessionMarkers(nav.listedSessions, session.sessionId)
+  const highlightedSessionId = computed(
+    () => baseHighlightedSessionId.value ?? nav.draftSessionId.value,
+  )
   const cardFootById = computed(() => {
     const liveId = session.sessionId.value
     const liveOutcome = sessionOutcome(session.transcript.value)
@@ -108,6 +112,7 @@ function createNav(
     highlightedSessionId,
     openSession,
     cancelPendingOpen,
+    setDraftSession: nav.setDraftSession,
     activeSessionRunning,
     addWorkspace: nav.addWorkspace,
     renameSession: nav.renameSession,

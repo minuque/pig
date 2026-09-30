@@ -14,6 +14,16 @@ import { sessionRecency, sessionTitle, workspaceName } from "@features/session-n
 
 export const UPDATED_PAGE = 10
 export const PROJECT_PAGE = 5
+/** 临时新会话占位行的 id 前缀。 */
+export const DRAFT_SESSION_PREFIX = "draft:"
+
+export function draftSessionId(canonicalPath: string): string {
+  return `${DRAFT_SESSION_PREFIX}${canonicalPath}`
+}
+
+export function isDraftSessionId(id: string): boolean {
+  return id.startsWith(DRAFT_SESSION_PREFIX)
+}
 
 function sessionCwd(session: Pick<SessionMetadata, "cwd">): string | undefined {
   return session.cwd ? canonicalizeWorkspacePath(session.cwd) : undefined
@@ -125,6 +135,7 @@ export function toSidebarSession(session: SessionMetadata): SidebarSession {
     title: sessionTitle(session),
     ...(session.cwd !== undefined ? { cwd: session.cwd } : {}),
     updatedAt: sessionRecency(session),
+    ...(isDraftSessionId(session.id) ? { draft: true } : {}),
   }
 }
 

@@ -218,6 +218,7 @@ function itemBind(
     showPath: extra?.showPath ?? false,
     dirTag: extra?.dirTag,
     state: sessionState(session.id),
+    placeholder: session.draft ?? false,
     now: now.value,
   }
 }

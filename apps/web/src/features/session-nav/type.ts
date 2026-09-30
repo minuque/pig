@@ -12,6 +12,8 @@ export interface SidebarSession {
   title: string
   cwd?: string
   updatedAt: number
+  /** 临时新会话占位行。 */
+  draft?: boolean
 }
 
 export type SidebarGrouping = "updated" | "project"
