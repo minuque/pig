@@ -340,13 +340,28 @@ defineExpose({ focus })
 }
 
 .composer-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
-  border: var(--border-width) solid var(--surface-border);
   border-radius: inherit;
   transition: height var(--duration-composer-flip) var(--ease-composer-flip);
+}
+
+/* 内描边不占布局 */
+.composer-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--border-width) var(--composer-border);
+  pointer-events: none;
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.composer-card:focus-within::before {
+  box-shadow: inset 0 0 0 var(--border-width) var(--composer-ring);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -418,18 +433,12 @@ defineExpose({ focus })
   min-width: 0;
 }
 
-.cluster.right {
-  order: 2;
-}
-
-/* 展开态只有上下文吃剩余空间，环就贴住发送钮 */
+/* 展开态动作行保持紧凑态槽位 */
 .cluster.context {
-  order: 1;
   margin-inline-start: auto;
 }
 
 .cluster.tools {
-  order: 0;
   flex: 0 1 auto;
 }
 
