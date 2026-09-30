@@ -250,6 +250,19 @@
   }
 }
 
+/* 工具步骤到达 */
+@keyframes step-arrive {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0;
+  }
+}
+
 @keyframes enter-blur {
   from {
     opacity: 0;
@@ -453,69 +466,6 @@
 
 .tool-calls-group.instant > .panel-slide {
   transition: none;
-}
-
-@property --hook-from {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-@property --hook-y {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-@property --hook-stem-h {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-.hook-rail {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  contain: layout paint;
-  color: var(--ink-faint);
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.hook-rail.is-on {
-  opacity: 1;
-}
-
-.hook-stem,
-.hook-corner {
-  position: absolute;
-  top: 0;
-  inset-inline-start: calc(var(--size-icon) / 2);
-  transition:
-    --hook-from var(--duration-slow) var(--ease-smooth),
-    --hook-y var(--duration-slow) var(--ease-smooth),
-    --hook-stem-h var(--duration-slow) var(--ease-smooth);
-}
-
-.hook-stem {
-  width: var(--border-width);
-  height: var(--hook-stem-h);
-  transform: translate3d(0, var(--hook-from), 0);
-}
-
-.hook-corner {
-  transform: translate3d(0, var(--hook-y), 0);
-}
-
-.hook-rail:not(.is-ready) .hook-stem,
-.hook-rail:not(.is-ready) .hook-corner {
-  transition: none;
-}
-
-[dir="rtl"] .hook-corner {
-  transform: translate3d(0, var(--hook-y, 0px), 0) scaleX(-1);
-  transform-origin: 0 50%;
 }
 
 .fade-layer-enter-active,
@@ -743,10 +693,8 @@
     transform: none;
   }
 
-  .hook-rail,
-  .hook-stem,
-  .hook-corner {
-    transition: none;
+  .step.is-arriving {
+    animation: none;
   }
 
   .fade-layer-enter-active,

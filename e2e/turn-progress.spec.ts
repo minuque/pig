@@ -61,7 +61,7 @@ function tool(id: string, status: "running" | "complete"): TranscriptItem {
   } as TranscriptItem
 }
 
-test("一轮工作：工具步骤状态实时、hook-rail 跟随、历史重拉不重复", async ({
+test("一轮工作：工具步骤状态实时、step-rail 跟随、历史重拉不重复", async ({
   page,
   complexGateway,
 }) => {
@@ -130,7 +130,7 @@ test("一轮工作：工具步骤状态实时、hook-rail 跟随、历史重拉�
   await expect(stepOf("t1.ts").locator(".tool-summary")).not.toHaveClass(/running/)
   const toolSettleMs = Date.now() - finishedAt
 
-  // 助手发起 t2，t2 开始执行；hook-rail 应跟到最新 running 步骤
+  // 助手发起 t2，t2 开始执行；step-rail 应跟到最新 running 步骤
   emit({
     type: "item_updated",
     item: assistant(snapshot, "m2", [textBlock(TEXT_A), toolCallBlock("t1"), toolCallBlock("t2")]),
@@ -139,13 +139,14 @@ test("一轮工作：工具步骤状态实时、hook-rail 跟随、历史重拉�
   await expect(stepOf("t2.ts").locator(".tool-summary")).toHaveClass(/running/)
   await expect(stepOf("t2.ts")).toHaveAttribute("data-active", "true")
 
-  const railCornerY = await page
-    .locator(".hook-rail.accent .hook-corner")
+  const railBranchY = await page
+    .locator(".step-rail path[stroke-dasharray]")
+    .last()
     .evaluate((el) => el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2)
   const stepCenterY = await stepOf("t2.ts")
     .locator(".summary")
     .evaluate((el) => el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2)
-  const railGap = Math.abs(railCornerY - stepCenterY)
+  const railGap = Math.abs(railBranchY - stepCenterY)
 
   // 收尾：同一帧里先到工具完成、再到空快照，界面不得回退到旧状态
   emitFinished(tool("t2", "complete"))
