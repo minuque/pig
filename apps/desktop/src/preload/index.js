@@ -1,10 +1,13 @@
-// 不向 renderer 暴露 API。html 解析会换掉根节点，DOMContentLoaded 再写一次。
+// 不向 renderer 暴露 API。preload 在 documentElement 建好前执行，加判空；
+// html 解析会换掉根节点，DOMContentLoaded 再写一次。
 const GATEWAY_ORIGIN_ARG_PREFIX = "--pig-gateway-origin="
 
 function stampDesktopPlatform() {
   const platform = process.platform
 
   if (platform !== "darwin" && platform !== "win32" && platform !== "linux") return
+
+  if (!document.documentElement) return
   document.documentElement.dataset.pigDesktopPlatform = platform
 }
 
@@ -17,6 +20,8 @@ function stampGatewayOrigin() {
     const url = new URL(arg.slice(GATEWAY_ORIGIN_ARG_PREFIX.length))
 
     if (url.protocol !== "http:" || url.hostname !== "127.0.0.1") return
+
+    if (!document.documentElement) return
     document.documentElement.dataset.pigGatewayOrigin = url.origin
   } catch {
     /* 非法参数忽略 */
