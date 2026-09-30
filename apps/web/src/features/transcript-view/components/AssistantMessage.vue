@@ -130,7 +130,7 @@ const agentMarkdown = computed(() =>
     restoreState: takeMarkdownVirtualState(props.sessionId, props.item.id),
   }),
 )
-const THROTTLE_MS = 75
+const THROTTLE_MS = 32
 const throttledText = ref(props.item.text)
 let timer: ReturnType<typeof setTimeout> | undefined
 let pending: string | undefined
@@ -156,7 +156,7 @@ function resetText(text: string) {
   throttledText.value = text
 }
 
-// 流式时把内容聚合到 ~75ms 一帧：窗口开始立即更新，窗口末尾补发最后一次
+// 流式时把内容聚合到 ~32ms 一帧：窗口开始立即更新，窗口末尾补发最后一次
 watch(
   () => props.item.text,
   (text) => {
