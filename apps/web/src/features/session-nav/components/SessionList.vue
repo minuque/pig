@@ -150,6 +150,7 @@ import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionsHead from "@features/session-nav/components/SessionsHead.vue"
 import { useGroupReorder } from "@features/session-nav/hooks/use-group-reorder.js"
 import { useSectionFold } from "@features/session-nav/hooks/use-section-fold.js"
+import { stickyOffsets } from "@features/session-nav/lib/sticky-offsets.js"
 import { toSidebarSession } from "@features/session-nav/lib/session-list.js"
 import type { SidebarRow, SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 
@@ -166,10 +167,17 @@ function publishStickOffsets() {
   const body = navBody.value
 
   if (!body) return
-  const pinHeight = pinnedSection.value?.offsetHeight ?? 0
-  const headHeight = headSticky.value?.offsetHeight ?? 0
-  body.style.setProperty("--pin-stick", `${pinHeight}px`)
-  body.style.setProperty("--head-stick", `${pinHeight + headHeight}px`)
+  const style = getComputedStyle(body)
+  const offsets = stickyOffsets(
+    pinnedSection.value?.offsetHeight ?? 0,
+    headSticky.value?.offsetHeight ?? 0,
+    Number.parseFloat(style.rowGap) || 0,
+    Number.parseFloat(style.paddingTop) || 0,
+  )
+
+  body.style.setProperty("--pin-stick", `${offsets.pin}px`)
+  body.style.setProperty("--head-stick", `${offsets.head}px`)
+  body.style.setProperty("--pin-tail", `${offsets.tail}px`)
 }
 
 useResizeObserver(pinnedSection, publishStickOffsets)
@@ -288,6 +296,9 @@ function groupClass(key: string, open: boolean) {
 .session-list {
   position: relative;
   gap: var(--spacing-xxs);
+  scroll-padding-top: var(--head-stick, 0px);
+  /* 尾部留白只在内容溢出时生效，短列表不受影响 */
+  padding-bottom: var(--pin-tail, 0px);
 }
 
 .nav-body::-webkit-scrollbar {
@@ -311,13 +322,15 @@ function groupClass(key: string, open: boolean) {
   min-width: 0;
 }
 
-/* 置顶区钉在滚动容器顶，会话表头与目录头依次吸在其下 */
+/* 置顶区钉在滚动容器顶，会话表头与目录头依次吸在其下。
+   每层向下多铺一格间距的实底，盖住层与层之间的缝，滚动内容不透出来 */
 .nav-section.is-pin {
   position: sticky;
   top: 0;
   z-index: 3;
   padding-block-end: var(--spacing-xxs);
   background: var(--sidebar);
+  box-shadow: 0 var(--spacing-xxs) 0 var(--sidebar);
 }
 
 .head-sticky {
@@ -325,6 +338,7 @@ function groupClass(key: string, open: boolean) {
   top: var(--pin-stick, 0px);
   z-index: 2;
   background: var(--sidebar);
+  box-shadow: 0 var(--spacing-xxs) 0 var(--sidebar);
 }
 
 .row-group .group-head {
