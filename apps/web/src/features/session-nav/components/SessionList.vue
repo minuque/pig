@@ -282,8 +282,8 @@ function groupClass(key: string, open: boolean) {
 .session-list {
   position: relative;
   gap: var(--spacing-xxs);
-  /* 目录头吸在会话表头下沿，表头高度是固定的图标按钮高 */
-  scroll-padding-top: calc(var(--pin-stick, 0px) + var(--size-icon-button));
+  /* 组间距把目录头的自然位置推低一格，吸顶点跟着下移，吸住时才不跳 */
+  scroll-padding-top: calc(var(--pin-stick, 0px) + var(--size-icon-button) + var(--spacing-xxs));
 }
 
 .nav-body::-webkit-scrollbar {
@@ -307,12 +307,6 @@ function groupClass(key: string, open: boolean) {
   min-width: 0;
 }
 
-/* 组间距折进组内，目录头的自然位置正好落在吸顶点上，吸住时不跳动 */
-.row-group {
-  margin-block-start: calc(-1 * var(--spacing-xxs));
-  padding-block-start: var(--spacing-xxs);
-}
-
 /* 置顶区钉在滚动容器顶。底边距折进区内，表头才能紧贴它的底边吸住。
    实高由浏览器写进 --pin-stick，表头和目录头都靠它定位 */
 .nav-section.is-pin {
@@ -333,7 +327,7 @@ function groupClass(key: string, open: boolean) {
 
 .row-group .group-head {
   position: sticky;
-  top: calc(var(--pin-stick, 0px) + var(--size-icon-button));
+  top: calc(var(--pin-stick, 0px) + var(--size-icon-button) + var(--spacing-xxs));
   z-index: 1;
   background: var(--sidebar);
 }
