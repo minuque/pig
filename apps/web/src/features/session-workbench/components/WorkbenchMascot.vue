@@ -3,8 +3,8 @@
     ref="mascot"
     class="hero-mascot"
     viewBox="-10 0 148 102"
-    width="148"
-    height="102"
+    width="118.4"
+    height="81.6"
     aria-hidden="true"
   >
     <g class="mascot-breathe">
