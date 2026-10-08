@@ -18,10 +18,10 @@
 
       <div
         class="session-list-group"
-        :class="{ 'is-open': !collapsedSections.pinned }"
+        :class="{ 'is-open': pinnedOpen }"
         :inert="collapsedSections.pinned"
       >
-        <TransitionGroup name="list-reveal" tag="div" class="group-body">
+        <TransitionGroup v-if="pinnedMounted" name="list-reveal" tag="div" class="group-body">
           <SessionItem
             v-for="session in pinnedRows"
             :key="session.id"
@@ -57,10 +57,10 @@
     <div
       v-if="view === 'flat' && updatedSessions.length"
       class="session-list-group"
-      :class="{ 'is-open': !collapsedSections.sessions }"
+      :class="{ 'is-open': sessionsOpen }"
       :inert="collapsedSections.sessions"
     >
-      <TransitionGroup name="list-reveal" tag="ul" class="flat-sessions">
+      <TransitionGroup v-if="sessionsMounted" name="list-reveal" tag="ul" class="flat-sessions">
         <li v-for="session in updatedSessions" :key="session.id">
           <SessionItem
             v-bind="itemBind(session)"
@@ -82,10 +82,10 @@
     <div
       v-else-if="view === 'grouped' && showList"
       class="session-list-group"
-      :class="{ 'is-open': !collapsedSections.sessions }"
+      :class="{ 'is-open': sessionsOpen }"
       :inert="collapsedSections.sessions"
     >
-      <ul>
+      <ul v-if="sessionsMounted">
         <li
           v-for="section in listSections"
           :key="section.key"
@@ -147,6 +147,7 @@ import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionsHead from "@features/session-nav/components/SessionsHead.vue"
 import { useGroupReorder } from "@features/session-nav/hooks/use-group-reorder.js"
+import { useSectionFold } from "@features/session-nav/hooks/use-section-fold.js"
 import { toSidebarSession } from "@features/session-nav/lib/session-list.js"
 import type { SidebarRow, SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 
@@ -176,6 +177,11 @@ const {
 } = useNav()
 const now = useTimestamp({ interval: 60_000 })
 const collapsedSections = reactive({ pinned: false, sessions: false })
+// 折叠过渡后卸载列表内容；flat 与 grouped 互斥分支共用同一份状态
+const { open: pinnedOpen, mounted: pinnedMounted } = useSectionFold(() => collapsedSections.pinned)
+const { open: sessionsOpen, mounted: sessionsMounted } = useSectionFold(
+  () => collapsedSections.sessions,
+)
 const rows = rowsFor(false)
 const showList = computed(() => rows.value.some((row) => row.kind !== "more"))
 const groupRows = computed(() =>

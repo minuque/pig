@@ -329,9 +329,11 @@ export function useSessionLifecycle(
   const creatingCwd = ref<string>()
   const submitting = ref(false)
   const aborting = ref(false)
+  /** 会话已建、路由未落位的窗口里用它指向新会话状态，transcript 不出现空档 */
+  const pendingSessionId = ref<string>()
   let sendEpoch = 0
   const clientState = computed(() => {
-    const id = sessionId.value
+    const id = sessionId.value ?? pendingSessionId.value
     return id ? sessionState(states, id) : idleState
   })
   const prompt = computed({
@@ -368,6 +370,7 @@ export function useSessionLifecycle(
       }
 
       cwd.selectCwd(nextCwd)
+      pendingSessionId.value = nextId
       bindIdleSends(states, nextId, idleState)
 
       if (nextId !== sessionId.value) {
@@ -380,6 +383,7 @@ export function useSessionLifecycle(
       throw error
     } finally {
       creatingCwd.value = undefined
+      pendingSessionId.value = undefined
     }
   }
 

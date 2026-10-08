@@ -207,9 +207,7 @@ const pageError = computed(() => {
   return route.name === "error" ? {} : null
 })
 const showHero = computed(() => {
-  // 乐观句已搬到 states、路由未落位的窗口里 transcript 短暂为空：发送期间不回 welcome，
-  // 否则 hero enter + is-hero 回归会把停靠与形变动画双重重启
-  if (transcript.value.length > 0 || running.value || turnPending.value) return false
+  if (transcript.value.length > 0 || running.value) return false
 
   if (sessionId.value === undefined) return true
 
