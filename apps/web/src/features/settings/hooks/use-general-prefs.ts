@@ -1,5 +1,6 @@
 import { readonly, shallowRef, watch } from "vue"
 import { i18n, t } from "@i18n/index.js"
+import { readEnum, readFlag, writeFlag, writePref } from "@utils/storage.js"
 
 export type UiLocale = "en" | "zh-CN"
 
@@ -12,31 +13,6 @@ const locale = shallowRef<UiLocale>("zh-CN")
 const fontSize = shallowRef<FontSize>("m")
 const notifyOn = shallowRef(true)
 let loaded = false
-
-function readEnum<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
-  try {
-    const value = localStorage.getItem(key)
-    return allowed.includes(value as T) ? (value as T) : fallback
-  } catch {
-    return fallback
-  }
-}
-
-function readFlag(key: string): boolean {
-  try {
-    return localStorage.getItem(key) !== "off"
-  } catch {
-    return true
-  }
-}
-
-function write(key: string, value: string): void {
-  try {
-    localStorage.setItem(key, value)
-  } catch {
-    /* 隐私模式写不进存储时仍用内存值 */
-  }
-}
 
 function apply(nextLocale: UiLocale, nextSize: FontSize): void {
   if (typeof document === "undefined") return
@@ -65,15 +41,15 @@ export function useGeneralPrefs() {
     notifyOn: readonly(notifyOn),
     setLocale(next: UiLocale) {
       locale.value = next
-      write(LOCALE_KEY, next)
+      writePref(LOCALE_KEY, next)
     },
     setFontSize(next: FontSize) {
       fontSize.value = next
-      write(FONT_SIZE_KEY, next)
+      writePref(FONT_SIZE_KEY, next)
     },
     setNotify(next: boolean) {
       notifyOn.value = next
-      write(NOTIFY_KEY, next ? "on" : "off")
+      writeFlag(NOTIFY_KEY, next)
     },
   }
 }

@@ -1,17 +1,12 @@
 import { inject, onBeforeUnmount, shallowRef, watch, type ShallowRef } from "vue"
 import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
+import { readNumber, writeNumber } from "@utils/storage.js"
 
 const CONTENT_WIDTH_KEY = "pig.conversation.contentWidth"
 const CONTENT_DRAG_MIN = 640
 const CONTENT_DEFAULT_MIN = 680
 const CONTENT_DEFAULT_MAX = 920
 const CONTENT_EDGE_BUDGET = 176 // 每侧 88px
-
-function parseContentWidth(raw: string | null): number | null {
-  if (raw == null || raw.trim() === "") return null
-  const n = Number(raw)
-  return Number.isFinite(n) && n > 0 ? n : null
-}
 
 function defaultContentWidth(column: number): number {
   return Math.min(CONTENT_DEFAULT_MAX, Math.max(CONTENT_DEFAULT_MIN, column * 0.64))
@@ -22,20 +17,12 @@ function resolveContentWidth(columnWidth: number, preference: number): number {
   return Math.min(Math.max(preference, CONTENT_DRAG_MIN), max)
 }
 
-function readPreference(): number | null {
-  try {
-    return parseContentWidth(localStorage.getItem(CONTENT_WIDTH_KEY))
-  } catch {
-    return null
-  }
+function readPreference(): number | undefined {
+  return readNumber(CONTENT_WIDTH_KEY)
 }
 
 function persistPreference(width: number) {
-  try {
-    localStorage.setItem(CONTENT_WIDTH_KEY, String(width))
-  } catch {
-    /* 隐私模式等场景下仅本页有效 */
-  }
+  writeNumber(CONTENT_WIDTH_KEY, width)
 }
 
 export function useConversationWidth(): {
@@ -69,7 +56,9 @@ export function useConversationWidth(): {
 
     apply(
       root,
-      preference === null ? defaultContentWidth(column) : resolveContentWidth(column, preference),
+      preference === undefined
+        ? defaultContentWidth(column)
+        : resolveContentWidth(column, preference),
     )
   }
 
