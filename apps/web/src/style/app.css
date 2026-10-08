@@ -195,9 +195,11 @@
   --size-modal: 32rem;
   --size-settings: 56rem;
   --size-settings-nav: 15rem;
-  --size-icon: 15px;
-  --size-icon-2xs: 18px;
+  /* 线性图标：14px 图标配 13px 正文，线宽对齐 Synara 的 24 画布 1.5 线宽 */
+  --size-icon: 14px;
+  --size-icon-2xs: 16px;
   --size-icon-button: 28px;
+  --line-icon-width: 1.5px;
   /* 侧边栏紧凑图标按钮：图标外 2px，对齐 Synara 的 sidebar-icon-button */
   --icon-button-pad: 2px;
   --size-scroll-control: 30px;
@@ -600,11 +602,11 @@ p {
 
 /* 弹层打开时只禁掉拖拽层本身：写 body * 会让每次挂载都全量重算样式。 */
 html[data-pig-desktop-platform]:has([data-slot="dialog-content"])
-  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-crumb, .header-session),
+  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-session, .session-tabs),
 html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"])
-  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-crumb, .header-session),
+  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-session, .session-tabs),
 html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
-  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-crumb, .header-session) {
+  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-session, .session-tabs) {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
