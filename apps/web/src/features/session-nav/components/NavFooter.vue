@@ -22,7 +22,7 @@
       </Tooltip>
 
       <DropdownMenuContent side="top" align="end" :side-offset="8">
-        <DropdownMenuItem class="help-item" :aria-pressed="soundOn" @select="toggleSound()">
+        <DropdownMenuItem class="help-item" @select.prevent="toggleSound()">
           <span class="help-lead">
             <Volume2 v-if="soundOn" />
             <VolumeX v-else />
@@ -32,7 +32,7 @@
           <span class="help-state">{{ soundOn ? "开" : "关" }}</span>
         </DropdownMenuItem>
 
-        <DropdownMenuItem class="help-item" :aria-pressed="isDark" @select="toggleTheme()">
+        <DropdownMenuItem class="help-item" @select.prevent="toggleTheme()">
           <span class="help-lead">
             <Moon v-if="isDark" />
             <Sun v-else />
