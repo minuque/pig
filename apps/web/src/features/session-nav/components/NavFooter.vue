@@ -8,31 +8,73 @@
       <span>设置</span>
     </button>
 
-    <Tooltip>
-      <TooltipTrigger as-child>
-        <a
-          class="footer-help press-scale"
-          href="https://github.com/minuque/pig"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="文档"
-        >
-          <CircleHelp />
-        </a>
-      </TooltipTrigger>
+    <DropdownMenu :modal="false">
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <DropdownMenuTrigger as-child>
+            <button class="footer-help press-scale" type="button" aria-label="帮助">
+              <CircleHelp />
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
 
-      <TooltipContent>文档</TooltipContent>
-    </Tooltip>
+        <TooltipContent>帮助</TooltipContent>
+      </Tooltip>
+
+      <DropdownMenuContent side="top" align="end" :side-offset="8">
+        <DropdownMenuItem class="help-item" :aria-pressed="soundOn" @select="toggleSound()">
+          <span class="help-lead">
+            <Volume2 v-if="soundOn" />
+            <VolumeX v-else />
+            音效
+          </span>
+
+          <span class="help-state">{{ soundOn ? "开" : "关" }}</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem class="help-item" :aria-pressed="isDark" @select="toggleTheme()">
+          <span class="help-lead">
+            <Moon v-if="isDark" />
+            <Sun v-else />
+            主题
+          </span>
+
+          <span class="help-state">{{ isDark ? "深色" : "浅色" }}</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem class="help-item" as-child>
+          <a href="https://github.com/minuque/pig" target="_blank" rel="noopener noreferrer">
+            <span class="help-lead">
+              <BookOpen />
+              文档
+            </span>
+          </a>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   </div>
 </template>
 
 <script setup lang="ts">
-import { CircleHelp, Settings } from "@lucide/vue"
+import { BookOpen, CircleHelp, Moon, Settings, Sun, Volume2, VolumeX } from "@lucide/vue"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { useSound } from "@features/click-sound/index.js"
+import { useColorScheme } from "@features/theme/index.js"
 
 const emit = defineEmits<{
   settings: []
 }>()
+const { enabled: soundOn, toggle: toggleSound } = useSound()
+const { isDark, toggle: toggleTheme } = useColorScheme()
 </script>
 
 <style scoped>
@@ -60,7 +102,8 @@ const emit = defineEmits<{
   color: var(--ink);
 }
 
-.footer-help:hover {
+.footer-help:hover,
+.footer-help[data-state="open"] {
   background: var(--hover-quiet);
   color: var(--ink);
 }
@@ -109,5 +152,27 @@ const emit = defineEmits<{
   .footer-help {
     transition: none;
   }
+}
+</style>
+
+<style>
+/* 菜单经 Portal 挂到 body，scoped 选不中 */
+.help-item svg {
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
+}
+
+.help-lead {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.help-state {
+  margin-inline-start: auto;
+  color: var(--ink-muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
 }
 </style>
