@@ -26,6 +26,7 @@
       :placeholder="placeholder"
       :resizing="contentResizing"
       :hero="hero"
+      :cwd="cwd"
       @submit="onSubmit"
       @paste-files="attachments.addFiles"
     >
