@@ -15,6 +15,7 @@ import type {
 } from "@earendil-works/pi-server"
 import { canonicalizePath } from "../directory.js"
 import { composePrompt, type AttachmentSink } from "./attachments.js"
+import { expandFileMentions } from "./file-mentions.js"
 import { estimateContextUsage, type ContextPreviewKey } from "./context-usage.js"
 import { firstUserMessageText, sessionListName } from "./session-label.js"
 import { TranscriptProjection } from "./transcript.js"
@@ -128,7 +129,13 @@ export class PiHostSession implements PiSessionRuntime {
       if (!this.session.isIdle) throw new SessionBusyError("A prompt is already running")
       // 先取暂存附件：busy 已提前拒绝，取走后 prompt 失败要放回，避免附件静默丢失
       const staged = this.attachments?.take(this.session.sessionId) ?? []
-      const composed = composePrompt(input.text, staged)
+      const expanded = expandFileMentions(
+        input.text,
+        canonicalizePath(this.session.sessionManager.getCwd()),
+      )
+      // 无 @token 时同步短路，prompt 的 timing.start 保持同一拍
+      const text = expanded instanceof Promise ? await expanded : expanded
+      const composed = composePrompt(text, staged)
       this.timing.start()
 
       try {

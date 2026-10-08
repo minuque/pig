@@ -1,8 +1,22 @@
 <template>
   <div ref="container" class="composer" @mousedown="onComposerMousedown">
+    <Transition name="menu-reveal">
+      <CommandMenu
+        v-if="commandMenu.open.value"
+        class="command-menu-float"
+        :groups="commandMenu.groups.value"
+        :active-id="commandMenu.activeId.value"
+        :loading="commandMenu.loading.value"
+        :empty-text="commandMenu.emptyText.value"
+        :aria-label="commandMenuAriaLabel"
+        @select="commandMenu.select"
+        @highlight="(id) => (commandMenu.activeId.value = id)"
+      />
+    </Transition>
+
     <div
       ref="card"
-      class="composer-card surface-float"
+      class="composer-card surface-float squircle"
       :class="expanded ? 'is-expanded' : 'is-compact'"
     >
       <div v-if="$slots.attachments" class="attachments">
@@ -20,6 +34,10 @@
             rows="1"
             @keydown="onEditorKeydown"
             @paste="onEditorPaste"
+            @input="syncCaret"
+            @click="syncCaret"
+            @keyup="syncCaret"
+            @select="syncCaret"
           ></textarea>
         </div>
 
@@ -58,6 +76,8 @@ export function shouldSubmitOnKeydown(e: {
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
+import { useCommandMenu } from "@features/composer/hooks/use-command-menu.js"
+import CommandMenu from "@features/composer/components/CommandMenu.vue"
 import {
   clusterOffsets,
   composerFlip,
@@ -75,11 +95,14 @@ const props = withDefaults(
     resizing?: boolean
     /** 新会话首屏：输入卡恒展开。 */
     hero?: boolean
+    /** @ 文件与 / 命令搜索的根目录；未给时触发菜单不出现。 */
+    cwd?: string | undefined
   }>(),
   {
     placeholder: PROMPT_PLACEHOLDER,
     resizing: false,
     hero: false,
+    cwd: undefined,
   },
 )
 const prompt = defineModel<string>("prompt", { required: true })
@@ -97,6 +120,9 @@ const toolsCluster = ref<HTMLElement | null>(null)
 const rightCluster = ref<HTMLElement | null>(null)
 const expanded = ref(true)
 const hasText = computed(() => prompt.value.length > 0)
+const caret = ref(0)
+const commandMenu = useCommandMenu(prompt, caret, () => props.cwd)
+const commandMenuAriaLabel = computed(() => "输入卡命令")
 let widthObserver: ResizeObserver | undefined
 let lastWidth = 0
 /** 紧凑态实测容量与当时容器宽度；展开态用宽度差平移，绝不用展开态测量值回灌。 */
@@ -300,12 +326,24 @@ function focus() {
 }
 
 function onEditorKeydown(e: KeyboardEvent) {
+  syncCaret()
+
+  // 菜单开时先吃导航键；Escape 让菜单先关，空输入再 blur
+  if (commandMenu.onKeydown(e)) return
+
   if (e.key === "Escape" && !e.isComposing && !hasText.value) editor.value?.blur()
 
   if (shouldSubmitOnKeydown(e)) {
     e.preventDefault()
     emit("submit")
   }
+}
+
+/** 光标位置同步给触发器检测；选区取起点即可。 */
+function syncCaret() {
+  const el = editor.value
+
+  if (el) caret.value = el.selectionStart ?? el.value.length
 }
 
 /** 只在真的收到文件时拦截粘贴，纯文本粘贴仍走浏览器默认行为。 */
@@ -337,6 +375,11 @@ defineExpose({ focus })
   margin-inline: auto;
   border-radius: var(--composer-radius);
   box-shadow: var(--composer-shadow);
+}
+
+/* @// 面板浮在输入卡上方，不占布局；菜单自身圆角与描边在组件内。 */
+.command-menu-float {
+  margin-bottom: var(--spacing-xxs);
 }
 
 .composer-card {

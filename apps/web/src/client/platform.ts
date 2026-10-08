@@ -138,3 +138,30 @@ export async function discardAttachments(batch: string): Promise<void> {
     body: JSON.stringify({ batch }),
   })
 }
+
+/** @ 文件引用候选：cwd 相对路径，目录带尾斜杠。 */
+export interface FileSearchEntry {
+  path: string
+  kind: "file" | "directory"
+}
+
+export async function searchWorkspaceFiles(cwd: string, query: string): Promise<FileSearchEntry[]> {
+  const params = new URLSearchParams({ cwd, q: query })
+  const result = await platformRequest<{ entries: FileSearchEntry[] }>(
+    `/api/v1/platform/files?${params.toString()}`,
+  )
+  return result.entries
+}
+
+/** / 技能候选：Pi 资源加载器发现的技能。 */
+export interface WorkspaceSkill {
+  name: string
+  description: string
+}
+
+export async function listWorkspaceSkills(cwd: string): Promise<WorkspaceSkill[]> {
+  const result = await platformRequest<{ skills: WorkspaceSkill[] }>(
+    `/api/v1/platform/skills?cwd=${encodeURIComponent(cwd)}`,
+  )
+  return result.skills
+}

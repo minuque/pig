@@ -17,8 +17,14 @@
               :size="14"
             />
 
-            <span class="selector-name">{{ label }}</span>
-            <span v-if="effortLabel" class="selector-effort">{{ effortLabel }}</span>
+            <span class="selector-stack">
+              <span class="selector-labels" :class="{ 'is-covered': open }">
+                <span class="selector-name">{{ label }}</span>
+                <span v-if="effortLabel" class="selector-effort">{{ effortLabel }}</span>
+              </span>
+
+              <span v-if="open" class="selector-placeholder">选择模型与强度</span>
+            </span>
           </Button>
         </DropdownMenuTrigger>
       </TooltipTrigger>
@@ -38,7 +44,12 @@
       @focus-outside="onFocusOutside"
       @close-auto-focus="onCloseAutoFocus"
     >
-      <div ref="pickerRef" class="picker" @keydown.capture="onPickerKeydown">
+      <div
+        ref="pickerRef"
+        class="picker"
+        @keydown.capture="onPickerKeydown"
+        @keydown.tab.prevent="cycleScope($event)"
+      >
         <div class="tabs">
           <Tooltip>
             <TooltipTrigger as-child>
@@ -196,7 +207,7 @@ const {
   selectScope,
   exitSearchTo,
   onPanelKeydown,
-  onSearchKeydown,
+  onSearchKeydown: searchKeydown,
   onPointerDownOutside,
   onFocusOutside,
   onCloseAutoFocus,
@@ -232,6 +243,17 @@ const triggerText = computed(() =>
   pickerTriggerText(label.value, props.level, current.value.levels),
 )
 const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
+/** Tab / Shift+Tab 在厂商轨与收藏间循环，不把焦点弹出菜单。 */
+const scopeOrder = computed(() => [FAVORITES_SCOPE, ...props.catalog.map((vendor) => vendor.id)])
+
+function cycleScope(event: KeyboardEvent) {
+  event.stopPropagation()
+  const order = scopeOrder.value
+  const index = order.indexOf(scope.value)
+  const next = order[(index + (event.shiftKey ? -1 : 1) + order.length) % order.length]
+
+  if (next) selectScope(next)
+}
 
 watch([query, scope], async () => {
   await nextTick()
@@ -264,6 +286,23 @@ function onPickerKeydown(event: KeyboardEvent) {
   }
 
   onPanelKeydown(event)
+}
+
+function onSearchKeydown(event: KeyboardEvent) {
+  if (event.key === "Enter") {
+    // 焦点还在搜索框：无高亮行，直达首个结果
+    event.preventDefault()
+    const first = list.value[0]
+
+    if (first) {
+      emit("update:model", { provider: first.data.vendor.id, id: first.data.model.id })
+      open.value = false
+    }
+
+    return
+  }
+
+  searchKeydown(event)
 }
 
 function onSelectModel(event: Event, provider: string, id: string) {
@@ -322,6 +361,56 @@ function onSelectModel(event: Event, provider: string, id: string) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.selector-stack {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.selector-labels {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* 打开时覆盖占位文案，标签留在原位保持触发器宽度不变。 */
+.selector-labels.is-covered {
+  visibility: hidden;
+}
+
+.selector-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+/* 面板关闭后标签入场：与 Synara composer-trigger-label-enter 同一动效。 */
+@media (prefers-reduced-motion: no-preference) {
+  .selector-labels:not(.is-covered) {
+    animation: selector-label-enter 240ms var(--ease-smooth);
+  }
+
+  @keyframes selector-label-enter {
+    from {
+      opacity: 0;
+      filter: blur(4px);
+      translate: 0 3px;
+    }
+
+    to {
+      opacity: 1;
+      filter: blur(0);
+      translate: 0 0;
+    }
+  }
 }
 
 .selector-name {

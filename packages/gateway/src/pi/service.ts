@@ -128,6 +128,17 @@ export class PiHostService implements PiServerService {
     void this.slot(canonicalizePath(cwd)).catch(() => undefined)
   }
 
+  /** 某目录已加载的技能清单：给输入卡斜杠菜单用；loader 未就绪时返回空。 */
+  async workspaceSkills(cwd: string): Promise<Array<{ name: string; description: string }>> {
+    if (this.options.createSession) return []
+    const slot = await this.slot(canonicalizePath(cwd)).catch(() => undefined)
+
+    if (!slot) return []
+    return slot.loader
+      .getSkills()
+      .skills.map((skill) => ({ name: skill.name, description: skill.description }))
+  }
+
   async createSession(options: CreateSessionOptions): Promise<PiSessionRuntime> {
     const runtime = await this.runtime()
     const cwd = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd())

@@ -3,6 +3,7 @@ import { PiServerError, SessionNotFoundError } from "@earendil-works/pi-server"
 import type { DirectoryPort } from "../directory.js"
 import { AttachmentError, sanitizeMimeType, type AttachmentErrorCode } from "../pi/attachments.js"
 import { isContextPreviewKey } from "../pi/context-usage.js"
+import { searchFiles } from "../pi/file-search.js"
 import type { PiHostService } from "../pi/service.js"
 
 export type PlatformRequestDeps = {
@@ -51,6 +52,16 @@ export async function handlePlatformRequest(
 
   if (url.pathname === "/api/v1/platform/delete-session" && req.method === "POST") {
     await handleDeleteSession(req, res, deps)
+    return true
+  }
+
+  if (url.pathname === "/api/v1/platform/files" && req.method === "GET") {
+    await handleFiles(res, url, deps)
+    return true
+  }
+
+  if (url.pathname === "/api/v1/platform/skills" && req.method === "GET") {
+    await handleSkills(res, url, deps)
     return true
   }
 
@@ -226,6 +237,46 @@ async function handleSessionCards(res: ServerResponse, deps: PlatformRequestDeps
     send(res, 200, { cards })
   } catch (error) {
     console.error("session-cards failed:", error)
+    send(res, 500, { code: "INTERNAL_ERROR" })
+  }
+}
+
+/** @ 文件引用：cwd 必填且限定为已规范化目录，搜索在服务端完成。 */
+async function handleFiles(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
+  const { send } = deps
+  const cwd = url.searchParams.get("cwd")?.trim() ?? ""
+
+  if (!cwd) {
+    send(res, 400, { code: "INVALID_REQUEST" })
+    return
+  }
+
+  const query = url.searchParams.get("q") ?? ""
+
+  try {
+    const entries = await searchFiles(cwd, query)
+    send(res, 200, { entries })
+  } catch (error) {
+    console.error("files failed:", error)
+    send(res, 500, { code: "INTERNAL_ERROR" })
+  }
+}
+
+/** / 技能清单：与会话共用同一份 loader 缓存；目录无技能返回空数组。 */
+async function handleSkills(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
+  const { send, hostService } = deps
+  const cwd = url.searchParams.get("cwd")?.trim() ?? ""
+
+  if (!cwd) {
+    send(res, 400, { code: "INVALID_REQUEST" })
+    return
+  }
+
+  try {
+    const skills = await hostService.workspaceSkills(cwd)
+    send(res, 200, { skills })
+  } catch (error) {
+    console.error("skills failed:", error)
     send(res, 500, { code: "INTERNAL_ERROR" })
   }
 }
