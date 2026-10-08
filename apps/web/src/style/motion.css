@@ -434,6 +434,11 @@
   min-height: 0;
 }
 
+/* 展开后放开裁剪：overflow hidden 会截断 sticky 的滚动参照，目录头钉不到侧栏上 */
+.session-list-group.is-open > * {
+  overflow: visible;
+}
+
 .tool-calls-group.is-open > * {
   overflow: visible;
 }
