@@ -61,6 +61,7 @@ export default defineConfig({
       "@features": fileURLToPath(new URL("./src/features", import.meta.url)),
       "@client": fileURLToPath(new URL("./src/client", import.meta.url)),
       "@router": fileURLToPath(new URL("./src/router", import.meta.url)),
+      "@i18n": fileURLToPath(new URL("./src/i18n", import.meta.url)),
     },
   },
   server: {

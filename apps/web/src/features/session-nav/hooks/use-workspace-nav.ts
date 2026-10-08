@@ -2,6 +2,7 @@ import { computed, ref, shallowRef, toValue, watch, type MaybeRefOrGetter, type 
 import type { Router } from "vue-router"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { errorMessage, PlatformRequestError } from "@client/http.js"
+import { t } from "@i18n/index.js"
 import {
   deleteSession as requestDeleteSession,
   renameSession as requestRenameSession,
@@ -304,7 +305,7 @@ export function useWorkspaceNav(
       let result = await selectDirectory()
 
       if (result.requiresManualInput) {
-        const path = window.prompt("输入本地目录路径")
+        const path = window.prompt(t("errors.localDirPrompt"))
 
         if (!path) return
         result = await selectDirectory(path)
@@ -345,7 +346,7 @@ export function useWorkspaceNav(
     error.value = ""
 
     if (admin.sessionId.value === id && admin.running.value) {
-      error.value = "会话正在运行，请先停止再删除。"
+      error.value = t("session.stopRunningBeforeDelete")
       return
     }
 
@@ -360,7 +361,7 @@ export function useWorkspaceNav(
       })
       await admin.refreshSessions()
     } catch (cause) {
-      error.value = isBusy(cause) ? "会话仍在运行，请先停止再删除。" : errorMessage(cause)
+      error.value = isBusy(cause) ? t("session.stopRunningBeforeDelete") : errorMessage(cause)
     } finally {
       // 成功时列表已刷新、该会话已不在，移除不会闪回；失败则用进场动画回到原位
       setDeleting(id, false)

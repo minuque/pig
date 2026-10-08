@@ -7,7 +7,8 @@ import type {
   TranscriptItem,
 } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
-import { sessionTitle, UNTITLED_SESSION } from "@features/session-nav/index.js"
+import { t } from "@i18n/index.js"
+import { sessionTitle, untitledSession } from "@features/session-nav/index.js"
 import { transcriptText } from "@features/transcript-view/index.js"
 import type {
   OptimisticUserMessage,
@@ -200,7 +201,7 @@ function sameTranscriptItem(a: TranscriptItem, b: TranscriptItem): boolean {
 export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjection {
   return {
     id: snapshot.id,
-    name: snapshot.name?.trim() || UNTITLED_SESSION,
+    name: snapshot.name?.trim() || untitledSession(),
     cwd: snapshot.cwd,
     model: snapshot.model,
     thinkingLevel: snapshot.thinkingLevel,
@@ -214,15 +215,15 @@ export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjec
 export function phaseLabel(phase: SessionPhase): string {
   switch (phase) {
     case "turn":
-      return "运行中"
+      return t("session.running")
     case "compaction":
-      return "压缩中"
+      return t("transcript.compressing")
     case "retry":
-      return "重试中"
+      return t("transcript.retrying")
     case "branch_summary":
-      return "分支摘要"
+      return t("transcript.branchSummary")
     default:
-      return "空闲"
+      return t("composer.contextIdle")
   }
 }
 
@@ -236,5 +237,5 @@ export function workbenchHeaderTitle(input: {
   const meta = input.listed.find((session) => session.id === input.sessionId)
 
   if (meta) return sessionTitle(meta)
-  return input.projectionName?.trim() || UNTITLED_SESSION
+  return input.projectionName?.trim() || untitledSession()
 }

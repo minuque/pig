@@ -37,6 +37,7 @@
 import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { Check, Copy } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
@@ -48,6 +49,7 @@ const props = withDefaults(
   }>(),
   { text: "", copyBefore: false },
 )
+const { t, locale } = useI18n()
 const valid = computed(() => Number.isFinite(props.timestamp) && props.timestamp > 0)
 const date = computed(() => new Date(props.timestamp))
 const iso = computed(() => (valid.value ? date.value.toISOString() : ""))
@@ -56,7 +58,7 @@ const clock = computed(() => {
   const now = new Date()
   const sameDay = date.value.toDateString() === now.toDateString()
   return new Intl.DateTimeFormat(
-    "zh-CN",
+    locale.value,
     sameDay
       ? { hour: "2-digit", minute: "2-digit", hour12: false }
       : { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false },
@@ -64,7 +66,7 @@ const clock = computed(() => {
 })
 const full = computed(() =>
   valid.value
-    ? new Intl.DateTimeFormat("zh-CN", {
+    ? new Intl.DateTimeFormat(locale.value, {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -78,10 +80,10 @@ const full = computed(() =>
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const copyLabel = computed(() =>
   status.value === "copied"
-    ? "已复制"
+    ? t("common.copied")
     : status.value === "error"
-      ? "复制失败，点击重试"
-      : "复制消息",
+      ? t("common.copyFailed")
+      : t("common.copyMessage"),
 )
 const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { immediate: false })
 

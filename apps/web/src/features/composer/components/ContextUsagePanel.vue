@@ -3,7 +3,7 @@
     <div class="usage-shell">
       <div class="usage-host surface-float">
         <div class="head">
-          <h3 class="title">上下文占用</h3>
+          <h3 class="title">{{ t("composer.contextUsage") }}</h3>
 
           <button type="button" class="close" @click="emit('close')">
             <X class="size-icon" />
@@ -11,7 +11,7 @@
         </div>
 
         <div class="stats">
-          <span class="percent">{{ usage.percent }}% 已用</span>
+          <span class="percent">{{ t("composer.contextUsed", { percent: usage.percent }) }}</span>
           <span class="tokens">{{ tokenSummary }}</span>
         </div>
 
@@ -71,10 +71,13 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
 import { X } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { contextPreview } from "@client/platform.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import type { ContextUsage, ContextUsageSegment } from "@features/composer/type.js"
+
+const { t } = useI18n()
 import {
   contextUsageSummary,
   formatTokenCount,
@@ -123,11 +126,11 @@ async function openPreview(segment: ContextUsageSegment) {
 
     if (request !== previewRequest) return
     previewTitle.value = preview?.title || segment.label
-    previewBody.value = preview?.content || "没有可预览的内容。"
+    previewBody.value = preview?.content || t("composer.previewEmpty")
     await nextTick()
   } catch {
     if (request !== previewRequest) return
-    previewBody.value = "无法加载预览。"
+    previewBody.value = t("composer.previewFailed")
   } finally {
     if (request === previewRequest) previewLoading.value = false
   }

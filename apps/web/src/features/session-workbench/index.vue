@@ -10,7 +10,7 @@
     <div class="drop-guide" aria-hidden="true">
       <span class="drop-guide-label">
         <FilePlus class="drop-guide-icon" />
-        松开鼠标添加附件
+        {{ t("composer.dropGuide") }}
       </span>
     </div>
 
@@ -66,7 +66,7 @@
                   <Button
                     class="scroll-latest-control"
                     type="button"
-                    aria-label="滚动到底部"
+                    :aria-label="t('transcript.scrollToBottom')"
                     variant="outline"
                     size="icon-sm"
                     @click="scrollToLatest('smooth')"
@@ -82,7 +82,7 @@
                   </Button>
                 </TooltipTrigger>
 
-                <TooltipContent>滚动到底部</TooltipContent>
+                <TooltipContent>{{ t("transcript.scrollToBottom") }}</TooltipContent>
               </Tooltip>
             </div>
 
@@ -141,6 +141,7 @@ import {
 } from "@features/composer/hooks/use-composer-attachments.js"
 import { useComposerQueue, type QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import { useSound } from "@features/click-sound/index.js"
+import { useI18n } from "@i18n/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
@@ -170,6 +171,7 @@ function nextWelcomeWorkspaceId(
   return items[0]
 }
 
+const { t } = useI18n()
 const route = useRoute()
 const {
   sessionId,
@@ -201,7 +203,7 @@ const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
-    return { title: "连接失败", detail: connectionError.value.message }
+    return { title: t("startup.connectFailed"), detail: connectionError.value.message }
   }
 
   return route.name === "error" ? {} : null

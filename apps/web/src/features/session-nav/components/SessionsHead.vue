@@ -1,6 +1,6 @@
 <template>
   <div class="sessions-head" @click="canCollapse && emit('toggleCollapse')">
-    <span class="sessions-label">会话</span>
+    <span class="sessions-label">{{ t("session.title") }}</span>
 
     <span class="sessions-actions" @click.stop>
       <Tooltip v-if="canFold">
@@ -8,7 +8,7 @@
           <button
             class="sessions-action press-scale"
             type="button"
-            :aria-label="allCollapsed ? '全部展开' : '全部折叠'"
+            :aria-label="allCollapsed ? t('nav.expandAll') : t('nav.collapseAll')"
             @click="emit('toggleAll')"
           >
             <Maximize2 v-if="allCollapsed" class="size-icon" />
@@ -16,23 +16,29 @@
           </button>
         </TooltipTrigger>
 
-        <TooltipContent>{{ allCollapsed ? "全部展开" : "全部折叠" }}</TooltipContent>
+        <TooltipContent>
+          {{ allCollapsed ? t("nav.expandAll") : t("nav.collapseAll") }}
+        </TooltipContent>
       </Tooltip>
 
       <DropdownMenu :modal="false">
         <DropdownMenuTrigger as-child>
-          <button class="sessions-action press-scale" type="button" aria-label="列表管理">
+          <button
+            class="sessions-action press-scale"
+            type="button"
+            :aria-label="t('nav.listManage')"
+          >
             <Settings2 class="size-icon" />
           </button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" side="bottom" :side-offset="4">
-          <div class="view-menu-label">视图</div>
+          <div class="view-menu-label">{{ t("nav.view") }}</div>
 
           <DropdownMenuItem class="group-head-option" @select="emit('setView', 'flat')">
             <span class="view-menu-lead">
               <List class="size-icon" />
-              平铺列表
+              {{ t("nav.flatList") }}
             </span>
 
             <span class="group-head-option-check" aria-hidden="true">
@@ -43,7 +49,7 @@
           <DropdownMenuItem class="group-head-option" @select="emit('setView', 'grouped')">
             <span class="view-menu-lead">
               <FolderTree class="size-icon" />
-              按工作区分组
+              {{ t("nav.groupByDir") }}
             </span>
 
             <span class="group-head-option-check" aria-hidden="true">
@@ -52,12 +58,12 @@
           </DropdownMenuItem>
 
           <template v-if="view === 'grouped'">
-            <div class="view-menu-label">排序</div>
+            <div class="view-menu-label">{{ t("nav.sort") }}</div>
 
             <DropdownMenuItem class="group-head-option" @select="emit('setSort', 'manual')">
               <span class="view-menu-lead">
                 <GripVertical class="size-icon" />
-                手动排序
+                {{ t("nav.manual") }}
               </span>
 
               <span class="group-head-option-check" aria-hidden="true">
@@ -68,7 +74,7 @@
             <DropdownMenuItem class="group-head-option" @select="emit('setSort', 'recent')">
               <span class="view-menu-lead">
                 <Clock class="size-icon" />
-                按最近活动
+                {{ t("nav.sortByRecent") }}
               </span>
 
               <span class="group-head-option-check" aria-hidden="true">
@@ -84,7 +90,7 @@
         class="sessions-action press-scale"
         type="button"
         :aria-expanded="!collapsed"
-        :aria-label="collapsed ? '展开会话' : '折叠会话'"
+        :aria-label="collapsed ? t('nav.expandSessions') : t('nav.collapseSessions')"
         @click="emit('toggleCollapse')"
       >
         <ChevronDown v-if="!collapsed" class="size-icon" />
@@ -114,7 +120,10 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { useI18n } from "@i18n/index.js"
 import type { SidebarSort, SidebarView } from "@features/session-nav/type.js"
+
+const { t } = useI18n()
 
 defineProps<{
   view: SidebarView

@@ -48,7 +48,7 @@
               type="button"
               size="icon"
               class="attach press-scale"
-              aria-label="添加附件"
+              :aria-label="t('composer.addAttachment')"
               :disabled="attachmentsFull"
               @mousedown.prevent
               @click="pickFiles"
@@ -57,7 +57,7 @@
             </Button>
           </TooltipTrigger>
 
-          <TooltipContent>添加附件</TooltipContent>
+          <TooltipContent>{{ t("composer.addAttachment") }}</TooltipContent>
         </Tooltip>
 
         <input
@@ -133,6 +133,7 @@
 import { computed, defineAsyncComponent, ref, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { ArrowUp, Paperclip } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
@@ -147,7 +148,7 @@ import {
   type ComposerAttachmentsApi,
 } from "@features/composer/hooks/use-composer-attachments.js"
 import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
-import { PROMPT_PLACEHOLDER } from "@features/composer/index.js"
+import { promptPlaceholder } from "@features/composer/index.js"
 import type {
   ComposerModel,
   ComposerPreset,
@@ -155,6 +156,7 @@ import type {
   ContextUsage,
 } from "@features/composer/type.js"
 
+const { t } = useI18n()
 const ContextUsagePanel = defineAsyncComponent(
   () => import("@features/composer/components/ContextUsagePanel.vue"),
 )
@@ -183,7 +185,7 @@ const props = withDefaults(
     running: false,
     aborting: false,
     sendDisabled: false,
-    placeholder: PROMPT_PLACEHOLDER,
+    placeholder: promptPlaceholder(),
     usage: undefined,
     sessionId: undefined,
     cwd: undefined,
@@ -235,11 +237,11 @@ const primaryMode = computed<PrimaryMode>(() => {
 const primaryLabel = computed(() => {
   switch (primaryMode.value) {
     case "stop":
-      return "停止当前 Turn"
+      return t("composer.stopTurn")
     case "queue":
-      return "加入待发队列"
+      return t("composer.queuePrompt")
     default:
-      return "发送 Prompt"
+      return t("composer.sendPrompt")
   }
 })
 const primaryDisabled = computed(() => {

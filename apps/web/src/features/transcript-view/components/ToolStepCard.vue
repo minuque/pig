@@ -10,7 +10,11 @@
 
   <div v-else class="tool-step-card" :class="cardClasses">
     <template v-if="runContent">
-      <ToolHeader v-model:soft-wrap="softWrap" label="输出" :text="runContent.shownOutput">
+      <ToolHeader
+        v-model:soft-wrap="softWrap"
+        :label="t('transcript.output')"
+        :text="runContent.shownOutput"
+      >
         <div class="command-heading">
           <span class="status-dot" :title="runContent.statusLabel" />
 
@@ -35,7 +39,7 @@
         v-model:soft-wrap="softWrap"
         v-model:show-line-numbers="showLineNumbers"
         line-numbers
-        label="输出"
+        :label="t('transcript.output')"
         :text="readContent.preview.code"
       >
         <div class="read-heading">
@@ -61,7 +65,7 @@
       <ToolHeader
         v-if="toolContent.inputFull || toolContent.shownOutput"
         v-model:soft-wrap="softWrap"
-        label="输出"
+        :label="t('transcript.output')"
         :text="toolContent.shownOutput"
       >
         <ToolInputJson v-if="toolContent.inputFull" :text="toolContent.inputFull" />
@@ -76,7 +80,11 @@
     </template>
 
     <template v-else-if="editContent">
-      <ToolHeader v-model:soft-wrap="softWrap" label="输出" :text="editContent.outputText">
+      <ToolHeader
+        v-model:soft-wrap="softWrap"
+        :label="t('transcript.output')"
+        :text="editContent.outputText"
+      >
         <div class="read-heading">
           <TranscriptFileTag :path="editHeading" :text="editHeading" />
         </div>
@@ -115,6 +123,7 @@
 
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from "vue"
+import { useI18n } from "@i18n/index.js"
 import { StreamDiff } from "stream-diffs/vue"
 import MarkdownRender from "markstream-vue"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
@@ -134,6 +143,7 @@ import type {
   TranscriptImage as ToolStepImage,
 } from "@features/transcript-view/type.js"
 
+const { t } = useI18n()
 const props = defineProps<{
   variant: "thought" | "command" | "read" | "edit" | "tool"
   text?: string

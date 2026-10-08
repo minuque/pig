@@ -1,4 +1,5 @@
 import { computed, getCurrentInstance, onUnmounted, ref, shallowRef, type Ref } from "vue"
+import { t } from "@i18n/index.js"
 import { useSessionBuckets } from "@features/composer/hooks/use-session-buckets.js"
 
 /** 单个 batch 的附件数上限，与 Gateway 的 MAX_BATCH_ITEMS 对齐。 */
@@ -99,7 +100,10 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
 
   function apply(input: FileList | File[] | null | undefined, folders: readonly string[]) {
     const stash = bucket()
-    const skipped = folders.map((name) => ({ name, reason: "文件夹不支持" }))
+    const skipped = folders.map((name) => ({
+      name,
+      reason: t("composer.folderNotSupported"),
+    }))
     const current = stash.files.value
     const keys = new Set(current.map((item) => attachmentKey(item.file)))
     const added: ComposerAttachment[] = []
@@ -110,7 +114,10 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
       if (keys.has(key)) continue
 
       if (current.length + added.length >= MAX_COMPOSER_ATTACHMENTS) {
-        skipped.push({ name: displayName(file), reason: `最多 ${MAX_COMPOSER_ATTACHMENTS} 个附件` })
+        skipped.push({
+          name: displayName(file),
+          reason: t("composer.maxAttachments", { count: MAX_COMPOSER_ATTACHMENTS }),
+        })
         continue
       }
 
@@ -119,7 +126,10 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
       const limit = image ? MAX_IMAGE_BYTES : MAX_FILE_BYTES
 
       if (file.size > limit) {
-        skipped.push({ name: displayName(file), reason: `超过 ${limit / MEGABYTE}MB` })
+        skipped.push({
+          name: displayName(file),
+          reason: t("composer.overSize", { size: limit / MEGABYTE }),
+        })
         continue
       }
 
@@ -136,7 +146,9 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
 
     if (added.length) stash.files.value = [...current, ...added]
     stash.error.value = skipped.length
-      ? `已跳过 ${skipped.map((item) => `${item.name}（${item.reason}）`).join("、")}`
+      ? t("composer.attachmentSkipped", {
+          list: skipped.map((item) => `${item.name}（${item.reason}）`).join("、"),
+        })
       : ""
   }
 

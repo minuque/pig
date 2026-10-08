@@ -17,7 +17,9 @@
             ref="toggle"
             type="button"
             class="line-toggle"
-            :aria-label="showLineNumbers ? '隐藏行号' : '显示行号'"
+            :aria-label="
+              showLineNumbers ? t('transcript.lineNumbersHide') : t('transcript.lineNumbersShow')
+            "
             :aria-pressed="showLineNumbers"
             @click.stop="showLineNumbers = !showLineNumbers"
           >
@@ -25,7 +27,9 @@
           </button>
         </TooltipTrigger>
 
-        <TooltipContent>{{ showLineNumbers ? "隐藏行号" : "显示行号" }}</TooltipContent>
+        <TooltipContent>
+          {{ showLineNumbers ? t("transcript.lineNumbersHide") : t("transcript.lineNumbersShow") }}
+        </TooltipContent>
       </Tooltip>
     </Teleport>
   </div>
@@ -35,12 +39,14 @@
 import { computed, onMounted, ref, shallowRef, useAttrs, useTemplateRef } from "vue"
 import { useMutationObserver } from "@vueuse/core"
 import { ListOrdered } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { CodeBlockNode, type CodeBlockNodeProps } from "markstream-vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { fenceHighlightNode, parseCodeFenceInfo } from "@features/transcript-view/lib/code-fence.js"
 
 defineOptions({ inheritAttrs: false })
 
+const { t } = useI18n()
 const props = defineProps<{ node: CodeBlockNodeProps["node"] }>()
 const attrs = useAttrs()
 const fence = computed(() => parseCodeFenceInfo(props.node.language))

@@ -1,4 +1,5 @@
 import type { SessionMetadata } from "@/types/common-type.js"
+import { t } from "@i18n/index.js"
 
 /** 取路径最后一段作为展示名；路径为空或仅分隔符时原样返回。 */
 export function workspaceName(path: string): string {
@@ -7,12 +8,14 @@ export function workspaceName(path: string): string {
 }
 
 /** 未命名 Session 的列表/标题回退文案。 */
-export const UNTITLED_SESSION = "新会话"
+export function untitledSession(): string {
+  return t("session.untitled")
+}
 
 /** 列表标题：Pi sessionName，否则「新会话」。 */
 export function sessionTitle(session: Pick<SessionMetadata, "sessionName">): string {
   const name = session.sessionName?.trim()
-  return name || UNTITLED_SESSION
+  return name || untitledSession()
 }
 
 /** 最近活动时刻：优先 updatedAt。 */
@@ -29,7 +32,7 @@ export function formatRelativeTime(timestamp: number, now = Date.now()): string 
   if (!Number.isFinite(timestamp) || timestamp <= 0) return ""
   const delta = Math.max(0, now - timestamp)
 
-  if (delta < MINUTE) return "刚刚"
+  if (delta < MINUTE) return t("common.justNow")
 
   if (delta < HOUR) return `${Math.round(delta / MINUTE)}m`
 

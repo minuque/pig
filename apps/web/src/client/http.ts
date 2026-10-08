@@ -2,6 +2,8 @@
  * Browser 平台 HTTP：JSON 请求与错误文案。
  */
 
+import { t } from "@i18n/index.js"
+
 export class PlatformRequestError extends Error {
   constructor(
     readonly code: string,
@@ -32,6 +34,6 @@ export async function platformRequest<T>(path: string, init?: RequestInit): Prom
 }
 
 export function errorMessage(error: unknown): string {
-  if (!(error instanceof PlatformRequestError)) return "请求失败。请检查本地服务后重试。"
-  return `请求失败（${error.code}）。请重试；如仍失败，请提供关联 ID ${error.requestId}。`
+  if (!(error instanceof PlatformRequestError)) return t("errors.requestFailed")
+  return t("errors.requestFailedDetail", { code: error.code, id: error.requestId })
 }

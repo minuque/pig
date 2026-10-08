@@ -15,7 +15,7 @@
         :aria-expanded="expanded"
         @click="expanded = !expanded"
       >
-        {{ expanded ? "收起" : "展开" }}
+        {{ expanded ? t("common.collapse") : t("common.expand") }}
       </button>
     </div>
 
@@ -34,6 +34,7 @@
 
 <script setup lang="ts">
 import { useResizeObserver } from "@vueuse/core"
+import { useI18n } from "@i18n/index.js"
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
@@ -42,6 +43,7 @@ import { splitLinkText } from "@features/transcript-view/lib/link-chip.js"
 import type { UserRow } from "@features/transcript-view/type.js"
 
 const COLLAPSED_LINES = 12
+const { t } = useI18n()
 const props = defineProps<{
   item: UserRow
 }>()

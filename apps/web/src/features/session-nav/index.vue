@@ -14,31 +14,36 @@
 
         <Tooltip>
           <TooltipTrigger as-child>
-            <button class="nav-collapse" type="button" aria-label="收起侧边栏" @click="togglePanel">
+            <button
+              class="nav-collapse"
+              type="button"
+              :aria-label="t('nav.collapseSidebar')"
+              @click="togglePanel"
+            >
               <PanelLeft class="size-icon" />
             </button>
           </TooltipTrigger>
 
-          <TooltipContent>收起侧边栏</TooltipContent>
+          <TooltipContent>{{ t("nav.collapseSidebar") }}</TooltipContent>
         </Tooltip>
       </div>
 
       <div class="nav-toolbar">
         <button class="nav-action" type="button" @click="onCreateSession">
           <MessageCirclePlus class="size-icon" />
-          <span class="nav-label">新建会话</span>
+          <span class="nav-label">{{ t("session.newSession") }}</span>
         </button>
 
         <button class="nav-action" type="button" @click="openSearch">
           <Search class="size-icon" />
-          <span class="nav-label">搜索</span>
+          <span class="nav-label">{{ t("nav.search") }}</span>
           <kbd class="search-shortcut">Ctrl K</kbd>
         </button>
       </div>
 
       <p v-if="connected && !groups.length" class="add-guide">
         <ArrowUp class="size-icon motion-nudge" />
-        点击新建会话添加工作目录
+        {{ t("session.addGuide") }}
       </p>
 
       <SessionList @navigate="onSessionNavigate" @create-in-dir="onCreateInDir" />
@@ -58,6 +63,7 @@ import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyError } from "@components/layout/notify.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
@@ -70,6 +76,7 @@ const SessionSearch = defineAsyncComponent(
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
 }>()
+const { t } = useI18n()
 const { toggle: togglePanel } = useLeftPanelToggle()
 const {
   groups,

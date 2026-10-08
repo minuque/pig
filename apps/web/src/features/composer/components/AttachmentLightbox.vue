@@ -4,7 +4,7 @@
       class="lightbox"
       role="dialog"
       aria-modal="true"
-      :aria-label="`预览 ${name}`"
+      :aria-label="t('common.preview', { name })"
       @click.self="emit('close')"
     >
       <img class="lightbox-img" :src="url" :alt="name" />
@@ -14,6 +14,9 @@
 
 <script setup lang="ts">
 import { useEventListener } from "@vueuse/core"
+import { useI18n } from "@i18n/index.js"
+
+const { t } = useI18n()
 
 defineProps<{
   url: string

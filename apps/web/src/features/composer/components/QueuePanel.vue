@@ -1,5 +1,5 @@
 <template>
-  <div class="queue-panel surface-float" role="list" aria-label="待发队列">
+  <div class="queue-panel surface-float" role="list" :aria-label="t('composer.queueLabel')">
     <div
       v-for="(item, i) in items"
       :key="item.id"
@@ -19,17 +19,24 @@
         <button
           type="button"
           class="action"
-          :aria-label="`移除：${item.text}`"
+          :aria-label="t('composer.queueRemove', { text: item.text })"
           @click="emit('remove', item.id)"
         >
           <Trash2 class="action-icon" aria-hidden="true" />
         </button>
 
-        <button type="button" class="action" aria-label="编辑" @click="emit('edit', item)">
+        <button
+          type="button"
+          class="action"
+          :aria-label="t('composer.queueEdit')"
+          @click="emit('edit', item)"
+        >
           <Pencil class="action-icon" aria-hidden="true" />
         </button>
 
-        <button type="button" class="send-now" @click="emit('send-now', item)">立即发送</button>
+        <button type="button" class="send-now" @click="emit('send-now', item)">
+          {{ t("composer.queueSendNow") }}
+        </button>
       </span>
     </div>
   </div>
@@ -38,8 +45,10 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { GripVertical, Pencil, Trash2 } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 
+const { t } = useI18n()
 const props = defineProps<{
   items: QueuedPrompt[]
 }>()

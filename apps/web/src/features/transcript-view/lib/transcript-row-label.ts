@@ -1,10 +1,11 @@
+import { t } from "@i18n/index.js"
 import type { ThoughtStep, ToolGroupKey, ToolRow } from "@features/transcript-view/type.js"
 
 export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt): string {
-  if (step.streaming) return "思考中"
+  if (step.streaming) return t("transcript.thinking")
 
   const seconds = Math.max(1, Math.round(((completedAt ?? step.startedAt) - step.startedAt) / 1000))
-  return `思考了 ${seconds} 秒`
+  return t("transcript.thinkingSeconds", { seconds })
 }
 
 function formatToolRowDuration(ms: number, showZero = false): string {
@@ -36,14 +37,14 @@ export function toolRowDurationLabel(row: ToolRow, now: number): string {
 }
 
 const TOOL_ROW_ORDER = ["read", "write", "edit", "command", "search", "tool"] as const
-const TOOL_ROW_LABEL = {
-  read: (n: number) => `读 ${n} 次文件`,
-  write: (n: number) => `写 ${n} 次文件`,
-  edit: (n: number) => `编辑 ${n} 次文件`,
-  command: (n: number) => `运行 ${n} 条命令`,
-  search: (n: number) => `搜 ${n} 次`,
-  tool: (n: number) => `调用工具 ${n} 次`,
-} as const satisfies Record<ToolGroupKey, (count: number) => string>
+const TOOL_ROW_LABEL: Record<ToolGroupKey, (count: number) => string> = {
+  read: (n) => t("transcript.labelRead", { n }),
+  write: (n) => t("transcript.labelWrite", { n }),
+  edit: (n) => t("transcript.labelEdit", { n }),
+  command: (n) => t("transcript.labelCommand", { n }),
+  search: (n) => t("transcript.labelSearch", { n }),
+  tool: (n) => t("transcript.labelTool", { n }),
+}
 
 export type ToolRowLabelPart =
   { kind: "text"; text: string } | { kind: "count"; prefix: string; count: number; suffix: string }
@@ -59,25 +60,42 @@ export function toolRowLabelParts(row: ToolRow): ToolRowLabelPart[] {
 
   const parts: ToolRowLabelPart[] = []
 
-  if (thoughts) parts.push({ kind: "text", text: `思考 ${thoughts} 轮` })
+  if (thoughts) parts.push({ kind: "text", text: t("transcript.labelThinking", { n: thoughts }) })
 
   for (const key of TOOL_ROW_ORDER) {
     const count = counts.get(key)
 
     if (!count) continue
 
-    if (key === "write") parts.push({ kind: "count", prefix: "写", count, suffix: "次文件" })
-    else if (key === "edit") parts.push({ kind: "count", prefix: "编辑", count, suffix: "次文件" })
+    if (key === "write")
+      parts.push({
+        kind: "count",
+        prefix: t("transcript.partWritePrefix"),
+        count,
+        suffix: t("transcript.partWriteSuffix"),
+      })
+    else if (key === "edit")
+      parts.push({
+        kind: "count",
+        prefix: t("transcript.partEditPrefix"),
+        count,
+        suffix: t("transcript.partWriteSuffix"),
+      })
     else parts.push({ kind: "text", text: TOOL_ROW_LABEL[key](count) })
   }
 
   if (row.aborted)
     return parts.length
-      ? [{ kind: "text", text: "已停止" }, ...parts]
-      : [{ kind: "text", text: "已停止" }]
+      ? [{ kind: "text", text: t("transcript.labelStopped") }, ...parts]
+      : [{ kind: "text", text: t("transcript.labelStopped") }]
 
   if (parts.length) return parts
-  return [{ kind: "text", text: row.mode === "live" ? "执行中" : "执行过程" }]
+  return [
+    {
+      kind: "text",
+      text: row.mode === "live" ? t("transcript.labelRunning") : t("transcript.labelRunningDone"),
+    },
+  ]
 }
 
 export function toolRowFailCount(row: ToolRow): number {

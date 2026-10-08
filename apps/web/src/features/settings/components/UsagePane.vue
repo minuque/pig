@@ -1,8 +1,14 @@
 <template>
   <section class="pane">
-    <p class="empty">暂无用量数据</p>
+    <p class="empty">{{ t("settings.noUsage") }}</p>
   </section>
 </template>
+
+<script setup lang="ts">
+import { useI18n } from "@i18n/index.js"
+
+const { t } = useI18n()
+</script>
 
 <style scoped>
 .pane {

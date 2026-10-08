@@ -4,12 +4,13 @@
     "noEmit": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "paths": {
-      "@/*": ["apps/web/src/*"],
-      "@style/*": ["apps/web/src/style/*"],
-      "@components/*": ["apps/web/src/components/*"],
-      "@features/*": ["apps/web/src/features/*"],
-      "@client/*": ["apps/web/src/client/*"],
-      "@router/*": ["apps/web/src/router/*"]
+      "@/*": ["./src/*"],
+      "@style/*": ["./src/style/*"],
+      "@components/*": ["./src/components/*"],
+      "@features/*": ["./src/features/*"],
+      "@client/*": ["./src/client/*"],
+      "@router/*": ["./src/router/*"],
+      "@i18n/*": ["./src/i18n/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.vue", "test/**/*.ts"]

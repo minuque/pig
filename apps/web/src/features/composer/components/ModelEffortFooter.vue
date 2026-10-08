@@ -9,7 +9,7 @@
           <button
             type="button"
             class="effort-reset"
-            aria-label="恢复默认思考强度"
+            :aria-label="t('composer.restoreDefaultEffort')"
             :disabled="isDefault"
             @click="reset"
           >
@@ -17,7 +17,7 @@
           </button>
         </TooltipTrigger>
 
-        <TooltipContent>恢复默认</TooltipContent>
+        <TooltipContent>{{ t("composer.restoreDefault") }}</TooltipContent>
       </Tooltip>
     </div>
 
@@ -26,7 +26,7 @@
       class="effort-slider"
       role="slider"
       tabindex="0"
-      aria-label="思考强度"
+      :aria-label="t('composer.thinkingEffort')"
       :aria-valuemin="0"
       :aria-valuemax="lastIndex"
       :aria-valuenow="index"
@@ -60,9 +60,11 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { RotateCcw } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { displayThinkingLevel, formatThinkingLevel } from "@features/composer/lib/thinking-level.js"
 
+const { t } = useI18n()
 const props = defineProps<{
   levels: readonly string[]
   level: string

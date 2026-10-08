@@ -5,20 +5,20 @@
         <Settings />
       </span>
 
-      <span>设置</span>
+      <span>{{ t("nav.settings") }}</span>
     </button>
 
     <DropdownMenu :modal="false">
       <Tooltip>
         <TooltipTrigger as-child>
           <DropdownMenuTrigger as-child>
-            <button class="footer-help press-scale" type="button" aria-label="帮助">
+            <button class="footer-help press-scale" type="button" :aria-label="t('nav.help')">
               <CircleHelp />
             </button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
 
-        <TooltipContent>帮助</TooltipContent>
+        <TooltipContent>{{ t("nav.help") }}</TooltipContent>
       </Tooltip>
 
       <DropdownMenuContent side="top" align="end" :side-offset="8">
@@ -26,20 +26,20 @@
           <span class="help-lead">
             <Volume2 v-if="soundOn" />
             <VolumeX v-else />
-            音效
+            {{ t("nav.sound") }}
           </span>
 
-          <span class="help-state">{{ soundOn ? "开" : "关" }}</span>
+          <span class="help-state">{{ soundOn ? t("common.on") : t("common.off") }}</span>
         </DropdownMenuItem>
 
         <DropdownMenuItem class="help-item" @select.prevent="toggleTheme()">
           <span class="help-lead">
             <Moon v-if="isDark" />
             <Sun v-else />
-            主题
+            {{ t("nav.theme") }}
           </span>
 
-          <span class="help-state">{{ isDark ? "深色" : "浅色" }}</span>
+          <span class="help-state">{{ isDark ? t("nav.themeDark") : t("nav.themeLight") }}</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
@@ -48,7 +48,7 @@
           <a href="https://github.com/minuque/pig" target="_blank" rel="noopener noreferrer">
             <span class="help-lead">
               <BookOpen />
-              文档
+              {{ t("nav.docs") }}
             </span>
           </a>
         </DropdownMenuItem>
@@ -67,12 +67,14 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 
 const emit = defineEmits<{
   settings: []
 }>()
+const { t } = useI18n()
 const { enabled: soundOn, toggle: toggleSound } = useSound()
 const { isDark, toggle: toggleTheme } = useColorScheme()
 </script>

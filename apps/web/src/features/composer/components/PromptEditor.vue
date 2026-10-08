@@ -66,7 +66,7 @@ import {
   RESIZE_SETTLE_MS,
   type FlipMotion,
 } from "@features/composer/lib/composer-flip.js"
-import { PROMPT_PLACEHOLDER } from "@features/composer/index.js"
+import { promptPlaceholder } from "@features/composer/index.js"
 
 const props = withDefaults(
   defineProps<{
@@ -77,7 +77,7 @@ const props = withDefaults(
     hero?: boolean
   }>(),
   {
-    placeholder: PROMPT_PLACEHOLDER,
+    placeholder: promptPlaceholder(),
     resizing: false,
     hero: false,
   },

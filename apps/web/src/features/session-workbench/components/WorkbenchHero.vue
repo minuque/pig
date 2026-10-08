@@ -3,7 +3,7 @@
     <WorkbenchMascot />
 
     <h1 v-if="workspaceId || ready" :id="titleId" class="hero-title">
-      <span v-if="workspaceId">在</span>
+      <span v-if="workspaceId">{{ t("hero.in") }}</span>
 
       <DropdownMenu v-if="selectable" :modal="false">
         <DropdownMenuTrigger as-child>
@@ -27,13 +27,13 @@
 
           <DropdownMenuItem :disabled="adding" @select="emit('add')">
             <FolderPlus :size="14" />
-            添加本地目录
+            {{ t("hero.addDir") }}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <span v-else class="hero-name">{{ label }}</span>
-      <span v-if="workspaceId">开始</span>
+      <span v-if="workspaceId">{{ t("hero.start") }}</span>
     </h1>
   </div>
 </template>
@@ -41,6 +41,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { FolderPlus } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { workspaceName } from "@features/session-nav/index.js"
 import {
   DropdownMenu,
@@ -64,12 +65,13 @@ withDefaults(
   { selectable: true, adding: false, ready: true },
 )
 
+const { t } = useI18n()
 const emit = defineEmits<{
   add: []
 }>()
 const workspaceId = defineModel<string | undefined>("workspaceId")
 const label = computed(() =>
-  workspaceId.value ? workspaceName(workspaceId.value) : "选择工作目录",
+  workspaceId.value ? workspaceName(workspaceId.value) : t("hero.pickDir"),
 )
 </script>
 

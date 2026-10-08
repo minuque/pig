@@ -10,7 +10,7 @@
         v-if="row.item.url"
         type="button"
         class="thumb-btn"
-        :aria-label="`预览 ${row.item.name}`"
+        :aria-label="t('common.preview', { name: row.item.name })"
         @click="emit('preview', row.item)"
       >
         <img class="thumb" :src="row.item.url" :alt="row.item.name" />
@@ -28,7 +28,7 @@
       <button
         type="button"
         class="remove"
-        :aria-label="`移除 ${row.item.name}`"
+        :aria-label="t('common.remove', { name: row.item.name })"
         @mousedown.prevent
         @click="emit('remove', row.item.id)"
       >
@@ -41,8 +41,10 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { FileText, X } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import type { ComposerAttachment } from "@features/composer/hooks/use-composer-attachments.js"
 
+const { t } = useI18n()
 const props = defineProps<{
   files: ComposerAttachment[]
 }>()
