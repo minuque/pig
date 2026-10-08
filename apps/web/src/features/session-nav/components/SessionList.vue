@@ -40,7 +40,7 @@
       </div>
     </section>
 
-    <div class="head-sticky">
+    <div ref="headSticky" class="head-sticky">
       <SessionsHead
         v-if="connected || groups.length"
         :view="view"
@@ -160,17 +160,21 @@ const emit = defineEmits<{
 // 置顶区高度随内容变，吸顶位置只有浏览器量完才知道
 const navBody = useTemplateRef<HTMLElement>("navBody")
 const pinnedSection = useTemplateRef<HTMLElement>("pinnedSection")
+const headSticky = useTemplateRef<HTMLElement>("headSticky")
 
 function publishPinHeight() {
   const body = navBody.value
 
   if (!body) return
   body.style.setProperty("--pin-stick", `${pinnedSection.value?.offsetHeight ?? 0}px`)
+  body.style.setProperty("--head-stick", `${headSticky.value?.offsetHeight ?? 0}px`)
 }
 
 useResizeObserver(pinnedSection, publishPinHeight)
 
-watch(pinnedSection, publishPinHeight, { flush: "post" })
+useResizeObserver(headSticky, publishPinHeight)
+
+watch([pinnedSection, headSticky], publishPinHeight, { flush: "post" })
 
 const {
   groups,
@@ -282,8 +286,8 @@ function groupClass(key: string, open: boolean) {
 .session-list {
   position: relative;
   gap: var(--spacing-xxs);
-  /* 组间距把目录头的自然位置推低一格，吸顶点跟着下移，吸住时才不跳 */
-  scroll-padding-top: calc(var(--pin-stick, 0px) + var(--size-icon-button) + var(--spacing-xxs));
+  /* 目录头吸在会话表头下沿，表头实高由浏览器写进 --head-stick */
+  scroll-padding-top: calc(var(--pin-stick, 0px) + var(--head-stick, var(--size-icon-button)));
 }
 
 .nav-body::-webkit-scrollbar {
@@ -322,14 +326,15 @@ function groupClass(key: string, open: boolean) {
   position: sticky;
   top: var(--pin-stick, 0px);
   z-index: 2;
+  /* 和置顶区一样把下间距折进表头，目录头紧贴表头底边，滚动内容不从缝里露出 */
+  margin-block-end: calc(-1 * var(--spacing-xxs));
+  padding-block-end: var(--spacing-xxs);
   background: var(--sidebar);
-  /* 目录头吸在表头下方一格间距处，这段缝用实底盖住，滚动的会话名不透出来 */
-  box-shadow: 0 var(--spacing-xxs) 0 var(--sidebar);
 }
 
 .row-group .group-head {
   position: sticky;
-  top: calc(var(--pin-stick, 0px) + var(--size-icon-button) + var(--spacing-xxs));
+  top: calc(var(--pin-stick, 0px) + var(--head-stick, var(--size-icon-button)));
   z-index: 1;
   background: var(--sidebar);
 }
