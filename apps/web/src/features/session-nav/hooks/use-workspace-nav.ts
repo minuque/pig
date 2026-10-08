@@ -26,6 +26,7 @@ import type {
   SidebarSort,
   SidebarView,
 } from "@features/session-nav/type.js"
+import { readPref, readStringArray, writeJson, writePref } from "@utils/storage.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
@@ -41,96 +42,48 @@ function isBusy(error: unknown): boolean {
 }
 
 function loadView(): SidebarView {
-  try {
-    const stored = localStorage.getItem(SIDEBAR_VIEW_KEY)
+  const stored = readPref(SIDEBAR_VIEW_KEY)
 
-    if (stored === "flat" || stored === "grouped") return stored
-    return localStorage.getItem(SIDEBAR_GROUPING_KEY) === "updated" ? "flat" : "grouped"
-  } catch {
-    return "grouped"
-  }
+  if (stored === "flat" || stored === "grouped") return stored
+  return readPref(SIDEBAR_GROUPING_KEY) === "updated" ? "flat" : "grouped"
 }
 
 function saveView(value: SidebarView): void {
-  try {
-    localStorage.setItem(SIDEBAR_VIEW_KEY, value)
-  } catch {
-    /* 隐私模式等场景下存储不可用，偏好仅存活于本页 */
-  }
+  writePref(SIDEBAR_VIEW_KEY, value)
 }
 
 function loadSort(): SidebarSort {
-  try {
-    return localStorage.getItem(SIDEBAR_SORT_KEY) === "recent" ? "recent" : "manual"
-  } catch {
-    return "manual"
-  }
+  return readPref(SIDEBAR_SORT_KEY) === "recent" ? "recent" : "manual"
 }
 
 function saveSort(value: SidebarSort): void {
-  try {
-    localStorage.setItem(SIDEBAR_SORT_KEY, value)
-  } catch {
-    /* 同上 */
-  }
+  writePref(SIDEBAR_SORT_KEY, value)
 }
 
 function loadOrder(): string[] {
-  try {
-    const value: unknown = JSON.parse(localStorage.getItem(SIDEBAR_ORDER_KEY) ?? "[]")
-    return Array.isArray(value)
-      ? uniqueCanonicalPaths(value.filter((item): item is string => typeof item === "string"))
-      : []
-  } catch {
-    return []
-  }
+  return uniqueCanonicalPaths(readStringArray(SIDEBAR_ORDER_KEY))
 }
 
 function saveOrder(paths: readonly string[]): void {
-  try {
-    localStorage.setItem(SIDEBAR_ORDER_KEY, JSON.stringify(paths))
-  } catch {
-    /* 同上 */
-  }
-}
-
-function parseCollapsed(json: string | null): Record<string, boolean> {
-  if (!json) return {}
-
-  try {
-    const value: unknown = JSON.parse(json)
-
-    if (!Array.isArray(value)) return {}
-    const next: Record<string, boolean> = {}
-
-    for (const item of value) {
-      if (typeof item !== "string" || item.length === 0) continue
-      next[canonicalizeWorkspacePath(item)] = true
-    }
-
-    return next
-  } catch {
-    return {}
-  }
+  writeJson(SIDEBAR_ORDER_KEY, paths)
 }
 
 function loadCollapsed(): Record<string, boolean> {
-  try {
-    return parseCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY))
-  } catch {
-    return {}
+  const next: Record<string, boolean> = {}
+
+  for (const item of readStringArray(SIDEBAR_COLLAPSED_KEY)) {
+    if (item.length === 0) continue
+    next[canonicalizeWorkspacePath(item)] = true
   }
+
+  return next
 }
 
 function saveCollapsed(map: Readonly<Record<string, boolean>>): void {
-  try {
-    localStorage.setItem(
-      SIDEBAR_COLLAPSED_KEY,
-      JSON.stringify(Object.keys(map).filter((key) => map[key])),
-    )
-  } catch {
-    /* 隐私模式等场景下存储不可用，偏好仅存活于本页 */
-  }
+  writeJson(
+    SIDEBAR_COLLAPSED_KEY,
+    Object.keys(map).filter((key) => map[key]),
+  )
 }
 
 export function useWorkspaceNav(

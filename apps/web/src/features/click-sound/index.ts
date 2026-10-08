@@ -1,4 +1,5 @@
 import { readonly, shallowRef } from "vue"
+import { readFlag, writeFlag } from "@utils/storage.js"
 
 const CLICK_SOUND_KEY = "pig.clickSound"
 const MASTER = 0.32
@@ -37,19 +38,11 @@ let ctx: AudioContext | null = null
 let doneBuffer: AudioBuffer | null = null
 
 function readEnabled(): boolean {
-  try {
-    return localStorage.getItem(CLICK_SOUND_KEY) !== "off"
-  } catch {
-    return true
-  }
+  return readFlag(CLICK_SOUND_KEY)
 }
 
 function persist(value: boolean): void {
-  try {
-    localStorage.setItem(CLICK_SOUND_KEY, value ? "on" : "off")
-  } catch {
-    /* 隐私模式写不进存储时仍用内存开关 */
-  }
+  writeFlag(CLICK_SOUND_KEY, value)
 }
 
 function load(): void {

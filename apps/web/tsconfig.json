@@ -10,7 +10,8 @@
       "@features/*": ["./src/features/*"],
       "@client/*": ["./src/client/*"],
       "@router/*": ["./src/router/*"],
-      "@i18n/*": ["./src/i18n/*"]
+      "@i18n/*": ["./src/i18n/*"],
+      "@utils/*": ["./src/utils/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.vue", "test/**/*.ts"]

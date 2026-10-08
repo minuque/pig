@@ -5,11 +5,12 @@
  * 平台层只处理 canonicalPath 字符串，展示视图由 features 层映射。
  */
 import { readonly, ref } from "vue"
+import { readPref, writeJson, writePref, type PrefStorage } from "@utils/storage.js"
 
 export const LOCAL_WORKSPACES_KEY = "pig.localWorkspaces"
 export const LAST_CWD_KEY = "pig.lastCwd"
 
-export type WorkspaceStorage = Pick<Storage, "getItem" | "setItem">
+export type WorkspaceStorage = PrefStorage
 
 /** 兼容旧偏好：统一分隔符、尾斜杠；Windows 盘符路径整段小写。新路径由 Host realpath。 */
 // 与 gateway 端 packages/gateway/src/directory.ts 的 canonicalizePath 是同一套
@@ -54,39 +55,23 @@ export function parseLocalWorkspaces(json: string | null): string[] {
   }
 }
 
-export function loadLocalWorkspaces(storage: WorkspaceStorage = localStorage): string[] {
-  try {
-    return parseLocalWorkspaces(storage.getItem(LOCAL_WORKSPACES_KEY))
-  } catch {
-    return []
-  }
+export function loadLocalWorkspaces(storage: PrefStorage = localStorage): string[] {
+  return parseLocalWorkspaces(readPref(LOCAL_WORKSPACES_KEY, storage) ?? null)
 }
 
 export function saveLocalWorkspaces(
   paths: readonly string[],
-  storage: WorkspaceStorage = localStorage,
+  storage: PrefStorage = localStorage,
 ): void {
-  try {
-    storage.setItem(LOCAL_WORKSPACES_KEY, JSON.stringify(paths))
-  } catch {
-    /* 隐私模式等场景下存储不可用，偏好仅存活于本页 */
-  }
+  writeJson(LOCAL_WORKSPACES_KEY, paths, storage)
 }
 
-export function loadLastCwd(storage: WorkspaceStorage = localStorage): string | undefined {
-  try {
-    return storage.getItem(LAST_CWD_KEY) ?? undefined
-  } catch {
-    return undefined
-  }
+export function loadLastCwd(storage: PrefStorage = localStorage): string | undefined {
+  return readPref(LAST_CWD_KEY, storage)
 }
 
-export function saveLastCwd(path: string, storage: WorkspaceStorage = localStorage): void {
-  try {
-    storage.setItem(LAST_CWD_KEY, path)
-  } catch {
-    /* 同上 */
-  }
+export function saveLastCwd(path: string, storage: PrefStorage = localStorage): void {
+  writePref(LAST_CWD_KEY, path, storage)
 }
 
 /** 本地目录列表偏好：添加/移除立即持久化；select 记录最近使用的 cwd。 */

@@ -1,4 +1,5 @@
 import { inject, onBeforeUnmount, readonly, ref, watch, type InjectionKey, type Ref } from "vue"
+import { readPref, writePref } from "@utils/storage.js"
 
 export const leftPanelKey: InjectionKey<{
   leftOpen: Readonly<Ref<boolean>>
@@ -26,19 +27,11 @@ export function parseLeftPanelWidth(raw: string | null): number | undefined {
 }
 
 function loadStoredWidth(): number | undefined {
-  try {
-    return parseLeftPanelWidth(localStorage.getItem(LEFT_PANEL_WIDTH_KEY))
-  } catch {
-    return undefined
-  }
+  return parseLeftPanelWidth(readPref(LEFT_PANEL_WIDTH_KEY) ?? null)
 }
 
 function persistWidth(width: number) {
-  try {
-    localStorage.setItem(LEFT_PANEL_WIDTH_KEY, String(width))
-  } catch {
-    /* 隐私模式等场景下仅本页有效 */
-  }
+  writePref(LEFT_PANEL_WIDTH_KEY, String(width))
 }
 
 const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width))
