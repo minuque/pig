@@ -1,0 +1,86 @@
+/* zeron 风格开关：轨道内嵌状态标记，滑块划过时标记淡出。 */
+
+.switch {
+  position: relative;
+  flex: none;
+  width: calc(var(--size-control) + var(--spacing-xxs));
+  height: var(--size-icon-button);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.switch-track {
+  position: absolute;
+  inset: var(--spacing-xxs) 0 auto;
+  height: calc(var(--size-icon-button) - var(--spacing-xs));
+  border-radius: var(--radius-full);
+  background: var(--border);
+}
+
+.switch[aria-checked="true"] .switch-track,
+.switch[data-state="checked"] .switch-track {
+  background: var(--primary);
+}
+
+.switch-mark {
+  position: absolute;
+  top: 50%;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+/* 标记居中于滑块让出的空白，两端内缩 (轨道宽 - 滑块宽) / 2 */
+.switch-mark-on {
+  left: calc((100% - 24px) / 2);
+  width: 2px;
+  height: 8px;
+  translate: -50% -50%;
+  border-radius: var(--radius-full);
+  background: var(--on-primary);
+  opacity: 0;
+}
+
+.switch-mark-off {
+  right: calc((100% - 24px) / 2);
+  width: 7px;
+  height: 7px;
+  translate: 50% -50%;
+  border: var(--border-width) solid var(--ink-muted);
+  border-radius: var(--radius-full);
+}
+
+/* 滑块 24×16，贴轨道内边距 2px；行程 44 - 24 - 2 × 2 = 16 */
+.switch-thumb {
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 24px;
+  height: 16px;
+  translate: 0 -50%;
+  border-radius: var(--radius-full);
+  background: var(--white);
+  box-shadow: var(--shadow-soft);
+  transition: translate var(--duration-fast) var(--ease-out);
+}
+
+.switch[aria-checked="true"] .switch-mark-on,
+.switch[data-state="checked"] .switch-mark-on {
+  opacity: 1;
+}
+
+.switch[aria-checked="true"] .switch-mark-off,
+.switch[data-state="checked"] .switch-mark-off {
+  opacity: 0;
+}
+
+.switch[aria-checked="true"] .switch-thumb,
+.switch[data-state="checked"] .switch-thumb {
+  translate: 16px -50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch-mark,
+  .switch-thumb {
+    transition: none;
+  }
+}

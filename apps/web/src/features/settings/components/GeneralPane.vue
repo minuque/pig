@@ -81,16 +81,11 @@
             <p class="hint">{{ t("settings.notifySystemHint") }}</p>
           </div>
 
-          <button
-            type="button"
-            class="switch"
-            role="switch"
+          <Switch
             :aria-label="t('settings.notifySystem')"
-            :aria-checked="notifyOn"
-            @click="onNotify"
-          >
-            <span class="switch-thumb" />
-          </button>
+            :model-value="notifyOn"
+            @update:model-value="onNotify"
+          />
         </div>
 
         <div class="row">
@@ -99,16 +94,11 @@
             <p class="hint">{{ t("settings.notifySoundHint") }}</p>
           </div>
 
-          <button
-            type="button"
-            class="switch"
-            role="switch"
+          <Switch
             :aria-label="t('settings.notifySound')"
-            :aria-checked="soundOn"
-            @click="toggleSound()"
-          >
-            <span class="switch-thumb" />
-          </button>
+            :model-value="soundOn"
+            @update:model-value="toggleSound()"
+          />
         </div>
       </div>
     </section>
@@ -122,6 +112,7 @@ import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
+import { Switch } from "@components/ui/switch/index.js"
 
 const { t } = useI18n()
 const { scheme, setScheme } = useColorScheme()
@@ -143,9 +134,7 @@ const sizes: { id: FontSize; mark: string; label: string }[] = [
   { id: "xl", mark: "XL", label: t("settings.fontSizeXl") },
 ]
 
-async function onNotify() {
-  const next = !notifyOn.value
-
+async function onNotify(next: boolean) {
   if (next && typeof Notification !== "undefined" && Notification.permission === "default") {
     const result = await Notification.requestPermission()
 
@@ -260,40 +249,6 @@ async function onNotify() {
   justify-content: center;
   min-width: var(--size-icon-button);
   padding-inline: var(--spacing-xs);
-}
-
-.switch {
-  position: relative;
-  flex: none;
-  width: calc(var(--size-control) + var(--spacing-xxs));
-  height: calc(var(--size-icon-button) - var(--spacing-xxs));
-  padding: var(--spacing-xxs);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: var(--border);
-}
-
-.switch[aria-checked="true"] {
-  background: var(--primary);
-}
-
-.switch-thumb {
-  display: block;
-  width: calc(var(--size-icon) + var(--spacing-xxs));
-  height: calc(var(--size-icon) + var(--spacing-xxs));
-  border-radius: var(--radius-full);
-  background: var(--white);
-  transition: translate var(--duration-fast) var(--ease-out);
-}
-
-.switch[aria-checked="true"] .switch-thumb {
-  translate: calc(var(--size-icon) - var(--spacing-xxs));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .switch-thumb {
-    transition: none;
-  }
 }
 
 @media (max-width: 720px) {
