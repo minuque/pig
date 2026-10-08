@@ -323,6 +323,8 @@ function groupClass(key: string, open: boolean) {
   top: var(--pin-stick, 0px);
   z-index: 2;
   background: var(--sidebar);
+  /* 目录头吸在表头下方一格间距处，这段缝用实底盖住，滚动的会话名不透出来 */
+  box-shadow: 0 var(--spacing-xxs) 0 var(--sidebar);
 }
 
 .row-group .group-head {
