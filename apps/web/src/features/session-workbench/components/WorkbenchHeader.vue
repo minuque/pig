@@ -8,7 +8,7 @@
           :aria-label="leftOpen ? t('nav.collapseSidebar') : t('nav.openSidebar')"
           @click="toggle"
         >
-          <PanelLeft class="size-icon" />
+          <IconSidebarLeft />
         </button>
       </TooltipTrigger>
 
@@ -19,21 +19,37 @@
 
     <span v-if="cwdName" class="header-cwd" :title="cwd ?? ''">{{ cwdName }}</span>
 
-    <div class="header-crumb">
-      <h1 v-if="title" id="current-title" class="header-session">{{ title }}</h1>
-    </div>
+    <SessionTabStrip
+      v-if="tabs.length > 0"
+      :tabs="tabs"
+      :active-id="highlightedSessionId"
+      :state-of="stateOf"
+      :pinned="pinned"
+      @select="openSession"
+      @move="moveTab"
+      @close="closeTab"
+      @close-scope="closeScope"
+      @rename="onRename"
+      @toggle-pinned="togglePinned"
+      @delete="onDelete"
+    />
+
+    <h1 v-else-if="title" id="current-title" class="header-session">{{ title }}</h1>
   </header>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { PanelLeft } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
+import { IconSidebarLeft } from "@components/icons/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { useNav, workspaceName } from "@features/session-nav/index.js"
+import { sessionTitle, useNav, workspaceName } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
+import { useSessionTabs } from "@features/session-workbench/hooks/use-session-tabs.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
+import type { SidebarSessionState } from "@features/session-nav/type.js"
+import SessionTabStrip from "@features/session-workbench/components/SessionTabStrip.vue"
 
 const props = defineProps<{
   cwd?: string | undefined
@@ -41,7 +57,24 @@ const props = defineProps<{
 const { t } = useI18n()
 const { leftOpen, toggle } = useLeftPanelToggle()
 const { sessionId, projection } = useSession()
-const { listedSessions } = useNav()
+const {
+  listedSessions,
+  cardFootById,
+  pinnedIds,
+  highlightedSessionId,
+  openSession,
+  togglePinned,
+  renameSession,
+  deleteSession,
+} = useNav()
+const sessions = computed(() =>
+  listedSessions.value.map((session) => ({ id: session.id, title: sessionTitle(session) })),
+)
+const { tabs, moveTab, closeTab, closeScope } = useSessionTabs({
+  activeSessionId: highlightedSessionId,
+  sessions,
+  open: openSession,
+})
 const title = computed(() =>
   workbenchHeaderTitle({
     sessionId: sessionId.value,
@@ -50,6 +83,27 @@ const title = computed(() =>
   }),
 )
 const cwdName = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
+
+function stateOf(id: string): SidebarSessionState | undefined {
+  return cardFootById.value.get(id)?.state
+}
+
+function pinned(id: string): boolean {
+  return pinnedIds.value.has(id)
+}
+
+function onRename(id: string): void {
+  const current = sessions.value.find((session) => session.id === id)?.title ?? ""
+  const name = window.prompt("重命名会话", current)?.trim()
+
+  if (name && name !== current) void renameSession(id, name)
+}
+
+function onDelete(id: string): void {
+  const current = sessions.value.find((session) => session.id === id)?.title ?? ""
+
+  if (window.confirm(`删除会话「${current}」？此操作不可撤销。`)) void deleteSession(id)
+}
 </script>
 
 <style scoped>
@@ -60,15 +114,19 @@ const cwdName = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
   align-items: center;
   gap: var(--spacing-xs);
   width: 100%;
-  min-height: calc(var(--size-control) + 2 * var(--spacing-xs));
-  padding: var(--spacing-xxs) var(--spacing-sm);
+  min-height: calc(var(--size-nav-rail) + 2 * var(--spacing-sm));
+  padding: var(--spacing-xs) var(--spacing-sm);
   border-bottom: var(--border-width) solid var(--border-subtle);
   background: var(--surface);
 }
 
 .header-toggle {
+  display: flex;
   flex: none;
-  padding: var(--icon-button-pad);
+  align-items: center;
+  justify-content: center;
+  width: var(--size-nav-rail);
+  height: var(--size-nav-rail);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -96,14 +154,6 @@ const cwdName = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
   white-space: nowrap;
 }
 
-.header-crumb {
-  display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  align-self: stretch;
-  min-width: 0;
-}
-
 .header-session {
   flex: 1 1 auto;
   min-width: 0;
@@ -118,7 +168,6 @@ const cwdName = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
 }
 
 html[data-pig-desktop-platform] .workbench-header,
-html[data-pig-desktop-platform] .header-crumb,
 html[data-pig-desktop-platform] .header-session {
   -webkit-app-region: drag;
   app-region: drag;
@@ -131,7 +180,7 @@ html[data-pig-desktop-platform] .workbench-header {
 
 html[data-pig-desktop-platform]
   .workbench-header
-  :deep(:is(button, a, input, select, textarea, [role="button"], [role="link"])) {
+  :deep(:is(button, a, input, select, textarea, [role="tab"], [role="button"], [role="link"])) {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
@@ -148,7 +197,7 @@ html[data-pig-desktop-platform="win32"] .workbench-header {
 
 @media (max-width: 520px) {
   .workbench-header > .header-toggle {
-    padding-inline: var(--spacing-sm);
+    width: calc(var(--size-nav-rail) + var(--spacing-xs));
   }
 }
 </style>
