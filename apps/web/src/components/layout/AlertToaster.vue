@@ -10,7 +10,7 @@
             @close="dismissNotice(item.id)"
           >
             <template #icon><CircleAlert /></template>
-            <template #title>出错</template>
+            <template #title>{{ t("common.error") }}</template>
             <template #default>{{ item.message }}</template>
           </Alert>
         </div>
@@ -21,9 +21,12 @@
 
 <script setup lang="ts">
 import { CircleAlert } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 
 import Alert from "@components/ui/alert/Alert.vue"
 import { dismissNotice, noticeQueue } from "@components/layout/notify.js"
+
+const { t } = useI18n()
 </script>
 
 <style scoped>

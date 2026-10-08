@@ -2,13 +2,13 @@
   <nav ref="navBody" class="nav-body session-list">
     <section v-if="pinnedRows.length" ref="pinnedSection" class="nav-section is-pin">
       <div class="section-label" @click="collapsedSections.pinned = !collapsedSections.pinned">
-        <span class="section-label-text">置顶</span>
+        <span class="section-label-text">{{ t("session.pin") }}</span>
 
         <button
           class="section-fold"
           type="button"
           :aria-expanded="!collapsedSections.pinned"
-          :aria-label="collapsedSections.pinned ? '展开置顶' : '折叠置顶'"
+          :aria-label="collapsedSections.pinned ? t('nav.expandPinned') : t('nav.collapsePinned')"
           @click.stop="collapsedSections.pinned = !collapsedSections.pinned"
         >
           <ChevronDown v-if="!collapsedSections.pinned" class="size-icon" />
@@ -75,7 +75,7 @@
 
         <li v-if="updatedMore" key="more">
           <button class="more-button" type="button" @click="toggleGroupReveal('updated')">
-            {{ updatedMore.revealed ? "收起" : "显示更多" }}
+            {{ updatedMore.revealed ? t("common.collapse") : t("common.showMore") }}
           </button>
         </li>
       </TransitionGroup>
@@ -128,7 +128,7 @@
                 type="button"
                 @click="section.toggleReveal"
               >
-                {{ section.revealed ? "收起" : "显示更多" }}
+                {{ section.revealed ? t("common.collapse") : t("common.showMore") }}
               </button>
             </TransitionGroup>
           </div>
@@ -136,7 +136,7 @@
       </ul>
     </div>
 
-    <span v-else-if="groups.length && !collapsedSections.sessions">暂无会话</span>
+    <span v-else-if="groups.length && !collapsedSections.sessions">{{ t("session.empty") }}</span>
   </nav>
 </template>
 
@@ -144,6 +144,7 @@
 import { computed, reactive, useTemplateRef, watch } from "vue"
 import { useResizeObserver, useTimestamp } from "@vueuse/core"
 import { ChevronDown, ChevronRight } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
@@ -157,6 +158,7 @@ const emit = defineEmits<{
   navigate: [cwd: string | undefined]
   createInDir: [canonicalPath: string]
 }>()
+const { t } = useI18n()
 // 置顶区高度随内容变，吸顶位置只有浏览器量完才知道
 const navBody = useTemplateRef<HTMLElement>("navBody")
 const pinnedSection = useTemplateRef<HTMLElement>("pinnedSection")

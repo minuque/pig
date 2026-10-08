@@ -3,7 +3,7 @@
     class="startup-screen"
     :class="{ leaving }"
     role="status"
-    aria-label="正在启动"
+    :aria-label="t('startup.starting')"
     @animationend.self="handleLeaveEnd"
   >
     <div class="drag-strip"></div>
@@ -24,6 +24,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "@i18n/index.js"
+
+const { t } = useI18n()
 import { onBeforeUnmount, onMounted, shallowRef, watch } from "vue"
 
 const props = defineProps<{

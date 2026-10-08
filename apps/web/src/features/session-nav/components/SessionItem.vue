@@ -5,7 +5,7 @@
         <button
           class="pin-toggle press-scale"
           type="button"
-          :aria-label="pinned ? '取消置顶' : '置顶'"
+          :aria-label="pinned ? t('session.unpin') : t('session.pin')"
           :aria-pressed="pinned"
           @click.stop="emit('togglePinned', session.id)"
         >
@@ -14,7 +14,7 @@
         </button>
       </TooltipTrigger>
 
-      <TooltipContent>{{ pinned ? "取消置顶" : "置顶" }}</TooltipContent>
+      <TooltipContent>{{ pinned ? t("session.unpin") : t("session.pin") }}</TooltipContent>
     </Tooltip>
 
     <ContextMenu :modal="false" :press-open-delay="500" @update:open="onMenuOpenChange">
@@ -69,7 +69,7 @@
                 :class="{ active }"
                 :role="active ? 'img' : undefined"
                 :aria-hidden="active ? undefined : true"
-                :aria-label="active ? '当前会话' : undefined"
+                :aria-label="active ? t('session.current') : undefined"
               ></span>
 
               <span v-else-if="dirTag" class="session-dir" :title="session.cwd">
@@ -89,7 +89,7 @@
                   <button
                     class="more-toggle press-scale"
                     type="button"
-                    aria-label="更多"
+                    :aria-label="t('common.more')"
                     aria-haspopup="menu"
                     :aria-expanded="menuOpen"
                     @click.prevent.stop="openSessionMenu"
@@ -99,7 +99,7 @@
                   </button>
                 </TooltipTrigger>
 
-                <TooltipContent>更多</TooltipContent>
+                <TooltipContent>{{ t("common.more") }}</TooltipContent>
               </Tooltip>
             </span>
           </div>
@@ -115,19 +115,19 @@
         <ContextMenuItem @select="emit('togglePinned', session.id)">
           <PinOff v-if="pinned" />
           <Pin v-else />
-          {{ pinned ? "取消置顶" : "置顶" }}
+          {{ pinned ? t("session.unpin") : t("session.pin") }}
         </ContextMenuItem>
 
         <ContextMenuItem @select="startRename">
           <Pencil />
-          重命名
+          {{ t("session.rename") }}
         </ContextMenuItem>
 
         <ContextMenuSeparator />
 
         <ContextMenuItem variant="destructive" @select="deleteOpen = true">
           <Trash2 />
-          删除
+          {{ t("session.deleteTitle") }}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -155,6 +155,7 @@ import {
   PinOff,
   Trash2,
 } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -192,6 +193,7 @@ const emit = defineEmits<{
   rename: [id: string, name: string]
   delete: [id: string]
 }>()
+const { t } = useI18n()
 const { openSession } = useNav()
 const renaming = ref(false)
 const draft = ref("")
@@ -200,7 +202,11 @@ const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
 const STATE_ICONS = { running: LoaderCircle, unread: CircleCheck, error: CircleAlert }
-const STATE_LABELS = { running: "运行中", unread: "运行完成但未打开", error: "运行失败" }
+const STATE_LABELS = {
+  running: t("session.running"),
+  unread: t("session.runningUnread"),
+  error: t("session.runningError"),
+}
 const stateIcon = computed(() =>
   props.state && !renaming.value ? STATE_ICONS[props.state] : undefined,
 )

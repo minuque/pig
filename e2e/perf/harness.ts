@@ -80,7 +80,12 @@ export async function createWebHarness(options: {
       return {
         page,
         origin: options.origin,
-        size: async () => page.viewportSize() ?? { width: 1280, height: 800 },
+        size: async () => {
+          const size = page.viewportSize()
+
+          if (!size) throw new Error("viewport size unavailable")
+          return size
+        },
         setSize: async (width, height) => {
           await page.setViewportSize({ width, height })
         },
@@ -148,12 +153,12 @@ export async function createDesktopHarness(options: {
         return {
           page,
           origin,
-          size: () =>
+          size: async (): Promise<{ width: number; height: number }> =>
             app.evaluate(({ BrowserWindow }) => {
               const win = BrowserWindow.getAllWindows()[0]
 
               if (!win) throw new Error("桌面窗口不存在")
-              const [width, height] = win.getSize()
+              const [width = 0, height = 0] = win.getSize()
               return { width, height }
             }),
           setSize: async (width, height) => {

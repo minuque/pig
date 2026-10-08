@@ -14,7 +14,7 @@ import {
 } from "@features/session-nav/lib/session-list.js"
 import type { SidebarSessionState } from "@features/session-nav/type.js"
 
-export { sessionTitle, workspaceName, UNTITLED_SESSION } from "@features/session-nav/lib/format.js"
+export { sessionTitle, workspaceName, untitledSession } from "@features/session-nav/lib/format.js"
 
 export type NavContext = ReturnType<typeof createNav>
 

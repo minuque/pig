@@ -2,15 +2,15 @@
   <AlertDialog v-model:open="open">
     <AlertDialogContent class="sm:max-w-[28rem]">
       <AlertDialogHeader>
-        <AlertDialogTitle>删除会话</AlertDialogTitle>
-        <AlertDialogDescription>确定删除“{{ title }}”吗？此操作不可恢复。</AlertDialogDescription>
+        <AlertDialogTitle>{{ t("session.deleteTitle") }}</AlertDialogTitle>
+        <AlertDialogDescription>{{ t("session.deleteBody", { title }) }}</AlertDialogDescription>
       </AlertDialogHeader>
 
       <AlertDialogFooter>
-        <AlertDialogCancel>取消</AlertDialogCancel>
+        <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
 
         <AlertDialogAction variant="destructive" @click="emit('confirm')">
-          删除会话
+          {{ t("session.deleteTitle") }}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
@@ -18,6 +18,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "@i18n/index.js"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +34,7 @@ defineProps<{
   title: string
 }>()
 
+const { t } = useI18n()
 const open = defineModel<boolean>("open", { default: false })
 const emit = defineEmits<{
   confirm: []

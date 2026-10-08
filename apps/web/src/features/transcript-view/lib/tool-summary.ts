@@ -5,6 +5,7 @@ import type {
   ToolSummaryDetail,
 } from "@features/transcript-view/type.js"
 import type { SupportedLanguages } from "stream-diffs/pierre"
+import { t } from "@i18n/index.js"
 import {
   isCommandTool,
   toolCallDetail,
@@ -118,19 +119,31 @@ export function toolGroupKey(toolName: string): ToolGroupKey {
 export function toolSummary(items: readonly ToolCallView[]): string {
   const first = items[0]
 
-  if (!first) return "工具调用"
+  if (!first) return t("transcript.toolCall")
 
   const running = items.some((item) => item.running)
   const count = items.length
   const key = toolGroupKey(first.toolName)
-  const prefix = running ? "正在" : "已"
+  const prefix = running ? t("transcript.summaryPrefixRunning") : t("transcript.summaryPrefixDone")
   const labels = {
-    read: `${prefix}读取 ${count} 个文件`,
-    write: count === 1 ? `${prefix}写入` : `${prefix}写入 ${count} 个文件`,
-    command: `${running ? "正在运行" : "运行了"} ${count} 条命令`,
-    edit: count === 1 ? `${prefix}编辑` : `${prefix}编辑 ${count} 次文件`,
-    search: `${prefix}搜索 ${count} 次`,
-    tool: `${prefix}调用 ${count} 次工具`,
+    read:
+      count === 1
+        ? t("transcript.summaryReadOne", { prefix })
+        : t("transcript.summaryRead", { prefix, count }),
+    write:
+      count === 1
+        ? t("transcript.summaryWriteOne", { prefix })
+        : t("transcript.summaryWrite", { prefix, count }),
+    command: t("transcript.summaryCommand", {
+      prefix: running ? t("transcript.summaryCommandRunning") : t("transcript.summaryCommandDone"),
+      count,
+    }),
+    edit:
+      count === 1
+        ? t("transcript.summaryEditOne", { prefix })
+        : t("transcript.summaryEdit", { prefix, count }),
+    search: t("transcript.summarySearch", { prefix, count }),
+    tool: t("transcript.summaryTool", { prefix, count }),
   } satisfies Record<ToolGroupKey, string>
   return labels[key]
 }

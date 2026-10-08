@@ -33,7 +33,7 @@
         }"
       >
         <span class="preview-card">
-          <span class="preview-user">{{ hoverItem.userText ?? "用户句" }}</span>
+          <span class="preview-user">{{ hoverItem.userText ?? t("transcript.userMessage") }}</span>
 
           <span v-if="hoverItem.assistantText" class="preview-assistant">
             {{ hoverItem.assistantText }}
@@ -46,6 +46,7 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
+import { useI18n } from "@i18n/index.js"
 import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {
   MINIMAP_RAIL_WIDTH,
@@ -61,6 +62,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [item: TranscriptMinimapItem]
 }>()
+const { t } = useI18n()
 const hoverIndex = shallowRef<number | null>(null)
 const pinnedIndex = shallowRef(0)
 

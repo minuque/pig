@@ -22,7 +22,7 @@
         v-if="dismissible"
         type="button"
         class="alert-action flex size-5 items-center justify-center rounded-(--radius-sm)"
-        aria-label="关闭"
+        :aria-label="t('common.close')"
         @click="emit('close')"
       >
         <X class="size-3.5" />
@@ -53,7 +53,10 @@
 import { computed, shallowRef, useTemplateRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { Check, Copy, X } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import type { HTMLAttributes } from "vue"
+
+const { t } = useI18n()
 
 type AlertVariant = "default" | "error" | "info" | "success" | "warning"
 
@@ -77,10 +80,10 @@ const root = useTemplateRef("root")
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const copyLabel = computed(() =>
   status.value === "copied"
-    ? "已复制"
+    ? t("common.copied")
     : status.value === "error"
-      ? "复制失败，点击重试"
-      : "复制内容",
+      ? t("common.copyFailed")
+      : t("common.copyContent"),
 )
 const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { immediate: false })
 

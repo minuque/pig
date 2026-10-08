@@ -1,6 +1,6 @@
 <template>
   <section class="pane">
-    <p v-if="!cwd" class="empty">先添加工作目录</p>
+    <p v-if="!cwd" class="empty">{{ t("settings.noCwd") }}</p>
 
     <template v-else>
       <p class="cwd">{{ cwd }}</p>
@@ -10,7 +10,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "@i18n/index.js"
 import { useSettingsCwd } from "@features/settings/hooks/use-settings-cwd.js"
+
+const { t } = useI18n()
 
 defineProps<{ empty: string }>()
 

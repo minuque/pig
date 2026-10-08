@@ -5,14 +5,16 @@
         <button
           class="header-toggle"
           type="button"
-          :aria-label="leftOpen ? '折叠侧边栏' : '打开侧边栏'"
+          :aria-label="leftOpen ? t('nav.collapseSidebar') : t('nav.openSidebar')"
           @click="toggle"
         >
           <PanelLeft class="size-icon" />
         </button>
       </TooltipTrigger>
 
-      <TooltipContent>{{ leftOpen ? "折叠侧边栏" : "打开侧边栏" }}</TooltipContent>
+      <TooltipContent>
+        {{ leftOpen ? t("nav.collapseSidebar") : t("nav.openSidebar") }}
+      </TooltipContent>
     </Tooltip>
 
     <span v-if="cwdName" class="header-cwd" :title="cwd ?? ''">{{ cwdName }}</span>
@@ -26,6 +28,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { PanelLeft } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
@@ -35,6 +38,7 @@ import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-st
 const props = defineProps<{
   cwd?: string | undefined
 }>()
+const { t } = useI18n()
 const { leftOpen, toggle } = useLeftPanelToggle()
 const { sessionId, projection } = useSession()
 const { listedSessions } = useNav()

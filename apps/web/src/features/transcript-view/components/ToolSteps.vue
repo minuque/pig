@@ -23,9 +23,9 @@
 
         <template v-if="failCount">
           <span class="label-dot">·</span>
-          执行失败
+          {{ t("transcript.statusError") }}
           <span class="fail-n">{{ failCount }}</span>
-          次
+          {{ t("common.times") }}
         </template>
 
         <template v-if="durationLabel">
@@ -87,6 +87,7 @@
 import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
 import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis, LoaderCircle } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import {
@@ -105,6 +106,7 @@ import {
 } from "@features/transcript-view/lib/step-rail.js"
 import type { ToolRow, ToolRowStep } from "@features/transcript-view/type.js"
 
+const { t } = useI18n()
 const PAGE_SIZE = 8
 const ANIMATED_EXPAND_LIMIT = 8
 const props = defineProps<{
@@ -155,7 +157,7 @@ const hiddenCount = computed(() =>
 const showMoreToggle = computed(
   () => keptMounted.value && !running.value && props.row.steps.length > PAGE_SIZE,
 )
-const moreLabel = computed(() => (hiddenCount.value ? "显示更多" : "收起"))
+const moreLabel = computed(() => (hiddenCount.value ? t("common.showMore") : t("common.collapse")))
 // 长列表只跳过展开动画，收起仍走高度过渡
 const skipHeightMotion = computed(
   () => running.value || (revealed.value && renderedSteps.value.length > ANIMATED_EXPAND_LIMIT),

@@ -1,16 +1,16 @@
 <template>
   <section class="pane">
     <section class="group">
-      <h2 class="group-title">外观</h2>
+      <h2 class="group-title">{{ t("settings.appearance") }}</h2>
 
       <div class="card">
         <div class="row">
           <div class="copy">
-            <h3 class="label">外观</h3>
-            <p class="hint">选择应用的明暗外观</p>
+            <h3 class="label">{{ t("settings.appearance") }}</h3>
+            <p class="hint">{{ t("settings.appearanceHint") }}</p>
           </div>
 
-          <div class="segment" role="radiogroup" aria-label="外观">
+          <div class="segment" role="radiogroup" :aria-label="t('settings.appearance')">
             <button
               v-for="option in schemes"
               :key="option.id"
@@ -28,11 +28,11 @@
 
         <div class="row">
           <div class="copy">
-            <h3 class="label">语言</h3>
-            <p class="hint">选择界面显示语言</p>
+            <h3 class="label">{{ t("settings.language") }}</h3>
+            <p class="hint">{{ t("settings.languageHint") }}</p>
           </div>
 
-          <div class="segment" role="radiogroup" aria-label="语言">
+          <div class="segment" role="radiogroup" :aria-label="t('settings.language')">
             <button
               v-for="option in locales"
               :key="option.id"
@@ -49,11 +49,11 @@
 
         <div class="row">
           <div class="copy">
-            <h3 class="label">字体大小</h3>
-            <p class="hint">调整界面和消息文字大小</p>
+            <h3 class="label">{{ t("settings.fontSize") }}</h3>
+            <p class="hint">{{ t("settings.fontSizeHint") }}</p>
           </div>
 
-          <div class="segment" role="radiogroup" aria-label="字体大小">
+          <div class="segment" role="radiogroup" :aria-label="t('settings.fontSize')">
             <button
               v-for="option in sizes"
               :key="option.id"
@@ -72,20 +72,20 @@
     </section>
 
     <section class="group">
-      <h2 class="group-title">通知</h2>
+      <h2 class="group-title">{{ t("settings.notifications") }}</h2>
 
       <div class="card">
         <div class="row">
           <div class="copy">
-            <h3 class="label">系统通知</h3>
-            <p class="hint">回合完成时发送系统通知</p>
+            <h3 class="label">{{ t("settings.notifySystem") }}</h3>
+            <p class="hint">{{ t("settings.notifySystemHint") }}</p>
           </div>
 
           <button
             type="button"
             class="switch"
             role="switch"
-            aria-label="系统通知"
+            :aria-label="t('settings.notifySystem')"
             :aria-checked="notifyOn"
             @click="onNotify"
           >
@@ -95,15 +95,15 @@
 
         <div class="row">
           <div class="copy">
-            <h3 class="label">完成提示音</h3>
-            <p class="hint">回合完成时播放提示音</p>
+            <h3 class="label">{{ t("settings.notifySound") }}</h3>
+            <p class="hint">{{ t("settings.notifySoundHint") }}</p>
           </div>
 
           <button
             type="button"
             class="switch"
             role="switch"
-            aria-label="完成提示音"
+            :aria-label="t('settings.notifySound')"
             :aria-checked="soundOn"
             @click="toggleSound()"
           >
@@ -118,27 +118,29 @@
 <script setup lang="ts">
 import { Monitor, Moon, Sun } from "@lucide/vue"
 import type { ColorScheme } from "@/types/theme-type.js"
+import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 
+const { t } = useI18n()
 const { scheme, setScheme } = useColorScheme()
 const { enabled: soundOn, toggle: toggleSound } = useSound()
 const { locale, fontSize, notifyOn, setLocale, setFontSize, setNotify } = useGeneralPrefs()
 const schemes: { id: ColorScheme; label: string; icon: typeof Monitor }[] = [
-  { id: "light", label: "浅色", icon: Sun },
-  { id: "dark", label: "深色", icon: Moon },
-  { id: "auto", label: "跟随系统", icon: Monitor },
+  { id: "light", label: t("settings.schemeLight"), icon: Sun },
+  { id: "dark", label: t("settings.schemeDark"), icon: Moon },
+  { id: "auto", label: t("settings.schemeAuto"), icon: Monitor },
 ]
 const locales: { id: UiLocale; label: string }[] = [
   { id: "en", label: "English" },
-  { id: "zh-CN", label: "简体中文" },
+  { id: "zh-CN", label: t("settings.zhCN") },
 ]
 const sizes: { id: FontSize; mark: string; label: string }[] = [
-  { id: "s", mark: "S", label: "小" },
-  { id: "m", mark: "M", label: "中" },
-  { id: "l", mark: "L", label: "大" },
-  { id: "xl", mark: "XL", label: "特大" },
+  { id: "s", mark: "S", label: t("settings.fontSizeS") },
+  { id: "m", mark: "M", label: t("settings.fontSizeM") },
+  { id: "l", mark: "L", label: t("settings.fontSizeL") },
+  { id: "xl", mark: "XL", label: t("settings.fontSizeXl") },
 ]
 
 async function onNotify() {

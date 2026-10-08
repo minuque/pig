@@ -8,7 +8,7 @@
             static
             class="selector"
             :disabled="disabled"
-            :aria-label="`选择模型，当前：${triggerText}`"
+            :aria-label="t('composer.selectModel', { model: triggerText })"
           >
             <VendorMark
               v-if="current.vendor"
@@ -45,7 +45,7 @@
               <Button
                 type="button"
                 class="tab-btn"
-                aria-label="收藏模型"
+                :aria-label="t('composer.favoriteModels')"
                 :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
                 @click="selectScope(FAVORITES_SCOPE)"
               >
@@ -53,7 +53,7 @@
               </Button>
             </TooltipTrigger>
 
-            <TooltipContent>收藏模型</TooltipContent>
+            <TooltipContent>{{ t("composer.favoriteModels") }}</TooltipContent>
           </Tooltip>
 
           <Tooltip v-for="vendor in catalog" :key="vendor.id">
@@ -111,7 +111,11 @@
               <Button
                 type="button"
                 class="fav"
-                :aria-label="`${isFavorite(item.data.vendor.id, item.data.model.id) ? '取消收藏' : '收藏'} ${item.data.model.name}`"
+                :aria-label="
+                  isFavorite(item.data.vendor.id, item.data.model.id)
+                    ? t('composer.unfavorite', { name: item.data.model.name })
+                    : t('composer.favorite', { name: item.data.model.name })
+                "
                 :aria-pressed="isFavorite(item.data.vendor.id, item.data.model.id)"
                 :class="{ on: isFavorite(item.data.vendor.id, item.data.model.id) }"
                 @pointerdown.stop
@@ -145,6 +149,7 @@
 import { Search, Star } from "@lucide/vue"
 import { useVirtualList } from "@vueuse/core"
 import { computed, nextTick, watch } from "vue"
+import { useI18n } from "@i18n/index.js"
 import type { ComposerModel, ComposerVendor } from "@features/composer/type.js"
 import {
   DropdownMenu,
@@ -187,6 +192,7 @@ const emit = defineEmits<{
 const open = defineModel<boolean>("open", { default: false })
 const EMPTY_FAVORITES = new Set<string>()
 const { set: favoriteSet, isFavorite, toggle: toggleFavorite } = useModelFavorites()
+const { t } = useI18n()
 const current = computed(() => resolveModelInfo(props.catalog, props.model))
 const {
   query,
@@ -219,10 +225,12 @@ const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, {
   itemHeight: ROW_HEIGHT,
 })
 const emptyText = computed(() =>
-  query.value.trim() || scope.value !== FAVORITES_SCOPE ? "没有匹配的模型" : "还没有收藏的模型",
+  query.value.trim() || scope.value !== FAVORITES_SCOPE
+    ? t("composer.noMatchingModel")
+    : t("composer.noFavorites"),
 )
 const searchPlaceholder = computed(() =>
-  scope.value === FAVORITES_SCOPE ? "搜索收藏" : "搜索模型",
+  scope.value === FAVORITES_SCOPE ? t("composer.searchFavorites") : t("composer.searchModels"),
 )
 const label = computed(() => current.value.model?.name ?? props.model?.id ?? "—")
 const effortLabel = computed(() =>

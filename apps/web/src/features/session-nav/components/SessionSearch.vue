@@ -13,19 +13,24 @@
             v-model="query"
             class="query-input"
             type="search"
-            placeholder="搜索会话和项目"
+            :placeholder="t('nav.searchPlaceholder')"
             autocomplete="off"
             @keydown="onQueryKeydown"
           />
 
           <Tooltip>
             <TooltipTrigger as-child>
-              <button class="query-close" type="button" aria-label="关闭" @click="open = false">
+              <button
+                class="query-close"
+                type="button"
+                :aria-label="t('common.close')"
+                @click="open = false"
+              >
                 <X class="size-icon" />
               </button>
             </TooltipTrigger>
 
-            <TooltipContent>关闭</TooltipContent>
+            <TooltipContent>{{ t("common.close") }}</TooltipContent>
           </Tooltip>
         </div>
 
@@ -49,7 +54,7 @@
           </li>
         </ul>
 
-        <p v-else class="empty">没有匹配的会话</p>
+        <p v-else class="empty">{{ t("nav.searchEmpty") }}</p>
       </div>
     </DialogContent>
   </Dialog>
@@ -59,6 +64,7 @@
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { useTimestamp } from "@vueuse/core"
 import { CornerDownLeft, MessageSquare, Search, X } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
@@ -71,6 +77,7 @@ import {
 import { filterSessionsForSearch } from "@features/session-nav/lib/session-list.js"
 
 const open = defineModel<boolean>("open", { default: false })
+const { t } = useI18n()
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
 }>()

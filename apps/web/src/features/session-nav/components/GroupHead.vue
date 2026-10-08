@@ -23,7 +23,7 @@
           <button
             class="group-new hover-only"
             type="button"
-            aria-label="在此目录新建会话"
+            :aria-label="t('session.newSessionInDir')"
             draggable="false"
             @click.stop="emit('create')"
             @dragstart.stop.prevent
@@ -32,7 +32,7 @@
           </button>
         </TooltipTrigger>
 
-        <TooltipContent>新会话</TooltipContent>
+        <TooltipContent>{{ t("session.newSession") }}</TooltipContent>
       </Tooltip>
     </span>
   </div>
@@ -41,8 +41,10 @@
 <script setup lang="ts">
 import { shallowRef } from "vue"
 import { Folder, FolderOpen, GripVertical, MessageCirclePlus } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
+const { t } = useI18n()
 const props = withDefaults(
   defineProps<{
     name: string

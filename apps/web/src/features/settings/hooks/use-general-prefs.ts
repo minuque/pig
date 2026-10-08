@@ -1,4 +1,5 @@
 import { readonly, shallowRef, watch } from "vue"
+import { i18n, t } from "@i18n/index.js"
 
 export type UiLocale = "en" | "zh-CN"
 
@@ -41,6 +42,7 @@ function apply(nextLocale: UiLocale, nextSize: FontSize): void {
   if (typeof document === "undefined") return
   document.documentElement.lang = nextLocale
   document.documentElement.dataset.fontSize = nextSize
+  i18n.global.locale.value = nextLocale as typeof i18n.global.locale.value
 }
 
 function load(): void {
@@ -52,7 +54,7 @@ function load(): void {
   apply(locale.value, fontSize.value)
 }
 
-/** 通用偏好：语言、字号、回合完成系统通知。语言只写 html lang，文案仍是中文。 */
+/** 通用偏好：语言、字号、回合完成系统通知。语言切到 vue-i18n。 */
 export function useGeneralPrefs() {
   load()
 
@@ -88,7 +90,9 @@ export async function notifyTurnDone(): Promise<void> {
     return
 
   try {
-    new Notification("回合完成", { body: "可以继续了" })
+    new Notification(t("settings.notifyTurnDone"), {
+      body: t("settings.notifyTurnDoneBody"),
+    })
   } catch {
     /* 桌面壳拒绝通知时不打断回合收尾 */
   }

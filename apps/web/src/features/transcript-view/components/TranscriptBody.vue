@@ -26,14 +26,14 @@
             :disabled="loadingOlder"
             @click="older.request"
           >
-            加载更早消息
+            {{ t("transcript.loadEarlier") }}
           </button>
 
           <div
             v-else-if="hasMore"
             class="older-busy is-loading"
             role="status"
-            aria-label="正在加载更早消息"
+            :aria-label="t('transcript.loadEarlier')"
           >
             <LoaderCircle class="older-spinner animate-spin motion-reduce:animate-none" />
           </div>
@@ -84,6 +84,7 @@ import SessionLoading from "@features/transcript-view/components/SessionLoading.
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { LoaderCircle } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
@@ -121,6 +122,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   loadOlder: []
 }>()
+const { t } = useI18n()
 const turns = shallowRef<TimelineTurn[]>([])
 const rows = computed(() => turns.value.flatMap((turn) => turn.rows))
 const rowsBuilder = createTimelineRowsBuilder()

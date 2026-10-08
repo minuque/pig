@@ -12,13 +12,18 @@
           <slot name="meta" />
         </div>
 
-        <LazyTip v-if="lineNumbers" :tip="showLineNumbers ? '隐藏行号' : '显示行号'">
+        <LazyTip
+          v-if="lineNumbers"
+          :tip="showLineNumbers ? t('transcript.lineNumbersHide') : t('transcript.lineNumbersShow')"
+        >
           <Button
             type="button"
             variant="outline"
             size="icon-2xs"
             class="icon-btn"
-            :aria-label="showLineNumbers ? '隐藏行号' : '显示行号'"
+            :aria-label="
+              showLineNumbers ? t('transcript.lineNumbersHide') : t('transcript.lineNumbersShow')
+            "
             :aria-pressed="showLineNumbers"
             @click.stop="showLineNumbers = !showLineNumbers"
           >
@@ -26,13 +31,13 @@
           </Button>
         </LazyTip>
 
-        <LazyTip :tip="softWrap ? '取消软换行' : '软换行'">
+        <LazyTip :tip="softWrap ? t('transcript.softWrapOff') : t('transcript.softWrap')">
           <Button
             type="button"
             variant="outline"
             size="icon-2xs"
             class="icon-btn"
-            :aria-label="softWrap ? '取消软换行' : '软换行'"
+            :aria-label="softWrap ? t('transcript.softWrapOff') : t('transcript.softWrap')"
             :aria-pressed="softWrap"
             @click.stop="softWrap = !softWrap"
           >
@@ -66,9 +71,11 @@
 import { computed, h, nextTick, shallowRef, useTemplateRef, type FunctionalComponent } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { AlignLeft, Check, Copy, ListOrdered, WrapText } from "@lucide/vue"
+import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
+const { t } = useI18n()
 const props = defineProps<{
   label: string
   text: string
@@ -79,10 +86,10 @@ const showLineNumbers = defineModel<boolean>("showLineNumbers", { default: false
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const copyLabel = computed(() =>
   status.value === "copied"
-    ? "已复制"
+    ? t("common.copied")
     : status.value === "error"
-      ? "复制失败，点击重试"
-      : `复制${props.label}`,
+      ? t("common.copyFailed")
+      : t("common.copyContent", { label: props.label }),
 )
 const header = useTemplateRef("header")
 const armed = shallowRef(false)

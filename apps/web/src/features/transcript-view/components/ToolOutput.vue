@@ -11,7 +11,7 @@
     </div>
 
     <button v-if="hiddenLines" type="button" class="show-all" @click="expanded = true">
-      显示全部（还有 {{ hiddenLines }} 行）
+      {{ t("transcript.showAllLines", { count: hiddenLines }) }}
     </button>
   </div>
 
@@ -20,7 +20,7 @@
       <pre class="tool-output-pre" :class="preClass">{{ shownText }}</pre>
 
       <button v-if="hiddenLines" type="button" class="show-all" @click="expanded = true">
-        显示全部（还有 {{ hiddenLines }} 行）
+        {{ t("transcript.showAllLines", { count: hiddenLines }) }}
       </button>
     </template>
 
@@ -37,11 +37,13 @@
 
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
+import { useI18n } from "@i18n/index.js"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { type CodeTokens, vTokenLine } from "@features/transcript-view/lib/markdown-render-props.js"
 import type { TranscriptImage as ToolImage } from "@features/transcript-view/type.js"
 
 const LINE_LIMIT = 500
+const { t } = useI18n()
 
 /** 前 limit 行的结束位置和总行数；不超限时 end 为 -1。 */
 function lineCut(text: string, limit: number) {

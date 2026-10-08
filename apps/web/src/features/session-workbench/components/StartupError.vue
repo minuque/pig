@@ -4,7 +4,7 @@
       <CircleAlert :size="32" class="error-icon" />
       <h1 id="startup-error-title" class="error-title">{{ title }}</h1>
       <p class="error-detail">{{ copy }}</p>
-      <Button type="button" @click="retry">重试连接</Button>
+      <Button type="button" @click="retry">{{ t("startup.retry") }}</Button>
     </div>
   </section>
 </template>
@@ -13,20 +13,22 @@
 import { computed } from "vue"
 import { CircleAlert } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
+import { useI18n } from "@i18n/index.js"
 import { useStartupError } from "@features/startup/index.js"
 
+const { t } = useI18n()
 const props = withDefaults(
   defineProps<{
     title?: string
     detail?: string
   }>(),
   {
-    title: "无法启动工作台",
+    title: t("startup.startupFailed"),
     detail: "",
   },
 )
 const stored = useStartupError()
-const copy = computed(() => props.detail.trim() || stored.value.trim() || "启动过程中出现错误。")
+const copy = computed(() => props.detail.trim() || stored.value.trim() || t("startup.startupError"))
 
 function retry() {
   window.location.reload()

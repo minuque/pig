@@ -82,6 +82,7 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
+import { useI18n } from "@i18n/index.js"
 import { ChevronRight, Eye, Lightbulb, Pencil, Search, SquareTerminal, Wrench } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
@@ -110,6 +111,8 @@ import type {
   ToolRowStep,
   TranscriptImage,
 } from "@features/transcript-view/type.js"
+
+const { t } = useI18n()
 
 type CallBase = {
   item: ToolCallView
@@ -155,10 +158,11 @@ function output(item: ToolCallView, open: boolean) {
 }
 
 function callStatus(item: ToolCallView) {
-  if (item.isError) return { status: "error" as const, statusLabel: "执行失败" }
+  if (item.isError) return { status: "error" as const, statusLabel: t("transcript.statusError") }
 
-  if (item.running) return { status: "running" as const, statusLabel: "正在执行" }
-  return { status: "success" as const, statusLabel: "执行完成" }
+  if (item.running)
+    return { status: "running" as const, statusLabel: t("transcript.statusRunning") }
+  return { status: "success" as const, statusLabel: t("transcript.statusDone") }
 }
 
 function hasBody(item: ToolCallView): boolean {

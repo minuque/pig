@@ -15,9 +15,8 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
     "paths": {
-      "@pig/gateway": ["packages/gateway/src/index.ts"]
+      "@pig/gateway": ["./packages/gateway/src/index.ts"]
     }
   }
 }

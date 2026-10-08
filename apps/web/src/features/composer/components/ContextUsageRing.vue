@@ -30,6 +30,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
+import { useI18n } from "@i18n/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import type { ContextUsage } from "@features/composer/type.js"
 
@@ -43,8 +44,9 @@ const props = withDefaults(
 const emit = defineEmits<{
   toggle: []
 }>()
+const { t } = useI18n()
 const RING = 2 * Math.PI * 6
-const usageLabel = computed(() => `上下文占用 ${props.usage.percent}%`)
+const usageLabel = computed(() => t("composer.contextUsage") + " " + props.usage.percent + "%")
 const ringOffset = computed(() => {
   const clamped = Math.min(100, Math.max(0, props.usage.percent))
   return RING * (1 - clamped / 100)

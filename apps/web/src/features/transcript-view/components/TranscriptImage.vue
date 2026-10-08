@@ -16,16 +16,18 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
+import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogContent, DialogTrigger } from "@components/ui/dialog/index.js"
 import { transcriptImageSrc } from "@features/transcript-view/lib/transcript-format.js"
 
+const { t } = useI18n()
 const props = withDefaults(
   defineProps<{
     data: string
     mimeType: string
     alt?: string
   }>(),
-  { alt: "图片" },
+  { alt: () => t("transcript.image") },
 )
 const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
 </script>
