@@ -336,6 +336,10 @@ function groupClass(key: string, open: boolean) {
   position: sticky;
   top: calc(var(--pin-stick, 0px) + var(--head-stick, var(--size-icon-button)));
   z-index: 1;
+}
+
+/* 实底只在非 hover 时铺上，hover 的高亮背景才能露出来 */
+.row-group .group-head:not(:hover) {
   background: var(--sidebar);
 }
 
