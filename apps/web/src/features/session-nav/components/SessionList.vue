@@ -1,6 +1,6 @@
 <template>
-  <nav class="nav-body session-list">
-    <section v-if="pinnedRows.length" class="nav-section">
+  <nav ref="navBody" class="nav-body session-list">
+    <section v-if="pinnedRows.length" ref="pinnedSection" class="nav-section is-pin">
       <div class="section-label" @click="collapsedSections.pinned = !collapsedSections.pinned">
         <span class="section-label-text">置顶</span>
 
@@ -40,19 +40,21 @@
       </div>
     </section>
 
-    <SessionsHead
-      v-if="connected || groups.length"
-      :view="view"
-      :sort="sort"
-      :all-collapsed="allCollapsed"
-      :can-fold="view === 'grouped' && groupRows.length > 0"
-      :collapsed="collapsedSections.sessions"
-      :can-collapse="hasList"
-      @toggle-all="toggleAllGroups"
-      @toggle-collapse="collapsedSections.sessions = !collapsedSections.sessions"
-      @set-view="setView"
-      @set-sort="setSort"
-    />
+    <div ref="headSticky" class="head-sticky">
+      <SessionsHead
+        v-if="connected || groups.length"
+        :view="view"
+        :sort="sort"
+        :all-collapsed="allCollapsed"
+        :can-fold="view === 'grouped' && groupRows.length > 0"
+        :collapsed="collapsedSections.sessions"
+        :can-collapse="hasList"
+        @toggle-all="toggleAllGroups"
+        @toggle-collapse="collapsedSections.sessions = !collapsedSections.sessions"
+        @set-view="setView"
+        @set-sort="setSort"
+      />
+    </div>
 
     <div
       v-if="view === 'flat' && updatedSessions.length"
@@ -139,8 +141,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from "vue"
-import { useTimestamp } from "@vueuse/core"
+import { computed, reactive, useTemplateRef, watch } from "vue"
+import { useResizeObserver, useTimestamp } from "@vueuse/core"
 import { ChevronDown, ChevronRight } from "@lucide/vue"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
@@ -155,6 +157,27 @@ const emit = defineEmits<{
   navigate: [cwd: string | undefined]
   createInDir: [canonicalPath: string]
 }>()
+// 粘性叠层：置顶区钉顶，目录头比夹在会话表头之下；表头偏移随置顶区高度实时重算
+const navBody = useTemplateRef<HTMLElement>("navBody")
+const pinnedSection = useTemplateRef<HTMLElement>("pinnedSection")
+const headSticky = useTemplateRef<HTMLElement>("headSticky")
+
+function publishStickOffsets() {
+  const body = navBody.value
+
+  if (!body) return
+  const pinHeight = pinnedSection.value?.offsetHeight ?? 0
+  const headHeight = headSticky.value?.offsetHeight ?? 0
+  body.style.setProperty("--pin-stick", `${pinHeight}px`)
+  body.style.setProperty("--head-stick", `${pinHeight + headHeight}px`)
+}
+
+useResizeObserver(pinnedSection, publishStickOffsets)
+
+useResizeObserver(headSticky, publishStickOffsets)
+
+watch([pinnedSection, headSticky], publishStickOffsets, { flush: "post" })
+
 const {
   groups,
   cardFootById,
@@ -286,6 +309,29 @@ function groupClass(key: string, open: boolean) {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+/* 置顶区钉在滚动容器顶，会话表头与目录头依次吸在其下 */
+.nav-section.is-pin {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding-block-end: var(--spacing-xxs);
+  background: var(--sidebar);
+}
+
+.head-sticky {
+  position: sticky;
+  top: var(--pin-stick, 0px);
+  z-index: 2;
+  background: var(--sidebar);
+}
+
+.row-group .group-head {
+  position: sticky;
+  top: var(--head-stick, 0px);
+  z-index: 1;
+  background: var(--sidebar);
 }
 
 .row-group.is-manual .group-head {
