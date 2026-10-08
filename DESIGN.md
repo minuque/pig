@@ -14,7 +14,7 @@ colors:
   sidebar: "#fcfcfd"
   border: "#dedede"
   border-subtle: "#e8e8e8"
-  composer-bg: "#ffffff"
+  composer-bg: "#f4f4f5"
   ink: "#1b1b1b"
   ink-secondary: "#5c5c5c"
   ink-muted: "#6e6e6e"
@@ -306,7 +306,7 @@ components:
 
 Pig 浅色壳层用近白，侧栏贴窗边，输入卡不透明。深色壳层近黑，侧栏略抬升。系统 UI 字号默认 14px。动作靛用于动作和焦点，链接使用更深的同一色相，侧栏选中使用中性灰。布局包含齐边侧栏与不透明的对话列，导航和窗口控件的对比度低于对话内容。
 
-浅色壳层 `{colors.surface}`（#ffffff），侧栏 `{colors.sidebar}`，输入卡 `{colors.composer-bg}`（#ffffff）。深色壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#27272a`。结构色 `{colors.primary}`（#5e6ad2）用于动作和焦点。控件圆角 `{rounded.lg}`（8px）。
+浅色壳层 `{colors.surface}`（#ffffff），侧栏 `{colors.sidebar}`，输入卡 `{colors.composer-bg}`（#f4f4f5）。深色壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#27272a`。结构色 `{colors.primary}`（#5e6ad2）用于动作和焦点。控件圆角 `{rounded.lg}`（8px）。
 
 深色是同一套分面的中性灰反相：壳层 `#0f0f11`、侧栏 `#161618`、输入卡 `#27272a`、用户气泡 `#262628`。次级井用 `#121214`。分类色用 skill / steel / teal / gray。阶段与栏目标签可用 `{typography.caption-mono}`。
 
@@ -330,7 +330,7 @@ Pig 浅色壳层用近白，侧栏贴窗边，输入卡不透明。深色壳层�
 - **Surface** (`{colors.surface}` — #ffffff)：壳层（对话列）。
 - **Sidebar** (`{colors.sidebar}` — #fcfcfd)：侧栏，贴窗边。
 - **Border subtle** (`{colors.border-subtle}`)：墨 8%，内部分割线。
-- **Composer** (`{colors.composer-bg}` — #ffffff)：输入卡不透明填充，深色 `#27272a`，底下的正文不会改变它的颜色。
+- **Composer** (`{colors.composer-bg}` — #f4f4f5)：输入卡不透明填充，比壳层暗一档在浅色下与背景拉开对比，深色 `#27272a`，底下的正文不会改变它的颜色。
 - **Canvas** (`{colors.canvas}` — #f7f7f8)：次级井。
 - **Secondary well** (`{colors.canvas-soft}` — #f7f7f8)：页面底。
 - **Border** (`{colors.border}`)：墨 12%，控件与对话列外沿，比 border-subtle 深一档。
@@ -360,7 +360,7 @@ orange 保留兼容命名，映射到黄色警告色。
 | 壳层         | `#ffffff` | `#0f0f11` |
 | 侧栏         | `#fcfcfd` | `#161618` |
 | 选中行       | `#e6e6e8` | `#2c2c31` |
-| 输入卡       | `#ffffff` | `#27272a` |
+| 输入卡       | `#f4f4f5` | `#27272a` |
 | 菜单         | `#ffffff` | `#1c1c1f` |
 | 用户气泡     | `#e8e8ea` | `#262628` |
 | 链接         | `#4c56c8` | `#9aa3ea` |
