@@ -528,6 +528,40 @@ body {
   font-family: var(--font-sans);
 }
 
+/* 字号档只改界面与消息文字；展示标题保持设计稿尺寸。 */
+html[data-font-size="s"] {
+  --text-body-md: 12px;
+  --text-body-sm: 12px;
+  --text-button: 12px;
+  --text-caption: 11px;
+  --text-eyebrow: 11px;
+  --text-caption-mono: 11px;
+  --text-code: 12px;
+  --text-code-line: 22px;
+}
+
+html[data-font-size="l"] {
+  --text-body-md: 16px;
+  --text-body-sm: 16px;
+  --text-button: 15px;
+  --text-caption: 14px;
+  --text-eyebrow: 13px;
+  --text-caption-mono: 13px;
+  --text-code: 15px;
+  --text-code-line: 28px;
+}
+
+html[data-font-size="xl"] {
+  --text-body-md: 18px;
+  --text-body-sm: 18px;
+  --text-button: 16px;
+  --text-caption: 15px;
+  --text-eyebrow: 14px;
+  --text-caption-mono: 14px;
+  --text-code: 16px;
+  --text-code-line: 30px;
+}
+
 @layer base {
   button,
   input,

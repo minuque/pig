@@ -2,6 +2,7 @@ import { watch } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
 import type { ComposerQueueApi } from "@features/composer/hooks/use-composer-queue.js"
+import { notifyTurnDone } from "@features/settings/index.js"
 
 interface TurnFinishDeps {
   sessionId(): string | undefined
@@ -51,7 +52,11 @@ export function useTurnFinish(deps: TurnFinishDeps) {
     const next = deps.queue.shiftFor(id)
 
     if (!next) {
-      if (endedCleanly(deps.transcriptFor(id))) void deps.sound.play("done")
+      if (endedCleanly(deps.transcriptFor(id))) {
+        void deps.sound.play("done")
+        void notifyTurnDone()
+      }
+
       return "done"
     }
 
@@ -74,7 +79,11 @@ export function useTurnFinish(deps: TurnFinishDeps) {
 
     abortedTurn = false
 
-    if (clean) void deps.sound.play("done")
+    if (clean) {
+      void deps.sound.play("done")
+      void notifyTurnDone()
+    }
+
     void pumpForeground()
   })
   return { markAborted, onBackgroundIdle, stop }

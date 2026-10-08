@@ -1,5 +1,9 @@
 import { inject, provide, ref, type InjectionKey, type Ref } from "vue"
 
+export { useGeneralPrefs, notifyTurnDone } from "@features/settings/hooks/use-general-prefs.js"
+
+export type { FontSize, UiLocale } from "@features/settings/hooks/use-general-prefs.js"
+
 export type SettingsTab = "general" | "usage" | "skills" | "extensions"
 
 export type SettingsContext = {
