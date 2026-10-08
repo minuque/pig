@@ -299,7 +299,7 @@
 
   --border: #28282a;
   --border-subtle: #202022;
-  --composer-ring: rgb(255 255 255 / 0.18);
+  --composer-ring: rgb(255 255 255 / 0.2);
   --interaction-hover: #26262b;
   --interaction-selected: #2c2c31;
   --effort-track: var(--hover-strong);

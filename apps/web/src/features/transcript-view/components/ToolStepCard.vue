@@ -258,8 +258,6 @@ watch(
 
 .thought {
   margin: 0;
-  padding-inline-start: var(--spacing-sm);
-  border-inline-start: var(--border-width) solid var(--hairline);
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
   line-height: var(--text-body-sm--line-height);
