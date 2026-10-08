@@ -16,27 +16,28 @@
         </button>
       </div>
 
-      <TransitionGroup
-        v-if="!collapsedSections.pinned"
-        name="list-reveal"
-        tag="div"
-        class="group-body"
+      <div
+        class="session-list-group"
+        :class="{ 'is-open': !collapsedSections.pinned }"
+        :inert="collapsedSections.pinned"
       >
-        <SessionItem
-          v-for="session in pinnedRows"
-          :key="session.id"
-          v-bind="
-            itemBind(session, {
-              pinned: true,
-              dirTag: session.cwd ? workspaceName(session.cwd) : undefined,
-            })
-          "
-          @navigate="emit('navigate', session.cwd)"
-          @toggle-pinned="togglePinned"
-          @rename="renameSession"
-          @delete="deleteSession"
-        />
-      </TransitionGroup>
+        <TransitionGroup name="list-reveal" tag="div" class="group-body">
+          <SessionItem
+            v-for="session in pinnedRows"
+            :key="session.id"
+            v-bind="
+              itemBind(session, {
+                pinned: true,
+                dirTag: session.cwd ? workspaceName(session.cwd) : undefined,
+              })
+            "
+            @navigate="emit('navigate', session.cwd)"
+            @toggle-pinned="togglePinned"
+            @rename="renameSession"
+            @delete="deleteSession"
+          />
+        </TransitionGroup>
+      </div>
     </section>
 
     <SessionsHead
@@ -53,76 +54,85 @@
       @set-sort="setSort"
     />
 
-    <TransitionGroup
-      v-if="view === 'flat' && updatedSessions.length && !collapsedSections.sessions"
-      name="list-reveal"
-      tag="ul"
-      class="flat-sessions"
+    <div
+      v-if="view === 'flat' && updatedSessions.length"
+      class="session-list-group"
+      :class="{ 'is-open': !collapsedSections.sessions }"
+      :inert="collapsedSections.sessions"
     >
-      <li v-for="session in updatedSessions" :key="session.id">
-        <SessionItem
-          v-bind="itemBind(session)"
-          @navigate="emit('navigate', session.cwd)"
-          @toggle-pinned="togglePinned"
-          @rename="renameSession"
-          @delete="deleteSession"
-        />
-      </li>
+      <TransitionGroup name="list-reveal" tag="ul" class="flat-sessions">
+        <li v-for="session in updatedSessions" :key="session.id">
+          <SessionItem
+            v-bind="itemBind(session)"
+            @navigate="emit('navigate', session.cwd)"
+            @toggle-pinned="togglePinned"
+            @rename="renameSession"
+            @delete="deleteSession"
+          />
+        </li>
 
-      <li v-if="updatedMore" key="more">
-        <button class="more-button" type="button" @click="toggleGroupReveal('updated')">
-          {{ updatedMore.revealed ? "收起" : "显示更多" }}
-        </button>
-      </li>
-    </TransitionGroup>
+        <li v-if="updatedMore" key="more">
+          <button class="more-button" type="button" @click="toggleGroupReveal('updated')">
+            {{ updatedMore.revealed ? "收起" : "显示更多" }}
+          </button>
+        </li>
+      </TransitionGroup>
+    </div>
 
-    <ul v-else-if="view === 'grouped' && showList && !collapsedSections.sessions">
-      <li
-        v-for="section in listSections"
-        :key="section.key"
-        :class="groupClass(section.key, section.open)"
-        @dragover.prevent="onGroupDragOver(section.key, $event)"
-        @drop.prevent="onGroupDrop(section.key)"
-        @dragend="clearGroupDrag"
-      >
-        <GroupHead
-          :name="section.name"
-          :sortable="sort === 'manual'"
-          :collapsed="section.collapsed"
-          @dragstart="onGroupDragStart(section.key, $event)"
-          @toggle="section.toggle"
-          @create="section.create?.()"
-        />
-
-        <div
-          v-if="section.sessions.length > 0 || section.more"
-          class="session-list-group"
-          :class="{ 'is-open': !section.collapsed }"
+    <div
+      v-else-if="view === 'grouped' && showList"
+      class="session-list-group"
+      :class="{ 'is-open': !collapsedSections.sessions }"
+      :inert="collapsedSections.sessions"
+    >
+      <ul>
+        <li
+          v-for="section in listSections"
+          :key="section.key"
+          :class="groupClass(section.key, section.open)"
+          @dragover.prevent="onGroupDragOver(section.key, $event)"
+          @drop.prevent="onGroupDrop(section.key)"
+          @dragend="clearGroupDrag"
         >
-          <TransitionGroup name="list-reveal" tag="div" class="group-body">
-            <SessionItem
-              v-for="session in section.sessions"
-              :key="session.id"
-              v-bind="itemBind(session)"
-              @navigate="emit('navigate', session.cwd)"
-              @toggle-pinned="togglePinned"
-              @rename="renameSession"
-              @delete="deleteSession"
-            />
+          <GroupHead
+            :name="section.name"
+            :sortable="sort === 'manual'"
+            :collapsed="section.collapsed"
+            @dragstart="onGroupDragStart(section.key, $event)"
+            @toggle="section.toggle"
+            @create="section.create?.()"
+          />
 
-            <button
-              v-if="section.more"
-              key="more"
-              class="more-button"
-              type="button"
-              @click="section.toggleReveal"
-            >
-              {{ section.revealed ? "收起" : "显示更多" }}
-            </button>
-          </TransitionGroup>
-        </div>
-      </li>
-    </ul>
+          <div
+            v-if="section.sessions.length > 0 || section.more"
+            class="session-list-group"
+            :class="{ 'is-open': !section.collapsed }"
+          >
+            <TransitionGroup name="list-reveal" tag="div" class="group-body">
+              <SessionItem
+                v-for="session in section.sessions"
+                :key="session.id"
+                v-bind="itemBind(session)"
+                @navigate="emit('navigate', session.cwd)"
+                @toggle-pinned="togglePinned"
+                @rename="renameSession"
+                @delete="deleteSession"
+              />
+
+              <button
+                v-if="section.more"
+                key="more"
+                class="more-button"
+                type="button"
+                @click="section.toggleReveal"
+              >
+                {{ section.revealed ? "收起" : "显示更多" }}
+              </button>
+            </TransitionGroup>
+          </div>
+        </li>
+      </ul>
+    </div>
 
     <span v-else-if="groups.length && !collapsedSections.sessions">暂无会话</span>
   </nav>
