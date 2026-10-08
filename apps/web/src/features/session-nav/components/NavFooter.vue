@@ -8,70 +8,30 @@
       <span>设置</span>
     </button>
 
-    <DropdownMenu :modal="false">
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <DropdownMenuTrigger as-child>
-            <button class="footer-help press-scale" type="button" aria-label="帮助">
-              <CircleHelp />
-            </button>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <a
+          class="footer-help press-scale"
+          href="https://github.com/minuque/pig"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="文档"
+        >
+          <CircleHelp />
+        </a>
+      </TooltipTrigger>
 
-        <TooltipContent>帮助</TooltipContent>
-      </Tooltip>
-
-      <DropdownMenuContent side="top" align="end" :side-offset="8">
-        <DropdownMenuItem class="help-item" @select="emit('search')">
-          <span class="help-lead">
-            <Search />
-            搜索会话
-          </span>
-
-          <kbd class="help-kbd">Ctrl K</kbd>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <div class="help-note">
-          <span>发送</span>
-          <kbd class="help-kbd">Enter</kbd>
-        </div>
-
-        <div class="help-note">
-          <span>停止</span>
-          <kbd class="help-kbd">Esc</kbd>
-        </div>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem class="help-item" as-child>
-          <a href="https://github.com/minuque/pig" target="_blank" rel="noopener noreferrer">
-            <span class="help-lead">
-              <BookOpen />
-              文档
-            </span>
-          </a>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      <TooltipContent>文档</TooltipContent>
+    </Tooltip>
   </div>
 </template>
 
 <script setup lang="ts">
-import { BookOpen, CircleHelp, Search, Settings } from "@lucide/vue"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
+import { CircleHelp, Settings } from "@lucide/vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 const emit = defineEmits<{
   settings: []
-  search: []
 }>()
 </script>
 
@@ -100,8 +60,7 @@ const emit = defineEmits<{
   color: var(--ink);
 }
 
-.footer-help:hover,
-.footer-help[data-state="open"] {
+.footer-help:hover {
   background: var(--hover-quiet);
   color: var(--ink);
 }
@@ -150,49 +109,5 @@ const emit = defineEmits<{
   .footer-help {
     transition: none;
   }
-}
-</style>
-
-<style>
-/* 菜单经 Portal 挂到 body，scoped 选不中 */
-.help-item {
-  justify-content: space-between;
-  gap: var(--spacing-md);
-}
-
-.help-lead {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  min-width: 0;
-}
-
-.help-note {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-  min-height: var(--size-icon-button);
-  padding: var(--spacing-xxs) var(--spacing-xs);
-  color: var(--ink-muted);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
-}
-
-.help-kbd {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  min-width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
-  padding-inline: var(--spacing-xxs);
-  border-radius: var(--radius-xs);
-  background: var(--canvas-soft);
-  color: var(--ink-muted);
-  font-family: var(--font-sans);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-  line-height: 1;
 }
 </style>

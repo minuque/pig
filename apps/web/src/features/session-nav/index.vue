@@ -44,7 +44,7 @@
       <SessionList @navigate="onSessionNavigate" @create-in-dir="onCreateInDir" />
     </div>
 
-    <NavFooter @settings="openSettings" @search="openSearch" />
+    <NavFooter @settings="openSettings" />
     <SessionSearch v-if="searchOpen" v-model:open="searchOpen" @navigate="onSessionNavigate" />
   </div>
 </template>
