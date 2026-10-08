@@ -250,7 +250,8 @@ watch(
 }
 
 .is-thought {
-  padding-inline-start: var(--spacing-xs);
+  /* 对齐摘要按钮的文字起点：图标列加一格间距 */
+  padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -258,8 +259,6 @@ watch(
 
 .thought {
   margin: 0;
-  padding-inline-start: var(--spacing-sm);
-  border-inline-start: var(--border-width) solid var(--hairline);
   color: var(--ink-muted);
   font-size: var(--text-body-sm);
   line-height: var(--text-body-sm--line-height);

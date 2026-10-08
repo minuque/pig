@@ -619,6 +619,37 @@ describe("创建 Session 后提交第一条 Prompt", () => {
     expect(created.submit).toHaveBeenCalledWith("任务")
   })
 
+  it("路由未落位的窗口里 transcript 仍含乐观句", async () => {
+    const { session } = setup()
+    const created = makeSession("s2")
+    createMock.mockResolvedValue(created)
+    let releasePush = () => {}
+
+    routerPush.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          releasePush = () => {
+            routeBox.params.sessionId = "s2"
+            resolve()
+          }
+        }),
+    )
+
+    const request = session.sendPrompt("任务", "/repo")
+    await vi.waitFor(() => expect(routerPush).toHaveBeenCalled())
+
+    // 乐观句已搬进 states[s2]，clientState 经 pendingSessionId 续上：transcript 不出现空档
+    expect(session.transcript.value.length).toBeGreaterThan(0)
+    expect(session.transcript.value[0]).toMatchObject({
+      role: "user",
+      content: [{ type: "text", text: "任务" }],
+    })
+
+    releasePush()
+    await expect(request).resolves.toBe(true)
+    expect(created.submit).toHaveBeenCalledWith("任务")
+  })
+
   it("创建期间 Abort 不再提交", async () => {
     const { session } = setup()
     const created = makeSession("s2")

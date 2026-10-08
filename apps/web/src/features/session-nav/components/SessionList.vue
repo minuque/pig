@@ -1,6 +1,6 @@
 <template>
-  <nav class="nav-body session-list">
-    <section v-if="pinnedRows.length" class="nav-section">
+  <nav ref="navBody" class="nav-body session-list">
+    <section v-if="pinnedRows.length" ref="pinnedSection" class="nav-section is-pin">
       <div class="section-label" @click="collapsedSections.pinned = !collapsedSections.pinned">
         <span class="section-label-text">置顶</span>
 
@@ -16,127 +16,140 @@
         </button>
       </div>
 
-      <TransitionGroup
-        v-if="!collapsedSections.pinned"
-        name="list-reveal"
-        tag="div"
-        class="group-body"
+      <div
+        class="session-list-group"
+        :class="{ 'is-open': pinnedOpen }"
+        :inert="collapsedSections.pinned"
       >
-        <SessionItem
-          v-for="session in pinnedRows"
-          :key="session.id"
-          v-bind="
-            itemBind(session, {
-              pinned: true,
-              dirTag: session.cwd ? workspaceName(session.cwd) : undefined,
-            })
-          "
-          @navigate="emit('navigate', session.cwd)"
-          @toggle-pinned="togglePinned"
-          @rename="renameSession"
-          @delete="deleteSession"
-        />
-      </TransitionGroup>
+        <TransitionGroup v-if="pinnedMounted" name="list-reveal" tag="div" class="group-body">
+          <SessionItem
+            v-for="session in pinnedRows"
+            :key="session.id"
+            v-bind="
+              itemBind(session, {
+                pinned: true,
+                dirTag: session.cwd ? workspaceName(session.cwd) : undefined,
+              })
+            "
+            @navigate="emit('navigate', session.cwd)"
+            @toggle-pinned="togglePinned"
+            @rename="renameSession"
+            @delete="deleteSession"
+          />
+        </TransitionGroup>
+      </div>
     </section>
 
-    <SessionsHead
-      v-if="connected || groups.length"
-      :view="view"
-      :sort="sort"
-      :all-collapsed="allCollapsed"
-      :can-fold="view === 'grouped' && groupRows.length > 0"
-      :collapsed="collapsedSections.sessions"
-      :can-collapse="hasList"
-      @toggle-all="toggleAllGroups"
-      @toggle-collapse="collapsedSections.sessions = !collapsedSections.sessions"
-      @set-view="setView"
-      @set-sort="setSort"
-    />
+    <div ref="headSticky" class="head-sticky">
+      <SessionsHead
+        v-if="connected || groups.length"
+        :view="view"
+        :sort="sort"
+        :all-collapsed="allCollapsed"
+        :can-fold="view === 'grouped' && groupRows.length > 0"
+        :collapsed="collapsedSections.sessions"
+        :can-collapse="hasList"
+        @toggle-all="toggleAllGroups"
+        @toggle-collapse="collapsedSections.sessions = !collapsedSections.sessions"
+        @set-view="setView"
+        @set-sort="setSort"
+      />
+    </div>
 
-    <TransitionGroup
-      v-if="view === 'flat' && updatedSessions.length && !collapsedSections.sessions"
-      name="list-reveal"
-      tag="ul"
-      class="flat-sessions"
+    <div
+      v-if="view === 'flat' && updatedSessions.length"
+      class="session-list-group"
+      :class="{ 'is-open': sessionsOpen }"
+      :inert="collapsedSections.sessions"
     >
-      <li v-for="session in updatedSessions" :key="session.id">
-        <SessionItem
-          v-bind="itemBind(session)"
-          @navigate="emit('navigate', session.cwd)"
-          @toggle-pinned="togglePinned"
-          @rename="renameSession"
-          @delete="deleteSession"
-        />
-      </li>
+      <TransitionGroup v-if="sessionsMounted" name="list-reveal" tag="ul" class="flat-sessions">
+        <li v-for="session in updatedSessions" :key="session.id">
+          <SessionItem
+            v-bind="itemBind(session)"
+            @navigate="emit('navigate', session.cwd)"
+            @toggle-pinned="togglePinned"
+            @rename="renameSession"
+            @delete="deleteSession"
+          />
+        </li>
 
-      <li v-if="updatedMore" key="more">
-        <button class="more-button" type="button" @click="toggleGroupReveal('updated')">
-          {{ updatedMore.revealed ? "收起" : "显示更多" }}
-        </button>
-      </li>
-    </TransitionGroup>
+        <li v-if="updatedMore" key="more">
+          <button class="more-button" type="button" @click="toggleGroupReveal('updated')">
+            {{ updatedMore.revealed ? "收起" : "显示更多" }}
+          </button>
+        </li>
+      </TransitionGroup>
+    </div>
 
-    <ul v-else-if="view === 'grouped' && showList && !collapsedSections.sessions">
-      <li
-        v-for="section in listSections"
-        :key="section.key"
-        :class="groupClass(section.key, section.open)"
-        @dragover.prevent="onGroupDragOver(section.key, $event)"
-        @drop.prevent="onGroupDrop(section.key)"
-        @dragend="clearGroupDrag"
-      >
-        <GroupHead
-          :name="section.name"
-          :sortable="sort === 'manual'"
-          :collapsed="section.collapsed"
-          @dragstart="onGroupDragStart(section.key, $event)"
-          @toggle="section.toggle"
-          @create="section.create?.()"
-        />
-
-        <div
-          v-if="section.sessions.length > 0 || section.more"
-          class="session-list-group"
-          :class="{ 'is-open': !section.collapsed }"
+    <div
+      v-else-if="view === 'grouped' && showList"
+      class="session-list-group"
+      :class="{ 'is-open': sessionsOpen }"
+      :inert="collapsedSections.sessions"
+    >
+      <ul v-if="sessionsMounted">
+        <li
+          v-for="section in listSections"
+          :key="section.key"
+          :class="groupClass(section.key, section.open)"
+          @dragover.prevent="onGroupDragOver(section.key, $event)"
+          @drop.prevent="onGroupDrop(section.key)"
+          @dragend="clearGroupDrag"
         >
-          <TransitionGroup name="list-reveal" tag="div" class="group-body">
-            <SessionItem
-              v-for="session in section.sessions"
-              :key="session.id"
-              v-bind="itemBind(session)"
-              @navigate="emit('navigate', session.cwd)"
-              @toggle-pinned="togglePinned"
-              @rename="renameSession"
-              @delete="deleteSession"
-            />
+          <GroupHead
+            :name="section.name"
+            :sortable="sort === 'manual'"
+            :collapsed="section.collapsed"
+            @dragstart="onGroupDragStart(section.key, $event)"
+            @toggle="section.toggle"
+            @create="section.create?.()"
+          />
 
-            <button
-              v-if="section.more"
-              key="more"
-              class="more-button"
-              type="button"
-              @click="section.toggleReveal"
-            >
-              {{ section.revealed ? "收起" : "显示更多" }}
-            </button>
-          </TransitionGroup>
-        </div>
-      </li>
-    </ul>
+          <div
+            v-if="section.sessions.length > 0 || section.more"
+            class="session-list-group"
+            :class="{ 'is-open': !section.collapsed }"
+          >
+            <TransitionGroup name="list-reveal" tag="div" class="group-body">
+              <SessionItem
+                v-for="session in section.sessions"
+                :key="session.id"
+                v-bind="itemBind(session)"
+                @navigate="emit('navigate', session.cwd)"
+                @toggle-pinned="togglePinned"
+                @rename="renameSession"
+                @delete="deleteSession"
+              />
+
+              <button
+                v-if="section.more"
+                key="more"
+                class="more-button"
+                type="button"
+                @click="section.toggleReveal"
+              >
+                {{ section.revealed ? "收起" : "显示更多" }}
+              </button>
+            </TransitionGroup>
+          </div>
+        </li>
+      </ul>
+    </div>
 
     <span v-else-if="groups.length && !collapsedSections.sessions">暂无会话</span>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from "vue"
-import { useTimestamp } from "@vueuse/core"
+import { computed, reactive, useTemplateRef, watch } from "vue"
+import { useResizeObserver, useTimestamp } from "@vueuse/core"
 import { ChevronDown, ChevronRight } from "@lucide/vue"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionsHead from "@features/session-nav/components/SessionsHead.vue"
 import { useGroupReorder } from "@features/session-nav/hooks/use-group-reorder.js"
+import { useSectionFold } from "@features/session-nav/hooks/use-section-fold.js"
 import { toSidebarSession } from "@features/session-nav/lib/session-list.js"
 import type { SidebarRow, SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 
@@ -144,6 +157,25 @@ const emit = defineEmits<{
   navigate: [cwd: string | undefined]
   createInDir: [canonicalPath: string]
 }>()
+// 置顶区高度随内容变，吸顶位置只有浏览器量完才知道
+const navBody = useTemplateRef<HTMLElement>("navBody")
+const pinnedSection = useTemplateRef<HTMLElement>("pinnedSection")
+const headSticky = useTemplateRef<HTMLElement>("headSticky")
+
+function publishPinHeight() {
+  const body = navBody.value
+
+  if (!body) return
+  body.style.setProperty("--pin-stick", `${pinnedSection.value?.offsetHeight ?? 0}px`)
+  body.style.setProperty("--head-stick", `${headSticky.value?.offsetHeight ?? 0}px`)
+}
+
+useResizeObserver(pinnedSection, publishPinHeight)
+
+useResizeObserver(headSticky, publishPinHeight)
+
+watch([pinnedSection, headSticky], publishPinHeight, { flush: "post" })
+
 const {
   groups,
   cardFootById,
@@ -166,6 +198,11 @@ const {
 } = useNav()
 const now = useTimestamp({ interval: 60_000 })
 const collapsedSections = reactive({ pinned: false, sessions: false })
+// 折叠过渡后卸载列表内容；flat 与 grouped 互斥分支共用同一份状态
+const { open: pinnedOpen, mounted: pinnedMounted } = useSectionFold(() => collapsedSections.pinned)
+const { open: sessionsOpen, mounted: sessionsMounted } = useSectionFold(
+  () => collapsedSections.sessions,
+)
 const rows = rowsFor(false)
 const showList = computed(() => rows.value.some((row) => row.kind !== "more"))
 const groupRows = computed(() =>
@@ -249,6 +286,8 @@ function groupClass(key: string, open: boolean) {
 .session-list {
   position: relative;
   gap: var(--spacing-xxs);
+  /* 目录头吸在会话表头下沿，表头实高由浏览器写进 --head-stick */
+  scroll-padding-top: calc(var(--pin-stick, 0px) + var(--head-stick, var(--size-icon-button)));
 }
 
 .nav-body::-webkit-scrollbar {
@@ -270,6 +309,38 @@ function groupClass(key: string, open: boolean) {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+/* 置顶区钉在滚动容器顶。底边距折进区内，表头才能紧贴它的底边吸住。
+   实高由浏览器写进 --pin-stick，表头和目录头都靠它定位 */
+.nav-section.is-pin {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin-block-end: calc(-1 * var(--spacing-xxs));
+  padding-block-end: var(--spacing-xxs);
+  background: var(--sidebar);
+}
+
+.head-sticky {
+  position: sticky;
+  top: var(--pin-stick, 0px);
+  z-index: 2;
+  /* 和置顶区一样把下间距折进表头，目录头紧贴表头底边，滚动内容不从缝里露出 */
+  margin-block-end: calc(-1 * var(--spacing-xxs));
+  padding-block-end: var(--spacing-xxs);
+  background: var(--sidebar);
+}
+
+.row-group .group-head {
+  position: sticky;
+  top: calc(var(--pin-stick, 0px) + var(--head-stick, var(--size-icon-button)));
+  z-index: 1;
+}
+
+/* 实底只在非 hover 时铺上，hover 的高亮背景才能露出来 */
+.row-group .group-head:not(:hover) {
+  background: var(--sidebar);
 }
 
 .row-group.is-manual .group-head {

@@ -20,11 +20,6 @@
     <div class="header-crumb">
       <h1 v-if="title" id="current-title" class="header-session">{{ title }}</h1>
     </div>
-
-    <div class="header-right">
-      <SoundToggle />
-      <ThemeToggle />
-    </div>
   </header>
 </template>
 
@@ -36,8 +31,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
-import SoundToggle from "@features/click-sound/index.vue"
-import ThemeToggle from "@features/theme/index.vue"
 
 const props = defineProps<{
   cwd?: string | undefined
@@ -118,13 +111,6 @@ const cwdName = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
   font-size: var(--text-caption);
   font-weight: var(--font-weight-regular);
   line-height: var(--text-caption--line-height);
-}
-
-.header-right {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--spacing-xs);
 }
 
 html[data-pig-desktop-platform] .workbench-header,

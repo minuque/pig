@@ -20,7 +20,7 @@
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
           <button
-            v-if="hasMore"
+            v-if="hasMore && !loadingOlder"
             type="button"
             class="older-busy"
             :disabled="loadingOlder"
@@ -28,6 +28,15 @@
           >
             加载更早消息
           </button>
+
+          <div
+            v-else-if="hasMore"
+            class="older-busy is-loading"
+            role="status"
+            aria-label="正在加载更早消息"
+          >
+            <LoaderCircle class="older-spinner animate-spin motion-reduce:animate-none" />
+          </div>
 
           <div class="timeline-rows" :style="{ minHeight: `${totalHeight}px` }">
             <template v-for="block in blocks" :key="block.key">
@@ -74,6 +83,7 @@ import {
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"
+import { LoaderCircle } from "@lucide/vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
@@ -466,5 +476,18 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 
 .older-busy:disabled {
   cursor: default;
+}
+
+.older-busy.is-loading {
+  display: grid;
+  place-items: center;
+  min-height: calc(var(--text-body-sm--line-height) + 2 * var(--spacing-sm));
+  cursor: default;
+}
+
+.older-spinner {
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
+  color: var(--ink-muted);
 }
 </style>

@@ -22,26 +22,25 @@
       </Tooltip>
 
       <DropdownMenuContent side="top" align="end" :side-offset="8">
-        <DropdownMenuItem class="help-item" @select="emit('search')">
+        <DropdownMenuItem class="help-item" @select.prevent="toggleSound()">
           <span class="help-lead">
-            <Search />
-            搜索会话
+            <Volume2 v-if="soundOn" />
+            <VolumeX v-else />
+            音效
           </span>
 
-          <kbd class="help-kbd">Ctrl K</kbd>
+          <span class="help-state">{{ soundOn ? "开" : "关" }}</span>
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator />
+        <DropdownMenuItem class="help-item" @select.prevent="toggleTheme()">
+          <span class="help-lead">
+            <Moon v-if="isDark" />
+            <Sun v-else />
+            主题
+          </span>
 
-        <div class="help-note">
-          <span>发送</span>
-          <kbd class="help-kbd">Enter</kbd>
-        </div>
-
-        <div class="help-note">
-          <span>停止</span>
-          <kbd class="help-kbd">Esc</kbd>
-        </div>
+          <span class="help-state">{{ isDark ? "深色" : "浅色" }}</span>
+        </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
@@ -59,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { BookOpen, CircleHelp, Search, Settings } from "@lucide/vue"
+import { BookOpen, CircleHelp, Moon, Settings, Sun, Volume2, VolumeX } from "@lucide/vue"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,11 +67,14 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { useSound } from "@features/click-sound/index.js"
+import { useColorScheme } from "@features/theme/index.js"
 
 const emit = defineEmits<{
   settings: []
-  search: []
 }>()
+const { enabled: soundOn, toggle: toggleSound } = useSound()
+const { isDark, toggle: toggleTheme } = useColorScheme()
 </script>
 
 <style scoped>
@@ -155,9 +157,9 @@ const emit = defineEmits<{
 
 <style>
 /* 菜单经 Portal 挂到 body，scoped 选不中 */
-.help-item {
-  justify-content: space-between;
-  gap: var(--spacing-md);
+.help-item svg {
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
 }
 
 .help-lead {
@@ -167,32 +169,10 @@ const emit = defineEmits<{
   min-width: 0;
 }
 
-.help-note {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-  min-height: var(--size-icon-button);
-  padding: var(--spacing-xxs) var(--spacing-xs);
+.help-state {
+  margin-inline-start: auto;
   color: var(--ink-muted);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
-}
-
-.help-kbd {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  min-width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
-  padding-inline: var(--spacing-xxs);
-  border-radius: var(--radius-xs);
-  background: var(--canvas-soft);
-  color: var(--ink-muted);
-  font-family: var(--font-sans);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-  line-height: 1;
 }
 </style>
