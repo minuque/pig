@@ -307,6 +307,12 @@ function groupClass(key: string, open: boolean) {
   min-width: 0;
 }
 
+/* 组间距折进组内，目录头的自然位置正好落在吸顶点上，吸住时不跳动 */
+.row-group {
+  margin-block-start: calc(-1 * var(--spacing-xxs));
+  padding-block-start: var(--spacing-xxs);
+}
+
 /* 置顶区钉在滚动容器顶。底边距折进区内，表头才能紧贴它的底边吸住。
    实高由浏览器写进 --pin-stick，表头和目录头都靠它定位 */
 .nav-section.is-pin {
