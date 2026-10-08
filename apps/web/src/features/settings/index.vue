@@ -4,6 +4,7 @@
       aria-describedby="settings-copy"
       class="settings-dialog flex h-[min(80vh,52rem)] w-[min(var(--size-settings),calc(100vw-2rem))] max-w-[min(var(--size-settings),calc(100vw-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(var(--size-settings),calc(100vw-2rem))] sm:p-0"
     >
+      <DialogTitle class="sr-only">{{ activeLabel }}</DialogTitle>
       <p id="settings-copy" class="sr-only">{{ t("settings.copy") }}</p>
 
       <div class="settings">
@@ -22,10 +23,6 @@
         </nav>
 
         <section class="main">
-          <header class="main-head">
-            <DialogTitle>{{ activeLabel }}</DialogTitle>
-          </header>
-
           <div class="main-body">
             <GeneralPane v-if="tab === 'general'" />
             <UsagePane v-else-if="tab === 'usage'" />
@@ -121,18 +118,10 @@ function onOpen(next: boolean) {
   background: var(--surface);
 }
 
-.main-head {
-  display: flex;
-  flex: none;
-  align-items: center;
-  min-height: var(--size-control);
-  padding: var(--spacing-md) var(--spacing-xxl) var(--spacing-sm) var(--spacing-lg);
-}
-
 .main-body {
   min-height: 0;
   flex: 1;
-  padding: 0 var(--spacing-lg) var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
   overflow: auto;
 }
 </style>

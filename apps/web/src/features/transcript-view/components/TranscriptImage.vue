@@ -2,14 +2,14 @@
   <Dialog>
     <DialogTrigger as-child>
       <button type="button" class="thumb">
-        <img :src="src" :alt="alt" class="thumb-img" />
+        <img :src="src" :alt="altText" class="thumb-img" />
       </button>
     </DialogTrigger>
 
     <DialogContent
       class="!w-fit max-h-[90vh] max-w-[calc(100vw-2rem)] place-items-center overflow-auto p-(--spacing-sm) sm:!w-fit sm:!max-w-[calc(100vw-2rem)]"
     >
-      <img :src="src" :alt="alt" class="full" />
+      <img :src="src" :alt="altText" class="full" />
     </DialogContent>
   </Dialog>
 </template>
@@ -27,8 +27,9 @@ const props = withDefaults(
     mimeType: string
     alt?: string
   }>(),
-  { alt: () => t("transcript.image") },
+  { alt: "" },
 )
+const altText = computed(() => props.alt || t("transcript.image"))
 const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
 </script>
 

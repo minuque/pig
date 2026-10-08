@@ -2,7 +2,7 @@
   <section class="startup-error">
     <div class="error-cluster">
       <CircleAlert :size="32" class="error-icon" />
-      <h1 id="startup-error-title" class="error-title">{{ title }}</h1>
+      <h1 id="startup-error-title" class="error-title">{{ heading }}</h1>
       <p class="error-detail">{{ copy }}</p>
       <Button type="button" @click="retry">{{ t("startup.retry") }}</Button>
     </div>
@@ -22,12 +22,10 @@ const props = withDefaults(
     title?: string
     detail?: string
   }>(),
-  {
-    title: t("startup.startupFailed"),
-    detail: "",
-  },
+  { title: "", detail: "" },
 )
 const stored = useStartupError()
+const heading = computed(() => props.title || t("startup.startupFailed"))
 const copy = computed(() => props.detail.trim() || stored.value.trim() || t("startup.startupError"))
 
 function retry() {
