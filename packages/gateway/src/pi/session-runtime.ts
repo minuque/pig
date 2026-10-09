@@ -160,7 +160,14 @@ export class PiHostSession implements PiSessionRuntime {
     // steer 是 turn 阶段的合法操作（向运行中的 prompt 追加指令），不与 prompt 互斥；
     // 只拒绝 idle 时的无意义 steer。AgentSession.steer 仅入队，并发安全。
     if (this.session.isIdle) throw new SessionBusyError("There is no active prompt to steer")
-    await this.session.steer(input.text)
+
+    // 与 prompt 同一条 @ 展开路径，运行中追加的文件引用同样内联
+    const expanded = expandFileMentions(
+      input.text,
+      canonicalizePath(this.session.sessionManager.getCwd()),
+    )
+
+    await this.session.steer(expanded instanceof Promise ? await expanded : expanded)
   }
 
   async abort(): Promise<void> {

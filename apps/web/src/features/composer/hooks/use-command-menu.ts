@@ -72,12 +72,7 @@ export function useCommandMenu(
       })),
     ]
     return commands
-      .filter(
-        (command) =>
-          !query ||
-          command.name.toLowerCase().includes(query) ||
-          command.description.toLowerCase().includes(query),
-      )
+      .filter((command) => !query || command.name.toLowerCase().includes(query))
       .map((command) => ({
         id: command.key,
         title: `/${command.name}`,
@@ -110,6 +105,21 @@ export function useCommandMenu(
 
   watch([prompt, caret, () => cwd()], () => void refresh(), { flush: "post" })
 
+  /** 文件搜索防抖：高频键入只发末次请求；旧请求 Abort。 */
+  let debounce: ReturnType<typeof setTimeout> | undefined
+  let fetchController: AbortController | undefined
+
+  function scheduleFetch(run: (signal: AbortSignal) => Promise<void>, delay: number) {
+    if (debounce) clearTimeout(debounce)
+    fetchController?.abort()
+    const controller = new AbortController()
+    fetchController = controller
+    debounce = setTimeout(() => {
+      debounce = undefined
+      void run(controller.signal)
+    }, delay)
+  }
+
   async function refresh() {
     const next = composerTriggerAt(prompt.value, caret.value)
     const dir = cwd()
@@ -135,18 +145,19 @@ export function useCommandMenu(
     const seq = ++fetchSeq
 
     if (next.kind === "mention") {
-      loading.value = true
+      scheduleFetch(async (signal) => {
+        loading.value = true
 
-      try {
-        const entries = await searchWorkspaceFiles(dir, next.query)
+        try {
+          const entries = await searchWorkspaceFiles(dir, next.query, signal)
 
-        if (seq === fetchSeq) files.value = entries
-      } catch {
-        if (seq === fetchSeq) files.value = []
-      } finally {
-        if (seq === fetchSeq) loading.value = false
-      }
-
+          if (seq === fetchSeq) files.value = entries
+        } catch {
+          if (seq === fetchSeq && !signal.aborted) files.value = []
+        } finally {
+          if (seq === fetchSeq) loading.value = false
+        }
+      }, 150)
       return
     }
 
@@ -182,6 +193,9 @@ export function useCommandMenu(
   }
 
   function onKeydown(event: KeyboardEvent): boolean {
+    // 输入法组字期间的按键不属于菜单；isComposing 返回 false 让编辑器按原语义处理
+    if (event.isComposing) return false
+
     if (!open.value) return false
 
     switch (event.key) {

@@ -241,13 +241,13 @@ async function handleSessionCards(res: ServerResponse, deps: PlatformRequestDeps
   }
 }
 
-/** @ 文件引用：cwd 必填且限定为已规范化目录，搜索在服务端完成。 */
+/** @ 文件引用：cwd 必须是已知工作区（活会话/磁盘会话/已备好的资源槽），否则拒绝。 */
 async function handleFiles(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
-  const { send } = deps
+  const { send, hostService } = deps
   const cwd = url.searchParams.get("cwd")?.trim() ?? ""
 
-  if (!cwd) {
-    send(res, 400, { code: "INVALID_REQUEST" })
+  if (!cwd || !(await hostService.isKnownWorkspace(cwd))) {
+    send(res, 403, { code: "FORBIDDEN" })
     return
   }
 
@@ -262,13 +262,13 @@ async function handleFiles(res: ServerResponse, url: URL, deps: PlatformRequestD
   }
 }
 
-/** / 技能清单：与会话共用同一份 loader 缓存；目录无技能返回空数组。 */
+/** / 技能清单：cwd 同上白名单；目录无技能或 loader 未就绪返回空数组。 */
 async function handleSkills(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
   const { send, hostService } = deps
   const cwd = url.searchParams.get("cwd")?.trim() ?? ""
 
-  if (!cwd) {
-    send(res, 400, { code: "INVALID_REQUEST" })
+  if (!cwd || !(await hostService.isKnownWorkspace(cwd))) {
+    send(res, 403, { code: "FORBIDDEN" })
     return
   }
 

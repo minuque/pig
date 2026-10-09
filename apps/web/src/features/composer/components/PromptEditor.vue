@@ -31,13 +31,19 @@
             class="field"
             :placeholder="placeholder"
             aria-label="Prompt"
+            :aria-expanded="commandMenu.open.value"
+            aria-controls="composer-command-menu"
+            :aria-activedescendant="commandMenuActiveId"
             rows="1"
+            role="combobox"
+            aria-autocomplete="list"
             @keydown="onEditorKeydown"
             @paste="onEditorPaste"
             @input="syncCaret"
             @click="syncCaret"
             @keyup="syncCaret"
             @select="syncCaret"
+            @blur="onEditorBlur"
           ></textarea>
         </div>
 
@@ -123,6 +129,10 @@ const hasText = computed(() => prompt.value.length > 0)
 const caret = ref(0)
 const commandMenu = useCommandMenu(prompt, caret, () => props.cwd)
 const commandMenuAriaLabel = computed(() => "输入卡命令")
+const commandMenuActiveId = computed(() => {
+  const id = commandMenu.activeId.value
+  return id ? `composer-command-menu-row-${id}` : undefined
+})
 let widthObserver: ResizeObserver | undefined
 let lastWidth = 0
 /** 紧凑态实测容量与当时容器宽度；展开态用宽度差平移，绝不用展开态测量值回灌。 */
@@ -344,6 +354,19 @@ function syncCaret() {
   const el = editor.value
 
   if (el) caret.value = el.selectionStart ?? el.value.length
+}
+
+/** 菜单选中插入文本后，把 ref 写回真实光标；否则浏览器落在文本末尾。 */
+watch(caret, async (next) => {
+  await nextTick()
+  const el = editor.value
+
+  if (el && el.selectionStart !== next) el.setSelectionRange(next, next)
+})
+
+/** 编辑器失焦关菜单；点面板自身不触发（mousedown 已 prevent）。 */
+function onEditorBlur() {
+  commandMenu.close()
 }
 
 /** 只在真的收到文件时拦截粘贴，纯文本粘贴仍走浏览器默认行为。 */

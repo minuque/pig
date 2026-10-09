@@ -9,8 +9,9 @@ export interface FileSearchEntry {
 
 /** 递归深度与命中上限：@ 面板只消费头部结果，深树截断不影响候选质量。 */
 const MAX_DEPTH = 8
-const MAX_ENTRIES = 4_000
 const MAX_RESULTS = 50
+/** 遍历时仍继续收候选项，直到足够打分；不再按 4000 条无差别截断。 */
+const MAX_CANDIDATES = 2_000
 const SKIP_DIRS = new Set([
   ".git",
   ".svn",
@@ -33,7 +34,7 @@ const SKIP_DIRS = new Set([
   "venv",
 ])
 
-/** 简单子序列打分：命中越靠开头/连续段，分越高。空查询返回顺序流。 */
+/** 子序列打分：命中越靠开头/连续段，分越高。空查询时遍历顺序流。 */
 function score(path: string, query: string): number {
   const target = path.toLowerCase()
   const needle = query.toLowerCase()
@@ -60,8 +61,25 @@ function score(path: string, query: string): number {
   return value - path.length * 0.02
 }
 
-async function walk(dir: string, root: string, depth: number, out: FileSearchEntry[]) {
-  if (depth > MAX_DEPTH || out.length >= MAX_ENTRIES) return
+/** 粗过滤：query 的每个字符都出现才进入打分，避免对明显无关条目算分。 */
+function candidate(path: string, query: string): boolean {
+  const target = path.toLowerCase()
+
+  for (const ch of query.toLowerCase()) {
+    if (!target.includes(ch)) return false
+  }
+
+  return true
+}
+
+interface WalkState {
+  candidates: FileSearchEntry[]
+  /** 目录仍要继续下探；满了也只影响候选收集，不影响遍历完成。 */
+  full: boolean
+}
+
+async function walk(dir: string, root: string, depth: number, query: string, state: WalkState) {
+  if (depth > MAX_DEPTH || state.full) return
   let entries
 
   try {
@@ -71,7 +89,11 @@ async function walk(dir: string, root: string, depth: number, out: FileSearchEnt
   }
 
   for (const entry of entries) {
-    if (out.length >= MAX_ENTRIES) return
+    if (state.candidates.length >= MAX_CANDIDATES) {
+      state.full = true
+      return
+    }
+
     const name = entry.name
 
     if (name.startsWith(".") && depth === 0 && name !== ".pi") continue
@@ -82,27 +104,36 @@ async function walk(dir: string, root: string, depth: number, out: FileSearchEnt
     const rel = relative(root, full).split(sep).join("/")
 
     if (!rel) continue
-    out.push({ path: isDirectory ? `${rel}/` : rel, kind: isDirectory ? "directory" : "file" })
 
-    if (isDirectory && !SKIP_DIRS.has(name)) await walk(full, root, depth + 1, out)
+    // 目录本身也当候选（带尾斜杠），且要继续下探它的子树
+    if (!query || candidate(rel, query)) {
+      state.candidates.push({
+        path: isDirectory ? `${rel}/` : rel,
+        kind: isDirectory ? "directory" : "file",
+      })
+    }
+
+    if (isDirectory && !SKIP_DIRS.has(name)) await walk(full, root, depth + 1, query, state)
+
+    if (state.full) return
   }
 }
 
-/** 按 cwd 搜文件与目录：目录带尾斜杠，便于继续键入下钻。 */
+/** 按 cwd 搜文件与目录：遍历时做粗过滤，打分只排已命中的候选。 */
 export async function searchFiles(
   cwd: string,
   query: string,
   limit = MAX_RESULTS,
 ): Promise<FileSearchEntry[]> {
-  const entries: FileSearchEntry[] = []
-  await walk(cwd, cwd, 0, entries)
-
   const trimmed = query.trim()
+  const state: WalkState = { candidates: [], full: false }
 
-  if (!trimmed) return entries.slice(0, limit)
+  await walk(cwd, cwd, 0, trimmed, state)
+
+  if (!trimmed) return state.candidates.slice(0, limit)
   const scored: Array<{ entry: FileSearchEntry; value: number }> = []
 
-  for (const entry of entries) {
+  for (const entry of state.candidates) {
     const value = score(entry.path, trimmed)
 
     if (value > Number.NEGATIVE_INFINITY) scored.push({ entry, value })
