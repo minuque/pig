@@ -411,8 +411,12 @@ defineExpose({ focus })
   overflow: hidden;
   border: var(--border-width) solid var(--composer-border);
   border-radius: inherit;
-  corner-shape: var(--corner-shape-composer);
   transition: height var(--duration-composer-flip) var(--ease-composer-flip);
+}
+
+/* 单行是胶囊：端头保持圆形；连续曲率只在多行/展开时启用，否则胶囊端头会被拉平 */
+.composer-card.is-expanded {
+  corner-shape: var(--corner-shape-composer);
 }
 
 /* 聚焦环：独立覆盖层，重声明同一套圆角与曲率，避免两层曲率不一致露出内圈线 */
