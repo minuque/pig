@@ -25,8 +25,8 @@
         >
           <span class="command-icon" aria-hidden="true">
             <component :is="row.icon" v-if="row.icon" />
-            <Folder v-else-if="row.directory" class="command-glyph" />
-            <FileText v-else class="command-glyph" />
+            <FolderIcon v-else-if="row.directory" class="command-glyph" />
+            <DocumentIcon v-else class="command-glyph" />
           </span>
 
           <span class="command-main">
@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, watch, type Component } from "vue"
-import { FileText, Folder } from "@lucide/vue"
+import { DocumentIcon, FolderIcon } from "@components/icons/index.js"
 
 export interface CommandMenuRow {
   id: string
