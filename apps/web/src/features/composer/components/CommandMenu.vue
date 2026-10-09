@@ -123,6 +123,7 @@ watch(
   padding: var(--spacing-xxs);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-xl);
+  corner-shape: var(--corner-shape-composer);
   box-shadow: var(--shadow-float);
   scrollbar-width: none;
 }
@@ -153,6 +154,7 @@ watch(
   min-width: 0;
   padding: var(--spacing-xxs) var(--spacing-xs);
   border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape-composer);
   color: var(--ink);
   font-size: var(--text-button);
   line-height: var(--text-button--line-height);

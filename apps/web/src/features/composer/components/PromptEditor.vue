@@ -409,23 +409,28 @@ defineExpose({ focus })
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
+  border: var(--border-width) solid var(--composer-border);
   border-radius: inherit;
+  corner-shape: var(--corner-shape-composer);
   transition: height var(--duration-composer-flip) var(--ease-composer-flip);
 }
 
-/* 内描边不占布局 */
-.composer-card::before {
+/* 聚焦环：独立覆盖层，重声明同一套圆角与曲率，避免两层曲率不一致露出内圈线 */
+.composer-card::after {
   content: "";
   position: absolute;
   inset: 0;
+  border: inherit;
+  border-color: var(--composer-ring);
   border-radius: inherit;
-  box-shadow: inset 0 0 0 var(--border-width) var(--composer-border);
+  corner-shape: inherit;
+  opacity: 0;
   pointer-events: none;
-  transition: box-shadow var(--duration-fast) var(--ease-out);
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.composer-card:focus-within::before {
-  box-shadow: inset 0 0 0 var(--border-width) var(--composer-ring);
+.composer-card:focus-within::after {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
