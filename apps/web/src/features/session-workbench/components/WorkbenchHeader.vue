@@ -31,7 +31,7 @@
       @close-scope="closeScope"
       @rename="onRename"
       @toggle-pinned="togglePinned"
-      @delete="onDelete"
+      @delete="deleteSession"
     />
 
     <h1 v-else-if="title" id="current-title" class="header-session">{{ title }}</h1>
@@ -92,17 +92,8 @@ function pinned(id: string): boolean {
   return pinnedIds.value.has(id)
 }
 
-function onRename(id: string): void {
-  const current = sessions.value.find((session) => session.id === id)?.title ?? ""
-  const name = window.prompt("重命名会话", current)?.trim()
-
-  if (name && name !== current) void renameSession(id, name)
-}
-
-function onDelete(id: string): void {
-  const current = sessions.value.find((session) => session.id === id)?.title ?? ""
-
-  if (window.confirm(`删除会话「${current}」？此操作不可撤销。`)) void deleteSession(id)
+function onRename(id: string, name: string): void {
+  void renameSession(id, name)
 }
 </script>
 
