@@ -1,4 +1,4 @@
-import { computed, nextTick, ref, watch, type Ref } from "vue"
+import { computed, nextTick, onScopeDispose, ref, watch, type Ref } from "vue"
 import {
   listWorkspaceSkills,
   searchWorkspaceFiles,
@@ -58,10 +58,18 @@ export function useCommandMenu(
       trailing: entry.kind === "directory" ? "目录" : undefined,
     })),
   )
+  /** /clear 的适用条件：整份草稿只有光标处的这个 token。 */
+  const clearApplicable = computed(() => {
+    const start = trigger.value?.start
+
+    if (start === undefined || trigger.value?.kind !== "command") return false
+    return prompt.value.trim() === prompt.value.slice(start, caret.value).trim()
+  })
   const commandRows = computed<CommandMenuRow[]>(() => {
     const query = trigger.value?.kind === "command" ? trigger.value.query.toLowerCase() : ""
     const commands = [
-      ...BUILTIN_COMMANDS.map((command) => ({
+      // /clear 只在草稿只剩这个 token 时执行，其他情形不显示，避免选中后无反馈
+      ...BUILTIN_COMMANDS.filter(() => clearApplicable.value).map((command) => ({
         ...command,
         key: `${BUILTIN_PREFIX}${command.name}`,
       })),
@@ -176,7 +184,9 @@ export function useCommandMenu(
 
       if (seq === fetchSeq) {
         skills.value = list
-        skillsFor = dir
+
+        // 空列表可能是 slot 被淘汰的瞬时结果，不写缓存，下次打开重拉
+        if (list.length) skillsFor = dir
       }
     } catch {
       // 失败不写 skillsFor：下一次打开再拉
@@ -192,6 +202,8 @@ export function useCommandMenu(
     fetchController?.abort()
     fetchController = undefined
   }
+
+  onScopeDispose(cancelFetch)
 
   function move(step: 1 | -1) {
     const rows = flatRows.value
@@ -254,14 +266,6 @@ export function useCommandMenu(
     }
 
     if (id.startsWith(BUILTIN_PREFIX)) {
-      // /clear 只在整份草稿只有这个 token 时执行：行首 /c 命中首项不清掉别行内容
-      const onlyToken = prompt.value.trim() === prompt.value.slice(start, caret.value).trim()
-
-      if (!onlyToken) {
-        close()
-        return
-      }
-
       prompt.value = ""
       caret.value = 0
       close()

@@ -51,7 +51,7 @@ function escapeFileName(value: string): string {
 
 /** 内容原样保留（与 Pi CLI 一致），只防 </file> 提前闭合块。 */
 function escapeFileContent(value: string): string {
-  return value.replaceAll("</file", "<\\/file")
+  return value.replace(/<\/file/gi, "<\\/file")
 }
 
 /**
@@ -66,10 +66,10 @@ export function expandFileMentions(text: string, cwd: string): Promise<string> |
   return expandTokens(text, tokens, cwd)
 }
 
-/** 真实路径是否在 root 之内（含 root 自身）。相对结果是空或在 root 下才算。 */
+/** 真实路径是否在 root 之内（含 root 自身）。相对结果是空，或在 root 下的非 .. 路径才算。 */
 function insideRoot(root: string, target: string): boolean {
   const rel = relative(root, target)
-  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel))
+  return rel === "" || (rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel))
 }
 
 async function expandTokens(text: string, tokens: MentionToken[], cwd: string): Promise<string> {

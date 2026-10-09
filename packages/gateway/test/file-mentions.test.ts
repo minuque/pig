@@ -61,4 +61,18 @@ describe("expandFileMentions", () => {
     const out = await expandFileMentions("读 @../outside.txt", root)
     expect(out).toBe("读 @../outside.txt")
   })
+
+  it("以 .. 开头的目录名不误判为越界", async () => {
+    await mkdir(join(root, "..cache"), { recursive: true })
+    await writeFile(join(root, "..cache/keep.ts"), "const keep = 1\n")
+    const out = await expandFileMentions("看 @..cache/keep.ts", root)
+    expect(out).toContain("const keep = 1")
+  })
+
+  it("内容里的 </File> 不提前闭合块", async () => {
+    await writeFile(join(root, "tag.md"), "</File>\n")
+    const out = await expandFileMentions("看 @tag.md", root)
+    // 只应剩真实闭合标签一个；内容里的已转义
+    expect(out.match(/<\/file/gi)).toHaveLength(1)
+  })
 })
