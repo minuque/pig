@@ -26,7 +26,7 @@
           <DropdownMenuSeparator v-if="workspaces.length" />
 
           <DropdownMenuItem :disabled="adding" @select="emit('add')">
-            <FolderPlus :size="14" />
+            <AddFolderIcon :size="14" />
             {{ t("hero.addDir") }}
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -40,7 +40,6 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { FolderPlus } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { workspaceName } from "@features/session-nav/index.js"
 import {
@@ -51,6 +50,7 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import WorkbenchMascot from "@features/session-workbench/components/WorkbenchMascot.vue"
+import { AddFolderIcon } from "@components/icons/index.js"
 
 withDefaults(
   defineProps<{

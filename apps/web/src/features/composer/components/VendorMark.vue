@@ -18,8 +18,8 @@ import { vendorDisplayName, vendorIcon } from "@features/composer/lib/vendor-log
 
 const props = withDefaults(
   defineProps<{
-    vendor?: string
-    name?: string
+    vendor?: string | undefined
+    name?: string | undefined
     size?: number
   }>(),
   {

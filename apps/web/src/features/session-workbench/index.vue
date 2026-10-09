@@ -9,12 +9,12 @@
   >
     <div class="drop-guide" aria-hidden="true">
       <span class="drop-guide-label">
-        <FilePlus class="drop-guide-icon" />
+        <DocumentAddIcon class="drop-guide-icon" />
         {{ t("composer.dropGuide") }}
       </span>
     </div>
 
-    <WorkbenchHeader :cwd="composerCwd" />
+    <WorkbenchHeader />
 
     <div
       :ref="bindColumn"
@@ -72,12 +72,12 @@
                     @click="scrollToLatest('smooth')"
                   >
                     <span class="icon-swap">
-                      <LoaderCircle
+                      <LoaderIcon
                         :data-visible="turnPending"
                         :class="{ 'animate-spin motion-reduce:animate-none': turnPending }"
                       />
 
-                      <ArrowDown :data-visible="!turnPending" />
+                      <ArrowDownIcon :data-visible="!turnPending" />
                     </span>
                   </Button>
                 </TooltipTrigger>
@@ -130,7 +130,6 @@
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue"
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
-import { ArrowDown, FilePlus, LoaderCircle } from "@lucide/vue"
 import { warmWorkspace } from "@client/platform.js"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
@@ -153,6 +152,7 @@ import { useConversationWidth } from "@features/session-workbench/hooks/use-conv
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
+import { ArrowDownIcon, DocumentAddIcon, LoaderIcon } from "@components/icons/index.js"
 
 onMounted(() => {
   if (typeof requestIdleCallback === "function")

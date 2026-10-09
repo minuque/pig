@@ -6,7 +6,7 @@
           <h3 class="title">{{ t("composer.contextUsage") }}</h3>
 
           <button type="button" class="close" @click="emit('close')">
-            <X class="size-icon" />
+            <CloseIcon class="size-icon" />
           </button>
         </div>
 
@@ -70,7 +70,6 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
-import { X } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { contextPreview } from "@client/platform.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
@@ -83,6 +82,7 @@ import {
   formatTokenCount,
   segmentShare,
 } from "@features/composer/lib/context-usage.js"
+import { CloseIcon } from "@components/icons/index.js"
 
 const props = defineProps<{
   usage: ContextUsage

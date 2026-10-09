@@ -11,8 +11,8 @@
           :aria-label="collapsedSections.pinned ? t('nav.expandPinned') : t('nav.collapsePinned')"
           @click.stop="collapsedSections.pinned = !collapsedSections.pinned"
         >
-          <ChevronDown v-if="!collapsedSections.pinned" class="size-icon" />
-          <ChevronRight v-else class="size-icon" />
+          <AltArrowDownIcon v-if="!collapsedSections.pinned" class="size-icon" />
+          <AltArrowRightIcon v-else class="size-icon" />
         </button>
       </div>
 
@@ -143,7 +143,6 @@
 <script setup lang="ts">
 import { computed, reactive, useTemplateRef, watch } from "vue"
 import { useResizeObserver, useTimestamp } from "@vueuse/core"
-import { ChevronDown, ChevronRight } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
@@ -153,6 +152,7 @@ import { useGroupReorder } from "@features/session-nav/hooks/use-group-reorder.j
 import { useSectionFold } from "@features/session-nav/hooks/use-section-fold.js"
 import { toSidebarSession } from "@features/session-nav/lib/session-list.js"
 import type { SidebarRow, SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
+import { AltArrowDownIcon, AltArrowRightIcon } from "@components/icons/index.js"
 
 const emit = defineEmits<{
   navigate: [cwd: string | undefined]

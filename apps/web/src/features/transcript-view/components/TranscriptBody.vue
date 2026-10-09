@@ -35,7 +35,7 @@
             role="status"
             :aria-label="t('transcript.loadEarlier')"
           >
-            <LoaderCircle class="older-spinner animate-spin motion-reduce:animate-none" />
+            <LoaderIcon class="older-spinner animate-spin motion-reduce:animate-none" />
           </div>
 
           <div class="timeline-rows" :style="{ minHeight: `${totalHeight}px` }">
@@ -83,7 +83,6 @@ import {
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"
-import { LoaderCircle } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
@@ -107,6 +106,7 @@ import {
   historyPrepended,
   shouldShowScrollToLatest,
 } from "@features/transcript-view/lib/transcript-scroll.js"
+import { LoaderIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{

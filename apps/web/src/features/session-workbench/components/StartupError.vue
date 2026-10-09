@@ -1,7 +1,7 @@
 <template>
   <section class="startup-error">
     <div class="error-cluster">
-      <CircleAlert :size="32" class="error-icon" />
+      <DangerCircleIcon :size="32" class="error-icon" />
       <h1 id="startup-error-title" class="error-title">{{ heading }}</h1>
       <p class="error-detail">{{ copy }}</p>
       <Button type="button" @click="retry">{{ t("startup.retry") }}</Button>
@@ -11,10 +11,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { CircleAlert } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import { useI18n } from "@i18n/index.js"
 import { useStartupError } from "@features/startup/index.js"
+import { DangerCircleIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = withDefaults(

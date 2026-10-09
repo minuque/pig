@@ -12,7 +12,7 @@
       @drop.prevent="onDragEnd"
       @dragend="onDragEnd"
     >
-      <GripVertical class="row-grip" aria-hidden="true" />
+      <GripVerticalIcon class="row-grip" aria-hidden="true" />
       <span class="row-text">{{ item.text }}</span>
 
       <span class="row-actions">
@@ -22,7 +22,7 @@
           :aria-label="t('composer.queueRemove', { text: item.text })"
           @click="emit('remove', item.id)"
         >
-          <Trash2 class="action-icon" aria-hidden="true" />
+          <TrashBinMinimalisticIcon class="action-icon" aria-hidden="true" />
         </button>
 
         <button
@@ -31,7 +31,7 @@
           :aria-label="t('composer.queueEdit')"
           @click="emit('edit', item)"
         >
-          <Pencil class="action-icon" aria-hidden="true" />
+          <PenIcon class="action-icon" aria-hidden="true" />
         </button>
 
         <button type="button" class="send-now" @click="emit('send-now', item)">
@@ -44,9 +44,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { GripVertical, Pencil, Trash2 } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
+import { GripVerticalIcon, PenIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = defineProps<{

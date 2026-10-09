@@ -2,7 +2,7 @@
   <div class="nav-footer">
     <button class="footer-settings press-scale" type="button" @click="emit('settings')">
       <span class="footer-glyph">
-        <Settings />
+        <SettingsIcon />
       </span>
 
       <span>{{ t("nav.settings") }}</span>
@@ -13,7 +13,7 @@
         <TooltipTrigger as-child>
           <DropdownMenuTrigger as-child>
             <button class="footer-help press-scale" type="button" :aria-label="t('nav.help')">
-              <CircleHelp />
+              <QuestionCircleIcon />
             </button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
@@ -24,8 +24,8 @@
       <DropdownMenuContent side="top" align="end" :side-offset="8">
         <DropdownMenuItem class="help-item" @select.prevent="toggleSound()">
           <span class="help-lead">
-            <Volume2 v-if="soundOn" />
-            <VolumeX v-else />
+            <VolumeLoudIcon v-if="soundOn" />
+            <VolumeCrossIcon v-else />
             {{ t("nav.sound") }}
           </span>
 
@@ -34,8 +34,8 @@
 
         <DropdownMenuItem class="help-item" @select.prevent="toggleTheme()">
           <span class="help-lead">
-            <Moon v-if="isDark" />
-            <Sun v-else />
+            <MoonIcon v-if="isDark" />
+            <SunIcon v-else />
             {{ t("nav.theme") }}
           </span>
 
@@ -47,7 +47,7 @@
         <DropdownMenuItem class="help-item" as-child>
           <a href="https://github.com/minuque/pig" target="_blank" rel="noopener noreferrer">
             <span class="help-lead">
-              <BookOpen />
+              <Book2Icon />
               {{ t("nav.docs") }}
             </span>
           </a>
@@ -58,7 +58,6 @@
 </template>
 
 <script setup lang="ts">
-import { BookOpen, CircleHelp, Moon, Settings, Sun, Volume2, VolumeX } from "@lucide/vue"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,6 +69,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useColorScheme } from "@features/theme/index.js"
+import {
+  Book2Icon,
+  MoonIcon,
+  QuestionCircleIcon,
+  SettingsIcon,
+  SunIcon,
+  VolumeCrossIcon,
+  VolumeLoudIcon,
+} from "@components/icons/index.js"
 
 const emit = defineEmits<{
   settings: []

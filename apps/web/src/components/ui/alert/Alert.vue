@@ -25,7 +25,7 @@
         :aria-label="t('common.close')"
         @click="emit('close')"
       >
-        <X class="size-3.5" />
+        <CloseIcon class="size-3.5" />
       </button>
 
       <button
@@ -37,8 +37,8 @@
         @click="copy"
       >
         <span class="icon-swap">
-          <Copy class="size-3.5" :data-visible="status !== 'copied'" />
-          <Check class="size-3.5" :data-visible="status === 'copied'" />
+          <CopyIcon class="size-3.5" :data-visible="status !== 'copied'" />
+          <CheckIcon class="size-3.5" :data-visible="status === 'copied'" />
         </span>
       </button>
     </div>
@@ -52,9 +52,9 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
-import { Check, Copy, X } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import type { HTMLAttributes } from "vue"
+import { CheckIcon, CloseIcon, CopyIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 

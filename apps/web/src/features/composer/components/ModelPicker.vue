@@ -49,7 +49,8 @@
                 :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
                 @click="selectScope(FAVORITES_SCOPE)"
               >
-                <Star :size="14" :fill="scope === FAVORITES_SCOPE ? 'currentColor' : 'none'" />
+                <StarBoldIcon v-if="scope === FAVORITES_SCOPE" :size="14" />
+                <StarIcon v-else :size="14" />
               </Button>
             </TooltipTrigger>
 
@@ -74,7 +75,7 @@
         </div>
 
         <div class="search">
-          <Search :size="13" class="text-ink-faint shrink-0" />
+          <MagnifierIcon :size="13" class="text-ink-faint shrink-0" />
 
           <input
             ref="searchRef"
@@ -121,12 +122,12 @@
                 @pointerdown.stop
                 @click.stop="toggleFavorite(item.data.vendor.id, item.data.model.id)"
               >
-                <Star
+                <StarBoldIcon
+                  v-if="isFavorite(item.data.vendor.id, item.data.model.id)"
                   :size="14"
-                  :fill="
-                    isFavorite(item.data.vendor.id, item.data.model.id) ? 'currentColor' : 'none'
-                  "
                 />
+
+                <StarIcon v-else :size="14" />
               </Button>
             </div>
           </DropdownMenuGroup>
@@ -146,7 +147,6 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Star } from "@lucide/vue"
 import { useVirtualList } from "@vueuse/core"
 import { computed, nextTick, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
@@ -175,6 +175,7 @@ import {
   formatThinkingLevel,
   pickerTriggerText,
 } from "@features/composer/lib/thinking-level.js"
+import { MagnifierIcon, StarBoldIcon, StarIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{

@@ -53,7 +53,7 @@
               @mousedown.prevent
               @click="pickFiles"
             >
-              <Paperclip class="size-(--size-icon-2xs)" />
+              <PaperclipIcon class="size-(--size-icon-2xs)" />
             </Button>
           </TooltipTrigger>
 
@@ -104,7 +104,7 @@
             >
               <span class="primary-icon icon-swap" aria-hidden="true">
                 <span class="stop-square" :data-visible="primaryMode === 'stop'"></span>
-                <ArrowUp :data-visible="primaryMode !== 'stop'" class="size-icon send-arrow" />
+                <ArrowUpIcon :data-visible="primaryMode !== 'stop'" class="size-icon send-arrow" />
               </span>
             </Button>
           </TooltipTrigger>
@@ -132,7 +132,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, ref, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { ArrowUp, Paperclip } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
@@ -155,6 +154,7 @@ import type {
   ComposerVendor,
   ContextUsage,
 } from "@features/composer/type.js"
+import { ArrowUpIcon, PaperclipIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const ContextUsagePanel = defineAsyncComponent(

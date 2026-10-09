@@ -39,8 +39,11 @@ export function useSessionTabs(input: {
     commit(openSessionTab(ids.value, id))
   }
 
-  function moveTab(draggedId: string, overId: string): void {
-    commit(moveSessionTab(ids.value, draggedId, overId))
+  function moveTab(draggedId: string, overId?: string): void {
+    const next = moveSessionTab(ids.value, draggedId, overId)
+
+    // 边界处反复悬停会算出同一顺序，不提交以避免多余重排
+    if (next.join("\n") !== ids.value.join("\n")) commit(next)
   }
 
   function closeTabs(closedIds: readonly string[], anchorId: string): void {

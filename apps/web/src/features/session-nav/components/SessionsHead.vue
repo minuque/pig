@@ -11,8 +11,8 @@
             :aria-label="allCollapsed ? t('nav.expandAll') : t('nav.collapseAll')"
             @click="emit('toggleAll')"
           >
-            <Maximize2 v-if="allCollapsed" class="size-icon" />
-            <Minimize2 v-else class="size-icon" />
+            <MaximizeSquareIcon v-if="allCollapsed" class="size-icon" />
+            <MinimizeSquareIcon v-else class="size-icon" />
           </button>
         </TooltipTrigger>
 
@@ -28,7 +28,7 @@
             type="button"
             :aria-label="t('nav.listManage')"
           >
-            <Settings2 class="size-icon" />
+            <SettingsMinimalisticIcon class="size-icon" />
           </button>
         </DropdownMenuTrigger>
 
@@ -37,23 +37,23 @@
 
           <DropdownMenuItem class="group-head-option" @select="emit('setView', 'flat')">
             <span class="view-menu-lead">
-              <List class="size-icon" />
+              <ListIcon class="size-icon" />
               {{ t("nav.flatList") }}
             </span>
 
             <span class="group-head-option-check" aria-hidden="true">
-              <Check v-if="view === 'flat'" class="size-icon" />
+              <CheckIcon v-if="view === 'flat'" class="size-icon" />
             </span>
           </DropdownMenuItem>
 
           <DropdownMenuItem class="group-head-option" @select="emit('setView', 'grouped')">
             <span class="view-menu-lead">
-              <FolderTree class="size-icon" />
+              <FoldersIcon class="size-icon" />
               {{ t("nav.groupByDir") }}
             </span>
 
             <span class="group-head-option-check" aria-hidden="true">
-              <Check v-if="view === 'grouped'" class="size-icon" />
+              <CheckIcon v-if="view === 'grouped'" class="size-icon" />
             </span>
           </DropdownMenuItem>
 
@@ -62,23 +62,23 @@
 
             <DropdownMenuItem class="group-head-option" @select="emit('setSort', 'manual')">
               <span class="view-menu-lead">
-                <GripVertical class="size-icon" />
+                <GripVerticalIcon class="size-icon" />
                 {{ t("nav.manual") }}
               </span>
 
               <span class="group-head-option-check" aria-hidden="true">
-                <Check v-if="sort === 'manual'" class="size-icon" />
+                <CheckIcon v-if="sort === 'manual'" class="size-icon" />
               </span>
             </DropdownMenuItem>
 
             <DropdownMenuItem class="group-head-option" @select="emit('setSort', 'recent')">
               <span class="view-menu-lead">
-                <Clock class="size-icon" />
+                <ClockCircleIcon class="size-icon" />
                 {{ t("nav.sortByRecent") }}
               </span>
 
               <span class="group-head-option-check" aria-hidden="true">
-                <Check v-if="sort === 'recent'" class="size-icon" />
+                <CheckIcon v-if="sort === 'recent'" class="size-icon" />
               </span>
             </DropdownMenuItem>
           </template>
@@ -93,26 +93,14 @@
         :aria-label="collapsed ? t('nav.expandSessions') : t('nav.collapseSessions')"
         @click="emit('toggleCollapse')"
       >
-        <ChevronDown v-if="!collapsed" class="size-icon" />
-        <ChevronRight v-else class="size-icon" />
+        <AltArrowDownIcon v-if="!collapsed" class="size-icon" />
+        <AltArrowRightIcon v-else class="size-icon" />
       </button>
     </span>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Clock,
-  FolderTree,
-  GripVertical,
-  List,
-  Maximize2,
-  Minimize2,
-  Settings2,
-} from "@lucide/vue"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -122,6 +110,18 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
 import type { SidebarSort, SidebarView } from "@features/session-nav/type.js"
+import {
+  AltArrowDownIcon,
+  AltArrowRightIcon,
+  CheckIcon,
+  ClockCircleIcon,
+  FoldersIcon,
+  GripVerticalIcon,
+  ListIcon,
+  MaximizeSquareIcon,
+  MinimizeSquareIcon,
+  SettingsMinimalisticIcon,
+} from "@components/icons/index.js"
 
 const { t } = useI18n()
 

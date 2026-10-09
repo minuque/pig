@@ -18,7 +18,7 @@
           @error="onIconError"
         />
 
-        <Link v-else class="icon" aria-hidden="true" />
+        <LinkMinimalisticIcon v-else class="icon" aria-hidden="true" />
         <span class="label">{{ text }}</span>
       </a>
     </TooltipTrigger>
@@ -28,7 +28,6 @@
 </template>
 
 <script setup lang="ts">
-import { Link } from "@lucide/vue"
 import { computed, ref, watch } from "vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
@@ -37,6 +36,7 @@ import {
   probeSiteFavicon,
   siteFaviconSrc,
 } from "@features/transcript-view/lib/link-chip.js"
+import { LinkMinimalisticIcon } from "@components/icons/index.js"
 
 const props = defineProps<{
   url: string

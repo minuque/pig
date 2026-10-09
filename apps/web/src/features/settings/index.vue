@@ -37,21 +37,28 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Blocks, ChartNoAxesCombined, Puzzle, SlidersHorizontal } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import GeneralPane from "@features/settings/components/GeneralPane.vue"
 import ResourcePane from "@features/settings/components/ResourcePane.vue"
 import UsagePane from "@features/settings/components/UsagePane.vue"
 import { useSettings, type SettingsTab } from "@features/settings/index.js"
+import {
+  ChartSquareIcon,
+  SliderMinimalisticHorizontalIcon,
+  Widget5Icon,
+  WidgetAddIcon,
+} from "@components/icons/index.js"
 
 const { t } = useI18n()
 const { open, tab } = useSettings()
-const tabs = computed<{ id: SettingsTab; label: string; icon: typeof SlidersHorizontal }[]>(() => [
-  { id: "general", label: t("settings.general"), icon: SlidersHorizontal },
-  { id: "usage", label: t("settings.usage"), icon: ChartNoAxesCombined },
-  { id: "skills", label: t("settings.skills"), icon: Blocks },
-  { id: "extensions", label: t("settings.extensions"), icon: Puzzle },
+const tabs = computed<
+  { id: SettingsTab; label: string; icon: typeof SliderMinimalisticHorizontalIcon }[]
+>(() => [
+  { id: "general", label: t("settings.general"), icon: SliderMinimalisticHorizontalIcon },
+  { id: "usage", label: t("settings.usage"), icon: ChartSquareIcon },
+  { id: "skills", label: t("settings.skills"), icon: WidgetAddIcon },
+  { id: "extensions", label: t("settings.extensions"), icon: Widget5Icon },
 ])
 const activeLabel = computed(
   () => tabs.value.find((item) => item.id === tab.value)?.label ?? t("settings.general"),

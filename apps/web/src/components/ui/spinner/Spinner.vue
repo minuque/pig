@@ -1,10 +1,10 @@
 <template>
-  <Loader :size="size" class="animate-spin motion-reduce:animate-none" :class="props.class" />
+  <LoaderIcon :size="size" class="animate-spin motion-reduce:animate-none" :class="props.class" />
 </template>
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { Loader } from "@lucide/vue"
+import { LoaderIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{

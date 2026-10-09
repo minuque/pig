@@ -9,9 +9,9 @@
   >
     <button class="group-toggle" type="button" :aria-expanded="!collapsed">
       <span class="mark" :class="{ 'is-grip': sortable }">
-        <Folder v-if="collapsed" class="size-icon folder-icon" />
-        <FolderOpen v-else class="size-icon folder-icon" />
-        <GripVertical v-if="sortable" class="size-icon grip-icon" />
+        <FolderIcon v-if="collapsed" class="size-icon folder-icon" />
+        <FolderOpenIcon v-else class="size-icon folder-icon" />
+        <GripVerticalIcon v-if="sortable" class="size-icon grip-icon" />
       </span>
 
       <span class="group-name">{{ name }}</span>
@@ -28,7 +28,7 @@
             @click.stop="emit('create')"
             @dragstart.stop.prevent
           >
-            <MessageCirclePlus class="size-icon" />
+            <ChatRoundAddIcon class="size-icon" />
           </button>
         </TooltipTrigger>
 
@@ -40,9 +40,14 @@
 
 <script setup lang="ts">
 import { shallowRef } from "vue"
-import { Folder, FolderOpen, GripVertical, MessageCirclePlus } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import {
+  ChatRoundAddIcon,
+  FolderIcon,
+  FolderOpenIcon,
+  GripVerticalIcon,
+} from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = withDefaults(

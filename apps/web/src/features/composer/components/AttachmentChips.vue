@@ -17,7 +17,7 @@
       </button>
 
       <span v-else class="file">
-        <FileText class="file-icon" aria-hidden="true" />
+        <DocumentIcon class="file-icon" aria-hidden="true" />
 
         <span class="file-name">
           <span class="file-base">{{ row.base }}</span>
@@ -32,7 +32,7 @@
         @mousedown.prevent
         @click="emit('remove', row.item.id)"
       >
-        <X class="remove-icon" aria-hidden="true" />
+        <CloseIcon class="remove-icon" aria-hidden="true" />
       </button>
     </div>
   </div>
@@ -40,9 +40,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { FileText, X } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import type { ComposerAttachment } from "@features/composer/hooks/use-composer-attachments.js"
+import { CloseIcon, DocumentIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = defineProps<{

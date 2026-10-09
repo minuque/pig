@@ -15,7 +15,7 @@
         data-slot="dialog-close"
         class="text-ink-muted hover:bg-accent hover:text-ink absolute inset-bs-(--spacing-md) inset-e-(--spacing-md) flex cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-(--icon-button-pad) transition-[background-color,color] duration-(--duration-fast) ease-(--ease-out) focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--size-icon)"
       >
-        <X />
+        <CloseIcon />
       </DialogClose>
     </DialogContent>
   </DialogPortal>
@@ -24,10 +24,10 @@
 <script setup lang="ts">
 import type { DialogContentEmits, DialogContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
-import { X } from "@lucide/vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from "reka-ui"
 import DialogOverlay from "./DialogOverlay.vue"
+import { CloseIcon } from "@components/icons/index.js"
 
 defineOptions({
   inheritAttrs: false,

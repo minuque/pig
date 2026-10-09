@@ -22,8 +22,8 @@
           @click="copy"
         >
           <span class="icon-swap">
-            <Copy :data-visible="status !== 'copied'" />
-            <Check :data-visible="status === 'copied'" />
+            <CopyIcon :data-visible="status !== 'copied'" />
+            <CheckIcon :data-visible="status === 'copied'" />
           </span>
         </Button>
       </TooltipTrigger>
@@ -36,10 +36,10 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
-import { Check, Copy } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { CheckIcon, CopyIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{

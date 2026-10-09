@@ -23,7 +23,7 @@
             :aria-pressed="showLineNumbers"
             @click.stop="showLineNumbers = !showLineNumbers"
           >
-            <ListOrdered class="size-3.5" />
+            <ListOrderedMinimalisticIcon class="size-3.5" />
           </button>
         </TooltipTrigger>
 
@@ -38,11 +38,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef, useAttrs, useTemplateRef } from "vue"
 import { useMutationObserver } from "@vueuse/core"
-import { ListOrdered } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { CodeBlockNode, type CodeBlockNodeProps } from "markstream-vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { fenceHighlightNode, parseCodeFenceInfo } from "@features/transcript-view/lib/code-fence.js"
+import { ListOrderedMinimalisticIcon } from "@components/icons/index.js"
 
 defineOptions({ inheritAttrs: false })
 

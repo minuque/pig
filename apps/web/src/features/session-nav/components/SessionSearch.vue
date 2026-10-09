@@ -6,7 +6,7 @@
     >
       <div class="search-dialog">
         <div class="query-row">
-          <Search class="size-icon query-icon" />
+          <MagnifierIcon class="size-icon query-icon" />
 
           <input
             ref="queryInput"
@@ -26,7 +26,7 @@
                 :aria-label="t('common.close')"
                 @click="open = false"
               >
-                <X class="size-icon" />
+                <CloseIcon class="size-icon" />
               </button>
             </TooltipTrigger>
 
@@ -43,9 +43,9 @@
               @mouseenter="activeIndex = index"
               @click="pick(session)"
             >
-              <MessageSquare class="size-icon hit-icon" />
+              <ChatSquareIcon class="size-icon hit-icon" />
               <span class="hit-title">{{ sessionTitle(session) }}</span>
-              <CornerDownLeft v-if="index === activeIndex" :size="14" class="hit-enter" />
+              <ArrowLeftDownIcon v-if="index === activeIndex" :size="14" class="hit-enter" />
 
               <time v-else class="hit-time">
                 {{ formatRelativeTime(sessionRecency(session), now) }}
@@ -63,7 +63,6 @@
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { useTimestamp } from "@vueuse/core"
-import { CornerDownLeft, MessageSquare, Search, X } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
@@ -75,6 +74,12 @@ import {
   sessionTitle,
 } from "@features/session-nav/lib/format.js"
 import { filterSessionsForSearch } from "@features/session-nav/lib/session-list.js"
+import {
+  ArrowLeftDownIcon,
+  ChatSquareIcon,
+  CloseIcon,
+  MagnifierIcon,
+} from "@components/icons/index.js"
 
 const open = defineModel<boolean>("open", { default: false })
 const { t } = useI18n()

@@ -15,7 +15,7 @@
       class="status-alert"
       :variant="item.error ? 'error' : 'warning'"
     >
-      <template #icon><CircleAlert /></template>
+      <template #icon><DangerCircleIcon /></template>
       <template #title>{{ statusLabel }}</template>
       <template v-if="item.errorMessage" #default>{{ item.errorMessage }}</template>
     </Alert>
@@ -31,6 +31,7 @@
 
 <script lang="ts">
 import type { MarkstreamVirtualState } from "markstream-vue"
+import { DangerCircleIcon } from "@components/icons/index.js"
 
 const SESSION_SCOPE_MAX = 4
 const ROW_STATE_LIMIT = 30
@@ -94,7 +95,6 @@ export function takeMarkdownVirtualState(
 </script>
 
 <script setup lang="ts">
-import { CircleAlert } from "@lucide/vue"
 import MarkdownRender from "markstream-vue"
 import { computed, onBeforeUnmount, ref, watch } from "vue"
 import Alert from "@components/ui/alert/Alert.vue"

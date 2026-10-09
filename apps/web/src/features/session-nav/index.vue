@@ -20,7 +20,7 @@
               :aria-label="t('nav.collapseSidebar')"
               @click="togglePanel"
             >
-              <PanelLeft class="size-icon" />
+              <IconSidebarLeft />
             </button>
           </TooltipTrigger>
 
@@ -58,7 +58,12 @@
 import { defineAsyncComponent, onMounted, shallowRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
-import { ArrowUp, MessageCirclePlus, PanelLeft, Search } from "@lucide/vue"
+import {
+  IconSidebarLeft,
+  ArrowUpIcon,
+  ChatRoundAddIcon,
+  MagnifierIcon,
+} from "@components/icons/index.js"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyError } from "@components/layout/notify.js"

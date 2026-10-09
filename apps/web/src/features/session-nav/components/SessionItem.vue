@@ -9,8 +9,8 @@
           :aria-pressed="pinned"
           @click.stop="emit('togglePinned', session.id)"
         >
-          <PinOff v-if="pinned" class="size-icon" />
-          <Pin v-else class="size-icon" />
+          <PinBoldIcon v-if="pinned" class="size-icon" />
+          <PinIcon v-else class="size-icon" />
         </button>
       </TooltipTrigger>
 
@@ -95,7 +95,7 @@
                     @click.prevent.stop="openSessionMenu"
                     @contextmenu.prevent.stop="openSessionMenu"
                   >
-                    <Ellipsis class="size-icon" />
+                    <MenuDotsIcon class="size-icon" />
                   </button>
                 </TooltipTrigger>
 
@@ -105,7 +105,7 @@
           </div>
 
           <div v-if="showPath && session.cwd" class="path-line">
-            <Folder class="path-icon" :size="14" aria-hidden="true" />
+            <FolderIcon class="path-icon" :size="14" aria-hidden="true" />
             <span class="path-text">{{ session.cwd }}</span>
           </div>
         </component>
@@ -113,20 +113,20 @@
 
       <ContextMenuContent v-if="!placeholder" class="select-none">
         <ContextMenuItem @select="emit('togglePinned', session.id)">
-          <PinOff v-if="pinned" />
-          <Pin v-else />
+          <PinBoldIcon v-if="pinned" />
+          <PinIcon v-else />
           {{ pinned ? t("session.unpin") : t("session.pin") }}
         </ContextMenuItem>
 
         <ContextMenuItem @select="startRename">
-          <Pencil />
+          <PenIcon />
           {{ t("session.rename") }}
         </ContextMenuItem>
 
         <ContextMenuSeparator />
 
         <ContextMenuItem variant="destructive" @select="deleteOpen = true">
-          <Trash2 />
+          <TrashBinMinimalisticIcon />
           {{ t("session.deleteTitle") }}
         </ContextMenuItem>
       </ContextMenuContent>
@@ -144,17 +144,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef } from "vue"
 import { RouterLink } from "vue-router"
-import {
-  CircleAlert,
-  CircleCheck,
-  Ellipsis,
-  Folder,
-  LoaderCircle,
-  Pencil,
-  Pin,
-  PinOff,
-  Trash2,
-} from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import {
   ContextMenu,
@@ -168,6 +157,17 @@ import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
+import {
+  CheckCircleIcon,
+  DangerCircleIcon,
+  FolderIcon,
+  LoaderIcon,
+  MenuDotsIcon,
+  PenIcon,
+  PinIcon,
+  PinBoldIcon,
+  TrashBinMinimalisticIcon,
+} from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{
@@ -201,7 +201,7 @@ const nameInput = ref<HTMLInputElement | null>(null)
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
-const STATE_ICONS = { running: LoaderCircle, unread: CircleCheck, error: CircleAlert }
+const STATE_ICONS = { running: LoaderIcon, unread: CheckCircleIcon, error: DangerCircleIcon }
 const STATE_LABELS = {
   running: t("session.running"),
   unread: t("session.runningUnread"),

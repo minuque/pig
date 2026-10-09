@@ -106,22 +106,22 @@
 </template>
 
 <script setup lang="ts">
-import { Monitor, Moon, Sun } from "@lucide/vue"
 import type { ColorScheme } from "@/types/theme-type.js"
 import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { Switch } from "@components/ui/switch/index.js"
+import { MonitorIcon, MoonIcon, SunIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const { scheme, setScheme } = useColorScheme()
 const { enabled: soundOn, toggle: toggleSound } = useSound()
 const { locale, fontSize, notifyOn, setLocale, setFontSize, setNotify } = useGeneralPrefs()
-const schemes: { id: ColorScheme; label: string; icon: typeof Monitor }[] = [
-  { id: "light", label: t("settings.schemeLight"), icon: Sun },
-  { id: "dark", label: t("settings.schemeDark"), icon: Moon },
-  { id: "auto", label: t("settings.schemeAuto"), icon: Monitor },
+const schemes: { id: ColorScheme; label: string; icon: typeof MonitorIcon }[] = [
+  { id: "light", label: t("settings.schemeLight"), icon: SunIcon },
+  { id: "dark", label: t("settings.schemeDark"), icon: MoonIcon },
+  { id: "auto", label: t("settings.schemeAuto"), icon: MonitorIcon },
 ]
 const locales: { id: UiLocale; label: string }[] = [
   { id: "en", label: "English" },

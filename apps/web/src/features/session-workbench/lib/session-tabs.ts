@@ -8,15 +8,18 @@ export function openSessionTab(ids: readonly string[], id: string): string[] {
   return ids.includes(id) ? [...ids] : [...ids, id]
 }
 
-/** 拖到目标标签处：插入到目标之前，其余顺序不变。 */
+/** 拖到目标标签之前；目标为空时追加到末尾。 */
 export function moveSessionTab(
   ids: readonly string[],
   draggedId: string,
-  overId: string,
+  overId?: string,
 ): string[] {
   if (draggedId === overId) return [...ids]
 
   const next = ids.filter((id) => id !== draggedId)
+
+  if (overId === undefined) return [...next, draggedId]
+
   const overIndex = next.indexOf(overId)
 
   if (overIndex < 0) return [...ids]

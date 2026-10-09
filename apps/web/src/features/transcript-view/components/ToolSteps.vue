@@ -1,13 +1,9 @@
 <template>
   <section class="tool-steps" :class="{ running, aborted: row.aborted }">
     <Button type="button" static class="summary-btn" :style="statusColor" @click="toggleSteps">
-      <LoaderCircle
-        v-if="running"
-        class="tool-steps-icon animate-spin motion-reduce:animate-none"
-      />
-
-      <ClockAlert v-else-if="row.aborted || row.error" class="tool-steps-icon" />
-      <BadgeCheck v-else class="tool-steps-icon" />
+      <LoaderIcon v-if="running" class="tool-steps-icon animate-spin motion-reduce:animate-none" />
+      <ClockCircleIcon v-else-if="row.aborted || row.error" class="tool-steps-icon" />
+      <CheckCircleIcon v-else class="tool-steps-icon" />
 
       <span>
         <template v-for="(part, i) in labelParts" :key="i">
@@ -34,7 +30,11 @@
         </template>
       </span>
 
-      <ChevronRight class="motion-turn" :class="{ 'is-on': revealed }" data-icon="inline-end" />
+      <AltArrowRightIcon
+        class="motion-turn"
+        :class="{ 'is-on': revealed }"
+        data-icon="inline-end"
+      />
     </Button>
 
     <div
@@ -71,7 +71,7 @@
             >
               <div class="tool-summary">
                 <Button type="button" static class="summary" @click="toggleMore">
-                  <Ellipsis class="tool-icon" data-icon="inline-start" />
+                  <MenuDotsIcon class="tool-icon" data-icon="inline-start" />
                   <span class="label" :data-text="moreLabel">{{ moreLabel }}</span>
                 </Button>
               </div>
@@ -86,7 +86,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
-import { ChevronRight, BadgeCheck, ClockAlert, Ellipsis, LoaderCircle } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
@@ -105,6 +104,13 @@ import {
   type RailPath,
 } from "@features/transcript-view/lib/step-rail.js"
 import type { ToolRow, ToolRowStep } from "@features/transcript-view/type.js"
+import {
+  AltArrowRightIcon,
+  CheckCircleIcon,
+  ClockCircleIcon,
+  LoaderIcon,
+  MenuDotsIcon,
+} from "@components/icons/index.js"
 
 const { t } = useI18n()
 const PAGE_SIZE = 8

@@ -9,7 +9,7 @@
             class="alert-toaster-alert"
             @close="dismissNotice(item.id)"
           >
-            <template #icon><CircleAlert /></template>
+            <template #icon><DangerCircleIcon /></template>
             <template #title>{{ t("common.error") }}</template>
             <template #default>{{ item.message }}</template>
           </Alert>
@@ -20,11 +20,11 @@
 </template>
 
 <script setup lang="ts">
-import { CircleAlert } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 
 import Alert from "@components/ui/alert/Alert.vue"
 import { dismissNotice, noticeQueue } from "@components/layout/notify.js"
+import { DangerCircleIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 </script>

@@ -195,11 +195,15 @@
   --size-modal: 32rem;
   --size-settings: 56rem;
   --size-settings-nav: 15rem;
-  /* 线性图标：14px 图标配 13px 正文，线宽对齐 Synara 的 24 画布 1.5 线宽 */
+  /* 线性图标：14px 图标配 13px 正文 */
   --size-icon: 14px;
   --size-icon-2xs: 16px;
   --size-icon-button: 28px;
-  --line-icon-width: 1.5px;
+  /* 24 画布线宽；低于 1.17 时 14px 下等效不到 1px，会糊成半调灰 */
+  --line-icon-width: 1.75px;
+  /* Solar 图标默认值；调用方的 size-* 类与 strokeWidth prop 可覆盖 */
+  --solar-size: var(--size-icon);
+  --solar-stroke-width: var(--line-icon-width);
   /* 侧边栏紧凑图标按钮：图标外 2px，对齐 Synara 的 sidebar-icon-button */
   --icon-button-pad: 2px;
   --size-scroll-control: 30px;
@@ -520,8 +524,9 @@
 }
 
 /* 基础 */
-.lucide {
-  stroke-width: 1.5;
+/* Solar 图标对齐基座：默认尺寸与线宽走 token，调用方的 size-* 类可覆盖 */
+.solar {
+  flex: none;
 }
 
 body {

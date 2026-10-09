@@ -13,7 +13,7 @@
             :disabled="isDefault"
             @click="reset"
           >
-            <RotateCcw aria-hidden="true" />
+            <RestartIcon aria-hidden="true" />
           </button>
         </TooltipTrigger>
 
@@ -59,10 +59,10 @@
 
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
-import { RotateCcw } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { displayThinkingLevel, formatThinkingLevel } from "@features/composer/lib/thinking-level.js"
+import { RestartIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = defineProps<{

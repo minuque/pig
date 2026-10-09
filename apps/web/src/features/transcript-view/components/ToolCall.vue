@@ -18,7 +18,7 @@
         </span>
       </span>
 
-      <ChevronRight
+      <AltArrowRightIcon
         class="motion-turn motion-hint"
         :class="{ 'is-on': open }"
         data-icon="inline-end"
@@ -83,7 +83,6 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { ChevronRight, Eye, Lightbulb, Pencil, Search, SquareTerminal, Wrench } from "@lucide/vue"
 import { Button } from "@components/ui/button/index.js"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
 import TranscriptFileTag from "@features/transcript-view/components/TranscriptFileTag.vue"
@@ -111,6 +110,15 @@ import type {
   ToolRowStep,
   TranscriptImage,
 } from "@features/transcript-view/type.js"
+import {
+  AltArrowRightIcon,
+  CodeSquareIcon,
+  EyeIcon,
+  LightbulbMinimalisticIcon,
+  MagnifierIcon,
+  PenIcon,
+  Tuning2Icon,
+} from "@components/icons/index.js"
 
 const { t } = useI18n()
 
@@ -315,23 +323,23 @@ const label = computed(() => {
 })
 const detail = computed(() => (group.value ? toolSummaryDetail(group.value.items) : null))
 const icon = computed(() => {
-  if (thought.value) return Lightbulb
+  if (thought.value) return LightbulbMinimalisticIcon
   const key = group.value?.key
 
-  if (!key) return Wrench
+  if (!key) return Tuning2Icon
 
   switch (key) {
     case "read":
-      return Eye
+      return EyeIcon
     case "write":
     case "edit":
-      return Pencil
+      return PenIcon
     case "search":
-      return Search
+      return MagnifierIcon
     case "command":
-      return SquareTerminal
+      return CodeSquareIcon
     case "tool":
-      return Wrench
+      return Tuning2Icon
     default: {
       const _exhaustive: never = key
       return _exhaustive

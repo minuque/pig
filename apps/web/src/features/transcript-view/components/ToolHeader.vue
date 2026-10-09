@@ -27,7 +27,7 @@
             :aria-pressed="showLineNumbers"
             @click.stop="showLineNumbers = !showLineNumbers"
           >
-            <ListOrdered class="size-3.5" />
+            <ListOrderedMinimalisticIcon class="size-3.5" />
           </Button>
         </LazyTip>
 
@@ -41,8 +41,8 @@
             :aria-pressed="softWrap"
             @click.stop="softWrap = !softWrap"
           >
-            <WrapText v-if="!softWrap" class="size-3.5" />
-            <AlignLeft v-else class="size-3.5" />
+            <ParagraphSpacingIcon v-if="!softWrap" class="size-3.5" />
+            <AlignLeftIcon v-else class="size-3.5" />
           </Button>
         </LazyTip>
 
@@ -57,8 +57,8 @@
             @click="copy"
           >
             <span class="icon-swap">
-              <Copy class="size-3.5" :data-visible="status !== 'copied'" />
-              <Check class="size-3.5" :data-visible="status === 'copied'" />
+              <CopyIcon class="size-3.5" :data-visible="status !== 'copied'" />
+              <CheckIcon class="size-3.5" :data-visible="status === 'copied'" />
             </span>
           </Button>
         </LazyTip>
@@ -70,10 +70,16 @@
 <script setup lang="ts">
 import { computed, h, nextTick, shallowRef, useTemplateRef, type FunctionalComponent } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
-import { AlignLeft, Check, Copy, ListOrdered, WrapText } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import {
+  AlignLeftIcon,
+  CheckIcon,
+  CopyIcon,
+  ListOrderedMinimalisticIcon,
+  ParagraphSpacingIcon,
+} from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = defineProps<{
