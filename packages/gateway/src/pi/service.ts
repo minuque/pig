@@ -24,6 +24,7 @@ import type {
 } from "@earendil-works/pi-server"
 import { canonicalizePath } from "../directory.js"
 import { AttachmentStore } from "./attachments.js"
+import { selectComposerPrompts, type ComposerCommand } from "./composer-commands.js"
 import type { ContextPreviewKey, ContextUsageEstimate } from "./context-usage.js"
 import {
   conversationMessageCount,
@@ -77,12 +78,7 @@ async function saveAuthorizedWorkspaces(sessionDir: string | undefined, paths: S
 }
 
 /** 输入卡 / 菜单的一行候选：技能与 prompt 模板同形。 */
-export interface ComposerCommand {
-  name: string
-  description: string
-  /** 模板用法提示，如 "<issue-number>"。 */
-  argumentHint?: string
-}
+export type { ComposerCommand } from "./composer-commands.js"
 
 export interface PiHostServiceOptions {
   /** 统一会话目录；缺省用 Pi 默认（~/.pi/agent/sessions/<cwd>/）。 */
@@ -221,16 +217,26 @@ export class PiHostService implements PiServerService {
     const slot = await pending?.catch(() => undefined)
 
     if (!slot) return { skills: [], prompts: [] }
+    // 扩展命令名会被 Pi 在模板展开前截胡，作为保留名交给候选筛选
+    const reserved = new Set<string>()
+
+    for (const extension of slot.loader.getExtensions().extensions) {
+      for (const name of extension.commands.keys()) reserved.add(name)
+    }
+
     return {
       skills: slot.loader
         .getSkills()
         .skills.map((skill) => ({ name: skill.name, description: skill.description })),
       // 模板带 argumentHint：菜单用它提示该传什么参数
-      prompts: slot.loader.getPrompts().prompts.map((prompt) => ({
-        name: prompt.name,
-        description: prompt.description,
-        ...(prompt.argumentHint === undefined ? {} : { argumentHint: prompt.argumentHint }),
-      })),
+      prompts: selectComposerPrompts(
+        slot.loader.getPrompts().prompts.map((prompt) => ({
+          name: prompt.name,
+          description: prompt.description,
+          ...(prompt.argumentHint === undefined ? {} : { argumentHint: prompt.argumentHint }),
+        })),
+        reserved,
+      ),
     }
   }
 

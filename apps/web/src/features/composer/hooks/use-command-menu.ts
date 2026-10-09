@@ -71,7 +71,7 @@ export function useCommandMenu(
   })
   const commandRows = computed<CommandMenuRow[]>(() => {
     const query = trigger.value?.kind === "command" ? trigger.value.query.toLowerCase() : ""
-    // 同名时模板优先：模板是 Pi 的实际展开目标，内置项让位避免截胡
+    // 同名时模板优先于内置命令：模板是 Pi 的实际展开目标，内置项让位避免截胡
     const templateNames = new Set(prompts.value.map((prompt) => prompt.name))
     const commands: Array<{
       key: string
@@ -122,9 +122,10 @@ export function useCommandMenu(
 
       if (builtin.length) next.push({ id: "builtin", label: "内置", rows: builtin })
 
-      if (skill.length) next.push({ id: "skills", label: "技能", rows: skill })
-
+      // 模板排技能前：模板名与技能名同名时，Enter 先选中标题与输入完全一致的那个
       if (template.length) next.push({ id: "templates", label: "模板", rows: template })
+
+      if (skill.length) next.push({ id: "skills", label: "技能", rows: skill })
       return next
     }
 
