@@ -158,15 +158,20 @@ export async function searchWorkspaceFiles(
   return result.entries
 }
 
-/** / 技能候选：Pi 资源加载器发现的技能。 */
-export interface WorkspaceSkill {
+/** / 菜单候选：Pi 资源加载器发现的技能与 prompt 模板。 */
+export interface ComposerCommand {
   name: string
   description: string
+  /** 模板用法提示，如 "<issue-number>"。 */
+  argumentHint?: string
 }
 
-export async function listWorkspaceSkills(cwd: string): Promise<WorkspaceSkill[]> {
-  const result = await platformRequest<{ skills: WorkspaceSkill[] }>(
-    `/api/v1/platform/skills?cwd=${encodeURIComponent(cwd)}`,
-  )
-  return result.skills
+export async function listWorkspaceCommands(
+  cwd: string,
+): Promise<{ skills: ComposerCommand[]; prompts: ComposerCommand[] }> {
+  const result = await platformRequest<{
+    skills: ComposerCommand[]
+    prompts: ComposerCommand[]
+  }>(`/api/v1/platform/skills?cwd=${encodeURIComponent(cwd)}`)
+  return { skills: result.skills, prompts: result.prompts }
 }
