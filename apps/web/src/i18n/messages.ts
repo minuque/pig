@@ -42,6 +42,11 @@ export const zh = {
     stopRunningBeforeDelete: "会话仍在运行，请先停止再删除。",
     title: "会话",
     untitled: "新会话",
+    openTabs: "打开的会话",
+    closeTab: "关闭 {title}",
+    closeLeftTabs: "关闭左侧标签",
+    closeRightTabs: "关闭右侧标签",
+    closeOtherTabs: "关闭其他标签",
   },
   nav: {
     collapseSidebar: "收起侧边栏",
@@ -270,6 +275,11 @@ export const en: Messages = {
     stopRunningBeforeDelete: "Session is still running. Stop it before deleting.",
     title: "Sessions",
     untitled: "New session",
+    openTabs: "Open sessions",
+    closeTab: "Close {title}",
+    closeLeftTabs: "Close tabs to the left",
+    closeRightTabs: "Close tabs to the right",
+    closeOtherTabs: "Close other tabs",
   },
   nav: {
     collapseSidebar: "Collapse sidebar",

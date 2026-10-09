@@ -28,7 +28,7 @@ function createNav(
   const router = useRouter()
   const {
     highlightedSessionId: baseHighlightedSessionId,
-    openSession,
+    openSession: baseOpenSession,
     cancelPendingOpen,
   } = useSessionOpen(session.sessionId, router)
   const navError = shallowRef("")
@@ -84,6 +84,17 @@ function createNav(
 
     return feet
   })
+
+  /** 关闭标签：当前会话先回首页，其余照旧打开。 */
+  function closeSession(id: string): void {
+    if (id === session.sessionId.value) {
+      cancelPendingOpen()
+      void router.replace("/")
+    } else {
+      baseOpenSession(id)
+    }
+  }
+
   return {
     groups: nav.groups,
     workspaces: nav.workspaces,
@@ -110,7 +121,8 @@ function createNav(
     activeWorkspaceId: computed(() => session.projection.value?.cwd),
     activeSessionId: session.sessionId,
     highlightedSessionId,
-    openSession,
+    openSession: baseOpenSession,
+    closeSession,
     cancelPendingOpen,
     setDraftSession: nav.setDraftSession,
     activeSessionRunning,

@@ -1,4 +1,5 @@
 import { computed, shallowRef, watch, type ComputedRef, type Ref } from "vue"
+import { readStringArray, writeJson } from "@utils/storage.js"
 import {
   moveSessionTab,
   openSessionTab,
@@ -10,25 +11,6 @@ import {
 
 const TABS_KEY = "pig.openSessionTabs"
 
-function loadTabs(): string[] {
-  try {
-    const value: unknown = JSON.parse(localStorage.getItem(TABS_KEY) ?? "[]")
-    return Array.isArray(value)
-      ? value.filter((item): item is string => typeof item === "string")
-      : []
-  } catch {
-    return []
-  }
-}
-
-function saveTabs(ids: readonly string[]): void {
-  try {
-    localStorage.setItem(TABS_KEY, JSON.stringify(ids))
-  } catch {
-    /* 存储不可用时标签仅存活于本页 */
-  }
-}
-
 export interface SessionTabSource {
   id: string
   title: string
@@ -39,7 +21,7 @@ export function useSessionTabs(input: {
   sessions: ComputedRef<readonly SessionTabSource[]>
   open: (id: string) => void
 }) {
-  const ids = shallowRef(loadTabs())
+  const ids = shallowRef(readStringArray(TABS_KEY))
   const tabs = computed<SessionTab[]>(() => {
     const byId = new Map(input.sessions.value.map((session) => [session.id, session]))
     return ids.value.flatMap((id) => {
@@ -50,7 +32,7 @@ export function useSessionTabs(input: {
 
   function commit(next: string[]): void {
     ids.value = next
-    saveTabs(next)
+    writeJson(TABS_KEY, next)
   }
 
   function openTab(id: string): void {
@@ -94,6 +76,8 @@ export function useSessionTabs(input: {
   watch(
     () => input.sessions.value.map((session) => session.id).join("\n"),
     () => {
+      // 列表未就绪或断开时不清持久化标签，只过滤确定存在的集合
+      if (input.sessions.value.length === 0) return
       const known = new Set(input.sessions.value.map((session) => session.id))
       const next = ids.value.filter((id) => known.has(id))
 

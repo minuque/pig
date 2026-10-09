@@ -3,7 +3,7 @@
     ref="strip"
     class="session-tabs"
     role="tablist"
-    aria-label="打开的会话"
+    :aria-label="t('session.openTabs')"
     @wheel.passive="onWheel"
     @pointerleave="frozenWidth = null"
   >
@@ -15,33 +15,61 @@
     >
       <ContextMenuTrigger as-child>
         <div
+          ref="tabNodes"
           class="session-tab"
-          :class="{ active: tab.id === activeId, dragging: tab.id === draggingId }"
-          role="tab"
+          :class="{
+            active: tab.id === activeId,
+            dragging: tab.id === draggingId,
+            'menu-open': menuOpenId === tab.id,
+          }"
           :aria-selected="tab.id === activeId"
           :title="tab.title"
           :style="frozenWidth === null ? undefined : { width: `${frozenWidth}px` }"
           @pointerdown="onPointerDown(tab.id, $event)"
           @auxclick="onMiddleClick(tab.id, $event)"
         >
-          <button class="tab-select" type="button" @dblclick="onRename(tab.id)">
-            <span class="tab-glyph">
-              <IconLoading
-                v-if="stateOf(tab.id) === 'running'"
-                class="tab-spin motion-reduce:animate-none"
-              />
+          <button
+            class="tab-select"
+            type="button"
+            role="tab"
+            :tabindex="tab.id === activeId ? 0 : -1"
+            :aria-selected="tab.id === activeId"
+            @keydown="onTabKeydown(tab.id, $event)"
+            @dblclick="startRename(tab.id)"
+          >
+            <input
+              v-if="renamingId === tab.id"
+              ref="nameInput"
+              v-model="renameDraft"
+              class="rename-input"
+              :aria-label="t('session.rename')"
+              @click.stop
+              @pointerdown.stop
+              @keydown.enter.prevent="commitRename"
+              @keydown.escape.prevent="cancelRename"
+              @blur="commitRename"
+            />
 
-              <IconAlert v-else-if="stateOf(tab.id) === 'error'" />
-              <IconSparkle v-else />
-            </span>
+            <template v-else>
+              <span class="tab-glyph">
+                <IconLoading
+                  v-if="stateOf(tab.id) === 'running'"
+                  class="animate-spin motion-reduce:animate-none"
+                />
 
-            <span class="tab-title">{{ tab.title }}</span>
+                <IconAlert v-else-if="stateOf(tab.id) === 'error'" />
+                <IconSparkle v-else />
+              </span>
+
+              <span class="tab-title">{{ tab.title }}</span>
+            </template>
           </button>
 
           <button
             class="tab-close"
             type="button"
-            :aria-label="`关闭 ${tab.title}`"
+            :tabindex="-1"
+            :aria-label="t('session.closeTab', { title: tab.title })"
             @pointerdown.stop
             @click.stop="close(tab.id)"
           >
@@ -54,12 +82,12 @@
         <ContextMenuItem @select="emit('togglePinned', tab.id)">
           <IconPinOff v-if="pinned(tab.id)" />
           <IconPin v-else />
-          {{ pinned(tab.id) ? "取消置顶" : "置顶" }}
+          {{ pinned(tab.id) ? t("session.unpin") : t("session.pin") }}
         </ContextMenuItem>
 
-        <ContextMenuItem @select="emit('rename', tab.id)">
+        <ContextMenuItem @select="startRename(tab.id)">
           <IconPencil />
-          重命名
+          {{ t("session.rename") }}
         </ContextMenuItem>
 
         <template v-if="hasScope(tab.id)">
@@ -69,37 +97,40 @@
             v-if="scopeCount(tab.id, 'left') > 0"
             @select="emit('closeScope', tab.id, 'left')"
           >
-            关闭左侧标签
+            {{ t("session.closeLeftTabs") }}
           </ContextMenuItem>
 
           <ContextMenuItem
             v-if="scopeCount(tab.id, 'right') > 0"
             @select="emit('closeScope', tab.id, 'right')"
           >
-            关闭右侧标签
+            {{ t("session.closeRightTabs") }}
           </ContextMenuItem>
 
           <ContextMenuItem
             v-if="scopeCount(tab.id, 'others') > 0"
             @select="emit('closeScope', tab.id, 'others')"
           >
-            关闭其他标签
+            {{ t("session.closeOtherTabs") }}
           </ContextMenuItem>
         </template>
 
         <ContextMenuSeparator />
 
-        <ContextMenuItem variant="destructive" @select="emit('delete', tab.id)">
+        <ContextMenuItem variant="destructive" @select="onDelete(tab.id)">
           <IconTrash />
-          删除
+          {{ t("session.deleteTitle") }}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
+
+    <SessionItemDelete v-model:open="deleteOpen" :title="deleteTitle" @confirm="confirmDelete" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, useTemplateRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, useTemplateRef, watch } from "vue"
+import { useI18n } from "@i18n/index.js"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -121,6 +152,7 @@ import {
   sessionTabsInCloseScope,
   type SessionTab,
 } from "@features/session-workbench/lib/session-tabs.js"
+import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import type { SidebarSessionState } from "@features/session-nav/type.js"
 
 const props = defineProps<{
@@ -134,14 +166,25 @@ const emit = defineEmits<{
   move: [draggedId: string, overId: string]
   close: [id: string]
   closeScope: [id: string, scope: "left" | "right" | "others"]
-  rename: [id: string]
+  rename: [id: string, name: string]
   togglePinned: [id: string]
   delete: [id: string]
 }>()
+const { t } = useI18n()
 const strip = useTemplateRef("strip")
+const tabNodes = useTemplateRef<HTMLElement[]>("tabNodes")
+const nameInput = useTemplateRef<HTMLInputElement>("nameInput")
 const draggingId = ref<string>()
 const frozenWidth = ref<number | null>(null)
+const renamingId = ref<string>()
+const renameDraft = ref("")
+const deleteOpen = shallowRef(false)
+const deleteId = ref<string>()
+const deleteTitle = computed(() => props.tabs.find((tab) => tab.id === deleteId.value)?.title ?? "")
+const menuOpenId = ref<string>()
 const DRAG_DISTANCE = 6
+let dragListeners:
+  { pointerId: number; onMove: (e: PointerEvent) => void; onEnd: () => void } | undefined
 
 function ids(): string[] {
   return props.tabs.map((tab) => tab.id)
@@ -152,7 +195,16 @@ function scopeCount(id: string, scope: "left" | "right" | "others"): number {
 }
 
 function hasScope(id: string): boolean {
-  return scopeCount(id, "others") > 0
+  return ids().length > 1
+}
+
+function cleanupDrag(): void {
+  if (!dragListeners) return
+  window.removeEventListener("pointermove", dragListeners.onMove)
+  window.removeEventListener("pointerup", dragListeners.onEnd)
+  window.removeEventListener("pointercancel", dragListeners.onEnd)
+  dragListeners = undefined
+  draggingId.value = undefined
 }
 
 function onPointerDown(id: string, event: PointerEvent): void {
@@ -171,21 +223,21 @@ function onPointerDown(id: string, event: PointerEvent): void {
 
     if (over && over !== id) emit("move", id, over)
   }
-  const onUp = (up: PointerEvent) => {
-    if (up.pointerId !== pointerId) return
-    window.removeEventListener("pointermove", onMove)
-    window.removeEventListener("pointerup", onUp)
-    draggingId.value = undefined
+  const onEnd = () => {
+    cleanupDrag()
 
     if (!moved) emit("select", id)
   }
 
+  cleanupDrag()
+  dragListeners = { pointerId, onMove, onEnd }
   window.addEventListener("pointermove", onMove)
-  window.addEventListener("pointerup", onUp)
+  window.addEventListener("pointerup", onEnd)
+  window.addEventListener("pointercancel", onEnd)
 }
 
 function tabAt(clientX: number): string | undefined {
-  const nodes = strip.value?.querySelectorAll<HTMLElement>(".session-tab")
+  const nodes = tabNodes.value
 
   if (!nodes) return
 
@@ -199,9 +251,14 @@ function tabAt(clientX: number): string | undefined {
 }
 
 function close(id: string): void {
-  const tab = strip.value?.querySelector<HTMLElement>(".session-tab")
+  // 悬停时冻结其余标签宽度，防 flex 重排跳动；取被关标签自己宽度对齐收缩节奏
+  const nodes = tabNodes.value
+  const tab = nodes?.[props.tabs.findIndex((item) => item.id === id)]
 
-  if (tab && strip.value?.matches(":hover")) frozenWidth.value = tab.getBoundingClientRect().width
+  if (tab && strip.value?.matches(":hover")) {
+    frozenWidth.value = tab.getBoundingClientRect().width
+  }
+
   emit("close", id)
 }
 
@@ -211,12 +268,61 @@ function onMiddleClick(id: string, event: MouseEvent): void {
   close(id)
 }
 
-function onRename(id: string): void {
-  if (id === props.activeId) emit("rename", id)
+function startRename(id: string): void {
+  if (renamingId.value) return
+  renameDraft.value = props.tabs.find((tab) => tab.id === id)?.title ?? ""
+  renamingId.value = id
+  void nextTick(() => {
+    nameInput.value?.focus()
+    nameInput.value?.select()
+  })
+}
+
+function cancelRename(): void {
+  renamingId.value = undefined
+}
+
+function commitRename(): void {
+  const id = renamingId.value
+
+  if (!id) return
+  renamingId.value = undefined
+  const name = renameDraft.value.trim()
+
+  if (!name || name === props.tabs.find((tab) => tab.id === id)?.title) return
+  emit("rename", id, name)
+}
+
+function onDelete(id: string): void {
+  deleteId.value = id
+  deleteOpen.value = true
+}
+
+function confirmDelete(): void {
+  deleteOpen.value = false
+
+  if (deleteId.value) emit("delete", deleteId.value)
+  deleteId.value = undefined
 }
 
 function onMenuOpen(id: string, open: boolean): void {
+  menuOpenId.value = open ? id : undefined
+
   if (open && id !== props.activeId) emit("select", id)
+}
+
+function onTabKeydown(id: string, event: KeyboardEvent): void {
+  const current = ids()
+  const index = current.indexOf(id)
+
+  if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+    event.preventDefault()
+    const step = event.key === "ArrowRight" ? 1 : -1
+    const next =
+      current[index + step] ?? current[event.key === "ArrowRight" ? 0 : current.length - 1]
+
+    if (next && next !== id) emit("select", next)
+  }
 }
 
 function onWheel(event: WheelEvent): void {
@@ -225,6 +331,8 @@ function onWheel(event: WheelEvent): void {
   if (!node || event.deltaX !== 0 || event.deltaY === 0) return
   node.scrollLeft += event.deltaY
 }
+
+onBeforeUnmount(cleanupDrag)
 
 watch(
   () => props.activeId,
@@ -361,6 +469,7 @@ watch(
   opacity: 0;
 }
 
+.session-tab.menu-open .tab-close,
 .session-tab.active .tab-close,
 .session-tab:hover .tab-close,
 .session-tab:focus-within .tab-close {
@@ -373,14 +482,23 @@ watch(
   color: var(--ink);
 }
 
-.tab-spin {
-  animation: tab-spin var(--duration-slow) linear infinite;
-}
-
-@keyframes tab-spin {
-  to {
-    rotate: 360deg;
-  }
+.rename-input {
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  margin: 0;
+  padding: 0 var(--spacing-xxs);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: var(--interaction-hover);
+  color: var(--ink);
+  caret-color: var(--primary);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--text-caption--line-height);
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--primary);
+  user-select: text;
 }
 
 @media (pointer: coarse) {
