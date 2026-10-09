@@ -333,7 +333,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   align-items: center;
   gap: var(--spacing-xxs);
   min-width: 0;
-  min-height: var(--size-icon-button);
+  min-height: var(--size-composer-control);
   height: auto;
   flex-shrink: 1;
   padding: var(--spacing-xxs) var(--spacing-xs);

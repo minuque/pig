@@ -179,8 +179,10 @@
   --radius-code: 0.65rem;
   --radius-full: 9999px;
 
-  /* 输入卡胶囊：26px 圆角；宽度跟随内容宽度手柄 */
-  --composer-radius: 26px;
+  /* 输入卡胶囊：32px 圆角；宽度跟随内容宽度手柄 */
+  --composer-radius: 32px;
+  /* 输入卡控件（回形针、发送、模型 chip、上下文环）：对齐 Kimi composer 的 32px */
+  --size-composer-control: 32px;
   /* 连续曲率：输入卡与菜单浮层共用一套角部形状（比 squircle 关键字的 2 更克制） */
   --corner-shape-composer: superellipse(1.5);
 

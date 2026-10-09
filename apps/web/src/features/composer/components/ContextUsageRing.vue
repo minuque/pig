@@ -59,8 +59,8 @@ const ringOffset = computed(() => {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
+  width: var(--size-composer-control);
+  height: var(--size-composer-control);
   min-height: 0;
   padding: 0;
   border: 0;

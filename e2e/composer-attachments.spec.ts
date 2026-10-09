@@ -46,7 +46,7 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
 
   await expect(panel).toBeVisible()
   await expect(note).toHaveCount(0)
-  await expect(card).toHaveCSS("border-radius", "26px")
+  await expect(card).toHaveCSS("border-radius", "32px")
 
   await drag(page, "dragenter")
   await expect(panel).toHaveClass(/is-drop-active/)
@@ -59,7 +59,7 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
   await expect(note).toBeVisible()
   await expect(shot).toBeVisible()
   await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
-  await expect(card).toHaveCSS("border-radius", "26px")
+  await expect(card).toHaveCSS("border-radius", "32px")
 
   await note.click()
   await expect(note).toHaveCount(0)

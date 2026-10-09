@@ -170,9 +170,9 @@ function compactInset(el: HTMLElement) {
   const token = (name: string) => Number.parseFloat(style.getPropertyValue(name)) || 0
   // 两侧内边距 + 输入区左右内边距 + 主行两个间隙 + 回形针按钮
   return (
-    2 * (token("--spacing-sm") + token("--border-width")) +
+    2 * (token("--spacing-xs") + token("--border-width")) +
     4 * token("--spacing-xs") +
-    token("--size-icon-button")
+    token("--size-composer-control")
   )
 }
 
@@ -457,9 +457,10 @@ defineExpose({ focus })
 }
 
 .is-compact .main {
-  height: 49px;
+  /* 控件 32 + 上下各 8 */
+  height: calc(var(--size-composer-control) + 2 * var(--spacing-xs));
   gap: var(--spacing-xs);
-  padding-inline: calc(var(--spacing-sm) + var(--border-width));
+  padding-inline: var(--spacing-xs);
 }
 
 .is-expanded .main {
@@ -486,16 +487,15 @@ defineExpose({ focus })
 }
 
 .is-expanded .editor-wrap {
-  padding: var(--spacing-md) calc(var(--spacing-md) + var(--border-width)) var(--spacing-xxs);
+  padding: 14px var(--spacing-md) var(--spacing-xs);
 }
 
 /* 展开态：回形针与模型靠左，上下文与发送靠右；紧凑态上下文跟模型并排 */
 .action-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xxs);
-  height: 42px;
-  padding: 0 calc(var(--spacing-sm) + var(--border-width));
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xs);
 }
 
 .cluster {
@@ -538,7 +538,7 @@ defineExpose({ focus })
   color: var(--ink);
   font: inherit;
   font-size: var(--text-body-md);
-  line-height: 1.625;
+  line-height: 1.5;
   overscroll-behavior: contain;
   overflow-y: auto;
   white-space: pre-wrap;
@@ -551,8 +551,8 @@ defineExpose({ focus })
 }
 
 .is-expanded .field {
-  min-height: 56px;
-  max-height: 240px;
+  min-height: 36px;
+  max-height: 25dvh;
 }
 
 .field::placeholder {
