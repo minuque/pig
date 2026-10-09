@@ -21,6 +21,7 @@ import {
   isVisibleTranscriptItem,
   transcriptImages,
   transcriptText,
+  userMessageText,
 } from "@features/transcript-view/lib/transcript-format.js"
 import { toolGroupKey } from "@features/transcript-view/lib/tool-summary.js"
 
@@ -71,7 +72,7 @@ function appendTurn({
     rows.push({
       id: user.id,
       role: "user",
-      text: transcriptText(user),
+      text: userMessageText(user),
       images: transcriptImages(user),
       timestamp: user.timestamp,
     })

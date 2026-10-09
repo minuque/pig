@@ -139,6 +139,18 @@ describe("projectClientTranscript", () => {
     ])
   })
 
+  it("@ 引用被网关展开后服务端条目仍算同一条确认", () => {
+    const expanded = {
+      ...optimistic,
+      id: "server-u2",
+      content: [{ type: "text" as const, text: '新任务\n\n<file name="a.ts">x</file>' }],
+    }
+
+    expect(
+      projectClientTranscript([previous, expanded, assistant], [send]).map((item) => item.id),
+    ).toEqual([previous.id, optimistic.id, assistant.id])
+  })
+
   it("已知历史之外的同文用户句不算确认", () => {
     const earlierDuplicate = { ...optimistic, id: "earlier-u0", timestamp: 0 }
     expect(

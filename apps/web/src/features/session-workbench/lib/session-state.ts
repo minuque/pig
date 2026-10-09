@@ -9,7 +9,7 @@ import type {
 import type { TurnTiming } from "@/types/turn-type.js"
 import { t } from "@i18n/index.js"
 import { sessionTitle, untitledSession } from "@features/session-nav/index.js"
-import { transcriptText } from "@features/transcript-view/index.js"
+import { userMessageText } from "@features/transcript-view/index.js"
 import type {
   OptimisticUserMessage,
   SessionClientState,
@@ -57,8 +57,9 @@ export function bindIdleSends(
   }
 }
 
+/** 对账用展示文本：剥离网关追加的 @ 文件块，与服务端落盘条目一致比较。 */
 function userText(item: TranscriptItem): string {
-  return item.role === "user" ? transcriptText(item) : ""
+  return item.role === "user" ? userMessageText(item) : ""
 }
 
 function sendAnchor(
