@@ -156,6 +156,21 @@ describe("thin host HTTP shell", () => {
     })
   })
 
+  it("不需要手输路径的平台忽略客户端传的 path", async () => {
+    const base = await startGateway()
+    selectedDirectory = "C:/projects/demo"
+
+    const result = await (
+      await request(base, "/api/v1/platform/select-directory", { path: "C:/" }, "POST")
+    ).json()
+
+    // 走系统对话框（假件）而不是采信请求体里的 C:/
+    expect(result).toEqual({ path: "C:/projects/demo", requiresManualInput: false })
+    expect(
+      (await request(base, `/api/v1/platform/files?cwd=${encodeURIComponent("C:/")}`)).status,
+    ).toBe(403)
+  })
+
   it("附件暂存走原始流，bind 校验入参与 session", async () => {
     const base = await startGateway()
     const stage = (query: string, body: BodyInit) =>

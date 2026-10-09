@@ -102,7 +102,9 @@ export class PiHostService implements PiServerService {
   /** 规范化 cwd → 该目录已 reload 的 loader。 */
   private readonly resourceSlots = new Map<string, Promise<ResourceSlot>>()
   /** 用户选过的目录（懒加载）；见 authorizedWorkspacesFile。 */
-  private authorizedWorkspaces: Set<string> | undefined
+  private authorizedLoad: Promise<Set<string>> | undefined
+  /** 已判定为已知的目录（含靠磁盘会话命中的），免每次重扫会话。 */
+  private readonly knownWorkspaces = new Set<string>()
   private runtimePromise?: Promise<Runtime>
   private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined
 
@@ -162,29 +164,44 @@ export class PiHostService implements PiServerService {
   /** 用户显式选定的目录：select-directory 成功后登记并落盘，是唯一的授权来源。 */
   async authorizeWorkspace(cwd: string): Promise<void> {
     const key = canonicalizePath(cwd)
-    this.authorizedWorkspaces ??= new Set(await loadAuthorizedWorkspaces(this.options.sessionDir))
+    const authorized = await (this.authorizedLoad ??= loadAuthorizedWorkspaces(
+      this.options.sessionDir,
+    ).then((paths) => new Set(paths)))
 
-    if (this.authorizedWorkspaces.has(key)) return
-    this.authorizedWorkspaces.add(key)
+    if (authorized.has(key)) return
+    authorized.add(key)
+    this.knownWorkspaces.add(key)
 
-    await saveAuthorizedWorkspaces(this.options.sessionDir, this.authorizedWorkspaces).catch(
-      () => undefined,
-    )
+    await saveAuthorizedWorkspaces(this.options.sessionDir, authorized).catch(() => undefined)
   }
 
   /** 目录是否能搜文件、拉技能：用户选过的目录，或已有（活的/磁盘的）会话 cwd。 */
   async isKnownWorkspace(cwd: string): Promise<boolean> {
     const key = canonicalizePath(cwd)
-    this.authorizedWorkspaces ??= new Set(await loadAuthorizedWorkspaces(this.options.sessionDir))
 
-    if (this.authorizedWorkspaces.has(key)) return true
+    if (this.knownWorkspaces.has(key)) return true
+
+    const authorized = await (this.authorizedLoad ??= loadAuthorizedWorkspaces(
+      this.options.sessionDir,
+    ).then((paths) => new Set(paths)))
+
+    if (authorized.has(key)) {
+      this.knownWorkspaces.add(key)
+      return true
+    }
 
     for (const session of this.activeSessions.values()) {
-      if (session.cwd === key) return true
+      if (session.cwd === key) {
+        this.knownWorkspaces.add(key)
+        return true
+      }
     }
 
     const sessions = await this.refreshSessionPaths()
-    return sessions.some((info) => info.cwd && canonicalizePath(info.cwd) === key)
+    const hit = sessions.some((info) => info.cwd && canonicalizePath(info.cwd) === key)
+
+    if (hit) this.knownWorkspaces.add(key)
+    return hit
   }
 
   /** 某目录已加载的技能清单：只读已备好的 loader，不为未知目录新建 slot。 */
