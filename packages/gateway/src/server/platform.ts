@@ -190,7 +190,13 @@ async function handleSelectDirectory(
 
   try {
     const payload = await body(req).catch((): Record<string, unknown> => ({}))
-    const input = typeof payload.path === "string" ? payload.path : undefined
+    // 只有需要手输路径的平台（Browser）才接受客户端传的 path；
+    // 桌面端必须走系统对话框，否则任意已认证请求能直接授权任意目录。
+    const input = platformPort.requiresManualInput
+      ? typeof payload.path === "string"
+        ? payload.path
+        : undefined
+      : undefined
 
     if (platformPort.requiresManualInput && !input) {
       send(res, 200, { path: null, requiresManualInput: true })

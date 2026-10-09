@@ -49,9 +49,9 @@ function escapeFileName(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
 }
 
-/** 内容原样保留（与 Pi CLI 一致），只防 </file> 提前闭合块。 */
+/** 内容原样保留（与 Pi CLI 一致），只防 </file> 提前闭合块；保留原文大小写。 */
 function escapeFileContent(value: string): string {
-  return value.replace(/<\/file/gi, "<\\/file")
+  return value.replace(/<\/(file)/gi, "<\\/$1")
 }
 
 /**
