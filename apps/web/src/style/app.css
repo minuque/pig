@@ -518,13 +518,6 @@
   height: var(--size-icon);
 }
 
-/* 连续曲率圆角：支持 corner-shape 的引擎用 squircle，其他保留原 border-radius。 */
-@utility squircle {
-  @supports (corner-shape: squircle) {
-    corner-shape: squircle;
-  }
-}
-
 /* 浮层统一不透明底：输入卡、弹层、菜单、对话框 */
 .surface-float {
   background: var(--composer-bg);

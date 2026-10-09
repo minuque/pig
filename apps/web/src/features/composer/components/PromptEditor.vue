@@ -16,7 +16,7 @@
 
     <div
       ref="card"
-      class="composer-card surface-float squircle"
+      class="composer-card surface-float"
       :class="expanded ? 'is-expanded' : 'is-compact'"
     >
       <div v-if="$slots.attachments" class="attachments">
