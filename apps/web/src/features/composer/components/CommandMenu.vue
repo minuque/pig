@@ -25,6 +25,9 @@
         >
           <span class="command-icon" aria-hidden="true">
             <component :is="row.icon" v-if="row.icon" />
+            <WidgetAddIcon v-else-if="row.kind === 'skill'" class="command-glyph" />
+            <DocumentIcon v-else-if="row.kind === 'template'" class="command-glyph" />
+            <CodeSquareIcon v-else-if="row.kind === 'builtin'" class="command-glyph" />
             <FolderIcon v-else-if="row.directory" class="command-glyph" />
             <DocumentIcon v-else class="command-glyph" />
           </span>
@@ -45,7 +48,9 @@
 
 <script setup lang="ts">
 import { computed, nextTick, watch, type Component } from "vue"
-import { DocumentIcon, FolderIcon } from "@components/icons/index.js"
+import { CodeSquareIcon, DocumentIcon, FolderIcon, WidgetAddIcon } from "@components/icons/index.js"
+
+export type CommandMenuRowKind = "skill" | "template" | "builtin" | "file" | "directory"
 
 export interface CommandMenuRow {
   id: string
@@ -55,7 +60,9 @@ export interface CommandMenuRow {
   /** 行尾元信息（路径、来源）。 */
   trailing?: string | undefined
   icon?: Component
-  /** 无图标时用目录占位符（文件行图标由父级决定）。 */
+  /** 行类别：决定占位图标，技能/模板/内置与 Codex 命令弹层对齐；目录由 icon 决定。 */
+  kind?: CommandMenuRowKind
+  /** 无图标时用目录占位符。 */
   directory?: boolean
 }
 
@@ -137,7 +144,10 @@ watch(
   padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xxs);
   color: var(--ink-faint);
   font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-semibold);
   line-height: var(--text-eyebrow--line-height);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .command-group + .command-group {

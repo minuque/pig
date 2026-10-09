@@ -77,6 +77,9 @@
   --danger-halo: color-mix(in srgb, var(--danger) 15%, transparent);
   --danger-border: color-mix(in srgb, var(--danger) 45%, var(--border));
   --info-halo: color-mix(in srgb, var(--primary) 15%, transparent);
+  /* 按钮顶沿内高光与按下时的内阴影（t3code halo 按钮） */
+  --button-sheen: color-mix(in srgb, var(--white) 16%, transparent);
+  --button-press: color-mix(in srgb, var(--ink) 12%, transparent);
   --effort-track: var(--border-subtle);
   --effort-thumb: var(--white);
   --effort-tick: var(--ink-muted);
@@ -320,6 +323,7 @@
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #1c1c21;
   --scrollbar-hover: #a3a3a3;
+  --button-press: color-mix(in srgb, var(--ink) 30%, transparent);
 
   --accent-skill: #c2a1ff;
   --accent-steel: #8aa4c2;

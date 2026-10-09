@@ -408,13 +408,25 @@ function onAbortHotkey(event: KeyboardEvent) {
     background var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
     opacity var(--duration-fast) var(--ease-smooth),
-    scale var(--duration-fast) var(--ease-out);
+    scale var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-smooth);
+  /* t3code halo：色彩投影 + 顶部内高光，按下时高光反转 */
+  box-shadow:
+    0 1px 6px var(--info-halo),
+    inset 0 1px 0 var(--button-sheen);
   background: var(--primary);
   color: var(--white);
 }
 
 .send:not(:disabled):hover {
   background: var(--primary-active);
+  scale: 1.05;
+}
+
+.send:not(:disabled):active {
+  box-shadow:
+    0 1px 3px var(--info-halo),
+    inset 0 1px 2px var(--button-press);
 }
 
 /* 停止态：实心墨色圆 + 内部圆角方块，hover 只降不透明度 */
@@ -422,6 +434,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 .send--abort:not(:disabled):hover {
   background: var(--ink);
   color: var(--surface);
+  box-shadow: none;
 }
 
 .send--abort:not(:disabled):hover {
@@ -432,6 +445,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   cursor: default;
   opacity: 0.3;
   scale: 1;
+  box-shadow: none;
 }
 
 .send--abort:disabled {

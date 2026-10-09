@@ -8,10 +8,11 @@ import {
 import type {
   CommandMenuGroup,
   CommandMenuRow,
+  CommandMenuRowKind,
 } from "@features/composer/components/CommandMenu.vue"
 import {
-  applyTriggerChoice,
   composerTriggerAt,
+  mentionPathNeedsQuoting,
   type ComposerTrigger,
 } from "@features/composer/lib/composer-trigger.js"
 
@@ -32,16 +33,31 @@ export interface CommandMenuApi {
   emptyText: Ref<string>
   /** PromptEditor keydown 先交给菜单：返回 true 表示已消费。 */
   onKeydown(event: KeyboardEvent): boolean
-  /** 行点击提交；与 Enter/Tab 同一条路。 */
+  /** 行点击提交；chip 行由宿主接管 DOM 插入，目录下钻仍走 prompt 改写。 */
   select(id: string): void
   /** 面板开着时吃掉 keydown 的关闭路径（Esc）。 */
   close(): void
+}
+
+/** 选中后宿主要插入的 chip：kind 决定图标与色，token 是发送时展开的原始文本。 */
+export interface ChipInsert {
+  kind: "skill" | "template" | "builtin" | "file"
+  label: string
+  token: string
+  /** 触发 token 起点；chip 落在这里，原 token 移除。 */
+  start: number
+  /** 原触发 token 在纯文本里的长度。 */
+  triggerLength: number
+  /** 插入后光标落在 chip 之后 + 一个空格。 */
+  caret: number
 }
 
 export function useCommandMenu(
   prompt: Ref<string>,
   caret: Ref<number>,
   cwd: () => string | undefined,
+  /** 选中命令/技能/文件行：宿主把 chip 插到 DOM；目录下钻与 /clear 仍在 hook 内改 prompt。 */
+  onChip: (chip: ChipInsert) => void,
 ): CommandMenuApi {
   const open = ref(false)
   const trigger = ref<ComposerTrigger>(null)
@@ -59,6 +75,7 @@ export function useCommandMenu(
       title: entry.path.split("/").filter(Boolean).pop() ?? entry.path,
       secondary: entry.kind === "directory" ? undefined : parentPath(entry.path),
       directory: entry.kind === "directory",
+      kind: entry.kind === "directory" ? "directory" : "file",
       trailing: entry.kind === "directory" ? "目录" : undefined,
     })),
   )
@@ -79,21 +96,28 @@ export function useCommandMenu(
       description: string
       /** 模板用法提示，优先于 description。 */
       hint?: string | undefined
+      kind: CommandMenuRowKind
     }> = [
       // /clear 只在草稿只剩这个 token 时执行，其他情形不显示，避免选中后无反馈
       ...BUILTIN_COMMANDS.filter(
         (command) => clearApplicable.value && !templateNames.has(command.name),
-      ).map((command) => ({ ...command, key: `${BUILTIN_PREFIX}${command.name}` })),
+      ).map((command) => ({
+        ...command,
+        key: `${BUILTIN_PREFIX}${command.name}`,
+        kind: "builtin" as const,
+      })),
       ...skills.value.map((skill) => ({
         key: `${SKILL_PREFIX}${skill.name}`,
         name: `skill:${skill.name}`,
         description: skill.description,
+        kind: "skill" as const,
       })),
       ...prompts.value.map((prompt) => ({
         key: `${TEMPLATE_PREFIX}${prompt.name}`,
         name: prompt.name,
         description: prompt.description,
         hint: prompt.argumentHint,
+        kind: "template" as const,
       })),
     ]
     return commands
@@ -102,6 +126,7 @@ export function useCommandMenu(
         id: command.key,
         title: `/${command.name}`,
         secondary: command.hint ?? command.description,
+        kind: command.kind,
         trailing: command.key.startsWith(SKILL_PREFIX)
           ? "技能"
           : command.key.startsWith(TEMPLATE_PREFIX)
@@ -301,19 +326,36 @@ export function useCommandMenu(
       return
     }
 
-    // 模板插 /name；技能插 /skill:name（Pi 的显式调用形式）
-    const value = id.startsWith(SKILL_PREFIX)
-      ? `skill:${id.slice(SKILL_PREFIX.length)}`
-      : id.startsWith(TEMPLATE_PREFIX)
-        ? id.slice(TEMPLATE_PREFIX.length)
-        : id.slice(FILE_PREFIX.length)
-    const next = applyTriggerChoice(prompt.value, caret.value, { kind, start, query: "" }, value)
+    // chip 化：token 记发送时展开的原始文本，label 是显示名
+    const triggerLength = caret.value - start
+    const base = { start, triggerLength }
 
-    prompt.value = next.text
+    if (id.startsWith(SKILL_PREFIX)) {
+      const name = id.slice(SKILL_PREFIX.length)
+      onChip({
+        ...base,
+        kind: "skill",
+        label: name,
+        token: `/skill:${name} `,
+        caret: start + `/skill:${name} `.length,
+      })
+    } else if (id.startsWith(TEMPLATE_PREFIX)) {
+      const name = id.slice(TEMPLATE_PREFIX.length)
+      onChip({
+        ...base,
+        kind: "template",
+        label: name,
+        token: `/${name} `,
+        caret: start + `/${name} `.length,
+      })
+    } else if (id.startsWith(FILE_PREFIX)) {
+      const path = id.slice(FILE_PREFIX.length)
+      const label = path.split("/").filter(Boolean).pop() ?? path
+      const token = mentionPathNeedsQuoting(path) ? `@${JSON.stringify(path)} ` : `@${path} `
+      onChip({ ...base, kind: "file", label, token, caret: start + token.length })
+    }
+
     close()
-    void nextTick(() => {
-      caret.value = next.caret
-    })
   }
 
   function close() {
