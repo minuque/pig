@@ -89,21 +89,19 @@ async function expandTokens(text: string, tokens: MentionToken[], cwd: string): 
   for (const token of tokens.slice(0, MAX_MENTION_FILES)) {
     const absolute = resolve(realRoot, token.path)
 
-    if (seen.has(absolute)) continue
-    seen.add(absolute)
-
     try {
-      // realpath 解析 symlink/junction，越界目标不展开
+      // realpath 解析 symlink/junction，越界目标不展开；别名按真实路径去重
       const realTarget = await realpath(absolute)
 
-      if (!insideRoot(realRoot, realTarget)) continue
+      if (!insideRoot(realRoot, realTarget) || seen.has(realTarget)) continue
+      seen.add(realTarget)
       const stats = await stat(realTarget)
 
       if (!stats.isFile() || stats.size === 0) continue
 
       if (stats.size > MAX_INLINE_BYTES || inlineBytes + stats.size > MAX_TOTAL_INLINE_BYTES) {
         blocks.push(
-          `<file name="${escapeFileName(realTarget)}">文件较大，未内联；请用 read 工具查看。</file>`,
+          `<file name="${escapeFileName(realTarget)}">超出内联配额，未内联；请用 read 工具查看。</file>`,
         )
         continue
       }

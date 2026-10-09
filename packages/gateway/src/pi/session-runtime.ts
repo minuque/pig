@@ -68,6 +68,11 @@ export class PiHostSession implements PiSessionRuntime {
     return estimateContextUsage(this.session, previewKey)
   }
 
+  /** 会话工作目录（规范化拼写）；目录白名单等权限判断用。 */
+  get cwd(): string {
+    return canonicalizePath(this.session.sessionManager.getCwd())
+  }
+
   historyTranscript() {
     const entries = this.session.sessionManager.getBranch()
     return { items: this.projection.transcript(entries), timings: readTurnTimings(entries) }
@@ -166,8 +171,11 @@ export class PiHostSession implements PiSessionRuntime {
       input.text,
       canonicalizePath(this.session.sessionManager.getCwd()),
     )
+    const text = expanded instanceof Promise ? await expanded : expanded
 
-    await this.session.steer(expanded instanceof Promise ? await expanded : expanded)
+    // 读文件期间 turn 可能已结束，steer 会在空闲会话里静默排队
+    if (this.session.isIdle) throw new SessionBusyError("There is no active prompt to steer")
+    await this.session.steer(text)
   }
 
   async abort(): Promise<void> {

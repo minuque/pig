@@ -35,7 +35,6 @@
             aria-controls="composer-command-menu"
             :aria-activedescendant="commandMenuActiveId"
             rows="1"
-            role="combobox"
             aria-autocomplete="list"
             @keydown="onEditorKeydown"
             @paste="onEditorPaste"
@@ -131,7 +130,7 @@ const commandMenu = useCommandMenu(prompt, caret, () => props.cwd)
 const commandMenuAriaLabel = computed(() => "输入卡命令")
 const commandMenuActiveId = computed(() => {
   const id = commandMenu.activeId.value
-  return id ? `composer-command-menu-row-${id}` : undefined
+  return id ? `composer-command-menu-row-${encodeURIComponent(id)}` : undefined
 })
 let widthObserver: ResizeObserver | undefined
 let lastWidth = 0

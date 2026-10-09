@@ -9,9 +9,9 @@ export interface FileSearchEntry {
 
 /** 递归深度与命中上限：@ 面板只消费头部结果，深树截断不影响候选质量。 */
 const MAX_DEPTH = 8
-const MAX_RESULTS = 50
-/** 遍历时仍继续收候选项，直到足够打分；不再按 4000 条无差别截断。 */
-const MAX_CANDIDATES = 2_000
+export const MAX_FILE_SEARCH_RESULTS = 50
+/** 遍历访问条目总上限：哪怕查询太宽，单次请求也不会扫完整棵巨树。 */
+const MAX_VISITED = 20_000
 const SKIP_DIRS = new Set([
   ".git",
   ".svn",
@@ -74,12 +74,13 @@ function candidate(path: string, query: string): boolean {
 
 interface WalkState {
   candidates: FileSearchEntry[]
-  /** 目录仍要继续下探；满了也只影响候选收集，不影响遍历完成。 */
-  full: boolean
+  /** 访问过的条目数；到顶就停。 */
+  visited: number
+  signal?: AbortSignal | undefined
 }
 
 async function walk(dir: string, root: string, depth: number, query: string, state: WalkState) {
-  if (depth > MAX_DEPTH || state.full) return
+  if (depth > MAX_DEPTH || state.visited >= MAX_VISITED || state.signal?.aborted) return
   let entries
 
   try {
@@ -89,11 +90,8 @@ async function walk(dir: string, root: string, depth: number, query: string, sta
   }
 
   for (const entry of entries) {
-    if (state.candidates.length >= MAX_CANDIDATES) {
-      state.full = true
-      return
-    }
-
+    if (state.visited >= MAX_VISITED || state.signal?.aborted) return
+    state.visited += 1
     const name = entry.name
 
     if (name.startsWith(".") && depth === 0 && name !== ".pi") continue
@@ -114,19 +112,18 @@ async function walk(dir: string, root: string, depth: number, query: string, sta
     }
 
     if (isDirectory && !SKIP_DIRS.has(name)) await walk(full, root, depth + 1, query, state)
-
-    if (state.full) return
   }
 }
 
-/** 按 cwd 搜文件与目录：遍历时做粗过滤，打分只排已命中的候选。 */
+/** 按 cwd 搜文件与目录：遍历时做粗过滤再打分；可传 signal 由调用方取消。 */
 export async function searchFiles(
   cwd: string,
   query: string,
-  limit = MAX_RESULTS,
+  limit = MAX_FILE_SEARCH_RESULTS,
+  signal?: AbortSignal,
 ): Promise<FileSearchEntry[]> {
   const trimmed = query.trim()
-  const state: WalkState = { candidates: [], full: false }
+  const state: WalkState = { candidates: [], visited: 0, signal }
 
   await walk(cwd, cwd, 0, trimmed, state)
 

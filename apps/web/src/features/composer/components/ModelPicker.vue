@@ -44,12 +44,7 @@
       @focus-outside="onFocusOutside"
       @close-auto-focus="onCloseAutoFocus"
     >
-      <div
-        ref="pickerRef"
-        class="picker"
-        @keydown.capture="onPickerKeydown"
-        @keydown.tab.prevent="cycleScope($event)"
-      >
+      <div ref="pickerRef" class="picker" @keydown.capture="onPickerKeydown">
         <div class="tabs">
           <Tooltip>
             <TooltipTrigger as-child>
@@ -95,6 +90,7 @@
             :placeholder="searchPlaceholder"
             :aria-label="searchPlaceholder"
             @keydown="onSearchKeydown"
+            @keydown.tab.prevent="cycleScope($event)"
           />
         </div>
 
@@ -300,6 +296,12 @@ function onPickerKeydown(event: KeyboardEvent) {
 function onSearchKeydown(event: KeyboardEvent) {
   // 输入法上屏 Enter 不直达选择，让编辑器按原语义处理
   if (event.isComposing) return
+
+  if (event.key === "Tab") {
+    event.preventDefault()
+    cycleScope(event)
+    return
+  }
 
   if (event.key === "Enter") {
     // 焦点还在搜索框：无高亮行，直达第一个结果（不是虚拟列表可视首项）

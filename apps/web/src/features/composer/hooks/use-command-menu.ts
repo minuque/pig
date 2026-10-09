@@ -129,6 +129,7 @@ export function useCommandMenu(
       open.value = false
       trigger.value = null
       files.value = []
+      cancelFetch()
       return
     }
 
@@ -178,10 +179,18 @@ export function useCommandMenu(
         skillsFor = dir
       }
     } catch {
+      // 失败不写 skillsFor：下一次打开再拉
       if (seq === fetchSeq) skills.value = []
     } finally {
       if (seq === fetchSeq) loading.value = false
     }
+  }
+
+  function cancelFetch() {
+    if (debounce) clearTimeout(debounce)
+    debounce = undefined
+    fetchController?.abort()
+    fetchController = undefined
   }
 
   function move(step: 1 | -1) {
@@ -245,7 +254,14 @@ export function useCommandMenu(
     }
 
     if (id.startsWith(BUILTIN_PREFIX)) {
-      // 当前只有 clear：连同触发 token 一起清空
+      // /clear 只在整份草稿只有这个 token 时执行：行首 /c 命中首项不清掉别行内容
+      const onlyToken = prompt.value.trim() === prompt.value.slice(start, caret.value).trim()
+
+      if (!onlyToken) {
+        close()
+        return
+      }
+
       prompt.value = ""
       caret.value = 0
       close()
@@ -265,6 +281,7 @@ export function useCommandMenu(
   }
 
   function close() {
+    cancelFetch()
     open.value = false
     trigger.value = null
     activeId.value = null

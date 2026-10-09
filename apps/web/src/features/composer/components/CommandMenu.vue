@@ -1,5 +1,11 @@
 <template>
-  <div class="command-menu surface-float" :id="menuId" role="listbox" :aria-label="ariaLabel">
+  <div
+    class="command-menu surface-float"
+    :id="menuId"
+    role="listbox"
+    :aria-label="ariaLabel"
+    @mousedown.prevent
+  >
     <template v-if="groups.length">
       <div v-for="group in groups" :key="group.id" class="command-group">
         <p v-if="group.label" class="command-label">{{ group.label }}</p>
@@ -7,7 +13,7 @@
         <div
           v-for="row in group.rows"
           :key="row.id"
-          :id="`${menuId}-row-${row.id}`"
+          :id="`${menuId}-row-${encodeRowId(row.id)}`"
           :ref="(el) => setRowRef(row.id, el)"
           role="option"
           class="command-row"
@@ -88,6 +94,11 @@ const rowRefs = new Map<string, HTMLElement>()
 function setRowRef(id: string, el: Element | Component | null) {
   if (el instanceof HTMLElement) rowRefs.set(id, el)
   else rowRefs.delete(id)
+}
+
+/** id 里可能有空白/斜杠（文件路径），编码成合法 HTML id。 */
+function encodeRowId(id: string): string {
+  return encodeURIComponent(id)
 }
 
 watch(

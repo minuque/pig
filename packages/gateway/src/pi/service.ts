@@ -73,6 +73,8 @@ export class PiHostService implements PiServerService {
   private readonly activeSessions = new Map<string, PiHostSession>()
   /** 规范化 cwd → 该目录已 reload 的 loader。 */
   private readonly resourceSlots = new Map<string, Promise<ResourceSlot>>()
+  /** warm-workspace 显式授权的目录；建会话/预热都会写。 */
+  private readonly warmedWorkspaces = new Set<string>()
   private runtimePromise?: Promise<Runtime>
   private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined
 
@@ -125,14 +127,21 @@ export class PiHostService implements PiServerService {
   /** 通知 Host 这个目录马上要用来建会话；预热与会话共用同一份 loader 缓存。 */
   prepareWorkspace(cwd: string): void {
     if (this.options.createSession) return
-    void this.slot(canonicalizePath(cwd)).catch(() => undefined)
+    const key = canonicalizePath(cwd)
+    this.warmedWorkspaces.add(key)
+    void this.slot(key).catch(() => undefined)
   }
 
-  /** 目录是否被授权使用：已备好的资源槽、活会话 cwd 或磁盘会话 cwd。 */
+  /** 目录是否被授权使用：活会话 cwd、磁盘会话 cwd 或 warm-workspace 授权的目录。 */
   async isKnownWorkspace(cwd: string): Promise<boolean> {
     const key = canonicalizePath(cwd)
 
-    if (this.resourceSlots.has(key)) return true
+    if (this.warmedWorkspaces.has(key)) return true
+
+    for (const session of this.activeSessions.values()) {
+      if (session.cwd === key) return true
+    }
+
     const sessions = await this.refreshSessionPaths()
     return sessions.some((info) => info.cwd && canonicalizePath(info.cwd) === key)
   }

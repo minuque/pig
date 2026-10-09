@@ -1,9 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
+import { stat } from "node:fs/promises"
 import { PiServerError, SessionNotFoundError } from "@earendil-works/pi-server"
 import type { DirectoryPort } from "../directory.js"
 import { AttachmentError, sanitizeMimeType, type AttachmentErrorCode } from "../pi/attachments.js"
 import { isContextPreviewKey } from "../pi/context-usage.js"
-import { searchFiles } from "../pi/file-search.js"
+import { searchFiles, MAX_FILE_SEARCH_RESULTS } from "../pi/file-search.js"
 import type { PiHostService } from "../pi/service.js"
 
 export type PlatformRequestDeps = {
@@ -56,7 +57,7 @@ export async function handlePlatformRequest(
   }
 
   if (url.pathname === "/api/v1/platform/files" && req.method === "GET") {
-    await handleFiles(res, url, deps)
+    await handleFiles(req, res, url, deps)
     return true
   }
 
@@ -220,7 +221,13 @@ async function handleWarmWorkspace(
   if (!payload) return
   const path = typeof payload.path === "string" ? payload.path.trim() : ""
 
-  if (!path) {
+  if (
+    !path ||
+    !(await stat(path).then(
+      (s) => s.isDirectory(),
+      () => false,
+    ))
+  ) {
     send(res, 400, { code: "INVALID_REQUEST" })
     return
   }
@@ -242,7 +249,12 @@ async function handleSessionCards(res: ServerResponse, deps: PlatformRequestDeps
 }
 
 /** @ 文件引用：cwd 必须是已知工作区（活会话/磁盘会话/已备好的资源槽），否则拒绝。 */
-async function handleFiles(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
+async function handleFiles(
+  req: IncomingMessage,
+  res: ServerResponse,
+  url: URL,
+  deps: PlatformRequestDeps,
+) {
   const { send, hostService } = deps
   const cwd = url.searchParams.get("cwd")?.trim() ?? ""
 
@@ -252,9 +264,13 @@ async function handleFiles(res: ServerResponse, url: URL, deps: PlatformRequestD
   }
 
   const query = url.searchParams.get("q") ?? ""
+  const controller = new AbortController()
+
+  // 客户端断开/防抖取消时中断遍历，不叠加扫描
+  req.once("close", () => controller.abort())
 
   try {
-    const entries = await searchFiles(cwd, query)
+    const entries = await searchFiles(cwd, query, MAX_FILE_SEARCH_RESULTS, controller.signal)
     send(res, 200, { entries })
   } catch (error) {
     console.error("files failed:", error)
