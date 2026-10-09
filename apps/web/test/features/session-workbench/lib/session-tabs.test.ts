@@ -29,6 +29,10 @@ describe("moveSessionTab", () => {
   it("目标不存在时顺序不变", () => {
     expect(moveSessionTab(["a", "b"], "a", "missing")).toEqual(["a", "b"])
   })
+
+  it("没有目标时落到末尾", () => {
+    expect(moveSessionTab(["a", "b", "c"], "a", undefined)).toEqual(["b", "c", "a"])
+  })
 })
 
 describe("sessionTabAfterClose", () => {

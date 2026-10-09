@@ -25,6 +25,7 @@
       :active-id="highlightedSessionId"
       :state-of="stateOf"
       :pinned="pinned"
+      :vendor-of="vendorOf"
       @select="openSession"
       @move="moveTab"
       @close="closeTab"
@@ -90,6 +91,11 @@ function stateOf(id: string): SidebarSessionState | undefined {
 
 function pinned(id: string): boolean {
   return pinnedIds.value.has(id)
+}
+
+/** 会话默认模型的厂商标，用于页签左侧图标。 */
+function vendorOf(id: string): string | undefined {
+  return cardFootById.value.get(id)?.model?.provider
 }
 
 function onRename(id: string, name: string): void {

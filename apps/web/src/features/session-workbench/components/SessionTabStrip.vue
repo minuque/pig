@@ -19,12 +19,13 @@
           class="session-tab"
           :class="{
             active: tab.id === activeId,
-            dragging: tab.id === draggingId,
+            dragging: tab.id === dragState?.id,
             'menu-open': menuOpenId === tab.id,
           }"
+          :data-id="tab.id"
           :aria-selected="tab.id === activeId"
           :title="tab.title"
-          :style="frozenWidth === null ? undefined : { width: `${frozenWidth}px` }"
+          :style="dragStyle(tab)"
           @pointerdown="onPointerDown(tab.id, $event)"
           @auxclick="onMiddleClick(tab.id, $event)"
         >
@@ -52,13 +53,16 @@
 
             <template v-else>
               <span class="tab-glyph">
-                <IconLoading
-                  v-if="stateOf(tab.id) === 'running'"
+                <GripVerticalIcon v-if="tab.id === dragState?.id" />
+
+                <LoaderIcon
+                  v-else-if="stateOf(tab.id) === 'running'"
                   class="animate-spin motion-reduce:animate-none"
                 />
 
-                <IconAlert v-else-if="stateOf(tab.id) === 'error'" />
-                <IconSparkle v-else />
+                <DangerCircleIcon v-else-if="stateOf(tab.id) === 'error'" />
+                <VendorMark v-else-if="vendorOf(tab.id)" :vendor="vendorOf(tab.id)" :size="14" />
+                <StarsMinimalisticIcon v-else />
               </span>
 
               <span class="tab-title">{{ tab.title }}</span>
@@ -73,20 +77,20 @@
             @pointerdown.stop
             @click.stop="close(tab.id)"
           >
-            <IconCross />
+            <CloseIcon />
           </button>
         </div>
       </ContextMenuTrigger>
 
       <ContextMenuContent class="select-none">
         <ContextMenuItem @select="emit('togglePinned', tab.id)">
-          <IconPinOff v-if="pinned(tab.id)" />
-          <IconPin v-else />
+          <PinBoldIcon v-if="pinned(tab.id)" />
+          <PinIcon v-else />
           {{ pinned(tab.id) ? t("session.unpin") : t("session.pin") }}
         </ContextMenuItem>
 
         <ContextMenuItem @select="startRename(tab.id)">
-          <IconPencil />
+          <PenIcon />
           {{ t("session.rename") }}
         </ContextMenuItem>
 
@@ -118,7 +122,7 @@
         <ContextMenuSeparator />
 
         <ContextMenuItem variant="destructive" @select="onDelete(tab.id)">
-          <IconTrash />
+          <TrashBinMinimalisticIcon />
           {{ t("session.deleteTitle") }}
         </ContextMenuItem>
       </ContextMenuContent>
@@ -139,20 +143,22 @@ import {
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
 import {
-  IconAlert,
-  IconCross,
-  IconLoading,
-  IconPencil,
-  IconPin,
-  IconPinOff,
-  IconSparkle,
-  IconTrash,
+  CloseIcon,
+  DangerCircleIcon,
+  GripVerticalIcon,
+  LoaderIcon,
+  PenIcon,
+  PinIcon,
+  PinBoldIcon,
+  StarsMinimalisticIcon,
+  TrashBinMinimalisticIcon,
 } from "@components/icons/index.js"
 import {
   sessionTabsInCloseScope,
   type SessionTab,
 } from "@features/session-workbench/lib/session-tabs.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
+import VendorMark from "@features/composer/components/VendorMark.vue"
 import type { SidebarSessionState } from "@features/session-nav/type.js"
 
 const props = defineProps<{
@@ -160,10 +166,11 @@ const props = defineProps<{
   activeId: string | undefined
   stateOf: (id: string) => SidebarSessionState | undefined
   pinned: (id: string) => boolean
+  vendorOf: (id: string) => string | undefined
 }>()
 const emit = defineEmits<{
   select: [id: string]
-  move: [draggedId: string, overId: string]
+  move: [draggedId: string, overId?: string]
   close: [id: string]
   closeScope: [id: string, scope: "left" | "right" | "others"]
   rename: [id: string, name: string]
@@ -174,7 +181,16 @@ const { t } = useI18n()
 const strip = useTemplateRef("strip")
 const tabNodes = useTemplateRef<HTMLElement[]>("tabNodes")
 const nameInput = useTemplateRef<HTMLInputElement>("nameInput")
-const draggingId = ref<string>()
+const dragState = shallowRef<{
+  id: string
+  pointerId: number
+  node: HTMLElement
+  startX: number
+  startLeft: number
+  lastX: number
+  translate: number
+  moved: boolean
+}>()
 const frozenWidth = ref<number | null>(null)
 const renamingId = ref<string>()
 const renameDraft = ref("")
@@ -183,11 +199,16 @@ const deleteId = ref<string>()
 const deleteTitle = computed(() => props.tabs.find((tab) => tab.id === deleteId.value)?.title ?? "")
 const menuOpenId = ref<string>()
 const DRAG_DISTANCE = 6
-let dragListeners:
-  { pointerId: number; onMove: (e: PointerEvent) => void; onEnd: () => void } | undefined
 
 function ids(): string[] {
   return props.tabs.map((tab) => tab.id)
+}
+
+function dragStyle(tab: SessionTab) {
+  if (tab.id === dragState.value?.id) return undefined
+
+  if (frozenWidth.value === null) return undefined
+  return { flexBasis: `${frozenWidth.value}px` }
 }
 
 function scopeCount(id: string, scope: "left" | "right" | "others"): number {
@@ -199,55 +220,111 @@ function hasScope(id: string): boolean {
 }
 
 function cleanupDrag(): void {
-  if (!dragListeners) return
-  window.removeEventListener("pointermove", dragListeners.onMove)
-  window.removeEventListener("pointerup", dragListeners.onEnd)
-  window.removeEventListener("pointercancel", dragListeners.onEnd)
-  dragListeners = undefined
-  draggingId.value = undefined
+  if (!dragState.value) return
+  window.removeEventListener("pointermove", onDragMove)
+  window.removeEventListener("pointerup", onDragEnd)
+  window.removeEventListener("pointercancel", onDragEnd)
+  dragState.value.node.style.removeProperty("transform")
+  dragState.value = undefined
+}
+
+/** 把被拖标签按指针位置重新定位：按当前基准位置（排除了已应用位移）反算 translate。 */
+function positionDragged(): void {
+  const state = dragState.value
+
+  if (!state) return
+  const desired = state.startLeft + (state.lastX - state.startX)
+  const base = state.node.getBoundingClientRect().left - state.translate
+
+  state.translate = desired - base
+  state.node.style.transform = `translateX(${state.translate}px)`
+}
+
+/** 重排后校正被拖标签并让其余标签平滑换位；必须等 DOM 落下再测，否则读到旧布局。 */
+function commitMove(overId: string | undefined): void {
+  const draggedId = dragState.value?.id
+  const before = new Map(
+    (tabNodes.value ?? []).map((node) => [
+      node.dataset.id ?? "",
+      node.getBoundingClientRect().left,
+    ]),
+  )
+
+  emit("move", draggedId ?? "", overId)
+
+  requestAnimationFrame(() => {
+    positionDragged()
+
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches
+
+    for (const node of tabNodes.value ?? []) {
+      const id = node.dataset.id ?? ""
+      const delta = (before.get(id) ?? 0) - node.getBoundingClientRect().left
+
+      if (id === draggedId || delta === 0 || still) continue
+      node.animate([{ transform: `translateX(${delta}px)` }, { transform: "none" }], {
+        duration: 180,
+        easing: "ease-out",
+      })
+    }
+  })
+}
+
+function onDragMove(move: PointerEvent): void {
+  const state = dragState.value
+
+  if (!state || move.pointerId !== state.pointerId) return
+
+  if (!state.moved && Math.abs(move.clientX - state.startX) < DRAG_DISTANCE) return
+  state.moved = true
+  state.lastX = move.clientX
+  positionDragged()
+  const over = tabBeforeAt(move.clientX)
+
+  commitMove(over)
+}
+
+function onDragEnd(up: PointerEvent): void {
+  const state = dragState.value
+
+  if (!state || up.pointerId !== state.pointerId) return
+  const moved = state.moved
+  cleanupDrag()
+
+  if (!moved) emit("select", state.id)
 }
 
 function onPointerDown(id: string, event: PointerEvent): void {
   if (event.button !== 0 || event.ctrlKey) return
+  const node = event.currentTarget
 
-  const startX = event.clientX
-  const pointerId = event.pointerId
-  let moved = false
-  const onMove = (move: PointerEvent) => {
-    if (move.pointerId !== pointerId) return
-
-    if (!moved && Math.abs(move.clientX - startX) < DRAG_DISTANCE) return
-    moved = true
-    draggingId.value = id
-    const over = tabAt(move.clientX)
-
-    if (over && over !== id) emit("move", id, over)
-  }
-  const onEnd = () => {
-    cleanupDrag()
-
-    if (!moved) emit("select", id)
-  }
-
+  if (!(node instanceof HTMLElement)) return
   cleanupDrag()
-  dragListeners = { pointerId, onMove, onEnd }
-  window.addEventListener("pointermove", onMove)
-  window.addEventListener("pointerup", onEnd)
-  window.addEventListener("pointercancel", onEnd)
+  dragState.value = {
+    id,
+    pointerId: event.pointerId,
+    node,
+    startX: event.clientX,
+    startLeft: node.getBoundingClientRect().left,
+    lastX: event.clientX,
+    translate: 0,
+    moved: false,
+  }
+  window.addEventListener("pointermove", onDragMove)
+  window.addEventListener("pointerup", onDragEnd)
+  window.addEventListener("pointercancel", onDragEnd)
 }
 
-function tabAt(clientX: number): string | undefined {
-  const nodes = tabNodes.value
+/** 指针所在的插入目标：只看未被拖动的标签中点；越过末尾返回 undefined（插到队尾）。 */
+function tabBeforeAt(clientX: number): string | undefined {
+  for (const node of tabNodes.value ?? []) {
+    const id = node.dataset.id ?? ""
 
-  if (!nodes) return
-
-  for (const [index, node] of nodes.entries()) {
+    if (id === dragState.value?.id) continue
     const box = node.getBoundingClientRect()
 
-    if (clientX < box.left + box.width / 2) return props.tabs[index]?.id
+    if (clientX < box.left + box.width / 2) return id
   }
-
-  return props.tabs.at(-1)?.id
 }
 
 function close(id: string): void {
@@ -376,6 +453,10 @@ watch(
   cursor: grab;
 }
 
+.session-tabs:has(.session-tab.dragging) .session-tab:not(.dragging) {
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+
 .session-tab:hover {
   background: var(--hover-quiet);
   color: var(--ink);
@@ -390,7 +471,11 @@ watch(
 
 .session-tab.dragging {
   z-index: 1;
+  background: var(--composer-bg);
+  color: var(--ink);
+  box-shadow: var(--shadow-card);
   cursor: grabbing;
+  transition: none;
 }
 
 .session-tab + .session-tab::before {

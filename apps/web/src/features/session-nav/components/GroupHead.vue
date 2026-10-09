@@ -141,7 +141,7 @@ function onDragStart(event: DragEvent) {
 
 .grip-icon {
   display: none;
-  color: var(--primary);
+  color: var(--ink-faint);
 }
 
 .group-head:hover .mark {
