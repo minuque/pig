@@ -132,6 +132,28 @@ export function toolCommand(input: unknown): string {
   return typeof input === "string" ? input : hintFromKeys(input, ["command", "cmd"])
 }
 
+const COMMAND_STATUS =
+  /(?:^|\n\n)(Command exited with code (-?\d+)|Command aborted|Command timed out after \d+ seconds|Command terminated without an exit code)\s*$/
+
+/** 拆出 pi bash 追加在输出末尾的状态行；正常结束记为 exit 0。 */
+export function splitCommandStatus(
+  output: string,
+  status: "error" | "running" | "success",
+): { body: string; exitCode?: number; statusLine: string } {
+  const match = COMMAND_STATUS.exec(output)
+
+  if (!match) {
+    return status === "success"
+      ? { body: output, exitCode: 0, statusLine: "" }
+      : { body: output, statusLine: "" }
+  }
+
+  const body = output.slice(0, match.index)
+  return match[2] === undefined
+    ? { body, statusLine: match[1] ?? "" }
+    : { body, exitCode: Number(match[2]), statusLine: "" }
+}
+
 export function toolPath(input: unknown): string {
   return hintFromKeys(input, PATH_KEYS)
 }

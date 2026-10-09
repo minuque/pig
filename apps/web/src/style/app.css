@@ -75,6 +75,7 @@
   --link-underline-hover: color-mix(in srgb, var(--ink) 72%, transparent);
   --success-halo: color-mix(in srgb, var(--success) 15%, transparent);
   --danger-halo: color-mix(in srgb, var(--danger) 15%, transparent);
+  --danger-border: color-mix(in srgb, var(--danger) 45%, var(--border));
   --info-halo: color-mix(in srgb, var(--primary) 15%, transparent);
   --effort-track: var(--border-subtle);
   --effort-thumb: var(--white);

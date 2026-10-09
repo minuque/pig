@@ -37,9 +37,9 @@
         <div v-else-if="keptMounted" class="calls">
           <template v-for="call in calls" :key="call.item.id">
             <div v-if="call.expandable" class="call">
-              <ToolStepCard
+              <CommandStepCard
                 v-if="call.variant === 'command'"
-                variant="command"
+                :tool-name="call.item.toolName"
                 :command="call.command"
                 :cwd="call.cwd"
                 :output-text="call.outputText"
@@ -84,6 +84,7 @@
 import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
+import CommandStepCard from "@features/transcript-view/components/CommandStepCard.vue"
 import ToolStepCard from "@features/transcript-view/components/ToolStepCard.vue"
 import TranscriptFileTag from "@features/transcript-view/components/TranscriptFileTag.vue"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"

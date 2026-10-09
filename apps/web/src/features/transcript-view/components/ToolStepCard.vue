@@ -9,32 +9,7 @@
   </div>
 
   <div v-else class="tool-step-card" :class="cardClasses">
-    <template v-if="runContent">
-      <ToolHeader
-        v-model:soft-wrap="softWrap"
-        :label="t('transcript.output')"
-        :text="runContent.shownOutput"
-      >
-        <div class="command-heading">
-          <span class="status-dot" :title="runContent.statusLabel" />
-
-          <span v-if="runContent.meta" class="cwd" :title="runContent.metaTitle">
-            {{ runContent.meta }}
-          </span>
-
-          <code class="command" :title="runContent.heading">{{ runContent.heading }}</code>
-        </div>
-      </ToolHeader>
-
-      <ToolOutput
-        :soft-wrap="softWrap"
-        :text="runContent.shownOutput"
-        :images="runContent.outputImages"
-        embedded
-      />
-    </template>
-
-    <template v-else-if="readContent">
+    <template v-if="readContent">
       <ToolHeader
         v-model:soft-wrap="softWrap"
         v-model:show-line-numbers="showLineNumbers"
@@ -137,7 +112,7 @@ import {
   plainMarkdownProps,
   type CodeTokens,
 } from "@features/transcript-view/lib/markdown-render-props.js"
-import { pathBasename, type ReadToolPreview } from "@features/transcript-view/lib/tool-summary.js"
+import type { ReadToolPreview } from "@features/transcript-view/lib/tool-summary.js"
 import type {
   EditDiffPreview,
   TranscriptImage as ToolStepImage,
@@ -145,35 +120,17 @@ import type {
 
 const { t } = useI18n()
 const props = defineProps<{
-  variant: "thought" | "command" | "read" | "edit" | "tool"
+  variant: "thought" | "read" | "edit" | "tool"
   text?: string
   streaming?: boolean
-  command?: string
-  cwd?: string
   outputText?: string
   outputImages?: ToolStepImage[]
   emptyOutput?: string
-  status?: "error" | "running" | "success"
-  statusLabel?: string
   path?: string
   preview?: ReadToolPreview | undefined
   inputFull?: string
   editPreview?: EditDiffPreview
 }>()
-const runContent = computed(() => {
-  if (props.variant !== "command") return null
-  const command = props.command ?? ""
-  const cwd = props.cwd ?? ""
-  return {
-    meta: cwd ? pathBasename(cwd) : "",
-    metaTitle: cwd,
-    heading: command,
-    shownOutput: props.outputText || props.emptyOutput || "",
-    outputImages: props.outputImages ?? [],
-    status: props.status ?? "success",
-    statusLabel: props.statusLabel ?? "",
-  }
-})
 const readContent = computed(() =>
   props.variant === "read" && props.path && props.preview
     ? { path: props.path, preview: props.preview }
@@ -202,10 +159,7 @@ const editContent = computed(() =>
 )
 const cardClasses = computed(() => ({
   "is-thought": props.variant === "thought",
-  "is-command": props.variant === "command",
   "is-tool": props.variant === "tool",
-  "is-err": runContent.value?.status === "error",
-  "is-run": runContent.value?.status === "running",
 }))
 const { codeBlockProps, isDark } = useColorScheme()
 const thoughtProps = computed(() =>
@@ -301,54 +255,6 @@ watch(
   box-shadow: none;
 }
 
-.command-heading {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  min-width: 0;
-  font-family: var(--font-mono);
-}
-
-.status-dot {
-  flex: none;
-  width: 6px;
-  height: 6px;
-  margin: 2px;
-  border-radius: var(--radius-full);
-  background: var(--success);
-  box-shadow: 0 0 0 2px var(--success-halo);
-}
-
-.is-err .status-dot {
-  background: var(--danger);
-  box-shadow: 0 0 0 2px var(--danger-halo);
-}
-
-.is-run .status-dot {
-  background: var(--primary);
-  box-shadow: 0 0 0 2px var(--info-halo);
-  animation: status-pulse 1.2s ease-in-out infinite;
-}
-
-.cwd {
-  flex: 0 1 auto;
-  max-width: 16ch;
-  overflow: hidden;
-  color: var(--ink-muted);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.command {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  color: var(--ink);
-  font: inherit;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .is-tool :deep(.tool-header-pin) {
   position: static;
   container-type: normal;
@@ -426,17 +332,5 @@ watch(
 
 .edit-diff + .edit-diff {
   border-top: var(--border-width) solid var(--border);
-}
-
-@keyframes status-pulse {
-  50% {
-    opacity: 0.4;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .status-dot {
-    animation: none;
-  }
 }
 </style>
