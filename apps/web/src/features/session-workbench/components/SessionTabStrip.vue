@@ -478,6 +478,11 @@ watch(
   transition: none;
 }
 
+/* 桌面壳标题栏固定 44px，页签收到侧栏行高 */
+html[data-pig-desktop-platform] .session-tab {
+  height: var(--size-nav-rail);
+}
+
 .session-tab + .session-tab::before {
   content: "";
   position: absolute;

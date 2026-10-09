@@ -17,8 +17,6 @@
       <TooltipContent>{{ t("nav.openSidebar") }}</TooltipContent>
     </Tooltip>
 
-    <span v-if="cwdName" class="header-cwd" :title="cwd ?? ''">{{ cwdName }}</span>
-
     <SessionTabStrip
       v-if="tabs.length > 0"
       :tabs="tabs"
@@ -44,7 +42,7 @@ import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { sessionTitle, useNav, workspaceName } from "@features/session-nav/index.js"
+import { sessionTitle, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { useSessionTabs } from "@features/session-workbench/hooks/use-session-tabs.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
@@ -52,9 +50,6 @@ import type { SidebarSessionState } from "@features/session-nav/type.js"
 import SessionTabStrip from "@features/session-workbench/components/SessionTabStrip.vue"
 import { SidebarGlyph } from "@components/icons/index.js"
 
-const props = defineProps<{
-  cwd?: string | undefined
-}>()
 const { t } = useI18n()
 const { leftOpen, toggle } = useLeftPanelToggle()
 const { sessionId, projection } = useSession()
@@ -83,7 +78,6 @@ const title = computed(() =>
     projectionName: projection.value?.name,
   }),
 )
-const cwdName = computed(() => (props.cwd ? workspaceName(props.cwd) : ""))
 
 function stateOf(id: string): SidebarSessionState | undefined {
   return cardFootById.value.get(id)?.state
@@ -149,21 +143,6 @@ function onRename(id: string, name: string): void {
   color: var(--ink);
 }
 
-.header-cwd {
-  flex: none;
-  max-width: 14rem;
-  padding: 2px var(--spacing-xs);
-  border-radius: var(--radius-sm);
-  background: var(--hover-tint);
-  color: var(--ink-muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .header-session {
   flex: 1 1 auto;
   min-width: 0;
@@ -184,7 +163,9 @@ html[data-pig-desktop-platform] .header-session {
 }
 
 html[data-pig-desktop-platform] .workbench-header {
-  min-height: var(--titlebar-inset);
+  /* 45 = 44 标题栏 + 1px 底边线：底边线不落在原生窗控按钮区域里，不会被按钮背景盖住 */
+  height: calc(var(--titlebar-inset) + var(--border-width));
+  min-height: calc(var(--titlebar-inset) + var(--border-width));
   user-select: none;
 }
 

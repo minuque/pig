@@ -5,6 +5,8 @@ const SECURE_WEB_PREFERENCES = {
   nodeIntegration: false,
   sandbox: true,
 } as const
+/** 必须与 web 的 `--titlebar-inset`（app.css）一致：它等于 header 的内容高度，底边线画在它之下。 */
+const TITLEBAR_HEIGHT = 44
 
 /** 按平台返回窗口铬层；不含 preload / 窗控 IPC。 */
 export function windowChromeFor(platform: string): BrowserWindowConstructorOptions {
@@ -22,7 +24,7 @@ export function windowChromeFor(platform: string): BrowserWindowConstructorOptio
     return {
       titleBarStyle: "hidden",
       // 非 0 alpha 会吃掉留白点击；拖拽交给页面 app-region
-      titleBarOverlay: { color: "#00000000", symbolColor: "#737373", height: 44 },
+      titleBarOverlay: { color: "#00000000", symbolColor: "#737373", height: TITLEBAR_HEIGHT },
       thickFrame: true,
       roundedCorners: true,
       autoHideMenuBar: true,
