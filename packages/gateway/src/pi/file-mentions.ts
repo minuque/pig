@@ -1,5 +1,5 @@
-import { access, readFile, stat } from "node:fs/promises"
-import { resolve, sep } from "node:path"
+import { readFile, realpath, stat } from "node:fs/promises"
+import { isAbsolute, relative, resolve, sep } from "node:path"
 
 /**
  * @ 文件引用展开：把 prompt 里的 @path / @"quoted path" 展开为
@@ -13,6 +13,8 @@ const MENTION_PATTERN = /(^|\s)@(?:"((?:\\.|[^"\\])*)"|([^\s@]+))/g
 const MAX_MENTION_FILES = 16
 /** 单文件内联上限 512KB；图片等二进制不内联，只留路径让 agent 自取。 */
 const MAX_INLINE_BYTES = 512 * 1024
+/** 一次 prompt 内联总量上限，防长文本撑爆上下文。 */
+const MAX_TOTAL_INLINE_BYTES = 2 * 1024 * 1024
 const BINARY_BYTES = /[\u0000-\u0008\u000e-\u001f]/
 
 interface MentionToken {
@@ -35,11 +37,21 @@ function findMentionTokens(text: string): MentionToken[] {
     if (tail < text.length && !/\s/.test(text[tail]!)) continue
     const path = match[2] !== undefined ? raw.replace(/\\(["\\])/g, "$1") : raw
 
-    if (!path || path.startsWith("/")) continue
+    if (!path || isAbsolute(path)) continue
     tokens.push({ start: at, end: tail, path })
   }
 
   return tokens
+}
+
+/** name 属性里路径的 " 会破坏属性边界；& 与 < 顺手转义，内容不受影响。 */
+function escapeFileName(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
+}
+
+/** 内容原样保留（与 Pi CLI 一致），只防 </file> 提前闭合块。 */
+function escapeFileContent(value: string): string {
+  return value.replaceAll("</file", "<\\/file")
 }
 
 /**
@@ -54,37 +66,59 @@ export function expandFileMentions(text: string, cwd: string): Promise<string> |
   return expandTokens(text, tokens, cwd)
 }
 
+/** 真实路径是否在 root 之内（含 root 自身）。相对结果是空或在 root 下才算。 */
+function insideRoot(root: string, target: string): boolean {
+  const rel = relative(root, target)
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel))
+}
+
 async function expandTokens(text: string, tokens: MentionToken[], cwd: string): Promise<string> {
   const blocks: string[] = []
   const seen = new Set<string>()
+  /** 真实 root 一次解析：symlink 比对用真实路径，不用字面前缀。 */
+  let realRoot: string | undefined
+
+  try {
+    realRoot = await realpath(cwd)
+  } catch {
+    return text
+  }
+
+  let inlineBytes = 0
 
   for (const token of tokens.slice(0, MAX_MENTION_FILES)) {
-    // cwd 内相对路径；拒绝爬出工作目录的 token
-    const absolute = resolve(cwd, token.path)
-
-    if (absolute !== cwd && !absolute.startsWith(`${cwd}${sep}`)) continue
+    const absolute = resolve(realRoot, token.path)
 
     if (seen.has(absolute)) continue
     seen.add(absolute)
 
     try {
-      const stats = await stat(absolute)
+      // realpath 解析 symlink/junction，越界目标不展开
+      const realTarget = await realpath(absolute)
+
+      if (!insideRoot(realRoot, realTarget)) continue
+      const stats = await stat(realTarget)
 
       if (!stats.isFile() || stats.size === 0) continue
 
-      if (stats.size > MAX_INLINE_BYTES) {
-        blocks.push(`<file name="${absolute}">文件较大，未内联；请用 read 工具查看。</file>`)
+      if (stats.size > MAX_INLINE_BYTES || inlineBytes + stats.size > MAX_TOTAL_INLINE_BYTES) {
+        blocks.push(
+          `<file name="${escapeFileName(realTarget)}">文件较大，未内联；请用 read 工具查看。</file>`,
+        )
         continue
       }
 
-      const content = await readFile(absolute, "utf-8")
+      const content = await readFile(realTarget, "utf-8")
 
       if (BINARY_BYTES.test(content)) {
-        blocks.push(`<file name="${absolute}">二进制文件，未内联。</file>`)
+        blocks.push(`<file name="${escapeFileName(realTarget)}">二进制文件，未内联。</file>`)
         continue
       }
 
-      blocks.push(`<file name="${absolute}">\n${content}\n</file>`)
+      inlineBytes += stats.size
+      blocks.push(
+        `<file name="${escapeFileName(realTarget)}">\n${escapeFileContent(content)}\n</file>`,
+      )
     } catch {
       // 读不到的路径保留原 token，agent 可自行 read 或澄清
     }

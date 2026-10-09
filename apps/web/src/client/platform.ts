@@ -145,10 +145,15 @@ export interface FileSearchEntry {
   kind: "file" | "directory"
 }
 
-export async function searchWorkspaceFiles(cwd: string, query: string): Promise<FileSearchEntry[]> {
+export async function searchWorkspaceFiles(
+  cwd: string,
+  query: string,
+  signal?: AbortSignal,
+): Promise<FileSearchEntry[]> {
   const params = new URLSearchParams({ cwd, q: query })
   const result = await platformRequest<{ entries: FileSearchEntry[] }>(
     `/api/v1/platform/files?${params.toString()}`,
+    signal ? { signal } : undefined,
   )
   return result.entries
 }

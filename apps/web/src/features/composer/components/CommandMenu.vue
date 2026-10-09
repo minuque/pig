@@ -1,14 +1,14 @@
 <template>
-  <div class="command-menu surface-float" role="listbox" :aria-label="ariaLabel">
+  <div class="command-menu surface-float" :id="menuId" role="listbox" :aria-label="ariaLabel">
     <template v-if="groups.length">
       <div v-for="group in groups" :key="group.id" class="command-group">
         <p v-if="group.label" class="command-label">{{ group.label }}</p>
 
-        <button
+        <div
           v-for="row in group.rows"
           :key="row.id"
+          :id="`${menuId}-row-${row.id}`"
           :ref="(el) => setRowRef(row.id, el)"
-          type="button"
           role="option"
           class="command-row"
           :aria-selected="row.id === activeId"
@@ -29,7 +29,7 @@
           </span>
 
           <span v-if="row.trailing" class="command-trailing">{{ row.trailing }}</span>
-        </button>
+        </div>
       </div>
     </template>
 
@@ -63,12 +63,15 @@ const props = withDefaults(
   defineProps<{
     groups: CommandMenuGroup[]
     activeId: string | null
+    /** listbox 的 id，textarea 用它挂 aria-controls / activedescendant。 */
+    menuId?: string
     loading?: boolean
     emptyText?: string
     loadingText?: string
     ariaLabel?: string
   }>(),
   {
+    menuId: "composer-command-menu",
     loading: false,
     emptyText: "没有匹配项",
     loadingText: "搜索中…",
@@ -143,6 +146,7 @@ watch(
   font-size: var(--text-button);
   line-height: var(--text-button--line-height);
   cursor: pointer;
+  user-select: none;
   transition: background var(--duration-fast) var(--ease-smooth);
 }
 

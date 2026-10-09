@@ -298,13 +298,16 @@ function onPickerKeydown(event: KeyboardEvent) {
 }
 
 function onSearchKeydown(event: KeyboardEvent) {
+  // 输入法上屏 Enter 不直达选择，让编辑器按原语义处理
+  if (event.isComposing) return
+
   if (event.key === "Enter") {
-    // 焦点还在搜索框：无高亮行，直达首个结果
+    // 焦点还在搜索框：无高亮行，直达第一个结果（不是虚拟列表可视首项）
     event.preventDefault()
-    const first = list.value[0]
+    const first = items.value[0]
 
     if (first) {
-      emit("update:model", { provider: first.data.vendor.id, id: first.data.model.id })
+      emit("update:model", { provider: first.vendor.id, id: first.model.id })
       open.value = false
     }
 

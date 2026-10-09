@@ -128,10 +128,20 @@ export class PiHostService implements PiServerService {
     void this.slot(canonicalizePath(cwd)).catch(() => undefined)
   }
 
-  /** 某目录已加载的技能清单：给输入卡斜杠菜单用；loader 未就绪时返回空。 */
+  /** 目录是否被授权使用：已备好的资源槽、活会话 cwd 或磁盘会话 cwd。 */
+  async isKnownWorkspace(cwd: string): Promise<boolean> {
+    const key = canonicalizePath(cwd)
+
+    if (this.resourceSlots.has(key)) return true
+    const sessions = await this.refreshSessionPaths()
+    return sessions.some((info) => info.cwd && canonicalizePath(info.cwd) === key)
+  }
+
+  /** 某目录已加载的技能清单：只读已备好的 loader，不为未知目录新建 slot。 */
   async workspaceSkills(cwd: string): Promise<Array<{ name: string; description: string }>> {
     if (this.options.createSession) return []
-    const slot = await this.slot(canonicalizePath(cwd)).catch(() => undefined)
+    const pending = this.resourceSlots.get(canonicalizePath(cwd))
+    const slot = await pending?.catch(() => undefined)
 
     if (!slot) return []
     return slot.loader
