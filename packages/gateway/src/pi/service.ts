@@ -76,6 +76,14 @@ async function saveAuthorizedWorkspaces(sessionDir: string | undefined, paths: S
   await writeFile(file, JSON.stringify([...paths]), "utf-8")
 }
 
+/** 输入卡 / 菜单的一行候选：技能与 prompt 模板同形。 */
+export interface ComposerCommand {
+  name: string
+  description: string
+  /** 模板用法提示，如 "<issue-number>"。 */
+  argumentHint?: string
+}
+
 export interface PiHostServiceOptions {
   /** 统一会话目录；缺省用 Pi 默认（~/.pi/agent/sessions/<cwd>/）。 */
   sessionDir?: string
@@ -204,16 +212,26 @@ export class PiHostService implements PiServerService {
     return hit
   }
 
-  /** 某目录已加载的技能清单：只读已备好的 loader，不为未知目录新建 slot。 */
-  async workspaceSkills(cwd: string): Promise<Array<{ name: string; description: string }>> {
-    if (this.options.createSession) return []
+  /** 某目录已加载的技能与 prompt 模板：只读已备好的 loader，不为未知目录新建 slot。 */
+  async workspaceCommands(
+    cwd: string,
+  ): Promise<{ skills: ComposerCommand[]; prompts: ComposerCommand[] }> {
+    if (this.options.createSession) return { skills: [], prompts: [] }
     const pending = this.resourceSlots.get(canonicalizePath(cwd))
     const slot = await pending?.catch(() => undefined)
 
-    if (!slot) return []
-    return slot.loader
-      .getSkills()
-      .skills.map((skill) => ({ name: skill.name, description: skill.description }))
+    if (!slot) return { skills: [], prompts: [] }
+    return {
+      skills: slot.loader
+        .getSkills()
+        .skills.map((skill) => ({ name: skill.name, description: skill.description })),
+      // 模板带 argumentHint：菜单用它提示该传什么参数
+      prompts: slot.loader.getPrompts().prompts.map((prompt) => ({
+        name: prompt.name,
+        description: prompt.description,
+        ...(prompt.argumentHint === undefined ? {} : { argumentHint: prompt.argumentHint }),
+      })),
+    }
   }
 
   async createSession(options: CreateSessionOptions): Promise<PiSessionRuntime> {

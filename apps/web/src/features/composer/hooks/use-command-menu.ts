@@ -1,7 +1,8 @@
 import { computed, nextTick, onScopeDispose, ref, watch, type Ref } from "vue"
 import {
-  listWorkspaceSkills,
+  listWorkspaceCommands,
   searchWorkspaceFiles,
+  type ComposerCommand,
   type FileSearchEntry,
 } from "@client/platform.js"
 import type {
@@ -17,7 +18,9 @@ import {
 /** 目录候选行的 id 前缀；选中目录不插文本，改为把查询推进到该前缀继续搜。 */
 const DIR_PREFIX = "dir:"
 const FILE_PREFIX = "file:"
+/** 技能插入 /skill:name（Pi 的显式调用形式）；模板插入 /name。 */
 const SKILL_PREFIX = "skill:"
+const TEMPLATE_PREFIX = "template:"
 const BUILTIN_PREFIX = "builtin:"
 const BUILTIN_COMMANDS = [{ name: "clear", description: "清空输入草稿" }]
 
@@ -43,7 +46,8 @@ export function useCommandMenu(
   const open = ref(false)
   const trigger = ref<ComposerTrigger>(null)
   const files = ref<FileSearchEntry[]>([])
-  const skills = ref<Array<{ name: string; description: string }>>([])
+  const skills = ref<ComposerCommand[]>([])
+  const prompts = ref<ComposerCommand[]>([])
   const loading = ref(false)
   const activeId = ref<string | null>(null)
   /** 每次查询递增，丢弃过期响应。 */
@@ -67,16 +71,29 @@ export function useCommandMenu(
   })
   const commandRows = computed<CommandMenuRow[]>(() => {
     const query = trigger.value?.kind === "command" ? trigger.value.query.toLowerCase() : ""
-    const commands = [
+    // 同名时模板优先：模板是 Pi 的实际展开目标，内置项让位避免截胡
+    const templateNames = new Set(prompts.value.map((prompt) => prompt.name))
+    const commands: Array<{
+      key: string
+      name: string
+      description: string
+      /** 模板用法提示，优先于 description。 */
+      hint?: string | undefined
+    }> = [
       // /clear 只在草稿只剩这个 token 时执行，其他情形不显示，避免选中后无反馈
-      ...BUILTIN_COMMANDS.filter(() => clearApplicable.value).map((command) => ({
-        ...command,
-        key: `${BUILTIN_PREFIX}${command.name}`,
-      })),
+      ...BUILTIN_COMMANDS.filter(
+        (command) => clearApplicable.value && !templateNames.has(command.name),
+      ).map((command) => ({ ...command, key: `${BUILTIN_PREFIX}${command.name}` })),
       ...skills.value.map((skill) => ({
         key: `${SKILL_PREFIX}${skill.name}`,
         name: `skill:${skill.name}`,
         description: skill.description,
+      })),
+      ...prompts.value.map((prompt) => ({
+        key: `${TEMPLATE_PREFIX}${prompt.name}`,
+        name: prompt.name,
+        description: prompt.description,
+        hint: prompt.argumentHint,
       })),
     ]
     return commands
@@ -84,8 +101,12 @@ export function useCommandMenu(
       .map((command) => ({
         id: command.key,
         title: `/${command.name}`,
-        secondary: command.description,
-        trailing: command.key.startsWith(SKILL_PREFIX) ? "技能" : "命令",
+        secondary: command.hint ?? command.description,
+        trailing: command.key.startsWith(SKILL_PREFIX)
+          ? "技能"
+          : command.key.startsWith(TEMPLATE_PREFIX)
+            ? "模板"
+            : "命令",
       }))
   })
   const groups = computed<CommandMenuGroup[]>(() => {
@@ -96,11 +117,14 @@ export function useCommandMenu(
     if (trigger.value?.kind === "command") {
       const builtin = commandRows.value.filter((row) => row.id.startsWith(BUILTIN_PREFIX))
       const skill = commandRows.value.filter((row) => row.id.startsWith(SKILL_PREFIX))
+      const template = commandRows.value.filter((row) => row.id.startsWith(TEMPLATE_PREFIX))
       const next: CommandMenuGroup[] = []
 
       if (builtin.length) next.push({ id: "builtin", label: "内置", rows: builtin })
 
       if (skill.length) next.push({ id: "skills", label: "技能", rows: skill })
+
+      if (template.length) next.push({ id: "templates", label: "模板", rows: template })
       return next
     }
 
@@ -180,17 +204,21 @@ export function useCommandMenu(
     loading.value = true
 
     try {
-      const list = await listWorkspaceSkills(dir)
+      const loaded = await listWorkspaceCommands(dir)
 
       if (seq === fetchSeq) {
-        skills.value = list
+        skills.value = loaded.skills
+        prompts.value = loaded.prompts
 
         // 空列表可能是 slot 被淘汰的瞬时结果，不写缓存，下次打开重拉
-        if (list.length) skillsFor = dir
+        if (loaded.skills.length || loaded.prompts.length) skillsFor = dir
       }
     } catch {
       // 失败不写 skillsFor：下一次打开再拉
-      if (seq === fetchSeq) skills.value = []
+      if (seq === fetchSeq) {
+        skills.value = []
+        prompts.value = []
+      }
     } finally {
       if (seq === fetchSeq) loading.value = false
     }
@@ -272,9 +300,12 @@ export function useCommandMenu(
       return
     }
 
+    // 模板插 /name；技能插 /skill:name（Pi 的显式调用形式）
     const value = id.startsWith(SKILL_PREFIX)
       ? `skill:${id.slice(SKILL_PREFIX.length)}`
-      : id.slice(FILE_PREFIX.length)
+      : id.startsWith(TEMPLATE_PREFIX)
+        ? id.slice(TEMPLATE_PREFIX.length)
+        : id.slice(FILE_PREFIX.length)
     const next = applyTriggerChoice(prompt.value, caret.value, { kind, start, query: "" }, value)
 
     prompt.value = next.text

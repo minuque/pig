@@ -279,7 +279,7 @@ async function handleFiles(
   }
 }
 
-/** / 技能清单：cwd 同上白名单；目录无技能或 loader 未就绪返回空数组。 */
+/** / 技能与模板清单：cwd 同上白名单；目录无候选或 loader 未就绪返回空数组。 */
 async function handleSkills(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
   const { send, hostService } = deps
   const cwd = url.searchParams.get("cwd")?.trim() ?? ""
@@ -290,8 +290,7 @@ async function handleSkills(res: ServerResponse, url: URL, deps: PlatformRequest
   }
 
   try {
-    const skills = await hostService.workspaceSkills(cwd)
-    send(res, 200, { skills })
+    send(res, 200, await hostService.workspaceCommands(cwd))
   } catch (error) {
     console.error("skills failed:", error)
     send(res, 500, { code: "INTERNAL_ERROR" })
