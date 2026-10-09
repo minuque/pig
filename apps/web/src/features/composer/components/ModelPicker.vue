@@ -89,7 +89,6 @@
             :placeholder="searchPlaceholder"
             :aria-label="searchPlaceholder"
             @keydown="onSearchKeydown"
-            @keydown.tab.prevent="cycleScope($event)"
           />
         </div>
 

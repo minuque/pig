@@ -1,5 +1,4 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
-import { stat } from "node:fs/promises"
 import { PiServerError, SessionNotFoundError } from "@earendil-works/pi-server"
 import type { DirectoryPort } from "../directory.js"
 import { AttachmentError, sanitizeMimeType, type AttachmentErrorCode } from "../pi/attachments.js"
@@ -187,7 +186,7 @@ async function handleSelectDirectory(
   res: ServerResponse,
   deps: PlatformRequestDeps,
 ) {
-  const { send, body, platformPort } = deps
+  const { send, body, platformPort, hostService } = deps
 
   try {
     const payload = await body(req).catch((): Record<string, unknown> => ({}))
@@ -202,6 +201,8 @@ async function handleSelectDirectory(
       ? await platformPort.validateDirectory(input)
       : await platformPort.selectDirectory()
 
+    // 用户显式选定即授权：后续 /files、/skills、warm 都靠这份清单判定
+    if (path) await hostService.authorizeWorkspace(path)
     send(res, 200, { path: path ?? null, requiresManualInput: false })
   } catch (error) {
     console.error("select-directory failed:", error)
@@ -209,7 +210,7 @@ async function handleSelectDirectory(
   }
 }
 
-/** 客户端告知马上要用的工作目录；后台预热，建会话时直接复用同一份 loader。 */
+/** 客户端告知马上要用的工作目录；只接受已知工作区，预热不授予权限。 */
 async function handleWarmWorkspace(
   req: IncomingMessage,
   res: ServerResponse,
@@ -221,14 +222,8 @@ async function handleWarmWorkspace(
   if (!payload) return
   const path = typeof payload.path === "string" ? payload.path.trim() : ""
 
-  if (
-    !path ||
-    !(await stat(path).then(
-      (s) => s.isDirectory(),
-      () => false,
-    ))
-  ) {
-    send(res, 400, { code: "INVALID_REQUEST" })
+  if (!path || !(await hostService.isKnownWorkspace(path))) {
+    send(res, 403, { code: "FORBIDDEN" })
     return
   }
 
@@ -248,7 +243,7 @@ async function handleSessionCards(res: ServerResponse, deps: PlatformRequestDeps
   }
 }
 
-/** @ 文件引用：cwd 必须是已知工作区（活会话/磁盘会话/已备好的资源槽），否则拒绝。 */
+/** @ 文件引用：cwd 必须是已知工作区（用户选过的目录，或已有会话 cwd），否则拒绝。 */
 async function handleFiles(
   req: IncomingMessage,
   res: ServerResponse,

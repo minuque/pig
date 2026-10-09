@@ -271,4 +271,37 @@ describe("thin host WebSocket", () => {
     expect(message.error?.code).toBe("invalid_request")
     expect(result.closed).toBe(false)
   })
+
+  it("文件搜索只放行选过的目录，warm 不能自行授权", async () => {
+    const base = await startGateway()
+    const picked = await mkdtemp(join(tmpdir(), "pig-picked-"))
+    const stranger = await mkdtemp(join(tmpdir(), "pig-stranger-"))
+
+    try {
+      selectedDirectory = picked
+      await request(base, "/api/v1/platform/select-directory", undefined, "POST")
+
+      // 选过的目录：可搜、可 warm
+      expect(
+        (await request(base, `/api/v1/platform/files?cwd=${encodeURIComponent(picked)}`)).status,
+      ).toBe(200)
+      expect(
+        (await request(base, "/api/v1/platform/warm-workspace", { path: picked }, "POST")).status,
+      ).toBe(200)
+
+      // 未授权的目录：搜文件与 warm 都拒，warm 不能把自己变成授权来源
+      expect(
+        (await request(base, `/api/v1/platform/files?cwd=${encodeURIComponent(stranger)}`)).status,
+      ).toBe(403)
+      expect(
+        (await request(base, "/api/v1/platform/warm-workspace", { path: stranger }, "POST")).status,
+      ).toBe(403)
+      expect(
+        (await request(base, `/api/v1/platform/files?cwd=${encodeURIComponent(stranger)}`)).status,
+      ).toBe(403)
+    } finally {
+      await rm(picked, { recursive: true, force: true })
+      await rm(stranger, { recursive: true, force: true })
+    }
+  })
 })

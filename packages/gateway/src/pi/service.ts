@@ -1,5 +1,6 @@
-import { mkdir, rm, writeFile } from "node:fs/promises"
-import { dirname } from "node:path"
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
+import { homedir } from "node:os"
+import { dirname, join } from "node:path"
 import {
   createAgentSession,
   DefaultResourceLoader,
@@ -48,6 +49,33 @@ type Resource = { loader: DefaultResourceLoader; release: () => void }
 
 const MAX_RESOURCE_SLOTS = 4
 
+/** 用户选过的目录清单；与会话目录同级，跨重启保留。 */
+function authorizedWorkspacesFile(sessionDir?: string): string {
+  if (sessionDir) return join(sessionDir, "authorized-workspaces.json")
+  return join(homedir(), ".pig", "authorized-workspaces.json")
+}
+
+/** 读授权目录清单：文件缺失/损坏一律当空集，不拦启动。 */
+async function loadAuthorizedWorkspaces(sessionDir?: string): Promise<string[]> {
+  try {
+    const parsed: unknown = JSON.parse(
+      await readFile(authorizedWorkspacesFile(sessionDir), "utf-8"),
+    )
+
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((item): item is string => typeof item === "string" && item.length > 0)
+  } catch {
+    return []
+  }
+}
+
+async function saveAuthorizedWorkspaces(sessionDir: string | undefined, paths: Set<string>) {
+  const file = authorizedWorkspacesFile(sessionDir)
+
+  await mkdir(dirname(file), { recursive: true })
+  await writeFile(file, JSON.stringify([...paths]), "utf-8")
+}
+
 export interface PiHostServiceOptions {
   /** 统一会话目录；缺省用 Pi 默认（~/.pi/agent/sessions/<cwd>/）。 */
   sessionDir?: string
@@ -73,8 +101,8 @@ export class PiHostService implements PiServerService {
   private readonly activeSessions = new Map<string, PiHostSession>()
   /** 规范化 cwd → 该目录已 reload 的 loader。 */
   private readonly resourceSlots = new Map<string, Promise<ResourceSlot>>()
-  /** warm-workspace 显式授权的目录；建会话/预热都会写。 */
-  private readonly warmedWorkspaces = new Set<string>()
+  /** 用户选过的目录（懒加载）；见 authorizedWorkspacesFile。 */
+  private authorizedWorkspaces: Set<string> | undefined
   private runtimePromise?: Promise<Runtime>
   private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined
 
@@ -124,19 +152,32 @@ export class PiHostService implements PiServerService {
     if (cwd) this.prepareWorkspace(cwd)
   }
 
-  /** 通知 Host 这个目录马上要用来建会话；预热与会话共用同一份 loader 缓存。 */
+  /** 通知 Host 这个目录马上要用来建会话；预热与会话共用同一份 loader 缓存。
+   *  预热不授予目录权限：调用方需先通过 isKnownWorkspace 校验。 */
   prepareWorkspace(cwd: string): void {
     if (this.options.createSession) return
-    const key = canonicalizePath(cwd)
-    this.warmedWorkspaces.add(key)
-    void this.slot(key).catch(() => undefined)
+    void this.slot(canonicalizePath(cwd)).catch(() => undefined)
   }
 
-  /** 目录是否被授权使用：活会话 cwd、磁盘会话 cwd 或 warm-workspace 授权的目录。 */
+  /** 用户显式选定的目录：select-directory 成功后登记并落盘，是唯一的授权来源。 */
+  async authorizeWorkspace(cwd: string): Promise<void> {
+    const key = canonicalizePath(cwd)
+    this.authorizedWorkspaces ??= new Set(await loadAuthorizedWorkspaces(this.options.sessionDir))
+
+    if (this.authorizedWorkspaces.has(key)) return
+    this.authorizedWorkspaces.add(key)
+
+    await saveAuthorizedWorkspaces(this.options.sessionDir, this.authorizedWorkspaces).catch(
+      () => undefined,
+    )
+  }
+
+  /** 目录是否能搜文件、拉技能：用户选过的目录，或已有（活的/磁盘的）会话 cwd。 */
   async isKnownWorkspace(cwd: string): Promise<boolean> {
     const key = canonicalizePath(cwd)
+    this.authorizedWorkspaces ??= new Set(await loadAuthorizedWorkspaces(this.options.sessionDir))
 
-    if (this.warmedWorkspaces.has(key)) return true
+    if (this.authorizedWorkspaces.has(key)) return true
 
     for (const session of this.activeSessions.values()) {
       if (session.cwd === key) return true
