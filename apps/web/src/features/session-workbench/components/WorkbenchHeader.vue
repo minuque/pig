@@ -4,17 +4,17 @@
       <TooltipTrigger as-child>
         <button
           class="header-toggle"
+          :class="{ 'is-stowed': leftOpen }"
           type="button"
-          :aria-label="leftOpen ? t('nav.collapseSidebar') : t('nav.openSidebar')"
+          :inert="leftOpen"
+          :aria-label="t('nav.openSidebar')"
           @click="toggle"
         >
-          <IconSidebarLeft />
+          <SidebarGlyph :open="leftOpen" />
         </button>
       </TooltipTrigger>
 
-      <TooltipContent>
-        {{ leftOpen ? t("nav.collapseSidebar") : t("nav.openSidebar") }}
-      </TooltipContent>
+      <TooltipContent>{{ t("nav.openSidebar") }}</TooltipContent>
     </Tooltip>
 
     <span v-if="cwdName" class="header-cwd" :title="cwd ?? ''">{{ cwdName }}</span>
@@ -43,7 +43,6 @@
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
-import { IconSidebarLeft } from "@components/icons/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { sessionTitle, useNav, workspaceName } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
@@ -51,6 +50,7 @@ import { useSessionTabs } from "@features/session-workbench/hooks/use-session-ta
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
 import type { SidebarSessionState } from "@features/session-nav/type.js"
 import SessionTabStrip from "@features/session-workbench/components/SessionTabStrip.vue"
+import { SidebarGlyph } from "@components/icons/index.js"
 
 const props = defineProps<{
   cwd?: string | undefined
@@ -124,10 +124,23 @@ function onRename(id: string, name: string): void {
   justify-content: center;
   width: var(--size-nav-rail);
   height: var(--size-nav-rail);
+  overflow: hidden;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-muted);
+  transition:
+    width var(--duration-slow) var(--ease-smooth),
+    margin var(--duration-slow) var(--ease-smooth),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+/* 侧栏展开时收起入口：宽度归零并抵消 gap，图标同步形变 */
+.header-toggle.is-stowed {
+  width: 0;
+  margin-inline-end: calc(-1 * var(--spacing-xs));
+  opacity: 0;
+  pointer-events: none;
 }
 
 .header-toggle:hover,
@@ -193,8 +206,14 @@ html[data-pig-desktop-platform="win32"] .workbench-header {
 }
 
 @media (max-width: 520px) {
-  .workbench-header > .header-toggle {
+  .workbench-header > .header-toggle:not(.is-stowed) {
     width: calc(var(--size-nav-rail) + var(--spacing-xs));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-toggle {
+    transition: none;
   }
 }
 </style>

@@ -20,7 +20,7 @@
               :aria-label="t('nav.collapseSidebar')"
               @click="togglePanel"
             >
-              <IconSidebarLeft />
+              <SidebarGlyph :open="leftOpen" />
             </button>
           </TooltipTrigger>
 
@@ -30,19 +30,19 @@
 
       <div class="nav-toolbar">
         <button class="nav-action" type="button" @click="onCreateSession">
-          <MessageCirclePlus class="size-icon" />
+          <ChatRoundAddIcon class="size-icon" />
           <span class="nav-label">{{ t("session.newSession") }}</span>
         </button>
 
         <button class="nav-action" type="button" @click="openSearch">
-          <Search class="size-icon" />
+          <MagnifierIcon class="size-icon" />
           <span class="nav-label">{{ t("nav.search") }}</span>
           <kbd class="search-shortcut">Ctrl K</kbd>
         </button>
       </div>
 
       <p v-if="connected && !groups.length" class="add-guide">
-        <ArrowUp class="size-icon motion-nudge" />
+        <ArrowUpIcon class="size-icon motion-nudge" />
         {{ t("session.addGuide") }}
       </p>
 
@@ -58,12 +58,6 @@
 import { defineAsyncComponent, onMounted, shallowRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
-import {
-  IconSidebarLeft,
-  ArrowUpIcon,
-  ChatRoundAddIcon,
-  MagnifierIcon,
-} from "@components/icons/index.js"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyError } from "@components/layout/notify.js"
@@ -74,6 +68,12 @@ import { useNav } from "@features/session-nav/index.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
 import { useSettings } from "@features/settings/index.js"
+import {
+  ArrowUpIcon,
+  ChatRoundAddIcon,
+  MagnifierIcon,
+  SidebarGlyph,
+} from "@components/icons/index.js"
 
 const SessionSearch = defineAsyncComponent(
   () => import("@features/session-nav/components/SessionSearch.vue"),
@@ -82,7 +82,7 @@ const emit = defineEmits<{
   navigate: [canonicalPath: string]
 }>()
 const { t } = useI18n()
-const { toggle: togglePanel } = useLeftPanelToggle()
+const { leftOpen, toggle: togglePanel } = useLeftPanelToggle()
 const {
   groups,
   pinnedSessions,
@@ -244,7 +244,7 @@ function onCreateSession(): void {
 }
 
 .nav-collapse {
-  display: none;
+  display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
@@ -315,12 +315,6 @@ function onCreateSession(): void {
 .nav-action:hover .search-shortcut,
 .nav-action:focus-visible .search-shortcut {
   opacity: 1;
-}
-
-@media (max-width: 900px) {
-  .nav-collapse {
-    display: flex;
-  }
 }
 
 .session-nav > .titlebar-drag {

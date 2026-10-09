@@ -1,6 +1,6 @@
 // 图标注册表：Solar Icons Linear 款（480 Design，CC BY 4.0），实心态取 Bold 款配对
 
-export { default as IconSidebarLeft } from "@components/icons/glyphs/IconSidebarLeft.vue"
+export { default as SidebarGlyph } from "@components/icons/SidebarGlyph.vue"
 
 export { AddFolderIcon } from "@solar-icons/vue/linear/add-folder"
 
@@ -81,8 +81,6 @@ export { ParagraphSpacingIcon } from "@solar-icons/vue/linear/paragraph-spacing"
 export { PenIcon } from "@solar-icons/vue/linear/pen"
 
 export { PinIcon } from "@solar-icons/vue/linear/pin"
-
-export { PanelRightIcon } from "@solar-icons/vue/linear/panel-right"
 
 export { PinIcon as PinBoldIcon } from "@solar-icons/vue/bold/pin"
 
