@@ -312,7 +312,7 @@
   --ink-faint: #7e7f83;
 
   --border: #28282a;
-  --border-subtle: #202022;
+  --border-subtle: #2a2a2e;
   --composer-ring: rgb(255 255 255 / 0.2);
   --interaction-hover: #26262b;
   --interaction-selected: #2c2c31;
@@ -358,7 +358,7 @@
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.28);
   --surface-border: hsl(210 18% 78% / 0.09);
-  --hairline: hsl(0 0% 100% / 0.1);
+  --hairline: hsl(0 0% 100% / 0.16);
 
   --inverse-bg: #fafafa;
   --inverse-bg-hover: #ffffff;

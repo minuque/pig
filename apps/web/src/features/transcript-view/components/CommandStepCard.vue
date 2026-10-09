@@ -85,6 +85,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-code);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 
 .command-card.is-error {
