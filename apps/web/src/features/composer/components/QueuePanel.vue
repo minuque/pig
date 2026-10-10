@@ -1,17 +1,11 @@
 <template>
-  <div class="queue-panel surface-float" role="list" :aria-label="t('composer.queueLabel')">
-    <div
-      v-for="(item, i) in items"
-      :key="item.id"
-      class="row"
-      role="listitem"
-      :class="{ 'is-dragging': item.id === draggingId }"
-      draggable="true"
-      @dragstart="onDragStart($event, item)"
-      @dragover.prevent="onDragOver($event, i)"
-      @drop.prevent="onDragEnd"
-      @dragend="onDragEnd"
-    >
+  <div
+    ref="panel"
+    class="queue-panel surface-float"
+    role="list"
+    :aria-label="t('composer.queueLabel')"
+  >
+    <div v-for="item in items" :key="item.id" class="row" role="listitem" :data-id="item.id">
       <GripVerticalIcon class="row-grip" aria-hidden="true" />
       <span class="row-text">{{ item.text }}</span>
 
@@ -43,53 +37,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { onMounted, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { useDragReorder } from "@utils/motion.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import { GripVerticalIcon, PenIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
-const props = defineProps<{
+
+defineProps<{
   items: QueuedPrompt[]
 }>()
+
 const emit = defineEmits<{
   reorder: [id: string, toIndex: number]
   edit: [item: QueuedPrompt]
   "send-now": [item: QueuedPrompt]
   remove: [id: string]
 }>()
-// HTML5 DnD 在 dragover 期间读不到 dataTransfer，拖拽源 id 存本地状态
-const draggingId = ref<string>()
+const panel = useTemplateRef<HTMLElement>("panel")
+const reorder = useDragReorder({
+  axis: "y",
+  container: () => panel.value,
+  itemSelector: ".row",
+  onMove: (id, toIndex) => emit("reorder", id, toIndex),
+})
 
-function onDragStart(e: DragEvent, item: QueuedPrompt) {
-  draggingId.value = item.id
-  e.dataTransfer?.setData("text/plain", item.id)
+onMounted(() => {
+  const el = panel.value
 
-  if (e.dataTransfer) e.dataTransfer.effectAllowed = "move"
-}
-
-function onDragOver(e: DragEvent, index: number) {
-  if (!draggingId.value) return
-  const row = e.currentTarget
-
-  if (!(row instanceof HTMLElement)) return
-
-  const rect = row.getBoundingClientRect()
-  const before = e.clientY < rect.top + rect.height / 2
-  let to = before ? index : index + 1
-  const from = props.items.findIndex((item) => item.id === draggingId.value)
-
-  if (from < 0) return
-
-  if (from < to) to -= 1
-
-  if (to === from) return
-  emit("reorder", draggingId.value, to)
-}
-
-function onDragEnd() {
-  draggingId.value = undefined
-}
+  if (el) reorder.attach(el)
+})
 </script>
 
 <style scoped>
@@ -114,14 +92,19 @@ function onDragEnd() {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   cursor: default;
+  touch-action: pan-y;
 }
 
 .row:hover {
   background: var(--hover-quiet);
 }
 
-.row.is-dragging {
-  opacity: var(--opacity-disabled);
+/* 拖拽跟手：源行保持实体阴影，邻项让位由 useDragReorder 的 transform 预览驱动 */
+.row.is-drag-live {
+  z-index: 2;
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  cursor: grabbing;
 }
 
 .row-grip {

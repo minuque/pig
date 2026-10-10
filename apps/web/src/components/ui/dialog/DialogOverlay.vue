@@ -2,7 +2,7 @@
   <DialogOverlay
     data-slot="dialog-overlay"
     v-bind="forwardedProps"
-    class="fixed inset-0 z-50 bg-[var(--scrim)] opacity-0 transition-opacity duration-(--duration-fast) ease-(--ease-out) data-[state=open]:opacity-100 data-[state=closed]:animate-[exit-fade_var(--duration-fast)_var(--ease-out)] motion-reduce:transition-none motion-reduce:data-[state=closed]:animate-none"
+    class="reveal-overlay fixed inset-0 z-50 bg-[var(--scrim)]"
     :class="props.class"
   >
     <slot />

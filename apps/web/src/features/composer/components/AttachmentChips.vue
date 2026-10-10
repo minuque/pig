@@ -241,7 +241,7 @@ const rows = computed(() =>
   border-radius: var(--radius-full);
   background: var(--inverse-bg);
   color: var(--inverse-fg);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(var(--material-blur)) saturate(var(--material-saturate));
 }
 
 /* 删除钮与百分比占同一角，做 opacity+blur 交叉切换 */

@@ -157,6 +157,7 @@ import {
   sessionTabsInCloseScope,
   type SessionTab,
 } from "@features/session-workbench/lib/session-tabs.js"
+import { prefersReducedMotion } from "@utils/motion.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import type { SidebarSessionState } from "@features/session-nav/type.js"
@@ -188,6 +189,8 @@ const dragState = shallowRef<{
   startX: number
   startLeft: number
   lastX: number
+  lastT: number
+  velocity: number
   translate: number
   moved: boolean
 }>()
@@ -275,9 +278,18 @@ function onDragMove(move: PointerEvent): void {
 
   if (!state || move.pointerId !== state.pointerId) return
 
+  const now = performance.now()
+  const dt = (now - state.lastT) / 1000
+
   if (!state.moved && Math.abs(move.clientX - state.startX) < DRAG_DISTANCE) return
   state.moved = true
+
+  if (dt > 0) {
+    state.velocity = state.velocity * 0.72 + ((move.clientX - state.lastX) / dt) * 0.28
+  }
+
   state.lastX = move.clientX
+  state.lastT = now
   positionDragged()
   const over = tabBeforeAt(move.clientX)
 
@@ -289,6 +301,20 @@ function onDragEnd(up: PointerEvent): void {
 
   if (!state || up.pointerId !== state.pointerId) return
   const moved = state.moved
+  const { node, velocity, translate } = state
+
+  if (moved && !prefersReducedMotion() && Math.abs(velocity) > 60) {
+    /* 松手惯性：速度足够时先按速度多滑一小段，再让位给最终布局 */
+    const settle = Math.max(-24, Math.min(24, velocity * 0.12))
+    node.animate(
+      [
+        { transform: `translateX(${translate}px)` },
+        { transform: `translateX(${translate + settle}px)` },
+      ],
+      { duration: 160, easing: "cubic-bezier(.22,1,.36,1)", composite: "add" },
+    )
+  }
+
   cleanupDrag()
 
   if (!moved) emit("select", state.id)
@@ -307,6 +333,8 @@ function onPointerDown(id: string, event: PointerEvent): void {
     startX: event.clientX,
     startLeft: node.getBoundingClientRect().left,
     lastX: event.clientX,
+    lastT: performance.now(),
+    velocity: 0,
     translate: 0,
     moved: false,
   }

@@ -1,16 +1,34 @@
 <template>
   <Teleport to="body">
-    <div class="alert-toaster">
-      <TransitionGroup name="alert-toaster" tag="div" class="alert-toaster-stack">
-        <div v-for="item in noticeQueue" :key="item.id" class="alert-toaster-item">
+    <!-- 需行动/需知悉：顶部 banner 层，挤压视口提示权重最高 -->
+    <TransitionGroup name="banner" tag="div" class="banner-layer">
+      <div v-for="item in actionItems" :key="item.id" class="banner-item">
+        <Alert
+          variant="error"
+          dismissible
+          floating
+          class="banner-alert"
+          @close="dismissNotice(item.id)"
+        >
+          <template #icon><DangerCircleIcon /></template>
+          <template #title>{{ t("common.error") }}</template>
+          <template #default>{{ item.message }}</template>
+        </Alert>
+      </div>
+    </TransitionGroup>
+
+    <!-- 瞬时反馈：角落 inbox 堆叠，自动消退 -->
+    <div class="inbox-layer">
+      <TransitionGroup name="inbox" tag="div" class="inbox-stack">
+        <div v-for="item in infoItems" :key="item.id" class="inbox-item">
           <Alert
             variant="error"
             dismissible
-            class="alert-toaster-alert"
+            floating
+            class="inbox-alert"
             @close="dismissNotice(item.id)"
           >
             <template #icon><DangerCircleIcon /></template>
-            <template #title>{{ t("common.error") }}</template>
             <template #default>{{ item.message }}</template>
           </Alert>
         </div>
@@ -20,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 
 import Alert from "@components/ui/alert/Alert.vue"
@@ -27,12 +46,53 @@ import { dismissNotice, noticeQueue } from "@components/layout/notify.js"
 import { DangerCircleIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
+const actionItems = computed(() => noticeQueue.value.filter((n) => n.kind === "action"))
+const infoItems = computed(() => noticeQueue.value.filter((n) => n.kind === "info"))
 </script>
 
 <style scoped>
-.alert-toaster {
+/* 顶部 banner：横向通栏，从顶下滑 */
+.banner-layer {
   position: fixed;
-  inset-block-start: calc(var(--size-control) + 3 * var(--spacing-xs));
+  inset-block-start: calc(var(--titlebar-inset, 0px));
+  inset-inline: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  pointer-events: none;
+}
+
+.banner-item {
+  pointer-events: auto;
+}
+
+.banner-alert {
+  box-shadow: var(--shadow-elevated);
+}
+
+.banner-enter-active,
+.banner-leave-active {
+  transition:
+    opacity var(--duration-slow) var(--ease-smooth),
+    transform var(--duration-slow) var(--ease-smooth);
+}
+
+.banner-enter-from,
+.banner-leave-to {
+  opacity: 0;
+  transform: translateY(-100%);
+}
+
+.banner-move {
+  transition: transform var(--duration-slow) var(--ease-smooth);
+}
+
+/* 角落 inbox：右下堆叠，滑入消退 */
+.inbox-layer {
+  position: fixed;
+  inset-block-end: var(--spacing-md);
   inset-inline-end: var(--spacing-md);
   z-index: var(--z-modal);
   display: flex;
@@ -40,46 +100,46 @@ const { t } = useI18n()
   pointer-events: none;
 }
 
-.alert-toaster-stack {
+.inbox-stack {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
   width: 100%;
 }
 
-.alert-toaster-item {
+.inbox-item {
   position: relative;
   pointer-events: auto;
 }
 
-.alert-toaster-alert {
+.inbox-alert {
   box-shadow: var(--shadow-elevated);
 }
 
-.alert-toaster-enter-active,
-.alert-toaster-leave-active {
+.inbox-enter-active,
+.inbox-leave-active {
   transition:
     opacity var(--duration-normal) var(--ease-smooth),
     transform var(--duration-normal) var(--ease-smooth);
 }
 
-.alert-toaster-enter-from,
-.alert-toaster-leave-to {
+.inbox-enter-from,
+.inbox-leave-to {
   opacity: 0;
-  transform: translateX(8px);
+  transform: translateY(10px) scale(0.97);
 }
 
-html[data-pig-desktop-platform] .alert-toaster {
-  top: calc(var(--titlebar-inset) + var(--size-control) + 2 * var(--spacing-xs));
-}
-
-html[data-pig-desktop-platform="win32"] .alert-toaster {
-  right: calc(var(--size-windows-caption) + var(--spacing-xs));
+.inbox-move {
+  transition: transform var(--duration-normal) var(--ease-smooth);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .alert-toaster-enter-active,
-  .alert-toaster-leave-active {
+  .banner-enter-active,
+  .banner-leave-active,
+  .banner-move,
+  .inbox-enter-active,
+  .inbox-leave-active,
+  .inbox-move {
     transition: none;
   }
 }

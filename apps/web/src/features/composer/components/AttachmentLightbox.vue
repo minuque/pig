@@ -42,6 +42,7 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
   padding: var(--spacing-xl);
   background: var(--scrim);
   cursor: zoom-out;
+  animation: lightbox-in var(--duration-normal) var(--ease-out) both;
 }
 
 .lightbox-img {
@@ -49,5 +50,26 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
   max-height: 100%;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-modal);
+  animation: lightbox-img-in var(--duration-slow) var(--ease-spring) both;
+}
+
+@keyframes lightbox-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes lightbox-img-in {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox,
+  .lightbox-img {
+    animation: none;
+  }
 }
 </style>

@@ -44,6 +44,10 @@
   --popover: #ffffff;
   --code-surface: color-mix(in srgb, var(--ink) 4%, var(--surface));
 
+  /* 毛玻璃 */
+  --glass-opacity: 70;
+  --glass-blur: 0px;
+
   /* mermaid 图 */
   --mermaid-bg: #ffffff;
   --mermaid-fill: #eaeef2;
@@ -276,6 +280,14 @@
   --duration-theme: 600ms;
   --duration-shimmer: 2s;
   --ease-icon: cubic-bezier(0.2, 0, 0, 1);
+
+  /* 材质：小面积磨砂（徽标/预览层）。玻璃浮层走 --glass-*，此处只管局部压底。 */
+  --material-blur: 6px;
+  --material-saturate: 1.4;
+  /* 焦点环：宽+透明度的统一焦点态，配合 .ring-focus 使用。 */
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--primary) 45%, transparent);
+  --focus-ring-danger: 0 0 0 3px color-mix(in srgb, var(--danger, #e5484d) 45%, transparent);
+  --focus-ring-ms: var(--duration-fast);
 }
 
 /* 深色只覆盖颜色、阴影、玻璃 */
@@ -527,9 +539,61 @@
   height: var(--size-icon);
 }
 
-/* 浮层统一不透明底：输入卡、弹层、菜单、对话框 */
+/* 浮层统一底：输入卡、弹层、菜单、对话框 */
 .surface-float {
   background: var(--composer-bg);
+}
+
+/* 毛玻璃：use-general-prefs 写 data-glass 与 --glass-opacity；blur 随透明度联动，越透越强 */
+html[data-glass="on"] {
+  --glass-blur: calc((100 - var(--glass-opacity)) * 0.37px + 5px);
+}
+
+html[data-glass="on"] .surface-float {
+  background: color-mix(in srgb, var(--composer-bg) calc(var(--glass-opacity) * 1%), transparent);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+}
+
+/* 显式排除玻璃的浮层：tooltip 透底干扰阅读，保持不透明 */
+.surface-solid {
+  background: var(--composer-bg);
+  backdrop-filter: none;
+}
+
+/* 滚动区边缘渐隐：mask 只做淡出，不裁剪内容；按方向组合。 */
+.edge-fade-y {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--edge-fade, 2.5rem),
+    black calc(100% - var(--edge-fade, 2.5rem)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--edge-fade, 2.5rem),
+    black calc(100% - var(--edge-fade, 2.5rem)),
+    transparent
+  );
+}
+
+.edge-fade-bottom {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - var(--edge-fade, 2.5rem)),
+    transparent
+  );
+  mask-image: linear-gradient(to bottom, black calc(100% - var(--edge-fade, 2.5rem)), transparent);
+}
+
+.edge-fade-top {
+  -webkit-mask-image: linear-gradient(
+    to top,
+    black calc(100% - var(--edge-fade, 2.5rem)),
+    transparent
+  );
+  mask-image: linear-gradient(to top, black calc(100% - var(--edge-fade, 2.5rem)), transparent);
 }
 
 /* 基础 */

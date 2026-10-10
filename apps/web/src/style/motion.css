@@ -301,35 +301,26 @@
   }
 }
 
-@keyframes modal-close {
-  from {
-    opacity: 1;
-    scale: 1;
-  }
-
-  to {
-    opacity: 0;
-    scale: 0.96;
-  }
-}
-
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
   transform-origin: center;
+  translate: 0 12px;
   scale: 0.96;
   opacity: 0;
   transition:
+    translate var(--duration-slow) var(--ease-smooth),
     scale var(--duration-slow) var(--ease-smooth),
     opacity var(--duration-slow) var(--ease-smooth);
 }
 
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="open"] {
+  translate: 0 0;
   scale: 1;
   opacity: 1;
 }
 
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
   transition: none;
-  animation: modal-close var(--duration-fast) var(--ease-smooth);
+  animation: pop-reveal-out var(--duration-normal) var(--ease-out) forwards;
 }
 
 .panel-reveal-enter-active,
@@ -342,8 +333,7 @@
 .panel-reveal-enter-active {
   transition:
     opacity var(--duration-normal) var(--ease-out),
-    transform var(--duration-normal) var(--ease-out),
-    filter var(--duration-normal) var(--ease-out);
+    transform var(--duration-normal) var(--ease-out);
 }
 
 .panel-reveal-leave-active,
@@ -353,28 +343,16 @@
     transform var(--duration-fast) var(--ease-out);
 }
 
-.panel-reveal-leave-active {
-  transition-property: opacity, transform, filter;
-}
-
 .panel-reveal-enter-from,
 .stage-layer-enter-from {
   opacity: 0;
   transform: translateY(12px);
 }
 
-.panel-reveal-enter-from {
-  filter: blur(4px);
-}
-
 .panel-reveal-leave-to,
 .stage-layer-leave-to {
   opacity: 0;
   transform: translateY(-12px);
-}
-
-.panel-reveal-leave-to {
-  filter: blur(4px);
 }
 
 /* 行增删：高度随行一起收放，下方内容跟着滑，不瞬跳；负上边距抵掉 --spacing-xxs 行距 */
@@ -483,25 +461,22 @@
   opacity: 0;
 }
 
-/* 输入卡 @// 菜单：向上小位移 + 模糊，与 Synara 命令面板同一组入场曲线。 */
+/* 输入卡 @// 菜单：向上小位移，与 Synara 命令面板同一组入场曲线。 */
 .menu-reveal-enter-active {
   transition:
     opacity var(--duration-normal) var(--ease-smooth),
-    translate var(--duration-normal) var(--ease-smooth),
-    filter var(--duration-normal) var(--ease-smooth);
+    translate var(--duration-normal) var(--ease-smooth);
 }
 
 .menu-reveal-leave-active {
   transition:
     opacity var(--duration-fast) var(--ease-out),
-    translate var(--duration-fast) var(--ease-out),
-    filter var(--duration-fast) var(--ease-out);
+    translate var(--duration-fast) var(--ease-out);
 }
 
 .menu-reveal-enter-from {
   opacity: 0;
   translate: 0 var(--spacing-xs);
-  filter: blur(4px);
 }
 
 .menu-reveal-leave-to {
@@ -704,7 +679,6 @@
   .stage-layer-enter-from,
   .stage-layer-leave-to {
     transform: none;
-    filter: none;
   }
 
   .list-reveal-enter-active,
@@ -767,5 +741,133 @@
   .motion-nudge,
   .motion-pulse::after {
     animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 弹出层统一转场：reka-ui 的 data-[state] 与裸层共用同一组 keyframes。   */
+/* ------------------------------------------------------------------ */
+
+@keyframes pop-reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+
+@keyframes pop-reveal-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* 菜单/工具提示类浮层 */
+.reveal-menu {
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+  transform: translateY(4px) scale(0.98);
+}
+
+.reveal-menu[data-state="open"],
+.reveal-menu[data-state="delayed-open"],
+.reveal-menu[data-state="instant-open"] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.reveal-menu[data-state="closed"] {
+  animation: pop-reveal-out var(--duration-fast) var(--ease-out);
+}
+
+/* 对话框/确认框：行程更大一点 */
+.reveal-dialog {
+  opacity: 0;
+  transition:
+    opacity var(--duration-slow) var(--ease-smooth),
+    transform var(--duration-slow) var(--ease-smooth),
+    scale var(--duration-slow) var(--ease-smooth);
+  transform: translateY(12px);
+  scale: 0.96;
+}
+
+.reveal-dialog[data-state="open"] {
+  opacity: 1;
+  transform: translateY(0);
+  scale: 1;
+}
+
+.reveal-dialog[data-state="closed"] {
+  animation: pop-reveal-out var(--duration-normal) var(--ease-out) forwards;
+}
+
+/* 遮罩 */
+.reveal-overlay {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.reveal-overlay[data-state="open"] {
+  opacity: 1;
+}
+
+.reveal-overlay[data-state="closed"] {
+  animation: overlay-out var(--duration-fast) var(--ease-out) forwards;
+}
+
+/* 统一焦点环：让 :focus-visible 的环淡入而非瞬现。配合 --focus-ring / --focus-ring-danger。 */
+.ring-focus {
+  outline: none;
+  box-shadow: none;
+  transition: box-shadow var(--focus-ring-ms) var(--ease-out);
+}
+
+.ring-focus:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ring-focus[data-tone="danger"]:focus-visible {
+  box-shadow: var(--focus-ring-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-menu,
+  .reveal-dialog,
+  .reveal-overlay {
+    transition: none;
+    animation: none;
+    transform: none;
+    scale: 1;
+  }
+
+  .reveal-menu[data-state="closed"],
+  .reveal-dialog[data-state="closed"],
+  .reveal-overlay[data-state="closed"] {
+    animation: none;
+    opacity: 0;
   }
 }
