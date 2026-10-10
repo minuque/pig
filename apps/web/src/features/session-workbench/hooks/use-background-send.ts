@@ -17,15 +17,45 @@ export async function stageBatchFor(
   batch: ComposerAttachmentBatch,
   aborted: () => boolean,
 ): Promise<boolean> {
-  for (const item of batch.files) {
-    await stageAttachment(batch.batch, item.file)
+  // 失败/中止时把整批进度清掉：这批文件留在暂存，环不能卡半空
+  const resetAll = () => batch.files.forEach((item) => batch.reportProgress?.(item.id, undefined))
 
-    if (aborted()) return false
+  try {
+    for (const item of batch.files) {
+      // stage 是单请求拿不到逐字节进度：仿 BoardUI 用随机插值爬到 85，
+      // 真实 await 落定再顶到 100，环平滑又仍锚定真实完成
+      batch.reportProgress?.(item.id, 0)
+      let shown = 0
+      const timer = globalThis.setInterval(() => {
+        shown = Math.min(85, shown + (4 + 7 * Math.random()))
+        batch.reportProgress?.(item.id, Math.round(shown))
+      }, 50)
+
+      try {
+        await stageAttachment(batch.batch, item.file)
+      } finally {
+        globalThis.clearInterval(timer)
+      }
+
+      batch.reportProgress?.(item.id, 100)
+
+      if (aborted()) {
+        resetAll()
+        return false
+      }
+    }
+
+    if (aborted()) {
+      resetAll()
+      return false
+    }
+
+    await bindAttachments(id, batch.batch)
+    return true
+  } catch (error) {
+    resetAll()
+    throw error
   }
-
-  if (aborted()) return false
-  await bindAttachments(id, batch.batch)
-  return true
 }
 
 /** 丢弃批次：幂等清理，失败不挡主流程；成功路径不调用，Gateway 已消费。 */

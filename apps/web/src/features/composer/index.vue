@@ -36,6 +36,7 @@
 
           <AttachmentChips
             :files="attachmentFiles"
+            :progress="attachmentProgress"
             @remove="attachments.remove"
             @preview="onPreview"
           />
@@ -222,6 +223,7 @@ const previewItem = ref<ComposerAttachment>()
 const fileInput = ref<HTMLInputElement | null>(null)
 const editor = ref<InstanceType<typeof PromptEditor> | null>(null)
 const attachmentFiles = computed(() => props.attachments.files.value)
+const attachmentProgress = computed(() => props.attachments.progress.value)
 const attachmentError = computed(() => props.attachments.error.value)
 const attachmentsFull = computed(() => attachmentFiles.value.length >= MAX_COMPOSER_ATTACHMENTS)
 

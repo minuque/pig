@@ -198,4 +198,48 @@ describe("useComposerAttachments", () => {
     settle(first!)
     expect(consumeForSend()).toBeUndefined()
   })
+
+  it("加附件即从 0 排队模拟上传，逐个落地后清进度", async () => {
+    vi.useFakeTimers()
+
+    try {
+      vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
+      const { files, progress, addFiles } = useComposerAttachments()
+
+      addFiles([file("a.png", "image/png"), file("b.png", "image/png")])
+
+      // 两个都进队且从 0 起步
+      expect(progress.value.get(files.value[0]!.id)).toBe(0)
+      expect(progress.value.get(files.value[1]!.id)).toBe(0)
+
+      // 推进足够时间：第一个落地（键删掉），第二个接着跑
+      await vi.advanceTimersByTimeAsync(1600)
+      const first = files.value[0]!.id
+      const second = files.value[1]!.id
+
+      expect(progress.value.has(first)).toBe(false)
+      expect(progress.value.has(second)).toBe(true)
+
+      // 再推进：第二个也落地，progress 清空
+      await vi.advanceTimersByTimeAsync(2000)
+      expect(progress.value.has(second)).toBe(false)
+      expect(progress.value.size).toBe(0)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it("consumeForSend 接管同一份进度，reportProgress 写进当前桶", () => {
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
+    const { files, progress, addFiles, consumeForSend } = useComposerAttachments()
+
+    addFiles([file("a.png", "image/png")])
+    const batch = consumeForSend()!
+    const id = files.value[0]!.id
+
+    batch.reportProgress?.(id, 42)
+    expect(progress.value.get(id)).toBe(42)
+    batch.reportProgress?.(id, undefined)
+    expect(progress.value.has(id)).toBe(false)
+  })
 })
