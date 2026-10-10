@@ -204,6 +204,19 @@ export function useDragReorder(opts: DragReorderOptions) {
     if (!handled) layoutShift()
   }
 
+  /** 拖拽用的 transform/transition 兜底清理：重排后 Vue 复用节点，残留位移要清。 */
+  function sweep() {
+    const c = opts.container()
+
+    if (!c) return
+    requestAnimationFrame(() => {
+      c.querySelectorAll<HTMLElement>(opts.itemSelector).forEach((el) => {
+        el.style.transition = ""
+        el.style.transform = ""
+      })
+    })
+  }
+
   function clearShift() {
     s?.items.forEach((el) => {
       if (el === s!.node) return
@@ -268,6 +281,7 @@ export function useDragReorder(opts: DragReorderOptions) {
     s = null
 
     if (to !== from) opts.onMove?.(id, to)
+    sweep()
   }
 
   function onCancel(e: PointerEvent) {
@@ -279,6 +293,7 @@ export function useDragReorder(opts: DragReorderOptions) {
     st.node.style.transform = ""
     st.node.classList.remove("is-drag-live")
     s = null
+    sweep()
   }
 
   function detach() {

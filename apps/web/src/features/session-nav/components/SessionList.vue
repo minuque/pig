@@ -227,11 +227,16 @@ const reorder = useDragReorder({
   },
 })
 
-onMounted(() => {
-  const el = groupList.value
-
-  if (el) reorder.attach(el)
-})
+/* <ul> 在 grouped 分支下、依赖 sessionsMounted 才渲染，不能指望 onMounted 有值；
+   元素一旦出现或换根，重新挂 pointerdown。 */
+watch(
+  groupList,
+  (el, _prev, onCleanup) => {
+    if (!el) return
+    onCleanup(reorder.attach(el))
+  },
+  { immediate: true },
+)
 
 const updatedSessions = computed(() =>
   rows.value.flatMap((row) => (row.kind === "session" ? [row.session] : [])),
