@@ -783,13 +783,25 @@
   }
 }
 
-/* 会话切换遮罩：克隆的视口内容盖住，揭开时淡出。 */
-.transcript-hold {
-  animation: overlay-out var(--duration-normal) var(--ease-out) var(--duration-fast) forwards;
+/* 会话切换遮罩：克隆的旧 transcript 盖住新内容，揭开时淡出上移。 */
+.transcript-hold.is-leaving {
+  animation: transcript-hold-out var(--duration-slow) var(--ease-out) forwards;
+}
+
+@keyframes transcript-hold-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .transcript-hold {
+  .transcript-hold.is-leaving {
     animation: none;
   }
 }

@@ -24,21 +24,7 @@
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
-        <div class="session-stage">
-          <Transition name="dock-thread">
-            <TranscriptView
-              v-if="!showHero"
-              ref="transcriptView"
-              :session-id="sessionId ?? ''"
-              :transcript="transcript"
-              :running="turnPending"
-              :timings="turnTimings"
-              :has-more="historyHasMore"
-              :loading-older="loadingOlder"
-              @load-older="loadOlderHistory"
-            />
-          </Transition>
-
+        <div class="session-stage" ref="stage">
           <Transition name="dock-hero" appear>
             <div v-if="showHero" key="hero" class="idle-hero">
               <WorkbenchHero
@@ -52,6 +38,18 @@
               />
             </div>
           </Transition>
+
+          <TranscriptView
+            v-if="!showHero"
+            ref="transcriptView"
+            :session-id="sessionId ?? ''"
+            :transcript="transcript"
+            :running="turnPending"
+            :timings="turnTimings"
+            :has-more="historyHasMore"
+            :loading-older="loadingOlder"
+            @load-older="loadOlderHistory"
+          />
         </div>
 
         <div
@@ -152,6 +150,7 @@ import { useConversationWidth } from "@features/session-workbench/hooks/use-conv
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
+import { useTranscriptHold } from "@features/transcript-view/hooks/use-transcript-hold.js"
 import { ArrowDownIcon, DocumentAddIcon, LoaderIcon } from "@components/icons/index.js"
 
 onMounted(() => {
@@ -314,6 +313,42 @@ watch(
     composerAttachments.setKey(id)
   },
   { immediate: true },
+)
+
+/* 会话切换过渡：sessionId 变前把当前 transcript 克隆成静态层盖上，
+   新内容渲染后该层淡出。旧画面驻留，不瞬切。 */
+const stage = useTemplateRef<HTMLElement>("stage")
+const hold = useTranscriptHold()
+
+watch(
+  sessionId,
+  (_next, prev) => {
+    if (prev === _next) return
+    const vp = stage.value?.querySelector<HTMLElement>(".transcript-viewport")
+
+    /* flush:pre 在 DOM 更新前跑，此刻 .transcript 还是旧内容，克隆它盖住。 */
+    if (vp && vp.querySelector(".transcript")) hold.hold(vp)
+
+    /* 等新 transcript 的 DOM 出来，且至少驻留 MIN_HOLD 让旧画面淡出被看见，
+       再揭开。数据快也闪，数据慢等数据。 */
+    const start = performance.now()
+    const MIN_HOLD = 220
+    const MAX_HOLD = 600
+    const probe = () => {
+      const rows = stage.value?.querySelectorAll(".transcript .turn").length ?? 0
+      const elapsed = performance.now() - start
+
+      if ((rows > 0 && elapsed >= MIN_HOLD) || elapsed >= MAX_HOLD) {
+        hold.release()
+        return
+      }
+
+      requestAnimationFrame(probe)
+    }
+
+    requestAnimationFrame(probe)
+  },
+  { flush: "pre" },
 )
 
 function deliverPrompt(text: string, batch?: ComposerAttachmentBatch) {
