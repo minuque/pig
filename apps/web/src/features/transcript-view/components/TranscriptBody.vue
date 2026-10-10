@@ -86,6 +86,7 @@ import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { useI18n } from "@i18n/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
+import { useTranscriptHold } from "@features/transcript-view/hooks/use-transcript-hold.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
 import {
   useTranscriptOlder,
@@ -309,6 +310,27 @@ function pinLatest() {
 }
 
 const { readyFrame } = useTranscriptReveal(rows, pinLatest)
+/* 会话切换遮罩：内容撤成骨架前，把当前视口克隆成静态层盖住，新内容就绪再揭开淡出。 */
+const hold = useTranscriptHold()
+
+watch(readyFrame, (ready, prev) => {
+  if (ready === prev) return
+
+  if (!ready) {
+    // 要进骨架/换会话：视口里还有内容就克隆盖住，避免白屏
+    const el = viewport.value
+
+    if (el && el.querySelector(".transcript")) hold.hold(el)
+    return
+  }
+
+  // 新内容就绪：下一帧揭开遮罩
+  releaseHold()
+})
+
+function releaseHold() {
+  requestAnimationFrame(() => hold.release())
+}
 
 watch(
   () => turns.value.length,

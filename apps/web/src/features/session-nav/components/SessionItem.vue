@@ -29,6 +29,7 @@
               : { name: 'session', params: { sessionId: session.id } }
           "
           @click="onCardClick"
+          @pointerdown="onCardPointerDown"
           @keydown="onCardKeydown"
           @contextmenu="onCardContextMenu"
         >
@@ -194,7 +195,7 @@ const emit = defineEmits<{
   delete: [id: string]
 }>()
 const { t } = useI18n()
-const { openSession } = useNav()
+const { openSession, primeSession } = useNav()
 const renaming = ref(false)
 const draft = ref("")
 const nameInput = ref<HTMLInputElement | null>(null)
@@ -218,6 +219,14 @@ function onMenuOpenChange(open: boolean) {
 
 function isModifiedSessionClick(event: MouseEvent) {
   return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+}
+
+function onCardPointerDown(event: PointerEvent) {
+  /* 按下即预热历史；右键/修饰键不算意图。 */
+  if (props.placeholder || renaming.value) return
+
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  primeSession(props.session.id)
 }
 
 function onCardClick(event: MouseEvent) {

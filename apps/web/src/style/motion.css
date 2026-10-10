@@ -783,6 +783,17 @@
   }
 }
 
+/* 会话切换遮罩：克隆的视口内容盖住，揭开时淡出。 */
+.transcript-hold {
+  animation: overlay-out var(--duration-normal) var(--ease-out) var(--duration-fast) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transcript-hold {
+    animation: none;
+  }
+}
+
 /* 菜单/工具提示类浮层 */
 .reveal-menu {
   opacity: 0;

@@ -534,6 +534,7 @@ export function useSessionLifecycle(
     historyHasMore: history.historyHasMore,
     loadingOlder: history.loadingOlder,
     loadOlderHistory: history.loadOlderHistory,
+    loadHistory: history.loadHistory,
     turnTimings: history.turnTimings,
     sessionCwd,
     contextUsage: usage,

@@ -30,7 +30,8 @@ function createNav(
     highlightedSessionId: baseHighlightedSessionId,
     openSession: baseOpenSession,
     cancelPendingOpen,
-  } = useSessionOpen(session.sessionId, router)
+    primeSession,
+  } = useSessionOpen(session.sessionId, router, session.loadHistory)
   const navError = shallowRef("")
   const cards = useSessionCards(pi.connected)
   const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
@@ -122,6 +123,7 @@ function createNav(
     activeSessionId: session.sessionId,
     highlightedSessionId,
     openSession: baseOpenSession,
+    primeSession,
     closeSession,
     cancelPendingOpen,
     setDraftSession: nav.setDraftSession,

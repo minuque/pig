@@ -42,4 +42,15 @@ describe("useSessionOpen", () => {
     await Promise.resolve()
     expect(nav.push).toHaveBeenCalledTimes(1)
   })
+
+  it("按下即预热，同会话不重复拉", () => {
+    const sessionId = ref("a")
+    const loadHistory = vi.fn(() => Promise.resolve())
+    const nav = useSessionOpen(sessionId, { push: vi.fn() }, loadHistory)
+
+    nav.primeSession("b")
+    expect(loadHistory).toHaveBeenCalledWith("b")
+    nav.primeSession("a")
+    expect(loadHistory).toHaveBeenCalledTimes(1)
+  })
 })

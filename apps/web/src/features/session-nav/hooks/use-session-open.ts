@@ -27,7 +27,11 @@ function afterPaint(): Promise<void> {
   return new Promise((resolve) => setT(resolve, 0))
 }
 
-export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<Router, "push">) {
+export function useSessionOpen(
+  sessionId: Ref<string | undefined>,
+  router: Pick<Router, "push">,
+  loadHistory?: (id: string) => Promise<unknown>,
+) {
   const { play } = useSound()
   const pendingSessionId = shallowRef<string>()
   const highlightedSessionId = computed(() => pendingSessionId.value ?? sessionId.value)
@@ -35,6 +39,12 @@ export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<
 
   function pushSession(id: string) {
     void router.push({ name: "session", params: { sessionId: id } })
+  }
+
+  /** 按下即拉历史，与双 rAF 空窗重叠；fresh 不发网，同 id 在飞共用请求。 */
+  function primeSession(id: string) {
+    if (id === sessionId.value || !loadHistory) return
+    void loadHistory(id)
   }
 
   function openSession(id: string) {
@@ -72,5 +82,5 @@ export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<
   watch(sessionId, () => {
     pendingSessionId.value = undefined
   })
-  return { highlightedSessionId, openSession, cancelPendingOpen }
+  return { highlightedSessionId, openSession, cancelPendingOpen, primeSession }
 }
