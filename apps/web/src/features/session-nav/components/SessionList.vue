@@ -212,6 +212,7 @@ const reorder = useDragReorder({
   axis: "y",
   container: () => groupList.value,
   itemSelector: ".row-group",
+  handleSelector: ".group-head",
   onMove: (id, toIndex) => {
     const paths = groupRows.value.map((row) => row.canonicalPath)
     const from = groupRows.value.findIndex((row) => row.key === id)

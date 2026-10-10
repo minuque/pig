@@ -82,6 +82,8 @@ export interface DragReorderOptions {
   container: () => HTMLElement | null | undefined
   /** 拖动元素选择器；元素须带 data-id。 */
   itemSelector: string
+  /** 只在此选择器命中的元素上启动拖拽；默认 itemSelector 整体可拖。 */
+  handleSelector?: string
   /** 触发拖动的最小位移（px）。 */
   threshold?: number
   /** 松手惯性滑行系数：预测位移 = velocity * fling。 */
@@ -287,7 +289,10 @@ export function useDragReorder(opts: DragReorderOptions) {
 
   function onPointerDown(e: PointerEvent) {
     if (e.button !== 0 || e.ctrlKey) return
-    const node = (e.target as HTMLElement).closest<HTMLElement>(opts.itemSelector)
+    const target = e.target as HTMLElement
+
+    if (opts.handleSelector && !target.closest(opts.handleSelector)) return
+    const node = target.closest<HTMLElement>(opts.itemSelector)
     const c = opts.container()
 
     if (!node || !c || !c.contains(node)) return

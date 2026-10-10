@@ -60,6 +60,7 @@ const reorder = useDragReorder({
   axis: "y",
   container: () => panel.value,
   itemSelector: ".row",
+  handleSelector: ".row-grip",
   onMove: (id, toIndex) => emit("reorder", id, toIndex),
 })
 
@@ -113,6 +114,8 @@ onMounted(() => {
   height: var(--size-icon);
   color: var(--ink-muted);
   opacity: 0.5;
+  cursor: grab;
+  touch-action: none;
 }
 
 .row-text {
