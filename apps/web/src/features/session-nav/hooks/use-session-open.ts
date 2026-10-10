@@ -3,15 +3,28 @@ import type { Router } from "vue-router"
 import { useSound } from "@features/click-sound/index.js"
 
 function afterPaint(): Promise<void> {
+  /* 后台页面 rAF 被冻结，等绘制没意义且会把跳转饿死；直接推进。 */
+  if (typeof document !== "undefined" && document.visibilityState === "hidden")
+    return Promise.resolve()
+
   const raf = globalThis.requestAnimationFrame?.bind(globalThis)
+  const setT = globalThis.setTimeout
+  const clearT = globalThis.clearTimeout
 
   if (raf) {
     return new Promise((resolve) => {
-      raf(() => raf(() => resolve()))
+      /* rAF 在偶发后台/被遮挡时也可能不回来，计时兜底防饿死。 */
+      const timer = setT(resolve, 120)
+      raf(() =>
+        raf(() => {
+          clearT(timer)
+          resolve()
+        }),
+      )
     })
   }
 
-  return new Promise((resolve) => setTimeout(resolve, 0))
+  return new Promise((resolve) => setT(resolve, 0))
 }
 
 export function useSessionOpen(sessionId: Ref<string | undefined>, router: Pick<Router, "push">) {
