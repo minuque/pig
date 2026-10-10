@@ -87,20 +87,17 @@
       :class="{ 'is-open': sessionsOpen }"
       :inert="collapsedSections.sessions"
     >
-      <ul v-if="sessionsMounted">
+      <ul v-if="sessionsMounted" ref="groupList">
         <li
           v-for="section in listSections"
           :key="section.key"
           :class="groupClass(section.key, section.open)"
-          @dragover.prevent="onGroupDragOver(section.key, $event)"
-          @drop.prevent="onGroupDrop(section.key)"
-          @dragend="clearGroupDrag"
+          :data-id="section.key"
         >
           <GroupHead
             :name="section.name"
             :sortable="sort === 'manual'"
             :collapsed="section.collapsed"
-            @dragstart="onGroupDragStart(section.key, $event)"
             @toggle="section.toggle"
             @create="section.create?.()"
           />
@@ -141,15 +138,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, useTemplateRef, watch } from "vue"
+import { computed, onMounted, reactive, useTemplateRef, watch } from "vue"
 import { useResizeObserver, useTimestamp } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionsHead from "@features/session-nav/components/SessionsHead.vue"
-import { useGroupReorder } from "@features/session-nav/hooks/use-group-reorder.js"
 import { useSectionFold } from "@features/session-nav/hooks/use-section-fold.js"
+import { useDragReorder } from "@utils/motion.js"
 import { toSidebarSession } from "@features/session-nav/lib/session-list.js"
 import type { SidebarRow, SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import { AltArrowDownIcon, AltArrowRightIcon } from "@components/icons/index.js"
@@ -210,8 +207,31 @@ const showList = computed(() => rows.value.some((row) => row.kind !== "more"))
 const groupRows = computed(() =>
   rows.value.filter((row): row is Extract<SidebarRow, { kind: "group" }> => row.kind === "group"),
 )
-const { dropLine, onGroupDragStart, onGroupDragOver, onGroupDrop, clearGroupDrag } =
-  useGroupReorder(groupRows, reorderGroups)
+const groupList = useTemplateRef<HTMLElement>("groupList")
+const reorder = useDragReorder({
+  axis: "y",
+  container: () => groupList.value,
+  itemSelector: ".row-group",
+  onMove: (id, toIndex) => {
+    const paths = groupRows.value.map((row) => row.canonicalPath)
+    const from = groupRows.value.findIndex((row) => row.key === id)
+
+    if (from < 0 || from === toIndex) return
+    const moving = groupRows.value[from]
+
+    if (!moving) return
+    const next = paths.filter((_, i) => i !== from)
+    next.splice(toIndex, 0, moving.canonicalPath)
+    reorderGroups(next)
+  },
+})
+
+onMounted(() => {
+  const el = groupList.value
+
+  if (el) reorder.attach(el)
+})
+
 const updatedSessions = computed(() =>
   rows.value.flatMap((row) => (row.kind === "session" ? [row.session] : [])),
 )
@@ -267,8 +287,6 @@ function groupClass(key: string, open: boolean) {
     "row-group": true,
     "is-open": open,
     "is-manual": sort.value === "manual",
-    "drop-before": dropLine.value?.key === key && dropLine.value.place === "before",
-    "drop-after": dropLine.value?.key === key && dropLine.value.place === "after",
   }
 }
 </script>
@@ -349,30 +367,16 @@ function groupClass(key: string, open: boolean) {
   cursor: grab;
 }
 
-.row-group.drop-before,
-.row-group.drop-after {
-  position: relative;
+/* 拖拽跟手：整组抬起，邻项让位由 useDragReorder 的 transform 预览驱动 */
+.row-group.is-drag-live {
+  z-index: 4;
+  box-shadow: var(--shadow-float);
+  border-radius: var(--radius-md);
+  cursor: grabbing;
 }
 
-.row-group.drop-before::before,
-.row-group.drop-after::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  right: var(--spacing-xs);
-  left: var(--spacing-xs);
-  height: 2px;
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  pointer-events: none;
-}
-
-.row-group.drop-before::before {
-  top: calc(var(--spacing-xs) / -2);
-}
-
-.row-group.drop-after::after {
-  bottom: calc(var(--spacing-xs) / -2);
+.row-group.is-drag-live .group-head {
+  background: var(--sidebar);
 }
 
 .section-label {

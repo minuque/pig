@@ -1,10 +1,8 @@
 <template>
   <div
     class="group-head"
-    :draggable="sortable"
     @pointerdown="pointerFocus = true"
     @click="emit('toggle')"
-    @dragstart="onDragStart"
     @mouseleave="onHeadLeave"
   >
     <button class="group-toggle" type="button" :aria-expanded="!collapsed">
@@ -61,7 +59,6 @@ const props = withDefaults(
 const emit = defineEmits<{
   toggle: []
   create: []
-  dragstart: [event: DragEvent]
 }>()
 const pointerFocus = shallowRef(false)
 
@@ -74,22 +71,6 @@ function onHeadLeave(event: MouseEvent) {
   if (!fromPointer || !(head instanceof HTMLElement) || !(active instanceof HTMLElement)) return
 
   if (head.contains(active)) active.blur()
-}
-
-function onDragStart(event: DragEvent) {
-  if (!props.sortable) {
-    event.preventDefault()
-    return
-  }
-
-  const head = event.currentTarget
-
-  if (head instanceof HTMLElement && event.dataTransfer) {
-    const rect = head.getBoundingClientRect()
-    event.dataTransfer.setDragImage(head, event.clientX - rect.left, event.clientY - rect.top)
-  }
-
-  emit("dragstart", event)
 }
 </script>
 

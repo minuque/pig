@@ -117,7 +117,8 @@ interface DragState {
   moved: boolean
   items: HTMLElement[]
   rects: { pos: number; size: number }[]
-  pitch: number
+  /** 拖动项自身尺寸：邻项让位距离。 */
+  self: number
   from: number
   to: number
 }
@@ -176,16 +177,15 @@ export function useDragReorder(opts: DragReorderOptions) {
     return to
   }
 
-  /** 邻项按 from→to 让位；用 transform 预览，不改 DOM。 */
+  /** 邻项按 from→to 让位；让位距离用拖动项自身尺寸，支持变高元素。 */
   function layoutShift() {
     const st = s!
-    const pitch = st.pitch
     st.items.forEach((el, i) => {
       if (i === st.from) return
       let shift = 0
 
-      if (st.to > st.from && i > st.from && i <= st.to) shift = -pitch
-      else if (st.to < st.from && i < st.from && i >= st.to) shift = pitch
+      if (st.to > st.from && i > st.from && i <= st.to) shift = -st.self
+      else if (st.to < st.from && i < st.from && i >= st.to) shift = st.self
       el.style.transition = `transform ${shiftMs}ms ${ease}`
       el.style.transform = shift ? `${translate}(${shift}px)` : ""
     })
@@ -301,11 +301,6 @@ export function useDragReorder(opts: DragReorderOptions) {
     const r = rects[from]
 
     if (!r) return
-    const first = rects[0]
-    const last = rects[its.length - 1]
-    // pitch = 相邻槽位间距；取元素宽+gap 的均值更稳
-    const pitch =
-      its.length > 1 && first && last ? (last.pos - first.pos) / (its.length - 1) : r.size
 
     s = {
       id,
@@ -320,7 +315,7 @@ export function useDragReorder(opts: DragReorderOptions) {
       moved: false,
       items: its,
       rects,
-      pitch,
+      self: r.size,
       from,
       to: from,
     }
