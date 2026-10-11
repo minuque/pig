@@ -1,42 +1,61 @@
 import { onBeforeUnmount, shallowRef, type ShallowRef } from "vue"
 
 /**
- * 会话切换遮罩：切换瞬间把 transcript 视口的当前 DOM 克隆成只读快照盖住，
- * 新内容就绪再揭开。窗口化只挂视口附近节点，克隆体小；揭开/取消即丢。
+ * 会话切换遮罩：把视口当前 DOM 克隆成只读快照盖住，新内容就绪再揭开。
+ * epoch 区分连续快切：旧探针不能揭掉下一次的遮罩。
  */
 export interface TranscriptHold {
-  /** 克隆出来的快照节点；没有快照时为 undefined。 */
   node: ShallowRef<HTMLElement | undefined>
-  /** 视口当前内容克隆成覆盖层。返回是否有内容可盖。 */
-  hold: (viewport: HTMLElement | null | undefined) => boolean
-  /** 揭开遮罩：播淡出动画后移除节点。 */
-  release: () => void
+  /** 当前遮罩代次。hold 成功时递增；0 表示没有遮罩。 */
+  epoch: () => number
+  /** 克隆视口。返回本次代次，没有可盖内容时返回 0。 */
+  hold: (viewport: HTMLElement | null | undefined) => number
+  /** 淡出后移除。gen 与当前代次不符则忽略。 */
+  release: (gen?: number) => void
+  /** 不淡出，直接移除。超时或空会话用。 */
+  dropNow: (gen?: number) => void
 }
 
 export function useTranscriptHold(): TranscriptHold {
   const node = shallowRef<HTMLElement>()
+  let epoch = 0
 
   function drop(el: HTMLElement | undefined) {
     el?.remove()
   }
 
-  function release() {
-    const el = node.value
-    node.value = undefined
+  function current(gen?: number): HTMLElement | undefined {
+    if (gen !== undefined && gen !== epoch) return undefined
+    return node.value
+  }
+
+  function dropNow(gen?: number) {
+    const el = current(gen)
 
     if (!el) return
+    node.value = undefined
+    drop(el)
+  }
+
+  function release(gen?: number) {
+    const el = current(gen)
+
+    if (!el) return
+    node.value = undefined
     el.classList.add("is-leaving")
     el.addEventListener("animationend", () => drop(el), { once: true })
-    // 动画被禁用或没跑时兜底移除
     window.setTimeout(() => drop(el), 500)
   }
 
-  function hold(viewport: HTMLElement | null | undefined): boolean {
-    // 连续快切：上一张还没揭开就直接丢
-    drop(node.value)
+  function hold(viewport: HTMLElement | null | undefined): number {
+    epoch += 1
+    const gen = epoch
+    const parent = viewport?.parentElement
+
+    parent?.querySelectorAll(".transcript-hold").forEach((el) => el.remove())
     node.value = undefined
 
-    if (!viewport) return false
+    if (!viewport?.querySelector(".transcript")) return 0
     const clone = viewport.cloneNode(true) as HTMLElement
     const box = viewport.getBoundingClientRect()
     clone.removeAttribute("id")
@@ -51,17 +70,16 @@ export function useTranscriptHold(): TranscriptHold {
       background: "var(--surface)",
       opacity: "1",
     })
-    // 记录视口滚动偏移，让克隆内容停在同一位置
     const inner = clone.querySelector<HTMLElement>(".transcript")
 
     if (inner) inner.style.transform = `translateY(${-viewport.scrollTop}px)`
     clone.style.width = `${box.width}px`
     clone.style.height = `${box.height}px`
-    viewport.parentElement?.appendChild(clone)
+    parent?.appendChild(clone)
     node.value = clone
-    return true
+    return gen
   }
 
   onBeforeUnmount(() => drop(node.value))
-  return { node, hold, release }
+  return { node, epoch: () => epoch, hold, release, dropNow }
 }

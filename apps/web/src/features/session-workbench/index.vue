@@ -196,6 +196,7 @@ const {
   sendBackgroundPrompt,
   setBackgroundIdleHandler,
   transcriptFor,
+  historyFresh,
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
@@ -322,24 +323,40 @@ const hold = useTranscriptHold()
 
 watch(
   sessionId,
-  (_next, prev) => {
-    if (prev === _next) return
+  (next, prev) => {
+    if (!next || prev === next) return
+
+    /* 缓存命中直接切，不盖旧画面。 */
+    if (historyFresh(next)) return
     const vp = stage.value?.querySelector<HTMLElement>(".transcript-viewport")
+    /* flush:pre 在 DOM 更新前跑，此刻 .transcript 还是旧内容。 */
+    const gen = hold.hold(vp)
 
-    /* flush:pre 在 DOM 更新前跑，此刻 .transcript 还是旧内容，克隆它盖住。 */
-    if (vp && vp.querySelector(".transcript")) hold.hold(vp)
-
-    /* 等新 transcript 的 DOM 出来，且至少驻留 MIN_HOLD 让旧画面淡出被看见，
-       再揭开。数据快也闪，数据慢等数据。 */
+    if (!gen) return
     const start = performance.now()
-    const MIN_HOLD = 220
+    const MIN_HOLD = 80
     const MAX_HOLD = 600
     const probe = () => {
+      if (gen !== hold.epoch()) return
       const rows = stage.value?.querySelectorAll(".transcript .turn").length ?? 0
       const elapsed = performance.now() - start
+      const ready = historyFresh(next)
+      const incoming = transcriptFor(next).length
 
-      if ((rows > 0 && elapsed >= MIN_HOLD) || elapsed >= MAX_HOLD) {
-        hold.release()
+      /* 历史已就绪且本来就没有轮次：直接拿掉，不淡出到空屏。 */
+      if (ready && incoming === 0) {
+        hold.dropNow(gen)
+        return
+      }
+
+      if (rows > 0 && elapsed >= MIN_HOLD) {
+        hold.release(gen)
+        return
+      }
+
+      /* 超时直接拿掉克隆，交给菊花，不播淡出。 */
+      if (elapsed >= MAX_HOLD) {
+        hold.dropNow(gen)
         return
       }
 

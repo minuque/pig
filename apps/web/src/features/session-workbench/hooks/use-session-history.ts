@@ -169,6 +169,7 @@ export function useSessionHistory() {
     overlayLive,
     releaseLive,
     transcriptFor,
+    isFresh: (id: string) => cache.isFresh(id),
     loadHistory,
     loadOlderHistory,
   }
