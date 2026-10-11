@@ -340,7 +340,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
@@ -401,7 +401,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   white-space: nowrap;
 }
 
@@ -438,7 +438,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .selector-effort::before {
   content: "·";
   margin-inline: var(--spacing-xxs);
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 
 .picker {
@@ -474,7 +474,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   cursor: pointer;
 }
 
@@ -491,11 +491,11 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .tab-btn:hover {
   background: var(--hover-tint);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .tab-btn[data-current] {
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .tab-btn[data-current]::after {
@@ -519,13 +519,13 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font: inherit;
   font-size: var(--text-eyebrow);
 }
 
 .search input::placeholder {
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
 }
 
 .groups {
@@ -561,7 +561,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .model-name {
   flex: 1 1 auto;
   min-width: 0;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-button);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-button--line-height);
@@ -574,7 +574,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   border-radius: var(--radius-full);
   background: var(--canvas-soft);
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-family: inherit;
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-medium);
@@ -591,13 +591,13 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   cursor: pointer;
 }
 
 .fav:hover {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .fav.on,
@@ -608,7 +608,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .empty {
   padding: var(--spacing-lg) var(--spacing-xs);
   font-size: var(--text-eyebrow);
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   text-align: center;
 }
 </style>

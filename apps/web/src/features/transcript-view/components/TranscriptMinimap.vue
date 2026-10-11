@@ -198,7 +198,7 @@ function onStageFocusOut(event: FocusEvent) {
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  color: var(--ink);
+  color: var(--contrast-ink);
   box-shadow: var(--shadow-popover);
   text-align: start;
 }
@@ -218,7 +218,7 @@ function onStageFocusOut(event: FocusEvent) {
   max-height: 3.75rem;
   margin-top: var(--spacing-xxs);
   overflow: hidden;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-body-sm);
   line-height: 20px;
   line-clamp: 3;

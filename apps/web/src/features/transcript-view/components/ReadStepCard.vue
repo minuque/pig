@@ -137,20 +137,20 @@ watch(
   min-height: var(--size-icon-button);
   padding: 0 var(--spacing-sm);
   border-top: var(--border-width) solid var(--border-subtle);
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-family: var(--font-mono);
   font-size: var(--text-caption-mono);
   font-variant-numeric: tabular-nums;
 }
 
 .footer-range {
-  color: var(--ink-secondary);
+  color: var(--contrast-ink-secondary);
 }
 
 .footer-muted {
   min-width: 0;
   overflow: hidden;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -160,13 +160,13 @@ watch(
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font: inherit;
   cursor: pointer;
 }
 
 .footer-toggle:hover {
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .read-images {

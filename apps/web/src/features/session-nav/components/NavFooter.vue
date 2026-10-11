@@ -109,13 +109,13 @@ const { isDark, toggle: toggleTheme } = useColorScheme()
 
 .footer-settings:hover {
   background: var(--interaction-hover);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .footer-help:hover,
 .footer-help[data-state="open"] {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .footer-settings {
@@ -127,7 +127,7 @@ const { isDark, toggle: toggleTheme } = useColorScheme()
   height: var(--size-nav-rail);
   padding-inline: var(--spacing-xs);
   border-radius: var(--radius-md);
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-caption--line-height);
@@ -154,7 +154,7 @@ const { isDark, toggle: toggleTheme } = useColorScheme()
   place-items: center;
   padding: var(--icon-button-pad);
   border-radius: var(--radius-sm);
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -181,7 +181,7 @@ const { isDark, toggle: toggleTheme } = useColorScheme()
 
 .help-state {
   margin-inline-start: auto;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }

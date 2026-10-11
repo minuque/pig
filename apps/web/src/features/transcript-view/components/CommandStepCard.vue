@@ -142,14 +142,14 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 
 .tool-name {
   flex: none;
-  color: var(--ink-secondary);
+  color: var(--contrast-ink-secondary);
   font-family: var(--font-mono);
 }
 
 .cwd {
   min-width: 0;
   overflow: hidden;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-family: var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -174,14 +174,14 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 
 .prompt {
   flex: none;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   user-select: none;
 }
 
 .command {
   flex: 1;
   min-width: 0;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font: inherit;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -192,7 +192,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 }
 
 .command-output :deep(.tool-output-pre.is-embedded) {
-  color: var(--ink-secondary);
+  color: var(--contrast-ink-secondary);
 }
 
 .command-output.is-clamped {
@@ -220,7 +220,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
   min-height: var(--size-icon-button);
   padding: 0 var(--spacing-sm);
   border-top: var(--border-width) solid var(--border-subtle);
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-family: var(--font-mono);
   font-size: var(--text-caption-mono);
   font-variant-numeric: tabular-nums;
@@ -254,13 +254,13 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font: inherit;
   cursor: pointer;
 }
 
 .footer-toggle:hover {
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 @keyframes status-pulse {

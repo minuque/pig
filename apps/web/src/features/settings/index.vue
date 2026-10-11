@@ -99,7 +99,7 @@ function onOpen(next: boolean) {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-sm--line-height);
@@ -108,12 +108,12 @@ function onOpen(next: boolean) {
 
 .nav-item:hover {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .nav-item[aria-current="page"] {
   background: var(--interaction-selected);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .main {

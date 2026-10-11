@@ -6,6 +6,7 @@
     :class="[
       'alert relative flex w-full flex-col gap-1 rounded-(--radius-lg) border px-(--spacing-xs) py-(--spacing-xs) text-body-sm',
       variantClasses[variant],
+      floating && 'surface-float',
       props.class,
     ]"
   >
@@ -65,8 +66,9 @@ const props = withDefaults(
     class?: HTMLAttributes["class"]
     variant?: AlertVariant
     dismissible?: boolean
+    floating?: boolean
   }>(),
-  { class: undefined, variant: "default", dismissible: false },
+  { class: undefined, variant: "default", dismissible: false, floating: false },
 )
 const emit = defineEmits<{ close: [] }>()
 const variantClasses: Record<AlertVariant, string> = {
@@ -105,12 +107,12 @@ async function copy() {
 
 <style scoped>
 .alert-action {
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 
 .alert-action:hover {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .alert-action.is-copied {

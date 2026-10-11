@@ -93,11 +93,11 @@ const label = computed(() =>
   gap: 0.3em;
   max-width: 100%;
   margin: 0;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-heading-2);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-normal);
   line-height: var(--text-heading-2--line-height);
-  letter-spacing: var(--tracking-heading-2);
+  letter-spacing: var(--text-heading-2--letter-spacing);
   text-align: center;
 }
 

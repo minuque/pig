@@ -111,7 +111,7 @@ function onHeadLeave(event: MouseEvent) {
   place-items: center;
   width: var(--size-icon);
   height: var(--size-icon);
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   transition: color var(--duration-fast) var(--ease-smooth);
 }
 
@@ -122,22 +122,22 @@ function onHeadLeave(event: MouseEvent) {
 
 .grip-icon {
   display: none;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
 }
 
 .group-head:hover .mark {
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 
 .group-head:hover .group-name {
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .group-name {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-caption--line-height);
@@ -162,14 +162,14 @@ function onHeadLeave(event: MouseEvent) {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   line-height: 0;
 }
 
 .group-new:hover,
 .group-new:focus-visible {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 @media (hover: hover) {

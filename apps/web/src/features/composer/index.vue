@@ -376,7 +376,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   border: 0;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),
@@ -385,7 +385,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 
 .attach:not(:disabled):hover {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .attach:disabled {

@@ -188,7 +188,7 @@ function onOpenAutoFocus(event: Event) {
 
 .title {
   margin: 0;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-caption--line-height);
@@ -203,12 +203,12 @@ function onOpenAutoFocus(event: Event) {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   cursor: pointer;
 }
 
 .close:hover {
-  color: var(--ink);
+  color: var(--contrast-ink);
   background: var(--hover-tint);
 }
 
@@ -221,13 +221,13 @@ function onOpenAutoFocus(event: Event) {
 }
 
 .percent {
-  color: var(--ink-secondary);
+  color: var(--contrast-ink-secondary);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
 
 .tokens {
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
@@ -266,7 +266,7 @@ function onOpenAutoFocus(event: Event) {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--ink-secondary);
+  color: var(--contrast-ink-secondary);
   font: inherit;
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
@@ -280,7 +280,7 @@ function onOpenAutoFocus(event: Event) {
 
 .legend-row--button:hover {
   background: var(--hover-tint);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .swatch {
@@ -298,7 +298,7 @@ function onOpenAutoFocus(event: Event) {
 .legend-count,
 .legend-pct {
   flex: none;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-variant-numeric: tabular-nums;
 }
 
@@ -313,7 +313,7 @@ function onOpenAutoFocus(event: Event) {
   min-height: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--ink-markdown);
+  color: var(--contrast-ink);
   font-size: var(--text-body-md);
   line-height: 1.7;
 }
@@ -336,7 +336,7 @@ function onOpenAutoFocus(event: Event) {
 .preview-text {
   margin: 0;
   overflow: auto;
-  color: var(--ink-markdown);
+  color: var(--contrast-ink);
   font: inherit;
   font-size: var(--text-body-md);
   line-height: 1.7;

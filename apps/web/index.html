@@ -39,6 +39,15 @@
           (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)
 
         if (dark) document.documentElement.classList.add("dark")
+
+        /* 与 use-general-prefs 的 pig.contrast 同键：首帧就写入，不等 main.ts */
+        try {
+          var boost = localStorage.getItem("pig.contrast")
+          if (boost !== null && boost !== "0")
+            document.documentElement.style.setProperty("--contrast-boost", boost + "%")
+        } catch (e) {
+          /* localStorage 不可用时按默认对比度 */
+        }
       })()
     </script>
     <link rel="stylesheet" href="/src/style/app.css" />

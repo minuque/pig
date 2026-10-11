@@ -56,17 +56,17 @@
   --ms-action-btn-padding: 0.3125rem;
 
   /* 色板 */
-  --ms-foreground: from var(--ink-markdown) h s l;
+  --ms-foreground: from var(--contrast-ink) h s l;
   --ms-background: from var(--surface) h s l;
   --ms-muted: from var(--canvas-soft) h s l;
-  --ms-muted-foreground: from var(--ink-muted) h s l;
+  --ms-muted-foreground: from var(--contrast-ink-muted) h s l;
   --ms-border: from var(--border) h s l;
   --ms-primary: from var(--primary) h s l;
   --ms-primary-foreground: from var(--on-primary) h s l;
   --ms-secondary: from var(--canvas-soft) h s l;
-  --ms-secondary-foreground: from var(--ink-secondary) h s l;
+  --ms-secondary-foreground: from var(--contrast-ink-secondary) h s l;
   --ms-accent: from var(--canvas-soft) h s l;
-  --ms-accent-foreground: from var(--ink) h s l;
+  --ms-accent-foreground: from var(--contrast-ink) h s l;
   --ms-destructive: from var(--danger) h s l;
   --ms-destructive-foreground: from var(--danger-foreground) h s l;
   --ms-success: from var(--success) h s l;
@@ -78,9 +78,9 @@
   --ms-diff-added: from color-mix(in srgb, var(--success) 88%, var(--surface)) h s l;
   --ms-diff-removed: from color-mix(in srgb, var(--danger) 88%, var(--surface)) h s l;
   --ms-highlight: from color-mix(in srgb, var(--primary) 16%, var(--surface)) h s l;
-  --ms-highlight-foreground: from var(--ink) h s l;
+  --ms-highlight-foreground: from var(--contrast-ink) h s l;
   --ms-popover: from var(--popover) h s l;
-  --ms-popover-foreground: from var(--ink) h s l;
+  --ms-popover-foreground: from var(--contrast-ink) h s l;
   --ms-ring: from var(--primary) h s l;
   --ms-shadow-subtle: var(--shadow-card);
   --ms-shadow-popover: var(--shadow-popover);
@@ -93,18 +93,18 @@
   --diagram-bg: var(--code-surface);
   --diagram-header-bg: var(--code-surface);
   --diagram-border: var(--border-subtle);
-  --code-fg: var(--ink);
+  --code-fg: var(--contrast-ink);
   --code-border: var(--border-subtle);
   --inline-code-bg: var(--code-surface);
-  --inline-code-fg: var(--ink);
+  --inline-code-fg: var(--contrast-ink);
   --blockquote-border: var(--border);
-  --blockquote-fg: var(--ink-muted);
+  --blockquote-fg: var(--contrast-ink-muted);
   --table-border: var(--border);
   --table-header-bg: transparent;
   --focus-ring: transparent;
   --link-color: var(--link);
 
-  color: var(--ink-markdown);
+  color: var(--contrast-ink);
   font-size: var(--ms-text-body);
   line-height: var(--ms-leading-body);
 
@@ -124,7 +124,7 @@
   }
 
   .heading-6 {
-    color: var(--ink-muted);
+    color: var(--contrast-ink-muted);
   }
 
   .heading-1 + .heading-2,

@@ -89,7 +89,7 @@ onMounted(() => {
   height: 36px;
   padding-inline: var(--spacing-xs);
   border-radius: var(--radius-md);
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   cursor: default;
@@ -112,7 +112,7 @@ onMounted(() => {
   flex: none;
   width: var(--size-icon);
   height: var(--size-icon);
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   opacity: 0.5;
   cursor: grab;
   touch-action: none;
@@ -143,7 +143,7 @@ onMounted(() => {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   opacity: 0.72;
   cursor: pointer;
   transition:
@@ -154,7 +154,7 @@ onMounted(() => {
 
 .action:hover {
   background: var(--hover-tint);
-  color: var(--ink);
+  color: var(--contrast-ink);
   opacity: 1;
 }
 
@@ -173,7 +173,7 @@ onMounted(() => {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
   cursor: pointer;
@@ -184,7 +184,7 @@ onMounted(() => {
 
 .send-now:hover {
   background: var(--hover-tint);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 @media (prefers-reduced-motion: reduce) {

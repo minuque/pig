@@ -567,7 +567,7 @@ defineExpose({ focus })
   overflow: hidden;
   border: var(--border-width) solid var(--composer-border);
   border-radius: inherit;
-  transition: height var(--duration-composer-flip) var(--ease-composer-flip);
+  transition: height var(--duration-composer-flip) var(--ease-fold);
 }
 
 /* 单行是胶囊：端头保持圆形；连续曲率只在多行/展开时启用，否则胶囊端头会被拉平 */
@@ -691,7 +691,7 @@ defineExpose({ focus })
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font: inherit;
   font-size: var(--text-body-md);
   line-height: 1.5;
@@ -715,7 +715,7 @@ defineExpose({ focus })
 /* contenteditable 的 placeholder：空内容时显示 data-placeholder */
 .field:empty::before {
   content: attr(data-placeholder);
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   pointer-events: none;
 }
 

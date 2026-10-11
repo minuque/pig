@@ -68,6 +68,62 @@
             </button>
           </div>
         </div>
+
+        <div class="row">
+          <div class="copy">
+            <h3 class="label">{{ t("settings.glass") }}</h3>
+            <p class="hint">{{ t("settings.glassHint") }}</p>
+          </div>
+
+          <Switch
+            :aria-label="t('settings.glass')"
+            :model-value="glassOn"
+            @update:model-value="setGlass"
+          />
+        </div>
+
+        <div class="row">
+          <div class="copy">
+            <h3 class="label">{{ t("settings.glassOpacity") }}</h3>
+            <p class="hint">{{ t("settings.glassOpacityHint") }}</p>
+          </div>
+
+          <div class="opacity-control">
+            <Slider
+              :aria-label="t('settings.glassOpacity')"
+              :model-value="[glassOpacity]"
+              :min="5"
+              :max="95"
+              :step="5"
+              :disabled="!glassOn"
+              class="opacity-slider"
+              @update:model-value="onOpacity"
+            />
+
+            <span class="opacity-value">{{ glassOpacity }}%</span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="copy">
+            <h3 class="label">{{ t("settings.contrast") }}</h3>
+            <p class="hint">{{ t("settings.contrastHint") }}</p>
+          </div>
+
+          <div class="opacity-control">
+            <Slider
+              :aria-label="t('settings.contrast')"
+              :model-value="[contrastBoost]"
+              :min="0"
+              :max="100"
+              :step="10"
+              class="opacity-slider"
+              @update:model-value="onContrast"
+            />
+
+            <span class="opacity-value">{{ contrastBoost }}%</span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -112,12 +168,26 @@ import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { Switch } from "@components/ui/switch/index.js"
+import { Slider } from "@components/ui/slider/index.js"
 import { MonitorIcon, MoonIcon, SunIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const { scheme, setScheme } = useColorScheme()
 const { enabled: soundOn, toggle: toggleSound } = useSound()
-const { locale, fontSize, notifyOn, setLocale, setFontSize, setNotify } = useGeneralPrefs()
+const {
+  locale,
+  fontSize,
+  notifyOn,
+  glassOn,
+  glassOpacity,
+  contrastBoost,
+  setLocale,
+  setFontSize,
+  setNotify,
+  setGlass,
+  setGlassOpacity,
+  setContrastBoost,
+} = useGeneralPrefs()
 const schemes: { id: ColorScheme; label: string; icon: typeof MonitorIcon }[] = [
   { id: "light", label: t("settings.schemeLight"), icon: SunIcon },
   { id: "dark", label: t("settings.schemeDark"), icon: MoonIcon },
@@ -133,6 +203,14 @@ const sizes: { id: FontSize; mark: string; label: string }[] = [
   { id: "l", mark: "L", label: t("settings.fontSizeL") },
   { id: "xl", mark: "XL", label: t("settings.fontSizeXl") },
 ]
+
+function onOpacity(value: number[] | undefined) {
+  if (value?.[0] !== undefined) setGlassOpacity(value[0])
+}
+
+function onContrast(value: number[] | undefined) {
+  if (value?.[0] !== undefined) setContrastBoost(value[0])
+}
 
 async function onNotify(next: boolean) {
   if (next && typeof Notification !== "undefined" && Notification.permission === "default") {
@@ -161,7 +239,7 @@ async function onNotify(next: boolean) {
 
 .group-title {
   margin: 0;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-title--line-height);
@@ -198,7 +276,7 @@ async function onNotify(next: boolean) {
 
 .label {
   margin: 0;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-body-md);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-md--line-height);
@@ -206,7 +284,7 @@ async function onNotify(next: boolean) {
 
 .hint {
   margin: 0;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
@@ -229,7 +307,7 @@ async function onNotify(next: boolean) {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-caption--line-height);
@@ -237,18 +315,37 @@ async function onNotify(next: boolean) {
 }
 
 .segment-btn:hover {
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .segment-btn[aria-checked="true"] {
   background: var(--interaction-selected);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .size-btn {
   justify-content: center;
   min-width: var(--size-icon-button);
   padding-inline: var(--spacing-xs);
+}
+
+.opacity-control {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.opacity-slider {
+  width: 8rem;
+}
+
+.opacity-value {
+  min-width: 3ch;
+  color: var(--contrast-ink-muted);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
 }
 
 @media (max-width: 720px) {

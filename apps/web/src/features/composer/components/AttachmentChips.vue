@@ -174,7 +174,7 @@ const rows = computed(() =>
   gap: 2px;
   height: 100%;
   padding: var(--spacing-xs) 3px 0;
-  color: var(--ink-secondary);
+  color: var(--contrast-ink-secondary);
   transition: opacity var(--duration-normal) var(--ease-out);
 }
 
@@ -182,7 +182,7 @@ const rows = computed(() =>
   flex: none;
   width: 24px;
   height: 24px;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
 }
 
 .file-name {
@@ -203,7 +203,7 @@ const rows = computed(() =>
 
 .file-ext {
   flex: none;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
 }
 
 /* 进度环与 tile 同位：描边中线压 tile 边缘，不再外扩出第二道框。

@@ -85,7 +85,7 @@ export function glideClusters(
 export function flipMotion(el: Element, dock?: "in" | "out"): FlipMotion {
   const style = getComputedStyle(el)
   const duration = dock ? `--duration-dock-${dock}` : "--duration-composer-flip"
-  const easing = dock ? "--ease-dock" : "--ease-composer-flip"
+  const easing = dock ? "--ease-smooth" : "--ease-fold"
   return {
     duration: Number.parseFloat(style.getPropertyValue(duration)) || 0,
     easing: style.getPropertyValue(easing).trim() || "ease-out",

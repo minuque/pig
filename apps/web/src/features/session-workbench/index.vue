@@ -689,7 +689,7 @@ const contentHandleSides = ["left", "right"] as const
   height: var(--size-scroll-control);
   border-radius: var(--radius-full);
   background: var(--popover);
-  color: var(--ink-secondary);
+  color: var(--contrast-ink-secondary);
   box-shadow: none;
   cursor: pointer;
   transform: translateY(calc(-100% - var(--spacing-sm)));
@@ -697,7 +697,7 @@ const contentHandleSides = ["left", "right"] as const
 
 .scroll-latest-control:hover {
   background: var(--interaction-hover);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 @media (max-width: 900px) {

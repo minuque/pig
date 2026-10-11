@@ -388,7 +388,7 @@ function confirmDelete() {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-smooth);
@@ -403,7 +403,7 @@ function confirmDelete() {
 .pin-toggle:hover,
 .pin-toggle:focus-visible {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .trail-slot {
@@ -431,7 +431,7 @@ function confirmDelete() {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -448,7 +448,7 @@ function confirmDelete() {
 .more-toggle:hover,
 .more-toggle:focus-visible {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .status-ring {
@@ -471,9 +471,9 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-normal);
   line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -489,15 +489,15 @@ function confirmDelete() {
 
 .path-icon {
   flex: none;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 
 .path-text {
   min-width: 0;
   overflow: hidden;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-normal);
   line-height: var(--text-eyebrow--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -526,9 +526,9 @@ function confirmDelete() {
   position: relative;
   display: flex;
   align-items: center;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-normal);
   line-height: var(--text-eyebrow--line-height);
   text-align: end;
   white-space: nowrap;
@@ -585,10 +585,10 @@ function confirmDelete() {
   border: 0;
   border-radius: var(--radius-xs);
   background: var(--interaction-hover);
-  color: var(--ink);
+  color: var(--contrast-ink);
   caret-color: var(--primary);
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-normal);
   line-height: var(--text-caption--line-height);
   outline: none;
   box-shadow: inset 0 0 0 1px var(--primary);
@@ -601,6 +601,6 @@ function confirmDelete() {
 
 .rename-input::selection {
   background: var(--selection-bg);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 </style>

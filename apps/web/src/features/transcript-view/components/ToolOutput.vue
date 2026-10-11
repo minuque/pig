@@ -129,7 +129,7 @@ const preClass = computed(() => ({
   overflow: visible;
   border-radius: var(--radius-code);
   background: var(--code-surface);
-  color: var(--ink-secondary);
+  color: var(--contrast-ink-secondary);
   font-family: var(--font-mono);
   font-size: inherit;
   line-height: var(--text-code-line);
@@ -154,7 +154,7 @@ const preClass = computed(() => ({
 }
 
 .tool-output-pre.is-embedded {
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-family: var(--font-mono);
   font-size: var(--text-code);
 }
@@ -195,13 +195,13 @@ const preClass = computed(() => ({
 .line-number {
   flex: none;
   min-width: var(--line-number-width);
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   text-align: end;
   user-select: none;
 }
 
 code {
-  color: var(--ink);
+  color: var(--contrast-ink);
   font: inherit;
   white-space: pre;
 }
@@ -219,7 +219,7 @@ code {
   border: 0;
   border-top: var(--border-width) solid var(--border);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font: inherit;
   font-size: var(--text-caption);
   text-align: center;
@@ -227,7 +227,7 @@ code {
 }
 
 .show-all:hover {
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .is-soft-wrap code,

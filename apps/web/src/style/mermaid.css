@@ -1,9 +1,9 @@
 /* mermaid 默认主题：浅色 github-light，深色 github-dark。 */
 
 ._mermaid {
-  --mermaid-text: var(--ink);
-  --mermaid-text-sec: color-mix(in srgb, var(--mermaid-fg) 60%, var(--mermaid-bg));
-  --mermaid-text-muted: var(--ink-muted);
+  --mermaid-text: var(--contrast-ink);
+  --mermaid-text-sec: color-mix(in srgb, var(--contrast-ink) 60%, var(--mermaid-bg));
+  --mermaid-text-muted: var(--contrast-ink-muted);
   --mermaid-connector: color-mix(in srgb, var(--mermaid-fg) 28%, var(--mermaid-bg));
   --mermaid-arrow: var(--mermaid-accent);
   --mermaid-node-fill: var(--mermaid-fill);
@@ -30,7 +30,7 @@
 .mermaid-action-btn:hover,
 .mermaid-action-btn:focus-visible {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 ._mermaid svg .actor,

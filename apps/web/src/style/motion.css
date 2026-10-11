@@ -17,7 +17,7 @@
 /* 离场：小猪歪头缩回，整屏随即淡出 */
 .startup-screen.leaving {
   pointer-events: none;
-  animation: exit-fade var(--duration-startup-leave) var(--ease-smooth) both;
+  animation: exit-fade var(--duration-normal) var(--ease-smooth) both;
 }
 
 .startup-screen.leaving .startup-logo {
@@ -120,7 +120,7 @@
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   transition:
     background var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
@@ -129,7 +129,7 @@
 
 .icon-toggle:hover {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 @media (pointer: coarse) {
@@ -552,7 +552,7 @@
 .shimmer {
   position: relative;
   display: inline-block;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
 }
 
 .shimmer::before {
@@ -865,7 +865,7 @@
 .ring-focus {
   outline: none;
   box-shadow: none;
-  transition: box-shadow var(--focus-ring-ms) var(--ease-out);
+  transition: box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .ring-focus:focus-visible {

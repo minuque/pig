@@ -114,7 +114,7 @@ const editDiffOptions = computed(() => ({
   min-height: var(--size-icon-button);
   padding: 0 var(--spacing-sm);
   border-top: var(--border-width) solid var(--border-subtle);
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-family: var(--font-mono);
   font-size: var(--text-caption-mono);
   font-variant-numeric: tabular-nums;
@@ -125,13 +125,13 @@ const editDiffOptions = computed(() => ({
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font: inherit;
   cursor: pointer;
 }
 
 .footer-toggle:hover {
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .edit-area.is-clamped {

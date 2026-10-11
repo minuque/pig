@@ -353,9 +353,9 @@ onBeforeUnmount(() => {
   justify-content: flex-start;
   border-radius: 0;
   background: var(--surface);
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-normal);
   white-space: normal;
   text-align: start;
   font-variant-numeric: tabular-nums;
@@ -363,7 +363,7 @@ onBeforeUnmount(() => {
 
 .summary-btn:hover {
   background: var(--surface);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .aborted .summary-btn {
@@ -459,15 +459,15 @@ onBeforeUnmount(() => {
   justify-content: flex-start;
   border-radius: 0;
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-normal);
   text-align: start;
 }
 
 .summary:hover {
   background: transparent;
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .tool-icon {

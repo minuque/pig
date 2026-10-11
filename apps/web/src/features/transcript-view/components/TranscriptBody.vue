@@ -469,7 +469,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   padding: var(--spacing-sm) 0;
   border: 0;
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font: inherit;
   font-size: var(--text-body-sm);
   text-align: center;
@@ -490,6 +490,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .older-spinner {
   width: var(--size-icon-2xs);
   height: var(--size-icon-2xs);
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 </style>

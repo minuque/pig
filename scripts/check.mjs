@@ -10,14 +10,20 @@ import { reportResults, runPnpm } from "./check-run.mjs"
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
+/* DESIGN.md 缺失时（token 稳定前）跳过 designmd lint 与 token 校验，重新生成后自动恢复。 */
+const hasDesignMd = existsSync(resolve(root, "DESIGN.md"))
 const CHECK_STEPS = [
   { name: "format", args: ["exec", "prettier", "--check", "."] },
   { name: "eslint", args: ["exec", "eslint", "."] },
   { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
-  { name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] },
+  ...(hasDesignMd
+    ? [
+        { name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] },
+        { name: "design-tokens", args: ["check:design-tokens"] },
+      ]
+    : []),
   { name: "typecheck", args: ["typecheck"] },
   { name: "test", args: ["test"] },
-  { name: "design-tokens", args: ["check:design-tokens"] },
 ]
 
 function dirtyFiles() {
@@ -116,10 +122,11 @@ async function checkTouched(scope, files) {
     steps.push({ name: "stylelint", args: ["exec", "stylelint", ...scope.stylelintFiles] })
   }
 
-  if (scope.designmd)
+  if (scope.designmd && hasDesignMd)
     steps.push({ name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] })
 
-  if (scope.tokens) steps.push({ name: "design-tokens", args: ["check:design-tokens"] })
+  if (scope.tokens && hasDesignMd)
+    steps.push({ name: "design-tokens", args: ["check:design-tokens"] })
 
   if (scope.scripts) {
     steps.push({

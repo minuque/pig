@@ -66,7 +66,7 @@ watch(
 <style scoped>
 .input-json {
   min-width: 0;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-family: var(--font-mono);
   line-height: var(--text-caption--line-height);
   overflow-wrap: anywhere;

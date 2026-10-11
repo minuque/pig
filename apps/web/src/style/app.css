@@ -26,16 +26,21 @@
 :root {
   color-scheme: light;
 
+  /* 文字对比度：提升时把 4 档文字色按权重向 --contrast-target 推，0% 即原值 */
+  --contrast-boost: 0%;
+  --contrast-target: #000000;
+
   /* 品牌 */
   --primary: #5e6ad2;
   --primary-active: #4f5bc4;
-  --secondary: #4c56c8;
+  --primary-foreground: var(--on-primary);
   --on-primary: #ffffff;
   --white: #ffffff;
 
   /* 表面 */
   --canvas: #f7f7f8;
   --canvas-soft: #f7f7f8;
+  --muted: var(--canvas-soft);
   --surface: #ffffff;
   --sidebar: #fcfcfd;
   --composer-bg: #f4f4f5;
@@ -54,21 +59,47 @@
   --mermaid-fg: #1b1b1b;
   --mermaid-line: #d4d4d4;
   --mermaid-accent: #5e6ad2;
-  --mermaid-muted: #6e6e6e;
 
   /* 文字 */
   --ink: #1b1b1b;
+  --foreground: var(--ink);
   --ink-markdown: #1b1b1b;
   --ink-secondary: #5c5c5c;
   --ink-muted: #6e6e6e;
+  --muted-foreground: var(--contrast-ink-muted);
   --ink-faint: #8a8a8a;
+
+  /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --ink 后自动跟随 */
+  --contrast-ink: color-mix(
+    in oklab,
+    var(--ink) calc(100% - var(--contrast-boost)),
+    var(--contrast-target) var(--contrast-boost)
+  );
+  --contrast-ink-secondary: color-mix(
+    in oklab,
+    var(--ink-secondary) calc(100% - var(--contrast-boost)),
+    var(--contrast-target) var(--contrast-boost)
+  );
+  --contrast-ink-muted: color-mix(
+    in oklab,
+    var(--ink-muted) calc(100% - var(--contrast-boost)),
+    var(--contrast-target) var(--contrast-boost)
+  );
+  --contrast-ink-faint: color-mix(
+    in oklab,
+    var(--ink-faint) calc(100% - var(--contrast-boost)),
+    var(--contrast-target) var(--contrast-boost)
+  );
 
   /* 结构 / 交互 */
   --border: #dedede;
+  --input: var(--composer-ring);
   --border-subtle: #e8e8e8;
   --composer-ring: rgb(0 0 0 / 0.16);
   --interaction-hover: #e8e8eb;
   --interaction-selected: #e6e6e8;
+  --accent: var(--interaction-hover);
+  --accent-foreground: var(--contrast-ink);
   --hover-quiet: color-mix(in srgb, var(--ink) 5%, transparent);
   --hover-tint: color-mix(in srgb, var(--ink) 8%, transparent);
   --hover-strong: color-mix(in srgb, var(--ink) 12%, transparent);
@@ -85,8 +116,6 @@
   --button-sheen: color-mix(in srgb, var(--white) 16%, transparent);
   --button-press: color-mix(in srgb, var(--ink) 12%, transparent);
   --effort-track: var(--border-subtle);
-  --effort-thumb: var(--white);
-  --effort-tick: var(--ink-muted);
   --link: #4c56c8;
   --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #dad8d8;
@@ -109,83 +138,24 @@
   --accent-gray: #8a8d94;
 
   /* 语义 */
-  --accent-orange: #d97706;
   --star: #fbbf24;
-  --accent-orange-deep: #d97706;
-  --accent-green: #52a450;
+  --accent-green: var(--success);
   --success: #52a450;
-  --info: #5e6ad2;
+  --info: var(--primary);
   --warning: #d97706;
   --danger: #c94446;
+  --destructive: var(--danger);
+  --destructive-foreground: var(--danger-foreground);
   --success-foreground: var(--on-primary);
   --warning-foreground: var(--on-primary);
   --danger-foreground: var(--on-primary);
   --success-bg: #dcfce7;
   --info-bg: #eceef8;
-  --warning-bg: #fef9c3;
   --danger-bg: #fee2e2;
 
-  /* 字体 */
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --font-mono:
-    ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
-  --text-display-1: 64px;
-  --text-display-1--line-height: 1;
-  --tracking-display-1: -2.125px;
-  --text-display-2: 54px;
-  --text-display-2--line-height: 1.04;
-  --tracking-display-2: -1.875px;
-  --text-heading-1: 40px;
-  --text-heading-1--line-height: 1.1;
-  --tracking-heading-1: -1px;
-  --text-heading-2: 26px;
-  --text-heading-2--line-height: 1.23;
-  --tracking-heading-2: -0.4px;
-  --text-heading-3: 22px;
-  --text-heading-3--line-height: 1.27;
-  --tracking-heading-3: -0.25px;
-  --text-title: 16px;
-  --text-title--line-height: 1.4;
-  --tracking-title: -0.125px;
-  --text-body-md: 14px;
-  --text-body-md--line-height: 1.43;
-  --text-body-sm: 14px;
-  --text-body-sm--line-height: 1.43;
-  --text-button: 13px;
-  --text-button--line-height: 1.38;
-  --text-caption: 13px;
-  --text-caption--line-height: 1.38;
-  --text-eyebrow: 12px;
-  --text-eyebrow--line-height: 1.33;
-  --tracking-eyebrow: 0.125px;
-  --text-caption-mono: 12px;
-  --text-caption-mono--line-height: 1.33;
-  --tracking-caption-mono: 1.2px;
+  /* 字体与间距圆角定义在 @theme，组件的 var() 与工具类读同一份。 */
   --text-code: 13px;
   --text-code-line: 24.5px;
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  /* 间距 / 圆角 */
-  --spacing-xxs: 4px;
-  --spacing-xs: 8px;
-  --spacing-sm: 12px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 28px;
-  --spacing-xxl: 32px;
-  --radius-2xs: 2px;
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 8px;
-  --radius-xl: 16px;
-  --radius-popover: 12px;
-  --radius-code: 0.65rem;
-  --radius-full: 9999px;
 
   /* 输入卡胶囊：32px 圆角；宽度跟随内容宽度手柄 */
   --composer-radius: 32px;
@@ -197,8 +167,6 @@
   /* 尺寸 */
   --size-control: 40px;
   --size-context-menu: 12rem;
-  --size-sidebar: 280px;
-  --nav-shell-pad: var(--spacing-xs);
   --titlebar-inset: 44px;
   --size-windows-caption: 138px;
   --size-drawer: 360px;
@@ -213,7 +181,8 @@
   --size-icon-button: 28px;
   /* 24 画布线宽；低于 1.17 时 14px 下等效不到 1px，会糊成半调灰 */
   --line-icon-width: 1.75px;
-  /* Solar 图标默认值；调用方的 size-* 类与 strokeWidth prop 可覆盖 */
+  /* @solar-icons/vue 的 IconBase 读这两个名字定尺寸与线宽（width/height 是 1em，靠 font-size 撑开）；
+     未定义时回退 24px / 1.5，比设计大一档，不要删。 */
   --solar-size: var(--size-icon);
   --solar-stroke-width: var(--line-icon-width);
   /* 侧边栏紧凑图标按钮：图标外 2px，对齐 Synara 的 sidebar-icon-button */
@@ -238,7 +207,6 @@
   --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.18);
   --shadow-popover:
     0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 1px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-group: 0 1px 2px rgb(0 0 0 / 0.1), 0 2px 6px rgb(0 0 0 / 0.05);
   --shadow-logo: 0 1px 2px rgba(15, 17, 21, 0.06), 0 8px 20px rgba(15, 17, 21, 0.08);
   --shadow-soft:
     0 0.175px 1.041px rgba(0, 0, 0, 0.01), 0 0.8px 2.925px rgba(0, 0, 0, 0.02),
@@ -262,11 +230,9 @@
   --duration-normal: 200ms;
   --duration-composer-flip: 180ms;
   --ease-fold: cubic-bezier(0, 0, 0.58, 1);
-  --ease-composer-flip: var(--ease-fold);
-  /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms */
+  /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms。名字由 composer-flip.ts 拼接，不是字面量。 */
   --duration-dock-in: 420ms;
   --duration-dock-out: 470ms;
-  --ease-dock: var(--ease-smooth);
   /* 首屏整体落位入场 */
   --duration-settle: 500ms;
   --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
@@ -275,7 +241,6 @@
   --duration-slow: 280ms;
   /* 小猪探头：开屏与侧栏品牌共用同一节奏 */
   --duration-pig-peek: 640ms;
-  --duration-startup-leave: 200ms;
   --duration-icon: 300ms;
   --duration-theme: 600ms;
   --duration-shimmer: 2s;
@@ -287,16 +252,17 @@
   /* 焦点环：宽+透明度的统一焦点态，配合 .ring-focus 使用。 */
   --focus-ring: 0 0 0 3px color-mix(in srgb, var(--primary) 45%, transparent);
   --focus-ring-danger: 0 0 0 3px color-mix(in srgb, var(--danger, #e5484d) 45%, transparent);
-  --focus-ring-ms: var(--duration-fast);
 }
 
 /* 深色只覆盖颜色、阴影、玻璃 */
 .dark {
   color-scheme: dark;
 
+  /* 深色下向白推，对比度层才朝正确方向生效 */
+  --contrast-target: #ffffff;
+
   --primary: #606acc;
   --primary-active: #555fbf;
-  --secondary: #9aa3ea;
   --on-primary: #ffffff;
 
   --canvas: #121214;
@@ -315,7 +281,6 @@
   --mermaid-fg: #e3e4e6;
   --mermaid-line: #333338;
   --mermaid-accent: #9aa3ea;
-  --mermaid-muted: #9a9b9e;
 
   --ink: #e3e4e6;
   --ink-markdown: #e3e4e6;
@@ -323,14 +288,12 @@
   --ink-muted: #9a9b9e;
   --ink-faint: #7e7f83;
 
-  --border: #28282a;
-  --border-subtle: #2a2a2e;
+  --border: #2a2a2e;
+  --border-subtle: #28282a;
   --composer-ring: rgb(255 255 255 / 0.2);
   --interaction-hover: #26262b;
   --interaction-selected: #2c2c31;
   --effort-track: var(--hover-strong);
-  --effort-thumb: var(--ink-secondary);
-  --effort-tick: var(--ink-faint);
   --link: #9aa3ea;
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #1c1c21;
@@ -341,11 +304,7 @@
   --accent-steel: #8aa4c2;
   --accent-teal: #5ec4ae;
   --accent-gray: #9a9da4;
-  --accent-orange: #f5b44a;
-  --accent-orange-deep: #f5b44a;
-  --accent-green: #69c967;
   --success: #69c967;
-  --info: #606acc;
   --warning: #f5b44a;
   --danger: #ff7e78;
   --success-foreground: #000000;
@@ -353,14 +312,12 @@
   --danger-foreground: #000000;
   --success-bg: #142c1e;
   --info-bg: #1a1c33;
-  --warning-bg: #30270e;
   --danger-bg: #38191b;
 
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.45);
   --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.5);
   --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-group: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.22);
   --shadow-logo: 0 1px 2px rgba(0, 0, 0, 0.28), 0 10px 24px rgba(0, 0, 0, 0.36);
   --shadow-soft:
     0 0.175px 1.041px rgba(0, 0, 0, 0.3), 0 0.8px 2.925px rgba(0, 0, 0, 0.3),
@@ -423,115 +380,81 @@
   }
 }
 
-/* Tailwind 只映射实色 token，禁止 color-mix 进入 @theme。 */
+/* 度量只在这里定义一份：工具类与组件的 var() 都读它，不在 :root 再写一遍。
+   static 是必须的：组件大多用 var() 读，没写对应类，Tailwind 默认会按用量把变量裁掉。 */
+@theme static {
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
+
+  --text-heading-2: 26px;
+  --text-heading-2--line-height: 1.23;
+  --text-heading-2--letter-spacing: -0.4px;
+  --text-title: var(--text-base);
+  --text-title--line-height: 1.4;
+  --text-body-md: var(--text-sm);
+  --text-body-md--line-height: 1.43;
+  --text-body-sm: var(--text-sm);
+  --text-body-sm--line-height: 1.43;
+  --text-button: 13px;
+  --text-button--line-height: 1.38;
+  --text-caption: 13px;
+  --text-caption--line-height: 1.38;
+  --text-eyebrow: var(--text-xs);
+  --text-eyebrow--line-height: 1.33;
+  --text-caption-mono: var(--text-xs);
+  --text-caption-mono--line-height: 1.33;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --spacing-xxs: calc(var(--spacing) * 1);
+  --spacing-xs: calc(var(--spacing) * 2);
+  --spacing-sm: calc(var(--spacing) * 3);
+  --spacing-md: calc(var(--spacing) * 4);
+  --spacing-lg: calc(var(--spacing) * 6);
+  --spacing-xl: calc(var(--spacing) * 7);
+  --spacing-xxl: calc(var(--spacing) * 8);
+
+  /* 单一基数派生，改 --radius 即整档跟随；不在网格上的各自独立 */
+  --radius: 8px;
+  --radius-2xs: calc(var(--radius) - 6px);
+  --radius-xs: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 8px);
+  --radius-popover: calc(var(--radius) + 4px);
+  --radius-code: 0.65rem;
+  --radius-full: 9999px;
+}
+
+/* 颜色映射只做同名指回，且只登记组件真的写过的类。阴影留在 :root：深色要覆盖。 */
 @theme inline {
   --color-primary: var(--primary);
   --color-primary-active: var(--primary-active);
-  --color-secondary: var(--secondary);
-  --color-on-primary: var(--on-primary);
-  --color-white: var(--white);
-  --color-canvas: var(--canvas);
-  --color-canvas-soft: var(--canvas-soft);
   --color-surface: var(--surface);
-  --color-sidebar: var(--sidebar);
-  --color-border-subtle: var(--border-subtle);
-  --color-composer-bg: var(--composer-bg);
-  --color-ink: var(--ink);
-  --color-ink-secondary: var(--ink-secondary);
-  --color-ink-muted: var(--ink-muted);
-  --color-ink-faint: var(--ink-faint);
-  --color-accent-skill: var(--accent-skill);
-  --color-accent-steel: var(--accent-steel);
-  --color-accent-teal: var(--accent-teal);
-  --color-accent-gray: var(--accent-gray);
-  --color-accent-orange: var(--accent-orange);
-  --color-accent-orange-deep: var(--accent-orange-deep);
-  --color-accent-green: var(--accent-green);
+  --color-ink: var(--contrast-ink);
+  --color-ink-muted: var(--contrast-ink-muted);
+  --color-ink-faint: var(--contrast-ink-faint);
   --color-success: var(--success);
   --color-info: var(--info);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
-  --color-success-bg: var(--success-bg);
-  --color-info-bg: var(--info-bg);
-  --color-warning-bg: var(--warning-bg);
-  --color-danger-bg: var(--danger-bg);
-  --color-ring: var(--primary);
-  --color-ring-offset: var(--surface);
-  --color-primary-foreground: var(--on-primary);
-  --color-secondary-foreground: var(--on-primary);
-  --color-destructive: var(--danger);
-  --color-destructive-foreground: var(--danger-foreground);
-  --color-input: var(--composer-ring);
-  --color-background: var(--surface);
-  --color-foreground: var(--ink);
-  --color-card: var(--surface);
-  --color-card-foreground: var(--ink);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--ink);
-  --color-muted: var(--canvas-soft);
-  --color-muted-foreground: var(--ink-muted);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--input);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
-  --color-accent: var(--interaction-hover);
-  --color-accent-foreground: var(--ink);
-
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-
-  --text-display-1: var(--text-display-1);
-  --text-display-1--line-height: var(--text-display-1--line-height);
-  --tracking-display-1: var(--tracking-display-1);
-  --text-display-2: var(--text-display-2);
-  --text-display-2--line-height: var(--text-display-2--line-height);
-  --tracking-display-2: var(--tracking-display-2);
-  --text-heading-1: var(--text-heading-1);
-  --text-heading-1--line-height: var(--text-heading-1--line-height);
-  --tracking-heading-1: var(--tracking-heading-1);
-  --text-heading-2: var(--text-heading-2);
-  --text-heading-2--line-height: var(--text-heading-2--line-height);
-  --tracking-heading-2: var(--tracking-heading-2);
-  --text-heading-3: var(--text-heading-3);
-  --text-heading-3--line-height: var(--text-heading-3--line-height);
-  --tracking-heading-3: var(--tracking-heading-3);
-  --text-title: var(--text-title);
-  --text-title--line-height: var(--text-title--line-height);
-  --tracking-title: var(--tracking-title);
-  --text-body-md: var(--text-body-md);
-  --text-body-md--line-height: var(--text-body-md--line-height);
-  --text-body-sm: var(--text-body-sm);
-  --text-body-sm--line-height: var(--text-body-sm--line-height);
-  --text-button: var(--text-button);
-  --text-button--line-height: var(--text-button--line-height);
-  --text-caption: var(--text-caption);
-  --text-caption--line-height: var(--text-caption--line-height);
-  --text-eyebrow: var(--text-eyebrow);
-  --text-eyebrow--line-height: var(--text-eyebrow--line-height);
-  --tracking-eyebrow: var(--tracking-eyebrow);
-  --text-caption-mono: var(--text-caption-mono);
-  --text-caption-mono--line-height: var(--text-caption-mono--line-height);
-  --tracking-caption-mono: var(--tracking-caption-mono);
-
-  --spacing-xxs: var(--spacing-xxs);
-  --spacing-xs: var(--spacing-xs);
-  --spacing-sm: var(--spacing-sm);
-  --spacing-md: var(--spacing-md);
-  --spacing-lg: var(--spacing-lg);
-  --spacing-xl: var(--spacing-xl);
-  --spacing-xxl: var(--spacing-xxl);
-
-  --radius-2xs: var(--radius-2xs);
-  --radius-xs: var(--radius-xs);
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --radius-full: var(--radius-full);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
   --shadow-soft: var(--shadow-soft);
-  --shadow-elevated: var(--shadow-elevated);
-  --shadow-float: var(--shadow-float);
-  --shadow-drawer: var(--shadow-drawer);
-  --shadow-modal: var(--shadow-modal);
-  --shadow-card: var(--shadow-card);
 }
 
 @utility size-icon {
@@ -604,7 +527,7 @@ html[data-glass="on"] .surface-float {
 
 body {
   background: var(--canvas-soft);
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-family: var(--font-sans);
 }
 

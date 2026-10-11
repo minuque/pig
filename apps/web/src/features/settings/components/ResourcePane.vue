@@ -29,7 +29,7 @@ const cwd = useSettingsCwd()
 
 .cwd {
   margin: 0;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
   word-break: break-all;
@@ -37,7 +37,7 @@ const cwd = useSettingsCwd()
 
 .empty {
   margin: 0;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }

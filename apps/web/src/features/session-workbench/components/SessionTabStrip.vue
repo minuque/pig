@@ -477,7 +477,7 @@ watch(
   min-width: 9em;
   height: calc(var(--size-nav-rail) + var(--spacing-xxs));
   border-radius: var(--radius-md);
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   cursor: grab;
 }
 
@@ -487,20 +487,20 @@ watch(
 
 .session-tab:hover {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .session-tab.active {
   flex-shrink: 0;
   background: var(--hover-tint);
-  color: var(--ink);
+  color: var(--contrast-ink);
   cursor: default;
 }
 
 .session-tab.dragging {
   z-index: 1;
   background: var(--composer-bg);
-  color: var(--ink);
+  color: var(--contrast-ink);
   box-shadow: var(--shadow-card);
   cursor: grabbing;
   transition: none;
@@ -566,7 +566,7 @@ html[data-pig-desktop-platform] .session-tab {
   overflow: hidden;
   color: inherit;
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-normal);
   line-height: var(--text-caption--line-height);
   white-space: nowrap;
   mask-image: linear-gradient(to right, var(--ink) calc(100% - 1rem), transparent);
@@ -583,7 +583,7 @@ html[data-pig-desktop-platform] .session-tab {
   height: var(--size-nav-rail);
   translate: 0 -50%;
   border-radius: var(--radius-sm);
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   opacity: 0;
 }
 
@@ -597,7 +597,7 @@ html[data-pig-desktop-platform] .session-tab {
 .tab-close:hover,
 .tab-close:focus-visible {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .rename-input {
@@ -609,10 +609,10 @@ html[data-pig-desktop-platform] .session-tab {
   border: 0;
   border-radius: var(--radius-xs);
   background: var(--interaction-hover);
-  color: var(--ink);
+  color: var(--contrast-ink);
   caret-color: var(--primary);
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-regular);
+  font-weight: var(--font-weight-normal);
   line-height: var(--text-caption--line-height);
   outline: none;
   box-shadow: inset 0 0 0 1px var(--primary);

@@ -402,7 +402,7 @@ function groupClass(key: string, open: boolean) {
 .section-label-text {
   min-width: 0;
   overflow: hidden;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-bold);
   line-height: var(--text-eyebrow--line-height);
@@ -419,13 +419,13 @@ function groupClass(key: string, open: boolean) {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 
 .section-fold:hover,
 .section-fold:focus-visible {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 @media (hover: hover) {
@@ -459,13 +459,13 @@ function groupClass(key: string, open: boolean) {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-size: var(--text-caption);
 }
 
 .more-button:hover,
 .more-button:focus-visible {
   background: var(--interaction-hover);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 </style>

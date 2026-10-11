@@ -57,7 +57,7 @@ const monoStyle = computed(() => ({
 }
 
 .vendor-mark-mono {
-  color: var(--ink);
+  color: var(--contrast-ink);
   background-color: currentColor;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -73,7 +73,7 @@ const monoStyle = computed(() => ({
   justify-content: center;
   border-radius: var(--radius-full);
   background: var(--canvas-soft);
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
   font-weight: 600;
   line-height: 1;
 }

@@ -160,7 +160,7 @@ function pick(session: SessionMetadata) {
 
 .query-icon {
   flex: none;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
 }
 
 .query-input {
@@ -170,7 +170,7 @@ function pick(session: SessionMetadata) {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-body-md);
   outline: none;
   appearance: none;
@@ -178,7 +178,7 @@ function pick(session: SessionMetadata) {
 }
 
 .query-input::placeholder {
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
 }
 
 .query-input::-webkit-search-cancel-button {
@@ -194,12 +194,12 @@ function pick(session: SessionMetadata) {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 
 .query-close:hover {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .hits {
@@ -223,7 +223,7 @@ function pick(session: SessionMetadata) {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--ink);
+  color: var(--contrast-ink);
   text-align: start;
 }
 
@@ -233,7 +233,7 @@ function pick(session: SessionMetadata) {
 
 .hit-icon {
   flex: none;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 
 .hit-title {
@@ -249,7 +249,7 @@ function pick(session: SessionMetadata) {
 .hit-enter,
 .hit-time {
   flex: none;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
 }
 
 .hit-time {
@@ -260,7 +260,7 @@ function pick(session: SessionMetadata) {
 .empty {
   margin: 0;
   padding: var(--spacing-lg) var(--spacing-md);
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-size: var(--text-caption);
   text-align: center;
 }

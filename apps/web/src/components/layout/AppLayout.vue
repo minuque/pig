@@ -126,14 +126,15 @@ html[data-pig-desktop-platform="darwin"] .resizer {
 }
 
 main {
+  position: relative;
+  z-index: 0;
   flex: 1;
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* 困住栏内 z-index，避免 dock 底色盖住分栏把手 */
-  isolation: isolate;
+  /* 困住栏内 z-index，避免 dock 底色盖住分栏把手；isolation:isolate 会吃掉子树 backdrop-filter */
   background: var(--surface);
 }
 

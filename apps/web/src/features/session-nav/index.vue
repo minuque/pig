@@ -4,7 +4,7 @@
 
     <div class="nav-inset">
       <div class="nav-head">
-        <RouterLink to="/" class="nav-brand press-scale" aria-label="pig">
+        <RouterLink to="/" class="nav-brand" aria-label="pig">
           <span class="brand-mark">
             <img class="brand-pig" src="/logo-pig.png" alt="" width="22" height="22" />
           </span>
@@ -206,7 +206,7 @@ function onCreateSession(): void {
   margin-inline-start: calc(-1 * var(--spacing-xxs));
   padding: var(--spacing-xxs);
   border-radius: var(--radius-md);
-  color: var(--ink);
+  color: var(--contrast-ink);
   text-decoration: none;
   -webkit-app-region: no-drag;
   app-region: no-drag;
@@ -255,13 +255,13 @@ function onCreateSession(): void {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 
 .nav-collapse:hover,
 .nav-collapse:focus-visible {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .nav-toolbar {
@@ -281,7 +281,7 @@ function onCreateSession(): void {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--ink);
+  color: var(--contrast-ink);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-caption--line-height);
@@ -306,7 +306,7 @@ function onCreateSession(): void {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font: var(--text-caption-mono) / var(--text-caption-mono--line-height) var(--font-mono);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -366,7 +366,7 @@ html[data-pig-desktop-platform="darwin"] .nav-head {
   gap: var(--spacing-xxs);
   margin: 0;
   padding-block: var(--spacing-xxs);
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-size: var(--text-eyebrow);
 }
 

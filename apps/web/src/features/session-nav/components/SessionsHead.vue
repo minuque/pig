@@ -160,7 +160,7 @@ const emit = defineEmits<{
 .sessions-label {
   min-width: 0;
   overflow: hidden;
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-bold);
   line-height: var(--text-eyebrow--line-height);
@@ -183,13 +183,13 @@ const emit = defineEmits<{
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink-muted);
+  color: var(--contrast-ink-muted);
 }
 
 .sessions-action:hover:not(:disabled),
 .sessions-action:focus-visible {
   background: var(--hover-quiet);
-  color: var(--ink);
+  color: var(--contrast-ink);
 }
 
 .sessions-action:disabled {
@@ -225,7 +225,7 @@ const emit = defineEmits<{
 
 .view-menu-label {
   padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-xxs);
-  color: var(--ink-faint);
+  color: var(--contrast-ink-faint);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
 }
