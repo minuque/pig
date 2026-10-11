@@ -228,7 +228,7 @@ function reset() {
   width: 4px;
   height: 4px;
   border-radius: var(--radius-full);
-  background: var(--ink-faint);
+  background: var(--contrast-ink-faint);
   transform: translate(-50%, -50%);
 }
 

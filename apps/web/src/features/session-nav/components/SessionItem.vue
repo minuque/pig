@@ -458,7 +458,7 @@ function confirmDelete() {
   height: 8px;
   border-radius: var(--radius-full);
   background: transparent;
-  box-shadow: inset 0 0 0 1.5px var(--ink-faint);
+  box-shadow: inset 0 0 0 1.5px var(--contrast-ink-faint);
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 

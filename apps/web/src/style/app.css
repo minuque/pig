@@ -63,7 +63,6 @@
   /* 文字 */
   --ink: #1b1b1b;
   --foreground: var(--ink);
-  --ink-markdown: #1b1b1b;
   --ink-secondary: #5c5c5c;
   --ink-muted: #6e6e6e;
   --muted-foreground: var(--contrast-ink-muted);
@@ -283,7 +282,6 @@
   --mermaid-accent: #9aa3ea;
 
   --ink: #e3e4e6;
-  --ink-markdown: #e3e4e6;
   --ink-secondary: #b8b9bc;
   --ink-muted: #9a9b9e;
   --ink-faint: #7e7f83;

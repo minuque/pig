@@ -16,7 +16,6 @@ colors:
   user-prompt-bg: "#e8e8ea"
   popover: "#ffffff"
   ink: "#1b1b1b"
-  ink-markdown: "#1b1b1b"
   ink-secondary: "#5c5c5c"
   ink-muted: "#6e6e6e"
   ink-faint: "#8a8a8a"
@@ -175,7 +174,6 @@ token 写在 `apps/web/src/style/app.css`，分两层，改一处只改一处。
 ### Text
 
 - **Ink**（`{colors.ink}` — #1b1b1b）：正文与主文字。
-- **Ink markdown**（`{colors.ink-markdown}`）：对话区 markdown 正文，与 ink 同值，单独命名以便将来分开调。
 - **Charcoal**（`{colors.ink-secondary}` — #5c5c5c）
 - **Slate**（`{colors.ink-muted}` — #6e6e6e）
 - **Ash**（`{colors.ink-faint}` — #8a8a8a）

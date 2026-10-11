@@ -45,7 +45,7 @@
   width: 7px;
   height: 7px;
   translate: 50% -50%;
-  border: var(--border-width) solid var(--ink-muted);
+  border: var(--border-width) solid var(--contrast-ink-muted);
   border-radius: var(--radius-full);
 }
 
