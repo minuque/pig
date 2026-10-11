@@ -1,49 +1,50 @@
 <template>
-  <Dialog :open="open" @update:open="onOpen">
-    <DialogContent
-      aria-describedby="settings-copy"
-      class="settings-dialog flex h-[min(80vh,52rem)] w-[min(var(--size-settings),calc(100vw-2rem))] max-w-[min(var(--size-settings),calc(100vw-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(var(--size-settings),calc(100vw-2rem))] sm:p-0"
-    >
-      <DialogTitle class="sr-only">{{ activeLabel }}</DialogTitle>
-      <p id="settings-copy" class="sr-only">{{ t("settings.copy") }}</p>
+  <div class="settings-page">
+    <header class="page-head">
+      <button class="back" type="button" :aria-label="t('common.back')" @click="router.back()">
+        <ArrowLeftDownIcon class="size-icon" />
+      </button>
 
-      <div class="settings">
-        <nav class="nav" :aria-label="t('settings.title')">
-          <button
-            v-for="item in tabs"
-            :key="item.id"
-            type="button"
-            class="nav-item"
-            :aria-current="tab === item.id ? 'page' : undefined"
-            @click="tab = item.id"
-          >
-            <component :is="item.icon" class="size-icon" />
-            {{ item.label }}
-          </button>
-        </nav>
+      <h1 class="page-title">{{ t("settings.title") }}</h1>
+    </header>
 
-        <section class="main">
-          <div class="main-body">
-            <GeneralPane v-if="tab === 'general'" />
-            <UsagePane v-else-if="tab === 'usage'" />
-            <ResourcePane v-else-if="tab === 'skills'" :empty="t('settings.noSkills')" />
-            <ResourcePane v-else :empty="t('settings.noExtensions')" />
-          </div>
-        </section>
-      </div>
-    </DialogContent>
-  </Dialog>
+    <div class="settings">
+      <nav class="nav" :aria-label="t('settings.title')">
+        <button
+          v-for="item in tabs"
+          :key="item.id"
+          type="button"
+          class="nav-item"
+          :aria-current="tab === item.id ? 'page' : undefined"
+          @click="tab = item.id"
+        >
+          <component :is="item.icon" class="size-icon" />
+          {{ item.label }}
+        </button>
+      </nav>
+
+      <section class="main">
+        <div class="main-body">
+          <GeneralPane v-if="tab === 'general'" />
+          <UsagePane v-else-if="tab === 'usage'" />
+          <ResourcePane v-else-if="tab === 'skills'" :empty="t('settings.noSkills')" />
+          <ResourcePane v-else :empty="t('settings.noExtensions')" />
+        </div>
+      </section>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
+import { useRouter } from "vue-router"
 import { useI18n } from "@i18n/index.js"
-import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import GeneralPane from "@features/settings/components/GeneralPane.vue"
 import ResourcePane from "@features/settings/components/ResourcePane.vue"
 import UsagePane from "@features/settings/components/UsagePane.vue"
 import { useSettings, type SettingsTab } from "@features/settings/index.js"
 import {
+  ArrowLeftDownIcon,
   ChartSquareIcon,
   SliderMinimalisticHorizontalIcon,
   Widget5Icon,
@@ -51,7 +52,8 @@ import {
 } from "@components/icons/index.js"
 
 const { t } = useI18n()
-const { open, tab } = useSettings()
+const router = useRouter()
+const { tab } = useSettings()
 const tabs = computed<
   { id: SettingsTab; label: string; icon: typeof SliderMinimalisticHorizontalIcon }[]
 >(() => [
@@ -60,17 +62,53 @@ const tabs = computed<
   { id: "skills", label: t("settings.skills"), icon: WidgetAddIcon },
   { id: "extensions", label: t("settings.extensions"), icon: Widget5Icon },
 ])
-const activeLabel = computed(
-  () => tabs.value.find((item) => item.id === tab.value)?.label ?? t("settings.general"),
-)
-
-function onOpen(next: boolean) {
-  if (next) tab.value = "general"
-  open.value = next
-}
 </script>
 
 <style scoped>
+.settings-page {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--canvas);
+}
+
+.page-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--spacing-sm);
+  height: var(--size-control);
+  padding-inline: var(--spacing-md);
+  border-block-end: var(--border-width) solid var(--border);
+  background: var(--surface);
+}
+
+.page-title {
+  margin: 0;
+  color: var(--contrast-ink);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--text-title--line-height);
+}
+
+.back {
+  display: grid;
+  place-items: center;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--contrast-ink-muted);
+}
+
+.back:hover {
+  background: var(--hover-quiet);
+  color: var(--contrast-ink);
+}
+
 .settings {
   display: flex;
   min-height: 0;
@@ -122,7 +160,7 @@ function onOpen(next: boolean) {
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  background: var(--surface);
+  background: var(--canvas);
 }
 
 .main-body {

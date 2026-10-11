@@ -18,6 +18,11 @@ const router = createRouter({
       path: "/error",
       component: SessionWorkbench,
     },
+    {
+      name: "settings",
+      path: "/settings",
+      component: () => import("@features/settings/index.vue"),
+    },
   ],
 })
 

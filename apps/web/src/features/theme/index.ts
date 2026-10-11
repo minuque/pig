@@ -1,7 +1,12 @@
 import { useColorMode } from "@vueuse/core"
 import { computed, nextTick, type ComputedRef } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
-import { paintTheme, type ThemeColors } from "@features/theme/lib/palette.js"
+import {
+  paintTheme,
+  THEMES,
+  type ThemeColors,
+  type ThemeDefinition,
+} from "@features/theme/lib/palette.js"
 
 const STORAGE_KEY = "npg-theme"
 /** 首帧颜色缓存：index.html 引导脚本在 main.ts 之前读它，避免闪默认色。 */
@@ -37,8 +42,10 @@ export function applyThemePalette(id: string | null, colors: ThemeColors | null)
 type Theme = {
   isDark: ComputedRef<boolean>
   scheme: ComputedRef<ColorScheme>
+  themeId: ComputedRef<string | null>
   codeBlockProps: ComputedRef<{ theme: "github-dark" | "github-light" }>
   setScheme: (next: ColorScheme) => void
+  setTheme: (next: ThemeDefinition | null) => void
   toggle: () => void
 }
 
@@ -55,9 +62,26 @@ function theme(): Theme {
   const codeBlockProps = computed(() => ({
     theme: isDark.value ? ("github-dark" as const) : ("github-light" as const),
   }))
+  const themeId = computed<string | null>(() => document.documentElement.dataset.themeId ?? null)
+
+  /** 切换深浅时把当前主题的重画一次，保证用对深或浅的那份色表。 */
+  function repaintTheme() {
+    const id = document.documentElement.dataset.themeId
+
+    if (!id) return
+    const def = THEMES.find((theme) => theme.id === id)
+
+    if (!def) return
+    applyThemePalette(id, isDark.value ? def.dark : def.light)
+  }
 
   function setScheme(next: ColorScheme) {
     mode.value = next
+    nextTick(repaintTheme)
+  }
+
+  function setTheme(next: ThemeDefinition | null) {
+    applyThemePalette(next?.id ?? null, next ? (isDark.value ? next.dark : next.light) : null)
   }
 
   function toggle() {
@@ -89,7 +113,7 @@ function theme(): Theme {
     document.startViewTransition(updateTheme)
   }
 
-  shared = { isDark, scheme, codeBlockProps, setScheme, toggle }
+  shared = { isDark, scheme, themeId, codeBlockProps, setScheme, setTheme, toggle }
   return shared
 }
 

@@ -7,7 +7,6 @@ export type { FontSize, UiLocale } from "@features/settings/hooks/use-general-pr
 export type SettingsTab = "general" | "usage" | "skills" | "extensions"
 
 export type SettingsContext = {
-  open: Ref<boolean>
   tab: Ref<SettingsTab>
   openSettings: () => void
 }
@@ -15,15 +14,14 @@ export type SettingsContext = {
 export const settingsKey: InjectionKey<SettingsContext> = Symbol("settings")
 
 export function provideSettings(): SettingsContext {
-  const open = ref(false)
   const tab = ref<SettingsTab>("general")
 
   function openSettings() {
     tab.value = "general"
-    open.value = true
+    void import("@router/index.js").then((module) => module.default.push({ name: "settings" }))
   }
 
-  const settings = { open, tab, openSettings }
+  const settings = { tab, openSettings }
   provide(settingsKey, settings)
   return settings
 }

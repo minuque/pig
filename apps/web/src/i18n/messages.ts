@@ -1,5 +1,6 @@
 export const zh = {
   common: {
+    back: "返回",
     cancel: "取消",
     close: "关闭",
     copied: "已复制",
@@ -88,6 +89,7 @@ export const zh = {
     schemeLight: "浅色",
     schemeDark: "深色",
     schemeAuto: "跟随系统",
+    theme: "主题",
     language: "语言",
     languageHint: "选择界面显示语言",
     fontSize: "字体大小",
@@ -242,6 +244,7 @@ type Messages = typeof zh
 
 export const en: Messages = {
   common: {
+    back: "Back",
     cancel: "Cancel",
     close: "Close",
     copied: "Copied",
@@ -330,6 +333,7 @@ export const en: Messages = {
     schemeLight: "Light",
     schemeDark: "Dark",
     schemeAuto: "Follow system",
+    theme: "Theme",
     language: "Language",
     languageHint: "Choose interface language",
     fontSize: "Font size",

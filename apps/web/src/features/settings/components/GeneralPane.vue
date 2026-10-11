@@ -10,20 +10,49 @@
             <p class="hint">{{ t("settings.appearanceHint") }}</p>
           </div>
 
-          <div class="segment" role="radiogroup" :aria-label="t('settings.appearance')">
+          <div class="scheme-cards" role="radiogroup" :aria-label="t('settings.appearance')">
             <button
               v-for="option in schemes"
               :key="option.id"
               type="button"
-              class="segment-btn"
+              class="scheme-card"
               role="radio"
               :aria-checked="scheme === option.id"
               @click="setScheme(option.id)"
             >
               <component :is="option.icon" class="size-icon" />
-              {{ option.label }}
+              <span class="scheme-label">{{ option.label }}</span>
             </button>
           </div>
+        </div>
+
+        <div class="theme-grid" role="radiogroup" :aria-label="t('settings.theme')">
+          <button
+            v-for="theme in THEMES"
+            :key="theme.id"
+            type="button"
+            class="theme-card"
+            role="radio"
+            :aria-checked="themeId === theme.id"
+            :data-theme-id="theme.id"
+            @click="setThemeById(theme.id)"
+          >
+            <span class="theme-preview" :data-mode="scheme === 'auto' ? 'split' : scheme">
+              <span
+                class="theme-ball"
+                :style="ballStyle(theme.lightPreview, 'light')"
+                aria-hidden="true"
+              />
+
+              <span
+                class="theme-ball"
+                :style="ballStyle(theme.darkPreview, 'dark')"
+                aria-hidden="true"
+              />
+            </span>
+
+            <span class="theme-name">{{ theme.label }}</span>
+          </button>
         </div>
 
         <div class="row">
@@ -162,17 +191,19 @@
 </template>
 
 <script setup lang="ts">
+import { shallowRef } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
 import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
+import { THEMES, type ThemePreview } from "@features/theme/lib/palette.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { Slider } from "@components/ui/slider/index.js"
 import { MonitorIcon, MoonIcon, SunIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
-const { scheme, setScheme } = useColorScheme()
+const { scheme, themeId, setScheme, setTheme } = useColorScheme()
 const { enabled: soundOn, toggle: toggleSound } = useSound()
 const {
   locale,
@@ -188,6 +219,26 @@ const {
   setGlassOpacity,
   setContrastBoost,
 } = useGeneralPrefs()
+
+function setThemeById(id: string | null) {
+  setTheme(id === null ? null : (THEMES.find((theme) => theme.id === id) ?? null))
+}
+
+function ballStyle(preview: ThemePreview, mode: "light" | "dark") {
+  const base = mode === "light" ? "#ffffff" : "#0f0f11"
+  return {
+    background: [
+      `radial-gradient(circle at 30% 30% in oklab, ${preview.accent} 0%, transparent 60%)`,
+      `radial-gradient(circle at 75% 75% in oklab, ${preview.messageAction}40 0%, transparent 60%)`,
+      `color-mix(in oklab, ${preview.canvas} 88%, ${base})`,
+    ].join(", "),
+    boxShadow:
+      mode === "dark"
+        ? "inset 0 0 0 1px rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 0 0 / 0.18)"
+        : "inset 0 0 0 1px rgb(0 0 0 / 0.10), 0 1px 2px rgb(0 0 0 / 0.08)",
+  }
+}
+
 const schemes: { id: ColorScheme; label: string; icon: typeof MonitorIcon }[] = [
   { id: "light", label: t("settings.schemeLight"), icon: SunIcon },
   { id: "dark", label: t("settings.schemeDark"), icon: MoonIcon },
@@ -287,6 +338,92 @@ async function onNotify(next: boolean) {
   color: var(--contrast-ink-muted);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
+}
+
+.scheme-cards {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.scheme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  width: 4.5rem;
+  padding: var(--spacing-sm);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--contrast-ink-muted);
+}
+
+.scheme-card:hover {
+  background: var(--hover-quiet);
+  color: var(--contrast-ink);
+}
+
+.scheme-card[aria-checked="true"] {
+  border-color: var(--primary);
+  background: var(--interaction-selected);
+  color: var(--contrast-ink);
+}
+
+.scheme-label {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-caption--line-height);
+}
+
+.theme-grid {
+  display: grid;
+  gap: var(--spacing-sm);
+  padding-block: var(--spacing-sm);
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  border-block-end: var(--border-width) solid var(--border-subtle);
+}
+
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-xxs);
+  padding: var(--spacing-sm);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--contrast-ink-muted);
+}
+
+.theme-card:hover {
+  background: var(--hover-quiet);
+  color: var(--contrast-ink);
+}
+
+.theme-card[aria-checked="true"] {
+  border-color: var(--primary);
+  background: var(--interaction-selected);
+  color: var(--contrast-ink);
+}
+
+.theme-preview {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-xxs);
+}
+
+.theme-ball {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--surface);
+  border-radius: var(--radius-full);
+}
+
+.theme-name {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-caption--line-height);
+  text-align: center;
 }
 
 .segment {
