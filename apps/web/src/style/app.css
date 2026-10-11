@@ -39,8 +39,9 @@
 
   /* 表面 */
   --canvas: #f7f7f8;
-  --canvas-soft: #f7f7f8;
-  --muted: var(--canvas-soft);
+  /* 别名：与 --canvas 同值，名字留给 DESIGN.md 的次级井角色 */
+  --canvas-soft: var(--canvas);
+  --muted: var(--canvas);
   --surface: #ffffff;
   --sidebar: #fcfcfd;
   --composer-bg: #f4f4f5;
@@ -56,13 +57,12 @@
   /* mermaid 图 */
   --mermaid-bg: #ffffff;
   --mermaid-fill: #eaeef2;
-  --mermaid-fg: #1b1b1b;
+  --mermaid-fg: var(--ink);
   --mermaid-line: #d4d4d4;
-  --mermaid-accent: #5e6ad2;
+  --mermaid-accent: var(--primary);
 
   /* 文字 */
   --ink: #1b1b1b;
-  --foreground: var(--ink);
   --ink-secondary: #5c5c5c;
   --ink-muted: #6e6e6e;
   --muted-foreground: var(--contrast-ink-muted);
@@ -150,6 +150,7 @@
   --danger-foreground: var(--on-primary);
   --success-bg: #dcfce7;
   --info-bg: #eceef8;
+  --warning-bg: #fef3e2;
   --danger-bg: #fee2e2;
 
   /* 字体与间距圆角定义在 @theme，组件的 var() 与工具类读同一份。 */
@@ -265,7 +266,6 @@
   --on-primary: #ffffff;
 
   --canvas: #121214;
-  --canvas-soft: #121214;
   --surface: #0f0f11;
   --sidebar: #161618;
   --composer-bg: #27272a;
@@ -277,9 +277,7 @@
   /* mermaid 图 */
   --mermaid-bg: #161618;
   --mermaid-fill: #1a1a22;
-  --mermaid-fg: #e3e4e6;
   --mermaid-line: #333338;
-  --mermaid-accent: #9aa3ea;
 
   --ink: #e3e4e6;
   --ink-secondary: #b8b9bc;
@@ -293,6 +291,7 @@
   --interaction-selected: #2c2c31;
   --effort-track: var(--hover-strong);
   --link: #9aa3ea;
+  --mermaid-accent: var(--link);
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #1c1c21;
   --scrollbar-hover: #a3a3a3;
@@ -310,7 +309,9 @@
   --danger-foreground: #000000;
   --success-bg: #142c1e;
   --info-bg: #1a1c33;
+  --warning-bg: #3a2a12;
   --danger-bg: #38191b;
+  --star: #f5b44a;
 
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.45);
@@ -636,4 +637,56 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
 
 .dark .effort-bar {
   --effort-fill: color-mix(in srgb, var(--primary) var(--effort-mix, 40%), var(--white));
+}
+
+/* 装了主题时语义变量改读注入值。选择器比 .dark 多一层，压过深色默认值。
+   名单与 features/theme/lib/palette.ts 的 THEME_ROLES 一一对应，单测核对。 */
+html[data-theme-id] {
+  --primary: var(--app-theme-primary);
+  --primary-active: var(--app-theme-primary-active);
+  --on-primary: var(--app-theme-on-primary);
+  --canvas: var(--app-theme-canvas);
+  --surface: var(--app-theme-surface);
+  --sidebar: var(--app-theme-sidebar);
+  --composer-bg: var(--app-theme-composer-bg);
+  --composer-border: var(--app-theme-composer-border);
+  --user-prompt-bg: var(--app-theme-user-prompt-bg);
+  --popover: var(--app-theme-popover);
+  --ink: var(--app-theme-ink);
+  --ink-secondary: var(--app-theme-ink-secondary);
+  --ink-muted: var(--app-theme-ink-muted);
+  --ink-faint: var(--app-theme-ink-faint);
+  --link: var(--app-theme-link);
+  --border: var(--app-theme-border);
+  --border-subtle: var(--app-theme-border-subtle);
+  --composer-ring: var(--app-theme-composer-ring);
+  --interaction-hover: var(--app-theme-interaction-hover);
+  --interaction-selected: var(--app-theme-interaction-selected);
+  --hairline: var(--app-theme-hairline);
+  --surface-border: var(--app-theme-surface-border);
+  --media-outline: var(--app-theme-media-outline);
+  --scrollbar-color: var(--app-theme-scrollbar-color);
+  --scrollbar-hover: var(--app-theme-scrollbar-hover);
+  --scrim: var(--app-theme-scrim);
+  --success: var(--app-theme-success);
+  --warning: var(--app-theme-warning);
+  --danger: var(--app-theme-danger);
+  --success-bg: var(--app-theme-success-bg);
+  --info-bg: var(--app-theme-info-bg);
+  --warning-bg: var(--app-theme-warning-bg);
+  --danger-bg: var(--app-theme-danger-bg);
+  --success-foreground: var(--app-theme-success-foreground);
+  --warning-foreground: var(--app-theme-warning-foreground);
+  --danger-foreground: var(--app-theme-danger-foreground);
+  --inverse-bg: var(--app-theme-inverse-bg);
+  --inverse-bg-hover: var(--app-theme-inverse-bg-hover);
+  --inverse-fg: var(--app-theme-inverse-fg);
+  --accent-skill: var(--app-theme-accent-skill);
+  --accent-steel: var(--app-theme-accent-steel);
+  --accent-teal: var(--app-theme-accent-teal);
+  --accent-gray: var(--app-theme-accent-gray);
+  --star: var(--app-theme-star);
+  --mermaid-bg: var(--app-theme-mermaid-bg);
+  --mermaid-fill: var(--app-theme-mermaid-fill);
+  --mermaid-line: var(--app-theme-mermaid-line);
 }

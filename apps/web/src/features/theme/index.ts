@@ -1,8 +1,38 @@
 import { useColorMode } from "@vueuse/core"
 import { computed, nextTick, type ComputedRef } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
+import { paintTheme, type ThemeColors } from "@features/theme/lib/palette.js"
 
 const STORAGE_KEY = "npg-theme"
+/** 首帧颜色缓存：index.html 引导脚本在 main.ts 之前读它，避免闪默认色。 */
+export const THEME_COLORS_KEY = "pig.themeColors"
+const THEME_ID_ATTR = "data-theme-id"
+
+/**
+ * 把一套主题画到页面上。传 null 清除，回到 :root / .dark 的默认色。
+ * 颜色同时写入 localStorage，供下次首帧使用。
+ */
+export function applyThemePalette(id: string | null, colors: ThemeColors | null): void {
+  if (typeof document === "undefined") return
+  const root = document.documentElement
+
+  paintTheme(
+    {
+      setProperty: (name, value) => root.style.setProperty(name, value),
+      removeProperty: (name) => root.style.removeProperty(name),
+      setThemeId: (next) => {
+        if (next) root.setAttribute(THEME_ID_ATTR, next)
+        else delete root.dataset.themeId
+      },
+      store: (json) => {
+        if (json) localStorage.setItem(THEME_COLORS_KEY, json)
+        else localStorage.removeItem(THEME_COLORS_KEY)
+      },
+    },
+    id,
+    colors,
+  )
+}
 
 type Theme = {
   isDark: ComputedRef<boolean>

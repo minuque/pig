@@ -48,6 +48,19 @@
         } catch (e) {
           /* localStorage 不可用时按默认对比度 */
         }
+
+        /* 与 applyThemePalette 的 pig.themeColors 同键：首帧画上主题色，不等 main.ts */
+        try {
+          var theme = JSON.parse(localStorage.getItem("pig.themeColors") || "null")
+          if (theme && theme.id && theme.colors) {
+            document.documentElement.setAttribute("data-theme-id", theme.id)
+            Object.keys(theme.colors).forEach(function (role) {
+              document.documentElement.style.setProperty("--app-theme-" + role, theme.colors[role])
+            })
+          }
+        } catch (e) {
+          /* 缓存损坏时按默认主题 */
+        }
       })()
     </script>
     <link rel="stylesheet" href="/src/style/app.css" />

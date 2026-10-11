@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: pig Workbench
-description: A Pi Agent GUI with a near-white conversation shell in light mode, flush opaque sidebar and composer, and a near-black shell in dark mode. Action and focus indigo is separate from link indigo. Sidebar selection is neutral. Category colors are skill, steel, teal, and gray. Text colors sit behind a contrast layer the user can boost. Tokens live in two layers, so metrics are declared once and colors once.
+description: A Pi Agent GUI with a near-white conversation shell in light mode, flush opaque sidebar and composer, and a near-black shell in dark mode. Action and focus indigo is separate from link indigo. Sidebar selection is neutral. Category colors are skill, steel, teal, and gray. Text colors sit behind a contrast layer the user can boost. Theme colors live in a role list, and metrics are declared once.
 
 colors:
   primary: "#5e6ad2"
@@ -35,6 +35,7 @@ colors:
   info: "#5e6ad2"
   success-bg: "#dcfce7"
   info-bg: "#eceef8"
+  warning-bg: "#fef3e2"
   danger-bg: "#fee2e2"
   mermaid-bg: "#ffffff"
   mermaid-fill: "#eaeef2"
@@ -124,13 +125,19 @@ pig 浅色壳层用近白，侧栏贴窗边，输入卡不透明。深色壳层�
 
 ## Token 分层
 
-token 写在 `apps/web/src/style/app.css`，分两层，改一处只改一处。
+token 写在 `apps/web/src/style/app.css`，颜色角色名单写在 `apps/web/src/features/theme/lib/palette.ts`。改一处只改一处。
 
-| 层                | 放什么                       | 说明                                  |
-| ----------------- | ---------------------------- | ------------------------------------- |
-| `:root` / `.dark` | 颜色真值、尺寸、动效、阴影   | 深色覆盖也写在这里                    |
-| `@theme static`   | 字体、字号、字重、间距、圆角 | 只定义一次；`static` 保证变量始终输出 |
-| `@theme inline`   | 组件真的写过的 Tailwind 类   | 全部同名指回，不引入新值              |
+| 层                    | 放什么                               | 说明                                  |
+| --------------------- | ------------------------------------ | ------------------------------------- |
+| 角色表                | 主题能换的颜色名单                   | TypeScript 常量，缺一处单测失败       |
+| `:root` / `.dark`     | 默认主题的颜色真值、尺寸、动效、阴影 | 深色覆盖也写在这里                    |
+| `html[data-theme-id]` | 语义变量改指注入的 `--app-theme-*`   | 只在装了主题时生效，压过深色默认值    |
+| `@theme static`       | 字体、字号、字重、间距、圆角         | 只定义一次；`static` 保证变量始终输出 |
+| `@theme inline`       | 组件真的写过的 Tailwind 类           | 全部同名指回，不引入新值              |
+
+派生色不进角色表。`--hover-*`、`--*-halo`、`--link-underline*`、`--code-surface`、`--selection-bg` 从角色色用 `color-mix` 算出，换主题后自动跟随。阴影、小猪配色和 logo 底色固定，不给主题换。
+
+应用主题走 `applyThemePalette`：把颜色写到 `html` 上，同时存进 `pig.themeColors`。`index.html` 的引导脚本首帧读出，不等应用启动。传 `null` 清除，回到默认主题。
 
 三点约定：
 
@@ -196,7 +203,7 @@ token 写在 `apps/web/src/style/app.css`，分两层，改一处只改一处。
 ### Semantic
 
 - Success → `{colors.success}`，井 `{colors.success-bg}`
-- Warning / 运行 → `{colors.warning}`
+- Warning / 运行 → `{colors.warning}`，井 `{colors.warning-bg}`
 - Info 井 `{colors.info-bg}`
 - Danger → `{colors.danger}`，井 `{colors.danger-bg}`
 - 分类色 `{colors.accent-skill}` / `{colors.accent-steel}` / `{colors.accent-teal}` / `{colors.accent-gray}`，不作结构填充
