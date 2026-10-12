@@ -353,7 +353,7 @@ function itemBind(
   cursor: grab;
 }
 
-/* 拖拽跟手：阴影只加在组头，整组阴影会溢到滚动区外被切成黑边 */
+/* 拖拽跟手。组头不加阴影，阴影贴着侧栏边框会被切出一条脏边。 */
 .row-group.is-drag-live {
   z-index: 4;
   cursor: grabbing;
@@ -361,7 +361,6 @@ function itemBind(
 
 .row-group.is-drag-live .group-head {
   background: var(--sidebar);
-  box-shadow: var(--shadow-float);
 }
 
 .section-label {
