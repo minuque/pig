@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const replace = vi.fn(async () => undefined)
+const replace = vi.fn(() => replaceGate)
+let replaceGate: Promise<void> = Promise.resolve()
 const currentRoute = {
   value: { name: undefined as string | undefined, params: {} as Record<string, unknown> },
 }
@@ -17,6 +18,7 @@ describe("startup sequence", () => {
     setStartupError("")
     currentRoute.value = { name: undefined, params: {} }
     replace.mockClear()
+    replaceGate = Promise.resolve()
   })
 
   it("connect 与 initialize 并行；从 /error 成功启动则回到 /", async () => {
@@ -49,11 +51,10 @@ describe("startup sequence", () => {
     expect(overlapped).toBe(true)
     expect(ready.value).toBe(true)
     expect(settled.value).toBe(true)
-    expect(visible.value).toBe(true)
     expect(replace).toHaveBeenCalledWith("/")
   })
 
-  it("失败路径：connect 抛错或超时都进 /error，不拆 overlay", async () => {
+  it("失败路径：connect 抛错或超时都进 /error，路由落地后才揭开", async () => {
     const thrown = useStartupSequence({
       connect: async () => {
         throw new Error("连接失败")
@@ -61,10 +62,17 @@ describe("startup sequence", () => {
       initialize: async () => undefined,
       connectTimeoutMs: 0,
     })
+    let releaseRoute = () => {}
 
-    await thrown.start()
+    replaceGate = new Promise<void>((resolve) => {
+      releaseRoute = resolve
+    })
+    const starting = thrown.start()
+    await vi.waitFor(() => expect(thrown.failed.value).toBe(true))
+    expect(thrown.settled.value).toBe(false)
+    releaseRoute()
+    await starting
     expect(thrown.ready.value).toBe(false)
-    expect(thrown.failed.value).toBe(true)
     expect(thrown.settled.value).toBe(true)
     expect(thrown.visible.value).toBe(true)
     expect(useStartupError().value).toBe("连接失败")

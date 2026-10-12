@@ -1,11 +1,5 @@
 <template>
-  <div
-    class="startup-screen"
-    :class="{ leaving }"
-    role="status"
-    :aria-label="t('startup.starting')"
-    @animationend.self="handleLeaveEnd"
-  >
+  <div class="startup-screen" role="status" :aria-label="t('startup.starting')">
     <div class="drag-strip"></div>
 
     <div class="startup-content">
@@ -27,7 +21,7 @@
 import { useI18n } from "@i18n/index.js"
 
 const { t } = useI18n()
-import { onBeforeUnmount, onMounted, shallowRef, watch } from "vue"
+import { onBeforeUnmount, onMounted, watch } from "vue"
 
 const props = defineProps<{
   dismiss: boolean
@@ -37,11 +31,6 @@ const emit = defineEmits<{
 }>()
 let finished = false
 let splashGone = false
-const leaving = shallowRef(false)
-
-function prefersReducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
-}
 
 function finish() {
   if (finished) return
@@ -50,18 +39,9 @@ function finish() {
 }
 
 function beginLeave() {
-  if (!props.dismiss || !splashGone || finished || leaving.value) return
-
-  if (prefersReducedMotion()) {
-    finish()
-    return
-  }
-
-  leaving.value = true
-}
-
-function handleLeaveEnd() {
-  if (leaving.value) finish()
+  if (!props.dismiss || !splashGone) return
+  // 离场第一帧就拆遮罩并开锁，不等淡出结束
+  finish()
 }
 
 watch(

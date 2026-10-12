@@ -176,7 +176,7 @@ function appendGroupSessions(
   }
 }
 
-/** 侧栏虚拟列表行：更新时间平铺；项目按 groups 出组头。searching 取消截断与折叠。 */
+/** 侧栏虚拟列表行：更新时间平铺；项目按 groups 出组头，展开的组再跟会话行。searching 取消截断与折叠。 */
 export function sidebarRows(input: {
   grouping: SidebarGrouping
   sessions: readonly SessionMetadata[]
@@ -204,13 +204,6 @@ export function sidebarRows(input: {
 
   for (const [index, group] of groups.entries()) {
     const collapsed = !searching && Boolean(collapsedByGroup[group.canonicalPath])
-    const sliced = sliceVisible(
-      group.sessions,
-      group.canonicalPath,
-      PROJECT_PAGE,
-      expandedByGroup,
-      searching,
-    )
 
     rows.push({
       kind: "group",
@@ -218,10 +211,17 @@ export function sidebarRows(input: {
       canonicalPath: group.canonicalPath,
       first: index === 0,
       collapsed,
-      sessions: sliced.sessions,
-      more: sliced.more,
-      revealed: sliced.revealed,
     })
+
+    if (collapsed) continue
+    appendGroupSessions(
+      rows,
+      group.sessions,
+      group.canonicalPath,
+      PROJECT_PAGE,
+      expandedByGroup,
+      searching,
+    )
   }
 
   return rows

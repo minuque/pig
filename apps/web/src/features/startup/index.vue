@@ -1,5 +1,5 @@
 <template>
-  <div class="startup-gate" :inert="visible || undefined">
+  <div class="startup-gate" :inert="visible && !settled ? true : undefined">
     <slot />
   </div>
 

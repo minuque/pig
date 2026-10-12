@@ -7,6 +7,7 @@ import {
   orderSessionGroups,
   sessionCardFoot,
   sessionOutcome,
+  sidebarRows,
 } from "@features/session-nav/lib/session-list.js"
 
 describe("groupSessionsByCwd", () => {
@@ -81,6 +82,32 @@ function transcriptItem(
     ...partial,
   } as TranscriptItem
 }
+
+describe("sidebarRows", () => {
+  const sessions = [
+    { id: "a1", createdAt: 1, cwd: "/a" },
+    { id: "a2", createdAt: 2, cwd: "/a" },
+    { id: "b1", createdAt: 3, cwd: "/b" },
+  ]
+
+  it("折叠的目录只留组头，展开的目录跟会话行", () => {
+    const groups = groupSessionsByCwd(sessions, ["/a", "/b"])
+    const rows = sidebarRows({
+      grouping: "project",
+      sessions,
+      groups,
+      expandedByGroup: {},
+      searching: false,
+      collapsedByGroup: { "/a": true },
+    })
+
+    expect(rows.map((row) => row.kind + ":" + row.key)).toEqual([
+      "group:/a",
+      "group:/b",
+      "session:b1",
+    ])
+  })
+})
 
 describe("session card foot", () => {
   it("空失败助手句不计条数；打开中用 live 覆盖磁盘卡片", () => {

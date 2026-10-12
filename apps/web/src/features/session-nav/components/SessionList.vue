@@ -1,6 +1,6 @@
 <template>
-  <nav ref="navBody" class="nav-body session-list">
-    <section v-if="pinnedRows.length" ref="pinnedSection" class="nav-section is-pin">
+  <nav class="nav-body session-list">
+    <section v-if="pinnedRows.length" class="nav-section is-pin">
       <div class="section-label" @click="collapsedSections.pinned = !collapsedSections.pinned">
         <span class="section-label-text">{{ t("session.pin") }}</span>
 
@@ -40,7 +40,7 @@
       </div>
     </section>
 
-    <div ref="headSticky" class="head-sticky">
+    <div class="head-sticky">
       <SessionsHead
         v-if="connected || groups.length"
         :view="view"
@@ -57,78 +57,47 @@
     </div>
 
     <div
-      v-if="view === 'flat' && updatedSessions.length"
-      class="session-list-group"
-      :class="{ 'is-open': sessionsOpen }"
+      v-if="sessionsMounted && sessionRows.length"
+      v-bind="containerProps"
+      class="session-window"
       :inert="collapsedSections.sessions"
     >
-      <TransitionGroup v-if="sessionsMounted" name="list-reveal" tag="ul" class="flat-sessions">
-        <li v-for="session in updatedSessions" :key="session.id">
+      <ul ref="groupList" v-bind="wrapperProps" :class="{ 'is-dragging': dragging }">
+        <li
+          v-for="{ data, index } in list"
+          :key="data.key"
+          class="session-row"
+          :class="rowClass(data)"
+          :data-id="data.kind === 'group' ? data.key : undefined"
+          :data-index="index"
+          :style="rowStyle(index)"
+        >
+          <GroupHead
+            v-if="data.kind === 'group'"
+            :name="workspaceName(data.canonicalPath)"
+            :sortable="sort === 'manual'"
+            :collapsed="data.collapsed"
+            @toggle="toggleGroup(data.canonicalPath)"
+            @create="emit('createInDir', data.canonicalPath)"
+          />
+
           <SessionItem
-            v-bind="itemBind(session)"
-            @navigate="emit('navigate', session.cwd)"
+            v-else-if="data.kind === 'session'"
+            v-bind="itemBind(data.session)"
+            @navigate="emit('navigate', data.session.cwd)"
             @toggle-pinned="togglePinned"
             @rename="renameSession"
             @delete="deleteSession"
           />
-        </li>
 
-        <li v-if="updatedMore" key="more">
-          <button class="more-button" type="button" @click="toggleGroupReveal('updated')">
-            {{ updatedMore.revealed ? t("common.collapse") : t("common.showMore") }}
-          </button>
-        </li>
-      </TransitionGroup>
-    </div>
-
-    <div
-      v-else-if="view === 'grouped' && showList"
-      class="session-list-group"
-      :class="{ 'is-open': sessionsOpen }"
-      :inert="collapsedSections.sessions"
-    >
-      <ul v-if="sessionsMounted" ref="groupList">
-        <li
-          v-for="section in listSections"
-          :key="section.key"
-          :class="groupClass(section.key, section.open)"
-          :data-id="section.key"
-        >
-          <GroupHead
-            :name="section.name"
-            :sortable="sort === 'manual'"
-            :collapsed="section.collapsed"
-            @toggle="section.toggle"
-            @create="section.create?.()"
-          />
-
-          <div
-            v-if="section.sessions.length > 0 || section.more"
-            class="session-list-group"
-            :class="{ 'is-open': !section.collapsed }"
+          <button
+            v-else
+            class="more-button"
+            type="button"
+            @click="toggleGroupReveal(data.groupKey)"
           >
-            <TransitionGroup name="list-reveal" tag="div" class="group-body">
-              <SessionItem
-                v-for="session in section.sessions"
-                :key="session.id"
-                v-bind="itemBind(session)"
-                @navigate="emit('navigate', session.cwd)"
-                @toggle-pinned="togglePinned"
-                @rename="renameSession"
-                @delete="deleteSession"
-              />
-
-              <button
-                v-if="section.more"
-                key="more"
-                class="more-button"
-                type="button"
-                @click="section.toggleReveal"
-              >
-                {{ section.revealed ? t("common.collapse") : t("common.showMore") }}
-              </button>
-            </TransitionGroup>
-          </div>
+            {{ data.revealed ? t("common.collapse") : t("common.showMore") }}
+          </button>
         </li>
       </ul>
     </div>
@@ -138,8 +107,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, useTemplateRef, watch } from "vue"
-import { useResizeObserver, useTimestamp } from "@vueuse/core"
+import { computed, onBeforeUnmount, reactive, shallowRef, useTemplateRef, watch } from "vue"
+import { useTimestamp, useVirtualList } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import GroupHead from "@features/session-nav/components/GroupHead.vue"
@@ -156,25 +125,6 @@ const emit = defineEmits<{
   createInDir: [canonicalPath: string]
 }>()
 const { t } = useI18n()
-// 置顶区高度随内容变，吸顶位置只有浏览器量完才知道
-const navBody = useTemplateRef<HTMLElement>("navBody")
-const pinnedSection = useTemplateRef<HTMLElement>("pinnedSection")
-const headSticky = useTemplateRef<HTMLElement>("headSticky")
-
-function publishPinHeight() {
-  const body = navBody.value
-
-  if (!body) return
-  body.style.setProperty("--pin-stick", `${pinnedSection.value?.offsetHeight ?? 0}px`)
-  body.style.setProperty("--head-stick", `${headSticky.value?.offsetHeight ?? 0}px`)
-}
-
-useResizeObserver(pinnedSection, publishPinHeight)
-
-useResizeObserver(headSticky, publishPinHeight)
-
-watch([pinnedSection, headSticky], publishPinHeight, { flush: "post" })
-
 const {
   groups,
   cardFootById,
@@ -199,15 +149,28 @@ const now = useTimestamp({ interval: 60_000 })
 const collapsedSections = reactive({ pinned: false, sessions: false })
 // 折叠过渡后卸载列表内容；flat 与 grouped 互斥分支共用同一份状态
 const { open: pinnedOpen, mounted: pinnedMounted } = useSectionFold(() => collapsedSections.pinned)
-const { open: sessionsOpen, mounted: sessionsMounted } = useSectionFold(
-  () => collapsedSections.sessions,
-)
+const { mounted: sessionsMounted } = useSectionFold(() => collapsedSections.sessions)
 const rows = rowsFor(false)
-const showList = computed(() => rows.value.some((row) => row.kind !== "more"))
 const groupRows = computed(() =>
   rows.value.filter((row): row is Extract<SidebarRow, { kind: "group" }> => row.kind === "group"),
 )
+const flatRows = computed(() => rows.value.filter((row) => row.kind !== "group"))
+const sessionRows = computed(() => (view.value === "grouped" ? rows.value : flatRows.value))
+const ROW_HEIGHT = 32
+const {
+  list,
+  containerProps: virtualContainer,
+  wrapperProps,
+} = useVirtualList(sessionRows, {
+  itemHeight: ROW_HEIGHT,
+  overscan: 8,
+})
+const containerProps = computed(() => ({
+  ...virtualContainer,
+  style: { ...(virtualContainer.style as { overflowY: "auto" }), scrollbarWidth: "none" as const },
+}))
 const groupList = useTemplateRef<HTMLElement>("groupList")
+const dragging = shallowRef(false)
 const reorder = useDragReorder({
   axis: "y",
   container: () => groupList.value,
@@ -216,56 +179,75 @@ const reorder = useDragReorder({
   onMove: (id, toIndex) => {
     const paths = groupRows.value.map((row) => row.canonicalPath)
     const from = groupRows.value.findIndex((row) => row.key === id)
+    const visible = [...(groupList.value?.querySelectorAll<HTMLElement>(".row-group") ?? [])]
+    const over = visible[toIndex]?.dataset.id
+    const target = over ? groupRows.value.findIndex((row) => row.key === over) : -1
 
-    if (from < 0 || from === toIndex) return
+    if (from < 0 || target < 0 || from === target) return
     const moving = groupRows.value[from]
 
     if (!moving) return
     const next = paths.filter((_, i) => i !== from)
-    next.splice(toIndex, 0, moving.canonicalPath)
+    next.splice(target, 0, moving.canonicalPath)
     reorderGroups(next)
   },
 })
 
-/* <ul> 在 grouped 分支下、依赖 sessionsMounted 才渲染，不能指望 onMounted 有值；
+/* <ul> 在 sessionsMounted 之后才渲染，不能指望 onMounted 有值；
    元素一旦出现或换根，重新挂 pointerdown。 */
 watch(
   groupList,
   (el, _prev, onCleanup) => {
-    if (!el) return
+    if (!el || view.value !== "grouped") return
     onCleanup(reorder.attach(el))
+    el.addEventListener("pointerdown", startDrag)
+    onCleanup(() => el.removeEventListener("pointerdown", startDrag))
   },
   { immediate: true },
 )
 
-const updatedSessions = computed(() =>
-  rows.value.flatMap((row) => (row.kind === "session" ? [row.session] : [])),
-)
-const updatedMore = computed(() => rows.value.find((row) => row.kind === "more"))
-const hasList = computed(() =>
-  view.value === "flat" ? updatedSessions.value.length > 0 : showList.value,
-)
+function startDrag(event: PointerEvent) {
+  const target = event.target
+
+  if (!(target instanceof Element) || !target.closest(".group-head")) return
+  dragging.value = true
+  window.addEventListener("pointerup", endDrag)
+  window.addEventListener("pointercancel", endDrag)
+}
+
+function endDrag() {
+  dragging.value = false
+  window.removeEventListener("pointerup", endDrag)
+  window.removeEventListener("pointercancel", endDrag)
+}
+
+onBeforeUnmount(endDrag)
+
+const hasList = computed(() => sessionRows.value.some((row) => row.kind !== "more"))
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
-const listSections = computed(() =>
-  groupRows.value.map((row) => ({
-    key: row.key,
-    name: workspaceName(row.canonicalPath),
-    collapsed: row.collapsed,
-    open: !row.collapsed && (row.sessions.length > 0 || row.more),
-    sessions: row.sessions,
-    more: row.more,
-    revealed: row.revealed,
-    toggleReveal: () => toggleGroupReveal(row.key),
-    toggle: () => toggleGroup(row.canonicalPath),
-    create: () => emit("createInDir", row.canonicalPath),
-  })),
-)
 const allCollapsed = computed(
   () => groupRows.value.length > 0 && groupRows.value.every((row) => row.collapsed),
 )
 
 function toggleAllGroups() {
   setGroupsCollapsed(!allCollapsed.value)
+}
+
+/** 窗口内最上面的组头吸在会话区顶，其余组头跟着滚动。拖拽时不吸，避免让位被吸顶钉住。 */
+function rowStyle(index: number) {
+  const row = sessionRows.value[index]
+
+  if (dragging.value || row?.kind !== "group") return undefined
+  const next = sessionRows.value[index + 1]
+  return next?.kind === "group" || next === undefined ? undefined : { top: "0px" }
+}
+
+function rowClass(row: SidebarRow) {
+  return {
+    "row-group": row.kind === "group",
+    "is-manual": row.kind === "group" && sort.value === "manual",
+    "is-more": row.kind === "more",
+  }
 }
 
 function sessionState(id: string): SidebarSessionState | undefined {
@@ -287,14 +269,6 @@ function itemBind(
     now: now.value,
   }
 }
-
-function groupClass(key: string, open: boolean) {
-  return {
-    "row-group": true,
-    "is-open": open,
-    "is-manual": sort.value === "manual",
-  }
-}
 </script>
 
 <style scoped>
@@ -304,19 +278,22 @@ function groupClass(key: string, open: boolean) {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  overflow: auto;
-  overflow-x: hidden;
-  scrollbar-width: none;
+  overflow: hidden;
 }
 
 .session-list {
   position: relative;
   gap: var(--spacing-xxs);
-  /* 目录头吸在会话表头下沿，表头实高由浏览器写进 --head-stick */
-  scroll-padding-top: calc(var(--pin-stick, 0px) + var(--head-stick, var(--size-icon-button)));
 }
 
-.nav-body::-webkit-scrollbar {
+.session-window {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.session-window::-webkit-scrollbar {
   display: none;
 }
 
@@ -324,48 +301,41 @@ function groupClass(key: string, open: boolean) {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xxs);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.nav-section,
-.row-group {
+.session-row {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: center;
+  height: 32px;
+  min-width: 0;
+}
+
+.nav-section {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-/* 置顶区钉在滚动容器顶。底边距折进区内，表头才能紧贴它的底边吸住。
-   实高由浏览器写进 --pin-stick，表头和目录头都靠它定位 */
 .nav-section.is-pin {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 3;
-  margin-block-end: calc(-1 * var(--spacing-xxs));
-  padding-block-end: var(--spacing-xxs);
   background: var(--sidebar);
 }
 
 .head-sticky {
-  position: sticky;
-  top: var(--pin-stick, 0px);
+  position: relative;
   z-index: 2;
-  /* 和置顶区一样把下间距折进表头，目录头紧贴表头底边，滚动内容不从缝里露出 */
-  margin-block-end: calc(-1 * var(--spacing-xxs));
-  padding-block-end: var(--spacing-xxs);
   background: var(--sidebar);
 }
 
-.row-group .group-head {
+.session-window:not(:has(.is-dragging)) .row-group[style] {
   position: sticky;
-  top: calc(var(--pin-stick, 0px) + var(--head-stick, var(--size-icon-button)));
   z-index: 1;
-}
-
-/* 实底只在非 hover 时铺上，hover 的高亮背景才能露出来 */
-.row-group .group-head:not(:hover) {
   background: var(--sidebar);
 }
 
@@ -373,16 +343,15 @@ function groupClass(key: string, open: boolean) {
   cursor: grab;
 }
 
-/* 拖拽跟手：整组抬起，邻项让位由 useDragReorder 的 transform 预览驱动 */
+/* 拖拽跟手：阴影只加在组头，整组阴影会溢到滚动区外被切成黑边 */
 .row-group.is-drag-live {
   z-index: 4;
-  box-shadow: var(--shadow-float);
-  border-radius: var(--radius-md);
   cursor: grabbing;
 }
 
 .row-group.is-drag-live .group-head {
   background: var(--sidebar);
+  box-shadow: var(--shadow-float);
 }
 
 .section-label {
@@ -451,21 +420,22 @@ function groupClass(key: string, open: boolean) {
 }
 
 .more-button {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: var(--size-scroll-control);
-  padding-inline: calc(var(--spacing-xs) + var(--size-icon) + var(--spacing-xxs)) var(--spacing-xs);
+  align-self: flex-start;
+  padding: 0;
   border: 0;
-  border-radius: var(--radius-md);
   background: transparent;
   color: var(--contrast-ink-muted);
-  font-size: var(--text-caption);
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+}
+
+.session-row.is-more {
+  padding-inline-start: calc(var(--spacing-xs) + var(--size-icon) + var(--spacing-xxs));
 }
 
 .more-button:hover,
 .more-button:focus-visible {
-  background: var(--interaction-hover);
+  background: transparent;
   color: var(--contrast-ink);
 }
 </style>

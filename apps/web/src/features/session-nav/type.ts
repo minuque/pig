@@ -33,9 +33,6 @@ export type SidebarRow =
       canonicalPath: string
       first: boolean
       collapsed: boolean
-      sessions: SidebarSession[]
-      more: boolean
-      revealed: boolean
     }
   | { kind: "session"; key: string; session: SidebarSession }
   | { kind: "more"; key: string; groupKey: string; revealed: boolean }

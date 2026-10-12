@@ -51,6 +51,7 @@ export function useStartupSequence(options: StartupSequenceOptions) {
   const ready = shallowRef(false)
   const failed = shallowRef(false)
 
+  /** 遮罩一拆就开锁；失败要等错误页路由落地，避免半初始化的主界面先露出来。 */
   function finish() {
     visible.value = false
   }
@@ -62,6 +63,7 @@ export function useStartupSequence(options: StartupSequenceOptions) {
       options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS,
     )
     const initializing = Promise.resolve(options.initialize()).then((value) => {
+      // 失败已改道错误页时，不在这里提前揭开
       if (!failed.value && sessionRoute) settled.value = true
       return value
     })
@@ -71,11 +73,11 @@ export function useStartupSequence(options: StartupSequenceOptions) {
       ready.value = true
 
       if (router.currentRoute.value.name === "error") await router.replace("/")
+      settled.value = true
     } catch (error) {
       failed.value = true
       setStartupError(error instanceof Error && error.message ? error.message : errorMessage(error))
       await router.replace({ name: "error" })
-    } finally {
       settled.value = true
     }
   }
