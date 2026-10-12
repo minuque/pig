@@ -5,7 +5,6 @@ import { dirname } from "node:path"
 import { armClickStamps, clickStamps, installPageWaitFor, waitInPage } from "./in-page.js"
 import { installObservers } from "./paint.js"
 import {
-  BENCH_SESSION_TOTAL,
   SHORT_SESSION_NAME,
   sessionIdOf,
   sessionPrompt,
@@ -24,22 +23,61 @@ function listMoreButton(page: Page) {
   return page.locator("nav.session-list button.more-button", { hasText: "显示更多" })
 }
 
-/** 侧栏折叠时点「显示更多」，直到目标卡片进 DOM。 */
+/** 侧栏折叠时点「显示更多」，再从顶往下扫虚拟列表，返回窗口里的目标卡片。 */
 export async function revealSessionCard(page: Page, name: BenchSessionName) {
-  const card = sessionCard(page, name)
   const more = listMoreButton(page)
 
   for (let step = 0; step < 20; step += 1) {
-    if ((await card.count()) > 0) return card
-
     if ((await more.count()) === 0) break
     await more.click()
   }
 
-  return card
+  const window_ = page.locator(".session-window").first()
+  await window_.waitFor({ state: "attached", timeout: WORKBENCH_TIMEOUT_MS })
+  await window_.evaluate((node) => {
+    node.scrollTop = 0
+  })
+
+  for (let step = 0; step < 40; step += 1) {
+    const handle = await window_.evaluateHandle((node, text) => {
+      return (
+        [...node.querySelectorAll(".session-card")].find((item) =>
+          [...item.querySelectorAll("*")].some(
+            (el) => el.childNodes.length === 1 && el.textContent === text,
+          ),
+        ) ?? null
+      )
+    }, name)
+    const element = handle.asElement()
+
+    if (element) return element
+    await handle.dispose()
+
+    const moved = await window_.evaluate((node) => {
+      const next = Math.min(
+        node.scrollTop + node.clientHeight,
+        node.scrollHeight - node.clientHeight,
+      )
+
+      if (next === node.scrollTop) return false
+      node.scrollTop = next
+      return true
+    })
+
+    if (!moved) break
+  }
+
+  throw new Error(`侧栏找不到会话：${name}`)
 }
 
-/** 点完「显示更多」，直到侧栏种子会话全部挂上。 */
+/** 点开会话卡片，不等待后续网络空闲。隐藏窗口里 Playwright 点击会等可见，改走 DOM。 */
+export async function clickSessionCard(page: Page, name: BenchSessionName) {
+  const card = await revealSessionCard(page, name)
+  await card.evaluate((node) => {
+    ;(node as HTMLElement).click()
+  })
+}
+
 export async function revealAllSessionCards(page: Page) {
   const more = listMoreButton(page)
 
@@ -49,25 +87,24 @@ export async function revealAllSessionCards(page: Page) {
   }
 
   if ((await more.count()) > 0) throw new Error("侧栏仍有未展开的会话")
+  // 虚拟列表只挂窗口里的行，滚到底把剩余的种子会话带出来
+  const window_ = page.locator(".session-window")
+  await window_.evaluate((node) => {
+    node.scrollTop = node.scrollHeight
+  })
   await page.waitForFunction(
-    (expected) => document.querySelectorAll(".session-card").length >= expected,
-    BENCH_SESSION_TOTAL,
+    () => {
+      const node = document.querySelector(".session-window")
+      return node && node.scrollTop + node.clientHeight >= node.scrollHeight - 1
+    },
+    null,
     { timeout: WORKBENCH_TIMEOUT_MS },
   )
 }
 
-/** 点开会话卡片，不等待后续网络空闲。 */
-export async function clickSessionCard(page: Page, name: BenchSessionName) {
-  await (await revealSessionCard(page, name)).click({ force: true, noWaitAfter: true })
-}
-
 export async function nextPaint(page: Page) {
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-      ),
-  )
+  // 被遮住的页面不跑 rAF，等待用计时器
+  await page.evaluate(() => new Promise<void>((resolve) => setTimeout(resolve, 32)))
 }
 
 export async function newBenchContext(browser: Browser): Promise<BrowserContext> {
@@ -105,8 +142,20 @@ function shimPageFunctions(page: Page) {
   page.evaluate = ((fn: never, arg?: never) =>
     evaluate(withNameShim(fn) as never, arg)) as typeof page.evaluate
   const waitForFunction = page.waitForFunction.bind(page)
-  page.waitForFunction = ((fn: never, arg?: never, options?: never) =>
-    waitForFunction(withNameShim(fn) as never, arg, options)) as typeof page.waitForFunction
+  // 被遮住的页面不跑 rAF，waitForFunction 会一直等。计时器驱动才能推进。
+  page.waitForFunction = ((fn: never, arg?: never, options?: never) => {
+    const merged = {
+      ...(typeof options === "object" && options !== null ? options : {}),
+      polling: 8,
+      timeout: WORKBENCH_TIMEOUT_MS,
+    }
+    return Promise.race([
+      waitForFunction(withNameShim(fn) as never, arg, merged),
+      new Promise<never>((_resolve, reject) =>
+        setTimeout(() => reject(new Error("waitForFunction timeout")), merged.timeout),
+      ),
+    ])
+  }) as typeof page.waitForFunction
 }
 
 export async function prepareBenchPage(
@@ -172,11 +221,10 @@ export async function keyToNextFrame(page: Page): Promise<number> {
       "keydown",
       () => {
         const start = performance.now()
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            slot.__pigK2f = performance.now() - start
-          })
-        })
+        // 被遮住的页面不跑 rAF，两帧改用计时器
+        setTimeout(() => {
+          slot.__pigK2f = performance.now() - start
+        }, 32)
       },
       { once: true },
     )
@@ -192,7 +240,8 @@ export async function keyToNextFrame(page: Page): Promise<number> {
 
 /** 遮罩揭开后立刻滚主视口，量最差动画帧。 */
 export async function scrollMainAfterOpen(page: Page): Promise<number> {
-  const root = page.locator(".transcript-viewport")
+  // 会话切换时驻留旧画面，取不带 transcript-hold 的那份
+  const root = page.locator(".transcript-viewport:not(.transcript-hold)")
   const box = await root.boundingBox()
 
   if (!box) throw new Error("主视口不存在")
@@ -218,7 +267,9 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
       ...(turns > 0 ? { rowText: sessionPrompt(name, turns) } : { present: [".idle-hero"] }),
     },
   })
-  await clickSessionCard(page, name)
+  await card.evaluate((node) => {
+    ;(node as HTMLElement).click()
+  })
   return clickStamps(page, "ready")
 }
 
@@ -238,19 +289,17 @@ async function beginFrameSample(page: Page) {
       running = false
     }
 
-    const step: FrameRequestCallback[] = [
-      (now) => {
-        if (last) slot.__pigScrollFrames.push(now - last)
-        last = now
-        const next = step[0]
+    const step = () => {
+      const now = performance.now()
 
-        if (running && next) requestAnimationFrame(next)
-      },
-    ]
-    const first = step[0]
+      if (last) slot.__pigScrollFrames.push(now - last)
+      last = now
 
-    if (!first) throw new Error("滚动帧回调未安装")
-    requestAnimationFrame(first)
+      if (running) setTimeout(step, 1)
+    }
+
+    // 被遮住的页面不跑 rAF，帧率采样改用计时器
+    step()
   })
 }
 
@@ -334,7 +383,7 @@ async function scrollOverflowWorstFrame(
 /** 点顶上按钮直到服务端没有更早历史；窗口化只挂视口附近的行，按总高增长判断这一页落地。 */
 async function loadAllTranscriptPages(page: Page, pages: number) {
   const more = page.locator(".older-busy")
-  const root = page.locator(".transcript-viewport")
+  const root = page.locator(".transcript-viewport:not(.transcript-hold)")
 
   for (let pageIndex = 0; pageIndex < pages && (await more.count()) > 0; pageIndex += 1) {
     await page.waitForFunction(() => {
@@ -351,7 +400,7 @@ async function loadAllTranscriptPages(page: Page, pages: number) {
     })
     await page.waitForFunction(
       (height) => {
-        const node = document.querySelector(".transcript-viewport")
+        const node = document.querySelector(".transcript-viewport:not(.transcript-hold)")
         const button = document.querySelector<HTMLButtonElement>(".older-busy")
         return !!node && (button == null || (!button.disabled && node.scrollHeight > height))
       },
@@ -388,7 +437,7 @@ export async function scrollTranscript(page: Page, name: BenchSessionName): Prom
   if (turns === 0) throw new Error("空会话没有可滚动历史")
   await loadAllTranscriptPages(page, turns)
   // 窗口化只挂视口附近的行，滚到顶才算最早一轮真的落地
-  await page.locator(".transcript-viewport").evaluate((node) => {
+  await page.locator(".transcript-viewport:not(.transcript-hold)").evaluate((node) => {
     node.scrollTop = 0
   })
   await page
@@ -396,13 +445,17 @@ export async function scrollTranscript(page: Page, name: BenchSessionName): Prom
     .waitFor({ state: "attached", timeout: WORKBENCH_TIMEOUT_MS })
   // 停稳后窗口内的行才补 Markdown；等补齐且安静下来再采样，量的是滚动本身
   await waitForSettledView(page)
-  return scrollOverflowWorstFrame(page, ".transcript-viewport", "长会话未产生可滚动内容")
+  return scrollOverflowWorstFrame(
+    page,
+    ".transcript-viewport:not(.transcript-hold)",
+    "长会话未产生可滚动内容",
+  )
 }
 
 /** 展开侧栏全部会话后滚到顶再到底，返回最差动画帧。 */
 export async function scrollSessionList(page: Page): Promise<number> {
   await revealAllSessionCards(page)
-  return scrollOverflowWorstFrame(page, ".nav-body", "侧栏未产生可滚动内容")
+  return scrollOverflowWorstFrame(page, ".session-window", "侧栏未产生可滚动内容")
 }
 
 export function quantile(values: readonly number[], q: number): number {

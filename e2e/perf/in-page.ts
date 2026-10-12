@@ -84,6 +84,12 @@ const PAGE_WAIT_SOURCE = `(function () {
     if (spec.latestInViewport && !latestInView()) return false;
     return true;
   }
+  function scrollToBottom(win) {
+    var before = win.scrollTop;
+    win.scrollTop = win.scrollHeight;
+    win.dispatchEvent(new Event('scroll'));
+    return win.scrollTop !== before;
+  }
   function waitRaw(spec, timeoutMs) {
     var start = performance.now();
     return new Promise(function (resolve, reject) {
@@ -91,6 +97,11 @@ const PAGE_WAIT_SOURCE = `(function () {
       var moreClicks = 0;
       function tick() {
         if (matches(spec)) {
+          // 被遮住的页面不跑 rAF，等两帧会饿死。条件已满足就直接放行。
+          if (document.visibilityState === 'hidden') {
+            resolve({ elapsed: performance.now() - start, at: performance.now() });
+            return;
+          }
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
               var at = performance.now();
@@ -105,13 +116,18 @@ const PAGE_WAIT_SOURCE = `(function () {
           if (more) {
             more.click();
             moreClicks += 1;
+          } else {
+            var win = document.querySelector('.session-window');
+            if (win && scrollToBottom(win)) moreClicks += 1;
           }
         }
         if (performance.now() >= deadline) {
           reject(new Error("__pigWaitFor timeout " + timeoutMs + "ms " + JSON.stringify(spec)));
           return;
         }
-        requestAnimationFrame(tick);
+        // 被遮住的页面不跑帧，下一轮用计时器推进
+        if (document.visibilityState === 'hidden') setTimeout(tick, 8);
+        else requestAnimationFrame(tick);
       }
       requestAnimationFrame(tick);
     });
