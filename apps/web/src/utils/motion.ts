@@ -261,6 +261,7 @@ export function useDragReorder(opts: DragReorderOptions) {
 
     if (!moved) {
       clearShift()
+      st.node.classList.remove("is-drag-live")
       s = null
       return
     }
