@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url"
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
 export default function globalSetup() {
+  // 重跑单个用例时构建已完成，跳过重建
+  if (process.env.PIG_E2E_SKIP_BUILD) return
   const pnpm = process.env.npm_execpath
 
   if (!pnpm) throw new Error("pnpm executable not found; run via pnpm test:e2e")

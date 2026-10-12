@@ -139,10 +139,21 @@ test("一轮工作：工具步骤状态实时、step-rail 跟随、历史重拉�
   await expect(stepOf("t2.ts").locator(".tool-summary")).toHaveClass(/running/)
   await expect(stepOf("t2.ts")).toHaveAttribute("data-active", "true")
 
+  // 连线长完后不再带 stroke-dasharray。最后一条实线含整条干，读它的终点 bend，并换成页面坐标。
   const railBranchY = await page
-    .locator(".step-rail path[stroke-dasharray]")
+    .locator(".row-tools .step-rail")
     .last()
-    .evaluate((el) => el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2)
+    .locator("path")
+    .last()
+    .evaluate((el) => {
+      const length = el.getTotalLength()
+      const svg = el.ownerSVGElement!
+      const end = svg.createSVGPoint()
+      const local = el.getPointAtLength(length)
+      end.x = local.x
+      end.y = local.y
+      return end.matrixTransform(svg.getScreenCTM()!).y - 6
+    })
   const stepCenterY = await stepOf("t2.ts")
     .locator(".summary")
     .evaluate((el) => el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2)

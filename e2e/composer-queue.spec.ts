@@ -54,7 +54,8 @@ test("running 时 Enter 入队，轮次结束自动发送队首", async ({ page,
 
   await expect(queue).toBeVisible()
   await expect(queue).toContainText("排队第二条")
-  await expect(prompt).toHaveValue("")
+  // contenteditable 的 div 不是 input，读 textContent 而不是 value
+  await expect(prompt).toHaveText("")
 
   // 中止当前轮 → idle 自动泵队首，排队文本成为新的用户消息
   await page.keyboard.press("Escape")
@@ -85,7 +86,7 @@ test("队列编辑：消息搬回输入框，队列清空", async ({ page, compl
 
   await page.getByRole("button", { name: "编辑", exact: true }).click()
   await expect(queue).toHaveCount(0)
-  await expect(prompt).toHaveValue("排队第二条")
+  await expect(prompt).toHaveText("排队第二条")
 })
 
 test("队列拖拽排序：拖到队首换位", async ({ page, complexGateway }) => {
@@ -111,8 +112,11 @@ test("队列拖拽排序：拖到队首换位", async ({ page, complexGateway })
 
   await expect(rows).toHaveCount(2)
 
-  // 第二条拖到第一条上方（目标行中点之上）
-  await rows.nth(1).dragTo(rows.nth(0), { targetPosition: { x: 100, y: 4 } })
+  // 拖拽只认把手。第二条拖到第一条上方（目标行中点之上）
+  await rows
+    .nth(1)
+    .locator(".row-grip")
+    .dragTo(rows.nth(0), { targetPosition: { x: 100, y: 4 } })
   await expect(rows.nth(0)).toContainText("第二条排队")
   await expect(rows.nth(1)).toContainText("第一条排队")
 })
