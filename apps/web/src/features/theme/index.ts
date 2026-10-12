@@ -1,5 +1,5 @@
 import { useColorMode } from "@vueuse/core"
-import { computed, nextTick, type ComputedRef } from "vue"
+import { computed, nextTick, ref, watch, type ComputedRef, type Ref } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
 import {
   paintTheme,
@@ -12,6 +12,13 @@ const STORAGE_KEY = "npg-theme"
 /** 首帧颜色缓存：index.html 引导脚本在 main.ts 之前读它，避免闪默认色。 */
 export const THEME_COLORS_KEY = "pig.themeColors"
 const THEME_ID_ATTR = "data-theme-id"
+/**
+ * 当前主题 id。null 表示默认主题，颜色走 :root / .dark，不注入。
+ * 放模块级 ref：DOM 属性不是响应式依赖，computed 读 dataset 不会触发重渲染。
+ */
+const themeId: Ref<string | null> = ref(
+  typeof document === "undefined" ? null : (document.documentElement.dataset.themeId ?? null),
+)
 
 /**
  * 把一套主题画到页面上。传 null 清除，回到 :root / .dark 的默认色。
@@ -28,6 +35,7 @@ export function applyThemePalette(id: string | null, colors: ThemeColors | null)
       setThemeId: (next) => {
         if (next) root.setAttribute(THEME_ID_ATTR, next)
         else delete root.dataset.themeId
+        themeId.value = next
       },
       store: (json) => {
         if (json) localStorage.setItem(THEME_COLORS_KEY, json)
@@ -37,12 +45,25 @@ export function applyThemePalette(id: string | null, colors: ThemeColors | null)
     id,
     colors,
   )
+
+  // 桌面壳据此改窗口底色，避免换主题时闪默认色。浏览器里没有这个桥。
+  window.pigDesktop?.setThemeColor(colors?.canvas ?? resolvedCanvas(root))
+}
+
+/** 读 --canvas 的计算值。清除主题后变量回到 :root / .dark，内联样式读不到。 */
+function resolvedCanvas(root: HTMLElement): string {
+  const probe = document.createElement("div")
+  probe.style.background = "var(--canvas)"
+  root.append(probe)
+  const color = getComputedStyle(probe).backgroundColor
+  probe.remove()
+  return color
 }
 
 type Theme = {
   isDark: ComputedRef<boolean>
   scheme: ComputedRef<ColorScheme>
-  themeId: ComputedRef<string | null>
+  themeId: Ref<string | null>
   codeBlockProps: ComputedRef<{ theme: "github-dark" | "github-light" }>
   setScheme: (next: ColorScheme) => void
   setTheme: (next: ThemeDefinition | null) => void
@@ -62,11 +83,10 @@ function theme(): Theme {
   const codeBlockProps = computed(() => ({
     theme: isDark.value ? ("github-dark" as const) : ("github-light" as const),
   }))
-  const themeId = computed<string | null>(() => document.documentElement.dataset.themeId ?? null)
 
-  /** 切换深浅时把当前主题的重画一次，保证用对深或浅的那份色表。 */
+  /** 切换深浅时把当前主题重画一次，保证用对深或浅的那份色表。 */
   function repaintTheme() {
-    const id = document.documentElement.dataset.themeId
+    const id = themeId.value
 
     if (!id) return
     const def = THEMES.find((theme) => theme.id === id)
@@ -77,8 +97,10 @@ function theme(): Theme {
 
   function setScheme(next: ColorScheme) {
     mode.value = next
-    nextTick(repaintTheme)
   }
+
+  // 深浅变化统一在这里重画，覆盖手动切换和跟随系统两种来源。
+  watch(isDark, () => nextTick(repaintTheme))
 
   function setTheme(next: ThemeDefinition | null) {
     applyThemePalette(next?.id ?? null, next ? (isDark.value ? next.dark : next.light) : null)
@@ -92,14 +114,9 @@ function theme(): Theme {
       return
     }
 
-    const updateTheme = async () => {
-      const style = document.createElement("style")
-      style.textContent = "*,*::before,*::after{transition:none!important}"
-      document.head.append(style)
+    const updateTheme = () => {
+      // useColorMode 自己会短暂关掉过渡。这里再插样式会把视图过渡判成无效，切换被回滚
       setScheme(next)
-      await nextTick()
-      void document.body.offsetHeight
-      requestAnimationFrame(() => requestAnimationFrame(() => style.remove()))
     }
 
     if (
