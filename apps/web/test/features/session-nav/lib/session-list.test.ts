@@ -8,6 +8,7 @@ import {
   sessionCardFoot,
   sessionOutcome,
   sidebarRows,
+  stickyGroupIndex,
 } from "@features/session-nav/lib/session-list.js"
 
 describe("groupSessionsByCwd", () => {
@@ -106,6 +107,22 @@ describe("sidebarRows", () => {
       "group:/b",
       "session:b1",
     ])
+  })
+})
+
+describe("stickyGroupIndex", () => {
+  const rows = [
+    { kind: "group", key: "/a" },
+    { kind: "session", key: "a1" },
+    { kind: "group", key: "/b" },
+    { kind: "group", key: "/c" },
+  ]
+
+  it("钉住还没滚完的组，连续组头滚完一行就换下一组", () => {
+    expect(stickyGroupIndex(rows, 0, 32)).toBe(0)
+    expect(stickyGroupIndex(rows, 40, 32)).toBe(-1)
+    expect(stickyGroupIndex(rows, 70, 32)).toBe(3)
+    expect(stickyGroupIndex(rows, 96, 32)).toBe(3)
   })
 })
 

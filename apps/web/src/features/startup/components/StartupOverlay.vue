@@ -53,8 +53,12 @@ watch(
 
 onMounted(async () => {
   const splash = document.getElementById("startup-splash")
-  // 等静态开屏探头播完再接管，避免中途跳帧
-  await Promise.allSettled(splash?.getAnimations({ subtree: true }).map((a) => a.finished) ?? [])
+  // 等静态开屏探头播完再接管，避免中途跳帧。热更新会重新挂一层，动画不再结束，到点就撤
+  const pending = splash?.getAnimations({ subtree: true }).map((a) => a.finished) ?? []
+  await Promise.race([
+    Promise.allSettled(pending),
+    new Promise((resolve) => setTimeout(resolve, 1200)),
+  ])
   splash?.remove()
   splashGone = true
   beginLeave()

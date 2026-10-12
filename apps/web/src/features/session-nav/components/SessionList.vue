@@ -70,7 +70,7 @@
           :class="rowClass(data)"
           :data-id="data.kind === 'group' ? data.key : undefined"
           :data-index="index"
-          :style="rowStyle(index)"
+          :style="rowStyle(index, data.kind === 'group')"
         >
           <GroupHead
             v-if="data.kind === 'group'"
@@ -116,7 +116,7 @@ import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionsHead from "@features/session-nav/components/SessionsHead.vue"
 import { useSectionFold } from "@features/session-nav/hooks/use-section-fold.js"
 import { useDragReorder } from "@utils/motion.js"
-import { toSidebarSession } from "@features/session-nav/lib/session-list.js"
+import { stickyGroupIndex, toSidebarSession } from "@features/session-nav/lib/session-list.js"
 import type { SidebarRow, SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import { AltArrowDownIcon, AltArrowRightIcon } from "@components/icons/index.js"
 
@@ -165,9 +165,14 @@ const {
   itemHeight: ROW_HEIGHT,
   overscan: 8,
 })
+const scrollTop = shallowRef(0)
 const containerProps = computed(() => ({
   ...virtualContainer,
   style: { ...(virtualContainer.style as { overflowY: "auto" }), scrollbarWidth: "none" as const },
+  onScroll: () => {
+    scrollTop.value = virtualContainer.ref.value?.scrollTop ?? 0
+    virtualContainer.onScroll()
+  },
 }))
 const groupList = useTemplateRef<HTMLElement>("groupList")
 const dragging = shallowRef(false)
@@ -221,6 +226,13 @@ function endDrag() {
   window.removeEventListener("pointercancel", endDrag)
 }
 
+/** 滚过的组头让位给下一组，只有还没滚完的那一组钉在会话区顶。 */
+const stickyIndex = computed(() =>
+  dragging.value || view.value !== "grouped"
+    ? -1
+    : stickyGroupIndex(sessionRows.value, scrollTop.value, ROW_HEIGHT),
+)
+
 onBeforeUnmount(endDrag)
 
 const hasList = computed(() => sessionRows.value.some((row) => row.kind !== "more"))
@@ -233,13 +245,11 @@ function toggleAllGroups() {
   setGroupsCollapsed(!allCollapsed.value)
 }
 
-/** 窗口内最上面的组头吸在会话区顶，其余组头跟着滚动。拖拽时不吸，避免让位被吸顶钉住。 */
-function rowStyle(index: number) {
-  const row = sessionRows.value[index]
-
-  if (dragging.value || row?.kind !== "group") return undefined
-  const next = sessionRows.value[index + 1]
-  return next?.kind === "group" || next === undefined ? undefined : { top: "0px" }
+/** 当前组头钉在会话区顶。连续组头不钉，避免滚过的组头盖住后面的组。 */
+function rowStyle(index: number, group: boolean) {
+  if (!group || index !== stickyIndex.value) return undefined
+  const shift = scrollTop.value - index * ROW_HEIGHT
+  return shift > 0 ? { top: `${shift}px` } : undefined
 }
 
 function rowClass(row: SidebarRow) {
@@ -333,7 +343,7 @@ function itemBind(
   background: var(--sidebar);
 }
 
-.session-window:not(:has(.is-dragging)) .row-group[style] {
+.row-group[style] {
   position: sticky;
   z-index: 1;
   background: var(--sidebar);

@@ -129,6 +129,21 @@ export function groupSessionsByCwd(
   ]
 }
 
+/** 钉住视口里最靠上的那一组。连续组头不再往上追溯，避免滚过的组头盖住后面的组。 */
+export function stickyGroupIndex(
+  rows: readonly { kind: string }[],
+  scrollTop: number,
+  rowHeight: number,
+): number {
+  const index = Math.min(Math.floor(scrollTop / rowHeight), rows.length - 1)
+
+  if (index < 0 || rows[index]?.kind !== "group") return -1
+  let last = index
+
+  while (rows[last + 1]?.kind === "group") last += 1
+  return last
+}
+
 export function toSidebarSession(session: SessionMetadata): SidebarSession {
   return {
     id: session.id,
