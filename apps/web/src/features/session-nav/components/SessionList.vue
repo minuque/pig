@@ -62,7 +62,7 @@
       class="session-window"
       :inert="collapsedSections.sessions"
     >
-      <ul ref="groupList" v-bind="wrapperProps" :class="{ 'is-dragging': dragging }">
+      <ul ref="groupList" v-bind="wrapperProps">
         <li
           v-for="{ data, index } in list"
           :key="data.key"
@@ -70,7 +70,6 @@
           :class="rowClass(data)"
           :data-id="data.kind === 'group' ? data.key : undefined"
           :data-index="index"
-          :style="rowStyle(index, data.kind === 'group')"
         >
           <GroupHead
             v-if="data.kind === 'group'"
@@ -107,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, reactive, useTemplateRef, watch } from "vue"
 import { useTimestamp, useVirtualList } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
@@ -116,7 +115,7 @@ import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionsHead from "@features/session-nav/components/SessionsHead.vue"
 import { useSectionFold } from "@features/session-nav/hooks/use-section-fold.js"
 import { useDragReorder } from "@utils/motion.js"
-import { stickyGroupIndex, toSidebarSession } from "@features/session-nav/lib/session-list.js"
+import { toSidebarSession } from "@features/session-nav/lib/session-list.js"
 import type { SidebarRow, SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import { AltArrowDownIcon, AltArrowRightIcon } from "@components/icons/index.js"
 
@@ -165,17 +164,11 @@ const {
   itemHeight: ROW_HEIGHT,
   overscan: 8,
 })
-const scrollTop = shallowRef(0)
 const containerProps = computed(() => ({
   ...virtualContainer,
   style: { ...(virtualContainer.style as { overflowY: "auto" }), scrollbarWidth: "none" as const },
-  onScroll: () => {
-    scrollTop.value = virtualContainer.ref.value?.scrollTop ?? 0
-    virtualContainer.onScroll()
-  },
 }))
 const groupList = useTemplateRef<HTMLElement>("groupList")
-const dragging = shallowRef(false)
 const reorder = useDragReorder({
   axis: "y",
   container: () => groupList.value,
@@ -205,35 +198,9 @@ watch(
   (el, _prev, onCleanup) => {
     if (!el || view.value !== "grouped") return
     onCleanup(reorder.attach(el))
-    el.addEventListener("pointerdown", startDrag)
-    onCleanup(() => el.removeEventListener("pointerdown", startDrag))
   },
   { immediate: true },
 )
-
-function startDrag(event: PointerEvent) {
-  const target = event.target
-
-  if (!(target instanceof Element) || !target.closest(".group-head")) return
-  dragging.value = true
-  window.addEventListener("pointerup", endDrag)
-  window.addEventListener("pointercancel", endDrag)
-}
-
-function endDrag() {
-  dragging.value = false
-  window.removeEventListener("pointerup", endDrag)
-  window.removeEventListener("pointercancel", endDrag)
-}
-
-/** 滚过的组头让位给下一组，只有还没滚完的那一组钉在会话区顶。 */
-const stickyIndex = computed(() =>
-  dragging.value || view.value !== "grouped"
-    ? -1
-    : stickyGroupIndex(sessionRows.value, scrollTop.value, ROW_HEIGHT),
-)
-
-onBeforeUnmount(endDrag)
 
 const hasList = computed(() => sessionRows.value.some((row) => row.kind !== "more"))
 const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
@@ -243,13 +210,6 @@ const allCollapsed = computed(
 
 function toggleAllGroups() {
   setGroupsCollapsed(!allCollapsed.value)
-}
-
-/** 当前组头钉在会话区顶。连续组头不钉，避免滚过的组头盖住后面的组。 */
-function rowStyle(index: number, group: boolean) {
-  if (!group || index !== stickyIndex.value) return undefined
-  const shift = scrollTop.value - index * ROW_HEIGHT
-  return shift > 0 ? { top: `${shift}px` } : undefined
 }
 
 function rowClass(row: SidebarRow) {
@@ -340,12 +300,6 @@ function itemBind(
 .head-sticky {
   position: relative;
   z-index: 2;
-  background: var(--sidebar);
-}
-
-.row-group[style] {
-  position: sticky;
-  z-index: 1;
   background: var(--sidebar);
 }
 
