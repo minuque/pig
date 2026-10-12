@@ -75,7 +75,14 @@ let shared: Theme | undefined
 /** 主题是全局面板和 html class，控制器只建一次；每行组件各自建会把 class 反复重写。 */
 function theme(): Theme {
   if (shared) return shared
-  const mode = useColorMode({ initialValue: "auto", storageKey: STORAGE_KEY })
+
+  // disableTransition 会在改类名时插入再删除 style。这段 DOM 变更落在
+  // startViewTransition 回调里，回调被要求同步且不能改 DOM，过渡会被判无效并回滚。
+  const mode = useColorMode({
+    initialValue: "auto",
+    storageKey: STORAGE_KEY,
+    disableTransition: false,
+  })
   const isDark = computed(() => mode.state.value === "dark")
   const scheme = computed<ColorScheme>(() =>
     mode.store.value === "auto" ? "auto" : mode.state.value,
@@ -108,26 +115,25 @@ function theme(): Theme {
 
   function toggle() {
     const next: ColorScheme = isDark.value ? "light" : "dark"
-
-    if (typeof document === "undefined") {
-      setScheme(next)
-      return
-    }
-
-    const updateTheme = () => {
-      // useColorMode 自己会短暂关掉过渡。这里再插样式会把视图过渡判成无效，切换被回滚
-      setScheme(next)
-    }
-
-    if (
-      !document.startViewTransition ||
+    const reduce =
+      typeof document !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      void updateTheme()
+
+    if (typeof document === "undefined" || !document.startViewTransition || reduce) {
+      setScheme(next)
       return
     }
 
-    document.startViewTransition(updateTheme)
+    // 类名必须在回调里同步改完。setScheme 的 DOM 更新排在回调之后，
+    // 过渡快照的新旧会是同一帧，准备阶段被判无效。
+    // 页面被遮住时浏览器会中止过渡，结果已经写入，拒绝不能漏到控制台。
+    const transition = document.startViewTransition(() => {
+      setScheme(next)
+      document.documentElement.classList.toggle("dark", next === "dark")
+    })
+
+    transition.ready.catch(() => {})
+    transition.finished.catch(() => {})
   }
 
   shared = { isDark, scheme, themeId, codeBlockProps, setScheme, setTheme, toggle }
