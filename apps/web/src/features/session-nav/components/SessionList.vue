@@ -360,7 +360,7 @@ function itemBind(
 }
 
 .row-group.is-drag-live .group-head {
-  background: var(--sidebar);
+  background: var(--interaction-hover);
 }
 
 .section-label {
