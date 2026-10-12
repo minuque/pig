@@ -269,19 +269,26 @@ export function useDragReorder(opts: DragReorderOptions) {
     const to = targetIndex()
     const landing = (st.rects[to]?.pos ?? st.offset) - st.base
     const live = st.offset - st.base
-    clearShift()
-
-    if (!prefersReducedMotion() && Math.abs(landing - live) > 0.5) {
-      st.node.animate(
-        [{ transform: `${translate}(${live}px)` }, { transform: `${translate}(${landing}px)` }],
-        { duration: settleMs, easing: ease },
-      )
-    }
-
     st.node.classList.remove("is-drag-live")
+    // 顺序有关：先取消拖拽位移，重排才不会把文字推出可视区。
+    clearShift()
+    // 重排会复用这行。位移留到下一帧再清，文字会先被推出可视区。
+    st.node.style.transform = ""
+
+    const animation =
+      !prefersReducedMotion() && Math.abs(landing - live) > 0.5
+        ? st.node.animate(
+            [{ transform: `${translate}(${live}px)` }, { transform: `${translate}(${landing}px)` }],
+            { duration: settleMs, easing: ease },
+          )
+        : undefined
+
     s = null
 
     if (to !== from) opts.onMove?.(id, to)
+
+    // 重排让这行回到文档流的新位置，吸附位移会再把它推出去。
+    if (to !== from) animation?.cancel()
     sweep()
   }
 

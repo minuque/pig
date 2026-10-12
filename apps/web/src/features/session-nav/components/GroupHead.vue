@@ -143,7 +143,6 @@ function onHeadLeave(event: MouseEvent) {
   line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: color var(--duration-fast) var(--ease-smooth);
 }
 
 .trail {
