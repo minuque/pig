@@ -342,11 +342,6 @@ function openSessionMenu(event: MouseEvent) {
   openContextMenuAt(card, rect.left, rect.bottom)
 }
 
-function onCardContextMenu(event: MouseEvent) {
-  event.preventDefault()
-  event.stopPropagation()
-}
-
 function onCardKeydown(event: KeyboardEvent) {
   if (props.placeholder) return
 
