@@ -99,13 +99,15 @@
             </span>
           </button>
 
-          <button
+          <span
             v-for="g in groups"
             :key="g.canonicalPath"
             class="scope-item"
             :class="{ on: scopeFilter === workspaceName(g.canonicalPath) }"
-            type="button"
+            role="menuitem"
+            tabindex="0"
             @click="pickScope(workspaceName(g.canonicalPath))"
+            @keydown.enter.prevent="pickScope(workspaceName(g.canonicalPath))"
           >
             <span class="scope-fav">
               <component :is="scopeIcon(workspaceName(g.canonicalPath))" :size="12" />
@@ -118,15 +120,16 @@
               <CheckIcon v-if="scopeFilter === workspaceName(g.canonicalPath)" :size="10" />
             </span>
 
-            <button
+            <span
               class="scope-edit"
-              type="button"
+              role="button"
+              tabindex="-1"
               :title="t('session.projectSettings')"
               @click.stop="closeProjectSettings(workspaceName(g.canonicalPath))"
             >
               <SettingsIcon :size="10" />
-            </button>
-          </button>
+            </span>
+          </span>
         </div>
       </div>
 
@@ -609,6 +612,8 @@ html[data-pig-desktop-platform="darwin"] .nav-head {
   background: transparent;
   color: var(--contrast-foreground);
   text-align: start;
+  cursor: default;
+  user-select: none;
 }
 
 .scope-item:hover {
@@ -654,6 +659,7 @@ html[data-pig-desktop-platform="darwin"] .nav-head {
   color: var(--contrast-foreground-muted);
   opacity: 0;
   transition: opacity 0.15s;
+  cursor: pointer;
 }
 
 .scope-item:hover .scope-edit {
