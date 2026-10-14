@@ -1,10 +1,24 @@
-import { inject, onBeforeUnmount, readonly, ref, watch, type InjectionKey, type Ref } from "vue"
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  readonly,
+  ref,
+  watch,
+  type InjectionKey,
+  type Ref,
+} from "vue"
 import { readPref, writePref } from "@utils/storage.js"
+
+export type SidebarState = "expanded" | "icon" | "offcanvas"
 
 export const leftPanelKey: InjectionKey<{
   leftOpen: Readonly<Ref<boolean>>
+  sbState: Readonly<Ref<SidebarState>>
   toggle: () => void
+  setSbState: (s: SidebarState) => void
   resizing: Readonly<Ref<boolean>>
+  isNarrow: Readonly<Ref<boolean>>
 }> = Symbol("left-panel")
 
 /** 消费 AppLayout 提供的左栏开关，供主列顶栏切换抽屉。 */
@@ -16,6 +30,7 @@ export function useLeftPanelToggle() {
 }
 
 export const LEFT_PANEL_WIDTH_KEY = "pig.leftPanelWidth"
+export const LEFT_PANEL_STATE_KEY = "pig.leftPanelState"
 /** 主内容区最小宽度（px）：侧栏调宽时始终为其保留的空间。 */
 export const CONTENT_MIN_WIDTH = 332
 
@@ -28,6 +43,15 @@ export function parseLeftPanelWidth(raw: string | null): number | undefined {
 
 function loadStoredWidth(): number | undefined {
   return parseLeftPanelWidth(readPref(LEFT_PANEL_WIDTH_KEY) ?? null)
+}
+
+function loadStoredState(): SidebarState {
+  const raw = readPref(LEFT_PANEL_STATE_KEY)
+  return raw === "icon" || raw === "offcanvas" ? raw : "expanded"
+}
+
+function persistState(state: SidebarState) {
+  writePref(LEFT_PANEL_STATE_KEY, state)
 }
 
 function persistWidth(width: number) {
@@ -51,7 +75,8 @@ export function fitPanelWidth(width: number, viewportWidth: number): number {
 /** 左栏（Workspace/Session 导航）面板：拖拽调宽、方向键调宽、移动端抽屉与视口适配。 */
 export function useLeftPanel() {
   const narrowViewport = matchMedia("(max-width: 900px)")
-  const leftOpen = ref(!narrowViewport.matches)
+  const sbState = ref<SidebarState>(narrowViewport.matches ? "offcanvas" : loadStoredState())
+  const leftOpen = computed(() => sbState.value !== "offcanvas")
   /** 当前是否为 max-width: 900px 窄视口。 */
   const isNarrow = ref(narrowViewport.matches)
   const leftWidth = ref(
@@ -116,11 +141,22 @@ export function useLeftPanel() {
   }
 
   function toggle() {
-    leftOpen.value = !leftOpen.value
+    // 展开与图标轨互切；完全隐藏从图标轨再收一次
+    if (sbState.value === "expanded") setSbState("icon")
+    else if (sbState.value === "icon") setSbState("offcanvas")
+    else setSbState("expanded")
   }
 
+  function setSbState(next: SidebarState) {
+    sbState.value = next
+    persistState(next)
+  }
+
+  /** 进入窄屏前的状态，回宽屏恢复。 */
+  let preNarrowState: SidebarState | undefined
+
   function closeMobilePanels() {
-    if (narrowViewport.matches) leftOpen.value = false
+    if (narrowViewport.matches) setSbState("offcanvas")
   }
 
   function fitPanels() {
@@ -131,8 +167,13 @@ export function useLeftPanel() {
   function handleViewportChange(event: MediaQueryListEvent) {
     isNarrow.value = event.matches
 
-    if (event.matches) closeMobilePanels()
-    else fitPanels()
+    if (event.matches) {
+      preNarrowState = sbState.value
+      setSbState("offcanvas")
+    } else {
+      setSbState(preNarrowState ?? "expanded")
+      preNarrowState = undefined
+    }
   }
 
   narrowViewport.addEventListener("change", handleViewportChange)
@@ -148,6 +189,8 @@ export function useLeftPanel() {
   })
   return {
     leftOpen: readonly(leftOpen),
+    sbState: readonly(sbState),
+    setSbState,
     leftWidth: readonly(leftWidth),
     isNarrow: readonly(isNarrow),
     resizing: readonly(resizing),

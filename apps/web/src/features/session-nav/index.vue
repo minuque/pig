@@ -18,9 +18,9 @@
               class="nav-collapse"
               type="button"
               :aria-label="t('nav.collapseSidebar')"
-              @click="togglePanel"
+              @click="setSbState(sbState === 'expanded' ? 'icon' : 'expanded')"
             >
-              <SidebarGlyph :open="leftOpen" />
+              <SidebarGlyph :open="sbState !== 'offcanvas'" />
             </button>
           </TooltipTrigger>
 
@@ -28,17 +28,109 @@
         </Tooltip>
       </div>
 
-      <div class="nav-toolbar">
-        <button class="nav-action" type="button" @click="onCreateSession">
-          <ChatRoundAddIcon class="size-icon" />
-          <span class="nav-label">{{ t("session.newSession") }}</span>
-        </button>
+      <div class="search-head">
+        <label class="search-field">
+          <MagnifierIcon :size="15" />
 
-        <button class="nav-action" type="button" @click="openSearch">
-          <MagnifierIcon class="size-icon" />
-          <span class="nav-label">{{ t("nav.search") }}</span>
-          <kbd class="search-shortcut">Ctrl K</kbd>
-        </button>
+          <input
+            ref="searchInput"
+            v-model="query"
+            type="search"
+            :placeholder="t('nav.search')"
+            :aria-label="t('nav.searchPlaceholder')"
+            @keydown.enter.prevent="activateFirst"
+            @keydown.escape.prevent="query = ''"
+          />
+
+          <button
+            v-if="query"
+            class="search-clear"
+            type="button"
+            :aria-label="t('common.close')"
+            @click="clearQuery"
+          >
+            <CloseIcon :size="11" />
+          </button>
+        </label>
+
+        <div class="head-actions">
+          <button
+            class="head-btn"
+            :class="{ scoped: !!scopeFilter }"
+            type="button"
+            :title="t('session.allProjects')"
+            @click.stop="scopeMenuOpen = !scopeMenuOpen"
+          >
+            <Tuning2Icon :size="15" />
+          </button>
+
+          <button
+            class="head-btn"
+            type="button"
+            :title="t('session.addGuide')"
+            @click="onAddProject"
+          >
+            <AddFolderIcon :size="15" />
+          </button>
+
+          <button
+            class="head-btn"
+            type="button"
+            :title="t('session.newSession')"
+            @click="onCreateSession"
+          >
+            <ChatRoundAddIcon :size="15" />
+          </button>
+        </div>
+
+        <div v-if="scopeMenuOpen" class="scope-menu" @click.stop>
+          <button
+            class="scope-item"
+            :class="{ on: !scopeFilter }"
+            type="button"
+            @click="pickScope(undefined)"
+          >
+            <span class="scope-fav"><FolderIcon :size="12" /></span>
+            <span class="scope-name">{{ t("session.allProjects") }}</span>
+            <span class="scope-cnt">{{ listedSessions.length }}</span>
+
+            <span class="scope-ck">
+              <CheckIcon v-if="!scopeFilter" :size="10" />
+            </span>
+          </button>
+
+          <button
+            v-for="g in groups"
+            :key="g.canonicalPath"
+            class="scope-item"
+            :class="{ on: scopeFilter === workspaceName(g.canonicalPath) }"
+            type="button"
+            @click="pickScope(workspaceName(g.canonicalPath))"
+          >
+            <span class="scope-fav">
+              <component :is="scopeIcon(workspaceName(g.canonicalPath))" :size="12" />
+            </span>
+
+            <span class="scope-name">{{ workspaceName(g.canonicalPath) }}</span>
+            <span class="scope-cnt">{{ g.sessions.length }}</span>
+
+            <span class="scope-ck">
+              <CheckIcon v-if="scopeFilter === workspaceName(g.canonicalPath)" :size="10" />
+            </span>
+
+            <button
+              class="scope-edit"
+              type="button"
+              :title="t('session.projectSettings')"
+              @click.stop="
+                onProjectSettings(workspaceName(g.canonicalPath))
+                scopeMenuOpen = false
+              "
+            >
+              <SettingsIcon :size="10" />
+            </button>
+          </button>
+        </div>
       </div>
 
       <p v-if="connected && !groups.length" class="add-guide">
@@ -46,16 +138,27 @@
         {{ t("session.addGuide") }}
       </p>
 
-      <SessionList @navigate="onSessionNavigate" @create-in-dir="onCreateInDir" />
+      <SessionList
+        :scope-filter="scopeFilter"
+        :query="query"
+        @navigate="onSessionNavigate"
+        @project-settings="onProjectSettings"
+        @create="onCreateSession"
+      />
     </div>
 
     <NavFooter @settings="openSettings" />
-    <SessionSearch v-if="searchOpen" v-model:open="searchOpen" @navigate="onSessionNavigate" />
+
+    <ProjectSettingsDialog
+      v-if="projectSettingsOpen"
+      v-model:open="projectSettingsOpen"
+      :project="projectSettingsTarget"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, shallowRef, watch } from "vue"
+import { onMounted, shallowRef, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
@@ -64,25 +167,29 @@ import { notifyError } from "@components/layout/notify.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
-import { useNav } from "@features/session-nav/index.js"
+import { useNav, workspaceName } from "@features/session-nav/index.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
+import ProjectSettingsDialog from "@features/session-nav/components/ProjectSettingsDialog.vue"
 import { useSettings } from "@features/settings/index.js"
 import {
+  AddFolderIcon,
   ArrowUpIcon,
   ChatRoundAddIcon,
+  CheckIcon,
+  CloseIcon,
+  FolderIcon,
   MagnifierIcon,
+  SettingsIcon,
   SidebarGlyph,
+  Tuning2Icon,
 } from "@components/icons/index.js"
 
-const SessionSearch = defineAsyncComponent(
-  () => import("@features/session-nav/components/SessionSearch.vue"),
-)
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
 }>()
 const { t } = useI18n()
-const { leftOpen, toggle: togglePanel } = useLeftPanelToggle()
+const { sbState, setSbState } = useLeftPanelToggle()
 const {
   groups,
   pinnedSessions,
@@ -93,20 +200,36 @@ const {
   navError: workspaceError,
   addWorkspace,
   setDraftSession,
+  listedSessions,
 } = useNav()
+
+function scopeIcon(project: string | undefined) {
+  if (!project) return FolderIcon
+  const custom = projIcons.value[project]
+
+  if (custom?.kind === "icon" && custom.value) return custom.value
+  return FolderIcon
+}
+
 const { openSettings } = useSettings()
 const { play } = useSound()
 const router = useRouter()
-const searchOpen = shallowRef(false)
+const query = shallowRef("")
+const searchInput = useTemplateRef<HTMLInputElement>("searchInput")
+const scopeFilter = shallowRef<string | undefined>(undefined)
+const scopeMenuOpen = shallowRef(false)
+const projIcons = shallowRef<Record<string, { kind: string; value?: string }>>({})
 
-onMounted(() => {
-  const prefetch = () => {
-    void import("@features/session-nav/components/SessionSearch.vue")
+function loadProjIcons() {
+  try {
+    const raw = localStorage.getItem("pig.projIcons")
+    projIcons.value = raw ? JSON.parse(raw) : {}
+  } catch {
+    projIcons.value = {}
   }
+}
 
-  if (typeof requestIdleCallback === "function") requestIdleCallback(prefetch)
-  else setTimeout(prefetch, 1)
-})
+onMounted(loadProjIcons)
 
 function highlightedCwd(): string | undefined {
   const id = highlightedSessionId.value
@@ -125,15 +248,36 @@ function highlightedCwd(): string | undefined {
 }
 
 function openSearch() {
-  if (!searchOpen.value) void play("search")
-  void import("@features/session-nav/components/SessionSearch.vue")
-  searchOpen.value = true
+  void play("search")
+  searchInput.value?.focus()
+  searchInput.value?.select()
+}
+
+function clearQuery() {
+  query.value = ""
+  searchInput.value?.focus()
+}
+
+function activateFirst() {
+  const row = document.querySelector<HTMLElement>(".session-list .session-card")
+  row?.click()
 }
 
 useEventListener(window, "keydown", (event) => {
   if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return
+
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
+    return
   event.preventDefault()
   openSearch()
+})
+
+useEventListener(window, "pointerdown", (event) => {
+  if (!scopeMenuOpen.value) return
+  const target = event.target
+
+  if (target instanceof Element && target.closest(".scope-menu, .head-btn")) return
+  scopeMenuOpen.value = false
 })
 
 watch(workspaceError, (message) => {
@@ -152,6 +296,24 @@ function onCreateInDir(canonicalPath: string): void {
   setDraftSession(canonicalPath)
   emit("navigate", canonicalPath)
   void router.push("/")
+}
+
+function pickScope(name: string | undefined): void {
+  scopeFilter.value = name
+  scopeMenuOpen.value = false
+}
+
+function onProjectSettings(project: string): void {
+  projectSettingsTarget.value = project
+  projectSettingsOpen.value = true
+}
+
+const projectSettingsOpen = shallowRef(false)
+const projectSettingsTarget = shallowRef("")
+
+function onAddProject(): void {
+  void play("create")
+  void addWorkspace()
 }
 
 function onCreateSession(): void {
@@ -206,7 +368,7 @@ function onCreateSession(): void {
   margin-inline-start: calc(-1 * var(--spacing-xxs));
   padding: var(--spacing-xxs);
   border-radius: var(--radius-md);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   text-decoration: none;
   -webkit-app-region: no-drag;
   app-region: no-drag;
@@ -255,66 +417,103 @@ function onCreateSession(): void {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
 }
 
 .nav-collapse:hover,
 .nav-collapse:focus-visible {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
-.nav-toolbar {
+.search-head {
+  position: relative;
   display: flex;
   flex: none;
-  flex-direction: column;
+  align-items: center;
   gap: var(--spacing-xxs);
 }
 
-.nav-action {
+.search-field {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: var(--spacing-xs);
-  width: 100%;
-  height: var(--size-nav-rail);
+  min-width: 0;
+  height: 32px;
   padding-inline: var(--spacing-xs);
-  border: 0;
   border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--contrast-ink);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-caption--line-height);
-  text-align: start;
-  transition: background-color var(--duration-fast) var(--ease-out);
+  color: var(--contrast-foreground-muted);
+  cursor: text;
 }
 
-.nav-action:hover {
+.search-field:hover,
+.search-field:focus-within {
   background: var(--interaction-hover);
 }
 
-.nav-label {
-  min-width: 0;
+.search-field input {
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.search-shortcut {
-  flex: none;
-  padding: 0;
+  min-width: 0;
   border: 0;
+  outline: 0;
   background: transparent;
-  color: var(--contrast-ink-faint);
-  font: var(--text-caption-mono) / var(--text-caption-mono--line-height) var(--font-mono);
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
+  color: var(--contrast-foreground);
+  font-size: var(--text-caption);
 }
 
-.nav-action:hover .search-shortcut,
-.nav-action:focus-visible .search-shortcut {
-  opacity: 1;
+.search-field input::placeholder {
+  color: var(--contrast-foreground-faint);
+}
+
+.search-clear,
+.head-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--contrast-foreground-muted);
+}
+
+.search-clear {
+  width: 20px;
+  height: 20px;
+}
+
+.head-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.head-btn {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+
+.head-btn:hover,
+.search-clear:hover {
+  background: var(--hover-quiet);
+  color: var(--contrast-foreground);
+}
+
+.head-btn.scoped {
+  color: var(--primary);
+}
+
+.head-btn.scoped::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  translate: -50% 0;
 }
 
 .session-nav > .titlebar-drag {
@@ -366,12 +565,122 @@ html[data-pig-desktop-platform="darwin"] .nav-head {
   gap: var(--spacing-xxs);
   margin: 0;
   padding-block: var(--spacing-xxs);
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }
 
 .add-guide .motion-nudge {
   margin-inline-start: var(--spacing-xs);
+}
+
+.scope-fav {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.scope-menu {
+  position: absolute;
+  z-index: var(--z-menu);
+  inset-inline: 0;
+  top: 100%;
+  margin-block-start: 4px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-float);
+  font-size: var(--text-caption);
+}
+
+.scope-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  width: 100%;
+  padding: var(--spacing-xxs) var(--spacing-xs);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--contrast-foreground);
+  text-align: start;
+}
+
+.scope-item:hover {
+  background: var(--sidebar-hover);
+}
+
+.scope-item.on {
+  color: var(--primary);
+}
+
+.scope-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scope-cnt {
+  flex: none;
+  font-size: var(--text-eyebrow);
+  color: var(--contrast-foreground-muted);
+}
+
+.scope-ck {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  color: var(--primary);
+}
+
+.scope-edit {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--contrast-foreground-muted);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.scope-item:hover .scope-edit {
+  opacity: 1;
+}
+
+.scope-edit:hover {
+  color: var(--contrast-foreground);
+}
+
+:global(.sidebar.icon) .search-head,
+:global(.sidebar.icon) .nav-inset > .add-guide,
+:global(.sidebar.icon) .session-list .session-window,
+:global(.sidebar.icon) .brand-word,
+:global(.sidebar.icon) .footer-settings span:last-child {
+  display: none;
+}
+
+:global(.sidebar.icon) .nav-footer {
+  flex-direction: column;
+}
+
+:global(.sidebar.icon) .nav-head {
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+:global(.sidebar.icon) .nav-collapse {
+  margin-inline-start: 0;
 }
 
 @media (max-width: 900px) {
@@ -381,8 +690,7 @@ html[data-pig-desktop-platform="darwin"] .nav-head {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-action,
-  .search-shortcut {
+  .search-field {
     transition: none;
   }
 

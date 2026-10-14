@@ -1,92 +1,55 @@
 <template>
   <nav class="nav-body session-list">
-    <section v-if="pinnedRows.length" class="nav-section is-pin">
-      <div class="section-label" @click="collapsedSections.pinned = !collapsedSections.pinned">
-        <span class="section-label-text">{{ t("session.pin") }}</span>
-
-        <button
-          class="section-fold"
-          type="button"
-          :aria-expanded="!collapsedSections.pinned"
-          :aria-label="collapsedSections.pinned ? t('nav.expandPinned') : t('nav.collapsePinned')"
-          @click.stop="collapsedSections.pinned = !collapsedSections.pinned"
-        >
-          <AltArrowDownIcon v-if="!collapsedSections.pinned" class="size-icon" />
-          <AltArrowRightIcon v-else class="size-icon" />
-        </button>
-      </div>
-
-      <div
-        class="session-list-group"
-        :class="{ 'is-open': pinnedOpen }"
-        :inert="collapsedSections.pinned"
+    <div v-if="sbState === 'icon'" class="rail">
+      <button
+        v-for="row in railRows"
+        :key="row.key"
+        class="rail-dot"
+        :class="{ active: row.session.id === highlightedSessionId }"
+        type="button"
+        :title="`${workspaceName(row.session.cwd ?? '')} / ${row.session.title}`"
+        @click="onRailClick(row.session.id)"
       >
-        <TransitionGroup v-if="pinnedMounted" name="list-reveal" tag="div" class="group-body">
-          <SessionItem
-            v-for="session in pinnedRows"
-            :key="session.id"
-            v-bind="
-              itemBind(session, {
-                pinned: true,
-                dirTag: session.cwd ? workspaceName(session.cwd) : undefined,
-              })
-            "
-            @navigate="emit('navigate', session.cwd)"
-            @toggle-pinned="togglePinned"
-            @rename="renameSession"
-            @delete="deleteSession"
-          />
-        </TransitionGroup>
-      </div>
-    </section>
+        <FolderIcon :size="14" />
+        <span v-if="sessionState(row.session.id) === 'running'" class="rail-run motion-spin"></span>
+        <span v-if="pinnedIds.has(row.session.id)" class="rail-pin"></span>
+      </button>
 
-    <div class="head-sticky">
-      <SessionsHead
-        v-if="connected || groups.length"
-        :view="view"
-        :sort="sort"
-        :all-collapsed="allCollapsed"
-        :can-fold="view === 'grouped' && groupRows.length > 0"
-        :collapsed="collapsedSections.sessions"
-        :can-collapse="hasList"
-        @toggle-all="toggleAllGroups"
-        @toggle-collapse="collapsedSections.sessions = !collapsedSections.sessions"
-        @set-view="setView"
-        @set-sort="setSort"
-      />
+      <button
+        class="rail-dot"
+        type="button"
+        :title="t('session.newSession')"
+        @click="emit('create')"
+      >
+        <PenIcon :size="14" />
+      </button>
     </div>
 
     <div
-      v-if="sessionsMounted && sessionRows.length"
+      v-else-if="flatRows.length"
       v-bind="containerProps"
       class="session-window"
-      :inert="collapsedSections.sessions"
+      @click.self="clearSelection"
     >
-      <ul ref="groupList" v-bind="wrapperProps">
+      <ul ref="listEl" v-bind="wrapperProps">
         <li
           v-for="{ data, index } in list"
           :key="data.key"
           class="session-row"
-          :class="rowClass(data)"
-          :data-id="data.kind === 'group' ? data.key : undefined"
+          :data-id="data.kind === 'session' ? data.session.id : undefined"
           :data-index="index"
+          :data-pinned="data.kind === 'session' && pinnedIds.has(data.session.id)"
         >
-          <GroupHead
-            v-if="data.kind === 'group'"
-            :name="workspaceName(data.canonicalPath)"
-            :sortable="sort === 'manual'"
-            :collapsed="data.collapsed"
-            @toggle="toggleGroup(data.canonicalPath)"
-            @create="emit('createInDir', data.canonicalPath)"
-          />
-
           <SessionItem
-            v-else-if="data.kind === 'session'"
+            v-if="data.kind === 'session'"
             v-bind="itemBind(data.session)"
             @navigate="emit('navigate', data.session.cwd)"
             @toggle-pinned="togglePinned"
             @rename="renameSession"
             @delete="deleteSession"
+            @project-settings="emit('projectSettings', $event)"
+            @toggle-select="toggleSelect"
+            @range-select="rangeSelect"
           />
 
           <button
@@ -99,68 +62,107 @@
           </button>
         </li>
       </ul>
+
+      <div v-if="dragging" class="drop-zone pinned" :class="{ hot: dropTarget === 'pin' }">
+        <span class="drop-label">Pinned</span>
+      </div>
+
+      <div
+        v-if="dragging && pinnedIds.size"
+        class="drop-zone active"
+        :class="{ hot: dropTarget === 'unpin' }"
+      >
+        <span class="drop-label">Active</span>
+      </div>
     </div>
 
-    <span v-else-if="groups.length && !collapsedSections.sessions">{{ t("session.empty") }}</span>
+    <div v-else-if="listedSessions.length" class="session-empty">{{ t("session.empty") }}</div>
+
+    <div v-if="selectedIds.size" class="bulk-bar">
+      <span class="bulk-count">{{ selectedIds.size }}</span>
+
+      <button class="bulk-btn" type="button" @click="pinSelected">
+        <PinIcon :size="12" />
+        {{ t("session.pin") }}
+      </button>
+
+      <button class="bulk-btn danger" type="button" @click="deleteSelected">
+        <TrashBinMinimalisticIcon :size="12" />
+        {{ t("session.deleteTitle") }}
+      </button>
+
+      <button class="bulk-btn" type="button" @click="clearSelection">
+        {{ t("common.cancel") }}
+      </button>
+    </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, useTemplateRef, watch } from "vue"
+import { computed, onMounted, onBeforeUnmount, ref, shallowRef, useTemplateRef } from "vue"
 import { useTimestamp, useVirtualList } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
-import GroupHead from "@features/session-nav/components/GroupHead.vue"
+import { filterSessionsForSearch } from "@features/session-nav/lib/session-list.js"
+import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
-import SessionsHead from "@features/session-nav/components/SessionsHead.vue"
-import { useSectionFold } from "@features/session-nav/hooks/use-section-fold.js"
-import { useDragReorder } from "@utils/motion.js"
-import { toSidebarSession } from "@features/session-nav/lib/session-list.js"
-import type { SidebarRow, SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
-import { AltArrowDownIcon, AltArrowRightIcon } from "@components/icons/index.js"
+import { FolderIcon, PenIcon, PinIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
+import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 
+const props = defineProps<{
+  scopeFilter?: string | undefined
+  query?: string
+}>()
 const emit = defineEmits<{
   navigate: [cwd: string | undefined]
-  createInDir: [canonicalPath: string]
+  projectSettings: [project: string]
+  create: []
 }>()
+const listEl = useTemplateRef<HTMLElement>("listEl")
 const { t } = useI18n()
 const {
-  groups,
   cardFootById,
-  view,
-  sort,
-  setView,
-  setSort,
-  reorderGroups,
+  listedSessions,
   toggleGroupReveal,
-  toggleGroup,
-  setGroupsCollapsed,
   rowsFor,
   pinnedIds,
-  pinnedSessions,
   togglePinned,
-  connected,
   highlightedSessionId,
+  openSession,
   renameSession,
   deleteSession,
 } = useNav()
+const { sbState } = useLeftPanelToggle()
 const now = useTimestamp({ interval: 60_000 })
-const collapsedSections = reactive({ pinned: false, sessions: false })
-// 折叠过渡后卸载列表内容；flat 与 grouped 互斥分支共用同一份状态
-const { open: pinnedOpen, mounted: pinnedMounted } = useSectionFold(() => collapsedSections.pinned)
-const { mounted: sessionsMounted } = useSectionFold(() => collapsedSections.sessions)
-const rows = rowsFor(false)
-const groupRows = computed(() =>
-  rows.value.filter((row): row is Extract<SidebarRow, { kind: "group" }> => row.kind === "group"),
+const selectedIds = shallowRef<ReadonlySet<string>>(new Set())
+const dragging = ref(false)
+const dropTarget = ref<"pin" | "unpin" | null>(null)
+const rawRows = rowsFor(computed(() => Boolean(props.query?.trim())))
+const flatRows = computed(() => {
+  const needle = props.query?.trim()
+  const allowed = needle
+    ? new Set(filterSessionsForSearch(listedSessions.value, needle).map((session) => session.id))
+    : undefined
+  return rawRows.value.filter((row) => {
+    if (row.kind !== "session") return !needle
+
+    if (allowed && !allowed.has(row.session.id)) return false
+    return !props.scopeFilter || workspaceName(row.session.cwd ?? "") === props.scopeFilter
+  })
+})
+/* icon rail 只给前 40 个会话入口，其余走 scope filter 或搜索。 */
+const railRows = computed(() =>
+  flatRows.value
+    .filter((row) => row.kind === "session")
+    .slice(0, 40)
+    .map((row) => row as { kind: "session"; key: string; session: SidebarSession }),
 )
-const flatRows = computed(() => rows.value.filter((row) => row.kind !== "group"))
-const sessionRows = computed(() => (view.value === "grouped" ? rows.value : flatRows.value))
-const ROW_HEIGHT = 32
+const ROW_HEIGHT = 52
 const {
   list,
   containerProps: virtualContainer,
   wrapperProps,
-} = useVirtualList(sessionRows, {
+} = useVirtualList(flatRows, {
   itemHeight: ROW_HEIGHT,
   overscan: 8,
 })
@@ -168,77 +170,171 @@ const containerProps = computed(() => ({
   ...virtualContainer,
   style: { ...(virtualContainer.style as { overflowY: "auto" }), scrollbarWidth: "none" as const },
 }))
-const groupList = useTemplateRef<HTMLElement>("groupList")
-const reorder = useDragReorder({
-  axis: "y",
-  container: () => groupList.value,
-  itemSelector: ".row-group",
-  handleSelector: ".group-head",
-  onMove: (id, toIndex) => {
-    const paths = groupRows.value.map((row) => row.canonicalPath)
-    const from = groupRows.value.findIndex((row) => row.key === id)
-    const visible = [...(groupList.value?.querySelectorAll<HTMLElement>(".row-group") ?? [])]
-    const over = visible[toIndex]?.dataset.id
-    const target = over ? groupRows.value.findIndex((row) => row.key === over) : -1
-
-    if (from < 0 || target < 0 || from === target) return
-    const moving = groupRows.value[from]
-
-    if (!moving) return
-    const next = paths.filter((_, i) => i !== from)
-    next.splice(target, 0, moving.canonicalPath)
-    reorderGroups(next)
-  },
-})
-
-/* <ul> 在 sessionsMounted 之后才渲染，不能指望 onMounted 有值；
-   元素一旦出现或换根，重新挂 pointerdown。 */
-watch(
-  groupList,
-  (el, _prev, onCleanup) => {
-    if (!el || view.value !== "grouped") return
-    onCleanup(reorder.attach(el))
-  },
-  { immediate: true },
-)
-
-const hasList = computed(() => sessionRows.value.some((row) => row.kind !== "more"))
-const pinnedRows = computed(() => pinnedSessions.value.map(toSidebarSession))
-const allCollapsed = computed(
-  () => groupRows.value.length > 0 && groupRows.value.every((row) => row.collapsed),
-)
-
-function toggleAllGroups() {
-  setGroupsCollapsed(!allCollapsed.value)
-}
-
-function rowClass(row: SidebarRow) {
-  return {
-    "row-group": row.kind === "group",
-    "is-manual": row.kind === "group" && sort.value === "manual",
-    "is-more": row.kind === "more",
-  }
-}
 
 function sessionState(id: string): SidebarSessionState | undefined {
   return cardFootById.value.get(id)?.state
 }
 
-function itemBind(
-  session: SidebarSession,
-  extra?: { pinned?: boolean; showPath?: boolean; dirTag?: string | undefined },
-) {
+function onRailClick(id: string) {
+  const row = railRows.value.find((r) => r.session.id === id)
+  emit("navigate", row?.session.cwd)
+  openSession(id)
+}
+
+const lastSelectId = shallowRef<string>()
+
+function sessionIds(): string[] {
+  return flatRows.value.flatMap((row) => (row.kind === "session" ? [row.session.id] : []))
+}
+
+function toggleSelect(id: string) {
+  const next = new Set(selectedIds.value)
+
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  selectedIds.value = next
+  lastSelectId.value = id
+}
+
+function rangeSelect(id: string) {
+  const ids = sessionIds()
+  const anchor = lastSelectId.value
+  const start = anchor ? ids.indexOf(anchor) : -1
+  const end = ids.indexOf(id)
+
+  if (start < 0 || end < 0) return toggleSelect(id)
+  const next = new Set(selectedIds.value)
+  const [from, to] = start < end ? [start, end] : [end, start]
+
+  for (const item of ids.slice(from, to + 1)) next.add(item)
+  selectedIds.value = next
+}
+
+function clearSelection() {
+  selectedIds.value = new Set()
+}
+
+function pinSelected() {
+  for (const id of selectedIds.value) {
+    if (!pinnedIds.value.has(id)) togglePinned(id)
+  }
+
+  selectedIds.value = new Set()
+}
+
+function deleteSelected() {
+  for (const id of selectedIds.value) deleteSession(id)
+  selectedIds.value = new Set()
+}
+
+function itemBind(session: SidebarSession) {
   return {
     session,
     active: session.id === highlightedSessionId.value,
-    pinned: extra?.pinned ?? pinnedIds.value.has(session.id),
-    showPath: extra?.showPath ?? false,
-    dirTag: extra?.dirTag,
+    pinned: pinnedIds.value.has(session.id),
+    selected: selectedIds.value.has(session.id),
     state: sessionState(session.id),
     placeholder: session.draft ?? false,
     now: now.value,
   }
 }
+
+/* ============ 拖拽 pin/unpin ============ */
+let gesture: {
+  id: string
+  x0: number
+  y0: number
+  mode: "move" | "sweep" | null
+  swept: Set<string>
+} | null = null
+
+function markSwept(ids: ReadonlySet<string>) {
+  listEl.value?.querySelectorAll<HTMLElement>(".session-row").forEach((row) => {
+    row.classList.toggle("swept", ids.has(row.dataset.id ?? ""))
+  })
+}
+
+function onRowPointerDown(e: PointerEvent) {
+  if (e.button !== 0) return
+  const target = e.target
+
+  if (!(target instanceof Element) || target.closest("button, input")) return
+  const row = target.closest(".session-row")
+  const id = row instanceof HTMLElement ? row.dataset.id : undefined
+
+  if (!id) return
+  gesture = { id, x0: e.clientX, y0: e.clientY, mode: null, swept: new Set() }
+}
+
+function onListPointerMove(e: PointerEvent) {
+  if (!gesture) return
+  const dx = e.clientX - gesture.x0
+  const dy = e.clientY - gesture.y0
+
+  if (!gesture.mode) {
+    if (Math.abs(dy) > 6 && Math.abs(dy) > Math.abs(dx)) gesture.mode = "move"
+    else if (dx > 24 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      gesture.mode = "sweep"
+      gesture.swept.add(gesture.id)
+    } else return
+  }
+
+  if (gesture.mode === "sweep") {
+    const under = document.elementFromPoint(e.clientX, e.clientY)?.closest(".session-row")
+    const ids = sessionIds()
+    const from = ids.indexOf(gesture.id)
+    const to = under instanceof HTMLElement && under.dataset.id ? ids.indexOf(under.dataset.id) : -1
+    const start = from < 0 || to < 0 ? -1 : Math.min(from, to)
+    const end = from < 0 || to < 0 ? -1 : Math.max(from, to)
+    gesture.swept = new Set(start < 0 ? [gesture.id] : ids.slice(start, end + 1))
+    markSwept(gesture.swept)
+    return
+  }
+
+  dragging.value = true
+  const el = document.elementFromPoint(e.clientX, e.clientY)
+  const zone = el?.closest(".drop-zone")
+  const row = el?.closest(".session-row")
+  const rowId = row instanceof HTMLElement ? row.dataset.id : undefined
+  const overPinned = Boolean(
+    zone?.classList.contains("pinned") || (rowId && pinnedIds.value.has(rowId)),
+  )
+
+  dropTarget.value = overPinned ? "pin" : "unpin"
+}
+
+function onListPointerUp() {
+  if (!gesture) return
+
+  if (gesture.mode === "sweep") {
+    const ids = [...gesture.swept]
+    const unpin = ids.length > 0 && ids.every((id) => pinnedIds.value.has(id))
+
+    for (const id of ids) {
+      if (unpin === pinnedIds.value.has(id)) togglePinned(id)
+    }
+  } else if (gesture.mode === "move" && dropTarget.value) {
+    const pinned = pinnedIds.value.has(gesture.id)
+
+    if ((dropTarget.value === "pin") !== pinned) togglePinned(gesture.id)
+  }
+
+  markSwept(new Set())
+  gesture = null
+  dragging.value = false
+  dropTarget.value = null
+}
+
+onMounted(() => {
+  listEl.value?.addEventListener("pointerdown", onRowPointerDown)
+  document.addEventListener("pointermove", onListPointerMove)
+  document.addEventListener("pointerup", onListPointerUp)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener("pointermove", onListPointerMove)
+  document.removeEventListener("pointerup", onListPointerUp)
+})
 </script>
 
 <style scoped>
@@ -281,105 +377,11 @@ function itemBind(
   flex: none;
   flex-direction: column;
   justify-content: center;
-  height: 32px;
   min-width: 0;
 }
 
-.nav-section {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.nav-section.is-pin {
-  position: relative;
-  z-index: 3;
-  background: var(--sidebar);
-}
-
-.head-sticky {
-  position: relative;
-  z-index: 2;
-  background: var(--sidebar);
-}
-
-.row-group.is-manual .group-head {
-  cursor: grab;
-}
-
-/* 拖拽跟手。组头不加阴影，阴影贴着侧栏边框会被切出一条脏边。 */
-.row-group.is-drag-live {
-  z-index: 4;
-  cursor: grabbing;
-}
-
-.row-group.is-drag-live .group-head {
-  background: var(--interaction-hover);
-}
-
-.section-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-xs);
-  min-height: var(--size-icon-button);
-  padding-inline: var(--spacing-xs);
-  border-radius: var(--radius-md);
-}
-
-.section-label:hover {
-  background: var(--interaction-hover);
-}
-
-.section-label-text {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--contrast-ink-faint);
-  font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--text-eyebrow--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.section-fold {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  padding: var(--icon-button-pad);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-ink-muted);
-}
-
-.section-fold:hover,
-.section-fold:focus-visible {
-  background: var(--hover-quiet);
-  color: var(--contrast-ink);
-}
-
-@media (hover: hover) {
-  .section-fold {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--duration-fast) var(--ease-out);
-  }
-
-  .section-label:is(:hover, :focus-within) .section-fold,
-  .section-fold:focus-visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
-.group-body {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xxs);
-  padding-block-start: var(--spacing-xxs);
+.session-row.swept :deep(.session-card) {
+  background: var(--success-halo);
 }
 
 .more-button {
@@ -387,18 +389,174 @@ function itemBind(
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
 }
 
-.session-row.is-more {
-  padding-inline-start: calc(var(--spacing-xs) + var(--size-icon) + var(--spacing-xxs));
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-block: var(--spacing-xxs);
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
-.more-button:hover,
-.more-button:focus-visible {
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.rail-dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
   background: transparent;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground-faint);
+  cursor: pointer;
+}
+
+.rail-run {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--primary);
+  border-top-color: transparent;
+  border-radius: var(--radius-full);
+}
+
+.rail-pin {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--contrast-foreground-faint);
+}
+
+.rail-dot:hover {
+  background: var(--sidebar-hover);
+  color: var(--contrast-foreground);
+}
+
+.rail-dot.active {
+  background: var(--sidebar-selected);
+  color: var(--primary);
+}
+
+.session-empty {
+  padding: var(--spacing-xs);
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-eyebrow);
+}
+
+.drop-zone {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  height: 0;
+  overflow: hidden;
+  padding-inline: var(--spacing-sm);
+  font-size: var(--text-eyebrow);
+  color: var(--contrast-foreground-faint);
+  transition:
+    height var(--duration-fast) var(--ease-out),
+    color var(--duration-fast);
+}
+
+.drop-zone .drop-label {
+  flex: none;
+  font-weight: var(--font-weight-bold);
+}
+
+.drop-zone::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.drop-zone.pinned {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--sidebar);
+}
+
+.drop-zone.active {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--sidebar);
+}
+
+.session-window:has(.session-row[data-dragging]) .drop-zone,
+.drop-zone.hot {
+  height: 22px;
+}
+
+.drop-zone.hot {
+  color: var(--primary);
+}
+
+.drop-zone.hot::after {
+  background: var(--primary);
+  opacity: 0.5;
+}
+
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-block-start: 1px solid var(--border);
+  background: var(--sidebar);
+  flex: none;
+}
+
+.bulk-count {
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 4px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-bold);
+}
+
+.bulk-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--spacing-xxs) var(--spacing-xs);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--contrast-foreground);
+  font-size: var(--text-eyebrow);
+}
+
+.bulk-btn:hover {
+  background: var(--hover-quiet);
+}
+
+.bulk-btn.danger {
+  color: var(--destructive);
+}
+
+.bulk-btn:last-child {
+  margin-inline-start: auto;
 }
 </style>

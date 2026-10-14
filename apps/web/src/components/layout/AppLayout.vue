@@ -1,17 +1,24 @@
 <template>
-  <div class="shell" :class="{ 'left-closed': !leftOpen, 'is-resizing': resizing }">
-    <aside class="sidebar" :class="{ open: leftOpen }" :inert="!leftOpen" :style="leftWidthStyle">
+  <div class="shell" :class="[sbClass, { 'is-resizing': resizing }]">
+    <aside
+      v-if="!isOffcanvas"
+      class="sidebar"
+      :class="[sbState]"
+      :inert="isOffcanvas"
+      :style="sbState === 'expanded' ? leftWidthStyle : undefined"
+    >
       <slot name="sidebar" :on-navigate="closeMobilePanels" />
     </aside>
 
     <div
-      v-if="leftOpen"
+      v-if="sbState === 'expanded'"
       class="resizer"
       tabindex="0"
       :style="leftWidthStyle"
       @pointerdown="startResize($event)"
       @keydown.left.prevent="resizeBy(-16)"
       @keydown.right.prevent="resizeBy(16)"
+      @dblclick="resetWidth"
     ></div>
 
     <main>
@@ -22,6 +29,7 @@
 
 <script setup lang="ts">
 import { computed, provide } from "vue"
+import { useEventListener } from "@vueuse/core"
 import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js"
 
 defineSlots<{
@@ -29,12 +37,33 @@ defineSlots<{
   sidebar(props: { onNavigate: () => void }): unknown
 }>()
 
-const { leftOpen, leftWidth, resizing, toggle, resizeBy, startResize, closeMobilePanels } =
-  useLeftPanel()
-// --left-width 不可继承，只写在消费它的元素上，拖拽改宽不会让整棵子树重算样式
+const {
+  leftOpen,
+  sbState,
+  setSbState,
+  leftWidth,
+  resizing,
+  isNarrow,
+  toggle,
+  resizeBy,
+  startResize,
+  closeMobilePanels,
+} = useLeftPanel()
 const leftWidthStyle = computed(() => ({ "--left-width": `${leftWidth.value}px` }))
+const sbClass = computed(() => `sb-${sbState.value}`)
+const isOffcanvas = computed(() => sbState.value === "offcanvas")
 
-provide(leftPanelKey, { leftOpen, toggle, resizing })
+provide(leftPanelKey, { leftOpen, sbState, setSbState, toggle, resizing, isNarrow })
+
+useEventListener(window, "keydown", (event) => {
+  if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "b") return
+  event.preventDefault()
+  setSbState(sbState.value === "expanded" ? "icon" : "expanded")
+})
+
+function resetWidth() {
+  resizeBy(0)
+}
 </script>
 
 <style scoped>
@@ -43,7 +72,7 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   height: 100vh;
   display: flex;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--card);
 }
 
 .sidebar {
@@ -51,7 +80,6 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   display: flex;
   flex: none;
   flex-direction: column;
-  width: var(--left-width);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -59,6 +87,15 @@ provide(leftPanelKey, { leftOpen, toggle, resizing })
   border-inline-end: var(--border-width) solid var(--border);
   contain: layout style;
   transition: width var(--duration-normal) var(--ease-smooth);
+}
+
+.sidebar.expanded {
+  width: var(--left-width);
+}
+
+.sidebar.icon {
+  width: 52px;
+  border-inline-end-width: 0;
 }
 
 .resizer {
@@ -135,7 +172,7 @@ main {
   flex-direction: column;
   overflow: hidden;
   /* 困住栏内 z-index，避免 dock 底色盖住分栏把手；isolation:isolate 会吃掉子树 backdrop-filter */
-  background: var(--surface);
+  background: var(--card);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -147,15 +184,14 @@ main {
 }
 
 @media (min-width: 901px) {
-  .shell.left-closed .sidebar {
-    width: 0;
-    border-inline-end-width: 0;
+  .shell.sb-offcanvas .sidebar {
+    display: none;
   }
 }
 
 @media (max-width: 900px) {
   .shell,
-  .shell.left-closed {
+  .shell.sb-offcanvas {
     height: 100dvh;
     display: block;
     padding: 0;
@@ -170,7 +206,7 @@ main {
   }
 
   .sidebar,
-  .left-closed .sidebar {
+  .shell.sb-offcanvas .sidebar {
     position: fixed;
     z-index: var(--z-drawer);
     inset-block: 0;
@@ -186,7 +222,8 @@ main {
     box-shadow: var(--shadow-drawer);
   }
 
-  .sidebar.open {
+  .sidebar.expanded,
+  .sidebar.icon {
     visibility: visible;
     transform: translateX(0);
     transition:

@@ -8,7 +8,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--card);
   font-family: var(--font-sans);
   -webkit-app-region: no-drag;
   app-region: no-drag;
@@ -120,7 +120,7 @@
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   transition:
     background var(--duration-fast) var(--ease-smooth),
     color var(--duration-fast) var(--ease-smooth),
@@ -129,7 +129,7 @@
 
 .icon-toggle:hover {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 @media (pointer: coarse) {
@@ -233,9 +233,10 @@
   translate: 0 -10px;
 }
 
-/* 首屏挂载时输入条与 Hero 同拍落位 */
+/* 首屏挂载时输入条与 Hero 同拍落位。fill 只能用 backwards：both/forwards 会把 translate 留在
+   输入条外框上，外框成了 backdrop root，输入卡的毛玻璃就抽不到背后的正文。 */
 .settle-in {
-  animation: settle-down var(--duration-settle) var(--ease-settle) var(--duration-fast) both;
+  animation: settle-down var(--duration-settle) var(--ease-settle) var(--duration-fast) backwards;
 }
 
 @keyframes settle-down {
@@ -552,7 +553,7 @@
 .shimmer {
   position: relative;
   display: inline-block;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
 }
 
 .shimmer::before {
@@ -564,7 +565,7 @@
     90deg,
     transparent 0%,
     transparent 40%,
-    var(--ink) 50%,
+    var(--foreground) 50%,
     transparent 60%,
     transparent 100%
   );
@@ -622,6 +623,16 @@
   70% {
     box-shadow: 0 0 0 8px transparent;
   }
+}
+
+@keyframes motion-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+.motion-spin {
+  animation: motion-spin 1s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -861,7 +872,7 @@
   animation: overlay-out var(--duration-fast) var(--ease-out) forwards;
 }
 
-/* 统一焦点环：让 :focus-visible 的环淡入而非瞬现。配合 --focus-ring / --focus-ring-danger。 */
+/* 统一焦点环：让 :focus-visible 的环淡入而非瞬现。配合 --focus-ring / --focus-ring-destructive。 */
 .ring-focus {
   outline: none;
   box-shadow: none;
@@ -873,8 +884,8 @@
   box-shadow: var(--focus-ring);
 }
 
-.ring-focus[data-tone="danger"]:focus-visible {
-  box-shadow: var(--focus-ring-danger);
+.ring-focus[data-tone="destructive"]:focus-visible {
+  box-shadow: var(--focus-ring-destructive);
 }
 
 @media (prefers-reduced-motion: reduce) {

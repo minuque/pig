@@ -1,55 +1,36 @@
 <template>
-  <div class="session-item" :class="{ 'is-menu-open': menuOpen, 'is-placeholder': placeholder }">
-    <Tooltip v-if="!placeholder && !renaming && !showPath">
-      <TooltipTrigger as-child>
-        <button
-          class="pin-toggle press-scale"
-          type="button"
-          :aria-label="pinned ? t('session.unpin') : t('session.pin')"
-          :aria-pressed="pinned"
-          @click.stop="emit('togglePinned', session.id)"
-        >
-          <PinBoldIcon v-if="pinned" class="size-icon" />
-          <PinIcon v-else class="size-icon" />
-        </button>
-      </TooltipTrigger>
-
-      <TooltipContent>{{ pinned ? t("session.unpin") : t("session.pin") }}</TooltipContent>
-    </Tooltip>
-
+  <div
+    class="session-item"
+    :class="{ 'is-menu-open': menuOpen, 'is-placeholder': placeholder, selected }"
+  >
     <ContextMenu :modal="false" :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
-          :is="renaming || placeholder ? 'div' : RouterLink"
+          :is="placeholder ? 'div' : RouterLink"
           class="session-card"
-          :class="{ active, 'show-path': showPath, 'is-placeholder': placeholder }"
-          :to="
-            renaming || placeholder
-              ? undefined
-              : { name: 'session', params: { sessionId: session.id } }
-          "
+          :class="{ active, 'is-placeholder': placeholder }"
+          :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
           @click="onCardClick"
           @pointerdown="onCardPointerDown"
           @keydown="onCardKeydown"
           @contextmenu="onCardContextMenu"
         >
-          <div class="card-line">
-            <span v-if="!renaming && !showPath" class="pin-slot" aria-hidden="true"></span>
+          <div class="meta-line">
+            <span class="grip" aria-hidden="true"></span>
 
-            <input
-              v-if="renaming"
-              ref="nameInput"
-              v-model="draft"
-              class="rename-input"
-              @click.stop
-              @keydown.enter.prevent="commitRename"
-              @keydown.escape.prevent="cancelRename"
-              @blur="commitRename"
-            />
+            <span class="proj-icon" aria-hidden="true">
+              <span v-if="monoValue" class="proj-mono" :style="monoStyle">{{ monoValue }}</span>
+              <span v-else-if="emojiValue" class="proj-emoji">{{ emojiValue }}</span>
+              <component v-else :is="projectIcon" :size="14" :style="iconStyle" />
+            </span>
 
-            <span v-else class="title">{{ session.title }}</span>
+            <span class="proj-name">{{ projectName }}</span>
 
-            <span v-if="!renaming" class="trail-slot">
+            <span class="meta-slot" aria-hidden="true">
+              <PinBoldIcon v-if="pinned" :size="12" class="meta-pin" />
+            </span>
+
+            <span class="status-slot">
               <span
                 v-if="stateIcon"
                 class="state-icon"
@@ -57,24 +38,17 @@
                 role="img"
                 :aria-label="stateLabel"
               >
-                <component
-                  :is="stateIcon"
-                  :size="14"
-                  :class="{ 'animate-spin motion-reduce:animate-none': state === 'running' }"
-                />
+                <component :is="stateIcon" :size="14" />
+                <span class="state-text">{{ stateLabel }}</span>
               </span>
 
               <span
-                v-else-if="showPath"
-                class="status-ring"
-                :class="{ active }"
-                :role="active ? 'img' : undefined"
-                :aria-hidden="active ? undefined : true"
-                :aria-label="active ? t('session.current') : undefined"
-              ></span>
-
-              <span v-else-if="dirTag" class="session-dir" :title="session.cwd">
-                {{ dirTag }}
+                v-else-if="session.draft"
+                class="state-icon draft"
+                role="img"
+                :aria-label="t('session.draft')"
+              >
+                <PenIcon :size="12" />
               </span>
 
               <time
@@ -84,30 +58,29 @@
               >
                 {{ relativeTime }}
               </time>
-
-              <Tooltip v-if="!placeholder">
-                <TooltipTrigger as-child>
-                  <button
-                    class="more-toggle press-scale"
-                    type="button"
-                    :aria-label="t('common.more')"
-                    aria-haspopup="menu"
-                    :aria-expanded="menuOpen"
-                    @click.prevent.stop="openSessionMenu"
-                    @contextmenu.prevent.stop="openSessionMenu"
-                  >
-                    <MenuDotsIcon class="size-icon" />
-                  </button>
-                </TooltipTrigger>
-
-                <TooltipContent>{{ t("common.more") }}</TooltipContent>
-              </Tooltip>
             </span>
           </div>
 
-          <div v-if="showPath && session.cwd" class="path-line">
-            <FolderIcon class="path-icon" :size="14" aria-hidden="true" />
-            <span class="path-text">{{ session.cwd }}</span>
+          <div class="title-line">
+            <span class="title">{{ session.title }}</span>
+
+            <Tooltip v-if="!placeholder">
+              <TooltipTrigger as-child>
+                <button
+                  class="more-toggle press-scale"
+                  type="button"
+                  :aria-label="t('common.more')"
+                  aria-haspopup="menu"
+                  :aria-expanded="menuOpen"
+                  @click.prevent.stop="openSessionMenu"
+                  @contextmenu.prevent.stop="openSessionMenu"
+                >
+                  <MenuDotsIcon class="size-icon" />
+                </button>
+              </TooltipTrigger>
+
+              <TooltipContent>{{ t("common.more") }}</TooltipContent>
+            </Tooltip>
           </div>
         </component>
       </ContextMenuTrigger>
@@ -122,6 +95,11 @@
         <ContextMenuItem @select="startRename">
           <PenIcon />
           {{ t("session.rename") }}
+        </ContextMenuItem>
+
+        <ContextMenuItem @select="emit('projectSettings', projectName)">
+          <SettingsMinimalisticIcon />
+          {{ t("session.projectSettings") }}
         </ContextMenuItem>
 
         <ContextMenuSeparator />
@@ -139,11 +117,18 @@
       :title="session.title"
       @confirm="confirmDelete"
     />
+
+    <SessionItemRename
+      v-if="!placeholder"
+      v-model:open="renameOpen"
+      :title="session.title"
+      @confirm="confirmRename"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef } from "vue"
+import { computed, ref, shallowRef } from "vue"
 import { RouterLink } from "vue-router"
 import { useI18n } from "@i18n/index.js"
 import {
@@ -153,10 +138,11 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
-import { useNav } from "@features/session-nav/index.js"
+import { useNav, workspaceName } from "@features/session-nav/index.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
+import SessionItemRename from "@features/session-nav/components/SessionItemRename.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
   CheckCircleIcon,
@@ -167,23 +153,44 @@ import {
   PenIcon,
   PinIcon,
   PinBoldIcon,
+  SettingsMinimalisticIcon,
   TrashBinMinimalisticIcon,
 } from "@components/icons/index.js"
+import { readJson } from "@utils/storage.js"
+import { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
+import { MonitorIcon } from "@solar-icons/vue/linear/monitor"
+import { StarsMinimalisticIcon } from "@solar-icons/vue/linear/stars-minimalistic"
+import { Book2Icon } from "@solar-icons/vue/linear/book-2"
+import { GlobeIcon } from "@solar-icons/vue/linear/globe"
+import { DatabaseIcon } from "@solar-icons/vue/linear/database"
+import { BotIcon } from "@solar-icons/vue/linear/bot"
+import { PhoneIcon } from "@solar-icons/vue/linear/phone"
+import { RocketIcon } from "@solar-icons/vue/linear/rocket"
+import { TestTubeIcon } from "@solar-icons/vue/linear/test-tube"
+import { ShieldIcon } from "@solar-icons/vue/linear/shield"
+import { GameboyIcon } from "@solar-icons/vue/linear/gameboy"
+import { MusicNoteIcon } from "@solar-icons/vue/linear/music-note"
+import { GalleryIcon } from "@solar-icons/vue/linear/gallery"
+import { GitBranchIcon } from "@solar-icons/vue/linear/git-branch"
+import { ToolboxIcon } from "@solar-icons/vue/linear/toolbox"
+import { BoxIcon } from "@solar-icons/vue/linear/box"
+import { StarIcon } from "@solar-icons/vue/linear/star"
+import { HeartIcon } from "@solar-icons/vue/linear/heart"
+import { LeafIcon } from "@solar-icons/vue/linear/leaf"
+import { BoltIcon } from "@solar-icons/vue/linear/bolt"
+import type { Component } from "vue"
 
 const props = withDefaults(
   defineProps<{
     session: SidebarSession
     active?: boolean
     pinned?: boolean
-    showPath?: boolean
-    dirTag?: string | undefined
+    selected?: boolean
     state?: SidebarSessionState | undefined
     placeholder?: boolean
     now: number
   }>(),
   {
-    showPath: false,
-    dirTag: undefined,
     state: undefined,
     placeholder: false,
   },
@@ -193,24 +200,84 @@ const emit = defineEmits<{
   togglePinned: [id: string]
   rename: [id: string, name: string]
   delete: [id: string]
+  projectSettings: [project: string]
+  toggleSelect: [id: string]
+  rangeSelect: [id: string]
 }>()
 const { t } = useI18n()
 const { openSession, primeSession } = useNav()
-const renaming = ref(false)
-const draft = ref("")
-const nameInput = ref<HTMLInputElement | null>(null)
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
+const renameOpen = shallowRef(false)
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
+const projectName = computed(() =>
+  props.session.cwd ? workspaceName(props.session.cwd) : t("session.noProject"),
+)
+const customIcon = computed(() => loadProjIcons()[projectName.value])
+const projectIcon = computed(() => {
+  const c = customIcon.value
+
+  if (c?.kind === "icon" && ICON_COMPONENTS[c.value]) return ICON_COMPONENTS[c.value]
+  return FolderIcon
+})
+const iconStyle = computed(() => {
+  const c = customIcon.value
+  return c?.kind === "icon" ? { color: c.color } : undefined
+})
+const emojiValue = computed(() =>
+  customIcon.value?.kind === "emoji" ? customIcon.value.value : undefined,
+)
+const monoValue = computed(() =>
+  customIcon.value?.kind === "monogram" ? customIcon.value.value : undefined,
+)
+const monoStyle = computed(() => {
+  const c = customIcon.value
+  return c?.kind === "monogram" ? { background: c.color } : undefined
+})
+const ICON_COMPONENTS: Record<string, Component> = {
+  code: CodeSquareIcon,
+  terminal: MonitorIcon,
+  globe: GlobeIcon,
+  database: DatabaseIcon,
+  robot: BotIcon,
+  stars: StarsMinimalisticIcon,
+  phone: PhoneIcon,
+  monitor: MonitorIcon,
+  rocket: RocketIcon,
+  book: Book2Icon,
+  flask: TestTubeIcon,
+  shield: ShieldIcon,
+  game: GameboyIcon,
+  music: MusicNoteIcon,
+  image: GalleryIcon,
+  git: GitBranchIcon,
+  wrench: ToolboxIcon,
+  box: BoxIcon,
+  star: StarIcon,
+  heart: HeartIcon,
+  leaf: LeafIcon,
+  bolt: BoltIcon,
+}
+
+type ProjIconKind = "icon" | "emoji" | "monogram"
+
+interface ProjIcon {
+  kind: ProjIconKind
+  value: string
+  color: string
+}
+
+function loadProjIcons(): Record<string, ProjIcon> {
+  return readJson<Record<string, ProjIcon>>("pig.projIcons") ?? {}
+}
+
 const STATE_ICONS = { running: LoaderIcon, unread: CheckCircleIcon, error: DangerCircleIcon }
 const STATE_LABELS = {
   running: t("session.running"),
-  unread: t("session.runningUnread"),
-  error: t("session.runningError"),
+  unread: t("session.done"),
+  error: t("session.failed"),
 }
-const stateIcon = computed(() =>
-  props.state && !renaming.value ? STATE_ICONS[props.state] : undefined,
-)
+const stateIcon = computed(() => (props.state ? STATE_ICONS[props.state] : undefined))
 const stateLabel = computed(() => (props.state ? STATE_LABELS[props.state] : undefined))
 
 function onMenuOpenChange(open: boolean) {
@@ -222,17 +289,28 @@ function isModifiedSessionClick(event: MouseEvent) {
 }
 
 function onCardPointerDown(event: PointerEvent) {
-  /* 按下即预热历史；右键/修饰键不算意图。 */
-  if (props.placeholder || renaming.value) return
+  if (props.placeholder) return
 
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   primeSession(props.session.id)
 }
 
 function onCardClick(event: MouseEvent) {
-  if (props.placeholder || menuOpen.value || renaming.value) {
+  if (props.placeholder || menuOpen.value) {
     event.preventDefault()
     event.stopPropagation()
+    return
+  }
+
+  if (event.ctrlKey || event.metaKey) {
+    event.preventDefault()
+    emit("toggleSelect", props.session.id)
+    return
+  }
+
+  if (event.shiftKey) {
+    event.preventDefault()
+    emit("rangeSelect", props.session.id)
     return
   }
 
@@ -265,13 +343,18 @@ function openSessionMenu(event: MouseEvent) {
 }
 
 function onCardContextMenu(event: MouseEvent) {
-  if (!props.placeholder) return
   event.preventDefault()
   event.stopPropagation()
 }
 
 function onCardKeydown(event: KeyboardEvent) {
   if (props.placeholder) return
+
+  if (event.key === "F2") {
+    event.preventDefault()
+    startRename()
+    return
+  }
 
   if (event.key !== "F10" || !event.shiftKey) return
   event.preventDefault()
@@ -283,25 +366,15 @@ function onCardKeydown(event: KeyboardEvent) {
 }
 
 function startRename() {
-  draft.value = props.session.title
-  renaming.value = true
-  void nextTick(() => {
-    nameInput.value?.focus()
-    nameInput.value?.select()
-  })
+  renameOpen.value = true
 }
 
-function cancelRename() {
-  renaming.value = false
-}
+function confirmRename(name: string) {
+  renameOpen.value = false
+  const trimmed = name.trim()
 
-function commitRename() {
-  if (!renaming.value) return
-  renaming.value = false
-  const name = draft.value.trim()
-
-  if (!name || name === props.session.title) return
-  emit("rename", props.session.id, name)
+  if (!trimmed || trimmed === props.session.title) return
+  emit("rename", props.session.id, trimmed)
 }
 
 function confirmDelete() {
@@ -318,55 +391,87 @@ function confirmDelete() {
 }
 
 .session-card {
-  position: relative;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 1px;
   width: 100%;
-  height: var(--size-nav-rail);
   min-width: 0;
-  padding-inline: var(--spacing-xs);
+  padding: 5px var(--spacing-xs);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
-  line-height: 0;
-  text-decoration: none;
-}
-
-.session-card.show-path {
-  flex-direction: column;
-  align-items: stretch;
-  height: auto;
-  padding: 6px var(--spacing-xs);
   line-height: var(--text-caption--line-height);
+  text-decoration: none;
+  cursor: default;
 }
 
 .session-item:hover .session-card,
 .session-card[data-state="open"] {
-  background: var(--interaction-hover);
+  background: var(--sidebar-hover);
 }
 
 .session-card.active,
 .session-item:hover .session-card.active,
 .session-card.active[data-state="open"] {
-  background: var(--interaction-selected);
+  background: var(--sidebar-selected);
 }
 
-.card-line {
+.session-item.selected .session-card {
+  background: var(--sidebar-selected);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.meta-line {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: 5px;
   min-width: 0;
-  width: 100%;
-  height: 100%;
-  line-height: 0;
+  font-size: var(--text-eyebrow);
+  color: var(--contrast-foreground-faint);
+  line-height: var(--text-eyebrow--line-height);
+  position: relative;
 }
 
-.session-card.show-path .card-line {
-  height: auto;
-  min-height: calc(var(--text-caption) * var(--text-caption--line-height));
+.grip {
+  position: absolute;
+  inset-inline-start: calc(-1 * var(--spacing-xs));
+  top: 0;
+  bottom: 0;
+  width: var(--spacing-xs);
+  cursor: grab;
 }
 
-.pin-slot {
+.proj-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--contrast-foreground-faint);
+}
+
+.proj-mono {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-xs);
+  color: var(--primary-foreground);
+  font: 700 8px/1 var(--font-mono);
+}
+
+.proj-emoji {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.proj-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.meta-slot {
   flex: none;
   display: grid;
   place-items: center;
@@ -374,64 +479,90 @@ function confirmDelete() {
   height: var(--size-icon);
 }
 
-.pin-toggle {
-  position: absolute;
-  z-index: 1;
-  inset-inline-start: calc(var(--spacing-xs) - var(--icon-button-pad));
-  inset-block: 0;
-  display: grid;
-  place-items: center;
-  width: calc(var(--size-icon) + var(--icon-button-pad) * 2);
-  height: calc(var(--size-icon) + var(--icon-button-pad) * 2);
-  margin-block: auto;
-  padding: var(--icon-button-pad);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-ink-muted);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-smooth);
+.meta-pin {
+  color: var(--contrast-foreground-faint);
 }
 
-.session-item:hover .pin-toggle,
-.pin-toggle:focus-visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.pin-toggle:hover,
-.pin-toggle:focus-visible {
-  background: var(--hover-quiet);
-  color: var(--contrast-ink);
-}
-
-.trail-slot {
+.status-slot {
   display: grid;
   flex: none;
   align-items: center;
   justify-items: end;
-  min-width: var(--size-icon);
-  min-height: var(--size-icon);
+  min-width: 44px;
+  min-height: 14px;
 }
 
 .state-icon,
-.session-time,
-.session-dir,
-.status-ring,
-.more-toggle {
+.session-time {
   grid-area: 1 / 1;
+}
+
+.state-icon {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+}
+
+.state-icon.running {
+  color: var(--primary);
+}
+
+.state-icon.unread {
+  color: var(--success);
+}
+
+.state-icon.error {
+  color: var(--destructive);
+}
+
+.state-icon.draft {
+  color: var(--contrast-foreground-faint);
+}
+
+.state-text {
+  font-weight: var(--font-weight-normal);
+}
+
+.session-time {
+  display: flex;
+  align-items: center;
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-eyebrow);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--text-eyebrow--line-height);
+  white-space: nowrap;
+}
+
+.title-line {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  min-width: 0;
+}
+
+.title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--contrast-foreground);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .more-toggle {
   display: grid;
   place-items: center;
+  flex: none;
   margin-inline: calc(var(--icon-button-pad) * -1);
   padding: var(--icon-button-pad);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -448,117 +579,7 @@ function confirmDelete() {
 .more-toggle:hover,
 .more-toggle:focus-visible {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
-}
-
-.status-ring {
-  justify-self: end;
-  align-self: center;
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-full);
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px var(--contrast-ink-faint);
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.status-ring.active {
-  background: var(--primary);
-  box-shadow: none;
-}
-
-.title {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  color: var(--contrast-ink);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--text-caption--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.path-line {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xxs);
-  min-width: 0;
-  margin-block-start: var(--spacing-xxs);
-}
-
-.path-icon {
-  flex: none;
-  color: var(--contrast-ink-muted);
-}
-
-.path-text {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--contrast-ink-faint);
-  font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--text-eyebrow--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.state-icon {
-  display: flex;
-  align-items: center;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.state-icon.running {
-  color: var(--primary);
-}
-
-.state-icon.unread {
-  color: var(--success);
-}
-
-.state-icon.error {
-  color: var(--danger);
-}
-
-.session-time,
-.session-dir {
-  position: relative;
-  display: flex;
-  align-items: center;
-  color: var(--contrast-ink-faint);
-  font-size: var(--text-eyebrow);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--text-eyebrow--line-height);
-  text-align: end;
-  white-space: nowrap;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.session-time {
-  font-variant-numeric: tabular-nums;
-}
-
-.session-dir {
-  max-width: 96px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.session-item:hover .session-time,
-.session-item:hover .state-icon,
-.session-item:hover .session-dir,
-.session-item:hover .status-ring,
-.session-item:focus-within .session-time,
-.session-item:focus-within .state-icon,
-.session-item:focus-within .session-dir,
-.session-item:focus-within .status-ring,
-.session-item.is-menu-open .session-time,
-.session-item.is-menu-open .state-icon,
-.session-item.is-menu-open .session-dir,
-.session-item.is-menu-open .status-ring {
-  opacity: 0;
-  pointer-events: none;
+  color: var(--contrast-foreground);
 }
 
 @media (hover: none) {
@@ -566,41 +587,5 @@ function confirmDelete() {
     opacity: 1;
     pointer-events: auto;
   }
-
-  .session-time,
-  .state-icon,
-  .session-dir,
-  .status-ring {
-    opacity: 0;
-    pointer-events: none;
-  }
-}
-
-.rename-input {
-  min-width: 0;
-  flex: 1;
-  height: 100%;
-  margin: 0;
-  padding: 0 var(--spacing-xxs);
-  border: 0;
-  border-radius: var(--radius-xs);
-  background: var(--interaction-hover);
-  color: var(--contrast-ink);
-  caret-color: var(--primary);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--text-caption--line-height);
-  outline: none;
-  box-shadow: inset 0 0 0 1px var(--primary);
-  user-select: text;
-}
-
-.session-card.show-path .rename-input {
-  height: calc(var(--text-caption) * var(--text-caption--line-height));
-}
-
-.rename-input::selection {
-  background: var(--selection-bg);
-  color: var(--contrast-ink);
 }
 </style>
