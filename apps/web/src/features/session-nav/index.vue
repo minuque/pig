@@ -122,10 +122,7 @@
               class="scope-edit"
               type="button"
               :title="t('session.projectSettings')"
-              @click.stop="
-                onProjectSettings(workspaceName(g.canonicalPath))
-                scopeMenuOpen = false
-              "
+              @click.stop="closeProjectSettings(workspaceName(g.canonicalPath))"
             >
               <SettingsIcon :size="10" />
             </button>
@@ -306,6 +303,11 @@ function pickScope(name: string | undefined): void {
 function onProjectSettings(project: string): void {
   projectSettingsTarget.value = project
   projectSettingsOpen.value = true
+}
+
+function closeProjectSettings(project: string): void {
+  onProjectSettings(project)
+  scopeMenuOpen.value = false
 }
 
 const projectSettingsOpen = shallowRef(false)
