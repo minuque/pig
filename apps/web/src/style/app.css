@@ -33,60 +33,71 @@
   /* 品牌 */
   --primary: #5e6ad2;
   --primary-active: #4f5bc4;
-  --primary-foreground: var(--on-primary);
-  --on-primary: #ffffff;
+  --primary-foreground: #ffffff;
   --white: #ffffff;
 
   /* 表面 */
-  --canvas: #f7f7f8;
-  /* 别名：与 --canvas 同值，名字留给 DESIGN.md 的次级井角色 */
-  --canvas-soft: var(--canvas);
-  --muted: var(--canvas);
-  --surface: #ffffff;
+  --background: #f7f7f8;
+  /* 别名：与 --background 同值，名字留给 DESIGN.md 的次级井角色 */
+  --background-soft: var(--background);
+  --muted: var(--background);
+  --card: #ffffff;
   --sidebar: #fcfcfd;
-  --composer-bg: #f4f4f5;
-  --composer-border: rgb(0 0 0 / 0.06);
-  --user-prompt-bg: #e8e8ea;
+  --sidebar-foreground: #1b1b1b;
+  --sidebar-hover: #e8e8eb;
+  --sidebar-selected: #e6e6e8;
+  --sidebar-border: #e8e8e8;
+  --toolbar-background: #ffffff;
+  --toolbar-foreground: #1b1b1b;
+  --code-background: #f6f6f6;
+  --code-foreground: #1b1b1b;
+  --composer-background: #f4f4f5;
+  --composer-border: rgb(0 0 0 / 0.08);
+  --user-prompt-background: #e8e8ea;
   --popover: #ffffff;
-  --code-surface: color-mix(in srgb, var(--ink) 4%, var(--surface));
+  --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
 
-  /* 毛玻璃 */
-  --glass-opacity: 70;
-  --glass-blur: 0px;
+  /* 毛玻璃：透明度由设置写 --glass-opacity，模糊与饱和只按深浅切换 */
+  --glass-opacity: 80%;
+  --glass-blur: 12px;
+  --glass-saturation: 1.14;
+  --glass-tint: var(--card);
 
   /* mermaid 图 */
   --mermaid-bg: #ffffff;
   --mermaid-fill: #eaeef2;
-  --mermaid-fg: var(--ink);
+  --mermaid-fg: var(--foreground);
   --mermaid-line: #d4d4d4;
   --mermaid-accent: var(--primary);
 
   /* 文字 */
-  --ink: #1b1b1b;
-  --ink-secondary: #5c5c5c;
-  --ink-muted: #6e6e6e;
-  --muted-foreground: var(--contrast-ink-muted);
-  --ink-faint: #8a8a8a;
+  --foreground: #1b1b1b;
+  --foreground-secondary: #5c5c5c;
+  --foreground-muted: #6e6e6e;
+  --muted-foreground: var(--contrast-foreground-muted);
+  --foreground-faint: #8a8a8a;
+  /* 占位文字比最淡一档正文再退一档 */
+  --placeholder: color-mix(in srgb, var(--contrast-foreground-faint) 62%, transparent);
 
-  /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --ink 后自动跟随 */
-  --contrast-ink: color-mix(
+  /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --foreground 后自动跟随 */
+  --contrast-foreground: color-mix(
     in oklab,
-    var(--ink) calc(100% - var(--contrast-boost)),
+    var(--foreground) calc(100% - var(--contrast-boost)),
     var(--contrast-target) var(--contrast-boost)
   );
-  --contrast-ink-secondary: color-mix(
+  --contrast-foreground-secondary: color-mix(
     in oklab,
-    var(--ink-secondary) calc(100% - var(--contrast-boost)),
+    var(--foreground-secondary) calc(100% - var(--contrast-boost)),
     var(--contrast-target) var(--contrast-boost)
   );
-  --contrast-ink-muted: color-mix(
+  --contrast-foreground-muted: color-mix(
     in oklab,
-    var(--ink-muted) calc(100% - var(--contrast-boost)),
+    var(--foreground-muted) calc(100% - var(--contrast-boost)),
     var(--contrast-target) var(--contrast-boost)
   );
-  --contrast-ink-faint: color-mix(
+  --contrast-foreground-faint: color-mix(
     in oklab,
-    var(--ink-faint) calc(100% - var(--contrast-boost)),
+    var(--foreground-faint) calc(100% - var(--contrast-boost)),
     var(--contrast-target) var(--contrast-boost)
   );
 
@@ -98,31 +109,33 @@
   --interaction-hover: #e8e8eb;
   --interaction-selected: #e6e6e8;
   --accent: var(--interaction-hover);
-  --accent-foreground: var(--contrast-ink);
-  --hover-quiet: color-mix(in srgb, var(--ink) 5%, transparent);
-  --hover-tint: color-mix(in srgb, var(--ink) 8%, transparent);
-  --hover-strong: color-mix(in srgb, var(--ink) 12%, transparent);
+  --accent-foreground: var(--contrast-foreground);
+  --hover-quiet: color-mix(in srgb, var(--foreground) 5%, transparent);
+  --hover-tint: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --hover-strong: color-mix(in srgb, var(--foreground) 12%, transparent);
   --selection-bg: color-mix(in srgb, var(--primary) 35%, transparent);
-  --chart-track: color-mix(in srgb, var(--ink) 18%, transparent);
-  --minimap-marker: color-mix(in srgb, var(--ink-muted) 35%, transparent);
-  --link-underline: color-mix(in srgb, var(--ink) 38%, transparent);
-  --link-underline-hover: color-mix(in srgb, var(--ink) 72%, transparent);
+  --chart-track: color-mix(in srgb, var(--foreground) 18%, transparent);
+  --minimap-marker: color-mix(in srgb, var(--foreground-muted) 35%, transparent);
+  --link-underline: color-mix(in srgb, var(--foreground) 38%, transparent);
+  --link-underline-hover: color-mix(in srgb, var(--foreground) 72%, transparent);
   --success-halo: color-mix(in srgb, var(--success) 15%, transparent);
-  --danger-halo: color-mix(in srgb, var(--danger) 15%, transparent);
-  --danger-border: color-mix(in srgb, var(--danger) 45%, var(--border));
+  --destructive-halo: color-mix(in srgb, var(--destructive) 15%, transparent);
+  --destructive-border: color-mix(in srgb, var(--destructive) 45%, var(--border));
   --info-halo: color-mix(in srgb, var(--primary) 15%, transparent);
   /* 按钮顶沿内高光与按下时的内阴影（t3code halo 按钮） */
   --button-sheen: color-mix(in srgb, var(--white) 16%, transparent);
-  --button-press: color-mix(in srgb, var(--ink) 12%, transparent);
+  --button-press: color-mix(in srgb, var(--foreground) 12%, transparent);
   --effort-track: var(--border-subtle);
   --link: #4c56c8;
   --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #dad8d8;
   --scrollbar-hover: #6b6b6b;
 
-  --surface-border: hsl(210 18% 32% / 0.1);
+  --card-border: hsl(210 18% 32% / 0.1);
   --hairline: hsl(0 0% 0% / 0.12);
-  --composer-shadow: none;
+  /* 输入卡投影：软阴影收在卡下方，浅色专用；深色靠内高光分层 */
+  --composer-shadow: 0 12px 28px -18px rgb(0 0 0 / 40%);
+  --composer-highlight: transparent;
   /* logo 拆层：蓝底图在此，小猪单独一层做探头；主蓝兜底图片未载入 */
   --brand-mark-bg: #5d77d0 url("/logo-bg.png") center / cover;
   /* 吉祥物取 logo 小猪原色，深浅主题共用 */
@@ -142,16 +155,14 @@
   --success: #52a450;
   --info: var(--primary);
   --warning: #d97706;
-  --danger: #c94446;
-  --destructive: var(--danger);
-  --destructive-foreground: var(--danger-foreground);
-  --success-foreground: var(--on-primary);
-  --warning-foreground: var(--on-primary);
-  --danger-foreground: var(--on-primary);
+  --destructive: #c94446;
+  --success-foreground: var(--primary-foreground);
+  --warning-foreground: var(--primary-foreground);
+  --destructive-foreground: var(--primary-foreground);
   --success-bg: #dcfce7;
   --info-bg: #eceef8;
   --warning-bg: #fef3e2;
-  --danger-bg: #fee2e2;
+  --destructive-bg: #fee2e2;
 
   /* 字体与间距圆角定义在 @theme，组件的 var() 与工具类读同一份。 */
   --text-code: 13px;
@@ -197,6 +208,7 @@
   --border-width: 1px;
   --scrim: rgba(0, 0, 0, 0.4);
   --z-resizer: 1;
+  --z-menu: 5;
   --z-drawer: 10;
   --z-modal: 20;
   --opacity-disabled: 0.55;
@@ -215,11 +227,18 @@
     0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 12px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02),
     0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 8px rgb(0 0 0 / 0.04);
+  /* 主题预览：深浅两套描边投影，以及线框预览的固定深浅面 */
+  --theme-ball-ring-light: inset 0 0 0 1px rgb(0 0 0 / 0.1), 0 1px 2px rgb(0 0 0 / 0.08);
+  --theme-ball-ring-dark: inset 0 0 0 1px rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 0 0 / 0.18);
+  --theme-wire-light: var(--background);
+  --theme-wire-light-raised: var(--card);
+  --theme-wire-dark: var(--card);
+  --theme-wire-dark-raised: var(--background);
 
   /* 反色主按钮 */
-  --inverse-bg: #1b1b1b;
-  --inverse-bg-hover: #262626;
-  --inverse-fg: #ffffff;
+  --inverse-background: #1b1b1b;
+  --inverse-background-hover: #262626;
+  --inverse-foreground: #ffffff;
 
   /* 动效 */
   --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
@@ -251,11 +270,14 @@
   --material-saturate: 1.4;
   /* 焦点环：宽+透明度的统一焦点态，配合 .ring-focus 使用。 */
   --focus-ring: 0 0 0 3px color-mix(in srgb, var(--primary) 45%, transparent);
-  --focus-ring-danger: 0 0 0 3px color-mix(in srgb, var(--danger, #e5484d) 45%, transparent);
+  --focus-ring-destructive: 0 0 0 3px
+    color-mix(in srgb, var(--destructive, #e5484d) 45%, transparent);
 }
 
 /* 深色只覆盖颜色、阴影、玻璃 */
 .dark {
+  --composer-shadow: none;
+  --composer-highlight: rgb(255 255 255 / 3%);
   color-scheme: dark;
 
   /* 深色下向白推，对比度层才朝正确方向生效 */
@@ -263,26 +285,34 @@
 
   --primary: #606acc;
   --primary-active: #555fbf;
-  --on-primary: #ffffff;
+  --primary-foreground: #ffffff;
 
-  --canvas: #121214;
-  --surface: #0f0f11;
+  --background: #121214;
+  --card: #0f0f11;
   --sidebar: #161618;
-  --composer-bg: #27272a;
-  --composer-border: rgb(255 255 255 / 0.06);
-  --user-prompt-bg: #262628;
+  --sidebar-foreground: #e3e4e6;
+  --sidebar-hover: #26262b;
+  --sidebar-selected: #2c2c31;
+  --sidebar-border: #28282a;
+  --toolbar-background: #0f0f11;
+  --toolbar-foreground: #e3e4e6;
+  --code-background: #1a1a1c;
+  --code-foreground: #e3e4e6;
+  --composer-background: #27272a;
+  --composer-border: rgb(255 255 255 / 0.08);
+  --user-prompt-background: #262628;
   --popover: #1c1c1f;
-  --code-surface: color-mix(in srgb, var(--ink) 5%, var(--surface));
+  --code-surface: color-mix(in srgb, var(--foreground) 5%, var(--card));
 
   /* mermaid 图 */
   --mermaid-bg: #161618;
   --mermaid-fill: #1a1a22;
   --mermaid-line: #333338;
 
-  --ink: #e3e4e6;
-  --ink-secondary: #b8b9bc;
-  --ink-muted: #9a9b9e;
-  --ink-faint: #7e7f83;
+  --foreground: #e3e4e6;
+  --foreground-secondary: #b8b9bc;
+  --foreground-muted: #9a9b9e;
+  --foreground-faint: #7e7f83;
 
   --border: #2a2a2e;
   --border-subtle: #28282a;
@@ -295,7 +325,7 @@
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #1c1c21;
   --scrollbar-hover: #a3a3a3;
-  --button-press: color-mix(in srgb, var(--ink) 30%, transparent);
+  --button-press: color-mix(in srgb, var(--foreground) 30%, transparent);
 
   --accent-skill: #c2a1ff;
   --accent-steel: #8aa4c2;
@@ -303,14 +333,14 @@
   --accent-gray: #9a9da4;
   --success: #69c967;
   --warning: #f5b44a;
-  --danger: #ff7e78;
+  --destructive: #ff7e78;
   --success-foreground: #000000;
   --warning-foreground: #000000;
-  --danger-foreground: #000000;
+  --destructive-foreground: #000000;
   --success-bg: #142c1e;
   --info-bg: #1a1c33;
   --warning-bg: #3a2a12;
-  --danger-bg: #38191b;
+  --destructive-bg: #38191b;
   --star: #f5b44a;
 
   --scrim: rgba(0, 0, 0, 0.55);
@@ -325,12 +355,17 @@
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.28);
-  --surface-border: hsl(210 18% 78% / 0.09);
+  --card-border: hsl(210 18% 78% / 0.09);
   --hairline: hsl(0 0% 100% / 0.16);
 
-  --inverse-bg: #fafafa;
-  --inverse-bg-hover: #ffffff;
-  --inverse-fg: #171717;
+  --inverse-background: #fafafa;
+  --inverse-background-hover: #ffffff;
+  --inverse-foreground: #171717;
+
+  --theme-wire-dark: #161618;
+  --theme-wire-dark-raised: #1c1c1f;
+  --theme-wire-light: #f7f7f8;
+  --theme-wire-light-raised: #ffffff;
 }
 
 /* 滚动条常显；侧栏列表内另行隐藏。各元素可自写 --scrollbar-thumb。 */
@@ -435,14 +470,13 @@
 @theme inline {
   --color-primary: var(--primary);
   --color-primary-active: var(--primary-active);
-  --color-surface: var(--surface);
-  --color-ink: var(--contrast-ink);
-  --color-ink-muted: var(--contrast-ink-muted);
-  --color-ink-faint: var(--contrast-ink-faint);
+  --color-card: var(--card);
+  --color-foreground: var(--contrast-foreground);
+  --color-foreground-muted: var(--contrast-foreground-muted);
+  --color-foreground-faint: var(--contrast-foreground-faint);
   --color-success: var(--success);
   --color-info: var(--info);
   --color-warning: var(--warning);
-  --color-danger: var(--danger);
   --color-primary-foreground: var(--primary-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -463,35 +497,28 @@
 
 /* 浮层统一底：输入卡、弹层、菜单、对话框 */
 .surface-float {
-  background: var(--composer-bg);
+  background: var(--composer-background);
 }
 
-/* 毛玻璃：use-general-prefs 写 data-glass 与 --glass-opacity；blur 随透明度联动，越透越强。
-   深色把浮层底换成墨色，再叠一层固定噪点；浅色仍用输入卡底。 */
-html[data-glass="on"] {
-  --glass-blur: calc((100 - var(--glass-opacity)) * 0.37px + 5px);
-  --glass-tint: var(--composer-bg);
-  --glass-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-
-html[data-glass="on"].dark {
-  --glass-tint: color-mix(in srgb, var(--ink) 8%, #0a0a0a);
+/* 毛玻璃：use-general-prefs 写 data-glass 与 --glass-opacity；输入卡、菜单、对话框共用这一层。
+   透明度由设置给，模糊与饱和只按深浅切换，与 t3code 的玻璃层同一套写法。 */
+html.dark,
+.dark {
+  /* 深色浮层比背景抬起一层，不退回纯黑；模糊更重、饱和更低。 */
+  --glass-tint: color-mix(in srgb, var(--card) 97%, white);
+  --glass-blur: 16px;
+  --glass-saturation: 1.08;
 }
 
 html[data-glass="on"] .surface-float {
-  background-color: color-mix(
-    in srgb,
-    var(--glass-tint) calc(var(--glass-opacity) * 1%),
-    transparent
-  );
-  background-image: var(--glass-grain);
-  background-size: 120px 120px;
-  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  background-color: color-mix(in srgb, var(--glass-tint) var(--glass-opacity), transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
 }
 
 /* 显式排除玻璃的浮层：tooltip 透底干扰阅读，保持不透明 */
 .surface-solid {
-  background: var(--composer-bg);
+  background: var(--composer-background);
   backdrop-filter: none;
 }
 
@@ -538,8 +565,8 @@ html[data-glass="on"] .surface-float {
 }
 
 body {
-  background: var(--canvas-soft);
-  color: var(--contrast-ink);
+  background: var(--background-soft);
+  color: var(--contrast-foreground);
   font-family: var(--font-sans);
 }
 
@@ -657,18 +684,26 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
 html[data-theme-id] {
   --primary: var(--app-theme-primary);
   --primary-active: var(--app-theme-primary-active);
-  --on-primary: var(--app-theme-on-primary);
-  --canvas: var(--app-theme-canvas);
-  --surface: var(--app-theme-surface);
+  --primary-foreground: var(--app-theme-primary-foreground);
+  --background: var(--app-theme-background);
+  --card: var(--app-theme-card);
   --sidebar: var(--app-theme-sidebar);
-  --composer-bg: var(--app-theme-composer-bg);
+  --sidebar-foreground: var(--app-theme-sidebar-foreground);
+  --sidebar-hover: var(--app-theme-sidebar-hover);
+  --sidebar-selected: var(--app-theme-sidebar-selected);
+  --sidebar-border: var(--app-theme-sidebar-border);
+  --toolbar-background: var(--app-theme-toolbar-background);
+  --toolbar-foreground: var(--app-theme-toolbar-foreground);
+  --code-background: var(--app-theme-code-background);
+  --code-foreground: var(--app-theme-code-foreground);
+  --composer-background: var(--app-theme-composer-background);
   --composer-border: var(--app-theme-composer-border);
-  --user-prompt-bg: var(--app-theme-user-prompt-bg);
+  --user-prompt-background: var(--app-theme-user-prompt-background);
   --popover: var(--app-theme-popover);
-  --ink: var(--app-theme-ink);
-  --ink-secondary: var(--app-theme-ink-secondary);
-  --ink-muted: var(--app-theme-ink-muted);
-  --ink-faint: var(--app-theme-ink-faint);
+  --foreground: var(--app-theme-foreground);
+  --foreground-secondary: var(--app-theme-foreground-secondary);
+  --foreground-muted: var(--app-theme-foreground-muted);
+  --foreground-faint: var(--app-theme-foreground-faint);
   --link: var(--app-theme-link);
   --border: var(--app-theme-border);
   --border-subtle: var(--app-theme-border-subtle);
@@ -676,24 +711,24 @@ html[data-theme-id] {
   --interaction-hover: var(--app-theme-interaction-hover);
   --interaction-selected: var(--app-theme-interaction-selected);
   --hairline: var(--app-theme-hairline);
-  --surface-border: var(--app-theme-surface-border);
+  --card-border: var(--app-theme-card-border);
   --media-outline: var(--app-theme-media-outline);
   --scrollbar-color: var(--app-theme-scrollbar-color);
   --scrollbar-hover: var(--app-theme-scrollbar-hover);
   --scrim: var(--app-theme-scrim);
   --success: var(--app-theme-success);
   --warning: var(--app-theme-warning);
-  --danger: var(--app-theme-danger);
+  --destructive: var(--app-theme-destructive);
   --success-bg: var(--app-theme-success-bg);
   --info-bg: var(--app-theme-info-bg);
   --warning-bg: var(--app-theme-warning-bg);
-  --danger-bg: var(--app-theme-danger-bg);
+  --destructive-bg: var(--app-theme-destructive-bg);
   --success-foreground: var(--app-theme-success-foreground);
   --warning-foreground: var(--app-theme-warning-foreground);
-  --danger-foreground: var(--app-theme-danger-foreground);
-  --inverse-bg: var(--app-theme-inverse-bg);
-  --inverse-bg-hover: var(--app-theme-inverse-bg-hover);
-  --inverse-fg: var(--app-theme-inverse-fg);
+  --destructive-foreground: var(--app-theme-destructive-foreground);
+  --inverse-background: var(--app-theme-inverse-background);
+  --inverse-background-hover: var(--app-theme-inverse-background-hover);
+  --inverse-foreground: var(--app-theme-inverse-foreground);
   --accent-skill: var(--app-theme-accent-skill);
   --accent-steel: var(--app-theme-accent-steel);
   --accent-teal: var(--app-theme-accent-teal);
