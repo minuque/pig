@@ -8,6 +8,7 @@ import pluginVue from "eslint-plugin-vue"
 import tseslint from "typescript-eslint"
 
 import { lintIgnores } from "./scripts/lint-ignores.mjs"
+import vueEventSingleStatement from "./eslint/vue-event-single-statement.js"
 
 export default defineConfig(
   globalIgnores(lintIgnores, "pig/ignores"),
@@ -70,7 +71,11 @@ export default defineConfig(
   {
     name: "pig/vue-template",
     files: ["**/*.vue"],
+    plugins: {
+      pig: { rules: { "vue-event-single-statement": vueEventSingleStatement } },
+    },
     rules: {
+      "pig/vue-event-single-statement": "error",
       // 兄弟标签空行：多行块前后空一行，相邻单行标签不空
       "vue/padding-line-between-tags": [
         "error",
