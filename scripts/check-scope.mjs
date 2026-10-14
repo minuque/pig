@@ -38,6 +38,7 @@ export function classifyTouched(files) {
   const prettierFiles = normalized.filter((file) => PRETTIER.test(file))
   const lintFiles = normalized.filter((file) => LINTABLE.test(file))
   const stylelintFiles = normalized.filter((file) => STYLELINTABLE.test(file))
+  const vueFiles = normalized.filter((file) => file.endsWith(".vue"))
   return {
     packages,
     scripts,
@@ -47,6 +48,7 @@ export function classifyTouched(files) {
     prettierFiles,
     lintFiles,
     stylelintFiles,
+    vueFiles,
     escalate: rootTooling,
   }
 }

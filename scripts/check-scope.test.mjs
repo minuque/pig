@@ -27,6 +27,8 @@ describe("classifyTouched", () => {
     const vue = classifyTouched(["apps/web/src/App.vue"])
     assert.deepEqual(vue.stylelintFiles, ["apps/web/src/App.vue"])
     assert.deepEqual(vue.lintFiles, ["apps/web/src/App.vue"])
+    assert.deepEqual(vue.vueFiles, ["apps/web/src/App.vue"])
+    assert.deepEqual(css.vueFiles, [])
   })
 
   it("删除的包内路径仍映射到所属包", () => {

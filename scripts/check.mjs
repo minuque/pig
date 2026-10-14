@@ -16,6 +16,10 @@ const CHECK_STEPS = [
   { name: "format", args: ["exec", "prettier", "--check", "."] },
   { name: "eslint", args: ["exec", "eslint", "."] },
   { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
+  {
+    name: "vue-template",
+    args: ["exec", "tsx", "scripts/check-vue-template.ts", "apps/web/src"],
+  },
   ...(hasDesignMd
     ? [
         { name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] },
@@ -44,6 +48,7 @@ function existingTouched() {
   scope.prettierFiles = keep(scope.prettierFiles)
   scope.lintFiles = keep(scope.lintFiles)
   scope.stylelintFiles = keep(scope.stylelintFiles)
+  scope.vueFiles = keep(scope.vueFiles)
   return { files, scope }
 }
 
@@ -120,6 +125,13 @@ async function checkTouched(scope, files) {
 
   if (scope.stylelintFiles.length) {
     steps.push({ name: "stylelint", args: ["exec", "stylelint", ...scope.stylelintFiles] })
+  }
+
+  if (scope.vueFiles.length) {
+    steps.push({
+      name: "vue-template",
+      args: ["exec", "tsx", "scripts/check-vue-template.ts", ...scope.vueFiles],
+    })
   }
 
   if (scope.designmd && hasDesignMd)
