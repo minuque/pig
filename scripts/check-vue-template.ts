@@ -5,7 +5,20 @@ import { pathToFileURL } from "node:url"
 
 const root = resolve(import.meta.dirname, "..")
 const compilerUrl = pathToFileURL(resolve(root, "apps/web/node_modules/vue/compiler-sfc")).href
-const { parse, compileTemplate } = (await import(compilerUrl)) as typeof import("vue/compiler-sfc")
+// vue 的类型在 apps/web 下，脚本 tsconfig 解析不到；用最小结构描述用到的 API
+const { parse, compileTemplate } = (await import(compilerUrl)) as {
+  parse: (
+    source: string,
+    opts: { filename: string },
+  ) => {
+    errors: { message: string }[]
+    descriptor: { template: { content: string } | null }
+  }
+  compileTemplate: (opts: { source: string; filename: string; id: string }) => {
+    errors: unknown[]
+    tips: string[]
+  }
+}
 
 function vueFiles(target: string): string[] {
   const stat = statSync(target)
