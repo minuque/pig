@@ -52,7 +52,7 @@
               <ReadStepCard
                 v-else-if="call.variant === 'read'"
                 :path="call.path"
-                :preview="call.preview!"
+                :preview="call.preview"
                 :output-images="call.images"
               />
 
@@ -374,7 +374,7 @@ function toggleGroup(event: MouseEvent) {
   position: sticky;
   top: var(--tool-summary-offset, var(--size-icon-button));
   z-index: 2;
-  background: var(--surface);
+  background: var(--card);
 }
 
 .summary {
@@ -387,7 +387,7 @@ function toggleGroup(event: MouseEvent) {
   justify-content: flex-start;
   border-radius: 0;
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-normal);
   text-align: start;
@@ -395,15 +395,15 @@ function toggleGroup(event: MouseEvent) {
 
 .summary:hover {
   background: transparent;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .summary.is-open:hover {
-  background: var(--surface);
+  background: var(--card);
 }
 
 .failed .tool-icon {
-  color: var(--danger);
+  color: var(--destructive);
 }
 
 .tool-icon {
@@ -452,7 +452,7 @@ function toggleGroup(event: MouseEvent) {
 }
 
 .removed {
-  color: var(--danger);
+  color: var(--destructive);
 }
 
 .calls {

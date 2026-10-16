@@ -8,7 +8,7 @@
     />
   </div>
 
-  <div v-else class="tool-step-card is-read">
+  <div v-else-if="preview" class="tool-step-card is-read">
     <ToolHeader
       v-model:soft-wrap="softWrap"
       v-model:show-line-numbers="showLineNumbers"
@@ -64,27 +64,36 @@ import type { TranscriptImage as ToolStepImage } from "@features/transcript-view
 const { t } = useI18n()
 const props = defineProps<{
   path: string
-  preview: ReadToolPreview
+  preview: ReadToolPreview | undefined
   outputImages?: ToolStepImage[]
 }>()
 const images = computed(() => props.outputImages ?? [])
+const preview = computed(() => props.preview)
 const rangeLabel = computed(() => {
-  const end = props.preview.startLine + props.preview.lines.length - 1
-  return end > 1 ? `L${props.preview.startLine}–${end}` : ""
+  const p = preview.value
+
+  if (!p) return ""
+  const end = p.startLine + p.lines.length - 1
+  return end > 1 ? `L${p.startLine}–${end}` : ""
 })
 const softWrap = ref(true)
 const showLineNumbers = ref(true)
 const expanded = ref(false)
 const READ_PREVIEW_LINES = 8
-const clamped = computed(() => !expanded.value && props.preview.lines.length > READ_PREVIEW_LINES)
-const shownLines = computed(() =>
-  expanded.value ? props.preview.lines : props.preview.lines.slice(0, READ_PREVIEW_LINES),
+const clamped = computed(
+  () => !expanded.value && (preview.value?.lines.length ?? 0) > READ_PREVIEW_LINES,
 )
+const shownLines = computed(() => {
+  const p = preview.value
+
+  if (!p) return []
+  return expanded.value ? p.lines : p.lines.slice(0, READ_PREVIEW_LINES)
+})
 const readTokens = shallowRef<CodeTokens>([])
 const { codeBlockProps } = useColorScheme()
 
 watch(
-  [() => props.preview.code, () => props.preview.language, () => codeBlockProps.value.theme],
+  [() => props.preview?.code, () => props.preview?.language, () => codeBlockProps.value.theme],
   async ([code, language, theme], _, onCleanup) => {
     let active = true
     onCleanup(() => {
@@ -137,20 +146,20 @@ watch(
   min-height: var(--size-icon-button);
   padding: 0 var(--spacing-sm);
   border-top: var(--border-width) solid var(--border-subtle);
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
   font-size: var(--text-caption-mono);
   font-variant-numeric: tabular-nums;
 }
 
 .footer-range {
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
 }
 
 .footer-muted {
   min-width: 0;
   overflow: hidden;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -160,13 +169,13 @@ watch(
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font: inherit;
   cursor: pointer;
 }
 
 .footer-toggle:hover {
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .read-images {
