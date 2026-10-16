@@ -1,5 +1,6 @@
+import type { Page } from "@playwright/test"
 import type { TranscriptItem } from "@earendil-works/pi-protocol"
-import { expect, seedWorkspace, test } from "../fixtures.js"
+import { expect, seedWorkspace, test, type E2eGateway } from "../fixtures.js"
 import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "../prebuild-session.js"
 import { stabilize } from "./lib/stabilize.js"
 
@@ -34,21 +35,25 @@ const HISTORY = [
 test.describe("transcript 视觉", () => {
   test.use({ deviceScaleFactor: 1 })
 
-  test("工具卡与消息渲染", async ({ page, complexGateway }) => {
+  async function openTranscript(page: Page, gateway: E2eGateway) {
     await page.emulateMedia({ reducedMotion: "reduce" })
-    await seedWorkspace(page, complexGateway.workspaceId)
+    await seedWorkspace(page, gateway.workspaceId)
     await page.route("**/api/v1/platform/transcript**", (route) =>
       route.fulfill({
         contentType: "application/json",
         body: JSON.stringify({ items: HISTORY, timings: [], hasMore: false }),
       }),
     )
-    await page.goto(complexGateway.entryUrl)
+    await page.goto(gateway.entryUrl)
     await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
     await page
       .locator(".session-card", { has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }) })
       .click()
     await expect(page).toHaveURL(new RegExp(`/sessions/${COMPLEX_SESSION_ID}$`))
+  }
+
+  test("工具卡与消息渲染", async ({ page, complexGateway }) => {
+    await openTranscript(page, complexGateway)
     await expect(page.getByText("看一下示例文件", { exact: true })).toBeVisible({ timeout: 30_000 })
 
     // 时间戳走 toLocaleString，跨时区会飘，遮掉
@@ -63,20 +68,7 @@ test.describe("transcript 视觉", () => {
   })
 
   test("read 卡行号与代码预览", async ({ page, complexGateway }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" })
-    await seedWorkspace(page, complexGateway.workspaceId)
-    await page.route("**/api/v1/platform/transcript**", (route) =>
-      route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify({ items: HISTORY, timings: [], hasMore: false }),
-      }),
-    )
-    await page.goto(complexGateway.entryUrl)
-    await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
-    await page
-      .locator(".session-card", { has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }) })
-      .click()
-    await expect(page).toHaveURL(new RegExp(`/sessions/${COMPLEX_SESSION_ID}$`))
+    await openTranscript(page, complexGateway)
 
     // 两级展开：先开工具组，再开单个 step
     await page.locator(".tool-steps .summary-btn").click()
