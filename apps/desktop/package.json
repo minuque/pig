@@ -24,7 +24,6 @@
     "electron": "44.3.0",
     "electron-builder": "26.15.3",
     "tsx": "4.23.13",
-    "typescript": "6.0.3",
     "vitest": "3.2.7"
   }
 }
