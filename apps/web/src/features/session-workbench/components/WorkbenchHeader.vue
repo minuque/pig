@@ -59,6 +59,7 @@ const {
   pinnedIds,
   highlightedSessionId,
   openSession,
+  closeSession,
   togglePinned,
   renameSession,
   deleteSession,
@@ -68,8 +69,10 @@ const sessions = computed(() =>
 )
 const { tabs, moveTab, closeTab, closeScope } = useSessionTabs({
   activeSessionId: highlightedSessionId,
+  routeSessionId: sessionId,
   sessions,
   open: openSession,
+  close: closeSession,
 })
 const title = computed(() =>
   workbenchHeaderTitle({
