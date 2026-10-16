@@ -60,6 +60,20 @@ export function readStringArray(key: string, storage: PrefStorage = localStorage
   }
 }
 
+/** 读 JSON 对象；解析失败或不是对象返回 undefined。 */
+export function readJson<T>(key: string, storage: PrefStorage = localStorage): T | undefined {
+  const raw = readPref(key, storage)
+
+  if (raw === undefined) return undefined
+
+  try {
+    const value: unknown = JSON.parse(raw)
+    return typeof value === "object" && value !== null ? (value as T) : undefined
+  } catch {
+    return undefined
+  }
+}
+
 /** 写 JSON。 */
 export function writeJson(key: string, value: unknown, storage: PrefStorage = localStorage): void {
   writePref(key, JSON.stringify(value), storage)

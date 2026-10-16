@@ -8,82 +8,21 @@ import {
   renameSession as requestRenameSession,
   selectDirectory,
 } from "@client/platform.js"
-import {
-  canonicalizeWorkspacePath,
-  uniqueCanonicalPaths,
-  type useLocalWorkspaces,
-} from "@client/local-cwd.js"
+import { canonicalizeWorkspacePath, type useLocalWorkspaces } from "@client/local-cwd.js"
 import {
   draftSessionId,
   groupSessionsByCwd,
   listSessionsForSidebar,
-  orderSessionGroups,
   sidebarRows,
 } from "@features/session-nav/lib/session-list.js"
-import type {
-  SidebarGrouping,
-  SidebarRow,
-  SidebarSort,
-  SidebarView,
-} from "@features/session-nav/type.js"
-import { readPref, readStringArray, writeJson, writePref } from "@utils/storage.js"
+import type { SidebarRow } from "@features/session-nav/type.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
-export const SIDEBAR_GROUPING_KEY = "pig.sidebarGrouping"
-export const SIDEBAR_VIEW_KEY = "pig.sidebarView"
-export const SIDEBAR_SORT_KEY = "pig.sidebarSort"
-export const SIDEBAR_ORDER_KEY = "pig.sidebarWorkspaceOrder"
-export const SIDEBAR_COLLAPSED_KEY = "pig.sidebarCollapsed"
 const DELETE_RETRY_MS = 400
 
 function isBusy(error: unknown): boolean {
   return error instanceof PlatformRequestError && error.code === "BUSY"
-}
-
-function loadView(): SidebarView {
-  const stored = readPref(SIDEBAR_VIEW_KEY)
-
-  if (stored === "flat" || stored === "grouped") return stored
-  return readPref(SIDEBAR_GROUPING_KEY) === "updated" ? "flat" : "grouped"
-}
-
-function saveView(value: SidebarView): void {
-  writePref(SIDEBAR_VIEW_KEY, value)
-}
-
-function loadSort(): SidebarSort {
-  return readPref(SIDEBAR_SORT_KEY) === "recent" ? "recent" : "manual"
-}
-
-function saveSort(value: SidebarSort): void {
-  writePref(SIDEBAR_SORT_KEY, value)
-}
-
-function loadOrder(): string[] {
-  return uniqueCanonicalPaths(readStringArray(SIDEBAR_ORDER_KEY))
-}
-
-function saveOrder(paths: readonly string[]): void {
-  writeJson(SIDEBAR_ORDER_KEY, paths)
-}
-
-function loadCollapsed(): Record<string, boolean> {
-  const next: Record<string, boolean> = {}
-
-  for (const item of readStringArray(SIDEBAR_COLLAPSED_KEY)) {
-    if (item.length === 0) continue
-    next[canonicalizeWorkspacePath(item)] = true
-  }
-
-  return next
-}
-
-function saveCollapsed(map: Readonly<Record<string, boolean>>): void {
-  writeJson(
-    SIDEBAR_COLLAPSED_KEY,
-    Object.keys(map).filter((key) => map[key]),
-  )
 }
 
 export function useWorkspaceNav(
@@ -133,22 +72,13 @@ export function useWorkspaceNav(
   )
 
   const groups = computed(() =>
-    orderSessionGroups(
-      groupSessionsByCwd(visibleSessions.value, local.workspaces.value).map((group) => ({
-        ...group,
-        sessions: applyTitles(group.sessions),
-      })),
-      sort.value,
-      manualOrder.value,
-    ),
+    groupSessionsByCwd(visibleSessions.value, local.workspaces.value).map((group) => ({
+      ...group,
+      sessions: applyTitles(group.sessions),
+    })),
   )
   const listedSessions = computed(() => applyTitles(listSessionsForSidebar(visibleSessions.value)))
-  const view = ref<SidebarView>(loadView())
-  const sort = ref<SidebarSort>(loadSort())
-  const manualOrder = shallowRef<string[]>(loadOrder())
-  const grouping = computed<SidebarGrouping>(() => (view.value === "flat" ? "updated" : "project"))
   const expandedByGroup = shallowRef<Record<string, boolean>>({})
-  const collapsedByGroup = shallowRef<Record<string, boolean>>(loadCollapsed())
 
   function applyTitles(list: readonly SessionMetadata[]): SessionMetadata[] {
     const titles = titleById.value
@@ -170,34 +100,7 @@ export function useWorkspaceNav(
 
   function setDraftSession(canonicalPath: string): void {
     const path = canonicalizeWorkspacePath(canonicalPath)
-
-    if (collapsedByGroup.value[path]) {
-      collapsedByGroup.value = { ...collapsedByGroup.value, [path]: false }
-      saveCollapsed(collapsedByGroup.value)
-    }
-
     draftSessionPath.value = path
-  }
-
-  function setView(next: SidebarView) {
-    if (next !== view.value) {
-      view.value = next
-      expandedByGroup.value = {}
-    }
-
-    saveView(next)
-  }
-
-  function setSort(next: SidebarSort) {
-    sort.value = next
-    saveSort(next)
-  }
-
-  function reorderGroups(paths: readonly string[]) {
-    manualOrder.value = uniqueCanonicalPaths(paths)
-    sort.value = "manual"
-    saveOrder(manualOrder.value)
-    saveSort("manual")
   }
 
   function toggleGroupReveal(groupKey: string) {
@@ -207,44 +110,18 @@ export function useWorkspaceNav(
     }
   }
 
-  function toggleGroup(groupKey: string) {
-    collapsedByGroup.value = {
-      ...collapsedByGroup.value,
-      [groupKey]: !collapsedByGroup.value[groupKey],
-    }
-    saveCollapsed(collapsedByGroup.value)
-  }
-
-  function setGroupsCollapsed(collapsed: boolean) {
-    const next = { ...collapsedByGroup.value }
-
-    for (const group of groups.value) next[group.canonicalPath] = collapsed
-    collapsedByGroup.value = next
-    saveCollapsed(next)
-  }
-
   function rowsFor(
     searching: MaybeRefOrGetter<boolean>,
-    excludedIds?: MaybeRefOrGetter<ReadonlySet<string>>,
+    pinnedIds?: MaybeRefOrGetter<ReadonlySet<string>>,
   ) {
     return computed((): SidebarRow[] => {
       const searchingNow = toValue(searching)
-      const excluded = excludedIds === undefined ? undefined : toValue(excludedIds)
-      const sessionList = excluded
-        ? listedSessions.value.filter((session) => !excluded.has(session.id))
-        : listedSessions.value
-      const ids = new Set(sessionList.map((session) => session.id))
-      const groupList = groups.value.map((group) => ({
-        canonicalPath: group.canonicalPath,
-        sessions: group.sessions.filter((session) => ids.has(session.id)),
-      }))
+      const pinned = pinnedIds === undefined ? undefined : toValue(pinnedIds)
       return sidebarRows({
-        grouping: grouping.value,
-        sessions: sessionList,
-        groups: groupList,
+        sessions: listedSessions.value,
+        ...(pinned ? { pinnedIds: pinned } : {}),
         expandedByGroup: expandedByGroup.value,
         searching: searchingNow,
-        collapsedByGroup: collapsedByGroup.value,
       })
     })
   }
@@ -326,16 +203,8 @@ export function useWorkspaceNav(
     workspaces,
     groups,
     listedSessions,
-    view,
-    sort,
-    grouping,
-    setView,
-    setSort,
-    reorderGroups,
-    collapsedByGroup,
+    expandedByGroup,
     toggleGroupReveal,
-    toggleGroup,
-    setGroupsCollapsed,
     rowsFor,
     addWorkspace,
     renameSession,

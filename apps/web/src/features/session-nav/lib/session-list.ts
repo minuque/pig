@@ -5,15 +5,12 @@ import type {
   SessionCardExtra,
   SessionCardLive,
   SessionGroup,
-  SidebarGrouping,
   SidebarRow,
-  SidebarSort,
   SidebarSession,
 } from "@features/session-nav/type.js"
 import { sessionRecency, sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
 
 export const UPDATED_PAGE = 10
-export const PROJECT_PAGE = 5
 /** 临时新会话占位行的 id 前缀。 */
 export const DRAFT_SESSION_PREFIX = "draft:"
 
@@ -55,45 +52,6 @@ export function filterSessionsForSearch(
     const cwd = session.cwd
     return Boolean(cwd && workspaceName(cwd).toLowerCase().includes(needle))
   })
-}
-
-function groupRecency(group: SessionGroup): number {
-  return group.sessions.reduce((latest, session) => Math.max(latest, sessionRecency(session)), 0)
-}
-
-/** 分组目录顺序。手动按已记住的路径，未记录的保持原顺序排在后面；最近活动按组内最新会话。 */
-export function orderSessionGroups(
-  groups: readonly SessionGroup[],
-  sort: SidebarSort,
-  manualOrder: readonly string[],
-): SessionGroup[] {
-  if (sort === "recent") {
-    return groups
-      .map((group, index) => ({ group, index }))
-      .sort(
-        (left, right) =>
-          groupRecency(right.group) - groupRecency(left.group) ||
-          left.group.canonicalPath.localeCompare(right.group.canonicalPath) ||
-          left.index - right.index,
-      )
-      .map((item) => item.group)
-  }
-
-  const indexByPath = new Map(manualOrder.map((path, index) => [path, index]))
-  return groups
-    .map((group, index) => ({ group, index }))
-    .sort((left, right) => {
-      const leftOrder = indexByPath.get(left.group.canonicalPath)
-      const rightOrder = indexByPath.get(right.group.canonicalPath)
-
-      if (leftOrder !== undefined && rightOrder !== undefined) return leftOrder - rightOrder
-
-      if (leftOrder !== undefined) return -1
-
-      if (rightOrder !== undefined) return 1
-      return left.index - right.index
-    })
-    .map((item) => item.group)
 }
 
 /** 本地名单在前（含尚无会话的目录）；其余 Pi Session 按 cwd 跟上。组内按最近活动倒序。 */
@@ -176,54 +134,30 @@ function appendGroupSessions(
   }
 }
 
-/** 侧栏虚拟列表行：更新时间平铺；项目按 groups 出组头，展开的组再跟会话行。searching 取消截断与折叠。 */
+/** 侧栏虚拟列表行：pinned 在前，其余按更新时间平铺。searching 取消截断。 */
 export function sidebarRows(input: {
-  grouping: SidebarGrouping
   sessions: readonly SessionMetadata[]
-  groups: readonly SessionGroup[]
+  pinnedIds?: ReadonlySet<string>
   expandedByGroup: Readonly<Record<string, boolean>>
   searching: boolean
-  collapsedByGroup?: Readonly<Record<string, boolean>>
 }): SidebarRow[] {
-  const { grouping, sessions, groups, expandedByGroup, searching, collapsedByGroup = {} } = input
+  const { sessions, pinnedIds, expandedByGroup, searching } = input
+  const rows: SidebarRow[] = []
+  const list = listSessionsForSidebar(sessions)
 
-  if (grouping === "updated") {
-    const rows: SidebarRow[] = []
-    appendGroupSessions(
-      rows,
-      listSessionsForSidebar(sessions),
-      "updated",
-      UPDATED_PAGE,
-      expandedByGroup,
-      searching,
-    )
+  if (pinnedIds?.size) {
+    const pinned = list.filter((s) => pinnedIds.has(s.id))
+    const rest = list.filter((s) => !pinnedIds.has(s.id))
+
+    for (const session of pinned) {
+      rows.push({ kind: "session", key: session.id, session: toSidebarSession(session) })
+    }
+
+    appendGroupSessions(rows, rest, "updated", UPDATED_PAGE, expandedByGroup, searching)
     return rows
   }
 
-  const rows: SidebarRow[] = []
-
-  for (const [index, group] of groups.entries()) {
-    const collapsed = !searching && Boolean(collapsedByGroup[group.canonicalPath])
-
-    rows.push({
-      kind: "group",
-      key: group.canonicalPath,
-      canonicalPath: group.canonicalPath,
-      first: index === 0,
-      collapsed,
-    })
-
-    if (collapsed) continue
-    appendGroupSessions(
-      rows,
-      group.sessions,
-      group.canonicalPath,
-      PROJECT_PAGE,
-      expandedByGroup,
-      searching,
-    )
-  }
-
+  appendGroupSessions(rows, list, "updated", UPDATED_PAGE, expandedByGroup, searching)
   return rows
 }
 

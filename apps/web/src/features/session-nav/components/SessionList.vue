@@ -228,12 +228,14 @@ function deleteSelected() {
 }
 
 function itemBind(session: SidebarSession) {
+  const foot = cardFootById.value.get(session.id)
   return {
     session,
     active: session.id === highlightedSessionId.value,
     pinned: pinnedIds.value.has(session.id),
     selected: selectedIds.value.has(session.id),
-    state: sessionState(session.id),
+    state: foot?.state,
+    runningSince: foot?.runningSince,
     placeholder: session.draft ?? false,
     now: now.value,
   }
@@ -367,6 +369,7 @@ onBeforeUnmount(() => {
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-xxs);
   margin: 0;
   padding: 0;
   list-style: none;

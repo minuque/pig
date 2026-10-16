@@ -4,7 +4,6 @@ import {
   conversationItemCount,
   filterSessionsForSearch,
   groupSessionsByCwd,
-  orderSessionGroups,
   sessionCardFoot,
   sessionOutcome,
   sidebarRows,
@@ -32,28 +31,6 @@ describe("groupSessionsByCwd", () => {
     expect(groups[0]?.sessions.map((session) => session.id)).toEqual(["s2", "old"])
     expect(groups[2]?.sessions.map((session) => session.id)).toEqual(["open"])
     expect(groups[3]?.sessions).toEqual([])
-  })
-})
-
-describe("orderSessionGroups", () => {
-  const groups = [
-    { canonicalPath: "/a", sessions: [{ id: "a", createdAt: 10, cwd: "/a" }] },
-    { canonicalPath: "/b", sessions: [{ id: "b", createdAt: 30, cwd: "/b" }] },
-    { canonicalPath: "/empty", sessions: [] },
-  ]
-
-  it("按最近活动把更新的目录排前，空目录靠后", () => {
-    expect(orderSessionGroups(groups, "recent", []).map((group) => group.canonicalPath)).toEqual([
-      "/b",
-      "/a",
-      "/empty",
-    ])
-  })
-
-  it("手动顺序优先，未记录的目录保持原顺序跟在后面", () => {
-    expect(
-      orderSessionGroups(groups, "manual", ["/empty", "/a"]).map((group) => group.canonicalPath),
-    ).toEqual(["/empty", "/a", "/b"])
   })
 })
 
@@ -90,22 +67,24 @@ describe("sidebarRows", () => {
     { id: "b1", createdAt: 3, cwd: "/b" },
   ]
 
-  it("折叠的目录只留组头，展开的目录跟会话行", () => {
-    const groups = groupSessionsByCwd(sessions, ["/a", "/b"])
+  it("无 pinned 时按更新时间平铺会话行", () => {
+    const rows = sidebarRows({ sessions, expandedByGroup: {}, searching: false })
+    expect(rows.map((row) => row.kind + ":" + row.key)).toEqual([
+      "session:b1",
+      "session:a2",
+      "session:a1",
+    ])
+  })
+
+  it("pinned 会话排在前面", () => {
     const rows = sidebarRows({
-      grouping: "project",
       sessions,
-      groups,
+      pinnedIds: new Set(["a1"]),
       expandedByGroup: {},
       searching: false,
-      collapsedByGroup: { "/a": true },
     })
 
-    expect(rows.map((row) => row.kind + ":" + row.key)).toEqual([
-      "group:/a",
-      "group:/b",
-      "session:b1",
-    ])
+    expect(rows.map((row) => row.key)).toEqual(["a1", "b1", "a2"])
   })
 })
 

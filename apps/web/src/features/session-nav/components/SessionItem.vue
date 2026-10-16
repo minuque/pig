@@ -38,7 +38,7 @@
                 role="img"
                 :aria-label="stateLabel"
               >
-                <component :is="stateIcon" :size="14" />
+                <component :is="stateIcon" :size="13" />
                 <span class="state-text">{{ stateLabel }}</span>
               </span>
 
@@ -139,16 +139,16 @@ import {
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
-import { formatRelativeTime } from "@features/session-nav/lib/format.js"
+import { formatDuration, formatRelativeTime } from "@features/session-nav/lib/format.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionItemRename from "@features/session-nav/components/SessionItemRename.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
   CheckCircleIcon,
+  CircleDashedIcon,
   DangerCircleIcon,
   FolderIcon,
-  LoaderIcon,
   MenuDotsIcon,
   PenIcon,
   PinIcon,
@@ -187,11 +187,13 @@ const props = withDefaults(
     pinned?: boolean
     selected?: boolean
     state?: SidebarSessionState | undefined
+    runningSince?: number | undefined
     placeholder?: boolean
     now: number
   }>(),
   {
     state: undefined,
+    runningSince: undefined,
     placeholder: false,
   },
 )
@@ -271,14 +273,20 @@ function loadProjIcons(): Record<string, ProjIcon> {
   return readJson<Record<string, ProjIcon>>("pig.projIcons") ?? {}
 }
 
-const STATE_ICONS = { running: LoaderIcon, unread: CheckCircleIcon, error: DangerCircleIcon }
+const STATE_ICONS = { running: CircleDashedIcon, unread: CheckCircleIcon, error: DangerCircleIcon }
 const STATE_LABELS = {
   running: t("session.running"),
   unread: t("session.done"),
   error: t("session.failed"),
 }
 const stateIcon = computed(() => (props.state ? STATE_ICONS[props.state] : undefined))
-const stateLabel = computed(() => (props.state ? STATE_LABELS[props.state] : undefined))
+const stateLabel = computed(() => {
+  if (!props.state) return undefined
+
+  if (props.state === "running" && props.runningSince != null)
+    return `${t("session.running")} ${formatDuration(props.runningSince, props.now)}`
+  return STATE_LABELS[props.state]
+})
 
 function onMenuOpenChange(open: boolean) {
   menuOpen.value = open
@@ -342,6 +350,11 @@ function openSessionMenu(event: MouseEvent) {
   openContextMenuAt(card, rect.left, rect.bottom)
 }
 
+function onCardContextMenu(event: MouseEvent) {
+  event.preventDefault()
+  event.stopPropagation()
+}
+
 function onCardKeydown(event: KeyboardEvent) {
   if (props.placeholder) return
 
@@ -388,10 +401,10 @@ function confirmDelete() {
 .session-card {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--spacing-xs);
   width: 100%;
   min-width: 0;
-  padding: 5px var(--spacing-xs);
+  padding: 7px var(--spacing-xs);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
@@ -483,7 +496,8 @@ function confirmDelete() {
   flex: none;
   align-items: center;
   justify-items: end;
-  min-width: 44px;
+  min-width: 20px;
+  max-width: 45%;
   min-height: 14px;
 }
 
@@ -493,7 +507,7 @@ function confirmDelete() {
 }
 
 .state-icon {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: var(--text-eyebrow);
@@ -501,7 +515,7 @@ function confirmDelete() {
 }
 
 .state-icon.running {
-  color: var(--primary);
+  color: var(--state-working);
 }
 
 .state-icon.unread {
@@ -513,11 +527,11 @@ function confirmDelete() {
 }
 
 .state-icon.draft {
-  color: var(--contrast-foreground-faint);
+  color: var(--warning);
 }
 
 .state-text {
-  font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-medium);
 }
 
 .session-time {
@@ -533,7 +547,7 @@ function confirmDelete() {
 .title-line {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--spacing-xs);
   min-width: 0;
 }
 

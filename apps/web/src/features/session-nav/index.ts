@@ -57,6 +57,9 @@ function createNav(
             ...(liveOutcome ? { outcome: liveOutcome } : {}),
           }
         : undefined
+    const liveStartedAt = session.turnTimings.value.findLast(
+      (timing) => timing.outcome === "running",
+    )?.startedAt
     const extras = cards.sessionCards.value
     const feet = new Map<
       string,
@@ -64,6 +67,7 @@ function createNav(
         messageCount: number | undefined
         model: { provider: string; id: string } | undefined
         state: SidebarSessionState | undefined
+        runningSince: number | undefined
       }
     >()
 
@@ -79,37 +83,26 @@ function createNav(
           : markers.isUnread(item)
             ? "unread"
             : undefined
+      const runningSince =
+        isRunning && liveId === item.id ? liveStartedAt : isRunning ? Date.now() : undefined
 
-      feet.set(item.id, { ...foot, state })
+      feet.set(item.id, { ...foot, state, runningSince })
     }
 
     return feet
   })
 
-  /** 关闭标签：当前会话先回首页，其余照旧打开。 */
-  function closeSession(id: string): void {
-    if (id === session.sessionId.value) {
-      cancelPendingOpen()
-      void router.replace("/")
-    } else {
-      baseOpenSession(id)
-    }
+  /** 页签全部关掉后回欢迎页。 */
+  function closeSession(): void {
+    cancelPendingOpen()
+    void router.replace("/")
   }
 
   return {
     groups: nav.groups,
-    workspaces: nav.workspaces,
     listedSessions: nav.listedSessions,
     cardFootById,
-    view: nav.view,
-    sort: nav.sort,
-    grouping: nav.grouping,
-    setView: nav.setView,
-    setSort: nav.setSort,
-    reorderGroups: nav.reorderGroups,
     toggleGroupReveal: nav.toggleGroupReveal,
-    toggleGroup: nav.toggleGroup,
-    setGroupsCollapsed: nav.setGroupsCollapsed,
     rowsFor: (searching: Parameters<typeof nav.rowsFor>[0]) =>
       nav.rowsFor(searching, markers.pinnedIds),
     pinnedIds: markers.pinnedIds,
@@ -120,14 +113,12 @@ function createNav(
     navError,
     lastCwd: cwd.lastCwd,
     activeWorkspaceId: computed(() => session.projection.value?.cwd),
-    activeSessionId: session.sessionId,
     highlightedSessionId,
     openSession: baseOpenSession,
     primeSession,
     closeSession,
     cancelPendingOpen,
     setDraftSession: nav.setDraftSession,
-    activeSessionRunning,
     addWorkspace: nav.addWorkspace,
     renameSession: nav.renameSession,
     deleteSession: nav.deleteSession,
