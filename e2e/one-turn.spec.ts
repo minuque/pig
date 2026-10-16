@@ -1,5 +1,5 @@
 import { checkpoint } from "./checkpoint.js"
-import { expect, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "./fixtures.js"
 import {
   COMPLEX_MARKER,
   COMPLEX_SESSION_ID,
@@ -17,14 +17,7 @@ import {
 test("一轮工作：复杂历史上发送、流式、中止", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
   await page.emulateMedia({ reducedMotion: "reduce" })
-  await page.addInitScript(
-    ({ workspaceId }) => {
-      localStorage.setItem("pig.localWorkspaces", JSON.stringify([workspaceId]))
-      localStorage.setItem("pig.lastCwd", workspaceId)
-      localStorage.setItem("npg-theme", "light")
-    },
-    { workspaceId: complexGateway.workspaceId },
-  )
+  await seedWorkspace(page, complexGateway.workspaceId)
   const bridge = await installTurnBridge(page)
   await page.goto(complexGateway.entryUrl)
 

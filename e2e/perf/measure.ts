@@ -2,6 +2,7 @@ import type { Browser, BrowserContext, Page } from "@playwright/test"
 import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 
+import { seedWorkspace } from "../fixtures.js"
 import { armClickStamps, clickStamps, installPageWaitFor, waitInPage } from "./in-page.js"
 import { installObservers } from "./paint.js"
 import {
@@ -113,17 +114,6 @@ export async function newBenchContext(browser: Browser): Promise<BrowserContext>
     colorScheme: "light",
     serviceWorkers: "block",
   })
-}
-
-export async function seedWorkspace(page: Page, workspaceId: string) {
-  await page.addInitScript(
-    ({ id }) => {
-      localStorage.setItem("pig.localWorkspaces", JSON.stringify([id]))
-      localStorage.setItem("pig.lastCwd", id)
-      localStorage.setItem("npg-theme", "light")
-    },
-    { id: workspaceId },
-  )
 }
 
 /** tsx keepNames 会给函数包 __name，Playwright 把源码 eval 进页面后会找不到。 */

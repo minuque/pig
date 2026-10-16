@@ -4,7 +4,7 @@ import type {
   TranscriptItem,
   TranscriptProgress,
 } from "@earendil-works/pi-protocol"
-import { expect, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "./fixtures.js"
 import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
 import { installTurnBridge } from "./sim-turn.js"
 
@@ -67,14 +67,7 @@ test("一轮工作：工具步骤状态实时、step-rail 跟随、历史重拉�
 }) => {
   test.setTimeout(120_000)
   await page.emulateMedia({ reducedMotion: "reduce" })
-  await page.addInitScript(
-    ({ workspaceId }) => {
-      localStorage.setItem("pig.localWorkspaces", JSON.stringify([workspaceId]))
-      localStorage.setItem("pig.lastCwd", workspaceId)
-      localStorage.setItem("npg-theme", "light")
-    },
-    { workspaceId: complexGateway.workspaceId },
-  )
+  await seedWorkspace(page, complexGateway.workspaceId)
   // 历史页可控：先只给旧回合，回合结束后再把同一条落盘内容喂回来
   let persisted: TranscriptItem[] = HISTORY
   await page.route("**/api/v1/platform/transcript**", (route) =>

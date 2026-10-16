@@ -1,21 +1,10 @@
 import type { Page } from "@playwright/test"
-import { expect, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "./fixtures.js"
 import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
 import { installTurnBridge } from "./sim-turn.js"
 
-async function seedWorkspace(page: Page, workspaceId: string) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
-  await page.addInitScript(
-    ({ id }) => {
-      localStorage.setItem("pig.localWorkspaces", JSON.stringify([id]))
-      localStorage.setItem("pig.lastCwd", id)
-      localStorage.setItem("npg-theme", "light")
-    },
-    { id: workspaceId },
-  )
-}
-
 async function openSession(page: Page, gateway: { entryUrl: string; workspaceId: string }) {
+  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
 

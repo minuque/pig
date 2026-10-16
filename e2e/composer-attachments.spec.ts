@@ -1,19 +1,7 @@
 import type { Page } from "@playwright/test"
-import { expect, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "./fixtures.js"
 import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
 import { installTurnBridge } from "./sim-turn.js"
-
-async function seedWorkspace(page: Page, workspaceId: string) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
-  await page.addInitScript(
-    ({ id }) => {
-      localStorage.setItem("pig.localWorkspaces", JSON.stringify([id]))
-      localStorage.setItem("pig.lastCwd", id)
-      localStorage.setItem("npg-theme", "light")
-    },
-    { id: workspaceId },
-  )
-}
 
 /** DataTransfer 只能在页面里造，一次派发一个拖拽事件。 */
 async function drag(page: Page, type: string, total = 2) {
@@ -35,6 +23,7 @@ async function drag(page: Page, type: string, total = 2) {
 }
 
 test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, gateway }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -90,6 +79,7 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
 })
 
 test("输入卡附件：拖出面板关掉染色遮罩", async ({ page, gateway }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -121,6 +111,7 @@ test("输入卡附件：拖出面板关掉染色遮罩", async ({ page, gateway 
 })
 
 test("输入卡附件：超量的跳过并提示，附件入口禁用", async ({ page, gateway }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -136,6 +127,7 @@ test("输入卡附件：超量的跳过并提示，附件入口禁用", async ({
 
 test("附件随 Prompt 发送：逐个 stage 后 bind 到 Session", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
+  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   await installTurnBridge(page)
   await page.goto(complexGateway.entryUrl)
@@ -172,6 +164,7 @@ test("附件随 Prompt 发送：逐个 stage 后 bind 到 Session", async ({ pag
 
 test("发送中被中止：不再 bind，丢弃批次且保留 chips", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
+  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   await installTurnBridge(page)
   // 拖慢 stage，让中止稳定落在 stage 与 bind 之间

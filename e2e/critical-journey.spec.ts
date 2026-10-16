@@ -1,16 +1,9 @@
 import { checkpoint } from "./checkpoint.js"
-import { expect, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "./fixtures.js"
 
 test("Chromium production SPA 关键旅程", async ({ page, gateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
-  await page.addInitScript(
-    ({ workspaceId }) => {
-      localStorage.setItem("pig.localWorkspaces", JSON.stringify([workspaceId]))
-      localStorage.setItem("pig.lastCwd", workspaceId)
-      localStorage.setItem("npg-theme", "light")
-    },
-    { workspaceId: gateway.workspaceId },
-  )
+  await seedWorkspace(page, gateway.workspaceId)
 
   await page.goto(gateway.entryUrl)
   const sessionList = page.locator("nav.session-list")

@@ -1,4 +1,4 @@
-import { test as base, expect } from "@playwright/test"
+import { test as base, expect, type Page } from "@playwright/test"
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
@@ -15,6 +15,18 @@ const webRoot = join(root, "apps/web/dist")
 export function canonicalizeWorkspacePath(path: string): string {
   const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "")
   return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
+}
+
+/** 种子 localStorage 定位工作区；reducedMotion 由调用方按需 emulate（bench 要切两档）。 */
+export async function seedWorkspace(page: Page, workspaceId: string) {
+  await page.addInitScript(
+    ({ id }) => {
+      localStorage.setItem("pig.localWorkspaces", JSON.stringify([id]))
+      localStorage.setItem("pig.lastCwd", id)
+      localStorage.setItem("npg-theme", "light")
+    },
+    { id: workspaceId },
+  )
 }
 
 export interface E2eGateway {
