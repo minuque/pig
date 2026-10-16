@@ -29,6 +29,25 @@ export async function seedWorkspace(page: Page, workspaceId: string) {
   )
 }
 
+/** DataTransfer 只能在页面里造，一次派发一个拖拽事件到 .session-panel。 */
+export async function dragOntoPanel(page: Page, type: string, total = 2) {
+  await page.locator(".session-panel").evaluate(
+    (element, input) => {
+      const data = new DataTransfer()
+
+      for (let i = 0; i < input.total; i += 1) {
+        const image = i === 1
+        const name = image ? "shot.png" : i === 0 ? "note.md" : `f${i}.txt`
+
+        data.items.add(new File(["x"], name, { type: image ? "image/png" : "text/plain" }))
+      }
+
+      element.dispatchEvent(new DragEvent(input.type, { bubbles: true, dataTransfer: data }))
+    },
+    { type, total },
+  )
+}
+
 export interface E2eGateway {
   readonly origin: string
   readonly entryUrl: string

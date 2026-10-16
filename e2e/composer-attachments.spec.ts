@@ -1,26 +1,6 @@
-import type { Page } from "@playwright/test"
-import { expect, seedWorkspace, test } from "./fixtures.js"
+import { dragOntoPanel as drag, expect, seedWorkspace, test } from "./fixtures.js"
 import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
 import { installTurnBridge } from "./sim-turn.js"
-
-/** DataTransfer 只能在页面里造，一次派发一个拖拽事件。 */
-async function drag(page: Page, type: string, total = 2) {
-  await page.locator(".session-panel").evaluate(
-    (element, input) => {
-      const data = new DataTransfer()
-
-      for (let i = 0; i < input.total; i += 1) {
-        const image = i === 1
-        const name = image ? "shot.png" : i === 0 ? "note.md" : `f${i}.txt`
-
-        data.items.add(new File(["x"], name, { type: image ? "image/png" : "text/plain" }))
-      }
-
-      element.dispatchEvent(new DragEvent(input.type, { bubbles: true, dataTransfer: data }))
-    },
-    { type, total },
-  )
-}
 
 test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, gateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
