@@ -30,7 +30,7 @@ const HISTORY = [
     status: "complete",
     isError: false,
   },
-] as unknown as TranscriptItem[]
+] satisfies TranscriptItem[]
 
 test.describe("transcript 视觉", () => {
   test.use({ deviceScaleFactor: 1 })
