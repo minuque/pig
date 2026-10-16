@@ -36,7 +36,7 @@
   height: 8px;
   translate: -50% -50%;
   border-radius: var(--radius-full);
-  background: var(--on-primary);
+  background: var(--primary-foreground);
   opacity: 0;
 }
 
@@ -45,7 +45,7 @@
   width: 7px;
   height: 7px;
   translate: 50% -50%;
-  border: var(--border-width) solid var(--contrast-ink-muted);
+  border: var(--border-width) solid var(--contrast-foreground-muted);
   border-radius: var(--radius-full);
 }
 

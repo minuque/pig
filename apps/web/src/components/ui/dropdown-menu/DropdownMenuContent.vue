@@ -3,7 +3,7 @@
     <DropdownMenuContent
       data-slot="dropdown-menu-content"
       v-bind="{ ...$attrs, ...forwarded, ...(reference && { reference }) }"
-      class="menu-surface surface-float reveal-menu z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) origin-(--reka-dropdown-menu-content-transform-origin) text-ink"
+      class="menu-surface surface-float reveal-menu z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) origin-(--reka-dropdown-menu-content-transform-origin) text-foreground"
       :class="[bare ? undefined : 'min-w-(--size-context-menu)', props.class]"
     >
       <div v-if="!bare" class="menu-list max-h-(--reka-dropdown-menu-content-available-height)">

@@ -47,13 +47,13 @@ export function applyThemePalette(id: string | null, colors: ThemeColors | null)
   )
 
   // 桌面壳据此改窗口底色，避免换主题时闪默认色。浏览器里没有这个桥。
-  window.pigDesktop?.setThemeColor(colors?.canvas ?? resolvedCanvas(root))
+  window.pigDesktop?.setThemeColor(colors?.background ?? resolvedBackground(root))
 }
 
-/** 读 --canvas 的计算值。清除主题后变量回到 :root / .dark，内联样式读不到。 */
-function resolvedCanvas(root: HTMLElement): string {
+/** 读 --background 的计算值。清除主题后变量回到 :root / .dark，内联样式读不到。 */
+function resolvedBackground(root: HTMLElement): string {
   const probe = document.createElement("div")
-  probe.style.background = "var(--canvas)"
+  probe.style.background = "var(--background)"
   root.append(probe)
   const color = getComputedStyle(probe).backgroundColor
   probe.remove()

@@ -90,13 +90,13 @@ const softWrap = ref(false)
   overflow: visible;
   border-radius: var(--radius-code);
   border: var(--border-width) solid var(--border);
-  background: var(--surface);
+  background: var(--card);
   box-shadow: var(--shadow-card);
 }
 
 .is-tool :deep(.tool-header) {
   border-bottom: 0;
-  background: var(--surface);
+  background: var(--card);
 }
 
 .is-tool :deep(.tool-header .actions) {
@@ -132,8 +132,8 @@ const softWrap = ref(false)
 }
 
 .status-dot.is-error {
-  background: var(--danger);
-  box-shadow: 0 0 0 2px var(--danger-halo);
+  background: var(--destructive);
+  box-shadow: 0 0 0 2px var(--destructive-halo);
 }
 
 .status-dot.is-running {
@@ -143,7 +143,7 @@ const softWrap = ref(false)
 }
 
 .tool-name {
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-caption);
 }
@@ -162,14 +162,14 @@ const softWrap = ref(false)
 
 .prompt {
   flex: none;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   user-select: none;
 }
 
 .tool-input-summary {
   min-width: 0;
   overflow: hidden;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -196,7 +196,7 @@ const softWrap = ref(false)
 }
 
 .tool-output :deep(.tool-output-pre.is-embedded) {
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
 }
 
 .card-footer {
@@ -206,7 +206,7 @@ const softWrap = ref(false)
   min-height: var(--size-icon-button);
   padding: 0 var(--spacing-sm);
   border-top: var(--border-width) solid var(--border-subtle);
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
   font-size: var(--text-caption-mono);
   font-variant-numeric: tabular-nums;
@@ -223,8 +223,8 @@ const softWrap = ref(false)
 }
 
 .exit-badge.is-err {
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: var(--destructive-bg);
+  color: var(--destructive);
 }
 
 .footer-toggle {
@@ -232,13 +232,13 @@ const softWrap = ref(false)
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font: inherit;
   cursor: pointer;
 }
 
 .footer-toggle:hover {
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 @keyframes status-pulse {

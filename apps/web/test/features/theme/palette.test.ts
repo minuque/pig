@@ -1,20 +1,24 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 import {
+  DEFAULT_THEME,
+  fillTheme,
   paintTheme,
   THEME_ROLES,
+  THEME_SEEDS,
   themeVar,
   type ThemeColors,
+  type ThemeSeedColors,
   type ThemeTarget,
 } from "@features/theme/lib/palette.js"
 
 const css = readFileSync(new URL("../../../src/style/app.css", import.meta.url), "utf8")
 
-/** 取选择器块顶层的直接声明，跳过嵌套块。 */
-function declared(selector: string): Set<string> {
+/** 取选择器块顶层的直接声明值，跳过嵌套块。 */
+function values(selector: string): Map<string, string> {
   const lines = css.split("\n")
   const start = lines.findIndex((line) => line === `${selector} {`)
-  const names = new Set<string>()
+  const decls = new Map<string, string>()
   let depth = 0
 
   for (const line of lines.slice(start + 1)) {
@@ -26,23 +30,31 @@ function declared(selector: string): Set<string> {
       continue
     }
 
-    const decl = depth === 0 ? /^\s*--([\w-]+):/.exec(line) : null
-    const name = decl?.[1]
+    const decl = depth === 0 ? /^\s*--([\w-]+):\s*([^;]+);/.exec(line) : null
 
-    if (name) names.add(name)
+    if (decl?.[1] && decl[2]) decls.set(decl[1], decl[2].trim())
   }
 
-  return names
+  return decls
 }
 
 describe("主题角色", () => {
-  const root = declared(":root")
-  const dark = declared(".dark")
-  const themed = declared("html[data-theme-id]")
+  const root = values(":root")
+  const dark = values(".dark")
+  const themed = new Set(values("html[data-theme-id]").keys())
 
   it("每个角色在 :root 和 .dark 都有默认值", () => {
     const missing = THEME_ROLES.filter((role) => !root.has(role) || !dark.has(role))
     expect(missing).toEqual([])
+  })
+
+  it("默认主题的预览色与 :root / .dark 一致", () => {
+    const drifted = THEME_ROLES.filter(
+      (role) =>
+        DEFAULT_THEME.light[role] !== root.get(role) || DEFAULT_THEME.dark[role] !== dark.get(role),
+    )
+
+    expect(drifted).toEqual([])
   })
 
   it("指向块覆盖每个角色，且只覆盖角色", () => {
@@ -84,13 +96,45 @@ function target(): ThemeTarget & {
   }
 }
 
+const seed: ThemeSeedColors = {
+  background: "#101010",
+  card: "#202020",
+  primary: "#3050c0",
+  foreground: "#f0f0f0",
+  sidebar: "#181818",
+  success: "#30a030",
+  warning: "#c08020",
+  destructive: "#c03030",
+}
+
+describe("fillTheme", () => {
+  it("只给种子色也能补齐每个角色", () => {
+    const colors = fillTheme("dark", seed)
+
+    expect(Object.keys(colors).sort()).toEqual([...THEME_ROLES].sort())
+    expect(THEME_SEEDS.every((role) => colors[role] === seed[role])).toBe(true)
+  })
+
+  it("同名覆盖优先于派生值", () => {
+    const colors = fillTheme("light", seed, { link: "#abcdef", "code-background": "#111111" })
+
+    expect(colors.link).toBe("#abcdef")
+    expect(colors["code-background"]).toBe("#111111")
+  })
+
+  it("浅色和深色的文字方向相反", () => {
+    expect(fillTheme("light", seed)["primary-foreground"]).toBe("#ffffff")
+    expect(fillTheme("dark", seed)["primary-foreground"]).toBe("#000000")
+  })
+})
+
 describe("paintTheme", () => {
   it("写入每个角色的注入变量、标记和首帧缓存", () => {
     const painted = target()
     paintTheme(painted, "grove", sample)
 
     expect(painted.id).toBe("grove")
-    expect(painted.props.get(themeVar("ink"))).toBe("#123456")
+    expect(painted.props.get(themeVar("foreground"))).toBe("#123456")
     expect(painted.props.size).toBe(THEME_ROLES.length)
     expect(JSON.parse(painted.json ?? "")).toEqual({ id: "grove", colors: sample })
   })

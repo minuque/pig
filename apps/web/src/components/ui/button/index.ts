@@ -7,7 +7,7 @@ export const buttonVariant = {
   default: "bg-primary text-primary-foreground hover:bg-primary-active active:bg-primary-active",
   destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
   outline:
-    "border border-input bg-surface text-ink shadow-soft hover:bg-accent hover:text-accent-foreground",
+    "border border-input bg-card text-foreground shadow-soft hover:bg-accent hover:text-accent-foreground",
 } as const
 export const buttonSize = {
   default: "h-8 px-(--spacing-sm) py-1.5 has-[>svg]:px-2.5",

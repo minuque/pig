@@ -477,7 +477,7 @@ watch(
   min-width: 9em;
   height: calc(var(--size-nav-rail) + var(--spacing-xxs));
   border-radius: var(--radius-md);
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   cursor: grab;
 }
 
@@ -487,20 +487,20 @@ watch(
 
 .session-tab:hover {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .session-tab.active {
   flex-shrink: 0;
   background: var(--hover-tint);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   cursor: default;
 }
 
 .session-tab.dragging {
   z-index: 1;
-  background: var(--composer-bg);
-  color: var(--contrast-ink);
+  background: var(--composer-background);
+  color: var(--contrast-foreground);
   box-shadow: var(--shadow-card);
   cursor: grabbing;
   transition: none;
@@ -569,7 +569,7 @@ html[data-pig-desktop-platform] .session-tab {
   font-weight: var(--font-weight-normal);
   line-height: var(--text-caption--line-height);
   white-space: nowrap;
-  mask-image: linear-gradient(to right, var(--ink) calc(100% - 1rem), transparent);
+  mask-image: linear-gradient(to right, var(--foreground) calc(100% - 1rem), transparent);
 }
 
 .tab-close {
@@ -583,7 +583,7 @@ html[data-pig-desktop-platform] .session-tab {
   height: var(--size-nav-rail);
   translate: 0 -50%;
   border-radius: var(--radius-sm);
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   opacity: 0;
 }
 
@@ -597,7 +597,7 @@ html[data-pig-desktop-platform] .session-tab {
 .tab-close:hover,
 .tab-close:focus-visible {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .rename-input {
@@ -609,7 +609,7 @@ html[data-pig-desktop-platform] .session-tab {
   border: 0;
   border-radius: var(--radius-xs);
   background: var(--interaction-hover);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   caret-color: var(--primary);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-normal);

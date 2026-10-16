@@ -142,7 +142,7 @@ watch(
 .command-label {
   margin: 0;
   padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xxs);
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-eyebrow--line-height);
@@ -165,7 +165,7 @@ watch(
   padding: var(--spacing-xxs) var(--spacing-xs);
   border-radius: var(--radius-lg);
   corner-shape: var(--corner-shape-composer);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--text-button);
   line-height: var(--text-button--line-height);
   cursor: pointer;
@@ -184,7 +184,7 @@ watch(
   flex: none;
   width: 16px;
   height: 16px;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
 }
 
 .command-glyph,
@@ -208,7 +208,7 @@ watch(
 
 .command-secondary {
   overflow: hidden;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-eyebrow);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -218,14 +218,14 @@ watch(
   flex: none;
   margin-inline-start: auto;
   padding-inline-start: var(--spacing-xs);
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }
 
 .command-status {
   margin: 0;
   padding: var(--spacing-xs) var(--spacing-sm);
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }
 </style>

@@ -84,17 +84,17 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
   max-width: 100%;
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-code);
-  background: var(--surface);
+  background: var(--card);
   box-shadow: var(--shadow-card);
 }
 
 .command-card.is-error {
-  border-color: var(--danger-border);
+  border-color: var(--destructive-border);
 }
 
 .command-card :deep(.tool-header) {
   border-bottom: 0;
-  background: var(--surface);
+  background: var(--card);
 }
 
 .command-card :deep(.tool-header .actions) {
@@ -130,8 +130,8 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 }
 
 .is-error .status-dot {
-  background: var(--danger);
-  box-shadow: 0 0 0 2px var(--danger-halo);
+  background: var(--destructive);
+  box-shadow: 0 0 0 2px var(--destructive-halo);
 }
 
 .is-running .status-dot {
@@ -142,14 +142,14 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 
 .tool-name {
   flex: none;
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
   font-family: var(--font-mono);
 }
 
 .cwd {
   min-width: 0;
   overflow: hidden;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -174,14 +174,14 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 
 .prompt {
   flex: none;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   user-select: none;
 }
 
 .command {
   flex: 1;
   min-width: 0;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font: inherit;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -192,7 +192,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 }
 
 .command-output :deep(.tool-output-pre.is-embedded) {
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
 }
 
 .command-output.is-clamped {
@@ -220,7 +220,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
   min-height: var(--size-icon-button);
   padding: 0 var(--spacing-sm);
   border-top: var(--border-width) solid var(--border-subtle);
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
   font-size: var(--text-caption-mono);
   font-variant-numeric: tabular-nums;
@@ -237,12 +237,12 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 }
 
 .exit-badge.is-err {
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: var(--destructive-bg);
+  color: var(--destructive);
 }
 
 .is-error .footer-status {
-  color: var(--danger);
+  color: var(--destructive);
 }
 
 .is-running .footer-status {
@@ -254,13 +254,13 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font: inherit;
   cursor: pointer;
 }
 
 .footer-toggle:hover {
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 @keyframes status-pulse {

@@ -352,8 +352,8 @@ onBeforeUnmount(() => {
   gap: var(--spacing-xs);
   justify-content: flex-start;
   border-radius: 0;
-  background: var(--surface);
-  color: var(--contrast-ink-muted);
+  background: var(--card);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-normal);
   white-space: normal;
@@ -362,8 +362,8 @@ onBeforeUnmount(() => {
 }
 
 .summary-btn:hover {
-  background: var(--surface);
-  color: var(--contrast-ink);
+  background: var(--card);
+  color: var(--contrast-foreground);
 }
 
 .aborted .summary-btn {
@@ -392,7 +392,7 @@ onBeforeUnmount(() => {
 }
 
 .fail-n {
-  color: var(--danger);
+  color: var(--destructive);
 }
 
 .success-n {
@@ -459,7 +459,7 @@ onBeforeUnmount(() => {
   justify-content: flex-start;
   border-radius: 0;
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-normal);
   text-align: start;
@@ -467,7 +467,7 @@ onBeforeUnmount(() => {
 
 .summary:hover {
   background: transparent;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .tool-icon {

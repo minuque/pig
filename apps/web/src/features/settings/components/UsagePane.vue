@@ -19,7 +19,7 @@ const { t } = useI18n()
 
 .empty {
   margin: 0;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }

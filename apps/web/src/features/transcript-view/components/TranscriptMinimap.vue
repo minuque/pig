@@ -180,7 +180,7 @@ function onStageFocusOut(event: FocusEvent) {
 }
 
 .minimap-strip.strip-active {
-  background: var(--ink);
+  background: var(--foreground);
 }
 
 .minimap-preview {
@@ -197,8 +197,8 @@ function onStageFocusOut(event: FocusEvent) {
   padding: var(--spacing-sm);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-lg);
-  background: var(--surface);
-  color: var(--contrast-ink);
+  background: var(--card);
+  color: var(--contrast-foreground);
   box-shadow: var(--shadow-popover);
   text-align: start;
 }
@@ -218,7 +218,7 @@ function onStageFocusOut(event: FocusEvent) {
   max-height: 3.75rem;
   margin-top: var(--spacing-xxs);
   overflow: hidden;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-body-sm);
   line-height: 20px;
   line-clamp: 3;

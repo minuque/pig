@@ -1,5 +1,7 @@
-// 不向 renderer 暴露 API。preload 在 documentElement 建好前执行，加判空；
-// html 解析会换掉根节点，DOMContentLoaded 再写一次。
+// preload 以 sandbox 脚本加载，没有 ESM 加载器，只能 require。
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { contextBridge, ipcRenderer } = require("electron")
+// 只向 renderer 暴露窗口底色上报：渲染进程换主题时调用，主进程据此改窗口底色。
 const GATEWAY_ORIGIN_ARG_PREFIX = "--pig-gateway-origin="
 
 function stampDesktopPlatform() {
@@ -32,6 +34,12 @@ function stamp() {
   stampDesktopPlatform()
   stampGatewayOrigin()
 }
+
+contextBridge.exposeInMainWorld("pigDesktop", {
+  setThemeColor(color) {
+    ipcRenderer.send("pig:theme-color", color)
+  },
+})
 
 stamp()
 

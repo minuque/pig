@@ -567,30 +567,14 @@ defineExpose({ focus })
   overflow: hidden;
   border: var(--border-width) solid var(--composer-border);
   border-radius: inherit;
+  corner-shape: var(--corner-shape-composer);
+  box-shadow: inset 0 1px 0 var(--composer-highlight);
   transition: height var(--duration-composer-flip) var(--ease-fold);
 }
 
-/* 单行是胶囊：端头保持圆形；连续曲率只在多行/展开时启用，否则胶囊端头会被拉平 */
-.composer-card.is-expanded {
-  corner-shape: var(--corner-shape-composer);
-}
-
-/* 聚焦环：独立覆盖层，重声明同一套圆角与曲率，避免两层曲率不一致露出内圈线 */
-.composer-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: inherit;
-  border-color: var(--composer-ring);
-  border-radius: inherit;
-  corner-shape: inherit;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.composer-card:focus-within::after {
-  opacity: 1;
+.composer-card > * {
+  position: relative;
+  z-index: 2;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -691,7 +675,7 @@ defineExpose({ focus })
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font: inherit;
   font-size: var(--text-body-md);
   line-height: 1.5;
@@ -715,7 +699,7 @@ defineExpose({ focus })
 /* contenteditable 的 placeholder：空内容时显示 data-placeholder */
 .field:empty::before {
   content: attr(data-placeholder);
-  color: var(--contrast-ink-faint);
+  color: var(--placeholder);
   pointer-events: none;
 }
 

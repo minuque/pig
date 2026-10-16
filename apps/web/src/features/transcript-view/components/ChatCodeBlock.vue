@@ -109,13 +109,13 @@ useMutationObserver(host, bindActions, { childList: true, subtree: true })
 
 .fence-name {
   flex: none;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-weight: var(--font-weight-medium);
 }
 
 .fence-dir,
 .fence-lines {
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
 }
 
 .fence-dir {

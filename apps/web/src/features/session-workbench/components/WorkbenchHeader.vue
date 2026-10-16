@@ -108,7 +108,8 @@ function onRename(id: string, name: string): void {
   min-height: calc(var(--size-nav-rail) + 2 * var(--spacing-sm));
   padding: var(--spacing-xs) var(--spacing-sm);
   border-bottom: var(--border-width) solid var(--border-subtle);
-  background: var(--surface);
+  background: var(--toolbar-background);
+  color: var(--toolbar-foreground);
 }
 
 .header-toggle {
@@ -122,7 +123,7 @@ function onRename(id: string, name: string): void {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   transition:
     width var(--duration-slow) var(--ease-smooth),
     margin var(--duration-slow) var(--ease-smooth),
@@ -140,7 +141,7 @@ function onRename(id: string, name: string): void {
 .header-toggle:hover,
 .header-toggle:focus-visible {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .header-session {
@@ -150,7 +151,7 @@ function onRename(id: string, name: string): void {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-normal);
   line-height: var(--text-caption--line-height);

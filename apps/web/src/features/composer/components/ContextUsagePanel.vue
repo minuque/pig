@@ -188,7 +188,7 @@ function onOpenAutoFocus(event: Event) {
 
 .title {
   margin: 0;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-caption--line-height);
@@ -203,12 +203,12 @@ function onOpenAutoFocus(event: Event) {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   cursor: pointer;
 }
 
 .close:hover {
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   background: var(--hover-tint);
 }
 
@@ -221,13 +221,13 @@ function onOpenAutoFocus(event: Event) {
 }
 
 .percent {
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
 
 .tokens {
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
@@ -266,7 +266,7 @@ function onOpenAutoFocus(event: Event) {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
   font: inherit;
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
@@ -280,7 +280,7 @@ function onOpenAutoFocus(event: Event) {
 
 .legend-row--button:hover {
   background: var(--hover-tint);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .swatch {
@@ -298,7 +298,7 @@ function onOpenAutoFocus(event: Event) {
 .legend-count,
 .legend-pct {
   flex: none;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-variant-numeric: tabular-nums;
 }
 
@@ -313,7 +313,7 @@ function onOpenAutoFocus(event: Event) {
   min-height: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--text-body-md);
   line-height: 1.7;
 }
@@ -336,7 +336,7 @@ function onOpenAutoFocus(event: Event) {
 .preview-text {
   margin: 0;
   overflow: auto;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font: inherit;
   font-size: var(--text-body-md);
   line-height: 1.7;

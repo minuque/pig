@@ -8,7 +8,7 @@
       :side-offset="4"
       :collision-padding="8"
       update-position-strategy="always"
-      class="menu-surface surface-float reveal-menu z-(--z-drawer) max-h-(--reka-context-menu-content-available-height) min-w-(--size-context-menu) origin-(--reka-context-menu-content-transform-origin) text-ink"
+      class="menu-surface surface-float reveal-menu z-(--z-drawer) max-h-(--reka-context-menu-content-available-height) min-w-(--size-context-menu) origin-(--reka-context-menu-content-transform-origin) text-foreground"
       :class="props.class"
       :style="contentStyle"
       @close-auto-focus="onCloseAutoFocus"

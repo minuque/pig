@@ -13,7 +13,7 @@
       <DialogClose
         v-if="showCloseButton"
         data-slot="dialog-close"
-        class="text-ink-muted hover:bg-accent hover:text-ink absolute inset-bs-(--spacing-md) inset-e-(--spacing-md) flex cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-(--icon-button-pad) transition-[background-color,color] duration-(--duration-fast) ease-(--ease-out) focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--size-icon)"
+        class="text-foreground-muted hover:bg-accent hover:text-foreground absolute inset-bs-(--spacing-md) inset-e-(--spacing-md) flex cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-(--icon-button-pad) transition-[background-color,color] duration-(--duration-fast) ease-(--ease-out) focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--size-icon)"
       >
         <CloseIcon />
       </DialogClose>

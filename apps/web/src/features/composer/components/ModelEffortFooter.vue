@@ -167,7 +167,7 @@ function reset() {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   cursor: pointer;
 }
 
@@ -178,7 +178,7 @@ function reset() {
 
 .effort-reset:hover:not(:disabled) {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .effort-reset:disabled {
@@ -228,7 +228,7 @@ function reset() {
   width: 4px;
   height: 4px;
   border-radius: var(--radius-full);
-  background: var(--contrast-ink-faint);
+  background: var(--contrast-foreground-faint);
   transform: translate(-50%, -50%);
 }
 

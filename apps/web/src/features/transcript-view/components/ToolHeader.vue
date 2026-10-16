@@ -189,7 +189,7 @@ async function copy() {
 .label {
   display: block;
   overflow: hidden;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-family: var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -200,7 +200,7 @@ async function copy() {
   flex: none;
   align-items: center;
   gap: 2px;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   white-space: nowrap;
 }
 
@@ -219,7 +219,7 @@ async function copy() {
   border: 0;
   border-radius: var(--radius-xs);
   background: transparent;
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
   box-shadow: none;
   font-size: inherit;
   font-weight: var(--font-weight-normal);
@@ -228,7 +228,7 @@ async function copy() {
 .icon-btn:hover,
 .copy:hover {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .copy.is-copied {
@@ -236,7 +236,7 @@ async function copy() {
 }
 
 .copy.is-error {
-  color: var(--danger);
+  color: var(--destructive);
 }
 
 .icon-swap {

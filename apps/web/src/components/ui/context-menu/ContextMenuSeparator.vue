@@ -2,7 +2,7 @@
   <ContextMenuSeparator
     data-slot="context-menu-separator"
     v-bind="forwardedProps"
-    class="mx-(--spacing-xs) my-(--spacing-xxs) h-px bg-[color:var(--hairline)]"
+    class="mx-(--spacing-xs) my-(--spacing-xs) h-px bg-[color:var(--hairline)]"
     :class="props.class"
   />
 </template>

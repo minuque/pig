@@ -56,55 +56,53 @@
   --ms-action-btn-padding: 0.3125rem;
 
   /* 色板 */
-  --ms-foreground: from var(--contrast-ink) h s l;
-  --ms-background: from var(--surface) h s l;
-  --ms-muted: from var(--canvas-soft) h s l;
-  --ms-muted-foreground: from var(--contrast-ink-muted) h s l;
+  --ms-foreground: from var(--contrast-foreground) h s l;
+  --ms-background: from var(--card) h s l;
+  --ms-muted: from var(--background-soft) h s l;
+  --ms-muted-foreground: from var(--contrast-foreground-muted) h s l;
   --ms-border: from var(--border) h s l;
   --ms-primary: from var(--primary) h s l;
-  --ms-primary-foreground: from var(--on-primary) h s l;
-  --ms-secondary: from var(--canvas-soft) h s l;
-  --ms-secondary-foreground: from var(--contrast-ink-secondary) h s l;
-  --ms-accent: from var(--canvas-soft) h s l;
-  --ms-accent-foreground: from var(--contrast-ink) h s l;
-  --ms-destructive: from var(--danger) h s l;
-  --ms-destructive-foreground: from var(--danger-foreground) h s l;
+  --ms-primary-foreground: from var(--primary-foreground) h s l;
+  --ms-secondary: from var(--background-soft) h s l;
+  --ms-secondary-foreground: from var(--contrast-foreground-secondary) h s l;
+  --ms-accent: from var(--background-soft) h s l;
+  --ms-accent-foreground: from var(--contrast-foreground) h s l;
+  --ms-destructive: from var(--destructive) h s l;
+  --ms-destructive-foreground: from var(--destructive-foreground) h s l;
   --ms-success: from var(--success) h s l;
   --ms-success-foreground: from var(--success-foreground) h s l;
   --ms-warning: from var(--warning) h s l;
   --ms-warning-foreground: from var(--warning-foreground) h s l;
   --ms-info: from var(--primary) h s l;
-  --ms-info-foreground: from var(--on-primary) h s l;
-  --ms-diff-added: from color-mix(in srgb, var(--success) 88%, var(--surface)) h s l;
-  --ms-diff-removed: from color-mix(in srgb, var(--danger) 88%, var(--surface)) h s l;
-  --ms-highlight: from color-mix(in srgb, var(--primary) 16%, var(--surface)) h s l;
-  --ms-highlight-foreground: from var(--contrast-ink) h s l;
+  --ms-info-foreground: from var(--primary-foreground) h s l;
+  --ms-diff-added: from color-mix(in srgb, var(--success) 88%, var(--card)) h s l;
+  --ms-diff-removed: from color-mix(in srgb, var(--destructive) 88%, var(--card)) h s l;
+  --ms-highlight: from color-mix(in srgb, var(--primary) 16%, var(--card)) h s l;
+  --ms-highlight-foreground: from var(--contrast-foreground) h s l;
   --ms-popover: from var(--popover) h s l;
-  --ms-popover-foreground: from var(--contrast-ink) h s l;
+  --ms-popover-foreground: from var(--contrast-foreground) h s l;
   --ms-ring: from var(--primary) h s l;
   --ms-shadow-subtle: var(--shadow-card);
   --ms-shadow-popover: var(--shadow-popover);
   --ms-shadow-modal: var(--shadow-modal);
   --ms-shadow-preview: var(--shadow-modal);
 
-  /* 代码 / 引用 / 表 */
-  --code-bg: var(--code-surface);
-  --code-header-bg: var(--code-surface);
-  --diagram-bg: var(--code-surface);
-  --diagram-header-bg: var(--code-surface);
+  /* 代码 / 引用 / 表。底和字走主题角色，换主题后跟着变。 */
+  --code-header-bg: var(--code-background);
+  --diagram-bg: var(--code-background);
+  --diagram-header-bg: var(--code-background);
   --diagram-border: var(--border-subtle);
-  --code-fg: var(--contrast-ink);
   --code-border: var(--border-subtle);
-  --inline-code-bg: var(--code-surface);
-  --inline-code-fg: var(--contrast-ink);
+  --inline-code-bg: var(--code-background);
+  --inline-code-fg: var(--code-foreground);
   --blockquote-border: var(--border);
-  --blockquote-fg: var(--contrast-ink-muted);
+  --blockquote-fg: var(--contrast-foreground-muted);
   --table-border: var(--border);
   --table-header-bg: transparent;
   --focus-ring: transparent;
   --link-color: var(--link);
 
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--ms-text-body);
   line-height: var(--ms-leading-body);
 
@@ -124,7 +122,7 @@
   }
 
   .heading-6 {
-    color: var(--contrast-ink-muted);
+    color: var(--contrast-foreground-muted);
   }
 
   .heading-1 + .heading-2,
@@ -143,9 +141,9 @@
 
   /* Synara：单层底色，不放边框和阴影 */
   .code-block-container {
-    --markstream-code-theme-bg: var(--code-surface) !important;
-    --markstream-code-fallback-bg: var(--code-surface) !important;
-    --markstream-pre-resolved-theme-bg: var(--code-surface) !important;
+    --markstream-code-theme-bg: var(--code-background) !important;
+    --markstream-code-fallback-bg: var(--code-background) !important;
+    --markstream-pre-resolved-theme-bg: var(--code-background) !important;
 
     border: 0;
     box-shadow: none;
@@ -157,7 +155,8 @@
   }
 
   .mermaid-block-container {
-    background: var(--code-surface);
+    background: var(--code-background);
+    color: var(--code-foreground);
   }
 
   /* Synara：collapse + 单元格全边框，不要卡片底和斑马纹 */
@@ -210,6 +209,6 @@
 
 /* 影子 :host 写死主题色，外层声明优先。 */
 diffs-container {
-  --diffs-bg: var(--code-surface) !important;
-  background-color: var(--code-surface) !important;
+  --diffs-bg: var(--code-background) !important;
+  background-color: var(--code-background) !important;
 }

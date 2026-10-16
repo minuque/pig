@@ -107,7 +107,7 @@ async function copy() {
   align-items: center;
   gap: var(--spacing-xs);
   width: fit-content;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
@@ -123,7 +123,7 @@ async function copy() {
   border: 0;
   border-radius: var(--radius-xs);
   background: transparent;
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
   box-shadow: none;
   transition:
     color var(--duration-fast) var(--ease-out),
@@ -132,7 +132,7 @@ async function copy() {
 
 .copy:hover {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .copy.is-copied {
@@ -140,7 +140,7 @@ async function copy() {
 }
 
 .copy.is-error {
-  color: var(--danger);
+  color: var(--destructive);
 }
 
 .icon-swap,

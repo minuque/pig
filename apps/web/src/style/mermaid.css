@@ -1,9 +1,9 @@
 /* mermaid 默认主题：浅色 github-light，深色 github-dark。 */
 
 ._mermaid {
-  --mermaid-text: var(--contrast-ink);
-  --mermaid-text-sec: color-mix(in srgb, var(--contrast-ink) 60%, var(--mermaid-bg));
-  --mermaid-text-muted: var(--contrast-ink-muted);
+  --mermaid-text: var(--contrast-foreground);
+  --mermaid-text-sec: color-mix(in srgb, var(--contrast-foreground) 60%, var(--mermaid-bg));
+  --mermaid-text-muted: var(--contrast-foreground-muted);
   --mermaid-connector: color-mix(in srgb, var(--mermaid-fg) 28%, var(--mermaid-bg));
   --mermaid-arrow: var(--mermaid-accent);
   --mermaid-node-fill: var(--mermaid-fill);
@@ -22,15 +22,15 @@
 }
 
 .mermaid-modal-overlay {
-  --diagram-bg: var(--code-surface);
-  --diagram-header-bg: var(--code-surface);
-  --modal-bg: var(--code-surface);
+  --diagram-bg: var(--code-background);
+  --diagram-header-bg: var(--code-background);
+  --modal-bg: var(--code-background);
 }
 
 .mermaid-action-btn:hover,
 .mermaid-action-btn:focus-visible {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 ._mermaid svg .actor,

@@ -156,6 +156,7 @@
   --info: var(--primary);
   --warning: #d97706;
   --destructive: #c94446;
+  --state-working: #7cb3ff;
   --success-foreground: var(--primary-foreground);
   --warning-foreground: var(--primary-foreground);
   --destructive-foreground: var(--primary-foreground);

@@ -53,12 +53,12 @@ function retry() {
 
 .error-icon {
   flex: none;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
 }
 
 .error-title {
   margin: 0;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-sm--line-height);
@@ -66,7 +66,7 @@ function retry() {
 
 .error-detail {
   margin: 0;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   overflow-wrap: anywhere;

@@ -64,12 +64,23 @@
       })()
     </script>
     <link rel="stylesheet" href="/src/style/app.css" />
+    <script>
+      /* 桌面壳据此改窗口底色。放在样式表之后，--background 才有值。 */
+      ;(function () {
+        if (!window.pigDesktop) return
+        var probe = document.createElement("div")
+        probe.style.background = "var(--background)"
+        document.documentElement.appendChild(probe)
+        window.pigDesktop.setThemeColor(getComputedStyle(probe).backgroundColor)
+        probe.remove()
+      })()
+    </script>
     <style>
       html,
       body {
         height: 100%;
         margin: 0;
-        background: var(--canvas-soft);
+        background: var(--background-soft);
       }
     </style>
   </head>

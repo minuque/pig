@@ -78,7 +78,7 @@ onMounted(() => {
   margin-bottom: calc(-1 * 18px);
   padding: 0 var(--spacing-xs) 18px;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  box-shadow: inset 0 0 0 var(--border-width) var(--surface-border);
+  box-shadow: inset 0 0 0 var(--border-width) var(--card-border);
 }
 
 .row {
@@ -89,7 +89,7 @@ onMounted(() => {
   height: 36px;
   padding-inline: var(--spacing-xs);
   border-radius: var(--radius-md);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   cursor: default;
@@ -103,7 +103,7 @@ onMounted(() => {
 /* 拖拽跟手：源行保持实体阴影，邻项让位由 useDragReorder 的 transform 预览驱动 */
 .row.is-drag-live {
   z-index: 2;
-  background: var(--surface);
+  background: var(--card);
   box-shadow: var(--shadow-float);
   cursor: grabbing;
 }
@@ -112,7 +112,7 @@ onMounted(() => {
   flex: none;
   width: var(--size-icon);
   height: var(--size-icon);
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   opacity: 0.5;
   cursor: grab;
   touch-action: none;
@@ -143,7 +143,7 @@ onMounted(() => {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   opacity: 0.72;
   cursor: pointer;
   transition:
@@ -154,7 +154,7 @@ onMounted(() => {
 
 .action:hover {
   background: var(--hover-tint);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   opacity: 1;
 }
 
@@ -173,7 +173,7 @@ onMounted(() => {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
   cursor: pointer;
@@ -184,7 +184,7 @@ onMounted(() => {
 
 .send-now:hover {
   background: var(--hover-tint);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 @media (prefers-reduced-motion: reduce) {

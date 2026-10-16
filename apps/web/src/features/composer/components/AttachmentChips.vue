@@ -174,7 +174,7 @@ const rows = computed(() =>
   gap: 2px;
   height: 100%;
   padding: var(--spacing-xs) 3px 0;
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
   transition: opacity var(--duration-normal) var(--ease-out);
 }
 
@@ -182,7 +182,7 @@ const rows = computed(() =>
   flex: none;
   width: 24px;
   height: 24px;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
 }
 
 .file-name {
@@ -203,7 +203,7 @@ const rows = computed(() =>
 
 .file-ext {
   flex: none;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
 }
 
 /* 进度环与 tile 同位：描边中线压 tile 边缘，不再外扩出第二道框。
@@ -239,8 +239,8 @@ const rows = computed(() =>
 .chip:not(.chip--file) .pct {
   padding: 0 3px;
   border-radius: var(--radius-full);
-  background: var(--inverse-bg);
-  color: var(--inverse-fg);
+  background: var(--inverse-background);
+  color: var(--inverse-foreground);
   backdrop-filter: blur(var(--material-blur)) saturate(var(--material-saturate));
 }
 
@@ -258,8 +258,8 @@ const rows = computed(() =>
   padding: 0;
   border: 0;
   border-radius: var(--radius-full);
-  background: var(--inverse-bg);
-  color: var(--inverse-fg);
+  background: var(--inverse-background);
+  color: var(--inverse-foreground);
   cursor: pointer;
   opacity: 0;
   filter: blur(3px);
@@ -286,7 +286,7 @@ const rows = computed(() =>
 
 .remove:hover,
 .remove:focus-visible {
-  background: var(--inverse-bg-hover);
+  background: var(--inverse-background-hover);
 }
 
 .remove-icon {

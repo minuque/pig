@@ -93,7 +93,7 @@ const label = computed(() =>
   gap: 0.3em;
   max-width: 100%;
   margin: 0;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--text-heading-2);
   font-weight: var(--font-weight-normal);
   line-height: var(--text-heading-2--line-height);

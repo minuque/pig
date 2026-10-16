@@ -72,11 +72,11 @@ const props = withDefaults(
 )
 const emit = defineEmits<{ close: [] }>()
 const variantClasses: Record<AlertVariant, string> = {
-  default: "border-border bg-muted/30 text-ink [&_.alert-icon]:text-ink-muted",
-  error: "border-danger/30 bg-danger/5 text-ink [&_.alert-icon]:text-danger",
-  info: "border-info/30 bg-info/5 text-ink [&_.alert-icon]:text-info",
-  success: "border-success/30 bg-success/5 text-ink [&_.alert-icon]:text-success",
-  warning: "border-warning/30 bg-warning/5 text-ink [&_.alert-icon]:text-warning",
+  default: "border-border bg-muted/30 text-foreground [&_.alert-icon]:text-foreground-muted",
+  error: "border-destructive/30 bg-destructive/5 text-foreground [&_.alert-icon]:text-destructive",
+  info: "border-info/30 bg-info/5 text-foreground [&_.alert-icon]:text-info",
+  success: "border-success/30 bg-success/5 text-foreground [&_.alert-icon]:text-success",
+  warning: "border-warning/30 bg-warning/5 text-foreground [&_.alert-icon]:text-warning",
 }
 const root = useTemplateRef("root")
 const status = shallowRef<"idle" | "copied" | "error">("idle")
@@ -107,12 +107,12 @@ async function copy() {
 
 <style scoped>
 .alert-action {
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
 }
 
 .alert-action:hover {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .alert-action.is-copied {
@@ -120,7 +120,7 @@ async function copy() {
 }
 
 .alert-action.is-error {
-  color: var(--danger);
+  color: var(--destructive);
 }
 
 .alert-icon :deep(svg) {

@@ -547,7 +547,7 @@ const contentHandleSides = ["left", "right"] as const
   padding: var(--spacing-sm) var(--spacing-md);
   border: var(--border-width) dashed var(--primary);
   border-radius: var(--radius-full);
-  background: var(--composer-bg);
+  background: var(--composer-background);
   color: var(--primary);
   font-size: var(--text-body-md);
   line-height: var(--text-body-md--line-height);
@@ -595,7 +595,7 @@ const contentHandleSides = ["left", "right"] as const
   top: 0;
   z-index: 1;
   height: var(--spacing-sm);
-  background: linear-gradient(to bottom, var(--surface), transparent);
+  background: linear-gradient(to bottom, var(--card), transparent);
   content: "";
 }
 
@@ -625,32 +625,6 @@ const contentHandleSides = ["left", "right"] as const
 
 .composer-bar.is-hero {
   bottom: var(--hero-dock);
-}
-
-.composer-bar.is-hero::before,
-.composer-bar.is-hero::after {
-  content: none;
-}
-
-/* 渐隐带，让开滚动条列 */
-.composer-bar::before {
-  pointer-events: none;
-  position: absolute;
-  inset-inline: 0 var(--size-scrollbar);
-  bottom: 100%;
-  height: var(--spacing-sm);
-  background: linear-gradient(to bottom, transparent, var(--surface));
-  content: "";
-}
-
-/* 输入条区段补实底盖住圆角外侧与下方留白，负 z-index 沉在胶囊之下、transcript 之上 */
-.composer-bar::after {
-  content: "";
-  position: absolute;
-  inset: 0 var(--size-scrollbar) 0 0;
-  background: var(--surface);
-  pointer-events: none;
-  z-index: -1;
 }
 
 .composer-stack {
@@ -689,7 +663,7 @@ const contentHandleSides = ["left", "right"] as const
   height: var(--size-scroll-control);
   border-radius: var(--radius-full);
   background: var(--popover);
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
   box-shadow: none;
   cursor: pointer;
   transform: translateY(calc(-100% - var(--spacing-sm)));
@@ -697,7 +671,7 @@ const contentHandleSides = ["left", "right"] as const
 
 .scroll-latest-control:hover {
   background: var(--interaction-hover);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 @media (max-width: 900px) {

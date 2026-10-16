@@ -55,7 +55,7 @@ const iconUrl = computed(() => {
 .file-tag-name {
   min-width: 0;
   overflow: hidden;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

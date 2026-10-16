@@ -9,5 +9,5 @@
   position: relative;
   z-index: 1;
   overflow: auto;
-  padding: var(--spacing-xxs);
+  padding: var(--spacing-xs);
 }

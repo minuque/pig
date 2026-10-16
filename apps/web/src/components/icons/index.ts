@@ -60,6 +60,8 @@ export { ListIcon } from "@solar-icons/vue/linear/list"
 
 export { ListOrderedMinimalisticIcon } from "@solar-icons/vue/linear/list-ordered-minimalistic"
 
+export { CircleDashedIcon } from "@solar-icons/vue/linear/circle-dashed"
+
 export { LoaderIcon } from "@solar-icons/vue/linear/loader"
 
 export { MagnifierIcon } from "@solar-icons/vue/linear/magnifier"

@@ -11,3 +11,10 @@ declare module "*.svg?url" {
   const src: string
   export default src
 }
+
+interface Window {
+  /** 桌面壳 preload 注入。浏览器里没有。 */
+  pigDesktop?: {
+    setThemeColor(color: string): void
+  }
+}
