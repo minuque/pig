@@ -1,27 +1,24 @@
-import { inject, provide, ref, type InjectionKey, type Ref } from "vue"
+import { inject, provide, type InjectionKey } from "vue"
+import { useRouter } from "vue-router"
 
 export { useGeneralPrefs, notifyTurnDone } from "@features/settings/hooks/use-general-prefs.js"
 
 export type { FontSize, UiLocale } from "@features/settings/hooks/use-general-prefs.js"
 
-export type SettingsTab = "general" | "usage" | "skills" | "extensions"
-
 export type SettingsContext = {
-  tab: Ref<SettingsTab>
   openSettings: () => void
 }
 
 export const settingsKey: InjectionKey<SettingsContext> = Symbol("settings")
 
 export function provideSettings(): SettingsContext {
-  const tab = ref<SettingsTab>("general")
+  const router = useRouter()
 
   function openSettings() {
-    tab.value = "general"
-    void import("@router/index.js").then((module) => module.default.push({ name: "settings" }))
+    void router.push({ name: "settings-general" })
   }
 
-  const settings = { tab, openSettings }
+  const settings = { openSettings }
   provide(settingsKey, settings)
   return settings
 }

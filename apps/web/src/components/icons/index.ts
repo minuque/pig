@@ -14,6 +14,8 @@ export { ArrowDownIcon } from "@solar-icons/vue/linear/arrow-down"
 
 export { ArrowLeftDownIcon } from "@solar-icons/vue/linear/arrow-left-down"
 
+export { ArrowLeftIcon } from "@solar-icons/vue/linear/arrow-left"
+
 export { ArrowUpIcon } from "@solar-icons/vue/linear/arrow-up"
 
 export { Book2Icon } from "@solar-icons/vue/linear/book-2"

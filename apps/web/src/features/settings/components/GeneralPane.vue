@@ -3,58 +3,83 @@
     <section class="group">
       <h2 class="group-title">{{ t("settings.appearance") }}</h2>
 
-      <div class="card">
-        <div class="row">
-          <div class="copy">
-            <h3 class="label">{{ t("settings.appearance") }}</h3>
-            <p class="hint">{{ t("settings.appearanceHint") }}</p>
-          </div>
+      <div class="scheme-cards" role="radiogroup" :aria-label="t('settings.appearance')">
+        <button
+          v-for="option in schemes"
+          :key="option.id"
+          type="button"
+          class="scheme-card"
+          role="radio"
+          :aria-checked="scheme === option.id"
+          @click="setScheme(option.id)"
+        >
+          <span class="scheme-wire" :data-tone="wireTone(option.id)" aria-hidden="true">
+            <span class="wire-side" />
 
-          <div class="scheme-cards" role="radiogroup" :aria-label="t('settings.appearance')">
-            <button
-              v-for="option in schemes"
-              :key="option.id"
-              type="button"
-              class="scheme-card"
-              role="radio"
-              :aria-checked="scheme === option.id"
-              @click="setScheme(option.id)"
-            >
-              <component :is="option.icon" class="size-icon" />
-              <span class="scheme-label">{{ option.label }}</span>
-            </button>
-          </div>
-        </div>
+            <span class="wire-main">
+              <span class="wire-line" />
+              <span class="wire-line" />
+              <span class="wire-line short" />
 
-        <div class="theme-grid" role="radiogroup" :aria-label="t('settings.theme')">
+              <span class="wire-composer">
+                <span class="wire-knob" />
+              </span>
+            </span>
+          </span>
+
+          <span class="scheme-label">{{ option.label }}</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2 class="group-title">{{ t("settings.theme") }}</h2>
+
+      <div class="theme-grid" role="radiogroup" :aria-label="t('settings.theme')">
+        <div
+          v-for="theme in THEMES"
+          :key="theme.id"
+          class="theme-card"
+          :aria-checked="selectedId === theme.id"
+        >
           <button
-            v-for="theme in THEMES"
-            :key="theme.id"
             type="button"
-            class="theme-card"
+            class="theme-pick"
             role="radio"
-            :aria-checked="themeId === theme.id"
+            :aria-checked="selectedId === theme.id"
             :data-theme-id="theme.id"
             @click="setThemeById(theme.id)"
           >
-            <span class="theme-preview" :data-mode="scheme === 'auto' ? 'split' : scheme">
-              <span
-                class="theme-ball"
-                :style="ballStyle(theme.lightPreview, 'light')"
-                aria-hidden="true"
-              />
+            <span class="theme-preview">
+              <span class="theme-ball" :style="ballStyle(theme.lightPreview, 'light')">
+                <SunIcon v-if="selectedId === theme.id && !isDark" class="ball-mark" />
+              </span>
 
-              <span
-                class="theme-ball"
-                :style="ballStyle(theme.darkPreview, 'dark')"
-                aria-hidden="true"
-              />
+              <span class="theme-ball" :style="ballStyle(theme.darkPreview, 'dark')">
+                <MoonIcon v-if="selectedId === theme.id && isDark" class="ball-mark" />
+              </span>
             </span>
 
             <span class="theme-name">{{ theme.label }}</span>
           </button>
-        </div>
 
+          <button
+            v-if="theme.id === DEFAULT_THEME_ID && selectedId !== DEFAULT_THEME_ID"
+            type="button"
+            class="theme-action"
+            :aria-label="t('settings.resetTheme')"
+            @click="setThemeById(DEFAULT_THEME_ID)"
+          >
+            <RestartIcon />
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2 class="group-title">{{ t("settings.interface") }}</h2>
+
+      <div class="card">
         <div class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.language") }}</h3>
@@ -121,8 +146,8 @@
             <Slider
               :aria-label="t('settings.glassOpacity')"
               :model-value="[glassOpacity]"
-              :min="5"
-              :max="95"
+              :min="40"
+              :max="100"
               :step="5"
               :disabled="!glassOn"
               class="opacity-slider"
@@ -191,19 +216,19 @@
 </template>
 
 <script setup lang="ts">
-import { shallowRef } from "vue"
+import { computed } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
 import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
-import { THEMES, type ThemePreview } from "@features/theme/lib/palette.js"
+import { DEFAULT_THEME_ID, THEMES, type ThemePreview } from "@features/theme/lib/palette.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { Slider } from "@components/ui/slider/index.js"
-import { MonitorIcon, MoonIcon, SunIcon } from "@components/icons/index.js"
+import { MoonIcon, RestartIcon, SunIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
-const { scheme, themeId, setScheme, setTheme } = useColorScheme()
+const { isDark, scheme, themeId, setScheme, setTheme } = useColorScheme()
 const { enabled: soundOn, toggle: toggleSound } = useSound()
 const {
   locale,
@@ -219,30 +244,41 @@ const {
   setGlassOpacity,
   setContrastBoost,
 } = useGeneralPrefs()
+/** 没装主题时选中默认卡。默认卡清除注入，颜色回到 :root / .dark。 */
+const selectedId = computed(() => themeId.value ?? DEFAULT_THEME_ID)
 
-function setThemeById(id: string | null) {
-  setTheme(id === null ? null : (THEMES.find((theme) => theme.id === id) ?? null))
+function setThemeById(id: string) {
+  if (id === DEFAULT_THEME_ID) {
+    setTheme(null)
+    return
+  }
+
+  setTheme(THEMES.find((theme) => theme.id === id) ?? null)
 }
 
 function ballStyle(preview: ThemePreview, mode: "light" | "dark") {
-  const base = mode === "light" ? "#ffffff" : "#0f0f11"
+  const base = mode === "light" ? "var(--white)" : "var(--card)"
   return {
     background: [
       `radial-gradient(circle at 30% 30% in oklab, ${preview.accent} 0%, transparent 60%)`,
       `radial-gradient(circle at 75% 75% in oklab, ${preview.messageAction}40 0%, transparent 60%)`,
       `color-mix(in oklab, ${preview.canvas} 88%, ${base})`,
     ].join(", "),
-    boxShadow:
-      mode === "dark"
-        ? "inset 0 0 0 1px rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 0 0 / 0.18)"
-        : "inset 0 0 0 1px rgb(0 0 0 / 0.10), 0 1px 2px rgb(0 0 0 / 0.08)",
+    boxShadow: mode === "dark" ? "var(--theme-ball-ring-dark)" : "var(--theme-ball-ring-light)",
   }
 }
 
-const schemes: { id: ColorScheme; label: string; icon: typeof MonitorIcon }[] = [
-  { id: "light", label: t("settings.schemeLight"), icon: SunIcon },
-  { id: "dark", label: t("settings.schemeDark"), icon: MoonIcon },
-  { id: "auto", label: t("settings.schemeAuto"), icon: MonitorIcon },
+function wireTone(id: ColorScheme): "light" | "dark" | "split" {
+  if (id === "light") return "light"
+
+  if (id === "dark") return "dark"
+  return isDark.value ? "split" : "light"
+}
+
+const schemes: { id: ColorScheme; label: string }[] = [
+  { id: "auto", label: t("settings.schemeAuto") },
+  { id: "light", label: t("settings.schemeLight") },
+  { id: "dark", label: t("settings.schemeDark") },
 ]
 const locales: { id: UiLocale; label: string }[] = [
   { id: "en", label: "English" },
@@ -278,7 +314,7 @@ async function onNotify(next: boolean) {
 .pane {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
   padding-block-end: var(--spacing-md);
 }
 
@@ -290,10 +326,10 @@ async function onNotify(next: boolean) {
 
 .group-title {
   margin: 0;
-  color: var(--contrast-ink);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--text-title--line-height);
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-body-sm--line-height);
 }
 
 .card {
@@ -302,7 +338,7 @@ async function onNotify(next: boolean) {
   padding-inline: var(--spacing-md);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-xl);
-  background: var(--canvas);
+  background: var(--background);
 }
 
 .row {
@@ -327,7 +363,7 @@ async function onNotify(next: boolean) {
 
 .label {
   margin: 0;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--text-body-md);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-md--line-height);
@@ -335,95 +371,234 @@ async function onNotify(next: boolean) {
 
 .hint {
   margin: 0;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
 
 .scheme-cards {
-  display: flex;
+  display: grid;
   gap: var(--spacing-sm);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .scheme-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xxs);
-  width: 4.5rem;
+  align-items: stretch;
+  gap: var(--spacing-sm);
   padding: var(--spacing-sm);
   border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  color: var(--contrast-ink-muted);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  color: var(--contrast-foreground-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .scheme-card:hover {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .scheme-card[aria-checked="true"] {
   border-color: var(--primary);
-  background: var(--interaction-selected);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
+  box-shadow: var(--focus-ring);
+}
+
+.scheme-wire {
+  display: flex;
+  overflow: hidden;
+  height: 6.5rem;
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--theme-wire-light);
+}
+
+/* 线框默认画浅色界面；dark 画深色，split 只把侧栏画深色。 */
+.scheme-wire[data-tone="dark"] {
+  background: var(--theme-wire-dark);
+}
+
+.scheme-wire[data-tone="dark"] .wire-side,
+.scheme-wire[data-tone="split"] .wire-side {
+  background: var(--theme-wire-dark-raised);
+}
+
+.scheme-wire[data-tone="dark"] .wire-line,
+.scheme-wire[data-tone="split"] .wire-side .wire-line {
+  background: var(--white);
+  opacity: var(--opacity-disabled);
+}
+
+.scheme-wire[data-tone="dark"] .wire-composer {
+  background: var(--theme-wire-dark-raised);
+}
+
+.wire-side {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+  width: 28%;
+  padding: var(--spacing-xs);
+  background: var(--theme-wire-light-raised);
+}
+
+.wire-side::before,
+.wire-side::after {
+  content: "";
+  height: var(--spacing-xxs);
+  border-radius: var(--radius-full);
+  background: var(--border);
+}
+
+.wire-side::after {
+  width: 70%;
+}
+
+.wire-main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+  padding: var(--spacing-xs);
+}
+
+.wire-line {
+  height: var(--spacing-xxs);
+  border-radius: var(--radius-full);
+  background: var(--border);
+}
+
+.wire-line.short {
+  width: 60%;
+}
+
+.wire-composer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: auto;
+  height: var(--spacing-md);
+  padding-inline: var(--spacing-xxs);
+  border-radius: var(--radius-full);
+  background: var(--theme-wire-light-raised);
+}
+
+.wire-knob {
+  width: var(--spacing-sm);
+  height: var(--spacing-sm);
+  border-radius: var(--radius-full);
+  background: var(--primary);
 }
 
 .scheme-label {
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-caption--line-height);
+  text-align: center;
 }
 
 .theme-grid {
   display: grid;
   gap: var(--spacing-sm);
-  padding-block: var(--spacing-sm);
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  border-block-end: var(--border-width) solid var(--border-subtle);
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
 }
 
 .theme-card {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--spacing-xxs);
+  align-items: center;
+  gap: var(--spacing-sm);
   padding: var(--spacing-sm);
   border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  color: var(--contrast-ink-muted);
-}
-
-.theme-card:hover {
-  background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  color: var(--contrast-foreground-muted);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .theme-card[aria-checked="true"] {
   border-color: var(--primary);
-  background: var(--interaction-selected);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
+}
+
+.theme-pick {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
 }
 
 .theme-preview {
   display: flex;
-  justify-content: center;
-  gap: var(--spacing-xxs);
+  flex: none;
 }
 
 .theme-ball {
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 2px solid var(--surface);
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 2px solid var(--card);
   border-radius: var(--radius-full);
+  color: var(--primary-foreground);
+  transition: scale var(--duration-fast) var(--ease-out);
+}
+
+.theme-pick:hover .theme-ball:not(:has(.ball-mark)) {
+  scale: 1.05;
+}
+
+.theme-ball + .theme-ball {
+  margin-inline-start: calc(var(--spacing-sm) * -1);
+}
+
+.ball-mark {
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
 }
 
 .theme-name {
-  font-size: var(--text-caption);
+  overflow: hidden;
+  font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-caption--line-height);
-  text-align: center;
+  line-height: var(--text-body-sm--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-action {
+  display: grid;
+  place-items: center;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--contrast-foreground-faint);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.theme-action:hover {
+  background: var(--hover-quiet);
+  color: var(--contrast-foreground);
 }
 
 .segment {
@@ -432,7 +607,7 @@ async function onNotify(next: boolean) {
   gap: var(--spacing-xxs);
   padding: var(--spacing-xxs);
   border-radius: var(--radius-lg);
-  background: var(--surface);
+  background: var(--card);
 }
 
 .segment-btn {
@@ -444,20 +619,23 @@ async function onNotify(next: boolean) {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-caption--line-height);
   white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .segment-btn:hover {
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .segment-btn[aria-checked="true"] {
   background: var(--interaction-selected);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .size-btn {
@@ -479,13 +657,27 @@ async function onNotify(next: boolean) {
 
 .opacity-value {
   min-width: 3ch;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
   text-align: end;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .scheme-card,
+  .theme-card,
+  .theme-ball,
+  .theme-action,
+  .segment-btn {
+    transition: none;
+  }
+}
+
 @media (max-width: 720px) {
+  .scheme-cards {
+    grid-template-columns: 1fr;
+  }
+
   .row {
     align-items: flex-start;
     flex-direction: column;

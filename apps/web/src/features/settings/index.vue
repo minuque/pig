@@ -1,67 +1,29 @@
 <template>
   <div class="settings-page">
-    <header class="page-head">
-      <button class="back" type="button" :aria-label="t('common.back')" @click="router.back()">
-        <ArrowLeftDownIcon class="size-icon" />
-      </button>
-
-      <h1 class="page-title">{{ t("settings.title") }}</h1>
-    </header>
-
-    <div class="settings">
-      <nav class="nav" :aria-label="t('settings.title')">
-        <button
-          v-for="item in tabs"
-          :key="item.id"
-          type="button"
-          class="nav-item"
-          :aria-current="tab === item.id ? 'page' : undefined"
-          @click="tab = item.id"
-        >
-          <component :is="item.icon" class="size-icon" />
-          {{ item.label }}
-        </button>
-      </nav>
-
-      <section class="main">
-        <div class="main-body">
-          <GeneralPane v-if="tab === 'general'" />
-          <UsagePane v-else-if="tab === 'usage'" />
-          <ResourcePane v-else-if="tab === 'skills'" :empty="t('settings.noSkills')" />
-          <ResourcePane v-else :empty="t('settings.noExtensions')" />
-        </div>
-      </section>
+    <div class="settings-column">
+      <h1 class="page-title">{{ title }}</h1>
+      <RouterView />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { useRouter } from "vue-router"
+import { useRoute } from "vue-router"
 import { useI18n } from "@i18n/index.js"
-import GeneralPane from "@features/settings/components/GeneralPane.vue"
-import ResourcePane from "@features/settings/components/ResourcePane.vue"
-import UsagePane from "@features/settings/components/UsagePane.vue"
-import { useSettings, type SettingsTab } from "@features/settings/index.js"
-import {
-  ArrowLeftDownIcon,
-  ChartSquareIcon,
-  SliderMinimalisticHorizontalIcon,
-  Widget5Icon,
-  WidgetAddIcon,
-} from "@components/icons/index.js"
 
+const TITLES = {
+  "settings-general": "settings.general",
+  "settings-usage": "settings.usage",
+  "settings-skills": "settings.skills",
+  "settings-extensions": "settings.extensions",
+} as const
 const { t } = useI18n()
-const router = useRouter()
-const { tab } = useSettings()
-const tabs = computed<
-  { id: SettingsTab; label: string; icon: typeof SliderMinimalisticHorizontalIcon }[]
->(() => [
-  { id: "general", label: t("settings.general"), icon: SliderMinimalisticHorizontalIcon },
-  { id: "usage", label: t("settings.usage"), icon: ChartSquareIcon },
-  { id: "skills", label: t("settings.skills"), icon: WidgetAddIcon },
-  { id: "extensions", label: t("settings.extensions"), icon: Widget5Icon },
-])
+const route = useRoute()
+const title = computed(() => {
+  const key = TITLES[route.name as keyof typeof TITLES]
+  return key ? t(key) : ""
+})
 </script>
 
 <style scoped>
@@ -69,104 +31,25 @@ const tabs = computed<
   display: flex;
   min-height: 0;
   flex: 1;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--canvas);
+  justify-content: center;
+  padding: var(--spacing-lg);
+  overflow: auto;
+  background: var(--background);
 }
 
-.page-head {
+.settings-column {
   display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--spacing-sm);
-  height: var(--size-control);
-  padding-inline: var(--spacing-md);
-  border-block-end: var(--border-width) solid var(--border);
-  background: var(--surface);
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  width: 100%;
+  max-width: var(--size-settings);
 }
 
 .page-title {
   margin: 0;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-title--line-height);
-}
-
-.back {
-  display: grid;
-  place-items: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--contrast-ink-muted);
-}
-
-.back:hover {
-  background: var(--hover-quiet);
-  color: var(--contrast-ink);
-}
-
-.settings {
-  display: flex;
-  min-height: 0;
-  flex: 1;
-  overflow: hidden;
-}
-
-.nav {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  gap: var(--spacing-xxs);
-  width: var(--size-settings-nav);
-  padding: var(--spacing-sm);
-  overflow: auto;
-  border-inline-end: var(--border-width) solid var(--border);
-  background: var(--surface);
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  width: 100%;
-  padding: var(--spacing-xxs) var(--spacing-sm);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--contrast-ink-muted);
-  font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-sm--line-height);
-  text-align: start;
-}
-
-.nav-item:hover {
-  background: var(--hover-quiet);
-  color: var(--contrast-ink);
-}
-
-.nav-item[aria-current="page"] {
-  background: var(--interaction-selected);
-  color: var(--contrast-ink);
-}
-
-.main {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex: 1;
-  flex-direction: column;
-  background: var(--canvas);
-}
-
-.main-body {
-  min-height: 0;
-  flex: 1;
-  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
-  overflow: auto;
 }
 </style>

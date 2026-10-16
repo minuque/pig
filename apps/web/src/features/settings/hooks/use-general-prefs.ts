@@ -19,8 +19,10 @@ const FONT_SIZE_KEY = "pig.fontSize"
 const NOTIFY_KEY = "pig.notify"
 const GLASS_KEY = "pig.glass"
 const GLASS_OPACITY_KEY = "pig.glassOpacity"
-const GLASS_OPACITY_DEFAULT = 70
-const GLASS_OPACITY_MAX = 95
+const GLASS_OPACITY_DEFAULT = 80
+/** 与 t3code 同档：40 下限保证浮层仍可读，100 即全实。 */
+const GLASS_OPACITY_MIN = 40
+const GLASS_OPACITY_MAX = 100
 const CONTRAST_KEY = "pig.contrast"
 const CONTRAST_DEFAULT = 0
 const CONTRAST_MAX = 100
@@ -43,7 +45,7 @@ function apply(
   document.documentElement.lang = nextLocale
   document.documentElement.dataset.fontSize = nextSize
   document.documentElement.dataset.glass = nextGlass ? "on" : "off"
-  document.documentElement.style.setProperty("--glass-opacity", String(nextOpacity))
+  document.documentElement.style.setProperty("--glass-opacity", nextOpacity + "%")
   document.documentElement.style.setProperty("--contrast-boost", nextContrast + "%")
   i18n.global.locale.value = nextLocale as typeof i18n.global.locale.value
 }
@@ -93,7 +95,10 @@ export function useGeneralPrefs() {
       writeFlag(GLASS_KEY, next)
     },
     setGlassOpacity(next: number) {
-      glassOpacity.value = Math.min(Math.max(Math.round(next), 1), GLASS_OPACITY_MAX)
+      glassOpacity.value = Math.min(
+        Math.max(Math.round(next), GLASS_OPACITY_MIN),
+        GLASS_OPACITY_MAX,
+      )
       writeNumber(GLASS_OPACITY_KEY, glassOpacity.value)
     },
     setContrastBoost(next: number) {
