@@ -147,6 +147,7 @@ vite.config.ts.timestamp-*
 playwright-report/
 test-results/
 .smoke-ui/
+.playwright-mcp/
 
 # agents config files
 .pi/
