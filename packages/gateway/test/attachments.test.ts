@@ -37,7 +37,7 @@ async function makeStore(): Promise<AttachmentStore> {
 afterEach(async () => {
   await Promise.all(stores.map((store) => store.dispose()))
   stores.length = 0
-  await Promise.all(roots.map((dir) => rm(dir, { recursive: true, force: true })))
+  await Promise.all(roots.map((dir) => rm(dir, { recursive: true, force: true, maxRetries: 5 })))
   roots.length = 0
 })
 
@@ -349,8 +349,8 @@ describe("AttachmentStore 清理", () => {
 describe("AttachmentStore discard", () => {
   it("丢掉未 bind 的 batch 与它的文件", async () => {
     const store = await makeStore()
-    await stage(store, "b1", PDF, Buffer.from("x"))
-    const path = join(batchDir("b1"), (await readdir(batchDir("b1")))[0] ?? "")
+    const { id } = await stage(store, "b1", PDF, Buffer.from("x"))
+    const path = join(batchDir("b1"), `${id.slice(0, 8)}-${PDF.name}`)
 
     await store.discard("b1")
     expect(await exists(path)).toBe(false)

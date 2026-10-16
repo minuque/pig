@@ -39,19 +39,17 @@ export async function revealSessionCard(page: Page, name: BenchSessionName) {
   })
 
   for (let step = 0; step < 40; step += 1) {
-    const handle = await window_.evaluateHandle((node, text) => {
-      return (
-        [...node.querySelectorAll(".session-card")].find((item) =>
-          [...item.querySelectorAll("*")].some(
-            (el) => el.childNodes.length === 1 && el.textContent === text,
-          ),
-        ) ?? null
+    const found = await window_.evaluate((node, text) => {
+      return [...node.querySelectorAll(".session-card")].some((item) =>
+        [...item.querySelectorAll("*")].some(
+          (el) => el.childNodes.length === 1 && el.textContent === text,
+        ),
       )
     }, name)
-    const element = handle.asElement()
 
-    if (element) return element
-    await handle.dispose()
+    if (found) {
+      return page.locator(".session-card").filter({ hasText: name }).first()
+    }
 
     const moved = await window_.evaluate((node) => {
       const next = Math.min(

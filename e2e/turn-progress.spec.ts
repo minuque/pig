@@ -146,10 +146,11 @@ test("一轮工作：工具步骤状态实时、step-rail 跟随、历史重拉�
     .locator("path")
     .last()
     .evaluate((el) => {
-      const length = el.getTotalLength()
-      const svg = el.ownerSVGElement!
+      const path = el as SVGPathElement
+      const length = path.getTotalLength()
+      const svg = path.ownerSVGElement!
       const end = svg.createSVGPoint()
-      const local = el.getPointAtLength(length)
+      const local = path.getPointAtLength(length)
       end.x = local.x
       end.y = local.y
       return end.matrixTransform(svg.getScreenCTM()!).y - 6

@@ -26,9 +26,10 @@ afterEach(async () => {
   await gateway?.stop()
   gateway = undefined
 
-  if (sessionDir) await rm(sessionDir, { recursive: true, force: true })
+  if (sessionDir) await rm(sessionDir, { recursive: true, force: true, maxRetries: 5 })
 
-  if (attachmentRootDir) await rm(attachmentRootDir, { recursive: true, force: true })
+  if (attachmentRootDir)
+    await rm(attachmentRootDir, { recursive: true, force: true, maxRetries: 5 })
   sessionDir = undefined
   attachmentRootDir = undefined
 })
@@ -315,8 +316,8 @@ describe("thin host WebSocket", () => {
         (await request(base, `/api/v1/platform/files?cwd=${encodeURIComponent(stranger)}`)).status,
       ).toBe(403)
     } finally {
-      await rm(picked, { recursive: true, force: true })
-      await rm(stranger, { recursive: true, force: true })
+      await rm(picked, { recursive: true, force: true, maxRetries: 5 })
+      await rm(stranger, { recursive: true, force: true, maxRetries: 5 })
     }
   })
 })
