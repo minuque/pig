@@ -2,10 +2,9 @@
 /** 新 worktree 初始化：装依赖 → 构建 gateway → 补齐 electron path.txt → 校验并提示下一步。 */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { spawnSync } from "node:child_process"
-import { dirname, join, resolve } from "node:path"
-import { fileURLToPath } from "node:url"
+import { join, resolve } from "node:path"
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+const repoRoot = resolve(import.meta.dirname, "..")
 const target = resolve(process.argv[2] ?? repoRoot)
 
 /** 优先用 pnpm 自身的入口（pnpm run 里 npm_execpath 才有值）。 */

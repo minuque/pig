@@ -1,6 +1,6 @@
 import { computed, shallowRef } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
-import { notifyError } from "@components/layout/notify.js"
+import { notifyAction } from "@components/layout/notify.js"
 import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
 import { sessionTranscript } from "@client/platform.js"
@@ -74,7 +74,7 @@ export function useSessionHistory() {
       } catch (error) {
         // 失败不标 ready：不把已有会话画成欢迎页，下次打开会重拉
         if (requestById.get(id) === request && activeId.value === id) {
-          notifyError(t("session.historyFailed", { message: errorMessage(error) }))
+          notifyAction(t("session.historyFailed", { message: errorMessage(error) }))
         }
       }
     })()
@@ -126,9 +126,7 @@ export function useSessionHistory() {
 
   /** 指定会话当前的合并转录（磁盘 + live 覆盖）；前台投影与后台泵队共用。 */
   function transcriptFor(id: string): readonly TranscriptItem[] {
-    const rev = version.value
-
-    if (rev < 0) return []
+    void version.value
     const page = cache.peek(id)
     return page ? mergeLiveTranscript(page.items, page.heldLive) : []
   }
@@ -139,23 +137,23 @@ export function useSessionHistory() {
   })
   const historyReadyId = computed(() => {
     const id = activeId.value
-    const rev = version.value
+    void version.value
 
-    if (!id || rev < 0 || !cache.isReady(id)) return undefined
+    if (!id || !cache.isReady(id)) return undefined
     return id
   })
   const historyHasMore = computed(() => {
     const id = activeId.value
-    const rev = version.value
+    void version.value
 
-    if (!id || rev < 0) return false
+    if (!id) return false
     return cache.peek(id)?.hasMore ?? false
   })
   const turnTimings = computed(() => {
     const id = activeId.value
-    const rev = version.value
+    void version.value
 
-    if (!id || rev < 0 || !cache.isReady(id)) return []
+    if (!id || !cache.isReady(id)) return []
     return cache.peek(id)?.timings ?? []
   })
   return {

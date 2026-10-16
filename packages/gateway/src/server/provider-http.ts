@@ -23,6 +23,6 @@ export function installProviderHttp(cwd = process.cwd()): void {
   })
 
   setGlobalDispatcher(dispatcher)
-  install?.()
+  install()
   installed = dispatcher
 }

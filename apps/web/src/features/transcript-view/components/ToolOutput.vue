@@ -61,7 +61,6 @@ function lineCut(text: string, limit: number) {
 const props = withDefaults(
   defineProps<{
     text?: string
-    tone?: "code" | "plain"
     embedded?: boolean
     code?: boolean
     softWrap?: boolean
@@ -73,7 +72,6 @@ const props = withDefaults(
   }>(),
   {
     text: "",
-    tone: "code",
     embedded: false,
     code: false,
     softWrap: false,
@@ -103,7 +101,6 @@ const lineNumberWidth = computed(() =>
   Math.max(3, String(props.startLine + props.lines.length - 1).length),
 )
 const preClass = computed(() => ({
-  "is-plain": props.tone === "plain",
   "is-embedded": props.embedded,
 }))
 </script>
@@ -129,7 +126,7 @@ const preClass = computed(() => ({
   overflow: visible;
   border-radius: var(--radius-code);
   background: var(--code-surface);
-  color: var(--contrast-ink-secondary);
+  color: var(--contrast-foreground-secondary);
   font-family: var(--font-mono);
   font-size: inherit;
   line-height: var(--text-code-line);
@@ -137,24 +134,12 @@ const preClass = computed(() => ({
   tab-size: 2;
 }
 
-.tool-output-pre.is-plain,
 .tool-output-pre.is-embedded {
   margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
-}
-
-.tool-output-pre.is-plain {
-  color: inherit;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  white-space: pre-wrap;
-}
-
-.tool-output-pre.is-embedded {
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-family: var(--font-mono);
   font-size: var(--text-code);
 }
@@ -195,13 +180,13 @@ const preClass = computed(() => ({
 .line-number {
   flex: none;
   min-width: var(--line-number-width);
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   text-align: end;
   user-select: none;
 }
 
 code {
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font: inherit;
   white-space: pre;
 }
@@ -219,7 +204,7 @@ code {
   border: 0;
   border-top: var(--border-width) solid var(--border);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font: inherit;
   font-size: var(--text-caption);
   text-align: center;
@@ -227,7 +212,7 @@ code {
 }
 
 .show-all:hover {
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .is-soft-wrap code,

@@ -45,9 +45,6 @@ export function useTranscriptWindow(options: {
   scrollRoot: MaybeRefOrGetter<HTMLElement | null>
   listRoot: MaybeRefOrGetter<HTMLElement | null>
   isFollowing: () => boolean
-  estimate?: (turn: TimelineTurn) => number
-  overscan?: number
-  tail?: number
 }) {
   const index = new TranscriptHeightIndex()
   const measured = new Map<string, number>()
@@ -76,7 +73,7 @@ export function useTranscriptWindow(options: {
   }
 
   function estimateOf(turn: TimelineTurn): number {
-    return Math.max(1, options.estimate ? options.estimate(turn) : estimateTurnHeight(turn))
+    return Math.max(1, estimateTurnHeight(turn))
   }
 
   /** items 变了就按实测缓存重建索引，新轮先用估算值。 */
@@ -110,7 +107,7 @@ export function useTranscriptWindow(options: {
       length: items.length,
       sizeOf: (at) => index.size(at),
       viewportHeight: viewportHeight.value,
-      tail: options.tail ?? WINDOW_DEFAULT_TAIL,
+      tail: WINDOW_DEFAULT_TAIL,
     })
     const now = performance.now()
 
@@ -159,7 +156,7 @@ export function useTranscriptWindow(options: {
             length: items.length,
             scrollTop: scrollTop.value,
             viewportHeight: height,
-            overscan: options.overscan ?? WINDOW_DEFAULT_OVERSCAN,
+            overscan: WINDOW_DEFAULT_OVERSCAN,
             at: (offset) => index.at(offset),
           })
         : { start: items.length, end: -1 } // 首帧几何没量出来时只挂常驻轮，贴底不用等估算

@@ -18,8 +18,12 @@ export interface SessionTabSource {
 
 export function useSessionTabs(input: {
   activeSessionId: Ref<string | undefined>
+  /** 路由上正在显示的会话。高亮可能停在还没落地的页签上，关闭以路由为准。 */
+  routeSessionId: Ref<string | undefined>
   sessions: ComputedRef<readonly SessionTabSource[]>
   open: (id: string) => void
+  /** 一个不剩时回欢迎页。 */
+  close: () => void
 }) {
   const ids = shallowRef(readStringArray(TABS_KEY))
   const tabs = computed<SessionTab[]>(() => {
@@ -48,20 +52,28 @@ export function useSessionTabs(input: {
 
   function closeTabs(closedIds: readonly string[], anchorId: string): void {
     const nextActive = sessionTabAfterCloseMany(ids.value, closedIds, anchorId)
-    const closingActive = closedIds.includes(input.activeSessionId.value ?? "")
 
     commit(ids.value.filter((id) => !closedIds.includes(id)))
-
-    if (closingActive && nextActive) input.open(nextActive)
+    settleAfterClose(nextActive)
   }
 
   function closeTab(id: string): void {
     const nextActive = sessionTabAfterClose(ids.value, id)
-    const closingActive = id === input.activeSessionId.value
 
     commit(ids.value.filter((item) => item !== id))
+    settleAfterClose(nextActive)
+  }
 
-    if (closingActive && nextActive) input.open(nextActive)
+  /** 路由还停在已打开的页签上就不动。否则打开下一个；一个不剩就回欢迎页。 */
+  function settleAfterClose(nextActive: string | undefined): void {
+    const route = input.routeSessionId.value
+
+    if (route && ids.value.includes(route)) return
+
+    const next = nextActive && ids.value.includes(nextActive) ? nextActive : ids.value[0]
+
+    if (next) input.open(next)
+    else input.close()
   }
 
   function closeScope(anchorId: string, scope: "left" | "right" | "others"): void {
@@ -87,5 +99,5 @@ export function useSessionTabs(input: {
       if (next.length !== ids.value.length) commit(next)
     },
   )
-  return { tabs, openTab, moveTab, closeTab, closeScope }
+  return { tabs, moveTab, closeTab, closeScope }
 }

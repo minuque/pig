@@ -1,6 +1,7 @@
 import { readonly, shallowRef } from "vue"
 import { useRouter } from "vue-router"
 import { errorMessage } from "@client/http.js"
+import { t } from "@i18n/index.js"
 import { setStartupError } from "@features/startup/index.js"
 
 export interface StartupSequenceOptions {
@@ -19,7 +20,7 @@ function connectWithTimeout(connect: () => Promise<unknown>, ms: number): Promis
   return new Promise((resolve, reject) => {
     const timer = globalThis.setTimeout(() => {
       void connecting.catch(() => {})
-      reject(new Error("连接网关超时"))
+      reject(new Error(t("errors.startupTimeout")))
     }, ms)
 
     connecting.then(

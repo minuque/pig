@@ -10,7 +10,6 @@ import {
 import { useRoute, useRouter } from "vue-router"
 import { RemoteSession } from "@earendil-works/pi-coding-agent/client"
 import type { ModelRef, RemoteSessionState, ThinkingLevel } from "@/types/common-type.js"
-import { errorMessage } from "@client/http.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
 import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
@@ -34,7 +33,6 @@ import {
 import {
   bindIdleSends,
   optimisticUserMessage,
-  phaseLabel,
   projectClientTranscript,
   projectSessionSnapshot,
   sessionState,
@@ -55,7 +53,6 @@ export function useSessionLifecycle(
 ) {
   const route = useRoute()
   const router = useRouter()
-  const sessionError = ref("")
   const sessionId = computed(() => {
     const raw = route.params.sessionId
     return typeof raw === "string" && raw.length > 0 ? raw : undefined
@@ -310,7 +307,6 @@ export function useSessionLifecycle(
   })
   const phase = computed(() => projection.value?.phase)
   const running = computed(() => projection.value?.running ?? false)
-  const phaseText = computed(() => (running.value && phase.value ? phaseLabel(phase.value) : ""))
   const { catalog, preset, usage, createModel, consumeDetachedEdit } = useSessionComposer({
     models: pi.models,
     snapshot,
@@ -348,7 +344,6 @@ export function useSessionLifecycle(
     const epoch = sendEpoch
     const routeSessionAtStart = sessionId.value
     creatingCwd.value = nextCwd
-    sessionError.value = ""
 
     try {
       const nextId = await createRemoteSession(nextCwd, createModel())
@@ -378,9 +373,6 @@ export function useSessionLifecycle(
       }
 
       return nextId
-    } catch (error) {
-      sessionError.value = errorMessage(error)
-      throw error
     } finally {
       creatingCwd.value = undefined
       pendingSessionId.value = undefined
@@ -404,7 +396,6 @@ export function useSessionLifecycle(
     const epoch = ++sendEpoch
 
     submitting.value = true
-    sessionError.value = ""
     const thread = clientState.value
     const previousDraft = thread.draft
     const send = optimisticUserMessage(
@@ -463,7 +454,6 @@ export function useSessionLifecycle(
       const index = current.sends.findIndex((item) => item.item.id === send.item.id)
 
       if (index >= 0) current.sends.splice(index, 1)
-      sessionError.value = errorMessage(error)
       throw error
     } finally {
       if (epoch === sendEpoch) submitting.value = false
@@ -484,8 +474,8 @@ export function useSessionLifecycle(
 
     try {
       await abortRemote()
-    } catch (error) {
-      sessionError.value = errorMessage(error)
+    } catch {
+      /* abort 失败不挡停止态 */
     } finally {
       aborting.value = false
     }
@@ -521,13 +511,10 @@ export function useSessionLifecycle(
   return {
     sessionId,
     projection,
-    phase,
     running,
     backgroundRunningIds,
     turnPending,
-    phaseText,
     sessionPending,
-    connecting: computed(() => pi.connectionState.value === "connecting"),
     connected: pi.connected,
     connectionError: pi.connectionError,
     transcript,
@@ -543,7 +530,6 @@ export function useSessionLifecycle(
     preset,
     prompt,
     clientState,
-    sessionError,
     creating: creatingCwd,
     aborting,
     createSession,
@@ -554,7 +540,6 @@ export function useSessionLifecycle(
     abortSession,
     initialize,
     remote,
-    dispose,
     teardown,
   }
 }

@@ -24,7 +24,6 @@ export function useModelPickerPanel(
   const query = ref("")
   const scope = ref(FAVORITES_SCOPE)
   const searchRef = ref<HTMLInputElement | null>(null)
-  const pickerRef = ref<HTMLElement | null>(null)
   let suppressRestore = false
 
   watch(open, (isOpen) => {
@@ -41,11 +40,6 @@ export function useModelPickerPanel(
   function selectScope(next: string) {
     query.value = ""
     scope.value = next
-  }
-
-  function exitSearchTo(provider: string) {
-    query.value = ""
-    scope.value = provider
   }
 
   function onPanelKeydown(event: KeyboardEvent) {
@@ -86,9 +80,7 @@ export function useModelPickerPanel(
     query,
     scope,
     searchRef,
-    pickerRef,
     selectScope,
-    exitSearchTo,
     onPanelKeydown,
     onSearchKeydown,
     onPointerDownOutside,

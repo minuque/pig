@@ -13,10 +13,9 @@
  */
 import { execFileSync } from "node:child_process"
 import { existsSync, readFileSync } from "node:fs"
-import { dirname, resolve } from "node:path"
-import { fileURLToPath } from "node:url"
+import { resolve } from "node:path"
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+const root = resolve(import.meta.dirname, "..")
 const appCss = resolve(root, "apps/web/src/style/app.css")
 const designMd = resolve(root, "DESIGN.md")
 const twTheme = resolve(root, "apps/web/node_modules/tailwindcss/theme.css")

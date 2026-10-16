@@ -1,13 +1,12 @@
 /** 校验入口：pnpm check；--touched 脏文件；--touched --fix 先写回。 */
 import { existsSync } from "node:fs"
 import { spawnSync } from "node:child_process"
-import { dirname, resolve } from "node:path"
-import { fileURLToPath } from "node:url"
+import { resolve } from "node:path"
 
 import { classifyTouched } from "./check-scope.mjs"
 import { reportResults, runPnpm } from "./check-run.mjs"
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+const root = resolve(import.meta.dirname, "..")
 const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
 /* DESIGN.md 缺失时（token 稳定前）跳过 designmd lint 与 token 校验，重新生成后自动恢复。 */

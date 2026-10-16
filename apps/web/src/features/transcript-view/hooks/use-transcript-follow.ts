@@ -1,4 +1,5 @@
 import { onBeforeUnmount, onMounted, shallowRef } from "vue"
+import { prefersReducedMotion } from "@utils/motion.js"
 import {
   isTranscriptVisuallyAtBottom,
   resolveFollowTarget,
@@ -12,10 +13,6 @@ const SETTLE_MAX_FRAMES = 36
 const SETTLE_STABLE_FRAMES = 3
 const FLIP_FRAMES = 2
 const SCROLLBAR_HOT_PX = 12
-
-function prefersReducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
-}
 
 function userScrollBehavior(): TranscriptScrollBehavior {
   return prefersReducedMotion() ? "auto" : "smooth"
@@ -224,7 +221,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     flipRaf = requestAnimationFrame(confirmFlip)
   }
 
-  /** 平滑滚动中不硬贴底，收尾时 finishNavigate 再贴。 */
   function pinIfNeeded() {
     if (applying || !atBottom.value || pointerDown || userTookOver || navigating) return
     const root = getRoot()
@@ -233,6 +229,43 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
 
     if (!settleRaf) scrollToBottomNow(root)
     settle()
+  }
+
+  /** DOM 变更的同一调用栈里贴底。settle 进行中 pinIfNeeded 不会写，这里写。 */
+  function pinNow() {
+    if (applying || !atBottom.value || pointerDown || userTookOver || navigating) return
+    const root = getRoot()
+
+    if (!root) return
+    scrollToBottomNow(root)
+  }
+
+  /** 流式正文在 rAF 里长高，ResizeObserver 下一帧才看到；DOM 变更当次贴底。 */
+  function observeGrowth(el: HTMLElement) {
+    const observer = new MutationObserver(pinNow)
+    observer.observe(el, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["style"],
+    })
+    return () => observer.disconnect()
+  }
+
+  /** 内容盒不含 padding；底部留白变化时补一次贴底。 */
+  function observePadding(el: HTMLElement) {
+    let last = Number.parseFloat(getComputedStyle(el).paddingBottom)
+    const observer = new ResizeObserver(() => {
+      const pad = Number.parseFloat(getComputedStyle(el).paddingBottom)
+
+      if (pad === last) return
+      last = pad
+      pinIfNeeded()
+    })
+
+    observer.observe(el, { box: "border-box" })
+    return () => observer.disconnect()
   }
 
   function finishNavigate() {
@@ -328,10 +361,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     userTookOver = false
   }
 
-  function releasePinnedToBottom() {
-    detachFollow()
-  }
-
   function reset() {
     detachFollow()
     pointerDown = false
@@ -388,7 +417,9 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     atBottom,
     visuallyAtBottom,
     pinIfNeeded,
-    releasePinnedToBottom,
+    observeGrowth,
+    observePadding,
+    detachFollow,
     reset,
     onScroll,
     onWheel,

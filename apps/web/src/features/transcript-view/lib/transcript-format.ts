@@ -4,8 +4,7 @@ import type {
   TranscriptItem,
   UserTranscriptItem,
 } from "@/types/common-type.js"
-
-export type TranscriptImageBlock = { data: string; mimeType: string }
+import type { TranscriptImage } from "@features/transcript-view/type.js"
 
 export function isUserItem(item: TranscriptItem): item is UserTranscriptItem {
   return item.role === "user"
@@ -48,7 +47,7 @@ export function userMessageText(item: TranscriptItem): string {
   return stripExpansionBlocks(transcriptText(item))
 }
 
-export function transcriptImages(item: TranscriptItem): TranscriptImageBlock[] {
+export function transcriptImages(item: TranscriptItem): TranscriptImage[] {
   return item.content
     .filter(
       (block): block is { type: "image"; data: string; mimeType: string } => block.type === "image",
@@ -78,8 +77,7 @@ const PATH_KEYS = [
   "target_file",
   "targetFile",
 ] as const
-const PATH_CMD_KEYS = [...PATH_KEYS, "command", "cmd"] as const
-const TOOL_HINT_KEYS = [...PATH_CMD_KEYS, "query", "pattern", "glob", "url"] as const
+const TOOL_HINT_KEYS = [...PATH_KEYS, "command", "cmd", "query", "pattern", "glob", "url"] as const
 
 function jsonText(value: unknown, pretty = false): string {
   if (value === undefined) return ""

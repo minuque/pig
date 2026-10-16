@@ -522,9 +522,7 @@ function cardsFromInfos(infos: readonly SessionInfo[]): SessionCard[] {
       model = modelFromBranch(branch)
       outcome = outcomeFromBranch(branch)
       messageCount = conversationMessageCount(branch)
-    } catch {
-      model = undefined
-    }
+    } catch {}
 
     return {
       id: info.id,

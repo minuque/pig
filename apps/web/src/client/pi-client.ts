@@ -9,6 +9,7 @@ import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
 import { PiClient } from "@earendil-works/pi-client"
 
 import type { ConnectionState, ServerSnapshot, Unsubscribe } from "@/types/common-type.js"
+import { t } from "@i18n/index.js"
 
 import { createWebSocketByteTransportFactory, webSocketUrl } from "@client/transport.js"
 
@@ -47,7 +48,7 @@ export function usePiClient() {
 
   /** 创建新连接：先脱离旧实例并断开，避免旧回调污染新连接状态。 */
   async function connect(options: PiClientConnectionOptions = {}): Promise<PiClient> {
-    if (disposed) throw new Error("usePiClient 已销毁")
+    if (disposed) throw new Error(t("errors.piClientDisposed"))
     const previous = client.value
     unsubscribeAll()
     await previous?.dispose()

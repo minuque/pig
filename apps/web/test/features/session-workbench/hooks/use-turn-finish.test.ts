@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { nextTick, ref, shallowRef } from "vue"
+import { effectScope, nextTick, ref, shallowRef, type EffectScope } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
 import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 
-const stops: (() => void)[] = []
+const scopes: EffectScope[] = []
 
 afterEach(() => {
-  for (const stop of stops) stop()
-  stops.length = 0
+  for (const scope of scopes) scope.stop()
+  scopes.length = 0
 })
 
 function assistant(status: "complete" | "error" | "aborted"): TranscriptItem {
@@ -35,25 +35,28 @@ function setup(options?: { backgroundAccepted?: boolean }) {
   const sound = { play: vi.fn() }
   const sent: { id: string; text: string }[] = []
   let accepted = options?.backgroundAccepted ?? true
-  const turnFinish = useTurnFinish({
-    sessionId: () => sessionId.value,
-    running: () => running.value,
-    pending: () => false,
-    transcript: () => items.value,
-    queue,
-    sound,
-    sendForeground: async (text) => {
-      sent.push({ id: "", text })
-      return true
-    },
-    sendBackground: async (id, text) => {
-      sent.push({ id, text })
-      return accepted
-    },
-    transcriptFor: () => items.value,
-  })
+  const scope = effectScope()
+  const turnFinish = scope.run(() =>
+    useTurnFinish({
+      sessionId: () => sessionId.value,
+      running: () => running.value,
+      pending: () => false,
+      transcript: () => items.value,
+      queue,
+      sound,
+      sendForeground: async (text) => {
+        sent.push({ id: "", text })
+        return true
+      },
+      sendBackground: async (id, text) => {
+        sent.push({ id, text })
+        return accepted
+      },
+      transcriptFor: () => items.value,
+    }),
+  )!
 
-  stops.push(turnFinish.stop)
+  scopes.push(scope)
   return {
     running,
     items,

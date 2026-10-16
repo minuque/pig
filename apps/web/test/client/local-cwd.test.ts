@@ -7,11 +7,11 @@ import {
   parseLocalWorkspaces,
   saveLastCwd,
   saveLocalWorkspaces,
-  type WorkspaceStorage,
 } from "@client/local-cwd.js"
+import type { PrefStorage } from "@utils/storage.js"
 
 const STORAGE = new Map<string, string>()
-const storage: WorkspaceStorage = {
+const storage: PrefStorage = {
   getItem: (key) => STORAGE.get(key) ?? null,
   setItem: (key, value) => void STORAGE.set(key, value),
 }

@@ -163,7 +163,7 @@ import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
-import { notifyError } from "@components/layout/notify.js"
+import { notifyAction } from "@components/layout/notify.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
@@ -283,7 +283,7 @@ useEventListener(window, "pointerdown", (event) => {
 watch(workspaceError, (message) => {
   const text = message.trim()
 
-  if (text) notifyError(text)
+  if (text) notifyAction(text)
 })
 
 function onSessionNavigate(cwd: string | undefined): void {

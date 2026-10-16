@@ -4,7 +4,6 @@
       v-if="!isOffcanvas"
       class="sidebar"
       :class="[sbState]"
-      :inert="isOffcanvas"
       :style="sbState === 'expanded' ? leftWidthStyle : undefined"
     >
       <slot name="sidebar" :on-navigate="closeMobilePanels" />

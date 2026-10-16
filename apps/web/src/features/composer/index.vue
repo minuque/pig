@@ -23,7 +23,6 @@
     <PromptEditor
       ref="editor"
       v-model:prompt="prompt"
-      :placeholder="placeholder"
       :resizing="contentResizing"
       :hero="hero"
       :cwd="cwd"
@@ -149,7 +148,6 @@ import {
   type ComposerAttachmentsApi,
 } from "@features/composer/hooks/use-composer-attachments.js"
 import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
-import { promptPlaceholder } from "@features/composer/index.js"
 import type {
   ComposerModel,
   ComposerPreset,
@@ -173,7 +171,6 @@ const props = withDefaults(
     aborting?: boolean
     /** 外部禁用发送（如 welcome 的 workspace/预设/提交中守卫） */
     sendDisabled?: boolean
-    placeholder?: string
     usage?: ContextUsage | undefined
     sessionId?: string | undefined
     cwd?: string | undefined
@@ -187,7 +184,6 @@ const props = withDefaults(
     running: false,
     aborting: false,
     sendDisabled: false,
-    placeholder: promptPlaceholder(),
     usage: undefined,
     sessionId: undefined,
     cwd: undefined,
@@ -358,7 +354,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 
 .attach-error {
   margin: 0;
-  color: var(--danger);
+  color: var(--destructive);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
@@ -376,7 +372,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   border: 0;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),
@@ -385,7 +381,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 
 .attach:not(:disabled):hover {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .attach:disabled {
@@ -434,8 +430,8 @@ function onAbortHotkey(event: KeyboardEvent) {
 /* 停止态：实心墨色圆 + 内部圆角方块，hover 只降不透明度 */
 .send--abort,
 .send--abort:not(:disabled):hover {
-  background: var(--ink);
-  color: var(--surface);
+  background: var(--foreground);
+  color: var(--card);
   box-shadow: none;
 }
 

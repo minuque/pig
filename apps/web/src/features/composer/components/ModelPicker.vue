@@ -44,7 +44,7 @@
       @focus-outside="onFocusOutside"
       @close-auto-focus="onCloseAutoFocus"
     >
-      <div ref="pickerRef" class="picker" @keydown.capture="onPickerKeydown">
+      <div class="picker" @keydown.capture="onPickerKeydown">
         <div class="tabs">
           <Tooltip>
             <TooltipTrigger as-child>
@@ -81,7 +81,7 @@
         </div>
 
         <div class="search">
-          <MagnifierIcon :size="13" class="text-ink-faint shrink-0" />
+          <MagnifierIcon :size="13" class="text-foreground-faint shrink-0" />
 
           <input
             ref="searchRef"
@@ -205,9 +205,7 @@ const {
   query,
   scope,
   searchRef,
-  pickerRef,
   selectScope,
-  exitSearchTo,
   onPanelKeydown,
   onSearchKeydown: searchKeydown,
   onPointerDownOutside,
@@ -323,7 +321,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   emit("update:model", { provider, id })
 
   if (!query.value.trim()) return
-  exitSearchTo(provider)
+  selectScope(provider)
 }
 </script>
 
@@ -340,7 +338,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
@@ -401,7 +399,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   white-space: nowrap;
 }
 
@@ -438,7 +436,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .selector-effort::before {
   content: "·";
   margin-inline: var(--spacing-xxs);
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
 }
 
 .picker {
@@ -474,7 +472,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   cursor: pointer;
 }
 
@@ -491,11 +489,11 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .tab-btn:hover {
   background: var(--hover-tint);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .tab-btn[data-current] {
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .tab-btn[data-current]::after {
@@ -510,7 +508,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   margin: var(--spacing-xxs) 0;
   padding: 0 var(--spacing-xs);
   border-radius: var(--radius-md);
-  background: var(--canvas-soft);
+  background: var(--background-soft);
 }
 
 .search input {
@@ -519,13 +517,13 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font: inherit;
   font-size: var(--text-eyebrow);
 }
 
 .search input::placeholder {
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
 }
 
 .groups {
@@ -561,7 +559,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .model-name {
   flex: 1 1 auto;
   min-width: 0;
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
   font-size: var(--text-button);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-button--line-height);
@@ -573,8 +571,8 @@ function onSelectModel(event: Event, provider: string, id: string) {
   padding: 0 var(--spacing-xxs);
   border: 0;
   border-radius: var(--radius-full);
-  background: var(--canvas-soft);
-  color: var(--contrast-ink-faint);
+  background: var(--background-soft);
+  color: var(--contrast-foreground-faint);
   font-family: inherit;
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-medium);
@@ -591,13 +589,13 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   cursor: pointer;
 }
 
 .fav:hover {
   background: var(--hover-quiet);
-  color: var(--contrast-ink);
+  color: var(--contrast-foreground);
 }
 
 .fav.on,
@@ -608,7 +606,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .empty {
   padding: var(--spacing-lg) var(--spacing-xs);
   font-size: var(--text-eyebrow);
-  color: var(--contrast-ink-faint);
+  color: var(--contrast-foreground-faint);
   text-align: center;
 }
 </style>

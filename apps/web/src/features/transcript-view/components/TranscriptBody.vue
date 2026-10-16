@@ -161,7 +161,9 @@ const {
   atBottom,
   visuallyAtBottom,
   pinIfNeeded,
-  releasePinnedToBottom,
+  observeGrowth,
+  observePadding,
+  detachFollow,
   reset,
   onScroll,
   onWheel,
@@ -191,8 +193,7 @@ const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
 let sizeObserver: ResizeObserver | undefined
-let padObserver: ResizeObserver | undefined
-let lastPad = -1
+let stopWatchers: (() => void)[] = []
 let pinRaf = 0
 
 function schedulePin() {
@@ -247,13 +248,13 @@ function onTranscriptWheel(event: WheelEvent) {
 }
 
 function onToggleExpand(id: string, open: boolean) {
-  releasePinnedToBottom()
+  detachFollow()
   atBottom.value = false
   toggleExpand(id, open)
 }
 
 function onToggleTool(rowId: string, id: string, open: boolean) {
-  releasePinnedToBottom()
+  detachFollow()
   atBottom.value = false
 
   if (open) toggleExpand(rowId, true)
@@ -268,7 +269,7 @@ async function selectMinimapItem(item: TranscriptMinimapItem) {
     return
   }
 
-  releasePinnedToBottom()
+  detachFollow()
   atBottom.value = false
   scrollToRow(item.id)
 }
@@ -276,8 +277,9 @@ async function selectMinimapItem(item: TranscriptMinimapItem) {
 function observeSizes() {
   sizeObserver?.disconnect()
   sizeObserver = undefined
-  padObserver?.disconnect()
-  padObserver = undefined
+
+  for (const stop of stopWatchers) stop()
+  stopWatchers = []
   const root = viewport.value
   const body = list.value
   const padded = column.value
@@ -287,19 +289,13 @@ function observeSizes() {
 
   if (root) sizeObserver.observe(root)
 
-  if (body) sizeObserver.observe(body)
+  if (body) {
+    sizeObserver.observe(body)
+    stopWatchers.push(observeGrowth(body))
+  }
 
-  // 内容盒不含 padding。输入条长高只改底部留白，要看边框盒才会在贴底时跟着滚。
   if (!padded || padded === body) return
-  lastPad = Number.parseFloat(getComputedStyle(padded).paddingBottom)
-  padObserver = new ResizeObserver(() => {
-    const pad = Number.parseFloat(getComputedStyle(padded).paddingBottom)
-
-    if (pad === lastPad) return
-    lastPad = pad
-    pinIfNeeded()
-  })
-  padObserver.observe(padded, { box: "border-box" })
+  stopWatchers.push(observePadding(padded))
 }
 
 function pinLatest() {
@@ -391,7 +387,8 @@ onMounted(ensureMermaidRuntime)
 
 onBeforeUnmount(() => {
   sizeObserver?.disconnect()
-  padObserver?.disconnect()
+
+  for (const stop of stopWatchers) stop()
 
   if (pinRaf) cancelAnimationFrame(pinRaf)
 
@@ -469,7 +466,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   padding: var(--spacing-sm) 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
   font: inherit;
   font-size: var(--text-body-sm);
   text-align: center;
@@ -490,6 +487,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .older-spinner {
   width: var(--size-icon-2xs);
   height: var(--size-icon-2xs);
-  color: var(--contrast-ink-muted);
+  color: var(--contrast-foreground-muted);
 }
 </style>

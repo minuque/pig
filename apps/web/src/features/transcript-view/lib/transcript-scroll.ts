@@ -13,16 +13,6 @@ export function holdClickedOffset(el: HTMLElement): void {
   window.setTimeout(() => observer.disconnect(), 400)
 }
 
-/** 精确贴底：2px 内视为贴底。 */
-export function isTranscriptAtBottom(
-  scrollHeight: number,
-  scrollTop: number,
-  clientHeight: number,
-  threshold = 2,
-): boolean {
-  return scrollHeight - scrollTop - clientHeight <= threshold
-}
-
 export function transcriptFloorTop(scrollHeight: number, clientHeight: number): number {
   return Math.max(0, scrollHeight - clientHeight)
 }
@@ -33,7 +23,7 @@ export function isTranscriptVisuallyAtBottom(
   scrollTop: number,
   clientHeight: number,
 ): boolean {
-  return isTranscriptAtBottom(scrollHeight, scrollTop, clientHeight, 48)
+  return scrollHeight - scrollTop - clientHeight <= 48
 }
 
 /** 有内容且视觉上离开底部才显示回到底部按钮。 */

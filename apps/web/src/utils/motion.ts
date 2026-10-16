@@ -1,72 +1,9 @@
 /**
  * 共享运动基建。
  *
- * glideElements/elementOffsets/motionToken：FLIP 位移动画，供「旧布局 → 新布局」复用。
  * useDragReorder：pointer 跟手 + 松手惯性吸附的拖拽重排，替代原生 HTML5 DnD 的静态反馈。
  *   拖拽期间不改 DOM，只用 transform 预览；松手一次性提交 index，配合 move 动画落位。
  */
-
-export interface FlipMotion {
-  duration: number
-  easing: string
-}
-
-type Offset = { x: number; y: number }
-
-/** 元素相对锚框左上角的位置；锚框取稳定参照，外层整体平移不串进位移。 */
-export function elementOffsets(anchor: HTMLElement, els: readonly HTMLElement[]): Offset[] {
-  const box = anchor.getBoundingClientRect()
-  return els.map((el) => {
-    const rect = el.getBoundingClientRect()
-    return { x: rect.left - box.left, y: rect.top - box.top }
-  })
-}
-
-/**
- * 元素从旧槽位滑到新槽位；dimmed 跨越超过 dimDistance 时中段压暗。
- * from 用 elementOffsets 在数据/DOM 更新前取。
- */
-export function glideElements(
-  anchor: HTMLElement,
-  els: readonly HTMLElement[],
-  from: readonly Offset[],
-  motion: FlipMotion,
-  dimmed?: HTMLElement | null,
-  dimDistance = 24,
-): void {
-  els.forEach((el) => el.getAnimations().forEach((animation) => animation.cancel()))
-  const to = elementOffsets(anchor, els)
-
-  els.forEach((el, index) => {
-    const start = from[index]
-    const end = to[index]
-
-    if (!start || !end) return
-    const dx = start.x - end.x
-    const dy = start.y - end.y
-
-    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return
-    const dim = el === dimmed && Math.abs(dx) + Math.abs(dy) > dimDistance
-
-    el.animate(
-      [
-        { transform: `translate(${dx}px, ${dy}px)` },
-        ...(dim ? [{ opacity: 0.35, offset: 0.45 }] : []),
-        { transform: "none" },
-      ],
-      { duration: motion.duration, easing: motion.easing },
-    )
-  })
-}
-
-/** 从 motion token 读时长与曲线。 */
-export function motionToken(el: Element, durationVar: string, easingVar: string): FlipMotion {
-  const style = getComputedStyle(el)
-  return {
-    duration: Number.parseFloat(style.getPropertyValue(durationVar)) || 0,
-    easing: style.getPropertyValue(easingVar).trim() || "ease-out",
-  }
-}
 
 export function prefersReducedMotion(): boolean {
   return matchMedia("(prefers-reduced-motion: reduce)").matches

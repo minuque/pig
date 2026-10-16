@@ -8,6 +8,7 @@ import type {
   ByteTransportFactory,
   ByteTransportHandlers,
 } from "@/types/common-type.js"
+import { t } from "@i18n/index.js"
 
 // 与 gateway 端 packages/gateway/src/server/websocket.ts 的 WEBSOCKET_PATH 必须一致。
 export const WEBSOCKET_PATH = "/api/v1/pi"
@@ -49,7 +50,7 @@ export function webSocketUrl(base?: string | URL): string {
     url.protocol !== "ws:" &&
     url.protocol !== "wss:"
   ) {
-    throw new Error("WebSocket 需要 Gateway 地址")
+    throw new Error(t("errors.wsNeedGateway"))
   }
 
   url.protocol = url.protocol === "https:" || url.protocol === "wss:" ? "wss:" : "ws:"
@@ -104,7 +105,7 @@ export function createWebSocketByteTransportFactory(
       { once: true },
     )
     socket.addEventListener("error", () => {
-      fail(new Error("WebSocket 连接失败"))
+      fail(new Error(t("errors.wsConnectFailed")))
     })
     socket.addEventListener("message", (event) => {
       if (closed) return
@@ -112,7 +113,7 @@ export function createWebSocketByteTransportFactory(
 
       if (typeof data === "string") {
         // 协议错误：立即终态并主动关闭底层 socket
-        fail(new Error("意外收到文本消息，PiServer 应以二进制帧通信"))
+        fail(new Error(t("errors.wsTextFrame")))
         socket.close()
         return
       }
@@ -121,13 +122,13 @@ export function createWebSocketByteTransportFactory(
     })
     socket.addEventListener("close", (event) => {
       if (event.wasClean && event.code === 1000) finish()
-      else fail(new Error(`WebSocket 关闭（code=${event.code}）`))
+      else fail(new Error(t("errors.wsClosed", { code: event.code })))
     })
     return {
       async send(chunk: Uint8Array) {
         await openPromise
 
-        if (closed) throw new Error("WebSocket transport 已关闭")
+        if (closed) throw new Error(t("errors.wsTransportClosed"))
 
         // 精确发送 [byteOffset, byteOffset+byteLength) 范围；SharedArrayBuffer 防御拷贝
         const payload =
@@ -143,7 +144,7 @@ export function createWebSocketByteTransportFactory(
         if (closed) return
 
         // open 前关闭：settle openPromise，避免 send 永久 pending
-        if (!opened) openReject(new Error("WebSocket transport 已关闭"))
+        if (!opened) openReject(new Error(t("errors.wsTransportClosed")))
         finish()
         socket.close()
       },

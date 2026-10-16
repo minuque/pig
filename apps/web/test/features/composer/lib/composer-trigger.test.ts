@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest"
 import {
-  applyTriggerChoice,
   composerTriggerAt,
   mentionPathNeedsQuoting,
 } from "@features/composer/lib/composer-trigger.js"
@@ -33,41 +32,5 @@ describe("mentionPathNeedsQuoting", () => {
   it("空白与 shell 元字符要引号", () => {
     expect(mentionPathNeedsQuoting("a b.ts")).toBe(true)
     expect(mentionPathNeedsQuoting("src/a.ts")).toBe(false)
-  })
-})
-
-describe("applyTriggerChoice", () => {
-  it("文件替换 @token 并补空格", () => {
-    const next = applyTriggerChoice(
-      "看下 @sr 再",
-      6,
-      { kind: "mention", start: 3, query: "sr" },
-      "src/a.ts",
-    )
-
-    expect(next.text).toBe("看下 @src/a.ts  再")
-    expect(next.caret).toBe(3 + "@src/a.ts ".length)
-  })
-
-  it("含空格路径走引号形式", () => {
-    const next = applyTriggerChoice(
-      "@a b",
-      4,
-      { kind: "mention", start: 0, query: "a b" },
-      "a b/c.ts",
-    )
-
-    expect(next.text).toBe('@"a b/c.ts" ')
-  })
-
-  it("命令 token 用 / 前缀", () => {
-    const next = applyTriggerChoice(
-      "/sk",
-      3,
-      { kind: "command", start: 0, query: "sk" },
-      "skill:lint",
-    )
-
-    expect(next.text).toBe("/skill:lint ")
   })
 })

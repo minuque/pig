@@ -1,11 +1,10 @@
-import { onBeforeUnmount, shallowRef, type ShallowRef } from "vue"
+import { onBeforeUnmount, shallowRef } from "vue"
 
 /**
  * 会话切换遮罩：把视口当前 DOM 克隆成只读快照盖住，新内容就绪再揭开。
  * epoch 区分连续快切：旧探针不能揭掉下一次的遮罩。
  */
 export interface TranscriptHold {
-  node: ShallowRef<HTMLElement | undefined>
   /** 当前遮罩代次。hold 成功时递增；0 表示没有遮罩。 */
   epoch: () => number
   /** 克隆视口。返回本次代次，没有可盖内容时返回 0。 */
@@ -67,7 +66,7 @@ export function useTranscriptHold(): TranscriptHold {
       zIndex: "4",
       overflow: "hidden",
       pointerEvents: "none",
-      background: "var(--surface)",
+      background: "var(--card)",
       opacity: "1",
     })
     const inner = clone.querySelector<HTMLElement>(".transcript")
@@ -81,5 +80,5 @@ export function useTranscriptHold(): TranscriptHold {
   }
 
   onBeforeUnmount(() => drop(node.value))
-  return { node, epoch: () => epoch, hold, release, dropNow }
+  return { epoch: () => epoch, hold, release, dropNow }
 }

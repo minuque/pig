@@ -23,7 +23,7 @@ interface TurnFinishDeps {
 
 /** 最后一条助手不是 error/aborted 才算干净收尾。 */
 function endedCleanly(items: readonly TranscriptItem[]): boolean {
-  const last = [...items].reverse().find((item) => item.role === "assistant")
+  const last = items.findLast((item) => item.role === "assistant")
   return last?.role !== "assistant" || (last.status !== "error" && last.status !== "aborted")
 }
 
@@ -67,7 +67,7 @@ export function useTurnFinish(deps: TurnFinishDeps) {
   }
 
   // 切会话时 running 的下降沿属于旧会话，不算本会话收尾
-  const stop = watch([deps.running, deps.sessionId], ([now, id], [was, prevId]) => {
+  watch([deps.running, deps.sessionId], ([now, id], [was, prevId]) => {
     if (id !== prevId) {
       abortedTurn = false
       return
@@ -86,5 +86,5 @@ export function useTurnFinish(deps: TurnFinishDeps) {
 
     void pumpForeground()
   })
-  return { markAborted, onBackgroundIdle, stop }
+  return { markAborted, onBackgroundIdle }
 }

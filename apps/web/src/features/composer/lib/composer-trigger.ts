@@ -41,19 +41,3 @@ export function composerTriggerAt(text: string, caret: number): ComposerTrigger 
 export function mentionPathNeedsQuoting(path: string): boolean {
   return /[\s()@"'`$\\]/.test(path)
 }
-
-/** 选中候替换触发 token：需要时 @"..."，结尾补一个空格。 */
-export function applyTriggerChoice(
-  text: string,
-  caret: number,
-  trigger: Exclude<ComposerTrigger, null>,
-  value: string,
-): { text: string; caret: number } {
-  const raw =
-    trigger.kind === "mention" && mentionPathNeedsQuoting(value)
-      ? `@${JSON.stringify(value)}`
-      : `${trigger.kind === "mention" ? "@" : "/"}${value}`
-  const inserted = `${raw} `
-  const next = text.slice(0, trigger.start) + inserted + text.slice(caret)
-  return { text: next, caret: trigger.start + inserted.length }
-}

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { computed, nextTick, ref, shallowRef } from "vue"
+import { computed, effectScope, nextTick, ref, shallowRef } from "vue"
 import type {
   PiClient,
   RemoteSessionState,
@@ -562,7 +562,6 @@ describe("快速切换 Session", () => {
     releaseA()
     await expect(sending).resolves.toBe(false)
     expect(session.remote.value).toBeUndefined()
-    expect(session.sessionError.value).toBe("")
   })
 })
 
@@ -575,7 +574,6 @@ describe("创建 Session 后提交第一条 Prompt", () => {
 
     expect(createMock).toHaveBeenCalledWith(expect.anything(), { cwd: "/repo" })
     expect(created.submit).toHaveBeenCalledWith("任务")
-    expect(session.sessionError.value).toBe("")
     expect(cwd.selectCwd).toHaveBeenCalledWith("/repo")
   })
 
@@ -1262,20 +1260,23 @@ describe("后台会话跑完的队列泵送", () => {
   function wirePump(session: SessionLifecycle) {
     const queue = useComposerQueue()
     const sound = { play: vi.fn() }
-    const turnFinish = useTurnFinish({
-      sessionId: () => session.sessionId.value,
-      running: () => session.running.value,
-      pending: () => session.turnPending.value,
-      transcript: () => session.transcript.value,
-      queue,
-      sound,
-      sendForeground: (text, batch) => session.sendPrompt(text, undefined, batch),
-      sendBackground: (id, text, batch) => session.sendBackgroundPrompt(id, text, batch),
-      transcriptFor: (id) => session.transcriptFor(id),
-    })
+    const scope = effectScope()
+    const turnFinish = scope.run(() =>
+      useTurnFinish({
+        sessionId: () => session.sessionId.value,
+        running: () => session.running.value,
+        pending: () => session.turnPending.value,
+        transcript: () => session.transcript.value,
+        queue,
+        sound,
+        sendForeground: (text, batch) => session.sendPrompt(text, undefined, batch),
+        sendBackground: (id, text, batch) => session.sendBackgroundPrompt(id, text, batch),
+        transcriptFor: (id) => session.transcriptFor(id),
+      }),
+    )!
 
     session.setBackgroundIdleHandler(turnFinish.onBackgroundIdle)
-    return { queue, sound, stop: turnFinish.stop }
+    return { queue, sound, stop: () => scope.stop() }
   }
 
   async function runningInBackground(session: SessionLifecycle, a: ReturnType<typeof makeSession>) {
@@ -1550,7 +1551,6 @@ describe("附件随发送", () => {
       calls().findIndex((path) => path.includes("/attachments/stage")),
     )
     expect(created.submit).toHaveBeenCalledWith("任务")
-    expect(session.sessionError.value).toBe("")
     expect(calls().some((path) => path.includes("/attachments/discard"))).toBe(false)
   })
 
@@ -1571,7 +1571,6 @@ describe("附件随发送", () => {
 
     expect(created.submit).not.toHaveBeenCalled()
     expect(session.prompt.value).toBe("任务")
-    expect(session.sessionError.value).not.toBe("")
     expect(calls().some((path) => path.includes("/attachments/discard"))).toBe(true)
   })
 
