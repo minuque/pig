@@ -154,9 +154,32 @@
     font-family: var(--font-mono);
   }
 
+  /* Synara：mermaid 去卡片外框，图直接落在页面底上 */
   .mermaid-block-container {
-    background: var(--code-background);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     color: var(--code-foreground);
+  }
+
+  .mermaid-preview-area,
+  .mermaid-source-panel {
+    background: transparent;
+  }
+
+  /* 工具条只留内容，悬浮或键盘聚焦时显形 */
+  .mermaid-block-header {
+    background: transparent;
+    border-bottom: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--ease-smooth);
+  }
+
+  .mermaid-block-container:hover .mermaid-block-header,
+  .mermaid-block-container:focus-within .mermaid-block-header {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   /* Synara：collapse + 单元格全边框，不要卡片底和斑马纹 */
