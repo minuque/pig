@@ -169,11 +169,17 @@
 
   /* 工具条只留内容，悬浮或键盘聚焦时显形 */
   .mermaid-block-header {
+    justify-content: flex-end;
     background: transparent;
     border-bottom: 0;
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--duration-fast) var(--ease-smooth);
+  }
+
+  /* 语言标签只是库的招牌，这里不需要 */
+  .mermaid-block-container > .mermaid-block-header > :first-child {
+    display: none;
   }
 
   .mermaid-block-container:hover .mermaid-block-header,

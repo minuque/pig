@@ -53,6 +53,9 @@ const mermaidProps = {
   estimatedPreviewHeightPx: 240,
   showHeader: true,
   showFullscreenButton: true,
+  showModeToggle: false,
+  showCollapseButton: false,
+  showZoomControls: false,
 } as const
 const chatCodeChrome = {
   showHeader: true,
