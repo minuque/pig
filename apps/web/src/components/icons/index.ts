@@ -72,7 +72,7 @@ export { MagnifierIcon } from "@solar-icons/vue/linear/magnifier"
 
 export { MaximizeSquareIcon } from "@solar-icons/vue/linear/maximize-square"
 
-export { MenuDotsIcon } from "@solar-icons/vue/linear/menu-dots"
+export { MenuDotsIcon } from "@solar-icons/vue/bold/menu-dots"
 
 export { MinimizeSquareIcon } from "@solar-icons/vue/linear/minimize-square"
 
