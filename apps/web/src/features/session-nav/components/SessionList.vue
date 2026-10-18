@@ -3,7 +3,12 @@
     <div v-if="sections.length" class="session-window">
       <div class="session-edge-top edge-veil-top" aria-hidden="true"></div>
 
-      <section v-for="section in sections" :key="section.key" class="session-section">
+      <section
+        v-for="section in sections"
+        :key="section.key"
+        class="session-section"
+        :data-key="section.key"
+      >
         <div class="section-head">
           <button
             class="section-toggle"
@@ -32,17 +37,17 @@
               />
             </span>
 
-            <span class="section-label">{{ section.label }}</span>
+            <span
+              class="section-label"
+              :class="{ 'label-fade': sectionLabelOverflow[section.key] }"
+              :data-key="section.key"
+            >
+              {{ section.label }}
+            </span>
 
             <span v-if="collapsedSections.has(section.key)" class="section-count">
               {{ section.sessions.length + (section.more ? "+" : "") }}
             </span>
-
-            <AltArrowRightIcon
-              class="section-chevron motion-turn"
-              :class="{ 'is-on': !collapsedSections.has(section.key) }"
-              :size="12"
-            />
           </button>
 
           <Tooltip v-if="section.cwd">
@@ -59,6 +64,16 @@
 
             <TooltipContent>{{ t("session.newInProject") }}</TooltipContent>
           </Tooltip>
+
+          <button
+            class="section-chevron motion-turn"
+            :class="{ 'is-on': !collapsedSections.has(section.key) }"
+            type="button"
+            :aria-expanded="!collapsedSections.has(section.key)"
+            @click="toggleSection(section.key)"
+          >
+            <AltArrowRightIcon :size="12" />
+          </button>
         </div>
 
         <div class="session-list-group" :class="{ 'is-open': !collapsedSections.has(section.key) }">
@@ -99,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, nextTick, shallowRef, watch } from "vue"
 import { useTimestamp } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
@@ -152,6 +167,25 @@ const include = computed(() => {
 })
 const sections = sectionsFor(searching, include)
 const projIcons = computed(loadProjIcons)
+const sectionLabelOverflow = shallowRef<Record<string, boolean>>({})
+
+function measureLabelOverflow() {
+  const map: Record<string, boolean> = {}
+  document.querySelectorAll<HTMLElement>(".session-list .section-label").forEach((el) => {
+    const key = el.getAttribute("data-key")
+
+    if (key) map[key] = el.scrollWidth > el.clientWidth + 1
+  })
+  sectionLabelOverflow.value = map
+}
+
+watch(
+  [sections, () => collapsedSections.value],
+  () => {
+    nextTick(measureLabelOverflow)
+  },
+  { immediate: true },
+)
 
 function sectionIcon(section: { cwd?: string; label: string }): ProjIcon | undefined {
   return section.cwd ? projIcons.value[section.label] : undefined
@@ -230,7 +264,7 @@ function itemBind(session: SidebarSession) {
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-eyebrow--line-height);
+  line-height: 1;
   cursor: default;
   user-select: none;
 }
@@ -239,22 +273,22 @@ function itemBind(session: SidebarSession) {
   display: grid;
   flex: none;
   place-items: center;
-  width: 16px;
-  height: 16px;
+  width: 13px;
+  height: 13px;
 }
 
 .section-icon .proj-mono {
   display: grid;
   place-items: center;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: var(--radius-xs);
   color: var(--primary-foreground);
-  font: 700 8px/1 var(--font-mono);
+  font: 700 7px/1 var(--font-mono);
 }
 
 .section-icon .proj-emoji {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
 }
 
@@ -262,6 +296,9 @@ function itemBind(session: SidebarSession) {
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
+}
+
+.section-label.label-fade {
   -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
   mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
 }
@@ -271,7 +308,7 @@ function itemBind(session: SidebarSession) {
   height: 16px;
   padding-inline: var(--spacing-xxs);
   border-radius: var(--radius-xs);
-  background: var(--hover-quiet);
+  background: var(--glass-selected-bg);
   color: var(--contrast-foreground-muted);
   font-family: var(--font-mono);
   font-size: var(--text-caption-mono);
@@ -279,8 +316,15 @@ function itemBind(session: SidebarSession) {
 }
 
 .section-chevron {
+  display: grid;
   flex: none;
-  margin-inline-start: auto;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--contrast-foreground-faint);
 }
 
 .section-add {
@@ -289,6 +333,7 @@ function itemBind(session: SidebarSession) {
   place-items: center;
   width: 20px;
   height: 20px;
+  margin-inline-end: 0;
   border: 0;
   border-radius: var(--radius-xs);
   background: transparent;

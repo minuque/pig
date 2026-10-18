@@ -15,7 +15,7 @@
         >
           <span v-if="!compact" class="proj-name">{{ projectName }}</span>
 
-          <span class="corner">
+          <span class="corner" :class="{ 'compact-corner': compact }">
             <span class="corner-rest">
               <span
                 v-if="stateIcon"
@@ -50,7 +50,9 @@
                 {{ relativeTime }}
               </time>
             </span>
+          </span>
 
+          <span class="title-line">
             <Tooltip v-if="!placeholder">
               <TooltipTrigger as-child>
                 <button
@@ -68,13 +70,11 @@
 
               <TooltipContent>{{ t("common.more") }}</TooltipContent>
             </Tooltip>
-          </span>
 
-          <span class="title-line">
             <span v-if="!compact" class="proj-icon" aria-hidden="true">
               <span v-if="monoValue" class="proj-mono" :style="monoStyle">{{ monoValue }}</span>
               <span v-else-if="emojiValue" class="proj-emoji">{{ emojiValue }}</span>
-              <component v-else :is="projectIcon" :size="14" :style="iconStyle" />
+              <component v-else :is="projectIcon" :size="13" :style="iconStyle" />
             </span>
 
             <input
@@ -333,12 +333,14 @@ function confirmDelete() {
 }
 
 .session-card {
+  position: relative;
   display: grid;
   grid-template-areas:
     "meta corner"
     "title title";
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--spacing-xxs) var(--spacing-xs);
+  grid-template-rows: 14px 17px;
+  gap: 2px var(--spacing-xs);
   width: 100%;
   min-width: 0;
   padding: 6px var(--spacing-xs);
@@ -352,7 +354,8 @@ function confirmDelete() {
 }
 
 .session-card.compact {
-  grid-template-areas: "title corner";
+  grid-template-areas: "title title";
+  grid-template-rows: 17px;
 }
 
 .session-item:hover .session-card,
@@ -372,7 +375,7 @@ function confirmDelete() {
   overflow: hidden;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+  line-height: 14px;
   white-space: nowrap;
   -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
   mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
@@ -380,15 +383,22 @@ function confirmDelete() {
 
 .corner {
   grid-area: corner;
-  display: grid;
+  display: flex;
   align-items: center;
-  justify-items: end;
+  justify-content: end;
   min-width: 20px;
   min-height: 14px;
 }
 
+.session-card.compact .corner {
+  position: absolute;
+  inset-inline-end: var(--spacing-xs);
+  top: 0;
+  bottom: 0;
+  transform: none;
+}
+
 .corner-rest {
-  grid-area: 1 / 1;
   display: inline-flex;
   align-items: center;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -439,10 +449,10 @@ function confirmDelete() {
 }
 
 .more-toggle {
-  grid-area: 1 / 1;
   display: grid;
   place-items: center;
-  margin-inline: calc(var(--icon-button-pad) * -1);
+  flex: none;
+  margin-inline-end: calc(var(--icon-button-pad) * -1);
   padding: var(--icon-button-pad);
   border: 0;
   border-radius: var(--radius-sm);
@@ -475,10 +485,16 @@ function confirmDelete() {
   min-width: 0;
 }
 
+.session-card.compact .title-line {
+  padding-inline-end: 24px;
+}
+
 .proj-icon {
   display: grid;
   place-items: center;
   flex: none;
+  width: 14px;
+  height: 14px;
   color: var(--contrast-foreground-faint);
 }
 
