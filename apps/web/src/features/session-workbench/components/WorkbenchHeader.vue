@@ -235,7 +235,7 @@ function confirmDelete(): void {
 .header-title {
   flex: none;
   min-width: 4em;
-  max-width: 30em;
+  max-width: min(30em, 100%);
   height: var(--size-nav-rail);
   margin: 0;
   padding: 0 var(--spacing-xxs);
