@@ -169,7 +169,7 @@
     background: transparent;
   }
 
-  /* 预览/Source 收成一个分段控件，贴到右侧动作区首位（原折叠按钮处）。 */
+  /* 预览/Source 只留一个图标钮，贴到右侧动作区首位（原折叠按钮处）。 */
   .mermaid-block-header {
     justify-content: flex-end;
     gap: var(--ms-gap-header);
@@ -181,17 +181,28 @@
 
   .mermaid-mode-toggle-group {
     gap: 0;
-    padding: var(--border-width);
-    border: var(--border-width) solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    background: var(--code-background);
   }
 
+  /* 藏起当前态那个钮，留下的是要切过去的目标态，点一下就换。 */
+  .mermaid-mode-toggle-group .mermaid-mode-btn.is-active {
+    display: none;
+  }
+
+  /* 外观对齐旁边复制/缩放钮，文字只留可访问名。 */
   .mermaid-mode-btn {
-    padding-block: 0;
-    border-radius: calc(var(--radius-sm) - var(--border-width));
-    color: var(--contrast-foreground-muted);
-    opacity: 1;
+    position: relative;
+    padding: var(--ms-action-btn-padding);
+    border-radius: calc(var(--ms-radius) / 2);
+    color: var(--code-action-fg);
+  }
+
+  .mermaid-mode-btn span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .mermaid-mode-btn:hover {
@@ -199,9 +210,8 @@
     color: var(--contrast-foreground);
   }
 
-  .mermaid-mode-btn.is-active {
-    background: var(--glass-selected-bg);
-    color: var(--contrast-foreground);
+  .mermaid-mode-btn:active {
+    transform: scale(0.98);
   }
 
   /* ------ 表格：collapse + 全边框，不要卡片底和斑马纹 ------ */
