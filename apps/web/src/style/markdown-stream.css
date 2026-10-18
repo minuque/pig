@@ -158,7 +158,7 @@
     font-family: var(--font-mono);
   }
 
-  /* ------ mermaid：保留卡片外壳，工具条悬浮显形 ------ */
+  /* ------ mermaid：保留卡片外壳，工具条常驻显示 ------ */
   .mermaid-block-container {
     background: var(--code-background);
     color: var(--code-foreground);
@@ -167,21 +167,6 @@
   .mermaid-preview-area,
   .mermaid-source-panel {
     background: transparent;
-  }
-
-  /* 工具条只留内容，悬浮或键盘聚焦时显形 */
-  .mermaid-block-header {
-    background: transparent;
-    border-bottom: 0;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--duration-fast) var(--ease-smooth);
-  }
-
-  .mermaid-block-container:hover .mermaid-block-header,
-  .mermaid-block-container:focus-within .mermaid-block-header {
-    opacity: 1;
-    pointer-events: auto;
   }
 
   /* ------ 表格：collapse + 全边框，不要卡片底和斑马纹 ------ */
