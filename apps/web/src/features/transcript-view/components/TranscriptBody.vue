@@ -70,6 +70,8 @@
             :sending="sending"
             :stopping="stopping"
             :started-at="activeStartedAt"
+            :rows="rows"
+            :output-tokens="activeOutputTokens"
           />
         </div>
       </div>
@@ -108,6 +110,7 @@ import { ensureMermaidRuntime } from "@features/transcript-view/lib/mermaid-runt
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TimelineTurn, TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import { createTimelineRowsBuilder } from "@features/transcript-view/lib/transcript-rows.js"
+import { turnOutputTokens } from "@features/transcript-view/lib/transcript-activity.js"
 import {
   groupTimelineTurns,
   reuseTimelineTurns,
@@ -147,6 +150,17 @@ const activeStartedAt = computed(() => {
     (value) => value.userId === lastId && value.outcome === "running",
   )
   return timing?.startedAt
+})
+/** 当前轮的 output token 汇总；orphan 轮回退到行内最后一条 user。 */
+const activeOutputTokens = computed(() => {
+  const turn = turns.value.at(-1)
+
+  if (!turn) return null
+
+  const userId = turn.id.startsWith("orphan:")
+    ? turn.rows.find((row) => row.role === "user")?.id
+    : turn.id
+  return turnOutputTokens(props.transcript, userId)
 })
 
 watch(

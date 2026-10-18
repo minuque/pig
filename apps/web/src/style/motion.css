@@ -569,12 +569,15 @@
 
 /* ------ 加载与点缀：shimmer / nudge / pulse / spin ------ */
 @keyframes shimmer {
-  0% {
-    background-position: 100% 0;
+  0%,
+  15% {
+    background-position: 83.333% 0;
+    animation-timing-function: cubic-bezier(0.714, 0.121, 0.211, 0.888);
   }
 
+  85%,
   100% {
-    background-position: 0% 0;
+    background-position: 16.667% 0;
   }
 }
 
@@ -603,7 +606,7 @@
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  animation: shimmer var(--duration-shimmer) linear infinite;
+  animation: shimmer var(--duration-shimmer) infinite;
 }
 
 .motion-nudge {
