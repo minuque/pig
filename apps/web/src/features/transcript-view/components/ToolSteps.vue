@@ -337,7 +337,7 @@ onBeforeUnmount(() => {
   justify-content: flex-start;
   border-radius: 0;
   background: var(--card);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-normal);
   white-space: normal;
