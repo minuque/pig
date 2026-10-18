@@ -54,7 +54,7 @@ function text(parts: ToolRowLabelPart[]): string {
 }
 
 describe("toolRowLabelParts", () => {
-  it("英文单数用 One 文案，首词大写，顺序对齐 zeron", () => {
+  it("英文单数走 i18n 复数，首词大写，顺序对齐 zeron", () => {
     i18n.global.locale.value = "en"
 
     const steps = [
@@ -69,7 +69,7 @@ describe("toolRowLabelParts", () => {
 
     expect(text(toolRowLabelParts(row(steps)))).toBe(
       [
-        "Thought 1 time",
+        "Thought 1 round",
         "ran 1 command",
         "edited 1 file",
         "wrote 1 file",
@@ -99,7 +99,7 @@ describe("toolRowLabelParts", () => {
         "wrote 2 files",
         "read 2 files",
         "searched 2 times",
-        "called tools 2 times",
+        "called 2 tools",
       ].join(" · "),
     )
   })

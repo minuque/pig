@@ -11,12 +11,14 @@
     <div
       id="transcript-panel"
       ref="viewport"
-      class="transcript-viewport edge-fade-top"
+      class="transcript-viewport"
       :class="{ 'is-following': atBottom, 'is-windowed': windowed }"
       @scroll="onTranscriptScroll"
       @wheel="onTranscriptWheel"
       @pointerdown="onPointerDown"
     >
+      <div class="transcript-edge-top edge-veil-top" aria-hidden="true"></div>
+
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
           <button
@@ -439,6 +441,11 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   /* 主视口滚动条常显，并始终占位，内容不因溢出与否来回横移 */
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-gutter: stable;
+}
+
+/* 顶部渐隐层压住普通行，工具行由 .row-tools 的 z-index 抬到它上面 */
+.transcript-edge-top {
+  background: linear-gradient(to bottom, var(--card), transparent);
 }
 
 /* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在视口顶部 */

@@ -52,6 +52,15 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Sli
   box-shadow: var(--slider-fill-shadow);
 }
 
+/* 最小值的 0 长度不会画出端头边框，避免轨道起点残留 2px 填充 */
+.slider-track-plate[data-orientation="horizontal"] .slider-range-plate {
+  border-inline-width: 0;
+}
+
+.slider-track-plate[data-orientation="vertical"] .slider-range-plate {
+  border-block-width: 0;
+}
+
 .slider-thumb-plate {
   border: var(--border-width) solid var(--slider-thumb-border);
   background: var(--slider-thumb-bg);

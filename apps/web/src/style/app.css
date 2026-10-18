@@ -79,7 +79,7 @@
   --glass-saturation: 1.14;
   --glass-tint: var(--card);
   /* 选中态：半透明洗涤，不描边；浅色用黑、深色用白 */
-  --glass-selected-bg: hsla(0, 0%, 10%, 0.06);
+  --glass-selected-bg: color-mix(in srgb, var(--foreground) 6%, transparent);
 
   /* mermaid 图 */
   --mermaid-bg: #ffffff;
@@ -290,7 +290,7 @@
   --duration-menu-in: 140ms;
   --duration-menu-out: 100ms;
   --duration-dialog-in: 180ms;
-  --duration-row-reveal: 360ms;
+  --duration-row-reveal: 480ms;
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-composer-flip: 180ms;
@@ -372,7 +372,7 @@
   --scrollbar-color: #1c1c21;
   --button-press: color-mix(in srgb, var(--foreground) 30%, transparent);
 
-  --glass-selected-bg: hsla(0, 0%, 92%, 0.11);
+  --glass-selected-bg: color-mix(in srgb, var(--foreground) 11%, transparent);
 
   --slider-track-bg: linear-gradient(to bottom, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.05));
   --slider-track-border: rgb(255 255 255 / 0.09);

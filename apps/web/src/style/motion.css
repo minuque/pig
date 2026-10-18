@@ -783,49 +783,97 @@
   box-shadow: var(--focus-ring-destructive);
 }
 
-/* ------ 滚动边缘渐隐：scroll() 驱动 mask 带宽；不支持的浏览器退化为无渐隐 ------ */
-.edge-fade-top,
-.edge-fade-y,
-.edge-fade-menu {
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    black var(--edge-fade-top),
-    black calc(100% - var(--edge-fade-bottom)),
-    transparent
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    black var(--edge-fade-top),
-    black calc(100% - var(--edge-fade-bottom)),
-    transparent
-  );
+/* ------ 滚动边缘渐隐：列表与正文用贴边渐变层，避免 mask 压住吸顶元素和滚动条 ------ */
+.edge-veil-top,
+.edge-veil-bottom {
+  position: sticky;
+  z-index: 1;
+  height: var(--edge-fade-band);
+  pointer-events: none;
+  opacity: 0;
 }
 
-/* 顶部只在滚离顶端后出现，滚到 1px 即满带宽 */
-.edge-fade-top {
-  animation: edge-fade-top-in linear both;
-  animation-duration: auto;
-  animation-timeline: scroll(self block);
-  animation-range: 0 1px;
+.edge-veil-top {
+  top: 0;
+  margin-bottom: calc(-1 * var(--edge-fade-band));
 }
 
-/* 上下两端：滚离顶部淡入，贴到底部前淡出 */
-.edge-fade-y,
-.edge-fade-menu {
-  animation:
-    edge-fade-top-in linear both,
-    edge-fade-bottom-in linear both;
-  animation-duration: auto;
-  animation-timeline: scroll(self block), scroll(self block);
-  animation-range:
-    0 1px,
-    calc(100% - 1px) 100%;
+.edge-veil-bottom {
+  bottom: 0;
+  margin-top: calc(-1 * var(--edge-fade-band));
 }
 
+/* 不支持滚动时间线时保持隐藏，退化为无渐隐 */
+@supports (animation-timeline: scroll()) {
+  .edge-veil-top {
+    animation: edge-veil-in linear both;
+    animation-duration: auto;
+    animation-timeline: scroll(nearest block);
+    animation-range: 0 1px;
+  }
+
+  .edge-veil-bottom {
+    animation: edge-veil-out linear both;
+    animation-duration: auto;
+    animation-timeline: scroll(nearest block);
+    animation-range: calc(100% - 1px) 100%;
+  }
+}
+
+@keyframes edge-veil-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes edge-veil-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* 浮层没有吸顶元素，仍用 mask；右侧一列保持不透明，滚动条不跟着淡 */
 .edge-fade-menu {
   --edge-fade-band: var(--edge-fade-menu-band);
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      black var(--edge-fade-top),
+      black calc(100% - var(--edge-fade-bottom)),
+      transparent
+    ),
+    linear-gradient(to right, transparent calc(100% - 8px), black calc(100% - 8px));
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      black var(--edge-fade-top),
+      black calc(100% - var(--edge-fade-bottom)),
+      transparent
+    ),
+    linear-gradient(to right, transparent calc(100% - 8px), black calc(100% - 8px));
+}
+
+@supports (animation-timeline: scroll()) {
+  .edge-fade-menu {
+    animation:
+      edge-fade-top-in linear both,
+      edge-fade-bottom-in linear both;
+    animation-duration: auto;
+    animation-timeline: scroll(self block), scroll(self block);
+    animation-range:
+      0 1px,
+      calc(100% - 1px) 100%;
+  }
 }
 
 @keyframes edge-fade-top-in {

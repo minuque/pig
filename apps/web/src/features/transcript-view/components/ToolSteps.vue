@@ -10,7 +10,7 @@
     >
       <span :class="{ shimmer: running }" :data-text="labelText">
         <template v-for="(part, i) in labelParts" :key="i">
-          <span v-if="i" class="label-dot">·</span>
+          <span v-if="i" class="label-sep"><span class="label-dot">·</span></span>
           <template v-if="part.kind === 'text'">{{ part.text }}</template>
 
           <template v-else>
@@ -21,14 +21,14 @@
         </template>
 
         <template v-if="failCount">
-          <span class="label-dot">·</span>
+          <span class="label-sep"><span class="label-dot">·</span></span>
           {{ t("transcript.statusError") }}
           <span class="fail-n">{{ failCount }}</span>
-          {{ t("common.times") }}
+          {{ t("common.times", failCount) }}
         </template>
 
         <template v-if="durationLabel">
-          <span class="label-dot">·</span>
+          <span class="label-sep"><span class="label-dot">·</span></span>
           <span>{{ durationLabel }}</span>
         </template>
       </span>
@@ -191,7 +191,9 @@ const labelText = computed(() => {
   )
 
   if (failCount.value)
-    parts.push(`${t("transcript.statusError")} ${failCount.value} ${t("common.times")}`)
+    parts.push(
+      `${t("transcript.statusError")} ${failCount.value} ${t("common.times", failCount.value)}`,
+    )
 
   if (durationLabel.value) parts.push(durationLabel.value)
   return parts.join(" · ")
@@ -378,9 +380,18 @@ onBeforeUnmount(() => {
   transition: color var(--duration-fast) var(--ease-out);
 }
 
+.label-sep {
+  font-weight: var(--font-weight-normal);
+}
+
+/* 分隔点两侧用普通字重的空格，宽度与 data-text 里的空格一致 */
+.label-sep::before,
+.label-sep::after {
+  content: " ";
+}
+
 .label-dot {
   font-weight: var(--font-weight-bold);
-  margin-inline: 0.35em;
 }
 
 .fail-n {

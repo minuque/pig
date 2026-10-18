@@ -592,18 +592,6 @@ const contentHandleSides = ["left", "right"] as const
   flex-direction: column;
 }
 
-.session-stage::before {
-  pointer-events: none;
-  position: absolute;
-  /* 让开滚动条列（Chromium thin 约 8px），否则渐隐会压住两端的三角按钮 */
-  inset-inline: 0 8px;
-  top: 0;
-  z-index: 1;
-  height: var(--edge-fade-band);
-  background: linear-gradient(to bottom, var(--card), transparent);
-  content: "";
-}
-
 .session-stage :deep(.row-tools) {
   position: relative;
   z-index: 2;

@@ -28,9 +28,11 @@
     <div
       v-else-if="flatRows.length"
       v-bind="containerProps"
-      class="session-window edge-fade-y"
+      class="session-window"
       @click.self="clearSelection"
     >
+      <div class="session-edge-top edge-veil-top" aria-hidden="true"></div>
+
       <ul ref="listEl" v-bind="wrapperProps">
         <li
           v-for="{ data, index } in list"
@@ -74,6 +76,8 @@
       >
         <span class="drop-label">Active</span>
       </div>
+
+      <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
     </div>
 
     <div v-else-if="listedSessions.length" class="session-empty">{{ t("session.empty") }}</div>
@@ -359,6 +363,14 @@ onBeforeUnmount(() => {
   min-height: 0;
   overflow-x: hidden;
   scrollbar-width: none;
+}
+
+.session-edge-top {
+  background: linear-gradient(to bottom, var(--sidebar), transparent);
+}
+
+.session-edge-bottom {
+  background: linear-gradient(to top, var(--sidebar), transparent);
 }
 
 .session-list ul {
