@@ -60,7 +60,7 @@ const mermaidProps = {
 const chatCodeChrome = {
   showHeader: true,
   showCopyButton: true,
-  showCollapseButton: true,
+  showCollapseButton: false,
   showExpandButton: false,
   showFontSizeButtons: false,
   enableFontSizeControl: false,

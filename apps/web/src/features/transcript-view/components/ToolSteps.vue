@@ -95,7 +95,6 @@ import {
   toolRowLabelParts,
 } from "@features/transcript-view/lib/transcript-row-label.js"
 import { holdClickedOffset } from "@features/transcript-view/lib/transcript-scroll.js"
-import { toolGroupKey } from "@features/transcript-view/lib/tool-summary.js"
 import {
   STEP_REVEAL_MS,
   STEP_STAGGER_MS,
@@ -126,22 +125,7 @@ const emit = defineEmits<{
 }>()
 const running = computed(() => props.row.mode === "live")
 const statusColor = computed(() => (props.row.aborted ? { color: "var(--warning)" } : undefined))
-/** read 图片没有可折叠的正文，默认展开直接看；用户点过就听用户的。 */
-const hasReadImage = computed(() =>
-  props.row.steps.some(
-    (step) =>
-      step.type === "tools" &&
-      step.items.some(
-        (item) => toolGroupKey(item.toolName) === "read" && item.outputImages.length > 0,
-      ),
-  ),
-)
-const revealed = computed(() => {
-  if (running.value) return true
-
-  if (props.isExpand !== undefined) return props.isExpand
-  return hasReadImage.value
-})
+const revealed = computed(() => running.value || props.isExpand === true)
 
 function toggleSteps(event: MouseEvent) {
   const button = event.currentTarget

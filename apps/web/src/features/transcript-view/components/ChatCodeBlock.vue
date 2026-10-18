@@ -1,8 +1,8 @@
 <template>
   <div ref="host" class="chat-code">
     <CodeBlockNode v-bind="attrs" :show-line-numbers="showLineNumbers" :node="highlightNode">
-      <template v-if="fence.isFileReference" #header-left>
-        <span class="fence-file" :title="fence.filePath ?? undefined">
+      <template #header-left>
+        <span v-if="fence.isFileReference" class="fence-file" :title="fence.filePath ?? undefined">
           <span class="fence-name">{{ fence.fileName }}</span>
           <span v-if="fence.directory" class="fence-dir">{{ fence.directory }}</span>
           <span v-if="fence.lineRange" class="fence-lines">{{ fence.lineRange }}</span>
