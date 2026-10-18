@@ -36,6 +36,8 @@ export { CloseIcon } from "@solar-icons/vue/linear/close"
 
 export { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
 
+export { CommandIcon } from "@solar-icons/vue/linear/command"
+
 export { CopyIcon } from "@solar-icons/vue/linear/copy"
 
 export { DangerCircleIcon } from "@solar-icons/vue/linear/danger-circle"

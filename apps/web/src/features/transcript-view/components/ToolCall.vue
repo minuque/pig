@@ -115,11 +115,11 @@ import type {
 import {
   AltArrowRightIcon,
   CodeSquareIcon,
+  CommandIcon,
   EyeIcon,
   LightbulbMinimalisticIcon,
   MagnifierIcon,
   PenIcon,
-  Tuning2Icon,
 } from "@components/icons/index.js"
 
 const { t } = useI18n()
@@ -328,7 +328,7 @@ const icon = computed(() => {
   if (thought.value) return LightbulbMinimalisticIcon
   const key = group.value?.key
 
-  if (!key) return Tuning2Icon
+  if (!key) return CommandIcon
 
   switch (key) {
     case "read":
@@ -341,7 +341,7 @@ const icon = computed(() => {
     case "command":
       return CodeSquareIcon
     case "tool":
-      return Tuning2Icon
+      return CommandIcon
     default: {
       const _exhaustive: never = key
       return _exhaustive

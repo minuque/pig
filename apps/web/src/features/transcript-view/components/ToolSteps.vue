@@ -1,9 +1,17 @@
 <template>
   <section class="tool-steps" :class="{ running, aborted: row.aborted }">
-    <Button type="button" static class="summary-btn" :style="statusColor" @click="toggleSteps">
-      <LoaderIcon v-if="running" class="tool-steps-icon animate-spin motion-reduce:animate-none" />
-      <ClockCircleIcon v-else-if="row.aborted || row.error" class="tool-steps-icon" />
-      <CheckCircleIcon v-else class="tool-steps-icon" />
+    <Button
+      type="button"
+      static
+      class="summary-btn"
+      :style="statusColor"
+      :aria-expanded="revealed"
+      @click="toggleSteps"
+    >
+      <span class="icon-swap tool-steps-fold">
+        <AltArrowRightIcon :data-visible="!revealed" />
+        <AltArrowDownIcon :data-visible="revealed" />
+      </span>
 
       <span>
         <template v-for="(part, i) in labelParts" :key="i">
@@ -29,12 +37,6 @@
           <span>{{ durationLabel }}</span>
         </template>
       </span>
-
-      <AltArrowRightIcon
-        class="motion-turn"
-        :class="{ 'is-on': revealed }"
-        data-icon="inline-end"
-      />
     </Button>
 
     <div
@@ -103,13 +105,7 @@ import {
   type RailPath,
 } from "@features/transcript-view/lib/step-rail.js"
 import type { ToolRow, ToolRowStep } from "@features/transcript-view/type.js"
-import {
-  AltArrowRightIcon,
-  CheckCircleIcon,
-  ClockCircleIcon,
-  LoaderIcon,
-  MenuDotsIcon,
-} from "@components/icons/index.js"
+import { AltArrowDownIcon, AltArrowRightIcon, MenuDotsIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const PAGE_SIZE = 8
@@ -359,13 +355,7 @@ onBeforeUnmount(() => {
   z-index: 0;
 }
 
-/* 箭头与折叠高度同钟 */
-.summary-btn .motion-turn {
-  transition-duration: var(--duration-tool-fold);
-  transition-timing-function: var(--ease-fold);
-}
-
-.tool-steps-icon {
+.tool-steps-fold {
   flex: none;
   transition: color var(--duration-fast) var(--ease-out);
 }
