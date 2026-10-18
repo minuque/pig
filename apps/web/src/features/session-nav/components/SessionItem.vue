@@ -422,7 +422,7 @@ function confirmDelete() {
 .session-card.active,
 .session-item:hover .session-card.active,
 .session-card.active[data-state="open"] {
-  background: var(--sidebar-selected);
+  background: var(--glass-selected-bg);
 }
 
 .session-item.selected .session-card {

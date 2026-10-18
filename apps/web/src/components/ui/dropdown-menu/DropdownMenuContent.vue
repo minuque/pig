@@ -6,7 +6,10 @@
       class="menu-surface surface-float reveal-menu z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) origin-(--reka-dropdown-menu-content-transform-origin) text-foreground"
       :class="[bare ? undefined : 'min-w-(--size-context-menu)', props.class]"
     >
-      <div v-if="!bare" class="menu-list max-h-(--reka-dropdown-menu-content-available-height)">
+      <div
+        v-if="!bare"
+        class="menu-list edge-fade-menu max-h-(--reka-dropdown-menu-content-available-height)"
+      >
         <slot />
       </div>
 

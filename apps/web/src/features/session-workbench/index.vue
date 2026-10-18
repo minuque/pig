@@ -594,7 +594,7 @@ const contentHandleSides = ["left", "right"] as const
   inset-inline: 0 8px;
   top: 0;
   z-index: 1;
-  height: var(--spacing-sm);
+  height: var(--edge-fade-band);
   background: linear-gradient(to bottom, var(--card), transparent);
   content: "";
 }

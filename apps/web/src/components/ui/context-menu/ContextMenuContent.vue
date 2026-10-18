@@ -14,7 +14,7 @@
       @close-auto-focus="onCloseAutoFocus"
       @interact-outside="onInteractOutside"
     >
-      <div class="menu-list max-h-(--reka-context-menu-content-available-height)">
+      <div class="menu-list edge-fade-menu max-h-(--reka-context-menu-content-available-height)">
         <slot />
       </div>
     </MenuContent>

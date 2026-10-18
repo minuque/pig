@@ -11,7 +11,7 @@
     <div
       id="transcript-panel"
       ref="viewport"
-      class="transcript-viewport"
+      class="transcript-viewport edge-fade-top"
       :class="{ 'is-following': atBottom, 'is-windowed': windowed }"
       @scroll="onTranscriptScroll"
       @wheel="onTranscriptWheel"

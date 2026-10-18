@@ -23,6 +23,19 @@
   initial-value: transparent;
 }
 
+/* 滚动边缘渐隐：由 scroll() 时间线驱动的遮罩带宽 */
+@property --edge-fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --edge-fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 /* 全局 token、浅深色覆盖与 Tailwind 映射须集中维护，因此本文件保留超过 500 行。 */
 
 /* ------ 浅色 token ------ */
@@ -62,9 +75,11 @@
 
   /* 毛玻璃：透明度由设置写 --glass-opacity，模糊与饱和只按深浅切换 */
   --glass-opacity: 80%;
-  --glass-blur: 12px;
+  --glass-blur: 16px;
   --glass-saturation: 1.14;
   --glass-tint: var(--card);
+  /* 选中态：半透明洗涤，不描边；浅色用黑、深色用白 */
+  --glass-selected-bg: hsla(0, 0%, 10%, 0.06);
 
   /* mermaid 图 */
   --mermaid-bg: #ffffff;
@@ -132,6 +147,28 @@
   --link: #4c56c8;
   --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #dad8d8;
+
+  /* 滚动边缘渐隐：类只选带宽，颜色由 mask 决定 */
+  --edge-fade-band: 24px;
+  --edge-fade-menu-band: 12px;
+
+  /* 滑条三件套：轨道 / 填充 / 手柄，参数对齐 zeron glass plate */
+  --slider-track-bg: linear-gradient(to bottom, rgb(0 0 0 / 0.075), rgb(0 0 0 / 0.04));
+  --slider-track-border: rgb(0 0 0 / 0.08);
+  --slider-track-shadow: inset 0 1px 2px rgb(0 0 0 / 0.08), inset 0 -1px 0 rgb(255 255 255 / 0.55);
+  --slider-fill-bg: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--primary), white 22%),
+    var(--primary)
+  );
+  --slider-fill-border: color-mix(in srgb, var(--primary) 86%, black);
+  --slider-fill-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 0 0 1px rgb(255 255 255 / 0.22),
+    0 2px 6px color-mix(in srgb, var(--primary) 14%, transparent);
+  --slider-thumb-bg: linear-gradient(to bottom, hsl(0 0% 100%), hsl(0 0% 96.5%));
+  --slider-thumb-border: rgb(0 0 0 / 0.11);
+  --slider-thumb-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.8), 0 1px 2px rgb(0 0 0 / 0.14), 0 2px 6px rgb(0 0 0 / 0.06);
 
   --card-border: hsl(210 18% 32% / 0.1);
   --hairline: hsl(0 0% 0% / 0.12);
@@ -335,6 +372,25 @@
   --scrollbar-color: #1c1c21;
   --button-press: color-mix(in srgb, var(--foreground) 30%, transparent);
 
+  --glass-selected-bg: hsla(0, 0%, 92%, 0.11);
+
+  --slider-track-bg: linear-gradient(to bottom, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.05));
+  --slider-track-border: rgb(255 255 255 / 0.09);
+  --slider-track-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 1px 2px rgb(0 0 0 / 0.16);
+  --slider-fill-bg: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--primary), white 6%),
+    var(--primary)
+  );
+  --slider-fill-border: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--primary), white 35%) 35%,
+    transparent
+  );
+  --slider-fill-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
+  --slider-thumb-border: rgb(0 0 0 / 0.12);
+  --slider-thumb-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8), 0 1px 2px rgb(0 0 0 / 0.22);
+
   --accent-skill: #c2a1ff;
   --accent-steel: #8aa4c2;
   --accent-teal: #5ec4ae;
@@ -488,40 +544,16 @@ html[data-glass="on"] .surface-float {
   backdrop-filter: none;
 }
 
-/* ------ 滚动区边缘渐隐：mask 只做淡出，不裁剪内容 ------ */
-.edge-fade-y {
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    black var(--edge-fade, 2.5rem),
-    black calc(100% - var(--edge-fade, 2.5rem)),
-    transparent
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    black var(--edge-fade, 2.5rem),
-    black calc(100% - var(--edge-fade, 2.5rem)),
-    transparent
-  );
+/* ------ 浮层退场：blur 随退场进度降到 0；非玻璃浮层保持 0/1，不额外加滤镜 ------ */
+:is(.reveal-menu, [data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+  --menu-exit-blur: 0px;
+  --menu-exit-saturate: 1;
 }
 
-.edge-fade-bottom {
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    black calc(100% - var(--edge-fade, 2.5rem)),
-    transparent
-  );
-  mask-image: linear-gradient(to bottom, black calc(100% - var(--edge-fade, 2.5rem)), transparent);
-}
-
-.edge-fade-top {
-  -webkit-mask-image: linear-gradient(
-    to top,
-    black calc(100% - var(--edge-fade, 2.5rem)),
-    transparent
-  );
-  mask-image: linear-gradient(to top, black calc(100% - var(--edge-fade, 2.5rem)), transparent);
+html[data-glass="on"] .surface-float.reveal-menu,
+html[data-glass="on"] :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+  --menu-exit-blur: var(--glass-blur);
+  --menu-exit-saturate: var(--glass-saturation);
 }
 
 /* ------ 基础 reset 与字号档 ------ */

@@ -28,7 +28,7 @@
     <div
       v-else-if="flatRows.length"
       v-bind="containerProps"
-      class="session-window"
+      class="session-window edge-fade-y"
       @click.self="clearSelection"
     >
       <ul ref="listEl" v-bind="wrapperProps">

@@ -180,7 +180,7 @@ function goBack() {
 }
 
 .nav-item.router-link-active {
-  background: var(--interaction-selected);
+  background: var(--glass-selected-bg);
 }
 
 .nav-footer {

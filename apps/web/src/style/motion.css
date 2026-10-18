@@ -658,11 +658,15 @@
   from {
     opacity: 1;
     transform: translateY(0) scale(1);
+    -webkit-backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
+    backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
   }
 
   to {
     opacity: 0;
     transform: translateY(4px) scale(0.98);
+    -webkit-backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
+    backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
   }
 }
 
@@ -737,11 +741,15 @@
   from {
     opacity: 1;
     translate: 0 0;
+    -webkit-backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
+    backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
   }
 
   to {
     opacity: 0;
     translate: calc(var(--menu-shift-x) * 0.5) calc(var(--menu-shift-y) * 0.5);
+    -webkit-backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
+    backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
   }
 }
 
@@ -773,6 +781,71 @@
 
 .ring-focus[data-tone="destructive"]:focus-visible {
   box-shadow: var(--focus-ring-destructive);
+}
+
+/* ------ 滚动边缘渐隐：scroll() 驱动 mask 带宽；不支持的浏览器退化为无渐隐 ------ */
+.edge-fade-top,
+.edge-fade-y,
+.edge-fade-menu {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--edge-fade-top),
+    black calc(100% - var(--edge-fade-bottom)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black var(--edge-fade-top),
+    black calc(100% - var(--edge-fade-bottom)),
+    transparent
+  );
+}
+
+/* 顶部只在滚离顶端后出现，滚到 1px 即满带宽 */
+.edge-fade-top {
+  animation: edge-fade-top-in linear both;
+  animation-duration: auto;
+  animation-timeline: scroll(self block);
+  animation-range: 0 1px;
+}
+
+/* 上下两端：滚离顶部淡入，贴到底部前淡出 */
+.edge-fade-y,
+.edge-fade-menu {
+  animation:
+    edge-fade-top-in linear both,
+    edge-fade-bottom-in linear both;
+  animation-duration: auto;
+  animation-timeline: scroll(self block), scroll(self block);
+  animation-range:
+    0 1px,
+    calc(100% - 1px) 100%;
+}
+
+.edge-fade-menu {
+  --edge-fade-band: var(--edge-fade-menu-band);
+}
+
+@keyframes edge-fade-top-in {
+  from {
+    --edge-fade-top: 0px;
+  }
+
+  to {
+    --edge-fade-top: var(--edge-fade-band);
+  }
+}
+
+@keyframes edge-fade-bottom-in {
+  from {
+    --edge-fade-bottom: var(--edge-fade-band);
+  }
+
+  to {
+    --edge-fade-bottom: 0px;
+  }
 }
 
 /* ------ 减弱动效：全局兜底，动画与过渡一次关掉 ------ */
