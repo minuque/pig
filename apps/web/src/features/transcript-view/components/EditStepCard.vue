@@ -1,7 +1,9 @@
 <template>
   <div class="tool-step-card is-edit">
     <ToolHeader v-model:soft-wrap="softWrap" :label="t('transcript.output')" :text="outputText">
-      <span class="read-heading" :title="heading">{{ heading }}</span>
+      <div class="read-heading">
+        <TranscriptFileTag :path="heading" :text="heading" plain />
+      </div>
     </ToolHeader>
 
     <div class="edit-area" :class="{ 'is-clamped': clamped }">
@@ -48,6 +50,7 @@ import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { StreamDiff } from "stream-diffs/vue"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
+import TranscriptFileTag from "@features/transcript-view/components/TranscriptFileTag.vue"
 import { useColorScheme } from "@features/theme/index.js"
 import type { EditDiffPreview } from "@features/transcript-view/type.js"
 
@@ -98,13 +101,10 @@ const editDiffOptions = computed(() => ({
 }
 
 .read-heading {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
   min-width: 0;
-  overflow: hidden;
-  color: var(--contrast-foreground);
-  font-family: var(--font-mono);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .card-footer {

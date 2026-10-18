@@ -1,5 +1,5 @@
 <template>
-  <span class="file-tag" :title="title || path">
+  <span class="file-tag" :class="{ plain }" :title="title || path">
     <img v-if="iconUrl" class="file-tag-icon" :src="iconUrl" :alt="extension" />
     <span class="file-tag-name">{{ text }}</span>
   </span>
@@ -16,6 +16,8 @@ const props = defineProps<{
   /** 显示文本：工具行用文件名，卡片头用完整路径。 */
   text: string
   title?: string
+  /** 卡片头变体：保留图标与等宽字，去掉背景胶囊。 */
+  plain?: boolean
 }>()
 const extension = computed(() => {
   const name = pathBasename(props.path)
@@ -58,5 +60,10 @@ const iconUrl = computed(() => {
   color: var(--contrast-foreground);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.file-tag.plain {
+  padding: 0;
+  background: transparent;
 }
 </style>

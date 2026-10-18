@@ -16,7 +16,9 @@
       :label="t('transcript.output')"
       :text="preview.code"
     >
-      <span class="read-heading" :title="path">{{ path }}</span>
+      <div class="read-heading">
+        <TranscriptFileTag :path="path" :text="path" plain />
+      </div>
     </ToolHeader>
 
     <ToolOutput
@@ -49,6 +51,7 @@ import { computed, ref, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import ToolHeader from "@features/transcript-view/components/ToolHeader.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
+import TranscriptFileTag from "@features/transcript-view/components/TranscriptFileTag.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { useColorScheme } from "@features/theme/index.js"
 import {
@@ -130,13 +133,10 @@ watch(
 }
 
 .read-heading {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
   min-width: 0;
-  overflow: hidden;
-  color: var(--contrast-foreground);
-  font-family: var(--font-mono);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .card-footer {
