@@ -45,6 +45,9 @@
             :session-id="sessionId ?? ''"
             :transcript="transcript"
             :running="turnPending"
+            :phase="phase"
+            :sending="submitting"
+            :stopping="aborting"
             :timings="turnTimings"
             :has-more="historyHasMore"
             :loading-older="loadingOlder"
@@ -180,6 +183,8 @@ const {
   loadOlderHistory,
   turnTimings,
   running,
+  phase,
+  submitting,
   turnPending,
   sessionPending,
   connectionError,

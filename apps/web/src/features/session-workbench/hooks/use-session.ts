@@ -511,6 +511,7 @@ export function useSessionLifecycle(
   return {
     sessionId,
     projection,
+    phase,
     running,
     backgroundRunningIds,
     turnPending,
@@ -531,6 +532,7 @@ export function useSessionLifecycle(
     prompt,
     clientState,
     creating: creatingCwd,
+    submitting,
     aborting,
     createSession,
     sendPrompt,

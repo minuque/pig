@@ -62,6 +62,13 @@
               ></div>
             </template>
           </div>
+
+          <TranscriptStatus
+            :phase="phase"
+            :sending="sending"
+            :stopping="stopping"
+            :started-at="activeStartedAt"
+          />
         </div>
       </div>
     </div>
@@ -82,6 +89,7 @@ import {
 } from "vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
+import TranscriptStatus from "@features/transcript-view/components/TranscriptStatus.vue"
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { useI18n } from "@i18n/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
@@ -92,7 +100,7 @@ import {
   useTranscriptReveal,
 } from "@features/transcript-view/hooks/use-transcript-edge.js"
 import { useTranscriptWindow } from "@features/transcript-view/hooks/use-transcript-window.js"
-import type { TranscriptItem } from "@/types/common-type.js"
+import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { ensureMermaidRuntime } from "@features/transcript-view/lib/mermaid-runtime.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
@@ -113,11 +121,14 @@ const props = withDefaults(
     sessionId: string
     transcript: readonly TranscriptItem[]
     running: boolean
+    phase?: SessionPhase | undefined
+    sending?: boolean
+    stopping?: boolean
     timings?: readonly TurnTiming[] | undefined
     hasMore?: boolean
     loadingOlder?: boolean
   }>(),
-  { hasMore: false, loadingOlder: false },
+  { hasMore: false, loadingOlder: false, sending: false, stopping: false },
 )
 const emit = defineEmits<{
   loadOlder: []
@@ -126,6 +137,15 @@ const { t } = useI18n()
 const turns = shallowRef<TimelineTurn[]>([])
 const rows = computed(() => turns.value.flatMap((turn) => turn.rows))
 const rowsBuilder = createTimelineRowsBuilder()
+/** 运行中轮的起点：turn.id 就是 user 条目 id，timing.userId 与之对应。 */
+const activeStartedAt = computed(() => {
+  if (!props.running) return undefined
+  const lastId = turns.value.at(-1)?.id
+  const timing = props.timings?.find(
+    (value) => value.userId === lastId && value.outcome === "running",
+  )
+  return timing?.startedAt
+})
 
 watch(
   () => ({

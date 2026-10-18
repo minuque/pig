@@ -2,6 +2,8 @@
 
 export { default as SidebarGlyph } from "@components/icons/SidebarGlyph.vue"
 
+export { default as RunningPigGlyph } from "@components/icons/RunningPigGlyph.vue"
+
 export { AddFolderIcon } from "@solar-icons/vue/linear/add-folder"
 
 export { AlignLeftIcon } from "@solar-icons/vue/linear/align-left"

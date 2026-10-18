@@ -203,6 +203,9 @@ export const zh = {
     partFileSuffixOne: "次文件",
     partWritePrefix: "写",
     partEditPrefix: "编辑",
+    statusSending: "发送中",
+    statusStopping: "正在停止",
+    statusWorking: "正在工作",
   },
   hero: {
     in: "在",
@@ -438,6 +441,9 @@ export const en: Messages = {
     partFileSuffixOne: "file",
     partWritePrefix: "wrote",
     partEditPrefix: "edited",
+    statusSending: "Sending",
+    statusStopping: "Stopping",
+    statusWorking: "Working",
   },
   hero: {
     in: "in",
