@@ -1,16 +1,19 @@
 import type { SessionMetadata, TranscriptItem } from "@/types/common-type.js"
 import { canonicalizeWorkspacePath, uniqueCanonicalPaths } from "@client/local-cwd.js"
 import { transcriptText } from "@features/transcript-view/index.js"
+import { t } from "@i18n/index.js"
 import type {
   SessionCardExtra,
   SessionCardLive,
   SessionGroup,
-  SidebarRow,
+  SidebarGrouping,
+  SidebarSection,
   SidebarSession,
+  SidebarSort,
 } from "@features/session-nav/type.js"
 import { sessionRecency, sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
 
-export const UPDATED_PAGE = 10
+export const SECTION_PAGE = 10
 /** 临时新会话占位行的 id 前缀。 */
 export const DRAFT_SESSION_PREFIX = "draft:"
 
@@ -26,17 +29,29 @@ function sessionCwd(session: Pick<SessionMetadata, "cwd">): string | undefined {
   return session.cwd ? canonicalizeWorkspacePath(session.cwd) : undefined
 }
 
-/** 侧栏会话序：sessionRecency 新→旧，同分按 id。 */
-export function sortSessionsForSidebar(sessions: readonly SessionMetadata[]): SessionMetadata[] {
+function sortKey(session: Pick<SessionMetadata, "createdAt" | "updatedAt">, sort: SidebarSort) {
+  return sort === "created" ? session.createdAt : sessionRecency(session)
+}
+
+/** 侧栏会话序：排序键新→旧，同分按 id。 */
+export function sortSessionsForSidebar(
+  sessions: readonly SessionMetadata[],
+  sort: SidebarSort = "updated",
+): SessionMetadata[] {
   return [...sessions].sort(
-    (left, right) =>
-      sessionRecency(right) - sessionRecency(left) || left.id.localeCompare(right.id),
+    (left, right) => sortKey(right, sort) - sortKey(left, sort) || left.id.localeCompare(right.id),
   )
 }
 
 /** 会话维列表：无 cwd 的 Session 不进侧栏。 */
-export function listSessionsForSidebar(sessions: readonly SessionMetadata[]): SessionMetadata[] {
-  return sortSessionsForSidebar(sessions.filter((session) => sessionCwd(session) !== undefined))
+export function listSessionsForSidebar(
+  sessions: readonly SessionMetadata[],
+  sort: SidebarSort = "updated",
+): SessionMetadata[] {
+  return sortSessionsForSidebar(
+    sessions.filter((session) => sessionCwd(session) !== undefined),
+    sort,
+  )
 }
 
 /** 按标题或目录名过滤侧栏会话，空查询原样返回。 */
@@ -54,10 +69,11 @@ export function filterSessionsForSearch(
   })
 }
 
-/** 本地名单在前（含尚无会话的目录）；其余 Pi Session 按 cwd 跟上。组内按最近活动倒序。 */
+/** 本地名单在前（含尚无会话的目录）；其余 Pi Session 按 cwd 跟上。组内按排序键倒序。 */
 export function groupSessionsByCwd(
   sessions: readonly SessionMetadata[],
   localWorkspaces: readonly string[],
+  sort: SidebarSort = "updated",
 ): SessionGroup[] {
   const byPath = new Map<string, SessionMetadata[]>()
 
@@ -76,13 +92,13 @@ export function groupSessionsByCwd(
   return [
     ...localPaths.map((canonicalPath) => ({
       canonicalPath,
-      sessions: sortSessionsForSidebar(byPath.get(canonicalPath) ?? []),
+      sessions: sortSessionsForSidebar(byPath.get(canonicalPath) ?? [], sort),
     })),
     ...[...byPath]
       .filter(([canonicalPath]) => !local.has(canonicalPath))
       .map(([canonicalPath, groupedSessions]) => ({
         canonicalPath,
-        sessions: sortSessionsForSidebar(groupedSessions),
+        sessions: sortSessionsForSidebar(groupedSessions, sort),
       })),
   ]
 }
@@ -97,68 +113,132 @@ export function toSidebarSession(session: SessionMetadata): SidebarSession {
   }
 }
 
-function sliceVisible(
+const DAY = 24 * 60 * 60 * 1000
+
+function localDayStart(now: number): number {
+  const date = new Date(now)
+  date.setHours(0, 0, 0, 0)
+  return date.getTime()
+}
+
+/** 日期桶：今天 / 昨天 / 近 7 天 / 更早，按排序键的时间戳。 */
+function dateBucket(
+  session: Pick<SessionMetadata, "createdAt" | "updatedAt">,
+  sort: SidebarSort,
+  now: number,
+): number {
+  const age = localDayStart(now) - sortKey(session, sort)
+
+  if (age < 0) return 0
+
+  if (age < DAY) return 1
+
+  if (age < 7 * DAY) return 2
+  return 3
+}
+
+function dateBucketLabel(bucket: number): string {
+  return [
+    t("session.bucketToday"),
+    t("session.bucketYesterday"),
+    t("session.bucketWeek"),
+    t("session.bucketEarlier"),
+  ][bucket]!
+}
+
+function toSection(
+  key: string,
+  label: string,
   sessions: readonly SessionMetadata[],
-  groupKey: string,
-  page: number,
   expandedByGroup: Readonly<Record<string, boolean>>,
   searching: boolean,
-): { sessions: SidebarSession[]; more: boolean; revealed: boolean } {
-  const revealed = !searching && expandedByGroup[groupKey] === true
-  const limit = searching || revealed ? sessions.length : page
-  const visible = sessions.slice(0, limit)
-  const more = !searching && sessions.length > page
+  cwd?: string,
+): SidebarSection {
+  const revealed = !searching && expandedByGroup[key] === true
+  const limit = searching || revealed ? sessions.length : SECTION_PAGE
   return {
-    sessions: visible.map(toSidebarSession),
-    more,
-    revealed: more && revealed,
+    key,
+    label,
+    ...(cwd !== undefined ? { cwd } : {}),
+    sessions: sessions.slice(0, limit).map(toSidebarSession),
+    more: !searching && sessions.length > SECTION_PAGE,
+    revealed,
   }
 }
 
-function appendGroupSessions(
-  rows: SidebarRow[],
-  sessions: readonly SessionMetadata[],
-  groupKey: string,
-  page: number,
-  expandedByGroup: Readonly<Record<string, boolean>>,
-  searching: boolean,
-): void {
-  const sliced = sliceVisible(sessions, groupKey, page, expandedByGroup, searching)
-
-  for (const session of sliced.sessions) {
-    rows.push({ kind: "session", key: session.id, session })
-  }
-
-  if (sliced.more) {
-    rows.push({ kind: "more", key: `more:${groupKey}`, groupKey, revealed: sliced.revealed })
-  }
-}
-
-/** 侧栏虚拟列表行：pinned 在前，其余按更新时间平铺。searching 取消截断。 */
-export function sidebarRows(input: {
+/** 侧栏分区：置顶按存储顺序在前；其余按日期或工作目录分组。搜索时不截断。 */
+export function sidebarSections(input: {
   sessions: readonly SessionMetadata[]
-  pinnedIds?: ReadonlySet<string>
+  pinnedOrder?: readonly string[]
+  grouping: SidebarGrouping
+  sort: SidebarSort
+  localWorkspaces: readonly string[]
   expandedByGroup: Readonly<Record<string, boolean>>
   searching: boolean
-}): SidebarRow[] {
-  const { sessions, pinnedIds, expandedByGroup, searching } = input
-  const rows: SidebarRow[] = []
-  const list = listSessionsForSidebar(sessions)
+  now?: number
+}): SidebarSection[] {
+  const { grouping, sort, expandedByGroup, searching } = input
+  const list = listSessionsForSidebar(input.sessions, sort)
+  const sections: SidebarSection[] = []
 
-  if (pinnedIds?.size) {
-    const pinned = list.filter((s) => pinnedIds.has(s.id))
-    const rest = list.filter((s) => !pinnedIds.has(s.id))
+  if (input.pinnedOrder?.length) {
+    const byId = new Map(list.map((session) => [session.id, session]))
+    const pinned = input.pinnedOrder.flatMap((id) => {
+      const session = byId.get(id)
+      return session ? [session] : []
+    })
 
-    for (const session of pinned) {
-      rows.push({ kind: "session", key: session.id, session: toSidebarSession(session) })
+    if (pinned.length) {
+      sections.push({
+        key: "pinned",
+        label: t("session.pinned"),
+        sessions: pinned.map(toSidebarSession),
+        more: false,
+        revealed: false,
+      })
     }
-
-    appendGroupSessions(rows, rest, "updated", UPDATED_PAGE, expandedByGroup, searching)
-    return rows
   }
 
-  appendGroupSessions(rows, list, "updated", UPDATED_PAGE, expandedByGroup, searching)
-  return rows
+  const pinnedIds = new Set(input.pinnedOrder ?? [])
+  const rest = list.filter((session) => !pinnedIds.has(session.id))
+
+  if (grouping === "cwd") {
+    for (const group of groupSessionsByCwd(rest, input.localWorkspaces, sort)) {
+      if (!group.sessions.length) continue
+      sections.push(
+        toSection(
+          `cwd:${group.canonicalPath}`,
+          workspaceName(group.canonicalPath),
+          group.sessions,
+          expandedByGroup,
+          searching,
+          group.canonicalPath,
+        ),
+      )
+    }
+
+    return sections
+  }
+
+  const now = input.now ?? Date.now()
+  const buckets: SessionMetadata[][] = [[], [], [], []]
+
+  for (const session of rest) buckets[dateBucket(session, sort, now)]!.push(session)
+
+  for (const [bucket, bucketSessions] of buckets.entries()) {
+    if (!bucketSessions.length) continue
+    sections.push(
+      toSection(
+        `date:${bucket}`,
+        dateBucketLabel(bucket),
+        bucketSessions,
+        expandedByGroup,
+        searching,
+      ),
+    )
+  }
+
+  return sections
 }
 
 export function sessionCardFoot(

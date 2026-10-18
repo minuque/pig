@@ -15,6 +15,7 @@ export function useSessionMarkers(
   const runStartAt = Date.now()
   const readAtById = shallowRef<Record<string, number>>({})
   const pinnedIds = computed(() => new Set(pinnedIdList.value))
+  const pinnedOrder = computed(() => pinnedIdList.value)
   const pinnedSessions = computed(() =>
     toValue(sessions).filter((session) => pinnedIds.value.has(session.id)),
   )
@@ -47,5 +48,5 @@ export function useSessionMarkers(
     },
     { immediate: true },
   )
-  return { pinnedIds, pinnedSessions, togglePinned, isUnread }
+  return { pinnedIds, pinnedOrder, pinnedSessions, togglePinned, isUnread }
 }

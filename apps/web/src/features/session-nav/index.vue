@@ -18,7 +18,7 @@
               class="nav-collapse"
               type="button"
               :aria-label="t('nav.collapseSidebar')"
-              @click="setSbState(sbState === 'expanded' ? 'icon' : 'expanded')"
+              @click="setSbState(sbState === 'expanded' ? 'offcanvas' : 'expanded')"
             >
               <SidebarGlyph :open="sbState !== 'offcanvas'" />
             </button>
@@ -77,13 +77,51 @@
             class="head-btn"
             type="button"
             :title="t('session.newSession')"
-            @click="onCreateSession"
+            @click="onCreateSession()"
           >
             <ChatRoundAddIcon :size="15" />
           </button>
         </div>
 
         <div v-if="scopeMenuOpen" class="scope-menu" @click.stop>
+          <p class="scope-label">{{ t("session.grouping") }}</p>
+
+          <button
+            v-for="option in groupingOptions"
+            :key="option.value"
+            class="scope-item"
+            :class="{ on: grouping === option.value }"
+            type="button"
+            @click="setGrouping(option.value)"
+          >
+            <span class="scope-fav"></span>
+            <span class="scope-name">{{ option.label }}</span>
+
+            <span class="scope-ck">
+              <CheckIcon v-if="grouping === option.value" :size="10" />
+            </span>
+          </button>
+
+          <p class="scope-label">{{ t("session.sorting") }}</p>
+
+          <button
+            v-for="option in sortOptions"
+            :key="option.value"
+            class="scope-item"
+            :class="{ on: sort === option.value }"
+            type="button"
+            @click="setSort(option.value)"
+          >
+            <span class="scope-fav"></span>
+            <span class="scope-name">{{ option.label }}</span>
+
+            <span class="scope-ck">
+              <CheckIcon v-if="sort === option.value" :size="10" />
+            </span>
+          </button>
+
+          <div class="scope-sep" role="separator"></div>
+
           <button
             class="scope-item"
             :class="{ on: !scopeFilter }"
@@ -158,7 +196,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, onMounted, shallowRef, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
@@ -201,7 +239,19 @@ const {
   addWorkspace,
   setDraftSession,
   listedSessions,
+  grouping,
+  sort,
+  setGrouping,
+  setSort,
 } = useNav()
+const groupingOptions = computed(() => [
+  { value: "date" as const, label: t("session.groupDate") },
+  { value: "cwd" as const, label: t("session.groupCwd") },
+])
+const sortOptions = computed(() => [
+  { value: "updated" as const, label: t("session.sortUpdated") },
+  { value: "created" as const, label: t("session.sortCreated") },
+])
 
 function scopeIcon(project: string | undefined) {
   if (!project) return FolderIcon
@@ -321,8 +371,8 @@ function onAddProject(): void {
   void addWorkspace()
 }
 
-function onCreateSession(): void {
-  const path = highlightedCwd() ?? lastCwd.value ?? groups.value[0]?.canonicalPath
+function onCreateSession(cwd?: string): void {
+  const path = cwd ?? highlightedCwd() ?? lastCwd.value ?? groups.value[0]?.canonicalPath
 
   if (path) return onCreateInDir(path)
   void play("create")
@@ -578,6 +628,19 @@ html[data-pig-desktop-platform="darwin"] .nav-head {
   margin-inline-start: var(--spacing-xs);
 }
 
+.scope-label {
+  margin: 0;
+  padding: var(--spacing-xxs) var(--spacing-xs) 0;
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-eyebrow);
+}
+
+.scope-sep {
+  height: 1px;
+  margin-block: var(--spacing-xxs);
+  background: var(--border);
+}
+
 .scope-fav {
   display: flex;
   flex: none;
@@ -668,27 +731,6 @@ html[data-pig-desktop-platform="darwin"] .nav-head {
 
 .scope-edit:hover {
   color: var(--contrast-foreground);
-}
-
-:global(.sidebar.icon) .search-head,
-:global(.sidebar.icon) .nav-inset > .add-guide,
-:global(.sidebar.icon) .session-list .session-window,
-:global(.sidebar.icon) .brand-word,
-:global(.sidebar.icon) .footer-settings span:last-child {
-  display: none;
-}
-
-:global(.sidebar.icon) .nav-footer {
-  flex-direction: column;
-}
-
-:global(.sidebar.icon) .nav-head {
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-:global(.sidebar.icon) .nav-collapse {
-  margin-inline-start: 0;
 }
 
 @media (max-width: 900px) {
