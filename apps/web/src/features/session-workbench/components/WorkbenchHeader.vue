@@ -18,9 +18,13 @@
     </Tooltip>
 
     <template v-if="title">
+      <span ref="sizer" class="header-title header-sizer" aria-hidden="true">{{ sizerText }}</span>
+
       <input
+        ref="titleInput"
         v-model="draft"
         class="header-title"
+        :style="{ width: titleWidth }"
         :aria-label="t('session.rename')"
         spellcheck="false"
         @focus="onFocus"
@@ -63,7 +67,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef, useTemplateRef, watch } from "vue"
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  shallowRef,
+  useTemplateRef,
+  watch,
+} from "vue"
 import { useI18n } from "@i18n/index.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import {
@@ -111,6 +124,25 @@ const title = computed(() =>
 const draft = ref("")
 const dirty = shallowRef(false)
 const deleteOpen = shallowRef(false)
+const sizer = useTemplateRef<HTMLElement>("sizer")
+const sizerWidth = ref(0)
+const sizerText = computed(() =>
+  draft.value || title.value ? `${draft.value || title.value} ` : "",
+)
+const titleWidth = computed(() => (sizerWidth.value > 0 ? `${sizerWidth.value}px` : undefined))
+const measureSizer = () => {
+  sizerWidth.value = sizer.value?.getBoundingClientRect().width ?? 0
+}
+
+onMounted(() => {
+  measureSizer()
+
+  if (!sizer.value || typeof ResizeObserver === "undefined") return
+  const observer = new ResizeObserver(measureSizer)
+
+  observer.observe(sizer.value)
+  onBeforeUnmount(() => observer.disconnect())
+})
 
 watch(
   title,
@@ -201,8 +233,9 @@ function confirmDelete(): void {
 }
 
 .header-title {
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: none;
+  min-width: 4em;
+  max-width: 30em;
   height: var(--size-nav-rail);
   margin: 0;
   padding: 0 var(--spacing-xxs);
@@ -229,6 +262,16 @@ function confirmDelete(): void {
   caret-color: var(--primary);
   box-shadow: inset 0 0 0 1px var(--primary);
   user-select: text;
+}
+
+.header-sizer {
+  position: absolute;
+  visibility: hidden;
+  width: auto;
+  height: auto;
+  padding-inline-end: var(--spacing-sm);
+  pointer-events: none;
+  white-space: pre;
 }
 
 .header-more {
