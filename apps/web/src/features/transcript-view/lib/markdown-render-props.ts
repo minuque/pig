@@ -53,6 +53,8 @@ const mermaidProps = {
   estimatedPreviewHeightPx: 240,
   showHeader: true,
   showFullscreenButton: true,
+  // 折叠按钮让位给预览/Source 切换组，位置由 markdown-stream.css 对齐。
+  showCollapseButton: false,
 } as const
 const chatCodeChrome = {
   showHeader: true,
