@@ -279,8 +279,8 @@ function confirmDelete(): void {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--size-nav-rail);
-  height: var(--size-nav-rail);
+  margin-inline-start: calc(var(--spacing-xxs) - var(--spacing-xs));
+  padding: var(--icon-button-pad);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -290,7 +290,6 @@ function confirmDelete(): void {
 .header-more:hover,
 .header-more:focus-visible,
 .header-more[data-state="open"] {
-  background: var(--hover-quiet);
   color: var(--contrast-foreground);
 }
 
