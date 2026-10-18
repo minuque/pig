@@ -361,10 +361,6 @@ onBeforeUnmount(() => {
   scrollbar-width: none;
 }
 
-.session-window::-webkit-scrollbar {
-  display: none;
-}
-
 .session-list ul {
   position: relative;
   display: flex;
@@ -405,10 +401,6 @@ onBeforeUnmount(() => {
   padding-block: var(--spacing-xxs);
   overflow-y: auto;
   scrollbar-width: none;
-}
-
-.rail::-webkit-scrollbar {
-  display: none;
 }
 
 .rail-dot {

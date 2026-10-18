@@ -590,8 +590,8 @@ const contentHandleSides = ["left", "right"] as const
 .session-stage::before {
   pointer-events: none;
   position: absolute;
-  /* 让开滚动条列，否则渐隐会压住两端的三角按钮 */
-  inset-inline: 0 var(--size-scrollbar);
+  /* 让开滚动条列（Chromium thin 约 8px），否则渐隐会压住两端的三角按钮 */
+  inset-inline: 0 8px;
   top: 0;
   z-index: 1;
   height: var(--spacing-sm);

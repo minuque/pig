@@ -132,7 +132,6 @@
   --link: #4c56c8;
   --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #dad8d8;
-  --scrollbar-hover: #6b6b6b;
 
   --card-border: hsl(210 18% 32% / 0.1);
   --hairline: hsl(0 0% 0% / 0.12);
@@ -203,7 +202,6 @@
   /* 侧边栏紧凑图标按钮：图标外 2px，对齐 Synara 的 sidebar-icon-button */
   --icon-button-pad: 2px;
   --size-scroll-control: 30px;
-  --size-scrollbar: 8px;
   /* 侧栏行高：对齐 Synara 侧栏的 28px 行 */
   --size-nav-rail: 28px;
   --startup-logo-size: 88px;
@@ -328,7 +326,6 @@
   --mermaid-accent: var(--link);
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #1c1c21;
-  --scrollbar-hover: #a3a3a3;
   --button-press: color-mix(in srgb, var(--foreground) 30%, transparent);
 
   --accent-skill: #c2a1ff;
@@ -372,50 +369,11 @@
   --theme-wire-light-raised: #ffffff;
 }
 
-/* ------ 滚动条：常显；侧栏列表内另行隐藏，元素可自写 --scrollbar-thumb ------ */
+/* ------ 滚动条：原生 thin 规格；侧栏列表内另行隐藏，元素可自写 --scrollbar-thumb ------ */
 * {
   --scrollbar-thumb: var(--scrollbar-color);
-}
-
-@supports (-moz-appearance: none) {
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) transparent;
-  }
-}
-
-*::-webkit-scrollbar {
-  width: var(--size-scrollbar);
-  height: var(--size-scrollbar);
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 0;
-}
-
-*::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: var(--radius-full);
-  transition: background-color var(--duration-slow) var(--ease-out);
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-hover);
-}
-
-*::-webkit-scrollbar-button {
-  display: none;
-}
-
-*::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *::-webkit-scrollbar-thumb {
-    transition: none;
-  }
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 /* ------ 度量与字体间距：只定义一份，static 防 Tailwind 按用量裁掉 var() ------ */
@@ -709,7 +667,6 @@ html[data-theme-id] {
   --card-border: var(--app-theme-card-border);
   --media-outline: var(--app-theme-media-outline);
   --scrollbar-color: var(--app-theme-scrollbar-color);
-  --scrollbar-hover: var(--app-theme-scrollbar-hover);
   --scrim: var(--app-theme-scrim);
   --success: var(--app-theme-success);
   --warning: var(--app-theme-warning);

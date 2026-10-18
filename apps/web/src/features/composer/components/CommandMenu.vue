@@ -135,10 +135,6 @@ watch(
   scrollbar-width: none;
 }
 
-.command-menu::-webkit-scrollbar {
-  display: none;
-}
-
 .command-label {
   margin: 0;
   padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xxs);

@@ -158,12 +158,6 @@ const preClass = computed(() => ({
   --scrollbar-thumb: var(--hover-strong);
 }
 
-/* 横向滚动条两端避开卡片圆角；只留横向滚动，不再需要 block 方向的让位 */
-.code-scroll::-webkit-scrollbar-track,
-.tool-output.is-embedded::-webkit-scrollbar-track {
-  margin-inline: calc(var(--radius-code) - var(--border-width));
-}
-
 .code-lines {
   min-width: 0;
   font-family: var(--font-mono);
