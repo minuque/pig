@@ -247,6 +247,13 @@
   --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.66, 0, 0.34, 1);
   --ease-spring: cubic-bezier(0.22, 1.18, 0.36, 1);
+  /* 浮层出入与 hover 统一曲线 */
+  --ease-menu: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-menu-in: 140ms;
+  --duration-menu-out: 100ms;
+  --duration-dialog-in: 180ms;
+  --duration-row-reveal: 360ms;
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-composer-flip: 180ms;
@@ -264,7 +271,7 @@
   --duration-pig-peek: 640ms;
   --duration-icon: 300ms;
   --duration-theme: 600ms;
-  --duration-shimmer: 2s;
+  --duration-shimmer: 3400ms;
   --ease-icon: cubic-bezier(0.2, 0, 0, 1);
 
   /* 材质：小面积磨砂（徽标/预览层）。玻璃浮层走 --glass-*，此处只管局部压底。 */

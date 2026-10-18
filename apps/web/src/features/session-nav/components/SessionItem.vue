@@ -411,6 +411,7 @@ function confirmDelete() {
   line-height: var(--text-caption--line-height);
   text-decoration: none;
   cursor: default;
+  transition: background-color var(--duration-fast) var(--ease-hover);
 }
 
 .session-item:hover .session-card,
@@ -595,6 +596,12 @@ function confirmDelete() {
   .more-toggle {
     opacity: 1;
     pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-card {
+    transition: none;
   }
 }
 </style>

@@ -166,7 +166,7 @@ watch(
   line-height: var(--text-button--line-height);
   cursor: pointer;
   user-select: none;
-  transition: background var(--duration-fast) var(--ease-smooth);
+  transition: background var(--duration-fast) var(--ease-hover);
 }
 
 .command-row:hover,

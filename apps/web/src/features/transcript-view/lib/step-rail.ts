@@ -3,7 +3,8 @@ export const RAIL_TRUNK_X = 6.5
 export const RAIL_BRANCH_LEN = 15.5
 export const RAIL_BRANCH_R = 6
 export const RAIL_BRANCH_LENGTH = RAIL_BRANCH_R * (Math.PI / 2) + (RAIL_BRANCH_LEN - RAIL_BRANCH_R)
-// 新步骤逐个错开一拍
+// 新步骤逐个错开一拍，首行先等浮层落位
+export const STEP_FIRST_DELAY_MS = 90
 export const STEP_STAGGER_MS = 65
 // 480ms ease-out-quint
 export const STEP_REVEAL_MS = 480

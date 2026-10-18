@@ -8,7 +8,7 @@
       :aria-expanded="revealed"
       @click="toggleSteps"
     >
-      <span>
+      <span :class="{ shimmer: running }" :data-text="labelText">
         <template v-for="(part, i) in labelParts" :key="i">
           <span v-if="i" class="label-dot">·</span>
           <template v-if="part.kind === 'text'">{{ part.text }}</template>
@@ -99,6 +99,7 @@ import {
 } from "@features/transcript-view/lib/transcript-row-label.js"
 import { holdClickedOffset } from "@features/transcript-view/lib/transcript-scroll.js"
 import {
+  STEP_FIRST_DELAY_MS,
   STEP_REVEAL_MS,
   STEP_STAGGER_MS,
   arrivalProgress,
@@ -183,6 +184,18 @@ watch(
 const labelParts = computed(() => toolRowLabelParts(props.row))
 const failCount = computed(() => toolRowFailCount(props.row))
 const durationLabel = computed(() => toolRowDurationLabel(props.row, now.value))
+// shimmer 的 data-text 需要与可见标题一致的纯文本
+const labelText = computed(() => {
+  const parts = labelParts.value.map((part) =>
+    part.kind === "text" ? part.text : `${part.prefix} ${part.count} ${part.suffix}`,
+  )
+
+  if (failCount.value)
+    parts.push(`${t("transcript.statusError")} ${failCount.value} ${t("common.times")}`)
+
+  if (durationLabel.value) parts.push(durationLabel.value)
+  return parts.join(" · ")
+})
 
 function isStepRunning(step: ToolRowStep) {
   return step.type === "thought" ? step.streaming : step.items.some((item) => item.running)
@@ -276,7 +289,7 @@ watch(
 
       if (!running.value || reduceMotion.matches) continue
       next ??= new Map(starts.value)
-      next.set(step.id, now + rank * STEP_STAGGER_MS)
+      next.set(step.id, now + STEP_FIRST_DELAY_MS + rank * STEP_STAGGER_MS)
       rank += 1
     }
 
@@ -344,6 +357,10 @@ onBeforeUnmount(() => {
 
 .summary-btn:hover {
   background: var(--card);
+  color: var(--contrast-foreground);
+}
+
+.summary-btn:hover .shimmer {
   color: var(--contrast-foreground);
 }
 
@@ -417,7 +434,7 @@ onBeforeUnmount(() => {
 }
 
 .step.is-arriving {
-  animation: step-arrive var(--duration-settle) var(--ease-settle) both;
+  animation: step-arrive var(--duration-row-reveal) var(--ease-settle) both;
 }
 
 .tool-summary {

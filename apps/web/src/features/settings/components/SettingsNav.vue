@@ -172,6 +172,7 @@ function goBack() {
   line-height: var(--text-caption--line-height);
   text-align: start;
   text-decoration: none;
+  transition: background-color var(--duration-fast) var(--ease-hover);
 }
 
 .nav-item:hover {
@@ -274,7 +275,8 @@ html[data-pig-desktop-platform="darwin"] .nav-head {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .footer-back {
+  .footer-back,
+  .nav-item {
     transition: none;
   }
 
