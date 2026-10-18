@@ -238,7 +238,7 @@ function confirmDelete(): void {
   max-width: min(30em, 100%);
   height: var(--size-nav-rail);
   margin: 0;
-  padding: 0 var(--spacing-xxs);
+  padding: 0 var(--spacing-xs);
   overflow: hidden;
   border: 0;
   border-radius: var(--radius-sm);
