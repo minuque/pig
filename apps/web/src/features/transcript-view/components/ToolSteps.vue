@@ -8,11 +8,6 @@
       :aria-expanded="revealed"
       @click="toggleSteps"
     >
-      <span class="icon-swap tool-steps-fold">
-        <AltArrowRightIcon :data-visible="!revealed" />
-        <AltArrowDownIcon :data-visible="revealed" />
-      </span>
-
       <span>
         <template v-for="(part, i) in labelParts" :key="i">
           <span v-if="i" class="label-dot">·</span>
@@ -37,6 +32,12 @@
           <span>{{ durationLabel }}</span>
         </template>
       </span>
+
+      <AltArrowRightIcon
+        class="motion-turn"
+        :class="{ 'is-on': revealed }"
+        data-icon="inline-end"
+      />
     </Button>
 
     <div
