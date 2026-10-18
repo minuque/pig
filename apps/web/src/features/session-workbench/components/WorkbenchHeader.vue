@@ -4,11 +4,11 @@
       <TooltipTrigger as-child>
         <button
           class="header-toggle"
-          :class="{ 'is-stowed': leftOpen }"
+          :class="{ 'is-stowed': sbState === 'expanded' }"
           type="button"
-          :inert="leftOpen"
+          :inert="sbState === 'expanded'"
           :aria-label="t('nav.openSidebar')"
-          @click="toggle"
+          @click="setSbState('expanded')"
         >
           <SidebarGlyph :open="leftOpen" />
         </button>
@@ -101,7 +101,7 @@ import {
 } from "@components/icons/index.js"
 
 const { t } = useI18n()
-const { leftOpen, toggle } = useLeftPanelToggle()
+const { leftOpen, sbState, setSbState } = useLeftPanelToggle()
 const { sessionId, projection } = useSession()
 const {
   listedSessions,
