@@ -1,4 +1,6 @@
 /* markstream-vue 主题：--ms-* / --code-* 由库读取 */
+
+/* ------ 字体与排版 ------ */
 [data-custom-id="chat"] {
   /* 字体 */
   --ms-font-sans: var(--font-sans);
@@ -106,6 +108,8 @@
   font-size: var(--ms-text-body);
   line-height: var(--ms-leading-body);
 
+  /* ------ 节点微调：标题色、间距、行内码 ------ */
+
   > :first-child,
   > .height-estimation-probes + .node-slot > .node-content > :first-child,
   > .node-slot:first-child > .node-content > :first-child {
@@ -139,7 +143,7 @@
     padding: 0.1rem 0.35rem;
   }
 
-  /* Synara：单层底色，不放边框和阴影 */
+  /* ------ Synara 覆盖：代码块单层底，无边框阴影 ------ */
   .code-block-container {
     --markstream-code-theme-bg: var(--code-background) !important;
     --markstream-code-fallback-bg: var(--code-background) !important;
@@ -154,7 +158,7 @@
     font-family: var(--font-mono);
   }
 
-  /* Synara：mermaid 去卡片外框，图直接落在页面底上 */
+  /* ------ mermaid：去外框落页面底，工具条悬浮显形 ------ */
   .mermaid-block-container {
     border: 0;
     border-radius: 0;
@@ -188,7 +192,7 @@
     pointer-events: auto;
   }
 
-  /* Synara：collapse + 单元格全边框，不要卡片底和斑马纹 */
+  /* ------ 表格：collapse + 全边框，不要卡片底和斑马纹 ------ */
   .table-node-wrapper .table-node {
     table-layout: auto;
     border-collapse: collapse;
@@ -223,6 +227,7 @@
   }
 }
 
+/* ------ 渲染器与 diffs ------ */
 /* 库默认 800×600 占位；必须打在同一元素，后代选择器无效。 */
 [data-custom-id="chat"].markdown-renderer {
   content-visibility: visible;

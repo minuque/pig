@@ -1,6 +1,7 @@
-/* 工作台运动：token 在 app.css :root。此处只放可复用类与 Vue Transition 名。 */
-/* 首屏与工作台动效集中维护，避免重复加载和减少动态效果规则分散，因此本文件保留超过 500 行。 */
+/* 工作台运动：token 在 app.css :root。此处只放可复用类与 Vue Transition 名。
+   首屏与工作台动效集中维护，避免重复加载和减少动态效果规则分散，因此本文件保留超过 500 行。 */
 
+/* ------ 启动页 ------ */
 .startup-screen {
   position: fixed;
   z-index: var(--z-modal, 20);
@@ -96,13 +97,24 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  #startup-splash .startup-mark,
-  #startup-splash .startup-logo {
-    animation: none;
+/* 侧栏品牌悬停：小猪先缩下去，之后与开屏 pig-peek 同一段探头 */
+@keyframes brand-peek {
+  0% {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  28% {
+    transform: translateY(100%) rotate(-14deg);
+    animation-timing-function: var(--ease-out);
+  }
+
+  100% {
+    transform: none;
   }
 }
 
+/* ------ 微交互：按压缩放、图标切换、箭头翻转 ------ */
 .press-scale:not(:disabled):active {
   scale: 0.96;
 }
@@ -204,7 +216,7 @@
   transform: rotate(90deg);
 }
 
-/* 首屏↔会话：输入条滑动期间旧层先淡出，新层在行程中段淡入 */
+/* ------ 页面切换：首屏↔会话输入条与 Hero ------ */
 .dock-thread-enter-active {
   transition: opacity var(--duration-slow) var(--ease-out) var(--duration-fast);
 }
@@ -302,6 +314,24 @@
   }
 }
 
+/* 会话切换遮罩：克隆的旧 transcript 盖住新内容，揭开时淡出上移。 */
+.transcript-hold.is-leaving {
+  animation: transcript-hold-out var(--duration-slow) var(--ease-out) forwards;
+}
+
+@keyframes transcript-hold-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* ------ 对话框（reka data-slot 直挂 transition；Teleport 后 scoped 打不中） ------ */
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
   transform-origin: center;
   translate: 0 12px;
@@ -324,17 +354,17 @@
   animation: pop-reveal-out var(--duration-normal) var(--ease-out) forwards;
 }
 
-.panel-reveal-enter-active,
-.stage-layer-enter-active {
-  transition:
-    opacity var(--duration-slow) var(--ease-out),
-    transform var(--duration-slow) var(--ease-out);
-}
-
+/* ------ 面板与列表过渡 ------ */
 .panel-reveal-enter-active {
   transition:
     opacity var(--duration-normal) var(--ease-out),
     transform var(--duration-normal) var(--ease-out);
+}
+
+.stage-layer-enter-active {
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
 }
 
 .panel-reveal-leave-active,
@@ -354,6 +384,13 @@
 .stage-layer-leave-to {
   opacity: 0;
   transform: translateY(-12px);
+}
+
+/* stage 离场层绝对定位盖住新层 */
+.stage-layer-leave-active {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 /* 行增删：高度随行一起收放，下方内容跟着滑，不瞬跳；负上边距抵掉 --spacing-xxs 行距 */
@@ -383,6 +420,7 @@
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
+/* ------ 折叠组（工具调用 / 侧栏会话组共享 grid-rows 开合） ------ */
 :is(.tool-calls-group, .session-list-group) {
   display: grid;
   grid-template-rows: 0fr;
@@ -414,11 +452,7 @@
 }
 
 /* 展开后放开裁剪：overflow hidden 会截断 sticky 的滚动参照，目录头钉不到侧栏上 */
-.session-list-group.is-open > * {
-  overflow: visible;
-}
-
-.tool-calls-group.is-open > * {
+:is(.tool-calls-group, .session-list-group).is-open > * {
   overflow: visible;
 }
 
@@ -452,6 +486,7 @@
   transition: none;
 }
 
+/* ------ 淡入淡出 ------ */
 .fade-layer-enter-active,
 .fade-layer-leave-active {
   transition: opacity var(--duration-normal) var(--ease-out);
@@ -462,7 +497,7 @@
   opacity: 0;
 }
 
-/* 输入卡 @// 菜单：向上小位移，与 Synara 命令面板同一组入场曲线。 */
+/* ------ 输入卡 @// 菜单：向上小位移，与 Synara 命令面板同一组入场曲线 ------ */
 .menu-reveal-enter-active {
   transition:
     opacity var(--duration-normal) var(--ease-smooth),
@@ -485,19 +520,7 @@
   translate: 0 calc(-1 * var(--spacing-xxs));
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .menu-reveal-enter-active,
-  .menu-reveal-leave-active {
-    transition: none;
-  }
-}
-
-.stage-layer-leave-active {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
+/* ------ 主题切换 view-transition ------ */
 ::view-transition-group(root) {
   animation-duration: var(--duration-theme);
   animation-timing-function: var(--ease-smooth);
@@ -540,6 +563,7 @@
   }
 }
 
+/* ------ 加载与点缀：shimmer / nudge / pulse / spin ------ */
 @keyframes shimmer {
   0% {
     background-position: 100% 0;
@@ -588,23 +612,6 @@
   }
 }
 
-/* 侧栏品牌悬停：小猪先缩下去，之后与开屏 pig-peek 同一段探头 */
-@keyframes brand-peek {
-  0% {
-    transform: none;
-    animation-timing-function: var(--ease-in-out);
-  }
-
-  28% {
-    transform: translateY(100%) rotate(-14deg);
-    animation-timing-function: var(--ease-out);
-  }
-
-  100% {
-    transform: none;
-  }
-}
-
 .motion-pulse {
   position: relative;
 }
@@ -635,130 +642,7 @@
   animation: motion-spin 1s linear infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .press-scale:not(:disabled):active {
-    scale: 1;
-  }
-
-  .morph-height {
-    transition: none;
-  }
-
-  .icon-toggle {
-    transition: none;
-  }
-
-  .icon-swap > *,
-  .motion-icon,
-  .motion-hint,
-  .motion-turn {
-    transition: none;
-  }
-
-  .icon-swap > [data-visible="false"] {
-    filter: none;
-  }
-
-  .motion-hint {
-    filter: none;
-  }
-
-  .settle-in {
-    animation: none;
-  }
-
-  .dock-thread-enter-active,
-  .dock-thread-leave-active,
-  .dock-hero-enter-active,
-  .dock-hero-appear-active,
-  .dock-hero-leave-active {
-    transition: none;
-  }
-
-  .panel-reveal-enter-active,
-  .panel-reveal-leave-active {
-    transition: opacity var(--duration-fast) var(--ease-out);
-  }
-
-  .stage-layer-enter-active,
-  .stage-layer-leave-active {
-    transition: none;
-  }
-
-  .panel-reveal-enter-from,
-  .panel-reveal-leave-to,
-  .stage-layer-enter-from,
-  .stage-layer-leave-to {
-    transform: none;
-  }
-
-  .list-reveal-enter-active,
-  .list-reveal-leave-active {
-    transition: none;
-  }
-
-  .list-reveal-move {
-    transition: none;
-  }
-
-  :is(.tool-calls-group, .session-list-group),
-  :is(.tool-calls-group, .session-list-group).is-open {
-    transition: none;
-  }
-
-  :is(.tool-calls-group, .session-list-group).with-enter.is-open > * {
-    animation: none;
-  }
-
-  .tool-calls-group > .panel-slide,
-  .tool-calls-group.is-open > .panel-slide {
-    transition: none;
-    transform: none;
-  }
-
-  .step.is-arriving {
-    animation: none;
-  }
-
-  .fade-layer-enter-active,
-  .fade-layer-leave-active {
-    transition: none;
-  }
-
-  .stage-layer-leave-active {
-    position: static;
-  }
-
-  .shimmer {
-    color: inherit;
-  }
-
-  .shimmer::before {
-    animation: none;
-    content: none;
-  }
-
-  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
-    transition: none;
-    scale: 1;
-    opacity: 1;
-  }
-
-  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
-    animation: none;
-    opacity: 0;
-  }
-
-  .motion-nudge,
-  .motion-pulse::after {
-    animation: none;
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* 弹出层统一转场：reka-ui 的 data-[state] 与裸层共用同一组 keyframes。   */
-/* ------------------------------------------------------------------ */
-
+/* ------ 浮层统一转场：reka-ui 的 data-[state] 与裸层共用同一组 keyframes ------ */
 @keyframes pop-reveal-in {
   from {
     opacity: 0;
@@ -791,29 +675,6 @@
 
   to {
     opacity: 0;
-  }
-}
-
-/* 会话切换遮罩：克隆的旧 transcript 盖住新内容，揭开时淡出上移。 */
-.transcript-hold.is-leaving {
-  animation: transcript-hold-out var(--duration-slow) var(--ease-out) forwards;
-}
-
-@keyframes transcript-hold-out {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .transcript-hold.is-leaving {
-    animation: none;
   }
 }
 
@@ -872,7 +733,7 @@
   animation: overlay-out var(--duration-fast) var(--ease-out) forwards;
 }
 
-/* 统一焦点环：让 :focus-visible 的环淡入而非瞬现。配合 --focus-ring / --focus-ring-destructive。 */
+/* ------ 统一焦点环：让 :focus-visible 的环淡入而非瞬现，配合 --focus-ring ------ */
 .ring-focus {
   outline: none;
   box-shadow: none;
@@ -888,7 +749,140 @@
   box-shadow: var(--focus-ring-destructive);
 }
 
+/* ------ 减弱动效：全局兜底，动画与过渡一次关掉 ------ */
 @media (prefers-reduced-motion: reduce) {
+  #startup-splash .startup-mark,
+  #startup-splash .startup-logo {
+    animation: none;
+  }
+
+  .press-scale:not(:disabled):active {
+    scale: 1;
+  }
+
+  .morph-height {
+    transition: none;
+  }
+
+  .icon-toggle {
+    transition: none;
+  }
+
+  .icon-swap > *,
+  .motion-icon,
+  .motion-hint,
+  .motion-turn {
+    transition: none;
+  }
+
+  .icon-swap > [data-visible="false"] {
+    filter: none;
+  }
+
+  .motion-hint {
+    filter: none;
+  }
+
+  .settle-in {
+    animation: none;
+  }
+
+  .dock-thread-enter-active,
+  .dock-thread-leave-active,
+  .dock-hero-enter-active,
+  .dock-hero-appear-active,
+  .dock-hero-leave-active {
+    transition: none;
+  }
+
+  .panel-reveal-enter-active,
+  .panel-reveal-leave-active {
+    transition: opacity var(--duration-fast) var(--ease-out);
+  }
+
+  .stage-layer-enter-active,
+  .stage-layer-leave-active {
+    transition: none;
+  }
+
+  .panel-reveal-enter-from,
+  .panel-reveal-leave-to,
+  .stage-layer-enter-from,
+  .stage-layer-leave-to {
+    transform: none;
+  }
+
+  .stage-layer-leave-active {
+    position: static;
+  }
+
+  .list-reveal-enter-active,
+  .list-reveal-leave-active {
+    transition: none;
+  }
+
+  .list-reveal-move {
+    transition: none;
+  }
+
+  :is(.tool-calls-group, .session-list-group),
+  :is(.tool-calls-group, .session-list-group).is-open {
+    transition: none;
+  }
+
+  :is(.tool-calls-group, .session-list-group).with-enter.is-open > * {
+    animation: none;
+  }
+
+  .tool-calls-group > .panel-slide,
+  .tool-calls-group.is-open > .panel-slide {
+    transition: none;
+    transform: none;
+  }
+
+  .step.is-arriving {
+    animation: none;
+  }
+
+  .transcript-hold.is-leaving {
+    animation: none;
+  }
+
+  .fade-layer-enter-active,
+  .fade-layer-leave-active {
+    transition: none;
+  }
+
+  .menu-reveal-enter-active,
+  .menu-reveal-leave-active {
+    transition: none;
+  }
+
+  .shimmer {
+    color: inherit;
+  }
+
+  .shimmer::before {
+    animation: none;
+    content: none;
+  }
+
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+    transition: none;
+    scale: 1;
+    opacity: 1;
+  }
+
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
+    animation: none;
+    opacity: 0;
+  }
+
+  .motion-nudge,
+  .motion-pulse::after {
+    animation: none;
+  }
+
   .reveal-menu,
   .reveal-dialog,
   .reveal-overlay {

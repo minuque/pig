@@ -1,5 +1,6 @@
 /* mermaid 默认主题：浅色 github-light，深色 github-dark。 */
 
+/* ------ 配色变量 ------ */
 ._mermaid {
   --mermaid-text: var(--contrast-foreground);
   --mermaid-text-sec: color-mix(in srgb, var(--contrast-foreground) 60%, var(--mermaid-bg));
@@ -21,6 +22,7 @@
   --mermaid-inner-stroke: color-mix(in srgb, var(--mermaid-fg) 12%, var(--mermaid-bg));
 }
 
+/* ------ 节点：圆角与字体 ------ */
 .mermaid-modal-overlay {
   --diagram-bg: var(--code-background);
   --diagram-header-bg: var(--code-background);
@@ -56,6 +58,7 @@
   font-family: var(--font-sans);
 }
 
+/* ------ 描边上色：fill/stroke 只盖未写死内联样式的节点 ------ */
 ._mermaid svg .node > :is(rect, circle, ellipse, polygon, path):not([style*="fill"]),
 ._mermaid svg rect.actor:not([style*="fill"]),
 ._mermaid svg .actor > rect:not([style*="fill"]),
@@ -102,6 +105,7 @@
   stroke: var(--mermaid-arrow) !important;
 }
 
+/* ------ 文字上色：默认 / 次级 / 边标签三档 ------ */
 /* 自定义 fill/color 的节点保留 classDef 文字色。 */
 ._mermaid
   svg
@@ -145,6 +149,7 @@
   fill: var(--mermaid-text-muted) !important;
 }
 
+/* ------ 边标签底色：衬底挡住连线 ------ */
 ._mermaid svg .edgeLabel rect {
   fill: var(--mermaid-bg) !important;
   fill-opacity: 1;

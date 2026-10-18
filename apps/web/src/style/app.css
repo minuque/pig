@@ -4,6 +4,7 @@
 @import "./markdown-stream.css";
 @import "./mermaid.css";
 
+/* ------ @property 注册 ------ */
 @property --size-content {
   syntax: "<length>";
   inherits: true;
@@ -23,6 +24,8 @@
 }
 
 /* 全局 token、浅深色覆盖与 Tailwind 映射须集中维护，因此本文件保留超过 500 行。 */
+
+/* ------ 浅色 token ------ */
 :root {
   color-scheme: light;
 
@@ -275,7 +278,7 @@
     color-mix(in srgb, var(--destructive, #e5484d) 45%, transparent);
 }
 
-/* 深色只覆盖颜色、阴影、玻璃 */
+/* ------ 深色覆盖：只覆盖颜色、阴影、玻璃 ------ */
 .dark {
   --composer-shadow: none;
   --composer-highlight: rgb(255 255 255 / 3%);
@@ -369,7 +372,7 @@
   --theme-wire-light-raised: #ffffff;
 }
 
-/* 滚动条常显；侧栏列表内另行隐藏。各元素可自写 --scrollbar-thumb。 */
+/* ------ 滚动条：常显；侧栏列表内另行隐藏，元素可自写 --scrollbar-thumb ------ */
 * {
   --scrollbar-thumb: var(--scrollbar-color);
 }
@@ -415,8 +418,7 @@
   }
 }
 
-/* 度量只在这里定义一份：工具类与组件的 var() 都读它，不在 :root 再写一遍。
-   static 是必须的：组件大多用 var() 读，没写对应类，Tailwind 默认会按用量把变量裁掉。 */
+/* ------ 度量与字体间距：只定义一份，static 防 Tailwind 按用量裁掉 var() ------ */
 @theme static {
   --font-sans:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -467,7 +469,7 @@
   --radius-full: 9999px;
 }
 
-/* 颜色映射只做同名指回，且只登记组件真的写过的类。阴影留在 :root：深色要覆盖。 */
+/* ------ 工具类颜色映射：同名指回，只登记用过的类；阴影留 :root 供深色覆盖 ------ */
 @theme inline {
   --color-primary: var(--primary);
   --color-primary-active: var(--primary-active);
@@ -496,13 +498,11 @@
   height: var(--size-icon);
 }
 
-/* 浮层统一底：输入卡、弹层、菜单、对话框 */
+/* ------ 表面与毛玻璃：浮层统一底，透明度由设置给，模糊与饱和只按深浅切换 ------ */
 .surface-float {
   background: var(--composer-background);
 }
 
-/* 毛玻璃：use-general-prefs 写 data-glass 与 --glass-opacity；输入卡、菜单、对话框共用这一层。
-   透明度由设置给，模糊与饱和只按深浅切换，与 t3code 的玻璃层同一套写法。 */
 html.dark,
 .dark {
   /* 深色浮层比背景抬起一层，不退回纯黑；模糊更重、饱和更低。 */
@@ -523,7 +523,7 @@ html[data-glass="on"] .surface-float {
   backdrop-filter: none;
 }
 
-/* 滚动区边缘渐隐：mask 只做淡出，不裁剪内容；按方向组合。 */
+/* ------ 滚动区边缘渐隐：mask 只做淡出，不裁剪内容 ------ */
 .edge-fade-y {
   -webkit-mask-image: linear-gradient(
     to bottom,
@@ -559,7 +559,7 @@ html[data-glass="on"] .surface-float {
   mask-image: linear-gradient(to top, black calc(100% - var(--edge-fade, 2.5rem)), transparent);
 }
 
-/* 基础 */
+/* ------ 基础 reset 与字号档 ------ */
 /* Solar 图标对齐基座：默认尺寸与线宽走 token，调用方的 size-* 类可覆盖 */
 .solar {
   flex: none;
@@ -641,7 +641,7 @@ p {
   overflow-wrap: anywhere;
 }
 
-/* 弹层打开时只禁掉拖拽层本身：写 body * 会让每次挂载都全量重算样式。 */
+/* ------ 桌面壳：标题栏拖拽与弹层（控件 no-drag 只写在拖拽层内部，大块滚动容器标 no-drag 会扣掉拖拽区） ------ */
 html[data-pig-desktop-platform]:has([data-slot="dialog-content"])
   :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title),
 html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"])
@@ -651,8 +651,6 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
-
-/* 控件 no-drag 只写在拖拽层内部。大块滚动容器标 no-drag 时，滚出视口的盒仍会扣掉顶栏拖拽区。 */
 
 /* Tailwind translate-* 走 translate，与 keyframes 的 transform 叠加会偏；Teleport 后 scoped 打不中 */
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
@@ -671,17 +669,13 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
   }
 }
 
+/* ------ 组件杂项 ------ */
 /* --effort-mix 写在滑条上，fill 必须在同一元素上算，不能在 :root 算死 */
 .effort-bar {
   --effort-fill: color-mix(in srgb, var(--primary) var(--effort-mix, 40%), var(--white));
 }
 
-.dark .effort-bar {
-  --effort-fill: color-mix(in srgb, var(--primary) var(--effort-mix, 40%), var(--white));
-}
-
-/* 装了主题时语义变量改读注入值。选择器比 .dark 多一层，压过深色默认值。
-   名单与 features/theme/lib/palette.ts 的 THEME_ROLES 一一对应，单测核对。 */
+/* ------ 主题注入：选择器比 .dark 多一层压过深色默认；名单对 THEME_ROLES，单测核对 ------ */
 html[data-theme-id] {
   --primary: var(--app-theme-primary);
   --primary-active: var(--app-theme-primary-active);
