@@ -158,11 +158,9 @@
     font-family: var(--font-mono);
   }
 
-  /* ------ mermaid：去外框落页面底，工具条悬浮显形 ------ */
+  /* ------ mermaid：保留卡片外壳，工具条悬浮显形 ------ */
   .mermaid-block-container {
-    border: 0;
-    border-radius: 0;
-    background: transparent;
+    background: var(--code-background);
     color: var(--code-foreground);
   }
 
