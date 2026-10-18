@@ -35,7 +35,7 @@
       <span v-if="preview.notice" class="footer-muted">{{ preview.notice }}</span>
 
       <button
-        v-if="preview.notice || clamped"
+        v-if="preview.notice || clamped || expanded"
         type="button"
         class="footer-toggle"
         @click="expanded = !expanded"
