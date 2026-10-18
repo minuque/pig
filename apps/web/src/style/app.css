@@ -643,11 +643,11 @@ p {
 
 /* 弹层打开时只禁掉拖拽层本身：写 body * 会让每次挂载都全量重算样式。 */
 html[data-pig-desktop-platform]:has([data-slot="dialog-content"])
-  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-session, .session-tabs),
+  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title),
 html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"])
-  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-session, .session-tabs),
+  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title),
 html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
-  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-session, .session-tabs) {
+  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title) {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }

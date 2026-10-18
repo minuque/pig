@@ -17,63 +17,90 @@
       <TooltipContent>{{ t("nav.openSidebar") }}</TooltipContent>
     </Tooltip>
 
-    <SessionTabStrip
-      v-if="tabs.length > 0"
-      :tabs="tabs"
-      :active-id="highlightedSessionId"
-      :state-of="stateOf"
-      :pinned="pinned"
-      :vendor-of="vendorOf"
-      @select="openSession"
-      @move="moveTab"
-      @close="closeTab"
-      @close-scope="closeScope"
-      @rename="onRename"
-      @toggle-pinned="togglePinned"
-      @delete="deleteSession"
-    />
+    <template v-if="title">
+      <input
+        v-model="draft"
+        class="header-title"
+        :aria-label="t('session.rename')"
+        spellcheck="false"
+        @focus="onFocus"
+        @keydown.enter.prevent="commit"
+        @keydown.escape.prevent="cancel"
+        @blur="commit"
+      />
 
-    <h1 v-else-if="title" id="current-title" class="header-session">{{ title }}</h1>
+      <DropdownMenu v-if="currentId" :modal="false">
+        <DropdownMenuTrigger as-child>
+          <button class="header-more" type="button" :aria-label="t('common.more')">
+            <MenuDotsIcon class="size-icon" />
+          </button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end" class="select-none">
+          <DropdownMenuItem @select="togglePinned(currentId)">
+            <PinBoldIcon v-if="isPinned" />
+            <PinIcon v-else />
+            {{ isPinned ? t("session.unpin") : t("session.pin") }}
+          </DropdownMenuItem>
+
+          <DropdownMenuItem @select="focusTitle">
+            <PenIcon />
+            {{ t("session.rename") }}
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem variant="destructive" @select="deleteOpen = true">
+            <TrashBinMinimalisticIcon />
+            {{ t("session.deleteTitle") }}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </template>
+
+    <SessionItemDelete v-model:open="deleteOpen" :title="title" @confirm="confirmDelete" />
   </header>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, nextTick, ref, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { sessionTitle, useNav } from "@features/session-nav/index.js"
+import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
-import { useSessionTabs } from "@features/session-workbench/hooks/use-session-tabs.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
-import type { SidebarSessionState } from "@features/session-nav/type.js"
-import SessionTabStrip from "@features/session-workbench/components/SessionTabStrip.vue"
-import { SidebarGlyph } from "@components/icons/index.js"
+import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
+import {
+  MenuDotsIcon,
+  PenIcon,
+  PinIcon,
+  PinBoldIcon,
+  SidebarGlyph,
+  TrashBinMinimalisticIcon,
+} from "@components/icons/index.js"
 
 const { t } = useI18n()
 const { leftOpen, toggle } = useLeftPanelToggle()
 const { sessionId, projection } = useSession()
 const {
   listedSessions,
-  cardFootById,
   pinnedIds,
   highlightedSessionId,
-  openSession,
-  closeSession,
   togglePinned,
   renameSession,
   deleteSession,
 } = useNav()
-const sessions = computed(() =>
-  listedSessions.value.map((session) => ({ id: session.id, title: sessionTitle(session) })),
-)
-const { tabs, moveTab, closeTab, closeScope } = useSessionTabs({
-  activeSessionId: highlightedSessionId,
-  routeSessionId: sessionId,
-  sessions,
-  open: openSession,
-  close: closeSession,
-})
+const titleInput = useTemplateRef<HTMLInputElement>("titleInput")
+const currentId = computed(() => sessionId.value ?? highlightedSessionId.value)
+const isPinned = computed(() => (currentId.value ? pinnedIds.value.has(currentId.value) : false))
 const title = computed(() =>
   workbenchHeaderTitle({
     sessionId: sessionId.value,
@@ -81,22 +108,48 @@ const title = computed(() =>
     projectionName: projection.value?.name,
   }),
 )
+const draft = ref("")
+const dirty = shallowRef(false)
+const deleteOpen = shallowRef(false)
 
-function stateOf(id: string): SidebarSessionState | undefined {
-  return cardFootById.value.get(id)?.state
+watch(
+  title,
+  (value) => {
+    if (!dirty.value) draft.value = value
+  },
+  { immediate: true },
+)
+
+function onFocus(): void {
+  dirty.value = true
+  void nextTick(() => titleInput.value?.select())
 }
 
-function pinned(id: string): boolean {
-  return pinnedIds.value.has(id)
+function cancel(): void {
+  draft.value = title.value
+  dirty.value = false
+  titleInput.value?.blur()
 }
 
-/** 会话默认模型的厂商标，用于页签左侧图标。 */
-function vendorOf(id: string): string | undefined {
-  return cardFootById.value.get(id)?.model?.provider
+function commit(): void {
+  const id = currentId.value
+  const name = draft.value.trim()
+
+  dirty.value = false
+
+  if (id && name && name !== title.value) void renameSession(id, name)
+  else draft.value = title.value
+  titleInput.value?.blur()
 }
 
-function onRename(id: string, name: string): void {
-  void renameSession(id, name)
+function focusTitle(): void {
+  titleInput.value?.focus()
+}
+
+function confirmDelete(): void {
+  deleteOpen.value = false
+
+  if (currentId.value) void deleteSession(currentId.value)
 }
 </script>
 
@@ -147,21 +200,59 @@ function onRename(id: string, name: string): void {
   color: var(--contrast-foreground);
 }
 
-.header-session {
+.header-title {
   flex: 1 1 auto;
   min-width: 0;
+  height: var(--size-nav-rail);
   margin: 0;
+  padding: 0 var(--spacing-xxs);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
   color: var(--contrast-foreground-muted);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-normal);
   line-height: var(--text-caption--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  outline: none;
+}
+
+.header-title:hover {
+  background: var(--hover-quiet);
+}
+
+.header-title:focus {
+  background: var(--interaction-hover);
+  color: var(--contrast-foreground);
+  caret-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+  user-select: text;
+}
+
+.header-more {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-nav-rail);
+  height: var(--size-nav-rail);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--contrast-foreground-muted);
+}
+
+.header-more:hover,
+.header-more:focus-visible,
+.header-more[data-state="open"] {
+  background: var(--hover-quiet);
+  color: var(--contrast-foreground);
 }
 
 html[data-pig-desktop-platform] .workbench-header,
-html[data-pig-desktop-platform] .header-session {
+html[data-pig-desktop-platform] .header-title {
   -webkit-app-region: drag;
   app-region: drag;
 }
