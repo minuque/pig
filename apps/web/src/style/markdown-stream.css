@@ -145,7 +145,7 @@
   .inline-code {
     font-size: var(--text-meta);
     border: var(--border-width) solid var(--border-subtle);
-    border-radius: calc(var(--radius) / 2 - var(--border-width));
+    border-radius: var(--radius-xs);
     padding: var(--border-width) calc(var(--spacing-xxs) - var(--border-width));
   }
 
