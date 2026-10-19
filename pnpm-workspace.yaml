@@ -18,4 +18,5 @@ minimumReleaseAgeExclude:
   - electron@44.3.0
   - markstream-core@2.0.11
   - markstream-vue@2.0.11
+  - pele@1.6.0
   - stream-markdown-parser@1.2.16
