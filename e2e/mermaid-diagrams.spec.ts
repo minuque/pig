@@ -88,6 +88,42 @@ const DIAGRAMS: { name: string; code: string; text: string }[] = [
     code: "ishikawa\n  title T\n  p -> q",
     text: "p",
   },
+  {
+    name: "cynefin",
+    code: 'cynefin-beta\n  title T\n  complex\n    "a"',
+    text: "a",
+  },
+  {
+    name: "wardley",
+    code: "wardley-beta\n  title T\n  anchor A [0.5, 0.5]\n  component B [0.3, 0.3]\n  A -> B",
+    text: "B",
+  },
+  { name: "treeView", code: "treeView-beta\n  - a\n  - b\n    - c", text: "c" },
+  {
+    name: "usecase",
+    code: 'usecase-beta\n  actor A\n  B("use")\n  A --> B',
+    text: "A",
+  },
+  {
+    name: "venn",
+    code: 'venn-beta\n  set A\n  set B\n  union A,B["ab"]',
+    text: "ab",
+  },
+  {
+    name: "swimlane",
+    code: "swimlane-beta LR\n  subgraph S\n    a --> b\n  end",
+    text: "b",
+  },
+  {
+    name: "eventmodeling",
+    code: "eventmodeling\n  timeframe 01 ui A\n  timeframe 02 command B",
+    text: "A",
+  },
+  {
+    name: "railroad",
+    code: 'railroad-ebnf-beta\n  a = "x" ;',
+    text: "x",
+  },
 ]
 
 test("pele 渲染全部支持图型", async ({ page, complexGateway }) => {
