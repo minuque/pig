@@ -366,8 +366,8 @@ function confirmDelete() {
   gap: 2px var(--spacing-xs);
   width: 100%;
   min-width: 0;
-  padding: 6px var(--spacing-xs);
-  padding-inline-end: calc(var(--spacing-xs) + 22px);
+  padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xxs) var(--spacing-xxs);
+  padding-inline-end: calc(var(--spacing-xs) + 20px);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
@@ -407,7 +407,7 @@ function confirmDelete() {
 
 .corner {
   position: absolute;
-  inset-inline-end: calc(var(--spacing-xs) + 22px);
+  inset-inline-end: calc(var(--spacing-xxs) + 4px);
   top: 0;
   bottom: 0;
   display: flex;

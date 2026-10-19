@@ -374,7 +374,7 @@
   --link: #9aa3ea;
   --mermaid-accent: var(--link);
   --media-outline: rgba(255, 255, 255, 0.1);
-  --scrollbar-color: #1c1c21;
+  --scrollbar-color: #3a3a40;
   --button-press: color-mix(in srgb, var(--foreground) 30%, transparent);
 
   --glass-selected-bg: color-mix(in srgb, var(--foreground) 11%, transparent);

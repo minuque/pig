@@ -293,7 +293,7 @@ onBeforeUnmount(() => {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-width: none;
+  scrollbar-width: thin;
   padding-block-start: var(--spacing-xxs);
 }
 
@@ -303,7 +303,7 @@ onBeforeUnmount(() => {
 }
 
 .session-section + .session-section {
-  margin-block-start: var(--spacing-sm);
+  margin-block-start: var(--spacing-xs);
 }
 
 .section-head {
@@ -312,8 +312,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   min-width: 0;
-  height: 28px;
-  padding-inline: var(--spacing-xxs) var(--spacing-xs);
+  height: 26px;
+  padding-inline: 0 var(--spacing-xs);
   gap: var(--spacing-xxs);
 }
 
@@ -364,8 +364,7 @@ onBeforeUnmount(() => {
 }
 
 .section-label.label-fade {
-  -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
-  mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
+  text-overflow: ellipsis;
 }
 
 .section-count {
@@ -423,7 +422,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: var(--spacing-xxs);
   margin: 0;
-  padding: var(--spacing-xxs) 0 0;
+  padding: var(--spacing-xxs) var(--nav-inline, var(--spacing-xs)) 0 0;
   list-style: none;
 }
 
