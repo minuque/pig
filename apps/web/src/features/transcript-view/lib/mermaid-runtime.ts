@@ -8,7 +8,11 @@ async function loadMermaid(): Promise<unknown> {
     /** markstream-vue 用 parse 判可解析性；pele 的 parse 是同步的，
      *  需要先把对应 diagram 类型异步加载进来。 */
     parse: async (source: string) => {
-      await pele.load(pele.detectType(source))
+      const type = pele.detectType(source)
+
+      // pele 对未识别图型不抛错，不拦下来会白跑一轮渲染才进错误态。
+      if (!type) throw new Error("unsupported-diagram")
+      await pele.load(type)
       pele.parse(source)
       return true
     },
