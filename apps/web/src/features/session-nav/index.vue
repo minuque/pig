@@ -378,6 +378,7 @@ function onCreateSession(cwd?: string): void {
 .session-nav {
   --nav-inline: var(--spacing-xs);
   position: relative;
+  isolation: isolate;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -406,6 +407,9 @@ function onCreateSession(cwd?: string): void {
   flex-direction: column;
   gap: var(--spacing-xs);
   min-width: 0;
+  margin-inline: calc(-1 * var(--nav-inline));
+  padding-inline: var(--nav-inline);
+  border-bottom: var(--border-width) solid var(--border-subtle);
 }
 
 .nav-titlebar {
@@ -488,6 +492,17 @@ function onCreateSession(cwd?: string): void {
   flex: none;
   align-items: center;
   gap: var(--spacing-xxs);
+}
+
+.search-head::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  top: 100%;
+  height: var(--edge-fade-band);
+  background: linear-gradient(to bottom, var(--sidebar), transparent);
+  pointer-events: none;
 }
 
 .search-field {
