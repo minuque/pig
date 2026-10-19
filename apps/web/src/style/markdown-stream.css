@@ -141,12 +141,12 @@
     margin-top: 0.5em;
   }
 
-  /* 行内代码：13px（正文 -1px）、padding 2px 4px、淡淡的描边 */
+  /* 行内代码：字号比正文小 1px，外面留一圈淡淡描边 */
   .inline-code {
-    font-size: 13px;
+    font-size: var(--text-meta);
     border: var(--border-width) solid var(--border-subtle);
-    border-radius: 3px;
-    padding: 1px 3px;
+    border-radius: calc(var(--radius) / 2 - var(--border-width));
+    padding: var(--border-width) calc(var(--spacing-xxs) - var(--border-width));
   }
 
   /* ------ Synara 覆盖：代码块单层底，无边框阴影 ------ */
