@@ -90,7 +90,7 @@
               :data-id="session.id"
             >
               <SessionItem
-                v-bind="itemBind(session)"
+                v-bind="itemBind(session, section)"
                 :dragging="dragId === session.id"
                 @navigate="emit('navigate', session.cwd)"
                 @toggle-pinned="togglePinned"
@@ -131,7 +131,7 @@ import {
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { AltArrowRightIcon, ChatRoundAddIcon } from "@components/icons/index.js"
-import type { SidebarSession } from "@features/session-nav/type.js"
+import type { SidebarSection, SidebarSession } from "@features/session-nav/type.js"
 
 const props = defineProps<{
   scopeFilter?: string | undefined
@@ -205,10 +205,12 @@ function sectionIconStyle(section: { cwd?: string; label: string }) {
   return custom?.kind === "icon" ? { color: custom.color } : undefined
 }
 
-function itemBind(session: SidebarSession) {
+function itemBind(session: SidebarSession, section: SidebarSection) {
   const foot = cardFootById.value.get(session.id)
   return {
     session,
+    // 项目组头已画项目图标，行内不再重复。
+    showProject: !section.cwd,
     active: session.id === highlightedSessionId.value,
     pinned: pinnedIds.value.has(session.id),
     draggable: dragEnabled.value && pinnedIds.value.has(session.id),

@@ -30,18 +30,18 @@
           </span>
 
           <span class="title-line">
-            <span v-if="stateIcon || session.draft" class="state-slot" aria-hidden="true">
-              <component
-                :is="stateIcon"
-                v-if="stateIcon"
+            <span class="state-slot" aria-hidden="true">
+              <CircleDashedIcon
+                v-if="state === 'running'"
                 :size="12"
-                :class="['state-glyph', state, { 'motion-spin': state === 'running' }]"
+                class="state-glyph running motion-spin"
               />
 
-              <span v-else class="state-dot draft"></span>
+              <CheckIcon v-else-if="state === 'unread'" :size="11" class="state-glyph unread" />
+              <span v-else class="state-dot" :class="dotKind"></span>
             </span>
 
-            <span class="proj-icon" aria-hidden="true">
+            <span v-if="showProject" class="proj-icon" aria-hidden="true">
               <span v-if="monoValue" class="proj-mono" :style="monoStyle">{{ monoValue }}</span>
               <span v-else-if="emojiValue" class="proj-emoji">{{ emojiValue }}</span>
               <component v-else :is="projectIcon" :size="13" :style="iconStyle" />
@@ -137,9 +137,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
-  CheckCircleIcon,
+  CheckIcon,
   CircleDashedIcon,
-  DangerCircleIcon,
   MenuDotsIcon,
   PenIcon,
   PinIcon,
@@ -157,6 +156,7 @@ const props = withDefaults(
     placeholder?: boolean
     dragging?: boolean
     draggable?: boolean
+    showProject?: boolean
     now: number
   }>(),
   {
@@ -164,6 +164,7 @@ const props = withDefaults(
     placeholder: false,
     dragging: false,
     draggable: false,
+    showProject: true,
   },
 )
 const emit = defineEmits<{
@@ -198,8 +199,9 @@ const monoStyle = computed(() => {
   const custom = customIcon.value
   return custom?.kind === "monogram" ? { background: custom.color } : undefined
 })
-const STATE_ICONS = { running: CircleDashedIcon, unread: CheckCircleIcon, error: DangerCircleIcon }
-const stateIcon = computed(() => (props.state ? STATE_ICONS[props.state] : undefined))
+const dotKind = computed(() =>
+  props.state === "error" ? "error" : props.session.draft ? "draft" : undefined,
+)
 const renaming = ref(false)
 const renameDraft = ref("")
 const renameInput = useTemplateRef<HTMLInputElement>("renameInput")
@@ -439,16 +441,18 @@ function confirmDelete() {
 
 .state-dot {
   display: block;
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: var(--radius-full);
-  background: var(--contrast-foreground-faint);
-  opacity: 0;
+  background: var(--hover-strong);
 }
 
 .state-dot.draft {
   background: var(--warning);
-  opacity: 1;
+}
+
+.state-dot.error {
+  background: var(--destructive);
 }
 
 .state-glyph {
@@ -461,10 +465,6 @@ function confirmDelete() {
 
 .state-glyph.unread {
   color: var(--success);
-}
-
-.state-glyph.error {
-  color: var(--destructive);
 }
 
 .session-time {
