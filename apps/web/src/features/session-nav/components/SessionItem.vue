@@ -38,6 +38,14 @@
               />
 
               <CheckIcon v-else-if="state === 'unread'" :size="11" class="state-glyph unread" />
+
+              <PenIcon
+                v-else-if="session.draft"
+                :size="11"
+                class="state-glyph draft"
+                aria-hidden="true"
+              />
+
               <span v-else class="state-dot" :class="dotKind"></span>
             </span>
 
@@ -199,9 +207,7 @@ const monoStyle = computed(() => {
   const custom = customIcon.value
   return custom?.kind === "monogram" ? { background: custom.color } : undefined
 })
-const dotKind = computed(() =>
-  props.state === "error" ? "error" : props.session.draft ? "draft" : undefined,
-)
+const dotKind = computed(() => (props.state === "error" ? "error" : undefined))
 const renaming = ref(false)
 const renameDraft = ref("")
 const renameInput = useTemplateRef<HTMLInputElement>("renameInput")
@@ -379,23 +385,6 @@ function confirmDelete() {
   transition: background-color var(--duration-fast) var(--ease-hover);
 }
 
-.session-card::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 2px;
-  top: 50%;
-  width: 2px;
-  height: 0;
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  translate: 0 -50%;
-  transition: height var(--duration-fast) var(--ease-out);
-}
-
-.session-card.active::before {
-  height: 14px;
-}
-
 .session-item:hover .session-card,
 .session-card[data-state="open"] {
   background: var(--glass-selected-bg);
@@ -447,10 +436,6 @@ function confirmDelete() {
   background: var(--hover-strong);
 }
 
-.state-dot.draft {
-  background: var(--warning);
-}
-
 .state-dot.error {
   background: var(--destructive);
 }
@@ -465,6 +450,10 @@ function confirmDelete() {
 
 .state-glyph.unread {
   color: var(--success);
+}
+
+.state-glyph.draft {
+  color: var(--warning);
 }
 
 .session-time {
@@ -548,10 +537,9 @@ function confirmDelete() {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   opacity: 0.8;
+  text-overflow: ellipsis;
   white-space: nowrap;
   transition: opacity var(--duration-fast) var(--ease-hover);
-  -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
-  mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
 }
 
 .session-item:hover .title,
@@ -588,7 +576,6 @@ function confirmDelete() {
 
 @media (prefers-reduced-motion: reduce) {
   .session-card,
-  .session-card::before,
   .title,
   .corner-rest,
   .more-toggle {

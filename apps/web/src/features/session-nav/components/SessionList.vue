@@ -7,24 +7,36 @@
         class="session-section"
         :data-key="section.key"
       >
-        <div class="section-head">
-          <button
-            class="section-chevron motion-turn"
-            :class="{ 'is-on': !collapsedSections.has(section.key) }"
-            type="button"
-            :aria-expanded="!collapsedSections.has(section.key)"
-            @click="toggleSection(section.key)"
-          >
-            <AltArrowRightIcon :size="12" />
-          </button>
-
+        <div class="section-head" :class="{ open: !collapsedSections.has(section.key) }">
           <button
             class="section-toggle"
             type="button"
             :aria-expanded="!collapsedSections.has(section.key)"
             @click="toggleSection(section.key)"
           >
-            <span v-if="section.cwd" class="section-icon" aria-hidden="true">
+            <span class="section-hover-icon" aria-hidden="true">
+              <component
+                :is="collapsedSections.has(section.key) ? AltArrowDownIcon : AltArrowRightIcon"
+                :size="12"
+              />
+            </span>
+
+            <span v-if="section.key === 'pinned'" class="section-icon" aria-hidden="true">
+              <component
+                :is="collapsedSections.has(section.key) ? PinIcon : PinBoldIcon"
+                :size="13"
+              />
+            </span>
+
+            <span
+              v-else-if="section.key.startsWith('date:')"
+              class="section-icon"
+              aria-hidden="true"
+            >
+              <ClockCircleIcon :size="13" />
+            </span>
+
+            <span v-else-if="section.cwd" class="section-icon" aria-hidden="true">
               <span
                 v-if="sectionIcon(section)?.kind === 'monogram'"
                 class="proj-mono"
@@ -37,12 +49,16 @@
                 {{ sectionIcon(section)?.value }}
               </span>
 
-              <component
-                v-else
-                :is="projectIconComponent(sectionIcon(section))"
-                :size="13"
-                :style="sectionIconStyle(section)"
-              />
+              <template v-else>
+                <component
+                  :is="projectIconComponent(sectionIcon(section))"
+                  :size="13"
+                  :style="sectionIconStyle(section)"
+                  class="icon-collapsed"
+                />
+
+                <FolderOpenIcon :size="13" class="icon-open" :style="sectionIconStyle(section)" />
+              </template>
             </span>
 
             <span
@@ -130,7 +146,15 @@ import {
 } from "@features/session-nav/lib/project-icon.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { AltArrowRightIcon, ChatRoundAddIcon } from "@components/icons/index.js"
+import {
+  AltArrowDownIcon,
+  AltArrowRightIcon,
+  ChatRoundAddIcon,
+  ClockCircleIcon,
+  FolderOpenIcon,
+  PinIcon,
+  PinBoldIcon,
+} from "@components/icons/index.js"
 import type { SidebarSection, SidebarSession } from "@features/session-nav/type.js"
 
 const props = defineProps<{
@@ -336,6 +360,22 @@ onBeforeUnmount(() => {
   user-select: none;
 }
 
+.section-hover-icon {
+  display: none;
+  flex: none;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+}
+
+.section-head:hover .section-hover-icon {
+  display: grid;
+}
+
+.section-head:hover .section-icon {
+  display: none;
+}
+
 .section-icon {
   display: grid;
   flex: none;
@@ -359,9 +399,28 @@ onBeforeUnmount(() => {
   line-height: 1;
 }
 
+.section-icon .icon-open {
+  display: none;
+}
+
+.section-head.open .section-icon .icon-open {
+  display: block;
+}
+
+.section-head.open .section-icon .icon-collapsed {
+  display: none;
+}
+
+.section-head.open .section-toggle {
+  color: var(--contrast-foreground-secondary);
+}
+
 .section-label {
   min-width: 0;
   overflow: hidden;
+  line-height: var(--text-eyebrow--line-height);
+  padding-block: 1px;
+  margin-block: -1px;
   white-space: nowrap;
 }
 
@@ -380,18 +439,6 @@ onBeforeUnmount(() => {
   font-family: var(--font-mono);
   font-size: var(--text-caption-mono);
   line-height: 16px;
-}
-
-.section-chevron {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border: 0;
-  border-radius: var(--radius-xs);
-  background: transparent;
-  color: var(--contrast-foreground-faint);
 }
 
 .section-add {
