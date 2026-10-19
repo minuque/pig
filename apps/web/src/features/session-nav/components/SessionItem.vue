@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef, useTemplateRef } from "vue"
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, useTemplateRef } from "vue"
 import { RouterLink } from "vue-router"
 import { useI18n } from "@i18n/index.js"
 import {
@@ -156,12 +156,14 @@ const props = withDefaults(
     state?: SidebarSessionState | undefined
     placeholder?: boolean
     dragging?: boolean
+    draggable?: boolean
     now: number
   }>(),
   {
     state: undefined,
     placeholder: false,
     dragging: false,
+    draggable: false,
   },
 )
 const emit = defineEmits<{
@@ -240,6 +242,8 @@ function onCardPointerDown(event: PointerEvent) {
 
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   primeSession(props.session.id)
+
+  if (!props.draggable) return
   pointerDownPos.value = { x: event.clientX, y: event.clientY }
   dragPending = true
   window.addEventListener("pointermove", onPointerMove)
@@ -263,7 +267,12 @@ function onPointerUp() {
   dragPending = false
   pointerDownPos.value = undefined
   window.removeEventListener("pointermove", onPointerMove)
+  window.removeEventListener("pointerup", onPointerUp)
+  window.removeEventListener("pointercancel", onPointerUp)
 }
+
+// 按住未松手时行可能被卸载（过滤、折叠、删会话），监听器要跟着走。
+onBeforeUnmount(onPointerUp)
 
 function onCardClick(event: MouseEvent) {
   if (didDrag) {

@@ -76,34 +76,30 @@
 
         <div class="session-list-group" :class="{ 'is-open': !collapsedSections.has(section.key) }">
           <TransitionGroup name="list-reveal" tag="ul" class="section-rows">
-            <template v-for="(session, index) in section.sessions" :key="session.id">
-              <li
-                v-if="dragOver && section.key === 'pinned' && dragOver.index === index"
-                class="session-row drag-gap"
-                aria-hidden="true"
-              ></li>
-
-              <li class="session-row" :data-id="session.id">
-                <SessionItem
-                  v-bind="itemBind(session)"
-                  :dragging="dragId === session.id"
-                  @navigate="emit('navigate', session.cwd)"
-                  @toggle-pinned="togglePinned"
-                  @rename="renameSession"
-                  @delete="deleteSession"
-                  @project-settings="emit('projectSettings', $event)"
-                  @drag-start="onDragStart(section.key, session.id, $event)"
-                />
-              </li>
-            </template>
-
             <li
-              v-if="
-                dragOver && section.key === 'pinned' && dragOver.index === section.sessions.length
-              "
-              class="session-row drag-gap"
-              aria-hidden="true"
-            ></li>
+              v-for="(session, index) in section.sessions"
+              :key="session.id"
+              class="session-row"
+              :class="{
+                'drop-before': section.key === 'pinned' && dragIndex === index,
+                'drop-after':
+                  section.key === 'pinned' &&
+                  dragIndex === section.sessions.length &&
+                  index === section.sessions.length - 1,
+              }"
+              :data-id="session.id"
+            >
+              <SessionItem
+                v-bind="itemBind(session)"
+                :dragging="dragId === session.id"
+                @navigate="emit('navigate', session.cwd)"
+                @toggle-pinned="togglePinned"
+                @rename="renameSession"
+                @delete="deleteSession"
+                @project-settings="emit('projectSettings', $event)"
+                @drag-start="onDragStart(section.key, session.id, $event)"
+              />
+            </li>
 
             <li v-if="section.more" :key="`more:${section.key}`" class="session-row">
               <button class="more-button" type="button" @click="toggleGroupReveal(section.key)">
@@ -174,10 +170,12 @@ const include = computed(() => {
   }
 })
 const sections = sectionsFor(searching, include)
+// 过滤态下 pinned 段只渲染命中项，DOM 序号与 pinnedOrder 全表序号不再对应，禁用拖拽。
+const dragEnabled = computed(() => !searching.value && !props.scopeFilter)
 const projIcons = computed(loadProjIcons)
 const sectionLabelOverflow = shallowRef<Record<string, boolean>>({})
 const dragId = shallowRef<string | undefined>(undefined)
-const dragOver = shallowRef<{ index: number; top: number } | undefined>(undefined)
+const dragIndex = shallowRef<number | undefined>(undefined)
 let dragCleanup: (() => void) | undefined
 
 function measureLabelOverflow() {
@@ -213,6 +211,7 @@ function itemBind(session: SidebarSession) {
     session,
     active: session.id === highlightedSessionId.value,
     pinned: pinnedIds.value.has(session.id),
+    draggable: dragEnabled.value && pinnedIds.value.has(session.id),
     state: foot?.state,
     placeholder: session.draft ?? false,
     now: now.value,
@@ -221,55 +220,43 @@ function itemBind(session: SidebarSession) {
 
 function onDragStart(sectionKey: string, id: string, event: PointerEvent) {
   if (sectionKey !== "pinned") return
-  dragId.value = id
-  const startY = event.clientY
+
   const startIndex = sections.value
     .find((s) => s.key === "pinned")
     ?.sessions.findIndex((s) => s.id === id)
 
   if (startIndex === undefined || startIndex < 0) return
+  dragId.value = id
 
-  const list = document.querySelector<HTMLElement>(`.session-list [data-key="pinned"]`)
-  const rows = list?.querySelectorAll<HTMLElement>(".session-row") ?? []
-  const tops = [...rows]
-    .map((r) => r.getBoundingClientRect().top)
-    .filter((_, i) => i < sections.value.find((s) => s.key === "pinned")!.sessions.length)
-  const heights = [...rows]
-    .map((r) => r.getBoundingClientRect().height)
-    .filter((_, i) => i < sections.value.find((s) => s.key === "pinned")!.sessions.length)
+  const pinnedCount = sections.value.find((s) => s.key === "pinned")!.sessions.length
 
+  /** 用每行自己的矩形算落点：section 含组头，按 section 顶算会整体偏下。 */
   function onMove(e: PointerEvent) {
-    const y = e.clientY
     const list = document.querySelector<HTMLElement>(`.session-list [data-key="pinned"]`)
 
     if (!list) return
-    const rect = list.getBoundingClientRect()
-    const rel = y - rect.top
-    let index = 0
-    let acc = 0
+    const rows = [...list.querySelectorAll<HTMLElement>(".session-row")].slice(0, pinnedCount)
+    const y = e.clientY
+    let index = rows.length
 
-    for (let i = 0; i < heights.length; i++) {
-      const mid = acc + heights[i]! / 2
+    for (const [i, row] of rows.entries()) {
+      const box = row.getBoundingClientRect()
 
-      if (rel < mid) {
+      if (y < box.top + box.height / 2) {
         index = i
         break
       }
-
-      acc += heights[i]!
-      index = i + 1
     }
 
-    const top = tops[Math.min(index, tops.length - 1)] ?? rect.bottom
-    dragOver.value = { index, top }
+    dragIndex.value = index
   }
 
-  function onUp(e: PointerEvent) {
-    const over = dragOver.value?.index
+  function onUp() {
+    const over = dragIndex.value
 
     if (over !== undefined && over !== startIndex) reorderPinned(id, over)
     dragId.value = undefined
-    dragOver.value = undefined
+    dragIndex.value = undefined
     window.removeEventListener("pointermove", onMove)
     window.removeEventListener("pointerup", onUp)
     window.removeEventListener("pointercancel", onUp)
@@ -279,7 +266,7 @@ function onDragStart(sectionKey: string, id: string, event: PointerEvent) {
   window.addEventListener("pointermove", onMove)
   window.addEventListener("pointerup", onUp)
   window.addEventListener("pointercancel", onUp)
-  dragCleanup = () => onUp(event)
+  dragCleanup = () => onUp()
 }
 
 onBeforeUnmount(() => {
@@ -441,6 +428,7 @@ onBeforeUnmount(() => {
 }
 
 .session-row {
+  position: relative;
   display: flex;
   flex: none;
   flex-direction: column;
@@ -448,12 +436,24 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-.session-row.drag-gap {
+/* 落点指示画在行上：独立成 TransitionGroup 子节点会卡在进出动画里。 */
+.session-row.drop-before::before,
+.session-row.drop-after::after {
+  position: absolute;
+  inset-inline: 0;
   height: 2px;
-  margin-block: -1px;
   background: var(--primary);
   border-radius: var(--radius-full);
   opacity: 0.6;
+  content: "";
+}
+
+.session-row.drop-before::before {
+  top: calc(var(--spacing-xxs) / -2 - 1px);
+}
+
+.session-row.drop-after::after {
+  bottom: calc(var(--spacing-xxs) / -2 - 1px);
 }
 
 .more-button {
