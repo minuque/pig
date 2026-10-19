@@ -27,6 +27,16 @@ export function useSessionMarkers(
     writeJson(PINNED_KEY, pinnedIdList.value)
   }
 
+  function reorderPinned(id: string, toIndex: number): void {
+    const from = pinnedIdList.value.indexOf(id)
+
+    if (from < 0) return
+    const next = pinnedIdList.value.filter((item) => item !== id)
+    next.splice(Math.min(toIndex, next.length), 0, id)
+    pinnedIdList.value = next
+    writeJson(PINNED_KEY, pinnedIdList.value)
+  }
+
   function isUnread(session: SessionMetadata): boolean {
     if (isDraftSessionId(session.id)) return false
 
@@ -48,5 +58,5 @@ export function useSessionMarkers(
     },
     { immediate: true },
   )
-  return { pinnedIds, pinnedOrder, pinnedSessions, togglePinned, isUnread }
+  return { pinnedIds, pinnedOrder, pinnedSessions, togglePinned, reorderPinned, isUnread }
 }

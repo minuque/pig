@@ -11,6 +11,16 @@
       >
         <div class="section-head">
           <button
+            class="section-chevron motion-turn"
+            :class="{ 'is-on': !collapsedSections.has(section.key) }"
+            type="button"
+            :aria-expanded="!collapsedSections.has(section.key)"
+            @click="toggleSection(section.key)"
+          >
+            <AltArrowRightIcon :size="12" />
+          </button>
+
+          <button
             class="section-toggle"
             type="button"
             :aria-expanded="!collapsedSections.has(section.key)"
@@ -64,37 +74,40 @@
 
             <TooltipContent>{{ t("session.newInProject") }}</TooltipContent>
           </Tooltip>
-
-          <button
-            class="section-chevron motion-turn"
-            :class="{ 'is-on': !collapsedSections.has(section.key) }"
-            type="button"
-            :aria-expanded="!collapsedSections.has(section.key)"
-            @click="toggleSection(section.key)"
-          >
-            <AltArrowRightIcon :size="12" />
-          </button>
         </div>
 
         <div class="session-list-group" :class="{ 'is-open': !collapsedSections.has(section.key) }">
           <div class="section-body">
             <TransitionGroup name="list-reveal" tag="ul" class="section-rows">
+              <template v-for="(session, index) in section.sessions" :key="session.id">
+                <li
+                  v-if="dragOver && section.key === 'pinned' && dragOver.index === index"
+                  class="session-row drag-gap"
+                  aria-hidden="true"
+                ></li>
+
+                <li class="session-row" :data-id="session.id">
+                  <SessionItem
+                    v-bind="itemBind(session)"
+                    :compact="section.key === 'pinned' || grouping === 'cwd'"
+                    :dragging="dragId === session.id"
+                    @navigate="emit('navigate', session.cwd)"
+                    @toggle-pinned="togglePinned"
+                    @rename="renameSession"
+                    @delete="deleteSession"
+                    @project-settings="emit('projectSettings', $event)"
+                    @drag-start="onDragStart(section.key, session.id, $event)"
+                  />
+                </li>
+              </template>
+
               <li
-                v-for="session in section.sessions"
-                :key="session.id"
-                class="session-row"
-                :data-id="session.id"
-              >
-                <SessionItem
-                  v-bind="itemBind(session)"
-                  :compact="grouping === 'cwd' && section.key !== 'pinned'"
-                  @navigate="emit('navigate', session.cwd)"
-                  @toggle-pinned="togglePinned"
-                  @rename="renameSession"
-                  @delete="deleteSession"
-                  @project-settings="emit('projectSettings', $event)"
-                />
-              </li>
+                v-if="
+                  dragOver && section.key === 'pinned' && dragOver.index === section.sessions.length
+                "
+                class="session-row drag-gap"
+                aria-hidden="true"
+              ></li>
 
               <li v-if="section.more" :key="`more:${section.key}`" class="session-row">
                 <button class="more-button" type="button" @click="toggleGroupReveal(section.key)">
@@ -114,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useTimestamp } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
@@ -152,6 +165,7 @@ const {
   highlightedSessionId,
   renameSession,
   deleteSession,
+  reorderPinned,
 } = useNav()
 const now = useTimestamp({ interval: 60_000 })
 const searching = computed(() => Boolean(props.query?.trim()))
@@ -168,6 +182,9 @@ const include = computed(() => {
 const sections = sectionsFor(searching, include)
 const projIcons = computed(loadProjIcons)
 const sectionLabelOverflow = shallowRef<Record<string, boolean>>({})
+const dragId = shallowRef<string | undefined>(undefined)
+const dragOver = shallowRef<{ index: number; top: number } | undefined>(undefined)
+let dragCleanup: (() => void) | undefined
 
 function measureLabelOverflow() {
   const map: Record<string, boolean> = {}
@@ -207,6 +224,73 @@ function itemBind(session: SidebarSession) {
     now: now.value,
   }
 }
+
+function onDragStart(sectionKey: string, id: string, event: PointerEvent) {
+  if (sectionKey !== "pinned") return
+  dragId.value = id
+  const startY = event.clientY
+  const startIndex = sections.value
+    .find((s) => s.key === "pinned")
+    ?.sessions.findIndex((s) => s.id === id)
+
+  if (startIndex === undefined || startIndex < 0) return
+
+  const list = document.querySelector<HTMLElement>(`.session-list [data-key="pinned"]`)
+  const rows = list?.querySelectorAll<HTMLElement>(".session-row") ?? []
+  const tops = [...rows]
+    .map((r) => r.getBoundingClientRect().top)
+    .filter((_, i) => i < sections.value.find((s) => s.key === "pinned")!.sessions.length)
+  const heights = [...rows]
+    .map((r) => r.getBoundingClientRect().height)
+    .filter((_, i) => i < sections.value.find((s) => s.key === "pinned")!.sessions.length)
+
+  function onMove(e: PointerEvent) {
+    const y = e.clientY
+    const list = document.querySelector<HTMLElement>(`.session-list [data-key="pinned"]`)
+
+    if (!list) return
+    const rect = list.getBoundingClientRect()
+    const rel = y - rect.top
+    let index = 0
+    let acc = 0
+
+    for (let i = 0; i < heights.length; i++) {
+      const mid = acc + heights[i]! / 2
+
+      if (rel < mid) {
+        index = i
+        break
+      }
+
+      acc += heights[i]!
+      index = i + 1
+    }
+
+    const top = tops[Math.min(index, tops.length - 1)] ?? rect.bottom
+    dragOver.value = { index, top }
+  }
+
+  function onUp(e: PointerEvent) {
+    const over = dragOver.value?.index
+
+    if (over !== undefined && over !== startIndex) reorderPinned(id, over)
+    dragId.value = undefined
+    dragOver.value = undefined
+    window.removeEventListener("pointermove", onMove)
+    window.removeEventListener("pointerup", onUp)
+    window.removeEventListener("pointercancel", onUp)
+    dragCleanup = undefined
+  }
+
+  window.addEventListener("pointermove", onMove)
+  window.addEventListener("pointerup", onUp)
+  window.addEventListener("pointercancel", onUp)
+  dragCleanup = () => onUp(event)
+}
+
+onBeforeUnmount(() => {
+  dragCleanup?.()
+})
 </script>
 
 <style scoped>
@@ -238,6 +322,7 @@ function itemBind(session: SidebarSession) {
 
 .session-edge-bottom {
   background: linear-gradient(to top, var(--sidebar), transparent);
+  height: 32px;
 }
 
 .session-section + .session-section {
@@ -249,7 +334,8 @@ function itemBind(session: SidebarSession) {
   align-items: center;
   min-width: 0;
   height: 28px;
-  padding-inline: var(--spacing-xs);
+  padding-inline: var(--spacing-xxs) var(--spacing-xs);
+  gap: var(--spacing-xxs);
 }
 
 .section-toggle {
@@ -306,6 +392,7 @@ function itemBind(session: SidebarSession) {
 .section-count {
   flex: none;
   height: 16px;
+  margin-inline-end: var(--spacing-xxs);
   padding-inline: var(--spacing-xxs);
   border-radius: var(--radius-xs);
   background: var(--glass-selected-bg);
@@ -333,7 +420,7 @@ function itemBind(session: SidebarSession) {
   place-items: center;
   width: 20px;
   height: 20px;
-  margin-inline-end: 0;
+  margin-inline-start: auto;
   border: 0;
   border-radius: var(--radius-xs);
   background: transparent;
@@ -373,6 +460,14 @@ function itemBind(session: SidebarSession) {
   min-width: 0;
 }
 
+.session-row.drag-gap {
+  height: 2px;
+  margin-block: -1px;
+  background: var(--primary);
+  border-radius: var(--radius-full);
+  opacity: 0.6;
+}
+
 .more-button {
   align-self: flex-start;
   padding: 0 var(--spacing-xs);
@@ -381,6 +476,7 @@ function itemBind(session: SidebarSession) {
   color: var(--contrast-foreground-muted);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
+  cursor: default;
 }
 
 .more-button:hover {

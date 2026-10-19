@@ -130,7 +130,7 @@
           >
             <span class="scope-fav"><FolderIcon :size="12" /></span>
             <span class="scope-name">{{ t("session.allProjects") }}</span>
-            <span class="scope-cnt">{{ listedSessions.length }}</span>
+            <span class="scope-cnt">{{ allSessionsCount }}</span>
 
             <span class="scope-ck">
               <CheckIcon v-if="!scopeFilter" :size="10" />
@@ -268,6 +268,9 @@ const searchInput = useTemplateRef<HTMLInputElement>("searchInput")
 const scopeFilter = shallowRef<string | undefined>(undefined)
 const scopeMenuOpen = shallowRef(false)
 const projIcons = shallowRef<Record<string, { kind: string; value?: string }>>({})
+const allSessionsCount = computed(() =>
+  groups.value.reduce((sum, group) => sum + group.sessions.length, 0),
+)
 
 function loadProjIcons() {
   try {
@@ -654,6 +657,8 @@ html[data-pig-desktop-platform="darwin"] .nav-head {
   z-index: var(--z-menu);
   inset-inline: 0;
   top: 100%;
+  max-height: min(60vh, 480px);
+  overflow-y: auto;
   margin-block-start: 4px;
   padding: 4px;
   border-radius: var(--radius-md);

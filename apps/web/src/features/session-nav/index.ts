@@ -110,6 +110,7 @@ function createNav(
     pinnedIds: markers.pinnedIds,
     pinnedSessions: markers.pinnedSessions,
     togglePinned: markers.togglePinned,
+    reorderPinned: markers.reorderPinned,
     addingWorkspace: nav.addingWorkspace,
     connected: pi.connected,
     navError,

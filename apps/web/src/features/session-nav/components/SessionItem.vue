@@ -1,5 +1,8 @@
 <template>
-  <div class="session-item" :class="{ 'is-menu-open': menuOpen, 'is-placeholder': placeholder }">
+  <div
+    class="session-item"
+    :class="{ 'is-menu-open': menuOpen, 'is-placeholder': placeholder, 'is-dragging': dragging }"
+  >
     <ContextMenu :modal="false" :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
@@ -7,43 +10,19 @@
           class="session-card"
           :class="{ active, compact, 'is-placeholder': placeholder, renaming }"
           :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
+          draggable="false"
           @click="onCardClick"
           @dblclick="onCardDblclick"
-          @pointerdown="onCardPointerDown"
+          @pointerdown.left="onCardPointerDown"
+          @dragstart.prevent
           @keydown="onCardKeydown"
-          @contextmenu="onCardContextMenu"
         >
           <span v-if="!compact" class="proj-name">{{ projectName }}</span>
 
           <span class="corner" :class="{ 'compact-corner': compact }">
             <span class="corner-rest">
-              <span
-                v-if="stateIcon"
-                class="state-icon"
-                :class="state"
-                role="img"
-                :aria-label="stateLabel"
-              >
-                <component
-                  :is="stateIcon"
-                  :size="12"
-                  :class="{ 'motion-spin': state === 'running' }"
-                />
-
-                <span class="state-text">{{ stateLabel }}</span>
-              </span>
-
-              <span
-                v-else-if="session.draft"
-                class="state-icon draft"
-                role="img"
-                :aria-label="t('session.draft')"
-              >
-                <PenIcon :size="12" />
-              </span>
-
               <time
-                v-else-if="session.updatedAt"
+                v-if="session.updatedAt"
                 class="session-time"
                 :datetime="new Date(session.updatedAt).toISOString()"
               >
@@ -53,25 +32,18 @@
           </span>
 
           <span class="title-line">
-            <Tooltip v-if="!placeholder">
-              <TooltipTrigger as-child>
-                <button
-                  class="more-toggle press-scale"
-                  type="button"
-                  :aria-label="t('common.more')"
-                  aria-haspopup="menu"
-                  :aria-expanded="menuOpen"
-                  @click.prevent.stop="openSessionMenu"
-                  @contextmenu.prevent.stop="openSessionMenu"
-                >
-                  <MenuDotsIcon class="size-icon" />
-                </button>
-              </TooltipTrigger>
+            <span v-if="stateIcon || session.draft" class="state-slot" aria-hidden="true">
+              <component
+                :is="stateIcon"
+                v-if="stateIcon"
+                :size="12"
+                :class="['state-glyph', state, { 'motion-spin': state === 'running' }]"
+              />
 
-              <TooltipContent>{{ t("common.more") }}</TooltipContent>
-            </Tooltip>
+              <span v-else class="state-dot draft"></span>
+            </span>
 
-            <span v-if="!compact" class="proj-icon" aria-hidden="true">
+            <span class="proj-icon" aria-hidden="true">
               <span v-if="monoValue" class="proj-mono" :style="monoStyle">{{ monoValue }}</span>
               <span v-else-if="emojiValue" class="proj-emoji">{{ emojiValue }}</span>
               <component v-else :is="projectIcon" :size="13" :style="iconStyle" />
@@ -92,6 +64,25 @@
 
             <span v-else class="title">{{ session.title }}</span>
           </span>
+
+          <Tooltip v-if="!placeholder">
+            <TooltipTrigger as-child>
+              <button
+                class="more-toggle press-scale"
+                type="button"
+                :aria-label="t('common.more')"
+                aria-haspopup="menu"
+                :aria-expanded="menuOpen"
+                @click.prevent.stop="openSessionMenu"
+                @contextmenu.prevent.stop="openSessionMenu"
+                @pointerdown.stop
+              >
+                <MenuDotsIcon class="size-icon" />
+              </button>
+            </TooltipTrigger>
+
+            <TooltipContent>{{ t("common.more") }}</TooltipContent>
+          </Tooltip>
         </component>
       </ContextMenuTrigger>
 
@@ -167,12 +158,14 @@ const props = withDefaults(
     state?: SidebarSessionState | undefined
     placeholder?: boolean
     compact?: boolean
+    dragging?: boolean
     now: number
   }>(),
   {
     state: undefined,
     placeholder: false,
     compact: false,
+    dragging: false,
   },
 )
 const emit = defineEmits<{
@@ -181,6 +174,7 @@ const emit = defineEmits<{
   rename: [id: string, name: string]
   delete: [id: string]
   projectSettings: [project: string]
+  dragStart: [event: PointerEvent]
 }>()
 const { t } = useI18n()
 const { openSession, primeSession } = useNav()
@@ -207,16 +201,13 @@ const monoStyle = computed(() => {
   return custom?.kind === "monogram" ? { background: custom.color } : undefined
 })
 const STATE_ICONS = { running: CircleDashedIcon, unread: CheckCircleIcon, error: DangerCircleIcon }
-const STATE_LABELS = {
-  running: t("session.running"),
-  unread: t("session.done"),
-  error: t("session.failed"),
-}
 const stateIcon = computed(() => (props.state ? STATE_ICONS[props.state] : undefined))
-const stateLabel = computed(() => (props.state ? STATE_LABELS[props.state] : undefined))
 const renaming = ref(false)
 const renameDraft = ref("")
 const renameInput = useTemplateRef<HTMLInputElement>("renameInput")
+const pointerDownPos = shallowRef<{ x: number; y: number } | undefined>(undefined)
+let dragPending = false
+let didDrag = false
 
 async function startRename() {
   if (props.placeholder) return
@@ -253,9 +244,39 @@ function onCardPointerDown(event: PointerEvent) {
 
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   primeSession(props.session.id)
+  pointerDownPos.value = { x: event.clientX, y: event.clientY }
+  dragPending = true
+  window.addEventListener("pointermove", onPointerMove)
+  window.addEventListener("pointerup", onPointerUp, { once: true })
+  window.addEventListener("pointercancel", onPointerUp, { once: true })
+}
+
+function onPointerMove(event: PointerEvent) {
+  if (!dragPending || !pointerDownPos.value) return
+  const dx = event.clientX - pointerDownPos.value.x
+  const dy = event.clientY - pointerDownPos.value.y
+
+  if (Math.hypot(dx, dy) < 5) return
+  dragPending = false
+  didDrag = true
+  emit("dragStart", event)
+  window.removeEventListener("pointermove", onPointerMove)
+}
+
+function onPointerUp() {
+  dragPending = false
+  pointerDownPos.value = undefined
+  window.removeEventListener("pointermove", onPointerMove)
 }
 
 function onCardClick(event: MouseEvent) {
+  if (didDrag) {
+    didDrag = false
+    event.preventDefault()
+    event.stopPropagation()
+    return
+  }
+
   if (props.placeholder || menuOpen.value || renaming.value) {
     event.preventDefault()
     event.stopPropagation()
@@ -296,11 +317,6 @@ function openSessionMenu(event: MouseEvent) {
   openContextMenuAt(card, rect.left, rect.bottom)
 }
 
-function onCardContextMenu(event: MouseEvent) {
-  event.preventDefault()
-  event.stopPropagation()
-}
-
 function onCardKeydown(event: KeyboardEvent) {
   if (props.placeholder) return
 
@@ -332,6 +348,10 @@ function confirmDelete() {
   min-width: 0;
 }
 
+.session-item.is-dragging .session-card {
+  opacity: 0.4;
+}
+
 .session-card {
   position: relative;
   display: grid;
@@ -344,6 +364,7 @@ function confirmDelete() {
   width: 100%;
   min-width: 0;
   padding: 6px var(--spacing-xs);
+  padding-inline-end: calc(var(--spacing-xs) + 22px);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
@@ -356,6 +377,24 @@ function confirmDelete() {
 .session-card.compact {
   grid-template-areas: "title title";
   grid-template-rows: 17px;
+  padding-block: 6px;
+}
+
+.session-card::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 2px;
+  top: 50%;
+  width: 2px;
+  height: 0;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  translate: 0 -50%;
+  transition: height var(--duration-fast) var(--ease-out);
+}
+
+.session-card.active::before {
+  height: 14px;
 }
 
 .session-item:hover .session-card,
@@ -392,7 +431,7 @@ function confirmDelete() {
 
 .session-card.compact .corner {
   position: absolute;
-  inset-inline-end: var(--spacing-xs);
+  inset-inline-end: calc(var(--spacing-xs) + 22px);
   top: 0;
   bottom: 0;
   transform: none;
@@ -410,32 +449,42 @@ function confirmDelete() {
   opacity: 0;
 }
 
-.state-icon {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xxs);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+.state-slot {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 13px;
+  height: 13px;
 }
 
-.state-icon.running {
+.state-dot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--contrast-foreground-faint);
+  opacity: 0;
+}
+
+.state-dot.draft {
+  background: var(--warning);
+  opacity: 1;
+}
+
+.state-glyph {
+  display: block;
+}
+
+.state-glyph.running {
   color: var(--state-working);
 }
 
-.state-icon.unread {
+.state-glyph.unread {
   color: var(--success);
 }
 
-.state-icon.error {
+.state-glyph.error {
   color: var(--destructive);
-}
-
-.state-icon.draft {
-  color: var(--warning);
-}
-
-.state-text {
-  font-weight: var(--font-weight-medium);
 }
 
 .session-time {
@@ -449,15 +498,17 @@ function confirmDelete() {
 }
 
 .more-toggle {
+  position: absolute;
+  inset-inline-end: var(--spacing-xxs);
+  top: 50%;
   display: grid;
   place-items: center;
-  flex: none;
-  margin-inline-end: calc(var(--icon-button-pad) * -1);
   padding: var(--icon-button-pad);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--contrast-foreground-muted);
+  translate: 0 -50%;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -483,10 +534,6 @@ function confirmDelete() {
   align-items: center;
   gap: var(--spacing-xs);
   min-width: 0;
-}
-
-.session-card.compact .title-line {
-  padding-inline-end: 24px;
 }
 
 .proj-icon {
@@ -561,6 +608,7 @@ function confirmDelete() {
 
 @media (prefers-reduced-motion: reduce) {
   .session-card,
+  .session-card::before,
   .title,
   .corner-rest,
   .more-toggle {
