@@ -34,7 +34,8 @@
   --ms-flow-heading-5-mb: 12px;
   --ms-flow-heading-6-mt: 22px;
   --ms-flow-heading-6-mb: 12px;
-  --ms-flow-paragraph-y: 12px;
+  /* cc-wrapper 段距 8/16 不对称，这里先归 0 再走节点覆盖 */
+  --ms-flow-paragraph-y: 0px;
   --ms-flow-list-y: 12px;
   --ms-flow-list-item-y: 5px;
   --ms-flow-list-indent: 22px;
@@ -120,6 +121,13 @@
     margin-bottom: 0;
   }
 
+  /* cc-wrapper 段距：markstream 每个 AST 节点都包在 .node-slot 里，
+     段距只能靠 slot 之间的间距。p { margin:8px 0 16px } 两段之间
+     总间距 = 24px（margin-collapse 后），拆一半给 mt/mb = 12px。 */
+  .node-slot + .node-slot {
+    margin-top: 12px;
+  }
+
   .strong-node {
     font-weight: var(--font-weight-medium);
   }
@@ -127,6 +135,18 @@
   /* cc-wrapper：引用左边线 2px，不是默认 3px */
   .blockquote {
     border-left-width: 2px;
+  }
+
+  /* cc-wrapper：hr 上边框 1px，上下间距 12px */
+  .hr-node {
+    border-top: var(--border-width) solid var(--border);
+  }
+
+  /* cc-wrapper：h4-h6 无独立规则，回正文字号与间距；h5/h6 字重统一 500 */
+  .heading-4,
+  .heading-5,
+  .heading-6 {
+    font-weight: var(--font-weight-medium);
   }
 
   .heading-6 {
@@ -229,7 +249,7 @@
     transform: scale(0.98);
   }
 
-  /* ------ 表格：单层圆角外框 + 横向分隔线，不要竖线和斑马纹 ------ */
+  /* ------ 表格：单层圆角外框 + 横向分隔线；13px、8px 四周 padding（对齐 cc-wrapper） ------ */
   .table-node-wrapper .table-node {
     table-layout: auto;
     border-collapse: separate;
@@ -239,18 +259,19 @@
     border-radius: var(--ms-radius);
     background: transparent;
     box-shadow: none;
+    font-size: var(--text-meta);
   }
 
   .table-node-wrapper .table-node :is(th, td),
   .table-node-wrapper .table-node :is(th, td):last-child {
     border: 0;
     border-bottom: var(--border-width) solid var(--table-border);
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: var(--spacing-xs);
     text-align: start;
   }
 
   .table-node-wrapper .table-node thead th {
-    font-weight: var(--font-weight-normal);
+    font-weight: var(--font-weight-semibold);
     background-color: var(--code-background);
   }
 
