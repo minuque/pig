@@ -11,7 +11,7 @@ import {
 
 export type UiLocale = "en" | "zh-CN"
 
-export type FontSize = "s" | "m" | "l" | "xl"
+export type FontSize = "s" | "m" | "l"
 
 const LOCALE_KEY = "pig.locale"
 const FONT_SIZE_KEY = "pig.fontSize"
@@ -53,7 +53,7 @@ function load(): void {
   if (loaded) return
   loaded = true
   locale.value = readEnum(LOCALE_KEY, ["en", "zh-CN"] as const, "zh-CN")
-  fontSize.value = readEnum(FONT_SIZE_KEY, ["s", "m", "l", "xl"] as const, "m")
+  fontSize.value = readEnum(FONT_SIZE_KEY, ["s", "m", "l"] as const, "m")
   notifyOn.value = readFlag(NOTIFY_KEY)
   glassOn.value = readFlag(GLASS_KEY)
   glassOpacity.value = readNumber(GLASS_OPACITY_KEY) ?? GLASS_OPACITY_DEFAULT

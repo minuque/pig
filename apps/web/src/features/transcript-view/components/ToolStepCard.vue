@@ -38,7 +38,7 @@ const thoughtProps = computed(() =>
   background: transparent;
   box-shadow: none;
   color: var(--contrast-foreground-muted);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-meta);
   line-height: var(--text-body-sm--line-height);
 }
 
@@ -52,7 +52,7 @@ const thoughtProps = computed(() =>
   background: transparent;
   box-shadow: none;
   color: var(--contrast-foreground-muted);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-meta);
   font-family: inherit;
   white-space: pre-wrap;
 }

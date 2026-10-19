@@ -106,10 +106,10 @@ useResizeObserver(body, measure)
   flex-direction: column;
   align-items: flex-start;
   width: fit-content;
-  max-width: min(calc(var(--size-content) * 0.702), 86%);
+  max-width: 90%;
   margin: 0;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-xl);
+  padding: 9px 12px;
+  border-radius: var(--radius-lg);
   background: var(--user-prompt-background);
   color: var(--contrast-foreground);
   font-size: var(--text-body-md);

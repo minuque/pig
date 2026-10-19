@@ -444,12 +444,65 @@
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
+/* ------ Anthropic 可变字体（cc-wrapper 拆包）；先声明再让 token 引用 ------ */
+@font-face {
+  font-family: "anthropic-sans";
+  src: url("../assets/fonts/anthropic-sans.woff2") format("woff2");
+  font-weight: 300 800;
+  font-style: normal;
+  font-display: swap;
+  font-feature-settings: "dlig" 0;
+}
+
+@font-face {
+  font-family: "anthropic-sans";
+  src: url("../assets/fonts/anthropic-sans-italic.woff2") format("woff2");
+  font-weight: 300 800;
+  font-style: italic;
+  font-display: swap;
+  font-feature-settings: "dlig" 0;
+}
+
+@font-face {
+  font-family: "anthropic-serif";
+  src: url("../assets/fonts/anthropic-serif.woff2") format("woff2");
+  font-weight: 300 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "anthropic-serif";
+  src: url("../assets/fonts/anthropic-serif-italic.woff2") format("woff2");
+  font-weight: 300 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "anthropic-mono";
+  src: url("../assets/fonts/anthropic-mono.woff2") format("woff2");
+  font-weight: 300 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "anthropic-mono";
+  src: url("../assets/fonts/anthropic-mono-italic.woff2") format("woff2");
+  font-weight: 300 800;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* ------ 度量与字体间距：只定义一份，static 防 Tailwind 按用量裁掉 var() ------ */
 @theme static {
   --font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    "anthropic-sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
   --font-mono:
-    ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
+    "anthropic-mono", ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei",
+    monospace;
 
   --text-heading-2: 26px;
   --text-heading-2--line-height: 1.23;
@@ -460,6 +513,8 @@
   --text-body-md--line-height: 1.43;
   --text-body-sm: var(--text-sm);
   --text-body-sm--line-height: 1.43;
+  --text-meta: calc(var(--text-body-md) - 1px);
+  --text-meta--line-height: 1.43;
   --text-button: 13px;
   --text-button--line-height: 1.38;
   --text-caption: 13px;
@@ -594,17 +649,6 @@ html[data-font-size="l"] {
   --text-caption-mono: 13px;
   --text-code: 15px;
   --text-code-line: 28px;
-}
-
-html[data-font-size="xl"] {
-  --text-body-md: 18px;
-  --text-body-sm: 18px;
-  --text-button: 16px;
-  --text-caption: 15px;
-  --text-eyebrow: 14px;
-  --text-caption-mono: 14px;
-  --text-code: 16px;
-  --text-code-line: 30px;
 }
 
 @layer base {

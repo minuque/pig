@@ -168,14 +168,14 @@ const tokensLabel = computed(() => {
   width: 100%;
   padding-block-start: var(--spacing-md);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-sm);
-  line-height: var(--text-body-sm--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 /* 图标高度对齐一行文本，不撑开行距 */
 .turn-status-pig {
-  font-size: var(--text-body-sm);
-  height: calc(var(--text-body-sm) * var(--text-body-sm--line-height));
+  font-size: var(--text-meta);
+  height: calc(var(--text-meta) * var(--text-meta--line-height));
 }
 
 .turn-status-label {
