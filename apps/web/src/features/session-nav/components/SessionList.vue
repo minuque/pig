@@ -77,44 +77,42 @@
         </div>
 
         <div class="session-list-group" :class="{ 'is-open': !collapsedSections.has(section.key) }">
-          <div class="section-body">
-            <TransitionGroup name="list-reveal" tag="ul" class="section-rows">
-              <template v-for="(session, index) in section.sessions" :key="session.id">
-                <li
-                  v-if="dragOver && section.key === 'pinned' && dragOver.index === index"
-                  class="session-row drag-gap"
-                  aria-hidden="true"
-                ></li>
-
-                <li class="session-row" :data-id="session.id">
-                  <SessionItem
-                    v-bind="itemBind(session)"
-                    :dragging="dragId === session.id"
-                    @navigate="emit('navigate', session.cwd)"
-                    @toggle-pinned="togglePinned"
-                    @rename="renameSession"
-                    @delete="deleteSession"
-                    @project-settings="emit('projectSettings', $event)"
-                    @drag-start="onDragStart(section.key, session.id, $event)"
-                  />
-                </li>
-              </template>
-
+          <TransitionGroup name="list-reveal" tag="ul" class="section-rows">
+            <template v-for="(session, index) in section.sessions" :key="session.id">
               <li
-                v-if="
-                  dragOver && section.key === 'pinned' && dragOver.index === section.sessions.length
-                "
+                v-if="dragOver && section.key === 'pinned' && dragOver.index === index"
                 class="session-row drag-gap"
                 aria-hidden="true"
               ></li>
 
-              <li v-if="section.more" :key="`more:${section.key}`" class="session-row">
-                <button class="more-button" type="button" @click="toggleGroupReveal(section.key)">
-                  {{ section.revealed ? t("common.collapse") : t("common.showMore") }}
-                </button>
+              <li class="session-row" :data-id="session.id">
+                <SessionItem
+                  v-bind="itemBind(session)"
+                  :dragging="dragId === session.id"
+                  @navigate="emit('navigate', session.cwd)"
+                  @toggle-pinned="togglePinned"
+                  @rename="renameSession"
+                  @delete="deleteSession"
+                  @project-settings="emit('projectSettings', $event)"
+                  @drag-start="onDragStart(section.key, session.id, $event)"
+                />
               </li>
-            </TransitionGroup>
-          </div>
+            </template>
+
+            <li
+              v-if="
+                dragOver && section.key === 'pinned' && dragOver.index === section.sessions.length
+              "
+              class="session-row drag-gap"
+              aria-hidden="true"
+            ></li>
+
+            <li v-if="section.more" :key="`more:${section.key}`" class="session-row">
+              <button class="more-button" type="button" @click="toggleGroupReveal(section.key)">
+                {{ section.revealed ? t("common.collapse") : t("common.showMore") }}
+              </button>
+            </li>
+          </TransitionGroup>
         </div>
       </section>
 
@@ -440,16 +438,12 @@ onBeforeUnmount(() => {
   color: var(--contrast-foreground);
 }
 
-.section-body {
-  padding-block-start: var(--spacing-xxs);
-}
-
 .section-rows {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xxs);
   margin: 0;
-  padding: 0;
+  padding: var(--spacing-xxs) 0 0;
   list-style: none;
 }
 

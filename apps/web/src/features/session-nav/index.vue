@@ -4,170 +4,172 @@
 
     <div class="nav-inset">
       <div class="nav-head">
-        <RouterLink to="/" class="nav-brand" aria-label="pig">
-          <span class="brand-mark">
-            <img class="brand-pig" src="/logo-pig.png" alt="" width="22" height="22" />
-          </span>
+        <div class="nav-titlebar">
+          <RouterLink to="/" class="nav-brand" aria-label="pig">
+            <span class="brand-mark">
+              <img class="brand-pig" src="/logo-pig.png" alt="" width="22" height="22" />
+            </span>
 
-          <span class="brand-word" aria-hidden="true">pig</span>
-        </RouterLink>
+            <span class="brand-word" aria-hidden="true">pig</span>
+          </RouterLink>
 
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <button
-              class="nav-collapse"
-              type="button"
-              :aria-label="t('nav.collapseSidebar')"
-              @click="setSbState(sbState === 'expanded' ? 'offcanvas' : 'expanded')"
-            >
-              <SidebarGlyph :open="sbState !== 'offcanvas'" />
-            </button>
-          </TooltipTrigger>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <button
+                class="nav-collapse"
+                type="button"
+                :aria-label="t('nav.collapseSidebar')"
+                @click="setSbState(sbState === 'expanded' ? 'offcanvas' : 'expanded')"
+              >
+                <SidebarGlyph :open="sbState !== 'offcanvas'" />
+              </button>
+            </TooltipTrigger>
 
-          <TooltipContent>{{ t("nav.collapseSidebar") }}</TooltipContent>
-        </Tooltip>
-      </div>
-
-      <div class="search-head">
-        <label class="search-field">
-          <MagnifierIcon :size="15" />
-
-          <input
-            ref="searchInput"
-            v-model="query"
-            type="search"
-            :placeholder="t('nav.search')"
-            :aria-label="t('nav.searchPlaceholder')"
-            @keydown.enter.prevent="activateFirst"
-            @keydown.escape.prevent="query = ''"
-          />
-
-          <button
-            v-if="query"
-            class="search-clear"
-            type="button"
-            :aria-label="t('common.close')"
-            @click="clearQuery"
-          >
-            <CloseIcon :size="11" />
-          </button>
-        </label>
-
-        <div class="head-actions">
-          <button
-            class="head-btn"
-            :class="{ scoped: !!scopeFilter }"
-            type="button"
-            :title="t('session.allProjects')"
-            @click.stop="scopeMenuOpen = !scopeMenuOpen"
-          >
-            <Tuning2Icon :size="15" />
-          </button>
-
-          <button
-            class="head-btn"
-            type="button"
-            :title="t('session.addGuide')"
-            @click="onAddProject"
-          >
-            <AddFolderIcon :size="15" />
-          </button>
-
-          <button
-            class="head-btn"
-            type="button"
-            :title="t('session.newSession')"
-            @click="onCreateSession()"
-          >
-            <ChatRoundAddIcon :size="15" />
-          </button>
+            <TooltipContent>{{ t("nav.collapseSidebar") }}</TooltipContent>
+          </Tooltip>
         </div>
 
-        <div v-if="scopeMenuOpen" class="scope-menu" @click.stop>
-          <p class="scope-label">{{ t("session.grouping") }}</p>
+        <div class="search-head">
+          <label class="search-field">
+            <MagnifierIcon :size="15" />
 
-          <button
-            v-for="option in groupingOptions"
-            :key="option.value"
-            class="scope-item"
-            :class="{ on: grouping === option.value }"
-            type="button"
-            @click="setGrouping(option.value)"
-          >
-            <span class="scope-fav"></span>
-            <span class="scope-name">{{ option.label }}</span>
+            <input
+              ref="searchInput"
+              v-model="query"
+              type="search"
+              :placeholder="t('nav.search')"
+              :aria-label="t('nav.searchPlaceholder')"
+              @keydown.enter.prevent="activateFirst"
+              @keydown.escape.prevent="query = ''"
+            />
 
-            <span class="scope-ck">
-              <CheckIcon v-if="grouping === option.value" :size="10" />
-            </span>
-          </button>
+            <button
+              v-if="query"
+              class="search-clear"
+              type="button"
+              :aria-label="t('common.close')"
+              @click="clearQuery"
+            >
+              <CloseIcon :size="11" />
+            </button>
+          </label>
 
-          <p class="scope-label">{{ t("session.sorting") }}</p>
+          <div class="head-actions">
+            <button
+              class="head-btn"
+              :class="{ scoped: !!scopeFilter }"
+              type="button"
+              :title="t('session.allProjects')"
+              @click.stop="scopeMenuOpen = !scopeMenuOpen"
+            >
+              <Tuning2Icon :size="15" />
+            </button>
 
-          <button
-            v-for="option in sortOptions"
-            :key="option.value"
-            class="scope-item"
-            :class="{ on: sort === option.value }"
-            type="button"
-            @click="setSort(option.value)"
-          >
-            <span class="scope-fav"></span>
-            <span class="scope-name">{{ option.label }}</span>
+            <button
+              class="head-btn"
+              type="button"
+              :title="t('session.addGuide')"
+              @click="onAddProject"
+            >
+              <AddFolderIcon :size="15" />
+            </button>
 
-            <span class="scope-ck">
-              <CheckIcon v-if="sort === option.value" :size="10" />
-            </span>
-          </button>
+            <button
+              class="head-btn"
+              type="button"
+              :title="t('session.newSession')"
+              @click="onCreateSession()"
+            >
+              <ChatRoundAddIcon :size="15" />
+            </button>
+          </div>
 
-          <div class="scope-sep" role="separator"></div>
+          <div v-if="scopeMenuOpen" class="scope-menu" @click.stop>
+            <p class="scope-label">{{ t("session.grouping") }}</p>
 
-          <button
-            class="scope-item"
-            :class="{ on: !scopeFilter }"
-            type="button"
-            @click="pickScope(undefined)"
-          >
-            <span class="scope-fav"><FolderIcon :size="12" /></span>
-            <span class="scope-name">{{ t("session.allProjects") }}</span>
-            <span class="scope-cnt">{{ allSessionsCount }}</span>
+            <button
+              v-for="option in groupingOptions"
+              :key="option.value"
+              class="scope-item"
+              :class="{ on: grouping === option.value }"
+              type="button"
+              @click="setGrouping(option.value)"
+            >
+              <span class="scope-fav"></span>
+              <span class="scope-name">{{ option.label }}</span>
 
-            <span class="scope-ck">
-              <CheckIcon v-if="!scopeFilter" :size="10" />
-            </span>
-          </button>
+              <span class="scope-ck">
+                <CheckIcon v-if="grouping === option.value" :size="10" />
+              </span>
+            </button>
 
-          <span
-            v-for="g in groups"
-            :key="g.canonicalPath"
-            class="scope-item"
-            :class="{ on: scopeFilter === workspaceName(g.canonicalPath) }"
-            role="menuitem"
-            tabindex="0"
-            @click="pickScope(workspaceName(g.canonicalPath))"
-            @keydown.enter.prevent="pickScope(workspaceName(g.canonicalPath))"
-          >
-            <span class="scope-fav">
-              <component :is="scopeIcon(workspaceName(g.canonicalPath))" :size="12" />
-            </span>
+            <p class="scope-label">{{ t("session.sorting") }}</p>
 
-            <span class="scope-name">{{ workspaceName(g.canonicalPath) }}</span>
-            <span class="scope-cnt">{{ g.sessions.length }}</span>
+            <button
+              v-for="option in sortOptions"
+              :key="option.value"
+              class="scope-item"
+              :class="{ on: sort === option.value }"
+              type="button"
+              @click="setSort(option.value)"
+            >
+              <span class="scope-fav"></span>
+              <span class="scope-name">{{ option.label }}</span>
 
-            <span class="scope-ck">
-              <CheckIcon v-if="scopeFilter === workspaceName(g.canonicalPath)" :size="10" />
-            </span>
+              <span class="scope-ck">
+                <CheckIcon v-if="sort === option.value" :size="10" />
+              </span>
+            </button>
+
+            <div class="scope-sep" role="separator"></div>
+
+            <button
+              class="scope-item"
+              :class="{ on: !scopeFilter }"
+              type="button"
+              @click="pickScope(undefined)"
+            >
+              <span class="scope-fav"><FolderIcon :size="12" /></span>
+              <span class="scope-name">{{ t("session.allProjects") }}</span>
+              <span class="scope-cnt">{{ allSessionsCount }}</span>
+
+              <span class="scope-ck">
+                <CheckIcon v-if="!scopeFilter" :size="10" />
+              </span>
+            </button>
 
             <span
-              class="scope-edit"
-              role="button"
-              tabindex="-1"
-              :title="t('session.projectSettings')"
-              @click.stop="closeProjectSettings(workspaceName(g.canonicalPath))"
+              v-for="g in groups"
+              :key="g.canonicalPath"
+              class="scope-item"
+              :class="{ on: scopeFilter === workspaceName(g.canonicalPath) }"
+              role="menuitem"
+              tabindex="0"
+              @click="pickScope(workspaceName(g.canonicalPath))"
+              @keydown.enter.prevent="pickScope(workspaceName(g.canonicalPath))"
             >
-              <SettingsIcon :size="10" />
+              <span class="scope-fav">
+                <component :is="scopeIcon(workspaceName(g.canonicalPath))" :size="12" />
+              </span>
+
+              <span class="scope-name">{{ workspaceName(g.canonicalPath) }}</span>
+              <span class="scope-cnt">{{ g.sessions.length }}</span>
+
+              <span class="scope-ck">
+                <CheckIcon v-if="scopeFilter === workspaceName(g.canonicalPath)" :size="10" />
+              </span>
+
+              <span
+                class="scope-edit"
+                role="button"
+                tabindex="-1"
+                :title="t('session.projectSettings')"
+                @click.stop="closeProjectSettings(workspaceName(g.canonicalPath))"
+              >
+                <SettingsIcon :size="10" />
+              </span>
             </span>
-          </span>
+          </div>
         </div>
       </div>
 
@@ -196,7 +198,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
@@ -206,6 +208,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
+import {
+  loadProjIcons,
+  projectIconComponent,
+  type ProjIcon,
+} from "@features/session-nav/lib/project-icon.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
 import ProjectSettingsDialog from "@features/session-nav/components/ProjectSettingsDialog.vue"
@@ -254,11 +261,7 @@ const sortOptions = computed(() => [
 ])
 
 function scopeIcon(project: string | undefined) {
-  if (!project) return FolderIcon
-  const custom = projIcons.value[project]
-
-  if (custom?.kind === "icon" && custom.value) return custom.value
-  return FolderIcon
+  return projectIconComponent(project ? projIcons.value[project] : undefined)
 }
 
 const { play } = useSound()
@@ -267,21 +270,10 @@ const query = shallowRef("")
 const searchInput = useTemplateRef<HTMLInputElement>("searchInput")
 const scopeFilter = shallowRef<string | undefined>(undefined)
 const scopeMenuOpen = shallowRef(false)
-const projIcons = shallowRef<Record<string, { kind: string; value?: string }>>({})
+const projIcons = shallowRef<Record<string, ProjIcon>>(loadProjIcons())
 const allSessionsCount = computed(() =>
   groups.value.reduce((sum, group) => sum + group.sessions.length, 0),
 )
-
-function loadProjIcons() {
-  try {
-    const raw = localStorage.getItem("pig.projIcons")
-    projIcons.value = raw ? JSON.parse(raw) : {}
-  } catch {
-    projIcons.value = {}
-  }
-}
-
-onMounted(loadProjIcons)
 
 function highlightedCwd(): string | undefined {
   const id = highlightedSessionId.value
@@ -411,6 +403,13 @@ function onCreateSession(cwd?: string): void {
 .nav-head {
   display: flex;
   flex: none;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.nav-titlebar {
+  display: flex;
   align-items: center;
   gap: var(--spacing-xs);
   min-width: 0;
@@ -590,7 +589,7 @@ html[data-pig-desktop-platform] .session-nav {
   padding-top: calc(6px + var(--titlebar-inset));
 }
 
-html[data-pig-desktop-platform] .nav-head {
+html[data-pig-desktop-platform] .nav-titlebar {
   position: absolute;
   z-index: 1;
   inset: 0 0 auto;
@@ -602,7 +601,7 @@ html[data-pig-desktop-platform="win32"] .session-nav {
   padding-top: var(--titlebar-inset);
 }
 
-html[data-pig-desktop-platform="win32"] .nav-head {
+html[data-pig-desktop-platform="win32"] .nav-titlebar {
   height: var(--titlebar-inset);
 }
 
@@ -610,7 +609,7 @@ html[data-pig-desktop-platform="darwin"] .session-nav {
   padding-top: var(--spacing-xxl);
 }
 
-html[data-pig-desktop-platform="darwin"] .nav-head {
+html[data-pig-desktop-platform="darwin"] .nav-titlebar {
   height: var(--spacing-xxl);
 }
 
