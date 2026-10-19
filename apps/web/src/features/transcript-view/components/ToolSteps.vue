@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .tool-steps {
-  --tool-summary-offset: calc(var(--text-body-sm) * var(--text-body-sm--line-height));
+  --tool-summary-offset: calc(var(--text-meta) * var(--text-meta--line-height));
   isolation: isolate;
   min-width: 0;
 }
@@ -350,7 +350,7 @@ onBeforeUnmount(() => {
   border-radius: 0;
   background: var(--card);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
   white-space: normal;
   text-align: start;

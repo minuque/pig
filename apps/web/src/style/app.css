@@ -460,6 +460,8 @@
   --text-body-md--line-height: 1.43;
   --text-body-sm: var(--text-sm);
   --text-body-sm--line-height: 1.43;
+  --text-meta: calc(var(--text-body-md) - 1px);
+  --text-meta--line-height: 1.43;
   --text-button: 13px;
   --text-button--line-height: 1.38;
   --text-caption: 13px;
@@ -594,17 +596,6 @@ html[data-font-size="l"] {
   --text-caption-mono: 13px;
   --text-code: 15px;
   --text-code-line: 28px;
-}
-
-html[data-font-size="xl"] {
-  --text-body-md: 18px;
-  --text-body-sm: 18px;
-  --text-button: 16px;
-  --text-caption: 15px;
-  --text-eyebrow: 14px;
-  --text-caption-mono: 14px;
-  --text-code: 16px;
-  --text-code-line: 30px;
 }
 
 @layer base {

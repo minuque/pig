@@ -288,7 +288,6 @@ const sizes: { id: FontSize; mark: string; label: string }[] = [
   { id: "s", mark: "S", label: t("settings.fontSizeS") },
   { id: "m", mark: "M", label: t("settings.fontSizeM") },
   { id: "l", mark: "L", label: t("settings.fontSizeL") },
-  { id: "xl", mark: "XL", label: t("settings.fontSizeXl") },
 ]
 
 function onOpacity(value: number[] | undefined) {
