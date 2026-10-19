@@ -233,8 +233,8 @@ function itemBind(session: SidebarSession, section: SidebarSection) {
   const foot = cardFootById.value.get(session.id)
   return {
     session,
-    // 项目组头已画项目图标，行内不再重复。
-    showProject: !section.cwd,
+    // 只有置顶组保留项目图标；日期/cwd 分组的行不重复画。
+    showProject: section.key === "pinned",
     active: session.id === highlightedSessionId.value,
     pinned: pinnedIds.value.has(session.id),
     draggable: dragEnabled.value && pinnedIds.value.has(session.id),

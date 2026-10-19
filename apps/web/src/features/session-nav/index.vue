@@ -83,7 +83,7 @@
           </button>
         </div>
 
-        <div v-if="scopeMenuOpen" class="scope-menu" @click.stop>
+        <div v-if="scopeMenuOpen" class="scope-menu surface-float" @click.stop>
           <p class="scope-label">{{ t("session.grouping") }}</p>
 
           <button
@@ -94,7 +94,7 @@
             type="button"
             @click="setGrouping(option.value)"
           >
-            <span class="scope-fav"></span>
+            <span class="scope-fav"><component :is="option.icon" :size="12" /></span>
             <span class="scope-name">{{ option.label }}</span>
 
             <span class="scope-ck">
@@ -112,7 +112,7 @@
             type="button"
             @click="setSort(option.value)"
           >
-            <span class="scope-fav"></span>
+            <span class="scope-fav"><component :is="option.icon" :size="12" /></span>
             <span class="scope-name">{{ option.label }}</span>
 
             <span class="scope-ck">
@@ -155,17 +155,17 @@
             <span class="scope-cnt">{{ g.sessions.length }}</span>
 
             <span class="scope-ck">
-              <CheckIcon v-if="scopeFilter === workspaceName(g.canonicalPath)" :size="10" />
-            </span>
+              <CheckIcon v-if="scopeFilter === workspaceName(g.canonicalPath)" :size="12" />
 
-            <span
-              class="scope-edit"
-              role="button"
-              tabindex="-1"
-              :title="t('session.projectSettings')"
-              @click.stop="closeProjectSettings(workspaceName(g.canonicalPath))"
-            >
-              <SettingsIcon :size="10" />
+              <span
+                class="scope-edit"
+                role="button"
+                tabindex="-1"
+                :title="t('session.projectSettings')"
+                @click.stop="closeProjectSettings(workspaceName(g.canonicalPath))"
+              >
+                <SettingsIcon :size="12" />
+              </span>
             </span>
           </span>
         </div>
@@ -221,8 +221,11 @@ import {
   ArrowUpIcon,
   ChatRoundAddIcon,
   CheckIcon,
+  ClockCircleIcon,
   CloseIcon,
+  DocumentAddIcon,
   FolderIcon,
+  HistoryIcon,
   MagnifierIcon,
   SettingsIcon,
   SidebarGlyph,
@@ -252,12 +255,12 @@ const {
   setSort,
 } = useNav()
 const groupingOptions = computed(() => [
-  { value: "date" as const, label: t("session.groupDate") },
-  { value: "cwd" as const, label: t("session.groupCwd") },
+  { value: "date" as const, label: t("session.groupDate"), icon: ClockCircleIcon },
+  { value: "cwd" as const, label: t("session.groupCwd"), icon: FolderIcon },
 ])
 const sortOptions = computed(() => [
-  { value: "updated" as const, label: t("session.sortUpdated") },
-  { value: "created" as const, label: t("session.sortCreated") },
+  { value: "updated" as const, label: t("session.sortUpdated"), icon: HistoryIcon },
+  { value: "created" as const, label: t("session.sortCreated"), icon: DocumentAddIcon },
 ])
 
 function scopeIcon(project: string | undefined) {
@@ -669,7 +672,8 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
 .scope-menu {
   position: absolute;
   z-index: var(--z-menu);
-  inset-inline: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 10px;
   top: 100%;
   max-height: min(60vh, 480px);
   overflow-y: auto;
@@ -685,13 +689,14 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
 .scope-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--spacing-xs);
   width: 100%;
   padding: var(--spacing-xxs) var(--spacing-xs);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--contrast-foreground);
+  line-height: var(--text-caption--line-height);
   text-align: start;
   cursor: default;
   user-select: none;
@@ -714,33 +719,49 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
 
 .scope-cnt {
   flex: none;
+  min-width: 3ch;
   font-size: var(--text-eyebrow);
+  font-variant-numeric: tabular-nums;
   color: var(--contrast-foreground-muted);
+  text-align: end;
 }
 
 .scope-ck {
-  display: flex;
+  position: relative;
+  display: grid;
   flex: none;
-  align-items: center;
-  justify-content: center;
+  place-items: center;
   width: 14px;
+  height: 14px;
   color: var(--primary);
 }
 
-.scope-edit {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
+.scope-ck > .solar,
+.scope-ck > .scope-edit {
+  grid-area: 1 / 1;
+  transition: opacity 0.15s;
+}
+
+.scope-ck > .solar {
+  opacity: 1;
+}
+
+.scope-ck > .scope-edit {
+  display: grid;
+  place-items: center;
   width: 18px;
   height: 18px;
+  margin: -2px;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--contrast-foreground-muted);
   opacity: 0;
-  transition: opacity 0.15s;
   cursor: pointer;
+}
+
+.scope-item:hover .scope-ck > .solar {
+  opacity: 0;
 }
 
 .scope-item:hover .scope-edit {
@@ -748,6 +769,7 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
 }
 
 .scope-edit:hover {
+  background: var(--hover-quiet);
   color: var(--contrast-foreground);
 }
 

@@ -34,6 +34,8 @@ export { CheckIcon } from "@solar-icons/vue/linear/check"
 
 export { ClockCircleIcon } from "@solar-icons/vue/linear/clock-circle"
 
+export { HistoryIcon } from "@solar-icons/vue/linear/history"
+
 export { CloseIcon } from "@solar-icons/vue/linear/close"
 
 export { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
