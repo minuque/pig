@@ -57,9 +57,6 @@ function createNav(
             ...(liveOutcome ? { outcome: liveOutcome } : {}),
           }
         : undefined
-    const liveStartedAt = session.turnTimings.value.findLast(
-      (timing) => timing.outcome === "running",
-    )?.startedAt
     const extras = cards.sessionCards.value
     const feet = new Map<
       string,
@@ -67,7 +64,6 @@ function createNav(
         messageCount: number | undefined
         model: { provider: string; id: string } | undefined
         state: SidebarSessionState | undefined
-        runningSince: number | undefined
       }
     >()
 
@@ -83,10 +79,8 @@ function createNav(
           : markers.isUnread(item)
             ? "unread"
             : undefined
-      const runningSince =
-        isRunning && liveId === item.id ? liveStartedAt : isRunning ? Date.now() : undefined
 
-      feet.set(item.id, { ...foot, state, runningSince })
+      feet.set(item.id, { ...foot, state })
     }
 
     return feet
@@ -103,11 +97,20 @@ function createNav(
     listedSessions: nav.listedSessions,
     cardFootById,
     toggleGroupReveal: nav.toggleGroupReveal,
-    rowsFor: (searching: Parameters<typeof nav.rowsFor>[0]) =>
-      nav.rowsFor(searching, markers.pinnedIds),
+    sectionsFor: (
+      searching: Parameters<typeof nav.sectionsFor>[0],
+      include?: Parameters<typeof nav.sectionsFor>[2],
+    ) => nav.sectionsFor(searching, markers.pinnedOrder, include),
+    grouping: nav.grouping,
+    sort: nav.sort,
+    setGrouping: nav.setGrouping,
+    setSort: nav.setSort,
+    collapsedSections: nav.collapsedSections,
+    toggleSection: nav.toggleSection,
     pinnedIds: markers.pinnedIds,
     pinnedSessions: markers.pinnedSessions,
     togglePinned: markers.togglePinned,
+    reorderPinned: markers.reorderPinned,
     addingWorkspace: nav.addingWorkspace,
     connected: pi.connected,
     navError,

@@ -17,6 +17,8 @@
       @wheel="onTranscriptWheel"
       @pointerdown="onPointerDown"
     >
+      <div class="transcript-edge-top edge-veil-top" aria-hidden="true"></div>
+
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
           <button
@@ -62,6 +64,15 @@
               ></div>
             </template>
           </div>
+
+          <TranscriptStatus
+            :phase="phase"
+            :sending="sending"
+            :stopping="stopping"
+            :started-at="activeStartedAt"
+            :rows="rows"
+            :output-tokens="activeOutputTokens"
+          />
         </div>
       </div>
     </div>
@@ -82,6 +93,7 @@ import {
 } from "vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
+import TranscriptStatus from "@features/transcript-view/components/TranscriptStatus.vue"
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { useI18n } from "@i18n/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
@@ -92,12 +104,13 @@ import {
   useTranscriptReveal,
 } from "@features/transcript-view/hooks/use-transcript-edge.js"
 import { useTranscriptWindow } from "@features/transcript-view/hooks/use-transcript-window.js"
-import type { TranscriptItem } from "@/types/common-type.js"
+import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { ensureMermaidRuntime } from "@features/transcript-view/lib/mermaid-runtime.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TimelineTurn, TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import { createTimelineRowsBuilder } from "@features/transcript-view/lib/transcript-rows.js"
+import { turnOutputTokens } from "@features/transcript-view/lib/transcript-activity.js"
 import {
   groupTimelineTurns,
   reuseTimelineTurns,
@@ -113,11 +126,14 @@ const props = withDefaults(
     sessionId: string
     transcript: readonly TranscriptItem[]
     running: boolean
+    phase?: SessionPhase | undefined
+    sending?: boolean
+    stopping?: boolean
     timings?: readonly TurnTiming[] | undefined
     hasMore?: boolean
     loadingOlder?: boolean
   }>(),
-  { hasMore: false, loadingOlder: false },
+  { hasMore: false, loadingOlder: false, sending: false, stopping: false },
 )
 const emit = defineEmits<{
   loadOlder: []
@@ -126,6 +142,26 @@ const { t } = useI18n()
 const turns = shallowRef<TimelineTurn[]>([])
 const rows = computed(() => turns.value.flatMap((turn) => turn.rows))
 const rowsBuilder = createTimelineRowsBuilder()
+/** 运行中轮的起点：turn.id 就是 user 条目 id，timing.userId 与之对应。 */
+const activeStartedAt = computed(() => {
+  if (!props.running) return undefined
+  const lastId = turns.value.at(-1)?.id
+  const timing = props.timings?.find(
+    (value) => value.userId === lastId && value.outcome === "running",
+  )
+  return timing?.startedAt
+})
+/** 当前轮的 output token 汇总；orphan 轮回退到行内最后一条 user。 */
+const activeOutputTokens = computed(() => {
+  const turn = turns.value.at(-1)
+
+  if (!turn) return null
+
+  const userId = turn.id.startsWith("orphan:")
+    ? turn.rows.find((row) => row.role === "user")?.id
+    : turn.id
+  return turnOutputTokens(props.transcript, userId)
+})
 
 watch(
   () => ({
@@ -419,6 +455,11 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   /* 主视口滚动条常显，并始终占位，内容不因溢出与否来回横移 */
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-gutter: stable;
+}
+
+/* 顶部渐隐层压住普通行，工具行由 .row-tools 的 z-index 抬到它上面 */
+.transcript-edge-top {
+  background: linear-gradient(to bottom, var(--card), transparent);
 }
 
 /* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在视口顶部 */

@@ -36,18 +36,40 @@ export function toolRowDurationLabel(row: ToolRow, now: number): string {
   return formatToolRowDuration(end - start)
 }
 
-const TOOL_ROW_ORDER = ["read", "write", "edit", "command", "search", "tool"] as const
+const TOOL_ROW_ORDER = ["command", "edit", "write", "read", "search", "tool"] as const
 const TOOL_ROW_LABEL: Record<ToolGroupKey, (count: number) => string> = {
-  read: (n) => t("transcript.labelRead", { n }),
-  write: (n) => t("transcript.labelWrite", { n }),
-  edit: (n) => t("transcript.labelEdit", { n }),
-  command: (n) => t("transcript.labelCommand", { n }),
-  search: (n) => t("transcript.labelSearch", { n }),
-  tool: (n) => t("transcript.labelTool", { n }),
+  read: (n) => t("transcript.labelRead", n),
+  write: (n) => t("transcript.labelWrite", n),
+  edit: (n) => t("transcript.labelEdit", n),
+  command: (n) => t("transcript.labelCommand", n),
+  search: (n) => t("transcript.labelSearch", n),
+  tool: (n) => t("transcript.labelTool", n),
 }
 
 export type ToolRowLabelPart =
   { kind: "text"; text: string } | { kind: "count"; prefix: string; count: number; suffix: string }
+
+function capitalizeFirst(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+// 整行只大写首个片段的第一个字母
+function capitalizeParts(parts: ToolRowLabelPart[]): ToolRowLabelPart[] {
+  const first = parts[0]
+
+  if (!first) return parts
+
+  const capitalized: ToolRowLabelPart =
+    first.kind === "text"
+      ? { kind: "text", text: capitalizeFirst(first.text) }
+      : {
+          kind: "count",
+          prefix: capitalizeFirst(first.prefix),
+          count: first.count,
+          suffix: first.suffix,
+        }
+  return [capitalized, ...parts.slice(1)]
+}
 
 export function toolRowLabelParts(row: ToolRow): ToolRowLabelPart[] {
   const counts = new Map<ToolGroupKey, number>()
@@ -60,7 +82,11 @@ export function toolRowLabelParts(row: ToolRow): ToolRowLabelPart[] {
 
   const parts: ToolRowLabelPart[] = []
 
-  if (thoughts) parts.push({ kind: "text", text: t("transcript.labelThinking", { n: thoughts }) })
+  if (thoughts)
+    parts.push({
+      kind: "text",
+      text: t("transcript.labelThinking", thoughts),
+    })
 
   for (const key of TOOL_ROW_ORDER) {
     const count = counts.get(key)
@@ -72,30 +98,28 @@ export function toolRowLabelParts(row: ToolRow): ToolRowLabelPart[] {
         kind: "count",
         prefix: t("transcript.partWritePrefix"),
         count,
-        suffix: t("transcript.partWriteSuffix"),
+        suffix: t("transcript.partWriteSuffix", count),
       })
     else if (key === "edit")
       parts.push({
         kind: "count",
         prefix: t("transcript.partEditPrefix"),
         count,
-        suffix: t("transcript.partWriteSuffix"),
+        suffix: t("transcript.partWriteSuffix", count),
       })
     else parts.push({ kind: "text", text: TOOL_ROW_LABEL[key](count) })
   }
 
   if (row.aborted)
-    return parts.length
-      ? [{ kind: "text", text: t("transcript.labelStopped") }, ...parts]
-      : [{ kind: "text", text: t("transcript.labelStopped") }]
+    return capitalizeParts([{ kind: "text", text: t("transcript.labelStopped") }, ...parts])
 
-  if (parts.length) return parts
-  return [
+  if (parts.length) return capitalizeParts(parts)
+  return capitalizeParts([
     {
       kind: "text",
       text: row.mode === "live" ? t("transcript.labelRunning") : t("transcript.labelRunningDone"),
     },
-  ]
+  ])
 }
 
 export function toolRowFailCount(row: ToolRow): number {

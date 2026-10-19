@@ -334,19 +334,23 @@
 /* ------ 对话框（reka data-slot 直挂 transition；Teleport 后 scoped 打不中） ------ */
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
   transform-origin: center;
-  translate: 0 12px;
-  scale: 0.96;
+  translate: 0 2px;
   opacity: 0;
   transition:
-    translate var(--duration-slow) var(--ease-smooth),
-    scale var(--duration-slow) var(--ease-smooth),
-    opacity var(--duration-slow) var(--ease-smooth);
+    translate var(--duration-dialog-in) var(--ease-menu),
+    opacity var(--duration-dialog-in) var(--ease-menu);
 }
 
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="open"] {
   translate: 0 0;
-  scale: 1;
   opacity: 1;
+}
+
+@starting-style {
+  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="open"] {
+    translate: 0 2px;
+    opacity: 0;
+  }
 }
 
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
@@ -497,17 +501,17 @@
   opacity: 0;
 }
 
-/* ------ 输入卡 @// 菜单：向上小位移，与 Synara 命令面板同一组入场曲线 ------ */
+/* ------ 输入卡 @// 菜单：与浮层同一组时长与曲线 ------ */
 .menu-reveal-enter-active {
   transition:
-    opacity var(--duration-normal) var(--ease-smooth),
-    translate var(--duration-normal) var(--ease-smooth);
+    opacity var(--duration-menu-in) var(--ease-menu),
+    translate var(--duration-menu-in) var(--ease-menu);
 }
 
 .menu-reveal-leave-active {
   transition:
-    opacity var(--duration-fast) var(--ease-out),
-    translate var(--duration-fast) var(--ease-out);
+    opacity var(--duration-menu-out) var(--ease-menu),
+    translate var(--duration-menu-out) var(--ease-menu);
 }
 
 .menu-reveal-enter-from {
@@ -517,7 +521,7 @@
 
 .menu-reveal-leave-to {
   opacity: 0;
-  translate: 0 calc(-1 * var(--spacing-xxs));
+  translate: 0 calc(var(--spacing-xs) / 2);
 }
 
 /* ------ 主题切换 view-transition ------ */
@@ -565,12 +569,15 @@
 
 /* ------ 加载与点缀：shimmer / nudge / pulse / spin ------ */
 @keyframes shimmer {
-  0% {
-    background-position: 100% 0;
+  0%,
+  15% {
+    background-position: 83.333% 0;
+    animation-timing-function: cubic-bezier(0.714, 0.121, 0.211, 0.888);
   }
 
+  85%,
   100% {
-    background-position: 0% 0;
+    background-position: 16.667% 0;
   }
 }
 
@@ -588,9 +595,9 @@
   background-image: linear-gradient(
     90deg,
     transparent 0%,
-    transparent 40%,
+    transparent 41%,
     var(--foreground) 50%,
-    transparent 60%,
+    transparent 59%,
     transparent 100%
   );
   background-size: 400% 100%;
@@ -599,7 +606,7 @@
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  animation: shimmer var(--duration-shimmer) linear infinite;
+  animation: shimmer var(--duration-shimmer) infinite;
 }
 
 .motion-nudge {
@@ -654,11 +661,15 @@
   from {
     opacity: 1;
     transform: translateY(0) scale(1);
+    -webkit-backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
+    backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
   }
 
   to {
     opacity: 0;
     transform: translateY(4px) scale(0.98);
+    -webkit-backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
+    backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
   }
 }
 
@@ -678,45 +689,71 @@
   }
 }
 
-/* 菜单/工具提示类浮层 */
+/* 菜单/工具提示类浮层：按 reka 的 data-side 朝触发器进出，退场行程减半 */
 .reveal-menu {
-  opacity: 0;
+  --menu-shift-x: 0px;
+  --menu-shift-y: 4px;
+  opacity: 0.3;
+  translate: var(--menu-shift-x) var(--menu-shift-y);
   transition:
-    opacity var(--duration-fast) var(--ease-out),
-    transform var(--duration-fast) var(--ease-out);
-  transform: translateY(4px) scale(0.98);
+    opacity var(--duration-menu-in) var(--ease-menu),
+    translate var(--duration-menu-in) var(--ease-menu);
+}
+
+.reveal-menu[data-side="top"] {
+  --menu-shift-x: 0px;
+  --menu-shift-y: 4px;
+}
+
+.reveal-menu[data-side="bottom"] {
+  --menu-shift-x: 0px;
+  --menu-shift-y: -4px;
+}
+
+.reveal-menu[data-side="left"] {
+  --menu-shift-x: 4px;
+  --menu-shift-y: 0px;
+}
+
+.reveal-menu[data-side="right"] {
+  --menu-shift-x: -4px;
+  --menu-shift-y: 0px;
 }
 
 .reveal-menu[data-state="open"],
 .reveal-menu[data-state="delayed-open"],
 .reveal-menu[data-state="instant-open"] {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  translate: 0 0;
+}
+
+@starting-style {
+  .reveal-menu[data-state="open"],
+  .reveal-menu[data-state="delayed-open"],
+  .reveal-menu[data-state="instant-open"] {
+    opacity: 0.3;
+    translate: var(--menu-shift-x) var(--menu-shift-y);
+  }
 }
 
 .reveal-menu[data-state="closed"] {
-  animation: pop-reveal-out var(--duration-fast) var(--ease-out);
+  animation: menu-retreat var(--duration-menu-out) var(--ease-menu) forwards;
 }
 
-/* 对话框/确认框：行程更大一点 */
-.reveal-dialog {
-  opacity: 0;
-  transition:
-    opacity var(--duration-slow) var(--ease-smooth),
-    transform var(--duration-slow) var(--ease-smooth),
-    scale var(--duration-slow) var(--ease-smooth);
-  transform: translateY(12px);
-  scale: 0.96;
-}
+@keyframes menu-retreat {
+  from {
+    opacity: 1;
+    translate: 0 0;
+    -webkit-backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
+    backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
+  }
 
-.reveal-dialog[data-state="open"] {
-  opacity: 1;
-  transform: translateY(0);
-  scale: 1;
-}
-
-.reveal-dialog[data-state="closed"] {
-  animation: pop-reveal-out var(--duration-normal) var(--ease-out) forwards;
+  to {
+    opacity: 0;
+    translate: calc(var(--menu-shift-x) * 0.5) calc(var(--menu-shift-y) * 0.5);
+    -webkit-backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
+    backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
+  }
 }
 
 /* 遮罩 */
@@ -747,6 +784,119 @@
 
 .ring-focus[data-tone="destructive"]:focus-visible {
   box-shadow: var(--focus-ring-destructive);
+}
+
+/* ------ 滚动边缘渐隐：列表与正文用贴边渐变层，避免 mask 压住吸顶元素和滚动条 ------ */
+.edge-veil-top,
+.edge-veil-bottom {
+  position: sticky;
+  z-index: 1;
+  height: var(--edge-fade-band);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.edge-veil-top {
+  top: 0;
+  margin-bottom: calc(-1 * var(--edge-fade-band));
+}
+
+.edge-veil-bottom {
+  bottom: 0;
+  margin-top: calc(-1 * var(--edge-fade-band));
+}
+
+/* 不支持滚动时间线时保持隐藏，退化为无渐隐 */
+@supports (animation-timeline: scroll()) {
+  .edge-veil-top {
+    animation: edge-veil-in linear both;
+    animation-duration: auto;
+    animation-timeline: scroll(nearest block);
+    animation-range: 0 1px;
+  }
+
+  .edge-veil-bottom {
+    animation: edge-veil-out linear both;
+    animation-duration: auto;
+    animation-timeline: scroll(nearest block);
+    animation-range: calc(100% - 1px) 100%;
+  }
+}
+
+@keyframes edge-veil-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes edge-veil-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* 浮层没有吸顶元素，仍用 mask；右侧一列保持不透明，滚动条不跟着淡 */
+.edge-fade-menu {
+  --edge-fade-band: var(--edge-fade-menu-band);
+  -webkit-mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      black var(--edge-fade-top),
+      black calc(100% - var(--edge-fade-bottom)),
+      transparent
+    ),
+    linear-gradient(to right, transparent calc(100% - 8px), black calc(100% - 8px));
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent,
+      black var(--edge-fade-top),
+      black calc(100% - var(--edge-fade-bottom)),
+      transparent
+    ),
+    linear-gradient(to right, transparent calc(100% - 8px), black calc(100% - 8px));
+}
+
+@supports (animation-timeline: scroll()) {
+  .edge-fade-menu {
+    animation:
+      edge-fade-top-in linear both,
+      edge-fade-bottom-in linear both;
+    animation-duration: auto;
+    animation-timeline: scroll(self block), scroll(self block);
+    animation-range:
+      0 1px,
+      calc(100% - 1px) 100%;
+  }
+}
+
+@keyframes edge-fade-top-in {
+  from {
+    --edge-fade-top: 0px;
+  }
+
+  to {
+    --edge-fade-top: var(--edge-fade-band);
+  }
+}
+
+@keyframes edge-fade-bottom-in {
+  from {
+    --edge-fade-bottom: var(--edge-fade-band);
+  }
+
+  to {
+    --edge-fade-bottom: 0px;
+  }
 }
 
 /* ------ 减弱动效：全局兜底，动画与过渡一次关掉 ------ */
@@ -869,7 +1019,7 @@
 
   :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
     transition: none;
-    scale: 1;
+    translate: 0 0;
     opacity: 1;
   }
 
@@ -884,16 +1034,15 @@
   }
 
   .reveal-menu,
-  .reveal-dialog,
   .reveal-overlay {
     transition: none;
     animation: none;
     transform: none;
+    translate: none;
     scale: 1;
   }
 
   .reveal-menu[data-state="closed"],
-  .reveal-dialog[data-state="closed"],
   .reveal-overlay[data-state="closed"] {
     animation: none;
     opacity: 0;

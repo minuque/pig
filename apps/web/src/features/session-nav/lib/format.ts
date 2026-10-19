@@ -46,15 +46,3 @@ export function formatRelativeTime(timestamp: number, now = Date.now()): string 
   if (days < 365) return `${Math.round(days / 30)}mo`
   return `${Math.round(days / 365)}y`
 }
-
-/** 运行计时：s → m → h m，对齐 demo 的 dur()。 */
-export function formatDuration(startedAt: number, now = Date.now()): string {
-  const seconds = Math.max(0, Math.floor((now - startedAt) / 1000))
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-
-  if (hours) return `${hours}h ${minutes % 60}m`
-
-  if (minutes) return `${minutes}m`
-  return `${seconds}s`
-}

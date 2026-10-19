@@ -1,13 +1,16 @@
 <template>
   <section class="tool-steps" :class="{ running, aborted: row.aborted }">
-    <Button type="button" static class="summary-btn" :style="statusColor" @click="toggleSteps">
-      <LoaderIcon v-if="running" class="tool-steps-icon animate-spin motion-reduce:animate-none" />
-      <ClockCircleIcon v-else-if="row.aborted || row.error" class="tool-steps-icon" />
-      <CheckCircleIcon v-else class="tool-steps-icon" />
-
-      <span>
+    <Button
+      type="button"
+      static
+      class="summary-btn"
+      :style="statusColor"
+      :aria-expanded="revealed"
+      @click="toggleSteps"
+    >
+      <span :class="{ shimmer: running }" :data-text="labelText">
         <template v-for="(part, i) in labelParts" :key="i">
-          <span v-if="i" class="label-dot">·</span>
+          <span v-if="i" class="label-sep"><span class="label-dot">·</span></span>
           <template v-if="part.kind === 'text'">{{ part.text }}</template>
 
           <template v-else>
@@ -18,14 +21,14 @@
         </template>
 
         <template v-if="failCount">
-          <span class="label-dot">·</span>
+          <span class="label-sep"><span class="label-dot">·</span></span>
           {{ t("transcript.statusError") }}
           <span class="fail-n">{{ failCount }}</span>
-          {{ t("common.times") }}
+          {{ t("common.times", failCount) }}
         </template>
 
         <template v-if="durationLabel">
-          <span class="label-dot">·</span>
+          <span class="label-sep"><span class="label-dot">·</span></span>
           <span>{{ durationLabel }}</span>
         </template>
       </span>
@@ -96,6 +99,7 @@ import {
 } from "@features/transcript-view/lib/transcript-row-label.js"
 import { holdClickedOffset } from "@features/transcript-view/lib/transcript-scroll.js"
 import {
+  STEP_FIRST_DELAY_MS,
   STEP_REVEAL_MS,
   STEP_STAGGER_MS,
   arrivalProgress,
@@ -103,13 +107,7 @@ import {
   type RailPath,
 } from "@features/transcript-view/lib/step-rail.js"
 import type { ToolRow, ToolRowStep } from "@features/transcript-view/type.js"
-import {
-  AltArrowRightIcon,
-  CheckCircleIcon,
-  ClockCircleIcon,
-  LoaderIcon,
-  MenuDotsIcon,
-} from "@components/icons/index.js"
+import { AltArrowDownIcon, AltArrowRightIcon, MenuDotsIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const PAGE_SIZE = 8
@@ -186,6 +184,20 @@ watch(
 const labelParts = computed(() => toolRowLabelParts(props.row))
 const failCount = computed(() => toolRowFailCount(props.row))
 const durationLabel = computed(() => toolRowDurationLabel(props.row, now.value))
+// shimmer 的 data-text 需要与可见标题一致的纯文本
+const labelText = computed(() => {
+  const parts = labelParts.value.map((part) =>
+    part.kind === "text" ? part.text : `${part.prefix} ${part.count} ${part.suffix}`,
+  )
+
+  if (failCount.value)
+    parts.push(
+      `${t("transcript.statusError")} ${failCount.value} ${t("common.times", failCount.value)}`,
+    )
+
+  if (durationLabel.value) parts.push(durationLabel.value)
+  return parts.join(" · ")
+})
 
 function isStepRunning(step: ToolRowStep) {
   return step.type === "thought" ? step.streaming : step.items.some((item) => item.running)
@@ -279,7 +291,7 @@ watch(
 
       if (!running.value || reduceMotion.matches) continue
       next ??= new Map(starts.value)
-      next.set(step.id, now + rank * STEP_STAGGER_MS)
+      next.set(step.id, now + STEP_FIRST_DELAY_MS + rank * STEP_STAGGER_MS)
       rank += 1
     }
 
@@ -350,6 +362,10 @@ onBeforeUnmount(() => {
   color: var(--contrast-foreground);
 }
 
+.summary-btn:hover .shimmer {
+  color: var(--contrast-foreground);
+}
+
 .aborted .summary-btn {
   color: var(--warning);
 }
@@ -359,20 +375,23 @@ onBeforeUnmount(() => {
   z-index: 0;
 }
 
-/* 箭头与折叠高度同钟 */
-.summary-btn .motion-turn {
-  transition-duration: var(--duration-tool-fold);
-  transition-timing-function: var(--ease-fold);
-}
-
-.tool-steps-icon {
+.tool-steps-fold {
   flex: none;
   transition: color var(--duration-fast) var(--ease-out);
 }
 
+.label-sep {
+  font-weight: var(--font-weight-normal);
+}
+
+/* 分隔点两侧用普通字重的空格，宽度与 data-text 里的空格一致 */
+.label-sep::before,
+.label-sep::after {
+  content: " ";
+}
+
 .label-dot {
   font-weight: var(--font-weight-bold);
-  margin-inline: 0.35em;
 }
 
 .fail-n {
@@ -426,7 +445,7 @@ onBeforeUnmount(() => {
 }
 
 .step.is-arriving {
-  animation: step-arrive var(--duration-settle) var(--ease-settle) both;
+  animation: step-arrive var(--duration-row-reveal) var(--ease-settle) both;
 }
 
 .tool-summary {

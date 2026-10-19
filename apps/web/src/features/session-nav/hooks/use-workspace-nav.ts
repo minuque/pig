@@ -13,13 +13,24 @@ import {
   draftSessionId,
   groupSessionsByCwd,
   listSessionsForSidebar,
-  sidebarRows,
+  sidebarSections,
 } from "@features/session-nav/lib/session-list.js"
-import type { SidebarRow } from "@features/session-nav/type.js"
+import type { SidebarGrouping, SidebarSection, SidebarSort } from "@features/session-nav/type.js"
+import { readPref, writePref } from "@utils/storage.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
 const DELETE_RETRY_MS = 400
+const GROUPING_KEY = "pig.sidebarGrouping"
+const SORT_KEY = "pig.sidebarSort"
+
+function loadGrouping(): SidebarGrouping {
+  return readPref(GROUPING_KEY) === "cwd" ? "cwd" : "date"
+}
+
+function loadSort(): SidebarSort {
+  return readPref(SORT_KEY) === "created" ? "created" : "updated"
+}
 
 function isBusy(error: unknown): boolean {
   return error instanceof PlatformRequestError && error.code === "BUSY"
@@ -110,18 +121,44 @@ export function useWorkspaceNav(
     }
   }
 
-  function rowsFor(
+  const grouping = shallowRef<SidebarGrouping>(loadGrouping())
+  const sort = shallowRef<SidebarSort>(loadSort())
+  const collapsedSections = shallowRef<ReadonlySet<string>>(new Set())
+
+  function setGrouping(next: SidebarGrouping): void {
+    grouping.value = next
+    writePref(GROUPING_KEY, next)
+  }
+
+  function setSort(next: SidebarSort): void {
+    sort.value = next
+    writePref(SORT_KEY, next)
+  }
+
+  function toggleSection(key: string): void {
+    const next = new Set(collapsedSections.value)
+
+    if (next.has(key)) next.delete(key)
+    else next.add(key)
+    collapsedSections.value = next
+  }
+
+  function sectionsFor(
     searching: MaybeRefOrGetter<boolean>,
-    pinnedIds?: MaybeRefOrGetter<ReadonlySet<string>>,
+    pinnedOrder: MaybeRefOrGetter<readonly string[]>,
+    include?: MaybeRefOrGetter<((session: SessionMetadata) => boolean) | undefined>,
   ) {
-    return computed((): SidebarRow[] => {
-      const searchingNow = toValue(searching)
-      const pinned = pinnedIds === undefined ? undefined : toValue(pinnedIds)
-      return sidebarRows({
-        sessions: listedSessions.value,
-        ...(pinned ? { pinnedIds: pinned } : {}),
+    return computed((): SidebarSection[] => {
+      const filter = include === undefined ? undefined : toValue(include)
+      const sessions = filter ? listedSessions.value.filter(filter) : listedSessions.value
+      return sidebarSections({
+        sessions,
+        pinnedOrder: toValue(pinnedOrder),
+        grouping: grouping.value,
+        sort: sort.value,
+        localWorkspaces: workspaces.value,
         expandedByGroup: expandedByGroup.value,
-        searching: searchingNow,
+        searching: toValue(searching),
       })
     })
   }
@@ -205,7 +242,13 @@ export function useWorkspaceNav(
     listedSessions,
     expandedByGroup,
     toggleGroupReveal,
-    rowsFor,
+    grouping,
+    sort,
+    setGrouping,
+    setSort,
+    collapsedSections,
+    toggleSection,
+    sectionsFor,
     addWorkspace,
     renameSession,
     deleteSession,

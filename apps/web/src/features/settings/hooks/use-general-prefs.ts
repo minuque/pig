@@ -4,7 +4,6 @@ import {
   readEnum,
   readFlag,
   readNumber,
-  readPref,
   writeFlag,
   writeNumber,
   writePref,
@@ -29,7 +28,7 @@ const CONTRAST_MAX = 100
 const locale = shallowRef<UiLocale>("zh-CN")
 const fontSize = shallowRef<FontSize>("m")
 const notifyOn = shallowRef(true)
-const glassOn = shallowRef(false)
+const glassOn = shallowRef(true)
 const glassOpacity = shallowRef(GLASS_OPACITY_DEFAULT)
 const contrastBoost = shallowRef(CONTRAST_DEFAULT)
 let loaded = false
@@ -56,7 +55,7 @@ function load(): void {
   locale.value = readEnum(LOCALE_KEY, ["en", "zh-CN"] as const, "zh-CN")
   fontSize.value = readEnum(FONT_SIZE_KEY, ["s", "m", "l", "xl"] as const, "m")
   notifyOn.value = readFlag(NOTIFY_KEY)
-  glassOn.value = readPref(GLASS_KEY) === "on"
+  glassOn.value = readFlag(GLASS_KEY)
   glassOpacity.value = readNumber(GLASS_OPACITY_KEY) ?? GLASS_OPACITY_DEFAULT
   contrastBoost.value = readNumber(CONTRAST_KEY) ?? CONTRAST_DEFAULT
   apply(locale.value, fontSize.value, glassOn.value, glassOpacity.value, contrastBoost.value)

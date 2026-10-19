@@ -4,6 +4,9 @@
     :session-id="sessionId"
     :transcript="transcript"
     :running="running"
+    :phase="phase"
+    :sending="sending"
+    :stopping="stopping"
     :timings="timings"
     :has-more="hasMore"
     :loading-older="loadingOlder"
@@ -14,7 +17,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, useTemplateRef } from "vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
-import type { TranscriptItem } from "@/types/common-type.js"
+import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 
 const TranscriptBody = defineAsyncComponent({
@@ -28,6 +31,9 @@ withDefaults(
     sessionId: string
     transcript: readonly TranscriptItem[]
     running: boolean
+    phase?: SessionPhase | undefined
+    sending?: boolean
+    stopping?: boolean
     timings?: readonly TurnTiming[] | undefined
     hasMore?: boolean
     loadingOlder?: boolean

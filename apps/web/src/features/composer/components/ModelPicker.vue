@@ -456,11 +456,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
   scrollbar-width: none;
 }
 
-.tabs::-webkit-scrollbar,
-.groups::-webkit-scrollbar {
-  display: none;
-}
-
 .tab-btn {
   position: relative;
   display: grid;

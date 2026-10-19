@@ -18,9 +18,22 @@ export interface SidebarSession {
 
 export type SidebarSessionState = "running" | "unread" | "error"
 
-export type SidebarRow =
-  | { kind: "session"; key: string; session: SidebarSession }
-  | { kind: "more"; key: string; groupKey: string; revealed: boolean }
+/** 侧栏视图选项：分组与排序，持久化在 localStorage。 */
+export type SidebarGrouping = "date" | "cwd"
+
+export type SidebarSort = "updated" | "created"
+
+/** 侧栏一个可折叠分区：Pinned、日期桶或工作目录。 */
+export interface SidebarSection {
+  key: string
+  label: string
+  /** cwd 分组的 canonical 路径，供组头图标与「在该项目新建」。 */
+  cwd?: string
+  sessions: SidebarSession[]
+  /** 还有未展开的行。 */
+  more: boolean
+  revealed: boolean
+}
 
 /** 协议列表不带的卡片脚注：消息数 + 当前模型。 */
 export interface SessionCardExtra {

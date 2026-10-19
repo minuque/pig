@@ -57,7 +57,7 @@ provide(leftPanelKey, { leftOpen, sbState, setSbState, toggle, resizing, isNarro
 useEventListener(window, "keydown", (event) => {
   if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "b") return
   event.preventDefault()
-  setSbState(sbState.value === "expanded" ? "icon" : "expanded")
+  setSbState(sbState.value === "expanded" ? "offcanvas" : "expanded")
 })
 
 function resetWidth() {
@@ -90,11 +90,6 @@ function resetWidth() {
 
 .sidebar.expanded {
   width: var(--left-width);
-}
-
-.sidebar.icon {
-  width: 52px;
-  border-inline-end-width: 0;
 }
 
 .resizer {
@@ -221,8 +216,7 @@ main {
     box-shadow: var(--shadow-drawer);
   }
 
-  .sidebar.expanded,
-  .sidebar.icon {
+  .sidebar.expanded {
     visibility: visible;
     transform: translateX(0);
     transition:

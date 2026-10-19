@@ -135,10 +135,6 @@ watch(
   scrollbar-width: none;
 }
 
-.command-menu::-webkit-scrollbar {
-  display: none;
-}
-
 .command-label {
   margin: 0;
   padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xxs);
@@ -170,7 +166,7 @@ watch(
   line-height: var(--text-button--line-height);
   cursor: pointer;
   user-select: none;
-  transition: background var(--duration-fast) var(--ease-smooth);
+  transition: background var(--duration-fast) var(--ease-hover);
 }
 
 .command-row:hover,

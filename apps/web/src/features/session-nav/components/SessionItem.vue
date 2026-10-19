@@ -1,100 +1,99 @@
 <template>
   <div
     class="session-item"
-    :class="{ 'is-menu-open': menuOpen, 'is-placeholder': placeholder, selected }"
+    :class="{ 'is-menu-open': menuOpen, 'is-placeholder': placeholder, 'is-dragging': dragging }"
   >
     <ContextMenu :modal="false" :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
           :is="placeholder ? 'div' : RouterLink"
           class="session-card"
-          :class="{ active, 'is-placeholder': placeholder }"
+          :class="{ active, 'is-placeholder': placeholder, renaming }"
           :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
+          draggable="false"
           @click="onCardClick"
-          @pointerdown="onCardPointerDown"
+          @dblclick="onCardDblclick"
+          @pointerdown.left="onCardPointerDown"
+          @dragstart.prevent
           @keydown="onCardKeydown"
-          @contextmenu="onCardContextMenu"
         >
-          <div class="meta-line">
-            <span class="grip" aria-hidden="true"></span>
-
-            <span class="proj-icon" aria-hidden="true">
-              <span v-if="monoValue" class="proj-mono" :style="monoStyle">{{ monoValue }}</span>
-              <span v-else-if="emojiValue" class="proj-emoji">{{ emojiValue }}</span>
-              <component v-else :is="projectIcon" :size="14" :style="iconStyle" />
-            </span>
-
-            <span class="proj-name">{{ projectName }}</span>
-
-            <span class="meta-slot" aria-hidden="true">
-              <PinBoldIcon v-if="pinned" :size="12" class="meta-pin" />
-            </span>
-
-            <span class="status-slot">
-              <span
-                v-if="stateIcon"
-                class="state-icon"
-                :class="state"
-                role="img"
-                :aria-label="stateLabel"
-              >
-                <component :is="stateIcon" :size="13" />
-                <span class="state-text">{{ stateLabel }}</span>
-              </span>
-
-              <span
-                v-else-if="session.draft"
-                class="state-icon draft"
-                role="img"
-                :aria-label="t('session.draft')"
-              >
-                <PenIcon :size="12" />
-              </span>
-
+          <span class="corner">
+            <span class="corner-rest">
               <time
-                v-else-if="session.updatedAt"
+                v-if="session.updatedAt"
                 class="session-time"
                 :datetime="new Date(session.updatedAt).toISOString()"
               >
                 {{ relativeTime }}
               </time>
             </span>
-          </div>
+          </span>
 
-          <div class="title-line">
-            <span class="title">{{ session.title }}</span>
+          <span class="title-line">
+            <span v-if="stateIcon || session.draft" class="state-slot" aria-hidden="true">
+              <component
+                :is="stateIcon"
+                v-if="stateIcon"
+                :size="12"
+                :class="['state-glyph', state, { 'motion-spin': state === 'running' }]"
+              />
 
-            <Tooltip v-if="!placeholder">
-              <TooltipTrigger as-child>
-                <button
-                  class="more-toggle press-scale"
-                  type="button"
-                  :aria-label="t('common.more')"
-                  aria-haspopup="menu"
-                  :aria-expanded="menuOpen"
-                  @click.prevent.stop="openSessionMenu"
-                  @contextmenu.prevent.stop="openSessionMenu"
-                >
-                  <MenuDotsIcon class="size-icon" />
-                </button>
-              </TooltipTrigger>
+              <span v-else class="state-dot draft"></span>
+            </span>
 
-              <TooltipContent>{{ t("common.more") }}</TooltipContent>
-            </Tooltip>
-          </div>
+            <span class="proj-icon" aria-hidden="true">
+              <span v-if="monoValue" class="proj-mono" :style="monoStyle">{{ monoValue }}</span>
+              <span v-else-if="emojiValue" class="proj-emoji">{{ emojiValue }}</span>
+              <component v-else :is="projectIcon" :size="13" :style="iconStyle" />
+            </span>
+
+            <input
+              v-if="renaming"
+              ref="renameInput"
+              v-model="renameDraft"
+              class="rename-input"
+              type="text"
+              :aria-label="t('session.rename')"
+              @click.stop
+              @keydown.enter.prevent="commitRename"
+              @keydown.escape.prevent="cancelRename"
+              @blur="commitRename"
+            />
+
+            <span v-else class="title">{{ session.title }}</span>
+          </span>
+
+          <Tooltip v-if="!placeholder">
+            <TooltipTrigger as-child>
+              <button
+                class="more-toggle press-scale"
+                type="button"
+                :aria-label="t('common.more')"
+                aria-haspopup="menu"
+                :aria-expanded="menuOpen"
+                @click.prevent.stop="openSessionMenu"
+                @contextmenu.prevent.stop="openSessionMenu"
+                @pointerdown.stop
+              >
+                <MenuDotsIcon class="size-icon" />
+              </button>
+            </TooltipTrigger>
+
+            <TooltipContent>{{ t("common.more") }}</TooltipContent>
+          </Tooltip>
         </component>
       </ContextMenuTrigger>
 
       <ContextMenuContent v-if="!placeholder" class="select-none">
+        <ContextMenuItem @select="startRename">
+          <PenIcon />
+          {{ t("session.rename") }}
+        </ContextMenuItem>
+
         <ContextMenuItem @select="emit('togglePinned', session.id)">
           <PinBoldIcon v-if="pinned" />
           <PinIcon v-else />
           {{ pinned ? t("session.unpin") : t("session.pin") }}
-        </ContextMenuItem>
-
-        <ContextMenuItem @select="startRename">
-          <PenIcon />
-          {{ t("session.rename") }}
         </ContextMenuItem>
 
         <ContextMenuItem @select="emit('projectSettings', projectName)">
@@ -117,18 +116,11 @@
       :title="session.title"
       @confirm="confirmDelete"
     />
-
-    <SessionItemRename
-      v-if="!placeholder"
-      v-model:open="renameOpen"
-      :title="session.title"
-      @confirm="confirmRename"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef } from "vue"
+import { computed, nextTick, ref, shallowRef, useTemplateRef } from "vue"
 import { RouterLink } from "vue-router"
 import { useI18n } from "@i18n/index.js"
 import {
@@ -139,16 +131,15 @@ import {
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
-import { formatDuration, formatRelativeTime } from "@features/session-nav/lib/format.js"
+import { formatRelativeTime } from "@features/session-nav/lib/format.js"
+import { loadProjIcons, projectIconComponent } from "@features/session-nav/lib/project-icon.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
-import SessionItemRename from "@features/session-nav/components/SessionItemRename.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
   CheckCircleIcon,
   CircleDashedIcon,
   DangerCircleIcon,
-  FolderIcon,
   MenuDotsIcon,
   PenIcon,
   PinIcon,
@@ -156,45 +147,21 @@ import {
   SettingsMinimalisticIcon,
   TrashBinMinimalisticIcon,
 } from "@components/icons/index.js"
-import { readJson } from "@utils/storage.js"
-import { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
-import { MonitorIcon } from "@solar-icons/vue/linear/monitor"
-import { StarsMinimalisticIcon } from "@solar-icons/vue/linear/stars-minimalistic"
-import { Book2Icon } from "@solar-icons/vue/linear/book-2"
-import { GlobeIcon } from "@solar-icons/vue/linear/globe"
-import { DatabaseIcon } from "@solar-icons/vue/linear/database"
-import { BotIcon } from "@solar-icons/vue/linear/bot"
-import { PhoneIcon } from "@solar-icons/vue/linear/phone"
-import { RocketIcon } from "@solar-icons/vue/linear/rocket"
-import { TestTubeIcon } from "@solar-icons/vue/linear/test-tube"
-import { ShieldIcon } from "@solar-icons/vue/linear/shield"
-import { GameboyIcon } from "@solar-icons/vue/linear/gameboy"
-import { MusicNoteIcon } from "@solar-icons/vue/linear/music-note"
-import { GalleryIcon } from "@solar-icons/vue/linear/gallery"
-import { GitBranchIcon } from "@solar-icons/vue/linear/git-branch"
-import { ToolboxIcon } from "@solar-icons/vue/linear/toolbox"
-import { BoxIcon } from "@solar-icons/vue/linear/box"
-import { StarIcon } from "@solar-icons/vue/linear/star"
-import { HeartIcon } from "@solar-icons/vue/linear/heart"
-import { LeafIcon } from "@solar-icons/vue/linear/leaf"
-import { BoltIcon } from "@solar-icons/vue/linear/bolt"
-import type { Component } from "vue"
 
 const props = withDefaults(
   defineProps<{
     session: SidebarSession
     active?: boolean
     pinned?: boolean
-    selected?: boolean
     state?: SidebarSessionState | undefined
-    runningSince?: number | undefined
     placeholder?: boolean
+    dragging?: boolean
     now: number
   }>(),
   {
     state: undefined,
-    runningSince: undefined,
     placeholder: false,
+    dragging: false,
   },
 )
 const emit = defineEmits<{
@@ -203,28 +170,21 @@ const emit = defineEmits<{
   rename: [id: string, name: string]
   delete: [id: string]
   projectSettings: [project: string]
-  toggleSelect: [id: string]
-  rangeSelect: [id: string]
+  dragStart: [event: PointerEvent]
 }>()
 const { t } = useI18n()
 const { openSession, primeSession } = useNav()
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
-const renameOpen = shallowRef(false)
 const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
 const projectName = computed(() =>
   props.session.cwd ? workspaceName(props.session.cwd) : t("session.noProject"),
 )
 const customIcon = computed(() => loadProjIcons()[projectName.value])
-const projectIcon = computed(() => {
-  const c = customIcon.value
-
-  if (c?.kind === "icon" && ICON_COMPONENTS[c.value]) return ICON_COMPONENTS[c.value]
-  return FolderIcon
-})
+const projectIcon = computed(() => projectIconComponent(customIcon.value))
 const iconStyle = computed(() => {
-  const c = customIcon.value
-  return c?.kind === "icon" ? { color: c.color } : undefined
+  const custom = customIcon.value
+  return custom?.kind === "icon" ? { color: custom.color } : undefined
 })
 const emojiValue = computed(() =>
   customIcon.value?.kind === "emoji" ? customIcon.value.value : undefined,
@@ -233,60 +193,39 @@ const monoValue = computed(() =>
   customIcon.value?.kind === "monogram" ? customIcon.value.value : undefined,
 )
 const monoStyle = computed(() => {
-  const c = customIcon.value
-  return c?.kind === "monogram" ? { background: c.color } : undefined
+  const custom = customIcon.value
+  return custom?.kind === "monogram" ? { background: custom.color } : undefined
 })
-const ICON_COMPONENTS: Record<string, Component> = {
-  code: CodeSquareIcon,
-  terminal: MonitorIcon,
-  globe: GlobeIcon,
-  database: DatabaseIcon,
-  robot: BotIcon,
-  stars: StarsMinimalisticIcon,
-  phone: PhoneIcon,
-  monitor: MonitorIcon,
-  rocket: RocketIcon,
-  book: Book2Icon,
-  flask: TestTubeIcon,
-  shield: ShieldIcon,
-  game: GameboyIcon,
-  music: MusicNoteIcon,
-  image: GalleryIcon,
-  git: GitBranchIcon,
-  wrench: ToolboxIcon,
-  box: BoxIcon,
-  star: StarIcon,
-  heart: HeartIcon,
-  leaf: LeafIcon,
-  bolt: BoltIcon,
-}
-
-type ProjIconKind = "icon" | "emoji" | "monogram"
-
-interface ProjIcon {
-  kind: ProjIconKind
-  value: string
-  color: string
-}
-
-function loadProjIcons(): Record<string, ProjIcon> {
-  return readJson<Record<string, ProjIcon>>("pig.projIcons") ?? {}
-}
-
 const STATE_ICONS = { running: CircleDashedIcon, unread: CheckCircleIcon, error: DangerCircleIcon }
-const STATE_LABELS = {
-  running: t("session.running"),
-  unread: t("session.done"),
-  error: t("session.failed"),
-}
 const stateIcon = computed(() => (props.state ? STATE_ICONS[props.state] : undefined))
-const stateLabel = computed(() => {
-  if (!props.state) return undefined
+const renaming = ref(false)
+const renameDraft = ref("")
+const renameInput = useTemplateRef<HTMLInputElement>("renameInput")
+const pointerDownPos = shallowRef<{ x: number; y: number } | undefined>(undefined)
+let dragPending = false
+let didDrag = false
 
-  if (props.state === "running" && props.runningSince != null)
-    return `${t("session.running")} ${formatDuration(props.runningSince, props.now)}`
-  return STATE_LABELS[props.state]
-})
+async function startRename() {
+  if (props.placeholder) return
+  renameDraft.value = props.session.title
+  renaming.value = true
+  await nextTick()
+  renameInput.value?.focus()
+  renameInput.value?.select()
+}
+
+function commitRename() {
+  if (!renaming.value) return
+  renaming.value = false
+  const trimmed = renameDraft.value.trim()
+
+  if (!trimmed || trimmed === props.session.title) return
+  emit("rename", props.session.id, trimmed)
+}
+
+function cancelRename() {
+  renaming.value = false
+}
 
 function onMenuOpenChange(open: boolean) {
   menuOpen.value = open
@@ -301,24 +240,42 @@ function onCardPointerDown(event: PointerEvent) {
 
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   primeSession(props.session.id)
+  pointerDownPos.value = { x: event.clientX, y: event.clientY }
+  dragPending = true
+  window.addEventListener("pointermove", onPointerMove)
+  window.addEventListener("pointerup", onPointerUp, { once: true })
+  window.addEventListener("pointercancel", onPointerUp, { once: true })
+}
+
+function onPointerMove(event: PointerEvent) {
+  if (!dragPending || !pointerDownPos.value) return
+  const dx = event.clientX - pointerDownPos.value.x
+  const dy = event.clientY - pointerDownPos.value.y
+
+  if (Math.hypot(dx, dy) < 5) return
+  dragPending = false
+  didDrag = true
+  emit("dragStart", event)
+  window.removeEventListener("pointermove", onPointerMove)
+}
+
+function onPointerUp() {
+  dragPending = false
+  pointerDownPos.value = undefined
+  window.removeEventListener("pointermove", onPointerMove)
 }
 
 function onCardClick(event: MouseEvent) {
-  if (props.placeholder || menuOpen.value) {
+  if (didDrag) {
+    didDrag = false
     event.preventDefault()
     event.stopPropagation()
     return
   }
 
-  if (event.ctrlKey || event.metaKey) {
+  if (props.placeholder || menuOpen.value || renaming.value) {
     event.preventDefault()
-    emit("toggleSelect", props.session.id)
-    return
-  }
-
-  if (event.shiftKey) {
-    event.preventDefault()
-    emit("rangeSelect", props.session.id)
+    event.stopPropagation()
     return
   }
 
@@ -327,6 +284,12 @@ function onCardClick(event: MouseEvent) {
   if (isModifiedSessionClick(event)) return
   event.preventDefault()
   openSession(props.session.id)
+}
+
+function onCardDblclick(event: MouseEvent) {
+  if (props.placeholder || isModifiedSessionClick(event)) return
+  event.preventDefault()
+  void startRename()
 }
 
 function openContextMenuAt(target: HTMLElement, clientX: number, clientY: number) {
@@ -350,17 +313,12 @@ function openSessionMenu(event: MouseEvent) {
   openContextMenuAt(card, rect.left, rect.bottom)
 }
 
-function onCardContextMenu(event: MouseEvent) {
-  event.preventDefault()
-  event.stopPropagation()
-}
-
 function onCardKeydown(event: KeyboardEvent) {
   if (props.placeholder) return
 
   if (event.key === "F2") {
     event.preventDefault()
-    startRename()
+    void startRename()
     return
   }
 
@@ -371,18 +329,6 @@ function onCardKeydown(event: KeyboardEvent) {
   if (!(el instanceof HTMLElement)) return
   const rect = el.getBoundingClientRect()
   openContextMenuAt(el, rect.left + 8, rect.top + 8)
-}
-
-function startRename() {
-  renameOpen.value = true
-}
-
-function confirmRename(name: string) {
-  renameOpen.value = false
-  const trimmed = name.trim()
-
-  if (!trimmed || trimmed === props.session.title) return
-  emit("rename", props.session.id, trimmed)
 }
 
 function confirmDelete() {
@@ -398,140 +344,118 @@ function confirmDelete() {
   min-width: 0;
 }
 
+.session-item.is-dragging .session-card {
+  opacity: 0.4;
+}
+
 .session-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
+  position: relative;
+  display: grid;
+  grid-template-areas: "title title";
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 17px;
+  gap: 2px var(--spacing-xs);
   width: 100%;
   min-width: 0;
-  padding: 7px var(--spacing-xs);
+  padding: 6px var(--spacing-xs);
+  padding-inline-end: calc(var(--spacing-xs) + 22px);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
   line-height: var(--text-caption--line-height);
   text-decoration: none;
   cursor: default;
+  transition: background-color var(--duration-fast) var(--ease-hover);
+}
+
+.session-card::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 2px;
+  top: 50%;
+  width: 2px;
+  height: 0;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  translate: 0 -50%;
+  transition: height var(--duration-fast) var(--ease-out);
+}
+
+.session-card.active::before {
+  height: 14px;
 }
 
 .session-item:hover .session-card,
 .session-card[data-state="open"] {
-  background: var(--sidebar-hover);
+  background: var(--glass-selected-bg);
 }
 
 .session-card.active,
 .session-item:hover .session-card.active,
 .session-card.active[data-state="open"] {
-  background: var(--sidebar-selected);
+  background: var(--glass-selected-bg);
 }
 
-.session-item.selected .session-card {
-  background: var(--sidebar-selected);
-  box-shadow: inset 0 0 0 1px var(--primary);
-}
-
-.meta-line {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  font-size: var(--text-eyebrow);
-  color: var(--contrast-foreground-faint);
-  line-height: var(--text-eyebrow--line-height);
-  position: relative;
-}
-
-.grip {
+.corner {
   position: absolute;
-  inset-inline-start: calc(-1 * var(--spacing-xs));
+  inset-inline-end: calc(var(--spacing-xs) + 22px);
   top: 0;
   bottom: 0;
-  width: var(--spacing-xs);
-  cursor: grab;
-}
-
-.proj-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  color: var(--contrast-foreground-faint);
-}
-
-.proj-mono {
-  display: grid;
-  place-items: center;
-  width: 14px;
-  height: 14px;
-  border-radius: var(--radius-xs);
-  color: var(--primary-foreground);
-  font: 700 8px/1 var(--font-mono);
-}
-
-.proj-emoji {
-  font-size: 12px;
-  line-height: 1;
-}
-
-.proj-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-}
-
-.meta-slot {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
-}
-
-.meta-pin {
-  color: var(--contrast-foreground-faint);
-}
-
-.status-slot {
-  display: grid;
-  flex: none;
+  display: flex;
   align-items: center;
-  justify-items: end;
+  justify-content: end;
   min-width: 20px;
-  max-width: 45%;
   min-height: 14px;
 }
 
-.state-icon,
-.session-time {
-  grid-area: 1 / 1;
-}
-
-.state-icon {
+.corner-rest {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.state-icon.running {
+.session-item:hover .corner-rest,
+.session-item:focus-within .corner-rest,
+.session-item.is-menu-open .corner-rest {
+  opacity: 0;
+}
+
+.state-slot {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+}
+
+.state-dot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--contrast-foreground-faint);
+  opacity: 0;
+}
+
+.state-dot.draft {
+  background: var(--warning);
+  opacity: 1;
+}
+
+.state-glyph {
+  display: block;
+}
+
+.state-glyph.running {
   color: var(--state-working);
 }
 
-.state-icon.unread {
+.state-glyph.unread {
   color: var(--success);
 }
 
-.state-icon.error {
+.state-glyph.error {
   color: var(--destructive);
-}
-
-.state-icon.draft {
-  color: var(--warning);
-}
-
-.state-text {
-  font-weight: var(--font-weight-medium);
 }
 
 .session-time {
@@ -544,34 +468,18 @@ function confirmDelete() {
   white-space: nowrap;
 }
 
-.title-line {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  min-width: 0;
-}
-
-.title {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  color: var(--contrast-foreground);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .more-toggle {
+  position: absolute;
+  inset-inline-end: var(--spacing-xxs);
+  top: 50%;
   display: grid;
   place-items: center;
-  flex: none;
-  margin-inline: calc(var(--icon-button-pad) * -1);
   padding: var(--icon-button-pad);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--contrast-foreground-muted);
+  translate: 0 -50%;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -591,10 +499,91 @@ function confirmDelete() {
   color: var(--contrast-foreground);
 }
 
+.title-line {
+  grid-area: title;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.proj-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--contrast-foreground-faint);
+}
+
+.proj-mono {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-xs);
+  color: var(--primary-foreground);
+  font: 700 8px/1 var(--font-mono);
+}
+
+.proj-emoji {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--contrast-foreground);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  opacity: 0.8;
+  white-space: nowrap;
+  transition: opacity var(--duration-fast) var(--ease-hover);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
+}
+
+.session-item:hover .title,
+.session-card.active .title {
+  opacity: 1;
+}
+
+.rename-input {
+  min-width: 0;
+  flex: 1;
+  height: 21px;
+  margin-block: -2px;
+  padding: 0 var(--spacing-xxs);
+  border: 0;
+  border-radius: var(--radius-xs);
+  outline: none;
+  background: var(--hover-quiet);
+  color: var(--contrast-foreground);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
 @media (hover: none) {
   .more-toggle {
     opacity: 1;
     pointer-events: auto;
+  }
+
+  .corner-rest {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-card,
+  .session-card::before,
+  .title,
+  .corner-rest,
+  .more-toggle {
+    transition: none;
   }
 }
 </style>

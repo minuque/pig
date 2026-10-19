@@ -8,11 +8,11 @@
   >
     <SliderTrack
       data-slot="slider-track"
-      class="relative grow overflow-hidden rounded-full bg-muted data-[orientation=horizontal]:h-1 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1"
+      class="slider-track-plate relative grow rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5"
     >
       <SliderRange
         data-slot="slider-range"
-        class="absolute bg-primary data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full"
+        class="slider-range-plate absolute rounded-full data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full"
       />
     </SliderTrack>
 
@@ -20,7 +20,7 @@
       v-for="(_, key) in modelValue"
       :key="key"
       data-slot="slider-thumb"
-      class="block size-(--size-icon) shrink-0 rounded-full border border-border bg-card shadow-soft outline-none transition-[scale] duration-(--duration-fast) ease-(--ease-out) active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:ring-1 focus-visible:ring-primary"
+      class="slider-thumb-plate block size-(--size-icon) shrink-0 rounded-full outline-none transition-[scale] duration-(--duration-fast) ease-(--ease-out) active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:ring-1 focus-visible:ring-primary"
     />
   </SliderRoot>
 </template>
@@ -38,3 +38,32 @@ const emits = defineEmits<SliderRootEmits>()
 const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<SliderRootProps>
 </script>
+
+<style scoped>
+.slider-track-plate {
+  border: var(--border-width) solid var(--slider-track-border);
+  background: var(--slider-track-bg);
+  box-shadow: var(--slider-track-shadow);
+}
+
+.slider-range-plate {
+  border: var(--border-width) solid var(--slider-fill-border);
+  background: var(--slider-fill-bg);
+  box-shadow: var(--slider-fill-shadow);
+}
+
+/* 最小值的 0 长度不会画出端头边框，避免轨道起点残留 2px 填充 */
+.slider-track-plate[data-orientation="horizontal"] .slider-range-plate {
+  border-inline-width: 0;
+}
+
+.slider-track-plate[data-orientation="vertical"] .slider-range-plate {
+  border-block-width: 0;
+}
+
+.slider-thumb-plate {
+  border: var(--border-width) solid var(--slider-thumb-border);
+  background: var(--slider-thumb-bg);
+  box-shadow: var(--slider-thumb-shadow);
+}
+</style>

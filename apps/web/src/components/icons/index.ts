@@ -2,6 +2,8 @@
 
 export { default as SidebarGlyph } from "@components/icons/SidebarGlyph.vue"
 
+export { default as RunningPigGlyph } from "@components/icons/RunningPigGlyph.vue"
+
 export { AddFolderIcon } from "@solar-icons/vue/linear/add-folder"
 
 export { AlignLeftIcon } from "@solar-icons/vue/linear/align-left"
@@ -35,6 +37,8 @@ export { ClockCircleIcon } from "@solar-icons/vue/linear/clock-circle"
 export { CloseIcon } from "@solar-icons/vue/linear/close"
 
 export { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
+
+export { CommandIcon } from "@solar-icons/vue/linear/command"
 
 export { CopyIcon } from "@solar-icons/vue/linear/copy"
 
@@ -70,7 +74,7 @@ export { MagnifierIcon } from "@solar-icons/vue/linear/magnifier"
 
 export { MaximizeSquareIcon } from "@solar-icons/vue/linear/maximize-square"
 
-export { MenuDotsIcon } from "@solar-icons/vue/linear/menu-dots"
+export { MenuDotsIcon } from "@solar-icons/vue/bold/menu-dots"
 
 export { MinimizeSquareIcon } from "@solar-icons/vue/linear/minimize-square"
 

@@ -10,7 +10,7 @@ import {
 } from "vue"
 import { readPref, writePref } from "@utils/storage.js"
 
-export type SidebarState = "expanded" | "icon" | "offcanvas"
+export type SidebarState = "expanded" | "offcanvas"
 
 export const leftPanelKey: InjectionKey<{
   leftOpen: Readonly<Ref<boolean>>
@@ -46,8 +46,7 @@ function loadStoredWidth(): number | undefined {
 }
 
 function loadStoredState(): SidebarState {
-  const raw = readPref(LEFT_PANEL_STATE_KEY)
-  return raw === "icon" || raw === "offcanvas" ? raw : "expanded"
+  return readPref(LEFT_PANEL_STATE_KEY) === "offcanvas" ? "offcanvas" : "expanded"
 }
 
 function persistState(state: SidebarState) {
@@ -141,10 +140,7 @@ export function useLeftPanel() {
   }
 
   function toggle() {
-    // 展开与图标轨互切；完全隐藏从图标轨再收一次
-    if (sbState.value === "expanded") setSbState("icon")
-    else if (sbState.value === "icon") setSbState("offcanvas")
-    else setSbState("expanded")
+    setSbState(sbState.value === "expanded" ? "offcanvas" : "expanded")
   }
 
   function setSbState(next: SidebarState) {

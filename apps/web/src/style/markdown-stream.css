@@ -158,11 +158,9 @@
     font-family: var(--font-mono);
   }
 
-  /* ------ mermaid：去外框落页面底，工具条悬浮显形 ------ */
+  /* ------ mermaid：保留卡片外壳，工具条常驻显示 ------ */
   .mermaid-block-container {
-    border: 0;
-    border-radius: 0;
-    background: transparent;
+    background: var(--code-background);
     color: var(--code-foreground);
   }
 
@@ -171,25 +169,49 @@
     background: transparent;
   }
 
-  /* 工具条只留内容，悬浮或键盘聚焦时显形 */
+  /* 预览/Source 只留一个图标钮，贴到右侧动作区首位（原折叠按钮处）。 */
   .mermaid-block-header {
     justify-content: flex-end;
-    background: transparent;
-    border-bottom: 0;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--duration-fast) var(--ease-smooth);
+    gap: var(--ms-gap-header);
   }
 
-  /* 语言标签只是库的招牌，这里不需要 */
-  .mermaid-block-container > .mermaid-block-header > :first-child {
+  .mermaid-block-header > :first-child {
+    margin-inline-end: auto;
+  }
+
+  .mermaid-mode-toggle-group {
+    gap: 0;
+  }
+
+  /* 藏起当前态那个钮，留下的是要切过去的目标态，点一下就换。 */
+  .mermaid-mode-toggle-group .mermaid-mode-btn.is-active {
     display: none;
   }
 
-  .mermaid-block-container:hover .mermaid-block-header,
-  .mermaid-block-container:focus-within .mermaid-block-header {
-    opacity: 1;
-    pointer-events: auto;
+  /* 外观对齐旁边复制/缩放钮，文字只留可访问名。 */
+  .mermaid-mode-btn {
+    position: relative;
+    padding: var(--ms-action-btn-padding);
+    border-radius: calc(var(--ms-radius) / 2);
+    color: var(--code-action-fg);
+  }
+
+  .mermaid-mode-btn span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .mermaid-mode-btn:hover {
+    background: var(--hover-quiet);
+    color: var(--contrast-foreground);
+  }
+
+  .mermaid-mode-btn:active {
+    transform: scale(0.98);
   }
 
   /* ------ 表格：collapse + 全边框，不要卡片底和斑马纹 ------ */

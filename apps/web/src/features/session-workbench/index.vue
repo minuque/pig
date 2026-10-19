@@ -45,6 +45,9 @@
             :session-id="sessionId ?? ''"
             :transcript="transcript"
             :running="turnPending"
+            :phase="phase"
+            :sending="submitting"
+            :stopping="aborting"
             :timings="turnTimings"
             :has-more="historyHasMore"
             :loading-older="loadingOlder"
@@ -180,6 +183,8 @@ const {
   loadOlderHistory,
   turnTimings,
   running,
+  phase,
+  submitting,
   turnPending,
   sessionPending,
   connectionError,
@@ -585,18 +590,6 @@ const contentHandleSides = ["left", "right"] as const
   flex: 1;
   display: flex;
   flex-direction: column;
-}
-
-.session-stage::before {
-  pointer-events: none;
-  position: absolute;
-  /* 让开滚动条列，否则渐隐会压住两端的三角按钮 */
-  inset-inline: 0 var(--size-scrollbar);
-  top: 0;
-  z-index: 1;
-  height: var(--spacing-sm);
-  background: linear-gradient(to bottom, var(--card), transparent);
-  content: "";
 }
 
 .session-stage :deep(.row-tools) {

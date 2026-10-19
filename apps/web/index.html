@@ -61,6 +61,15 @@
         } catch (e) {
           /* 缓存损坏时按默认主题 */
         }
+
+        /* 与 use-general-prefs 的 pig.glass 同键：默认开，只有显式 off 才关 */
+        var glassOn = true
+        try {
+          glassOn = localStorage.getItem("pig.glass") !== "off"
+        } catch (e) {
+          /* localStorage 不可用时按默认开启 */
+        }
+        if (glassOn) document.documentElement.dataset.glass = "on"
       })()
     </script>
     <link rel="stylesheet" href="/src/style/app.css" />

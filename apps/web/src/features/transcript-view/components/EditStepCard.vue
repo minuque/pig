@@ -159,11 +159,6 @@ const editDiffOptions = computed(() => ({
   overflow-wrap: anywhere;
 }
 
-.edit-diff::-webkit-scrollbar-track {
-  margin-inline: calc(var(--radius-code) - var(--border-width));
-  margin-block-end: calc(var(--radius-code) - var(--border-width));
-}
-
 .edit-diff :deep(.stream-diffs-vue-diff) {
   border: 0;
   border-radius: 0;
