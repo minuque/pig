@@ -494,12 +494,13 @@ function onCreateSession(cwd?: string): void {
   gap: var(--spacing-xxs);
 }
 
+/* 渐隐带要落在 nav-head 的分隔线之下：压在线上会把中间那段线盖掉。 */
 .search-head::after {
   content: "";
   position: absolute;
   z-index: 1;
   inset-inline: 0;
-  top: 100%;
+  top: calc(100% + var(--border-width));
   height: var(--edge-fade-band);
   background: linear-gradient(to bottom, var(--sidebar), transparent);
   pointer-events: none;
