@@ -214,28 +214,33 @@
     transform: scale(0.98);
   }
 
-  /* ------ 表格：collapse + 全边框，不要卡片底和斑马纹 ------ */
+  /* ------ 表格：单层圆角外框 + 横向分隔线，不要竖线和斑马纹 ------ */
   .table-node-wrapper .table-node {
     table-layout: auto;
-    border-collapse: collapse;
-    overflow: visible;
-    border: 0;
-    border-radius: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    border: var(--border-width) solid var(--table-border);
+    border-radius: var(--ms-radius);
     background: transparent;
     box-shadow: none;
   }
 
   .table-node-wrapper .table-node :is(th, td),
-  .table-node-wrapper .table-node :is(th, td):last-child,
-  .table-node-wrapper .table-node tbody tr:last-child td {
-    border: var(--border-width) solid var(--table-border);
+  .table-node-wrapper .table-node :is(th, td):last-child {
+    border: 0;
+    border-bottom: var(--border-width) solid var(--table-border);
+    padding: var(--spacing-xs) var(--spacing-sm);
     text-align: start;
   }
 
   .table-node-wrapper .table-node thead th {
-    font-weight: var(--font-weight-semibold);
-    background-color: transparent;
-    border-bottom-width: var(--border-width);
+    font-weight: var(--font-weight-normal);
+    background-color: var(--code-background);
+  }
+
+  .table-node-wrapper .table-node tbody tr:last-child td {
+    border-bottom: 0;
   }
 
   .table-node tbody tr:nth-child(2n),
