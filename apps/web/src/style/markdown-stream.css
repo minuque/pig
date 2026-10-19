@@ -2,16 +2,16 @@
 
 /* ------ 字体与排版 ------ */
 [data-custom-id="chat"] {
-  /* 字体 */
+  /* 字体。对齐 cc-wrapper：正文 14px/1.7，h1=h2=20、h3=17、h4-h6 回到 body */
   --ms-font-sans: var(--font-sans);
   --ms-font-mono: var(--font-mono);
   --ms-text-body: var(--text-body-md);
-  --ms-leading-body: 1.625;
-  --ms-text-h1: 1.75em;
-  --ms-text-h2: 1.55em;
-  --ms-text-h3: 1.35em;
-  --ms-text-h4: 1.2em;
-  --ms-text-h5: 1.1em;
+  --ms-leading-body: 1.7;
+  --ms-text-h1: 20px;
+  --ms-text-h2: 20px;
+  --ms-text-h3: 17px;
+  --ms-text-h4: 1em;
+  --ms-text-h5: 1em;
   --ms-text-h6: 1em;
   --ms-leading-h1: 1.25;
   --ms-leading-h2: 1.25;
@@ -21,29 +21,29 @@
   --ms-weight-h3: var(--font-weight-semibold);
   --ms-weight-h4: var(--font-weight-semibold);
 
-  /* 块间距 */
-  --ms-flow-heading-1-mt: 1.1em;
-  --ms-flow-heading-1-mb: 0.35em;
-  --ms-flow-heading-2-mt: 1.1em;
-  --ms-flow-heading-2-mb: 0.35em;
-  --ms-flow-heading-3-mt: 1.1em;
-  --ms-flow-heading-3-mb: 0.35em;
-  --ms-flow-heading-4-mt: 1.1em;
-  --ms-flow-heading-4-mb: 0.35em;
-  --ms-flow-heading-5-mt: 1.1em;
-  --ms-flow-heading-5-mb: 0.35em;
-  --ms-flow-heading-6-mt: 1.1em;
-  --ms-flow-heading-6-mb: 0.35em;
-  --ms-flow-paragraph-y: 0.65rem;
-  --ms-flow-list-y: 0.55em;
-  --ms-flow-list-item-y: 0.38em;
-  --ms-flow-list-indent: 1.65em;
-  --ms-flow-codeblock-y: 0.75em;
-  --ms-flow-table-y: 0.65rem;
-  --ms-flow-table-cell: var(--spacing-xxs) var(--spacing-xs);
-  --ms-flow-blockquote-y: 0.45em;
-  --ms-flow-blockquote-indent: 0.85em;
-  --ms-flow-hr-y: 0.7em;
+  /* 块间距。cc-wrapper 段距 8/16 不对称，库只支持对称 y；取 12px 居中视觉等价。 */
+  --ms-flow-heading-1-mt: 22px;
+  --ms-flow-heading-1-mb: 12px;
+  --ms-flow-heading-2-mt: 22px;
+  --ms-flow-heading-2-mb: 12px;
+  --ms-flow-heading-3-mt: 22px;
+  --ms-flow-heading-3-mb: 12px;
+  --ms-flow-heading-4-mt: 22px;
+  --ms-flow-heading-4-mb: 12px;
+  --ms-flow-heading-5-mt: 22px;
+  --ms-flow-heading-5-mb: 12px;
+  --ms-flow-heading-6-mt: 22px;
+  --ms-flow-heading-6-mb: 12px;
+  --ms-flow-paragraph-y: 12px;
+  --ms-flow-list-y: 12px;
+  --ms-flow-list-item-y: 5px;
+  --ms-flow-list-indent: 22px;
+  --ms-flow-codeblock-y: 10px;
+  --ms-flow-table-y: 10px;
+  --ms-flow-table-cell: 8px;
+  --ms-flow-blockquote-y: 10px;
+  --ms-flow-blockquote-indent: 16px;
+  --ms-flow-hr-y: 12px;
 
   /* 形状 */
   --ms-radius: var(--radius-code);
@@ -100,7 +100,6 @@
   --blockquote-border: var(--border);
   --blockquote-fg: var(--contrast-foreground-muted);
   --table-border: var(--border);
-  --table-header-bg: transparent;
   --focus-ring: transparent;
   --link-color: var(--link);
 
@@ -125,6 +124,11 @@
     font-weight: var(--font-weight-medium);
   }
 
+  /* cc-wrapper：引用左边线 2px，不是默认 3px */
+  .blockquote {
+    border-left-width: 2px;
+  }
+
   .heading-6 {
     color: var(--contrast-foreground-muted);
   }
@@ -137,10 +141,12 @@
     margin-top: 0.5em;
   }
 
+  /* 行内代码：13px（正文 -1px）、padding 2px 4px、淡淡的描边 */
   .inline-code {
-    font-size: var(--ms-text-body);
-    border-radius: var(--radius-sm);
-    padding: 0.1rem 0.35rem;
+    font-size: 13px;
+    border: var(--border-width) solid var(--border-subtle);
+    border-radius: 3px;
+    padding: 1px 3px;
   }
 
   /* ------ Synara 覆盖：代码块单层底，无边框阴影 ------ */
@@ -149,8 +155,17 @@
     --markstream-code-fallback-bg: var(--code-background) !important;
     --markstream-pre-resolved-theme-bg: var(--code-background) !important;
 
+    /* cc-wrapper：代码块 12px / 1.7，pre-wrap 不横向滚动 */
+    font-size: 12px;
+    line-height: 1.7;
+
     border: 0;
     box-shadow: none;
+  }
+
+  .code-block-container pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 
   /* Synara：语言标签与文件名同样走等宽 */
