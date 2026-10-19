@@ -1,8 +1,6 @@
 <template>
   <nav class="nav-body session-list">
     <div v-if="sections.length" class="session-window">
-      <div class="session-edge-top edge-veil-top" aria-hidden="true"></div>
-
       <section
         v-for="section in sections"
         :key="section.key"
@@ -89,7 +87,6 @@
                 <li class="session-row" :data-id="session.id">
                   <SessionItem
                     v-bind="itemBind(session)"
-                    :compact="section.key === 'pinned' || grouping === 'cwd'"
                     :dragging="dragId === session.id"
                     @navigate="emit('navigate', session.cwd)"
                     @toggle-pinned="togglePinned"
@@ -159,7 +156,6 @@ const {
   sectionsFor,
   collapsedSections,
   toggleSection,
-  grouping,
   pinnedIds,
   togglePinned,
   highlightedSessionId,
@@ -316,10 +312,6 @@ onBeforeUnmount(() => {
   padding-block-start: var(--spacing-xxs);
 }
 
-.session-edge-top {
-  background: linear-gradient(to bottom, var(--sidebar), transparent);
-}
-
 .session-edge-bottom {
   background: linear-gradient(to top, var(--sidebar), transparent);
   height: 32px;
@@ -330,6 +322,8 @@ onBeforeUnmount(() => {
 }
 
 .section-head {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   min-width: 0;

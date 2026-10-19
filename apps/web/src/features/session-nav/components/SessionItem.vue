@@ -8,7 +8,7 @@
         <component
           :is="placeholder ? 'div' : RouterLink"
           class="session-card"
-          :class="{ active, compact, 'is-placeholder': placeholder, renaming }"
+          :class="{ active, 'is-placeholder': placeholder, renaming }"
           :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
           draggable="false"
           @click="onCardClick"
@@ -17,9 +17,7 @@
           @dragstart.prevent
           @keydown="onCardKeydown"
         >
-          <span v-if="!compact" class="proj-name">{{ projectName }}</span>
-
-          <span class="corner" :class="{ 'compact-corner': compact }">
+          <span class="corner">
             <span class="corner-rest">
               <time
                 v-if="session.updatedAt"
@@ -157,14 +155,12 @@ const props = withDefaults(
     pinned?: boolean
     state?: SidebarSessionState | undefined
     placeholder?: boolean
-    compact?: boolean
     dragging?: boolean
     now: number
   }>(),
   {
     state: undefined,
     placeholder: false,
-    compact: false,
     dragging: false,
   },
 )
@@ -355,11 +351,9 @@ function confirmDelete() {
 .session-card {
   position: relative;
   display: grid;
-  grid-template-areas:
-    "meta corner"
-    "title title";
+  grid-template-areas: "title title";
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: 14px 17px;
+  grid-template-rows: 17px;
   gap: 2px var(--spacing-xs);
   width: 100%;
   min-width: 0;
@@ -372,12 +366,6 @@ function confirmDelete() {
   text-decoration: none;
   cursor: default;
   transition: background-color var(--duration-fast) var(--ease-hover);
-}
-
-.session-card.compact {
-  grid-template-areas: "title title";
-  grid-template-rows: 17px;
-  padding-block: 6px;
 }
 
 .session-card::before {
@@ -408,33 +396,16 @@ function confirmDelete() {
   background: var(--glass-selected-bg);
 }
 
-.proj-name {
-  grid-area: meta;
-  min-width: 0;
-  overflow: hidden;
-  color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
-  line-height: 14px;
-  white-space: nowrap;
-  -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
-  mask-image: linear-gradient(to right, black calc(100% - 20px), transparent);
-}
-
 .corner {
-  grid-area: corner;
+  position: absolute;
+  inset-inline-end: calc(var(--spacing-xs) + 22px);
+  top: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   justify-content: end;
   min-width: 20px;
   min-height: 14px;
-}
-
-.session-card.compact .corner {
-  position: absolute;
-  inset-inline-end: calc(var(--spacing-xs) + 22px);
-  top: 0;
-  bottom: 0;
-  transform: none;
 }
 
 .corner-rest {
