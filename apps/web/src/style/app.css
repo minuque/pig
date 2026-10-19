@@ -224,8 +224,13 @@
   --size-content: 45.75rem;
   --size-composer: 46.75rem;
   --size-modal: 32rem;
-  --size-settings: 56rem;
   --size-settings-nav: 15rem;
+  --size-settings-body: 64rem;
+  --size-settings-dialog-width: 80rem;
+  --size-settings-dialog-height: 52rem;
+  --size-settings-dialog-height-min: 34rem;
+  --size-settings-dialog-nav: 11rem;
+  --size-settings-dialog-nav-narrow: 2.75rem;
   /* 线性图标：14px 图标配 13px 正文 */
   --size-icon: 14px;
   --size-icon-2xs: 16px;

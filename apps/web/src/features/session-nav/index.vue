@@ -185,7 +185,7 @@
       />
     </div>
 
-    <NavFooter @settings="openSettings" />
+    <NavFooter @settings="emit('settings')" />
 
     <ProjectSettingsDialog
       v-if="projectSettingsOpen"
@@ -209,7 +209,6 @@ import { useNav, workspaceName } from "@features/session-nav/index.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
 import ProjectSettingsDialog from "@features/session-nav/components/ProjectSettingsDialog.vue"
-import { useSettings } from "@features/settings/index.js"
 import {
   AddFolderIcon,
   ArrowUpIcon,
@@ -225,6 +224,7 @@ import {
 
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
+  settings: []
 }>()
 const { t } = useI18n()
 const { sbState, setSbState } = useLeftPanelToggle()
@@ -261,7 +261,6 @@ function scopeIcon(project: string | undefined) {
   return FolderIcon
 }
 
-const { openSettings } = useSettings()
 const { play } = useSound()
 const router = useRouter()
 const query = shallowRef("")
