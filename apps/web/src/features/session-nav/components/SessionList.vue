@@ -1,6 +1,8 @@
 <template>
   <nav class="nav-body session-list">
     <div v-if="sections.length" class="session-window">
+      <div class="session-edge-top edge-veil-top" aria-hidden="true"></div>
+
       <section
         v-for="section in sections"
         :key="section.key"
@@ -310,6 +312,11 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   scrollbar-width: none;
   padding-block-start: var(--spacing-xxs);
+}
+
+.session-edge-top {
+  background: linear-gradient(to bottom, var(--sidebar) 70%, transparent);
+  border-bottom: 1px solid var(--border);
 }
 
 .session-edge-bottom {
