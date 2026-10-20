@@ -137,9 +137,9 @@ const shown = computed(() => label.value !== "" || finishedLinger.value)
 
 watch(
   busy,
-  (isBusy) => {
+  (isBusy, wasBusy) => {
     if (isBusy) finishedLinger.value = false
-    else if (label.value !== "") finishedLinger.value = true
+    else if (wasBusy) finishedLinger.value = true
   },
   { flush: "sync" },
 )
