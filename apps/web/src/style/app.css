@@ -181,6 +181,10 @@
   --mascot-body: #fde3b4;
   --mascot-snout: #fda88e;
   --mascot-eye: #012d47;
+  /* 汗滴与红温（run-long / run-xlong 状态色） */
+  --mascot-sweat: #6fb6ff;
+  --mascot-heat: #f5a896;
+  --mascot-heat-snout: #e0735e;
 
   /* 分类色，不作结构填充 */
   --accent-skill: #8160d8;

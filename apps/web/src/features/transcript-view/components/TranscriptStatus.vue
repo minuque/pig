@@ -7,7 +7,7 @@
     aria-live="polite"
     aria-atomic="true"
   >
-    <RunningPigGlyph class="turn-status-pig" :idle="!busy" />
+    <RunningPigGlyph class="turn-status-pig" :state="pigState" />
 
     <span class="turn-status-label" :class="{ shimmer: busy }" :data-text="label">
       {{ label }}
@@ -150,6 +150,19 @@ const elapsedLabel = computed(() => {
   if (!shown.value || start === undefined) return ""
   const seconds = Math.max(0, Math.floor((now.value - start) / 1000))
   return `${seconds}s`
+})
+/** 小猪状态：busy 5min → long，10min → xlong，否则 run；非 busy 看 shown 区分 idle/ready。 */
+const pigState = computed<"idle" | "run" | "long" | "xlong" | "ready">(() => {
+  if (busy.value) {
+    const s = elapsedSeconds.value
+
+    if (s >= 600) return "xlong"
+
+    if (s >= 300) return "long"
+    return "run"
+  }
+
+  return "idle"
 })
 const tokensLabel = computed(() => {
   const tokens = props.outputTokens
