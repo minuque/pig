@@ -353,9 +353,18 @@
   }
 }
 
+/* 对话框的进出靠 translate/opacity 独立属性，pop-reveal-out 只动 transform，
+   打在对话框上是空转。这里给关闭态单独一条关键帧。 */
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
   transition: none;
-  animation: pop-reveal-out var(--duration-normal) var(--ease-out) forwards;
+  animation: dialog-out var(--duration-normal) var(--ease-out) forwards;
+}
+
+@keyframes dialog-out {
+  to {
+    translate: 0 2px;
+    opacity: 0;
+  }
 }
 
 /* ------ 面板与列表过渡 ------ */

@@ -336,7 +336,7 @@ export const DEFAULT_THEME: ThemeDefinition = {
     hairline: "hsl(0 0% 100% / 0.16)",
     "card-border": "hsl(210 18% 78% / 0.09)",
     "media-outline": "rgba(255, 255, 255, 0.1)",
-    "scrollbar-color": "#1c1c21",
+    "scrollbar-color": "#3a3a40",
     scrim: "rgba(0, 0, 0, 0.55)",
     success: "#69c967",
     warning: "#f5b44a",

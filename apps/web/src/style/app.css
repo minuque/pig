@@ -374,7 +374,7 @@
   --link: #9aa3ea;
   --mermaid-accent: var(--link);
   --media-outline: rgba(255, 255, 255, 0.1);
-  --scrollbar-color: #1c1c21;
+  --scrollbar-color: #3a3a40;
   --button-press: color-mix(in srgb, var(--foreground) 30%, transparent);
 
   --glass-selected-bg: color-mix(in srgb, var(--foreground) 11%, transparent);
@@ -461,22 +461,6 @@
   font-style: italic;
   font-display: swap;
   font-feature-settings: "dlig" 0;
-}
-
-@font-face {
-  font-family: "anthropic-serif";
-  src: url("../assets/fonts/anthropic-serif.woff2") format("woff2");
-  font-weight: 300 800;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "anthropic-serif";
-  src: url("../assets/fonts/anthropic-serif-italic.woff2") format("woff2");
-  font-weight: 300 800;
-  font-style: italic;
-  font-display: swap;
 }
 
 @font-face {

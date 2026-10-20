@@ -21,30 +21,30 @@
   --ms-weight-h3: var(--font-weight-semibold);
   --ms-weight-h4: var(--font-weight-semibold);
 
-  /* 块间距。cc-wrapper 段距 8/16 不对称，库只支持对称 y；取 12px 居中视觉等价。 */
-  --ms-flow-heading-1-mt: 22px;
-  --ms-flow-heading-1-mb: 12px;
-  --ms-flow-heading-2-mt: 22px;
-  --ms-flow-heading-2-mb: 12px;
-  --ms-flow-heading-3-mt: 22px;
-  --ms-flow-heading-3-mb: 12px;
-  --ms-flow-heading-4-mt: 22px;
-  --ms-flow-heading-4-mb: 12px;
-  --ms-flow-heading-5-mt: 22px;
-  --ms-flow-heading-5-mb: 12px;
-  --ms-flow-heading-6-mt: 22px;
-  --ms-flow-heading-6-mb: 12px;
-  /* cc-wrapper 段距 8/16 不对称，这里先归 0 再走节点覆盖 */
+  /* 块间距。节点自身 margin 全归 0，块间距一律由 .node-slot 出。
+     否则流式态（slot 是普通块，margin 折叠）与非流式态（virtualScroll 给
+     slot 加 display:flow-root，不折叠）会得到两套间距。 */
+  --ms-flow-heading-1-mt: 0px;
+  --ms-flow-heading-1-mb: 0px;
+  --ms-flow-heading-2-mt: 0px;
+  --ms-flow-heading-2-mb: 0px;
+  --ms-flow-heading-3-mt: 0px;
+  --ms-flow-heading-3-mb: 0px;
+  --ms-flow-heading-4-mt: 0px;
+  --ms-flow-heading-4-mb: 0px;
+  --ms-flow-heading-5-mt: 0px;
+  --ms-flow-heading-5-mb: 0px;
+  --ms-flow-heading-6-mt: 0px;
+  --ms-flow-heading-6-mb: 0px;
   --ms-flow-paragraph-y: 0px;
-  --ms-flow-list-y: 12px;
+  --ms-flow-list-y: 0px;
   --ms-flow-list-item-y: 5px;
   --ms-flow-list-indent: 22px;
-  --ms-flow-codeblock-y: 10px;
-  --ms-flow-table-y: 10px;
-  --ms-flow-table-cell: 8px;
-  --ms-flow-blockquote-y: 10px;
+  --ms-flow-codeblock-y: 0px;
+  --ms-flow-table-y: 0px;
+  --ms-flow-blockquote-y: 0px;
   --ms-flow-blockquote-indent: 16px;
-  --ms-flow-hr-y: 12px;
+  --ms-flow-hr-y: 0px;
 
   /* 形状 */
   --ms-radius: var(--radius-code);
@@ -121,11 +121,20 @@
     margin-bottom: 0;
   }
 
-  /* cc-wrapper 段距：markstream 每个 AST 节点都包在 .node-slot 里，
-     段距只能靠 slot 之间的间距。p { margin:8px 0 16px } 两段之间
-     总间距 = 24px（margin-collapse 后），拆一半给 mt/mb = 12px。 */
+  /* 块间距的唯一来源：每个 AST 节点都包在 .node-slot 里。 */
   .node-slot + .node-slot {
     margin-top: 12px;
+  }
+
+  /* 标题前保留 cc-wrapper 的 22px。放在上一条之后，同特异性靠顺序取胜。 */
+  .node-slot[data-node-type="heading"] {
+    margin-top: 22px;
+  }
+
+  /* 首块不留上间距（首块是标题时同样适用），放在最后压过上面两条。 */
+  > .height-estimation-probes + .node-slot,
+  > .node-slot:first-child {
+    margin-top: 0;
   }
 
   .strong-node {
@@ -135,6 +144,11 @@
   /* cc-wrapper：引用左边线 2px，不是默认 3px */
   .blockquote {
     border-left-width: 2px;
+  }
+
+  /* 引用内段落是 .blockquote 的直接子节点，不经过 .node-slot，段距单独补回。 */
+  .blockquote > .paragraph-node + .paragraph-node {
+    margin-top: 12px;
   }
 
   /* cc-wrapper：hr 上边框 1px，上下间距 12px */
@@ -183,7 +197,8 @@
     box-shadow: none;
   }
 
-  .code-block-container pre {
+  /* 行号与 diff 双栏靠库的 white-space:pre 定位，不折行。 */
+  .code-block-container pre:not(.markstream-pre--line-numbers):not(.markstream-pre--diff-preview) {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
   }
