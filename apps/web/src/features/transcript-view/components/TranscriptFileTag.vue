@@ -43,8 +43,8 @@ const iconUrl = computed(() => {
   border-radius: var(--radius-sm);
   background: var(--hover-tint);
   font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 .file-tag-icon {

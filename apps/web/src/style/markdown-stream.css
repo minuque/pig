@@ -189,9 +189,9 @@
     --markstream-code-fallback-bg: var(--code-background) !important;
     --markstream-pre-resolved-theme-bg: var(--code-background) !important;
 
-    /* cc-wrapper：代码块 12px / 1.7，pre-wrap 不横向滚动 */
-    font-size: 12px;
-    line-height: 1.7;
+    /* 代码正文与自建步骤卡的代码区同档：--text-code / --text-code-line */
+    font-size: var(--text-code);
+    line-height: var(--text-code-line);
 
     border: 0;
     box-shadow: none;
@@ -203,9 +203,10 @@
     overflow-wrap: anywhere;
   }
 
-  /* Synara：语言标签与文件名同样走等宽 */
+  /* Synara：语言标签与文件名同样走等宽，字号对齐卡片头 */
   .code-block-header :is(.code-header-title, .code-header-caption) {
     font-family: var(--font-mono);
+    font-size: var(--text-meta);
   }
 
   /* ------ mermaid：保留卡片外壳，工具条常驻显示 ------ */

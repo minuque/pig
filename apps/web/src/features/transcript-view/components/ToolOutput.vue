@@ -200,7 +200,7 @@ code {
   background: transparent;
   color: var(--contrast-foreground-muted);
   font: inherit;
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   text-align: center;
   cursor: pointer;
 }
