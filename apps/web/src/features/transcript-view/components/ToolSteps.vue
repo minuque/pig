@@ -435,7 +435,7 @@ onBeforeUnmount(() => {
 .step-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-xxs);
   min-width: 0;
 }
 

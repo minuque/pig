@@ -1,5 +1,5 @@
 // 轨迹连线生长：干在 x=6.5，bend 半径 6px，枝到图标左沿 15.5px。
-export const RAIL_TRUNK_X = 6.5
+export const RAIL_TRUNK_X = 2
 export const RAIL_BRANCH_LEN = 15.5
 export const RAIL_BRANCH_R = 6
 export const RAIL_BRANCH_LENGTH = RAIL_BRANCH_R * (Math.PI / 2) + (RAIL_BRANCH_LEN - RAIL_BRANCH_R)
