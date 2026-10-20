@@ -13,12 +13,12 @@
       {{ label }}
       <template v-if="elapsedLabel">
         <span class="label-dot">·</span>
-        {{ elapsedLabel }}
+        <FlowNumber :text="elapsedLabel" />
       </template>
 
       <template v-if="tokensLabel">
         <span class="label-dot">·</span>
-        {{ tokensLabel }}
+        <FlowNumber :text="tokensLabel" />
       </template>
     </span>
   </div>
@@ -29,6 +29,7 @@ import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { RunningPigGlyph } from "@components/icons/index.js"
+import FlowNumber from "@features/transcript-view/components/FlowNumber.vue"
 import type { SessionPhase } from "@/types/common-type.js"
 import {
   createActivityLabelDisplay,

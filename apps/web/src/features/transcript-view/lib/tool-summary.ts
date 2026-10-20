@@ -253,6 +253,34 @@ export function writeDiffPreview(input: unknown): EditDiffPreview | null {
   }
 }
 
+/** 单个调用的行变更；非 write/edit 返回 0。 */
+export function itemLineChange(
+  toolName: string,
+  input: unknown,
+): { added: number; removed: number } {
+  const name = toolName.trim().toLowerCase()
+
+  if (name === "write") {
+    const content = isRecord(input) && typeof input.content === "string" ? input.content : ""
+    return { added: splitLines(content).length, removed: 0 }
+  }
+
+  if (name === "edit") {
+    let added = 0
+    let removed = 0
+
+    for (const pair of editReplacements(input)) {
+      const change = lineChange(pair.oldText, pair.newText)
+      added += change.added
+      removed += change.removed
+    }
+
+    return { added, removed }
+  }
+
+  return { added: 0, removed: 0 }
+}
+
 function withLineChange(
   detail: Extract<ToolSummaryDetail, { kind: "file" }>,
   added: number,

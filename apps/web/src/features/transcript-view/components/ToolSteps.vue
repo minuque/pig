@@ -33,6 +33,11 @@
         </template>
       </span>
 
+      <span v-if="lineChange.added || lineChange.removed" class="line-counts">
+        <span class="lc-add">+{{ lineChange.added }}</span>
+        <span class="lc-remove">-{{ lineChange.removed }}</span>
+      </span>
+
       <AltArrowRightIcon
         class="motion-turn"
         :class="{ 'is-on': revealed }"
@@ -96,6 +101,7 @@ import {
   toolRowDurationLabel,
   toolRowFailCount,
   toolRowLabelParts,
+  toolRowLineChange,
 } from "@features/transcript-view/lib/transcript-row-label.js"
 import { holdClickedOffset } from "@features/transcript-view/lib/transcript-scroll.js"
 import {
@@ -123,7 +129,8 @@ const emit = defineEmits<{
 }>()
 const running = computed(() => props.row.mode === "live")
 const statusColor = computed(() => (props.row.aborted ? { color: "var(--warning)" } : undefined))
-const revealed = computed(() => running.value || props.isExpand === true)
+// running 默认展开，用户显式折叠后尊重 isExpand=false；done 之后只看存储
+const revealed = computed(() => props.isExpand ?? running.value)
 
 function toggleSteps(event: MouseEvent) {
   const button = event.currentTarget
@@ -184,6 +191,7 @@ watch(
 const labelParts = computed(() => toolRowLabelParts(props.row))
 const failCount = computed(() => toolRowFailCount(props.row))
 const durationLabel = computed(() => toolRowDurationLabel(props.row, now.value))
+const lineChange = computed(() => toolRowLineChange(props.row))
 // shimmer 的 data-text 需要与可见标题一致的纯文本
 const labelText = computed(() => {
   const parts = labelParts.value.map((part) =>
@@ -349,8 +357,8 @@ onBeforeUnmount(() => {
   justify-content: flex-start;
   border-radius: 0;
   background: var(--card);
-  color: var(--contrast-foreground-faint);
-  font-size: var(--text-meta);
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-body-md);
   font-weight: var(--font-weight-normal);
   white-space: normal;
   text-align: start;
@@ -395,6 +403,21 @@ onBeforeUnmount(() => {
 }
 
 .fail-n {
+  color: var(--destructive);
+}
+
+.line-counts {
+  display: inline-flex;
+  flex: none;
+  gap: var(--spacing-xxs);
+  font-variant-numeric: tabular-nums;
+}
+
+.lc-add {
+  color: var(--success);
+}
+
+.lc-remove {
   color: var(--destructive);
 }
 
