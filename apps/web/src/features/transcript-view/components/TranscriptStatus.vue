@@ -131,7 +131,18 @@ onBeforeUnmount(() => {
 })
 
 const label = computed(() => displayedLabel.value)
-const shown = computed(() => label.value !== "")
+/** busy 结束后就绪猪常驻，直到新一轮 busy 顶替。 */
+const finishedLinger = shallowRef(false)
+const shown = computed(() => label.value !== "" || finishedLinger.value)
+
+watch(
+  busy,
+  (isBusy) => {
+    if (isBusy) finishedLinger.value = false
+    else if (label.value !== "") finishedLinger.value = true
+  },
+  { flush: "sync" },
+)
 
 watch(
   [shown, () => props.startedAt],
@@ -147,7 +158,7 @@ watch(
 const elapsedLabel = computed(() => {
   const start = elapsedStart.value
 
-  if (!shown.value || start === undefined) return ""
+  if (!busy.value || !shown.value || start === undefined) return ""
   const seconds = Math.max(0, Math.floor((now.value - start) / 1000))
   return `${seconds}s`
 })
@@ -162,7 +173,7 @@ const pigState = computed<"idle" | "run" | "long" | "xlong" | "ready">(() => {
     return "run"
   }
 
-  return "idle"
+  return finishedLinger.value ? "ready" : "idle"
 })
 const tokensLabel = computed(() => {
   const tokens = props.outputTokens
