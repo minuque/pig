@@ -54,7 +54,10 @@
                 :expanded-tools="expandedTools"
                 @toggle-expand="onToggleExpand"
                 @toggle-tool="onToggleTool"
-              />
+              >
+                <!-- 指示器挂在本轮里：跑道留白落在它之后，贴底时指示器跟着用户消息留在顶部 -->
+                <TranscriptStatus v-if="block.index === turns.length - 1" v-bind="statusProps" />
+              </TurnRow>
 
               <div
                 v-else
@@ -65,14 +68,8 @@
             </template>
           </div>
 
-          <TranscriptStatus
-            :phase="phase"
-            :sending="sending"
-            :stopping="stopping"
-            :started-at="activeStartedAt"
-            :rows="rows"
-            :output-tokens="activeOutputTokens"
-          />
+          <!-- 还没有轮时（发送中）指示器没有归属的轮，单独挂一份 -->
+          <TranscriptStatus v-if="turns.length === 0" v-bind="statusProps" />
         </div>
       </div>
     </div>
@@ -182,6 +179,15 @@ watch(
   { flush: "sync", immediate: true },
 )
 
+/** 指示器有两个挂载点（末轮内 / 无轮时独立），props 走一份。 */
+const statusProps = computed(() => ({
+  phase: props.phase,
+  sending: props.sending,
+  stopping: props.stopping,
+  startedAt: activeStartedAt.value,
+  rows: rows.value,
+  outputTokens: activeOutputTokens.value,
+}))
 const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
 )
@@ -462,7 +468,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   background: linear-gradient(to bottom, var(--card), transparent);
 }
 
-/* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在视口顶部 */
+/* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在顶部渐隐带下方，指示器跟在消息后 */
 .turn-runway {
   min-height: calc(100cqh - 2 * var(--spacing-lg) - var(--composer-reserve, 0px));
 }
