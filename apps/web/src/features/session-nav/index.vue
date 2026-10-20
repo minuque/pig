@@ -1,5 +1,5 @@
 <template>
-  <div class="session-nav">
+  <div class="session-nav" :class="{ 'is-scrolled': listScrolled }">
     <div class="titlebar-drag" aria-hidden="true"></div>
 
     <div class="nav-head">
@@ -133,7 +133,17 @@
             <span class="scope-cnt">{{ allSessionsCount }}</span>
 
             <span class="scope-ck">
-              <CheckIcon v-if="!scopeFilter" :size="10" />
+              <CheckIcon v-if="!scopeFilter" :size="12" />
+
+              <span
+                class="scope-edit"
+                role="button"
+                tabindex="-1"
+                :title="t('common.settings')"
+                @click.stop="closeGlobalSettings"
+              >
+                <SettingsIcon :size="12" />
+              </span>
             </span>
           </button>
 
@@ -198,7 +208,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, onMounted, shallowRef, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
@@ -274,6 +284,21 @@ const searchInput = useTemplateRef<HTMLInputElement>("searchInput")
 const scopeFilter = shallowRef<string | undefined>(undefined)
 const scopeMenuOpen = shallowRef(false)
 const projIcons = shallowRef<Record<string, ProjIcon>>(loadProjIcons())
+const listScrolled = shallowRef(false)
+
+function updateListScrolled() {
+  const el = document.querySelector<HTMLElement>(".session-window")
+
+  listScrolled.value = !!el && el.scrollTop > 0
+}
+
+onMounted(() => {
+  updateListScrolled()
+})
+
+// scroll 不冒泡，要走 window 的捕获阶段才能兜到 .session-window 自己的滚动。
+useEventListener(window, "scroll", updateListScrolled, { passive: true, capture: true })
+
 const allSessionsCount = computed(() =>
   groups.value.reduce((sum, group) => sum + group.sessions.length, 0),
 )
@@ -360,6 +385,11 @@ function closeProjectSettings(project: string): void {
   scopeMenuOpen.value = false
 }
 
+function closeGlobalSettings(): void {
+  emit("settings")
+  scopeMenuOpen.value = false
+}
+
 const projectSettingsOpen = shallowRef(false)
 const projectSettingsTarget = shallowRef("")
 
@@ -393,6 +423,7 @@ function onCreateSession(cwd?: string): void {
 }
 
 .nav-inset {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -404,15 +435,21 @@ function onCreateSession(cwd?: string): void {
   padding-inline-start: var(--nav-inline);
 }
 
+/* 横向内边距交给子元素：header 自己带就会把底边线切成中间一截。
+   这里也不能加 position：桌面壳的 .nav-titlebar 靠 .session-nav 定位贴顶。 */
 .nav-head {
   display: flex;
   flex: none;
   flex-direction: column;
   gap: var(--spacing-xs);
   min-width: 0;
-  margin-block-start: var(--spacing-xxs);
-  padding-inline: var(--nav-inline);
-  border-bottom: var(--border-width) solid var(--border-subtle);
+  padding-block: var(--spacing-xxs);
+  border-bottom: var(--border-width) solid transparent;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.session-nav.is-scrolled .nav-head {
+  border-bottom-color: var(--border-subtle);
 }
 
 .nav-titlebar {
@@ -420,6 +457,7 @@ function onCreateSession(cwd?: string): void {
   align-items: center;
   gap: var(--spacing-xs);
   min-width: 0;
+  padding-inline: var(--nav-inline);
 }
 
 .nav-brand {
@@ -494,18 +532,25 @@ function onCreateSession(cwd?: string): void {
   flex: none;
   align-items: center;
   gap: var(--spacing-xxs);
+  padding-inline: var(--nav-inline);
 }
 
-/* 渐隐带要落在 nav-head 的分隔线之下：压在线上会把中间那段线盖掉。 */
-.search-head::after {
+/* 渐隐带挂在滚动区顶上，和分隔线一起出现：内容滚出视口才显示。 */
+.nav-inset::before {
   content: "";
   position: absolute;
   z-index: 1;
-  inset-inline: 0;
-  top: calc(100% + var(--border-width));
+  inset-inline: var(--nav-inline);
+  top: 0;
   height: var(--edge-fade-band);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
   background: linear-gradient(to bottom, var(--sidebar), transparent);
   pointer-events: none;
+}
+
+.session-nav.is-scrolled .nav-inset::before {
+  opacity: 1;
 }
 
 .search-field {
@@ -672,7 +717,8 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
 .scope-menu {
   position: absolute;
   z-index: var(--z-menu);
-  inset-inline-start: 0;
+  /* 搜索行的横向内边距在 .search-head 上，定位基准跟着挪一档，保持左缘对齐。 */
+  inset-inline-start: var(--nav-inline);
   inset-inline-end: 10px;
   top: 100%;
   max-height: min(60vh, 480px);
@@ -749,9 +795,8 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
 .scope-ck > .scope-edit {
   display: grid;
   place-items: center;
-  width: 18px;
-  height: 18px;
-  margin: -2px;
+  width: 14px;
+  height: 14px;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;

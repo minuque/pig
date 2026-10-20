@@ -17,18 +17,6 @@
           @dragstart.prevent
           @keydown="onCardKeydown"
         >
-          <span class="corner">
-            <span class="corner-rest">
-              <time
-                v-if="session.updatedAt"
-                class="session-time"
-                :datetime="new Date(session.updatedAt).toISOString()"
-              >
-                {{ relativeTime }}
-              </time>
-            </span>
-          </span>
-
           <span class="title-line">
             <span class="state-slot" aria-hidden="true">
               <CircleDashedIcon
@@ -38,21 +26,8 @@
               />
 
               <CheckIcon v-else-if="state === 'unread'" :size="11" class="state-glyph unread" />
-
-              <PenIcon
-                v-else-if="session.draft"
-                :size="11"
-                class="state-glyph draft"
-                aria-hidden="true"
-              />
-
+              <PenIcon v-else-if="showDraftGlyph" :size="11" class="state-glyph draft" />
               <span v-else class="state-dot" :class="dotKind"></span>
-            </span>
-
-            <span v-if="showProject" class="proj-icon" aria-hidden="true">
-              <span v-if="monoValue" class="proj-mono" :style="monoStyle">{{ monoValue }}</span>
-              <span v-else-if="emojiValue" class="proj-emoji">{{ emojiValue }}</span>
-              <component v-else :is="projectIcon" :size="13" :style="iconStyle" />
             </span>
 
             <input
@@ -68,7 +43,17 @@
               @blur="commitRename"
             />
 
-            <span v-else class="title">{{ session.title }}</span>
+            <Tooltip v-else :disabled="!titleOverflow">
+              <TooltipTrigger as-child>
+                <span ref="titleEl" class="title" @pointerenter="measureTitle">
+                  {{ session.title }}
+                </span>
+              </TooltipTrigger>
+
+              <TooltipContent side="right" :side-offset="10" class="title-tooltip">
+                {{ session.title }}
+              </TooltipContent>
+            </Tooltip>
           </span>
 
           <Tooltip v-if="!placeholder">
@@ -139,8 +124,6 @@ import {
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
-import { formatRelativeTime } from "@features/session-nav/lib/format.js"
-import { loadProjIcons, projectIconComponent } from "@features/session-nav/lib/project-icon.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
@@ -164,15 +147,12 @@ const props = withDefaults(
     placeholder?: boolean
     dragging?: boolean
     draggable?: boolean
-    showProject?: boolean
-    now: number
   }>(),
   {
     state: undefined,
     placeholder: false,
     dragging: false,
     draggable: false,
-    showProject: true,
   },
 )
 const emit = defineEmits<{
@@ -187,27 +167,23 @@ const { t } = useI18n()
 const { openSession, primeSession } = useNav()
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
-const relativeTime = computed(() => formatRelativeTime(props.session.updatedAt, props.now))
 const projectName = computed(() =>
   props.session.cwd ? workspaceName(props.session.cwd) : t("session.noProject"),
 )
-const customIcon = computed(() => loadProjIcons()[projectName.value])
-const projectIcon = computed(() => projectIconComponent(customIcon.value))
-const iconStyle = computed(() => {
-  const custom = customIcon.value
-  return custom?.kind === "icon" ? { color: custom.color } : undefined
-})
-const emojiValue = computed(() =>
-  customIcon.value?.kind === "emoji" ? customIcon.value.value : undefined,
+const showDraftGlyph = computed(
+  () => props.session.draft && props.state !== "running" && props.state !== "unread",
 )
-const monoValue = computed(() =>
-  customIcon.value?.kind === "monogram" ? customIcon.value.value : undefined,
+const dotKind = computed(() =>
+  !showDraftGlyph.value && props.state === "error" ? "error" : undefined,
 )
-const monoStyle = computed(() => {
-  const custom = customIcon.value
-  return custom?.kind === "monogram" ? { background: custom.color } : undefined
-})
-const dotKind = computed(() => (props.state === "error" ? "error" : undefined))
+const titleEl = useTemplateRef<HTMLElement>("titleEl")
+const titleOverflow = shallowRef(false)
+
+function measureTitle() {
+  const el = titleEl.value
+  titleOverflow.value = el ? el.scrollWidth > el.clientWidth + 1 : false
+}
+
 const renaming = ref(false)
 const renameDraft = ref("")
 const renameInput = useTemplateRef<HTMLInputElement>("renameInput")
@@ -375,7 +351,6 @@ function confirmDelete() {
   width: 100%;
   min-width: 0;
   padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xxs) var(--spacing-xxs);
-  padding-inline-end: calc(var(--spacing-xs) + 20px);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
@@ -394,30 +369,6 @@ function confirmDelete() {
 .session-item:hover .session-card.active,
 .session-card.active[data-state="open"] {
   background: var(--glass-selected-bg);
-}
-
-.corner {
-  position: absolute;
-  inset-inline-end: calc(var(--spacing-xxs) + 4px);
-  top: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: end;
-  min-width: 20px;
-  min-height: 14px;
-}
-
-.corner-rest {
-  display: inline-flex;
-  align-items: center;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.session-item:hover .corner-rest,
-.session-item:focus-within .corner-rest,
-.session-item.is-menu-open .corner-rest {
-  opacity: 0;
 }
 
 .state-slot {
@@ -456,16 +407,6 @@ function confirmDelete() {
   color: var(--warning);
 }
 
-.session-time {
-  display: flex;
-  align-items: center;
-  color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
-  font-variant-numeric: tabular-nums;
-  line-height: var(--text-eyebrow--line-height);
-  white-space: nowrap;
-}
-
 .more-toggle {
   position: absolute;
   inset-inline-end: var(--spacing-xxs);
@@ -493,7 +434,7 @@ function confirmDelete() {
 
 .more-toggle:hover,
 .more-toggle:focus-visible {
-  background: var(--hover-quiet);
+  background: var(--hover-strong);
   color: var(--contrast-foreground);
 }
 
@@ -505,30 +446,6 @@ function confirmDelete() {
   min-width: 0;
 }
 
-.proj-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 14px;
-  height: 14px;
-  color: var(--contrast-foreground-faint);
-}
-
-.proj-mono {
-  display: grid;
-  place-items: center;
-  width: 14px;
-  height: 14px;
-  border-radius: var(--radius-xs);
-  color: var(--primary-foreground);
-  font: 700 8px/1 var(--font-mono);
-}
-
-.proj-emoji {
-  font-size: 12px;
-  line-height: 1;
-}
-
 .title {
   min-width: 0;
   flex: 1;
@@ -537,13 +454,14 @@ function confirmDelete() {
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   opacity: 0.8;
-  text-overflow: ellipsis;
+  mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
   white-space: nowrap;
   transition: opacity var(--duration-fast) var(--ease-hover);
 }
 
 .session-item:hover .title,
 .session-card.active .title {
+  mask-image: linear-gradient(to right, black calc(100% - 44px), transparent calc(100% - 20px));
   opacity: 1;
 }
 
@@ -563,21 +481,20 @@ function confirmDelete() {
   box-shadow: inset 0 0 0 1px var(--primary);
 }
 
+:global(.title-tooltip) {
+  max-width: 320px !important;
+}
+
 @media (hover: none) {
   .more-toggle {
     opacity: 1;
     pointer-events: auto;
-  }
-
-  .corner-rest {
-    opacity: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .session-card,
   .title,
-  .corner-rest,
   .more-toggle {
     transition: none;
   }
