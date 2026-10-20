@@ -175,9 +175,10 @@
     margin-top: 0.5em;
   }
 
-  /* 行内代码：字号比正文小 1px，外面留一圈淡淡描边 */
+  /* 行内代码：字号比正文小 1px，用次级文本色，外面留一圈淡淡描边 */
   .inline-code {
     font-size: var(--text-meta);
+    color: var(--contrast-foreground-secondary);
     border: var(--border-width) solid var(--border-subtle);
     border-radius: var(--radius-xs);
     padding: var(--border-width) calc(var(--spacing-xxs) - var(--border-width));
