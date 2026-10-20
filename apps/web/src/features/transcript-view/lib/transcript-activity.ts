@@ -23,11 +23,8 @@ function thinkingLabel(elapsedSeconds: number): string {
 }
 
 function lastTurnRows(rows: readonly TimelineRow[]): readonly TimelineRow[] {
-  for (let i = rows.length - 1; i >= 0; i -= 1) {
-    if (rows[i]?.role === "user") return rows.slice(i)
-  }
-
-  return rows
+  const lastUserIndex = rows.findLastIndex((row) => row.role === "user")
+  return lastUserIndex < 0 ? rows : rows.slice(lastUserIndex)
 }
 
 function lastLiveToolRow(rows: readonly TimelineRow[]): ToolRow | undefined {
@@ -126,12 +123,7 @@ export function turnOutputTokens(
   let fromIndex = turnStartId ? items.findIndex((item) => item.id === turnStartId) : -1
 
   if (fromIndex < 0) {
-    for (let i = items.length - 1; i >= 0; i -= 1) {
-      if (items[i]?.role === "user") {
-        fromIndex = i
-        break
-      }
-    }
+    fromIndex = items.findLastIndex((item) => item.role === "user")
   }
 
   let total: number | null = null
