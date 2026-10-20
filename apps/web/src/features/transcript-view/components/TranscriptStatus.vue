@@ -131,25 +131,26 @@ onBeforeUnmount(() => {
 })
 
 const label = computed(() => displayedLabel.value)
-/** busy 结束后就绪猪常驻，直到新一轮 busy 顶替。 */
-const finishedLinger = shallowRef(false)
-const shown = computed(() => label.value !== "" || finishedLinger.value)
+/** busy 结束后空闲猪常驻，直到下一轮 busy 顶替。 */
+const idleLinger = shallowRef(false)
+const shown = computed(() => label.value !== "" || idleLinger.value)
 
 watch(
   busy,
   (isBusy, wasBusy) => {
-    if (isBusy) finishedLinger.value = false
-    else if (wasBusy) finishedLinger.value = true
+    if (isBusy) idleLinger.value = false
+    else if (wasBusy) idleLinger.value = true
   },
   { flush: "sync" },
 )
 
 watch(
-  [shown, () => props.startedAt],
-  ([visible]) => {
+  [shown, busy, () => props.startedAt],
+  ([visible, isBusy]) => {
     now.value = Date.now()
 
-    if (visible) tick.resume()
+    // 空闲猪常驻时不计时，停掉秒表免得每秒空转
+    if (visible && isBusy) tick.resume()
     else tick.pause()
   },
   { flush: "sync", immediate: true },
@@ -162,8 +163,8 @@ const elapsedLabel = computed(() => {
   const seconds = Math.max(0, Math.floor((now.value - start) / 1000))
   return `${seconds}s`
 })
-/** 小猪状态：busy 5min → long，10min → xlong，否则 run；非 busy 看 shown 区分 idle/ready。 */
-const pigState = computed<"idle" | "run" | "long" | "xlong" | "ready">(() => {
+/** 小猪状态：busy 5min → long，10min → xlong，否则 run；非 busy 一律 idle（睡觉猪）。 */
+const pigState = computed<"idle" | "run" | "long" | "xlong">(() => {
   if (busy.value) {
     const s = elapsedSeconds.value
 
@@ -173,7 +174,7 @@ const pigState = computed<"idle" | "run" | "long" | "xlong" | "ready">(() => {
     return "run"
   }
 
-  return finishedLinger.value ? "ready" : "idle"
+  return "idle"
 })
 const tokensLabel = computed(() => {
   const tokens = props.outputTokens
