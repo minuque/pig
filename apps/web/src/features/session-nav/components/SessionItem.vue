@@ -450,19 +450,18 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--contrast-foreground);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
-  opacity: 0.8;
   mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
   white-space: nowrap;
-  transition: opacity var(--duration-fast) var(--ease-hover);
+  transition: color var(--duration-fast) var(--ease-hover);
 }
 
 .session-item:hover .title,
 .session-card.active .title {
+  color: var(--contrast-foreground);
   mask-image: linear-gradient(to right, black calc(100% - 44px), transparent calc(100% - 20px));
-  opacity: 1;
 }
 
 .rename-input {
