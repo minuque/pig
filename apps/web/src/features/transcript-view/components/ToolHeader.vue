@@ -161,7 +161,7 @@ async function copy() {
   border-start-start-radius: var(--radius-code);
   border-start-end-radius: var(--radius-code);
   background: var(--code-surface);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   transition:
     border-start-start-radius var(--duration-fast) var(--ease-out),
     border-start-end-radius var(--duration-fast) var(--ease-out);

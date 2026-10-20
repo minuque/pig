@@ -435,7 +435,7 @@ onBeforeUnmount(() => {
 .step-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-xxs);
   min-width: 0;
 }
 
@@ -463,7 +463,7 @@ onBeforeUnmount(() => {
   border-radius: 0;
   background: transparent;
   color: var(--contrast-foreground-muted);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
   text-align: start;
 }

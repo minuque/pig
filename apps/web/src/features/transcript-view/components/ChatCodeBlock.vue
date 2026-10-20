@@ -103,7 +103,7 @@ useMutationObserver(host, bindActions, { childList: true, subtree: true })
   min-width: 0;
   gap: 0.4em;
   font-family: var(--font-mono);
-  font-size: var(--text-caption-mono);
+  font-size: var(--text-meta);
   line-height: 1.4;
 }
 

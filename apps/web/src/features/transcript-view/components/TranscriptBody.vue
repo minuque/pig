@@ -509,7 +509,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   background: transparent;
   color: var(--contrast-foreground-muted);
   font: inherit;
-  font-size: var(--text-body-sm);
+  font-size: var(--text-meta);
   text-align: center;
   cursor: pointer;
 }
@@ -521,7 +521,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .older-busy.is-loading {
   display: grid;
   place-items: center;
-  min-height: calc(var(--text-body-sm--line-height) + 2 * var(--spacing-sm));
+  min-height: calc(var(--text-meta) * var(--text-meta--line-height) + 2 * var(--spacing-sm));
   cursor: default;
 }
 

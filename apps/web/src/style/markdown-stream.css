@@ -2,14 +2,14 @@
 
 /* ------ 字体与排版 ------ */
 [data-custom-id="chat"] {
-  /* 字体。对齐 cc-wrapper：正文 14px/1.7，h1=h2=20、h3=17、h4-h6 回到 body */
+  /* 字体。整体降一档：h1=h2=+4、h3=+2、h4-h6 回到 body；随字号档缩放 */
   --ms-font-sans: var(--font-sans);
   --ms-font-mono: var(--font-mono);
   --ms-text-body: var(--text-body-md);
-  --ms-leading-body: 1.7;
-  --ms-text-h1: 20px;
-  --ms-text-h2: 20px;
-  --ms-text-h3: 17px;
+  --ms-leading-body: 1.6;
+  --ms-text-h1: calc(var(--ms-text-body) + 4px);
+  --ms-text-h2: calc(var(--ms-text-body) + 4px);
+  --ms-text-h3: calc(var(--ms-text-body) + 2px);
   --ms-text-h4: 1em;
   --ms-text-h5: 1em;
   --ms-text-h6: 1em;
@@ -38,8 +38,9 @@
   --ms-flow-heading-6-mb: 0px;
   --ms-flow-paragraph-y: 0px;
   --ms-flow-list-y: 0px;
-  --ms-flow-list-item-y: 5px;
-  --ms-flow-list-indent: 22px;
+  --ms-flow-list-item-y: 0px;
+  --ms-flow-list-indent: 18px;
+  --ms-flow-list-indent-mobile: var(--ms-flow-list-indent);
   --ms-flow-codeblock-y: 0px;
   --ms-flow-table-y: 0px;
   --ms-flow-blockquote-y: 0px;
@@ -126,10 +127,13 @@
     margin-top: 12px;
   }
 
-  /* 标题前保留 cc-wrapper 的 22px。放在上一条之后，同特异性靠顺序取胜。 */
-  .node-slot[data-node-type="heading"] {
-    margin-top: 22px;
+  /* 库的窄屏规则（<1024px 时 .list-disc margin 4/3em）在桌面窄栏也生效，压回 node-slot 统一间距。 */
+  .list-node.list-disc,
+  .list-node.list-decimal {
+    margin: 0;
   }
+
+  /* 标题前间距与普通块一致（12px），由 .node-slot + .node-slot 统一给。 */
 
   /* 首块不留上间距（首块是标题时同样适用），放在最后压过上面两条。 */
   > .height-estimation-probes + .node-slot,
@@ -156,14 +160,14 @@
     border-top: var(--border-width) solid var(--border);
   }
 
-  /* cc-wrapper：h4-h6 无独立规则，回正文字号与间距；h5/h6 字重统一 500 */
+  /* h4/h5 与加粗同级，h6 弱化 */
   .heading-4,
-  .heading-5,
-  .heading-6 {
-    font-weight: var(--font-weight-medium);
+  .heading-5 {
+    font-weight: var(--font-weight-semibold);
   }
 
   .heading-6 {
+    font-weight: var(--font-weight-medium);
     color: var(--contrast-foreground-muted);
   }
 
@@ -175,9 +179,10 @@
     margin-top: 0.5em;
   }
 
-  /* 行内代码：字号比正文小 1px，外面留一圈淡淡描边 */
+  /* 行内代码：字号比正文小 1px，用次级文本色，外面留一圈淡淡描边 */
   .inline-code {
     font-size: var(--text-meta);
+    color: var(--contrast-foreground-secondary);
     border: var(--border-width) solid var(--border-subtle);
     border-radius: var(--radius-xs);
     padding: var(--border-width) calc(var(--spacing-xxs) - var(--border-width));
@@ -189,9 +194,9 @@
     --markstream-code-fallback-bg: var(--code-background) !important;
     --markstream-pre-resolved-theme-bg: var(--code-background) !important;
 
-    /* cc-wrapper：代码块 12px / 1.7，pre-wrap 不横向滚动 */
-    font-size: 12px;
-    line-height: 1.7;
+    /* 代码正文与自建步骤卡的代码区同档：--text-code / --text-code-line */
+    font-size: var(--text-code);
+    line-height: var(--text-code-line);
 
     border: 0;
     box-shadow: none;
@@ -203,9 +208,10 @@
     overflow-wrap: anywhere;
   }
 
-  /* Synara：语言标签与文件名同样走等宽 */
+  /* Synara：语言标签与文件名同样走等宽，字号对齐卡片头 */
   .code-block-header :is(.code-header-title, .code-header-caption) {
     font-family: var(--font-mono);
+    font-size: var(--text-meta);
   }
 
   /* ------ mermaid：保留卡片外壳，工具条常驻显示 ------ */

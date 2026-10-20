@@ -14,10 +14,25 @@
             :aria-expanded="!collapsedSections.has(section.key)"
             @click="toggleSection(section.key)"
           >
-            <span class="section-hover-icon" aria-hidden="true">
+            <span v-if="section.key === 'pinned'" class="section-hover-icon" aria-hidden="true">
               <component
-                :is="collapsedSections.has(section.key) ? AltArrowDownIcon : AltArrowRightIcon"
-                :size="12"
+                :is="collapsedSections.has(section.key) ? PinIcon : PinBoldIcon"
+                :size="13"
+              />
+            </span>
+
+            <span
+              v-else-if="section.key.startsWith('date:')"
+              class="section-hover-icon"
+              aria-hidden="true"
+            >
+              <ClockCircleIcon :size="13" />
+            </span>
+
+            <span v-else-if="section.cwd" class="section-hover-icon" aria-hidden="true">
+              <component
+                :is="collapsedSections.has(section.key) ? FolderOpenIcon : FolderIcon"
+                :size="13"
               />
             </span>
 
@@ -135,7 +150,6 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from "vue"
-import { useTimestamp } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import { filterSessionsForSearch } from "@features/session-nav/lib/session-list.js"
@@ -147,10 +161,9 @@ import {
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
-  AltArrowDownIcon,
-  AltArrowRightIcon,
   ChatRoundAddIcon,
   ClockCircleIcon,
+  FolderIcon,
   FolderOpenIcon,
   PinIcon,
   PinBoldIcon,
@@ -181,7 +194,6 @@ const {
   deleteSession,
   reorderPinned,
 } = useNav()
-const now = useTimestamp({ interval: 60_000 })
 const searching = computed(() => Boolean(props.query?.trim()))
 const include = computed(() => {
   const needle = props.query?.trim()
@@ -233,14 +245,11 @@ function itemBind(session: SidebarSession, section: SidebarSection) {
   const foot = cardFootById.value.get(session.id)
   return {
     session,
-    // 只有置顶组保留项目图标；日期/cwd 分组的行不重复画。
-    showProject: section.key === "pinned",
     active: session.id === highlightedSessionId.value,
     pinned: pinnedIds.value.has(session.id),
     draggable: dragEnabled.value && pinnedIds.value.has(session.id),
     state: foot?.state,
     placeholder: session.draft ?? false,
-    now: now.value,
   }
 }
 
@@ -254,13 +263,13 @@ function onDragStart(sectionKey: string, id: string, event: PointerEvent) {
   if (startIndex === undefined || startIndex < 0) return
   dragId.value = id
 
-  const pinnedCount = sections.value.find((s) => s.key === "pinned")!.sessions.length
-
   /** 用每行自己的矩形算落点：section 含组头，按 section 顶算会整体偏下。 */
   function onMove(e: PointerEvent) {
     const list = document.querySelector<HTMLElement>(`.session-list [data-key="pinned"]`)
 
     if (!list) return
+    // 拖拽期间 sections 可能重算（别处 unpin 等），每次 move 即时取行数。
+    const pinnedCount = sections.value.find((s) => s.key === "pinned")?.sessions.length ?? 0
     const rows = [...list.querySelectorAll<HTMLElement>(".session-row")].slice(0, pinnedCount)
     const y = e.clientY
     let index = rows.length

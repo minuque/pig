@@ -145,7 +145,7 @@ const softWrap = ref(false)
 .tool-name {
   color: var(--contrast-foreground-secondary);
   font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .tool-input-zone {
