@@ -7,7 +7,7 @@
     aria-live="polite"
     aria-atomic="true"
   >
-    <RunningPigGlyph class="turn-status-pig" :idle="!busy" />
+    <RunningPigGlyph class="turn-status-pig" :state="pigState" />
 
     <span class="turn-status-label" :class="{ shimmer: busy }" :data-text="label">
       {{ label }}
@@ -131,7 +131,18 @@ onBeforeUnmount(() => {
 })
 
 const label = computed(() => displayedLabel.value)
-const shown = computed(() => label.value !== "")
+/** busy 结束后就绪猪常驻，直到新一轮 busy 顶替。 */
+const finishedLinger = shallowRef(false)
+const shown = computed(() => label.value !== "" || finishedLinger.value)
+
+watch(
+  busy,
+  (isBusy, wasBusy) => {
+    if (isBusy) finishedLinger.value = false
+    else if (wasBusy) finishedLinger.value = true
+  },
+  { flush: "sync" },
+)
 
 watch(
   [shown, () => props.startedAt],
@@ -147,9 +158,22 @@ watch(
 const elapsedLabel = computed(() => {
   const start = elapsedStart.value
 
-  if (!shown.value || start === undefined) return ""
+  if (!busy.value || !shown.value || start === undefined) return ""
   const seconds = Math.max(0, Math.floor((now.value - start) / 1000))
   return `${seconds}s`
+})
+/** 小猪状态：busy 5min → long，10min → xlong，否则 run；非 busy 看 shown 区分 idle/ready。 */
+const pigState = computed<"idle" | "run" | "long" | "xlong" | "ready">(() => {
+  if (busy.value) {
+    const s = elapsedSeconds.value
+
+    if (s >= 600) return "xlong"
+
+    if (s >= 300) return "long"
+    return "run"
+  }
+
+  return finishedLinger.value ? "ready" : "idle"
 })
 const tokensLabel = computed(() => {
   const tokens = props.outputTokens
