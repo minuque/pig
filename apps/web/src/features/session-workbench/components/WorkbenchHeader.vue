@@ -17,6 +17,14 @@
       <TooltipContent>{{ t("nav.openSidebar") }}</TooltipContent>
     </Tooltip>
 
+    <Tooltip v-if="cwdLabel">
+      <TooltipTrigger as-child>
+        <span class="header-cwd">{{ cwdLabel }}</span>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ sessionCwd }}</TooltipContent>
+    </Tooltip>
+
     <template v-if="title">
       <span ref="sizer" class="header-title header-sizer" aria-hidden="true">{{ sizerText }}</span>
 
@@ -88,6 +96,7 @@ import {
 } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useNav } from "@features/session-nav/index.js"
+import { workspaceName } from "@features/session-nav/lib/format.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
@@ -102,7 +111,7 @@ import {
 
 const { t } = useI18n()
 const { leftOpen, sbState, setSbState } = useLeftPanelToggle()
-const { sessionId, projection } = useSession()
+const { sessionId, projection, sessionCwd } = useSession()
 const {
   listedSessions,
   pinnedIds,
@@ -121,6 +130,7 @@ const title = computed(() =>
     projectionName: projection.value?.name,
   }),
 )
+const cwdLabel = computed(() => (sessionCwd.value ? workspaceName(sessionCwd.value) : ""))
 const draft = ref("")
 const dirty = shallowRef(false)
 const deleteOpen = shallowRef(false)
@@ -212,9 +222,10 @@ function confirmDelete(): void {
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--contrast-foreground-muted);
+  /* 与侧栏同档 200ms；opacity 稍快进出，让形状先到位 */
   transition:
-    width var(--duration-slow) var(--ease-smooth),
-    margin var(--duration-slow) var(--ease-smooth),
+    width var(--duration-normal) var(--ease-smooth),
+    margin var(--duration-normal) var(--ease-smooth),
     opacity var(--duration-fast) var(--ease-out);
 }
 
@@ -232,6 +243,23 @@ function confirmDelete(): void {
   color: var(--contrast-foreground);
 }
 
+.header-cwd {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  max-width: 12em;
+  padding: 2px var(--spacing-xs);
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--hover-tint);
+  color: var(--contrast-foreground);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+}
+
 .header-title {
   flex: none;
   min-width: 4em;
@@ -243,7 +271,7 @@ function confirmDelete(): void {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-normal);
   line-height: var(--text-caption--line-height);

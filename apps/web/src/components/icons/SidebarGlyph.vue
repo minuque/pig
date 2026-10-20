@@ -24,8 +24,8 @@ defineProps<{
 .sidebar-glyph {
   display: block;
   flex: none;
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
   /* 收起态宽度 1.75 / 展开态 5.5 */
   --glyph-panel-closed: 0.31818;
 }

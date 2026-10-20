@@ -510,8 +510,10 @@ function onCreateSession(cwd?: string): void {
   flex: none;
   align-items: center;
   justify-content: center;
+  width: var(--size-nav-rail);
+  height: var(--size-nav-rail);
   margin-inline-start: auto;
-  padding: var(--icon-button-pad);
+  padding: 0;
   -webkit-app-region: no-drag;
   app-region: no-drag;
   border: 0;

@@ -1,10 +1,11 @@
 <template>
   <div class="shell" :class="[sbClass, { 'is-resizing': resizing }]">
     <aside
-      v-if="!isOffcanvas"
       class="sidebar"
       :class="[sbState]"
       :style="sbState === 'expanded' ? leftWidthStyle : undefined"
+      :inert="isOffcanvas"
+      :aria-hidden="isOffcanvas"
     >
       <slot name="sidebar" :on-navigate="closeMobilePanels" />
     </aside>
@@ -85,11 +86,23 @@ function resetWidth() {
   background: var(--sidebar);
   border-inline-end: var(--border-width) solid var(--border);
   contain: layout style;
-  transition: width var(--duration-normal) var(--ease-smooth);
+  visibility: hidden;
+  width: 0;
+  border-inline-end-width: 0;
+  transition:
+    width var(--duration-normal) var(--ease-smooth),
+    border-inline-end-width 0s var(--duration-normal),
+    visibility 0s var(--duration-normal);
 }
 
 .sidebar.expanded {
+  visibility: visible;
   width: var(--left-width);
+  border-inline-end-width: var(--border-width);
+  transition:
+    width var(--duration-normal) var(--ease-smooth),
+    border-inline-end-width 0s,
+    visibility 0s;
 }
 
 .resizer {
@@ -179,7 +192,8 @@ main {
 
 @media (min-width: 901px) {
   .shell.sb-offcanvas .sidebar {
-    display: none;
+    /* 折叠态靠 width:0 + visibility:hidden 留过渡空间，不能 display:none */
+    pointer-events: none;
   }
 }
 
