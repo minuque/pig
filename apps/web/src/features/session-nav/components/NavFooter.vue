@@ -154,7 +154,7 @@ const { isDark, toggle: toggleTheme } = useColorScheme()
   place-items: center;
   padding: var(--icon-button-pad);
   border-radius: var(--radius-sm);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -167,7 +167,7 @@ function reset() {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   cursor: pointer;
 }
 

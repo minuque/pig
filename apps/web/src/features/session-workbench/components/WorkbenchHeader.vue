@@ -221,7 +221,7 @@ function confirmDelete(): void {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   /* 与侧栏同档 200ms；opacity 稍快进出，让形状先到位 */
   transition:
     width var(--duration-normal) var(--ease-smooth),
@@ -312,7 +312,7 @@ function confirmDelete(): void {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
 }
 
 .header-more:hover,
