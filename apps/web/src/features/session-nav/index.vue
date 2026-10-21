@@ -139,7 +139,7 @@
                 class="scope-edit"
                 role="button"
                 tabindex="-1"
-                :title="t('common.settings')"
+                :title="t('nav.settings')"
                 @click.stop="closeGlobalSettings"
               >
                 <SettingsIcon :size="12" />

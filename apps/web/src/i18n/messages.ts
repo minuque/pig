@@ -2,6 +2,7 @@ export const zh = {
   common: {
     back: "返回",
     cancel: "取消",
+    save: "保存",
     close: "关闭",
     copied: "已复制",
     copyFailed: "复制失败，点击重试",
@@ -39,6 +40,8 @@ export const zh = {
     draft: "草稿",
     projectSettings: "项目设置",
     customIcon: "自定义图标",
+    icon: "图标",
+    color: "颜色",
     tabIcon: "图标",
     tabMono: "字母缩写",
     searchIcon: "搜索图标名",
@@ -249,6 +252,7 @@ export const en: Messages = {
   common: {
     back: "Back",
     cancel: "Cancel",
+    save: "Save",
     close: "Close",
     copied: "Copied",
     copyFailed: "Copy failed, click to retry",
@@ -286,6 +290,8 @@ export const en: Messages = {
     draft: "Draft",
     projectSettings: "Project settings",
     customIcon: "Custom icon",
+    icon: "Icon",
+    color: "Color",
     tabIcon: "Icons",
     tabMono: "Monogram",
     searchIcon: "Search icons",
