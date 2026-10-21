@@ -13,7 +13,7 @@ import type {
 } from "@features/session-nav/type.js"
 import { sessionRecency, sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
 
-export const SECTION_PAGE = 10
+export const SECTION_PAGE = 5
 /** 临时新会话占位行的 id 前缀。 */
 export const DRAFT_SESSION_PREFIX = "draft:"
 
@@ -150,19 +150,20 @@ function toSection(
   key: string,
   label: string,
   sessions: readonly SessionMetadata[],
-  expandedByGroup: Readonly<Record<string, boolean>>,
+  expandedByGroup: Readonly<Record<string, number>>,
   searching: boolean,
   cwd?: string,
 ): SidebarSection {
-  const revealed = !searching && expandedByGroup[key] === true
-  const limit = searching || revealed ? sessions.length : SECTION_PAGE
+  const extra = expandedByGroup[key] ?? 0
+  const limit = searching ? sessions.length : SECTION_PAGE + extra * SECTION_PAGE
+  const shown = Math.min(sessions.length, limit)
   return {
     key,
     label,
     ...(cwd !== undefined ? { cwd } : {}),
-    sessions: sessions.slice(0, limit).map(toSidebarSession),
-    more: !searching && sessions.length > SECTION_PAGE,
-    revealed,
+    sessions: sessions.slice(0, shown).map(toSidebarSession),
+    total: sessions.length,
+    shown,
   }
 }
 
@@ -173,7 +174,7 @@ export function sidebarSections(input: {
   grouping: SidebarGrouping
   sort: SidebarSort
   localWorkspaces: readonly string[]
-  expandedByGroup: Readonly<Record<string, boolean>>
+  expandedByGroup: Readonly<Record<string, number>>
   searching: boolean
   now?: number
 }): SidebarSection[] {
@@ -193,8 +194,8 @@ export function sidebarSections(input: {
         key: "pinned",
         label: t("session.pinned"),
         sessions: pinned.map(toSidebarSession),
-        more: false,
-        revealed: false,
+        total: pinned.length,
+        shown: pinned.length,
       })
     }
   }

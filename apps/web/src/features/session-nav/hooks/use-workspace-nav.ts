@@ -89,7 +89,7 @@ export function useWorkspaceNav(
     })),
   )
   const listedSessions = computed(() => applyTitles(listSessionsForSidebar(visibleSessions.value)))
-  const expandedByGroup = shallowRef<Record<string, boolean>>({})
+  const expandedByGroup = shallowRef<Record<string, number>>({})
 
   function applyTitles(list: readonly SessionMetadata[]): SessionMetadata[] {
     const titles = titleById.value
@@ -114,16 +114,21 @@ export function useWorkspaceNav(
     draftSessionPath.value = path
   }
 
-  function toggleGroupReveal(groupKey: string) {
+  function revealMore(groupKey: string) {
     expandedByGroup.value = {
       ...expandedByGroup.value,
-      [groupKey]: !expandedByGroup.value[groupKey],
+      [groupKey]: (expandedByGroup.value[groupKey] ?? 0) + 1,
     }
+  }
+
+  function collapseGroup(groupKey: string) {
+    const next = { ...expandedByGroup.value }
+    delete next[groupKey]
+    expandedByGroup.value = next
   }
 
   const grouping = shallowRef<SidebarGrouping>(loadGrouping())
   const sort = shallowRef<SidebarSort>(loadSort())
-  const collapsedSections = shallowRef<ReadonlySet<string>>(new Set())
 
   function setGrouping(next: SidebarGrouping): void {
     grouping.value = next
@@ -135,12 +140,30 @@ export function useWorkspaceNav(
     writePref(SORT_KEY, next)
   }
 
+  /** 已展开的段：目录/时间默认收起，置顶段默认展开，改动持久化。 */
+  const EXPANDED_KEY = "pig.sidebarExpandedSections"
+  const expandedSections = shallowRef<ReadonlySet<string>>(loadExpandedSections())
+
+  function loadExpandedSections(): ReadonlySet<string> {
+    const raw = readPref(EXPANDED_KEY)
+
+    if (!raw) return new Set(["pinned"])
+
+    try {
+      const parsed = JSON.parse(raw)
+      return new Set(Array.isArray(parsed) ? parsed : ["pinned"])
+    } catch {
+      return new Set(["pinned"])
+    }
+  }
+
   function toggleSection(key: string): void {
-    const next = new Set(collapsedSections.value)
+    const next = new Set(expandedSections.value)
 
     if (next.has(key)) next.delete(key)
     else next.add(key)
-    collapsedSections.value = next
+    expandedSections.value = next
+    writePref(EXPANDED_KEY, JSON.stringify([...next]))
   }
 
   function sectionsFor(
@@ -241,12 +264,13 @@ export function useWorkspaceNav(
     groups,
     listedSessions,
     expandedByGroup,
-    toggleGroupReveal,
+    revealMore,
+    collapseGroup,
     grouping,
     sort,
     setGrouping,
     setSort,
-    collapsedSections,
+    expandedSections,
     toggleSection,
     sectionsFor,
     addWorkspace,

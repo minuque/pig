@@ -89,11 +89,6 @@
           {{ pinned ? t("session.unpin") : t("session.pin") }}
         </ContextMenuItem>
 
-        <ContextMenuItem @select="emit('projectSettings', projectName)">
-          <SettingsMinimalisticIcon />
-          {{ t("session.projectSettings") }}
-        </ContextMenuItem>
-
         <ContextMenuSeparator />
 
         <ContextMenuItem variant="destructive" @select="deleteOpen = true">
@@ -123,7 +118,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
-import { useNav, workspaceName } from "@features/session-nav/index.js"
+import { useNav } from "@features/session-nav/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
@@ -134,7 +129,6 @@ import {
   PenIcon,
   PinIcon,
   PinBoldIcon,
-  SettingsMinimalisticIcon,
   TrashBinMinimalisticIcon,
 } from "@components/icons/index.js"
 
@@ -160,16 +154,12 @@ const emit = defineEmits<{
   togglePinned: [id: string]
   rename: [id: string, name: string]
   delete: [id: string]
-  projectSettings: [project: string]
   dragStart: [event: PointerEvent]
 }>()
 const { t } = useI18n()
 const { openSession, primeSession } = useNav()
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
-const projectName = computed(() =>
-  props.session.cwd ? workspaceName(props.session.cwd) : t("session.noProject"),
-)
 const showDraftGlyph = computed(
   () => props.session.draft && props.state !== "running" && props.state !== "unread",
 )
@@ -350,7 +340,7 @@ function confirmDelete() {
   gap: 2px var(--spacing-xs);
   width: 100%;
   min-width: 0;
-  padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xxs) var(--spacing-xxs);
+  padding: var(--spacing-xxs) var(--spacing-xs);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
@@ -417,7 +407,7 @@ function confirmDelete() {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   translate: 0 -50%;
   opacity: 0;
   pointer-events: none;
@@ -450,7 +440,7 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-secondary);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);

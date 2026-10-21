@@ -118,8 +118,9 @@ describe("sidebarSections", () => {
     })
 
     expect(paged.map((section) => section.key)).toEqual(["cwd:/a"])
-    expect(paged[0]?.sessions).toHaveLength(10)
-    expect(paged[0]?.more).toBe(true)
+    expect(paged[0]?.sessions).toHaveLength(5)
+    expect(paged[0]?.total).toBe(12)
+    expect(paged[0]?.shown).toBe(5)
 
     const searching = sidebarSections({
       ...base,
@@ -130,7 +131,7 @@ describe("sidebarSections", () => {
     })
 
     expect(searching[0]?.sessions).toHaveLength(12)
-    expect(searching[0]?.more).toBe(false)
+    expect(searching[0]?.shown).toBe(12)
   })
 
   it("按创建时间排序", () => {
