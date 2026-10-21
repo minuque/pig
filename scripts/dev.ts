@@ -35,7 +35,7 @@ async function main() {
   const gateway = new Gateway()
   const port = await gateway.start()
   const gatewayOrigin = `http://127.0.0.1:${port}`
-  console.info(`[dev] http://127.0.0.1:5173`)
+  console.info(`[dev] http://127.0.0.1:5555`)
   console.info(`[dev] ${gateway.authenticatedUrl(gatewayOrigin)}`)
 
   const pnpm = process.env.npm_execpath

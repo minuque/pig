@@ -19,9 +19,9 @@ const GATEWAY = "http://127.0.0.1:8787"
 const WEB_ROOT = join("G:", "web")
 
 describe("Vite 开发端口", () => {
-  it("默认 5173，--port 优先于 PIG_VITE_PORT", () => {
-    expect(viteDevPort([], {})).toBe(5173)
-    expect(viteDevOrigin([], {})).toBe("http://127.0.0.1:5173")
+  it("默认 5555，--port 优先于 PIG_VITE_PORT", () => {
+    expect(viteDevPort([], {})).toBe(5555)
+    expect(viteDevOrigin([], {})).toBe("http://127.0.0.1:5555")
     expect(viteDevPort(["--port", "5175"], { PIG_VITE_PORT: "5180" })).toBe(5175)
     expect(viteDevPort(["--port=5176"], {})).toBe(5176)
     expect(viteDevPort([], { PIG_VITE_PORT: "5177" })).toBe(5177)
