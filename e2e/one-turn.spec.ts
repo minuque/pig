@@ -43,6 +43,20 @@ test("一轮工作：复杂历史上发送、流式、中止", async ({ page, co
   await expect(
     page.locator(".row-user").getByText(TURN_PROMPT, { exact: true }).first(),
   ).toBeVisible()
+
+  // 贴底后新消息落在顶部渐隐带下方，指示器跟在这轮里而不是沉到视口底部
+  const veil = await page.locator(".transcript-edge-top").boundingBox()
+  const bubble = await page.locator(".row-user").last().locator("article.user").boundingBox()
+  const status = page.locator('[data-testid="turn-status"]')
+
+  if (!veil || !bubble) throw new Error("一轮工作缺少落点几何")
+  const clearance = bubble.y - (veil.y + veil.height)
+
+  expect(clearance).toBeGreaterThan(0)
+  expect(clearance).toBeLessThan(24)
+  await expect(status).toBeVisible()
+  expect(await status.evaluate((el) => el.closest(".turn-runway") !== null)).toBe(true)
+
   const sessionId = await bridge.waitForPrompt()
   const snapshot = bridge.snapshots.get(sessionId)
 

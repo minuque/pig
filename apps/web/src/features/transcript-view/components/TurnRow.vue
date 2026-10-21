@@ -26,6 +26,8 @@
         @toggle-tool="(id, open) => emit('toggle-tool', row.id, id, open)"
       />
     </div>
+
+    <slot />
   </div>
 </template>
 

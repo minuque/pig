@@ -62,8 +62,6 @@
           ry="4"
         />
 
-        <path v-else class="mouth mouth-ready" d="M55 80.14q9 8 18 0" />
-
         <g v-if="state === 'idle'" class="eyes">
           <path class="eye-closed" d="M36 51c2 3 5 4 10 4M82 51c2 3 5 4 10 4" />
         </g>
@@ -87,10 +85,9 @@
  *   run     <5min（摇摆 + 张嘴）
  *   long    5min（摇摆 + 晃头 + 腮红 + 汗）
  *   xlong   10min（红温 + 蒸汽 + 更快晃头 + 汗）
- *   ready   就绪（慢摇 + 眨眼笑）
  * 高度随文本行（父级用 1em 驱动）。
  */
-export type PigState = "idle" | "run" | "long" | "xlong" | "ready"
+export type PigState = "idle" | "run" | "long" | "xlong"
 
 withDefaults(defineProps<{ state?: PigState }>(), { state: "idle" })
 </script>
@@ -273,18 +270,6 @@ withDefaults(defineProps<{ state?: PigState }>(), { state: "idle" })
   }
 }
 
-@keyframes blink {
-  0%,
-  92%,
-  100% {
-    transform: scaleY(1);
-  }
-
-  96% {
-    transform: scaleY(0.1);
-  }
-}
-
 @keyframes tail-wag {
   0%,
   60%,
@@ -422,10 +407,6 @@ withDefaults(defineProps<{ state?: PigState }>(), { state: "idle" })
     huff 0.32s var(--ease-in-out) infinite;
 }
 
-.ready .g {
-  animation: sway 1s var(--ease-in-out) infinite;
-}
-
 .idle .ear-r {
   animation: ear-twitch 4s linear infinite;
 }
@@ -438,10 +419,6 @@ withDefaults(defineProps<{ state?: PigState }>(), { state: "idle" })
 .long .sweat-2,
 .xlong .sweat-2 {
   animation-delay: -0.45s;
-}
-
-.ready .eyes {
-  animation: blink 3.4s linear infinite;
 }
 
 .idle .tail {
@@ -458,10 +435,6 @@ withDefaults(defineProps<{ state?: PigState }>(), { state: "idle" })
 
 .xlong .tail {
   animation: tail-wag-fast 0.32s var(--ease-in-out) infinite;
-}
-
-.ready .tail {
-  animation: tail-wag 1.6s var(--ease-in-out) infinite;
 }
 
 .zzz-on .zzz-1 {
