@@ -29,31 +29,16 @@
       </div>
 
       <div class="search-head">
-        <label class="search-field">
-          <MagnifierIcon :size="15" />
-
-          <input
-            ref="searchInput"
-            v-model="query"
-            type="search"
-            :placeholder="t('nav.search')"
-            :aria-label="t('nav.searchPlaceholder')"
-            @keydown.enter.prevent="activateFirst"
-            @keydown.escape.prevent="query = ''"
-          />
-
-          <button
-            v-if="query"
-            class="search-clear"
-            type="button"
-            :aria-label="t('common.close')"
-            @click="clearQuery"
-          >
-            <CloseIcon :size="11" />
-          </button>
-        </label>
+        <button class="search-field press-scale" type="button" @click="onCreateSession()">
+          <span class="search-field-lead"><ChatRoundAddIcon :size="15" /></span>
+          <span class="search-field-label">{{ t("session.newSession") }}</span>
+        </button>
 
         <div class="head-actions">
+          <button class="head-btn" type="button" :title="t('nav.search')" @click="openSearch">
+            <MagnifierIcon :size="15" />
+          </button>
+
           <button
             class="head-btn"
             :class="{ scoped: !!scopeFilter }"
@@ -72,16 +57,37 @@
           >
             <AddFolderIcon :size="15" />
           </button>
-
-          <button
-            class="head-btn"
-            type="button"
-            :title="t('session.newSession')"
-            @click="onCreateSession()"
-          >
-            <ChatRoundAddIcon :size="15" />
-          </button>
         </div>
+
+        <Dialog :open="searchOpen" @update:open="onSearchOpen">
+          <DialogContent class="search-dialog" :show-close-button="false">
+            <DialogTitle class="sr-only">{{ t("nav.search") }}</DialogTitle>
+
+            <label class="search-field">
+              <MagnifierIcon :size="15" />
+
+              <input
+                ref="searchInput"
+                v-model="query"
+                type="search"
+                :placeholder="t('nav.searchPlaceholder')"
+                :aria-label="t('nav.searchPlaceholder')"
+                @keydown.enter.prevent="activateFirst"
+                @keydown.escape.prevent="closeSearch"
+              />
+
+              <button
+                v-if="query"
+                class="search-clear"
+                type="button"
+                :aria-label="t('common.close')"
+                @click="clearQuery"
+              >
+                <CloseIcon :size="11" />
+              </button>
+            </label>
+          </DialogContent>
+        </Dialog>
 
         <div v-if="scopeMenuOpen" class="scope-menu surface-float" @click.stop>
           <p class="scope-label">{{ t("session.grouping") }}</p>
@@ -208,13 +214,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyAction } from "@components/layout/notify.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
@@ -319,16 +326,35 @@ function highlightedCwd(): string | undefined {
   return undefined
 }
 
+const searchOpen = shallowRef(false)
+
 function openSearch() {
   void play("search")
-  searchInput.value?.focus()
-  searchInput.value?.select()
+  searchOpen.value = true
+}
+
+function onSearchOpen(open: boolean) {
+  searchOpen.value = open
+
+  if (!open) query.value = ""
+}
+
+function closeSearch() {
+  searchOpen.value = false
+  query.value = ""
 }
 
 function clearQuery() {
   query.value = ""
   searchInput.value?.focus()
 }
+
+watch(searchOpen, async (open) => {
+  if (!open) return
+  await nextTick()
+  searchInput.value?.focus()
+  searchInput.value?.select()
+})
 
 function activateFirst() {
   const row = document.querySelector<HTMLElement>(".session-list .session-card")
@@ -563,28 +589,35 @@ function onCreateSession(cwd?: string): void {
   min-width: 0;
   height: 32px;
   padding-inline: var(--spacing-xxs) var(--spacing-xs);
+  border: 0;
   border-radius: var(--radius-md);
+  background: transparent;
   color: var(--contrast-foreground-muted);
-  cursor: text;
+  font-size: var(--text-caption);
+  text-align: start;
+  cursor: pointer;
 }
 
 .search-field:hover,
-.search-field:focus-within {
+.search-field:focus-visible {
   background: var(--interaction-hover);
+  color: var(--contrast-foreground);
 }
 
-.search-field input {
+.search-field-lead {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--size-icon);
+  height: var(--size-icon);
+}
+
+.search-field-label {
   flex: 1;
   min-width: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--contrast-foreground);
-  font-size: var(--text-caption);
-}
-
-.search-field input::placeholder {
-  color: var(--contrast-foreground-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .search-clear,
@@ -818,6 +851,29 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
 .scope-edit:hover {
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
+}
+
+.search-dialog {
+  padding: 0;
+  gap: 0;
+}
+
+.search-dialog :deep(.search-field) {
+  height: var(--size-nav-rail);
+}
+
+.search-dialog :deep(.search-field input) {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--contrast-foreground);
+  font-size: var(--text-caption);
+}
+
+.search-dialog :deep(.search-field input::placeholder) {
+  color: var(--contrast-foreground-faint);
 }
 
 @media (prefers-reduced-motion: reduce) {

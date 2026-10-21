@@ -17,7 +17,7 @@
             <span v-if="section.key === 'pinned'" class="section-hover-icon" aria-hidden="true">
               <component
                 :is="collapsedSections.has(section.key) ? PinIcon : PinBoldIcon"
-                :size="13"
+                :size="15"
               />
             </span>
 
@@ -26,20 +26,20 @@
               class="section-hover-icon"
               aria-hidden="true"
             >
-              <ClockCircleIcon :size="13" />
+              <ClockCircleIcon :size="15" />
             </span>
 
             <span v-else-if="section.cwd" class="section-hover-icon" aria-hidden="true">
               <component
                 :is="collapsedSections.has(section.key) ? FolderOpenIcon : FolderIcon"
-                :size="13"
+                :size="15"
               />
             </span>
 
             <span v-if="section.key === 'pinned'" class="section-icon" aria-hidden="true">
               <component
                 :is="collapsedSections.has(section.key) ? PinIcon : PinBoldIcon"
-                :size="13"
+                :size="15"
               />
             </span>
 
@@ -48,7 +48,7 @@
               class="section-icon"
               aria-hidden="true"
             >
-              <ClockCircleIcon :size="13" />
+              <ClockCircleIcon :size="15" />
             </span>
 
             <span v-else-if="section.cwd" class="section-icon" aria-hidden="true">
@@ -67,12 +67,12 @@
               <template v-else>
                 <component
                   :is="projectIconComponent(sectionIcon(section))"
-                  :size="13"
+                  :size="15"
                   :style="sectionIconStyle(section)"
                   class="icon-collapsed"
                 />
 
-                <FolderOpenIcon :size="13" class="icon-open" :style="sectionIconStyle(section)" />
+                <FolderOpenIcon :size="15" class="icon-open" :style="sectionIconStyle(section)" />
               </template>
             </span>
 
@@ -97,7 +97,7 @@
                 :aria-label="t('session.newInProject')"
                 @click="emit('create', section.cwd)"
               >
-                <ChatRoundAddIcon :size="13" />
+                <ChatRoundAddIcon :size="15" />
               </button>
             </TooltipTrigger>
 
@@ -348,7 +348,7 @@ onBeforeUnmount(() => {
   align-items: center;
   min-width: 0;
   height: 26px;
-  padding-inline: 0 var(--spacing-xs);
+  padding-inline: var(--spacing-xxs) 0;
   gap: var(--spacing-xxs);
 }
 
@@ -362,9 +362,9 @@ onBeforeUnmount(() => {
   border: 0;
   background: transparent;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-medium);
-  line-height: 1;
+  line-height: var(--text-caption--line-height);
   cursor: default;
   user-select: none;
 }
@@ -373,8 +373,8 @@ onBeforeUnmount(() => {
   display: none;
   flex: none;
   place-items: center;
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
 }
 
 .section-head:hover .section-hover-icon {
@@ -389,22 +389,22 @@ onBeforeUnmount(() => {
   display: grid;
   flex: none;
   place-items: center;
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
 }
 
 .section-icon .proj-mono {
   display: grid;
   place-items: center;
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
   border-radius: var(--radius-xs);
   color: var(--primary-foreground);
-  font: 700 7px/1 var(--font-mono);
+  font: 700 8px/1 var(--font-mono);
 }
 
 .section-icon .proj-emoji {
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1;
 }
 
