@@ -68,7 +68,7 @@ export default defineConfig({
   server: {
     host: "127.0.0.1",
     // 固定端口,方便 VSCode Chrome 调试;strictPort 防止被静默换端口后断点失效
-    port: 5173,
+    port: 5555,
     strictPort: true,
     open: false,
     ...(gatewayTarget

@@ -1,6 +1,6 @@
 import { extname, isAbsolute, relative, resolve } from "node:path"
 
-export const DEFAULT_VITE_DEV_PORT = 5173
+export const DEFAULT_VITE_DEV_PORT = 5555
 export const PIG_SCHEME = "pig"
 export const PIG_APP_HOST = "app"
 export const PIG_APP_ORIGIN = `${PIG_SCHEME}://${PIG_APP_HOST}`
@@ -30,7 +30,7 @@ function parsePortNumber(raw: string | undefined): number | undefined {
   return port
 }
 
-/** `--port 5175` / `--port=5175`，其次 `PIG_VITE_PORT`，默认 5173。 */
+/** `--port 5175` / `--port=5175`，其次 `PIG_VITE_PORT`，默认 5555。 */
 export function viteDevPort(
   argv: readonly string[] = process.argv,
   env: NodeJS.ProcessEnv = process.env,
@@ -65,9 +65,9 @@ export function viteDevOrigin(
   return `http://127.0.0.1:${viteDevPort(argv, env)}`
 }
 
-export const DESKTOP_CDP_PORT = "9333"
+export const DESKTOP_CDP_PORT = "9999"
 
-/** `--dev` 默认 9333；`PIG_CDP` 覆盖，`0`/`off` 关闭。 */
+/** `--dev` 默认 9999；`PIG_CDP` 覆盖，`0`/`off` 关闭。 */
 export function desktopCdpPort(
   argv: readonly string[] = process.argv,
   env: NodeJS.ProcessEnv = process.env,
