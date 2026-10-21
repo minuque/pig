@@ -58,7 +58,7 @@
   --background-soft: var(--background);
   --muted: var(--background);
   --card: #ffffff;
-  --sidebar: #fcfcfd;
+  --sidebar: #f7f7f8;
   --sidebar-foreground: #1b1b1b;
   --sidebar-hover: #e8e8eb;
   --sidebar-selected: #e6e6e8;
@@ -344,7 +344,7 @@
 
   --background: #121214;
   --card: #0f0f11;
-  --sidebar: #161618;
+  --sidebar: #121214;
   --sidebar-foreground: #e3e4e6;
   --sidebar-hover: #26262b;
   --sidebar-selected: #2c2c31;
