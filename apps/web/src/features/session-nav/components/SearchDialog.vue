@@ -149,7 +149,7 @@ function activate(index: number) {
 
 <style>
 /* 不写 scoped：DialogContent 经 Portal 到 body，scoped attribute 打不中。
-   全局 transform 只写 translate(-50%,-50%)，这里并进一条 transform，顶到 1/6 视口高度。 */
+   覆盖全局 translate(-50%,-50%) 的 Y 位移：只水平居中，顶边锚到 1/6 视口高度。 */
 .search-dialog {
   gap: 0;
   width: min(560px, calc(100vw - var(--spacing-lg) * 2));
@@ -157,7 +157,7 @@ function activate(index: number) {
   max-height: min(70dvh, 640px);
   padding: 0;
   top: 16dvh;
-  transform: translateX(-50%) !important;
+  transform: translateX(-50%);
 }
 
 /* 顶部搜索条：与列表用 hairline 分隔，不画外框。 */

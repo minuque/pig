@@ -42,7 +42,7 @@ export function useConversationWidth(): {
   let sidebarFrozen = false
   let lastContentWidth = -1
 
-  // 唯一写入口：sticky 跟随布局阶段跳过回缩（只放宽不缩窄），值没变就不碰样式
+  // 唯一写入口：sticky 只在冻结期生效（只放宽不缩窄），值没变就不碰样式
   function apply(root: HTMLElement, next: number, sticky = false) {
     if (sticky && next < lastContentWidth) return
 
@@ -61,7 +61,6 @@ export function useConversationWidth(): {
       preference === undefined
         ? defaultContentWidth(column)
         : resolveContentWidth(column, preference),
-      true,
     )
   }
 

@@ -62,10 +62,15 @@
             <span v-if="!expandedSections.has(section.key)" class="section-count">
               {{ section.total }}
             </span>
+
+            <span class="section-chevron" aria-hidden="true">
+              <AltArrowDownIcon v-if="expandedSections.has(section.key)" :size="15" />
+              <AltArrowRightIcon v-else :size="15" />
+            </span>
           </button>
 
-          <div class="section-actions">
-            <Tooltip v-if="section.cwd">
+          <div v-if="section.cwd" class="section-actions">
+            <Tooltip>
               <TooltipTrigger as-child>
                 <button
                   class="section-add"
@@ -78,26 +83,6 @@
               </TooltipTrigger>
 
               <TooltipContent>{{ t("session.newInProject") }}</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <button
-                  class="section-add"
-                  type="button"
-                  :aria-label="
-                    expandedSections.has(section.key) ? t('common.collapse') : t('common.expand')
-                  "
-                  @click="toggleSection(section.key)"
-                >
-                  <AltArrowDownIcon v-if="expandedSections.has(section.key)" :size="15" />
-                  <AltArrowRightIcon v-else :size="15" />
-                </button>
-              </TooltipTrigger>
-
-              <TooltipContent>
-                {{ expandedSections.has(section.key) ? t("common.collapse") : t("common.expand") }}
-              </TooltipContent>
             </Tooltip>
           </div>
         </div>
@@ -210,7 +195,7 @@ const include = computed(
   () => (session: { id: string; cwd?: string }) =>
     !props.scopeFilter || workspaceName(session.cwd ?? "") === props.scopeFilter,
 )
-const sections = sectionsFor(false, include)
+const sections = sectionsFor(include)
 // 过滤态下 pinned 段只渲染命中项，DOM 序号与 pinnedOrder 全表序号不再对应，禁用拖拽。
 const dragEnabled = computed(() => !props.scopeFilter)
 const projIcons = computed(loadProjIcons)
@@ -431,6 +416,23 @@ onBeforeUnmount(() => {
   font-family: var(--font-mono);
   font-size: var(--text-caption-mono);
   line-height: 16px;
+}
+
+/* 收展箭头：主按钮的一部分，hover 才出现，不单独可点 */
+.section-chevron {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  color: var(--contrast-foreground-secondary);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.section-head:hover .section-chevron,
+.section-toggle:focus-visible .section-chevron {
+  opacity: 1;
 }
 
 .section-actions {

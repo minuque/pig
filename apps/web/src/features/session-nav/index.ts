@@ -99,10 +99,8 @@ function createNav(
     expandedByGroup: nav.expandedByGroup,
     revealMore: nav.revealMore,
     collapseGroup: nav.collapseGroup,
-    sectionsFor: (
-      searching: Parameters<typeof nav.sectionsFor>[0],
-      include?: Parameters<typeof nav.sectionsFor>[2],
-    ) => nav.sectionsFor(searching, markers.pinnedOrder, include),
+    sectionsFor: (include?: Parameters<typeof nav.sectionsFor>[1]) =>
+      nav.sectionsFor(markers.pinnedOrder, include),
     grouping: nav.grouping,
     sort: nav.sort,
     setGrouping: nav.setGrouping,

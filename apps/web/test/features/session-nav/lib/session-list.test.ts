@@ -68,7 +68,6 @@ describe("sidebarSections", () => {
     sort: "updated" as const,
     localWorkspaces: [],
     expandedByGroup: {},
-    searching: false,
     now,
   }
 
@@ -103,7 +102,7 @@ describe("sidebarSections", () => {
     expect(sections[1]?.sessions.map((session) => session.id)).toEqual(["c1"])
   })
 
-  it("cwd 分组跳过空目录，搜索时不截断", () => {
+  it("cwd 分组跳过空目录，按页截断", () => {
     const sessions = Array.from({ length: 12 }, (_, index) => ({
       id: `s${index}`,
       createdAt: index,
@@ -121,17 +120,6 @@ describe("sidebarSections", () => {
     expect(paged[0]?.sessions).toHaveLength(5)
     expect(paged[0]?.total).toBe(12)
     expect(paged[0]?.shown).toBe(5)
-
-    const searching = sidebarSections({
-      ...base,
-      grouping: "cwd",
-      localWorkspaces: ["/a", "/empty"],
-      sessions,
-      searching: true,
-    })
-
-    expect(searching[0]?.sessions).toHaveLength(12)
-    expect(searching[0]?.shown).toBe(12)
   })
 
   it("按创建时间排序", () => {

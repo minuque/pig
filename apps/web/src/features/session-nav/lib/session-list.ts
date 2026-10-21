@@ -151,11 +151,10 @@ function toSection(
   label: string,
   sessions: readonly SessionMetadata[],
   expandedByGroup: Readonly<Record<string, number>>,
-  searching: boolean,
   cwd?: string,
 ): SidebarSection {
   const extra = expandedByGroup[key] ?? 0
-  const limit = searching ? sessions.length : SECTION_PAGE + extra * SECTION_PAGE
+  const limit = SECTION_PAGE + extra * SECTION_PAGE
   const shown = Math.min(sessions.length, limit)
   return {
     key,
@@ -167,7 +166,7 @@ function toSection(
   }
 }
 
-/** 侧栏分区：置顶按存储顺序在前；其余按日期或工作目录分组。搜索时不截断。 */
+/** 侧栏分区：置顶按存储顺序在前；其余按日期或工作目录分组。 */
 export function sidebarSections(input: {
   sessions: readonly SessionMetadata[]
   pinnedOrder?: readonly string[]
@@ -175,10 +174,9 @@ export function sidebarSections(input: {
   sort: SidebarSort
   localWorkspaces: readonly string[]
   expandedByGroup: Readonly<Record<string, number>>
-  searching: boolean
   now?: number
 }): SidebarSection[] {
-  const { grouping, sort, expandedByGroup, searching } = input
+  const { grouping, sort, expandedByGroup } = input
   const list = listSessionsForSidebar(input.sessions, sort)
   const sections: SidebarSection[] = []
 
@@ -212,7 +210,6 @@ export function sidebarSections(input: {
           workspaceName(group.canonicalPath),
           group.sessions,
           expandedByGroup,
-          searching,
           group.canonicalPath,
         ),
       )
@@ -229,13 +226,7 @@ export function sidebarSections(input: {
   for (const [bucket, bucketSessions] of buckets.entries()) {
     if (!bucketSessions.length) continue
     sections.push(
-      toSection(
-        `date:${bucket}`,
-        dateBucketLabel(bucket),
-        bucketSessions,
-        expandedByGroup,
-        searching,
-      ),
+      toSection(`date:${bucket}`, dateBucketLabel(bucket), bucketSessions, expandedByGroup),
     )
   }
 
