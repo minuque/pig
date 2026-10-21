@@ -42,8 +42,10 @@ export function useConversationWidth(): {
   let sidebarFrozen = false
   let lastContentWidth = -1
 
-  // 唯一写入口：值没变就不碰样式，避免每帧触发子树重算
-  function apply(root: HTMLElement, next: number) {
+  // 唯一写入口：sticky 跟随布局阶段跳过回缩（只放宽不缩窄），值没变就不碰样式
+  function apply(root: HTMLElement, next: number, sticky = false) {
+    if (sticky && next < lastContentWidth) return
+
     if (next === lastContentWidth) return
     lastContentWidth = next
     root.style.setProperty("--chat-user-width", `${next}px`)
@@ -59,6 +61,7 @@ export function useConversationWidth(): {
       preference === undefined
         ? defaultContentWidth(column)
         : resolveContentWidth(column, preference),
+      true,
     )
   }
 
@@ -69,7 +72,7 @@ export function useConversationWidth(): {
 
     if (active) {
       sidebarFrozen = true
-      apply(root, snapshotWidth())
+      apply(root, snapshotWidth(), true)
       return
     }
 
@@ -88,7 +91,7 @@ export function useConversationWidth(): {
     }
 
     rootEl.value = el
-    lastContentWidth = -1
+    lastContentWidth = 0
     observer = new ResizeObserver((entries) => {
       const box = entries[0]?.contentBoxSize?.[0]
       const width = box?.inlineSize ?? entries[0]?.contentRect.width
@@ -147,7 +150,7 @@ export function useConversationWidth(): {
   }
 
   watch(
-    () => panel?.resizing.value ?? false,
+    () => (panel?.resizing.value ?? false) || (panel?.sbAnimating.value ?? false),
     (active) => freezeForSidebar(active),
     { flush: "sync" },
   )
