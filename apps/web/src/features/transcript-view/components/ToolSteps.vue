@@ -10,18 +10,18 @@
     >
       <span :class="{ shimmer: running }" :data-text="labelText">
         <template v-for="(part, i) in labelParts" :key="i">
-          <span v-if="i" class="label-sep"><span class="label-dot">·</span></span>
+          <span v-if="i" class="label-sep">,</span>
           <template v-if="part.kind === 'text'">{{ part.text }}</template>
 
           <template v-else>
             {{ part.prefix }}
-            <span class="success-n">{{ part.count }}</span>
+            <span>{{ part.count }}</span>
             {{ part.suffix }}
           </template>
         </template>
 
         <template v-if="failCount">
-          <span class="label-sep"><span class="label-dot">·</span></span>
+          <span class="label-sep">,</span>
           {{ t("transcript.statusError") }}
           <span class="fail-n">{{ failCount }}</span>
           {{ t("common.times", failCount) }}
@@ -203,8 +203,8 @@ const labelText = computed(() => {
       `${t("transcript.statusError")} ${failCount.value} ${t("common.times", failCount.value)}`,
     )
 
-  if (durationLabel.value) parts.push(durationLabel.value)
-  return parts.join(" · ")
+  const stats = parts.join(", ")
+  return durationLabel.value ? `${stats} · ${durationLabel.value}` : stats
 })
 
 function isStepRunning(step: ToolRowStep) {
@@ -357,20 +357,24 @@ onBeforeUnmount(() => {
   justify-content: flex-start;
   border-radius: 0;
   background: var(--card);
-  color: var(--contrast-foreground);
+  /* 默认 3 级，hover 或展开时回到 1 级 */
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-md);
   font-weight: var(--font-weight-normal);
   white-space: normal;
   text-align: start;
   font-variant-numeric: tabular-nums;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
-.summary-btn:hover {
+.summary-btn:hover,
+.summary-btn[aria-expanded="true"] {
   background: var(--card);
   color: var(--contrast-foreground);
 }
 
-.summary-btn:hover .shimmer {
+.summary-btn:hover .shimmer,
+.summary-btn[aria-expanded="true"] .shimmer {
   color: var(--contrast-foreground);
 }
 
@@ -419,10 +423,6 @@ onBeforeUnmount(() => {
 
 .lc-remove {
   color: var(--destructive);
-}
-
-.success-n {
-  color: var(--success);
 }
 
 .steps {

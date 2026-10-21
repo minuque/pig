@@ -74,34 +74,24 @@ function capitalizeParts(parts: ToolRowLabelPart[]): ToolRowLabelPart[] {
 
 export function toolRowLabelParts(row: ToolRow): ToolRowLabelPart[] {
   const counts = new Map<ToolGroupKey, number>()
-  let thoughts = 0
 
   for (const step of row.steps) {
-    if (step.type === "thought") thoughts += 1
-    else counts.set(step.key, (counts.get(step.key) ?? 0) + step.items.length)
+    // 思考不入标签；edit 与 write 合并记作 edit
+    if (step.type === "thought") continue
+    const key = step.key === "write" ? "edit" : step.key
+    counts.set(key, (counts.get(key) ?? 0) + step.items.length)
   }
 
   const parts: ToolRowLabelPart[] = []
-
-  if (thoughts)
-    parts.push({
-      kind: "text",
-      text: t("transcript.labelThinking", thoughts),
-    })
 
   for (const key of TOOL_ROW_ORDER) {
     const count = counts.get(key)
 
     if (!count) continue
 
-    if (key === "write")
-      parts.push({
-        kind: "count",
-        prefix: t("transcript.partWritePrefix"),
-        count,
-        suffix: t("transcript.partWriteSuffix", count),
-      })
-    else if (key === "edit")
+    if (key === "write") continue
+
+    if (key === "edit")
       parts.push({
         kind: "count",
         prefix: t("transcript.partEditPrefix"),

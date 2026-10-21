@@ -572,9 +572,7 @@ const contentHandleSides = ["left", "right"] as const
   flex-direction: column;
   /* 测量前占位，挂上后由输入条边框盒覆盖 */
   --composer-reserve: 7rem;
-  /* 正文宽由 use-conversation-width 写入 --chat-user-width，测量前用下限占位 */
   --size-content: var(--chat-user-width, 680px);
-  --size-composer: calc(var(--size-content) + var(--spacing-md));
   /* 首屏输入条底边离列底的距离 */
   --hero-dock: 34%;
 }
@@ -620,10 +618,33 @@ const contentHandleSides = ["left", "right"] as const
   bottom: var(--hero-dock);
 }
 
+/* 输入条下方留白缝的蒙层：盖住滚动露出的 transcript；右侧让出滚动条槽位 */
+.session-stage::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-inline-end: var(--spacing-sm);
+  inset-block-end: 0;
+  z-index: 1;
+  height: calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px) + var(--edge-fade-band));
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    var(--background) calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px)),
+    transparent
+  );
+  backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-saturation, 1.08));
+  mask-image: linear-gradient(
+    to top,
+    black calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px)),
+    transparent
+  );
+}
+
 .composer-stack {
   position: relative;
   width: 100%;
-  max-width: var(--size-composer);
+  max-width: calc(var(--size-content) + var(--spacing-sm));
   margin-inline: auto;
   background: transparent;
   pointer-events: auto;

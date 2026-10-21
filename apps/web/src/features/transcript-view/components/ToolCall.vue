@@ -387,14 +387,16 @@ function toggleGroup(event: MouseEvent) {
   justify-content: flex-start;
   border-radius: 0;
   background: transparent;
-  color: var(--contrast-foreground);
+  /* 默认 3 级，hover 或展开时回到 1 级 */
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-md);
   font-weight: var(--font-weight-normal);
   text-align: start;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
-.summary:hover {
-  background: transparent;
+.summary:hover,
+.summary.is-open {
   color: var(--contrast-foreground);
 }
 

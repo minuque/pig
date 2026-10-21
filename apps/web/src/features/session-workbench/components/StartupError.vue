@@ -47,7 +47,7 @@ function retry() {
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-xs);
-  max-width: var(--size-composer);
+  max-width: calc(var(--size-content) + var(--spacing-sm));
   text-align: center;
 }
 

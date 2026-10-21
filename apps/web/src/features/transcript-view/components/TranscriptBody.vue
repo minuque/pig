@@ -443,6 +443,8 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 <style scoped>
 .transcript-shell {
   position: relative;
+  /* 内部 z-index 关进独立 stacking context，stage 层伪元素蒙层才能盖住 */
+  isolation: isolate;
   min-height: 0;
   flex: 1;
   display: flex;
@@ -458,9 +460,9 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   scroll-padding-bottom: var(--composer-reserve, 0px);
   /* 给 .turn-runway 的 cqh 提供视口高度 */
   container-type: size;
-  /* 主视口滚动条常显，并始终占位，内容不因溢出与否来回横移 */
+  /* 滚动条常显两侧各一槽：内容相对列居中，不因溢出与否左右横移 */
   --scrollbar-thumb: var(--scrollbar-color);
-  scrollbar-gutter: stable;
+  scrollbar-gutter: stable both-edges;
 }
 
 /* 顶部渐隐层压住普通行，工具行由 .row-tools 的 z-index 抬到它上面 */

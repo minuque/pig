@@ -5,12 +5,6 @@
 @import "./mermaid.css";
 
 /* ------ @property 注册 ------ */
-@property --size-content {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 45.75rem;
-}
-
 @property --left-width {
   syntax: "<length>";
   inherits: false;
@@ -195,18 +189,20 @@
   /* 语义 */
   --star: #fbbf24;
   --accent-green: var(--success);
-  --success: #52a450;
+  /* 状态色对齐 zeron 基线 */
+  --success: #15803d;
   --info: var(--primary);
-  --warning: #d97706;
-  --destructive: #c94446;
+  --warning: #a16207;
+  --destructive: #dc2626;
   --state-working: #7cb3ff;
   --success-foreground: var(--primary-foreground);
   --warning-foreground: var(--primary-foreground);
   --destructive-foreground: var(--primary-foreground);
-  --success-bg: #dcfce7;
-  --info-bg: #eceef8;
-  --warning-bg: #fef3e2;
-  --destructive-bg: #fee2e2;
+  /* 状态浅底 badge：主色 15% 混入 background，随主题联动 */
+  --success-bg: color-mix(in srgb, var(--success) 15%, var(--background));
+  --info-bg: color-mix(in srgb, var(--info) 12%, var(--background));
+  --warning-bg: color-mix(in srgb, var(--warning) 15%, var(--background));
+  --destructive-bg: color-mix(in srgb, var(--destructive) 15%, var(--background));
 
   /* 字体与间距圆角定义在 @theme，组件的 var() 与工具类读同一份。 */
   --text-code: 13px;
@@ -225,8 +221,6 @@
   --titlebar-inset: 44px;
   --size-windows-caption: 138px;
   --size-drawer: 360px;
-  --size-content: 45.75rem;
-  --size-composer: 46.75rem;
   --size-modal: 32rem;
   --size-settings-nav: 15rem;
   --size-settings-body: 64rem;
@@ -404,16 +398,13 @@
   --accent-steel: #8aa4c2;
   --accent-teal: #5ec4ae;
   --accent-gray: #9a9da4;
-  --success: #69c967;
-  --warning: #f5b44a;
-  --destructive: #ff7e78;
+  /* 状态色对齐 zeron 基线 */
+  --success: #34d399;
+  --warning: #facc15;
+  --destructive: #f87171;
   --success-foreground: #000000;
   --warning-foreground: #000000;
   --destructive-foreground: #000000;
-  --success-bg: #142c1e;
-  --info-bg: #1a1c33;
-  --warning-bg: #3a2a12;
-  --destructive-bg: #38191b;
   --star: #f5b44a;
 
   --scrim: rgba(0, 0, 0, 0.55);
