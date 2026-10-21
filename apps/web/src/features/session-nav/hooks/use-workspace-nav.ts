@@ -140,42 +140,21 @@ export function useWorkspaceNav(
     writePref(SORT_KEY, next)
   }
 
-  /** 已展开的段：目录/时间默认收起，置顶段默认展开，改动持久化。
-      升级场景：老用户写过 pig.sidebarCollapsedSections 就视为旧版使用者，默认全展开，避免首屏全收像丢会话。 */
+  /** 已展开的段：目录/时间默认收起，置顶段默认展开，改动持久化。 */
   const EXPANDED_KEY = "pig.sidebarExpandedSections"
-  const LEGACY_COLLAPSED_KEY = "pig.sidebarCollapsedSections"
   const expandedSections = shallowRef<ReadonlySet<string>>(loadExpandedSections())
 
   function loadExpandedSections(): ReadonlySet<string> {
     const raw = readPref(EXPANDED_KEY)
 
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw)
-        return new Set(Array.isArray(parsed) ? parsed : ["pinned"])
-      } catch {
-        return new Set(["pinned"])
-      }
+    if (!raw) return new Set(["pinned"])
+
+    try {
+      const parsed = JSON.parse(raw)
+      return new Set(Array.isArray(parsed) ? parsed : ["pinned"])
+    } catch {
+      return new Set(["pinned"])
     }
-
-    if (readPref(LEGACY_COLLAPSED_KEY)) return allSectionKeys()
-    return new Set(["pinned"])
-  }
-
-  function allSectionKeys(): ReadonlySet<string> {
-    const keys = new Set(["pinned"])
-
-    for (const section of sidebarSections({
-      sessions: listedSessions.value,
-      grouping: grouping.value,
-      sort: sort.value,
-      localWorkspaces: workspaces.value,
-      expandedByGroup: expandedByGroup.value,
-    })) {
-      keys.add(section.key)
-    }
-
-    return keys
   }
 
   function toggleSection(key: string): void {
