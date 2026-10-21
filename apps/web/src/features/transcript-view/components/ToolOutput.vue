@@ -198,7 +198,7 @@ code {
   border: 0;
   border-top: var(--border-width) solid var(--border);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   font: inherit;
   font-size: var(--text-meta);
   text-align: center;

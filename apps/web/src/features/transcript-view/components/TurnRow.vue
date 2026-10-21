@@ -74,7 +74,7 @@ function rowClass(row: TimelineRow, rowIndex: number) {
 .row {
   box-sizing: border-box;
   width: 100%;
-  padding-block-start: var(--spacing-xs);
+  padding-block-start: var(--spacing-sm);
 }
 
 .row.is-after-user {

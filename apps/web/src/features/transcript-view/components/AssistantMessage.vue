@@ -194,7 +194,7 @@ function onVirtualStateChange(state: MarkstreamVirtualState) {
 }
 
 .status-alert {
-  margin-top: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
 }
 
 .status-alert:first-child {
@@ -202,6 +202,6 @@ function onVirtualStateChange(state: MarkstreamVirtualState) {
 }
 
 .message-stamp {
-  margin-top: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
 }
 </style>

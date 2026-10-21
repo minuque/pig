@@ -372,7 +372,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   border: 0;
   border-radius: var(--radius-full);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),

@@ -13,7 +13,7 @@ import type {
 } from "@features/session-nav/type.js"
 import { sessionRecency, sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
 
-export const SECTION_PAGE = 10
+export const SECTION_PAGE = 5
 /** 临时新会话占位行的 id 前缀。 */
 export const DRAFT_SESSION_PREFIX = "draft:"
 
@@ -150,34 +150,33 @@ function toSection(
   key: string,
   label: string,
   sessions: readonly SessionMetadata[],
-  expandedByGroup: Readonly<Record<string, boolean>>,
-  searching: boolean,
+  expandedByGroup: Readonly<Record<string, number>>,
   cwd?: string,
 ): SidebarSection {
-  const revealed = !searching && expandedByGroup[key] === true
-  const limit = searching || revealed ? sessions.length : SECTION_PAGE
+  const extra = expandedByGroup[key] ?? 0
+  const limit = SECTION_PAGE + extra * SECTION_PAGE
+  const shown = Math.min(sessions.length, limit)
   return {
     key,
     label,
     ...(cwd !== undefined ? { cwd } : {}),
-    sessions: sessions.slice(0, limit).map(toSidebarSession),
-    more: !searching && sessions.length > SECTION_PAGE,
-    revealed,
+    sessions: sessions.slice(0, shown).map(toSidebarSession),
+    total: sessions.length,
+    shown,
   }
 }
 
-/** 侧栏分区：置顶按存储顺序在前；其余按日期或工作目录分组。搜索时不截断。 */
+/** 侧栏分区：置顶按存储顺序在前；其余按日期或工作目录分组。 */
 export function sidebarSections(input: {
   sessions: readonly SessionMetadata[]
   pinnedOrder?: readonly string[]
   grouping: SidebarGrouping
   sort: SidebarSort
   localWorkspaces: readonly string[]
-  expandedByGroup: Readonly<Record<string, boolean>>
-  searching: boolean
+  expandedByGroup: Readonly<Record<string, number>>
   now?: number
 }): SidebarSection[] {
-  const { grouping, sort, expandedByGroup, searching } = input
+  const { grouping, sort, expandedByGroup } = input
   const list = listSessionsForSidebar(input.sessions, sort)
   const sections: SidebarSection[] = []
 
@@ -193,8 +192,8 @@ export function sidebarSections(input: {
         key: "pinned",
         label: t("session.pinned"),
         sessions: pinned.map(toSidebarSession),
-        more: false,
-        revealed: false,
+        total: pinned.length,
+        shown: pinned.length,
       })
     }
   }
@@ -211,7 +210,6 @@ export function sidebarSections(input: {
           workspaceName(group.canonicalPath),
           group.sessions,
           expandedByGroup,
-          searching,
           group.canonicalPath,
         ),
       )
@@ -228,13 +226,7 @@ export function sidebarSections(input: {
   for (const [bucket, bucketSessions] of buckets.entries()) {
     if (!bucketSessions.length) continue
     sections.push(
-      toSection(
-        `date:${bucket}`,
-        dateBucketLabel(bucket),
-        bucketSessions,
-        expandedByGroup,
-        searching,
-      ),
+      toSection(`date:${bucket}`, dateBucketLabel(bucket), bucketSessions, expandedByGroup),
     )
   }
 

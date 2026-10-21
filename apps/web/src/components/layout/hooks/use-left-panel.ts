@@ -18,6 +18,8 @@ export const leftPanelKey: InjectionKey<{
   toggle: () => void
   setSbState: (s: SidebarState) => void
   resizing: Readonly<Ref<boolean>>
+  /** 侧栏收展过渡进行中：宽度不是终值，依赖布局测量的代码本阶段冻结。 */
+  sbAnimating: Readonly<Ref<boolean>>
   isNarrow: Readonly<Ref<boolean>>
 }> = Symbol("left-panel")
 
@@ -85,6 +87,17 @@ export function useLeftPanel() {
     ),
   )
   const resizing = ref(false)
+  const sbAnimating = ref(false)
+  let sbAnimTimer = 0
+
+  /** 侧栏宽度过渡按 --duration-normal（200ms）计，收展期间冻结。 */
+  function flagSbAnimating() {
+    sbAnimating.value = true
+    window.clearTimeout(sbAnimTimer)
+    sbAnimTimer = window.setTimeout(() => {
+      sbAnimating.value = false
+    }, 260)
+  }
 
   function setPanelWidth(desired: number) {
     leftWidth.value = panelWidthFor(desired, window.innerWidth)
@@ -144,6 +157,7 @@ export function useLeftPanel() {
   }
 
   function setSbState(next: SidebarState) {
+    if (next !== sbState.value) flagSbAnimating()
     sbState.value = next
     persistState(next)
   }
@@ -180,6 +194,7 @@ export function useLeftPanel() {
   onBeforeUnmount(() => {
     narrowViewport.removeEventListener("change", handleViewportChange)
     window.removeEventListener("resize", fitPanels)
+    window.clearTimeout(sbAnimTimer)
     document.body.style.removeProperty("cursor")
     document.body.style.removeProperty("user-select")
   })
@@ -190,6 +205,7 @@ export function useLeftPanel() {
     leftWidth: readonly(leftWidth),
     isNarrow: readonly(isNarrow),
     resizing: readonly(resizing),
+    sbAnimating: readonly(sbAnimating),
     toggle,
     resizeBy,
     startResize,

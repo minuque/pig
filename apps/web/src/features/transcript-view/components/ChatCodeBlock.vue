@@ -115,7 +115,7 @@ useMutationObserver(host, bindActions, { childList: true, subtree: true })
 
 .fence-dir,
 .fence-lines {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
 }
 
 .fence-dir {

@@ -5,12 +5,14 @@
 - `docs/*` 只读，用户点名才改。
 - 一个逻辑任务完成并通过检查后做一次原子 commit，不按单次编辑提交；文档改动不 commit。
 - 依赖缺陷升级或提交上游，不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
+- 合入、rebase、reset 前先看工作区。未提交路径和将写入的路径有交集：停下问用户，禁止 `restore`/`checkout` 清掉这些文件再合。合完用 `git status` 核同一批未提交路径还在、`git diff` 非空。备份只用 `git diff`/`git show` 写文件，不用 shell 重定向；apply 失败保留完整副本，禁止再 `restore` 覆盖。
 
 ## 代码与 UI
 
 - 注释默认不超过 1 行，单文件 <= 500 行。
 - 导入能对上现有别名就写别名，不写相对路径。同目录引用可以保持 `./`。
 - 已有依赖能正确表达就不自行设计实现组件和行为；优先复用成熟库，组件源代码可控，统一设计语言，严格限制重复依赖。
+- 修改已安装的 shadcn-vue 组件先读本地源码；新增或同步上游才用 CLI，参数先核对当前版本帮助。新增用 `pnpm dlx shadcn-vue@latest add <name> --cwd apps/web --yes`，禁用安装生命周期脚本，装完对齐 `@utils/utils.js`，并把 CLI 生成的 `@lucide/vue` 图标换成 `@components/icons` 注册表里的 Solar 图标（CLI 的 `iconLibrary` 还不支持 Solar）；已改 token 的包装不加 `--overwrite`。
 - 组件样式只消费 `apps/web/src/style/app.css` 的 token（`var(--*)` 或 `@theme` 类）。缺档先补 `app.css`，再写组件；SFC 不声明 `--*`，不写裸 hex/rgb/`color-mix`。
 - 动画复用 `apps/web/src/style/motion.css` 的类与 `@keyframes`。缺档先补 `motion.css`，再写组件。
 
@@ -32,6 +34,7 @@
 - 代码改动跑 `pnpm fix:touched` 再跑 `pnpm check:touched`；文档改动除外。失败只修本次引入的；输入未变不重跑，也不主动跑 `pnpm build`、全量 `pnpm test`、全量 `pnpm test:e2e`。
 - 场景补跑：UI 旅程 `pnpm test:e2e e2e/<spec>`；滚动、流式、耗时 `pnpm test:bench`。
 - Electron 走 `pnpm dev:desktop`（`--dev` 默认 CDP 9999，`PIG_CDP` 可改，`0`/`off` 关；已有窗口则复用）。
+- 清临时窗口按 PID 或 `user-data-dir`，不要匹配命令行 `--dev`。
 
 一切效果断言给改前改后同测点证据，不接受「感觉顺了」「调亮了」：
 

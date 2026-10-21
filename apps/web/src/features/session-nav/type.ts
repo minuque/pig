@@ -30,9 +30,10 @@ export interface SidebarSection {
   /** cwd 分组的 canonical 路径，供组头图标与「在该项目新建」。 */
   cwd?: string
   sessions: SidebarSession[]
-  /** 还有未展开的行。 */
-  more: boolean
-  revealed: boolean
+  /** 总数（含未显示的），用来算还能不能 Show more。 */
+  total: number
+  /** 当前已显示条数。 */
+  shown: number
 }
 
 /** 协议列表不带的卡片脚注：消息数 + 当前模型。 */

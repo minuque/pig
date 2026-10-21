@@ -112,7 +112,7 @@ onMounted(() => {
   flex: none;
   width: var(--size-icon);
   height: var(--size-icon);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   opacity: 0.5;
   cursor: grab;
   touch-action: none;
@@ -143,7 +143,7 @@ onMounted(() => {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   opacity: 0.72;
   cursor: pointer;
   transition:
@@ -173,7 +173,7 @@ onMounted(() => {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
   cursor: pointer;

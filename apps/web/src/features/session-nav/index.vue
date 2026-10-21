@@ -29,31 +29,16 @@
       </div>
 
       <div class="search-head">
-        <label class="search-field">
-          <MagnifierIcon :size="15" />
-
-          <input
-            ref="searchInput"
-            v-model="query"
-            type="search"
-            :placeholder="t('nav.search')"
-            :aria-label="t('nav.searchPlaceholder')"
-            @keydown.enter.prevent="activateFirst"
-            @keydown.escape.prevent="query = ''"
-          />
-
-          <button
-            v-if="query"
-            class="search-clear"
-            type="button"
-            :aria-label="t('common.close')"
-            @click="clearQuery"
-          >
-            <CloseIcon :size="11" />
-          </button>
-        </label>
+        <button class="search-field press-scale" type="button" @click="onCreateSession()">
+          <span class="search-field-lead"><ChatRoundAddIcon :size="15" /></span>
+          <span class="search-field-label">{{ t("session.newSession") }}</span>
+        </button>
 
         <div class="head-actions">
+          <button class="head-btn" type="button" :title="t('nav.search')" @click="openSearch">
+            <MagnifierIcon :size="15" />
+          </button>
+
           <button
             class="head-btn"
             :class="{ scoped: !!scopeFilter }"
@@ -72,16 +57,9 @@
           >
             <AddFolderIcon :size="15" />
           </button>
-
-          <button
-            class="head-btn"
-            type="button"
-            :title="t('session.newSession')"
-            @click="onCreateSession()"
-          >
-            <ChatRoundAddIcon :size="15" />
-          </button>
         </div>
+
+        <SearchDialog v-model:open="searchOpen" />
 
         <div v-if="scopeMenuOpen" class="scope-menu surface-float" @click.stop>
           <p class="scope-label">{{ t("session.grouping") }}</p>
@@ -139,7 +117,7 @@
                 class="scope-edit"
                 role="button"
                 tabindex="-1"
-                :title="t('common.settings')"
+                :title="t('nav.settings')"
                 @click.stop="closeGlobalSettings"
               >
                 <SettingsIcon :size="12" />
@@ -190,9 +168,7 @@
 
       <SessionList
         :scope-filter="scopeFilter"
-        :query="query"
         @navigate="onSessionNavigate"
-        @project-settings="onProjectSettings"
         @create="onCreateSession"
       />
     </div>
@@ -208,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, onMounted, shallowRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
@@ -224,6 +200,7 @@ import {
   type ProjIcon,
 } from "@features/session-nav/lib/project-icon.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
+import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
 import ProjectSettingsDialog from "@features/session-nav/components/ProjectSettingsDialog.vue"
 import {
@@ -232,7 +209,6 @@ import {
   ChatRoundAddIcon,
   CheckIcon,
   ClockCircleIcon,
-  CloseIcon,
   DocumentAddIcon,
   FolderIcon,
   HistoryIcon,
@@ -279,8 +255,6 @@ function scopeIcon(project: string | undefined) {
 
 const { play } = useSound()
 const router = useRouter()
-const query = shallowRef("")
-const searchInput = useTemplateRef<HTMLInputElement>("searchInput")
 const scopeFilter = shallowRef<string | undefined>(undefined)
 const scopeMenuOpen = shallowRef(false)
 const projIcons = shallowRef<Record<string, ProjIcon>>(loadProjIcons())
@@ -319,20 +293,11 @@ function highlightedCwd(): string | undefined {
   return undefined
 }
 
+const searchOpen = shallowRef(false)
+
 function openSearch() {
   void play("search")
-  searchInput.value?.focus()
-  searchInput.value?.select()
-}
-
-function clearQuery() {
-  query.value = ""
-  searchInput.value?.focus()
-}
-
-function activateFirst() {
-  const row = document.querySelector<HTMLElement>(".session-list .session-card")
-  row?.click()
+  searchOpen.value = true
 }
 
 useEventListener(window, "keydown", (event) => {
@@ -519,7 +484,7 @@ function onCreateSession(cwd?: string): void {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
 }
 
 .nav-collapse:hover,
@@ -563,44 +528,35 @@ function onCreateSession(cwd?: string): void {
   min-width: 0;
   height: 32px;
   padding-inline: var(--spacing-xxs) var(--spacing-xs);
-  border-radius: var(--radius-md);
-  color: var(--contrast-foreground-muted);
-  cursor: text;
-}
-
-.search-field:hover,
-.search-field:focus-within {
-  background: var(--interaction-hover);
-}
-
-.search-field input {
-  flex: 1;
-  min-width: 0;
   border: 0;
-  outline: 0;
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--contrast-foreground);
   font-size: var(--text-caption);
+  text-align: start;
+  cursor: pointer;
 }
 
-.search-field input::placeholder {
-  color: var(--contrast-foreground-faint);
+.search-field:hover,
+.search-field:focus-visible {
+  background: var(--interaction-hover);
+  color: var(--contrast-foreground);
 }
 
-.search-clear,
-.head-btn {
+.search-field-lead {
   display: grid;
   flex: none;
   place-items: center;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-foreground-muted);
+  width: var(--size-icon);
+  height: var(--size-icon);
 }
 
-.search-clear {
-  width: 20px;
-  height: 20px;
+.search-field-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .head-actions {
@@ -611,12 +567,18 @@ function onCreateSession(cwd?: string): void {
 
 .head-btn {
   position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
   width: 28px;
   height: 28px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--contrast-foreground);
 }
 
-.head-btn:hover,
-.search-clear:hover {
+.head-btn:hover {
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
 }
@@ -802,7 +764,7 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   opacity: 0;
   cursor: pointer;
 }

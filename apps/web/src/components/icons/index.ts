@@ -50,6 +50,10 @@ export { DocumentAddIcon } from "@solar-icons/vue/linear/document-add"
 
 export { DocumentIcon } from "@solar-icons/vue/linear/document"
 
+export { DoubleAltArrowDownIcon } from "@solar-icons/vue/linear/double-alt-arrow-down"
+
+export { DoubleAltArrowUpIcon } from "@solar-icons/vue/linear/double-alt-arrow-up"
+
 export { EyeIcon } from "@solar-icons/vue/linear/eye"
 
 export { FolderIcon } from "@solar-icons/vue/linear/folder"

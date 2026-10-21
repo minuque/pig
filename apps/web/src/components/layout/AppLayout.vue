@@ -43,6 +43,7 @@ const {
   setSbState,
   leftWidth,
   resizing,
+  sbAnimating,
   isNarrow,
   toggle,
   resizeBy,
@@ -53,7 +54,15 @@ const leftWidthStyle = computed(() => ({ "--left-width": `${leftWidth.value}px` 
 const sbClass = computed(() => `sb-${sbState.value}`)
 const isOffcanvas = computed(() => sbState.value === "offcanvas")
 
-provide(leftPanelKey, { leftOpen, sbState, setSbState, toggle, resizing, isNarrow })
+provide(leftPanelKey, {
+  leftOpen,
+  sbState,
+  setSbState,
+  toggle,
+  resizing,
+  sbAnimating,
+  isNarrow,
+})
 
 useEventListener(window, "keydown", (event) => {
   if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "b") return

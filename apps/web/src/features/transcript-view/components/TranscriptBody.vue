@@ -513,7 +513,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   padding: var(--spacing-sm) 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   font: inherit;
   font-size: var(--text-meta);
   text-align: center;

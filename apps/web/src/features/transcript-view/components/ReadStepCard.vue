@@ -169,7 +169,7 @@ watch(
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   font: inherit;
   cursor: pointer;
 }

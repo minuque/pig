@@ -200,7 +200,7 @@ async function copy() {
   flex: none;
   align-items: center;
   gap: 2px;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground);
   white-space: nowrap;
 }
 
