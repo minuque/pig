@@ -25,7 +25,7 @@
 
       <span
         v-if="hoverItem"
-        class="minimap-preview"
+        class="minimap-preview menu-surface surface-float"
         data-minimap-preview
         :style="{
           top: `${resolveMinimapTopPercent(hoverIndex ?? 0, items.length)}%`,
@@ -195,19 +195,18 @@ function onStageFocusOut(event: FocusEvent) {
 .preview-card {
   display: block;
   padding: var(--spacing-sm);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--card);
-  color: var(--contrast-foreground);
-  box-shadow: var(--shadow-popover);
+  border: var(--border-width) solid var(--hairline);
+  border-radius: var(--radius-popover);
+  box-shadow: var(--shadow-elevated);
   text-align: start;
 }
 
 .preview-user {
   display: block;
   overflow: hidden;
+  color: var(--contrast-foreground);
   font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-normal);
   line-height: 20px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -218,8 +217,8 @@ function onStageFocusOut(event: FocusEvent) {
   max-height: 3.75rem;
   margin-top: var(--spacing-xxs);
   overflow: hidden;
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-body-sm);
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-caption);
   line-height: 20px;
   line-clamp: 3;
   -webkit-box-orient: vertical;
