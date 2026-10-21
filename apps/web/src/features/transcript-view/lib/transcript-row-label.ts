@@ -1,5 +1,6 @@
 import { t } from "@i18n/index.js"
 import type { ThoughtStep, ToolGroupKey, ToolRow } from "@features/transcript-view/type.js"
+import { itemLineChange } from "@features/transcript-view/lib/tool-summary.js"
 
 export function thoughtStepLabel(step: ThoughtStep, completedAt = step.endedAt): string {
   if (step.streaming) return t("transcript.thinking")
@@ -132,4 +133,22 @@ export function toolRowFailCount(row: ToolRow): number {
   }
 
   return count
+}
+
+export function toolRowLineChange(row: ToolRow): { added: number; removed: number } {
+  let added = 0
+  let removed = 0
+
+  for (const step of row.steps) {
+    if (step.type !== "tools") continue
+
+    for (const item of step.items) {
+      if (item.isError) continue
+      const change = itemLineChange(item.toolName, item.input)
+      added += change.added
+      removed += change.removed
+    }
+  }
+
+  return { added, removed }
 }

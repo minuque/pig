@@ -104,6 +104,8 @@ export { SettingsMinimalisticIcon } from "@solar-icons/vue/linear/settings-minim
 
 export { SliderMinimalisticHorizontalIcon } from "@solar-icons/vue/linear/slider-minimalistic-horizontal"
 
+export { SledgehammerIcon } from "@solar-icons/vue/linear/sledgehammer"
+
 export { StarIcon } from "@solar-icons/vue/linear/star"
 
 export { StarIcon as StarBoldIcon } from "@solar-icons/vue/bold/star"

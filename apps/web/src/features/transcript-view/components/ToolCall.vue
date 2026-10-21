@@ -115,11 +115,11 @@ import type {
 import {
   AltArrowRightIcon,
   CodeSquareIcon,
-  CommandIcon,
   EyeIcon,
   LightbulbMinimalisticIcon,
   MagnifierIcon,
   PenIcon,
+  SledgehammerIcon,
 } from "@components/icons/index.js"
 
 const { t } = useI18n()
@@ -328,7 +328,7 @@ const icon = computed(() => {
   if (thought.value) return LightbulbMinimalisticIcon
   const key = group.value?.key
 
-  if (!key) return CommandIcon
+  if (!key) return SledgehammerIcon
 
   switch (key) {
     case "read":
@@ -341,7 +341,7 @@ const icon = computed(() => {
     case "command":
       return CodeSquareIcon
     case "tool":
-      return CommandIcon
+      return SledgehammerIcon
     default: {
       const _exhaustive: never = key
       return _exhaustive
@@ -388,7 +388,7 @@ function toggleGroup(event: MouseEvent) {
   border-radius: 0;
   background: transparent;
   color: var(--contrast-foreground-muted);
-  font-size: var(--text-meta);
+  font-size: var(--text-body-md);
   font-weight: var(--font-weight-normal);
   text-align: start;
 }
