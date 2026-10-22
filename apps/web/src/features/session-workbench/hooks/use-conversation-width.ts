@@ -41,6 +41,9 @@ export function useConversationWidth(): {
   let observer: ResizeObserver | undefined
   let sidebarFrozen = false
   let lastContentWidth = -1
+  /** resize 帧里的写入合并到下一帧，避免同一帧做两次全列布局。 */
+  let publishRaf = 0
+  let pendingWidth = -1
 
   // 唯一写入口：sticky 只在冻结期生效（只放宽不缩窄），值没变就不碰样式
   function apply(root: HTMLElement, next: number, sticky = false) {
@@ -83,6 +86,11 @@ export function useConversationWidth(): {
     observer?.disconnect()
     observer = undefined
 
+    if (publishRaf) {
+      cancelAnimationFrame(publishRaf)
+      publishRaf = 0
+    }
+
     if (!(el instanceof HTMLElement)) {
       rootEl.value = null
       lastContentWidth = -1
@@ -96,7 +104,13 @@ export function useConversationWidth(): {
       const width = box?.inlineSize ?? entries[0]?.contentRect.width
 
       if (width == null) return
-      publish(el, width)
+      pendingWidth = width
+
+      if (publishRaf) return
+      publishRaf = requestAnimationFrame(() => {
+        publishRaf = 0
+        publish(el, pendingWidth)
+      })
     })
     observer.observe(el)
   }
@@ -156,6 +170,8 @@ export function useConversationWidth(): {
 
   onBeforeUnmount(() => {
     observer?.disconnect()
+
+    if (publishRaf) cancelAnimationFrame(publishRaf)
   })
   return {
     resizing,
