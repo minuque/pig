@@ -12,7 +12,8 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  forbidOnly: Boolean(process.env.CI),
+  // 本地没有 CI 变量，只有 pre-push 跑 e2e；test.only 溜进去就没人发现
+  forbidOnly: true,
   globalSetup: resolve(root, "e2e/global-setup.ts"),
   reporter: [
     ["list"],

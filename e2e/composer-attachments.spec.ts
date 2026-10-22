@@ -147,9 +147,14 @@ test("发送中被中止：不再 bind，丢弃批次且保留 chips", async ({ 
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   await installTurnBridge(page)
-  // 拖慢 stage，让中止稳定落在 stage 与 bind 之间
+  // 闸住 stage 请求，中止一定落在 stage 与 bind 之间，不靠固定延时抢窗口
+  let releaseStage = () => {}
+  const stageGate = new Promise<void>((resolve) => {
+    releaseStage = resolve
+  })
+
   await page.route(/\/attachments\/stage/, async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 600))
+    await stageGate
     await route.continue()
   })
   await page.goto(complexGateway.entryUrl)
@@ -179,6 +184,8 @@ test("发送中被中止：不再 bind，丢弃批次且保留 chips", async ({ 
   const stageRequest = await staged
 
   await page.keyboard.press("Escape")
+  // 中止已经落地，再放行 stage：客户端拿到响应后只能丢弃这个批次
+  releaseStage()
 
   const discard = await discarded
   const batch = new URL(stageRequest.url()).searchParams.get("batch")

@@ -67,16 +67,11 @@ describe("toolRowLabelParts", () => {
       group("tool", 1),
     ]
 
+    // write 并入 edit 计数，思考不进标签
     expect(text(toolRowLabelParts(row(steps)))).toBe(
-      [
-        "Thought 1 round",
-        "ran 1 command",
-        "edited 1 file",
-        "wrote 1 file",
-        "read 1 file",
-        "searched 1 time",
-        "called 1 tool",
-      ].join(" · "),
+      ["Ran 1 command", "edited 2 files", "read 1 file", "searched 1 time", "called 1 tool"].join(
+        " · ",
+      ),
     )
   })
 
@@ -93,15 +88,19 @@ describe("toolRowLabelParts", () => {
 
     expect(text(toolRowLabelParts(row(steps)))).toBe(
       [
-        "Thought 2 rounds",
-        "ran 2 commands",
-        "edited 2 files",
-        "wrote 2 files",
+        "Ran 2 commands",
+        "edited 4 files",
         "read 2 files",
         "searched 2 times",
         "called 2 tools",
       ].join(" · "),
     )
+  })
+
+  it("只有思考步骤时不出计数，回落到执行过程", () => {
+    i18n.global.locale.value = "en"
+
+    expect(text(toolRowLabelParts(row([thought("thought")])))).toBe("Completed")
   })
 
   it("中止时首段为 Stopped", () => {
@@ -115,6 +114,6 @@ describe("toolRowLabelParts", () => {
 
     expect(
       text(toolRowLabelParts(row([thought("thought"), group("edit", 1), group("read", 1)]))),
-    ).toBe("思考 1 轮 · 编辑 1 次文件 · 读 1 次文件")
+    ).toBe("编辑 1 次文件 · 读 1 次文件")
   })
 })

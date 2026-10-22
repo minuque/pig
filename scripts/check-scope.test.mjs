@@ -38,6 +38,40 @@ describe("classifyTouched", () => {
     assert.deepEqual(scope.prettierFiles, ["apps/web/src/gone.vue"])
   })
 
+  it("e2e 目录改动单独标记，不映射到包", () => {
+    const scope = classifyTouched(["e2e/checkpoint.ts"])
+    assert.equal(scope.e2e, true)
+    assert.equal(scope.scripts, false)
+    assert.deepEqual(scope.packages, [])
+  })
+
+  it("改 gateway 连带检查依赖它的 desktop", () => {
+    assert.deepEqual(classifyTouched(["packages/gateway/src/cli.ts"]).packages, [
+      "@pig/gateway",
+      "@pig/desktop",
+    ])
+    assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).packages, ["@pig/web"])
+  })
+
+  it("按改动区域挑 e2e，未命中的 web 改动回落到关键旅程", () => {
+    assert.deepEqual(classifyTouched(["apps/web/src/features/composer/index.vue"]).specs, [
+      "e2e/composer-attachments.spec.ts",
+      "e2e/composer-queue.spec.ts",
+      "e2e/visual/composer.spec.ts",
+    ])
+    assert.deepEqual(classifyTouched(["apps/web/src/style/app.css"]).specs, [
+      "e2e/visual/composer.spec.ts",
+      "e2e/visual/transcript.spec.ts",
+    ])
+    assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).specs, [
+      "e2e/critical-journey.spec.ts",
+    ])
+    // e2e 自身改动不按范围判断，交给全量
+    assert.deepEqual(classifyTouched(["e2e/fixtures.ts"]).specs, [])
+    // 纯文档改动不挑 e2e
+    assert.deepEqual(classifyTouched(["docs/directory-structure.md"]).specs, [])
+  })
+
   it("DESIGN.md 触发 designmd 与 token", () => {
     const scope = classifyTouched(["DESIGN.md"])
     assert.equal(scope.designmd, true)
