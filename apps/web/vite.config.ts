@@ -65,6 +65,10 @@ export default defineConfig({
       "@utils": fileURLToPath(new URL("./src/utils", import.meta.url)),
     },
   },
+  test: {
+    // node 环境没有 localStorage；偏好读写默认参数直接引用它
+    setupFiles: ["./test/setup.ts"],
+  },
   server: {
     host: "127.0.0.1",
     // 固定端口,方便 VSCode Chrome 调试;strictPort 防止被静默换端口后断点失效
