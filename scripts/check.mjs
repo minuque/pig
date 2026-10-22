@@ -9,6 +9,8 @@ import { reportResults, runPnpm } from "./check-run.mjs"
 const root = resolve(import.meta.dirname, "..")
 const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
+/** --e2e：顺手把映射到的 e2e 也跑掉。 */
+const withE2e = process.argv.includes("--e2e")
 /* DESIGN.md 缺失时（token 稳定前）跳过 designmd lint 与 token 校验，重新生成后自动恢复。 */
 const hasDesignMd = existsSync(resolve(root, "DESIGN.md"))
 const CHECK_STEPS = [
@@ -167,6 +169,15 @@ async function checkTouched(scope, files) {
   for (const id of scope.packages) {
     steps.push({ name: `typecheck:${id}`, args: ["--filter", id, "typecheck"] })
     steps.push({ name: `test:${id}`, args: ["--filter", id, "test"] })
+  }
+
+  if (scope.specs.length) {
+    if (withE2e)
+      steps.push({
+        name: `e2e:${scope.specs.length}条`,
+        args: ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts", ...scope.specs],
+      })
+    else console.log(`check:touched: 建议补跑 e2e → pnpm test:e2e ${scope.specs.join(" ")}`)
   }
 
   if (steps.length === 0) {
