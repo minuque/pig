@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url"
 
 import Gateway from "../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../packages/gateway/src/directory.js"
-import { prebuildComplexSession } from "./prebuild-session.js"
+import { prebuildComplexSession, prebuildFillerSessions } from "./prebuild-session.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const webRoot = join(root, "apps/web/dist")
@@ -48,6 +48,15 @@ export async function dragOntoPanel(page: Page, type: string, total = 2) {
   )
 }
 
+/** Chromium 拒直连这些端口（ERR_UNSAFE_PORT）；listen(0) 偶尔会抽到。 */
+const UNSAFE_PORTS = new Set([
+  1, 7, 9, 11, 13, 15, 17, 19, 20, 21, 22, 23, 25, 37, 42, 43, 53, 69, 77, 79, 87, 95, 101, 102,
+  103, 104, 109, 110, 111, 113, 115, 117, 119, 123, 135, 137, 139, 143, 161, 179, 389, 427, 465,
+  512, 513, 514, 515, 526, 530, 531, 532, 540, 548, 554, 556, 563, 587, 601, 636, 989, 990, 993,
+  995, 1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669,
+  6697, 10080,
+])
+
 export interface E2eGateway {
   readonly origin: string
   readonly entryUrl: string
@@ -55,7 +64,12 @@ export interface E2eGateway {
   readonly workspaceId: string
 }
 
-type TestFixtures = { gateway: E2eGateway; complexGateway: E2eGateway }
+type TestFixtures = {
+  gateway: E2eGateway
+  complexGateway: E2eGateway
+  /** 只装 6 个批量会话，用来验侧栏分组与分页。 */
+  navGateway: E2eGateway
+}
 
 async function withGateway(
   seed: (sessionDir: string, workspaceDir: string) => void,
@@ -78,14 +92,16 @@ async function withGateway(
       return path
     },
   }
-  const gateway = new Gateway({
-    webRoot,
-    sessionDir,
-    cwd: workspaceDir,
-    platformPort,
-    port: 0,
-  })
-  const port = await gateway.start()
+  const options = { webRoot, sessionDir, cwd: workspaceDir, platformPort, port: 0 }
+  let gateway = new Gateway(options)
+  let port = await gateway.start()
+
+  // listen(0) 偶尔抽到 Chromium 的禁用端口，重起到能直连为止
+  for (let attempt = 0; attempt < 5 && UNSAFE_PORTS.has(port); attempt += 1) {
+    await gateway.stop()
+    gateway = new Gateway(options)
+    port = await gateway.start()
+  }
 
   try {
     await use({
@@ -112,6 +128,14 @@ export const test = base.extend<TestFixtures>({
       await withGateway((sessionDir, workspaceDir) => {
         const built = prebuildComplexSession(sessionDir, workspaceDir)
         console.log(`预构建会话 ${built.id}${built.forked ? "（fork 本机历史）" : "（合成样本）"}`)
+      }, use)
+    },
+    { scope: "test" },
+  ],
+  navGateway: [
+    async ({}, use) => {
+      await withGateway((sessionDir, workspaceDir) => {
+        prebuildFillerSessions(sessionDir, workspaceDir, 6)
       }, use)
     },
     { scope: "test" },

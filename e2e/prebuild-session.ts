@@ -99,6 +99,37 @@ function appendMarkerTurn(manager: SessionManager, timestamp: number) {
   )
 }
 
+/** 侧栏分页用例的会话名前缀。 */
+export const FILLER_PREFIX = "批量会话"
+
+/** 造 count 个同 cwd、同一天更新的会话，用来触发侧栏分页。 */
+export function prebuildFillerSessions(
+  sessionDir: string,
+  cwd: string,
+  count: number,
+): { id: string; name: string }[] {
+  const made: { id: string; name: string }[] = []
+
+  for (let i = 0; i < count; i += 1) {
+    const id = `e2e-filler-${i}`
+    const name = `${FILLER_PREFIX} ${i + 1}`
+    const timestamp = Date.now() + i
+    const manager = SessionManager.create(cwd, sessionDir, { id })
+
+    manager.appendSessionInfo(name)
+    manager.appendMessage({ role: "user", content: `${name} 的内容`, timestamp })
+    // SessionManager 要见到 assistant 消息才落盘
+    manager.appendMessage(
+      assistantMessage([{ type: "text", text: `${name} 的回复` }], timestamp + 1_000),
+    )
+
+    if (!manager.getSessionFile()) throw new Error(`未写出 ${id}`)
+    made.push({ id, name })
+  }
+
+  return made
+}
+
 /** 把本机历史 fork 进测试 sessionDir；没有源文件时只写标记回合。用完由调用方删目录。 */
 export function prebuildComplexSession(
   sessionDir: string,
