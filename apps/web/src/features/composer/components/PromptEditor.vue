@@ -79,7 +79,7 @@ export function shouldSubmitOnKeydown(e: {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef, watch } from "vue"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
 import { useCommandMenu, type ChipInsert } from "@features/composer/hooks/use-command-menu.js"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
@@ -115,14 +115,14 @@ const emit = defineEmits<{
   submit: []
   pasteFiles: [files: File[]]
 }>()
-const editor = ref<HTMLElement | null>(null)
-const editorWrap = ref<HTMLElement | null>(null)
-const container = ref<HTMLElement | null>(null)
-const card = ref<HTMLElement | null>(null)
-const leftCluster = ref<HTMLElement | null>(null)
-const usageCluster = ref<HTMLElement | null>(null)
-const toolsCluster = ref<HTMLElement | null>(null)
-const rightCluster = ref<HTMLElement | null>(null)
+const editor = useTemplateRef<HTMLElement>("editor")
+const editorWrap = useTemplateRef<HTMLElement>("editorWrap")
+const container = useTemplateRef<HTMLElement>("container")
+const card = useTemplateRef<HTMLElement>("card")
+const leftCluster = useTemplateRef<HTMLElement>("leftCluster")
+const usageCluster = useTemplateRef<HTMLElement>("usageCluster")
+const toolsCluster = useTemplateRef<HTMLElement>("toolsCluster")
+const rightCluster = useTemplateRef<HTMLElement>("rightCluster")
 const expanded = ref(true)
 const hasText = computed(() => prompt.value.length > 0)
 const caret = ref(0)

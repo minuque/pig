@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, ref, watch } from "vue"
+import { computed, defineAsyncComponent, ref, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
@@ -216,8 +216,8 @@ const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisab
 const usageOpen = ref(false)
 const modelPickerOpen = ref(false)
 const previewItem = ref<ComposerAttachment>()
-const fileInput = ref<HTMLInputElement | null>(null)
-const editor = ref<InstanceType<typeof PromptEditor> | null>(null)
+const fileInput = useTemplateRef<HTMLInputElement>("fileInput")
+const editor = useTemplateRef<InstanceType<typeof PromptEditor>>("editor")
 const attachmentFiles = computed(() => props.attachments.files.value)
 const queueItems = computed(() => props.queue.items.value)
 const attachmentProgress = computed(() => props.attachments.progress.value)
