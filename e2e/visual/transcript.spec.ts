@@ -63,7 +63,6 @@ test.describe("transcript 视觉", () => {
     await expect(column).toHaveScreenshot("transcript-tools.png", {
       mask,
       maskColor: "#e5e5e5",
-      maxDiffPixelRatio: 0,
     })
   })
 
@@ -83,7 +82,6 @@ test.describe("transcript 视觉", () => {
     await expect(card).toHaveScreenshot("read-step-card.png", {
       mask,
       maskColor: "#e5e5e5",
-      maxDiffPixelRatio: 0,
     })
   })
 })

@@ -8,9 +8,14 @@ export default defineConfig({
   testDir: dirname(fileURLToPath(import.meta.url)),
   testMatch: "*.spec.ts",
   timeout: 90_000,
-  expect: { timeout: 15_000 },
+  expect: {
+    timeout: 15_000,
+    // 零容忍会把抗锯齿与字体渲染抖动都算失败，真变化又看不出来
+    toHaveScreenshot: { maxDiffPixels: 200 },
+  },
   fullyParallel: false,
-  workers: 1,
+  // 文件间并行，文件内仍串行；实测 32 条从 38.0s 降到 19.1s
+  workers: 4,
   retries: 0,
   // 本地没有 CI 变量，只有 pre-push 跑 e2e；test.only 溜进去就没人发现
   forbidOnly: true,
