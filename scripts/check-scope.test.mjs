@@ -38,6 +38,21 @@ describe("classifyTouched", () => {
     assert.deepEqual(scope.prettierFiles, ["apps/web/src/gone.vue"])
   })
 
+  it("e2e 目录改动单独标记，不映射到包", () => {
+    const scope = classifyTouched(["e2e/checkpoint.ts"])
+    assert.equal(scope.e2e, true)
+    assert.equal(scope.scripts, false)
+    assert.deepEqual(scope.packages, [])
+  })
+
+  it("改 gateway 连带检查依赖它的 desktop", () => {
+    assert.deepEqual(classifyTouched(["packages/gateway/src/cli.ts"]).packages, [
+      "@pig/gateway",
+      "@pig/desktop",
+    ])
+    assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).packages, ["@pig/web"])
+  })
+
   it("DESIGN.md 触发 designmd 与 token", () => {
     const scope = classifyTouched(["DESIGN.md"])
     assert.equal(scope.designmd, true)

@@ -64,9 +64,9 @@ for (const file of files) {
       messages.push(lineOf(source, error instanceof Error ? error.message : String(error)))
     }
 
-    // tips 是 dev 期 warning（如非法嵌套元素），开发不拦、线上出 hydration 问题
+    // tips 是 dev 期 warning（如非法嵌套元素），线上会出 hydration 问题，一并计入失败
     for (const tip of compiled.tips) {
-      messages.push(`warning: ${tip}`)
+      messages.push(`tip: ${tip}`)
     }
   }
 

@@ -5,6 +5,8 @@ export const PACKAGES = [
   { id: "@pig/desktop", prefix: "apps/desktop/" },
   { id: "@pig/gateway", prefix: "packages/gateway/" },
 ]
+/** gateway 被 desktop 直接引用，改前者要连带检查后者的类型。 */
+const PACKAGE_DEPENDENTS = { "@pig/gateway": ["@pig/desktop"] }
 const ROOT_TOOLING =
   /^(eslint\.config\.|stylelint\.config\.|scripts\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
 const LINTABLE = /\.(?:[cm]?[jt]sx?|vue)$/
@@ -26,6 +28,13 @@ export function classifyTouched(files) {
     if (normalized.some((file) => file.startsWith(pkg.prefix))) packages.push(pkg.id)
   }
 
+  for (const pkg of [...packages]) {
+    for (const dependent of PACKAGE_DEPENDENTS[pkg] ?? []) {
+      if (!packages.includes(dependent)) packages.push(dependent)
+    }
+  }
+
+  const e2e = normalized.some((file) => file.startsWith("e2e/"))
   const scripts = normalized.some((file) => file.startsWith("scripts/"))
   const tokens = normalized.some(
     (file) =>
@@ -41,6 +50,7 @@ export function classifyTouched(files) {
   const vueFiles = normalized.filter((file) => file.endsWith(".vue"))
   return {
     packages,
+    e2e,
     scripts,
     tokens,
     designmd,

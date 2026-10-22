@@ -29,6 +29,10 @@ const CHECK_STEPS = [
   { name: "test", args: ["test"] },
 ]
 
+function reportDesignMdSkip() {
+  if (!hasDesignMd) console.log("跳过: designmd, design-tokens（DESIGN.md 缺失）")
+}
+
 function dirtyFiles() {
   const opts = { cwd: root, encoding: "utf8", windowsHide: true }
   const names = [
@@ -52,6 +56,8 @@ function existingTouched() {
 }
 
 async function runAll() {
+  reportDesignMdSkip()
+
   const results = await Promise.all(
     CHECK_STEPS.map(async (step) => {
       const ran = await runPnpm(step.args, root)
@@ -111,11 +117,16 @@ async function checkTouched(scope, files) {
     return
   }
 
+  reportDesignMdSkip()
+
   /** @type {{ name: string, args: string[] }[]} */
   const steps = []
 
   if (scope.prettierFiles.length) {
-    steps.push({ name: "format", args: ["exec", "prettier", "--check", ...scope.prettierFiles] })
+    steps.push({
+      name: "format",
+      args: ["exec", "prettier", "--check", ...scope.prettierFiles],
+    })
   }
 
   if (scope.lintFiles.length) {
@@ -146,6 +157,12 @@ async function checkTouched(scope, files) {
     })
     steps.push({ name: "test:scripts", args: ["test:scripts"] })
   }
+
+  if (scope.e2e)
+    steps.push({
+      name: "typecheck:e2e",
+      args: ["exec", "tsc", "--noEmit", "-p", "e2e/tsconfig.json"],
+    })
 
   for (const id of scope.packages) {
     steps.push({ name: `typecheck:${id}`, args: ["--filter", id, "typecheck"] })
