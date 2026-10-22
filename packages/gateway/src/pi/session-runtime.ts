@@ -149,7 +149,7 @@ export class PiHostSession implements PiSessionRuntime {
           composed.images.length ? { images: composed.images } : undefined,
         )
 
-        if (!this.session.isIdle) await this.session.waitForIdle()
+        await this.session.waitForIdle()
       } catch (error) {
         this.attachments?.restore(this.session.sessionId, staged)
         this.timing.outcome("error")

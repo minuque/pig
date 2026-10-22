@@ -43,7 +43,6 @@ export function useTranscriptKeepAlive(getRoot: () => HTMLElement | null) {
     const selection = document.getSelection()
 
     if (!selection || selection.isCollapsed || selection.rangeCount === 0) return
-    const rows = root.querySelectorAll<HTMLElement>("[data-row-id]")
 
     for (let index = 0; index < selection.rangeCount; index += 1) {
       const range = selection.getRangeAt(index)
@@ -57,6 +56,16 @@ export function useTranscriptKeepAlive(getRoot: () => HTMLElement | null) {
 
         if (id) selectionIds.add(id)
       }
+
+      // 先圈定共同祖先子树，只对其中行做 intersectsNode，避免全表扫描
+      const scope =
+        range.commonAncestorContainer instanceof HTMLElement
+          ? range.commonAncestorContainer
+          : range.commonAncestorContainer.parentElement
+      const rows =
+        scope === root || (scope && root.contains(scope))
+          ? (scope ?? root).querySelectorAll<HTMLElement>("[data-row-id]")
+          : root.querySelectorAll<HTMLElement>("[data-row-id]")
 
       for (const el of rows) {
         const id = el.dataset.rowId
