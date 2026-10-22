@@ -12,7 +12,7 @@ const fix = process.argv.includes("--fix")
 /* DESIGN.md 缺失时（token 稳定前）跳过 designmd lint 与 token 校验，重新生成后自动恢复。 */
 const hasDesignMd = existsSync(resolve(root, "DESIGN.md"))
 const CHECK_STEPS = [
-  { name: "format", args: ["exec", "prettier", "--check", "."] },
+  { name: "format", args: ["exec", "prettier", "--check", "--cache", "."] },
   { name: "eslint", args: ["exec", "eslint", "."] },
   { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
   {
@@ -125,7 +125,7 @@ async function checkTouched(scope, files) {
   if (scope.prettierFiles.length) {
     steps.push({
       name: "format",
-      args: ["exec", "prettier", "--check", ...scope.prettierFiles],
+      args: ["exec", "prettier", "--check", "--cache", ...scope.prettierFiles],
     })
   }
 
