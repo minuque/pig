@@ -24,8 +24,21 @@ function listMoreButton(page: Page) {
   return page.locator("nav.session-list button.more-button", { hasText: "显示更多" })
 }
 
+/** 分区默认收起，「显示更多」按钮藏在收起的分组里：先逐个展开所有分区。 */
+async function expandAllSections(page: Page) {
+  const collapsed = page.locator("nav.session-list .section-toggle[aria-expanded=false]")
+
+  for (let step = 0; step < 20; step += 1) {
+    if ((await collapsed.count()) === 0) return
+    await collapsed.first().click()
+  }
+
+  throw new Error("侧栏仍有未展开的分区")
+}
+
 /** 侧栏折叠时点「显示更多」，再从顶往下扫虚拟列表，返回窗口里的目标卡片。 */
 export async function revealSessionCard(page: Page, name: BenchSessionName) {
+  await expandAllSections(page)
   const more = listMoreButton(page)
 
   for (let step = 0; step < 20; step += 1) {
@@ -78,6 +91,7 @@ export async function clickSessionCard(page: Page, name: BenchSessionName) {
 }
 
 export async function revealAllSessionCards(page: Page) {
+  await expandAllSections(page)
   const more = listMoreButton(page)
 
   for (let step = 0; step < 20; step += 1) {
@@ -418,16 +432,32 @@ async function waitForSettledView(page: Page) {
   )
 }
 
+/** 滚轮上滚到顶；直写 scrollTop 会拉不回「跟随最新」的吸附。 */
+async function scrollTranscriptToTop(page: Page) {
+  const root = page.locator(".transcript-viewport:not(.transcript-hold)")
+  const box = await root.boundingBox()
+
+  if (!box) throw new Error("主视口不存在")
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+
+  for (let step = 0; step < 400; step += 1) {
+    const top = await root.evaluate((node) => node.scrollTop)
+
+    if (top <= 0) return
+    await page.mouse.wheel(0, -Math.max(400, box.height))
+    await waitMs(page, 16)
+  }
+}
+
 /** 分页拉完历史后，时间线滚到顶再到底，返回最差动画帧。 */
 export async function scrollTranscript(page: Page, name: BenchSessionName): Promise<number> {
   const turns = sessionTurns(name)
 
   if (turns === 0) throw new Error("空会话没有可滚动历史")
   await loadAllTranscriptPages(page, turns)
-  // 窗口化只挂视口附近的行，滚到顶才算最早一轮真的落地
-  await page.locator(".transcript-viewport:not(.transcript-hold)").evaluate((node) => {
-    node.scrollTop = 0
-  })
+  // 窗口化只挂视口附近的行，滚到顶才算最早一轮真的落地。
+  // 用滚轮而非直写 scrollTop：直写会被「跟随最新」立刻拉回底部。
+  await scrollTranscriptToTop(page)
   await page
     .getByText(sessionPrompt(name, 1), { exact: true })
     .waitFor({ state: "attached", timeout: WORKBENCH_TIMEOUT_MS })

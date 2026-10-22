@@ -10,10 +10,10 @@ export async function sidebarToggleWorst(page: Page): Promise<number> {
     page.evaluate(() => document.querySelector<HTMLButtonElement>("button.nav-collapse")?.click())
   return await worstFrameDuring(page, async () => {
     await clickCollapse()
-    await page.locator(".shell.left-closed").waitFor({ state: "attached" })
+    await page.locator(".shell.sb-offcanvas").waitFor({ state: "attached" })
     await waitMs(page, 260)
     await clickCollapse()
-    await page.locator(".shell.left-closed").waitFor({ state: "detached" })
+    await page.locator(".shell.sb-offcanvas").waitFor({ state: "detached" })
     await waitMs(page, 260)
   })
 }
@@ -45,17 +45,27 @@ export async function sidebarDragWorst(page: Page): Promise<number> {
   })
 }
 
-/** 窗口改尺寸序列，量 reflow 期间的最差帧，结束恢复原尺寸。 */
-export async function windowResizeWorst(
+/** 窗口 resize 的三档目标：变窄、变宽、恢复原尺寸。 */
+export const RESIZE_TARGETS = [
+  { key: "shrink", width: 1024, height: 700 },
+  { key: "grow", width: 1440, height: 900 },
+] as const
+
+/** 逐步采样 resize：每档单独开一段帧采样，返回各步最差帧。 */
+export async function windowResizeSteps(
   page: Page,
   size: () => Promise<WindowSize>,
   setSize: (width: number, height: number) => Promise<void>,
-): Promise<number> {
+): Promise<{ shrink: number; grow: number; restore: number }> {
   const original = await size()
-  return await worstFrameDuring(page, async () => {
-    for (const step of [{ width: 1024, height: 700 }, { width: 1440, height: 900 }, original]) {
-      await setSize(step.width, step.height)
+  const measureStep = (width: number, height: number) =>
+    worstFrameDuring(page, async () => {
+      await setSize(width, height)
       await waitMs(page, 200)
-    }
-  })
+    })
+  const [shrinkTarget, growTarget] = RESIZE_TARGETS
+  const shrink = await measureStep(shrinkTarget.width, shrinkTarget.height)
+  const grow = await measureStep(growTarget.width, growTarget.height)
+  const restore = await measureStep(original.width, original.height)
+  return { shrink, grow, restore }
 }

@@ -9,8 +9,13 @@ import Gateway from "../../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import { canonicalizeWorkspacePath } from "../fixtures.js"
 import { runTurnScenarios, type EdgeSample } from "./edges.js"
-import { createDesktopHarness, createWebHarness, type BenchHarness } from "./harness.js"
-import { sidebarDragWorst, sidebarToggleWorst, windowResizeWorst } from "./layout.js"
+import {
+  createDesktopHarness,
+  createWebHarness,
+  type BenchHarness,
+  type BenchSession,
+} from "./harness.js"
+import { sidebarDragWorst, sidebarToggleWorst, windowResizeSteps } from "./layout.js"
 import {
   captureBenchFailure,
   keyToNextFrame,
@@ -54,6 +59,12 @@ type BenchMetrics = {
   sidebarToggleWorstMs: number
   sidebarDragWorstMs: number
   windowResizeWorstMs: number
+  /** resize 分档：变窄、变宽、恢复。 */
+  windowResizeShrinkMs: number
+  windowResizeGrowMs: number
+  windowResizeRestoreMs: number
+  /** 同一窗口在 about:blank 上跑同一序列的基线：OS/Chromium 自身开销。 */
+  windowResizeBaselineMs: number
   ownMessageMs: number
   firstTokenMs: number
   streamWakeMs: number
@@ -143,11 +154,17 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
   }
 }
 
-async function openReadyPage(harness: BenchHarness, observers: boolean) {
-  const started = performance.now()
+async function openReadyPage(
+  harness: BenchHarness,
+  observers: boolean,
+  beforeNavigate?: (session: BenchSession) => Promise<void>,
+) {
   const session = await harness.open(observers)
 
   try {
+    // 基线要在选中工作台前量：此时页面仍是 about:blank
+    if (beforeNavigate) await beforeNavigate(session)
+    const started = performance.now()
     await session.page.goto(session.origin, { waitUntil: "commit" })
     await waitForWorkbench(session.page)
     return { ...session, coldTo: performance.now() - started }
@@ -209,7 +226,11 @@ function printReport(
     row("侧栏列表滚动", "listScrollWorstMs", "滚动", { frame: true }),
     row("侧栏收起展开", "sidebarToggleWorstMs", "布局响应", { frame: true }),
     row("侧栏拖拽调宽", "sidebarDragWorstMs", "布局响应", { frame: true }),
-    row("窗口 resize", "windowResizeWorstMs", "布局响应", { frame: true }),
+    row("窗口 resize（最差）", "windowResizeWorstMs", "布局响应", { frame: true }),
+    row("窗口 resize 变窄", "windowResizeShrinkMs", "窗口 resize 分档", { frame: true }),
+    row("窗口 resize 变宽", "windowResizeGrowMs", "窗口 resize 分档", { frame: true }),
+    row("窗口 resize 恢复", "windowResizeRestoreMs", "窗口 resize 分档", { frame: true }),
+    row("空白页 resize 基线", "windowResizeBaselineMs", "窗口 resize 分档", { frame: true }),
     row("工具组首次展开首帧", "toolExpandFirstFrame", "工具组展开"),
     row("工具组首次展开完成", "toolExpandComplete", "工具组展开"),
     row("输入跟手", "composerKeyToFrame", "输入与发送"),
@@ -295,7 +316,10 @@ async function main() {
       toolExpandComplete: [] as number[],
       sidebarToggle: [] as number[],
       sidebarDrag: [] as number[],
-      windowResize: [] as number[],
+      resizeShrink: [] as number[],
+      resizeGrow: [] as number[],
+      resizeRestore: [] as number[],
+      resizeBaseline: [] as number[],
       composer: [] as number[],
     }
 
@@ -311,7 +335,10 @@ async function main() {
 
       // 打开段：一个实例只量冷启动、切换、滚动、工具展开
       if (!args.turnOnly) {
-        const session = await openReadyPage(harness, true)
+        const session = await openReadyPage(harness, true, async (blank) => {
+          const baseline = await windowResizeSteps(blank.page, blank.size, blank.setSize)
+          open.resizeBaseline.push(Math.max(baseline.shrink, baseline.grow, baseline.restore))
+        })
 
         try {
           const { page } = session
@@ -333,7 +360,11 @@ async function main() {
           open.toolExpandComplete.push(toolExpand.completeMs)
           open.sidebarToggle.push(await sidebarToggleWorst(page))
           open.sidebarDrag.push(await sidebarDragWorst(page))
-          open.windowResize.push(await windowResizeWorst(page, session.size, session.setSize))
+          const resize = await windowResizeSteps(page, session.size, session.setSize)
+
+          open.resizeShrink.push(resize.shrink)
+          open.resizeGrow.push(resize.grow)
+          open.resizeRestore.push(resize.restore)
         } catch (error) {
           await captureBenchFailure(session.page, failShot)
           throw error
@@ -380,7 +411,19 @@ async function main() {
       : undefined
     const sidebarToggle = open.sidebarToggle.length ? collect(open.sidebarToggle) : undefined
     const sidebarDrag = open.sidebarDrag.length ? collect(open.sidebarDrag) : undefined
-    const windowResize = open.windowResize.length ? collect(open.windowResize) : undefined
+    const resizeShrink = open.resizeShrink.length ? collect(open.resizeShrink) : undefined
+    const resizeGrow = open.resizeGrow.length ? collect(open.resizeGrow) : undefined
+    const resizeRestore = open.resizeRestore.length ? collect(open.resizeRestore) : undefined
+    const resizeBaseline = open.resizeBaseline.length ? collect(open.resizeBaseline) : undefined
+    // 总体最差值：每轮取三步最大，再对各轮取中位数
+    const resizeWorstSamples = open.resizeShrink.map((_, index) =>
+      Math.max(
+        open.resizeShrink[index] ?? 0,
+        open.resizeGrow[index] ?? 0,
+        open.resizeRestore[index] ?? 0,
+      ),
+    )
+    const resizeWorst = resizeWorstSamples.length ? collect(resizeWorstSamples) : undefined
     const ownStat = collect(own)
     const tokenStat = collect(token)
     const streamWakeStat = collect(streamWake)
@@ -403,7 +446,11 @@ async function main() {
       composerKeyToFrame: composer?.median ?? Number.NaN,
       sidebarToggleWorstMs: sidebarToggle?.median ?? Number.NaN,
       sidebarDragWorstMs: sidebarDrag?.median ?? Number.NaN,
-      windowResizeWorstMs: windowResize?.median ?? Number.NaN,
+      windowResizeWorstMs: resizeWorst?.median ?? Number.NaN,
+      windowResizeShrinkMs: resizeShrink?.median ?? Number.NaN,
+      windowResizeGrowMs: resizeGrow?.median ?? Number.NaN,
+      windowResizeRestoreMs: resizeRestore?.median ?? Number.NaN,
+      windowResizeBaselineMs: resizeBaseline?.median ?? Number.NaN,
       ownMessageMs: ownStat.median,
       firstTokenMs: tokenStat.median,
       streamWakeMs: streamWakeStat.median,
@@ -427,7 +474,11 @@ async function main() {
       composerKeyToFrame: composer?.p90,
       sidebarToggleWorstMs: sidebarToggle?.p90,
       sidebarDragWorstMs: sidebarDrag?.p90,
-      windowResizeWorstMs: windowResize?.p90,
+      windowResizeWorstMs: resizeWorst?.p90,
+      windowResizeShrinkMs: resizeShrink?.p90,
+      windowResizeGrowMs: resizeGrow?.p90,
+      windowResizeRestoreMs: resizeRestore?.p90,
+      windowResizeBaselineMs: resizeBaseline?.p90,
       ownMessageMs: ownStat.p90,
       firstTokenMs: tokenStat.p90,
       streamWakeMs: streamWakeStat.p90,
@@ -437,7 +488,7 @@ async function main() {
       reconnectMs: reconnectStat.p90,
     }
     const config = {
-      version: 18,
+      version: 19,
       runs: args.runs,
       headed: args.headed,
       turnOnly: args.turnOnly,
