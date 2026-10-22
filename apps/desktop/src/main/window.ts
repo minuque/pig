@@ -10,8 +10,8 @@ import {
 } from "./window-state.js"
 
 const SAVE_DEBOUNCE_MS = 300
-/** 基准窗口坐标：落在所有屏幕之外，但仍可见、仍参与合成。 */
-const BENCH_WINDOW_BOUND = -10_000
+/** 基准窗口坐标：落在屏幕内，保证页面 rAF 真实驱动、渲染管线全开。 */
+const BENCH_WINDOW_BOUND = 80
 
 export type CreateMainWindowOptions = {
   gatewayOrigin?: string
@@ -48,12 +48,16 @@ export function createMainWindow(
   stampDesktopPlatform(window)
   attachDevTools(window)
 
-  // 基准档窗口屏幕外显示，也不写回位置状态，用户下次启动不受影响
+  // 基准档窗口放屏幕内并关后台节流，rAF 才能真实驱动
   if (options.persistState && !bench) persistWindowState(window, options.persistState)
+
+  if (bench) {
+    window.setPosition(BENCH_WINDOW_BOUND, BENCH_WINDOW_BOUND)
+    window.webContents.setBackgroundThrottling(false)
+  }
 
   if (frame.isMaximized && !bench) window.maximize()
 
-  if (bench) window.setPosition(BENCH_WINDOW_BOUND, BENCH_WINDOW_BOUND)
   window.show()
   return window
 }
