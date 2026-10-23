@@ -399,7 +399,6 @@ const { markAborted, onBackgroundIdle } = useTurnFinish({
 setBackgroundIdleHandler(onBackgroundIdle)
 
 function onSend(text: string) {
-  void sound.play("send")
   const batch = composerAttachments.consumeForSend()
 
   void deliverPrompt(text, batch).then((sent) => {
@@ -410,14 +409,12 @@ function onSend(text: string) {
 
 /** 发送成功才出队：被拒（提交中、中止、切走）时条目留在队列里。 */
 function onQueueSendNow(item: QueuedPrompt) {
-  void sound.play("send")
   void deliverPrompt(item.text, item.attachments).then((sent) => {
     if (sent) composerQueue.remove(item.id)
   })
 }
 
 function onQueue(text: string) {
-  void sound.play("send")
   const batch = composerAttachments.consumeForSend()
 
   composerQueue.enqueue(text, batch)
@@ -428,7 +425,6 @@ function onQueue(text: string) {
 }
 
 function onAbort() {
-  void sound.play("stop")
   markAborted()
   void abortSession()
 }

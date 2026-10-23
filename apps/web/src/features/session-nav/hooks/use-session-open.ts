@@ -1,6 +1,5 @@
 import { computed, nextTick, shallowRef, watch, type Ref } from "vue"
 import type { Router } from "vue-router"
-import { useSound } from "@features/click-sound/index.js"
 
 function afterPaint(): Promise<void> {
   /* 后台页面 rAF 被冻结，等绘制没意义且会把跳转饿死；直接推进。 */
@@ -32,7 +31,6 @@ export function useSessionOpen(
   router: Pick<Router, "push">,
   loadHistory?: (id: string) => Promise<unknown>,
 ) {
-  const { play } = useSound()
   const pendingSessionId = shallowRef<string>()
   const highlightedSessionId = computed(() => pendingSessionId.value ?? sessionId.value)
   let openToken = 0
@@ -55,7 +53,6 @@ export function useSessionOpen(
       return
     }
 
-    void play("switch")
     pendingSessionId.value = id
     const token = ++openToken
     void nextTick(async () => {

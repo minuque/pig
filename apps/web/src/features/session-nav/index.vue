@@ -192,7 +192,6 @@ import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyAction } from "@components/layout/notify.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
-import { useSound } from "@features/click-sound/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
 import {
   loadProjIcons,
@@ -253,7 +252,6 @@ function scopeIcon(project: string | undefined) {
   return projectIconComponent(project ? projIcons.value[project] : undefined)
 }
 
-const { play } = useSound()
 const router = useRouter()
 const scopeFilter = shallowRef<string | undefined>(undefined)
 const scopeMenuOpen = shallowRef(false)
@@ -296,7 +294,6 @@ function highlightedCwd(): string | undefined {
 const searchOpen = shallowRef(false)
 
 function openSearch() {
-  void play("search")
   searchOpen.value = true
 }
 
@@ -328,7 +325,6 @@ function onSessionNavigate(cwd: string | undefined): void {
 }
 
 function onCreateInDir(canonicalPath: string): void {
-  void play("create")
   cancelPendingOpen()
   setDraftSession(canonicalPath)
   emit("navigate", canonicalPath)
@@ -359,7 +355,6 @@ const projectSettingsOpen = shallowRef(false)
 const projectSettingsTarget = shallowRef("")
 
 function onAddProject(): void {
-  void play("create")
   void addWorkspace()
 }
 
@@ -367,7 +362,6 @@ function onCreateSession(cwd?: string): void {
   const path = cwd ?? highlightedCwd() ?? lastCwd.value ?? groups.value[0]?.canonicalPath
 
   if (path) return onCreateInDir(path)
-  void play("create")
   void addWorkspace()
 }
 </script>
