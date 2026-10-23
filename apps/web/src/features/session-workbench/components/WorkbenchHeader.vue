@@ -120,7 +120,7 @@ const {
   renameSession,
   deleteSession,
 } = useNav()
-const titleInput = useTemplateRef<HTMLInputElement>("titleInput")
+const titleInput = useTemplateRef("titleInput")
 const currentId = computed(() => sessionId.value ?? highlightedSessionId.value)
 const isPinned = computed(() => (currentId.value ? pinnedIds.value.has(currentId.value) : false))
 const title = computed(() =>
@@ -134,7 +134,7 @@ const cwdLabel = computed(() => (sessionCwd.value ? workspaceName(sessionCwd.val
 const draft = ref("")
 const dirty = shallowRef(false)
 const deleteOpen = shallowRef(false)
-const sizer = useTemplateRef<HTMLElement>("sizer")
+const sizer = useTemplateRef("sizer")
 const sizerWidth = ref(0)
 const sizerText = computed(() =>
   draft.value || title.value ? `${draft.value || title.value} ` : "",

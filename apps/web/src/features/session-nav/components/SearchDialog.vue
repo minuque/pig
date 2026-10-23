@@ -80,7 +80,7 @@ const { t } = useI18n()
 const { listedSessions, sort, openSession } = useNav()
 const query = shallowRef("")
 const activeIndex = shallowRef(0)
-const inputEl = useTemplateRef<HTMLInputElement>("inputEl")
+const inputEl = useTemplateRef("inputEl")
 const rows = computed(() => {
   const filtered = filterSessionsForSearch(listedSessions.value, query.value)
   return sortSessionsForSidebar(filtered, sort.value)

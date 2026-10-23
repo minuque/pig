@@ -16,7 +16,7 @@ const LEAVE_HOLD_MS = 180
 const props = defineProps<{ text: string }>()
 const reduced =
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
-const root = useTemplateRef<HTMLElement>("root")
+const root = useTemplateRef("root")
 const current = shallowRef(props.text)
 const leaving = shallowRef<string | null>(null)
 const entering = shallowRef(false)

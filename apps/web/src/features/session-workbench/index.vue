@@ -259,11 +259,10 @@ watch(
   { immediate: true },
 )
 
-const transcriptView = useTemplateRef<{
-  showScrollToLatest: boolean
-  scrollToLatest: (behavior?: "auto" | "smooth") => void
-}>("transcriptView")
-const composerBar = useTemplateRef<HTMLElement>("composerBar")
+type TranscriptViewRef = InstanceType<typeof TranscriptView>
+
+const transcriptView = useTemplateRef<TranscriptViewRef>("transcriptView")
+const composerBar = useTemplateRef("composerBar")
 /** 首屏挂载时输入条随 Hero 一起落位；之后的切换走停靠滑动。 */
 const settleIn = showHero.value
 
@@ -323,7 +322,7 @@ watch(
 
 /* 会话切换过渡：sessionId 变前把当前 transcript 克隆成静态层盖上，
    新内容渲染后该层淡出。旧画面驻留，不瞬切。 */
-const stage = useTemplateRef<HTMLElement>("stage")
+const stage = useTemplateRef("stage")
 const hold = useTranscriptHold()
 let probeRaf = 0
 
@@ -518,7 +517,7 @@ const {
   endResize,
   nudgeWidth,
 } = useConversationWidth()
-const columnEl = useTemplateRef<HTMLElement>("columnEl")
+const columnEl = useTemplateRef("columnEl")
 
 watch(columnEl, (el) => bindColumn(el), { flush: "post" })
 

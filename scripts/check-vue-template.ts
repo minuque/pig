@@ -2,6 +2,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { resolve } from "node:path"
 import { pathToFileURL } from "node:url"
+import ts from "typescript"
 
 /* 模板 ref 名写错时两侧都不报错，只静默变 null，所以按名字对齐校验。 */
 function checkRefNames(
@@ -34,12 +35,34 @@ function checkRefNames(
   return messages
 }
 
-type TemplateRefKey = string
-
-function templateRefKeysOf(source: string): TemplateRefKey[] {
-  return [...source.matchAll(/useTemplateRef(?:<[^()]*>)?\(\s*["'`]([^"'`]+)["'`]/g)].map(
-    (match) => match[1]!,
+/** 语法树取第一个字符串参数。类型参数再复杂也不影响名字。 */
+function templateRefKeysOf(script: string): string[] {
+  const file = ts.createSourceFile(
+    "check.ts",
+    script,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
   )
+  const keys: string[] = []
+
+  function visit(node: ts.Node) {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === "useTemplateRef"
+    ) {
+      const arg = node.arguments[0]
+
+      if (arg && (ts.isStringLiteral(arg) || ts.isNoSubstitutionTemplateLiteral(arg)))
+        keys.push(arg.text)
+    }
+
+    ts.forEachChild(node, visit)
+  }
+
+  visit(file)
+  return keys
 }
 
 const root = resolve(import.meta.dirname, "..")
@@ -115,7 +138,7 @@ for (const file of files) {
     }
   }
 
-  messages.push(...checkRefNames(script, template?.content ?? null, templateRefKeysOf(source)))
+  messages.push(...checkRefNames(script, template?.content ?? null, templateRefKeysOf(script)))
 
   if (messages.length) failures.push(`${file}\n${messages.join("\n")}`)
 }

@@ -55,7 +55,7 @@ const emit = defineEmits<{
   sendNow: [item: QueuedPrompt]
   remove: [id: string]
 }>()
-const panel = useTemplateRef<HTMLElement>("panel")
+const panel = useTemplateRef("panel")
 const reorder = useDragReorder({
   axis: "y",
   container: () => panel.value,

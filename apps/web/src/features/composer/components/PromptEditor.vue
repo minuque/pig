@@ -115,14 +115,14 @@ const emit = defineEmits<{
   submit: []
   pasteFiles: [files: File[]]
 }>()
-const editor = useTemplateRef<HTMLElement>("editor")
-const editorWrap = useTemplateRef<HTMLElement>("editorWrap")
-const container = useTemplateRef<HTMLElement>("container")
-const card = useTemplateRef<HTMLElement>("card")
-const leftCluster = useTemplateRef<HTMLElement>("leftCluster")
-const usageCluster = useTemplateRef<HTMLElement>("usageCluster")
-const toolsCluster = useTemplateRef<HTMLElement>("toolsCluster")
-const rightCluster = useTemplateRef<HTMLElement>("rightCluster")
+const editor = useTemplateRef("editor")
+const editorWrap = useTemplateRef("editorWrap")
+const container = useTemplateRef("container")
+const card = useTemplateRef("card")
+const leftCluster = useTemplateRef("leftCluster")
+const usageCluster = useTemplateRef("usageCluster")
+const toolsCluster = useTemplateRef("toolsCluster")
+const rightCluster = useTemplateRef("rightCluster")
 const expanded = ref(true)
 const hasText = computed(() => prompt.value.length > 0)
 const caret = ref(0)
@@ -271,7 +271,7 @@ function evaluate(motion?: FlipMotion) {
 
 function clusters() {
   return [leftCluster.value, usageCluster.value, toolsCluster.value, rightCluster.value].filter(
-    (el): el is HTMLElement => el !== null,
+    (el): el is HTMLDivElement => el !== null,
   )
 }
 

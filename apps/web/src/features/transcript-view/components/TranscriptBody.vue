@@ -191,9 +191,9 @@ const statusProps = computed(() => ({
 const { expandedTools, isExpand, toggleExpand, toggleTool } = useTranscriptExpand(
   () => props.sessionId,
 )
-const viewport = useTemplateRef<HTMLElement>("viewport")
-const column = useTemplateRef<HTMLElement>("column")
-const list = useTemplateRef<HTMLElement>("list")
+const viewport = useTemplateRef("viewport")
+const column = useTemplateRef("column")
+const list = useTemplateRef("list")
 
 function scrollerRoot(): HTMLElement | null {
   return viewport.value

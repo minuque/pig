@@ -166,7 +166,7 @@ const showDraftGlyph = computed(
 const dotKind = computed(() =>
   !showDraftGlyph.value && props.state === "error" ? "error" : undefined,
 )
-const titleEl = useTemplateRef<HTMLElement>("titleEl")
+const titleEl = useTemplateRef("titleEl")
 const titleOverflow = shallowRef(false)
 
 function measureTitle() {
@@ -176,7 +176,7 @@ function measureTitle() {
 
 const renaming = ref(false)
 const renameDraft = ref("")
-const renameInput = useTemplateRef<HTMLInputElement>("renameInput")
+const renameInput = useTemplateRef("renameInput")
 const pointerDownPos = shallowRef<{ x: number; y: number } | undefined>(undefined)
 let dragPending = false
 let didDrag = false

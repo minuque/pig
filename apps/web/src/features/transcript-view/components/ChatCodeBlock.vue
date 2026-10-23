@@ -52,8 +52,8 @@ const attrs = useAttrs()
 const fence = computed(() => parseCodeFenceInfo(props.node.language))
 const highlightNode = computed(() => fenceHighlightNode(props.node, fence.value))
 const showLineNumbers = ref(false)
-const host = useTemplateRef<HTMLElement>("host")
-const toggle = useTemplateRef<HTMLButtonElement>("toggle")
+const host = useTemplateRef("host")
+const toggle = useTemplateRef("toggle")
 const actionsHost = shallowRef<Element | null>(null)
 
 function bindActions() {

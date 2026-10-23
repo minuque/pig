@@ -46,7 +46,7 @@
 import { useTemplateRef } from "vue"
 import { useMascotGaze } from "@features/session-workbench/hooks/use-mascot-gaze.js"
 
-const { blinking, onBlinkEnd } = useMascotGaze(useTemplateRef<SVGSVGElement>("mascot"))
+const { blinking, onBlinkEnd } = useMascotGaze(useTemplateRef("mascot"))
 </script>
 
 <style scoped>

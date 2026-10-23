@@ -44,10 +44,7 @@ withDefaults(
 const emit = defineEmits<{
   loadOlder: []
 }>()
-const body = useTemplateRef<{
-  showScrollToLatest: boolean
-  scrollToLatest: (behavior?: "auto" | "smooth") => void
-}>("body")
+const body = useTemplateRef("body")
 const showScrollToLatest = computed(() => body.value?.showScrollToLatest ?? false)
 
 function scrollToLatest(behavior?: "auto" | "smooth") {
