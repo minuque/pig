@@ -245,21 +245,27 @@ export class AttachmentStore implements AttachmentSink {
     await Promise.all([...this.tempFiles.keys()].map((path) => this.dropFile(path)))
   }
 
-  /** 启动清扫：删掉 mtime 过旧的残留文件，顺手收掉空的 batch 目录。 */
+  /** 启动清扫：只删过旧残留。刚建的空目录留给同机其他实例，stat 失败也不删。 */
   private async cleanRoot(now = Date.now()): Promise<void> {
+    const staleBefore = now - STALE_FILE_MS
+
     for (const entry of await readdir(this.rootDir, { withFileTypes: true }).catch(() => [])) {
       if (!entry.isDirectory()) continue
       const dir = join(this.rootDir, entry.name)
+      const dirInfo = await stat(dir).catch(() => undefined)
+
+      if (!dirInfo) continue
+      const dirIsStale = dirInfo.mtimeMs < staleBefore
 
       for (const file of await readdir(dir, { withFileTypes: true }).catch(() => [])) {
         const path = join(dir, file.name)
         const info = await stat(path).catch(() => undefined)
 
-        if (info && info.mtimeMs >= now - STALE_FILE_MS) continue
+        if (!info || info.mtimeMs >= staleBefore) continue
         await rm(path, { force: true })
       }
 
-      await rmdir(dir).catch(() => undefined)
+      if (dirIsStale) await rmdir(dir).catch(() => undefined)
     }
   }
 

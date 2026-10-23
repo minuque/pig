@@ -319,12 +319,15 @@ describe("AttachmentStore 清理", () => {
     const stale = join(root, "old-batch", "old.pdf")
     const fresh = join(root, "fresh-batch", "fresh.pdf")
     const old = new Date(Date.now() - 60 * 60 * 1000)
+    const freshEmpty = join(root, "just-created")
 
     await mkdir(join(root, "old-batch"), { recursive: true })
     await writeFile(stale, "old")
     await utimes(stale, old, old)
+    await utimes(join(root, "old-batch"), old, old)
     await mkdir(join(root, "fresh-batch"), { recursive: true })
     await writeFile(fresh, "fresh")
+    await mkdir(freshEmpty)
 
     const store = new AttachmentStore({ sweepIntervalMs: 0, rootDir: root })
     stores.push(store)
@@ -332,7 +335,7 @@ describe("AttachmentStore 清理", () => {
 
     expect(await exists(stale)).toBe(false)
     expect(await readFile(fresh, "utf8")).toBe("fresh")
-    expect(await readdir(root)).toEqual(["fresh-batch"])
+    expect((await readdir(root)).sort()).toEqual(["fresh-batch", "just-created"])
   })
 
   it("dispose 删掉本实例登记但还没过期的临时文件", async () => {
