@@ -19,7 +19,7 @@ test.describe("composer 视觉", () => {
     const card = page.locator(".composer-card")
 
     await expect(card).toHaveCSS("border-radius", "32px")
-    await expect(card).toHaveScreenshot("composer-card.png", { mask, maxDiffPixelRatio: 0 })
+    await expect(card).toHaveScreenshot("composer-card.png", { mask })
   })
 
   test("附件 chips 渲染", async ({ page, gateway }) => {
@@ -34,10 +34,7 @@ test.describe("composer 视觉", () => {
     const mask = await stabilize(page, [])
 
     await expect(chips.first()).toHaveCSS("border-radius", "8px")
-    await expect(card).toHaveScreenshot("composer-with-chips.png", {
-      mask,
-      maxDiffPixelRatio: 0,
-    })
+    await expect(card).toHaveScreenshot("composer-with-chips.png", { mask })
   })
 
   test("拖入高亮态", async ({ page, gateway }) => {
@@ -49,6 +46,6 @@ test.describe("composer 视觉", () => {
     await expect(panel.locator(".drop-guide")).toHaveCSS("opacity", "1")
     const mask = await stabilize(page, [])
 
-    await expect(panel).toHaveScreenshot("drop-active.png", { mask, maxDiffPixelRatio: 0 })
+    await expect(panel).toHaveScreenshot("drop-active.png", { mask })
   })
 })

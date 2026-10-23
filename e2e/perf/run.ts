@@ -28,7 +28,7 @@ import {
   waitForWorkbench,
 } from "./measure.js"
 import { readStartVitals } from "./paint.js"
-import { reportTable, type MetricRow } from "./report.js"
+import { regressionsSoFar, reportTable, type MetricRow } from "./report.js"
 import { expandToolSteps } from "./tool-expand.js"
 import {
   LONG_SESSION_NAME,
@@ -78,6 +78,7 @@ type Args = {
   runs: number
   skipBuild: boolean
   headed: boolean
+  noFail: boolean
   turnOnly: boolean
   web: boolean
 }
@@ -88,11 +89,13 @@ function parseArgs(argv: string[]): Args {
   let headed = false
   let turnOnly = false
   let web = false
+  let noFail = false
 
   for (const arg of argv) {
     if (arg === "--help" || arg === "-h") {
       console.log("用法: pnpm test:bench --runs=3 --skip-build --web --headed --turn-only")
       console.log("默认桌面端 Electron。--web 用 Playwright Chromium 做对照。")
+      console.log("比上次慢超过 10% 时退出码为 1；--no-fail 只打印不失败。")
       process.exit(0)
     }
 
@@ -100,6 +103,7 @@ function parseArgs(argv: string[]): Args {
     else if (arg === "--headed") headed = true
     else if (arg === "--web") web = true
     else if (arg === "--turn-only" || arg === "--edges-only") turnOnly = true
+    else if (arg === "--no-fail") noFail = true
     else if (arg.startsWith("--runs=")) {
       const value = Number(arg.slice("--runs=".length))
 
@@ -108,7 +112,7 @@ function parseArgs(argv: string[]): Args {
     } else throw new Error(`未知参数 ${arg}`)
   }
 
-  return { runs, skipBuild, headed, turnOnly, web }
+  return { runs, skipBuild, headed, turnOnly, web, noFail }
 }
 
 function buildWeb() {
@@ -525,6 +529,14 @@ async function main() {
 
 try {
   await main()
+
+  const slow = regressionsSoFar()
+
+  if (slow.length && !process.argv.includes("--no-fail")) {
+    console.error(`\n${slow.length} 项比上次慢 10% 以上：${slow.join("、")}`)
+    console.error("确认是有意取舍就加 --no-fail；基线在 test-results/perf.json")
+    process.exitCode = 1
+  }
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error)
   console.error(message)

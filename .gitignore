@@ -153,6 +153,7 @@ test-results/
 .pi/
 .grok/
 .claude/
+.worktree/
 .worktrees/
 .codegraph/
 .agents/

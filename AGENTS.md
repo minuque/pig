@@ -19,7 +19,7 @@
 ## 文档
 
 - 目录或领域边界：[`docs/directory-structure.md`](docs/directory-structure.md)
-- 单测只覆盖 [`JOURNEYS.md`](JOURNEYS.md) 数据路径。
+- 单测只覆盖数据路径（编排与状态转换）；整页浏览器旅程写在 `e2e/`。
 
 ## worktree
 

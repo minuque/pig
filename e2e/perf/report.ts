@@ -111,11 +111,22 @@ function sectionLine(label: string, innerWidth: number) {
 
 type CellKey = "label" | "now" | "p90" | "prev" | "fps" | "change"
 
+/** 比上次慢超过阈值的指标，供调用方决定要不要失败。 */
+const regressions: string[] = []
+
+export function regressionsSoFar(): readonly string[] {
+  return regressions
+}
+
 /** 一张带边框的表。变快为绿，变慢超过 10% 为红，整列都是「—」的列不打印。 */
 export function reportTable(rows: readonly MetricRow[]) {
   const visible = rows.filter((row) => row.value != null && Number.isFinite(row.value))
 
   if (visible.length === 0) return
+
+  for (const row of visible) {
+    if (tone(row.value, row.previous ?? null) === "red") regressions.push(row.label)
+  }
 
   const cells = visible.map((row) => {
     const color = tone(row.value, row.previous ?? null)

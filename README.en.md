@@ -33,7 +33,6 @@ pnpm dev:desktop    # Electron desktop development
 ## Docs
 
 - [`ROADMAP.md`](ROADMAP.md) — architecture and boundary principles
-- [`docs/JOURNEYS.md`](docs/JOURNEYS.md) — core user journeys
 - [`docs/directory-structure.md`](docs/directory-structure.md) — directory and module conventions
 
 ## Development
