@@ -31,20 +31,20 @@
 
             <span v-else-if="section.cwd" class="section-icon" aria-hidden="true">
               <span
-                v-if="sectionIcon(section)?.kind === 'monogram'"
+                v-if="sectionIcons[section.key]?.kind === 'monogram'"
                 class="proj-mono"
-                :style="{ background: sectionIcon(section)?.color }"
+                :style="{ background: sectionIcons[section.key]?.color }"
               >
-                {{ sectionIcon(section)?.value }}
+                {{ sectionIcons[section.key]?.value }}
               </span>
 
-              <span v-else-if="sectionIcon(section)?.kind === 'emoji'" class="proj-emoji">
-                {{ sectionIcon(section)?.value }}
+              <span v-else-if="sectionIcons[section.key]?.kind === 'emoji'" class="proj-emoji">
+                {{ sectionIcons[section.key]?.value }}
               </span>
 
               <component
                 v-else
-                :is="projectIconComponent(sectionIcon(section))"
+                :is="projectIconComponent(sectionIcons[section.key])"
                 :size="15"
                 :style="sectionIconStyle(section)"
                 :class="{ 'icon-muted': !expandedSections.has(section.key) }"
@@ -222,14 +222,17 @@ watch(
   { immediate: true },
 )
 
-function sectionIcon(section: { cwd?: string; label: string }): ProjIcon | undefined {
-  return section.cwd ? projIcons.value[section.label] : undefined
-}
+const sectionIcons = computed<Record<string, ProjIcon | undefined>>(() => {
+  const icons = projIcons.value
+  return Object.fromEntries(
+    sections.value.map((section) => [section.key, section.cwd ? icons[section.label] : undefined]),
+  )
+})
 
-function sectionIconStyle(section: { cwd?: string; label: string; key: string }) {
+function sectionIconStyle(section: { key: string }) {
   // 收起态调暗，让自定义色统一沉到 muted
   if (!expandedSections.value.has(section.key)) return undefined
-  const custom = sectionIcon(section)
+  const custom = sectionIcons.value[section.key]
   return custom?.kind === "icon" ? { color: custom.color } : undefined
 }
 

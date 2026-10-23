@@ -22,8 +22,8 @@
         :row="row"
         :is-expand="isExpand(row.id)"
         :expanded-tools="expandedTools"
-        @toggle-expand="emit('toggle-expand', row.id, $event)"
-        @toggle-tool="(id, open) => emit('toggle-tool', row.id, id, open)"
+        @toggle-expand="emit('toggleExpand', row.id, $event)"
+        @toggle-tool="(id, open) => emit('toggleTool', row.id, id, open)"
       />
     </div>
 
@@ -48,8 +48,8 @@ const props = defineProps<{
   expandedTools: Map<string, boolean>
 }>()
 const emit = defineEmits<{
-  "toggle-expand": [id: string, open: boolean]
-  "toggle-tool": [rowId: string, id: string, open: boolean]
+  toggleExpand: [id: string, open: boolean]
+  toggleTool: [rowId: string, id: string, open: boolean]
 }>()
 
 function rowClass(row: TimelineRow, rowIndex: number) {

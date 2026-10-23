@@ -28,7 +28,7 @@
           <PenIcon class="action-icon" aria-hidden="true" />
         </button>
 
-        <button type="button" class="send-now" @click="emit('send-now', item)">
+        <button type="button" class="send-now" @click="emit('sendNow', item)">
           {{ t("composer.queueSendNow") }}
         </button>
       </span>
@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, useTemplateRef } from "vue"
+import { onBeforeUnmount, onMounted, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { useDragReorder } from "@utils/motion.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
@@ -52,7 +52,7 @@ defineProps<{
 const emit = defineEmits<{
   reorder: [id: string, toIndex: number]
   edit: [item: QueuedPrompt]
-  "send-now": [item: QueuedPrompt]
+  sendNow: [item: QueuedPrompt]
   remove: [id: string]
 }>()
 const panel = useTemplateRef<HTMLElement>("panel")
@@ -69,6 +69,8 @@ onMounted(() => {
 
   if (el) reorder.attach(el)
 })
+
+onBeforeUnmount(() => reorder.detach())
 </script>
 
 <style scoped>

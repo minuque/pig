@@ -79,7 +79,7 @@ export function shouldSubmitOnKeydown(e: {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef, watch } from "vue"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
 import { useCommandMenu, type ChipInsert } from "@features/composer/hooks/use-command-menu.js"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
@@ -113,16 +113,16 @@ const props = withDefaults(
 const prompt = defineModel<string>("prompt", { required: true })
 const emit = defineEmits<{
   submit: []
-  "paste-files": [files: File[]]
+  pasteFiles: [files: File[]]
 }>()
-const editor = ref<HTMLElement | null>(null)
-const editorWrap = ref<HTMLElement | null>(null)
-const container = ref<HTMLElement | null>(null)
-const card = ref<HTMLElement | null>(null)
-const leftCluster = ref<HTMLElement | null>(null)
-const usageCluster = ref<HTMLElement | null>(null)
-const toolsCluster = ref<HTMLElement | null>(null)
-const rightCluster = ref<HTMLElement | null>(null)
+const editor = useTemplateRef<HTMLElement>("editor")
+const editorWrap = useTemplateRef<HTMLElement>("editorWrap")
+const container = useTemplateRef<HTMLElement>("container")
+const card = useTemplateRef<HTMLElement>("card")
+const leftCluster = useTemplateRef<HTMLElement>("leftCluster")
+const usageCluster = useTemplateRef<HTMLElement>("usageCluster")
+const toolsCluster = useTemplateRef<HTMLElement>("toolsCluster")
+const rightCluster = useTemplateRef<HTMLElement>("rightCluster")
 const expanded = ref(true)
 const hasText = computed(() => prompt.value.length > 0)
 const caret = ref(0)
@@ -196,6 +196,7 @@ let lastWidth = 0
 let lastCompactCapacity = 0
 let lastCompactContainerWidth = 0
 let firstFlip = true
+let finishFlip: (() => void) | undefined
 let measureCtx: CanvasRenderingContext2D | undefined
 const internalResizing = ref(false)
 let resizeTimer: ReturnType<typeof setTimeout> | undefined
@@ -305,22 +306,32 @@ function flipMode(next: boolean, motion?: FlipMotion) {
       const to = cardEl.offsetHeight
 
       if (to <= 0 || Math.abs(from - to) < 1) return
+      /* 上一轮收尾先作废，它的定时器会清掉这一轮的过渡样式。 */
+      finishFlip?.()
       cardEl.style.transitionDuration = `${timing.duration}ms`
       cardEl.style.transitionTimingFunction = timing.easing
       cardEl.style.height = `${from}px`
       void cardEl.offsetHeight
       cardEl.style.height = `${to}px`
 
-      const done = (event?: TransitionEvent) => {
-        if (event && event.propertyName !== "height") return
+      let timer = 0
+      const cancel = () => {
+        window.clearTimeout(timer)
         cardEl.removeEventListener("transitionend", done)
         cardEl.style.height = ""
         cardEl.style.transitionDuration = ""
         cardEl.style.transitionTimingFunction = ""
+
+        if (finishFlip === cancel) finishFlip = undefined
+      }
+      const done = (event?: TransitionEvent) => {
+        if (event && event.propertyName !== "height") return
+        cancel()
       }
 
+      timer = window.setTimeout(() => done(), timing.duration + 40)
       cardEl.addEventListener("transitionend", done)
-      setTimeout(done, timing.duration + 40)
+      finishFlip = cancel
     })
   })
 }
@@ -391,6 +402,7 @@ watch(
 
 onBeforeUnmount(() => {
   widthObserver?.disconnect()
+  finishFlip?.()
 
   if (resizeTimer) clearTimeout(resizeTimer)
 })
@@ -496,7 +508,7 @@ function onEditorPaste(e: ClipboardEvent) {
 
   if (!files.length) return
   e.preventDefault()
-  emit("paste-files", files)
+  emit("pasteFiles", files)
 }
 
 /** 把纯文本偏移映射到 DOM 节点与内偏移；chip 占整段 token 长度，落在其内部时锚到边界。 */

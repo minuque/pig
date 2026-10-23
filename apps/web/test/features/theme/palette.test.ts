@@ -38,20 +38,31 @@ function values(selector: string): Map<string, string> {
   return decls
 }
 
+/** 状态浅底用 color-mix 从状态色和背景派生：改 .dark 的变量值就自动跟随，不必重复声明。 */
+const DERIVED_ROLES = new Set(["success-bg", "info-bg", "warning-bg", "destructive-bg"])
+
 describe("主题角色", () => {
   const root = values(":root")
   const dark = values(".dark")
   const themed = new Set(values("html[data-theme-id]").keys())
 
-  it("每个角色在 :root 和 .dark 都有默认值", () => {
-    const missing = THEME_ROLES.filter((role) => !root.has(role) || !dark.has(role))
+  it("每个角色在 :root 都有默认值，派生角色不要求 .dark 重复声明", () => {
+    const missing = THEME_ROLES.filter(
+      (role) => !root.has(role) || (!DERIVED_ROLES.has(role) && !dark.has(role)),
+    )
+
     expect(missing).toEqual([])
+  })
+
+  it("派生角色的浅底走 color-mix，跟着状态色与背景走", () => {
+    for (const role of DERIVED_ROLES) expect(root.get(role) ?? "").toContain("color-mix(")
   })
 
   it("默认主题的预览色与 :root / .dark 一致", () => {
     const drifted = THEME_ROLES.filter(
       (role) =>
-        DEFAULT_THEME.light[role] !== root.get(role) || DEFAULT_THEME.dark[role] !== dark.get(role),
+        DEFAULT_THEME.light[role] !== root.get(role) ||
+        (!DERIVED_ROLES.has(role) && DEFAULT_THEME.dark[role] !== dark.get(role)),
     )
 
     expect(drifted).toEqual([])

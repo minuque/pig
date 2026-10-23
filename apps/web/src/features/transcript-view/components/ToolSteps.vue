@@ -68,7 +68,7 @@
               <ToolCall
                 :step="step"
                 :is-expand="expandedTools"
-                @toggle="emit('toggle-tool', $event.id, $event.open)"
+                @toggle="emit('toggleTool', $event.id, $event.open)"
               />
             </div>
 
@@ -124,8 +124,8 @@ const props = defineProps<{
   expandedTools: Map<string, boolean>
 }>()
 const emit = defineEmits<{
-  "toggle-expand": [open: boolean]
-  "toggle-tool": [id: string, open: boolean]
+  toggleExpand: [open: boolean]
+  toggleTool: [id: string, open: boolean]
 }>()
 const running = computed(() => props.row.mode === "live")
 const statusColor = computed(() => (props.row.aborted ? { color: "var(--warning)" } : undefined))
@@ -136,7 +136,7 @@ function toggleSteps(event: MouseEvent) {
   const button = event.currentTarget
 
   if (revealed.value && button instanceof HTMLElement) holdClickedOffset(button)
-  emit("toggle-expand", !revealed.value)
+  emit("toggleExpand", !revealed.value)
 }
 
 const keptMounted = shallowRef(revealed.value)

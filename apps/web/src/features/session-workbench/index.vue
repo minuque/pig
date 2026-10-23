@@ -17,7 +17,7 @@
     <WorkbenchHeader />
 
     <div
-      :ref="bindColumn"
+      ref="columnEl"
       class="conversation-column"
       :class="{ 'is-content-resizing': contentResizing }"
     >
@@ -325,6 +325,7 @@ watch(
    新内容渲染后该层淡出。旧画面驻留，不瞬切。 */
 const stage = useTemplateRef<HTMLElement>("stage")
 const hold = useTranscriptHold()
+let probeRaf = 0
 
 watch(
   sessionId,
@@ -365,13 +366,15 @@ watch(
         return
       }
 
-      requestAnimationFrame(probe)
+      probeRaf = requestAnimationFrame(probe)
     }
 
-    requestAnimationFrame(probe)
+    probeRaf = requestAnimationFrame(probe)
   },
   { flush: "pre" },
 )
+
+onBeforeUnmount(() => cancelAnimationFrame(probeRaf))
 
 function deliverPrompt(text: string, batch?: ComposerAttachmentBatch) {
   if (sessionId.value) scrollToLatest("auto")
@@ -515,6 +518,10 @@ const {
   endResize,
   nudgeWidth,
 } = useConversationWidth()
+const columnEl = useTemplateRef<HTMLElement>("columnEl")
+
+watch(columnEl, (el) => bindColumn(el), { flush: "post" })
+
 const showContentHandles = computed(
   () => Boolean(sessionId.value) && !showHero.value && !sessionPending.value,
 )

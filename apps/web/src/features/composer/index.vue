@@ -11,11 +11,11 @@
 
     <Transition name="fade-layer">
       <QueuePanel
-        v-if="queue.items.value.length"
-        :items="queue.items.value"
+        v-if="queueItems.length"
+        :items="queueItems"
         @reorder="queue.reorder"
         @edit="onQueueEdit"
-        @send-now="emit('send-now', $event)"
+        @send-now="emit('sendNow', $event)"
         @remove="queue.remove"
       />
     </Transition>
@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, ref, watch } from "vue"
+import { computed, defineAsyncComponent, ref, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
@@ -195,7 +195,7 @@ const prompt = defineModel<string>("prompt", { required: true })
 const preset = defineModel<ComposerPreset | undefined>("preset")
 const emit = defineEmits<{
   send: [text: string]
-  "send-now": [item: QueuedPrompt]
+  sendNow: [item: QueuedPrompt]
   queue: [text: string]
   abort: []
 }>()
@@ -216,9 +216,10 @@ const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisab
 const usageOpen = ref(false)
 const modelPickerOpen = ref(false)
 const previewItem = ref<ComposerAttachment>()
-const fileInput = ref<HTMLInputElement | null>(null)
-const editor = ref<InstanceType<typeof PromptEditor> | null>(null)
+const fileInput = useTemplateRef<HTMLInputElement>("fileInput")
+const editor = useTemplateRef<InstanceType<typeof PromptEditor>>("editor")
 const attachmentFiles = computed(() => props.attachments.files.value)
+const queueItems = computed(() => props.queue.items.value)
 const attachmentProgress = computed(() => props.attachments.progress.value)
 const attachmentError = computed(() => props.attachments.error.value)
 const attachmentsFull = computed(() => attachmentFiles.value.length >= MAX_COMPOSER_ATTACHMENTS)
