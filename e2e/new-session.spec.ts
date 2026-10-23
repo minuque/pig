@@ -8,11 +8,15 @@ test("首页发首条 Prompt 建出会话，侧栏立刻多一张卡", async ({ 
 
   await page.goto(gateway.entryUrl)
   await expect(page.locator("h1.hero-title")).toBeVisible({ timeout: 30_000 })
+  await expect(page.locator(".startup-gate")).not.toHaveAttribute("inert")
+  await expect(page.locator(".selector-name")).not.toHaveText("—")
 
   const prompt = page.getByRole("textbox", { name: "Prompt" })
+  const send = page.locator("button.send")
 
   await prompt.fill("新建一个会话")
-  await page.locator("button.send").click()
+  await expect(send).toBeEnabled()
+  await send.click()
 
   const sessionId = await bridge.waitForPrompt()
 

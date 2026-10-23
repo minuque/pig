@@ -79,7 +79,15 @@ export function shouldSubmitOnKeydown(e: {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef, watch } from "vue"
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onBeforeUpdate,
+  ref,
+  useTemplateRef,
+  watch,
+} from "vue"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
 import { useCommandMenu, type ChipInsert } from "@features/composer/hooks/use-command-menu.js"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
@@ -350,17 +358,39 @@ function renderPrompt(text: string) {
   el.textContent = text
 }
 
+let applyingPrompt = false
+
+watch(
+  prompt,
+  () => {
+    applyingPrompt = true
+  },
+  { flush: "pre" },
+)
+
 watch(
   prompt,
   (next) => {
     // 外部赋值（队列回填、清空）时重建 DOM；编辑器内输入已同步过，跳过
     if (editor.value && serialize() !== next) renderPrompt(next)
+    applyingPrompt = false
 
     if (expanded.value) fitEditor()
     evaluate()
   },
   { flush: "post" },
 )
+
+// 模型列表到达会重绘。重绘前先把焦点里已写下的字收进模型，避免 input 丢了以后发送键一直禁用。
+onBeforeUpdate(() => {
+  if (applyingPrompt) return
+  const el = editor.value
+
+  if (!el || document.activeElement !== el) return
+  const current = serialize()
+
+  if (current !== prompt.value) prompt.value = current
+})
 
 watch(
   container,
