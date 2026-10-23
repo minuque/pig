@@ -19,27 +19,62 @@ const E2E_BY_AREA = [
   },
   {
     prefix: "apps/web/src/features/transcript-view/",
-    specs: ["e2e/one-turn.spec.ts", "e2e/turn-progress.spec.ts", "e2e/visual/transcript.spec.ts"],
+    specs: [
+      "e2e/one-turn.spec.ts",
+      "e2e/turn-progress.spec.ts",
+      "e2e/visual/transcript.spec.ts",
+      "e2e/history-page.spec.ts",
+    ],
   },
   {
     prefix: "apps/web/src/features/session-workbench/",
-    specs: ["e2e/critical-journey.spec.ts", "e2e/one-turn.spec.ts"],
+    specs: [
+      "e2e/critical-journey.spec.ts",
+      "e2e/one-turn.spec.ts",
+      "e2e/new-session.spec.ts",
+      "e2e/workspace.spec.ts",
+    ],
   },
-  { prefix: "apps/web/src/features/session-nav/", specs: ["e2e/critical-journey.spec.ts"] },
-  { prefix: "apps/web/src/features/startup/", specs: ["e2e/critical-journey.spec.ts"] },
+  {
+    prefix: "apps/web/src/features/session-nav/",
+    specs: [
+      "e2e/session-nav.spec.ts",
+      "e2e/session-manage.spec.ts",
+      "e2e/session-switch.spec.ts",
+      "e2e/workspace.spec.ts",
+      "e2e/visual/nav.spec.ts",
+    ],
+  },
+  {
+    prefix: "apps/web/src/features/startup/",
+    specs: ["e2e/critical-journey.spec.ts", "e2e/error.spec.ts"],
+  },
   { prefix: "apps/web/src/components/layout/", specs: ["e2e/critical-journey.spec.ts"] },
   // 样式、主题、共享 UI 影响所有对照图
   {
     prefix: "apps/web/src/style/",
-    specs: ["e2e/visual/composer.spec.ts", "e2e/visual/transcript.spec.ts"],
+    specs: [
+      "e2e/visual/composer.spec.ts",
+      "e2e/visual/transcript.spec.ts",
+      "e2e/visual/nav.spec.ts",
+    ],
   },
   {
     prefix: "apps/web/src/features/theme/",
-    specs: ["e2e/visual/composer.spec.ts", "e2e/visual/transcript.spec.ts"],
+    specs: [
+      "e2e/theme.spec.ts",
+      "e2e/visual/composer.spec.ts",
+      "e2e/visual/transcript.spec.ts",
+      "e2e/visual/nav.spec.ts",
+    ],
   },
   {
     prefix: "apps/web/src/components/ui/",
-    specs: ["e2e/visual/composer.spec.ts", "e2e/visual/transcript.spec.ts"],
+    specs: [
+      "e2e/visual/composer.spec.ts",
+      "e2e/visual/transcript.spec.ts",
+      "e2e/visual/nav.spec.ts",
+    ],
   },
 ]
 const WEB_FALLBACK_SPECS = ["e2e/critical-journey.spec.ts"]

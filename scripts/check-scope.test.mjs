@@ -62,6 +62,24 @@ describe("classifyTouched", () => {
     assert.deepEqual(classifyTouched(["apps/web/src/style/app.css"]).specs, [
       "e2e/visual/composer.spec.ts",
       "e2e/visual/transcript.spec.ts",
+      "e2e/visual/nav.spec.ts",
+    ])
+    assert.deepEqual(classifyTouched(["apps/web/src/features/session-nav/index.vue"]).specs, [
+      "e2e/session-nav.spec.ts",
+      "e2e/session-manage.spec.ts",
+      "e2e/session-switch.spec.ts",
+      "e2e/workspace.spec.ts",
+      "e2e/visual/nav.spec.ts",
+    ])
+    assert.deepEqual(classifyTouched(["apps/web/src/features/theme/lib/palette.ts"]).specs, [
+      "e2e/theme.spec.ts",
+      "e2e/visual/composer.spec.ts",
+      "e2e/visual/transcript.spec.ts",
+      "e2e/visual/nav.spec.ts",
+    ])
+    assert.deepEqual(classifyTouched(["apps/web/src/features/startup/index.ts"]).specs, [
+      "e2e/critical-journey.spec.ts",
+      "e2e/error.spec.ts",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).specs, [
       "e2e/critical-journey.spec.ts",

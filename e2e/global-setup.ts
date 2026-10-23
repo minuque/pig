@@ -54,5 +54,6 @@ export default function globalSetup() {
   const { command, args } = pnpmCommand()
   const result = spawnSync(command, args, { cwd: root, stdio: "inherit" })
 
-  if (result.status) throw new Error("pnpm build:web failed")
+  if (result.error || result.status !== 0)
+    throw new Error("pnpm build:web 失败", { cause: result.error })
 }
