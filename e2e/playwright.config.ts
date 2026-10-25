@@ -7,6 +7,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 export default defineConfig({
   testDir: dirname(fileURLToPath(import.meta.url)),
   testMatch: "*.spec.ts",
+  // 桌面壳冒烟靠真实 Electron，自成一类，见 e2e/electron
+  testIgnore: "electron/**",
   timeout: 90_000,
   expect: {
     timeout: 15_000,

@@ -9,8 +9,11 @@ import { reportResults, runPnpm } from "./check-run.mjs"
 const root = resolve(import.meta.dirname, "..")
 const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
-/** --e2e：顺手把映射到的 e2e 也跑掉。 */
+/** --e2e：强制跑映射到的 e2e；--no-e2e：即使改了 UI 也不跑（赶时间时用）。 */
 const withE2e = process.argv.includes("--e2e")
+const noE2e = process.argv.includes("--no-e2e")
+/** --no-stories：跳过浏览器渲染检查；CI 里只在 ubuntu 单独跑一次。 */
+const noStories = process.argv.includes("--no-stories")
 /* DESIGN.md 缺失时（token 稳定前）跳过 designmd lint 与 token 校验，重新生成后自动恢复。 */
 const hasDesignMd = existsSync(resolve(root, "DESIGN.md"))
 /* lint-staged 里 prettier 不带 --cache 会删默认缓存文件，多组并发会撞 ENOENT；check 用独立文件。 */
@@ -66,8 +69,10 @@ function existingTouched() {
 async function runAll() {
   reportDesignMdSkip()
 
+  if (noStories) console.log("跳过: stories（--no-stories）")
+
   const results = await Promise.all(
-    CHECK_STEPS.map(async (step) => {
+    CHECK_STEPS.filter((step) => !noStories || step.name !== "stories").map(async (step) => {
       const ran = await runPnpm(step.args, root)
       return { name: step.name, ...ran }
     }),
@@ -188,7 +193,7 @@ async function checkTouched(scope, files) {
   if (scope.stories) steps.push({ name: "test:stories", args: ["test:stories"] })
 
   if (scope.specs.length) {
-    if (withE2e)
+    if ((withE2e || scope.ui) && !noE2e)
       steps.push({
         name: `e2e:${scope.specs.length}条`,
         args: ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts", ...scope.specs],

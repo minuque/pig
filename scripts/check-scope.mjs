@@ -143,6 +143,10 @@ export function classifyTouched(files) {
   const lintFiles = normalized.filter((file) => LINTABLE.test(file))
   const stylelintFiles = normalized.filter((file) => STYLELINTABLE.test(file))
   const vueFiles = normalized.filter((file) => file.endsWith(".vue"))
+  // UI 改动：模板与样式。只动数据、类型、测试时不算，避免每次都拉 e2e。
+  const ui = normalized.some(
+    (file) => file.startsWith("apps/web/src/") && (file.endsWith(".vue") || file.endsWith(".css")),
+  )
   // 只有改动基础组件、故事本身或 storybook 配置时才需要跑浏览器渲染检查
   const stories = normalized.some(
     (file) =>
@@ -155,6 +159,7 @@ export function classifyTouched(files) {
     e2e,
     specs: e2eSpecs(normalized, packages, e2e),
     scripts,
+    ui,
     stories,
     tokens,
     designmd,

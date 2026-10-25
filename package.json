@@ -22,6 +22,7 @@
     "test:stories": "pnpm --filter @pig/web test:stories",
     "test:scripts": "node --test scripts/check-scope.test.mjs",
     "test:e2e": "playwright test -c e2e/playwright.config.ts",
+    "test:electron": "playwright test -c e2e/electron/playwright.config.ts",
     "test:storybook": "playwright test -c e2e/storybook/playwright.config.ts",
     "test:bench": "tsx e2e/perf/run.ts",
     "typecheck": "tsc --noEmit -p scripts/tsconfig.json && tsc --noEmit -p e2e/tsconfig.json && pnpm -r --if-present typecheck",

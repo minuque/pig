@@ -90,6 +90,13 @@ describe("classifyTouched", () => {
     assert.deepEqual(classifyTouched(["docs/directory-structure.md"]).specs, [])
   })
 
+  it("UI 改动（模板与样式）标记为 ui，纯数据不算", () => {
+    assert.equal(classifyTouched(["apps/web/src/App.vue"]).ui, true)
+    assert.equal(classifyTouched(["apps/web/src/style/app.css"]).ui, true)
+    assert.equal(classifyTouched(["apps/web/src/features/theme/index.ts"]).ui, false)
+    assert.equal(classifyTouched(["packages/gateway/src/cli.ts"]).ui, false)
+  })
+
   it("只改基础组件、故事或 storybook 配置才跑浏览器检查", () => {
     assert.equal(classifyTouched(["apps/web/src/components/ui/button/Button.vue"]).stories, true)
     assert.equal(
