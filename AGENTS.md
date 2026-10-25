@@ -2,15 +2,14 @@
 
 ## 约束
 
-- `docs/*` 只读，用户点名才改。
 - 一个逻辑任务完成并通过检查后做一次原子 commit，不按单次编辑提交。
-- 依赖缺陷升级或提交上游，不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
-
-## 代码与 UI
-
 - 注释默认不超过 1 行，单文件 <= 500 行。
 - 导入能对上现有别名就写别名，不写相对路径。同目录引用可以保持 `./`。
 - 已有依赖能正确表达就不自行设计实现组件和行为；优先复用成熟库，组件源代码可控，统一设计语言，严格限制重复依赖。
+- 依赖缺陷不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
+
+## UI
+
 - 修改已安装的 shadcn-vue 组件先读本地源码；新增或同步上游才用 CLI，参数先核对当前版本帮助。新增用 `pnpm dlx shadcn-vue@latest add <name> --cwd apps/web --yes`，禁用安装生命周期脚本，装完对齐 `@utils/utils.js`，并把 CLI 生成的 `@lucide/vue` 图标换成 `@components/icons` 注册表里的 Solar 图标（CLI 的 `iconLibrary` 还不支持 Solar）；已改 token 的包装不加 `--overwrite`。
 - 组件样式只消费 `apps/web/src/style/app.css` 的 token（`var(--*)` 或 `@theme` 类）。缺档先补 `app.css`，再写组件；SFC 不声明 `--*`，不写裸 hex/rgb/`color-mix`。
 - 动画复用 `apps/web/src/style/motion.css` 的类与 `@keyframes`。缺档先补 `motion.css`，再写组件。
@@ -28,17 +27,11 @@
 
 ## 验收
 
-定稿时跑一次，样式迭代期间只走 HMR 加像素复验：
-
-- 代码改动跑 `pnpm fix:touched` 再跑 `pnpm check:touched`；文档改动除外。失败只修本次引入的；输入未变不重跑，也不主动跑 `pnpm build`、全量 `pnpm test`、全量 `pnpm test:e2e`。
-- 场景补跑：UI 旅程 `pnpm test:e2e e2e/<spec>`；滚动、流式、耗时 `pnpm test:bench`。
-- Electron 走 `pnpm dev:desktop`（`--dev` 默认 CDP 9999，`PIG_CDP` 可改，`0`/`off` 关；已有窗口则复用）。
+- 代码改动必跑 `pnpm fix:touched` → `pnpm check:touched`；文档改动除外。
+- 只修本次引入的失败；输入未变不重跑。
+- 发版前必跑 `pnpm check:release`（唯一主动 build 的场景）。
+- 像素基线只在 Windows 比对（`-chromium-win32`）；mac/linux 重写的基线不要提交。
+- 主进程改动跑 `pnpm test:electron`；看画面用 `pnpm dev:desktop`（默认 CDP 9999，`PIG_CDP=0` 关）。
+- 耗时、滚动、流式改动跑 `pnpm test:bench`。
+- 其余自动跑，不用记：UI 改动带映射的 e2e（`--no-e2e` 可关）、改 `components/ui` 或故事带 `test:stories`、平台差异由 CI 覆盖。
 - 清临时窗口按 PID 或 `user-data-dir`，不要匹配命令行 `--dev`。
-
-一切效果断言给改前改后同测点证据，不接受「感觉顺了」「调亮了」：
-
-- 视觉改动报同一测点改前改后像素值，前景与背景都测。
-- 毛玻璃、模糊、阴影这类合成效果开与关各截一次，卡区像素差超过阈值才算生效，计算样式正常不算。
-- 性能诉求先量化：卡顿、抖动、闪烁先用 `pnpm test:bench` 拿指标，同场景对比。
-- 动手前先定测点：动玻璃与透明度只改一层（卡片底 / 浮层底 / 模糊参数），不顺带翻整套 token；收到 `## Page Annotation` 或截图先转成「选择器 + 视口 + 期望值」。对照图存 `e2e/visual/`，不用 `%TEMP%` 当基线。
-- 分通道：性能、控制台、网络走 chrome-devtools；元素级视觉对照走无头浏览器（headless 加 Playwright 自带 Chromium，版本贴近壳）；合成层、新 CSS 特性、DPR 的结论在桌面壳复验（`--cdp 9999`）。
