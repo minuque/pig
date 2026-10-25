@@ -1,10 +1,11 @@
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises"
+import { mkdtemp, mkdir, realpath, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterAll, describe, expect, it } from "vitest"
 import { expandFileMentions, mentionPaths } from "../src/pi/file-mentions.js"
 
-const root = await mkdtemp(join(tmpdir(), "pig-mentions-"))
+// macOS 的 /var 与 Windows 的 8.3 短名都被实现里的 realpath 展开，基准路径先对齐
+const root = await realpath(await mkdtemp(join(tmpdir(), "pig-mentions-")))
 
 await mkdir(join(root, "src"), { recursive: true })
 
