@@ -15,7 +15,7 @@ const withE2e = process.argv.includes("--e2e")
 const hasDesignMd = existsSync(resolve(root, "DESIGN.md"))
 const CHECK_STEPS = [
   { name: "format", args: ["exec", "prettier", "--check", "--cache", "."] },
-  { name: "eslint", args: ["exec", "eslint", "."] },
+  { name: "eslint", args: ["exec", "eslint", "--cache", "."] },
   { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
   {
     name: "vue-template",
@@ -79,7 +79,7 @@ async function fixTouched(scope) {
   }
 
   if (scope.lintFiles.length) {
-    steps.push({ name: "eslint", args: ["exec", "eslint", "--fix", ...scope.lintFiles] })
+    steps.push({ name: "eslint", args: ["exec", "eslint", "--cache", "--fix", ...scope.lintFiles] })
   }
 
   if (scope.stylelintFiles.length) {
@@ -132,7 +132,7 @@ async function checkTouched(scope, files) {
   }
 
   if (scope.lintFiles.length) {
-    steps.push({ name: "eslint", args: ["exec", "eslint", ...scope.lintFiles] })
+    steps.push({ name: "eslint", args: ["exec", "eslint", "--cache", ...scope.lintFiles] })
   }
 
   if (scope.stylelintFiles.length) {
