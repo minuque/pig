@@ -8,7 +8,8 @@ import pluginVue from "eslint-plugin-vue"
 import tseslint from "typescript-eslint"
 
 import { lintIgnores } from "./scripts/lint-ignores.mjs"
-import vueEventSingleStatement from "./eslint/vue-event-single-statement.js"
+/* 只在 web 的 Vue 模板生效，规则跟着应用走，不放根目录 */
+import vueEventSingleStatement from "./apps/web/eslint/vue-event-single-statement.js"
 
 export default defineConfig(
   globalIgnores(lintIgnores, "pig/ignores"),
