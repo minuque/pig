@@ -21,7 +21,7 @@ const CHECK_STEPS = [
     args: ["exec", "prettier", "--check", "--cache", "--cache-location", PRETTIER_CACHE, "."],
   },
   { name: "eslint", args: ["exec", "eslint", "--cache", "."] },
-  { name: "stylelint", args: ["exec", "stylelint", "--cache", "**/*.{css,vue}"] },
+  { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
   {
     name: "vue-template",
     args: ["exec", "tsx", "scripts/check-vue-template.ts", "apps/web/src"],
@@ -91,7 +91,7 @@ async function fixTouched(scope) {
   if (scope.stylelintFiles.length) {
     steps.push({
       name: "stylelint",
-      args: ["exec", "stylelint", "--cache", "--fix", ...scope.stylelintFiles],
+      args: ["exec", "stylelint", "--fix", ...scope.stylelintFiles],
     })
   }
 
@@ -150,10 +150,7 @@ async function checkTouched(scope, files) {
   }
 
   if (scope.stylelintFiles.length) {
-    steps.push({
-      name: "stylelint",
-      args: ["exec", "stylelint", "--cache", ...scope.stylelintFiles],
-    })
+    steps.push({ name: "stylelint", args: ["exec", "stylelint", ...scope.stylelintFiles] })
   }
 
   if (scope.vueFiles.length) {

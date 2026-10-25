@@ -65,11 +65,11 @@
     "*.vue": [
       "prettier --write",
       "eslint --cache --fix",
-      "stylelint --cache --fix"
+      "stylelint --fix"
     ],
     "*.css": [
       "prettier --write",
-      "stylelint --cache --fix"
+      "stylelint --fix"
     ],
     "*.{json,jsonc,html,md,yml,yaml}": "prettier --write"
   }
