@@ -231,7 +231,6 @@ const {
   navError: workspaceError,
   addWorkspace,
   setDraftSession,
-  listedSessions,
   grouping,
   sort,
   setGrouping,

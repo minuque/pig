@@ -203,7 +203,7 @@ import { useColorScheme } from "@features/theme/index.js"
 import { ACCENTS, DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { Slider } from "@components/ui/slider/index.js"
-import { CheckIcon, MoonIcon, SunIcon } from "@components/icons/index.js"
+import { CheckIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const { isDark, scheme, accent, setScheme, setAccent } = useColorScheme()

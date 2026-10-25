@@ -154,7 +154,7 @@
 
 <script setup lang="ts">
 import { useVirtualList } from "@vueuse/core"
-import { computed, nextTick, watch } from "vue"
+import { computed, nextTick, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import type { ComposerModel, ComposerVendor } from "@features/composer/type.js"
 import {
@@ -197,6 +197,7 @@ const emit = defineEmits<{
   "update:level": [value: string]
 }>()
 const open = defineModel<boolean>("open", { default: false })
+const searchRef = useTemplateRef<HTMLInputElement>("searchRef")
 const EMPTY_FAVORITES = new Set<string>()
 const { set: favoriteSet, isFavorite, toggle: toggleFavorite } = useModelFavorites()
 const { t } = useI18n()
@@ -204,7 +205,6 @@ const current = computed(() => resolveModelInfo(props.catalog, props.model))
 const {
   query,
   scope,
-  searchRef,
   selectScope,
   onPanelKeydown,
   onSearchKeydown: searchKeydown,
@@ -216,6 +216,7 @@ const {
   open,
   () => current.value.vendor?.id,
   () => props.catalog[0]?.id,
+  searchRef,
 )
 const items = computed(() =>
   listPickerRows(

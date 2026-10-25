@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { once } from "node:events"
 import { createWriteStream } from "node:fs"
-import { mkdir, readdir, rm, rmdir, stat, unlink } from "node:fs/promises"
+import { mkdir, readdir, rm, rmdir, stat } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { finished } from "node:stream/promises"

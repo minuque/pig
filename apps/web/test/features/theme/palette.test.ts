@@ -1,11 +1,6 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
-import {
-  ACCENT_ATTR,
-  ACCENT_STORAGE_KEY,
-  paintAccent,
-  readStoredAccent,
-} from "@features/theme/lib/palette.js"
+import { ACCENT_STORAGE_KEY, paintAccent, readStoredAccent } from "@features/theme/lib/palette.js"
 import { ACCENTS, DEFAULT_ACCENT_ID, findAccent, isAccentId } from "@features/theme/lib/accents.js"
 
 const css = readFileSync(new URL("../../../src/style/app.css", import.meta.url), "utf8")
@@ -47,7 +42,7 @@ function target() {
     },
     setProperty: (name: string, value: string) => props.set(name, value),
     removeProperty: (name: string) => props.delete(name),
-    setAttr: (name: string, value: string | null) => {
+    setAttr: (_name: string, value: string | null) => {
       state.attr = value
     },
     store: (json: string | null) => {

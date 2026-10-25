@@ -116,11 +116,6 @@ function onOpenFocus(event: Event) {
   inputEl.value?.focus()
 }
 
-function clearQuery() {
-  query.value = ""
-  inputEl.value?.focus()
-}
-
 /** 结果行滚到可见。 */
 function scrollActiveIntoView() {
   nextTick(() => {

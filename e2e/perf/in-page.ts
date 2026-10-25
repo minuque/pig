@@ -178,7 +178,7 @@ export async function waitInPage(page: Page, spec: PageWaitSpec, timeout = DEFAU
 
 /** 点击瞬间起步，记录各 step 从点击到命中的页面毫秒。 */
 export async function armClickStamps(
-  page: Page,
+  _page: Page,
   locator: Locator,
   steps: Record<string, PageWaitSpec>,
   timeout = DEFAULT_TIMEOUT_MS,

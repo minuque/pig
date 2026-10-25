@@ -20,10 +20,10 @@ export function useModelPickerPanel(
   open: Ref<boolean>,
   currentVendorId: () => string | undefined,
   fallbackVendorId: () => string | undefined,
+  searchRef: Ref<HTMLInputElement | null>,
 ) {
   const query = ref("")
   const scope = ref(FAVORITES_SCOPE)
-  const searchRef = ref<HTMLInputElement | null>(null)
   let suppressRestore = false
 
   watch(open, (isOpen) => {
@@ -79,7 +79,6 @@ export function useModelPickerPanel(
   return {
     query,
     scope,
-    searchRef,
     selectScope,
     onPanelKeydown,
     onSearchKeydown,

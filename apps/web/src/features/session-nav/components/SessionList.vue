@@ -180,7 +180,6 @@ const { t } = useI18n()
 const { isDark } = useColorScheme()
 const {
   cardFootById,
-  listedSessions,
   expandedByGroup,
   revealMore,
   collapseGroup,
@@ -246,7 +245,7 @@ function sectionIconStyle(section: { key: string }) {
     : undefined
 }
 
-function itemBind(session: SidebarSession, section: SidebarSection) {
+function itemBind(session: SidebarSession, _section: SidebarSection) {
   const foot = cardFootById.value.get(session.id)
   return {
     session,
@@ -258,7 +257,7 @@ function itemBind(session: SidebarSession, section: SidebarSection) {
   }
 }
 
-function onDragStart(sectionKey: string, id: string, event: PointerEvent) {
+function onDragStart(sectionKey: string, id: string, _event: PointerEvent) {
   if (sectionKey !== "pinned") return
 
   const startIndex = sections.value

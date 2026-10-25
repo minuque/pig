@@ -1,12 +1,7 @@
 import { useColorMode } from "@vueuse/core"
 import { computed, nextTick, ref, watch, type ComputedRef, type Ref } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
-import {
-  ACCENT_ATTR,
-  ACCENT_STORAGE_KEY,
-  paintAccent,
-  readStoredAccent,
-} from "@features/theme/lib/palette.js"
+import { ACCENT_STORAGE_KEY, paintAccent, readStoredAccent } from "@features/theme/lib/palette.js"
 import { DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
 
 const STORAGE_KEY = "npg-theme"

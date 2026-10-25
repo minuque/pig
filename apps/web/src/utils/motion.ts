@@ -23,8 +23,6 @@ export interface DragReorderOptions {
   handleSelector?: string
   /** 触发拖动的最小位移（px）。 */
   threshold?: number
-  /** 松手惯性滑行系数：预测位移 = velocity * fling。 */
-  fling?: number
   /** 越界橡皮筋阻尼（0~1）。 */
   rubber?: number
   /** 落位动画时长（ms）。 */
@@ -64,7 +62,6 @@ interface DragState {
 
 export function useDragReorder(opts: DragReorderOptions) {
   const axis = opts.axis
-  const fling = opts.fling ?? 0.12
   const rubber = opts.rubber ?? 0.35
   const settleMs = opts.settleMs ?? 260
   const shiftMs = opts.shiftMs ?? 180

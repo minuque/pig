@@ -25,7 +25,7 @@ describe("startup sequence", () => {
     currentRoute.value = { name: "error", params: {} }
     let inFlight = 0
     let overlapped = false
-    const { start, ready, visible, settled } = useStartupSequence({
+    const { start, ready, settled } = useStartupSequence({
       connect: async () => {
         inFlight += 1
 

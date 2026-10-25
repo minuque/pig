@@ -113,7 +113,7 @@ import {
   type RailPath,
 } from "@features/transcript-view/lib/step-rail.js"
 import type { ToolRow, ToolRowStep } from "@features/transcript-view/type.js"
-import { AltArrowDownIcon, AltArrowRightIcon, MenuDotsIcon } from "@components/icons/index.js"
+import { AltArrowRightIcon, MenuDotsIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const PAGE_SIZE = 8
