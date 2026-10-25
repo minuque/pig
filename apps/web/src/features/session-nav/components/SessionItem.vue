@@ -118,7 +118,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
-import { useNav } from "@features/session-nav/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
@@ -151,13 +150,14 @@ const props = withDefaults(
 )
 const emit = defineEmits<{
   navigate: []
+  open: [id: string]
+  prime: [id: string]
   togglePinned: [id: string]
   rename: [id: string, name: string]
   delete: [id: string]
   dragStart: [event: PointerEvent]
 }>()
 const { t } = useI18n()
-const { openSession, primeSession } = useNav()
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
 const showDraftGlyph = computed(
@@ -215,7 +215,7 @@ function onCardPointerDown(event: PointerEvent) {
   if (props.placeholder) return
 
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-  primeSession(props.session.id)
+  emit("prime", props.session.id)
 
   if (!props.draggable) return
   pointerDownPos.value = { x: event.clientX, y: event.clientY }
@@ -266,7 +266,7 @@ function onCardClick(event: MouseEvent) {
 
   if (isModifiedSessionClick(event)) return
   event.preventDefault()
-  openSession(props.session.id)
+  emit("open", props.session.id)
 }
 
 function onCardDblclick(event: MouseEvent) {
