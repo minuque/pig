@@ -1,7 +1,7 @@
 /**
  * 共享运动基建。
  *
- * useDragReorder：pointer 跟手 + 松手惯性吸附的拖拽重排，替代原生 HTML5 DnD 的静态反馈。
+ * useDragReorder：pointer 跟手 + 松手落位的拖拽重排，替代原生 HTML5 DnD 的静态反馈。
  *   拖拽期间不改 DOM，只用 transform 预览；松手一次性提交 index，配合 move 动画落位。
  */
 
@@ -48,9 +48,6 @@ interface DragState {
   start: number
   base: number
   offset: number
-  velocity: number
-  lastT: number
-  lastOffset: number
   moved: boolean
   items: HTMLElement[]
   rects: { pos: number; size: number }[]
@@ -168,8 +165,6 @@ export function useDragReorder(opts: DragReorderOptions) {
     if (!st.moved && Math.abs(delta) < threshold) return
     st.moved = true
 
-    const now = performance.now()
-    const dt = (now - st.lastT) / 1000
     let next = st.base + delta
     const min = st.rects[0]?.pos ?? 0
     const max = st.rects[st.rects.length - 1]?.pos ?? 0
@@ -177,9 +172,6 @@ export function useDragReorder(opts: DragReorderOptions) {
     if (next < min) next = min + (next - min) * rubber
     else if (next > max) next = max + (next - max) * rubber
 
-    if (dt > 0) st.velocity = st.velocity * 0.72 + ((next - st.lastOffset) / dt) * 0.28
-    st.lastT = now
-    st.lastOffset = next
     st.offset = next
 
     preview(targetIndex())
@@ -271,9 +263,6 @@ export function useDragReorder(opts: DragReorderOptions) {
       start: e[client],
       base: r.pos,
       offset: r.pos,
-      velocity: 0,
-      lastT: performance.now(),
-      lastOffset: r.pos,
       moved: false,
       items: its,
       rects,
