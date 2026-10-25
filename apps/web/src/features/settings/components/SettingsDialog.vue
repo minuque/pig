@@ -116,10 +116,10 @@ watch(active, async () => {
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   width: var(--size-settings-dialog-nav);
-  padding: var(--spacing-md);
-  padding-block-start: calc(var(--spacing-md) + var(--spacing-xxs));
+  padding: var(--space-md);
+  padding-block-start: calc(var(--space-md) + var(--space-xxs));
   border-inline-end: var(--border-width) solid var(--sidebar-border);
   background: var(--sidebar);
   color: var(--sidebar-foreground);
@@ -128,8 +128,8 @@ watch(active, async () => {
 
 .settings-dialog .settings-nav-title {
   margin: 0;
-  margin-block-end: var(--spacing-sm);
-  padding-inline: var(--spacing-xs);
+  margin-block-end: var(--space-sm);
+  padding-inline: var(--space-xs);
   color: var(--contrast-foreground-muted);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
@@ -139,10 +139,10 @@ watch(active, async () => {
 .settings-dialog .nav-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   width: 100%;
   height: var(--size-nav-rail);
-  padding-inline: var(--spacing-xs);
+  padding-inline: var(--space-xs);
   border-radius: var(--radius-md);
   color: var(--sidebar-foreground);
   font-size: var(--text-caption);
@@ -174,7 +174,7 @@ watch(active, async () => {
 /* 头部条占住右上角关闭按钮的位置，滚动条从这里以下开始 */
 .settings-dialog .settings-right-head {
   flex: none;
-  height: calc(var(--spacing-md) + var(--size-icon-button) + var(--spacing-sm));
+  height: calc(var(--space-md) + var(--size-icon-button) + var(--space-sm));
 }
 
 .settings-dialog .settings-scroll {
@@ -182,8 +182,8 @@ watch(active, async () => {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--spacing-lg);
-  padding-block-start: var(--spacing-xxs);
+  padding: var(--space-lg);
+  padding-block-start: var(--space-xxs);
 }
 
 .settings-dialog .settings-body {
@@ -196,7 +196,7 @@ watch(active, async () => {
   .settings-dialog .settings-nav {
     align-items: center;
     width: var(--size-settings-dialog-nav-narrow);
-    padding-inline: var(--spacing-xxs);
+    padding-inline: var(--space-xxs);
   }
 
   .settings-dialog .settings-nav-title {

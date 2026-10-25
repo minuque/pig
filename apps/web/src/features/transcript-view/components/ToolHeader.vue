@@ -154,7 +154,7 @@ async function copy() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
   min-width: 0;
   padding: 0.4rem 0.4rem 0.4rem 0.6rem;
   border-bottom: var(--border-width) solid var(--border);
@@ -208,7 +208,7 @@ async function copy() {
 .meta {
   display: inline-flex;
   align-items: center;
-  margin-inline-end: var(--spacing-xxs);
+  margin-inline-end: var(--space-xxs);
 }
 
 .icon-btn,

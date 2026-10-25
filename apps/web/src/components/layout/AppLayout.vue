@@ -119,8 +119,8 @@ function resetWidth() {
   inset-block: 0;
   inset-inline-start: var(--left-width);
   z-index: var(--z-resizer);
-  width: var(--spacing-md);
-  margin-inline-start: calc(-1 * var(--spacing-sm));
+  width: var(--space-md);
+  margin-inline-start: calc(-1 * var(--space-sm));
   cursor: col-resize;
   touch-action: none;
   background: transparent;
@@ -134,7 +134,7 @@ function resetWidth() {
   content: "";
   position: absolute;
   inset-block: 0;
-  inset-inline-start: calc(var(--spacing-sm) - var(--border-width));
+  inset-inline-start: calc(var(--space-sm) - var(--border-width));
   width: var(--border-width);
   pointer-events: none;
   background: var(--border);

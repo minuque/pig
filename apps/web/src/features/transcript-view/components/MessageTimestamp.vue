@@ -105,7 +105,7 @@ async function copy() {
 .stamp {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   width: fit-content;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);

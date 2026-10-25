@@ -76,9 +76,9 @@ onBeforeUnmount(() => reorder.detach())
 <style scoped>
 /* 托盘：左右内缩 16px，顶部 16px 圆角，底边 18px 垫在胶囊后面 */
 .queue-panel {
-  margin-inline: var(--spacing-md);
+  margin-inline: var(--space-md);
   margin-bottom: calc(-1 * 18px);
-  padding: 0 var(--spacing-xs) 18px;
+  padding: 0 var(--space-xs) 18px;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   box-shadow: inset 0 0 0 var(--border-width) var(--card-border);
 }
@@ -86,10 +86,10 @@ onBeforeUnmount(() => reorder.detach())
 .row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
   height: 36px;
-  padding-inline: var(--spacing-xs);
+  padding-inline: var(--space-xs);
   border-radius: var(--radius-md);
   color: var(--contrast-foreground);
   font-size: var(--text-caption);
@@ -131,7 +131,7 @@ onBeforeUnmount(() => reorder.detach())
 .row-actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   flex: none;
 }
 

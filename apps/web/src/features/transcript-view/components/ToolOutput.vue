@@ -112,7 +112,7 @@ const preClass = computed(() => ({
 
 .tool-output.is-embedded {
   min-width: 0;
-  padding: var(--spacing-xs);
+  padding: var(--space-xs);
   padding-inline-end: 0;
   overflow-x: auto;
   /* 卡片底比全局滚动条色深，滚动条会看不出，这里提到 ink 12% */
@@ -121,8 +121,8 @@ const preClass = computed(() => ({
 
 .tool-output-pre {
   position: relative;
-  margin: var(--spacing-xxs) 0 0;
-  padding: var(--spacing-sm);
+  margin: var(--space-xxs) 0 0;
+  padding: var(--space-sm);
   overflow: visible;
   border-radius: var(--radius-code);
   background: var(--code-surface);
@@ -147,13 +147,13 @@ const preClass = computed(() => ({
 .images {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-xs);
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
 }
 
 .code-scroll {
   overflow-x: auto;
-  padding: var(--spacing-xs);
+  padding: var(--space-xs);
   padding-inline-end: 0;
   --scrollbar-thumb: var(--hover-strong);
 }
@@ -168,7 +168,7 @@ const preClass = computed(() => ({
 
 .code-line {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
 }
 
 .line-number {
@@ -194,7 +194,7 @@ code {
   inset-inline-start: 0;
   display: block;
   width: 100%;
-  padding: var(--spacing-xs) 0;
+  padding: var(--space-xs) 0;
   border: 0;
   border-top: var(--border-width) solid var(--border);
   background: transparent;

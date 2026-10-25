@@ -268,7 +268,7 @@ function save() {
 }
 
 .settings-label {
-  margin-block-start: var(--spacing-xs);
+  margin-block-start: var(--space-xs);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-bold);
@@ -277,12 +277,12 @@ function save() {
 
 .settings-tabs {
   display: flex;
-  gap: var(--spacing-xxs);
-  margin-block-start: var(--spacing-xxs);
+  gap: var(--space-xxs);
+  margin-block-start: var(--space-xxs);
 }
 
 .settings-tab {
-  padding: var(--spacing-xxs) var(--spacing-sm);
+  padding: var(--space-xxs) var(--space-sm);
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
@@ -302,14 +302,14 @@ function save() {
 .settings-body {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-height: 200px;
 }
 
 .color-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
 }
 
 .color-swatch {
@@ -328,12 +328,12 @@ function save() {
 .icon-pane {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
 }
 
 .icon-search {
   height: var(--size-nav-rail);
-  padding: 0 var(--spacing-xs);
+  padding: 0 var(--space-xs);
   border: 0;
   border-radius: var(--radius-md);
   background: var(--interaction-hover);
@@ -382,7 +382,7 @@ function save() {
 .mono-pane {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
 }
 
 .mono-input {
@@ -419,13 +419,13 @@ function save() {
 .settings-foot {
   display: flex;
   justify-content: flex-end;
-  gap: var(--spacing-xs);
-  padding-block-start: var(--spacing-xs);
+  gap: var(--space-xs);
+  padding-block-start: var(--space-xs);
   border-block-start: 1px solid var(--border);
 }
 
 .btn {
-  padding: var(--spacing-xxs) var(--spacing-sm);
+  padding: var(--space-xxs) var(--space-sm);
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;

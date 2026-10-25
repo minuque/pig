@@ -550,8 +550,8 @@ const contentHandleSides = ["left", "right"] as const
 .drop-guide-label {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
   border: var(--border-width) dashed var(--primary);
   border-radius: var(--radius-full);
   background: var(--composer-background);
@@ -603,8 +603,8 @@ const contentHandleSides = ["left", "right"] as const
   inset: 0 0 calc(var(--hero-dock) + var(--composer-reserve));
   display: grid;
   place-items: end center;
-  padding-inline: var(--spacing-md);
-  padding-bottom: var(--spacing-xl);
+  padding-inline: var(--space-md);
+  padding-bottom: var(--space-xl);
 }
 
 .composer-bar {
@@ -612,7 +612,7 @@ const contentHandleSides = ["left", "right"] as const
   inset-inline: 0;
   bottom: 0;
   z-index: 2;
-  padding-bottom: calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
   pointer-events: none;
 }
 
@@ -625,20 +625,20 @@ const contentHandleSides = ["left", "right"] as const
   content: "";
   position: absolute;
   inset-inline-start: 0;
-  inset-inline-end: var(--spacing-sm);
+  inset-inline-end: var(--space-sm);
   inset-block-end: 0;
   z-index: 1;
-  height: calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px) + var(--edge-fade-band));
+  height: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px) + var(--edge-fade-band));
   pointer-events: none;
   background: linear-gradient(
     to top,
-    var(--background) calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px)),
+    var(--background) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
     transparent
   );
   backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-saturation, 1.08));
   mask-image: linear-gradient(
     to top,
-    black calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px)),
+    black calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
     transparent
   );
 }
@@ -646,7 +646,7 @@ const contentHandleSides = ["left", "right"] as const
 .composer-stack {
   position: relative;
   width: 100%;
-  max-width: calc(var(--size-content) + var(--spacing-sm));
+  max-width: calc(var(--size-content) + var(--space-sm));
   margin-inline: auto;
   background: transparent;
   pointer-events: auto;
@@ -655,7 +655,7 @@ const contentHandleSides = ["left", "right"] as const
 .session-floating-controls {
   position: absolute;
   inset-block-start: 0;
-  inset-inline-end: var(--spacing-sm);
+  inset-inline-end: var(--space-sm);
   z-index: 1;
   display: flex;
   justify-content: flex-end;
@@ -682,7 +682,7 @@ const contentHandleSides = ["left", "right"] as const
   color: var(--contrast-foreground-secondary);
   box-shadow: none;
   cursor: pointer;
-  transform: translateY(calc(-100% - var(--spacing-sm)));
+  transform: translateY(calc(-100% - var(--space-sm)));
 }
 
 .scroll-latest-control:hover {
@@ -692,7 +692,7 @@ const contentHandleSides = ["left", "right"] as const
 
 @media (max-width: 900px) {
   .composer-bar {
-    padding-inline: var(--spacing-sm);
+    padding-inline: var(--space-sm);
   }
 }
 

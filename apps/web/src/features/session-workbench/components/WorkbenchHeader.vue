@@ -201,10 +201,10 @@ function confirmDelete(): void {
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   width: 100%;
-  min-height: calc(var(--size-nav-rail) + 2 * var(--spacing-sm));
-  padding: var(--spacing-xs) var(--spacing-sm);
+  min-height: calc(var(--size-nav-rail) + 2 * var(--space-sm));
+  padding: var(--space-xs) var(--space-sm);
   border-bottom: var(--border-width) solid var(--border-subtle);
   background: var(--toolbar-background);
   color: var(--toolbar-foreground);
@@ -232,7 +232,7 @@ function confirmDelete(): void {
 /* 侧栏展开时收起入口：宽度归零并抵消 gap，图标同步形变 */
 .header-toggle.is-stowed {
   width: 0;
-  margin-inline-end: calc(-1 * var(--spacing-xs));
+  margin-inline-end: calc(-1 * var(--space-xs));
   opacity: 0;
   pointer-events: none;
 }
@@ -248,7 +248,7 @@ function confirmDelete(): void {
   flex: none;
   align-items: center;
   max-width: 12em;
-  padding: 2px var(--spacing-xs);
+  padding: 2px var(--space-xs);
   overflow: hidden;
   border-radius: var(--radius-sm);
   background: var(--hover-tint);
@@ -267,7 +267,7 @@ function confirmDelete(): void {
   max-width: min(30em, 100%);
   height: var(--size-nav-rail);
   margin: 0;
-  padding: 0 var(--spacing-xs);
+  padding: 0 var(--space-xs);
   overflow: hidden;
   border: 0;
   border-radius: var(--radius-sm);
@@ -298,7 +298,7 @@ function confirmDelete(): void {
   visibility: hidden;
   width: auto;
   height: auto;
-  padding-inline-end: var(--spacing-sm);
+  padding-inline-end: var(--space-sm);
   pointer-events: none;
   white-space: pre;
 }
@@ -308,7 +308,7 @@ function confirmDelete(): void {
   flex: none;
   align-items: center;
   justify-content: center;
-  margin-inline-start: calc(var(--spacing-xxs) - var(--spacing-xs));
+  margin-inline-start: calc(var(--space-xxs) - var(--space-xs));
   width: var(--size-nav-rail);
   height: var(--size-nav-rail);
   padding: var(--icon-button-pad);
@@ -347,7 +347,7 @@ html[data-pig-desktop-platform]
 
 html[data-pig-desktop-platform="win32"] .workbench-header {
   padding-inline-end: calc(
-    var(--spacing-sm) +
+    var(--space-sm) +
       max(
         var(--size-windows-caption),
         100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw)
@@ -357,7 +357,7 @@ html[data-pig-desktop-platform="win32"] .workbench-header {
 
 @media (max-width: 520px) {
   .workbench-header > .header-toggle:not(.is-stowed) {
-    width: calc(var(--size-nav-rail) + var(--spacing-xs));
+    width: calc(var(--size-nav-rail) + var(--space-xs));
   }
 }
 

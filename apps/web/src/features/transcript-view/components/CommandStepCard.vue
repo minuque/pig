@@ -115,7 +115,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 .heading {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
 }
 
@@ -161,9 +161,9 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 
 .command-line {
   display: flex;
-  gap: var(--spacing-xs);
-  max-height: calc(var(--text-code-line) * 6 + var(--spacing-xs) * 2);
-  padding: var(--spacing-xs) var(--spacing-sm);
+  gap: var(--space-xs);
+  max-height: calc(var(--text-code-line) * 6 + var(--space-xs) * 2);
+  padding: var(--space-xs) var(--space-sm);
   overflow-y: auto;
   border-top: var(--border-width) solid var(--border-subtle);
   background: var(--code-surface);
@@ -196,7 +196,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 }
 
 .command-output.is-clamped {
-  max-height: calc(var(--text-code-line) * 8 + var(--spacing-xs) * 2);
+  max-height: calc(var(--text-code-line) * 8 + var(--space-xs) * 2);
   overflow: hidden;
   mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent);
 }
@@ -216,9 +216,9 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 .command-footer {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
   min-height: var(--size-icon-button);
-  padding: 0 var(--spacing-sm);
+  padding: 0 var(--space-sm);
   border-top: var(--border-width) solid var(--border-subtle);
   color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
@@ -227,7 +227,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 }
 
 .exit-badge {
-  padding: 1px var(--spacing-xxs);
+  padding: 1px var(--space-xxs);
   border-radius: var(--radius-xs);
 }
 

@@ -33,7 +33,7 @@ const thoughtProps = computed(() =>
 <style scoped>
 .thought {
   margin: 0;
-  padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
+  padding-inline-start: calc(var(--size-icon) + var(--space-xs));
   border: 0;
   background: transparent;
   box-shadow: none;

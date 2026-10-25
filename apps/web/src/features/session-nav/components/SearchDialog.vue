@@ -152,7 +152,7 @@ function activate(index: number) {
    覆盖全局 translate(-50%,-50%) 的 Y 位移：只水平居中，顶边锚到 1/6 视口高度。 */
 .search-dialog {
   gap: 0;
-  width: min(560px, calc(100vw - var(--spacing-lg) * 2));
+  width: min(560px, calc(100vw - var(--space-lg) * 2));
   max-width: 560px;
   max-height: min(70dvh, 640px);
   padding: 0;
@@ -165,10 +165,10 @@ function activate(index: number) {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
   height: 52px;
-  padding-inline: var(--spacing-md);
+  padding-inline: var(--space-md);
   border-bottom: var(--border-width) solid var(--hairline);
 }
 
@@ -222,13 +222,13 @@ function activate(index: number) {
   max-height: min(60dvh, 540px);
   overflow-x: hidden;
   overflow-y: auto;
-  padding: var(--spacing-xs);
+  padding: var(--space-xs);
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 .search-empty {
-  padding: var(--spacing-md);
+  padding: var(--space-md);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
   text-align: center;
@@ -238,11 +238,11 @@ function activate(index: number) {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
   width: 100%;
   min-width: 0;
   height: 36px;
-  padding-inline: var(--spacing-xs);
+  padding-inline: var(--space-xs);
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;

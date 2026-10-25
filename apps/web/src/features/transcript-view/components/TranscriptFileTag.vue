@@ -37,9 +37,9 @@ const iconUrl = computed(() => {
 .file-tag {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
-  padding: 2px var(--spacing-xs);
+  padding: 2px var(--space-xs);
   border-radius: var(--radius-sm);
   background: var(--hover-tint);
   font-family: var(--font-mono);

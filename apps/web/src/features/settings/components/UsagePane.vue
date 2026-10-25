@@ -14,7 +14,7 @@ const { t } = useI18n()
 .pane {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
 }
 
 .empty {

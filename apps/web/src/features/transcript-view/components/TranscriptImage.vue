@@ -7,7 +7,7 @@
     </DialogTrigger>
 
     <DialogContent
-      class="!w-fit max-h-[90vh] max-w-[calc(100vw-2rem)] place-items-center overflow-auto p-(--spacing-sm) sm:!w-fit sm:!max-w-[calc(100vw-2rem)]"
+      class="!w-fit max-h-[90vh] max-w-[calc(100vw-2rem)] place-items-center overflow-auto p-(--space-sm) sm:!w-fit sm:!max-w-[calc(100vw-2rem)]"
     >
       <img :src="src" :alt="altText" class="full" />
     </DialogContent>

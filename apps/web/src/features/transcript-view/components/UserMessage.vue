@@ -97,7 +97,7 @@ useResizeObserver(body, measure)
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
 }
 
 .prompt {
@@ -133,7 +133,7 @@ useResizeObserver(body, measure)
 }
 
 .toggle {
-  margin: var(--spacing-xxs) 0 0;
+  margin: var(--space-xxs) 0 0;
   padding: 0;
   border: 0;
   background: none;
@@ -152,7 +152,7 @@ useResizeObserver(body, measure)
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   max-width: 100%;
 }
 </style>

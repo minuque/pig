@@ -313,14 +313,14 @@ async function onNotify(next: boolean) {
 .pane {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
-  padding-block-end: var(--spacing-md);
+  gap: var(--space-xl);
+  padding-block-end: var(--space-md);
 }
 
 .group {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
 }
 
 .group-title {
@@ -334,7 +334,7 @@ async function onNotify(next: boolean) {
 .card {
   display: flex;
   flex-direction: column;
-  padding-inline: var(--spacing-md);
+  padding-inline: var(--space-md);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-xl);
   background: var(--background);
@@ -344,9 +344,9 @@ async function onNotify(next: boolean) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-md);
-  min-height: calc(var(--size-control) + var(--spacing-lg));
-  padding-block: var(--spacing-sm);
+  gap: var(--space-md);
+  min-height: calc(var(--size-control) + var(--space-lg));
+  padding-block: var(--space-sm);
 }
 
 .row + .row {
@@ -357,7 +357,7 @@ async function onNotify(next: boolean) {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
 }
 
 .label {
@@ -377,7 +377,7 @@ async function onNotify(next: boolean) {
 
 .scheme-cards {
   display: grid;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
   grid-template-columns: repeat(3, 1fr);
 }
 
@@ -385,8 +385,8 @@ async function onNotify(next: boolean) {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm);
+  gap: var(--space-sm);
+  padding: var(--space-sm);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-xl);
   background: var(--card);
@@ -442,16 +442,16 @@ async function onNotify(next: boolean) {
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   width: 28%;
-  padding: var(--spacing-xs);
+  padding: var(--space-xs);
   background: var(--theme-wire-light-raised);
 }
 
 .wire-side::before,
 .wire-side::after {
   content: "";
-  height: var(--spacing-xxs);
+  height: var(--space-xxs);
   border-radius: var(--radius-full);
   background: var(--border);
 }
@@ -465,12 +465,12 @@ async function onNotify(next: boolean) {
   min-width: 0;
   flex: 1;
   flex-direction: column;
-  gap: var(--spacing-xxs);
-  padding: var(--spacing-xs);
+  gap: var(--space-xxs);
+  padding: var(--space-xs);
 }
 
 .wire-line {
-  height: var(--spacing-xxs);
+  height: var(--space-xxs);
   border-radius: var(--radius-full);
   background: var(--border);
 }
@@ -484,15 +484,15 @@ async function onNotify(next: boolean) {
   align-items: center;
   justify-content: flex-end;
   margin-top: auto;
-  height: var(--spacing-md);
-  padding-inline: var(--spacing-xxs);
+  height: var(--space-md);
+  padding-inline: var(--space-xxs);
   border-radius: var(--radius-full);
   background: var(--theme-wire-light-raised);
 }
 
 .wire-knob {
-  width: var(--spacing-sm);
-  height: var(--spacing-sm);
+  width: var(--space-sm);
+  height: var(--space-sm);
   border-radius: var(--radius-full);
   background: var(--primary);
 }
@@ -536,7 +536,7 @@ async function onNotify(next: boolean) {
   min-width: 0;
   flex: 1;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
   padding: 0;
   border: 0;
   background: transparent;
@@ -603,8 +603,8 @@ async function onNotify(next: boolean) {
 .segment {
   display: inline-flex;
   flex: none;
-  gap: var(--spacing-xxs);
-  padding: var(--spacing-xxs);
+  gap: var(--space-xxs);
+  padding: var(--space-xxs);
   border-radius: var(--radius-lg);
   background: var(--card);
 }
@@ -612,9 +612,9 @@ async function onNotify(next: boolean) {
 .segment-btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   min-height: var(--size-icon-button);
-  padding: var(--spacing-xxs) var(--spacing-sm);
+  padding: var(--space-xxs) var(--space-sm);
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
@@ -640,7 +640,7 @@ async function onNotify(next: boolean) {
 .size-btn {
   justify-content: center;
   min-width: var(--size-icon-button);
-  padding-inline: var(--spacing-xs);
+  padding-inline: var(--space-xs);
 }
 
 .opacity-control {

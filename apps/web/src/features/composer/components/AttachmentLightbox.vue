@@ -39,7 +39,7 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
   z-index: var(--z-modal);
   display: grid;
   place-items: center;
-  padding: var(--spacing-xl);
+  padding: var(--space-xl);
   background: var(--scrim);
   cursor: zoom-out;
   animation: lightbox-in var(--duration-normal) var(--ease-out) both;

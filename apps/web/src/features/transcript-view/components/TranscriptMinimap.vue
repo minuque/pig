@@ -136,7 +136,7 @@ function onStageFocusOut(event: FocusEvent) {
   pointer-events: none;
   position: absolute;
   top: calc((100% - var(--composer-reserve, 0px)) / 2);
-  inset-inline-start: var(--spacing-md);
+  inset-inline-start: var(--space-md);
   z-index: 3;
   display: none;
   width: 44px;
@@ -194,7 +194,7 @@ function onStageFocusOut(event: FocusEvent) {
 
 .preview-card {
   display: block;
-  padding: var(--spacing-sm);
+  padding: var(--space-sm);
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-popover);
   box-shadow: var(--shadow-elevated);
@@ -215,7 +215,7 @@ function onStageFocusOut(event: FocusEvent) {
 .preview-assistant {
   display: -webkit-box;
   max-height: 3.75rem;
-  margin-top: var(--spacing-xxs);
+  margin-top: var(--space-xxs);
   overflow: hidden;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);

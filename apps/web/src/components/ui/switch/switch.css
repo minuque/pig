@@ -3,7 +3,7 @@
 .switch {
   position: relative;
   flex: none;
-  width: calc(var(--size-control) + var(--spacing-xxs));
+  width: calc(var(--size-control) + var(--space-xxs));
   height: var(--size-icon-button);
   padding: 0;
   border: 0;
@@ -12,8 +12,8 @@
 
 .switch-track {
   position: absolute;
-  inset: var(--spacing-xxs) 0 auto;
-  height: calc(var(--size-icon-button) - var(--spacing-xs));
+  inset: var(--space-xxs) 0 auto;
+  height: calc(var(--size-icon-button) - var(--space-xs));
   border-radius: var(--radius-full);
   background: var(--border);
 }

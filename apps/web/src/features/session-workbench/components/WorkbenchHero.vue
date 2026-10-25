@@ -81,7 +81,7 @@ const label = computed(() =>
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-md);
+  gap: var(--space-md);
   min-width: 0;
 }
 

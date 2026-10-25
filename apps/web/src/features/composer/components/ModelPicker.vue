@@ -38,7 +38,7 @@
       align="end"
       :side-offset="6"
       :collision-padding="16"
-      class="w-[min(var(--size-drawer),calc(100vw-var(--spacing-lg)))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden"
+      class="w-[min(var(--size-drawer),calc(100vw-var(--space-lg)))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden"
       @open-auto-focus.prevent="nextTick(focusSearch)"
       @pointer-down-outside="onPointerDownOutside"
       @focus-outside="onFocusOutside"
@@ -102,7 +102,7 @@
               :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
             >
               <DropdownMenuItem
-                class="model-item gap-(--spacing-xs) rounded-(--radius-md) px-(--spacing-xs) py-0 h-(--size-control) text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent data-[highlighted]:bg-transparent"
+                class="model-item gap-(--space-xs) rounded-(--radius-md) px-(--space-xs) py-0 h-(--size-control) text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent data-[highlighted]:bg-transparent"
                 @select="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
               >
                 <VendorMark
@@ -329,12 +329,12 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .selector {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   min-width: 0;
   min-height: var(--size-composer-control);
   height: auto;
   flex-shrink: 1;
-  padding: var(--spacing-xxs) var(--spacing-xs);
+  padding: var(--space-xxs) var(--space-xs);
   border: 0;
   border-radius: var(--radius-full);
   background: transparent;
@@ -435,7 +435,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .selector-effort::before {
   content: "·";
-  margin-inline: var(--spacing-xxs);
+  margin-inline: var(--space-xxs);
   color: var(--contrast-foreground-muted);
 }
 
@@ -443,14 +443,14 @@ function onSelectModel(event: Event, provider: string, id: string) {
   display: flex;
   flex-direction: column;
   height: min(320px, var(--reka-dropdown-menu-content-available-height, 70vh));
-  padding: var(--spacing-xxs);
+  padding: var(--space-xxs);
 }
 
 .tabs {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xxs);
-  padding: var(--spacing-xxs) var(--spacing-xs);
+  gap: var(--space-xxs);
+  padding: var(--space-xxs) var(--space-xs);
   border-bottom: var(--border-width) solid var(--border);
   overflow-x: auto;
   scrollbar-width: none;
@@ -475,7 +475,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   content: "";
   position: absolute;
   inset-inline: 22%;
-  bottom: calc(-1 * var(--spacing-xxs) - var(--border-width));
+  bottom: calc(-1 * var(--space-xxs) - var(--border-width));
   height: 2px;
   border-radius: var(--radius-full);
   background: var(--primary);
@@ -498,10 +498,10 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .search {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   height: 32px;
-  margin: var(--spacing-xxs) 0;
-  padding: 0 var(--spacing-xs);
+  margin: var(--space-xxs) 0;
+  padding: 0 var(--space-xs);
   border-radius: var(--radius-md);
   background: var(--background-soft);
 }
@@ -533,7 +533,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   grid-template-columns: minmax(0, 1fr) 24px;
   align-items: center;
   height: var(--size-control);
-  padding-inline-end: var(--spacing-xxs);
+  padding-inline-end: var(--space-xxs);
   border-radius: var(--radius-md);
 }
 
@@ -563,7 +563,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .row-kbd {
   flex: none;
   margin-inline-start: auto;
-  padding: 0 var(--spacing-xxs);
+  padding: 0 var(--space-xxs);
   border: 0;
   border-radius: var(--radius-full);
   background: var(--background-soft);
@@ -599,7 +599,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .empty {
-  padding: var(--spacing-lg) var(--spacing-xs);
+  padding: var(--space-lg) var(--space-xs);
   font-size: var(--text-eyebrow);
   color: var(--contrast-foreground-faint);
   text-align: center;

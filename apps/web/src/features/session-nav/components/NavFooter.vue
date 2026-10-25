@@ -92,8 +92,8 @@ const { isDark, toggle: toggleTheme } = useColorScheme()
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--nav-inline, var(--spacing-xs));
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--nav-inline, var(--space-xs));
   border-top: var(--border-width) solid var(--border-subtle);
 }
 
@@ -122,10 +122,10 @@ const { isDark, toggle: toggleTheme } = useColorScheme()
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
   height: var(--size-nav-rail);
-  padding-inline: var(--spacing-xs);
+  padding-inline: var(--space-xs);
   border-radius: var(--radius-md);
   color: var(--contrast-foreground);
   font-size: var(--text-caption);
@@ -175,7 +175,7 @@ const { isDark, toggle: toggleTheme } = useColorScheme()
 .help-lead {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
 }
 

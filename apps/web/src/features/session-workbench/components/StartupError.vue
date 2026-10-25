@@ -39,15 +39,15 @@ function retry() {
   flex: 1;
   display: grid;
   place-items: center;
-  padding: 0 var(--spacing-md);
+  padding: 0 var(--space-md);
 }
 
 .error-cluster {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-xs);
-  max-width: calc(var(--size-content) + var(--spacing-sm));
+  gap: var(--space-xs);
+  max-width: calc(var(--size-content) + var(--space-sm));
   text-align: center;
 }
 

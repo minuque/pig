@@ -189,10 +189,10 @@ const tokensLabel = computed(() => {
 .turn-status {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   box-sizing: border-box;
   width: 100%;
-  padding-block-start: var(--spacing-md);
+  padding-block-start: var(--space-md);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);

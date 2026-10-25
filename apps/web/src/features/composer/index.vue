@@ -348,7 +348,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 .attach-tray {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   width: 100%;
   min-width: 0;
 }
@@ -470,7 +470,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 
 .tooltip-hint {
-  margin-inline-start: var(--spacing-xxs);
+  margin-inline-start: var(--space-xxs);
   font: inherit;
   opacity: 0.55;
 }

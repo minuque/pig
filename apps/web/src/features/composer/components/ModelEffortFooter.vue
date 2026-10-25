@@ -135,8 +135,8 @@ function reset() {
 .effort-card {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xxs);
-  padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xs);
+  gap: var(--space-xxs);
+  padding: var(--space-xxs) var(--space-xs) var(--space-xs);
   border-top: var(--border-width) solid var(--border);
 }
 
@@ -144,7 +144,7 @@ function reset() {
   display: grid;
   grid-template-columns: 1.5rem minmax(0, 1fr) 1.5rem;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
 }
 
 .effort-value {

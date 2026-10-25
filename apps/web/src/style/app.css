@@ -508,13 +508,14 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
-  --spacing-xxs: calc(var(--spacing) * 1);
-  --spacing-xs: calc(var(--spacing) * 2);
-  --spacing-sm: calc(var(--spacing) * 3);
-  --spacing-md: calc(var(--spacing) * 4);
-  --spacing-lg: calc(var(--spacing) * 6);
-  --spacing-xl: calc(var(--spacing) * 7);
-  --spacing-xxl: calc(var(--spacing) * 8);
+  /* 间距刻度用 --space-*：--spacing-* 是 max-w/w/size/leading 的兜底命名空间，塞进去会顶掉默认刻度 */
+  --space-xxs: calc(var(--spacing) * 1);
+  --space-xs: calc(var(--spacing) * 2);
+  --space-sm: calc(var(--spacing) * 3);
+  --space-md: calc(var(--spacing) * 4);
+  --space-lg: calc(var(--spacing) * 6);
+  --space-xl: calc(var(--spacing) * 7);
+  --space-xxl: calc(var(--spacing) * 8);
 
   /* 单一基数派生，改 --radius 即整档跟随；不在网格上的各自独立 */
   --radius: 8px;
@@ -690,7 +691,7 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
 
 @media (pointer: coarse) {
   :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
-    min-height: calc(var(--size-control) + var(--spacing-xxs));
+    min-height: calc(var(--size-control) + var(--space-xxs));
   }
 }
 

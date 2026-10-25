@@ -38,8 +38,8 @@ const { t } = useI18n()
   z-index: var(--z-modal);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xxs);
-  padding: var(--spacing-xs) var(--spacing-md);
+  gap: var(--space-xxs);
+  padding: var(--space-xs) var(--space-md);
   pointer-events: none;
 }
 

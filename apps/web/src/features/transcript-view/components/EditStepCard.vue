@@ -103,16 +103,16 @@ const editDiffOptions = computed(() => ({
 .read-heading {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
 }
 
 .card-footer {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
   min-height: var(--size-icon-button);
-  padding: 0 var(--spacing-sm);
+  padding: 0 var(--space-sm);
   border-top: var(--border-width) solid var(--border-subtle);
   color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
@@ -135,7 +135,7 @@ const editDiffOptions = computed(() => ({
 }
 
 .edit-area.is-clamped {
-  max-height: calc(var(--text-code-line) * 8 + var(--spacing-xs) * 2);
+  max-height: calc(var(--text-code-line) * 8 + var(--space-xs) * 2);
   overflow: hidden;
   mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent);
 }

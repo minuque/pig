@@ -74,19 +74,19 @@ function rowClass(row: TimelineRow, rowIndex: number) {
 .row {
   box-sizing: border-box;
   width: 100%;
-  padding-block-start: var(--spacing-sm);
+  padding-block-start: var(--space-sm);
 }
 
 .row.is-after-user {
-  padding-block-start: var(--spacing-lg);
+  padding-block-start: var(--space-lg);
 }
 
 .row.row-tools.is-after-user {
-  padding-block-start: var(--spacing-md);
+  padding-block-start: var(--space-md);
 }
 
 .row.row-user {
-  padding-block-start: var(--spacing-xl);
+  padding-block-start: var(--space-xl);
 }
 
 .row.is-first {

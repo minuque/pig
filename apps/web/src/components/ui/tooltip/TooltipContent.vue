@@ -3,7 +3,7 @@
     <TooltipContent
       data-slot="tooltip-content"
       v-bind="{ ...$attrs, ...forwarded }"
-      class="surface-solid text-eyebrow z-50 max-w-(--reka-tooltip-content-available-width) origin-(--reka-tooltip-content-transform-origin) rounded-(--radius-popover) border border-[color:var(--hairline)] px-(--spacing-xs) py-(--spacing-xxs) text-foreground reveal-menu whitespace-pre-wrap break-words"
+      class="surface-solid text-eyebrow z-50 max-w-(--reka-tooltip-content-available-width) origin-(--reka-tooltip-content-transform-origin) rounded-(--radius-popover) border border-[color:var(--hairline)] px-(--space-xs) py-(--space-xxs) text-foreground reveal-menu whitespace-pre-wrap break-words"
       :class="props.class"
     >
       <slot />

@@ -472,7 +472,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 
 /* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在顶部渐隐带下方，指示器跟在消息后 */
 .turn-runway {
-  min-height: calc(100cqh - 2 * var(--spacing-lg) - var(--composer-reserve, 0px));
+  min-height: calc(100cqh - 2 * var(--space-lg) - var(--composer-reserve, 0px));
 }
 
 .transcript-viewport.is-windowed {
@@ -486,12 +486,12 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 
 .transcript {
   box-sizing: border-box;
-  width: min(100%, var(--size-content) - var(--spacing-lg));
+  width: min(100%, var(--size-content) - var(--space-lg));
   min-width: 0;
   margin-inline: auto;
-  padding-top: var(--spacing-lg);
+  padding-top: var(--space-lg);
   /* 底部留白：渐隐带高 + 输入条占位 */
-  padding-bottom: calc(var(--spacing-sm) + var(--spacing-lg) + var(--composer-reserve, 0px));
+  padding-bottom: calc(var(--space-sm) + var(--space-lg) + var(--composer-reserve, 0px));
   padding-inline: var(--border-width);
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
@@ -512,7 +512,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .older-busy {
   display: block;
   width: 100%;
-  padding: var(--spacing-sm) 0;
+  padding: var(--space-sm) 0;
   border: 0;
   background: transparent;
   color: var(--contrast-foreground);
@@ -529,7 +529,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .older-busy.is-loading {
   display: grid;
   place-items: center;
-  min-height: calc(var(--text-meta) * var(--text-meta--line-height) + 2 * var(--spacing-sm));
+  min-height: calc(var(--text-meta) * var(--text-meta--line-height) + 2 * var(--space-sm));
   cursor: default;
 }
 

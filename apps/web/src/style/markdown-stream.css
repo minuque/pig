@@ -185,7 +185,7 @@
     color: var(--contrast-foreground-secondary);
     border: var(--border-width) solid var(--border-subtle);
     border-radius: var(--radius-xs);
-    padding: var(--border-width) calc(var(--spacing-xxs) - var(--border-width));
+    padding: var(--border-width) calc(var(--space-xxs) - var(--border-width));
   }
 
   /* ------ Synara 覆盖：代码块单层底，无边框阴影 ------ */
@@ -287,7 +287,7 @@
   .table-node-wrapper .table-node :is(th, td):last-child {
     border: 0;
     border-bottom: var(--border-width) solid var(--table-border);
-    padding: var(--spacing-xs);
+    padding: var(--space-xs);
     text-align: start;
   }
 

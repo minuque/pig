@@ -30,8 +30,8 @@
   z-index: 1;
   display: grid;
   justify-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
+  gap: var(--space-md);
+  padding: var(--space-lg);
 }
 
 .startup-mark {
@@ -406,7 +406,7 @@
   z-index: 1;
 }
 
-/* 行增删：高度随行一起收放，下方内容跟着滑，不瞬跳；负上边距抵掉 --spacing-xxs 行距 */
+/* 行增删：高度随行一起收放，下方内容跟着滑，不瞬跳；负上边距抵掉 --space-xxs 行距 */
 .list-reveal-enter-active,
 .list-reveal-leave-active {
   overflow: hidden;
@@ -425,7 +425,7 @@
 .list-reveal-enter-from,
 .list-reveal-leave-to {
   height: 0;
-  margin-block-start: calc(var(--spacing-xxs) * -1);
+  margin-block-start: calc(var(--space-xxs) * -1);
   opacity: 0;
 }
 
@@ -525,12 +525,12 @@
 
 .menu-reveal-enter-from {
   opacity: 0;
-  translate: 0 var(--spacing-xs);
+  translate: 0 var(--space-xs);
 }
 
 .menu-reveal-leave-to {
   opacity: 0;
-  translate: 0 calc(var(--spacing-xs) / 2);
+  translate: 0 calc(var(--space-xs) / 2);
 }
 
 /* ------ 主题切换 view-transition ------ */

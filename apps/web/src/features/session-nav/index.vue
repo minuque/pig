@@ -368,7 +368,7 @@ function onCreateSession(cwd?: string): void {
 
 <style scoped>
 .session-nav {
-  --nav-inline: var(--spacing-xs);
+  --nav-inline: var(--space-xs);
   position: relative;
   isolation: isolate;
   display: flex;
@@ -386,11 +386,11 @@ function onCreateSession(cwd?: string): void {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding-block-start: var(--spacing-xxs);
+  padding-block-start: var(--space-xxs);
   padding-inline-start: var(--nav-inline);
 }
 
@@ -400,9 +400,9 @@ function onCreateSession(cwd?: string): void {
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
-  padding-block: var(--spacing-xxs);
+  padding-block: var(--space-xxs);
   border-bottom: var(--border-width) solid transparent;
   transition: border-color var(--duration-fast) var(--ease-out);
 }
@@ -414,7 +414,7 @@ function onCreateSession(cwd?: string): void {
 .nav-titlebar {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
   padding-inline: var(--nav-inline);
 }
@@ -423,9 +423,9 @@ function onCreateSession(cwd?: string): void {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
-  padding: var(--spacing-xxs) var(--spacing-xxs) var(--spacing-xxs) 0;
+  padding: var(--space-xxs) var(--space-xxs) var(--space-xxs) 0;
   border-radius: var(--radius-md);
   color: var(--contrast-foreground);
   text-decoration: none;
@@ -492,7 +492,7 @@ function onCreateSession(cwd?: string): void {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   padding-inline: var(--nav-inline);
 }
 
@@ -518,10 +518,10 @@ function onCreateSession(cwd?: string): void {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
   height: 32px;
-  padding-inline: var(--spacing-xxs) var(--spacing-xs);
+  padding-inline: var(--space-xxs) var(--space-xs);
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
@@ -627,11 +627,11 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
 }
 
 html[data-pig-desktop-platform="darwin"] .session-nav {
-  padding-top: var(--spacing-xxl);
+  padding-top: var(--space-xxl);
 }
 
 html[data-pig-desktop-platform="darwin"] .nav-titlebar {
-  height: var(--spacing-xxl);
+  height: var(--space-xxl);
 }
 
 .add-guide {
@@ -639,27 +639,27 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
   flex: none;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   margin: 0;
-  padding-block: var(--spacing-xxs);
+  padding-block: var(--space-xxs);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }
 
 .add-guide .motion-nudge {
-  margin-inline-start: var(--spacing-xs);
+  margin-inline-start: var(--space-xs);
 }
 
 .scope-label {
   margin: 0;
-  padding: var(--spacing-xxs) var(--spacing-xs) 0;
+  padding: var(--space-xxs) var(--space-xs) 0;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }
 
 .scope-sep {
   height: 1px;
-  margin-block: var(--spacing-xxs);
+  margin-block: var(--space-xxs);
   background: var(--border);
 }
 
@@ -693,9 +693,9 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
 .scope-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   width: 100%;
-  padding: var(--spacing-xxs) var(--spacing-xs);
+  padding: var(--space-xxs) var(--space-xs);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;

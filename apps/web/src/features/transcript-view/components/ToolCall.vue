@@ -367,7 +367,7 @@ function toggleGroup(event: MouseEvent) {
 }
 
 .tool-calls-group.is-open {
-  margin-block-start: var(--spacing-xs);
+  margin-block-start: var(--space-xs);
 }
 
 .summary.is-open {
@@ -383,7 +383,7 @@ function toggleGroup(event: MouseEvent) {
   min-height: 28px;
   min-width: 0;
   padding: 2px 0;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   justify-content: flex-start;
   border-radius: 0;
   background: transparent;
@@ -429,7 +429,7 @@ function toggleGroup(event: MouseEvent) {
 .detail {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
   flex: 0 1 auto;
   overflow: hidden;
@@ -446,7 +446,7 @@ function toggleGroup(event: MouseEvent) {
 .line-stats {
   display: inline-flex;
   flex: none;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
 }
 
 .added {
@@ -460,7 +460,7 @@ function toggleGroup(event: MouseEvent) {
 .calls {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
 }
 
 .call {

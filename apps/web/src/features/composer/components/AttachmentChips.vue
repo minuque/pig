@@ -118,7 +118,7 @@ const rows = computed(() =>
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
 }
 
@@ -173,7 +173,7 @@ const rows = computed(() =>
   justify-content: flex-start;
   gap: 2px;
   height: 100%;
-  padding: var(--spacing-xs) 3px 0;
+  padding: var(--space-xs) 3px 0;
   color: var(--contrast-foreground-secondary);
   transition: opacity var(--duration-normal) var(--ease-out);
 }

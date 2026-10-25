@@ -122,12 +122,12 @@ watch(
 .command-menu {
   position: absolute;
   inset-inline: 0;
-  bottom: calc(100% + var(--spacing-xs));
+  bottom: calc(100% + var(--space-xs));
   z-index: var(--z-drawer);
   max-height: 280px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--spacing-xxs);
+  padding: var(--space-xxs);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-xl);
   corner-shape: var(--corner-shape-composer);
@@ -137,7 +137,7 @@ watch(
 
 .command-label {
   margin: 0;
-  padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xxs);
+  padding: var(--space-xxs) var(--space-xs) var(--space-xxs);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-semibold);
@@ -147,18 +147,18 @@ watch(
 }
 
 .command-group + .command-group {
-  margin-top: var(--spacing-xxs);
+  margin-top: var(--space-xxs);
   border-top: var(--border-width) solid var(--border-subtle);
-  padding-top: var(--spacing-xxs);
+  padding-top: var(--space-xxs);
 }
 
 .command-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   width: 100%;
   min-width: 0;
-  padding: var(--spacing-xxs) var(--spacing-xs);
+  padding: var(--space-xxs) var(--space-xs);
   border-radius: var(--radius-lg);
   corner-shape: var(--corner-shape-composer);
   color: var(--contrast-foreground);
@@ -192,7 +192,7 @@ watch(
 .command-main {
   display: flex;
   align-items: baseline;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   flex: 1;
   min-width: 0;
 }
@@ -213,14 +213,14 @@ watch(
 .command-trailing {
   flex: none;
   margin-inline-start: auto;
-  padding-inline-start: var(--spacing-xs);
+  padding-inline-start: var(--space-xs);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }
 
 .command-status {
   margin: 0;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: var(--space-xs) var(--space-sm);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }

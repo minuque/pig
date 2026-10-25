@@ -51,7 +51,7 @@
 
     <Dialog :open="previewOpen" @update:open="onPreviewOpen">
       <DialogContent
-        class="flex h-[70vh] w-[70vw] max-w-[70vw] flex-col gap-(--spacing-sm) overflow-hidden sm:max-w-[70vw]"
+        class="flex h-[70vh] w-[70vw] max-w-[70vw] flex-col gap-(--space-sm) overflow-hidden sm:max-w-[70vw]"
         @open-auto-focus="onOpenAutoFocus"
       >
         <DialogTitle>{{ previewTitle }}</DialogTitle>
@@ -164,7 +164,7 @@ function onOpenAutoFocus(event: Event) {
 .usage-root {
   position: absolute;
   inset-inline: 0;
-  bottom: calc(100% + var(--spacing-xs));
+  bottom: calc(100% + var(--space-xs));
   z-index: var(--z-drawer);
 }
 
@@ -174,7 +174,7 @@ function onOpenAutoFocus(event: Event) {
 
 .usage-host {
   position: relative;
-  padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs);
+  padding: var(--space-sm) var(--space-sm) var(--space-xs);
   border: var(--border-width) solid var(--hairline);
   border-radius: var(--radius-popover);
 }
@@ -183,7 +183,7 @@ function onOpenAutoFocus(event: Event) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
 }
 
 .title {
@@ -216,8 +216,8 @@ function onOpenAutoFocus(event: Event) {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-xxs);
+  gap: var(--space-xs);
+  margin-top: var(--space-xxs);
 }
 
 .percent {
@@ -236,7 +236,7 @@ function onOpenAutoFocus(event: Event) {
   display: flex;
   overflow: hidden;
   height: 6px;
-  margin-top: var(--spacing-xs);
+  margin-top: var(--space-xs);
   border-radius: var(--radius-full);
   background: var(--hover-strong);
 }
@@ -251,8 +251,8 @@ function onOpenAutoFocus(event: Event) {
 .legend {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  margin: var(--spacing-sm) 0 var(--spacing-xxs);
+  gap: var(--space-xs);
+  margin: var(--space-sm) 0 var(--space-xxs);
   padding: 0;
   list-style: none;
 }
@@ -260,7 +260,7 @@ function onOpenAutoFocus(event: Event) {
 .legend-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   width: 100%;
   min-height: 18px;
   padding: 0;

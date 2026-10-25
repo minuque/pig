@@ -26,7 +26,7 @@ const cwd = useSettingsCwd()
 .pane {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
 }
 
 .cwd {

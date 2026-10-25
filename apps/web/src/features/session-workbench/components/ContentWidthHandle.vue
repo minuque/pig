@@ -109,11 +109,11 @@ function onPointerCancel() {
 }
 
 .width-handle[data-side="left"] {
-  inset-inline-end: calc(50% + var(--size-content) / 2 + var(--spacing-lg));
+  inset-inline-end: calc(50% + var(--size-content) / 2 + var(--space-lg));
 }
 
 .width-handle[data-side="right"] {
-  inset-inline-start: calc(50% + var(--size-content) / 2 + var(--spacing-lg));
+  inset-inline-start: calc(50% + var(--size-content) / 2 + var(--space-lg));
 }
 
 .width-handle::after {
@@ -135,11 +135,11 @@ function onPointerCancel() {
 }
 
 .width-handle[data-side="left"]::after {
-  inset-inline-end: var(--spacing-md);
+  inset-inline-end: var(--space-md);
 }
 
 .width-handle[data-side="right"]::after {
-  inset-inline-start: var(--spacing-md);
+  inset-inline-start: var(--space-md);
 }
 
 .width-handle:hover::after,

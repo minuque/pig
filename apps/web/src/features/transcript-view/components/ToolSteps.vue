@@ -353,7 +353,7 @@ onBeforeUnmount(() => {
   height: auto;
   min-height: var(--tool-summary-offset);
   padding: 0;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   justify-content: flex-start;
   border-radius: 0;
   background: var(--card);
@@ -413,7 +413,7 @@ onBeforeUnmount(() => {
 .line-counts {
   display: inline-flex;
   flex: none;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -428,7 +428,7 @@ onBeforeUnmount(() => {
 .steps {
   position: relative;
   min-width: 0;
-  padding-block: var(--spacing-xs);
+  padding-block: var(--space-xs);
 }
 
 .step-rail {
@@ -458,13 +458,13 @@ onBeforeUnmount(() => {
 .step-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   min-width: 0;
 }
 
 .step {
   min-width: 0;
-  padding-inline-start: calc(var(--size-icon) + var(--spacing-xs));
+  padding-inline-start: calc(var(--size-icon) + var(--space-xs));
 }
 
 .step.is-arriving {
@@ -481,7 +481,7 @@ onBeforeUnmount(() => {
   min-height: var(--size-icon-button);
   min-width: 0;
   padding: 2px 0;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   justify-content: flex-start;
   border-radius: 0;
   background: transparent;

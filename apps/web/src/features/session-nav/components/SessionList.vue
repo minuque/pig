@@ -324,7 +324,7 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
-  padding-block-start: var(--spacing-xxs);
+  padding-block-start: var(--space-xxs);
 }
 
 .session-edge-bottom {
@@ -333,7 +333,7 @@ onBeforeUnmount(() => {
 }
 
 .session-section + .session-section {
-  margin-block-start: var(--spacing-xs);
+  margin-block-start: var(--space-xs);
 }
 
 .section-head {
@@ -343,15 +343,15 @@ onBeforeUnmount(() => {
   align-items: center;
   min-width: 0;
   height: 26px;
-  padding-inline: var(--spacing-xxs) 0;
-  gap: var(--spacing-xxs);
+  padding-inline: var(--space-xxs) 0;
+  gap: var(--space-xxs);
 }
 
 .section-toggle {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
   padding: 0;
   border: 0;
@@ -411,8 +411,8 @@ onBeforeUnmount(() => {
 .section-count {
   flex: none;
   height: 16px;
-  margin-inline-end: var(--spacing-xxs);
-  padding-inline: var(--spacing-xxs);
+  margin-inline-end: var(--space-xxs);
+  padding-inline: var(--space-xxs);
   border-radius: var(--radius-xs);
   background: var(--glass-selected-bg);
   color: var(--contrast-foreground-muted);
@@ -442,7 +442,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   margin-inline-start: auto;
 }
 
@@ -473,9 +473,9 @@ onBeforeUnmount(() => {
 .section-rows {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   margin: 0;
-  padding: var(--spacing-xxs) var(--nav-inline, var(--spacing-xs)) 0 0;
+  padding: var(--space-xxs) var(--nav-inline, var(--space-xs)) 0 0;
   list-style: none;
 }
 
@@ -501,20 +501,20 @@ onBeforeUnmount(() => {
 }
 
 .session-row.drop-before::before {
-  top: calc(var(--spacing-xxs) / -2 - 1px);
+  top: calc(var(--space-xxs) / -2 - 1px);
 }
 
 .session-row.drop-after::after {
-  bottom: calc(var(--spacing-xxs) / -2 - 1px);
+  bottom: calc(var(--space-xxs) / -2 - 1px);
 }
 
 .more-button {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   width: 100%;
   height: 26px;
-  padding-inline: var(--spacing-xs);
+  padding-inline: var(--space-xs);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -533,7 +533,7 @@ onBeforeUnmount(() => {
 }
 
 .session-empty {
-  padding: var(--spacing-xs);
+  padding: var(--space-xs);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }

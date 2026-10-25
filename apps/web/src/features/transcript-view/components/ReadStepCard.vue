@@ -135,16 +135,16 @@ watch(
 .read-heading {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
 }
 
 .card-footer {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
   min-height: var(--size-icon-button);
-  padding: 0 var(--spacing-sm);
+  padding: 0 var(--space-sm);
   border-top: var(--border-width) solid var(--border-subtle);
   color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
@@ -182,7 +182,7 @@ watch(
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   max-width: 100%;
 }
 

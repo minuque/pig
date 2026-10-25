@@ -117,7 +117,7 @@ const softWrap = ref(false)
 .tool-heading {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
 }
 
@@ -150,9 +150,9 @@ const softWrap = ref(false)
 
 .tool-input-zone {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   align-items: baseline;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: var(--space-xs) var(--space-sm);
   border-top: var(--border-width) solid var(--border-subtle);
   background: var(--code-surface);
   font-family: var(--font-mono);
@@ -179,7 +179,7 @@ const softWrap = ref(false)
 }
 
 .tool-output.is-clamped {
-  max-height: calc(var(--text-code-line) * 8 + var(--spacing-xs) * 2);
+  max-height: calc(var(--text-code-line) * 8 + var(--space-xs) * 2);
   overflow: hidden;
   mask-image: linear-gradient(to bottom, black calc(100% - 2.5rem), transparent);
 }
@@ -202,9 +202,9 @@ const softWrap = ref(false)
 .card-footer {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
   min-height: var(--size-icon-button);
-  padding: 0 var(--spacing-sm);
+  padding: 0 var(--space-sm);
   border-top: var(--border-width) solid var(--border-subtle);
   color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
@@ -213,7 +213,7 @@ const softWrap = ref(false)
 }
 
 .exit-badge {
-  padding: 1px var(--spacing-xxs);
+  padding: 1px var(--space-xxs);
   border-radius: var(--radius-xs);
 }
 

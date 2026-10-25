@@ -337,10 +337,10 @@ function confirmDelete() {
   grid-template-areas: "title title";
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: 17px;
-  gap: 2px var(--spacing-xs);
+  gap: 2px var(--space-xs);
   width: 100%;
   min-width: 0;
-  padding: var(--spacing-xxs) var(--spacing-xs);
+  padding: var(--space-xxs) var(--space-xs);
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
@@ -399,7 +399,7 @@ function confirmDelete() {
 
 .more-toggle {
   position: absolute;
-  inset-inline-end: var(--spacing-xxs);
+  inset-inline-end: var(--space-xxs);
   top: 50%;
   display: grid;
   place-items: center;
@@ -432,7 +432,7 @@ function confirmDelete() {
   grid-area: title;
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--space-xs);
   min-width: 0;
 }
 
@@ -459,7 +459,7 @@ function confirmDelete() {
   flex: 1;
   height: 21px;
   margin-block: -2px;
-  padding: 0 var(--spacing-xxs);
+  padding: 0 var(--space-xxs);
   border: 0;
   border-radius: var(--radius-xs);
   outline: none;

@@ -238,8 +238,8 @@ function compactInset(el: HTMLElement) {
   const token = (name: string) => Number.parseFloat(style.getPropertyValue(name)) || 0
   // 两侧内边距 + 输入区左右内边距 + 主行两个间隙 + 回形针按钮
   return (
-    2 * (token("--spacing-xs") + token("--border-width")) +
-    4 * token("--spacing-xs") +
+    2 * (token("--space-xs") + token("--border-width")) +
+    4 * token("--space-xs") +
     token("--size-composer-control")
   )
 }
@@ -598,7 +598,7 @@ defineExpose({ focus })
 
 /* @// 面板浮在输入卡上方，不占布局；菜单自身圆角与描边在组件内。 */
 .command-menu-float {
-  margin-bottom: var(--spacing-xxs);
+  margin-bottom: var(--space-xxs);
 }
 
 .composer-card {
@@ -628,8 +628,8 @@ defineExpose({ focus })
 .attachments {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-md) calc(var(--spacing-md) + var(--border-width)) 0;
+  gap: var(--space-xs);
+  padding: var(--space-md) calc(var(--space-md) + var(--border-width)) 0;
 }
 
 .main {
@@ -640,9 +640,9 @@ defineExpose({ focus })
 
 .is-compact .main {
   /* 控件 32 + 上下各 8 */
-  height: calc(var(--size-composer-control) + 2 * var(--spacing-xs));
-  gap: var(--spacing-xs);
-  padding-inline: var(--spacing-xs);
+  height: calc(var(--size-composer-control) + 2 * var(--space-xs));
+  gap: var(--space-xs);
+  padding-inline: var(--space-xs);
 }
 
 .is-expanded .main {
@@ -666,25 +666,25 @@ defineExpose({ focus })
 .is-compact .editor-wrap {
   flex: 1;
   /* 文本左缘对齐附件 icon 右缘：紧凑态主行 gap 已被左侧 cluster 占掉 */
-  margin-inline-start: calc(-1 * var(--spacing-xs));
+  margin-inline-start: calc(-1 * var(--space-xs));
 }
 
 .is-expanded .editor-wrap {
-  padding: 14px var(--spacing-md) var(--spacing-xs);
+  padding: 14px var(--space-md) var(--space-xs);
 }
 
 /* 展开态：回形针与模型靠左，上下文与发送靠右；紧凑态上下文跟模型并排 */
 .action-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xs);
+  gap: var(--space-xs);
+  padding: var(--space-xxs) var(--space-xs) var(--space-xs);
 }
 
 .cluster {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xxs);
+  gap: var(--space-xxs);
   flex: none;
   min-width: 0;
 }
@@ -752,7 +752,7 @@ defineExpose({ focus })
   gap: 3px;
   max-width: 100%;
   margin-inline: 1px;
-  padding: 1px var(--spacing-xxs);
+  padding: 1px var(--space-xxs);
   border-radius: var(--radius-xs);
   background: var(--info-bg);
   color: var(--info);
