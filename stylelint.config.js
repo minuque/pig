@@ -24,6 +24,8 @@ export default {
       { ignore: ["consecutive-duplicates-with-different-values"] },
     ],
     "declaration-block-no-shorthand-property-overrides": true,
+    // 应用间距刻度用 --space-*；写成 --spacing-* 会顶掉 max-w/min-w/w/size/leading 的默认刻度
+    "custom-property-pattern": ["^(?!spacing-(xxs|xs|sm|md|lg|xl|xxl)$)[a-z0-9-]+$"],
     "no-duplicate-selectors": true,
     "property-no-unknown": [true, { ignoreProperties: ["app-region"] }],
     "selector-pseudo-class-no-unknown": [
