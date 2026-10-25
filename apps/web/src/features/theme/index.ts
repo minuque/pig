@@ -1,5 +1,5 @@
 import { useColorMode } from "@vueuse/core"
-import { computed, nextTick, ref, watch, type ComputedRef, type Ref } from "vue"
+import { computed, effectScope, nextTick, ref, watch, type ComputedRef, type Ref } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
 import { ACCENT_STORAGE_KEY, paintAccent, readStoredAccent } from "@features/theme/lib/palette.js"
 import { DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
@@ -63,11 +63,16 @@ type Theme = {
 }
 
 let shared: Theme | undefined
+/** 分离 scope：主题 effect 跟模块同寿命，不随首个调用组件卸载。 */
+const scope = effectScope(true)
 
 /** 主题是全局面板和 html class，控制器只建一次。 */
 function theme(): Theme {
-  if (shared) return shared
+  shared ??= scope.run(createTheme) as Theme
+  return shared
+}
 
+function createTheme(): Theme {
   const mode = useColorMode({
     initialValue: "auto",
     storageKey: STORAGE_KEY,
@@ -117,8 +122,7 @@ function theme(): Theme {
     transition.finished.catch(() => {})
   }
 
-  shared = { isDark, scheme, accent, codeBlockProps, setScheme, setAccent, toggle }
-  return shared
+  return { isDark, scheme, accent, codeBlockProps, setScheme, setAccent, toggle }
 }
 
 export function useColorScheme() {
