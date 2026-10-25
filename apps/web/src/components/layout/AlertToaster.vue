@@ -3,8 +3,9 @@
     <!-- 需行动/需知悉：顶部 banner 层，挤压视口提示权重最高 -->
     <TransitionGroup name="banner" tag="div" class="banner-layer">
       <div v-for="item in noticeQueue" :key="item.id" class="banner-item">
-        <Alert
-          variant="error"
+        <Callout
+          variant="soft"
+          color="destructive"
           dismissible
           floating
           class="banner-alert"
@@ -13,7 +14,7 @@
           <template #icon><DangerCircleIcon /></template>
           <template #title>{{ t("common.error") }}</template>
           <template #default>{{ item.message }}</template>
-        </Alert>
+        </Callout>
       </div>
     </TransitionGroup>
   </Teleport>
@@ -22,7 +23,7 @@
 <script setup lang="ts">
 import { useI18n } from "@i18n/index.js"
 
-import Alert from "@components/ui/alert/Alert.vue"
+import { Callout } from "@components/ui/callout/index.js"
 import { dismissNotice, noticeQueue } from "@components/layout/notify.js"
 import { DangerCircleIcon } from "@components/icons/index.js"
 

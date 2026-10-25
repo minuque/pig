@@ -33,46 +33,24 @@
     </section>
 
     <section class="group">
-      <h2 class="group-title">{{ t("settings.theme") }}</h2>
+      <h2 class="group-title">{{ t("settings.accent") }}</h2>
 
-      <div class="theme-grid" role="radiogroup" :aria-label="t('settings.theme')">
-        <div
-          v-for="theme in THEMES"
-          :key="theme.id"
-          class="theme-card"
-          :aria-checked="selectedId === theme.id"
+      <div class="accent-grid" role="radiogroup" :aria-label="t('settings.accent')">
+        <button
+          v-for="accent in ACCENTS"
+          :key="accent.id"
+          type="button"
+          class="accent-swatch"
+          role="radio"
+          :aria-checked="selectedAccent === accent.id"
+          :aria-label="accent.label"
+          :data-accent="accent.id"
+          @click="setAccentById(accent.id)"
         >
-          <button
-            type="button"
-            class="theme-pick"
-            role="radio"
-            :aria-checked="selectedId === theme.id"
-            :data-theme-id="theme.id"
-            @click="setThemeById(theme.id)"
-          >
-            <span class="theme-preview">
-              <span class="theme-ball" :style="ballStyle(theme.lightPreview, 'light')">
-                <SunIcon v-if="selectedId === theme.id && !isDark" class="ball-mark" />
-              </span>
-
-              <span class="theme-ball" :style="ballStyle(theme.darkPreview, 'dark')">
-                <MoonIcon v-if="selectedId === theme.id && isDark" class="ball-mark" />
-              </span>
-            </span>
-
-            <span class="theme-name">{{ theme.label }}</span>
-          </button>
-
-          <button
-            v-if="theme.id === DEFAULT_THEME_ID && selectedId !== DEFAULT_THEME_ID"
-            type="button"
-            class="theme-action"
-            :aria-label="t('settings.resetTheme')"
-            @click="setThemeById(DEFAULT_THEME_ID)"
-          >
-            <RestartIcon />
-          </button>
-        </div>
+          <span class="swatch-ball" :style="{ background: swatchColor(accent) }">
+            <CheckIcon v-if="selectedAccent === accent.id" class="swatch-mark" />
+          </span>
+        </button>
       </div>
     </section>
 
@@ -222,13 +200,13 @@ import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
-import { DEFAULT_THEME_ID, THEMES, type ThemePreview } from "@features/theme/lib/palette.js"
+import { ACCENTS, DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { Slider } from "@components/ui/slider/index.js"
-import { MoonIcon, RestartIcon, SunIcon } from "@components/icons/index.js"
+import { CheckIcon, MoonIcon, SunIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
-const { isDark, scheme, themeId, setScheme, setTheme } = useColorScheme()
+const { isDark, scheme, accent, setScheme, setAccent } = useColorScheme()
 const { enabled: soundOn, toggle: toggleSound } = useSound()
 const {
   locale,
@@ -244,28 +222,14 @@ const {
   setGlassOpacity,
   setContrastBoost,
 } = useGeneralPrefs()
-/** 没装主题时选中默认卡。默认卡清除注入，颜色回到 :root / .dark。 */
-const selectedId = computed(() => themeId.value ?? DEFAULT_THEME_ID)
+const selectedAccent = computed(() => accent.value)
 
-function setThemeById(id: string) {
-  if (id === DEFAULT_THEME_ID) {
-    setTheme(null)
-    return
-  }
-
-  setTheme(THEMES.find((theme) => theme.id === id) ?? null)
+function setAccentById(id: AccentId) {
+  setAccent(id === DEFAULT_ACCENT_ID ? null : id)
 }
 
-function ballStyle(preview: ThemePreview, mode: "light" | "dark") {
-  const base = mode === "light" ? "var(--white)" : "var(--card)"
-  return {
-    background: [
-      `radial-gradient(circle at 30% 30% in oklab, ${preview.accent} 0%, transparent 60%)`,
-      `radial-gradient(circle at 75% 75% in oklab, ${preview.messageAction}40 0%, transparent 60%)`,
-      `color-mix(in oklab, ${preview.canvas} 88%, ${base})`,
-    ].join(", "),
-    boxShadow: mode === "dark" ? "var(--theme-ball-ring-dark)" : "var(--theme-ball-ring-light)",
-  }
+function swatchColor(a: (typeof ACCENTS)[number]) {
+  return isDark.value ? a.dark.step9 : a.light.step9
 }
 
 function wireTone(id: ColorScheme): "light" | "dark" | "split" {
@@ -504,100 +468,48 @@ async function onNotify(next: boolean) {
   text-align: center;
 }
 
-.theme-grid {
+.accent-grid {
   display: grid;
-  gap: var(--spacing-sm);
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-sm);
+  grid-template-columns: repeat(auto-fill, minmax(2.25rem, 1fr));
 }
 
-.theme-card {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm);
+.accent-swatch {
+  display: grid;
+  place-items: center;
+  padding: var(--space-xs);
   border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-md);
   background: var(--card);
   color: var(--contrast-foreground-muted);
   transition:
     background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
+    border-color var(--duration-fast) var(--ease-out);
 }
 
-.theme-card[aria-checked="true"] {
+.accent-swatch:hover {
+  background: var(--hover-quiet);
+}
+
+.accent-swatch[aria-checked="true"] {
   border-color: var(--primary);
   color: var(--contrast-foreground);
+  box-shadow: var(--focus-ring);
 }
 
-.theme-pick {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-}
-
-.theme-preview {
-  display: flex;
-  flex: none;
-}
-
-.theme-ball {
+.swatch-ball {
   display: grid;
   place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border: 2px solid var(--card);
+  width: 1.25rem;
+  height: 1.25rem;
   border-radius: var(--radius-full);
-  color: var(--primary-foreground);
-  transition: scale var(--duration-fast) var(--ease-out);
+  color: var(--white);
 }
 
-.theme-pick:hover .theme-ball:not(:has(.ball-mark)) {
-  scale: 1.05;
-}
-
-.theme-ball + .theme-ball {
-  margin-inline-start: calc(var(--spacing-sm) * -1);
-}
-
-.ball-mark {
+.swatch-mark {
   width: var(--size-icon-2xs);
   height: var(--size-icon-2xs);
-}
-
-.theme-name {
-  overflow: hidden;
-  font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-sm--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.theme-action {
-  display: grid;
-  place-items: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--contrast-foreground-faint);
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.theme-action:hover {
-  background: var(--hover-quiet);
-  color: var(--contrast-foreground);
+  color: var(--accent-contrast, var(--white));
 }
 
 .segment {
@@ -647,7 +559,7 @@ async function onNotify(next: boolean) {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--space-sm);
 }
 
 .opacity-slider {
@@ -664,9 +576,7 @@ async function onNotify(next: boolean) {
 
 @media (prefers-reduced-motion: reduce) {
   .scheme-card,
-  .theme-card,
-  .theme-ball,
-  .theme-action,
+  .accent-swatch,
   .segment-btn {
     transition: none;
   }

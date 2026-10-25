@@ -40,10 +40,19 @@
   --contrast-boost: 0%;
   --contrast-target: #000000;
 
-  /* 品牌 */
-  --primary: #5e6ad2;
-  --primary-active: #4f5bc4;
-  --primary-foreground: #ffffff;
+  /* Radix accent：--accent-* 是注入位；--primary / --link / 选区 / 焦点环都指回这些变量 */
+
+  --accent-9: #3e63dd;
+  --accent-10: #3358d4;
+  --accent-11: #3a5bc7;
+  --accent-a3: #0047f112;
+  --accent-a4: #0044ff1e;
+  --accent-a6: #003eff3e;
+  --accent-a9: #0031d2c1;
+  --accent-contrast: #ffffff;
+  --primary: var(--accent-9);
+  --primary-active: var(--accent-10);
+  --primary-foreground: var(--accent-contrast);
   --white: #ffffff;
 
   /* 表面 */
@@ -125,7 +134,7 @@
   --hover-quiet: color-mix(in srgb, var(--foreground) 5%, transparent);
   --hover-tint: color-mix(in srgb, var(--foreground) 8%, transparent);
   --hover-strong: color-mix(in srgb, var(--foreground) 12%, transparent);
-  --selection-bg: color-mix(in srgb, var(--primary) 35%, transparent);
+  --selection-bg: var(--accent-a6);
   --chart-track: color-mix(in srgb, var(--foreground) 18%, transparent);
   --minimap-marker: color-mix(in srgb, var(--foreground-muted) 35%, transparent);
   --link-underline: color-mix(in srgb, var(--foreground) 38%, transparent);
@@ -133,12 +142,12 @@
   --success-halo: color-mix(in srgb, var(--success) 15%, transparent);
   --destructive-halo: color-mix(in srgb, var(--destructive) 15%, transparent);
   --destructive-border: color-mix(in srgb, var(--destructive) 45%, var(--border));
-  --info-halo: color-mix(in srgb, var(--primary) 15%, transparent);
+  --info-halo: var(--accent-a4);
   /* 按钮顶沿内高光与按下时的内阴影（t3code halo 按钮） */
   --button-sheen: color-mix(in srgb, var(--white) 16%, transparent);
   --button-press: color-mix(in srgb, var(--foreground) 12%, transparent);
   --effort-track: var(--border-subtle);
-  --link: #4c56c8;
+  --link: var(--accent-11);
   --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #dad8d8;
 
@@ -191,7 +200,7 @@
   --accent-green: var(--success);
   /* 状态色对齐 zeron 基线 */
   --success: #15803d;
-  --info: var(--primary);
+  --info: var(--accent-11);
   --warning: #a16207;
   --destructive: #dc2626;
   --state-working: #7cb3ff;
@@ -200,9 +209,11 @@
   --destructive-foreground: var(--primary-foreground);
   /* 状态浅底 badge：主色 15% 混入 background，随主题联动 */
   --success-bg: color-mix(in srgb, var(--success) 15%, var(--background));
-  --info-bg: color-mix(in srgb, var(--info) 12%, var(--background));
+  --info-bg: var(--accent-a3);
   --warning-bg: color-mix(in srgb, var(--warning) 15%, var(--background));
   --destructive-bg: color-mix(in srgb, var(--destructive) 15%, var(--background));
+  /* tint 上的破坏色文字：--destructive 压在 15% 混底上只有 3.6:1，单独给一档 */
+  --destructive-on-tint: #b91c1c;
 
   /* 字体与间距圆角定义在 @theme，组件的 var() 与工具类读同一份。 */
   --text-code: 13px;
@@ -212,8 +223,6 @@
   --composer-radius: 32px;
   /* 输入卡控件（回形针、发送、模型 chip、上下文环）：对齐 Kimi composer 的 32px */
   --size-composer-control: 32px;
-  /* tint 上的破坏色文字：--destructive 压在 15% 混底上只有 3.6:1，单独给一档 */
-  --destructive-on-tint: #b91c1c;
   /* 连续曲率：输入卡与菜单浮层共用一套角部形状（比 squircle 关键字的 2 更克制） */
   --corner-shape-composer: superellipse(1.5);
 
@@ -320,7 +329,7 @@
   --material-blur: 6px;
   --material-saturate: 1.4;
   /* 焦点环：宽+透明度的统一焦点态，配合 .ring-focus 使用。 */
-  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--primary) 45%, transparent);
+  --focus-ring: 0 0 0 3px var(--accent-a4);
   --focus-ring-destructive: 0 0 0 3px
     color-mix(in srgb, var(--destructive, #e5484d) 45%, transparent);
 }
@@ -334,9 +343,17 @@
   /* 深色下向白推，对比度层才朝正确方向生效 */
   --contrast-target: #ffffff;
 
-  --primary: #606acc;
-  --primary-active: #555fbf;
-  --primary-foreground: #ffffff;
+  --accent-9: #3e63dd;
+  --accent-10: #5472e4;
+  --accent-11: #9eb1ff;
+  --accent-a3: #2f62ff3c;
+  --accent-a4: #3566ff57;
+  --accent-a6: #5178fd7c;
+  --accent-a9: #4671ffdb;
+  --accent-contrast: #ffffff;
+  --primary: var(--accent-9);
+  --primary-active: var(--accent-10);
+  --primary-foreground: var(--accent-contrast);
 
   --background: #121214;
   --card: #0f0f11;
@@ -371,8 +388,8 @@
   --interaction-hover: #26262b;
   --interaction-selected: #2c2c31;
   --effort-track: var(--hover-strong);
-  --link: #9aa3ea;
-  --mermaid-accent: var(--link);
+  --link: var(--accent-11);
+  --mermaid-accent: var(--accent-11);
   --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #3a3a40;
   --button-press: color-mix(in srgb, var(--foreground) 30%, transparent);
@@ -404,6 +421,7 @@
   --success: #34d399;
   --warning: #facc15;
   --destructive: #f87171;
+  --destructive-on-tint: var(--destructive);
   --success-foreground: #000000;
   --warning-foreground: #000000;
   --destructive-foreground: #000000;
@@ -421,7 +439,6 @@
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.28);
-  --destructive-on-tint: var(--destructive);
   --card-border: hsl(210 18% 78% / 0.09);
   --hairline: hsl(0 0% 100% / 0.16);
 
@@ -495,6 +512,8 @@
   --text-body-md--line-height: 1.43;
   --text-body-sm: var(--text-sm);
   --text-body-sm--line-height: 1.43;
+  --text-body-lg: var(--text-base);
+  --text-body-lg--line-height: 1.5;
   --text-meta: calc(var(--text-body-md) - 1px);
   --text-meta--line-height: 1.43;
   --text-button: 13px;
@@ -704,60 +723,4 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
   --effort-fill: color-mix(in srgb, var(--primary) var(--effort-mix, 40%), var(--white));
 }
 
-/* ------ 主题注入：选择器比 .dark 多一层压过深色默认；名单对 THEME_ROLES，单测核对 ------ */
-html[data-theme-id] {
-  --primary: var(--app-theme-primary);
-  --primary-active: var(--app-theme-primary-active);
-  --primary-foreground: var(--app-theme-primary-foreground);
-  --background: var(--app-theme-background);
-  --card: var(--app-theme-card);
-  --sidebar: var(--app-theme-sidebar);
-  --sidebar-foreground: var(--app-theme-sidebar-foreground);
-  --sidebar-hover: var(--app-theme-sidebar-hover);
-  --sidebar-selected: var(--app-theme-sidebar-selected);
-  --sidebar-border: var(--app-theme-sidebar-border);
-  --toolbar-background: var(--app-theme-toolbar-background);
-  --toolbar-foreground: var(--app-theme-toolbar-foreground);
-  --code-background: var(--app-theme-code-background);
-  --code-foreground: var(--app-theme-code-foreground);
-  --composer-background: var(--app-theme-composer-background);
-  --composer-border: var(--app-theme-composer-border);
-  --user-prompt-background: var(--app-theme-user-prompt-background);
-  --popover: var(--app-theme-popover);
-  --foreground: var(--app-theme-foreground);
-  --foreground-secondary: var(--app-theme-foreground-secondary);
-  --foreground-muted: var(--app-theme-foreground-muted);
-  --foreground-faint: var(--app-theme-foreground-faint);
-  --link: var(--app-theme-link);
-  --border: var(--app-theme-border);
-  --border-subtle: var(--app-theme-border-subtle);
-  --composer-ring: var(--app-theme-composer-ring);
-  --interaction-hover: var(--app-theme-interaction-hover);
-  --interaction-selected: var(--app-theme-interaction-selected);
-  --hairline: var(--app-theme-hairline);
-  --card-border: var(--app-theme-card-border);
-  --media-outline: var(--app-theme-media-outline);
-  --scrollbar-color: var(--app-theme-scrollbar-color);
-  --scrim: var(--app-theme-scrim);
-  --success: var(--app-theme-success);
-  --warning: var(--app-theme-warning);
-  --destructive: var(--app-theme-destructive);
-  --success-bg: var(--app-theme-success-bg);
-  --info-bg: var(--app-theme-info-bg);
-  --warning-bg: var(--app-theme-warning-bg);
-  --destructive-bg: var(--app-theme-destructive-bg);
-  --success-foreground: var(--app-theme-success-foreground);
-  --warning-foreground: var(--app-theme-warning-foreground);
-  --destructive-foreground: var(--app-theme-destructive-foreground);
-  --inverse-background: var(--app-theme-inverse-background);
-  --inverse-background-hover: var(--app-theme-inverse-background-hover);
-  --inverse-foreground: var(--app-theme-inverse-foreground);
-  --accent-skill: var(--app-theme-accent-skill);
-  --accent-steel: var(--app-theme-accent-steel);
-  --accent-teal: var(--app-theme-accent-teal);
-  --accent-gray: var(--app-theme-accent-gray);
-  --star: var(--app-theme-star);
-  --mermaid-bg: var(--app-theme-mermaid-bg);
-  --mermaid-fill: var(--app-theme-mermaid-fill);
-  --mermaid-line: var(--app-theme-mermaid-line);
-}
+/* ------ accent 覆盖：html[data-accent] 上的 --accent-* 已经覆盖默认 ------ */

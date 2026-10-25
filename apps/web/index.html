@@ -49,17 +49,323 @@
           /* localStorage 不可用时按默认对比度 */
         }
 
-        /* 与 applyThemePalette 的 pig.themeColors 同键：首帧画上主题色，不等 main.ts */
+        /* 与 applyAccent 的 pig.accent 同键：首帧写入 accent 变量与 data-accent，不等 main.ts */
         try {
-          var theme = JSON.parse(localStorage.getItem("pig.themeColors") || "null")
-          if (theme && theme.id && theme.colors) {
-            document.documentElement.setAttribute("data-theme-id", theme.id)
-            Object.keys(theme.colors).forEach(function (role) {
-              document.documentElement.style.setProperty("--app-theme-" + role, theme.colors[role])
-            })
+          var accent = JSON.parse(localStorage.getItem("pig.accent") || "null")
+          if (accent && accent.id) {
+            document.documentElement.setAttribute("data-accent", accent.id)
+            var scales = {
+              indigo: {
+                l: [
+                  "#3e63dd",
+                  "#3358d4",
+                  "#3a5bc7",
+                  "#0047f112",
+                  "#0044ff1e",
+                  "#003eff3e",
+                  "#0031d2c1",
+                ],
+                d: [
+                  "#3e63dd",
+                  "#5472e4",
+                  "#9eb1ff",
+                  "#2f62ff3c",
+                  "#3566ff57",
+                  "#5178fd7c",
+                  "#4671ffdb",
+                ],
+                c: 1,
+              },
+              iris: {
+                l: [
+                  "#5b5bd6",
+                  "#5151cd",
+                  "#5753c6",
+                  "#0011ee0f",
+                  "#000bff19",
+                  "#000aff34",
+                  "#0000c0a4",
+                ],
+                d: [
+                  "#5b5bd6",
+                  "#6e6ade",
+                  "#b1a9ff",
+                  "#525bff3b",
+                  "#4d58ff5a",
+                  "#6d6ffd7a",
+                  "#6a6afed4",
+                ],
+                c: 1,
+              },
+              violet: {
+                l: [
+                  "#6e56cf",
+                  "#654dc4",
+                  "#6550b9",
+                  "#4400ee0f",
+                  "#4300ff1b",
+                  "#3100fb35",
+                  "#2400b7a9",
+                ],
+                d: [
+                  "#6e56cf",
+                  "#7d66d9",
+                  "#baa7ff",
+                  "#8354fe36",
+                  "#7d51fd50",
+                  "#8f6cfd6d",
+                  "#8668ffcc",
+                ],
+                c: 1,
+              },
+              purple: {
+                l: [
+                  "#8e4ec6",
+                  "#8347b9",
+                  "#8145b5",
+                  "#8e00f112",
+                  "#8d00e51d",
+                  "#7a01d03b",
+                  "#5c00adb1",
+                ],
+                d: [
+                  "#8e4ec6",
+                  "#9a5cd0",
+                  "#d19dff",
+                  "#c150ff2d",
+                  "#bb53fd42",
+                  "#c16dfd61",
+                  "#b661ffc2",
+                ],
+                c: 1,
+              },
+              blue: {
+                l: [
+                  "#0090ff",
+                  "#0588f0",
+                  "#0d74ce",
+                  "#008ff519",
+                  "#009eff2a",
+                  "#0088f653",
+                  "#0090ff",
+                ],
+                d: [
+                  "#0090ff",
+                  "#3b9eff",
+                  "#70b8ff",
+                  "#0077ff3a",
+                  "#0075ff57",
+                  "#0f89fd7f",
+                  "#0090ff",
+                ],
+                c: 1,
+              },
+              cyan: {
+                l: [
+                  "#00a2c7",
+                  "#0797b9",
+                  "#107d98",
+                  "#00c2d121",
+                  "#00bcd435",
+                  "#00a7c162",
+                  "#00a2c7",
+                ],
+                d: [
+                  "#00a2c7",
+                  "#23afd0",
+                  "#4ccce6",
+                  "#00befd28",
+                  "#00baff3b",
+                  "#00c7fd5e",
+                  "#00cfffc3",
+                ],
+                c: 1,
+              },
+              teal: {
+                l: [
+                  "#12a594",
+                  "#0d9b8a",
+                  "#008573",
+                  "#00c69d1f",
+                  "#00c39633",
+                  "#00a6855e",
+                  "#009e8ced",
+                ],
+                d: [
+                  "#12a594",
+                  "#0eb39e",
+                  "#0bd8b6",
+                  "#00ffe61e",
+                  "#00ffe92d",
+                  "#1cffe84b",
+                  "#13ffe49f",
+                ],
+                c: 1,
+              },
+              green: {
+                l: [
+                  "#30a46c",
+                  "#2b9a66",
+                  "#218358",
+                  "#00a43319",
+                  "#00a83829",
+                  "#00963c52",
+                  "#008f4acf",
+                ],
+                d: [
+                  "#30a46c",
+                  "#33b074",
+                  "#3dd68c",
+                  "#22ff991e",
+                  "#11ff992d",
+                  "#44ffaa4b",
+                  "#44ffa49e",
+                ],
+                c: 1,
+              },
+              orange: {
+                l: [
+                  "#f76b15",
+                  "#ef5f00",
+                  "#cc4e00",
+                  "#ff9c0029",
+                  "#ff91014a",
+                  "#ff81007d",
+                  "#f65e00ea",
+                ],
+                d: [
+                  "#f76b15",
+                  "#ff801f",
+                  "#ffa057",
+                  "#fb6a0025",
+                  "#ff590039",
+                  "#fd75045c",
+                  "#fe6d15f7",
+                ],
+                c: 0,
+              },
+              red: {
+                l: [
+                  "#e5484d",
+                  "#dc3e42",
+                  "#ce2c31",
+                  "#f3000d14",
+                  "#ff000824",
+                  "#f8000442",
+                  "#db0007b7",
+                ],
+                d: [
+                  "#e5484d",
+                  "#ec5d5e",
+                  "#ff9592",
+                  "#ff173f2d",
+                  "#fe0a3b44",
+                  "#ff3e5668",
+                  "#fe4e54e4",
+                ],
+                c: 1,
+              },
+              crimson: {
+                l: [
+                  "#e93d82",
+                  "#df3478",
+                  "#cb1d63",
+                  "#ff005216",
+                  "#f8005123",
+                  "#d0004b41",
+                  "#e2005bc2",
+                ],
+                d: [
+                  "#e93d82",
+                  "#ee518a",
+                  "#ff92ad",
+                  "#fe2a8b2a",
+                  "#fd158741",
+                  "#fe459763",
+                  "#fe418de8",
+                ],
+                c: 1,
+              },
+              pink: {
+                l: [
+                  "#d6409f",
+                  "#cf3897",
+                  "#c2298a",
+                  "#f4008c16",
+                  "#e2008b23",
+                  "#c0007840",
+                  "#c8007fbf",
+                ],
+                d: [
+                  "#d6409f",
+                  "#de51a8",
+                  "#ff8dcc",
+                  "#fe37cc29",
+                  "#fc1ec43f",
+                  "#fd51c75f",
+                  "#fe49bcd4",
+                ],
+                c: 1,
+              },
+              amber: {
+                l: [
+                  "#ffc53d",
+                  "#ffba18",
+                  "#ab6400",
+                  "#ffde003d",
+                  "#ffd40063",
+                  "#eab5008c",
+                  "#ffb300c2",
+                ],
+                d: [
+                  "#ffc53d",
+                  "#ffd60a",
+                  "#ffca16",
+                  "#fa820022",
+                  "#fc820032",
+                  "#fd9b0051",
+                  "#ffc53d",
+                ],
+                c: 0,
+              },
+              sky: {
+                l: [
+                  "#7ce2fe",
+                  "#74daf8",
+                  "#00749e",
+                  "#00b3ee1e",
+                  "#00ace42e",
+                  "#0092ca56",
+                  "#00c7fe83",
+                ],
+                d: [
+                  "#7ce2fe",
+                  "#a8eeff",
+                  "#75c7f0",
+                  "#1184fc33",
+                  "#128fff49",
+                  "#28a5ff72",
+                  "#7ce3fffe",
+                ],
+                c: 0,
+              },
+            }
+            var scale = scales[accent.id]
+            if (scale) {
+              var hex = dark ? scale.d : scale.l
+              var root = document.documentElement.style
+              root.setProperty("--accent-9", hex[0])
+              root.setProperty("--accent-10", hex[1])
+              root.setProperty("--accent-11", hex[2])
+              root.setProperty("--accent-a3", hex[3])
+              root.setProperty("--accent-a4", hex[4])
+              root.setProperty("--accent-a6", hex[5])
+              root.setProperty("--accent-a9", hex[6])
+              root.setProperty("--accent-contrast", scale.c ? "var(--white)" : "var(--foreground)")
+            }
           }
         } catch (e) {
-          /* 缓存损坏时按默认主题 */
+          /* 缓存损坏时按默认 accent */
         }
 
         /* 与 use-general-prefs 的 pig.glass 同键：默认开，只有显式 off 才关 */

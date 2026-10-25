@@ -1,6 +1,7 @@
 import type { Component } from "vue"
 import { FolderIcon } from "@components/icons/index.js"
 import { readJson } from "@utils/storage.js"
+import { findAccent, type AccentId } from "@features/theme/lib/accents.js"
 import { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
 import { MonitorIcon } from "@solar-icons/vue/linear/monitor"
 import { StarsMinimalisticIcon } from "@solar-icons/vue/linear/stars-minimalistic"
@@ -28,7 +29,12 @@ export type ProjIconKind = "icon" | "emoji" | "monogram"
 export interface ProjIcon {
   kind: ProjIconKind
   value: string
-  color: string
+  color: AccentId
+}
+
+export function projIconHex(color: AccentId, mode: "light" | "dark"): string {
+  const scale = mode === "dark" ? findAccent(color).dark : findAccent(color).light
+  return scale.step9
 }
 
 const ICON_COMPONENTS: Record<string, Component> = {

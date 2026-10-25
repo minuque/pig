@@ -10,15 +10,16 @@
 
     <div v-else-if="streaming" class="md-pending" aria-hidden="true"></div>
 
-    <Alert
+    <Callout
       v-if="item.error || item.aborted"
       class="status-alert"
-      :variant="item.error ? 'error' : 'warning'"
+      variant="surface"
+      :color="item.error ? 'destructive' : 'warning'"
     >
       <template #icon><DangerCircleIcon /></template>
       <template #title>{{ statusLabel }}</template>
       <template v-if="item.errorMessage" #default>{{ item.errorMessage }}</template>
-    </Alert>
+    </Callout>
 
     <MessageTimestamp
       v-if="item.showTimestamp"
@@ -97,7 +98,7 @@ export function takeMarkdownVirtualState(
 <script setup lang="ts">
 import MarkdownRender from "markstream-vue"
 import { computed, onBeforeUnmount, ref, watch } from "vue"
-import Alert from "@components/ui/alert/Alert.vue"
+import { Callout } from "@components/ui/callout/index.js"
 import { useI18n } from "@i18n/index.js"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import type { AssistantRow } from "@features/transcript-view/type.js"

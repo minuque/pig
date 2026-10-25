@@ -1,16 +1,12 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 import {
-  DEFAULT_THEME,
-  fillTheme,
-  paintTheme,
-  THEME_ROLES,
-  THEME_SEEDS,
-  themeVar,
-  type ThemeColors,
-  type ThemeSeedColors,
-  type ThemeTarget,
+  ACCENT_ATTR,
+  ACCENT_STORAGE_KEY,
+  paintAccent,
+  readStoredAccent,
 } from "@features/theme/lib/palette.js"
+import { ACCENTS, DEFAULT_ACCENT_ID, findAccent, isAccentId } from "@features/theme/lib/accents.js"
 
 const css = readFileSync(new URL("../../../src/style/app.css", import.meta.url), "utf8")
 
@@ -38,125 +34,115 @@ function values(selector: string): Map<string, string> {
   return decls
 }
 
-/** 状态浅底用 color-mix 从状态色和背景派生：改 .dark 的变量值就自动跟随，不必重复声明。 */
-const DERIVED_ROLES = new Set(["success-bg", "info-bg", "warning-bg", "destructive-bg"])
-
-describe("主题角色", () => {
-  const root = values(":root")
-  const dark = values(".dark")
-  const themed = new Set(values("html[data-theme-id]").keys())
-
-  it("每个角色在 :root 都有默认值，派生角色不要求 .dark 重复声明", () => {
-    const missing = THEME_ROLES.filter(
-      (role) => !root.has(role) || (!DERIVED_ROLES.has(role) && !dark.has(role)),
-    )
-
-    expect(missing).toEqual([])
-  })
-
-  it("派生角色的浅底走 color-mix，跟着状态色与背景走", () => {
-    for (const role of DERIVED_ROLES) expect(root.get(role) ?? "").toContain("color-mix(")
-  })
-
-  it("默认主题的预览色与 :root / .dark 一致", () => {
-    const drifted = THEME_ROLES.filter(
-      (role) =>
-        DEFAULT_THEME.light[role] !== root.get(role) ||
-        (!DERIVED_ROLES.has(role) && DEFAULT_THEME.dark[role] !== dark.get(role)),
-    )
-
-    expect(drifted).toEqual([])
-  })
-
-  it("指向块覆盖每个角色，且只覆盖角色", () => {
-    expect([...themed].sort()).toEqual([...THEME_ROLES].sort())
-  })
-
-  it("指向块把角色指到注入变量", () => {
-    for (const role of THEME_ROLES) {
-      expect(css).toContain(`--${role}: var(${themeVar(role)});`)
-    }
-  })
-})
-
-const sample = Object.fromEntries(THEME_ROLES.map((role) => [role, "#123456"])) as ThemeColors
-
-function target(): ThemeTarget & {
-  props: Map<string, string>
-  id: string | null
-  json: string | null
-} {
+function target() {
   const props = new Map<string, string>()
-  const state = { id: null as string | null, json: null as string | null }
+  const state = { attr: null as string | null, json: null as string | null }
   return {
     props,
-    get id() {
-      return state.id
+    get attr() {
+      return state.attr
     },
     get json() {
       return state.json
     },
-    setProperty: (name, value) => props.set(name, value),
-    removeProperty: (name) => props.delete(name),
-    setThemeId: (id) => {
-      state.id = id
+    setProperty: (name: string, value: string) => props.set(name, value),
+    removeProperty: (name: string) => props.delete(name),
+    setAttr: (name: string, value: string | null) => {
+      state.attr = value
     },
-    store: (json) => {
+    store: (json: string | null) => {
       state.json = json
     },
   }
 }
 
-const seed: ThemeSeedColors = {
-  background: "#101010",
-  card: "#202020",
-  primary: "#3050c0",
-  foreground: "#f0f0f0",
-  sidebar: "#181818",
-  success: "#30a030",
-  warning: "#c08020",
-  destructive: "#c03030",
-}
+describe("accent 变量", () => {
+  const root = values(":root")
+  const dark = values(".dark")
 
-describe("fillTheme", () => {
-  it("只给种子色也能补齐每个角色", () => {
-    const colors = fillTheme("dark", seed)
-
-    expect(Object.keys(colors).sort()).toEqual([...THEME_ROLES].sort())
-    expect(THEME_SEEDS.every((role) => colors[role] === seed[role])).toBe(true)
+  it(":root / .dark 都给了默认 indigo 的 7 个 accent 变量", () => {
+    for (const key of ["9", "10", "11", "a3", "a4", "a6", "a9", "contrast"]) {
+      expect(root.has(`accent-${key}`)).toBe(true)
+      expect(dark.has(`accent-${key}`)).toBe(true)
+    }
   })
 
-  it("同名覆盖优先于派生值", () => {
-    const colors = fillTheme("light", seed, { link: "#abcdef", "code-background": "#111111" })
-
-    expect(colors.link).toBe("#abcdef")
-    expect(colors["code-background"]).toBe("#111111")
-  })
-
-  it("浅色和深色的文字方向相反", () => {
-    expect(fillTheme("light", seed)["primary-foreground"]).toBe("#ffffff")
-    expect(fillTheme("dark", seed)["primary-foreground"]).toBe("#000000")
+  it("语义层把 --primary / --link / 选区 / 焦点环指到 --accent-*", () => {
+    expect(root.get("primary")).toBe("var(--accent-9)")
+    expect(root.get("primary-active")).toBe("var(--accent-10)")
+    expect(root.get("primary-foreground")).toBe("var(--accent-contrast)")
+    expect(root.get("link")).toBe("var(--accent-11)")
+    expect(root.get("info")).toBe("var(--accent-11)")
+    expect(root.get("info-bg")).toBe("var(--accent-a3)")
+    expect(root.get("info-halo")).toBe("var(--accent-a4)")
+    expect(root.get("selection-bg")).toBe("var(--accent-a6)")
+    expect(root.get("focus-ring")).toContain("var(--accent-a4)")
   })
 })
 
-describe("paintTheme", () => {
-  it("写入每个角色的注入变量、标记和首帧缓存", () => {
+describe("paintAccent", () => {
+  it("写入每个 accent 变量、data-accent 和首帧缓存", () => {
     const painted = target()
-    paintTheme(painted, "grove", sample)
+    paintAccent(painted, "crimson", "light")
+    const accent = findAccent("crimson")
 
-    expect(painted.id).toBe("grove")
-    expect(painted.props.get(themeVar("foreground"))).toBe("#123456")
-    expect(painted.props.size).toBe(THEME_ROLES.length)
-    expect(JSON.parse(painted.json ?? "")).toEqual({ id: "grove", colors: sample })
+    expect(painted.attr).toBe("crimson")
+    expect(painted.props.get("--accent-9")).toBe(accent.light.step9)
+    expect(painted.props.get("--accent-10")).toBe(accent.light.step10)
+    expect(painted.props.get("--accent-11")).toBe(accent.light.step11)
+    expect(painted.props.get("--accent-a3")).toBe(accent.light.a3)
+    expect(painted.props.get("--accent-a4")).toBe(accent.light.a4)
+    expect(painted.props.get("--accent-a6")).toBe(accent.light.a6)
+    expect(painted.props.get("--accent-a9")).toBe(accent.light.a9)
+    expect(painted.props.get("--accent-contrast")).toBe("var(--white)")
+    expect(JSON.parse(painted.json ?? "")).toEqual({ id: "crimson" })
   })
 
-  it("传 null 清除主题，回到默认色", () => {
+  it("contrast 为 dark 的 accent 写前景色而不是白色", () => {
     const painted = target()
-    paintTheme(painted, "grove", sample)
-    paintTheme(painted, null, null)
+    paintAccent(painted, "amber", "dark")
 
-    expect(painted.id).toBeNull()
+    expect(painted.props.get("--accent-contrast")).toBe("var(--foreground)")
+  })
+
+  it("传 null 清除 accent，回到默认", () => {
+    const painted = target()
+    paintAccent(painted, "iris", "light")
+    paintAccent(painted, null, "light")
+
+    expect(painted.attr).toBeNull()
     expect(painted.props.size).toBe(0)
     expect(painted.json).toBeNull()
+  })
+})
+
+describe("readStoredAccent", () => {
+  it("读出存储的 accent id", () => {
+    localStorage.setItem(ACCENT_STORAGE_KEY, JSON.stringify({ id: "iris" }))
+
+    expect(readStoredAccent()).toBe("iris")
+  })
+
+  it("非法 id 返回 null", () => {
+    localStorage.setItem(ACCENT_STORAGE_KEY, JSON.stringify({ id: "nope" }))
+
+    expect(readStoredAccent()).toBeNull()
+  })
+})
+
+describe("accents", () => {
+  it("默认 accent 是 indigo", () => {
+    expect(DEFAULT_ACCENT_ID).toBe("indigo")
+    expect(isAccentId("indigo")).toBe(true)
+    expect(isAccentId("nope")).toBe(false)
+  })
+
+  it("14 个 accent 都有浅深两份色表", () => {
+    expect(ACCENTS).toHaveLength(14)
+
+    for (const accent of ACCENTS) {
+      expect(accent.light.step9).toMatch(/^#[0-9a-f]{6}$/i)
+      expect(accent.dark.step9).toMatch(/^#[0-9a-f]{6}$/i)
+    }
   })
 })

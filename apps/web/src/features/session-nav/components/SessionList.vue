@@ -33,7 +33,7 @@
               <span
                 v-if="sectionIcons[section.key]?.kind === 'monogram'"
                 class="proj-mono"
-                :style="{ background: sectionIcons[section.key]?.color }"
+                :style="{ background: monoColor(sectionIcons[section.key]) }"
               >
                 {{ sectionIcons[section.key]?.value }}
               </span>
@@ -151,8 +151,10 @@ import { useNav, workspaceName } from "@features/session-nav/index.js"
 import {
   loadProjIcons,
   projectIconComponent,
+  projIconHex,
   type ProjIcon,
 } from "@features/session-nav/lib/project-icon.js"
+import { useColorScheme } from "@features/theme/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
@@ -175,6 +177,7 @@ const emit = defineEmits<{
   create: [cwd?: string]
 }>()
 const { t } = useI18n()
+const { isDark } = useColorScheme()
 const {
   cardFootById,
   listedSessions,
@@ -229,11 +232,18 @@ const sectionIcons = computed<Record<string, ProjIcon | undefined>>(() => {
   )
 })
 
+function monoColor(custom: ProjIcon | undefined) {
+  if (!custom) return undefined
+  return projIconHex(custom.color, isDark.value ? "dark" : "light")
+}
+
 function sectionIconStyle(section: { key: string }) {
   // 收起态调暗，让自定义色统一沉到 muted
   if (!expandedSections.value.has(section.key)) return undefined
   const custom = sectionIcons.value[section.key]
-  return custom?.kind === "icon" ? { color: custom.color } : undefined
+  return custom?.kind === "icon"
+    ? { color: projIconHex(custom.color, isDark.value ? "dark" : "light") }
+    : undefined
 }
 
 function itemBind(session: SidebarSession, section: SidebarSection) {

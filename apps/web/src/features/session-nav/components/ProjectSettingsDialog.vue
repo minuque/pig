@@ -27,7 +27,7 @@
             :key="c"
             class="color-swatch"
             :class="{ on: sel.color === c }"
-            :style="{ background: c }"
+            :style="{ background: swatchHex(c) }"
             type="button"
             @click="sel.color = c"
           />
@@ -47,7 +47,7 @@
               :key="entry.key"
               class="icon-cell"
               :class="{ on: sel.kind === 'icon' && sel.value === entry.key }"
-              :style="{ color: sel.color }"
+              :style="{ color: accentHex(sel.color) }"
               type="button"
               @click="pick('icon', entry.key)"
             >
@@ -80,7 +80,10 @@
             @input="onMonoInput"
           />
 
-          <span class="mono-preview" :style="{ background: sel.color }">{{ monoPreview }}</span>
+          <span class="mono-preview" :style="{ background: accentHex(sel.color) }">
+            {{ monoPreview }}
+          </span>
+
           <span class="mono-hint">{{ t("session.monoHint") }}</span>
         </div>
       </div>
@@ -103,7 +106,15 @@ import { computed, reactive, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import { readJson, writeJson } from "@utils/storage.js"
+import { isAccentId } from "@features/theme/lib/accents.js"
 import { FolderIcon } from "@components/icons/index.js"
+import {
+  ACCENTS,
+  DEFAULT_ACCENT_ID,
+  findAccent,
+  type AccentId,
+} from "@features/theme/lib/accents.js"
+import { useColorScheme } from "@features/theme/index.js"
 import { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
 import { MonitorIcon } from "@solar-icons/vue/linear/monitor"
 import { StarsMinimalisticIcon } from "@solar-icons/vue/linear/stars-minimalistic"
@@ -131,22 +142,10 @@ const props = defineProps<{
   project: string
 }>()
 const { t } = useI18n()
+const { isDark } = useColorScheme()
 const open = defineModel<boolean>("open", { default: false })
 const KEY = "pig.projIcons"
-const COLORS = [
-  "#94a3b8",
-  "#ef4444",
-  "#f97316",
-  "#eab308",
-  "#84cc16",
-  "#22c55e",
-  "#14b8a6",
-  "#06b6d4",
-  "#3b82f6",
-  "#6366f1",
-  "#8b5cf6",
-  "#ec4899",
-]
+const COLORS = ACCENTS.map((accent) => accent.id)
 const EMOJIS = [
   "🚀",
   "🎯",
@@ -200,7 +199,7 @@ type IconKind = "icon" | "emoji" | "monogram"
 interface ProjIcon {
   kind: IconKind
   value: string
-  color: string
+  color: AccentId
 }
 
 function loadIcons(): Record<string, ProjIcon> {
@@ -212,7 +211,9 @@ const iconQuery = ref("")
 const monoText = ref("")
 const cur = loadIcons()[props.project]
 const sel = reactive<ProjIcon>(
-  cur ? { ...cur } : { kind: "icon", value: "folder", color: COLORS[8] ?? COLORS[0] ?? "" },
+  cur
+    ? { ...cur, color: isAccentId(cur.color) ? cur.color : DEFAULT_ACCENT_ID }
+    : { kind: "icon", value: "folder", color: DEFAULT_ACCENT_ID },
 )
 
 if (cur) {
@@ -222,6 +223,16 @@ if (cur) {
 }
 
 const tabs: IconKind[] = ["icon", "emoji", "monogram"]
+
+function accentHex(id: AccentId) {
+  const scale = isDark.value ? findAccent(id).dark : findAccent(id).light
+  return scale.step9
+}
+
+function swatchHex(id: AccentId) {
+  return accentHex(id)
+}
+
 const tabLabel = (tab: IconKind) =>
   tab === "icon" ? t("session.tabIcon") : tab === "emoji" ? "Emoji" : t("session.tabMono")
 const filteredIcons = computed(() => {

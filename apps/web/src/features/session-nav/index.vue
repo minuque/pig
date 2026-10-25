@@ -8,8 +8,6 @@
           <span class="brand-mark">
             <img class="brand-pig" src="/logo-pig.png" alt="" width="22" height="22" />
           </span>
-
-          <span class="brand-word" aria-hidden="true">pig</span>
         </RouterLink>
 
         <Tooltip>
@@ -454,14 +452,6 @@ function onCreateSession(cwd?: string): void {
 .nav-brand:hover .brand-pig,
 .nav-brand:focus-visible .brand-pig {
   animation: brand-peek var(--duration-pig-peek) both;
-}
-
-.brand-word {
-  color: var(--primary);
-  font-family: var(--font-mono);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.04em;
 }
 
 .nav-collapse {
