@@ -7,8 +7,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 export default defineConfig({
   testDir: dirname(fileURLToPath(import.meta.url)),
   testMatch: "*.spec.ts",
-  // 桌面壳冒烟靠真实 Electron，自成一类，见 e2e/electron
-  testIgnore: "electron/**",
+  // 故事基线与桌面壳冒烟各自有独立配置和 webServer，不在主配置里跑
+  testIgnore: ["electron/**", "storybook/**"],
   timeout: 90_000,
   expect: {
     timeout: 15_000,
