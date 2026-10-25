@@ -13,8 +13,13 @@ const fix = process.argv.includes("--fix")
 const withE2e = process.argv.includes("--e2e")
 /* DESIGN.md 缺失时（token 稳定前）跳过 designmd lint 与 token 校验，重新生成后自动恢复。 */
 const hasDesignMd = existsSync(resolve(root, "DESIGN.md"))
+/* lint-staged 里 prettier 不带 --cache 会删默认缓存文件，多组并发会撞 ENOENT；check 用独立文件。 */
+const PRETTIER_CACHE = "node_modules/.cache/prettier/check"
 const CHECK_STEPS = [
-  { name: "format", args: ["exec", "prettier", "--check", "--cache", "."] },
+  {
+    name: "format",
+    args: ["exec", "prettier", "--check", "--cache", "--cache-location", PRETTIER_CACHE, "."],
+  },
   { name: "eslint", args: ["exec", "eslint", "--cache", "."] },
   { name: "stylelint", args: ["exec", "stylelint", "--cache", "**/*.{css,vue}"] },
   {
@@ -127,7 +132,15 @@ async function checkTouched(scope, files) {
   if (scope.prettierFiles.length) {
     steps.push({
       name: "format",
-      args: ["exec", "prettier", "--check", "--cache", ...scope.prettierFiles],
+      args: [
+        "exec",
+        "prettier",
+        "--check",
+        "--cache",
+        "--cache-location",
+        PRETTIER_CACHE,
+        ...scope.prettierFiles,
+      ],
     })
   }
 
