@@ -1,17 +1,24 @@
+/// <reference types="vitest/config" />
 import tailwindcss from "@tailwindcss/vite"
 import { fileURLToPath, URL } from "node:url"
+import path from "node:path"
 import vue from "@vitejs/plugin-vue"
 import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 import vueDevTools from "vite-plugin-vue-devtools"
+import { storybookTest } from "@storybook/addon-vitest/vitest-plugin"
+import { playwright } from "@vitest/browser-playwright"
 
+const dirname = import.meta.dirname
+// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 const gatewayTarget = process.env.GATEWAY_TARGET
 const gatewayToken = process.env.GATEWAY_TOKEN
 
 export default defineConfig({
   plugins: [
     vue(),
-    vueDevTools(),
+    // vitest 的浏览器测试在故事卸载后会被 devtools 的 activeAppRecord 拖出 unhandled rejection
+    ...(process.env.VITEST ? [] : [vueDevTools()]),
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
@@ -65,10 +72,6 @@ export default defineConfig({
       "@utils": fileURLToPath(new URL("./src/utils", import.meta.url)),
     },
   },
-  test: {
-    // node 环境没有 localStorage；偏好读写默认参数直接引用它
-    setupFiles: ["./test/setup.ts"],
-  },
   server: {
     host: "127.0.0.1",
     // 固定端口,方便 VSCode Chrome 调试;strictPort 防止被静默换端口后断点失效
@@ -95,5 +98,45 @@ export default defineConfig({
           },
         }
       : {}),
+  },
+  test: {
+    // 故事只跑基础组件，统计范围限定在这一层；app 整体覆盖率用 --coverage.include 覆盖
+    coverage: {
+      include: ["src/components/ui/**/*.{ts,vue}"],
+      exclude: ["src/**/*.stories.ts"],
+      reporter: ["text", "html"],
+    },
+    projects: [
+      {
+        extends: true,
+        test: {
+          // node 环境没有 localStorage；偏好读写默认参数直接引用它
+          setupFiles: ["./test/setup.ts"],
+        },
+      },
+      {
+        extends: true,
+        plugins: [
+          // The plugin will run tests for the stories defined in your Storybook config
+          // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
+          storybookTest({
+            configDir: path.join(dirname, ".storybook"),
+          }),
+        ],
+        test: {
+          name: "storybook",
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright(),
+            instances: [
+              {
+                browser: "chromium",
+              },
+            ],
+          },
+        },
+      },
+    ],
   },
 })

@@ -10,6 +10,7 @@ packages/gateway/web
 release
 playwright-report
 test-results
+coverage
 .smoke-ui
 .release-install
 release-artifact
