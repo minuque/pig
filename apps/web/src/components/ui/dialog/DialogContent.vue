@@ -13,7 +13,8 @@
       <DialogClose
         v-if="showCloseButton"
         data-slot="dialog-close"
-        class="text-foreground-muted hover:bg-accent hover:text-foreground absolute inset-bs-(--spacing-md) inset-e-(--spacing-md) flex cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-(--icon-button-pad) transition-[background-color,color] duration-(--duration-fast) ease-(--ease-out) focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--size-icon)"
+        :aria-label="t('common.close')"
+        class="text-foreground-muted hover:bg-accent hover:text-foreground absolute inset-bs-(--space-md) inset-e-(--space-md) flex cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-(--icon-button-pad) transition-[background-color,color] duration-(--duration-fast) ease-(--ease-out) focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--size-icon)"
       >
         <CloseIcon />
       </DialogClose>
@@ -26,6 +27,7 @@ import type { DialogContentEmits, DialogContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from "reka-ui"
+import { useI18n } from "@i18n/index.js"
 import DialogOverlay from "./DialogOverlay.vue"
 import { CloseIcon } from "@components/icons/index.js"
 
@@ -43,6 +45,7 @@ const props = withDefaults(
   },
 )
 const emits = defineEmits<DialogContentEmits>()
+const { t } = useI18n()
 const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<DialogContentProps>
 </script>

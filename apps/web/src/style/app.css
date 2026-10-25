@@ -212,6 +212,8 @@
   --composer-radius: 32px;
   /* 输入卡控件（回形针、发送、模型 chip、上下文环）：对齐 Kimi composer 的 32px */
   --size-composer-control: 32px;
+  /* tint 上的破坏色文字：--destructive 压在 15% 混底上只有 3.6:1，单独给一档 */
+  --destructive-on-tint: #b91c1c;
   /* 连续曲率：输入卡与菜单浮层共用一套角部形状（比 squircle 关键字的 2 更克制） */
   --corner-shape-composer: superellipse(1.5);
 
@@ -419,6 +421,7 @@
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.28);
+  --destructive-on-tint: var(--destructive);
   --card-border: hsl(210 18% 78% / 0.09);
   --hairline: hsl(0 0% 100% / 0.16);
 

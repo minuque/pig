@@ -238,7 +238,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 
 .exit-badge.is-err {
   background: var(--destructive-bg);
-  color: var(--destructive);
+  color: var(--destructive-on-tint);
 }
 
 .is-error .footer-status {

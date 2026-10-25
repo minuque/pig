@@ -19,6 +19,8 @@
     <SliderThumb
       v-for="(_, key) in modelValue"
       :key="key"
+      :aria-label="thumbLabel"
+      :aria-labelledby="thumbLabelledby"
       data-slot="slider-thumb"
       class="slider-thumb-plate block size-(--size-icon) shrink-0 rounded-full outline-none transition-[scale] duration-(--duration-fast) ease-(--ease-out) active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:ring-1 focus-visible:ring-primary"
     />
@@ -28,6 +30,7 @@
 <script setup lang="ts">
 import type { SliderRootEmits, SliderRootProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
+import { computed, useAttrs } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack, useForwardPropsEmits } from "reka-ui"
 
@@ -37,6 +40,10 @@ const props = withDefaults(defineProps<SliderRootProps & { class?: HTMLAttribute
 const emits = defineEmits<SliderRootEmits>()
 const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<SliderRootProps>
+// reka 把 aria-* 留在根节点，而 role=slider 在滑块上，无障碍名要自己转过去
+const attrs = useAttrs()
+const thumbLabel = computed(() => attrs["aria-label"] as string | undefined)
+const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | undefined)
 </script>
 
 <style scoped>

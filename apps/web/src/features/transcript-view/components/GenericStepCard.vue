@@ -224,7 +224,7 @@ const softWrap = ref(false)
 
 .exit-badge.is-err {
   background: var(--destructive-bg);
-  color: var(--destructive);
+  color: var(--destructive-on-tint);
 }
 
 .footer-toggle {
