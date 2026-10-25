@@ -19,6 +19,7 @@
     "dist:win": "node scripts/dist-win.mjs",
     "preview": "pnpm --filter @pig/web preview",
     "test": "pnpm -r --if-present test && pnpm test:scripts",
+    "test:stories": "pnpm --filter @pig/web test:stories",
     "test:scripts": "node --test scripts/check-scope.test.mjs",
     "test:e2e": "playwright test -c e2e/playwright.config.ts",
     "test:storybook": "playwright test -c e2e/storybook/playwright.config.ts",

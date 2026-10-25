@@ -34,6 +34,7 @@ const CHECK_STEPS = [
     : []),
   { name: "typecheck", args: ["typecheck"] },
   { name: "test", args: ["test"] },
+  { name: "stories", args: ["test:stories"] },
 ]
 
 function reportDesignMdSkip() {
@@ -186,6 +187,8 @@ async function checkTouched(scope, files) {
     steps.push({ name: `typecheck:${id}`, args: ["--filter", id, "typecheck"] })
     steps.push({ name: `test:${id}`, args: ["--filter", id, "test"] })
   }
+
+  if (scope.stories) steps.push({ name: "test:stories", args: ["test:stories"] })
 
   if (scope.specs.length) {
     if (withE2e)

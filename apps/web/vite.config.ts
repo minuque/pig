@@ -110,6 +110,7 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          name: "unit",
           // node 环境没有 localStorage；偏好读写默认参数直接引用它
           setupFiles: ["./test/setup.ts"],
         },

@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "vitest run",
+    "test": "vitest run --project unit",
+    "test:stories": "vitest run --project storybook",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
