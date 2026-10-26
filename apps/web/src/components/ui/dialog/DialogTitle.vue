@@ -2,7 +2,7 @@
   <DialogTitle
     data-slot="dialog-title"
     v-bind="forwardedProps"
-    class="text-title leading-none font-semibold"
+    class="rt-Heading rt-r-size-5 rt-r-trim-start rt-DialogTitle"
     :class="props.class"
   >
     <slot />

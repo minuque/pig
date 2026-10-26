@@ -7,7 +7,7 @@
         class="rt-TooltipContent"
         :class="props.class"
       >
-        <p class="rt-TooltipText rt-r-size-1">
+        <p class="rt-Text rt-TooltipText rt-r-size-1">
           <slot />
         </p>
 
