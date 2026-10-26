@@ -23,11 +23,6 @@
   --radius-4: var(--radius);
   --radius-5: calc(var(--radius) * 3 / 2);
   --radius-6: calc(var(--radius) * 2);
-
-  /* 面板与背景用本项目的表面色，弹层底不另起一套白 */
-  --color-background: var(--background);
-  --color-panel-solid: var(--card);
-  --color-panel-translucent: color-mix(in srgb, var(--card) 72%, transparent);
 }
 
 /* Reka 与 rt 对浮层用的 CSS 变量前缀不同：rt 的组件 CSS 读 --radix-*，
@@ -55,12 +50,7 @@
   --radix-tooltip-content-available-width: var(--reka-tooltip-content-available-width);
 }
 
-/* 弹层默认：宽度沿用本项目的 --size-modal，遮罩沿用 --scrim。
-   调用方的 scoped 类特异性更高，仍能按需改宽度（图片预览、设置弹层等）。 */
+/* 弹层默认宽度跟 rt 的 600px 一致；调用方的 scoped 类特异性更高，仍能按需改宽度。 */
 .rt-DialogContent {
-  max-inline-size: var(--size-modal);
-}
-
-.rt-BaseDialogOverlay {
-  background: var(--scrim);
+  max-inline-size: var(--dialog-max-width, 600px);
 }

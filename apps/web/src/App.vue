@@ -1,5 +1,5 @@
 <template>
-  <ThemeRoot>
+  <ThemeRoot root>
     <TooltipProvider>
       <RouterView />
     </TooltipProvider>

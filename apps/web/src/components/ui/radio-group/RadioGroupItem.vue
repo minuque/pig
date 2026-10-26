@@ -1,6 +1,10 @@
 <template>
   <!-- 有内容时按 rt 的结构渲染成 label：按钮空着，文字进内层 span -->
-  <label v-if="$slots.default" class="rt-RadioGroupItem" :class="props.class">
+  <label
+    v-if="$slots.default"
+    class="rt-Text rt-RadioGroupItem"
+    :class="[textSizeClass, props.class]"
+  >
     <RadioGroupItem
       data-slot="radio-group-item"
       v-bind="forwardedProps"
@@ -39,5 +43,7 @@ const group = inject(
   computed(() => ({ size: "2", variant: "surface" }) as const),
 )
 const sizeClass = computed(() => `rt-r-size-${group.value.size}`)
+// 文字尺寸与单选按钮同档：rt 用 <Text size> 包 label，行高决定圆点外边距
+const textSizeClass = computed(() => `rt-r-size-${group.value.size}`)
 const variantClass = computed(() => `rt-variant-${group.value.variant}`)
 </script>

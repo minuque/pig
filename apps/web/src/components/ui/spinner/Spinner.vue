@@ -9,7 +9,7 @@ import { computed, type HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<{
-    /** 期望的像素尺寸，就近落到 Radix Themes 的三档（16 / 24 / 32） */
+    /** 期望的像素尺寸，就近落到 Radix Themes 的三档（12 / 16 / 20） */
     size?: number
     /** 读屏名称 */
     label?: string
@@ -18,6 +18,6 @@ const props = withDefaults(
   { size: 16, class: undefined },
 )
 const sizeClass = computed(() =>
-  props.size <= 16 ? "rt-r-size-1" : props.size <= 24 ? "rt-r-size-2" : "rt-r-size-3",
+  props.size <= 12 ? "rt-r-size-1" : props.size <= 16 ? "rt-r-size-2" : "rt-r-size-3",
 )
 </script>

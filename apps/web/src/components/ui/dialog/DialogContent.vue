@@ -1,7 +1,7 @@
 <template>
   <DialogPortal>
     <ThemeRoot>
-      <DialogOverlay :align="align">
+      <DialogOverlay :align="align" :style="widthStyle">
         <DialogContent
           data-slot="dialog-content"
           v-bind="{ ...$attrs, ...forwarded }"
@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import type { DialogContentEmits, DialogContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
+import { computed } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
@@ -45,6 +46,8 @@ const props = withDefaults(
       showCloseButton?: boolean
       /** Radix Themes 的面板宽度档：1 最窄、4 最宽 */
       size?: "1" | "2" | "3" | "4"
+      /** 面板最大宽度，默认沿用 rt 的 600px；调用方的 scoped 类仍可覆盖 */
+      maxWidth?: string
       align?: "start" | "center"
     }
   >(),
@@ -57,9 +60,12 @@ const props = withDefaults(
 )
 const emits = defineEmits<DialogContentEmits>()
 const { t } = useI18n()
-const delegatedProps = reactiveOmit(props, "class", "showCloseButton", "size", "align")
+const delegatedProps = reactiveOmit(props, "class", "showCloseButton", "size", "maxWidth", "align")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<DialogContentProps>
 const sizeClass = `rt-r-size-${props.size}`
+const widthStyle = computed(() =>
+  props.maxWidth ? { "--dialog-max-width": props.maxWidth } : undefined,
+)
 </script>
 
 <style scoped>
