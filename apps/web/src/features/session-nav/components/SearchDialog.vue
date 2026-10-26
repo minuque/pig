@@ -231,7 +231,7 @@ function activate(index: number) {
 
 .search-empty {
   padding: var(--space-md);
-  color: var(--contrast-foreground-faint);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-caption);
   text-align: center;
 }
@@ -284,7 +284,7 @@ function activate(index: number) {
 .row-time {
   flex: none;
   margin-inline-start: auto;
-  color: var(--contrast-foreground-faint);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;
 }

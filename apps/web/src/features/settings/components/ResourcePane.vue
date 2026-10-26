@@ -12,14 +12,12 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { useSettingsCwd } from "@features/settings/hooks/use-settings-cwd.js"
 
 const { t } = useI18n()
-const props = defineProps<{ pane: "skills" | "extensions" }>()
+const props = defineProps<{ pane: "skills" | "extensions"; cwd?: string | undefined }>()
 const empty = computed(() =>
   props.pane === "skills" ? t("settings.noSkills") : t("settings.noExtensions"),
 )
-const cwd = useSettingsCwd()
 </script>
 
 <style scoped>
@@ -39,7 +37,7 @@ const cwd = useSettingsCwd()
 
 .empty {
   margin: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
