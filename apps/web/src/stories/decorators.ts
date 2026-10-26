@@ -3,8 +3,9 @@ import { getCurrentInstance } from "vue"
 import { createMemoryHistory, createRouter } from "vue-router"
 
 import type { ColorScheme } from "@/types/theme-type.js"
+import ThemeRoot from "@components/ui/rt/ThemeRoot.vue"
 import { LEFT_PANEL_STATE_KEY } from "@components/layout/hooks/use-left-panel.js"
-import { useColorScheme } from "@features/theme/index.js"
+import { applyAccent, useColorScheme } from "@features/theme/index.js"
 import { writePref } from "@utils/storage.js"
 
 /** 模块级先建一次主题单例：放进故事 setup 会让它的 watcher 随第一个故事卸载而失效。 */
@@ -20,6 +21,18 @@ export interface SchemeStoryParameters {
   colorScheme?: ColorScheme
 }
 
+/**
+ * 主题容器：rt 的组件样式依赖 .radix-themes 上的 token，故事里也要包一层。
+ * html 的 data-accent-color 平时由首帧脚本写入，故事里补一次，:root 上引用 accent 的语义色
+ * （--info 之类）才能解析。
+ */
+export const withTheme: Decorator = (story) => ({
+  components: { ThemeRoot, story },
+  setup: () => {
+    applyAccent(theme.accent.value)
+  },
+  template: "<ThemeRoot><story /></ThemeRoot>",
+})
 /** 宽度容器：parameters.frameWidth 定宽，没设就原样渲染，不影响已有故事。 */
 export const withFrame: Decorator = (story, context) => {
   const frameWidth = (context.parameters as FrameStoryParameters).frameWidth

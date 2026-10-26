@@ -32,7 +32,7 @@ const meta: Meta = {
       Button,
     },
     template:
-      "<AlertDialog><AlertDialogTrigger as-child><Button variant='destructive'>放弃</Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>放弃未保存的更改？</AlertDialogTitle><AlertDialogDescription>此操作只关闭示例，不会删除数据。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>取消</AlertDialogCancel><AlertDialogAction variant='destructive'>放弃</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>",
+      "<AlertDialog><AlertDialogTrigger as-child><Button variant='soft'>放弃</Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>放弃未保存的更改？</AlertDialogTitle><AlertDialogDescription>此操作只关闭示例，不会删除数据。</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>取消</AlertDialogCancel><AlertDialogAction variant='destructive'>放弃</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>",
   }),
 }
 

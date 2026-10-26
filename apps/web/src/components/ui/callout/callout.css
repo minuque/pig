@@ -22,6 +22,15 @@
   justify-content: center;
 }
 
+.callout-body {
+  min-inline-size: 0;
+}
+
+/* 正文段落比标题松开一档，沿用原来的 1.625 */
+.callout-body p {
+  line-height: 1.625;
+}
+
 .callout-title {
   min-inline-size: 0;
   flex: 1 1 auto;

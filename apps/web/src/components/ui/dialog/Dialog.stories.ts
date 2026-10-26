@@ -11,7 +11,7 @@ const meta: Meta = {
   render: () => ({
     components: { Dialog, DialogTrigger, DialogContent, DialogTitle, Button },
     template:
-      "<Dialog><DialogTrigger as-child><Button variant='outline'>重命名</Button></DialogTrigger><DialogContent><DialogTitle>重命名</DialogTitle><input class='w-full rounded-md border border-border bg-card px-2 py-1 text-foreground' type='text' value='草稿' aria-label='名称' /></DialogContent></Dialog>",
+      "<Dialog><DialogTrigger as-child><Button variant='outline'>重命名</Button></DialogTrigger><DialogContent><DialogTitle>重命名</DialogTitle><input class='w-full rounded-md border border-border bg-card px-xs py-xxs text-foreground' type='text' value='草稿' aria-label='名称' /></DialogContent></Dialog>",
   }),
 }
 

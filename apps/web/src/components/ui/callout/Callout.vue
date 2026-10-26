@@ -35,7 +35,7 @@
       </button>
     </div>
 
-    <div class="min-w-0 [&_p]:leading-relaxed">
+    <div class="callout-body">
       <slot />
     </div>
   </Primitive>

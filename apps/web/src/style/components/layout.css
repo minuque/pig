@@ -92,6 +92,11 @@
 }
 
 /* ------ 尺寸 ------ */
+/* 描边宽度单列一条：颜色由 .border-* 给，和 shadcn 的 border + border-border 写法对齐 */
+.border {
+  border-width: var(--border-width);
+}
+
 .w-full {
   inline-size: 100%;
 }
