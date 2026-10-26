@@ -89,9 +89,9 @@ function sectionsOf(grouping: SidebarGrouping, scope: string): SidebarSection[] 
   })
 }
 
-/** 壳高按 100vh 定，容器只锁宽；高度由 viewport 预设的 800 决定。 */
+/** 宽度跟着预览面板走，视口预设管尺寸；写死宽会在面板更宽时留白。 */
 const withWorkbenchFrame: Decorator = (_story) => ({
-  template: `<div style="width:1280px;height:100vh;overflow:hidden"><story /></div>`,
+  template: `<div style="width:100%;height:100vh;overflow:hidden"><story /></div>`,
 })
 const meta = {
   title: "Features/Shell/Workbench",
