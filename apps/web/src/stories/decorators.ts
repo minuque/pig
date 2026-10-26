@@ -5,8 +5,6 @@ import { createMemoryHistory, createRouter } from "vue-router"
 import type { ColorScheme } from "@/types/theme-type.js"
 import { useColorScheme } from "@features/theme/index.js"
 
-/** 侧栏与正文的常用容器宽度（px）。 */
-export const FRAME_WIDTH = { sidebar: 260, transcript: 760 } as const
 /** 模块级先建一次主题单例：放进故事 setup 会让它的 watcher 随第一个故事卸载而失效。 */
 const theme = useColorScheme()
 
@@ -54,24 +52,3 @@ export const withMemoryRouter: Decorator = (story) => ({
   },
   template: "<story />",
 })
-
-function frameOf(frameWidth: number): Decorator {
-  return (story, context) =>
-    withFrame(story, {
-      ...context,
-      parameters: { ...context.parameters, frameWidth } satisfies FrameStoryParameters,
-    })
-}
-
-function schemeOf(colorScheme: ColorScheme): Decorator {
-  return (story, context) =>
-    withColorScheme(story, {
-      ...context,
-      parameters: { ...context.parameters, colorScheme } satisfies SchemeStoryParameters,
-    })
-}
-
-export const withSidebarFrame = frameOf(FRAME_WIDTH.sidebar)
-export const withTranscriptFrame = frameOf(FRAME_WIDTH.transcript)
-export const withDarkTheme = schemeOf("dark")
-export const withLightTheme = schemeOf("light")
