@@ -31,3 +31,15 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {}
 export const Classic: Story = { args: { variant: "classic" } }
 export const HighContrast: Story = { args: { highContrast: true } }
+/** 三档尺寸：标签文字与圆点一起缩放（rt 的文字尺寸跟着组走）。 */
+export const Sizes: Story = {
+  render: () => ({
+    components: { RadioGroup, RadioGroupItem },
+    template: `<div class="flex flex-col gap-md">
+      <RadioGroup v-for="size in ['1', '2', '3']" :key="size" :size="size" model-value="a">
+        <RadioGroupItem value="a">尺寸 {{ size }}</RadioGroupItem>
+        <RadioGroupItem value="b">第二项</RadioGroupItem>
+      </RadioGroup>
+    </div>`,
+  }),
+}
