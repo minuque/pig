@@ -234,16 +234,16 @@ const sectionIcons = computed<Record<string, ProjIcon | undefined>>(() => {
 
 function monoColor(custom: ProjIcon | undefined) {
   if (!custom) return undefined
-  return projIconHex(custom.color, isDark.value ? "dark" : "light")
+  // 读 isDark 让深浅切换时重取色值
+  void isDark.value
+  return projIconHex(custom.color)
 }
 
 function sectionIconStyle(section: { key: string }) {
   // 收起态调暗，让自定义色统一沉到 muted
   if (!props.expandedSections.has(section.key)) return undefined
   const custom = sectionIcons.value[section.key]
-  return custom?.kind === "icon"
-    ? { color: projIconHex(custom.color, isDark.value ? "dark" : "light") }
-    : undefined
+  return custom?.kind === "icon" ? { color: projIconHex(custom.color) } : undefined
 }
 
 function itemBind(session: SidebarSession, _section: SidebarSection) {

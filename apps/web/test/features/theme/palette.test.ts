@@ -1,6 +1,12 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
-import { ACCENT_STORAGE_KEY, paintAccent, readStoredAccent } from "@features/theme/lib/palette.js"
+import {
+  ACCENT_ATTR,
+  ACCENT_STORAGE_KEY,
+  GRAY_ATTR,
+  paintAccent,
+  readStoredAccent,
+} from "@features/theme/lib/palette.js"
 import { ACCENTS, DEFAULT_ACCENT_ID, findAccent, isAccentId } from "@features/theme/lib/accents.js"
 
 const css = readFileSync(new URL("../../../src/style/app.css", import.meta.url), "utf8")
@@ -10,6 +16,9 @@ function values(selector: string): Map<string, string> {
   const lines = css.split("\n")
   const start = lines.findIndex((line) => line === `${selector} {`)
   const decls = new Map<string, string>()
+
+  if (start < 0) return decls
+
   let depth = 0
 
   for (const line of lines.slice(start + 1)) {
@@ -30,20 +39,16 @@ function values(selector: string): Map<string, string> {
 }
 
 function target() {
-  const props = new Map<string, string>()
-  const state = { attr: null as string | null, json: null as string | null }
+  const attrs = new Map<string, string>()
+  const state = { json: null as string | null }
   return {
-    props,
-    get attr() {
-      return state.attr
-    },
+    attrs,
     get json() {
       return state.json
     },
-    setProperty: (name: string, value: string) => props.set(name, value),
-    removeProperty: (name: string) => props.delete(name),
-    setAttr: (_name: string, value: string | null) => {
-      state.attr = value
+    setAttr: (name: string, value: string | null) => {
+      if (value) attrs.set(name, value)
+      else attrs.delete(name)
     },
     store: (json: string | null) => {
       state.json = json
@@ -53,14 +58,6 @@ function target() {
 
 describe("accent 变量", () => {
   const root = values(":root")
-  const dark = values(".dark")
-
-  it(":root / .dark 都给了默认 indigo 的 7 个 accent 变量", () => {
-    for (const key of ["9", "10", "11", "a3", "a4", "a6", "a9", "contrast"]) {
-      expect(root.has(`accent-${key}`)).toBe(true)
-      expect(dark.has(`accent-${key}`)).toBe(true)
-    }
-  })
 
   it("语义层把 --primary / --link / 选区 / 焦点环指到 --accent-*", () => {
     expect(root.get("primary")).toBe("var(--accent-9)")
@@ -73,54 +70,46 @@ describe("accent 变量", () => {
     expect(root.get("selection-bg")).toBe("var(--accent-a6)")
     expect(root.get("focus-ring")).toContain("var(--accent-a4)")
   })
+
+  it("色值不再写在本文件：--accent-* 由 data-accent-color 映射", () => {
+    expect(root.has("accent-9")).toBe(false)
+    expect(root.has("accent-contrast")).toBe(false)
+  })
 })
 
 describe("paintAccent", () => {
-  it("写入每个 accent 变量、data-accent 和首帧缓存", () => {
+  it("写 data-accent-color 与对应的中性色族，并缓存选择", () => {
     const painted = target()
-    paintAccent(painted, "crimson", "light")
-    const accent = findAccent("crimson")
+    paintAccent(painted, "teal")
 
-    expect(painted.attr).toBe("crimson")
-    expect(painted.props.get("--accent-9")).toBe(accent.light.step9)
-    expect(painted.props.get("--accent-10")).toBe(accent.light.step10)
-    expect(painted.props.get("--accent-11")).toBe(accent.light.step11)
-    expect(painted.props.get("--accent-a3")).toBe(accent.light.a3)
-    expect(painted.props.get("--accent-a4")).toBe(accent.light.a4)
-    expect(painted.props.get("--accent-a6")).toBe(accent.light.a6)
-    expect(painted.props.get("--accent-a9")).toBe(accent.light.a9)
-    expect(painted.props.get("--accent-contrast")).toBe("var(--white)")
-    expect(JSON.parse(painted.json ?? "")).toEqual({ id: "crimson" })
+    expect(painted.attrs.get(ACCENT_ATTR)).toBe("teal")
+    expect(painted.attrs.get(GRAY_ATTR)).toBe(findAccent("teal").gray)
+    expect(JSON.parse(painted.json ?? "")).toEqual({ id: "teal" })
   })
 
-  it("contrast 为 dark 的 accent 写前景色而不是白色", () => {
+  it("传 null 回到默认 accent 并清掉缓存", () => {
     const painted = target()
-    paintAccent(painted, "amber", "dark")
+    paintAccent(painted, "red")
+    paintAccent(painted, null)
 
-    expect(painted.props.get("--accent-contrast")).toBe("var(--foreground)")
-  })
-
-  it("传 null 清除 accent，回到默认", () => {
-    const painted = target()
-    paintAccent(painted, "iris", "light")
-    paintAccent(painted, null, "light")
-
-    expect(painted.attr).toBeNull()
-    expect(painted.props.size).toBe(0)
+    expect(painted.attrs.get(ACCENT_ATTR)).toBe(DEFAULT_ACCENT_ID)
+    expect(painted.attrs.get(GRAY_ATTR)).toBe(findAccent(DEFAULT_ACCENT_ID).gray)
     expect(painted.json).toBeNull()
   })
 })
 
 describe("readStoredAccent", () => {
   it("读出存储的 accent id", () => {
-    localStorage.setItem(ACCENT_STORAGE_KEY, JSON.stringify({ id: "iris" }))
+    localStorage.setItem(ACCENT_STORAGE_KEY, JSON.stringify({ id: "blue" }))
 
-    expect(readStoredAccent()).toBe("iris")
+    expect(readStoredAccent()).toBe("blue")
   })
 
-  it("非法 id 返回 null", () => {
-    localStorage.setItem(ACCENT_STORAGE_KEY, JSON.stringify({ id: "nope" }))
+  it("已下线的 accent 与非法 id 都返回 null", () => {
+    localStorage.setItem(ACCENT_STORAGE_KEY, JSON.stringify({ id: "iris" }))
+    expect(readStoredAccent()).toBeNull()
 
+    localStorage.setItem(ACCENT_STORAGE_KEY, JSON.stringify({ id: "nope" }))
     expect(readStoredAccent()).toBeNull()
   })
 })
@@ -129,15 +118,16 @@ describe("accents", () => {
   it("默认 accent 是 indigo", () => {
     expect(DEFAULT_ACCENT_ID).toBe("indigo")
     expect(isAccentId("indigo")).toBe(true)
-    expect(isAccentId("nope")).toBe(false)
+    expect(isAccentId("iris")).toBe(false)
   })
 
-  it("14 个 accent 都有浅深两份色表", () => {
-    expect(ACCENTS).toHaveLength(14)
+  it("6 套 accent 各自有中性色族，id 与标签不重复", () => {
+    expect(ACCENTS).toHaveLength(6)
+    expect(new Set(ACCENTS.map((accent) => accent.id)).size).toBe(6)
 
     for (const accent of ACCENTS) {
-      expect(accent.light.step9).toMatch(/^#[0-9a-f]{6}$/i)
-      expect(accent.dark.step9).toMatch(/^#[0-9a-f]{6}$/i)
+      expect(accent.label.length).toBeGreaterThan(0)
+      expect(["slate", "sage", "sand", "mauve"]).toContain(accent.gray)
     }
   })
 })

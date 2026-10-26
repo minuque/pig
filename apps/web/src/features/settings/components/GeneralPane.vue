@@ -201,6 +201,7 @@ import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { ACCENTS, DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
+import { accentHex } from "@features/theme/lib/palette.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { Slider } from "@components/ui/slider/index.js"
 import { CheckIcon } from "@components/icons/index.js"
@@ -228,8 +229,10 @@ function setAccentById(id: AccentId) {
   setAccent(id === DEFAULT_ACCENT_ID ? null : id)
 }
 
+/** 取色球用的实际色值：读计算样式，深浅切换自动跟随。 */
 function swatchColor(a: (typeof ACCENTS)[number]) {
-  return isDark.value ? a.dark.step9 : a.light.step9
+  void isDark.value
+  return accentHex(a.id)
 }
 
 function wireTone(id: ColorScheme): "light" | "dark" | "split" {

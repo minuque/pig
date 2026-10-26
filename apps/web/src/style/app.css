@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./palettes.css";
+@import "./rt.css";
 @import "./motion.css";
 @import "markstream-vue/index.css" layer(components);
 @import "./markdown-stream.css";
@@ -41,16 +43,8 @@
   --contrast-boost: 0%;
   --contrast-target: #000000;
 
-  /* Radix accent：--accent-* 是注入位；--primary / --link / 选区 / 焦点环都指回这些变量 */
-
-  --accent-9: #3e63dd;
-  --accent-10: #3358d4;
-  --accent-11: #3a5bc7;
-  --accent-a3: #0047f112;
-  --accent-a4: #0044ff1e;
-  --accent-a6: #003eff3e;
-  --accent-a9: #0031d2c1;
-  --accent-contrast: #ffffff;
+  /* Radix accent：--accent-* 由 rt 基座按 html 的 data-accent-color 映射，
+     本文件只保留语义别名。--primary / --link / 选区 / 焦点环都指回这些变量 */
   --primary: var(--accent-9);
   --primary-active: var(--accent-10);
   --primary-foreground: var(--accent-contrast);
@@ -346,14 +340,6 @@
   /* 深色下向白推，对比度层才朝正确方向生效 */
   --contrast-target: #ffffff;
 
-  --accent-9: #3e63dd;
-  --accent-10: #5472e4;
-  --accent-11: #9eb1ff;
-  --accent-a3: #2f62ff3c;
-  --accent-a4: #3566ff57;
-  --accent-a6: #5178fd7c;
-  --accent-a9: #4671ffdb;
-  --accent-contrast: #ffffff;
   --primary: var(--accent-9);
   --primary-active: var(--accent-10);
   --primary-foreground: var(--accent-contrast);

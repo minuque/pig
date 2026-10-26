@@ -108,12 +108,8 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/
 import { readJson, writeJson } from "@utils/storage.js"
 import { isAccentId } from "@features/theme/lib/accents.js"
 import { FolderIcon } from "@components/icons/index.js"
-import {
-  ACCENTS,
-  DEFAULT_ACCENT_ID,
-  findAccent,
-  type AccentId,
-} from "@features/theme/lib/accents.js"
+import { ACCENTS, DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
+import { accentHex } from "@features/theme/lib/palette.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
 import { MonitorIcon } from "@solar-icons/vue/linear/monitor"
@@ -224,12 +220,8 @@ if (cur) {
 
 const tabs: IconKind[] = ["icon", "emoji", "monogram"]
 
-function accentHex(id: AccentId) {
-  const scale = isDark.value ? findAccent(id).dark : findAccent(id).light
-  return scale.step9
-}
-
 function swatchHex(id: AccentId) {
+  void isDark.value
   return accentHex(id)
 }
 

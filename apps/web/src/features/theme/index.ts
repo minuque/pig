@@ -1,33 +1,36 @@
 import { useColorMode } from "@vueuse/core"
-import { computed, effectScope, nextTick, ref, watch, type ComputedRef, type Ref } from "vue"
+import { computed, effectScope, ref, type ComputedRef, type Ref } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
-import { ACCENT_STORAGE_KEY, paintAccent, readStoredAccent } from "@features/theme/lib/palette.js"
+import {
+  ACCENT_ATTR,
+  ACCENT_STORAGE_KEY,
+  paintAccent,
+  readStoredAccent,
+} from "@features/theme/lib/palette.js"
 import { DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
 
 const STORAGE_KEY = "npg-theme"
 /**
- * 当前 accent id。null 表示默认 indigo，颜色走 :root/.dark，不注入。
+ * 当前 accent id。null 表示默认 indigo，由 paintAccent 落到 data-accent-color。
  * 放模块级 ref：DOM 属性不是响应式依赖。
  */
 const accentId: Ref<AccentId | null> = ref(
   typeof document === "undefined"
     ? null
-    : ((document.documentElement.dataset.accent as AccentId | undefined) ?? null),
+    : ((document.documentElement.dataset.accentColor as AccentId | undefined) ?? null),
 )
 
-/** 把一套 accent 画到页面上。id 为 null 时清除，回到默认 indigo。 */
-export function applyAccent(id: AccentId | null, mode: "light" | "dark"): void {
+/** 把一套 accent 画到页面上：只改 html 的属性，深浅由色板文件的 .dark 块接管。 */
+export function applyAccent(id: AccentId | null): void {
   if (typeof document === "undefined") return
   const root = document.documentElement
 
   paintAccent(
     {
-      setProperty: (name, value) => root.style.setProperty(name, value),
-      removeProperty: (name) => root.style.removeProperty(name),
       setAttr: (name, value) => {
         if (value) root.setAttribute(name, value)
-        else delete root.dataset.accent
-        accentId.value = (value as AccentId | undefined) ?? null
+        else root.removeAttribute(name)
+        accentId.value = value && name === ACCENT_ATTR ? (value as AccentId) : accentId.value
       },
       store: (json) => {
         if (json) localStorage.setItem(ACCENT_STORAGE_KEY, json)
@@ -35,7 +38,6 @@ export function applyAccent(id: AccentId | null, mode: "light" | "dark"): void {
       },
     },
     id,
-    mode,
   )
 
   // 桌面壳据此改窗口底色。accent 不动背景，沿用 --background。
@@ -87,19 +89,12 @@ function createTheme(): Theme {
     theme: isDark.value ? ("github-dark" as const) : ("github-light" as const),
   }))
 
-  /** 深浅切换时把当前 accent 重画一次，保证用对那份色表。 */
-  function repaintAccent() {
-    applyAccent(accentId.value, isDark.value ? "dark" : "light")
-  }
-
   function setScheme(next: ColorScheme) {
     mode.value = next
   }
 
-  watch(isDark, () => nextTick(repaintAccent))
-
   function setAccent(next: AccentId | null) {
-    applyAccent(next === DEFAULT_ACCENT_ID ? null : next, isDark.value ? "dark" : "light")
+    applyAccent(next === DEFAULT_ACCENT_ID ? null : next)
   }
 
   function toggle() {
