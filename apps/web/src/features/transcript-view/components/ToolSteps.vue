@@ -1,8 +1,7 @@
 <template>
   <section class="tool-steps" :class="{ running, aborted: row.aborted }">
-    <Button
+    <button
       type="button"
-      static
       class="summary-btn"
       :style="statusColor"
       :aria-expanded="revealed"
@@ -43,7 +42,7 @@
         :class="{ 'is-on': revealed }"
         data-icon="inline-end"
       />
-    </Button>
+    </button>
 
     <div
       class="tool-calls-group"
@@ -78,10 +77,10 @@
               :data-active="displayActiveIndex === renderedSteps.length"
             >
               <div class="tool-summary">
-                <Button type="button" static class="summary" @click="toggleMore">
+                <button type="button" class="summary" @click="toggleMore">
                   <MenuDotsIcon class="tool-icon" data-icon="inline-start" />
                   <span class="label" :data-text="moreLabel">{{ moreLabel }}</span>
-                </Button>
+                </button>
               </div>
             </div>
           </div>
@@ -95,7 +94,6 @@
 import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { Button } from "@components/ui/button/index.js"
 import ToolCall from "@features/transcript-view/components/ToolCall.vue"
 import {
   toolRowDurationLabel,
@@ -345,6 +343,9 @@ onBeforeUnmount(() => {
 }
 
 .summary-btn {
+  /* 原来是 Button 组件带的 flex 布局，换成原生 button 后要自己声明 */
+  display: flex;
+  align-items: center;
   position: sticky;
   top: 0;
   z-index: 2;

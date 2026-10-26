@@ -7,30 +7,31 @@
     :as="as"
     :as-child="asChild"
     :class="[
-      'callout relative flex w-full flex-col rounded-(--radius-lg) border',
-      calloutSize[size],
-      calloutColor[color][variant],
+      'callout',
+      `callout-size-${size}`,
+      `callout-${color}`,
+      `callout-${variant}`,
       floating && 'surface-float',
       props.class,
     ]"
   >
-    <div class="callout-header flex items-center gap-2">
-      <span class="callout-icon flex items-center justify-center">
+    <div class="callout-header">
+      <span class="callout-icon">
         <slot name="icon" />
       </span>
 
-      <div class="min-w-0 flex-1 font-medium">
+      <div class="callout-title">
         <slot name="title" />
       </div>
 
       <button
         v-if="dismissible"
         type="button"
-        class="callout-action flex size-5 items-center justify-center rounded-(--radius-sm)"
+        class="callout-action"
         :aria-label="t('common.close')"
         @click="emit('close')"
       >
-        <CloseIcon class="size-3.5" />
+        <CloseIcon class="size-icon" />
       </button>
     </div>
 
@@ -41,18 +42,14 @@
 </template>
 
 <script setup lang="ts">
+import "./callout.css"
+
 import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { Primitive } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { CloseIcon } from "@components/icons/index.js"
-import {
-  calloutColor,
-  calloutSize,
-  type CalloutColor,
-  type CalloutSize,
-  type CalloutVariant,
-} from "./index.js"
+import { type CalloutColor, type CalloutSize, type CalloutVariant } from "./index.js"
 
 const { t } = useI18n()
 

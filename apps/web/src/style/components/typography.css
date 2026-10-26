@@ -1,0 +1,80 @@
+/* 排版类：原先由 @theme 的 --text-* 生成，现在手写成普通类，类名不变，
+   SFC 里的写法保持原样。行高与字距取自 app.css 的同名 token。 */
+
+.text-heading-2 {
+  font-size: var(--text-heading-2);
+  line-height: var(--text-heading-2--line-height);
+  letter-spacing: var(--text-heading-2--letter-spacing);
+}
+
+.text-title {
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+}
+
+.text-body-lg {
+  font-size: var(--text-body-lg);
+  line-height: var(--text-body-lg--line-height);
+}
+
+.text-body-md {
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md--line-height);
+}
+
+.text-body-sm {
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+}
+
+.text-meta {
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+.text-caption {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
+.text-caption-mono {
+  font-size: var(--text-caption-mono);
+  line-height: var(--text-caption-mono--line-height);
+  font-family: var(--font-mono);
+}
+
+.text-button {
+  font-size: var(--text-button);
+  line-height: var(--text-button--line-height);
+}
+
+.text-eyebrow {
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+}
+
+.text-code {
+  font-size: var(--text-code);
+  line-height: var(--text-code-line);
+  font-family: var(--font-mono);
+}
+
+.font-normal {
+  font-weight: var(--font-weight-normal);
+}
+
+.font-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.font-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+.leading-none {
+  line-height: 1;
+}

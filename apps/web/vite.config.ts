@@ -1,5 +1,4 @@
 /// <reference types="vitest/config" />
-import tailwindcss from "@tailwindcss/vite"
 import { fileURLToPath, URL } from "node:url"
 import vue from "@vitejs/plugin-vue"
 import { defineConfig } from "vite"
@@ -14,7 +13,6 @@ export default defineConfig({
     vue(),
     // vitest 下不加载 devtools：测试用不到，插件卸载后还会留下 unhandled rejection
     ...(process.env.VITEST ? [] : [vueDevTools()]),
-    tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "script-defer",

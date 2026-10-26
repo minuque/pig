@@ -54,3 +54,13 @@
   --radix-hover-card-content-transform-origin: var(--reka-hover-card-content-transform-origin);
   --radix-tooltip-content-available-width: var(--reka-tooltip-content-available-width);
 }
+
+/* 弹层默认：宽度沿用本项目的 --size-modal，遮罩沿用 --scrim。
+   调用方的 scoped 类特异性更高，仍能按需改宽度（图片预览、设置弹层等）。 */
+.rt-DialogContent {
+  max-inline-size: var(--size-modal);
+}
+
+.rt-BaseDialogOverlay {
+  background: var(--scrim);
+}

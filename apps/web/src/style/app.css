@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "./reset.css";
 @import "./palettes.css";
 @import "./rt.css";
 @import "./motion.css";
@@ -38,6 +38,9 @@
 /* ------ 浅色 token ------ */
 :root {
   color-scheme: light;
+
+  /* Tailwind 的间距基数已不再提供，--space-* 的 calc 靠它 */
+  --spacing: 4px;
 
   /* 文字对比度：提升时把 4 档文字色按权重向 --contrast-target 推，0% 即原值 */
   --contrast-boost: 0%;
@@ -212,7 +215,7 @@
   /* tint 上的破坏色文字：--destructive 压在 15% 混底上只有 3.6:1，单独给一档 */
   --destructive-on-tint: #b91c1c;
 
-  /* 字体与间距圆角定义在 @theme，组件的 var() 与工具类读同一份。 */
+  /* 字体与间距圆角在下面的 :root 块里定义，组件的 var() 与工具类读同一份。 */
   --text-code: 13px;
   --text-code-line: 24.5px;
 
@@ -329,6 +332,60 @@
   --focus-ring: 0 0 0 3px var(--accent-a4);
   --focus-ring-destructive: 0 0 0 3px
     color-mix(in srgb, var(--destructive, #e5484d) 45%, transparent);
+  --font-sans:
+    "anthropic-sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  --font-mono:
+    "anthropic-mono", ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei",
+    monospace;
+
+  --text-heading-2: 26px;
+  --text-heading-2--line-height: 1.23;
+  --text-heading-2--letter-spacing: -0.4px;
+  --text-title: var(--text-base);
+  --text-title--line-height: 1.4;
+  --text-body-md: var(--text-sm);
+  --text-body-md--line-height: 1.43;
+  --text-body-sm: var(--text-sm);
+  --text-body-sm--line-height: 1.43;
+  --text-body-lg: var(--text-base);
+  --text-body-lg--line-height: 1.5;
+  --text-meta: calc(var(--text-body-md) - 1px);
+  --text-meta--line-height: 1.43;
+  --text-button: 13px;
+  --text-button--line-height: 1.38;
+  --text-caption: 13px;
+  --text-caption--line-height: 1.38;
+  --text-eyebrow: var(--text-xs);
+  --text-eyebrow--line-height: 1.33;
+  --text-caption-mono: var(--text-xs);
+  --text-caption-mono--line-height: 1.33;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 间距刻度用 --space-*：--spacing-* 是 max-w/w/size/leading 的兜底命名空间，塞进去会顶掉默认刻度 */
+  --space-xxs: calc(var(--spacing) * 1);
+  --space-xs: calc(var(--spacing) * 2);
+  --space-sm: calc(var(--spacing) * 3);
+  --space-md: calc(var(--spacing) * 4);
+  --space-lg: calc(var(--spacing) * 6);
+  --space-xl: calc(var(--spacing) * 7);
+  --space-xxl: calc(var(--spacing) * 8);
+
+  /* 单一基数派生，改 --radius 即整档跟随；不在网格上的各自独立 */
+  --radius: 8px;
+  --radius-2xs: calc(var(--radius) - 6px);
+  --radius-xs: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 8px);
+  --radius-popover: calc(var(--radius) + 4px);
+  --radius-code: 0.65rem;
+  --radius-full: 9999px;
 }
 
 /* ------ 深色覆盖：只覆盖颜色、阴影、玻璃 ------ */
@@ -483,91 +540,11 @@
   font-display: swap;
 }
 
-/* ------ 度量与字体间距：只定义一份，static 防 Tailwind 按用量裁掉 var() ------ */
-@theme static {
-  --font-sans:
-    "anthropic-sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-    "Microsoft YaHei", sans-serif;
-  --font-mono:
-    "anthropic-mono", ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei",
-    monospace;
-
-  --text-heading-2: 26px;
-  --text-heading-2--line-height: 1.23;
-  --text-heading-2--letter-spacing: -0.4px;
-  --text-title: var(--text-base);
-  --text-title--line-height: 1.4;
-  --text-body-md: var(--text-sm);
-  --text-body-md--line-height: 1.43;
-  --text-body-sm: var(--text-sm);
-  --text-body-sm--line-height: 1.43;
-  --text-body-lg: var(--text-base);
-  --text-body-lg--line-height: 1.5;
-  --text-meta: calc(var(--text-body-md) - 1px);
-  --text-meta--line-height: 1.43;
-  --text-button: 13px;
-  --text-button--line-height: 1.38;
-  --text-caption: 13px;
-  --text-caption--line-height: 1.38;
-  --text-eyebrow: var(--text-xs);
-  --text-eyebrow--line-height: 1.33;
-  --text-caption-mono: var(--text-xs);
-  --text-caption-mono--line-height: 1.33;
-
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  /* 间距刻度用 --space-*：--spacing-* 是 max-w/w/size/leading 的兜底命名空间，塞进去会顶掉默认刻度 */
-  --space-xxs: calc(var(--spacing) * 1);
-  --space-xs: calc(var(--spacing) * 2);
-  --space-sm: calc(var(--spacing) * 3);
-  --space-md: calc(var(--spacing) * 4);
-  --space-lg: calc(var(--spacing) * 6);
-  --space-xl: calc(var(--spacing) * 7);
-  --space-xxl: calc(var(--spacing) * 8);
-
-  /* 单一基数派生，改 --radius 即整档跟随；不在网格上的各自独立 */
-  --radius: 8px;
-  --radius-2xs: calc(var(--radius) - 6px);
-  --radius-xs: calc(var(--radius) - 4px);
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 8px);
-  --radius-popover: calc(var(--radius) + 4px);
-  --radius-code: 0.65rem;
-  --radius-full: 9999px;
-}
-
 /* ------ 工具类颜色映射：同名指回，只登记用过的类；阴影留 :root 供深色覆盖 ------ */
-@theme inline {
-  --color-primary: var(--primary);
-  --color-primary-active: var(--primary-active);
-  --color-card: var(--card);
-  --color-foreground: var(--contrast-foreground);
-  --color-foreground-muted: var(--contrast-foreground-muted);
-  --color-foreground-faint: var(--contrast-foreground-faint);
-  --color-success: var(--success);
-  --color-info: var(--info);
-  --color-warning: var(--warning);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-input: var(--input);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
 
-  --shadow-soft: var(--shadow-soft);
-}
-
-@utility size-icon {
-  width: var(--size-icon);
-  height: var(--size-icon);
+.size-icon {
+  inline-size: var(--size-icon);
+  block-size: var(--size-icon);
 }
 
 /* ------ 表面与毛玻璃：浮层统一底，透明度由设置给，模糊与饱和只按深浅切换 ------ */
@@ -689,16 +666,7 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
   app-region: no-drag;
 }
 
-/* Tailwind translate-* 走 translate，与 keyframes 的 transform 叠加会偏；Teleport 后 scoped 打不中 */
-:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
-  transform: translate(-50%, -50%);
-}
-
-@media (max-width: 639px) {
-  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
-    transform: translateX(-50%);
-  }
-}
+/* 弹层居中由 Radix Themes 的 scroll padding + margin auto 负责，不再自己 translate */
 
 @media (pointer: coarse) {
   :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {

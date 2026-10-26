@@ -1,21 +1,19 @@
 export { default as Button } from "./Button.vue"
 
-export const buttonBase =
-  "inline-flex items-center justify-center gap-(--space-xs) whitespace-nowrap rounded-md text-button font-medium transition-[background-color,color,box-shadow,opacity,scale] duration-(--duration-fast) ease-(--ease-hover) disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-(--size-icon) shrink-0 [&_svg]:shrink-0 outline-none"
-export const buttonPress = "active:not-disabled:scale-[0.96] motion-reduce:active:scale-100"
-export const buttonVariant = {
-  default: "bg-primary text-primary-foreground hover:bg-primary-active active:bg-primary-active",
-  destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-  outline:
-    "border border-input bg-card text-foreground shadow-soft hover:bg-accent hover:text-accent-foreground",
-} as const
-export const buttonSize = {
-  default: "h-8 px-(--space-sm) py-1.5 has-[>svg]:px-2.5",
-  icon: "size-(--size-icon-button)",
-  "icon-2xs": "size-(--size-icon-2xs) rounded-full [&_svg:not([class*='size-'])]:size-3",
-  "icon-sm": "size-6 [&_svg:not([class*='size-'])]:size-3.5",
-} as const
+export { default as IconButton } from "./IconButton.vue"
 
-export type ButtonVariant = keyof typeof buttonVariant
+/** Radix Themes 的按钮尺寸：1=24px、2=32px、3=40px、4=48px */
+export type ButtonSize = "1" | "2" | "3" | "4"
 
-export type ButtonSize = keyof typeof buttonSize
+export type ButtonVariant =
+  "classic" | "solid" | "soft" | "surface" | "outline" | "ghost" | "ghost-offset"
+
+/** 圆角档：不传时跟随主题，传入只影响这一个按钮 */
+export type Radius = "none" | "small" | "medium" | "large" | "full"
+
+export type HighContrast = boolean
+
+/** 拼一组 rt 按钮类：给不用 Button 组件、但要是同一种外观的元素（如 AlertDialog 的动作按钮）。 */
+export function rtButtonClass(variant: ButtonVariant = "solid", size: ButtonSize = "2"): string {
+  return `rt-reset rt-BaseButton rt-Button rt-r-size-${size} rt-variant-${variant}`
+}

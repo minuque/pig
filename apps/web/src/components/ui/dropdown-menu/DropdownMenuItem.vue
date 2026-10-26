@@ -4,7 +4,8 @@
     :data-inset="inset ? '' : undefined"
     :data-variant="variant"
     v-bind="forwardedProps"
-    :class="[menuItemClass, props.class]"
+    class="rt-BaseMenuItem rt-DropdownMenuItem"
+    :class="props.class"
   >
     <slot />
   </DropdownMenuItem>
@@ -14,7 +15,6 @@
 import type { DropdownMenuItemProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { menuItemClass } from "@components/ui/menu-item.js"
 import { DropdownMenuItem, useForwardProps } from "reka-ui"
 
 const props = withDefaults(

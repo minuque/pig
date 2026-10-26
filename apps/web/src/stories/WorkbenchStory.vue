@@ -93,12 +93,12 @@
       <template #floating>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button
+            <IconButton
               class="scroll-latest-control"
               type="button"
               :aria-label="scrollLabel"
               variant="outline"
-              size="icon-sm"
+              size="1"
               @click="transcriptView?.scrollToLatest('smooth')"
             >
               <span class="icon-swap">
@@ -109,7 +109,7 @@
 
                 <ArrowDownIcon :data-visible="!running" />
               </span>
-            </Button>
+            </IconButton>
           </TooltipTrigger>
 
           <TooltipContent>{{ scrollLabel }}</TooltipContent>
@@ -156,7 +156,7 @@ import { t } from "@i18n/index.js"
 import AlertToaster from "@components/layout/AlertToaster.vue"
 import AppLayout from "@components/layout/AppLayout.vue"
 import { dismissNotice, noticeQueue, notifyAction } from "@components/layout/notify.js"
-import { Button } from "@components/ui/button/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { ArrowDownIcon, LoaderIcon } from "@components/icons/index.js"
 import Composer from "@features/composer/index.vue"

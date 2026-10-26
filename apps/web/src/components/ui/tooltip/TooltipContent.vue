@@ -1,13 +1,19 @@
 <template>
   <TooltipPortal>
-    <TooltipContent
-      data-slot="tooltip-content"
-      v-bind="{ ...$attrs, ...forwarded }"
-      class="surface-solid text-eyebrow z-50 max-w-(--reka-tooltip-content-available-width) origin-(--reka-tooltip-content-transform-origin) rounded-(--radius-popover) border border-[color:var(--hairline)] px-(--space-xs) py-(--space-xxs) text-foreground reveal-menu whitespace-pre-wrap break-words"
-      :class="props.class"
-    >
-      <slot />
-    </TooltipContent>
+    <ThemeRoot>
+      <TooltipContent
+        data-slot="tooltip-content"
+        v-bind="{ ...$attrs, ...forwarded }"
+        class="rt-TooltipContent"
+        :class="props.class"
+      >
+        <p class="rt-TooltipText rt-r-size-1">
+          <slot />
+        </p>
+
+        <TooltipArrow class="rt-TooltipArrow" />
+      </TooltipContent>
+    </ThemeRoot>
   </TooltipPortal>
 </template>
 
@@ -15,21 +21,16 @@
 import type { TooltipContentEmits, TooltipContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { TooltipContent, TooltipPortal, useForwardPropsEmits } from "reka-ui"
+import { TooltipArrow, TooltipContent, TooltipPortal, useForwardPropsEmits } from "reka-ui"
+import { ThemeRoot } from "@components/ui/rt/index.js"
 
-defineOptions({
-  inheritAttrs: false,
-})
+defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<TooltipContentProps & { class?: HTMLAttributes["class"] }>(),
-  {
-    class: undefined,
-    sideOffset: 6,
-  },
+  { class: undefined },
 )
 const emits = defineEmits<TooltipContentEmits>()
 const delegatedProps = reactiveOmit(props, "class")
-// reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<TooltipContentProps>
 </script>

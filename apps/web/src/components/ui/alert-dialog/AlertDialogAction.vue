@@ -2,7 +2,8 @@
   <AlertDialogAction
     data-slot="alert-dialog-action"
     v-bind="forwardedProps"
-    :class="[buttonBase, buttonPress, buttonVariant[variant], buttonSize.default, props.class]"
+    :data-accent-color="variant === 'destructive' ? 'red' : undefined"
+    :class="[rtButtonClass('solid'), props.class]"
   >
     <slot />
   </AlertDialogAction>
@@ -13,7 +14,7 @@ import type { AlertDialogActionProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { AlertDialogAction, useForwardProps } from "reka-ui"
-import { buttonBase, buttonPress, buttonSize, buttonVariant } from "@components/ui/button/index.js"
+import { rtButtonClass } from "@components/ui/button/index.js"
 
 const props = withDefaults(
   defineProps<

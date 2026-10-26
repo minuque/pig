@@ -12,10 +12,10 @@
 
     <Tooltip v-if="text">
       <TooltipTrigger as-child>
-        <Button
+        <IconButton
           type="button"
           variant="outline"
-          size="icon-2xs"
+          size="1"
           class="copy"
           :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
           :aria-label="copyLabel"
@@ -25,7 +25,7 @@
             <CopyIcon :data-visible="status !== 'copied'" />
             <CheckIcon :data-visible="status === 'copied'" />
           </span>
-        </Button>
+        </IconButton>
       </TooltipTrigger>
 
       <TooltipContent>{{ copyLabel }}</TooltipContent>
@@ -37,7 +37,7 @@
 import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { Button } from "@components/ui/button/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { CheckIcon, CopyIcon } from "@components/icons/index.js"
 

@@ -2,3 +2,5 @@
    按域分文件，各自在 500 行内；新域先在 components/ 下建文件，再在下面加一行。 */
 
 @import "./components/layout.css";
+@import "./components/typography.css";
+@import "./components/color.css";

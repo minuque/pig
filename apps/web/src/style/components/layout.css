@@ -238,3 +238,12 @@
 .z-modal {
   z-index: var(--z-modal);
 }
+
+/* 高度取控件档；py-0 用于压掉基础件的默认内边距 */
+.h-control {
+  block-size: var(--size-control);
+}
+
+.py-0 {
+  padding-block: 0;
+}

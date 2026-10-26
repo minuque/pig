@@ -4,7 +4,8 @@
     :data-inset="inset ? '' : undefined"
     :data-variant="variant"
     v-bind="forwardedProps"
-    :class="[menuItemClass, props.class]"
+    class="rt-BaseMenuItem rt-ContextMenuItem"
+    :class="props.class"
   >
     <slot />
   </ContextMenuItem>
@@ -14,7 +15,6 @@
 import type { ContextMenuItemProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { menuItemClass } from "@components/ui/menu-item.js"
 import { ContextMenuItem, useForwardProps } from "reka-ui"
 
 const props = withDefaults(

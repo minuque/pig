@@ -1,20 +1,19 @@
 <template>
   <DropdownMenuPortal>
-    <DropdownMenuContent
-      data-slot="dropdown-menu-content"
-      v-bind="{ ...$attrs, ...forwarded, ...(reference && { reference }) }"
-      class="menu-surface surface-float reveal-menu z-(--z-drawer) max-h-(--reka-dropdown-menu-content-available-height) origin-(--reka-dropdown-menu-content-transform-origin) text-foreground"
-      :class="[bare ? undefined : 'min-w-(--size-context-menu)', props.class]"
-    >
-      <div
-        v-if="!bare"
-        class="menu-list edge-fade-menu max-h-(--reka-dropdown-menu-content-available-height)"
+    <ThemeRoot>
+      <DropdownMenuContent
+        data-slot="dropdown-menu-content"
+        v-bind="{ ...$attrs, ...forwarded, ...(reference && { reference }) }"
+        class="rt-BaseMenuContent rt-DropdownMenuContent"
+        :class="[sizeClass, variantClass, props.class]"
       >
-        <slot />
-      </div>
+        <div v-if="!bare" class="rt-BaseMenuViewport rt-DropdownMenuViewport">
+          <slot />
+        </div>
 
-      <slot v-else />
-    </DropdownMenuContent>
+        <slot v-else />
+      </DropdownMenuContent>
+    </ThemeRoot>
   </DropdownMenuPortal>
 </template>
 
@@ -23,6 +22,7 @@ import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui
 import { computed, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
+import { ThemeRoot } from "@components/ui/rt/index.js"
 import { usePopperAnchor } from "@components/ui/popper-anchor.js"
 
 defineOptions({
@@ -33,8 +33,11 @@ const props = withDefaults(
   defineProps<
     DropdownMenuContentProps & {
       class?: HTMLAttributes["class"]
-      /** 大面板自管内边距，不套菜单列表壳。 */
+      /** 大面板自管内边距，不套菜单视口壳 */
       bare?: boolean
+      /** Radix Themes 的菜单尺寸：1 紧凑、2 默认 */
+      size?: "1" | "2"
+      variant?: "solid" | "soft"
     }
   >(),
   {
@@ -42,18 +45,20 @@ const props = withDefaults(
     sideOffset: 4,
     collisionPadding: 8,
     bare: false,
+    size: "2",
+    variant: "solid",
   },
 )
 const emits = defineEmits<DropdownMenuContentEmits>()
 // 被 Tooltip 包住时 MenuAnchor 会注册到 Tooltip 的 PopperRoot，须显式传触发元素当锚点
 const anchor = usePopperAnchor()
 const reference = computed(() => props.reference ?? anchor?.value)
-const delegatedProps = reactiveOmit(props, "class", "bare")
+const delegatedProps = reactiveOmit(props, "class", "bare", "size", "variant")
 // reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
 const forwarded = useForwardPropsEmits(
   delegatedProps,
   emits,
 ) as ComputedRef<DropdownMenuContentProps>
+const sizeClass = computed(() => `rt-r-size-${props.size}`)
+const variantClass = computed(() => `rt-variant-${props.variant}`)
 </script>
-
-<style src="../menu-surface.css"></style>
