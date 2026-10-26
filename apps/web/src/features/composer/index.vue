@@ -54,7 +54,7 @@
               @mousedown.prevent
               @click="pickFiles"
             >
-              <PaperclipIcon class="size-(--size-icon-2xs)" />
+              <PaperclipIcon class="attach-icon" />
             </Button>
           </TooltipTrigger>
 
@@ -490,5 +490,11 @@ function onAbortHotkey(event: KeyboardEvent) {
 .attach:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+/* 回形针比正文图标大一档 */
+.attach-icon {
+  inline-size: var(--size-icon-2xs);
+  block-size: var(--size-icon-2xs);
 }
 </style>

@@ -27,7 +27,7 @@
             :aria-pressed="showLineNumbers"
             @click.stop="showLineNumbers = !showLineNumbers"
           >
-            <ListOrderedMinimalisticIcon class="size-3.5" />
+            <ListOrderedMinimalisticIcon class="size-icon" />
           </Button>
         </LazyTip>
 
@@ -41,8 +41,8 @@
             :aria-pressed="softWrap"
             @click.stop="softWrap = !softWrap"
           >
-            <ParagraphSpacingIcon v-if="!softWrap" class="size-3.5" />
-            <AlignLeftIcon v-else class="size-3.5" />
+            <ParagraphSpacingIcon v-if="!softWrap" class="size-icon" />
+            <AlignLeftIcon v-else class="size-icon" />
           </Button>
         </LazyTip>
 
@@ -57,8 +57,8 @@
             @click="copy"
           >
             <span class="icon-swap">
-              <CopyIcon class="size-3.5" :data-visible="status !== 'copied'" />
-              <CheckIcon class="size-3.5" :data-visible="status === 'copied'" />
+              <CopyIcon class="size-icon" :data-visible="status !== 'copied'" />
+              <CheckIcon class="size-icon" :data-visible="status === 'copied'" />
             </span>
           </Button>
         </LazyTip>

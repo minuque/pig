@@ -50,10 +50,7 @@
     </div>
 
     <Dialog :open="previewOpen" @update:open="onPreviewOpen">
-      <DialogContent
-        class="flex h-[70vh] w-[70vw] max-w-[70vw] flex-col gap-(--space-sm) overflow-hidden sm:max-w-[70vw]"
-        @open-auto-focus="onOpenAutoFocus"
-      >
+      <DialogContent class="preview-dialog" @open-auto-focus="onOpenAutoFocus">
         <DialogTitle>{{ previewTitle }}</DialogTitle>
 
         <div ref="previewPane" class="preview-body" tabindex="-1">
@@ -170,6 +167,17 @@ function onOpenAutoFocus(event: Event) {
 
 .usage-shell {
   position: relative;
+}
+
+/* 预览弹层：占视口的七成，内容区自己滚 */
+.preview-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  inline-size: 70vw;
+  max-inline-size: 70vw;
+  block-size: 70vh;
+  overflow: hidden;
 }
 
 .usage-host {

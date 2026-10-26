@@ -1,6 +1,6 @@
 <template>
   <AlertDialog v-model:open="open">
-    <AlertDialogContent class="sm:max-w-[28rem]">
+    <AlertDialogContent class="delete-dialog">
       <AlertDialogHeader>
         <AlertDialogTitle>{{ t("session.deleteTitle") }}</AlertDialogTitle>
         <AlertDialogDescription>{{ t("session.deleteBody", { title }) }}</AlertDialogDescription>
@@ -40,3 +40,12 @@ const emit = defineEmits<{
   confirm: []
 }>()
 </script>
+
+<style scoped>
+/* 比默认弹层窄一档，宽屏下也不会拉成整行 */
+@media (min-width: 640px) {
+  .delete-dialog {
+    max-inline-size: 28rem;
+  }
+}
+</style>

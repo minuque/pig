@@ -1,6 +1,6 @@
 <template>
   <Dialog v-model:open="open">
-    <DialogContent class="sm:max-w-[26rem]">
+    <DialogContent class="settings-dialog">
       <DialogTitle>{{ t("session.projectSettings") }}</DialogTitle>
       <p class="settings-sub">{{ project }} · {{ t("session.customIcon") }}</p>
       <div class="settings-label">{{ t("session.icon") }}</div>
@@ -461,5 +461,12 @@ function save() {
   margin-inline-end: auto;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
+}
+
+/* 比默认弹层窄一档，宽屏下也不会拉成整行 */
+@media (min-width: 640px) {
+  .settings-dialog {
+    max-inline-size: 26rem;
+  }
 }
 </style>

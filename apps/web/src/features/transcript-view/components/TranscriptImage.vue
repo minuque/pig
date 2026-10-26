@@ -6,9 +6,7 @@
       </button>
     </DialogTrigger>
 
-    <DialogContent
-      class="!w-fit max-h-[90vh] max-w-[calc(100vw-2rem)] place-items-center overflow-auto p-(--space-sm) sm:!w-fit sm:!max-w-[calc(100vw-2rem)]"
-    >
+    <DialogContent class="zoom-dialog">
       <img :src="src" :alt="altText" class="full" />
     </DialogContent>
   </Dialog>
@@ -43,6 +41,16 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   border-radius: var(--radius-lg);
   background: var(--background-soft);
   cursor: zoom-in;
+}
+
+/* 图片预览：按内容收缩，再受视口约束 */
+.zoom-dialog {
+  place-items: center;
+  inline-size: fit-content;
+  max-inline-size: calc(100vw - 2rem);
+  max-block-size: 90vh;
+  overflow: auto;
+  padding: var(--space-sm);
 }
 
 .thumb-img,
