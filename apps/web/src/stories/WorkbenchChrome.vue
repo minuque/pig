@@ -97,9 +97,12 @@ const panel = inject(leftPanelKey, null)
 const sidebarExpanded = computed(() => panel?.sbState.value === "expanded")
 const sidebarOpen = computed(() => panel?.leftOpen.value ?? true)
 
+/** 侧栏收起钮与头部按钮共用：两者都改同一个面板状态，谁的入口都同步。 */
 function toggleSidebar(): void {
-  panel?.setSbState("expanded")
+  panel?.setSbState(sidebarExpanded.value ? "offcanvas" : "expanded")
 }
+
+defineExpose({ toggleSidebar })
 
 const bar = useTemplateRef<HTMLElement>("bar")
 const reserve = ref("7rem")

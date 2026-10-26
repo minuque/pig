@@ -441,6 +441,14 @@ export const SIDEBAR_SESSIONS: SessionMetadata[] = [
   meta("sess-unread", "工具卡折叠动画收尾", AGENTS_CWD, SIDEBAR_NOW - 2 * HOUR),
   meta("sess-running", "流式输出的滚动跟随", AGENTS_CWD, SIDEBAR_NOW - 6 * HOUR),
   meta("sess-error", "PWA 缓存把旧包留在前台", AGENTS_CWD, SIDEBAR_NOW - 20 * HOUR),
+  // 今天桶超过一页，侧栏的「显示更多 / 收起」才有东西可点
+  meta("sess-token-audit", "设计 token 命名审计", AGENTS_CWD, SIDEBAR_NOW - 8 * HOUR),
+  meta("sess-minimap", "小地图命中区太窄", AGENTS_CWD, SIDEBAR_NOW - 10 * HOUR),
+  meta("sess-draft-guard", "草稿会话的占位行闪一下", AGENTS_CWD, SIDEBAR_NOW - 14 * HOUR),
+  meta("sess-queue-panel", "队列面板拖拽排序", AGENTS_CWD, SIDEBAR_NOW - 18 * HOUR),
+  // 今天桶超过 SECTION_PAGE(5)，侧栏的「显示更多 / 收起」才有东西可点
+  meta("sess-tool-collapse", "工具卡折叠高度量一次", AGENTS_CWD, SIDEBAR_NOW - 3 * HOUR),
+  meta("sess-edge-fade", "底部蒙层压住滚动条", AGENTS_CWD, SIDEBAR_NOW - 12 * HOUR),
   meta("sess-gateway-static", "静态资源路径改到 dist 目录", GATEWAY_CWD, YESTERDAY),
   meta("sess-gateway-proxy", "代理补上启动凭证", GATEWAY_CWD, YESTERDAY - 3 * HOUR),
   meta("sess-gateway-reload", "会话列表刷新时机", GATEWAY_CWD, MIDNIGHT - 3 * DAY),

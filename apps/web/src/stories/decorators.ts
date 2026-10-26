@@ -3,7 +3,9 @@ import { getCurrentInstance } from "vue"
 import { createMemoryHistory, createRouter } from "vue-router"
 
 import type { ColorScheme } from "@/types/theme-type.js"
+import { LEFT_PANEL_STATE_KEY } from "@components/layout/hooks/use-left-panel.js"
 import { useColorScheme } from "@features/theme/index.js"
+import { writePref } from "@utils/storage.js"
 
 /** 模块级先建一次主题单例：放进故事 setup 会让它的 watcher 随第一个故事卸载而失效。 */
 const theme = useColorScheme()
@@ -52,3 +54,8 @@ export const withMemoryRouter: Decorator = (story) => ({
   },
   template: "<story />",
 })
+/** 侧栏展开态存在 localStorage，故事之间会互相污染：每帧先强制展开。 */
+export const withExpandedSidebar: Decorator = (story) => {
+  writePref(LEFT_PANEL_STATE_KEY, "expanded")
+  return story()
+}
