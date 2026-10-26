@@ -76,3 +76,21 @@
 .rounded-full {
   border-radius: var(--radius-full);
 }
+
+/* ------ 破坏性动作：rt 没有 destructive 变体，用项目语义 token 上色 ------ */
+.rt-BaseMenuItem[data-variant="destructive"] {
+  color: var(--destructive);
+}
+
+.rt-BaseMenuItem[data-variant="destructive"] svg {
+  color: currentcolor;
+}
+
+.btn-destructive {
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+.btn-destructive:hover {
+  background-color: color-mix(in srgb, var(--destructive) 88%, black);
+}

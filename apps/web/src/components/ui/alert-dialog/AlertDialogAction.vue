@@ -2,8 +2,7 @@
   <AlertDialogAction
     data-slot="alert-dialog-action"
     v-bind="forwardedProps"
-    :data-accent-color="variant === 'destructive' ? 'red' : undefined"
-    :class="[rtButtonClass('solid'), props.class]"
+    :class="[rtButtonClass('solid'), variant === 'destructive' && 'btn-destructive', props.class]"
   >
     <slot />
   </AlertDialogAction>
