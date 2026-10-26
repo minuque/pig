@@ -329,7 +329,11 @@ const meta = {
     template: `
       <AppLayout>
         <template #sidebar="{ onNavigate }">
-          <SidebarView v-bind="sidebar" @navigate="onNavigate()" />
+          <SidebarView
+            v-bind="sidebar"
+            @navigate="onNavigate()"
+            @settings="settingsOpen = true"
+          />
         </template>
 
         <WorkbenchChrome
