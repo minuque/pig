@@ -34,11 +34,12 @@
         </div>
 
         <div v-if="activeTab === 'icon'" class="icon-pane">
-          <input
+          <TextFieldRoot
             v-model="iconQuery"
             class="icon-search"
-            type="text"
+            size="1"
             :placeholder="t('session.searchIcon')"
+            :aria-label="t('session.searchIcon')"
           />
 
           <div class="icon-grid">
@@ -105,6 +106,7 @@
 import { computed, reactive, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import { readJson, writeJson } from "@utils/storage.js"
 import { isAccentId } from "@features/theme/lib/accents.js"
 import { FolderIcon } from "@components/icons/index.js"
@@ -335,19 +337,7 @@ function save() {
 }
 
 .icon-search {
-  height: var(--size-nav-rail);
-  padding: 0 var(--space-xs);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: var(--interaction-hover);
-  color: var(--contrast-foreground);
-  font-size: var(--text-caption);
-  outline: none;
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-
-.icon-search:focus {
-  box-shadow: inset 0 0 0 1px var(--primary);
+  inline-size: 100%;
 }
 
 .icon-grid,

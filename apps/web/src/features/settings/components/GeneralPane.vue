@@ -64,19 +64,16 @@
             <p class="hint">{{ t("settings.languageHint") }}</p>
           </div>
 
-          <div class="segment" role="radiogroup" :aria-label="t('settings.language')">
-            <button
-              v-for="option in locales"
-              :key="option.id"
-              type="button"
-              class="segment-btn"
-              role="radio"
-              :aria-checked="locale === option.id"
-              @click="setLocale(option.id)"
-            >
+          <SegmentedControl
+            :model-value="locale"
+            size="1"
+            :aria-label="t('settings.language')"
+            @update:model-value="onLocale"
+          >
+            <SegmentedControlItem v-for="option in locales" :key="option.id" :value="option.id">
               {{ option.label }}
-            </button>
-          </div>
+            </SegmentedControlItem>
+          </SegmentedControl>
         </div>
 
         <div class="row">
@@ -85,20 +82,21 @@
             <p class="hint">{{ t("settings.fontSizeHint") }}</p>
           </div>
 
-          <div class="segment" role="radiogroup" :aria-label="t('settings.fontSize')">
-            <button
+          <SegmentedControl
+            :model-value="fontSize"
+            size="1"
+            :aria-label="t('settings.fontSize')"
+            @update:model-value="onFontSize"
+          >
+            <SegmentedControlItem
               v-for="option in sizes"
               :key="option.id"
-              type="button"
-              class="segment-btn size-btn"
-              role="radio"
+              :value="option.id"
               :aria-label="option.label"
-              :aria-checked="fontSize === option.id"
-              @click="setFontSize(option.id)"
             >
               {{ option.mark }}
-            </button>
-          </div>
+            </SegmentedControlItem>
+          </SegmentedControl>
         </div>
 
         <div class="row">
@@ -202,6 +200,7 @@ import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/setting
 import { useColorScheme } from "@features/theme/index.js"
 import { ACCENTS, DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
 import { accentHex } from "@features/theme/lib/palette.js"
+import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { Slider } from "@components/ui/slider/index.js"
 import { CheckIcon } from "@components/icons/index.js"
@@ -247,6 +246,16 @@ const schemes: { id: ColorScheme; label: string }[] = [
   { id: "light", label: t("settings.schemeLight") },
   { id: "dark", label: t("settings.schemeDark") },
 ]
+
+/** 分段控件只给字符串，转回各自的联合类型 */
+function onLocale(value: string) {
+  setLocale(value as UiLocale)
+}
+
+function onFontSize(value: string) {
+  setFontSize(value as FontSize)
+}
+
 const locales: { id: UiLocale; label: string }[] = [
   { id: "en", label: "English" },
   { id: "zh-CN", label: t("settings.zhCN") },
@@ -513,49 +522,6 @@ async function onNotify(next: boolean) {
   width: var(--size-icon-2xs);
   height: var(--size-icon-2xs);
   color: var(--accent-contrast, var(--white));
-}
-
-.segment {
-  display: inline-flex;
-  flex: none;
-  gap: var(--space-xxs);
-  padding: var(--space-xxs);
-  border-radius: var(--radius-lg);
-  background: var(--card);
-}
-
-.segment-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xxs);
-  min-height: var(--size-icon-button);
-  padding: var(--space-xxs) var(--space-sm);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-caption--line-height);
-  white-space: nowrap;
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.segment-btn:hover {
-  color: var(--contrast-foreground);
-}
-
-.segment-btn[aria-checked="true"] {
-  background: var(--interaction-selected);
-  color: var(--contrast-foreground);
-}
-
-.size-btn {
-  justify-content: center;
-  min-width: var(--size-icon-button);
-  padding-inline: var(--space-xs);
 }
 
 .opacity-control {
