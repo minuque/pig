@@ -15,7 +15,7 @@ pnpm workspace：
 ```
 apps/web/src/
 ├── App.vue         # 组合根
-├── style/          # 全局样式
+├── style/          # 全局样式：app.css 定 token，components.css 汇总组件层
 ├── client/         # 网络、凭证、传输、本地目录偏好
 ├── components/
 │   ├── layout/     # 壳层
@@ -28,6 +28,8 @@ apps/web/src/
 `App.vue`：`usePiClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再把 `connect` / `initialize` 交给启动门。子树只用 `useSession()` / `useNav()`，不写创建/发送/重命名等领域规则。
 
 `apps/web/test/` 镜像 `src/` 分层。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
+
+`style/components/`：基础件的样式按域分文件，由 `style/components.css` 汇总引入。布局原子类的类名与 shadcn/ui 文档里的写法一致（`flex`、`items-center`、`justify-between`、`overflow-hidden`、`truncate`、`w-full`），值只读 `app.css` 的 token。间距按 `--space-*` 命名（`gap-sm`、`p-md`），不用数字刻度：项目已经把间距收进 `--space-*` 命名空间，再引入一套数字换算就是两套刻度并行。新增原子类前先确认名字没有被任何 scoped 块当作业务类名用过。
 
 `types/`：被两条及以上路径依赖的类型，按业务写成 `xxx-type.ts`，消费写 `@/types/xxx-type.js`。三方依赖类型（如 `@earendil-works/*`）放 `types/common-type.ts` 再导出，消费写 `@/types/common-type.js`；运行时值仍从原包引入。模块或组件目录内多文件共用的类型放该目录 `type.ts`。只被一个文件使用的类型留在该文件。
 

@@ -3,6 +3,7 @@
 @import "markstream-vue/index.css" layer(components);
 @import "./markdown-stream.css";
 @import "./mermaid.css";
+@import "./components.css";
 
 /* ------ @property 注册 ------ */
 @property --left-width {
