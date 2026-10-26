@@ -17,8 +17,8 @@
 
     <div
       class="conversation-column"
-      :class="{ 'is-content-resizing': resizing }"
-      :style="{ '--composer-reserve': reserve }"
+      :class="{ 'is-content-resizing': resizing || dragging }"
+      :style="columnStyle"
     >
       <slot v-if="error" name="error" />
 
@@ -67,7 +67,7 @@ import { leftPanelKey } from "@components/layout/hooks/use-left-panel.js"
 import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
 import { DocumentAddIcon } from "@components/icons/index.js"
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /** 拖拽态：显示拖拽引导层。 */
     dropActive?: boolean
@@ -76,14 +76,24 @@ withDefaults(
     /** 启动错误：正文区换成错误条，输入条与 Hero 都不出。 */
     error?: boolean
     showHandles?: boolean
+    /** 内容宽：写到 .conversation-column 的 --chat-user-width。 */
+    contentWidth?: number
+    /** 拖拽中：列上挂 is-content-resizing。 */
+    resizing?: boolean
     /** 「回到底部」浮钮显隐，真实信号来自 TranscriptView。 */
     scrollShown?: boolean
-    /** 当前列宽，交给真实把手做拖拽基准。 */
+    /** 当前内容宽，交给真实把手做拖拽基准。 */
     measure: () => number
   }>(),
-  { dropActive: false, idle: false, error: false, showHandles: false, scrollShown: false },
+  {
+    dropActive: false,
+    idle: false,
+    error: false,
+    showHandles: false,
+    resizing: false,
+    scrollShown: false,
+  },
 )
-
 const emit = defineEmits<{
   start: []
   drag: [width: number]
@@ -106,7 +116,15 @@ defineExpose({ toggleSidebar })
 
 const bar = useTemplateRef<HTMLElement>("bar")
 const reserve = ref("7rem")
-const resizing = ref(false)
+/** 把手内部的拖拽态：故事没接 start / end 时也要冻住列。 */
+const dragging = ref(false)
+/** 宽度与输入条留白都写到列上，样式规则不变。 */
+const columnStyle = computed(() => {
+  const style: Record<string, string> = { "--composer-reserve": reserve.value }
+
+  if (props.contentWidth !== undefined) style["--chat-user-width"] = `${props.contentWidth}px`
+  return style
+})
 
 // 输入条脱离文档流后，把边框盒高度写给列；正文与 Hero 都靠它留白
 useResizeObserver(
@@ -120,12 +138,12 @@ useResizeObserver(
 )
 
 function beginResize(): void {
-  resizing.value = true
+  dragging.value = true
   emit("start")
 }
 
 function endResize(): void {
-  resizing.value = false
+  dragging.value = false
   emit("end")
 }
 

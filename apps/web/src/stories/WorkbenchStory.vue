@@ -36,12 +36,19 @@
 
     <WorkbenchChrome
       ref="chrome"
+      :content-width="contentWidth"
+      :resizing="resizing"
       :drop-active="dropActive || dragOver"
       :idle="idle"
       :error="pageError"
       :show-handles="showHandles"
       :scroll-shown="scrollShown"
-      :measure="measureContent"
+      :measure="sizing.measure"
+      @start="sizing.start()"
+      @drag="sizing.preview"
+      @commit="sizing.commit"
+      @end="sizing.end()"
+      @nudge="sizing.nudge"
     >
       <template #header="{ sidebarExpanded, sidebarOpen, toggleSidebar }">
         <WorkbenchHeaderView
@@ -116,13 +123,14 @@
           :catalog="COMPOSER_CATALOG"
           :attachments="attachments"
           :running="running"
+          :content-resizing="resizing"
           :usage="usage"
           :cwd="SETTINGS_CWD"
           :queue="queue"
           :hero="idle"
-          @send="onSend"
-          @queue="onQueue"
-          @abort="onAbort"
+          @send="live.send"
+          @queue="live.enqueue"
+          @abort="live.abort"
         />
       </template>
     </WorkbenchChrome>
@@ -171,6 +179,7 @@ import {
   createComposerAttachments,
   createComposerQueue,
 } from "@/stories/fixtures/composer.js"
+import { createLiveTurn } from "@/stories/fixtures/live-turn.js"
 import {
   SIDEBAR_PINNED_IDS,
   SIDEBAR_SESSIONS,
@@ -186,6 +195,7 @@ import {
   STARTUP_DETAIL,
   TOAST_MESSAGE,
   addedWorkspaceMessage,
+  createContentWidth,
   draftSession,
   earlierPage,
   mergeTranscript,
@@ -349,12 +359,11 @@ const earlier = shallowRef<EarlierPage[]>([])
 const olderLoading = ref(false)
 const olderLeft = ref(MAX_EARLIER_PAGES)
 let olderTimer = 0
-let sendTimer = 0
 const hasMore = computed(
   () => props.transcriptLoadingOlder || (props.transcriptSample === "long" && olderLeft.value > 0),
 )
 const loadingOlder = computed(() => props.transcriptLoadingOlder || olderLoading.value)
-const transcript = computed(() => mergeTranscript(sample.value, earlier.value))
+const transcript = computed(() => mergeTranscript(sample.value, earlier.value, live.items.value))
 
 function loadOlder(): void {
   if (!hasMore.value || loadingOlder.value) return
@@ -372,15 +381,18 @@ watch(
     earlier.value = []
     olderLeft.value = MAX_EARLIER_PAGES
     olderLoading.value = false
+    live.reset()
   },
 )
 
 /** 输入卡状态全在本地：故事不发请求，send / queue / abort 只改这几处。 */
 const prompt = ref("")
 const preset = ref<ComposerPreset | undefined>(defaultPresetFrom(COMPOSER_CATALOG))
-const running = ref(props.composerRunning)
 const attachments = createComposerAttachments()
 const queue = createComposerQueue()
+/** 发送侧全在本地：清空输入、结算附件、跑一轮模拟回复，运行中再来的消息入队。 */
+const live = createLiveTurn({ prompt, attachments, queue })
+const running = live.running
 const usage = computed(() => (props.composerUsage ? COMPOSER_USAGE : undefined))
 const idle = computed(() => props.sessionState === "idle")
 /** Hero 手选目录：真实页面来自 side nav，故事里只留本地值。 */
@@ -431,25 +443,6 @@ useEventListener(
   { capture: true },
 )
 
-function onSend(): void {
-  prompt.value = ""
-  const batch = attachments.consumeForSend()
-
-  if (!batch) return
-  // 发送即上传：进度走到满后落地清空，不发请求
-  batch.files.forEach((item) => batch.reportProgress?.(item.id, 100))
-  sendTimer = window.setTimeout(() => attachments.settle(batch), 400)
-}
-
-function onQueue(text: string): void {
-  queue.enqueue(text)
-  prompt.value = ""
-}
-
-function onAbort(): void {
-  running.value = false
-}
-
 const settingsOpen = ref(props.settingsOpen)
 
 watch(
@@ -468,7 +461,7 @@ watch(() => props.toast, syncToast, { immediate: true })
 
 onBeforeUnmount(() => {
   window.clearTimeout(olderTimer)
-  window.clearTimeout(sendTimer)
+  live.reset()
   syncToast(false)
 })
 
@@ -476,15 +469,21 @@ onBeforeUnmount(() => {
 const scrollShown = computed(
   () => props.scrollToLatestVisible || (transcriptView.value?.showScrollToLatest ?? false),
 )
+/** 列宽：拖动中预览、松手落定、键盘 ±16，夹紧规则与真实 hook 一致。 */
+const sizing = createContentWidth(columnWidth)
+const contentWidth = sizing.width
+const resizing = sizing.resizing
 
-/** 列宽基准：把手只读宽度，拖拽结果与宽度偏好都不落到故事里。 */
-function measureContent(): number {
+/** 夹紧上限看列宽：列本身不被 --chat-user-width 改宽度。 */
+function columnWidth(): number {
   const root = chrome.value?.$el
   const column = root instanceof HTMLElement ? root.querySelector(".conversation-column") : null
   return column instanceof HTMLElement ? column.clientWidth : 0
 }
 
-const phase = computed(() => (props.transcriptSample === "streaming" ? "turn" : "idle"))
+const phase = computed(() =>
+  props.transcriptSample === "streaming" || live.running.value ? "turn" : "idle",
+)
 const showHandles = computed(() => props.showContentHandles && !props.pageError && !idle.value)
 const scrollLabel = t("transcript.scrollToBottom")
 </script>

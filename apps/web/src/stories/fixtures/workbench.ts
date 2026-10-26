@@ -1,3 +1,5 @@
+import { ref } from "vue"
+
 import type { SessionMetadata, TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { workspaceName } from "@features/session-nav/index.js"
@@ -127,6 +129,35 @@ export function nextWorkspacePath(index: number): string {
   return `G:\\AICode\\story-workspace-${index}`
 }
 
+/** 列宽夹紧与真实 hook 一致：最小 640，上限为列宽减两侧留白。 */
+const CONTENT_WIDTH_DEFAULT = 680
+const CONTENT_WIDTH_MIN = 640
+const CONTENT_EDGE_BUDGET = 176
+
+/** column 传列宽，拖拽预览与键盘微调都走这里。 */
+function clampContentWidth(width: number, column: number): number {
+  const max = Math.max(CONTENT_WIDTH_MIN, column - CONTENT_EDGE_BUDGET)
+  return Math.min(Math.max(width, CONTENT_WIDTH_MIN), max)
+}
+
+/** 列宽本地状态：拖动中预览、松手落定、键盘 ±16，夹紧规则与真实 hook 一致。 */
+export function createContentWidth(column: () => number) {
+  const width = ref(CONTENT_WIDTH_DEFAULT)
+  const resizing = ref(false)
+  const clamp = (value: number) => clampContentWidth(value, column())
+  return {
+    width,
+    resizing,
+    /** 把手拿当前内容宽做拖拽基准。 */
+    measure: () => width.value,
+    preview: (value: number) => (width.value = clamp(value)),
+    commit: (value: number) => (width.value = clamp(value)),
+    nudge: (delta: number) => (width.value = clamp(width.value + delta)),
+    start: () => (resizing.value = true),
+    end: () => (resizing.value = false),
+  }
+}
+
 /** 更早的一页：正文与轮次时间一起拼，滚动锚点才不跳。 */
 export type EarlierPage = { items: TranscriptItem[]; timings: TurnTiming[] }
 
@@ -145,8 +176,12 @@ export function earlierPage(index: number): EarlierPage {
   return { items, timings: transcriptTimings(items) }
 }
 
-/** 更早分页拼到样本前面，轮次时间一起拼：滚动锚点才不跳。 */
-export function mergeTranscript(sample: TranscriptSample, earlier: readonly EarlierPage[]) {
+/** 更早分页拼到样本前面，本地追加的消息接在末尾，轮次时间一起拼。 */
+export function mergeTranscript(
+  sample: TranscriptSample,
+  earlier: readonly EarlierPage[],
+  appended: readonly TranscriptItem[] = [],
+) {
   const { sessionId, transcript: items, timings = [], running } = sample
   // 样本时间基准固定，运行中那一轮对齐到当下，否则计时器算出天文数字
   const start = Date.now() - 12_000
@@ -155,8 +190,8 @@ export function mergeTranscript(sample: TranscriptSample, earlier: readonly Earl
   )
   return {
     sessionId,
-    transcript: [...earlier.flatMap((page) => page.items), ...items],
-    timings: [...earlier.flatMap((page) => page.timings), ...live],
+    transcript: [...earlier.flatMap((page) => page.items), ...items, ...appended],
+    timings: [...earlier.flatMap((page) => page.timings), ...live, ...transcriptTimings(appended)],
     running,
   }
 }
