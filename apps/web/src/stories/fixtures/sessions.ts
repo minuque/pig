@@ -287,7 +287,7 @@ export function toolStepsTranscript(
 }
 
 export const TOOL_STEPS_TRANSCRIPT = toolStepsTranscript()
-const LIVE_COMMAND = "pnpm --filter @pig/web test:stories"
+const LIVE_COMMAND = "pnpm --filter @pig/web test"
 /** 流式进行中：最后一条助手仍在输出，倒数第二条是运行中的工具卡。 */
 export const STREAMING_TRANSCRIPT: TranscriptItem[] = [
   userItem("把长会话的滚动位置固定在底部。", TRANSCRIPT_EPOCH),

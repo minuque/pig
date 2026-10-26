@@ -1,17 +1,11 @@
 import type { StorybookConfig } from "@storybook/vue3-vite"
 import type { PluginOption } from "vite"
 
-/** devtools 在应用卸载后仍读 activeAppRecord，故事测试会留下 unhandled rejection。 */
+/** devtools 在故事面板里无意义，且应用卸载后仍读 activeAppRecord 会留下 unhandled rejection。 */
 const DEVTOOLS_PLUGIN = "vite-plugin-vue-devtools"
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
-  addons: [
-    "@chromatic-com/storybook",
-    "@storybook/addon-vitest",
-    "@storybook/addon-a11y",
-    "@storybook/addon-docs",
-    "@storybook/addon-onboarding",
-  ],
+  addons: ["@storybook/addon-docs"],
   framework: "@storybook/vue3-vite",
   viteFinal(viteConfig) {
     const plugins = (viteConfig.plugins ?? []).flat() as PluginOption[]

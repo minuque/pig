@@ -18,6 +18,7 @@
 
 - 目录或领域边界：[`docs/directory-structure.md`](docs/directory-structure.md)
 - 单测只覆盖数据路径（编排与状态转换）；整页浏览器旅程写在 `e2e/`。
+- 故事（`*.stories.ts`）只用于手看设计与文档，不参与自动化；回归由 e2e 覆盖。
 
 ## worktree
 
@@ -33,5 +34,5 @@
 - 像素基线只在 Windows 比对（`-chromium-win32`）；mac/linux 重写的基线不要提交。
 - 主进程改动跑 `pnpm test:electron`；看画面用 `pnpm dev:desktop`（默认 CDP 9999，`PIG_CDP=0` 关）。
 - 耗时、滚动、流式改动跑 `pnpm test:bench`。
-- 其余自动跑，不用记：UI 改动带映射的 e2e（`--no-e2e` 可关）、改 `components/ui` 或故事带 `test:stories`、平台差异由 CI 覆盖。
+- 其余自动跑，不用记：UI 改动带映射的 e2e（`--no-e2e` 可关）、平台差异由 CI 覆盖。
 - 清临时窗口按 PID 或 `user-data-dir`，不要匹配命令行 `--dev`。

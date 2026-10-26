@@ -97,16 +97,6 @@ describe("classifyTouched", () => {
     assert.equal(classifyTouched(["packages/gateway/src/cli.ts"]).ui, false)
   })
 
-  it("只改基础组件、故事或 storybook 配置才跑浏览器检查", () => {
-    assert.equal(classifyTouched(["apps/web/src/components/ui/button/Button.vue"]).stories, true)
-    assert.equal(
-      classifyTouched(["apps/web/src/components/ui/button/Button.stories.ts"]).stories,
-      true,
-    )
-    assert.equal(classifyTouched(["apps/web/.storybook/preview.ts"]).stories, true)
-    assert.equal(classifyTouched(["apps/web/src/features/composer/index.vue"]).stories, false)
-  })
-
   it("DESIGN.md 触发 designmd 与 token", () => {
     const scope = classifyTouched(["DESIGN.md"])
     assert.equal(scope.designmd, true)

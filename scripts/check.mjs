@@ -12,8 +12,6 @@ const fix = process.argv.includes("--fix")
 /** --e2e：强制跑映射到的 e2e；--no-e2e：即使改了 UI 也不跑（赶时间时用）。 */
 const withE2e = process.argv.includes("--e2e")
 const noE2e = process.argv.includes("--no-e2e")
-/** --no-stories：跳过浏览器渲染检查；CI 里只在 ubuntu 单独跑一次。 */
-const noStories = process.argv.includes("--no-stories")
 /* DESIGN.md 缺失时（token 稳定前）跳过 designmd lint 与 token 校验，重新生成后自动恢复。 */
 const hasDesignMd = existsSync(resolve(root, "DESIGN.md"))
 /* lint-staged 里 prettier 不带 --cache 会删默认缓存文件，多组并发会撞 ENOENT；check 用独立文件。 */
@@ -37,7 +35,6 @@ const CHECK_STEPS = [
     : []),
   { name: "typecheck", args: ["typecheck"] },
   { name: "test", args: ["test"] },
-  { name: "stories", args: ["test:stories"] },
 ]
 
 function reportDesignMdSkip() {
@@ -69,10 +66,8 @@ function existingTouched() {
 async function runAll() {
   reportDesignMdSkip()
 
-  if (noStories) console.log("跳过: stories（--no-stories）")
-
   const results = await Promise.all(
-    CHECK_STEPS.filter((step) => !noStories || step.name !== "stories").map(async (step) => {
+    CHECK_STEPS.map(async (step) => {
       const ran = await runPnpm(step.args, root)
       return { name: step.name, ...ran }
     }),
@@ -189,8 +184,6 @@ async function checkTouched(scope, files) {
     steps.push({ name: `typecheck:${id}`, args: ["--filter", id, "typecheck"] })
     steps.push({ name: `test:${id}`, args: ["--filter", id, "test"] })
   }
-
-  if (scope.stories) steps.push({ name: "test:stories", args: ["test:stories"] })
 
   if (scope.specs.length) {
     if ((withE2e || scope.ui) && !noE2e)
