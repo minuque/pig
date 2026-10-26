@@ -124,9 +124,6 @@ const meta = {
         workbench: { name: "整页 1280×800", styles: { width: "1280px", height: "800px" } },
       },
     },
-    // ModelPicker 的模型触发器两处既有缺陷（aria-label 少了「 · 」分隔、暗色强度标签对比度 2.86），
-    // 整页故事不绕开业务组件，只把它的子树从 axe 检视里排除；修根因在 ModelPicker。
-    a11y: { context: { exclude: [".selector"] } },
   },
   argTypes: {
     sidebarGrouping: { control: "select", options: ["date", "cwd"] },

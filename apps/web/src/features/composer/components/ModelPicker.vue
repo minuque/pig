@@ -20,7 +20,11 @@
             <span class="selector-stack">
               <span class="selector-labels" :class="{ 'is-covered': open }">
                 <span class="selector-name">{{ label }}</span>
-                <span v-if="effortLabel" class="selector-effort">{{ effortLabel }}</span>
+
+                <span v-if="effortLabel" class="selector-effort">
+                  <span class="selector-effort-sep">·</span>
+                  {{ effortLabel }}
+                </span>
               </span>
 
               <span v-if="open" class="selector-placeholder">选择模型与强度</span>
@@ -430,12 +434,15 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .selector-effort {
+  display: inline-flex;
+  align-items: center;
   flex: none;
-  color: var(--primary);
+  /* accent-9（--primary）是填充色，文字用强调文字色：暗色卡面上前者只有 2.86:1 */
+  color: var(--link);
 }
 
-.selector-effort::before {
-  content: "·";
+/* 分隔符写成真实文本，才计入可访问名与可见文本的一致性；样式仍是弱化色。 */
+.selector-effort-sep {
   margin-inline: var(--space-xxs);
   color: var(--contrast-foreground-muted);
 }
