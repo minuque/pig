@@ -14,6 +14,8 @@
     "dev:desktop": "pnpm --filter @pig/desktop dev",
     "build": "pnpm --filter @pig/gateway build",
     "build:web": "pnpm --filter @pig/web build",
+    "storybook": "pnpm --filter @pig/web storybook",
+    "build:storybook": "pnpm --filter @pig/web build-storybook",
     "start:web": "pnpm build:web && tsx packages/gateway/src/cli.ts apps/web/dist",
     "start:desktop": "pnpm build:web && pnpm --filter @pig/desktop start",
     "dist:win": "node scripts/dist-win.mjs",
