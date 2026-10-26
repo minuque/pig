@@ -1,6 +1,4 @@
-import type { Decorator, Meta, StoryObj } from "@storybook/vue3-vite"
-import { getCurrentInstance } from "vue"
-import { createMemoryHistory, createRouter } from "vue-router"
+import type { Meta, StoryObj } from "@storybook/vue3-vite"
 
 import type { SessionMetadata } from "@/types/common-type.js"
 import SidebarView from "@features/session-nav/components/SidebarView.vue"
@@ -12,7 +10,7 @@ import type {
   SidebarSection,
   SidebarSort,
 } from "@features/session-nav/type.js"
-import { withDarkTheme, withSidebarFrame } from "@/stories/decorators.js"
+import { withDarkTheme, withMemoryRouter, withSidebarFrame } from "@/stories/decorators.js"
 import {
   SIDEBAR_DATE_SECTIONS,
   SIDEBAR_NOW,
@@ -75,26 +73,11 @@ const BASE_ARGS = {
   expandedSections: expandedKeys(SIDEBAR_DATE_SECTIONS),
   expandedByGroup: {},
 }
-/** SessionItem 用 RouterLink 出卡片链接，故事里补一个内存路由。 */
-const router = createRouter({
-  history: createMemoryHistory(),
-  routes: [
-    { path: "/", name: "home", component: { render: () => null } },
-    { path: "/session/:sessionId", name: "session", component: { render: () => null } },
-  ],
-})
-const withRouter: Decorator = (story) => ({
-  components: { story },
-  setup: () => {
-    getCurrentInstance()?.appContext.app.use(router)
-  },
-  template: "<story />",
-})
 const meta = {
   title: "Features/SessionNav/SidebarView",
   component: SidebarView,
   tags: ["autodocs"],
-  decorators: [withSidebarFrame, withRouter],
+  decorators: [withSidebarFrame, withMemoryRouter],
   parameters: { layout: "centered" },
   argTypes: {
     groups: { control: false },

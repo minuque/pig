@@ -1,4 +1,7 @@
 import type { Decorator } from "@storybook/vue3-vite"
+import { getCurrentInstance } from "vue"
+import { createMemoryHistory, createRouter } from "vue-router"
+
 import type { ColorScheme } from "@/types/theme-type.js"
 import { useColorScheme } from "@features/theme/index.js"
 
@@ -36,6 +39,21 @@ export const withColorScheme: Decorator = (_story, context) => {
     template: "<story />",
   }
 }
+/** SessionItem 用 RouterLink 出卡片链接，故事里补一个内存路由。 */
+const memoryRouter = createRouter({
+  history: createMemoryHistory(),
+  routes: [
+    { path: "/", name: "home", component: { render: () => null } },
+    { path: "/session/:sessionId", name: "session", component: { render: () => null } },
+  ],
+})
+export const withMemoryRouter: Decorator = (story) => ({
+  components: { story },
+  setup: () => {
+    getCurrentInstance()?.appContext.app.use(memoryRouter)
+  },
+  template: "<story />",
+})
 
 function frameOf(frameWidth: number): Decorator {
   return (story, context) =>
