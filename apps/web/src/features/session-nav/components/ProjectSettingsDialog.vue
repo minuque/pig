@@ -446,7 +446,7 @@ function save() {
 }
 
 .btn.primary:hover {
-  background: var(--primary-hover);
+  background: var(--primary-active);
 }
 
 .btn.auto {

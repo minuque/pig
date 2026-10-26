@@ -339,6 +339,11 @@
     "anthropic-mono", ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei",
     monospace;
 
+  /* Tailwind 的默认字号刻度随依赖一起删掉了，这里补回本项目引用的三档 */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+
   --text-heading-2: 26px;
   --text-heading-2--line-height: 1.23;
   --text-heading-2--letter-spacing: -0.4px;
@@ -675,9 +680,9 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
 }
 
 /* ------ 组件杂项 ------ */
-/* --effort-mix 写在滑条上，fill 必须在同一元素上算，不能在 :root 算死 */
+/* fill 必须在滑条同一元素上算，不能在 :root 算死 */
 .effort-bar {
-  --effort-fill: color-mix(in srgb, var(--primary) var(--effort-mix, 40%), var(--white));
+  --effort-fill: color-mix(in srgb, var(--primary) 40%, var(--white));
 }
 
 /* ------ accent 覆盖：html[data-accent] 上的 --accent-* 已经覆盖默认 ------ */
