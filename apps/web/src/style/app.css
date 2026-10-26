@@ -96,7 +96,8 @@
   --foreground-secondary: #5c5c5c;
   --foreground-muted: #6e6e6e;
   --muted-foreground: var(--contrast-foreground-muted);
-  /* 对 #ffffff 4.54:1，过 AA；仍浅于 --foreground-muted */
+  /* 最淡一档：只用于白卡片底（对 #ffffff 4.54:1）。对 #f4f4f5 仅 4.13:1、#f7f7f8 仅 4.24:1，不达标 */
+  /* 弹层与浅灰底上的字色改用 --contrast-foreground-muted */
   --foreground-faint: #767676;
   /* 占位文字比最淡一档正文再退一档 */
   --placeholder: color-mix(in srgb, var(--contrast-foreground-faint) 62%, transparent);
