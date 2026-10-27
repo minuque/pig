@@ -31,7 +31,7 @@ import { computed, inject } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { RadioGroupItem, useForwardProps } from "reka-ui"
 import { sizeClass as rtSizeClass } from "@components/ui/rt/size.js"
-import { RADIO_GROUP_KEY } from "./context.js"
+import { RADIO_GROUP_KEY } from "./type.js"
 
 const props = withDefaults(
   defineProps<RadioGroupItemProps & { class?: HTMLAttributes["class"] }>(),

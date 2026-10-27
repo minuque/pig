@@ -23,7 +23,7 @@ import { computed, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import { usePopperAnchor } from "@components/ui/popper-anchor.js"
+import { usePopperAnchor } from "./popper-anchor.js"
 
 defineOptions({
   inheritAttrs: false,

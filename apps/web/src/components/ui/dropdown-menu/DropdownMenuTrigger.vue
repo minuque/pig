@@ -9,7 +9,7 @@ import type { DropdownMenuTriggerProps } from "reka-ui"
 import type { ComputedRef } from "vue"
 import { DropdownMenuTrigger, useForwardExpose, useForwardProps } from "reka-ui"
 import { watchPostEffect } from "vue"
-import { usePopperAnchor } from "@components/ui/popper-anchor.js"
+import { usePopperAnchor } from "./popper-anchor.js"
 
 const props = defineProps<DropdownMenuTriggerProps>()
 // reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
