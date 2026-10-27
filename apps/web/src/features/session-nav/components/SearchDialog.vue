@@ -1,6 +1,11 @@
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="search-dialog" :show-close-button="false" @open-auto-focus="onOpenFocus">
+    <DialogContent
+      class="search-dialog"
+      align="start"
+      :show-close-button="false"
+      @open-auto-focus="onOpenFocus"
+    >
       <DialogTitle class="sr-only">{{ t("nav.search") }}</DialogTitle>
 
       <label class="search-bar">
@@ -151,15 +156,15 @@ function activate(index: number) {
 
 <style>
 /* 不写 scoped：DialogContent 经 Portal 到 body，scoped attribute 打不中。
-   覆盖全局 translate(-50%,-50%) 的 Y 位移：只水平居中，顶边锚到 1/6 视口高度。 */
+   rt 的面板靠 flex + margin:auto 对中，位置只能用 margin 改；
+   写 transform/top 会从居中位置再偏移，水平会被推到一边。 */
 .search-dialog {
   gap: 0;
   width: min(560px, calc(100vw - var(--space-lg) * 2));
   max-width: 560px;
   max-height: min(70dvh, 640px);
   padding: 0;
-  top: 16dvh;
-  transform: translateX(-50%);
+  margin-block: 16dvh auto;
 }
 
 /* 顶部搜索条：与列表用 hairline 分隔，不画外框。 */

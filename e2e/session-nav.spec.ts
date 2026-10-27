@@ -61,6 +61,13 @@ test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => 
   const dialog = page.locator(".search-dialog")
   await expect(dialog).toBeVisible()
 
+  // 回归：rt 面板靠 flex + margin:auto 对中，写 transform 位移会把它推离正中
+  const box = await dialog.boundingBox()
+  const viewport = page.viewportSize()
+  expect(box).not.toBeNull()
+  expect(viewport).not.toBeNull()
+  expect(Math.abs(box!.x + box!.width / 2 - viewport!.width / 2)).toBeLessThanOrEqual(1)
+
   const input = dialog.locator(".search-input")
   await input.fill("批量会话 3")
   await expect(dialog.locator(".search-row")).toHaveCount(1)
