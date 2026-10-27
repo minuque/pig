@@ -46,33 +46,40 @@ export function nodeExecutable(env: NodeJS.ProcessEnv = process.env): string {
   return node
 }
 
-export function pnpmExecutable(env: NodeJS.ProcessEnv = process.env): string {
-  const pnpm = env.npm_execpath
+/** pnpm 12 起 npm_execpath 指向可执行文件（pnpm-native.exe），11 及以前是 JS 入口，要经 node 启动。 */
+export function pnpmCommand(
+  args: string[],
+  env: NodeJS.ProcessEnv = process.env,
+): { command: string; args: string[] } {
+  const exec = env.npm_execpath
 
-  if (!pnpm) throw new Error("未找到 pnpm 可执行文件（缺少 npm_execpath）")
-  return pnpm
+  if (!exec) throw new Error("未找到 pnpm 可执行文件（缺少 npm_execpath）")
+
+  if (/\.[cm]?js$/.test(exec)) return { command: nodeExecutable(env), args: [exec, ...args] }
+  return { command: exec, args }
 }
 
 export function spawnVite(env: { GATEWAY_TARGET: string; GATEWAY_TOKEN: string }): ChildProcess {
-  const node = nodeExecutable()
-  const pnpm = pnpmExecutable()
+  const runner = pnpmCommand([
+    "--filter",
+    "@pig/web",
+    "dev",
+    "--port",
+    String(viteDevPort()),
+    "--strictPort",
+  ])
   const childEnv: NodeJS.ProcessEnv = { ...process.env }
   childEnv.GATEWAY_TARGET = env.GATEWAY_TARGET
   childEnv.GATEWAY_TOKEN = env.GATEWAY_TOKEN
 
   const windows = process.platform === "win32"
-  const port = viteDevPort()
-  const child = spawn(
-    node,
-    [pnpm, "--filter", "@pig/web", "dev", "--port", String(port), "--strictPort"],
-    {
-      cwd: REPO_ROOT,
-      env: childEnv,
-      stdio: windows ? ["ignore", "pipe", "pipe"] : "inherit",
-      // 非 Windows 用独立进程组，便于整树终止
-      detached: !windows,
-    },
-  )
+  const child = spawn(runner.command, runner.args, {
+    cwd: REPO_ROOT,
+    env: childEnv,
+    stdio: windows ? ["ignore", "pipe", "pipe"] : "inherit",
+    // 非 Windows 用独立进程组，便于整树终止
+    detached: !windows,
+  })
 
   if (windows) attachWindowsConsole(child)
   return child

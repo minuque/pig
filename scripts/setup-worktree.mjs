@@ -11,8 +11,12 @@ const target = resolve(process.argv[2] ?? repoRoot)
 function pnpm(args) {
   const exec = process.env.npm_execpath
 
-  if (!exec) return spawnSync("pnpm", args, { cwd: target, stdio: "inherit", shell: true })
-  return spawnSync(process.execPath, [exec, ...args], { cwd: target, stdio: "inherit" })
+  // pnpm 12 起是可执行文件，11 及以前是 JS 入口，要经 node 启动
+  if (exec && /\.[cm]?js$/.test(exec))
+    return spawnSync(process.execPath, [exec, ...args], { cwd: target, stdio: "inherit" })
+
+  if (exec) return spawnSync(exec, args, { cwd: target, stdio: "inherit" })
+  return spawnSync("pnpm", args, { cwd: target, stdio: "inherit", shell: true })
 }
 
 function step(name, args) {
