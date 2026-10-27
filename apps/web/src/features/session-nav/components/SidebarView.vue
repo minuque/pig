@@ -14,30 +14,12 @@
         <div class="head-actions">
           <button
             class="head-btn"
-            type="button"
-            :title="t('nav.search')"
-            @click="emit('update:searchOpen', true)"
-          >
-            <MagnifierIcon :size="15" />
-          </button>
-
-          <button
-            class="head-btn"
             :class="{ scoped: !!scopeFilter }"
             type="button"
             :title="t('session.allProjects')"
             @click.stop="scopeMenuOpen = !scopeMenuOpen"
           >
             <Tuning2Icon :size="15" />
-          </button>
-
-          <button
-            class="head-btn"
-            type="button"
-            :title="t('session.addGuide')"
-            @click="emit('addProject')"
-          >
-            <AddFolderIcon :size="15" />
           </button>
         </div>
 
@@ -92,7 +74,11 @@
       />
     </div>
 
-    <NavFooter @settings="emit('settings')" />
+    <NavFooter
+      @settings="emit('settings')"
+      @search="emit('update:searchOpen', true)"
+      @add-project="emit('addProject')"
+    />
 
     <ProjectSettingsDialog
       v-if="projectSettingsOpen"
@@ -120,13 +106,7 @@ import type {
   SidebarSection,
   SidebarSort,
 } from "@features/session-nav/type.js"
-import {
-  AddFolderIcon,
-  ArrowUpIcon,
-  ChatRoundAddIcon,
-  MagnifierIcon,
-  Tuning2Icon,
-} from "@components/icons/index.js"
+import { ArrowUpIcon, ChatRoundAddIcon, Tuning2Icon } from "@components/icons/index.js"
 
 defineProps<{
   groups: readonly SessionGroup[]

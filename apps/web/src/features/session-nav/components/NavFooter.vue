@@ -3,16 +3,46 @@
     <Tooltip>
       <TooltipTrigger as-child>
         <button
-          class="footer-settings press-scale"
+          class="footer-btn press-scale"
           type="button"
           :aria-label="t('nav.settings')"
           @click="emit('settings')"
         >
-          <SettingsIcon />
+          <SettingsIcon :size="15" />
         </button>
       </TooltipTrigger>
 
       <TooltipContent>{{ t("nav.settings") }}</TooltipContent>
+    </Tooltip>
+
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <button
+          class="footer-btn press-scale"
+          type="button"
+          :aria-label="t('nav.search')"
+          @click="emit('search')"
+        >
+          <MagnifierIcon :size="15" />
+        </button>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ t("nav.search") }}</TooltipContent>
+    </Tooltip>
+
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <button
+          class="footer-btn press-scale"
+          type="button"
+          :aria-label="t('session.addGuide')"
+          @click="emit('addProject')"
+        >
+          <AddFolderIcon :size="15" />
+        </button>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ t("session.addGuide") }}</TooltipContent>
     </Tooltip>
   </div>
 </template>
@@ -20,10 +50,12 @@
 <script setup lang="ts">
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
-import { SettingsIcon } from "@components/icons/index.js"
+import { AddFolderIcon, MagnifierIcon, SettingsIcon } from "@components/icons/index.js"
 
 const emit = defineEmits<{
   settings: []
+  search: []
+  addProject: []
 }>()
 const { t } = useI18n()
 </script>
@@ -33,11 +65,12 @@ const { t } = useI18n()
   display: flex;
   flex: none;
   align-items: center;
+  gap: var(--space-xxs);
   padding: var(--space-xs) var(--nav-inline, var(--space-xs));
   border-top: var(--border-width) solid var(--border-subtle);
 }
 
-.footer-settings {
+.footer-btn {
   display: grid;
   flex: none;
   place-items: center;
@@ -53,13 +86,13 @@ const { t } = useI18n()
     scale var(--duration-fast) var(--ease-out);
 }
 
-.footer-settings:hover {
+.footer-btn:hover {
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .footer-settings {
+  .footer-btn {
     transition: none;
   }
 }

@@ -16,7 +16,7 @@ test("切深色后 html 挂 dark，状态色跟着换一份", async ({ page, gat
 
   expect(light).toBe("#15803d")
 
-  await page.locator(".footer-settings").click()
+  await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
   await page.locator(".scheme-cards").getByRole("radio", { name: "深色" }).click()
 
   await expect(page.locator("html")).toHaveClass(/dark/)
@@ -29,7 +29,7 @@ test("选 accent 后写入 data-accent-color 并换 --accent-*", async ({ page, 
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
 
-  await page.locator(".footer-settings").click()
+  await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
   await page.locator(".accent-grid [data-accent='teal']").click()
 
   // 色板来自 Radix，--accent-* 由 data-accent-color 映射

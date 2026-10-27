@@ -56,7 +56,7 @@ test("显示更多每次多放一页", async ({ page, navGateway }) => {
 test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 
-  await page.locator(".head-actions").getByRole("button", { name: "搜索" }).click()
+  await page.locator(".nav-footer").getByRole("button", { name: "搜索" }).click()
 
   const dialog = page.locator(".search-dialog")
   await expect(dialog).toBeVisible()
