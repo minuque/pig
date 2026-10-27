@@ -45,17 +45,17 @@
       <template #left>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button
+            <IconButton
               type="button"
-              size="icon"
+              size="1"
               class="attach press-scale"
               :aria-label="t('composer.addAttachment')"
               :disabled="attachmentsFull"
               @mousedown.prevent
               @click="pickFiles"
             >
-              <PaperclipIcon class="size-(--size-icon-2xs)" />
-            </Button>
+              <PaperclipIcon class="attach-icon" />
+            </IconButton>
           </TooltipTrigger>
 
           <TooltipContent>{{ t("composer.addAttachment") }}</TooltipContent>
@@ -92,9 +92,9 @@
       <template #right>
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button
+            <IconButton
               type="button"
-              size="icon"
+              size="1"
               class="send press-scale"
               :class="{ 'send--abort': primaryMode === 'stop' }"
               :aria-label="primaryLabel"
@@ -107,7 +107,7 @@
                 <span class="stop-square" :data-visible="primaryMode === 'stop'"></span>
                 <ArrowUpIcon :data-visible="primaryMode !== 'stop'" class="size-icon send-arrow" />
               </span>
-            </Button>
+            </IconButton>
           </TooltipTrigger>
 
           <TooltipContent>
@@ -134,7 +134,7 @@
 import { computed, defineAsyncComponent, ref, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { Button } from "@components/ui/button/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
 import AttachmentLightbox from "@features/composer/components/AttachmentLightbox.vue"
@@ -490,5 +490,11 @@ function onAbortHotkey(event: KeyboardEvent) {
 .attach:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+/* 回形针比正文图标大一档 */
+.attach-icon {
+  inline-size: var(--size-icon-2xs);
+  block-size: var(--size-icon-2xs);
 }
 </style>

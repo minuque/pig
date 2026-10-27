@@ -37,7 +37,7 @@
             role="status"
             :aria-label="t('transcript.loadEarlier')"
           >
-            <LoaderIcon class="older-spinner animate-spin motion-reduce:animate-none" />
+            <LoaderIcon class="older-spinner is-spinning" />
           </div>
 
           <div class="timeline-rows" :style="{ minHeight: `${totalHeight}px` }">

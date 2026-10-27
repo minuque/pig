@@ -1,35 +1,39 @@
 <template>
   <DialogPortal>
-    <DialogOverlay />
+    <ThemeRoot>
+      <DialogOverlay :align="align" :style="widthStyle">
+        <DialogContent
+          data-slot="dialog-content"
+          v-bind="{ ...$attrs, ...forwarded }"
+          class="rt-BaseDialogContent rt-DialogContent"
+          :class="[sizeClass, props.class]"
+        >
+          <slot />
 
-    <DialogContent
-      data-slot="dialog-content"
-      v-bind="{ ...$attrs, ...forwarded }"
-      class="surface-float text-body-md fixed inset-s-1/2 bottom-0 z-50 grid max-h-[calc(100dvh-3rem)] w-full gap-(--space-md) overflow-hidden rounded-t-(--radius-xl) border border-[color:var(--hairline)] border-b-0 p-(--space-lg) sm:top-[50%] sm:bottom-auto sm:max-w-(--size-modal) sm:rounded-(--radius-xl) sm:border-b"
-      :class="props.class"
-    >
-      <slot />
-
-      <DialogClose
-        v-if="showCloseButton"
-        data-slot="dialog-close"
-        :aria-label="t('common.close')"
-        class="text-foreground-muted hover:bg-accent hover:text-foreground absolute inset-bs-(--space-md) inset-e-(--space-md) flex cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-(--icon-button-pad) transition-[background-color,color] duration-(--duration-fast) ease-(--ease-out) focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--size-icon)"
-      >
-        <CloseIcon />
-      </DialogClose>
-    </DialogContent>
+          <DialogClose
+            v-if="showCloseButton"
+            data-slot="dialog-close"
+            :aria-label="t('common.close')"
+            class="dlg-close"
+          >
+            <CloseIcon />
+          </DialogClose>
+        </DialogContent>
+      </DialogOverlay>
+    </ThemeRoot>
   </DialogPortal>
 </template>
 
 <script setup lang="ts">
 import type { DialogContentEmits, DialogContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
+import { computed } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
-import DialogOverlay from "./DialogOverlay.vue"
+import { ThemeRoot } from "@components/ui/rt/index.js"
 import { CloseIcon } from "@components/icons/index.js"
+import DialogOverlay from "./DialogOverlay.vue"
 
 defineOptions({
   inheritAttrs: false,
@@ -37,15 +41,58 @@ defineOptions({
 
 const props = withDefaults(
   defineProps<
-    DialogContentProps & { class?: HTMLAttributes["class"]; showCloseButton?: boolean }
+    DialogContentProps & {
+      class?: HTMLAttributes["class"]
+      showCloseButton?: boolean
+      /** Radix Themes 的面板宽度档：1 最窄、4 最宽 */
+      size?: "1" | "2" | "3" | "4"
+      /** 面板最大宽度，默认沿用 rt 的 600px；调用方的 scoped 类仍可覆盖 */
+      maxWidth?: string
+      align?: "start" | "center"
+    }
   >(),
   {
     class: undefined,
     showCloseButton: true,
+    size: "3",
+    align: "center",
   },
 )
 const emits = defineEmits<DialogContentEmits>()
 const { t } = useI18n()
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "showCloseButton", "size", "maxWidth", "align")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<DialogContentProps>
+const sizeClass = `rt-r-size-${props.size}`
+const widthStyle = computed(() =>
+  props.maxWidth ? { "--dialog-max-width": props.maxWidth } : undefined,
+)
 </script>
+
+<style scoped>
+/* 关闭按钮：跟着面板右上角，颜色从 token 取 */
+.dlg-close {
+  position: absolute;
+  inset-block-start: var(--space-md);
+  inset-inline-end: var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--icon-button-pad);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--contrast-foreground-muted);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.dlg-close:hover {
+  background: var(--interaction-hover);
+  color: var(--contrast-foreground);
+}
+
+.dlg-close svg {
+  inline-size: var(--size-icon);
+  block-size: var(--size-icon);
+}
+</style>

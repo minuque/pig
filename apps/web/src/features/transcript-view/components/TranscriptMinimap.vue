@@ -11,6 +11,7 @@
         :key="item.id"
         class="minimap-tick"
         type="button"
+        :aria-label="tickLabel(index, item)"
         :style="tickStyle(index)"
         @mouseenter="hoverIndex = index"
         @focus="hoverIndex = index"
@@ -106,6 +107,14 @@ const previewTranslate = computed(() => {
 })
 const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
+
+/** 刻度按钮的可访问名：回合序号 + 该回合提问摘要，无提问时用通用文案。 */
+function tickLabel(index: number, item: TranscriptMinimapItem): string {
+  return t("transcript.minimapTick", {
+    index: index + 1,
+    text: item.userText ?? t("transcript.userMessage"),
+  })
+}
 
 function tickStyle(index: number): { top: string; height: string } {
   const count = Math.max(props.items.length, 1)

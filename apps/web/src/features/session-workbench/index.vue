@@ -64,12 +64,12 @@
             <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
               <Tooltip>
                 <TooltipTrigger as-child>
-                  <Button
+                  <IconButton
                     class="scroll-latest-control"
                     type="button"
                     :aria-label="t('transcript.scrollToBottom')"
                     variant="outline"
-                    size="icon-sm"
+                    size="1"
                     @click="scrollToLatest('smooth')"
                   >
                     <span class="icon-swap">
@@ -80,7 +80,7 @@
 
                       <ArrowDownIcon :data-visible="!turnPending" />
                     </span>
-                  </Button>
+                  </IconButton>
                 </TooltipTrigger>
 
                 <TooltipContent>{{ t("transcript.scrollToBottom") }}</TooltipContent>
@@ -132,7 +132,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, 
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
 import { warmWorkspace } from "@client/platform.js"
-import { Button } from "@components/ui/button/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import Composer from "@features/composer/index.vue"
 import {

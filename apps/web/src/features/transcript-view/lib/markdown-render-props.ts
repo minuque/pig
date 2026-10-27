@@ -22,6 +22,8 @@ installChatMarkdownComponents()
 
 type CodeBlockTheme = "github-dark" | "github-light"
 
+/** 实验分支：切到 wasm 高亮器。进程内先到先得，预热这一处决定整条链。 */
+const preferredHighlighter = "highlights" as const
 const cssPxCache = new Map<string, number>()
 
 function cssPx(name: string, fallback: number): number {
@@ -182,7 +184,12 @@ export async function highlightCodeTokens(
   }
 
   const { getSharedHighlighter } = await import("stream-diffs/pierre")
-  const highlighter = await getSharedHighlighter({ themes: [theme], langs: [lang] })
+  const highlighter = await getSharedHighlighter({
+    themes: [theme],
+    langs: [lang],
+    preferredHighlighter,
+  })
+
   await idle()
   const tokens = highlighter.codeToTokens(code, { lang, theme }).tokens
   tokenCache.set(key, tokens)
@@ -221,6 +228,7 @@ export function prefetchHighlighter(): void {
       return getSharedHighlighter({
         themes: [dark ? "github-dark" : "github-light"],
         langs: ["typescript"],
+        preferredHighlighter,
       })
     })
     .then(() => undefined)

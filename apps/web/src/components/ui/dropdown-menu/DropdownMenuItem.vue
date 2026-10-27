@@ -4,9 +4,11 @@
     :data-inset="inset ? '' : undefined"
     :data-variant="variant"
     v-bind="forwardedProps"
-    :class="[menuItemClass, props.class]"
+    class="rt-BaseMenuItem rt-DropdownMenuItem"
+    :class="props.class"
   >
     <slot />
+    <div v-if="shortcut" class="rt-BaseMenuShortcut rt-DropdownMenuShortcut">{{ shortcut }}</div>
   </DropdownMenuItem>
 </template>
 
@@ -14,7 +16,6 @@
 import type { DropdownMenuItemProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { menuItemClass } from "@components/ui/menu-item.js"
 import { DropdownMenuItem, useForwardProps } from "reka-ui"
 
 const props = withDefaults(
@@ -23,6 +24,8 @@ const props = withDefaults(
       class?: HTMLAttributes["class"]
       inset?: boolean
       variant?: "default" | "destructive"
+      /** 右对齐的快捷键提示，rt 在 Item 上提供同名属性 */
+      shortcut?: string
     }
   >(),
   {
@@ -30,7 +33,7 @@ const props = withDefaults(
     variant: "default",
   },
 )
-const delegatedProps = reactiveOmit(props, "inset", "variant", "class")
+const delegatedProps = reactiveOmit(props, "inset", "variant", "shortcut", "class")
 // reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuItemProps>
 </script>

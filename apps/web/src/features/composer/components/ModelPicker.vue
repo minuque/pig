@@ -3,9 +3,8 @@
     <Tooltip>
       <TooltipTrigger as-child>
         <DropdownMenuTrigger as-child>
-          <Button
+          <button
             type="button"
-            static
             class="selector"
             :disabled="disabled"
             :aria-label="t('composer.selectModel', { model: triggerText })"
@@ -20,12 +19,16 @@
             <span class="selector-stack">
               <span class="selector-labels" :class="{ 'is-covered': open }">
                 <span class="selector-name">{{ label }}</span>
-                <span v-if="effortLabel" class="selector-effort">{{ effortLabel }}</span>
+
+                <span v-if="effortLabel" class="selector-effort">
+                  <span class="selector-effort-sep">·</span>
+                  {{ effortLabel }}
+                </span>
               </span>
 
               <span v-if="open" class="selector-placeholder">选择模型与强度</span>
             </span>
-          </Button>
+          </button>
         </DropdownMenuTrigger>
       </TooltipTrigger>
 
@@ -38,7 +41,7 @@
       align="end"
       :side-offset="6"
       :collision-padding="16"
-      class="w-[min(var(--size-drawer),calc(100vw-var(--space-lg)))] max-h-[min(320px,var(--reka-dropdown-menu-content-available-height))] overflow-hidden"
+      class="picker-menu"
       @open-auto-focus.prevent="nextTick(focusSearch)"
       @pointer-down-outside="onPointerDownOutside"
       @focus-outside="onFocusOutside"
@@ -48,7 +51,7 @@
         <div class="tabs">
           <Tooltip>
             <TooltipTrigger as-child>
-              <Button
+              <button
                 type="button"
                 class="tab-btn"
                 :aria-label="t('composer.favoriteModels')"
@@ -57,7 +60,7 @@
               >
                 <StarBoldIcon v-if="scope === FAVORITES_SCOPE" :size="14" />
                 <StarIcon v-else :size="14" />
-              </Button>
+              </button>
             </TooltipTrigger>
 
             <TooltipContent>{{ t("composer.favoriteModels") }}</TooltipContent>
@@ -65,7 +68,7 @@
 
           <Tooltip v-for="vendor in catalog" :key="vendor.id">
             <TooltipTrigger as-child>
-              <Button
+              <button
                 type="button"
                 class="tab-btn"
                 :aria-label="vendor.name"
@@ -73,7 +76,7 @@
                 @click="selectScope(vendor.id)"
               >
                 <VendorMark :vendor="vendor.id" :name="vendor.name" :size="15" />
-              </Button>
+              </button>
             </TooltipTrigger>
 
             <TooltipContent>{{ vendor.name }}</TooltipContent>
@@ -81,7 +84,7 @@
         </div>
 
         <div class="search">
-          <MagnifierIcon :size="13" class="text-foreground-faint shrink-0" />
+          <MagnifierIcon :size="13" class="search-icon" />
 
           <input
             ref="searchRef"
@@ -102,7 +105,7 @@
               :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
             >
               <DropdownMenuItem
-                class="model-item gap-(--space-xs) rounded-(--radius-md) px-(--space-xs) py-0 h-(--size-control) text-button font-medium active:scale-100 cursor-pointer hover:bg-transparent focus:bg-transparent data-[highlighted]:bg-transparent"
+                class="model-item"
                 @select="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
               >
                 <VendorMark
@@ -115,7 +118,7 @@
                 <kbd v-if="i < 9" class="row-kbd">{{ kbdBadge(i) }}</kbd>
               </DropdownMenuItem>
 
-              <Button
+              <button
                 type="button"
                 class="fav"
                 :aria-label="
@@ -134,7 +137,7 @@
                 />
 
                 <StarIcon v-else :size="14" />
-              </Button>
+              </button>
             </div>
           </DropdownMenuGroup>
 
@@ -164,7 +167,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
-import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import ModelEffortFooter from "@features/composer/components/ModelEffortFooter.vue"
 import VendorMark from "@features/composer/components/VendorMark.vue"
@@ -430,12 +432,15 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .selector-effort {
+  display: inline-flex;
+  align-items: center;
   flex: none;
-  color: var(--primary);
+  /* accent-9（--primary）是填充色，文字用强调文字色：暗色卡面上前者只有 2.86:1 */
+  color: var(--link);
 }
 
-.selector-effort::before {
-  content: "·";
+/* 分隔符写成真实文本，才计入可访问名与可见文本的一致性；样式仍是弱化色。 */
+.selector-effort-sep {
   margin-inline: var(--space-xxs);
   color: var(--contrast-foreground-muted);
 }
@@ -547,9 +552,37 @@ function onSelectModel(event: Event, provider: string, id: string) {
   background: var(--hover-tint);
 }
 
+.picker-menu {
+  inline-size: min(var(--size-drawer), calc(100vw - var(--space-lg)));
+  max-block-size: min(320px, var(--reka-dropdown-menu-content-available-height));
+  overflow: hidden;
+}
+
+.search-icon {
+  flex-shrink: 0;
+  color: var(--contrast-foreground-faint);
+}
+
+/* 菜单项：尺寸与文字取自 token；高亮底交给外层的行，自身不描底 */
 .model-item {
   flex: 1 1 auto;
-  min-width: 0;
+  min-inline-size: 0;
+  gap: var(--space-xs);
+  block-size: var(--size-control);
+  padding-inline: var(--space-xs);
+  padding-block: 0;
+  border-radius: var(--radius-md);
+  color: var(--contrast-foreground);
+  font-size: var(--text-button);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-button--line-height);
+  cursor: pointer;
+}
+
+.model-item:hover,
+.model-item:focus,
+.model-item[data-highlighted] {
+  background: transparent;
 }
 
 .model-name {

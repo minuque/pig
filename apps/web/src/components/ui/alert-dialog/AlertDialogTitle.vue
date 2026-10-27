@@ -2,7 +2,7 @@
   <AlertDialogTitle
     data-slot="alert-dialog-title"
     v-bind="forwardedProps"
-    class="text-title leading-none font-semibold"
+    class="rt-Heading rt-r-size-5 rt-r-trim-start rt-AlertDialogTitle"
     :class="props.class"
   >
     <slot />

@@ -1,6 +1,7 @@
 # ESLint / Stylelint / Prettier 共用忽略
 node_modules
 dist
+storybook-static
 out
 .claude
 docs

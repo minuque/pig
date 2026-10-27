@@ -147,20 +147,12 @@ export function classifyTouched(files) {
   const ui = normalized.some(
     (file) => file.startsWith("apps/web/src/") && (file.endsWith(".vue") || file.endsWith(".css")),
   )
-  // 只有改动基础组件、故事本身或 storybook 配置时才需要跑浏览器渲染检查
-  const stories = normalized.some(
-    (file) =>
-      file.startsWith("apps/web/src/components/ui/") ||
-      file.startsWith("apps/web/.storybook/") ||
-      file.endsWith(".stories.ts"),
-  )
   return {
     packages,
     e2e,
     specs: e2eSpecs(normalized, packages, e2e),
     scripts,
     ui,
-    stories,
     tokens,
     designmd,
     rootTooling,

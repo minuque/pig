@@ -12,7 +12,7 @@
             class="section-toggle"
             type="button"
             :aria-expanded="expandedSections.has(section.key)"
-            @click="toggleSection(section.key)"
+            @click="emit('toggleSection', section.key)"
           >
             <span v-if="section.key === 'pinned'" class="section-icon" aria-hidden="true">
               <component
@@ -106,9 +106,11 @@
                 v-bind="itemBind(session, section)"
                 :dragging="dragId === session.id"
                 @navigate="emit('navigate', session.cwd)"
-                @toggle-pinned="togglePinned"
-                @rename="renameSession"
-                @delete="deleteSession"
+                @open="emit('open', $event)"
+                @prime="emit('prime', $event)"
+                @toggle-pinned="emit('togglePinned', $event)"
+                @rename="(id, name) => emit('rename', id, name)"
+                @delete="emit('delete', $event)"
                 @drag-start="onDragStart(section.key, session.id, $event)"
               />
             </li>
@@ -122,13 +124,18 @@
                 v-if="section.shown < section.total"
                 class="more-button"
                 type="button"
-                @click="revealMore(section.key)"
+                @click="emit('revealMore', section.key)"
               >
                 <DoubleAltArrowDownIcon :size="13" />
                 {{ t("common.showMore") }}
               </button>
 
-              <button v-else class="more-button" type="button" @click="collapseGroup(section.key)">
+              <button
+                v-else
+                class="more-button"
+                type="button"
+                @click="emit('collapseGroup', section.key)"
+              >
                 <DoubleAltArrowUpIcon :size="13" />
                 {{ t("common.collapse") }}
               </button>
@@ -147,7 +154,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { useNav, workspaceName } from "@features/session-nav/index.js"
 import {
   loadProjIcons,
   projectIconComponent,
@@ -167,37 +173,32 @@ import {
   PinIcon,
   PinBoldIcon,
 } from "@components/icons/index.js"
-import type { SidebarSection, SidebarSession } from "@features/session-nav/type.js"
+import type { SidebarRowFoot, SidebarSection, SidebarSession } from "@features/session-nav/type.js"
 
 const props = defineProps<{
+  sections: readonly SidebarSection[]
   scopeFilter?: string | undefined
+  cardFootById: ReadonlyMap<string, SidebarRowFoot>
+  pinnedIds: ReadonlySet<string>
+  highlightedSessionId: string | undefined
+  expandedSections: ReadonlySet<string>
+  expandedByGroup: Record<string, number>
 }>()
 const emit = defineEmits<{
   navigate: [cwd: string | undefined]
+  open: [id: string]
+  prime: [id: string]
   create: [cwd?: string]
+  togglePinned: [id: string]
+  rename: [id: string, name: string]
+  delete: [id: string]
+  reorderPinned: [id: string, toIndex: number]
+  toggleSection: [key: string]
+  revealMore: [key: string]
+  collapseGroup: [key: string]
 }>()
 const { t } = useI18n()
 const { isDark } = useColorScheme()
-const {
-  cardFootById,
-  expandedByGroup,
-  revealMore,
-  collapseGroup,
-  sectionsFor,
-  expandedSections,
-  toggleSection,
-  pinnedIds,
-  togglePinned,
-  highlightedSessionId,
-  renameSession,
-  deleteSession,
-  reorderPinned,
-} = useNav()
-const include = computed(
-  () => (session: { id: string; cwd?: string }) =>
-    !props.scopeFilter || workspaceName(session.cwd ?? "") === props.scopeFilter,
-)
-const sections = sectionsFor(include)
 // 过滤态下 pinned 段只渲染命中项，DOM 序号与 pinnedOrder 全表序号不再对应，禁用拖拽。
 const dragEnabled = computed(() => !props.scopeFilter)
 const projIcons = computed(loadProjIcons)
@@ -217,7 +218,7 @@ function measureLabelOverflow() {
 }
 
 watch(
-  [sections, () => expandedSections.value],
+  [() => props.sections, () => props.expandedSections],
   () => {
     nextTick(measureLabelOverflow)
   },
@@ -227,31 +228,31 @@ watch(
 const sectionIcons = computed<Record<string, ProjIcon | undefined>>(() => {
   const icons = projIcons.value
   return Object.fromEntries(
-    sections.value.map((section) => [section.key, section.cwd ? icons[section.label] : undefined]),
+    props.sections.map((section) => [section.key, section.cwd ? icons[section.label] : undefined]),
   )
 })
 
 function monoColor(custom: ProjIcon | undefined) {
   if (!custom) return undefined
-  return projIconHex(custom.color, isDark.value ? "dark" : "light")
+  // 读 isDark 让深浅切换时重取色值
+  void isDark.value
+  return projIconHex(custom.color)
 }
 
 function sectionIconStyle(section: { key: string }) {
   // 收起态调暗，让自定义色统一沉到 muted
-  if (!expandedSections.value.has(section.key)) return undefined
+  if (!props.expandedSections.has(section.key)) return undefined
   const custom = sectionIcons.value[section.key]
-  return custom?.kind === "icon"
-    ? { color: projIconHex(custom.color, isDark.value ? "dark" : "light") }
-    : undefined
+  return custom?.kind === "icon" ? { color: projIconHex(custom.color) } : undefined
 }
 
 function itemBind(session: SidebarSession, _section: SidebarSection) {
-  const foot = cardFootById.value.get(session.id)
+  const foot = props.cardFootById.get(session.id)
   return {
     session,
-    active: session.id === highlightedSessionId.value,
-    pinned: pinnedIds.value.has(session.id),
-    draggable: dragEnabled.value && pinnedIds.value.has(session.id),
+    active: session.id === props.highlightedSessionId,
+    pinned: props.pinnedIds.has(session.id),
+    draggable: dragEnabled.value && props.pinnedIds.has(session.id),
     state: foot?.state,
     placeholder: session.draft ?? false,
   }
@@ -260,7 +261,7 @@ function itemBind(session: SidebarSession, _section: SidebarSection) {
 function onDragStart(sectionKey: string, id: string, _event: PointerEvent) {
   if (sectionKey !== "pinned") return
 
-  const startIndex = sections.value
+  const startIndex = props.sections
     .find((s) => s.key === "pinned")
     ?.sessions.findIndex((s) => s.id === id)
 
@@ -273,7 +274,7 @@ function onDragStart(sectionKey: string, id: string, _event: PointerEvent) {
 
     if (!list) return
     // 拖拽期间 sections 可能重算（别处 unpin 等），每次 move 即时取行数。
-    const pinnedCount = sections.value.find((s) => s.key === "pinned")?.sessions.length ?? 0
+    const pinnedCount = props.sections.find((s) => s.key === "pinned")?.sessions.length ?? 0
     const rows = [...list.querySelectorAll<HTMLElement>(".session-row")].slice(0, pinnedCount)
     const y = e.clientY
     let index = rows.length
@@ -293,7 +294,7 @@ function onDragStart(sectionKey: string, id: string, _event: PointerEvent) {
   function onUp() {
     const over = dragIndex.value
 
-    if (over !== undefined && over !== startIndex) reorderPinned(id, over)
+    if (over !== undefined && over !== startIndex) emit("reorderPinned", id, over)
     dragId.value = undefined
     dragIndex.value = undefined
     window.removeEventListener("pointermove", onMove)

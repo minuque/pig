@@ -1,23 +1,25 @@
 <template>
   <ContextMenuPortal>
-    <MenuContent
-      data-slot="context-menu-content"
-      v-bind="forwarded"
-      side="bottom"
-      align="start"
-      :side-offset="4"
-      :collision-padding="8"
-      update-position-strategy="always"
-      class="menu-surface surface-float reveal-menu z-(--z-drawer) max-h-(--reka-context-menu-content-available-height) min-w-(--size-context-menu) origin-(--reka-context-menu-content-transform-origin) text-foreground"
-      :class="props.class"
-      :style="contentStyle"
-      @close-auto-focus="onCloseAutoFocus"
-      @interact-outside="onInteractOutside"
-    >
-      <div class="menu-list edge-fade-menu max-h-(--reka-context-menu-content-available-height)">
-        <slot />
-      </div>
-    </MenuContent>
+    <ThemeRoot>
+      <MenuContent
+        data-slot="context-menu-content"
+        v-bind="forwarded"
+        side="bottom"
+        align="start"
+        :side-offset="4"
+        :collision-padding="8"
+        update-position-strategy="always"
+        class="rt-BaseMenuContent rt-ContextMenuContent"
+        :class="[sizeClass, variantClass, props.class]"
+        :style="contentStyle"
+        @close-auto-focus="onCloseAutoFocus"
+        @interact-outside="onInteractOutside"
+      >
+        <div class="rt-BaseMenuViewport rt-ContextMenuViewport">
+          <slot />
+        </div>
+      </MenuContent>
+    </ThemeRoot>
   </ContextMenuPortal>
 </template>
 
@@ -25,21 +27,28 @@
 import type { ContextMenuContentEmits, ContextMenuContentProps } from "reka-ui"
 import type { ComputedRef } from "vue"
 import type { HTMLAttributes } from "vue"
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
+import { ThemeRoot } from "@components/ui/rt/index.js"
 
 defineOptions({
   inheritAttrs: false,
 })
 
 const props = withDefaults(
-  defineProps<ContextMenuContentProps & { class?: HTMLAttributes["class"] }>(),
-  { class: undefined },
+  defineProps<
+    ContextMenuContentProps & {
+      class?: HTMLAttributes["class"]
+      size?: "1" | "2"
+      variant?: "solid" | "soft"
+    }
+  >(),
+  { class: undefined, size: "2", variant: "solid" },
 )
 const emits = defineEmits<ContextMenuContentEmits>()
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "size", "variant")
 const forwarded = useForwardPropsEmits(
   delegatedProps,
   emits,
@@ -53,6 +62,8 @@ const contentStyle = {
   "--reka-context-menu-trigger-width": "var(--reka-popper-anchor-width)",
   "--reka-context-menu-trigger-height": "var(--reka-popper-anchor-height)",
 }
+const sizeClass = computed(() => `rt-r-size-${props.size}`)
+const variantClass = computed(() => `rt-variant-${props.variant}`)
 
 function onCloseAutoFocus(event: Event) {
   if (!event.defaultPrevented && interactedOutside.value) event.preventDefault()
@@ -73,5 +84,3 @@ function onInteractOutside(event: CustomEvent<{ originalEvent: Event }>) {
   if (!event.defaultPrevented && !root.modal.value) interactedOutside.value = true
 }
 </script>
-
-<style src="../menu-surface.css"></style>

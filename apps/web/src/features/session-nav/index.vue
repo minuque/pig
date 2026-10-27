@@ -1,225 +1,53 @@
 <template>
-  <div class="session-nav" :class="{ 'is-scrolled': listScrolled }">
-    <div class="titlebar-drag" aria-hidden="true"></div>
-
-    <div class="nav-head">
-      <div class="nav-titlebar">
-        <RouterLink to="/" class="nav-brand" aria-label="pig">
-          <span class="brand-mark">
-            <img class="brand-pig" src="/logo-pig.png" alt="" width="22" height="22" />
-          </span>
-        </RouterLink>
-
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <button
-              class="nav-collapse"
-              type="button"
-              :aria-label="t('nav.collapseSidebar')"
-              @click="setSbState(sbState === 'expanded' ? 'offcanvas' : 'expanded')"
-            >
-              <SidebarGlyph :open="sbState !== 'offcanvas'" />
-            </button>
-          </TooltipTrigger>
-
-          <TooltipContent>{{ t("nav.collapseSidebar") }}</TooltipContent>
-        </Tooltip>
-      </div>
-
-      <div class="search-head">
-        <button class="search-field press-scale" type="button" @click="onCreateSession()">
-          <span class="search-field-lead"><ChatRoundAddIcon :size="15" /></span>
-          <span class="search-field-label">{{ t("session.newSession") }}</span>
-        </button>
-
-        <div class="head-actions">
-          <button class="head-btn" type="button" :title="t('nav.search')" @click="openSearch">
-            <MagnifierIcon :size="15" />
-          </button>
-
-          <button
-            class="head-btn"
-            :class="{ scoped: !!scopeFilter }"
-            type="button"
-            :title="t('session.allProjects')"
-            @click.stop="scopeMenuOpen = !scopeMenuOpen"
-          >
-            <Tuning2Icon :size="15" />
-          </button>
-
-          <button
-            class="head-btn"
-            type="button"
-            :title="t('session.addGuide')"
-            @click="onAddProject"
-          >
-            <AddFolderIcon :size="15" />
-          </button>
-        </div>
-
-        <SearchDialog v-model:open="searchOpen" />
-
-        <div v-if="scopeMenuOpen" class="scope-menu surface-float" @click.stop>
-          <p class="scope-label">{{ t("session.grouping") }}</p>
-
-          <button
-            v-for="option in groupingOptions"
-            :key="option.value"
-            class="scope-item"
-            :class="{ on: grouping === option.value }"
-            type="button"
-            @click="setGrouping(option.value)"
-          >
-            <span class="scope-fav"><component :is="option.icon" :size="12" /></span>
-            <span class="scope-name">{{ option.label }}</span>
-
-            <span class="scope-ck">
-              <CheckIcon v-if="grouping === option.value" :size="10" />
-            </span>
-          </button>
-
-          <p class="scope-label">{{ t("session.sorting") }}</p>
-
-          <button
-            v-for="option in sortOptions"
-            :key="option.value"
-            class="scope-item"
-            :class="{ on: sort === option.value }"
-            type="button"
-            @click="setSort(option.value)"
-          >
-            <span class="scope-fav"><component :is="option.icon" :size="12" /></span>
-            <span class="scope-name">{{ option.label }}</span>
-
-            <span class="scope-ck">
-              <CheckIcon v-if="sort === option.value" :size="10" />
-            </span>
-          </button>
-
-          <div class="scope-sep" role="separator"></div>
-
-          <button
-            class="scope-item"
-            :class="{ on: !scopeFilter }"
-            type="button"
-            @click="pickScope(undefined)"
-          >
-            <span class="scope-fav"><FolderIcon :size="12" /></span>
-            <span class="scope-name">{{ t("session.allProjects") }}</span>
-            <span class="scope-cnt">{{ allSessionsCount }}</span>
-
-            <span class="scope-ck">
-              <CheckIcon v-if="!scopeFilter" :size="12" />
-
-              <span
-                class="scope-edit"
-                role="button"
-                tabindex="-1"
-                :title="t('nav.settings')"
-                @click.stop="closeGlobalSettings"
-              >
-                <SettingsIcon :size="12" />
-              </span>
-            </span>
-          </button>
-
-          <span
-            v-for="g in groups"
-            :key="g.canonicalPath"
-            class="scope-item"
-            :class="{ on: scopeFilter === workspaceName(g.canonicalPath) }"
-            role="menuitem"
-            tabindex="0"
-            @click="pickScope(workspaceName(g.canonicalPath))"
-            @keydown.enter.prevent="pickScope(workspaceName(g.canonicalPath))"
-          >
-            <span class="scope-fav">
-              <component :is="scopeIcon(workspaceName(g.canonicalPath))" :size="12" />
-            </span>
-
-            <span class="scope-name">{{ workspaceName(g.canonicalPath) }}</span>
-            <span class="scope-cnt">{{ g.sessions.length }}</span>
-
-            <span class="scope-ck">
-              <CheckIcon v-if="scopeFilter === workspaceName(g.canonicalPath)" :size="12" />
-
-              <span
-                class="scope-edit"
-                role="button"
-                tabindex="-1"
-                :title="t('session.projectSettings')"
-                @click.stop="closeProjectSettings(workspaceName(g.canonicalPath))"
-              >
-                <SettingsIcon :size="12" />
-              </span>
-            </span>
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="nav-inset">
-      <p v-if="connected && !groups.length" class="add-guide">
-        <ArrowUpIcon class="size-icon motion-nudge" />
-        {{ t("session.addGuide") }}
-      </p>
-
-      <SessionList
-        :scope-filter="scopeFilter"
-        @navigate="onSessionNavigate"
-        @create="onCreateSession"
-      />
-    </div>
-
-    <NavFooter @settings="emit('settings')" />
-
-    <ProjectSettingsDialog
-      v-if="projectSettingsOpen"
-      v-model:open="projectSettingsOpen"
-      :project="projectSettingsTarget"
-    />
-  </div>
+  <SidebarView
+    v-model:search-open="searchOpen"
+    :groups="groups"
+    :connected="connected"
+    :sb-expanded="sbExpanded"
+    :grouping="grouping"
+    :sort="sort"
+    :scope-filter="scopeFilter"
+    :sections="sections"
+    :card-foot-by-id="cardFootById"
+    :listed-sessions="listedSessions"
+    :pinned-ids="pinnedIds"
+    :highlighted-session-id="highlightedSessionId"
+    :expanded-sections="expandedSections"
+    :expanded-by-group="expandedByGroup"
+    @update:scope-filter="scopeFilter = $event"
+    @update:grouping="setGrouping"
+    @update:sort="setSort"
+    @toggle-sidebar="onToggleSidebar"
+    @create="onCreateSession"
+    @add-project="onAddProject"
+    @settings="emit('settings')"
+    @navigate="onSessionNavigate"
+    @open="openSession"
+    @prime="primeSession"
+    @toggle-pinned="togglePinned"
+    @rename="renameSession"
+    @delete="deleteSession"
+    @reorder-pinned="reorderPinned"
+    @toggle-section="toggleSection"
+    @reveal-more="revealMore"
+    @collapse-group="collapseGroup"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, shallowRef, watch } from "vue"
+import { computed, shallowRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyAction } from "@components/layout/notify.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { useI18n } from "@i18n/index.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
-import {
-  loadProjIcons,
-  projectIconComponent,
-  type ProjIcon,
-} from "@features/session-nav/lib/project-icon.js"
-import NavFooter from "@features/session-nav/components/NavFooter.vue"
-import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
-import SessionList from "@features/session-nav/components/SessionList.vue"
-import ProjectSettingsDialog from "@features/session-nav/components/ProjectSettingsDialog.vue"
-import {
-  AddFolderIcon,
-  ArrowUpIcon,
-  ChatRoundAddIcon,
-  CheckIcon,
-  ClockCircleIcon,
-  DocumentAddIcon,
-  FolderIcon,
-  HistoryIcon,
-  MagnifierIcon,
-  SettingsIcon,
-  SidebarGlyph,
-  Tuning2Icon,
-} from "@components/icons/index.js"
+import SidebarView from "@features/session-nav/components/SidebarView.vue"
 
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
   settings: []
 }>()
-const { t } = useI18n()
 const { sbState, setSbState } = useLeftPanelToggle()
 const {
   groups,
@@ -231,46 +59,35 @@ const {
   navError: workspaceError,
   addWorkspace,
   setDraftSession,
+  listedSessions,
+  openSession,
+  primeSession,
   grouping,
   sort,
   setGrouping,
   setSort,
+  sectionsFor,
+  expandedSections,
+  expandedByGroup,
+  toggleSection,
+  revealMore,
+  collapseGroup,
+  cardFootById,
+  pinnedIds,
+  togglePinned,
+  renameSession,
+  deleteSession,
+  reorderPinned,
 } = useNav()
-const groupingOptions = computed(() => [
-  { value: "date" as const, label: t("session.groupDate"), icon: ClockCircleIcon },
-  { value: "cwd" as const, label: t("session.groupCwd"), icon: FolderIcon },
-])
-const sortOptions = computed(() => [
-  { value: "updated" as const, label: t("session.sortUpdated"), icon: HistoryIcon },
-  { value: "created" as const, label: t("session.sortCreated"), icon: DocumentAddIcon },
-])
-
-function scopeIcon(project: string | undefined) {
-  return projectIconComponent(project ? projIcons.value[project] : undefined)
-}
-
 const router = useRouter()
 const scopeFilter = shallowRef<string | undefined>(undefined)
-const scopeMenuOpen = shallowRef(false)
-const projIcons = shallowRef<Record<string, ProjIcon>>(loadProjIcons())
-const listScrolled = shallowRef(false)
-
-function updateListScrolled() {
-  const el = document.querySelector<HTMLElement>(".session-window")
-
-  listScrolled.value = !!el && el.scrollTop > 0
-}
-
-onMounted(() => {
-  updateListScrolled()
-})
-
-// scroll 不冒泡，要走 window 的捕获阶段才能兜到 .session-window 自己的滚动。
-useEventListener(window, "scroll", updateListScrolled, { passive: true, capture: true })
-
-const allSessionsCount = computed(() =>
-  groups.value.reduce((sum, group) => sum + group.sessions.length, 0),
+const searchOpen = shallowRef(false)
+const sbExpanded = computed(() => sbState.value !== "offcanvas")
+const include = computed(
+  () => (session: { id: string; cwd?: string }) =>
+    !scopeFilter.value || workspaceName(session.cwd ?? "") === scopeFilter.value,
 )
+const sections = sectionsFor(include)
 
 function highlightedCwd(): string | undefined {
   const id = highlightedSessionId.value
@@ -288,27 +105,13 @@ function highlightedCwd(): string | undefined {
   return undefined
 }
 
-const searchOpen = shallowRef(false)
-
-function openSearch() {
-  searchOpen.value = true
-}
-
 useEventListener(window, "keydown", (event) => {
   if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return
 
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
     return
   event.preventDefault()
-  openSearch()
-})
-
-useEventListener(window, "pointerdown", (event) => {
-  if (!scopeMenuOpen.value) return
-  const target = event.target
-
-  if (target instanceof Element && target.closest(".scope-menu, .head-btn")) return
-  scopeMenuOpen.value = false
+  searchOpen.value = true
 })
 
 watch(workspaceError, (message) => {
@@ -316,6 +119,10 @@ watch(workspaceError, (message) => {
 
   if (text) notifyAction(text)
 })
+
+function onToggleSidebar(): void {
+  setSbState(sbExpanded.value ? "offcanvas" : "expanded")
+}
 
 function onSessionNavigate(cwd: string | undefined): void {
   if (cwd) emit("navigate", cwd)
@@ -328,29 +135,6 @@ function onCreateInDir(canonicalPath: string): void {
   void router.push("/")
 }
 
-function pickScope(name: string | undefined): void {
-  scopeFilter.value = name
-  scopeMenuOpen.value = false
-}
-
-function onProjectSettings(project: string): void {
-  projectSettingsTarget.value = project
-  projectSettingsOpen.value = true
-}
-
-function closeProjectSettings(project: string): void {
-  onProjectSettings(project)
-  scopeMenuOpen.value = false
-}
-
-function closeGlobalSettings(): void {
-  emit("settings")
-  scopeMenuOpen.value = false
-}
-
-const projectSettingsOpen = shallowRef(false)
-const projectSettingsTarget = shallowRef("")
-
 function onAddProject(): void {
   void addWorkspace()
 }
@@ -362,417 +146,3 @@ function onCreateSession(cwd?: string): void {
   void addWorkspace()
 }
 </script>
-
-<style scoped>
-.session-nav {
-  --nav-inline: var(--space-xs);
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  padding: 0;
-  overflow: hidden;
-  user-select: none;
-}
-
-.nav-inset {
-  position: relative;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  padding-block-start: var(--space-xxs);
-  padding-inline-start: var(--nav-inline);
-}
-
-/* 横向内边距交给子元素：header 自己带就会把底边线切成中间一截。
-   这里也不能加 position：桌面壳的 .nav-titlebar 靠 .session-nav 定位贴顶。 */
-.nav-head {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 0;
-  padding-block: var(--space-xxs);
-  border-bottom: var(--border-width) solid transparent;
-  transition: border-color var(--duration-fast) var(--ease-out);
-}
-
-.session-nav.is-scrolled .nav-head {
-  border-bottom-color: var(--border-subtle);
-}
-
-.nav-titlebar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  min-width: 0;
-  padding-inline: var(--nav-inline);
-}
-
-.nav-brand {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-xs);
-  min-width: 0;
-  padding: var(--space-xxs) var(--space-xxs) var(--space-xxs) 0;
-  border-radius: var(--radius-md);
-  color: var(--contrast-foreground);
-  text-decoration: none;
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-}
-
-.nav-brand:hover,
-.nav-brand:focus-visible {
-  background: var(--interaction-hover);
-}
-
-.brand-mark {
-  display: block;
-  flex: none;
-  overflow: hidden;
-  border-radius: var(--radius-xs);
-  background: var(--brand-mark-bg);
-}
-
-.brand-pig {
-  display: block;
-  transform-origin: 30% 100%;
-}
-
-.nav-brand:hover .brand-pig,
-.nav-brand:focus-visible .brand-pig {
-  animation: brand-peek var(--duration-pig-peek) both;
-}
-
-.nav-collapse {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: var(--size-nav-rail);
-  height: var(--size-nav-rail);
-  margin-inline-start: auto;
-  padding: 0;
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-foreground);
-}
-
-.nav-collapse:hover,
-.nav-collapse:focus-visible {
-  background: var(--hover-quiet);
-  color: var(--contrast-foreground);
-}
-
-.search-head {
-  position: relative;
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-xxs);
-  padding-inline: var(--nav-inline);
-}
-
-/* 渐隐带挂在滚动区顶上，和分隔线一起出现：内容滚出视口才显示。 */
-.nav-inset::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  inset-inline: var(--nav-inline);
-  top: 0;
-  height: var(--edge-fade-band);
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
-  background: linear-gradient(to bottom, var(--sidebar), transparent);
-  pointer-events: none;
-}
-
-.session-nav.is-scrolled .nav-inset::before {
-  opacity: 1;
-}
-
-.search-field {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: var(--space-xs);
-  min-width: 0;
-  height: 32px;
-  padding-inline: var(--space-xxs) var(--space-xs);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--contrast-foreground);
-  font-size: var(--text-caption);
-  text-align: start;
-  cursor: pointer;
-}
-
-.search-field:hover,
-.search-field:focus-visible {
-  background: var(--interaction-hover);
-  color: var(--contrast-foreground);
-}
-
-.search-field-lead {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
-}
-
-.search-field-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.head-actions {
-  display: flex;
-  flex: none;
-  align-items: center;
-}
-
-.head-btn {
-  position: relative;
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-foreground);
-}
-
-.head-btn:hover {
-  background: var(--hover-quiet);
-  color: var(--contrast-foreground);
-}
-
-.head-btn.scoped {
-  color: var(--primary);
-}
-
-.head-btn.scoped::after {
-  content: "";
-  position: absolute;
-  bottom: 2px;
-  left: 50%;
-  width: 4px;
-  height: 4px;
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  translate: -50% 0;
-}
-
-.session-nav > .titlebar-drag {
-  display: none;
-  position: absolute;
-  inset: 0 0 auto;
-  height: var(--titlebar-inset);
-  -webkit-app-region: drag;
-  app-region: drag;
-}
-
-html[data-pig-desktop-platform] .session-nav > .titlebar-drag {
-  display: block;
-}
-
-html[data-pig-desktop-platform] .session-nav {
-  padding-top: calc(6px + var(--titlebar-inset));
-}
-
-html[data-pig-desktop-platform] .nav-titlebar {
-  position: absolute;
-  z-index: 1;
-  inset: 0 0 auto;
-  height: calc(6px + var(--titlebar-inset));
-  padding-inline: var(--nav-inline);
-}
-
-html[data-pig-desktop-platform="win32"] .session-nav {
-  padding-top: var(--titlebar-inset);
-}
-
-html[data-pig-desktop-platform="win32"] .nav-titlebar {
-  height: var(--titlebar-inset);
-}
-
-html[data-pig-desktop-platform="darwin"] .session-nav {
-  padding-top: var(--space-xxl);
-}
-
-html[data-pig-desktop-platform="darwin"] .nav-titlebar {
-  height: var(--space-xxl);
-}
-
-.add-guide {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-xxs);
-  margin: 0;
-  padding-block: var(--space-xxs);
-  color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
-}
-
-.add-guide .motion-nudge {
-  margin-inline-start: var(--space-xs);
-}
-
-.scope-label {
-  margin: 0;
-  padding: var(--space-xxs) var(--space-xs) 0;
-  color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
-}
-
-.scope-sep {
-  height: 1px;
-  margin-block: var(--space-xxs);
-  background: var(--border);
-}
-
-.scope-fav {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-}
-
-.scope-menu {
-  position: absolute;
-  z-index: var(--z-menu);
-  /* 搜索行的横向内边距在 .search-head 上，定位基准跟着挪一档，保持左缘对齐。 */
-  inset-inline-start: var(--nav-inline);
-  inset-inline-end: 10px;
-  top: 100%;
-  max-height: min(60vh, 480px);
-  overflow-y: auto;
-  margin-block-start: 4px;
-  padding: 4px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background: var(--card);
-  box-shadow: var(--shadow-float);
-  font-size: var(--text-caption);
-}
-
-.scope-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  width: 100%;
-  padding: var(--space-xxs) var(--space-xs);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-foreground);
-  line-height: var(--text-caption--line-height);
-  text-align: start;
-  cursor: default;
-  user-select: none;
-}
-
-.scope-item:hover {
-  background: var(--sidebar-hover);
-}
-
-.scope-item.on {
-  color: var(--primary);
-}
-
-.scope-name {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.scope-cnt {
-  flex: none;
-  min-width: 3ch;
-  font-size: var(--text-eyebrow);
-  font-variant-numeric: tabular-nums;
-  color: var(--contrast-foreground-muted);
-  text-align: end;
-}
-
-.scope-ck {
-  position: relative;
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 14px;
-  height: 14px;
-  color: var(--primary);
-}
-
-.scope-ck > .solar,
-.scope-ck > .scope-edit {
-  grid-area: 1 / 1;
-  transition: opacity 0.15s;
-}
-
-.scope-ck > .solar {
-  opacity: 1;
-}
-
-.scope-ck > .scope-edit {
-  display: grid;
-  place-items: center;
-  width: 14px;
-  height: 14px;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-foreground);
-  opacity: 0;
-  cursor: pointer;
-}
-
-.scope-item:hover .scope-ck > .solar {
-  opacity: 0;
-}
-
-.scope-item:hover .scope-edit {
-  opacity: 1;
-}
-
-.scope-edit:hover {
-  background: var(--hover-quiet);
-  color: var(--contrast-foreground);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .search-field {
-    transition: none;
-  }
-
-  .nav-brand:hover .brand-pig,
-  .nav-brand:focus-visible .brand-pig {
-    animation: none;
-  }
-}
-</style>

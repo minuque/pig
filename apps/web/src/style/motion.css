@@ -263,6 +263,17 @@
   }
 }
 
+/* 无限旋转：加载状态用，减少动态效果时停下 */
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.is-spinning {
+  animation: spin 1s linear infinite;
+}
+
 /* 工具步骤到达 */
 @keyframes step-arrive {
   from {
@@ -1038,7 +1049,8 @@
   }
 
   .motion-nudge,
-  .motion-pulse::after {
+  .motion-pulse::after,
+  .is-spinning {
     animation: none;
   }
 

@@ -59,13 +59,14 @@
 
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
+import type { SessionMetadata } from "@/types/common-type.js"
 import { useI18n } from "@i18n/index.js"
-import { useNav } from "@features/session-nav/index.js"
 import {
   filterSessionsForSearch,
   sortSessionsForSidebar,
 } from "@features/session-nav/lib/session-list.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
+import type { SidebarSort } from "@features/session-nav/type.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import {
   ArrowLeftDownIcon,
@@ -74,16 +75,22 @@ import {
   MagnifierIcon,
 } from "@components/icons/index.js"
 
-const props = defineProps<{ open: boolean }>()
-const emit = defineEmits<{ "update:open": [open: boolean] }>()
+const props = defineProps<{
+  open: boolean
+  sessions: readonly SessionMetadata[]
+  sort: SidebarSort
+}>()
+const emit = defineEmits<{
+  "update:open": [open: boolean]
+  open: [id: string]
+}>()
 const { t } = useI18n()
-const { listedSessions, sort, openSession } = useNav()
 const query = shallowRef("")
 const activeIndex = shallowRef(0)
 const inputEl = useTemplateRef("inputEl")
 const rows = computed(() => {
-  const filtered = filterSessionsForSearch(listedSessions.value, query.value)
-  return sortSessionsForSidebar(filtered, sort.value)
+  const filtered = filterSessionsForSearch(props.sessions, query.value)
+  return sortSessionsForSidebar(filtered, props.sort)
     .slice(0, 50)
     .map((session) => ({
       id: session.id,
@@ -138,7 +145,7 @@ function activate(index: number) {
 
   if (!row) return
   emit("update:open", false)
-  openSession(row.id)
+  emit("open", row.id)
 }
 </script>
 
@@ -224,7 +231,7 @@ function activate(index: number) {
 
 .search-empty {
   padding: var(--space-md);
-  color: var(--contrast-foreground-faint);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-caption);
   text-align: center;
 }
@@ -277,7 +284,7 @@ function activate(index: number) {
 .row-time {
   flex: none;
   margin-inline-start: auto;
-  color: var(--contrast-foreground-faint);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;
 }

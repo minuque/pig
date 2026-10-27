@@ -18,6 +18,11 @@ export interface SidebarSession {
 
 export type SidebarSessionState = "running" | "unread" | "error"
 
+/** 侧栏行脚注里视图消费的那部分，cardFootById 是它的超集。 */
+export interface SidebarRowFoot {
+  state?: SidebarSessionState | undefined
+}
+
 /** 侧栏视图选项：分组与排序，持久化在 localStorage。 */
 export type SidebarGrouping = "date" | "cwd"
 

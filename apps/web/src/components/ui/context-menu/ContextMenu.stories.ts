@@ -22,7 +22,7 @@ const meta = {
       ContextMenuSeparator,
     },
     template:
-      "<ContextMenu><ContextMenuTrigger><div class='w-48 rounded-md border border-border p-3 text-muted-foreground'>右键此区域</div></ContextMenuTrigger><ContextMenuContent><ContextMenuItem>复制</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant='destructive'>删除</ContextMenuItem></ContextMenuContent></ContextMenu>",
+      "<ContextMenu><ContextMenuTrigger><div class='rounded-md border border-border p-md text-muted-foreground' style='inline-size:12rem'>右键此区域</div></ContextMenuTrigger><ContextMenuContent><ContextMenuItem>复制</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant='destructive'>删除</ContextMenuItem></ContextMenuContent></ContextMenu>",
   }),
 } satisfies Meta<typeof ContextMenu>
 

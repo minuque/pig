@@ -1,7 +1,8 @@
 import type { Component } from "vue"
 import { FolderIcon } from "@components/icons/index.js"
 import { readJson } from "@utils/storage.js"
-import { findAccent, type AccentId } from "@features/theme/lib/accents.js"
+import { type AccentId } from "@features/theme/lib/accents.js"
+import { accentHex } from "@features/theme/lib/palette.js"
 import { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
 import { MonitorIcon } from "@solar-icons/vue/linear/monitor"
 import { StarsMinimalisticIcon } from "@solar-icons/vue/linear/stars-minimalistic"
@@ -32,9 +33,9 @@ export interface ProjIcon {
   color: AccentId
 }
 
-export function projIconHex(color: AccentId, mode: "light" | "dark"): string {
-  const scale = mode === "dark" ? findAccent(color).dark : findAccent(color).light
-  return scale.step9
+/** 项目配色：取该 accent 第 9 阶的实际色值，深浅与切换由 CSS 变量给出。 */
+export function projIconHex(color: AccentId): string {
+  return accentHex(color)
 }
 
 const ICON_COMPONENTS: Record<string, Component> = {

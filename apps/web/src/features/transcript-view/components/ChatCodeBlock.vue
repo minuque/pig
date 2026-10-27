@@ -23,7 +23,7 @@
             :aria-pressed="showLineNumbers"
             @click.stop="showLineNumbers = !showLineNumbers"
           >
-            <ListOrderedMinimalisticIcon class="size-3.5" />
+            <ListOrderedMinimalisticIcon class="size-icon" />
           </button>
         </TooltipTrigger>
 

@@ -16,10 +16,10 @@
           v-if="lineNumbers"
           :tip="showLineNumbers ? t('transcript.lineNumbersHide') : t('transcript.lineNumbersShow')"
         >
-          <Button
+          <IconButton
             type="button"
             variant="outline"
-            size="icon-2xs"
+            size="1"
             class="icon-btn"
             :aria-label="
               showLineNumbers ? t('transcript.lineNumbersHide') : t('transcript.lineNumbersShow')
@@ -27,40 +27,40 @@
             :aria-pressed="showLineNumbers"
             @click.stop="showLineNumbers = !showLineNumbers"
           >
-            <ListOrderedMinimalisticIcon class="size-3.5" />
-          </Button>
+            <ListOrderedMinimalisticIcon class="size-icon" />
+          </IconButton>
         </LazyTip>
 
         <LazyTip :tip="softWrap ? t('transcript.softWrapOff') : t('transcript.softWrap')">
-          <Button
+          <IconButton
             type="button"
             variant="outline"
-            size="icon-2xs"
+            size="1"
             class="icon-btn"
             :aria-label="softWrap ? t('transcript.softWrapOff') : t('transcript.softWrap')"
             :aria-pressed="softWrap"
             @click.stop="softWrap = !softWrap"
           >
-            <ParagraphSpacingIcon v-if="!softWrap" class="size-3.5" />
-            <AlignLeftIcon v-else class="size-3.5" />
-          </Button>
+            <ParagraphSpacingIcon v-if="!softWrap" class="size-icon" />
+            <AlignLeftIcon v-else class="size-icon" />
+          </IconButton>
         </LazyTip>
 
         <LazyTip v-if="text" :tip="copyLabel">
-          <Button
+          <IconButton
             type="button"
             variant="outline"
-            size="icon-2xs"
+            size="1"
             class="icon-btn copy"
             :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
             :aria-label="copyLabel"
             @click="copy"
           >
             <span class="icon-swap">
-              <CopyIcon class="size-3.5" :data-visible="status !== 'copied'" />
-              <CheckIcon class="size-3.5" :data-visible="status === 'copied'" />
+              <CopyIcon class="size-icon" :data-visible="status !== 'copied'" />
+              <CheckIcon class="size-icon" :data-visible="status === 'copied'" />
             </span>
-          </Button>
+          </IconButton>
         </LazyTip>
       </div>
     </div>
@@ -71,7 +71,7 @@
 import { computed, h, nextTick, shallowRef, useTemplateRef, type FunctionalComponent } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { Button } from "@components/ui/button/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
   AlignLeftIcon,

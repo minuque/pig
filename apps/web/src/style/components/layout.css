@@ -1,0 +1,254 @@
+/* 布局原子：页面层表达结构用，类名与 shadcn/ui 文档里的写法一致，
+   值只读 app.css 的 token。删掉 Tailwind 前后同一段类名都不会变意思。
+   间距按 --space-* 命名（gap-sm 而不是 gap-3）：项目已把间距刻度收进
+   --space-* 命名空间，再引入数字刻度会多出一套并行换算。
+   只登记用得到的，新增一档先在这里补。 */
+
+/* ------ 显示 ------ */
+.flex {
+  display: flex;
+}
+
+.inline-flex {
+  display: inline-flex;
+}
+
+.grid {
+  display: grid;
+}
+
+.block {
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ------ 定位 ------ */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.sticky {
+  position: sticky;
+}
+
+.inset-0 {
+  inset: 0;
+}
+
+/* ------ 主轴与对齐 ------ */
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-col-reverse {
+  flex-direction: column-reverse;
+}
+
+.flex-1 {
+  flex: 1 1 auto;
+}
+
+.grow {
+  flex-grow: 1;
+}
+
+.shrink-0 {
+  flex-shrink: 0;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+/* ------ 尺寸 ------ */
+/* 描边宽度单列一条：颜色由 .border-* 给，和 shadcn 的 border + border-border 写法对齐 */
+.border {
+  border-width: var(--border-width);
+}
+
+.w-full {
+  inline-size: 100%;
+}
+
+.h-full {
+  block-size: 100%;
+}
+
+.h-px {
+  block-size: 1px;
+}
+
+.min-w-0 {
+  min-inline-size: 0;
+}
+
+/* ------ 溢出与文本 ------ */
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* 只读给读屏：视觉隐藏但保留可访问性树 */
+.sr-only {
+  position: absolute;
+  overflow: hidden;
+  clip-path: inset(50%);
+  inline-size: 1px;
+  block-size: 1px;
+  white-space: nowrap;
+}
+
+/* ------ 间距 ------ */
+.gap-xxs {
+  gap: var(--space-xxs);
+}
+
+.gap-xs {
+  gap: var(--space-xs);
+}
+
+.gap-sm {
+  gap: var(--space-sm);
+}
+
+.gap-md {
+  gap: var(--space-md);
+}
+
+.gap-lg {
+  gap: var(--space-lg);
+}
+
+.p-xxs {
+  padding: var(--space-xxs);
+}
+
+.p-xs {
+  padding: var(--space-xs);
+}
+
+.p-sm {
+  padding: var(--space-sm);
+}
+
+.p-md {
+  padding: var(--space-md);
+}
+
+.p-lg {
+  padding: var(--space-lg);
+}
+
+.px-xxs {
+  padding-inline: var(--space-xxs);
+}
+
+.px-xs {
+  padding-inline: var(--space-xs);
+}
+
+.px-sm {
+  padding-inline: var(--space-sm);
+}
+
+.px-md {
+  padding-inline: var(--space-md);
+}
+
+.py-xxs {
+  padding-block: var(--space-xxs);
+}
+
+.py-xs {
+  padding-block: var(--space-xs);
+}
+
+.py-sm {
+  padding-block: var(--space-sm);
+}
+
+.m-xs {
+  margin: var(--space-xs);
+}
+
+.mx-xs {
+  margin-inline: var(--space-xs);
+}
+
+.my-xxs {
+  margin-block: var(--space-xxs);
+}
+
+.my-xs {
+  margin-block: var(--space-xs);
+}
+
+/* ------ 层序：只认 token ------ */
+.z-menu {
+  z-index: var(--z-menu);
+}
+
+.z-drawer {
+  z-index: var(--z-drawer);
+}
+
+.z-modal {
+  z-index: var(--z-modal);
+}
+
+/* 高度取控件档；py-0 用于压掉基础件的默认内边距 */
+.h-control {
+  block-size: var(--size-control);
+}
+
+.py-0 {
+  padding-block: 0;
+}

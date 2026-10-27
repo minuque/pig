@@ -1,0 +1,69 @@
+/* Radix Themes 的基座接入。
+   rt 的 CSS 不分层（上游如此）：未分层规则优先于 Tailwind 的 @layer utilities，
+   所以组件上的 Tailwind 类压不住 rt 类，靠的是 scoped 样式带 data 属性的特异性。
+   base.css 只含 token 机制与「属性 → 变量」映射，色板在 palettes.css 里按需引入。 */
+
+@import "@radix-ui/themes/tokens/base.css";
+@import "@radix-ui/themes/components.css";
+
+/* 间距与圆角接到本项目的刻度：rt 的 space 1-6、radius 1-6 全部由 token 派生，
+   改 --space-* 或 --radius 整片跟随。space 7-9（40/48/64）项目里没有对应档，留 rt 原值。 */
+.radix-themes {
+  --space-1: var(--space-xxs);
+  --space-2: var(--space-xs);
+  --space-3: var(--space-sm);
+  --space-4: var(--space-md);
+  --space-5: var(--space-lg);
+  --space-6: var(--space-xxl);
+
+  /* 保留 rt 的 3/4/6/8/12/16 档间比例，整体按 --radius 缩放 */
+  --radius-1: calc(var(--radius) * 3 / 8);
+  --radius-2: calc(var(--radius) / 2);
+  --radius-3: calc(var(--radius) * 3 / 4);
+  --radius-4: var(--radius);
+  --radius-5: calc(var(--radius) * 3 / 2);
+  --radius-6: calc(var(--radius) * 2);
+
+  /* rt 把字体、根字号与字色定在自己身上，接回项目基线：随包字体、正文档、对比度层。
+     不接这三项，包在根上的 ThemeRoot 会让整站退回系统字体与 16px。 */
+  --default-font-family: var(--font-sans);
+  --default-font-size: var(--text-body-md);
+  color: var(--contrast-foreground);
+}
+
+/* Reka 与 rt 对浮层用的 CSS 变量前缀不同：rt 的组件 CSS 读 --radix-*，
+   Reka 写的是 --reka-*。同名映射一遍，避免改 rt 的 CSS。 */
+.rt-PopperContent,
+.rt-DropdownMenuContent,
+.rt-ContextMenuContent,
+.rt-PopoverContent,
+.rt-SelectContent,
+.rt-HoverCardContent,
+.rt-TooltipContent {
+  --radix-dropdown-menu-content-available-height: var(
+    --reka-dropdown-menu-content-available-height
+  );
+  --radix-dropdown-menu-content-transform-origin: var(
+    --reka-dropdown-menu-content-transform-origin
+  );
+  --radix-context-menu-content-available-height: var(--reka-context-menu-content-available-height);
+  --radix-context-menu-content-transform-origin: var(--reka-context-menu-content-transform-origin);
+  --radix-popover-content-transform-origin: var(--reka-popover-content-transform-origin);
+  --radix-popover-content-available-height: var(--reka-popover-content-available-height);
+  --radix-select-content-available-height: var(--reka-select-content-available-height);
+  --radix-select-trigger-width: var(--reka-select-trigger-width);
+  --radix-hover-card-content-transform-origin: var(--reka-hover-card-content-transform-origin);
+  --radix-tooltip-content-available-width: var(--reka-tooltip-content-available-width);
+}
+
+/* 弹层默认宽度跟 rt 的 600px 一致；调用方的 scoped 类特异性更高，仍能按需改宽度。 */
+.rt-DialogContent {
+  max-inline-size: var(--dialog-max-width, 600px);
+}
+
+/* 标题下边距：rt 的 Dialog.Title 用 mb="3" 的 margin 工具类实现，
+   我们没引 utilities.css（250 KB 只为几个间距），同档写死在这里。 */
+.rt-DialogTitle,
+.rt-AlertDialogTitle {
+  margin-block-end: var(--space-3);
+}

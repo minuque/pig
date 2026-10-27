@@ -1,0 +1,161 @@
+/* Callout：保留项目自己的语义色（info/success/warning/destructive），
+   不套 Radix Themes 的 accent 色板。尺寸与变体的组合写在这里，SFC 只管类名。 */
+
+.callout {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.callout-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.callout-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.callout-body {
+  min-inline-size: 0;
+}
+
+/* 正文段落比标题松开一档，沿用原来的 1.625 */
+.callout-body p {
+  line-height: 1.625;
+}
+
+.callout-title {
+  min-inline-size: 0;
+  flex: 1 1 auto;
+  font-weight: var(--font-weight-medium);
+}
+
+.callout-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 20px;
+  block-size: 20px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--contrast-foreground-muted);
+  cursor: pointer;
+}
+
+/* ------ 尺寸 ------ */
+.callout-size-1 {
+  gap: 2px;
+  padding: var(--space-xxs) var(--space-xs);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
+.callout-size-2 {
+  gap: var(--space-xxs);
+  padding: var(--space-xs);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+}
+
+.callout-size-3 {
+  gap: 6px;
+  padding: var(--space-sm);
+  font-size: var(--text-body-lg);
+  line-height: var(--text-body-lg--line-height);
+}
+
+/* ------ 语义色 × 变体 ------ */
+.callout-neutral.callout-soft {
+  background: var(--interaction-hover);
+  color: var(--contrast-foreground);
+}
+
+.callout-neutral.callout-surface {
+  background: var(--card);
+  color: var(--contrast-foreground);
+}
+
+.callout-neutral.callout-outline {
+  background: transparent;
+  color: var(--contrast-foreground);
+}
+
+.callout-info.callout-soft {
+  border-color: color-mix(in srgb, var(--info) 25%, transparent);
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.callout-info.callout-surface {
+  border-color: color-mix(in srgb, var(--info) 40%, transparent);
+  background: var(--card);
+  color: var(--info);
+}
+
+.callout-info.callout-outline {
+  border-color: color-mix(in srgb, var(--info) 50%, transparent);
+  background: transparent;
+  color: var(--info);
+}
+
+.callout-success.callout-soft {
+  border-color: color-mix(in srgb, var(--success) 25%, transparent);
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.callout-success.callout-surface {
+  border-color: color-mix(in srgb, var(--success) 40%, transparent);
+  background: var(--card);
+  color: var(--success);
+}
+
+.callout-success.callout-outline {
+  border-color: color-mix(in srgb, var(--success) 50%, transparent);
+  background: transparent;
+  color: var(--success);
+}
+
+.callout-warning.callout-soft {
+  border-color: color-mix(in srgb, var(--warning) 25%, transparent);
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.callout-warning.callout-surface {
+  border-color: color-mix(in srgb, var(--warning) 40%, transparent);
+  background: var(--card);
+  color: var(--warning);
+}
+
+.callout-warning.callout-outline {
+  border-color: color-mix(in srgb, var(--warning) 50%, transparent);
+  background: transparent;
+  color: var(--warning);
+}
+
+.callout-destructive.callout-soft {
+  border-color: color-mix(in srgb, var(--destructive) 25%, transparent);
+  background: var(--destructive-bg);
+  color: var(--destructive-on-tint);
+}
+
+.callout-destructive.callout-surface {
+  border-color: color-mix(in srgb, var(--destructive) 40%, transparent);
+  background: var(--card);
+  color: var(--destructive);
+}
+
+.callout-destructive.callout-outline {
+  border-color: color-mix(in srgb, var(--destructive) 50%, transparent);
+  background: transparent;
+  color: var(--destructive);
+}

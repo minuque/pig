@@ -1,6 +1,6 @@
 <template>
   <div class="tool-summary" :class="{ failed, running }">
-    <Button type="button" static class="summary" :class="{ 'is-open': open }" @click="toggleGroup">
+    <button type="button" class="summary" :class="{ 'is-open': open }" @click="toggleGroup">
       <component :is="icon" class="tool-icon" data-icon="inline-start" />
       <span class="label">{{ label }}</span>
 
@@ -23,7 +23,7 @@
         :class="{ 'is-on': open }"
         data-icon="inline-end"
       />
-    </Button>
+    </button>
 
     <div class="tool-calls-group" :class="{ 'is-open': open, instant: running }" :inert="!open">
       <div class="panel-slide">
@@ -81,7 +81,6 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Button } from "@components/ui/button/index.js"
 import CommandStepCard from "@features/transcript-view/components/CommandStepCard.vue"
 import EditStepCard from "@features/transcript-view/components/EditStepCard.vue"
 import GenericStepCard from "@features/transcript-view/components/GenericStepCard.vue"
@@ -378,6 +377,9 @@ function toggleGroup(event: MouseEvent) {
 }
 
 .summary {
+  /* 原来是 Button 组件带的 flex 布局，换成原生 button 后要自己声明 */
+  display: flex;
+  align-items: center;
   width: 100%;
   height: auto;
   min-height: 28px;

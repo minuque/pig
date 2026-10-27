@@ -3,6 +3,8 @@ packages:
   - "apps/*"
 
 linkWorkspacePackages: true
+overrides:
+  "@pierre/diffs": 1.6.1
 syncInjectedDepsAfterScripts:
   - build
 

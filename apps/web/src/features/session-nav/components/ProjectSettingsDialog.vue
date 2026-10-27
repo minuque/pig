@@ -1,6 +1,6 @@
 <template>
   <Dialog v-model:open="open">
-    <DialogContent class="sm:max-w-[26rem]">
+    <DialogContent class="settings-dialog">
       <DialogTitle>{{ t("session.projectSettings") }}</DialogTitle>
       <p class="settings-sub">{{ project }} · {{ t("session.customIcon") }}</p>
       <div class="settings-label">{{ t("session.icon") }}</div>
@@ -34,11 +34,12 @@
         </div>
 
         <div v-if="activeTab === 'icon'" class="icon-pane">
-          <input
+          <TextFieldRoot
             v-model="iconQuery"
             class="icon-search"
-            type="text"
+            size="1"
             :placeholder="t('session.searchIcon')"
+            :aria-label="t('session.searchIcon')"
           />
 
           <div class="icon-grid">
@@ -105,15 +106,12 @@
 import { computed, reactive, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import { readJson, writeJson } from "@utils/storage.js"
 import { isAccentId } from "@features/theme/lib/accents.js"
 import { FolderIcon } from "@components/icons/index.js"
-import {
-  ACCENTS,
-  DEFAULT_ACCENT_ID,
-  findAccent,
-  type AccentId,
-} from "@features/theme/lib/accents.js"
+import { ACCENTS, DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
+import { accentHex } from "@features/theme/lib/palette.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
 import { MonitorIcon } from "@solar-icons/vue/linear/monitor"
@@ -224,12 +222,8 @@ if (cur) {
 
 const tabs: IconKind[] = ["icon", "emoji", "monogram"]
 
-function accentHex(id: AccentId) {
-  const scale = isDark.value ? findAccent(id).dark : findAccent(id).light
-  return scale.step9
-}
-
 function swatchHex(id: AccentId) {
+  void isDark.value
   return accentHex(id)
 }
 
@@ -343,19 +337,7 @@ function save() {
 }
 
 .icon-search {
-  height: var(--size-nav-rail);
-  padding: 0 var(--space-xs);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: var(--interaction-hover);
-  color: var(--contrast-foreground);
-  font-size: var(--text-caption);
-  outline: none;
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-
-.icon-search:focus {
-  box-shadow: inset 0 0 0 1px var(--primary);
+  inline-size: 100%;
 }
 
 .icon-grid,
@@ -454,12 +436,19 @@ function save() {
 }
 
 .btn.primary:hover {
-  background: var(--primary-hover);
+  background: var(--primary-active);
 }
 
 .btn.auto {
   margin-inline-end: auto;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
+}
+
+/* 比默认弹层窄一档，宽屏下也不会拉成整行 */
+@media (min-width: 640px) {
+  .settings-dialog {
+    max-inline-size: 26rem;
+  }
 }
 </style>

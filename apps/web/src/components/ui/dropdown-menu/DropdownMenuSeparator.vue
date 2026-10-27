@@ -2,7 +2,7 @@
   <DropdownMenuSeparator
     data-slot="dropdown-menu-separator"
     v-bind="forwardedProps"
-    class="mx-(--space-xs) my-(--space-xxs) h-px bg-[color:var(--hairline)]"
+    class="rt-BaseMenuSeparator"
     :class="props.class"
   />
 </template>

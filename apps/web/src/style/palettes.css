@@ -1,0 +1,18 @@
+/* 色板：accent 与 gray 的取值直接来自 Radix Colors 的官方刻度，
+   经 @radix-ui/themes 的色板文件引入。只引项目里的 6 套 accent 与 4 族 gray，
+   其余 20 多套不进包。
+   切 accent 只改 html 的 data-accent-color：--indigo-* 等是每个族的原始刻度，
+   --accent-* 由 rt 的基座按属性映射过来，深浅由 .dark 块决定。 */
+
+@import "@radix-ui/themes/tokens/colors/indigo.css";
+@import "@radix-ui/themes/tokens/colors/blue.css";
+@import "@radix-ui/themes/tokens/colors/teal.css";
+@import "@radix-ui/themes/tokens/colors/green.css";
+@import "@radix-ui/themes/tokens/colors/orange.css";
+@import "@radix-ui/themes/tokens/colors/red.css";
+
+/* 中性色：indigo/blue 用 slate，teal/green 用 sage，orange 用 sand，red 用 mauve */
+@import "@radix-ui/themes/tokens/colors/slate.css";
+@import "@radix-ui/themes/tokens/colors/sage.css";
+@import "@radix-ui/themes/tokens/colors/sand.css";
+@import "@radix-ui/themes/tokens/colors/mauve.css";

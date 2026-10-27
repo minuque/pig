@@ -26,7 +26,12 @@
             <div class="settings-body">
               <GeneralPane v-if="active === 'general'" />
               <UsagePane v-else-if="active === 'usage'" />
-              <ResourcePane v-else :pane="active === 'skills' ? 'skills' : 'extensions'" />
+
+              <ResourcePane
+                v-else
+                :pane="active === 'skills' ? 'skills' : 'extensions'"
+                :cwd="cwd"
+              />
             </div>
           </div>
         </div>
@@ -51,10 +56,15 @@ import ResourcePane from "./ResourcePane.vue"
 
 type Pane = "general" | "usage" | "skills" | "extensions"
 
-const props = defineProps<{ open: boolean }>()
+const props = defineProps<{
+  open: boolean
+  cwd?: string | undefined
+  /** 打开时定位的分区，默认 General。 */
+  initialPane?: Pane | undefined
+}>()
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
-const active = ref<Pane>("general")
+const active = ref<Pane>(props.initialPane ?? "general")
 const scroller = ref<HTMLElement>()
 const tabs = computed<{ id: Pane; label: string; icon: typeof SliderMinimalisticHorizontalIcon }[]>(
   () => [
@@ -77,13 +87,13 @@ function resetScroll() {
   scroller.value?.scrollTo({ top: 0 })
 }
 
-/** 每次打开回到 General，切分区回到顶部。 */
+/** 每次打开回到 initialPane（默认 General），切分区回到顶部。 */
 watch(
   () => props.open,
   async (open) => {
     if (!open) return
 
-    active.value = "general"
+    active.value = props.initialPane ?? "general"
     await nextTick()
     resetScroll()
   },

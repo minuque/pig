@@ -23,25 +23,28 @@ test("切深色后 html 挂 dark，状态色跟着换一份", async ({ page, gat
   expect(await successVar(page)).toBe("#34d399")
 })
 
-test("选 accent 后写入 data-accent 并换 --accent-*", async ({ page, gateway }) => {
+test("选 accent 后写入 data-accent-color 并换 --accent-*", async ({ page, gateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
 
   await page.locator(".footer-settings").click()
-  await page.locator(".accent-grid [data-accent='crimson']").click()
+  await page.locator(".accent-grid [data-accent='teal']").click()
 
-  await expect(page.locator("html")).toHaveAttribute("data-accent", "crimson")
+  // 色板来自 Radix，--accent-* 由 data-accent-color 映射
+  await expect(page.locator("html")).toHaveAttribute("data-accent-color", "teal")
+  await expect(page.locator("html")).toHaveAttribute("data-gray-color", "sage")
   expect(
     await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue("--accent-9").trim(),
     ),
-  ).toBe("#e93d82")
+  ).toBe("#12a594")
 
-  // 换回默认 indigo，撤掉注入
+  // 换回默认 indigo：属性留在 indigo，不再清空
   await page.locator(".accent-grid [data-accent='indigo']").click()
-  await expect(page.locator("html")).not.toHaveAttribute("data-accent", /.+/u)
+  await expect(page.locator("html")).toHaveAttribute("data-accent-color", "indigo")
+  await expect(page.locator("html")).toHaveAttribute("data-gray-color", "slate")
   expect(
     await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue("--accent-9").trim(),

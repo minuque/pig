@@ -1,9 +1,5 @@
 <template>
-  <div
-    data-slot="alert-dialog-footer"
-    class="flex flex-col-reverse gap-(--space-xs) sm:flex-row sm:justify-end"
-    :class="props.class"
-  >
+  <div data-slot="alert-dialog-footer" class="aa-footer" :class="props.class">
     <slot />
   </div>
 </template>
@@ -15,3 +11,18 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
   class: undefined,
 })
 </script>
+
+<style scoped>
+.aa-footer {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-xs);
+}
+
+@media (min-width: 640px) {
+  .aa-footer {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+</style>
