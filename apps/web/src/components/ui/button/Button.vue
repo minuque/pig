@@ -10,7 +10,7 @@
     :style="extracted.style"
     v-bind="{ ...extracted.attrs, ...$attrs }"
   >
-    <slot />
+    <ButtonContent :loading="loading" :size="size"><slot /></ButtonContent>
   </Primitive>
 </template>
 
@@ -21,6 +21,7 @@ import { computed } from "vue"
 import { Primitive } from "reka-ui"
 import { extractProps, type PropDefs } from "@components/ui/rt/props.js"
 import type { ButtonSize, ButtonVariant, HighContrast, Radius } from "./index.js"
+import ButtonContent from "./ButtonContent.vue"
 
 interface Props extends PrimitiveProps {
   variant?: ButtonVariant

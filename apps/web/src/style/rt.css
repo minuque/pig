@@ -23,6 +23,12 @@
   --radius-4: var(--radius);
   --radius-5: calc(var(--radius) * 3 / 2);
   --radius-6: calc(var(--radius) * 2);
+
+  /* rt 把字体、根字号与字色定在自己身上，接回项目基线：随包字体、正文档、对比度层。
+     不接这三项，包在根上的 ThemeRoot 会让整站退回系统字体与 16px。 */
+  --default-font-family: var(--font-sans);
+  --default-font-size: var(--text-body-md);
+  color: var(--contrast-foreground);
 }
 
 /* Reka 与 rt 对浮层用的 CSS 变量前缀不同：rt 的组件 CSS 读 --radix-*，

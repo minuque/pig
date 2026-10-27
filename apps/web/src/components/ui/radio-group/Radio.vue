@@ -6,6 +6,8 @@
     class="rt-reset rt-BaseRadioRoot rt-RadioRoot"
     :class="[sizeClass, variantClass, props.class]"
     :value="value"
+    :name="name"
+    :disabled="disabled"
     :checked="checked"
     @change="onChange"
   />
