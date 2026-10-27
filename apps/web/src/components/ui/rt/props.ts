@@ -10,6 +10,8 @@ export type PropDef = Readonly<{
   default?: string | boolean
   /** 枚举落成 `${className}-${value}`；布尔落成 className 本身 */
   className?: string
+  /** 枚举值到 rt 档位的映射：本项目只对外给 s/m/l，rt 收数字档 */
+  valueMap?: Readonly<Record<string, string>>
   /** 字符串落成内联自定义属性 */
   customProperty?: string
 }>
@@ -22,11 +24,21 @@ export interface Extracted {
   attrs: Record<string, unknown>
 }
 
-export function extractProps(props: Record<string, unknown>, ...defs: PropDefs[]): Extracted {
-  const all: Record<string, PropDef> = Object.assign({}, ...defs)
+/**
+ * 把 props 拆成类名、内联变量与剩余属性。
+ * omit 里的键只走 data 属性、不落回元素，避免 color / radius 这类被当成原生属性写进 DOM。
+ */
+export function extractProps(
+  props: Record<string, unknown>,
+  defs: PropDefs,
+  omit: readonly string[] = [],
+): Extracted {
+  const all: Record<string, PropDef> = Object.assign({}, defs)
   const attrs: Record<string, unknown> = { ...props }
   const classes: string[] = []
   const style: Record<string, string> = {}
+
+  for (const key of omit) delete attrs[key]
 
   for (const [key, def] of Object.entries(all)) {
     let value = attrs[key]
@@ -48,7 +60,7 @@ export function extractProps(props: Record<string, unknown>, ...defs: PropDefs[]
 
     const text = String(value)
 
-    if (def.className) classes.push(`${def.className}-${text}`)
+    if (def.className) classes.push(`${def.className}-${def.valueMap?.[text] ?? text}`)
 
     if (def.customProperty) style[def.customProperty] = text
     else if (!def.className) attrs[key] = value

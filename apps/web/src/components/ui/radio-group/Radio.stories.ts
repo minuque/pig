@@ -7,10 +7,10 @@ const meta: Meta = {
   component: Radio,
   tags: ["autodocs"],
   argTypes: {
-    size: { control: "select", options: ["1", "2", "3"] },
+    size: { control: "select", options: ["s", "m", "l"] },
     color: { control: "text" },
   },
-  args: { size: "2", value: "solo", name: "solo-demo" },
+  args: { size: "m", value: "solo", name: "solo-demo" },
   render: (args) => ({
     components: { Radio },
     setup: () => ({ args }),

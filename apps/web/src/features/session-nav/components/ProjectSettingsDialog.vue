@@ -37,7 +37,7 @@
           <TextFieldRoot
             v-model="iconQuery"
             class="icon-search"
-            size="1"
+            size="s"
             :placeholder="t('session.searchIcon')"
             :aria-label="t('session.searchIcon')"
           />

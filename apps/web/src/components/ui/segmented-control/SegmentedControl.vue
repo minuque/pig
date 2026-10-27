@@ -21,23 +21,24 @@ import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
 import { ToggleGroupRoot } from "reka-ui"
 import type { Radius } from "@components/ui/button/index.js"
+import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<{
     modelValue?: string
-    /** Radix Themes 的分段尺寸：1、2、3 */
-    size?: "1" | "2" | "3"
+    /** 尺寸档：s、m、l */
+    size?: Size
     variant?: "surface" | "classic"
     radius?: Radius
     disabled?: boolean
     class?: HTMLAttributes["class"]
   }>(),
-  { size: "2", variant: "surface", disabled: false, class: undefined },
+  { size: "m", variant: "surface", disabled: false, class: undefined },
 )
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
-const sizeClass = computed(() => `rt-r-size-${props.size}`)
+const sizeClass = computed(() => rtSizeClass(props.size))
 const variantClass = computed(() => `rt-variant-${props.variant}`)
 
 // rt 的分段控件不会因为再点一次当前项就清空，空值直接丢掉

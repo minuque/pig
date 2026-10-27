@@ -20,12 +20,13 @@ import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
 import { Primitive } from "reka-ui"
 import { extractProps, type PropDefs } from "@components/ui/rt/props.js"
-import type { ButtonSize, ButtonVariant, HighContrast, Radius } from "./index.js"
+import { RT_SIZE, type Size } from "@components/ui/rt/size.js"
+import type { ButtonVariant, HighContrast, Radius } from "./index.js"
 import ButtonContent from "./ButtonContent.vue"
 
 interface Props extends PrimitiveProps {
   variant?: ButtonVariant
-  size?: ButtonSize
+  size?: Size
   color?: string
   radius?: Radius
   highContrast?: HighContrast
@@ -38,20 +39,28 @@ const props = withDefaults(defineProps<Props>(), {
   as: "button",
   asChild: false,
   variant: "solid",
-  size: "2",
+  size: "m",
   loading: false,
   disabled: false,
 })
 const DEFS: PropDefs = {
-  size: { type: "enum", values: ["1", "2", "3", "4"], default: "2", className: "rt-r-size" },
+  size: {
+    type: "enum",
+    values: ["s", "m", "l"],
+    default: "m",
+    className: "rt-r-size",
+    valueMap: RT_SIZE,
+  },
   variant: {
     type: "enum",
-    values: ["classic", "solid", "soft", "surface", "outline", "ghost", "ghost-offset"],
+    values: ["classic", "solid", "soft", "surface", "outline", "ghost"],
     default: "solid",
     className: "rt-variant",
   },
   highContrast: { type: "boolean", className: "rt-high-contrast" },
   loading: { type: "boolean", className: "rt-loading" },
 }
-const extracted = computed(() => extractProps(props as Record<string, unknown>, DEFS))
+const extracted = computed(() =>
+  extractProps(props as Record<string, unknown>, DEFS, ["color", "radius"]),
+)
 </script>

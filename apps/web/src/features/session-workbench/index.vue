@@ -69,7 +69,7 @@
                     type="button"
                     :aria-label="t('transcript.scrollToBottom')"
                     variant="outline"
-                    size="1"
+                    size="s"
                     @click="scrollToLatest('smooth')"
                   >
                     <span class="icon-swap">

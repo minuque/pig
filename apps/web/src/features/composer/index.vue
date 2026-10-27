@@ -47,7 +47,7 @@
           <TooltipTrigger as-child>
             <IconButton
               type="button"
-              size="1"
+              size="s"
               class="attach press-scale"
               :aria-label="t('composer.addAttachment')"
               :disabled="attachmentsFull"
@@ -94,7 +94,7 @@
           <TooltipTrigger as-child>
             <IconButton
               type="button"
-              size="1"
+              size="s"
               class="send press-scale"
               :class="{ 'send--abort': primaryMode === 'stop' }"
               :aria-label="primaryLabel"

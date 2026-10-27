@@ -7,12 +7,12 @@ const meta: Meta = {
   component: RadioGroup,
   tags: ["autodocs"],
   argTypes: {
-    size: { control: "select", options: ["1", "2", "3"] },
+    size: { control: "select", options: ["s", "m", "l"] },
     variant: { control: "select", options: ["classic", "surface", "soft"] },
     color: { control: "text" },
     highContrast: { control: "boolean" },
   },
-  args: { size: "2", variant: "surface", highContrast: false, modelValue: "a" },
+  args: { size: "m", variant: "surface", highContrast: false, modelValue: "a" },
   render: (args) => ({
     components: { RadioGroup, RadioGroupItem },
     setup: () => ({ args }),
@@ -36,7 +36,7 @@ export const Sizes: Story = {
   render: () => ({
     components: { RadioGroup, RadioGroupItem },
     template: `<div class="flex flex-col gap-md">
-      <RadioGroup v-for="size in ['1', '2', '3']" :key="size" :size="size" model-value="a">
+      <RadioGroup v-for="size in ['s', 'm', 'l']" :key="size" :size="size" model-value="a">
         <RadioGroupItem value="a">尺寸 {{ size }}</RadioGroupItem>
         <RadioGroupItem value="b">第二项</RadioGroupItem>
       </RadioGroup>

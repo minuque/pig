@@ -7,12 +7,12 @@ const meta: Meta = {
   component: Badge,
   tags: ["autodocs"],
   argTypes: {
-    size: { control: "select", options: ["1", "2", "3"] },
+    size: { control: "select", options: ["s", "m", "l"] },
     variant: { control: "select", options: ["solid", "soft", "surface", "outline"] },
     color: { control: "text" },
     highContrast: { control: "boolean" },
   },
-  args: { size: "1", variant: "soft", highContrast: false },
+  args: { size: "s", variant: "soft", highContrast: false },
   render: (args) => ({
     components: { Badge },
     setup: () => ({ args }),

@@ -29,19 +29,20 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { computed, useAttrs } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack, useForwardPropsEmits } from "reka-ui"
+import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
 
 const props = withDefaults(
   defineProps<
     SliderRootProps & {
       class?: HTMLAttributes["class"]
-      /** Radix Themes 的滑块尺寸：1、2、3 */
-      size?: "1" | "2" | "3"
+      /** 尺寸档：s、m、l */
+      size?: Size
       variant?: "classic" | "surface" | "soft"
       color?: string
       radius?: "none" | "small" | "medium" | "large" | "full"
     }
   >(),
-  { class: undefined, size: "2", variant: "surface" },
+  { class: undefined, size: "m", variant: "surface" },
 )
 const emits = defineEmits<SliderRootEmits>()
 const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "radius")
@@ -50,6 +51,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Sli
 const attrs = useAttrs()
 const thumbLabel = computed(() => attrs["aria-label"] as string | undefined)
 const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | undefined)
-const sizeClass = `rt-r-size-${props.size}`
+const sizeClass = rtSizeClass(props.size)
 const variantClass = `rt-variant-${props.variant}`
 </script>

@@ -16,6 +16,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
+import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
 
 const props = withDefaults(
   defineProps<{
@@ -25,14 +26,14 @@ const props = withDefaults(
     checked?: boolean
     disabled?: boolean
     color?: string
-    size?: "1" | "2" | "3"
+    size?: Size
     variant?: "classic" | "surface" | "soft"
     class?: HTMLAttributes["class"]
   }>(),
-  { disabled: false, size: "2", variant: "surface", class: undefined },
+  { disabled: false, size: "m", variant: "surface", class: undefined },
 )
 const emit = defineEmits<{ "update:checked": [checked: boolean] }>()
-const sizeClass = computed(() => `rt-r-size-${props.size}`)
+const sizeClass = computed(() => rtSizeClass(props.size))
 const variantClass = computed(() => `rt-variant-${props.variant}`)
 
 function onChange(event: Event) {

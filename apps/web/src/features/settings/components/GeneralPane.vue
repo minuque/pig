@@ -66,7 +66,7 @@
 
           <SegmentedControl
             :model-value="locale"
-            size="1"
+            size="s"
             :aria-label="t('settings.language')"
             @update:model-value="onLocale"
           >
@@ -84,7 +84,7 @@
 
           <SegmentedControl
             :model-value="fontSize"
-            size="1"
+            size="s"
             :aria-label="t('settings.fontSize')"
             @update:model-value="onFontSize"
           >

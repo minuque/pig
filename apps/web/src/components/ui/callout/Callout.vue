@@ -67,7 +67,7 @@ const props = withDefaults(defineProps<Props>(), {
   asChild: false,
   variant: "surface",
   color: "neutral",
-  size: "2",
+  size: "m",
   dismissible: false,
   floating: false,
   class: undefined,
@@ -85,18 +85,18 @@ const emit = defineEmits<{ close: [] }>()
   color: var(--contrast-foreground);
 }
 
-.callout[data-size="1"] .callout-icon :deep(svg) {
-  width: 0.875rem;
-  height: 0.875rem;
+.callout[data-size="s"] .callout-icon :deep(svg) {
+  inline-size: var(--size-icon);
+  block-size: var(--size-icon);
 }
 
-.callout[data-size="2"] .callout-icon :deep(svg) {
-  width: 0.875rem;
-  height: 0.875rem;
+.callout[data-size="m"] .callout-icon :deep(svg) {
+  inline-size: var(--size-icon);
+  block-size: var(--size-icon);
 }
 
-.callout[data-size="3"] .callout-icon :deep(svg) {
-  width: 1rem;
-  height: 1rem;
+.callout[data-size="l"] .callout-icon :deep(svg) {
+  inline-size: var(--size-icon-2xs);
+  block-size: var(--size-icon-2xs);
 }
 </style>

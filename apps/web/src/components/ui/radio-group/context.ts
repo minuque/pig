@@ -1,7 +1,8 @@
 import type { ComputedRef, InjectionKey } from "vue"
+import type { Size } from "@components/ui/rt/size.js"
 
 export interface RadioGroupContext {
-  size: "1" | "2" | "3"
+  size: Size
   variant: "classic" | "surface" | "soft"
 }
 

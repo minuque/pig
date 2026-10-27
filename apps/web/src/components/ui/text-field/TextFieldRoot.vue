@@ -24,6 +24,7 @@
 import type { HTMLAttributes } from "vue"
 import { computed, ref } from "vue"
 import { extractProps, type PropDefs } from "@components/ui/rt/props.js"
+import { RT_SIZE, type Size } from "@components/ui/rt/size.js"
 import type { Radius } from "@components/ui/button/index.js"
 
 defineOptions({ inheritAttrs: false })
@@ -31,18 +32,24 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(
   defineProps<{
     modelValue?: string | number
-    /** Radix Themes 的输入框尺寸：1、2、3 */
-    size?: "1" | "2" | "3"
+    /** 尺寸档：s、m、l */
+    size?: Size
     variant?: "classic" | "surface" | "soft"
     color?: string
     radius?: Radius
     class?: HTMLAttributes["class"]
   }>(),
-  { size: "2", variant: "surface", class: undefined },
+  { size: "m", variant: "surface", class: undefined },
 )
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 const DEFS: PropDefs = {
-  size: { type: "enum", values: ["1", "2", "3"], default: "2", className: "rt-r-size" },
+  size: {
+    type: "enum",
+    values: ["s", "m", "l"],
+    default: "m",
+    className: "rt-r-size",
+    valueMap: RT_SIZE,
+  },
   variant: {
     type: "enum",
     values: ["classic", "surface", "soft"],
@@ -50,7 +57,9 @@ const DEFS: PropDefs = {
     className: "rt-variant",
   },
 }
-const extracted = computed(() => extractProps(props as Record<string, unknown>, DEFS))
+const extracted = computed(() =>
+  extractProps(props as Record<string, unknown>, DEFS, ["color", "radius"]),
+)
 const inputRef = ref<HTMLInputElement>()
 
 function onInput(event: Event) {

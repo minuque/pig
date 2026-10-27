@@ -12,13 +12,14 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Spinner } from "@components/ui/spinner/index.js"
+import type { Size } from "@components/ui/rt/size.js"
 
-const props = withDefaults(defineProps<{ loading?: boolean; size?: "1" | "2" | "3" | "4" }>(), {
+const props = withDefaults(defineProps<{ loading?: boolean; size?: Size }>(), {
   loading: false,
-  size: "2",
+  size: "m",
 })
-/** rt 的映射：档位 1 用 12px，2 与 3 用 16px，4 用 20px */
-const spinnerSize = computed(() => (props.size === "4" ? 20 : props.size === "1" ? 12 : 16))
+/** 跟 rt 的映射：s 用 12px，m 与 l 用 16px */
+const spinnerSize = computed(() => (props.size === "s" ? 12 : 16))
 </script>
 
 <style scoped>
