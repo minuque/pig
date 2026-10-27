@@ -1,4 +1,4 @@
-@import "./reset.css";
+@import "./reset.css" layer(base);
 @import "./palettes.css";
 @import "./rt.css";
 @import "./motion.css";
