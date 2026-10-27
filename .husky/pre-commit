@@ -1,1 +1,1 @@
-npx --no-install lint-staged --max-arg-length 4000
+npx --no-install lint-staged --max-arg-length 4000 --no-stash

@@ -1,4 +1,4 @@
-/** 校验入口：pnpm check；--touched 脏文件；--touched --fix 先写回。 */
+/** 校验入口：pnpm check；--touched 脏文件；--touched --fix 先写回；--since <ref> 连提交一起查。 */
 import { existsSync } from "node:fs"
 import { spawnSync } from "node:child_process"
 import { resolve } from "node:path"
@@ -12,16 +12,30 @@ const fix = process.argv.includes("--fix")
 /** --e2e：强制跑映射到的 e2e；--no-e2e：即使改了 UI 也不跑（赶时间时用）。 */
 const withE2e = process.argv.includes("--e2e")
 const noE2e = process.argv.includes("--no-e2e")
+/** --since <ref>：把该 ref 到 HEAD 的提交一起当脏文件（pre-push 用）。 */
+const sinceIndex = process.argv.indexOf("--since")
+const since = sinceIndex >= 0 ? (process.argv[sinceIndex + 1] ?? "") : undefined
+
+if (since === "") {
+  console.error("check.mjs: --since 需要一个 ref，如 --since origin/main")
+  process.exit(1)
+}
+
 /* DESIGN.md 缺失时（token 稳定前）跳过 designmd lint 与 token 校验，重新生成后自动恢复。 */
 const hasDesignMd = existsSync(resolve(root, "DESIGN.md"))
 /* lint-staged 里 prettier 不带 --cache 会删默认缓存文件，多组并发会撞 ENOENT；check 用独立文件。 */
 const PRETTIER_CACHE = "node_modules/.cache/prettier/check"
+/* 检查侧同理：写文件的步骤（fix、lint-staged）与只读检查不共用缓存，免得多余恢复后误用旧记录。 */
+const ESLINT_CACHE = "node_modules/.cache/eslint/check"
 const CHECK_STEPS = [
   {
     name: "format",
     args: ["exec", "prettier", "--check", "--cache", "--cache-location", PRETTIER_CACHE, "."],
   },
-  { name: "eslint", args: ["exec", "eslint", "--cache", "."] },
+  {
+    name: "eslint",
+    args: ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE, "."],
+  },
   { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
   {
     name: "vue-template",
@@ -41,6 +55,19 @@ function reportDesignMdSkip() {
   if (!hasDesignMd) console.log("跳过: designmd, design-tokens（DESIGN.md 缺失）")
 }
 
+/** 某 ref 到 HEAD 的提交改到的文件；取不到范围时按空处理，不阻塞推送。 */
+function committedFiles(ref) {
+  const opts = { cwd: root, encoding: "utf8", windowsHide: true }
+  const ran = spawnSync("git", ["diff", "--name-only", `${ref}..HEAD`], opts)
+
+  if (ran.status !== 0) {
+    console.warn(`check: --since ${ref} 取不到提交范围，只查未提交改动`)
+    return []
+  }
+
+  return ran.stdout.split(/\r?\n/)
+}
+
 function dirtyFiles() {
   const opts = { cwd: root, encoding: "utf8", windowsHide: true }
   const names = [
@@ -48,6 +75,8 @@ function dirtyFiles() {
     ...spawnSync("git", ["diff", "--name-only", "--cached"], opts).stdout.split(/\r?\n/),
     ...spawnSync("git", ["ls-files", "--others", "--exclude-standard"], opts).stdout.split(/\r?\n/),
   ]
+
+  if (since) names.push(...committedFiles(since))
   return [...new Set(names.map((line) => line.trim()).filter(Boolean))]
 }
 
@@ -116,9 +145,9 @@ async function fixTouched(scope) {
   reportResults("fix:touched", results)
 }
 
-async function checkTouched(scope, files) {
+async function checkTouched(scope, files, label = "check:touched") {
   if (scope.escalate) {
-    console.log("check:touched: 根配置有改动，升级为全量 pnpm check")
+    console.log(`${label}: 根配置有改动，升级为全量 pnpm check`)
     const ran = await runPnpm(["check"], root)
     process.stdout.write(ran.out)
     process.exitCode = ran.code
@@ -146,7 +175,10 @@ async function checkTouched(scope, files) {
   }
 
   if (scope.lintFiles.length) {
-    steps.push({ name: "eslint", args: ["exec", "eslint", "--cache", ...scope.lintFiles] })
+    steps.push({
+      name: "eslint",
+      args: ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE, ...scope.lintFiles],
+    })
   }
 
   if (scope.stylelintFiles.length) {
@@ -191,15 +223,15 @@ async function checkTouched(scope, files) {
         name: `e2e:${scope.specs.length}条`,
         args: ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts", ...scope.specs],
       })
-    else console.log(`check:touched: 建议补跑 e2e → pnpm test:e2e ${scope.specs.join(" ")}`)
+    else console.log(`${label}: 建议补跑 e2e → pnpm test:e2e ${scope.specs.join(" ")}`)
   }
 
   if (steps.length === 0) {
-    console.log(`check:touched: ${files.length} 个脏文件无需脚本/测试/lint`)
+    console.log(`${label}: ${files.length} 个文件无需脚本/测试/lint`)
     return
   }
 
-  console.log(`check:touched: ${files.length} files → ${steps.map((step) => step.name).join(", ")}`)
+  console.log(`${label}: ${files.length} files → ${steps.map((step) => step.name).join(", ")}`)
 
   const results = await Promise.all(
     steps.map(async (step) => {
@@ -214,15 +246,16 @@ async function checkTouched(scope, files) {
 if (fix && !touched) {
   console.error("check.mjs: --fix 只配合 --touched 使用，全库请跑 pnpm fix")
   process.exitCode = 1
-} else if (touched) {
+} else if (touched || since) {
   const { files, scope } = existingTouched()
+  const label = since ? `check:since ${since}` : "check:touched"
 
   if (files.length === 0) {
-    console.log(`${fix ? "fix" : "check"}:touched: 无脏文件，跳过`)
+    console.log(`${label}: 无改动，跳过`)
   } else if (fix) {
     await fixTouched(scope)
   } else {
-    await checkTouched(scope, files)
+    await checkTouched(scope, files, label)
   }
 } else {
   await runAll()
