@@ -8,7 +8,7 @@
 import type { DropdownMenuRootEmits, DropdownMenuRootProps } from "reka-ui"
 import type { ComputedRef } from "vue"
 import { DropdownMenuRoot, useForwardPropsEmits } from "reka-ui"
-import { providePopperAnchor } from "@components/ui/popper-anchor.js"
+import { providePopperAnchor } from "./popper-anchor.js"
 
 const props = defineProps<DropdownMenuRootProps>()
 const emits = defineEmits<DropdownMenuRootEmits>()

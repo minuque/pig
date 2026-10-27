@@ -17,7 +17,7 @@ import { computed, provide, reactive } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { RadioGroupRoot, useForwardProps } from "reka-ui"
 import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
-import { RADIO_GROUP_KEY } from "./context.js"
+import { RADIO_GROUP_KEY } from "./type.js"
 
 const props = withDefaults(
   defineProps<
