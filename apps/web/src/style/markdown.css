@@ -183,7 +183,7 @@
      不跟链接抢同一个亮度），外面留一圈淡淡描边 */
   .inline-code {
     font-size: var(--text-meta);
-    color: color-mix(in srgb, var(--link) 62%, var(--contrast-foreground-secondary));
+    color: color-mix(in srgb, var(--link) 75%, var(--contrast-foreground-secondary));
     border: var(--border-width) solid var(--border-subtle);
     border-radius: var(--radius-xs);
     padding: var(--border-width) calc(var(--space-xxs) - var(--border-width));
