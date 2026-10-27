@@ -19,14 +19,15 @@ import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
 import { Primitive } from "reka-ui"
 import type { Radius } from "@components/ui/button/index.js"
+import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<
     Pick<PrimitiveProps, "as" | "asChild"> & {
-      /** Radix Themes 的徽标尺寸：1、2、3 */
-      size?: "1" | "2" | "3"
+      /** 尺寸档：s、m、l */
+      size?: Size
       variant?: "solid" | "soft" | "surface" | "outline"
       color?: string
       radius?: Radius
@@ -37,12 +38,12 @@ const props = withDefaults(
   {
     as: "span",
     asChild: false,
-    size: "1",
+    size: "s",
     variant: "soft",
     highContrast: false,
     class: undefined,
   },
 )
-const sizeClass = computed(() => `rt-r-size-${props.size}`)
+const sizeClass = computed(() => rtSizeClass(props.size))
 const variantClass = computed(() => `rt-variant-${props.variant}`)
 </script>

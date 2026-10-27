@@ -68,35 +68,54 @@ const EXTERNAL = [
   "--kbd-",
   "--reka-",
 ]
+/** 由外部代码读取或运行期拼接的变量：Solar 图标库读 --solar-*，composer-flip 拼 --duration-dock-*。 */
+const EXTERNAL_READERS = ["--solar-", "--duration-dock-"]
+
+/** 扫一遍源码：定义处（含运行期写入）与 var() 引用处。 */
+function scan() {
+  const defined = new Set<string>()
+  const used = new Map<string, string[]>()
+
+  for (const file of walk(SRC)) {
+    const text = readFileSync(file, "utf8")
+
+    // 声明处与运行期写入都算定义：:style 对象的键带引号，setProperty 直接传字符串。
+    for (const name of captures(text, /(--[a-zA-Z0-9-]+)\s*:/g)) defined.add(name)
+
+    for (const name of captures(text, /["'](--[a-zA-Z0-9-]+)["']\s*:/g)) defined.add(name)
+
+    for (const name of captures(text, /setProperty\(\s*["'](--[a-zA-Z0-9-]+)["']/g)) {
+      defined.add(name)
+    }
+
+    for (const name of captures(text, /var\(\s*(--[a-zA-Z0-9-]+)/g)) {
+      used.set(name, [...(used.get(name) ?? []), file])
+    }
+  }
+
+  return { defined, used }
+}
 
 describe("CSS 变量引用", () => {
   it("用到的变量都有定义，或由 rt / reka / 运行期提供", () => {
-    const files = walk(SRC)
-    const defined = new Set<string>()
-    const used = new Map<string, string[]>()
-
-    for (const file of files) {
-      const text = readFileSync(file, "utf8")
-
-      // 声明处与运行期写入都算定义：:style 对象的键带引号，setProperty 直接传字符串。
-      for (const name of captures(text, /(--[a-zA-Z0-9-]+)\s*:/g)) defined.add(name)
-
-      for (const name of captures(text, /["'](--[a-zA-Z0-9-]+)["']\s*:/g)) defined.add(name)
-
-      for (const name of captures(text, /setProperty\(\s*["'](--[a-zA-Z0-9-]+)["']/g)) {
-        defined.add(name)
-      }
-
-      for (const name of captures(text, /var\(\s*(--[a-zA-Z0-9-]+)/g)) {
-        used.set(name, [...(used.get(name) ?? []), file])
-      }
-    }
-
+    const { defined, used } = scan()
     const missing = [...used.keys()]
       .filter((name) => !defined.has(name))
       .filter((name) => !EXTERNAL.some((prefix) => name.startsWith(prefix)))
       .sort()
 
     expect(missing, `未定义的变量：${missing.join("、")}`).toEqual([])
+  })
+
+  it("app.css 定义的 token 都有引用，外部读取的除外", () => {
+    const { used } = scan()
+    const appCss = readFileSync(join(SRC, "style/app.css"), "utf8")
+    const defined = [...new Set(captures(appCss, /^\s*(--[a-zA-Z0-9-]+)\s*:/gm))]
+    const unused = defined
+      .filter((name) => !EXTERNAL_READERS.some((prefix) => name.startsWith(prefix)))
+      .filter((name) => !used.has(name))
+      .sort()
+
+    expect(unused, `无人引用的变量：${unused.join("、")}`).toEqual([])
   })
 })

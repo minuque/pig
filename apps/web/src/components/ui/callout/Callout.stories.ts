@@ -13,9 +13,9 @@ const meta: Meta = {
   argTypes: {
     variant: { control: "select", options: ["soft", "surface", "outline"] },
     color: { control: "select", options: ["neutral", "info", "success", "warning", "destructive"] },
-    size: { control: "select", options: ["1", "2", "3"] },
+    size: { control: "select", options: ["s", "m", "l"] },
   },
-  args: { variant: "surface", color: "neutral", size: "2", dismissible: false },
+  args: { variant: "surface", color: "neutral", size: "m", dismissible: false },
   render: (args) => ({
     components: { Callout, LightbulbMinimalisticIcon },
     setup: () => ({ args }),
@@ -31,7 +31,7 @@ type Story = StoryObj<typeof meta>
 export const Surface: Story = {}
 export const Soft: Story = { args: { variant: "soft", color: "info" } }
 export const Outline: Story = { args: { variant: "outline", color: "info" } }
-export const Large: Story = { args: { size: "3", color: "info" } }
+export const Large: Story = { args: { size: "l", color: "info" } }
 export const Destructive: Story = { args: { variant: "soft", color: "destructive" } }
 export const Dismissible: Story = {
   args: { dismissible: true, color: "warning" },

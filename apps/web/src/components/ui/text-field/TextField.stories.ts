@@ -8,11 +8,11 @@ const meta: Meta = {
   component: TextFieldRoot,
   tags: ["autodocs"],
   argTypes: {
-    size: { control: "select", options: ["1", "2", "3"] },
+    size: { control: "select", options: ["s", "m", "l"] },
     variant: { control: "select", options: ["classic", "surface", "soft"] },
     color: { control: "text" },
   },
-  args: { size: "2", variant: "surface" },
+  args: { size: "m", variant: "surface" },
   render: (args) => ({
     components: { TextFieldRoot },
     setup: () => ({ args }),

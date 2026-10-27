@@ -19,7 +19,7 @@
           <IconButton
             type="button"
             variant="outline"
-            size="1"
+            size="s"
             class="icon-btn"
             :aria-label="
               showLineNumbers ? t('transcript.lineNumbersHide') : t('transcript.lineNumbersShow')
@@ -35,7 +35,7 @@
           <IconButton
             type="button"
             variant="outline"
-            size="1"
+            size="s"
             class="icon-btn"
             :aria-label="softWrap ? t('transcript.softWrapOff') : t('transcript.softWrap')"
             :aria-pressed="softWrap"
@@ -50,7 +50,7 @@
           <IconButton
             type="button"
             variant="outline"
-            size="1"
+            size="s"
             class="icon-btn copy"
             :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
             :aria-label="copyLabel"

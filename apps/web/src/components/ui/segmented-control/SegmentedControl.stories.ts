@@ -7,11 +7,11 @@ const meta: Meta = {
   component: SegmentedControl,
   tags: ["autodocs"],
   argTypes: {
-    size: { control: "select", options: ["1", "2", "3"] },
+    size: { control: "select", options: ["s", "m", "l"] },
     variant: { control: "select", options: ["surface", "classic"] },
     disabled: { control: "boolean" },
   },
-  args: { size: "2", variant: "surface", disabled: false, modelValue: "中" },
+  args: { size: "m", variant: "surface", disabled: false, modelValue: "中" },
   render: (args) => ({
     components: { SegmentedControl, SegmentedControlItem },
     setup: () => ({ args }),

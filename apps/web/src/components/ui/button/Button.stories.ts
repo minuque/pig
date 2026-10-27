@@ -10,15 +10,15 @@ const meta: Meta = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["classic", "solid", "soft", "surface", "outline", "ghost", "ghost-offset"],
+      options: ["classic", "solid", "soft", "surface", "outline", "ghost"],
     },
-    size: { control: "select", options: ["1", "2", "3", "4"] },
+    size: { control: "select", options: ["s", "m", "l"] },
     color: { control: "text" },
     highContrast: { control: "boolean" },
     loading: { control: "boolean" },
     disabled: { control: "boolean" },
   },
-  args: { variant: "solid", size: "2", highContrast: false, loading: false, disabled: false },
+  args: { variant: "solid", size: "m", highContrast: false, loading: false, disabled: false },
   render: (args) => ({
     components: { Button },
     setup: () => ({ args }),
@@ -42,7 +42,7 @@ export const Sizes: Story = {
   render: () => ({
     components: { Button },
     template:
-      "<div class='flex items-center gap-sm'><Button size='1'>小</Button><Button size='2'>中</Button><Button size='3'>大</Button><Button size='4'>特大</Button></div>",
+      "<div class='flex items-center gap-sm'><Button size='s'>小</Button><Button size='m'>中</Button><Button size='l'>大</Button></div>",
   }),
 }
 export const Icon: Story = {

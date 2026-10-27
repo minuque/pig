@@ -98,7 +98,7 @@
               type="button"
               :aria-label="scrollLabel"
               variant="outline"
-              size="1"
+              size="s"
               @click="transcriptView?.scrollToLatest('smooth')"
             >
               <span class="icon-swap">

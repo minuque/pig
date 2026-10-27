@@ -67,7 +67,6 @@ describe("accent 变量", () => {
     expect(root.get("info")).toBe("var(--accent-11)")
     expect(root.get("info-bg")).toBe("var(--accent-a3)")
     expect(root.get("info-halo")).toBe("var(--accent-a4)")
-    expect(root.get("selection-bg")).toBe("var(--accent-a6)")
     expect(root.get("focus-ring")).toContain("var(--accent-a4)")
   })
 

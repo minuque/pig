@@ -30,6 +30,7 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { computed, inject } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { RadioGroupItem, useForwardProps } from "reka-ui"
+import { sizeClass as rtSizeClass } from "@components/ui/rt/size.js"
 import { RADIO_GROUP_KEY } from "./context.js"
 
 const props = withDefaults(
@@ -40,10 +41,10 @@ const delegatedProps = reactiveOmit(props, "class")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemProps>
 const group = inject(
   RADIO_GROUP_KEY,
-  computed(() => ({ size: "2", variant: "surface" }) as const),
+  computed(() => ({ size: "m", variant: "surface" }) as const),
 )
-const sizeClass = computed(() => `rt-r-size-${group.value.size}`)
+const sizeClass = computed(() => rtSizeClass(group.value.size))
 // 文字尺寸与单选按钮同档：rt 用 <Text size> 包 label，行高决定圆点外边距
-const textSizeClass = computed(() => `rt-r-size-${group.value.size}`)
+const textSizeClass = computed(() => rtSizeClass(group.value.size))
 const variantClass = computed(() => `rt-variant-${group.value.variant}`)
 </script>

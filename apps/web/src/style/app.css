@@ -57,7 +57,6 @@
   --background: #f7f7f8;
   /* 别名：与 --background 同值，名字留给 DESIGN.md 的次级井角色 */
   --background-soft: var(--background);
-  --muted: var(--background);
   --card: #ffffff;
   --sidebar: #f7f7f8;
   --sidebar-foreground: #1b1b1b;
@@ -124,17 +123,11 @@
 
   /* 结构 / 交互 */
   --border: #dedede;
-  --input: var(--composer-ring);
   --border-subtle: #e8e8e8;
-  --composer-ring: rgb(0 0 0 / 0.16);
   --interaction-hover: #e8e8eb;
-  --interaction-selected: #e6e6e8;
-  --accent: var(--interaction-hover);
-  --accent-foreground: var(--contrast-foreground);
   --hover-quiet: color-mix(in srgb, var(--foreground) 5%, transparent);
   --hover-tint: color-mix(in srgb, var(--foreground) 8%, transparent);
   --hover-strong: color-mix(in srgb, var(--foreground) 12%, transparent);
-  --selection-bg: var(--accent-a6);
   --chart-track: color-mix(in srgb, var(--foreground) 18%, transparent);
   --minimap-marker: color-mix(in srgb, var(--foreground-muted) 35%, transparent);
   --link-underline: color-mix(in srgb, var(--foreground) 38%, transparent);
@@ -154,24 +147,6 @@
   /* 滚动边缘渐隐：类只选带宽，颜色由 mask 决定 */
   --edge-fade-band: 24px;
   --edge-fade-menu-band: 12px;
-
-  /* 滑条三件套：轨道 / 填充 / 手柄，参数对齐 zeron glass plate */
-  --slider-track-bg: linear-gradient(to bottom, rgb(0 0 0 / 0.075), rgb(0 0 0 / 0.04));
-  --slider-track-border: rgb(0 0 0 / 0.08);
-  --slider-track-shadow: inset 0 1px 2px rgb(0 0 0 / 0.08), inset 0 -1px 0 rgb(255 255 255 / 0.55);
-  --slider-fill-bg: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--primary), white 22%),
-    var(--primary)
-  );
-  --slider-fill-border: color-mix(in srgb, var(--primary) 86%, black);
-  --slider-fill-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 0 0 1px rgb(255 255 255 / 0.22),
-    0 2px 6px color-mix(in srgb, var(--primary) 14%, transparent);
-  --slider-thumb-bg: linear-gradient(to bottom, hsl(0 0% 100%), hsl(0 0% 96.5%));
-  --slider-thumb-border: rgb(0 0 0 / 0.11);
-  --slider-thumb-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.8), 0 1px 2px rgb(0 0 0 / 0.14), 0 2px 6px rgb(0 0 0 / 0.06);
 
   --card-border: hsl(210 18% 32% / 0.1);
   --hairline: hsl(0 0% 0% / 0.12);
@@ -228,12 +203,9 @@
 
   /* 尺寸 */
   --size-control: 40px;
-  --size-context-menu: 12rem;
   --titlebar-inset: 44px;
   --size-windows-caption: 138px;
   --size-drawer: 360px;
-  --size-modal: 32rem;
-  --size-settings-nav: 15rem;
   --size-settings-body: 64rem;
   --size-settings-dialog-width: 80rem;
   --size-settings-dialog-height: 52rem;
@@ -280,9 +252,6 @@
     0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 12px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02),
     0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 8px rgb(0 0 0 / 0.04);
-  /* 主题预览：深浅两套描边投影，以及线框预览的固定深浅面 */
-  --theme-ball-ring-light: inset 0 0 0 1px rgb(0 0 0 / 0.1), 0 1px 2px rgb(0 0 0 / 0.08);
-  --theme-ball-ring-dark: inset 0 0 0 1px rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 0 0 / 0.18);
   --theme-wire-light: var(--background);
   --theme-wire-light-raised: var(--card);
   --theme-wire-dark: var(--card);
@@ -435,9 +404,7 @@
 
   --border: #2a2a2e;
   --border-subtle: #28282a;
-  --composer-ring: rgb(255 255 255 / 0.2);
   --interaction-hover: #26262b;
-  --interaction-selected: #2c2c31;
   --effort-track: var(--hover-strong);
   --link: var(--accent-11);
   --mermaid-accent: var(--accent-11);
@@ -446,23 +413,6 @@
   --button-press: color-mix(in srgb, var(--foreground) 30%, transparent);
 
   --glass-selected-bg: color-mix(in srgb, var(--foreground) 11%, transparent);
-
-  --slider-track-bg: linear-gradient(to bottom, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.05));
-  --slider-track-border: rgb(255 255 255 / 0.09);
-  --slider-track-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 1px 2px rgb(0 0 0 / 0.16);
-  --slider-fill-bg: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--primary), white 6%),
-    var(--primary)
-  );
-  --slider-fill-border: color-mix(
-    in srgb,
-    color-mix(in srgb, var(--primary), white 35%) 35%,
-    transparent
-  );
-  --slider-fill-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
-  --slider-thumb-border: rgb(0 0 0 / 0.12);
-  --slider-thumb-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8), 0 1px 2px rgb(0 0 0 / 0.22);
 
   --accent-skill: #c2a1ff;
   --accent-steel: #8aa4c2;

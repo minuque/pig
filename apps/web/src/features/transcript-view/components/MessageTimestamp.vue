@@ -15,7 +15,7 @@
         <IconButton
           type="button"
           variant="outline"
-          size="1"
+          size="s"
           class="copy"
           :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
           :aria-label="copyLabel"

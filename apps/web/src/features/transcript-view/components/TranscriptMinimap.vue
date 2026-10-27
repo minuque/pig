@@ -26,7 +26,7 @@
 
       <span
         v-if="hoverItem"
-        class="minimap-preview menu-surface surface-float"
+        class="minimap-preview surface-float"
         data-minimap-preview
         :style="{
           top: `${resolveMinimapTopPercent(hoverIndex ?? 0, items.length)}%`,

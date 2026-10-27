@@ -4,4 +4,4 @@ export type CalloutVariant = "soft" | "surface" | "outline"
 
 export type CalloutColor = "neutral" | "info" | "success" | "warning" | "destructive"
 
-export type CalloutSize = "1" | "2" | "3"
+export type CalloutSize = "s" | "m" | "l"

@@ -51,21 +51,21 @@
 }
 
 /* ------ 尺寸 ------ */
-.callout-size-1 {
+.callout-size-s {
   gap: 2px;
   padding: var(--space-xxs) var(--space-xs);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }
 
-.callout-size-2 {
+.callout-size-m {
   gap: var(--space-xxs);
   padding: var(--space-xs);
   font-size: var(--text-body-sm);
   line-height: var(--text-body-sm--line-height);
 }
 
-.callout-size-3 {
+.callout-size-l {
   gap: 6px;
   padding: var(--space-sm);
   font-size: var(--text-body-lg);
