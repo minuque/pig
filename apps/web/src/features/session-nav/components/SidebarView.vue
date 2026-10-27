@@ -290,6 +290,8 @@ function onEditProject(project: string): void {
   place-items: center;
   width: var(--size-icon);
   height: var(--size-icon);
+  /* 15px 的圆环形图标按 1.75 档只落到 1.09px 笔画，会发灰发虚，这一槽位提到 2 档 */
+  --solar-stroke-width: 2px;
 }
 
 .search-field-label {

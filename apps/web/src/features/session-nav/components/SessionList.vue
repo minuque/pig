@@ -464,6 +464,8 @@ onBeforeUnmount(() => {
   place-items: center;
   width: 20px;
   height: 20px;
+  /* 同搜索框首图标：15px 圆环形图标用 2 档描边才不发虚 */
+  --solar-stroke-width: 2px;
   border: 0;
   border-radius: var(--radius-xs);
   background: transparent;
