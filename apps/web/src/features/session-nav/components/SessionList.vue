@@ -334,6 +334,8 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
+  /* 滚动条位置常驻预留：出入滚动条时内容宽度不再跳，组头右缘两种状态一致 */
+  scrollbar-gutter: stable;
   padding-block-start: var(--space-xxs);
 }
 
