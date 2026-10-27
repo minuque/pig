@@ -3,7 +3,7 @@
 @import "./rt.css";
 @import "./motion.css";
 @import "markstream-vue/index.css" layer(components);
-@import "./markdown-stream.css";
+@import "./markdown.css";
 @import "./mermaid.css";
 @import "./components.css";
 

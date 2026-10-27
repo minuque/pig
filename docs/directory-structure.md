@@ -34,11 +34,11 @@ apps/web/src/
 
 `apps/web/test/` 镜像 `src/` 分层：`test/components/ui/` 对 `src/components/ui/`，`test/features/<module>/` 对 `features/<module>/`，`test/style/` 对 `style/`。根级只放 `setup.ts`。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
 
-`style/`：`reset.css` 归零浏览器默认值，`palettes.css` 引 Radix 色板，`rt.css` 引 Radix Themes 的 base 与 components 并把间距圆角接到本项目刻度，`components.css` 汇总 `components/` 下的布局、排版、颜色类。
+`style/`：`reset.css` 归零浏览器默认值（放在 `base` 层，不压库样式），`palettes.css` 引 Radix 色板，`rt.css` 引 Radix Themes 的 base 与 components 并把间距圆角接到本项目刻度，`markdown.css` / `mermaid.css` 配 markstream 的排版与图形，`components.css` 是布局、排版、颜色与圆角的原子类。
 
 `components/ui/rt/`：Radix Themes 的接入层。`ThemeRoot.vue` 是 `.radix-themes` 作用域容器（弹层要在 teleport 里再包一层），`props.ts` 是 rt 的 prop → 类名引擎的精简版，`size.ts` 把对外的 s / m / l 映射到 rt 的 1 / 2 / 3。基础件的 props 照 rt 的语义（`size`、`variant`、`color`、`highContrast`、`radius`），尺寸档只有 s / m / l 三档。
 
-`style/components/`：原子类的类名沿用 shadcn 与 Tailwind 的写法（`flex`、`items-center`、`truncate`、`w-full`、`text-body-md`、`rounded-md`），值只读 `app.css` 的 token。间距按 `--space-*` 命名（`gap-sm`、`p-md`）而不是数字刻度：项目已经把间距收进 `--space-*` 命名空间，再引入一套数字换算就是两套刻度并行。新增类名前先确认名字没有被任何 scoped 块当作业务类名用过。
+`style/components.css`：原子类的类名沿用 shadcn 与 Tailwind 的写法（`flex`、`items-center`、`truncate`、`w-full`、`text-body-md`、`rounded-md`），值只读 `app.css` 的 token。间距按 `--space-*` 命名（`gap-sm`、`p-md`）而不是数字刻度：项目已经把间距收进 `--space-*` 命名空间，再引入一套数字换算就是两套刻度并行。新增类名前先确认名字没有被任何 scoped 块当作业务类名用过。
 
 `types/`：被两条及以上路径依赖的类型，按业务写成 `xxx-type.ts`，消费写 `@/types/xxx-type.js`。三方依赖类型（如 `@earendil-works/*`）放 `types/common-type.ts` 再导出，消费写 `@/types/common-type.js`；运行时值仍从原包引入。模块或组件目录内多文件共用的类型放该目录 `type.ts`。只被一个文件使用的类型留在该文件。
 
