@@ -11,7 +11,11 @@ const distEntry = join(webRoot, "dist/index.html")
 function pnpmCommand() {
   const execPath = process.env.npm_execpath
 
-  if (execPath) return { command: process.execPath, args: [execPath, "build:web"] }
+  // pnpm 12 起是可执行文件，11 及以前是 JS 入口，要经 node 启动
+  if (execPath && /\.[cm]?js$/.test(execPath))
+    return { command: process.execPath, args: [execPath, "build:web"] }
+
+  if (execPath) return { command: execPath, args: ["build:web"] }
   return {
     command: process.platform === "win32" ? "pnpm.cmd" : "pnpm",
     args: ["build:web"],

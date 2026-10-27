@@ -121,11 +121,17 @@ function buildWeb() {
   if (!pnpm) throw new Error("未找到 pnpm，请用 pnpm test:bench 运行")
   console.log("构建 web…")
 
-  const result = spawnSync(process.execPath, [pnpm, "build:web"], {
-    cwd: root,
-    stdio: "inherit",
-    windowsHide: true,
-  })
+  // pnpm 12 起是可执行文件，11 及以前是 JS 入口，要经 node 启动
+  const viaNode = /\.[cm]?js$/.test(pnpm)
+  const result = spawnSync(
+    viaNode ? process.execPath : pnpm,
+    viaNode ? [pnpm, "build:web"] : ["build:web"],
+    {
+      cwd: root,
+      stdio: "inherit",
+      windowsHide: true,
+    },
+  )
 
   if (result.error || result.status !== 0)
     throw new Error("pnpm build:web 失败", { cause: result.error })

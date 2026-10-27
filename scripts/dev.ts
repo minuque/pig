@@ -43,16 +43,22 @@ async function main() {
 
   if (!pnpm) throw new Error("pnpm executable not found")
 
-  const web = spawn(process.execPath, [pnpm, "--filter", "@pig/web", "dev"], {
-    env: {
-      ...process.env,
-      GATEWAY_TARGET: gatewayOrigin,
-      GATEWAY_TOKEN: gateway.launchToken,
+  // pnpm 12 起是可执行文件，11 及以前是 JS 入口，要经 node 启动
+  const viaNode = /\.[cm]?js$/.test(pnpm)
+  const web = spawn(
+    viaNode ? process.execPath : pnpm,
+    viaNode ? [pnpm, "--filter", "@pig/web", "dev"] : ["--filter", "@pig/web", "dev"],
+    {
+      env: {
+        ...process.env,
+        GATEWAY_TARGET: gatewayOrigin,
+        GATEWAY_TOKEN: gateway.launchToken,
+      },
+      stdio: "inherit",
+      // 非 Windows 用独立进程组,便于整树终止(见 killTree)
+      detached: process.platform !== "win32",
     },
-    stdio: "inherit",
-    // 非 Windows 用独立进程组,便于整树终止(见 killTree)
-    detached: process.platform !== "win32",
-  })
+  )
   let stopping = false
 
   // Windows 上 web.kill() 只杀直接子进程,pnpm 下的 vite 会变孤儿,必须杀整棵树
