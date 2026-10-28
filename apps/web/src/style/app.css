@@ -104,6 +104,12 @@ html[data-translucent-window="on"] body {
   background: transparent;
 }
 
+/* 侧栏上下渐隐带画的是实底，半透明下会露出两道横条，直接收掉 */
+html[data-translucent-window="on"] .nav-inset::before,
+html[data-translucent-window="on"] .session-edge-bottom {
+  display: none;
+}
+
 @layer base {
   button,
   input,
