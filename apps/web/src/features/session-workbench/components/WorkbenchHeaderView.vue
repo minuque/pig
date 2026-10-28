@@ -19,7 +19,7 @@
 
     <Tooltip v-if="cwdLabel">
       <TooltipTrigger as-child>
-        <span class="header-cwd">{{ cwdLabel }}</span>
+        <Badge class="header-cwd" variant="soft" color="gray">{{ cwdLabel }}</Badge>
       </TooltipTrigger>
 
       <TooltipContent>{{ cwdPath }}</TooltipContent>
@@ -94,6 +94,7 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Badge } from "@components/ui/badge/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import {
   MenuDotsIcon,
@@ -231,20 +232,11 @@ function confirmDelete(): void {
   color: var(--contrast-foreground);
 }
 
+/* 目录名长度收口交给 Badge；这里只管不换行与截断 */
 .header-cwd {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
   max-width: 12em;
-  padding: 2px var(--space-xs);
   overflow: hidden;
-  border-radius: var(--radius-sm);
-  background: var(--hover-tint);
-  color: var(--contrast-foreground);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
   text-overflow: ellipsis;
-  white-space: nowrap;
   cursor: default;
 }
 
