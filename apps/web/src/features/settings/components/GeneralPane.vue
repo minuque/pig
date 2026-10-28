@@ -33,28 +33,6 @@
     </section>
 
     <section class="group">
-      <h2 class="group-title">{{ t("settings.accent") }}</h2>
-
-      <div class="accent-grid" role="radiogroup" :aria-label="t('settings.accent')">
-        <button
-          v-for="accent in ACCENTS"
-          :key="accent.id"
-          type="button"
-          class="accent-swatch"
-          role="radio"
-          :aria-checked="selectedAccent === accent.id"
-          :aria-label="accent.label"
-          :data-accent="accent.id"
-          @click="setAccentById(accent.id)"
-        >
-          <span class="swatch-ball" :style="{ background: swatchColor(accent) }">
-            <CheckIcon v-if="selectedAccent === accent.id" class="swatch-mark" />
-          </span>
-        </button>
-      </div>
-    </section>
-
-    <section class="group">
       <h2 class="group-title">{{ t("settings.interface") }}</h2>
 
       <div class="card">
@@ -97,6 +75,31 @@
               {{ option.mark }}
             </SegmentedControlItem>
           </SegmentedControl>
+        </div>
+
+        <div class="row">
+          <div class="copy">
+            <h3 class="label">{{ t("settings.accent") }}</h3>
+            <p class="hint">{{ accentHint }}</p>
+          </div>
+
+          <div class="accent-grid" role="radiogroup" :aria-label="t('settings.accent')">
+            <button
+              v-for="accent in ACCENTS"
+              :key="accent.id"
+              type="button"
+              class="accent-swatch"
+              role="radio"
+              :aria-checked="selectedAccent === accent.id"
+              :aria-label="accent.label"
+              :data-accent="accent.id"
+              @click="setAccentById(accent.id)"
+            >
+              <span class="swatch-ball" :style="{ background: swatchColor(accent) }">
+                <CheckIcon v-if="selectedAccent === accent.id" class="swatch-mark" />
+              </span>
+            </button>
+          </div>
         </div>
 
         <div class="row">
@@ -198,7 +201,12 @@ import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
-import { ACCENTS, DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
+import {
+  ACCENTS,
+  DEFAULT_ACCENT_ID,
+  findAccent,
+  type AccentId,
+} from "@features/theme/lib/accents.js"
 import { accentHex } from "@features/theme/lib/palette.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Switch } from "@components/ui/switch/index.js"
@@ -223,6 +231,7 @@ const {
   setContrastBoost,
 } = useGeneralPrefs()
 const selectedAccent = computed(() => accent.value)
+const accentHint = computed(() => findAccent(selectedAccent.value).label)
 
 function setAccentById(id: AccentId) {
   setAccent(id === DEFAULT_ACCENT_ID ? null : id)
@@ -481,9 +490,10 @@ async function onNotify(next: boolean) {
 }
 
 .accent-grid {
-  display: grid;
-  gap: var(--space-sm);
-  grid-template-columns: repeat(auto-fill, minmax(2.25rem, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-xs);
 }
 
 .accent-swatch {
@@ -559,6 +569,10 @@ async function onNotify(next: boolean) {
   .row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .accent-grid {
+    justify-content: flex-start;
   }
 }
 </style>
