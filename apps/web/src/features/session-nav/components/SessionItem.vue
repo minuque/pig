@@ -18,16 +18,37 @@
           @keydown="onCardKeydown"
         >
           <span class="title-line">
-            <span class="state-slot" aria-hidden="true">
-              <CircleDashedIcon
-                v-if="state === 'running'"
-                :size="12"
-                class="state-glyph running motion-spin"
-              />
+            <span class="state-slot">
+              <span class="state-mark" aria-hidden="true">
+                <CircleDashedIcon
+                  v-if="state === 'running'"
+                  :size="12"
+                  class="state-glyph running motion-spin"
+                />
 
-              <CheckIcon v-else-if="state === 'unread'" :size="11" class="state-glyph unread" />
-              <PenIcon v-else-if="showDraftGlyph" :size="11" class="state-glyph draft" />
-              <span v-else class="state-dot" :class="dotKind"></span>
+                <CheckIcon v-else-if="state === 'unread'" :size="11" class="state-glyph unread" />
+                <PenIcon v-else-if="showDraftGlyph" :size="11" class="state-glyph draft" />
+                <span v-else class="state-dot" :class="dotKind"></span>
+              </span>
+
+              <Tooltip v-if="!placeholder">
+                <TooltipTrigger as-child>
+                  <button
+                    class="more-toggle press-scale"
+                    type="button"
+                    :aria-label="t('common.more')"
+                    aria-haspopup="menu"
+                    :aria-expanded="menuOpen"
+                    @click.prevent.stop="openSessionMenu"
+                    @contextmenu.prevent.stop="openSessionMenu"
+                    @pointerdown.stop
+                  >
+                    <MenuDotsIcon class="size-icon" />
+                  </button>
+                </TooltipTrigger>
+
+                <TooltipContent>{{ t("common.more") }}</TooltipContent>
+              </Tooltip>
             </span>
 
             <input
@@ -55,25 +76,6 @@
               </TooltipContent>
             </Tooltip>
           </span>
-
-          <Tooltip v-if="!placeholder">
-            <TooltipTrigger as-child>
-              <button
-                class="more-toggle press-scale"
-                type="button"
-                :aria-label="t('common.more')"
-                aria-haspopup="menu"
-                :aria-expanded="menuOpen"
-                @click.prevent.stop="openSessionMenu"
-                @contextmenu.prevent.stop="openSessionMenu"
-                @pointerdown.stop
-              >
-                <MenuDotsIcon class="size-icon" />
-              </button>
-            </TooltipTrigger>
-
-            <TooltipContent>{{ t("common.more") }}</TooltipContent>
-          </Tooltip>
         </component>
       </ContextMenuTrigger>
 
@@ -362,11 +364,25 @@ function confirmDelete() {
 }
 
 .state-slot {
+  position: relative;
   display: grid;
   flex: none;
   place-items: center;
   width: 13px;
   height: 13px;
+}
+
+.state-mark {
+  display: grid;
+  place-items: center;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+/* 状态位与更多按钮共用一格：常态给状态，行被指到或聚焦时换成更多。 */
+.session-item:hover .state-mark,
+.session-item:focus-within .state-mark,
+.session-item.is-menu-open .state-mark {
+  opacity: 0;
 }
 
 .state-dot {
@@ -399,7 +415,7 @@ function confirmDelete() {
 
 .more-toggle {
   position: absolute;
-  inset-inline-end: var(--space-xxs);
+  inset-inline-start: 50%;
   top: 50%;
   display: grid;
   place-items: center;
@@ -408,7 +424,7 @@ function confirmDelete() {
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--contrast-foreground);
-  translate: 0 -50%;
+  translate: -50% -50%;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -451,7 +467,6 @@ function confirmDelete() {
 .session-item:hover .title,
 .session-card.active .title {
   color: var(--contrast-foreground);
-  mask-image: linear-gradient(to right, black calc(100% - 44px), transparent calc(100% - 20px));
 }
 
 .rename-input {
@@ -474,16 +489,10 @@ function confirmDelete() {
   max-width: 320px !important;
 }
 
-@media (hover: none) {
-  .more-toggle {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .session-card,
   .title,
+  .state-mark,
   .more-toggle {
     transition: none;
   }
