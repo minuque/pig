@@ -71,8 +71,8 @@
   --ms-secondary-foreground: from var(--contrast-foreground-secondary) h s l;
   --ms-accent: from var(--background-soft) h s l;
   --ms-accent-foreground: from var(--contrast-foreground) h s l;
-  --ms-destructive: from var(--destructive) h s l;
-  --ms-destructive-foreground: from var(--destructive-foreground) h s l;
+  --ms-danger: from var(--danger) h s l;
+  --ms-danger-foreground: from var(--danger-foreground) h s l;
   --ms-success: from var(--success) h s l;
   --ms-success-foreground: from var(--success-foreground) h s l;
   --ms-warning: from var(--warning) h s l;
@@ -80,7 +80,7 @@
   --ms-info: from var(--primary) h s l;
   --ms-info-foreground: from var(--primary-foreground) h s l;
   --ms-diff-added: from color-mix(in srgb, var(--success) 88%, var(--card)) h s l;
-  --ms-diff-removed: from color-mix(in srgb, var(--destructive) 88%, var(--card)) h s l;
+  --ms-diff-removed: from color-mix(in srgb, var(--danger) 88%, var(--card)) h s l;
   --ms-highlight: from color-mix(in srgb, var(--primary) 16%, var(--card)) h s l;
   --ms-highlight-foreground: from var(--contrast-foreground) h s l;
   --ms-popover: from var(--popover) h s l;

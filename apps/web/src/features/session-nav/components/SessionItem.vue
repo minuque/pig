@@ -378,7 +378,7 @@ function confirmDelete() {
 }
 
 .state-dot.error {
-  background: var(--destructive);
+  background: var(--danger);
 }
 
 .state-glyph {

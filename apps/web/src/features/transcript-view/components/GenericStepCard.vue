@@ -132,8 +132,8 @@ const softWrap = ref(false)
 }
 
 .status-dot.is-error {
-  background: var(--destructive);
-  box-shadow: 0 0 0 2px var(--destructive-halo);
+  background: var(--danger);
+  box-shadow: 0 0 0 2px var(--danger-halo);
 }
 
 .status-dot.is-running {
@@ -223,8 +223,8 @@ const softWrap = ref(false)
 }
 
 .exit-badge.is-err {
-  background: var(--destructive-bg);
-  color: var(--destructive-on-tint);
+  background: var(--danger-bg);
+  color: var(--danger-on-tint);
 }
 
 .footer-toggle {

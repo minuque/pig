@@ -355,7 +355,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 
 .attach-error {
   margin: 0;
-  color: var(--destructive);
+  color: var(--danger);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
 }

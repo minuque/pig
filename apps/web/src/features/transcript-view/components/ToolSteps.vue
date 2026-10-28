@@ -408,7 +408,7 @@ onBeforeUnmount(() => {
 }
 
 .fail-n {
-  color: var(--destructive);
+  color: var(--danger);
 }
 
 .line-counts {
@@ -423,7 +423,7 @@ onBeforeUnmount(() => {
 }
 
 .lc-remove {
-  color: var(--destructive);
+  color: var(--danger);
 }
 
 .steps {

@@ -133,8 +133,8 @@
   --link-underline: color-mix(in srgb, var(--foreground) 38%, transparent);
   --link-underline-hover: color-mix(in srgb, var(--foreground) 72%, transparent);
   --success-halo: color-mix(in srgb, var(--success) 15%, transparent);
-  --destructive-halo: color-mix(in srgb, var(--destructive) 15%, transparent);
-  --destructive-border: color-mix(in srgb, var(--destructive) 45%, var(--border));
+  --danger-halo: color-mix(in srgb, var(--danger) 15%, transparent);
+  --danger-border: color-mix(in srgb, var(--danger) 45%, var(--border));
   --info-halo: var(--accent-a4);
   /* 按钮顶沿内高光与按下时的内阴影（t3code halo 按钮） */
   --button-sheen: color-mix(in srgb, var(--white) 16%, transparent);
@@ -177,17 +177,17 @@
   --success: #15803d;
   --info: var(--accent-11);
   --warning: #a16207;
-  --destructive: #dc2626;
+  --danger: #dc2626;
   --state-working: #7cb3ff;
   --success-foreground: var(--primary-foreground);
   --warning-foreground: var(--primary-foreground);
-  --destructive-foreground: var(--primary-foreground);
+  --danger-foreground: var(--primary-foreground);
   /* 状态浅底 badge：主色 15% 混入 background，随主题联动 */
   --success-bg: color-mix(in srgb, var(--success) 15%, var(--background));
   --info-bg: var(--accent-a3);
-  --destructive-bg: color-mix(in srgb, var(--destructive) 15%, var(--background));
-  /* tint 上的破坏色文字：--destructive 压在 15% 混底上只有 3.6:1，单独给一档 */
-  --destructive-on-tint: #b91c1c;
+  --danger-bg: color-mix(in srgb, var(--danger) 15%, var(--background));
+  /* tint 上的破坏色文字：--danger 压在 15% 混底上只有 3.6:1，单独给一档 */
+  --danger-on-tint: #b91c1c;
 
   /* 字体与间距圆角在下面的 :root 块里定义，组件的 var() 与工具类读同一份。 */
   --text-code: 13px;
@@ -298,8 +298,7 @@
   --material-saturate: 1.4;
   /* 焦点环：宽+透明度的统一焦点态，配合 .ring-focus 使用。 */
   --focus-ring: 0 0 0 3px var(--accent-a4);
-  --focus-ring-destructive: 0 0 0 3px
-    color-mix(in srgb, var(--destructive, #e5484d) 45%, transparent);
+  --focus-ring-danger: 0 0 0 3px color-mix(in srgb, var(--danger, #e5484d) 45%, transparent);
   --font-sans:
     "anthropic-sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Microsoft YaHei", sans-serif;
@@ -421,11 +420,11 @@
   /* 状态色对齐 zeron 基线 */
   --success: #34d399;
   --warning: #facc15;
-  --destructive: #f87171;
-  --destructive-on-tint: var(--destructive);
+  --danger: #f87171;
+  --danger-on-tint: var(--danger);
   --success-foreground: #000000;
   --warning-foreground: #000000;
-  --destructive-foreground: #000000;
+  --danger-foreground: #000000;
   --star: #f5b44a;
 
   --scrim: rgba(0, 0, 0, 0.55);

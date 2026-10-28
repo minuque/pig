@@ -140,7 +140,7 @@ async function copy() {
 }
 
 .copy.is-error {
-  color: var(--destructive);
+  color: var(--danger);
 }
 
 .icon-swap,
