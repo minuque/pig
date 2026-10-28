@@ -49,24 +49,7 @@
 
             <span class="state-slot">
               <span class="state-mark" aria-hidden="true">
-                <svg
-                  v-if="state === 'running'"
-                  class="state-spinner motion-spin"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <circle class="spinner-track" cx="12" cy="12" r="10" pathLength="100" />
-                  <circle class="spinner-arc" cx="12" cy="12" r="10" pathLength="100" />
-                </svg>
-
-                <CheckCircleIcon
-                  v-else-if="state === 'unread'"
-                  :size="14"
-                  class="state-glyph unread"
-                />
-
-                <PenIcon v-else-if="showDraftGlyph" :size="14" class="state-glyph draft" />
-                <span v-else-if="dotKind" class="state-dot" :class="dotKind"></span>
+                <SessionStateIcon v-if="glyphState" :state="glyphState" />
               </span>
 
               <Tooltip v-if="!placeholder">
@@ -135,9 +118,13 @@ import {
 } from "@components/ui/context-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
-import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
+import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
+import type {
+  SidebarSession,
+  SidebarSessionState,
+  SidebarStateGlyph,
+} from "@features/session-nav/type.js"
 import {
-  CheckCircleIcon,
   GripVerticalIcon,
   MenuDotsIcon,
   PenIcon,
@@ -178,9 +165,17 @@ const deleteOpen = shallowRef(false)
 const showDraftGlyph = computed(
   () => props.session.draft && props.state !== "running" && props.state !== "unread",
 )
-const dotKind = computed(() =>
-  !showDraftGlyph.value && props.state === "error" ? "error" : undefined,
-)
+/** 优先级：运行中 > 未读 > 草稿 > 错误；都没有时不占图标位。 */
+const glyphState = computed<SidebarStateGlyph | undefined>(() => {
+  if (props.state === "running") return "running"
+
+  if (props.state === "unread") return "unread"
+
+  if (showDraftGlyph.value) return "draft"
+
+  if (props.state === "error") return "error"
+  return undefined
+})
 const titleEl = useTemplateRef("titleEl")
 const titleOverflow = shallowRef(false)
 
@@ -415,54 +410,6 @@ function confirmDelete() {
 .session-item:focus-within .state-mark,
 .session-item.is-menu-open .state-mark {
   opacity: 0;
-}
-
-.state-dot {
-  display: block;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--hover-strong);
-}
-
-.state-dot.error {
-  background: var(--danger);
-}
-
-.state-glyph {
-  display: block;
-}
-
-/* 运行中：暗色整环当轨道，亮弧转圈，比缺口图标更像进度 */
-.state-spinner {
-  display: block;
-  inline-size: 14px;
-  block-size: 14px;
-  color: var(--state-working);
-}
-
-.spinner-track,
-.spinner-arc {
-  fill: none;
-  stroke-width: 3;
-}
-
-.spinner-track {
-  stroke: var(--hover-strong);
-}
-
-.spinner-arc {
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-dasharray: 26 74;
-}
-
-.state-glyph.unread {
-  color: var(--success);
-}
-
-.state-glyph.draft {
-  color: var(--warning);
 }
 
 .more-toggle {

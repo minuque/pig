@@ -18,6 +18,9 @@ export interface SidebarSession {
 
 export type SidebarSessionState = "running" | "unread" | "error"
 
+/** 侧栏状态图标：draft 不是协议状态，由本地草稿标记推出来。 */
+export type SidebarStateGlyph = SidebarSessionState | "draft"
+
 /** 侧栏行脚注里视图消费的那部分，cardFootById 是它的超集。 */
 export interface SidebarRowFoot {
   state?: SidebarSessionState | undefined
