@@ -14,6 +14,7 @@
     :highlighted-session-id="highlightedSessionId"
     :expanded-sections="expandedSections"
     :expanded-by-group="expandedByGroup"
+    :status-counts="statusCounts"
     @update:scope-filter="scopeFilter = $event"
     @update:grouping="setGrouping"
     @update:sort="setSort"
@@ -31,6 +32,7 @@
     @toggle-section="toggleSection"
     @reveal-more="revealMore"
     @collapse-group="collapseGroup"
+    @cycle-status="onCycleStatus"
   />
 </template>
 
@@ -42,6 +44,12 @@ import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyAction } from "@components/layout/notify.js"
 import { useNav, workspaceName } from "@features/session-nav/index.js"
+import { isDraftSessionId } from "@features/session-nav/lib/session-list.js"
+import {
+  nextInCycle,
+  statusBuckets,
+  type FooterStatus,
+} from "@features/session-nav/lib/status-cycle.js"
 import SidebarView from "@features/session-nav/components/SidebarView.vue"
 
 const emit = defineEmits<{
@@ -88,6 +96,33 @@ const include = computed(
     !scopeFilter.value || workspaceName(session.cwd ?? "") === scopeFilter.value,
 )
 const sections = sectionsFor(include)
+const statusBucketsById = computed(() =>
+  statusBuckets(
+    sections.value.flatMap((section) => section.sessions),
+    cardFootById.value,
+  ),
+)
+const statusCounts = computed<Record<FooterStatus, number>>(() => ({
+  running: statusBucketsById.value.running.length,
+  unread: statusBucketsById.value.unread.length,
+  draft: statusBucketsById.value.draft.length,
+}))
+
+/** 点一次换下一个同状态会话；草稿没有路由，回到它所在的欢迎页。 */
+function onCycleStatus(status: FooterStatus): void {
+  const target = nextInCycle(statusBucketsById.value[status], highlightedSessionId.value)
+
+  if (!target) return
+
+  if (target.cwd) emit("navigate", target.cwd)
+
+  if (isDraftSessionId(target.id)) {
+    void router.push("/")
+    return
+  }
+
+  openSession(target.id)
+}
 
 function highlightedCwd(): string | undefined {
   const id = highlightedSessionId.value

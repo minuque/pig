@@ -17,6 +17,7 @@
         :highlighted-session-id="highlightedId"
         :expanded-sections="expandedSections"
         :expanded-by-group="expandedByGroup"
+        :status-counts="statusCounts"
         @toggle-sidebar="chrome?.toggleSidebar()"
         @create="createSession"
         @home="goHome()"
@@ -32,6 +33,7 @@
         @toggle-section="toggleSection"
         @reveal-more="revealMore"
         @collapse-group="collapseGroup"
+        @cycle-status="onCycleStatus"
       />
     </template>
 
@@ -165,6 +167,11 @@ import { defaultPresetFrom } from "@features/composer/lib/model-preset.js"
 import type { ComposerPreset } from "@features/composer/type.js"
 import { sessionTitle, workspaceName } from "@features/session-nav/index.js"
 import SidebarView from "@features/session-nav/components/SidebarView.vue"
+import {
+  nextInCycle,
+  statusBuckets,
+  type FooterStatus,
+} from "@features/session-nav/lib/status-cycle.js"
 import type { SidebarGrouping, SidebarSort } from "@features/session-nav/type.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
@@ -266,6 +273,27 @@ const expandedSections = computed(() => {
   const keys = sections.value.map((section) => section.key)
   return new Set(keys.filter((key) => !collapsedKeys.value.has(key)))
 })
+/** 页脚状态入口：与真实侧栏同一套分桶，故事里点击只换高亮。 */
+const statusBucketsById = computed(() =>
+  statusBuckets(
+    sections.value.flatMap((section) => section.sessions),
+    SIDEBAR_CARD_FEET,
+  ),
+)
+const statusCounts = computed<Record<FooterStatus, number>>(() => ({
+  running: statusBucketsById.value.running.length,
+  unread: statusBucketsById.value.unread.length,
+  draft: statusBucketsById.value.draft.length,
+}))
+
+function onCycleStatus(status: FooterStatus): void {
+  const target = nextInCycle(statusBucketsById.value[status], highlightedId.value)
+
+  if (!target) return
+  highlightedId.value = target.id
+  home.value = false
+}
+
 /** 顶部标题、置顶态与目录名都跟着高亮会话走，与侧栏同一份状态。 */
 const active = computed(() => {
   const session = sessions.value.find((row) => row.id === highlightedId.value)

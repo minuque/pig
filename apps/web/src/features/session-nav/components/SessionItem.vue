@@ -119,11 +119,8 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
-import type {
-  SidebarSession,
-  SidebarSessionState,
-  SidebarStateGlyph,
-} from "@features/session-nav/type.js"
+import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
+import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
   GripVerticalIcon,
   MenuDotsIcon,
@@ -162,20 +159,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
-const showDraftGlyph = computed(
-  () => props.session.draft && props.state !== "running" && props.state !== "unread",
-)
-/** 优先级：运行中 > 未读 > 草稿 > 错误；都没有时不占图标位。 */
-const glyphState = computed<SidebarStateGlyph | undefined>(() => {
-  if (props.state === "running") return "running"
-
-  if (props.state === "unread") return "unread"
-
-  if (showDraftGlyph.value) return "draft"
-
-  if (props.state === "error") return "error"
-  return undefined
-})
+const glyphState = computed(() => sessionGlyph(props.session, props.state))
 const titleEl = useTemplateRef("titleEl")
 const titleOverflow = shallowRef(false)
 

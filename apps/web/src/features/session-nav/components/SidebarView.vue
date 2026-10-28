@@ -79,9 +79,11 @@
     </div>
 
     <NavFooter
+      :counts="statusCounts"
       @settings="emit('settings')"
       @search="emit('update:searchOpen', true)"
       @add-project="emit('addProject')"
+      @cycle="emit('cycleStatus', $event)"
     />
 
     <ProjectSettingsDialog
@@ -110,6 +112,7 @@ import type {
   SidebarSection,
   SidebarSort,
 } from "@features/session-nav/type.js"
+import type { FooterStatus } from "@features/session-nav/lib/status-cycle.js"
 import { ArrowUpIcon, ChatRoundAddIcon, Tuning2Icon } from "@components/icons/index.js"
 
 defineProps<{
@@ -127,6 +130,7 @@ defineProps<{
   highlightedSessionId: string | undefined
   expandedSections: ReadonlySet<string>
   expandedByGroup: Record<string, number>
+  statusCounts: Record<FooterStatus, number>
 }>()
 
 const emit = defineEmits<{
@@ -136,6 +140,7 @@ const emit = defineEmits<{
   "update:sort": [sort: SidebarSort]
   toggleSidebar: []
   home: []
+  cycleStatus: [status: FooterStatus]
   create: [cwd?: string]
   addProject: []
   settings: []
