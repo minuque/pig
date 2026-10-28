@@ -79,7 +79,8 @@
 }
 
 .callout-neutral.callout-surface {
-  background: var(--card);
+  border-color: var(--callout-neutral-ring);
+  background: var(--callout-neutral-surface);
   color: var(--contrast-foreground);
 }
 
@@ -95,8 +96,8 @@
 }
 
 .callout-info.callout-surface {
-  border-color: color-mix(in srgb, var(--info) 40%, transparent);
-  background: var(--card);
+  border-color: var(--callout-info-ring);
+  background: var(--callout-info-surface);
   color: var(--info);
 }
 
@@ -113,8 +114,8 @@
 }
 
 .callout-success.callout-surface {
-  border-color: color-mix(in srgb, var(--success) 40%, transparent);
-  background: var(--card);
+  border-color: var(--callout-success-ring);
+  background: var(--callout-success-surface);
   color: var(--success);
 }
 
@@ -131,8 +132,8 @@
 }
 
 .callout-warning.callout-surface {
-  border-color: color-mix(in srgb, var(--warning) 40%, transparent);
-  background: var(--card);
+  border-color: var(--callout-warning-ring);
+  background: var(--callout-warning-surface);
   color: var(--warning);
 }
 
@@ -149,8 +150,8 @@
 }
 
 .callout-destructive.callout-surface {
-  border-color: color-mix(in srgb, var(--destructive) 40%, transparent);
-  background: var(--card);
+  border-color: var(--callout-destructive-ring);
+  background: var(--callout-destructive-surface);
   color: var(--destructive);
 }
 
