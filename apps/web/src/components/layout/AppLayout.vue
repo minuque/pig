@@ -158,7 +158,7 @@ function resetWidth() {
 
 .shell.is-resizing .resizer::after {
   opacity: 1;
-  background: var(--primary);
+  background: var(--foreground-secondary);
 }
 
 html[data-pig-desktop-platform] .resizer {
