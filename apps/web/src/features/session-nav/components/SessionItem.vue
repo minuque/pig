@@ -49,7 +49,7 @@
 
             <span class="state-slot">
               <span class="state-mark" aria-hidden="true">
-                <CircleDashedIcon
+                <LoaderIcon
                   v-if="state === 'running'"
                   :size="12"
                   class="state-glyph running motion-spin"
@@ -57,7 +57,7 @@
 
                 <CheckIcon v-else-if="state === 'unread'" :size="11" class="state-glyph unread" />
                 <PenIcon v-else-if="showDraftGlyph" :size="11" class="state-glyph draft" />
-                <span v-else class="state-dot" :class="dotKind"></span>
+                <span v-else-if="dotKind" class="state-dot" :class="dotKind"></span>
               </span>
 
               <Tooltip v-if="!placeholder">
@@ -129,8 +129,8 @@ import SessionItemDelete from "@features/session-nav/components/SessionItemDelet
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
   CheckIcon,
-  CircleDashedIcon,
   GripVerticalIcon,
+  LoaderIcon,
   MenuDotsIcon,
   PenIcon,
   PinIcon,
