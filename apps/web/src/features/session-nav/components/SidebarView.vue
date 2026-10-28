@@ -18,7 +18,6 @@
         <div class="head-actions">
           <button
             class="head-btn"
-            :class="{ scoped: !!scopeFilter }"
             type="button"
             :title="t('session.allProjects')"
             @click.stop="scopeMenuOpen = !scopeMenuOpen"
@@ -43,9 +42,8 @@
           :scope-filter="scopeFilter"
           @update:grouping="emit('update:grouping', $event)"
           @update:sort="emit('update:sort', $event)"
-          @update:scope-filter="pickScope"
+          @update:scope-filter="emit('update:scopeFilter', $event)"
           @settings="onGlobalSettings"
-          @edit-project="onEditProject"
         />
       </div>
     </div>
@@ -58,7 +56,7 @@
 
       <SessionList
         :sections="sections"
-        :scope-filter="scopeFilter"
+        :filtered="scopeFilter.size > 0"
         :card-foot-by-id="cardFootById"
         :pinned-ids="pinnedIds"
         :highlighted-session-id="highlightedSessionId"
@@ -85,12 +83,6 @@
       @add-project="emit('addProject')"
       @cycle="emit('cycleStatus', $event)"
     />
-
-    <ProjectSettingsDialog
-      v-if="projectSettingsOpen"
-      v-model:open="projectSettingsOpen"
-      :project="projectSettingsTarget"
-    />
   </div>
 </template>
 
@@ -104,7 +96,6 @@ import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
 import SidebarTitlebar from "@features/session-nav/components/SidebarTitlebar.vue"
 import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
-import ProjectSettingsDialog from "@features/session-nav/components/ProjectSettingsDialog.vue"
 import type {
   SessionGroup,
   SidebarGrouping,
@@ -121,7 +112,7 @@ defineProps<{
   sbExpanded: boolean
   grouping: SidebarGrouping
   sort: SidebarSort
-  scopeFilter: string | undefined
+  scopeFilter: ReadonlySet<string>
   searchOpen: boolean
   sections: readonly SidebarSection[]
   cardFootById: ReadonlyMap<string, SidebarRowFoot>
@@ -135,7 +126,7 @@ defineProps<{
 
 const emit = defineEmits<{
   "update:searchOpen": [open: boolean]
-  "update:scopeFilter": [name: string | undefined]
+  "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
   "update:grouping": [grouping: SidebarGrouping]
   "update:sort": [sort: SidebarSort]
   toggleSidebar: []
@@ -158,8 +149,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const scopeMenuOpen = shallowRef(false)
 const listScrolled = shallowRef(false)
-const projectSettingsOpen = shallowRef(false)
-const projectSettingsTarget = shallowRef("")
 
 function updateListScrolled() {
   const el = document.querySelector<HTMLElement>(".session-window")
@@ -182,19 +171,8 @@ useEventListener(window, "pointerdown", (event) => {
   scopeMenuOpen.value = false
 })
 
-function pickScope(name: string | undefined): void {
-  emit("update:scopeFilter", name)
-  scopeMenuOpen.value = false
-}
-
 function onGlobalSettings(): void {
   emit("settings")
-  scopeMenuOpen.value = false
-}
-
-function onEditProject(project: string): void {
-  projectSettingsTarget.value = project
-  projectSettingsOpen.value = true
   scopeMenuOpen.value = false
 }
 </script>
@@ -334,22 +312,6 @@ function onEditProject(project: string): void {
 .head-btn:hover {
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
-}
-
-.head-btn.scoped {
-  color: var(--primary);
-}
-
-.head-btn.scoped::after {
-  content: "";
-  position: absolute;
-  bottom: 2px;
-  left: 50%;
-  width: 4px;
-  height: 4px;
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  translate: -50% 0;
 }
 
 .session-nav > .titlebar-drag {

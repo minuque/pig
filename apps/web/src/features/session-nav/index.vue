@@ -43,8 +43,8 @@ import { useRouter } from "vue-router"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyAction } from "@components/layout/notify.js"
-import { useNav, workspaceName } from "@features/session-nav/index.js"
-import { isDraftSessionId } from "@features/session-nav/lib/session-list.js"
+import { useNav } from "@features/session-nav/index.js"
+import { isDraftSessionId, sessionInProjects } from "@features/session-nav/lib/session-list.js"
 import {
   nextInCycle,
   statusBuckets,
@@ -88,12 +88,13 @@ const {
   reorderPinned,
 } = useNav()
 const router = useRouter()
-const scopeFilter = shallowRef<string | undefined>(undefined)
+/** 选中的项目路径；空集合显示全部。 */
+const scopeFilter = shallowRef<ReadonlySet<string>>(new Set())
 const searchOpen = shallowRef(false)
 const sbExpanded = computed(() => sbState.value !== "offcanvas")
 const include = computed(
   () => (session: { id: string; cwd?: string }) =>
-    !scopeFilter.value || workspaceName(session.cwd ?? "") === scopeFilter.value,
+    sessionInProjects(session.cwd, scopeFilter.value),
 )
 const sections = sectionsFor(include)
 const statusBucketsById = computed(() =>

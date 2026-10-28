@@ -7,6 +7,7 @@ import {
   draftSessionId,
   groupSessionsByCwd,
   listSessionsForSidebar,
+  sessionInProjects,
   sidebarSections,
 } from "@features/session-nav/lib/session-list.js"
 import type {
@@ -107,14 +108,12 @@ export function workbenchSections(input: {
   pinnedOrder: readonly string[]
   grouping: SidebarGrouping
   sort: SidebarSort
-  scope: string | undefined
+  scope: ReadonlySet<string>
   localWorkspaces: readonly string[]
   expandedByGroup: Record<string, number>
 }): SidebarSection[] {
   const { scope, ...rest } = input
-  const sessions = scope
-    ? input.sessions.filter((session) => workspaceName(session.cwd ?? "") === scope)
-    : input.sessions
+  const sessions = input.sessions.filter((session) => sessionInProjects(session.cwd, scope))
   return sidebarSections({ ...rest, sessions, now: SIDEBAR_NOW })
 }
 

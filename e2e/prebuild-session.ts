@@ -107,11 +107,12 @@ export function prebuildFillerSessions(
   sessionDir: string,
   cwd: string,
   count: number,
+  idPrefix = "e2e-filler",
 ): { id: string; name: string }[] {
   const made: { id: string; name: string }[] = []
 
   for (let i = 0; i < count; i += 1) {
-    const id = `e2e-filler-${i}`
+    const id = `${idPrefix}-${i}`
     const name = `${FILLER_PREFIX} ${i + 1}`
     const timestamp = Date.now() + i
     const manager = SessionManager.create(cwd, sessionDir, { id })

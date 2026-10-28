@@ -30,23 +30,8 @@
             </span>
 
             <span v-else-if="section.cwd" class="section-icon" aria-hidden="true">
-              <span
-                v-if="sectionIcons[section.key]?.kind === 'monogram'"
-                class="proj-mono"
-                :style="{ background: monoColor(sectionIcons[section.key]) }"
-              >
-                {{ sectionIcons[section.key]?.value }}
-              </span>
-
-              <span v-else-if="sectionIcons[section.key]?.kind === 'emoji'" class="proj-emoji">
-                {{ sectionIcons[section.key]?.value }}
-              </span>
-
-              <component
-                v-else
-                :is="projectIconComponent(sectionIcons[section.key])"
+              <FolderIcon
                 :size="15"
-                :style="sectionIconStyle(section)"
                 :class="{ 'icon-muted': !expandedSections.has(section.key) }"
               />
             </span>
@@ -154,13 +139,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import {
-  loadProjIcons,
-  projectIconComponent,
-  projIconHex,
-  type ProjIcon,
-} from "@features/session-nav/lib/project-icon.js"
-import { useColorScheme } from "@features/theme/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
@@ -170,6 +148,7 @@ import {
   ClockCircleIcon,
   DoubleAltArrowDownIcon,
   DoubleAltArrowUpIcon,
+  FolderIcon,
   PinIcon,
   PinBoldIcon,
 } from "@components/icons/index.js"
@@ -177,7 +156,8 @@ import type { SidebarRowFoot, SidebarSection, SidebarSession } from "@features/s
 
 const props = defineProps<{
   sections: readonly SidebarSection[]
-  scopeFilter?: string | undefined
+  /** 筛选态下 pinned 段只渲染命中项，DOM 序号与全表序号不再对应。 */
+  filtered: boolean
   cardFootById: ReadonlyMap<string, SidebarRowFoot>
   pinnedIds: ReadonlySet<string>
   highlightedSessionId: string | undefined
@@ -198,10 +178,8 @@ const emit = defineEmits<{
   collapseGroup: [key: string]
 }>()
 const { t } = useI18n()
-const { isDark } = useColorScheme()
 // 过滤态下 pinned 段只渲染命中项，DOM 序号与 pinnedOrder 全表序号不再对应，禁用拖拽。
-const dragEnabled = computed(() => !props.scopeFilter)
-const projIcons = computed(loadProjIcons)
+const dragEnabled = computed(() => !props.filtered)
 const sectionLabelOverflow = shallowRef<Record<string, boolean>>({})
 const dragId = shallowRef<string | undefined>(undefined)
 const dragIndex = shallowRef<number | undefined>(undefined)
@@ -224,27 +202,6 @@ watch(
   },
   { immediate: true },
 )
-
-const sectionIcons = computed<Record<string, ProjIcon | undefined>>(() => {
-  const icons = projIcons.value
-  return Object.fromEntries(
-    props.sections.map((section) => [section.key, section.cwd ? icons[section.label] : undefined]),
-  )
-})
-
-function monoColor(custom: ProjIcon | undefined) {
-  if (!custom) return undefined
-  // 读 isDark 让深浅切换时重取色值
-  void isDark.value
-  return projIconHex(custom.color)
-}
-
-function sectionIconStyle(section: { key: string }) {
-  // 收起态调暗，让自定义色统一沉到 muted
-  if (!props.expandedSections.has(section.key)) return undefined
-  const custom = sectionIcons.value[section.key]
-  return custom?.kind === "icon" ? { color: projIconHex(custom.color) } : undefined
-}
 
 function itemBind(session: SidebarSession, _section: SidebarSection) {
   const foot = props.cardFootById.get(session.id)
@@ -384,23 +341,8 @@ onBeforeUnmount(() => {
   height: 15px;
 }
 
-.section-icon .proj-mono {
-  display: grid;
-  place-items: center;
-  width: 15px;
-  height: 15px;
-  border-radius: var(--radius-xs);
-  color: var(--primary-foreground);
-  font: 700 8px/1 var(--font-mono);
-}
-
-.section-icon .proj-emoji {
-  font-size: 15px;
-  line-height: 1;
-}
-
 .section-icon .icon-muted {
-  color: var(--contrast-foreground-muted) !important;
+  color: var(--contrast-foreground-muted);
 }
 
 .section-head.open .section-toggle {

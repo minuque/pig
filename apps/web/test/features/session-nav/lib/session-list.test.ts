@@ -6,6 +6,7 @@ import {
   groupSessionsByCwd,
   sessionCardFoot,
   sessionOutcome,
+  sessionInProjects,
   sidebarSections,
 } from "@features/session-nav/lib/session-list.js"
 
@@ -173,5 +174,28 @@ describe("session card foot", () => {
       outcome: undefined,
       model: { provider: "openai", id: "gpt-4" },
     })
+  })
+})
+
+describe("sessionInProjects", () => {
+  it("空集合放行全部会话", () => {
+    expect(sessionInProjects("/repo/a", new Set())).toBe(true)
+    expect(sessionInProjects(undefined, new Set())).toBe(true)
+  })
+
+  it("按 canonical 路径命中选中的项目", () => {
+    const selected = new Set(["g:/aicode/pig"])
+
+    expect(sessionInProjects(String.raw`G:\AICode\pig`, selected)).toBe(true)
+    expect(sessionInProjects("/repo/other", selected)).toBe(false)
+  })
+
+  it("多选命中任一项目，缺 cwd 不命中", () => {
+    const selected = new Set(["/repo/a", "/repo/b"])
+
+    expect(sessionInProjects("/repo/a", selected)).toBe(true)
+    expect(sessionInProjects("/repo/b", selected)).toBe(true)
+    expect(sessionInProjects("/repo/c", selected)).toBe(false)
+    expect(sessionInProjects(undefined, selected)).toBe(false)
   })
 })

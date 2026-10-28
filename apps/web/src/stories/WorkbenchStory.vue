@@ -156,6 +156,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, 
 import { useEventListener } from "@vueuse/core"
 
 import { t } from "@i18n/index.js"
+import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import AlertToaster from "@components/layout/AlertToaster.vue"
 import AppLayout from "@components/layout/AppLayout.vue"
 import { dismissNotice, noticeQueue, notifyAction } from "@components/layout/notify.js"
@@ -229,11 +230,17 @@ const chrome = useTemplateRef<InstanceType<typeof WorkbenchChrome>>("chrome")
 const transcriptView = useTemplateRef<InstanceType<typeof TranscriptView>>("transcriptView")
 /** 侧栏本地状态：controls 改了就覆盖，重挂载后回到 controls 给的值。 */
 const grouping = ref<SidebarGrouping>(props.sidebarGrouping)
-const scopeFilter = ref<string | undefined>(props.sidebarScope || undefined)
-const searchOpen = ref(props.sidebarSearch)
-const sort = ref<SidebarSort>("updated")
 const sessions = ref<SessionMetadata[]>([...SIDEBAR_SESSIONS])
 const workspaces = ref<string[]>([...SIDEBAR_WORKSPACES])
+const scopeFor = (name: string): ReadonlySet<string> =>
+  new Set(
+    workspaces.value
+      .filter((path) => workspaceName(path) === name)
+      .map((path) => canonicalizeWorkspacePath(path)),
+  )
+const scopeFilter = ref<ReadonlySet<string>>(scopeFor(props.sidebarScope))
+const searchOpen = ref(props.sidebarSearch)
+const sort = ref<SidebarSort>("updated")
 const pinnedOrder = ref<string[]>([...SIDEBAR_PINNED_IDS])
 const highlightedId = ref<string | undefined>(HIGHLIGHTED_SESSION_ID)
 const expandedByGroup = ref<Record<string, number>>({})
@@ -247,7 +254,7 @@ watch(
 
 watch(
   () => props.sidebarScope,
-  (value) => (scopeFilter.value = value || undefined),
+  (value) => (scopeFilter.value = scopeFor(value)),
 )
 
 watch(

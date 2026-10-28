@@ -18,15 +18,19 @@ export function canonicalizeWorkspacePath(path: string): string {
 }
 
 /** 种子 localStorage 定位工作区；reducedMotion 由调用方按需 emulate（bench 要切两档）。 */
-export async function seedWorkspace(page: Page, workspaceId: string) {
+export async function seedWorkspaces(page: Page, workspaceIds: readonly string[]) {
   await page.addInitScript(
-    ({ id }) => {
-      localStorage.setItem("pig.localWorkspaces", JSON.stringify([id]))
-      localStorage.setItem("pig.lastCwd", id)
+    ({ ids }) => {
+      localStorage.setItem("pig.localWorkspaces", JSON.stringify(ids))
+      localStorage.setItem("pig.lastCwd", ids[0] ?? "")
       localStorage.setItem("npg-theme", "light")
     },
-    { id: workspaceId },
+    { ids: workspaceIds },
   )
+}
+
+export async function seedWorkspace(page: Page, workspaceId: string) {
+  await seedWorkspaces(page, [workspaceId])
 }
 
 /** DataTransfer 只能在页面里造，一次派发一个拖拽事件到 .session-panel。 */
@@ -64,11 +68,39 @@ export interface E2eGateway {
   readonly workspaceId: string
 }
 
+/** 两个工作目录：验项目筛选多选。 */
+export interface MultiE2eGateway extends E2eGateway {
+  readonly secondWorkspaceId: string
+}
+
 type TestFixtures = {
   gateway: E2eGateway
   complexGateway: E2eGateway
   /** 只装 6 个批量会话，用来验侧栏分组与分页。 */
   navGateway: E2eGateway
+  /** 两个项目各装若干会话，用来验多选筛选。 */
+  multiGateway: MultiE2eGateway
+}
+
+/** 起 Gateway 并躲开 Chromium 禁用端口。 */
+async function startGateway(options: {
+  webRoot: string
+  sessionDir: string
+  cwd: string
+  platformPort: DirectoryPort
+  port: number
+}) {
+  let gateway = new Gateway(options)
+  let port = await gateway.start()
+
+  // listen(0) 偶尔抽到 Chromium 的禁用端口，重起到能直连为止
+  for (let attempt = 0; attempt < 5 && UNSAFE_PORTS.has(port); attempt += 1) {
+    await gateway.stop()
+    gateway = new Gateway(options)
+    port = await gateway.start()
+  }
+
+  return { gateway, port }
 }
 
 async function withGateway(
@@ -92,16 +124,13 @@ async function withGateway(
       return path
     },
   }
-  const options = { webRoot, sessionDir, cwd: workspaceDir, platformPort, port: 0 }
-  let gateway = new Gateway(options)
-  let port = await gateway.start()
-
-  // listen(0) 偶尔抽到 Chromium 的禁用端口，重起到能直连为止
-  for (let attempt = 0; attempt < 5 && UNSAFE_PORTS.has(port); attempt += 1) {
-    await gateway.stop()
-    gateway = new Gateway(options)
-    port = await gateway.start()
-  }
+  const { gateway, port } = await startGateway({
+    webRoot,
+    sessionDir,
+    cwd: workspaceDir,
+    platformPort,
+    port: 0,
+  })
 
   try {
     await use({
@@ -109,6 +138,49 @@ async function withGateway(
       entryUrl: gateway.authenticatedUrl(`http://127.0.0.1:${port}`),
       workspaceDir,
       workspaceId,
+    })
+  } finally {
+    await gateway.stop()
+    await rm(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+  }
+}
+
+async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void>) {
+  const temp = await mkdtemp(join(tmpdir(), "pig-e2e-"))
+  const firstDir = join(temp, "workspace-a")
+  const secondDir = join(temp, "workspace-b")
+  const sessionDir = join(temp, "sessions")
+  await mkdir(firstDir)
+  await mkdir(secondDir)
+  await mkdir(sessionDir)
+  await writeFile(join(firstDir, ".keep"), "")
+  await writeFile(join(secondDir, ".keep"), "")
+  prebuildFillerSessions(sessionDir, firstDir, 3)
+  prebuildFillerSessions(sessionDir, secondDir, 2, "e2e-other")
+
+  const platformPort: DirectoryPort = {
+    async selectDirectory() {
+      return firstDir
+    },
+    async validateDirectory(path) {
+      return path
+    },
+  }
+  const { gateway, port } = await startGateway({
+    webRoot,
+    sessionDir,
+    cwd: firstDir,
+    platformPort,
+    port: 0,
+  })
+
+  try {
+    await use({
+      origin: `http://127.0.0.1:${port}`,
+      entryUrl: gateway.authenticatedUrl(`http://127.0.0.1:${port}`),
+      workspaceDir: firstDir,
+      workspaceId: canonicalizeWorkspacePath(firstDir),
+      secondWorkspaceId: canonicalizeWorkspacePath(secondDir),
     })
   } finally {
     await gateway.stop()
@@ -137,6 +209,12 @@ export const test = base.extend<TestFixtures>({
       await withGateway((sessionDir, workspaceDir) => {
         prebuildFillerSessions(sessionDir, workspaceDir, 6)
       }, use)
+    },
+    { scope: "test" },
+  ],
+  multiGateway: [
+    async ({}, use) => {
+      await withTwoWorkspaces(use)
     },
     { scope: "test" },
   ],
