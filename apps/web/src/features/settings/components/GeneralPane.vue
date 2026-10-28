@@ -428,7 +428,7 @@ async function onNotify(next: boolean) {
 .wire-side::after {
   content: "";
   height: var(--space-xxs);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--border);
 }
 
@@ -447,7 +447,7 @@ async function onNotify(next: boolean) {
 
 .wire-line {
   height: var(--space-xxs);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--border);
 }
 
@@ -462,14 +462,14 @@ async function onNotify(next: boolean) {
   margin-top: auto;
   height: var(--space-md);
   padding-inline: var(--space-xxs);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--theme-wire-light-raised);
 }
 
 .wire-knob {
   width: var(--space-sm);
   height: var(--space-sm);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--primary);
 }
 
@@ -514,7 +514,7 @@ async function onNotify(next: boolean) {
   place-items: center;
   width: 1.25rem;
   height: 1.25rem;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   color: var(--white);
 }
 

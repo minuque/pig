@@ -371,7 +371,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   min-height: 0;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--contrast-foreground);
   cursor: pointer;
@@ -401,7 +401,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   min-height: 0;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),

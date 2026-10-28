@@ -322,7 +322,7 @@ function save() {
   height: 22px;
   padding: 0;
   border: 2px solid transparent;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   cursor: pointer;
 }
 

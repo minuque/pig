@@ -126,7 +126,7 @@ const softWrap = ref(false)
   width: 6px;
   height: 6px;
   margin: 2px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--success);
   box-shadow: 0 0 0 2px var(--success-halo);
 }

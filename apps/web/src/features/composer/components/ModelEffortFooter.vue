@@ -200,7 +200,7 @@ function reset() {
 .effort-track {
   position: absolute;
   inset: 2px 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--effort-track);
 }
 
@@ -227,7 +227,7 @@ function reset() {
   top: 50%;
   width: 4px;
   height: 4px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--contrast-foreground-faint);
   transform: translate(-50%, -50%);
 }
@@ -243,7 +243,7 @@ function reset() {
   left: calc(14px + (100% - 28px) * var(--effort-p) / 100);
   width: 28px;
   height: 28px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--white);
   box-shadow: var(--shadow-soft);
   transform: translate(-50%, -50%);

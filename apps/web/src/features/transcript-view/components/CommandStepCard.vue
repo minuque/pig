@@ -124,7 +124,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
   width: 6px;
   height: 6px;
   margin: 2px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--success);
   box-shadow: 0 0 0 2px var(--success-halo);
 }

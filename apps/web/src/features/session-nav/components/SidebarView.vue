@@ -337,7 +337,7 @@ function onEditProject(project: string): void {
   left: 50%;
   width: 4px;
   height: 4px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--primary);
   translate: -50% 0;
 }

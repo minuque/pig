@@ -64,7 +64,7 @@ const ringOffset = computed(() => {
   min-height: 0;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--primary-active);
   cursor: pointer;

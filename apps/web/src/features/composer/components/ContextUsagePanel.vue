@@ -245,7 +245,7 @@ function onOpenAutoFocus(event: Event) {
   overflow: hidden;
   height: 6px;
   margin-top: var(--space-xs);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--hover-strong);
 }
 

@@ -179,7 +179,7 @@ function onStageFocusOut(event: FocusEvent) {
   inset-inline-start: 0;
   top: 50%;
   height: 2px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--minimap-marker);
   transform: translateY(-50%);
   width: 8px;

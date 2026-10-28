@@ -509,7 +509,7 @@ onBeforeUnmount(() => {
   inset-inline: 0;
   height: 2px;
   background: var(--primary);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   opacity: 0.6;
   content: "";
 }

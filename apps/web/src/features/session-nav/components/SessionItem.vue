@@ -373,7 +373,7 @@ function confirmDelete() {
   display: block;
   width: 6px;
   height: 6px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--hover-strong);
 }
 

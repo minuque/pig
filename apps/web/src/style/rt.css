@@ -24,10 +24,6 @@
   --radius-5: calc(var(--radius) * 3 / 2);
   --radius-6: calc(var(--radius) * 2);
 
-  /* rt 只给 data-radius="full" 档置 9999px，medium 档写的是 0；这里接回项目的全圆角值，
-     否则圆点、铃用环、发送按钮这些 var(--radius-full) 全变方角 */
-  --radius-full: 9999px;
-
   /* rt 把字体、根字号与字色定在自己身上，接回项目基线：随包字体、正文档、对比度层。
      不接这三项，包在根上的 ThemeRoot 会让整站退回系统字体与 16px。 */
   --default-font-family: var(--font-sans);

@@ -339,7 +339,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   flex-shrink: 1;
   padding: var(--space-xxs) var(--space-xs);
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--contrast-foreground);
   font-size: var(--text-caption);
@@ -483,7 +483,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   inset-inline: 22%;
   bottom: calc(-1 * var(--space-xxs) - var(--border-width));
   height: 2px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--primary);
   opacity: 0;
 }
@@ -599,7 +599,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   margin-inline-start: auto;
   padding: 0 var(--space-xxs);
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--background-soft);
   color: var(--contrast-foreground-faint);
   font-family: inherit;

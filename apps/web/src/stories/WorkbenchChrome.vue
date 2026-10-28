@@ -190,7 +190,7 @@ function onNudge(delta: number): void {
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-md);
   border: var(--border-width) dashed var(--primary);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--composer-background);
   color: var(--primary);
   font-size: var(--text-body-md);
@@ -311,7 +311,7 @@ function onNudge(delta: number): void {
 .session-floating-controls :deep(.scroll-latest-control) {
   width: var(--size-scroll-control);
   height: var(--size-scroll-control);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--popover);
   color: var(--contrast-foreground-secondary);
   box-shadow: none;

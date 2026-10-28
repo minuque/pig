@@ -359,7 +359,8 @@
   --radius-xl: calc(var(--radius) + 8px);
   --radius-popover: calc(var(--radius) + 4px);
   --radius-code: 0.65rem;
-  --radius-full: 9999px;
+  /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
+  --radius-pill: 9999px;
 }
 
 /* ------ 深色覆盖：只覆盖颜色、阴影、玻璃 ------ */
