@@ -365,9 +365,9 @@
   --radius-pill: 9999px;
 }
 
-/* 半透明窗口：窗口底与侧栏用带 alpha 的底色，main 里的工作台卡片保持实底 */
+/* 半透明窗口：窗口底只由 shell 画一层，侧栏与 main 让开，工作台卡片保持实底 */
 html[data-translucent-window="on"] {
-  --window-surface: color-mix(in srgb, var(--background) 72%, transparent);
+  --window-surface: color-mix(in srgb, var(--background) 20%, transparent);
 }
 
 /* ------ 深色覆盖：只覆盖颜色、阴影、玻璃 ------ */
