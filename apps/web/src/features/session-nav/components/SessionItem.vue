@@ -55,7 +55,12 @@
                   class="state-glyph running motion-spin"
                 />
 
-                <CheckIcon v-else-if="state === 'unread'" :size="11" class="state-glyph unread" />
+                <CheckCircleIcon
+                  v-else-if="state === 'unread'"
+                  :size="11"
+                  class="state-glyph unread"
+                />
+
                 <PenIcon v-else-if="showDraftGlyph" :size="11" class="state-glyph draft" />
                 <span v-else-if="dotKind" class="state-dot" :class="dotKind"></span>
               </span>
@@ -128,7 +133,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
-  CheckIcon,
+  CheckCircleIcon,
   GripVerticalIcon,
   LoaderIcon,
   MenuDotsIcon,
