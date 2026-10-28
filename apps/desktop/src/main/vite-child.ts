@@ -60,6 +60,8 @@ export function pnpmCommand(
 }
 
 export function spawnVite(env: { GATEWAY_TARGET: string; GATEWAY_TOKEN: string }): ChildProcess {
+  assertVitePortFree(viteDevPort())
+
   const runner = pnpmCommand([
     "--filter",
     "@pig/web",
@@ -159,13 +161,47 @@ export function killVite(child: ChildProcess): void {
   killPortListeners()
 }
 
-export async function waitForHttp(url: string, timeoutMs = 60_000): Promise<void> {
+/** 端口空着才轮得到本实例收尾时按端口清理；否则那可能是别人的 Vite。 */
+export function isVitePortFree(
+  port: number,
+  list: (port: number) => number[] = listListeningPids,
+): boolean {
+  return list(port).length === 0
+}
+
+/** 端口必须先空着：占用中的端口多半是另一个实例的 Vite，借来用会被对方退出时连坐。 */
+export function assertVitePortFree(
+  port: number,
+  list: (port: number) => number[] = listListeningPids,
+): void {
+  const pids = list(port)
+
+  if (pids.length) {
+    throw new Error(
+      `Vite 端口 ${port} 已被占用（PID ${pids.join(", ")}），可能已有桌面实例在运行。请先关闭旧窗口，或用 --port 换一个端口。`,
+    )
+  }
+}
+
+/** 等到 Vite 真的能给出 200；子进程先退出就立刻报错，别空等超时。 */
+export async function waitForHttp(
+  url: string,
+  timeoutMs = 60_000,
+  child?: Pick<ChildProcess, "exitCode" | "signalCode">,
+): Promise<void> {
   const deadline = Date.now() + timeoutMs
 
   for (;;) {
+    if (child && (child.exitCode !== null || child.signalCode !== null)) {
+      throw new Error(
+        `Vite 提前退出（code=${child.exitCode ?? "null"}），请检查端口占用或启动日志。`,
+      )
+    }
+
     try {
-      await fetch(url)
-      return
+      const response = await fetch(url)
+
+      if (response.ok) return
     } catch {
       // 尚未监听
     }

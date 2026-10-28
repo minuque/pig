@@ -17,6 +17,7 @@ import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
 import { registerWindowControls } from "./window-controls.js"
+import { loadWithRetry } from "./load-retry.js"
 import { parseThemeColor } from "./theme-color.js"
 import { resolveWebRoot } from "./paths.js"
 import {
@@ -178,7 +179,7 @@ void app.whenReady().then(async () => {
 
     if (isDev) {
       vite = spawnVite({ GATEWAY_TARGET: httpOrigin, GATEWAY_TOKEN: launchToken })
-      await waitForHttp(viteDevOrigin())
+      await waitForHttp(viteDevOrigin(), 60_000, vite)
     } else {
       if (!webRoot) throw new Error("桌面壳缺少 Web 资源")
       handlePigProtocol(httpOrigin, webRoot, launchToken)
@@ -214,7 +215,9 @@ void app.whenReady().then(async () => {
 
     const origin = isDev ? viteDevOrigin() : pigAppUrl()
     process.env.PIG_GATEWAY_ORIGIN = origin
-    await mainWindow.loadURL(isDesktopBench() ? "about:blank" : origin)
+    const window = mainWindow
+    // 开发服务的首帧可能撞上 Vite 重启，重试几次再判失败
+    await loadWithRetry(() => window.loadURL(isDesktopBench() ? "about:blank" : origin))
   } catch (error) {
     dialog.showErrorBox("无法启动", error instanceof Error ? error.message : String(error))
     await shutdown()
