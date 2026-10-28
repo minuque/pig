@@ -185,19 +185,7 @@
   /* 状态浅底 badge：主色 15% 混入 background，随主题联动 */
   --success-bg: color-mix(in srgb, var(--success) 15%, var(--background));
   --info-bg: var(--accent-a3);
-  --warning-bg: color-mix(in srgb, var(--warning) 15%, var(--background));
   --destructive-bg: color-mix(in srgb, var(--destructive) 15%, var(--background));
-  /* Callout surface：照 rt 的 a2 底色 + a6 描边；info/neutral 直接用色板的 alpha 阶 */
-  --callout-info-surface: var(--accent-a2);
-  --callout-info-ring: var(--accent-a6);
-  --callout-neutral-surface: color-mix(in srgb, var(--foreground) 4%, transparent);
-  --callout-neutral-ring: color-mix(in srgb, var(--foreground) 18%, transparent);
-  --callout-success-surface: color-mix(in srgb, var(--success) 6%, transparent);
-  --callout-success-ring: color-mix(in srgb, var(--success) 22%, transparent);
-  --callout-warning-surface: color-mix(in srgb, var(--warning) 6%, transparent);
-  --callout-warning-ring: color-mix(in srgb, var(--warning) 22%, transparent);
-  --callout-destructive-surface: color-mix(in srgb, var(--destructive) 6%, transparent);
-  --callout-destructive-ring: color-mix(in srgb, var(--destructive) 22%, transparent);
   /* tint 上的破坏色文字：--destructive 压在 15% 混底上只有 3.6:1，单独给一档 */
   --destructive-on-tint: #b91c1c;
 

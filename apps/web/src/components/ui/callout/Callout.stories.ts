@@ -15,8 +15,15 @@ const meta: Meta = {
     variant: { control: "select", options: ["soft", "surface", "outline"] },
     color: { control: "select", options: ["neutral", "info", "success", "warning", "destructive"] },
     size: { control: "select", options: ["s", "m", "l"] },
+    highContrast: { control: "boolean" },
   },
-  args: { variant: "surface", color: "neutral", size: "m", dismissible: false },
+  args: {
+    variant: "surface",
+    color: "neutral",
+    size: "m",
+    highContrast: false,
+    dismissible: false,
+  },
   render: (args) => ({
     components: { Callout, LightbulbMinimalisticIcon },
     setup: () => ({ args }),
@@ -34,6 +41,22 @@ export const Soft: Story = { args: { variant: "soft", color: "info" } }
 export const Outline: Story = { args: { variant: "outline", color: "info" } }
 export const Large: Story = { args: { size: "l", color: "info" } }
 export const Destructive: Story = { args: { variant: "soft", color: "destructive" } }
+/** 三种变体 × 中性/强调色，对照 rt 的 Callout 文档矩阵。 */
+export const Variants: Story = {
+  render: () => ({
+    components: { Callout, LightbulbMinimalisticIcon },
+    data: () => ({ variants: ["soft", "surface", "outline"], colors: ["neutral", "info"] }),
+    template: `<div class="flex flex-col gap-md">
+      <div v-for="variant in variants" :key="variant" class="flex flex-col gap-xs">
+        <Callout v-for="color in colors" :key="color" :variant="variant" :color="color">
+          <template #icon><LightbulbMinimalisticIcon /></template>
+          <template #title>{{ $t("demo.callout.title") }}</template>
+          {{ $t("demo.callout.body") }}
+        </Callout>
+      </div>
+    </div>`,
+  }),
+}
 export const Dismissible: Story = {
   args: { dismissible: true, color: "warning" },
   render: (args) => ({
