@@ -4,6 +4,7 @@
     :data-accent-color="color"
     :data-radius="radius"
     :data-disabled="disabled || loading ? '' : undefined"
+    :disabled="disabled || loading"
     :as="as"
     :as-child="asChild"
     :class="['rt-reset', 'rt-BaseButton', 'rt-Button', extracted.class, props.class]"
@@ -61,6 +62,6 @@ const DEFS: PropDefs = {
   loading: { type: "boolean", className: "rt-loading" },
 }
 const extracted = computed(() =>
-  extractProps(props as Record<string, unknown>, DEFS, ["color", "radius"]),
+  extractProps(props as Record<string, unknown>, DEFS, ["color", "radius", "disabled"]),
 )
 </script>

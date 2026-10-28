@@ -8,8 +8,9 @@
     <RadioGroupItem
       data-slot="radio-group-item"
       v-bind="forwardedProps"
+      :data-accent-color="group.color"
       class="rt-reset rt-BaseRadioRoot"
-      :class="[sizeClass, variantClass]"
+      :class="[sizeClass, variantClass, highContrastClass]"
     />
 
     <span class="rt-RadioGroupItemInner"><slot /></span>
@@ -19,8 +20,9 @@
     v-else
     data-slot="radio-group-item"
     v-bind="forwardedProps"
+    :data-accent-color="group.color"
     class="rt-reset rt-BaseRadioRoot"
-    :class="[sizeClass, variantClass, props.class]"
+    :class="[sizeClass, variantClass, highContrastClass, props.class]"
   />
 </template>
 
@@ -41,10 +43,19 @@ const delegatedProps = reactiveOmit(props, "class")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemProps>
 const group = inject(
   RADIO_GROUP_KEY,
-  computed(() => ({ size: "m", variant: "surface" }) as const),
+  computed(
+    () =>
+      ({
+        size: "m",
+        variant: "surface",
+        color: undefined,
+        highContrast: false,
+      }) as const,
+  ),
 )
 const sizeClass = computed(() => rtSizeClass(group.value.size))
 // 文字尺寸与单选按钮同档：rt 用 <Text size> 包 label，行高决定圆点外边距
 const textSizeClass = computed(() => rtSizeClass(group.value.size))
 const variantClass = computed(() => `rt-variant-${group.value.variant}`)
+const highContrastClass = computed(() => group.value.highContrast && "rt-high-contrast")
 </script>

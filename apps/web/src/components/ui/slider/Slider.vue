@@ -9,7 +9,11 @@
     :class="[sizeClass, variantClass, props.class]"
   >
     <SliderTrack data-slot="slider-track" class="rt-SliderTrack">
-      <SliderRange data-slot="slider-range" class="rt-SliderRange" />
+      <SliderRange
+        data-slot="slider-range"
+        class="rt-SliderRange"
+        :class="highContrast && 'rt-high-contrast'"
+      />
     </SliderTrack>
 
     <SliderThumb
@@ -40,12 +44,21 @@ const props = withDefaults(
       variant?: "classic" | "surface" | "soft"
       color?: string
       radius?: "none" | "small" | "medium" | "large" | "full"
+      highContrast?: boolean
     }
   >(),
-  { class: undefined, size: "m", variant: "surface" },
+  { class: undefined, size: "m", variant: "surface", highContrast: false },
 )
 const emits = defineEmits<SliderRootEmits>()
-const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "radius")
+const delegatedProps = reactiveOmit(
+  props,
+  "class",
+  "size",
+  "variant",
+  "color",
+  "radius",
+  "highContrast",
+)
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<SliderRootProps>
 // reka 把 aria-* 留在根节点，而 role=slider 在滑块上，无障碍名要自己转过去
 const attrs = useAttrs()
