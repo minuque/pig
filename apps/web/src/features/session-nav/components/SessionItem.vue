@@ -49,19 +49,23 @@
 
             <span class="state-slot">
               <span class="state-mark" aria-hidden="true">
-                <LoaderIcon
+                <svg
                   v-if="state === 'running'"
-                  :size="12"
-                  class="state-glyph running motion-spin"
-                />
+                  class="state-spinner motion-spin"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle class="spinner-track" cx="12" cy="12" r="10" pathLength="100" />
+                  <circle class="spinner-arc" cx="12" cy="12" r="10" pathLength="100" />
+                </svg>
 
                 <CheckCircleIcon
                   v-else-if="state === 'unread'"
-                  :size="12"
+                  :size="14"
                   class="state-glyph unread"
                 />
 
-                <PenIcon v-else-if="showDraftGlyph" :size="12" class="state-glyph draft" />
+                <PenIcon v-else-if="showDraftGlyph" :size="14" class="state-glyph draft" />
                 <span v-else-if="dotKind" class="state-dot" :class="dotKind"></span>
               </span>
 
@@ -135,7 +139,6 @@ import type { SidebarSession, SidebarSessionState } from "@features/session-nav/
 import {
   CheckCircleIcon,
   GripVerticalIcon,
-  LoaderIcon,
   MenuDotsIcon,
   PenIcon,
   PinIcon,
@@ -430,8 +433,28 @@ function confirmDelete() {
   display: block;
 }
 
-.state-glyph.running {
+/* 运行中：暗色整环当轨道，亮弧转圈，比缺口图标更像进度 */
+.state-spinner {
+  display: block;
+  inline-size: 14px;
+  block-size: 14px;
   color: var(--state-working);
+}
+
+.spinner-track,
+.spinner-arc {
+  fill: none;
+  stroke-width: 3;
+}
+
+.spinner-track {
+  stroke: var(--hover-strong);
+}
+
+.spinner-arc {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-dasharray: 26 74;
 }
 
 .state-glyph.unread {
