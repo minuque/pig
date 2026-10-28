@@ -143,15 +143,22 @@ function resetWidth() {
   height: 32px;
   border-radius: var(--radius-pill);
   background: var(--scrollbar-color);
-  opacity: 0.8;
+  opacity: 0;
   translate: -50% -50%;
-  transition: opacity var(--duration-fast) var(--ease-out);
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
+/* 只在悬停/键盘聚焦时露形，拖动时换成强调色 */
 .resizer:hover::after,
-.resizer:focus-visible::after,
+.resizer:focus-visible::after {
+  opacity: 1;
+}
+
 .shell.is-resizing .resizer::after {
   opacity: 1;
+  background: var(--primary);
 }
 
 html[data-pig-desktop-platform] .resizer {
