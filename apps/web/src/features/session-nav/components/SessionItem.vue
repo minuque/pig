@@ -18,6 +18,35 @@
           @keydown="onCardKeydown"
         >
           <span class="title-line">
+            <span class="drag-slot" aria-hidden="true">
+              <GripVerticalIcon v-if="draggable" :size="12" class="drag-glyph" />
+            </span>
+
+            <input
+              v-if="renaming"
+              ref="renameInput"
+              v-model="renameDraft"
+              class="rename-input"
+              type="text"
+              :aria-label="t('session.rename')"
+              @click.stop
+              @keydown.enter.prevent="commitRename"
+              @keydown.escape.prevent="cancelRename"
+              @blur="commitRename"
+            />
+
+            <Tooltip v-else :disabled="!titleOverflow">
+              <TooltipTrigger as-child>
+                <span ref="titleEl" class="title" @pointerenter="measureTitle">
+                  {{ session.title }}
+                </span>
+              </TooltipTrigger>
+
+              <TooltipContent side="right" :side-offset="10" class="title-tooltip">
+                {{ session.title }}
+              </TooltipContent>
+            </Tooltip>
+
             <span class="state-slot">
               <span class="state-mark" aria-hidden="true">
                 <CircleDashedIcon
@@ -50,31 +79,6 @@
                 <TooltipContent>{{ t("common.more") }}</TooltipContent>
               </Tooltip>
             </span>
-
-            <input
-              v-if="renaming"
-              ref="renameInput"
-              v-model="renameDraft"
-              class="rename-input"
-              type="text"
-              :aria-label="t('session.rename')"
-              @click.stop
-              @keydown.enter.prevent="commitRename"
-              @keydown.escape.prevent="cancelRename"
-              @blur="commitRename"
-            />
-
-            <Tooltip v-else :disabled="!titleOverflow">
-              <TooltipTrigger as-child>
-                <span ref="titleEl" class="title" @pointerenter="measureTitle">
-                  {{ session.title }}
-                </span>
-              </TooltipTrigger>
-
-              <TooltipContent side="right" :side-offset="10" class="title-tooltip">
-                {{ session.title }}
-              </TooltipContent>
-            </Tooltip>
           </span>
         </component>
       </ContextMenuTrigger>
@@ -126,6 +130,7 @@ import type { SidebarSession, SidebarSessionState } from "@features/session-nav/
 import {
   CheckIcon,
   CircleDashedIcon,
+  GripVerticalIcon,
   MenuDotsIcon,
   PenIcon,
   PinIcon,
@@ -363,6 +368,25 @@ function confirmDelete() {
   background: var(--glass-selected-bg);
 }
 
+.drag-slot {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+}
+
+.drag-glyph {
+  color: var(--contrast-foreground-secondary);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.session-item:hover .drag-glyph,
+.session-item:focus-within .drag-glyph {
+  opacity: 1;
+}
+
 .state-slot {
   position: relative;
   display: grid;
@@ -492,6 +516,7 @@ function confirmDelete() {
 @media (prefers-reduced-motion: reduce) {
   .session-card,
   .title,
+  .drag-glyph,
   .state-mark,
   .more-toggle {
     transition: none;
