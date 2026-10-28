@@ -4,13 +4,10 @@
       <MenuContent
         data-slot="context-menu-content"
         v-bind="forwarded"
-        side="bottom"
-        align="start"
-        :side-offset="4"
-        :collision-padding="8"
-        update-position-strategy="always"
-        class="rt-BaseMenuContent rt-ContextMenuContent"
-        :class="[sizeClass, variantClass, props.class]"
+        :data-accent-color="props.color"
+        :align-offset="alignOffset"
+        class="rt-PopperContent rt-BaseMenuContent rt-ContextMenuContent"
+        :class="[sizeClass, variantClass, highContrastClass, props.class]"
         :style="contentStyle"
         @close-auto-focus="onCloseAutoFocus"
         @interact-outside="onInteractOutside"
@@ -27,11 +24,13 @@
 import type { ContextMenuContentEmits, ContextMenuContentProps } from "reka-ui"
 import type { ComputedRef } from "vue"
 import type { HTMLAttributes } from "vue"
-import { computed, ref } from "vue"
+import { computed, ref, toRef } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
 import { ThemeRoot } from "@components/ui/rt/index.js"
+import { RT_SIZE, sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
+import { provideMenuContent, type MenuVariant } from "@components/ui/rt/menu-context.js"
 
 defineOptions({
   inheritAttrs: false,
@@ -41,14 +40,22 @@ const props = withDefaults(
   defineProps<
     ContextMenuContentProps & {
       class?: HTMLAttributes["class"]
-      size?: "1" | "2"
-      variant?: "solid" | "soft"
+      size?: Size
+      variant?: MenuVariant
+      color?: string
+      highContrast?: boolean
     }
   >(),
-  { class: undefined, size: "2", variant: "solid" },
+  {
+    class: undefined,
+    collisionPadding: 10,
+    size: "m",
+    variant: "solid",
+    highContrast: false,
+  },
 )
 const emits = defineEmits<ContextMenuContentEmits>()
-const delegatedProps = reactiveOmit(props, "class", "size", "variant")
+const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "highContrast")
 const forwarded = useForwardPropsEmits(
   delegatedProps,
   emits,
@@ -62,8 +69,17 @@ const contentStyle = {
   "--reka-context-menu-trigger-width": "var(--reka-popper-anchor-width)",
   "--reka-context-menu-trigger-height": "var(--reka-popper-anchor-height)",
 }
-const sizeClass = computed(() => `rt-r-size-${props.size}`)
+const sizeClass = computed(() => rtSizeClass(props.size))
 const variantClass = computed(() => `rt-variant-${props.variant}`)
+const highContrastClass = computed(() => (props.highContrast ? "rt-high-contrast" : undefined))
+const alignOffset = computed(() => -Number(RT_SIZE[props.size]) * 4)
+
+provideMenuContent({
+  size: toRef(props, "size"),
+  variant: toRef(props, "variant"),
+  color: toRef(props, "color"),
+  highContrast: toRef(props, "highContrast"),
+})
 
 function onCloseAutoFocus(event: Event) {
   if (!event.defaultPrevented && interactedOutside.value) event.preventDefault()
