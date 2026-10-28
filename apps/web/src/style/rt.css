@@ -57,7 +57,8 @@
 }
 
 /* 弹层默认宽度跟 rt 的 600px 一致；调用方的 scoped 类特异性更高，仍能按需改宽度。 */
-.rt-DialogContent {
+.rt-DialogContent,
+.rt-AlertDialogContent {
   max-inline-size: var(--dialog-max-width, 600px);
 }
 

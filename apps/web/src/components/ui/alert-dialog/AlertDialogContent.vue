@@ -5,7 +5,7 @@
         <AlertDialogContent
           data-slot="alert-dialog-content"
           v-bind="{ ...$attrs, ...forwarded }"
-          class="rt-BaseDialogContent rt-DialogContent"
+          class="rt-BaseDialogContent rt-AlertDialogContent"
           :class="[sizeClass, props.class]"
         >
           <slot />
