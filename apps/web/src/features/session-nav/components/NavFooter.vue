@@ -106,7 +106,6 @@ const statusItems = computed(() =>
   align-items: center;
   gap: var(--space-xxs);
   padding: var(--space-xs) var(--nav-inline, var(--space-xs));
-  border-top: var(--border-width) solid var(--border-subtle);
 }
 
 .footer-actions,

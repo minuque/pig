@@ -335,10 +335,15 @@ onBeforeUnmount(() => {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  /* 滚动条只在悬停时显形：槽位常驻，滑块平时透明，内容宽度不跳 */
   scrollbar-width: thin;
-  /* 滚动条位置常驻预留：出入滚动条时内容宽度不再跳，组头右缘两种状态一致 */
   scrollbar-gutter: stable;
+  scrollbar-color: transparent transparent;
   padding-block-start: var(--space-xxs);
+}
+
+.session-window:hover {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 .session-edge-bottom {

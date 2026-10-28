@@ -218,12 +218,6 @@ function onGlobalSettings(): void {
   gap: var(--space-xs);
   min-width: 0;
   padding-block: var(--space-xxs);
-  border-bottom: var(--border-width) solid transparent;
-  transition: border-color var(--duration-fast) var(--ease-out);
-}
-
-.session-nav.is-scrolled .nav-head {
-  border-bottom-color: var(--border-subtle);
 }
 
 .search-head {
