@@ -6,6 +6,7 @@ import type { ColorScheme } from "@/types/theme-type.js"
 import ThemeRoot from "@components/ui/rt/ThemeRoot.vue"
 import { LEFT_PANEL_STATE_KEY } from "@components/layout/hooks/use-left-panel.js"
 import { applyAccent, useColorScheme } from "@features/theme/index.js"
+import { i18n } from "@i18n/index.js"
 import { writePref } from "@utils/storage.js"
 
 /** 模块级先建一次主题单例：放进故事 setup 会让它的 watcher 随第一个故事卸载而失效。 */
@@ -51,6 +52,11 @@ export const withColorScheme: Decorator = (_story, context) => {
     },
     template: "<story />",
   }
+}
+/** 语种：工具栏切换的 global，每次进故事都同步到 i18n 单例。 */
+export const withLocale: Decorator = (story, context) => {
+  i18n.global.locale.value = (context.globals.locale as "zh-CN" | "en") ?? "zh-CN"
+  return story()
 }
 /** SessionItem 用 RouterLink 出卡片链接，故事里补一个内存路由。 */
 const memoryRouter = createRouter({
