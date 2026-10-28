@@ -139,8 +139,8 @@ function resetWidth() {
   position: absolute;
   top: 50%;
   inset-inline-start: 50%;
-  width: 2px;
-  height: 32px;
+  width: 3px;
+  height: 40px;
   border-radius: var(--radius-pill);
   background: var(--scrollbar-color);
   opacity: 0;
