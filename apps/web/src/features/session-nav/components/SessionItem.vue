@@ -23,7 +23,7 @@
           @keydown="onCardKeydown"
         >
           <span class="title-line">
-            <span v-if="pinned" class="drag-slot" aria-hidden="true">
+            <span class="drag-slot" aria-hidden="true">
               <GripVerticalIcon v-if="draggable" :size="12" class="drag-glyph" />
             </span>
 

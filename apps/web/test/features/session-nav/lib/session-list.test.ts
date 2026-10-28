@@ -4,6 +4,7 @@ import {
   conversationItemCount,
   filterSessionsForSearch,
   groupSessionsByCwd,
+  moveSessionId,
   sessionCardFoot,
   sessionOutcome,
   sessionInProjects,
@@ -174,6 +175,20 @@ describe("session card foot", () => {
       outcome: undefined,
       model: { provider: "openai", id: "gpt-4" },
     })
+  })
+})
+
+describe("moveSessionId", () => {
+  it("往未置顶列表里插：slot 按置顶行计，原表不动", () => {
+    expect(moveSessionId(["a", "b"], "c", 0)).toEqual(["c", "a", "b"])
+    expect(moveSessionId(["a", "b"], "c", 2)).toEqual(["a", "b", "c"])
+    expect(moveSessionId(["a", "b"], "c", 99)).toEqual(["a", "b", "c"])
+  })
+
+  it("在置顶列表内挪：slot 按移动前的行计，向下不越过目标之后的项", () => {
+    expect(moveSessionId(["a", "b", "c"], "a", 2)).toEqual(["b", "a", "c"])
+    expect(moveSessionId(["a", "b", "c"], "c", 0)).toEqual(["c", "a", "b"])
+    expect(moveSessionId(["a", "b", "c"], "b", 1)).toEqual(["a", "b", "c"])
   })
 })
 

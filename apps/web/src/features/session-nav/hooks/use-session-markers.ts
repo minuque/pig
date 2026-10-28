@@ -1,7 +1,7 @@
 import { computed, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { sessionRecency } from "@features/session-nav/lib/format.js"
-import { isDraftSessionId } from "@features/session-nav/lib/session-list.js"
+import { isDraftSessionId, moveSessionId } from "@features/session-nav/lib/session-list.js"
 import { readStringArray, writeJson } from "@utils/storage.js"
 
 const PINNED_KEY = "pig.sidebarPinnedSessions"
@@ -28,12 +28,14 @@ export function useSessionMarkers(
   }
 
   function reorderPinned(id: string, toIndex: number): void {
-    const from = pinnedIdList.value.indexOf(id)
+    if (!pinnedIds.value.has(id)) return
+    pinnedIdList.value = moveSessionId(pinnedIdList.value, id, toIndex)
+    writeJson(PINNED_KEY, pinnedIdList.value)
+  }
 
-    if (from < 0) return
-    const next = pinnedIdList.value.filter((item) => item !== id)
-    next.splice(Math.min(toIndex, next.length), 0, id)
-    pinnedIdList.value = next
+  /** 拖进置顶区：不在名单里的会话插到 slot。 */
+  function pinAt(id: string, toIndex: number): void {
+    pinnedIdList.value = moveSessionId(pinnedIdList.value, id, toIndex)
     writeJson(PINNED_KEY, pinnedIdList.value)
   }
 
@@ -58,5 +60,13 @@ export function useSessionMarkers(
     },
     { immediate: true },
   )
-  return { pinnedIds, pinnedOrder, pinnedSessions, togglePinned, reorderPinned, isUnread }
+  return {
+    pinnedIds,
+    pinnedOrder,
+    pinnedSessions,
+    togglePinned,
+    reorderPinned,
+    pinAt,
+    isUnread,
+  }
 }

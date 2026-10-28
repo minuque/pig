@@ -30,6 +30,8 @@
         @rename="renameSession"
         @delete="deleteSession"
         @reorder-pinned="reorderPinned"
+        @pin-at="pinAt"
+        @unpin="togglePinned"
         @toggle-section="toggleSection"
         @reveal-more="revealMore"
         @collapse-group="collapseGroup"
@@ -174,6 +176,7 @@ import {
   type FooterStatus,
 } from "@features/session-nav/lib/status-cycle.js"
 import type { SidebarGrouping, SidebarSort } from "@features/session-nav/type.js"
+import { moveSessionId } from "@features/session-nav/lib/session-list.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeaderView from "@features/session-workbench/components/WorkbenchHeaderView.vue"
@@ -374,10 +377,11 @@ function togglePinned(id: string | undefined): void {
 
 function reorderPinned(id: string, toIndex: number): void {
   if (!pinnedOrder.value.includes(id)) return
-  const next = pinnedOrder.value.filter((item) => item !== id)
+  pinnedOrder.value = moveSessionId(pinnedOrder.value, id, toIndex)
+}
 
-  next.splice(Math.min(toIndex, next.length), 0, id)
-  pinnedOrder.value = next
+function pinAt(id: string, toIndex: number): void {
+  pinnedOrder.value = moveSessionId(pinnedOrder.value, id, toIndex)
 }
 
 function toggleSection(key: string): void {

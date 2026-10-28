@@ -75,6 +75,16 @@ export function sessionInProjects(cwd: string | undefined, projects: ReadonlySet
   return projects.has(canonicalizeWorkspacePath(cwd ?? ""))
 }
 
+/** 把 id 移到 slot：slot 按移动前的列表计，拖到原位置下方时不越过目标之后的项。 */
+export function moveSessionId(ids: readonly string[], id: string, slot: number): string[] {
+  const rest = ids.filter((item) => item !== id)
+  let at = Math.min(Math.max(slot, 0), ids.length)
+
+  for (let index = 0; index < at; index += 1) if (ids[index] === id) at -= 1
+  rest.splice(Math.min(at, rest.length), 0, id)
+  return rest
+}
+
 /** 本地名单在前（含尚无会话的目录）；其余 Pi Session 按 cwd 跟上。组内按排序键倒序。 */
 export function groupSessionsByCwd(
   sessions: readonly SessionMetadata[],

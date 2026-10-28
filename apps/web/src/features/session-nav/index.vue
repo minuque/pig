@@ -29,6 +29,8 @@
     @rename="renameSession"
     @delete="deleteSession"
     @reorder-pinned="reorderPinned"
+    @pin-at="pinAt"
+    @unpin="togglePinned"
     @toggle-section="toggleSection"
     @reveal-more="revealMore"
     @collapse-group="collapseGroup"
@@ -86,6 +88,7 @@ const {
   renameSession,
   deleteSession,
   reorderPinned,
+  pinAt,
 } = useNav()
 const router = useRouter()
 /** 选中的项目路径；空集合显示全部。 */

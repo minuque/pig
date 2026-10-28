@@ -70,6 +70,8 @@
         @rename="(id, name) => emit('rename', id, name)"
         @delete="emit('delete', $event)"
         @reorder-pinned="(id, toIndex) => emit('reorderPinned', id, toIndex)"
+        @pin-at="(id, toIndex) => emit('pinAt', id, toIndex)"
+        @unpin="emit('unpin', $event)"
         @toggle-section="emit('toggleSection', $event)"
         @reveal-more="emit('revealMore', $event)"
         @collapse-group="emit('collapseGroup', $event)"
@@ -142,6 +144,8 @@ const emit = defineEmits<{
   rename: [id: string, name: string]
   delete: [id: string]
   reorderPinned: [id: string, toIndex: number]
+  pinAt: [id: string, toIndex: number]
+  unpin: [id: string]
   toggleSection: [key: string]
   revealMore: [key: string]
   collapseGroup: [key: string]
