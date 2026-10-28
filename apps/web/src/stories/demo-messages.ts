@@ -1,0 +1,122 @@
+/**
+ * 故事的示例文案：只在 Storybook 里合并进 i18n，不进应用包。
+ * 键名按组件分组，故事模板用 $t('demo.xxx') 取，切语种看两种文案的排版。
+ */
+
+export const demoZh = {
+  demo: {
+    alertDialog: {
+      discard: "放弃",
+      discardTitle: "放弃未保存的更改？",
+      discardDescription: "此操作只关闭示例，不会删除数据。",
+    },
+    badge: { new: "新" },
+    button: { save: "保存", settings: "设置", small: "小", medium: "中", large: "大" },
+    callout: { title: "提示", body: "这是一条示例提示。", reshow: "重新显示" },
+    contextMenu: { area: "右键此区域", copy: "复制", delete: "删除" },
+    dialog: {
+      rename: "重命名",
+      renameDescription: "改名只影响本机的会话标题，不动磁盘上的内容。",
+      name: "名称",
+      draft: "草稿",
+      sizeTitle: "尺寸 {size}",
+      sizeDescription: "面板宽度按 rt 的四档。",
+    },
+    dropdownMenu: {
+      trigger: "操作",
+      more: "更多",
+      edit: "编辑",
+      copy: "复制",
+      cut: "剪切",
+      delete: "删除",
+      autoWrap: "自动换行",
+      density: "密度",
+      compact: "紧凑",
+      normal: "默认",
+      loose: "宽松",
+      appearance: "外观",
+      system: "跟随系统",
+      light: "浅色",
+      dark: "深色",
+    },
+    radio: {
+      single: "单独的单选",
+      apple: "苹果",
+      banana: "香蕉",
+      cherry: "樱桃",
+      size: "尺寸 {size}",
+      second: "第二项",
+    },
+    segmentedControl: { small: "小", medium: "中", large: "大" },
+    separator: { above: "上面", below: "下面" },
+    skeleton: { body: "内容加载完成后直接显示这段文字" },
+    slider: { label: "示例滑杆" },
+    switch: { label: "示例开关" },
+    textField: { searchSessions: "搜索会话", search: "搜索" },
+    tooltip: { trigger: "悬停", content: "示例说明" },
+    workbench: { allProjects: "全部项目" },
+  },
+}
+
+type DemoMessages = typeof demoZh
+
+export const demoEn: DemoMessages = {
+  demo: {
+    alertDialog: {
+      discard: "Discard",
+      discardTitle: "Discard unsaved changes?",
+      discardDescription: "This only closes the example. Nothing is deleted.",
+    },
+    badge: { new: "New" },
+    button: {
+      save: "Save",
+      settings: "Settings",
+      small: "Small",
+      medium: "Medium",
+      large: "Large",
+    },
+    callout: { title: "Note", body: "This is a sample note.", reshow: "Show again" },
+    contextMenu: { area: "Right-click this area", copy: "Copy", delete: "Delete" },
+    dialog: {
+      rename: "Rename",
+      renameDescription: "Renaming only changes the local session title, not the files on disk.",
+      name: "Name",
+      draft: "Draft",
+      sizeTitle: "Size {size}",
+      sizeDescription: "Panel width follows the four rt sizes.",
+    },
+    dropdownMenu: {
+      trigger: "Actions",
+      more: "More",
+      edit: "Edit",
+      copy: "Copy",
+      cut: "Cut",
+      delete: "Delete",
+      autoWrap: "Wrap lines",
+      density: "Density",
+      compact: "Compact",
+      normal: "Default",
+      loose: "Loose",
+      appearance: "Appearance",
+      system: "System",
+      light: "Light",
+      dark: "Dark",
+    },
+    radio: {
+      single: "Standalone radio",
+      apple: "Apple",
+      banana: "Banana",
+      cherry: "Cherry",
+      size: "Size {size}",
+      second: "Second item",
+    },
+    segmentedControl: { small: "Small", medium: "Medium", large: "Large" },
+    separator: { above: "Above", below: "Below" },
+    skeleton: { body: "This text shows once loading finishes" },
+    slider: { label: "Sample slider" },
+    switch: { label: "Sample switch" },
+    textField: { searchSessions: "Search sessions", search: "Search" },
+    tooltip: { trigger: "Hover", content: "Sample hint" },
+    workbench: { allProjects: "All projects" },
+  },
+}

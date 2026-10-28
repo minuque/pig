@@ -17,6 +17,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
+import { t } from "@i18n/index.js"
 
 const meta: Meta = {
   title: "UI/DropdownMenu",
@@ -32,7 +33,7 @@ const meta: Meta = {
       Button,
     },
     template:
-      "<DropdownMenu><DropdownMenuTrigger as-child><Button variant='outline'>操作</Button></DropdownMenuTrigger><DropdownMenuContent><DropdownMenuItem>复制</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem variant='destructive'>删除</DropdownMenuItem></DropdownMenuContent></DropdownMenu>",
+      "<DropdownMenu><DropdownMenuTrigger as-child><Button variant='outline'>{{ $t('demo.dropdownMenu.trigger') }}</Button></DropdownMenuTrigger><DropdownMenuContent><DropdownMenuItem>{{ $t('demo.dropdownMenu.copy') }}</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem variant='destructive'>{{ $t('demo.dropdownMenu.delete') }}</DropdownMenuItem></DropdownMenuContent></DropdownMenu>",
   }),
 }
 
@@ -42,10 +43,10 @@ type Story = StoryObj<typeof meta>
 
 export const Actions: Story = {
   play: async ({ canvas }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "操作" }))
+    await userEvent.click(canvas.getByRole("button", { name: t("demo.dropdownMenu.trigger") }))
 
     const menu = await screen.findByRole("menu")
-    await userEvent.click(screen.getByRole("menuitem", { name: "复制" }))
+    await userEvent.click(screen.getByRole("menuitem", { name: t("demo.dropdownMenu.copy") }))
     await waitFor(() => expect(menu).not.toBeInTheDocument())
   },
 }
@@ -68,45 +69,53 @@ export const Rich: Story = {
       DropdownMenuSubContent,
       Button,
     },
-    data: () => ({ wrap: true, density: "默认", theme: "跟随系统" }),
+    data: () => ({ wrap: true, density: "normal", theme: "system" }),
     template: `<DropdownMenu>
-      <DropdownMenuTrigger as-child><Button variant="outline">更多</Button></DropdownMenuTrigger>
+      <DropdownMenuTrigger as-child><Button variant="outline">{{ $t("demo.dropdownMenu.more") }}</Button></DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuLabel>编辑</DropdownMenuLabel>
-        <DropdownMenuItem shortcut="Ctrl+C">复制</DropdownMenuItem>
-        <DropdownMenuItem shortcut="Ctrl+X">剪切</DropdownMenuItem>
+        <DropdownMenuLabel>{{ $t("demo.dropdownMenu.edit") }}</DropdownMenuLabel>
+        <DropdownMenuItem shortcut="Ctrl+C">{{ $t("demo.dropdownMenu.copy") }}</DropdownMenuItem>
+        <DropdownMenuItem shortcut="Ctrl+X">{{ $t("demo.dropdownMenu.cut") }}</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuCheckboxItem v-model="wrap">自动换行</DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem v-model="wrap">{{ $t("demo.dropdownMenu.autoWrap") }}</DropdownMenuCheckboxItem>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuLabel>密度</DropdownMenuLabel>
+          <DropdownMenuLabel>{{ $t("demo.dropdownMenu.density") }}</DropdownMenuLabel>
           <DropdownMenuRadioGroup v-model="density">
-            <DropdownMenuRadioItem value="紧凑">紧凑</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="默认">默认</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="宽松">宽松</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="compact">{{ $t("demo.dropdownMenu.compact") }}</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="normal">{{ $t("demo.dropdownMenu.normal") }}</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="loose">{{ $t("demo.dropdownMenu.loose") }}</DropdownMenuRadioItem>
           </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger>外观</DropdownMenuSubTrigger>
+          <DropdownMenuSubTrigger>{{ $t("demo.dropdownMenu.appearance") }}</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuRadioGroup v-model="theme">
-              <DropdownMenuRadioItem value="跟随系统">跟随系统</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="浅色">浅色</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="深色">深色</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="system">{{ $t("demo.dropdownMenu.system") }}</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="light">{{ $t("demo.dropdownMenu.light") }}</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark">{{ $t("demo.dropdownMenu.dark") }}</DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" shortcut="Del">删除</DropdownMenuItem>
+        <DropdownMenuItem variant="destructive" shortcut="Del">{{ $t("demo.dropdownMenu.delete") }}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>`,
   }),
   play: async ({ canvas }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "更多" }))
+    const trigger = () => canvas.getByRole("button", { name: t("demo.dropdownMenu.more") })
+
+    await userEvent.click(trigger())
     await screen.findByRole("menu")
-    await userEvent.click(screen.getByRole("menuitemcheckbox", { name: "自动换行" }))
-    await userEvent.hover(screen.getByRole("menuitem", { name: "外观" }))
-    await screen.findByText("跟随系统")
+    await userEvent.click(
+      screen.getByRole("menuitemcheckbox", { name: t("demo.dropdownMenu.autoWrap") }),
+    )
+
+    // 勾选项点完菜单就关，子菜单要重新打开才够得着
+    await userEvent.click(trigger())
+    await screen.findByRole("menu")
+    await userEvent.hover(screen.getByRole("menuitem", { name: t("demo.dropdownMenu.appearance") }))
+    await screen.findByText(t("demo.dropdownMenu.system"))
   },
 }

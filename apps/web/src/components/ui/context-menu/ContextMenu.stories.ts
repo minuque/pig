@@ -8,6 +8,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@components/ui/context-menu/index.js"
+import { t } from "@i18n/index.js"
 
 const meta = {
   title: "UI/ContextMenu",
@@ -22,7 +23,7 @@ const meta = {
       ContextMenuSeparator,
     },
     template:
-      "<ContextMenu><ContextMenuTrigger><div class='rounded-md border border-border p-md text-muted-foreground' style='inline-size:12rem'>右键此区域</div></ContextMenuTrigger><ContextMenuContent><ContextMenuItem>复制</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant='destructive'>删除</ContextMenuItem></ContextMenuContent></ContextMenu>",
+      "<ContextMenu><ContextMenuTrigger><div class='rounded-md border border-border p-md text-muted-foreground' style='inline-size:12rem'>{{ $t('demo.contextMenu.area') }}</div></ContextMenuTrigger><ContextMenuContent><ContextMenuItem>{{ $t('demo.contextMenu.copy') }}</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant='destructive'>{{ $t('demo.contextMenu.delete') }}</ContextMenuItem></ContextMenuContent></ContextMenu>",
   }),
 } satisfies Meta<typeof ContextMenu>
 
@@ -32,10 +33,10 @@ type Story = StoryObj<typeof meta>
 
 export const Actions: Story = {
   play: async ({ canvas }) => {
-    await fireEvent.contextMenu(canvas.getByText("右键此区域"))
+    await fireEvent.contextMenu(canvas.getByText(t("demo.contextMenu.area")))
 
     const menu = await screen.findByRole("menu")
-    await userEvent.click(screen.getByRole("menuitem", { name: "复制" }))
+    await userEvent.click(screen.getByRole("menuitem", { name: t("demo.contextMenu.copy") }))
     await waitFor(() => expect(menu).not.toBeInTheDocument())
   },
 }

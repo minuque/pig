@@ -22,7 +22,7 @@ const meta: Meta = {
   render: (args) => ({
     components: { Button },
     setup: () => ({ args }),
-    template: "<Button v-bind='args'>保存</Button>",
+    template: "<Button v-bind='args'>{{ $t('demo.button.save') }}</Button>",
   }),
 }
 
@@ -42,12 +42,13 @@ export const Sizes: Story = {
   render: () => ({
     components: { Button },
     template:
-      "<div class='flex items-center gap-sm'><Button size='s'>小</Button><Button size='m'>中</Button><Button size='l'>大</Button></div>",
+      "<div class='flex items-center gap-sm'><Button size='s'>{{ $t('demo.button.small') }}</Button><Button size='m'>{{ $t('demo.button.medium') }}</Button><Button size='l'>{{ $t('demo.button.large') }}</Button></div>",
   }),
 }
 export const Icon: Story = {
   render: () => ({
     components: { IconButton, SettingsIcon },
-    template: "<IconButton aria-label='设置'><SettingsIcon /></IconButton>",
+    template:
+      "<IconButton :aria-label=\"$t('demo.button.settings')\"><SettingsIcon /></IconButton>",
   }),
 }

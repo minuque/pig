@@ -10,7 +10,7 @@ const meta = {
   render: (args) => ({
     components: { Switch },
     setup: () => ({ args }),
-    template: "<Switch v-bind='args' aria-label='示例开关' />",
+    template: "<Switch v-bind='args' :aria-label=\"$t('demo.switch.label')\" />",
   }),
 } satisfies Meta<typeof Switch>
 

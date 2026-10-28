@@ -1,9 +1,14 @@
 import { i18n } from "@i18n/index.js"
 import { TooltipProvider } from "@components/ui/tooltip/index.js"
+import { demoEn, demoZh } from "../src/stories/demo-messages.js"
 import { withColorScheme, withFrame, withLocale, withTheme } from "../src/stories/decorators.js"
 import "@style/app.css"
 import type { Preview } from "@storybook/vue3-vite"
 import { setup } from "@storybook/vue3-vite"
+
+i18n.global.mergeLocaleMessage("zh-CN", demoZh)
+
+i18n.global.mergeLocaleMessage("en", demoEn)
 
 setup((app) => {
   app.use(i18n)

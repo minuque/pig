@@ -22,6 +22,6 @@ export const Default: Story = {}
 export const Wrapped: Story = {
   render: () => ({
     components: { Skeleton },
-    template: "<Skeleton loading><p>内容加载完成后直接显示这段文字</p></Skeleton>",
+    template: "<Skeleton loading><p>{{ $t('demo.skeleton.body') }}</p></Skeleton>",
   }),
 }

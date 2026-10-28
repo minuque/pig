@@ -10,7 +10,7 @@ const meta = {
   render: (args) => ({
     components: { Slider },
     setup: () => ({ args }),
-    template: "<Slider v-bind='args' aria-label='示例滑杆' />",
+    template: "<Slider v-bind='args' :aria-label=\"$t('demo.slider.label')\" />",
   }),
 } satisfies Meta<typeof Slider>
 

@@ -11,14 +11,14 @@ const meta: Meta = {
     variant: { control: "select", options: ["surface", "classic"] },
     disabled: { control: "boolean" },
   },
-  args: { size: "m", variant: "surface", disabled: false, modelValue: "中" },
+  args: { size: "m", variant: "surface", disabled: false, modelValue: "m" },
   render: (args) => ({
     components: { SegmentedControl, SegmentedControlItem },
     setup: () => ({ args }),
     template: `<SegmentedControl v-bind="args">
-      <SegmentedControlItem value="小">小</SegmentedControlItem>
-      <SegmentedControlItem value="中">中</SegmentedControlItem>
-      <SegmentedControlItem value="大">大</SegmentedControlItem>
+      <SegmentedControlItem value="s">{{ $t("demo.segmentedControl.small") }}</SegmentedControlItem>
+      <SegmentedControlItem value="m">{{ $t("demo.segmentedControl.medium") }}</SegmentedControlItem>
+      <SegmentedControlItem value="l">{{ $t("demo.segmentedControl.large") }}</SegmentedControlItem>
     </SegmentedControl>`,
   }),
 }

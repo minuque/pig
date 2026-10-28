@@ -5,6 +5,7 @@ import { expect, screen, userEvent, waitFor } from "storybook/test"
 import { LightbulbMinimalisticIcon } from "@components/icons/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { Callout } from "@components/ui/callout/index.js"
+import { t } from "@i18n/index.js"
 
 const meta: Meta = {
   title: "UI/Callout",
@@ -20,7 +21,7 @@ const meta: Meta = {
     components: { Callout, LightbulbMinimalisticIcon },
     setup: () => ({ args }),
     template:
-      "<Callout v-bind='args'><template #icon><LightbulbMinimalisticIcon /></template><template #title>提示</template>这是一条示例提示。</Callout>",
+      "<Callout v-bind='args'><template #icon><LightbulbMinimalisticIcon /></template><template #title>{{ $t('demo.callout.title') }}</template>{{ $t('demo.callout.body') }}</Callout>",
   }),
 }
 
@@ -39,13 +40,15 @@ export const Dismissible: Story = {
     components: { Callout, LightbulbMinimalisticIcon, Button },
     setup: () => ({ args, visible: ref(true) }),
     template:
-      "<Callout v-if='visible' v-bind='args' @close='visible = false'><template #icon><LightbulbMinimalisticIcon /></template><template #title>提示</template>这是一条示例提示。</Callout><Button v-else variant='outline' @click='visible = true'>重新显示</Button>",
+      "<Callout v-if='visible' v-bind='args' @close='visible = false'><template #icon><LightbulbMinimalisticIcon /></template><template #title>{{ $t('demo.callout.title') }}</template>{{ $t('demo.callout.body') }}</Callout><Button v-else variant='outline' @click='visible = true'>{{ $t('demo.callout.reshow') }}</Button>",
   }),
   play: async () => {
-    await userEvent.click(screen.getByRole("button", { name: "关闭" }))
-    await waitFor(() => expect(screen.getByRole("button", { name: "重新显示" })).toBeVisible())
+    await userEvent.click(screen.getByRole("button", { name: t("common.close") }))
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: t("demo.callout.reshow") })).toBeVisible(),
+    )
 
-    await userEvent.click(screen.getByRole("button", { name: "重新显示" }))
-    await waitFor(() => expect(screen.getByText("这是一条示例提示。")).toBeVisible())
+    await userEvent.click(screen.getByRole("button", { name: t("demo.callout.reshow") }))
+    await waitFor(() => expect(screen.getByText(t("demo.callout.body"))).toBeVisible())
   },
 }
