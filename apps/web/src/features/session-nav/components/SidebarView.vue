@@ -3,7 +3,11 @@
     <div class="titlebar-drag" aria-hidden="true"></div>
 
     <div class="nav-head">
-      <SidebarTitlebar :sb-expanded="sbExpanded" @toggle-sidebar="emit('toggleSidebar')" />
+      <SidebarTitlebar
+        :sb-expanded="sbExpanded"
+        @toggle-sidebar="emit('toggleSidebar')"
+        @home="emit('home')"
+      />
 
       <div class="search-head">
         <button class="search-field press-scale" type="button" @click="emit('create')">
@@ -131,6 +135,7 @@ const emit = defineEmits<{
   "update:grouping": [grouping: SidebarGrouping]
   "update:sort": [sort: SidebarSort]
   toggleSidebar: []
+  home: []
   create: [cwd?: string]
   addProject: []
   settings: []

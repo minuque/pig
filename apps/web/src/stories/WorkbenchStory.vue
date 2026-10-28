@@ -19,11 +19,12 @@
         :expanded-by-group="expandedByGroup"
         @toggle-sidebar="chrome?.toggleSidebar()"
         @create="createSession"
+        @home="goHome()"
         @add-project="addWorkspace"
         @settings="settingsOpen = true"
         @navigate="onNavigate()"
-        @open="highlightedId = $event"
-        @prime="highlightedId = $event"
+        @open="openSession($event)"
+        @prime="openSession($event)"
         @toggle-pinned="togglePinned"
         @rename="renameSession"
         @delete="deleteSession"
@@ -39,7 +40,7 @@
       :content-width="contentWidth"
       :resizing="resizing"
       :drop-active="dropActive || dragOver"
-      :idle="idle"
+      :idle="showIdle"
       :error="pageError"
       :show-handles="showHandles"
       :scroll-shown="scrollShown"
@@ -127,7 +128,7 @@
           :usage="usage"
           :cwd="SETTINGS_CWD"
           :queue="queue"
-          :hero="idle"
+          :hero="showIdle"
           @send="live.send"
           @queue="live.enqueue"
           @abort="live.abort"
@@ -289,6 +290,18 @@ function createSession(cwd?: string): void {
   if (!sessions.value.some((session) => session.id === draft.id))
     sessions.value = [draft, ...sessions.value]
   highlightedId.value = draft.id
+  home.value = false
+}
+
+function openSession(id: string): void {
+  highlightedId.value = id
+  home.value = false
+}
+
+/** 点侧栏头像：回欢迎页，清掉高亮会话。 */
+function goHome(): void {
+  highlightedId.value = undefined
+  home.value = true
 }
 
 /** 新增项目：故事不发系统选目录请求，本地追加一个目录并提示。 */
@@ -394,7 +407,10 @@ const queue = createComposerQueue()
 const live = createLiveTurn({ prompt, attachments, queue })
 const running = live.running
 const usage = computed(() => (props.composerUsage ? COMPOSER_USAGE : undefined))
+/** 点头像回欢迎页：真实页面由路由驱动，故事在本地复位。 */
+const home = ref(false)
 const idle = computed(() => props.sessionState === "idle")
+const showIdle = computed(() => idle.value || home.value)
 /** Hero 手选目录：真实页面来自 side nav，故事里只留本地值。 */
 const heroWorkspaceId = ref<string | undefined>(SIDEBAR_WORKSPACES[0])
 
@@ -484,6 +500,6 @@ function columnWidth(): number {
 const phase = computed(() =>
   props.transcriptSample === "streaming" || live.running.value ? "turn" : "idle",
 )
-const showHandles = computed(() => props.showContentHandles && !props.pageError && !idle.value)
+const showHandles = computed(() => props.showContentHandles && !props.pageError && !showIdle.value)
 const scrollLabel = t("transcript.scrollToBottom")
 </script>
