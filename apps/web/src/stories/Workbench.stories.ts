@@ -81,7 +81,3 @@ type Story = StoryObj<typeof meta>
 
 /** 整页默认：日期分组侧栏 + 长会话正文 + 贴底输入卡 + 顶部工作台栏与宽度手柄。 */
 export const Page: Story = {}
-/** 整页暗色：与 Page 同一份状态，只换配色。 */
-export const PageDark: Story = { args: { dark: true } }
-/** 空会话首屏：正文区换成 Hero，输入卡抬到 dock 位。 */
-export const PageIdle: Story = { args: { sessionState: "idle" } }
