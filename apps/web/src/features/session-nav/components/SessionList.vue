@@ -340,7 +340,7 @@ onBeforeUnmount(() => {
 }
 
 .session-edge-bottom {
-  background: linear-gradient(to top, var(--sidebar), transparent);
+  background: linear-gradient(to top, var(--background), transparent);
   height: 32px;
 }
 

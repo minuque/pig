@@ -263,7 +263,7 @@ function onEditProject(project: string): void {
   height: var(--edge-fade-band);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
-  background: linear-gradient(to bottom, var(--sidebar), transparent);
+  background: linear-gradient(to bottom, var(--background), transparent);
   pointer-events: none;
 }
 

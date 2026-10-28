@@ -131,7 +131,7 @@ watch(active, async () => {
   padding: var(--space-md);
   padding-block-start: calc(var(--space-md) + var(--space-xxs));
   border-inline-end: var(--border-width) solid var(--sidebar-border);
-  background: var(--sidebar);
+  background: var(--background);
   color: var(--sidebar-foreground);
   user-select: none;
 }

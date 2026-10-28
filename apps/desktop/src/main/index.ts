@@ -16,6 +16,7 @@ import {
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
+import { registerWindowControls } from "./window-controls.js"
 import { parseThemeColor } from "./theme-color.js"
 import { resolveWebRoot } from "./paths.js"
 import {
@@ -191,6 +192,7 @@ void app.whenReady().then(async () => {
 
       if (color) mainWindow?.setBackgroundColor(color)
     })
+    registerWindowControls(() => mainWindow)
     mainWindow = createMainWindow(preloadPath, {
       ...(isDev ? {} : { gatewayOrigin: httpOrigin }),
       frame,

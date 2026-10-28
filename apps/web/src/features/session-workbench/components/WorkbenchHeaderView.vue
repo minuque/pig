@@ -194,7 +194,6 @@ function confirmDelete(): void {
   width: 100%;
   min-height: calc(var(--size-nav-rail) + 2 * var(--space-sm));
   padding: var(--space-xs) var(--space-sm);
-  border-bottom: var(--border-width) solid var(--border-subtle);
   background: var(--toolbar-background);
   color: var(--toolbar-foreground);
 }
@@ -321,9 +320,8 @@ html[data-pig-desktop-platform] .header-title {
 }
 
 html[data-pig-desktop-platform] .workbench-header {
-  /* 45 = 44 标题栏 + 1px 底边线：底边线不落在原生窗控按钮区域里，不会被按钮背景盖住 */
-  height: calc(var(--titlebar-inset) + var(--border-width));
-  min-height: calc(var(--titlebar-inset) + var(--border-width));
+  height: var(--titlebar-inset);
+  min-height: var(--titlebar-inset);
   user-select: none;
 }
 
@@ -334,14 +332,15 @@ html[data-pig-desktop-platform]
   app-region: no-drag;
 }
 
-html[data-pig-desktop-platform="win32"] .workbench-header {
-  padding-inline-end: calc(
-    var(--space-sm) +
-      max(
-        var(--size-windows-caption),
-        100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw)
-      )
-  );
+/* 自画窗控盖在卡片右上角，头部右侧让出三个按钮的宽度 */
+html[data-pig-desktop-platform="win32"] .workbench-header,
+html[data-pig-desktop-platform="linux"] .workbench-header {
+  padding-inline-end: calc(var(--size-windows-caption) + var(--space-xs));
+}
+
+/* macOS 侧栏收起后红绿灯落在卡片左上角，头部让位 */
+html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header {
+  padding-inline-start: calc(var(--space-sm) + var(--size-mac-traffic-lights));
 }
 
 @media (max-width: 520px) {

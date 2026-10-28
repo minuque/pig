@@ -16,5 +16,13 @@ interface Window {
   /** 桌面壳 preload 注入。浏览器里没有。 */
   pigDesktop?: {
     setThemeColor(color: string): void
+    /** 自画窗控；macOS 用原生红绿灯，不暴露这组方法。 */
+    window?: {
+      minimize(): void
+      toggleMaximize(): void
+      close(): void
+      isMaximized(): Promise<boolean>
+      onMaximizedChange(listener: (maximized: boolean) => void): () => void
+    }
   }
 }

@@ -22,7 +22,10 @@
     ></div>
 
     <main>
-      <slot />
+      <div class="workbench-card">
+        <slot />
+        <WindowControls />
+      </div>
     </main>
   </div>
 </template>
@@ -31,6 +34,7 @@
 import { computed, provide } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js"
+import WindowControls from "@components/layout/WindowControls.vue"
 
 defineSlots<{
   default(): unknown
@@ -81,7 +85,7 @@ function resetWidth() {
   height: 100vh;
   display: flex;
   overflow: hidden;
-  background: var(--card);
+  background: var(--background);
 }
 
 .sidebar {
@@ -92,25 +96,20 @@ function resetWidth() {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--sidebar);
-  border-inline-end: var(--border-width) solid var(--border);
+  background: var(--background);
   contain: layout style;
   visibility: hidden;
   width: 0;
-  border-inline-end-width: 0;
   transition:
     width var(--duration-normal) var(--ease-smooth),
-    border-inline-end-width 0s var(--duration-normal),
     visibility 0s var(--duration-normal);
 }
 
 .sidebar.expanded {
   visibility: visible;
   width: var(--left-width);
-  border-inline-end-width: var(--border-width);
   transition:
     width var(--duration-normal) var(--ease-smooth),
-    border-inline-end-width 0s,
     visibility 0s;
 }
 
@@ -180,6 +179,7 @@ html[data-pig-desktop-platform="darwin"] .resizer {
 
 main {
   position: relative;
+  /* 困住栏内 z-index 又不吃掉子树 backdrop-filter：用 z-index:0 而不是 isolation:isolate */
   z-index: 0;
   flex: 1;
   min-width: 0;
@@ -187,8 +187,22 @@ main {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* 困住栏内 z-index，避免 dock 底色盖住分栏把手；isolation:isolate 会吃掉子树 backdrop-filter */
-  background: var(--card);
+  padding: var(--workbench-inset);
+  /* 留白处透出窗口底色，卡片才有浮起关系 */
+  background: var(--background);
+}
+
+.workbench-card {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--workbench-surface);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -216,6 +230,12 @@ main {
 
   main {
     height: 100dvh;
+    padding: 0;
+  }
+
+  .workbench-card {
+    border: 0;
+    border-radius: 0;
   }
 
   .resizer {
@@ -234,8 +254,7 @@ main {
     transition:
       transform var(--duration-normal) var(--ease-smooth),
       visibility 0s linear var(--duration-normal);
-    background: var(--sidebar);
-    border-inline-end: 0;
+    background: var(--background);
     box-shadow: var(--shadow-drawer);
   }
 

@@ -50,12 +50,13 @@
   /* 与 --background 同值，名字留给 DESIGN.md 的次级井角色 */
   --background-soft: var(--background);
   --card: #ffffff;
-  --sidebar: #f7f7f8;
+  /* workbench 卡片面：比窗口底亮一档，浮起关系由它表达 */
+  --workbench-surface: #ffffff;
   --sidebar-foreground: #1b1b1b;
   --sidebar-hover: #e8e8eb;
   --sidebar-selected: #e6e6e8;
   --sidebar-border: #e8e8e8;
-  --toolbar-background: #ffffff;
+  --toolbar-background: var(--workbench-surface);
   --toolbar-foreground: #1b1b1b;
   --code-background: #f6f6f6;
   --code-foreground: #1b1b1b;
@@ -194,7 +195,13 @@
   /* 尺寸 */
   --size-control: 40px;
   --titlebar-inset: 44px;
+  /** 卡片与窗口边缘的留白 */
+  --workbench-inset: var(--space-xs);
+  /** 卡片右上角三个自画窗控的总宽与单钮宽（46 × 3） */
   --size-windows-caption: 138px;
+  --size-window-control: 46px;
+  /** macOS 侧栏收起时红绿灯占位：卡片左缝 8px + 红绿灯簇与间距 60px */
+  --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;
   --size-settings-body: 64rem;
   --size-settings-dialog-width: 80rem;
@@ -223,6 +230,7 @@
   --border-width: 1px;
   --scrim: rgba(0, 0, 0, 0.4);
   --z-resizer: 1;
+  --z-window-controls: 3;
   --z-menu: 5;
   --z-drawer: 10;
   --z-modal: 20;
@@ -346,6 +354,7 @@
   --radius-md: var(--radius);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 8px);
+  --radius-card: calc(var(--radius) + 4px);
   --radius-popover: calc(var(--radius) + 4px);
   --radius-code: 0.65rem;
   /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
@@ -367,12 +376,13 @@
 
   --background: #121214;
   --card: #0f0f11;
-  --sidebar: #121214;
+  /* 比 #121214 浅一档，与侧栏底拉开层级 */
+  --workbench-surface: #18181b;
   --sidebar-foreground: #e3e4e6;
   --sidebar-hover: #26262b;
   --sidebar-selected: #2c2c31;
   --sidebar-border: #28282a;
-  --toolbar-background: #0f0f11;
+  --toolbar-background: var(--workbench-surface);
   --toolbar-foreground: #e3e4e6;
   --code-background: #1a1a1c;
   --code-foreground: #e3e4e6;

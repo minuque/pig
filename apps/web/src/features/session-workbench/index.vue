@@ -632,7 +632,7 @@ const contentHandleSides = ["left", "right"] as const
   pointer-events: none;
   background: linear-gradient(
     to top,
-    var(--background) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
+    var(--workbench-surface) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
     transparent
   );
   backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-saturation, 1.08));
