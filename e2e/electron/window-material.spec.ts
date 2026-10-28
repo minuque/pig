@@ -78,10 +78,11 @@ test("半透明开关经 IPC 打到窗口材质", async () => {
       ),
     )
 
-    if (process.platform === "win32")
+    if (process.platform === "win32") {
       await expect.poll(calls).toContainEqual(["setBackgroundMaterial", "acrylic"])
-    else if (process.platform === "darwin")
+    } else if (process.platform === "darwin") {
       await expect.poll(calls).toContainEqual(["setVibrancy", "under-window"])
+    }
 
     await page.evaluate(() =>
       (window as unknown as { pigDesktop: MaterialWindow }).pigDesktop.window?.setTranslucent?.(
@@ -89,10 +90,11 @@ test("半透明开关经 IPC 打到窗口材质", async () => {
       ),
     )
 
-    if (process.platform === "win32")
+    if (process.platform === "win32") {
       await expect.poll(calls).toContainEqual(["setBackgroundMaterial", "none"])
-    else if (process.platform === "darwin")
+    } else if (process.platform === "darwin") {
       await expect.poll(calls).toContainEqual(["setVibrancy", null])
+    }
   } finally {
     await app.close()
     await rm(sessionDir, { recursive: true, force: true })

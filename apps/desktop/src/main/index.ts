@@ -17,6 +17,7 @@ import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
 import { registerWindowControls } from "./window-controls.js"
+import { createWindowBackground } from "./window-background.js"
 import { loadWithRetry } from "./load-retry.js"
 import { parseThemeColor } from "./theme-color.js"
 import { resolveWebRoot } from "./paths.js"
@@ -188,23 +189,16 @@ void app.whenReady().then(async () => {
     const stateFile = windowStatePath(app.getPath("userData"))
     const displays = screen.getAllDisplays().map((display) => display.bounds)
     const frame = restoreWindowFrame(readWindowStateFile(stateFile), displays)
-    // 材质打开时窗口底色归材质，主题色先存着，关掉再补回去
-    let lastThemeColor: string | undefined
-    let translucent = false
+    const background = createWindowBackground(() => mainWindow)
     ipcMain.on("pig:theme-color", (_event, value: unknown) => {
       const color = parseThemeColor(value)
 
-      if (!color) return
-      lastThemeColor = color
-
-      if (!translucent) mainWindow?.setBackgroundColor(color)
+      if (color) background.setThemeColor(color)
     })
     registerWindowControls(
       () => mainWindow,
       (on) => {
-        translucent = on
-
-        if (!on && lastThemeColor) mainWindow?.setBackgroundColor(lastThemeColor)
+        background.setTranslucent(on)
       },
     )
     mainWindow = createMainWindow(preloadPath, {

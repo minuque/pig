@@ -98,7 +98,8 @@ body {
   font-family: var(--font-sans);
 }
 
-/* 半透明窗口：页面底让开，窗口底由 --window-surface 画在 shell 上 */
+/* 半透明窗口：html 与页面底都让开，窗口底由 --window-surface 画在 shell 上 */
+html[data-translucent-window="on"],
 html[data-translucent-window="on"] body {
   background: transparent;
 }
