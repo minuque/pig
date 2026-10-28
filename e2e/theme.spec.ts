@@ -44,6 +44,16 @@ test("强调色排在字体大小下方，并与通用项同一张卡片", async
 
 test("半透明窗口开关联动面板背景与窗口底色", async ({ page, gateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
+  // 记录开关有没有交给桌面壳的材质通道
+  await page.addInitScript(() => {
+    const calls: boolean[] = []
+
+    ;(window as unknown as { __translucentCalls?: boolean[] }).__translucentCalls = calls
+    ;(window as unknown as { pigDesktop?: unknown }).pigDesktop = {
+      setThemeColor() {},
+      window: { setTranslucent: (on: boolean) => calls.push(on) },
+    }
+  })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -68,6 +78,17 @@ test("半透明窗口开关联动面板背景与窗口底色", async ({ page, ga
   await page.getByRole("switch", { name: "半透明窗口" }).click()
   await expect(root).toHaveAttribute("data-panel-background", "solid")
   expect(await shellBg()).toBe("rgb(247, 247, 248)")
+
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { __translucentCalls?: boolean[] }).__translucentCalls,
+    ),
+  ).toContain(true)
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { __translucentCalls?: boolean[] }).__translucentCalls,
+    ),
+  ).toContain(false)
 })
 
 test("选 accent 后写入 data-accent-color 并换 --accent-*", async ({ page, gateway }) => {

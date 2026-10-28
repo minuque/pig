@@ -23,6 +23,8 @@ interface Window {
       close(): void
       isMaximized(): Promise<boolean>
       onMaximizedChange(listener: (maximized: boolean) => void): () => void
+      /** 半透明窗口：交给系统背景材质，页面只留出透明区域。 */
+      setTranslucent(on: boolean): void
     }
   }
 }

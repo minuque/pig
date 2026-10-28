@@ -52,6 +52,9 @@ contextBridge.exposeInMainWorld("pigDesktop", {
     isMaximized() {
       return ipcRenderer.invoke("pig:window:is-maximized")
     },
+    setTranslucent(on) {
+      ipcRenderer.send("pig:window:set-translucent", Boolean(on))
+    },
     onMaximizedChange(listener) {
       const handler = (_event, value) => listener(Boolean(value))
 

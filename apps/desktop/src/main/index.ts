@@ -187,12 +187,25 @@ void app.whenReady().then(async () => {
     const stateFile = windowStatePath(app.getPath("userData"))
     const displays = screen.getAllDisplays().map((display) => display.bounds)
     const frame = restoreWindowFrame(readWindowStateFile(stateFile), displays)
+    // 材质打开时窗口底色归材质，主题色先存着，关掉再补回去
+    let lastThemeColor: string | undefined
+    let translucent = false
     ipcMain.on("pig:theme-color", (_event, value: unknown) => {
       const color = parseThemeColor(value)
 
-      if (color) mainWindow?.setBackgroundColor(color)
+      if (!color) return
+      lastThemeColor = color
+
+      if (!translucent) mainWindow?.setBackgroundColor(color)
     })
-    registerWindowControls(() => mainWindow)
+    registerWindowControls(
+      () => mainWindow,
+      (on) => {
+        translucent = on
+
+        if (!on && lastThemeColor) mainWindow?.setBackgroundColor(lastThemeColor)
+      },
+    )
     mainWindow = createMainWindow(preloadPath, {
       ...(isDev ? {} : { gatewayOrigin: httpOrigin }),
       frame,
