@@ -8,7 +8,12 @@
         <component
           :is="placeholder ? 'div' : RouterLink"
           class="session-card"
-          :class="{ active, 'is-placeholder': placeholder, renaming }"
+          :class="{
+            active,
+            'is-placeholder': placeholder,
+            renaming,
+            'has-state': Boolean(glyphState),
+          }"
           :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
           draggable="false"
           @click="onCardClick"
@@ -18,7 +23,7 @@
           @keydown="onCardKeydown"
         >
           <span class="title-line">
-            <span class="drag-slot" aria-hidden="true">
+            <span v-if="pinned" class="drag-slot" aria-hidden="true">
               <GripVerticalIcon v-if="draggable" :size="12" class="drag-glyph" />
             </span>
 
@@ -47,7 +52,7 @@
               </TooltipContent>
             </Tooltip>
 
-            <span class="state-slot">
+            <span v-if="!renaming" class="state-slot">
               <span class="state-mark" aria-hidden="true">
                 <SessionStateIcon v-if="glyphState" :state="glyphState" />
               </span>
@@ -374,13 +379,16 @@ function confirmDelete() {
   opacity: 1;
 }
 
+/* 状态位是行尾装饰：绝对定位，无状态的行不占宽度，标题写满整行。 */
 .state-slot {
-  position: relative;
+  position: absolute;
+  inset-inline-end: var(--space-xs);
+  top: 50%;
   display: grid;
-  flex: none;
   place-items: center;
   width: 13px;
   height: 13px;
+  translate: 0 -50%;
 }
 
 .state-mark {
@@ -445,6 +453,14 @@ function confirmDelete() {
   mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
   white-space: nowrap;
   transition: color var(--duration-fast) var(--ease-hover);
+}
+
+/* 状态图标与更多按钮浮在行尾：提前淡出，标题不钻进图标底下。 */
+.session-card.has-state .title,
+.session-item:hover .title,
+.session-item:focus-within .title,
+.session-item.is-menu-open .title {
+  mask-image: linear-gradient(to right, black calc(100% - 44px), transparent calc(100% - 20px));
 }
 
 .session-item:hover .title,

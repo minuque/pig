@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test"
+import type { Locator, Page } from "@playwright/test"
 import { expect, seedWorkspace, test, type E2eGateway } from "./fixtures.js"
 import { FILLER_PREFIX } from "./prebuild-session.js"
 
@@ -81,4 +81,31 @@ test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => 
   await dialog.locator(".search-row").first().click()
   await expect(page).toHaveURL(/\/sessions\/e2e-filler-1$/)
   await expect(dialog).toHaveCount(0)
+})
+
+/** 标题右缘离卡片内容区右缘的距离：状态位不该把标题挤短。 */
+async function titleRightGap(card: Locator): Promise<number> {
+  return card.evaluate((el) => {
+    const title = el.querySelector<HTMLElement>(".title")
+    const style = getComputedStyle(el)
+    const contentRight = el.getBoundingClientRect().right - parseFloat(style.paddingInlineEnd)
+    return contentRight - (title?.getBoundingClientRect().right ?? 0)
+  })
+}
+
+test("状态位不挤占标题宽度：无状态行与草稿行都写满整行", async ({ page, navGateway }) => {
+  await enter(page, navGateway)
+  await section(page).locator(".section-toggle").click()
+
+  const plain = section(page).locator(".session-card").first()
+  // 打开会话后它不再算未读，行上就没有状态图标
+  await plain.click()
+  await expect(plain.locator(".state-icon")).toHaveCount(0)
+  expect(await titleRightGap(plain)).toBeLessThanOrEqual(1)
+
+  await page.getByRole("button", { name: "新建会话", exact: true }).click()
+  const draft = page.locator(".session-card.is-placeholder")
+  await expect(draft).toBeVisible()
+  await expect(draft.locator(".state-icon")).toHaveCount(1)
+  expect(await titleRightGap(draft)).toBeLessThanOrEqual(1)
 })
