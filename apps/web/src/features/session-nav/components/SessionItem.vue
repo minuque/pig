@@ -57,11 +57,11 @@
 
                 <CheckCircleIcon
                   v-else-if="state === 'unread'"
-                  :size="11"
+                  :size="12"
                   class="state-glyph unread"
                 />
 
-                <PenIcon v-else-if="showDraftGlyph" :size="11" class="state-glyph draft" />
+                <PenIcon v-else-if="showDraftGlyph" :size="12" class="state-glyph draft" />
                 <span v-else-if="dotKind" class="state-dot" :class="dotKind"></span>
               </span>
 
