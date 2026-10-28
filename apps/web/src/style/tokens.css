@@ -197,9 +197,11 @@
   --titlebar-inset: 44px;
   /** 卡片与窗口边缘的留白 */
   --workbench-inset: var(--space-xs);
-  /** 卡片右上角三个自画窗控的总宽与单钮宽（46 × 3） */
+  /** 卡片右上角三个自画窗控的总宽与单钮宽（36 × 3 加间隙与内边距） */
   --size-windows-caption: 138px;
-  --size-window-control: 46px;
+  --size-window-control: 36px;
+  /** 窗控图形比常规图标大一档，贴近系统标题栏按钮 */
+  --size-window-glyph: 18px;
   /** macOS 侧栏收起时红绿灯占位：卡片左缝 8px + 红绿灯簇与间距 60px */
   --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;

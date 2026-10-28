@@ -40,6 +40,9 @@ test("自画窗控经 IPC 操作真实窗口", async () => {
     await expect(maximize.or(restore)).toBeVisible()
     await expect(page.locator('[data-window-control="close"]')).toBeVisible()
 
+    await page.locator('[data-window-control="close"]').hover()
+    await expect(page.locator(".rt-TooltipContent")).toContainText("关闭")
+
     const before = await isMaximized()
 
     await (before ? restore : maximize).click()
