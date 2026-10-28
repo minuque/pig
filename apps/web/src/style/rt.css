@@ -1,7 +1,7 @@
 /* Radix Themes 的基座接入。
    rt 的 CSS 不分层（上游如此）：未分层规则优先于 Tailwind 的 @layer utilities，
    所以组件上的 Tailwind 类压不住 rt 类，靠的是 scoped 样式带 data 属性的特异性。
-   base.css 只含 token 机制与「属性 → 变量」映射，色板在 palettes.css 里按需引入。 */
+   base.css 只含 token 机制与「属性 → 变量」映射，色板在 app.css 顶部按需引入。 */
 
 @import "@radix-ui/themes/tokens/base.css";
 @import "@radix-ui/themes/components.css";

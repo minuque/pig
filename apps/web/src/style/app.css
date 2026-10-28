@@ -1,456 +1,29 @@
+/* 全局样式入口：先引外部样式表与各分片，再收口浏览器默认值。 */
+
 @import "./reset.css" layer(base);
-@import "./palettes.css";
+
+/* 色板：accent 与 gray 直接取 Radix Colors 的官方刻度，只引项目用到的 6 套 accent 与 4 族 gray。
+   切 accent 只改 html 的 data-accent-color，深浅由 .dark 块决定。 */
+@import "@radix-ui/themes/tokens/colors/indigo.css";
+@import "@radix-ui/themes/tokens/colors/blue.css";
+@import "@radix-ui/themes/tokens/colors/teal.css";
+@import "@radix-ui/themes/tokens/colors/green.css";
+@import "@radix-ui/themes/tokens/colors/orange.css";
+@import "@radix-ui/themes/tokens/colors/red.css";
+
+/* 中性色：indigo/blue 用 slate，teal/green 用 sage，orange 用 sand，red 用 mauve */
+@import "@radix-ui/themes/tokens/colors/slate.css";
+@import "@radix-ui/themes/tokens/colors/sage.css";
+@import "@radix-ui/themes/tokens/colors/sand.css";
+@import "@radix-ui/themes/tokens/colors/mauve.css";
+@import "./tokens.css";
 @import "./rt.css";
 @import "./motion.css";
 @import "markstream-vue/index.css" layer(components);
 @import "./markdown.css";
 @import "./mermaid.css";
 @import "./components.css";
-
-/* ------ @property 注册 ------ */
-@property --left-width {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 280px;
-}
-
-@property --scrollbar-thumb {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: transparent;
-}
-
-/* 滚动边缘渐隐：由 scroll() 时间线驱动的遮罩带宽 */
-@property --edge-fade-top {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-@property --edge-fade-bottom {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-/* 全局 token、浅深色覆盖与 Tailwind 映射须集中维护，因此本文件保留超过 500 行。 */
-
-/* ------ 浅色 token ------ */
-:root {
-  color-scheme: light;
-
-  /* Tailwind 的间距基数已不再提供，--space-* 的 calc 靠它 */
-  --spacing: 4px;
-
-  /* 文字对比度：提升时把 4 档文字色按权重向 --contrast-target 推，0% 即原值 */
-  --contrast-boost: 0%;
-  --contrast-target: #000000;
-
-  /* Radix accent：--accent-* 由 rt 基座按 html 的 data-accent-color 映射，
-     本文件只保留语义别名。--primary / --link / 选区 / 焦点环都指回这些变量 */
-  --primary: var(--accent-9);
-  --primary-active: var(--accent-10);
-  --primary-foreground: var(--accent-contrast);
-  --white: #ffffff;
-
-  /* 表面 */
-  --background: #f7f7f8;
-  /* 别名：与 --background 同值，名字留给 DESIGN.md 的次级井角色 */
-  --background-soft: var(--background);
-  --card: #ffffff;
-  --sidebar: #f7f7f8;
-  --sidebar-foreground: #1b1b1b;
-  --sidebar-hover: #e8e8eb;
-  --sidebar-selected: #e6e6e8;
-  --sidebar-border: #e8e8e8;
-  --toolbar-background: #ffffff;
-  --toolbar-foreground: #1b1b1b;
-  --code-background: #f6f6f6;
-  --code-foreground: #1b1b1b;
-  --composer-background: #f4f4f5;
-  --composer-border: rgb(0 0 0 / 0.08);
-  --user-prompt-background: #e8e8ea;
-  --popover: #ffffff;
-  --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
-
-  /* 毛玻璃：透明度由设置写 --glass-opacity，模糊与饱和只按深浅切换 */
-  --glass-opacity: 80%;
-  --glass-blur: 16px;
-  --glass-saturation: 1.14;
-  --glass-tint: var(--card);
-  /* 选中态：半透明洗涤，不描边；浅色用黑、深色用白 */
-  --glass-selected-bg: color-mix(in srgb, var(--foreground) 6%, transparent);
-
-  /* mermaid 图 */
-  --mermaid-bg: #ffffff;
-  --mermaid-fill: #eaeef2;
-  --mermaid-fg: var(--foreground);
-  --mermaid-line: #d4d4d4;
-  --mermaid-accent: var(--primary);
-
-  /* 文字 */
-  --foreground: #1b1b1b;
-  --foreground-secondary: #5c5c5c;
-  --foreground-muted: #6e6e6e;
-  --muted-foreground: var(--contrast-foreground-muted);
-  /* 最淡一档：只用于白卡片底（对 #ffffff 4.54:1）。对 #f4f4f5 仅 4.13:1、#f7f7f8 仅 4.24:1，不达标 */
-  /* 弹层与浅灰底上的字色改用 --contrast-foreground-muted */
-  --foreground-faint: #767676;
-  /* 占位文字比最淡一档正文再退一档 */
-  --placeholder: color-mix(in srgb, var(--contrast-foreground-faint) 62%, transparent);
-
-  /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --foreground 后自动跟随 */
-  --contrast-foreground: color-mix(
-    in oklab,
-    var(--foreground) calc(100% - var(--contrast-boost)),
-    var(--contrast-target) var(--contrast-boost)
-  );
-  --contrast-foreground-secondary: color-mix(
-    in oklab,
-    var(--foreground-secondary) calc(100% - var(--contrast-boost)),
-    var(--contrast-target) var(--contrast-boost)
-  );
-  --contrast-foreground-muted: color-mix(
-    in oklab,
-    var(--foreground-muted) calc(100% - var(--contrast-boost)),
-    var(--contrast-target) var(--contrast-boost)
-  );
-  --contrast-foreground-faint: color-mix(
-    in oklab,
-    var(--foreground-faint) calc(100% - var(--contrast-boost)),
-    var(--contrast-target) var(--contrast-boost)
-  );
-
-  /* 结构 / 交互 */
-  --border: #dedede;
-  --border-subtle: #e8e8e8;
-  --interaction-hover: #e8e8eb;
-  --hover-quiet: color-mix(in srgb, var(--foreground) 5%, transparent);
-  --hover-tint: color-mix(in srgb, var(--foreground) 8%, transparent);
-  --hover-strong: color-mix(in srgb, var(--foreground) 12%, transparent);
-  --chart-track: color-mix(in srgb, var(--foreground) 18%, transparent);
-  --minimap-marker: color-mix(in srgb, var(--foreground-muted) 35%, transparent);
-  --link-underline: color-mix(in srgb, var(--foreground) 38%, transparent);
-  --link-underline-hover: color-mix(in srgb, var(--foreground) 72%, transparent);
-  --success-halo: color-mix(in srgb, var(--success) 15%, transparent);
-  --danger-halo: color-mix(in srgb, var(--danger) 15%, transparent);
-  --danger-border: color-mix(in srgb, var(--danger) 45%, var(--border));
-  --info-halo: var(--accent-a4);
-  /* 按钮顶沿内高光与按下时的内阴影（t3code halo 按钮） */
-  --button-sheen: color-mix(in srgb, var(--white) 16%, transparent);
-  --button-press: color-mix(in srgb, var(--foreground) 12%, transparent);
-  --effort-track: var(--border-subtle);
-  --link: var(--accent-11);
-  --media-outline: rgba(0, 0, 0, 0.1);
-  --scrollbar-color: #dad8d8;
-
-  /* 滚动边缘渐隐：类只选带宽，颜色由 mask 决定 */
-  --edge-fade-band: 24px;
-  --edge-fade-menu-band: 12px;
-
-  --card-border: hsl(210 18% 32% / 0.1);
-  --hairline: hsl(0 0% 0% / 0.12);
-  /* 输入卡投影：软阴影收在卡下方，浅色专用；深色靠内高光分层 */
-  --composer-shadow: 0 12px 28px -18px rgb(0 0 0 / 40%);
-  --composer-highlight: transparent;
-  /* logo 拆层：蓝底图在此，小猪单独一层做探头；主蓝兜底图片未载入 */
-  --brand-mark-bg: #5d77d0 url("/logo-bg.png") center / cover;
-  /* 吉祥物取 logo 小猪原色，深浅主题共用 */
-  --mascot-body: #fde3b4;
-  --mascot-snout: #fda88e;
-  --mascot-eye: #012d47;
-  /* 汗滴与红温（run-long / run-xlong 状态色） */
-  --mascot-sweat: #6fb6ff;
-  --mascot-heat: #f5a896;
-  --mascot-heat-snout: #e0735e;
-
-  /* 分类色，不作结构填充 */
-  --accent-skill: #8160d8;
-  --accent-steel: #5b7c9d;
-  --accent-teal: #2f8f7b;
-  --accent-gray: #8a8d94;
-
-  /* 语义 */
-  --star: #fbbf24;
-  --accent-green: var(--success);
-  /* 状态色对齐 zeron 基线 */
-  --success: #15803d;
-  --info: var(--accent-11);
-  --warning: #a16207;
-  --danger: #dc2626;
-  --state-working: #7cb3ff;
-  --success-foreground: var(--primary-foreground);
-  --warning-foreground: var(--primary-foreground);
-  --danger-foreground: var(--primary-foreground);
-  /* 状态浅底 badge：主色 15% 混入 background，随主题联动 */
-  --success-bg: color-mix(in srgb, var(--success) 15%, var(--background));
-  --info-bg: var(--accent-a3);
-  --danger-bg: color-mix(in srgb, var(--danger) 15%, var(--background));
-  /* tint 上的破坏色文字：--danger 压在 15% 混底上只有 3.6:1，单独给一档 */
-  --danger-on-tint: #b91c1c;
-
-  /* 字体与间距圆角在下面的 :root 块里定义，组件的 var() 与工具类读同一份。 */
-  --text-code: 13px;
-  --text-code-line: 24.5px;
-
-  /* 输入卡胶囊：32px 圆角；宽度跟随内容宽度手柄 */
-  --composer-radius: 32px;
-  /* 输入卡控件（回形针、发送、模型 chip、上下文环）：对齐 Kimi composer 的 32px */
-  --size-composer-control: 32px;
-  /* 连续曲率：输入卡与菜单浮层共用一套角部形状（比 squircle 关键字的 2 更克制） */
-  --corner-shape-composer: superellipse(1.5);
-
-  /* 尺寸 */
-  --size-control: 40px;
-  --titlebar-inset: 44px;
-  --size-windows-caption: 138px;
-  --size-drawer: 360px;
-  --size-settings-body: 64rem;
-  --size-settings-dialog-width: 80rem;
-  --size-settings-dialog-height: 52rem;
-  --size-settings-dialog-height-min: 34rem;
-  --size-settings-dialog-nav: 11rem;
-  --size-settings-dialog-nav-narrow: 2.75rem;
-  /* 线性图标：14px 图标配 13px 正文 */
-  --size-icon: 14px;
-  --size-icon-2xs: 16px;
-  --size-icon-button: 28px;
-  /* 24 画布线宽；低于 1.17 时 14px 下等效不到 1px，会糊成半调灰 */
-  --line-icon-width: 1.75px;
-  /* @solar-icons/vue 的 IconBase 读这两个名字定尺寸与线宽（width/height 是 1em，靠 font-size 撑开）；
-     未定义时回退 24px / 1.5，比设计大一档，不要删。 */
-  --solar-size: var(--size-icon);
-  --solar-stroke-width: var(--line-icon-width);
-  /* 侧边栏紧凑图标按钮：图标外 2px，对齐 Synara 的 sidebar-icon-button */
-  --icon-button-pad: 2px;
-  --size-scroll-control: 30px;
-  /* 侧栏行高：对齐 Synara 侧栏的 28px 行 */
-  --size-nav-rail: 28px;
-  --startup-logo-size: 88px;
-
-  /* 边框 / 遮罩 / 层级 */
-  --border-width: 1px;
-  --scrim: rgba(0, 0, 0, 0.4);
-  --z-resizer: 1;
-  --z-menu: 5;
-  --z-drawer: 10;
-  --z-modal: 20;
-  --opacity-disabled: 0.55;
-
-  /* 阴影 */
-  --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.2);
-  --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.2);
-  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.18);
-  --shadow-popover:
-    0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 1px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-logo: 0 1px 2px rgba(15, 17, 21, 0.06), 0 8px 20px rgba(15, 17, 21, 0.08);
-  --shadow-soft:
-    0 0.175px 1.041px rgba(0, 0, 0, 0.01), 0 0.8px 2.925px rgba(0, 0, 0, 0.02),
-    0 2.025px 7.847px rgba(0, 0, 0, 0.027), 0 4px 18px rgba(0, 0, 0, 0.04);
-  --shadow-elevated:
-    0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 12px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02),
-    0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 8px rgb(0 0 0 / 0.04);
-  --theme-wire-light: var(--background);
-  --theme-wire-light-raised: var(--card);
-  --theme-wire-dark: var(--card);
-  --theme-wire-dark-raised: var(--background);
-
-  /* 反色主按钮 */
-  --inverse-background: #1b1b1b;
-  --inverse-background-hover: #262626;
-  --inverse-foreground: #ffffff;
-
-  /* 动效 */
-  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.66, 0, 0.34, 1);
-  --ease-spring: cubic-bezier(0.22, 1.18, 0.36, 1);
-  /* 浮层出入与 hover 统一曲线 */
-  --ease-menu: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
-  --duration-menu-in: 140ms;
-  --duration-menu-out: 100ms;
-  --duration-dialog-in: 180ms;
-  --duration-row-reveal: 480ms;
-  --duration-fast: 150ms;
-  --duration-normal: 200ms;
-  --duration-composer-flip: 180ms;
-  --ease-fold: cubic-bezier(0, 0, 0.58, 1);
-  /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms。名字由 composer-flip.ts 拼接，不是字面量。 */
-  --duration-dock-in: 420ms;
-  --duration-dock-out: 470ms;
-  /* 首屏整体落位入场 */
-  --duration-settle: 500ms;
-  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
-  /* 工具组折叠与箭头同钟 */
-  --duration-tool-fold: 140ms;
-  --duration-slow: 280ms;
-  /* 小猪探头：开屏与侧栏品牌共用同一节奏 */
-  --duration-pig-peek: 640ms;
-  --duration-icon: 300ms;
-  --duration-theme: 600ms;
-  --duration-shimmer: 3400ms;
-  --ease-icon: cubic-bezier(0.2, 0, 0, 1);
-
-  /* 材质：小面积磨砂（徽标/预览层）。玻璃浮层走 --glass-*，此处只管局部压底。 */
-  --material-blur: 6px;
-  --material-saturate: 1.4;
-  /* 焦点环：宽+透明度的统一焦点态，配合 .ring-focus 使用。 */
-  --focus-ring: 0 0 0 3px var(--accent-a4);
-  --focus-ring-danger: 0 0 0 3px color-mix(in srgb, var(--danger, #e5484d) 45%, transparent);
-  --font-sans:
-    "anthropic-sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-    "Microsoft YaHei", sans-serif;
-  --font-mono:
-    "anthropic-mono", ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei",
-    monospace;
-
-  /* Tailwind 的默认字号刻度随依赖一起删掉了，这里补回本项目引用的三档 */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-
-  --text-heading-2: 26px;
-  --text-heading-2--line-height: 1.23;
-  --text-heading-2--letter-spacing: -0.4px;
-  --text-title: var(--text-base);
-  --text-title--line-height: 1.4;
-  --text-body-md: var(--text-sm);
-  --text-body-md--line-height: 1.43;
-  --text-body-sm: var(--text-sm);
-  --text-body-sm--line-height: 1.43;
-  --text-body-lg: var(--text-base);
-  --text-body-lg--line-height: 1.5;
-  --text-meta: calc(var(--text-body-md) - 1px);
-  --text-meta--line-height: 1.43;
-  --text-button: 13px;
-  --text-button--line-height: 1.38;
-  --text-caption: 13px;
-  --text-caption--line-height: 1.38;
-  --text-eyebrow: var(--text-xs);
-  --text-eyebrow--line-height: 1.33;
-  --text-caption-mono: var(--text-xs);
-  --text-caption-mono--line-height: 1.33;
-
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  /* 间距刻度用 --space-*：--spacing-* 是 max-w/w/size/leading 的兜底命名空间，塞进去会顶掉默认刻度 */
-  --space-xxs: calc(var(--spacing) * 1);
-  --space-xs: calc(var(--spacing) * 2);
-  --space-sm: calc(var(--spacing) * 3);
-  --space-md: calc(var(--spacing) * 4);
-  --space-lg: calc(var(--spacing) * 6);
-  --space-xl: calc(var(--spacing) * 7);
-  --space-xxl: calc(var(--spacing) * 8);
-
-  /* 单一基数派生，改 --radius 即整档跟随；不在网格上的各自独立 */
-  --radius: 8px;
-  --radius-2xs: calc(var(--radius) - 6px);
-  --radius-xs: calc(var(--radius) - 4px);
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 8px);
-  --radius-popover: calc(var(--radius) + 4px);
-  --radius-code: 0.65rem;
-  /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
-  --radius-pill: 9999px;
-}
-
-/* ------ 深色覆盖：只覆盖颜色、阴影、玻璃 ------ */
-.dark {
-  --composer-shadow: none;
-  --composer-highlight: rgb(255 255 255 / 3%);
-  color-scheme: dark;
-
-  /* 深色下向白推，对比度层才朝正确方向生效 */
-  --contrast-target: #ffffff;
-
-  --primary: var(--accent-9);
-  --primary-active: var(--accent-10);
-  --primary-foreground: var(--accent-contrast);
-
-  --background: #121214;
-  --card: #0f0f11;
-  --sidebar: #121214;
-  --sidebar-foreground: #e3e4e6;
-  --sidebar-hover: #26262b;
-  --sidebar-selected: #2c2c31;
-  --sidebar-border: #28282a;
-  --toolbar-background: #0f0f11;
-  --toolbar-foreground: #e3e4e6;
-  --code-background: #1a1a1c;
-  --code-foreground: #e3e4e6;
-  --composer-background: #27272a;
-  --composer-border: rgb(255 255 255 / 0.08);
-  --user-prompt-background: #262628;
-  --popover: #1c1c1f;
-  --code-surface: color-mix(in srgb, var(--foreground) 5%, var(--card));
-
-  /* mermaid 图 */
-  --mermaid-bg: #161618;
-  --mermaid-fill: #1a1a22;
-  --mermaid-line: #333338;
-
-  --foreground: #e3e4e6;
-  --foreground-secondary: #b8b9bc;
-  --foreground-muted: #9a9b9e;
-  --foreground-faint: #7e7f83;
-
-  --border: #2a2a2e;
-  --border-subtle: #28282a;
-  --interaction-hover: #26262b;
-  --effort-track: var(--hover-strong);
-  --link: var(--accent-11);
-  --mermaid-accent: var(--accent-11);
-  --media-outline: rgba(255, 255, 255, 0.1);
-  --scrollbar-color: #3a3a40;
-  --button-press: color-mix(in srgb, var(--foreground) 30%, transparent);
-
-  --glass-selected-bg: color-mix(in srgb, var(--foreground) 11%, transparent);
-
-  --accent-skill: #c2a1ff;
-  --accent-steel: #8aa4c2;
-  --accent-teal: #5ec4ae;
-  --accent-gray: #9a9da4;
-  /* 状态色对齐 zeron 基线 */
-  --success: #34d399;
-  --warning: #facc15;
-  --danger: #f87171;
-  --danger-on-tint: var(--danger);
-  --success-foreground: #000000;
-  --warning-foreground: #000000;
-  --danger-foreground: #000000;
-  --star: #f5b44a;
-
-  --scrim: rgba(0, 0, 0, 0.55);
-  --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.45);
-  --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.5);
-  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-logo: 0 1px 2px rgba(0, 0, 0, 0.28), 0 10px 24px rgba(0, 0, 0, 0.36);
-  --shadow-soft:
-    0 0.175px 1.041px rgba(0, 0, 0, 0.3), 0 0.8px 2.925px rgba(0, 0, 0, 0.3),
-    0 2.025px 7.847px rgba(0, 0, 0, 0.32), 0 4px 18px rgba(0, 0, 0, 0.4);
-  --shadow-elevated:
-    0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
-    0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.28);
-  --card-border: hsl(210 18% 78% / 0.09);
-  --hairline: hsl(0 0% 100% / 0.16);
-
-  --inverse-background: #fafafa;
-  --inverse-background-hover: #ffffff;
-  --inverse-foreground: #171717;
-
-  --theme-wire-dark: #161618;
-  --theme-wire-dark-raised: #1c1c1f;
-  --theme-wire-light: #f7f7f8;
-  --theme-wire-light-raised: #ffffff;
-}
+@import "./desktop.css";
 
 /* ------ 滚动条：原生 thin 规格；侧栏列表内另行隐藏，元素可自写 --scrollbar-thumb ------ */
 * {
@@ -494,24 +67,20 @@
   font-display: swap;
 }
 
-/* ------ 工具类颜色映射：同名指回，只登记用过的类；阴影留 :root 供深色覆盖 ------ */
-
+/* ------ 图标与表面 ------ */
 .size-icon {
   inline-size: var(--size-icon);
   block-size: var(--size-icon);
 }
 
-/* ------ 表面与毛玻璃：浮层统一底，透明度由设置给，模糊与饱和只按深浅切换 ------ */
-.surface-float {
-  background: var(--composer-background);
+/* Solar 图标对齐基座：默认尺寸与线宽走 token，调用方的 size-* 类可覆盖 */
+.solar {
+  flex: none;
 }
 
-html.dark,
-.dark {
-  /* 深色浮层比背景抬起一层，不退回纯黑；模糊更重、饱和更低。 */
-  --glass-tint: color-mix(in srgb, var(--card) 97%, white);
-  --glass-blur: 16px;
-  --glass-saturation: 1.08;
+/* 浮层统一底，透明度由设置给，模糊与饱和只按深浅切换 */
+.surface-float {
+  background: var(--composer-background);
 }
 
 html[data-glass="on"] .surface-float {
@@ -520,57 +89,22 @@ html[data-glass="on"] .surface-float {
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
 }
 
-/* 显式排除玻璃的浮层：tooltip 透底干扰阅读，保持不透明 */
-.surface-solid {
-  background: var(--composer-background);
-  backdrop-filter: none;
-}
-
-/* ------ 浮层退场：blur 随退场进度降到 0；非玻璃浮层保持 0/1，不额外加滤镜 ------ */
-:is(.reveal-menu, [data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+/* 浮层退场：blur 随退场进度降到 0；非玻璃浮层保持 0/1，不额外加滤镜 */
+:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
   --menu-exit-blur: 0px;
   --menu-exit-saturate: 1;
 }
 
-html[data-glass="on"] .surface-float.reveal-menu,
 html[data-glass="on"] :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
   --menu-exit-blur: var(--glass-blur);
   --menu-exit-saturate: var(--glass-saturation);
 }
 
 /* ------ 基础 reset 与字号档 ------ */
-/* Solar 图标对齐基座：默认尺寸与线宽走 token，调用方的 size-* 类可覆盖 */
-.solar {
-  flex: none;
-}
-
 body {
   background: var(--background-soft);
   color: var(--contrast-foreground);
   font-family: var(--font-sans);
-}
-
-/* 字号档只改界面与消息文字；展示标题保持设计稿尺寸。 */
-html[data-font-size="s"] {
-  --text-body-md: 12px;
-  --text-body-sm: 12px;
-  --text-button: 12px;
-  --text-caption: 11px;
-  --text-eyebrow: 11px;
-  --text-caption-mono: 11px;
-  --text-code: 12px;
-  --text-code-line: 22px;
-}
-
-html[data-font-size="l"] {
-  --text-body-md: 16px;
-  --text-body-sm: 16px;
-  --text-button: 15px;
-  --text-caption: 14px;
-  --text-eyebrow: 13px;
-  --text-caption-mono: 13px;
-  --text-code: 15px;
-  --text-code-line: 28px;
 }
 
 @layer base {
@@ -609,29 +143,14 @@ p {
   overflow-wrap: anywhere;
 }
 
-/* ------ 桌面壳：标题栏拖拽与弹层（控件 no-drag 只写在拖拽层内部，大块滚动容器标 no-drag 会扣掉拖拽区） ------ */
-html[data-pig-desktop-platform]:has([data-slot="dialog-content"])
-  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title),
-html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"])
-  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title),
-html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
-  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title) {
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-}
-
-/* 弹层居中由 Radix Themes 的 scroll padding + margin auto 负责，不再自己 translate */
-
+/* 触屏上把菜单行高抬到可点击尺寸 */
 @media (pointer: coarse) {
   :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
     min-height: calc(var(--size-control) + var(--space-xxs));
   }
 }
 
-/* ------ 组件杂项 ------ */
 /* fill 必须在滑条同一元素上算，不能在 :root 算死 */
 .effort-bar {
   --effort-fill: color-mix(in srgb, var(--primary) 40%, var(--white));
 }
-
-/* ------ accent 覆盖：html[data-accent] 上的 --accent-* 已经覆盖默认 ------ */

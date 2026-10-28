@@ -1,0 +1,11 @@
+/* 桌面壳：标题栏拖拽与弹层。
+   控件 no-drag 只写在拖拽层内部，大块滚动容器标 no-drag 会扣掉拖拽区。 */
+html[data-pig-desktop-platform]:has([data-slot="dialog-content"])
+  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title),
+html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"])
+  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title),
+html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
+  :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title) {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}

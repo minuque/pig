@@ -107,10 +107,13 @@ describe("CSS 变量引用", () => {
     expect(missing, `未定义的变量：${missing.join("、")}`).toEqual([])
   })
 
-  it("app.css 定义的 token 都有引用，外部读取的除外", () => {
+  it("项目样式定义的 token 都有引用，外部读取的除外", () => {
     const { used } = scan()
-    const appCss = readFileSync(join(SRC, "style/app.css"), "utf8")
-    const defined = [...new Set(captures(appCss, /^\s*(--[a-zA-Z0-9-]+)\s*:/gm))]
+    /** 只查项目自己的样式分片；rt.css 里的变量是给 rt 的 CSS 用的，不在这里统计。 */
+    const ownCss = ["app.css", "tokens.css", "desktop.css"]
+      .map((name) => readFileSync(join(SRC, "style", name), "utf8"))
+      .join("\n")
+    const defined = [...new Set(captures(ownCss, /^\s*(--[a-zA-Z0-9-]+)\s*:/gm))]
     const unused = defined
       .filter((name) => !EXTERNAL_READERS.some((prefix) => name.startsWith(prefix)))
       .filter((name) => !used.has(name))
