@@ -53,7 +53,6 @@
           <button
             class="status-btn press-scale"
             type="button"
-            :disabled="item.count === 0"
             :aria-label="`${item.label} · ${item.count}`"
             @click="emit('cycle', item.status)"
           >
@@ -96,7 +95,7 @@ const statusItems = computed(() =>
     status,
     count: props.counts[status],
     label: t(LABELS[status]),
-  })),
+  })).filter((item) => item.count > 0),
 )
 </script>
 
@@ -160,14 +159,9 @@ const statusItems = computed(() =>
     scale var(--duration-fast) var(--ease-out);
 }
 
-.status-btn:hover:not(:disabled) {
+.status-btn:hover {
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
-}
-
-.status-btn:disabled {
-  opacity: 0.4;
-  cursor: default;
 }
 
 .status-count {
