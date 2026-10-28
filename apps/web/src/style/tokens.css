@@ -47,6 +47,8 @@
 
   /* 表面 */
   --background: #f7f7f8;
+  /* 窗口底：半透明窗口开关打开时换成带 alpha 的同一底色 */
+  --window-surface: var(--background);
   /* 与 --background 同值，名字留给 DESIGN.md 的次级井角色 */
   --background-soft: var(--background);
   --card: #ffffff;
@@ -66,7 +68,7 @@
   --popover: #ffffff;
   --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
 
-  /* 毛玻璃：透明度由设置写 --glass-opacity，模糊与饱和只按深浅切换 */
+  /* 毛玻璃：浮层默认走这一档，模糊与饱和只按深浅切换 */
   --glass-opacity: 80%;
   --glass-blur: 16px;
   --glass-saturation: 1.14;
@@ -361,6 +363,11 @@
   --radius-code: 0.65rem;
   /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
   --radius-pill: 9999px;
+}
+
+/* 半透明窗口：窗口底与侧栏用带 alpha 的底色，main 里的工作台卡片保持实底 */
+html[data-translucent-window="on"] {
+  --window-surface: color-mix(in srgb, var(--background) 72%, transparent);
 }
 
 /* ------ 深色覆盖：只覆盖颜色、阴影、玻璃 ------ */

@@ -42,6 +42,34 @@ test("强调色排在字体大小下方，并与通用项同一张卡片", async
   ).toBe("字体大小")
 })
 
+test("半透明窗口开关联动面板背景与窗口底色", async ({ page, gateway }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, gateway.workspaceId)
+  await page.goto(gateway.entryUrl)
+  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
+
+  await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
+  // 毛玻璃开关与不透明度拉杆已下线
+  await expect(page.getByText("毛玻璃不透明度")).toHaveCount(0)
+  await expect(page.getByRole("switch", { name: "毛玻璃" })).toHaveCount(0)
+
+  const root = page.locator(".radix-themes").first()
+  const shellBg = () =>
+    page.evaluate(() => getComputedStyle(document.querySelector(".shell")!).backgroundColor)
+
+  await expect(root).toHaveAttribute("data-panel-background", "solid")
+  expect(await shellBg()).toBe("rgb(247, 247, 248)")
+
+  await page.getByRole("switch", { name: "半透明窗口" }).click()
+  await expect(page.locator("html")).toHaveAttribute("data-translucent-window", "on")
+  await expect(root).toHaveAttribute("data-panel-background", "translucent")
+  expect(await shellBg()).toMatch(/rgba\(|color\(/)
+
+  await page.getByRole("switch", { name: "半透明窗口" }).click()
+  await expect(root).toHaveAttribute("data-panel-background", "solid")
+  expect(await shellBg()).toBe("rgb(247, 247, 248)")
+})
+
 test("选 accent 后写入 data-accent-color 并换 --accent-*", async ({ page, gateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)

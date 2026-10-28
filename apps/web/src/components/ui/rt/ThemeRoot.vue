@@ -6,7 +6,7 @@
     :data-gray-color="gray"
     :data-is-root-theme="root ? 'true' : undefined"
     data-has-background="false"
-    data-panel-background="translucent"
+    :data-panel-background="translucentWindow ? 'translucent' : 'solid'"
     data-radius="medium"
     data-scaling="100%"
   >
@@ -18,6 +18,7 @@
 import { computed } from "vue"
 import { findAccent } from "@features/theme/lib/accents.js"
 import { useColorScheme } from "@features/theme/index.js"
+import { useGeneralPrefs } from "@features/settings/index.js"
 
 /**
  * Radix Themes 的作用域容器：rt 的面板、阴影、间距与圆角 token 都挂在 .radix-themes 上。
@@ -26,5 +27,6 @@ import { useColorScheme } from "@features/theme/index.js"
  */
 const props = withDefaults(defineProps<{ root?: boolean }>(), { root: false })
 const { isDark, accent } = useColorScheme()
+const { translucentWindow } = useGeneralPrefs()
 const gray = computed(() => findAccent(accent.value).gray)
 </script>

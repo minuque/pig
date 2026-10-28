@@ -104,37 +104,15 @@
 
         <div class="row">
           <div class="copy">
-            <h3 class="label">{{ t("settings.glass") }}</h3>
-            <p class="hint">{{ t("settings.glassHint") }}</p>
+            <h3 class="label">{{ t("settings.translucentWindow") }}</h3>
+            <p class="hint">{{ t("settings.translucentWindowHint") }}</p>
           </div>
 
           <Switch
-            :aria-label="t('settings.glass')"
-            :model-value="glassOn"
-            @update:model-value="setGlass"
+            :aria-label="t('settings.translucentWindow')"
+            :model-value="translucentWindow"
+            @update:model-value="setTranslucentWindow"
           />
-        </div>
-
-        <div class="row">
-          <div class="copy">
-            <h3 class="label">{{ t("settings.glassOpacity") }}</h3>
-            <p class="hint">{{ t("settings.glassOpacityHint") }}</p>
-          </div>
-
-          <div class="opacity-control">
-            <Slider
-              :aria-label="t('settings.glassOpacity')"
-              :model-value="[glassOpacity]"
-              :min="40"
-              :max="100"
-              :step="5"
-              :disabled="!glassOn"
-              class="opacity-slider"
-              @update:model-value="onOpacity"
-            />
-
-            <span class="opacity-value">{{ glassOpacity }}%</span>
-          </div>
         </div>
 
         <div class="row">
@@ -220,14 +198,12 @@ const {
   locale,
   fontSize,
   notifyOn,
-  glassOn,
-  glassOpacity,
+  translucentWindow,
   contrastBoost,
   setLocale,
   setFontSize,
   setNotify,
-  setGlass,
-  setGlassOpacity,
+  setTranslucentWindow,
   setContrastBoost,
 } = useGeneralPrefs()
 const selectedAccent = computed(() => accent.value)
@@ -274,10 +250,6 @@ const sizes: { id: FontSize; mark: string; label: string }[] = [
   { id: "m", mark: "M", label: t("settings.fontSizeM") },
   { id: "l", mark: "L", label: t("settings.fontSizeL") },
 ]
-
-function onOpacity(value: number[] | undefined) {
-  if (value?.[0] !== undefined) setGlassOpacity(value[0])
-}
 
 function onContrast(value: number[] | undefined) {
   if (value?.[0] !== undefined) setContrastBoost(value[0])

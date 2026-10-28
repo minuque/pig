@@ -85,7 +85,7 @@ function resetWidth() {
   height: 100vh;
   display: flex;
   overflow: hidden;
-  background: var(--background);
+  background: var(--window-surface);
 }
 
 .sidebar {
@@ -96,7 +96,7 @@ function resetWidth() {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--background);
+  background: var(--window-surface);
   contain: layout style;
   visibility: hidden;
   width: 0;
@@ -189,7 +189,7 @@ main {
   overflow: hidden;
   padding: var(--workbench-inset);
   /* 留白处透出窗口底色，卡片才有浮起关系 */
-  background: var(--background);
+  background: var(--window-surface);
 }
 
 .workbench-card {
@@ -254,7 +254,7 @@ main {
     transition:
       transform var(--duration-normal) var(--ease-smooth),
       visibility 0s linear var(--duration-normal);
-    background: var(--background);
+    background: var(--window-surface);
     box-shadow: var(--shadow-drawer);
   }
 
