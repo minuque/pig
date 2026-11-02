@@ -125,8 +125,8 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 .model-copy {
   display: flex;
   min-width: 0;
-  flex-direction: column;
-  gap: 2px;
+  align-items: baseline;
+  gap: var(--space-xs);
 }
 
 .model-name {
