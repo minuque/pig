@@ -71,6 +71,9 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
     configured: spec.configured ?? false,
   }))
   const fromFile = new Set<string>()
+  const baseModels = new Map<string, FakeModelSpec[]>(
+    specs.flatMap((spec) => (spec.models ? [[spec.id, spec.models] as const] : [])),
+  )
 
   async function syncModelsJson() {
     if (!options.modelsPath) return
@@ -111,7 +114,22 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
 
       if (existing) Object.assign(existing, next)
       else state.push(next)
+      baseModels.set(id, models)
       fromFile.add(id)
+    }
+
+    // 内置供应商的模型覆盖只写在 modelOverrides 里，按文件重算有效值。
+    for (const spec of state) {
+      const base = baseModels.get(spec.id)
+
+      if (!base) continue
+      const overrides = providers[spec.id]?.modelOverrides
+      const byId =
+        overrides && typeof overrides === "object"
+          ? (overrides as Record<string, Partial<FakeModelSpec>>)
+          : {}
+
+      spec.models = base.map((item) => ({ ...item, ...(byId[item.id] ?? {}) }))
     }
 
     for (const id of [...fromFile]) {

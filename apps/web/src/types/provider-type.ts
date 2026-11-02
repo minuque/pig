@@ -43,6 +43,25 @@ export interface ProviderTestResult {
   message?: string
 }
 
+export interface ModelParamsPatch {
+  thinkingLevel?: ThinkingLevel | null
+  maxTokens?: number | null
+  contextWindow?: number | null
+  samplingParams?: Record<string, unknown> | null
+}
+
+export interface SamplingParamRow {
+  key: string
+  value: string
+}
+
+export interface ModelParamsFormState {
+  thinkingLevel: ThinkingLevel | null
+  maxTokens: string
+  contextWindow: string
+  samplingParams: SamplingParamRow[]
+}
+
 export interface CustomModelInput {
   id: string
   name?: string

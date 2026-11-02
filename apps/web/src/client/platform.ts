@@ -8,6 +8,7 @@ import type { ModelMetadata } from "@/types/common-type.js"
 import type {
   CustomProviderInput,
   LoginEvent,
+  ModelParamsPatch,
   ProviderListResponse,
   ProviderTestResult,
 } from "@/types/provider-type.js"
@@ -155,6 +156,18 @@ export async function deleteCustomProvider(providerId: string): Promise<void> {
   await platformRequest(`/api/v1/platform/providers/custom/${encodeURIComponent(providerId)}`, {
     method: "DELETE",
   })
+}
+
+/** 调整单个模型的思考强度、输出上限与采样参数；null 删除该项。 */
+export async function updateModelParams(
+  providerId: string,
+  modelId: string,
+  patch: ModelParamsPatch,
+): Promise<void> {
+  await platformRequest(
+    `/api/v1/platform/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(modelId)}/params`,
+    { method: "PUT", body: JSON.stringify(patch) },
+  )
 }
 
 function parseFrame(frame: string): LoginEvent {

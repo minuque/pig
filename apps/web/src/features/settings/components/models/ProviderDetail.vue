@@ -162,11 +162,7 @@
       </h3>
 
       <p v-if="!provider.models.length" class="empty">{{ t("settings.models.noModels") }}</p>
-
-      <div v-for="model in provider.models" :key="model.id" class="provider-model-row">
-        <span class="model-name">{{ model.name }}</span>
-        <span class="model-meta">{{ modelMeta(model) }}</span>
-      </div>
+      <ProviderModelList :provider="provider" @changed="emit('changed')" />
     </section>
 
     <AlertDialog v-model:open="confirmLogout">
@@ -215,10 +211,11 @@ import {
 } from "@components/icons/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import ProviderLoginPanel from "@features/settings/components/models/ProviderLoginPanel.vue"
+import ProviderModelList from "@features/settings/components/models/ProviderModelList.vue"
 import { useProviderLogin } from "@features/settings/hooks/use-provider-login.js"
 import { errorMessage } from "@client/http.js"
 import { copyProviderKey, logoutProvider, testProvider } from "@client/platform.js"
-import { modelMeta, providerStatusBadge } from "@features/settings/lib/provider-view.js"
+import { providerStatusBadge } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
 import type { ProviderView } from "@/types/provider-type.js"
 
@@ -597,26 +594,6 @@ async function logout() {
   margin: 0;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
-}
-
-.provider-model-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  height: 40px;
-  padding-inline: var(--space-sm);
-  border-radius: var(--radius-md);
-}
-
-.model-name {
-  color: var(--contrast-foreground);
-  font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-medium);
-}
-
-.model-meta {
-  color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
 }
 
 .logout-dialog {

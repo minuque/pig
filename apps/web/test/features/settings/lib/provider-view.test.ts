@@ -4,6 +4,8 @@ import type { ProviderView } from "@/types/provider-type.js"
 import {
   customProviderPayload,
   groupProviders,
+  paramsPatchFrom,
+  parseSamplingParam,
   providerSourceText,
   providerStatusBadge,
 } from "@features/settings/lib/provider-view.js"
@@ -185,5 +187,56 @@ describe("customProviderPayload", () => {
     if (!result.ok) return
     expect(result.payload.apiKey).toBe("key")
     expect(result.payload.models).toEqual([{ id: "a", name: "A", input: ["text", "image"] }])
+  })
+})
+
+describe("parseSamplingParam", () => {
+  it("接受数字、布尔、null 与字符串", () => {
+    expect(parseSamplingParam("1.0")).toBe(1)
+    expect(parseSamplingParam("true")).toBe(true)
+    expect(parseSamplingParam("null")).toBeNull()
+    expect(parseSamplingParam("hello")).toBe("hello")
+    expect(parseSamplingParam('"hi"')).toBe("hi")
+  })
+
+  it("拒绝对象与数组", () => {
+    expect(parseSamplingParam("{}")).toBeUndefined()
+    expect(parseSamplingParam("[1,2]")).toBeUndefined()
+  })
+})
+
+describe("paramsPatchFrom", () => {
+  it("空值给 null，合法行进 samplingParams", () => {
+    expect(
+      paramsPatchFrom({
+        thinkingLevel: null,
+        maxTokens: "",
+        contextWindow: " ",
+        samplingParams: [],
+      }),
+    ).toEqual({
+      thinkingLevel: null,
+      maxTokens: null,
+      contextWindow: null,
+      samplingParams: null,
+    })
+
+    expect(
+      paramsPatchFrom({
+        thinkingLevel: "high",
+        maxTokens: "8192",
+        contextWindow: "200000",
+        samplingParams: [
+          { key: "temperature", value: "0.3" },
+          { key: "", value: "1" },
+          { key: "bad", value: "{}" },
+        ],
+      }),
+    ).toEqual({
+      thinkingLevel: "high",
+      maxTokens: 8192,
+      contextWindow: 200000,
+      samplingParams: { temperature: 0.3 },
+    })
   })
 })

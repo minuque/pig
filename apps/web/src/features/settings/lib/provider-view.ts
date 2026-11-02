@@ -2,6 +2,8 @@
 import type {
   CustomModelInput,
   CustomProviderInput,
+  ModelParamsFormState,
+  ModelParamsPatch,
   ProviderBadge,
   ProviderGroup,
   ProviderModelView,
@@ -142,4 +144,41 @@ export function customProviderPayload(draft: CustomProviderDraft): CustomProvide
 function positiveInteger(value: string): number | undefined {
   const parsed = Number(value.trim())
   return value.trim() && Number.isInteger(parsed) && parsed > 0 ? parsed : undefined
+}
+
+/** samplingParams 的值按 JSON 标量解析；对象与数组视为无效。 */
+export function parseSamplingParam(value: string): unknown {
+  const text = value.trim()
+
+  if (!text) return undefined
+
+  try {
+    const parsed: unknown = JSON.parse(text)
+    return parsed && typeof parsed === "object" ? undefined : parsed
+  } catch {
+    return value
+  }
+}
+
+/** 参数表单 → 接口 patch：空值显式给 null，让服务端删键。 */
+export function paramsPatchFrom(form: ModelParamsFormState): ModelParamsPatch {
+  const samplingParams: Record<string, unknown> = {}
+
+  for (const row of form.samplingParams) {
+    const key = row.key.trim()
+
+    if (!key) continue
+
+    const value = parseSamplingParam(row.value)
+
+    if (value === undefined) continue
+    samplingParams[key] = value
+  }
+
+  return {
+    thinkingLevel: form.thinkingLevel,
+    maxTokens: positiveInteger(form.maxTokens) ?? null,
+    contextWindow: positiveInteger(form.contextWindow) ?? null,
+    samplingParams: Object.keys(samplingParams).length ? samplingParams : null,
+  }
 }
