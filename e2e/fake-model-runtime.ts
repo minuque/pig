@@ -16,6 +16,8 @@ export interface FakeProviderSpec {
   configured?: boolean
   source?: "stored" | "runtime" | "environment" | "models_json_key"
   models?: FakeModelSpec[]
+  /** 测试连接时模拟上游拒绝。 */
+  failTest?: boolean
 }
 
 interface FakeProviderState extends FakeProviderSpec {
@@ -116,6 +118,12 @@ export function createFakeRuntime(specs: FakeProviderSpec[]) {
       return { type: "oauth" }
     },
     refresh: async () => ({ aborted: false, errors: new Map() }),
+    completeSimple: async (selected: { provider: string }) => {
+      const spec = state.find((item) => item.id === selected.provider)
+
+      if (spec?.failTest) throw new Error("upstream rejected the key")
+      return { stopReason: "stop" }
+    },
     logout: async (id: string) => {
       const spec = state.find((item) => item.id === id)
 

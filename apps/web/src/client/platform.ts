@@ -5,7 +5,7 @@ import { PlatformRequestError, platformRequest } from "@client/http.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
 import type { ModelMetadata } from "@/types/common-type.js"
-import type { LoginEvent, ProviderListResponse } from "@/types/provider-type.js"
+import type { LoginEvent, ProviderListResponse, ProviderTestResult } from "@/types/provider-type.js"
 import type { SessionCard } from "@/types/session-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 
@@ -125,6 +125,17 @@ export async function copyProviderKey(providerId: string): Promise<string> {
     `/api/v1/platform/providers/${encodeURIComponent(providerId)}/key`,
   )
   return result.key
+}
+
+/** 最小请求验证凭据；失败时返回上游原文。 */
+export async function testProvider(
+  providerId: string,
+  modelId?: string,
+): Promise<ProviderTestResult> {
+  return platformRequest<ProviderTestResult>("/api/v1/platform/providers/test", {
+    method: "POST",
+    body: JSON.stringify({ providerId, ...(modelId ? { modelId } : {}) }),
+  })
 }
 
 function parseFrame(frame: string): LoginEvent {

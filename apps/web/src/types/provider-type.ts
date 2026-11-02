@@ -35,6 +35,12 @@ export interface ProviderListResponse {
   defaultModel: DefaultModelView | null
 }
 
+export interface ProviderTestResult {
+  ok: boolean
+  latencyMs?: number
+  message?: string
+}
+
 export type ProviderBadge = "connected" | "disconnected" | "authorizing"
 
 export type ProviderSourceText = "app" | "environment" | "modelsJson" | "none"

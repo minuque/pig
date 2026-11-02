@@ -114,6 +114,10 @@
             {{ t("common.cancel") }}
           </Button>
 
+          <Button variant="surface" :loading="testing" :disabled="!canTest" @click="runTest">
+            {{ t("settings.models.testConnection") }}
+          </Button>
+
           <Button
             v-if="showKeyInput"
             :loading="connectingKey"
@@ -143,6 +147,10 @@
           </Button>
         </span>
       </div>
+
+      <p v-if="testResult" class="test-result" :data-state="testResult.ok ? 'ok' : 'error'">
+        {{ testResult.text }}
+      </p>
     </section>
 
     <section v-if="provider.status.configured" class="detail-sec">
@@ -209,7 +217,7 @@ import VendorMark from "@features/composer/components/VendorMark.vue"
 import ProviderLoginPanel from "@features/settings/components/models/ProviderLoginPanel.vue"
 import { useProviderLogin } from "@features/settings/hooks/use-provider-login.js"
 import { errorMessage } from "@client/http.js"
-import { copyProviderKey, logoutProvider } from "@client/platform.js"
+import { copyProviderKey, logoutProvider, testProvider } from "@client/platform.js"
 import { modelMeta, providerStatusBadge } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
 import type { ProviderView } from "@/types/provider-type.js"
@@ -225,6 +233,8 @@ const copied = ref(false)
 const confirmLogout = ref(false)
 const preferred = ref<AuthMethod>()
 const actionError = ref<string>()
+const testing = ref(false)
+const testResult = ref<{ ok: boolean; text: string }>()
 const storedMethod = computed<AuthMethod>(() => {
   if (props.provider.status.hint) return "apiKey"
 
@@ -252,6 +262,7 @@ const canLogout = computed(() => {
   const source = props.provider.status.source
   return props.provider.status.configured && (source === "stored" || source === "runtime")
 })
+const canTest = computed(() => props.provider.status.configured && props.provider.models.length > 0)
 const showStoredKey = computed(
   () => method.value === "apiKey" && Boolean(props.provider.status.hint) && !editing.value,
 )
@@ -290,9 +301,27 @@ watch(
     editing.value = false
     preferred.value = undefined
     actionError.value = undefined
+    testResult.value = undefined
     resetLogin()
   },
 )
+
+async function runTest() {
+  testing.value = true
+  testResult.value = undefined
+
+  try {
+    const result = await testProvider(props.provider.id)
+
+    testResult.value = result.ok
+      ? { ok: true, text: t("settings.models.testOk", { ms: result.latencyMs ?? 0 }) }
+      : { ok: false, text: result.message ?? t("common.error") }
+  } catch (cause) {
+    testResult.value = { ok: false, text: errorMessage(cause) }
+  } finally {
+    testing.value = false
+  }
+}
 
 function toggleMethod() {
   preferred.value = method.value === "apiKey" ? "oauth" : "apiKey"
@@ -543,6 +572,17 @@ async function logout() {
 }
 
 .note.error {
+  color: var(--danger);
+}
+
+.test-result {
+  margin: var(--space-sm) 0 0;
+  color: var(--success);
+  font-size: var(--text-eyebrow);
+  line-height: 1.4;
+}
+
+.test-result[data-state="error"] {
   color: var(--danger);
 }
 

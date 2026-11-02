@@ -221,7 +221,13 @@ async function withModelsGateway(use: (gateway: E2eGateway) => Promise<void>) {
       ],
     },
     { id: "openai", name: "OpenAI", models: [{ id: "gpt-5", name: "GPT-5" }] },
-    { id: "deepseek", name: "DeepSeek" },
+    {
+      id: "deepseek",
+      name: "DeepSeek",
+      configured: true,
+      failTest: true,
+      models: [{ id: "deepseek-chat", name: "DeepSeek Chat" }],
+    },
     {
       id: "ollama",
       name: "本地 Ollama",
