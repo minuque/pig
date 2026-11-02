@@ -3,20 +3,22 @@
     <CustomProviderForm v-if="creating" @cancel="creating = false" @saved="onCreated" />
 
     <CustomProviderForm
-      v-else-if="selected && selected.kind === 'custom'"
+      v-else-if="selected && selected.kind === 'custom' && editing === selected.id"
       :key="selected.id"
       :provider="selected"
-      @cancel="select(undefined)"
-      @saved="refresh"
+      @cancel="editing = undefined"
+      @saved="onSaved"
       @deleted="onDeleted"
     />
 
     <ProviderDetail
       v-else-if="selected"
       :provider="selected"
+      :editable="selected.kind === 'custom'"
       :refresh-models="reloadModels"
       @back="select(undefined)"
       @changed="refresh"
+      @edit="editing = selected.id"
     />
 
     <ProviderList
@@ -42,6 +44,7 @@ import { useProviders } from "@features/settings/hooks/use-providers.js"
 const props = defineProps<{ refreshModels?: (() => Promise<void>) | undefined }>()
 const { providers, loading, error, selected, select, refresh, refreshCatalog } = useProviders()
 const creating = ref(false)
+const editing = ref<string>()
 
 /** 先让 gateway 刷新 runtime 并换掉列表，再让 Composer 目录跟上。 */
 async function reloadModels() {
@@ -53,6 +56,12 @@ async function onCreated(id: string) {
   creating.value = false
   await refresh()
   select(id)
+}
+
+/** 保存自定义供应商后留在详情页。 */
+async function onSaved() {
+  editing.value = undefined
+  await refresh()
 }
 
 async function onDeleted() {

@@ -2,7 +2,9 @@ import { onBeforeUnmount, ref } from "vue"
 
 import { errorMessage } from "@client/http.js"
 import { cancelLogin, loginProvider, openLoginEvents, respondLogin } from "@client/platform.js"
+import { t } from "@i18n/index.js"
 import {
+  endLoginStream,
   initialLoginState,
   reduceLoginEvents,
   type LoginState,
@@ -44,6 +46,7 @@ export function useProviderLogin(providerId: () => string, onDone: () => void) {
         },
         events.signal,
       )
+      state.value = endLoginStream(state.value, t("settings.models.loginInterrupted"))
     } catch (error) {
       if (isAbort(error)) return
       state.value = { ...state.value, phase: "error", error: errorMessage(error) }

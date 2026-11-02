@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { initialLoginState, reduceLoginEvents } from "@features/settings/lib/provider-login.js"
+import {
+  endLoginStream,
+  initialLoginState,
+  reduceLoginEvents,
+} from "@features/settings/lib/provider-login.js"
 import type { LoginEvent } from "@/types/provider-type.js"
 
 const prompt = (seq: number, id: string): LoginEvent => ({
@@ -61,5 +65,22 @@ describe("reduceLoginEvents", () => {
 
     expect(reduceLoginEvents(state, prompt(2, "old"))).toBe(state)
     expect(reduceLoginEvents(state, prompt(1, "older"))).toBe(state)
+  })
+})
+
+describe("endLoginStream", () => {
+  it("流结束但无终态时转为中断错误", () => {
+    const running = reduceLoginEvents(initialLoginState(), prompt(1, "p1"))
+    const ended = endLoginStream(running, "interrupted")
+
+    expect(ended.phase).toBe("error")
+    expect(ended.prompt).toBeNull()
+    expect(ended.error).toBeTruthy()
+  })
+
+  it("已有终态时保持原状", () => {
+    const done = reduceLoginEvents(initialLoginState(), { type: "done", seq: 1 })
+
+    expect(endLoginStream(done, "interrupted")).toBe(done)
   })
 })

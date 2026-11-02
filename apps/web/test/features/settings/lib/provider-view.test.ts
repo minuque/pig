@@ -215,10 +215,13 @@ describe("paramsPatchFrom", () => {
         samplingParams: [],
       }),
     ).toEqual({
-      thinkingLevel: null,
-      maxTokens: null,
-      contextWindow: null,
-      samplingParams: null,
+      ok: true,
+      patch: {
+        thinkingLevel: null,
+        maxTokens: null,
+        contextWindow: null,
+        samplingParams: null,
+      },
     })
 
     expect(
@@ -233,10 +236,34 @@ describe("paramsPatchFrom", () => {
         ],
       }),
     ).toEqual({
-      thinkingLevel: "high",
-      maxTokens: 8192,
-      contextWindow: 200000,
-      samplingParams: { temperature: 0.3 },
+      ok: true,
+      patch: {
+        thinkingLevel: "high",
+        maxTokens: 8192,
+        contextWindow: 200000,
+        samplingParams: { temperature: 0.3 },
+      },
+    })
+  })
+
+  it("非整数或超出规格范围时不出 patch", () => {
+    const base = { thinkingLevel: null, samplingParams: [] }
+
+    expect(paramsPatchFrom({ ...base, maxTokens: "8,192", contextWindow: "200000" })).toEqual({
+      ok: false,
+      fields: ["maxTokens"],
+    })
+    expect(paramsPatchFrom({ ...base, maxTokens: "8192", contextWindow: "500" })).toEqual({
+      ok: false,
+      fields: ["contextWindow"],
+    })
+    expect(paramsPatchFrom({ ...base, maxTokens: "0", contextWindow: "1000" })).toEqual({
+      ok: false,
+      fields: ["maxTokens"],
+    })
+    expect(paramsPatchFrom({ ...base, maxTokens: "1000001", contextWindow: "200000" })).toEqual({
+      ok: false,
+      fields: ["maxTokens"],
     })
   })
 })

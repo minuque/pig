@@ -18,7 +18,14 @@
     <div class="grid">
       <label class="field">
         <span class="field-label">{{ t("settings.models.maxTokens") }}</span>
-        <TextFieldRoot v-model="form.maxTokens" size="s" inputmode="numeric" class="field-input" />
+
+        <TextFieldRoot
+          v-model="form.maxTokens"
+          size="s"
+          inputmode="numeric"
+          class="field-input"
+          :data-invalid="invalid.includes('maxTokens') ? '' : undefined"
+        />
       </label>
 
       <label class="field">
@@ -29,6 +36,7 @@
           size="s"
           inputmode="numeric"
           class="field-input"
+          :data-invalid="invalid.includes('contextWindow') ? '' : undefined"
         />
       </label>
     </div>
@@ -67,6 +75,7 @@
       </button>
     </div>
 
+    <p v-if="invalid.length" class="error">{{ t("settings.models.paramInvalid") }}</p>
     <p v-if="error" class="error">{{ error }}</p>
 
     <div class="actions">
@@ -103,6 +112,7 @@ const emit = defineEmits<{ saved: [] }>()
 const { t } = useI18n()
 const saving = ref(false)
 const error = ref<string>()
+const invalid = ref<Array<"maxTokens" | "contextWindow">>([])
 const THINKING_LEVELS: ThinkingLevel[] = ["off", "minimal", "low", "medium", "high", "xhigh", "max"]
 const form = reactive<ModelParamsFormState>(toForm(props.model))
 
@@ -136,11 +146,16 @@ function removeParam(index: number) {
 }
 
 async function save() {
+  const result = paramsPatchFrom(form)
+
   error.value = undefined
+  invalid.value = result.ok ? [] : result.fields
+
+  if (!result.ok) return
   saving.value = true
 
   try {
-    await updateModelParams(props.providerId, props.model.id, paramsPatchFrom(form))
+    await updateModelParams(props.providerId, props.model.id, result.patch)
     emit("saved")
   } catch (cause) {
     error.value = errorMessage(cause)
@@ -151,6 +166,7 @@ async function save() {
 
 async function restore() {
   error.value = undefined
+  invalid.value = []
   saving.value = true
 
   try {
@@ -238,6 +254,10 @@ async function restore() {
 
 .field-input {
   font-size: var(--text-caption);
+}
+
+.field-input[data-invalid] {
+  border-color: var(--danger);
 }
 
 .param-line {

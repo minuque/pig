@@ -160,9 +160,20 @@ export function parseSamplingParam(value: string): unknown {
   }
 }
 
-/** 参数表单 → 接口 patch：空值显式给 null，让服务端删键。 */
-export function paramsPatchFrom(form: ModelParamsFormState): ModelParamsPatch {
+export type ParamsPatchResult =
+  | { ok: true; patch: ModelParamsPatch }
+  | { ok: false; fields: Array<"maxTokens" | "contextWindow"> }
+
+/** 参数表单 → 接口 patch：空值显式给 null，非法数字整单拒绝。 */
+export function paramsPatchFrom(form: ModelParamsFormState): ParamsPatchResult {
+  const fields: Array<"maxTokens" | "contextWindow"> = []
+  const maxTokens = limitValue(form.maxTokens, 1, 1_000_000)
+  const contextWindow = limitValue(form.contextWindow, 1_000, 10_000_000)
   const samplingParams: Record<string, unknown> = {}
+
+  if (maxTokens === undefined) fields.push("maxTokens")
+
+  if (contextWindow === undefined) fields.push("contextWindow")
 
   for (const row of form.samplingParams) {
     const key = row.key.trim()
@@ -175,10 +186,22 @@ export function paramsPatchFrom(form: ModelParamsFormState): ModelParamsPatch {
     samplingParams[key] = value
   }
 
+  if (fields.length) return { ok: false, fields }
   return {
-    thinkingLevel: form.thinkingLevel,
-    maxTokens: positiveInteger(form.maxTokens) ?? null,
-    contextWindow: positiveInteger(form.contextWindow) ?? null,
-    samplingParams: Object.keys(samplingParams).length ? samplingParams : null,
+    ok: true,
+    patch: {
+      thinkingLevel: form.thinkingLevel,
+      maxTokens: maxTokens ?? null,
+      contextWindow: contextWindow ?? null,
+      samplingParams: Object.keys(samplingParams).length ? samplingParams : null,
+    },
   }
+}
+
+/** 空串表示删除（null），非法值返回 undefined。 */
+function limitValue(value: string, min: number, max: number): number | null | undefined {
+  if (!value.trim()) return null
+
+  const parsed = Number(value.trim())
+  return Number.isInteger(parsed) && parsed >= min && parsed <= max ? parsed : undefined
 }

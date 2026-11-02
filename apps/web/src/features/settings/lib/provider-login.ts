@@ -31,6 +31,12 @@ export function initialLoginState(): LoginState {
   }
 }
 
+/** 事件流干净结束却未见终态：转成可重试的错误，不再挂着等待授权。 */
+export function endLoginStream(state: LoginState, message: string): LoginState {
+  if (state.phase !== "running") return state
+  return { ...state, phase: "error", prompt: null, progress: null, error: message }
+}
+
 export function reduceLoginEvents(state: LoginState, event: LoginEvent): LoginState {
   if (event.seq <= state.seq) return state
   const base: LoginState = { ...state, seq: event.seq, phase: "running" }

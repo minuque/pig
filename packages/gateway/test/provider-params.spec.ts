@@ -139,6 +139,21 @@ describe("updateModelParams", () => {
     expect(settings.flush).toHaveBeenCalledTimes(2)
   })
 
+  it("超出规格范围与非法采样值拒绝为 400", async () => {
+    const { providers } = await serviceWith({ providers: {} })
+    const args = ["anthropic", "claude-sonnet"] as const
+
+    await expect(
+      providers.updateModelParams(...args, { maxTokens: 1_000_001 }),
+    ).rejects.toMatchObject({ status: 400 })
+    await expect(
+      providers.updateModelParams(...args, { contextWindow: 999 }),
+    ).rejects.toMatchObject({ status: 400 })
+    await expect(
+      providers.updateModelParams(...args, { samplingParams: { temperature: { value: 1 } } }),
+    ).rejects.toMatchObject({ status: 400 })
+  })
+
   it("范围外的参数值拒绝为 400", async () => {
     const { providers } = await serviceWith({ providers: {} })
 

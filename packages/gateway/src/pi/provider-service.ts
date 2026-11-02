@@ -541,15 +541,21 @@ function objectOf(value: unknown): Record<string, unknown> {
     : {}
 }
 
+function isScalar(value: unknown): boolean {
+  return value === null || ["string", "number", "boolean"].includes(typeof value)
+}
+
 function isCustomConfig(provider: Record<string, unknown>): boolean {
   return Boolean(provider.api || provider.baseUrl || provider.models)
 }
 
 function validatePatch(patch: ModelParamsPatch): void {
-  const positive = (value: number | null | undefined) =>
-    value === undefined || value === null || (Number.isInteger(value) && value > 0)
+  const inRange = (value: number | null | undefined, min: number, max: number) =>
+    value === undefined ||
+    value === null ||
+    (Number.isInteger(value) && value >= min && value <= max)
 
-  if (!positive(patch.maxTokens) || !positive(patch.contextWindow)) {
+  if (!inRange(patch.maxTokens, 1, 1_000_000) || !inRange(patch.contextWindow, 1_000, 10_000_000)) {
     throw new ProviderServiceError(400, "INVALID_REQUEST")
   }
 
@@ -564,7 +570,9 @@ function validatePatch(patch: ModelParamsPatch): void {
   if (
     patch.samplingParams !== undefined &&
     patch.samplingParams !== null &&
-    (typeof patch.samplingParams !== "object" || Array.isArray(patch.samplingParams))
+    (typeof patch.samplingParams !== "object" ||
+      Array.isArray(patch.samplingParams) ||
+      !Object.values(patch.samplingParams).every(isScalar))
   ) {
     throw new ProviderServiceError(400, "INVALID_REQUEST")
   }

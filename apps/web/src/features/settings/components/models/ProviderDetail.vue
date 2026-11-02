@@ -114,6 +114,10 @@
             {{ t("common.cancel") }}
           </Button>
 
+          <Button v-if="editable" variant="surface" @click="emit('edit')">
+            {{ t("settings.models.editProvider") }}
+          </Button>
+
           <Button variant="surface" :loading="testing" :disabled="!canTest" @click="runTest">
             {{ t("settings.models.testConnection") }}
           </Button>
@@ -230,9 +234,10 @@ type AuthMethod = "apiKey" | "oauth" | "ambient"
 
 const props = defineProps<{
   provider: ProviderView
-  refreshModels?: () => Promise<void>
+  editable?: boolean | undefined
+  refreshModels?: (() => Promise<void>) | undefined
 }>()
-const emit = defineEmits<{ back: []; changed: [] }>()
+const emit = defineEmits<{ back: []; changed: []; edit: [] }>()
 const { t } = useI18n()
 const apiKey = ref("")
 const editing = ref(false)
@@ -276,7 +281,11 @@ const showStoredKey = computed(
   () => method.value === "apiKey" && Boolean(props.provider.status.hint) && !editing.value,
 )
 const showKeyInput = computed(
-  () => method.value === "apiKey" && props.provider.capabilities.apiKey && !showStoredKey.value,
+  () =>
+    props.provider.kind !== "custom" &&
+    method.value === "apiKey" &&
+    props.provider.capabilities.apiKey &&
+    !showStoredKey.value,
 )
 const maskedKey = computed(() => `••••••••••••${props.provider.status.hint ?? ""}`)
 const methodLabel = computed(() => t(`settings.models.${method.value}`))
