@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises"
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
@@ -79,7 +79,7 @@ describe("provider routes", () => {
         baseUrl: "https://api.test.local",
         kind: "builtin",
         capabilities: { apiKey: true, oauth: false, ambient: false },
-        status: { configured: true, source: "stored" },
+        status: { configured: true, source: "stored", hint: null },
         models: [
           {
             id: "claude-sonnet",
@@ -112,5 +112,44 @@ describe("provider routes", () => {
       id: "claude-sonnet",
       authenticated: true,
     })
+  })
+
+  it("列表只给 Key 末四位，复制端点单独回明文", async () => {
+    const { base, auth } = await start()
+    const agentDir = join(tempDir!, "agent")
+    const storedKey = "sk-ant-test-4f2a"
+
+    await mkdir(agentDir, { recursive: true })
+    await writeFile(
+      join(agentDir, "auth.json"),
+      JSON.stringify({ anthropic: { type: "api_key", key: storedKey } }),
+    )
+
+    const list = await fetch(`${base}/api/v1/platform/providers`, {
+      headers: { authorization: auth },
+    })
+    const body = (await list.json()) as {
+      providers: Array<{ status: Record<string, unknown> }>
+    }
+
+    expect(body.providers[0]?.status).toEqual({
+      configured: true,
+      source: "stored",
+      hint: storedKey.slice(-4),
+    })
+    expect(JSON.stringify(body)).not.toContain(storedKey)
+
+    const copy = await fetch(`${base}/api/v1/platform/providers/anthropic/key`, {
+      headers: { authorization: auth },
+    })
+
+    expect(copy.status).toBe(200)
+    expect(await copy.json()).toEqual({ key: storedKey })
+
+    const missing = await fetch(`${base}/api/v1/platform/providers/openai/key`, {
+      headers: { authorization: auth },
+    })
+
+    expect(missing.status).toBe(404)
   })
 })

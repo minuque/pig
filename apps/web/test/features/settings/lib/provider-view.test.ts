@@ -12,7 +12,7 @@ const provider = (overrides: Partial<ProviderView>): ProviderView => ({
   name: "Anthropic",
   kind: "builtin",
   capabilities: { apiKey: true, oauth: false, ambient: false },
-  status: { configured: false, source: null },
+  status: { configured: false, source: null, hint: null },
   models: [],
   ...overrides,
 })
@@ -26,7 +26,7 @@ describe("groupProviders", () => {
         provider({
           id: "anthropic",
           name: "Anthropic",
-          status: { configured: true, source: "stored" },
+          status: { configured: true, source: "stored", hint: null },
         }),
       ],
       "",
@@ -46,7 +46,7 @@ describe("groupProviders", () => {
         provider({
           id: "ollama",
           kind: "custom",
-          status: { configured: true, source: "models_json_key" },
+          status: { configured: true, source: "models_json_key", hint: null },
         }),
       ],
       "",
@@ -93,12 +93,18 @@ describe("providerSourceText", () => {
 describe("providerStatusBadge", () => {
   it("只给已连接、未连接、等待授权三种状态", () => {
     expect(
-      providerStatusBadge(provider({ status: { configured: true, source: "stored" } }), false),
+      providerStatusBadge(
+        provider({ status: { configured: true, source: "stored", hint: null } }),
+        false,
+      ),
     ).toBe("connected")
     expect(providerStatusBadge(provider({}), false)).toBe("disconnected")
     expect(providerStatusBadge(provider({}), true)).toBe("authorizing")
     expect(
-      providerStatusBadge(provider({ status: { configured: true, source: "stored" } }), true),
+      providerStatusBadge(
+        provider({ status: { configured: true, source: "stored", hint: null } }),
+        true,
+      ),
     ).toBe("authorizing")
   })
 })

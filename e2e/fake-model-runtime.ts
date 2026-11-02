@@ -76,6 +76,7 @@ export function createFakeRuntime(specs: FakeProviderSpec[]) {
   return {
     state,
     getProviders: providers,
+    getProvider: (id: string) => providers().find((provider) => provider.id === id),
     getProviderAuthStatus: (id: string) => {
       const spec = state.find((item) => item.id === id)
       return spec?.configured
@@ -88,5 +89,37 @@ export function createFakeRuntime(specs: FakeProviderSpec[]) {
     hasConfiguredAuth: (id: string) => Boolean(state.find((item) => item.id === id)?.configured),
     getModel: (providerId: string, modelId: string) =>
       modelsOf(providerId).find((item) => item.id === modelId),
+    login: async (
+      id: string,
+      type: "api_key" | "oauth",
+      interaction: {
+        notify(event: { type: string; message?: string }): void
+        prompt(prompt: { type: string; message: string }): Promise<string>
+      },
+    ) => {
+      const spec = state.find((item) => item.id === id)
+
+      if (!spec) throw new Error(`unknown provider ${id}`)
+      interaction.notify({ type: "progress", message: "connecting" })
+
+      if (type === "api_key") {
+        const key = await interaction.prompt({ type: "secret", message: "API Key" })
+
+        if (!key.trim()) throw new Error("empty key")
+        spec.configured = true
+        spec.source = "stored"
+        return { type: "api_key", key }
+      }
+
+      spec.configured = true
+      spec.source = "stored"
+      return { type: "oauth" }
+    },
+    refresh: async () => ({ aborted: false, errors: new Map() }),
+    logout: async (id: string) => {
+      const spec = state.find((item) => item.id === id)
+
+      if (spec) spec.configured = false
+    },
   }
 }

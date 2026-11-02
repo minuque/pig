@@ -1,11 +1,11 @@
 /**
  * 具名 platform HTTP API。路径字符串只出现在本文件。
  */
-import { platformRequest } from "@client/http.js"
+import { PlatformRequestError, platformRequest } from "@client/http.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
 import type { ModelMetadata } from "@/types/common-type.js"
-import type { ProviderListResponse } from "@/types/provider-type.js"
+import type { LoginEvent, ProviderListResponse } from "@/types/provider-type.js"
 import type { SessionCard } from "@/types/session-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 
@@ -47,6 +47,94 @@ export async function listProviders(): Promise<ProviderListResponse> {
 export async function listProviderModels(): Promise<ModelMetadata[]> {
   const result = await platformRequest<{ models: ModelMetadata[] }>("/api/v1/platform/models")
   return result.models
+}
+
+/** 开始一次供应商登录；事件由 openLoginEvents 消费。 */
+export async function loginProvider(input: {
+  providerId: string
+  type: "api_key" | "oauth"
+}): Promise<{ loginId: string }> {
+  return platformRequest<{ loginId: string }>("/api/v1/platform/providers/login", {
+    method: "POST",
+    body: JSON.stringify(input),
+  })
+}
+
+/** 消费登录事件流；done/error 后服务端关闭连接。 */
+export async function openLoginEvents(
+  loginId: string,
+  after: number,
+  onEvent: (event: LoginEvent) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const requestId = crypto.randomUUID()
+  const response = await fetch(
+    `/api/v1/platform/providers/login/${encodeURIComponent(loginId)}/events?after=${after}`,
+    { headers: { "x-request-id": requestId }, ...(signal ? { signal } : {}) },
+  )
+
+  if (!response.ok || !response.body) {
+    const body = (await response.json().catch(() => ({}))) as { code?: string }
+    throw new PlatformRequestError(body.code ?? `HTTP_${response.status}`, requestId)
+  }
+
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+  let buffer = ""
+
+  while (true) {
+    const { value, done } = await reader.read()
+
+    if (done) break
+    buffer += value
+
+    for (let index = buffer.indexOf("\n\n"); index >= 0; index = buffer.indexOf("\n\n")) {
+      const frame = buffer.slice(0, index)
+
+      buffer = buffer.slice(index + 2)
+      onEvent(parseFrame(frame))
+    }
+  }
+}
+
+export async function respondLogin(loginId: string, value: string): Promise<void> {
+  await platformRequest(
+    `/api/v1/platform/providers/login/${encodeURIComponent(loginId)}/responses`,
+    {
+      method: "POST",
+      body: JSON.stringify({ value }),
+    },
+  )
+}
+
+export async function cancelLogin(loginId: string): Promise<void> {
+  await platformRequest(`/api/v1/platform/providers/login/${encodeURIComponent(loginId)}/cancel`, {
+    method: "POST",
+  })
+}
+
+export async function logoutProvider(providerId: string): Promise<void> {
+  await platformRequest("/api/v1/platform/providers/logout", {
+    method: "POST",
+    body: JSON.stringify({ providerId }),
+  })
+}
+
+/** 复制操作：明文只在这次响应里出现，调用方直接写剪贴板。 */
+export async function copyProviderKey(providerId: string): Promise<string> {
+  const result = await platformRequest<{ key: string }>(
+    `/api/v1/platform/providers/${encodeURIComponent(providerId)}/key`,
+  )
+  return result.key
+}
+
+function parseFrame(frame: string): LoginEvent {
+  const data = frame
+    .split("\n")
+    .find((line) => line.startsWith("data: "))
+    ?.slice(6)
+
+  if (!data) throw new Error("bad sse frame")
+  return JSON.parse(data) as LoginEvent
 }
 
 function isTurnTiming(value: unknown): value is TurnTiming {

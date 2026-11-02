@@ -37,7 +37,9 @@ export function groupProviders(providers: ProviderView[], query: string): Provid
 }
 
 /** 连接来源文案：应用内 / 环境变量 / models.json / 未连接。 */
-export function providerSourceText(status: ProviderView["status"]): ProviderSourceText {
+export function providerSourceText(
+  status: Pick<ProviderView["status"], "configured" | "source">,
+): ProviderSourceText {
   switch (status.source) {
     case "stored":
     case "runtime":

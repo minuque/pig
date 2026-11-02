@@ -96,6 +96,7 @@ export class ProviderService {
     const settings = await this.settings()
     const thinkingLevels = settings.getAllModelThinkingLevels()
     const customIds = await this.customProviderIds()
+    const credentials = await this.credentials()
     const providers = runtime
       .getProviders()
       .map((provider) =>
@@ -105,6 +106,7 @@ export class ProviderService {
           provider.getModels(),
           thinkingLevels,
           customIds.has(provider.id) ? "custom" : "builtin",
+          keyHint(credentials[provider.id]),
         ),
       )
     const provider = settings.getDefaultProvider()
@@ -153,6 +155,15 @@ export class ProviderService {
     this.logins.set(session.id, session)
     void this.runLogin(session, runtime)
     return { loginId: session.id }
+  }
+
+  /** 复制操作：唯一一次携带明文，仅供前端直接写剪贴板。 */
+  async copyKey(providerId: string): Promise<{ key: string }> {
+    const credential = (await this.credentials())[providerId]
+    const key = credential?.type === "api_key" ? credential.key : undefined
+
+    if (!key) throw new ProviderServiceError(404, "NOT_FOUND")
+    return { key }
   }
 
   hasLogin(loginId: string): boolean {
@@ -319,6 +330,27 @@ export class ProviderService {
       return new Set()
     }
   }
+
+  private async credentials(): Promise<Record<string, StoredCredential>> {
+    try {
+      const parsed: unknown = JSON.parse(await readFile(join(this.agentDir, "auth.json"), "utf-8"))
+      return parsed && typeof parsed === "object"
+        ? (parsed as Record<string, StoredCredential>)
+        : {}
+    } catch {
+      return {}
+    }
+  }
+}
+
+interface StoredCredential {
+  type?: string
+  key?: string
+}
+
+function keyHint(credential: StoredCredential | undefined): string | null {
+  if (credential?.type !== "api_key" || typeof credential.key !== "string") return null
+  return credential.key.length >= 4 ? credential.key.slice(-4) : null
 }
 
 function promptView(id: string, prompt: AuthPrompt): LoginPromptView {

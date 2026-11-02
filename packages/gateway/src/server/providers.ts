@@ -15,6 +15,7 @@ export type ProviderRequestDeps = {
 const LOGIN_EVENTS = /^\/api\/v1\/platform\/providers\/login\/([^/]+)\/events$/
 const LOGIN_RESPONSES = /^\/api\/v1\/platform\/providers\/login\/([^/]+)\/responses$/
 const LOGIN_CANCEL = /^\/api\/v1\/platform\/providers\/login\/([^/]+)\/cancel$/
+const PROVIDER_KEY = /^\/api\/v1\/platform\/providers\/([^/]+)\/key$/
 
 /** /api/v1/platform 下的供应商路由；true=已处理。 */
 export async function handleProviderRequest(
@@ -77,6 +78,18 @@ export async function handleProviderRequest(
 
   if (url.pathname === "/api/v1/platform/providers/logout" && req.method === "POST") {
     await handleLogout(req, res, deps)
+    return true
+  }
+
+  const key = PROVIDER_KEY.exec(url.pathname)
+
+  if (key && req.method === "GET") {
+    try {
+      deps.send(res, 200, await deps.providers.copyKey(decodeURIComponent(key[1] ?? "")))
+    } catch (error) {
+      fail(error, res, deps, "copy key")
+    }
+
     return true
   }
 

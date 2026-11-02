@@ -1,6 +1,11 @@
 <template>
   <section class="pane">
-    <ProviderDetail v-if="selected" :provider="selected" @back="select(undefined)" />
+    <ProviderDetail
+      v-if="selected"
+      :provider="selected"
+      @back="select(undefined)"
+      @changed="refresh"
+    />
 
     <ProviderList
       v-else

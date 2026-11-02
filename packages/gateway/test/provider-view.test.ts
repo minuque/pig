@@ -41,8 +41,21 @@ describe("projectProvider", () => {
       "builtin",
     )
 
-    expect(configured.status).toEqual({ configured: true, source: "environment" })
-    expect(unconfigured.status).toEqual({ configured: false, source: null })
+    expect(configured.status).toEqual({ configured: true, source: "environment", hint: null })
+    expect(unconfigured.status).toEqual({ configured: false, source: null, hint: null })
+  })
+
+  it("带上密钥末四位提示", () => {
+    const view = projectProvider(
+      provider({ apiKey: { login: async () => undefined } }),
+      { configured: true, source: "stored" },
+      [],
+      {},
+      "builtin",
+      "4f2a",
+    )
+
+    expect(view.status).toEqual({ configured: true, source: "stored", hint: "4f2a" })
   })
 
   it("区分可填 Key、可订阅登录与只能走环境变量", () => {

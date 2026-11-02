@@ -30,7 +30,7 @@ export interface ProviderView {
   baseUrl?: string
   kind: "builtin" | "custom"
   capabilities: { apiKey: boolean; oauth: boolean; ambient: boolean }
-  status: { configured: boolean; source: ProviderSource | null }
+  status: { configured: boolean; source: ProviderSource | null; hint: string | null }
   models: ProviderModelView[]
 }
 
@@ -46,6 +46,7 @@ export function projectProvider(
   models: readonly RuntimeModel[],
   thinkingLevels: Readonly<Record<string, string>>,
   kind: ProviderView["kind"],
+  hint: string | null = null,
 ): ProviderView {
   const apiKey = Boolean(provider.auth.apiKey?.login)
   const oauth = Boolean(provider.auth.oauth)
@@ -59,7 +60,11 @@ export function projectProvider(
       oauth,
       ambient: Boolean(provider.auth.apiKey && !apiKey && !oauth),
     },
-    status: { configured: status.configured, source: status.source ?? null },
+    status: {
+      configured: status.configured,
+      source: status.source ?? null,
+      hint: status.configured ? hint : null,
+    },
     models: models.map((model) => {
       const level = thinkingLevels[`${provider.id}/${model.id}`]
       return {
