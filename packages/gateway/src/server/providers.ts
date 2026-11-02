@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http"
 
 import {
   ProviderServiceError,
+  type CustomModelInput,
   type LoginEventView,
   type ProviderService,
 } from "../pi/provider-service.js"
@@ -16,6 +17,7 @@ const LOGIN_EVENTS = /^\/api\/v1\/platform\/providers\/login\/([^/]+)\/events$/
 const LOGIN_RESPONSES = /^\/api\/v1\/platform\/providers\/login\/([^/]+)\/responses$/
 const LOGIN_CANCEL = /^\/api\/v1\/platform\/providers\/login\/([^/]+)\/cancel$/
 const PROVIDER_KEY = /^\/api\/v1\/platform\/providers\/([^/]+)\/key$/
+const CUSTOM_PROVIDER = /^\/api\/v1\/platform\/providers\/custom\/([^/]+)$/
 
 /** /api/v1/platform 下的供应商路由；true=已处理。 */
 export async function handleProviderRequest(
@@ -98,6 +100,24 @@ export async function handleProviderRequest(
     return true
   }
 
+  const custom = CUSTOM_PROVIDER.exec(url.pathname)
+
+  if (custom && req.method === "PUT") {
+    await handleSaveCustom(req, res, decodeURIComponent(custom[1] ?? ""), deps)
+    return true
+  }
+
+  if (custom && req.method === "DELETE") {
+    try {
+      await deps.providers.deleteCustom(decodeURIComponent(custom[1] ?? ""))
+      deps.send(res, 200, { ok: true })
+    } catch (error) {
+      fail(error, res, deps, "delete custom provider")
+    }
+
+    return true
+  }
+
   return false
 }
 
@@ -136,6 +156,46 @@ async function handleTest(req: IncomingMessage, res: ServerResponse, deps: Provi
     deps.send(res, 200, await deps.providers.testConnection(providerId, modelId))
   } catch (error) {
     fail(error, res, deps, "test connection")
+  }
+}
+
+async function handleSaveCustom(
+  req: IncomingMessage,
+  res: ServerResponse,
+  providerId: string,
+  deps: ProviderRequestDeps,
+) {
+  const payload = await readBody(req, res, deps)
+
+  if (!payload) return
+  const name = typeof payload.name === "string" ? payload.name.trim() : ""
+  const api = typeof payload.api === "string" ? payload.api : ""
+  const models = Array.isArray(payload.models) ? payload.models : undefined
+
+  if (!providerId || !name || !api || !models) {
+    deps.send(res, 400, { code: "INVALID_REQUEST" })
+    return
+  }
+
+  try {
+    await deps.providers.saveCustom({
+      id: providerId,
+      name,
+      api,
+      ...(typeof payload.baseUrl === "string" && payload.baseUrl
+        ? { baseUrl: payload.baseUrl }
+        : {}),
+      ...(typeof payload.apiKey === "string" ? { apiKey: payload.apiKey } : {}),
+      models: models.filter(
+        (model): model is CustomModelInput =>
+          Boolean(model) &&
+          typeof model === "object" &&
+          typeof (model as { id?: unknown }).id === "string",
+      ),
+    })
+    deps.send(res, 200, { ok: true })
+  } catch (error) {
+    fail(error, res, deps, "save custom provider")
   }
 }
 

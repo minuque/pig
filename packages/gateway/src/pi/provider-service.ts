@@ -5,6 +5,7 @@ import { getAgentDir, SettingsManager } from "@earendil-works/pi-coding-agent"
 import type { ModelMetadata } from "@earendil-works/pi-protocol"
 import { toProtocolModelMetadata } from "@earendil-works/pi-server"
 
+import { ModelsConfigError, ProviderConfigStore } from "./models-config.js"
 import {
   projectProvider,
   type DefaultModelView,
@@ -61,6 +62,26 @@ export interface TestConnectionResult {
   message?: string
 }
 
+export interface CustomModelInput {
+  id: string
+  name?: string
+  reasoning?: boolean
+  input?: string[]
+  contextWindow?: number
+  maxTokens?: number
+  samplingParams?: Record<string, unknown>
+}
+
+export interface CustomProviderInput {
+  id: string
+  name: string
+  baseUrl?: string
+  api: string
+  /** 空串或省略表示保留旧值。 */
+  apiKey?: string
+  models: CustomModelInput[]
+}
+
 export class ProviderServiceError extends Error {
   constructor(
     readonly status: number,
@@ -86,12 +107,14 @@ export interface ProviderServiceOptions {
 export class ProviderService {
   readonly agentDir: string
   readonly modelsPath: string
+  private readonly customStore: ProviderConfigStore
   private settingsPromise?: Promise<SettingsManager>
   private readonly logins = new Map<string, LoginSession>()
 
   constructor(private readonly options: ProviderServiceOptions) {
     this.agentDir = options.agentDir ?? getAgentDir()
     this.modelsPath = options.modelsPath ?? join(this.agentDir, "models.json")
+    this.customStore = new ProviderConfigStore(this.modelsPath)
   }
 
   async listProviders(): Promise<{
@@ -198,6 +221,39 @@ export class ProviderService {
     } catch (error) {
       return { ok: false, message: errorText(error) }
     }
+  }
+
+  /** 写入自定义供应商；apiKey 留空保留旧值，成功后刷新 runtime。 */
+  async saveCustom(input: CustomProviderInput): Promise<void> {
+    await this.mutateCustom((config) => {
+      const providers = objectOf(config.providers)
+      const existing = objectOf(providers[input.id])
+      const provider: Record<string, unknown> = {
+        ...existing,
+        name: input.name,
+        api: input.api,
+      }
+
+      if (input.baseUrl) provider.baseUrl = input.baseUrl
+      else delete provider.baseUrl
+
+      if (input.apiKey) provider.apiKey = input.apiKey
+      provider.models = input.models.map((model) => ({ ...model }))
+      providers[input.id] = provider
+      config.providers = providers
+    })
+    await this.refreshProvider(input.id)
+  }
+
+  async deleteCustom(providerId: string): Promise<void> {
+    await this.mutateCustom((config) => {
+      const providers = objectOf(config.providers)
+
+      if (!(providerId in providers)) throw new ProviderServiceError(404, "NOT_FOUND")
+      delete providers[providerId]
+      config.providers = providers
+    })
+    await this.refreshProvider(providerId)
   }
 
   /** 复制操作：唯一一次携带明文，仅供前端直接写剪贴板。 */
@@ -366,12 +422,32 @@ export class ProviderService {
 
   private async customProviderIds(): Promise<Set<string>> {
     try {
-      const parsed: unknown = JSON.parse(await readFile(this.modelsPath, "utf-8"))
-      const providers = (parsed as { providers?: unknown })?.providers
+      const config = await this.customStore.read()
+      const providers = config.providers
       return new Set(providers && typeof providers === "object" ? Object.keys(providers) : [])
     } catch {
       return new Set()
     }
+  }
+
+  private async mutateCustom<T>(
+    change: (config: Record<string, unknown>) => T | Promise<T>,
+  ): Promise<T> {
+    try {
+      return await this.customStore.mutate(change)
+    } catch (error) {
+      if (error instanceof ModelsConfigError) {
+        throw new ProviderServiceError(409, "INVALID_MODELS_JSON")
+      }
+
+      throw error
+    }
+  }
+
+  private async refreshProvider(providerId: string): Promise<void> {
+    const runtime = await this.runtime()
+
+    await runtime.refresh({ providers: [providerId] })
   }
 
   private async credentials(): Promise<Record<string, StoredCredential>> {
@@ -389,6 +465,12 @@ export class ProviderService {
 interface StoredCredential {
   type?: string
   key?: string
+}
+
+function objectOf(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
 }
 
 function keyHint(credential: StoredCredential | undefined): string | null {
