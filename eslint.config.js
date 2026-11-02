@@ -8,8 +8,6 @@ import pluginVue from "eslint-plugin-vue"
 import tseslint from "typescript-eslint"
 
 import { lintIgnores } from "./scripts/lint-ignores.mjs"
-/* 只在 web 的 Vue 模板生效，规则跟着应用走，不放根目录 */
-import vueEventSingleStatement from "./apps/web/eslint/vue-event-single-statement.js"
 
 export default defineConfig(
   globalIgnores(lintIgnores, "pig/ignores"),
@@ -73,7 +71,29 @@ export default defineConfig(
     name: "pig/vue-template",
     files: ["**/*.vue"],
     plugins: {
-      pig: { rules: { "vue-event-single-statement": vueEventSingleStatement } },
+      pig: {
+        rules: {
+          // 多条语句经 Prettier 丢分号后，Vue 模板编译失败
+          "vue-event-single-statement": {
+            meta: {
+              type: "problem",
+              docs: { description: "事件绑定只允许一条语句" },
+              schema: [],
+              messages: { multiple: "事件绑定只允许一条语句，多条逻辑移到方法里。" },
+            },
+            create(context) {
+              const source = context.sourceCode.parserServices?.defineTemplateBodyVisitor
+
+              if (!source) return {}
+              return source({
+                VOnExpression(node) {
+                  if (node.body.length > 1) context.report({ node, messageId: "multiple" })
+                },
+              })
+            },
+          },
+        },
+      },
     },
     rules: {
       "pig/vue-event-single-statement": "error",
