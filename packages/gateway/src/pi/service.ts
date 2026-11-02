@@ -26,6 +26,7 @@ import { canonicalizePath } from "../directory.js"
 import { AttachmentStore } from "./attachments.js"
 import { selectComposerPrompts, type ComposerCommand } from "./composer-commands.js"
 import type { ContextPreviewKey, ContextUsageEstimate } from "./context-usage.js"
+import { ProviderService } from "./provider-service.js"
 import {
   conversationMessageCount,
   modelFromBranch,
@@ -38,7 +39,7 @@ import { TranscriptProjection } from "./transcript.js"
 import { pageTranscriptItems, pageTurnTimings } from "./transcript-page.js"
 import { readTurnTimings, type TurnTiming } from "./turn-timing.js"
 
-type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
+export type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
 
 type SessionFactory = typeof createAgentSession
 
@@ -87,6 +88,8 @@ export interface PiHostServiceOptions {
   cwd?: string
   /** 非图片附件的临时根目录；缺省 os.tmpdir()/pig-attachments。 */
   attachmentRootDir?: string
+  /** Pi 配置目录（auth.json / models.json / settings.json）；缺省 ~/.pi/agent。 */
+  agentDir?: string
   /** 测试注入：ModelRuntime 工厂。 */
   createRuntime?: () => Promise<Runtime>
   /** 测试注入：AgentSession 工厂。 */
@@ -100,6 +103,8 @@ export interface PiHostServiceOptions {
 export class PiHostService implements PiServerService {
   /** 附件暂存：平台 HTTP 与 prompt 消费共用同一份。 */
   readonly attachments: AttachmentStore
+  /** 供应商投影、登录与 models.json 写入。 */
+  readonly providers: ProviderService
   /** sessionId → 会话文件路径（listSessions/openSession 时填充）。 */
   private readonly sessionPaths = new Map<string, string>()
   private readonly activeSessions = new Map<string, PiHostSession>()
@@ -116,6 +121,15 @@ export class PiHostService implements PiServerService {
     this.attachments = new AttachmentStore(
       options.attachmentRootDir ? { rootDir: options.attachmentRootDir } : {},
     )
+    this.providers = new ProviderService({
+      runtime: () => this.modelRuntime(),
+      ...(options.agentDir ? { agentDir: options.agentDir } : {}),
+    })
+  }
+
+  /** 供应商路由与登录流程共用同一个惰性 runtime 实例。 */
+  modelRuntime(): Promise<Runtime> {
+    return this.runtime()
   }
 
   async listSessions(): Promise<SessionMetadata[]> {

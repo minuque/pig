@@ -5,6 +5,7 @@ import { PiHostService, type PiHostServiceOptions } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
 import { handlePlatformRequest } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
+import { handleProviderRequest } from "./providers.js"
 import { serveWebFile } from "./static-files.js"
 import { createWebSocketListener } from "./websocket.js"
 
@@ -22,6 +23,8 @@ export interface GatewayOptions {
   attachmentRootDir?: string
   /** 浏览器通行证的签名文件。缺省跟会话目录或用户主目录走。 */
   browserSecretFile?: string
+  /** Pi 配置目录（auth.json / models.json / settings.json）；缺省 ~/.pi/agent。 */
+  agentDir?: string
 }
 
 /**
@@ -51,6 +54,7 @@ export class Gateway {
       ...(options.sessionDir ? { sessionDir: options.sessionDir } : {}),
       ...(options.cwd ? { cwd: options.cwd } : {}),
       ...(options.attachmentRootDir ? { attachmentRootDir: options.attachmentRootDir } : {}),
+      ...(options.agentDir ? { agentDir: options.agentDir } : {}),
       ...(options.createRuntime ? { createRuntime: options.createRuntime } : {}),
     })
     this.piServer = new PiServer(this.hostService, {
@@ -134,6 +138,13 @@ export class Gateway {
     }
 
     if (url.pathname.startsWith("/api/v1/platform/")) {
+      const providerHandled = await handleProviderRequest(req, res, url, {
+        send: this.send.bind(this),
+        providers: this.hostService.providers,
+      })
+
+      if (providerHandled) return
+
       const handled = await handlePlatformRequest(req, res, url, {
         send: this.send.bind(this),
         body: this.body.bind(this),
