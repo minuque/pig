@@ -190,7 +190,7 @@ async function restore() {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  padding: 2px var(--space-md) var(--space-md);
+  padding: var(--space-sm) var(--space-md) var(--space-lg);
 }
 
 .field {
