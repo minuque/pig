@@ -10,7 +10,7 @@ test("模型参数保存后重开仍在，恢复默认回到模型默认", async
   await page.locator(".settings-nav").getByRole("button", { name: "模型" }).click()
   await page.locator(".provider-row").filter({ hasText: "Anthropic" }).click()
 
-  const row = page.locator(".model-row").filter({ hasText: "Claude Opus 4.7" })
+  const row = page.locator(".model-toggle").filter({ hasText: "Claude Opus 4.7" })
   const maxTokens = page.locator(".field").filter({ hasText: "最大输出" }).locator("input")
 
   await row.click()

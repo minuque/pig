@@ -74,12 +74,12 @@ test("自定义供应商可测试连接并调整模型参数", async ({ page, mo
   await page.getByRole("button", { name: "测试连接" }).click()
   await expect(page.locator(".test-result")).toContainText("连接正常")
 
-  await page.locator(".model-row").filter({ hasText: "my-model" }).click()
+  await page.locator(".model-toggle").filter({ hasText: "my-model" }).click()
   const maxTokens = page.locator(".field").filter({ hasText: "最大输出" }).locator("input")
 
   await maxTokens.fill("4096")
   await page.getByRole("button", { name: "保存参数" }).click()
-  await page.locator(".model-row").filter({ hasText: "my-model" }).click()
+  await page.locator(".model-toggle").filter({ hasText: "my-model" }).click()
 
   await expect(maxTokens).toHaveValue("4096")
 })

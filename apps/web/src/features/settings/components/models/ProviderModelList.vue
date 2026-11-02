@@ -16,8 +16,6 @@
             <span class="model-name">{{ model.name }}</span>
             <span class="model-meta">{{ modelMeta(model) }}</span>
           </span>
-
-          <AltArrowDownIcon class="chevron" :data-open="expanded === model.id ? '' : undefined" />
         </button>
 
         <Switch
@@ -27,6 +25,16 @@
           :aria-label="t('settings.models.modelEnabled', { name: model.name })"
           @update:model-value="toggleEnabled(model, $event)"
         />
+
+        <button
+          type="button"
+          class="chevron-button"
+          :aria-expanded="expanded === model.id"
+          :aria-label="t('settings.models.expandModel')"
+          @click="toggle(model.id)"
+        >
+          <AltArrowRightIcon class="chevron" :data-open="expanded === model.id ? '' : undefined" />
+        </button>
       </div>
 
       <Transition name="panel-reveal">
@@ -45,7 +53,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 
-import { AltArrowDownIcon } from "@components/icons/index.js"
+import { AltArrowRightIcon } from "@components/icons/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import ModelParamsForm from "@features/settings/components/models/ModelParamsForm.vue"
@@ -136,17 +144,29 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
   background: var(--hover-quiet);
 }
 
-.chevron {
+.chevron-button {
+  display: grid;
+  place-items: center;
   flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  color: var(--contrast-foreground-faint);
+}
+
+.chevron-button:hover {
+  background: var(--hover-quiet);
+  color: var(--contrast-foreground);
+}
+
+.chevron {
   inline-size: 13px;
   block-size: 13px;
-  margin-inline-start: auto;
-  color: var(--contrast-foreground-faint);
   transition: transform var(--duration-fast) var(--ease-smooth);
 }
 
 .chevron[data-open] {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }
 
 .list-error {

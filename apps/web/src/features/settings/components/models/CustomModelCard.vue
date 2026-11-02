@@ -22,7 +22,7 @@
         :aria-label="t('settings.models.expandModel')"
         @click="open = !open"
       >
-        <AltArrowDownIcon class="chevron" :class="{ open }" />
+        <AltArrowRightIcon class="chevron" :class="{ open }" />
       </button>
     </div>
 
@@ -67,7 +67,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 
-import { AltArrowDownIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
+import { AltArrowRightIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
@@ -150,7 +150,7 @@ const open = ref(!model.value.id)
 }
 
 .chevron.open {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }
 
 .card-body {
