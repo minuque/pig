@@ -63,13 +63,18 @@
       </p>
 
       <div class="login-actions">
-        <Button variant="surface" @click="emit('cancel')">{{ t("common.cancel") }}</Button>
-        <Button type="submit" :disabled="!value.trim()">{{ t("settings.models.proceed") }}</Button>
+        <Button size="s" variant="surface" @click="emit('cancel')">
+          {{ t("common.cancel") }}
+        </Button>
+
+        <Button size="s" type="submit" :disabled="!value.trim()">
+          {{ t("settings.models.proceed") }}
+        </Button>
       </div>
     </form>
 
     <div v-else class="login-actions">
-      <Button variant="surface" @click="emit('cancel')">{{ t("common.cancel") }}</Button>
+      <Button size="s" variant="surface" @click="emit('cancel')">{{ t("common.cancel") }}</Button>
     </div>
   </div>
 </template>

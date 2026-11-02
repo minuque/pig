@@ -81,11 +81,13 @@
     <p v-if="error" class="error">{{ error }}</p>
 
     <div class="actions">
-      <Button variant="ghost" :disabled="saving" @click="restore">
+      <Button size="s" variant="ghost" :disabled="saving" @click="restore">
         {{ t("settings.models.restoreDefaults") }}
       </Button>
 
-      <Button :loading="saving" @click="save">{{ t("settings.models.saveParams") }}</Button>
+      <Button size="s" :loading="saving" @click="save">
+        {{ t("settings.models.saveParams") }}
+      </Button>
     </div>
   </div>
 </template>

@@ -110,11 +110,11 @@
     </section>
 
     <div class="actions">
-      <Button v-if="isEdit" variant="surface" color="red" @click="confirmDelete = true">
+      <Button v-if="isEdit" size="s" variant="surface" color="red" @click="confirmDelete = true">
         {{ t("settings.models.deleteProvider") }}
       </Button>
 
-      <Button :loading="saving" @click="save">{{ t("common.save") }}</Button>
+      <Button size="s" :loading="saving" @click="save">{{ t("common.save") }}</Button>
     </div>
 
     <AlertDialog v-model:open="confirmDelete">

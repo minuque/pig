@@ -121,6 +121,7 @@
         <span class="btnrow">
           <Button
             v-if="canLogout"
+            size="s"
             variant="surface"
             color="red"
             :disabled="loginState.phase === 'running'"
@@ -129,15 +130,16 @@
             {{ t("settings.models.logout") }}
           </Button>
 
-          <Button v-if="editing" variant="surface" @click="cancelEdit">
+          <Button v-if="editing" size="s" variant="surface" @click="cancelEdit">
             {{ t("common.cancel") }}
           </Button>
 
-          <Button v-if="editable" variant="surface" @click="emit('edit')">
+          <Button v-if="editable" size="s" variant="surface" @click="emit('edit')">
             {{ t("settings.models.editProvider") }}
           </Button>
 
           <Button
+            size="s"
             :variant="hasPrimaryAction ? 'surface' : 'solid'"
             :loading="testing"
             :disabled="!canTest"
@@ -148,6 +150,7 @@
 
           <Button
             v-if="showKeyInput"
+            size="s"
             :loading="connectingKey"
             :disabled="!apiKey.trim()"
             @click="saveKey"
@@ -157,6 +160,7 @@
 
           <Button
             v-else-if="method === 'oauth' && !provider.status.configured"
+            size="s"
             :loading="loginStarting"
             :disabled="loginState.phase === 'running'"
             @click="startLogin('oauth')"
