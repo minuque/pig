@@ -30,8 +30,10 @@ test("模型 tab 按连接状态分组，右侧只给已连接模型数", async 
   await expect(page.locator(".provider-detail-title")).toHaveText("Anthropic")
   await expect(page.locator(".provider-badge")).toHaveText("已连接")
   await expect(page.locator(".model-card")).toHaveCount(3)
+  await expect(page.locator(".settings-crumbs")).toContainText("供应商")
+  await expect(page.locator(".settings-crumbs")).toContainText("Anthropic")
 
-  await page.locator(".provider-back").click()
+  await page.locator(".settings-crumbs").getByRole("button", { name: "供应商" }).click()
   await expect(groups).toHaveText(["已连接", "内置", "自定义"])
 })
 

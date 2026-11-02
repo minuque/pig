@@ -20,7 +20,25 @@
         </nav>
 
         <div class="settings-right">
-          <div class="settings-right-head" aria-hidden="true"></div>
+          <div class="settings-right-head">
+            <nav v-if="trail.length" class="settings-crumbs" :aria-label="t('settings.title')">
+              <template v-for="(crumb, index) in trail" :key="`${index}-${crumb.label}`">
+                <AltArrowRightIcon v-if="index > 0" class="crumb-sep" />
+
+                <button v-if="crumb.action" type="button" class="crumb" @click="crumb.action()">
+                  {{ crumb.label }}
+                </button>
+
+                <span
+                  v-else
+                  class="crumb"
+                  :aria-current="index === trail.length - 1 ? 'page' : undefined"
+                >
+                  {{ crumb.label }}
+                </span>
+              </template>
+            </nav>
+          </div>
 
           <div ref="scroller" class="settings-scroll">
             <div class="settings-body">
@@ -42,10 +60,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue"
+import { computed, nextTick, provide, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import {
+  AltArrowRightIcon,
   ChartSquareIcon,
   CloudIcon,
   SliderMinimalisticHorizontalIcon,
@@ -57,7 +76,11 @@ import UsagePane from "./UsagePane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
 import ResourcePane from "./ResourcePane.vue"
 
-import type { SettingsPane as Pane } from "@features/settings/hooks/use-settings-dialog.js"
+import type {
+  SettingsCrumb,
+  SettingsPane as Pane,
+} from "@features/settings/hooks/use-settings-dialog.js"
+import { SETTINGS_TRAIL } from "@features/settings/hooks/use-settings-dialog.js"
 
 const props = defineProps<{
   open: boolean
@@ -71,6 +94,10 @@ const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
 const active = ref<Pane>(props.initialPane ?? "general")
 const scroller = ref<HTMLElement>()
+const trail = ref<SettingsCrumb[]>([])
+
+provide(SETTINGS_TRAIL, trail)
+
 const tabs = computed<{ id: Pane; label: string; icon: typeof SliderMinimalisticHorizontalIcon }[]>(
   () => [
     {
@@ -197,8 +224,41 @@ watch(active, async () => {
 
 /* 头部条占住右上角关闭按钮的位置，滚动条从这里以下开始 */
 .settings-dialog .settings-right-head {
+  display: flex;
+  align-items: center;
   flex: none;
   height: calc(var(--space-md) + var(--size-icon-button) + var(--space-sm));
+  padding-inline: var(--space-lg);
+}
+
+.settings-dialog .settings-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: var(--size-settings-body);
+  margin-inline: auto;
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-caption);
+}
+
+.settings-dialog .crumb {
+  color: inherit;
+  font-size: inherit;
+}
+
+.settings-dialog button.crumb:hover {
+  color: var(--contrast-foreground);
+}
+
+.settings-dialog .crumb[aria-current="page"] {
+  color: var(--contrast-foreground);
+}
+
+.settings-dialog .crumb-sep {
+  inline-size: 12px;
+  block-size: 12px;
+  color: var(--contrast-foreground-faint);
 }
 
 .settings-dialog .settings-scroll {
