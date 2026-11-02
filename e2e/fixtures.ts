@@ -227,6 +227,14 @@ async function withModelsGateway(
         ],
       },
       { id: "openai", name: "OpenAI", models: [{ id: "gpt-5", name: "GPT-5" }] },
+      { id: "google", name: "Google", models: [{ id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" }] },
+      { id: "mistral", name: "Mistral", models: [{ id: "mistral-large", name: "Mistral Large" }] },
+      {
+        id: "openrouter",
+        name: "OpenRouter",
+        models: [{ id: "openrouter/auto", name: "Auto" }],
+      },
+      { id: "xai", name: "xAI", models: [{ id: "grok-4", name: "Grok 4" }] },
       {
         id: "deepseek",
         name: "DeepSeek",
