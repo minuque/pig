@@ -140,6 +140,7 @@ export class Gateway {
     if (url.pathname.startsWith("/api/v1/platform/")) {
       const providerHandled = await handleProviderRequest(req, res, url, {
         send: this.send.bind(this),
+        body: this.body.bind(this),
         providers: this.hostService.providers,
       })
 

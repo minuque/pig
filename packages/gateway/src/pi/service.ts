@@ -353,6 +353,7 @@ export class PiHostService implements PiServerService {
 
   /** 停服：清掉附件清理定时器并删除本实例的临时文件。 */
   dispose(): Promise<void> {
+    this.providers.dispose()
     return this.attachments.dispose()
   }
 
