@@ -4,6 +4,8 @@
 import { platformRequest } from "@client/http.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
+import type { ModelMetadata } from "@/types/common-type.js"
+import type { ProviderListResponse } from "@/types/provider-type.js"
 import type { SessionCard } from "@/types/session-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 
@@ -34,6 +36,17 @@ export async function warmWorkspace(path: string): Promise<void> {
 export async function listSessionCards(): Promise<SessionCard[]> {
   const result = await platformRequest<{ cards: SessionCard[] }>("/api/v1/platform/session-cards")
   return result.cards
+}
+
+/** 设置 · 模型：供应商视图与默认模型。 */
+export async function listProviders(): Promise<ProviderListResponse> {
+  return platformRequest<ProviderListResponse>("/api/v1/platform/providers")
+}
+
+/** 刷新后的模型目录；与 PiServer 快照里的 models 同形。 */
+export async function listProviderModels(): Promise<ModelMetadata[]> {
+  const result = await platformRequest<{ models: ModelMetadata[] }>("/api/v1/platform/models")
+  return result.models
 }
 
 function isTurnTiming(value: unknown): value is TurnTiming {

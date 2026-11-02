@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url"
 
 import Gateway from "../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../packages/gateway/src/directory.js"
+import { createFakeRuntime } from "./fake-model-runtime.js"
 import { prebuildComplexSession, prebuildFillerSessions } from "./prebuild-session.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
@@ -80,16 +81,12 @@ type TestFixtures = {
   navGateway: E2eGateway
   /** 两个项目各装若干会话，用来验多选筛选。 */
   multiGateway: MultiE2eGateway
+  /** 固定模型目录：已连接/未连接/自定义三组。 */
+  modelsGateway: E2eGateway
 }
 
 /** 起 Gateway 并躲开 Chromium 禁用端口。 */
-async function startGateway(options: {
-  webRoot: string
-  sessionDir: string
-  cwd: string
-  platformPort: DirectoryPort
-  port: number
-}) {
+async function startGateway(options: ConstructorParameters<typeof Gateway>[0]) {
   let gateway = new Gateway(options)
   let port = await gateway.start()
 
@@ -188,6 +185,81 @@ async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void
   }
 }
 
+/** 模型配置页：临时 agentDir + 假 runtime，隔离本机 ~/.pi。 */
+async function withModelsGateway(use: (gateway: E2eGateway) => Promise<void>) {
+  const temp = await mkdtemp(join(tmpdir(), "pig-e2e-models-"))
+  const workspaceDir = join(temp, "workspace")
+  const sessionDir = join(temp, "sessions")
+  const agentDir = join(temp, "agent")
+  await mkdir(workspaceDir)
+  await mkdir(sessionDir)
+  await mkdir(agentDir)
+  await writeFile(join(workspaceDir, ".keep"), "")
+  await writeFile(
+    join(agentDir, "models.json"),
+    JSON.stringify({
+      providers: {
+        ollama: {
+          name: "本地 Ollama",
+          baseUrl: "http://localhost:11434/v1",
+          api: "openai-completions",
+          models: [{ id: "llama3.1:8b" }],
+        },
+      },
+    }),
+  )
+
+  const runtime = createFakeRuntime([
+    {
+      id: "anthropic",
+      name: "Anthropic",
+      configured: true,
+      models: [
+        { id: "claude-opus-4-7", name: "Claude Opus 4.7", reasoning: true },
+        { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5", reasoning: true },
+        { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
+      ],
+    },
+    { id: "openai", name: "OpenAI", models: [{ id: "gpt-5", name: "GPT-5" }] },
+    { id: "deepseek", name: "DeepSeek" },
+    {
+      id: "ollama",
+      name: "本地 Ollama",
+      baseUrl: "http://localhost:11434/v1",
+      models: [{ id: "llama3.1:8b", name: "Llama 3.1 8B", contextWindow: 128_000 }],
+    },
+  ])
+  const platformPort: DirectoryPort = {
+    async selectDirectory() {
+      return workspaceDir
+    },
+    async validateDirectory(path) {
+      return path
+    },
+  }
+  const { gateway, port } = await startGateway({
+    webRoot,
+    sessionDir,
+    cwd: workspaceDir,
+    platformPort,
+    port: 0,
+    agentDir,
+    createRuntime: async () => runtime as never,
+  })
+
+  try {
+    await use({
+      origin: `http://127.0.0.1:${port}`,
+      entryUrl: gateway.authenticatedUrl(`http://127.0.0.1:${port}`),
+      workspaceDir,
+      workspaceId: canonicalizeWorkspacePath(workspaceDir),
+    })
+  } finally {
+    await gateway.stop()
+    await rm(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+  }
+}
+
 export const test = base.extend<TestFixtures>({
   gateway: [
     async ({}, use) => {
@@ -215,6 +287,12 @@ export const test = base.extend<TestFixtures>({
   multiGateway: [
     async ({}, use) => {
       await withTwoWorkspaces(use)
+    },
+    { scope: "test" },
+  ],
+  modelsGateway: [
+    async ({}, use) => {
+      await withModelsGateway(use)
     },
     { scope: "test" },
   ],

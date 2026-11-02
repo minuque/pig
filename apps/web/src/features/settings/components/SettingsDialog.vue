@@ -26,6 +26,7 @@
             <div class="settings-body">
               <GeneralPane v-if="active === 'general'" />
               <UsagePane v-else-if="active === 'usage'" />
+              <ModelsPane v-else-if="active === 'models'" />
 
               <ResourcePane
                 v-else
@@ -47,14 +48,16 @@ import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.
 import {
   ChartSquareIcon,
   SliderMinimalisticHorizontalIcon,
+  StarsMinimalisticIcon,
   Widget5Icon,
   WidgetAddIcon,
 } from "@components/icons/index.js"
 import GeneralPane from "./GeneralPane.vue"
 import UsagePane from "./UsagePane.vue"
+import ModelsPane from "./models/ModelsPane.vue"
 import ResourcePane from "./ResourcePane.vue"
 
-type Pane = "general" | "usage" | "skills" | "extensions"
+type Pane = "general" | "usage" | "models" | "skills" | "extensions"
 
 const props = defineProps<{
   open: boolean
@@ -74,6 +77,7 @@ const tabs = computed<{ id: Pane; label: string; icon: typeof SliderMinimalistic
       icon: SliderMinimalisticHorizontalIcon,
     },
     { id: "usage", label: t("settings.usage"), icon: ChartSquareIcon },
+    { id: "models", label: t("settings.models.title"), icon: StarsMinimalisticIcon },
     { id: "skills", label: t("settings.skills"), icon: WidgetAddIcon },
     { id: "extensions", label: t("settings.extensions"), icon: Widget5Icon },
   ],
