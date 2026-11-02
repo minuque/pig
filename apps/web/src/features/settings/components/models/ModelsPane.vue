@@ -107,6 +107,7 @@ async function onChanged() {
 async function onCreated(id: string) {
   creating.value = false
   await refresh()
+  await props.refreshModels?.()
   select(id)
 }
 
@@ -114,11 +115,13 @@ async function onCreated(id: string) {
 async function onSaved() {
   editing.value = undefined
   await refresh()
+  await props.refreshModels?.()
 }
 
 async function onDeleted() {
   select(undefined)
   await refresh()
+  await props.refreshModels?.()
 }
 </script>
 

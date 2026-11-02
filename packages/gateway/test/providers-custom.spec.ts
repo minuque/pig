@@ -17,11 +17,17 @@ const input = (overrides: Partial<CustomProviderInput> = {}): CustomProviderInpu
 
 function customRuntime() {
   const refresh = vi.fn(async () => ({ aborted: false, errors: new Map() }))
-  const provider = { id: "ollama", name: "本地 Ollama", auth: {} }
+  const provider = {
+    id: "ollama",
+    name: "本地 Ollama",
+    auth: {},
+    getModels: () => [] as Array<Record<string, unknown>>,
+  }
   return {
     refresh,
     getProvider: (id: string) => (id === "ollama" ? provider : undefined),
     getProviders: () => [provider],
+    getProviderAuthStatus: () => ({ configured: false }),
   }
 }
 
@@ -62,7 +68,61 @@ describe("ProviderService custom providers", () => {
       api: "openai-completions",
       models: [{ id: "llama3.1:8b", name: "Llama 3.1 8B", contextWindow: 128_000 }],
     })
-    expect(fake.refresh).toHaveBeenCalledWith({ providers: ["ollama"] })
+    expect(fake.refresh).toHaveBeenCalledWith({ providers: ["ollama"], allowNetwork: true })
+  })
+
+  it("保存时保留已有模型的未知字段", async () => {
+    const { agentDir, modelsPath } = await paths()
+    const fake = customRuntime()
+    const providers = new ProviderService({ runtime: async () => fake, agentDir } as never)
+
+    await writeFile(
+      modelsPath,
+      JSON.stringify({
+        providers: {
+          ollama: {
+            name: "本地 Ollama",
+            api: "openai-completions",
+            baseUrl: "http://localhost:11434/v1",
+            models: [
+              {
+                id: "llama3.1:8b",
+                name: "Llama 3.1 8B",
+                cost: { input: 0.2, output: 0.4 },
+                compat: { thinking: false },
+              },
+            ],
+          },
+        },
+      }),
+    )
+
+    await providers.saveCustom(
+      input({ models: [{ id: "llama3.1:8b", name: "Llama 3.1 8B (本地)" }] }),
+    )
+
+    const saved = JSON.parse(await readFile(modelsPath, "utf-8")) as {
+      providers: Record<string, { models: Array<Record<string, unknown>> }>
+    }
+
+    expect(saved.providers.ollama?.models).toEqual([
+      {
+        id: "llama3.1:8b",
+        name: "Llama 3.1 8B (本地)",
+        cost: { input: 0.2, output: 0.4 },
+        compat: { thinking: false },
+      },
+    ])
+  })
+
+  it("refreshAll 允许走网络拉取模型目录", async () => {
+    const { agentDir } = await paths()
+    const fake = customRuntime()
+    const providers = new ProviderService({ runtime: async () => fake, agentDir } as never)
+
+    await providers.refreshAll()
+
+    expect(fake.refresh).toHaveBeenCalledWith({ allowNetwork: true })
   })
 
   it("apiKey 留空保留旧值，新值覆盖", async () => {
@@ -144,7 +204,7 @@ describe("custom provider routes", () => {
     })
 
     expect(put.status).toBe(200)
-    expect(fake.refresh).toHaveBeenCalledWith({ providers: ["ollama"] })
+    expect(fake.refresh).toHaveBeenCalledWith({ providers: ["ollama"], allowNetwork: true })
 
     const saved = JSON.parse(await readFile(modelsPath, "utf-8")) as {
       providers: Record<string, unknown>

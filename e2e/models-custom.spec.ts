@@ -83,3 +83,29 @@ test("自定义供应商可测试连接并调整模型参数", async ({ page, mo
 
   await expect(maxTokens).toHaveValue("4096")
 })
+
+test("新建自定义供应商后 Composer 目录立即跟上", async ({ page, modelsGateway }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, modelsGateway.workspaceId)
+  await page.goto(modelsGateway.entryUrl)
+  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
+
+  await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
+  await page.locator(".settings-nav").getByRole("button", { name: "模型" }).click()
+
+  await page.getByRole("button", { name: "添加" }).click()
+  await page.getByLabel(/供应商 ID/).fill("myapi")
+  await page.getByLabel(/Base URL/).fill("https://api.example/v1")
+  await page.getByLabel(/API Key/).fill("sk-myapi")
+  await page.getByRole("button", { name: "添加模型" }).click()
+  await page.getByLabel(/模型 ID/).fill("my-model")
+  await page.getByRole("button", { name: "保存" }).click()
+
+  await expect(page.locator(".provider-detail-title")).toHaveText("myapi")
+  await page.keyboard.press("Escape")
+  await expect(page.locator(".settings-dialog")).toBeHidden()
+
+  await page.locator(".selector").click()
+  await page.locator(".picker-menu .search input").fill("my-model")
+  await expect(page.locator(".picker-menu .model-item")).toHaveCount(1)
+})

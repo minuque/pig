@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto"
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { getAgentDir, SettingsManager } from "@earendil-works/pi-coding-agent"
@@ -7,70 +6,40 @@ import { toProtocolModelMetadata } from "@earendil-works/pi-server"
 
 import { ModelsConfigError, ProviderConfigStore } from "./models-config.js"
 import {
+  applyToCustomModel,
+  applyToOverrides,
+  errorText,
+  hasModelFields,
+  isCustomConfig,
+  keyHint,
+  objectOf,
+  validatePatch,
+  type ModelParamsPatch,
+  type StoredCredential,
+} from "./provider-config.js"
+import { ProviderServiceError } from "./provider-error.js"
+import { LoginSessions, type LoginEventView } from "./provider-login.js"
+import {
   isModelEnabled,
-  isThinkingLevel,
   projectProvider,
   toggleEnabledModel,
   type DefaultModelView,
   type ModelRuntimeLike,
   type ProviderView,
-  type ThinkingLevel,
 } from "./provider-view.js"
 
+export { ProviderServiceError } from "./provider-error.js"
+
+export type { LoginEvent, LoginEventView, LoginPromptView } from "./provider-login.js"
+
+export type { ModelParamsPatch } from "./provider-config.js"
+
 type AuthType = Parameters<ModelRuntimeLike["login"]>[1]
-
-type AuthInteraction = Parameters<ModelRuntimeLike["login"]>[2]
-
-type AuthPrompt = Parameters<AuthInteraction["prompt"]>[0]
-
-type AuthEvent = Parameters<AuthInteraction["notify"]>[0]
-
-export interface LoginPromptView {
-  id: string
-  type: AuthPrompt["type"]
-  message: string
-  placeholder?: string
-  options?: Array<{ id: string; label: string; description?: string }>
-}
-
-export type LoginEvent =
-  | AuthEvent
-  | { type: "prompt"; id: string; prompt: LoginPromptView }
-  | { type: "done" }
-  | { type: "error"; message: string }
-
-export type LoginEventView = LoginEvent & { seq: number }
-
-interface PendingPrompt {
-  id: string
-  resolve(value: string): void
-  reject(error: Error): void
-}
-
-interface LoginSession {
-  id: string
-  providerId: string
-  type: AuthType
-  events: LoginEventView[]
-  waiters: Array<() => void>
-  pending: PendingPrompt | undefined
-  controller: AbortController
-  finished: boolean
-  closed: boolean
-  timer: ReturnType<typeof setTimeout>
-}
 
 export interface TestConnectionResult {
   ok: boolean
   latencyMs?: number
   message?: string
-}
-
-export interface ModelParamsPatch {
-  thinkingLevel?: ThinkingLevel | null
-  maxTokens?: number | null
-  contextWindow?: number | null
-  samplingParams?: Record<string, unknown> | null
 }
 
 export interface CustomModelInput {
@@ -93,19 +62,6 @@ export interface CustomProviderInput {
   models: CustomModelInput[]
 }
 
-export class ProviderServiceError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-    message = code,
-  ) {
-    super(message)
-  }
-}
-
-const LOGIN_TTL_MS = 10 * 60 * 1000
-const MAX_ERROR_LENGTH = 500
-
 export interface ProviderServiceOptions {
   runtime: () => Promise<ModelRuntimeLike>
   /** 凭据与配置目录；缺省 ~/.pi/agent。 */
@@ -122,7 +78,7 @@ export class ProviderService {
   readonly modelsPath: string
   private readonly customStore: ProviderConfigStore
   private settingsPromise?: Promise<SettingsManager>
-  private readonly logins = new Map<string, LoginSession>()
+  private readonly logins = new LoginSessions()
 
   constructor(private readonly options: ProviderServiceOptions) {
     this.agentDir = options.agentDir ?? getAgentDir()
@@ -165,7 +121,7 @@ export class ProviderService {
   }> {
     const runtime = await this.runtime()
 
-    await runtime.refresh()
+    await runtime.refresh({ allowNetwork: true })
     return this.listProviders()
   }
 
@@ -193,25 +149,10 @@ export class ProviderService {
 
     if (!supported) throw new ProviderServiceError(400, "INVALID_REQUEST")
 
-    if (this.activeLogin(providerId)) throw new ProviderServiceError(409, "LOGIN_IN_PROGRESS")
-
-    const session: LoginSession = {
-      id: randomUUID(),
-      providerId,
-      type,
-      events: [],
-      waiters: [],
-      pending: undefined,
-      controller: new AbortController(),
-      finished: false,
-      closed: false,
-      timer: setTimeout(() => this.closeLogin(session.id), LOGIN_TTL_MS),
+    if (this.logins.isActive(providerId)) throw new ProviderServiceError(409, "LOGIN_IN_PROGRESS")
+    return {
+      loginId: this.logins.start(providerId, type, runtime, () => this.refreshProvider(providerId)),
     }
-
-    session.timer.unref()
-    this.logins.set(session.id, session)
-    void this.runLogin(session, runtime)
-    return { loginId: session.id }
   }
 
   /** 最小请求验证凭据；失败不写配置。 */
@@ -328,7 +269,15 @@ export class ProviderService {
       else delete provider.baseUrl
 
       if (input.apiKey) provider.apiKey = input.apiKey
-      provider.models = input.models.map((model) => ({ ...model }))
+
+      const previous = new Map(
+        (Array.isArray(existing.models) ? existing.models : []).flatMap((item) => {
+          const model = objectOf(item)
+          return typeof model.id === "string" ? [[model.id, model] as const] : []
+        }),
+      )
+
+      provider.models = input.models.map((model) => ({ ...previous.get(model.id), ...model }))
       providers[input.id] = provider
       config.providers = providers
     })
@@ -365,50 +314,15 @@ export class ProviderService {
     after = 0,
     signal?: AbortSignal,
   ): AsyncGenerator<LoginEventView> {
-    const session = this.logins.get(loginId)
-
-    if (!session) throw new ProviderServiceError(404, "NOT_FOUND")
-
-    let cursor = 0
-
-    while (true) {
-      while (cursor < session.events.length) {
-        const event = session.events[cursor++]
-
-        if (event && event.seq > after) yield event
-      }
-
-      if (session.finished || session.closed || signal?.aborted) return
-
-      await new Promise<void>((resolve) => {
-        const wake = () => {
-          signal?.removeEventListener("abort", wake)
-          resolve()
-        }
-
-        session.waiters.push(wake)
-        signal?.addEventListener("abort", wake, { once: true })
-      })
-    }
+    yield* this.logins.stream(loginId, after, signal)
   }
 
   respond(loginId: string, value: string): void {
-    const session = this.logins.get(loginId)
-    const pending = session?.pending
-
-    if (!session || session.closed) throw new ProviderServiceError(404, "NOT_FOUND")
-
-    if (!pending) throw new ProviderServiceError(409, "NO_PENDING_PROMPT")
-
-    session.pending = undefined
-    pending.resolve(value)
+    this.logins.respond(loginId, value)
   }
 
   cancelLogin(loginId: string): void {
-    const session = this.logins.get(loginId)
-
-    if (!session) throw new ProviderServiceError(404, "NOT_FOUND")
-    this.closeLogin(loginId)
+    this.logins.cancel(loginId)
   }
 
   async logout(providerId: string): Promise<void> {
@@ -421,87 +335,11 @@ export class ProviderService {
 
   /** 停服：中止全部登录并清掉过期定时器。 */
   dispose(): void {
-    for (const id of [...this.logins.keys()]) this.closeLogin(id)
+    this.logins.dispose()
   }
 
   protected runtime(): Promise<ModelRuntimeLike> {
     return this.options.runtime()
-  }
-
-  private async runLogin(session: LoginSession, runtime: ModelRuntimeLike) {
-    try {
-      await runtime.login(session.providerId, session.type, {
-        signal: session.controller.signal,
-        prompt: (prompt) => this.requestPrompt(session, prompt),
-        notify: (event) => this.push(session, event),
-      })
-      await runtime.refresh({ providers: [session.providerId] })
-      this.push(session, { type: "done" })
-    } catch (error) {
-      if (!session.closed) {
-        this.push(session, { type: "error", message: errorText(error) })
-      }
-    } finally {
-      session.finished = true
-      this.wake(session)
-    }
-  }
-
-  private requestPrompt(session: LoginSession, prompt: AuthPrompt): Promise<string> {
-    const id = randomUUID()
-
-    this.push(session, { type: "prompt", id, prompt: promptView(id, prompt) })
-    return new Promise<string>((resolve, reject) => {
-      const pending: PendingPrompt = { id, resolve, reject }
-      session.pending = pending
-      prompt.signal?.addEventListener(
-        "abort",
-        () => {
-          if (session.pending !== pending) return
-          session.pending = undefined
-          reject(new Error("prompt aborted"))
-        },
-        { once: true },
-      )
-    })
-  }
-
-  private push(session: LoginSession, event: LoginEvent) {
-    if (session.closed) return
-    session.events.push({ ...event, seq: session.events.length + 1 } as LoginEventView)
-    this.wake(session)
-  }
-
-  private wake(session: LoginSession) {
-    const waiters = session.waiters.splice(0)
-
-    for (const wake of waiters) wake()
-  }
-
-  private activeLogin(providerId: string): boolean {
-    return [...this.logins.values()].some(
-      (session) => session.providerId === providerId && !session.finished && !session.closed,
-    )
-  }
-
-  private closeLogin(loginId: string) {
-    const session = this.logins.get(loginId)
-
-    if (!session) return
-    session.closed = true
-    session.finished = true
-    session.controller.abort()
-    clearTimeout(session.timer)
-    this.logins.delete(loginId)
-
-    if (session.pending) {
-      const pending = session.pending
-
-      session.pending = undefined
-      pending.reject(new Error("login cancelled"))
-    }
-
-    this.wake(session)
   }
 
   private settings(): Promise<SettingsManager> {
@@ -547,7 +385,7 @@ export class ProviderService {
   private async refreshProvider(providerId: string): Promise<void> {
     const runtime = await this.runtime()
 
-    await runtime.refresh({ providers: [providerId] })
+    await runtime.refresh({ providers: [providerId], allowNetwork: true })
   }
 
   private async credentials(): Promise<Record<string, StoredCredential>> {
@@ -560,134 +398,4 @@ export class ProviderService {
       return {}
     }
   }
-}
-
-interface StoredCredential {
-  type?: string
-  key?: string
-}
-
-function objectOf(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {}
-}
-
-function isScalar(value: unknown): boolean {
-  return value === null || ["string", "number", "boolean"].includes(typeof value)
-}
-
-function isCustomConfig(provider: Record<string, unknown>): boolean {
-  return Boolean(provider.api || provider.baseUrl || provider.models)
-}
-
-function validatePatch(patch: ModelParamsPatch): void {
-  const inRange = (value: number | null | undefined, min: number, max: number) =>
-    value === undefined ||
-    value === null ||
-    (Number.isInteger(value) && value >= min && value <= max)
-
-  if (!inRange(patch.maxTokens, 1, 1_000_000) || !inRange(patch.contextWindow, 1_000, 10_000_000)) {
-    throw new ProviderServiceError(400, "INVALID_REQUEST")
-  }
-
-  if (
-    patch.thinkingLevel !== undefined &&
-    patch.thinkingLevel !== null &&
-    !isThinkingLevel(patch.thinkingLevel)
-  ) {
-    throw new ProviderServiceError(400, "INVALID_REQUEST")
-  }
-
-  if (
-    patch.samplingParams !== undefined &&
-    patch.samplingParams !== null &&
-    (typeof patch.samplingParams !== "object" ||
-      Array.isArray(patch.samplingParams) ||
-      !Object.values(patch.samplingParams).every(isScalar))
-  ) {
-    throw new ProviderServiceError(400, "INVALID_REQUEST")
-  }
-}
-
-function hasModelFields(patch: ModelParamsPatch): boolean {
-  return (
-    patch.maxTokens !== undefined ||
-    patch.contextWindow !== undefined ||
-    patch.samplingParams !== undefined
-  )
-}
-
-function applyToOverrides(
-  provider: Record<string, unknown>,
-  modelId: string,
-  patch: ModelParamsPatch,
-): void {
-  const overrides = objectOf(provider.modelOverrides)
-  const entry = objectOf(overrides[modelId])
-
-  applyFields(entry, patch)
-
-  if (Object.keys(entry).length) overrides[modelId] = entry
-  else delete overrides[modelId]
-
-  provider.modelOverrides = overrides
-}
-
-function applyToCustomModel(
-  provider: Record<string, unknown>,
-  modelId: string,
-  patch: ModelParamsPatch,
-): void {
-  const models = Array.isArray(provider.models) ? provider.models : []
-  const model = models.find((item) => objectOf(item).id === modelId)
-
-  if (!model) throw new ProviderServiceError(404, "NOT_FOUND")
-  applyFields(model as Record<string, unknown>, patch)
-  provider.models = models
-}
-
-function applyFields(entry: Record<string, unknown>, patch: ModelParamsPatch): void {
-  if (patch.maxTokens !== undefined) {
-    if (patch.maxTokens === null) delete entry.maxTokens
-    else entry.maxTokens = patch.maxTokens
-  }
-
-  if (patch.contextWindow !== undefined) {
-    if (patch.contextWindow === null) delete entry.contextWindow
-    else entry.contextWindow = patch.contextWindow
-  }
-
-  if (patch.samplingParams !== undefined) {
-    if (patch.samplingParams === null) delete entry.samplingParams
-    else entry.samplingParams = { ...patch.samplingParams }
-  }
-}
-
-function keyHint(credential: StoredCredential | undefined): string | null {
-  if (credential?.type !== "api_key" || typeof credential.key !== "string") return null
-  return credential.key.length >= 4 ? credential.key.slice(-4) : null
-}
-
-function promptView(id: string, prompt: AuthPrompt): LoginPromptView {
-  return {
-    id,
-    type: prompt.type,
-    message: prompt.message,
-    ...("placeholder" in prompt && prompt.placeholder ? { placeholder: prompt.placeholder } : {}),
-    ...(prompt.type === "select"
-      ? {
-          options: prompt.options.map((option) => ({
-            id: option.id,
-            label: option.label,
-            ...(option.description ? { description: option.description } : {}),
-          })),
-        }
-      : {}),
-  }
-}
-
-function errorText(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error)
-  return message.slice(0, MAX_ERROR_LENGTH)
 }

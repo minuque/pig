@@ -137,7 +137,7 @@ describe("projectProvider", () => {
     expect(empty.models).toEqual([])
   })
 
-  it("模型开放状态来自 enabledModels，空列表表示全部开放", () => {
+  it("模型开放状态来自 enabledModels", () => {
     const view = projectProvider(
       provider({ apiKey: { login: async () => undefined } }),
       { configured: true, source: "stored" },
@@ -174,5 +174,17 @@ describe("enabledModels", () => {
       toggleEnabledModel(["anthropic/sonnet"], models, "anthropic", "opus", true),
     ).toBeUndefined()
     expect(toggleEnabledModel(undefined, models, "anthropic", "opus", true)).toBeUndefined()
+  })
+
+  it("空列表表示全部关闭，未配置才表示全部开放", () => {
+    expect(isModelEnabled(undefined, "anthropic", "opus")).toBe(true)
+    expect(isModelEnabled([], "anthropic", "opus")).toBe(false)
+  })
+
+  it("关闭最后一个模型得到空列表，再从空列表只打开一个", () => {
+    expect(toggleEnabledModel(["anthropic/opus"], models, "anthropic", "opus", false)).toEqual([])
+    expect(toggleEnabledModel([], models, "anthropic", "sonnet", true)).toEqual([
+      "anthropic/sonnet",
+    ])
   })
 })

@@ -11,12 +11,7 @@ import {
 } from "@earendil-works/pi-coding-agent"
 import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/pi-coding-agent"
 import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
-import {
-  PiServerError,
-  SessionBusyError,
-  SessionNotFoundError,
-  toProtocolModelMetadata,
-} from "@earendil-works/pi-server"
+import { PiServerError, SessionBusyError, SessionNotFoundError } from "@earendil-works/pi-server"
 import type {
   CreateSessionOptions,
   PiServerService,
@@ -157,11 +152,7 @@ export class PiHostService implements PiServerService {
   }
 
   async listModels(): Promise<ModelMetadata[]> {
-    const runtime = await this.runtime()
-    const models = await runtime.getAvailable()
-    return models.map((model) =>
-      toProtocolModelMetadata(model, runtime.hasConfiguredAuth(model.provider)),
-    )
+    return (await this.providers.listModels()).models
   }
 
   /** 监听前预热会话列表、模型目录和最近用过的会话目录，避免首次握手与首次建会话超时。 */

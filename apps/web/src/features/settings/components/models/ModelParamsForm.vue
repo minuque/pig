@@ -26,6 +26,7 @@
           inputmode="numeric"
           class="field-input"
           :data-invalid="invalid.includes('maxTokens') ? '' : undefined"
+          @update:model-value="dirty = true"
         />
       </label>
 
@@ -38,6 +39,7 @@
           inputmode="numeric"
           class="field-input"
           :data-invalid="invalid.includes('contextWindow') ? '' : undefined"
+          @update:model-value="dirty = true"
         />
       </label>
     </div>
@@ -56,6 +58,7 @@
         size="s"
         class="field-input"
         :placeholder="t('settings.models.paramKey')"
+        @update:model-value="dirty = true"
       />
 
       <TextFieldRoot
@@ -63,6 +66,7 @@
         size="s"
         class="field-input"
         :placeholder="t('settings.models.paramValue')"
+        @update:model-value="dirty = true"
       >
         <TextFieldSlot side="right">
           <button
@@ -115,6 +119,7 @@ const { t } = useI18n()
 const saving = ref(false)
 const error = ref<string>()
 const invalid = ref<Array<"maxTokens" | "contextWindow">>([])
+const dirty = ref(false)
 const THINKING_LEVELS: ThinkingLevel[] = ["off", "minimal", "low", "medium", "high", "xhigh", "max"]
 const form = reactive<ModelParamsFormState>(toForm(props.model))
 
@@ -132,19 +137,25 @@ function toForm(model: ProviderModelView): ModelParamsFormState {
 
 watch(
   () => props.model,
-  (model) => Object.assign(form, toForm(model)),
+  (model) => {
+    if (dirty.value) return
+    Object.assign(form, toForm(model))
+  },
 )
 
 function onThinking(value: unknown) {
   form.thinkingLevel = value as ThinkingLevel
+  dirty.value = true
 }
 
 function addParam() {
   form.samplingParams.push({ key: "", value: "" })
+  dirty.value = true
 }
 
 function removeParam(index: number) {
   form.samplingParams.splice(index, 1)
+  dirty.value = true
 }
 
 async function save() {
@@ -158,6 +169,7 @@ async function save() {
 
   try {
     await updateModelParams(props.providerId, props.model.id, result.patch)
+    dirty.value = false
     emit("saved")
   } catch (cause) {
     error.value = errorMessage(cause)
@@ -178,6 +190,7 @@ async function restore() {
       contextWindow: null,
       samplingParams: null,
     })
+    dirty.value = false
     emit("saved")
   } catch (cause) {
     error.value = errorMessage(cause)

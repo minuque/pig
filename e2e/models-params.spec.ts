@@ -30,3 +30,32 @@ test("模型参数保存后重开仍在，恢复默认回到模型默认", async
   await page.getByRole("button", { name: "恢复默认" }).click()
   await expect(maxTokens).toHaveValue("32000")
 })
+
+test("切换别的模型开关不会覆盖未保存的参数", async ({ page, modelsGateway }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, modelsGateway.workspaceId)
+  await page.goto(modelsGateway.entryUrl)
+  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
+
+  await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
+  await page.locator(".settings-nav").getByRole("button", { name: "模型" }).click()
+  await page.locator(".provider-row").filter({ hasText: "Anthropic" }).click()
+
+  await page.locator(".model-toggle").filter({ hasText: "Claude Opus 4.7" }).click()
+  const maxTokens = page.locator(".field").filter({ hasText: "最大输出" }).locator("input")
+  await maxTokens.fill("8192")
+
+  const catalog = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/v1/platform/models") && response.request().method() === "GET",
+  )
+
+  await page
+    .locator(".model-row")
+    .filter({ hasText: "Claude Sonnet 4.5" })
+    .getByRole("switch")
+    .click()
+  await catalog
+
+  await expect(maxTokens).toHaveValue("8192")
+})

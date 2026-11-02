@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises"
+import { mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { resolve } from "node:path"
@@ -346,6 +346,7 @@ describe("PiHostService", () => {
     const service = new PiHostService({
       sessionDir: dir,
       cwd: dir,
+      agentDir: dir,
       createRuntime: async () => baseRuntime as never,
       createSession: (async (options: {
         sessionManager: SessionManager
@@ -482,6 +483,20 @@ describe("PiHostService", () => {
     expect(models).toEqual([
       expect.objectContaining({ provider: "test", id: "test-model", authenticated: true }),
     ])
+  })
+
+  it("listModels 按 enabledModels 过滤", async () => {
+    const { dir, service } = await makeService()
+    await writeFile(join(dir, "settings.json"), JSON.stringify({ enabledModels: ["other/other"] }))
+
+    expect(await service.listModels()).toEqual([])
+  })
+
+  it("enabledModels 为空数组表示全部关闭", async () => {
+    const { dir, service } = await makeService()
+    await writeFile(join(dir, "settings.json"), JSON.stringify({ enabledModels: [] }))
+
+    expect(await service.listModels()).toEqual([])
   })
 
   it("warm 预热会话列表和模型目录", async () => {

@@ -89,7 +89,7 @@ describe("ProviderService login", () => {
 
     expect(pending.map((event) => event.type)).toEqual(["auth_url", "prompt", "done"])
     expect(fake.prompts).toEqual(["sk-test"])
-    expect(fake.refresh).toHaveBeenCalledWith({ providers: ["anthropic"] })
+    expect(fake.refresh).toHaveBeenCalledWith({ providers: ["anthropic"], allowNetwork: true })
     expect(pending.map((event) => event.seq)).toEqual([1, 2, 3])
   })
 

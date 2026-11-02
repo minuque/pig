@@ -23,7 +23,7 @@ export interface ProviderModelView {
   maxTokens: number
   samplingParams?: Record<string, unknown>
   thinkingLevel?: ThinkingLevel
-  /** 是否在 enabledModels 开放列表内；空列表表示全部开放。 */
+  /** 是否在 enabledModels 开放列表内；未配置表示全部开放，空列表表示全部关闭。 */
   enabled: boolean
 }
 
@@ -102,7 +102,7 @@ export function isModelEnabled(
   providerId: string,
   modelId: string,
 ): boolean {
-  if (!enabledModels?.length) return true
+  if (enabledModels === undefined) return true
   return enabledModels.some((pattern) => matchesModelRef(pattern, providerId, modelId))
 }
 
@@ -114,9 +114,10 @@ export function toggleEnabledModel(
   modelId: string,
   enabled: boolean,
 ): string[] | undefined {
-  const current = enabledModels?.length
-    ? [...enabledModels]
-    : allModels.map((model) => `${model.provider}/${model.id}`)
+  const current =
+    enabledModels === undefined
+      ? allModels.map((model) => `${model.provider}/${model.id}`)
+      : [...enabledModels]
   const next = enabled
     ? [
         ...current.filter((pattern) => !matchesModelRef(pattern, providerId, modelId)),

@@ -87,7 +87,22 @@ describe("updateModelParams", () => {
       },
     })
     expect(body.providers.anthropic?.models).toBeUndefined()
-    expect(runtime.refresh).toHaveBeenCalledWith({ providers: ["anthropic"] })
+    expect(runtime.refresh).toHaveBeenCalledWith({ providers: ["anthropic"], allowNetwork: true })
+  })
+
+  it("带 baseUrl 的内置覆盖仍按内置处理", async () => {
+    const { providers, modelsPath } = await serviceWith({
+      providers: { anthropic: { baseUrl: "https://proxy.example/v1" } },
+    })
+
+    await providers.updateModelParams("anthropic", "claude-sonnet", { maxTokens: 1024 })
+
+    const body = await saved(modelsPath)
+
+    expect(body.providers.anthropic?.models).toBeUndefined()
+    expect(body.providers.anthropic?.modelOverrides).toEqual({
+      "claude-sonnet": { maxTokens: 1024 },
+    })
   })
 
   it("自定义供应商写进对应 models 条目", async () => {

@@ -63,7 +63,7 @@
       </p>
 
       <div class="login-actions">
-        <Button size="s" variant="surface" @click="emit('cancel')">
+        <Button size="s" variant="surface" type="button" @click="emit('cancel')">
           {{ t("common.cancel") }}
         </Button>
 
