@@ -2,6 +2,7 @@
   <div class="model-card">
     <div class="card-head">
       <button type="button" class="card-toggle" @click="open = !open">
+        <VendorMark class="model-icon" :vendor="providerId" :name="providerName" :size="16" />
         <span class="model-name">{{ model.id || t("settings.models.newModel") }}</span>
         <span class="model-meta">{{ model.contextWindow || "—" }}</span>
       </button>
@@ -49,15 +50,15 @@
       </div>
 
       <div class="field-grid">
-        <label class="switch-row">
+        <div class="field">
           <span class="field-label">{{ t("settings.models.imageInput") }}</span>
-          <Switch v-model="model.image" size="s" />
-        </label>
+          <span class="switch-box"><Switch v-model="model.image" size="s" /></span>
+        </div>
 
-        <label class="switch-row">
+        <div class="field">
           <span class="field-label">{{ t("settings.models.reasoning") }}</span>
-          <Switch v-model="model.reasoning" size="s" />
-        </label>
+          <span class="switch-box"><Switch v-model="model.reasoning" size="s" /></span>
+        </div>
       </div>
     </div>
   </div>
@@ -69,10 +70,14 @@ import { ref } from "vue"
 import { AltArrowDownIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
+import VendorMark from "@features/composer/components/VendorMark.vue"
 import { useI18n } from "@i18n/index.js"
 import type { CustomModelDraft } from "@features/settings/lib/provider-view.js"
 
 const model = defineModel<CustomModelDraft>({ required: true })
+
+defineProps<{ providerId?: string | undefined; providerName?: string | undefined }>()
+
 const emit = defineEmits<{ remove: [] }>()
 const { t } = useI18n()
 const open = ref(!model.value.id)
@@ -100,6 +105,10 @@ const open = ref(!model.value.id)
   align-items: center;
   gap: var(--space-sm);
   text-align: start;
+}
+
+.model-icon {
+  flex: none;
 }
 
 .model-name {
@@ -172,12 +181,10 @@ const open = ref(!model.value.id)
   font-size: var(--text-caption);
 }
 
-.switch-row {
+.switch-box {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  min-height: 30px;
+  height: 28px;
 }
 
 @media (max-width: 560px) {

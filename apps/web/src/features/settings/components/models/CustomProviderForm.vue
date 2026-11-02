@@ -107,6 +107,8 @@
           v-for="(item, index) in draft.models"
           :key="index"
           :model-value="item"
+          :provider-id="draft.id"
+          :provider-name="displayName"
           @remove="removeModel(index)"
         />
       </div>
