@@ -12,15 +12,21 @@
         />
       </label>
 
-      <Button
-        class="add-provider"
-        size="s"
-        variant="surface"
-        :aria-label="t('settings.models.addProvider')"
-        @click="emit('add')"
-      >
-        <AddIcon />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Button
+            class="add-provider"
+            size="s"
+            variant="surface"
+            :aria-label="t('settings.models.addProvider')"
+            @click="emit('add')"
+          >
+            <AddIcon />
+          </Button>
+        </TooltipTrigger>
+
+        <TooltipContent>{{ t("settings.models.addProvider") }}</TooltipContent>
+      </Tooltip>
     </div>
 
     <p v-if="loading && !providers.length" class="list-state">{{ t("settings.models.loading") }}</p>
@@ -81,6 +87,7 @@ import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { AddIcon, AltArrowRightIcon, MagnifierIcon } from "@components/icons/index.js"
 import { Button } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
 import type { ProviderView } from "@/types/provider-type.js"
@@ -115,8 +122,8 @@ function sourceKind(provider: ProviderView) {
 
 .add-provider {
   flex: none;
-  inline-size: 34px;
-  block-size: 34px;
+  inline-size: 24px;
+  block-size: 24px;
   padding: 0;
 }
 
