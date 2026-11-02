@@ -17,6 +17,7 @@ export type ThinkingLevel = (typeof THINKING_LEVELS)[number]
 export interface ProviderModelView {
   id: string
   name: string
+  input?: string[]
   reasoning: boolean
   contextWindow: number
   maxTokens: number
@@ -28,6 +29,7 @@ export interface ProviderView {
   id: string
   name: string
   baseUrl?: string
+  api?: string
   kind: "builtin" | "custom"
   capabilities: { apiKey: boolean; oauth: boolean; ambient: boolean }
   status: { configured: boolean; source: ProviderSource | null; hint: string | null }
@@ -50,10 +52,12 @@ export function projectProvider(
 ): ProviderView {
   const apiKey = Boolean(provider.auth.apiKey?.login)
   const oauth = Boolean(provider.auth.oauth)
+  const api = models[0]?.api
   return {
     id: provider.id,
     name: provider.name,
     ...(provider.baseUrl ? { baseUrl: provider.baseUrl } : {}),
+    ...(api ? { api } : {}),
     kind,
     capabilities: {
       apiKey,
@@ -70,6 +74,7 @@ export function projectProvider(
       return {
         id: model.id,
         name: model.name,
+        ...(model.input ? { input: [...model.input] } : {}),
         reasoning: Boolean(model.reasoning),
         contextWindow: model.contextWindow,
         maxTokens: model.maxTokens,

@@ -77,6 +77,7 @@ describe("provider routes", () => {
         id: "anthropic",
         name: "Anthropic",
         baseUrl: "https://api.test.local",
+        api: "anthropic-messages",
         kind: "builtin",
         capabilities: { apiKey: true, oauth: false, ambient: false },
         status: { configured: true, source: "stored", hint: null },
@@ -84,6 +85,7 @@ describe("provider routes", () => {
           {
             id: "claude-sonnet",
             name: "Claude Sonnet",
+            input: ["text"],
             reasoning: true,
             contextWindow: 200_000,
             maxTokens: 32_000,

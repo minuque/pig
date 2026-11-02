@@ -209,32 +209,35 @@ async function withModelsGateway(use: (gateway: E2eGateway) => Promise<void>) {
     }),
   )
 
-  const runtime = createFakeRuntime([
-    {
-      id: "anthropic",
-      name: "Anthropic",
-      configured: true,
-      models: [
-        { id: "claude-opus-4-7", name: "Claude Opus 4.7", reasoning: true },
-        { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5", reasoning: true },
-        { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
-      ],
-    },
-    { id: "openai", name: "OpenAI", models: [{ id: "gpt-5", name: "GPT-5" }] },
-    {
-      id: "deepseek",
-      name: "DeepSeek",
-      configured: true,
-      failTest: true,
-      models: [{ id: "deepseek-chat", name: "DeepSeek Chat" }],
-    },
-    {
-      id: "ollama",
-      name: "本地 Ollama",
-      baseUrl: "http://localhost:11434/v1",
-      models: [{ id: "llama3.1:8b", name: "Llama 3.1 8B", contextWindow: 128_000 }],
-    },
-  ])
+  const runtime = createFakeRuntime(
+    [
+      {
+        id: "anthropic",
+        name: "Anthropic",
+        configured: true,
+        models: [
+          { id: "claude-opus-4-7", name: "Claude Opus 4.7", reasoning: true },
+          { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5", reasoning: true },
+          { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
+        ],
+      },
+      { id: "openai", name: "OpenAI", models: [{ id: "gpt-5", name: "GPT-5" }] },
+      {
+        id: "deepseek",
+        name: "DeepSeek",
+        configured: true,
+        failTest: true,
+        models: [{ id: "deepseek-chat", name: "DeepSeek Chat" }],
+      },
+      {
+        id: "ollama",
+        name: "本地 Ollama",
+        baseUrl: "http://localhost:11434/v1",
+        models: [{ id: "llama3.1:8b", name: "Llama 3.1 8B", contextWindow: 128_000 }],
+      },
+    ],
+    { modelsPath: join(agentDir, "models.json") },
+  )
   const platformPort: DirectoryPort = {
     async selectDirectory() {
       return workspaceDir

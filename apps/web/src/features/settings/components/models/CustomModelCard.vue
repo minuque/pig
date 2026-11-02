@@ -1,0 +1,188 @@
+<template>
+  <div class="model-card">
+    <div class="card-head">
+      <button type="button" class="card-toggle" @click="open = !open">
+        <span class="model-name">{{ model.id || t("settings.models.newModel") }}</span>
+        <span class="model-meta">{{ model.contextWindow || "—" }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="icon-button"
+        :aria-label="t('settings.models.removeModel')"
+        @click="emit('remove')"
+      >
+        <TrashBinMinimalisticIcon />
+      </button>
+
+      <button
+        type="button"
+        class="icon-button"
+        :aria-label="t('settings.models.expandModel')"
+        @click="open = !open"
+      >
+        <AltArrowDownIcon class="chevron" :class="{ open }" />
+      </button>
+    </div>
+
+    <div v-if="open" class="card-body">
+      <div class="field-grid">
+        <label class="field">
+          <span class="field-label">{{ t("settings.models.modelId") }}</span>
+          <TextFieldRoot v-model="model.id" size="s" class="field-input" />
+        </label>
+
+        <label class="field">
+          <span class="field-label">{{ t("settings.models.displayName") }}</span>
+          <TextFieldRoot v-model="model.name" size="s" class="field-input" />
+        </label>
+
+        <label class="field">
+          <span class="field-label">{{ t("settings.models.contextWindow") }}</span>
+          <TextFieldRoot v-model="model.contextWindow" size="s" class="field-input" />
+        </label>
+
+        <label class="field">
+          <span class="field-label">{{ t("settings.models.maxTokens") }}</span>
+          <TextFieldRoot v-model="model.maxTokens" size="s" class="field-input" />
+        </label>
+      </div>
+
+      <div class="field-grid">
+        <label class="switch-row">
+          <span class="field-label">{{ t("settings.models.imageInput") }}</span>
+          <Switch v-model="model.image" size="s" />
+        </label>
+
+        <label class="switch-row">
+          <span class="field-label">{{ t("settings.models.reasoning") }}</span>
+          <Switch v-model="model.reasoning" size="s" />
+        </label>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from "vue"
+
+import { AltArrowDownIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
+import { Switch } from "@components/ui/switch/index.js"
+import { TextFieldRoot } from "@components/ui/text-field/index.js"
+import { useI18n } from "@i18n/index.js"
+import type { CustomModelDraft } from "@features/settings/lib/provider-view.js"
+
+const model = defineModel<CustomModelDraft>({ required: true })
+const emit = defineEmits<{ remove: [] }>()
+const { t } = useI18n()
+const open = ref(!model.value.id)
+</script>
+
+<style scoped>
+.model-card {
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding-inline: var(--space-sm);
+  min-height: 40px;
+}
+
+.card-toggle {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: start;
+}
+
+.model-name {
+  overflow: hidden;
+  color: var(--contrast-foreground);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.model-meta {
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-eyebrow);
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  color: var(--contrast-foreground-muted);
+}
+
+.icon-button:hover {
+  background: var(--hover-quiet);
+  color: var(--contrast-foreground);
+}
+
+.icon-button svg {
+  inline-size: 14px;
+  block-size: 14px;
+}
+
+.chevron {
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: 0 var(--space-sm) var(--space-sm);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-eyebrow);
+}
+
+.field-input {
+  font-size: var(--text-caption);
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 30px;
+}
+
+@media (max-width: 560px) {
+  .field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+</style>

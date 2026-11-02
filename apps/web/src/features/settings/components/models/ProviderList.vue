@@ -2,6 +2,11 @@
   <section class="provider-list">
     <header class="list-head">
       <h2 class="list-title">{{ t("settings.models.providers") }}</h2>
+
+      <Button variant="surface" size="s" @click="emit('add')">
+        <AddIcon />
+        {{ t("settings.models.addProvider") }}
+      </Button>
     </header>
 
     <label class="provider-search">
@@ -68,7 +73,8 @@
 import { computed, ref } from "vue"
 
 import { useI18n } from "@i18n/index.js"
-import { AltArrowRightIcon, MagnifierIcon } from "@components/icons/index.js"
+import { AddIcon, AltArrowRightIcon, MagnifierIcon } from "@components/icons/index.js"
+import { Button } from "@components/ui/button/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
 import type { ProviderView } from "@/types/provider-type.js"
@@ -78,7 +84,7 @@ const props = defineProps<{
   loading: boolean
   error?: string | undefined
 }>()
-const emit = defineEmits<{ select: [id: string]; retry: [] }>()
+const emit = defineEmits<{ select: [id: string]; retry: []; add: [] }>()
 const { t } = useI18n()
 const query = ref("")
 const groups = computed(() => groupProviders(props.providers, query.value))

@@ -5,7 +5,12 @@ import { PlatformRequestError, platformRequest } from "@client/http.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
 import type { ModelMetadata } from "@/types/common-type.js"
-import type { LoginEvent, ProviderListResponse, ProviderTestResult } from "@/types/provider-type.js"
+import type {
+  CustomProviderInput,
+  LoginEvent,
+  ProviderListResponse,
+  ProviderTestResult,
+} from "@/types/provider-type.js"
 import type { SessionCard } from "@/types/session-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 
@@ -135,6 +140,20 @@ export async function testProvider(
   return platformRequest<ProviderTestResult>("/api/v1/platform/providers/test", {
     method: "POST",
     body: JSON.stringify({ providerId, ...(modelId ? { modelId } : {}) }),
+  })
+}
+
+/** 新增或更新自定义供应商；空 apiKey 保留旧值。 */
+export async function saveCustomProvider(input: CustomProviderInput): Promise<void> {
+  await platformRequest(`/api/v1/platform/providers/custom/${encodeURIComponent(input.id)}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  })
+}
+
+export async function deleteCustomProvider(providerId: string): Promise<void> {
+  await platformRequest(`/api/v1/platform/providers/custom/${encodeURIComponent(providerId)}`, {
+    method: "DELETE",
   })
 }
 

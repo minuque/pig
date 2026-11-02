@@ -8,6 +8,7 @@ export type ProviderSource =
 export interface ProviderModelView {
   id: string
   name: string
+  input?: string[]
   reasoning: boolean
   contextWindow: number
   maxTokens: number
@@ -19,6 +20,7 @@ export interface ProviderView {
   id: string
   name: string
   baseUrl?: string
+  api?: string
   kind: "builtin" | "custom"
   capabilities: { apiKey: boolean; oauth: boolean; ambient: boolean }
   status: { configured: boolean; source: ProviderSource | null; hint: string | null }
@@ -39,6 +41,25 @@ export interface ProviderTestResult {
   ok: boolean
   latencyMs?: number
   message?: string
+}
+
+export interface CustomModelInput {
+  id: string
+  name?: string
+  input?: string[]
+  reasoning?: boolean
+  contextWindow?: number
+  maxTokens?: number
+  samplingParams?: Record<string, unknown>
+}
+
+export interface CustomProviderInput {
+  id: string
+  name: string
+  baseUrl: string
+  api: string
+  apiKey?: string
+  models: CustomModelInput[]
 }
 
 export type ProviderBadge = "connected" | "disconnected" | "authorizing"

@@ -1,5 +1,7 @@
 /** 供应商列表的纯展示数据：分组、搜索、来源文案与状态徽标。 */
 import type {
+  CustomModelInput,
+  CustomProviderInput,
   ProviderBadge,
   ProviderGroup,
   ProviderModelView,
@@ -67,4 +69,77 @@ export function modelMeta(model: ProviderModelView): string {
       ? `${Math.round(model.contextWindow / 1000)}K`
       : String(model.contextWindow)
   return model.reasoning ? `${context} · reasoning` : context
+}
+
+export interface CustomModelDraft {
+  id: string
+  name: string
+  contextWindow: string
+  maxTokens: string
+  reasoning: boolean
+  image: boolean
+  /** 表单不编辑，保存时原样带回。 */
+  samplingParams?: Record<string, unknown>
+}
+
+export interface CustomProviderDraft {
+  id: string
+  name: string
+  baseUrl: string
+  api: string
+  apiKey: string
+  models: CustomModelDraft[]
+}
+
+export type CustomProviderPayload =
+  { ok: true; payload: CustomProviderInput } | { ok: false; field: "id" | "baseUrl" }
+
+/** 表单草稿 → 接口载荷：必填校验、空 Key 不发、模型去重。 */
+export function customProviderPayload(draft: CustomProviderDraft): CustomProviderPayload {
+  const id = draft.id.trim()
+  const baseUrl = draft.baseUrl.trim()
+
+  if (!id) return { ok: false, field: "id" }
+
+  if (!baseUrl) return { ok: false, field: "baseUrl" }
+
+  const apiKey = draft.apiKey.trim()
+  const seen = new Set<string>()
+  const models: CustomModelInput[] = []
+
+  for (const model of draft.models) {
+    const modelId = model.id.trim()
+
+    if (!modelId || seen.has(modelId)) continue
+    seen.add(modelId)
+
+    const contextWindow = positiveInteger(model.contextWindow)
+    const maxTokens = positiveInteger(model.maxTokens)
+    models.push({
+      id: modelId,
+      ...(model.name.trim() ? { name: model.name.trim() } : {}),
+      input: model.image ? ["text", "image"] : ["text"],
+      ...(model.reasoning ? { reasoning: true } : {}),
+      ...(model.samplingParams ? { samplingParams: model.samplingParams } : {}),
+      ...(contextWindow ? { contextWindow } : {}),
+      ...(maxTokens ? { maxTokens } : {}),
+    })
+  }
+
+  return {
+    ok: true,
+    payload: {
+      id,
+      name: draft.name.trim() || id,
+      baseUrl,
+      api: draft.api,
+      ...(apiKey ? { apiKey } : {}),
+      models,
+    },
+  }
+}
+
+function positiveInteger(value: string): number | undefined {
+  const parsed = Number(value.trim())
+  return value.trim() && Number.isInteger(parsed) && parsed > 0 ? parsed : undefined
 }

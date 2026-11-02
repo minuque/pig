@@ -111,10 +111,12 @@ describe("projectProvider", () => {
     )
 
     expect(view.kind).toBe("custom")
+    expect(view.api).toBe("anthropic-messages")
     expect(view.models).toEqual([
       {
         id: "claude-opus",
         name: "claude-opus",
+        input: ["text"],
         reasoning: true,
         contextWindow: 200_000,
         maxTokens: 32_000,

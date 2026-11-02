@@ -1,5 +1,12 @@
 /** e2e 用的 ModelRuntime 替身：只需要配置页用到的投影与登录方法。 */
 
+import { readFile } from "node:fs/promises"
+
+export interface FakeRuntimeOptions {
+  /** 提供后 refresh 会把 models.json 里的自定义供应商同步进列表。 */
+  modelsPath?: string
+}
+
 export interface FakeModelSpec {
   id: string
   name: string
@@ -58,11 +65,64 @@ function authOf(kind: FakeProviderSpec["auth"]) {
   }
 }
 
-export function createFakeRuntime(specs: FakeProviderSpec[]) {
+export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntimeOptions = {}) {
   const state: FakeProviderState[] = specs.map((spec) => ({
     ...spec,
     configured: spec.configured ?? false,
   }))
+  const fromFile = new Set<string>()
+
+  async function syncModelsJson() {
+    if (!options.modelsPath) return
+
+    let providers: Record<string, Record<string, unknown>>
+
+    try {
+      const parsed = JSON.parse(await readFile(options.modelsPath, "utf-8")) as {
+        providers?: Record<string, Record<string, unknown>>
+      }
+
+      providers = parsed.providers ?? {}
+    } catch {
+      return
+    }
+
+    for (const [id, config] of Object.entries(providers)) {
+      if (!config.api && !config.baseUrl && !Array.isArray(config.models)) continue
+
+      const models = Array.isArray(config.models)
+        ? (config.models as FakeModelSpec[]).map((item) => ({
+            id: item.id,
+            name: item.name ?? item.id,
+            reasoning: item.reasoning ?? false,
+            contextWindow: item.contextWindow ?? 200_000,
+            maxTokens: item.maxTokens ?? 32_000,
+          }))
+        : []
+      const next: FakeProviderState = {
+        id,
+        name: typeof config.name === "string" ? config.name : id,
+        ...(typeof config.baseUrl === "string" ? { baseUrl: config.baseUrl } : {}),
+        configured: typeof config.apiKey === "string" && config.apiKey.length > 0,
+        source: "models_json_key",
+        models,
+      }
+      const existing = state.find((item) => item.id === id)
+
+      if (existing) Object.assign(existing, next)
+      else state.push(next)
+      fromFile.add(id)
+    }
+
+    for (const id of [...fromFile]) {
+      if (id in providers) continue
+      const index = state.findIndex((item) => item.id === id)
+
+      if (index >= 0) state.splice(index, 1)
+      fromFile.delete(id)
+    }
+  }
+
   const providers = () =>
     state.map((spec) => ({
       id: spec.id,
@@ -117,7 +177,10 @@ export function createFakeRuntime(specs: FakeProviderSpec[]) {
       spec.source = "stored"
       return { type: "oauth" }
     },
-    refresh: async () => ({ aborted: false, errors: new Map() }),
+    refresh: async () => {
+      await syncModelsJson()
+      return { aborted: false, errors: new Map() }
+    },
     completeSimple: async (selected: { provider: string }) => {
       const spec = state.find((item) => item.id === selected.provider)
 

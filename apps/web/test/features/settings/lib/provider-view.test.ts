@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import type { ProviderView } from "@/types/provider-type.js"
 import {
+  customProviderPayload,
   groupProviders,
   providerSourceText,
   providerStatusBadge,
@@ -106,5 +107,83 @@ describe("providerStatusBadge", () => {
         true,
       ),
     ).toBe("authorizing")
+  })
+})
+
+describe("customProviderPayload", () => {
+  const draft = (overrides: Record<string, unknown> = {}) => ({
+    id: "ollama",
+    name: "",
+    baseUrl: "http://localhost:11434/v1",
+    api: "openai-completions",
+    apiKey: "",
+    models: [
+      {
+        id: "llama3",
+        name: "",
+        contextWindow: "128000",
+        maxTokens: "8192",
+        reasoning: true,
+        image: false,
+      },
+    ],
+    ...overrides,
+  })
+
+  it("缺 ID 或 Base URL 时给出字段", () => {
+    expect(customProviderPayload(draft({ id: "  " }))).toEqual({ ok: false, field: "id" })
+    expect(customProviderPayload(draft({ baseUrl: "" }))).toEqual({
+      ok: false,
+      field: "baseUrl",
+    })
+  })
+
+  it("空 apiKey 不发送，显示名回退到 ID", () => {
+    const result = customProviderPayload(draft())
+
+    expect(result).toEqual({
+      ok: true,
+      payload: {
+        id: "ollama",
+        name: "ollama",
+        baseUrl: "http://localhost:11434/v1",
+        api: "openai-completions",
+        models: [
+          {
+            id: "llama3",
+            input: ["text"],
+            contextWindow: 128000,
+            maxTokens: 8192,
+            reasoning: true,
+          },
+        ],
+      },
+    })
+  })
+
+  it("模型按 ID 去重，空 ID 丢弃，图片输入追加 image", () => {
+    const result = customProviderPayload(
+      draft({
+        apiKey: "key",
+        models: [
+          { id: "a", name: "A", contextWindow: "", maxTokens: "", reasoning: false, image: true },
+          {
+            id: "a",
+            name: "重复",
+            contextWindow: "",
+            maxTokens: "",
+            reasoning: false,
+            image: false,
+          },
+          { id: " ", name: "空", contextWindow: "", maxTokens: "", reasoning: false, image: false },
+        ],
+      }),
+    )
+
+    expect(result.ok).toBe(true)
+
+    if (!result.ok) return
+    expect(result.payload.apiKey).toBe("key")
+    expect(result.payload.models).toEqual([{ id: "a", name: "A", input: ["text", "image"] }])
   })
 })
