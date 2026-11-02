@@ -23,7 +23,7 @@
           <div class="settings-right-head">
             <nav v-if="trail.length" class="settings-crumbs" :aria-label="t('settings.title')">
               <template v-for="(crumb, index) in trail" :key="`${index}-${crumb.label}`">
-                <AltArrowRightIcon v-if="index > 0" class="crumb-sep" />
+                <span v-if="index > 0" class="crumb-sep" aria-hidden="true">/</span>
 
                 <button v-if="crumb.action" type="button" class="crumb" @click="crumb.action()">
                   {{ crumb.label }}
@@ -64,7 +64,6 @@ import { computed, nextTick, provide, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import {
-  AltArrowRightIcon,
   ChartSquareIcon,
   CloudIcon,
   SliderMinimalisticHorizontalIcon,
@@ -239,7 +238,7 @@ watch(active, async () => {
   max-width: var(--size-settings-body);
   margin-inline: auto;
   color: var(--contrast-foreground-muted);
-  font-size: var(--text-caption);
+  font-size: var(--text-body-sm);
 }
 
 .settings-dialog .crumb {
@@ -256,9 +255,8 @@ watch(active, async () => {
 }
 
 .settings-dialog .crumb-sep {
-  inline-size: 12px;
-  block-size: 12px;
   color: var(--contrast-foreground-faint);
+  user-select: none;
 }
 
 .settings-dialog .settings-scroll {

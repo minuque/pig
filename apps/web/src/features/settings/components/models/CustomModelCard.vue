@@ -50,12 +50,12 @@
       </div>
 
       <div class="field-grid">
-        <div class="field">
+        <div class="field field-inline">
           <span class="field-label">{{ t("settings.models.imageInput") }}</span>
           <span class="switch-box"><Switch v-model="model.image" size="s" /></span>
         </div>
 
-        <div class="field">
+        <div class="field field-inline">
           <span class="field-label">{{ t("settings.models.reasoning") }}</span>
           <span class="switch-box"><Switch v-model="model.reasoning" size="s" /></span>
         </div>
@@ -170,6 +170,13 @@ const open = ref(!model.value.id)
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.field-inline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--size-control);
 }
 
 .field-label {

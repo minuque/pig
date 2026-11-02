@@ -1,8 +1,6 @@
 <template>
   <section class="provider-list">
     <header class="list-head">
-      <h2 class="list-title">{{ t("settings.models.providers") }}</h2>
-
       <Button size="s" @click="emit('add')">
         <AddIcon />
         {{ t("settings.models.addProvider") }}
@@ -30,38 +28,40 @@
       </button>
     </div>
 
-    <div v-for="group in groups" :key="group.id" class="provider-group">
-      <h3 class="provider-group-title">{{ t(`settings.models.group.${group.id}`) }}</h3>
+    <div v-if="groups.length" class="provider-card">
+      <div v-for="group in groups" :key="group.id" class="provider-group">
+        <h3 class="provider-group-title">{{ t(`settings.models.group.${group.id}`) }}</h3>
 
-      <button
-        v-for="provider in group.providers"
-        :key="provider.id"
-        type="button"
-        class="provider-row"
-        :data-provider="provider.id"
-        @click="emit('select', provider.id)"
-      >
-        <span class="provider-mark">
-          <VendorMark :vendor="provider.id" :name="provider.name" :size="20" />
-        </span>
-
-        <span class="provider-main">
-          <span class="provider-name">
-            {{ provider.name }}
-            <span v-if="sourceKind(provider) !== 'none'" class="provider-badge-soft">
-              {{ t(`settings.models.source.${sourceKind(provider)}`) }}
-            </span>
+        <button
+          v-for="provider in group.providers"
+          :key="provider.id"
+          type="button"
+          class="provider-row"
+          :data-provider="provider.id"
+          @click="emit('select', provider.id)"
+        >
+          <span class="provider-mark">
+            <VendorMark :vendor="provider.id" :name="provider.name" :size="20" />
           </span>
 
-          <span class="provider-id">{{ provider.id }}</span>
-        </span>
+          <span class="provider-main">
+            <span class="provider-name">
+              {{ provider.name }}
+              <span v-if="sourceKind(provider) !== 'none'" class="provider-badge-soft">
+                {{ t(`settings.models.source.${sourceKind(provider)}`) }}
+              </span>
+            </span>
 
-        <span v-if="provider.status.configured" class="provider-count">
-          {{ t("settings.models.modelCount", { count: provider.models.length }) }}
-        </span>
+            <span class="provider-id">{{ provider.id }}</span>
+          </span>
 
-        <AltArrowRightIcon class="provider-chevron" />
-      </button>
+          <span v-if="provider.status.configured" class="provider-count">
+            {{ t("settings.models.modelCount", { count: provider.models.length }) }}
+          </span>
+
+          <AltArrowRightIcon class="provider-chevron" />
+        </button>
+      </div>
     </div>
 
     <p v-if="!loading && !groups.length" class="list-state">
@@ -104,16 +104,8 @@ function sourceKind(provider: ProviderView) {
 .list-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-block-end: var(--space-md);
-}
-
-.list-title {
-  margin: 0;
-  color: var(--contrast-foreground);
-  font-size: var(--text-body-lg);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--text-body-lg--line-height);
 }
 
 .provider-search {
@@ -121,7 +113,7 @@ function sourceKind(provider: ProviderView) {
   align-items: center;
   gap: var(--space-xs);
   height: 34px;
-  margin-block-end: var(--space-lg);
+  margin-block-end: var(--space-md);
   padding-inline: var(--space-sm);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
@@ -146,12 +138,21 @@ function sourceKind(provider: ProviderView) {
   color: var(--placeholder);
 }
 
+.provider-card {
+  padding-block: var(--space-xs);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--background);
+  overflow: hidden;
+}
+
 .provider-group + .provider-group {
-  margin-block-start: var(--space-lg);
+  margin-block-start: var(--space-xs);
+  border-block-start: var(--border-width) solid var(--border-subtle);
 }
 
 .provider-group-title {
-  margin: 0 0 var(--space-xxs);
+  margin: var(--space-sm) 0 var(--space-xxs);
   padding-inline: var(--space-sm);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
@@ -167,10 +168,13 @@ function sourceKind(provider: ProviderView) {
   width: 100%;
   height: 52px;
   padding-inline: var(--space-sm);
-  border-radius: var(--radius-md);
   color: var(--contrast-foreground);
   text-align: start;
   transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.provider-row + .provider-row {
+  border-block-start: var(--border-width) solid var(--border-subtle);
 }
 
 .provider-row:hover {
