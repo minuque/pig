@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url"
 
 import Gateway from "../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../packages/gateway/src/directory.js"
+import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
+import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
 import { prebuildComplexSession, prebuildFillerSessions } from "./prebuild-session.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
@@ -18,15 +20,19 @@ export function canonicalizeWorkspacePath(path: string): string {
 }
 
 /** 种子 localStorage 定位工作区；reducedMotion 由调用方按需 emulate（bench 要切两档）。 */
-export async function seedWorkspace(page: Page, workspaceId: string) {
+export async function seedWorkspaces(page: Page, workspaceIds: readonly string[]) {
   await page.addInitScript(
-    ({ id }) => {
-      localStorage.setItem("pig.localWorkspaces", JSON.stringify([id]))
-      localStorage.setItem("pig.lastCwd", id)
+    ({ ids }) => {
+      localStorage.setItem("pig.localWorkspaces", JSON.stringify(ids))
+      localStorage.setItem("pig.lastCwd", ids[0] ?? "")
       localStorage.setItem("npg-theme", "light")
     },
-    { id: workspaceId },
+    { ids: workspaceIds },
   )
+}
+
+export async function seedWorkspace(page: Page, workspaceId: string) {
+  await seedWorkspaces(page, [workspaceId])
 }
 
 /** DataTransfer 只能在页面里造，一次派发一个拖拽事件到 .session-panel。 */
@@ -64,11 +70,37 @@ export interface E2eGateway {
   readonly workspaceId: string
 }
 
+/** 两个工作目录：验项目筛选多选。 */
+export interface MultiE2eGateway extends E2eGateway {
+  readonly secondWorkspaceId: string
+}
+
 type TestFixtures = {
   gateway: E2eGateway
   complexGateway: E2eGateway
   /** 只装 6 个批量会话，用来验侧栏分组与分页。 */
   navGateway: E2eGateway
+  /** 两个项目各装若干会话，用来验多选筛选。 */
+  multiGateway: MultiE2eGateway
+  /** 固定模型目录：已连接/未连接/自定义三组。 */
+  modelsGateway: E2eGateway
+  /** 没有任何可用模型，用来验 Composer 空态。 */
+  emptyModelsGateway: E2eGateway
+}
+
+/** 起 Gateway 并躲开 Chromium 禁用端口。 */
+async function startGateway(options: ConstructorParameters<typeof Gateway>[0]) {
+  let gateway = new Gateway(options)
+  let port = await gateway.start()
+
+  // listen(0) 偶尔抽到 Chromium 的禁用端口，重起到能直连为止
+  for (let attempt = 0; attempt < 5 && UNSAFE_PORTS.has(port); attempt += 1) {
+    await gateway.stop()
+    gateway = new Gateway(options)
+    port = await gateway.start()
+  }
+
+  return { gateway, port }
 }
 
 async function withGateway(
@@ -92,16 +124,13 @@ async function withGateway(
       return path
     },
   }
-  const options = { webRoot, sessionDir, cwd: workspaceDir, platformPort, port: 0 }
-  let gateway = new Gateway(options)
-  let port = await gateway.start()
-
-  // listen(0) 偶尔抽到 Chromium 的禁用端口，重起到能直连为止
-  for (let attempt = 0; attempt < 5 && UNSAFE_PORTS.has(port); attempt += 1) {
-    await gateway.stop()
-    gateway = new Gateway(options)
-    port = await gateway.start()
-  }
+  const { gateway, port } = await startGateway({
+    webRoot,
+    sessionDir,
+    cwd: workspaceDir,
+    platformPort,
+    port: 0,
+  })
 
   try {
     await use({
@@ -109,6 +138,190 @@ async function withGateway(
       entryUrl: gateway.authenticatedUrl(`http://127.0.0.1:${port}`),
       workspaceDir,
       workspaceId,
+    })
+  } finally {
+    await gateway.stop()
+    await rm(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+  }
+}
+
+async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void>) {
+  const temp = await mkdtemp(join(tmpdir(), "pig-e2e-"))
+  const firstDir = join(temp, "workspace-a")
+  const secondDir = join(temp, "workspace-b")
+  const sessionDir = join(temp, "sessions")
+  await mkdir(firstDir)
+  await mkdir(secondDir)
+  await mkdir(sessionDir)
+  await writeFile(join(firstDir, ".keep"), "")
+  await writeFile(join(secondDir, ".keep"), "")
+  prebuildFillerSessions(sessionDir, firstDir, 3)
+  prebuildFillerSessions(sessionDir, secondDir, 2, "e2e-other")
+
+  const platformPort: DirectoryPort = {
+    async selectDirectory() {
+      return firstDir
+    },
+    async validateDirectory(path) {
+      return path
+    },
+  }
+  const { gateway, port } = await startGateway({
+    webRoot,
+    sessionDir,
+    cwd: firstDir,
+    platformPort,
+    port: 0,
+  })
+
+  try {
+    await use({
+      origin: `http://127.0.0.1:${port}`,
+      entryUrl: gateway.authenticatedUrl(`http://127.0.0.1:${port}`),
+      workspaceDir: firstDir,
+      workspaceId: canonicalizeWorkspacePath(firstDir),
+      secondWorkspaceId: canonicalizeWorkspacePath(secondDir),
+    })
+  } finally {
+    await gateway.stop()
+    await rm(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+  }
+}
+
+/** 模型配置页：临时 agentDir + 假 runtime，隔离本机 ~/.pi。 */
+async function withModelsGateway(
+  use: (gateway: E2eGateway) => Promise<void>,
+  specs?: FakeProviderSpec[],
+) {
+  const temp = await mkdtemp(join(tmpdir(), "pig-e2e-models-"))
+  const workspaceDir = join(temp, "workspace")
+  const sessionDir = join(temp, "sessions")
+  const agentDir = join(temp, "agent")
+  await mkdir(workspaceDir)
+  await mkdir(sessionDir)
+  await mkdir(agentDir)
+  await writeFile(join(workspaceDir, ".keep"), "")
+  // 已连接供应商的掩码提示来自 auth.json 的 Key 末四位。
+  await writeFile(
+    join(agentDir, "auth.json"),
+    JSON.stringify({
+      anthropic: { type: "api_key", key: "sk-ant-e2e-4f2a" },
+      openai: { type: "api_key", key: "{{SECRET_jssv7fkn}}" },
+    }),
+  )
+  await writeFile(
+    join(agentDir, "models.json"),
+    JSON.stringify({
+      providers: {
+        ollama: {
+          name: "本地 Ollama",
+          baseUrl: "http://localhost:11434/v1",
+          api: "openai-completions",
+          models: [{ id: "llama3.1:8b" }],
+        },
+        lmstudio: {
+          name: "LM Studio",
+          baseUrl: "http://localhost:1234/v1",
+          api: "openai-completions",
+          models: [{ id: "qwen3-32b" }],
+        },
+        vllm: {
+          name: "内网 vLLM",
+          baseUrl: "http://10.0.0.8:8000/v1",
+          api: "openai-completions",
+          models: [{ id: "deepseek-v3" }],
+        },
+      },
+    }),
+  )
+
+  const runtime = createFakeRuntime(
+    specs ?? [
+      {
+        id: "anthropic",
+        name: "Anthropic",
+        configured: true,
+        models: [
+          {
+            id: "claude-opus-4-7",
+            name: "Claude Opus 4.7",
+            reasoning: true,
+            samplingParams: { temperature: 1, top_p: 0.95 },
+          },
+          { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5", reasoning: true },
+          { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
+        ],
+      },
+      {
+        id: "openai",
+        name: "OpenAI",
+        auth: "both",
+        models: [{ id: "gpt-5", name: "GPT-5" }],
+      },
+      {
+        id: "deepseek",
+        name: "DeepSeek",
+        configured: true,
+        failTest: true,
+        models: [{ id: "deepseek-chat", name: "DeepSeek Chat" }],
+      },
+      {
+        id: "ollama",
+        name: "本地 Ollama",
+        baseUrl: "http://localhost:11434/v1",
+        api: "openai-completions",
+        models: [{ id: "llama3.1:8b", name: "Llama 3.1 8B", contextWindow: 128_000 }],
+      },
+      {
+        id: "lmstudio",
+        name: "LM Studio",
+        baseUrl: "http://localhost:1234/v1",
+        api: "openai-completions",
+        models: [{ id: "qwen3-32b", name: "Qwen3 32B", contextWindow: 128_000 }],
+      },
+      {
+        id: "vllm",
+        name: "内网 vLLM",
+        baseUrl: "http://10.0.0.8:8000/v1",
+        api: "openai-completions",
+        models: [{ id: "deepseek-v3", name: "DeepSeek V3", contextWindow: 128_000 }],
+      },
+      ...BUILTIN_PROVIDERS.filter(
+        (provider) => !["anthropic", "openai", "deepseek"].includes(provider.id),
+      ).map((provider) => ({ ...provider, models: [] })),
+    ],
+    {
+      modelsPath: join(agentDir, "models.json"),
+      addModelOnRefresh: {
+        provider: "anthropic",
+        model: { id: "claude-sonnet-5", name: "Claude Sonnet 5", reasoning: true },
+      },
+    },
+  )
+  const platformPort: DirectoryPort = {
+    async selectDirectory() {
+      return workspaceDir
+    },
+    async validateDirectory(path) {
+      return path
+    },
+  }
+  const { gateway, port } = await startGateway({
+    webRoot,
+    sessionDir,
+    cwd: workspaceDir,
+    platformPort,
+    port: 0,
+    agentDir,
+    createRuntime: async () => runtime as never,
+  })
+
+  try {
+    await use({
+      origin: `http://127.0.0.1:${port}`,
+      entryUrl: gateway.authenticatedUrl(`http://127.0.0.1:${port}`),
+      workspaceDir,
+      workspaceId: canonicalizeWorkspacePath(workspaceDir),
     })
   } finally {
     await gateway.stop()
@@ -137,6 +350,24 @@ export const test = base.extend<TestFixtures>({
       await withGateway((sessionDir, workspaceDir) => {
         prebuildFillerSessions(sessionDir, workspaceDir, 6)
       }, use)
+    },
+    { scope: "test" },
+  ],
+  multiGateway: [
+    async ({}, use) => {
+      await withTwoWorkspaces(use)
+    },
+    { scope: "test" },
+  ],
+  modelsGateway: [
+    async ({}, use) => {
+      await withModelsGateway(use)
+    },
+    { scope: "test" },
+  ],
+  emptyModelsGateway: [
+    async ({}, use) => {
+      await withModelsGateway(use, [])
     },
     { scope: "test" },
   ],

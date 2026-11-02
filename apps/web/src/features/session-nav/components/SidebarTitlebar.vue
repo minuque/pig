@@ -1,6 +1,6 @@
 <template>
   <div class="nav-titlebar">
-    <RouterLink to="/" class="nav-brand" aria-label="pig">
+    <RouterLink to="/" class="nav-brand" aria-label="pig" @click="emit('home')">
       <span class="brand-mark">
         <img class="brand-pig" src="/logo-pig.png" alt="" width="22" height="22" />
       </span>
@@ -34,6 +34,7 @@ defineProps<{
 
 const emit = defineEmits<{
   toggleSidebar: []
+  home: []
 }>()
 const { t } = useI18n()
 </script>

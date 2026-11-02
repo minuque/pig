@@ -12,6 +12,30 @@ function spawnPnpm(args, cwd, env) {
   })
 }
 
+/** 按命令行长度上限把文件拆成多条子命令，避开 Windows 的 8191 字符限制。 */
+export function splitCommandArgs(prefix, files, maxChars) {
+  const base = prefix.join(" ").length + 1
+  const chunks = []
+  let current = []
+  let size = base
+
+  for (const file of files) {
+    const added = file.length + 1
+
+    if (current.length && size + added > maxChars) {
+      chunks.push([...prefix, ...current])
+      current = []
+      size = base
+    }
+
+    current.push(file)
+    size += added
+  }
+
+  if (current.length) chunks.push([...prefix, ...current])
+  return chunks
+}
+
 export function runPnpm(args, cwd) {
   return new Promise((resolveRun) => {
     const started = Date.now()

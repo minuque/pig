@@ -14,7 +14,7 @@ const meta: Meta = {
   render: (args) => ({
     components: { Radio },
     setup: () => ({ args }),
-    template: "<Radio v-bind='args' aria-label='单独的单选' />",
+    template: "<Radio v-bind='args' :aria-label=\"$t('demo.radio.single')\" />",
   }),
 }
 

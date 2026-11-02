@@ -2,11 +2,11 @@
   <AlertDialogOverlay
     data-slot="alert-dialog-overlay"
     v-bind="forwardedProps"
-    class="rt-BaseDialogOverlay rt-DialogOverlay"
+    class="rt-BaseDialogOverlay rt-AlertDialogOverlay"
     :class="props.class"
   >
-    <div class="rt-BaseDialogScroll rt-DialogScroll">
-      <div class="rt-BaseDialogScrollPadding rt-DialogScrollPadding" :class="alignClass">
+    <div class="rt-BaseDialogScroll rt-AlertDialogScroll">
+      <div class="rt-BaseDialogScrollPadding rt-AlertDialogScrollPadding" :class="alignClass">
         <slot />
       </div>
     </div>

@@ -4,6 +4,7 @@ import {
   readEnum,
   readFlag,
   readNumber,
+  readPref,
   writeFlag,
   writeNumber,
   writePref,
@@ -16,36 +17,30 @@ export type FontSize = "s" | "m" | "l"
 const LOCALE_KEY = "pig.locale"
 const FONT_SIZE_KEY = "pig.fontSize"
 const NOTIFY_KEY = "pig.notify"
-const GLASS_KEY = "pig.glass"
-const GLASS_OPACITY_KEY = "pig.glassOpacity"
-const GLASS_OPACITY_DEFAULT = 80
-/** 与 t3code 同档：40 下限保证浮层仍可读，100 即全实。 */
-const GLASS_OPACITY_MIN = 40
-const GLASS_OPACITY_MAX = 100
+const TRANSLUCENT_KEY = "pig.translucentWindow"
 const CONTRAST_KEY = "pig.contrast"
 const CONTRAST_DEFAULT = 0
 const CONTRAST_MAX = 100
 const locale = shallowRef<UiLocale>("zh-CN")
 const fontSize = shallowRef<FontSize>("m")
 const notifyOn = shallowRef(true)
-const glassOn = shallowRef(true)
-const glassOpacity = shallowRef(GLASS_OPACITY_DEFAULT)
+const translucentWindow = shallowRef(false)
 const contrastBoost = shallowRef(CONTRAST_DEFAULT)
 let loaded = false
 
 function apply(
   nextLocale: UiLocale,
   nextSize: FontSize,
-  nextGlass: boolean,
-  nextOpacity: number,
+  nextTranslucent: boolean,
   nextContrast: number,
 ): void {
   if (typeof document === "undefined") return
   document.documentElement.lang = nextLocale
   document.documentElement.dataset.fontSize = nextSize
-  document.documentElement.dataset.glass = nextGlass ? "on" : "off"
-  document.documentElement.style.setProperty("--glass-opacity", nextOpacity + "%")
+  document.documentElement.dataset.translucentWindow = nextTranslucent ? "on" : "off"
   document.documentElement.style.setProperty("--contrast-boost", nextContrast + "%")
+  // 桌面壳把开关落到系统背景材质；浏览器里没有这个桥
+  window.pigDesktop?.window?.setTranslucent?.(nextTranslucent)
   i18n.global.locale.value = nextLocale as typeof i18n.global.locale.value
 }
 
@@ -55,10 +50,9 @@ function load(): void {
   locale.value = readEnum(LOCALE_KEY, ["en", "zh-CN"] as const, "zh-CN")
   fontSize.value = readEnum(FONT_SIZE_KEY, ["s", "m", "l"] as const, "m")
   notifyOn.value = readFlag(NOTIFY_KEY)
-  glassOn.value = readFlag(GLASS_KEY)
-  glassOpacity.value = readNumber(GLASS_OPACITY_KEY) ?? GLASS_OPACITY_DEFAULT
+  translucentWindow.value = readPref(TRANSLUCENT_KEY) === "on"
   contrastBoost.value = readNumber(CONTRAST_KEY) ?? CONTRAST_DEFAULT
-  apply(locale.value, fontSize.value, glassOn.value, glassOpacity.value, contrastBoost.value)
+  apply(locale.value, fontSize.value, translucentWindow.value, contrastBoost.value)
 }
 
 /** 通用偏好：语言、字号、回合完成系统通知。语言切到 vue-i18n。 */
@@ -66,16 +60,15 @@ export function useGeneralPrefs() {
   load()
 
   watch(
-    [locale, fontSize, glassOn, glassOpacity, contrastBoost],
-    ([nextLocale, nextSize, on, opacity, contrast]) =>
-      apply(nextLocale, nextSize, on, opacity, contrast),
+    [locale, fontSize, translucentWindow, contrastBoost],
+    ([nextLocale, nextSize, nextTranslucent, nextContrast]) =>
+      apply(nextLocale, nextSize, nextTranslucent, nextContrast),
   )
   return {
     locale: readonly(locale),
     fontSize: readonly(fontSize),
     notifyOn: readonly(notifyOn),
-    glassOn: readonly(glassOn),
-    glassOpacity: readonly(glassOpacity),
+    translucentWindow: readonly(translucentWindow),
     contrastBoost: readonly(contrastBoost),
     setLocale(next: UiLocale) {
       locale.value = next
@@ -89,16 +82,9 @@ export function useGeneralPrefs() {
       notifyOn.value = next
       writeFlag(NOTIFY_KEY, next)
     },
-    setGlass(next: boolean) {
-      glassOn.value = next
-      writeFlag(GLASS_KEY, next)
-    },
-    setGlassOpacity(next: number) {
-      glassOpacity.value = Math.min(
-        Math.max(Math.round(next), GLASS_OPACITY_MIN),
-        GLASS_OPACITY_MAX,
-      )
-      writeNumber(GLASS_OPACITY_KEY, glassOpacity.value)
+    setTranslucentWindow(next: boolean) {
+      translucentWindow.value = next
+      writeFlag(TRANSLUCENT_KEY, next)
     },
     setContrastBoost(next: number) {
       contrastBoost.value = Math.min(Math.max(Math.round(next), 0), CONTRAST_MAX)

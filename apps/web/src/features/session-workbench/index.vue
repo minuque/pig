@@ -553,7 +553,7 @@ const contentHandleSides = ["left", "right"] as const
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-md);
   border: var(--border-width) dashed var(--primary);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--composer-background);
   color: var(--primary);
   font-size: var(--text-body-md);
@@ -632,7 +632,7 @@ const contentHandleSides = ["left", "right"] as const
   pointer-events: none;
   background: linear-gradient(
     to top,
-    var(--background) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
+    var(--workbench-surface) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
     transparent
   );
   backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-saturation, 1.08));
@@ -677,7 +677,7 @@ const contentHandleSides = ["left", "right"] as const
 .scroll-latest-control {
   width: var(--size-scroll-control);
   height: var(--size-scroll-control);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--popover);
   color: var(--contrast-foreground-secondary);
   box-shadow: none;

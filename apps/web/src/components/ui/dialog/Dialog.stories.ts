@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "@components/ui/dialog/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
+import { t } from "@i18n/index.js"
 
 const meta: Meta = {
   title: "UI/Dialog",
@@ -32,11 +33,11 @@ const meta: Meta = {
     },
     setup: () => ({ args }),
     template: `<Dialog>
-      <DialogTrigger as-child><Button variant="outline">重命名</Button></DialogTrigger>
+      <DialogTrigger as-child><Button variant="outline">{{ $t("demo.dialog.rename") }}</Button></DialogTrigger>
       <DialogContent :size="args.size" :max-width="args.maxWidth">
-        <DialogTitle>重命名</DialogTitle>
-        <DialogDescription>改名只影响本机的会话标题，不动磁盘上的内容。</DialogDescription>
-        <TextFieldRoot model-value="草稿" aria-label="名称" />
+        <DialogTitle>{{ $t("demo.dialog.rename") }}</DialogTitle>
+        <DialogDescription>{{ $t("demo.dialog.renameDescription") }}</DialogDescription>
+        <TextFieldRoot :model-value="$t('demo.dialog.draft')" :aria-label="$t('demo.dialog.name')" />
       </DialogContent>
     </Dialog>`,
   }),
@@ -48,14 +49,14 @@ type Story = StoryObj<typeof meta>
 
 export const Rename: Story = {
   play: async ({ canvas }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "重命名" }))
+    await userEvent.click(canvas.getByRole("button", { name: t("demo.dialog.rename") }))
 
     const dialog = await screen.findByRole("dialog")
-    await expect(dialog).toHaveTextContent("重命名")
-    await expect(dialog).toHaveTextContent("不动磁盘上的内容")
-    await expect(screen.getByLabelText("名称")).toHaveValue("草稿")
+    await expect(dialog).toHaveTextContent(t("demo.dialog.rename"))
+    await expect(dialog).toHaveTextContent(t("demo.dialog.renameDescription"))
+    await expect(screen.getByLabelText(t("demo.dialog.name"))).toHaveValue(t("demo.dialog.draft"))
 
-    await userEvent.click(screen.getByRole("button", { name: "关闭" }))
+    await userEvent.click(screen.getByRole("button", { name: t("common.close") }))
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
   },
 }
@@ -67,8 +68,8 @@ export const Sizes: Story = {
       <Dialog v-for="size in ['1', '2', '3', '4']" :key="size">
         <DialogTrigger as-child><Button variant="soft">size {{ size }}</Button></DialogTrigger>
         <DialogContent :size="size">
-          <DialogTitle>尺寸 {{ size }}</DialogTitle>
-          <DialogDescription>面板宽度按 rt 的四档。</DialogDescription>
+          <DialogTitle>{{ $t("demo.dialog.sizeTitle", { size }) }}</DialogTitle>
+          <DialogDescription>{{ $t("demo.dialog.sizeDescription") }}</DialogDescription>
         </DialogContent>
       </Dialog>
     </div>`,

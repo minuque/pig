@@ -1,7 +1,7 @@
 // preload 以 sandbox 脚本加载，没有 ESM 加载器，只能 require。
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { contextBridge, ipcRenderer } = require("electron")
-// 只向 renderer 暴露窗口底色上报：渲染进程换主题时调用，主进程据此改窗口底色。
+// 渲染进程可用的桌面能力：上报窗口底色、驱动自画窗控。
 const GATEWAY_ORIGIN_ARG_PREFIX = "--pig-gateway-origin="
 
 function stampDesktopPlatform() {
@@ -38,6 +38,29 @@ function stamp() {
 contextBridge.exposeInMainWorld("pigDesktop", {
   setThemeColor(color) {
     ipcRenderer.send("pig:theme-color", color)
+  },
+  window: {
+    minimize() {
+      ipcRenderer.send("pig:window:minimize")
+    },
+    toggleMaximize() {
+      ipcRenderer.send("pig:window:toggle-maximize")
+    },
+    close() {
+      ipcRenderer.send("pig:window:close")
+    },
+    isMaximized() {
+      return ipcRenderer.invoke("pig:window:is-maximized")
+    },
+    setTranslucent(on) {
+      ipcRenderer.send("pig:window:set-translucent", Boolean(on))
+    },
+    onMaximizedChange(listener) {
+      const handler = (_event, value) => listener(Boolean(value))
+
+      ipcRenderer.on("pig:window:maximized", handler)
+      return () => ipcRenderer.removeListener("pig:window:maximized", handler)
+    },
   },
 })
 

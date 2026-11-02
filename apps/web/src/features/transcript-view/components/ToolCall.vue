@@ -407,7 +407,7 @@ function toggleGroup(event: MouseEvent) {
 }
 
 .failed .tool-icon {
-  color: var(--destructive);
+  color: var(--danger);
 }
 
 .tool-icon {
@@ -456,7 +456,7 @@ function toggleGroup(event: MouseEvent) {
 }
 
 .removed {
-  color: var(--destructive);
+  color: var(--danger);
 }
 
 .calls {

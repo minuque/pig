@@ -12,6 +12,7 @@ import type { ConnectionState, ServerSnapshot, Unsubscribe } from "@/types/commo
 import { t } from "@i18n/index.js"
 
 import { createWebSocketByteTransportFactory, webSocketUrl } from "@client/transport.js"
+import { listProviderModels } from "@client/platform.js"
 
 export interface PiClientConnectionOptions {
   /** 覆盖默认的本机 WebSocket URL。 */
@@ -102,6 +103,15 @@ export function usePiClient() {
     serverSnapshot.value = { ...snapshot, sessions: [...sessions] }
   }
 
+  /** 用 /models 结果替换快照里的模型目录，Composer 无需重连。 */
+  async function refreshModels() {
+    const snapshot = serverSnapshot.value
+
+    if (!snapshot) return
+    const models = await listProviderModels()
+    serverSnapshot.value = { ...snapshot, models }
+  }
+
   async function dispose() {
     if (disposed) return
     disposed = true
@@ -153,6 +163,7 @@ export function usePiClient() {
     models,
     connect,
     refreshSessions,
+    refreshModels,
     bindAttachedReconnect,
     dispose,
   }

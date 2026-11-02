@@ -13,7 +13,7 @@
 - 基础件的样式来自 Radix Themes：`apps/web/src/style/rt.css` 引入它的 base 与 components，组件用 `rt-*` 类加 `data-*` 属性表达外观。改这些wrapper 前先读 `node_modules/@radix-ui/themes` 的对应源码，props 照它的 prop def 语义。
 - 外观微调写 SFC 的 scoped 样式：scoped 选择器带 data 属性，特异性高于 rt 的 0-1-0，不需要 `!important`，也不受引入顺序影响。不要在模板里堆工具类压 rt。
 - 组件样式只消费 `apps/web/src/style/app.css` 的 token。缺档先补 `app.css`，再写组件；SFC 不声明 `--*`，不写裸 hex/rgb/`color-mix`。
-- Tailwind 已移除。布局原子类与排版、颜色、圆角类在 `apps/web/src/style/components/`，类名沿用 shadcn 写法（`flex`、`items-center`、`gap-sm`、`text-body-md`、`rounded-md`），间距按 `--space-*` 命名而不是数字刻度。
+- Tailwind 已移除。布局原子类与排版、颜色、圆角类在 `apps/web/src/style/components.css`，类名沿用 shadcn 写法（`flex`、`items-center`、`gap-sm`、`text-body-md`、`rounded-md`），间距按 `--space-*` 命名而不是数字刻度。
 - 弹层用 `<ThemeRoot>` 包住 teleport 内容：rt 的面板与阴影 token 挂在 `.radix-themes` 上，飞出文档流就取不到。
 - 动画复用 `apps/web/src/style/motion.css` 的类与 `@keyframes`。缺档先补 `motion.css`，再写组件。
 

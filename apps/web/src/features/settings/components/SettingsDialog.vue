@@ -20,12 +20,31 @@
         </nav>
 
         <div class="settings-right">
-          <div class="settings-right-head" aria-hidden="true"></div>
+          <div class="settings-right-head">
+            <nav v-if="trail.length" class="settings-crumbs" :aria-label="t('settings.title')">
+              <template v-for="(crumb, index) in trail" :key="`${index}-${crumb.label}`">
+                <span v-if="index > 0" class="crumb-sep" aria-hidden="true">/</span>
+
+                <button v-if="crumb.action" type="button" class="crumb" @click="crumb.action()">
+                  {{ crumb.label }}
+                </button>
+
+                <span
+                  v-else
+                  class="crumb"
+                  :aria-current="index === trail.length - 1 ? 'page' : undefined"
+                >
+                  {{ crumb.label }}
+                </span>
+              </template>
+            </nav>
+          </div>
 
           <div ref="scroller" class="settings-scroll">
             <div class="settings-body">
               <GeneralPane v-if="active === 'general'" />
               <UsagePane v-else-if="active === 'usage'" />
+              <ModelsPane v-else-if="active === 'models'" :refresh-models="refreshModels" />
 
               <ResourcePane
                 v-else
@@ -41,31 +60,43 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue"
+import { computed, nextTick, provide, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import {
   ChartSquareIcon,
+  CloudIcon,
   SliderMinimalisticHorizontalIcon,
   Widget5Icon,
   WidgetAddIcon,
 } from "@components/icons/index.js"
 import GeneralPane from "./GeneralPane.vue"
 import UsagePane from "./UsagePane.vue"
+import ModelsPane from "./models/ModelsPane.vue"
 import ResourcePane from "./ResourcePane.vue"
 
-type Pane = "general" | "usage" | "skills" | "extensions"
+import type {
+  SettingsCrumb,
+  SettingsPane as Pane,
+} from "@features/settings/hooks/use-settings-dialog.js"
+import { SETTINGS_TRAIL } from "@features/settings/hooks/use-settings-dialog.js"
 
 const props = defineProps<{
   open: boolean
   cwd?: string | undefined
   /** 打开时定位的分区，默认 General。 */
   initialPane?: Pane | undefined
+  /** 刷新模型后同步 Composer 的模型目录。 */
+  refreshModels?: (() => Promise<void>) | undefined
 }>()
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
 const active = ref<Pane>(props.initialPane ?? "general")
 const scroller = ref<HTMLElement>()
+const trail = ref<SettingsCrumb[]>([])
+
+provide(SETTINGS_TRAIL, trail)
+
 const tabs = computed<{ id: Pane; label: string; icon: typeof SliderMinimalisticHorizontalIcon }[]>(
   () => [
     {
@@ -74,6 +105,7 @@ const tabs = computed<{ id: Pane; label: string; icon: typeof SliderMinimalistic
       icon: SliderMinimalisticHorizontalIcon,
     },
     { id: "usage", label: t("settings.usage"), icon: ChartSquareIcon },
+    { id: "models", label: t("settings.models.title"), icon: CloudIcon },
     { id: "skills", label: t("settings.skills"), icon: WidgetAddIcon },
     { id: "extensions", label: t("settings.extensions"), icon: Widget5Icon },
   ],
@@ -96,6 +128,14 @@ watch(
     active.value = props.initialPane ?? "general"
     await nextTick()
     resetScroll()
+  },
+)
+
+/** 弹框已开时再次 openSettings 也要切到新分区。 */
+watch(
+  () => props.initialPane,
+  (pane) => {
+    if (props.open && pane) active.value = pane
   },
 )
 
@@ -131,7 +171,7 @@ watch(active, async () => {
   padding: var(--space-md);
   padding-block-start: calc(var(--space-md) + var(--space-xxs));
   border-inline-end: var(--border-width) solid var(--sidebar-border);
-  background: var(--sidebar);
+  background: var(--background);
   color: var(--sidebar-foreground);
   user-select: none;
 }
@@ -183,8 +223,40 @@ watch(active, async () => {
 
 /* 头部条占住右上角关闭按钮的位置，滚动条从这里以下开始 */
 .settings-dialog .settings-right-head {
+  display: flex;
+  align-items: center;
   flex: none;
   height: calc(var(--space-md) + var(--size-icon-button) + var(--space-sm));
+  padding-inline: var(--space-lg);
+}
+
+.settings-dialog .settings-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: var(--size-settings-body);
+  margin-inline: auto;
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-body-sm);
+}
+
+.settings-dialog .crumb {
+  color: inherit;
+  font-size: inherit;
+}
+
+.settings-dialog button.crumb:hover {
+  color: var(--contrast-foreground);
+}
+
+.settings-dialog .crumb[aria-current="page"] {
+  color: var(--contrast-foreground);
+}
+
+.settings-dialog .crumb-sep {
+  color: var(--contrast-foreground-faint);
+  user-select: none;
 }
 
 .settings-dialog .settings-scroll {

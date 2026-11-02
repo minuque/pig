@@ -5,7 +5,7 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { viteDevPort } from "./main/urls.js"
-import { killPortListeners } from "./main/vite-child.js"
+import { isVitePortFree, killPortListeners } from "./main/vite-child.js"
 
 const desktopRoot = join(dirname(fileURLToPath(import.meta.url)), "..")
 const desktopRequire = createRequire(join(desktopRoot, "package.json"))
@@ -37,13 +37,18 @@ function killPidTree(pid: number): void {
 }
 
 const vitePort = viteDevPort()
-const watchdog = spawn(
-  process.execPath,
-  [join(desktopRoot, "scripts/dev-watchdog.mjs"), String(process.pid), String(vitePort)],
-  { detached: true, stdio: "ignore", windowsHide: true },
-)
+// 端口开跑前就被占着，说明旧实例还在；本进程退出时别按端口把它的 Vite 杀掉
+const ownsPort = isVitePortFree(vitePort)
 
-watchdog.unref()
+if (ownsPort) {
+  const watchdog = spawn(
+    process.execPath,
+    [join(desktopRoot, "scripts/dev-watchdog.mjs"), String(process.pid), String(vitePort)],
+    { detached: true, stdio: "ignore", windowsHide: true },
+  )
+
+  watchdog.unref()
+}
 
 const electron = spawn(electronExecutable(), [".", "--", "--dev", ...process.argv.slice(2)], {
   cwd: desktopRoot,
@@ -52,12 +57,16 @@ const electron = spawn(electronExecutable(), [".", "--", "--dev", ...process.arg
 })
 let stopping = false
 
+function releasePort(): void {
+  if (ownsPort) killPortListeners(vitePort)
+}
+
 function stop(exitCode = 0): void {
   if (stopping) return
   stopping = true
 
   if (electron.pid !== undefined) killPidTree(electron.pid)
-  killPortListeners(vitePort)
+  releasePort()
   process.exit(exitCode)
 }
 
@@ -70,7 +79,7 @@ if (process.platform === "win32") process.once("SIGBREAK", () => stop())
 electron.once("error", () => stop(1))
 
 electron.once("exit", (code, signal) => {
-  killPortListeners(vitePort)
+  releasePort()
 
   if (stopping) return
   process.exit(code ?? (signal ? 1 : 0))

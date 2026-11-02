@@ -25,3 +25,11 @@
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
 }
+
+/* 放大态面板跟设置弹窗同尺寸，不铺满整屏（88vw / 85vh 的夹取与设置弹窗一致） */
+.mermaid-modal-overlay .mermaid-modal-panel {
+  width: min(88vw, var(--size-settings-dialog-width));
+  max-width: min(88vw, var(--size-settings-dialog-width));
+  height: clamp(var(--size-settings-dialog-height-min), 85vh, var(--size-settings-dialog-height));
+  max-height: 100%;
+}

@@ -2,6 +2,7 @@
   <DropdownMenuSubTrigger
     data-slot="dropdown-menu-sub-trigger"
     v-bind="forwardedProps"
+    :data-accent-color="props.color"
     class="rt-BaseMenuItem rt-BaseMenuSubTrigger rt-DropdownMenuItem rt-DropdownMenuSubTrigger"
     :class="props.class"
   >
@@ -21,9 +22,9 @@ import { DropdownMenuSubTrigger, useForwardProps } from "reka-ui"
 import { AltArrowRightIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
-  defineProps<DropdownMenuSubTriggerProps & { class?: HTMLAttributes["class"] }>(),
+  defineProps<DropdownMenuSubTriggerProps & { class?: HTMLAttributes["class"]; color?: string }>(),
   { class: undefined },
 )
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "color")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuSubTriggerProps>
 </script>

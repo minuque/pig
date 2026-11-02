@@ -107,13 +107,15 @@ export function prebuildFillerSessions(
   sessionDir: string,
   cwd: string,
   count: number,
+  idPrefix = "e2e-filler",
 ): { id: string; name: string }[] {
   const made: { id: string; name: string }[] = []
 
   for (let i = 0; i < count; i += 1) {
-    const id = `e2e-filler-${i}`
+    const id = `${idPrefix}-${i}`
     const name = `${FILLER_PREFIX} ${i + 1}`
-    const timestamp = Date.now() + i
+    // 落到过去，别让首帧把会话判成未读（runStartAt 按消息时间比较）
+    const timestamp = Date.now() - 60_000 + i * 1_000
     const manager = SessionManager.create(cwd, sessionDir, { id })
 
     manager.appendSessionInfo(name)

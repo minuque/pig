@@ -10,7 +10,7 @@ const meta: Meta = {
   render: () => ({
     components: { Tooltip, TooltipTrigger, TooltipContent, Button },
     template:
-      "<Tooltip><TooltipTrigger as-child><Button variant='outline'>悬停</Button></TooltipTrigger><TooltipContent>示例说明</TooltipContent></Tooltip>",
+      "<Tooltip><TooltipTrigger as-child><Button variant='outline'>{{ $t('demo.tooltip.trigger') }}</Button></TooltipTrigger><TooltipContent>{{ $t('demo.tooltip.content') }}</TooltipContent></Tooltip>",
   }),
 }
 

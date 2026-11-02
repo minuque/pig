@@ -4,7 +4,7 @@
     data-slot="radio"
     :data-accent-color="color"
     class="rt-reset rt-BaseRadioRoot rt-RadioRoot"
-    :class="[sizeClass, variantClass, props.class]"
+    :class="[sizeClass, variantClass, highContrast && 'rt-high-contrast', props.class]"
     :value="value"
     :name="name"
     :disabled="disabled"
@@ -28,9 +28,10 @@ const props = withDefaults(
     color?: string
     size?: Size
     variant?: "classic" | "surface" | "soft"
+    highContrast?: boolean
     class?: HTMLAttributes["class"]
   }>(),
-  { disabled: false, size: "m", variant: "surface", class: undefined },
+  { disabled: false, size: "m", variant: "surface", highContrast: false, class: undefined },
 )
 const emit = defineEmits<{ "update:checked": [checked: boolean] }>()
 const sizeClass = computed(() => rtSizeClass(props.size))

@@ -14,9 +14,10 @@
             v-if="showCloseButton"
             data-slot="dialog-close"
             :aria-label="t('common.close')"
-            class="dlg-close"
+            class="dlg-close rt-reset rt-BaseButton rt-IconButton rt-variant-ghost rt-r-size-1"
+            data-accent-color="gray"
           >
-            <CloseIcon />
+            <CloseIcon class="size-icon" />
           </DialogClose>
         </DialogContent>
       </DialogOverlay>
@@ -69,30 +70,10 @@ const widthStyle = computed(() =>
 </script>
 
 <style scoped>
-/* 关闭按钮：跟着面板右上角，颜色从 token 取 */
+/* 只留定位：尺寸、配色、悬停与焦点环由 rt 的图标按钮类承担。 */
 .dlg-close {
   position: absolute;
   inset-block-start: var(--space-md);
   inset-inline-end: var(--space-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--icon-button-pad);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-foreground-muted);
-  cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-out);
-}
-
-.dlg-close:hover {
-  background: var(--interaction-hover);
-  color: var(--contrast-foreground);
-}
-
-.dlg-close svg {
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
 }
 </style>

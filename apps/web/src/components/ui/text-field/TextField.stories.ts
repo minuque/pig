@@ -16,7 +16,8 @@ const meta: Meta = {
   render: (args) => ({
     components: { TextFieldRoot },
     setup: () => ({ args }),
-    template: "<TextFieldRoot v-bind='args' placeholder='搜索会话' model-value='' />",
+    template:
+      "<TextFieldRoot v-bind='args' :placeholder=\"$t('demo.textField.searchSessions')\" model-value='' />",
   }),
 }
 
@@ -30,6 +31,6 @@ export const WithSlot: Story = {
   render: () => ({
     components: { TextFieldRoot, TextFieldSlot, MagnifierIcon },
     template:
-      "<TextFieldRoot placeholder='搜索'><TextFieldSlot side='left'><MagnifierIcon class='size-icon' /></TextFieldSlot></TextFieldRoot>",
+      "<TextFieldRoot :placeholder=\"$t('demo.textField.search')\"><TextFieldSlot side='left'><MagnifierIcon class='size-icon' /></TextFieldSlot></TextFieldRoot>",
   }),
 }

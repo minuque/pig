@@ -33,28 +33,6 @@
     </section>
 
     <section class="group">
-      <h2 class="group-title">{{ t("settings.accent") }}</h2>
-
-      <div class="accent-grid" role="radiogroup" :aria-label="t('settings.accent')">
-        <button
-          v-for="accent in ACCENTS"
-          :key="accent.id"
-          type="button"
-          class="accent-swatch"
-          role="radio"
-          :aria-checked="selectedAccent === accent.id"
-          :aria-label="accent.label"
-          :data-accent="accent.id"
-          @click="setAccentById(accent.id)"
-        >
-          <span class="swatch-ball" :style="{ background: swatchColor(accent) }">
-            <CheckIcon v-if="selectedAccent === accent.id" class="swatch-mark" />
-          </span>
-        </button>
-      </div>
-    </section>
-
-    <section class="group">
       <h2 class="group-title">{{ t("settings.interface") }}</h2>
 
       <div class="card">
@@ -101,37 +79,40 @@
 
         <div class="row">
           <div class="copy">
-            <h3 class="label">{{ t("settings.glass") }}</h3>
-            <p class="hint">{{ t("settings.glassHint") }}</p>
+            <h3 class="label">{{ t("settings.accent") }}</h3>
+            <p class="hint">{{ accentHint }}</p>
           </div>
 
-          <Switch
-            :aria-label="t('settings.glass')"
-            :model-value="glassOn"
-            @update:model-value="setGlass"
-          />
+          <div class="accent-grid" role="radiogroup" :aria-label="t('settings.accent')">
+            <button
+              v-for="accent in ACCENTS"
+              :key="accent.id"
+              type="button"
+              class="accent-swatch"
+              role="radio"
+              :aria-checked="selectedAccent === accent.id"
+              :aria-label="accent.label"
+              :data-accent="accent.id"
+              @click="setAccentById(accent.id)"
+            >
+              <span class="swatch-ball" :style="{ background: swatchColor(accent) }">
+                <CheckIcon v-if="selectedAccent === accent.id" class="swatch-mark" />
+              </span>
+            </button>
+          </div>
         </div>
 
         <div class="row">
           <div class="copy">
-            <h3 class="label">{{ t("settings.glassOpacity") }}</h3>
-            <p class="hint">{{ t("settings.glassOpacityHint") }}</p>
+            <h3 class="label">{{ t("settings.translucentWindow") }}</h3>
+            <p class="hint">{{ t("settings.translucentWindowHint") }}</p>
           </div>
 
-          <div class="opacity-control">
-            <Slider
-              :aria-label="t('settings.glassOpacity')"
-              :model-value="[glassOpacity]"
-              :min="40"
-              :max="100"
-              :step="5"
-              :disabled="!glassOn"
-              class="opacity-slider"
-              @update:model-value="onOpacity"
-            />
-
-            <span class="opacity-value">{{ glassOpacity }}%</span>
-          </div>
+          <Switch
+            :aria-label="t('settings.translucentWindow')"
+            :model-value="translucentWindow"
+            @update:model-value="setTranslucentWindow"
+          />
         </div>
 
         <div class="row">
@@ -198,7 +179,12 @@ import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
-import { ACCENTS, DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
+import {
+  ACCENTS,
+  DEFAULT_ACCENT_ID,
+  findAccent,
+  type AccentId,
+} from "@features/theme/lib/accents.js"
 import { accentHex } from "@features/theme/lib/palette.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Switch } from "@components/ui/switch/index.js"
@@ -212,17 +198,16 @@ const {
   locale,
   fontSize,
   notifyOn,
-  glassOn,
-  glassOpacity,
+  translucentWindow,
   contrastBoost,
   setLocale,
   setFontSize,
   setNotify,
-  setGlass,
-  setGlassOpacity,
+  setTranslucentWindow,
   setContrastBoost,
 } = useGeneralPrefs()
 const selectedAccent = computed(() => accent.value)
+const accentHint = computed(() => findAccent(selectedAccent.value).label)
 
 function setAccentById(id: AccentId) {
   setAccent(id === DEFAULT_ACCENT_ID ? null : id)
@@ -265,10 +250,6 @@ const sizes: { id: FontSize; mark: string; label: string }[] = [
   { id: "m", mark: "M", label: t("settings.fontSizeM") },
   { id: "l", mark: "L", label: t("settings.fontSizeL") },
 ]
-
-function onOpacity(value: number[] | undefined) {
-  if (value?.[0] !== undefined) setGlassOpacity(value[0])
-}
 
 function onContrast(value: number[] | undefined) {
   if (value?.[0] !== undefined) setContrastBoost(value[0])
@@ -428,7 +409,7 @@ async function onNotify(next: boolean) {
 .wire-side::after {
   content: "";
   height: var(--space-xxs);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--border);
 }
 
@@ -447,7 +428,7 @@ async function onNotify(next: boolean) {
 
 .wire-line {
   height: var(--space-xxs);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--border);
 }
 
@@ -462,14 +443,14 @@ async function onNotify(next: boolean) {
   margin-top: auto;
   height: var(--space-md);
   padding-inline: var(--space-xxs);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--theme-wire-light-raised);
 }
 
 .wire-knob {
   width: var(--space-sm);
   height: var(--space-sm);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--primary);
 }
 
@@ -481,9 +462,10 @@ async function onNotify(next: boolean) {
 }
 
 .accent-grid {
-  display: grid;
-  gap: var(--space-sm);
-  grid-template-columns: repeat(auto-fill, minmax(2.25rem, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-xs);
 }
 
 .accent-swatch {
@@ -514,7 +496,7 @@ async function onNotify(next: boolean) {
   place-items: center;
   width: 1.25rem;
   height: 1.25rem;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   color: var(--white);
 }
 
@@ -559,6 +541,10 @@ async function onNotify(next: boolean) {
   .row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .accent-grid {
+    justify-content: flex-start;
   }
 }
 </style>

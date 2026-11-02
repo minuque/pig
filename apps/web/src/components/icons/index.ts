@@ -4,6 +4,8 @@ export { default as SidebarGlyph } from "@components/icons/SidebarGlyph.vue"
 
 export { default as RunningPigGlyph } from "@components/icons/RunningPigGlyph.vue"
 
+export { AddIcon } from "@solar-icons/vue/linear/add"
+
 export { AddFolderIcon } from "@solar-icons/vue/linear/add-folder"
 
 export { AlignLeftIcon } from "@solar-icons/vue/linear/align-left"
@@ -34,7 +36,11 @@ export { CheckIcon } from "@solar-icons/vue/linear/check"
 
 export { ClockCircleIcon } from "@solar-icons/vue/linear/clock-circle"
 
+export { CloudIcon } from "@solar-icons/vue/linear/cloud"
+
 export { HistoryIcon } from "@solar-icons/vue/linear/history"
+
+export { KeyMinimalisticIcon } from "@solar-icons/vue/linear/key-minimalistic"
 
 export { CloseIcon } from "@solar-icons/vue/linear/close"
 
@@ -121,6 +127,8 @@ export { SunIcon } from "@solar-icons/vue/linear/sun"
 export { TrashBinMinimalisticIcon } from "@solar-icons/vue/linear/trash-bin-minimalistic"
 
 export { Tuning2Icon } from "@solar-icons/vue/linear/tuning-2"
+
+export { UserIcon } from "@solar-icons/vue/linear/user"
 
 export { VolumeCrossIcon } from "@solar-icons/vue/linear/volume-cross"
 

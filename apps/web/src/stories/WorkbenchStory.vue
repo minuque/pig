@@ -17,20 +17,25 @@
         :highlighted-session-id="highlightedId"
         :expanded-sections="expandedSections"
         :expanded-by-group="expandedByGroup"
+        :status-counts="statusCounts"
         @toggle-sidebar="chrome?.toggleSidebar()"
         @create="createSession"
+        @home="goHome()"
         @add-project="addWorkspace"
         @settings="settingsOpen = true"
         @navigate="onNavigate()"
-        @open="highlightedId = $event"
-        @prime="highlightedId = $event"
+        @open="openSession($event)"
+        @prime="openSession($event)"
         @toggle-pinned="togglePinned"
         @rename="renameSession"
         @delete="deleteSession"
         @reorder-pinned="reorderPinned"
+        @pin-at="pinAt"
+        @unpin="togglePinned"
         @toggle-section="toggleSection"
         @reveal-more="revealMore"
         @collapse-group="collapseGroup"
+        @cycle-status="onCycleStatus"
       />
     </template>
 
@@ -39,7 +44,7 @@
       :content-width="contentWidth"
       :resizing="resizing"
       :drop-active="dropActive || dragOver"
-      :idle="idle"
+      :idle="showIdle"
       :error="pageError"
       :show-handles="showHandles"
       :scroll-shown="scrollShown"
@@ -127,7 +132,7 @@
           :usage="usage"
           :cwd="SETTINGS_CWD"
           :queue="queue"
-          :hero="idle"
+          :hero="showIdle"
           @send="live.send"
           @queue="live.enqueue"
           @abort="live.abort"
@@ -153,6 +158,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, 
 import { useEventListener } from "@vueuse/core"
 
 import { t } from "@i18n/index.js"
+import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import AlertToaster from "@components/layout/AlertToaster.vue"
 import AppLayout from "@components/layout/AppLayout.vue"
 import { dismissNotice, noticeQueue, notifyAction } from "@components/layout/notify.js"
@@ -164,7 +170,13 @@ import { defaultPresetFrom } from "@features/composer/lib/model-preset.js"
 import type { ComposerPreset } from "@features/composer/type.js"
 import { sessionTitle, workspaceName } from "@features/session-nav/index.js"
 import SidebarView from "@features/session-nav/components/SidebarView.vue"
+import {
+  nextInCycle,
+  statusBuckets,
+  type FooterStatus,
+} from "@features/session-nav/lib/status-cycle.js"
 import type { SidebarGrouping, SidebarSort } from "@features/session-nav/type.js"
+import { moveSessionId } from "@features/session-nav/lib/session-list.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeaderView from "@features/session-workbench/components/WorkbenchHeaderView.vue"
@@ -221,11 +233,17 @@ const chrome = useTemplateRef<InstanceType<typeof WorkbenchChrome>>("chrome")
 const transcriptView = useTemplateRef<InstanceType<typeof TranscriptView>>("transcriptView")
 /** 侧栏本地状态：controls 改了就覆盖，重挂载后回到 controls 给的值。 */
 const grouping = ref<SidebarGrouping>(props.sidebarGrouping)
-const scopeFilter = ref<string | undefined>(props.sidebarScope || undefined)
-const searchOpen = ref(props.sidebarSearch)
-const sort = ref<SidebarSort>("updated")
 const sessions = ref<SessionMetadata[]>([...SIDEBAR_SESSIONS])
 const workspaces = ref<string[]>([...SIDEBAR_WORKSPACES])
+const scopeFor = (name: string): ReadonlySet<string> =>
+  new Set(
+    workspaces.value
+      .filter((path) => workspaceName(path) === name)
+      .map((path) => canonicalizeWorkspacePath(path)),
+  )
+const scopeFilter = ref<ReadonlySet<string>>(scopeFor(props.sidebarScope))
+const searchOpen = ref(props.sidebarSearch)
+const sort = ref<SidebarSort>("updated")
 const pinnedOrder = ref<string[]>([...SIDEBAR_PINNED_IDS])
 const highlightedId = ref<string | undefined>(HIGHLIGHTED_SESSION_ID)
 const expandedByGroup = ref<Record<string, number>>({})
@@ -239,7 +257,7 @@ watch(
 
 watch(
   () => props.sidebarScope,
-  (value) => (scopeFilter.value = value || undefined),
+  (value) => (scopeFilter.value = scopeFor(value)),
 )
 
 watch(
@@ -265,6 +283,27 @@ const expandedSections = computed(() => {
   const keys = sections.value.map((section) => section.key)
   return new Set(keys.filter((key) => !collapsedKeys.value.has(key)))
 })
+/** 页脚状态入口：与真实侧栏同一套分桶，故事里点击只换高亮。 */
+const statusBucketsById = computed(() =>
+  statusBuckets(
+    sections.value.flatMap((section) => section.sessions),
+    SIDEBAR_CARD_FEET,
+  ),
+)
+const statusCounts = computed<Record<FooterStatus, number>>(() => ({
+  running: statusBucketsById.value.running.length,
+  unread: statusBucketsById.value.unread.length,
+  draft: statusBucketsById.value.draft.length,
+}))
+
+function onCycleStatus(status: FooterStatus): void {
+  const target = nextInCycle(statusBucketsById.value[status], highlightedId.value)
+
+  if (!target) return
+  highlightedId.value = target.id
+  home.value = false
+}
+
 /** 顶部标题、置顶态与目录名都跟着高亮会话走，与侧栏同一份状态。 */
 const active = computed(() => {
   const session = sessions.value.find((row) => row.id === highlightedId.value)
@@ -289,6 +328,18 @@ function createSession(cwd?: string): void {
   if (!sessions.value.some((session) => session.id === draft.id))
     sessions.value = [draft, ...sessions.value]
   highlightedId.value = draft.id
+  home.value = false
+}
+
+function openSession(id: string): void {
+  highlightedId.value = id
+  home.value = false
+}
+
+/** 点侧栏头像：回欢迎页，清掉高亮会话。 */
+function goHome(): void {
+  highlightedId.value = undefined
+  home.value = true
 }
 
 /** 新增项目：故事不发系统选目录请求，本地追加一个目录并提示。 */
@@ -326,10 +377,11 @@ function togglePinned(id: string | undefined): void {
 
 function reorderPinned(id: string, toIndex: number): void {
   if (!pinnedOrder.value.includes(id)) return
-  const next = pinnedOrder.value.filter((item) => item !== id)
+  pinnedOrder.value = moveSessionId(pinnedOrder.value, id, toIndex)
+}
 
-  next.splice(Math.min(toIndex, next.length), 0, id)
-  pinnedOrder.value = next
+function pinAt(id: string, toIndex: number): void {
+  pinnedOrder.value = moveSessionId(pinnedOrder.value, id, toIndex)
 }
 
 function toggleSection(key: string): void {
@@ -394,7 +446,10 @@ const queue = createComposerQueue()
 const live = createLiveTurn({ prompt, attachments, queue })
 const running = live.running
 const usage = computed(() => (props.composerUsage ? COMPOSER_USAGE : undefined))
+/** 点头像回欢迎页：真实页面由路由驱动，故事在本地复位。 */
+const home = ref(false)
 const idle = computed(() => props.sessionState === "idle")
+const showIdle = computed(() => idle.value || home.value)
 /** Hero 手选目录：真实页面来自 side nav，故事里只留本地值。 */
 const heroWorkspaceId = ref<string | undefined>(SIDEBAR_WORKSPACES[0])
 
@@ -484,6 +539,6 @@ function columnWidth(): number {
 const phase = computed(() =>
   props.transcriptSample === "streaming" || live.running.value ? "turn" : "idle",
 )
-const showHandles = computed(() => props.showContentHandles && !props.pageError && !idle.value)
+const showHandles = computed(() => props.showContentHandles && !props.pageError && !showIdle.value)
 const scrollLabel = t("transcript.scrollToBottom")
 </script>

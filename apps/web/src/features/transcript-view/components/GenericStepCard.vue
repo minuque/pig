@@ -126,14 +126,14 @@ const softWrap = ref(false)
   width: 6px;
   height: 6px;
   margin: 2px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--success);
   box-shadow: 0 0 0 2px var(--success-halo);
 }
 
 .status-dot.is-error {
-  background: var(--destructive);
-  box-shadow: 0 0 0 2px var(--destructive-halo);
+  background: var(--danger);
+  box-shadow: 0 0 0 2px var(--danger-halo);
 }
 
 .status-dot.is-running {
@@ -223,8 +223,8 @@ const softWrap = ref(false)
 }
 
 .exit-badge.is-err {
-  background: var(--destructive-bg);
-  color: var(--destructive-on-tint);
+  background: var(--danger-bg);
+  color: var(--danger-on-tint);
 }
 
 .footer-toggle {

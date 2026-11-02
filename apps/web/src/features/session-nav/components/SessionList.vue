@@ -2,147 +2,147 @@
   <nav class="nav-body session-list">
     <div v-if="sections.length" class="session-window">
       <section
-        v-for="section in sections"
-        :key="section.key"
-        class="session-section"
-        :data-key="section.key"
+        v-if="dragId && !hasPinnedSection"
+        class="session-section pinned-drop"
+        :class="{ 'is-drop-active': dragIndex === 0 }"
+        data-key="pinned"
       >
-        <div class="section-head" :class="{ open: expandedSections.has(section.key) }">
-          <button
-            class="section-toggle"
-            type="button"
-            :aria-expanded="expandedSections.has(section.key)"
-            @click="emit('toggleSection', section.key)"
-          >
-            <span v-if="section.key === 'pinned'" class="section-icon" aria-hidden="true">
-              <component
-                :is="expandedSections.has(section.key) ? PinBoldIcon : PinIcon"
-                :size="15"
-              />
-            </span>
-
-            <span
-              v-else-if="section.key.startsWith('date:')"
-              class="section-icon"
-              aria-hidden="true"
-            >
-              <ClockCircleIcon :size="15" />
-            </span>
-
-            <span v-else-if="section.cwd" class="section-icon" aria-hidden="true">
-              <span
-                v-if="sectionIcons[section.key]?.kind === 'monogram'"
-                class="proj-mono"
-                :style="{ background: monoColor(sectionIcons[section.key]) }"
-              >
-                {{ sectionIcons[section.key]?.value }}
-              </span>
-
-              <span v-else-if="sectionIcons[section.key]?.kind === 'emoji'" class="proj-emoji">
-                {{ sectionIcons[section.key]?.value }}
-              </span>
-
-              <component
-                v-else
-                :is="projectIconComponent(sectionIcons[section.key])"
-                :size="15"
-                :style="sectionIconStyle(section)"
-                :class="{ 'icon-muted': !expandedSections.has(section.key) }"
-              />
-            </span>
-
-            <span
-              class="section-label"
-              :class="{ 'label-fade': sectionLabelOverflow[section.key] }"
-              :data-key="section.key"
-            >
-              {{ section.label }}
-            </span>
-
-            <span v-if="!expandedSections.has(section.key)" class="section-count">
-              {{ section.total }}
-            </span>
-
-            <span class="section-chevron" aria-hidden="true">
-              <AltArrowDownIcon v-if="expandedSections.has(section.key)" :size="15" />
-              <AltArrowRightIcon v-else :size="15" />
-            </span>
-          </button>
-
-          <div v-if="section.cwd" class="section-actions">
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <button
-                  class="section-add"
-                  type="button"
-                  :aria-label="t('session.newInProject')"
-                  @click="emit('create', section.cwd)"
-                >
-                  <ChatRoundAddIcon :size="15" />
-                </button>
-              </TooltipTrigger>
-
-              <TooltipContent>{{ t("session.newInProject") }}</TooltipContent>
-            </Tooltip>
-          </div>
+        <div class="section-head open">
+          <span class="section-icon" aria-hidden="true"><PinIcon :size="15" /></span>
+          <span class="section-label">{{ t("session.pinned") }}</span>
         </div>
 
-        <div class="session-list-group" :class="{ 'is-open': expandedSections.has(section.key) }">
-          <TransitionGroup name="list-reveal" tag="ul" class="section-rows">
-            <li
-              v-for="(session, index) in section.sessions"
-              :key="session.id"
-              class="session-row"
-              :class="{
-                'drop-before': section.key === 'pinned' && dragIndex === index,
-                'drop-after':
-                  section.key === 'pinned' &&
-                  dragIndex === section.sessions.length &&
-                  index === section.sessions.length - 1,
-              }"
-              :data-id="session.id"
-            >
-              <SessionItem
-                v-bind="itemBind(session, section)"
-                :dragging="dragId === session.id"
-                @navigate="emit('navigate', session.cwd)"
-                @open="emit('open', $event)"
-                @prime="emit('prime', $event)"
-                @toggle-pinned="emit('togglePinned', $event)"
-                @rename="(id, name) => emit('rename', id, name)"
-                @delete="emit('delete', $event)"
-                @drag-start="onDragStart(section.key, session.id, $event)"
-              />
-            </li>
-
-            <li
-              v-if="section.shown < section.total || (expandedByGroup[section.key] ?? 0) > 0"
-              :key="`more:${section.key}`"
-              class="session-row more-row"
-            >
-              <button
-                v-if="section.shown < section.total"
-                class="more-button"
-                type="button"
-                @click="emit('revealMore', section.key)"
-              >
-                <DoubleAltArrowDownIcon :size="13" />
-                {{ t("common.showMore") }}
-              </button>
-
-              <button
-                v-else
-                class="more-button"
-                type="button"
-                @click="emit('collapseGroup', section.key)"
-              >
-                <DoubleAltArrowUpIcon :size="13" />
-                {{ t("common.collapse") }}
-              </button>
-            </li>
-          </TransitionGroup>
-        </div>
+        <div class="pinned-drop-zone"></div>
       </section>
+
+      <template v-for="section in sections" :key="section.key">
+        <section class="session-section" :data-key="section.key">
+          <div class="section-head" :class="{ open: expandedSections.has(section.key) }">
+            <button
+              class="section-toggle"
+              type="button"
+              :aria-expanded="expandedSections.has(section.key)"
+              @click="emit('toggleSection', section.key)"
+            >
+              <span v-if="section.key === 'pinned'" class="section-icon" aria-hidden="true">
+                <component
+                  :is="expandedSections.has(section.key) ? PinBoldIcon : PinIcon"
+                  :size="15"
+                />
+              </span>
+
+              <span
+                v-else-if="section.key.startsWith('date:')"
+                class="section-icon"
+                aria-hidden="true"
+              >
+                <ClockCircleIcon :size="15" />
+              </span>
+
+              <span v-else-if="section.cwd" class="section-icon" aria-hidden="true">
+                <FolderIcon
+                  :size="15"
+                  :class="{ 'icon-muted': !expandedSections.has(section.key) }"
+                />
+              </span>
+
+              <span
+                class="section-label"
+                :class="{ 'label-fade': sectionLabelOverflow[section.key] }"
+                :data-key="section.key"
+              >
+                {{ section.label }}
+              </span>
+
+              <span v-if="!expandedSections.has(section.key)" class="section-count">
+                {{ section.total }}
+              </span>
+
+              <span class="section-chevron" aria-hidden="true">
+                <AltArrowDownIcon v-if="expandedSections.has(section.key)" :size="15" />
+                <AltArrowRightIcon v-else :size="15" />
+              </span>
+            </button>
+
+            <div v-if="section.cwd" class="section-actions">
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <button
+                    class="section-add"
+                    type="button"
+                    :aria-label="t('session.newInProject')"
+                    @click="emit('create', section.cwd)"
+                  >
+                    <ChatRoundAddIcon :size="15" />
+                  </button>
+                </TooltipTrigger>
+
+                <TooltipContent>{{ t("session.newInProject") }}</TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
+          <div class="session-list-group" :class="{ 'is-open': expandedSections.has(section.key) }">
+            <TransitionGroup name="list-reveal" tag="ul" class="section-rows">
+              <li
+                v-for="(session, index) in section.sessions"
+                :key="session.id"
+                class="session-row"
+                :class="{
+                  'drop-before': section.key === 'pinned' && dragIndex === index,
+                  'drop-after':
+                    section.key === 'pinned' &&
+                    dragIndex === section.sessions.length &&
+                    index === section.sessions.length - 1,
+                }"
+                :data-id="session.id"
+              >
+                <SessionItem
+                  v-bind="itemBind(session, section)"
+                  :dragging="dragId === session.id"
+                  @navigate="emit('navigate', session.cwd)"
+                  @open="emit('open', $event)"
+                  @prime="emit('prime', $event)"
+                  @toggle-pinned="emit('togglePinned', $event)"
+                  @rename="(id, name) => emit('rename', id, name)"
+                  @delete="emit('delete', $event)"
+                  @drag-start="onDragStart(section.key, session.id, $event)"
+                />
+              </li>
+
+              <li
+                v-if="section.shown < section.total || (expandedByGroup[section.key] ?? 0) > 0"
+                :key="`more:${section.key}`"
+                class="session-row more-row"
+              >
+                <button
+                  v-if="section.shown < section.total"
+                  class="more-button"
+                  type="button"
+                  @click="emit('revealMore', section.key)"
+                >
+                  <DoubleAltArrowDownIcon :size="13" />
+                  {{ t("common.showMore") }}
+                </button>
+
+                <button
+                  v-else
+                  class="more-button"
+                  type="button"
+                  @click="emit('collapseGroup', section.key)"
+                >
+                  <DoubleAltArrowUpIcon :size="13" />
+                  {{ t("common.collapse") }}
+                </button>
+              </li>
+            </TransitionGroup>
+          </div>
+        </section>
+
+        <div v-if="section.key === 'pinned' && dragUnpin" class="unpin-hint">
+          {{ t("session.unpinHint") }}
+        </div>
+      </template>
 
       <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
     </div>
@@ -154,13 +154,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import {
-  loadProjIcons,
-  projectIconComponent,
-  projIconHex,
-  type ProjIcon,
-} from "@features/session-nav/lib/project-icon.js"
-import { useColorScheme } from "@features/theme/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
@@ -170,6 +163,7 @@ import {
   ClockCircleIcon,
   DoubleAltArrowDownIcon,
   DoubleAltArrowUpIcon,
+  FolderIcon,
   PinIcon,
   PinBoldIcon,
 } from "@components/icons/index.js"
@@ -177,7 +171,8 @@ import type { SidebarRowFoot, SidebarSection, SidebarSession } from "@features/s
 
 const props = defineProps<{
   sections: readonly SidebarSection[]
-  scopeFilter?: string | undefined
+  /** 筛选态下 pinned 段只渲染命中项，DOM 序号与全表序号不再对应。 */
+  filtered: boolean
   cardFootById: ReadonlyMap<string, SidebarRowFoot>
   pinnedIds: ReadonlySet<string>
   highlightedSessionId: string | undefined
@@ -193,18 +188,23 @@ const emit = defineEmits<{
   rename: [id: string, name: string]
   delete: [id: string]
   reorderPinned: [id: string, toIndex: number]
+  pinAt: [id: string, toIndex: number]
+  unpin: [id: string]
   toggleSection: [key: string]
   revealMore: [key: string]
   collapseGroup: [key: string]
 }>()
 const { t } = useI18n()
-const { isDark } = useColorScheme()
 // 过滤态下 pinned 段只渲染命中项，DOM 序号与 pinnedOrder 全表序号不再对应，禁用拖拽。
-const dragEnabled = computed(() => !props.scopeFilter)
-const projIcons = computed(loadProjIcons)
+const dragEnabled = computed(() => !props.filtered)
+const hasPinnedSection = computed(() => props.sections.some((section) => section.key === "pinned"))
 const sectionLabelOverflow = shallowRef<Record<string, boolean>>({})
 const dragId = shallowRef<string | undefined>(undefined)
 const dragIndex = shallowRef<number | undefined>(undefined)
+const dragSourcePinned = shallowRef(false)
+const dragUnpin = shallowRef(false)
+/** 置顶区下方的余量：指针落到这一段也算拖进置顶。 */
+const PINNED_SLACK = 30
 let dragCleanup: (() => void) | undefined
 
 function measureLabelOverflow() {
@@ -225,78 +225,80 @@ watch(
   { immediate: true },
 )
 
-const sectionIcons = computed<Record<string, ProjIcon | undefined>>(() => {
-  const icons = projIcons.value
-  return Object.fromEntries(
-    props.sections.map((section) => [section.key, section.cwd ? icons[section.label] : undefined]),
-  )
-})
-
-function monoColor(custom: ProjIcon | undefined) {
-  if (!custom) return undefined
-  // 读 isDark 让深浅切换时重取色值
-  void isDark.value
-  return projIconHex(custom.color)
-}
-
-function sectionIconStyle(section: { key: string }) {
-  // 收起态调暗，让自定义色统一沉到 muted
-  if (!props.expandedSections.has(section.key)) return undefined
-  const custom = sectionIcons.value[section.key]
-  return custom?.kind === "icon" ? { color: projIconHex(custom.color) } : undefined
-}
-
 function itemBind(session: SidebarSession, _section: SidebarSection) {
   const foot = props.cardFootById.get(session.id)
   return {
     session,
     active: session.id === props.highlightedSessionId,
     pinned: props.pinnedIds.has(session.id),
-    draggable: dragEnabled.value && props.pinnedIds.has(session.id),
+    draggable: dragEnabled.value && !(session.draft ?? false),
     state: foot?.state,
     placeholder: session.draft ?? false,
   }
 }
 
 function onDragStart(sectionKey: string, id: string, _event: PointerEvent) {
-  if (sectionKey !== "pinned") return
-
-  const startIndex = props.sections
-    .find((s) => s.key === "pinned")
-    ?.sessions.findIndex((s) => s.id === id)
-
-  if (startIndex === undefined || startIndex < 0) return
   dragId.value = id
+  dragSourcePinned.value = sectionKey === "pinned"
 
   /** 用每行自己的矩形算落点：section 含组头，按 section 顶算会整体偏下。 */
   function onMove(e: PointerEvent) {
-    const list = document.querySelector<HTMLElement>(`.session-list [data-key="pinned"]`)
+    const section = document.querySelector<HTMLElement>(
+      '.session-list .session-section[data-key="pinned"]',
+    )
 
-    if (!list) return
-    // 拖拽期间 sections 可能重算（别处 unpin 等），每次 move 即时取行数。
-    const pinnedCount = props.sections.find((s) => s.key === "pinned")?.sessions.length ?? 0
-    const rows = [...list.querySelectorAll<HTMLElement>(".session-row")].slice(0, pinnedCount)
+    if (!section) return clearDrop()
+    const box = section.getBoundingClientRect()
     const y = e.clientY
+
+    // 置顶行拖出去落点在下沿之外即取消置顶；非置顶行只认置顶区与下方一小段余量。
+    if (dragSourcePinned.value) {
+      if (y < box.top || y > box.bottom) {
+        dragUnpin.value = y > box.bottom
+        dragIndex.value = undefined
+        return
+      }
+    } else if (y < box.top || y > box.bottom + PINNED_SLACK) {
+      return clearDrop()
+    }
+
+    const rows = [...section.querySelectorAll<HTMLElement>(".session-row")].filter(
+      (row) => row.getBoundingClientRect().height > 0,
+    )
     let index = rows.length
 
     for (const [i, row] of rows.entries()) {
-      const box = row.getBoundingClientRect()
+      const rect = row.getBoundingClientRect()
 
-      if (y < box.top + box.height / 2) {
+      if (y < rect.top + rect.height / 2) {
         index = i
         break
       }
     }
 
+    dragUnpin.value = false
     dragIndex.value = index
+  }
+
+  function clearDrop() {
+    dragIndex.value = undefined
+    dragUnpin.value = false
   }
 
   function onUp() {
     const over = dragIndex.value
 
-    if (over !== undefined && over !== startIndex) emit("reorderPinned", id, over)
+    if (dragId.value) {
+      if (dragUnpin.value) emit("unpin", dragId.value)
+      else if (over !== undefined) {
+        if (dragSourcePinned.value) emit("reorderPinned", dragId.value, over)
+        else emit("pinAt", dragId.value, over)
+      }
+    }
+
     dragId.value = undefined
-    dragIndex.value = undefined
+    dragSourcePinned.value = false
+    clearDrop()
     window.removeEventListener("pointermove", onMove)
     window.removeEventListener("pointerup", onUp)
     window.removeEventListener("pointercancel", onUp)
@@ -333,17 +335,53 @@ onBeforeUnmount(() => {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  /* 滚动条只在悬停时显形：槽位常驻，滑块平时透明，内容宽度不跳 */
   scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  scrollbar-color: transparent transparent;
   padding-block-start: var(--space-xxs);
 }
 
+.session-window:hover {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
 .session-edge-bottom {
-  background: linear-gradient(to top, var(--sidebar), transparent);
+  background: linear-gradient(to top, var(--background), transparent);
   height: 32px;
 }
 
 .session-section + .session-section {
   margin-block-start: var(--space-xs);
+}
+
+/* 拖起会话时露出的置顶落点：没有置顶段也能拖进去 */
+.pinned-drop {
+  margin-block-end: var(--space-xs);
+}
+
+.pinned-drop-zone {
+  height: 26px;
+  margin: var(--space-xxs) var(--nav-inline, var(--space-xs)) 0 0;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.pinned-drop.is-drop-active .pinned-drop-zone {
+  border-color: var(--primary);
+  background: var(--glass-selected-bg);
+}
+
+/* 置顶行拖到列表下方：提示松手取消置顶 */
+.unpin-hint {
+  margin-block-start: var(--space-xxs);
+  padding-block: var(--space-xxs);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  text-align: center;
 }
 
 .section-head {
@@ -382,23 +420,8 @@ onBeforeUnmount(() => {
   height: 15px;
 }
 
-.section-icon .proj-mono {
-  display: grid;
-  place-items: center;
-  width: 15px;
-  height: 15px;
-  border-radius: var(--radius-xs);
-  color: var(--primary-foreground);
-  font: 700 8px/1 var(--font-mono);
-}
-
-.section-icon .proj-emoji {
-  font-size: 15px;
-  line-height: 1;
-}
-
 .section-icon .icon-muted {
-  color: var(--contrast-foreground-muted) !important;
+  color: var(--contrast-foreground-muted);
 }
 
 .section-head.open .section-toggle {
@@ -462,6 +485,8 @@ onBeforeUnmount(() => {
   place-items: center;
   width: 20px;
   height: 20px;
+  /* 同搜索框首图标：15px 圆环形图标用 2 档描边才不发虚 */
+  --solar-stroke-width: 2px;
   border: 0;
   border-radius: var(--radius-xs);
   background: transparent;
@@ -505,7 +530,7 @@ onBeforeUnmount(() => {
   inset-inline: 0;
   height: 2px;
   background: var(--primary);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   opacity: 0.6;
   content: "";
 }

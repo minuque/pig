@@ -9,7 +9,7 @@ import {
 } from "@features/theme/lib/palette.js"
 import { ACCENTS, DEFAULT_ACCENT_ID, findAccent, isAccentId } from "@features/theme/lib/accents.js"
 
-const css = readFileSync(new URL("../../../src/style/app.css", import.meta.url), "utf8")
+const css = readFileSync(new URL("../../../src/style/tokens.css", import.meta.url), "utf8")
 
 /** 取选择器块顶层的直接声明值，跳过嵌套块。 */
 function values(selector: string): Map<string, string> {

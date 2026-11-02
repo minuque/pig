@@ -15,7 +15,8 @@ const meta: Meta = {
   render: (args) => ({
     components: { Separator },
     setup: () => ({ args }),
-    template: "<div style='width:240px'><p>上面</p><Separator v-bind='args' /><p>下面</p></div>",
+    template:
+      "<div style='width:240px'><p>{{ $t('demo.separator.above') }}</p><Separator v-bind='args' /><p>{{ $t('demo.separator.below') }}</p></div>",
   }),
 }
 

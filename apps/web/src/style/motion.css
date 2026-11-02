@@ -803,7 +803,7 @@
 }
 
 .ring-focus[data-tone="destructive"]:focus-visible {
-  box-shadow: var(--focus-ring-destructive);
+  box-shadow: var(--focus-ring-danger);
 }
 
 /* ------ 滚动边缘渐隐：列表与正文用贴边渐变层，避免 mask 压住吸顶元素和滚动条 ------ */

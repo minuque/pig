@@ -2,6 +2,7 @@
   <DropdownMenuRadioItem
     data-slot="dropdown-menu-radio-item"
     v-bind="forwardedProps"
+    :data-accent-color="props.color"
     class="rt-BaseMenuItem rt-BaseMenuRadioItem rt-DropdownMenuItem rt-DropdownMenuRadioItem"
     :class="props.class"
   >
@@ -21,9 +22,9 @@ import { DropdownMenuItemIndicator, DropdownMenuRadioItem, useForwardProps } fro
 import { CheckIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
-  defineProps<DropdownMenuRadioItemProps & { class?: HTMLAttributes["class"] }>(),
+  defineProps<DropdownMenuRadioItemProps & { class?: HTMLAttributes["class"]; color?: string }>(),
   { class: undefined },
 )
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "color")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuRadioItemProps>
 </script>

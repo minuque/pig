@@ -238,7 +238,7 @@ const rows = computed(() =>
 /* 图片 tile：磨砂墨底 + 反差字，压得住任意缩略图 */
 .chip:not(.chip--file) .pct {
   padding: 0 3px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--inverse-background);
   color: var(--inverse-foreground);
   backdrop-filter: blur(var(--material-blur)) saturate(var(--material-saturate));
@@ -257,7 +257,7 @@ const rows = computed(() =>
   height: 16px;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--inverse-background);
   color: var(--inverse-foreground);
   cursor: pointer;

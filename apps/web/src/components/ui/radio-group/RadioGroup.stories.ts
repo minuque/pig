@@ -17,9 +17,9 @@ const meta: Meta = {
     components: { RadioGroup, RadioGroupItem },
     setup: () => ({ args }),
     template: `<RadioGroup v-bind="args" class="flex flex-col gap-sm">
-      <RadioGroupItem value="a">苹果</RadioGroupItem>
-      <RadioGroupItem value="b">香蕉</RadioGroupItem>
-      <RadioGroupItem value="c">樱桃</RadioGroupItem>
+      <RadioGroupItem value="a">{{ $t("demo.radio.apple") }}</RadioGroupItem>
+      <RadioGroupItem value="b">{{ $t("demo.radio.banana") }}</RadioGroupItem>
+      <RadioGroupItem value="c">{{ $t("demo.radio.cherry") }}</RadioGroupItem>
     </RadioGroup>`,
   }),
 }
@@ -37,8 +37,8 @@ export const Sizes: Story = {
     components: { RadioGroup, RadioGroupItem },
     template: `<div class="flex flex-col gap-md">
       <RadioGroup v-for="size in ['s', 'm', 'l']" :key="size" :size="size" model-value="a">
-        <RadioGroupItem value="a">尺寸 {{ size }}</RadioGroupItem>
-        <RadioGroupItem value="b">第二项</RadioGroupItem>
+        <RadioGroupItem value="a">{{ $t("demo.radio.size", { size }) }}</RadioGroupItem>
+        <RadioGroupItem value="b">{{ $t("demo.radio.second") }}</RadioGroupItem>
       </RadioGroup>
     </div>`,
   }),

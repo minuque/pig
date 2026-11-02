@@ -2,6 +2,7 @@
   <ContextMenuRadioItem
     data-slot="context-menu-radio-item"
     v-bind="forwardedProps"
+    :data-accent-color="props.color"
     class="rt-BaseMenuItem rt-BaseMenuRadioItem rt-ContextMenuItem rt-ContextMenuRadioItem"
     :class="props.class"
   >
@@ -21,9 +22,9 @@ import { ContextMenuItemIndicator, ContextMenuRadioItem, useForwardProps } from 
 import { CheckIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
-  defineProps<ContextMenuRadioItemProps & { class?: HTMLAttributes["class"] }>(),
+  defineProps<ContextMenuRadioItemProps & { class?: HTMLAttributes["class"]; color?: string }>(),
   { class: undefined },
 )
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "color")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<ContextMenuRadioItemProps>
 </script>

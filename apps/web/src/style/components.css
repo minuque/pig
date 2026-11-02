@@ -1,6 +1,436 @@
-/* 组件样式总入口：base 组件的样式从这里统一引入，页面与 SFC 只消费 token。
-   按域分文件，各自在 500 行内；新域先在 components/ 下建文件，再在下面加一行。 */
+/* 组件样式：布局、排版、颜色与圆角的原子类。类名沿用 shadcn 与 Tailwind 的写法，
+   值只读 app.css 的 token。间距按 --space-* 命名（gap-sm 而不是 gap-3）：项目已把
+   间距刻度收进 --space-* 命名空间，再引数字刻度会多出一套并行换算。
+   原先这些类由 Tailwind 的 @theme 生成，删依赖时改成手写，SFC 里的写法保持不变。
+   只登记用得到的，新增一档先在这里补。 */
 
-@import "./components/layout.css";
-@import "./components/typography.css";
-@import "./components/color.css";
+/* ------ 布局 ------ */
+
+/* ------ 显示 ------ */
+.flex {
+  display: flex;
+}
+
+.inline-flex {
+  display: inline-flex;
+}
+
+.grid {
+  display: grid;
+}
+
+.block {
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ------ 定位 ------ */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.sticky {
+  position: sticky;
+}
+
+.inset-0 {
+  inset: 0;
+}
+
+/* ------ 主轴与对齐 ------ */
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-col-reverse {
+  flex-direction: column-reverse;
+}
+
+.flex-1 {
+  flex: 1 1 auto;
+}
+
+.grow {
+  flex-grow: 1;
+}
+
+.shrink-0 {
+  flex-shrink: 0;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+/* ------ 尺寸 ------ */
+/* 描边宽度单列一条：颜色由 .border-* 给，和 shadcn 的 border + border-border 写法对齐 */
+.border {
+  border-width: var(--border-width);
+}
+
+.w-full {
+  inline-size: 100%;
+}
+
+.h-full {
+  block-size: 100%;
+}
+
+.h-px {
+  block-size: 1px;
+}
+
+.min-w-0 {
+  min-inline-size: 0;
+}
+
+/* ------ 溢出与文本 ------ */
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
+.select-none {
+  user-select: none;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* 只读给读屏：视觉隐藏但保留可访问性树 */
+.sr-only {
+  position: absolute;
+  overflow: hidden;
+  clip-path: inset(50%);
+  inline-size: 1px;
+  block-size: 1px;
+  white-space: nowrap;
+}
+
+/* ------ 间距 ------ */
+.gap-xxs {
+  gap: var(--space-xxs);
+}
+
+.gap-xs {
+  gap: var(--space-xs);
+}
+
+.gap-sm {
+  gap: var(--space-sm);
+}
+
+.gap-md {
+  gap: var(--space-md);
+}
+
+.gap-lg {
+  gap: var(--space-lg);
+}
+
+.p-xxs {
+  padding: var(--space-xxs);
+}
+
+.p-xs {
+  padding: var(--space-xs);
+}
+
+.p-sm {
+  padding: var(--space-sm);
+}
+
+.p-md {
+  padding: var(--space-md);
+}
+
+.p-lg {
+  padding: var(--space-lg);
+}
+
+.px-xxs {
+  padding-inline: var(--space-xxs);
+}
+
+.px-xs {
+  padding-inline: var(--space-xs);
+}
+
+.px-sm {
+  padding-inline: var(--space-sm);
+}
+
+.px-md {
+  padding-inline: var(--space-md);
+}
+
+.py-xxs {
+  padding-block: var(--space-xxs);
+}
+
+.py-xs {
+  padding-block: var(--space-xs);
+}
+
+.py-sm {
+  padding-block: var(--space-sm);
+}
+
+.m-xs {
+  margin: var(--space-xs);
+}
+
+.mx-xs {
+  margin-inline: var(--space-xs);
+}
+
+.my-xxs {
+  margin-block: var(--space-xxs);
+}
+
+.my-xs {
+  margin-block: var(--space-xs);
+}
+
+/* ------ 层序：只认 token ------ */
+.z-menu {
+  z-index: var(--z-menu);
+}
+
+.z-drawer {
+  z-index: var(--z-drawer);
+}
+
+.z-modal {
+  z-index: var(--z-modal);
+}
+
+/* 高度取控件档；py-0 用于压掉基础件的默认内边距 */
+.h-control {
+  block-size: var(--size-control);
+}
+
+.py-0 {
+  padding-block: 0;
+}
+
+/* ------ 排版 ------ */
+
+.text-heading-2 {
+  font-size: var(--text-heading-2);
+  line-height: var(--text-heading-2--line-height);
+  letter-spacing: var(--text-heading-2--letter-spacing);
+}
+
+.text-title {
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+}
+
+.text-body-lg {
+  font-size: var(--text-body-lg);
+  line-height: var(--text-body-lg--line-height);
+}
+
+.text-body-md {
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md--line-height);
+}
+
+.text-body-sm {
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+}
+
+.text-meta {
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+.text-caption {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
+.text-caption-mono {
+  font-size: var(--text-caption-mono);
+  line-height: var(--text-caption-mono--line-height);
+  font-family: var(--font-mono);
+}
+
+.text-button {
+  font-size: var(--text-button);
+  line-height: var(--text-button--line-height);
+}
+
+.text-eyebrow {
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+}
+
+.text-code {
+  font-size: var(--text-code);
+  line-height: var(--text-code-line);
+  font-family: var(--font-mono);
+}
+
+.font-normal {
+  font-weight: var(--font-weight-normal);
+}
+
+.font-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.font-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+.leading-none {
+  line-height: 1;
+}
+
+/* ------ 颜色与圆角 ------ */
+
+/* ------ 文字 ------ */
+.text-foreground {
+  color: var(--contrast-foreground);
+}
+
+.text-foreground-muted {
+  color: var(--contrast-foreground-muted);
+}
+
+.text-foreground-faint {
+  color: var(--contrast-foreground-faint);
+}
+
+.text-muted-foreground {
+  color: var(--muted-foreground);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.text-primary-foreground {
+  color: var(--primary-foreground);
+}
+
+.text-destructive {
+  color: var(--danger);
+}
+
+/* ------ 背景 ------ */
+.bg-card {
+  background-color: var(--card);
+}
+
+.bg-background {
+  background-color: var(--background);
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.bg-transparent {
+  background-color: transparent;
+}
+
+/* ------ 边框 ------ */
+.border-border {
+  border-color: var(--border);
+}
+
+/* ------ 圆角 ------ */
+.rounded-xs {
+  border-radius: var(--radius-xs);
+}
+
+.rounded-sm {
+  border-radius: var(--radius-sm);
+}
+
+.rounded-md {
+  border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-xl {
+  border-radius: var(--radius-xl);
+}
+
+.rounded-full {
+  border-radius: var(--radius-pill);
+}
+
+/* ------ 破坏性动作：rt 没有 destructive 变体，用项目语义 token 上色 ------ */
+.rt-BaseMenuItem[data-variant="destructive"] {
+  color: var(--danger);
+}
+
+.rt-BaseMenuItem[data-variant="destructive"] svg {
+  color: currentcolor;
+}
+
+.btn-destructive {
+  background-color: var(--danger);
+  color: var(--danger-foreground);
+}
+
+.btn-destructive:hover {
+  background-color: color-mix(in srgb, var(--danger) 88%, black);
+}

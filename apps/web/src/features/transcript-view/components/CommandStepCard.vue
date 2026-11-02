@@ -89,7 +89,7 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 }
 
 .command-card.is-error {
-  border-color: var(--destructive-border);
+  border-color: var(--danger-border);
 }
 
 .command-card :deep(.tool-header) {
@@ -124,14 +124,14 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
   width: 6px;
   height: 6px;
   margin: 2px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-pill);
   background: var(--success);
   box-shadow: 0 0 0 2px var(--success-halo);
 }
 
 .is-error .status-dot {
-  background: var(--destructive);
-  box-shadow: 0 0 0 2px var(--destructive-halo);
+  background: var(--danger);
+  box-shadow: 0 0 0 2px var(--danger-halo);
 }
 
 .is-running .status-dot {
@@ -237,12 +237,12 @@ const clamped = computed(() => !open.value && lineCount.value > PREVIEW_LINES)
 }
 
 .exit-badge.is-err {
-  background: var(--destructive-bg);
-  color: var(--destructive-on-tint);
+  background: var(--danger-bg);
+  color: var(--danger-on-tint);
 }
 
 .is-error .footer-status {
-  color: var(--destructive);
+  color: var(--danger);
 }
 
 .is-running .footer-status {

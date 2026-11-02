@@ -145,7 +145,7 @@ const editDiffOptions = computed(() => ({
 }
 
 .removed {
-  color: var(--destructive);
+  color: var(--danger);
 }
 
 .edit-diff {

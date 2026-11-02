@@ -4,10 +4,10 @@
     v-bind="forwarded"
     :data-accent-color="color"
     :data-radius="radius"
-    class="rt-SwitchRoot"
+    class="rt-reset rt-SwitchRoot"
     :class="[sizeClass, variantClass, props.class]"
   >
-    <SwitchThumb class="rt-SwitchThumb" />
+    <SwitchThumb class="rt-SwitchThumb" :class="highContrast && 'rt-high-contrast'" />
   </SwitchRoot>
 </template>
 
@@ -27,12 +27,21 @@ const props = withDefaults(
       variant?: "classic" | "surface" | "soft"
       color?: string
       radius?: "none" | "small" | "medium" | "large" | "full"
+      highContrast?: boolean
     }
   >(),
-  { class: undefined, size: "m", variant: "surface" },
+  { class: undefined, size: "m", variant: "surface", highContrast: false },
 )
 const emits = defineEmits<SwitchRootEmits<boolean>>()
-const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "radius")
+const delegatedProps = reactiveOmit(
+  props,
+  "class",
+  "size",
+  "variant",
+  "color",
+  "radius",
+  "highContrast",
+)
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   SwitchRootProps<boolean>
 >

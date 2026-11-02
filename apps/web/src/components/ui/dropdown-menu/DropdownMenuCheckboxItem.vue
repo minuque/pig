@@ -2,6 +2,7 @@
   <DropdownMenuCheckboxItem
     data-slot="dropdown-menu-checkbox-item"
     v-bind="forwardedProps"
+    :data-accent-color="props.color"
     class="rt-BaseMenuItem rt-BaseMenuCheckboxItem rt-DropdownMenuItem rt-DropdownMenuCheckboxItem"
     :class="props.class"
   >
@@ -24,10 +25,14 @@ import { CheckIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<
-    DropdownMenuCheckboxItemProps & { class?: HTMLAttributes["class"]; shortcut?: string }
+    DropdownMenuCheckboxItemProps & {
+      class?: HTMLAttributes["class"]
+      shortcut?: string
+      color?: string
+    }
   >(),
   { class: undefined },
 )
-const delegatedProps = reactiveOmit(props, "class", "shortcut")
+const delegatedProps = reactiveOmit(props, "class", "shortcut", "color")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuCheckboxItemProps>
 </script>

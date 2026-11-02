@@ -1,90 +1,102 @@
 <template>
   <div class="nav-footer">
-    <button class="footer-settings press-scale" type="button" @click="emit('settings')">
-      <span class="footer-glyph">
-        <SettingsIcon />
-      </span>
-
-      <span>{{ t("nav.settings") }}</span>
-    </button>
-
-    <DropdownMenu :modal="false">
+    <div class="footer-actions">
       <Tooltip>
         <TooltipTrigger as-child>
-          <DropdownMenuTrigger as-child>
-            <button class="footer-help press-scale" type="button" :aria-label="t('nav.help')">
-              <QuestionCircleIcon />
-            </button>
-          </DropdownMenuTrigger>
+          <button
+            class="footer-btn press-scale"
+            type="button"
+            :aria-label="t('nav.settings')"
+            @click="emit('settings')"
+          >
+            <SettingsIcon :size="15" />
+          </button>
         </TooltipTrigger>
 
-        <TooltipContent>{{ t("nav.help") }}</TooltipContent>
+        <TooltipContent>{{ t("nav.settings") }}</TooltipContent>
       </Tooltip>
 
-      <DropdownMenuContent side="top" align="end" :side-offset="8">
-        <DropdownMenuItem class="help-item" @select.prevent="toggleSound()">
-          <span class="help-lead">
-            <VolumeLoudIcon v-if="soundOn" />
-            <VolumeCrossIcon v-else />
-            {{ t("nav.sound") }}
-          </span>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button
+            class="footer-btn press-scale"
+            type="button"
+            :aria-label="t('nav.search')"
+            @click="emit('search')"
+          >
+            <MagnifierIcon :size="15" />
+          </button>
+        </TooltipTrigger>
 
-          <span class="help-state">{{ soundOn ? t("common.on") : t("common.off") }}</span>
-        </DropdownMenuItem>
+        <TooltipContent>{{ t("nav.search") }}</TooltipContent>
+      </Tooltip>
 
-        <DropdownMenuItem class="help-item" @select.prevent="toggleTheme()">
-          <span class="help-lead">
-            <MoonIcon v-if="isDark" />
-            <SunIcon v-else />
-            {{ t("nav.theme") }}
-          </span>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button
+            class="footer-btn press-scale"
+            type="button"
+            :aria-label="t('session.addGuide')"
+            @click="emit('addProject')"
+          >
+            <AddFolderIcon :size="15" />
+          </button>
+        </TooltipTrigger>
 
-          <span class="help-state">{{ isDark ? t("nav.themeDark") : t("nav.themeLight") }}</span>
-        </DropdownMenuItem>
+        <TooltipContent>{{ t("session.addGuide") }}</TooltipContent>
+      </Tooltip>
+    </div>
 
-        <DropdownMenuSeparator />
+    <div class="status-list">
+      <Tooltip v-for="item in statusItems" :key="item.status">
+        <TooltipTrigger as-child>
+          <button
+            class="status-btn press-scale"
+            type="button"
+            :aria-label="`${item.label} · ${item.count}`"
+            @click="emit('cycle', item.status)"
+          >
+            <SessionStateIcon :state="item.status" />
+            <span class="status-count">{{ item.count }}</span>
+          </button>
+        </TooltipTrigger>
 
-        <DropdownMenuItem class="help-item" as-child>
-          <a href="https://github.com/minuque/pig" target="_blank" rel="noopener noreferrer">
-            <span class="help-lead">
-              <Book2Icon />
-              {{ t("nav.docs") }}
-            </span>
-          </a>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        <TooltipContent>{{ item.label }} · {{ item.count }}</TooltipContent>
+      </Tooltip>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
+import { computed } from "vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
-import { useSound } from "@features/click-sound/index.js"
-import { useColorScheme } from "@features/theme/index.js"
-import {
-  Book2Icon,
-  MoonIcon,
-  QuestionCircleIcon,
-  SettingsIcon,
-  SunIcon,
-  VolumeCrossIcon,
-  VolumeLoudIcon,
-} from "@components/icons/index.js"
+import { AddFolderIcon, MagnifierIcon, SettingsIcon } from "@components/icons/index.js"
+import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
+import { FOOTER_STATUSES, type FooterStatus } from "@features/session-nav/lib/status-cycle.js"
 
+const props = defineProps<{
+  counts: Record<FooterStatus, number>
+}>()
 const emit = defineEmits<{
   settings: []
+  search: []
+  addProject: []
+  cycle: [status: FooterStatus]
 }>()
 const { t } = useI18n()
-const { enabled: soundOn, toggle: toggleSound } = useSound()
-const { isDark, toggle: toggleTheme } = useColorScheme()
+const LABELS: Record<FooterStatus, string> = {
+  running: "session.running",
+  unread: "session.unread",
+  draft: "session.draft",
+}
+const statusItems = computed(() =>
+  FOOTER_STATUSES.map((status) => ({
+    status,
+    count: props.counts[status],
+    label: t(LABELS[status]),
+  })).filter((item) => item.count > 0),
+)
 </script>
 
 <style scoped>
@@ -92,97 +104,73 @@ const { isDark, toggle: toggleTheme } = useColorScheme()
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-xxs);
   padding: var(--space-xs) var(--nav-inline, var(--space-xs));
-  border-top: var(--border-width) solid var(--border-subtle);
 }
 
-.footer-settings,
-.footer-help {
+.footer-actions,
+.status-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxs);
+}
+
+.status-list {
+  margin-inline-start: auto;
+}
+
+.footer-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
   border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
+  color: var(--contrast-foreground);
   transition:
     background-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
     scale var(--duration-fast) var(--ease-out);
 }
 
-.footer-settings:hover {
-  background: var(--interaction-hover);
-  color: var(--contrast-foreground);
-}
-
-.footer-help:hover,
-.footer-help[data-state="open"] {
+.footer-btn:hover {
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
 }
 
-.footer-settings {
-  display: flex;
-  flex: 1;
+/* 状态入口：图标加计数，点一次换下一个同状态会话 */
+.status-btn {
+  display: inline-flex;
+  gap: var(--space-xxs);
   align-items: center;
-  gap: var(--space-xs);
-  min-width: 0;
-  height: var(--size-nav-rail);
+  height: var(--size-icon-button);
   padding-inline: var(--space-xs);
-  border-radius: var(--radius-md);
-  color: var(--contrast-foreground);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-caption--line-height);
-}
-
-/* 前置图标槽，和会话行的 icon 列对齐 */
-.footer-glyph {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
-}
-
-.footer-glyph svg,
-.footer-help svg {
-  width: var(--size-icon);
-  height: var(--size-icon);
-}
-
-.footer-help {
-  display: grid;
-  flex: none;
-  place-items: center;
-  padding: var(--icon-button-pad);
+  border: 0;
   border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--contrast-foreground-secondary);
+  font-size: var(--text-caption);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    scale var(--duration-fast) var(--ease-out);
+}
+
+.status-btn:hover {
+  background: var(--hover-quiet);
   color: var(--contrast-foreground);
+}
+
+.status-count {
+  font-variant-numeric: tabular-nums;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .footer-settings,
-  .footer-help {
+  .footer-btn,
+  .status-btn {
     transition: none;
   }
-}
-</style>
-
-<style>
-/* 菜单经 Portal 挂到 body，scoped 选不中 */
-.help-item svg {
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
-}
-
-.help-lead {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  min-width: 0;
-}
-
-.help-state {
-  margin-inline-start: auto;
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
 }
 </style>

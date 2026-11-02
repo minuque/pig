@@ -2,6 +2,7 @@
   <ContextMenuSubTrigger
     data-slot="context-menu-sub-trigger"
     v-bind="forwardedProps"
+    :data-accent-color="props.color"
     class="rt-BaseMenuItem rt-BaseMenuSubTrigger rt-ContextMenuItem rt-ContextMenuSubTrigger"
     :class="props.class"
   >
@@ -21,9 +22,9 @@ import { ContextMenuSubTrigger, useForwardProps } from "reka-ui"
 import { AltArrowRightIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
-  defineProps<ContextMenuSubTriggerProps & { class?: HTMLAttributes["class"] }>(),
+  defineProps<ContextMenuSubTriggerProps & { class?: HTMLAttributes["class"]; color?: string }>(),
   { class: undefined },
 )
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "color")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<ContextMenuSubTriggerProps>
 </script>

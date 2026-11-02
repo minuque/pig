@@ -16,7 +16,7 @@ const meta: Meta = {
   render: (args) => ({
     components: { Badge },
     setup: () => ({ args }),
-    template: "<Badge v-bind='args'>新</Badge>",
+    template: "<Badge v-bind='args'>{{ $t('demo.badge.new') }}</Badge>",
   }),
 }
 

@@ -4,8 +4,10 @@ import {
   conversationItemCount,
   filterSessionsForSearch,
   groupSessionsByCwd,
+  moveSessionId,
   sessionCardFoot,
   sessionOutcome,
+  sessionInProjects,
   sidebarSections,
 } from "@features/session-nav/lib/session-list.js"
 
@@ -173,5 +175,42 @@ describe("session card foot", () => {
       outcome: undefined,
       model: { provider: "openai", id: "gpt-4" },
     })
+  })
+})
+
+describe("moveSessionId", () => {
+  it("往未置顶列表里插：slot 按置顶行计，原表不动", () => {
+    expect(moveSessionId(["a", "b"], "c", 0)).toEqual(["c", "a", "b"])
+    expect(moveSessionId(["a", "b"], "c", 2)).toEqual(["a", "b", "c"])
+    expect(moveSessionId(["a", "b"], "c", 99)).toEqual(["a", "b", "c"])
+  })
+
+  it("在置顶列表内挪：slot 按移动前的行计，向下不越过目标之后的项", () => {
+    expect(moveSessionId(["a", "b", "c"], "a", 2)).toEqual(["b", "a", "c"])
+    expect(moveSessionId(["a", "b", "c"], "c", 0)).toEqual(["c", "a", "b"])
+    expect(moveSessionId(["a", "b", "c"], "b", 1)).toEqual(["a", "b", "c"])
+  })
+})
+
+describe("sessionInProjects", () => {
+  it("空集合放行全部会话", () => {
+    expect(sessionInProjects("/repo/a", new Set())).toBe(true)
+    expect(sessionInProjects(undefined, new Set())).toBe(true)
+  })
+
+  it("按 canonical 路径命中选中的项目", () => {
+    const selected = new Set(["g:/aicode/pig"])
+
+    expect(sessionInProjects(String.raw`G:\AICode\pig`, selected)).toBe(true)
+    expect(sessionInProjects("/repo/other", selected)).toBe(false)
+  })
+
+  it("多选命中任一项目，缺 cwd 不命中", () => {
+    const selected = new Set(["/repo/a", "/repo/b"])
+
+    expect(sessionInProjects("/repo/a", selected)).toBe(true)
+    expect(sessionInProjects("/repo/b", selected)).toBe(true)
+    expect(sessionInProjects("/repo/c", selected)).toBe(false)
+    expect(sessionInProjects(undefined, selected)).toBe(false)
   })
 })

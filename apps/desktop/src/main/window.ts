@@ -1,5 +1,6 @@
-import { BrowserWindow, nativeTheme, type Input } from "electron"
+import { BrowserWindow, nativeTheme, shell, type Input } from "electron"
 
+import { installExternalLinks } from "./external-links.js"
 import { gatewayOriginArg, isDesktopBench } from "./urls.js"
 import { stripNativeMenu, windowChromeFor } from "./window-chrome.js"
 import {
@@ -47,6 +48,17 @@ export function createMainWindow(
   stripNativeMenu(window)
   stampDesktopPlatform(window)
   attachDevTools(window)
+  installExternalLinks(window.webContents, (url) => {
+    void shell.openExternal(url)
+  })
+
+  // 自画窗控要跟着最大化状态换图标
+  const sendMaximized = (): void => {
+    window.webContents.send("pig:window:maximized", window.isMaximized())
+  }
+
+  window.on("maximize", sendMaximized)
+  window.on("unmaximize", sendMaximized)
 
   // 基准档窗口放屏幕内并关后台节流，rAF 才能真实驱动
   if (options.persistState && !bench) persistWindowState(window, options.persistState)

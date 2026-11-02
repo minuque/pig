@@ -28,7 +28,7 @@ defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<TooltipContentProps & { class?: HTMLAttributes["class"] }>(),
-  { class: undefined },
+  { class: undefined, sideOffset: 4, collisionPadding: 10 },
 )
 const emits = defineEmits<TooltipContentEmits>()
 const delegatedProps = reactiveOmit(props, "class")

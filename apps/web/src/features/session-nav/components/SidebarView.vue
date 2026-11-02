@@ -3,7 +3,11 @@
     <div class="titlebar-drag" aria-hidden="true"></div>
 
     <div class="nav-head">
-      <SidebarTitlebar :sb-expanded="sbExpanded" @toggle-sidebar="emit('toggleSidebar')" />
+      <SidebarTitlebar
+        :sb-expanded="sbExpanded"
+        @toggle-sidebar="emit('toggleSidebar')"
+        @home="emit('home')"
+      />
 
       <div class="search-head">
         <button class="search-field press-scale" type="button" @click="emit('create')">
@@ -15,29 +19,10 @@
           <button
             class="head-btn"
             type="button"
-            :title="t('nav.search')"
-            @click="emit('update:searchOpen', true)"
-          >
-            <MagnifierIcon :size="15" />
-          </button>
-
-          <button
-            class="head-btn"
-            :class="{ scoped: !!scopeFilter }"
-            type="button"
             :title="t('session.allProjects')"
             @click.stop="scopeMenuOpen = !scopeMenuOpen"
           >
             <Tuning2Icon :size="15" />
-          </button>
-
-          <button
-            class="head-btn"
-            type="button"
-            :title="t('session.addGuide')"
-            @click="emit('addProject')"
-          >
-            <AddFolderIcon :size="15" />
           </button>
         </div>
 
@@ -57,9 +42,8 @@
           :scope-filter="scopeFilter"
           @update:grouping="emit('update:grouping', $event)"
           @update:sort="emit('update:sort', $event)"
-          @update:scope-filter="pickScope"
+          @update:scope-filter="emit('update:scopeFilter', $event)"
           @settings="onGlobalSettings"
-          @edit-project="onEditProject"
         />
       </div>
     </div>
@@ -72,7 +56,7 @@
 
       <SessionList
         :sections="sections"
-        :scope-filter="scopeFilter"
+        :filtered="scopeFilter.size > 0"
         :card-foot-by-id="cardFootById"
         :pinned-ids="pinnedIds"
         :highlighted-session-id="highlightedSessionId"
@@ -86,18 +70,20 @@
         @rename="(id, name) => emit('rename', id, name)"
         @delete="emit('delete', $event)"
         @reorder-pinned="(id, toIndex) => emit('reorderPinned', id, toIndex)"
+        @pin-at="(id, toIndex) => emit('pinAt', id, toIndex)"
+        @unpin="emit('unpin', $event)"
         @toggle-section="emit('toggleSection', $event)"
         @reveal-more="emit('revealMore', $event)"
         @collapse-group="emit('collapseGroup', $event)"
       />
     </div>
 
-    <NavFooter @settings="emit('settings')" />
-
-    <ProjectSettingsDialog
-      v-if="projectSettingsOpen"
-      v-model:open="projectSettingsOpen"
-      :project="projectSettingsTarget"
+    <NavFooter
+      :counts="statusCounts"
+      @settings="emit('settings')"
+      @search="emit('update:searchOpen', true)"
+      @add-project="emit('addProject')"
+      @cycle="emit('cycleStatus', $event)"
     />
   </div>
 </template>
@@ -112,7 +98,6 @@ import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
 import SidebarTitlebar from "@features/session-nav/components/SidebarTitlebar.vue"
 import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
-import ProjectSettingsDialog from "@features/session-nav/components/ProjectSettingsDialog.vue"
 import type {
   SessionGroup,
   SidebarGrouping,
@@ -120,13 +105,8 @@ import type {
   SidebarSection,
   SidebarSort,
 } from "@features/session-nav/type.js"
-import {
-  AddFolderIcon,
-  ArrowUpIcon,
-  ChatRoundAddIcon,
-  MagnifierIcon,
-  Tuning2Icon,
-} from "@components/icons/index.js"
+import type { FooterStatus } from "@features/session-nav/lib/status-cycle.js"
+import { ArrowUpIcon, ChatRoundAddIcon, Tuning2Icon } from "@components/icons/index.js"
 
 defineProps<{
   groups: readonly SessionGroup[]
@@ -134,7 +114,7 @@ defineProps<{
   sbExpanded: boolean
   grouping: SidebarGrouping
   sort: SidebarSort
-  scopeFilter: string | undefined
+  scopeFilter: ReadonlySet<string>
   searchOpen: boolean
   sections: readonly SidebarSection[]
   cardFootById: ReadonlyMap<string, SidebarRowFoot>
@@ -143,14 +123,17 @@ defineProps<{
   highlightedSessionId: string | undefined
   expandedSections: ReadonlySet<string>
   expandedByGroup: Record<string, number>
+  statusCounts: Record<FooterStatus, number>
 }>()
 
 const emit = defineEmits<{
   "update:searchOpen": [open: boolean]
-  "update:scopeFilter": [name: string | undefined]
+  "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
   "update:grouping": [grouping: SidebarGrouping]
   "update:sort": [sort: SidebarSort]
   toggleSidebar: []
+  home: []
+  cycleStatus: [status: FooterStatus]
   create: [cwd?: string]
   addProject: []
   settings: []
@@ -161,6 +144,8 @@ const emit = defineEmits<{
   rename: [id: string, name: string]
   delete: [id: string]
   reorderPinned: [id: string, toIndex: number]
+  pinAt: [id: string, toIndex: number]
+  unpin: [id: string]
   toggleSection: [key: string]
   revealMore: [key: string]
   collapseGroup: [key: string]
@@ -168,8 +153,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const scopeMenuOpen = shallowRef(false)
 const listScrolled = shallowRef(false)
-const projectSettingsOpen = shallowRef(false)
-const projectSettingsTarget = shallowRef("")
 
 function updateListScrolled() {
   const el = document.querySelector<HTMLElement>(".session-window")
@@ -192,19 +175,8 @@ useEventListener(window, "pointerdown", (event) => {
   scopeMenuOpen.value = false
 })
 
-function pickScope(name: string | undefined): void {
-  emit("update:scopeFilter", name)
-  scopeMenuOpen.value = false
-}
-
 function onGlobalSettings(): void {
   emit("settings")
-  scopeMenuOpen.value = false
-}
-
-function onEditProject(project: string): void {
-  projectSettingsTarget.value = project
-  projectSettingsOpen.value = true
   scopeMenuOpen.value = false
 }
 </script>
@@ -246,12 +218,6 @@ function onEditProject(project: string): void {
   gap: var(--space-xs);
   min-width: 0;
   padding-block: var(--space-xxs);
-  border-bottom: var(--border-width) solid transparent;
-  transition: border-color var(--duration-fast) var(--ease-out);
-}
-
-.session-nav.is-scrolled .nav-head {
-  border-bottom-color: var(--border-subtle);
 }
 
 .search-head {
@@ -273,7 +239,7 @@ function onEditProject(project: string): void {
   height: var(--edge-fade-band);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
-  background: linear-gradient(to bottom, var(--sidebar), transparent);
+  background: linear-gradient(to bottom, var(--background), transparent);
   pointer-events: none;
 }
 
@@ -310,6 +276,8 @@ function onEditProject(project: string): void {
   place-items: center;
   width: var(--size-icon);
   height: var(--size-icon);
+  /* 15px 的圆环形图标按 1.75 档只落到 1.09px 笔画，会发灰发虚，这一槽位提到 2 档 */
+  --solar-stroke-width: 2px;
 }
 
 .search-field-label {
@@ -342,22 +310,6 @@ function onEditProject(project: string): void {
 .head-btn:hover {
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
-}
-
-.head-btn.scoped {
-  color: var(--primary);
-}
-
-.head-btn.scoped::after {
-  content: "";
-  position: absolute;
-  bottom: 2px;
-  left: 50%;
-  width: 4px;
-  height: 4px;
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  translate: -50% 0;
 }
 
 .session-nav > .titlebar-drag {

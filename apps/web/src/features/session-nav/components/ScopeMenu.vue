@@ -40,16 +40,16 @@
 
     <button
       class="scope-item"
-      :class="{ on: !scopeFilter }"
+      :class="{ on: scopeFilter.size === 0 }"
       type="button"
-      @click="pickScope(undefined)"
+      @click="emit('update:scopeFilter', new Set())"
     >
       <span class="scope-fav"><FolderIcon :size="12" /></span>
       <span class="scope-name">{{ t("session.allProjects") }}</span>
       <span class="scope-cnt">{{ allSessionsCount }}</span>
 
       <span class="scope-ck">
-        <CheckIcon v-if="!scopeFilter" :size="12" />
+        <CheckIcon v-if="scopeFilter.size === 0" :size="12" />
 
         <span
           class="scope-edit"
@@ -63,49 +63,29 @@
       </span>
     </button>
 
-    <span
+    <button
       v-for="g in groups"
       :key="g.canonicalPath"
       class="scope-item"
-      :class="{ on: scopeFilter === workspaceName(g.canonicalPath) }"
-      role="menuitem"
-      tabindex="0"
-      @click="pickScope(workspaceName(g.canonicalPath))"
-      @keydown.enter.prevent="pickScope(workspaceName(g.canonicalPath))"
+      :class="{ on: scopeFilter.has(g.canonicalPath) }"
+      type="button"
+      @click="toggleProject(g.canonicalPath)"
     >
-      <span class="scope-fav">
-        <component :is="scopeIcon(workspaceName(g.canonicalPath))" :size="12" />
-      </span>
-
+      <span class="scope-fav"><FolderIcon :size="12" /></span>
       <span class="scope-name">{{ workspaceName(g.canonicalPath) }}</span>
       <span class="scope-cnt">{{ g.sessions.length }}</span>
 
       <span class="scope-ck">
-        <CheckIcon v-if="scopeFilter === workspaceName(g.canonicalPath)" :size="12" />
-
-        <span
-          class="scope-edit"
-          role="button"
-          tabindex="-1"
-          :title="t('session.projectSettings')"
-          @click.stop="emit('editProject', workspaceName(g.canonicalPath))"
-        >
-          <SettingsIcon :size="12" />
-        </span>
+        <CheckIcon v-if="scopeFilter.has(g.canonicalPath)" :size="12" />
       </span>
-    </span>
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef } from "vue"
+import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { workspaceName } from "@features/session-nav/index.js"
-import {
-  loadProjIcons,
-  projectIconComponent,
-  type ProjIcon,
-} from "@features/session-nav/lib/project-icon.js"
 import {
   CheckIcon,
   ClockCircleIcon,
@@ -120,17 +100,15 @@ const props = defineProps<{
   groups: readonly SessionGroup[]
   grouping: SidebarGrouping
   sort: SidebarSort
-  scopeFilter: string | undefined
+  scopeFilter: ReadonlySet<string>
 }>()
 const emit = defineEmits<{
   "update:grouping": [grouping: SidebarGrouping]
   "update:sort": [sort: SidebarSort]
-  "update:scopeFilter": [name: string | undefined]
+  "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
   settings: []
-  editProject: [project: string]
 }>()
 const { t } = useI18n()
-const projIcons = shallowRef<Record<string, ProjIcon>>(loadProjIcons())
 const groupingOptions = computed(() => [
   { value: "date" as const, label: t("session.groupDate"), icon: ClockCircleIcon },
   { value: "cwd" as const, label: t("session.groupCwd"), icon: FolderIcon },
@@ -143,12 +121,12 @@ const allSessionsCount = computed(() =>
   props.groups.reduce((sum, group) => sum + group.sessions.length, 0),
 )
 
-function scopeIcon(project: string | undefined) {
-  return projectIconComponent(project ? projIcons.value[project] : undefined)
-}
+function toggleProject(canonicalPath: string): void {
+  const next = new Set(props.scopeFilter)
 
-function pickScope(name: string | undefined): void {
-  emit("update:scopeFilter", name)
+  if (next.has(canonicalPath)) next.delete(canonicalPath)
+  else next.add(canonicalPath)
+  emit("update:scopeFilter", next)
 }
 </script>
 
