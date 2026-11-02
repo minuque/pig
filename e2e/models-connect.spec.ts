@@ -18,6 +18,8 @@ test("填 Key 保存并连接，登出后回到未连接", async ({ page, models
 
   await expect(page.locator(".provider-badge")).toHaveText("已连接")
   await expect(page.locator(".model-card")).toHaveCount(1)
+  await expect(page.locator(".btnrow button").first()).toHaveText("登出")
+  await expect(page.locator(".btnrow button").last()).toHaveText("测试连接")
 
   await page.locator(".btnrow").getByRole("button", { name: "登出" }).click()
   await page.getByRole("alertdialog").getByRole("button", { name: "登出" }).click()

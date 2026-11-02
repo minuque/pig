@@ -15,6 +15,7 @@ export interface FakeModelSpec {
   reasoning?: boolean
   contextWindow?: number
   maxTokens?: number
+  samplingParams?: Record<string, unknown>
 }
 
 export interface FakeProviderSpec {
@@ -42,6 +43,7 @@ const model = (providerId: string, spec: FakeModelSpec) => ({
   input: ["text"],
   contextWindow: spec.contextWindow ?? 200_000,
   maxTokens: spec.maxTokens ?? 32_000,
+  ...(spec.samplingParams ? { samplingParams: spec.samplingParams } : {}),
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 })
 
@@ -102,6 +104,7 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
             reasoning: item.reasoning ?? false,
             contextWindow: item.contextWindow ?? 200_000,
             maxTokens: item.maxTokens ?? 32_000,
+            ...(item.samplingParams ? { samplingParams: item.samplingParams } : {}),
           }))
         : []
       const next: FakeProviderState = {
@@ -206,8 +209,8 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
       spec.source = "stored"
       return { type: "oauth" }
     },
-    refresh: async () => {
-      const added = options.addModelOnRefresh
+    refresh: async (refreshOptions?: { providers?: string[] }) => {
+      const added = refreshOptions?.providers ? undefined : options.addModelOnRefresh
 
       if (added) {
         options.addModelOnRefresh = undefined

@@ -110,6 +110,16 @@
         <p v-else class="note">{{ t("settings.models.authNote") }}</p>
 
         <span class="btnrow">
+          <Button
+            v-if="canLogout"
+            variant="surface"
+            color="red"
+            :disabled="loginState.phase === 'running'"
+            @click="confirmLogout = true"
+          >
+            {{ t("settings.models.logout") }}
+          </Button>
+
           <Button v-if="editing" variant="surface" @click="cancelEdit">
             {{ t("common.cancel") }}
           </Button>
@@ -138,16 +148,6 @@
             @click="startLogin('oauth')"
           >
             {{ t("settings.models.signIn") }}
-          </Button>
-
-          <Button
-            v-if="canLogout"
-            variant="surface"
-            color="red"
-            :disabled="loginState.phase === 'running'"
-            @click="confirmLogout = true"
-          >
-            {{ t("settings.models.logout") }}
           </Button>
         </span>
       </div>
@@ -612,13 +612,13 @@ async function logout() {
   align-items: center;
   gap: 4px;
   margin-inline-start: auto;
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-eyebrow);
+  color: var(--primary);
+  font-size: var(--text-caption);
   font-weight: var(--font-weight-normal);
 }
 
 .refresh-models:hover:not(:disabled) {
-  color: var(--contrast-foreground);
+  opacity: 0.8;
 }
 
 .refresh-models:disabled {

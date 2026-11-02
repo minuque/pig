@@ -200,6 +200,14 @@ async function withModelsGateway(
   await mkdir(sessionDir)
   await mkdir(agentDir)
   await writeFile(join(workspaceDir, ".keep"), "")
+  // 已连接供应商的掩码提示来自 auth.json 的 Key 末四位。
+  await writeFile(
+    join(agentDir, "auth.json"),
+    JSON.stringify({
+      anthropic: { type: "api_key", key: "sk-ant-e2e-4f2a" },
+      openai: { type: "api_key", key: "{{SECRET_jssv7fkn}}" },
+    }),
+  )
   await writeFile(
     join(agentDir, "models.json"),
     JSON.stringify({
