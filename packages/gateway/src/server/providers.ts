@@ -49,6 +49,11 @@ export async function handleProviderRequest(
     return true
   }
 
+  if (url.pathname === "/api/v1/platform/providers/test" && req.method === "POST") {
+    await handleTest(req, res, deps)
+    return true
+  }
+
   const events = LOGIN_EVENTS.exec(url.pathname)
 
   if (events && req.method === "GET") {
@@ -112,6 +117,25 @@ async function handleLogin(req: IncomingMessage, res: ServerResponse, deps: Prov
     deps.send(res, 200, await deps.providers.login(providerId, type))
   } catch (error) {
     fail(error, res, deps, "login")
+  }
+}
+
+async function handleTest(req: IncomingMessage, res: ServerResponse, deps: ProviderRequestDeps) {
+  const payload = await readBody(req, res, deps)
+
+  if (!payload) return
+  const providerId = typeof payload.providerId === "string" ? payload.providerId : ""
+
+  if (!providerId) {
+    deps.send(res, 400, { code: "INVALID_REQUEST" })
+    return
+  }
+
+  try {
+    const modelId = typeof payload.modelId === "string" ? payload.modelId : undefined
+    deps.send(res, 200, await deps.providers.testConnection(providerId, modelId))
+  } catch (error) {
+    fail(error, res, deps, "test connection")
   }
 }
 

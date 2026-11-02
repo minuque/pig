@@ -55,6 +55,12 @@ interface LoginSession {
   timer: ReturnType<typeof setTimeout>
 }
 
+export interface TestConnectionResult {
+  ok: boolean
+  latencyMs?: number
+  message?: string
+}
+
 export class ProviderServiceError extends Error {
   constructor(
     readonly status: number,
@@ -155,6 +161,43 @@ export class ProviderService {
     this.logins.set(session.id, session)
     void this.runLogin(session, runtime)
     return { loginId: session.id }
+  }
+
+  /** 最小请求验证凭据；失败不写配置。 */
+  async testConnection(providerId: string, modelId?: string): Promise<TestConnectionResult> {
+    const runtime = await this.runtime()
+
+    if (!runtime.getProvider(providerId)) throw new ProviderServiceError(404, "NOT_FOUND")
+
+    if (!runtime.getProviderAuthStatus(providerId).configured) {
+      throw new ProviderServiceError(409, "NOT_CONFIGURED")
+    }
+
+    const models = runtime.getModels(providerId)
+    const model = modelId ? models.find((item) => item.id === modelId) : models[0]
+
+    if (!model) throw new ProviderServiceError(409, "NO_MODELS")
+
+    const started = Date.now()
+
+    try {
+      const message = await runtime.completeSimple(
+        model,
+        { messages: [{ role: "user", content: "ping", timestamp: started }] },
+        { maxTokens: 1 },
+      )
+
+      if (message.stopReason === "error" || message.stopReason === "aborted") {
+        return {
+          ok: false,
+          message: errorText(message.errorMessage ?? message.stopReason),
+        }
+      }
+
+      return { ok: true, latencyMs: Date.now() - started }
+    } catch (error) {
+      return { ok: false, message: errorText(error) }
+    }
   }
 
   /** 复制操作：唯一一次携带明文，仅供前端直接写剪贴板。 */
