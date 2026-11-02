@@ -7,10 +7,12 @@ import { toProtocolModelMetadata } from "@earendil-works/pi-server"
 
 import { ModelsConfigError, ProviderConfigStore } from "./models-config.js"
 import {
+  isThinkingLevel,
   projectProvider,
   type DefaultModelView,
   type ModelRuntimeLike,
   type ProviderView,
+  type ThinkingLevel,
 } from "./provider-view.js"
 
 type AuthType = Parameters<ModelRuntimeLike["login"]>[1]
@@ -62,6 +64,13 @@ export interface TestConnectionResult {
   message?: string
 }
 
+export interface ModelParamsPatch {
+  thinkingLevel?: ThinkingLevel | null
+  maxTokens?: number | null
+  contextWindow?: number | null
+  samplingParams?: Record<string, unknown> | null
+}
+
 export interface CustomModelInput {
   id: string
   name?: string
@@ -101,6 +110,8 @@ export interface ProviderServiceOptions {
   agentDir?: string
   /** models.json 路径；缺省 agentDir/models.json。 */
   modelsPath?: string
+  /** 测试注入；缺省读 agentDir 的 settings.json。 */
+  settings?: SettingsManager
 }
 
 /** 供应商列表、登录事件流、模型目录与配置写入共用的 runtime 门面。 */
@@ -221,6 +232,42 @@ export class ProviderService {
     } catch (error) {
       return { ok: false, message: errorText(error) }
     }
+  }
+
+  /** 写模型参数：thinking 进 settings，其余进 models.json，成功后刷新。 */
+  async updateModelParams(
+    providerId: string,
+    modelId: string,
+    patch: ModelParamsPatch,
+  ): Promise<void> {
+    const runtime = await this.runtime()
+
+    if (!runtime.getProvider(providerId)) throw new ProviderServiceError(404, "NOT_FOUND")
+    validatePatch(patch)
+
+    if (patch.thinkingLevel !== undefined) {
+      const settings = await this.settings()
+
+      if (patch.thinkingLevel === null) settings.removeModelThinkingLevel(providerId, modelId)
+      else settings.setModelThinkingLevel(providerId, modelId, patch.thinkingLevel)
+      await settings.flush()
+    }
+
+    if (hasModelFields(patch)) {
+      const custom = await this.isCustomProvider(providerId)
+
+      await this.mutateCustom((config) => {
+        const providers = objectOf(config.providers)
+        const provider = objectOf(providers[providerId])
+
+        if (custom) applyToCustomModel(provider, modelId, patch)
+        else applyToOverrides(provider, modelId, patch)
+        providers[providerId] = provider
+        config.providers = providers
+      })
+    }
+
+    await this.refreshProvider(providerId)
   }
 
   /** 写入自定义供应商；apiKey 留空保留旧值，成功后刷新 runtime。 */
@@ -416,17 +463,27 @@ export class ProviderService {
 
   private settings(): Promise<SettingsManager> {
     return (this.settingsPromise ??= Promise.resolve(
-      SettingsManager.create(this.agentDir, this.agentDir),
+      this.options.settings ?? SettingsManager.create(this.agentDir, this.agentDir),
     ))
   }
 
   private async customProviderIds(): Promise<Set<string>> {
     try {
       const config = await this.customStore.read()
-      const providers = config.providers
-      return new Set(providers && typeof providers === "object" ? Object.keys(providers) : [])
+      const providers = objectOf(config.providers)
+      return new Set(Object.keys(providers).filter((id) => isCustomConfig(objectOf(providers[id]))))
     } catch {
       return new Set()
+    }
+  }
+
+  /** 只带 modelOverrides 的条目是内置供应商的覆盖，不是自定义供应商。 */
+  private async isCustomProvider(providerId: string): Promise<boolean> {
+    try {
+      const config = await this.customStore.read()
+      return isCustomConfig(objectOf(objectOf(config.providers)[providerId]))
+    } catch {
+      return false
     }
   }
 
@@ -471,6 +528,89 @@ function objectOf(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {}
+}
+
+function isCustomConfig(provider: Record<string, unknown>): boolean {
+  return Boolean(provider.api || provider.baseUrl || provider.models)
+}
+
+function validatePatch(patch: ModelParamsPatch): void {
+  const positive = (value: number | null | undefined) =>
+    value === undefined || value === null || (Number.isInteger(value) && value > 0)
+
+  if (!positive(patch.maxTokens) || !positive(patch.contextWindow)) {
+    throw new ProviderServiceError(400, "INVALID_REQUEST")
+  }
+
+  if (
+    patch.thinkingLevel !== undefined &&
+    patch.thinkingLevel !== null &&
+    !isThinkingLevel(patch.thinkingLevel)
+  ) {
+    throw new ProviderServiceError(400, "INVALID_REQUEST")
+  }
+
+  if (
+    patch.samplingParams !== undefined &&
+    patch.samplingParams !== null &&
+    (typeof patch.samplingParams !== "object" || Array.isArray(patch.samplingParams))
+  ) {
+    throw new ProviderServiceError(400, "INVALID_REQUEST")
+  }
+}
+
+function hasModelFields(patch: ModelParamsPatch): boolean {
+  return (
+    patch.maxTokens !== undefined ||
+    patch.contextWindow !== undefined ||
+    patch.samplingParams !== undefined
+  )
+}
+
+function applyToOverrides(
+  provider: Record<string, unknown>,
+  modelId: string,
+  patch: ModelParamsPatch,
+): void {
+  const overrides = objectOf(provider.modelOverrides)
+  const entry = objectOf(overrides[modelId])
+
+  applyFields(entry, patch)
+
+  if (Object.keys(entry).length) overrides[modelId] = entry
+  else delete overrides[modelId]
+
+  provider.modelOverrides = overrides
+}
+
+function applyToCustomModel(
+  provider: Record<string, unknown>,
+  modelId: string,
+  patch: ModelParamsPatch,
+): void {
+  const models = Array.isArray(provider.models) ? provider.models : []
+  const model = models.find((item) => objectOf(item).id === modelId)
+
+  if (!model) throw new ProviderServiceError(404, "NOT_FOUND")
+  applyFields(model as Record<string, unknown>, patch)
+  provider.models = models
+}
+
+function applyFields(entry: Record<string, unknown>, patch: ModelParamsPatch): void {
+  if (patch.maxTokens !== undefined) {
+    if (patch.maxTokens === null) delete entry.maxTokens
+    else entry.maxTokens = patch.maxTokens
+  }
+
+  if (patch.contextWindow !== undefined) {
+    if (patch.contextWindow === null) delete entry.contextWindow
+    else entry.contextWindow = patch.contextWindow
+  }
+
+  if (patch.samplingParams !== undefined) {
+    if (patch.samplingParams === null) delete entry.samplingParams
+    else entry.samplingParams = { ...patch.samplingParams }
+  }
 }
 
 function keyHint(credential: StoredCredential | undefined): string | null {

@@ -4,6 +4,7 @@ import {
   ProviderServiceError,
   type CustomModelInput,
   type LoginEventView,
+  type ModelParamsPatch,
   type ProviderService,
 } from "../pi/provider-service.js"
 
@@ -18,6 +19,7 @@ const LOGIN_RESPONSES = /^\/api\/v1\/platform\/providers\/login\/([^/]+)\/respon
 const LOGIN_CANCEL = /^\/api\/v1\/platform\/providers\/login\/([^/]+)\/cancel$/
 const PROVIDER_KEY = /^\/api\/v1\/platform\/providers\/([^/]+)\/key$/
 const CUSTOM_PROVIDER = /^\/api\/v1\/platform\/providers\/custom\/([^/]+)$/
+const MODEL_PARAMS = /^\/api\/v1\/platform\/providers\/([^/]+)\/models\/([^/]+)\/params$/
 
 /** /api/v1/platform 下的供应商路由；true=已处理。 */
 export async function handleProviderRequest(
@@ -118,6 +120,19 @@ export async function handleProviderRequest(
     return true
   }
 
+  const params = MODEL_PARAMS.exec(url.pathname)
+
+  if (params && req.method === "PUT") {
+    await handleModelParams(
+      req,
+      res,
+      decodeURIComponent(params[1] ?? ""),
+      decodeURIComponent(params[2] ?? ""),
+      deps,
+    )
+    return true
+  }
+
   return false
 }
 
@@ -196,6 +211,25 @@ async function handleSaveCustom(
     deps.send(res, 200, { ok: true })
   } catch (error) {
     fail(error, res, deps, "save custom provider")
+  }
+}
+
+async function handleModelParams(
+  req: IncomingMessage,
+  res: ServerResponse,
+  providerId: string,
+  modelId: string,
+  deps: ProviderRequestDeps,
+) {
+  const payload = await readBody(req, res, deps)
+
+  if (!payload) return
+
+  try {
+    await deps.providers.updateModelParams(providerId, modelId, payload as ModelParamsPatch)
+    deps.send(res, 200, { ok: true })
+  } catch (error) {
+    fail(error, res, deps, "model params")
   }
 }
 
