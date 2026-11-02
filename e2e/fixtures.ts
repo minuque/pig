@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url"
 import Gateway from "../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../packages/gateway/src/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
+import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
 import { prebuildComplexSession, prebuildFillerSessions } from "./prebuild-session.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
@@ -218,6 +219,18 @@ async function withModelsGateway(
           api: "openai-completions",
           models: [{ id: "llama3.1:8b" }],
         },
+        lmstudio: {
+          name: "LM Studio",
+          baseUrl: "http://localhost:1234/v1",
+          api: "openai-completions",
+          models: [{ id: "qwen3-32b" }],
+        },
+        vllm: {
+          name: "内网 vLLM",
+          baseUrl: "http://10.0.0.8:8000/v1",
+          api: "openai-completions",
+          models: [{ id: "deepseek-v3" }],
+        },
       },
     }),
   )
@@ -235,14 +248,6 @@ async function withModelsGateway(
         ],
       },
       { id: "openai", name: "OpenAI", models: [{ id: "gpt-5", name: "GPT-5" }] },
-      { id: "google", name: "Google", models: [{ id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" }] },
-      { id: "mistral", name: "Mistral", models: [{ id: "mistral-large", name: "Mistral Large" }] },
-      {
-        id: "openrouter",
-        name: "OpenRouter",
-        models: [{ id: "openrouter/auto", name: "Auto" }],
-      },
-      { id: "xai", name: "xAI", models: [{ id: "grok-4", name: "Grok 4" }] },
       {
         id: "deepseek",
         name: "DeepSeek",
@@ -256,6 +261,21 @@ async function withModelsGateway(
         baseUrl: "http://localhost:11434/v1",
         models: [{ id: "llama3.1:8b", name: "Llama 3.1 8B", contextWindow: 128_000 }],
       },
+      {
+        id: "lmstudio",
+        name: "LM Studio",
+        baseUrl: "http://localhost:1234/v1",
+        models: [{ id: "qwen3-32b", name: "Qwen3 32B", contextWindow: 128_000 }],
+      },
+      {
+        id: "vllm",
+        name: "内网 vLLM",
+        baseUrl: "http://10.0.0.8:8000/v1",
+        models: [{ id: "deepseek-v3", name: "DeepSeek V3", contextWindow: 128_000 }],
+      },
+      ...BUILTIN_PROVIDERS.filter(
+        (provider) => !["anthropic", "openai", "deepseek"].includes(provider.id),
+      ).map((provider) => ({ ...provider, models: [] })),
     ],
     {
       modelsPath: join(agentDir, "models.json"),

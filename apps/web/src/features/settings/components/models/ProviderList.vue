@@ -38,6 +38,7 @@
         :key="provider.id"
         type="button"
         class="provider-row"
+        :data-provider="provider.id"
         @click="emit('select', provider.id)"
       >
         <span class="provider-mark">

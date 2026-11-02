@@ -9,7 +9,7 @@ test("填 Key 保存并连接，登出后回到未连接", async ({ page, models
   await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
   await page.locator(".settings-nav").getByRole("button", { name: "模型" }).click()
 
-  await page.locator(".provider-row").filter({ hasText: "OpenAI" }).click()
+  await page.locator('.provider-row[data-provider="openai"]').click()
   await expect(page.locator(".provider-detail-title")).toHaveText("OpenAI")
   await expect(page.locator(".provider-badge")).toHaveText("未连接")
 
@@ -37,13 +37,13 @@ test("测试连接成功显示耗时，失败显示上游原文", async ({ page,
   await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
   await page.locator(".settings-nav").getByRole("button", { name: "模型" }).click()
 
-  await page.locator(".provider-row").filter({ hasText: "Anthropic" }).click()
+  await page.locator('.provider-row[data-provider="anthropic"]').click()
   await page.getByRole("button", { name: "测试连接" }).click()
   await expect(page.locator(".test-result")).toContainText("连接正常")
   await expect(page.locator(".test-result")).toContainText("ms")
 
   await page.locator(".provider-back").click()
-  await page.locator(".provider-row").filter({ hasText: "DeepSeek" }).click()
+  await page.locator('.provider-row[data-provider="deepseek"]').click()
   await page.getByRole("button", { name: "测试连接" }).click()
   await expect(page.locator(".test-result")).toContainText("upstream rejected the key")
   await expect(page.getByRole("button", { name: "测试连接" })).toBeEnabled()
