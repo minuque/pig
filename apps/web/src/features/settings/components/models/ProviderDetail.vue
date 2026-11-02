@@ -1,10 +1,5 @@
 <template>
   <section class="provider-detail">
-    <button type="button" class="provider-back" @click="emit('back')">
-      <ArrowLeftIcon class="back-icon" />
-      {{ t("settings.models.providers") }}
-    </button>
-
     <header class="detail-head">
       <span class="detail-mark">
         <VendorMark :vendor="provider.id" :name="provider.name" :size="26" />
@@ -231,7 +226,6 @@ import {
 } from "@components/ui/alert-dialog/index.js"
 import { Button } from "@components/ui/button/index.js"
 import {
-  ArrowLeftIcon,
   CheckIcon,
   CopyIcon,
   KeyMinimalisticIcon,
@@ -256,7 +250,7 @@ const props = defineProps<{
   editable?: boolean | undefined
   refreshModels?: (() => Promise<void>) | undefined
 }>()
-const emit = defineEmits<{ back: []; changed: []; edit: [] }>()
+const emit = defineEmits<{ changed: []; edit: [] }>()
 const { t } = useI18n()
 const apiKey = ref("")
 const editing = ref(false)
@@ -423,22 +417,6 @@ async function logout() {
 </script>
 
 <style scoped>
-.provider-back {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  align-self: flex-start;
-  height: 26px;
-  margin-block-end: var(--space-md);
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-caption);
-}
-
-.back-icon {
-  inline-size: 12px;
-  block-size: 12px;
-}
-
 .detail-head {
   display: flex;
   align-items: center;

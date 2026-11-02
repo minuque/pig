@@ -1,12 +1,11 @@
 <template>
   <section class="pane">
-    <CustomProviderForm v-if="creating" @cancel="creating = false" @saved="onCreated" />
+    <CustomProviderForm v-if="creating" @saved="onCreated" />
 
     <CustomProviderForm
       v-else-if="selected && selected.kind === 'custom' && editing === selected.id"
       :key="selected.id"
       :provider="selected"
-      @cancel="editing = undefined"
       @saved="onSaved"
       @deleted="onDeleted"
     />
@@ -16,7 +15,6 @@
       :provider="selected"
       :editable="selected.kind === 'custom'"
       :refresh-models="reloadModels"
-      @back="select(undefined)"
       @changed="onChanged"
       @edit="editing = selected.id"
     />

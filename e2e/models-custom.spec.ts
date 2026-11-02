@@ -19,7 +19,7 @@ test("新增自定义供应商，刷新后仍在，编辑后删除", async ({ pa
 
   await expect(page.locator(".provider-detail-title")).toHaveText("myapi")
 
-  await page.locator(".provider-back").click()
+  await page.locator(".settings-crumbs").getByRole("button", { name: "供应商" }).click()
 
   const customGroup = page
     .locator(".provider-group")
@@ -41,7 +41,7 @@ test("新增自定义供应商，刷新后仍在，编辑后删除", async ({ pa
   await page.getByRole("button", { name: "保存" }).click()
   await expect(page.locator(".provider-detail-title")).toHaveText("我的接口")
 
-  await page.locator(".provider-back").click()
+  await page.locator(".settings-crumbs").getByRole("button", { name: "供应商" }).click()
   await page.locator(".provider-row").filter({ hasText: "我的接口" }).click()
   await page.getByRole("button", { name: "编辑" }).click()
   await page.getByRole("button", { name: "删除供应商" }).click()

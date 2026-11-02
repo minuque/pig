@@ -42,7 +42,7 @@ test("测试连接成功显示耗时，失败显示上游原文", async ({ page,
   await expect(page.locator(".test-result")).toContainText("连接正常")
   await expect(page.locator(".test-result")).toContainText("ms")
 
-  await page.locator(".provider-back").click()
+  await page.locator(".settings-crumbs").getByRole("button", { name: "供应商" }).click()
   await page.locator('.provider-row[data-provider="deepseek"]').click()
   await page.getByRole("button", { name: "测试连接" }).click()
   await expect(page.locator(".test-result")).toContainText("upstream rejected the key")

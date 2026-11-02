@@ -1,10 +1,5 @@
 <template>
   <section class="custom-form">
-    <button type="button" class="provider-back" @click="emit('cancel')">
-      <ArrowLeftIcon class="back-icon" />
-      {{ t("settings.models.providers") }}
-    </button>
-
     <header class="detail-head">
       <span class="detail-mark">
         <VendorMark :vendor="draft.id" :name="displayName" :size="26" />
@@ -160,7 +155,6 @@ import {
   AlertDialogTitle,
 } from "@components/ui/alert-dialog/index.js"
 import { Button } from "@components/ui/button/index.js"
-import { ArrowLeftIcon } from "@components/icons/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import CustomModelCard from "@features/settings/components/models/CustomModelCard.vue"
@@ -175,7 +169,7 @@ import { useI18n } from "@i18n/index.js"
 import type { ProviderView } from "@/types/provider-type.js"
 
 const props = defineProps<{ provider?: ProviderView }>()
-const emit = defineEmits<{ cancel: []; saved: [id: string]; deleted: [id: string] }>()
+const emit = defineEmits<{ saved: [id: string]; deleted: [id: string] }>()
 const { t } = useI18n()
 const saving = ref(false)
 const confirmDelete = ref(false)
@@ -275,22 +269,6 @@ async function remove() {
 </script>
 
 <style scoped>
-.provider-back {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  align-self: flex-start;
-  height: 26px;
-  margin-block-end: var(--space-md);
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-caption);
-}
-
-.back-icon {
-  inline-size: 12px;
-  block-size: 12px;
-}
-
 .detail-head {
   display: flex;
   align-items: center;
