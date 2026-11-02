@@ -254,4 +254,8 @@ function sourceKind(provider: ProviderView) {
     transition: none;
   }
 }
+
+:deep(.rt-BaseButton.rt-r-size-1) {
+  font-size: var(--text-button);
+}
 </style>

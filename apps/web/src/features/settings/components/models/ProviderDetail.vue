@@ -667,4 +667,8 @@ async function logout() {
 .logout-dialog {
   max-inline-size: 26rem;
 }
+
+:deep(.rt-BaseButton.rt-r-size-1) {
+  font-size: var(--text-button);
+}
 </style>

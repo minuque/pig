@@ -430,4 +430,8 @@ async function remove() {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+:deep(.rt-BaseButton.rt-r-size-1) {
+  font-size: var(--text-button);
+}
 </style>

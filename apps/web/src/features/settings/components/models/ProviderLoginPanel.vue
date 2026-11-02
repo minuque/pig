@@ -252,4 +252,8 @@ async function copy(text: string) {
   gap: var(--space-xs);
   margin-block-start: var(--space-xs);
 }
+
+:deep(.rt-BaseButton.rt-r-size-1) {
+  font-size: var(--text-button);
+}
 </style>
