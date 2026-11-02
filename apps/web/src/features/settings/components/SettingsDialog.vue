@@ -47,8 +47,8 @@ import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import {
   ChartSquareIcon,
+  CloudIcon,
   SliderMinimalisticHorizontalIcon,
-  StarsMinimalisticIcon,
   Widget5Icon,
   WidgetAddIcon,
 } from "@components/icons/index.js"
@@ -79,7 +79,7 @@ const tabs = computed<{ id: Pane; label: string; icon: typeof SliderMinimalistic
       icon: SliderMinimalisticHorizontalIcon,
     },
     { id: "usage", label: t("settings.usage"), icon: ChartSquareIcon },
-    { id: "models", label: t("settings.models.title"), icon: StarsMinimalisticIcon },
+    { id: "models", label: t("settings.models.title"), icon: CloudIcon },
     { id: "skills", label: t("settings.skills"), icon: WidgetAddIcon },
     { id: "extensions", label: t("settings.extensions"), icon: Widget5Icon },
   ],
