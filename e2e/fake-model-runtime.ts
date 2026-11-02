@@ -190,7 +190,7 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
       id: string,
       type: "api_key" | "oauth",
       interaction: {
-        notify(event: { type: string; message?: string }): void
+        notify(event: { type: string; message?: string; url?: string; instructions?: string }): void
         prompt(prompt: { type: string; message: string }): Promise<string>
       },
     ) => {
@@ -208,6 +208,11 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
         return { type: "api_key", key }
       }
 
+      interaction.notify({
+        type: "auth_url",
+        url: "https://auth.example/authorize",
+        instructions: "在浏览器完成授权",
+      })
       spec.configured = true
       spec.source = "stored"
       return { type: "oauth" }

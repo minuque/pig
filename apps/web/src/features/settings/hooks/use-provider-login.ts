@@ -4,6 +4,7 @@ import { errorMessage } from "@client/http.js"
 import { cancelLogin, loginProvider, openLoginEvents, respondLogin } from "@client/platform.js"
 import { t } from "@i18n/index.js"
 import {
+  addedLoginUrl,
   endLoginStream,
   initialLoginState,
   reduceLoginEvents,
@@ -33,7 +34,12 @@ export function useProviderLogin(providerId: () => string, onDone: () => void) {
         loginId,
         0,
         (event) => {
-          state.value = reduceLoginEvents(state.value, event)
+          const previous = state.value
+          state.value = reduceLoginEvents(previous, event)
+          const url = addedLoginUrl(previous, state.value)
+
+          // 授权地址到达即交给系统浏览器；桌面壳把它转给默认浏览器
+          if (url) window.open(url, "_blank", "noopener,noreferrer")
 
           if (event.type === "prompt" && apiKey !== undefined && !answered) {
             answered = true

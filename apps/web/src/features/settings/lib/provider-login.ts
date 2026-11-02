@@ -69,6 +69,16 @@ export function reduceLoginEvents(state: LoginState, event: LoginEvent): LoginSt
   }
 }
 
+/** 本次事件新增的验证地址：第一次出现时自动交给系统浏览器打开。 */
+export function addedLoginUrl(previous: LoginState, next: LoginState): string | undefined {
+  const known = new Set([
+    ...previous.links,
+    ...previous.deviceCodes.map((code) => code.verificationUri),
+  ])
+  const candidates = [...next.links, ...next.deviceCodes.map((code) => code.verificationUri)]
+  return candidates.find((url) => !known.has(url))
+}
+
 function append(list: string[], value: string): string[] {
   return list.includes(value) ? list : [...list, value]
 }

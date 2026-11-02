@@ -252,7 +252,12 @@ async function withModelsGateway(
           { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
         ],
       },
-      { id: "openai", name: "OpenAI", models: [{ id: "gpt-5", name: "GPT-5" }] },
+      {
+        id: "openai",
+        name: "OpenAI",
+        auth: "both",
+        models: [{ id: "gpt-5", name: "GPT-5" }],
+      },
       {
         id: "deepseek",
         name: "DeepSeek",

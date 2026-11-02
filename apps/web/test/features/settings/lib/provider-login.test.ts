@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  addedLoginUrl,
   endLoginStream,
   initialLoginState,
   reduceLoginEvents,
@@ -65,6 +66,36 @@ describe("reduceLoginEvents", () => {
 
     expect(reduceLoginEvents(state, prompt(2, "old"))).toBe(state)
     expect(reduceLoginEvents(state, prompt(1, "older"))).toBe(state)
+  })
+})
+
+describe("addedLoginUrl", () => {
+  it("新的 auth_url 返回该地址", () => {
+    const before = initialLoginState()
+    const after = reduceLoginEvents(before, authUrl(1, "https://auth.example/a"))
+
+    expect(addedLoginUrl(before, after)).toBe("https://auth.example/a")
+  })
+
+  it("device_code 的验证地址也返回", () => {
+    const before = initialLoginState()
+    const after = reduceLoginEvents(before, deviceCode(1, "ABCD"))
+
+    expect(addedLoginUrl(before, after)).toBe("https://auth.example/device")
+  })
+
+  it("重复事件不重复返回", () => {
+    const first = reduceLoginEvents(initialLoginState(), authUrl(1, "https://a"))
+    const second = reduceLoginEvents(first, authUrl(2, "https://a"))
+
+    expect(addedLoginUrl(first, second)).toBeUndefined()
+  })
+
+  it("prompt 与 progress 不返回地址", () => {
+    const before = initialLoginState()
+    const after = reduceLoginEvents(before, prompt(1, "p1"))
+
+    expect(addedLoginUrl(before, after)).toBeUndefined()
   })
 })
 
