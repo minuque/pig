@@ -81,7 +81,7 @@
     <p v-if="error" class="error">{{ error }}</p>
 
     <div class="actions">
-      <Button size="s" variant="ghost" :disabled="saving" @click="restore">
+      <Button class="restore-params" size="s" variant="ghost" :disabled="saving" @click="restore">
         {{ t("settings.models.restoreDefaults") }}
       </Button>
 
@@ -274,7 +274,12 @@ async function restore() {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
+}
+
+/* rt 的 ghost 按钮默认带负外边距，会把间距吃掉 */
+.restore-params {
+  margin: 0;
 }
 
 @media (max-width: 560px) {
