@@ -154,6 +154,17 @@ export class ProviderService {
     return { providers, defaultModel: provider && id ? { provider, id } : null }
   }
 
+  /** 全量刷新 runtime，再返回刷新后的供应商目录。 */
+  async refreshAll(): Promise<{
+    providers: ProviderView[]
+    defaultModel: DefaultModelView | null
+  }> {
+    const runtime = await this.runtime()
+
+    await runtime.refresh()
+    return this.listProviders()
+  }
+
   async listModels(): Promise<{ models: ModelMetadata[] }> {
     const runtime = await this.runtime()
     const models = await runtime.getAvailable()

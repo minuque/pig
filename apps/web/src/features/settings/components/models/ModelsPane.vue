@@ -14,6 +14,7 @@
     <ProviderDetail
       v-else-if="selected"
       :provider="selected"
+      :refresh-models="reloadModels"
       @back="select(undefined)"
       @changed="refresh"
     />
@@ -38,8 +39,15 @@ import ProviderDetail from "@features/settings/components/models/ProviderDetail.
 import ProviderList from "@features/settings/components/models/ProviderList.vue"
 import { useProviders } from "@features/settings/hooks/use-providers.js"
 
-const { providers, loading, error, selected, select, refresh } = useProviders()
+const props = defineProps<{ refreshModels?: (() => Promise<void>) | undefined }>()
+const { providers, loading, error, selected, select, refresh, refreshCatalog } = useProviders()
 const creating = ref(false)
+
+/** 先让 gateway 刷新 runtime 并换掉列表，再让 Composer 目录跟上。 */
+async function reloadModels() {
+  await refreshCatalog()
+  await props.refreshModels?.()
+}
 
 async function onCreated(id: string) {
   creating.value = false

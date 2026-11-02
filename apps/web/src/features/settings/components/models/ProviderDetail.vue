@@ -159,8 +159,14 @@
         <span class="sec-count">
           {{ t("settings.models.modelCount", { count: provider.models.length }) }}
         </span>
+
+        <button type="button" class="refresh-models" :disabled="refreshing" @click="reloadModels">
+          <RestartIcon :class="{ 'is-spinning': refreshing }" />
+          {{ t("settings.models.refreshModels") }}
+        </button>
       </h3>
 
+      <p v-if="refreshError" class="refresh-error">{{ refreshError }}</p>
       <p v-if="!provider.models.length" class="empty">{{ t("settings.models.noModels") }}</p>
       <ProviderModelList :provider="provider" @changed="emit('changed')" />
     </section>
@@ -207,6 +213,7 @@ import {
   CopyIcon,
   KeyMinimalisticIcon,
   PenIcon,
+  RestartIcon,
   UserIcon,
 } from "@components/icons/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
@@ -221,7 +228,10 @@ import type { ProviderView } from "@/types/provider-type.js"
 
 type AuthMethod = "apiKey" | "oauth" | "ambient"
 
-const props = defineProps<{ provider: ProviderView }>()
+const props = defineProps<{
+  provider: ProviderView
+  refreshModels?: () => Promise<void>
+}>()
 const emit = defineEmits<{ back: []; changed: [] }>()
 const { t } = useI18n()
 const apiKey = ref("")
@@ -231,6 +241,8 @@ const confirmLogout = ref(false)
 const preferred = ref<AuthMethod>()
 const actionError = ref<string>()
 const testing = ref(false)
+const refreshing = ref(false)
+const refreshError = ref<string>()
 const testResult = ref<{ ok: boolean; text: string }>()
 const storedMethod = computed<AuthMethod>(() => {
   if (props.provider.status.hint) return "apiKey"
@@ -302,6 +314,20 @@ watch(
     resetLogin()
   },
 )
+
+async function reloadModels() {
+  if (!props.refreshModels) return
+  refreshing.value = true
+  refreshError.value = undefined
+
+  try {
+    await props.refreshModels()
+  } catch (cause) {
+    refreshError.value = errorMessage(cause)
+  } finally {
+    refreshing.value = false
+  }
+}
 
 async function runTest() {
   testing.value = true
@@ -570,6 +596,35 @@ async function logout() {
 
 .note.error {
   color: var(--danger);
+}
+
+.refresh-models {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-normal);
+}
+
+.refresh-models:hover:not(:disabled) {
+  color: var(--contrast-foreground);
+}
+
+.refresh-models:disabled {
+  cursor: default;
+}
+
+.refresh-models svg {
+  inline-size: 12px;
+  block-size: 12px;
+}
+
+.refresh-error {
+  margin: 0 0 var(--space-xs);
+  color: var(--danger);
+  font-size: var(--text-eyebrow);
 }
 
 .test-result {

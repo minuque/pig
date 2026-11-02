@@ -46,10 +46,10 @@ afterEach(async () => {
   tempDir = undefined
 })
 
-async function start() {
+async function start(runtime: Record<string, unknown> = fakeRuntime()) {
   tempDir = await mkdtemp(join(tmpdir(), "pig-providers-"))
   gateway = new Gateway({
-    createRuntime: async () => fakeRuntime() as never,
+    createRuntime: async () => runtime as never,
     sessionDir: join(tempDir, "sessions"),
     agentDir: join(tempDir, "agent"),
   })
@@ -94,6 +94,41 @@ describe("provider routes", () => {
       },
     ])
     expect(JSON.stringify(body)).not.toContain("sk-")
+  })
+
+  it("POST /providers/refresh 先刷新 runtime 再返回新目录", async () => {
+    const models = [model]
+    let refreshed = 0
+    const extra = { ...model, id: "claude-opus", name: "Claude Opus" }
+    const base = fakeRuntime()
+    const { base: url, auth } = await start({
+      ...base,
+      getProviders: () => [{ ...provider, getModels: () => models }],
+      getModels: () => models,
+      refresh: async () => {
+        refreshed += 1
+        models.push(extra)
+        return { aborted: false, errors: new Map() }
+      },
+    })
+    const response = await fetch(`${url}/api/v1/platform/providers/refresh`, {
+      method: "POST",
+      headers: { authorization: auth },
+    })
+
+    expect(response.status).toBe(200)
+    expect(refreshed).toBe(1)
+
+    const body = (await response.json()) as {
+      providers: Array<{ models: Array<{ id: string }> }>
+      defaultModel: unknown
+    }
+
+    expect(body.defaultModel).toBeNull()
+    expect(body.providers[0]?.models.map((item) => item.id)).toEqual([
+      "claude-sonnet",
+      "claude-opus",
+    ])
   })
 
   it("GET /models 返回协议模型目录", async () => {

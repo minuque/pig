@@ -38,6 +38,16 @@ export async function handleProviderRequest(
     return true
   }
 
+  if (url.pathname === "/api/v1/platform/providers/refresh" && req.method === "POST") {
+    try {
+      deps.send(res, 200, await deps.providers.refreshAll())
+    } catch (error) {
+      fail(error, res, deps, "providers")
+    }
+
+    return true
+  }
+
   if (url.pathname === "/api/v1/platform/models" && req.method === "GET") {
     try {
       deps.send(res, 200, await deps.providers.listModels())

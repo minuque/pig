@@ -141,6 +141,14 @@
             </div>
           </DropdownMenuGroup>
 
+          <div v-else-if="!catalog.length" class="empty empty-setup">
+            {{ t("composer.noModelsConfigured") }}
+
+            <button type="button" class="configure-models" @click="configureModels">
+              {{ t("composer.configureModels") }}
+            </button>
+          </div>
+
           <div v-else class="empty">{{ emptyText }}</div>
         </div>
 
@@ -172,6 +180,7 @@ import ModelEffortFooter from "@features/composer/components/ModelEffortFooter.v
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { useModelFavorites } from "@features/composer/hooks/use-model-favorites.js"
 import { useModelPickerPanel } from "@features/composer/hooks/use-model-picker-panel.js"
+import { useSettingsDialog } from "@features/settings/hooks/use-settings-dialog.js"
 import {
   FAVORITES_SCOPE,
   listPickerRows,
@@ -203,6 +212,7 @@ const searchRef = useTemplateRef<HTMLInputElement>("searchRef")
 const EMPTY_FAVORITES = new Set<string>()
 const { set: favoriteSet, isFavorite, toggle: toggleFavorite } = useModelFavorites()
 const { t } = useI18n()
+const { openSettings } = useSettingsDialog()
 const current = computed(() => resolveModelInfo(props.catalog, props.model))
 const {
   query,
@@ -271,6 +281,12 @@ function kbdBadge(index: number) {
 
 function isCurrent(provider: string, id: string) {
   return sameModel(props.model, { provider, id })
+}
+
+/** 空态直达设置模型页。 */
+function configureModels() {
+  open.value = false
+  openSettings("models")
 }
 
 function onPickerKeydown(event: KeyboardEvent) {
@@ -637,5 +653,21 @@ function onSelectModel(event: Event, provider: string, id: string) {
   font-size: var(--text-eyebrow);
   color: var(--contrast-foreground-faint);
   text-align: center;
+}
+
+.empty-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.configure-models {
+  color: var(--primary);
+  font-size: var(--text-eyebrow);
+}
+
+.configure-models:hover {
+  text-decoration: underline;
 }
 </style>

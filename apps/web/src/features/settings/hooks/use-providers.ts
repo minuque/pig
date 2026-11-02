@@ -1,7 +1,7 @@
 import { computed, onMounted, ref } from "vue"
 
 import { errorMessage } from "@client/http.js"
-import { listProviders } from "@client/platform.js"
+import { listProviders, refreshProviderCatalog } from "@client/platform.js"
 import type { ProviderView } from "@/types/provider-type.js"
 
 /** 模型分区状态：供应商列表、下钻选中项与加载错误。 */
@@ -26,10 +26,16 @@ export function useProviders() {
     }
   }
 
+  /** 请求 gateway 全量刷新 runtime，用返回结果替换列表。 */
+  async function refreshCatalog() {
+    const result = await refreshProviderCatalog()
+    providers.value = result.providers
+  }
+
   function select(id: string | undefined) {
     selectedId.value = id
   }
 
   onMounted(refresh)
-  return { providers, loading, error, selected, select, refresh }
+  return { providers, loading, error, selected, select, refresh, refreshCatalog }
 }

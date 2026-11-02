@@ -26,7 +26,7 @@
             <div class="settings-body">
               <GeneralPane v-if="active === 'general'" />
               <UsagePane v-else-if="active === 'usage'" />
-              <ModelsPane v-else-if="active === 'models'" />
+              <ModelsPane v-else-if="active === 'models'" :refresh-models="refreshModels" />
 
               <ResourcePane
                 v-else
@@ -57,13 +57,15 @@ import UsagePane from "./UsagePane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
 import ResourcePane from "./ResourcePane.vue"
 
-type Pane = "general" | "usage" | "models" | "skills" | "extensions"
+import type { SettingsPane as Pane } from "@features/settings/hooks/use-settings-dialog.js"
 
 const props = defineProps<{
   open: boolean
   cwd?: string | undefined
   /** 打开时定位的分区，默认 General。 */
   initialPane?: Pane | undefined
+  /** 刷新模型后同步 Composer 的模型目录。 */
+  refreshModels?: (() => Promise<void>) | undefined
 }>()
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
@@ -100,6 +102,14 @@ watch(
     active.value = props.initialPane ?? "general"
     await nextTick()
     resetScroll()
+  },
+)
+
+/** 弹框已开时再次 openSettings 也要切到新分区。 */
+watch(
+  () => props.initialPane,
+  (pane) => {
+    if (props.open && pane) active.value = pane
   },
 )
 

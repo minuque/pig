@@ -158,6 +158,13 @@ export async function deleteCustomProvider(providerId: string): Promise<void> {
   })
 }
 
+/** 让 gateway 全量刷新 runtime，返回刷新后的供应商列表。 */
+export async function refreshProviderCatalog(): Promise<ProviderListResponse> {
+  return platformRequest<ProviderListResponse>("/api/v1/platform/providers/refresh", {
+    method: "POST",
+  })
+}
+
 /** 调整单个模型的思考强度、输出上限与采样参数；null 删除该项。 */
 export async function updateModelParams(
   providerId: string,

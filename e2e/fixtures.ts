@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url"
 
 import Gateway from "../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../packages/gateway/src/directory.js"
-import { createFakeRuntime } from "./fake-model-runtime.js"
+import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { prebuildComplexSession, prebuildFillerSessions } from "./prebuild-session.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
@@ -83,6 +83,8 @@ type TestFixtures = {
   multiGateway: MultiE2eGateway
   /** 固定模型目录：已连接/未连接/自定义三组。 */
   modelsGateway: E2eGateway
+  /** 没有任何可用模型，用来验 Composer 空态。 */
+  emptyModelsGateway: E2eGateway
 }
 
 /** 起 Gateway 并躲开 Chromium 禁用端口。 */
@@ -186,7 +188,10 @@ async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void
 }
 
 /** 模型配置页：临时 agentDir + 假 runtime，隔离本机 ~/.pi。 */
-async function withModelsGateway(use: (gateway: E2eGateway) => Promise<void>) {
+async function withModelsGateway(
+  use: (gateway: E2eGateway) => Promise<void>,
+  specs?: FakeProviderSpec[],
+) {
   const temp = await mkdtemp(join(tmpdir(), "pig-e2e-models-"))
   const workspaceDir = join(temp, "workspace")
   const sessionDir = join(temp, "sessions")
@@ -210,7 +215,7 @@ async function withModelsGateway(use: (gateway: E2eGateway) => Promise<void>) {
   )
 
   const runtime = createFakeRuntime(
-    [
+    specs ?? [
       {
         id: "anthropic",
         name: "Anthropic",
@@ -236,7 +241,13 @@ async function withModelsGateway(use: (gateway: E2eGateway) => Promise<void>) {
         models: [{ id: "llama3.1:8b", name: "Llama 3.1 8B", contextWindow: 128_000 }],
       },
     ],
-    { modelsPath: join(agentDir, "models.json") },
+    {
+      modelsPath: join(agentDir, "models.json"),
+      addModelOnRefresh: {
+        provider: "anthropic",
+        model: { id: "claude-sonnet-5", name: "Claude Sonnet 5", reasoning: true },
+      },
+    },
   )
   const platformPort: DirectoryPort = {
     async selectDirectory() {
@@ -302,6 +313,12 @@ export const test = base.extend<TestFixtures>({
   modelsGateway: [
     async ({}, use) => {
       await withModelsGateway(use)
+    },
+    { scope: "test" },
+  ],
+  emptyModelsGateway: [
+    async ({}, use) => {
+      await withModelsGateway(use, [])
     },
     { scope: "test" },
   ],

@@ -5,6 +5,8 @@ import { readFile } from "node:fs/promises"
 export interface FakeRuntimeOptions {
   /** 提供后 refresh 会把 models.json 里的自定义供应商同步进列表。 */
   modelsPath?: string
+  /** 首次 refresh 时给指定供应商追加一个模型，用来验证刷新按钮。 */
+  addModelOnRefresh?: { provider: string; model: FakeModelSpec } | undefined
 }
 
 export interface FakeModelSpec {
@@ -141,6 +143,15 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
     }
   }
 
+  function addModel(providerId: string, spec: FakeModelSpec) {
+    const base = [...(baseModels.get(providerId) ?? []), spec]
+    const target = state.find((item) => item.id === providerId)
+
+    baseModels.set(providerId, base)
+
+    if (target) target.models = base
+  }
+
   const providers = () =>
     state.map((spec) => ({
       id: spec.id,
@@ -196,6 +207,13 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
       return { type: "oauth" }
     },
     refresh: async () => {
+      const added = options.addModelOnRefresh
+
+      if (added) {
+        options.addModelOnRefresh = undefined
+        addModel(added.provider, added.model)
+      }
+
       await syncModelsJson()
       return { aborted: false, errors: new Map() }
     },
