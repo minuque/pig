@@ -93,9 +93,9 @@ const open = ref(!model.value.id)
 .card-head {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  padding-inline: var(--space-sm);
-  min-height: 40px;
+  gap: var(--space-sm);
+  padding-inline: var(--space-md);
+  min-height: 44px;
 }
 
 .card-toggle {
@@ -184,7 +184,7 @@ const open = ref(!model.value.id)
 .switch-box {
   display: flex;
   align-items: center;
-  height: 28px;
+  height: 24px;
 }
 
 @media (max-width: 560px) {

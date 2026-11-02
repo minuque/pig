@@ -385,8 +385,8 @@ async function remove() {
 }
 
 .select-input {
-  height: 30px;
-  padding-inline: var(--space-sm);
+  height: 24px;
+  padding-inline: var(--space-xs);
   border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-md);
   background: var(--background);

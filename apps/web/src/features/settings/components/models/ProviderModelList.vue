@@ -104,9 +104,9 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 .model-row {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  height: 40px;
-  padding-inline: var(--space-sm);
+  gap: var(--space-sm);
+  height: 44px;
+  padding-inline: var(--space-md);
 }
 
 .model-toggle {
@@ -114,7 +114,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
   min-width: 0;
   flex: 1;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   text-align: start;
 }
 
@@ -126,7 +126,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .model-name {

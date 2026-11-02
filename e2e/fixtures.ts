@@ -242,7 +242,12 @@ async function withModelsGateway(
         name: "Anthropic",
         configured: true,
         models: [
-          { id: "claude-opus-4-7", name: "Claude Opus 4.7", reasoning: true },
+          {
+            id: "claude-opus-4-7",
+            name: "Claude Opus 4.7",
+            reasoning: true,
+            samplingParams: { temperature: 1, top_p: 0.95 },
+          },
           { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5", reasoning: true },
           { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
         ],
