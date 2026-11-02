@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process"
 import { resolve } from "node:path"
 
 import { classifyTouched } from "./check-scope.mjs"
-import { reportResults, runPnpm } from "./check-run.mjs"
+import { reportResults, runPnpm, splitCommandArgs } from "./check-run.mjs"
 
 const root = resolve(import.meta.dirname, "..")
 const touched = process.argv.includes("--touched")
@@ -27,6 +27,14 @@ const hasDesignMd = existsSync(resolve(root, "DESIGN.md"))
 const PRETTIER_CACHE = "node_modules/.cache/prettier/check"
 /* 检查侧同理：写文件的步骤（fix、lint-staged）与只读检查不共用缓存，免得多余恢复后误用旧记录。 */
 const ESLINT_CACHE = "node_modules/.cache/eslint/check"
+/* Windows 命令行上限 8191 字符，留出环境变量与引号余量。 */
+const MAX_ARG_CHARS = process.platform === "win32" ? 6000 : 100_000
+
+/* 文件列表按命令行长度拆成多条 step，避免一次传参过长。 */
+function fileSteps(name, prefix, files) {
+  return splitCommandArgs(prefix, files, MAX_ARG_CHARS).map((args) => ({ name, args }))
+}
+
 const CHECK_STEPS = [
   {
     name: "format",
@@ -109,20 +117,9 @@ async function fixTouched(scope) {
   /** @type {{ name: string, args: string[] }[]} */
   const steps = []
 
-  if (scope.prettierFiles.length) {
-    steps.push({ name: "format", args: ["exec", "prettier", "--write", ...scope.prettierFiles] })
-  }
-
-  if (scope.lintFiles.length) {
-    steps.push({ name: "eslint", args: ["exec", "eslint", "--cache", "--fix", ...scope.lintFiles] })
-  }
-
-  if (scope.stylelintFiles.length) {
-    steps.push({
-      name: "stylelint",
-      args: ["exec", "stylelint", "--fix", ...scope.stylelintFiles],
-    })
-  }
+  steps.push(...fileSteps("format", ["exec", "prettier", "--write"], scope.prettierFiles))
+  steps.push(...fileSteps("eslint", ["exec", "eslint", "--cache", "--fix"], scope.lintFiles))
+  steps.push(...fileSteps("stylelint", ["exec", "stylelint", "--fix"], scope.stylelintFiles))
 
   if (steps.length === 0) {
     console.log("fix:touched: 无文件需要格式化")
@@ -159,38 +156,24 @@ async function checkTouched(scope, files, label = "check:touched") {
   /** @type {{ name: string, args: string[] }[]} */
   const steps = []
 
-  if (scope.prettierFiles.length) {
-    steps.push({
-      name: "format",
-      args: [
-        "exec",
-        "prettier",
-        "--check",
-        "--cache",
-        "--cache-location",
-        PRETTIER_CACHE,
-        ...scope.prettierFiles,
-      ],
-    })
-  }
-
-  if (scope.lintFiles.length) {
-    steps.push({
-      name: "eslint",
-      args: ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE, ...scope.lintFiles],
-    })
-  }
-
-  if (scope.stylelintFiles.length) {
-    steps.push({ name: "stylelint", args: ["exec", "stylelint", ...scope.stylelintFiles] })
-  }
-
-  if (scope.vueFiles.length) {
-    steps.push({
-      name: "vue-template",
-      args: ["exec", "tsx", "scripts/check-vue-template.ts", ...scope.vueFiles],
-    })
-  }
+  steps.push(
+    ...fileSteps(
+      "format",
+      ["exec", "prettier", "--check", "--cache", "--cache-location", PRETTIER_CACHE],
+      scope.prettierFiles,
+    ),
+  )
+  steps.push(
+    ...fileSteps(
+      "eslint",
+      ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE],
+      scope.lintFiles,
+    ),
+  )
+  steps.push(...fileSteps("stylelint", ["exec", "stylelint"], scope.stylelintFiles))
+  steps.push(
+    ...fileSteps("vue-template", ["exec", "tsx", "scripts/check-vue-template.ts"], scope.vueFiles),
+  )
 
   if (scope.designmd && hasDesignMd)
     steps.push({ name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] })
@@ -219,10 +202,13 @@ async function checkTouched(scope, files, label = "check:touched") {
 
   if (scope.specs.length) {
     if ((withE2e || scope.ui) && !noE2e)
-      steps.push({
-        name: `e2e:${scope.specs.length}条`,
-        args: ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts", ...scope.specs],
-      })
+      steps.push(
+        ...fileSteps(
+          `e2e:${scope.specs.length}条`,
+          ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts"],
+          scope.specs,
+        ),
+      )
     else console.log(`${label}: 建议补跑 e2e → pnpm test:e2e ${scope.specs.join(" ")}`)
   }
 
