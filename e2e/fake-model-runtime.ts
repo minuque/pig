@@ -22,6 +22,8 @@ export interface FakeProviderSpec {
   id: string
   name: string
   baseUrl?: string
+  /** 供应商的 API 协议，透传到模型上。 */
+  api?: string
   auth?: "api_key" | "oauth" | "both" | "ambient"
   configured?: boolean
   source?: "stored" | "runtime" | "environment" | "models_json_key"
@@ -34,11 +36,11 @@ interface FakeProviderState extends FakeProviderSpec {
   configured: boolean
 }
 
-const model = (providerId: string, spec: FakeModelSpec) => ({
+const model = (providerId: string, spec: FakeModelSpec, api = "anthropic-messages") => ({
   provider: providerId,
   id: spec.id,
   name: spec.name,
-  api: "anthropic-messages",
+  api,
   reasoning: spec.reasoning ?? false,
   input: ["text"],
   contextWindow: spec.contextWindow ?? 200_000,
@@ -111,6 +113,7 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
         id,
         name: typeof config.name === "string" ? config.name : id,
         ...(typeof config.baseUrl === "string" ? { baseUrl: config.baseUrl } : {}),
+        ...(typeof config.api === "string" ? { api: config.api } : {}),
         configured: typeof config.apiKey === "string" && config.apiKey.length > 0,
         source: "models_json_key",
         models,
@@ -161,12 +164,12 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
       name: spec.name,
       ...(spec.baseUrl ? { baseUrl: spec.baseUrl } : {}),
       auth: authOf(spec.auth),
-      getModels: () => (spec.models ?? []).map((item) => model(spec.id, item)),
+      getModels: () => (spec.models ?? []).map((item) => model(spec.id, item, spec.api)),
     }))
   const modelsOf = (id?: string) =>
     state
       .filter((spec) => !id || spec.id === id)
-      .flatMap((spec) => (spec.models ?? []).map((item) => model(spec.id, item)))
+      .flatMap((spec) => (spec.models ?? []).map((item) => model(spec.id, item, spec.api)))
   return {
     state,
     getProviders: providers,

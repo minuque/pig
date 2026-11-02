@@ -93,11 +93,12 @@
     <section class="detail-sec">
       <h3 class="sec-title">
         {{ t("settings.models.modelList") }}
-        <span class="sec-count">{{ draft.models.length }}</span>
+        <span class="sec-count">
+          {{ t("settings.models.modelCount", { count: draft.models.length }) }}
+        </span>
 
         <button type="button" class="add-model" @click="addModel">
-          <AddIcon />
-          {{ t("settings.models.addModel") }}
+          + {{ t("settings.models.addModel") }}
         </button>
       </h3>
 
@@ -116,7 +117,6 @@
         {{ t("settings.models.deleteProvider") }}
       </Button>
 
-      <span v-else />
       <Button :loading="saving" @click="save">{{ t("common.save") }}</Button>
     </div>
 
@@ -158,7 +158,7 @@ import {
   AlertDialogTitle,
 } from "@components/ui/alert-dialog/index.js"
 import { Button } from "@components/ui/button/index.js"
-import { AddIcon, ArrowLeftIcon } from "@components/icons/index.js"
+import { ArrowLeftIcon } from "@components/icons/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import CustomModelCard from "@features/settings/components/models/CustomModelCard.vue"
@@ -360,21 +360,14 @@ async function remove() {
 }
 
 .add-model {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
   margin-inline-start: auto;
-  color: var(--contrast-foreground-muted);
+  color: var(--primary);
   font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-normal);
 }
 
 .add-model:hover {
-  color: var(--contrast-foreground);
-}
-
-.add-model svg {
-  inline-size: 12px;
-  block-size: 12px;
+  opacity: 0.8;
 }
 
 .form-grid {
@@ -386,7 +379,7 @@ async function remove() {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .span-2 {
@@ -443,8 +436,8 @@ async function remove() {
 .actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
+  justify-content: flex-end;
+  gap: var(--space-xs);
   margin-block-start: var(--space-md);
 }
 

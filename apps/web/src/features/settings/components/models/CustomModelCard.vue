@@ -148,7 +148,7 @@ const open = ref(!model.value.id)
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  padding: 0 var(--space-sm) var(--space-sm);
+  padding: 2px var(--space-md) var(--space-md);
 }
 
 .field-grid {
@@ -160,7 +160,7 @@ const open = ref(!model.value.id)
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .field-label {

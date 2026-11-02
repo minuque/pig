@@ -259,18 +259,21 @@ async function withModelsGateway(
         id: "ollama",
         name: "本地 Ollama",
         baseUrl: "http://localhost:11434/v1",
+        api: "openai-completions",
         models: [{ id: "llama3.1:8b", name: "Llama 3.1 8B", contextWindow: 128_000 }],
       },
       {
         id: "lmstudio",
         name: "LM Studio",
         baseUrl: "http://localhost:1234/v1",
+        api: "openai-completions",
         models: [{ id: "qwen3-32b", name: "Qwen3 32B", contextWindow: 128_000 }],
       },
       {
         id: "vllm",
         name: "内网 vLLM",
         baseUrl: "http://10.0.0.8:8000/v1",
+        api: "openai-completions",
         models: [{ id: "deepseek-v3", name: "DeepSeek V3", contextWindow: 128_000 }],
       },
       ...BUILTIN_PROVIDERS.filter(

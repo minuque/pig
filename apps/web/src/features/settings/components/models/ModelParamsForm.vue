@@ -1,11 +1,12 @@
 <template>
   <div class="params">
-    <div class="param-row">
-      <span class="param-label">{{ t("settings.models.thinking") }}</span>
+    <div class="field">
+      <span class="field-label">{{ t("settings.models.thinking") }}</span>
 
       <SegmentedControl
         :model-value="form.thinkingLevel ?? 'off'"
         size="s"
+        class="thinking"
         :aria-label="t('settings.models.thinking')"
         @update:model-value="onThinking"
       >
@@ -42,11 +43,10 @@
     </div>
 
     <div class="param-head">
-      <span class="param-label">{{ t("settings.models.samplingParams") }}</span>
+      <span class="field-label">{{ t("settings.models.samplingParams") }}</span>
 
       <button type="button" class="add-param" @click="addParam">
-        <AddIcon />
-        {{ t("settings.models.addParam") }}
+        + {{ t("settings.models.addParam") }}
       </button>
     </div>
 
@@ -63,25 +63,25 @@
         size="s"
         class="field-input"
         :placeholder="t('settings.models.paramValue')"
-      />
-
-      <button
-        type="button"
-        class="icon-button"
-        :aria-label="t('settings.models.removeParam')"
-        @click="removeParam(index)"
       >
-        <TrashBinMinimalisticIcon />
-      </button>
+        <TextFieldSlot side="right">
+          <button
+            type="button"
+            class="remove-param"
+            :aria-label="t('settings.models.removeParam')"
+            @click="removeParam(index)"
+          >
+            <TrashBinMinimalisticIcon />
+          </button>
+        </TextFieldSlot>
+      </TextFieldRoot>
     </div>
 
     <p v-if="invalid.length" class="error">{{ t("settings.models.paramInvalid") }}</p>
     <p v-if="error" class="error">{{ error }}</p>
 
     <div class="actions">
-      <span />
-
-      <Button variant="surface" :disabled="saving" @click="restore">
+      <Button variant="ghost" :disabled="saving" @click="restore">
         {{ t("settings.models.restoreDefaults") }}
       </Button>
 
@@ -94,9 +94,9 @@
 import { reactive, ref, watch } from "vue"
 
 import { Button } from "@components/ui/button/index.js"
-import { AddIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
+import { TrashBinMinimalisticIcon } from "@components/icons/index.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
-import { TextFieldRoot } from "@components/ui/text-field/index.js"
+import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
 import { updateModelParams } from "@client/platform.js"
 import { errorMessage } from "@client/http.js"
 import { paramsPatchFrom } from "@features/settings/lib/provider-view.js"
@@ -190,66 +190,23 @@ async function restore() {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  padding: var(--space-sm);
-  border-block-start: var(--border-width) solid var(--border-subtle);
-}
-
-.param-row,
-.param-head {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.param-head {
-  margin-block-start: var(--space-xs);
-}
-
-.param-label {
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-caption);
-}
-
-.thinking {
-  overflow-x: auto;
-}
-
-.param-head .add-param {
-  margin-inline-start: auto;
-}
-
-.add-param {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-eyebrow);
-}
-
-.add-param:hover {
-  color: var(--contrast-foreground);
-}
-
-.add-param svg {
-  inline-size: 12px;
-  block-size: 12px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-sm);
+  padding: 2px var(--space-md) var(--space-md);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .field-label {
   color: var(--contrast-foreground-muted);
-  font-size: var(--text-caption);
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+}
+
+.thinking {
+  align-self: flex-start;
 }
 
 .field-input {
@@ -260,25 +217,47 @@ async function restore() {
   border-color: var(--danger);
 }
 
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.param-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.add-param {
+  color: var(--primary);
+  font-size: var(--text-eyebrow);
+}
+
+.add-param:hover {
+  opacity: 0.8;
+}
+
 .param-line {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 22px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-xs);
 }
 
-.icon-button {
+.remove-param {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
   color: var(--contrast-foreground-faint);
 }
 
-.icon-button:hover {
+.remove-param:hover {
   color: var(--danger);
 }
 
-.icon-button svg {
+.remove-param svg {
   inline-size: 13px;
   block-size: 13px;
 }
@@ -297,7 +276,8 @@ async function restore() {
 }
 
 @media (max-width: 560px) {
-  .grid {
+  .grid,
+  .param-line {
     grid-template-columns: minmax(0, 1fr);
   }
 }
