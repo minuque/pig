@@ -3,7 +3,7 @@
     <header class="list-head">
       <h2 class="list-title">{{ t("settings.models.providers") }}</h2>
 
-      <Button variant="surface" size="s" @click="emit('add')">
+      <Button @click="emit('add')">
         <AddIcon />
         {{ t("settings.models.addProvider") }}
       </Button>

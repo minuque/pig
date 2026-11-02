@@ -47,16 +47,14 @@ function toggle(modelId: string) {
 
 <style scoped>
 .model-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
-
-.model-card {
   border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-md);
   background: var(--card);
   overflow: hidden;
+}
+
+.model-card + .model-card {
+  border-block-start: var(--border-width) solid var(--border-subtle);
 }
 
 .model-row {

@@ -128,7 +128,12 @@
             {{ t("settings.models.editProvider") }}
           </Button>
 
-          <Button variant="surface" :loading="testing" :disabled="!canTest" @click="runTest">
+          <Button
+            :variant="hasPrimaryAction ? 'surface' : 'solid'"
+            :loading="testing"
+            :disabled="!canTest"
+            @click="runTest"
+          >
             {{ t("settings.models.testConnection") }}
           </Button>
 
@@ -277,6 +282,9 @@ const canLogout = computed(() => {
   return props.provider.status.configured && (source === "stored" || source === "runtime")
 })
 const canTest = computed(() => props.provider.status.configured && props.provider.models.length > 0)
+const hasPrimaryAction = computed(
+  () => showKeyInput.value || (method.value === "oauth" && !props.provider.status.configured),
+)
 const showStoredKey = computed(
   () => method.value === "apiKey" && Boolean(props.provider.status.hint) && !editing.value,
 )
