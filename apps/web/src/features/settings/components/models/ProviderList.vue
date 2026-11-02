@@ -1,22 +1,27 @@
 <template>
   <section class="provider-list">
-    <header class="list-head">
-      <Button size="s" @click="emit('add')">
+    <div class="list-tools">
+      <label class="provider-search">
+        <MagnifierIcon class="search-icon" />
+
+        <input
+          v-model="query"
+          type="text"
+          :placeholder="t('settings.models.searchProviders')"
+          :aria-label="t('settings.models.searchProviders')"
+        />
+      </label>
+
+      <Button
+        class="add-provider"
+        size="s"
+        variant="surface"
+        :aria-label="t('settings.models.addProvider')"
+        @click="emit('add')"
+      >
         <AddIcon />
-        {{ t("settings.models.addProvider") }}
       </Button>
-    </header>
-
-    <label class="provider-search">
-      <MagnifierIcon class="search-icon" />
-
-      <input
-        v-model="query"
-        type="text"
-        :placeholder="t('settings.models.searchProviders')"
-        :aria-label="t('settings.models.searchProviders')"
-      />
-    </label>
+    </div>
 
     <p v-if="loading && !providers.length" class="list-state">{{ t("settings.models.loading") }}</p>
 
@@ -28,10 +33,10 @@
       </button>
     </div>
 
-    <div v-if="groups.length" class="provider-card">
-      <div v-for="group in groups" :key="group.id" class="provider-group">
-        <h3 class="provider-group-title">{{ t(`settings.models.group.${group.id}`) }}</h3>
+    <div v-for="group in groups" :key="group.id" class="provider-group">
+      <h3 class="provider-group-title">{{ t(`settings.models.group.${group.id}`) }}</h3>
 
+      <div class="provider-card">
         <button
           v-for="provider in group.providers"
           :key="provider.id"
@@ -101,19 +106,27 @@ function sourceKind(provider: ProviderView) {
   flex-direction: column;
 }
 
-.list-head {
+.list-tools {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: var(--space-xs);
   margin-block-end: var(--space-md);
+}
+
+.add-provider {
+  flex: none;
+  inline-size: 34px;
+  block-size: 34px;
+  padding: 0;
 }
 
 .provider-search {
   display: flex;
+  min-width: 0;
+  flex: 1;
   align-items: center;
   gap: var(--space-xs);
   height: 34px;
-  margin-block-end: var(--space-md);
   padding-inline: var(--space-sm);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
@@ -139,7 +152,6 @@ function sourceKind(provider: ProviderView) {
 }
 
 .provider-card {
-  padding-block: var(--space-xs);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-xl);
   background: var(--background);
@@ -147,12 +159,11 @@ function sourceKind(provider: ProviderView) {
 }
 
 .provider-group + .provider-group {
-  margin-block-start: var(--space-xs);
-  border-block-start: var(--border-width) solid var(--border-subtle);
+  margin-block-start: var(--space-lg);
 }
 
 .provider-group-title {
-  margin: var(--space-sm) 0 var(--space-xxs);
+  margin: 0 0 var(--space-xxs);
   padding-inline: var(--space-sm);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
