@@ -14,6 +14,8 @@ export interface ProviderModelView {
   maxTokens: number
   samplingParams?: Record<string, unknown>
   thinkingLevel?: ThinkingLevel
+  /** 是否在 enabledModels 开放列表内；空列表表示全部开放。 */
+  enabled: boolean
 }
 
 export interface ProviderView {

@@ -7,8 +7,10 @@ import { toProtocolModelMetadata } from "@earendil-works/pi-server"
 
 import { ModelsConfigError, ProviderConfigStore } from "./models-config.js"
 import {
+  isModelEnabled,
   isThinkingLevel,
   projectProvider,
+  toggleEnabledModel,
   type DefaultModelView,
   type ModelRuntimeLike,
   type ProviderView,
@@ -135,6 +137,7 @@ export class ProviderService {
     const runtime = await this.runtime()
     const settings = await this.settings()
     const thinkingLevels = settings.getAllModelThinkingLevels()
+    const enabledModels = settings.getEnabledModels()
     const customIds = await this.customProviderIds()
     const credentials = await this.credentials()
     const providers = runtime
@@ -147,6 +150,7 @@ export class ProviderService {
           thinkingLevels,
           customIds.has(provider.id) ? "custom" : "builtin",
           keyHint(credentials[provider.id]),
+          enabledModels,
         ),
       )
     const provider = settings.getDefaultProvider()
@@ -167,11 +171,13 @@ export class ProviderService {
 
   async listModels(): Promise<{ models: ModelMetadata[] }> {
     const runtime = await this.runtime()
+    const settings = await this.settings()
+    const enabledModels = settings.getEnabledModels()
     const models = await runtime.getAvailable()
     return {
-      models: models.map((model) =>
-        toProtocolModelMetadata(model, runtime.hasConfiguredAuth(model.provider)),
-      ),
+      models: models
+        .filter((model) => isModelEnabled(enabledModels, model.provider, model.id))
+        .map((model) => toProtocolModelMetadata(model, runtime.hasConfiguredAuth(model.provider))),
     }
   }
 
@@ -279,6 +285,32 @@ export class ProviderService {
     }
 
     await this.refreshProvider(providerId)
+  }
+
+  /** 开关模型：写入 settings.enabledModels；全部开放时清空配置。 */
+  async setModelEnabled(providerId: string, modelId: string, enabled: boolean): Promise<void> {
+    const runtime = await this.runtime()
+    const provider = runtime.getProvider(providerId)
+
+    if (!provider) throw new ProviderServiceError(404, "NOT_FOUND")
+
+    const models = runtime.getModels()
+    const target = models.find((model) => model.provider === providerId && model.id === modelId)
+
+    if (!target) throw new ProviderServiceError(404, "MODEL_NOT_FOUND")
+
+    const settings = await this.settings()
+    const current = settings.getEnabledModels()
+    const next = toggleEnabledModel(
+      current,
+      models.map((model) => ({ provider: model.provider, id: model.id })),
+      providerId,
+      modelId,
+      enabled,
+    )
+
+    settings.setEnabledModels(next)
+    await settings.flush()
   }
 
   /** 写入自定义供应商；apiKey 留空保留旧值，成功后刷新 runtime。 */

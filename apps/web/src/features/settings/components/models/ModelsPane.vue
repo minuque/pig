@@ -17,7 +17,7 @@
       :editable="selected.kind === 'custom'"
       :refresh-models="reloadModels"
       @back="select(undefined)"
-      @changed="refresh"
+      @changed="onChanged"
       @edit="editing = selected.id"
     />
 
@@ -49,6 +49,12 @@ const editing = ref<string>()
 /** 先让 gateway 刷新 runtime 并换掉列表，再让 Composer 目录跟上。 */
 async function reloadModels() {
   await refreshCatalog()
+  await props.refreshModels?.()
+}
+
+/** 连接、参数或开放状态变化后，供应商列表与 Composer 目录一起刷新。 */
+async function onChanged() {
+  await refresh()
   await props.refreshModels?.()
 }
 

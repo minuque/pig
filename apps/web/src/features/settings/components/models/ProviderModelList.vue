@@ -1,19 +1,33 @@
 <template>
   <div class="model-list">
-    <div v-for="model in provider.models" :key="model.id" class="model-card">
-      <button
-        type="button"
-        class="model-row"
-        :aria-expanded="expanded === model.id"
-        @click="toggle(model.id)"
-      >
-        <span class="model-copy">
-          <span class="model-name">{{ model.name }}</span>
-          <span class="model-meta">{{ modelMeta(model) }}</span>
-        </span>
+    <p v-if="error" class="list-error">{{ error }}</p>
 
-        <AltArrowDownIcon class="chevron" :data-open="expanded === model.id ? '' : undefined" />
-      </button>
+    <div v-for="model in provider.models" :key="model.id" class="model-card">
+      <div class="model-row">
+        <button
+          type="button"
+          class="model-toggle"
+          :aria-expanded="expanded === model.id"
+          @click="toggle(model.id)"
+        >
+          <VendorMark class="model-icon" :vendor="provider.id" :name="provider.name" :size="16" />
+
+          <span class="model-copy">
+            <span class="model-name">{{ model.name }}</span>
+            <span class="model-meta">{{ modelMeta(model) }}</span>
+          </span>
+
+          <AltArrowDownIcon class="chevron" :data-open="expanded === model.id ? '' : undefined" />
+        </button>
+
+        <Switch
+          :model-value="model.enabled"
+          size="s"
+          :disabled="busy === model.id"
+          :aria-label="t('settings.models.modelEnabled', { name: model.name })"
+          @update:model-value="toggleEnabled(model, $event)"
+        />
+      </div>
 
       <Transition name="panel-reveal">
         <ModelParamsForm
@@ -32,16 +46,38 @@
 import { ref } from "vue"
 
 import { AltArrowDownIcon } from "@components/icons/index.js"
+import { Switch } from "@components/ui/switch/index.js"
+import VendorMark from "@features/composer/components/VendorMark.vue"
 import ModelParamsForm from "@features/settings/components/models/ModelParamsForm.vue"
+import { errorMessage } from "@client/http.js"
+import { setModelEnabled } from "@client/platform.js"
 import { modelMeta } from "@features/settings/lib/provider-view.js"
-import type { ProviderView } from "@/types/provider-type.js"
+import { useI18n } from "@i18n/index.js"
+import type { ProviderModelView, ProviderView } from "@/types/provider-type.js"
 
 const props = defineProps<{ provider: ProviderView }>()
 const emit = defineEmits<{ changed: [] }>()
+const { t } = useI18n()
 const expanded = ref<string>()
+const busy = ref<string>()
+const error = ref<string>()
 
 function toggle(modelId: string) {
   expanded.value = expanded.value === modelId ? undefined : modelId
+}
+
+async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
+  busy.value = model.id
+  error.value = undefined
+
+  try {
+    await setModelEnabled(props.provider.id, model.id, enabled)
+    emit("changed")
+  } catch (cause) {
+    error.value = errorMessage(cause)
+  } finally {
+    busy.value = undefined
+  }
 }
 </script>
 
@@ -60,15 +96,22 @@ function toggle(modelId: string) {
 .model-row {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  width: 100%;
+  gap: var(--space-xs);
   height: 40px;
   padding-inline: var(--space-sm);
+}
+
+.model-toggle {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-xs);
   text-align: start;
 }
 
-.model-row:hover {
-  background: var(--hover-quiet);
+.model-icon {
+  flex: none;
 }
 
 .model-copy {
@@ -89,6 +132,10 @@ function toggle(modelId: string) {
   font-size: var(--text-eyebrow);
 }
 
+.model-row:hover {
+  background: var(--hover-quiet);
+}
+
 .chevron {
   flex: none;
   inline-size: 13px;
@@ -100,5 +147,12 @@ function toggle(modelId: string) {
 
 .chevron[data-open] {
   transform: rotate(180deg);
+}
+
+.list-error {
+  margin: 0;
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--danger);
+  font-size: var(--text-eyebrow);
 }
 </style>

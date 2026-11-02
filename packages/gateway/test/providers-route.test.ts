@@ -27,6 +27,7 @@ const provider = {
 function fakeRuntime() {
   return {
     getProviders: () => [provider],
+    getProvider: () => provider,
     getProviderAuthStatus: () => ({ configured: true, source: "stored" }),
     getModels: () => [model],
     getAvailable: async () => [model],
@@ -89,6 +90,7 @@ describe("provider routes", () => {
             reasoning: true,
             contextWindow: 200_000,
             maxTokens: 32_000,
+            enabled: true,
           },
         ],
       },
@@ -149,6 +151,46 @@ describe("provider routes", () => {
       id: "claude-sonnet",
       authenticated: true,
     })
+  })
+
+  it("PUT /models/:id/enabled 写入开放列表，GET /models 过滤关闭的模型", async () => {
+    const extra = { ...model, id: "claude-opus", name: "Claude Opus" }
+    const base = fakeRuntime()
+    const { base: url, auth } = await start({
+      ...base,
+      getProviders: () => [{ ...provider, getModels: () => [model, extra] }],
+      getModels: () => [model, extra],
+      getAvailable: async () => [model, extra],
+    })
+    const toggle = await fetch(
+      `${url}/api/v1/platform/providers/anthropic/models/claude-sonnet/enabled`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ enabled: false }),
+        headers: { authorization: auth, "content-type": "application/json" },
+      },
+    )
+
+    expect(toggle.status).toBe(200)
+
+    const list = await fetch(`${url}/api/v1/platform/providers`, {
+      headers: { authorization: auth },
+    })
+    const body = (await list.json()) as {
+      providers: Array<{ models: Array<{ id: string; enabled: boolean }> }>
+    }
+
+    expect(body.providers[0]?.models).toEqual([
+      expect.objectContaining({ id: "claude-sonnet", enabled: false }),
+      expect.objectContaining({ id: "claude-opus", enabled: true }),
+    ])
+
+    const models = await fetch(`${url}/api/v1/platform/models`, {
+      headers: { authorization: auth },
+    })
+    const catalog = (await models.json()) as { models: Array<{ id: string }> }
+
+    expect(catalog.models.map((item) => item.id)).toEqual(["claude-opus"])
   })
 
   it("列表只给 Key 末四位，复制端点单独回明文", async () => {

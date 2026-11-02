@@ -23,6 +23,8 @@ export interface ProviderModelView {
   maxTokens: number
   samplingParams?: Record<string, unknown>
   thinkingLevel?: ThinkingLevel
+  /** 是否在 enabledModels 开放列表内；空列表表示全部开放。 */
+  enabled: boolean
 }
 
 export interface ProviderView {
@@ -49,6 +51,7 @@ export function projectProvider(
   thinkingLevels: Readonly<Record<string, string>>,
   kind: ProviderView["kind"],
   hint: string | null = null,
+  enabledModels?: readonly string[],
 ): ProviderView {
   const apiKey = Boolean(provider.auth.apiKey?.login)
   const oauth = Boolean(provider.auth.oauth)
@@ -80,9 +83,50 @@ export function projectProvider(
         maxTokens: model.maxTokens,
         ...(model.samplingParams ? { samplingParams: { ...model.samplingParams } } : {}),
         ...(isThinkingLevel(level) ? { thinkingLevel: level } : {}),
+        enabled: isModelEnabled(enabledModels, provider.id, model.id),
       }
     }),
   }
+}
+
+/** 模型引用匹配：支持 provider/model、裸 id，以及 `:thinkingLevel` 后缀。 */
+function matchesModelRef(pattern: string, providerId: string, modelId: string) {
+  const ref = pattern.toLowerCase()
+  const colon = ref.lastIndexOf(":")
+  const bareRef = colon > 0 && isThinkingLevel(ref.slice(colon + 1)) ? ref.slice(0, colon) : ref
+  return bareRef === `${providerId}/${modelId}`.toLowerCase() || bareRef === modelId.toLowerCase()
+}
+
+export function isModelEnabled(
+  enabledModels: readonly string[] | undefined,
+  providerId: string,
+  modelId: string,
+): boolean {
+  if (!enabledModels?.length) return true
+  return enabledModels.some((pattern) => matchesModelRef(pattern, providerId, modelId))
+}
+
+/** 从开放列表移除或加入一个模型；覆盖全部模型时恢复为未配置。 */
+export function toggleEnabledModel(
+  enabledModels: readonly string[] | undefined,
+  allModels: readonly { provider: string; id: string }[],
+  providerId: string,
+  modelId: string,
+  enabled: boolean,
+): string[] | undefined {
+  const current = enabledModels?.length
+    ? [...enabledModels]
+    : allModels.map((model) => `${model.provider}/${model.id}`)
+  const next = enabled
+    ? [
+        ...current.filter((pattern) => !matchesModelRef(pattern, providerId, modelId)),
+        `${providerId}/${modelId}`,
+      ]
+    : current.filter((pattern) => !matchesModelRef(pattern, providerId, modelId))
+  const coversAll = allModels.every((model) =>
+    next.some((pattern) => matchesModelRef(pattern, model.provider, model.id)),
+  )
+  return coversAll ? undefined : next
 }
 
 export function isThinkingLevel(value: unknown): value is ThinkingLevel {

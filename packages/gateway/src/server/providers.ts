@@ -20,6 +20,7 @@ const LOGIN_CANCEL = /^\/api\/v1\/platform\/providers\/login\/([^/]+)\/cancel$/
 const PROVIDER_KEY = /^\/api\/v1\/platform\/providers\/([^/]+)\/key$/
 const CUSTOM_PROVIDER = /^\/api\/v1\/platform\/providers\/custom\/([^/]+)$/
 const MODEL_PARAMS = /^\/api\/v1\/platform\/providers\/([^/]+)\/models\/([^/]+)\/params$/
+const MODEL_ENABLED = /^\/api\/v1\/platform\/providers\/([^/]+)\/models\/([^/]+)\/enabled$/
 
 /** /api/v1/platform 下的供应商路由；true=已处理。 */
 export async function handleProviderRequest(
@@ -143,6 +144,19 @@ export async function handleProviderRequest(
     return true
   }
 
+  const enabled = MODEL_ENABLED.exec(url.pathname)
+
+  if (enabled && req.method === "PUT") {
+    await handleModelEnabled(
+      req,
+      res,
+      decodeURIComponent(enabled[1] ?? ""),
+      decodeURIComponent(enabled[2] ?? ""),
+      deps,
+    )
+    return true
+  }
+
   return false
 }
 
@@ -240,6 +254,30 @@ async function handleModelParams(
     deps.send(res, 200, { ok: true })
   } catch (error) {
     fail(error, res, deps, "model params")
+  }
+}
+
+async function handleModelEnabled(
+  req: IncomingMessage,
+  res: ServerResponse,
+  providerId: string,
+  modelId: string,
+  deps: ProviderRequestDeps,
+) {
+  const payload = await readBody(req, res, deps)
+
+  if (!payload) return
+
+  if (typeof payload.enabled !== "boolean") {
+    deps.send(res, 400, { code: "INVALID_REQUEST" })
+    return
+  }
+
+  try {
+    await deps.providers.setModelEnabled(providerId, modelId, payload.enabled)
+    deps.send(res, 200, { ok: true })
+  } catch (error) {
+    fail(error, res, deps, "model enabled")
   }
 }
 

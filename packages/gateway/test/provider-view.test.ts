@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { projectProvider } from "../src/pi/provider-view.js"
+import { projectProvider, isModelEnabled, toggleEnabledModel } from "../src/pi/provider-view.js"
 
 type Auth = Record<string, unknown>
 
@@ -122,6 +122,7 @@ describe("projectProvider", () => {
         maxTokens: 32_000,
         samplingParams: { temperature: 1 },
         thinkingLevel: "high",
+        enabled: true,
       },
     ])
 
@@ -134,5 +135,44 @@ describe("projectProvider", () => {
     )
 
     expect(empty.models).toEqual([])
+  })
+
+  it("模型开放状态来自 enabledModels，空列表表示全部开放", () => {
+    const view = projectProvider(
+      provider({ apiKey: { login: async () => undefined } }),
+      { configured: true, source: "stored" },
+      [model("claude-opus") as never, model("claude-sonnet") as never],
+      {},
+      "builtin",
+      null,
+      ["anthropic/claude-opus"],
+    )
+
+    expect(view.models.map((item) => item.enabled)).toEqual([true, false])
+  })
+})
+
+describe("enabledModels", () => {
+  const models = [
+    { provider: "anthropic", id: "opus" },
+    { provider: "anthropic", id: "sonnet" },
+  ]
+
+  it("支持 provider/model、裸 id 与 thinking 后缀", () => {
+    expect(isModelEnabled(undefined, "anthropic", "opus")).toBe(true)
+    expect(isModelEnabled(["anthropic/opus"], "anthropic", "opus")).toBe(true)
+    expect(isModelEnabled(["opus"], "anthropic", "opus")).toBe(true)
+    expect(isModelEnabled(["anthropic/opus:high"], "anthropic", "opus")).toBe(true)
+    expect(isModelEnabled(["anthropic/sonnet"], "anthropic", "opus")).toBe(false)
+  })
+
+  it("关闭一个模型写入其余模型，重新打开全部后清空", () => {
+    expect(toggleEnabledModel(undefined, models, "anthropic", "opus", false)).toEqual([
+      "anthropic/sonnet",
+    ])
+    expect(
+      toggleEnabledModel(["anthropic/sonnet"], models, "anthropic", "opus", true),
+    ).toBeUndefined()
+    expect(toggleEnabledModel(undefined, models, "anthropic", "opus", true)).toBeUndefined()
   })
 })

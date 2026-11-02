@@ -177,6 +177,18 @@ export async function updateModelParams(
   )
 }
 
+/** 开放或关闭一个模型；关闭后不进 Composer 目录。 */
+export async function setModelEnabled(
+  providerId: string,
+  modelId: string,
+  enabled: boolean,
+): Promise<void> {
+  await platformRequest(
+    `/api/v1/platform/providers/${encodeURIComponent(providerId)}/models/${encodeURIComponent(modelId)}/enabled`,
+    { method: "PUT", body: JSON.stringify({ enabled }) },
+  )
+}
+
 function parseFrame(frame: string): LoginEvent {
   const data = frame
     .split("\n")
