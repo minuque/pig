@@ -28,70 +28,84 @@
 
       <div class="kvgroup">
         <div class="kvrow">
-          <span class="kvlabel">{{ t("settings.models.authMethod") }}</span>
-          <span class="kvvalue">{{ methodLabel }}</span>
+          <template v-if="showStoredKey">
+            <span class="kvlabel">{{ t("settings.models.apiKey") }}</span>
+            <span class="kvvalue masked">{{ maskedKey }}</span>
 
-          <button v-if="canSwitch" type="button" class="switch-link" @click="toggleMethod">
-            <component
-              :is="method === 'apiKey' ? UserIcon : KeyMinimalisticIcon"
-              class="switch-icon"
+            <button v-if="canSwitch" type="button" class="switch-link" @click="toggleMethod">
+              <component
+                :is="method === 'apiKey' ? UserIcon : KeyMinimalisticIcon"
+                class="switch-icon"
+              />
+              {{
+                method === "apiKey" ? t("settings.models.useOauth") : t("settings.models.useApiKey")
+              }}
+            </button>
+
+            <span class="rowicons">
+              <button
+                type="button"
+                class="icon-button"
+                :aria-label="t('settings.models.editKey')"
+                @click="editing = true"
+              >
+                <PenIcon />
+              </button>
+
+              <button
+                type="button"
+                class="icon-button"
+                :aria-label="t('settings.models.copyKey')"
+                @click="copyKey"
+              >
+                <CheckIcon v-if="copied" />
+                <CopyIcon v-else />
+              </button>
+            </span>
+          </template>
+
+          <template v-else-if="showKeyInput">
+            <span class="kvlabel">{{ t("settings.models.apiKey") }}</span>
+
+            <input
+              v-model="apiKey"
+              class="kvinput"
+              type="password"
+              autocomplete="off"
+              :placeholder="t('settings.models.apiKeyPlaceholder')"
+              @keydown.enter="saveKey"
             />
-            {{
-              method === "apiKey" ? t("settings.models.useOauth") : t("settings.models.useApiKey")
-            }}
-          </button>
-        </div>
 
-        <div v-if="showStoredKey" class="kvrow">
-          <span class="kvlabel">{{ t("settings.models.apiKey") }}</span>
-          <span class="kvvalue masked">{{ maskedKey }}</span>
-
-          <span class="rowicons">
-            <button
-              type="button"
-              class="icon-button"
-              :aria-label="t('settings.models.editKey')"
-              @click="editing = true"
-            >
-              <PenIcon />
+            <button v-if="canSwitch" type="button" class="switch-link" @click="toggleMethod">
+              <component
+                :is="method === 'apiKey' ? UserIcon : KeyMinimalisticIcon"
+                class="switch-icon"
+              />
+              {{
+                method === "apiKey" ? t("settings.models.useOauth") : t("settings.models.useApiKey")
+              }}
             </button>
+          </template>
 
-            <button
-              type="button"
-              class="icon-button"
-              :aria-label="t('settings.models.copyKey')"
-              @click="copyKey"
-            >
-              <CheckIcon v-if="copied" />
-              <CopyIcon v-else />
+          <template v-else-if="method === 'ambient' && provider.capabilities.ambient">
+            <span class="kvlabel">{{ t("settings.models.sourceLabel") }}</span>
+            <span class="kvvalue muted">{{ t("settings.models.source.environment") }}</span>
+          </template>
+
+          <template v-else>
+            <span class="kvlabel">{{ t("settings.models.authMethod") }}</span>
+            <span class="kvvalue">{{ methodLabel }}</span>
+
+            <button v-if="canSwitch" type="button" class="switch-link" @click="toggleMethod">
+              <component
+                :is="method === 'apiKey' ? UserIcon : KeyMinimalisticIcon"
+                class="switch-icon"
+              />
+              {{
+                method === "apiKey" ? t("settings.models.useOauth") : t("settings.models.useApiKey")
+              }}
             </button>
-          </span>
-        </div>
-
-        <div v-else-if="showKeyInput" class="kvrow">
-          <span class="kvlabel">{{ t("settings.models.apiKey") }}</span>
-
-          <input
-            v-model="apiKey"
-            class="kvinput"
-            type="password"
-            autocomplete="off"
-            :placeholder="t('settings.models.apiKeyPlaceholder')"
-            @keydown.enter="saveKey"
-          />
-        </div>
-
-        <div v-else-if="method === 'ambient' && provider.capabilities.ambient" class="kvrow">
-          <span class="kvlabel">{{ t("settings.models.sourceLabel") }}</span>
-          <span class="kvvalue muted">{{ t("settings.models.source.environment") }}</span>
-        </div>
-
-        <div v-if="provider.status.configured" class="kvrow">
-          <span class="kvlabel">{{ t("settings.models.availableModels") }}</span>
-
-          <span class="kvvalue">
-            {{ t("settings.models.modelCount", { count: provider.models.length }) }}
-          </span>
+          </template>
         </div>
       </div>
 
