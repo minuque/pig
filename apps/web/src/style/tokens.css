@@ -199,7 +199,7 @@
   /** 卡片与窗口边缘的留白 */
   --workbench-inset: var(--space-xs);
   /** 卡片右上角三个自画窗控的总宽与单钮宽（36 × 3 加间隙与内边距） */
-  --size-windows-caption: 138px;
+  --size-windows-caption: 130px;
   --size-window-control: 36px;
   /** 窗控图形尺寸：比常规图标小一档 */
   --size-window-glyph: 12px;
