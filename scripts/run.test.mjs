@@ -1,11 +1,11 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { buildCommand, pnpmCommand } from "./run.mjs"
+import { buildCommand } from "./run.mjs"
 
-describe("pnpmCommand", () => {
+describe("buildCommand", () => {
   it("npm_execpath 指向可执行文件时直接启动", () => {
-    const command = pnpmCommand(["exec", "eslint"], {
+    const command = buildCommand("pnpm", ["exec", "eslint"], {
       env: { npm_execpath: "/usr/local/bin/pnpm" },
       platform: "linux",
     })
@@ -18,7 +18,7 @@ describe("pnpmCommand", () => {
   })
 
   it("npm_execpath 是 JS 入口时经 process.execPath 启动", () => {
-    const command = pnpmCommand(["run", "test"], {
+    const command = buildCommand("pnpm", ["run", "test"], {
       env: { npm_execpath: "/usr/local/lib/pnpm.cjs" },
       platform: "linux",
     })
@@ -31,39 +31,29 @@ describe("pnpmCommand", () => {
   })
 
   it("没有 npm_execpath 时回落到 PATH，Windows 上拼命令行交给 shell", () => {
-    assert.deepEqual(pnpmCommand(["check"], { env: {}, platform: "win32" }), {
+    assert.deepEqual(buildCommand("pnpm", ["check"], { env: {}, platform: "win32" }), {
       command: "pnpm.cmd check",
       args: [],
       options: { shell: true },
     })
 
-    assert.deepEqual(pnpmCommand(["check"], { env: {}, platform: "linux" }), {
+    assert.deepEqual(buildCommand("pnpm", ["check"], { env: {}, platform: "linux" }), {
       command: "pnpm",
       args: ["check"],
       options: {},
     })
   })
-})
-
-describe("buildCommand", () => {
-  it("pnpm 走统一解析", () => {
-    const command = buildCommand("pnpm", ["--version"], { env: {}, platform: "linux" })
-
-    assert.deepEqual(command, { command: "pnpm", args: ["--version"], options: {} })
-  })
 
   it("Windows 上的 .cmd 包装改走 shell，参数带空白时加引号", () => {
-    if (process.platform !== "win32") return
-
-    assert.deepEqual(buildCommand("npm.cmd", ["pack", "a b"]), {
+    assert.deepEqual(buildCommand("npm.cmd", ["pack", "a b"], { platform: "win32" }), {
       command: 'npm.cmd pack "a b"',
       args: [],
       options: { shell: true },
     })
   })
 
-  it("普通命令原样透传", () => {
-    assert.deepEqual(buildCommand(process.execPath, ["-v"]), {
+  it("普通命令原样透传，Windows 上也不额外挂 shell", () => {
+    assert.deepEqual(buildCommand(process.execPath, ["-v"], { platform: "win32" }), {
       command: process.execPath,
       args: ["-v"],
       options: {},

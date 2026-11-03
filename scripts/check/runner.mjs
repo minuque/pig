@@ -1,12 +1,3 @@
-import { spawn } from "node:child_process"
-
-import { pnpmCommand } from "../run.mjs"
-
-function spawnPnpm(args, cwd, env) {
-  const { command, args: runArgs, options } = pnpmCommand(args)
-  return spawn(command, runArgs, { cwd, windowsHide: true, ...options, env })
-}
-
 /** 按命令行长度上限把文件拆成多条子命令，避开 Windows 的 8191 字符限制。 */
 export function splitCommandArgs(prefix, files, maxChars) {
   const base = prefix.join(" ").length + 1
@@ -29,32 +20,6 @@ export function splitCommandArgs(prefix, files, maxChars) {
 
   if (current.length) chunks.push([...prefix, ...current])
   return chunks
-}
-
-export function runPnpm(args, cwd) {
-  return new Promise((resolveRun) => {
-    const started = Date.now()
-    const env = { ...process.env, FORCE_COLOR: "0" }
-    const child = spawnPnpm(args, cwd, env)
-    let out = ""
-
-    child.stdout.on("data", (chunk) => {
-      out += chunk
-    })
-    child.stderr.on("data", (chunk) => {
-      out += chunk
-    })
-    child.on("error", (error) => {
-      resolveRun({
-        code: 1,
-        out: `${out}${error.message}\n`,
-        ms: Date.now() - started,
-      })
-    })
-    child.on("close", (code) => {
-      resolveRun({ code: code ?? 1, out, ms: Date.now() - started })
-    })
-  })
 }
 
 export function reportResults(title, results) {

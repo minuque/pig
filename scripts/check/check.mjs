@@ -4,7 +4,8 @@ import { spawnSync } from "node:child_process"
 import { resolve } from "node:path"
 
 import { classifyTouched } from "./scope.mjs"
-import { reportResults, runPnpm, splitCommandArgs } from "./runner.mjs"
+import { runPnpm } from "../run.mjs"
+import { reportResults, splitCommandArgs } from "./runner.mjs"
 
 const root = resolve(import.meta.dirname, "../..")
 const touched = process.argv.includes("--touched")
