@@ -7,7 +7,7 @@ import eslintConfigPrettier from "eslint-config-prettier/flat"
 import pluginVue from "eslint-plugin-vue"
 import tseslint from "typescript-eslint"
 
-import { lintIgnores } from "./scripts/lint-ignores.mjs"
+import { lintIgnores } from "./scripts/check/lint-ignores.mjs"
 
 export default defineConfig(
   globalIgnores(lintIgnores, "pig/ignores"),

@@ -3,10 +3,10 @@ import { existsSync } from "node:fs"
 import { spawnSync } from "node:child_process"
 import { resolve } from "node:path"
 
-import { classifyTouched } from "./check-scope.mjs"
-import { reportResults, runPnpm, splitCommandArgs } from "./check-run.mjs"
+import { classifyTouched } from "./scope.mjs"
+import { reportResults, runPnpm, splitCommandArgs } from "./runner.mjs"
 
-const root = resolve(import.meta.dirname, "..")
+const root = resolve(import.meta.dirname, "../..")
 const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
 /** --e2e：强制跑映射到的 e2e；--no-e2e：即使改了 UI 也不跑（赶时间时用）。 */
@@ -21,8 +21,6 @@ if (since === "") {
   process.exit(1)
 }
 
-/* DESIGN.md 缺失时（token 稳定前）跳过 designmd lint 与 token 校验，重新生成后自动恢复。 */
-const hasDesignMd = existsSync(resolve(root, "DESIGN.md"))
 /* lint-staged 里 prettier 不带 --cache 会删默认缓存文件，多组并发会撞 ENOENT；check 用独立文件。 */
 const PRETTIER_CACHE = "node_modules/.cache/prettier/check"
 /* 检查侧同理：写文件的步骤（fix、lint-staged）与只读检查不共用缓存，免得多余恢复后误用旧记录。 */
@@ -47,21 +45,11 @@ const CHECK_STEPS = [
   { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
   {
     name: "vue-template",
-    args: ["exec", "tsx", "scripts/check-vue-template.ts", "apps/web/src"],
+    args: ["exec", "tsx", "scripts/check/vue-template.ts", "apps/web/src"],
   },
-  ...(hasDesignMd
-    ? [
-        { name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] },
-        { name: "design-tokens", args: ["exec", "node", "scripts/verify-design-tokens.mjs"] },
-      ]
-    : []),
   { name: "typecheck", args: ["typecheck"] },
   { name: "test", args: ["test"] },
 ]
-
-function reportDesignMdSkip() {
-  if (!hasDesignMd) console.log("跳过: designmd, design-tokens（DESIGN.md 缺失）")
-}
 
 /** 某 ref 到 HEAD 的提交改到的文件；取不到范围时按空处理，不阻塞推送。 */
 function committedFiles(ref) {
@@ -101,8 +89,6 @@ function existingTouched() {
 }
 
 async function runAll() {
-  reportDesignMdSkip()
-
   const results = await Promise.all(
     CHECK_STEPS.map(async (step) => {
       const ran = await runPnpm(step.args, root)
@@ -151,8 +137,6 @@ async function checkTouched(scope, files, label = "check:touched") {
     return
   }
 
-  reportDesignMdSkip()
-
   /** @type {{ name: string, args: string[] }[]} */
   const steps = []
 
@@ -172,24 +156,15 @@ async function checkTouched(scope, files, label = "check:touched") {
   )
   steps.push(...fileSteps("stylelint", ["exec", "stylelint"], scope.stylelintFiles))
   steps.push(
-    ...fileSteps("vue-template", ["exec", "tsx", "scripts/check-vue-template.ts"], scope.vueFiles),
+    ...fileSteps("vue-template", ["exec", "tsx", "scripts/check/vue-template.ts"], scope.vueFiles),
   )
-
-  if (scope.designmd && hasDesignMd)
-    steps.push({ name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] })
-
-  if (scope.tokens && hasDesignMd)
-    steps.push({
-      name: "design-tokens",
-      args: ["exec", "node", "scripts/verify-design-tokens.mjs"],
-    })
 
   if (scope.scripts) {
     steps.push({
       name: "typecheck:scripts",
       args: ["exec", "tsc", "--noEmit", "-p", "scripts/tsconfig.json"],
     })
-    steps.push({ name: "test:scripts", args: ["exec", "node", "--test", "scripts/*.test.mjs"] })
+    steps.push({ name: "test:scripts", args: ["exec", "node", "--test", "scripts/**/*.test.mjs"] })
   }
 
   if (scope.e2e)

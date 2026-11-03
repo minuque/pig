@@ -1,4 +1,4 @@
-import { lintIgnores } from "./scripts/lint-ignores.mjs"
+import { lintIgnores } from "./scripts/check/lint-ignores.mjs"
 
 /** @type {import("stylelint").Config} */
 export default {

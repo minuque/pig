@@ -1,25 +1,21 @@
 #!/usr/bin/env node
 /** 新 worktree 初始化：装依赖 → 构建 gateway → 补齐 electron path.txt → 校验并提示下一步。 */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
-import { spawnSync } from "node:child_process"
 import { join, resolve } from "node:path"
 
-import { pnpmCommand } from "./pnpm-command.mjs"
+import { run } from "./run.mjs"
 
 const repoRoot = resolve(import.meta.dirname, "..")
 const target = resolve(process.argv[2] ?? repoRoot)
 
-function pnpm(args) {
-  const { command, args: runArgs, options } = pnpmCommand(args)
-  return spawnSync(command, runArgs, { cwd: target, stdio: "inherit", ...options })
-}
-
 function step(name, args) {
   console.log(`\n== ${name} ==`)
-  const result = pnpm(args)
 
-  if (result.error || result.status !== 0) {
+  try {
+    run("pnpm", args, { cwd: target })
+  } catch (error) {
     console.error(`失败: pnpm ${args.join(" ")}`)
+    console.error(error.message)
     process.exit(1)
   }
 }

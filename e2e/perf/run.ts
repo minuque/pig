@@ -1,12 +1,11 @@
 /** 工作台体验基准。用法: pnpm test:bench --runs=3 --skip-build --web --headed --turn-only */
 import type { Page } from "@playwright/test"
-import { spawnSync } from "node:child_process"
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
 import Gateway from "../../packages/gateway/src/index.js"
-import { pnpmCommand } from "../../scripts/pnpm-command.mjs"
+import { run } from "../../scripts/run.mjs"
 import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import { canonicalizeWorkspacePath } from "../fixtures.js"
 import { runTurnScenarios, type EdgeSample } from "./edges.js"
@@ -118,16 +117,7 @@ function parseArgs(argv: string[]): Args {
 
 function buildWeb() {
   console.log("构建 web…")
-  const { command, args, options } = pnpmCommand(["build:web"])
-  const result = spawnSync(command, args, {
-    cwd: root,
-    stdio: "inherit",
-    windowsHide: true,
-    ...options,
-  })
-
-  if (result.error || result.status !== 0)
-    throw new Error("pnpm build:web 失败", { cause: result.error })
+  run("pnpm", ["build:web"], { cwd: root })
 }
 
 async function startGateway(workspaceDir: string, sessionDir: string) {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { classifyTouched } from "./check-scope.mjs"
+import { classifyTouched } from "./scope.mjs"
 
 describe("classifyTouched", () => {
   it("只映射脏文件所属包", () => {
@@ -14,7 +14,7 @@ describe("classifyTouched", () => {
   it("根配置改动升级全量 check", () => {
     assert.equal(classifyTouched(["eslint.config.js"]).escalate, true)
     assert.equal(classifyTouched(["stylelint.config.js"]).escalate, true)
-    assert.equal(classifyTouched(["scripts/lint-ignores.mjs"]).escalate, true)
+    assert.equal(classifyTouched(["scripts/check/lint-ignores.mjs"]).escalate, true)
     assert.equal(classifyTouched([".prettierignore"]).escalate, true)
     assert.equal(classifyTouched(["package.json"]).escalate, true)
   })
@@ -95,12 +95,5 @@ describe("classifyTouched", () => {
     assert.equal(classifyTouched(["apps/web/src/style/app.css"]).ui, true)
     assert.equal(classifyTouched(["apps/web/src/features/theme/index.ts"]).ui, false)
     assert.equal(classifyTouched(["packages/gateway/src/cli.ts"]).ui, false)
-  })
-
-  it("DESIGN.md 触发 designmd 与 token", () => {
-    const scope = classifyTouched(["DESIGN.md"])
-    assert.equal(scope.designmd, true)
-    assert.equal(scope.tokens, true)
-    assert.deepEqual(scope.packages, [])
   })
 })

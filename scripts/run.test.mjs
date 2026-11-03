@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { pnpmCommand } from "./pnpm-command.mjs"
+import { buildCommand, pnpmCommand } from "./run.mjs"
 
 describe("pnpmCommand", () => {
   it("npm_execpath 指向可执行文件时直接启动", () => {
@@ -43,10 +43,30 @@ describe("pnpmCommand", () => {
       options: {},
     })
   })
+})
 
-  it("含空白的参数加引号，免被 shell 拆开", () => {
-    const command = pnpmCommand(["exec", "eslint", "a b/c.ts"], { env: {}, platform: "win32" })
+describe("buildCommand", () => {
+  it("pnpm 走统一解析", () => {
+    const command = buildCommand("pnpm", ["--version"], { env: {}, platform: "linux" })
 
-    assert.equal(command.command, 'pnpm.cmd exec eslint "a b/c.ts"')
+    assert.deepEqual(command, { command: "pnpm", args: ["--version"], options: {} })
+  })
+
+  it("Windows 上的 .cmd 包装改走 shell，参数带空白时加引号", () => {
+    if (process.platform !== "win32") return
+
+    assert.deepEqual(buildCommand("npm.cmd", ["pack", "a b"]), {
+      command: 'npm.cmd pack "a b"',
+      args: [],
+      options: { shell: true },
+    })
+  })
+
+  it("普通命令原样透传", () => {
+    assert.deepEqual(buildCommand(process.execPath, ["-v"]), {
+      command: process.execPath,
+      args: ["-v"],
+      options: {},
+    })
   })
 })

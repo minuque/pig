@@ -1,9 +1,8 @@
-import { spawnSync } from "node:child_process"
 import { existsSync, readdirSync, statSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { pnpmCommand } from "../scripts/pnpm-command.mjs"
+import { run } from "../scripts/run.mjs"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const webRoot = join(root, "apps/web")
@@ -41,9 +40,5 @@ export default function globalSetup() {
     return
   }
 
-  const { command, args, options } = pnpmCommand(["build:web"])
-  const result = spawnSync(command, args, { cwd: root, stdio: "inherit", ...options })
-
-  if (result.error || result.status !== 0)
-    throw new Error("pnpm build:web 失败", { cause: result.error })
+  run("pnpm", ["build:web"], { cwd: root })
 }

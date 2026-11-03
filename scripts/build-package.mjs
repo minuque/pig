@@ -1,23 +1,15 @@
-import { spawnSync } from "node:child_process"
 import { cp, mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
+import { run } from "./run.mjs"
+
 const root = resolve(import.meta.dirname, "..")
 const gateway = join(root, "packages/gateway")
-const run = (command, args) => {
-  const result = spawnSync(command, args, {
-    cwd: root,
-    shell: process.platform === "win32",
-    stdio: "inherit",
-  })
-
-  if (result.status) throw new Error(`${command} failed`)
-}
 const temp = await mkdtemp(join(tmpdir(), "nono-package-"))
 
 try {
-  run("pnpm", ["--filter", "@pig/web", "build"])
+  run("pnpm", ["--filter", "@pig/web", "build"], { cwd: root })
   await rm(join(gateway, "dist"), { recursive: true, force: true })
   await rm(join(gateway, "web"), { recursive: true, force: true })
   await cp(join(root, "apps/web/dist"), join(gateway, "web"), { recursive: true })
@@ -40,7 +32,7 @@ try {
       include: [posix(join(gateway, "src/**/*.ts"))],
     }),
   )
-  run("pnpm", ["exec", "tsc", "-p", gatewayConfig])
+  run("pnpm", ["exec", "tsc", "-p", gatewayConfig], { cwd: root })
 } finally {
   await rm(temp, { recursive: true, force: true })
 }

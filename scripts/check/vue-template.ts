@@ -65,7 +65,7 @@ function templateRefKeysOf(script: string): string[] {
   return keys
 }
 
-const root = resolve(import.meta.dirname, "..")
+const root = resolve(import.meta.dirname, "../..")
 const compilerUrl = pathToFileURL(resolve(root, "apps/web/node_modules/vue/compiler-sfc")).href
 // vue 的类型在 apps/web 下，脚本 tsconfig 解析不到；用最小结构描述用到的 API
 const { parse, compileTemplate } = (await import(compilerUrl)) as {

@@ -3,30 +3,18 @@ import { cp, mkdtemp, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
+import { buildCommand, run } from "./run.mjs"
+
 const root = resolve(import.meta.dirname, "..")
 const gateway = join(root, "packages/gateway")
 const staging = await mkdtemp(join(tmpdir(), "nono-pack-"))
 const install = await mkdtemp(join(tmpdir(), "nono-install-"))
-const run = (command, args, cwd = root, capture = false) => {
-  const result = spawnSync(command, args, {
-    cwd,
-    shell: process.platform === "win32" && command === "npm",
-    stdio: capture ? "pipe" : "inherit",
-    encoding: capture ? "utf8" : undefined,
-  })
-
-  if (result.status)
-    throw new Error(`${command} failed${result.stderr ? `: ${result.stderr}` : ""}`)
-  return result.stdout ?? ""
-}
 
 try {
-  const packOutput = run(
-    "npm",
-    ["pack", "--json", "--silent", "--pack-destination", staging],
-    gateway,
-    true,
-  ).replaceAll("\r\n", "\n")
+  const packOutput = run("npm", ["pack", "--json", "--silent", "--pack-destination", staging], {
+    cwd: gateway,
+    capture: true,
+  }).replaceAll("\r\n", "\n")
   const jsonStart = packOutput.lastIndexOf("[\n  {")
 
   if (jsonStart < 0) throw new Error("npm pack did not return JSON metadata")
@@ -42,8 +30,8 @@ try {
   await rm(staging, { recursive: true, force: true })
   await rm(join(gateway, "dist"), { recursive: true, force: true })
   await rm(join(gateway, "web"), { recursive: true, force: true })
-  run("npm", ["init", "-y"], install)
-  run("npm", ["install", portableArtifact], install)
+  run("npm", ["init", "-y"], { cwd: install })
+  run("npm", ["install", portableArtifact], { cwd: install })
 
   const installedPackage = JSON.parse(
     await readFile(join(install, "node_modules/@pig/gateway/package.json"), "utf8"),
@@ -59,17 +47,17 @@ try {
       "-e",
       "import('@pig/gateway').then(m => { if (typeof m.Gateway !== 'function') process.exit(1) })",
     ],
-    install,
-    true,
+    { cwd: install, capture: true },
   )
 
   const bin =
     process.platform === "win32"
       ? join(install, "node_modules/.bin/pig.cmd")
       : join(install, "node_modules/.bin/pig")
-  const child = spawn(bin, [], {
+  const launch = buildCommand(bin, [])
+  const child = spawn(launch.command, launch.args, {
     cwd: install,
-    shell: process.platform === "win32",
+    ...launch.options,
     env: {
       ...process.env,
     },

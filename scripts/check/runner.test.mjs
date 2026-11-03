@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { splitCommandArgs } from "./check-run.mjs"
+import { splitCommandArgs } from "./runner.mjs"
 
 describe("splitCommandArgs", () => {
   it("文件少时保持一条命令", () => {

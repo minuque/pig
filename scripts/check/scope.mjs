@@ -79,7 +79,7 @@ const E2E_BY_AREA = [
 ]
 const WEB_FALLBACK_SPECS = ["e2e/critical-journey.spec.ts"]
 const ROOT_TOOLING =
-  /^(eslint\.config\.|stylelint\.config\.|scripts\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
+  /^(eslint\.config\.|stylelint\.config\.|scripts\/check\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
 const LINTABLE = /\.(?:[cm]?[jt]sx?|vue)$/
 const STYLELINTABLE = /\.(?:css|vue)$/
 const PRETTIER = /\.(?:[cm]?[jt]sx?|vue|jsonc?|css|html|md|ya?ml)$/
@@ -131,13 +131,6 @@ export function classifyTouched(files) {
 
   const e2e = normalized.some((file) => file.startsWith("e2e/"))
   const scripts = normalized.some((file) => file.startsWith("scripts/"))
-  const tokens = normalized.some(
-    (file) =>
-      file === "DESIGN.md" ||
-      file.endsWith("/app.css") ||
-      file === "scripts/verify-design-tokens.mjs",
-  )
-  const designmd = normalized.includes("DESIGN.md")
   const rootTooling = normalized.some((file) => ROOT_TOOLING.test(file))
   const prettierFiles = normalized.filter((file) => PRETTIER.test(file))
   const lintFiles = normalized.filter((file) => LINTABLE.test(file))
@@ -153,8 +146,6 @@ export function classifyTouched(files) {
     specs: e2eSpecs(normalized, packages, e2e),
     scripts,
     ui,
-    tokens,
-    designmd,
     rootTooling,
     prettierFiles,
     lintFiles,

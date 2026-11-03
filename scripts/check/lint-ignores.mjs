@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
-const ignoreFile = join(import.meta.dirname, "..", ".prettierignore")
+const ignoreFile = join(import.meta.dirname, "../..", ".prettierignore")
 /** ESLint / Stylelint 忽略。名单只在 .prettierignore。 */
 export const lintIgnores = readFileSync(ignoreFile, "utf8")
   .split(/\r?\n/)

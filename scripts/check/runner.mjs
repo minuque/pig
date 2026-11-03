@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process"
 
-import { pnpmCommand } from "./pnpm-command.mjs"
+import { pnpmCommand } from "../run.mjs"
 
 function spawnPnpm(args, cwd, env) {
   const { command, args: runArgs, options } = pnpmCommand(args)
