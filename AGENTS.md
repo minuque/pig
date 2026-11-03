@@ -21,7 +21,6 @@
 
 - 目录或领域边界：[`docs/directory-structure.md`](docs/directory-structure.md)
 - 单测只覆盖数据路径（编排与状态转换）；整页浏览器旅程写在 `e2e/`。
-- 故事（`*.stories.ts`）只用于手看设计与文档，不参与自动化；回归由 e2e 覆盖。
 
 ## worktree
 

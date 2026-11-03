@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
+    "types": ["node"],
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/.cache/vue-tsc.tsbuildinfo",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
