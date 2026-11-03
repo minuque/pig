@@ -357,7 +357,8 @@ onBeforeUnmount(() => {
   gap: var(--space-xs);
   justify-content: flex-start;
   border-radius: 0;
-  background: var(--card);
+  /* 吸顶遮住滚过的内容，底色取所在工作台面，不能落回更暗的 card */
+  background: var(--workbench-surface);
   /* 默认 3 级，hover 或展开时回到 1 级 */
   color: var(--contrast-foreground-faint);
   font-size: var(--text-body-md);
@@ -370,7 +371,7 @@ onBeforeUnmount(() => {
 
 .summary-btn:hover,
 .summary-btn[aria-expanded="true"] {
-  background: var(--card);
+  background: var(--workbench-surface);
   color: var(--contrast-foreground);
 }
 

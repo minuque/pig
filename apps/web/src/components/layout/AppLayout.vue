@@ -21,10 +21,10 @@
     ></div>
 
     <main>
-      <div class="workbench-card">
+      <Card class="workbench-card">
         <slot />
         <WindowControls />
-      </div>
+      </Card>
     </main>
   </div>
 </template>
@@ -34,6 +34,7 @@ import { computed, provide } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js"
 import WindowControls from "@components/layout/WindowControls.vue"
+import { Card } from "@components/ui/card/index.js"
 
 defineSlots<{
   default(): unknown
@@ -162,15 +163,8 @@ function resetWidth() {
 }
 
 html[data-pig-desktop-platform] .resizer {
-  margin-block-start: calc(6px + var(--titlebar-inset));
-}
-
-html[data-pig-desktop-platform="win32"] .resizer {
-  margin-block-start: 0;
-}
-
-html[data-pig-desktop-platform="darwin"] .resizer {
-  margin-block-start: 32px;
+  /* 把手只在标题条以下生效，顶部条带留给拖窗 */
+  margin-block-start: calc(var(--workbench-inset) + var(--titlebar-inset));
 }
 
 .shell.is-resizing {
@@ -202,17 +196,26 @@ main {
   padding-inline-start: 0;
 }
 
+/* 底与描边都走 rt Card 的伪元素：::before 画卡底，::after 画 1px 环。
+   0 内边距（内容自己排）、12px 圆角、工作台面作为卡底、环取 radix 灰阶描边色。 */
 .workbench-card {
+  --card-padding: 0;
+  --card-border-radius: var(--radius-card);
+  --card-background-color: var(--workbench-surface);
+  --base-card-surface-box-shadow: 0 0 0 1px var(--border);
+
   position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  background: var(--workbench-surface);
+}
+
+/* 环画在 ::after 上，默认 z-index auto；卡片内的头部是 2、浮层是 3，
+   不抬到它们之上就会被盖掉上下两边。环仍由伪元素画，圆角是画出来的曲线。 */
+.workbench-card::after {
+  z-index: 4;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -249,8 +252,8 @@ main {
   }
 
   .workbench-card {
-    border: 0;
-    border-radius: 0;
+    --card-border-width: 0;
+    --card-border-radius: 0;
   }
 
   .resizer {

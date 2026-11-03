@@ -29,6 +29,54 @@
   --default-font-family: var(--font-sans);
   --default-font-size: var(--text-body-md);
   color: var(--contrast-foreground);
+
+  /* 描边直接取 radix 的 alpha 灰阶：亮暗与 gray 家族都由色板切，不再维护独立色值。
+     必须写在这里：--gray-* 只在 .radix-themes 作用域内映射。 */
+  --border: var(--gray-a6);
+  --border-subtle: var(--gray-a5);
+}
+
+/* 菜单尺寸：本项目只重定义 m 档（28px 行 / 13px 字），对齐控制档。
+   s 与 l 保留 rt 原生规格：s 是 24px 行 / 12px 字，context menu 就用这一档。
+   :where() 不抬特异性，靠写在 import 之后覆盖 rt 同名规则。 */
+.rt-BaseMenuContent:where(.rt-r-size-2) {
+  --base-menu-item-height: var(--size-nav-rail);
+  --base-menu-item-padding-left: var(--space-xs);
+  --base-menu-item-padding-right: var(--space-xs);
+}
+
+.rt-BaseMenuContent:where(.rt-r-size-2)
+  :is(.rt-BaseMenuItem, .rt-BaseMenuLabel, .rt-BaseMenuShortcut) {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
+/* 图标按钮定档：s=24、m=28（`--size-nav-rail`）。
+   rt 原生：m 是 32px、圆角 max(--radius-1)=3px、ghost 尺寸靠 content-box 自撑、悬停是 accent-a3。
+   这里统一成固定方框 + `--radius-sm` + 前景色 + `--hover-quiet`，接管房里所有 28px 图标按钮。 */
+.rt-IconButton {
+  border-radius: var(--radius-sm);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.rt-IconButton:where(.rt-r-size-2) {
+  --base-button-height: var(--size-nav-rail);
+}
+
+.rt-IconButton:where(.rt-variant-ghost) {
+  box-sizing: border-box;
+  inline-size: var(--base-button-height);
+  block-size: var(--base-button-height);
+  padding: 0;
+  margin: 0;
+  color: var(--contrast-foreground);
+}
+
+.rt-IconButton:where(.rt-variant-ghost):where(:hover) {
+  background-color: var(--hover-quiet);
+  color: var(--contrast-foreground);
 }
 
 /* Reka 与 rt 对浮层用的 CSS 变量前缀不同：rt 的组件 CSS 读 --radix-*，
@@ -51,6 +99,7 @@
   --radix-popover-content-transform-origin: var(--reka-popover-content-transform-origin);
   --radix-popover-content-available-height: var(--reka-popover-content-available-height);
   --radix-select-content-available-height: var(--reka-select-content-available-height);
+  --radix-select-content-transform-origin: var(--reka-select-content-transform-origin);
   --radix-select-trigger-width: var(--reka-select-trigger-width);
   --radix-hover-card-content-transform-origin: var(--reka-hover-card-content-transform-origin);
   --radix-tooltip-content-available-width: var(--reka-tooltip-content-available-width);

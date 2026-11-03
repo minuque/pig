@@ -51,16 +51,18 @@
         <div class="tabs">
           <Tooltip>
             <TooltipTrigger as-child>
-              <button
+              <IconButton
                 type="button"
                 class="tab-btn"
+                size="m"
+                variant="ghost"
                 :aria-label="t('composer.favoriteModels')"
                 :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
                 @click="selectScope(FAVORITES_SCOPE)"
               >
                 <StarBoldIcon v-if="scope === FAVORITES_SCOPE" :size="14" />
                 <StarIcon v-else :size="14" />
-              </button>
+              </IconButton>
             </TooltipTrigger>
 
             <TooltipContent>{{ t("composer.favoriteModels") }}</TooltipContent>
@@ -68,15 +70,17 @@
 
           <Tooltip v-for="vendor in catalog" :key="vendor.id">
             <TooltipTrigger as-child>
-              <button
+              <IconButton
                 type="button"
                 class="tab-btn"
+                size="m"
+                variant="ghost"
                 :aria-label="vendor.name"
                 :data-current="scope === vendor.id ? '' : undefined"
                 @click="selectScope(vendor.id)"
               >
                 <VendorMark :vendor="vendor.id" :name="vendor.name" :size="15" />
-              </button>
+              </IconButton>
             </TooltipTrigger>
 
             <TooltipContent>{{ vendor.name }}</TooltipContent>
@@ -175,6 +179,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import ModelEffortFooter from "@features/composer/components/ModelEffortFooter.vue"
 import VendorMark from "@features/composer/components/VendorMark.vue"
@@ -376,7 +381,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .selector:focus-visible,
-.tab-btn:focus-visible,
 .fav:focus-visible {
   outline: var(--border-width) solid var(--primary);
   outline-offset: -2px;
@@ -478,18 +482,9 @@ function onSelectModel(event: Event, provider: string, id: string) {
   scrollbar-width: none;
 }
 
+/* 尺寸与悬停由 IconButton 接管；这里只留当前项的下划线指示 */
 .tab-btn {
   position: relative;
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--contrast-foreground);
   cursor: pointer;
 }
 
@@ -502,11 +497,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border-radius: var(--radius-pill);
   background: var(--primary);
   opacity: 0;
-}
-
-.tab-btn:hover {
-  background: var(--hover-tint);
-  color: var(--contrast-foreground);
 }
 
 .tab-btn[data-current] {

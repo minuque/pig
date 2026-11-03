@@ -2,9 +2,9 @@
   <ContextMenuItem
     data-slot="context-menu-item"
     :data-inset="inset ? '' : undefined"
-    :data-variant="variant"
+    :data-variant="variant === 'destructive' ? undefined : variant"
     v-bind="forwardedProps"
-    :data-accent-color="props.color"
+    :data-accent-color="variant === 'destructive' ? 'red' : props.color"
     class="rt-BaseMenuItem rt-ContextMenuItem"
     :class="props.class"
   >

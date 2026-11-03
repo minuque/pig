@@ -57,7 +57,6 @@
   --sidebar-foreground: #1b1b1b;
   --sidebar-hover: #e8e8eb;
   --sidebar-selected: #e6e6e8;
-  --sidebar-border: #e8e8e8;
   --toolbar-background: var(--workbench-surface);
   --toolbar-foreground: #1b1b1b;
   --code-background: #f6f6f6;
@@ -117,8 +116,6 @@
   );
 
   /* 结构 / 交互 */
-  --border: #dedede;
-  --border-subtle: #e8e8e8;
   --interaction-hover: #e8e8eb;
   --hover-quiet: color-mix(in srgb, var(--foreground) 5%, transparent);
   --hover-tint: color-mix(in srgb, var(--foreground) 8%, transparent);
@@ -197,6 +194,8 @@
   /* 尺寸 */
   --size-control: 40px;
   --titlebar-inset: 44px;
+  /* 卡片头高：桌面壳上等于标题条，浏览器模式取自然高（行高 + 上下内边距） */
+  --header-height: calc(var(--size-nav-rail) + 2 * var(--space-sm));
   /** 卡片与窗口边缘的留白 */
   --workbench-inset: var(--space-xs);
   /** 卡片右上角三个自画窗控的总宽与单钮宽（36 × 3 加间隙与内边距） */
@@ -370,6 +369,23 @@ html[data-translucent-window="on"] {
   --window-surface: color-mix(in srgb, var(--background) 90%, transparent);
 }
 
+/* 桌面壳标题条：一处定义，四处消费（侧栏顶距、拖拽带、卡片头高、banner 顶距）。
+   win32 自画窗控占 44px；darwin 红绿灯压在同一条带内的 32px；
+   linux 走原生边框，页面内不留标题条，卡片头回自然高。 */
+html[data-pig-desktop-platform] {
+  --titlebar-inset: 44px;
+  --header-height: var(--titlebar-inset);
+}
+
+html[data-pig-desktop-platform="darwin"] {
+  --titlebar-inset: 32px;
+}
+
+html[data-pig-desktop-platform="linux"] {
+  --titlebar-inset: 0px;
+  --header-height: calc(var(--size-nav-rail) + 2 * var(--space-sm));
+}
+
 /* ------ 深色覆盖：只覆盖颜色、阴影、玻璃 ------ */
 .dark {
   --composer-shadow: none;
@@ -390,7 +406,6 @@ html[data-translucent-window="on"] {
   --sidebar-foreground: #e3e4e6;
   --sidebar-hover: #26262b;
   --sidebar-selected: #2c2c31;
-  --sidebar-border: #28282a;
   --toolbar-background: var(--workbench-surface);
   --toolbar-foreground: #e3e4e6;
   --code-background: #1a1a1c;
@@ -417,8 +432,6 @@ html[data-translucent-window="on"] {
   --foreground-muted: #9a9b9e;
   --foreground-faint: #7e7f83;
 
-  --border: #2a2a2e;
-  --border-subtle: #28282a;
   --interaction-hover: #26262b;
   --effort-track: var(--hover-strong);
   --link: var(--accent-11);

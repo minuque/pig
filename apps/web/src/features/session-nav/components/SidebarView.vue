@@ -4,48 +4,18 @@
 
     <div class="nav-head">
       <SidebarTitlebar
-        :sb-expanded="sbExpanded"
         @toggle-sidebar="emit('toggleSidebar')"
+        @create="emit('create')"
         @home="emit('home')"
       />
 
-      <div class="search-head">
-        <button class="search-field press-scale" type="button" @click="emit('create')">
-          <span class="search-field-lead"><ChatRoundAddIcon :size="15" /></span>
-          <span class="search-field-label">{{ t("session.newSession") }}</span>
-        </button>
-
-        <div class="head-actions">
-          <button
-            class="head-btn"
-            type="button"
-            :title="t('session.allProjects')"
-            @click.stop="scopeMenuOpen = !scopeMenuOpen"
-          >
-            <Tuning2Icon :size="15" />
-          </button>
-        </div>
-
-        <SearchDialog
-          :open="searchOpen"
-          :sessions="listedSessions"
-          :sort="sort"
-          @update:open="emit('update:searchOpen', $event)"
-          @open="emit('open', $event)"
-        />
-
-        <ScopeMenu
-          v-if="scopeMenuOpen"
-          :groups="groups"
-          :grouping="grouping"
-          :sort="sort"
-          :scope-filter="scopeFilter"
-          @update:grouping="emit('update:grouping', $event)"
-          @update:sort="emit('update:sort', $event)"
-          @update:scope-filter="emit('update:scopeFilter', $event)"
-          @settings="onGlobalSettings"
-        />
-      </div>
+      <SearchDialog
+        :open="searchOpen"
+        :sessions="listedSessions"
+        :sort="sort"
+        @update:open="emit('update:searchOpen', $event)"
+        @open="emit('open', $event)"
+      />
     </div>
 
     <div class="nav-inset">
@@ -75,7 +45,32 @@
         @toggle-section="emit('toggleSection', $event)"
         @reveal-more="emit('revealMore', $event)"
         @collapse-group="emit('collapseGroup', $event)"
-      />
+      >
+        <template #section-settings>
+          <IconButton
+            class="head-btn"
+            type="button"
+            size="m"
+            variant="ghost"
+            :title="t('session.allProjects')"
+            @click.stop="scopeMenuOpen = !scopeMenuOpen"
+          >
+            <Tuning2Icon :size="15" />
+          </IconButton>
+
+          <ScopeMenu
+            v-if="scopeMenuOpen"
+            :groups="groups"
+            :grouping="grouping"
+            :sort="sort"
+            :scope-filter="scopeFilter"
+            @update:grouping="emit('update:grouping', $event)"
+            @update:sort="emit('update:sort', $event)"
+            @update:scope-filter="emit('update:scopeFilter', $event)"
+            @settings="onGlobalSettings"
+          />
+        </template>
+      </SessionList>
     </div>
 
     <NavFooter
@@ -106,12 +101,12 @@ import type {
   SidebarSort,
 } from "@features/session-nav/type.js"
 import type { FooterStatus } from "@features/session-nav/lib/status-cycle.js"
-import { ArrowUpIcon, ChatRoundAddIcon, Tuning2Icon } from "@components/icons/index.js"
+import { ArrowUpIcon, Tuning2Icon } from "@components/icons/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 
 defineProps<{
   groups: readonly SessionGroup[]
   connected: boolean
-  sbExpanded: boolean
   grouping: SidebarGrouping
   sort: SidebarSort
   scopeFilter: ReadonlySet<string>
@@ -220,15 +215,6 @@ function onGlobalSettings(): void {
   padding-block: var(--space-xxs);
 }
 
-.search-head {
-  position: relative;
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-xxs);
-  padding-inline: var(--nav-inline);
-}
-
 /* 渐隐带挂在滚动区顶上，和分隔线一起出现：内容滚出视口才显示。 */
 .nav-inset::before {
   content: "";
@@ -247,76 +233,16 @@ function onGlobalSettings(): void {
   opacity: 1;
 }
 
-.search-field {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: var(--space-xs);
-  min-width: 0;
-  height: 32px;
-  padding-inline: var(--space-xxs) var(--space-xs);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--contrast-foreground);
-  font-size: var(--text-caption);
-  text-align: start;
-  cursor: pointer;
-}
-
-.search-field:hover,
-.search-field:focus-visible {
-  background: var(--interaction-hover);
-  color: var(--contrast-foreground);
-}
-
-.search-field-lead {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  /* 15px 的圆环形图标按 1.75 档只落到 1.09px 笔画，会发灰发虚，这一槽位提到 2 档 */
-  --solar-stroke-width: 2px;
-}
-
-.search-field-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.head-actions {
-  display: flex;
-  flex: none;
-  align-items: center;
-}
-
+/* 尺寸与悬停由 IconButton 接管；这里只留 ScopeMenu 的定位锚 */
 .head-btn {
   position: relative;
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-foreground);
-}
-
-.head-btn:hover {
-  background: var(--hover-quiet);
-  color: var(--contrast-foreground);
 }
 
 .session-nav > .titlebar-drag {
   display: none;
   position: absolute;
   inset: 0 0 auto;
-  height: var(--titlebar-inset);
+  height: calc(var(--workbench-inset) + var(--titlebar-inset));
   -webkit-app-region: drag;
   app-region: drag;
 }
@@ -325,16 +251,14 @@ html[data-pig-desktop-platform] .session-nav > .titlebar-drag {
   display: block;
 }
 
+/* Linux 走原生边框，没有可自拖的标题条 */
+html[data-pig-desktop-platform="linux"] .session-nav > .titlebar-drag {
+  display: none;
+}
+
+/* 顶距 = 卡片内缩 + 标题条：侧栏首行与卡片头落在同一条横线上 */
 html[data-pig-desktop-platform] .session-nav {
-  padding-top: calc(6px + var(--titlebar-inset));
-}
-
-html[data-pig-desktop-platform="win32"] .session-nav {
-  padding-top: var(--titlebar-inset);
-}
-
-html[data-pig-desktop-platform="darwin"] .session-nav {
-  padding-top: var(--space-xxl);
+  padding-top: calc(var(--workbench-inset) + var(--titlebar-inset));
 }
 
 .add-guide {
@@ -351,11 +275,5 @@ html[data-pig-desktop-platform="darwin"] .session-nav {
 
 .add-guide .motion-nudge {
   margin-inline-start: var(--space-xs);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .search-field {
-    transition: none;
-  }
 }
 </style>

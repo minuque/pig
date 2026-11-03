@@ -49,8 +49,8 @@ const props = withDefaults(
   {
     class: undefined,
     collisionPadding: 10,
-    size: "m",
-    variant: "solid",
+    size: "s",
+    variant: "soft",
     highContrast: false,
   },
 )

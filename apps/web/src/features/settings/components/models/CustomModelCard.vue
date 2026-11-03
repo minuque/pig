@@ -7,23 +7,27 @@
         <span class="model-meta">{{ model.contextWindow || "—" }}</span>
       </button>
 
-      <button
+      <IconButton
         type="button"
         class="icon-button"
+        size="s"
+        variant="ghost"
         :aria-label="t('settings.models.removeModel')"
         @click="emit('remove')"
       >
         <TrashBinMinimalisticIcon />
-      </button>
+      </IconButton>
 
-      <button
+      <IconButton
         type="button"
         class="icon-button"
+        size="s"
+        variant="ghost"
         :aria-label="t('settings.models.expandModel')"
         @click="open = !open"
       >
         <AltArrowRightIcon class="chevron" :class="{ open }" />
-      </button>
+      </IconButton>
     </div>
 
     <div v-if="open" class="card-body">
@@ -71,6 +75,7 @@ import { AltArrowRightIcon, TrashBinMinimalisticIcon } from "@components/icons/i
 import { Switch } from "@components/ui/switch/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
+import { IconButton } from "@components/ui/button/index.js"
 import { useI18n } from "@i18n/index.js"
 import type { CustomModelDraft } from "@features/settings/lib/provider-view.js"
 
@@ -126,23 +131,11 @@ const open = ref(!model.value.id)
 }
 
 .icon-button {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
   color: var(--contrast-foreground-muted);
 }
 
 .icon-button:hover {
-  background: var(--hover-quiet);
   color: var(--contrast-foreground);
-}
-
-.icon-button svg {
-  inline-size: 14px;
-  block-size: 14px;
 }
 
 .chevron {

@@ -170,7 +170,7 @@ watch(active, async () => {
   width: var(--size-settings-dialog-nav);
   padding: var(--space-md);
   padding-block-start: calc(var(--space-md) + var(--space-xxs));
-  border-inline-end: var(--border-width) solid var(--sidebar-border);
+  border-inline-end: var(--border-width) solid var(--border-subtle);
   background: var(--background);
   color: var(--sidebar-foreground);
   user-select: none;

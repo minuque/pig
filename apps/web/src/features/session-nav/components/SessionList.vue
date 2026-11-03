@@ -17,7 +17,13 @@
 
       <template v-for="section in sections" :key="section.key">
         <section class="session-section" :data-key="section.key">
-          <div class="section-head" :class="{ open: expandedSections.has(section.key) }">
+          <div
+            class="section-head"
+            :class="{
+              open: expandedSections.has(section.key),
+              'has-settings': section.key === settingsKey,
+            }"
+          >
             <button
               class="section-toggle"
               type="button"
@@ -40,9 +46,9 @@
               </span>
 
               <span v-else-if="section.cwd" class="section-icon" aria-hidden="true">
-                <FolderIcon
+                <component
+                  :is="expandedSections.has(section.key) ? FolderOpenIcon : FolderIcon"
                   :size="15"
-                  :class="{ 'icon-muted': !expandedSections.has(section.key) }"
                 />
               </span>
 
@@ -57,15 +63,10 @@
               <span v-if="!expandedSections.has(section.key)" class="section-count">
                 {{ section.total }}
               </span>
-
-              <span class="section-chevron" aria-hidden="true">
-                <AltArrowDownIcon v-if="expandedSections.has(section.key)" :size="15" />
-                <AltArrowRightIcon v-else :size="15" />
-              </span>
             </button>
 
-            <div v-if="section.cwd" class="section-actions">
-              <Tooltip>
+            <div v-if="section.cwd || section.key === settingsKey" class="section-actions">
+              <Tooltip v-if="section.cwd">
                 <TooltipTrigger as-child>
                   <button
                     class="section-add"
@@ -79,6 +80,8 @@
 
                 <TooltipContent>{{ t("session.newInProject") }}</TooltipContent>
               </Tooltip>
+
+              <slot v-if="section.key === settingsKey" name="section-settings" />
             </div>
           </div>
 
@@ -121,7 +124,7 @@
                   type="button"
                   @click="emit('revealMore', section.key)"
                 >
-                  <DoubleAltArrowDownIcon :size="13" />
+                  <DoubleAltArrowDownIcon class="more-icon" :size="13" />
                   {{ t("common.showMore") }}
                 </button>
 
@@ -131,7 +134,7 @@
                   type="button"
                   @click="emit('collapseGroup', section.key)"
                 >
-                  <DoubleAltArrowUpIcon :size="13" />
+                  <DoubleAltArrowUpIcon class="more-icon" :size="13" />
                   {{ t("common.collapse") }}
                 </button>
               </li>
@@ -157,13 +160,12 @@ import { useI18n } from "@i18n/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
-  AltArrowDownIcon,
-  AltArrowRightIcon,
   ChatRoundAddIcon,
   ClockCircleIcon,
   DoubleAltArrowDownIcon,
   DoubleAltArrowUpIcon,
   FolderIcon,
+  FolderOpenIcon,
   PinIcon,
   PinBoldIcon,
 } from "@components/icons/index.js"
@@ -198,6 +200,10 @@ const { t } = useI18n()
 // 过滤态下 pinned 段只渲染命中项，DOM 序号与 pinnedOrder 全表序号不再对应，禁用拖拽。
 const dragEnabled = computed(() => !props.filtered)
 const hasPinnedSection = computed(() => props.sections.some((section) => section.key === "pinned"))
+/** 项目设置按钮挂在第一个目录组头；全是日期组时退回第一组，保证菜单仍有入口。 */
+const settingsKey = computed(
+  () => (props.sections.find((section) => section.cwd) ?? props.sections[0])?.key,
+)
 const sectionLabelOverflow = shallowRef<Record<string, boolean>>({})
 const dragId = shallowRef<string | undefined>(undefined)
 const dragIndex = shallowRef<number | undefined>(undefined)
@@ -420,12 +426,13 @@ onBeforeUnmount(() => {
   height: 15px;
 }
 
-.section-icon .icon-muted {
-  color: var(--contrast-foreground-muted);
-}
-
 .section-head.open .section-toggle {
   color: var(--contrast-foreground);
+}
+
+/* 设置菜单从组头展开：宿主组头要盖过后面各组的组头，否则菜单被压住。 */
+.section-head.has-settings {
+  z-index: 3;
 }
 
 .section-label {
@@ -454,23 +461,13 @@ onBeforeUnmount(() => {
   line-height: 16px;
 }
 
+/* 箭头显形时数量让位，占位一起收起，箭头补到它原来的位置 */
+.section-head:hover .section-count,
+.section-toggle:focus-visible .section-count {
+  display: none;
+}
+
 /* 收展箭头：主按钮的一部分，hover 才出现，不单独可点 */
-.section-chevron {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  color: var(--contrast-foreground-secondary);
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.section-head:hover .section-chevron,
-.section-toggle:focus-visible .section-chevron {
-  opacity: 1;
-}
-
 .section-actions {
   display: flex;
   flex: none;
@@ -510,7 +507,8 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: var(--space-xxs);
   margin: 0;
-  padding: var(--space-xxs) var(--nav-inline, var(--space-xs)) 0 0;
+  /* 行底与高亮要贴到组宽右缘，右侧不再留内边距 */
+  padding: var(--space-xxs) 0 0;
   list-style: none;
 }
 
@@ -553,7 +551,7 @@ onBeforeUnmount(() => {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground-secondary);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
   cursor: default;
@@ -567,6 +565,18 @@ onBeforeUnmount(() => {
   color: var(--contrast-foreground);
 }
 
+/* 箭头只在 hover 时显形；位置常驻，文字不跟着横移 */
+.more-icon {
+  flex: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.more-button:hover .more-icon,
+.more-button:focus-visible .more-icon {
+  opacity: 1;
+}
+
 .session-empty {
   padding: var(--space-xs);
   color: var(--contrast-foreground-faint);
@@ -574,7 +584,8 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .section-add {
+  .section-add,
+  .more-icon {
     transition: none;
   }
 }

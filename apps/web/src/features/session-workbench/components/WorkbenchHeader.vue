@@ -6,7 +6,6 @@
     :cwd-label="cwdLabel"
     :cwd-path="sessionCwd"
     :sidebar-expanded="sbState === 'expanded'"
-    :sidebar-open="leftOpen"
     @toggle-sidebar="setSbState('expanded')"
     @rename="onRename"
     @toggle-pinned="onTogglePinned"
@@ -23,7 +22,7 @@ import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
 import WorkbenchHeaderView from "@features/session-workbench/components/WorkbenchHeaderView.vue"
 
-const { leftOpen, sbState, setSbState } = useLeftPanelToggle()
+const { sbState, setSbState } = useLeftPanelToggle()
 const { sessionId, projection, sessionCwd } = useSession()
 const {
   listedSessions,

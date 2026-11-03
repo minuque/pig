@@ -1,7 +1,5 @@
 // 图标注册表：Solar Icons Linear 款（480 Design，CC BY 4.0），实心态取 Bold 款配对
 
-export { default as SidebarGlyph } from "@components/icons/SidebarGlyph.vue"
-
 export { default as RunningPigGlyph } from "@components/icons/RunningPigGlyph.vue"
 
 export { AddIcon } from "@solar-icons/vue/linear/add"
@@ -97,6 +95,10 @@ export { MoonIcon } from "@solar-icons/vue/linear/moon"
 export { PaperclipIcon } from "@solar-icons/vue/linear/paperclip"
 
 export { ParagraphSpacingIcon } from "@solar-icons/vue/linear/paragraph-spacing"
+
+export { PanelLeftCloseIcon } from "@solar-icons/vue/linear/panel-left-close"
+
+export { PanelRightOpenIcon } from "@solar-icons/vue/linear/panel-right-open"
 
 export { PenIcon } from "@solar-icons/vue/linear/pen"
 

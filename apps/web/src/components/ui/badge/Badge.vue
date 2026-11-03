@@ -38,7 +38,7 @@ const props = withDefaults(
   {
     as: "span",
     asChild: false,
-    size: "s",
+    size: "m",
     variant: "soft",
     highContrast: false,
     class: undefined,

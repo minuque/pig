@@ -31,10 +31,10 @@ const { t } = useI18n()
 </script>
 
 <style scoped>
-/* 顶部 banner：横向通栏，从顶下滑 */
+/* 顶部 banner：横向通栏，从顶下滑；让开卡片内缩与卡片头 */
 .banner-layer {
   position: fixed;
-  inset-block-start: calc(var(--titlebar-inset, 0px));
+  inset-block-start: calc(var(--workbench-inset) + var(--header-height));
   inset-inline: 0;
   z-index: var(--z-modal);
   display: flex;

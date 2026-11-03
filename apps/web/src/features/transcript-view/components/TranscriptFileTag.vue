@@ -1,35 +1,33 @@
 <template>
   <span class="file-tag" :class="{ plain }" :title="title || path">
-    <img v-if="iconUrl" class="file-tag-icon" :src="iconUrl" :alt="extension" />
-    <span class="file-tag-name">{{ text }}</span>
+    <!-- 有语言徽标就只出徽标；文件名留给读屏，视觉上不重复占位 -->
+    <img v-if="iconUrl" class="file-tag-icon" :src="iconUrl" alt="" />
+    <span v-if="iconUrl" class="sr-only">{{ text }}</span>
+    <span v-else class="file-tag-name">{{ text }}</span>
   </span>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
 import { getLanguageIcon, languageIconsRevision } from "markstream-vue"
-import { fileLanguage, pathBasename } from "@features/transcript-view/lib/tool-summary.js"
+import { fileLanguage } from "@features/transcript-view/lib/tool-summary.js"
 
 const props = defineProps<{
-  /** 完整路径：扩展名定图标与 alt，没有 title 时兼作悬浮提示。 */
+  /** 完整路径：定语言徽标，没有 title 时兼作悬浮提示。 */
   path: string
-  /** 显示文本：工具行用文件名，卡片头用完整路径。 */
+  /** 没有语言徽标时才显示：工具行用文件名，卡片头用完整路径。 */
   text: string
   title?: string
   /** 卡片头变体：保留图标与等宽字，去掉背景胶囊。 */
   plain?: boolean
 }>()
-const extension = computed(() => {
-  const name = pathBasename(props.path)
-  const dot = name.lastIndexOf(".")
-  return dot > 0 ? name.slice(dot + 1).toUpperCase() : ""
-})
 const iconUrl = computed(() => {
   void languageIconsRevision.value
   const language = fileLanguage(props.path)
 
   if (language === "text") return ""
-  return `data:image/svg+xml;utf8,${encodeURIComponent(getLanguageIcon(language))}`
+  const icon = getLanguageIcon(language)
+  return icon ? `data:image/svg+xml;utf8,${encodeURIComponent(icon)}` : ""
 })
 </script>
 

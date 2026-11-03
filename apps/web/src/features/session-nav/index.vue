@@ -3,7 +3,6 @@
     v-model:search-open="searchOpen"
     :groups="groups"
     :connected="connected"
-    :sb-expanded="sbExpanded"
     :grouping="grouping"
     :sort="sort"
     :scope-filter="scopeFilter"

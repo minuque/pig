@@ -373,7 +373,8 @@ function toggleGroup(event: MouseEvent) {
   position: sticky;
   top: var(--tool-summary-offset, var(--size-icon-button));
   z-index: 2;
-  background: var(--card);
+  /* 吸顶遮住滚过的内容，底色取所在工作台面，不能落回更暗的 card */
+  background: var(--workbench-surface);
 }
 
 .summary {
@@ -403,7 +404,7 @@ function toggleGroup(event: MouseEvent) {
 }
 
 .summary.is-open:hover {
-  background: var(--card);
+  background: var(--workbench-surface);
 }
 
 .failed .tool-icon {

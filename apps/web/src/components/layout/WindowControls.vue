@@ -64,28 +64,17 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { useWindowMaximized } from "@components/layout/hooks/use-window-maximized.js"
 import { useI18n } from "@i18n/index.js"
 
-/** macOS 保留原生红绿灯；只有 Windows 与 Linux 自画窗控。 */
+/** macOS 保留原生红绿灯，Linux 走原生边框：只有 Windows 自画窗控。 */
 const platform = document.documentElement.dataset.pigDesktopPlatform
-const supported = platform === "win32" || platform === "linux"
+const supported = platform === "win32"
 const bridge = supported ? window.pigDesktop?.window : undefined
 const { t } = useI18n()
-const maximized = ref(false)
-let stopListening: (() => void) | undefined
-
-onMounted(async () => {
-  if (!bridge) return
-
-  maximized.value = await bridge.isMaximized()
-  stopListening = bridge.onMaximizedChange((value) => {
-    maximized.value = value
-  })
-})
-
-onBeforeUnmount(() => stopListening?.())
+/* 平台不支持自画窗控时也要订阅：最大化状态还要写进布局用的 html 属性。 */
+const maximized = useWindowMaximized()
 </script>
 
 <style scoped>

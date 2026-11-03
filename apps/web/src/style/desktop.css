@@ -21,3 +21,16 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
+
+/* 最大化：Windows 与 Linux 期望内容贴边，外沿留白与卡片圆角一起收掉。
+   左侧栅栏留给侧栏拖拽把手，不与屏幕边缘抢空间。 */
+html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"])[data-maximized]
+  main {
+  padding: 0;
+}
+
+html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"])[data-maximized]
+  .workbench-card {
+  --card-border-width: 0;
+  --card-border-radius: 0;
+}

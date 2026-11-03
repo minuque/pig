@@ -24,15 +24,17 @@
     <div v-for="code in state.deviceCodes" :key="code.userCode" class="device-row">
       <span class="device-code">{{ code.userCode }}</span>
 
-      <button
+      <IconButton
         type="button"
         class="icon-button"
+        size="s"
+        variant="ghost"
         :aria-label="t('settings.models.copyCode')"
         @click="copy(code.userCode)"
       >
         <CheckIcon v-if="copied === code.userCode" />
         <CopyIcon v-else />
-      </button>
+      </IconButton>
 
       <a class="device-uri" :href="code.verificationUri" target="_blank" rel="noopener noreferrer">
         {{ code.verificationUri }}
@@ -82,7 +84,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 
-import { Button } from "@components/ui/button/index.js"
+import { Button, IconButton } from "@components/ui/button/index.js"
 import {
   CheckIcon,
   CopyIcon,
@@ -198,22 +200,11 @@ async function copy(text: string) {
 }
 
 .icon-button {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-sm);
   color: var(--contrast-foreground-muted);
 }
 
 .icon-button:hover {
-  background: var(--hover-quiet);
   color: var(--contrast-foreground);
-}
-
-.icon-button svg {
-  inline-size: 13px;
-  block-size: 13px;
 }
 
 .device-uri {

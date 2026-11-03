@@ -2,16 +2,18 @@
   <header class="workbench-header">
     <Tooltip>
       <TooltipTrigger as-child>
-        <button
+        <IconButton
           class="header-toggle"
           :class="{ 'is-stowed': sidebarExpanded }"
           type="button"
+          size="m"
+          variant="ghost"
           :inert="sidebarExpanded"
           :aria-label="t('nav.openSidebar')"
           @click="emit('toggleSidebar')"
         >
-          <SidebarGlyph :open="sidebarOpen" />
-        </button>
+          <PanelRightOpenIcon />
+        </IconButton>
       </TooltipTrigger>
 
       <TooltipContent>{{ t("nav.openSidebar") }}</TooltipContent>
@@ -43,9 +45,15 @@
 
       <DropdownMenu v-if="sessionId" :modal="false">
         <DropdownMenuTrigger as-child>
-          <button class="header-more" type="button" :aria-label="t('common.more')">
+          <IconButton
+            class="header-more"
+            type="button"
+            size="m"
+            variant="ghost"
+            :aria-label="t('common.more')"
+          >
             <MenuDotsIcon class="size-icon" />
-          </button>
+          </IconButton>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" class="select-none">
@@ -96,12 +104,13 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { Badge } from "@components/ui/badge/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
+import { IconButton } from "@components/ui/button/index.js"
 import {
   MenuDotsIcon,
+  PanelRightOpenIcon,
   PenIcon,
   PinIcon,
   PinBoldIcon,
-  SidebarGlyph,
   TrashBinMinimalisticIcon,
 } from "@components/icons/index.js"
 
@@ -113,7 +122,6 @@ const props = defineProps<{
   cwdLabel: string
   cwdPath: string | undefined
   sidebarExpanded: boolean
-  sidebarOpen: boolean
 }>()
 const emit = defineEmits<{
   toggleSidebar: []
@@ -200,17 +208,7 @@ function confirmDelete(): void {
 }
 
 .header-toggle {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: var(--size-nav-rail);
-  height: var(--size-nav-rail);
   overflow: hidden;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-foreground);
   /* 与侧栏同档 200ms；opacity 稍快进出，让形状先到位 */
   transition:
     width var(--duration-normal) var(--ease-smooth),
@@ -224,12 +222,6 @@ function confirmDelete(): void {
   margin-inline-end: calc(-1 * var(--space-xs));
   opacity: 0;
   pointer-events: none;
-}
-
-.header-toggle:hover,
-.header-toggle:focus-visible {
-  background: var(--hover-quiet);
-  color: var(--contrast-foreground);
 }
 
 /* 目录名长度收口交给 Badge；这里只管不换行与截断 */
@@ -283,26 +275,13 @@ function confirmDelete(): void {
   white-space: pre;
 }
 
+/* 尺寸与悬停由 IconButton 接管；这里是它与标题之间的负偏移 */
 .header-more {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
   margin-inline-start: calc(var(--space-xxs) - var(--space-xs));
-  width: var(--size-nav-rail);
-  height: var(--size-nav-rail);
-  padding: var(--icon-button-pad);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-foreground);
 }
 
-.header-more:hover,
-.header-more:focus-visible,
 .header-more[data-state="open"] {
   background: var(--hover-quiet);
-  color: var(--contrast-foreground);
 }
 
 html[data-pig-desktop-platform] .workbench-header,
@@ -312,8 +291,8 @@ html[data-pig-desktop-platform] .header-title {
 }
 
 html[data-pig-desktop-platform] .workbench-header {
-  height: var(--titlebar-inset);
-  min-height: var(--titlebar-inset);
+  height: var(--header-height);
+  min-height: var(--header-height);
   user-select: none;
 }
 
@@ -324,9 +303,13 @@ html[data-pig-desktop-platform]
   app-region: no-drag;
 }
 
-/* 自画窗控盖在卡片右上角，头部右侧让出三个按钮的宽度 */
-html[data-pig-desktop-platform="win32"] .workbench-header,
-html[data-pig-desktop-platform="linux"] .workbench-header {
+/* 卡片头高收到 32px 后上下内边距同步收一半，28px 控件行才不溢出 */
+html[data-pig-desktop-platform="darwin"] .workbench-header {
+  padding-block: calc(var(--space-xxs) / 2);
+}
+
+/* 自画窗控盖在卡片右上角，只在 Windows 落地；Linux 走原生边框，右侧不让位 */
+html[data-pig-desktop-platform="win32"] .workbench-header {
   padding-inline-end: calc(var(--size-windows-caption) + var(--space-xs));
 }
 

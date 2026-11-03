@@ -44,6 +44,7 @@ const EXTERNAL = [
   "--letter-spacing-",
   "--inset-",
   "--base-card-",
+  "--card-",
   "--dialog-content-",
   "--backdrop-",
   "--color-",
@@ -68,8 +69,8 @@ const EXTERNAL = [
   "--kbd-",
   "--reka-",
 ]
-/** 由外部代码读取或运行期拼接的变量：Solar 图标库读 --solar-*，composer-flip 拼 --duration-dock-*。 */
-const EXTERNAL_READERS = ["--solar-", "--duration-dock-"]
+/** 由外部代码读取或运行期拼接的变量：Solar 图标库读 --solar-*，composer-flip 拼 --duration-dock-*，rt 的 Card 读 --card-*。 */
+const EXTERNAL_READERS = ["--solar-", "--duration-dock-", "--card-"]
 
 /** 扫一遍源码：定义处（含运行期写入）与 var() 引用处。 */
 function scan() {

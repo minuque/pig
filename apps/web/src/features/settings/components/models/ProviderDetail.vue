@@ -38,24 +38,28 @@
             </button>
 
             <span class="rowicons">
-              <button
+              <IconButton
                 type="button"
                 class="icon-button"
+                size="s"
+                variant="ghost"
                 :aria-label="t('settings.models.editKey')"
                 @click="editing = true"
               >
                 <PenIcon />
-              </button>
+              </IconButton>
 
-              <button
+              <IconButton
                 type="button"
                 class="icon-button"
+                size="s"
+                variant="ghost"
                 :aria-label="t('settings.models.copyKey')"
                 @click="copyKey"
               >
                 <CheckIcon v-if="copied" />
                 <CopyIcon v-else />
-              </button>
+              </IconButton>
             </span>
           </template>
 
@@ -228,7 +232,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@components/ui/alert-dialog/index.js"
-import { Button } from "@components/ui/button/index.js"
+import { Button, IconButton } from "@components/ui/button/index.js"
 import {
   CheckIcon,
   CopyIcon,
