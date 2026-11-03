@@ -157,6 +157,7 @@ test-results/
 .worktrees/
 .codegraph/
 .agents/
+.ryugi/
 .diagram-design/
 skills-lock.json
 sessions.jsonl
