@@ -5,6 +5,8 @@ import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 import vueDevTools from "vite-plugin-vue-devtools"
 
+import { maxWorkers } from "../../vitest.workers.mjs"
+
 const gatewayTarget = process.env.GATEWAY_TARGET
 const gatewayToken = process.env.GATEWAY_TOKEN
 
@@ -93,6 +95,7 @@ export default defineConfig({
       : {}),
   },
   test: {
+    maxWorkers,
     coverage: {
       reporter: ["text", "html"],
     },
