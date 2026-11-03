@@ -193,7 +193,7 @@
 
   /* 尺寸 */
   --size-control: 40px;
-  --titlebar-inset: 44px;
+  --titlebar-inset: 36px;
   /* 卡片头高：桌面壳上等于标题条，浏览器模式取自然高（行高 + 上下内边距） */
   --header-height: calc(var(--size-nav-rail) + 2 * var(--space-sm));
   /** 卡片与窗口边缘的留白 */
@@ -370,10 +370,10 @@ html[data-translucent-window="on"] {
 }
 
 /* 桌面壳标题条：一处定义，四处消费（侧栏顶距、拖拽带、卡片头高、banner 顶距）。
-   win32 自画窗控占 44px；darwin 红绿灯压在同一条带内的 32px；
+   win32 自画窗控占 36px；darwin 红绿灯压在同一条带内的 32px；
    linux 走原生边框，页面内不留标题条，卡片头回自然高。 */
 html[data-pig-desktop-platform] {
-  --titlebar-inset: 44px;
+  --titlebar-inset: 36px;
   --header-height: var(--titlebar-inset);
 }
 
