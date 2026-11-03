@@ -80,7 +80,7 @@ const maximized = useWindowMaximized()
 <style scoped>
 .window-controls {
   position: absolute;
-  inset-block-start: 0;
+  inset-block-start: var(--space-xs);
   inset-inline-end: 0;
   z-index: var(--z-window-controls);
   display: flex;

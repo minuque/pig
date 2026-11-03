@@ -134,6 +134,11 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
   padding-inline-start: calc(var(--size-mac-traffic-lights) + var(--space-xs));
 }
 
+/* win32 卡片头上内边距多 8px，品牌行跟着下移，两行内容仍共中线 */
+html[data-pig-desktop-platform="win32"] .nav-titlebar {
+  inset-block-start: calc(var(--workbench-inset) + var(--space-xs));
+}
+
 /* Linux 走原生边框，页面内没有标题条，品牌行回到文档流 */
 html[data-pig-desktop-platform="linux"] .nav-titlebar {
   position: static;

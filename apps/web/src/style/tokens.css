@@ -381,6 +381,11 @@ html[data-pig-desktop-platform="darwin"] {
   --titlebar-inset: 32px;
 }
 
+/* win32 卡片头上内边距 12px，头高随内容多出 4px */
+html[data-pig-desktop-platform="win32"] {
+  --header-height: calc(var(--titlebar-inset) + var(--space-xxs));
+}
+
 html[data-pig-desktop-platform="linux"] {
   --titlebar-inset: 0px;
   --header-height: calc(var(--size-nav-rail) + 2 * var(--space-sm));
