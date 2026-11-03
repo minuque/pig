@@ -178,6 +178,4 @@ release/
 packages/gateway/web/
 nul
 
-*storybook.log
-storybook-static
 .vitest/
