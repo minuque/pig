@@ -120,9 +120,9 @@ describe("accents", () => {
     expect(isAccentId("iris")).toBe(false)
   })
 
-  it("6 套 accent 各自有中性色族，id 与标签不重复", () => {
-    expect(ACCENTS).toHaveLength(6)
-    expect(new Set(ACCENTS.map((accent) => accent.id)).size).toBe(6)
+  it("8 套 accent 各自有中性色族，id 与标签不重复", () => {
+    expect(ACCENTS).toHaveLength(8)
+    expect(new Set(ACCENTS.map((accent) => accent.id)).size).toBe(8)
 
     for (const accent of ACCENTS) {
       expect(accent.label.length).toBeGreaterThan(0)

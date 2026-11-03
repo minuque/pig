@@ -109,6 +109,25 @@ test("选 accent 后写入 data-accent-color 并换 --accent-*", async ({ page, 
     ),
   ).toBe("#12a594")
 
+  // sky 与 cyan 共用 slate 中性色族
+  await page.locator(".accent-grid [data-accent='sky']").click()
+  await expect(page.locator("html")).toHaveAttribute("data-accent-color", "sky")
+  await expect(page.locator("html")).toHaveAttribute("data-gray-color", "slate")
+  expect(
+    await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue("--accent-9").trim(),
+    ),
+  ).toBe("#7ce2fe")
+
+  await page.locator(".accent-grid [data-accent='cyan']").click()
+  await expect(page.locator("html")).toHaveAttribute("data-accent-color", "cyan")
+  await expect(page.locator("html")).toHaveAttribute("data-gray-color", "slate")
+  expect(
+    await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue("--accent-9").trim(),
+    ),
+  ).toBe("#00a2c7")
+
   // 换回默认 indigo：属性留在 indigo，不再清空
   await page.locator(".accent-grid [data-accent='indigo']").click()
   await expect(page.locator("html")).toHaveAttribute("data-accent-color", "indigo")

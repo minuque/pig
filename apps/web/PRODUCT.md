@@ -33,7 +33,7 @@ web
 - 会话：新建、置顶、重命名、删除；按日期或工作目录分组；按最近更新或创建时间排序；侧栏标出运行中、未读、草稿。
 - 工作台：流式 transcript、思考区块、diff 渲染、待发队列、附件（有单文件大小与数量上限）、停止当前 turn。
 - 模型：供应商连接（API Key 或 OAuth 订阅登录）、自定义 provider 与模型写入 `models.json`、思考强度与采样参数、连接测试、用量查看。
-- 设置：外观（浅色 / 深色 / 跟随系统、6 套强调色、字号、文字对比度、半透明窗口）、语言、系统通知与完成提示音、skills、extensions。
+- 设置：外观（浅色 / 深色 / 跟随系统、8 套强调色、字号、文字对比度、半透明窗口）、语言、系统通知与完成提示音、skills、extensions。
 - 已知缺口（记录在 `docs/ISSUES.md`，尚未实现）：会话归档、retry 详情、thinking 精确时长、streaming 期间的实时 token 计数。
 - 数据契约在 `pi-protocol` schema 与 gateway：界面拿不到的事实先补协议与 gateway，不在前端造数据。
 

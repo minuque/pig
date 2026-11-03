@@ -2,10 +2,10 @@
  * 可选的 accent 与它对应的中性色族。
  * 色值不在这里：每套 accent 的 12 阶与 alpha 由 style/app.css 从 Radix Colors 引入，
  * 切 accent 只改 html 的 data-accent-color（见 palette.ts）。
- * 数量从 14 收到 6：只留色相互相拉开且对比度稳定的几套，
- * 被删掉的 id 在读取时回落到默认 indigo。
+ * 只留色相互相拉开且对比度稳定的几套，
+ * 未登记的 id 在读取时回落到默认 indigo。
  */
-export type AccentId = "indigo" | "blue" | "teal" | "green" | "orange" | "red"
+export type AccentId = "indigo" | "blue" | "sky" | "cyan" | "teal" | "green" | "orange" | "red"
 
 /** 中性色族：与 Radix Themes 的 accent → gray 对应关系一致 */
 export type GrayFamily = "slate" | "sage" | "sand" | "mauve"
@@ -19,6 +19,8 @@ export type AccentDefinition = Readonly<{
 export const ACCENTS: ReadonlyArray<AccentDefinition> = [
   { id: "indigo", label: "Indigo", gray: "slate" },
   { id: "blue", label: "Blue", gray: "slate" },
+  { id: "sky", label: "Sky", gray: "slate" },
+  { id: "cyan", label: "Cyan", gray: "slate" },
   { id: "teal", label: "Teal", gray: "sage" },
   { id: "green", label: "Green", gray: "sage" },
   { id: "orange", label: "Orange", gray: "sand" },
