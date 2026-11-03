@@ -17,7 +17,7 @@
 
 ```bash
 pnpm install
-pnpm dev:web        # start Gateway and Web, then open the printed http://127.0.0.1:5555 in a browser
+pnpm dev            # start Gateway and Web, then open the printed http://127.0.0.1:5555 in a browser
 pnpm dev:desktop    # Electron desktop development
 ```
 
@@ -40,7 +40,7 @@ pnpm dev:desktop    # Electron desktop development
 - `pnpm check:touched` — check the files this change touched
 - `pnpm check` — full check
 - `pnpm test` / `pnpm test:e2e` — module tests / browser journeys
-- `pnpm dev:debug` — same as `dev:web`, plus the 8888 inspector
+- `pnpm dev:debug` — same as `dev`, plus the 8888 inspector
 - Commit and collaboration rules: [`AGENTS.md`](AGENTS.md)
 
 ## License

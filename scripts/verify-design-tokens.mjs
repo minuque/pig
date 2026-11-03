@@ -1,6 +1,6 @@
 /**
  * 验证 apps/web/src/style/app.css 的 token 与 DESIGN.md 官方导出一致。
- * 用法: pnpm check:design-tokens（根目录）
+ * 用法: node scripts/verify-design-tokens.mjs（根目录，check.mjs 会调用）
  * 数据源: designmd export DESIGN.md --format css-tailwind（根 devDependency @google/design.md）
  * DESIGN.md 不存在时跳过。
  *

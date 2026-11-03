@@ -52,7 +52,7 @@ const CHECK_STEPS = [
   ...(hasDesignMd
     ? [
         { name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] },
-        { name: "design-tokens", args: ["check:design-tokens"] },
+        { name: "design-tokens", args: ["exec", "node", "scripts/verify-design-tokens.mjs"] },
       ]
     : []),
   { name: "typecheck", args: ["typecheck"] },
@@ -179,14 +179,17 @@ async function checkTouched(scope, files, label = "check:touched") {
     steps.push({ name: "designmd", args: ["exec", "designmd", "lint", "DESIGN.md"] })
 
   if (scope.tokens && hasDesignMd)
-    steps.push({ name: "design-tokens", args: ["check:design-tokens"] })
+    steps.push({
+      name: "design-tokens",
+      args: ["exec", "node", "scripts/verify-design-tokens.mjs"],
+    })
 
   if (scope.scripts) {
     steps.push({
       name: "typecheck:scripts",
       args: ["exec", "tsc", "--noEmit", "-p", "scripts/tsconfig.json"],
     })
-    steps.push({ name: "test:scripts", args: ["test:scripts"] })
+    steps.push({ name: "test:scripts", args: ["exec", "node", "--test", "scripts/*.test.mjs"] })
   }
 
   if (scope.e2e)

@@ -17,7 +17,7 @@
 
 ```bash
 pnpm install
-pnpm dev:web        # 启动 Gateway 与 Web，用浏览器打开终端打印的 http://127.0.0.1:5555
+pnpm dev            # 启动 Gateway 与 Web，用浏览器打开终端打印的 http://127.0.0.1:5555
 pnpm dev:desktop    # Electron 桌面开发
 ```
 
@@ -40,7 +40,7 @@ pnpm dev:desktop    # Electron 桌面开发
 - `pnpm check:touched` — 检查本次改过的文件
 - `pnpm check` — 全量检查
 - `pnpm test` / `pnpm test:e2e` — 模块单测 / 浏览器旅程
-- `pnpm dev:debug` — 与 `dev:web` 相同，附带 8888 inspector
+- `pnpm dev:debug` — 与 `dev` 相同，附带 8888 inspector
 - 提交与协作规则见 [`AGENTS.md`](AGENTS.md)
 
 ## 许可证

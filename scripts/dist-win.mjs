@@ -20,7 +20,7 @@ const run = (command, args, cwd = root) => {
 }
 
 if (process.platform !== "win32") {
-  throw new Error("pnpm dist:win 只支持在 Windows 上打 NSIS 安装包")
+  throw new Error("pnpm release:win 只支持在 Windows 上打 NSIS 安装包")
 }
 
 /** Windows 上 pnpm injected 在重建 dist 后会留下旧文件，asar 必须用刚编出来的那份。 */
