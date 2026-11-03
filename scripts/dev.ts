@@ -1,4 +1,7 @@
 import { spawn } from "child_process"
+import { createRequire } from "node:module"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 
 import Gateway from "../packages/gateway/src/index.js"
 
@@ -39,26 +42,22 @@ async function main() {
   console.info(`[dev] http://127.0.0.1:${webPort}`)
   console.info(`[dev] ${gateway.authenticatedUrl(gatewayOrigin)}`)
 
-  const pnpm = process.env.npm_execpath
-
-  if (!pnpm) throw new Error("pnpm executable not found")
-
-  // pnpm 12 起是可执行文件，11 及以前是 JS 入口，要经 node 启动
-  const viaNode = /\.[cm]?js$/.test(pnpm)
-  const web = spawn(
-    viaNode ? process.execPath : pnpm,
-    viaNode ? [pnpm, "--filter", "@pig/web", "dev"] : ["--filter", "@pig/web", "dev"],
-    {
-      env: {
-        ...process.env,
-        GATEWAY_TARGET: gatewayOrigin,
-        GATEWAY_TOKEN: gateway.launchToken,
-      },
-      stdio: "inherit",
-      // 非 Windows 用独立进程组,便于整树终止(见 killTree)
-      detached: process.platform !== "win32",
+  // 直接用本进程的 Node 跑 Vite：不向启动器要 npm_execpath，pnpm / npx / IDE 直跑都一样。
+  // Vite 的 exports 不包含 bin，先解析 package.json 再拼。
+  const webRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "apps", "web")
+  const webRequire = createRequire(join(webRoot, "package.json"))
+  const viteBin = join(dirname(webRequire.resolve("vite/package.json")), "bin", "vite.js")
+  const web = spawn(process.execPath, [viteBin, "--port", webPort], {
+    cwd: webRoot,
+    env: {
+      ...process.env,
+      GATEWAY_TARGET: gatewayOrigin,
+      GATEWAY_TOKEN: gateway.launchToken,
     },
-  )
+    stdio: "inherit",
+    // 非 Windows 用独立进程组,便于整树终止(见 killTree)
+    detached: process.platform !== "win32",
+  })
   let stopping = false
 
   // Windows 上 web.kill() 只杀直接子进程,pnpm 下的 vite 会变孤儿,必须杀整棵树

@@ -1,9 +1,12 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process"
+import { createRequire } from "node:module"
+import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { viteDevPort } from "./urls.js"
 
-const REPO_ROOT = fileURLToPath(new URL("../../../../", import.meta.url))
+const WEB_ROOT = fileURLToPath(new URL("../../../../apps/web/", import.meta.url))
+const webRequire = createRequire(join(WEB_ROOT, "package.json"))
 /** CSI / OSC 等 ANSI。Electron 在 Windows 上通常没开 VT，ESC 会显示成 ←[32m。 */
 const ANSI_RE = /\u001B\[[\d;?]*[ -/]*[@-~]|\u001B\][^\u0007]*(?:\u0007|\u001B\\)|\u001B[@-Z\\-_]/g
 
@@ -38,46 +41,47 @@ function attachWindowsConsole(child: ChildProcess): void {
   forward(child.stderr, process.stderr)
 }
 
-/** Electron 的 process.execPath 是 electron 本体，必须用 pnpm 注入的 Node。 */
-export function nodeExecutable(env: NodeJS.ProcessEnv = process.env): string {
-  const node = env.npm_node_execpath
-
-  if (!node) throw new Error("未找到 Node 可执行文件（缺少 npm_node_execpath）")
-  return node
+/** web 包的 Vite 入口：Vite 的 exports 不包含 bin，只能先解析 package.json 再拼。 */
+export function viteBin(): string {
+  return join(dirname(webRequire.resolve("vite/package.json")), "bin", "vite.js")
 }
 
-/** pnpm 12 起 npm_execpath 指向可执行文件（pnpm-native.exe），11 及以前是 JS 入口，要经 node 启动。 */
-export function pnpmCommand(
-  args: string[],
+export type ViteLaunch = { command: string; args: string[]; env: NodeJS.ProcessEnv }
+
+/**
+ * 启动 web dev server 的命令。用调用方自己的 Node 跑：
+ * Electron 里 process.execPath 是本体，靠 ELECTRON_RUN_AS_NODE 当 Node 用；纯 Node 下不加这个变量。
+ * 因此不依赖启动器注入的 npm_execpath / npm_node_execpath，直接双击或 IDE 启动也能跑。
+ */
+export function viteLaunch(
+  args: readonly string[],
   env: NodeJS.ProcessEnv = process.env,
-): { command: string; args: string[] } {
-  const exec = env.npm_execpath
-
-  if (!exec) throw new Error("未找到 pnpm 可执行文件（缺少 npm_execpath）")
-
-  if (/\.[cm]?js$/.test(exec)) return { command: nodeExecutable(env), args: [exec, ...args] }
-  return { command: exec, args }
+  runtime: { execPath: string; electron: boolean } = {
+    execPath: process.execPath,
+    electron: Boolean(process.versions.electron),
+  },
+): ViteLaunch {
+  return {
+    command: runtime.execPath,
+    args: [viteBin(), ...args],
+    env: runtime.electron ? { ...env, ELECTRON_RUN_AS_NODE: "1" } : { ...env },
+  }
 }
 
 export function spawnVite(env: { GATEWAY_TARGET: string; GATEWAY_TOKEN: string }): ChildProcess {
-  assertVitePortFree(viteDevPort())
+  const port = viteDevPort()
 
-  const runner = pnpmCommand([
-    "--filter",
-    "@pig/web",
-    "dev",
-    "--port",
-    String(viteDevPort()),
-    "--strictPort",
-  ])
-  const childEnv: NodeJS.ProcessEnv = { ...process.env }
-  childEnv.GATEWAY_TARGET = env.GATEWAY_TARGET
-  childEnv.GATEWAY_TOKEN = env.GATEWAY_TOKEN
+  assertVitePortFree(port)
 
+  const launch = viteLaunch(["--port", String(port), "--strictPort"], {
+    ...process.env,
+    GATEWAY_TARGET: env.GATEWAY_TARGET,
+    GATEWAY_TOKEN: env.GATEWAY_TOKEN,
+  })
   const windows = process.platform === "win32"
-  const child = spawn(runner.command, runner.args, {
-    cwd: REPO_ROOT,
-    env: childEnv,
+  const child = spawn(launch.command, launch.args, {
+    cwd: WEB_ROOT,
+    env: launch.env,
     stdio: windows ? ["ignore", "pipe", "pipe"] : "inherit",
     // 非 Windows 用独立进程组，便于整树终止
     detached: !windows,
