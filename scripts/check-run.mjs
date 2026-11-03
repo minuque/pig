@@ -1,15 +1,10 @@
 import { spawn } from "node:child_process"
 
+import { pnpmCommand } from "./pnpm-command.mjs"
+
 function spawnPnpm(args, cwd, env) {
-  const exec = process.env.npm_execpath
-  // pnpm 12 起 npm_execpath 是可执行文件，11 及以前是 JS 入口，要经 node 启动
-  const viaNode = Boolean(exec && /\.[cm]?js$/.test(exec))
-  const fallback = process.platform === "win32" ? "pnpm.cmd" : "pnpm"
-  return spawn(viaNode ? process.execPath : (exec ?? fallback), viaNode ? [exec, ...args] : args, {
-    cwd,
-    windowsHide: true,
-    env,
-  })
+  const { command, args: runArgs, options } = pnpmCommand(args)
+  return spawn(command, runArgs, { cwd, windowsHide: true, ...options, env })
 }
 
 /** 按命令行长度上限把文件拆成多条子命令，避开 Windows 的 8191 字符限制。 */

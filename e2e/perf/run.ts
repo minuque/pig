@@ -6,6 +6,7 @@ import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
 import Gateway from "../../packages/gateway/src/index.js"
+import { pnpmCommand } from "../../scripts/pnpm-command.mjs"
 import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import { canonicalizeWorkspacePath } from "../fixtures.js"
 import { runTurnScenarios, type EdgeSample } from "./edges.js"
@@ -116,22 +117,14 @@ function parseArgs(argv: string[]): Args {
 }
 
 function buildWeb() {
-  const pnpm = process.env.npm_execpath
-
-  if (!pnpm) throw new Error("未找到 pnpm，请用 pnpm test:bench 运行")
   console.log("构建 web…")
-
-  // pnpm 12 起是可执行文件，11 及以前是 JS 入口，要经 node 启动
-  const viaNode = /\.[cm]?js$/.test(pnpm)
-  const result = spawnSync(
-    viaNode ? process.execPath : pnpm,
-    viaNode ? [pnpm, "build:web"] : ["build:web"],
-    {
-      cwd: root,
-      stdio: "inherit",
-      windowsHide: true,
-    },
-  )
+  const { command, args, options } = pnpmCommand(["build:web"])
+  const result = spawnSync(command, args, {
+    cwd: root,
+    stdio: "inherit",
+    windowsHide: true,
+    ...options,
+  })
 
   if (result.error || result.status !== 0)
     throw new Error("pnpm build:web 失败", { cause: result.error })

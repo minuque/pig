@@ -4,19 +4,14 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { spawnSync } from "node:child_process"
 import { join, resolve } from "node:path"
 
+import { pnpmCommand } from "./pnpm-command.mjs"
+
 const repoRoot = resolve(import.meta.dirname, "..")
 const target = resolve(process.argv[2] ?? repoRoot)
 
-/** 优先用 pnpm 自身的入口（pnpm run 里 npm_execpath 才有值）。 */
 function pnpm(args) {
-  const exec = process.env.npm_execpath
-
-  // pnpm 12 起是可执行文件，11 及以前是 JS 入口，要经 node 启动
-  if (exec && /\.[cm]?js$/.test(exec))
-    return spawnSync(process.execPath, [exec, ...args], { cwd: target, stdio: "inherit" })
-
-  if (exec) return spawnSync(exec, args, { cwd: target, stdio: "inherit" })
-  return spawnSync("pnpm", args, { cwd: target, stdio: "inherit", shell: true })
+  const { command, args: runArgs, options } = pnpmCommand(args)
+  return spawnSync(command, runArgs, { cwd: target, stdio: "inherit", ...options })
 }
 
 function step(name, args) {

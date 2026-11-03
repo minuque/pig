@@ -3,25 +3,11 @@ import { existsSync, readdirSync, statSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { pnpmCommand } from "../scripts/pnpm-command.mjs"
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const webRoot = join(root, "apps/web")
 const distEntry = join(webRoot, "dist/index.html")
-
-/** 构建入口：pnpm run 里有 npm_execpath，直接跑 playwright 时回落到 PATH 上的 pnpm。 */
-function pnpmCommand() {
-  const execPath = process.env.npm_execpath
-
-  // pnpm 12 起是可执行文件，11 及以前是 JS 入口，要经 node 启动
-  if (execPath && /\.[cm]?js$/.test(execPath))
-    return { command: process.execPath, args: [execPath, "build:web"] }
-
-  if (execPath) return { command: execPath, args: ["build:web"] }
-  return {
-    command: process.platform === "win32" ? "pnpm.cmd" : "pnpm",
-    args: ["build:web"],
-  }
-}
-
 /** 参与 web 构建的输入；任一文件比 dist 新就得重建。 */
 const INPUTS = ["src", "public", "index.html", "vite.config.ts", "package.json"]
 
@@ -55,8 +41,8 @@ export default function globalSetup() {
     return
   }
 
-  const { command, args } = pnpmCommand()
-  const result = spawnSync(command, args, { cwd: root, stdio: "inherit" })
+  const { command, args, options } = pnpmCommand(["build:web"])
+  const result = spawnSync(command, args, { cwd: root, stdio: "inherit", ...options })
 
   if (result.error || result.status !== 0)
     throw new Error("pnpm build:web 失败", { cause: result.error })

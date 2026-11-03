@@ -19,7 +19,7 @@
     "dist:win": "node scripts/dist-win.mjs",
     "preview": "pnpm --filter @pig/web preview",
     "test": "pnpm -r --if-present test && pnpm test:scripts",
-    "test:scripts": "node --test scripts/check-scope.test.mjs scripts/check-run.test.mjs",
+    "test:scripts": "node --test scripts/check-scope.test.mjs scripts/check-run.test.mjs scripts/pnpm-command.test.mjs",
     "test:e2e": "playwright test -c e2e/playwright.config.ts",
     "test:electron": "playwright test -c e2e/electron/playwright.config.ts",
     "test:bench": "tsx e2e/perf/run.ts",
