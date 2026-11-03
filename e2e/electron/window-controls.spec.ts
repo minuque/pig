@@ -12,7 +12,10 @@ const desktopRoot = join(root, "apps/desktop")
 const VITE_PORT = 5598
 const desktopRequire = createRequire(join(desktopRoot, "package.json"))
 
-test.skip(process.platform === "darwin", "macOS 使用原生红绿灯，不渲染自画窗控")
+test.skip(
+  process.platform === "darwin" || process.platform === "linux",
+  "macOS 用原生红绿灯，Linux 走原生边框，都不渲染自画窗控",
+)
 
 test("自画窗控经 IPC 操作真实窗口", async () => {
   const sessionDir = await mkdtemp(join(tmpdir(), "pig-window-controls-"))

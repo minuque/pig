@@ -30,10 +30,9 @@ export function windowChromeFor(platform: string): BrowserWindowConstructorOptio
   }
 
   if (platform === "linux") {
-    return {
-      frame: false,
-      webPreferences,
-    }
+    // 无边框窗口在 Linux 上依赖窗口管理器给缩放命中带，实测不可靠（上游 issue 52452、49173），
+    // 也丢掉系统阴影与窗口管理器行为；这里保留原生边框，页面内不再自画标题条与窗控。
+    return { frame: true, webPreferences }
   }
 
   return { webPreferences }
