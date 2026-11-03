@@ -87,7 +87,7 @@ const maximized = useWindowMaximized()
   align-items: center;
   gap: 2px;
   height: var(--titlebar-inset);
-  padding-inline: var(--space-xxs);
+  padding-inline: var(--space-xs);
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
@@ -97,7 +97,7 @@ const maximized = useWindowMaximized()
   align-items: center;
   justify-content: center;
   width: var(--size-window-control);
-  height: calc(var(--titlebar-inset) - 12px);
+  height: var(--size-window-control);
   padding: 0;
   border: 0;
   border-radius: var(--radius-md);
