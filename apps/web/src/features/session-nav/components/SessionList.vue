@@ -125,6 +125,8 @@ const props = defineProps<{
   highlightedSessionId: string | undefined
   expandedSections: ReadonlySet<string>
   moreBySection: Record<string, number>
+  /** 在跑的会话从什么时候开始跑，秒表用。 */
+  runningSince: Record<string, number>
 }>()
 const emit = defineEmits<{
   navigate: [cwd: string | undefined]
@@ -173,6 +175,7 @@ function itemBind(session: SidebarSession, section: SidebarSection) {
     pinned: props.pinnedIds.has(session.id),
     settled: section.kind === "settled",
     variant: section.kind === "settled" ? "slim" : "card",
+    startedAt: section.kind === "working" ? props.runningSince[session.id] : undefined,
     draggable: dragEnabled.value && !(session.draft ?? false),
     state: foot?.state,
     placeholder: session.draft ?? false,

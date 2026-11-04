@@ -1,4 +1,4 @@
-import { computed, inject, provide, shallowRef, type InjectionKey } from "vue"
+import { computed, inject, provide, shallowRef, watch, type InjectionKey } from "vue"
 import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { usePiClient } from "@client/pi-client.js"
@@ -103,6 +103,28 @@ function createNav(
     return placements.value.get(id) ?? { running: false, settled: false }
   }
 
+  /** 每个在跑的会话从什么时候开始跑：本地记，协议列表不带开始时间。 */
+  const runningSince = shallowRef<Record<string, number>>({})
+  const runningIds = computed(
+    () =>
+      new Set(
+        [...cardFootById.value].filter(([, foot]) => foot.state === "running").map(([id]) => id),
+      ),
+  )
+
+  watch(
+    runningIds,
+    (ids) => {
+      const next: Record<string, number> = {}
+      const previous = runningSince.value
+      const now = Date.now()
+
+      for (const id of ids) next[id] = previous[id] ?? now
+      runningSince.value = next
+    },
+    { immediate: true },
+  )
+
   /** 页签全部关掉后回欢迎页。 */
   function closeSession(): void {
     cancelPendingOpen()
@@ -120,6 +142,7 @@ function createNav(
     sort: nav.sort,
     setSort: nav.setSort,
     moreBySection: nav.moreBySection,
+    runningSince,
     settledIds: markers.settledIds,
     settle: markers.settle,
     unsettle: markers.unsettle,

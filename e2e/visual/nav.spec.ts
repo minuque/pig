@@ -36,7 +36,8 @@ test.describe("sidebar 视觉", () => {
     await startWorking(page, bridge)
 
     const nav = page.locator(".session-nav")
-    const mask = await stabilize(page, [])
+    // 秒表每秒变一次，宽度靠等宽数字固定，内容盖掉
+    const mask = await stabilize(page, [page.locator(".working-elapsed")])
 
     await expect(nav).toHaveScreenshot("sidebar-inbox.png", { mask })
 

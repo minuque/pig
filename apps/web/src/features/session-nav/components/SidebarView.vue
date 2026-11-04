@@ -32,6 +32,7 @@
         :highlighted-session-id="highlightedSessionId"
         :expanded-sections="expandedSections"
         :more-by-section="moreBySection"
+        :running-since="runningSince"
         @navigate="emit('navigate', $event)"
         @open="emit('open', $event)"
         @prime="emit('prime', $event)"
@@ -118,6 +119,7 @@ defineProps<{
   highlightedSessionId: string | undefined
   expandedSections: ReadonlySet<string>
   moreBySection: Record<string, number>
+  runningSince: Record<string, number>
   statusCounts: Record<FooterStatus, number>
 }>()
 

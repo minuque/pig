@@ -27,7 +27,13 @@
 
               <span v-if="!renaming" class="state-slot">
                 <span class="state-mark" aria-hidden="true">
-                  <SessionStateIcon v-if="glyphState" :state="glyphState" />
+                  <span v-if="startedAt !== undefined" class="working-status">
+                    <CircleDashedIcon :size="16" class="working-icon" />
+                    <span>{{ t("session.sectionWorking") }}</span>
+                    <span class="working-elapsed">{{ elapsed }}</span>
+                  </span>
+
+                  <SessionStateIcon v-else-if="glyphState" :state="glyphState" />
                   <span v-else class="time-label">{{ timeLabel }}</span>
                 </span>
 
@@ -186,7 +192,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, shallowRef } from "vue"
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from "vue"
+import { useIntervalFn } from "@vueuse/core"
 import { RouterLink } from "vue-router"
 import { useI18n } from "@i18n/index.js"
 import {
@@ -200,10 +207,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
-import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
+import {
+  formatElapsed,
+  formatRelativeTime,
+  workspaceName,
+} from "@features/session-nav/lib/format.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
   CheckCircleIcon,
+  CircleDashedIcon,
   FolderIcon,
   MenuDotsIcon,
   PenIcon,
@@ -221,6 +233,9 @@ const props = withDefaults(
     settled?: boolean
     state?: SidebarSessionState | undefined
     variant?: "card" | "slim"
+    /** 在跑会话的起始时刻：传了就把状态位换成工作中秒表。 */
+    startedAt?: number | undefined
+
     placeholder?: boolean
     dragging?: boolean
     draggable?: boolean
@@ -228,6 +243,7 @@ const props = withDefaults(
   {
     state: undefined,
     variant: "card",
+    startedAt: undefined,
     placeholder: false,
     dragging: false,
     draggable: false,
@@ -250,6 +266,33 @@ const deleteOpen = shallowRef(false)
 const projectName = computed(() => (props.session.cwd ? workspaceName(props.session.cwd) : ""))
 const glyphState = computed(() => sessionGlyph(props.session, props.state))
 const timeLabel = computed(() => formatRelativeTime(props.session.updatedAt))
+const tick = shallowRef(Date.now())
+const elapsed = computed(() =>
+  props.startedAt === undefined ? "" : formatElapsed(tick.value - props.startedAt),
+)
+const clock = useIntervalFn(
+  () => {
+    tick.value = Date.now()
+  },
+  1_000,
+  { immediate: false },
+)
+
+// 只有工作中行需要秒表；别的行不起定时器。
+watch(
+  () => props.startedAt,
+  (startedAt) => {
+    if (startedAt === undefined) {
+      clock.pause()
+      return
+    }
+
+    tick.value = Date.now()
+    clock.resume()
+  },
+  { immediate: true },
+)
+
 const titleEl = shallowRef<HTMLElement | null>(null)
 const titleOverflow = shallowRef(false)
 
@@ -534,6 +577,26 @@ function confirmDelete() {
   font-variant-numeric: tabular-nums;
   line-height: var(--text-eyebrow--line-height);
   white-space: nowrap;
+}
+
+/* 工作中：虚线圆环 + 状态名 + 已跑秒数 */
+.working-status {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-xxs);
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+  white-space: nowrap;
+}
+
+.working-icon {
+  flex: none;
+}
+
+.working-elapsed {
+  font-variant-numeric: tabular-nums;
 }
 
 .session-item:hover .state-mark,

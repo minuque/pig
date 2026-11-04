@@ -12,6 +12,7 @@
     :highlighted-session-id="highlightedSessionId"
     :expanded-sections="expandedSections"
     :more-by-section="moreBySection"
+    :running-since="runningSince"
     :status-counts="statusCounts"
     @update:scope-filter="scopeFilter = $event"
     @update:sort="setSort"
@@ -76,6 +77,7 @@ const {
   sectionsFor,
   expandedSections,
   moreBySection,
+  runningSince,
   toggleSection,
   revealMore,
   collapseGroup,
