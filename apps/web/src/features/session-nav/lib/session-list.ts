@@ -13,9 +13,12 @@ import type {
 } from "@features/session-nav/type.js"
 import { sessionRecency, sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
 
-export const SECTION_PAGE = 10
-/** 已归档每次「显示更多」多放出的行数。 */
-export const SETTLED_PAGE = 25
+/** 首屏一次建多少行；够填满侧栏，剩下的滚到底再补。 */
+const SECTION_PAGE = 10
+/** 收件箱首屏比已归档宽一档：它是主视图，一进来就该能滚。 */
+const ACTIVE_PAGE = 25
+/** 每次「再放一页」多建的行数。 */
+const SECTION_STEP = 25
 /** 临时新会话占位行的 id 前缀。 */
 export const DRAFT_SESSION_PREFIX = "draft:"
 
@@ -135,12 +138,14 @@ function toSection(
   label: string,
   sessions: readonly SessionMetadata[],
   moreBySection: Readonly<Record<string, number>>,
-  paginate: boolean,
+  /** 首屏行数；不传就一次全建。 */
+  initial?: number,
 ): SidebarSection {
   const extra = moreBySection[kind] ?? 0
-  const shown = paginate
-    ? Math.min(sessions.length, SECTION_PAGE + extra * SETTLED_PAGE)
-    : sessions.length
+  const shown =
+    initial === undefined
+      ? sessions.length
+      : Math.min(sessions.length, initial + extra * SECTION_STEP)
   return {
     key: kind,
     kind,
@@ -188,21 +193,21 @@ export function sidebarSections(input: {
   buckets.working = buckets.working.filter((session) => !pinnedIds.has(session.id))
   return [
     ...(pinned.length
-      ? [toSection("pinned", t("session.pinned"), pinned, input.moreBySection, false)]
+      ? [toSection("pinned", t("session.pinned"), pinned, input.moreBySection)]
       : []),
     ...(buckets.active.length
-      ? [toSection("active", t("session.sectionInbox"), buckets.active, input.moreBySection, false)]
-      : []),
-    ...(buckets.working.length
       ? [
           toSection(
-            "working",
-            t("session.sectionWorking"),
-            buckets.working,
+            "active",
+            t("session.sectionInbox"),
+            buckets.active,
             input.moreBySection,
-            false,
+            ACTIVE_PAGE,
           ),
         ]
+      : []),
+    ...(buckets.working.length
+      ? [toSection("working", t("session.sectionWorking"), buckets.working, input.moreBySection)]
       : []),
     ...(list.length
       ? [
@@ -211,7 +216,7 @@ export function sidebarSections(input: {
             t("session.sectionSettled"),
             buckets.settled,
             input.moreBySection,
-            true,
+            SECTION_PAGE,
           ),
         ]
       : []),

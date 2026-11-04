@@ -1,6 +1,6 @@
 <template>
   <nav class="nav-body session-list">
-    <div v-if="sections.length" class="session-window">
+    <div v-if="sections.length" ref="windowEl" class="session-window" @scroll.passive="onScroll">
       <section
         v-if="dragId && !hasPinnedSection"
         class="session-section pinned-drop"
@@ -35,10 +35,13 @@
             </button>
           </div>
 
-          <div class="session-list-group" :class="{ 'is-open': isOpen(section) }">
+          <div
+            class="session-list-group"
+            :class="{ 'is-open': isOpen(section) || hasHighlight(section) }"
+          >
             <TransitionGroup name="list-reveal" tag="ul" class="section-rows">
               <li
-                v-for="(session, index) in section.sessions"
+                v-for="(session, index) in visibleRows(section)"
                 :key="session.id"
                 class="session-row"
                 :class="{
@@ -110,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef } from "vue"
+import { computed, onBeforeUnmount, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { AltArrowDownIcon } from "@components/icons/index.js"
@@ -158,6 +161,46 @@ function isShelf(section: SidebarSection): boolean {
 function isOpen(section: SidebarSection): boolean {
   return isShelf(section) ? props.expandedSections.has(section.key) : true
 }
+
+/** 收起的架子不建行：只留正在看的那一条，展开后再补。 */
+function visibleRows(section: SidebarSection): readonly SidebarSession[] {
+  if (isOpen(section)) return section.sessions
+  const open = section.sessions.find((session) => session.id === props.highlightedSessionId)
+  return open ? [open] : []
+}
+
+/** 收起但正开着的那条要露出来：行建了，组也得跟着开。 */
+function hasHighlight(section: SidebarSection): boolean {
+  return (
+    !isOpen(section) &&
+    section.sessions.some((session) => session.id === props.highlightedSessionId)
+  )
+}
+
+const windowEl = shallowRef<HTMLElement>()
+
+/** 滚到接近底部再放一页：收件箱不一次建完所有历史会话。 */
+function onScroll(): void {
+  const el = windowEl.value
+
+  if (!el || el.scrollTop + el.clientHeight < el.scrollHeight - 240) return
+  revealNextPage()
+}
+
+/** 内容不够高时直接补页：没有滚动条就等不到 scroll 事件。 */
+function revealNextPage(): void {
+  const active = props.sections.find((section) => section.kind === "active")
+
+  if (!active || active.shown >= active.total) return
+  emit("revealMore", active.key)
+}
+
+onUpdated(() => {
+  const el = windowEl.value
+
+  if (!el || el.scrollHeight > el.clientHeight + 4) return
+  revealNextPage()
+})
 
 const dragId = shallowRef<string | undefined>(undefined)
 const dragIndex = shallowRef<number | undefined>(undefined)
@@ -296,6 +339,17 @@ onBeforeUnmount(() => {
 .session-edge-bottom {
   background: linear-gradient(to top, var(--background), transparent);
   height: 32px;
+}
+
+/* 段落按内容定高，列表整体滚动；被压扁时折叠组会把多余行裁掉 */
+.session-section {
+  flex: none;
+  min-width: 0;
+}
+
+/* 收起的架子直接不建行，这里不用 grid 开合：块级流让长列表撑高、外层滚动 */
+.session-list-group {
+  display: block;
 }
 
 /* 架子贴底：收件箱短时，三个架子仍落在列表下沿。 */
