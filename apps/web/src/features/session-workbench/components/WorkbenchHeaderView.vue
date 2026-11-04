@@ -12,7 +12,7 @@
           :aria-label="t('nav.openSidebar')"
           @click="emit('toggleSidebar')"
         >
-          <PanelRightOpenIcon />
+          <PanelRightOpenIcon :size="16" />
         </IconButton>
       </TooltipTrigger>
 

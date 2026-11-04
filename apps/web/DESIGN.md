@@ -248,9 +248,9 @@ components:
 
 **密度。** 间距基数 4px（`--spacing`），刻度 `--space-xxs/xs/sm/md/lg/xl/xxl` = 4/8/12/16/24/28/32px。控件高 40px（`--size-control`），图标按钮 28px（`--size-icon-button`），侧栏行与工具栏行 28px（`--size-nav-rail`），图标 14px 配 13px 正文，描边线宽 1.75px（保证 14px 下仍足 1px）。触屏（`pointer: coarse`）把菜单行抬到 44px。
 
-**窗口铬。** 标题条高度只有一个来源：`--titlebar-inset`（win32 44px、darwin 32px、linux 0）。卡片头高 `--header-height` 在桌面壳上等于它，浏览器模式回自然高 52px；侧栏顶距、拖拽带、卡片头、banner 顶距四处都读这两个值，不再各写一套平台公式。
+**窗口铬。** 头部高只有一个来源：`--header-height`（44px，即 28px 图标按钮加上下各 8px）。macOS 的浮层标题条 `--titlebar-inset` 同取 44px，红绿灯在 44px 条带里居中；Windows 与 Linux 取 0，Windows 的系统窗控 overlay 也取 44px，与头部同一行。侧栏顶距、拖拽带、卡片头、banner 顶距四处都读这两个值，不再各写一套平台公式。
 
-Windows 自画三个窗控（总宽 138px，单钮 36px，卡片头右侧让出 146px）。macOS 保留原生红绿灯，品牌行与卡片头左侧让出 68px（`--size-mac-traffic-lights`）加 8px 间隙。Linux 保留原生边框，页面内不留标题条、不画窗控。Windows 用 acrylic 材质，macOS 用 `under-window`，页面只负责留出透明区域。
+Windows 自画三个窗控（总宽 138px，单钮高 44px，头部右侧让出 146px）。macOS 保留原生红绿灯，品牌行与头部左侧让出 68px（`--size-mac-traffic-lights`）加 8px 间隙。Linux 保留原生边框，页面内不留标题条、不画窗控。Windows 用 acrylic 材质，macOS 用 `under-window`，页面只负责留出透明区域。
 
 **最大化。** Windows 与 Linux 最大化时 `main` 去掉内缩、卡片去掉描边与圆角，内容贴边；左侧 8px 栅栏留给侧栏拖拽把手。macOS 的缩放窗保持内缩。
 

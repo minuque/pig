@@ -11,7 +11,7 @@
             :aria-label="t('nav.collapseSidebar')"
             @click="emit('toggleSidebar')"
           >
-            <PanelLeftCloseIcon :size="15" />
+            <PanelLeftCloseIcon :size="16" />
           </IconButton>
         </TooltipTrigger>
 
@@ -28,7 +28,7 @@
         color="gray"
         @click="emit('create')"
       >
-        <ChatRoundAddIcon :size="15" />
+        <ChatRoundAddIcon :size="16" />
         <span>{{ t("session.newSession") }}</span>
 
         <template #suffix>
@@ -44,7 +44,7 @@
         color="gray"
         @click="emit('update:searchOpen', true)"
       >
-        <MagnifierIcon :size="15" />
+        <MagnifierIcon :size="16" />
         <span>{{ t("nav.search") }}</span>
 
         <template #suffix>
@@ -110,10 +110,8 @@ const modKey = isMac ? "⌘" : "Ctrl "
   padding-inline: var(--nav-inline);
 }
 
-/* 图标按钮贴左；描边与拖窗豁免由这一处给 */
+/* 图标按钮贴左；拖窗豁免由这一处给 */
 .nav-btn {
-  /* 15px 图标按 1.75 档缩放后描边只剩 1.09px，这一处单独加粗 */
-  --solar-stroke-width: 2.25px;
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }

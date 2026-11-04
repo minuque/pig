@@ -6,7 +6,7 @@ const SECURE_WEB_PREFERENCES = {
   sandbox: true,
 } as const
 /** 标题条行高：窗口控件与工作台头部共用这一行，和 web 的 --header-height 对齐。 */
-export const TITLEBAR_HEIGHT = 36
+export const TITLEBAR_HEIGHT = 44
 
 /** 按平台返回窗口铬层；不含 preload / 窗控 IPC。 */
 export function windowChromeFor(platform: string): BrowserWindowConstructorOptions {
@@ -15,8 +15,8 @@ export function windowChromeFor(platform: string): BrowserWindowConstructorOptio
   if (platform === "darwin") {
     return {
       titleBarStyle: "hiddenInset",
-      // 红绿灯在 36px 条带里竖直居中（12px 高）
-      trafficLightPosition: { x: 16, y: 12 },
+      // 红绿灯在 44px 条带里竖直居中（12px 高）
+      trafficLightPosition: { x: 16, y: 16 },
       webPreferences,
     }
   }

@@ -9,7 +9,7 @@
       <DialogTitle class="sr-only">{{ t("nav.search") }}</DialogTitle>
 
       <label class="search-bar">
-        <span class="search-lead"><MagnifierIcon :size="15" /></span>
+        <span class="search-lead"><MagnifierIcon :size="16" /></span>
 
         <input
           ref="inputEl"
@@ -48,11 +48,11 @@
           @pointerenter="activeIndex = index"
           @click="activate(index)"
         >
-          <span class="row-icon" aria-hidden="true"><CodeSquareIcon :size="15" /></span>
+          <span class="row-icon" aria-hidden="true"><CodeSquareIcon :size="16" /></span>
           <span class="row-title">{{ row.title }}</span>
 
           <span v-if="index === activeIndex" class="row-go" aria-hidden="true">
-            <ArrowLeftDownIcon :size="13" />
+            <ArrowLeftDownIcon :size="14" />
           </span>
 
           <span v-else class="row-time">{{ row.time }}</span>
@@ -183,8 +183,8 @@ function activate(index: number) {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
   color: var(--contrast-foreground);
 }
 
@@ -269,8 +269,8 @@ function activate(index: number) {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--size-icon-2xs);
+  height: var(--size-icon-2xs);
   color: var(--contrast-foreground);
 }
 

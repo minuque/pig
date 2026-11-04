@@ -88,7 +88,7 @@
         </div>
 
         <div class="search">
-          <MagnifierIcon :size="13" class="search-icon" />
+          <MagnifierIcon :size="14" class="search-icon" />
 
           <input
             ref="searchRef"

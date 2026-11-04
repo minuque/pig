@@ -194,8 +194,8 @@
   --size-control: 40px;
   /* 页面内标题条：只有 macOS 的浮层标题条占高度，其余平台为 0 */
   --titlebar-inset: 0px;
-  /* 头部高：两栏首行与窗口标题条同高 */
-  --header-height: 36px;
+  /* 头部高：两栏首行与窗口标题条同高；28px 图标按钮 + 上下各 8px */
+  --header-height: 44px;
   /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
   --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;
@@ -209,7 +209,7 @@
   --size-icon: 14px;
   --size-icon-2xs: 16px;
   --size-icon-button: 28px;
-  /* 24 画布线宽；低于 1.17 时 14px 下等效不到 1px，会糊成半调灰 */
+  /* 24 画布线宽；低于 1.71 时 14px 图标下等效不到 1px，会糊成半调灰 */
   --line-icon-width: 1.75px;
   /* @solar-icons/vue 的 IconBase 读这两个名字定尺寸与线宽（width/height 是 1em，靠 font-size 撑开）；
      未定义时回退 24px / 1.5，比设计大一档，不要删。 */
@@ -364,7 +364,7 @@ html[data-translucent-window="on"] {
 /* 桌面壳标题条：一处定义，三处消费（侧栏顶距、拖拽带、头部高度）。
    只有 macOS 的浮层标题条占高度；Windows 与 Linux 走原生边框，头部取自然高。 */
 html[data-pig-desktop-platform="darwin"] {
-  --titlebar-inset: 36px;
+  --titlebar-inset: 44px;
   --header-height: var(--titlebar-inset);
 }
 

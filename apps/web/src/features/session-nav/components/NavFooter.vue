@@ -13,7 +13,7 @@
             :aria-label="t('nav.settings')"
             @click="emit('settings')"
           >
-            <SettingsIcon :size="15" />
+            <SettingsIcon :size="16" />
           </IconButton>
         </TooltipTrigger>
 
@@ -30,7 +30,7 @@
             :aria-label="t('session.addGuide')"
             @click="emit('addProject')"
           >
-            <AddFolderIcon :size="15" />
+            <AddFolderIcon :size="16" />
           </IconButton>
         </TooltipTrigger>
 
