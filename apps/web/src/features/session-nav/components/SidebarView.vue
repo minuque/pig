@@ -51,11 +51,9 @@
     </div>
 
     <NavFooter
-      :counts="statusCounts"
       @settings="emit('settings')"
       @search="emit('update:searchOpen', true)"
       @add-project="emit('addProject')"
-      @cycle="emit('cycleStatus', $event)"
     >
       <template #extra>
         <div class="filter-anchor">
@@ -102,7 +100,6 @@ import type {
   SidebarSection,
   SidebarSort,
 } from "@features/session-nav/type.js"
-import type { FooterStatus } from "@features/session-nav/lib/status-cycle.js"
 import { ArrowUpIcon, Tuning2Icon } from "@components/icons/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 
@@ -120,7 +117,6 @@ defineProps<{
   expandedSections: ReadonlySet<string>
   moreBySection: Record<string, number>
   runningSince: Record<string, number>
-  statusCounts: Record<FooterStatus, number>
 }>()
 
 const emit = defineEmits<{
@@ -129,7 +125,6 @@ const emit = defineEmits<{
   "update:sort": [sort: SidebarSort]
   toggleSidebar: []
   home: []
-  cycleStatus: [status: FooterStatus]
   create: [cwd?: string]
   addProject: []
   settings: []
