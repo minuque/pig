@@ -116,7 +116,7 @@ function sectionBind(section: SidebarSection) {
     runningSince: props.runningSince,
     dragEnabled: dragEnabled.value,
     dragId: dragId.value,
-    dragIndex: dragIndex.value,
+    rowShiftById: rowShiftById.value,
     moreBySection: props.moreBySection,
   }
 }
@@ -148,15 +148,49 @@ onUpdated(() => {
 
 const dragId = shallowRef<string | undefined>(undefined)
 const dragIndex = shallowRef<number | undefined>(undefined)
+const dragHeight = shallowRef(0)
 const dragSourcePinned = shallowRef(false)
 const dragUnpin = shallowRef(false)
 /** 置顶区下方的余量：指针落到这一段也算拖进置顶。 */
 const PINNED_SLACK = 30
 let dragCleanup: (() => void) | undefined
+/** 落点空出的一格：置顶行按落点为拖起的行让位。 */
+const rowShiftById = computed<Record<string, number>>(() => {
+  const id = dragId.value
+  const target = dragIndex.value
+  const height = dragHeight.value
+  const pinned = props.sections.find((section) => section.key === "pinned")
+
+  if (!id || target === undefined || !height || !pinned) return {}
+
+  const ids = pinned.sessions.map((session) => session.id)
+  const from = ids.indexOf(id)
+  const shifts: Record<string, number> = {}
+
+  if (from === -1) {
+    for (let index = target; index < ids.length; index += 1) shifts[ids[index]!] = height
+    return shifts
+  }
+
+  if (target === from || target === from + 1) return {}
+
+  for (const [index, sessionId] of ids.entries()) {
+    if (index === from) continue
+
+    if (from < target && index > from && index < target) shifts[sessionId] = -height
+    else if (target < from && index >= target && index < from) shifts[sessionId] = height
+  }
+
+  return shifts
+})
 
 function onDragStart(sectionKey: string, id: string, _event: PointerEvent) {
   dragId.value = id
   dragSourcePinned.value = sectionKey === "pinned"
+  dragHeight.value =
+    document
+      .querySelector<HTMLElement>(`.session-row[data-id="${CSS.escape(id)}"]`)
+      ?.getBoundingClientRect().height ?? 0
 
   /** 用每行自己的矩形算落点：section 含组头，按 section 顶算会整体偏下。 */
   function onMove(e: PointerEvent) {

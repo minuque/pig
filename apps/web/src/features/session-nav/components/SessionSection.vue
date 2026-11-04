@@ -17,16 +17,10 @@
     <div>
       <TransitionGroup name="list-reveal" tag="ul" class="section-rows">
         <li
-          v-for="(session, index) in rows"
+          v-for="session in rows"
           :key="session.id"
           class="session-row"
-          :class="{
-            'drop-before': section.kind === 'pinned' && dragIndex === index,
-            'drop-after':
-              section.kind === 'pinned' &&
-              dragIndex === section.sessions.length &&
-              index === section.sessions.length - 1,
-          }"
+          :style="rowStyle(session.id)"
           :data-id="session.id"
         >
           <SessionItem
@@ -94,7 +88,8 @@ const props = defineProps<{
   runningSince: Record<string, number>
   dragEnabled: boolean
   dragId: string | undefined
-  dragIndex: number | undefined
+  /** 拖拽让位：行按落点上下平移的像素。 */
+  rowShiftById: Record<string, number>
   moreBySection: Record<string, number>
 }>()
 const emit = defineEmits<{
@@ -116,6 +111,11 @@ const isShelf = computed(() => props.section.kind === "working" || props.section
 const open = computed(() => (isShelf.value ? props.expandedSections.has(props.section.key) : true))
 /** 收起的架子不建行，展开后再补。 */
 const rows = computed<readonly SidebarSession[]>(() => (open.value ? props.section.sessions : []))
+
+function rowStyle(id: string): Record<string, string> | undefined {
+  const shift = props.rowShiftById[id]
+  return shift ? { transform: `translateY(${shift}px)` } : undefined
+}
 
 function itemBind(session: SidebarSession) {
   const foot = props.cardFootById.get(session.id)
@@ -215,26 +215,8 @@ function itemBind(session: SidebarSession) {
   justify-content: center;
   min-width: 0;
   padding-block: 2px;
-}
-
-/* 落点指示画在行上：独立成 TransitionGroup 子节点会卡在进出动画里。 */
-.session-row.drop-before::before,
-.session-row.drop-after::after {
-  position: absolute;
-  inset-inline: 0;
-  height: 2px;
-  background: var(--primary);
-  border-radius: var(--radius-pill);
-  opacity: 0.6;
-  content: "";
-}
-
-.session-row.drop-before::before {
-  top: 0;
-}
-
-.session-row.drop-after::after {
-  bottom: 0;
+  /* 拖拽时给落点让位，位移形变跟着指针走 */
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .more-button {
@@ -278,6 +260,7 @@ function itemBind(session: SidebarSession) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .session-row,
   .section-chevron,
   .more-icon {
     transition: none;

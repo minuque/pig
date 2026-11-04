@@ -10,6 +10,7 @@
           class="session-card"
           :class="[variant, { active, 'is-placeholder': placeholder, renaming }]"
           :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
+          :style="dragStyle"
           draggable="false"
           @click="onCardClick"
           @dblclick="onCardDblclick"
@@ -360,8 +361,36 @@ function onPointerMove(event: PointerEvent) {
   if (Math.hypot(dx, dy) < 5) return
   dragPending = false
   didDrag = true
+  followPointer(event.clientY)
   emit("dragStart", event)
   window.removeEventListener("pointermove", onPointerMove)
+}
+
+/** 拖起的行跟着指针走，落点由列表按行位置算。 */
+const dragDelta = shallowRef(0)
+let dragOriginY = 0
+let stopFollow: (() => void) | undefined
+
+function followPointer(originY: number) {
+  stopFollow?.()
+  dragOriginY = originY
+
+  function onMove(event: PointerEvent) {
+    dragDelta.value = event.clientY - dragOriginY
+  }
+
+  function stop() {
+    dragDelta.value = 0
+    stopFollow = undefined
+    window.removeEventListener("pointermove", onMove)
+    window.removeEventListener("pointerup", stop)
+    window.removeEventListener("pointercancel", stop)
+  }
+
+  window.addEventListener("pointermove", onMove)
+  window.addEventListener("pointerup", stop)
+  window.addEventListener("pointercancel", stop)
+  stopFollow = stop
 }
 
 function onPointerUp() {
@@ -373,7 +402,14 @@ function onPointerUp() {
 }
 
 // 按住未松手时行可能被卸载（过滤、折叠、删会话），监听器要跟着走。
-onBeforeUnmount(onPointerUp)
+onBeforeUnmount(() => {
+  onPointerUp()
+  stopFollow?.()
+})
+
+const dragStyle = computed(() =>
+  props.dragging ? { translate: `0 ${dragDelta.value}px` } : undefined,
+)
 
 function onCardClick(event: MouseEvent) {
   if (didDrag) {
@@ -451,8 +487,17 @@ function confirmDelete() {
   min-width: 0;
 }
 
+/* 拖起的行整块抬起来：实底、投影、轻微放大，跟着指针走 */
+.session-item.is-dragging {
+  z-index: 20;
+}
+
 .session-item.is-dragging .session-card {
-  opacity: 0.4;
+  background: var(--card);
+  color: var(--contrast-foreground);
+  box-shadow: var(--shadow-elevated);
+  scale: 1.02;
+  cursor: grabbing;
 }
 
 .session-card {
