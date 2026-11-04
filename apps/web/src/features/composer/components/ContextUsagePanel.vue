@@ -1,68 +1,64 @@
 <template>
-  <div class="usage-root">
-    <div class="usage-shell">
-      <div class="usage-host surface-float">
-        <div class="head">
-          <h3 class="title">{{ t("composer.contextUsage") }}</h3>
+  <PopoverContent class="usage-panel" side="top" align="end" :side-offset="6" style="width: 20rem">
+    <div class="head">
+      <h3 class="title">{{ t("composer.contextUsage") }}</h3>
 
-          <button type="button" class="close" @click="emit('close')">
-            <CloseIcon class="size-icon" />
-          </button>
-        </div>
-
-        <div class="stats">
-          <span class="percent">{{ t("composer.contextUsed", { percent: usage.percent }) }}</span>
-          <span class="tokens">{{ tokenSummary }}</span>
-        </div>
-
-        <div class="bar">
-          <span
-            v-for="segment in usage.segments"
-            :key="segment.id"
-            class="bar-seg"
-            :style="{
-              width: `${segmentShare(segment.tokens, usage.window)}%`,
-              background: segment.color,
-            }"
-          ></span>
-        </div>
-
-        <ul v-if="usage.segments.length" class="legend">
-          <li v-for="segment in usage.segments" :key="segment.id">
-            <component
-              :is="canPreview(segment) ? 'button' : 'div'"
-              :type="canPreview(segment) ? 'button' : undefined"
-              class="legend-row"
-              :class="{ 'legend-row--button': canPreview(segment) }"
-              @click="onLegendClick(segment)"
-            >
-              <span class="swatch" :style="{ background: segment.color }"></span>
-              <span class="legend-label">{{ segment.label }}</span>
-              <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
-
-              <span class="legend-pct">
-                {{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%
-              </span>
-            </component>
-          </li>
-        </ul>
-      </div>
+      <button type="button" class="close" @click="emit('close')">
+        <CloseIcon class="size-icon" />
+      </button>
     </div>
 
-    <Dialog :open="previewOpen" @update:open="onPreviewOpen">
-      <DialogContent class="preview-dialog" @open-auto-focus="onOpenAutoFocus">
-        <DialogTitle>{{ previewTitle }}</DialogTitle>
+    <div class="stats">
+      <span class="percent">{{ t("composer.contextUsed", { percent: usage.percent }) }}</span>
+      <span class="tokens">{{ tokenSummary }}</span>
+    </div>
 
-        <div ref="previewPane" class="preview-body" tabindex="-1">
-          <div v-if="previewLoading" class="preview-status">
-            <Spinner :size="24" />
-          </div>
+    <div class="bar">
+      <span
+        v-for="segment in usage.segments"
+        :key="segment.id"
+        class="bar-seg"
+        :style="{
+          width: `${segmentShare(segment.tokens, usage.window)}%`,
+          background: segment.color,
+        }"
+      ></span>
+    </div>
 
-          <pre v-else-if="previewBody" class="preview-text">{{ previewBody }}</pre>
+    <ul v-if="usage.segments.length" class="legend">
+      <li v-for="segment in usage.segments" :key="segment.id">
+        <component
+          :is="canPreview(segment) ? 'button' : 'div'"
+          :type="canPreview(segment) ? 'button' : undefined"
+          class="legend-row"
+          :class="{ 'legend-row--button': canPreview(segment) }"
+          @click="onLegendClick(segment)"
+        >
+          <span class="swatch" :style="{ background: segment.color }"></span>
+          <span class="legend-label">{{ segment.label }}</span>
+          <span class="legend-count">{{ formatTokenCount(segment.tokens) }}</span>
+
+          <span class="legend-pct">
+            {{ segmentShare(segment.tokens, usage.window).toFixed(1) }}%
+          </span>
+        </component>
+      </li>
+    </ul>
+  </PopoverContent>
+
+  <Dialog :open="previewOpen" @update:open="onPreviewOpen">
+    <DialogContent class="preview-dialog" @open-auto-focus="onOpenAutoFocus">
+      <DialogTitle>{{ previewTitle }}</DialogTitle>
+
+      <div ref="previewPane" class="preview-body" tabindex="-1">
+        <div v-if="previewLoading" class="preview-status">
+          <Spinner :size="24" />
         </div>
-      </DialogContent>
-    </Dialog>
-  </div>
+
+        <pre v-else-if="previewBody" class="preview-text">{{ previewBody }}</pre>
+      </div>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -70,6 +66,7 @@ import { computed, nextTick, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { contextPreview } from "@client/platform.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { PopoverContent } from "@components/ui/popover/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import type { ContextUsage, ContextUsageSegment } from "@features/composer/type.js"
 
@@ -158,17 +155,6 @@ function onOpenAutoFocus(event: Event) {
 </script>
 
 <style scoped>
-.usage-root {
-  position: absolute;
-  inset-inline: 0;
-  bottom: calc(100% + var(--space-xs));
-  z-index: var(--z-drawer);
-}
-
-.usage-shell {
-  position: relative;
-}
-
 /* 预览弹层：占视口的七成，内容区自己滚 */
 .preview-dialog {
   display: flex;
@@ -178,13 +164,6 @@ function onOpenAutoFocus(event: Event) {
   max-inline-size: 70vw;
   block-size: 70vh;
   overflow: hidden;
-}
-
-.usage-host {
-  position: relative;
-  padding: var(--space-sm) var(--space-sm) var(--space-xs);
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-popover);
 }
 
 .head {

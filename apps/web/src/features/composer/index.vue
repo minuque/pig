@@ -1,14 +1,5 @@
 <template>
   <form class="prompt" @submit.prevent="onSubmit">
-    <Transition name="panel-reveal">
-      <ContextUsagePanel
-        v-if="usageOpen && usage"
-        :usage="usage"
-        :session-id="sessionId"
-        @close="usageOpen = false"
-      />
-    </Transition>
-
     <Transition name="fade-layer">
       <QueuePanel
         v-if="queueItems.length"
@@ -72,12 +63,15 @@
       </template>
 
       <template #usage>
-        <ContextUsageRing
-          v-if="usage"
-          :usage="usage"
-          :open="usageOpen"
-          @toggle="usageOpen = !usageOpen"
-        />
+        <Popover v-if="usage" :open="usageOpen" :modal="false" @update:open="usageOpen = $event">
+          <PopoverTrigger as-child>
+            <span class="usage-anchor">
+              <ContextUsageRing :usage="usage" :open="usageOpen" />
+            </span>
+          </PopoverTrigger>
+
+          <ContextUsagePanel :usage="usage" :session-id="sessionId" @close="usageOpen = false" />
+        </Popover>
       </template>
 
       <template #tools>
@@ -133,6 +127,7 @@ import { computed, defineAsyncComponent, ref, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
+import { Popover, PopoverTrigger } from "@components/ui/popover/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
 import AttachmentLightbox from "@features/composer/components/AttachmentLightbox.vue"
@@ -333,6 +328,11 @@ function onAbortHotkey(event: KeyboardEvent) {
 </script>
 
 <style scoped>
+/* 用量环外面套一层，交给 Popover 的触发器接管点击 */
+.usage-anchor {
+  display: inline-flex;
+}
+
 .prompt {
   position: relative;
   width: 100%;
