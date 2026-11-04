@@ -1,16 +1,28 @@
 <template>
   <nav class="nav-body session-list">
     <div v-if="sections.length" ref="windowEl" class="session-window" @scroll.passive="onScroll">
+      <!-- 拖拽时露出的置顶落点：没有置顶段时给一块虚线占位 -->
       <section
         v-if="dragId && !hasPinnedSection"
-        class="session-section pinned-drop"
-        :class="{ 'is-drop-active': dragIndex === 0 }"
+        class="pinned-drop"
+        :class="{ 'is-drop-active': dragIndex !== undefined }"
         data-key="pinned"
       >
-        <div class="pinned-drop-zone"></div>
+        <div class="pinned-drop-zone">{{ t("session.pinned") }}</div>
       </section>
 
       <template v-for="section in inboxSections" :key="section.key">
+        <div
+          v-if="section.key === 'pinned'"
+          class="drag-boundary"
+          :class="{ 'is-shown': !!dragId, 'is-target': dragIndex !== undefined }"
+        >
+          <span class="drag-boundary-inner">
+            <span class="drag-boundary-label">{{ t("session.pinned") }}</span>
+            <span class="drag-boundary-line" aria-hidden="true"></span>
+          </span>
+        </div>
+
         <SessionSection
           v-bind="sectionBind(section)"
           @navigate="emit('navigate', $event)"
@@ -27,8 +39,15 @@
           @collapse-group="emit('collapseGroup', $event)"
         />
 
-        <div v-if="section.key === 'pinned' && dragUnpin" class="unpin-hint">
-          {{ t("session.unpinHint") }}
+        <div
+          v-if="section.key === 'pinned'"
+          class="drag-boundary"
+          :class="{ 'is-shown': !!dragId, 'is-target': dragUnpin }"
+        >
+          <span class="drag-boundary-inner">
+            <span class="drag-boundary-label">{{ t("session.sectionInbox") }}</span>
+            <span class="drag-boundary-line" aria-hidden="true"></span>
+          </span>
         </div>
       </template>
 
@@ -116,6 +135,7 @@ function sectionBind(section: SidebarSection) {
     runningSince: props.runningSince,
     dragEnabled: dragEnabled.value,
     dragId: dragId.value,
+    dropVerb: dropVerb.value,
     rowShiftById: rowShiftById.value,
     moreBySection: props.moreBySection,
   }
@@ -154,6 +174,13 @@ const dragUnpin = shallowRef(false)
 /** 置顶区下方的余量：指针落到这一段也算拖进置顶。 */
 const PINNED_SLACK = 30
 let dragCleanup: (() => void) | undefined
+/** 拖着的那一行当前会落到哪：置顶、取消置顶，或只是区内换位。 */
+const dropVerb = computed<"pin" | "unpin" | null>(() => {
+  if (dragUnpin.value) return "unpin"
+
+  if (dragIndex.value === undefined) return null
+  return dragSourcePinned.value ? null : "pin"
+})
 /** 落点空出的一格：置顶行按落点为拖起的行让位。 */
 const rowShiftById = computed<Record<string, number>>(() => {
   const id = dragId.value
@@ -194,12 +221,14 @@ function onDragStart(sectionKey: string, id: string, _event: PointerEvent) {
 
   /** 用每行自己的矩形算落点：section 含组头，按 section 顶算会整体偏下。 */
   function onMove(e: PointerEvent) {
-    const section = document.querySelector<HTMLElement>(
-      '.session-list .session-section[data-key="pinned"]',
-    )
+    const section = document.querySelector<HTMLElement>('.session-list [data-key="pinned"]')
 
     if (!section) return clearDrop()
-    const box = section.getBoundingClientRect()
+
+    // 空置顶段是 0 高占位，命中区取那块虚线框本身
+    const box =
+      section.querySelector<HTMLElement>(".pinned-drop-zone")?.getBoundingClientRect() ??
+      section.getBoundingClientRect()
     const y = e.clientY
 
     // 置顶行拖出去落点在下沿之外即取消置顶；非置顶行只认置顶区与下方一小段余量。
@@ -327,43 +356,89 @@ onBeforeUnmount(() => {
   background: var(--background);
 }
 
-/* 拖起会话时露出的置顶落点：没有置顶段也能拖进去 */
-.session-section {
-  flex: none;
-  min-width: 0;
-}
-
+/* 没有置顶段时的落点：0 高占位，虚线框压在首行上，不挤动列表 */
 .pinned-drop {
-  margin-block-end: var(--space-xs);
+  position: relative;
+  height: 0;
 }
 
 .pinned-drop-zone {
-  height: 26px;
-  margin: var(--space-xxs) var(--nav-inline, var(--space-xs)) 0 0;
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
   border: 1px dashed var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  color: var(--contrast-foreground-secondary);
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+  pointer-events: none;
 }
 
 .pinned-drop.is-drop-active .pinned-drop-zone {
   border-color: var(--primary);
-  background: var(--glass-selected-bg);
+  background: var(--info-bg);
+  color: var(--primary);
 }
 
-/* 置顶行拖到列表下方：提示松手取消置顶 */
-.unpin-hint {
-  margin-block-start: var(--space-xxs);
-  padding-block: var(--space-xxs);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
-  text-align: center;
+/* 拖拽边界：0 高，拖起时露出区名与一条细线，落点在这一侧时变主色 */
+.drag-boundary {
+  position: relative;
+  z-index: 2;
+  height: 0;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+  pointer-events: none;
+}
+
+.drag-boundary.is-shown {
+  opacity: 1;
+}
+
+.drag-boundary-inner {
+  position: absolute;
+  inset-inline: var(--space-xs);
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.drag-boundary-label {
+  flex: none;
+  color: var(--contrast-foreground-secondary);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-eyebrow--line-height);
+  white-space: nowrap;
+}
+
+.drag-boundary-line {
+  flex: 1;
+  height: var(--border-width);
+  background: var(--border);
+}
+
+.drag-boundary.is-target .drag-boundary-label {
+  color: var(--primary);
+}
+
+.drag-boundary.is-target .drag-boundary-line {
+  background: var(--primary);
 }
 
 .session-empty {
   padding: var(--space-xs);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drag-boundary {
+    transition: none;
+  }
 }
 </style>

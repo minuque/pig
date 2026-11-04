@@ -88,6 +88,8 @@ const props = defineProps<{
   runningSince: Record<string, number>
   dragEnabled: boolean
   dragId: string | undefined
+  /** 拖着的那一行当前落点会做什么。 */
+  dropVerb: "pin" | "unpin" | null
   /** 拖拽让位：行按落点上下平移的像素。 */
   rowShiftById: Record<string, number>
   moreBySection: Record<string, number>
@@ -127,6 +129,7 @@ function itemBind(session: SidebarSession) {
     variant: props.section.kind === "settled" ? "slim" : "card",
     startedAt: props.section.kind === "working" ? props.runningSince[session.id] : undefined,
     draggable: props.dragEnabled && !(session.draft ?? false),
+    dropVerb: props.dragId === session.id ? props.dropVerb : null,
     state: foot?.state,
     placeholder: session.draft ?? false,
   } as const

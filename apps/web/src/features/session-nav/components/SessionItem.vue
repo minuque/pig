@@ -38,6 +38,12 @@
                   <span v-else class="time-label">{{ timeLabel }}</span>
                 </span>
 
+                <span v-if="dragVerb" class="drop-verb">
+                  <PinIcon v-if="dragVerb === 'pin'" class="size-icon" />
+                  <CloseIcon v-else class="size-icon" />
+                  {{ dragVerb === "pin" ? t("session.pin") : t("session.unpin") }}
+                </span>
+
                 <button
                   v-if="!placeholder"
                   class="row-action press-scale"
@@ -118,6 +124,12 @@
               <span class="state-mark" aria-hidden="true">
                 <SessionStateIcon v-if="glyphState" :state="glyphState" />
                 <span v-else class="time-label">{{ timeLabel }}</span>
+              </span>
+
+              <span v-if="dragVerb" class="drop-verb">
+                <PinIcon v-if="dragVerb === 'pin'" class="size-icon" />
+                <CloseIcon v-else class="size-icon" />
+                {{ dragVerb === "pin" ? t("session.pin") : t("session.unpin") }}
               </span>
 
               <button
@@ -208,6 +220,7 @@ import {
   CheckCircleIcon,
   CheckIcon,
   CircleDashedIcon,
+  CloseIcon,
   FolderIcon,
   PenIcon,
   PinIcon,
@@ -231,6 +244,8 @@ const props = withDefaults(
     placeholder?: boolean
     dragging?: boolean
     draggable?: boolean
+    /** 拖着这一行时落点的动作：置顶或取消置顶。 */
+    dropVerb?: "pin" | "unpin" | null
   }>(),
   {
     state: undefined,
@@ -239,6 +254,7 @@ const props = withDefaults(
     placeholder: false,
     dragging: false,
     draggable: false,
+    dropVerb: null,
   },
 )
 const emit = defineEmits<{
@@ -410,6 +426,7 @@ onBeforeUnmount(() => {
 const dragStyle = computed(() =>
   props.dragging ? { translate: `0 ${dragDelta.value}px` } : undefined,
 )
+const dragVerb = computed(() => (props.dragging ? props.dropVerb : null))
 
 function onCardClick(event: MouseEvent) {
   if (didDrag) {
@@ -493,11 +510,35 @@ function confirmDelete() {
 }
 
 .session-item.is-dragging .session-card {
-  background: var(--card);
+  background: var(--popover);
   color: var(--contrast-foreground);
   box-shadow: var(--shadow-elevated);
   scale: 1.02;
   cursor: grabbing;
+}
+
+.session-item.is-dragging .state-mark,
+.session-item.is-dragging .row-action {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 落点动作：拖起时替代右端的状态与时间 */
+.drop-verb {
+  position: absolute;
+  inset-inline-end: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  height: 20px;
+  padding-inline: var(--space-xs);
+  border-radius: var(--radius-xs);
+  background: var(--info-bg);
+  color: var(--primary);
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .session-card {
