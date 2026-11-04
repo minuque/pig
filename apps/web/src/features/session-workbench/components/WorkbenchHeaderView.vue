@@ -201,9 +201,11 @@ function confirmDelete(): void {
   align-items: center;
   gap: var(--space-xs);
   width: 100%;
-  min-height: calc(var(--size-nav-rail) + 2 * var(--space-sm));
-  padding: var(--space-xs) var(--space-sm);
-  background: var(--toolbar-background);
+  height: var(--header-height);
+  min-height: var(--header-height);
+  padding: var(--space-xxs) var(--space-sm);
+  /* 与下方正文同底色：头部不另起一层 */
+  background: transparent;
   color: var(--toolbar-foreground);
 }
 
@@ -291,8 +293,6 @@ html[data-pig-desktop-platform] .header-title {
 }
 
 html[data-pig-desktop-platform] .workbench-header {
-  height: var(--header-height);
-  min-height: var(--header-height);
   user-select: none;
 }
 
@@ -301,11 +301,6 @@ html[data-pig-desktop-platform]
   :deep(:is(button, a, input, select, textarea, [role="tab"], [role="button"], [role="link"])) {
   -webkit-app-region: no-drag;
   app-region: no-drag;
-}
-
-/* 卡片头高收到 32px 后上下内边距同步收一半，28px 控件行才不溢出 */
-html[data-pig-desktop-platform="darwin"] .workbench-header {
-  padding-block: calc(var(--space-xxs) / 2);
 }
 
 /* macOS 侧栏收起后红绿灯落在头部左上角，头部让位 */

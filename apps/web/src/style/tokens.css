@@ -195,8 +195,8 @@
   --size-control: 40px;
   /* 页面内标题条：只有 macOS 的浮层标题条占高度，其余平台为 0 */
   --titlebar-inset: 0px;
-  /* 头部高：桌面壳上等于标题条，浏览器模式取自然高（行高 + 上下内边距） */
-  --header-height: calc(var(--size-nav-rail) + 2 * var(--space-sm));
+  /* 头部高：两栏首行与窗口标题条同高 */
+  --header-height: 36px;
   /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
   --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;
@@ -365,7 +365,7 @@ html[data-translucent-window="on"] {
 /* 桌面壳标题条：一处定义，三处消费（侧栏顶距、拖拽带、头部高度）。
    只有 macOS 的浮层标题条占高度；Windows 与 Linux 走原生边框，头部取自然高。 */
 html[data-pig-desktop-platform="darwin"] {
-  --titlebar-inset: 32px;
+  --titlebar-inset: 36px;
   --header-height: var(--titlebar-inset);
 }
 
