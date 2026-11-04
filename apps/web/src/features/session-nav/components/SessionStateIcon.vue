@@ -1,6 +1,6 @@
 <!-- 会话状态图标：侧栏行右侧与页脚计数共用。 -->
 <template>
-  <span class="state-icon">
+  <span class="state-icon" :class="state">
     <svg
       v-if="state === 'running'"
       class="state-spinner motion-spin"
@@ -11,19 +11,30 @@
       <circle class="spinner-arc" cx="12" cy="12" r="10" pathLength="100" />
     </svg>
 
-    <CheckCircleIcon v-else-if="state === 'unread'" :size="14" class="state-glyph unread" />
-    <PenIcon v-else-if="state === 'draft'" :size="14" class="state-glyph draft" />
-    <DangerCircleIcon v-else-if="state === 'error'" :size="14" class="state-glyph error" />
+    <template v-else-if="state === 'unread'">
+      <CheckCircleIcon :size="14" class="state-glyph" />
+      <span class="state-label">{{ t("session.done") }}</span>
+    </template>
+
+    <template v-else-if="state === 'error'">
+      <DangerCircleIcon :size="14" class="state-glyph" />
+      <span class="state-label">{{ t("session.failed") }}</span>
+    </template>
+
+    <PenIcon v-else-if="state === 'draft'" :size="14" class="state-glyph" />
   </span>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "@i18n/index.js"
 import { CheckCircleIcon, DangerCircleIcon, PenIcon } from "@components/icons/index.js"
 import type { SidebarStateGlyph } from "@features/session-nav/type.js"
 
 defineProps<{
   state: SidebarStateGlyph
 }>()
+
+const { t } = useI18n()
 </script>
 
 <style scoped>
@@ -31,9 +42,9 @@ defineProps<{
   display: inline-flex;
   flex: none;
   align-items: center;
-  justify-content: center;
-  inline-size: 14px;
-  block-size: 14px;
+  gap: var(--space-xxs);
+  min-inline-size: 14px;
+  min-block-size: 14px;
 }
 
 /* 运行中：暗色整环当轨道，亮弧转圈，比缺口图标更像进度 */
@@ -64,15 +75,22 @@ defineProps<{
   display: block;
 }
 
-.state-glyph.unread {
+.state-label {
+  font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.state-icon.unread {
   color: var(--success);
 }
 
-.state-glyph.draft {
+.state-icon.draft {
   color: var(--warning);
 }
 
-.state-glyph.error {
+.state-icon.error {
   color: var(--danger);
 }
 </style>
