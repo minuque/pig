@@ -35,4 +35,11 @@ test("缩略图：回合刻度、上下回合按钮与键盘导航", async ({ pa
   await ticks.first().focus()
   await page.keyboard.press("ArrowDown")
   await expect(ticks.nth(1)).toBeFocused()
+
+  // 悬停刻度：预览贴在刻度右侧，指针挪到卡上仍保留
+  await ticks.first().hover()
+  const preview = page.locator('[data-slot="popover-content"]')
+  await expect(preview).toBeVisible()
+  await preview.hover()
+  await expect(preview).toBeVisible()
 })

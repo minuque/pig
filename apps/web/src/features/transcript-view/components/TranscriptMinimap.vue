@@ -10,7 +10,7 @@
       class="minimap-stage"
       @focusout="onStageFocusOut"
       @keydown="onStageKeydown"
-      @mouseleave="hoverIndex = null"
+      @mouseleave="onStageMouseLeave"
     >
       <Tooltip>
         <TooltipTrigger as-child>
@@ -64,31 +64,36 @@
 
         <TooltipContent side="bottom">{{ t("transcript.minimapNext") }}</TooltipContent>
       </Tooltip>
-
-      <span
-        v-if="hoverItem"
-        class="minimap-preview surface-float"
-        data-minimap-preview
-        :style="{
-          top: `${resolveMinimapTopPercent(hoverIndex ?? 0, items.length)}%`,
-          transform: `translateY(${previewTranslate})`,
-        }"
-      >
-        <span class="preview-card">
-          <span class="preview-user">{{ hoverItem.userText ?? t("transcript.userMessage") }}</span>
-
-          <span v-if="hoverItem.assistantText" class="preview-assistant">
-            {{ hoverItem.assistantText }}
-          </span>
-        </span>
-      </span>
     </div>
+
+    <!-- 预览贴在悬停的刻度旁，位置交给浮层自己算 -->
+    <Popover :open="hoverIndex !== null" @update:open="onPreviewOpenChange">
+      <PopoverAnchor :reference="anchorEl" />
+
+      <PopoverContent
+        class="minimap-preview"
+        style="width: 20rem"
+        side="right"
+        align="center"
+        size="s"
+        @mouseleave="onPreviewLeave"
+      >
+        <span v-if="hoverItem" class="preview-user">
+          {{ hoverItem.userText ?? t("transcript.userMessage") }}
+        </span>
+
+        <span v-if="hoverItem?.assistantText" class="preview-assistant">
+          {{ hoverItem.assistantText }}
+        </span>
+      </PopoverContent>
+    </Popover>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { Popover, PopoverAnchor, PopoverContent } from "@components/ui/popover/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {
@@ -142,15 +147,12 @@ const hoverItem = computed(() => {
 })
 const previousItem = computed(() => props.items[pinnedIndex.value - 1] ?? null)
 const nextItem = computed(() => props.items[pinnedIndex.value + 1] ?? null)
-const previewTranslate = computed(() => {
+/** 预览的锚点就是悬停的刻度，浮层据此自己定位。 */
+const anchorEl = computed<HTMLElement | null>(() => {
   const index = hoverIndex.value
 
-  if (index === null) return "-50%"
-
-  if (index === 0) return "0%"
-
-  if (index === lastIndex.value) return "-100%"
-  return "-50%"
+  if (index === null) return null
+  return stage.value?.querySelectorAll<HTMLElement>(".minimap-tick")[index] ?? null
 })
 const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
@@ -208,6 +210,26 @@ function onStageFocusOut(event: FocusEvent) {
 
   if (root instanceof Node && next instanceof Node && root.contains(next)) return
   hoverIndex.value = null
+}
+
+/** 预览卡挂在 body 上，指针挪过去时 stage 先收到 mouseleave，这时别关。 */
+function onStageMouseLeave(event: MouseEvent) {
+  const next = event.relatedTarget
+
+  if (next instanceof Element && next.closest('[data-slot="popover-content"]')) return
+  hoverIndex.value = null
+}
+
+/** 从卡上回到导轨时交给刻度的 mouseenter 接着开，其余情况先关掉。 */
+function onPreviewLeave(event: MouseEvent) {
+  const next = event.relatedTarget
+
+  if (next instanceof Node && stage.value?.contains(next)) return
+  hoverIndex.value = null
+}
+
+function onPreviewOpenChange(open: boolean) {
+  if (!open) hoverIndex.value = null
 }
 </script>
 
@@ -324,24 +346,7 @@ function onStageFocusOut(event: FocusEvent) {
   top: calc(100% + var(--space-xxs));
 }
 
-.minimap-preview {
-  pointer-events: auto;
-  position: absolute;
-  inset-inline-start: 60px;
-  width: 20rem;
-  cursor: text;
-  user-select: text;
-}
-
-.preview-card {
-  display: block;
-  padding: var(--space-sm);
-  border: var(--border-width) solid var(--hairline);
-  border-radius: var(--radius-popover);
-  box-shadow: var(--shadow-elevated);
-  text-align: start;
-}
-
+/* 面板的底色、圆角、阴影、内边距由 rt-PopoverContent 提供，这里只管排版 */
 .preview-user {
   display: block;
   overflow: hidden;
