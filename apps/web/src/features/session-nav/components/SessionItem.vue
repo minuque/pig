@@ -551,6 +551,17 @@ function confirmDelete() {
   flex: 1;
 }
 
+/* 归档行整体压到侧栏底色上可用的一档淡色；正在看的那条回到正文色 */
+.session-card.slim .title,
+.session-card.slim .project-icon,
+.session-card.slim .time-label {
+  color: var(--contrast-foreground-muted);
+}
+
+.session-card.slim.active .title {
+  color: var(--contrast-foreground);
+}
+
 /* 行尾一格：常态放状态或时间，行被指到或聚焦时换成更多按钮。 */
 .state-slot {
   position: relative;
