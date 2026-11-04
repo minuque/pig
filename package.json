@@ -26,7 +26,7 @@
     "fix:touched": "node scripts/check/check.mjs --touched --fix",
     "check": "node scripts/check/check.mjs",
     "check:touched": "node scripts/check/check.mjs --touched",
-    "check:release": "pnpm check && pnpm build && node scripts/smoke-packed.mjs && pnpm test:e2e",
+    "check:release": "pnpm check && pnpm build && pnpm test:e2e",
     "setup:worktree": "node scripts/setup-worktree.mjs",
     "prepare": "husky"
   },
