@@ -427,15 +427,15 @@
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-/* ------ 折叠组（工具调用 / 侧栏会话组共享 grid-rows 开合） ------ */
-:is(.tool-calls-group, .session-list-group) {
+/* ------ 折叠组（工具调用）的 grid-rows 开合 ------ */
+.tool-calls-group {
   display: grid;
   grid-template-rows: 0fr;
   min-width: 0;
   transition: grid-template-rows var(--duration-fast) var(--ease-out);
 }
 
-:is(.tool-calls-group, .session-list-group).is-open {
+.tool-calls-group.is-open {
   grid-template-rows: 1fr;
   transition-duration: var(--duration-slow);
 }
@@ -447,23 +447,23 @@
   transition-timing-function: var(--ease-fold);
 }
 
-:is(.tool-calls-group, .session-list-group).instant,
-:is(.tool-calls-group, .session-list-group).instant.is-open {
+.tool-calls-group.instant,
+.tool-calls-group.instant.is-open {
   transition: none;
 }
 
-:is(.tool-calls-group, .session-list-group) > * {
+.tool-calls-group > * {
   overflow: hidden;
   min-width: 0;
   min-height: 0;
 }
 
 /* 展开后放开裁剪：overflow hidden 会截断 sticky 的滚动参照，目录头钉不到侧栏上 */
-:is(.tool-calls-group, .session-list-group).is-open > * {
+.tool-calls-group.is-open > * {
   overflow: visible;
 }
 
-:is(.tool-calls-group, .session-list-group).with-enter.is-open > * {
+.tool-calls-group.with-enter.is-open > * {
   animation: enter-blur var(--duration-slow) var(--ease-out);
 }
 
@@ -978,12 +978,12 @@
     transition: none;
   }
 
-  :is(.tool-calls-group, .session-list-group),
-  :is(.tool-calls-group, .session-list-group).is-open {
+  .tool-calls-group,
+  .tool-calls-group.is-open {
     transition: none;
   }
 
-  :is(.tool-calls-group, .session-list-group).with-enter.is-open > * {
+  .tool-calls-group.with-enter.is-open > * {
     animation: none;
   }
 

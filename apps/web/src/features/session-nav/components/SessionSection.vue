@@ -14,7 +14,7 @@
       </button>
     </div>
 
-    <div class="session-list-group" :class="{ 'is-open': open || hasHighlight }">
+    <div>
       <TransitionGroup name="list-reveal" tag="ul" class="section-rows">
         <li
           v-for="(session, index) in rows"
@@ -114,21 +114,8 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const isShelf = computed(() => props.section.kind === "working" || props.section.kind === "settled")
 const open = computed(() => (isShelf.value ? props.expandedSections.has(props.section.key) : true))
-/** 收起的架子不建行：只留正在看的那一条，展开后再补。 */
-const rows = computed<readonly SidebarSession[]>(() => {
-  if (open.value) return props.section.sessions
-
-  const current = props.section.sessions.find(
-    (session) => session.id === props.highlightedSessionId,
-  )
-  return current ? [current] : []
-})
-/** 收起但正开着的那条要露出来：行建了，组也得跟着开。 */
-const hasHighlight = computed(
-  () =>
-    !open.value &&
-    props.section.sessions.some((session) => session.id === props.highlightedSessionId),
-)
+/** 收起的架子不建行，展开后再补。 */
+const rows = computed<readonly SidebarSession[]>(() => (open.value ? props.section.sessions : []))
 
 function itemBind(session: SidebarSession) {
   const foot = props.cardFootById.get(session.id)
@@ -147,15 +134,10 @@ function itemBind(session: SidebarSession) {
 </script>
 
 <style scoped>
-/* 段落按内容定高，列表整体滚动；被压扁时折叠组会把多余行裁掉 */
+/* 段落按内容定高，外层列表整体滚动 */
 .session-section {
   flex: none;
   min-width: 0;
-}
-
-/* 收起的架子直接不建行，这里不用 grid 开合：块级流让长列表撑高、外层滚动 */
-.session-list-group {
-  display: block;
 }
 
 .section-head {
