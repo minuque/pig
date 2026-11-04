@@ -57,7 +57,6 @@
   --sidebar-foreground: #1b1b1b;
   --sidebar-hover: #e8e8eb;
   --sidebar-selected: #e6e6e8;
-  --toolbar-background: var(--workbench-surface);
   --toolbar-foreground: #1b1b1b;
   --code-background: #f6f6f6;
   --code-foreground: #1b1b1b;
@@ -389,7 +388,6 @@ html[data-pig-desktop-platform="darwin"] {
   --sidebar-foreground: #e3e4e6;
   --sidebar-hover: #26262b;
   --sidebar-selected: #2c2c31;
-  --toolbar-background: var(--workbench-surface);
   --toolbar-foreground: #e3e4e6;
   --code-background: #1a1a1c;
   --code-foreground: #e3e4e6;

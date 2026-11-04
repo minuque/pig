@@ -66,7 +66,7 @@ export function useTranscriptHold(): TranscriptHold {
       zIndex: "4",
       overflow: "hidden",
       pointerEvents: "none",
-      background: "var(--workbench-surface)",
+      background: "var(--card)",
       opacity: "1",
     })
     const inner = clone.querySelector<HTMLElement>(".transcript")
