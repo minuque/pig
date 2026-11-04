@@ -12,8 +12,6 @@
       @keydown="onStageKeydown"
       @mouseleave="hoverIndex = null"
     >
-      <span class="minimap-rail" aria-hidden="true"></span>
-
       <Tooltip>
         <TooltipTrigger as-child>
           <button
@@ -94,6 +92,7 @@ import { useI18n } from "@i18n/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {
+  MINIMAP_RAIL_PITCH,
   MINIMAP_RAIL_WIDTH,
   resolveMinimapHeightStyle,
   resolveMinimapTopPercent,
@@ -165,16 +164,15 @@ function tickLabel(index: number, item: TranscriptMinimapItem): string {
 }
 
 function tickStyle(index: number): { top: string; height: string } {
-  const count = Math.max(props.items.length, 1)
   return {
-    top: `${(index / count) * 100}%`,
-    height: `${100 / count}%`,
+    top: `${resolveMinimapTopPercent(index, props.items.length)}%`,
+    height: `${MINIMAP_RAIL_PITCH}px`,
   }
 }
 
-/** 鱼眼：悬停那条最长，越远越短，和 t3code 的档一样。 */
+/** 鱼眼：悬停那条最长，越远越短；不悬停时全部收到最短档。 */
 function stripScale(index: number): number {
-  if (hoverIndex.value === null) return 1
+  if (hoverIndex.value === null) return 0.333
   const distance = Math.abs(index - emphasizedIndex.value)
 
   if (distance === 0) return 1
@@ -236,15 +234,6 @@ function onStageFocusOut(event: FocusEvent) {
   user-select: none;
 }
 
-/* 整条导轨：刻度挂在它左缘，像一张缩略时间轴 */
-.minimap-rail {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  width: var(--border-width);
-  background: var(--border);
-}
-
 .minimap-tick {
   position: absolute;
   inset-inline-start: 0;
@@ -253,6 +242,7 @@ function onStageFocusOut(event: FocusEvent) {
   border: 0;
   background: transparent;
   cursor: pointer;
+  translate: 0 -50%;
 }
 
 .minimap-tick:focus-visible {
@@ -288,25 +278,26 @@ function onStageFocusOut(event: FocusEvent) {
   background: var(--contrast-foreground);
 }
 
-/* 上一个 / 下一个回合：贴着导轨两端，悬停导轨时露出 */
+/* 上一个 / 下一个回合：圆角方块贴着导轨两端，悬停导轨时露出 */
 .minimap-nav {
   position: absolute;
-  inset-inline-start: 0;
+  inset-inline-start: var(--space-xxs);
   z-index: 1;
   display: grid;
   place-items: center;
   width: 20px;
   height: 20px;
   padding: 0;
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--popover);
-  color: var(--contrast-foreground-secondary);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--contrast-foreground-muted);
   cursor: pointer;
   translate: -50% 0;
   opacity: 0;
   transition:
     opacity var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-hover),
     color var(--duration-fast) var(--ease-hover);
 }
 
@@ -316,6 +307,7 @@ function onStageFocusOut(event: FocusEvent) {
 }
 
 .minimap-nav:hover:not(:disabled) {
+  background: var(--hover-quiet);
   color: var(--contrast-foreground);
 }
 
