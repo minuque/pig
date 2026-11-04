@@ -32,7 +32,7 @@
         <span>{{ t("session.newSession") }}</span>
 
         <template #suffix>
-          <Badge class="nav-row-key" size="s" variant="soft" color="gray">{{ modKey }}N</Badge>
+          <Badge class="nav-row-key" variant="soft" color="gray">{{ modKey }}N</Badge>
         </template>
       </Button>
 
@@ -48,7 +48,7 @@
         <span>{{ t("nav.search") }}</span>
 
         <template #suffix>
-          <Badge class="nav-row-key" size="s" variant="soft" color="gray">{{ modKey }}K</Badge>
+          <Badge class="nav-row-key" variant="soft" color="gray">{{ modKey }}K</Badge>
         </template>
       </Button>
     </div>
