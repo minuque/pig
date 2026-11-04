@@ -104,7 +104,8 @@ test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({
         snapshot: { ...snapshot, revision: snapshot.revision + 1, transcript: [] },
       },
     })
-  const stepOf = (file: string) => page.locator(".row-tools .step").filter({ hasText: file })
+  const toolRowOf = (file: string) => page.locator(".row-tools .tool-row").filter({ hasText: file })
+  const toolRun = page.locator(".row-tools .tool-run")
 
   // 助手发起 t1，t1 开始执行
   emit({
@@ -112,19 +113,19 @@ test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({
     item: assistant(snapshot, "m2", [textBlock(TEXT_A), toolCallBlock("t1")]),
   })
   emit({ type: "item_started", item: tool("t1", "running") })
-  await expect(stepOf("t1.ts").locator(".tool-summary")).toHaveClass(/running/)
+  await expect(toolRowOf("t1.ts")).toHaveClass(/is-running/)
 
   // t1 完成到界面收敛
   emitFinished(tool("t1", "complete"))
-  await expect(stepOf("t1.ts").locator(".tool-summary")).not.toHaveClass(/running/)
+  await expect(toolRowOf("t1.ts")).not.toHaveClass(/is-running/)
 
-  // 助手发起 t2，t2 开始执行
+  // 助手发起 t2，t2 开始执行：两个调用合成一组，摘要行显示运行中的那条
   emit({
     type: "item_updated",
     item: assistant(snapshot, "m2", [textBlock(TEXT_A), toolCallBlock("t1"), toolCallBlock("t2")]),
   })
   emit({ type: "item_started", item: tool("t2", "running") })
-  await expect(stepOf("t2.ts").locator(".tool-summary")).toHaveClass(/running/)
+  await expect(toolRun.locator(".tool-run-summary")).toContainText("t2.ts")
 
   // 收尾：同一帧里先到工具完成、再到空快照，界面不得回退到旧状态
   emitFinished(tool("t2", "complete"))
@@ -142,7 +143,7 @@ test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({
   emitFinished(assistant(snapshot, "m3", [textBlock(TEXT_B)], "complete"))
 
   await expect(page.getByText(TEXT_B, { exact: true })).toBeVisible()
-  await expect(stepOf("t2.ts").locator(".tool-summary")).not.toHaveClass(/running/)
+  await expect(toolRun.locator(".tool-run-summary")).not.toContainText("t2.ts")
 
   // 历史页重拉带回已落盘的同一条回合，消息不得重复
   persisted = [
@@ -161,6 +162,5 @@ test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({
   emitSnapshot()
   await expect(page.locator(".row-user", { hasText: PROMPT })).toHaveCount(1)
   await expect(page.locator(".row-assistant", { hasText: TEXT_B })).toHaveCount(1)
-  await expect(stepOf("t1.ts")).toHaveCount(1)
-  await expect(stepOf("t2.ts")).toHaveCount(1)
+  await expect(toolRun).toHaveCount(1)
 })

@@ -13,7 +13,7 @@
       id="transcript-panel"
       ref="viewport"
       class="transcript-viewport"
-      :class="{ 'is-following': atBottom, 'is-windowed': windowed }"
+      :class="{ 'is-following': atBottom }"
       @scroll="onTranscriptScroll"
       @wheel="onTranscriptWheel"
       @pointerdown="onPointerDown"
@@ -41,14 +41,13 @@
             <LoaderIcon class="older-spinner is-spinning" />
           </div>
 
-          <div class="timeline-rows" :style="{ minHeight: `${totalHeight}px` }">
-            <template v-for="block in blocks" :key="block.key">
+          <div class="timeline-rows">
+            <template v-for="(turn, turnIndex) in turns" :key="turn.id">
               <TurnRow
-                v-if="block.kind === 'item'"
-                :turn="block.item"
-                :class="{ 'turn-runway': block.item.id === runwayId }"
-                :first="block.index === 0"
-                :previous-role="turns[block.index - 1]?.rows.at(-1)?.role"
+                :turn="turn"
+                :class="{ 'turn-runway': turn.id === runwayId }"
+                :first="turnIndex === 0"
+                :previous-role="turns[turnIndex - 1]?.rows.at(-1)?.role"
                 :session-id="sessionId"
                 :running="running"
                 :is-expand="isExpand"
@@ -57,15 +56,8 @@
                 @toggle-tool="onToggleTool"
               >
                 <!-- 指示器挂在本轮里：跑道留白落在它之后，贴底时指示器跟着用户消息留在顶部 -->
-                <TranscriptStatus v-if="block.index === turns.length - 1" v-bind="statusProps" />
+                <TranscriptStatus v-if="turnIndex === turns.length - 1" v-bind="statusProps" />
               </TurnRow>
-
-              <div
-                v-else
-                class="row-space"
-                :style="{ height: `${block.height}px` }"
-                aria-hidden="true"
-              ></div>
             </template>
           </div>
 
@@ -101,7 +93,6 @@ import {
   useTranscriptOlder,
   useTranscriptReveal,
 } from "@features/transcript-view/hooks/use-transcript-edge.js"
-import { useTranscriptWindow } from "@features/transcript-view/hooks/use-transcript-window.js"
 import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { ensureMermaidRuntime } from "@features/transcript-view/lib/mermaid-runtime.js"
@@ -214,24 +205,10 @@ const {
   scrollToLatest,
   scrollToElement,
 } = useTranscriptFollow(scrollerRoot)
-const {
-  blocks,
-  totalHeight,
-  windowed,
-  revealRow,
-  scrollToRow,
-  rememberAnchor,
-  takeAnchor,
-  hasPendingAnchor,
-  applyAnchor,
-  compensate,
-  reset: resetWindow,
-} = useTranscriptWindow({
-  items: turns,
-  scrollRoot: viewport,
-  listRoot: list,
-  isFollowing: () => atBottom.value,
-})
+/** 切走的会话记住滚动位置，切回来先复位；没有记录才贴底。 */
+const scrollMemory = new Map<string, number>()
+let pendingRestore: number | undefined
+let historyPending = 0
 const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
@@ -255,11 +232,7 @@ const {
 } = useTranscriptMinimap(
   rows,
   { viewport, column },
-  computed(() =>
-    blocks.value.flatMap((block) =>
-      block.kind === "item" ? block.item.rows.map((row) => row.id) : [],
-    ),
-  ),
+  computed(() => rows.value.map((row) => row.id)),
 )
 const older = useTranscriptOlder({
   hasMore: () => props.hasMore,
@@ -268,21 +241,9 @@ const older = useTranscriptOlder({
   isAtBottom: () => atBottom.value,
   load: () => emit("loadOlder"),
 })
-let anchorTimer = 0
-const ANCHOR_IDLE_MS = 250
-
-/** 停手后再记锚点：锚点只给下次切会话用，逐帧读矩形会逼出同步布局。 */
-function rememberAnchorSoon() {
-  if (anchorTimer) return
-  anchorTimer = window.setTimeout(() => {
-    anchorTimer = 0
-    rememberAnchor(props.sessionId)
-  }, ANCHOR_IDLE_MS)
-}
 
 function onTranscriptScroll() {
   onScroll()
-  rememberAnchorSoon()
   older.onScroll()
 }
 
@@ -305,17 +266,13 @@ function onToggleTool(rowId: string, id: string, open: boolean) {
   toggleTool(id, open)
 }
 
-async function selectMinimapItem(item: TranscriptMinimapItem) {
-  const el = await revealRow(item.id)
+function selectMinimapItem(item: TranscriptMinimapItem) {
+  const el = column.value?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(item.id)}"]`)
 
-  if (el) {
-    scrollToElement(el)
-    return
-  }
-
+  if (!el) return
   detachFollow()
   atBottom.value = false
-  scrollToRow(item.id)
+  scrollToElement(el)
 }
 
 function observeSizes() {
@@ -343,21 +300,17 @@ function observeSizes() {
 }
 
 function pinLatest() {
-  if (hasPendingAnchor()) return
   scrollToLatest("auto")
   pinIfNeeded()
 }
 
+function scrollToElementOffset(top: number) {
+  const root = scrollerRoot()
+
+  if (root) root.scrollTop = top
+}
+
 const { readyFrame } = useTranscriptReveal(rows, pinLatest)
-
-watch(
-  () => turns.value.length,
-  () => {
-    if (hasPendingAnchor()) applyAnchor()
-  },
-  { flush: "post" },
-)
-
 /** 刚发送的一轮：预留一屏高度，把新消息滚到视口顶部。 */
 const runwayId = shallowRef<string>()
 
@@ -373,6 +326,13 @@ function userTurnAppended(previous: readonly TimelineTurn[], next: readonly Time
 watch(turns, (next, prev) => {
   const previous = prev ?? []
 
+  /* 位置恢复等这一轮内容真正挂上再写，数据还没到时写 scrollTop 会被重置。 */
+  if (pendingRestore !== undefined && next.length > 0) {
+    const target = pendingRestore
+    pendingRestore = undefined
+    void nextTick(() => scrollToElementOffset(target))
+  }
+
   if (previous.length === 0 && next.length > 0) {
     older.arm()
     return
@@ -385,12 +345,17 @@ watch(turns, (next, prev) => {
     return
   }
 
-  if (historyPrepended(previous, next) && !atBottom.value && windowed.value) {
+  if (historyPrepended(previous, next) && !atBottom.value) {
     const root = scrollerRoot()
     const beforeHeight = root?.scrollHeight ?? 0
+
+    historyPending += 1
     void nextTick(() => {
       if (!root) return
-      compensate(root.scrollHeight - beforeHeight)
+      const delta = root.scrollHeight - beforeHeight
+
+      if (historyPending > 0 && delta > 0) root.scrollTop += delta
+      historyPending -= 1
     })
     return
   }
@@ -412,18 +377,17 @@ watch(
   () => props.sessionId,
   (id, prev) => {
     if (!prev || prev === id) return
+
+    const root = scrollerRoot()
+
+    if (root) scrollMemory.set(prev, root.scrollTop)
     runwayId.value = undefined
-    rememberAnchor(prev)
     rowsBuilder.reset()
     reset()
-    resetWindow()
     older.arm()
-    const stored = takeAnchor(id)
+    pendingRestore = scrollMemory.get(id)
 
-    void nextTick(() => {
-      // 有锚点就按锚点复位，锚点行不在才贴底
-      if (!stored || !applyAnchor()) pinLatest()
-    })
+    if (pendingRestore === undefined) void nextTick(pinLatest)
   },
 )
 
@@ -435,8 +399,6 @@ onBeforeUnmount(() => {
   for (const stop of stopWatchers) stop()
 
   if (pinRaf) cancelAnimationFrame(pinRaf)
-
-  if (anchorTimer) window.clearTimeout(anchorTimer)
 })
 
 defineExpose({ showScrollToLatest, scrollToLatest })
@@ -478,38 +440,32 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   min-height: calc(100cqh - 2 * var(--space-lg) - var(--composer-reserve, 0px));
 }
 
-.transcript-viewport.is-windowed {
-  /* 窗口化自己按行高表锚定，关掉浏览器原生滚动锚定避免两边都补 */
-  overflow-anchor: none;
-}
-
 .transcript-viewport:has(.code-more-menu) {
   z-index: 3;
 }
 
 .transcript {
   box-sizing: border-box;
-  width: min(100%, var(--size-content) - var(--space-lg));
+  width: 100%;
   min-width: 0;
-  margin-inline: auto;
-  padding-top: var(--space-lg);
-  /* 底部留白：渐隐带高 + 输入条占位 */
-  padding-bottom: calc(var(--space-sm) + var(--space-lg) + var(--composer-reserve, 0px));
-  padding-inline: var(--border-width);
+  padding-top: var(--transcript-pad-block);
+  /* 底部留白：正文留白 + 输入条占位 */
+  padding-bottom: calc(var(--transcript-pad-block) + var(--composer-reserve, 0px));
+  padding-inline: max(var(--transcript-gutter), calc((100% - var(--size-content)) / 2));
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
+}
+
+@media (max-width: 780px) {
+  .transcript {
+    padding-inline: var(--transcript-gutter-narrow);
+  }
 }
 
 .transcript-list,
 .timeline-rows {
   box-sizing: border-box;
   width: 100%;
-}
-
-.row-space {
-  box-sizing: border-box;
-  width: 100%;
-  pointer-events: none;
 }
 
 .older-busy {

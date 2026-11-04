@@ -6,10 +6,10 @@
   --ms-font-sans: var(--font-sans);
   --ms-font-mono: var(--font-mono);
   --ms-text-body: var(--text-body-md);
-  --ms-leading-body: 1.6;
-  --ms-text-h1: calc(var(--ms-text-body) + 4px);
-  --ms-text-h2: calc(var(--ms-text-body) + 4px);
-  --ms-text-h3: calc(var(--ms-text-body) + 2px);
+  --ms-leading-body: 1.42857;
+  --ms-text-h1: 1.14286em;
+  --ms-text-h2: 1.07143em;
+  --ms-text-h3: 1em;
   --ms-text-h4: 1em;
   --ms-text-h5: 1em;
   --ms-text-h6: 1em;
@@ -38,13 +38,13 @@
   --ms-flow-heading-6-mb: 0px;
   --ms-flow-paragraph-y: 0px;
   --ms-flow-list-y: 0px;
-  --ms-flow-list-item-y: 0px;
-  --ms-flow-list-indent: 18px;
+  --ms-flow-list-item-y: 6px;
+  --ms-flow-list-indent: 20px;
   --ms-flow-list-indent-mobile: var(--ms-flow-list-indent);
   --ms-flow-codeblock-y: 0px;
   --ms-flow-table-y: 0px;
   --ms-flow-blockquote-y: 0px;
-  --ms-flow-blockquote-indent: 16px;
+  --ms-flow-blockquote-indent: 8px;
   --ms-flow-hr-y: 0px;
 
   /* 形状 */
@@ -124,7 +124,7 @@
 
   /* 块间距的唯一来源：每个 AST 节点都包在 .node-slot 里。 */
   .node-slot + .node-slot {
-    margin-top: 12px;
+    margin-top: 10px;
   }
 
   /* 库的窄屏规则（<1024px 时 .list-disc margin 4/3em）在桌面窄栏也生效，压回 node-slot 统一间距。 */
@@ -163,7 +163,7 @@
   /* h4/h5 与加粗同级，h6 弱化 */
   .heading-4,
   .heading-5 {
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-medium);
   }
 
   .heading-6 {
@@ -281,7 +281,7 @@
     border-radius: var(--ms-radius);
     background: transparent;
     box-shadow: none;
-    font-size: var(--text-meta);
+    font-size: inherit;
   }
 
   .table-node-wrapper .table-node :is(th, td),

@@ -17,23 +17,26 @@
         :streaming="running && row.streaming"
       />
 
-      <ToolSteps
+      <ToolRun
         v-else-if="isToolRow(row)"
         :row="row"
-        :is-expand="isExpand(row.id)"
+        :expanded="isExpand(row.id)"
         :expanded-tools="expandedTools"
         @toggle-expand="emit('toggleExpand', row.id, $event)"
         @toggle-tool="(id, open) => emit('toggleTool', row.id, id, open)"
       />
     </div>
 
+    <TurnErrorRow v-if="turnError" class="turn-error-row" v-bind="turnError" />
     <slot />
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
-import ToolSteps from "@features/transcript-view/components/ToolSteps.vue"
+import TurnErrorRow from "@features/transcript-view/components/TurnErrorRow.vue"
+import ToolRun from "@features/transcript-view/components/tool/ToolRun.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import { isToolRow } from "@features/transcript-view/lib/transcript-rows.js"
 import type { TimelineRow, TimelineTurn } from "@features/transcript-view/type.js"
@@ -51,6 +54,21 @@ const emit = defineEmits<{
   toggleExpand: [id: string, open: boolean]
   toggleTool: [rowId: string, id: string, open: boolean]
 }>()
+/** 一轮的错误只保留一条：从末尾找最近一次带错误状态的助手行。 */
+const turnError = computed(() => {
+  for (let index = props.turn.rows.length - 1; index >= 0; index -= 1) {
+    const row = props.turn.rows[index]
+
+    if (row?.role !== "assistant" || (!row.error && !row.aborted)) continue
+    return {
+      error: row.error,
+      message: row.errorMessage,
+      retryCount: row.retryCount,
+    }
+  }
+
+  return null
+})
 
 function rowClass(row: TimelineRow, rowIndex: number) {
   const previous = rowIndex > 0 ? props.turn.rows[rowIndex - 1] : undefined
@@ -71,26 +89,21 @@ function rowClass(row: TimelineRow, rowIndex: number) {
   width: 100%;
 }
 
+.turn + .turn {
+  margin-block-start: var(--transcript-turn-gap);
+}
+
 .row {
   box-sizing: border-box;
   width: 100%;
-  padding-block-start: var(--space-sm);
 }
 
-.row.is-after-user {
-  padding-block-start: var(--space-lg);
+.row + .row {
+  margin-block-start: var(--transcript-item-gap);
 }
 
-.row.row-tools.is-after-user {
-  padding-block-start: var(--space-md);
-}
-
-.row.row-user {
-  padding-block-start: var(--space-xl);
-}
-
-.row.is-first {
-  padding-block-start: 0;
+.turn-error-row {
+  margin-block-start: var(--transcript-item-gap);
 }
 
 .row :deep(.stamp) {

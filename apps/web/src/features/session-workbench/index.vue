@@ -20,7 +20,7 @@
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
-        <div class="session-stage" ref="stage">
+        <div class="session-stage">
           <Transition name="dock-hero" appear>
             <div v-if="showHero" key="hero" class="idle-hero">
               <WorkbenchHero
@@ -132,7 +132,6 @@ import { useComposerDock } from "@features/session-workbench/hooks/use-composer-
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
-import { useTranscriptHold } from "@features/transcript-view/hooks/use-transcript-hold.js"
 import { ArrowDownIcon, DocumentAddIcon, LoaderIcon } from "@components/icons/index.js"
 
 onMounted(() => {
@@ -180,7 +179,6 @@ const {
   sendBackgroundPrompt,
   setBackgroundIdleHandler,
   transcriptFor,
-  historyFresh,
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
@@ -298,61 +296,6 @@ watch(
   },
   { immediate: true },
 )
-
-/* 会话切换过渡：sessionId 变前把当前 transcript 克隆成静态层盖上，
-   新内容渲染后该层淡出。旧画面驻留，不瞬切。 */
-const stage = useTemplateRef("stage")
-const hold = useTranscriptHold()
-let probeRaf = 0
-
-watch(
-  sessionId,
-  (next, prev) => {
-    if (!next || prev === next) return
-
-    /* 缓存命中直接切，不盖旧画面。 */
-    if (historyFresh(next)) return
-    const vp = stage.value?.querySelector<HTMLElement>(".transcript-viewport")
-    /* flush:pre 在 DOM 更新前跑，此刻 .transcript 还是旧内容。 */
-    const gen = hold.hold(vp)
-
-    if (!gen) return
-    const start = performance.now()
-    const MIN_HOLD = 80
-    const MAX_HOLD = 600
-    const probe = () => {
-      if (gen !== hold.epoch()) return
-      const rows = stage.value?.querySelectorAll(".transcript .turn").length ?? 0
-      const elapsed = performance.now() - start
-      const ready = historyFresh(next)
-      const incoming = transcriptFor(next).length
-
-      /* 历史已就绪且本来就没有轮次：直接拿掉，不淡出到空屏。 */
-      if (ready && incoming === 0) {
-        hold.dropNow(gen)
-        return
-      }
-
-      if (rows > 0 && elapsed >= MIN_HOLD) {
-        hold.release(gen)
-        return
-      }
-
-      /* 超时直接拿掉克隆，交给菊花，不播淡出。 */
-      if (elapsed >= MAX_HOLD) {
-        hold.dropNow(gen)
-        return
-      }
-
-      probeRaf = requestAnimationFrame(probe)
-    }
-
-    probeRaf = requestAnimationFrame(probe)
-  },
-  { flush: "pre" },
-)
-
-onBeforeUnmount(() => cancelAnimationFrame(probeRaf))
 
 function deliverPrompt(text: string, batch?: ComposerAttachmentBatch) {
   if (sessionId.value) scrollToLatest("auto")

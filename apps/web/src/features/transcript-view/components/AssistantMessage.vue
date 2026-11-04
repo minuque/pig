@@ -10,17 +10,6 @@
 
     <div v-else-if="streaming" class="md-pending" aria-hidden="true"></div>
 
-    <Callout
-      v-if="item.error || item.aborted"
-      class="status-alert"
-      variant="surface"
-      :color="item.error ? 'destructive' : 'warning'"
-    >
-      <template #icon><DangerCircleIcon /></template>
-      <template #title>{{ statusLabel }}</template>
-      <template v-if="item.errorMessage" #default>{{ item.errorMessage }}</template>
-    </Callout>
-
     <MessageTimestamp
       v-if="item.showTimestamp"
       class="message-stamp"
@@ -32,7 +21,6 @@
 
 <script lang="ts">
 import type { MarkstreamVirtualState } from "markstream-vue"
-import { DangerCircleIcon } from "@components/icons/index.js"
 
 const SESSION_SCOPE_MAX = 4
 const ROW_STATE_LIMIT = 30
@@ -98,8 +86,6 @@ export function takeMarkdownVirtualState(
 <script setup lang="ts">
 import MarkdownRender from "markstream-vue"
 import { computed, onBeforeUnmount, ref, watch } from "vue"
-import { Callout } from "@components/ui/callout/index.js"
-import { useI18n } from "@i18n/index.js"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import type { AssistantRow } from "@features/transcript-view/type.js"
 import { useColorScheme } from "@features/theme/index.js"
@@ -113,18 +99,10 @@ const props = withDefaults(
   }>(),
   { streaming: false, sessionId: "" },
 )
-const { t } = useI18n()
 const { isDark } = useColorScheme()
 const markdownKey = computed(() =>
   props.sessionId ? `${props.sessionId}/${props.item.id}` : props.item.id,
 )
-const statusLabel = computed(() => {
-  const base = props.item.error ? t("transcript.error") : t("transcript.aborted")
-  const retries = props.item.retryCount
-
-  if (retries && retries > 1) return t("transcript.retryTimes", { base, retries })
-  return base
-})
 const agentMarkdown = computed(() =>
   chatMarkdownProps({
     streaming: props.streaming,
@@ -192,14 +170,6 @@ function onVirtualStateChange(state: MarkstreamVirtualState) {
 <style scoped>
 .md-pending {
   min-height: calc(var(--text-body-md) * 1.625);
-}
-
-.status-alert {
-  margin-top: var(--space-sm);
-}
-
-.status-alert:first-child {
-  margin-top: 0;
 }
 
 .message-stamp {
