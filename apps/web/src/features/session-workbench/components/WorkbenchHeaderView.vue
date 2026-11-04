@@ -286,8 +286,10 @@ function confirmDelete(): void {
   background: var(--hover-quiet);
 }
 
-html[data-pig-desktop-platform] .workbench-header,
-html[data-pig-desktop-platform] .header-title {
+/* 拖窗：macOS 的浮层标题条与 Windows 的隐藏标题条都靠头部这一行 */
+html:is([data-pig-desktop-platform="darwin"], [data-pig-desktop-platform="win32"])
+  .workbench-header,
+html:is([data-pig-desktop-platform="darwin"], [data-pig-desktop-platform="win32"]) .header-title {
   -webkit-app-region: drag;
   app-region: drag;
 }
@@ -296,11 +298,29 @@ html[data-pig-desktop-platform] .workbench-header {
   user-select: none;
 }
 
+/* 可交互内容与带 tooltip 的徽标从拖拽区里摘出来 */
 html[data-pig-desktop-platform]
   .workbench-header
-  :deep(:is(button, a, input, select, textarea, [role="tab"], [role="button"], [role="link"])) {
+  :deep(
+    :is(
+      button,
+      a,
+      input,
+      select,
+      textarea,
+      [role="tab"],
+      [role="button"],
+      [role="link"],
+      [data-slot="badge"]
+    )
+  ) {
   -webkit-app-region: no-drag;
   app-region: no-drag;
+}
+
+/* Windows 的系统窗控浮在右上角，头部让出这一块（宽度由 Electron 的 env 给出） */
+html[data-pig-desktop-platform="win32"] .workbench-header {
+  padding-inline-end: calc(100vw - env(titlebar-area-width, 100vw) + var(--space-sm));
 }
 
 /* macOS 侧栏收起后红绿灯落在头部左上角，头部让位 */

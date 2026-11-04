@@ -20,6 +20,7 @@ import { registerWindowMaterial } from "./window-material-ipc.js"
 import { createWindowBackground } from "./window-background.js"
 import { loadWithRetry } from "./load-retry.js"
 import { parseThemeColor } from "./theme-color.js"
+import { titleBarOverlayFor } from "./window-chrome.js"
 import { resolveWebRoot } from "./paths.js"
 import {
   readWindowStateFile,
@@ -193,7 +194,11 @@ void app.whenReady().then(async () => {
     ipcMain.on("pig:theme-color", (_event, value: unknown) => {
       const color = parseThemeColor(value)
 
-      if (color) background.setThemeColor(color)
+      if (!color) return
+      background.setThemeColor(color)
+
+      // 窗控浮在页面右上角：符号色跟着底色深浅换
+      if (process.platform === "win32") mainWindow?.setTitleBarOverlay(titleBarOverlayFor(color))
     })
     registerWindowMaterial(
       () => mainWindow,

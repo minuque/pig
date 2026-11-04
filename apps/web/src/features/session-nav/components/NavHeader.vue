@@ -123,6 +123,12 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
   padding-inline-start: calc(var(--size-mac-traffic-lights) + var(--space-xs));
 }
 
+/* Windows 藏起标题条，首行落进系统标题条这一行，可拖窗 */
+html[data-pig-desktop-platform="win32"] .nav-titlebar {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
 .nav-rows {
   display: flex;
   flex-direction: column;
