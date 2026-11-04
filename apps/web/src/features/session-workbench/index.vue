@@ -65,7 +65,7 @@
               <Tooltip>
                 <TooltipTrigger as-child>
                   <IconButton
-                    class="scroll-latest-control"
+                    class="scroll-latest-control press-scale"
                     type="button"
                     :aria-label="t('transcript.scrollToBottom')"
                     variant="outline"
@@ -655,19 +655,23 @@ const contentHandleSides = ["left", "right"] as const
 .session-floating-controls {
   position: absolute;
   inset-block-start: 0;
-  inset-inline-end: var(--space-sm);
+  inset-inline: 0;
   z-index: 1;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   height: 0;
   overflow: visible;
   pointer-events: none;
   opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
+  translate: 0 var(--space-xxs);
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    translate var(--duration-normal) var(--ease-spring);
 }
 
 .session-floating-controls.shown {
   opacity: 1;
+  translate: 0 0;
 }
 
 .session-floating-controls.shown .scroll-latest-control {
@@ -680,14 +684,34 @@ const contentHandleSides = ["left", "right"] as const
   border-radius: var(--radius-pill);
   background: var(--popover);
   color: var(--contrast-foreground-secondary);
-  box-shadow: none;
   cursor: pointer;
-  transform: translateY(calc(-100% - var(--space-sm)));
+  translate: 0 calc(-100% - var(--space-sm));
+  /* 与发送键同一套立体感：浮起投影 + 顶沿内高光，按下时换成内阴影 */
+  box-shadow:
+    var(--shadow-elevated),
+    inset 0 1px 0 var(--button-sheen),
+    inset 0 0 0 var(--border-width) var(--border);
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    scale var(--duration-fast) var(--ease-out);
 }
 
 .scroll-latest-control:hover {
   background: var(--interaction-hover);
   color: var(--contrast-foreground);
+  scale: 1.06;
+  box-shadow:
+    var(--shadow-float),
+    inset 0 1px 0 var(--button-sheen),
+    inset 0 0 0 var(--border-width) var(--border);
+}
+
+.scroll-latest-control:active {
+  box-shadow:
+    inset 0 0 0 var(--border-width) var(--border),
+    inset 0 1px 2px var(--button-press);
 }
 
 @media (max-width: 900px) {
@@ -697,7 +721,8 @@ const contentHandleSides = ["left", "right"] as const
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .session-floating-controls {
+  .session-floating-controls,
+  .scroll-latest-control {
     transition: none;
   }
 
