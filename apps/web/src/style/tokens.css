@@ -227,6 +227,7 @@
   --transcript-turn-gap: 15px;
   --transcript-item-gap: 10px;
   --transcript-row-pad: 10px;
+  --transcript-tool-max: 400px;
   /* 侧栏行高 */
   --size-nav-rail: 28px;
   --startup-logo-size: 88px;

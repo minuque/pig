@@ -9,7 +9,7 @@
       />
     </div>
 
-    <template v-else-if="variant === 'edit' && preview">
+    <div v-else-if="variant === 'edit' && preview" class="edit-scroll">
       <StreamDiff
         v-for="(hunk, index) in preview.hunks"
         :key="index"
@@ -21,7 +21,7 @@
         diff-style="unified"
         :options="diffOptions"
       />
-    </template>
+    </div>
 
     <ToolOutput
       v-else-if="variant === 'read' && read"
@@ -119,6 +119,11 @@ watch(
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+}
+
+.edit-scroll {
+  max-height: var(--transcript-tool-max);
+  overflow: auto;
 }
 
 .edit-diff {

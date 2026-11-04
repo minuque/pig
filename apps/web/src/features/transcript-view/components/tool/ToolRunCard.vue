@@ -27,7 +27,7 @@ const emit = defineEmits<{ toggleTool: [id: string, open: boolean] }>()
   display: flex;
   flex-direction: column;
   min-width: 0;
-  margin-block-start: var(--space-md);
+  margin-block-start: var(--space-sm);
   border-radius: var(--radius-md);
   overflow: clip;
   box-shadow: inset 0 0 0 var(--border-width) var(--border);

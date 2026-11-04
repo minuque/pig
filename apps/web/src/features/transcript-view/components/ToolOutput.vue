@@ -123,7 +123,6 @@ const preClass = computed(() => ({
   position: relative;
   margin: var(--space-xxs) 0 0;
   padding: var(--space-sm);
-  overflow: visible;
   border-radius: var(--radius-code);
   background: var(--code-surface);
   color: var(--contrast-foreground-secondary);
@@ -132,6 +131,8 @@ const preClass = computed(() => ({
   line-height: var(--text-code-line);
   white-space: pre;
   tab-size: 2;
+  max-height: var(--transcript-tool-max);
+  overflow: auto;
 }
 
 .tool-output-pre.is-embedded {
@@ -152,7 +153,8 @@ const preClass = computed(() => ({
 }
 
 .code-scroll {
-  overflow-x: auto;
+  max-height: var(--transcript-tool-max);
+  overflow: auto;
   padding: var(--space-xs);
   padding-inline-end: 0;
   --scrollbar-thumb: var(--hover-strong);
