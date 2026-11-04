@@ -1,6 +1,6 @@
 <template>
   <section class="pane">
-    <section class="group">
+    <section id="setting-appearance" class="group">
       <h2 class="group-title">{{ t("settings.appearance") }}</h2>
 
       <div class="scheme-cards" role="radiogroup" :aria-label="t('settings.appearance')">
@@ -36,7 +36,7 @@
       <h2 class="group-title">{{ t("settings.interface") }}</h2>
 
       <div class="card">
-        <div class="row">
+        <div id="setting-language" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.language") }}</h3>
             <p class="hint">{{ t("settings.languageHint") }}</p>
@@ -54,7 +54,7 @@
           </SegmentedControl>
         </div>
 
-        <div class="row">
+        <div id="setting-font-size" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.fontSize") }}</h3>
             <p class="hint">{{ t("settings.fontSizeHint") }}</p>
@@ -77,7 +77,7 @@
           </SegmentedControl>
         </div>
 
-        <div class="row">
+        <div id="setting-accent" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.accent") }}</h3>
             <p class="hint">{{ accentHint }}</p>
@@ -102,7 +102,7 @@
           </div>
         </div>
 
-        <div class="row">
+        <div id="setting-translucent" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.translucentWindow") }}</h3>
             <p class="hint">{{ t("settings.translucentWindowHint") }}</p>
@@ -115,7 +115,7 @@
           />
         </div>
 
-        <div class="row">
+        <div id="setting-contrast" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.contrast") }}</h3>
             <p class="hint">{{ t("settings.contrastHint") }}</p>
@@ -142,7 +142,7 @@
       <h2 class="group-title">{{ t("settings.notifications") }}</h2>
 
       <div class="card">
-        <div class="row">
+        <div id="setting-notify-system" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.notifySystem") }}</h3>
             <p class="hint">{{ t("settings.notifySystemHint") }}</p>
@@ -155,7 +155,7 @@
           />
         </div>
 
-        <div class="row">
+        <div id="setting-notify-sound" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.notifySound") }}</h3>
             <p class="hint">{{ t("settings.notifySoundHint") }}</p>

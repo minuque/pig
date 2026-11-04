@@ -3,20 +3,68 @@
     <DialogContent class="settings-dialog" :show-close-button="false" @interact-outside.prevent>
       <DialogTitle class="sr-only">{{ t("settings.title") }}</DialogTitle>
 
-      <div class="settings-shell">
+      <div class="settings-shell" @keydown="onShellKeydown">
         <nav class="settings-nav" :aria-label="t('settings.title')">
-          <button
-            v-for="item in tabs"
-            :key="item.id"
-            class="nav-item"
-            :class="{ on: active === item.id }"
-            type="button"
-            :aria-current="active === item.id ? 'page' : undefined"
-            @click="select(item.id)"
-          >
-            <component :is="item.icon" class="size-icon" />
-            <span class="nav-label">{{ item.label }}</span>
-          </button>
+          <div class="settings-search">
+            <MagnifierIcon class="size-icon search-icon" />
+
+            <input
+              ref="searchInput"
+              v-model="query"
+              class="search-input"
+              type="text"
+              :placeholder="t('settings.search')"
+              :aria-label="t('settings.search')"
+              @input="activeResult = 0"
+              @keydown="onSearchKeydown"
+            />
+
+            <button
+              v-if="searching"
+              type="button"
+              class="search-clear"
+              :aria-label="t('settings.clearSearch')"
+              @click="clearSearch(true)"
+            >
+              <CloseIcon class="size-icon" />
+            </button>
+
+            <Kbd v-else class="search-kbd" size="s">/</Kbd>
+          </div>
+
+          <template v-if="searching">
+            <p v-if="!results.length" class="settings-search-empty">
+              {{ t("settings.searchEmpty") }}
+            </p>
+
+            <button
+              v-for="(result, index) in results"
+              :key="`${result.pane}-${result.title}`"
+              type="button"
+              class="search-result"
+              :class="{ on: index === activeResult }"
+              @mousemove="activeResult = index"
+              @click="openResult(result)"
+            >
+              <span class="result-title">{{ result.title }}</span>
+              <span class="result-section">{{ result.section }}</span>
+            </button>
+          </template>
+
+          <template v-else>
+            <button
+              v-for="item in tabs"
+              :key="item.id"
+              class="nav-item"
+              :class="{ on: active === item.id }"
+              type="button"
+              :aria-current="active === item.id ? 'page' : undefined"
+              @click="select(item.id)"
+            >
+              <component :is="item.icon" class="size-icon" />
+              <span class="nav-label">{{ item.label }}</span>
+            </button>
+          </template>
         </nav>
 
         <div class="settings-right">
@@ -60,9 +108,16 @@
 import { computed, nextTick, provide, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
-import { CloseIcon, CloudIcon, SliderMinimalisticHorizontalIcon } from "@components/icons/index.js"
+import {
+  CloseIcon,
+  CloudIcon,
+  MagnifierIcon,
+  SliderMinimalisticHorizontalIcon,
+} from "@components/icons/index.js"
+import { Kbd } from "@components/ui/kbd/index.js"
 import GeneralPane from "./GeneralPane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
+import { matchSettings, type SettingsSearchEntry } from "@features/settings/lib/settings-search.js"
 
 import type {
   SettingsCrumb,
@@ -103,6 +158,147 @@ const crumbs = computed<SettingsCrumb[]>(() => {
     : [{ label: tabs.value.find((item) => item.id === active.value)?.label ?? "" }]
   return [...base, ...items]
 })
+const query = ref("")
+const activeResult = ref(0)
+const searchInput = ref<HTMLInputElement>()
+/** 可搜的设置项：标题配所属分组，命中后按 id 滚动。 */
+const searchEntries = computed<SettingsSearchEntry[]>(() => [
+  {
+    id: "setting-appearance",
+    pane: "general",
+    title: t("settings.appearance"),
+    section: t("settings.general"),
+  },
+  {
+    id: "setting-language",
+    pane: "general",
+    title: t("settings.language"),
+    section: t("settings.interface"),
+  },
+  {
+    id: "setting-font-size",
+    pane: "general",
+    title: t("settings.fontSize"),
+    section: t("settings.interface"),
+  },
+  {
+    id: "setting-accent",
+    pane: "general",
+    title: t("settings.accent"),
+    section: t("settings.interface"),
+  },
+  {
+    id: "setting-translucent",
+    pane: "general",
+    title: t("settings.translucentWindow"),
+    section: t("settings.interface"),
+  },
+  {
+    id: "setting-contrast",
+    pane: "general",
+    title: t("settings.contrast"),
+    section: t("settings.interface"),
+  },
+  {
+    id: "setting-notify-system",
+    pane: "general",
+    title: t("settings.notifySystem"),
+    section: t("settings.notifications"),
+  },
+  {
+    id: "setting-notify-sound",
+    pane: "general",
+    title: t("settings.notifySound"),
+    section: t("settings.notifications"),
+  },
+  {
+    id: "",
+    pane: "models",
+    title: t("settings.models.providers"),
+    section: t("settings.models.title"),
+  },
+])
+const results = computed(() => matchSettings(searchEntries.value, query.value))
+const searching = computed(() => query.value.trim().length > 0)
+
+watch(results, (list) => {
+  if (activeResult.value < list.length) return
+  activeResult.value = Math.max(0, list.length - 1)
+})
+
+function clearSearch(focus = false) {
+  query.value = ""
+  activeResult.value = 0
+
+  if (focus) searchInput.value?.focus()
+}
+
+function onSearchKeydown(event: KeyboardEvent) {
+  if (event.isComposing) return
+
+  if (event.key === "Escape" && searching.value) {
+    event.preventDefault()
+    event.stopPropagation()
+    clearSearch(true)
+    return
+  }
+
+  const list = results.value
+
+  if (!list.length) return
+
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault()
+    const step = event.key === "ArrowDown" ? 1 : -1
+    activeResult.value = (activeResult.value + step + list.length) % list.length
+    return
+  }
+
+  if (event.key !== "Enter") return
+  event.preventDefault()
+
+  const item = list[activeResult.value]
+
+  if (item) void openResult(item)
+}
+
+/** 打开结果：切分区、收起搜索结果，再滚到目标并闪一下。 */
+async function openResult(item: SettingsSearchEntry) {
+  active.value = item.pane
+  query.value = ""
+  activeResult.value = 0
+  await nextTick()
+  const root = scroller.value
+
+  if (!root) return
+
+  const target = item.id ? root.querySelector<HTMLElement>(`#${item.id}`) : null
+
+  if (!target) {
+    root.scrollTo({ top: 0 })
+    return
+  }
+
+  target.scrollIntoView({ block: "center" })
+  target.classList.add("is-settings-flash")
+  window.setTimeout(() => target.classList.remove("is-settings-flash"), 1400)
+}
+
+/** 弹框里按 / 直接搜，输入框里不拦。 */
+function onShellKeydown(event: KeyboardEvent) {
+  if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return
+  const target = event.target
+
+  if (
+    target instanceof HTMLElement &&
+    (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
+  ) {
+    return
+  }
+
+  event.preventDefault()
+  searchInput.value?.focus()
+}
 
 function select(pane: Pane) {
   active.value = pane
@@ -197,6 +393,120 @@ watch(active, async () => {
   color: var(--contrast-foreground);
 }
 
+.settings-dialog .settings-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  height: 2rem;
+  padding-inline: var(--space-xs);
+  border-radius: var(--radius-md);
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-body-sm);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.settings-dialog .settings-search:focus-within {
+  background: var(--hover-quiet);
+  color: var(--contrast-foreground);
+}
+
+.settings-dialog .search-icon {
+  flex: none;
+}
+
+.settings-dialog .search-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--contrast-foreground);
+  font: inherit;
+  outline: none;
+}
+
+.settings-dialog .search-input::placeholder {
+  color: var(--contrast-foreground-muted);
+}
+
+.settings-dialog .search-clear {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.settings-dialog .search-clear:hover {
+  background: var(--hover-quiet);
+  color: var(--contrast-foreground);
+}
+
+.settings-dialog .settings-search-empty {
+  margin: 0;
+  padding: var(--space-lg) var(--space-xs);
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  text-align: center;
+}
+
+.settings-dialog .search-result {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: var(--space-xs);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  text-align: start;
+  cursor: default;
+}
+
+.settings-dialog .search-result.on {
+  background: var(--sidebar-selected);
+}
+
+.settings-dialog .result-title {
+  overflow: hidden;
+  color: var(--contrast-foreground);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-dialog .result-section {
+  overflow: hidden;
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-eyebrow);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 搜索结果命中的行：滚过去后闪一圈，再自己褪掉 */
+.settings-dialog .is-settings-flash {
+  border-radius: var(--radius-card);
+  animation: settings-flash 1.4s var(--ease-out);
+}
+
+@keyframes settings-flash {
+  from {
+    box-shadow: 0 0 0 2px var(--primary);
+  }
+
+  to {
+    box-shadow: 0 0 0 2px transparent;
+  }
+}
+
 .settings-dialog .settings-right {
   display: flex;
   flex: 1;
@@ -281,6 +591,10 @@ watch(active, async () => {
 }
 
 @media (max-width: 720px) {
+  .settings-dialog .settings-search {
+    display: none;
+  }
+
   .settings-dialog .settings-nav {
     align-items: center;
     width: var(--size-settings-dialog-nav-narrow);

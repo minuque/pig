@@ -59,6 +59,9 @@ export const zh = {
   settings: {
     title: "设置",
     general: "通用",
+    search: "搜索设置",
+    searchEmpty: "没有匹配的设置",
+    clearSearch: "清除搜索",
     models: {
       title: "模型",
       providers: "供应商",
@@ -363,6 +366,9 @@ export const en: Messages = {
   settings: {
     title: "Settings",
     general: "General",
+    search: "Search settings",
+    searchEmpty: "No settings found",
+    clearSearch: "Clear search",
     models: {
       title: "Models",
       providers: "Providers",
