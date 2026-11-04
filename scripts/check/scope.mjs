@@ -15,7 +15,12 @@ const E2E_BY_AREA = [
   },
   {
     prefix: "apps/web/src/features/transcript-view/",
-    specs: ["e2e/one-turn.spec.ts", "e2e/turn-progress.spec.ts", "e2e/history-page.spec.ts"],
+    specs: [
+      "e2e/one-turn.spec.ts",
+      "e2e/turn-progress.spec.ts",
+      "e2e/history-page.spec.ts",
+      "e2e/transcript-minimap.spec.ts",
+    ],
   },
   {
     prefix: "apps/web/src/features/session-workbench/",

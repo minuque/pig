@@ -4,6 +4,7 @@
       v-if="rows.length && minimapItems.length >= MINIMAP_MIN_ITEMS"
       :items="minimapItems"
       :in-view-ids="inViewIds"
+      :current-id="minimapCurrentId"
       :hit-strip-width="hitStripWidth"
       @select="selectMinimapItem"
     />
@@ -249,6 +250,7 @@ function schedulePin() {
 const {
   items: minimapItems,
   inViewIds,
+  currentId: minimapCurrentId,
   hitStripWidth,
 } = useTranscriptMinimap(
   rows,

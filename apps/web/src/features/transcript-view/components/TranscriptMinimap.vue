@@ -5,7 +5,31 @@
     data-testid="timeline-minimap"
     :style="{ width: hitAreaWidth, height: railHeight }"
   >
-    <div class="minimap-stage" @focusout="onStageFocusOut" @mouseleave="hoverIndex = null">
+    <div
+      ref="stage"
+      class="minimap-stage"
+      @focusout="onStageFocusOut"
+      @keydown="onStageKeydown"
+      @mouseleave="hoverIndex = null"
+    >
+      <span class="minimap-rail" aria-hidden="true"></span>
+
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button
+            class="minimap-nav is-previous"
+            type="button"
+            :aria-label="t('transcript.minimapPrevious')"
+            :disabled="!previousItem"
+            @click="previousItem && emit('select', previousItem)"
+          >
+            <AltArrowUpIcon :size="12" />
+          </button>
+        </TooltipTrigger>
+
+        <TooltipContent side="top">{{ t("transcript.minimapPrevious") }}</TooltipContent>
+      </Tooltip>
+
       <button
         v-for="(item, index) in items"
         :key="item.id"
@@ -19,10 +43,29 @@
       >
         <span
           class="minimap-strip"
-          :class="{ 'strip-active': emphasizedIndex === index }"
-          :style="{ width: stripWidth(index) }"
+          :class="{
+            'strip-active': emphasizedIndex === index,
+            'strip-in-view': inView.has(item.id),
+          }"
+          :style="{ scale: `${stripScale(index)} 1` }"
         ></span>
       </button>
+
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <button
+            class="minimap-nav is-next"
+            type="button"
+            :aria-label="t('transcript.minimapNext')"
+            :disabled="!nextItem"
+            @click="nextItem && emit('select', nextItem)"
+          >
+            <AltArrowDownIcon :size="12" />
+          </button>
+        </TooltipTrigger>
+
+        <TooltipContent side="bottom">{{ t("transcript.minimapNext") }}</TooltipContent>
+      </Tooltip>
 
       <span
         v-if="hoverItem"
@@ -46,37 +89,40 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue"
+import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {
   MINIMAP_RAIL_WIDTH,
   resolveMinimapHeightStyle,
   resolveMinimapTopPercent,
 } from "@features/transcript-view/lib/transcript-minimap.js"
+import { AltArrowDownIcon, AltArrowUpIcon } from "@components/icons/index.js"
 
 const props = defineProps<{
   items: readonly TranscriptMinimapItem[]
   inViewIds: readonly string[]
+  currentId: string | null
   hitStripWidth: number
 }>()
 const emit = defineEmits<{
   select: [item: TranscriptMinimapItem]
 }>()
 const { t } = useI18n()
+const stage = useTemplateRef("stage")
 const hoverIndex = shallowRef<number | null>(null)
 const pinnedIndex = shallowRef(0)
+const inView = computed(() => new Set(props.inViewIds))
 
 watch(
-  () => [props.inViewIds, props.items] as const,
-  ([ids, items]) => {
-    for (const id of ids) {
-      const index = items.findIndex((item) => item.id === id)
+  () => [props.currentId, props.items] as const,
+  ([id, items]) => {
+    const index = id ? items.findIndex((item) => item.id === id) : -1
 
-      if (index >= 0) {
-        pinnedIndex.value = index
-        return
-      }
+    if (index >= 0) {
+      pinnedIndex.value = index
+      return
     }
 
     if (pinnedIndex.value >= items.length) pinnedIndex.value = Math.max(0, items.length - 1)
@@ -95,6 +141,8 @@ const hoverItem = computed(() => {
   const index = hoverIndex.value
   return index === null ? null : (props.items[index] ?? null)
 })
+const previousItem = computed(() => props.items[pinnedIndex.value - 1] ?? null)
+const nextItem = computed(() => props.items[pinnedIndex.value + 1] ?? null)
 const previewTranslate = computed(() => {
   const index = hoverIndex.value
 
@@ -124,11 +172,36 @@ function tickStyle(index: number): { top: string; height: string } {
   }
 }
 
-function stripWidth(index: number): string {
-  if (hoverIndex.value === null) return "8px"
+/** 鱼眼：悬停那条最长，越远越短，和 t3code 的档一样。 */
+function stripScale(index: number): number {
+  if (hoverIndex.value === null) return 1
   const distance = Math.abs(index - emphasizedIndex.value)
-  const scale = distance === 0 ? 1 : distance === 1 ? 0.68 : distance === 2 ? 0.44 : 0.25
-  return `${Math.round(38 * scale)}px`
+
+  if (distance === 0) return 1
+
+  if (distance === 1) return 0.667
+
+  if (distance === 2) return 0.417
+  return 0.333
+}
+
+/** 上下键逐个回合走，Home/End 到两端；回车由按钮本身触发。 */
+function onStageKeydown(event: KeyboardEvent) {
+  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return
+  const ticks = [...(stage.value?.querySelectorAll<HTMLButtonElement>(".minimap-tick") ?? [])]
+
+  if (!ticks.length) return
+  const last = ticks.length - 1
+  const at = ticks.indexOf(document.activeElement as HTMLButtonElement)
+  let next: number
+
+  if (event.key === "Home") next = 0
+  else if (event.key === "End") next = last
+  else if (at < 0) next = 0
+  else next = Math.min(last, Math.max(0, at + (event.key === "ArrowDown" ? 1 : -1)))
+
+  event.preventDefault()
+  ticks[next]?.focus()
 }
 
 function onStageFocusOut(event: FocusEvent) {
@@ -163,6 +236,15 @@ function onStageFocusOut(event: FocusEvent) {
   user-select: none;
 }
 
+/* 整条导轨：刻度挂在它左缘，像一张缩略时间轴 */
+.minimap-rail {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: var(--border-width);
+  background: var(--border);
+}
+
 .minimap-tick {
   position: absolute;
   inset-inline-start: 0;
@@ -173,23 +255,81 @@ function onStageFocusOut(event: FocusEvent) {
   cursor: pointer;
 }
 
+.minimap-tick:focus-visible {
+  outline: none;
+}
+
+.minimap-tick:focus-visible .minimap-strip {
+  box-shadow: var(--focus-ring);
+}
+
 .minimap-strip {
   pointer-events: none;
   position: absolute;
   inset-inline-start: 0;
   top: 50%;
+  width: 24px;
   height: 2px;
   border-radius: var(--radius-pill);
   background: var(--minimap-marker);
-  transform: translateY(-50%);
-  width: 8px;
+  transform-origin: left center;
+  translate: 0 -50%;
   transition:
     background var(--duration-icon) var(--ease-smooth),
-    width var(--duration-icon) var(--ease-smooth);
+    scale var(--duration-icon) var(--ease-smooth);
+}
+
+/* 视口里的回合加深，正在看的那条最深 */
+.minimap-strip.strip-in-view {
+  background: var(--contrast-foreground-muted);
 }
 
 .minimap-strip.strip-active {
-  background: var(--foreground);
+  background: var(--contrast-foreground);
+}
+
+/* 上一个 / 下一个回合：贴着导轨两端，悬停导轨时露出 */
+.minimap-nav {
+  position: absolute;
+  inset-inline-start: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--popover);
+  color: var(--contrast-foreground-secondary);
+  cursor: pointer;
+  translate: -50% 0;
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-hover);
+}
+
+.minimap-stage:hover .minimap-nav,
+.minimap-stage:focus-within .minimap-nav {
+  opacity: 1;
+}
+
+.minimap-nav:hover:not(:disabled) {
+  color: var(--contrast-foreground);
+}
+
+.minimap-nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.minimap-nav.is-previous {
+  bottom: calc(100% + var(--space-xxs));
+}
+
+.minimap-nav.is-next {
+  top: calc(100% + var(--space-xxs));
 }
 
 .minimap-preview {
@@ -241,7 +381,8 @@ function onStageFocusOut(event: FocusEvent) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .minimap-strip {
+  .minimap-strip,
+  .minimap-nav {
     transition: none;
   }
 }
