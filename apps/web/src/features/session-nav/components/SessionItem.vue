@@ -37,28 +37,21 @@
                   <span v-else class="time-label">{{ timeLabel }}</span>
                 </span>
 
-                <Tooltip v-if="!placeholder">
-                  <TooltipTrigger as-child>
-                    <button
-                      class="row-action press-scale"
-                      type="button"
-                      :aria-label="settled ? t('session.unsettle') : t('session.settle')"
-                      @click.prevent.stop="onRowAction"
-                      @pointerdown.stop
-                    >
-                      <UndoLeftRoundIcon v-if="settled" class="size-icon" />
-                      <CheckIcon v-else class="size-icon" />
+                <button
+                  v-if="!placeholder"
+                  class="row-action press-scale"
+                  type="button"
+                  :aria-label="settled ? t('session.unsettle') : t('session.settle')"
+                  @click.prevent.stop="onRowAction"
+                  @pointerdown.stop
+                >
+                  <UndoLeftRoundIcon v-if="settled" class="size-icon" />
+                  <CheckIcon v-else class="size-icon" />
 
-                      <span class="row-action-label">
-                        {{ settled ? t("session.unsettle") : t("session.settle") }}
-                      </span>
-                    </button>
-                  </TooltipTrigger>
-
-                  <TooltipContent>
+                  <span class="row-action-label">
                     {{ settled ? t("session.unsettle") : t("session.settle") }}
-                  </TooltipContent>
-                </Tooltip>
+                  </span>
+                </button>
               </span>
             </span>
 
@@ -126,24 +119,17 @@
                 <span v-else class="time-label">{{ timeLabel }}</span>
               </span>
 
-              <Tooltip v-if="!placeholder">
-                <TooltipTrigger as-child>
-                  <button
-                    class="row-action press-scale"
-                    type="button"
-                    :aria-label="settled ? t('session.unsettle') : t('session.settle')"
-                    @click.prevent.stop="onRowAction"
-                    @pointerdown.stop
-                  >
-                    <UndoLeftRoundIcon v-if="settled" class="size-icon" />
-                    <CheckIcon v-else class="size-icon" />
-                  </button>
-                </TooltipTrigger>
-
-                <TooltipContent>
-                  {{ settled ? t("session.unsettle") : t("session.settle") }}
-                </TooltipContent>
-              </Tooltip>
+              <button
+                v-if="!placeholder"
+                class="row-action press-scale"
+                type="button"
+                :aria-label="settled ? t('session.unsettle') : t('session.settle')"
+                @click.prevent.stop="onRowAction"
+                @pointerdown.stop
+              >
+                <UndoLeftRoundIcon v-if="settled" class="size-icon" />
+                <CheckIcon v-else class="size-icon" />
+              </button>
             </span>
           </template>
         </component>
