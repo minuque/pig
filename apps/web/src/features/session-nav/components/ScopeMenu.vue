@@ -1,23 +1,5 @@
 <template>
-  <div class="scope-menu surface-float" @click.stop>
-    <p class="scope-label">{{ t("session.grouping") }}</p>
-
-    <button
-      v-for="option in groupingOptions"
-      :key="option.value"
-      class="scope-item"
-      :class="{ on: grouping === option.value }"
-      type="button"
-      @click="emit('update:grouping', option.value)"
-    >
-      <span class="scope-fav"><component :is="option.icon" :size="12" /></span>
-      <span class="scope-name">{{ option.label }}</span>
-
-      <span class="scope-ck">
-        <CheckIcon v-if="grouping === option.value" :size="10" />
-      </span>
-    </button>
-
+  <div class="scope-menu surface-float" :class="{ 'is-above': placement === 'above' }" @click.stop>
     <p class="scope-label">{{ t("session.sorting") }}</p>
 
     <button
@@ -88,31 +70,28 @@ import { useI18n } from "@i18n/index.js"
 import { workspaceName } from "@features/session-nav/index.js"
 import {
   CheckIcon,
-  ClockCircleIcon,
   DocumentAddIcon,
   FolderIcon,
   HistoryIcon,
   SettingsIcon,
 } from "@components/icons/index.js"
-import type { SessionGroup, SidebarGrouping, SidebarSort } from "@features/session-nav/type.js"
+import type { SessionGroup, SidebarSort } from "@features/session-nav/type.js"
 
-const props = defineProps<{
-  groups: readonly SessionGroup[]
-  grouping: SidebarGrouping
-  sort: SidebarSort
-  scopeFilter: ReadonlySet<string>
-}>()
+const props = withDefaults(
+  defineProps<{
+    groups: readonly SessionGroup[]
+    sort: SidebarSort
+    scopeFilter: ReadonlySet<string>
+    placement?: "below" | "above"
+  }>(),
+  { placement: "below" },
+)
 const emit = defineEmits<{
-  "update:grouping": [grouping: SidebarGrouping]
   "update:sort": [sort: SidebarSort]
   "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
   settings: []
 }>()
 const { t } = useI18n()
-const groupingOptions = computed(() => [
-  { value: "date" as const, label: t("session.groupDate"), icon: ClockCircleIcon },
-  { value: "cwd" as const, label: t("session.groupCwd"), icon: FolderIcon },
-])
 const sortOptions = computed(() => [
   { value: "updated" as const, label: t("session.sortUpdated"), icon: HistoryIcon },
   { value: "created" as const, label: t("session.sortCreated"), icon: DocumentAddIcon },
@@ -169,6 +148,15 @@ function toggleProject(canonicalPath: string): void {
   background: var(--card);
   box-shadow: var(--shadow-float);
   font-size: var(--text-caption);
+}
+
+/* 挂在页脚按钮上：菜单朝上展开，宽度对齐列表。 */
+.scope-menu.is-above {
+  inset-inline: var(--nav-inline) 10px;
+  top: auto;
+  bottom: calc(100% + 4px);
+  max-width: none;
+  margin-block: 0;
 }
 
 .scope-item {

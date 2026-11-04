@@ -3,7 +3,7 @@ import type { SessionMetadata, TranscriptItem } from "@/types/common-type.js"
 import {
   conversationItemCount,
   filterSessionsForSearch,
-  groupSessionsByCwd,
+  groupSessionsByProject,
   moveSessionId,
   sessionCardFoot,
   sessionOutcome,
@@ -11,9 +11,9 @@ import {
   sidebarSections,
 } from "@features/session-nav/lib/session-list.js"
 
-describe("groupSessionsByCwd", () => {
+describe("groupSessionsByProject", () => {
   it("本地目录在前，无 cwd 不进组，组内按最近活动，Windows 路径对齐", () => {
-    const groups = groupSessionsByCwd(
+    const groups = groupSessionsByProject(
       [
         { id: "s1", createdAt: 1, cwd: "/b" },
         { id: "s2", createdAt: 2, cwd: "/a" },
@@ -63,32 +63,30 @@ function transcriptItem(
 }
 
 describe("sidebarSections", () => {
-  const DAY = 24 * 60 * 60 * 1000
   const now = new Date(2026, 5, 10, 12, 0, 0).getTime()
+  const idle = () => ({ running: false, settled: false, snoozed: false })
   const base = {
-    grouping: "date" as const,
     sort: "updated" as const,
-    localWorkspaces: [],
-    expandedByGroup: {},
-    now,
+    moreBySection: {},
+    placement: idle,
   }
 
-  it("按日期分桶，桶内按排序键倒序", () => {
+  it("按最近活动倒序排进一个收件箱", () => {
     const sections = sidebarSections({
       ...base,
       sessions: [
-        { id: "old", createdAt: 1, updatedAt: now - 40 * DAY, cwd: "/a" },
-        { id: "today1", createdAt: 1, updatedAt: now - 1000, cwd: "/a" },
-        { id: "today2", createdAt: 2, updatedAt: now - 500, cwd: "/b" },
-        { id: "week", createdAt: 3, updatedAt: now - 3 * DAY, cwd: "/a" },
+        { id: "old", createdAt: 1, updatedAt: now - 40_000, cwd: "/a" },
+        { id: "new1", createdAt: 1, updatedAt: now - 1000, cwd: "/a" },
+        { id: "new2", createdAt: 2, updatedAt: now - 500, cwd: "/b" },
       ],
     })
 
-    expect(sections.map((section) => section.key)).toEqual(["date:0", "date:2", "date:3"])
-    expect(sections[0]?.sessions.map((session) => session.id)).toEqual(["today2", "today1"])
+    expect(sections.map((section) => section.key)).toEqual(["active", "settled"])
+    expect(sections[0]?.sessions.map((session) => session.id)).toEqual(["new2", "new1", "old"])
+    expect(sections[1]?.sessions).toEqual([])
   })
 
-  it("置顶分区按存储顺序在前，不进日期桶", () => {
+  it("置顶分区按存储顺序在前，不进收件箱", () => {
     const sections = sidebarSections({
       ...base,
       pinnedOrder: ["a1", "b1"],
@@ -99,29 +97,69 @@ describe("sidebarSections", () => {
       ],
     })
 
-    expect(sections[0]?.key).toBe("pinned")
+    expect(sections.map((section) => section.key)).toEqual(["pinned", "active", "settled"])
     expect(sections[0]?.sessions.map((session) => session.id)).toEqual(["a1", "b1"])
     expect(sections[1]?.sessions.map((session) => session.id)).toEqual(["c1"])
   })
 
-  it("cwd 分组跳过空目录，按页截断", () => {
-    const sessions = Array.from({ length: 12 }, (_, index) => ({
+  it("已延后、已归档、运行中各自成段，置顶不会盖过前两者", () => {
+    const sections = sidebarSections({
+      ...base,
+      pinnedOrder: ["a1", "b1"],
+      placement: (id: string) => ({
+        running: id === "run",
+        settled: id === "done" || id === "b1",
+        snoozed: id === "sleep",
+      }),
+      sessions: [
+        { id: "a1", createdAt: 1, updatedAt: now - 1000, cwd: "/a" },
+        { id: "b1", createdAt: 2, updatedAt: now - 2000, cwd: "/b" },
+        { id: "sleep", createdAt: 3, updatedAt: now - 300, cwd: "/a" },
+        { id: "done", createdAt: 4, updatedAt: now - 400, cwd: "/a" },
+        { id: "run", createdAt: 5, updatedAt: now - 500, cwd: "/a" },
+        { id: "rest", createdAt: 6, updatedAt: now - 600, cwd: "/a" },
+      ],
+    })
+
+    expect(sections.map((section) => section.key)).toEqual([
+      "pinned",
+      "active",
+      "working",
+      "snoozed",
+      "settled",
+    ])
+    expect(sections[0]?.sessions.map((session) => session.id)).toEqual(["a1"])
+    expect(sections[1]?.sessions.map((session) => session.id)).toEqual(["rest"])
+    expect(sections[3]?.sessions.map((session) => session.id)).toEqual(["sleep"])
+    expect(sections[4]?.sessions.map((session) => session.id)).toEqual(["done", "b1"])
+  })
+
+  it("只有归档段分页：首屏 10 条，每次多放 25 条", () => {
+    const sessions = Array.from({ length: 40 }, (_, index) => ({
       id: `s${index}`,
       createdAt: index,
       updatedAt: index,
       cwd: "/a",
     }))
-    const paged = sidebarSections({
+    const sections = sidebarSections({
       ...base,
-      grouping: "cwd",
-      localWorkspaces: ["/a", "/empty"],
+      placement: () => ({ running: false, settled: true, snoozed: false }),
       sessions,
     })
 
-    expect(paged.map((section) => section.key)).toEqual(["cwd:/a"])
-    expect(paged[0]?.sessions).toHaveLength(5)
-    expect(paged[0]?.total).toBe(12)
-    expect(paged[0]?.shown).toBe(5)
+    expect(sections[0]?.key).toBe("settled")
+    expect(sections[0]?.sessions).toHaveLength(10)
+    expect(sections[0]?.total).toBe(40)
+    expect(sections[0]?.shown).toBe(10)
+
+    const more = sidebarSections({
+      ...base,
+      placement: () => ({ running: false, settled: true, snoozed: false }),
+      moreBySection: { settled: 1 },
+      sessions,
+    })
+
+    expect(more[0]?.sessions).toHaveLength(35)
   })
 
   it("按创建时间排序", () => {

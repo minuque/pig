@@ -3,17 +3,19 @@ import { canonicalizeWorkspacePath, uniqueCanonicalPaths } from "@client/local-c
 import { transcriptText } from "@features/transcript-view/index.js"
 import { t } from "@i18n/index.js"
 import type {
-  SessionCardExtra,
-  SessionCardLive,
   SessionGroup,
-  SidebarGrouping,
+  SidebarPlacement,
   SidebarSection,
   SidebarSession,
   SidebarSort,
+  SessionCardExtra,
+  SessionCardLive,
 } from "@features/session-nav/type.js"
 import { sessionRecency, sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
 
-export const SECTION_PAGE = 5
+export const SECTION_PAGE = 10
+/** 已归档每次「显示更多」多放出的行数。 */
+export const SETTLED_PAGE = 25
 /** 临时新会话占位行的 id 前缀。 */
 export const DRAFT_SESSION_PREFIX = "draft:"
 
@@ -85,8 +87,8 @@ export function moveSessionId(ids: readonly string[], id: string, slot: number):
   return rest
 }
 
-/** 本地名单在前（含尚无会话的目录）；其余 Pi Session 按 cwd 跟上。组内按排序键倒序。 */
-export function groupSessionsByCwd(
+/** 项目筛选用：按 cwd 归拢会话，本地目录排在前面。 */
+export function groupSessionsByProject(
   sessions: readonly SessionMetadata[],
   localWorkspaces: readonly string[],
   sort: SidebarSort = "updated",
@@ -103,10 +105,9 @@ export function groupSessionsByCwd(
     else byPath.set(cwd, [session])
   }
 
-  const localPaths = uniqueCanonicalPaths(localWorkspaces)
-  const local = new Set(localPaths)
+  const local = new Set(uniqueCanonicalPaths(localWorkspaces))
   return [
-    ...localPaths.map((canonicalPath) => ({
+    ...[...local].map((canonicalPath) => ({
       canonicalPath,
       sessions: sortSessionsForSidebar(byPath.get(canonicalPath) ?? [], sort),
     })),
@@ -129,124 +130,97 @@ export function toSidebarSession(session: SessionMetadata): SidebarSession {
   }
 }
 
-const DAY = 24 * 60 * 60 * 1000
-
-function localDayStart(now: number): number {
-  const date = new Date(now)
-  date.setHours(0, 0, 0, 0)
-  return date.getTime()
-}
-
-/** 日期桶：今天 / 昨天 / 近 7 天 / 更早，按排序键的时间戳。 */
-function dateBucket(
-  session: Pick<SessionMetadata, "createdAt" | "updatedAt">,
-  sort: SidebarSort,
-  now: number,
-): number {
-  const age = localDayStart(now) - sortKey(session, sort)
-
-  if (age < 0) return 0
-
-  if (age < DAY) return 1
-
-  if (age < 7 * DAY) return 2
-  return 3
-}
-
-function dateBucketLabel(bucket: number): string {
-  return [
-    t("session.bucketToday"),
-    t("session.bucketYesterday"),
-    t("session.bucketWeek"),
-    t("session.bucketEarlier"),
-  ][bucket]!
-}
-
 function toSection(
-  key: string,
+  kind: SidebarSection["kind"],
   label: string,
   sessions: readonly SessionMetadata[],
-  expandedByGroup: Readonly<Record<string, number>>,
-  cwd?: string,
+  moreBySection: Readonly<Record<string, number>>,
+  paginate: boolean,
 ): SidebarSection {
-  const extra = expandedByGroup[key] ?? 0
-  const limit = SECTION_PAGE + extra * SECTION_PAGE
-  const shown = Math.min(sessions.length, limit)
+  const extra = moreBySection[kind] ?? 0
+  const shown = paginate
+    ? Math.min(sessions.length, SECTION_PAGE + extra * SETTLED_PAGE)
+    : sessions.length
   return {
-    key,
+    key: kind,
+    kind,
     label,
-    ...(cwd !== undefined ? { cwd } : {}),
     sessions: sessions.slice(0, shown).map(toSidebarSession),
     total: sessions.length,
     shown,
   }
 }
 
-/** 侧栏分区：置顶按存储顺序在前；其余按日期或工作目录分组。 */
+/** 侧栏分段：已延后、已归档、置顶、运行中依次收走会话，剩下的进收件箱。 */
 export function sidebarSections(input: {
   sessions: readonly SessionMetadata[]
   pinnedOrder?: readonly string[]
-  grouping: SidebarGrouping
+  placement: (id: string) => SidebarPlacement
   sort: SidebarSort
-  localWorkspaces: readonly string[]
-  expandedByGroup: Readonly<Record<string, number>>
-  now?: number
+  moreBySection: Readonly<Record<string, number>>
 }): SidebarSection[] {
-  const { grouping, sort, expandedByGroup } = input
-  const list = listSessionsForSidebar(input.sessions, sort)
-  const sections: SidebarSection[] = []
-
-  if (input.pinnedOrder?.length) {
-    const byId = new Map(list.map((session) => [session.id, session]))
-    const pinned = input.pinnedOrder.flatMap((id) => {
-      const session = byId.get(id)
-      return session ? [session] : []
-    })
-
-    if (pinned.length) {
-      sections.push({
-        key: "pinned",
-        label: t("session.pinned"),
-        sessions: pinned.map(toSidebarSession),
-        total: pinned.length,
-        shown: pinned.length,
-      })
-    }
+  const list = listSessionsForSidebar(input.sessions, input.sort)
+  const buckets: Record<"active" | "working" | "snoozed" | "settled", SessionMetadata[]> = {
+    active: [],
+    working: [],
+    snoozed: [],
+    settled: [],
   }
 
-  const pinnedIds = new Set(input.pinnedOrder ?? [])
-  const rest = list.filter((session) => !pinnedIds.has(session.id))
+  for (const session of list) {
+    const place = input.placement(session.id)
 
-  if (grouping === "cwd") {
-    for (const group of groupSessionsByCwd(rest, input.localWorkspaces, sort)) {
-      if (!group.sessions.length) continue
-      sections.push(
-        toSection(
-          `cwd:${group.canonicalPath}`,
-          workspaceName(group.canonicalPath),
-          group.sessions,
-          expandedByGroup,
-          group.canonicalPath,
-        ),
-      )
-    }
-
-    return sections
+    if (place.snoozed) buckets.snoozed.push(session)
+    else if (place.settled) buckets.settled.push(session)
+    else if (place.running) buckets.working.push(session)
+    else buckets.active.push(session)
   }
 
-  const now = input.now ?? Date.now()
-  const buckets: SessionMetadata[][] = [[], [], [], []]
+  const byId = new Map(list.map((session) => [session.id, session]))
+  const pinned = (input.pinnedOrder ?? []).flatMap((id) => {
+    const session = byId.get(id)
 
-  for (const session of rest) buckets[dateBucket(session, sort, now)]!.push(session)
+    if (!session) return []
+    const place = input.placement(id)
+    return place.snoozed || place.settled ? [] : [session]
+  })
+  const pinnedIds = new Set(pinned.map((session) => session.id))
 
-  for (const [bucket, bucketSessions] of buckets.entries()) {
-    if (!bucketSessions.length) continue
-    sections.push(
-      toSection(`date:${bucket}`, dateBucketLabel(bucket), bucketSessions, expandedByGroup),
-    )
-  }
-
-  return sections
+  buckets.active = buckets.active.filter((session) => !pinnedIds.has(session.id))
+  buckets.working = buckets.working.filter((session) => !pinnedIds.has(session.id))
+  return [
+    ...(pinned.length
+      ? [toSection("pinned", t("session.pinned"), pinned, input.moreBySection, false)]
+      : []),
+    ...(buckets.active.length
+      ? [toSection("active", t("session.sectionInbox"), buckets.active, input.moreBySection, false)]
+      : []),
+    ...(buckets.working.length
+      ? [toSection("working", t("session.running"), buckets.working, input.moreBySection, false)]
+      : []),
+    ...(buckets.snoozed.length
+      ? [
+          toSection(
+            "snoozed",
+            t("session.sectionSnoozed"),
+            buckets.snoozed,
+            input.moreBySection,
+            false,
+          ),
+        ]
+      : []),
+    ...(list.length
+      ? [
+          toSection(
+            "settled",
+            t("session.sectionSettled"),
+            buckets.settled,
+            input.moreBySection,
+            true,
+          ),
+        ]
+      : []),
+  ]
 }
 
 export function sessionCardFoot(

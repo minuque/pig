@@ -25,7 +25,6 @@ test("首页发首条 Prompt 建出会话，侧栏立刻多一张卡", async ({ 
     page.locator(".row-user").getByText("新建一个会话", { exact: true }).first(),
   ).toBeVisible()
 
-  // 侧栏按日期分组，默认收起
-  await page.locator(".session-section").first().locator(".section-toggle").click()
+  // 收件箱默认展开，新建的会话直接出现在列表里
   await expect(page.locator(".session-card")).toHaveCount(1)
 })

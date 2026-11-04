@@ -9,48 +9,39 @@ async function enter(page: Page, gateway: E2eGateway) {
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
 }
 
-/** 默认按日期分组，六个批量会话都落在同一个桶里；行始终在 DOM，靠 grid-rows 折叠。 */
-const section = (page: Page) => page.locator(".session-section").first()
+/** 收件箱没有段头：直接列出会话，架子靠段头收在列表底部。 */
+const section = (page: Page) => page.locator('.session-section[data-key="active"]')
 
-test("侧栏分组默认收起，点开后列出会话", async ({ page, navGateway }) => {
+test("收件箱直接列出会话，按最近活动倒序", async ({ page, navGateway }) => {
   await enter(page, navGateway)
-
-  const toggle = section(page).locator(".section-toggle")
-  const group = section(page).locator(".session-list-group")
-
-  await expect(toggle).toHaveAttribute("aria-expanded", "false")
-  await expect(group).not.toHaveClass(/is-open/)
-  await expect(toggle.locator(".section-count")).toHaveText("6")
-
-  await toggle.click()
-  await expect(toggle).toHaveAttribute("aria-expanded", "true")
-  await expect(group).toHaveClass(/is-open/)
-  await expect(toggle.locator(".section-count")).toHaveCount(0)
-
-  await toggle.click()
-  await expect(toggle).toHaveAttribute("aria-expanded", "false")
-  await expect(group).not.toHaveClass(/is-open/)
-})
-
-test("显示更多每次多放一页", async ({ page, navGateway }) => {
-  await enter(page, navGateway)
-  await section(page).locator(".section-toggle").click()
 
   const cards = section(page).locator(".session-card")
-  const more = section(page).locator(".more-button")
-
-  // SECTION_PAGE 是 5，默认按更新时间倒序，最新的排最前
-  await expect(cards).toHaveCount(5)
-  await expect(cards.first()).toContainText(`${FILLER_PREFIX} 6`)
-
-  await more.click()
   await expect(cards).toHaveCount(6)
+  await expect(cards.first()).toContainText(`${FILLER_PREFIX} 6`)
   await expect(cards.last()).toContainText(`${FILLER_PREFIX} 1`)
-  // 同一位置换成「收起」，再点回一页
-  await expect(more).toHaveText(/收起/)
-  await more.click()
-  await expect(cards).toHaveCount(5)
-  await expect(more).toHaveText(/显示更多/)
+  await expect(section(page).locator(".section-head")).toHaveCount(0)
+})
+
+test("归档的会话离开收件箱，收进已归档段", async ({ page, navGateway }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, navGateway.workspaceId)
+  await page.addInitScript(() => {
+    localStorage.setItem("pig.sidebarSettledSessions", JSON.stringify(["e2e-filler-5"]))
+  })
+  await page.goto(navGateway.entryUrl)
+  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
+
+  const settled = page.locator('.session-section[data-key="settled"]')
+
+  await expect(section(page).locator(".session-card")).toHaveCount(5)
+  await expect(
+    section(page).locator(".session-card", { hasText: `${FILLER_PREFIX} 6` }),
+  ).toHaveCount(0)
+  await expect(settled.locator(".section-count")).toHaveText("1")
+
+  await settled.locator(".section-toggle").click()
+  await expect(settled.locator(".session-card")).toHaveCount(1)
+  await expect(settled.locator(".session-card")).toContainText(`${FILLER_PREFIX} 6`)
 })
 
 test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => {
@@ -95,7 +86,6 @@ async function titleRightGap(card: Locator): Promise<number> {
 
 test("状态位不挤占标题宽度：无状态行与草稿行都写满整行", async ({ page, navGateway }) => {
   await enter(page, navGateway)
-  await section(page).locator(".section-toggle").click()
 
   const plain = section(page).locator(".session-card").first()
   // 打开会话后它不再算未读，行上就没有状态图标
@@ -133,9 +123,7 @@ test("拖拽会话进出置顶区：拖进置顶、拖出取消置顶", async ({
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
 
   const pinned = page.locator('.session-section[data-key="pinned"]')
-  const dateSection = page.locator(".session-section").filter({ hasText: "今天" })
   await expect(pinned.locator(".session-card")).toHaveCount(1)
-  await dateSection.locator(".section-toggle").click()
 
   // 未置顶行拖进置顶区末尾
   const source = page.locator(".session-card", { hasText: "批量会话 4" }).first()
@@ -143,11 +131,11 @@ test("拖拽会话进出置顶区：拖进置顶、拖出取消置顶", async ({
   await expect(pinned.locator(".session-card")).toHaveCount(2)
   await expect(pinned.locator(".session-card").last()).toContainText("批量会话 4")
 
-  // 置顶行拖到列表下方：取消置顶
+  // 置顶行拖到收件箱首行：离开置顶区即取消置顶
   await dragCard(
     page,
     pinned.locator(".session-card").last(),
-    dateSection.locator(".section-toggle"),
+    section(page).locator(".session-card").first(),
   )
   await expect(pinned.locator(".session-card")).toHaveCount(1)
   await expect(pinned.locator(".session-card").first()).toContainText("批量会话 6")
@@ -155,7 +143,6 @@ test("拖拽会话进出置顶区：拖进置顶、拖出取消置顶", async ({
 
 test("没有置顶时拖起会话露出置顶落点", async ({ page, navGateway }) => {
   await enter(page, navGateway)
-  await section(page).locator(".section-toggle").click()
 
   const card = section(page).locator(".session-card").first()
   const start = await card.boundingBox()

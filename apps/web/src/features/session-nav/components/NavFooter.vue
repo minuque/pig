@@ -1,6 +1,8 @@
 <template>
   <div class="nav-footer">
     <div class="footer-actions">
+      <slot name="extra" />
+
       <Tooltip>
         <TooltipTrigger as-child>
           <IconButton
@@ -108,6 +110,7 @@ const statusItems = computed(() =>
 
 <style scoped>
 .nav-footer {
+  position: relative;
   display: flex;
   flex: none;
   align-items: center;

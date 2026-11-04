@@ -31,24 +31,37 @@
         :pinned-ids="pinnedIds"
         :highlighted-session-id="highlightedSessionId"
         :expanded-sections="expandedSections"
-        :expanded-by-group="expandedByGroup"
+        :more-by-section="moreBySection"
         @navigate="emit('navigate', $event)"
         @open="emit('open', $event)"
         @prime="emit('prime', $event)"
-        @create="emit('create', $event)"
         @toggle-pinned="emit('togglePinned', $event)"
         @rename="(id, name) => emit('rename', id, name)"
         @delete="emit('delete', $event)"
+        @settle="emit('settle', $event)"
+        @unsettle="emit('unsettle', $event)"
+        @snooze="(id, until) => emit('snooze', id, until)"
+        @unsnooze="emit('unsnooze', $event)"
         @reorder-pinned="(id, toIndex) => emit('reorderPinned', id, toIndex)"
         @pin-at="(id, toIndex) => emit('pinAt', id, toIndex)"
         @unpin="emit('unpin', $event)"
         @toggle-section="emit('toggleSection', $event)"
         @reveal-more="emit('revealMore', $event)"
         @collapse-group="emit('collapseGroup', $event)"
-      >
-        <template #section-settings>
+      />
+    </div>
+
+    <NavFooter
+      :counts="statusCounts"
+      @settings="emit('settings')"
+      @search="emit('update:searchOpen', true)"
+      @add-project="emit('addProject')"
+      @cycle="emit('cycleStatus', $event)"
+    >
+      <template #extra>
+        <div class="filter-anchor">
           <IconButton
-            class="head-btn"
+            class="filter-btn"
             type="button"
             size="m"
             variant="ghost"
@@ -60,26 +73,17 @@
 
           <ScopeMenu
             v-if="scopeMenuOpen"
+            placement="above"
             :groups="groups"
-            :grouping="grouping"
             :sort="sort"
             :scope-filter="scopeFilter"
-            @update:grouping="emit('update:grouping', $event)"
             @update:sort="emit('update:sort', $event)"
             @update:scope-filter="emit('update:scopeFilter', $event)"
             @settings="onGlobalSettings"
           />
-        </template>
-      </SessionList>
-    </div>
-
-    <NavFooter
-      :counts="statusCounts"
-      @settings="emit('settings')"
-      @search="emit('update:searchOpen', true)"
-      @add-project="emit('addProject')"
-      @cycle="emit('cycleStatus', $event)"
-    />
+        </div>
+      </template>
+    </NavFooter>
   </div>
 </template>
 
@@ -95,7 +99,6 @@ import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
 import type {
   SessionGroup,
-  SidebarGrouping,
   SidebarRowFoot,
   SidebarSection,
   SidebarSort,
@@ -107,7 +110,6 @@ import { IconButton } from "@components/ui/button/index.js"
 defineProps<{
   groups: readonly SessionGroup[]
   connected: boolean
-  grouping: SidebarGrouping
   sort: SidebarSort
   scopeFilter: ReadonlySet<string>
   searchOpen: boolean
@@ -117,14 +119,13 @@ defineProps<{
   pinnedIds: ReadonlySet<string>
   highlightedSessionId: string | undefined
   expandedSections: ReadonlySet<string>
-  expandedByGroup: Record<string, number>
+  moreBySection: Record<string, number>
   statusCounts: Record<FooterStatus, number>
 }>()
 
 const emit = defineEmits<{
   "update:searchOpen": [open: boolean]
   "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
-  "update:grouping": [grouping: SidebarGrouping]
   "update:sort": [sort: SidebarSort]
   toggleSidebar: []
   home: []
@@ -138,6 +139,10 @@ const emit = defineEmits<{
   togglePinned: [id: string]
   rename: [id: string, name: string]
   delete: [id: string]
+  settle: [id: string]
+  unsettle: [id: string]
+  snooze: [id: string, until: number]
+  unsnooze: [id: string]
   reorderPinned: [id: string, toIndex: number]
   pinAt: [id: string, toIndex: number]
   unpin: [id: string]
@@ -166,7 +171,7 @@ useEventListener(window, "pointerdown", (event) => {
   if (!scopeMenuOpen.value) return
   const target = event.target
 
-  if (target instanceof Element && target.closest(".scope-menu, .head-btn")) return
+  if (target instanceof Element && target.closest(".scope-menu, .filter-btn")) return
   scopeMenuOpen.value = false
 })
 
@@ -233,9 +238,9 @@ function onGlobalSettings(): void {
   opacity: 1;
 }
 
-/* 尺寸与悬停由 IconButton 接管；这里只留 ScopeMenu 的定位锚 */
-.head-btn {
-  position: relative;
+/* 筛选按钮挂在页脚；菜单以页脚为定位基准，朝上展开 */
+.filter-anchor {
+  display: flex;
 }
 
 .session-nav > .titlebar-drag {

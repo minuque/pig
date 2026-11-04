@@ -8,12 +8,7 @@
         <component
           :is="placeholder ? 'div' : RouterLink"
           class="session-card"
-          :class="{
-            active,
-            'is-placeholder': placeholder,
-            renaming,
-            'has-state': Boolean(glyphState),
-          }"
+          :class="[variant, { active, 'is-placeholder': placeholder, renaming }]"
           :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
           draggable="false"
           @click="onCardClick"
@@ -22,14 +17,77 @@
           @dragstart.prevent
           @keydown="onCardKeydown"
         >
-          <span class="title-line">
-            <span class="drag-slot" aria-hidden="true">
-              <GripVerticalIcon v-if="draggable" :size="12" class="drag-glyph" />
+          <template v-if="variant === 'card'">
+            <span class="meta-line">
+              <span class="project-icon" aria-hidden="true">
+                <FolderIcon :size="16" />
+              </span>
+
+              <span class="project-name">{{ projectName }}</span>
+
+              <span v-if="!renaming" class="state-slot">
+                <span class="state-mark" aria-hidden="true">
+                  <SessionStateIcon v-if="glyphState" :state="glyphState" />
+                  <span v-else class="time-label">{{ timeLabel }}</span>
+                </span>
+
+                <Tooltip v-if="!placeholder">
+                  <TooltipTrigger as-child>
+                    <button
+                      class="more-toggle press-scale"
+                      type="button"
+                      :aria-label="t('common.more')"
+                      aria-haspopup="menu"
+                      :aria-expanded="menuOpen"
+                      @click.prevent.stop="openSessionMenu"
+                      @contextmenu.prevent.stop="openSessionMenu"
+                      @pointerdown.stop
+                    >
+                      <MenuDotsIcon class="size-icon" />
+                    </button>
+                  </TooltipTrigger>
+
+                  <TooltipContent>{{ t("common.more") }}</TooltipContent>
+                </Tooltip>
+              </span>
+            </span>
+
+            <span class="title-line">
+              <input
+                v-if="renaming"
+                :ref="setRenameInput"
+                v-model="renameDraft"
+                class="rename-input"
+                type="text"
+                :aria-label="t('session.rename')"
+                @click.stop
+                @keydown.enter.prevent="commitRename"
+                @keydown.escape.prevent="cancelRename"
+                @blur="commitRename"
+              />
+
+              <Tooltip v-else :disabled="!titleOverflow">
+                <TooltipTrigger as-child>
+                  <span :ref="setTitleEl" class="title" @pointerenter="measureTitle">
+                    {{ session.title }}
+                  </span>
+                </TooltipTrigger>
+
+                <TooltipContent side="right" :side-offset="10" class="title-tooltip">
+                  {{ session.title }}
+                </TooltipContent>
+              </Tooltip>
+            </span>
+          </template>
+
+          <template v-else>
+            <span class="project-icon" aria-hidden="true">
+              <FolderIcon :size="16" />
             </span>
 
             <input
               v-if="renaming"
-              ref="renameInput"
+              :ref="setRenameInput"
               v-model="renameDraft"
               class="rename-input"
               type="text"
@@ -42,7 +100,7 @@
 
             <Tooltip v-else :disabled="!titleOverflow">
               <TooltipTrigger as-child>
-                <span ref="titleEl" class="title" @pointerenter="measureTitle">
+                <span :ref="setTitleEl" class="title" @pointerenter="measureTitle">
                   {{ session.title }}
                 </span>
               </TooltipTrigger>
@@ -55,6 +113,7 @@
             <span v-if="!renaming" class="state-slot">
               <span class="state-mark" aria-hidden="true">
                 <SessionStateIcon v-if="glyphState" :state="glyphState" />
+                <span v-else class="time-label">{{ timeLabel }}</span>
               </span>
 
               <Tooltip v-if="!placeholder">
@@ -76,7 +135,7 @@
                 <TooltipContent>{{ t("common.more") }}</TooltipContent>
               </Tooltip>
             </span>
-          </span>
+          </template>
         </component>
       </ContextMenuTrigger>
 
@@ -91,6 +150,39 @@
           <PinIcon v-else />
           {{ pinned ? t("session.unpin") : t("session.pin") }}
         </ContextMenuItem>
+
+        <ContextMenuSeparator />
+
+        <template v-if="settled">
+          <ContextMenuItem @select="emit('unsettle', session.id)">
+            <RestartIcon />
+            {{ t("session.unsettle") }}
+          </ContextMenuItem>
+        </template>
+
+        <template v-else-if="snoozed">
+          <ContextMenuItem @select="emit('unsnooze', session.id)">
+            <SunIcon />
+            {{ t("session.unsnooze") }}
+          </ContextMenuItem>
+        </template>
+
+        <template v-else>
+          <ContextMenuItem @select="emit('snooze', session.id, snoozeUntil('hour'))">
+            <MoonIcon />
+            {{ t("session.snoozeHour") }}
+          </ContextMenuItem>
+
+          <ContextMenuItem @select="emit('snooze', session.id, snoozeUntil('tomorrow'))">
+            <MoonIcon />
+            {{ t("session.snoozeTomorrow") }}
+          </ContextMenuItem>
+
+          <ContextMenuItem @select="emit('settle', session.id)">
+            <CheckCircleIcon />
+            {{ t("session.settle") }}
+          </ContextMenuItem>
+        </template>
 
         <ContextMenuSeparator />
 
@@ -111,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, shallowRef, useTemplateRef } from "vue"
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef } from "vue"
 import { RouterLink } from "vue-router"
 import { useI18n } from "@i18n/index.js"
 import {
@@ -125,13 +217,18 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
+import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
-  GripVerticalIcon,
+  CheckCircleIcon,
+  FolderIcon,
   MenuDotsIcon,
+  MoonIcon,
   PenIcon,
   PinIcon,
   PinBoldIcon,
+  RestartIcon,
+  SunIcon,
   TrashBinMinimalisticIcon,
 } from "@components/icons/index.js"
 
@@ -140,13 +237,17 @@ const props = withDefaults(
     session: SidebarSession
     active?: boolean
     pinned?: boolean
+    settled?: boolean
+    snoozed?: boolean
     state?: SidebarSessionState | undefined
+    variant?: "card" | "slim"
     placeholder?: boolean
     dragging?: boolean
     draggable?: boolean
   }>(),
   {
     state: undefined,
+    variant: "card",
     placeholder: false,
     dragging: false,
     draggable: false,
@@ -159,14 +260,33 @@ const emit = defineEmits<{
   togglePinned: [id: string]
   rename: [id: string, name: string]
   delete: [id: string]
+  settle: [id: string]
+  unsettle: [id: string]
+  snooze: [id: string, until: number]
+  unsnooze: [id: string]
   dragStart: [event: PointerEvent]
 }>()
 const { t } = useI18n()
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
+const projectName = computed(() => (props.session.cwd ? workspaceName(props.session.cwd) : ""))
 const glyphState = computed(() => sessionGlyph(props.session, props.state))
-const titleEl = useTemplateRef("titleEl")
+const timeLabel = computed(() => formatRelativeTime(props.session.updatedAt))
+const titleEl = shallowRef<HTMLElement | null>(null)
 const titleOverflow = shallowRef(false)
+
+function setTitleEl(el: unknown): void {
+  titleEl.value = el instanceof HTMLElement ? el : null
+}
+
+/** 延后到点：一小时后，或明天早上九点。 */
+function snoozeUntil(preset: "hour" | "tomorrow"): number {
+  if (preset === "hour") return Date.now() + 60 * 60 * 1000
+  const date = new Date()
+  date.setDate(date.getDate() + 1)
+  date.setHours(9, 0, 0, 0)
+  return date.getTime()
+}
 
 function measureTitle() {
   const el = titleEl.value
@@ -175,7 +295,12 @@ function measureTitle() {
 
 const renaming = ref(false)
 const renameDraft = ref("")
-const renameInput = useTemplateRef("renameInput")
+const renameInput = shallowRef<HTMLInputElement | null>(null)
+
+function setRenameInput(el: unknown): void {
+  renameInput.value = el instanceof HTMLInputElement ? el : null
+}
+
 const pointerDownPos = shallowRef<{ x: number; y: number } | undefined>(undefined)
 let dragPending = false
 let didDrag = false
@@ -332,63 +457,100 @@ function confirmDelete() {
 
 .session-card {
   position: relative;
-  display: grid;
-  grid-template-areas: "title title";
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: 17px;
-  gap: 2px var(--space-xs);
-  width: 100%;
+  display: flex;
   min-width: 0;
-  padding: var(--space-xxs) var(--space-xs);
+  width: 100%;
   border-radius: var(--radius-md);
   background: transparent;
   color: inherit;
-  line-height: var(--text-caption--line-height);
   text-decoration: none;
   cursor: default;
   transition: background-color var(--duration-fast) var(--ease-hover);
 }
 
+.session-card.card {
+  flex-direction: column;
+  gap: var(--space-xxs);
+  min-height: 60px;
+  padding: var(--space-xs) 10px;
+}
+
+.session-card.slim {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding-inline: 10px;
+}
+
 .session-item:hover .session-card,
-.session-card[data-state="open"] {
+.session-card[data-state="open"],
+.session-card.active {
   background: var(--glass-selected-bg);
 }
 
-.session-card.active,
-.session-item:hover .session-card.active,
-.session-card.active[data-state="open"] {
-  background: var(--glass-selected-bg);
-}
-
-.drag-slot {
+.project-icon {
   display: grid;
   flex: none;
   place-items: center;
-  width: 13px;
-  height: 13px;
+  width: 16px;
+  height: 16px;
+  color: var(--contrast-foreground-muted);
 }
 
-.drag-glyph {
-  color: var(--contrast-foreground-secondary);
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
+.meta-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  min-width: 0;
+  height: 20px;
 }
 
-.session-item:hover .drag-glyph,
-.session-item:focus-within .drag-glyph {
-  opacity: 1;
+.project-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* 状态位是行尾装饰：绝对定位，无状态的行不占宽度，标题写满整行。 */
+.title-line {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 20px;
+}
+
+.title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--contrast-foreground);
+  font-size: var(--text-body-md);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-hover);
+}
+
+.session-card.slim .title {
+  flex: 1;
+}
+
+/* 行尾一格：常态放状态或时间，行被指到或聚焦时换成更多按钮。 */
 .state-slot {
-  position: absolute;
-  inset-inline-end: var(--space-xs);
-  top: 50%;
-  display: grid;
-  place-items: center;
-  width: 13px;
-  height: 13px;
-  translate: 0 -50%;
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 20px;
+  height: 20px;
+  margin-inline-start: auto;
 }
 
 .state-mark {
@@ -397,7 +559,14 @@ function confirmDelete() {
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-/* 状态位与更多按钮共用一格：常态给状态，行被指到或聚焦时换成更多。 */
+.time-label {
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-eyebrow);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--text-eyebrow--line-height);
+  white-space: nowrap;
+}
+
 .session-item:hover .state-mark,
 .session-item:focus-within .state-mark,
 .session-item.is-menu-open .state-mark {
@@ -406,7 +575,7 @@ function confirmDelete() {
 
 .more-toggle {
   position: absolute;
-  inset-inline-start: 50%;
+  inset-inline-end: -4px;
   top: 50%;
   display: grid;
   place-items: center;
@@ -415,7 +584,7 @@ function confirmDelete() {
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--contrast-foreground);
-  translate: -50% -50%;
+  translate: 0 -50%;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -432,39 +601,6 @@ function confirmDelete() {
 .more-toggle:hover,
 .more-toggle:focus-visible {
   background: var(--hover-strong);
-  color: var(--contrast-foreground);
-}
-
-.title-line {
-  grid-area: title;
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  min-width: 0;
-}
-
-.title {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  color: var(--contrast-foreground-secondary);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
-  mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
-  white-space: nowrap;
-  transition: color var(--duration-fast) var(--ease-hover);
-}
-
-/* 状态图标与更多按钮浮在行尾：提前淡出，标题不钻进图标底下。 */
-.session-card.has-state .title,
-.session-item:hover .title,
-.session-item:focus-within .title,
-.session-item.is-menu-open .title {
-  mask-image: linear-gradient(to right, black calc(100% - 44px), transparent calc(100% - 20px));
-}
-
-.session-item:hover .title,
-.session-card.active .title {
   color: var(--contrast-foreground);
 }
 
@@ -491,7 +627,6 @@ function confirmDelete() {
 @media (prefers-reduced-motion: reduce) {
   .session-card,
   .title,
-  .drag-glyph,
   .state-mark,
   .more-toggle {
     transition: none;

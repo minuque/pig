@@ -7,7 +7,6 @@ async function enter(page: Page, gateway: E2eGateway) {
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
-  await page.locator(".session-section").first().locator(".section-toggle").click()
   await expect(page.locator(".session-card").first()).toBeVisible()
 }
 

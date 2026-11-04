@@ -12,7 +12,7 @@ import {
   sessionCardFoot,
   sessionOutcome,
 } from "@features/session-nav/lib/session-list.js"
-import type { SidebarSessionState } from "@features/session-nav/type.js"
+import type { SidebarPlacement, SidebarSessionState } from "@features/session-nav/type.js"
 
 export { sessionTitle, workspaceName, untitledSession } from "@features/session-nav/lib/format.js"
 
@@ -85,6 +85,24 @@ function createNav(
 
     return feet
   })
+  /** 分段只看这三件事：在跑、已归档、已延后。 */
+  const placements = computed(() => {
+    const map = new Map<string, SidebarPlacement>()
+
+    for (const item of nav.listedSessions.value) {
+      map.set(item.id, {
+        running: cardFootById.value.get(item.id)?.state === "running",
+        settled: markers.settledIds.value.has(item.id),
+        snoozed: markers.isSnoozed(item.id),
+      })
+    }
+
+    return map
+  })
+
+  function placementOf(id: string): SidebarPlacement {
+    return placements.value.get(id) ?? { running: false, settled: false, snoozed: false }
+  }
 
   /** 页签全部关掉后回欢迎页。 */
   function closeSession(): void {
@@ -96,15 +114,20 @@ function createNav(
     groups: nav.groups,
     listedSessions: nav.listedSessions,
     cardFootById,
-    expandedByGroup: nav.expandedByGroup,
     revealMore: nav.revealMore,
     collapseGroup: nav.collapseGroup,
-    sectionsFor: (include?: Parameters<typeof nav.sectionsFor>[1]) =>
-      nav.sectionsFor(markers.pinnedOrder, include),
-    grouping: nav.grouping,
+    sectionsFor: (include?: Parameters<typeof nav.sectionsFor>[2]) =>
+      nav.sectionsFor(markers.pinnedOrder, placementOf, include),
     sort: nav.sort,
-    setGrouping: nav.setGrouping,
     setSort: nav.setSort,
+    moreBySection: nav.moreBySection,
+    settledIds: markers.settledIds,
+    isSnoozed: markers.isSnoozed,
+    snoozeNow: markers.now,
+    settle: markers.settle,
+    unsettle: markers.unsettle,
+    snooze: markers.snooze,
+    unsnooze: markers.unsnooze,
     expandedSections: nav.expandedSections,
     toggleSection: nav.toggleSection,
     pinnedIds: markers.pinnedIds,

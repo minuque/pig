@@ -11,22 +11,17 @@ import {
 import { canonicalizeWorkspacePath, type useLocalWorkspaces } from "@client/local-cwd.js"
 import {
   draftSessionId,
-  groupSessionsByCwd,
+  groupSessionsByProject,
   listSessionsForSidebar,
   sidebarSections,
 } from "@features/session-nav/lib/session-list.js"
-import type { SidebarGrouping, SidebarSection, SidebarSort } from "@features/session-nav/type.js"
+import type { SidebarPlacement, SidebarSection, SidebarSort } from "@features/session-nav/type.js"
 import { readPref, writePref } from "@utils/storage.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
 const DELETE_RETRY_MS = 400
-const GROUPING_KEY = "pig.sidebarGrouping"
 const SORT_KEY = "pig.sidebarSort"
-
-function loadGrouping(): SidebarGrouping {
-  return readPref(GROUPING_KEY) === "cwd" ? "cwd" : "date"
-}
 
 function loadSort(): SidebarSort {
   return readPref(SORT_KEY) === "created" ? "created" : "updated"
@@ -83,13 +78,13 @@ export function useWorkspaceNav(
   )
 
   const groups = computed(() =>
-    groupSessionsByCwd(visibleSessions.value, local.workspaces.value).map((group) => ({
+    groupSessionsByProject(visibleSessions.value, local.workspaces.value).map((group) => ({
       ...group,
       sessions: applyTitles(group.sessions),
     })),
   )
   const listedSessions = computed(() => applyTitles(listSessionsForSidebar(visibleSessions.value)))
-  const expandedByGroup = shallowRef<Record<string, number>>({})
+  const moreBySection = shallowRef<Record<string, number>>({})
 
   function applyTitles(list: readonly SessionMetadata[]): SessionMetadata[] {
     const titles = titleById.value
@@ -115,45 +110,44 @@ export function useWorkspaceNav(
   }
 
   function revealMore(groupKey: string) {
-    expandedByGroup.value = {
-      ...expandedByGroup.value,
-      [groupKey]: (expandedByGroup.value[groupKey] ?? 0) + 1,
+    moreBySection.value = {
+      ...moreBySection.value,
+      [groupKey]: (moreBySection.value[groupKey] ?? 0) + 1,
     }
   }
 
   function collapseGroup(groupKey: string) {
-    const next = { ...expandedByGroup.value }
+    const next = { ...moreBySection.value }
     delete next[groupKey]
-    expandedByGroup.value = next
+    moreBySection.value = next
   }
 
-  const grouping = shallowRef<SidebarGrouping>(loadGrouping())
   const sort = shallowRef<SidebarSort>(loadSort())
-
-  function setGrouping(next: SidebarGrouping): void {
-    grouping.value = next
-    writePref(GROUPING_KEY, next)
-  }
 
   function setSort(next: SidebarSort): void {
     sort.value = next
     writePref(SORT_KEY, next)
   }
 
-  /** 已展开的段：目录/时间默认收起，置顶段默认展开，改动持久化。 */
-  const EXPANDED_KEY = "pig.sidebarExpandedSections"
+  /** 已展开的架子：三个架子默认收起，改动持久化。 */
+  const EXPANDED_KEY = "pig.sidebarShelfExpanded"
+  const SECTION_KEYS = new Set(["pinned", "active", "working", "snoozed", "settled"])
   const expandedSections = shallowRef<ReadonlySet<string>>(loadExpandedSections())
 
   function loadExpandedSections(): ReadonlySet<string> {
     const raw = readPref(EXPANDED_KEY)
 
-    if (!raw) return new Set(["pinned"])
+    if (!raw) return new Set()
 
     try {
-      const parsed = JSON.parse(raw)
-      return new Set(Array.isArray(parsed) ? parsed : ["pinned"])
+      const parsed: unknown = JSON.parse(raw)
+      return new Set(
+        Array.isArray(parsed)
+          ? parsed.filter((key): key is string => typeof key === "string" && SECTION_KEYS.has(key))
+          : [],
+      )
     } catch {
-      return new Set(["pinned"])
+      return new Set()
     }
   }
 
@@ -168,6 +162,7 @@ export function useWorkspaceNav(
 
   function sectionsFor(
     pinnedOrder: MaybeRefOrGetter<readonly string[]>,
+    placement: (id: string) => SidebarPlacement,
     include?: MaybeRefOrGetter<((session: SessionMetadata) => boolean) | undefined>,
   ) {
     return computed((): SidebarSection[] => {
@@ -176,10 +171,9 @@ export function useWorkspaceNav(
       return sidebarSections({
         sessions,
         pinnedOrder: toValue(pinnedOrder),
-        grouping: grouping.value,
+        placement,
         sort: sort.value,
-        localWorkspaces: workspaces.value,
-        expandedByGroup: expandedByGroup.value,
+        moreBySection: moreBySection.value,
       })
     })
   }
@@ -261,12 +255,10 @@ export function useWorkspaceNav(
     workspaces,
     groups,
     listedSessions,
-    expandedByGroup,
+    moreBySection,
     revealMore,
     collapseGroup,
-    grouping,
     sort,
-    setGrouping,
     setSort,
     expandedSections,
     toggleSection,

@@ -3,7 +3,6 @@
     v-model:search-open="searchOpen"
     :groups="groups"
     :connected="connected"
-    :grouping="grouping"
     :sort="sort"
     :scope-filter="scopeFilter"
     :sections="sections"
@@ -12,10 +11,9 @@
     :pinned-ids="pinnedIds"
     :highlighted-session-id="highlightedSessionId"
     :expanded-sections="expandedSections"
-    :expanded-by-group="expandedByGroup"
+    :more-by-section="moreBySection"
     :status-counts="statusCounts"
     @update:scope-filter="scopeFilter = $event"
-    @update:grouping="setGrouping"
     @update:sort="setSort"
     @toggle-sidebar="onToggleSidebar"
     @create="onCreateSession"
@@ -27,6 +25,10 @@
     @toggle-pinned="togglePinned"
     @rename="renameSession"
     @delete="deleteSession"
+    @settle="settle"
+    @unsettle="unsettle"
+    @snooze="snooze"
+    @unsnooze="unsnooze"
     @reorder-pinned="reorderPinned"
     @pin-at="pinAt"
     @unpin="togglePinned"
@@ -71,13 +73,11 @@ const {
   listedSessions,
   openSession,
   primeSession,
-  grouping,
   sort,
-  setGrouping,
   setSort,
   sectionsFor,
   expandedSections,
-  expandedByGroup,
+  moreBySection,
   toggleSection,
   revealMore,
   collapseGroup,
@@ -86,6 +86,10 @@ const {
   togglePinned,
   renameSession,
   deleteSession,
+  settle,
+  unsettle,
+  snooze,
+  unsnooze,
   reorderPinned,
   pinAt,
 } = useNav()

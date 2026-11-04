@@ -6,11 +6,11 @@ test("项目筛选支持多选，全部项目恢复全量", async ({ page, multi
   await page.goto(multiGateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
 
-  const sectionCount = page.locator(".section-count").first()
+  const cards = page.locator(".session-card")
 
-  await expect(sectionCount).toHaveText("5")
+  await expect(cards).toHaveCount(5)
 
-  const head = page.locator(".search-head .head-btn")
+  const head = page.locator(".nav-footer .filter-btn")
   const headClass = await head.getAttribute("class")
 
   await head.click()
@@ -19,16 +19,16 @@ test("项目筛选支持多选，全部项目恢复全量", async ({ page, multi
 
   await expect(menu).toBeVisible()
   await menu.getByText("workspace-a", { exact: true }).click()
-  await expect(sectionCount).toHaveText("3")
+  await expect(cards).toHaveCount(3)
 
   await menu.getByText("workspace-b", { exact: true }).click()
-  await expect(sectionCount).toHaveText("5")
+  await expect(cards).toHaveCount(5)
 
   await menu.getByText("workspace-a", { exact: true }).click()
-  await expect(sectionCount).toHaveText("2")
+  await expect(cards).toHaveCount(2)
 
   await menu.getByText("全部项目", { exact: true }).click()
-  await expect(sectionCount).toHaveText("5")
+  await expect(cards).toHaveCount(5)
 
   // 筛选按钮本身不表达筛选态
   expect(await head.getAttribute("class")).toBe(headClass)

@@ -1,24 +1,65 @@
-import { computed, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
+import { computed, onScopeDispose, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { sessionRecency } from "@features/session-nav/lib/format.js"
 import { isDraftSessionId, moveSessionId } from "@features/session-nav/lib/session-list.js"
-import { readStringArray, writeJson } from "@utils/storage.js"
+import { readJson, readNumber, readStringArray, writeJson, writeNumber } from "@utils/storage.js"
 
 const PINNED_KEY = "pig.sidebarPinnedSessions"
+const SETTLED_KEY = "pig.sidebarSettledSessions"
+const SNOOZED_KEY = "pig.sidebarSnoozedSessions"
+const READ_AT_KEY = "pig.sidebarReadAt"
+const EPOCH_KEY = "pig.sidebarEpoch"
+
+/** 未读起算点只写一次：首次装上侧栏标记的那一刻，重启不重算。 */
+function readEpoch(): number {
+  const stored = readNumber(EPOCH_KEY)
+
+  if (stored !== undefined) return stored
+  const now = Date.now()
+  writeNumber(EPOCH_KEY, now)
+  return now
+}
 
 export function useSessionMarkers(
   sessions: MaybeRefOrGetter<readonly SessionMetadata[]>,
   activeSessionId: MaybeRefOrGetter<string | undefined>,
 ) {
   const pinnedIdList = shallowRef(readStringArray(PINNED_KEY))
-  // 未读只活在本次运行：启动前完成的不算，关应用即丢
-  const runStartAt = Date.now()
-  const readAtById = shallowRef<Record<string, number>>({})
+  const settledIdList = shallowRef(readStringArray(SETTLED_KEY))
+  const snoozedUntil = shallowRef<Record<string, number>>(
+    readJson<Record<string, number>>(SNOOZED_KEY) ?? {},
+  )
+  const readAtById = shallowRef<Record<string, number>>(
+    readJson<Record<string, number>>(READ_AT_KEY) ?? {},
+  )
+  const epoch = readEpoch()
+  const now = shallowRef(Date.now())
   const pinnedIds = computed(() => new Set(pinnedIdList.value))
-  const pinnedOrder = computed(() => pinnedIdList.value)
+  const settledIds = computed(() => new Set(settledIdList.value))
   const pinnedSessions = computed(() =>
     toValue(sessions).filter((session) => pinnedIds.value.has(session.id)),
   )
+  let wakeTimer: ReturnType<typeof setTimeout> | undefined
+
+  /** 定时器只设在最近一次唤醒上；到点后重算，顺带跳过睡过头的那些。 */
+  function scheduleWake() {
+    clearTimeout(wakeTimer)
+    wakeTimer = undefined
+    const wakes = Object.values(snoozedUntil.value).filter((at) => at > now.value)
+
+    if (wakes.length === 0) return
+    const next = Math.min(...wakes)
+    wakeTimer = setTimeout(
+      () => {
+        now.value = Date.now()
+        scheduleWake()
+      },
+      Math.max(0, next - Date.now()) + 1_000,
+    )
+  }
+
+  watch(snoozedUntil, scheduleWake, { immediate: true, deep: true })
+  onScopeDispose(() => clearTimeout(wakeTimer))
 
   function togglePinned(id: string): void {
     pinnedIdList.value = pinnedIds.value.has(id)
@@ -37,13 +78,48 @@ export function useSessionMarkers(
   function pinAt(id: string, toIndex: number): void {
     pinnedIdList.value = moveSessionId(pinnedIdList.value, id, toIndex)
     writeJson(PINNED_KEY, pinnedIdList.value)
+    unsnooze(id)
+  }
+
+  function settle(id: string): void {
+    if (settledIds.value.has(id)) return
+    settledIdList.value = [...settledIdList.value, id]
+    writeJson(SETTLED_KEY, settledIdList.value)
+    pinnedIdList.value = pinnedIdList.value.filter((item) => item !== id)
+    writeJson(PINNED_KEY, pinnedIdList.value)
+    unsnooze(id)
+  }
+
+  function unsettle(id: string): void {
+    if (!settledIds.value.has(id)) return
+    settledIdList.value = settledIdList.value.filter((item) => item !== id)
+    writeJson(SETTLED_KEY, settledIdList.value)
+  }
+
+  function snooze(id: string, until: number): void {
+    snoozedUntil.value = { ...snoozedUntil.value, [id]: until }
+    writeJson(SNOOZED_KEY, snoozedUntil.value)
+    now.value = Date.now()
+    scheduleWake()
+  }
+
+  function unsnooze(id: string): void {
+    if (snoozedUntil.value[id] === undefined) return
+    const next = { ...snoozedUntil.value }
+    delete next[id]
+    snoozedUntil.value = next
+    writeJson(SNOOZED_KEY, next)
+  }
+
+  function isSnoozed(id: string): boolean {
+    return (snoozedUntil.value[id] ?? 0) > now.value
   }
 
   function isUnread(session: SessionMetadata): boolean {
     if (isDraftSessionId(session.id)) return false
 
     if (session.id === toValue(activeSessionId)) return false
-    return sessionRecency(session) > (readAtById.value[session.id] ?? runStartAt)
+    return sessionRecency(session) > (readAtById.value[session.id] ?? epoch)
   }
 
   watch(
@@ -57,16 +133,47 @@ export function useSessionMarkers(
 
       if (readAtById.value[sessionId] === readAt) return
       readAtById.value = { ...readAtById.value, [sessionId]: readAt }
+      writeJson(READ_AT_KEY, readAtById.value)
     },
     { immediate: true },
   )
+
+  // 会话删掉后清掉残留，免得同一 id 复用时带着旧状态回来
+  watch(
+    () => toValue(sessions),
+    (list) => {
+      const ids = new Set(list.map((session) => session.id))
+      const nextSettled = settledIdList.value.filter((id) => ids.has(id))
+
+      if (nextSettled.length !== settledIdList.value.length) {
+        settledIdList.value = nextSettled
+        writeJson(SETTLED_KEY, nextSettled)
+      }
+
+      const nextSnoozed = Object.fromEntries(
+        Object.entries(snoozedUntil.value).filter(([id]) => ids.has(id)),
+      )
+
+      if (Object.keys(nextSnoozed).length !== Object.keys(snoozedUntil.value).length) {
+        snoozedUntil.value = nextSnoozed
+        writeJson(SNOOZED_KEY, nextSnoozed)
+      }
+    },
+  )
   return {
     pinnedIds,
-    pinnedOrder,
+    pinnedOrder: computed(() => pinnedIdList.value),
     pinnedSessions,
     togglePinned,
     reorderPinned,
     pinAt,
+    settledIds,
+    isSnoozed,
     isUnread,
+    now,
+    settle,
+    unsettle,
+    snooze,
+    unsnooze,
   }
 }

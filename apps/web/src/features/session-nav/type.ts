@@ -1,12 +1,12 @@
 import type { SessionMetadata } from "@/types/common-type.js"
 
-/** 左侧导航按 cwd 分组。 */
+/** 项目筛选用的会话分组。 */
 export interface SessionGroup {
   canonicalPath: string
   sessions: SessionMetadata[]
 }
 
-/** 侧栏会话行：id、标题、时间；cwd 供组名展示。 */
+/** 侧栏会话行：id、标题、时间；cwd 供第二行项目名。 */
 export interface SidebarSession {
   id: string
   title: string
@@ -26,17 +26,24 @@ export interface SidebarRowFoot {
   state?: SidebarSessionState | undefined
 }
 
-/** 侧栏视图选项：分组与排序，持久化在 localStorage。 */
-export type SidebarGrouping = "date" | "cwd"
-
+/** 侧栏排序，持久化在 localStorage。 */
 export type SidebarSort = "updated" | "created"
 
-/** 侧栏一个可折叠分区：Pinned、日期桶或工作目录。 */
+/** 侧栏固定分段。 */
+export type SidebarSectionKind = "pinned" | "active" | "working" | "snoozed" | "settled"
+
+/** 一个会话此刻的落脚信息，决定它进哪一段。 */
+export interface SidebarPlacement {
+  running: boolean
+  settled: boolean
+  snoozed: boolean
+}
+
+/** 侧栏一个可折叠分区：置顶、收件箱、运行中、已延后或已归档。 */
 export interface SidebarSection {
   key: string
+  kind: SidebarSectionKind
   label: string
-  /** cwd 分组的 canonical 路径，供组头图标与「在该项目新建」。 */
-  cwd?: string
   sessions: SidebarSession[]
   /** 总数（含未显示的），用来算还能不能 Show more。 */
   total: number

@@ -7,7 +7,6 @@ async function enter(page: Page, gateway: E2eGateway) {
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
-  await page.locator(".session-section").first().locator(".section-toggle").click()
   await expect(page.locator(".session-card").first()).toBeVisible()
 }
 
@@ -37,7 +36,7 @@ test("改名后侧栏标签跟着变", async ({ page, navGateway }) => {
 test("删除会话后从侧栏消失", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 
-  await expect(page.locator(".session-card")).toHaveCount(5)
+  await expect(page.locator(".session-card")).toHaveCount(6)
   await page.locator(".session-card").first().hover()
   await page.locator(".session-card").first().getByRole("button", { name: "更多" }).click()
   await page.getByRole("menuitem", { name: "删除会话" }).click()
@@ -48,7 +47,7 @@ test("删除会话后从侧栏消失", async ({ page, navGateway }) => {
 
   await dialog.getByRole("button", { name: "删除会话" }).click()
 
-  // 删掉最新一条后，原来排在第二页的「批量会话 1」顶上来，可见数仍是 5
+  // 收件箱平铺，删掉一条就少一条
   await expect(
     page.locator(".session-card", { has: page.getByText(`${FILLER_PREFIX} 6`, { exact: true }) }),
   ).toHaveCount(0)
