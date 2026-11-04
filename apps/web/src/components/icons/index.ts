@@ -12,6 +12,8 @@ export { AltArrowDownIcon } from "@solar-icons/vue/linear/alt-arrow-down"
 
 export { AltArrowRightIcon } from "@solar-icons/vue/linear/alt-arrow-right"
 
+export { ArchiveIcon } from "@solar-icons/vue/linear/archive"
+
 export { ArrowDownIcon } from "@solar-icons/vue/linear/arrow-down"
 
 export { ArrowLeftDownIcon } from "@solar-icons/vue/linear/arrow-left-down"
@@ -129,6 +131,8 @@ export { SunIcon } from "@solar-icons/vue/linear/sun"
 export { TrashBinMinimalisticIcon } from "@solar-icons/vue/linear/trash-bin-minimalistic"
 
 export { Tuning2Icon } from "@solar-icons/vue/linear/tuning-2"
+
+export { UndoLeftRoundIcon } from "@solar-icons/vue/linear/undo-left-round"
 
 export { UserIcon } from "@solar-icons/vue/linear/user"
 

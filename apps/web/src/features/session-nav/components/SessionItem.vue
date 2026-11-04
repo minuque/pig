@@ -40,20 +40,20 @@
                 <Tooltip v-if="!placeholder">
                   <TooltipTrigger as-child>
                     <button
-                      class="more-toggle press-scale"
+                      class="row-action press-scale"
                       type="button"
-                      :aria-label="t('common.more')"
-                      aria-haspopup="menu"
-                      :aria-expanded="menuOpen"
-                      @click.prevent.stop="openSessionMenu"
-                      @contextmenu.prevent.stop="openSessionMenu"
+                      :aria-label="settled ? t('session.unsettle') : t('session.settle')"
+                      @click.prevent.stop="onRowAction"
                       @pointerdown.stop
                     >
-                      <MenuDotsIcon class="size-icon" />
+                      <UndoLeftRoundIcon v-if="settled" class="size-icon" />
+                      <ArchiveIcon v-else class="size-icon" />
                     </button>
                   </TooltipTrigger>
 
-                  <TooltipContent>{{ t("common.more") }}</TooltipContent>
+                  <TooltipContent>
+                    {{ settled ? t("session.unsettle") : t("session.settle") }}
+                  </TooltipContent>
                 </Tooltip>
               </span>
             </span>
@@ -125,20 +125,20 @@
               <Tooltip v-if="!placeholder">
                 <TooltipTrigger as-child>
                   <button
-                    class="more-toggle press-scale"
+                    class="row-action press-scale"
                     type="button"
-                    :aria-label="t('common.more')"
-                    aria-haspopup="menu"
-                    :aria-expanded="menuOpen"
-                    @click.prevent.stop="openSessionMenu"
-                    @contextmenu.prevent.stop="openSessionMenu"
+                    :aria-label="settled ? t('session.unsettle') : t('session.settle')"
+                    @click.prevent.stop="onRowAction"
                     @pointerdown.stop
                   >
-                    <MenuDotsIcon class="size-icon" />
+                    <UndoLeftRoundIcon v-if="settled" class="size-icon" />
+                    <ArchiveIcon v-else class="size-icon" />
                   </button>
                 </TooltipTrigger>
 
-                <TooltipContent>{{ t("common.more") }}</TooltipContent>
+                <TooltipContent>
+                  {{ settled ? t("session.unsettle") : t("session.settle") }}
+                </TooltipContent>
               </Tooltip>
             </span>
           </template>
@@ -214,15 +214,16 @@ import {
 } from "@features/session-nav/lib/format.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
+  ArchiveIcon,
   CheckCircleIcon,
   CircleDashedIcon,
   FolderIcon,
-  MenuDotsIcon,
   PenIcon,
   PinIcon,
   PinBoldIcon,
   RestartIcon,
   TrashBinMinimalisticIcon,
+  UndoLeftRoundIcon,
 } from "@components/icons/index.js"
 
 const props = withDefaults(
@@ -423,13 +424,10 @@ function openContextMenuAt(target: HTMLElement, clientX: number, clientY: number
   )
 }
 
-function openSessionMenu(event: MouseEvent) {
-  const button = event.currentTarget
-  const card = button instanceof HTMLElement ? button.closest(".session-card") : null
-
-  if (!(button instanceof HTMLElement) || !(card instanceof HTMLElement)) return
-  const rect = button.getBoundingClientRect()
-  openContextMenuAt(card, rect.left, rect.bottom)
+/** 行尾动作：未归档的归档，已归档的还原。 */
+function onRowAction() {
+  if (props.settled) emit("unsettle", props.session.id)
+  else emit("settle", props.session.id)
 }
 
 function onCardKeydown(event: KeyboardEvent) {
@@ -605,7 +603,7 @@ function confirmDelete() {
   opacity: 0;
 }
 
-.more-toggle {
+.row-action {
   position: absolute;
   inset-inline-end: -4px;
   top: 50%;
@@ -615,23 +613,23 @@ function confirmDelete() {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--contrast-foreground-muted);
   translate: 0 -50%;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.session-item:hover .more-toggle,
-.session-item:focus-within .more-toggle,
-.more-toggle:focus-visible,
-.session-item.is-menu-open .more-toggle {
+.session-item:hover .row-action,
+.session-item:focus-within .row-action,
+.row-action:focus-visible,
+.session-item.is-menu-open .row-action {
   opacity: 1;
   pointer-events: auto;
 }
 
-.more-toggle:hover,
-.more-toggle:focus-visible {
+.row-action:hover,
+.row-action:focus-visible {
   background: var(--hover-strong);
   color: var(--contrast-foreground);
 }
@@ -660,7 +658,7 @@ function confirmDelete() {
   .session-card,
   .title,
   .state-mark,
-  .more-toggle {
+  .row-action {
     transition: none;
   }
 }

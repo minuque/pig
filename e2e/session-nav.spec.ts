@@ -44,6 +44,22 @@ test("归档的会话离开收件箱，收进已归档段", async ({ page, navGa
   await expect(settled.locator(".session-card")).toContainText(`${FILLER_PREFIX} 6`)
 })
 
+test("行尾归档按钮把会话收进已归档段", async ({ page, navGateway }) => {
+  await enter(page, navGateway)
+
+  const first = section(page).locator(".session-card").first()
+  await expect(first).toContainText(`${FILLER_PREFIX} 6`)
+  await first.hover()
+  await first.getByRole("button", { name: "归档" }).click()
+
+  await expect(section(page).locator(".session-card")).toHaveCount(5)
+  const settled = page.locator('.session-section[data-key="settled"]')
+  await expect(settled.locator(".section-count")).toHaveText("1")
+
+  await settled.locator(".section-toggle").click()
+  await expect(settled.locator(".session-card")).toContainText(`${FILLER_PREFIX} 6`)
+})
+
 test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 
