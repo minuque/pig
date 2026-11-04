@@ -150,8 +150,8 @@ const tabs = computed<{ id: Pane; label: string; icon: typeof SliderMinimalistic
       label: t("settings.general"),
       icon: SliderMinimalisticHorizontalIcon,
     },
-    { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
     { id: "models", label: t("settings.models.title"), icon: CloudIcon },
+    { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
   ],
 )
 /** 头部路径：设置 + 分区自己的下钻层级，没有下钻就落到当前分区名。 */
@@ -204,6 +204,12 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     section: t("settings.interface"),
   },
   {
+    id: "",
+    pane: "models",
+    title: t("settings.models.providers"),
+    section: t("settings.models.title"),
+  },
+  {
     id: "setting-notify-system",
     pane: "notifications",
     title: t("settings.notifySystem"),
@@ -214,12 +220,6 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     pane: "notifications",
     title: t("settings.notifySound"),
     section: t("settings.notifications"),
-  },
-  {
-    id: "",
-    pane: "models",
-    title: t("settings.models.providers"),
-    section: t("settings.models.title"),
   },
 ])
 const results = computed(() => matchSettings(searchEntries.value, query.value))
