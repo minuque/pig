@@ -8,7 +8,6 @@
       :sort="sort"
       @update:search-open="emit('update:searchOpen', $event)"
       @toggle-sidebar="emit('toggleSidebar')"
-      @home="emit('home')"
       @create="emit('create', $event)"
       @open="emit('open', $event)"
     />
@@ -108,7 +107,6 @@ const emit = defineEmits<{
   "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
   "update:sort": [sort: SidebarSort]
   toggleSidebar: []
-  home: []
   create: [cwd?: string]
   addProject: []
   settings: []
@@ -182,7 +180,6 @@ function onGlobalSettings(): void {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding-block-start: var(--space-xs);
   padding-inline-start: var(--nav-inline);
 }
 

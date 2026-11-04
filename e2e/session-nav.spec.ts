@@ -47,7 +47,7 @@ test("归档的会话离开收件箱，收进已归档段", async ({ page, navGa
 test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 
-  await page.locator(".nav-footer").getByRole("button", { name: "搜索" }).click()
+  await page.locator(".nav-head").getByRole("button", { name: "搜索" }).click()
 
   const dialog = page.locator(".search-dialog")
   await expect(dialog).toBeVisible()

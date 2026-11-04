@@ -97,23 +97,6 @@
   }
 }
 
-/* 侧栏品牌悬停：小猪先缩下去，之后与开屏 pig-peek 同一段探头 */
-@keyframes brand-peek {
-  0% {
-    transform: none;
-    animation-timing-function: var(--ease-in-out);
-  }
-
-  28% {
-    transform: translateY(100%) rotate(-14deg);
-    animation-timing-function: var(--ease-out);
-  }
-
-  100% {
-    transform: none;
-  }
-}
-
 /* ------ 微交互：按压缩放、图标切换、箭头翻转 ------ */
 .press-scale:not(:disabled):active {
   scale: 0.96;
