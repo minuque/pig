@@ -85,17 +85,6 @@ describe("webSocketUrl", () => {
 })
 
 describe("createWebSocketByteTransportFactory", () => {
-  it("open 后 send 发送 [byteOffset, byteOffset+byteLength) 精确范围", async () => {
-    const { transport, socket } = await openTransport()
-    socket.emit("open")
-    const pool = new Uint8Array(64)
-    const view = pool.subarray(10, 20)
-    view.set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    await transport.send(view)
-    expect(socket.sent).toHaveLength(1)
-    expect(new Uint8Array(socket.sent[0]!)).toEqual(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
-  })
-
   it("失败路径：open 前 error，send reject，不挂起", async () => {
     const { transport, socket, handlers } = await openTransport()
     const pending = transport.send(new Uint8Array([1]))

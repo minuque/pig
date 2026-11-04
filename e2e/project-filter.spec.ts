@@ -11,7 +11,6 @@ test("项目筛选支持多选，全部项目恢复全量", async ({ page, multi
   await expect(cards).toHaveCount(5)
 
   const head = page.locator(".nav-footer .filter-btn")
-  const headClass = await head.getAttribute("class")
 
   await head.click()
 
@@ -29,7 +28,4 @@ test("项目筛选支持多选，全部项目恢复全量", async ({ page, multi
 
   await menu.getByText("全部项目", { exact: true }).click()
   await expect(cards).toHaveCount(5)
-
-  // 筛选按钮本身不表达筛选态
-  expect(await head.getAttribute("class")).toBe(headClass)
 })

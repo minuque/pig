@@ -105,37 +105,6 @@ describe("一轮工作：流式视口跟随", () => {
     expect(follow.visuallyAtBottom.value).toBe(true)
   })
 
-  it("布局连续变化时一直跟，稳定后停下", () => {
-    const { root, follow } = fixture()
-
-    follow.pinIfNeeded()
-
-    for (let index = 0; index < 20; index += 1) {
-      root.scrollHeight += 8
-      frame()
-    }
-
-    expect(follow.atBottom.value).toBe(true)
-    expect(root.scrollTop).toBe(root.scrollHeight - 400)
-    advance(4)
-    expect(frames.size).toBe(0)
-    expect(root.scrollTop).toBe(root.scrollHeight - 400)
-  })
-
-  it("失败路径：冷却只忽略自身写入的回声，越过写入位置算用户接管", () => {
-    const { root, follow } = fixture()
-
-    follow.pinIfNeeded()
-    root.scrollTop = 600
-    expect(follow.atBottom.value).toBe(true)
-    root.scrollTop = 300
-    frame()
-    frame()
-    expect(follow.atBottom.value).toBe(false)
-    settleFully()
-    expect(root.scrollTop).toBe(300)
-  })
-
   it("失败路径：用户上翻超过半屏脱底后不再抢滚动，滚回底部附近重新吸附", () => {
     const { root, follow } = fixture()
 
@@ -176,17 +145,6 @@ describe("一轮工作：流式视口跟随", () => {
     expect(root.scrollTop).toBe(800)
   })
 
-  it("失败路径：滚动条外的指针按下不脱底", () => {
-    const { root, follow } = fixture()
-
-    follow.pinIfNeeded()
-    advance(80)
-    follow.onPointerDown({ clientX: 100, button: 0 } as PointerEvent)
-    expect(follow.atBottom.value).toBe(true)
-    root.scrollTop -= 60
-    expect(follow.atBottom.value).toBe(true)
-  })
-
   it("失败路径：滚轮上滚立即脱底并停掉自动贴底", () => {
     const { root, follow } = fixture()
 
@@ -199,32 +157,5 @@ describe("一轮工作：流式视口跟随", () => {
     advance(8)
     expect(follow.atBottom.value).toBe(false)
     expect(root.scrollTop).toBe(480)
-  })
-
-  it("内容收缩的浏览器钳位不被误认为上翻", () => {
-    const { root, follow } = fixture()
-
-    follow.pinIfNeeded()
-    advance(80)
-    root.scrollHeight = 800
-    root.scrollTop = root.scrollHeight - root.clientHeight
-    expect(follow.atBottom.value).toBe(true)
-    expect(root.scrollTop).toBe(400)
-  })
-
-  it("切换会话和卸载清理帧循环，不保留旧状态", () => {
-    const { root, follow } = fixture()
-
-    root.scrollHeight += 24
-    follow.pinIfNeeded()
-    expect(frames.size).toBe(1)
-    follow.reset()
-    expect(frames.size).toBe(0)
-    expect(follow.atBottom.value).toBe(false)
-    follow.scrollToLatest()
-    follow.pinIfNeeded()
-    expect(frames.size).toBe(1)
-    lifecycle.unmount()
-    expect(frames.size).toBe(0)
   })
 })

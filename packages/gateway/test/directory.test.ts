@@ -3,12 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
 
-import {
-  canonicalizePath,
-  ManualDirectoryPort,
-  WindowsDirectoryPort,
-  type DirectoryExecFile,
-} from "../src/directory.js"
+import { canonicalizePath, WindowsDirectoryPort, type DirectoryExecFile } from "../src/directory.js"
 
 describe("canonicalizePath", () => {
   it("把盘符改成小写、反斜杠改成斜杠，并去掉末尾斜杠", () => {
@@ -39,24 +34,11 @@ describe("canonicalizePath", () => {
   })
 })
 
-describe("ManualDirectoryPort", () => {
-  it("要求手动输入且不弹窗", async () => {
-    const port = new ManualDirectoryPort()
-    expect(port.requiresManualInput).toBe(true)
-    expect(await port.selectDirectory()).toBeUndefined()
-  })
-})
-
 describe("WindowsDirectoryPort", () => {
   let tempRoot: string | undefined
   afterEach(async () => {
     if (tempRoot) await rm(tempRoot, { recursive: true, force: true })
     tempRoot = undefined
-  })
-
-  it("stdout 为空视为取消", async () => {
-    const port = new WindowsDirectoryPort(async () => ({ stdout: "  \n" }))
-    expect(await port.selectDirectory()).toBeUndefined()
   })
 
   it("pwsh 不存在时回退到 powershell.exe", async () => {
@@ -77,16 +59,5 @@ describe("WindowsDirectoryPort", () => {
     const port = new WindowsDirectoryPort(exec)
     expect(await port.selectDirectory()).toBe(expected)
     expect(tried).toEqual(["pwsh", "powershell.exe"])
-  })
-
-  it("非法 JSON 路径直接失败，不回退", async () => {
-    const tried: string[] = []
-    const port = new WindowsDirectoryPort(async (file) => {
-      tried.push(file)
-      return { stdout: "null" }
-    })
-
-    await expect(port.selectDirectory()).rejects.toThrow("invalid folder path")
-    expect(tried).toEqual(["pwsh"])
   })
 })

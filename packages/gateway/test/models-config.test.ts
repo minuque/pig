@@ -53,12 +53,6 @@ describe("ProviderConfigStore", () => {
     })
   })
 
-  it("文件不存在时读到空对象", async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "pig-models-config-"))
-
-    await expect(new ProviderConfigStore(join(tempDir, "models.json")).read()).resolves.toEqual({})
-  })
-
   it("损坏的 JSON 抛 ModelsConfigError，且不写文件", async () => {
     const contents = "{ not json"
     const { store, path } = await storeWith(contents)

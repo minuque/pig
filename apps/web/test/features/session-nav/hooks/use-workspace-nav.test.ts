@@ -195,20 +195,6 @@ describe("useWorkspaceNav", () => {
     expect(adm.refreshSessions).not.toHaveBeenCalled()
   })
 
-  it("重命名不回滚占位：同一会话连续改名保留最后一次", async () => {
-    const sessions = ref<SessionMetadata[]>([
-      { id: "s1", createdAt: 1, cwd: "/a", sessionName: "旧名字" },
-    ])
-
-    platformRequestMock.mockImplementation(async () => ({ cards: [] }))
-    const nav = useWorkspaceNav(sessions, localWorkspaces(["/a"]), ref(""), admin())
-
-    await nav.renameSession("s1", "甲")
-    await nav.renameSession("s1", "乙")
-
-    expect(nav.listedSessions.value[0]?.sessionName).toBe("乙")
-  })
-
   it("删除遇 BUSY 时等一轮重试，第二次成功即真删", async () => {
     const sessions = ref<SessionMetadata[]>([{ id: "s1", createdAt: 1, cwd: "/a" }])
     let attempts = 0

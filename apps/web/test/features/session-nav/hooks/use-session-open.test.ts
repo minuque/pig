@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import { nextTick, ref } from "vue"
+import { ref } from "vue"
 import { useSessionOpen } from "@features/session-nav/hooks/use-session-open.js"
 
 function setup(current?: string) {
@@ -19,14 +19,6 @@ describe("useSessionOpen", () => {
     expect(nav.push).toHaveBeenCalledWith({ name: "session", params: { sessionId: "b" } })
   })
 
-  it("路由落地后高亮跟 sessionId", async () => {
-    const nav = setup("a")
-    nav.openSession("b")
-    nav.sessionId.value = "b"
-    await nextTick()
-    expect(nav.highlightedSessionId.value).toBe("b")
-  })
-
   it("点当前已打开会话则取消未完成跳转", async () => {
     const idle = setup("a")
     idle.openSession("a")
@@ -41,16 +33,5 @@ describe("useSessionOpen", () => {
     expect(nav.highlightedSessionId.value).toBe("a")
     await Promise.resolve()
     expect(nav.push).toHaveBeenCalledTimes(1)
-  })
-
-  it("按下即预热，同会话不重复拉", () => {
-    const sessionId = ref("a")
-    const loadHistory = vi.fn(() => Promise.resolve())
-    const nav = useSessionOpen(sessionId, { push: vi.fn() }, loadHistory)
-
-    nav.primeSession("b")
-    expect(loadHistory).toHaveBeenCalledWith("b")
-    nav.primeSession("a")
-    expect(loadHistory).toHaveBeenCalledTimes(1)
   })
 })

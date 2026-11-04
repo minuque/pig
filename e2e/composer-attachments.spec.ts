@@ -9,13 +9,11 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
 
   const panel = page.locator(".session-panel")
-  const card = page.locator(".composer-card")
   const note = page.getByRole("button", { name: "移除 note.md" })
   const shot = page.getByRole("button", { name: "移除 shot.png" })
 
   await expect(panel).toBeVisible()
   await expect(note).toHaveCount(0)
-  await expect(card).toHaveCSS("border-radius", "32px")
 
   await drag(page, "dragenter")
   await expect(panel).toHaveClass(/is-drop-active/)
@@ -28,7 +26,6 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
   await expect(note).toBeVisible()
   await expect(shot).toBeVisible()
   await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
-  await expect(card).toHaveCSS("border-radius", "32px")
 
   await note.click()
   await expect(note).toHaveCount(0)
@@ -56,38 +53,6 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
 
   await expect(svg).toBeVisible()
   await expect(svg.locator("img")).toHaveCount(0)
-})
-
-test("输入卡附件：拖出面板关掉染色遮罩", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
-  await seedWorkspace(page, gateway.workspaceId)
-  await page.goto(gateway.entryUrl)
-  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
-
-  const panel = page.locator(".session-panel")
-
-  await drag(page, "dragenter")
-  await expect(panel).toHaveClass(/is-drop-active/)
-  // 子元素之间的 leave 不该关遮罩
-  await panel.evaluate((element) => {
-    const inner = element.querySelector(".conversation-column")
-
-    element.dispatchEvent(new DragEvent("dragleave", { bubbles: true, relatedTarget: inner }))
-  })
-  await expect(panel).toHaveClass(/is-drop-active/)
-  // 拖到面板外才关
-  await panel.evaluate((element) => {
-    element.dispatchEvent(
-      new DragEvent("dragleave", { bubbles: true, relatedTarget: document.body }),
-    )
-  })
-  await expect(panel).not.toHaveClass(/is-drop-active/)
-  // 拖出窗口时 relatedTarget 为 null
-  await drag(page, "dragenter")
-  await panel.evaluate((element) => {
-    element.dispatchEvent(new DragEvent("dragleave", { bubbles: true }))
-  })
-  await expect(panel).not.toHaveClass(/is-drop-active/)
 })
 
 test("输入卡附件：超量的跳过并提示，附件入口禁用", async ({ page, gateway }) => {

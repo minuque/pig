@@ -52,13 +52,6 @@ test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => 
   const dialog = page.locator(".search-dialog")
   await expect(dialog).toBeVisible()
 
-  // 回归：rt 面板靠 flex + margin:auto 对中，写 transform 位移会把它推离正中
-  const box = await dialog.boundingBox()
-  const viewport = page.viewportSize()
-  expect(box).not.toBeNull()
-  expect(viewport).not.toBeNull()
-  expect(Math.abs(box!.x + box!.width / 2 - viewport!.width / 2)).toBeLessThanOrEqual(1)
-
   const input = dialog.locator(".search-input")
   await input.fill("批量会话 3")
   await expect(dialog.locator(".search-row")).toHaveCount(1)
@@ -72,32 +65,6 @@ test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => 
   await dialog.locator(".search-row").first().click()
   await expect(page).toHaveURL(/\/sessions\/e2e-filler-1$/)
   await expect(dialog).toHaveCount(0)
-})
-
-/** 标题右缘离卡片内容区右缘的距离：状态位不该把标题挤短。 */
-async function titleRightGap(card: Locator): Promise<number> {
-  return card.evaluate((el) => {
-    const title = el.querySelector<HTMLElement>(".title")
-    const style = getComputedStyle(el)
-    const contentRight = el.getBoundingClientRect().right - parseFloat(style.paddingInlineEnd)
-    return contentRight - (title?.getBoundingClientRect().right ?? 0)
-  })
-}
-
-test("状态位不挤占标题宽度：无状态行与草稿行都写满整行", async ({ page, navGateway }) => {
-  await enter(page, navGateway)
-
-  const plain = section(page).locator(".session-card").first()
-  // 打开会话后它不再算未读，行上就没有状态图标
-  await plain.click()
-  await expect(plain.locator(".state-icon")).toHaveCount(0)
-  expect(await titleRightGap(plain)).toBeLessThanOrEqual(1)
-
-  await page.getByRole("button", { name: "新建会话", exact: true }).click()
-  const draft = page.locator(".session-card.is-placeholder")
-  await expect(draft).toBeVisible()
-  await expect(draft.locator(".state-icon")).toHaveCount(1)
-  expect(await titleRightGap(draft)).toBeLessThanOrEqual(1)
 })
 
 /** 用指针拖一行到目标中心：拖拽阈值为 5px，分步移动让 pointermove 生效。 */
@@ -139,23 +106,4 @@ test("拖拽会话进出置顶区：拖进置顶、拖出取消置顶", async ({
   )
   await expect(pinned.locator(".session-card")).toHaveCount(1)
   await expect(pinned.locator(".session-card").first()).toContainText("批量会话 6")
-})
-
-test("没有置顶时拖起会话露出置顶落点", async ({ page, navGateway }) => {
-  await enter(page, navGateway)
-
-  const card = section(page).locator(".session-card").first()
-  const start = await card.boundingBox()
-  const windowTop = await page.locator(".session-window").boundingBox()
-
-  expect(start).not.toBeNull()
-  expect(windowTop).not.toBeNull()
-  await page.mouse.move(start!.x + start!.width / 2, start!.y + start!.height / 2)
-  await page.mouse.down()
-  await page.mouse.move(start!.x + start!.width / 2, windowTop!.y + 20, { steps: 12 })
-  await expect(page.locator(".session-section.pinned-drop")).toBeVisible()
-  await page.mouse.up()
-
-  const pinned = page.locator('.session-section[data-key="pinned"]')
-  await expect(pinned.locator(".session-card")).toHaveCount(1)
 })

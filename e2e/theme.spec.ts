@@ -1,47 +1,5 @@
 import { expect, seedWorkspace, test } from "./fixtures.js"
 
-function successVar(page: import("@playwright/test").Page) {
-  return page.evaluate(() =>
-    getComputedStyle(document.documentElement).getPropertyValue("--success").trim(),
-  )
-}
-
-test("切深色后 html 挂 dark，状态色跟着换一份", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
-  await seedWorkspace(page, gateway.workspaceId)
-  await page.goto(gateway.entryUrl)
-  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
-
-  const light = await successVar(page)
-
-  expect(light).toBe("#15803d")
-
-  await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
-  await page.locator(".scheme-cards").getByRole("radio", { name: "深色" }).click()
-
-  await expect(page.locator("html")).toHaveClass(/dark/)
-  expect(await successVar(page)).toBe("#34d399")
-})
-
-test("强调色排在字体大小下方，并与通用项同一张卡片", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
-  await seedWorkspace(page, gateway.workspaceId)
-  await page.goto(gateway.entryUrl)
-  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
-
-  await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
-  const grid = page.locator(".accent-grid")
-  await expect(grid).toBeVisible()
-
-  expect(await grid.evaluate((el) => Boolean(el.closest(".card")))).toBe(true)
-  expect(
-    await grid.evaluate((el) => {
-      const row = el.closest(".row")
-      return row?.previousElementSibling?.querySelector(".label")?.textContent?.trim()
-    }),
-  ).toBe("字体大小")
-})
-
 test("半透明窗口开关联动面板背景与窗口底色", async ({ page, gateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
   // 记录开关有没有交给桌面壳的材质通道

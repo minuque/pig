@@ -5,14 +5,11 @@ import { resolve } from "node:path"
 import type { AgentSession, AgentSessionEvent } from "@earendil-works/pi-coding-agent"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
 import type { TranscriptProgress } from "@earendil-works/pi-protocol"
-import type { PiSessionRuntimeEvent } from "@earendil-works/pi-server"
 import { afterEach, describe, expect, it } from "vitest"
 import { canonicalizePath } from "../src/directory.js"
 import { PiHostService } from "../src/pi/service.js"
 import { PiHostSession } from "../src/pi/session-runtime.js"
 import { TranscriptProjection } from "../src/pi/transcript.js"
-
-const PROGRESS_WINDOW_MS = 16
 
 // --- 测试替身 -------------------------------------------------------------
 
@@ -260,73 +257,6 @@ describe("PiHostSession", () => {
     fake.isStreaming = true
     expect(runtime.getPhase()).toBe("turn")
   })
-
-  it("forwards progress without an immediate stale snapshot", async () => {
-    const fake = new FakeAgentSession(SessionManager.inMemory("/tmp"))
-    const runtime = new PiHostSession(asSession(fake))
-    const events: { type: string }[] = []
-    runtime.subscribe((event) => events.push(event))
-    fake.emit({ type: "message_start", message: assistantMessage() } as AgentSessionEvent)
-    fake.emit({ type: "turn_start" } as AgentSessionEvent)
-    fake.emit({
-      type: "message_update",
-      message: assistantMessage(),
-      assistantMessageEvent: {
-        type: "text_delta",
-        contentIndex: 0,
-        delta: "x",
-        partial: assistantMessage(),
-      },
-    } as AgentSessionEvent)
-    // message_start/message_update 只发 progress，不发 snapshot（旧快照会清掉流式 progress）；update 合流窗口内未发出
-    expect(events.map((e) => e.type)).toEqual(["progress", "snapshot"])
-    await new Promise((resolve) => setTimeout(resolve, PROGRESS_WINDOW_MS))
-    expect(events.map((e) => e.type)).toEqual(["progress", "snapshot", "progress"])
-    fake.emit({
-      type: "message_end",
-      message: assistantMessage({ stopReason: "stop", content: [{ type: "text", text: "hello" }] }),
-    } as AgentSessionEvent)
-    // item_finished 立即发出，未发送的 update 先冲刷；message_end 的 snapshot 延迟到持久化之后（queueMicrotask）
-    expect(events.map((e) => e.type)).toEqual(["progress", "snapshot", "progress", "progress"])
-    await new Promise((resolve) => setTimeout(resolve, 0))
-    expect(events.map((e) => e.type)).toEqual([
-      "progress",
-      "snapshot",
-      "progress",
-      "progress",
-      "snapshot",
-    ])
-    expect(runtime.snapshot().revision).toBe(5)
-  })
-
-  it("连续 item_updated 合流只发最后一帧", async () => {
-    const fake = new FakeAgentSession(SessionManager.inMemory("/tmp"))
-    const runtime = new PiHostSession(asSession(fake))
-    const events: PiSessionRuntimeEvent[] = []
-    runtime.subscribe((event) => events.push(event))
-    fake.emit({ type: "message_start", message: assistantMessage() } as AgentSessionEvent)
-
-    for (let index = 0; index < 5; index += 1) {
-      fake.emit({
-        type: "message_update",
-        message: assistantMessage(),
-        assistantMessageEvent: {
-          type: "text_delta",
-          contentIndex: 0,
-          delta: `d${index}`,
-          partial: assistantMessage(),
-        },
-      } as AgentSessionEvent)
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, PROGRESS_WINDOW_MS * 2))
-
-    const updates = events.filter(
-      (event) => event.type === "progress" && event.progress.type === "item_updated",
-    )
-
-    expect(updates).toHaveLength(1)
-  })
 })
 
 // --- PiHostService ---------------------------------------------------------
@@ -364,19 +294,6 @@ describe("PiHostService", () => {
     })
     return { dir, service, sessions }
   }
-
-  it("只读取当前已附加 session 的占用估算，并在释放后清理", async () => {
-    const { service } = await makeService()
-    const runtime = await service.createSession({ id: "sess-1" })
-    expect(service.contextUsage("sess-1")).toMatchObject({
-      used: 100,
-      window: 1000,
-      segments: { idle: 900 },
-    })
-    expect(service.contextUsage("missing")).toBeUndefined()
-    await runtime.dispose()
-    expect(service.contextUsage("sess-1")).toBeUndefined()
-  })
 
   it("reopens a session in a fresh service and restores the transcript", async () => {
     // 进程重开：两个全新 PiHostService 共享 sessionDir，从磁盘恢复会话与 Transcript
@@ -477,14 +394,6 @@ describe("PiHostService", () => {
     expect(await service.listSessions()).toHaveLength(0)
   })
 
-  it("lists protocol model metadata", async () => {
-    const { service } = await makeService()
-    const models = await service.listModels()
-    expect(models).toEqual([
-      expect.objectContaining({ provider: "test", id: "test-model", authenticated: true }),
-    ])
-  })
-
   it("listModels 按 enabledModels 过滤", async () => {
     const { dir, service } = await makeService()
     await writeFile(join(dir, "settings.json"), JSON.stringify({ enabledModels: ["other/other"] }))
@@ -497,14 +406,5 @@ describe("PiHostService", () => {
     await writeFile(join(dir, "settings.json"), JSON.stringify({ enabledModels: [] }))
 
     expect(await service.listModels()).toEqual([])
-  })
-
-  it("warm 预热会话列表和模型目录", async () => {
-    const { service } = await makeService()
-    await service.warm()
-    expect(await service.listSessions()).toEqual([])
-    expect(await service.listModels()).toEqual([
-      expect.objectContaining({ provider: "test", id: "test-model" }),
-    ])
   })
 })

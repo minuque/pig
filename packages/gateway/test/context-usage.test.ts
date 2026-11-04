@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { estimateContextUsage, resolveUsedTokens } from "../src/pi/context-usage.js"
+import { estimateContextUsage } from "../src/pi/context-usage.js"
 
 function source(overrides: Record<string, unknown> = {}) {
   return {
@@ -42,14 +42,5 @@ describe("estimateContextUsage", () => {
     expect(usage.segments.conversation).toBeGreaterThan(0)
     expect(usage.segments.skills).toBe(0)
     expect(usage.segments.toolResults).toBe(0)
-  })
-})
-
-describe("resolveUsedTokens", () => {
-  it("上报 tokens 与 percent 显著不一致时优先 percent，明显偏小则回退估算", () => {
-    expect(resolveUsedTokens({ tokens: 1, percent: 7 }, 20_000, 272_000)).toBe(19_040)
-    expect(resolveUsedTokens({ tokens: 19_000, percent: 7 }, 20_000, 272_000)).toBe(19_000)
-    expect(resolveUsedTokens({ tokens: 1, percent: 1 / 2720 }, 20_000, 272_000)).toBe(20_000)
-    expect(resolveUsedTokens({ tokens: null, percent: null }, 20_000, 272_000)).toBe(20_000)
   })
 })

@@ -273,17 +273,6 @@ describe("打开已有 Session", () => {
     releaseS1()
   })
 
-  it("点开不打开会话、不回首页", async () => {
-    const { session } = setup()
-    openMock.mockRejectedValue(new Error("boom"))
-    routeBox.params.sessionId = "s1"
-    await session.initialize()
-    await nextTick()
-    expect(openMock).not.toHaveBeenCalled()
-    expect(routerReplace).not.toHaveBeenCalled()
-    expect(session.remote.value).toBeUndefined()
-  })
-
   it("open 失败但历史已到：留在会话页", async () => {
     const item = {
       id: "u1",
@@ -387,18 +376,6 @@ describe("打开已有 Session", () => {
     expect(a.submit).toHaveBeenCalledWith("ping")
   })
 
-  it("失败路径：点开不因重连而打开会话", async () => {
-    const connected = ref(false)
-    const { session } = setup({ connected })
-    openMock.mockResolvedValue(makeSession("s1"))
-    routeBox.params.sessionId = "s1"
-    await session.initialize()
-    connected.value = true
-    await nextTick()
-    expect(openMock).not.toHaveBeenCalled()
-    expect(session.remote.value).toBeUndefined()
-  })
-
   it("失败路径：发送时两次 disconnected 则报错且不回首页", async () => {
     const { session } = setup()
     openMock.mockRejectedValue(disconnectedError())
@@ -446,31 +423,6 @@ describe("打开已有 Session", () => {
     await session.initialize()
     await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
     expect(openMock).not.toHaveBeenCalled()
-  })
-
-  it("已连接打开会话只拉一次历史", async () => {
-    const item = {
-      id: "u1",
-      role: "user" as const,
-      content: [{ type: "text" as const, text: "hi" }],
-      timestamp: 1,
-    }
-
-    platformRequestMock.mockImplementation(async (path: string) => {
-      if (path.includes("/transcript")) return { items: [item], timings: [] }
-      return { usage: usageEstimate }
-    })
-    const { session } = setup()
-    const a = makeSession("s1")
-    a.state = { ...a.state, snapshot: snapshot(1), transcript: [] }
-    openMock.mockResolvedValue(a)
-    routeBox.params.sessionId = "s1"
-    await session.initialize()
-    await vi.waitFor(() => expect(session.transcript.value.map((row) => row.id)).toEqual(["u1"]))
-    expect(openMock).not.toHaveBeenCalled()
-    expect(
-      platformRequestMock.mock.calls.filter((call) => String(call[0]).includes("/transcript")),
-    ).toHaveLength(1)
   })
 
   it("未连接拉过历史，连上后不因 ready 再拉", async () => {

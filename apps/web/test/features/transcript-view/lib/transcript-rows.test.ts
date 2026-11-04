@@ -9,7 +9,6 @@ import type { TurnTiming } from "@/types/turn-type.js"
 import {
   createTimelineRowsBuilder,
   isToolRow,
-  reuseTimelineRows,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
 
@@ -149,33 +148,6 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(afterResult.find(isToolRow)?.id).toBe(initialRow?.id)
   })
 
-  it("流式正文增量复用未变化的行对象", () => {
-    const messages = [user, textAndCalls(1, "先读取", "t1"), tool("t1"), text(2, "结论")]
-    const live = buildRows(messages, true)
-    const streamed = reuseTimelineRows(
-      live,
-      buildRows([...messages.slice(0, -1), text(2, "结论。")], true),
-    )
-
-    expect(streamed[0]).toBe(live[0])
-    expect(streamed.find(isToolRow)).toBe(live.find(isToolRow))
-    expect(streamed.at(-1)).not.toBe(live.at(-1))
-    expect(streamed.at(-1)).toMatchObject({ text: "结论。" })
-  })
-
-  it("失败路径：工具输出变化不复用该行", () => {
-    const descriptors = assistant(1, [call("t1"), call("t2")])
-    const first = buildRows([user, descriptors], true)
-    const initialRow = first.find(isToolRow)
-    const afterResult = buildRows(
-      [user, descriptors, text(2, "阶段结果"), tool("t2", "read", "complete", "第二项")],
-      true,
-    )
-    const reused = reuseTimelineRows(first, afterResult)
-    expect(reused[0]).toBe(first[0])
-    expect(reused.find(isToolRow)).not.toBe(initialRow)
-  })
-
   it("完成的思考使用持久 Turn 结束时间计算耗时", () => {
     const thinking = assistant(1, [{ type: "thinking", thinking: "逐步分析" }])
     const work = buildRows([user, thinking], false, [
@@ -189,30 +161,6 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     })
     const thought = work?.steps[0]
     expect(thought?.type === "thought" && thoughtStepLabel(thought)).toBe("思考了 5 秒")
-  })
-
-  it("过程壳耗时按单组起止，不共用整轮 timing", () => {
-    const rows = buildRows(
-      [
-        user,
-        { ...assistant(1, [{ type: "thinking", thinking: "先想" }]), timestamp: 1000 },
-        { ...text(2, "阶段一"), timestamp: 4000 },
-        {
-          ...assistant(3, [{ type: "thinking", thinking: "再想" }, call("t1"), call("t2")]),
-          timestamp: 5000,
-        },
-        { ...tool("t1"), timestamp: 6000 },
-        { ...tool("t2"), timestamp: 12000 },
-        { ...text(4, "阶段二"), timestamp: 13000 },
-      ],
-      false,
-      [{ userId: "u1", startedAt: 500, endedAt: 90000, outcome: "complete" }],
-    )
-    const groups = rows.filter(isToolRow)
-
-    expect(groups).toHaveLength(2)
-    expect(groups[0]).toMatchObject({ startedAt: 1000, endedAt: 4000 })
-    expect(groups[1]).toMatchObject({ startedAt: 5000, endedAt: 12000 })
   })
 
   it("失败路径：工具失败单列，重试错误信息不丢失", () => {

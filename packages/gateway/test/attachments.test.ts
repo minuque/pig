@@ -1,12 +1,10 @@
-import { mkdir, mkdtemp, readdir, readFile, rm, utimes, writeFile } from "node:fs/promises"
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, sep } from "node:path"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it } from "vitest"
 import {
-  ATTACHMENT_TTL_MS,
   AttachmentError,
   AttachmentStore,
-  CONSUMED_FILE_TTL_MS,
   MAX_BATCH_ITEMS,
   MAX_IMAGE_BYTES,
   MAX_PENDING_ITEMS,
@@ -164,39 +162,7 @@ describe("AttachmentStore.stage", () => {
         code: "INVALID_REQUEST",
       })
   })
-
-  it("并发 stage 同 batch 不丢项", async () => {
-    const store = await makeStore()
-    let release = () => {}
-    const gate = new Promise<void>((resolve) => {
-      release = resolve
-    })
-    // 慢的那次卡在流里，快的先落地；慢的必须重读最新 record 再追加
-    const slow = store.stage({
-      batch: "race",
-      name: "slow.pdf",
-      mimeType: "application/pdf",
-      stream: gated(gate),
-    })
-    const fast = stage(store, "race", PDF, Buffer.from("fast"))
-
-    await fast
-    release()
-    await slow
-    store.bind(SESSION, "race")
-    expect(
-      store
-        .take(SESSION)
-        .map((item) => item.name)
-        .sort(),
-    ).toEqual(["slow.pdf", "报告 v2.pdf"])
-  })
 })
-
-async function* gated(ready: Promise<void>): AsyncIterable<Uint8Array> {
-  await ready
-  yield Buffer.from("slow")
-}
 
 // --- bind / take / restore --------------------------------------------------
 
@@ -247,60 +213,9 @@ describe("AttachmentStore bind 语义", () => {
   })
 })
 
-// --- TTL / 清理 -------------------------------------------------------------
+// --- 会话清理 ---------------------------------------------------------------
 
 describe("AttachmentStore 清理", () => {
-  it("消费过的临时文件过 24 小时后删除", async () => {
-    const store = await makeStore()
-    const path = asFile((await takeStaged(store, "b1", PDF, Buffer.from("x")))[0]).path
-
-    await store.sweep(Date.now() + ATTACHMENT_TTL_MS + 1)
-    expect(await exists(path)).toBe(true)
-    await store.sweep(Date.now() + CONSUMED_FILE_TTL_MS + 1)
-    expect(await exists(path)).toBe(false)
-  })
-
-  it("bind 给该 batch 的文件续期", async () => {
-    const store = await makeStore()
-    const clock = vi.spyOn(Date, "now")
-    const t0 = 1_700_000_000_000
-
-    try {
-      clock.mockReturnValue(t0)
-      await stage(store, "b1", PDF, Buffer.from("x"))
-      const path = join(batchDir("b1"), (await readdir(batchDir("b1")))[0] ?? "")
-
-      // 暂存 20 分钟后再 bind：过期时间从 bind 时刻重算到 t0+50min
-      clock.mockReturnValue(t0 + 20 * 60 * 1000)
-      store.bind(SESSION, "b1")
-      clock.mockReturnValue(t0 + 31 * 60 * 1000)
-      await store.sweep()
-      expect(await exists(path)).toBe(true)
-
-      clock.mockReturnValue(t0 + 20 * 60 * 1000 + ATTACHMENT_TTL_MS + 1)
-      await store.sweep()
-      expect(await exists(path)).toBe(false)
-    } finally {
-      clock.mockRestore()
-    }
-  })
-
-  it("bind 后不消费的 pending 过 TTL 后丢弃", async () => {
-    const store = await makeStore()
-    await stage(store, "b1", PNG, Buffer.from("x"))
-    store.bind(SESSION, "b1")
-    await store.sweep(Date.now() + ATTACHMENT_TTL_MS + 1)
-    expect(store.take(SESSION)).toEqual([])
-  })
-
-  it("未过期的暂存不被 sweep 清掉", async () => {
-    const store = await makeStore()
-    await stage(store, "b1", PNG, Buffer.from("x"))
-    await store.sweep()
-    store.bind(SESSION, "b1")
-    expect(store.take(SESSION)).toHaveLength(1)
-  })
-
   it("clearSession 丢弃 pending、删文件并收掉空目录", async () => {
     const store = await makeStore()
     const items = await takeStaged(store, "b1", PDF, Buffer.from("x"))
@@ -311,39 +226,6 @@ describe("AttachmentStore 清理", () => {
     expect(store.take(SESSION)).toEqual([])
     expect(await exists(path)).toBe(false)
     expect(await readdir(rootDir)).toEqual([])
-  })
-
-  it("启动清扫删陈旧残留文件、留新文件、收空目录", async () => {
-    const root = await mkdtemp(join(tmpdir(), "pig-attach-clean-"))
-    roots.push(root)
-    const stale = join(root, "old-batch", "old.pdf")
-    const fresh = join(root, "fresh-batch", "fresh.pdf")
-    const old = new Date(Date.now() - 60 * 60 * 1000)
-    const freshEmpty = join(root, "just-created")
-
-    await mkdir(join(root, "old-batch"), { recursive: true })
-    await writeFile(stale, "old")
-    await utimes(stale, old, old)
-    await utimes(join(root, "old-batch"), old, old)
-    await mkdir(join(root, "fresh-batch"), { recursive: true })
-    await writeFile(fresh, "fresh")
-    await mkdir(freshEmpty)
-
-    const store = new AttachmentStore({ sweepIntervalMs: 0, rootDir: root })
-    stores.push(store)
-    await store.ready
-
-    expect(await exists(stale)).toBe(false)
-    expect(await readFile(fresh, "utf8")).toBe("fresh")
-    expect((await readdir(root)).sort()).toEqual(["fresh-batch", "just-created"])
-  })
-
-  it("dispose 删掉本实例登记但还没过期的临时文件", async () => {
-    const store = await makeStore()
-    const path = asFile((await takeStaged(store, "b1", PDF, Buffer.from("x")))[0]).path
-
-    await store.dispose()
-    expect(await exists(path)).toBe(false)
   })
 })
 

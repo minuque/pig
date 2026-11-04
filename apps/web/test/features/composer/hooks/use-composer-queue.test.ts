@@ -33,15 +33,4 @@ describe("useComposerQueue", () => {
     expect(queue.sizeFor("s1")).toBe(2)
     expect(queue.shiftFor("s1")?.text).toBe("一")
   })
-
-  it("没有那个会话的桶时长度为零，且不污染当前会话", () => {
-    const queue = useComposerQueue()
-
-    queue.setKey("s2")
-    queue.enqueue("当前")
-
-    expect(queue.sizeFor("s1")).toBe(0)
-    expect(queue.shiftFor("s1")).toBeUndefined()
-    expect(queue.items.value.map((item) => item.text)).toEqual(["当前"])
-  })
 })

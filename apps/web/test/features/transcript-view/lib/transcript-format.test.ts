@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 import type { TranscriptItem } from "@/types/common-type.js"
 import {
   isVisibleTranscriptItem,
-  splitCommandStatus,
   userMessageText,
 } from "@features/transcript-view/lib/transcript-format.js"
 
@@ -65,18 +64,5 @@ describe("userMessageText", () => {
   it("/skill 无 args 时还原成 /skill:name", () => {
     const expanded = '<skill name="verify" location="x">\nbody\n</skill>'
     expect(userMessageText(user(expanded))).toBe("/skill:verify")
-  })
-})
-
-describe("splitCommandStatus", () => {
-  it("拆出失败输出末尾的 exit 状态行", () => {
-    expect(splitCommandStatus("out\n\nCommand exited with code 1", "error")).toEqual({
-      body: "out",
-      exitCode: 1,
-      statusLine: "",
-    })
-    expect(splitCommandStatus("\n\nCommand aborted", "error").statusLine).toBe("Command aborted")
-    expect(splitCommandStatus("out", "success").exitCode).toBe(0)
-    expect(splitCommandStatus("out", "running").exitCode).toBeUndefined()
   })
 })

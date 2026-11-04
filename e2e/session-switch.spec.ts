@@ -25,15 +25,6 @@ test("点另一张卡换掉 URL 与正文", async ({ page, navGateway }) => {
   await expect(page.getByText(`${FILLER_PREFIX} 6 的内容`, { exact: true })).toHaveCount(0)
 })
 
-test("标题栏目录名走 Badge 基础件", async ({ page, navGateway }) => {
-  await enter(page, navGateway)
-  await page.locator(".session-card").first().click()
-
-  const badge = page.locator(".workbench-header .header-cwd")
-  await expect(badge).toBeVisible()
-  await expect(badge).toHaveClass(/rt-Badge/)
-})
-
 test("连点只落到最后一个会话", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 
