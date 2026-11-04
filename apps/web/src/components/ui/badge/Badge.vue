@@ -40,7 +40,7 @@ const props = withDefaults(
     asChild: false,
     size: "s",
     variant: "soft",
-    radius: "medium",
+    radius: "small",
     highContrast: false,
     class: undefined,
   },
