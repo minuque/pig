@@ -47,7 +47,11 @@
                       @pointerdown.stop
                     >
                       <UndoLeftRoundIcon v-if="settled" class="size-icon" />
-                      <ArchiveIcon v-else class="size-icon" />
+                      <CheckIcon v-else class="size-icon" />
+
+                      <span class="row-action-label">
+                        {{ settled ? t("session.unsettle") : t("session.settle") }}
+                      </span>
                     </button>
                   </TooltipTrigger>
 
@@ -132,7 +136,7 @@
                     @pointerdown.stop
                   >
                     <UndoLeftRoundIcon v-if="settled" class="size-icon" />
-                    <ArchiveIcon v-else class="size-icon" />
+                    <CheckIcon v-else class="size-icon" />
                   </button>
                 </TooltipTrigger>
 
@@ -214,8 +218,8 @@ import {
 } from "@features/session-nav/lib/format.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
-  ArchiveIcon,
   CheckCircleIcon,
+  CheckIcon,
   CircleDashedIcon,
   FolderIcon,
   PenIcon,
@@ -616,19 +620,30 @@ function confirmDelete() {
 
 .row-action {
   position: absolute;
-  inset-inline-end: -4px;
+  inset-inline-end: calc(var(--space-xs) * -1);
   top: 50%;
-  display: grid;
-  place-items: center;
-  padding: var(--icon-button-pad);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  padding-block: var(--icon-button-pad);
+  padding-inline: var(--space-xs);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--contrast-foreground-muted);
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+  white-space: nowrap;
   translate: 0 -50%;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-out);
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-hover);
+}
+
+.session-card.slim .row-action {
+  padding-inline: var(--icon-button-pad);
 }
 
 .session-item:hover .row-action,
@@ -639,9 +654,9 @@ function confirmDelete() {
   pointer-events: auto;
 }
 
+/* 文字动作对齐 t3code：只在悬停时提亮，不铺底 */
 .row-action:hover,
 .row-action:focus-visible {
-  background: var(--hover-strong);
   color: var(--contrast-foreground);
 }
 

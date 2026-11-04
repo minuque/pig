@@ -12,8 +12,6 @@ export { AltArrowDownIcon } from "@solar-icons/vue/linear/alt-arrow-down"
 
 export { AltArrowRightIcon } from "@solar-icons/vue/linear/alt-arrow-right"
 
-export { ArchiveIcon } from "@solar-icons/vue/linear/archive"
-
 export { ArrowDownIcon } from "@solar-icons/vue/linear/arrow-down"
 
 export { ArrowLeftDownIcon } from "@solar-icons/vue/linear/arrow-left-down"
