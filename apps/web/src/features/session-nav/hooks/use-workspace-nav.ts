@@ -160,6 +160,12 @@ export function useWorkspaceNav(
     writePref(EXPANDED_KEY, JSON.stringify([...next]))
   }
 
+  /** 只展开不收起：新会话落进架子时用，别把用户自己展开的状态翻掉。 */
+  function expandSection(key: string): void {
+    if (expandedSections.value.has(key)) return
+    toggleSection(key)
+  }
+
   function sectionsFor(
     pinnedOrder: MaybeRefOrGetter<readonly string[]>,
     placement: (id: string) => SidebarPlacement,
@@ -262,6 +268,7 @@ export function useWorkspaceNav(
     setSort,
     expandedSections,
     toggleSection,
+    expandSection,
     sectionsFor,
     addWorkspace,
     renameSession,

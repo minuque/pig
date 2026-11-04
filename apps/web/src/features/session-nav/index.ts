@@ -103,6 +103,35 @@ function createNav(
     return placements.value.get(id) ?? { running: false, settled: false }
   }
 
+  /** 新建的会话落进收着的架子时自动展开一次，免得刚建完就看不见。 */
+  const knownSessionIds = shallowRef<ReadonlySet<string> | null>(null)
+  /** 刚出现、还没定段的会话：等它被标成在跑或已归档再展开。 */
+  const pendingNewIds = new Set<string>()
+  watch(
+    nav.listedSessions,
+    (list) => {
+      const known = knownSessionIds.value
+      knownSessionIds.value = new Set(list.map((item) => item.id))
+
+      if (!known) return
+
+      for (const item of list) if (!known.has(item.id)) pendingNewIds.add(item.id)
+
+      for (const id of pendingNewIds) if (!knownSessionIds.value.has(id)) pendingNewIds.delete(id)
+    },
+    { flush: "post" },
+  )
+  watch(placements, () => {
+    for (const id of pendingNewIds) {
+      const placement = placements.value.get(id)
+
+      if (placement?.running) nav.expandSection("working")
+      else if (placement?.settled) nav.expandSection("settled")
+      else continue
+      pendingNewIds.delete(id)
+    }
+  })
+
   /** 每个在跑的会话从什么时候开始跑：本地记，协议列表不带开始时间。 */
   const runningSince = shallowRef<Record<string, number>>({})
   const runningIds = computed(
@@ -148,6 +177,7 @@ function createNav(
     unsettle: markers.unsettle,
     expandedSections: nav.expandedSections,
     toggleSection: nav.toggleSection,
+    expandSection: nav.expandSection,
     pinnedIds: markers.pinnedIds,
     pinnedSessions: markers.pinnedSessions,
     togglePinned: markers.togglePinned,
