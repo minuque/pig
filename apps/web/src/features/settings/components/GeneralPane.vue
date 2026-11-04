@@ -137,38 +137,6 @@
         </div>
       </div>
     </section>
-
-    <section class="group">
-      <h2 class="group-title">{{ t("settings.notifications") }}</h2>
-
-      <div class="card">
-        <div id="setting-notify-system" class="row">
-          <div class="copy">
-            <h3 class="label">{{ t("settings.notifySystem") }}</h3>
-            <p class="hint">{{ t("settings.notifySystemHint") }}</p>
-          </div>
-
-          <Switch
-            :aria-label="t('settings.notifySystem')"
-            :model-value="notifyOn"
-            @update:model-value="onNotify"
-          />
-        </div>
-
-        <div id="setting-notify-sound" class="row">
-          <div class="copy">
-            <h3 class="label">{{ t("settings.notifySound") }}</h3>
-            <p class="hint">{{ t("settings.notifySoundHint") }}</p>
-          </div>
-
-          <Switch
-            :aria-label="t('settings.notifySound')"
-            :model-value="soundOn"
-            @update:model-value="toggleSound()"
-          />
-        </div>
-      </div>
-    </section>
   </section>
 </template>
 
@@ -176,7 +144,6 @@
 import { computed } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
 import { useI18n } from "@i18n/index.js"
-import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import {
@@ -193,16 +160,13 @@ import { CheckIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const { isDark, scheme, accent, setScheme, setAccent } = useColorScheme()
-const { enabled: soundOn, toggle: toggleSound } = useSound()
 const {
   locale,
   fontSize,
-  notifyOn,
   translucentWindow,
   contrastBoost,
   setLocale,
   setFontSize,
-  setNotify,
   setTranslucentWindow,
   setContrastBoost,
 } = useGeneralPrefs()
@@ -254,85 +218,11 @@ const sizes: { id: FontSize; mark: string; label: string }[] = [
 function onContrast(value: number[] | undefined) {
   if (value?.[0] !== undefined) setContrastBoost(value[0])
 }
-
-async function onNotify(next: boolean) {
-  if (next && typeof Notification !== "undefined" && Notification.permission === "default") {
-    const result = await Notification.requestPermission()
-
-    if (result !== "granted") return
-  }
-
-  setNotify(next)
-}
 </script>
 
+<style scoped src="./pane.css"></style>
+
 <style scoped>
-.pane {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
-  padding-block-end: var(--space-md);
-}
-
-.group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
-
-.group-title {
-  margin: 0;
-  padding-inline: var(--space-md);
-  color: var(--contrast-foreground);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--text-title--line-height);
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  padding-inline: var(--space-md);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--background);
-}
-
-.row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
-  min-height: calc(var(--size-control) + var(--space-lg));
-  padding-block: var(--space-sm);
-}
-
-.row + .row {
-  border-top: var(--border-width) solid var(--border-subtle);
-}
-
-.copy {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: var(--space-xxs);
-}
-
-.label {
-  margin: 0;
-  color: var(--contrast-foreground);
-  font-size: var(--text-body-md);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-md--line-height);
-}
-
-.hint {
-  margin: 0;
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
-}
-
 .scheme-cards {
   display: grid;
   gap: var(--space-sm);
@@ -537,11 +427,6 @@ async function onNotify(next: boolean) {
 @media (max-width: 720px) {
   .scheme-cards {
     grid-template-columns: 1fr;
-  }
-
-  .row {
-    align-items: flex-start;
-    flex-direction: column;
   }
 
   .accent-grid {

@@ -1,6 +1,6 @@
 import { ref, type InjectionKey, type Ref } from "vue"
 
-export type SettingsPane = "general" | "models"
+export type SettingsPane = "general" | "notifications" | "models"
 
 /** 分区内的下钻路径，由当前 pane 写回，弹框头部统一渲染。 */
 export interface SettingsCrumb {

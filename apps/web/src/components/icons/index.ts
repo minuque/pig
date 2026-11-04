@@ -22,6 +22,8 @@ export { ArrowLeftIcon } from "@solar-icons/vue/linear/arrow-left"
 
 export { ArrowUpIcon } from "@solar-icons/vue/linear/arrow-up"
 
+export { BellIcon } from "@solar-icons/vue/linear/bell"
+
 export { Book2Icon } from "@solar-icons/vue/linear/book-2"
 
 export { ChartSquareIcon } from "@solar-icons/vue/linear/chart-square"

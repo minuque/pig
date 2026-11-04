@@ -1,0 +1,73 @@
+/* 设置分区共用的分组与行样式：GeneralPane 与 NotificationsPane 共用。 */
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-block-end: var(--space-md);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.group-title {
+  margin: 0;
+  padding-inline: var(--space-md);
+  color: var(--contrast-foreground);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--text-title--line-height);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding-inline: var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--background);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  min-height: calc(var(--size-control) + var(--space-lg));
+  padding-block: var(--space-sm);
+}
+
+.row + .row {
+  border-top: var(--border-width) solid var(--border-subtle);
+}
+
+.copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-xxs);
+}
+
+.label {
+  margin: 0;
+  color: var(--contrast-foreground);
+  font-size: var(--text-body-md);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-body-md--line-height);
+}
+
+.hint {
+  margin: 0;
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
+@media (max-width: 720px) {
+  .row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

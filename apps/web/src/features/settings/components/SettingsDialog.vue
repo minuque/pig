@@ -95,6 +95,7 @@
           <div ref="scroller" class="settings-scroll">
             <div class="settings-body">
               <GeneralPane v-if="active === 'general'" />
+              <NotificationsPane v-else-if="active === 'notifications'" />
               <ModelsPane v-else :refresh-models="refreshModels" />
             </div>
           </div>
@@ -109,6 +110,7 @@ import { computed, nextTick, provide, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import {
+  BellIcon,
   CloseIcon,
   CloudIcon,
   MagnifierIcon,
@@ -117,6 +119,7 @@ import {
 import { Kbd } from "@components/ui/kbd/index.js"
 import GeneralPane from "./GeneralPane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
+import NotificationsPane from "./NotificationsPane.vue"
 import { matchSettings, type SettingsSearchEntry } from "@features/settings/lib/settings-search.js"
 
 import type {
@@ -147,6 +150,7 @@ const tabs = computed<{ id: Pane; label: string; icon: typeof SliderMinimalistic
       label: t("settings.general"),
       icon: SliderMinimalisticHorizontalIcon,
     },
+    { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
     { id: "models", label: t("settings.models.title"), icon: CloudIcon },
   ],
 )
@@ -201,13 +205,13 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
   },
   {
     id: "setting-notify-system",
-    pane: "general",
+    pane: "notifications",
     title: t("settings.notifySystem"),
     section: t("settings.notifications"),
   },
   {
     id: "setting-notify-sound",
-    pane: "general",
+    pane: "notifications",
     title: t("settings.notifySound"),
     section: t("settings.notifications"),
   },
