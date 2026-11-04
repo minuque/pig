@@ -30,16 +30,15 @@ export interface SidebarRowFoot {
 export type SidebarSort = "updated" | "created"
 
 /** 侧栏固定分段。 */
-export type SidebarSectionKind = "pinned" | "active" | "working" | "snoozed" | "settled"
+export type SidebarSectionKind = "pinned" | "active" | "working" | "settled"
 
 /** 一个会话此刻的落脚信息，决定它进哪一段。 */
 export interface SidebarPlacement {
   running: boolean
   settled: boolean
-  snoozed: boolean
 }
 
-/** 侧栏一个可折叠分区：置顶、收件箱、运行中、已延后或已归档。 */
+/** 侧栏一个可折叠分区：置顶、收件箱、工作中或已归档。 */
 export interface SidebarSection {
   key: string
   kind: SidebarSectionKind

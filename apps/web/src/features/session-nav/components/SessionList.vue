@@ -61,8 +61,6 @@
                   @delete="emit('delete', $event)"
                   @settle="emit('settle', $event)"
                   @unsettle="emit('unsettle', $event)"
-                  @snooze="(id, until) => emit('snooze', id, until)"
-                  @unsnooze="emit('unsnooze', $event)"
                   @drag-start="onDragStart(section.key, session.id, $event)"
                 />
               </li>
@@ -137,8 +135,6 @@ const emit = defineEmits<{
   delete: [id: string]
   settle: [id: string]
   unsettle: [id: string]
-  snooze: [id: string, until: number]
-  unsnooze: [id: string]
   reorderPinned: [id: string, toIndex: number]
   pinAt: [id: string, toIndex: number]
   unpin: [id: string]
@@ -154,7 +150,7 @@ const hasPinnedSection = computed(() => props.sections.some((section) => section
 const firstShelfKey = computed(() => props.sections.find(isShelf)?.key)
 
 function isShelf(section: SidebarSection): boolean {
-  return section.kind === "working" || section.kind === "snoozed" || section.kind === "settled"
+  return section.kind === "working" || section.kind === "settled"
 }
 
 function isOpen(section: SidebarSection): boolean {
@@ -176,8 +172,7 @@ function itemBind(session: SidebarSession, section: SidebarSection) {
     active: session.id === props.highlightedSessionId,
     pinned: props.pinnedIds.has(session.id),
     settled: section.kind === "settled",
-    snoozed: section.kind === "snoozed",
-    variant: section.kind === "snoozed" || section.kind === "settled" ? "slim" : "card",
+    variant: section.kind === "settled" ? "slim" : "card",
     draggable: dragEnabled.value && !(session.draft ?? false),
     state: foot?.state,
     placeholder: session.draft ?? false,

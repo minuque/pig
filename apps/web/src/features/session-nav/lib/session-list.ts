@@ -151,7 +151,7 @@ function toSection(
   }
 }
 
-/** 侧栏分段：已延后、已归档、置顶、运行中依次收走会话，剩下的进收件箱。 */
+/** 侧栏分段：已归档收走会话，置顶、工作中、收件箱依次分剩下的。 */
 export function sidebarSections(input: {
   sessions: readonly SessionMetadata[]
   pinnedOrder?: readonly string[]
@@ -160,18 +160,16 @@ export function sidebarSections(input: {
   moreBySection: Readonly<Record<string, number>>
 }): SidebarSection[] {
   const list = listSessionsForSidebar(input.sessions, input.sort)
-  const buckets: Record<"active" | "working" | "snoozed" | "settled", SessionMetadata[]> = {
+  const buckets: Record<"active" | "working" | "settled", SessionMetadata[]> = {
     active: [],
     working: [],
-    snoozed: [],
     settled: [],
   }
 
   for (const session of list) {
     const place = input.placement(session.id)
 
-    if (place.snoozed) buckets.snoozed.push(session)
-    else if (place.settled) buckets.settled.push(session)
+    if (place.settled) buckets.settled.push(session)
     else if (place.running) buckets.working.push(session)
     else buckets.active.push(session)
   }
@@ -182,7 +180,7 @@ export function sidebarSections(input: {
 
     if (!session) return []
     const place = input.placement(id)
-    return place.snoozed || place.settled ? [] : [session]
+    return place.settled ? [] : [session]
   })
   const pinnedIds = new Set(pinned.map((session) => session.id))
 
@@ -196,14 +194,11 @@ export function sidebarSections(input: {
       ? [toSection("active", t("session.sectionInbox"), buckets.active, input.moreBySection, false)]
       : []),
     ...(buckets.working.length
-      ? [toSection("working", t("session.running"), buckets.working, input.moreBySection, false)]
-      : []),
-    ...(buckets.snoozed.length
       ? [
           toSection(
-            "snoozed",
-            t("session.sectionSnoozed"),
-            buckets.snoozed,
+            "working",
+            t("session.sectionWorking"),
+            buckets.working,
             input.moreBySection,
             false,
           ),

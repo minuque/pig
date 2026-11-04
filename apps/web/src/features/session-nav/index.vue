@@ -27,8 +27,6 @@
     @delete="deleteSession"
     @settle="settle"
     @unsettle="unsettle"
-    @snooze="snooze"
-    @unsnooze="unsnooze"
     @reorder-pinned="reorderPinned"
     @pin-at="pinAt"
     @unpin="togglePinned"
@@ -88,8 +86,6 @@ const {
   deleteSession,
   settle,
   unsettle,
-  snooze,
-  unsnooze,
   reorderPinned,
   pinAt,
 } = useNav()

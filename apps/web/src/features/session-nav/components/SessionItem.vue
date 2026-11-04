@@ -160,24 +160,7 @@
           </ContextMenuItem>
         </template>
 
-        <template v-else-if="snoozed">
-          <ContextMenuItem @select="emit('unsnooze', session.id)">
-            <SunIcon />
-            {{ t("session.unsnooze") }}
-          </ContextMenuItem>
-        </template>
-
         <template v-else>
-          <ContextMenuItem @select="emit('snooze', session.id, snoozeUntil('hour'))">
-            <MoonIcon />
-            {{ t("session.snoozeHour") }}
-          </ContextMenuItem>
-
-          <ContextMenuItem @select="emit('snooze', session.id, snoozeUntil('tomorrow'))">
-            <MoonIcon />
-            {{ t("session.snoozeTomorrow") }}
-          </ContextMenuItem>
-
           <ContextMenuItem @select="emit('settle', session.id)">
             <CheckCircleIcon />
             {{ t("session.settle") }}
@@ -223,12 +206,10 @@ import {
   CheckCircleIcon,
   FolderIcon,
   MenuDotsIcon,
-  MoonIcon,
   PenIcon,
   PinIcon,
   PinBoldIcon,
   RestartIcon,
-  SunIcon,
   TrashBinMinimalisticIcon,
 } from "@components/icons/index.js"
 
@@ -238,7 +219,6 @@ const props = withDefaults(
     active?: boolean
     pinned?: boolean
     settled?: boolean
-    snoozed?: boolean
     state?: SidebarSessionState | undefined
     variant?: "card" | "slim"
     placeholder?: boolean
@@ -262,8 +242,6 @@ const emit = defineEmits<{
   delete: [id: string]
   settle: [id: string]
   unsettle: [id: string]
-  snooze: [id: string, until: number]
-  unsnooze: [id: string]
   dragStart: [event: PointerEvent]
 }>()
 const { t } = useI18n()
@@ -277,15 +255,6 @@ const titleOverflow = shallowRef(false)
 
 function setTitleEl(el: unknown): void {
   titleEl.value = el instanceof HTMLElement ? el : null
-}
-
-/** 延后到点：一小时后，或明天早上九点。 */
-function snoozeUntil(preset: "hour" | "tomorrow"): number {
-  if (preset === "hour") return Date.now() + 60 * 60 * 1000
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  date.setHours(9, 0, 0, 0)
-  return date.getTime()
 }
 
 function measureTitle() {

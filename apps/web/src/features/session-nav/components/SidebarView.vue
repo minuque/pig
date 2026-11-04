@@ -40,8 +40,6 @@
         @delete="emit('delete', $event)"
         @settle="emit('settle', $event)"
         @unsettle="emit('unsettle', $event)"
-        @snooze="(id, until) => emit('snooze', id, until)"
-        @unsnooze="emit('unsnooze', $event)"
         @reorder-pinned="(id, toIndex) => emit('reorderPinned', id, toIndex)"
         @pin-at="(id, toIndex) => emit('pinAt', id, toIndex)"
         @unpin="emit('unpin', $event)"
@@ -141,8 +139,6 @@ const emit = defineEmits<{
   delete: [id: string]
   settle: [id: string]
   unsettle: [id: string]
-  snooze: [id: string, until: number]
-  unsnooze: [id: string]
   reorderPinned: [id: string, toIndex: number]
   pinAt: [id: string, toIndex: number]
   unpin: [id: string]

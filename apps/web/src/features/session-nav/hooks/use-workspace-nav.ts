@@ -131,7 +131,7 @@ export function useWorkspaceNav(
 
   /** 已展开的架子：三个架子默认收起，改动持久化。 */
   const EXPANDED_KEY = "pig.sidebarShelfExpanded"
-  const SECTION_KEYS = new Set(["pinned", "active", "working", "snoozed", "settled"])
+  const SECTION_KEYS = new Set(["pinned", "active", "working", "settled"])
   const expandedSections = shallowRef<ReadonlySet<string>>(loadExpandedSections())
 
   function loadExpandedSections(): ReadonlySet<string> {

@@ -64,7 +64,7 @@ function transcriptItem(
 
 describe("sidebarSections", () => {
   const now = new Date(2026, 5, 10, 12, 0, 0).getTime()
-  const idle = () => ({ running: false, settled: false, snoozed: false })
+  const idle = () => ({ running: false, settled: false })
   const base = {
     sort: "updated" as const,
     moreBySection: {},
@@ -102,19 +102,17 @@ describe("sidebarSections", () => {
     expect(sections[1]?.sessions.map((session) => session.id)).toEqual(["c1"])
   })
 
-  it("已延后、已归档、运行中各自成段，置顶不会盖过前两者", () => {
+  it("工作中与已归档各自成段，置顶不会盖过已归档", () => {
     const sections = sidebarSections({
       ...base,
       pinnedOrder: ["a1", "b1"],
       placement: (id: string) => ({
         running: id === "run",
         settled: id === "done" || id === "b1",
-        snoozed: id === "sleep",
       }),
       sessions: [
         { id: "a1", createdAt: 1, updatedAt: now - 1000, cwd: "/a" },
         { id: "b1", createdAt: 2, updatedAt: now - 2000, cwd: "/b" },
-        { id: "sleep", createdAt: 3, updatedAt: now - 300, cwd: "/a" },
         { id: "done", createdAt: 4, updatedAt: now - 400, cwd: "/a" },
         { id: "run", createdAt: 5, updatedAt: now - 500, cwd: "/a" },
         { id: "rest", createdAt: 6, updatedAt: now - 600, cwd: "/a" },
@@ -125,13 +123,12 @@ describe("sidebarSections", () => {
       "pinned",
       "active",
       "working",
-      "snoozed",
       "settled",
     ])
     expect(sections[0]?.sessions.map((session) => session.id)).toEqual(["a1"])
     expect(sections[1]?.sessions.map((session) => session.id)).toEqual(["rest"])
-    expect(sections[3]?.sessions.map((session) => session.id)).toEqual(["sleep"])
-    expect(sections[4]?.sessions.map((session) => session.id)).toEqual(["done", "b1"])
+    expect(sections[2]?.sessions.map((session) => session.id)).toEqual(["run"])
+    expect(sections[3]?.sessions.map((session) => session.id)).toEqual(["done", "b1"])
   })
 
   it("只有归档段分页：首屏 10 条，每次多放 25 条", () => {
@@ -143,7 +140,7 @@ describe("sidebarSections", () => {
     }))
     const sections = sidebarSections({
       ...base,
-      placement: () => ({ running: false, settled: true, snoozed: false }),
+      placement: () => ({ running: false, settled: true }),
       sessions,
     })
 
@@ -154,7 +151,7 @@ describe("sidebarSections", () => {
 
     const more = sidebarSections({
       ...base,
-      placement: () => ({ running: false, settled: true, snoozed: false }),
+      placement: () => ({ running: false, settled: true }),
       moreBySection: { settled: 1 },
       sessions,
     })

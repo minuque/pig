@@ -85,7 +85,7 @@ function createNav(
 
     return feet
   })
-  /** 分段只看这三件事：在跑、已归档、已延后。 */
+  /** 分段只看这两件事：在跑、已归档。 */
   const placements = computed(() => {
     const map = new Map<string, SidebarPlacement>()
 
@@ -93,7 +93,6 @@ function createNav(
       map.set(item.id, {
         running: cardFootById.value.get(item.id)?.state === "running",
         settled: markers.settledIds.value.has(item.id),
-        snoozed: markers.isSnoozed(item.id),
       })
     }
 
@@ -101,7 +100,7 @@ function createNav(
   })
 
   function placementOf(id: string): SidebarPlacement {
-    return placements.value.get(id) ?? { running: false, settled: false, snoozed: false }
+    return placements.value.get(id) ?? { running: false, settled: false }
   }
 
   /** 页签全部关掉后回欢迎页。 */
@@ -122,12 +121,8 @@ function createNav(
     setSort: nav.setSort,
     moreBySection: nav.moreBySection,
     settledIds: markers.settledIds,
-    isSnoozed: markers.isSnoozed,
-    snoozeNow: markers.now,
     settle: markers.settle,
     unsettle: markers.unsettle,
-    snooze: markers.snooze,
-    unsnooze: markers.unsnooze,
     expandedSections: nav.expandedSections,
     toggleSection: nav.toggleSection,
     pinnedIds: markers.pinnedIds,
