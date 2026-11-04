@@ -14,11 +14,20 @@
       :aria-expanded="open"
       @click="emit('toggleExpand', !open)"
     >
-      <span v-if="displayLive" class="tool-run-label shimmer" :data-text="displayLive">
-        {{ displayLive }}
+      <span ref="stack" class="tool-run-label-stack" :class="{ 'is-gliding': gliding }">
+        <TransitionGroup name="label-roll" tag="span" class="tool-run-label-slots">
+          <span
+            v-for="slot in slots"
+            :key="slot.id"
+            :data-slot="slot.id"
+            class="tool-run-label"
+            :class="{ shimmer: slot.live }"
+            :data-text="slot.live ? slot.text : undefined"
+          >
+            {{ slot.text }}
+          </span>
+        </TransitionGroup>
       </span>
-
-      <span v-else class="tool-run-label">{{ settledLabel }}</span>
 
       <span v-if="summary.lineChange.added || summary.lineChange.removed" class="tool-run-counts">
         <span v-if="summary.lineChange.added" class="added">+{{ summary.lineChange.added }}</span>
@@ -41,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from "vue"
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { AltArrowRightIcon } from "@components/icons/index.js"
 import ToolRow from "@features/transcript-view/components/tool/ToolRow.vue"
@@ -54,6 +63,7 @@ import {
 import type { ToolRow as ToolRowModel } from "@features/transcript-view/type.js"
 
 const HOLD_MS = 650
+const ROLL_MS = 180
 const props = defineProps<{
   row: ToolRowModel
   expanded: boolean | undefined
@@ -103,8 +113,53 @@ watch(
   { flush: "sync" },
 )
 
+const labelText = computed(() => displayLive.value ?? settledLabel.value)
+const labelLive = computed(() => displayLive.value !== null)
+
+type LabelSlot = { id: number; text: string; live: boolean }
+
+let slotId = 0
+const slots = shallowRef<LabelSlot[]>([
+  { id: slotId, text: labelText.value, live: labelLive.value },
+])
+const stack = useTemplateRef<HTMLElement>("stack")
+const gliding = ref(false)
+let glide: Animation | null = null
+
+/** 换字时宽度从旧值滑到新值，避免尾部箭头跟着瞬间跳位；对齐 cc-wrapper 的 MorphSlots。 */
+watch([labelText, labelLive], async ([text, live]) => {
+  const node = stack.value
+  const from = node?.getBoundingClientRect().width ?? 0
+  const slot = { id: ++slotId, text, live }
+  slots.value = [slot]
+  glide?.cancel()
+  glide = null
+  gliding.value = false
+
+  if (!node || from === 0 || prefersReducedMotion()) return
+  await nextTick()
+  const target = node.querySelector<HTMLElement>(`[data-slot="${slot.id}"]`)
+  const width = target?.getBoundingClientRect().width ?? 0
+
+  if (!width || Math.abs(width - from) < 0.5) return
+  gliding.value = true
+  glide = node.animate([{ width: `${from}px` }, { width: `${width}px` }], {
+    duration: ROLL_MS,
+    easing: "cubic-bezier(0.2, 0, 0, 1)",
+  })
+  glide.onfinish = () => {
+    glide = null
+    gliding.value = false
+  }
+})
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+}
+
 onBeforeUnmount(() => {
   if (holdTimer) clearTimeout(holdTimer)
+  glide?.cancel()
 })
 </script>
 
@@ -139,11 +194,31 @@ onBeforeUnmount(() => {
   color: var(--contrast-foreground-secondary);
 }
 
-.tool-run-label {
+.tool-run-label-stack {
+  display: inline-flex;
   min-width: 0;
+  max-width: 100%;
+  overflow: clip;
+}
+
+.tool-run-label-slots {
+  display: inline-grid;
+  align-items: center;
+  justify-items: start;
+  min-width: 0;
+}
+
+.tool-run-label {
+  grid-area: 1 / 1;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.tool-run-label-stack.is-gliding .tool-run-label {
+  max-width: none;
 }
 
 .tool-run-counts {

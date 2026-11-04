@@ -246,6 +246,24 @@
   }
 }
 
+/* 工具摘要标签换字：旧字上移淡出，新字自下移入 */
+.label-roll-enter-active,
+.label-roll-leave-active {
+  transition:
+    opacity var(--duration-label-roll) var(--ease-out),
+    transform var(--duration-label-roll) var(--ease-out);
+}
+
+.label-roll-enter-from {
+  opacity: 0;
+  transform: translateY(3px);
+}
+
+.label-roll-leave-to {
+  opacity: 0;
+  transform: translateY(-3px);
+}
+
 /* 无限旋转：加载状态用，减少动态效果时停下 */
 @keyframes spin {
   to {
@@ -976,6 +994,11 @@
 
   .fade-layer-enter-active,
   .fade-layer-leave-active {
+    transition: none;
+  }
+
+  .label-roll-enter-active,
+  .label-roll-leave-active {
     transition: none;
   }
 

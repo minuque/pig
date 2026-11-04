@@ -289,6 +289,7 @@
   --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
   /* 工具组折叠与箭头同钟 */
   --duration-tool-fold: 140ms;
+  --duration-label-roll: 180ms;
   --duration-slow: 280ms;
   /* 小猪探头：开屏与侧栏品牌共用同一节奏 */
   --duration-pig-peek: 640ms;
