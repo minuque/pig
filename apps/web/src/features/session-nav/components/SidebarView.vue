@@ -2,56 +2,18 @@
   <div class="session-nav" :class="{ 'is-scrolled': listScrolled }">
     <div class="titlebar-drag" aria-hidden="true"></div>
 
-    <div class="nav-head">
-      <SidebarTitlebar @toggle-sidebar="emit('toggleSidebar')" @home="emit('home')" />
-
-      <div class="nav-rows">
-        <Button
-          class="nav-row press-scale"
-          type="button"
-          size="m"
-          variant="ghost"
-          @click="emit('create')"
-        >
-          <AddIcon :size="15" />
-          <span>{{ t("session.newSession") }}</span>
-
-          <template #suffix>
-            <Kbd class="nav-row-kbd" size="s">{{ modKey }}N</Kbd>
-          </template>
-        </Button>
-
-        <Button
-          class="nav-row press-scale"
-          type="button"
-          size="m"
-          variant="ghost"
-          @click="emit('update:searchOpen', true)"
-        >
-          <MagnifierIcon :size="15" />
-          <span>{{ t("nav.search") }}</span>
-
-          <template #suffix>
-            <Kbd class="nav-row-kbd" size="s">{{ modKey }}K</Kbd>
-          </template>
-        </Button>
-      </div>
-
-      <SearchDialog
-        :open="searchOpen"
-        :sessions="listedSessions"
-        :sort="sort"
-        @update:open="emit('update:searchOpen', $event)"
-        @open="emit('open', $event)"
-      />
-    </div>
+    <NavHeader
+      :search-open="searchOpen"
+      :sessions="listedSessions"
+      :sort="sort"
+      @update:search-open="emit('update:searchOpen', $event)"
+      @toggle-sidebar="emit('toggleSidebar')"
+      @home="emit('home')"
+      @create="emit('create', $event)"
+      @open="emit('open', $event)"
+    />
 
     <div class="nav-inset">
-      <p v-if="connected && !groups.length" class="add-guide">
-        <ArrowUpIcon class="size-icon motion-nudge" />
-        {{ t("session.addGuide") }}
-      </p>
-
       <SessionList
         :sections="sections"
         :filtered="scopeFilter.size > 0"
@@ -114,8 +76,7 @@ import { useEventListener } from "@vueuse/core"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { useI18n } from "@i18n/index.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
-import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
-import SidebarTitlebar from "@features/session-nav/components/SidebarTitlebar.vue"
+import NavHeader from "@features/session-nav/components/NavHeader.vue"
 import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
 import type {
@@ -124,13 +85,11 @@ import type {
   SidebarSection,
   SidebarSort,
 } from "@features/session-nav/type.js"
-import { ArrowUpIcon, AddIcon, MagnifierIcon, Tuning2Icon } from "@components/icons/index.js"
-import { Button, IconButton } from "@components/ui/button/index.js"
-import { Kbd } from "@components/ui/kbd/index.js"
+import { Tuning2Icon } from "@components/icons/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 
 defineProps<{
   groups: readonly SessionGroup[]
-  connected: boolean
   sort: SidebarSort
   scopeFilter: ReadonlySet<string>
   searchOpen: boolean
@@ -169,8 +128,6 @@ const emit = defineEmits<{
   collapseGroup: [key: string]
 }>()
 const { t } = useI18n()
-const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
-const modKey = isMac ? "⌘" : "Ctrl "
 const scopeMenuOpen = shallowRef(false)
 const listScrolled = shallowRef(false)
 
@@ -225,39 +182,8 @@ function onGlobalSettings(): void {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding-block-start: var(--space-xxs);
+  padding-block-start: var(--space-xs);
   padding-inline-start: var(--nav-inline);
-}
-
-/* 横向内边距交给子元素：header 自己带就会把底边线切成中间一截。
-   这里也不能加 position：桌面壳的 .nav-titlebar 靠 .session-nav 定位贴顶。 */
-.nav-head {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 0;
-  padding-block: var(--space-xxs);
-}
-
-.nav-rows {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xxs);
-  padding-inline: var(--nav-inline);
-}
-
-/* 撑满整行：图标与文字靠左，kbd 靠右 */
-.nav-row {
-  justify-content: flex-start;
-  gap: var(--space-xs);
-  width: 100%;
-  padding-inline: var(--space-xs);
-  font-weight: 400;
-}
-
-.nav-row-kbd {
-  margin-inline-start: auto;
 }
 
 /* 渐隐带挂在滚动区顶上，和分隔线一起出现：内容滚出视口才显示。 */
@@ -287,38 +213,18 @@ function onGlobalSettings(): void {
   display: none;
   position: absolute;
   inset: 0 0 auto;
-  height: calc(var(--workbench-inset) + var(--titlebar-inset));
+  height: var(--titlebar-inset);
   -webkit-app-region: drag;
   app-region: drag;
 }
 
-html[data-pig-desktop-platform] .session-nav > .titlebar-drag {
+/* 只有 macOS 的标题条是浮层，需要页面自己撑出拖窗带 */
+html[data-pig-desktop-platform="darwin"] .session-nav > .titlebar-drag {
   display: block;
 }
 
-/* Linux 走原生边框，没有可自拖的标题条 */
-html[data-pig-desktop-platform="linux"] .session-nav > .titlebar-drag {
-  display: none;
-}
-
-/* 顶距 = 卡片内缩 + 标题条：侧栏首行与卡片头落在同一条横线上 */
-html[data-pig-desktop-platform] .session-nav {
-  padding-top: calc(var(--workbench-inset) + var(--titlebar-inset));
-}
-
-.add-guide {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-xxs);
-  margin: 0;
-  padding-block: var(--space-xxs);
-  color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
-}
-
-.add-guide .motion-nudge {
-  margin-inline-start: var(--space-xs);
+/* 顶距 = 标题条高：侧栏首行与工作台头部落在同一条横线上 */
+html[data-pig-desktop-platform="darwin"] .session-nav {
+  padding-top: var(--titlebar-inset);
 }
 </style>

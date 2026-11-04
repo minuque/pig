@@ -193,17 +193,11 @@
 
   /* 尺寸 */
   --size-control: 40px;
-  --titlebar-inset: 36px;
-  /* 卡片头高：桌面壳上等于标题条，浏览器模式取自然高（行高 + 上下内边距） */
+  /* 页面内标题条：只有 macOS 的浮层标题条占高度，其余平台为 0 */
+  --titlebar-inset: 0px;
+  /* 头部高：桌面壳上等于标题条，浏览器模式取自然高（行高 + 上下内边距） */
   --header-height: calc(var(--size-nav-rail) + 2 * var(--space-sm));
-  /** 卡片与窗口边缘的留白 */
-  --workbench-inset: var(--space-xs);
-  /** 卡片右上角三个自画窗控的总宽与单钮边长（28 × 3 加间隙与内边距） */
-  --size-windows-caption: 122px;
-  --size-window-control: 28px;
-  /** 窗控图形尺寸：比常规图标小一档 */
-  --size-window-glyph: 12px;
-  /** macOS 侧栏收起时红绿灯占位：卡片左缝 8px + 红绿灯簇与间距 60px */
+  /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
   --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;
   --size-settings-body: 64rem;
@@ -233,7 +227,6 @@
   --border-width: 1px;
   --scrim: rgba(0, 0, 0, 0.4);
   --z-resizer: 1;
-  --z-window-controls: 3;
   --z-menu: 5;
   --z-drawer: 10;
   --z-modal: 20;
@@ -369,26 +362,11 @@ html[data-translucent-window="on"] {
   --window-surface: color-mix(in srgb, var(--background) 90%, transparent);
 }
 
-/* 桌面壳标题条：一处定义，四处消费（侧栏顶距、拖拽带、卡片头高、banner 顶距）。
-   win32 自画窗控占 36px；darwin 红绿灯压在同一条带内的 32px；
-   linux 走原生边框，页面内不留标题条，卡片头回自然高。 */
-html[data-pig-desktop-platform] {
-  --titlebar-inset: 36px;
-  --header-height: var(--titlebar-inset);
-}
-
+/* 桌面壳标题条：一处定义，三处消费（侧栏顶距、拖拽带、头部高度）。
+   只有 macOS 的浮层标题条占高度；Windows 与 Linux 走原生边框，头部取自然高。 */
 html[data-pig-desktop-platform="darwin"] {
   --titlebar-inset: 32px;
-}
-
-/* win32 卡片头上内边距 12px，头高随内容多出 4px */
-html[data-pig-desktop-platform="win32"] {
-  --header-height: calc(var(--titlebar-inset) + var(--space-xxs));
-}
-
-html[data-pig-desktop-platform="linux"] {
-  --titlebar-inset: 0px;
-  --header-height: calc(var(--size-nav-rail) + 2 * var(--space-sm));
+  --header-height: var(--titlebar-inset);
 }
 
 /* ------ 深色覆盖：只覆盖颜色、阴影、玻璃 ------ */

@@ -17,12 +17,6 @@ export const zh = {
     preview: "预览 {name}",
     justNow: "刚刚",
   },
-  window: {
-    minimize: "最小化",
-    maximize: "最大化",
-    restore: "还原",
-    close: "关闭",
-  },
   session: {
     deleteTitle: "删除会话",
     deleteBody: "确认删除「{title}」吗？此操作不可恢复。",
@@ -328,12 +322,6 @@ export const en: Messages = {
     remove: "Remove {name}",
     preview: "Preview {name}",
     justNow: "Just now",
-  },
-  window: {
-    minimize: "Minimize",
-    maximize: "Maximize",
-    restore: "Restore",
-    close: "Close",
   },
   session: {
     deleteTitle: "Delete session",

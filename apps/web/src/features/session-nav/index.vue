@@ -2,7 +2,6 @@
   <SidebarView
     v-model:search-open="searchOpen"
     :groups="groups"
-    :connected="connected"
     :sort="sort"
     :scope-filter="scopeFilter"
     :sections="sections"
@@ -55,7 +54,6 @@ const { sbState, setSbState } = useLeftPanelToggle()
 const {
   groups,
   pinnedSessions,
-  connected,
   lastCwd,
   highlightedSessionId,
   cancelPendingOpen,

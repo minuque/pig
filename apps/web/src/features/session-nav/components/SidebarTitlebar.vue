@@ -46,6 +46,8 @@ const { t } = useI18n()
   align-items: center;
   gap: var(--space-xs);
   min-width: 0;
+  /* 与工作台头部同高：两栏首行共用一条横向基线 */
+  height: var(--header-height);
   padding-inline: var(--nav-inline);
 }
 
@@ -102,29 +104,15 @@ const { t } = useI18n()
   app-region: no-drag;
 }
 
-/* 桌面壳：标题条高度由 --titlebar-inset 一处给定，品牌行与卡片头同高对齐 */
-html[data-pig-desktop-platform] .nav-titlebar {
+/* 桌面壳：macOS 的标题条是浮层，品牌行与红绿灯同处一条带，左侧让出整簇宽度；
+   Windows 与 Linux 走原生边框，品牌行留在文档流里。 */
+html[data-pig-desktop-platform="darwin"] .nav-titlebar {
   position: absolute;
   z-index: 1;
-  inset: var(--workbench-inset) 0 auto;
+  inset: 0 0 auto;
   height: var(--titlebar-inset);
-  padding-inline: var(--nav-inline);
-}
-
-/* macOS 红绿灯压在条带左上，品牌让出整簇宽度 */
-html[data-pig-desktop-platform="darwin"] .nav-titlebar {
-  padding-inline-start: calc(var(--size-mac-traffic-lights) + var(--space-xs));
-}
-
-/* win32 卡片头上内边距多 8px，品牌行跟着下移，两行内容仍共中线 */
-html[data-pig-desktop-platform="win32"] .nav-titlebar {
-  inset-block-start: calc(var(--workbench-inset) + var(--space-xs));
-}
-
-/* Linux 走原生边框，页面内没有标题条，品牌行回到文档流 */
-html[data-pig-desktop-platform="linux"] .nav-titlebar {
-  position: static;
-  height: auto;
+  padding-inline: var(--nav-inline) var(--nav-inline) var(--nav-inline)
+    calc(var(--size-mac-traffic-lights) + var(--space-xs));
 }
 
 @media (prefers-reduced-motion: reduce) {

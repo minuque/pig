@@ -16,7 +16,7 @@ import {
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
-import { registerWindowControls } from "./window-controls.js"
+import { registerWindowMaterial } from "./window-material-ipc.js"
 import { createWindowBackground } from "./window-background.js"
 import { loadWithRetry } from "./load-retry.js"
 import { parseThemeColor } from "./theme-color.js"
@@ -195,7 +195,7 @@ void app.whenReady().then(async () => {
 
       if (color) background.setThemeColor(color)
     })
-    registerWindowControls(
+    registerWindowMaterial(
       () => mainWindow,
       (on) => {
         background.setTranslucent(on)

@@ -18,20 +18,9 @@ export function windowChromeFor(platform: string): BrowserWindowConstructorOptio
     }
   }
 
-  if (platform === "win32") {
-    return {
-      // 窗控由页面自画（卡片右上角）；保留 thickFrame 的缩放边框
-      titleBarStyle: "hidden",
-      thickFrame: true,
-      roundedCorners: true,
-      autoHideMenuBar: true,
-      webPreferences,
-    }
-  }
-
-  if (platform === "linux") {
-    // 无边框窗口在 Linux 上依赖窗口管理器给缩放命中带，实测不可靠（上游 issue 52452、49173），
-    // 也丢掉系统阴影与窗口管理器行为；这里保留原生边框，页面内不再自画标题条与窗控。
+  // Windows 与 Linux 都走原生边框与窗控：Windows 无边框窗口的缩放命中带要自己补，
+  // Linux 上窗口管理器行为、系统阴影也会一起丢；页面内不再自画标题条。
+  if (platform === "win32" || platform === "linux") {
     return { frame: true, webPreferences }
   }
 

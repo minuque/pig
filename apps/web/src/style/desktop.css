@@ -1,16 +1,5 @@
-/* 桌面壳：标题栏拖拽与弹层。
-   控件 no-drag 只写在拖拽层内部，大块滚动容器标 no-drag 会扣掉拖拽区。 */
-
-/* 卡片外的留白也能拖窗；卡片自身收回 no-drag，拖拽只从头部和留白发起 */
-html[data-pig-desktop-platform] main {
-  -webkit-app-region: drag;
-  app-region: drag;
-}
-
-html[data-pig-desktop-platform] .workbench-card {
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-}
+/* 桌面壳：弹层打开时撤掉拖拽区，免得在浮层上拖动窗口。
+   拖窗本身由侧栏标题条与工作台头部发起（macOS 的标题条是浮层）。 */
 
 html[data-pig-desktop-platform]:has([data-slot="dialog-content"])
   :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title),
@@ -20,17 +9,4 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
   :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title) {
   -webkit-app-region: no-drag;
   app-region: no-drag;
-}
-
-/* 最大化：Windows 与 Linux 期望内容贴边，外沿留白与卡片圆角一起收掉。
-   左侧栅栏留给侧栏拖拽把手，不与屏幕边缘抢空间。 */
-html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"])[data-maximized]
-  main {
-  padding: 0;
-}
-
-html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"])[data-maximized]
-  .workbench-card {
-  --card-border-width: 0;
-  --card-border-radius: 0;
 }

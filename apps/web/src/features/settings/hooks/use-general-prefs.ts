@@ -40,7 +40,7 @@ function apply(
   document.documentElement.dataset.translucentWindow = nextTranslucent ? "on" : "off"
   document.documentElement.style.setProperty("--contrast-boost", nextContrast + "%")
   // 桌面壳把开关落到系统背景材质；浏览器里没有这个桥
-  window.pigDesktop?.window?.setTranslucent?.(nextTranslucent)
+  window.pigDesktop?.setTranslucent?.(nextTranslucent)
   i18n.global.locale.value = nextLocale as typeof i18n.global.locale.value
 }
 

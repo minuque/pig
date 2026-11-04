@@ -308,14 +308,7 @@ html[data-pig-desktop-platform="darwin"] .workbench-header {
   padding-block: calc(var(--space-xxs) / 2);
 }
 
-/* 自画窗控盖在卡片右上角，只在 Windows 落地；Linux 走原生边框，右侧不让位。
-   上内边距 12px，让 badge 与窗控离卡片顶边有足够留白。 */
-html[data-pig-desktop-platform="win32"] .workbench-header {
-  padding-block: var(--space-sm) 0;
-  padding-inline-end: calc(var(--size-windows-caption) + var(--space-xs));
-}
-
-/* macOS 侧栏收起后红绿灯落在卡片左上角，头部让位 */
+/* macOS 侧栏收起后红绿灯落在头部左上角，头部让位 */
 html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header {
   padding-inline-start: calc(var(--space-sm) + var(--size-mac-traffic-lights));
 }

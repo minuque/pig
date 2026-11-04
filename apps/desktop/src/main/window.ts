@@ -52,14 +52,6 @@ export function createMainWindow(
     void shell.openExternal(url)
   })
 
-  // 自画窗控要跟着最大化状态换图标
-  const sendMaximized = (): void => {
-    window.webContents.send("pig:window:maximized", window.isMaximized())
-  }
-
-  window.on("maximize", sendMaximized)
-  window.on("unmaximize", sendMaximized)
-
   // 基准档窗口放屏幕内并关后台节流，rAF 才能真实驱动
   if (options.persistState && !bench) persistWindowState(window, options.persistState)
 

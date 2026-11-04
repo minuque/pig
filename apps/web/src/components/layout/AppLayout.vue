@@ -21,10 +21,7 @@
     ></div>
 
     <main>
-      <Card class="workbench-card">
-        <slot />
-        <WindowControls />
-      </Card>
+      <slot />
     </main>
   </div>
 </template>
@@ -33,8 +30,6 @@
 import { computed, provide } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js"
-import WindowControls from "@components/layout/WindowControls.vue"
-import { Card } from "@components/ui/card/index.js"
 
 defineSlots<{
   default(): unknown
@@ -96,34 +91,41 @@ function resetWidth() {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  background: var(--background);
+  border-inline-end: var(--border-width) solid var(--border);
   contain: layout style;
   visibility: hidden;
   width: 0;
+  border-inline-end-width: 0;
   transition:
     width var(--duration-normal) var(--ease-smooth),
+    border-inline-end-width 0s var(--duration-normal),
     visibility 0s var(--duration-normal);
 }
 
 .sidebar.expanded {
   visibility: visible;
   width: var(--left-width);
+  border-inline-end-width: var(--border-width);
   transition:
     width var(--duration-normal) var(--ease-smooth),
+    border-inline-end-width 0s,
     visibility 0s;
 }
 
-/* 把手占住侧栏与卡片之间的间距，main 不再自带左内边距 */
+/* 把手不占位：贴着侧栏边界浮着，命中区左右各外扩一档 */
 .resizer {
   position: relative;
+  z-index: var(--z-resizer);
   flex: none;
   align-self: stretch;
-  width: var(--workbench-inset);
+  width: 0;
   cursor: col-resize;
   touch-action: none;
   background: transparent;
 }
 
-/* 命中区比视觉间距宽一档，落在两侧空白上 */
+/* 命中区比视觉边界宽一档，落在两侧内容上 */
 .resizer::before {
   content: "";
   position: absolute;
@@ -162,9 +164,9 @@ function resetWidth() {
   background: var(--foreground-secondary);
 }
 
-html[data-pig-desktop-platform] .resizer {
+html[data-pig-desktop-platform="darwin"] .resizer {
   /* 把手只在标题条以下生效，顶部条带留给拖窗 */
-  margin-block-start: calc(var(--workbench-inset) + var(--titlebar-inset));
+  margin-block-start: var(--titlebar-inset);
 }
 
 .shell.is-resizing {
@@ -191,31 +193,7 @@ main {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: var(--workbench-inset);
-  /* 左侧间距交给 resizer 的宽度 */
-  padding-inline-start: 0;
-}
-
-/* 底与描边都走 rt Card 的伪元素：::before 画卡底，::after 画 1px 环。
-   0 内边距（内容自己排）、12px 圆角、工作台面作为卡底、环取 radix 灰阶描边色。 */
-.workbench-card {
-  --card-padding: 0;
-  --card-border-radius: var(--radius-card);
-  --card-background-color: var(--workbench-surface);
-  --base-card-surface-box-shadow: 0 0 0 1px var(--border);
-
-  position: relative;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-}
-
-/* 环画在 ::after 上，默认 z-index auto；卡片内的头部是 2、浮层是 3，
-   不抬到它们之上就会被盖掉上下两边。环仍由伪元素画，圆角是画出来的曲线。 */
-.workbench-card::after {
-  z-index: 4;
+  background: var(--card);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -223,18 +201,6 @@ main {
   .resizer,
   .resizer::after {
     transition: none;
-  }
-}
-
-@media (min-width: 901px) {
-  .shell.sb-offcanvas .sidebar {
-    /* 折叠态靠 width:0 + visibility:hidden 留过渡空间，不能 display:none */
-    pointer-events: none;
-  }
-
-  /* 把手不在时由 main 自己补回左侧间距 */
-  .shell.sb-offcanvas main {
-    padding-inline-start: var(--workbench-inset);
   }
 }
 
@@ -248,12 +214,6 @@ main {
 
   main {
     height: 100dvh;
-    padding: 0;
-  }
-
-  .workbench-card {
-    --card-border-width: 0;
-    --card-border-radius: 0;
   }
 
   .resizer {
@@ -274,6 +234,7 @@ main {
       visibility 0s linear var(--duration-normal);
     /* 抽屉浮在内容上，半透明窗口下也保持可读 */
     background: var(--background);
+    border-inline-end: 0;
     box-shadow: var(--shadow-drawer);
   }
 
