@@ -1,10 +1,10 @@
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="settings-dialog" @interact-outside.prevent>
+    <DialogContent class="settings-dialog" :show-close-button="false" @interact-outside.prevent>
+      <DialogTitle class="sr-only">{{ t("settings.title") }}</DialogTitle>
+
       <div class="settings-shell">
         <nav class="settings-nav" :aria-label="t('settings.title')">
-          <DialogTitle class="settings-nav-title">{{ t("settings.title") }}</DialogTitle>
-
           <button
             v-for="item in tabs"
             :key="item.id"
@@ -20,9 +20,9 @@
         </nav>
 
         <div class="settings-right">
-          <div class="settings-right-head">
-            <nav v-if="trail.length" class="settings-crumbs" :aria-label="t('settings.title')">
-              <template v-for="(crumb, index) in trail" :key="`${index}-${crumb.label}`">
+          <header class="settings-head">
+            <nav class="settings-crumbs" :aria-label="t('settings.title')">
+              <template v-for="(crumb, index) in crumbs" :key="`${index}-${crumb.label}`">
                 <span v-if="index > 0" class="crumb-sep" aria-hidden="true">/</span>
 
                 <button v-if="crumb.action" type="button" class="crumb" @click="crumb.action()">
@@ -32,25 +32,22 @@
                 <span
                   v-else
                   class="crumb"
-                  :aria-current="index === trail.length - 1 ? 'page' : undefined"
+                  :aria-current="index === crumbs.length - 1 ? 'page' : undefined"
                 >
                   {{ crumb.label }}
                 </span>
               </template>
             </nav>
-          </div>
+
+            <DialogClose class="settings-close" :aria-label="t('common.close')">
+              <CloseIcon class="size-icon" />
+            </DialogClose>
+          </header>
 
           <div ref="scroller" class="settings-scroll">
             <div class="settings-body">
               <GeneralPane v-if="active === 'general'" />
-              <UsagePane v-else-if="active === 'usage'" />
-              <ModelsPane v-else-if="active === 'models'" :refresh-models="refreshModels" />
-
-              <ResourcePane
-                v-else
-                :pane="active === 'skills' ? 'skills' : 'extensions'"
-                :cwd="cwd"
-              />
+              <ModelsPane v-else :refresh-models="refreshModels" />
             </div>
           </div>
         </div>
@@ -62,18 +59,10 @@
 <script setup lang="ts">
 import { computed, nextTick, provide, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
-import {
-  ChartSquareIcon,
-  CloudIcon,
-  SliderMinimalisticHorizontalIcon,
-  Widget5Icon,
-  WidgetAddIcon,
-} from "@components/icons/index.js"
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { CloseIcon, CloudIcon, SliderMinimalisticHorizontalIcon } from "@components/icons/index.js"
 import GeneralPane from "./GeneralPane.vue"
-import UsagePane from "./UsagePane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
-import ResourcePane from "./ResourcePane.vue"
 
 import type {
   SettingsCrumb,
@@ -83,7 +72,6 @@ import { SETTINGS_TRAIL } from "@features/settings/hooks/use-settings-dialog.js"
 
 const props = defineProps<{
   open: boolean
-  cwd?: string | undefined
   /** 打开时定位的分区，默认 General。 */
   initialPane?: Pane | undefined
   /** 刷新模型后同步 Composer 的模型目录。 */
@@ -104,12 +92,17 @@ const tabs = computed<{ id: Pane; label: string; icon: typeof SliderMinimalistic
       label: t("settings.general"),
       icon: SliderMinimalisticHorizontalIcon,
     },
-    { id: "usage", label: t("settings.usage"), icon: ChartSquareIcon },
     { id: "models", label: t("settings.models.title"), icon: CloudIcon },
-    { id: "skills", label: t("settings.skills"), icon: WidgetAddIcon },
-    { id: "extensions", label: t("settings.extensions"), icon: Widget5Icon },
   ],
 )
+/** 头部路径：设置 + 分区自己的下钻层级，没有下钻就落到当前分区名。 */
+const crumbs = computed<SettingsCrumb[]>(() => {
+  const base: SettingsCrumb[] = [{ label: t("settings.title") }]
+  const items = trail.value.length
+    ? trail.value
+    : [{ label: tabs.value.find((item) => item.id === active.value)?.label ?? "" }]
+  return [...base, ...items]
+})
 
 function select(pane: Pane) {
   active.value = pane
@@ -154,6 +147,8 @@ watch(active, async () => {
   height: clamp(var(--size-settings-dialog-height-min), 85vh, var(--size-settings-dialog-height));
   padding: 0;
   gap: 0;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
 }
 
 .settings-dialog .settings-shell {
@@ -168,22 +163,10 @@ watch(active, async () => {
   flex-direction: column;
   gap: var(--space-xxs);
   width: var(--size-settings-dialog-nav);
-  padding: var(--space-md);
-  padding-block-start: calc(var(--space-md) + var(--space-xxs));
+  padding: var(--space-sm) var(--space-xs);
   border-inline-end: var(--border-width) solid var(--border-subtle);
   background: var(--background);
-  color: var(--sidebar-foreground);
   user-select: none;
-}
-
-.settings-dialog .settings-nav-title {
-  margin: 0;
-  margin-block-end: var(--space-sm);
-  padding-inline: var(--space-xs);
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-sm--line-height);
 }
 
 .settings-dialog .nav-item {
@@ -191,13 +174,13 @@ watch(active, async () => {
   align-items: center;
   gap: var(--space-xs);
   width: 100%;
-  height: var(--size-nav-rail);
+  height: 2rem;
   padding-inline: var(--space-xs);
   border-radius: var(--radius-md);
-  color: var(--sidebar-foreground);
-  font-size: var(--text-caption);
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--text-body-sm--line-height);
   text-align: start;
   transition:
     background-color var(--duration-fast) var(--ease-out),
@@ -205,11 +188,13 @@ watch(active, async () => {
 }
 
 .settings-dialog .nav-item:hover {
-  background: var(--sidebar-hover);
+  background: var(--hover-quiet);
+  color: var(--contrast-foreground);
 }
 
 .settings-dialog .nav-item.on {
   background: var(--sidebar-selected);
+  color: var(--contrast-foreground);
 }
 
 .settings-dialog .settings-right {
@@ -218,32 +203,35 @@ watch(active, async () => {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--background);
+  background: var(--card);
 }
 
-/* 头部条占住右上角关闭按钮的位置，滚动条从这里以下开始 */
-.settings-dialog .settings-right-head {
+.settings-dialog .settings-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   flex: none;
-  height: calc(var(--space-md) + var(--size-icon-button) + var(--space-sm));
-  padding-inline: var(--space-lg);
+  gap: var(--space-xs);
+  height: 3rem;
+  padding-inline: calc(var(--space-md) + var(--space-xxs)) var(--space-xs);
+  border-block-end: var(--border-width) solid var(--border-subtle);
 }
 
 .settings-dialog .settings-crumbs {
   display: flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
-  max-width: var(--size-settings-body);
-  margin-inline: auto;
+  min-width: 0;
   color: var(--contrast-foreground-muted);
   font-size: var(--text-body-sm);
 }
 
 .settings-dialog .crumb {
+  overflow: hidden;
   color: inherit;
   font-size: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .settings-dialog button.crumb:hover {
@@ -259,13 +247,31 @@ watch(active, async () => {
   user-select: none;
 }
 
+.settings-dialog .settings-close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--size-icon-button);
+  height: var(--size-icon-button);
+  border-radius: var(--radius-sm);
+  color: var(--contrast-foreground-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.settings-dialog .settings-close:hover {
+  background: var(--hover-quiet);
+  color: var(--contrast-foreground);
+}
+
 .settings-dialog .settings-scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--space-lg);
-  padding-block-start: var(--space-xxs);
+  padding: var(--space-lg) var(--space-lg) calc(var(--space-xxl) + var(--space-md));
 }
 
 .settings-dialog .settings-body {
@@ -279,15 +285,6 @@ watch(active, async () => {
     align-items: center;
     width: var(--size-settings-dialog-nav-narrow);
     padding-inline: var(--space-xxs);
-  }
-
-  .settings-dialog .settings-nav-title {
-    position: absolute;
-    overflow: hidden;
-    width: 1px;
-    height: 1px;
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
 
   .settings-dialog .nav-label {
@@ -308,7 +305,8 @@ watch(active, async () => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .settings-dialog .nav-item {
+  .settings-dialog .nav-item,
+  .settings-dialog .settings-close {
     transition: none;
   }
 }

@@ -270,22 +270,23 @@ async function onNotify(next: boolean) {
 .pane {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
+  gap: var(--space-lg);
   padding-block-end: var(--space-md);
 }
 
 .group {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
 }
 
 .group-title {
   margin: 0;
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-body-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-sm--line-height);
+  padding-inline: var(--space-md);
+  color: var(--contrast-foreground);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--text-title--line-height);
 }
 
 .card {
@@ -293,7 +294,7 @@ async function onNotify(next: boolean) {
   flex-direction: column;
   padding-inline: var(--space-md);
   border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-card);
   background: var(--background);
 }
 

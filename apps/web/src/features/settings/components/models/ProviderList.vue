@@ -160,7 +160,7 @@ function sourceKind(provider: ProviderView) {
 
 .provider-card {
   border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-card);
   background: var(--background);
   overflow: hidden;
 }
@@ -170,13 +170,12 @@ function sourceKind(provider: ProviderView) {
 }
 
 .provider-group-title {
-  margin: 0 0 var(--space-xxs);
-  padding-inline: var(--space-sm);
-  color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  margin: 0 0 var(--space-xs);
+  padding-inline: var(--space-md);
+  color: var(--contrast-foreground);
+  font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.04em;
-  line-height: var(--text-eyebrow--line-height);
+  line-height: var(--text-title--line-height);
 }
 
 .provider-row {
@@ -185,7 +184,7 @@ function sourceKind(provider: ProviderView) {
   gap: var(--space-sm);
   width: 100%;
   height: 52px;
-  padding-inline: var(--space-sm);
+  padding-inline: var(--space-md);
   color: var(--contrast-foreground);
   text-align: start;
   transition: background-color var(--duration-fast) var(--ease-out);

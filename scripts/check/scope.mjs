@@ -41,6 +41,10 @@ const E2E_BY_AREA = [
     ],
   },
   {
+    prefix: "apps/web/src/features/settings/",
+    specs: ["e2e/models-connect.spec.ts", "e2e/models-list.spec.ts"],
+  },
+  {
     prefix: "apps/web/src/features/startup/",
     specs: ["e2e/critical-journey.spec.ts", "e2e/error.spec.ts"],
   },

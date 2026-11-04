@@ -199,11 +199,11 @@
   /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
   --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;
-  --size-settings-body: 64rem;
+  --size-settings-body: 56rem;
   --size-settings-dialog-width: 80rem;
-  --size-settings-dialog-height: 52rem;
+  --size-settings-dialog-height: 60rem;
   --size-settings-dialog-height-min: 34rem;
-  --size-settings-dialog-nav: 11rem;
+  --size-settings-dialog-nav: 15rem;
   --size-settings-dialog-nav-narrow: 2.75rem;
   /* 线性图标：14px 图标配 13px 正文 */
   --size-icon: 14px;

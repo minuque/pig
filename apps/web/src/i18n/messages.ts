@@ -59,7 +59,6 @@ export const zh = {
   settings: {
     title: "设置",
     general: "通用",
-    usage: "用量",
     models: {
       title: "模型",
       providers: "供应商",
@@ -142,8 +141,6 @@ export const zh = {
       loginInterrupted: "登录连接已断开，请重试",
       paramInvalid: "参数需为范围内的整数",
     },
-    skills: "技能",
-    extensions: "扩展",
     appearance: "外观",
     schemeLight: "浅色",
     schemeDark: "深色",
@@ -169,9 +166,6 @@ export const zh = {
     notifyTurnDone: "回合完成",
     notifyTurnDoneBody: "可以继续了",
     noCwd: "先添加工作目录",
-    noUsage: "暂无用量数据",
-    noSkills: "当前工作目录没有技能",
-    noExtensions: "当前工作目录没有扩展",
     zhCN: "简体中文",
   },
   composer: {
@@ -369,7 +363,6 @@ export const en: Messages = {
   settings: {
     title: "Settings",
     general: "General",
-    usage: "Usage",
     models: {
       title: "Models",
       providers: "Providers",
@@ -453,8 +446,6 @@ export const en: Messages = {
       loginInterrupted: "The login connection closed. Try again.",
       paramInvalid: "Parameters must be integers within range.",
     },
-    skills: "Skills",
-    extensions: "Extensions",
     appearance: "Appearance",
     schemeLight: "Light",
     schemeDark: "Dark",
@@ -481,9 +472,6 @@ export const en: Messages = {
     notifyTurnDone: "Turn finished",
     notifyTurnDoneBody: "Ready to continue",
     noCwd: "Add a working directory first",
-    noUsage: "No usage data yet",
-    noSkills: "No skills in this directory",
-    noExtensions: "No extensions in this directory",
     zhCN: "Simplified Chinese",
   },
   composer: {
