@@ -42,27 +42,28 @@
     <NavFooter @settings="emit('settings')" @add-project="emit('addProject')">
       <template #extra>
         <div class="filter-anchor">
-          <IconButton
-            class="filter-btn"
-            type="button"
-            size="m"
-            variant="ghost"
-            :title="t('session.allProjects')"
-            @click.stop="scopeMenuOpen = !scopeMenuOpen"
-          >
-            <Tuning2Icon :size="15" />
-          </IconButton>
+          <DropdownMenu :modal="false">
+            <DropdownMenuTrigger as-child>
+              <IconButton
+                class="filter-btn"
+                type="button"
+                size="m"
+                variant="ghost"
+                :title="t('session.allProjects')"
+              >
+                <Tuning2Icon :size="16" />
+              </IconButton>
+            </DropdownMenuTrigger>
 
-          <ScopeMenu
-            v-if="scopeMenuOpen"
-            placement="above"
-            :groups="groups"
-            :sort="sort"
-            :scope-filter="scopeFilter"
-            @update:sort="emit('update:sort', $event)"
-            @update:scope-filter="emit('update:scopeFilter', $event)"
-            @settings="onGlobalSettings"
-          />
+            <ScopeMenu
+              :groups="groups"
+              :sort="sort"
+              :scope-filter="scopeFilter"
+              @update:sort="emit('update:sort', $event)"
+              @update:scope-filter="emit('update:scopeFilter', $event)"
+              @settings="emit('settings')"
+            />
+          </DropdownMenu>
         </div>
       </template>
     </NavFooter>
@@ -86,6 +87,7 @@ import type {
 } from "@features/session-nav/type.js"
 import { Tuning2Icon } from "@components/icons/index.js"
 import { IconButton } from "@components/ui/button/index.js"
+import { DropdownMenu, DropdownMenuTrigger } from "@components/ui/dropdown-menu/index.js"
 
 defineProps<{
   groups: readonly SessionGroup[]
@@ -126,7 +128,6 @@ const emit = defineEmits<{
   collapseGroup: [key: string]
 }>()
 const { t } = useI18n()
-const scopeMenuOpen = shallowRef(false)
 const listScrolled = shallowRef(false)
 
 function updateListScrolled() {
@@ -141,19 +142,6 @@ onMounted(() => {
 
 // scroll 不冒泡，要走 window 的捕获阶段才能兜到 .session-window 自己的滚动。
 useEventListener(window, "scroll", updateListScrolled, { passive: true, capture: true })
-
-useEventListener(window, "pointerdown", (event) => {
-  if (!scopeMenuOpen.value) return
-  const target = event.target
-
-  if (target instanceof Element && target.closest(".scope-menu, .filter-btn")) return
-  scopeMenuOpen.value = false
-})
-
-function onGlobalSettings(): void {
-  emit("settings")
-  scopeMenuOpen.value = false
-}
 </script>
 
 <style scoped>

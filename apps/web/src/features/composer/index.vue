@@ -119,14 +119,12 @@
       </template>
     </PromptEditor>
 
-    <Transition name="stage-layer">
-      <AttachmentLightbox
-        v-if="previewItem"
-        :url="previewItem.url"
-        :name="previewItem.name"
-        @close="previewItem = undefined"
-      />
-    </Transition>
+    <AttachmentLightbox
+      v-if="previewItem"
+      :url="previewItem.url"
+      :name="previewItem.name"
+      @close="previewItem = undefined"
+    />
   </form>
 </template>
 

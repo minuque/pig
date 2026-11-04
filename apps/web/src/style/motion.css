@@ -368,36 +368,20 @@
     transform var(--duration-normal) var(--ease-out);
 }
 
-.stage-layer-enter-active {
-  transition:
-    opacity var(--duration-slow) var(--ease-out),
-    transform var(--duration-slow) var(--ease-out);
-}
-
-.panel-reveal-leave-active,
-.stage-layer-leave-active {
+.panel-reveal-leave-active {
   transition:
     opacity var(--duration-fast) var(--ease-out),
     transform var(--duration-fast) var(--ease-out);
 }
 
-.panel-reveal-enter-from,
-.stage-layer-enter-from {
+.panel-reveal-enter-from {
   opacity: 0;
   transform: translateY(12px);
 }
 
-.panel-reveal-leave-to,
-.stage-layer-leave-to {
+.panel-reveal-leave-to {
   opacity: 0;
   transform: translateY(-12px);
-}
-
-/* stage 离场层绝对定位盖住新层 */
-.stage-layer-leave-active {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
 }
 
 /* 行增删：高度随行一起收放，下方内容跟着滑，不瞬跳；负上边距抵掉 --space-xxs 行距 */
@@ -953,20 +937,9 @@
     transition: opacity var(--duration-fast) var(--ease-out);
   }
 
-  .stage-layer-enter-active,
-  .stage-layer-leave-active {
-    transition: none;
-  }
-
   .panel-reveal-enter-from,
-  .panel-reveal-leave-to,
-  .stage-layer-enter-from,
-  .stage-layer-leave-to {
+  .panel-reveal-leave-to {
     transform: none;
-  }
-
-  .stage-layer-leave-active {
-    position: static;
   }
 
   .list-reveal-enter-active,

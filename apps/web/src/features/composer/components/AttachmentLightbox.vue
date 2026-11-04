@@ -1,20 +1,19 @@
 <template>
-  <Teleport to="body">
-    <div
+  <Dialog :open="true" @update:open="emit('close')">
+    <DialogContent
       class="lightbox"
-      role="dialog"
-      aria-modal="true"
       :aria-label="t('common.preview', { name })"
+      :show-close-button="false"
       @click.self="emit('close')"
     >
       <img class="lightbox-img" :src="url" :alt="name" />
-    </div>
-  </Teleport>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
-import { useEventListener } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
+import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
 
 const { t } = useI18n()
 
@@ -26,23 +25,23 @@ defineProps<{
 const emit = defineEmits<{
   close: []
 }>()
-
-useEventListener(window, "keydown", (e: KeyboardEvent) => {
-  if (e.key === "Escape") emit("close")
-})
 </script>
 
-<style scoped>
+<style>
+/* 不写 scoped：DialogContent 经 Portal 到 body，scoped attribute 打不中。
+   rt 的对话框靠外层 padding 居中，这里改成铺满视口、图片自己居中。 */
 .lightbox {
   position: fixed;
   inset: 0;
-  z-index: var(--z-modal);
   display: grid;
   place-items: center;
+  max-inline-size: none;
+  max-block-size: none;
   padding: var(--space-xl);
-  background: var(--scrim);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   cursor: zoom-out;
-  animation: lightbox-in var(--duration-normal) var(--ease-out) both;
 }
 
 .lightbox-img {
@@ -50,26 +49,5 @@ useEventListener(window, "keydown", (e: KeyboardEvent) => {
   max-height: 100%;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-modal);
-  animation: lightbox-img-in var(--duration-slow) var(--ease-spring) both;
-}
-
-@keyframes lightbox-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes lightbox-img-in {
-  from {
-    opacity: 0;
-    scale: 0.94;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lightbox,
-  .lightbox-img {
-    animation: none;
-  }
 }
 </style>
