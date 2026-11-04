@@ -21,7 +21,8 @@
           <template v-if="variant === 'card'">
             <span class="meta-line">
               <span class="project-icon" aria-hidden="true">
-                <FolderIcon :size="16" />
+                <PinBoldIcon v-if="pinned" :size="16" />
+                <FolderIcon v-else :size="16" />
               </span>
 
               <span class="project-name">{{ projectName }}</span>
