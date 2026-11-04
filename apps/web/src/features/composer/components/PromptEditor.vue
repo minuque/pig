@@ -14,11 +14,7 @@
       />
     </Transition>
 
-    <div
-      ref="card"
-      class="composer-card surface-float"
-      :class="expanded ? 'is-expanded' : 'is-compact'"
-    >
+    <div ref="card" class="composer-card" :class="expanded ? 'is-expanded' : 'is-compact'">
       <div v-if="$slots.attachments" class="attachments">
         <slot name="attachments" />
       </div>
@@ -607,6 +603,8 @@ defineExpose({ focus })
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
+  /* 实底：和代码块、mermaid 卡片同一层，不再用毛玻璃 */
+  background: var(--code-background);
   border: var(--border-width) solid var(--composer-border);
   border-radius: inherit;
   corner-shape: var(--corner-shape-composer);
