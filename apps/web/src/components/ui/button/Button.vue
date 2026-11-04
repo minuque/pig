@@ -12,6 +12,7 @@
     v-bind="{ ...extracted.attrs, ...$attrs }"
   >
     <ButtonContent :loading="loading" :size="size"><slot /></ButtonContent>
+    <slot name="suffix" />
   </Primitive>
 </template>
 

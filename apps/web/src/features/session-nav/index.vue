@@ -112,12 +112,23 @@ function highlightedCwd(): string | undefined {
 }
 
 useEventListener(window, "keydown", (event) => {
-  if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return
+  if (!(event.ctrlKey || event.metaKey)) return
 
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
     return
-  event.preventDefault()
-  searchOpen.value = true
+
+  const key = event.key.toLowerCase()
+
+  if (key === "k") {
+    event.preventDefault()
+    searchOpen.value = true
+    return
+  }
+
+  if (key === "n") {
+    event.preventDefault()
+    onCreateSession()
+  }
 })
 
 watch(workspaceError, (message) => {

@@ -3,11 +3,39 @@
     <div class="titlebar-drag" aria-hidden="true"></div>
 
     <div class="nav-head">
-      <SidebarTitlebar
-        @toggle-sidebar="emit('toggleSidebar')"
-        @create="emit('create')"
-        @home="emit('home')"
-      />
+      <SidebarTitlebar @toggle-sidebar="emit('toggleSidebar')" @home="emit('home')" />
+
+      <div class="nav-rows">
+        <Button
+          class="nav-row press-scale"
+          type="button"
+          size="m"
+          variant="ghost"
+          @click="emit('create')"
+        >
+          <AddIcon :size="15" />
+          <span>{{ t("session.newSession") }}</span>
+
+          <template #suffix>
+            <Kbd class="nav-row-kbd" size="s">{{ modKey }}N</Kbd>
+          </template>
+        </Button>
+
+        <Button
+          class="nav-row press-scale"
+          type="button"
+          size="m"
+          variant="ghost"
+          @click="emit('update:searchOpen', true)"
+        >
+          <MagnifierIcon :size="15" />
+          <span>{{ t("nav.search") }}</span>
+
+          <template #suffix>
+            <Kbd class="nav-row-kbd" size="s">{{ modKey }}K</Kbd>
+          </template>
+        </Button>
+      </div>
 
       <SearchDialog
         :open="searchOpen"
@@ -50,11 +78,7 @@
       />
     </div>
 
-    <NavFooter
-      @settings="emit('settings')"
-      @search="emit('update:searchOpen', true)"
-      @add-project="emit('addProject')"
-    >
+    <NavFooter @settings="emit('settings')" @add-project="emit('addProject')">
       <template #extra>
         <div class="filter-anchor">
           <IconButton
@@ -100,8 +124,9 @@ import type {
   SidebarSection,
   SidebarSort,
 } from "@features/session-nav/type.js"
-import { ArrowUpIcon, Tuning2Icon } from "@components/icons/index.js"
-import { IconButton } from "@components/ui/button/index.js"
+import { ArrowUpIcon, AddIcon, MagnifierIcon, Tuning2Icon } from "@components/icons/index.js"
+import { Button, IconButton } from "@components/ui/button/index.js"
+import { Kbd } from "@components/ui/kbd/index.js"
 
 defineProps<{
   groups: readonly SessionGroup[]
@@ -144,6 +169,8 @@ const emit = defineEmits<{
   collapseGroup: [key: string]
 }>()
 const { t } = useI18n()
+const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
+const modKey = isMac ? "⌘" : "Ctrl "
 const scopeMenuOpen = shallowRef(false)
 const listScrolled = shallowRef(false)
 
@@ -211,6 +238,26 @@ function onGlobalSettings(): void {
   gap: var(--space-xs);
   min-width: 0;
   padding-block: var(--space-xxs);
+}
+
+.nav-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxs);
+  padding-inline: var(--nav-inline);
+}
+
+/* 撑满整行：图标与文字靠左，kbd 靠右 */
+.nav-row {
+  justify-content: flex-start;
+  gap: var(--space-xs);
+  width: 100%;
+  padding-inline: var(--space-xs);
+  font-weight: 400;
+}
+
+.nav-row-kbd {
+  margin-inline-start: auto;
 }
 
 /* 渐隐带挂在滚动区顶上，和分隔线一起出现：内容滚出视口才显示。 */

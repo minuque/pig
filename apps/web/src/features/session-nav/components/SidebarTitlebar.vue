@@ -14,23 +14,6 @@
             type="button"
             size="m"
             variant="ghost"
-            :aria-label="t('session.newSession')"
-            @click="emit('create')"
-          >
-            <AddIcon :size="15" />
-          </IconButton>
-        </TooltipTrigger>
-
-        <TooltipContent>{{ t("session.newSession") }}</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <IconButton
-            class="nav-btn"
-            type="button"
-            size="m"
-            variant="ghost"
             :aria-label="t('nav.collapseSidebar')"
             @click="emit('toggleSidebar')"
           >
@@ -48,11 +31,10 @@
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { AddIcon, PanelLeftCloseIcon } from "@components/icons/index.js"
+import { PanelLeftCloseIcon } from "@components/icons/index.js"
 
 const emit = defineEmits<{
   toggleSidebar: []
-  create: []
   home: []
 }>()
 const { t } = useI18n()
@@ -104,7 +86,7 @@ const { t } = useI18n()
   animation: brand-peek var(--duration-pig-peek) both;
 }
 
-/* 两个图标按钮贴右并排，中间不留缝 */
+/* 收起按钮贴右 */
 .nav-actions {
   display: flex;
   flex: none;

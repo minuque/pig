@@ -27,23 +27,6 @@
             type="button"
             size="m"
             variant="ghost"
-            :aria-label="t('nav.search')"
-            @click="emit('search')"
-          >
-            <MagnifierIcon :size="15" />
-          </IconButton>
-        </TooltipTrigger>
-
-        <TooltipContent>{{ t("nav.search") }}</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <IconButton
-            class="footer-btn press-scale"
-            type="button"
-            size="m"
-            variant="ghost"
             :aria-label="t('session.addGuide')"
             @click="emit('addProject')"
           >
@@ -61,11 +44,10 @@
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
-import { AddFolderIcon, MagnifierIcon, SettingsIcon } from "@components/icons/index.js"
+import { AddFolderIcon, SettingsIcon } from "@components/icons/index.js"
 
 const emit = defineEmits<{
   settings: []
-  search: []
   addProject: []
 }>()
 const { t } = useI18n()
