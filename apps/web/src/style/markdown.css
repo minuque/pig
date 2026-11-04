@@ -189,18 +189,34 @@
     padding: var(--border-width) calc(var(--space-xxs) - var(--border-width));
   }
 
-  /* ------ Synara 覆盖：代码块单层底，无边框阴影 ------ */
+  /* ------ Synara 覆盖：代码块单层底，外框与其他卡片同档 ------ */
   .code-block-container {
     --markstream-code-theme-bg: var(--code-background) !important;
     --markstream-code-fallback-bg: var(--code-background) !important;
     --markstream-pre-resolved-theme-bg: var(--code-background) !important;
+    /* 库用内联 border-color 取这个变量 */
+    --markstream-code-border-color: var(--border);
 
     /* 代码正文与自建步骤卡的代码区同档：--text-code / --text-code-line */
     font-size: var(--text-code);
     line-height: var(--text-code-line);
 
-    border: 0;
+    border: var(--border-width) solid var(--border) !important;
     box-shadow: none;
+  }
+
+  /* 头部只留动作区：去掉语言标签与分隔线 */
+  .code-block-container .code-block-header {
+    border-bottom: 0;
+  }
+
+  .code-block-container .code-block-header .code-header-title {
+    display: none;
+  }
+
+  /* 代码区顶到头部，上间距归零 */
+  .code-block-container pre {
+    padding-top: 0 !important;
   }
 
   /* 行号与 diff 双栏靠库的 white-space:pre 定位，不折行。 */
@@ -217,8 +233,11 @@
 
   /* ------ mermaid：保留卡片外壳，工具条常驻显示 ------ */
   .mermaid-block-container {
+    --diagram-border: var(--border);
+
     background: var(--code-background);
     color: var(--code-foreground);
+    border: var(--border-width) solid var(--border) !important;
   }
 
   .mermaid-preview-area,
