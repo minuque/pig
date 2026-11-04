@@ -83,16 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  shallowRef,
-  useTemplateRef,
-  watch,
-} from "vue"
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import {
   DropdownMenu,
@@ -143,16 +134,24 @@ const titleWidth = computed(() => (sizerWidth.value > 0 ? `${sizerWidth.value}px
 const measureSizer = () => {
   sizerWidth.value = sizer.value?.getBoundingClientRect().width ?? 0
 }
+// 标题为空时 sizer 整块不渲染，挂载那一刻量不到；等它出现再挂观察器
+let sizerObserver: ResizeObserver | undefined
 
-onMounted(() => {
-  measureSizer()
+watch(
+  sizer,
+  (el) => {
+    sizerObserver?.disconnect()
+    sizerObserver = undefined
+    sizerWidth.value = el?.getBoundingClientRect().width ?? 0
 
-  if (!sizer.value || typeof ResizeObserver === "undefined") return
-  const observer = new ResizeObserver(measureSizer)
+    if (!el || typeof ResizeObserver === "undefined") return
+    sizerObserver = new ResizeObserver(measureSizer)
+    sizerObserver.observe(el)
+  },
+  { flush: "post" },
+)
 
-  observer.observe(sizer.value)
-  onBeforeUnmount(() => observer.disconnect())
-})
+onBeforeUnmount(() => sizerObserver?.disconnect())
 
 watch(
   () => props.title,
