@@ -16,11 +16,7 @@
 
     <WorkbenchHeader />
 
-    <div
-      ref="columnEl"
-      class="conversation-column"
-      :class="{ 'is-content-resizing': contentResizing }"
-    >
+    <div class="conversation-column">
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
@@ -98,7 +94,6 @@
               :session-id="sessionId"
               :cwd="composerCwd"
               :send-disabled="sendDisabled"
-              :content-resizing="contentResizing"
               :hero="showHero"
               :queue="composerQueue"
               @send="onSend"
@@ -108,20 +103,6 @@
             />
           </div>
         </div>
-      </template>
-
-      <template v-if="showContentHandles">
-        <ContentWidthHandle
-          v-for="side in contentHandleSides"
-          :key="side"
-          :side="side"
-          :measure="snapshotWidth"
-          @start="beginResize"
-          @drag="previewWidth"
-          @commit="commitWidth"
-          @end="endResize"
-          @nudge="nudgeWidth"
-        />
       </template>
     </div>
   </div>
@@ -144,12 +125,10 @@ import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
-import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
-import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
@@ -502,25 +481,6 @@ useEventListener(window, "dragenter", onWindowFileDragOver, { capture: true })
 useEventListener(window, "dragover", onWindowFileDragOver, { capture: true })
 
 useEventListener(window, "drop", onWindowFileDrop, { capture: true })
-
-const {
-  resizing: contentResizing,
-  bindColumn,
-  snapshotWidth,
-  beginResize,
-  previewWidth,
-  commitWidth,
-  endResize,
-  nudgeWidth,
-} = useConversationWidth()
-const columnEl = useTemplateRef("columnEl")
-
-watch(columnEl, (el) => bindColumn(el), { flush: "post" })
-
-const showContentHandles = computed(
-  () => Boolean(sessionId.value) && !showHero.value && !sessionPending.value,
-)
-const contentHandleSides = ["left", "right"] as const
 </script>
 
 <style scoped>
@@ -574,14 +534,8 @@ const contentHandleSides = ["left", "right"] as const
   flex-direction: column;
   /* 测量前占位，挂上后由输入条边框盒覆盖 */
   --composer-reserve: 7rem;
-  --size-content: var(--chat-user-width, 680px);
   /* 首屏输入条底边离列底的距离 */
   --hero-dock: 34%;
-}
-
-.conversation-column.is-content-resizing {
-  cursor: col-resize;
-  user-select: none;
 }
 
 .session-stage {
@@ -646,7 +600,7 @@ const contentHandleSides = ["left", "right"] as const
 .composer-stack {
   position: relative;
   width: 100%;
-  max-width: calc(var(--size-content) + var(--space-sm));
+  max-width: min(calc(var(--size-content) + var(--space-sm)), calc(100% - 2 * var(--space-md)));
   margin-inline: auto;
   background: transparent;
   pointer-events: auto;

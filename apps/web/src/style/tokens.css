@@ -183,7 +183,7 @@
   --text-code: 13px;
   --text-code-line: 24.5px;
 
-  /* 输入卡胶囊：宽度跟随内容宽度手柄 */
+  /* 输入卡胶囊：宽度跟随对话宽度档 */
   --composer-radius: 32px;
   /* 输入卡控件（回形针、发送、模型 chip、上下文环） */
   --size-composer-control: 32px;
@@ -218,6 +218,8 @@
   /* 侧边栏紧凑图标按钮：图标外 2px */
   --icon-button-pad: 2px;
   --size-scroll-control: 30px;
+  /* 对话正文与输入卡的内容宽度：舒适档 */
+  --size-content: 680px;
   /* 侧栏行高 */
   --size-nav-rail: 28px;
   --startup-logo-size: 88px;
@@ -481,4 +483,13 @@ html[data-font-size="l"] {
   --text-caption-mono: 13px;
   --text-code: 15px;
   --text-code-line: 28px;
+}
+
+/* 对话宽度档：舒适为默认，宽档加宽，满宽铺满列。 */
+html[data-chat-width="wide"] {
+  --size-content: 920px;
+}
+
+html[data-chat-width="full"] {
+  --size-content: 100%;
 }

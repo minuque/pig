@@ -100,8 +100,6 @@ import { promptPlaceholder } from "@features/composer/index.js"
 const props = withDefaults(
   defineProps<{
     placeholder?: string
-    /** 外层宽度手柄拖拽中：此期间不折叠。 */
-    resizing?: boolean
     /** 新会话首屏：输入卡恒展开。 */
     hero?: boolean
     /** @ 文件与 / 命令搜索的根目录；未给时触发菜单不出现。 */
@@ -109,7 +107,6 @@ const props = withDefaults(
   }>(),
   {
     placeholder: promptPlaceholder(),
-    resizing: false,
     hero: false,
     cwd: undefined,
   },
@@ -204,7 +201,6 @@ let finishFlip: (() => void) | undefined
 let measureCtx: CanvasRenderingContext2D | undefined
 const internalResizing = ref(false)
 let resizeTimer: ReturnType<typeof setTimeout> | undefined
-const resizing = computed(() => props.resizing || internalResizing.value)
 
 function fitEditor() {
   const el = editor.value
@@ -267,7 +263,7 @@ function evaluate(motion?: FlipMotion) {
     textWidth,
     capacity: currentCapacity(),
     expanded: expanded.value,
-    resizing: resizing.value,
+    resizing: internalResizing.value,
   })
 
   flipMode(next, motion)
@@ -418,7 +414,7 @@ watch(
   { flush: "post" },
 )
 
-watch(resizing, () => evaluate())
+watch(internalResizing, () => evaluate())
 
 // 首屏↔会话的展开形变跟输入卡停靠同一条时间线
 watch(
