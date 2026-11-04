@@ -134,6 +134,8 @@ export { TrashBinMinimalisticIcon } from "@solar-icons/vue/linear/trash-bin-mini
 
 export { Tuning2Icon } from "@solar-icons/vue/linear/tuning-2"
 
+export { Tuning2Icon as Tuning2OutlineIcon } from "@solar-icons/vue/outline/tuning-2"
+
 export { UndoLeftRoundIcon } from "@solar-icons/vue/linear/undo-left-round"
 
 export { UserIcon } from "@solar-icons/vue/linear/user"

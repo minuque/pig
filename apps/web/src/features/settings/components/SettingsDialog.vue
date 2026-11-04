@@ -114,7 +114,7 @@ import {
   CloseIcon,
   CloudIcon,
   MagnifierIcon,
-  SliderMinimalisticHorizontalIcon,
+  Tuning2OutlineIcon,
 } from "@components/icons/index.js"
 import { Kbd } from "@components/ui/kbd/index.js"
 import GeneralPane from "./GeneralPane.vue"
@@ -143,17 +143,15 @@ const trail = ref<SettingsCrumb[]>([])
 
 provide(SETTINGS_TRAIL, trail)
 
-const tabs = computed<{ id: Pane; label: string; icon: typeof SliderMinimalisticHorizontalIcon }[]>(
-  () => [
-    {
-      id: "general",
-      label: t("settings.general"),
-      icon: SliderMinimalisticHorizontalIcon,
-    },
-    { id: "models", label: t("settings.models.title"), icon: CloudIcon },
-    { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
-  ],
-)
+const tabs = computed<{ id: Pane; label: string; icon: typeof Tuning2OutlineIcon }[]>(() => [
+  {
+    id: "general",
+    label: t("settings.general"),
+    icon: Tuning2OutlineIcon,
+  },
+  { id: "models", label: t("settings.models.title"), icon: CloudIcon },
+  { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
+])
 /** 头部路径：设置 + 分区自己的下钻层级，没有下钻就落到当前分区名。 */
 const crumbs = computed<SettingsCrumb[]>(() => {
   const base: SettingsCrumb[] = [{ label: t("settings.title") }]
