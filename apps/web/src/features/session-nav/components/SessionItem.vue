@@ -665,14 +665,15 @@ function confirmDelete() {
   white-space: nowrap;
 }
 
-/* 工作中：虚线圆环 + 状态名 + 已跑秒数 */
+/* 工作中：虚线圆环 + 状态名 + 已跑秒数，用强调色压过右边的弱化信息 */
 .working-status {
   display: inline-flex;
   flex: none;
   align-items: center;
   gap: var(--space-xxs);
-  color: var(--contrast-foreground-muted);
+  color: var(--info);
   font-size: var(--text-eyebrow);
+  font-weight: var(--font-weight-medium);
   line-height: var(--text-eyebrow--line-height);
   white-space: nowrap;
 }

@@ -169,7 +169,7 @@
   --info: var(--accent-11);
   --warning: #a16207;
   --danger: #dc2626;
-  --state-working: #7cb3ff;
+  --state-working: var(--info);
   --success-foreground: var(--primary-foreground);
   --warning-foreground: var(--primary-foreground);
   --danger-foreground: var(--primary-foreground);
