@@ -69,10 +69,9 @@ const settledLabel = computed(() => {
   const parts = summary.value.parts.map((part) =>
     part.kind === "text" ? part.text : `${part.prefix} ${part.count} ${part.suffix}`,
   )
-
-  if (summary.value.failCount)
-    parts.push(`${t("transcript.statusError")} ${summary.value.failCount}`)
-  return parts.join(", ")
+  const label = parts.join(", ")
+  const failed = summary.value.failCount
+  return failed ? `${label}${t("transcript.failedCount", { count: failed })}` : label
 })
 const live = computed(() => runningToolLabel(props.row))
 const displayLive = ref<string | null>(live.value)
