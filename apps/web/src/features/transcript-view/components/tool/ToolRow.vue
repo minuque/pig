@@ -89,8 +89,8 @@ const thumb = computed(() => {
   background: transparent;
   color: var(--contrast-foreground-muted);
   font: inherit;
-  font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   text-align: start;
   cursor: pointer;
 }
