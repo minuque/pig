@@ -61,7 +61,7 @@
               <Tooltip>
                 <TooltipTrigger as-child>
                   <IconButton
-                    class="scroll-latest-control press-scale"
+                    class="icon-control scroll-latest-control press-scale"
                     type="button"
                     :aria-label="t('transcript.scrollToBottom')"
                     variant="outline"
@@ -575,40 +575,9 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   pointer-events: auto;
 }
 
+/* 外观走全局 .icon-control，这里只负责浮在输入卡上方 */
 .scroll-latest-control {
-  width: var(--size-scroll-control);
-  height: var(--size-scroll-control);
-  border-radius: var(--radius-pill);
-  background: var(--popover);
-  color: var(--contrast-foreground-secondary);
-  cursor: pointer;
   translate: 0 calc(-100% - var(--space-sm));
-  /* 与发送键同一套立体感：浮起投影 + 顶沿内高光，按下时换成内阴影 */
-  box-shadow:
-    var(--shadow-elevated),
-    inset 0 1px 0 var(--button-sheen),
-    inset 0 0 0 var(--border-width) var(--border);
-  transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth),
-    box-shadow var(--duration-fast) var(--ease-smooth),
-    scale var(--duration-fast) var(--ease-out);
-}
-
-.scroll-latest-control:hover {
-  background: var(--interaction-hover);
-  color: var(--contrast-foreground);
-  scale: 1.06;
-  box-shadow:
-    var(--shadow-float),
-    inset 0 1px 0 var(--button-sheen),
-    inset 0 0 0 var(--border-width) var(--border);
-}
-
-.scroll-latest-control:active {
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--border),
-    inset 0 1px 2px var(--button-press);
 }
 
 @media (max-width: 900px) {

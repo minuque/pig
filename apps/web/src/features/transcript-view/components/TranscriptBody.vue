@@ -22,23 +22,27 @@
 
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
-          <button
-            v-if="hasMore && !loadingOlder"
-            type="button"
-            class="older-busy"
-            :disabled="loadingOlder"
-            @click="older.request"
-          >
-            {{ t("transcript.loadEarlier") }}
-          </button>
+          <div v-if="hasMore" class="older-control">
+            <Button
+              class="older-button press-scale"
+              type="button"
+              variant="soft"
+              size="s"
+              radius="full"
+              :disabled="loadingOlder"
+              @click="older.request"
+            >
+              <span class="icon-swap">
+                <LoaderIcon
+                  :data-visible="loadingOlder"
+                  :class="{ 'animate-spin motion-reduce:animate-none': loadingOlder }"
+                />
 
-          <div
-            v-else-if="hasMore"
-            class="older-busy is-loading"
-            role="status"
-            :aria-label="t('transcript.loadEarlier')"
-          >
-            <LoaderIcon class="older-spinner is-spinning" />
+                <ArrowUpIcon :data-visible="!loadingOlder" />
+              </span>
+
+              {{ t("transcript.loadEarlier") }}
+            </Button>
           </div>
 
           <div class="timeline-rows">
@@ -86,6 +90,7 @@ import TranscriptMinimap from "@features/transcript-view/components/TranscriptMi
 import TranscriptStatus from "@features/transcript-view/components/TranscriptStatus.vue"
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { useI18n } from "@i18n/index.js"
+import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
@@ -108,7 +113,7 @@ import {
   historyPrepended,
   shouldShowScrollToLatest,
 } from "@features/transcript-view/lib/transcript-scroll.js"
-import { LoaderIcon } from "@components/icons/index.js"
+import { ArrowUpIcon, LoaderIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{
@@ -237,19 +242,15 @@ const {
 const older = useTranscriptOlder({
   hasMore: () => props.hasMore,
   loading: () => props.loadingOlder,
-  getRoot: scrollerRoot,
-  isAtBottom: () => atBottom.value,
   load: () => emit("loadOlder"),
 })
 
 function onTranscriptScroll() {
   onScroll()
-  older.onScroll()
 }
 
 function onTranscriptWheel(event: WheelEvent) {
   onWheel(event)
-  older.onScroll()
 }
 
 function onToggleExpand(id: string, open: boolean) {
@@ -333,10 +334,7 @@ watch(turns, (next, prev) => {
     void nextTick(() => scrollToElementOffset(target))
   }
 
-  if (previous.length === 0 && next.length > 0) {
-    older.arm()
-    return
-  }
+  if (previous.length === 0 && next.length > 0) return
 
   if (userTurnAppended(previous, next)) {
     runwayId.value = next.at(-1)?.id
@@ -384,7 +382,6 @@ watch(
     runwayId.value = undefined
     rowsBuilder.reset()
     reset()
-    older.arm()
     pendingRestore = scrollMemory.get(id)
 
     if (pendingRestore === undefined) void nextTick(pinLatest)
@@ -471,33 +468,24 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   width: 100%;
 }
 
-.older-busy {
-  display: block;
-  width: 100%;
-  padding: var(--space-sm) 0;
-  border: 0;
-  background: transparent;
-  color: var(--contrast-foreground);
-  font: inherit;
+/* 胶囊钮的水平居中由外层撑满列宽；上下留白与正文其它块同档 */
+.older-control {
+  display: flex;
+  justify-content: center;
+  padding-block: var(--space-sm);
+}
+
+/* soft 强调色是基础件给的；这里只把高度、字级与图标补到胶囊档 */
+.older-button {
+  height: var(--size-scroll-control);
+  padding-inline: var(--space-sm);
+  gap: var(--space-xxs);
   font-size: var(--text-meta);
-  text-align: center;
-  cursor: pointer;
+  line-height: var(--text-meta--line-height);
 }
 
-.older-busy:disabled {
-  cursor: default;
-}
-
-.older-busy.is-loading {
-  display: grid;
-  place-items: center;
-  min-height: calc(var(--text-meta) * var(--text-meta--line-height) + 2 * var(--space-sm));
-  cursor: default;
-}
-
-.older-spinner {
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
-  color: var(--contrast-foreground-muted);
+.older-button :deep(svg) {
+  width: var(--size-icon-xs);
+  height: var(--size-icon-xs);
 }
 </style>

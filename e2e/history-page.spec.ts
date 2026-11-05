@@ -28,7 +28,7 @@ const OLDER: TranscriptItem[] = [
   },
 ] as TranscriptItem[]
 
-test("上翻历史按 before 取上一页，接在头部且不重复", async ({ page, complexGateway }) => {
+test("点按钮按 before 取上一页历史，接在头部且不重复", async ({ page, complexGateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
 
@@ -57,7 +57,15 @@ test("上翻历史按 before 取上一页，接在头部且不重复", async ({ 
 
   await expect(older).toHaveCount(0)
 
-  const more = page.locator(".older-busy")
+  // 滚到顶不自动拉：只有点按钮才取上一页
+  await page.locator("#transcript-panel").evaluate((el) => {
+    el.scrollTop = 0
+    el.dispatchEvent(new Event("scroll"))
+    el.dispatchEvent(new WheelEvent("wheel", { deltaY: -120, bubbles: true }))
+  })
+  await expect(older).toHaveCount(0)
+
+  const more = page.locator(".older-button")
   await expect(more).toBeVisible()
   await more.click()
 
@@ -70,7 +78,7 @@ test("上翻历史按 before 取上一页，接在头部且不重复", async ({ 
   const newerBox = await page.getByText("较新的问题", { exact: true }).boundingBox()
 
   expect(olderBox?.y ?? 0).toBeLessThan(newerBox?.y ?? 0)
-  await expect(page.locator(".older-busy")).toHaveCount(0)
+  await expect(page.locator(".older-button")).toHaveCount(0)
   // 老行保留，没有整页替换
   await expect(page.getByText("较新的回答", { exact: true })).toBeVisible()
 })
