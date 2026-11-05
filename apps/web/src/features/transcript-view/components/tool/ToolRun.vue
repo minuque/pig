@@ -1,5 +1,5 @@
 <template>
-  <div class="tool-run">
+  <div v-if="row.steps.length" class="tool-run">
     <button
       type="button"
       class="tool-run-summary"
@@ -22,7 +22,7 @@
 
     <ToolRunCard
       v-if="open"
-      :calls="calls"
+      :row="row"
       :expanded-tools="expandedTools"
       @toggle-tool="(id, value) => emit('toggleTool', id, value)"
     />
@@ -35,11 +35,7 @@ import { useI18n } from "@i18n/index.js"
 import { AltArrowRightIcon } from "@components/icons/index.js"
 import RollText from "@features/transcript-view/components/RollText.vue"
 import ToolRunCard from "@features/transcript-view/components/tool/ToolRunCard.vue"
-import {
-  runningToolLabel,
-  toolCalls,
-  toolRunSummary,
-} from "@features/transcript-view/lib/tool-run.js"
+import { runningToolLabel, toolRunSummary } from "@features/transcript-view/lib/tool-run.js"
 import type { ToolRow as ToolRowModel } from "@features/transcript-view/type.js"
 import { formatElapsed } from "@utils/time.js"
 
@@ -54,7 +50,6 @@ const emit = defineEmits<{
   toggleTool: [id: string, open: boolean]
 }>()
 const { t } = useI18n()
-const calls = computed(() => toolCalls(props.row))
 const duration = computed(() => {
   const { startedAt, endedAt } = props.row
 
