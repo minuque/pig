@@ -6,7 +6,8 @@
   --ms-font-sans: var(--font-sans);
   --ms-font-mono: var(--font-mono);
   --ms-text-body: var(--text-body-md);
-  --ms-leading-body: 1.42857;
+  /* 正文行距略高于基准，给行内码留出上下空隙 */
+  --ms-leading-body: 1.5;
   --ms-text-h1: 1.14286em;
   --ms-text-h2: 1.07143em;
   --ms-text-h3: 1em;
@@ -193,7 +194,8 @@
     color: color-mix(in srgb, var(--link) 75%, var(--contrast-foreground-secondary));
     border: var(--border-width) solid var(--border-subtle);
     border-radius: var(--radius-xs);
-    padding: var(--border-width) calc(var(--space-xxs) - var(--border-width));
+    /* 上下不留内边距：行内码几乎与行盒等高，多 2px 就会和上下行的码贴在一起 */
+    padding: 0 calc(var(--space-xxs) - var(--border-width));
   }
 
   /* ------ Synara 覆盖：代码块单层底，外框与其他卡片同档 ------ */
