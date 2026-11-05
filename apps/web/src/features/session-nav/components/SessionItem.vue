@@ -211,11 +211,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
-import {
-  formatElapsed,
-  formatRelativeTime,
-  workspaceName,
-} from "@features/session-nav/lib/format.js"
+import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
+import { formatClock } from "@utils/time.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
   CheckCircleIcon,
@@ -277,7 +274,7 @@ const glyphState = computed(() => sessionGlyph(props.session, props.state))
 const timeLabel = computed(() => formatRelativeTime(props.session.updatedAt))
 const tick = shallowRef(Date.now())
 const elapsed = computed(() =>
-  props.startedAt === undefined ? "" : formatElapsed(tick.value - props.startedAt),
+  props.startedAt === undefined ? "" : formatClock(tick.value - props.startedAt),
 )
 const clock = useIntervalFn(
   () => {

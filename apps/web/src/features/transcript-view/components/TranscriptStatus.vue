@@ -32,6 +32,7 @@ import { useI18n } from "@i18n/index.js"
 import { RunningPigGlyph } from "@components/icons/index.js"
 import RollText from "@features/transcript-view/components/RollText.vue"
 import FlowNumber from "@features/transcript-view/components/FlowNumber.vue"
+import { formatClock } from "@utils/time.js"
 import type { SessionPhase } from "@/types/common-type.js"
 import {
   createActivityLabelDisplay,
@@ -163,8 +164,7 @@ const elapsedLabel = computed(() => {
   const start = elapsedStart.value
 
   if (!busy.value || !shown.value || start === undefined) return ""
-  const seconds = Math.max(0, Math.floor((now.value - start) / 1000))
-  return `${seconds}s`
+  return formatClock(now.value - start)
 })
 /** 小猪状态：busy 5min → long，10min → xlong，否则 run；非 busy 一律 idle（睡觉猪）。 */
 const pigState = computed<"idle" | "run" | "long" | "xlong">(() => {

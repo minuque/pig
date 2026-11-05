@@ -23,17 +23,6 @@ export function sessionRecency(session: Pick<SessionMetadata, "createdAt" | "upd
   return session.updatedAt ?? session.createdAt
 }
 
-/** 工作时长：不足一分钟按秒，不足一小时按分，再往上按小时加分。 */
-export function formatElapsed(elapsedMs: number): string {
-  const seconds = Number.isFinite(elapsedMs) ? Math.max(0, Math.floor(elapsedMs / 1000)) : 0
-
-  if (seconds < 60) return `${seconds}s`
-  const minutes = Math.floor(seconds / 60)
-
-  if (minutes < 60) return `${minutes}m`
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`
-}
-
 const MINUTE = 60_000
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
