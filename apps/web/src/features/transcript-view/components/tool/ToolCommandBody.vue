@@ -79,8 +79,7 @@ watch(
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: var(--space-xs) var(--space-sm);
-  padding-inline-end: calc(var(--space-sm) + 22px);
+  padding: var(--space-xs) 0 var(--space-xs) var(--space-sm);
   border-radius: var(--radius-md);
   background: var(--code-background);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
@@ -95,6 +94,8 @@ watch(
   display: flex;
   flex-direction: column;
   min-width: 0;
+  /* 滚动条贴卡片右缘：右内边距放在滚动区里，只给内容让出复制按钮的位置 */
+  padding-inline-end: calc(var(--space-sm) + 22px);
   max-height: var(--transcript-tool-max);
   overflow: auto;
   /* 卡片底比全局滚动条色深，滚动条会看不出，这里提到 ink 12% */
