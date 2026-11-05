@@ -106,14 +106,14 @@ useResizeObserver(body, measure)
   flex-direction: column;
   align-items: flex-start;
   width: fit-content;
-  max-width: 90%;
+  max-width: 85%;
   margin: 0;
-  padding: 9px 12px;
+  padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-lg);
   background: var(--user-prompt-background);
   color: var(--contrast-foreground);
   font-size: var(--text-body-md);
-  line-height: 1.5;
+  line-height: var(--text-body-md--line-height);
 }
 
 .body {
@@ -124,7 +124,7 @@ useResizeObserver(body, measure)
 }
 
 .body.collapsed {
-  max-height: calc(1.5em * 12);
+  max-height: calc(var(--text-body-md--line-height) * 12em);
   overflow: hidden;
 }
 

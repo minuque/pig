@@ -77,6 +77,24 @@
           </SegmentedControl>
         </div>
 
+        <div id="setting-chat-width" class="row">
+          <div class="copy">
+            <h3 class="label">{{ t("settings.chatWidth") }}</h3>
+            <p class="hint">{{ t("settings.chatWidthHint") }}</p>
+          </div>
+
+          <SegmentedControl
+            :model-value="chatWidth"
+            size="s"
+            :aria-label="t('settings.chatWidth')"
+            @update:model-value="onChatWidth"
+          >
+            <SegmentedControlItem v-for="option in widths" :key="option.id" :value="option.id">
+              {{ option.label }}
+            </SegmentedControlItem>
+          </SegmentedControl>
+        </div>
+
         <div id="setting-accent" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.accent") }}</h3>
@@ -144,7 +162,12 @@
 import { computed } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
 import { useI18n } from "@i18n/index.js"
-import { useGeneralPrefs, type FontSize, type UiLocale } from "@features/settings/index.js"
+import {
+  useGeneralPrefs,
+  type ChatWidth,
+  type FontSize,
+  type UiLocale,
+} from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import {
   ACCENTS,
@@ -163,10 +186,12 @@ const { isDark, scheme, accent, setScheme, setAccent } = useColorScheme()
 const {
   locale,
   fontSize,
+  chatWidth,
   translucentWindow,
   contrastBoost,
   setLocale,
   setFontSize,
+  setChatWidth,
   setTranslucentWindow,
   setContrastBoost,
 } = useGeneralPrefs()
@@ -205,6 +230,10 @@ function onFontSize(value: string) {
   setFontSize(value as FontSize)
 }
 
+function onChatWidth(value: string) {
+  setChatWidth(value as ChatWidth)
+}
+
 const locales: { id: UiLocale; label: string }[] = [
   { id: "en", label: "English" },
   { id: "zh-CN", label: t("settings.zhCN") },
@@ -213,6 +242,11 @@ const sizes: { id: FontSize; mark: string; label: string }[] = [
   { id: "s", mark: "S", label: t("settings.fontSizeS") },
   { id: "m", mark: "M", label: t("settings.fontSizeM") },
   { id: "l", mark: "L", label: t("settings.fontSizeL") },
+]
+const widths: { id: ChatWidth; label: string }[] = [
+  { id: "comfortable", label: t("settings.chatWidthComfortable") },
+  { id: "wide", label: t("settings.chatWidthWide") },
+  { id: "full", label: t("settings.chatWidthFull") },
 ]
 
 function onContrast(value: number[] | undefined) {

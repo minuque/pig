@@ -115,6 +115,9 @@ useEventListener(window, "keydown", (event) => {
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
     return
 
+  // 输入框是 contenteditable，不是 input/textarea，打字时也要让开
+  if (event.target instanceof HTMLElement && event.target.isContentEditable) return
+
   const key = event.key.toLowerCase()
 
   if (key === "k") {

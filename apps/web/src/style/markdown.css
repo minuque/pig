@@ -6,10 +6,11 @@
   --ms-font-sans: var(--font-sans);
   --ms-font-mono: var(--font-mono);
   --ms-text-body: var(--text-body-md);
-  --ms-leading-body: 1.6;
-  --ms-text-h1: calc(var(--ms-text-body) + 4px);
-  --ms-text-h2: calc(var(--ms-text-body) + 4px);
-  --ms-text-h3: calc(var(--ms-text-body) + 2px);
+  /* 正文行距略高于基准，给行内码留出上下空隙 */
+  --ms-leading-body: 1.5;
+  --ms-text-h1: 1.14286em;
+  --ms-text-h2: 1.07143em;
+  --ms-text-h3: 1em;
   --ms-text-h4: 1em;
   --ms-text-h5: 1em;
   --ms-text-h6: 1em;
@@ -38,13 +39,13 @@
   --ms-flow-heading-6-mb: 0px;
   --ms-flow-paragraph-y: 0px;
   --ms-flow-list-y: 0px;
-  --ms-flow-list-item-y: 0px;
-  --ms-flow-list-indent: 18px;
+  --ms-flow-list-item-y: 6px;
+  --ms-flow-list-indent: 20px;
   --ms-flow-list-indent-mobile: var(--ms-flow-list-indent);
   --ms-flow-codeblock-y: 0px;
   --ms-flow-table-y: 0px;
   --ms-flow-blockquote-y: 0px;
-  --ms-flow-blockquote-indent: 16px;
+  --ms-flow-blockquote-indent: 8px;
   --ms-flow-hr-y: 0px;
 
   /* 形状 */
@@ -124,7 +125,7 @@
 
   /* 块间距的唯一来源：每个 AST 节点都包在 .node-slot 里。 */
   .node-slot + .node-slot {
-    margin-top: 12px;
+    margin-top: 10px;
   }
 
   /* 库的窄屏规则（<1024px 时 .list-disc margin 4/3em）在桌面窄栏也生效，压回 node-slot 统一间距。 */
@@ -133,7 +134,14 @@
     margin: 0;
   }
 
-  /* 标题前间距与普通块一致（12px），由 .node-slot + .node-slot 统一给。 */
+  /* 标题上方多留一档、下方收窄：标题领起下文，而不是等距浮在两段中间。 */
+  .node-slot + .node-slot:has(> .node-content > .heading-node) {
+    margin-top: 20px;
+  }
+
+  .node-slot:has(> .node-content > .heading-node) + .node-slot {
+    margin-top: 6px;
+  }
 
   /* 首块不留上间距（首块是标题时同样适用），放在最后压过上面两条。 */
   > .height-estimation-probes + .node-slot,
@@ -155,7 +163,7 @@
     margin-top: 12px;
   }
 
-  /* cc-wrapper：hr 上边框 1px，上下间距 12px */
+  /* cc-wrapper：hr 上边框 1px，间距由 node-slot 统一给 */
   .hr-node {
     border-top: var(--border-width) solid var(--border);
   }
@@ -163,7 +171,7 @@
   /* h4/h5 与加粗同级，h6 弱化 */
   .heading-4,
   .heading-5 {
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-medium);
   }
 
   .heading-6 {
@@ -186,21 +194,38 @@
     color: color-mix(in srgb, var(--link) 75%, var(--contrast-foreground-secondary));
     border: var(--border-width) solid var(--border-subtle);
     border-radius: var(--radius-xs);
-    padding: var(--border-width) calc(var(--space-xxs) - var(--border-width));
+    /* 上下不留内边距：行内码几乎与行盒等高，多 2px 就会和上下行的码贴在一起 */
+    padding: 0 calc(var(--space-xxs) - var(--border-width));
   }
 
-  /* ------ Synara 覆盖：代码块单层底，无边框阴影 ------ */
+  /* ------ Synara 覆盖：代码块单层底，外框与其他卡片同档 ------ */
   .code-block-container {
     --markstream-code-theme-bg: var(--code-background) !important;
     --markstream-code-fallback-bg: var(--code-background) !important;
     --markstream-pre-resolved-theme-bg: var(--code-background) !important;
+    /* 库用内联 border-color 取这个变量 */
+    --markstream-code-border-color: var(--border);
 
     /* 代码正文与自建步骤卡的代码区同档：--text-code / --text-code-line */
     font-size: var(--text-code);
     line-height: var(--text-code-line);
 
-    border: 0;
+    border: var(--border-width) solid var(--border) !important;
     box-shadow: none;
+  }
+
+  /* 头部只留动作区：去掉语言标签与分隔线 */
+  .code-block-container .code-block-header {
+    border-bottom: 0;
+  }
+
+  .code-block-container .code-block-header .code-header-title {
+    display: none;
+  }
+
+  /* 代码区顶到头部，上间距归零：库把 8px 上内边距打在 pre 或 code 上 */
+  .code-block-container :is(pre, code[data-code]) {
+    padding-top: 0 !important;
   }
 
   /* 行号与 diff 双栏靠库的 white-space:pre 定位，不折行。 */
@@ -217,8 +242,11 @@
 
   /* ------ mermaid：保留卡片外壳，工具条常驻显示 ------ */
   .mermaid-block-container {
+    --diagram-border: var(--border);
+
     background: var(--code-background);
     color: var(--code-foreground);
+    border: var(--border-width) solid var(--border) !important;
   }
 
   .mermaid-preview-area,
@@ -271,7 +299,7 @@
     transform: scale(0.98);
   }
 
-  /* ------ 表格：单层圆角外框 + 横向分隔线；13px、8px 四周 padding（对齐 cc-wrapper） ------ */
+  /* ------ 表格：单层圆角外框 + 横向分隔线；字号随正文，8px 内边距 ------ */
   .table-node-wrapper .table-node {
     table-layout: auto;
     border-collapse: separate;
@@ -281,7 +309,7 @@
     border-radius: var(--ms-radius);
     background: transparent;
     box-shadow: none;
-    font-size: var(--text-meta);
+    font-size: inherit;
   }
 
   .table-node-wrapper .table-node :is(th, td),
@@ -324,6 +352,7 @@
   --diffs-font-size: var(--text-code);
   --diffs-line-height: var(--text-code-line);
   --diffs-font-family: var(--font-mono);
+  --diffs-header-font-family: var(--font-mono);
 }
 
 /* 影子 :host 写死主题色，外层声明优先。 */

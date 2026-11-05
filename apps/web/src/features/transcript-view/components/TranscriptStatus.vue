@@ -9,8 +9,9 @@
   >
     <RunningPigGlyph class="turn-status-pig" :state="pigState" />
 
-    <span class="turn-status-label" :class="{ shimmer: busy }" :data-text="label">
-      {{ label }}
+    <span class="turn-status-label">
+      <RollText :text="label" :live="busy" />
+
       <template v-if="elapsedLabel">
         <span class="label-dot">·</span>
         <FlowNumber :text="elapsedLabel" />
@@ -29,7 +30,9 @@ import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { RunningPigGlyph } from "@components/icons/index.js"
+import RollText from "@features/transcript-view/components/RollText.vue"
 import FlowNumber from "@features/transcript-view/components/FlowNumber.vue"
+import { formatElapsed } from "@utils/time.js"
 import type { SessionPhase } from "@/types/common-type.js"
 import {
   createActivityLabelDisplay,
@@ -161,8 +164,7 @@ const elapsedLabel = computed(() => {
   const start = elapsedStart.value
 
   if (!busy.value || !shown.value || start === undefined) return ""
-  const seconds = Math.max(0, Math.floor((now.value - start) / 1000))
-  return `${seconds}s`
+  return formatElapsed(now.value - start, { showMs: false })
 })
 /** 小猪状态：busy 5min → long，10min → xlong，否则 run；非 busy 一律 idle（睡觉猪）。 */
 const pigState = computed<"idle" | "run" | "long" | "xlong">(() => {
@@ -205,10 +207,9 @@ const tokensLabel = computed(() => {
 }
 
 .turn-status-label {
+  display: flex;
+  align-items: center;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 

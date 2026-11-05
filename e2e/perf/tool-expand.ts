@@ -67,7 +67,7 @@ export async function expandToolSteps(
 
   try {
     await openSession(page, name)
-    const summary = page.locator(".row-tools .summary-btn").first()
+    const summary = page.locator(".row-tools .tool-run-summary").first()
     await summary.waitFor({ state: "visible", timeout: WORKBENCH_TIMEOUT_MS })
     await summary.evaluate((node) => {
       node.addEventListener(
@@ -85,7 +85,8 @@ export async function expandToolSteps(
     })
     await summary.click({ force: true, noWaitAfter: true })
     await page.waitForFunction(
-      (expected) => document.querySelectorAll(".row-tools .tool-summary").length >= expected,
+      (expected) =>
+        document.querySelectorAll(".row-tools .tool-run-card .tool-row").length >= expected,
       Math.min(8, expectedSteps),
       { timeout: WORKBENCH_TIMEOUT_MS },
     )

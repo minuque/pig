@@ -16,11 +16,31 @@ export interface LiveSubscription {
   usageRevision: number | undefined
   lastState: RemoteSessionState | undefined
   liveItems: Map<string, TranscriptItem>
+  /** toolCallId → 工具真正开始的时刻：完成条目到达后拿不到，只能从 running 占位记下。 */
+  toolStartedAt: Map<string, number>
   stop: () => void
 }
 
 /** 后台空闲接管结果：sent 表示已泵出一条留在池里，done 表示可以出池收尾。 */
 export type BackgroundIdleResult = "sent" | "done"
+
+/** 工具条目挂上客户端记的开始时刻；只是本地附加字段，不走协议校验。 */
+type TimedToolItem = TranscriptItem & { startedAt: number }
+
+/** running 占位自带开始时刻；完成条目没这个字段，按 toolCallId 从订阅里回填。 */
+function withToolStart(sub: LiveSubscription, item: TranscriptItem): TranscriptItem {
+  if (item.role !== "tool") return item
+
+  if (item.status === "running") {
+    const startedAt = Math.min(sub.toolStartedAt.get(item.id) ?? item.timestamp, item.timestamp)
+
+    sub.toolStartedAt.set(item.id, startedAt)
+    return { ...item, startedAt } as TimedToolItem
+  }
+
+  const startedAt = sub.toolStartedAt.get(item.id)
+  return startedAt === undefined ? item : ({ ...item, startedAt } as TimedToolItem)
+}
 
 interface LiveDeps {
   history: ReturnType<typeof useSessionHistory>
@@ -117,6 +137,7 @@ export function useLiveSubscriptions(deps: LiveDeps) {
       usageRevision: undefined,
       lastState: undefined,
       liveItems: new Map(),
+      toolStartedAt: new Map(),
       stop: () => {},
     }
     const publish = (nextState: RemoteSessionState) => {
@@ -192,7 +213,7 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     const coalesced = coalesceByFrame<RemoteSessionState>(publish, 8)
     // 快照广播会清空库内 progress，同一帧里后到的空快照会盖掉先到的 item_finished：按 id 逐事件累积
     const unsubscribe = session.subscribe((nextState) => {
-      for (const item of nextState.transcript) sub.liveItems.set(item.id, item)
+      for (const item of nextState.transcript) sub.liveItems.set(item.id, withToolStart(sub, item))
       coalesced.push(nextState)
     })
 

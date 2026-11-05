@@ -9,7 +9,7 @@ test("半透明窗口开关联动面板背景与窗口底色", async ({ page, ga
     ;(window as unknown as { __translucentCalls?: boolean[] }).__translucentCalls = calls
     ;(window as unknown as { pigDesktop?: unknown }).pigDesktop = {
       setThemeColor() {},
-      window: { setTranslucent: (on: boolean) => calls.push(on) },
+      setTranslucent: (on: boolean) => calls.push(on),
     }
   })
   await seedWorkspace(page, gateway.workspaceId)

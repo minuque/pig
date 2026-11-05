@@ -184,6 +184,12 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     section: t("settings.interface"),
   },
   {
+    id: "setting-chat-width",
+    pane: "general",
+    title: t("settings.chatWidth"),
+    section: t("settings.interface"),
+  },
+  {
     id: "setting-accent",
     pane: "general",
     title: t("settings.accent"),

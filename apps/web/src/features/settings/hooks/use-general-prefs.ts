@@ -14,8 +14,11 @@ export type UiLocale = "en" | "zh-CN"
 
 export type FontSize = "s" | "m" | "l"
 
+export type ChatWidth = "comfortable" | "wide" | "full"
+
 const LOCALE_KEY = "pig.locale"
 const FONT_SIZE_KEY = "pig.fontSize"
+const CHAT_WIDTH_KEY = "pig.chatWidth"
 const NOTIFY_KEY = "pig.notify"
 const TRANSLUCENT_KEY = "pig.translucentWindow"
 const CONTRAST_KEY = "pig.contrast"
@@ -23,6 +26,7 @@ const CONTRAST_DEFAULT = 0
 const CONTRAST_MAX = 100
 const locale = shallowRef<UiLocale>("zh-CN")
 const fontSize = shallowRef<FontSize>("m")
+const chatWidth = shallowRef<ChatWidth>("comfortable")
 const notifyOn = shallowRef(true)
 const translucentWindow = shallowRef(false)
 const contrastBoost = shallowRef(CONTRAST_DEFAULT)
@@ -31,12 +35,14 @@ let loaded = false
 function apply(
   nextLocale: UiLocale,
   nextSize: FontSize,
+  nextChatWidth: ChatWidth,
   nextTranslucent: boolean,
   nextContrast: number,
 ): void {
   if (typeof document === "undefined") return
   document.documentElement.lang = nextLocale
   document.documentElement.dataset.fontSize = nextSize
+  document.documentElement.dataset.chatWidth = nextChatWidth
   document.documentElement.dataset.translucentWindow = nextTranslucent ? "on" : "off"
   document.documentElement.style.setProperty("--contrast-boost", nextContrast + "%")
   // 桌面壳把开关落到系统背景材质；浏览器里没有这个桥
@@ -49,24 +55,30 @@ function load(): void {
   loaded = true
   locale.value = readEnum(LOCALE_KEY, ["en", "zh-CN"] as const, "zh-CN")
   fontSize.value = readEnum(FONT_SIZE_KEY, ["s", "m", "l"] as const, "m")
+  chatWidth.value = readEnum(
+    CHAT_WIDTH_KEY,
+    ["comfortable", "wide", "full"] as const,
+    "comfortable",
+  )
   notifyOn.value = readFlag(NOTIFY_KEY)
   translucentWindow.value = readPref(TRANSLUCENT_KEY) === "on"
   contrastBoost.value = readNumber(CONTRAST_KEY) ?? CONTRAST_DEFAULT
-  apply(locale.value, fontSize.value, translucentWindow.value, contrastBoost.value)
+  apply(locale.value, fontSize.value, chatWidth.value, translucentWindow.value, contrastBoost.value)
 }
 
-/** 通用偏好：语言、字号、回合完成系统通知。语言切到 vue-i18n。 */
+/** 通用偏好：语言、字号、对话宽度、回合完成系统通知。语言切到 vue-i18n。 */
 export function useGeneralPrefs() {
   load()
 
   watch(
-    [locale, fontSize, translucentWindow, contrastBoost],
-    ([nextLocale, nextSize, nextTranslucent, nextContrast]) =>
-      apply(nextLocale, nextSize, nextTranslucent, nextContrast),
+    [locale, fontSize, chatWidth, translucentWindow, contrastBoost],
+    ([nextLocale, nextSize, nextChatWidth, nextTranslucent, nextContrast]) =>
+      apply(nextLocale, nextSize, nextChatWidth, nextTranslucent, nextContrast),
   )
   return {
     locale: readonly(locale),
     fontSize: readonly(fontSize),
+    chatWidth: readonly(chatWidth),
     notifyOn: readonly(notifyOn),
     translucentWindow: readonly(translucentWindow),
     contrastBoost: readonly(contrastBoost),
@@ -77,6 +89,10 @@ export function useGeneralPrefs() {
     setFontSize(next: FontSize) {
       fontSize.value = next
       writePref(FONT_SIZE_KEY, next)
+    },
+    setChatWidth(next: ChatWidth) {
+      chatWidth.value = next
+      writePref(CHAT_WIDTH_KEY, next)
     },
     setNotify(next: boolean) {
       notifyOn.value = next

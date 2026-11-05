@@ -47,27 +47,6 @@ export function resolveFollowTarget(input: {
   return input.distanceFromBottom <= FOLLOW_NEAR_BOTTOM_PX && input.scrollingDown
 }
 
-export function transcriptOverflows(
-  scrollHeight: number,
-  clientHeight: number,
-  threshold = 48,
-): boolean {
-  return scrollHeight - clientHeight > threshold
-}
-
-/** 已离开底部、列表溢出且靠近顶部时，上翻再拉更早一页。 */
-export function shouldLoadOlderTranscript(
-  hasMore: boolean,
-  loading: boolean,
-  atBottom: boolean,
-  scrollTop: number,
-  options: { threshold?: number; overflow?: boolean } = {},
-): boolean {
-  const threshold = options.threshold ?? 48
-  const overflow = options.overflow ?? true
-  return hasMore && !loading && !atBottom && overflow && scrollTop <= threshold
-}
-
 /** 更长列表的前缀是新历史，prev 仍作为后缀出现。 */
 export function historyPrepended(
   prev: readonly { readonly id: string }[],

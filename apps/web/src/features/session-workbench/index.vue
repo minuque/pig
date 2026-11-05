@@ -16,15 +16,11 @@
 
     <WorkbenchHeader />
 
-    <div
-      ref="columnEl"
-      class="conversation-column"
-      :class="{ 'is-content-resizing': contentResizing }"
-    >
+    <div class="conversation-column">
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
-        <div class="session-stage" ref="stage">
+        <div class="session-stage">
           <Transition name="dock-hero" appear>
             <div v-if="showHero" key="hero" class="idle-hero">
               <WorkbenchHero
@@ -65,7 +61,7 @@
               <Tooltip>
                 <TooltipTrigger as-child>
                   <IconButton
-                    class="scroll-latest-control press-scale"
+                    class="icon-control scroll-latest-control press-scale"
                     type="button"
                     :aria-label="t('transcript.scrollToBottom')"
                     variant="outline"
@@ -75,7 +71,7 @@
                     <span class="icon-swap">
                       <LoaderIcon
                         :data-visible="turnPending"
-                        :class="{ 'animate-spin motion-reduce:animate-none': turnPending }"
+                        :class="{ 'is-spinning': turnPending }"
                       />
 
                       <ArrowDownIcon :data-visible="!turnPending" />
@@ -98,7 +94,6 @@
               :session-id="sessionId"
               :cwd="composerCwd"
               :send-disabled="sendDisabled"
-              :content-resizing="contentResizing"
               :hero="showHero"
               :queue="composerQueue"
               @send="onSend"
@@ -108,20 +103,6 @@
             />
           </div>
         </div>
-      </template>
-
-      <template v-if="showContentHandles">
-        <ContentWidthHandle
-          v-for="side in contentHandleSides"
-          :key="side"
-          :side="side"
-          :measure="snapshotWidth"
-          @start="beginResize"
-          @drag="previewWidth"
-          @commit="commitWidth"
-          @end="endResize"
-          @nudge="nudgeWidth"
-        />
       </template>
     </div>
   </div>
@@ -144,16 +125,13 @@ import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
-import ContentWidthHandle from "@features/session-workbench/components/ContentWidthHandle.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
-import { useConversationWidth } from "@features/session-workbench/hooks/use-conversation-width.js"
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
-import { useTranscriptHold } from "@features/transcript-view/hooks/use-transcript-hold.js"
 import { ArrowDownIcon, DocumentAddIcon, LoaderIcon } from "@components/icons/index.js"
 
 onMounted(() => {
@@ -201,7 +179,6 @@ const {
   sendBackgroundPrompt,
   setBackgroundIdleHandler,
   transcriptFor,
-  historyFresh,
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
@@ -319,61 +296,6 @@ watch(
   },
   { immediate: true },
 )
-
-/* 会话切换过渡：sessionId 变前把当前 transcript 克隆成静态层盖上，
-   新内容渲染后该层淡出。旧画面驻留，不瞬切。 */
-const stage = useTemplateRef("stage")
-const hold = useTranscriptHold()
-let probeRaf = 0
-
-watch(
-  sessionId,
-  (next, prev) => {
-    if (!next || prev === next) return
-
-    /* 缓存命中直接切，不盖旧画面。 */
-    if (historyFresh(next)) return
-    const vp = stage.value?.querySelector<HTMLElement>(".transcript-viewport")
-    /* flush:pre 在 DOM 更新前跑，此刻 .transcript 还是旧内容。 */
-    const gen = hold.hold(vp)
-
-    if (!gen) return
-    const start = performance.now()
-    const MIN_HOLD = 80
-    const MAX_HOLD = 600
-    const probe = () => {
-      if (gen !== hold.epoch()) return
-      const rows = stage.value?.querySelectorAll(".transcript .turn").length ?? 0
-      const elapsed = performance.now() - start
-      const ready = historyFresh(next)
-      const incoming = transcriptFor(next).length
-
-      /* 历史已就绪且本来就没有轮次：直接拿掉，不淡出到空屏。 */
-      if (ready && incoming === 0) {
-        hold.dropNow(gen)
-        return
-      }
-
-      if (rows > 0 && elapsed >= MIN_HOLD) {
-        hold.release(gen)
-        return
-      }
-
-      /* 超时直接拿掉克隆，交给菊花，不播淡出。 */
-      if (elapsed >= MAX_HOLD) {
-        hold.dropNow(gen)
-        return
-      }
-
-      probeRaf = requestAnimationFrame(probe)
-    }
-
-    probeRaf = requestAnimationFrame(probe)
-  },
-  { flush: "pre" },
-)
-
-onBeforeUnmount(() => cancelAnimationFrame(probeRaf))
 
 function deliverPrompt(text: string, batch?: ComposerAttachmentBatch) {
   if (sessionId.value) scrollToLatest("auto")
@@ -502,25 +424,6 @@ useEventListener(window, "dragenter", onWindowFileDragOver, { capture: true })
 useEventListener(window, "dragover", onWindowFileDragOver, { capture: true })
 
 useEventListener(window, "drop", onWindowFileDrop, { capture: true })
-
-const {
-  resizing: contentResizing,
-  bindColumn,
-  snapshotWidth,
-  beginResize,
-  previewWidth,
-  commitWidth,
-  endResize,
-  nudgeWidth,
-} = useConversationWidth()
-const columnEl = useTemplateRef("columnEl")
-
-watch(columnEl, (el) => bindColumn(el), { flush: "post" })
-
-const showContentHandles = computed(
-  () => Boolean(sessionId.value) && !showHero.value && !sessionPending.value,
-)
-const contentHandleSides = ["left", "right"] as const
 </script>
 
 <style scoped>
@@ -574,14 +477,8 @@ const contentHandleSides = ["left", "right"] as const
   flex-direction: column;
   /* 测量前占位，挂上后由输入条边框盒覆盖 */
   --composer-reserve: 7rem;
-  --size-content: var(--chat-user-width, 680px);
   /* 首屏输入条底边离列底的距离 */
   --hero-dock: 34%;
-}
-
-.conversation-column.is-content-resizing {
-  cursor: col-resize;
-  user-select: none;
 }
 
 .session-stage {
@@ -646,7 +543,7 @@ const contentHandleSides = ["left", "right"] as const
 .composer-stack {
   position: relative;
   width: 100%;
-  max-width: calc(var(--size-content) + var(--space-sm));
+  max-width: min(calc(var(--size-content) + var(--space-sm)), calc(100% - 2 * var(--space-md)));
   margin-inline: auto;
   background: transparent;
   pointer-events: auto;
@@ -678,40 +575,9 @@ const contentHandleSides = ["left", "right"] as const
   pointer-events: auto;
 }
 
+/* 外观走全局 .icon-control，这里只负责浮在输入卡上方 */
 .scroll-latest-control {
-  width: var(--size-scroll-control);
-  height: var(--size-scroll-control);
-  border-radius: var(--radius-pill);
-  background: var(--popover);
-  color: var(--contrast-foreground-secondary);
-  cursor: pointer;
   translate: 0 calc(-100% - var(--space-sm));
-  /* 与发送键同一套立体感：浮起投影 + 顶沿内高光，按下时换成内阴影 */
-  box-shadow:
-    var(--shadow-elevated),
-    inset 0 1px 0 var(--button-sheen),
-    inset 0 0 0 var(--border-width) var(--border);
-  transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth),
-    box-shadow var(--duration-fast) var(--ease-smooth),
-    scale var(--duration-fast) var(--ease-out);
-}
-
-.scroll-latest-control:hover {
-  background: var(--interaction-hover);
-  color: var(--contrast-foreground);
-  scale: 1.06;
-  box-shadow:
-    var(--shadow-float),
-    inset 0 1px 0 var(--button-sheen),
-    inset 0 0 0 var(--border-width) var(--border);
-}
-
-.scroll-latest-control:active {
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--border),
-    inset 0 1px 2px var(--button-press);
 }
 
 @media (max-width: 900px) {

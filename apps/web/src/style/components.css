@@ -392,6 +392,42 @@
   border-color: var(--border);
 }
 
+/* ------ 浮起的圆形图标钮：滚动到底、加载更早共用 ------ */
+.icon-control {
+  width: var(--size-scroll-control);
+  height: var(--size-scroll-control);
+  border-radius: var(--radius-pill);
+  background: var(--popover);
+  color: var(--contrast-foreground-secondary);
+  cursor: pointer;
+  /* 与发送键同一套立体感：浮起投影 + 顶沿内高光，按下时换成内阴影 */
+  box-shadow:
+    var(--shadow-elevated),
+    inset 0 1px 0 var(--button-sheen),
+    inset 0 0 0 var(--border-width) var(--border);
+  transition:
+    background var(--duration-fast) var(--ease-smooth),
+    color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    scale var(--duration-fast) var(--ease-out);
+}
+
+.icon-control:hover {
+  background: var(--interaction-hover);
+  color: var(--contrast-foreground);
+  scale: 1.06;
+  box-shadow:
+    var(--shadow-float),
+    inset 0 1px 0 var(--button-sheen),
+    inset 0 0 0 var(--border-width) var(--border);
+}
+
+.icon-control:active {
+  box-shadow:
+    inset 0 0 0 var(--border-width) var(--border),
+    inset 0 1px 2px var(--button-press);
+}
+
 /* ------ 圆角 ------ */
 .rounded-xs {
   border-radius: var(--radius-xs);

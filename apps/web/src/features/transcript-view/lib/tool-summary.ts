@@ -1,16 +1,6 @@
-import type {
-  EditDiffPreview,
-  ToolCallView,
-  ToolGroupKey,
-  ToolSummaryDetail,
-} from "@features/transcript-view/type.js"
+import type { EditDiffPreview, ToolGroupKey } from "@features/transcript-view/type.js"
 import type { SupportedLanguages } from "stream-diffs/pierre"
-import { t } from "@i18n/index.js"
-import {
-  isCommandTool,
-  toolCallDetail,
-  toolPath,
-} from "@features/transcript-view/lib/transcript-format.js"
+import { isCommandTool, toolPath } from "@features/transcript-view/lib/transcript-format.js"
 
 export function pathBasename(path: string): string {
   return path.replace(/\\/g, "/").split("/").filter(Boolean).pop() || path
@@ -114,38 +104,6 @@ export function toolGroupKey(toolName: string): ToolGroupKey {
 
   if (name === "grep" || name === "find" || name === "ls") return "search"
   return "tool"
-}
-
-export function toolSummary(items: readonly ToolCallView[]): string {
-  const first = items[0]
-
-  if (!first) return t("transcript.toolCall")
-
-  const running = items.some((item) => item.running)
-  const count = items.length
-  const key = toolGroupKey(first.toolName)
-  const prefix = running ? t("transcript.summaryPrefixRunning") : t("transcript.summaryPrefixDone")
-  const labels = {
-    read:
-      count === 1
-        ? t("transcript.summaryReadOne", { prefix })
-        : t("transcript.summaryRead", { prefix, count }),
-    write:
-      count === 1
-        ? t("transcript.summaryWriteOne", { prefix })
-        : t("transcript.summaryWrite", { prefix, count }),
-    command: t("transcript.summaryCommand", {
-      prefix: running ? t("transcript.summaryCommandRunning") : t("transcript.summaryCommandDone"),
-      count,
-    }),
-    edit:
-      count === 1
-        ? t("transcript.summaryEditOne", { prefix })
-        : t("transcript.summaryEdit", { prefix, count }),
-    search: t("transcript.summarySearch", { prefix, count }),
-    tool: t("transcript.summaryTool", { prefix, count }),
-  } satisfies Record<ToolGroupKey, string>
-  return labels[key]
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -279,68 +237,4 @@ export function itemLineChange(
   }
 
   return { added: 0, removed: 0 }
-}
-
-function withLineChange(
-  detail: Extract<ToolSummaryDetail, { kind: "file" }>,
-  added: number,
-  removed: number,
-): ToolSummaryDetail {
-  if (added === 0 && removed === 0) return detail
-  return { ...detail, added, removed }
-}
-
-export function toolDetail(toolName: string, input: unknown): ToolSummaryDetail | null {
-  const text = toolCallDetail(toolName, input)
-
-  if (!isCommandTool(toolName)) {
-    const path = toolPath(input) || (isFilePathDetail(text) ? text : "")
-
-    if (path) {
-      const file = { kind: "file" as const, name: pathBasename(path), path }
-      const name = toolName.trim().toLowerCase()
-
-      if (name === "edit") {
-        let added = 0
-        let removed = 0
-
-        for (const pair of editReplacements(input)) {
-          const change = lineChange(pair.oldText, pair.newText)
-          added += change.added
-          removed += change.removed
-        }
-
-        return withLineChange(file, added, removed)
-      }
-
-      if (name === "write") {
-        const content = isRecord(input) && typeof input.content === "string" ? input.content : ""
-        return withLineChange(file, splitLines(content).length, 0)
-      }
-
-      return file
-    }
-  }
-
-  return text ? { kind: "text", text } : null
-}
-
-export function toolSummaryDetail(items: readonly ToolCallView[]): ToolSummaryDetail | null {
-  const first = items[0]
-
-  if (!first || items.length !== 1) return null
-
-  if (toolGroupKey(first.toolName) === "tool") {
-    const name = first.toolName.trim()
-    return name ? { kind: "text", text: name } : null
-  }
-
-  return toolDetail(first.toolName, first.input)
-}
-
-function isFilePathDetail(text: string): boolean {
-  if (!text || /\s/.test(text) || text.includes("://")) return false
-
-  if (/[\\/]/.test(text)) return true
-  return text.includes(".") && fileLanguage(text) !== "text"
 }

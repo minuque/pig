@@ -14,7 +14,6 @@
     <PromptEditor
       ref="editor"
       v-model:prompt="prompt"
-      :resizing="contentResizing"
       :hero="hero"
       :cwd="cwd"
       @submit="onSubmit"
@@ -167,8 +166,6 @@ const props = withDefaults(
     usage?: ContextUsage | undefined
     sessionId?: string | undefined
     cwd?: string | undefined
-    /** 对话列宽度手柄拖拽中，输入卡不折叠 */
-    contentResizing?: boolean
     /** 新会话首屏：输入卡恒展开 */
     hero?: boolean
     queue: ComposerQueueApi
@@ -180,7 +177,6 @@ const props = withDefaults(
     usage: undefined,
     sessionId: undefined,
     cwd: undefined,
-    contentResizing: false,
     hero: false,
   },
 )

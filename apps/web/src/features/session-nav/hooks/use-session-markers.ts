@@ -36,9 +36,14 @@ export function useSessionMarkers(
   )
 
   function togglePinned(id: string): void {
-    pinnedIdList.value = pinnedIds.value.has(id)
-      ? pinnedIdList.value.filter((item) => item !== id)
-      : [...pinnedIdList.value, id]
+    if (pinnedIds.value.has(id)) {
+      pinnedIdList.value = pinnedIdList.value.filter((item) => item !== id)
+      writeJson(PINNED_KEY, pinnedIdList.value)
+      return
+    }
+
+    unsettle(id)
+    pinnedIdList.value = [...pinnedIdList.value, id]
     writeJson(PINNED_KEY, pinnedIdList.value)
   }
 
@@ -48,8 +53,9 @@ export function useSessionMarkers(
     writeJson(PINNED_KEY, pinnedIdList.value)
   }
 
-  /** 拖进置顶区：不在名单里的会话插到 slot。 */
+  /** 拖进置顶区：不在名单里的会话插到 slot；已归档的先还原，两个状态互斥。 */
   function pinAt(id: string, toIndex: number): void {
+    unsettle(id)
     pinnedIdList.value = moveSessionId(pinnedIdList.value, id, toIndex)
     writeJson(PINNED_KEY, pinnedIdList.value)
   }

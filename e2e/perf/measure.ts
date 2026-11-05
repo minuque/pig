@@ -242,8 +242,7 @@ export async function keyToNextFrame(page: Page): Promise<number> {
 
 /** 遮罩揭开后立刻滚主视口，量最差动画帧。 */
 export async function scrollMainAfterOpen(page: Page): Promise<number> {
-  // 会话切换时驻留旧画面，取不带 transcript-hold 的那份
-  const root = page.locator(".transcript-viewport:not(.transcript-hold)")
+  const root = page.locator(".transcript-viewport")
   const box = await root.boundingBox()
 
   if (!box) throw new Error("主视口不存在")
@@ -382,14 +381,14 @@ async function scrollOverflowWorstFrame(
   })
 }
 
-/** 点顶上按钮直到服务端没有更早历史；窗口化只挂视口附近的行，按总高增长判断这一页落地。 */
+/** 点顶上按钮直到服务端没有更早历史，按总高增长判断这一页落地。 */
 async function loadAllTranscriptPages(page: Page, pages: number) {
-  const more = page.locator(".older-busy")
-  const root = page.locator(".transcript-viewport:not(.transcript-hold)")
+  const more = page.locator(".older-button")
+  const root = page.locator(".transcript-viewport")
 
   for (let pageIndex = 0; pageIndex < pages && (await more.count()) > 0; pageIndex += 1) {
     await page.waitForFunction(() => {
-      const button = document.querySelector<HTMLButtonElement>(".older-busy")
+      const button = document.querySelector<HTMLButtonElement>(".older-button")
       return button == null || !button.disabled
     })
 
@@ -402,8 +401,8 @@ async function loadAllTranscriptPages(page: Page, pages: number) {
     })
     await page.waitForFunction(
       (height) => {
-        const node = document.querySelector(".transcript-viewport:not(.transcript-hold)")
-        const button = document.querySelector<HTMLButtonElement>(".older-busy")
+        const node = document.querySelector(".transcript-viewport")
+        const button = document.querySelector<HTMLButtonElement>(".older-button")
         return !!node && (button == null || (!button.disabled && node.scrollHeight > height))
       },
       previous,
@@ -434,7 +433,7 @@ async function waitForSettledView(page: Page) {
 
 /** 滚轮上滚到顶；直写 scrollTop 会拉不回「跟随最新」的吸附。 */
 async function scrollTranscriptToTop(page: Page) {
-  const root = page.locator(".transcript-viewport:not(.transcript-hold)")
+  const root = page.locator(".transcript-viewport")
   const box = await root.boundingBox()
 
   if (!box) throw new Error("主视口不存在")
@@ -455,19 +454,15 @@ export async function scrollTranscript(page: Page, name: BenchSessionName): Prom
 
   if (turns === 0) throw new Error("空会话没有可滚动历史")
   await loadAllTranscriptPages(page, turns)
-  // 窗口化只挂视口附近的行，滚到顶才算最早一轮真的落地。
+  // 滚到顶才算最早一轮真的落地。
   // 用滚轮而非直写 scrollTop：直写会被「跟随最新」立刻拉回底部。
   await scrollTranscriptToTop(page)
   await page
     .getByText(sessionPrompt(name, 1), { exact: true })
     .waitFor({ state: "attached", timeout: WORKBENCH_TIMEOUT_MS })
-  // 停稳后窗口内的行才补 Markdown；等补齐且安静下来再采样，量的是滚动本身
+  // 等补齐且安静下来再采样，量的是滚动本身
   await waitForSettledView(page)
-  return scrollOverflowWorstFrame(
-    page,
-    ".transcript-viewport:not(.transcript-hold)",
-    "长会话未产生可滚动内容",
-  )
+  return scrollOverflowWorstFrame(page, ".transcript-viewport", "长会话未产生可滚动内容")
 }
 
 /** 展开侧栏全部会话后滚到顶再到底，返回最差动画帧。 */

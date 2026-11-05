@@ -31,6 +31,9 @@ export type ToolCallView = {
   input: unknown
   outputText: string
   outputImages: TranscriptImage[]
+  /** 单次工具调用的起止时间；没有对应结果时缺省 */
+  startedAt?: number
+  endedAt?: number
 }
 
 /** Pi 内置：read / write / edit / bash|powershell / grep|find|ls，其余为 tool。 */
@@ -70,10 +73,6 @@ export type TimelineTurn = {
   rows: TimelineRow[]
 }
 
-export type ToolSummaryDetail =
-  | { kind: "file"; name: string; path: string; added?: number; removed?: number }
-  | { kind: "text"; text: string }
-
 export type EditDiffHunk = { original: string; modified: string }
 
 export type EditDiffPreview = {
@@ -87,7 +86,6 @@ export type EditDiffPreview = {
 
 export interface TranscriptMinimapItem {
   id: string
-  rowIndex: number
   userText: string | null
   assistantText: string | null
 }

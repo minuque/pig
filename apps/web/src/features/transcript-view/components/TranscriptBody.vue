@@ -13,7 +13,7 @@
       id="transcript-panel"
       ref="viewport"
       class="transcript-viewport"
-      :class="{ 'is-following': atBottom, 'is-windowed': windowed }"
+      :class="{ 'is-following': atBottom }"
       @scroll="onTranscriptScroll"
       @wheel="onTranscriptWheel"
       @pointerdown="onPointerDown"
@@ -22,33 +22,30 @@
 
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
-          <button
-            v-if="hasMore && !loadingOlder"
-            type="button"
-            class="older-busy"
-            :disabled="loadingOlder"
-            @click="older.request"
-          >
-            {{ t("transcript.loadEarlier") }}
-          </button>
+          <div v-if="hasMore" class="older-control">
+            <Button
+              class="older-button press-scale"
+              type="button"
+              variant="soft"
+              size="s"
+              radius="full"
+              :disabled="loadingOlder"
+              @click="older.request"
+            >
+              <span class="icon-swap">
+                <LoaderIcon :data-visible="loadingOlder" :class="{ 'is-spinning': loadingOlder }" />
+                <ArrowUpIcon :data-visible="!loadingOlder" />
+              </span>
 
-          <div
-            v-else-if="hasMore"
-            class="older-busy is-loading"
-            role="status"
-            :aria-label="t('transcript.loadEarlier')"
-          >
-            <LoaderIcon class="older-spinner is-spinning" />
+              {{ t("transcript.loadEarlier") }}
+            </Button>
           </div>
 
-          <div class="timeline-rows" :style="{ minHeight: `${totalHeight}px` }">
-            <template v-for="block in blocks" :key="block.key">
+          <div class="timeline-rows">
+            <template v-for="(turn, turnIndex) in turns" :key="turn.id">
               <TurnRow
-                v-if="block.kind === 'item'"
-                :turn="block.item"
-                :class="{ 'turn-runway': block.item.id === runwayId }"
-                :first="block.index === 0"
-                :previous-role="turns[block.index - 1]?.rows.at(-1)?.role"
+                :turn="turn"
+                :class="{ 'turn-runway': turn.id === runwayId }"
                 :session-id="sessionId"
                 :running="running"
                 :is-expand="isExpand"
@@ -57,15 +54,8 @@
                 @toggle-tool="onToggleTool"
               >
                 <!-- 指示器挂在本轮里：跑道留白落在它之后，贴底时指示器跟着用户消息留在顶部 -->
-                <TranscriptStatus v-if="block.index === turns.length - 1" v-bind="statusProps" />
+                <TranscriptStatus v-if="turnIndex === turns.length - 1" v-bind="statusProps" />
               </TurnRow>
-
-              <div
-                v-else
-                class="row-space"
-                :style="{ height: `${block.height}px` }"
-                aria-hidden="true"
-              ></div>
             </template>
           </div>
 
@@ -94,6 +84,7 @@ import TranscriptMinimap from "@features/transcript-view/components/TranscriptMi
 import TranscriptStatus from "@features/transcript-view/components/TranscriptStatus.vue"
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { useI18n } from "@i18n/index.js"
+import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
@@ -101,7 +92,6 @@ import {
   useTranscriptOlder,
   useTranscriptReveal,
 } from "@features/transcript-view/hooks/use-transcript-edge.js"
-import { useTranscriptWindow } from "@features/transcript-view/hooks/use-transcript-window.js"
 import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { ensureMermaidRuntime } from "@features/transcript-view/lib/mermaid-runtime.js"
@@ -117,7 +107,7 @@ import {
   historyPrepended,
   shouldShowScrollToLatest,
 } from "@features/transcript-view/lib/transcript-scroll.js"
-import { LoaderIcon } from "@components/icons/index.js"
+import { ArrowUpIcon, LoaderIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{
@@ -214,24 +204,10 @@ const {
   scrollToLatest,
   scrollToElement,
 } = useTranscriptFollow(scrollerRoot)
-const {
-  blocks,
-  totalHeight,
-  windowed,
-  revealRow,
-  scrollToRow,
-  rememberAnchor,
-  takeAnchor,
-  hasPendingAnchor,
-  applyAnchor,
-  compensate,
-  reset: resetWindow,
-} = useTranscriptWindow({
-  items: turns,
-  scrollRoot: viewport,
-  listRoot: list,
-  isFollowing: () => atBottom.value,
-})
+/** 切走的会话记住滚动位置，切回来先复位；没有记录才贴底。 */
+const scrollMemory = new Map<string, number>()
+let pendingRestore: number | undefined
+let historyPending = 0
 const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
 )
@@ -255,40 +231,20 @@ const {
 } = useTranscriptMinimap(
   rows,
   { viewport, column },
-  computed(() =>
-    blocks.value.flatMap((block) =>
-      block.kind === "item" ? block.item.rows.map((row) => row.id) : [],
-    ),
-  ),
+  computed(() => rows.value.map((row) => row.id)),
 )
 const older = useTranscriptOlder({
   hasMore: () => props.hasMore,
   loading: () => props.loadingOlder,
-  getRoot: scrollerRoot,
-  isAtBottom: () => atBottom.value,
   load: () => emit("loadOlder"),
 })
-let anchorTimer = 0
-const ANCHOR_IDLE_MS = 250
-
-/** 停手后再记锚点：锚点只给下次切会话用，逐帧读矩形会逼出同步布局。 */
-function rememberAnchorSoon() {
-  if (anchorTimer) return
-  anchorTimer = window.setTimeout(() => {
-    anchorTimer = 0
-    rememberAnchor(props.sessionId)
-  }, ANCHOR_IDLE_MS)
-}
 
 function onTranscriptScroll() {
   onScroll()
-  rememberAnchorSoon()
-  older.onScroll()
 }
 
 function onTranscriptWheel(event: WheelEvent) {
   onWheel(event)
-  older.onScroll()
 }
 
 function onToggleExpand(id: string, open: boolean) {
@@ -305,17 +261,13 @@ function onToggleTool(rowId: string, id: string, open: boolean) {
   toggleTool(id, open)
 }
 
-async function selectMinimapItem(item: TranscriptMinimapItem) {
-  const el = await revealRow(item.id)
+function selectMinimapItem(item: TranscriptMinimapItem) {
+  const el = column.value?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(item.id)}"]`)
 
-  if (el) {
-    scrollToElement(el)
-    return
-  }
-
+  if (!el) return
   detachFollow()
   atBottom.value = false
-  scrollToRow(item.id)
+  scrollToElement(el)
 }
 
 function observeSizes() {
@@ -343,21 +295,17 @@ function observeSizes() {
 }
 
 function pinLatest() {
-  if (hasPendingAnchor()) return
   scrollToLatest("auto")
   pinIfNeeded()
 }
 
+function scrollToElementOffset(top: number) {
+  const root = scrollerRoot()
+
+  if (root) root.scrollTop = top
+}
+
 const { readyFrame } = useTranscriptReveal(rows, pinLatest)
-
-watch(
-  () => turns.value.length,
-  () => {
-    if (hasPendingAnchor()) applyAnchor()
-  },
-  { flush: "post" },
-)
-
 /** 刚发送的一轮：预留一屏高度，把新消息滚到视口顶部。 */
 const runwayId = shallowRef<string>()
 
@@ -373,10 +321,14 @@ function userTurnAppended(previous: readonly TimelineTurn[], next: readonly Time
 watch(turns, (next, prev) => {
   const previous = prev ?? []
 
-  if (previous.length === 0 && next.length > 0) {
-    older.arm()
-    return
+  /* 位置恢复等这一轮内容真正挂上再写，数据还没到时写 scrollTop 会被重置。 */
+  if (pendingRestore !== undefined && next.length > 0) {
+    const target = pendingRestore
+    pendingRestore = undefined
+    void nextTick(() => scrollToElementOffset(target))
   }
+
+  if (previous.length === 0 && next.length > 0) return
 
   if (userTurnAppended(previous, next)) {
     runwayId.value = next.at(-1)?.id
@@ -385,12 +337,17 @@ watch(turns, (next, prev) => {
     return
   }
 
-  if (historyPrepended(previous, next) && !atBottom.value && windowed.value) {
+  if (historyPrepended(previous, next) && !atBottom.value) {
     const root = scrollerRoot()
     const beforeHeight = root?.scrollHeight ?? 0
+
+    historyPending += 1
     void nextTick(() => {
       if (!root) return
-      compensate(root.scrollHeight - beforeHeight)
+      const delta = root.scrollHeight - beforeHeight
+
+      if (historyPending > 0 && delta > 0) root.scrollTop += delta
+      historyPending -= 1
     })
     return
   }
@@ -412,17 +369,27 @@ watch(
   () => props.sessionId,
   (id, prev) => {
     if (!prev || prev === id) return
+
+    const root = scrollerRoot()
+
+    if (root) scrollMemory.set(prev, root.scrollTop)
     runwayId.value = undefined
-    rememberAnchor(prev)
     rowsBuilder.reset()
     reset()
-    resetWindow()
-    older.arm()
-    const stored = takeAnchor(id)
+    pendingRestore = scrollMemory.get(id)
+
+    if (pendingRestore === undefined) {
+      void nextTick(pinLatest)
+      return
+    }
+
+    // 行已就位时 turns 不会再变，这里补一次；还没到就交给 turns 的兜底分支
+    const target = pendingRestore
 
     void nextTick(() => {
-      // 有锚点就按锚点复位，锚点行不在才贴底
-      if (!stored || !applyAnchor()) pinLatest()
+      if (pendingRestore !== target || turns.value.length === 0) return
+      pendingRestore = undefined
+      scrollToElementOffset(target)
     })
   },
 )
@@ -435,8 +402,6 @@ onBeforeUnmount(() => {
   for (const stop of stopWatchers) stop()
 
   if (pinRaf) cancelAnimationFrame(pinRaf)
-
-  if (anchorTimer) window.clearTimeout(anchorTimer)
 })
 
 defineExpose({ showScrollToLatest, scrollToLatest })
@@ -459,6 +424,8 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* 补历史时按高度差手动补 scrollTop，浏览器锚定会再补一次 */
+  overflow-anchor: none;
   scroll-padding-bottom: var(--composer-reserve, 0px);
   /* 给 .turn-runway 的 cqh 提供视口高度 */
   container-type: size;
@@ -473,14 +440,12 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   background: linear-gradient(to bottom, var(--card), transparent);
 }
 
-/* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在顶部渐隐带下方，指示器跟在消息后 */
+/* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在顶部渐隐带下方，指示器跟在消息后。
+   跑道扣掉正文上下留白和渐隐带，消息才不会顶到视口上沿被盖住。 */
 .turn-runway {
-  min-height: calc(100cqh - 2 * var(--space-lg) - var(--composer-reserve, 0px));
-}
-
-.transcript-viewport.is-windowed {
-  /* 窗口化自己按行高表锚定，关掉浏览器原生滚动锚定避免两边都补 */
-  overflow-anchor: none;
+  min-height: calc(
+    100cqh - var(--transcript-pad-block) - var(--edge-fade-band) - var(--composer-reserve, 0px)
+  );
 }
 
 .transcript-viewport:has(.code-more-menu) {
@@ -489,15 +454,20 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 
 .transcript {
   box-sizing: border-box;
-  width: min(100%, var(--size-content) - var(--space-lg));
+  width: 100%;
   min-width: 0;
-  margin-inline: auto;
-  padding-top: var(--space-lg);
-  /* 底部留白：渐隐带高 + 输入条占位 */
-  padding-bottom: calc(var(--space-sm) + var(--space-lg) + var(--composer-reserve, 0px));
-  padding-inline: var(--border-width);
+  padding-top: var(--transcript-pad-block);
+  /* 底部留白：正文留白 + 输入条占位 */
+  padding-bottom: calc(var(--transcript-pad-block) + var(--composer-reserve, 0px));
+  padding-inline: max(var(--transcript-gutter), calc((100% - var(--size-content)) / 2));
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
+}
+
+@media (max-width: 780px) {
+  .transcript {
+    padding-inline: var(--transcript-gutter-narrow);
+  }
 }
 
 .transcript-list,
@@ -506,39 +476,24 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   width: 100%;
 }
 
-.row-space {
-  box-sizing: border-box;
-  width: 100%;
-  pointer-events: none;
+/* 胶囊钮的水平居中由外层撑满列宽；上下留白与正文其它块同档 */
+.older-control {
+  display: flex;
+  justify-content: center;
+  padding-block: var(--space-sm);
 }
 
-.older-busy {
-  display: block;
-  width: 100%;
-  padding: var(--space-sm) 0;
-  border: 0;
-  background: transparent;
-  color: var(--contrast-foreground);
-  font: inherit;
+/* soft 强调色是基础件给的；这里只把高度、字级与图标补到胶囊档 */
+.older-button {
+  height: var(--size-scroll-control);
+  padding-inline: var(--space-sm);
+  gap: var(--space-xxs);
   font-size: var(--text-meta);
-  text-align: center;
-  cursor: pointer;
+  line-height: var(--text-meta--line-height);
 }
 
-.older-busy:disabled {
-  cursor: default;
-}
-
-.older-busy.is-loading {
-  display: grid;
-  place-items: center;
-  min-height: calc(var(--text-meta) * var(--text-meta--line-height) + 2 * var(--space-sm));
-  cursor: default;
-}
-
-.older-spinner {
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
-  color: var(--contrast-foreground-muted);
+.older-button :deep(svg) {
+  width: var(--size-icon-xs);
+  height: var(--size-icon-xs);
 }
 </style>

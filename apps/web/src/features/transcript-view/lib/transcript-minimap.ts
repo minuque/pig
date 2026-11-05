@@ -36,7 +36,6 @@ export function deriveTranscriptMinimapItems(
     if (row.role !== "user") continue
     items.push({
       id: row.id,
-      rowIndex: index,
       userText: compactMinimapPreview(row.text),
       assistantText,
     })
