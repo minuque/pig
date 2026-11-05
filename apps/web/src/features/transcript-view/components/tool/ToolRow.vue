@@ -20,6 +20,8 @@
           <span v-if="target.text" class="tool-row-target" :title="target.path || target.text">
             {{ target.text }}
           </span>
+
+          <span v-if="readRange" class="tool-row-range">({{ readRange }})</span>
         </span>
       </RollText>
 
@@ -29,10 +31,13 @@
       </span>
 
       <AltArrowRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
-      <span v-if="duration" class="tool-row-time">{{ duration }}</span>
 
-      <span v-if="thumb" class="tool-row-thumb" aria-hidden="true">
-        <img :src="thumb" alt="" />
+      <span v-if="thumb || duration" class="tool-row-meta">
+        <span v-if="thumb" class="tool-row-thumb" aria-hidden="true">
+          <img :src="thumb" alt="" />
+        </span>
+
+        <span v-if="duration" class="tool-row-time">{{ duration }}</span>
       </span>
     </button>
 
@@ -62,7 +67,7 @@ import {
   toolCallVariant,
   toolCallVerb,
 } from "@features/transcript-view/lib/tool-run.js"
-import { itemLineChange } from "@features/transcript-view/lib/tool-summary.js"
+import { itemLineChange, readToolPreview } from "@features/transcript-view/lib/tool-summary.js"
 import { transcriptImageSrc } from "@features/transcript-view/lib/transcript-format.js"
 import { formatElapsed } from "@utils/time.js"
 import type { ToolCallView } from "@features/transcript-view/type.js"
@@ -79,12 +84,19 @@ const shownVerb = computed(() => liveVerb.value ?? verb.value)
 const target = computed(() => toolCallTarget(props.call))
 const lineText = computed(() => [shownVerb.value, target.value.text].filter(Boolean).join(" "))
 const lineChange = computed(() => itemLineChange(props.call.toolName, props.call.input))
-/** 不足一秒不显示，避免整列都是 0s。 */
 const duration = computed(() => {
   const { startedAt, endedAt } = props.call
 
   if (startedAt === undefined || endedAt === undefined) return ""
-  return endedAt - startedAt >= 1000 ? formatElapsed(endedAt - startedAt) : ""
+  return formatElapsed(endedAt - startedAt)
+})
+const readRange = computed(() => {
+  if (variant.value !== "read" || props.call.running || props.call.isError) return ""
+
+  const read = readToolPreview(props.call.input, props.call.outputText)
+
+  if (read.lines.length === 0) return ""
+  return `${read.startLine}-${read.startLine + read.lines.length - 1}`
 })
 const thumb = computed(() => {
   const image = props.call.outputImages[0]
@@ -148,21 +160,31 @@ const thumb = computed(() => {
 
 .tool-row-caret {
   flex: none;
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--size-icon-xs);
+  height: var(--size-icon-xs);
   transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* 缩略图在左、计时在右，统一靠右收尾 */
+.tool-row-meta {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-xxs);
+  margin-inline-start: auto;
 }
 
 .tool-row-time {
   flex: none;
-  margin-inline-start: auto;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 
-.tool-row-time + .tool-row-thumb {
-  margin-inline-start: var(--space-xxs);
+.tool-row-range {
+  flex: none;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /* 缩略图不超出所在行的行高，避免把单行工具行撑高 */
@@ -170,7 +192,6 @@ const thumb = computed(() => {
   flex: none;
   height: calc(var(--text-meta) * var(--text-meta--line-height));
   aspect-ratio: 4 / 3;
-  margin-inline-start: auto;
   overflow: clip;
   border-radius: var(--radius-2xs);
   background: var(--background-soft);

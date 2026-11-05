@@ -1,6 +1,10 @@
-/** 运行时长：秒；有分钟时带两位秒；有小时时时分秒都给。 */
+/** 运行时长：不足一秒给毫秒，其余按秒；有分钟时带两位秒；有小时时时分秒都给。 */
 export function formatElapsed(elapsedMs: number): string {
-  const total = Number.isFinite(elapsedMs) ? Math.max(0, Math.floor(elapsedMs / 1000)) : 0
+  const elapsed = Number.isFinite(elapsedMs) ? Math.max(0, Math.round(elapsedMs)) : 0
+
+  if (elapsed < 1000) return `${elapsed}ms`
+
+  const total = Math.floor(elapsed / 1000)
   const seconds = String(total % 60).padStart(2, "0")
   const minutes = Math.floor(total / 60)
 

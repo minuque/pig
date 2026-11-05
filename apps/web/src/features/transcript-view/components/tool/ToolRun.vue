@@ -59,7 +59,7 @@ const duration = computed(() => {
   const { startedAt, endedAt } = props.row
 
   if (startedAt === undefined || endedAt === undefined) return ""
-  return endedAt - startedAt >= 1000 ? formatElapsed(endedAt - startedAt) : ""
+  return formatElapsed(endedAt - startedAt)
 })
 const open = computed(() => props.expanded ?? false)
 const summary = computed(() => toolRunSummary(props.row))
@@ -167,8 +167,8 @@ onBeforeUnmount(() => {
 
 .tool-run-caret {
   flex: none;
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--size-icon-xs);
+  height: var(--size-icon-xs);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 

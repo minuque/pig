@@ -209,6 +209,8 @@
   --size-settings-dialog-nav-narrow: 2.75rem;
   /* 线性图标：14px 图标配 13px 正文 */
   --size-icon: 14px;
+  /* 折叠箭头等比正文缩一档 */
+  --size-icon-xs: calc(var(--size-icon) - 2px);
   --size-icon-2xs: 16px;
   --size-icon-button: 28px;
   /* 24 画布线宽；低于 1.71 时 14px 图标下等效不到 1px，会糊成半调灰 */
