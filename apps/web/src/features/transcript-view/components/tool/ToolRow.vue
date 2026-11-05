@@ -1,45 +1,66 @@
 <template>
   <div class="tool-row" :class="{ 'is-failed': call.isError, 'is-running': call.running }">
-    <button
-      type="button"
-      class="tool-row-trigger"
-      :class="{ 'is-file': Boolean(target.path) }"
-      :aria-expanded="open"
-      @click="emit('toggle', !open)"
-    >
-      <RollText class="tool-row-text" :text="lineText">
-        <span class="tool-row-line">
-          <span
-            class="tool-row-verb"
-            :class="{ shimmer: Boolean(liveVerb) }"
-            :data-text="liveVerb ?? undefined"
-          >
-            {{ shownVerb }}
-          </span>
+    <div class="tool-row-head">
+      <button
+        type="button"
+        class="tool-row-trigger"
+        :class="{ 'is-file': Boolean(target.path) }"
+        :aria-expanded="open"
+        @click="emit('toggle', !open)"
+      >
+        <RollText class="tool-row-text" :text="lineText">
+          <span class="tool-row-line">
+            <span
+              class="tool-row-verb"
+              :class="{ shimmer: Boolean(liveVerb) }"
+              :data-text="liveVerb ?? undefined"
+            >
+              {{ shownVerb }}
+            </span>
 
-          <span v-if="target.text" class="tool-row-target" :title="target.path || target.text">
-            {{ target.text }}
-          </span>
+            <span v-if="target.text" class="tool-row-target" :title="target.path || target.text">
+              {{ target.text }}
+            </span>
 
-          <span v-if="readRange" class="tool-row-range">({{ readRange }})</span>
+            <span v-if="readRange" class="tool-row-range">({{ readRange }})</span>
+          </span>
+        </RollText>
+
+        <span v-if="lineChange.added || lineChange.removed" class="tool-row-counts">
+          <span v-if="lineChange.added" class="added">+{{ lineChange.added }}</span>
+          <span v-if="lineChange.removed" class="removed">-{{ lineChange.removed }}</span>
         </span>
-      </RollText>
 
-      <span v-if="lineChange.added || lineChange.removed" class="tool-row-counts">
-        <span v-if="lineChange.added" class="added">+{{ lineChange.added }}</span>
-        <span v-if="lineChange.removed" class="removed">-{{ lineChange.removed }}</span>
-      </span>
-
-      <AltArrowRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
+        <AltArrowRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
+      </button>
 
       <span v-if="thumb || duration" class="tool-row-meta">
-        <span v-if="thumb" class="tool-row-thumb" aria-hidden="true">
-          <img :src="thumb" alt="" />
-        </span>
+        <Tooltip v-if="thumb" :delay-duration="150">
+          <TooltipTrigger as-child>
+            <button
+              type="button"
+              class="tool-row-thumb"
+              :aria-label="t('common.preview', { name: t('transcript.image') })"
+              @click="previewOpen = true"
+            >
+              <img :src="thumb" alt="" />
+            </button>
+          </TooltipTrigger>
+
+          <TooltipContent class="tool-thumb-tip" :side-offset="6">
+            <img :src="thumb" alt="" />
+          </TooltipContent>
+        </Tooltip>
 
         <span v-if="duration" class="tool-row-time">{{ duration }}</span>
       </span>
-    </button>
+    </div>
+
+    <Dialog v-if="thumb" v-model:open="previewOpen">
+      <DialogContent class="tool-thumb-dialog">
+        <img :src="thumb" alt="" class="tool-thumb-full" />
+      </DialogContent>
+    </Dialog>
 
     <div v-if="open" class="tool-row-body">
       <ToolCommandBody v-if="variant === 'command'" :call="call" />
@@ -55,8 +76,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
+import { useI18n } from "@i18n/index.js"
 import { AltArrowRightIcon } from "@components/icons/index.js"
+import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import RollText from "@features/transcript-view/components/RollText.vue"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
@@ -77,6 +101,8 @@ const props = defineProps<{
   open: boolean
 }>()
 const emit = defineEmits<{ toggle: [open: boolean] }>()
+const { t } = useI18n()
+const previewOpen = ref(false)
 const variant = computed(() => toolCallVariant(props.call))
 const verb = computed(() => toolCallVerb(props.call))
 const liveVerb = computed(() => (props.call.running ? toolCallLiveVerb(props.call) : null))
@@ -111,8 +137,17 @@ const thumb = computed(() => {
   min-width: 0;
 }
 
+/* 触发器与缩略图分开：点缩略图不进展开，整行仍可点开 */
+.tool-row-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  min-width: 0;
+}
+
 .tool-row-trigger {
   display: flex;
+  flex: 1 1 auto;
   align-items: center;
   gap: var(--space-xxs);
   min-width: 0;
@@ -171,7 +206,6 @@ const thumb = computed(() => {
   flex: none;
   align-items: center;
   gap: var(--space-xxs);
-  margin-inline-start: auto;
 }
 
 .tool-row-time {
@@ -192,10 +226,13 @@ const thumb = computed(() => {
   flex: none;
   height: calc(var(--text-meta) * var(--text-meta--line-height));
   aspect-ratio: 4 / 3;
+  padding: 0;
   overflow: clip;
+  border: 0;
   border-radius: var(--radius-2xs);
   background: var(--background-soft);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
+  cursor: zoom-in;
 }
 
 .tool-row-thumb img {
@@ -255,9 +292,47 @@ const thumb = computed(() => {
   line-height: var(--text-code-line);
 }
 
+/* 点击缩略图后的单独预览：按内容收缩，再受视口约束 */
+.tool-thumb-dialog {
+  place-items: center;
+  inline-size: fit-content;
+  max-inline-size: calc(100vw - 2rem);
+  max-block-size: 90vh;
+  overflow: auto;
+  padding: var(--space-sm);
+}
+
+.tool-thumb-full {
+  display: block;
+  width: auto;
+  max-width: none;
+  margin-inline: auto;
+  border-radius: var(--radius-lg);
+  outline: var(--border-width) solid var(--media-outline);
+  outline-offset: -1px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tool-row-caret {
     transition: none;
   }
+}
+</style>
+
+<style>
+/* tooltip 内容经 portal 到 body，scoped 打不中 */
+.tool-thumb-tip {
+  padding: var(--space-xxs);
+}
+
+.tool-thumb-tip p {
+  margin: 0;
+}
+
+.tool-thumb-tip img {
+  display: block;
+  max-inline-size: 280px;
+  max-block-size: 280px;
+  border-radius: var(--radius-sm);
 }
 </style>
