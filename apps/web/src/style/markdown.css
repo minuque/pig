@@ -214,8 +214,8 @@
     display: none;
   }
 
-  /* 代码区顶到头部，上间距归零 */
-  .code-block-container pre {
+  /* 代码区顶到头部，上间距归零：库把 8px 上内边距打在 pre 或 code 上 */
+  .code-block-container :is(pre, code[data-code]) {
     padding-top: 0 !important;
   }
 
