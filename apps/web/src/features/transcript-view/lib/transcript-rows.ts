@@ -29,6 +29,13 @@ export function isToolRow(row: TimelineRow): row is ToolRow {
   return row.role === "tools"
 }
 
+/** live 工具条目由客户端附带真正开始时刻；历史条目没有就退回消息时间戳。 */
+function toolStartedAt(item: ToolTranscriptItem | undefined): number | undefined {
+  if (!item) return undefined
+  const value = (item as ToolTranscriptItem & { startedAt?: unknown }).startedAt
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined
+}
+
 function assistantRow(item: AssistantTranscriptItem, text = transcriptText(item)): AssistantRow {
   return {
     id: item.id,
@@ -214,7 +221,7 @@ function appendTurn({
           input: block.input,
           outputText: result ? transcriptText(result) : "",
           outputImages: result ? transcriptImages(result) : [],
-          startedAt: item.timestamp,
+          startedAt: toolStartedAt(result) ?? item.timestamp,
           ...(settled ? { endedAt: result.timestamp } : {}),
         })
         noteRange(

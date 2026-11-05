@@ -163,6 +163,23 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(thought?.type === "thought" && thoughtStepLabel(thought)).toBe("思考了 5 秒")
   })
 
+  it("工具耗时取 running 占位记下的开始时刻，不把生成时间算进去", () => {
+    const descriptors = assistant(1, [call("t1")])
+    const running = { ...tool("t1", "read", "running"), timestamp: 5000, startedAt: 5000 }
+    const live = buildRows([user, descriptors, running as TranscriptItem], true).find(isToolRow)
+    const liveItem = live?.steps.flatMap((step) => (step.type === "tools" ? step.items : []))[0]
+
+    expect(liveItem).toMatchObject({ startedAt: 5000 })
+
+    const done = { ...tool("t1"), timestamp: 5300, startedAt: 5000 }
+    const finished = buildRows([user, descriptors, done as TranscriptItem], false).find(isToolRow)
+    const finishedItem = finished?.steps.flatMap((step) =>
+      step.type === "tools" ? step.items : [],
+    )[0]
+
+    expect(finishedItem).toMatchObject({ startedAt: 5000, endedAt: 5300 })
+  })
+
   it("失败路径：工具失败单列，重试错误信息不丢失", () => {
     const work = buildRows([user, tool("t1"), tool("bad", "read", "error"), tool("t2")], false, [
       { userId: "u1", startedAt: 1000, endedAt: 27000, outcome: "error" },
