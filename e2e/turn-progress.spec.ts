@@ -113,6 +113,8 @@ test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({
     item: assistant(snapshot, "m2", [textBlock(TEXT_A), toolCallBlock("t1")]),
   })
   emit({ type: "item_started", item: tool("t1", "running") })
+  // 单个调用也收在卡片里，先展开才能看到行
+  await page.locator(".row-tools .tool-run-summary").click()
   await expect(toolRowOf("t1.ts")).toHaveClass(/is-running/)
 
   // t1 完成到界面收敛

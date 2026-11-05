@@ -1,13 +1,5 @@
 <template>
-  <div v-if="single" class="tool-run is-single">
-    <ToolRow
-      :call="single"
-      :open="expandedTools.get(single.id) ?? false"
-      @toggle="emit('toggleTool', single.id, $event)"
-    />
-  </div>
-
-  <div v-else class="tool-run">
+  <div class="tool-run">
     <button
       type="button"
       class="tool-run-summary"
@@ -24,6 +16,7 @@
         </span>
       </span>
 
+      <span v-if="duration" class="tool-run-time">{{ duration }}</span>
       <AltArrowRightIcon class="tool-run-caret" :class="{ 'is-open': open }" data-icon="inline" />
     </button>
 
@@ -41,7 +34,6 @@ import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { AltArrowRightIcon } from "@components/icons/index.js"
 import RollText from "@features/transcript-view/components/RollText.vue"
-import ToolRow from "@features/transcript-view/components/tool/ToolRow.vue"
 import ToolRunCard from "@features/transcript-view/components/tool/ToolRunCard.vue"
 import {
   runningToolLabel,
@@ -49,6 +41,7 @@ import {
   toolRunSummary,
 } from "@features/transcript-view/lib/tool-run.js"
 import type { ToolRow as ToolRowModel } from "@features/transcript-view/type.js"
+import { formatElapsed } from "@utils/time.js"
 
 const HOLD_MS = 650
 const props = defineProps<{
@@ -62,7 +55,12 @@ const emit = defineEmits<{
 }>()
 const { t } = useI18n()
 const calls = computed(() => toolCalls(props.row))
-const single = computed(() => (calls.value.length === 1 ? calls.value[0] : undefined))
+const duration = computed(() => {
+  const { startedAt, endedAt } = props.row
+
+  if (startedAt === undefined || endedAt === undefined) return ""
+  return endedAt - startedAt >= 1000 ? formatElapsed(endedAt - startedAt) : ""
+})
 const open = computed(() => props.expanded ?? false)
 const summary = computed(() => toolRunSummary(props.row))
 const settledLabel = computed(() => {
@@ -142,6 +140,13 @@ onBeforeUnmount(() => {
   display: flex;
   flex: none;
   gap: var(--space-xxs);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.tool-run-time {
+  flex: none;
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
