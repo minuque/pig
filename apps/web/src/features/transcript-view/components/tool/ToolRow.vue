@@ -196,7 +196,7 @@ const thumb = computed(() => {
   display: flex;
   flex: none;
   gap: var(--space-xxs);
-  font-size: var(--text-meta);
+  font-size: var(--text-micro);
   font-variant-numeric: tabular-nums;
 }
 

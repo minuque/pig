@@ -7,6 +7,7 @@
       @click="emit('toggleExpand', !open)"
     >
       <RollText :text="labelText" :live="labelLive" />
+      <span v-if="duration" class="tool-run-time">{{ duration }}</span>
 
       <span v-if="summary.lineChange.added || summary.lineChange.removed" class="tool-run-counts">
         <span v-if="summary.lineChange.added" class="added">+{{ summary.lineChange.added }}</span>
@@ -16,7 +17,6 @@
         </span>
       </span>
 
-      <span v-if="duration" class="tool-run-time">{{ duration }}</span>
       <AltArrowRightIcon class="tool-run-caret" :class="{ 'is-open': open }" data-icon="inline" />
     </button>
 
@@ -140,7 +140,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex: none;
   gap: var(--space-xxs);
-  font-size: var(--text-meta);
+  font-size: var(--text-micro);
   font-variant-numeric: tabular-nums;
 }
 

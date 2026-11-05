@@ -331,6 +331,8 @@
   --text-body-lg--line-height: 1.5;
   --text-meta: calc(var(--text-body-md) - 1px);
   --text-meta--line-height: 1.43;
+  /* 增减行数的胶囊徽标，比正文小 2px */
+  --text-micro: calc(var(--text-body-md) - 2px);
   --text-button: 13px;
   --text-button--line-height: 1.38;
   --text-caption: 13px;
