@@ -57,8 +57,13 @@
     </div>
 
     <Dialog v-if="thumb" v-model:open="previewOpen">
-      <DialogContent class="tool-thumb-dialog">
-        <img :src="thumb" alt="" class="tool-thumb-full" />
+      <DialogContent
+        class="tool-thumb-dialog"
+        :aria-label="t('common.preview', { name: t('transcript.image') })"
+        :show-close-button="false"
+        @click.self="previewOpen = false"
+      >
+        <img :src="thumb" alt="" class="tool-thumb-full" @click="previewOpen = false" />
       </DialogContent>
     </Dialog>
 
@@ -292,26 +297,6 @@ const thumb = computed(() => {
   line-height: var(--text-code-line);
 }
 
-/* 点击缩略图后的单独预览：按内容收缩，再受视口约束 */
-.tool-thumb-dialog {
-  place-items: center;
-  inline-size: fit-content;
-  max-inline-size: calc(100vw - 2rem);
-  max-block-size: 90vh;
-  overflow: auto;
-  padding: var(--space-sm);
-}
-
-.tool-thumb-full {
-  display: block;
-  width: auto;
-  max-width: none;
-  margin-inline: auto;
-  border-radius: var(--radius-lg);
-  outline: var(--border-width) solid var(--media-outline);
-  outline-offset: -1px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .tool-row-caret {
     transition: none;
@@ -334,5 +319,30 @@ const thumb = computed(() => {
   max-inline-size: 280px;
   max-block-size: 280px;
   border-radius: var(--radius-sm);
+}
+
+/* 大图预览与附件预览同款：铺满视口、点任意处关闭，图整体缩进窗口 */
+.tool-thumb-dialog {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  max-inline-size: none;
+  max-block-size: none;
+  padding: var(--space-xl);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: zoom-out;
+}
+
+.tool-thumb-full {
+  display: block;
+  width: auto;
+  height: auto;
+  max-inline-size: 100%;
+  max-block-size: calc(100vh - 2 * var(--space-xl));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
 }
 </style>
