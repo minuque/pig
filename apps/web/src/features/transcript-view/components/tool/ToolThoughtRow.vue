@@ -18,7 +18,7 @@
     </button>
 
     <div v-if="open" class="thought-body">
-      <p class="thought-text">{{ step.text }}</p>
+      <ToolOutput :text="step.text" soft-wrap />
     </div>
   </div>
 </template>
@@ -26,6 +26,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { AltArrowRightIcon } from "@components/icons/index.js"
+import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
 import type { ThoughtStep } from "@features/transcript-view/type.js"
 
@@ -79,18 +80,9 @@ const label = computed(() => thoughtStepLabel(props.step))
 
 .thought-body {
   min-width: 0;
-  max-height: var(--transcript-tool-max);
-  overflow: auto;
   padding-block-start: var(--space-xs);
   font-size: var(--text-meta);
   line-height: var(--text-code-line);
-}
-
-.thought-text {
-  margin: 0;
-  color: var(--contrast-foreground-secondary);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 
 @media (prefers-reduced-motion: reduce) {
