@@ -7,11 +7,21 @@
       :aria-expanded="open"
       @click="emit('toggle', !open)"
     >
-      <RollText class="tool-row-verb" :text="shownVerb" :live="Boolean(liveVerb)" />
+      <RollText class="tool-row-text" :text="lineText">
+        <span class="tool-row-line">
+          <span
+            class="tool-row-verb"
+            :class="{ shimmer: Boolean(liveVerb) }"
+            :data-text="liveVerb ?? undefined"
+          >
+            {{ shownVerb }}
+          </span>
 
-      <span v-if="target.text" class="tool-row-target" :title="target.path || target.text">
-        {{ target.text }}
-      </span>
+          <span v-if="target.text" class="tool-row-target" :title="target.path || target.text">
+            {{ target.text }}
+          </span>
+        </span>
+      </RollText>
 
       <span v-if="lineChange.added || lineChange.removed" class="tool-row-counts">
         <span v-if="lineChange.added" class="added">+{{ lineChange.added }}</span>
@@ -65,6 +75,7 @@ const verb = computed(() => toolCallVerb(props.call))
 const liveVerb = computed(() => (props.call.running ? toolCallLiveVerb(props.call) : null))
 const shownVerb = computed(() => liveVerb.value ?? verb.value)
 const target = computed(() => toolCallTarget(props.call))
+const lineText = computed(() => [shownVerb.value, target.value.text].filter(Boolean).join(" "))
 const lineChange = computed(() => itemLineChange(props.call.toolName, props.call.input))
 const thumb = computed(() => {
   const image = props.call.outputImages[0]
@@ -99,6 +110,18 @@ const thumb = computed(() => {
 .tool-row-trigger:focus-visible,
 .tool-row-trigger[aria-expanded="true"] {
   color: var(--contrast-foreground-secondary);
+}
+
+.tool-row-text {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.tool-row-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  min-width: 0;
 }
 
 .tool-row-target {

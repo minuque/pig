@@ -11,24 +11,27 @@
         :key="slot.id"
         :data-slot="slot.id"
         class="roll-text-slot"
-        :class="{ shimmer: slot.live }"
-        :data-text="slot.live ? slot.text : undefined"
+        :class="{ shimmer: slot.live && plain }"
+        :data-text="slot.live && plain ? slot.text : undefined"
       >
-        {{ slot.text }}
+        <slot v-if="!plain" />
+        <template v-else>{{ slot.text }}</template>
       </span>
     </TransitionGroup>
   </span>
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref, shallowRef, useTemplateRef, watch } from "vue"
+import { nextTick, onBeforeUnmount, ref, shallowRef, useSlots, useTemplateRef, watch } from "vue"
 
 const ROLL_MS = 180
 const props = defineProps<{
   text: string
-  /** 运行中的文字用 shimmer，跟随换字一起过渡 */
+  /** 纯文字时运行中显示 shimmer；富文本内容由调用方自己控制闪烁 */
   live?: boolean
 }>()
+/** 没给默认插槽就是纯文字模式；给了就渲染富文本，过渡帧沿用上一帧的 DOM。 */
+const plain = !useSlots().default
 
 type Slot = { id: number; text: string; live: boolean }
 
