@@ -67,6 +67,7 @@ async function copy() {
   color: var(--contrast-foreground-faint);
   cursor: pointer;
   opacity: 0.55;
+  z-index: 1;
   transition:
     opacity var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),

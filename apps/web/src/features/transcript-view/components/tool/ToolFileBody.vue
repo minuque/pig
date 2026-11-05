@@ -10,17 +10,19 @@
     </div>
 
     <div v-else-if="variant === 'edit' && preview" class="edit-scroll">
-      <StreamDiff
-        v-for="(hunk, index) in preview.hunks"
-        :key="index"
-        class="edit-diff"
-        :original="hunk.original"
-        :modified="hunk.modified"
-        :language="preview.language"
-        :file-name="preview.fileName"
-        diff-style="unified"
-        :options="diffOptions"
-      />
+      <div v-for="(hunk, index) in preview.hunks" :key="index" class="edit-hunk">
+        <CopyButton v-if="hunk.modified || hunk.original" :text="hunk.modified || hunk.original" />
+
+        <StreamDiff
+          class="edit-diff"
+          :original="hunk.original"
+          :modified="hunk.modified"
+          :language="preview.language"
+          :file-name="preview.fileName"
+          diff-style="unified"
+          :options="diffOptions"
+        />
+      </div>
     </div>
 
     <ToolOutput
@@ -40,6 +42,7 @@
 import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { StreamDiff } from "stream-diffs/vue"
+import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import {
@@ -122,13 +125,25 @@ watch(
 }
 
 .edit-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
   max-height: var(--transcript-tool-max);
   overflow: auto;
+}
+
+.edit-hunk {
+  position: relative;
+  min-width: 0;
 }
 
 .edit-diff {
   min-width: 0;
   border-radius: var(--radius-code);
   overflow: clip;
+}
+
+.edit-diff :deep(.stream-diffs-shell) {
+  padding-inline-end: calc(var(--space-sm) + 22px);
 }
 </style>
