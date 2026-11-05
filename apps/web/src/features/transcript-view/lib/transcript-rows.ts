@@ -205,6 +205,7 @@ function appendTurn({
         if (renderedToolCalls.has(block.toolCallId)) continue
         renderedToolCalls.add(block.toolCallId)
         const result = toolResults.get(block.toolCallId)
+        const settled = result !== undefined && result.status !== "running"
         appendTool({
           id: block.toolCallId,
           toolName: block.toolName,
@@ -213,6 +214,8 @@ function appendTurn({
           input: block.input,
           outputText: result ? transcriptText(result) : "",
           outputImages: result ? transcriptImages(result) : [],
+          startedAt: item.timestamp,
+          ...(settled ? { endedAt: result.timestamp } : {}),
         })
         noteRange(
           item.timestamp,

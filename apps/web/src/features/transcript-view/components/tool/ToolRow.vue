@@ -29,6 +29,7 @@
       </span>
 
       <AltArrowRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
+      <span v-if="duration" class="tool-row-time">{{ duration }}</span>
 
       <span v-if="thumb" class="tool-row-thumb" aria-hidden="true">
         <img :src="thumb" alt="" />
@@ -63,6 +64,7 @@ import {
 } from "@features/transcript-view/lib/tool-run.js"
 import { itemLineChange } from "@features/transcript-view/lib/tool-summary.js"
 import { transcriptImageSrc } from "@features/transcript-view/lib/transcript-format.js"
+import { formatElapsed } from "@utils/time.js"
 import type { ToolCallView } from "@features/transcript-view/type.js"
 
 const props = defineProps<{
@@ -77,6 +79,13 @@ const shownVerb = computed(() => liveVerb.value ?? verb.value)
 const target = computed(() => toolCallTarget(props.call))
 const lineText = computed(() => [shownVerb.value, target.value.text].filter(Boolean).join(" "))
 const lineChange = computed(() => itemLineChange(props.call.toolName, props.call.input))
+/** 不足一秒不显示，避免整列都是 0s。 */
+const duration = computed(() => {
+  const { startedAt, endedAt } = props.call
+
+  if (startedAt === undefined || endedAt === undefined) return ""
+  return endedAt - startedAt >= 1000 ? formatElapsed(endedAt - startedAt) : ""
+})
 const thumb = computed(() => {
   const image = props.call.outputImages[0]
   return image ? transcriptImageSrc(image.data, image.mimeType) : null
@@ -142,6 +151,18 @@ const thumb = computed(() => {
   width: var(--size-icon);
   height: var(--size-icon);
   transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.tool-row-time {
+  flex: none;
+  margin-inline-start: auto;
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.tool-row-time + .tool-row-thumb {
+  margin-inline-start: var(--space-xxs);
 }
 
 .tool-row-thumb {

@@ -1,6 +1,8 @@
 <template>
   <div class="tool-command-body">
     <div v-if="commandLines.length" class="command-block">
+      <CopyButton v-if="command" :text="command" />
+
       <div v-for="(line, index) in commandLines" :key="index" class="command-row">
         <span class="prompt" aria-hidden="true">{{ index === 0 ? "$" : "" }}</span>
         <code v-if="tokens[index]" v-token-line="tokens[index]" class="command" />
@@ -14,6 +16,7 @@
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
+import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import {
   highlightCodeTokens,
@@ -70,10 +73,12 @@ watch(
 }
 
 .command-block {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
   padding: var(--space-xs) var(--space-sm);
+  padding-inline-end: calc(var(--space-sm) + 22px);
   border-radius: var(--radius-md);
   background: var(--code-background);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);

@@ -1,5 +1,7 @@
 <template>
   <div v-if="code" class="tool-output is-code" :class="{ 'is-soft-wrap': softWrap }">
+    <CopyButton v-if="copyText" :text="copyText" />
+
     <div class="code-scroll">
       <div class="code-lines" :style="{ '--line-number-width': `${lineNumberWidth}ch` }">
         <div v-for="(line, index) in shownLines" :key="index" class="code-line">
@@ -16,6 +18,8 @@
   </div>
 
   <div v-else class="tool-output" :class="{ 'is-embedded': embedded, 'is-soft-wrap': softWrap }">
+    <CopyButton v-if="copyText" :text="copyText" />
+
     <template v-if="showText">
       <pre class="tool-output-pre" :class="preClass">{{ shownText }}</pre>
 
@@ -38,6 +42,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
+import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { type CodeTokens, vTokenLine } from "@features/transcript-view/lib/markdown-render-props.js"
 import type { TranscriptImage as ToolImage } from "@features/transcript-view/type.js"
@@ -103,10 +108,12 @@ const lineNumberWidth = computed(() =>
 const preClass = computed(() => ({
   "is-embedded": props.embedded,
 }))
+const copyText = computed(() => (props.code ? props.lines.join("\n") : props.text))
 </script>
 
 <style scoped>
 .tool-output {
+  position: relative;
   font-size: var(--text-code);
 }
 
@@ -123,6 +130,7 @@ const preClass = computed(() => ({
   position: relative;
   margin: var(--space-xxs) 0 0;
   padding: var(--space-sm);
+  padding-inline-end: calc(var(--space-sm) + 22px);
   border-radius: var(--radius-code);
   background: var(--code-surface);
   color: var(--contrast-foreground-secondary);
@@ -156,7 +164,7 @@ const preClass = computed(() => ({
   max-height: var(--transcript-tool-max);
   overflow: auto;
   padding: var(--space-xs);
-  padding-inline-end: 0;
+  padding-inline-end: calc(var(--space-sm) + 22px);
   --scrollbar-thumb: var(--hover-strong);
 }
 
