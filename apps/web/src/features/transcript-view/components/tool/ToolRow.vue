@@ -165,13 +165,14 @@ const thumb = computed(() => {
   margin-inline-start: var(--space-xxs);
 }
 
+/* 缩略图不超出所在行的行高，避免把单行工具行撑高 */
 .tool-row-thumb {
   flex: none;
-  width: 44px;
-  height: 32px;
+  height: calc(var(--text-meta) * var(--text-meta--line-height));
+  aspect-ratio: 4 / 3;
   margin-inline-start: auto;
   overflow: clip;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-2xs);
   background: var(--background-soft);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
 }
