@@ -81,9 +81,11 @@ const fallback = computed(
 )
 const diffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
+  /* 限高放在 diff 自身：滚动只发生在卡片里，头保持可见 */
+  maxHeight: "var(--transcript-tool-max)",
   /* 卡片头只留文件路径：改动数已在工具行显示，图标与徽标不重复。右侧留出复制按钮 */
   unsafeCSS: `
-    [data-diffs-header="default"] { min-height: 34px; padding-inline: 12px 40px; }
+    [data-diffs-header="default"] { position: sticky; top: 0; z-index: 2; min-height: 34px; padding-inline: 12px 40px; }
     [data-diffs-header] [data-title] { color: var(--contrast-foreground-muted); }
     [data-diffs-header] [data-change-icon],
     [data-diffs-header] [data-metadata] { display: none; }
@@ -134,8 +136,6 @@ watch(
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  max-height: var(--transcript-tool-max);
-  overflow: auto;
 }
 
 .edit-hunk {
@@ -148,6 +148,17 @@ watch(
   border-radius: var(--radius-code);
   overflow: clip;
   font-size: var(--text-code-sm);
+}
+
+/* 全局 `*` 会给每个元素写默认拇指色；滚动的那层单独提亮，与其它工具卡同档 */
+.edit-diff :deep(.stream-diffs-shell) {
+  --scrollbar-thumb: var(--hover-strong);
+}
+
+/* 只留外层 shell 滚动；内层的 overflow 是库写的行内样式，只能 !important 覆盖 */
+.edit-diff :deep(.stream-diffs-finalized .stream-diffs-shell) {
+  overflow: visible !important;
+  max-height: none !important;
 }
 
 /* 复制按钮落在卡片头里，与标题同高；代码区不再为它留白 */
