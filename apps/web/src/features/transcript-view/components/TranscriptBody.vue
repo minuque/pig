@@ -435,9 +435,12 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   background: linear-gradient(to bottom, var(--card), transparent);
 }
 
-/* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在顶部渐隐带下方，指示器跟在消息后 */
+/* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在顶部渐隐带下方，指示器跟在消息后。
+   跑道扣掉正文上下留白和渐隐带，消息才不会顶到视口上沿被盖住。 */
 .turn-runway {
-  min-height: calc(100cqh - 2 * var(--space-lg) - var(--composer-reserve, 0px));
+  min-height: calc(
+    100cqh - var(--transcript-pad-block) - var(--edge-fade-band) - var(--composer-reserve, 0px)
+  );
 }
 
 .transcript-viewport:has(.code-more-menu) {
