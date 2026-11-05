@@ -3,10 +3,12 @@
     <div v-if="commandLines.length" class="command-block">
       <CopyButton v-if="command" :text="command" />
 
-      <div v-for="(line, index) in commandLines" :key="index" class="command-row">
-        <span class="prompt" aria-hidden="true">{{ index === 0 ? "$" : "" }}</span>
-        <code v-if="tokens[index]" v-token-line="tokens[index]" class="command" />
-        <code v-else class="command">{{ line }}</code>
+      <div class="command-scroll">
+        <div v-for="(line, index) in commandLines" :key="index" class="command-row">
+          <span class="prompt" aria-hidden="true">{{ index === 0 ? "$" : "" }}</span>
+          <code v-if="tokens[index]" v-token-line="tokens[index]" class="command" />
+          <code v-else class="command">{{ line }}</code>
+        </div>
       </div>
     </div>
 
@@ -86,6 +88,17 @@ watch(
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);
+}
+
+/* 长命令只滚命令区，复制按钮留在卡片角上 */
+.command-scroll {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-height: var(--transcript-tool-max);
+  overflow: auto;
+  /* 卡片底比全局滚动条色深，滚动条会看不出，这里提到 ink 12% */
+  --scrollbar-thumb: var(--hover-strong);
 }
 
 .command-row {
