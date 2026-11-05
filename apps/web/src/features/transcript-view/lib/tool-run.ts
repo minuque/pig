@@ -98,5 +98,5 @@ export function runningToolLabel(row: ToolRow): string | null {
 
   if (!running) return null
   const target = toolCallTarget(running)
-  return [toolCallVerb(running), target.text].filter(Boolean).join(" ")
+  return [toolCallLiveVerb(running), target.text].filter(Boolean).join(" ")
 }

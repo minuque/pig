@@ -125,12 +125,12 @@
   --link-underline-hover: color-mix(in srgb, var(--foreground) 72%, transparent);
   --success-halo: color-mix(in srgb, var(--success) 15%, transparent);
   --danger-halo: color-mix(in srgb, var(--danger) 15%, transparent);
-  --danger-border: color-mix(in srgb, var(--danger) 45%, var(--border));
   --info-halo: var(--accent-a4);
   /* 按钮顶沿内高光与按下时的内阴影 */
   --button-sheen: color-mix(in srgb, var(--white) 16%, transparent);
   --button-press: color-mix(in srgb, var(--foreground) 12%, transparent);
-  --effort-track: var(--border-subtle);
+  /* 根上派生，不能引用只在 .radix-themes 里定义的 --border-* */
+  --effort-track: color-mix(in srgb, var(--foreground) 10%, transparent);
   --link: var(--accent-11);
   --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #dad8d8;
@@ -291,8 +291,7 @@
   /* 首屏整体落位入场 */
   --duration-settle: 500ms;
   --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
-  /* 工具组折叠与箭头同钟 */
-  --duration-tool-fold: 140ms;
+  /* 工具行动词在运行中与完成后切换的滚动时长 */
   --duration-label-roll: 180ms;
   --duration-slow: 280ms;
   /* 小猪探头：开屏与侧栏品牌共用同一节奏 */

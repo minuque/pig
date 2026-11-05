@@ -159,7 +159,12 @@ function revealNextPage(): void {
   emit("revealMore", active.key)
 }
 
+// 只按分段内容判断：流式更新等无关重渲染不读布局
+let lastSections: readonly SidebarSection[] | undefined
+
 onUpdated(() => {
+  if (props.sections === lastSections) return
+  lastSections = props.sections
   const el = windowEl.value
 
   if (!el || el.scrollHeight > el.clientHeight + 4) return

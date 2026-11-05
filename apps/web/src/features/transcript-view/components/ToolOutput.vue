@@ -17,11 +17,11 @@
     </button>
   </div>
 
-  <div v-else class="tool-output" :class="{ 'is-embedded': embedded, 'is-soft-wrap': softWrap }">
+  <div v-else class="tool-output" :class="{ 'is-soft-wrap': softWrap }">
     <CopyButton v-if="copyText" :text="copyText" />
 
     <template v-if="showText">
-      <pre class="tool-output-pre" :class="preClass">{{ shownText }}</pre>
+      <pre class="tool-output-pre">{{ shownText }}</pre>
 
       <button v-if="hiddenLines" type="button" class="show-all" @click="expanded = true">
         {{ t("transcript.showAllLines", { count: hiddenLines }) }}
@@ -66,7 +66,6 @@ function lineCut(text: string, limit: number) {
 const props = withDefaults(
   defineProps<{
     text?: string
-    embedded?: boolean
     code?: boolean
     softWrap?: boolean
     lines?: readonly string[]
@@ -77,7 +76,6 @@ const props = withDefaults(
   }>(),
   {
     text: "",
-    embedded: false,
     code: false,
     softWrap: false,
     lines: () => [],
@@ -105,9 +103,6 @@ const hiddenLines = computed(() => {
 const lineNumberWidth = computed(() =>
   Math.max(3, String(props.startLine + props.lines.length - 1).length),
 )
-const preClass = computed(() => ({
-  "is-embedded": props.embedded,
-}))
 const copyText = computed(() => (props.code ? props.lines.join("\n") : props.text))
 </script>
 
@@ -115,15 +110,6 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
 .tool-output {
   position: relative;
   font-size: var(--text-code);
-}
-
-.tool-output.is-embedded {
-  min-width: 0;
-  padding: var(--space-xs);
-  padding-inline-end: 0;
-  overflow-x: auto;
-  /* 卡片底比全局滚动条色深，滚动条会看不出，这里提到 ink 12% */
-  --scrollbar-thumb: var(--hover-strong);
 }
 
 .tool-output-pre {
@@ -141,16 +127,6 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
   tab-size: 2;
   max-height: var(--transcript-tool-max);
   overflow: auto;
-}
-
-.tool-output-pre.is-embedded {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--contrast-foreground);
-  font-family: var(--font-mono);
-  font-size: var(--text-code);
 }
 
 .images {

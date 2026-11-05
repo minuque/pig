@@ -33,11 +33,7 @@
               @click="older.request"
             >
               <span class="icon-swap">
-                <LoaderIcon
-                  :data-visible="loadingOlder"
-                  :class="{ 'animate-spin motion-reduce:animate-none': loadingOlder }"
-                />
-
+                <LoaderIcon :data-visible="loadingOlder" :class="{ 'is-spinning': loadingOlder }" />
                 <ArrowUpIcon :data-visible="!loadingOlder" />
               </span>
 
@@ -50,8 +46,6 @@
               <TurnRow
                 :turn="turn"
                 :class="{ 'turn-runway': turn.id === runwayId }"
-                :first="turnIndex === 0"
-                :previous-role="turns[turnIndex - 1]?.rows.at(-1)?.role"
                 :session-id="sessionId"
                 :running="running"
                 :is-expand="isExpand"
@@ -384,7 +378,19 @@ watch(
     reset()
     pendingRestore = scrollMemory.get(id)
 
-    if (pendingRestore === undefined) void nextTick(pinLatest)
+    if (pendingRestore === undefined) {
+      void nextTick(pinLatest)
+      return
+    }
+
+    // 行已就位时 turns 不会再变，这里补一次；还没到就交给 turns 的兜底分支
+    const target = pendingRestore
+
+    void nextTick(() => {
+      if (pendingRestore !== target || turns.value.length === 0) return
+      pendingRestore = undefined
+      scrollToElementOffset(target)
+    })
   },
 )
 
@@ -418,6 +424,8 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* 补历史时按高度差手动补 scrollTop，浏览器锚定会再补一次 */
+  overflow-anchor: none;
   scroll-padding-bottom: var(--composer-reserve, 0px);
   /* 给 .turn-runway 的 cqh 提供视口高度 */
   container-type: size;

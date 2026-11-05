@@ -178,10 +178,6 @@ export function toolPath(input: unknown): string {
   return hintFromKeys(input, PATH_KEYS)
 }
 
-export function toolWorkingDirectory(input: unknown): string {
-  return hintFromKeys(input, ["cwd", "workdir", "working_directory"])
-}
-
 export function toolCallDetail(toolName: string, input: unknown): string {
   const name = toolName.trim().toLowerCase()
 

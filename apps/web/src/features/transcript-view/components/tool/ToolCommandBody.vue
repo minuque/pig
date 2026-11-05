@@ -13,11 +13,16 @@
     </div>
 
     <ToolOutput :text="output" :images="call.outputImages" soft-wrap />
+
+    <p v-if="statusLine" class="command-status" :class="{ 'is-error': call.isError }">
+      {{ statusLine }}
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
+import { useI18n } from "@i18n/index.js"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import {
@@ -32,12 +37,20 @@ import type { ToolCallView } from "@features/transcript-view/type.js"
 const props = defineProps<{
   call: ToolCallView
 }>()
+const { t } = useI18n()
 const { codeBlockProps } = useColorScheme()
 const command = computed(() => toolCommand(props.call.input))
 const commandLines = computed(() => (command.value ? command.value.split("\n") : []))
-const output = computed(() => {
+const result = computed(() => {
   const status = props.call.isError ? "error" : props.call.running ? "running" : "success"
-  return splitCommandStatus(props.call.outputText, status).body.trimEnd()
+  return splitCommandStatus(props.call.outputText, status)
+})
+const output = computed(() => result.value.body.trimEnd())
+const statusLine = computed(() => {
+  const { exitCode, statusLine } = result.value
+
+  if (exitCode === undefined) return statusLine
+  return exitCode === 0 ? "" : t("transcript.exitCode", { code: exitCode })
 })
 const tokens = shallowRef<CodeTokens>([])
 
@@ -119,5 +132,18 @@ watch(
   color: inherit;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.command-status {
+  margin: 0;
+  padding-inline-start: var(--space-sm);
+  color: var(--contrast-foreground-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: 1.43;
+}
+
+.command-status.is-error {
+  color: var(--danger);
 }
 </style>

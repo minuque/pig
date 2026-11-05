@@ -71,7 +71,7 @@
                     <span class="icon-swap">
                       <LoaderIcon
                         :data-visible="turnPending"
-                        :class="{ 'animate-spin motion-reduce:animate-none': turnPending }"
+                        :class="{ 'is-spinning': turnPending }"
                       />
 
                       <ArrowDownIcon :data-visible="!turnPending" />

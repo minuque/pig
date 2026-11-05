@@ -46,6 +46,7 @@ async function copy() {
     start()
   } catch {
     status.value = "error"
+    start()
   }
 }
 </script>

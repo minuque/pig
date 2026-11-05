@@ -274,7 +274,9 @@ const glyphState = computed(() => sessionGlyph(props.session, props.state))
 const timeLabel = computed(() => formatRelativeTime(props.session.updatedAt))
 const tick = shallowRef(Date.now())
 const elapsed = computed(() =>
-  props.startedAt === undefined ? "" : formatElapsed(tick.value - props.startedAt),
+  props.startedAt === undefined
+    ? ""
+    : formatElapsed(tick.value - props.startedAt, { showMs: false }),
 )
 const clock = useIntervalFn(
   () => {

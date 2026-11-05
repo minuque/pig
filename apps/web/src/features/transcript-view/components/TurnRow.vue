@@ -1,10 +1,10 @@
 <template>
   <div class="turn" :data-turn-id="turn.id">
     <div
-      v-for="(row, rowIndex) in turn.rows"
+      v-for="row in turn.rows"
       :key="row.id"
       class="row"
-      :class="rowClass(row, rowIndex)"
+      :class="`row-${row.role}`"
       :data-row-id="row.id"
       :data-minimap-row="row.role === 'user' ? row.id : undefined"
     >
@@ -39,12 +39,10 @@ import TurnErrorRow from "@features/transcript-view/components/TurnErrorRow.vue"
 import ToolRun from "@features/transcript-view/components/tool/ToolRun.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import { isToolRow } from "@features/transcript-view/lib/transcript-rows.js"
-import type { TimelineRow, TimelineTurn } from "@features/transcript-view/type.js"
+import type { TimelineTurn } from "@features/transcript-view/type.js"
 
 const props = defineProps<{
   turn: TimelineTurn
-  first: boolean
-  previousRole?: TimelineRow["role"] | undefined
   sessionId: string
   running: boolean
   isExpand: (id: string) => boolean | undefined
@@ -69,18 +67,6 @@ const turnError = computed(() => {
 
   return null
 })
-
-function rowClass(row: TimelineRow, rowIndex: number) {
-  const previous = rowIndex > 0 ? props.turn.rows[rowIndex - 1] : undefined
-  const previousRole = previous?.role ?? props.previousRole
-  return [
-    `row-${row.role}`,
-    {
-      "is-first": props.first && rowIndex === 0,
-      "is-after-user": previousRole === "user",
-    },
-  ]
-}
 </script>
 
 <style scoped>

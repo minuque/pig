@@ -85,15 +85,22 @@ function createNav(
 
     return feet
   })
+  /** 在跑的会话集合：直接看实时状态，不穿过转录内容，流式更新不带动侧栏重算。 */
+  const runningIds = computed(() => {
+    const ids = new Set(session.backgroundRunningIds.value)
+    const liveId = session.sessionId.value
+
+    if (liveId && activeSessionRunning.value) ids.add(liveId)
+    return ids
+  })
   /** 分段只看这两件事：在跑、已归档。 */
   const placements = computed(() => {
+    const running = runningIds.value
+    const settled = markers.settledIds.value
     const map = new Map<string, SidebarPlacement>()
 
     for (const item of nav.listedSessions.value) {
-      map.set(item.id, {
-        running: cardFootById.value.get(item.id)?.state === "running",
-        settled: markers.settledIds.value.has(item.id),
-      })
+      map.set(item.id, { running: running.has(item.id), settled: settled.has(item.id) })
     }
 
     return map
@@ -134,18 +141,16 @@ function createNav(
 
   /** 每个在跑的会话从什么时候开始跑：本地记，协议列表不带开始时间。 */
   const runningSince = shallowRef<Record<string, number>>({})
-  const runningIds = computed(
-    () =>
-      new Set(
-        [...cardFootById.value].filter(([, foot]) => foot.state === "running").map(([id]) => id),
-      ),
-  )
 
   watch(
     runningIds,
     (ids) => {
-      const next: Record<string, number> = {}
       const previous = runningSince.value
+      const previousIds = Object.keys(previous)
+
+      if (previousIds.length === ids.size && previousIds.every((id) => ids.has(id))) return
+
+      const next: Record<string, number> = {}
       const now = Date.now()
 
       for (const id of ids) next[id] = previous[id] ?? now

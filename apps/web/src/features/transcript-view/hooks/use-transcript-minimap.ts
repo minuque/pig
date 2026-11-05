@@ -32,51 +32,88 @@ export function useTranscriptMinimap(
     resolveMinimapHitStripWidth(viewportWidth.value, contentWidth.value),
   )
   let sizeObserver: ResizeObserver | undefined
-  let scrollTarget: HTMLElement | null = null
-  let scrollRaf = 0
+  let rowObserver: IntersectionObserver | undefined
+  /** IO 回调无序且只在变化时来，可见/已滚过按 id 记账，顺序从数据恢复。 */
+  const visibleIds = new Set<string>()
+  const aboveIds = new Set<string>()
+  const observedRows = new Map<string, Element>()
 
-  /** 直接量挂在视口里的用户句：虚拟窗口会换行，观察器记下的可见集会过期。 */
-  function publishInView() {
-    const port = toValue(layout.viewport)
-    const next: string[] = []
-    let above: string | null = null
+  function publish() {
+    const keys = toValue(mountedKeys)
+    const next = keys.filter((key) => visibleIds.has(key))
+    let current = next[0]
 
-    if (port) {
-      const box = port.getBoundingClientRect()
+    if (!current) {
+      for (let index = keys.length - 1; index >= 0; index -= 1) {
+        const key = keys[index]!
 
-      for (const el of port.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
-        const id = el.dataset.minimapRow
-
-        if (!id) continue
-
-        const rect = el.getBoundingClientRect()
-
-        if (rect.bottom > box.top && rect.top < box.bottom) next.push(id)
-        else if (rect.bottom <= box.top) above = id
+        if (aboveIds.has(key)) {
+          current = key
+          break
+        }
       }
     }
 
     if (!sameIdList(inViewIds.value, next)) inViewIds.value = next
 
-    const current = next[0] ?? above ?? currentId.value
+    const resolved = current ?? currentId.value
 
-    if (current !== currentId.value) currentId.value = current
+    if (resolved !== currentId.value) currentId.value = resolved
   }
 
-  /** 滚动时重新量：长回复会让用户句长时间离开视口。 */
-  function onPortScroll() {
-    if (scrollRaf) return
-    scrollRaf = requestAnimationFrame(() => {
-      scrollRaf = 0
-      publishInView()
-    })
+  function onRowIntersect(entries: IntersectionObserverEntry[]) {
+    for (const entry of entries) {
+      const id = (entry.target as HTMLElement).dataset.minimapRow
+
+      if (!id) continue
+
+      if (entry.isIntersecting) {
+        visibleIds.add(id)
+        aboveIds.delete(id)
+        continue
+      }
+
+      visibleIds.delete(id)
+
+      // 滚出根的上沿才记「刚过去的那条」，下沿之外不记
+      if (entry.boundingClientRect.bottom <= (entry.rootBounds?.top ?? 0)) aboveIds.add(id)
+      else aboveIds.delete(id)
+    }
+
+    publish()
   }
 
-  function listenScroll(port: HTMLElement | null) {
-    if (scrollTarget === port) return
-    scrollTarget?.removeEventListener("scroll", onPortScroll)
-    scrollTarget = port
-    port?.addEventListener("scroll", onPortScroll, { passive: true })
+  /** 视口里的元素会随虚拟窗口增减，观察集跟着 mountedKeys 对齐。 */
+  function observeRows() {
+    const port = toValue(layout.viewport)
+    const observer = rowObserver
+
+    if (!port || !observer) return
+
+    const seen = new Set<string>()
+
+    for (const el of port.querySelectorAll<HTMLElement>("[data-minimap-row]")) {
+      const id = el.dataset.minimapRow
+
+      if (!id) continue
+      seen.add(id)
+
+      if (observedRows.get(id) === el) continue
+      observedRows.set(id, el)
+      visibleIds.delete(id)
+      aboveIds.delete(id)
+      observer.observe(el)
+    }
+
+    for (const [id, el] of observedRows) {
+      if (seen.has(id)) continue
+      observer.unobserve(el)
+      observedRows.delete(id)
+      visibleIds.delete(id)
+      aboveIds.delete(id)
+    }
+
+    publish()
   }
 
   function applySize(target: Element, width: number) {
@@ -94,14 +131,20 @@ export function useTranscriptMinimap(
     ([port, column]) => {
       sizeObserver?.disconnect()
       sizeObserver = undefined
-      listenScroll(port)
+      rowObserver?.disconnect()
+      rowObserver = undefined
+      observedRows.clear()
+      visibleIds.clear()
+      aboveIds.clear()
 
       if (!port) {
         viewportWidth.value = 0
         contentWidth.value = 0
-        publishInView()
+        publish()
         return
       }
+
+      rowObserver = new IntersectionObserver(onRowIntersect, { root: port })
 
       sizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -109,30 +152,27 @@ export function useTranscriptMinimap(
           const width = box?.inlineSize ?? entry.contentRect.width
           applySize(entry.target, width)
         }
-
-        publishInView()
       })
       sizeObserver.observe(port)
 
       if (column) sizeObserver.observe(column)
+      void nextTick(observeRows)
     },
     { flush: "post" },
   )
 
-  // 多源 watch 逐项 Object.is 比较，行键内容不变时不重复量
+  // 多源 watch 逐项 Object.is 比较，行键内容不变时不重复挂观察
   watch(
-    [() => toValue(layout.viewport), () => toValue(mountedKeys).join("\0")],
+    () => toValue(mountedKeys).join("\0"),
     () => {
-      void nextTick(publishInView)
+      void nextTick(observeRows)
     },
     { flush: "post" },
   )
 
   onBeforeUnmount(() => {
     sizeObserver?.disconnect()
-    listenScroll(null)
-
-    if (scrollRaf) cancelAnimationFrame(scrollRaf)
+    rowObserver?.disconnect()
   })
   return { items, inViewIds, currentId, hitStripWidth }
 }
