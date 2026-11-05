@@ -141,6 +141,7 @@ watch(
   min-width: 0;
   border-radius: var(--radius-code);
   overflow: clip;
+  font-size: var(--text-code-sm);
 }
 
 .edit-diff :deep(.stream-diffs-shell) {

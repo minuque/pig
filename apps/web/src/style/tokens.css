@@ -182,6 +182,8 @@
 
   --text-code: 13px;
   --text-code-line: 24.5px;
+  /* diff 卡是等宽字体，观感比同号 sans 大，降一档与工具行齐平 */
+  --text-code-sm: calc(var(--text-code) - 1px);
 
   /* 输入卡胶囊：宽度跟随对话宽度档 */
   --composer-radius: 32px;
