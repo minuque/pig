@@ -352,6 +352,7 @@
   --diffs-font-size: var(--text-code);
   --diffs-line-height: var(--text-code-line);
   --diffs-font-family: var(--font-mono);
+  --diffs-header-font-family: var(--font-mono);
 }
 
 /* 影子 :host 写死主题色，外层声明优先。 */

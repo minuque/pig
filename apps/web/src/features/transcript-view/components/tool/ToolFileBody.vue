@@ -18,7 +18,7 @@
           :original="hunk.original"
           :modified="hunk.modified"
           :language="preview.language"
-          :file-name="preview.fileName"
+          :file-name="preview.path || preview.fileName"
           diff-style="unified"
           :options="diffOptions"
         />
@@ -81,7 +81,13 @@ const fallback = computed(
 )
 const diffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
-  disableFileHeader: true,
+  /* 卡片头只留文件路径：改动数已在工具行显示，图标与徽标不重复。右侧留出复制按钮 */
+  unsafeCSS: `
+    [data-diffs-header="default"] { min-height: 34px; padding-inline: 12px 40px; }
+    [data-diffs-header] [data-title] { color: var(--contrast-foreground-muted); }
+    [data-diffs-header] [data-change-icon],
+    [data-diffs-header] [data-metadata] { display: none; }
+  `,
 }))
 const tokens = shallowRef<CodeTokens>([])
 
@@ -144,7 +150,9 @@ watch(
   font-size: var(--text-code-sm);
 }
 
-.edit-diff :deep(.stream-diffs-shell) {
-  padding-inline-end: calc(var(--space-sm) + 22px);
+/* 复制按钮落在卡片头里，与标题同高；代码区不再为它留白 */
+.edit-hunk :deep(.copy-button) {
+  top: 6px;
+  inset-inline-end: var(--space-xs);
 }
 </style>
