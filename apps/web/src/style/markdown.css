@@ -133,7 +133,14 @@
     margin: 0;
   }
 
-  /* 标题前间距与普通块一致（12px），由 .node-slot + .node-slot 统一给。 */
+  /* 标题上方多留一档、下方收窄：标题领起下文，而不是等距浮在两段中间。 */
+  .node-slot + .node-slot:has(> .node-content > .heading-node) {
+    margin-top: 20px;
+  }
+
+  .node-slot:has(> .node-content > .heading-node) + .node-slot {
+    margin-top: 6px;
+  }
 
   /* 首块不留上间距（首块是标题时同样适用），放在最后压过上面两条。 */
   > .height-estimation-probes + .node-slot,
@@ -155,7 +162,7 @@
     margin-top: 12px;
   }
 
-  /* cc-wrapper：hr 上边框 1px，上下间距 12px */
+  /* cc-wrapper：hr 上边框 1px，间距由 node-slot 统一给 */
   .hr-node {
     border-top: var(--border-width) solid var(--border);
   }
@@ -290,7 +297,7 @@
     transform: scale(0.98);
   }
 
-  /* ------ 表格：单层圆角外框 + 横向分隔线；13px、8px 四周 padding（对齐 cc-wrapper） ------ */
+  /* ------ 表格：单层圆角外框 + 横向分隔线；字号随正文，8px 内边距 ------ */
   .table-node-wrapper .table-node {
     table-layout: auto;
     border-collapse: separate;
