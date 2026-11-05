@@ -7,7 +7,7 @@
       :aria-expanded="open"
       @click="emit('toggle', !open)"
     >
-      <span class="tool-row-verb">{{ verb }}</span>
+      <RollText class="tool-row-verb" :text="shownVerb" :live="Boolean(liveVerb)" />
 
       <span v-if="target.text" class="tool-row-target" :title="target.path || target.text">
         {{ target.text }}
@@ -41,10 +41,12 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { AltArrowRightIcon } from "@components/icons/index.js"
+import RollText from "@features/transcript-view/components/RollText.vue"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
 import ToolGenericBody from "@features/transcript-view/components/tool/ToolGenericBody.vue"
 import {
+  toolCallLiveVerb,
   toolCallTarget,
   toolCallVariant,
   toolCallVerb,
@@ -60,6 +62,8 @@ const props = defineProps<{
 const emit = defineEmits<{ toggle: [open: boolean] }>()
 const variant = computed(() => toolCallVariant(props.call))
 const verb = computed(() => toolCallVerb(props.call))
+const liveVerb = computed(() => (props.call.running ? toolCallLiveVerb(props.call) : null))
+const shownVerb = computed(() => liveVerb.value ?? verb.value)
 const target = computed(() => toolCallTarget(props.call))
 const lineChange = computed(() => itemLineChange(props.call.toolName, props.call.input))
 const thumb = computed(() => {

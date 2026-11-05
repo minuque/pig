@@ -20,6 +20,12 @@ const VERB_KEYS = {
   edit: "transcript.verbEdit",
   search: "transcript.verbSearch",
 } as const
+const LIVE_VERB_KEYS = {
+  command: "transcript.verbRunLive",
+  read: "transcript.verbReadLive",
+  edit: "transcript.verbEditLive",
+  search: "transcript.verbSearchLive",
+} as const
 
 export function toolCalls(row: ToolRow): ToolCallView[] {
   return row.steps.flatMap((step) => (step.type === "tools" ? step.items : []))
@@ -43,6 +49,14 @@ export function toolCallVerb(call: ToolCallView): string {
 
   if (variant === "tool") return call.toolName
   return t(VERB_KEYS[variant])
+}
+
+/** 运行中的动词用进行时，跑完再换成完成时，切换走 RollText 的上翻。 */
+export function toolCallLiveVerb(call: ToolCallView): string {
+  const variant = toolCallVariant(call)
+
+  if (variant === "tool") return call.toolName
+  return t(LIVE_VERB_KEYS[variant])
 }
 
 function firstLine(text: string): string {
