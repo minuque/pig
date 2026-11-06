@@ -172,6 +172,12 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     section: t("settings.general"),
   },
   {
+    id: "setting-user-name",
+    pane: "general",
+    title: t("settings.userName"),
+    section: t("settings.interface"),
+  },
+  {
     id: "setting-language",
     pane: "general",
     title: t("settings.language"),

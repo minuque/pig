@@ -209,6 +209,8 @@
   --size-icon-xs: calc(var(--size-icon) - 2px);
   --size-icon-2xs: 16px;
   --size-icon-button: 28px;
+  /* 侧栏左下角的头像 */
+  --size-avatar: 20px;
   /* 24 画布线宽；低于 1.71 时 14px 图标下等效不到 1px，会糊成半调灰 */
   --line-icon-width: 1.75px;
   /* @solar-icons/vue 的 IconBase 读这两个名字定尺寸与线宽（width/height 是 1em，靠 font-size 撑开）；

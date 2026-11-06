@@ -36,6 +36,22 @@
       <h2 class="group-title">{{ t("settings.interface") }}</h2>
 
       <div class="card">
+        <div id="setting-user-name" class="row">
+          <div class="copy">
+            <h3 class="label">{{ t("settings.userName") }}</h3>
+            <p class="hint">{{ t("settings.userNameHint") }}</p>
+          </div>
+
+          <TextFieldRoot
+            :model-value="userName"
+            size="s"
+            class="setting-select"
+            placeholder="Pig"
+            :aria-label="t('settings.userName')"
+            @update:model-value="setUserName"
+          />
+        </div>
+
         <div id="setting-language" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.language") }}</h3>
@@ -160,6 +176,7 @@ import { accentHex } from "@features/theme/lib/palette.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
 import { Switch } from "@components/ui/switch/index.js"
+import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import { CheckIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
@@ -169,6 +186,8 @@ const {
   fontSize,
   chatWidth,
   translucentWindow,
+  userName,
+  setUserName,
   setLocale,
   setFontSize,
   setChatWidth,

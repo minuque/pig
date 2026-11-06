@@ -13,11 +13,14 @@ const FONT_SIZE_KEY = "pig.fontSize"
 const CHAT_WIDTH_KEY = "pig.chatWidth"
 const NOTIFY_KEY = "pig.notify"
 const TRANSLUCENT_KEY = "pig.translucentWindow"
+const USER_NAME_KEY = "pig.userName"
 const locale = shallowRef<UiLocale>("zh-CN")
 const fontSize = shallowRef<FontSize>("m")
 const chatWidth = shallowRef<ChatWidth>("comfortable")
 const notifyOn = shallowRef(true)
 const translucentWindow = shallowRef(false)
+/** 侧栏左下角显示的名字；空串表示没配，显示默认名。 */
+const userName = shallowRef("")
 let loaded = false
 
 function apply(
@@ -48,6 +51,7 @@ function load(): void {
   )
   notifyOn.value = readFlag(NOTIFY_KEY)
   translucentWindow.value = readPref(TRANSLUCENT_KEY) === "on"
+  userName.value = readPref(USER_NAME_KEY) ?? ""
   apply(locale.value, fontSize.value, chatWidth.value, translucentWindow.value)
 }
 
@@ -66,6 +70,11 @@ export function useGeneralPrefs() {
     chatWidth: readonly(chatWidth),
     notifyOn: readonly(notifyOn),
     translucentWindow: readonly(translucentWindow),
+    userName: readonly(userName),
+    setUserName(next: string) {
+      userName.value = next
+      writePref(USER_NAME_KEY, next.trim())
+    },
     setLocale(next: UiLocale) {
       locale.value = next
       writePref(LOCALE_KEY, next)

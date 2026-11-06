@@ -51,6 +51,7 @@ export const zh = {
   },
   nav: {
     collapseSidebar: "收起侧边栏",
+    profileMenu: "外观与语言",
     openSidebar: "打开侧边栏",
     search: "搜索",
     searchPlaceholder: "搜索会话和项目",
@@ -153,6 +154,8 @@ export const zh = {
     interface: "界面",
     language: "语言",
     languageHint: "选择界面显示语言",
+    userName: "用户名",
+    userNameHint: "显示在侧栏左下角，留空时显示 Pig",
     fontSize: "字体大小",
     fontSizeHint: "调整界面和消息文字大小",
     chatWidth: "对话宽度",
@@ -355,6 +358,7 @@ export const en: Messages = {
   },
   nav: {
     collapseSidebar: "Collapse sidebar",
+    profileMenu: "Appearance and language",
     openSidebar: "Open sidebar",
     search: "Search",
     searchPlaceholder: "Search sessions and projects",
@@ -458,6 +462,8 @@ export const en: Messages = {
     interface: "Interface",
     language: "Language",
     languageHint: "Choose interface language",
+    userName: "User name",
+    userNameHint: "Shown at the bottom of the sidebar; Pig when left empty",
     fontSize: "Font size",
     fontSizeHint: "Adjust interface and message text size",
     chatWidth: "Chat width",
