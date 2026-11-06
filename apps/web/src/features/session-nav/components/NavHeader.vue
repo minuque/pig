@@ -19,25 +19,9 @@
       </Tooltip>
     </div>
 
-    <div class="nav-rows">
+    <div class="nav-toolbar">
       <Button
-        class="nav-row"
-        type="button"
-        size="m"
-        variant="ghost"
-        color="gray"
-        @click="emit('create')"
-      >
-        <ChatRoundAddIcon :size="16" />
-        <span>{{ t("session.newSession") }}</span>
-
-        <template #suffix>
-          <Badge class="nav-row-key" variant="soft" color="gray">{{ modKey }}+N</Badge>
-        </template>
-      </Button>
-
-      <Button
-        class="nav-row"
+        class="nav-search"
         type="button"
         size="m"
         variant="ghost"
@@ -48,21 +32,28 @@
         <span>{{ t("nav.search") }}</span>
 
         <template #suffix>
-          <Badge class="nav-row-key" variant="soft" color="gray">{{ modKey }}+K</Badge>
+          <Badge class="nav-search-key" variant="soft" color="gray">{{ modKey }}+K</Badge>
         </template>
       </Button>
 
       <DropdownMenu :modal="false">
-        <DropdownMenuTrigger as-child>
-          <Button class="nav-row nav-row-scope" type="button" size="m" variant="soft" color="gray">
-            <Tuning2Icon :size="16" />
-            <span>{{ t("session.allProjects") }}</span>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <DropdownMenuTrigger as-child>
+              <IconButton
+                class="nav-btn"
+                type="button"
+                size="m"
+                variant="ghost"
+                :aria-label="t('session.allProjects')"
+              >
+                <Tuning2Icon :size="16" />
+              </IconButton>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
 
-            <template #suffix>
-              <AltArrowDownIcon class="nav-row-caret" :size="12" />
-            </template>
-          </Button>
-        </DropdownMenuTrigger>
+          <TooltipContent>{{ t("session.allProjects") }}</TooltipContent>
+        </Tooltip>
 
         <ScopeMenu
           :groups="groups"
@@ -72,6 +63,40 @@
           @update:scope-filter="emit('update:scopeFilter', $event)"
         />
       </DropdownMenu>
+
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <IconButton
+            class="nav-btn"
+            type="button"
+            size="m"
+            variant="ghost"
+            :aria-label="t('session.addGuide')"
+            @click="emit('addProject')"
+          >
+            <AddFolderIcon :size="16" />
+          </IconButton>
+        </TooltipTrigger>
+
+        <TooltipContent>{{ t("session.addGuide") }}</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <IconButton
+            class="nav-btn"
+            type="button"
+            size="m"
+            variant="ghost"
+            :aria-label="t('session.newSession')"
+            @click="emit('create')"
+          >
+            <ChatRoundAddIcon :size="16" />
+          </IconButton>
+        </TooltipTrigger>
+
+        <TooltipContent>{{ t("session.newSession") }} {{ modKey }}+N</TooltipContent>
+      </Tooltip>
     </div>
 
     <SearchDialog
@@ -91,7 +116,7 @@ import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
 import type { SessionGroup, SidebarSort } from "@features/session-nav/type.js"
 import {
-  AltArrowDownIcon,
+  AddFolderIcon,
   ChatRoundAddIcon,
   MagnifierIcon,
   PanelLeftCloseIcon,
@@ -115,6 +140,7 @@ const emit = defineEmits<{
   "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
   "update:sort": [sort: SidebarSort]
   toggleSidebar: []
+  addProject: []
   create: [cwd?: string]
   open: [id: string]
 }>()
@@ -160,28 +186,29 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
   app-region: drag;
 }
 
-.nav-rows {
+/* t3code 式工具行：搜索占满左侧，视图与命令图标靠右 */
+.nav-toolbar {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: var(--space-xxs);
   padding-inline: var(--nav-inline);
 }
 
-/* 撑满整行：图标与文字靠左，快捷键角标靠右。
-   rt 的 ghost 档是 content-box 且用负外边距做视觉对齐，整行按钮要抵消掉。 */
-.nav-row {
+/* 抵消 rt ghost 档的负外边距，让搜索撑开剩余宽度 */
+.nav-search {
   position: relative;
   box-sizing: border-box;
+  flex: 1;
   justify-content: flex-start;
   gap: var(--space-xs);
-  width: 100%;
+  min-width: 0;
   margin: 0;
   padding-inline: var(--space-xs);
   font-weight: 400;
 }
 
-/* 快捷键只在 hover 时出现，绝对定位不占行宽，免得把标题挤换行 */
-.nav-row-key {
+/* 快捷键只在 hover 时出现，绝对定位不占行宽 */
+.nav-search-key {
   position: absolute;
   inset-inline-end: var(--space-xs);
   top: 50%;
@@ -190,18 +217,7 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.nav-row:hover .nav-row-key {
+.nav-search:hover .nav-search-key {
   opacity: 1;
-}
-
-/* 项目范围是视图档，不是命令：与上面两条命令隔开一档 */
-.nav-row-scope {
-  margin-block-start: var(--space-xxs);
-}
-
-/* 菜单开合提示贴右，与快捷键角标落在同一列 */
-.nav-row-caret {
-  margin-inline-start: auto;
-  color: var(--contrast-foreground-faint);
 }
 </style>

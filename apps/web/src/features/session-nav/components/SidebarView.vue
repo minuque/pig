@@ -12,6 +12,7 @@
       @update:scope-filter="emit('update:scopeFilter', $event)"
       @update:sort="emit('update:sort', $event)"
       @toggle-sidebar="emit('toggleSidebar')"
+      @add-project="emit('addProject')"
       @create="emit('create', $event)"
       @open="emit('open', $event)"
     />
@@ -42,7 +43,7 @@
       />
     </div>
 
-    <NavFooter @settings="emit('settings')" @add-project="emit('addProject')" />
+    <NavFooter @settings="emit('settings')" />
   </div>
 </template>
 
