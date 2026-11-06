@@ -19,7 +19,7 @@
       </DropdownMenuTrigger>
 
       <DropdownMenuContent side="top" align="start" :side-offset="4" variant="soft">
-        <DropdownMenuItem @select.prevent="cycleScheme">
+        <DropdownMenuItem @select.prevent="toggle">
           <component :is="currentScheme.icon" :size="14" />
           {{ t("settings.appearance") }}
           <span class="profile-value">{{ currentScheme.label }}</span>
@@ -54,7 +54,6 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import type { ColorScheme } from "@/types/theme-type.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
 import {
   DropdownMenu,
@@ -64,7 +63,7 @@ import {
 } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
-import { EarthIcon, MonitorIcon, MoonIcon, SettingsIcon, SunIcon } from "@components/icons/index.js"
+import { EarthIcon, MoonIcon, SettingsIcon, SunIcon } from "@components/icons/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 
@@ -72,26 +71,17 @@ const emit = defineEmits<{
   settings: []
 }>()
 const { t } = useI18n()
-const { scheme, setScheme } = useColorScheme()
+const { isDark, toggle } = useColorScheme()
 const { locale, userName, setLocale } = useGeneralPrefs()
 const displayName = computed(() => userName.value.trim() || "Pig")
-/* 文案随语言切换，必须走 computed */
-const schemes = computed<{ id: ColorScheme; label: string; icon: typeof SunIcon }[]>(() => [
-  { id: "auto", label: t("settings.schemeAuto"), icon: MonitorIcon },
-  { id: "light", label: t("settings.schemeLight"), icon: SunIcon },
-  { id: "dark", label: t("settings.schemeDark"), icon: MoonIcon },
-])
-const currentScheme = computed(
-  () => schemes.value.find((option) => option.id === scheme.value) ?? schemes.value[0]!,
+/** 外观只在浅色与深色之间切；跟随系统留给设置页 */
+const currentScheme = computed(() =>
+  isDark.value
+    ? { label: t("settings.schemeDark"), icon: MoonIcon }
+    : { label: t("settings.schemeLight"), icon: SunIcon },
 )
 /** 语言名用它自己的写法，切到不认识的语言时也认得出 */
 const currentLocale = computed(() => (locale.value === "en" ? "English" : "中文"))
-
-/** 点一下换到下一档：跟随系统 → 浅色 → 深色 → 跟随系统。 */
-function cycleScheme() {
-  const index = schemes.value.findIndex((option) => option.id === scheme.value)
-  setScheme(schemes.value[(index + 1) % schemes.value.length]!.id)
-}
 
 function toggleLocale() {
   setLocale(locale.value === "en" ? "zh-CN" : "en")
