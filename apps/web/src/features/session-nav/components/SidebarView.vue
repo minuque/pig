@@ -19,7 +19,6 @@
     <div class="nav-inset">
       <SessionList
         :sections="sections"
-        :filtered="scopeFilter.size > 0"
         :card-foot-by-id="cardFootById"
         :pinned-ids="pinnedIds"
         :highlighted-session-id="highlightedSessionId"

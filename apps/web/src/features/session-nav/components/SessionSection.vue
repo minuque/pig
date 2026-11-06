@@ -1,6 +1,12 @@
 <template>
-  <section class="session-section" :data-key="section.key">
-    <div v-if="isShelf" class="section-head">
+  <section class="session-section" :class="{ 'is-sorting': sorting }" :data-key="section.key">
+    <div
+      v-if="isShelf"
+      class="section-head"
+      :class="{ 'is-sorting': sorting, 'is-drop-target': dropTarget }"
+      :data-drag-key="`${section.key}-head`"
+      :style="shiftStyle(`${section.key}-head`)"
+    >
       <button
         class="section-toggle"
         type="button"
@@ -15,17 +21,20 @@
     </div>
 
     <div>
-      <TransitionGroup name="list-reveal" tag="ul" class="section-rows">
+      <TransitionGroup :name="motion ? 'list-reveal' : 'none'" tag="ul" class="section-rows">
         <li
           v-for="session in rows"
           :key="session.id"
           class="session-row"
-          :style="rowStyle(session.id)"
+          :class="{ 'is-drag-source': dragId === session.id }"
+          :style="shiftStyle(session.id)"
           :data-id="session.id"
+          :data-drag-key="session.id"
+          data-drag-item="row"
         >
           <SessionItem
             v-bind="itemBind(session)"
-            :dragging="dragId === session.id"
+            :swept="swept.has(session.id)"
             @navigate="emit('navigate', $event)"
             @open="emit('open', $event)"
             @prime="emit('prime', $event)"
@@ -35,6 +44,7 @@
             @settle="emit('settle', $event)"
             @unsettle="emit('unsettle', $event)"
             @drag-start="emit('dragStart', section.key, session.id, $event)"
+            @sweep-start="emit('sweepStart', section.key, session.id, $event)"
           />
         </li>
 
@@ -45,6 +55,8 @@
           "
           :key="`more:${section.key}`"
           class="session-row more-row"
+          :data-drag-key="`more:${section.key}`"
+          :style="shiftStyle(`more:${section.key}`)"
         >
           <button
             v-if="section.shown < section.total"
@@ -76,6 +88,7 @@ import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { AltArrowDownIcon } from "@components/icons/index.js"
+import { sidebarItemProps } from "@features/session-nav/lib/session-list.js"
 import type { SidebarRowFoot, SidebarSection, SidebarSession } from "@features/session-nav/type.js"
 
 const props = defineProps<{
@@ -86,12 +99,17 @@ const props = defineProps<{
   pinnedIds: ReadonlySet<string>
   /** 在跑的会话从什么时候开始跑，秒表用。 */
   runningSince: Record<string, number>
-  dragEnabled: boolean
+  /** 被拖起、由浮层代替显示的那一行。 */
   dragId: string | undefined
-  /** 拖着的那一行当前落点会做什么。 */
-  dropVerb: "pin" | "unpin" | null
-  /** 拖拽让位：行按落点上下平移的像素。 */
-  rowShiftById: Record<string, number>
+  /** 拖拽预演：各行相对静止布局的纵向位移。 */
+  offsets: ReadonlyMap<string, number>
+  /** 拖拽中：段头提亮，位移带过渡。 */
+  sorting: boolean
+  /** 拖着的行落在本段。 */
+  dropTarget: boolean
+  /** 关掉时行增删不做进出场动画：松手落位由列表自己做。 */
+  motion: boolean
+  swept: ReadonlySet<string>
   moreBySection: Record<string, number>
 }>()
 const emit = defineEmits<{
@@ -104,6 +122,7 @@ const emit = defineEmits<{
   settle: [id: string]
   unsettle: [id: string]
   dragStart: [sectionKey: string, id: string, event: PointerEvent]
+  sweepStart: [sectionKey: string, id: string, event: PointerEvent]
   toggleSection: [key: string]
   revealMore: [key: string]
   collapseGroup: [key: string]
@@ -114,25 +133,13 @@ const open = computed(() => (isShelf.value ? props.expandedSections.has(props.se
 /** 收起的架子不建行，展开后再补。 */
 const rows = computed<readonly SidebarSession[]>(() => (open.value ? props.section.sessions : []))
 
-function rowStyle(id: string): Record<string, string> | undefined {
-  const shift = props.rowShiftById[id]
+function shiftStyle(key: string): Record<string, string> | undefined {
+  const shift = props.offsets.get(key)
   return shift ? { transform: `translateY(${shift}px)` } : undefined
 }
 
 function itemBind(session: SidebarSession) {
-  const foot = props.cardFootById.get(session.id)
-  return {
-    session,
-    active: session.id === props.highlightedSessionId,
-    pinned: props.pinnedIds.has(session.id),
-    settled: props.section.kind === "settled",
-    variant: props.section.kind === "settled" ? "slim" : "card",
-    startedAt: props.section.kind === "working" ? props.runningSince[session.id] : undefined,
-    draggable: props.dragEnabled && !(session.draft ?? false),
-    dropVerb: props.dragId === session.id ? props.dropVerb : null,
-    state: foot?.state,
-    placeholder: session.draft ?? false,
-  } as const
+  return sidebarItemProps(props.section, session, props)
 }
 </script>
 
@@ -149,6 +156,14 @@ function itemBind(session: SidebarSession) {
   display: flex;
   align-items: center;
   min-width: 0;
+}
+
+.section-head.is-sorting .section-toggle {
+  color: var(--contrast-foreground);
+}
+
+.section-head.is-drop-target .section-toggle {
+  color: var(--primary);
 }
 
 .section-toggle {
@@ -218,8 +233,17 @@ function itemBind(session: SidebarSession) {
   justify-content: center;
   min-width: 0;
   padding-block: 2px;
-  /* 拖拽时给落点让位，位移形变跟着指针走 */
+}
+
+/* 拖拽中让位带过渡；松手那一拍去掉过渡，落位交给列表的位移动画 */
+.session-section.is-sorting .session-row,
+.section-head.is-sorting {
   transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* 拖起的那一行由浮层代替，原处留位给投影计算 */
+.session-row.is-drag-source {
+  visibility: hidden;
 }
 
 .more-button {
@@ -263,7 +287,8 @@ function itemBind(session: SidebarSession) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .session-row,
+  .session-section.is-sorting .session-row,
+  .section-head.is-sorting,
   .section-chevron,
   .more-icon {
     transition: none;

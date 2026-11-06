@@ -16,6 +16,12 @@ import type { SidebarPlacement, SidebarSessionState } from "@features/session-na
 
 export { sessionTitle, workspaceName, untitledSession } from "@features/session-nav/lib/format.js"
 
+export {
+  SESSION_DROP_EVENT,
+  sessionDropTargetAttrs,
+  type DroppedSession,
+} from "@features/session-nav/lib/context-drag.js"
+
 export type NavContext = ReturnType<typeof createNav>
 
 export const navKey: InjectionKey<NavContext> = Symbol("nav")

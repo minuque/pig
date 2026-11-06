@@ -3,7 +3,7 @@ import type { SidebarSession } from "@features/session-nav/type.js"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
 
 function session(id: string, draft = false): SidebarSession {
-  return { id, title: id, updatedAt: 0, draft }
+  return { id, title: id, updatedAt: 0, sortKey: 0, draft }
 }
 
 describe("sessionGlyph", () => {

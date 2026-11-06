@@ -12,6 +12,8 @@ export interface SidebarSession {
   title: string
   cwd?: string
   updatedAt: number
+  /** 当前排序下的键，大的在前；拖进按时间排的段时用它找落位。 */
+  sortKey: number
   /** 临时新会话占位行。 */
   draft?: boolean
 }

@@ -239,6 +239,7 @@
   --z-menu: 5;
   --z-drawer: 10;
   --z-modal: 20;
+  --z-drag: 30;
   --opacity-disabled: 0.55;
 
   /* 阴影 */

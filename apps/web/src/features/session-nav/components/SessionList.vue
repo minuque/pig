@@ -1,94 +1,107 @@
 <template>
-  <nav class="nav-body session-list">
+  <nav ref="listEl" class="nav-body session-list" :class="{ 'is-dragging': !!drag }">
     <div v-if="sections.length" ref="windowEl" class="session-window" @scroll.passive="onScroll">
-      <!-- 拖拽时露出的置顶落点：没有置顶段时给一块虚线占位 -->
-      <section
-        v-if="dragId && !hasPinnedSection"
-        class="pinned-drop"
-        :class="{ 'is-drop-active': dragIndex !== undefined }"
-        data-key="pinned"
+      <!-- 拖拽时撑开的段名：置顶在上，收件箱在置顶段下沿；跨过收件箱那条才算换段 -->
+      <div
+        v-if="sorting"
+        class="drag-label"
+        :class="{ 'is-target': zone === 'pinned', 'is-hidden': outside }"
+        data-drag-key="pinned-head"
+        data-drag-item="label"
+        :style="shiftStyle('pinned-head')"
       >
-        <div class="pinned-drop-zone">{{ t("session.pinned") }}</div>
-      </section>
+        <span class="drag-label-inner">
+          <span class="drag-label-text">{{ t("session.pinned") }}</span>
+          <span class="drag-label-line" aria-hidden="true"></span>
+        </span>
+      </div>
 
-      <template v-for="section in inboxSections" :key="section.key">
-        <div
-          v-if="section.key === 'pinned'"
-          class="drag-boundary"
-          :class="{ 'is-shown': !!dragId, 'is-target': dragIndex !== undefined }"
-        >
-          <span class="drag-boundary-inner">
-            <span class="drag-boundary-label">{{ t("session.pinned") }}</span>
-            <span class="drag-boundary-line" aria-hidden="true"></span>
-          </span>
-        </div>
+      <div
+        v-if="sorting && !pinnedSection"
+        class="drop-slot"
+        :class="{ 'is-shown': zone === 'pinned' }"
+        data-drag-key="pinned-slot"
+        data-drag-item="slot"
+        :style="shiftStyle('pinned-slot')"
+      >
+        <div class="drop-slot-box" :style="slotBoxStyle">{{ t("session.pinned") }}</div>
+      </div>
 
-        <SessionSection
-          v-bind="sectionBind(section)"
-          @navigate="emit('navigate', $event)"
-          @open="emit('open', $event)"
-          @prime="emit('prime', $event)"
-          @toggle-pinned="emit('togglePinned', $event)"
-          @rename="(id, name) => emit('rename', id, name)"
-          @delete="emit('delete', $event)"
-          @settle="emit('settle', $event)"
-          @unsettle="emit('unsettle', $event)"
-          @drag-start="onDragStart"
-          @toggle-section="emit('toggleSection', $event)"
-          @reveal-more="emit('revealMore', $event)"
-          @collapse-group="emit('collapseGroup', $event)"
-        />
+      <SessionSection v-if="pinnedSection" v-bind="sectionBind(pinnedSection)" v-on="sectionOn" />
 
-        <div
-          v-if="section.key === 'pinned'"
-          class="drag-boundary"
-          :class="{ 'is-shown': !!dragId, 'is-target': dragUnpin }"
-        >
-          <span class="drag-boundary-inner">
-            <span class="drag-boundary-label">{{ t("session.sectionInbox") }}</span>
-            <span class="drag-boundary-line" aria-hidden="true"></span>
-          </span>
-        </div>
-      </template>
+      <div
+        v-if="sorting"
+        class="drag-label"
+        :class="{ 'is-target': zone === 'active', 'is-hidden': outside }"
+        data-drag-key="pinned-divider"
+        data-drag-item="label"
+        :style="shiftStyle('pinned-divider')"
+      >
+        <span class="drag-label-inner">
+          <span class="drag-label-text">{{ t("session.sectionInbox") }}</span>
+          <span class="drag-label-line" aria-hidden="true"></span>
+        </span>
+      </div>
 
+      <SessionSection v-if="activeSection" v-bind="sectionBind(activeSection)" v-on="sectionOn" />
       <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
     </div>
 
     <div v-else class="session-empty">{{ t("session.empty") }}</div>
 
     <!-- 架子固定在页脚上方，不随收件箱滚动；展开超出高度时自己滚。 -->
-    <div v-if="shelfSections.length" class="session-shelves">
+    <div v-if="shelfSections.length" ref="shelvesEl" class="session-shelves">
       <SessionSection
         v-for="section in shelfSections"
         :key="section.key"
         v-bind="sectionBind(section)"
-        @navigate="emit('navigate', $event)"
-        @open="emit('open', $event)"
-        @prime="emit('prime', $event)"
-        @toggle-pinned="emit('togglePinned', $event)"
-        @rename="(id, name) => emit('rename', id, name)"
-        @delete="emit('delete', $event)"
-        @settle="emit('settle', $event)"
-        @unsettle="emit('unsettle', $event)"
-        @drag-start="onDragStart"
-        @toggle-section="emit('toggleSection', $event)"
-        @reveal-more="emit('revealMore', $event)"
-        @collapse-group="emit('collapseGroup', $event)"
+        v-on="sectionOn"
       />
     </div>
+
+    <!-- 拖起的行浮在两块滚动区之上，跨区时不被裁掉 -->
+    <Teleport to="body">
+      <ThemeRoot v-if="overlay" class="session-drag-layer">
+        <div
+          v-show="!outside"
+          class="drag-overlay"
+          :style="{
+            top: `${overlayTop}px`,
+            left: `${overlay.left}px`,
+            width: `${overlay.width}px`,
+          }"
+        >
+          <SessionItem v-bind="overlay.props" dragging :drop-verb="verb" />
+        </div>
+
+        <div
+          v-if="ghost"
+          class="drag-ghost"
+          :style="{ transform: `translate(${ghost.x + 12}px, ${ghost.y + 12}px)` }"
+        >
+          <ChatSquareIcon class="size-icon" />
+          <span class="drag-ghost-title">{{ overlay.props.session.title }}</span>
+        </div>
+      </ThemeRoot>
+    </Teleport>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onUpdated, shallowRef } from "vue"
+import { computed, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { ThemeRoot } from "@components/ui/rt/index.js"
+import { ChatSquareIcon } from "@components/icons/index.js"
+import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionSection from "@features/session-nav/components/SessionSection.vue"
+import { useRowSweep } from "@features/session-nav/hooks/use-row-sweep.js"
+import { useSessionDrag } from "@features/session-nav/hooks/use-session-drag.js"
+import type { DropPlan } from "@features/session-nav/lib/drag-plan.js"
+import { sidebarItemProps } from "@features/session-nav/lib/session-list.js"
 import type { SidebarRowFoot, SidebarSection } from "@features/session-nav/type.js"
 
 const props = defineProps<{
   sections: readonly SidebarSection[]
-  /** 筛选态下 pinned 段只渲染命中项，DOM 序号与全表序号不再对应。 */
-  filtered: boolean
   cardFootById: ReadonlyMap<string, SidebarRowFoot>
   pinnedIds: ReadonlySet<string>
   highlightedSessionId: string | undefined
@@ -114,18 +127,84 @@ const emit = defineEmits<{
   collapseGroup: [key: string]
 }>()
 const { t } = useI18n()
-// 过滤态下 pinned 段只渲染命中项，DOM 序号与 pinnedOrder 全表序号不再对应，禁用拖拽。
-const dragEnabled = computed(() => !props.filtered)
-const hasPinnedSection = computed(() => props.sections.some((section) => section.key === "pinned"))
+const pinnedSection = computed(() => props.sections.find((section) => section.kind === "pinned"))
+const activeSection = computed(() => props.sections.find((section) => section.kind === "active"))
 /** 收件箱住滚动区，架子固定在页脚上方。 */
-const inboxSections = computed(() => props.sections.filter((section) => !isShelf(section)))
-const shelfSections = computed(() => props.sections.filter(isShelf))
+const shelfSections = computed(() =>
+  props.sections.filter((section) => section.kind === "working" || section.kind === "settled"),
+)
+const listEl = shallowRef<HTMLElement>()
+const windowEl = shallowRef<HTMLElement>()
+const shelvesEl = shallowRef<HTMLElement>()
 
-function isShelf(section: SidebarSection): boolean {
-  return section.kind === "working" || section.kind === "settled"
+function commit(id: string, plan: DropPlan): void {
+  if (plan.kind === "reorder-pinned") emit("reorderPinned", id, plan.slot)
+  else if (plan.kind === "pin") emit("pinAt", id, plan.slot)
+  else if (plan.kind === "unpin") emit("unpin", id)
+  else if (plan.kind === "settle") emit("settle", id)
+  else if (plan.kind === "unsettle") emit("unsettle", id)
+}
+
+const {
+  drag,
+  zone,
+  offsets,
+  overlayTop,
+  outside,
+  ghost,
+  releasing,
+  sorting,
+  verb,
+  start: startDrag,
+} = useSessionDrag({
+  list: listEl,
+  window: windowEl,
+  shelves: shelvesEl,
+  sections: () => props.sections,
+  pinnedOrder: () => [...props.pinnedIds],
+  commit,
+})
+const sweep = useRowSweep({
+  list: listEl,
+  sections: () => props.sections,
+  apply: (ids, settled) => {
+    for (const id of ids) {
+      if (settled) emit("unsettle", id)
+      else emit("settle", id)
+    }
+  },
+})
+const overlay = computed(() => {
+  const d = drag.value
+  return d
+    ? { left: d.left, width: d.width, props: sidebarItemProps(d.section, d.session, props) }
+    : undefined
+})
+/** 空置顶段的虚线框：撑到被拖行那么高。 */
+const slotBoxStyle = computed(() => ({ height: `${(drag.value?.height ?? 0) - 4}px` }))
+const sectionOn = {
+  navigate: (cwd: string | undefined) => emit("navigate", cwd),
+  open: (id: string) => emit("open", id),
+  prime: (id: string) => emit("prime", id),
+  togglePinned: (id: string) => emit("togglePinned", id),
+  rename: (id: string, name: string) => emit("rename", id, name),
+  delete: (id: string) => emit("delete", id),
+  settle: (id: string) => emit("settle", id),
+  unsettle: (id: string) => emit("unsettle", id),
+  dragStart: startDrag,
+  sweepStart: sweep.start,
+  toggleSection: (key: string) => emit("toggleSection", key),
+  revealMore: (key: string) => emit("revealMore", key),
+  collapseGroup: (key: string) => emit("collapseGroup", key),
+}
+
+function shiftStyle(key: string): Record<string, string> | undefined {
+  const shift = offsets.value.get(key)
+  return shift ? { transform: `translateY(${shift}px)` } : undefined
 }
 
 function sectionBind(section: SidebarSection) {
+  const d = drag.value
   return {
     section,
     highlightedSessionId: props.highlightedSessionId,
@@ -133,15 +212,15 @@ function sectionBind(section: SidebarSection) {
     cardFootById: props.cardFootById,
     pinnedIds: props.pinnedIds,
     runningSince: props.runningSince,
-    dragEnabled: dragEnabled.value,
-    dragId: dragId.value,
-    dropVerb: dropVerb.value,
-    rowShiftById: rowShiftById.value,
+    dragId: d && !outside.value ? d.id : undefined,
+    offsets: offsets.value,
+    sorting: sorting.value,
+    dropTarget: zone.value !== null && zone.value === section.kind,
+    motion: !releasing.value,
+    swept: sweep.swept.value,
     moreBySection: props.moreBySection,
   }
 }
-
-const windowEl = shallowRef<HTMLElement>()
 
 /** 滚到接近底部再放一页：收件箱不一次建完所有历史会话。 */
 function onScroll(): void {
@@ -153,7 +232,7 @@ function onScroll(): void {
 
 /** 内容不够高时直接补页：没有滚动条就等不到 scroll 事件。 */
 function revealNextPage(): void {
-  const active = props.sections.find((section) => section.kind === "active")
+  const active = activeSection.value
 
   if (!active || active.shown >= active.total) return
   emit("revealMore", active.key)
@@ -169,135 +248,6 @@ onUpdated(() => {
 
   if (!el || el.scrollHeight > el.clientHeight + 4) return
   revealNextPage()
-})
-
-const dragId = shallowRef<string | undefined>(undefined)
-const dragIndex = shallowRef<number | undefined>(undefined)
-const dragHeight = shallowRef(0)
-const dragSourcePinned = shallowRef(false)
-const dragUnpin = shallowRef(false)
-/** 置顶区下方的余量：指针落到这一段也算拖进置顶。 */
-const PINNED_SLACK = 30
-let dragCleanup: (() => void) | undefined
-/** 拖着的那一行当前会落到哪：置顶、取消置顶，或只是区内换位。 */
-const dropVerb = computed<"pin" | "unpin" | null>(() => {
-  if (dragUnpin.value) return "unpin"
-
-  if (dragIndex.value === undefined) return null
-  return dragSourcePinned.value ? null : "pin"
-})
-/** 落点空出的一格：置顶行按落点为拖起的行让位。 */
-const rowShiftById = computed<Record<string, number>>(() => {
-  const id = dragId.value
-  const target = dragIndex.value
-  const height = dragHeight.value
-  const pinned = props.sections.find((section) => section.key === "pinned")
-
-  if (!id || target === undefined || !height || !pinned) return {}
-
-  const ids = pinned.sessions.map((session) => session.id)
-  const from = ids.indexOf(id)
-  const shifts: Record<string, number> = {}
-
-  if (from === -1) {
-    for (let index = target; index < ids.length; index += 1) shifts[ids[index]!] = height
-    return shifts
-  }
-
-  if (target === from || target === from + 1) return {}
-
-  for (const [index, sessionId] of ids.entries()) {
-    if (index === from) continue
-
-    if (from < target && index > from && index < target) shifts[sessionId] = -height
-    else if (target < from && index >= target && index < from) shifts[sessionId] = height
-  }
-
-  return shifts
-})
-
-function onDragStart(sectionKey: string, id: string, _event: PointerEvent) {
-  dragId.value = id
-  dragSourcePinned.value = sectionKey === "pinned"
-  dragHeight.value =
-    document
-      .querySelector<HTMLElement>(`.session-row[data-id="${CSS.escape(id)}"]`)
-      ?.getBoundingClientRect().height ?? 0
-
-  /** 用每行自己的矩形算落点：section 含组头，按 section 顶算会整体偏下。 */
-  function onMove(e: PointerEvent) {
-    const section = document.querySelector<HTMLElement>('.session-list [data-key="pinned"]')
-
-    if (!section) return clearDrop()
-
-    // 空置顶段是 0 高占位，命中区取那块虚线框本身
-    const box =
-      section.querySelector<HTMLElement>(".pinned-drop-zone")?.getBoundingClientRect() ??
-      section.getBoundingClientRect()
-    const y = e.clientY
-
-    // 置顶行拖出去落点在下沿之外即取消置顶；非置顶行只认置顶区与下方一小段余量。
-    if (dragSourcePinned.value) {
-      if (y < box.top || y > box.bottom) {
-        dragUnpin.value = y > box.bottom
-        dragIndex.value = undefined
-        return
-      }
-    } else if (y < box.top || y > box.bottom + PINNED_SLACK) {
-      return clearDrop()
-    }
-
-    const rows = [...section.querySelectorAll<HTMLElement>(".session-row")].filter(
-      (row) => row.getBoundingClientRect().height > 0,
-    )
-    let index = rows.length
-
-    for (const [i, row] of rows.entries()) {
-      const rect = row.getBoundingClientRect()
-
-      if (y < rect.top + rect.height / 2) {
-        index = i
-        break
-      }
-    }
-
-    dragUnpin.value = false
-    dragIndex.value = index
-  }
-
-  function clearDrop() {
-    dragIndex.value = undefined
-    dragUnpin.value = false
-  }
-
-  function onUp() {
-    const over = dragIndex.value
-
-    if (dragId.value) {
-      if (dragUnpin.value) emit("unpin", dragId.value)
-      else if (over !== undefined) {
-        if (dragSourcePinned.value) emit("reorderPinned", dragId.value, over)
-        else emit("pinAt", dragId.value, over)
-      }
-    }
-
-    dragId.value = undefined
-    dragSourcePinned.value = false
-    clearDrop()
-    window.removeEventListener("pointermove", onMove)
-    window.removeEventListener("pointerup", onUp)
-    window.removeEventListener("pointercancel", onUp)
-    dragCleanup = undefined
-  }
-
-  window.addEventListener("pointermove", onMove)
-  window.addEventListener("pointerup", onUp)
-  window.addEventListener("pointercancel", onUp)
-  dragCleanup = () => onUp()
-}
-
-onBeforeUnmount(() => {
-  dragCleanup?.()
 })
 </script>
 
@@ -315,7 +265,9 @@ onBeforeUnmount(() => {
   position: relative;
 }
 
+/* 两块滚动区都当 offsetParent：拖拽按静止位置算落点 */
 .session-window {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -341,6 +293,7 @@ onBeforeUnmount(() => {
 
 /* 架子贴底：收件箱再长也不挤出视口，展开超过半屏时在区内滚动。 */
 .session-shelves {
+  position: relative;
   display: flex;
   flex: none;
   flex-direction: column;
@@ -361,58 +314,57 @@ onBeforeUnmount(() => {
   background: var(--background);
 }
 
-/* 没有置顶段时的落点：0 高占位，虚线框压在首行上，不挤动列表 */
-.pinned-drop {
+/* 没有置顶段时的落点：0 高占位，落点在置顶时撑出虚线框，下面的行让位 */
+.drop-slot {
   position: relative;
   height: 0;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.pinned-drop-zone {
+.drop-slot-box {
   position: absolute;
   inset-inline: 0;
-  top: 0;
+  top: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 36px;
-  border: 1px dashed var(--border);
+  border: 1px dashed var(--primary);
   border-radius: var(--radius-md);
-  color: var(--contrast-foreground-secondary);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
-  pointer-events: none;
-}
-
-.pinned-drop.is-drop-active .pinned-drop-zone {
-  border-color: var(--primary);
   background: var(--info-bg);
   color: var(--primary);
-}
-
-/* 拖拽边界：0 高，拖起时露出区名与一条细线，落点在这一侧时变主色 */
-.drag-boundary {
-  position: relative;
-  z-index: 2;
-  height: 0;
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
   opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
   pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.drag-boundary.is-shown {
+.drop-slot.is-shown .drop-slot-box {
   opacity: 1;
 }
 
-.drag-boundary-inner {
+/* 拖拽段名：0 高，靠投影让出一条，落点在这一段时变主色 */
+.drag-label {
+  position: relative;
+  z-index: 2;
+  height: 0;
+  pointer-events: none;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.drag-label-inner {
   position: absolute;
   inset-inline: var(--space-xs);
-  top: 0;
+  top: var(--space-xxs);
   display: flex;
   align-items: center;
   gap: var(--space-xs);
+  height: 16px;
 }
 
-.drag-boundary-label {
+.drag-label-text {
   flex: none;
   color: var(--contrast-foreground-secondary);
   font-size: var(--text-eyebrow);
@@ -421,18 +373,72 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.drag-boundary-line {
+.drag-label-line {
   flex: 1;
   height: var(--border-width);
   background: var(--border-soft);
 }
 
-.drag-boundary.is-target .drag-boundary-label {
+/* 拖出列表时段名收起，免得压在首行上 */
+.drag-label.is-hidden {
+  opacity: 0;
+}
+
+.drag-label.is-target .drag-label-text {
   color: var(--primary);
 }
 
-.drag-boundary.is-target .drag-boundary-line {
+.drag-label.is-target .drag-label-line {
   background: var(--primary);
+}
+
+/* 拖动中列表不接指针：指针下的行不出悬停态，浮层也不会被当成悬停 */
+.session-list.is-dragging .session-window,
+.session-list.is-dragging .session-shelves {
+  pointer-events: none;
+}
+
+.session-drag-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-drag);
+  cursor: grabbing;
+  pointer-events: none;
+}
+
+.session-drag-layer :deep(*) {
+  pointer-events: none;
+}
+
+.drag-overlay {
+  position: fixed;
+  padding-block: 2px;
+}
+
+/* 拖出列表时跟着指针的小标签：松手会把这个会话带过去 */
+.drag-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  max-width: 240px;
+  height: 28px;
+  padding-inline: var(--space-xs);
+  border-radius: var(--radius-md);
+  background: var(--popover);
+  box-shadow: var(--shadow-elevated);
+  color: var(--contrast-foreground);
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+}
+
+.drag-ghost-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .session-empty {
@@ -442,7 +448,9 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .drag-boundary {
+  .drop-slot,
+  .drag-label,
+  .drop-slot-box {
     transition: none;
   }
 }

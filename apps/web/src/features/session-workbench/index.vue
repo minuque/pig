@@ -1,7 +1,9 @@
 <template>
   <div
+    ref="panel"
     class="session-panel"
     :class="{ 'is-drop-active': dropActive }"
+    v-bind="sessionDropTargetAttrs"
     @dragenter="onDragEnter"
     @dragover="onDragOver"
     @dragleave="onDragLeave"
@@ -123,12 +125,13 @@ import {
 import { useComposerQueue, type QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
-import { useNav } from "@features/session-nav/index.js"
+import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
+import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
@@ -286,6 +289,9 @@ function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
 
 const sound = useSound()
 const composerAttachments = useComposerAttachments()
+
+useSessionDrop(useTemplateRef("panel"), composerAttachments.addFiles)
+
 const composerQueue = useComposerQueue()
 
 watch(
@@ -446,7 +452,8 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   transition: opacity var(--duration-fast) var(--ease-smooth);
 }
 
-.session-panel.is-drop-active .drop-guide {
+.session-panel.is-drop-active .drop-guide,
+.session-panel[data-session-drop-over] .drop-guide {
   opacity: 1;
 }
 

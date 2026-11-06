@@ -5,6 +5,7 @@ import { t } from "@i18n/index.js"
 import type {
   SessionGroup,
   SidebarPlacement,
+  SidebarRowFoot,
   SidebarSection,
   SidebarSession,
   SidebarSort,
@@ -123,10 +124,14 @@ export function groupSessionsByProject(
   ]
 }
 
-export function toSidebarSession(session: SessionMetadata): SidebarSession {
+export function toSidebarSession(
+  session: SessionMetadata,
+  sort: SidebarSort = "updated",
+): SidebarSession {
   return {
     id: session.id,
     title: sessionTitle(session),
+    sortKey: sortKey(session, sort),
     ...(session.cwd !== undefined ? { cwd: session.cwd } : {}),
     updatedAt: sessionRecency(session),
     ...(isDraftSessionId(session.id) ? { draft: true } : {}),
@@ -138,6 +143,7 @@ function toSection(
   label: string,
   sessions: readonly SessionMetadata[],
   moreBySection: Readonly<Record<string, number>>,
+  sort: SidebarSort,
   /** 首屏行数；不传就一次全建。 */
   initial?: number,
 ): SidebarSection {
@@ -150,7 +156,7 @@ function toSection(
     key: kind,
     kind,
     label,
-    sessions: sessions.slice(0, shown).map(toSidebarSession),
+    sessions: sessions.slice(0, shown).map((session) => toSidebarSession(session, sort)),
     total: sessions.length,
     shown,
   }
@@ -193,7 +199,7 @@ export function sidebarSections(input: {
   buckets.working = buckets.working.filter((session) => !pinnedIds.has(session.id))
   return [
     ...(pinned.length
-      ? [toSection("pinned", t("session.pinned"), pinned, input.moreBySection)]
+      ? [toSection("pinned", t("session.pinned"), pinned, input.moreBySection, input.sort)]
       : []),
     ...(buckets.active.length
       ? [
@@ -202,12 +208,21 @@ export function sidebarSections(input: {
             t("session.sectionInbox"),
             buckets.active,
             input.moreBySection,
+            input.sort,
             ACTIVE_PAGE,
           ),
         ]
       : []),
     ...(buckets.working.length
-      ? [toSection("working", t("session.sectionWorking"), buckets.working, input.moreBySection)]
+      ? [
+          toSection(
+            "working",
+            t("session.sectionWorking"),
+            buckets.working,
+            input.moreBySection,
+            input.sort,
+          ),
+        ]
       : []),
     ...(list.length
       ? [
@@ -216,11 +231,37 @@ export function sidebarSections(input: {
             t("session.sectionSettled"),
             buckets.settled,
             input.moreBySection,
+            input.sort,
             SECTION_PAGE,
           ),
         ]
       : []),
   ]
+}
+
+/** 一行 SessionItem 的展示属性：段内行与拖起的浮层共用。 */
+export function sidebarItemProps(
+  section: SidebarSection,
+  session: SidebarSession,
+  ctx: {
+    highlightedSessionId: string | undefined
+    cardFootById: ReadonlyMap<string, SidebarRowFoot>
+    pinnedIds: ReadonlySet<string>
+    runningSince: Readonly<Record<string, number>>
+  },
+) {
+  const draft = session.draft ?? false
+  return {
+    session,
+    active: session.id === ctx.highlightedSessionId,
+    pinned: ctx.pinnedIds.has(session.id),
+    settled: section.kind === "settled",
+    variant: section.kind === "settled" ? "slim" : "card",
+    startedAt: section.kind === "working" ? ctx.runningSince[session.id] : undefined,
+    draggable: !draft,
+    state: ctx.cardFootById.get(session.id)?.state,
+    placeholder: draft,
+  } as const
 }
 
 export function sessionCardFoot(

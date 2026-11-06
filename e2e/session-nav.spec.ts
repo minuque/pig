@@ -83,8 +83,8 @@ test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => 
   await expect(dialog).toHaveCount(0)
 })
 
-/** 用指针拖一行到目标中心：拖拽阈值为 5px，分步移动让 pointermove 生效。 */
-async function dragCard(page: Page, from: Locator, to: Locator) {
+/** 用指针把一行拖到目标上的某一点（默认中心）：拖拽阈值为 6px，分步移动让 pointermove 生效。 */
+async function dragCard(page: Page, from: Locator, to: Locator, at: "center" | "below" = "center") {
   const start = await from.boundingBox()
   const end = await to.boundingBox()
 
@@ -92,7 +92,9 @@ async function dragCard(page: Page, from: Locator, to: Locator) {
   expect(end).not.toBeNull()
   await page.mouse.move(start!.x + start!.width / 2, start!.y + start!.height / 2)
   await page.mouse.down()
-  await page.mouse.move(end!.x + end!.width / 2, end!.y + end!.height / 2, { steps: 12 })
+  // 「below」落在目标行下沿往下一点：拖起后段名撑开，那里正好是目标行后面空出的一格
+  const y = at === "below" ? end!.y + end!.height + 20 : end!.y + end!.height / 2
+  await page.mouse.move(end!.x + end!.width / 2, y, { steps: 12 })
   await page.mouse.up()
 }
 
@@ -108,18 +110,67 @@ test("拖拽会话进出置顶区：拖进置顶、拖出取消置顶", async ({
   const pinned = page.locator('.session-section[data-key="pinned"]')
   await expect(pinned.locator(".session-card")).toHaveCount(1)
 
-  // 未置顶行拖进置顶区末尾
+  // 未置顶行拖到置顶末行之后
   const source = page.locator(".session-card", { hasText: "批量会话 4" }).first()
-  await dragCard(page, source, pinned.locator(".session-card").last())
+  await dragCard(page, source, pinned.locator(".session-card").last(), "below")
   await expect(pinned.locator(".session-card")).toHaveCount(2)
   await expect(pinned.locator(".session-card").last()).toContainText("批量会话 4")
 
-  // 置顶行拖到收件箱首行：离开置顶区即取消置顶
+  // 置顶行拖到收件箱首行：越过收件箱段名即取消置顶
   await dragCard(
     page,
     pinned.locator(".session-card").last(),
     section(page).locator(".session-card").first(),
+    "below",
   )
   await expect(pinned.locator(".session-card")).toHaveCount(1)
   await expect(pinned.locator(".session-card").first()).toContainText("批量会话 6")
+})
+
+test("拖进已归档段即归档", async ({ page, navGateway }) => {
+  await enter(page, navGateway)
+
+  const settled = page.locator('.session-section[data-key="settled"]')
+  await dragCard(
+    page,
+    section(page).locator(".session-card").first(),
+    settled.locator(".section-toggle"),
+  )
+
+  await expect(section(page).locator(".session-card")).toHaveCount(5)
+  await expect(settled.locator(".section-count")).toHaveText("1")
+})
+
+test("按住行尾归档按钮往下扫，扫过的会话一起归档", async ({ page, navGateway }) => {
+  await enter(page, navGateway)
+
+  const cards = section(page).locator(".session-card")
+  await cards.first().hover()
+  const button = await cards.first().getByRole("button", { name: "归档" }).boundingBox()
+  const third = await cards.nth(2).boundingBox()
+
+  expect(button).not.toBeNull()
+  expect(third).not.toBeNull()
+  await page.mouse.move(button!.x + button!.width / 2, button!.y + button!.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(button!.x + button!.width / 2, third!.y + third!.height / 2, { steps: 8 })
+  await page.mouse.up()
+
+  await expect(cards).toHaveCount(3)
+  await expect(page.locator('.session-section[data-key="settled"] .section-count')).toHaveText("3")
+})
+
+test("会话拖出侧栏落到会话面板，变成输入卡的附件", async ({ page, navGateway }) => {
+  await enter(page, navGateway)
+
+  await dragCard(
+    page,
+    section(page).locator(".session-card").first(),
+    page.locator(".session-panel"),
+  )
+
+  await expect(
+    page.locator(".attach-tray .chip", { hasText: `${FILLER_PREFIX} 6.md` }),
+  ).toHaveCount(1)
+  await expect(section(page).locator(".session-card")).toHaveCount(6)
 })

@@ -1,7 +1,12 @@
 <template>
   <div
     class="session-item"
-    :class="{ 'is-menu-open': menuOpen, 'is-placeholder': placeholder, 'is-dragging': dragging }"
+    :class="{
+      'is-menu-open': menuOpen,
+      'is-placeholder': placeholder,
+      'is-dragging': dragging,
+      'is-swept': swept,
+    }"
   >
     <ContextMenu :modal="false" :press-open-delay="500" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
@@ -10,7 +15,6 @@
           class="session-card"
           :class="[variant, { active, 'is-placeholder': placeholder, renaming }]"
           :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
-          :style="dragStyle"
           draggable="false"
           @click="onCardClick"
           @dblclick="onCardDblclick"
@@ -39,10 +43,9 @@
                   <span v-else class="time-label">{{ timeLabel }}</span>
                 </span>
 
-                <span v-if="dragVerb" class="drop-verb">
-                  <PinIcon v-if="dragVerb === 'pin'" class="size-icon" />
-                  <CloseIcon v-else class="size-icon" />
-                  {{ dragVerb === "pin" ? t("session.pin") : t("session.unpin") }}
+                <span v-if="verb" class="drop-verb">
+                  <component :is="verb.icon" class="size-icon" />
+                  {{ verb.label }}
                 </span>
 
                 <button
@@ -51,7 +54,7 @@
                   type="button"
                   :aria-label="settled ? t('session.unsettle') : t('session.settle')"
                   @click.prevent.stop="onRowAction"
-                  @pointerdown.stop
+                  @pointerdown.stop="onActionPointerDown"
                 >
                   <UndoLeftRoundIcon v-if="settled" class="size-icon" />
                   <CheckIcon v-else class="size-icon" />
@@ -127,10 +130,9 @@
                 <span v-else class="time-label">{{ timeLabel }}</span>
               </span>
 
-              <span v-if="dragVerb" class="drop-verb">
-                <PinIcon v-if="dragVerb === 'pin'" class="size-icon" />
-                <CloseIcon v-else class="size-icon" />
-                {{ dragVerb === "pin" ? t("session.pin") : t("session.unpin") }}
+              <span v-if="verb" class="drop-verb">
+                <component :is="verb.icon" class="size-icon" />
+                {{ verb.label }}
               </span>
 
               <button
@@ -139,7 +141,7 @@
                 type="button"
                 :aria-label="settled ? t('session.unsettle') : t('session.settle')"
                 @click.prevent.stop="onRowAction"
-                @pointerdown.stop
+                @pointerdown.stop="onActionPointerDown"
               >
                 <UndoLeftRoundIcon v-if="settled" class="size-icon" />
                 <CheckIcon v-else class="size-icon" />
@@ -196,7 +198,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from "vue"
+import { computed, nextTick, ref, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
 import { RouterLink } from "vue-router"
 import { useI18n } from "@i18n/index.js"
@@ -213,6 +215,7 @@ import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
 import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
 import { formatElapsed } from "@utils/time.js"
+import type { DropVerb } from "@features/session-nav/lib/drag-plan.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
   CheckCircleIcon,
@@ -240,10 +243,13 @@ const props = withDefaults(
     startedAt?: number | undefined
 
     placeholder?: boolean
+    /** 拖起的浮层：实底加投影，行尾换成落点动作。 */
     dragging?: boolean
     draggable?: boolean
-    /** 拖着这一行时落点的动作：置顶或取消置顶。 */
-    dropVerb?: "pin" | "unpin" | null
+    /** 浮层落点上的动作。 */
+    dropVerb?: DropVerb | null
+    /** 被按住行尾动作扫过，松手时一起处理。 */
+    swept?: boolean
   }>(),
   {
     state: undefined,
@@ -253,6 +259,7 @@ const props = withDefaults(
     dragging: false,
     draggable: false,
     dropVerb: null,
+    swept: false,
   },
 )
 const emit = defineEmits<{
@@ -265,6 +272,7 @@ const emit = defineEmits<{
   settle: [id: string]
   unsettle: [id: string]
   dragStart: [event: PointerEvent]
+  sweepStart: [event: PointerEvent]
 }>()
 const { t } = useI18n()
 const menuOpen = ref(false)
@@ -321,10 +329,6 @@ function setRenameInput(el: unknown): void {
   renameInput.value = el instanceof HTMLInputElement ? el : null
 }
 
-const pointerDownPos = shallowRef<{ x: number; y: number } | undefined>(undefined)
-let dragPending = false
-let didDrag = false
-
 async function startRename() {
   if (props.placeholder) return
   renameDraft.value = props.session.title
@@ -361,81 +365,20 @@ function onCardPointerDown(event: PointerEvent) {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   emit("prime", props.session.id)
 
-  if (!props.draggable) return
-  pointerDownPos.value = { x: event.clientX, y: event.clientY }
-  dragPending = true
-  window.addEventListener("pointermove", onPointerMove)
-  window.addEventListener("pointerup", onPointerUp, { once: true })
-  window.addEventListener("pointercancel", onPointerUp, { once: true })
+  if (props.draggable && !renaming.value) emit("dragStart", event)
 }
 
-function onPointerMove(event: PointerEvent) {
-  if (!dragPending || !pointerDownPos.value) return
-  const dx = event.clientX - pointerDownPos.value.x
-  const dy = event.clientY - pointerDownPos.value.y
-
-  if (Math.hypot(dx, dy) < 5) return
-  dragPending = false
-  didDrag = true
-  followPointer(event.clientY)
-  emit("dragStart", event)
-  window.removeEventListener("pointermove", onPointerMove)
+function onActionPointerDown(event: PointerEvent) {
+  if (event.button === 0 && !props.placeholder) emit("sweepStart", event)
 }
 
-/** 拖起的行跟着指针走，落点由列表按行位置算。 */
-const dragDelta = shallowRef(0)
-let dragOriginY = 0
-let stopFollow: (() => void) | undefined
-
-function followPointer(originY: number) {
-  stopFollow?.()
-  dragOriginY = originY
-
-  function onMove(event: PointerEvent) {
-    dragDelta.value = event.clientY - dragOriginY
-  }
-
-  function stop() {
-    dragDelta.value = 0
-    stopFollow = undefined
-    window.removeEventListener("pointermove", onMove)
-    window.removeEventListener("pointerup", stop)
-    window.removeEventListener("pointercancel", stop)
-  }
-
-  window.addEventListener("pointermove", onMove)
-  window.addEventListener("pointerup", stop)
-  window.addEventListener("pointercancel", stop)
-  stopFollow = stop
-}
-
-function onPointerUp() {
-  dragPending = false
-  pointerDownPos.value = undefined
-  window.removeEventListener("pointermove", onPointerMove)
-  window.removeEventListener("pointerup", onPointerUp)
-  window.removeEventListener("pointercancel", onPointerUp)
-}
-
-// 按住未松手时行可能被卸载（过滤、折叠、删会话），监听器要跟着走。
-onBeforeUnmount(() => {
-  onPointerUp()
-  stopFollow?.()
+const verbIcons = { pin: PinIcon, unpin: CloseIcon, settle: CheckIcon, unsettle: UndoLeftRoundIcon }
+const verb = computed(() => {
+  const value = props.dragging ? props.dropVerb : null
+  return value ? { icon: verbIcons[value], label: t(`session.${value}`) } : null
 })
 
-const dragStyle = computed(() =>
-  props.dragging ? { translate: `0 ${dragDelta.value}px` } : undefined,
-)
-const dragVerb = computed(() => (props.dragging ? props.dropVerb : null))
-
 function onCardClick(event: MouseEvent) {
-  if (didDrag) {
-    didDrag = false
-    event.preventDefault()
-    event.stopPropagation()
-    return
-  }
-
   if (props.placeholder || menuOpen.value || renaming.value) {
     event.preventDefault()
     event.stopPropagation()
@@ -502,25 +445,6 @@ function confirmDelete() {
   position: relative;
   width: 100%;
   min-width: 0;
-}
-
-/* 拖起的行整块抬起来：实底、投影、轻微放大，跟着指针走 */
-.session-item.is-dragging {
-  z-index: 20;
-}
-
-.session-item.is-dragging .session-card {
-  background: var(--popover);
-  color: var(--contrast-foreground);
-  box-shadow: var(--shadow-elevated);
-  scale: 1.02;
-  cursor: grabbing;
-}
-
-.session-item.is-dragging .state-mark,
-.session-item.is-dragging .row-action {
-  opacity: 0;
-  pointer-events: none;
 }
 
 /* 落点动作：拖起时替代右端的状态与时间 */
@@ -727,6 +651,39 @@ function confirmDelete() {
 .row-action:hover,
 .row-action:focus-visible {
   color: var(--contrast-foreground);
+}
+
+/* 放在悬停规则之后：浮层与扫过态压过悬停与聚焦 */
+/* 拖起的浮层：实底加投影，不缩放 */
+.session-item.is-dragging .session-card {
+  background: var(--popover);
+  color: var(--contrast-foreground);
+  box-shadow: var(--shadow-elevated);
+  cursor: grabbing;
+}
+
+.session-item.is-dragging .title {
+  color: var(--contrast-foreground);
+}
+
+/* 被扫过的行：铺选中底，行尾动作常亮 */
+.session-item.is-swept .session-card {
+  background: var(--glass-selected-bg);
+}
+
+.session-item.is-swept .state-mark {
+  opacity: 0;
+}
+
+.session-item.is-swept .row-action {
+  color: var(--contrast-foreground);
+  opacity: 1;
+}
+
+.session-item.is-dragging .state-mark,
+.session-item.is-dragging .row-action {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .rename-input {
