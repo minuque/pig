@@ -12,6 +12,7 @@
     "dev": "tsx scripts/dev.ts",
     "dev:debug": "tsx --inspect=8888 scripts/dev.ts --debug",
     "dev:desktop": "pnpm --filter @pig/desktop dev",
+    "dev:story": "pnpm --filter @pig/web dev:story",
     "build": "pnpm --filter @pig/gateway build",
     "build:web": "pnpm --filter @pig/web build",
     "start:web": "pnpm build:web && tsx packages/gateway/src/cli.ts apps/web/dist",

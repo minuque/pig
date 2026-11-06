@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "story:dev": "histoire dev",
+    "dev:story": "histoire dev",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run --project unit",
