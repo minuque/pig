@@ -1,39 +1,39 @@
 <template>
   <div class="workbench-hero">
-    <WorkbenchMascot />
-
     <h1 v-if="workspaceId || ready" :id="titleId" class="hero-title">
-      <span v-if="workspaceId">{{ t("hero.in") }}</span>
+      <span v-if="workspaceId">{{ t("hero.ask") }}</span>
 
-      <DropdownMenu v-if="selectable" :modal="false">
-        <DropdownMenuTrigger as-child>
-          <button type="button" class="hero-picker">
-            <span class="hero-name">{{ label }}</span>
-          </button>
-        </DropdownMenuTrigger>
+      <span class="hero-target">
+        <DropdownMenu v-if="selectable" :modal="false">
+          <DropdownMenuTrigger as-child>
+            <button type="button" class="hero-picker">
+              <span class="hero-name">{{ label }}</span>
+            </button>
+          </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="center" :side-offset="6" class="workbench-hero-menu">
-          <DropdownMenuItem
-            v-for="item in workspaces"
-            :key="item"
-            :title="item"
-            :class="{ 'workbench-hero-option-active': item === workspaceId }"
-            @select="workspaceId = item"
-          >
-            <span class="workbench-hero-option-label">{{ workspaceName(item) }}</span>
-          </DropdownMenuItem>
+          <DropdownMenuContent align="center" :side-offset="6" class="workbench-hero-menu">
+            <DropdownMenuItem
+              v-for="item in workspaces"
+              :key="item"
+              :title="item"
+              :class="{ 'workbench-hero-option-active': item === workspaceId }"
+              @select="workspaceId = item"
+            >
+              <span class="workbench-hero-option-label">{{ workspaceName(item) }}</span>
+            </DropdownMenuItem>
 
-          <DropdownMenuSeparator v-if="workspaces.length" />
+            <DropdownMenuSeparator v-if="workspaces.length" />
 
-          <DropdownMenuItem :disabled="adding" @select="emit('add')">
-            <AddFolderIcon :size="14" />
-            {{ t("hero.addDir") }}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            <DropdownMenuItem :disabled="adding" @select="emit('add')">
+              <AddFolderIcon :size="14" />
+              {{ t("hero.addDir") }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-      <span v-else class="hero-name">{{ label }}</span>
-      <span v-if="workspaceId">{{ t("hero.start") }}</span>
+        <span v-else class="hero-name">{{ label }}</span>
+        <span class="hero-suffix">{{ suffix }}</span>
+      </span>
     </h1>
   </div>
 </template>
@@ -49,7 +49,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
-import WorkbenchMascot from "@features/session-workbench/components/WorkbenchMascot.vue"
 import { AddFolderIcon } from "@components/icons/index.js"
 
 withDefaults(
@@ -73,6 +72,7 @@ const workspaceId = defineModel<string | undefined>("workspaceId")
 const label = computed(() =>
   workspaceId.value ? workspaceName(workspaceId.value) : t("hero.pickDir"),
 )
+const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pickSuffix"))
 </script>
 
 <style scoped>
@@ -81,7 +81,6 @@ const label = computed(() =>
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-md);
   min-width: 0;
 }
 
@@ -101,6 +100,7 @@ const label = computed(() =>
   text-align: center;
 }
 
+/* 项目名即选择器：加粗，悬停或菜单打开时出下划线 */
 .hero-picker {
   display: inline-flex;
   max-width: min(100%, 16rem);
@@ -108,23 +108,39 @@ const label = computed(() =>
   margin: 0;
   padding: 0;
   border: 0;
-  border-bottom: 1px dotted var(--link-underline);
-  border-radius: 0;
+  border-radius: var(--radius-xs);
   background: transparent;
   color: inherit;
   font: inherit;
-  font-weight: inherit;
+  font-weight: var(--font-weight-medium);
   letter-spacing: inherit;
   line-height: inherit;
+  vertical-align: bottom;
+  text-underline-offset: 4px;
   cursor: pointer;
 }
 
-.hero-picker:hover:not(:disabled) {
-  border-bottom-color: var(--link-underline-hover);
+.hero-picker:hover,
+.hero-picker[data-state="open"] {
+  text-decoration: underline;
 }
 
-.hero-picker:not(:disabled):active {
+.hero-picker:active {
   transform: none;
+}
+
+/* 项目名与句尾连成一块，换行时不拆开 */
+.hero-target {
+  display: inline-flex;
+  align-items: baseline;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* 句尾自带的前导空格要留住 */
+.hero-suffix {
+  flex: none;
+  white-space: pre;
 }
 
 .hero-name {

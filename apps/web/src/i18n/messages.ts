@@ -273,10 +273,11 @@ export const zh = {
     statusWorking: "正在工作",
   },
   hero: {
-    in: "在",
-    start: "开始",
+    ask: "想在",
+    askSuffix: " 里做点什么？",
     addDir: "添加本地目录",
-    pickDir: "选择工作目录",
+    pickDir: "选择一个项目",
+    pickSuffix: "开始",
   },
   startup: {
     starting: "正在启动",
@@ -578,10 +579,11 @@ export const en: Messages = {
     statusWorking: "Working",
   },
   hero: {
-    in: "in",
-    start: "",
+    ask: "What should we build in",
+    askSuffix: "?",
     addDir: "Add local directory",
-    pickDir: "Pick a working directory",
+    pickDir: "Choose a project",
+    pickSuffix: " to start",
   },
   startup: {
     starting: "Starting",
