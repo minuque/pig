@@ -46,6 +46,8 @@ export interface ComposerAttachmentsApi {
   settle(batch: ComposerAttachmentBatch): void
   /** 附件暂存按会话分桶（welcome 传 undefined），切走再回来还在。 */
   setKey(sessionId: string | undefined): void
+  /** 欢迎页的附件暂存交给刚建出的会话，在传的批次跟着过去。 */
+  handOff(sessionId: string): void
 }
 
 interface AttachmentStash {
@@ -338,5 +340,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     consumeForSend,
     settle,
     setKey: buckets.setKey,
+    handOff: buckets.handOff,
   }
 }

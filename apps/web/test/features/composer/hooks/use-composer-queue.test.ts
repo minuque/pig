@@ -33,4 +33,16 @@ describe("useComposerQueue", () => {
     expect(queue.sizeFor("s1")).toBe(2)
     expect(queue.shiftFor("s1")?.text).toBe("一")
   })
+
+  it("欢迎页的队列交给刚建出的会话，欢迎页回到空", () => {
+    const queue = useComposerQueue()
+
+    queue.setKey(undefined)
+    queue.enqueue("建会话时排的")
+    queue.handOff("s1")
+
+    expect(queue.items.value).toEqual([])
+    queue.setKey("s1")
+    expect(queue.items.value.map((item) => item.text)).toEqual(["建会话时排的"])
+  })
 })

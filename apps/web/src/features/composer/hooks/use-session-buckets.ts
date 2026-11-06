@@ -24,10 +24,19 @@ export function useSessionBuckets<T>(create: () => T, release?: (value: T) => vo
     key.value = sessionId ?? ""
   }
 
+  /** 欢迎页建出会话：整桶改挂到新会话名下，目标已有内容就不动。 */
+  function handOff(sessionId: string) {
+    const value = buckets.get("")
+
+    if (value === undefined || buckets.has(sessionId)) return
+    buckets.set(sessionId, value)
+    buckets.delete("")
+  }
+
   function clearAll() {
     if (release) buckets.forEach((value) => release(value))
     buckets.clear()
   }
 
-  return { current, forKey, setKey, clearAll }
+  return { current, forKey, setKey, handOff, clearAll }
 }

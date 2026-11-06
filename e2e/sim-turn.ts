@@ -17,14 +17,19 @@ function asBytes(data: Buffer | ArrayBuffer | Uint8Array): Uint8Array {
   return data instanceof Uint8Array ? data : new Uint8Array(data)
 }
 
-/** 拦截 prompt / abort，不转发到真实模型；其余消息仍走 Gateway。 */
-export async function installTurnBridge(page: Page) {
+/**
+ * 拦截 prompt / abort，不转发到真实模型；其余消息仍走 Gateway。
+ * holdPromptReply 模拟真实网关：prompt 的应答等这一轮结束（这里是 abort）才回。
+ */
+export async function installTurnBridge(page: Page, options: { holdPromptReply?: boolean } = {}) {
   let socket: WebSocketRoute | undefined
   let upstream: WebSocketRoute | undefined
   let connections = 0
   let promptSessionId: string | undefined
   let resolvePrompt: ((id: string) => void) | undefined
   const snapshots = new Map<string, SessionSnapshot>()
+  const prompted: string[] = []
+  const heldReplies = new Map<string, string>()
 
   await page.routeWebSocket("**/api/v1/pi", (route) => {
     socket = route
@@ -87,7 +92,10 @@ export async function installTurnBridge(page: Page) {
             },
           })
           send({ type: "event", event: { type: "session_snapshot", snapshot: session } })
-          reply(message.id, "prompt", session)
+
+          if (options.holdPromptReply) heldReplies.set(sessionId, message.id)
+          else reply(message.id, "prompt", session)
+          prompted.push(sessionId)
           promptSessionId = sessionId
           resolvePrompt?.(sessionId)
           continue
@@ -117,6 +125,13 @@ export async function installTurnBridge(page: Page) {
           })
           send({ type: "event", event: { type: "session_snapshot", snapshot: session } })
           reply(message.id, "abort", session)
+          const held = heldReplies.get(sessionId)
+
+          if (held) {
+            heldReplies.delete(sessionId)
+            reply(held, "prompt", session)
+          }
+
           continue
         }
 
@@ -126,6 +141,8 @@ export async function installTurnBridge(page: Page) {
   })
   return {
     snapshots,
+    /** 收到过 prompt 的会话 id，按到达顺序。 */
+    prompted,
     connections: () => connections,
     send(message: Parameters<typeof encodeServerMessage>[0]) {
       if (!socket) throw new Error("e2e WebSocket 尚未建立")

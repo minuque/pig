@@ -16,11 +16,21 @@ import type {
   SessionProjection,
 } from "@features/session-workbench/type.js"
 
+export function emptyClientState(): SessionClientState {
+  return reactive<SessionClientState>({
+    draft: "",
+    sends: [],
+    submitting: false,
+    aborting: false,
+    epoch: 0,
+  })
+}
+
 export function sessionState(states: Map<string, SessionClientState>, sessionId: string) {
   let state = states.get(sessionId)
 
   if (!state) {
-    state = reactive<SessionClientState>({ draft: "", sends: [] })
+    state = emptyClientState()
     states.set(sessionId, state)
   }
 
@@ -42,19 +52,22 @@ export function optimisticUserMessage(
   }
 }
 
-/** 欢迎页本地句交给真 Session；已有 sends 则不覆盖。 */
-export function bindIdleSends(
+/** 欢迎页建出会话：草稿、本地句与在飞的发送整体交给新会话，欢迎页回到空白。 */
+export function handOffIdle(
   states: Map<string, SessionClientState>,
   sessionId: string,
   idle: SessionClientState,
-): void {
-  if (idle.sends.length === 0) return
+): SessionClientState {
   const state = sessionState(states, sessionId)
 
-  if (state.sends.length === 0) {
-    state.sends = idle.sends
-    idle.sends = []
-  }
+  if (state.sends.length === 0) state.sends = idle.sends
+
+  if (!state.draft) state.draft = idle.draft
+  state.submitting = idle.submitting
+  state.aborting = idle.aborting
+  state.epoch = idle.epoch
+  Object.assign(idle, { draft: "", sends: [], submitting: false, aborting: false })
+  return state
 }
 
 /** 对账用展示文本：剥离网关追加的 @ 文件块，与服务端落盘条目一致比较。 */

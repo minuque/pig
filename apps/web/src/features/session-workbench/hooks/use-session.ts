@@ -31,7 +31,8 @@ import {
   type LiveSubscription,
 } from "@features/session-workbench/hooks/use-live-subscriptions.js"
 import {
-  bindIdleSends,
+  emptyClientState,
+  handOffIdle,
   optimisticUserMessage,
   projectClientTranscript,
   projectSessionSnapshot,
@@ -224,11 +225,15 @@ export function useSessionLifecycle(
    * 顺序暂存每个文件字节，再把 batch 绑到当前 Session；下一次 prompt 消费它。
    * 每次 await 后查 epoch：被中止或切走就返回 false，由调用方丢弃这个批次。
    */
-  async function stageAttachments(batch: ComposerAttachmentBatch, epoch: number) {
+  async function stageAttachments(
+    batch: ComposerAttachmentBatch,
+    thread: SessionClientState,
+    epoch: number,
+  ) {
     const id = sessionId.value
 
     if (!id) throw new Error("会话未连接")
-    return stageBatchFor(id, batch, () => epoch !== sendEpoch || sessionId.value !== id)
+    return stageBatchFor(id, batch, () => epoch !== thread.epoch || sessionId.value !== id)
   }
 
   /** 接管后台会话空闲后的泵队与收尾；不注册就直接出池。 */
@@ -323,22 +328,23 @@ export function useSessionLifecycle(
     setThinking,
   })
   const states = reactive(new Map<string, ReturnType<typeof sessionState>>())
-  const idleState = reactive<SessionClientState>({ draft: "", sends: [] })
+  const idleState = emptyClientState()
   const backgroundSend = createBackgroundSender({
     states,
     backgroundSubscription: live.backgroundSubscription,
     transcriptFor: history.transcriptFor,
   })
   const creatingCwd = ref<string>()
-  const submitting = ref(false)
-  const aborting = ref(false)
   /** 会话已建、路由未落位的窗口里用它指向新会话状态，transcript 不出现空档 */
   const pendingSessionId = ref<string>()
-  let sendEpoch = 0
+  let welcomeHandoff: ((id: string) => void) | undefined
   const clientState = computed(() => {
     const id = sessionId.value ?? pendingSessionId.value
     return id ? sessionState(states, id) : idleState
   })
+  /** 提交与中止状态跟着会话走：别的会话在跑不挡这里。 */
+  const submitting = computed(() => clientState.value.submitting)
+  const aborting = computed(() => clientState.value.aborting)
   const prompt = computed({
     get: () => clientState.value.draft,
     set: (value: string) => {
@@ -346,16 +352,21 @@ export function useSessionLifecycle(
     },
   })
 
+  /** 欢迎页建出会话时，让队列、附件等外部暂存跟着交接。 */
+  function setWelcomeHandoff(fn?: (id: string) => void) {
+    welcomeHandoff = fn
+  }
+
   async function createSession(nextCwd: string) {
     if (creatingCwd.value) return
-    const epoch = sendEpoch
+    const epoch = idleState.epoch
     const routeSessionAtStart = sessionId.value
     creatingCwd.value = nextCwd
 
     try {
       const nextId = await createRemoteSession(nextCwd, createModel())
 
-      if (epoch !== sendEpoch) {
+      if (epoch !== idleState.epoch) {
         idleState.sends = []
 
         if (!sessionId.value) {
@@ -373,7 +384,8 @@ export function useSessionLifecycle(
 
       cwd.selectCwd(nextCwd)
       pendingSessionId.value = nextId
-      bindIdleSends(states, nextId, idleState)
+      handOffIdle(states, nextId, idleState)
+      welcomeHandoff?.(nextId)
 
       if (nextId !== sessionId.value) {
         await router.push({ name: "session", params: { sessionId: nextId } })
@@ -389,6 +401,7 @@ export function useSessionLifecycle(
   /**
    * 附件随这次提交走：先确保 Session 存在，再 stage + bind，最后提交正文。
    * 只有真正提交成功才返回 true；被中止、切走或提前退出都返回 false。
+   * 状态记在发起它的会话上；欢迎页建出会话后改记到新会话。
    */
   async function sendPrompt(
     text: string,
@@ -396,14 +409,14 @@ export function useSessionLifecycle(
     attachments?: ComposerAttachmentBatch,
   ): Promise<boolean> {
     const normalized = text.trim()
+    let thread = clientState.value
 
-    if (!normalized || submitting.value) return false
+    if (!normalized || thread.submitting) return false
 
     if (!sessionId.value && (!cwd || creatingCwd.value)) return false
-    const epoch = ++sendEpoch
+    const epoch = ++thread.epoch
 
-    submitting.value = true
-    const thread = clientState.value
+    thread.submitting = true
     const previousDraft = thread.draft
     const send = optimisticUserMessage(
       normalized,
@@ -417,7 +430,9 @@ export function useSessionLifecycle(
       if (!sessionId.value) {
         const nextId = await createSession(cwd!)
 
-        if (epoch !== sendEpoch) return false
+        if (nextId) thread = sessionState(states, nextId)
+
+        if (epoch !== thread.epoch) return false
 
         if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return false
       } else {
@@ -425,7 +440,7 @@ export function useSessionLifecycle(
         const chosen = consumeDetachedEdit()
         await ensureRemote(id)
 
-        if (epoch !== sendEpoch || sessionId.value !== id) return false
+        if (epoch !== thread.epoch || sessionId.value !== id) return false
 
         if (remote.value?.id !== id) throw new Error("会话未连接")
 
@@ -437,14 +452,14 @@ export function useSessionLifecycle(
         }
       }
 
-      if (epoch !== sendEpoch || remote.value?.id !== sessionId.value) return false
+      if (epoch !== thread.epoch || remote.value?.id !== sessionId.value) return false
 
-      if (attachments && !(await stageAttachments(attachments, epoch))) {
+      if (attachments && !(await stageAttachments(attachments, thread, epoch))) {
         await dropBatch(attachments.batch)
         return false
       }
 
-      if (epoch !== sendEpoch || remote.value?.id !== sessionId.value) {
+      if (epoch !== thread.epoch || remote.value?.id !== sessionId.value) {
         await dropBatch(attachments?.batch)
         return false
       }
@@ -454,37 +469,35 @@ export function useSessionLifecycle(
     } catch (error) {
       await dropBatch(attachments?.batch)
 
-      if (epoch !== sendEpoch) return false
-      const current = clientState.value
+      if (epoch !== thread.epoch) return false
 
-      if (!current.draft) current.draft = previousDraft || text
-      const index = current.sends.findIndex((item) => item.item.id === send.item.id)
+      if (!thread.draft) thread.draft = previousDraft || text
+      const index = thread.sends.findIndex((item) => item.item.id === send.item.id)
 
-      if (index >= 0) current.sends.splice(index, 1)
+      if (index >= 0) thread.sends.splice(index, 1)
       throw error
     } finally {
-      if (epoch === sendEpoch) submitting.value = false
+      if (epoch === thread.epoch) thread.submitting = false
     }
   }
 
   async function abortSession() {
-    sendEpoch += 1
-    submitting.value = false
+    const thread = clientState.value
 
-    if (!remote.value) {
-      idleState.sends = []
-      clientState.value.sends = []
-    }
+    thread.epoch += 1
+    thread.submitting = false
 
-    if (aborting.value) return
-    aborting.value = true
+    if (!remote.value) thread.sends = []
+
+    if (thread.aborting) return
+    thread.aborting = true
 
     try {
       await abortRemote()
     } catch {
       /* abort 失败不挡停止态 */
     } finally {
-      aborting.value = false
+      thread.aborting = false
     }
   }
 
@@ -545,6 +558,7 @@ export function useSessionLifecycle(
     sendPrompt,
     sendBackgroundPrompt: backgroundSend.send,
     setBackgroundIdleHandler,
+    setWelcomeHandoff,
     transcriptFor: history.transcriptFor,
     abortSession,
     initialize,

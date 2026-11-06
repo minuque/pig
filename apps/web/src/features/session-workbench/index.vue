@@ -181,6 +181,7 @@ const {
   sendPrompt,
   sendBackgroundPrompt,
   setBackgroundIdleHandler,
+  setWelcomeHandoff,
   transcriptFor,
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
@@ -325,6 +326,11 @@ const { markAborted, onBackgroundIdle } = useTurnFinish({
 
 // lifecycle 不认队列：后台会话跑完后的泵队与完成音由这里注入
 setBackgroundIdleHandler(onBackgroundIdle)
+
+setWelcomeHandoff((id) => {
+  composerQueue.handOff(id)
+  composerAttachments.handOff(id)
+})
 
 function onSend(text: string) {
   const batch = composerAttachments.consumeForSend()

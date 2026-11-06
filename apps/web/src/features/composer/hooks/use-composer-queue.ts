@@ -24,6 +24,8 @@ export interface ComposerQueueApi {
   /** 指定会话队列长度；后台会话该不该继续泵队用。 */
   sizeFor(sessionId: string): number
   setKey(sessionId: string | undefined): void
+  /** 欢迎页的待发队列交给刚建出的会话。 */
+  handOff(sessionId: string): void
 }
 
 /**
@@ -105,5 +107,6 @@ export function useComposerQueue(): ComposerQueueApi {
     unshiftFor,
     sizeFor,
     setKey: buckets.setKey,
+    handOff: buckets.handOff,
   }
 }

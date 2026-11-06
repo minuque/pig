@@ -1050,6 +1050,103 @@ describe("HTTP 历史与 live Transcript 合并", () => {
   })
 })
 
+describe("多会话并行发送", () => {
+  function inflightSession(id: string) {
+    const remote = makeSession(id)
+    remote.state = { ...remote.state, snapshot: { ...snapshot(1), id, phase: "turn" } }
+    // 真实 submit 等整轮才回：这里一直挂着
+    remote.submit.mockImplementation(() => new Promise(() => {}))
+    return remote
+  }
+
+  it("一个会话的提交在飞，欢迎页不算忙，能直接建会话发出", async () => {
+    const { session } = setup()
+    openMock.mockResolvedValue(inflightSession("s1"))
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    void session.sendPrompt("一")
+    await vi.waitFor(() => expect(session.running.value).toBe(true))
+
+    routeBox.params.sessionId = undefined
+    await nextTick()
+    expect(session.turnPending.value).toBe(false)
+
+    createMock.mockResolvedValue(makeSession("s2"))
+    await expect(session.sendPrompt("二", "/repo")).resolves.toBe(true)
+  })
+
+  it("一个会话的提交在飞，另一个空闲会话照常发送", async () => {
+    const { session } = setup()
+    const b = makeSession("s2")
+    b.state = { ...b.state, snapshot: { ...snapshot(1), id: "s2" } }
+    openMock.mockImplementation(async (_client, id) => (id === "s1" ? inflightSession("s1") : b))
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    void session.sendPrompt("一")
+    await vi.waitFor(() => expect(session.running.value).toBe(true))
+
+    routeBox.params.sessionId = "s2"
+    await nextTick()
+    expect(session.turnPending.value).toBe(false)
+    await expect(session.sendPrompt("二")).resolves.toBe(true)
+    expect(b.submit).toHaveBeenCalledWith("二")
+  })
+
+  it("建会话期间打的字跟着进新会话，欢迎页不留", async () => {
+    const { session } = setup()
+    let releaseCreate = () => {}
+    const createGate = new Promise<void>((resolve) => {
+      releaseCreate = resolve
+    })
+
+    createMock.mockImplementation(async () => {
+      await createGate
+      return makeSession("s2")
+    })
+    const request = session.sendPrompt("第一条", "/repo")
+    session.prompt.value = "接着想说的"
+    releaseCreate()
+    await request
+
+    expect(session.sessionId.value).toBe("s2")
+    expect(session.prompt.value).toBe("接着想说的")
+    routeBox.params.sessionId = undefined
+    await nextTick()
+    expect(session.prompt.value).toBe("")
+  })
+
+  it("失败路径：切走后提交失败，正文回填到发起的会话", async () => {
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: snapshot(1) }
+    let failSubmit = (_error: Error) => {}
+
+    a.submit.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          failSubmit = reject
+        }),
+    )
+    const b = makeSession("s2")
+    b.state = { ...b.state, snapshot: { ...snapshot(1), id: "s2" } }
+    openMock.mockImplementation(async (_client, id) => (id === "s1" ? a : b))
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    const request = session.sendPrompt("A 的话")
+    await vi.waitFor(() => expect(a.submit).toHaveBeenCalled())
+
+    routeBox.params.sessionId = "s2"
+    await nextTick()
+    failSubmit(new Error("boom"))
+    await expect(request).rejects.toThrow("boom")
+    expect(session.prompt.value).toBe("")
+
+    routeBox.params.sessionId = "s1"
+    await nextTick()
+    expect(session.prompt.value).toBe("A 的话")
+  })
+})
+
 describe("后台订阅池", () => {
   it("运行中的会话切走再切回复用同一连接", async () => {
     const { session } = setup()

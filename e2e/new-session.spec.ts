@@ -52,3 +52,29 @@ test("会话在跑时点新建会话，侧栏仍显示工作中，切回还在�
   await expect(page).toHaveURL(new RegExp(`/sessions/${sessionId}$`))
   await expect(page.locator('[data-testid="turn-status"]')).toBeVisible()
 })
+
+test("一个会话还在跑，回新建页照常建会话发出，不被排进队列", async ({ page, gateway }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, gateway.workspaceId)
+  const bridge = await installTurnBridge(page, { holdPromptReply: true })
+
+  await page.goto(gateway.entryUrl)
+  await expect(page.locator(".startup-gate")).not.toHaveAttribute("inert", { timeout: 30_000 })
+  await expect(page.locator(".selector-name")).not.toHaveText("—")
+  const prompt = page.getByRole("textbox", { name: "Prompt" })
+
+  await prompt.fill("第一个会话")
+  await page.locator("button.send").click()
+  const first = await bridge.waitForPrompt()
+  await expect(page).toHaveURL(new RegExp(`/sessions/${first}$`), { timeout: 30_000 })
+
+  await page.locator(".nav-head").getByRole("button", { name: "新建会话", exact: true }).click()
+  await expect(page).not.toHaveURL(/\/sessions\//)
+  await prompt.fill("第二个会话")
+  await prompt.press("Enter")
+
+  await expect.poll(() => bridge.prompted.length).toBe(2)
+  await expect(page).toHaveURL(new RegExp(`/sessions/${bridge.prompted[1]}$`))
+  await expect(page.locator(".queue-panel")).toHaveCount(0)
+  await expect(page.locator('.session-section[data-key="working"] .session-card')).toHaveCount(2)
+})
