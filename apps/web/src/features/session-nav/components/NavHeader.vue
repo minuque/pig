@@ -71,14 +71,14 @@
             type="button"
             size="m"
             variant="ghost"
-            :aria-label="t('session.addGuide')"
+            :aria-label="t('session.addFolder')"
             @click="emit('addProject')"
           >
             <AddFolderIcon :size="16" />
           </IconButton>
         </TooltipTrigger>
 
-        <TooltipContent>{{ t("session.addGuide") }}</TooltipContent>
+        <TooltipContent>{{ t("session.addFolder") }}</TooltipContent>
       </Tooltip>
 
       <Tooltip>
