@@ -11,21 +11,24 @@
             </button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="center" :side-offset="6" class="workbench-hero-menu">
-            <DropdownMenuItem
-              v-for="item in workspaces"
-              :key="item"
-              :title="item"
-              :class="{ 'workbench-hero-option-active': item === workspaceId }"
-              @select="workspaceId = item"
-            >
-              <span class="workbench-hero-option-label">{{ workspaceName(item) }}</span>
-            </DropdownMenuItem>
+          <DropdownMenuContent align="center" :side-offset="6" variant="soft">
+            <DropdownMenuRadioGroup :model-value="workspaceId ?? ''" class="hero-projects">
+              <DropdownMenuRadioItem
+                v-for="item in workspaces"
+                :key="item"
+                :value="item"
+                :title="item"
+                @select="workspaceId = item"
+              >
+                <FolderIcon :size="12" />
+                <span class="hero-option">{{ workspaceName(item) }}</span>
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
 
             <DropdownMenuSeparator v-if="workspaces.length" />
 
             <DropdownMenuItem :disabled="adding" @select="emit('add')">
-              <AddFolderIcon :size="14" />
+              <AddFolderIcon :size="12" />
               {{ t("hero.addDir") }}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -46,10 +49,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
-import { AddFolderIcon } from "@components/icons/index.js"
+import { AddFolderIcon, FolderIcon } from "@components/icons/index.js"
 
 withDefaults(
   defineProps<{
@@ -149,21 +154,18 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-</style>
 
-<style>
-/* 菜单经 Portal 挂到 body，scoped 选不中 */
-.workbench-hero-menu {
-  max-width: 16rem;
+/* 菜单排版对齐侧栏项目筛选：项目多时区内滚动，长名截断 */
+.hero-projects {
+  max-block-size: calc(var(--size-nav-rail) * 9);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-.workbench-hero-option-label {
+.hero-option {
+  max-width: 14rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.workbench-hero-option-active {
-  background: var(--hover-tint);
 }
 </style>
