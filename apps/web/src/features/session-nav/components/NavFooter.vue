@@ -10,39 +10,44 @@
           color="gray"
           :aria-label="t('nav.profileMenu')"
         >
-          <img class="footer-logo" src="/logo.png" alt="" />
+          <span class="footer-mark" aria-hidden="true">
+            <img class="footer-pig" src="/logo-pig.png" alt="" />
+          </span>
+
           <span class="footer-name">{{ displayName }}</span>
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent side="top" align="start" :side-offset="4" variant="soft">
-        <DropdownMenuLabel>{{ t("settings.appearance") }}</DropdownMenuLabel>
-
-        <DropdownMenuRadioGroup :model-value="scheme">
-          <DropdownMenuRadioItem
-            v-for="option in schemes"
-            :key="option.id"
-            :value="option.id"
-            @select="setScheme(option.id)"
+      <DropdownMenuContent side="top" align="start" :side-offset="4" bare>
+        <div class="profile-panel">
+          <SegmentedControl
+            :model-value="scheme"
+            size="s"
+            :aria-label="t('settings.appearance')"
+            @update:model-value="setScheme($event as ColorScheme)"
           >
-            <component :is="option.icon" :size="12" />
-            {{ option.label }}
-          </DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
+            <SegmentedControlItem
+              v-for="option in schemes"
+              :key="option.id"
+              :value="option.id"
+              :aria-label="option.label"
+              :title="option.label"
+            >
+              <component :is="option.icon" :size="14" />
+            </SegmentedControlItem>
+          </SegmentedControl>
 
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel>{{ t("settings.language") }}</DropdownMenuLabel>
-
-        <DropdownMenuRadioGroup :model-value="locale">
-          <DropdownMenuRadioItem
-            v-for="option in locales"
-            :key="option.id"
-            :value="option.id"
-            @select="setLocale(option.id)"
+          <SegmentedControl
+            :model-value="locale"
+            size="s"
+            :aria-label="t('settings.language')"
+            @update:model-value="setLocale($event as UiLocale)"
           >
-            {{ option.label }}
-          </DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
+            <SegmentedControlItem v-for="option in locales" :key="option.id" :value="option.id">
+              {{ option.label }}
+            </SegmentedControlItem>
+          </SegmentedControl>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
 
@@ -72,12 +77,9 @@ import { Button, IconButton } from "@components/ui/button/index.js"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
+import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
 import { MonitorIcon, MoonIcon, SettingsIcon, SunIcon } from "@components/icons/index.js"
@@ -98,7 +100,7 @@ const schemes = computed<{ id: ColorScheme; label: string; icon: typeof SunIcon 
   { id: "dark", label: t("settings.schemeDark"), icon: MoonIcon },
 ])
 const locales = computed<{ id: UiLocale; label: string }[]>(() => [
-  { id: "zh-CN", label: t("settings.zhCN") },
+  { id: "zh-CN", label: "中文" },
   { id: "en", label: "English" },
 ])
 </script>
@@ -121,15 +123,50 @@ const locales = computed<{ id: UiLocale; label: string }[]>(() => [
   min-width: 0;
   margin: 0;
   padding-inline: var(--space-xxs) var(--space-xs);
-  color: var(--contrast-foreground);
-  font-weight: var(--font-weight-medium);
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-meta);
+  font-weight: var(--font-weight-normal);
 }
 
-.footer-logo {
+/* 名字是次级信息：常态弱一档，悬停或菜单打开时回到正文色 */
+.footer-profile[data-accent-color]:hover,
+.footer-profile[data-accent-color][data-state="open"] {
+  color: var(--contrast-foreground);
+}
+
+/* 蓝底方块里的小猪：悬停或键盘聚焦时缩下去再探头 */
+.footer-mark {
+  display: block;
   flex: none;
+  overflow: hidden;
   width: var(--size-avatar);
   height: var(--size-avatar);
   border-radius: var(--radius-xs);
+  background: var(--brand-mark-bg);
+}
+
+.footer-pig {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 30% 100%;
+}
+
+.footer-profile:hover .footer-pig,
+.footer-profile:focus-visible .footer-pig {
+  animation: brand-peek var(--duration-pig-peek) both;
+}
+
+/* 两组切换并排成两行，等宽铺满 */
+.profile-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-xs);
+}
+
+.profile-panel > [data-slot="segmented-control"] {
+  width: 100%;
 }
 
 .footer-name {
@@ -137,5 +174,12 @@ const locales = computed<{ id: UiLocale; label: string }[]>(() => [
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-profile:hover .footer-pig,
+  .footer-profile:focus-visible .footer-pig {
+    animation: none;
+  }
 }
 </style>

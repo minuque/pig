@@ -91,6 +91,23 @@
   }
 }
 
+/* 侧栏头像悬停：小猪先缩下去，之后与开屏 pig-peek 同一段探头 */
+@keyframes brand-peek {
+  0% {
+    transform: none;
+    animation-timing-function: var(--ease-in-out);
+  }
+
+  28% {
+    transform: translateY(100%) rotate(-14deg);
+    animation-timing-function: var(--ease-out);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
 @keyframes pig-duck {
   to {
     transform: translateY(100%) rotate(-10deg);
