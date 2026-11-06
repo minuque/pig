@@ -173,7 +173,8 @@ function itemBind(session: SidebarSession) {
   width: 100%;
   height: 32px;
   min-width: 0;
-  padding-inline: var(--space-xs);
+  /* 与会话卡同一档左右内边距：标题与卡内文字左对齐，箭头与时间右对齐 */
+  padding-inline: 10px;
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;

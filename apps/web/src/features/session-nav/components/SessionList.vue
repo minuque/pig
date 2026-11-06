@@ -311,7 +311,6 @@ onUpdated(() => {
 
 .session-edge-bottom {
   background: linear-gradient(to top, var(--background), transparent);
-  height: 32px;
 }
 
 /* 架子贴底：收件箱再长也不挤出视口，展开超过半屏时在区内滚动。 */

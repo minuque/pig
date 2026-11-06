@@ -717,6 +717,8 @@
 .edge-veil-bottom {
   position: sticky;
   z-index: 1;
+  /* 滚动区常是纵向 flex：内容溢出时不许被压成 0 高 */
+  flex: none;
   height: var(--edge-fade-band);
   pointer-events: none;
   opacity: 0;
