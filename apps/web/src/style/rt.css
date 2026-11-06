@@ -36,13 +36,21 @@
   --border-soft: var(--gray-a5);
 }
 
-/* 菜单尺寸：本项目只重定义 m 档（28px 行 / 13px 字），对齐控制档。
-   s 与 l 保留 rt 原生规格：s 是 24px 行 / 12px 字，context menu 就用这一档。
+/* 菜单尺寸：弹层用 rt 的 m 档（28px 行 / 13px 字），内边距收到 s 档。
+   项目不再用左侧留白放勾，左右内边距取同值，否则 rt 的 :has 会为勾多留一档。
    :where() 不抬特异性，靠写在 import 之后覆盖 rt 同名规则。 */
 .rt-BaseMenuContent:where(.rt-r-size-2) {
+  --base-menu-content-padding: var(--space-1);
   --base-menu-item-height: var(--size-nav-rail);
-  --base-menu-item-padding-left: var(--space-xs);
-  --base-menu-item-padding-right: var(--space-xs);
+  --base-menu-item-padding-left: var(--space-2);
+  --base-menu-item-padding-right: var(--space-2);
+}
+
+/* 任何尺寸档都左右等宽：rt 的 :has 规则会为勾把左内边距抬高一档，这里压回去 */
+.rt-BaseMenuContent.rt-r-size-1,
+.rt-BaseMenuContent.rt-r-size-2,
+.rt-BaseMenuContent.rt-r-size-3 {
+  --base-menu-item-padding-left: var(--base-menu-item-padding-right);
 }
 
 .rt-BaseMenuContent:where(.rt-r-size-2)

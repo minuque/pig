@@ -7,10 +7,6 @@
     :class="props.class"
   >
     <slot />
-
-    <DropdownMenuItemIndicator class="rt-BaseMenuItemIndicator rt-DropdownMenuItemIndicator">
-      <CheckIcon class="rt-BaseMenuItemIndicatorIcon rt-DropdownMenuItemIndicatorIcon" />
-    </DropdownMenuItemIndicator>
   </DropdownMenuRadioItem>
 </template>
 
@@ -18,8 +14,7 @@
 import type { DropdownMenuRadioItemProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { DropdownMenuItemIndicator, DropdownMenuRadioItem, useForwardProps } from "reka-ui"
-import { CheckIcon } from "@components/icons/index.js"
+import { DropdownMenuRadioItem, useForwardProps } from "reka-ui"
 
 const props = withDefaults(
   defineProps<DropdownMenuRadioItemProps & { class?: HTMLAttributes["class"]; color?: string }>(),
@@ -28,3 +23,14 @@ const props = withDefaults(
 const delegatedProps = reactiveOmit(props, "class", "color")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuRadioItemProps>
 </script>
+
+<style scoped>
+/* 选中态用 accent 淡底标出，不在左侧留白放勾：项本身已有前置图标，双标记会挤 */
+.rt-DropdownMenuRadioItem[data-state="checked"] {
+  background-color: var(--accent-a3);
+}
+
+.rt-DropdownMenuRadioItem[data-state="checked"][data-highlighted] {
+  background-color: var(--accent-a4);
+}
+</style>

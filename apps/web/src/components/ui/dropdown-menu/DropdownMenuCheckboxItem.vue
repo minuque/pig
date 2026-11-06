@@ -7,11 +7,6 @@
     :class="props.class"
   >
     <slot />
-
-    <DropdownMenuItemIndicator class="rt-BaseMenuItemIndicator rt-DropdownMenuItemIndicator">
-      <CheckIcon class="rt-BaseMenuItemIndicatorIcon rt-DropdownMenuItemIndicatorIcon" />
-    </DropdownMenuItemIndicator>
-
     <div v-if="shortcut" class="rt-BaseMenuShortcut rt-DropdownMenuShortcut">{{ shortcut }}</div>
   </DropdownMenuCheckboxItem>
 </template>
@@ -20,8 +15,7 @@
 import type { DropdownMenuCheckboxItemProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { DropdownMenuCheckboxItem, DropdownMenuItemIndicator, useForwardProps } from "reka-ui"
-import { CheckIcon } from "@components/icons/index.js"
+import { DropdownMenuCheckboxItem, useForwardProps } from "reka-ui"
 
 const props = withDefaults(
   defineProps<
@@ -36,3 +30,14 @@ const props = withDefaults(
 const delegatedProps = reactiveOmit(props, "class", "shortcut", "color")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuCheckboxItemProps>
 </script>
+
+<style scoped>
+/* 选中态用 accent 淡底标出，不在左侧留白放勾：项本身已有前置图标，双标记会挤 */
+.rt-DropdownMenuCheckboxItem[data-state="checked"] {
+  background-color: var(--accent-a3);
+}
+
+.rt-DropdownMenuCheckboxItem[data-state="checked"][data-highlighted] {
+  background-color: var(--accent-a4);
+}
+</style>

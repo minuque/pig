@@ -345,8 +345,9 @@ Windows 自画三个窗控（总宽 138px，单钮高 44px，头部右侧让出 
 
 - **Basis:** rt `Dialog` / `AlertDialog` / `DropdownMenu` / `ContextMenu` / `Tooltip` 包装，浮层内容必须包一层 `ThemeRoot`，否则飞出文档流后拿不到 rt 面板与阴影 token。
 - **Surface:** `.surface-float` 玻璃底，12px 圆角，`--shadow-popover`（对话框用 `--shadow-modal`），遮罩 `--scrim`（浅色黑 40% / 深色 55%）。
-- **Rows:** 两套档位。Dropdown 用 m：28px 行 / 13px 字（rt 的 m 原生 14/32，在 `rt.css` 收到项目控制档）；Context menu 用 rt 原生 soft + size 1：24px 行 / 12px 字 / 8px 内边距。
+- **Rows:** Dropdown 与 Context menu 默认 rt 的 m 档：28px 行 / 13px 字；内边距收到 s 档（4px 内容边距、8px 左右项边距），左右等宽。Context menu 用 soft 变体。
 - **悬停与破坏性项:** soft 档悬停取 `--accent-a4` 淡底（跟随当前 accent）；破坏性项给 `data-accent-color="red"`，文字 red-11、悬停 red-a4，走 rt 原生色阶，不再用自定义 `data-variant` 自己上色。
+- **选中项:** 用 `--accent-a3` 淡底标记，悬停升到 `--accent-a4`；不在左侧留白放勾，避免与项自带的前置图标叠成双标记。
 - **Motion:** 进出 140ms / 100ms，`--ease-menu`；对话框进场 180ms。
 
 ### Segmented Control, Switch, Slider, Text Field

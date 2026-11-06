@@ -4,8 +4,10 @@
       <MenuContent
         data-slot="context-menu-content"
         v-bind="forwarded"
+        side="right"
+        align="start"
+        :side-offset="2"
         :data-accent-color="props.color"
-        :align-offset="alignOffset"
         class="rt-PopperContent rt-BaseMenuContent rt-ContextMenuContent"
         :class="[sizeClass, variantClass, highContrastClass, props.class]"
         :style="contentStyle"
@@ -29,7 +31,7 @@ import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import { RT_SIZE, sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
+import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
 import { provideMenuContent, type MenuVariant } from "@components/ui/rt/menu-context.js"
 
 defineOptions({
@@ -49,7 +51,7 @@ const props = withDefaults(
   {
     class: undefined,
     collisionPadding: 10,
-    size: "s",
+    size: "m",
     variant: "soft",
     highContrast: false,
   },
@@ -72,7 +74,6 @@ const contentStyle = {
 const sizeClass = computed(() => rtSizeClass(props.size))
 const variantClass = computed(() => `rt-variant-${props.variant}`)
 const highContrastClass = computed(() => (props.highContrast ? "rt-high-contrast" : undefined))
-const alignOffset = computed(() => -Number(RT_SIZE[props.size]) * 4)
 
 provideMenuContent({
   size: toRef(props, "size"),
