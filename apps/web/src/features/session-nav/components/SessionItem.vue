@@ -614,7 +614,7 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--contrast-foreground);
+  color: var(--contrast-foreground-muted);
   font-size: var(--text-body-md);
   font-weight: var(--font-weight-medium);
   line-height: 20px;
@@ -623,19 +623,15 @@ function confirmDelete() {
   transition: color var(--duration-fast) var(--ease-hover);
 }
 
+/* 悬停、当前会话、菜单打开时回到一级文本色 */
+.session-item:hover .title,
+.session-card[data-state="open"] .title,
+.session-card.active .title {
+  color: var(--contrast-foreground);
+}
+
 .session-card.slim .title {
   flex: 1;
-}
-
-/* 归档行整体压到侧栏底色上可用的一档淡色；正在看的那条回到正文色 */
-.session-card.slim .title,
-.session-card.slim .project-icon,
-.session-card.slim .time-label {
-  color: var(--contrast-foreground-muted);
-}
-
-.session-card.slim.active .title {
-  color: var(--contrast-foreground);
 }
 
 /* 行尾一格：常态放状态或时间，行被指到或聚焦时换成更多按钮。 */
