@@ -1075,6 +1075,29 @@ describe("后台订阅池", () => {
     expect(a.disposeCalls).toBe(0)
   })
 
+  it("运行中的会话切到新建会话页仍留在后台，不断连接", async () => {
+    const { session } = setup()
+    const a = makeSession("s1")
+    a.state = { ...a.state, snapshot: { ...snapshot(1), phase: "turn" } }
+    openMock.mockResolvedValue(a)
+    routeBox.params.sessionId = "s1"
+    await session.initialize()
+    await session.sendPrompt("一")
+    await vi.waitFor(() => expect(session.running.value).toBe(true))
+
+    routeBox.params.sessionId = undefined
+    await nextTick()
+    expect(session.remote.value).toBeUndefined()
+    expect(session.transcript.value).toEqual([])
+    expect(session.backgroundRunningIds.value.has("s1")).toBe(true)
+    expect(a.disposeCalls).toBe(0)
+
+    routeBox.params.sessionId = "s1"
+    await nextTick()
+    expect(session.remote.value).toBe(a)
+    expect(openMock).toHaveBeenCalledTimes(1)
+  })
+
   it("后台会话的 live 条目切回后可见且不重复", async () => {
     const user = (id: string, text: string): TranscriptItem => ({
       id,

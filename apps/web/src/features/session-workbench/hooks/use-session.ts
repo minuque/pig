@@ -264,12 +264,20 @@ export function useSessionLifecycle(
     if (current) await discard(current)
   }
 
+  /** 回到新建页：只放下前台，运行中的会话留在后台池继续订阅。 */
+  function leaveForeground() {
+    history.setActive(undefined)
+    abortInflightOpen?.()
+    abortInflightOpen = undefined
+    release()
+  }
+
   let initialized = false
 
   function syncRoute() {
     const id = sessionId.value
 
-    if (!id) return dispose()
+    if (!id) return leaveForeground()
     showHistory(id)
   }
 
@@ -289,10 +297,9 @@ export function useSessionLifecycle(
     initialized = true
     const id = sessionId.value
 
-    if (id) history.setActive(id)
-    else await dispose()
-
-    if (id) showHistory(id)
+    if (!id) return leaveForeground()
+    history.setActive(id)
+    showHistory(id)
   }
 
   const sessionPending = computed(() => {
