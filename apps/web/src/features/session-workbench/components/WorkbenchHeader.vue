@@ -19,64 +19,77 @@
       <TooltipContent>{{ t("nav.openSidebar") }}</TooltipContent>
     </Tooltip>
 
-    <Tooltip v-if="cwdLabel">
-      <TooltipTrigger as-child>
-        <Badge class="header-cwd" variant="soft" color="gray">{{ cwdLabel }}</Badge>
-      </TooltipTrigger>
+    <nav v-if="title" class="header-crumbs" :aria-label="t('session.breadcrumb')">
+      <ol class="crumb-list">
+        <li v-if="cwdLabel" class="crumb-project">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <span class="crumb-project-label">
+                <FolderIcon class="crumb-icon" :size="14" />
+                <span class="crumb-text">{{ cwdLabel }}</span>
+              </span>
+            </TooltipTrigger>
 
-      <TooltipContent>{{ sessionCwd }}</TooltipContent>
-    </Tooltip>
+            <TooltipContent>{{ sessionCwd }}</TooltipContent>
+          </Tooltip>
+        </li>
 
-    <template v-if="title">
-      <span ref="sizer" class="header-title header-sizer" aria-hidden="true">{{ sizerText }}</span>
+        <li v-if="cwdLabel" class="crumb-separator" aria-hidden="true">/</li>
 
-      <input
-        ref="titleInput"
-        v-model="draft"
-        class="header-title"
-        :style="{ width: titleWidth }"
-        :aria-label="t('session.rename')"
-        spellcheck="false"
-        @focus="onFocus"
-        @keydown.enter.prevent="commit"
-        @keydown.escape.prevent="cancel"
-        @blur="commit"
-      />
+        <li class="crumb-current">
+          <span ref="sizer" class="crumb-title crumb-sizer" aria-hidden="true">
+            {{ sizerText }}
+          </span>
 
-      <DropdownMenu v-if="currentId" :modal="false">
-        <DropdownMenuTrigger as-child>
-          <IconButton
-            class="header-more"
-            type="button"
-            size="m"
-            variant="ghost"
-            :aria-label="t('common.more')"
-          >
-            <MenuDotsIcon class="size-icon" />
-          </IconButton>
-        </DropdownMenuTrigger>
+          <input
+            ref="titleInput"
+            v-model="draft"
+            class="crumb-title crumb-input"
+            :style="{ width: titleWidth }"
+            :aria-label="t('session.rename')"
+            spellcheck="false"
+            @focus="onFocus"
+            @keydown.enter.prevent="commit"
+            @keydown.escape.prevent="cancel"
+            @blur="commit"
+          />
 
-        <DropdownMenuContent align="end" class="select-none">
-          <DropdownMenuItem @select="onTogglePinned">
-            <PinBoldIcon v-if="isPinned" />
-            <PinIcon v-else />
-            {{ isPinned ? t("session.unpin") : t("session.pin") }}
-          </DropdownMenuItem>
+          <DropdownMenu v-if="currentId" :modal="false">
+            <DropdownMenuTrigger as-child>
+              <IconButton
+                class="crumb-more"
+                type="button"
+                size="s"
+                variant="ghost"
+                :aria-label="t('common.more')"
+              >
+                <AltArrowDownIcon :size="14" />
+              </IconButton>
+            </DropdownMenuTrigger>
 
-          <DropdownMenuItem @select="focusTitle">
-            <PenIcon />
-            {{ t("session.rename") }}
-          </DropdownMenuItem>
+            <DropdownMenuContent align="end" class="select-none">
+              <DropdownMenuItem @select="onTogglePinned">
+                <PinBoldIcon v-if="isPinned" />
+                <PinIcon v-else />
+                {{ isPinned ? t("session.unpin") : t("session.pin") }}
+              </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
+              <DropdownMenuItem @select="focusTitle">
+                <PenIcon />
+                {{ t("session.rename") }}
+              </DropdownMenuItem>
 
-          <DropdownMenuItem variant="destructive" @select="deleteOpen = true">
-            <TrashBinMinimalisticIcon />
-            {{ t("session.deleteTitle") }}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </template>
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem variant="destructive" @select="deleteOpen = true">
+                <TrashBinMinimalisticIcon />
+                {{ t("session.deleteTitle") }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </li>
+      </ol>
+    </nav>
 
     <SessionItemDelete v-model:open="deleteOpen" :title="title" @confirm="confirmDelete" />
   </header>
@@ -94,7 +107,6 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { Badge } from "@components/ui/badge/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import { useNav } from "@features/session-nav/index.js"
@@ -102,7 +114,8 @@ import { workspaceName } from "@features/session-nav/lib/format.js"
 import { useSession } from "@features/session-workbench/index.js"
 import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
 import {
-  MenuDotsIcon,
+  AltArrowDownIcon,
+  FolderIcon,
   PanelRightOpenIcon,
   PenIcon,
   PinIcon,
@@ -254,48 +267,82 @@ function confirmDelete(): void {
   pointer-events: none;
 }
 
-/* 目录名长度收口交给 Badge；这里只管不换行与截断 */
-.header-cwd {
-  max-width: 12em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: default;
+/* 面包屑：目录名 + 分隔符 + 会话名，标题占剩余宽度并截断 */
+.header-crumbs {
+  flex: 1;
+  min-width: 0;
 }
 
-.header-title {
-  flex: none;
-  /* 宽度由 sizer 量的文本宽度接管，不保底宽 */
+.crumb-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
   min-width: 0;
-  max-width: min(30em, 100%);
-  height: var(--size-nav-rail);
   margin: 0;
-  padding: 0 var(--space-xs);
+  padding: 0;
+  list-style: none;
+}
+
+.crumb-project {
+  display: flex;
+  align-items: center;
+  flex-shrink: 1;
+  min-width: 0;
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-body-md);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-body-md--line-height);
+}
+
+.crumb-project-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xxs);
+  max-width: 10em;
+  min-width: 0;
+}
+
+.crumb-icon {
+  flex: none;
+}
+
+.crumb-text {
+  min-width: 0;
   overflow: hidden;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--contrast-foreground);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--text-caption--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
-  outline: none;
 }
 
-.header-title:hover {
-  background: var(--hover-quiet);
+.crumb-separator {
+  flex: none;
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-body-md);
 }
 
-.header-title:focus {
-  background: var(--interaction-hover);
+.crumb-current {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-xxs);
+  min-width: 0;
+}
+
+.crumb-title {
+  height: var(--size-nav-rail);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
   color: var(--contrast-foreground);
-  caret-color: var(--primary);
-  box-shadow: inset 0 0 0 1px var(--primary);
-  user-select: text;
+  font-size: var(--text-body-md);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-body-md--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.header-sizer {
+.crumb-sizer {
   position: absolute;
   visibility: hidden;
   width: auto;
@@ -305,19 +352,36 @@ function confirmDelete(): void {
   white-space: pre;
 }
 
-/* 尺寸与悬停由 IconButton 接管；这里是它与标题之间的负偏移 */
-.header-more {
-  margin-inline-start: calc(var(--space-xxs) - var(--space-xs));
+.crumb-input {
+  flex: 0 1 auto;
+  max-width: min(30em, 100%);
+  min-width: 0;
+  border-radius: var(--radius-sm);
+  outline: none;
+  user-select: text;
 }
 
-.header-more[data-state="open"] {
-  background: var(--hover-quiet);
+.crumb-input:focus {
+  caret-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+/* 操作入口：悬停或聚焦标题时出现，与 t3code 的标题下拉箭头一致 */
+.crumb-more {
+  flex: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.crumb-current:hover .crumb-more,
+.crumb-current:focus-within .crumb-more,
+.crumb-more[data-state="open"] {
+  opacity: 1;
 }
 
 /* 拖窗：macOS 的浮层标题条与 Windows 的隐藏标题条都靠头部这一行 */
 html:is([data-pig-desktop-platform="darwin"], [data-pig-desktop-platform="win32"])
-  .workbench-header,
-html:is([data-pig-desktop-platform="darwin"], [data-pig-desktop-platform="win32"]) .header-title {
+  .workbench-header {
   -webkit-app-region: drag;
   app-region: drag;
 }
@@ -339,7 +403,7 @@ html[data-pig-desktop-platform]
       [role="tab"],
       [role="button"],
       [role="link"],
-      [data-slot="badge"]
+      .crumb-project-label
     )
   ) {
   -webkit-app-region: no-drag;
