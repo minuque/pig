@@ -22,6 +22,8 @@
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
+        <WelcomeGlyphField v-if="showHero" />
+
         <div class="session-stage">
           <Transition name="dock-hero" appear>
             <div v-if="showHero" key="hero" class="idle-hero">
@@ -129,6 +131,7 @@ import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session-workbench/index.js"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
+import WelcomeGlyphField from "@features/session-workbench/components/WelcomeGlyphField.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
 import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
@@ -490,8 +493,8 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   flex-direction: column;
   /* 测量前占位，挂上后由输入条边框盒覆盖 */
   --composer-reserve: 7rem;
-  /* 首屏输入条底边离列底的距离 */
-  --hero-dock: 34%;
+  /* 首屏输入条底边离列底的距离：标题加输入条整组的中线落在列高 45% 处 */
+  --hero-dock: calc(55% - var(--composer-reserve) / 2 - 2rem);
 }
 
 .session-stage {

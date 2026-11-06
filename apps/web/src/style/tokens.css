@@ -333,6 +333,8 @@
   --text-micro: calc(var(--text-body-md) - 2px);
   /* 项目缩写方块里的两个字母 */
   --text-monogram: calc(var(--text-body-md) - 5px);
+  /* 欢迎页背景涟漪里的字符 */
+  --text-glyph: calc(var(--text-body-md) - 5px);
   --text-button: 13px;
   --text-button--line-height: 1.38;
   --text-caption: 13px;
