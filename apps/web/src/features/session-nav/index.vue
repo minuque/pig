@@ -1,38 +1,46 @@
 <template>
-  <SidebarView
-    v-model:search-open="searchOpen"
-    :groups="groups"
-    :sort="sort"
-    :scope-filter="scopeFilter"
-    :sections="sections"
-    :card-foot-by-id="cardFootById"
-    :listed-sessions="listedSessions"
-    :pinned-ids="pinnedIds"
-    :highlighted-session-id="highlightedSessionId"
-    :expanded-sections="expandedSections"
-    :more-by-section="moreBySection"
-    :running-since="runningSince"
-    @update:scope-filter="scopeFilter = $event"
-    @update:sort="setSort"
-    @toggle-sidebar="onToggleSidebar"
-    @create="onCreateSession"
-    @add-project="onAddProject"
-    @settings="emit('settings')"
-    @navigate="onSessionNavigate"
-    @open="openSession"
-    @prime="primeSession"
-    @toggle-pinned="togglePinned"
-    @rename="renameSession"
-    @delete="deleteSession"
-    @settle="settle"
-    @unsettle="unsettle"
-    @reorder-pinned="reorderPinned"
-    @pin-at="pinAt"
-    @unpin="togglePinned"
-    @toggle-section="toggleSection"
-    @reveal-more="revealMore"
-    @collapse-group="collapseGroup"
-  />
+  <div class="session-nav">
+    <div class="titlebar-drag" aria-hidden="true"></div>
+
+    <NavHeader
+      v-model:search-open="searchOpen"
+      v-model:scope-filter="scopeFilter"
+      :groups="groups"
+      :sort="sort"
+      :sessions="listedSessions"
+      @update:sort="setSort"
+      @toggle-sidebar="onToggleSidebar"
+      @add-project="onAddProject"
+      @create="onCreateSession"
+      @open="openSession"
+    />
+
+    <SessionList
+      :sections="sections"
+      :card-foot-by-id="cardFootById"
+      :pinned-ids="pinnedIds"
+      :highlighted-session-id="highlightedSessionId"
+      :expanded-sections="expandedSections"
+      :more-by-section="moreBySection"
+      :running-since="runningSince"
+      @navigate="onSessionNavigate"
+      @open="openSession"
+      @prime="primeSession"
+      @toggle-pinned="togglePinned"
+      @rename="renameSession"
+      @delete="deleteSession"
+      @settle="settle"
+      @unsettle="unsettle"
+      @reorder-pinned="reorderPinned"
+      @pin-at="pinAt"
+      @unpin="togglePinned"
+      @toggle-section="toggleSection"
+      @reveal-more="revealMore"
+      @collapse-group="collapseGroup"
+    />
+
+    <NavFooter @settings="emit('settings')" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -44,7 +52,9 @@ import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { notifyAction } from "@components/layout/notify.js"
 import { useNav } from "@features/session-nav/index.js"
 import { sessionInProjects } from "@features/session-nav/lib/session-list.js"
-import SidebarView from "@features/session-nav/components/SidebarView.vue"
+import NavFooter from "@features/session-nav/components/NavFooter.vue"
+import NavHeader from "@features/session-nav/components/NavHeader.vue"
+import SessionList from "@features/session-nav/components/SessionList.vue"
 
 const emit = defineEmits<{
   navigate: [canonicalPath: string]
@@ -164,3 +174,38 @@ function onCreateSession(cwd?: string): void {
   void addWorkspace()
 }
 </script>
+
+<style scoped>
+.session-nav {
+  --nav-inline: var(--space-xs);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  user-select: none;
+}
+
+.session-nav > .titlebar-drag {
+  display: none;
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--titlebar-inset);
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+/* 只有 macOS 的标题条是浮层，需要页面自己撑出拖窗带 */
+html[data-pig-desktop-platform="darwin"] .session-nav > .titlebar-drag {
+  display: block;
+}
+
+/* 顶距 = 标题条高：侧栏首行与工作台头部落在同一条横线上 */
+html[data-pig-desktop-platform="darwin"] .session-nav {
+  padding-top: var(--titlebar-inset);
+}
+</style>

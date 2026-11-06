@@ -1,5 +1,9 @@
 <template>
-  <nav ref="listEl" class="nav-body session-list" :class="{ 'is-dragging': !!drag }">
+  <nav
+    ref="listEl"
+    class="nav-body session-list"
+    :class="{ 'is-dragging': !!drag, 'is-scrolled': scrolled }"
+  >
     <div v-if="sections.length" ref="windowEl" class="session-window" @scroll.passive="onScroll">
       <!-- 拖拽时撑开的段名：置顶在上，收件箱在置顶段下沿；跨过收件箱那条才算换段 -->
       <div
@@ -134,6 +138,7 @@ const shelfSections = computed(() =>
   props.sections.filter((section) => section.kind === "working" || section.kind === "settled"),
 )
 const listEl = shallowRef<HTMLElement>()
+const scrolled = shallowRef(false)
 const windowEl = shallowRef<HTMLElement>()
 const shelvesEl = shallowRef<HTMLElement>()
 
@@ -226,6 +231,8 @@ function sectionBind(section: SidebarSection) {
 function onScroll(): void {
   const el = windowEl.value
 
+  scrolled.value = !!el && el.scrollTop > 0
+
   if (!el || el.scrollTop + el.clientHeight < el.scrollHeight - 240) return
   revealNextPage()
 }
@@ -253,16 +260,32 @@ onUpdated(() => {
 
 <style scoped>
 .nav-body {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  padding-inline-start: var(--nav-inline);
 }
 
-.session-list {
-  position: relative;
+/* 渐隐带挂在滚动区顶上：内容滚出视口才显示 */
+.nav-body::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset-inline: var(--nav-inline);
+  top: 0;
+  height: var(--edge-fade-band);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+  background: linear-gradient(to bottom, var(--background), transparent);
+  pointer-events: none;
+}
+
+.nav-body.is-scrolled::before {
+  opacity: 1;
 }
 
 /* 两块滚动区都当 offsetParent：拖拽按静止位置算落点 */
