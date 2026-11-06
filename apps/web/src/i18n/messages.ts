@@ -164,8 +164,6 @@ export const zh = {
     fontSizeL: "大",
     translucentWindow: "半透明窗口",
     translucentWindowHint: "侧栏与窗口底色半透明，主工作区保持实底",
-    contrast: "文字对比度",
-    contrastHint: "数值越大正文与次级文字越醒目，0 为默认",
     notifications: "通知",
     notifySystem: "系统通知",
     notifySystemHint: "回合完成时发送系统通知",
@@ -469,8 +467,6 @@ export const en: Messages = {
     translucentWindow: "Translucent window",
     translucentWindowHint:
       "Sidebar and window background turn translucent; the workbench keeps a solid surface",
-    contrast: "Text contrast",
-    contrastHint: "Higher values make body and secondary text more distinct; 0 is the default",
     notifications: "Notifications",
     notifySystem: "System notifications",
     notifySystemHint: "Send a system notification when a turn finishes",

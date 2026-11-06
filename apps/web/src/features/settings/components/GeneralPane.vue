@@ -132,27 +132,6 @@
             @update:model-value="setTranslucentWindow"
           />
         </div>
-
-        <div id="setting-contrast" class="row">
-          <div class="copy">
-            <h3 class="label">{{ t("settings.contrast") }}</h3>
-            <p class="hint">{{ t("settings.contrastHint") }}</p>
-          </div>
-
-          <div class="opacity-control">
-            <Slider
-              :aria-label="t('settings.contrast')"
-              :model-value="[contrastBoost]"
-              :min="0"
-              :max="100"
-              :step="10"
-              class="opacity-slider"
-              @update:model-value="onContrast"
-            />
-
-            <span class="opacity-value">{{ contrastBoost }}%</span>
-          </div>
-        </div>
       </div>
     </section>
   </section>
@@ -178,7 +157,6 @@ import {
 import { accentHex } from "@features/theme/lib/palette.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Switch } from "@components/ui/switch/index.js"
-import { Slider } from "@components/ui/slider/index.js"
 import { CheckIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
@@ -188,12 +166,10 @@ const {
   fontSize,
   chatWidth,
   translucentWindow,
-  contrastBoost,
   setLocale,
   setFontSize,
   setChatWidth,
   setTranslucentWindow,
-  setContrastBoost,
 } = useGeneralPrefs()
 const selectedAccent = computed(() => accent.value)
 const accentHint = computed(() => findAccent(selectedAccent.value).label)
@@ -248,10 +224,6 @@ const widths: { id: ChatWidth; label: string }[] = [
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
 ]
-
-function onContrast(value: number[] | undefined) {
-  if (value?.[0] !== undefined) setContrastBoost(value[0])
-}
 </script>
 
 <style scoped src="./pane.css"></style>
@@ -431,23 +403,9 @@ function onContrast(value: number[] | undefined) {
   color: var(--accent-contrast, var(--white));
 }
 
-.opacity-control {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.opacity-slider {
-  width: 8rem;
-}
-
-.opacity-value {
-  min-width: 3ch;
-  color: var(--contrast-foreground-muted);
-  font-size: var(--text-caption);
-  font-variant-numeric: tabular-nums;
-  text-align: end;
+/* 下拉框定宽：不同选项文字长短不一，避免选中后触发器宽度跳动 */
+.setting-select {
+  inline-size: 10rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

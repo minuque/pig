@@ -202,12 +202,6 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     section: t("settings.interface"),
   },
   {
-    id: "setting-contrast",
-    pane: "general",
-    title: t("settings.contrast"),
-    section: t("settings.interface"),
-  },
-  {
     id: "",
     pane: "models",
     title: t("settings.models.providers"),

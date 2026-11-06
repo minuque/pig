@@ -34,8 +34,8 @@
   /* 间距基数：--space-* 由它派生 */
   --spacing: 4px;
 
-  /* 文字对比度：提升时把 4 档文字色按权重向 --contrast-target 推，0% 即原值 */
-  --contrast-boost: 0%;
+  /* 文字对比度：把 4 档文字色按权重向 --contrast-target 推；20% 是固定基线，不再对外暴露 */
+  --contrast-boost: 20%;
   --contrast-target: #000000;
 
   /* Radix accent：--accent-* 由 rt 基座按 html 的 data-accent-color 映射，
