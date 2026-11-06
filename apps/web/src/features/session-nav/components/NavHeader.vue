@@ -30,10 +30,6 @@
       >
         <MagnifierIcon :size="16" />
         <span>{{ t("nav.search") }}</span>
-
-        <template #suffix>
-          <Badge class="nav-search-key" variant="soft" color="gray">{{ modKey }}+K</Badge>
-        </template>
       </Button>
 
       <DropdownMenu :modal="false">
@@ -122,7 +118,6 @@ import {
   PanelLeftCloseIcon,
   Tuning2Icon,
 } from "@components/icons/index.js"
-import { Badge } from "@components/ui/badge/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
 import { DropdownMenu, DropdownMenuTrigger } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
@@ -196,7 +191,6 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
 
 /* 抵消 rt ghost 档的负外边距，让搜索撑开剩余宽度 */
 .nav-search {
-  position: relative;
   box-sizing: border-box;
   flex: 1;
   justify-content: flex-start;
@@ -205,19 +199,5 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
   margin: 0;
   padding-inline: var(--space-xs);
   font-weight: 400;
-}
-
-/* 快捷键只在 hover 时出现，绝对定位不占行宽 */
-.nav-search-key {
-  position: absolute;
-  inset-inline-end: var(--space-xs);
-  top: 50%;
-  translate: 0 -50%;
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.nav-search:hover .nav-search-key {
-  opacity: 1;
 }
 </style>
