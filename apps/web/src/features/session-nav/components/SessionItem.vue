@@ -26,7 +26,15 @@
             <span class="meta-line">
               <span class="project-icon" aria-hidden="true">
                 <PinBoldIcon v-if="pinned" :size="16" />
-                <FolderIcon v-else :size="16" />
+
+                <Badge
+                  v-else-if="projectName"
+                  class="project-mono"
+                  variant="soft"
+                  :color="projectMonogramColor(projectName)"
+                >
+                  {{ projectMonogram(projectName) }}
+                </Badge>
               </span>
 
               <span class="project-name">{{ projectName }}</span>
@@ -96,7 +104,14 @@
 
           <template v-else>
             <span class="project-icon" aria-hidden="true">
-              <FolderIcon :size="16" />
+              <Badge
+                v-if="projectName"
+                class="project-mono"
+                variant="soft"
+                :color="projectMonogramColor(projectName)"
+              >
+                {{ projectMonogram(projectName) }}
+              </Badge>
             </span>
 
             <input
@@ -213,7 +228,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
-import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
+import { Badge } from "@components/ui/badge/index.js"
+import {
+  formatRelativeTime,
+  projectMonogram,
+  projectMonogramColor,
+  workspaceName,
+} from "@features/session-nav/lib/format.js"
 import { formatElapsed } from "@utils/time.js"
 import type { DropVerb } from "@features/session-nav/lib/drag-plan.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
@@ -222,7 +243,6 @@ import {
   CheckIcon,
   CircleDashedIcon,
   CloseIcon,
-  FolderIcon,
   PenIcon,
   PinIcon,
   PinBoldIcon,
@@ -506,6 +526,19 @@ function confirmDelete() {
   width: 16px;
   height: 16px;
   color: var(--contrast-foreground-muted);
+}
+
+/* t3code 式项目缩写：soft 徽标收成 16px 方块 */
+.project-mono[data-accent-color] {
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: var(--radius-xs);
+  font-size: var(--text-monogram);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  letter-spacing: 0;
 }
 
 .meta-line {
