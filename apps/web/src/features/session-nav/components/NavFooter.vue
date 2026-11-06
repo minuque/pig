@@ -18,36 +18,18 @@
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent side="top" align="start" :side-offset="4" bare>
-        <div class="profile-panel">
-          <SegmentedControl
-            :model-value="scheme"
-            size="s"
-            :aria-label="t('settings.appearance')"
-            @update:model-value="setScheme($event as ColorScheme)"
-          >
-            <SegmentedControlItem
-              v-for="option in schemes"
-              :key="option.id"
-              :value="option.id"
-              :aria-label="option.label"
-              :title="option.label"
-            >
-              <component :is="option.icon" :size="14" />
-            </SegmentedControlItem>
-          </SegmentedControl>
+      <DropdownMenuContent side="top" align="start" :side-offset="4" variant="soft">
+        <DropdownMenuItem @select.prevent="cycleScheme">
+          <component :is="currentScheme.icon" :size="14" />
+          {{ t("settings.appearance") }}
+          <span class="profile-value">{{ currentScheme.label }}</span>
+        </DropdownMenuItem>
 
-          <SegmentedControl
-            :model-value="locale"
-            size="s"
-            :aria-label="t('settings.language')"
-            @update:model-value="setLocale($event as UiLocale)"
-          >
-            <SegmentedControlItem v-for="option in locales" :key="option.id" :value="option.id">
-              {{ option.label }}
-            </SegmentedControlItem>
-          </SegmentedControl>
-        </div>
+        <DropdownMenuItem @select.prevent="toggleLocale">
+          <EarthIcon :size="14" />
+          {{ t("settings.language") }}
+          <span class="profile-value">{{ currentLocale }}</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
 
@@ -77,13 +59,13 @@ import { Button, IconButton } from "@components/ui/button/index.js"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
-import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
-import { MonitorIcon, MoonIcon, SettingsIcon, SunIcon } from "@components/icons/index.js"
-import { useGeneralPrefs, type UiLocale } from "@features/settings/index.js"
+import { EarthIcon, MonitorIcon, MoonIcon, SettingsIcon, SunIcon } from "@components/icons/index.js"
+import { useGeneralPrefs } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 
 const emit = defineEmits<{
@@ -99,10 +81,21 @@ const schemes = computed<{ id: ColorScheme; label: string; icon: typeof SunIcon 
   { id: "light", label: t("settings.schemeLight"), icon: SunIcon },
   { id: "dark", label: t("settings.schemeDark"), icon: MoonIcon },
 ])
-const locales = computed<{ id: UiLocale; label: string }[]>(() => [
-  { id: "zh-CN", label: "中文" },
-  { id: "en", label: "English" },
-])
+const currentScheme = computed(
+  () => schemes.value.find((option) => option.id === scheme.value) ?? schemes.value[0]!,
+)
+/** 语言名用它自己的写法，切到不认识的语言时也认得出 */
+const currentLocale = computed(() => (locale.value === "en" ? "English" : "中文"))
+
+/** 点一下换到下一档：跟随系统 → 浅色 → 深色 → 跟随系统。 */
+function cycleScheme() {
+  const index = schemes.value.findIndex((option) => option.id === scheme.value)
+  setScheme(schemes.value[(index + 1) % schemes.value.length]!.id)
+}
+
+function toggleLocale() {
+  setLocale(locale.value === "en" ? "zh-CN" : "en")
+}
 </script>
 
 <style scoped>
@@ -157,16 +150,11 @@ const locales = computed<{ id: UiLocale; label: string }[]>(() => [
   animation: brand-peek var(--duration-pig-peek) both;
 }
 
-/* 两组切换并排成两行，等宽铺满 */
-.profile-panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  padding: var(--space-xs);
-}
-
-.profile-panel > [data-slot="segmented-control"] {
-  width: 100%;
+/* 当前值贴右、弱一档，像快捷键列 */
+.profile-value {
+  margin-inline-start: auto;
+  padding-inline-start: var(--space-md);
+  color: var(--contrast-foreground-faint);
 }
 
 .footer-name {

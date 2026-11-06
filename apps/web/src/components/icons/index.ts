@@ -62,6 +62,8 @@ export { DoubleAltArrowDownIcon } from "@solar-icons/vue/linear/double-alt-arrow
 
 export { DoubleAltArrowUpIcon } from "@solar-icons/vue/linear/double-alt-arrow-up"
 
+export { EarthIcon } from "@solar-icons/vue/linear/earth"
+
 export { EyeIcon } from "@solar-icons/vue/linear/eye"
 
 export { FolderIcon } from "@solar-icons/vue/linear/folder"
