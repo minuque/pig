@@ -1,5 +1,11 @@
 <template>
-  <DropdownMenuContent side="top" align="end" :side-offset="4" class="scope-menu">
+  <DropdownMenuContent
+    side="bottom"
+    align="start"
+    :side-offset="4"
+    variant="soft"
+    class="scope-menu"
+  >
     <DropdownMenuLabel>{{ t("session.sorting") }}</DropdownMenuLabel>
 
     <DropdownMenuRadioGroup :model-value="sort">
@@ -25,23 +31,18 @@
       <span class="scope-cnt">{{ allSessionsCount }}</span>
     </DropdownMenuCheckboxItem>
 
-    <DropdownMenuCheckboxItem
-      v-for="group in groups"
-      :key="group.canonicalPath"
-      :model-value="scopeFilter.has(group.canonicalPath)"
-      @select.prevent="toggleProject(group.canonicalPath)"
-    >
-      <FolderIcon :size="12" />
-      <span class="scope-name">{{ workspaceName(group.canonicalPath) }}</span>
-      <span class="scope-cnt">{{ group.sessions.length }}</span>
-    </DropdownMenuCheckboxItem>
-
-    <DropdownMenuSeparator />
-
-    <DropdownMenuItem @select="emit('settings')">
-      <SettingsIcon :size="12" />
-      {{ t("nav.settings") }}
-    </DropdownMenuItem>
+    <div class="scope-projects">
+      <DropdownMenuCheckboxItem
+        v-for="group in groups"
+        :key="group.canonicalPath"
+        :model-value="scopeFilter.has(group.canonicalPath)"
+        @select.prevent="toggleProject(group.canonicalPath)"
+      >
+        <FolderIcon :size="12" />
+        <span class="scope-name">{{ workspaceName(group.canonicalPath) }}</span>
+        <span class="scope-cnt">{{ group.sessions.length }}</span>
+      </DropdownMenuCheckboxItem>
+    </div>
   </DropdownMenuContent>
 </template>
 
@@ -52,13 +53,12 @@ import { workspaceName } from "@features/session-nav/index.js"
 import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
 } from "@components/ui/dropdown-menu/index.js"
-import { DocumentAddIcon, FolderIcon, HistoryIcon, SettingsIcon } from "@components/icons/index.js"
+import { DocumentAddIcon, FolderIcon, HistoryIcon } from "@components/icons/index.js"
 import type { SessionGroup, SidebarSort } from "@features/session-nav/type.js"
 
 const props = defineProps<{
@@ -69,7 +69,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   "update:sort": [sort: SidebarSort]
   "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
-  settings: []
 }>()
 const { t } = useI18n()
 const sortOptions = computed(() => [
@@ -90,6 +89,13 @@ function toggleProject(canonicalPath: string): void {
 </script>
 
 <style scoped>
+/* 项目多时只露固定行数，其余在菜单内滚动，菜单不会被撑到视口外 */
+.scope-projects {
+  max-block-size: calc(var(--size-nav-rail) * 9);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .scope-name {
   overflow: hidden;
   text-overflow: ellipsis;

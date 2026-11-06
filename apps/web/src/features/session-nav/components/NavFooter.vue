@@ -1,8 +1,6 @@
 <template>
   <div class="nav-footer">
     <div class="footer-actions">
-      <slot name="extra" />
-
       <Tooltip>
         <TooltipTrigger as-child>
           <IconButton

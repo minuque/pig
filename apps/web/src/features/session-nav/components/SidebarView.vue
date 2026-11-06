@@ -3,10 +3,14 @@
     <div class="titlebar-drag" aria-hidden="true"></div>
 
     <NavHeader
+      :groups="groups"
+      :sort="sort"
+      :scope-filter="scopeFilter"
       :search-open="searchOpen"
       :sessions="listedSessions"
-      :sort="sort"
       @update:search-open="emit('update:searchOpen', $event)"
+      @update:scope-filter="emit('update:scopeFilter', $event)"
+      @update:sort="emit('update:sort', $event)"
       @toggle-sidebar="emit('toggleSidebar')"
       @create="emit('create', $event)"
       @open="emit('open', $event)"
@@ -39,34 +43,7 @@
       />
     </div>
 
-    <NavFooter @settings="emit('settings')" @add-project="emit('addProject')">
-      <template #extra>
-        <div class="filter-anchor">
-          <DropdownMenu :modal="false">
-            <DropdownMenuTrigger as-child>
-              <IconButton
-                class="filter-btn"
-                type="button"
-                size="m"
-                variant="ghost"
-                :title="t('session.allProjects')"
-              >
-                <Tuning2Icon :size="16" />
-              </IconButton>
-            </DropdownMenuTrigger>
-
-            <ScopeMenu
-              :groups="groups"
-              :sort="sort"
-              :scope-filter="scopeFilter"
-              @update:sort="emit('update:sort', $event)"
-              @update:scope-filter="emit('update:scopeFilter', $event)"
-              @settings="emit('settings')"
-            />
-          </DropdownMenu>
-        </div>
-      </template>
-    </NavFooter>
+    <NavFooter @settings="emit('settings')" @add-project="emit('addProject')" />
   </div>
 </template>
 
@@ -74,10 +51,8 @@
 import { onMounted, shallowRef } from "vue"
 import { useEventListener } from "@vueuse/core"
 import type { SessionMetadata } from "@/types/common-type.js"
-import { useI18n } from "@i18n/index.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
 import NavHeader from "@features/session-nav/components/NavHeader.vue"
-import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
 import type {
   SessionGroup,
@@ -85,9 +60,6 @@ import type {
   SidebarSection,
   SidebarSort,
 } from "@features/session-nav/type.js"
-import { Tuning2Icon } from "@components/icons/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { DropdownMenu, DropdownMenuTrigger } from "@components/ui/dropdown-menu/index.js"
 
 defineProps<{
   groups: readonly SessionGroup[]
@@ -127,7 +99,6 @@ const emit = defineEmits<{
   revealMore: [key: string]
   collapseGroup: [key: string]
 }>()
-const { t } = useI18n()
 const listScrolled = shallowRef(false)
 
 function updateListScrolled() {
@@ -187,11 +158,6 @@ useEventListener(window, "scroll", updateListScrolled, { passive: true, capture:
 
 .session-nav.is-scrolled .nav-inset::before {
   opacity: 1;
-}
-
-/* 筛选按钮挂在页脚；菜单以页脚为定位基准，朝上展开 */
-.filter-anchor {
-  display: flex;
 }
 
 .session-nav > .titlebar-drag {

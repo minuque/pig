@@ -21,7 +21,7 @@
 
     <div class="nav-rows">
       <Button
-        class="nav-row press-scale"
+        class="nav-row"
         type="button"
         size="m"
         variant="ghost"
@@ -32,12 +32,12 @@
         <span>{{ t("session.newSession") }}</span>
 
         <template #suffix>
-          <Badge class="nav-row-key" variant="soft" color="gray">{{ modKey }}N</Badge>
+          <Badge class="nav-row-key" variant="soft" color="gray">{{ modKey }}+N</Badge>
         </template>
       </Button>
 
       <Button
-        class="nav-row press-scale"
+        class="nav-row"
         type="button"
         size="m"
         variant="ghost"
@@ -48,9 +48,30 @@
         <span>{{ t("nav.search") }}</span>
 
         <template #suffix>
-          <Badge class="nav-row-key" variant="soft" color="gray">{{ modKey }}K</Badge>
+          <Badge class="nav-row-key" variant="soft" color="gray">{{ modKey }}+K</Badge>
         </template>
       </Button>
+
+      <DropdownMenu :modal="false">
+        <DropdownMenuTrigger as-child>
+          <Button class="nav-row nav-row-scope" type="button" size="m" variant="soft" color="gray">
+            <Tuning2Icon :size="16" />
+            <span>{{ t("session.allProjects") }}</span>
+
+            <template #suffix>
+              <AltArrowDownIcon class="nav-row-caret" :size="12" />
+            </template>
+          </Button>
+        </DropdownMenuTrigger>
+
+        <ScopeMenu
+          :groups="groups"
+          :sort="sort"
+          :scope-filter="scopeFilter"
+          @update:sort="emit('update:sort', $event)"
+          @update:scope-filter="emit('update:scopeFilter', $event)"
+        />
+      </DropdownMenu>
     </div>
 
     <SearchDialog
@@ -66,28 +87,40 @@
 <script setup lang="ts">
 import type { SessionMetadata } from "@/types/common-type.js"
 import { useI18n } from "@i18n/index.js"
+import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
-import type { SidebarSort } from "@features/session-nav/type.js"
-import { ChatRoundAddIcon, MagnifierIcon, PanelLeftCloseIcon } from "@components/icons/index.js"
+import type { SessionGroup, SidebarSort } from "@features/session-nav/type.js"
+import {
+  AltArrowDownIcon,
+  ChatRoundAddIcon,
+  MagnifierIcon,
+  PanelLeftCloseIcon,
+  Tuning2Icon,
+} from "@components/icons/index.js"
 import { Badge } from "@components/ui/badge/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
+import { DropdownMenu, DropdownMenuTrigger } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 defineProps<{
+  groups: readonly SessionGroup[]
+  sort: SidebarSort
+  scopeFilter: ReadonlySet<string>
   searchOpen: boolean
   sessions: readonly SessionMetadata[]
-  sort: SidebarSort
 }>()
 
 const emit = defineEmits<{
   "update:searchOpen": [open: boolean]
+  "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
+  "update:sort": [sort: SidebarSort]
   toggleSidebar: []
   create: [cwd?: string]
   open: [id: string]
 }>()
 const { t } = useI18n()
 const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
-const modKey = isMac ? "⌘" : "Ctrl "
+const modKey = isMac ? "⌘" : "Ctrl"
 </script>
 
 <style scoped>
@@ -137,6 +170,7 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
 /* 撑满整行：图标与文字靠左，快捷键角标靠右。
    rt 的 ghost 档是 content-box 且用负外边距做视觉对齐，整行按钮要抵消掉。 */
 .nav-row {
+  position: relative;
   box-sizing: border-box;
   justify-content: flex-start;
   gap: var(--space-xs);
@@ -146,7 +180,28 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
   font-weight: 400;
 }
 
+/* 快捷键只在 hover 时出现，绝对定位不占行宽，免得把标题挤换行 */
 .nav-row-key {
+  position: absolute;
+  inset-inline-end: var(--space-xs);
+  top: 50%;
+  translate: 0 -50%;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.nav-row:hover .nav-row-key {
+  opacity: 1;
+}
+
+/* 项目范围是视图档，不是命令：与上面两条命令隔开一档 */
+.nav-row-scope {
+  margin-block-start: var(--space-xxs);
+}
+
+/* 菜单开合提示贴右，与快捷键角标落在同一列 */
+.nav-row-caret {
   margin-inline-start: auto;
+  color: var(--contrast-foreground-faint);
 }
 </style>
