@@ -63,6 +63,6 @@ const entries = computed<RunEntry[]>(() =>
 }
 
 .tool-run-card > :deep(.tool-row + .tool-row) {
-  border-block-start: var(--border-width) solid var(--border);
+  border-block-start: var(--border-width) solid var(--border-soft);
 }
 </style>

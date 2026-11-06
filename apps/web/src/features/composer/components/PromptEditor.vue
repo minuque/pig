@@ -601,7 +601,7 @@ defineExpose({ focus })
   overflow: hidden;
   /* 实底：和代码块、mermaid 卡片同一层，不再用毛玻璃 */
   background: var(--code-background);
-  border: var(--border-width) solid var(--composer-border);
+  border: var(--border-width) solid var(--border);
   border-radius: inherit;
   corner-shape: var(--corner-shape-composer);
   box-shadow: inset 0 1px 0 var(--composer-highlight);

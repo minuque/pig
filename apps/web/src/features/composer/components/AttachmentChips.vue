@@ -151,7 +151,7 @@ const rows = computed(() =>
   width: 100%;
   height: 100%;
   object-fit: cover;
-  outline: var(--border-width) solid var(--media-outline);
+  outline: var(--border-width) solid var(--border-soft);
   outline-offset: -1px;
 }
 

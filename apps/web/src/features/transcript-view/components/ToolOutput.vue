@@ -182,7 +182,7 @@ code {
   width: 100%;
   padding: var(--space-xs) 0;
   border: 0;
-  border-top: var(--border-width) solid var(--border);
+  border-top: var(--border-width) solid var(--border-soft);
   background: transparent;
   color: var(--contrast-foreground);
   font: inherit;

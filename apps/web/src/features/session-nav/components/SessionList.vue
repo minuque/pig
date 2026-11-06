@@ -424,7 +424,7 @@ onBeforeUnmount(() => {
 .drag-boundary-line {
   flex: 1;
   height: var(--border-width);
-  background: var(--border);
+  background: var(--border-soft);
 }
 
 .drag-boundary.is-target .drag-boundary-label {

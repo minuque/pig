@@ -92,7 +92,7 @@ function resetWidth() {
   min-height: 0;
   overflow: hidden;
   background: var(--background);
-  border-inline-end: var(--border-width) solid var(--border);
+  border-inline-end: var(--border-width) solid var(--border-soft);
   contain: layout style;
   visibility: hidden;
   width: 0;

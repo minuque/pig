@@ -80,7 +80,7 @@ onBeforeUnmount(() => reorder.detach())
   margin-bottom: calc(-1 * 18px);
   padding: 0 var(--space-xs) 18px;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  box-shadow: inset 0 0 0 var(--border-width) var(--card-border);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border);
 }
 
 .row {

@@ -33,7 +33,7 @@
   /* 描边直接取 radix 的 alpha 灰阶：亮暗与 gray 家族都由色板切，不再维护独立色值。
      必须写在这里：--gray-* 只在 .radix-themes 作用域内映射。 */
   --border: var(--gray-a6);
-  --border-subtle: var(--gray-a5);
+  --border-soft: var(--gray-a5);
 }
 
 /* 菜单尺寸：本项目只重定义 m 档（28px 行 / 13px 字），对齐控制档。
@@ -77,6 +77,11 @@
 .rt-IconButton:where(.rt-variant-ghost):where(:hover) {
   background-color: var(--hover-quiet);
   color: var(--contrast-foreground);
+}
+
+/* 卡片环统一取 --border：rt 原生 surface 环是 gray-a5，与其它卡片并排会一淡一实 */
+.rt-Card:where(.rt-variant-surface) {
+  --base-card-surface-box-shadow: 0 0 0 1px var(--border);
 }
 
 /* Reka 与 rt 对浮层用的 CSS 变量前缀不同：rt 的组件 CSS 读 --radix-*，

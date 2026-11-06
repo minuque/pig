@@ -191,7 +191,7 @@ function sourceKind(provider: ProviderView) {
 }
 
 .provider-row + .provider-row {
-  border-block-start: var(--border-width) solid var(--border-subtle);
+  border-block-start: var(--border-width) solid var(--border-soft);
 }
 
 .provider-row:hover {
@@ -228,7 +228,7 @@ function sourceKind(provider: ProviderView) {
   align-items: center;
   height: 16px;
   padding-inline: 5px;
-  border: var(--border-width) solid var(--border-subtle);
+  border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-sm);
   background: var(--hover-quiet);
   color: var(--contrast-foreground-muted);

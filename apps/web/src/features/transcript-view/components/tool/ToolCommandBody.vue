@@ -95,7 +95,7 @@ watch(
   padding: var(--space-xs) 0 var(--space-xs) var(--space-sm);
   border-radius: var(--radius-md);
   background: var(--code-background);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-soft);
   color: var(--code-foreground);
   font-family: var(--font-mono);
   font-size: var(--text-code);

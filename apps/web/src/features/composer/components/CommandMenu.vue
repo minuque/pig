@@ -148,7 +148,7 @@ watch(
 
 .command-group + .command-group {
   margin-top: var(--space-xxs);
-  border-top: var(--border-width) solid var(--border-subtle);
+  border-top: var(--border-width) solid var(--border-soft);
   padding-top: var(--space-xxs);
 }
 

@@ -140,7 +140,7 @@ async function copy(text: string) {
   gap: var(--space-sm);
   margin-block-start: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  border: var(--border-width) solid var(--border-subtle);
+  border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-lg);
   background: var(--card);
 }
@@ -230,7 +230,7 @@ async function copy(text: string) {
 .login-form select {
   height: 30px;
   padding-inline: var(--space-sm);
-  border: var(--border-width) solid var(--border-subtle);
+  border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-md);
   background: var(--background);
   color: var(--contrast-foreground);

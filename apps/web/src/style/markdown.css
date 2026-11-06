@@ -96,13 +96,13 @@
   --code-header-bg: var(--code-background);
   --diagram-bg: var(--code-background);
   --diagram-header-bg: var(--code-background);
-  --diagram-border: var(--border-subtle);
-  --code-border: var(--border-subtle);
+  --diagram-border: var(--border-soft);
+  --code-border: var(--border-soft);
   --inline-code-bg: var(--code-background);
   --inline-code-fg: var(--code-foreground);
-  --blockquote-border: var(--border);
+  --blockquote-border: var(--border-soft);
   --blockquote-fg: var(--contrast-foreground-muted);
-  --table-border: var(--border);
+  --table-border: var(--border-soft);
   --focus-ring: transparent;
   --link-color: var(--link);
 
@@ -165,7 +165,7 @@
 
   /* cc-wrapper：hr 上边框 1px，间距由 node-slot 统一给 */
   .hr-node {
-    border-top: var(--border-width) solid var(--border);
+    border-top: var(--border-width) solid var(--border-soft);
   }
 
   /* h4/h5 与加粗同级，h6 弱化 */
@@ -192,7 +192,7 @@
   .inline-code {
     font-size: var(--text-meta);
     color: color-mix(in srgb, var(--link) 75%, var(--contrast-foreground-secondary));
-    border: var(--border-width) solid var(--border-subtle);
+    border: var(--border-width) solid var(--border-soft);
     border-radius: var(--radius-xs);
     /* 上下不留内边距：行内码几乎与行盒等高，多 2px 就会和上下行的码贴在一起 */
     padding: 0 calc(var(--space-xxs) - var(--border-width));
@@ -204,13 +204,13 @@
     --markstream-code-fallback-bg: var(--code-background) !important;
     --markstream-pre-resolved-theme-bg: var(--code-background) !important;
     /* 库用内联 border-color 取这个变量 */
-    --markstream-code-border-color: var(--border);
+    --markstream-code-border-color: var(--border-soft);
 
     /* 代码正文与自建步骤卡的代码区同档：--text-code / --text-code-line */
     font-size: var(--text-code);
     line-height: var(--text-code-line);
 
-    border: var(--border-width) solid var(--border) !important;
+    border: var(--border-width) solid var(--border-soft) !important;
     box-shadow: none;
   }
 
@@ -242,11 +242,9 @@
 
   /* ------ mermaid：保留卡片外壳，工具条常驻显示 ------ */
   .mermaid-block-container {
-    --diagram-border: var(--border);
-
     background: var(--code-background);
     color: var(--code-foreground);
-    border: var(--border-width) solid var(--border) !important;
+    border: var(--border-width) solid var(--border-soft) !important;
   }
 
   .mermaid-preview-area,

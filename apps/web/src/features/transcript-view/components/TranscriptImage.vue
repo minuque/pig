@@ -58,7 +58,7 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   display: block;
   height: auto;
   border-radius: inherit;
-  outline: var(--border-width) solid var(--media-outline);
+  outline: var(--border-width) solid var(--border-soft);
   outline-offset: -1px;
 }
 

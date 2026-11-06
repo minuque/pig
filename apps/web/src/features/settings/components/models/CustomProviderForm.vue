@@ -312,7 +312,7 @@ async function remove() {
   align-items: center;
   height: 18px;
   padding-inline: 6px;
-  border: var(--border-width) solid var(--border-subtle);
+  border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-sm);
   background: var(--hover-quiet);
   color: var(--contrast-foreground-muted);
@@ -387,7 +387,7 @@ async function remove() {
 .select-input {
   height: 24px;
   padding-inline: var(--space-xs);
-  border: var(--border-width) solid var(--border-subtle);
+  border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-md);
   background: var(--background);
   color: var(--contrast-foreground);

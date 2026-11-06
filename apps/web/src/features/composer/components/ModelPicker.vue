@@ -477,7 +477,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   align-items: center;
   gap: var(--space-xxs);
   padding: var(--space-xxs) var(--space-xs);
-  border-bottom: var(--border-width) solid var(--border);
+  border-bottom: var(--border-width) solid var(--border-soft);
   overflow-x: auto;
   scrollbar-width: none;
 }

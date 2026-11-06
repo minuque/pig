@@ -137,7 +137,7 @@ function reset() {
   flex-direction: column;
   gap: var(--space-xxs);
   padding: var(--space-xxs) var(--space-xs) var(--space-xs);
-  border-top: var(--border-width) solid var(--border);
+  border-top: var(--border-width) solid var(--border-soft);
 }
 
 .effort-head {

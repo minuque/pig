@@ -91,14 +91,14 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 
 <style scoped>
 .model-list {
-  border: var(--border-width) solid var(--border-subtle);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
   background: var(--card);
   overflow: hidden;
 }
 
 .model-card + .model-card {
-  border-block-start: var(--border-width) solid var(--border-subtle);
+  border-block-start: var(--border-width) solid var(--border-soft);
 }
 
 .model-row {

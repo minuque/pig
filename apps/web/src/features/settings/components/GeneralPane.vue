@@ -295,7 +295,7 @@ function onContrast(value: number[] | undefined) {
   display: flex;
   overflow: hidden;
   height: 6.5rem;
-  border: var(--border-width) solid var(--border-subtle);
+  border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-lg);
   background: var(--theme-wire-light);
 }

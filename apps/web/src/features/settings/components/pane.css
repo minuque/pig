@@ -40,7 +40,7 @@
 }
 
 .row + .row {
-  border-top: var(--border-width) solid var(--border-subtle);
+  border-top: var(--border-width) solid var(--border-soft);
 }
 
 .copy {

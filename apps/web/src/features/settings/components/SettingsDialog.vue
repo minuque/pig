@@ -368,7 +368,7 @@ watch(active, async () => {
   gap: var(--space-xxs);
   width: var(--size-settings-dialog-nav);
   padding: var(--space-sm) var(--space-xs);
-  border-inline-end: var(--border-width) solid var(--border-subtle);
+  border-inline-end: var(--border-width) solid var(--border-soft);
   background: var(--background);
   user-select: none;
 }
@@ -532,7 +532,7 @@ watch(active, async () => {
   gap: var(--space-xs);
   height: 3rem;
   padding-inline: calc(var(--space-md) + var(--space-xxs)) var(--space-xs);
-  border-block-end: var(--border-width) solid var(--border-subtle);
+  border-block-end: var(--border-width) solid var(--border-soft);
 }
 
 .settings-dialog .settings-crumbs {

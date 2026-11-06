@@ -17,8 +17,8 @@ colors:
   ink-secondary: "#5c5c5c"
   ink-muted: "#6e6e6e"
   ink-faint: "#767676"
-  hairline: "rgba(0, 0, 47, 0.15)"
-  hairline-subtle: "rgba(0, 9, 50, 0.12)"
+  border: "rgba(0, 0, 47, 0.15)"
+  border-soft: "rgba(0, 9, 50, 0.12)"
   inverse-ink: "#1b1b1b"
   success-fern: "#15803d"
   warning-amber: "#a16207"
@@ -164,7 +164,7 @@ components:
 
 **Key Characteristics:**
 
-- 单一实底卡片承载工作区，四周 8px 留白，1px radix 灰阶描边（`--border-subtle`），12px 圆角。卡底与描边都由 rt Card 的伪元素画（`::before` 底、`::after` 1px 环，圆角是画出来的曲线）；环抬到 `z-index: 4`，否则会被卡片内 `z-index: 2/3` 的头部与浮层盖掉上下两边。
+- 单一实底卡片承载工作区，四周 8px 留白，1px radix 灰阶描边（`--border`），12px 圆角。卡底与描边都由 rt Card 的伪元素画（`::before` 底、`::after` 1px 环，圆角是画出来的曲线）；环抬到 `z-index: 4`，否则会被卡片内 `z-index: 2/3` 的头部与浮层盖掉上下两边。rt 原生 surface 环取 gray-a5，在 `rt.css` 里改指 `--border`，让同页卡片一个色。
 - 表面之间只差一档亮度；层级用位置、描边与遮罩，不用阴影。
 - 浮层统一磨砂玻璃：`#ffffff` 80% 不透明度 + `blur(16px)` + `saturate(1.14)`。
 - 中性结构 + 稀用强调色 + 独立语义色，三者互不越界。
@@ -193,7 +193,7 @@ components:
 - **悬停洗涤** (#e8e8eb) 与 **选中洗涤** (#e6e6e8)：`--interaction-hover` 与 `--sidebar-selected`。列表行与图标按钮的两种态，深色下 `#26262b` 与 `#2c2c31`。
 - **墨** (#1b1b1b)：`--foreground`，正文与标题，深色下 `#e3e4e6`。
 - **次墨** (#5c5c5c) / **弱墨** (#6e6e6e) / **淡墨** (#767676)：`--foreground-secondary`、`--foreground-muted`、`--foreground-faint`，组成四档文字层级；占位文字由淡墨 62% 混出，是第五档，只给 placeholder。
-- **描边** 与 **弱描边**：`--border` 与 `--border-subtle` 直接取 radix 的 alpha 灰阶（浅色 gray-a6 `rgba(0,0,47,.15)`、gray-a5 `rgba(0,9,50,.12)`，深色随色板自动切）。对话框、表格用前者，工作台卡片与工具步骤卡用后者。不再维护独立色值，也不写深色覆盖。
+- **描边** 与 **弱描边**：只有 `--border` 与 `--border-soft` 两个，直接取 radix 的 alpha 灰阶（浅色 gray-a6 `rgba(0,0,47,.15)`、gray-a5 `rgba(0,9,50,.12)`，深色随色板自动切）。卡片、对话框、面板与表格用前者；分隔线、井槽、输入框与媒体描边用后者。不再维护独立色值，也不写深色覆盖。
 - **反色墨** (#1b1b1b)：`--inverse-background`，反色主按钮的底；深色下换成 `#fafafa`。
 
 ### Tertiary
@@ -289,7 +289,7 @@ Windows 自画三个窗控（总宽 138px，单钮高 44px，头部右侧让出 
 
 输入卡是唯一有专属形状的部件：32px 圆角（`--composer-radius`）配 `corner-shape: superellipse(1.5)`，比 `squircle` 关键字更克制一档，形成连续曲率的鹅卵石轮廓。同一套角部形状也给菜单浮层用，两者看起来属于同一个家族。
 
-描边一律 1px（`--border-width`）。结构描边用 `--border`（#d0d0d0），卡片与步骤卡用 `--border-subtle`（#dedede），发丝线用 `hsl(0 0% 0% / 0.12)`（深色为白 0.16）。不使用 2px 或更粗的边框来表达状态，状态交给颜色与图标。
+描边一律 1px（`--border-width`）。卡片、对话框、面板与表格用 `--border`（浅色 gray-a6 ≈ 15%，深色 ≈ 19%），分隔线、井槽、输入框与媒体描边用 `--border-soft`（浅色 ≈ 12%，深色 ≈ 14%）。不使用 2px 或更粗的边框来表达状态，状态交给颜色与图标。
 
 **The One Radius Rule.** 半径只从派生刻度取，SFC 里不写裸 `px` 半径。ic 按钮、行、卡片、浮层各自对应一档，需要新档先补 `tokens.css`。
 
@@ -329,7 +329,7 @@ Windows 自画三个窗控（总宽 138px，单钮高 44px，头部右侧让出 
 
 - **正文列:** 最大宽 680px（可调），居中；行高 1.6。
 - **User Message:** 右对齐，底 `--user-prompt-background`（#e8e8ea），圆角 8px，内边距 8px × 12px，最宽 90%。
-- **Tool Steps:** 每次工具调用一张卡：1px `--border-subtle` 描边、12px 圆角、`--shadow-card`、头行 28px 带图标与状态；读文件与编辑卡最多预览 8 行，超出的折叠成"展开"。
+- **Tool Steps:** 每次工具调用一张卡：1px `--border` 描边、12px 圆角、`--shadow-card`、头行 28px 带图标与状态；读文件与编辑卡最多预览 8 行，超出的折叠成"展开"。
 - **Diff / Tables:** 表格 1px `--border` 描边、表头 `--code-background` 底；diff 增行 `--success` 88% 混纸白，删行 `--danger` 88% 混纸白。
 - **Inline / Block Code:** mono 13px / 24.5px，底色 `--code-background`，块圆角 `0.65rem`，带复制与行号按钮。
 - **状态:** 思考、工具执行、等待之间用灰阶文字阶梯表达，不做彩色进度条；运行时长与 token 数用 Meta 档。

@@ -176,7 +176,7 @@ function activate(index: number) {
   min-width: 0;
   height: 52px;
   padding-inline: var(--space-md);
-  border-bottom: var(--border-width) solid var(--hairline);
+  border-bottom: var(--border-width) solid var(--border-soft);
 }
 
 .search-lead {

@@ -61,7 +61,6 @@
   --code-background: #f6f6f6;
   --code-foreground: #1b1b1b;
   --composer-background: #f4f4f5;
-  --composer-border: rgb(0 0 0 / 0.08);
   --user-prompt-background: #e8e8ea;
   --popover: #ffffff;
   --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
@@ -132,15 +131,12 @@
   /* 根上派生，不能引用只在 .radix-themes 里定义的 --border-* */
   --effort-track: color-mix(in srgb, var(--foreground) 10%, transparent);
   --link: var(--accent-11);
-  --media-outline: rgba(0, 0, 0, 0.1);
   --scrollbar-color: #dad8d8;
 
   /* 滚动边缘渐隐：类只选带宽，颜色由 mask 决定 */
   --edge-fade-band: 24px;
   --edge-fade-menu-band: 12px;
 
-  --card-border: hsl(210 18% 32% / 0.1);
-  --hairline: hsl(0 0% 0% / 0.12);
   /* 输入卡投影：浅色专用的软阴影；深色靠内高光分层 */
   --composer-shadow: 0 12px 28px -18px rgb(0 0 0 / 40%);
   --composer-highlight: transparent;
@@ -408,7 +404,6 @@ html[data-pig-desktop-platform="darwin"] {
   --code-background: #1a1a1c;
   --code-foreground: #e3e4e6;
   --composer-background: #27272a;
-  --composer-border: rgb(255 255 255 / 0.08);
   --user-prompt-background: #262628;
   --popover: #1c1c1f;
   --code-surface: color-mix(in srgb, var(--foreground) 5%, var(--card));
@@ -433,7 +428,6 @@ html[data-pig-desktop-platform="darwin"] {
   --effort-track: var(--hover-strong);
   --link: var(--accent-11);
   --mermaid-accent: var(--accent-11);
-  --media-outline: rgba(255, 255, 255, 0.1);
   --scrollbar-color: #3a3a40;
   --button-press: color-mix(in srgb, var(--foreground) 30%, transparent);
 
@@ -463,8 +457,6 @@ html[data-pig-desktop-platform="darwin"] {
     0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
     0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.28);
-  --card-border: hsl(210 18% 78% / 0.09);
-  --hairline: hsl(0 0% 100% / 0.16);
 
   --inverse-background: #fafafa;
   --inverse-background-hover: #ffffff;

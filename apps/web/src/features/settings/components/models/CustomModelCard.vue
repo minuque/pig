@@ -90,7 +90,7 @@ const open = ref(!model.value.id)
 
 <style scoped>
 .model-card {
-  border: var(--border-width) solid var(--border-subtle);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--card);
 }
