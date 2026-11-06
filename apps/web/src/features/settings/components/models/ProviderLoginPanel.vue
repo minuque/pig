@@ -9,7 +9,7 @@
     <p v-if="state.instruction" class="login-note">{{ state.instruction }}</p>
     <p v-if="state.progress" class="login-note">{{ state.progress }}</p>
 
-    <a
+    <Link
       v-for="link in state.links"
       :key="link"
       class="login-link"
@@ -19,7 +19,7 @@
     >
       {{ t("settings.models.openAuthPage") }}
       <LinkMinimalisticIcon />
-    </a>
+    </Link>
 
     <div v-for="code in state.deviceCodes" :key="code.userCode" class="device-row">
       <span class="device-code">{{ code.userCode }}</span>
@@ -36,9 +36,15 @@
         <CopyIcon v-else />
       </IconButton>
 
-      <a class="device-uri" :href="code.verificationUri" target="_blank" rel="noopener noreferrer">
+      <Link
+        class="device-uri"
+        :href="code.verificationUri"
+        target="_blank"
+        rel="noopener noreferrer"
+        truncate
+      >
         {{ code.verificationUri }}
-      </a>
+      </Link>
     </div>
 
     <form v-if="state.prompt" class="login-form" @submit.prevent="submit">
@@ -85,6 +91,7 @@
 import { computed, ref, watch } from "vue"
 
 import { Button, IconButton } from "@components/ui/button/index.js"
+import { Link } from "@components/ui/link/index.js"
 import {
   CheckIcon,
   CopyIcon,
@@ -208,11 +215,8 @@ async function copy(text: string) {
 }
 
 .device-uri {
-  overflow: hidden;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .login-form {

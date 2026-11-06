@@ -130,3 +130,19 @@
 .rt-AlertDialogTitle {
   margin-block-end: var(--space-3);
 }
+
+/* 链接颜色：rt 只在元素自带 data-accent-color 时才上 accent 色，而项目的 accent 挂在 html 上，
+   逐处传色不现实，所以不传 color 的链接统一取 --link。
+   第一档 0-1-0（与 rt 同档、写在其后，保留调用方 scoped 类能压的约定）；
+   传了 color 时由 0-2-0 的两档接回 rt 的 accent-11 / accent-12。 */
+.rt-Link {
+  color: var(--link);
+}
+
+.rt-Link[data-accent-color] {
+  color: var(--accent-a11);
+}
+
+.rt-Link[data-accent-color].rt-high-contrast {
+  color: var(--accent-12);
+}

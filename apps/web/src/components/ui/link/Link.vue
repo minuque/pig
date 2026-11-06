@@ -9,7 +9,7 @@
       sizeClass,
       weightClass,
       underlineClass,
-      { 'rt-truncate': truncate },
+      truncate && 'truncate',
       highContrast && 'rt-high-contrast',
       props.class,
     ]"
@@ -32,12 +32,12 @@ const props = withDefaults(
   defineProps<
     PrimitiveProps & {
       class?: HTMLAttributes["class"]
-      /** 字号档：s、m、l */
+      /** 字号档：s、m、l；不传跟父级字号走（与 rt 的 Text 一致，正文内链不会跳出字号） */
       size?: Size
       weight?: "regular" | "medium" | "bold"
       /** auto 只在 hover 时出下划线；always 常驻；none 不出 */
       underline?: "auto" | "always" | "hover" | "none"
-      /** accent 色：不传跟随主题 */
+      /** accent 色：不传取 --link（见 style/rt.css） */
       color?: string
       highContrast?: boolean
       truncate?: boolean
@@ -46,15 +46,15 @@ const props = withDefaults(
   {
     as: "a",
     asChild: false,
-    size: "m",
-    weight: "regular",
     underline: "auto",
     highContrast: false,
     truncate: false,
     class: undefined,
   },
 )
-const sizeClass = computed(() => rtSizeClass(props.size))
-const weightClass = computed(() => `rt-r-weight-${props.weight}`)
+const WEIGHT_CLASS = { regular: "font-normal", medium: "font-medium", bold: "font-bold" } as const
+const sizeClass = computed(() => (props.size ? rtSizeClass(props.size) : undefined))
+/* rt 的字重与截断类在未引入的 utilities.css 里，用项目自己的原子类顶上 */
+const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : undefined))
 const underlineClass = computed(() => `rt-underline-${props.underline}`)
 </script>

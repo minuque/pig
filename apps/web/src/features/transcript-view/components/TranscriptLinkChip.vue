@@ -1,7 +1,14 @@
 <template>
   <Tooltip>
     <TooltipTrigger as-child>
-      <a class="link-chip" :href="url" target="_blank" rel="noopener noreferrer">
+      <Link
+        class="link-chip"
+        :href="url"
+        target="_blank"
+        rel="noopener noreferrer"
+        weight="medium"
+        underline="hover"
+      >
         <svg v-if="chip.isGitHub" class="icon" viewBox="0 0 16 16" aria-hidden="true">
           <path
             fill="currentColor"
@@ -20,7 +27,7 @@
 
         <LinkMinimalisticIcon v-else class="icon" aria-hidden="true" />
         <span class="label">{{ text }}</span>
-      </a>
+      </Link>
     </TooltipTrigger>
 
     <TooltipContent>{{ url }}</TooltipContent>
@@ -29,6 +36,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
+import { Link } from "@components/ui/link/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
   describeLinkChip,
@@ -76,16 +84,8 @@ function onIconError(): void {
   align-items: baseline;
   max-width: 100%;
   margin-inline: 0.15em;
-  color: var(--link);
-  font-weight: var(--font-weight-medium);
   line-height: inherit;
-  text-decoration: none;
   vertical-align: baseline;
-}
-
-.link-chip:hover {
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
 }
 
 .icon {
