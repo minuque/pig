@@ -3,7 +3,7 @@
     data-slot="select-trigger"
     :data-accent-color="color"
     :data-radius="radius"
-    v-bind="forwarded"
+    v-bind="{ ...forwarded, ...$attrs }"
     class="rt-reset rt-SelectTrigger"
     :class="[sizeClass, variantClass, props.class]"
   >

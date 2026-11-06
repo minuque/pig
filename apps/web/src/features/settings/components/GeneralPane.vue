@@ -42,16 +42,17 @@
             <p class="hint">{{ t("settings.languageHint") }}</p>
           </div>
 
-          <SegmentedControl
-            :model-value="locale"
-            size="s"
-            :aria-label="t('settings.language')"
-            @update:model-value="onLocale"
-          >
-            <SegmentedControlItem v-for="option in locales" :key="option.id" :value="option.id">
-              {{ option.label }}
-            </SegmentedControlItem>
-          </SegmentedControl>
+          <Select :model-value="locale" size="s" @update:model-value="onLocale">
+            <SelectTrigger class="setting-select" :aria-label="t('settings.language')">
+              {{ localeLabel }}
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem v-for="option in locales" :key="option.id" :value="option.id">
+                {{ option.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div id="setting-font-size" class="row">
@@ -83,16 +84,17 @@
             <p class="hint">{{ t("settings.chatWidthHint") }}</p>
           </div>
 
-          <SegmentedControl
-            :model-value="chatWidth"
-            size="s"
-            :aria-label="t('settings.chatWidth')"
-            @update:model-value="onChatWidth"
-          >
-            <SegmentedControlItem v-for="option in widths" :key="option.id" :value="option.id">
-              {{ option.label }}
-            </SegmentedControlItem>
-          </SegmentedControl>
+          <Select :model-value="chatWidth" size="s" @update:model-value="onChatWidth">
+            <SelectTrigger class="setting-select" :aria-label="t('settings.chatWidth')">
+              {{ widthLabel }}
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem v-for="option in widths" :key="option.id" :value="option.id">
+                {{ option.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div id="setting-accent" class="row">
@@ -156,6 +158,7 @@ import {
 } from "@features/theme/lib/accents.js"
 import { accentHex } from "@features/theme/lib/palette.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { CheckIcon } from "@components/icons/index.js"
 
@@ -191,11 +194,12 @@ function wireTone(id: ColorScheme): "light" | "dark" | "split" {
   return isDark.value ? "split" : "light"
 }
 
-const schemes: { id: ColorScheme; label: string }[] = [
+/* 列表文案随语言切换，必须走 computed；setup 里一次性求值会在切语言后停住 */
+const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   { id: "auto", label: t("settings.schemeAuto") },
   { id: "light", label: t("settings.schemeLight") },
   { id: "dark", label: t("settings.schemeDark") },
-]
+])
 
 /** 分段控件只给字符串，转回各自的联合类型 */
 function onLocale(value: string) {
@@ -210,20 +214,27 @@ function onChatWidth(value: string) {
   setChatWidth(value as ChatWidth)
 }
 
-const locales: { id: UiLocale; label: string }[] = [
+const locales = computed<{ id: UiLocale; label: string }[]>(() => [
   { id: "en", label: "English" },
   { id: "zh-CN", label: t("settings.zhCN") },
-]
-const sizes: { id: FontSize; mark: string; label: string }[] = [
+])
+const sizes = computed<{ id: FontSize; mark: string; label: string }[]>(() => [
   { id: "s", mark: "S", label: t("settings.fontSizeS") },
   { id: "m", mark: "M", label: t("settings.fontSizeM") },
   { id: "l", mark: "L", label: t("settings.fontSizeL") },
-]
-const widths: { id: ChatWidth; label: string }[] = [
+])
+const widths = computed<{ id: ChatWidth; label: string }[]>(() => [
   { id: "comfortable", label: t("settings.chatWidthComfortable") },
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
-]
+])
+/* 触发器文案自己算：SelectValue 缓存的选中项文字不会跟着切语言更新 */
+const localeLabel = computed(
+  () => locales.value.find((option) => option.id === locale.value)?.label ?? "",
+)
+const widthLabel = computed(
+  () => widths.value.find((option) => option.id === chatWidth.value)?.label ?? "",
+)
 </script>
 
 <style scoped src="./pane.css"></style>
