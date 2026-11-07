@@ -1,0 +1,254 @@
+<template>
+  <div class="overview">
+    <p class="overview-note">
+      <code>style/tokens.css</code>
+      +
+      <code>style/rt.css</code>
+      ·
+      {{
+        locale === "en" ? "live values, follow theme and font size" : "实时读取，跟随主题与字号档"
+      }}
+    </p>
+
+    <section v-for="group in groups" :key="group.id" class="group">
+      <h2 class="group-title">
+        {{ locale === "en" ? group.title.en : group.title.zh }}
+        <span class="group-count">{{ group.tokens.length }}</span>
+      </h2>
+
+      <div class="grid" :data-kind="group.id">
+        <div v-for="token in group.tokens" :key="token.name" class="token" :title="token.value">
+          <div
+            v-if="VISUAL.has(group.id)"
+            class="sample"
+            :data-kind="group.id"
+            :style="sampleStyle(group.id, token.name)"
+          >
+            <template v-if="group.id === 'text'">界面 Aa 123</template>
+            <template v-else-if="group.id === 'font'">{{ fontSample(token.name) }}</template>
+          </div>
+
+          <div class="token-name">{{ token.name }}</div>
+          <div class="token-value">{{ token.value }}</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, nextTick, onMounted, ref, watch } from "vue"
+import rtCss from "@style/rt.css?raw"
+import tokensCss from "@style/tokens.css?raw"
+import { useColorScheme } from "@features/theme/index.js"
+import { useGeneralPrefs } from "@features/settings/index.js"
+import type { Label } from "@features/design-lab/lib/nav.js"
+
+type GroupId =
+  | "color"
+  | "text"
+  | "leading"
+  | "font"
+  | "space"
+  | "radius"
+  | "shadow"
+  | "size"
+  | "layout"
+  | "layer"
+  | "material"
+  | "motion"
+  | "other"
+
+type Token = { name: string; value: string }
+
+const GROUPS: { id: GroupId; title: Label }[] = [
+  { id: "color", title: { zh: "颜色", en: "Color" } },
+  { id: "text", title: { zh: "字号", en: "Font size" } },
+  { id: "leading", title: { zh: "行高与字距", en: "Line height & tracking" } },
+  { id: "font", title: { zh: "字体与字重", en: "Font & weight" } },
+  { id: "space", title: { zh: "间距", en: "Spacing" } },
+  { id: "radius", title: { zh: "圆角", en: "Radius" } },
+  { id: "shadow", title: { zh: "阴影与描边", en: "Shadow & stroke" } },
+  { id: "size", title: { zh: "尺寸", en: "Size" } },
+  { id: "layout", title: { zh: "布局", en: "Layout" } },
+  { id: "layer", title: { zh: "层级", en: "Layers" } },
+  { id: "material", title: { zh: "材质与透明度", en: "Material & opacity" } },
+  { id: "motion", title: { zh: "动效", en: "Motion" } },
+  { id: "other", title: { zh: "其他", en: "Other" } },
+]
+const PREFIX: [RegExp, GroupId][] = [
+  [/^--text-.*--/, "leading"],
+  [/^--text-/, "text"],
+  [/^--(default-)?font-/, "font"],
+  [/^--spac(e|ing)/, "space"],
+  [/radius/, "radius"],
+  [/^--(shadow|divider|focus-ring|composer-shadow)/, "shadow"],
+  [/^--(size|line-icon|border-width|solar|icon-button|startup-logo)/, "size"],
+  [/^--(transcript|header|titlebar|edge-fade|corner)/, "layout"],
+  [/^--z-/, "layer"],
+  [/^--(glass|material|opacity|contrast-boost)/, "material"],
+  [/^--(duration|ease)/, "motion"],
+]
+// 有可视样例的分组；其余只列名字和值
+const VISUAL = new Set<GroupId>(["color", "text", "font", "space", "radius", "shadow", "size"])
+// 只收根作用域里的声明：.dark 与字号档是同名覆盖，不另列
+const NAMES = [...new Set([...declared(tokensCss), ...declared(rtCss)])]
+const { isDark, accent } = useColorScheme()
+const { fontSize, locale } = useGeneralPrefs()
+const values = ref<Token[]>([])
+const groups = computed(() =>
+  GROUPS.map((group) => ({
+    ...group,
+    tokens: values.value.filter((token) => groupOf(token) === group.id),
+  })).filter((group) => group.tokens.length > 0),
+)
+
+function declared(css: string): string[] {
+  const blocks = css.match(/(?::root|\.radix-themes)\s*\{[^}]*\}/g) ?? []
+  return blocks.flatMap((block) =>
+    [...block.matchAll(/^\s*(--[\w-]+)\s*:/gm)].map((match) => match[1]!),
+  )
+}
+
+function groupOf(token: Token): GroupId {
+  const hit = PREFIX.find(([pattern]) => pattern.test(token.name))
+
+  if (hit) return hit[1]
+  return CSS.supports("color", token.value) ? "color" : "other"
+}
+
+function read() {
+  const root = document.querySelector("[data-is-root-theme]") ?? document.documentElement
+  const style = getComputedStyle(root)
+  values.value = NAMES.map((name) => ({ name, value: style.getPropertyValue(name).trim() })).filter(
+    (token) => token.value !== "",
+  )
+}
+
+function sampleStyle(group: GroupId, name: string): Record<string, string> {
+  const ref = `var(${name})`
+  const styles: Partial<Record<GroupId, Record<string, string>>> = {
+    color: { background: ref },
+    text: { fontSize: ref },
+    font: name.includes("weight") ? { fontWeight: ref } : { fontFamily: ref },
+    space: { width: ref },
+    radius: { borderRadius: ref },
+    shadow: { boxShadow: ref },
+    size: { width: `min(${ref}, 100%)` },
+  }
+  return styles[group] ?? {}
+}
+
+function fontSample(name: string): string {
+  return name.includes("mono") ? "const pig = 1" : "工作台 Workbench"
+}
+
+onMounted(read)
+
+watch([isDark, accent, fontSize], () => nextTick(read))
+</script>
+
+<style scoped>
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxl);
+}
+
+.overview-note {
+  margin: 0;
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-meta);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.group-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.group-count {
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-meta);
+  font-weight: var(--font-weight-normal);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-sm);
+}
+
+.grid:is([data-kind="text"], [data-kind="font"], [data-kind="space"], [data-kind="size"]) {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.token {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxs);
+  min-width: 0;
+  padding: var(--space-sm);
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 0 var(--border-width) var(--border-soft);
+}
+
+.sample {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  margin-block-end: var(--space-xxs);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sample[data-kind="color"] {
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-soft);
+}
+
+.sample:is([data-kind="radius"], [data-kind="shadow"]) {
+  width: 56px;
+  height: 40px;
+  border: var(--border-width) solid var(--border);
+  background: var(--card);
+}
+
+.sample[data-kind="shadow"] {
+  border: 0;
+}
+
+.sample:is([data-kind="space"], [data-kind="size"]) {
+  min-height: 12px;
+  height: 12px;
+  border-radius: var(--radius-2xs);
+  background: var(--primary);
+}
+
+.token-name,
+.token-value {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.token-name {
+  color: var(--contrast-foreground);
+  font-size: var(--text-meta);
+}
+
+.token-value {
+  color: var(--contrast-foreground-muted);
+  font-size: var(--text-micro);
+}
+</style>

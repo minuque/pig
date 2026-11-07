@@ -37,6 +37,8 @@
   /* 卡片内的行间分隔：和卡片外环、rt 表格行线同一画法，用内阴影而不是 border，
      非整数缩放下不被取整成一条实线 */
   --divider-top: inset 0 var(--border-width) 0 var(--border-soft);
+  /* 卡片与 surface 表格的底色，默认不铺底 */
+  --card-surface: transparent;
 }
 
 /* 菜单尺寸：弹层用 rt 的 m 档（28px 行 / 13px 字），内边距收到 s 档。
@@ -98,14 +100,14 @@
 
 .rt-Card:where(.rt-variant-surface) {
   --base-card-surface-box-shadow: 0 0 0 1px var(--border);
-  --card-background-color: transparent;
+  --card-background-color: var(--card-surface);
 }
 
 .rt-TableRoot:where(.rt-variant-surface) {
   --table-border-radius: var(--radius-card);
 
   border-color: var(--border);
-  background-color: transparent;
+  background-color: var(--card-surface);
   backdrop-filter: none;
 }
 
