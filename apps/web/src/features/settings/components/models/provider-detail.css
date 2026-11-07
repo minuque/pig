@@ -81,9 +81,6 @@
 
 .kvgroup {
   padding: 2px var(--space-sm);
-  border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-lg);
-  background: var(--card);
 }
 
 .kvrow {

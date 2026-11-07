@@ -3,7 +3,7 @@
     <section class="group">
       <h2 class="group-title">{{ t("settings.notifications") }}</h2>
 
-      <div class="card">
+      <Card size="s" class="card">
         <div id="setting-notify-system" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.notifySystem") }}</h3>
@@ -29,7 +29,7 @@
             @update:model-value="toggleSound()"
           />
         </div>
-      </div>
+      </Card>
     </section>
   </section>
 </template>
@@ -39,6 +39,7 @@ import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import { Switch } from "@components/ui/switch/index.js"
+import { Card } from "@components/ui/card/index.js"
 
 const { t } = useI18n()
 const { enabled: soundOn, toggle: toggleSound } = useSound()

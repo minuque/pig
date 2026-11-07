@@ -1,5 +1,5 @@
 <template>
-  <div class="model-list">
+  <Card size="s" class="model-list">
     <p v-if="error" class="list-error">{{ error }}</p>
 
     <div v-for="model in provider.models" :key="model.id" class="model-card">
@@ -47,7 +47,7 @@
         />
       </Transition>
     </div>
-  </div>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -62,6 +62,7 @@ import { setModelEnabled } from "@client/platform.js"
 import { modelMeta } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
 import type { ProviderModelView, ProviderView } from "@/types/provider-type.js"
+import { Card } from "@components/ui/card/index.js"
 
 const props = defineProps<{ provider: ProviderView }>()
 const emit = defineEmits<{ changed: [] }>()
@@ -91,14 +92,11 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 
 <style scoped>
 .model-list {
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--card);
-  overflow: hidden;
+  padding: 0;
 }
 
 .model-card + .model-card {
-  border-block-start: var(--border-width) solid var(--border-soft);
+  box-shadow: var(--divider-top);
 }
 
 .model-row {

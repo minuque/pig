@@ -42,7 +42,7 @@
     <div v-for="group in groups" :key="group.id" class="provider-group">
       <h3 class="provider-group-title">{{ t(`settings.models.group.${group.id}`) }}</h3>
 
-      <div class="provider-card">
+      <Card size="s" class="provider-card">
         <button
           v-for="provider in group.providers"
           :key="provider.id"
@@ -72,7 +72,7 @@
 
           <AltArrowRightIcon class="provider-chevron" />
         </button>
-      </div>
+      </Card>
     </div>
 
     <p v-if="!loading && !groups.length" class="list-state">
@@ -91,6 +91,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
 import type { ProviderView } from "@/types/provider-type.js"
+import { Card } from "@components/ui/card/index.js"
 
 const props = defineProps<{
   providers: ProviderView[]
@@ -159,10 +160,7 @@ function sourceKind(provider: ProviderView) {
 }
 
 .provider-card {
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--background);
-  overflow: hidden;
+  padding: 0;
 }
 
 .provider-group + .provider-group {
@@ -191,7 +189,7 @@ function sourceKind(provider: ProviderView) {
 }
 
 .provider-row + .provider-row {
-  border-block-start: var(--border-width) solid var(--border-soft);
+  box-shadow: var(--divider-top);
 }
 
 .provider-row:hover {

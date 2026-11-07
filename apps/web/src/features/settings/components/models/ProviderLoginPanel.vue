@@ -1,5 +1,5 @@
 <template>
-  <div class="login-panel">
+  <Card size="s" class="login-panel">
     <div class="login-status" :data-state="state.phase">
       <LoaderIcon v-if="state.phase === 'running'" class="is-spinning" />
       <DangerCircleIcon v-else-if="state.phase === 'error'" />
@@ -84,7 +84,7 @@
     <div v-else class="login-actions">
       <Button size="s" variant="surface" @click="emit('cancel')">{{ t("common.cancel") }}</Button>
     </div>
-  </div>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -101,6 +101,7 @@ import {
 } from "@components/icons/index.js"
 import { useI18n } from "@i18n/index.js"
 import type { LoginState } from "@features/settings/lib/provider-login.js"
+import { Card } from "@components/ui/card/index.js"
 
 const props = defineProps<{ state: LoginState; kind: "api_key" | "oauth" }>()
 const emit = defineEmits<{ answer: [value: string]; cancel: [] }>()
@@ -142,14 +143,11 @@ async function copy(text: string) {
 
 <style scoped>
 .login-panel {
+  padding: var(--space-sm) var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
   margin-block-start: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-lg);
-  background: var(--card);
 }
 
 .login-status {

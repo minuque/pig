@@ -35,7 +35,7 @@
     <section class="group">
       <h2 class="group-title">{{ t("settings.interface") }}</h2>
 
-      <div class="card">
+      <Card size="s" class="card">
         <div id="setting-user-name" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.userName") }}</h3>
@@ -150,7 +150,7 @@
             @update:model-value="setTranslucentWindow"
           />
         </div>
-      </div>
+      </Card>
     </section>
   </section>
 </template>
@@ -178,6 +178,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui
 import { Switch } from "@components/ui/switch/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import { CheckIcon } from "@components/icons/index.js"
+import { Card } from "@components/ui/card/index.js"
 
 const { t } = useI18n()
 const { isDark, scheme, accent, setScheme, setAccent } = useColorScheme()

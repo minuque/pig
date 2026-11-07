@@ -22,12 +22,9 @@
 }
 
 .card {
+  padding: 0 var(--space-md);
   display: flex;
   flex-direction: column;
-  padding-inline: var(--space-md);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--background);
 }
 
 .row {
@@ -40,7 +37,7 @@
 }
 
 .row + .row {
-  border-top: var(--border-width) solid var(--border-soft);
+  box-shadow: var(--divider-top);
 }
 
 .copy {
