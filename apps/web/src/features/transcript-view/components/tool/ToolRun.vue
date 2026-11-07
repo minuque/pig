@@ -142,7 +142,6 @@ onBeforeUnmount(() => {
 .tool-run-time {
   flex: none;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 

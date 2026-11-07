@@ -1,6 +1,6 @@
 <template>
   <div class="tool-command-body">
-    <div v-if="commandLines.length" class="command-block">
+    <CodeCard v-if="commandLines.length" class="command-block">
       <CopyButton v-if="command" :text="command" />
 
       <div class="command-scroll">
@@ -10,7 +10,7 @@
           <code v-else class="command">{{ line }}</code>
         </div>
       </div>
-    </div>
+    </CodeCard>
 
     <ToolOutput :text="output" :images="call.outputImages" soft-wrap />
 
@@ -23,6 +23,7 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
+import CodeCard from "@features/transcript-view/components/CodeCard.vue"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import {
@@ -87,16 +88,15 @@ watch(
   min-width: 0;
 }
 
+/* 输入保留底色，和下方只描边的输出区分开 */
 .command-block {
+  --card-background-color: var(--code-background);
+
   position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
   padding: var(--space-xs) 0 var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-md);
-  background: var(--code-background);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-soft);
-  color: var(--code-foreground);
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);

@@ -1,7 +1,8 @@
 /* pele 主题：变量映射到项目 token，挂在图预览容器上。 */
 
 .mermaid-diagram {
-  --pele-bg: var(--mermaid-bg);
+  /* 图直接落在正文底上：边标签的遮底取页面底色 */
+  --pele-bg: var(--background);
   --pele-surface: var(--mermaid-bg);
   --pele-surface-alt: var(--mermaid-fill);
   --pele-fg: var(--mermaid-fg);

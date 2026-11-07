@@ -12,17 +12,26 @@
 </template>
 
 <script lang="ts">
+import { h, type FunctionalComponent } from "vue"
 import type { MarkdownDocument as ComarkDocument, Node } from "comark"
+import { TableBody, TableCell, TableHeader, TableRow } from "@components/ui/table/index.js"
 import MarkdownCodeBlock from "@features/transcript-view/components/markdown/MarkdownCodeBlock.vue"
 import MarkdownLink from "@features/transcript-view/components/markdown/MarkdownLink.vue"
 import MarkdownTable from "@features/transcript-view/components/markdown/MarkdownTable.vue"
 import RevealWords from "@features/transcript-view/components/markdown/RevealWords.vue"
 import { REVEAL_TAG } from "@features/transcript-view/lib/response-reveal.js"
 
+const ColumnHeaderCell: FunctionalComponent = (_, { attrs, slots }) =>
+  h(TableCell, { ...attrs, kind: "column-header" }, slots)
 const components = {
   pre: MarkdownCodeBlock,
   a: MarkdownLink,
   table: MarkdownTable,
+  thead: TableHeader,
+  tbody: TableBody,
+  tr: TableRow,
+  th: ColumnHeaderCell,
+  td: TableCell,
   [REVEAL_TAG]: RevealWords,
 }
 const documents = new WeakMap<object, ComarkDocument>()

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="code" class="tool-output is-code" :class="{ 'is-soft-wrap': softWrap }">
+  <CodeCard v-if="code" class="tool-output is-code" :class="{ 'is-soft-wrap': softWrap }">
     <CopyButton v-if="copyText" :text="copyText" />
 
     <div class="code-scroll">
@@ -15,13 +15,15 @@
     <button v-if="hiddenLines" type="button" class="show-all" @click="expanded = true">
       {{ t("transcript.showAllLines", { count: hiddenLines }) }}
     </button>
-  </div>
+  </CodeCard>
 
   <div v-else class="tool-output" :class="{ 'is-soft-wrap': softWrap }">
-    <CopyButton v-if="copyText" :text="copyText" />
-
     <template v-if="showText">
-      <pre class="tool-output-pre">{{ shownText }}</pre>
+      <!-- 卡片只画边框，滚动交给里面的 pre：卡片自己滚动时 rt 的边框伪元素会跟着滚走 -->
+      <CodeCard class="tool-output-card">
+        <CopyButton v-if="copyText" :text="copyText" />
+        <pre class="tool-output-pre">{{ shownText }}</pre>
+      </CodeCard>
 
       <button v-if="hiddenLines" type="button" class="show-all" @click="expanded = true">
         {{ t("transcript.showAllLines", { count: hiddenLines }) }}
@@ -42,6 +44,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
+import CodeCard from "@features/transcript-view/components/CodeCard.vue"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { type CodeTokens, vTokenLine } from "@features/transcript-view/lib/code-highlight.js"
@@ -112,13 +115,14 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
   font-size: var(--text-code);
 }
 
+.tool-output-card {
+  margin-top: var(--space-xxs);
+}
+
 .tool-output-pre {
-  position: relative;
-  margin: var(--space-xxs) 0 0;
+  margin: 0;
   padding: var(--space-sm);
   padding-inline-end: calc(var(--space-sm) + 22px);
-  border-radius: var(--radius-code);
-  background: var(--code-surface);
   color: var(--contrast-foreground-secondary);
   font-family: var(--font-mono);
   font-size: inherit;
@@ -182,7 +186,7 @@ code {
   width: 100%;
   padding: var(--space-xs) 0;
   border: 0;
-  border-top: var(--border-width) solid var(--border-soft);
+  box-shadow: var(--divider-top);
   background: transparent;
   color: var(--contrast-foreground);
   font: inherit;

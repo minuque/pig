@@ -1,27 +1,29 @@
-let seq = 0
-const svgCache = new Map<string, Promise<string>>()
-const SVG_CACHE_MAX = 32
+import type { DiagramType } from "pele/lazy"
 
-async function renderWithPele(source: string): Promise<string> {
-  const pele = await import("pele/lazy")
-  const type = pele.detectType(source)
+type Pele = typeof import("pele/lazy")
 
-  // pele 对未识别图型不抛错，这里拦下，交给调用方显示源码。
-  if (!type) throw new Error("unsupported-diagram")
-  await pele.load(type)
-  const result = await pele.renderAsync(source, { idPrefix: `md-mermaid-${++seq}` })
-  return result.svg
+let peleLoad: Promise<Pele> | null = null
+const typeLoads = new Map<DiagramType, Promise<boolean>>()
+
+/** 第一次遇到图时才加载 pele；每种图型单独分包，按需加载。 */
+export function loadPele(): Promise<Pele> {
+  peleLoad ??= import("pele/lazy")
+  return peleLoad
 }
 
-/** 第一次遇到图时才加载 pele（约 2.2MB）；同一源码只渲染一次。 */
-export function renderMermaid(source: string): Promise<string> {
-  const hit = svgCache.get(source)
+export async function loadDiagramType(pele: Pele, type: DiagramType): Promise<boolean> {
+  let load = typeLoads.get(type)
 
-  if (hit) return hit
-  const work = renderWithPele(source)
-  svgCache.set(source, work)
-  work.catch(() => svgCache.delete(source))
+  if (!load) {
+    load = pele.load(type)
+    typeLoads.set(type, load)
+  }
 
-  if (svgCache.size > SVG_CACHE_MAX) svgCache.delete(svgCache.keys().next().value ?? "")
-  return work
+  return await load
+}
+
+/** 流式中只取写完的行：末行常是半截语法，喂给 pele 必然解析失败。 */
+export function settledSource(source: string, live: boolean): string {
+  const text = live ? source.slice(0, source.lastIndexOf("\n") + 1) : source
+  return text.trim()
 }

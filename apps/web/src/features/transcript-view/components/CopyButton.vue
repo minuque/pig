@@ -1,16 +1,18 @@
 <template>
   <Tooltip>
     <TooltipTrigger as-child>
-      <button
+      <IconButton
         type="button"
+        size="s"
+        variant="ghost"
+        :color="status === 'error' ? 'red' : 'gray'"
         class="copy-button"
-        :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
         :aria-label="copyLabel"
         @click.stop="copy"
       >
-        <CopyIcon v-show="status !== 'copied'" />
-        <CheckIcon v-show="status === 'copied'" />
-      </button>
+        <CheckIcon v-if="status === 'copied'" class="size-icon" />
+        <CopyIcon v-else class="size-icon" />
+      </IconButton>
     </TooltipTrigger>
 
     <TooltipContent>{{ copyLabel }}</TooltipContent>
@@ -21,6 +23,7 @@
 import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { CheckIcon, CopyIcon } from "@components/icons/index.js"
 
@@ -52,48 +55,11 @@ async function copy() {
 </script>
 
 <style scoped>
+/* 默认贴在卡片右上角；放进工具条时由父级改回静态定位 */
 .copy-button {
   position: absolute;
+  z-index: 1;
   top: var(--space-xxs);
   inset-inline-end: var(--space-xxs);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-xs);
-  background: transparent;
-  color: var(--contrast-foreground-faint);
-  cursor: pointer;
-  opacity: 0.55;
-  z-index: 1;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out);
-}
-
-.copy-button svg {
-  width: 14px;
-  height: 14px;
-}
-
-.copy-button:hover,
-.copy-button:focus-visible {
-  background: var(--hover-quiet);
-  color: var(--contrast-foreground);
-  opacity: 1;
-}
-
-.copy-button.is-copied {
-  color: var(--success);
-  opacity: 1;
-}
-
-.copy-button.is-error {
-  color: var(--danger);
-  opacity: 1;
 }
 </style>

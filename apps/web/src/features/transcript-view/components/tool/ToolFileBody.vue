@@ -10,8 +10,18 @@
     </div>
 
     <div v-else-if="variant === 'edit' && preview" class="edit-scroll">
-      <div v-for="(hunk, index) in preview.hunks" :key="index" class="edit-hunk">
-        <CopyButton v-if="hunk.modified || hunk.original" :text="hunk.modified || hunk.original" />
+      <CodeCard v-for="(hunk, index) in preview.hunks" :key="index" class="edit-hunk">
+        <!-- 头在 diff 滚动区之外：滚动条只出现在正文 -->
+        <div class="edit-header">
+          <span class="edit-path" :title="preview.path || preview.fileName">
+            {{ preview.path || preview.fileName }}
+          </span>
+
+          <CopyButton
+            v-if="hunk.modified || hunk.original"
+            :text="hunk.modified || hunk.original"
+          />
+        </div>
 
         <StreamDiff
           class="edit-diff"
@@ -22,7 +32,7 @@
           diff-style="unified"
           :options="diffOptions"
         />
-      </div>
+      </CodeCard>
     </div>
 
     <ToolOutput
@@ -42,6 +52,7 @@
 import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { StreamDiff } from "stream-diffs/vue"
+import CodeCard from "@features/transcript-view/components/CodeCard.vue"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
@@ -83,13 +94,8 @@ const diffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
   /* 限高放在 diff 自身：滚动只发生在卡片里，头保持可见 */
   maxHeight: "var(--transcript-tool-max)",
-  /* 卡片头只留文件路径：改动数已在工具行显示，图标与徽标不重复。右侧留出复制按钮 */
-  unsafeCSS: `
-    [data-diffs-header="default"] { position: sticky; top: 0; z-index: 2; min-height: 34px; padding-inline: 12px 40px; }
-    [data-diffs-header] [data-title] { color: var(--contrast-foreground-muted); }
-    [data-diffs-header] [data-change-icon],
-    [data-diffs-header] [data-metadata] { display: none; }
-  `,
+  /* 文件路径与复制按钮由卡片头给出，库自带的头不显示 */
+  unsafeCSS: `[data-diffs-header] { display: none; }`,
 }))
 const tokens = shallowRef<CodeTokens>([])
 
@@ -145,8 +151,6 @@ watch(
 
 .edit-diff {
   min-width: 0;
-  border-radius: var(--radius-code);
-  overflow: clip;
   font-size: var(--text-code-sm);
 }
 
@@ -161,9 +165,25 @@ watch(
   max-height: none !important;
 }
 
-/* 复制按钮落在卡片头里，与标题同高；代码区不再为它留白 */
-.edit-hunk :deep(.copy-button) {
-  top: 6px;
-  inset-inline-end: var(--space-xs);
+.edit-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xxs) var(--space-xxs) var(--space-xxs) var(--space-sm);
+}
+
+.edit-path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--contrast-foreground-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-header :deep(.copy-button) {
+  position: static;
 }
 </style>

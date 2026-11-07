@@ -1,6 +1,6 @@
 <template>
   <div class="tool-generic-body">
-    <div v-if="input" class="tool-input">
+    <CodeCard v-if="input" class="tool-input">
       <CopyButton :text="input" />
 
       <div class="tool-input-lines">
@@ -9,7 +9,7 @@
           <code v-else>{{ line }}</code>
         </div>
       </div>
-    </div>
+    </CodeCard>
 
     <ToolOutput
       v-if="call.outputText || call.outputImages.length"
@@ -25,6 +25,7 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
+import CodeCard from "@features/transcript-view/components/CodeCard.vue"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import {
@@ -76,12 +77,13 @@ watch(
   min-width: 0;
 }
 
+/* 输入保留底色，和下方只描边的输出区分开 */
 .tool-input {
+  --card-background-color: var(--code-surface);
+
   position: relative;
   padding: var(--space-xs) var(--space-sm);
   padding-inline-end: calc(var(--space-sm) + 22px);
-  border-radius: var(--radius-sm);
-  background: var(--code-surface);
   color: var(--contrast-foreground-muted);
   font-family: var(--font-mono);
   font-size: var(--text-code);

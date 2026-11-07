@@ -60,12 +60,20 @@
   --toolbar-foreground: #1b1b1b;
   --code-background: #f6f6f6;
   --code-foreground: #1b1b1b;
-  /* 行内码：accent 向次级文本退一档，不和链接抢亮度 */
-  --inline-code-foreground: color-mix(
-    in srgb,
-    var(--link) 75%,
-    var(--contrast-foreground-secondary)
-  );
+  /* 代码块语言图标的色相，取自 @pierre/vscode-icons 调色板：浅色 600 档，深色 400 档 */
+  --language-gray: #6c6c71;
+  --language-red: #d52c36;
+  --language-orange: #d47628;
+  --language-yellow: #d5a910;
+  --language-green: #199f43;
+  --language-teal: #17a5af;
+  --language-cyan: #1ca1c7;
+  --language-blue: #1a85d4;
+  --language-indigo: #693acf;
+  --language-purple: #a631be;
+  --language-pink: #d32a61;
+  /* 行内码：正文色压 10% 的底，深浅主题自动跟随 */
+  --inline-code-background: color-mix(in srgb, var(--contrast-foreground) 10%, transparent);
   --composer-background: #f4f4f5;
   --user-prompt-background: #e8e8ea;
   --popover: #ffffff;
@@ -374,9 +382,8 @@
   --radius-md: var(--radius);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 8px);
-  --radius-card: calc(var(--radius) + 4px);
+  --radius-card: 0.65rem;
   --radius-popover: calc(var(--radius) + 4px);
-  --radius-code: 0.65rem;
   /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
   --radius-pill: 9999px;
 }
@@ -416,6 +423,17 @@ html[data-pig-desktop-platform="darwin"] {
   --toolbar-foreground: #e3e4e6;
   --code-background: #1a1a1c;
   --code-foreground: #e3e4e6;
+  --language-gray: #adadb1;
+  --language-red: #ff6762;
+  --language-orange: #ffa359;
+  --language-yellow: #ffd452;
+  --language-green: #5ecc71;
+  --language-teal: #64d1db;
+  --language-cyan: #68cdf2;
+  --language-blue: #69b1ff;
+  --language-indigo: #9d6afb;
+  --language-purple: #d568ea;
+  --language-pink: #ff678d;
   --composer-background: #27272a;
   --user-prompt-background: #262628;
   --popover: #1c1c1f;

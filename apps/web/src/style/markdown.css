@@ -96,15 +96,17 @@
     border-top: var(--border-width) solid var(--border-soft);
   }
 
-  /* ------ 行内码：比正文小 1px，淡描边；行盒内不留上下内边距，避免上下行贴住 ------ */
+  /* ------ 行内码：字色随正文，浅底无描边，比正文小一档；折行时每段各自带圆角。
+     中文正文里反引号两侧通常不留空格，左右补一点外边距，不和前后文字贴住 ------ */
   code:not(.code-line) {
-    padding: 0 calc(var(--space-xxs) - var(--border-width));
-    border: var(--border-width) solid var(--border-soft);
+    margin-inline: 0.2em;
+    padding: 0.1em 0.35em;
     border-radius: var(--radius-xs);
-    background: var(--code-background);
-    color: var(--inline-code-foreground);
+    background: var(--inline-code-background);
+    color: inherit;
     font-family: var(--font-mono);
-    font-size: var(--text-meta);
+    font-size: 0.85em;
+    box-decoration-break: clone;
   }
 
   img {
@@ -115,30 +117,6 @@
   input[type="checkbox"] {
     margin-inline-end: var(--space-xs);
     vertical-align: middle;
-  }
-
-  /* ------ 表格：单层圆角外框 + 横向分隔线 ------ */
-  table {
-    border-collapse: separate;
-    border-spacing: 0;
-    overflow: hidden;
-    border: var(--border-width) solid var(--border-soft);
-    border-radius: var(--radius-code);
-  }
-
-  :is(th, td) {
-    padding: var(--space-xs);
-    border-bottom: var(--border-width) solid var(--border-soft);
-    text-align: start;
-  }
-
-  thead th {
-    background-color: var(--code-background);
-    font-weight: var(--font-weight-semibold);
-  }
-
-  tbody tr:last-child td {
-    border-bottom: 0;
   }
 }
 
@@ -151,8 +129,8 @@
   --diffs-header-font-family: var(--font-mono);
 }
 
-/* 影子 :host 写死主题色，外层声明优先。 */
+/* 影子 :host 写死主题色，外层声明优先；代码卡只留边框，diff 不铺底。 */
 diffs-container {
-  --diffs-bg: var(--code-background) !important;
-  background-color: var(--code-background) !important;
+  --diffs-bg: transparent !important;
+  background-color: transparent !important;
 }

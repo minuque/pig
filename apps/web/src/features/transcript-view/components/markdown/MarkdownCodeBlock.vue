@@ -1,29 +1,15 @@
 <template>
-  <MarkdownMermaid v-if="fence.language === 'mermaid' && !live" :source="code" />
+  <MarkdownMermaid v-if="fence.language === 'mermaid'" :source="code" :live="live" />
 
-  <div v-else class="code-card" :data-line-numbers="showLineNumbers || undefined">
+  <CodeCard v-else class="code-block">
     <div class="code-header">
+      <LanguageIcon :language="fence.language" />
+
       <span v-if="fence.isFileReference" class="fence-file" :title="fence.filePath ?? undefined">
         <span class="fence-name">{{ fence.fileName }}</span>
         <span v-if="fence.directory" class="fence-dir">{{ fence.directory }}</span>
         <span v-if="fence.lineRange" class="fence-lines">{{ fence.lineRange }}</span>
       </span>
-
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <button
-            type="button"
-            class="line-toggle"
-            :aria-label="lineLabel"
-            :aria-pressed="showLineNumbers"
-            @click.stop="showLineNumbers = !showLineNumbers"
-          >
-            <ListOrderedMinimalisticIcon class="size-icon" />
-          </button>
-        </TooltipTrigger>
-
-        <TooltipContent>{{ lineLabel }}</TooltipContent>
-      </Tooltip>
 
       <CopyButton :text="code" :label="t('transcript.copyCode')" />
     </div>
@@ -34,16 +20,16 @@
         <code v-else class="code-line">{{ line }}</code>
       </template>
     </div>
-  </div>
+  </CodeCard>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, shallowRef, watch } from "vue"
+import { computed, inject, shallowRef, watch } from "vue"
 import type { ElementNode } from "comark"
 import { textContent } from "comark/utils"
 import { useI18n } from "@i18n/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { ListOrderedMinimalisticIcon } from "@components/icons/index.js"
+import { LanguageIcon } from "@components/icons/index.js"
+import CodeCard from "@features/transcript-view/components/CodeCard.vue"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import MarkdownMermaid from "@features/transcript-view/components/markdown/MarkdownMermaid.vue"
 import { LIVE_BLOCK } from "@features/transcript-view/components/markdown/live-block.js"
@@ -65,10 +51,6 @@ const fence = computed(() => parseCodeFenceInfo(props.language ?? ""))
 const code = computed(() => textContent(props.__node))
 const lines = computed(() => code.value.split("\n"))
 const tokens = shallowRef<CodeTokens>([])
-const showLineNumbers = ref(false)
-const lineLabel = computed(() =>
-  showLineNumbers.value ? t("transcript.lineNumbersHide") : t("transcript.lineNumbersShow"),
-)
 
 // 写完才高亮：流式中的末块按纯文本长高，不和吐字抢主线程。
 watch(
@@ -92,45 +74,16 @@ watch(
 </script>
 
 <style scoped>
-.code-card {
-  min-width: 0;
-  overflow: hidden;
-  border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-code);
-  background: var(--code-background);
-  color: var(--code-foreground);
-}
-
 .code-header {
-  position: relative;
   display: flex;
   align-items: center;
-  min-height: calc(22px + var(--space-xxs) * 2);
-  gap: var(--space-xs);
-  padding: var(--space-xxs) var(--space-sm);
-  padding-inline-end: calc(22px + var(--space-xxs) * 2);
+  gap: var(--space-xxs);
+  padding: var(--space-xxs) var(--space-xxs) var(--space-xxs) var(--space-sm);
 }
 
-.line-toggle {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
+.code-header :deep(.copy-button) {
+  position: static;
   margin-inline-start: auto;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-xs);
-  background: transparent;
-  color: var(--contrast-foreground-faint);
-  cursor: pointer;
-}
-
-.line-toggle:hover,
-.line-toggle[aria-pressed="true"] {
-  background: var(--hover-quiet);
-  color: var(--contrast-foreground);
 }
 
 .fence-file {
@@ -167,7 +120,6 @@ watch(
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);
-  counter-reset: code-line;
 }
 
 .code-line {
@@ -176,21 +128,5 @@ watch(
   font: inherit;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-.code-card[data-line-numbers] .code-line {
-  white-space: pre;
-  overflow-wrap: normal;
-}
-
-.code-card[data-line-numbers] .code-line::before {
-  display: inline-block;
-  width: 3ch;
-  margin-inline-end: var(--space-sm);
-  color: var(--contrast-foreground-faint);
-  text-align: end;
-  content: counter(code-line);
-  counter-increment: code-line;
-  user-select: none;
 }
 </style>

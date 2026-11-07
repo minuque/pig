@@ -269,6 +269,12 @@ importers:
       '@lobehub/icons-static-svg':
         specifier: 1.95.0
         version: 1.95.0
+      '@panzoom/panzoom':
+        specifier: 4.6.2
+        version: 4.6.2
+      '@pierre/vscode-icons':
+        specifier: 0.0.9
+        version: 0.0.9
       '@radix-ui/themes':
         specifier: 3.3.0
         version: 3.3.0(@types/react@19.3.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -1657,6 +1663,9 @@ packages:
   '@oxc-project/types@0.149.0':
     resolution: {integrity: sha512-Efcc+iF0j3Bf67YjEqIqWXbX5XddXoK/Mw4K1/JuXwRCZ8N16VR7iT23nlCc9XrveFVh/E5Rqs2StT0V8v9LdA==}
 
+  '@panzoom/panzoom@4.6.2':
+    resolution: {integrity: sha512-Zn3B5/hwa6eYIPRSKX0xf2clv8nviTX8AnAU5kU/EugiTDhG41ya2wlBqYrZJYCWQROr/5XkWObZhIkepi89qw==}
+
   '@peculiar/asn1-schema@2.9.4':
     resolution: {integrity: sha512-GjzePcT9Iw8NzeOPf73iNS9xM+TBhd/FilAfP+RQGkTMQJTVWtytN3JHJACCjf/ABNau5S7mS3g+DcuxmRgYEg==}
     engines: {node: '>=14'}
@@ -1709,6 +1718,10 @@ packages:
         optional: true
       shiki:
         optional: true
+
+  '@pierre/vscode-icons@0.0.9':
+    resolution: {integrity: sha512-nhKu2wr9wBhnzIJBqj8rZGJfh23fkLT9ehTK7TrY4ywqqWIzc23V2y+mkHmXP1sGA6hHjTcLLDQt1jXaEM+iWA==}
+    engines: {vscode: ^1.90.0}
 
   '@playwright/test@1.63.0':
     resolution: {integrity: sha512-oxMK4vllB9RK5NQ2l1pq1IfOf2AvnEuj/vYGDj0H2nMtmtZpKtCwt/l00GEO6xjGfpBNAvjovvYdCm50dRQkpQ==}
@@ -8104,6 +8117,8 @@ snapshots:
 
   '@oxc-project/types@0.149.0': {}
 
+  '@panzoom/panzoom@4.6.2': {}
+
   '@peculiar/asn1-schema@2.9.4':
     dependencies:
       '@peculiar/utils': 2.0.3
@@ -8152,6 +8167,8 @@ snapshots:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
       shiki: 4.4.3
+
+  '@pierre/vscode-icons@0.0.9': {}
 
   '@playwright/test@1.63.0':
     dependencies:

@@ -2,6 +2,8 @@
 
 export { default as RunningPigGlyph } from "@components/icons/RunningPigGlyph.vue"
 
+export { default as LanguageIcon } from "@components/icons/LanguageIcon.vue"
+
 export { AddIcon } from "@solar-icons/vue/linear/add"
 
 export { AddFolderIcon } from "@solar-icons/vue/linear/add-folder"
@@ -80,13 +82,15 @@ export { LinkMinimalisticIcon } from "@solar-icons/vue/linear/link-minimalistic"
 
 export { ListIcon } from "@solar-icons/vue/linear/list"
 
-export { ListOrderedMinimalisticIcon } from "@solar-icons/vue/linear/list-ordered-minimalistic"
-
 export { CircleDashedIcon } from "@solar-icons/vue/linear/circle-dashed"
 
 export { LoaderIcon } from "@solar-icons/vue/linear/loader"
 
 export { MagnifierIcon } from "@solar-icons/vue/linear/magnifier"
+
+export { MagnifierZoomInIcon } from "@solar-icons/vue/linear/magnifier-zoom-in"
+
+export { MagnifierZoomOutIcon } from "@solar-icons/vue/linear/magnifier-zoom-out"
 
 export { MaximizeSquareIcon } from "@solar-icons/vue/linear/maximize-square"
 

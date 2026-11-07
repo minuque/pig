@@ -1,17 +1,19 @@
 <template>
-  <div class="diagram-card">
-    <div class="diagram-header">
-      <Tooltip v-if="svg">
+  <div class="diagram" :data-view="view">
+    <div class="diagram-actions">
+      <Tooltip v-if="drawn">
         <TooltipTrigger as-child>
-          <button
+          <IconButton
             type="button"
-            class="mode-toggle"
+            size="s"
+            variant="ghost"
+            color="gray"
             :aria-label="modeLabel"
             @click.stop="showSource = !showSource"
           >
             <CodeSquareIcon v-if="!showSource" class="size-icon" />
             <ChartSquareIcon v-else class="size-icon" />
-          </button>
+          </IconButton>
         </TooltipTrigger>
 
         <TooltipContent>{{ modeLabel }}</TooltipContent>
@@ -20,104 +22,157 @@
       <CopyButton :text="source" :label="t('transcript.copyCode')" />
     </div>
 
-    <!-- eslint-disable-next-line vue/no-v-html -- pele 由源码生成的 SVG -->
-    <div v-if="svg && !showSource" class="diagram-preview mermaid-diagram" v-html="svg" />
-    <div v-else class="diagram-source">{{ source }}</div>
+    <!-- 画布始终可见：pele 对隐藏容器会推迟绘制 -->
+    <div
+      v-show="!showSource"
+      ref="host"
+      class="diagram-canvas mermaid-diagram"
+      :data-zoomable="drawn || undefined"
+      @click="openPreview"
+    />
+
+    <div v-if="view === 'source'" class="diagram-source">{{ source }}</div>
+
+    <Dialog v-model:open="previewOpen">
+      <DialogContent class="diagram-dialog" :aria-label="previewLabel">
+        <MermaidPreview
+          v-if="preview"
+          :svg="preview.svg"
+          :width="preview.width"
+          :height="preview.height"
+        />
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from "vue"
+import { computed, onBeforeUnmount, ref, shallowRef, useTemplateRef, watch } from "vue"
+import type { Mounted, RenderResult } from "pele/lazy"
 import { useI18n } from "@i18n/index.js"
+import { IconButton } from "@components/ui/button/index.js"
+import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { ChartSquareIcon, CodeSquareIcon } from "@components/icons/index.js"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
-import { renderMermaid } from "@features/transcript-view/lib/mermaid-runtime.js"
+import MermaidPreview from "@features/transcript-view/components/markdown/MermaidPreview.vue"
+import {
+  loadDiagramType,
+  loadPele,
+  settledSource,
+} from "@features/transcript-view/lib/mermaid-runtime.js"
 
-const props = defineProps<{ source: string }>()
+const props = defineProps<{ source: string; live?: boolean }>()
 const { t } = useI18n()
-const svg = shallowRef("")
+const host = useTemplateRef("host")
+const mounted = shallowRef<Mounted | null>(null)
+const previewOpen = ref(false)
+const preview = shallowRef<RenderResult | null>(null)
+const previewLabel = computed(() => t("common.preview", { name: "Mermaid" }))
+const drawn = ref(false)
 const showSource = ref(false)
+const view = computed(() => (drawn.value && !showSource.value ? "diagram" : "source"))
 const modeLabel = computed(() =>
   showSource.value ? t("transcript.diagramShow") : t("transcript.diagramSource"),
 )
 
-// 渲染失败保留上一次成功的图；从没成功过就显示源码。
+/** 只把能解析通过的源码交给 pele：图随内容逐步长出来，半截语法不闪错误层。 */
+async function draw(source: string, live: boolean) {
+  const text = settledSource(source, live)
+
+  if (!text || text === mounted.value?.source) return
+  const pele = await loadPele()
+  const type = pele.detectType(text)
+
+  if (!type || !(await loadDiagramType(pele, type)) || !host.value) return
+
+  try {
+    pele.parse(text)
+  } catch {
+    return
+  }
+
+  if (mounted.value) mounted.value.update(text)
+  else
+    mounted.value = pele.mount(host.value, text, {
+      links: false,
+      images: false,
+      zoom: false,
+      autoDirection: false,
+      onRender: () => (drawn.value = true),
+    })
+}
+
+let queue = Promise.resolve()
+
+// 串行绘制：pele 加载是异步的，避免两次绘制同时 mount。
 watch(
-  () => props.source,
-  async (source, _, onCleanup) => {
-    let active = true
-    onCleanup(() => (active = false))
-
-    try {
-      const next = await renderMermaid(source)
-
-      if (active) svg.value = next
-    } catch {
-      /* 保持现状 */
-    }
+  [() => props.source, () => props.live],
+  ([source, live]) => {
+    queue = queue.then(() => draw(source, live)).catch(() => undefined)
   },
-  { immediate: true },
+  {
+    immediate: true,
+    flush: "post",
+  },
 )
+
+/** 预览沿用正文里已排好的那张图，比例与所见一致，不再按弹框宽度重新排版。 */
+function openPreview() {
+  preview.value = mounted.value?.result ?? null
+  previewOpen.value = preview.value !== null
+}
+
+onBeforeUnmount(() => mounted.value?.destroy())
 </script>
 
 <style scoped>
-.diagram-card {
-  min-width: 0;
-  overflow: hidden;
-  border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-code);
-  background: var(--code-background);
-  color: var(--code-foreground);
-}
-
-.diagram-header {
+.diagram {
   position: relative;
+  min-width: 0;
+}
+
+/* 控件浮在右上角，悬停或键盘聚焦时才出现，不顶动图的位置。 */
+.diagram-actions {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  inset-inline-end: 0;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  min-height: calc(22px + var(--space-xxs) * 2);
-  padding: var(--space-xxs) var(--space-sm);
-  padding-inline-end: calc(22px + var(--space-xxs) * 2);
+  gap: var(--space-xxs);
+  opacity: 0;
 }
 
-.mode-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-xs);
-  background: transparent;
-  color: var(--contrast-foreground-faint);
-  cursor: pointer;
+.diagram:hover .diagram-actions,
+.diagram:focus-within .diagram-actions {
+  opacity: 1;
 }
 
-.mode-toggle:hover {
-  background: var(--hover-quiet);
-  color: var(--contrast-foreground);
+.diagram-actions :deep(.copy-button) {
+  position: static;
 }
 
-.diagram-preview {
+.diagram-canvas {
   display: flex;
   justify-content: center;
-  padding: 0 var(--space-sm) var(--space-sm);
   overflow-x: auto;
 }
 
-.diagram-preview :deep(svg) {
-  max-width: 100%;
-  height: auto;
+.diagram-canvas[data-zoomable] {
+  cursor: zoom-in;
 }
+</style>
 
-.diagram-source {
-  padding: 0 var(--space-sm) var(--space-sm);
-  font-family: var(--font-mono);
-  font-size: var(--text-code);
-  line-height: var(--text-code-line);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+<style>
+/* 面板经 Portal 挂到 body，scoped 打不中；尺寸与设置弹窗同档 */
+.diagram-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(88vw, var(--size-settings-dialog-width));
+  max-width: min(88vw, var(--size-settings-dialog-width));
+  height: clamp(var(--size-settings-dialog-height-min), 85vh, var(--size-settings-dialog-height));
+  max-height: none;
+  overflow: hidden;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="tool-run-card">
+  <Card size="s" variant="surface" class="tool-run-card">
     <template v-for="entry in entries" :key="entry.id">
       <ToolThoughtRow
         v-if="entry.kind === 'thought'"
@@ -15,11 +15,12 @@
         @toggle="emit('toggleTool', entry.call.id, $event)"
       />
     </template>
-  </div>
+  </Card>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
+import { Card } from "@components/ui/card/index.js"
 import ToolRow from "@features/transcript-view/components/tool/ToolRow.vue"
 import ToolThoughtRow from "@features/transcript-view/components/tool/ToolThoughtRow.vue"
 import type {
@@ -49,13 +50,12 @@ const entries = computed<RunEntry[]>(() =>
 
 <style scoped>
 .tool-run-card {
+  --card-padding: 0;
+
   display: flex;
   flex-direction: column;
   min-width: 0;
   margin-block-start: var(--space-sm);
-  border-radius: var(--radius-md);
-  overflow: clip;
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
 }
 
 .tool-run-card > :deep(.tool-row) {
@@ -63,6 +63,6 @@ const entries = computed<RunEntry[]>(() =>
 }
 
 .tool-run-card > :deep(.tool-row + .tool-row) {
-  border-block-start: var(--border-width) solid var(--border-soft);
+  box-shadow: var(--divider-top);
 }
 </style>

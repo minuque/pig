@@ -34,6 +34,9 @@
      必须写在这里：--gray-* 只在 .radix-themes 作用域内映射。 */
   --border: var(--gray-a6);
   --border-soft: var(--gray-a5);
+  /* 卡片内的行间分隔：和卡片外环、rt 表格行线同一画法，用内阴影而不是 border，
+     非整数缩放下不被取整成一条实线 */
+  --divider-top: inset 0 var(--border-width) 0 var(--border-soft);
 }
 
 /* 菜单尺寸：弹层用 rt 的 m 档（28px 行 / 13px 字），内边距收到 s 档。
@@ -87,9 +90,23 @@
   color: var(--contrast-foreground);
 }
 
-/* 卡片环统一取 --border：rt 原生 surface 环是 gray-a5，与其它卡片并排会一淡一实 */
+/* 类卡片外观的唯一来源：Card 与 surface 表格共用 --border 细环、--radius-card 圆角，不铺底。
+   rt 原生 surface 环是 gray-a5，与其它卡片并排会一淡一实。 */
+.rt-Card {
+  --card-border-radius: var(--radius-card);
+}
+
 .rt-Card:where(.rt-variant-surface) {
   --base-card-surface-box-shadow: 0 0 0 1px var(--border);
+  --card-background-color: transparent;
+}
+
+.rt-TableRoot:where(.rt-variant-surface) {
+  --table-border-radius: var(--radius-card);
+
+  border-color: var(--border);
+  background-color: transparent;
+  backdrop-filter: none;
 }
 
 /* Reka 与 rt 对浮层用的 CSS 变量前缀不同：rt 的组件 CSS 读 --radix-*，

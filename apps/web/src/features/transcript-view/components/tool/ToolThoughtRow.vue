@@ -85,6 +85,11 @@ const label = computed(() => thoughtStepLabel(props.step))
   line-height: var(--text-code-line);
 }
 
+/* 思考内容与工具输入同底色，和只描边的工具输出区分开 */
+.thought-body :deep(.tool-output-card) {
+  --card-background-color: var(--code-surface);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .thought-caret {
     transition: none;

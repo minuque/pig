@@ -18,6 +18,8 @@
     "@earendil-works/pi-coding-agent": "0.84.4",
     "@earendil-works/pi-protocol": "0.84.4",
     "@lobehub/icons-static-svg": "1.95.0",
+    "@panzoom/panzoom": "4.6.2",
+    "@pierre/vscode-icons": "0.0.9",
     "@radix-ui/themes": "3.3.0",
     "@solar-icons/vue": "2.3.2",
     "@vueuse/core": "14.4.0",
