@@ -1,14 +1,15 @@
 <template>
-  <div class="turn-error" :class="error ? 'is-error' : 'is-aborted'" role="alert">
-    <DangerCircleIcon class="turn-error-icon" />
-    <span class="turn-error-label">{{ label }}</span>
-    <span v-if="message" class="turn-error-message">{{ message }}</span>
-  </div>
+  <Callout variant="surface" size="s" :color="error ? 'destructive' : 'warning'" role="alert">
+    <template #icon><DangerCircleIcon /></template>
+    <template v-if="message" #title>{{ label }}</template>
+    {{ message || label }}
+  </Callout>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { Callout } from "@components/ui/callout/index.js"
 import { DangerCircleIcon } from "@components/icons/index.js"
 
 const props = defineProps<{
@@ -25,39 +26,3 @@ const label = computed(() => {
   return base
 })
 </script>
-
-<style scoped>
-.turn-error {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-xs);
-  min-width: 0;
-  font-size: var(--text-body-sm);
-  line-height: var(--text-body-sm--line-height);
-}
-
-.is-error {
-  color: var(--danger);
-}
-
-.is-aborted {
-  color: var(--warning);
-}
-
-.turn-error-icon {
-  flex: none;
-  width: var(--size-icon);
-  height: var(--size-icon);
-  translate: 0 0.15em;
-}
-
-.turn-error-label {
-  flex: none;
-}
-
-.turn-error-message {
-  min-width: 0;
-  color: var(--contrast-foreground-muted);
-  overflow-wrap: anywhere;
-}
-</style>
