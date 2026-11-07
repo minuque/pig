@@ -71,9 +71,14 @@
     margin-top: 6px;
   }
 
-  ul.contains-task-list {
-    padding-inline-start: 0;
+  /* 任务项只去自己的圆点，复选框挂进圆点的位置：同一列表里普通项与任务项文字左缘对齐 */
+  li.task-list-item {
     list-style: none;
+  }
+
+  /* 13px 复选框 + 右距 + 源文里的一个空格，合起来正好占满 20px 圆点位 */
+  li.task-list-item > input[type="checkbox"]:first-child {
+    margin-inline: -20px 0.25em;
   }
 
   li::marker {

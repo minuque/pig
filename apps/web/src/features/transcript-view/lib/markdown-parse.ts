@@ -1,8 +1,20 @@
-import { createSerializedMarkdownParser, type ComarkParseFn, type Node } from "comark"
+import {
+  createSerializedMarkdownParser,
+  defineComarkPlugin,
+  type ComarkParseFn,
+  type MarkdownExitPlugin,
+  type Node,
+} from "comark"
 import taskList from "comark/plugins/task-list"
 
+/** 自动链接照 GFM：只认带协议的网址，`DESIGN.md` 这类裸文件名不按域名成链接。 */
+const looseDomainsOff: MarkdownExitPlugin = (md) => void md.linkify.set({ fuzzyLink: false })
+const strictLinkify = defineComarkPlugin(() => ({
+  name: "strict-linkify",
+  markdownItPlugins: [looseDomainsOff],
+}))
 /** 不开 html / 组件语法 / frontmatter：助手正文里的 `<div>`、`std::vec`、开头的 `---` 都按原文显示。 */
-const plugins = [taskList()]
+const plugins = [taskList(), strictLinkify()]
 const FINAL_CACHE_MAX = 200
 const finalCache = new Map<string, { text: string; nodes: Node[] }>()
 
