@@ -1,350 +1,148 @@
-/* markstream-vue 主题：--ms-* / --code-* 由库读取 */
+/* 助手正文排版（对齐 cc-wrapper）。每个根块包在 display:contents 的 .comark-content 里。 */
 
-/* ------ 字体与排版 ------ */
-[data-custom-id="chat"] {
-  /* 字体。整体降一档：h1=h2=+4、h3=+2、h4-h6 回到 body；随字号档缩放 */
-  --ms-font-sans: var(--font-sans);
-  --ms-font-mono: var(--font-mono);
-  --ms-text-body: var(--text-body-md);
-  /* 正文行距略高于基准，给行内码留出上下空隙 */
-  --ms-leading-body: 1.5;
-  --ms-text-h1: 1.14286em;
-  --ms-text-h2: 1.07143em;
-  --ms-text-h3: 1em;
-  --ms-text-h4: 1em;
-  --ms-text-h5: 1em;
-  --ms-text-h6: 1em;
-  --ms-leading-h1: 1.25;
-  --ms-leading-h2: 1.25;
-  --ms-leading-h3: 1.25;
-  --ms-weight-h1: var(--font-weight-semibold);
-  --ms-weight-h2: var(--font-weight-semibold);
-  --ms-weight-h3: var(--font-weight-semibold);
-  --ms-weight-h4: var(--font-weight-semibold);
-
-  /* 块间距。节点自身 margin 全归 0，块间距一律由 .node-slot 出。
-     否则流式态（slot 是普通块，margin 折叠）与非流式态（virtualScroll 给
-     slot 加 display:flow-root，不折叠）会得到两套间距。 */
-  --ms-flow-heading-1-mt: 0px;
-  --ms-flow-heading-1-mb: 0px;
-  --ms-flow-heading-2-mt: 0px;
-  --ms-flow-heading-2-mb: 0px;
-  --ms-flow-heading-3-mt: 0px;
-  --ms-flow-heading-3-mb: 0px;
-  --ms-flow-heading-4-mt: 0px;
-  --ms-flow-heading-4-mb: 0px;
-  --ms-flow-heading-5-mt: 0px;
-  --ms-flow-heading-5-mb: 0px;
-  --ms-flow-heading-6-mt: 0px;
-  --ms-flow-heading-6-mb: 0px;
-  --ms-flow-paragraph-y: 0px;
-  --ms-flow-list-y: 0px;
-  --ms-flow-list-item-y: 6px;
-  --ms-flow-list-indent: 20px;
-  --ms-flow-list-indent-mobile: var(--ms-flow-list-indent);
-  --ms-flow-codeblock-y: 0px;
-  --ms-flow-table-y: 0px;
-  --ms-flow-blockquote-y: 0px;
-  --ms-flow-blockquote-indent: 8px;
-  --ms-flow-hr-y: 0px;
-
-  /* 形状 */
-  --ms-radius: var(--radius-code);
-  --ms-border-width: var(--border-width);
-  --ms-focus-ring-width: 0px;
-  --ms-focus-ring-offset: 0px;
-
-  /* 头部上下内边距对齐左右，动作钮 24px */
-  --ms-gap-header: 0.5rem;
-  --ms-inset-panel-x: 0.4rem;
-  --ms-inset-panel-y: 0.4rem;
-  --ms-action-btn-padding: 0.3125rem;
-
-  /* 色板 */
-  --ms-foreground: from var(--contrast-foreground) h s l;
-  --ms-background: from var(--card) h s l;
-  --ms-muted: from var(--background-soft) h s l;
-  --ms-muted-foreground: from var(--contrast-foreground-muted) h s l;
-  --ms-border: from var(--border) h s l;
-  --ms-primary: from var(--primary) h s l;
-  --ms-primary-foreground: from var(--primary-foreground) h s l;
-  --ms-secondary: from var(--background-soft) h s l;
-  --ms-secondary-foreground: from var(--contrast-foreground-secondary) h s l;
-  --ms-accent: from var(--background-soft) h s l;
-  --ms-accent-foreground: from var(--contrast-foreground) h s l;
-  --ms-danger: from var(--danger) h s l;
-  --ms-danger-foreground: from var(--danger-foreground) h s l;
-  --ms-success: from var(--success) h s l;
-  --ms-success-foreground: from var(--success-foreground) h s l;
-  --ms-warning: from var(--warning) h s l;
-  --ms-warning-foreground: from var(--warning-foreground) h s l;
-  --ms-info: from var(--primary) h s l;
-  --ms-info-foreground: from var(--primary-foreground) h s l;
-  --ms-diff-added: from color-mix(in srgb, var(--success) 88%, var(--card)) h s l;
-  --ms-diff-removed: from color-mix(in srgb, var(--danger) 88%, var(--card)) h s l;
-  --ms-highlight: from color-mix(in srgb, var(--primary) 16%, var(--card)) h s l;
-  --ms-highlight-foreground: from var(--contrast-foreground) h s l;
-  --ms-popover: from var(--popover) h s l;
-  --ms-popover-foreground: from var(--contrast-foreground) h s l;
-  --ms-ring: from var(--primary) h s l;
-  --ms-shadow-subtle: var(--shadow-card);
-  --ms-shadow-popover: var(--shadow-popover);
-  --ms-shadow-modal: var(--shadow-modal);
-  --ms-shadow-preview: var(--shadow-modal);
-
-  /* 代码 / 引用 / 表。底和字走主题角色，换主题后跟着变。 */
-  --code-header-bg: var(--code-background);
-  --diagram-bg: var(--code-background);
-  --diagram-header-bg: var(--code-background);
-  --diagram-border: var(--border-soft);
-  --code-border: var(--border-soft);
-  --inline-code-bg: var(--code-background);
-  --inline-code-fg: var(--code-foreground);
-  --blockquote-border: var(--border-soft);
-  --blockquote-fg: var(--contrast-foreground-muted);
-  --table-border: var(--border-soft);
-  --focus-ring: transparent;
-  --link-color: var(--link);
-
+/* ------ 字体与块间距 ------ */
+.prose {
+  min-width: 0;
   color: var(--contrast-foreground);
-  font-size: var(--ms-text-body);
-  line-height: var(--ms-leading-body);
+  font-size: var(--text-body-md);
+  /* 正文行距略高于基准，给行内码留出上下空隙 */
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 
-  /* ------ 节点微调：标题色、间距、行内码 ------ */
-
-  > :first-child,
-  > .height-estimation-probes + .node-slot > .node-content > :first-child,
-  > .node-slot:first-child > .node-content > :first-child {
-    margin-top: 0;
-  }
-
-  > :last-child,
-  > .node-slot:last-child > .node-content > :last-child {
-    margin-bottom: 0;
-  }
-
-  /* 块间距的唯一来源：每个 AST 节点都包在 .node-slot 里。 */
-  .node-slot + .node-slot {
-    margin-top: 10px;
-  }
-
-  /* 库的窄屏规则（<1024px 时 .list-disc margin 4/3em）在桌面窄栏也生效，压回 node-slot 统一间距。 */
-  .list-node.list-disc,
-  .list-node.list-decimal {
+  :where(p, ul, ol, li, blockquote, h1, h2, h3, h4, h5, h6, hr, table, figure) {
     margin: 0;
   }
 
-  /* 标题上方多留一档、下方收窄：标题领起下文，而不是等距浮在两段中间。 */
-  .node-slot + .node-slot:has(> .node-content > .heading-node) {
+  /* 块间距的唯一来源：相邻根块之间 10px */
+  > .comark-content + .comark-content > * {
+    margin-top: 10px;
+  }
+
+  /* 标题上方多留一档、下方收窄：标题领起下文，而不是等距浮在两段中间 */
+  > .comark-content + .comark-content > :is(h1, h2, h3, h4, h5, h6) {
     margin-top: 20px;
   }
 
-  .node-slot:has(> .node-content > .heading-node) + .node-slot {
+  > .comark-content:has(> :is(h1, h2, h3, h4, h5, h6)) + .comark-content > * {
     margin-top: 6px;
   }
 
-  /* 首块不留上间距（首块是标题时同样适用），放在最后压过上面两条。 */
-  > .height-estimation-probes + .node-slot,
-  > .node-slot:first-child {
-    margin-top: 0;
+  /* ------ 标题：整体降一档，h1=h2=+4、h3 回正文 ------ */
+  :is(h1, h2) {
+    font-size: 1.14286em;
+    line-height: 1.25;
+    font-weight: var(--font-weight-semibold);
   }
 
-  .strong-node {
+  h3 {
+    font-size: 1em;
+    line-height: 1.25;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  :is(h4, h5, h6) {
+    font-size: 1em;
     font-weight: var(--font-weight-medium);
   }
 
-  /* cc-wrapper：引用左边线 2px，不是默认 3px */
-  .blockquote {
-    border-left-width: 2px;
-  }
-
-  /* 引用内段落是 .blockquote 的直接子节点，不经过 .node-slot，段距单独补回。 */
-  .blockquote > .paragraph-node + .paragraph-node {
-    margin-top: 12px;
-  }
-
-  /* cc-wrapper：hr 上边框 1px，间距由 node-slot 统一给 */
-  .hr-node {
-    border-top: var(--border-width) solid var(--border-soft);
-  }
-
-  /* h4/h5 与加粗同级，h6 弱化 */
-  .heading-4,
-  .heading-5 {
-    font-weight: var(--font-weight-medium);
-  }
-
-  .heading-6 {
-    font-weight: var(--font-weight-medium);
+  h6 {
     color: var(--contrast-foreground-muted);
   }
 
-  .heading-1 + .heading-2,
-  .heading-2 + .heading-3,
-  .heading-3 + .heading-4,
-  .heading-4 + .heading-5,
-  .heading-5 + .heading-6 {
-    margin-top: 0.5em;
+  :is(strong, b) {
+    font-weight: var(--font-weight-medium);
   }
 
-  /* 行内代码：字号比正文小 1px，字色用弱一档的 accent（accent-11 向次级文本色退一档，
-     不跟链接抢同一个亮度），外面留一圈淡淡描边 */
-  .inline-code {
-    font-size: var(--text-meta);
-    color: color-mix(in srgb, var(--link) 75%, var(--contrast-foreground-secondary));
+  /* ------ 列表 ------ */
+  :is(ul, ol) {
+    padding-inline-start: 20px;
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  li + li,
+  li > :is(ul, ol, p, blockquote, div) {
+    margin-top: 6px;
+  }
+
+  ul.contains-task-list {
+    padding-inline-start: 0;
+    list-style: none;
+  }
+
+  li::marker {
+    color: var(--contrast-foreground-muted);
+  }
+
+  /* ------ 引用与分隔线 ------ */
+  blockquote {
+    padding-inline-start: 8px;
+    border-inline-start: 2px solid var(--border-soft);
+    color: var(--contrast-foreground-muted);
+  }
+
+  blockquote > * + * {
+    margin-top: 12px;
+  }
+
+  hr {
+    border: 0;
+    border-top: var(--border-width) solid var(--border-soft);
+  }
+
+  /* ------ 行内码：比正文小 1px，淡描边；行盒内不留上下内边距，避免上下行贴住 ------ */
+  code:not(.code-line) {
+    padding: 0 calc(var(--space-xxs) - var(--border-width));
     border: var(--border-width) solid var(--border-soft);
     border-radius: var(--radius-xs);
-    /* 上下不留内边距：行内码几乎与行盒等高，多 2px 就会和上下行的码贴在一起 */
-    padding: 0 calc(var(--space-xxs) - var(--border-width));
-  }
-
-  /* ------ Synara 覆盖：代码块单层底，外框与其他卡片同档 ------ */
-  .code-block-container {
-    --markstream-code-theme-bg: var(--code-background) !important;
-    --markstream-code-fallback-bg: var(--code-background) !important;
-    --markstream-pre-resolved-theme-bg: var(--code-background) !important;
-    /* 库用内联 border-color 取这个变量 */
-    --markstream-code-border-color: var(--border-soft);
-
-    /* 代码正文与自建步骤卡的代码区同档：--text-code / --text-code-line */
-    font-size: var(--text-code);
-    line-height: var(--text-code-line);
-
-    border: var(--border-width) solid var(--border-soft) !important;
-    box-shadow: none;
-  }
-
-  /* 头部只留动作区：去掉语言标签与分隔线 */
-  .code-block-container .code-block-header {
-    border-bottom: 0;
-  }
-
-  .code-block-container .code-block-header .code-header-title {
-    display: none;
-  }
-
-  /* 代码区顶到头部，上间距归零：库把 8px 上内边距打在 pre 或 code 上 */
-  .code-block-container :is(pre, code[data-code]) {
-    padding-top: 0 !important;
-  }
-
-  /* 行号与 diff 双栏靠库的 white-space:pre 定位，不折行。 */
-  .code-block-container pre:not(.markstream-pre--line-numbers):not(.markstream-pre--diff-preview) {
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-  }
-
-  /* Synara：语言标签与文件名同样走等宽，字号对齐卡片头 */
-  .code-block-header :is(.code-header-title, .code-header-caption) {
+    background: var(--code-background);
+    color: var(--inline-code-foreground);
     font-family: var(--font-mono);
     font-size: var(--text-meta);
   }
 
-  /* ------ mermaid：保留卡片外壳，工具条常驻显示 ------ */
-  .mermaid-block-container {
-    background: var(--code-background);
-    color: var(--code-foreground);
-    border: var(--border-width) solid var(--border-soft) !important;
+  img {
+    max-width: 100%;
+    height: auto;
   }
 
-  .mermaid-preview-area,
-  .mermaid-source-panel {
-    background: transparent;
+  input[type="checkbox"] {
+    margin-inline-end: var(--space-xs);
+    vertical-align: middle;
   }
 
-  /* 预览/Source 只留一个图标钮，贴到右侧动作区首位（原折叠按钮处）。 */
-  .mermaid-block-header {
-    justify-content: flex-end;
-    gap: var(--ms-gap-header);
-  }
-
-  .mermaid-block-header > :first-child {
-    margin-inline-end: auto;
-  }
-
-  .mermaid-mode-toggle-group {
-    gap: 0;
-  }
-
-  /* 藏起当前态那个钮，留下的是要切过去的目标态，点一下就换。 */
-  .mermaid-mode-toggle-group .mermaid-mode-btn.is-active {
-    display: none;
-  }
-
-  /* 外观对齐旁边复制/缩放钮，文字只留可访问名。 */
-  .mermaid-mode-btn {
-    position: relative;
-    padding: var(--ms-action-btn-padding);
-    border-radius: calc(var(--ms-radius) / 2);
-    color: var(--code-action-fg);
-  }
-
-  .mermaid-mode-btn span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .mermaid-mode-btn:hover {
-    background: var(--hover-quiet);
-    color: var(--contrast-foreground);
-  }
-
-  .mermaid-mode-btn:active {
-    transform: scale(0.98);
-  }
-
-  /* ------ 表格：单层圆角外框 + 横向分隔线；字号随正文，8px 内边距 ------ */
-  .table-node-wrapper .table-node {
-    table-layout: auto;
+  /* ------ 表格：单层圆角外框 + 横向分隔线 ------ */
+  table {
     border-collapse: separate;
     border-spacing: 0;
     overflow: hidden;
-    border: var(--border-width) solid var(--table-border);
-    border-radius: var(--ms-radius);
-    background: transparent;
-    box-shadow: none;
-    font-size: inherit;
+    border: var(--border-width) solid var(--border-soft);
+    border-radius: var(--radius-code);
   }
 
-  .table-node-wrapper .table-node :is(th, td),
-  .table-node-wrapper .table-node :is(th, td):last-child {
-    border: 0;
-    border-bottom: var(--border-width) solid var(--table-border);
+  :is(th, td) {
     padding: var(--space-xs);
+    border-bottom: var(--border-width) solid var(--border-soft);
     text-align: start;
   }
 
-  .table-node-wrapper .table-node thead th {
-    font-weight: var(--font-weight-semibold);
+  thead th {
     background-color: var(--code-background);
+    font-weight: var(--font-weight-semibold);
   }
 
-  .table-node-wrapper .table-node tbody tr:last-child td {
+  tbody tr:last-child td {
     border-bottom: 0;
   }
-
-  .table-node tbody tr:nth-child(2n),
-  .table-node tbody tr:hover {
-    background-color: transparent;
-  }
-
-  .code-block-container:has(.code-block-shell-content--collapsed) .code-block-header,
-  .code-block-container:has(.code-editor-layer--collapsed) .code-block-header {
-    border-radius: var(--ms-radius);
-  }
 }
 
-/* ------ 渲染器与 diffs ------ */
-/* 库默认 800×600 占位；必须打在同一元素，后代选择器无效。 */
-[data-custom-id="chat"].markdown-renderer {
-  content-visibility: visible;
-  contain-intrinsic-size: auto none;
-}
-
+/* ------ 工具卡 diffs ------ */
 /* pierre diffs 默认 13px，只吃 --diffs-* */
 .stream-diffs-vue-diff {
   --diffs-font-size: var(--text-code);

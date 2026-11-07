@@ -70,15 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  shallowRef,
-  useTemplateRef,
-  watch,
-} from "vue"
+import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import TranscriptStatus from "@features/transcript-view/components/TranscriptStatus.vue"
@@ -94,7 +86,6 @@ import {
 } from "@features/transcript-view/hooks/use-transcript-edge.js"
 import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
-import { ensureMermaidRuntime } from "@features/transcript-view/lib/mermaid-runtime.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TimelineTurn, TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import { createTimelineRowsBuilder } from "@features/transcript-view/lib/transcript-rows.js"
@@ -393,8 +384,6 @@ watch(
     })
   },
 )
-
-onMounted(ensureMermaidRuntime)
 
 onBeforeUnmount(() => {
   sizeObserver?.disconnect()

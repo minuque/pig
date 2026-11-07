@@ -333,7 +333,6 @@ Windows 自画三个窗控（总宽 138px，单钮高 44px，头部右侧让出 
 - **Diff / Tables:** 表格 1px `--border` 描边、表头 `--code-background` 底；diff 增行 `--success` 88% 混纸白，删行 `--danger` 88% 混纸白。
 - **Inline / Block Code:** mono 13px / 24.5px，底色 `--code-background`，块圆角 `0.65rem`，带复制与行号按钮。
 - **状态:** 思考、工具执行、等待之间用灰阶文字阶梯表达，不做彩色进度条；运行时长与 token 数用 Meta 档。
-- **文件类型标:** 卡片头与工具行的文件胶囊用 `markstream-vue` 的 `getLanguageIcon()` 出彩色语言徽标（TS、JSON 等），这是 Solar 家族之外的**登记例外**：那套颜色本身就在传达语言信息，换成单色 Solar 图标会丢掉这一层。其余功能性图标仍一律走 Solar。
 
 ### Badges & Chips
 

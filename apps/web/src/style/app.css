@@ -21,7 +21,6 @@
 @import "./tokens.css";
 @import "./rt.css";
 @import "./motion.css";
-@import "markstream-vue/index.css" layer(components);
 @import "./markdown.css";
 @import "./mermaid.css";
 @import "./components.css";
@@ -121,8 +120,8 @@ html[data-translucent-window="on"] .session-edge-bottom {
   }
 }
 
-/* 原生 button 只做 reset；不进 .markstream-vue，避免压过卡片内 Tailwind。 */
-button:not(:where(.markstream-vue *, [data-slot])) {
+/* 原生 button 只做 reset；带 data-slot 的组件按钮自带样式。 */
+button:not(:where([data-slot])) {
   appearance: none;
   margin: 0;
   padding: 0;

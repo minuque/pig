@@ -827,6 +827,17 @@
   }
 }
 
+/* ------ 助手正文按词分批淡入：延迟由组件按排期写入 ------ */
+.word-reveal {
+  animation: word-reveal var(--duration-normal) linear backwards;
+}
+
+@keyframes word-reveal {
+  from {
+    opacity: 0;
+  }
+}
+
 /* ------ 减弱动效：全局兜底，动画与过渡一次关掉 ------ */
 @media (prefers-reduced-motion: reduce) {
   #startup-splash .startup-mark,
@@ -861,7 +872,8 @@
     filter: none;
   }
 
-  .settle-in {
+  .settle-in,
+  .word-reveal {
     animation: none;
   }
 

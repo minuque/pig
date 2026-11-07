@@ -2,7 +2,7 @@ export { transcriptText } from "@features/transcript-view/lib/transcript-format.
 
 export { userMessageText } from "@features/transcript-view/lib/transcript-format.js"
 
-export { prefetchHighlighter } from "@features/transcript-view/lib/markdown-render-props.js"
+export { prefetchHighlighter } from "@features/transcript-view/lib/code-highlight.js"
 
 export function prefetchTranscriptView(): void {
   void import("@features/transcript-view/components/TranscriptBody.vue")

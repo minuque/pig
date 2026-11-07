@@ -48,7 +48,7 @@ import TranscriptImage from "@features/transcript-view/components/TranscriptImag
 import {
   highlightCodeTokens,
   type CodeTokens,
-} from "@features/transcript-view/lib/markdown-render-props.js"
+} from "@features/transcript-view/lib/code-highlight.js"
 import {
   editDiffPreview,
   readToolPreview,

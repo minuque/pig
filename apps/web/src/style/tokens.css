@@ -60,6 +60,12 @@
   --toolbar-foreground: #1b1b1b;
   --code-background: #f6f6f6;
   --code-foreground: #1b1b1b;
+  /* 行内码：accent 向次级文本退一档，不和链接抢亮度 */
+  --inline-code-foreground: color-mix(
+    in srgb,
+    var(--link) 75%,
+    var(--contrast-foreground-secondary)
+  );
   --composer-background: #f4f4f5;
   --user-prompt-background: #e8e8ea;
   --popover: #ffffff;

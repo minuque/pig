@@ -13,6 +13,7 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@comark/vue": "0.8.1",
     "@earendil-works/pi-client": "0.84.4",
     "@earendil-works/pi-coding-agent": "0.84.4",
     "@earendil-works/pi-protocol": "0.84.4",
@@ -20,7 +21,7 @@
     "@radix-ui/themes": "3.3.0",
     "@solar-icons/vue": "2.3.2",
     "@vueuse/core": "14.4.0",
-    "markstream-vue": "2.0.20",
+    "comark": "0.8.1",
     "pele": "1.6.0",
     "reka-ui": "2.10.5",
     "stream-diffs": "0.0.2",

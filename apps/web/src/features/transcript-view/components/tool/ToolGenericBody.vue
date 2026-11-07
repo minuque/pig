@@ -31,7 +31,7 @@ import {
   highlightCodeTokens,
   type CodeTokens,
   vTokenLine,
-} from "@features/transcript-view/lib/markdown-render-props.js"
+} from "@features/transcript-view/lib/code-highlight.js"
 import { toolInputPretty } from "@features/transcript-view/lib/transcript-format.js"
 import { useColorScheme } from "@features/theme/index.js"
 import type { ToolCallView } from "@features/transcript-view/type.js"

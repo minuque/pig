@@ -24,7 +24,7 @@ import { useI18n } from "@i18n/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { CheckIcon, CopyIcon } from "@components/icons/index.js"
 
-const props = defineProps<{ text: string }>()
+const props = defineProps<{ text: string; label?: string }>()
 const { t } = useI18n()
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const copyLabel = computed(() =>
@@ -32,7 +32,7 @@ const copyLabel = computed(() =>
     ? t("common.copied")
     : status.value === "error"
       ? t("common.copyFailed")
-      : t("common.copyMessage"),
+      : (props.label ?? t("common.copyMessage")),
 )
 const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { immediate: false })
 

@@ -44,7 +44,7 @@ import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
-import { type CodeTokens, vTokenLine } from "@features/transcript-view/lib/markdown-render-props.js"
+import { type CodeTokens, vTokenLine } from "@features/transcript-view/lib/code-highlight.js"
 import type { TranscriptImage as ToolImage } from "@features/transcript-view/type.js"
 
 const LINE_LIMIT = 500
