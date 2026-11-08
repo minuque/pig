@@ -8,9 +8,11 @@ colors:
   primary-on: "#FFFFFF"
   link-light: "#3A5BC7"
   link-dark: "#9EB1FF"
-  window-light: "#FFFFFF"
+  window-light: "#F4F4F4"
+  sidebar-light: "#ECEFF5"
   overlay-light: "#FBFBFC"
   window-dark: "#101012"
+  sidebar-dark: "#0B0B0D"
   card-dark: "#17171A"
   overlay-dark: "#1C1C1F"
   ink-light: "#282A30"
@@ -93,13 +95,14 @@ spacing:
 
 中性色用 Radix 的 `slate`（`data-gray-color="slate"`），描边与 rt 基础件的灰阶跟着它走；表面与文字是下表的固定值，取自 Linear 基调。
 
-| 层                | 浅色                  | 深色                  | token                                   |
-| ----------------- | --------------------- | --------------------- | --------------------------------------- |
-| 窗口、侧栏、主区  | `#FFFFFF`             | `#101012`             | `--background`                          |
-| 代码块            | `#F7F8F8`             | `#0B0C0D`             | `--code-background`                     |
-| 卡片、输入卡      | `#F7F8F8`             | `#17171A`             | `--card`、`--composer-background`       |
-| 浮层              | `#FBFBFC`             | `#1C1C1F`             | `--popover`                             |
-| 侧栏行悬停 / 选中 | `#F1F2F4` / `#EDEFF9` | `#121728` / `#1A2143` | `--sidebar-hover`、`--sidebar-selected` |
+| 层                             | 浅色                  | 深色                      | token                                   |
+| ------------------------------ | --------------------- | ------------------------- | --------------------------------------- |
+| 窗口、主区                     | `#F4F4F4`             | `#101012`                 | `--background`                          |
+| 侧栏（主侧栏、抽屉、设置导航） | `#ECEFF5`             | `#0B0B0D`（比主区深一档） | `--sidebar`                             |
+| 代码块                         | `#F7F8F8`             | `#0B0C0D`                 | `--code-background`                     |
+| 卡片、输入卡                   | `#F7F8F8`             | `#17171A`                 | `--card`、`--composer-background`       |
+| 浮层                           | `#FBFBFC`             | `#1C1C1F`                 | `--popover`                             |
+| 侧栏行悬停 / 选中              | `#F1F2F4` / `#EDEFF9` | `#121728` / `#1A2143`     | `--sidebar-hover`、`--sidebar-selected` |
 
 文字只有三级，都走 `--contrast-foreground*` 派生层：
 
@@ -118,7 +121,7 @@ spacing:
 ### 例外
 
 - `--language-*`：代码块语言图标，只在代码块里。
-- Mermaid 图：用 pele 自带的默认配色，不接项目 token。
+- Mermaid 图：浅色用 pele 自带的默认配色；深色在 `mermaid.css` 接 `--mermaid-*`（底 `#101012`、填充 `#17171A`、线 `#2A2A2E`）。
 - `--mascot-*`：吉祥物插画，深浅共用 logo 原色。
 
 ## 字号
