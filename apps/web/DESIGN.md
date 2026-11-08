@@ -181,7 +181,7 @@ components:
 - **指示灯靛蓝·洗** (#edf2fe, indigo-3 / `--accent-a3`)：`--info-bg`、soft 徽章底、拖放引导的浅底。
 - **反白** (#ffffff)：`--primary-foreground`，落在 `#3e63dd` 上的文字与图标。
 
-强调色可切 8 套：indigo（默认）、blue、sky、cyan、teal、green、orange、red。切色只改 `html` 上的 `data-accent-color` 与配套的 `data-gray-color`，组件一律读 `--accent-*` 语义别名，没有为某套色写死的地方。
+强调色固定为 indigo，中性色固定为 slate，写在 `index.html` 的 `html` 属性上（`data-accent-color` / `data-gray-color`），不提供切换。组件一律读 `--accent-*` 语义别名，没有为某套色写死的地方。
 
 ### Neutral
 

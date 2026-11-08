@@ -113,31 +113,6 @@
           </Select>
         </div>
 
-        <div id="setting-accent" class="row">
-          <div class="copy">
-            <h3 class="label">{{ t("settings.accent") }}</h3>
-            <p class="hint">{{ accentHint }}</p>
-          </div>
-
-          <div class="accent-grid" role="radiogroup" :aria-label="t('settings.accent')">
-            <button
-              v-for="accent in ACCENTS"
-              :key="accent.id"
-              type="button"
-              class="accent-swatch"
-              role="radio"
-              :aria-checked="selectedAccent === accent.id"
-              :aria-label="accent.label"
-              :data-accent="accent.id"
-              @click="setAccentById(accent.id)"
-            >
-              <span class="swatch-ball" :style="{ background: swatchColor(accent) }">
-                <CheckIcon v-if="selectedAccent === accent.id" class="swatch-mark" />
-              </span>
-            </button>
-          </div>
-        </div>
-
         <div id="setting-translucent" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.translucentWindow") }}</h3>
@@ -166,22 +141,14 @@ import {
   type UiLocale,
 } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
-import {
-  ACCENTS,
-  DEFAULT_ACCENT_ID,
-  findAccent,
-  type AccentId,
-} from "@features/theme/lib/accents.js"
-import { accentHex } from "@features/theme/lib/palette.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
-import { CheckIcon } from "@components/icons/index.js"
 import { Card } from "@components/ui/card/index.js"
 
 const { t } = useI18n()
-const { isDark, scheme, accent, setScheme, setAccent } = useColorScheme()
+const { isDark, scheme, setScheme } = useColorScheme()
 const {
   locale,
   fontSize,
@@ -194,18 +161,6 @@ const {
   setChatWidth,
   setTranslucentWindow,
 } = useGeneralPrefs()
-const selectedAccent = computed(() => accent.value)
-const accentHint = computed(() => findAccent(selectedAccent.value).label)
-
-function setAccentById(id: AccentId) {
-  setAccent(id === DEFAULT_ACCENT_ID ? null : id)
-}
-
-/** 取色球用的实际色值：读计算样式，深浅切换自动跟随。 */
-function swatchColor(a: (typeof ACCENTS)[number]) {
-  void isDark.value
-  return accentHex(a.id)
-}
 
 function wireTone(id: ColorScheme): "light" | "dark" | "split" {
   if (id === "light") return "light"
@@ -389,51 +344,6 @@ const widthLabel = computed(
   text-align: center;
 }
 
-.accent-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-xs);
-}
-
-.accent-swatch {
-  display: grid;
-  place-items: center;
-  padding: var(--space-xs);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--card);
-  color: var(--contrast-foreground-muted);
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
-}
-
-.accent-swatch:hover {
-  background: var(--hover-quiet);
-}
-
-.accent-swatch[aria-checked="true"] {
-  border-color: var(--primary);
-  color: var(--contrast-foreground);
-  box-shadow: var(--focus-ring);
-}
-
-.swatch-ball {
-  display: grid;
-  place-items: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: var(--radius-pill);
-  color: var(--white);
-}
-
-.swatch-mark {
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
-  color: var(--accent-contrast, var(--white));
-}
-
 /* 下拉框定宽：不同选项文字长短不一，避免选中后触发器宽度跳动 */
 .setting-select {
   inline-size: 10rem;
@@ -441,7 +351,6 @@ const widthLabel = computed(
 
 @media (prefers-reduced-motion: reduce) {
   .scheme-card,
-  .accent-swatch,
   .segment-btn {
     transition: none;
   }
@@ -450,10 +359,6 @@ const widthLabel = computed(
 @media (max-width: 720px) {
   .scheme-cards {
     grid-template-columns: 1fr;
-  }
-
-  .accent-grid {
-    justify-content: flex-start;
   }
 }
 </style>

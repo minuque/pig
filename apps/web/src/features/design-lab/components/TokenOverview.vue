@@ -93,7 +93,7 @@ const PREFIX: [RegExp, GroupId][] = [
 const VISUAL = new Set<GroupId>(["color", "text", "font", "space", "radius", "shadow", "size"])
 // 只收根作用域里的声明：.dark 与字号档是同名覆盖，不另列
 const NAMES = [...new Set([...declared(tokensCss), ...declared(rtCss)])]
-const { isDark, accent } = useColorScheme()
+const { isDark } = useColorScheme()
 const { fontSize, locale } = useGeneralPrefs()
 const values = ref<Token[]>([])
 const groups = computed(() =>
@@ -145,7 +145,7 @@ function fontSample(name: string): string {
 
 onMounted(read)
 
-watch([isDark, accent, fontSize], () => nextTick(read))
+watch([isDark, fontSize], () => nextTick(read))
 </script>
 
 <style scoped>

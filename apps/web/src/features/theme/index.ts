@@ -1,66 +1,14 @@
 import { useColorMode } from "@vueuse/core"
-import { computed, effectScope, ref, type ComputedRef, type Ref } from "vue"
+import { computed, effectScope, type ComputedRef } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
-import {
-  ACCENT_ATTR,
-  ACCENT_STORAGE_KEY,
-  paintAccent,
-  readStoredAccent,
-} from "@features/theme/lib/palette.js"
-import { DEFAULT_ACCENT_ID, type AccentId } from "@features/theme/lib/accents.js"
 
 const STORAGE_KEY = "npg-theme"
-/**
- * 当前 accent id。null 表示默认 indigo，由 paintAccent 落到 data-accent-color。
- * 放模块级 ref：DOM 属性不是响应式依赖。
- */
-const accentId: Ref<AccentId | null> = ref(
-  typeof document === "undefined"
-    ? null
-    : ((document.documentElement.dataset.accentColor as AccentId | undefined) ?? null),
-)
-
-/** 把一套 accent 画到页面上：只改 html 的属性，深浅由色板文件的 .dark 块接管。 */
-export function applyAccent(id: AccentId | null): void {
-  if (typeof document === "undefined") return
-  const root = document.documentElement
-
-  paintAccent(
-    {
-      setAttr: (name, value) => {
-        if (value) root.setAttribute(name, value)
-        else root.removeAttribute(name)
-        accentId.value = value && name === ACCENT_ATTR ? (value as AccentId) : accentId.value
-      },
-      store: (json) => {
-        if (json) localStorage.setItem(ACCENT_STORAGE_KEY, json)
-        else localStorage.removeItem(ACCENT_STORAGE_KEY)
-      },
-    },
-    id,
-  )
-
-  // 桌面壳据此改窗口底色。accent 不动背景，沿用 --background。
-  window.pigDesktop?.setThemeColor(resolvedBackground(root))
-}
-
-/** 读 --background 的计算值；内联样式不直接可读时走计算样式。 */
-function resolvedBackground(root: HTMLElement): string {
-  const probe = document.createElement("div")
-  probe.style.background = "var(--background)"
-  root.append(probe)
-  const color = getComputedStyle(probe).backgroundColor
-  probe.remove()
-  return color
-}
 
 type Theme = {
   isDark: ComputedRef<boolean>
   scheme: ComputedRef<ColorScheme>
-  accent: ComputedRef<AccentId>
   codeBlockProps: ComputedRef<{ theme: "github-dark" | "github-light" }>
   setScheme: (next: ColorScheme) => void
-  setAccent: (next: AccentId | null) => void
   toggle: () => void
 }
 
@@ -84,17 +32,12 @@ function createTheme(): Theme {
   const scheme = computed<ColorScheme>(() =>
     mode.store.value === "auto" ? "auto" : mode.state.value,
   )
-  const accent = computed<AccentId>(() => accentId.value ?? DEFAULT_ACCENT_ID)
   const codeBlockProps = computed(() => ({
     theme: isDark.value ? ("github-dark" as const) : ("github-light" as const),
   }))
 
   function setScheme(next: ColorScheme) {
     mode.value = next
-  }
-
-  function setAccent(next: AccentId | null) {
-    applyAccent(next === DEFAULT_ACCENT_ID ? null : next)
   }
 
   function toggle() {
@@ -117,11 +60,9 @@ function createTheme(): Theme {
     transition.finished.catch(() => {})
   }
 
-  return { isDark, scheme, accent, codeBlockProps, setScheme, setAccent, toggle }
+  return { isDark, scheme, codeBlockProps, setScheme, toggle }
 }
 
 export function useColorScheme() {
   return theme()
 }
-
-export { readStoredAccent }

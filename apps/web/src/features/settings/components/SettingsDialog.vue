@@ -196,12 +196,6 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     section: t("settings.interface"),
   },
   {
-    id: "setting-accent",
-    pane: "general",
-    title: t("settings.accent"),
-    section: t("settings.interface"),
-  },
-  {
     id: "setting-translucent",
     pane: "general",
     title: t("settings.translucentWindow"),

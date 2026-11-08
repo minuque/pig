@@ -2,8 +2,8 @@
 
 @import "./reset.css" layer(base);
 
-/* 色板：accent 与 gray 直接取 Radix Colors 的官方刻度，只引项目用到的 8 套 accent 与 4 族 gray。
-   切 accent 只改 html 的 data-accent-color，深浅由 .dark 块决定。 */
+/* 色板：取 Radix Colors 的官方刻度。主题色固定 indigo、中性色固定 slate（见 index.html 的 html 属性）；
+   其余几套给项目缩写配色（session-nav 的 MONOGRAM_COLORS）与成功、警告、危险的语义色。 */
 @import "@radix-ui/themes/tokens/colors/indigo.css";
 @import "@radix-ui/themes/tokens/colors/blue.css";
 @import "@radix-ui/themes/tokens/colors/sky.css";
@@ -12,12 +12,7 @@
 @import "@radix-ui/themes/tokens/colors/green.css";
 @import "@radix-ui/themes/tokens/colors/orange.css";
 @import "@radix-ui/themes/tokens/colors/red.css";
-
-/* 中性色：indigo/blue/sky/cyan 用 slate，teal/green 用 sage，orange 用 sand，red 用 mauve */
 @import "@radix-ui/themes/tokens/colors/slate.css";
-@import "@radix-ui/themes/tokens/colors/sage.css";
-@import "@radix-ui/themes/tokens/colors/sand.css";
-@import "@radix-ui/themes/tokens/colors/mauve.css";
 @import "./tokens.css";
 @import "./rt.css";
 @import "./motion.css";

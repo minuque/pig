@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-accent-color="indigo" data-gray-color="slate">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -39,26 +39,6 @@
           (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)
 
         if (dark) document.documentElement.classList.add("dark")
-
-        /* 与 applyAccent 的 pig.accent 同键：首帧只写两个属性，
-           色值由 style/app.css 引入的色板给出，不等 Vue 挂载 */
-        var GRAYS = {
-          indigo: "slate",
-          blue: "slate",
-          teal: "sage",
-          green: "sage",
-          orange: "sand",
-          red: "mauve",
-        }
-        try {
-          var storedAccent = JSON.parse(localStorage.getItem("pig.accent") || "null")
-          var accent = storedAccent && GRAYS[storedAccent.id] ? storedAccent.id : "indigo"
-          document.documentElement.setAttribute("data-accent-color", accent)
-          document.documentElement.setAttribute("data-gray-color", GRAYS[accent])
-        } catch (e) {
-          document.documentElement.setAttribute("data-accent-color", "indigo")
-          document.documentElement.setAttribute("data-gray-color", "slate")
-        }
 
         /* 与 use-general-prefs 的 pig.glass 同键：默认开，只有显式 off 才关 */
         var glassOn = true

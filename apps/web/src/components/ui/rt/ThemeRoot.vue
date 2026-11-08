@@ -2,8 +2,8 @@
   <div
     class="radix-themes"
     :class="{ dark: isDark }"
-    :data-accent-color="accent"
-    :data-gray-color="gray"
+    data-accent-color="indigo"
+    data-gray-color="slate"
     :data-is-root-theme="root ? 'true' : undefined"
     data-has-background="false"
     :data-panel-background="translucentWindow ? 'translucent' : 'solid'"
@@ -15,8 +15,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
-import { findAccent } from "@features/theme/lib/accents.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
 
@@ -26,7 +24,6 @@ import { useGeneralPrefs } from "@features/settings/index.js"
  * root 只给应用根用：rt 靠它把 color-scheme 与 min-height 挂到 html 上。
  */
 const props = withDefaults(defineProps<{ root?: boolean }>(), { root: false })
-const { isDark, accent } = useColorScheme()
+const { isDark } = useColorScheme()
 const { translucentWindow } = useGeneralPrefs()
-const gray = computed(() => findAccent(accent.value).gray)
 </script>
