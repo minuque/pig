@@ -2,13 +2,12 @@
 name: pig 工作台
 description: 本机 Pi agent 的多会话并行工作台界面
 colors:
-  void-eclipse: "#0B0B0B"
-  abyss-blue: "#2B3B79"
-  silver-mist: "#E4E4E4"
-  primary: "#384B91"
-  primary-on: "#E4E4E4"
-  link-light: "#364887"
-  link-dark: "#A6B5E0"
+  primary: "#3E63DD"
+  primary-hover-light: "#3358D4"
+  primary-hover-dark: "#5472E4"
+  primary-on: "#FFFFFF"
+  link-light: "#3A5BC7"
+  link-dark: "#9EB1FF"
   window-light: "#E4E4E4"
   workbench-light: "#F4F4F4"
   card-light: "#FAFAFA"
@@ -67,13 +66,13 @@ spacing:
 
 ## 基调
 
-克制、安静、舒服。品牌三色：Void Eclipse `#0B0B0B`、Abyss Blue `#2B3B79`、Silver Mist `#E4E4E4`。
+克制、安静、舒服。主题色 Radix indigo，中性色 Radix slate；表面与文字取黑 `#0B0B0B` 与银灰 `#E4E4E4` 两端。
 
 优先级：解决问题 > 易于使用 > 好看美观。界面靠布局和控件本身说话，不靠说明文字和装饰。
 
 ## 七条规则
 
-1. **一页一个强调色。** 品牌蓝只用于主操作、选中态、焦点、链接。卡片、行、区块不铺强调色。
+1. **一页一个强调色。** 强调色只用于主操作、选中态、焦点、链接。卡片、行、区块不铺强调色。
 2. **一页最多 4 种字号。** 全局只有 4 档，层级靠字重和三级文字色。
 3. **默认扁平。** 不叠阴影、不发光、不加毛玻璃。阴影只给真正浮起来的层。
 4. **不卡片套卡片。** 卡片里的分组用标题加分割线。
@@ -85,15 +84,15 @@ spacing:
 
 ### 强调色
 
-`style/abyss.css` 定义 12 级色阶 `abyss`，由 `#2B3B79` 同色相推得；第 9 级比原色亮一档取 `#384B91`，其余级由 indigo 刻度降彩度推得。`index.html` 与 `ThemeRoot` 的 `data-accent-color="abyss"` 把它映射到 `--accent-*`。
+强调色用 Radix 的 `indigo`。`index.html` 与 `ThemeRoot` 的 `data-accent-color="indigo"` 把它映射到 `--accent-*`。
 
-- `--primary`：第 9 级。实心主按钮的底，文字用 `--primary-foreground`（Silver Mist），对比度约 6.4:1。
-- `--link`、`--info`、焦点环：第 11 级。深色下第 9 级在 `#0B0B0B` 上只有约 2.4:1，必须用第 11 级。
+- `--primary`：第 9 级。实心主按钮的底，文字用 `--primary-foreground`（白）。
+- `--link`、`--info`、焦点环：第 11 级。深色下文字类用法必须用第 11 级。
 - 一页只出现一个 solid 主按钮，其余用 soft 或 ghost。
 
 ### 中性色
 
-中性色用 Radix 的纯灰 `gray`，没有色偏。
+中性色用 Radix 的 `slate`（`data-gray-color="slate"`），描边与 alpha 灰阶带一点蓝调；表面与文字是下表的固定值。
 
 | 层                 | 浅色      | 深色                  | token                                          |
 | ------------------ | --------- | --------------------- | ---------------------------------------------- |

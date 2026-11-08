@@ -2,12 +2,12 @@
 
 @import "./reset.css" layer(base);
 
-/* 色板：主题色是品牌 abyss、中性色是纯灰 gray（见 index.html 的 html 属性）；其余几套给语义色。 */
-@import "./abyss.css";
+/* 色板：主题色 indigo、中性色 slate（见 index.html 的 html 属性）；其余几套给语义色。 */
+@import "@radix-ui/themes/tokens/colors/indigo.css";
 @import "@radix-ui/themes/tokens/colors/green.css";
 @import "@radix-ui/themes/tokens/colors/orange.css";
 @import "@radix-ui/themes/tokens/colors/red.css";
-@import "@radix-ui/themes/tokens/colors/gray.css";
+@import "@radix-ui/themes/tokens/colors/slate.css";
 @import "./tokens.css";
 @import "./rt.css";
 @import "./motion.css";
