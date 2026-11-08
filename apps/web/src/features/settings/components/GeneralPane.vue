@@ -39,7 +39,6 @@
         <div id="setting-user-name" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.userName") }}</h3>
-            <p class="hint">{{ t("settings.userNameHint") }}</p>
           </div>
 
           <TextFieldRoot
@@ -55,7 +54,6 @@
         <div id="setting-language" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.language") }}</h3>
-            <p class="hint">{{ t("settings.languageHint") }}</p>
           </div>
 
           <Select :model-value="locale" size="s" @update:model-value="onLocale">
@@ -74,7 +72,6 @@
         <div id="setting-font-size" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.fontSize") }}</h3>
-            <p class="hint">{{ t("settings.fontSizeHint") }}</p>
           </div>
 
           <SegmentedControl
@@ -97,7 +94,6 @@
         <div id="setting-chat-width" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.chatWidth") }}</h3>
-            <p class="hint">{{ t("settings.chatWidthHint") }}</p>
           </div>
 
           <Select :model-value="chatWidth" size="s" @update:model-value="onChatWidth">

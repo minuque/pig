@@ -1,11 +1,12 @@
 <template>
   <DropdownMenu v-model:open="open" :modal="false">
-    <Tooltip>
+    <Tooltip :disabled="!labelsOverflow">
       <TooltipTrigger as-child>
         <DropdownMenuTrigger as-child>
           <button
             type="button"
             class="selector"
+            @pointerenter="measureLabels"
             :disabled="disabled"
             :aria-label="t('composer.selectModel', { model: triggerText })"
           >
@@ -17,7 +18,7 @@
             />
 
             <span class="selector-stack">
-              <span class="selector-labels" :class="{ 'is-covered': open }">
+              <span ref="labelsRef" class="selector-labels" :class="{ 'is-covered': open }">
                 <span class="selector-name">{{ label }}</span>
 
                 <span v-if="effortLabel" class="selector-effort">
@@ -169,7 +170,7 @@
 
 <script setup lang="ts">
 import { useVirtualList } from "@vueuse/core"
-import { computed, nextTick, useTemplateRef, watch } from "vue"
+import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import type { ComposerModel, ComposerVendor } from "@features/composer/type.js"
 import {
@@ -214,6 +215,15 @@ const emit = defineEmits<{
 }>()
 const open = defineModel<boolean>("open", { default: false })
 const searchRef = useTemplateRef<HTMLInputElement>("searchRef")
+const labelsRef = useTemplateRef<HTMLElement>("labelsRef")
+// 触发器文字被截断时才用 tooltip 补全，完整可见时不重复
+const labelsOverflow = shallowRef(false)
+
+function measureLabels() {
+  const el = labelsRef.value
+  labelsOverflow.value = el ? el.scrollWidth > el.clientWidth + 1 : false
+}
+
 const EMPTY_FAVORITES = new Set<string>()
 const { set: favoriteSet, isFavorite, toggle: toggleFavorite } = useModelFavorites()
 const { t } = useI18n()
