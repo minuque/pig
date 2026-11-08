@@ -39,7 +39,7 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   overflow: hidden;
   border: 0;
   border-radius: var(--radius-lg);
-  background: var(--background-soft);
+  background: var(--background);
   cursor: zoom-in;
 }
 

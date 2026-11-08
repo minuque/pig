@@ -238,7 +238,7 @@ async function copy() {
 .tuner-label {
   display: flex;
   justify-content: space-between;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
 }
 

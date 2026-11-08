@@ -293,7 +293,7 @@ function onPreviewOpenChange(open: boolean) {
 
 /* 视口里的回合加深，正在看的那条最深 */
 .minimap-strip.strip-in-view {
-  background: var(--contrast-foreground-muted);
+  background: var(--contrast-foreground-faint);
 }
 
 .minimap-strip.strip-active {
@@ -313,7 +313,7 @@ function onPreviewOpenChange(open: boolean) {
   border: 0;
   border-radius: var(--radius-xs);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   cursor: pointer;
   translate: -50% 0;
   opacity: 0;

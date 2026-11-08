@@ -137,7 +137,7 @@ watch(
 .command-status {
   margin: 0;
   padding-inline-start: var(--space-sm);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: 1.43;

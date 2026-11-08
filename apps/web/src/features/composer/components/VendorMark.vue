@@ -72,8 +72,8 @@ const monoStyle = computed(() => ({
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-pill);
-  background: var(--background-soft);
-  color: var(--contrast-foreground-muted);
+  background: var(--background);
+  color: var(--contrast-foreground-faint);
   font-weight: 600;
   line-height: 1;
 }

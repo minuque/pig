@@ -32,7 +32,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
 }
 
@@ -44,12 +44,12 @@
   border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-sm);
   background: var(--hover-quiet);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }
 
 .provider-badge[data-state="connected"] {
-  border-color: var(--success-halo);
+  border-color: transparent;
   background: var(--success-bg);
   color: var(--success);
 }
@@ -68,7 +68,7 @@
   align-items: baseline;
   gap: var(--space-xs);
   margin: 0 0 var(--space-sm);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-body-sm--line-height);
@@ -93,7 +93,7 @@
 .kvlabel {
   flex: none;
   width: 72px;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
 }
 
@@ -116,7 +116,7 @@
   align-items: center;
   gap: 4px;
   margin-inline-start: auto;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }
 
@@ -137,7 +137,7 @@
 }
 
 .icon-button {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
 }
 
 .icon-button:hover {

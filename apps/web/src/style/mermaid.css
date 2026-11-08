@@ -6,7 +6,7 @@
   --pele-surface: var(--mermaid-bg);
   --pele-surface-alt: var(--mermaid-fill);
   --pele-fg: var(--mermaid-fg);
-  --pele-muted: var(--contrast-foreground-muted);
+  --pele-muted: var(--contrast-foreground-faint);
   --pele-line: var(--mermaid-line);
   --pele-accent: var(--mermaid-accent);
   --pele-border: var(--mermaid-line);

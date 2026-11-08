@@ -422,7 +422,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   white-space: nowrap;
 }
 
@@ -462,7 +462,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 /* 分隔符写成真实文本，才计入可访问名与可见文本的一致性；样式仍是弱化色。 */
 .selector-effort-sep {
   margin-inline: var(--space-xxs);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
 }
 
 .picker {
@@ -515,7 +515,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   margin: var(--space-xxs) 0;
   padding: 0 var(--space-xs);
   border-radius: var(--radius-md);
-  background: var(--background-soft);
+  background: var(--background);
 }
 
 .search input {
@@ -606,7 +606,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   padding: 0 var(--space-xxs);
   border: 0;
   border-radius: var(--radius-pill);
-  background: var(--background-soft);
+  background: var(--background);
   color: var(--contrast-foreground-faint);
   font-family: inherit;
   font-size: var(--text-eyebrow);
@@ -635,7 +635,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .fav.on,
 .fav.on:hover {
-  color: var(--star);
+  color: var(--contrast-foreground);
 }
 
 .empty {

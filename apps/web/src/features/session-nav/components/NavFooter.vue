@@ -106,7 +106,7 @@ function toggleLocale() {
   min-width: 0;
   margin: 0;
   padding-inline: var(--space-xxs) var(--space-xs);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }

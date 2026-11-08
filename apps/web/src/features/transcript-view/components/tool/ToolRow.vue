@@ -159,7 +159,7 @@ const thumb = computed(() => {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font: inherit;
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
@@ -235,7 +235,7 @@ const thumb = computed(() => {
   overflow: clip;
   border: 0;
   border-radius: var(--radius-2xs);
-  background: var(--background-soft);
+  background: var(--background);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
   cursor: zoom-in;
 }

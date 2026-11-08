@@ -84,7 +84,7 @@ watch(
   position: relative;
   padding: var(--space-xs) var(--space-sm);
   padding-inline-end: calc(var(--space-sm) + 22px);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);

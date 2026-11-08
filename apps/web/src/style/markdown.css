@@ -46,7 +46,7 @@
   }
 
   h6 {
-    color: var(--contrast-foreground-muted);
+    color: var(--contrast-foreground-faint);
   }
 
   :is(strong, b) {
@@ -82,14 +82,14 @@
   }
 
   li::marker {
-    color: var(--contrast-foreground-muted);
+    color: var(--contrast-foreground-faint);
   }
 
   /* ------ 引用与分隔线 ------ */
   blockquote {
     padding-inline-start: 8px;
     border-inline-start: 2px solid var(--border-soft);
-    color: var(--contrast-foreground-muted);
+    color: var(--contrast-foreground-faint);
   }
 
   blockquote > * + * {

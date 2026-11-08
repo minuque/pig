@@ -303,7 +303,7 @@ async function remove() {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
 }
 
@@ -315,7 +315,7 @@ async function remove() {
   border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-sm);
   background: var(--hover-quiet);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }
 
@@ -328,7 +328,7 @@ async function remove() {
   align-items: baseline;
   gap: var(--space-xs);
   margin: 0 0 var(--space-sm);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-body-sm--line-height);
@@ -367,7 +367,7 @@ async function remove() {
 }
 
 .field-label {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
 }
 

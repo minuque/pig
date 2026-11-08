@@ -178,7 +178,7 @@ function itemBind(session: SidebarSession) {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-eyebrow--line-height);
@@ -257,7 +257,7 @@ function itemBind(session: SidebarSession) {
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-md);
   line-height: var(--text-body-md--line-height);
   cursor: default;

@@ -203,7 +203,7 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
 
 /* 工具行图标常态弱一档，悬停、聚焦或菜单打开时回到正文色 */
 .nav-tool[data-slot] {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   transition: color var(--duration-fast) var(--ease-hover);
 }
 

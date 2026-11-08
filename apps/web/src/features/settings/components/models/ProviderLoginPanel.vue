@@ -154,7 +154,7 @@ async function copy(text: string) {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
 }
 
@@ -205,7 +205,7 @@ async function copy(text: string) {
 }
 
 .icon-button {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
 }
 
 .icon-button:hover {
@@ -224,7 +224,7 @@ async function copy(text: string) {
 }
 
 .login-label {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-caption);
 }
 

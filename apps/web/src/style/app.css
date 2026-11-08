@@ -4,10 +4,6 @@
 
 /* 色板：主题色是品牌 abyss、中性色是纯灰 gray（见 index.html 的 html 属性）；其余几套给语义色。 */
 @import "./abyss.css";
-@import "@radix-ui/themes/tokens/colors/blue.css";
-@import "@radix-ui/themes/tokens/colors/sky.css";
-@import "@radix-ui/themes/tokens/colors/cyan.css";
-@import "@radix-ui/themes/tokens/colors/teal.css";
 @import "@radix-ui/themes/tokens/colors/green.css";
 @import "@radix-ui/themes/tokens/colors/orange.css";
 @import "@radix-ui/themes/tokens/colors/red.css";
@@ -88,7 +84,7 @@
 
 /* ------ 基础 reset 与字号档 ------ */
 body {
-  background: var(--background-soft);
+  background: var(--background);
   color: var(--contrast-foreground);
   font-family: var(--font-sans);
 }

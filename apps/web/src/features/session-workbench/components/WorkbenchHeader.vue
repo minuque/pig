@@ -288,7 +288,7 @@ function confirmDelete(): void {
   align-items: center;
   flex-shrink: 1;
   min-width: 0;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-md);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-md--line-height);

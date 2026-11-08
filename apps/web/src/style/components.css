@@ -347,7 +347,7 @@
 }
 
 .text-foreground-muted {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
 }
 
 .text-foreground-faint {
@@ -355,7 +355,7 @@
 }
 
 .text-muted-foreground {
-  color: var(--muted-foreground);
+  color: var(--contrast-foreground-faint);
 }
 
 .text-primary {
@@ -392,7 +392,7 @@
   border-color: var(--border);
 }
 
-/* ------ 浮起的圆形图标钮：滚动到底、加载更早共用 ------ */
+/* ------ 浮起的圆形图标钮：滚动到底、加载更早共用；浮在正文上，所以带浮层阴影 ------ */
 .icon-control {
   width: var(--size-scroll-control);
   height: var(--size-scroll-control);
@@ -400,32 +400,17 @@
   background: var(--popover);
   color: var(--contrast-foreground-secondary);
   cursor: pointer;
-  /* 与发送键同一套立体感：浮起投影 + 顶沿内高光，按下时换成内阴影 */
   box-shadow:
-    var(--shadow-elevated),
-    inset 0 1px 0 var(--button-sheen),
+    var(--shadow-popover),
     inset 0 0 0 var(--border-width) var(--border);
   transition:
     background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth),
-    box-shadow var(--duration-fast) var(--ease-smooth),
-    scale var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-smooth);
 }
 
 .icon-control:hover {
   background: var(--interaction-hover);
   color: var(--contrast-foreground);
-  scale: 1.06;
-  box-shadow:
-    var(--shadow-float),
-    inset 0 1px 0 var(--button-sheen),
-    inset 0 0 0 var(--border-width) var(--border);
-}
-
-.icon-control:active {
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--border),
-    inset 0 1px 2px var(--button-press);
 }
 
 /* ------ 圆角 ------ */
@@ -454,10 +439,10 @@
 }
 
 .btn-destructive {
-  background-color: var(--danger);
-  color: var(--danger-foreground);
+  background-color: var(--danger-bg);
+  color: var(--danger);
 }
 
 .btn-destructive:hover {
-  background-color: color-mix(in srgb, var(--danger) 88%, black);
+  background-color: var(--red-a4);
 }

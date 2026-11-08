@@ -514,7 +514,7 @@ function confirmDelete() {
   place-items: center;
   width: 16px;
   height: 16px;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
 }
 
 /* t3code 式项目缩写：soft 徽标收成 16px 方块 */
@@ -542,7 +542,7 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
   text-overflow: ellipsis;
@@ -560,7 +560,7 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-md);
   font-weight: var(--font-weight-medium);
   line-height: 20px;
@@ -599,7 +599,7 @@ function confirmDelete() {
 }
 
 .time-label {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
   font-variant-numeric: tabular-nums;
   line-height: var(--text-eyebrow--line-height);
@@ -645,7 +645,7 @@ function confirmDelete() {
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
   white-space: nowrap;

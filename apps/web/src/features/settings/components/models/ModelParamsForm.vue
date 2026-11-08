@@ -215,7 +215,7 @@ async function restore() {
 }
 
 .field-label {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
   line-height: var(--text-eyebrow--line-height);
 }

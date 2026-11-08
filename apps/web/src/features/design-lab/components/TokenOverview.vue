@@ -190,7 +190,7 @@ watch([isDark, fontSize], () => nextTick(read))
 
 .overview-note {
   margin: 0;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
 }
 
@@ -281,7 +281,7 @@ watch([isDark, fontSize], () => nextTick(read))
 }
 
 .token-value {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-micro);
 }
 </style>

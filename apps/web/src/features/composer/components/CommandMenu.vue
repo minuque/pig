@@ -180,7 +180,7 @@ watch(
   flex: none;
   width: 16px;
   height: 16px;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
 }
 
 .command-glyph,
@@ -204,7 +204,7 @@ watch(
 
 .command-secondary {
   overflow: hidden;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
   text-overflow: ellipsis;
   white-space: nowrap;

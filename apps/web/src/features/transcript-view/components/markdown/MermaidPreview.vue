@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
 
 .preview-scale {
   min-width: 4ch;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }

@@ -229,7 +229,7 @@ function sourceKind(provider: ProviderView) {
   border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-sm);
   background: var(--hover-quiet);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: 9px;
   font-weight: var(--font-weight-medium);
 }

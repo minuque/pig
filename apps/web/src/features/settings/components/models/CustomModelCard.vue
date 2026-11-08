@@ -130,7 +130,7 @@ const open = ref(!model.value.id)
 }
 
 .icon-button {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
 }
 
 .icon-button:hover {
@@ -172,7 +172,7 @@ const open = ref(!model.value.id)
 }
 
 .field-label {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-eyebrow);
 }
 

@@ -375,7 +375,7 @@ watch(active, async () => {
   height: 2rem;
   padding-inline: var(--space-xs);
   border-radius: var(--radius-md);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-sm);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body-sm--line-height);
@@ -402,7 +402,7 @@ watch(active, async () => {
   height: 2rem;
   padding-inline: var(--space-xs);
   border-radius: var(--radius-md);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-sm);
   transition:
     background-color var(--duration-fast) var(--ease-out),
@@ -429,7 +429,7 @@ watch(active, async () => {
 }
 
 .settings-dialog .search-input::placeholder {
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
 }
 
 .settings-dialog .search-clear {
@@ -534,7 +534,7 @@ watch(active, async () => {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-body-sm);
 }
 
@@ -566,7 +566,7 @@ watch(active, async () => {
   width: var(--size-icon-button);
   height: var(--size-icon-button);
   border-radius: var(--radius-sm);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   cursor: pointer;
   transition:
     background-color var(--duration-fast) var(--ease-out),

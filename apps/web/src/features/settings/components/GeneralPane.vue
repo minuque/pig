@@ -230,7 +230,7 @@ const widthLabel = computed(
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-xl);
   background: var(--card);
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   transition:
     background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),

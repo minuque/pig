@@ -18,7 +18,7 @@ defineProps<{ title: string }>()
 
 .demo-variant-title {
   margin: 0;
-  color: var(--contrast-foreground-muted);
+  color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
 }
