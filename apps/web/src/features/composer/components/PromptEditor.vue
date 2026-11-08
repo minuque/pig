@@ -713,7 +713,7 @@ defineExpose({ focus })
   background: transparent;
   color: var(--contrast-foreground);
   font: inherit;
-  font-size: var(--text-body-md);
+  font-size: var(--text-body);
   line-height: 1.5;
   overscroll-behavior: contain;
   overflow-y: auto;

@@ -282,6 +282,6 @@ watch([isDark, fontSize], () => nextTick(read))
 
 .token-value {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-micro);
+  font-size: var(--text-meta);
 }
 </style>

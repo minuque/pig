@@ -119,8 +119,8 @@ onBeforeUnmount(() => {
   background: transparent;
   color: var(--contrast-foreground-faint);
   font: inherit;
-  font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
   text-align: start;
   cursor: pointer;
 }
@@ -135,7 +135,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex: none;
   gap: var(--space-xxs);
-  font-size: var(--text-micro);
+  font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 

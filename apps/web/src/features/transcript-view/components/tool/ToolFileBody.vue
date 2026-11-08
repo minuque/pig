@@ -151,7 +151,7 @@ watch(
 
 .edit-diff {
   min-width: 0;
-  font-size: var(--text-code-sm);
+  font-size: var(--text-meta);
 }
 
 /* 全局 `*` 会给每个元素写默认拇指色；滚动的那层单独提亮，与其它工具卡同档 */

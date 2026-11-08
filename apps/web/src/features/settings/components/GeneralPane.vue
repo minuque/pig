@@ -338,9 +338,9 @@ const widthLabel = computed(
 }
 
 .scheme-label {
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--text-meta--line-height);
   text-align: center;
 }
 

@@ -132,7 +132,7 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 .cell figcaption {
   color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
-  font-size: var(--text-micro);
+  font-size: var(--text-meta);
 }
 
 .card-title,

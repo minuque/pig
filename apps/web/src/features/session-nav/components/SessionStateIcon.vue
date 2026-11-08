@@ -76,7 +76,7 @@ const { t } = useI18n()
 }
 
 .state-label {
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: 1;
   white-space: nowrap;

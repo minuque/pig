@@ -363,7 +363,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border-radius: var(--radius-pill);
   background: transparent;
   color: var(--contrast-foreground);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition:
@@ -526,7 +526,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   background: transparent;
   color: var(--contrast-foreground);
   font: inherit;
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .search input::placeholder {
@@ -579,9 +579,9 @@ function onSelectModel(event: Event, provider: string, id: string) {
   padding-block: 0;
   border-radius: var(--radius-md);
   color: var(--contrast-foreground);
-  font-size: var(--text-button);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-button--line-height);
+  line-height: var(--text-body--line-height);
   cursor: pointer;
 }
 
@@ -595,9 +595,9 @@ function onSelectModel(event: Event, provider: string, id: string) {
   flex: 1 1 auto;
   min-width: 0;
   color: var(--contrast-foreground);
-  font-size: var(--text-button);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
-  line-height: var(--text-button--line-height);
+  line-height: var(--text-body--line-height);
 }
 
 .row-kbd {
@@ -609,9 +609,9 @@ function onSelectModel(event: Event, provider: string, id: string) {
   background: var(--background);
   color: var(--contrast-foreground-faint);
   font-family: inherit;
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-eyebrow--line-height);
+  line-height: var(--text-meta--line-height);
 }
 
 .fav {
@@ -640,7 +640,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .empty {
   padding: var(--space-lg) var(--space-xs);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   color: var(--contrast-foreground-faint);
   text-align: center;
 }
@@ -654,7 +654,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .configure-models {
   color: var(--primary);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .configure-models:hover {

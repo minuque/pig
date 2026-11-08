@@ -354,8 +354,8 @@ onUpdated(() => {
   border-radius: var(--radius-md);
   background: var(--info-bg);
   color: var(--primary);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -389,9 +389,9 @@ onUpdated(() => {
 .drag-label-text {
   flex: none;
   color: var(--contrast-foreground-secondary);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-eyebrow--line-height);
+  line-height: var(--text-meta--line-height);
   white-space: nowrap;
 }
 
@@ -452,8 +452,8 @@ onUpdated(() => {
   background: var(--popover);
   box-shadow: var(--shadow-elevated);
   color: var(--contrast-foreground);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 .drag-ghost-title {
@@ -466,7 +466,7 @@ onUpdated(() => {
 .session-empty {
   padding: var(--space-xs);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 @media (prefers-reduced-motion: reduce) {

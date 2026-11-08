@@ -376,9 +376,9 @@ watch(active, async () => {
   padding-inline: var(--space-xs);
   border-radius: var(--radius-md);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--text-body--line-height);
   text-align: start;
   transition:
     background-color var(--duration-fast) var(--ease-out),
@@ -403,7 +403,7 @@ watch(active, async () => {
   padding-inline: var(--space-xs);
   border-radius: var(--radius-md);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body);
   transition:
     background-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
@@ -454,8 +454,8 @@ watch(active, async () => {
   margin: 0;
   padding: var(--space-lg) var(--space-xs);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   text-align: center;
 }
 
@@ -479,7 +479,7 @@ watch(active, async () => {
 .settings-dialog .result-title {
   overflow: hidden;
   color: var(--contrast-foreground);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -488,7 +488,7 @@ watch(active, async () => {
 .settings-dialog .result-section {
   overflow: hidden;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -535,7 +535,7 @@ watch(active, async () => {
   gap: 6px;
   min-width: 0;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body);
 }
 
 .settings-dialog .crumb {

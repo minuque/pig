@@ -196,7 +196,7 @@ function activate(index: number) {
   outline: 0;
   background: transparent;
   color: var(--contrast-foreground);
-  font-size: var(--text-body-md);
+  font-size: var(--text-body);
 }
 
 .search-input::placeholder {
@@ -237,7 +237,7 @@ function activate(index: number) {
 .search-empty {
   padding: var(--space-md);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   text-align: center;
 }
 
@@ -254,7 +254,7 @@ function activate(index: number) {
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--contrast-foreground);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   text-align: start;
   cursor: default;
   transition: background-color var(--duration-fast) var(--ease-hover);
@@ -290,7 +290,7 @@ function activate(index: number) {
   flex: none;
   margin-inline-start: auto;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 

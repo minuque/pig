@@ -59,16 +59,16 @@ function retry() {
 .error-title {
   margin: 0;
   color: var(--contrast-foreground);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--text-body--line-height);
 }
 
 .error-detail {
   margin: 0;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   overflow-wrap: anywhere;
 }
 </style>

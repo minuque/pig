@@ -475,8 +475,8 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   border-radius: var(--radius-pill);
   background: var(--composer-background);
   color: var(--primary);
-  font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
 }
 
 .drop-guide-icon {

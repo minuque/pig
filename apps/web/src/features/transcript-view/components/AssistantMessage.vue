@@ -35,7 +35,7 @@ const nodes = useMarkdownNodes({
 
 <style scoped>
 .md-pending {
-  min-height: calc(var(--text-body-md) * 1.625);
+  min-height: calc(var(--text-body) * 1.625);
 }
 
 .message-stamp {

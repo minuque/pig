@@ -271,7 +271,7 @@ async function copy() {
   border-radius: var(--radius-sm);
   background: var(--code-surface);
   font-family: var(--font-mono);
-  font-size: var(--text-code-sm);
+  font-size: var(--text-meta);
   line-height: 1.6;
   white-space: pre-wrap;
 }

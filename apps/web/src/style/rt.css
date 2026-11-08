@@ -27,7 +27,7 @@
   /* rt 把字体、根字号与字色定在自己身上，接回项目基线：随包字体、正文档、对比度层。
      不接这三项，包在根上的 ThemeRoot 会让整站退回系统字体与 16px。 */
   --default-font-family: var(--font-sans);
-  --default-font-size: var(--text-body-md);
+  --default-font-size: var(--text-body);
   color: var(--contrast-foreground);
 
   /* 描边直接取 radix 的 alpha 灰阶：亮暗与 gray 家族都由色板切，不再维护独立色值。
@@ -60,8 +60,8 @@
 
 .rt-BaseMenuContent:where(.rt-r-size-2)
   :is(.rt-BaseMenuItem, .rt-BaseMenuLabel, .rt-BaseMenuShortcut) {
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
 }
 
 /* 图标按钮定档：s=24、m=28（`--size-nav-rail`）。

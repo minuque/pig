@@ -112,8 +112,8 @@ useResizeObserver(body, measure)
   border-radius: var(--radius-lg);
   background: var(--user-prompt-background);
   color: var(--contrast-foreground);
-  font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
 }
 
 .body {
@@ -124,7 +124,7 @@ useResizeObserver(body, measure)
 }
 
 .body.collapsed {
-  max-height: calc(var(--text-body-md--line-height) * 12em);
+  max-height: calc(var(--text-body--line-height) * 12em);
   overflow: hidden;
 }
 
@@ -139,7 +139,7 @@ useResizeObserver(body, measure)
   background: none;
   color: var(--contrast-foreground);
   font: inherit;
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   line-height: 1.4;
   cursor: pointer;
 }

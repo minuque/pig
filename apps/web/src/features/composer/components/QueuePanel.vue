@@ -92,8 +92,8 @@ onBeforeUnmount(() => reorder.detach())
   padding-inline: var(--space-xs);
   border-radius: var(--radius-md);
   color: var(--contrast-foreground);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   cursor: default;
   touch-action: pan-y;
 }
@@ -176,8 +176,8 @@ onBeforeUnmount(() => reorder.detach())
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--contrast-foreground);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-smooth),

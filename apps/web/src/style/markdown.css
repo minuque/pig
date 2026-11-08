@@ -4,7 +4,7 @@
 .prose {
   min-width: 0;
   color: var(--contrast-foreground);
-  font-size: var(--text-body-md);
+  font-size: var(--text-body);
   /* 正文行距略高于基准，给行内码留出上下空隙 */
   line-height: 1.5;
   overflow-wrap: anywhere;

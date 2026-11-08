@@ -150,9 +150,9 @@ function reset() {
 .effort-value {
   overflow: hidden;
   color: var(--primary);
-  font-size: var(--text-button);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-button--line-height);
+  line-height: var(--text-body--line-height);
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;

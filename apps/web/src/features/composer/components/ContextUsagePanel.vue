@@ -176,9 +176,9 @@ function onOpenAutoFocus(event: Event) {
 .title {
   margin: 0;
   color: var(--contrast-foreground);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-caption--line-height);
+  line-height: var(--text-meta--line-height);
 }
 
 .close {
@@ -209,14 +209,14 @@ function onOpenAutoFocus(event: Event) {
 
 .percent {
   color: var(--contrast-foreground-secondary);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 .tokens {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 .bar {
@@ -255,8 +255,8 @@ function onOpenAutoFocus(event: Event) {
   background: transparent;
   color: var(--contrast-foreground-secondary);
   font: inherit;
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   text-align: start;
 }
 
@@ -301,7 +301,7 @@ function onOpenAutoFocus(event: Event) {
   flex: 1;
   overflow: hidden;
   color: var(--contrast-foreground);
-  font-size: var(--text-body-md);
+  font-size: var(--text-body);
   line-height: 1.7;
 }
 
@@ -325,7 +325,7 @@ function onOpenAutoFocus(event: Event) {
   overflow: auto;
   color: var(--contrast-foreground);
   font: inherit;
-  font-size: var(--text-body-md);
+  font-size: var(--text-body);
   line-height: 1.7;
   white-space: pre-wrap;
   overflow-wrap: anywhere;

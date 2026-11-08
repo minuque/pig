@@ -98,10 +98,10 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   max-width: 100%;
   margin: 0;
   color: var(--contrast-foreground);
-  font-size: var(--text-heading-2);
+  font-size: var(--text-heading);
   font-weight: var(--font-weight-normal);
-  line-height: var(--text-heading-2--line-height);
-  letter-spacing: var(--text-heading-2--letter-spacing);
+  line-height: var(--text-heading--line-height);
+  letter-spacing: var(--text-heading--letter-spacing);
   text-align: center;
 }
 

@@ -155,7 +155,7 @@ async function copy(text: string) {
   align-items: center;
   gap: var(--space-xs);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .login-status[data-state="error"] {
@@ -171,7 +171,7 @@ async function copy(text: string) {
 .hint {
   margin: 0;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   line-height: 1.5;
 }
 
@@ -181,7 +181,7 @@ async function copy(text: string) {
   gap: var(--space-xs);
   align-self: flex-start;
   color: var(--primary);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .login-link svg {
@@ -201,7 +201,7 @@ async function copy(text: string) {
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
   font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .icon-button {
@@ -214,7 +214,7 @@ async function copy(text: string) {
 
 .device-uri {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .login-form {
@@ -225,7 +225,7 @@ async function copy(text: string) {
 
 .login-label {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .login-input,
@@ -236,7 +236,7 @@ async function copy(text: string) {
   border-radius: var(--radius-md);
   background: var(--background);
   color: var(--contrast-foreground);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .login-actions {
@@ -247,6 +247,6 @@ async function copy(text: string) {
 }
 
 :deep(.rt-BaseButton.rt-r-size-1) {
-  font-size: var(--text-button);
+  font-size: var(--text-body);
 }
 </style>

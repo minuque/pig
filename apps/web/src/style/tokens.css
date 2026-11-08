@@ -158,10 +158,9 @@
   --warning-bg: var(--orange-a3);
   --danger-bg: var(--red-a3);
 
+  /* 代码：等宽字体观感比同号 sans 大一档，13 号与 14 号正文相当 */
   --text-code: 13px;
   --text-code-line: 24.5px;
-  /* diff 卡是等宽字体，观感比同号 sans 大，降一档与工具行齐平 */
-  --text-code-sm: calc(var(--text-code) - 1px);
 
   /* 输入卡胶囊：宽度跟随对话宽度档 */
   --composer-radius: 32px;
@@ -295,38 +294,19 @@
     "anthropic-mono", ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei",
     monospace;
 
-  /* 字号基础档，其余 --text-* 由它们派生 */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-
-  --text-heading-2: 26px;
-  --text-heading-2--line-height: 1.23;
-  --text-heading-2--letter-spacing: -0.4px;
-  --text-title: var(--text-base);
+  /* 字号四档：辅助、正文、标题、页面大标题；一页最多用其中 4 种，层级靠字重与三级文字色 */
+  --text-meta: 12px;
+  --text-meta--line-height: 1.4;
+  --text-body: 14px;
+  --text-body--line-height: 1.43;
+  --text-title: 16px;
   --text-title--line-height: 1.4;
-  --text-body-md: var(--text-sm);
-  --text-body-md--line-height: 1.43;
-  --text-body-sm: var(--text-sm);
-  --text-body-sm--line-height: 1.43;
-  --text-body-lg: var(--text-base);
-  --text-body-lg--line-height: 1.5;
-  --text-meta: calc(var(--text-body-md) - 1px);
-  --text-meta--line-height: 1.43;
-  /* 增减行数的胶囊徽标，比正文小 2px */
-  --text-micro: calc(var(--text-body-md) - 2px);
-  /* 项目缩写方块里的两个字母 */
-  --text-monogram: calc(var(--text-body-md) - 5px);
-  /* 欢迎页背景涟漪里的字符 */
-  --text-glyph: calc(var(--text-body-md) - 5px);
-  --text-button: 13px;
-  --text-button--line-height: 1.38;
-  --text-caption: 13px;
-  --text-caption--line-height: 1.38;
-  --text-eyebrow: var(--text-xs);
-  --text-eyebrow--line-height: 1.33;
-  --text-caption-mono: var(--text-xs);
-  --text-caption-mono--line-height: 1.33;
+  --text-heading: 20px;
+  --text-heading--line-height: 1.3;
+  --text-heading--letter-spacing: -0.2px;
+  /* 图形尺寸，不算字号：项目缩写方块的字母、欢迎页涟漪字符 */
+  --text-monogram: calc(var(--text-body) - 5px);
+  --text-glyph: calc(var(--text-body) - 5px);
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -446,27 +426,21 @@ html[data-pig-desktop-platform="darwin"] {
   --theme-wire-light-raised: #fafafa;
 }
 
-/* 字号档只改界面与消息文字；展示标题保持设计稿尺寸。 */
+/* 字号档：辅助、正文、标题与代码同步缩放，页面大标题不动 */
 html[data-font-size="s"] {
-  --text-body-md: 12px;
-  --text-body-sm: 12px;
-  --text-button: 12px;
-  --text-caption: 11px;
-  --text-eyebrow: 11px;
-  --text-caption-mono: 11px;
+  --text-meta: 11px;
+  --text-body: 13px;
+  --text-title: 15px;
   --text-code: 12px;
   --text-code-line: 22px;
 }
 
 html[data-font-size="l"] {
-  --text-body-md: 16px;
-  --text-body-sm: 16px;
-  --text-button: 15px;
-  --text-caption: 14px;
-  --text-eyebrow: 13px;
-  --text-caption-mono: 13px;
-  --text-code: 15px;
-  --text-code-line: 28px;
+  --text-meta: 13px;
+  --text-body: 15px;
+  --text-title: 17px;
+  --text-code: 14px;
+  --text-code-line: 26px;
 }
 
 /* 对话宽度档：舒适为默认，宽档加宽，满宽铺满列。 */

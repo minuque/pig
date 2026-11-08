@@ -108,8 +108,8 @@ async function copy() {
   gap: var(--space-xs);
   width: fit-content;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 .stamp.copy-before {

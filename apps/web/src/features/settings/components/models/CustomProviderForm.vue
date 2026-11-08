@@ -294,7 +294,7 @@ async function remove() {
 .provider-detail-title {
   margin: 0;
   color: var(--contrast-foreground);
-  font-size: var(--text-body-lg);
+  font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
   line-height: 1.2;
 }
@@ -304,7 +304,7 @@ async function remove() {
   align-items: center;
   gap: var(--space-xs);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .provider-badge {
@@ -316,7 +316,7 @@ async function remove() {
   border-radius: var(--radius-sm);
   background: var(--hover-quiet);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .detail-sec {
@@ -329,9 +329,9 @@ async function remove() {
   gap: var(--space-xs);
   margin: 0 0 var(--space-sm);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--text-body--line-height);
 }
 
 .sec-count {
@@ -342,7 +342,7 @@ async function remove() {
 .add-model {
   margin-inline-start: auto;
   color: var(--primary);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }
 
@@ -368,7 +368,7 @@ async function remove() {
 
 .field-label {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .required {
@@ -377,7 +377,7 @@ async function remove() {
 }
 
 .field-input {
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .field-input[data-invalid] {
@@ -391,20 +391,20 @@ async function remove() {
   border-radius: var(--radius-md);
   background: var(--background);
   color: var(--contrast-foreground);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .hint {
   margin: var(--space-xs) 0 0;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   line-height: 1.4;
 }
 
 .error {
   margin: var(--space-xs) 0 0;
   color: var(--danger);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .model-cards {
@@ -432,6 +432,6 @@ async function remove() {
 }
 
 :deep(.rt-BaseButton.rt-r-size-1) {
-  font-size: var(--text-button);
+  font-size: var(--text-body);
 }
 </style>

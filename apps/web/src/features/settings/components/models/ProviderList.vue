@@ -152,7 +152,7 @@ function sourceKind(provider: ProviderView) {
   outline: 0;
   background: transparent;
   color: var(--contrast-foreground);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .provider-search input::placeholder {
@@ -216,9 +216,9 @@ function sourceKind(provider: ProviderView) {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--text-body--line-height);
 }
 
 .provider-badge-soft {
@@ -236,14 +236,14 @@ function sourceKind(provider: ProviderView) {
 
 .provider-id {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 .provider-count {
   flex: none;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   white-space: nowrap;
 }
 
@@ -260,12 +260,12 @@ function sourceKind(provider: ProviderView) {
   margin: 0;
   padding-block: var(--space-xl);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .retry {
   color: var(--link);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -275,6 +275,6 @@ function sourceKind(provider: ProviderView) {
 }
 
 :deep(.rt-BaseButton.rt-r-size-1) {
-  font-size: var(--text-button);
+  font-size: var(--text-body);
 }
 </style>

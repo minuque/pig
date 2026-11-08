@@ -289,9 +289,9 @@ function confirmDelete(): void {
   flex-shrink: 1;
   min-width: 0;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-md);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-md--line-height);
+  line-height: var(--text-body--line-height);
 }
 
 .crumb-project-label {
@@ -316,7 +316,7 @@ function confirmDelete(): void {
 .crumb-separator {
   flex: none;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-md);
+  font-size: var(--text-body);
 }
 
 .crumb-current {
@@ -335,9 +335,9 @@ function confirmDelete(): void {
   border: 0;
   background: transparent;
   color: var(--contrast-foreground);
-  font-size: var(--text-body-md);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-md--line-height);
+  line-height: var(--text-body--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

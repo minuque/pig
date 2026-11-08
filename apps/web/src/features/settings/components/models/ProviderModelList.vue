@@ -129,13 +129,13 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 
 .model-name {
   color: var(--contrast-foreground);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
 }
 
 .model-meta {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .model-row:hover {
@@ -171,6 +171,6 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
   color: var(--danger);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 </style>

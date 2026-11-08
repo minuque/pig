@@ -50,16 +50,16 @@
 .label {
   margin: 0;
   color: var(--contrast-foreground);
-  font-size: var(--text-body-md);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-body-md--line-height);
+  line-height: var(--text-body--line-height);
 }
 
 .hint {
   margin: 0;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 @media (max-width: 720px) {

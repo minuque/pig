@@ -119,14 +119,14 @@ const open = ref(!model.value.id)
   overflow: hidden;
   color: var(--contrast-foreground);
   font-family: var(--font-mono);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .model-meta {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .icon-button {
@@ -173,11 +173,11 @@ const open = ref(!model.value.id)
 
 .field-label {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .field-input {
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .switch-box {

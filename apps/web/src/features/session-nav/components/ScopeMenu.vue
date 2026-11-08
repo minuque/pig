@@ -106,7 +106,7 @@ function toggleProject(canonicalPath: string): void {
   margin-inline-start: auto;
   padding-inline-start: var(--space-xs);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 </style>

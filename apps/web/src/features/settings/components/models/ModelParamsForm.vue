@@ -216,8 +216,8 @@ async function restore() {
 
 .field-label {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 .thinking {
@@ -225,7 +225,7 @@ async function restore() {
 }
 
 .field-input {
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .field-input[data-invalid] {
@@ -247,7 +247,7 @@ async function restore() {
 
 .add-param {
   color: var(--primary);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .add-param:hover {
@@ -280,7 +280,7 @@ async function restore() {
 .error {
   margin: 0;
   color: var(--danger);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .actions {
@@ -303,6 +303,6 @@ async function restore() {
 }
 
 :deep(.rt-BaseButton.rt-r-size-1) {
-  font-size: var(--text-button);
+  font-size: var(--text-body);
 }
 </style>

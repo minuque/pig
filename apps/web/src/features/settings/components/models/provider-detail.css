@@ -23,7 +23,7 @@
 .provider-detail-title {
   margin: 0;
   color: var(--contrast-foreground);
-  font-size: var(--text-body-lg);
+  font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
   line-height: 1.2;
 }
@@ -33,7 +33,7 @@
   align-items: center;
   gap: var(--space-xs);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .provider-badge {
@@ -45,7 +45,7 @@
   border-radius: var(--radius-sm);
   background: var(--hover-quiet);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .provider-badge[data-state="connected"] {
@@ -69,9 +69,9 @@
   gap: var(--space-xs);
   margin: 0 0 var(--space-sm);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
-  line-height: var(--text-body-sm--line-height);
+  line-height: var(--text-body--line-height);
 }
 
 .sec-count {
@@ -94,12 +94,12 @@
   flex: none;
   width: 72px;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .kvvalue {
   color: var(--contrast-foreground);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .kvvalue.muted {
@@ -117,7 +117,7 @@
   gap: 4px;
   margin-inline-start: auto;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .switch-link:hover {
@@ -152,7 +152,7 @@
   border-radius: var(--radius-md);
   background: var(--background);
   color: var(--contrast-foreground);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .actions {
@@ -166,7 +166,7 @@
 .note {
   margin: 0;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   line-height: 1.4;
 }
 
@@ -180,7 +180,7 @@
   gap: 4px;
   margin-inline-start: auto;
   color: var(--primary);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }
 
@@ -200,13 +200,13 @@
 .refresh-error {
   margin: 0 0 var(--space-xs);
   color: var(--danger);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .test-result {
   margin: var(--space-sm) 0 0;
   color: var(--success);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   line-height: 1.4;
 }
 
@@ -224,7 +224,7 @@
 .empty {
   margin: 0;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
 }
 
 .logout-dialog {
@@ -232,5 +232,5 @@
 }
 
 :deep(.rt-BaseButton.rt-r-size-1) {
-  font-size: var(--text-button);
+  font-size: var(--text-body);
 }

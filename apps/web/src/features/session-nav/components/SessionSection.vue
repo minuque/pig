@@ -179,9 +179,9 @@ function itemBind(session: SidebarSession) {
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-eyebrow--line-height);
+  line-height: var(--text-meta--line-height);
   cursor: default;
   user-select: none;
 }
@@ -258,8 +258,8 @@ function itemBind(session: SidebarSession) {
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-md);
-  line-height: var(--text-body-md--line-height);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
   cursor: default;
   transition:
     background-color var(--duration-fast) var(--ease-hover),

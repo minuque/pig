@@ -139,9 +139,9 @@ watch(
   margin: 0;
   padding: var(--space-xxs) var(--space-xs) var(--space-xxs);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-semibold);
-  line-height: var(--text-eyebrow--line-height);
+  line-height: var(--text-meta--line-height);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -162,8 +162,8 @@ watch(
   border-radius: var(--radius-lg);
   corner-shape: var(--corner-shape-composer);
   color: var(--contrast-foreground);
-  font-size: var(--text-button);
-  line-height: var(--text-button--line-height);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
   cursor: pointer;
   user-select: none;
   transition: background var(--duration-fast) var(--ease-hover);
@@ -205,7 +205,7 @@ watch(
 .command-secondary {
   overflow: hidden;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -215,13 +215,13 @@ watch(
   margin-inline-start: auto;
   padding-inline-start: var(--space-xs);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 
 .command-status {
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
 }
 </style>

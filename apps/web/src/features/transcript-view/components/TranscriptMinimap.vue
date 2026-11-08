@@ -351,7 +351,7 @@ function onPreviewOpenChange(open: boolean) {
   display: block;
   overflow: hidden;
   color: var(--contrast-foreground);
-  font-size: var(--text-body-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-normal);
   line-height: 20px;
   text-overflow: ellipsis;
@@ -364,7 +364,7 @@ function onPreviewOpenChange(open: boolean) {
   margin-top: var(--space-xxs);
   overflow: hidden;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   line-height: 20px;
   line-clamp: 3;
   -webkit-box-orient: vertical;

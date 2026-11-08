@@ -468,7 +468,7 @@ function confirmDelete() {
   border-radius: var(--radius-xs);
   background: var(--info-bg);
   color: var(--primary);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: 1;
   white-space: nowrap;
@@ -543,8 +543,8 @@ function confirmDelete() {
   flex: 1;
   overflow: hidden;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -561,7 +561,7 @@ function confirmDelete() {
   flex: 1;
   overflow: hidden;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-body-md);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: 20px;
   text-overflow: ellipsis;
@@ -600,9 +600,9 @@ function confirmDelete() {
 
 .time-label {
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
-  line-height: var(--text-eyebrow--line-height);
+  line-height: var(--text-meta--line-height);
   white-space: nowrap;
 }
 
@@ -613,9 +613,9 @@ function confirmDelete() {
   align-items: center;
   gap: var(--space-xxs);
   color: var(--info);
-  font-size: var(--text-eyebrow);
+  font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
-  line-height: var(--text-eyebrow--line-height);
+  line-height: var(--text-meta--line-height);
   white-space: nowrap;
 }
 
@@ -646,8 +646,8 @@ function confirmDelete() {
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--contrast-foreground-faint);
-  font-size: var(--text-eyebrow);
-  line-height: var(--text-eyebrow--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   white-space: nowrap;
   translate: 0 -50%;
   opacity: 0;
@@ -719,8 +719,8 @@ function confirmDelete() {
   outline: none;
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
-  font-size: var(--text-caption);
-  line-height: var(--text-caption--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   box-shadow: inset 0 0 0 1px var(--primary);
 }
 
