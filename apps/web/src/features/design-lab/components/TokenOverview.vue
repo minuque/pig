@@ -16,13 +16,13 @@
         <span class="group-count">{{ group.tokens.length }}</span>
       </h2>
 
-      <div class="grid" :data-kind="group.id">
+      <div class="grid" :data-kind="group.kind">
         <div v-for="token in group.tokens" :key="token.name" class="token" :title="token.value">
           <div
-            v-if="VISUAL.has(group.id)"
+            v-if="VISUAL.has(group.kind)"
             class="sample"
-            :data-kind="group.id"
-            :style="sampleStyle(group.id, token.name)"
+            :data-kind="group.kind"
+            :style="sampleStyle(group.kind, token.name)"
           >
             <template v-if="group.id === 'text'">界面 Aa 123</template>
             <template v-else-if="group.id === 'font'">{{ fontSample(token.name) }}</template>
@@ -45,6 +45,13 @@ import { useGeneralPrefs } from "@features/settings/index.js"
 import type { Label } from "@features/design-lab/lib/nav.js"
 
 type GroupId =
+  | "color-brand"
+  | "color-surface"
+  | "color-text"
+  | "color-interaction"
+  | "color-state"
+  | "color-code"
+  | "color-mark"
   | "color"
   | "text"
   | "leading"
@@ -62,7 +69,14 @@ type GroupId =
 type Token = { name: string; value: string }
 
 const GROUPS: { id: GroupId; title: Label }[] = [
-  { id: "color", title: { zh: "颜色", en: "Color" } },
+  { id: "color-brand", title: { zh: "颜色 · 主题", en: "Color · Brand" } },
+  { id: "color-surface", title: { zh: "颜色 · 表面与边框", en: "Color · Surface & border" } },
+  { id: "color-text", title: { zh: "颜色 · 文字", en: "Color · Text" } },
+  { id: "color-interaction", title: { zh: "颜色 · 交互", en: "Color · Interaction" } },
+  { id: "color-state", title: { zh: "颜色 · 状态", en: "Color · Status" } },
+  { id: "color-code", title: { zh: "颜色 · 代码与图表", en: "Color · Code & chart" } },
+  { id: "color-mark", title: { zh: "颜色 · 标识与插画", en: "Color · Marks & illustration" } },
+  { id: "color", title: { zh: "颜色 · 其他", en: "Color · Other" } },
   { id: "text", title: { zh: "字号", en: "Font size" } },
   { id: "leading", title: { zh: "行高与字距", en: "Line height & tracking" } },
   { id: "font", title: { zh: "字体与字重", en: "Font & weight" } },
@@ -89,6 +103,22 @@ const PREFIX: [RegExp, GroupId][] = [
   [/^--(glass|material|opacity|contrast-boost)/, "material"],
   [/^--(duration|ease)/, "motion"],
 ]
+// 颜色按用途细分，按顺序取第一个命中；都不中归「颜色 · 其他」
+const COLOR_PREFIX: [RegExp, GroupId][] = [
+  [/^--(success|warning|danger|info|state-|scrim)/, "color-state"],
+  [/^--(primary|link$)/, "color-brand"],
+  [/^--(code|language|inline-code|mermaid)/, "color-code"],
+  [/^--(accent-|star|mascot|theme-wire)/, "color-mark"],
+  [
+    /^--(interaction|hover|button|link-underline|scrollbar|chart-track|effort-track|minimap|composer-highlight)/,
+    "color-interaction",
+  ],
+  [/foreground|placeholder|^--contrast/, "color-text"],
+  [
+    /^--(background|window|card|workbench|sidebar|toolbar|composer|user-prompt|popover|inverse|border|white)/,
+    "color-surface",
+  ],
+]
 // 有可视样例的分组；其余只列名字和值
 const VISUAL = new Set<GroupId>(["color", "text", "font", "space", "radius", "shadow", "size"])
 // 只收根作用域里的声明：.dark 与字号档是同名覆盖，不另列
@@ -99,6 +129,7 @@ const values = ref<Token[]>([])
 const groups = computed(() =>
   GROUPS.map((group) => ({
     ...group,
+    kind: group.id.startsWith("color") ? ("color" as const) : group.id,
     tokens: values.value.filter((token) => groupOf(token) === group.id),
   })).filter((group) => group.tokens.length > 0),
 )
@@ -114,7 +145,9 @@ function groupOf(token: Token): GroupId {
   const hit = PREFIX.find(([pattern]) => pattern.test(token.name))
 
   if (hit) return hit[1]
-  return CSS.supports("color", token.value) ? "color" : "other"
+
+  if (!CSS.supports("color", token.value)) return "other"
+  return COLOR_PREFIX.find(([pattern]) => pattern.test(token.name))?.[1] ?? "color"
 }
 
 function read() {
