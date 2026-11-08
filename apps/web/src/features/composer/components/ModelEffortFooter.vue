@@ -1,23 +1,5 @@
 <template>
   <div class="effort-card" :style="geometry">
-    <Tooltip>
-      <TooltipTrigger as-child>
-        <IconButton
-          type="button"
-          size="s"
-          variant="ghost"
-          class="effort-reset"
-          :aria-label="t('composer.restoreDefaultEffort')"
-          :disabled="index === 0"
-          @click="commit(0)"
-        >
-          <RestartIcon aria-hidden="true" />
-        </IconButton>
-      </TooltipTrigger>
-
-      <TooltipContent>{{ t("composer.restoreDefault") }}</TooltipContent>
-    </Tooltip>
-
     <div ref="rootRef" class="root" :data-dragging="dragging ? 'true' : 'false'">
       <svg class="shell" :viewBox="`0 0 ${track} ${BUMP_H + HEIGHT}`" aria-hidden="true">
         <defs>
@@ -83,8 +65,6 @@
 import { useResizeObserver } from "@vueuse/core"
 import { computed, nextTick, ref, useId, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { displayThinkingLevel, formatThinkingLevel } from "@features/composer/lib/thinking-level.js"
 import {
   BUMP_H,
@@ -102,7 +82,6 @@ import {
   tickHeight,
   tween,
 } from "@features/composer/lib/effort-shell.js"
-import { RestartIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = defineProps<{
@@ -302,23 +281,10 @@ function onKeyDown(event: KeyboardEvent) {
 </script>
 
 <style scoped>
+/* 上方一条分割线，把滑条和模型列表隔开 */
 .effort-card {
-  position: relative;
-  /* 顶部留出恢复默认按钮的高度，按钮不压轨道 */
-  padding: var(--space-md) var(--space-xs) var(--space-xs);
-}
-
-/* 恢复默认：贴在卡片右上角，浮在凸台之上 */
-.effort-reset {
-  position: absolute;
-  inset-block-start: var(--space-xxs);
-  inset-inline-end: var(--space-xxs);
-  z-index: 4;
-}
-
-.effort-reset svg {
-  width: 14px;
-  height: 14px;
+  padding: var(--space-xs);
+  border-top: var(--border-width) solid var(--border-soft);
 }
 
 /* 以下照参考实现，整体缩到 2/3：下方轨道，上方留给拖动时长出的标签凸台 */

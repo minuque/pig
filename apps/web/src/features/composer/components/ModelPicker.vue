@@ -43,42 +43,62 @@
       @close-auto-focus="onCloseAutoFocus"
     >
       <div class="picker" @keydown.capture="onPickerKeydown">
-        <div class="tabs">
-          <Tooltip>
+        <div class="tabs-bar">
+          <div class="tabs">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <IconButton
+                  type="button"
+                  class="tab-btn"
+                  size="m"
+                  variant="ghost"
+                  :aria-label="t('composer.favoriteModels')"
+                  :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
+                  @click="selectScope(FAVORITES_SCOPE)"
+                >
+                  <StarBoldIcon v-if="scope === FAVORITES_SCOPE" :size="16" />
+                  <StarIcon v-else :size="16" />
+                </IconButton>
+              </TooltipTrigger>
+
+              <TooltipContent>{{ t("composer.favoriteModels") }}</TooltipContent>
+            </Tooltip>
+
+            <Tooltip v-for="vendor in catalog" :key="vendor.id">
+              <TooltipTrigger as-child>
+                <IconButton
+                  type="button"
+                  class="tab-btn"
+                  size="m"
+                  variant="ghost"
+                  :aria-label="vendor.name"
+                  :data-current="scope === vendor.id ? '' : undefined"
+                  @click="selectScope(vendor.id)"
+                >
+                  <VendorMark :vendor="vendor.id" :name="vendor.name" :size="16" />
+                </IconButton>
+              </TooltipTrigger>
+
+              <TooltipContent>{{ vendor.name }}</TooltipContent>
+            </Tooltip>
+          </div>
+
+          <Tooltip v-if="current.levels.length">
             <TooltipTrigger as-child>
               <IconButton
                 type="button"
-                class="tab-btn"
                 size="m"
                 variant="ghost"
-                :aria-label="t('composer.favoriteModels')"
-                :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
-                @click="selectScope(FAVORITES_SCOPE)"
+                class="effort-reset"
+                :aria-label="t('composer.restoreDefaultEffort')"
+                :disabled="effortIsDefault"
+                @click="resetEffort"
               >
-                <StarBoldIcon v-if="scope === FAVORITES_SCOPE" :size="16" />
-                <StarIcon v-else :size="16" />
+                <RestartIcon :size="14" aria-hidden="true" />
               </IconButton>
             </TooltipTrigger>
 
-            <TooltipContent>{{ t("composer.favoriteModels") }}</TooltipContent>
-          </Tooltip>
-
-          <Tooltip v-for="vendor in catalog" :key="vendor.id">
-            <TooltipTrigger as-child>
-              <IconButton
-                type="button"
-                class="tab-btn"
-                size="m"
-                variant="ghost"
-                :aria-label="vendor.name"
-                :data-current="scope === vendor.id ? '' : undefined"
-                @click="selectScope(vendor.id)"
-              >
-                <VendorMark :vendor="vendor.id" :name="vendor.name" :size="16" />
-              </IconButton>
-            </TooltipTrigger>
-
-            <TooltipContent>{{ vendor.name }}</TooltipContent>
+            <TooltipContent>{{ t("composer.restoreDefault") }}</TooltipContent>
           </Tooltip>
         </div>
 
@@ -163,7 +183,7 @@ import {
   formatThinkingLevel,
   pickerTriggerText,
 } from "@features/composer/lib/thinking-level.js"
-import { MagnifierIcon, StarBoldIcon, StarIcon } from "@components/icons/index.js"
+import { MagnifierIcon, RestartIcon, StarBoldIcon, StarIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{
@@ -234,6 +254,17 @@ const label = computed(() => current.value.model?.name ?? props.model?.id ?? "�
 const effortLabel = computed(() =>
   formatThinkingLevel(displayThinkingLevel(props.level, current.value.levels)),
 )
+const effortIsDefault = computed(
+  () => displayThinkingLevel(props.level, current.value.levels) === current.value.levels[0],
+)
+
+/** 恢复默认：回到该模型的第一档。 */
+function resetEffort() {
+  const first = current.value.levels[0]
+
+  if (first !== undefined) emit("update:level", first)
+}
+
 const triggerText = computed(() =>
   pickerTriggerText(label.value, props.level, current.value.levels),
 )
@@ -353,8 +384,12 @@ function onSelectModel(event: Event, provider: string, id: string) {
   color: var(--contrast-foreground-secondary);
 }
 
-.picker-menu {
-  inline-size: min(var(--size-model-picker), calc(100vw - var(--space-lg)));
+/* 固定宽度：不随模型名和厂商数伸缩。菜单根节点经 Portal 挂到 body，scoped 属性打不到，用 :global */
+:global(.picker-menu) {
+  --picker-w: min(var(--size-model-picker), calc(100vw - var(--space-lg)));
+  inline-size: var(--picker-w);
+  min-inline-size: var(--picker-w);
+  max-inline-size: var(--picker-w);
   overflow: hidden;
 }
 
@@ -365,15 +400,34 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 /* 厂商轨：28px 方钮，非当前项弱化，当前项提亮并带下划线 */
-.tabs {
+/* 顶栏：左侧厂商轨可横滑，右侧恢复默认按钮固定；厂商轨右缘渐隐，滑到按钮下面不叠字 */
+.tabs-bar {
   display: flex;
   flex: none;
   align-items: center;
-  gap: 2px;
   padding: 6px;
   border-bottom: var(--border-width) solid var(--border-soft);
+}
+
+.tabs {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
+}
+
+.tabs-bar:has(.effort-reset) .tabs {
+  /* 末尾留出渐隐带宽度，滑到底时最后一个图标能完全露出 */
+  padding-inline-end: var(--space-lg);
+  mask-image: linear-gradient(to left, transparent, black var(--space-lg));
+}
+
+.effort-reset {
+  position: relative;
+  flex: none;
 }
 
 .tab-btn {

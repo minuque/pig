@@ -158,8 +158,8 @@
 
   /* 输入卡控件（回形针、发送、模型 chip、上下文环） */
   --size-composer-control: 32px;
-  /* 模型选择面板宽 296px，列表最高 200px */
-  --size-model-picker: 296px;
+  /* 模型选择面板固定宽 320px，列表最高 200px */
+  --size-model-picker: 320px;
   --size-model-picker-list: 200px;
   /* 输入区最高 208px，超过内部滚动 */
   --size-composer-field-max: 208px;
