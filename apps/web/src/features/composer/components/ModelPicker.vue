@@ -3,12 +3,14 @@
     <Tooltip :disabled="!labelsOverflow">
       <TooltipTrigger as-child>
         <DropdownMenuTrigger as-child>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            color="gray"
+            high-contrast
             class="selector"
-            @pointerenter="measureLabels"
             :disabled="disabled"
             :aria-label="t('composer.selectModel', { model: triggerText })"
+            @pointerenter="measureLabels"
           >
             <VendorMark
               v-if="current.vendor"
@@ -17,19 +19,17 @@
               :size="14"
             />
 
-            <span class="selector-stack">
-              <span ref="labelsRef" class="selector-labels" :class="{ 'is-covered': open }">
-                <span class="selector-name">{{ label }}</span>
+            <span ref="labelsRef" class="selector-labels">
+              <span class="selector-name">{{ label }}</span>
 
-                <span v-if="effortLabel" class="selector-effort">
-                  <span class="selector-effort-sep">·</span>
-                  {{ effortLabel }}
-                </span>
+              <span v-if="effortLabel" class="selector-effort">
+                <span class="selector-effort-sep">·</span>
+                {{ effortLabel }}
               </span>
-
-              <span v-if="open" class="selector-placeholder">选择模型与强度</span>
             </span>
-          </button>
+
+            <DropdownMenuTriggerIcon />
+          </Button>
         </DropdownMenuTrigger>
       </TooltipTrigger>
 
@@ -61,8 +61,8 @@
                 :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
                 @click="selectScope(FAVORITES_SCOPE)"
               >
-                <StarBoldIcon v-if="scope === FAVORITES_SCOPE" :size="14" />
-                <StarIcon v-else :size="14" />
+                <StarBoldIcon v-if="scope === FAVORITES_SCOPE" :size="16" />
+                <StarIcon v-else :size="16" />
               </IconButton>
             </TooltipTrigger>
 
@@ -80,7 +80,7 @@
                 :data-current="scope === vendor.id ? '' : undefined"
                 @click="selectScope(vendor.id)"
               >
-                <VendorMark :vendor="vendor.id" :name="vendor.name" :size="15" />
+                <VendorMark :vendor="vendor.id" :name="vendor.name" :size="16" />
               </IconButton>
             </TooltipTrigger>
 
@@ -103,47 +103,18 @@
 
         <div v-bind="containerProps" class="groups">
           <DropdownMenuGroup v-if="items.length" v-bind="wrapperProps">
-            <div
+            <ModelPickerRow
               v-for="(item, i) in list"
               :key="`${item.data.vendor.id}/${item.data.model.id}`"
-              class="model-row"
-              :data-current="isCurrent(item.data.vendor.id, item.data.model.id) ? '' : undefined"
-            >
-              <DropdownMenuItem
-                class="model-item"
-                @select="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
-              >
-                <VendorMark
-                  :vendor="item.data.vendor.id"
-                  :name="item.data.vendor.name"
-                  :size="15"
-                />
-
-                <span class="model-name">{{ item.data.vendor.id }}/{{ item.data.model.name }}</span>
-                <kbd v-if="i < 9" class="row-kbd">{{ kbdBadge(i) }}</kbd>
-              </DropdownMenuItem>
-
-              <button
-                type="button"
-                class="fav"
-                :aria-label="
-                  isFavorite(item.data.vendor.id, item.data.model.id)
-                    ? t('composer.unfavorite', { name: item.data.model.name })
-                    : t('composer.favorite', { name: item.data.model.name })
-                "
-                :aria-pressed="isFavorite(item.data.vendor.id, item.data.model.id)"
-                :class="{ on: isFavorite(item.data.vendor.id, item.data.model.id) }"
-                @pointerdown.stop
-                @click.stop="toggleFavorite(item.data.vendor.id, item.data.model.id)"
-              >
-                <StarBoldIcon
-                  v-if="isFavorite(item.data.vendor.id, item.data.model.id)"
-                  :size="14"
-                />
-
-                <StarIcon v-else :size="14" />
-              </button>
-            </div>
+              :vendor-id="item.data.vendor.id"
+              :vendor-name="item.data.vendor.name"
+              :model-name="item.data.model.name"
+              :kbd="i < 9 ? kbdBadge(i) : undefined"
+              :current="isCurrent(item.data.vendor.id, item.data.model.id)"
+              :favorite="isFavorite(item.data.vendor.id, item.data.model.id)"
+              @select="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
+              @toggle-favorite="toggleFavorite(item.data.vendor.id, item.data.model.id)"
+            />
           </DropdownMenuGroup>
 
           <div v-else-if="!catalog.length" class="empty empty-setup">
@@ -177,12 +148,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuTriggerIcon,
 } from "@components/ui/dropdown-menu/index.js"
-import { IconButton } from "@components/ui/button/index.js"
+import { Button, IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import ModelEffortFooter from "@features/composer/components/ModelEffortFooter.vue"
+import ModelPickerRow from "@features/composer/components/ModelPickerRow.vue"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { useModelFavorites } from "@features/composer/hooks/use-model-favorites.js"
 import { useModelPickerPanel } from "@features/composer/hooks/use-model-picker-panel.js"
@@ -253,7 +225,7 @@ const items = computed(() =>
     scope.value === FAVORITES_SCOPE ? favoriteSet.value : EMPTY_FAVORITES,
   ),
 )
-const ROW_HEIGHT = 40
+const ROW_HEIGHT = 28
 const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(items, {
   itemHeight: ROW_HEIGHT,
 })
@@ -360,59 +332,18 @@ function onSelectModel(event: Event, provider: string, id: string) {
 </script>
 
 <style scoped>
-.selector {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xxs);
+/* 触发器：rt ghost 按钮，取消 ghost 的负外边距，宽度随标签收缩 */
+.selector[data-slot="button"] {
   min-width: 0;
-  min-height: var(--size-composer-control);
-  height: auto;
   flex-shrink: 1;
-  padding: var(--space-xxs) var(--space-xs);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--contrast-foreground);
+  margin: 0;
+  gap: var(--space-xs);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
 }
 
-.selector:hover:not(:disabled) {
-  background: var(--hover-tint);
-}
-
-.selector:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.selector:focus-visible,
-.fav:focus-visible {
-  outline: var(--border-width) solid var(--primary);
-  outline-offset: -2px;
-}
-
-.selector[data-state="open"] {
-  background: var(--hover-tint);
-}
-
-.selector-name,
-.model-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.selector-stack {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  overflow: hidden;
+.selector[data-slot="button"][data-state="open"] {
+  background-color: var(--gray-a3);
 }
 
 .selector-labels {
@@ -421,44 +352,11 @@ function onSelectModel(event: Event, provider: string, id: string) {
   min-width: 0;
 }
 
-/* 打开时覆盖占位文案，标签留在原位保持触发器宽度不变。 */
-.selector-labels.is-covered {
-  visibility: hidden;
-}
-
-.selector-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--contrast-foreground-faint);
-  white-space: nowrap;
-}
-
-/* 面板关闭后标签入场：与 Synara composer-trigger-label-enter 同一动效。 */
-@media (prefers-reduced-motion: no-preference) {
-  .selector-labels:not(.is-covered) {
-    animation: selector-label-enter 240ms var(--ease-smooth);
-  }
-
-  @keyframes selector-label-enter {
-    from {
-      opacity: 0;
-      filter: blur(4px);
-      translate: 0 3px;
-    }
-
-    to {
-      opacity: 1;
-      filter: blur(0);
-      translate: 0 0;
-    }
-  }
-}
-
 .selector-name {
   max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .selector-effort {
@@ -475,38 +373,45 @@ function onSelectModel(event: Event, provider: string, id: string) {
   color: var(--contrast-foreground-faint);
 }
 
+.picker-menu {
+  inline-size: min(var(--size-model-picker), calc(100vw - var(--space-lg)));
+  overflow: hidden;
+}
+
 .picker {
   display: flex;
   flex-direction: column;
-  height: min(320px, var(--reka-dropdown-menu-content-available-height, 70vh));
-  padding: var(--space-xxs);
+  max-height: var(--reka-dropdown-menu-content-available-height, 70vh);
 }
 
+/* 厂商轨：28px 方钮，非当前项弱化，当前项提亮并带下划线 */
 .tabs {
   display: flex;
+  flex: none;
   align-items: center;
-  gap: var(--space-xxs);
-  padding: var(--space-xxs) var(--space-xs);
+  gap: 2px;
+  padding: 6px;
   border-bottom: var(--border-width) solid var(--border-soft);
   overflow-x: auto;
   scrollbar-width: none;
 }
 
-/* 尺寸与悬停由 IconButton 接管；这里只留当前项的下划线指示 */
 .tab-btn {
   position: relative;
+  color: var(--contrast-foreground-faint);
   cursor: pointer;
 }
 
 .tab-btn::after {
   content: "";
   position: absolute;
-  inset-inline: 22%;
-  bottom: calc(-1 * var(--space-xxs) - var(--border-width));
+  inset-inline: 6px;
+  bottom: -6px;
   height: 2px;
   border-radius: var(--radius-pill);
   background: var(--primary);
   opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 .tab-btn[data-current] {
@@ -517,15 +422,20 @@ function onSelectModel(event: Event, provider: string, id: string) {
   opacity: 1;
 }
 
+/* 搜索：不铺底框，只用下边线和列表隔开 */
 .search {
   display: flex;
+  flex: none;
   align-items: center;
-  gap: var(--space-xxs);
-  height: 32px;
-  margin: var(--space-xxs) 0;
-  padding: 0 var(--space-xs);
-  border-radius: var(--radius-control);
-  background: var(--background);
+  gap: var(--space-xs);
+  min-height: var(--size-composer-control);
+  padding-inline: 10px;
+  border-bottom: var(--border-width) solid var(--border-soft);
+}
+
+.search-icon {
+  flex: none;
+  color: var(--contrast-foreground-faint);
 }
 
 .search input {
@@ -544,112 +454,17 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .groups {
-  flex: 1;
-  min-height: 0;
+  flex: 0 1 auto;
+  min-height: 80px;
+  max-height: min(var(--size-model-picker-list), 40vh);
+  padding: var(--space-xxs);
   overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-width: none;
 }
 
-.model-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 24px;
-  align-items: center;
-  height: var(--size-control);
-  padding-inline-end: var(--space-xxs);
-  border-radius: var(--radius-control);
-}
-
-.model-row:hover,
-.model-row:focus-within {
-  background: var(--interaction-hover);
-}
-
-.model-row[data-current] {
-  background: var(--hover-tint);
-}
-
-.picker-menu {
-  inline-size: min(var(--size-drawer), calc(100vw - var(--space-lg)));
-  max-block-size: min(320px, var(--reka-dropdown-menu-content-available-height));
-  overflow: hidden;
-}
-
-.search-icon {
-  flex-shrink: 0;
-  color: var(--contrast-foreground-faint);
-}
-
-/* 菜单项：尺寸与文字取自 token；高亮底交给外层的行，自身不描底 */
-.model-item {
-  flex: 1 1 auto;
-  min-inline-size: 0;
-  gap: var(--space-xs);
-  block-size: var(--size-control);
-  padding-inline: var(--space-xs);
-  padding-block: 0;
-  border-radius: var(--radius-control);
-  color: var(--contrast-foreground);
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-body--line-height);
-  cursor: pointer;
-}
-
-.model-item:hover,
-.model-item:focus,
-.model-item[data-highlighted] {
-  background: transparent;
-}
-
-.model-name {
-  flex: 1 1 auto;
-  min-width: 0;
-  color: var(--contrast-foreground);
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--text-body--line-height);
-}
-
-.row-kbd {
-  flex: none;
-  margin-inline-start: auto;
-  padding: 0 var(--space-xxs);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--background);
-  color: var(--contrast-foreground-faint);
-  font-family: inherit;
-  font-size: var(--text-meta);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-meta--line-height);
-}
-
-.fav {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--contrast-foreground-faint);
-  cursor: pointer;
-}
-
-.fav:hover {
-  background: var(--hover-quiet);
-  color: var(--contrast-foreground);
-}
-
-.fav.on,
-.fav.on:hover {
-  color: var(--contrast-foreground);
-}
-
 .empty {
-  padding: var(--space-lg) var(--space-xs);
+  padding: var(--space-md) var(--space-xs);
   font-size: var(--text-meta);
   color: var(--contrast-foreground-faint);
   text-align: center;

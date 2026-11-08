@@ -2,7 +2,7 @@
   <div class="effort-card">
     <div class="effort-head">
       <span class="effort-spacer" aria-hidden="true"></span>
-      <span class="effort-value">{{ currentLabel }}</span>
+      <span :key="currentLabel" class="effort-value motion-blur-in">{{ currentLabel }}</span>
 
       <Tooltip>
         <TooltipTrigger as-child>
@@ -24,6 +24,7 @@
     <div
       ref="track"
       class="effort-slider"
+      :class="{ dragging }"
       role="slider"
       tabindex="0"
       :aria-label="t('composer.thinkingEffort')"
@@ -39,15 +40,15 @@
       @keydown="onKeydown"
     >
       <span class="effort-track">
-        <span class="effort-fill effort-bar" :class="{ 'is-off': index === 0 }" />
+        <span class="effort-fill" :class="{ 'is-off': index === 0 }" />
 
         <span class="effort-marks" aria-hidden="true">
           <span
-            v-for="mark in marks"
+            v-for="(mark, i) in marks"
             :key="mark"
             class="effort-mark"
-            :class="{ passed: mark <= percent }"
-            :style="{ left: `${mark}%` }"
+            :class="{ passed: mark <= percent && index > 0 }"
+            :style="{ left: `${mark}%`, '--mark-h': markHeight(i) }"
           />
         </span>
 
@@ -84,6 +85,12 @@ const marks = computed(() =>
 )
 const isDefault = computed(() => index.value === 0)
 
+/** 刻度由低到高逐级加高，暗示强度递增。 */
+function markHeight(i: number) {
+  const ratio = lastIndex.value === 0 ? 0 : i / lastIndex.value
+  return `${5 + ratio * 5}px`
+}
+
 function setIndex(next: number) {
   const level = props.levels[Math.min(lastIndex.value, Math.max(0, next))]
 
@@ -95,8 +102,8 @@ function indexFromEvent(event: PointerEvent) {
 
   if (!el || lastIndex.value === 0) return 0
   const rect = el.getBoundingClientRect()
-  const span = Math.max(rect.width - 28, 1)
-  const ratio = (event.clientX - rect.left - 14) / span
+  const span = Math.max(rect.width - 32, 1)
+  const ratio = (event.clientX - rect.left - 16) / span
   return Math.round(Math.min(1, Math.max(0, ratio)) * lastIndex.value)
 }
 
@@ -186,30 +193,40 @@ function reset() {
   cursor: default;
 }
 
+/* 32px 胶囊轨：渐变填充一直铺到滑块，滑块是白色胶囊，拖动时变宽 */
 .effort-slider {
   position: relative;
-  height: 28px;
+  height: 32px;
+  margin-top: var(--space-xxs);
+  border-radius: var(--radius-pill);
   touch-action: none;
   cursor: grab;
 }
 
-.effort-slider:active {
+.effort-slider.dragging {
   cursor: grabbing;
+}
+
+.effort-slider:focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
 }
 
 .effort-track {
   position: absolute;
-  inset: 2px 0;
-  border-radius: var(--radius-pill);
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
   background: var(--effort-track);
 }
 
 .effort-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  width: calc(14px + (100% - 28px) * var(--effort-p) / 100);
+  width: calc(32px + (100% - 32px) * var(--effort-p) / 100);
   border-radius: inherit;
   background: var(--effort-fill);
+  box-shadow: var(--effort-fill-highlight);
 }
 
 .effort-fill.is-off {
@@ -218,36 +235,39 @@ function reset() {
 
 .effort-marks {
   position: absolute;
-  inset: 0 14px;
+  inset: 0 16px;
   pointer-events: none;
 }
 
 .effort-mark {
   position: absolute;
   top: 50%;
-  width: 4px;
-  height: 4px;
+  width: 1.5px;
+  height: var(--mark-h);
   border-radius: var(--radius-pill);
-  background: var(--contrast-foreground-faint);
+  background: var(--effort-tick);
   transform: translate(-50%, -50%);
 }
 
 .effort-mark.passed {
-  background: var(--white);
-  opacity: 0.55;
+  background: var(--effort-tick-on);
 }
 
 .effort-thumb {
   position: absolute;
   top: 50%;
-  left: calc(14px + (100% - 28px) * var(--effort-p) / 100);
-  width: 28px;
-  height: 28px;
+  left: calc(16px + (100% - 32px) * var(--effort-p) / 100);
+  width: 26px;
+  height: 26px;
   border-radius: var(--radius-pill);
-  background: var(--white);
-  box-shadow: 0 0 0 var(--border-width) var(--border);
+  background: var(--effort-thumb);
+  box-shadow: var(--effort-thumb-shadow);
   transform: translate(-50%, -50%);
   pointer-events: none;
+}
+
+.effort-slider.dragging .effort-thumb {
+  width: 32px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -255,14 +275,10 @@ function reset() {
   .effort-thumb,
   .effort-mark {
     transition:
-      left var(--duration-fast) var(--ease-spring),
-      width var(--duration-fast) var(--ease-spring),
-      opacity var(--duration-fast) var(--ease-out);
-  }
-
-  .effort-slider:active .effort-fill,
-  .effort-slider:active .effort-thumb {
-    transition: none;
+      left var(--duration-normal) var(--ease-out),
+      width var(--duration-normal) var(--ease-out),
+      opacity var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
   }
 }
 </style>

@@ -110,6 +110,15 @@
   --link-underline: color-mix(in srgb, var(--foreground) 38%, transparent);
   --link-underline-hover: color-mix(in srgb, var(--foreground) 72%, transparent);
   --effort-track: color-mix(in srgb, var(--foreground) 10%, transparent);
+  /* 强度滑条：主题色渐变填充 + 顶部高光，白色胶囊滑块，刻度在填充内外各一色 */
+  --effort-fill: linear-gradient(90deg, var(--accent-9), var(--accent-10));
+  --effort-fill-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.16);
+  --effort-tick: color-mix(in srgb, var(--foreground) 18%, transparent);
+  --effort-tick-on: rgba(255, 255, 255, 0.55);
+  --effort-thumb: linear-gradient(180deg, #ffffff, #f5f5f5);
+  --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  /* 收藏星标：琥珀色，深浅共用 */
+  --favorite: #fbbf24;
   --link: var(--accent-11);
   --scrollbar-color: #d5d8dd;
 
@@ -145,6 +154,9 @@
 
   /* 输入卡控件（回形针、发送、模型 chip、上下文环） */
   --size-composer-control: 32px;
+  /* 模型选择面板宽 296px，列表最高 200px */
+  --size-model-picker: 296px;
+  --size-model-picker-list: 200px;
   /* 输入区最高 208px，超过内部滚动 */
   --size-composer-field-max: 208px;
   /* 连续曲率：输入卡与菜单浮层共用一套角部形状（比 squircle 关键字的 2 更克制） */

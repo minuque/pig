@@ -123,8 +123,3 @@ p {
     min-height: calc(var(--size-control) + var(--space-xxs));
   }
 }
-
-/* fill 必须在滑条同一元素上算，不能在 :root 算死 */
-.effort-bar {
-  --effort-fill: color-mix(in srgb, var(--primary) 40%, var(--white));
-}

@@ -574,6 +574,20 @@
   animation: motion-spin 1s linear infinite;
 }
 
+/* 文字换值：从轻微模糊淡入，用在强度档位等就地切换的标签 */
+@keyframes motion-blur-in {
+  from {
+    opacity: 0.35;
+    filter: blur(2.5px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .motion-blur-in {
+    animation: motion-blur-in 180ms var(--ease-out);
+  }
+}
+
 /* ------ 浮层统一转场：reka-ui 的 data-[state] 与裸层共用同一组 keyframes ------ */
 @keyframes pop-reveal-in {
   from {

@@ -23,3 +23,5 @@ export { default as DropdownMenuSubContent } from "@components/ui/dropdown-menu/
 export { default as DropdownMenuSubTrigger } from "@components/ui/dropdown-menu/DropdownMenuSubTrigger.vue"
 
 export { default as DropdownMenuTrigger } from "@components/ui/dropdown-menu/DropdownMenuTrigger.vue"
+
+export { default as DropdownMenuTriggerIcon } from "@components/ui/dropdown-menu/DropdownMenuTriggerIcon.vue"
