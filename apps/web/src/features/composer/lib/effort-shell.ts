@@ -1,16 +1,19 @@
-/** 强度滑条外壳的几何：轨道 32px 胶囊，拖动时顶部长出 20px 的标签凸台。轨道宽度由调用方实测传入。 */
+/** 强度滑条外壳的几何：参考实现整体缩到 2/3，轨道约 21px 胶囊，拖动时顶部长出凸台。轨道宽度由调用方实测传入。 */
 
-export const HEIGHT = 32
+const SCALE = 2 / 3
+export const HEIGHT = 32 * SCALE
 export const RADIUS = HEIGHT / 2
-export const BUMP_H = 20
-export const REST_W = 27.2
-export const DRAG_W = 33.6
-export const REST_H = 27.2
+export const BUMP_H = 20 * SCALE
+export const REST_W = 27.2 * SCALE
+export const DRAG_W = 33.6 * SCALE
+export const REST_H = 27.2 * SCALE
 export const EDGE_PAD = (HEIGHT - REST_H) / 2
-const LEFT_SHOULDER = 23.572
-const TEXT_SIDE = 20
+/** 肩部曲线的设计稿宽度：控制点按它归一化，实际宽度再按比例放回。 */
+const SHOULDER_DESIGN = 23.572
+const LEFT_SHOULDER = SHOULDER_DESIGN * SCALE
+const TEXT_SIDE = 20 * SCALE
 const PHI_MAX = 0.6
-const PHI_REACH = 36
+const PHI_REACH = 36 * SCALE
 
 export interface ShellGeom {
   topL: number
@@ -39,9 +42,9 @@ export function centerFor(value: number, steps: number, track: number): number {
   return RADIUS + (steps === 0 ? 0 : value / steps) * (track - RADIUS * 2)
 }
 
-/** 刻度由低到高逐级加高：4 档时正好是 4.8 / 6.4 / 8 / 9.6。 */
+/** 刻度由低到高逐级加高：4 档时是设计稿 4.8 / 6.4 / 8 / 9.6 的 2/3。 */
 export function tickHeight(index: number, steps: number): number {
-  return 4.8 + (steps === 0 ? 0 : index / steps) * 4.8
+  return (4.8 + (steps === 0 ? 0 : index / steps) * 4.8) * SCALE
 }
 
 export function plateauFor(width: number): number {
@@ -110,7 +113,7 @@ function shoulderCmds(
   phi: number,
   dir: -1 | 1,
 ): string {
-  const xScale = Math.abs(platX - footX) / LEFT_SHOULDER
+  const xScale = Math.abs(platX - footX) / SHOULDER_DESIGN
   const yScale = Math.max(0.001, (footY - platY) / 20)
   const tangent = { x: dir * Math.cos(phi), y: -Math.sin(phi) }
   const map = (lx: number, ly: number): Point => ({

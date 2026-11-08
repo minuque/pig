@@ -24,9 +24,9 @@
   --radius-5: var(--radius-dialog);
   --radius-6: var(--radius-dialog);
 
-  /* 浮层阴影接到项目档：4-5 给悬停卡、下拉、菜单；对话框用的 6 留 rt 原值 */
-  --shadow-4: var(--shadow-popover);
-  --shadow-5: var(--shadow-popover);
+  /* 浮层阴影全用 rt 原值：带 1px 外环描边。自写浮层的两档 token 也指回 rt，外观一致 */
+  --shadow-popover: var(--shadow-5);
+  --shadow-dialog: var(--shadow-6);
 
   /* rt 把字体、根字号与字色定在自己身上，接回项目基线：随包字体、正文档、对比度层。
      不接这三项，包在根上的 ThemeRoot 会让整站退回系统字体与 16px。 */

@@ -1,5 +1,23 @@
 <template>
-  <div class="effort-card">
+  <div class="effort-card" :style="geometry">
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <IconButton
+          type="button"
+          size="s"
+          variant="ghost"
+          class="effort-reset"
+          :aria-label="t('composer.restoreDefaultEffort')"
+          :disabled="index === 0"
+          @click="commit(0)"
+        >
+          <RestartIcon aria-hidden="true" />
+        </IconButton>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ t("composer.restoreDefault") }}</TooltipContent>
+    </Tooltip>
+
     <div ref="rootRef" class="root" :data-dragging="dragging ? 'true' : 'false'">
       <svg class="shell" :viewBox="`0 0 ${track} ${BUMP_H + HEIGHT}`" aria-hidden="true">
         <defs>
@@ -65,6 +83,8 @@
 import { useResizeObserver } from "@vueuse/core"
 import { computed, nextTick, ref, useId, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { IconButton } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { displayThinkingLevel, formatThinkingLevel } from "@features/composer/lib/thinking-level.js"
 import {
   BUMP_H,
@@ -82,6 +102,7 @@ import {
   tickHeight,
   tween,
 } from "@features/composer/lib/effort-shell.js"
+import { RestartIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = defineProps<{
@@ -106,6 +127,11 @@ const dragging = ref(false)
 const textW = ref(64)
 const plateauW = ref(plateauFor(64))
 const reveal = ref(0)
+// 尺寸全部出自几何常量，样式里只读这几个变量
+const geometry = {
+  "--effort-h": `${HEIGHT}px`,
+  "--effort-root-h": `${BUMP_H + HEIGHT}px`,
+}
 
 useResizeObserver(rootRef, (entries) => {
   const width = entries[0]?.contentRect.width ?? 0
@@ -277,15 +303,29 @@ function onKeyDown(event: KeyboardEvent) {
 
 <style scoped>
 .effort-card {
-  padding: var(--space-xxs) var(--space-xs) var(--space-xs);
-  border-top: var(--border-width) solid var(--border-soft);
+  position: relative;
+  /* 顶部留出恢复默认按钮的高度，按钮不压轨道 */
+  padding: var(--space-md) var(--space-xs) var(--space-xs);
 }
 
-/* 以下照参考实现 1:1：52px 高，下方 32px 轨道，上方 20px 留给拖动时长出的标签凸台 */
+/* 恢复默认：贴在卡片右上角，浮在凸台之上 */
+.effort-reset {
+  position: absolute;
+  inset-block-start: var(--space-xxs);
+  inset-inline-end: var(--space-xxs);
+  z-index: 4;
+}
+
+.effort-reset svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* 以下照参考实现，整体缩到 2/3：下方轨道，上方留给拖动时长出的标签凸台 */
 .root {
   position: relative;
   width: 100%;
-  height: 52px;
+  height: var(--effort-root-h);
   user-select: none;
   touch-action: none;
   font-family: inherit;
@@ -303,11 +343,11 @@ function onKeyDown(event: KeyboardEvent) {
 
 .label {
   position: absolute;
-  top: 2.5px;
+  top: 1px;
   z-index: 2;
-  font-size: 10.5px;
+  font-size: 9px;
   font-weight: 500;
-  line-height: 14px;
+  line-height: 12px;
   letter-spacing: -0.01em;
   white-space: nowrap;
   pointer-events: none;
@@ -331,8 +371,8 @@ function onKeyDown(event: KeyboardEvent) {
   right: 0;
   bottom: 0;
   left: 0;
-  height: 32px;
-  border-radius: 16px;
+  height: var(--effort-h);
+  border-radius: var(--radius-pill);
   cursor: grab;
 }
 
@@ -345,7 +385,7 @@ function onKeyDown(event: KeyboardEvent) {
   top: 0;
   bottom: 0;
   left: 0;
-  border-radius: 16px;
+  border-radius: var(--radius-pill);
   background: var(--effort-fill);
   box-shadow: var(--effort-fill-highlight);
   pointer-events: none;

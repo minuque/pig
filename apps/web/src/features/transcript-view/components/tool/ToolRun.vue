@@ -33,7 +33,7 @@
 import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { AltArrowRightIcon } from "@components/icons/index.js"
-import RollText from "@features/transcript-view/components/RollText.vue"
+import { RollText } from "@components/ui/roll-text/index.js"
 import ToolRunCard from "@features/transcript-view/components/tool/ToolRunCard.vue"
 import { runningToolLabel, toolRunSummary } from "@features/transcript-view/lib/tool-run.js"
 import type { ToolRow as ToolRowModel } from "@features/transcript-view/type.js"

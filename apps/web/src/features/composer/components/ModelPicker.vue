@@ -21,7 +21,7 @@
 
             <span ref="labelsRef" class="selector-labels">
               <span class="selector-name">{{ label }}</span>
-              <span v-if="effortLabel" class="selector-effort">{{ effortLabel }}</span>
+              <RollText v-if="effortLabel" class="selector-effort" :text="effortLabel" />
             </span>
           </Button>
         </DropdownMenuTrigger>
@@ -144,6 +144,7 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
+import { RollText } from "@components/ui/roll-text/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import ModelEffortFooter from "@features/composer/components/ModelEffortFooter.vue"
 import ModelPickerRow from "@features/composer/components/ModelPickerRow.vue"
