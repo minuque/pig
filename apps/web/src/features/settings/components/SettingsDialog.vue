@@ -357,7 +357,7 @@ watch(active, async () => {
   width: var(--size-settings-dialog-nav);
   padding: var(--space-sm) var(--space-xs);
   border-inline-end: var(--border-width) solid var(--border-soft);
-  background: var(--background);
+  background: var(--sidebar);
   user-select: none;
 }
 

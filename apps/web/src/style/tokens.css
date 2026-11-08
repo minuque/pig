@@ -46,7 +46,9 @@
   --white: #ffffff;
 
   /* 表面取 Linear 基调：窗口与侧栏一层，主工作区一层，卡片与浮层各抬一档；行的悬停与选中带一点主题色 */
-  --background: #ffffff;
+  --background: #f4f4f4;
+  /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航 */
+  --sidebar: #eceff5;
   --card: #f7f8f8;
   --workbench-surface: var(--background);
   --sidebar-foreground: var(--foreground);
@@ -311,6 +313,11 @@ html[data-pig-desktop-platform="darwin"] {
   --primary-foreground: var(--accent-contrast);
 
   --background: #101012;
+  --sidebar: #0b0b0d;
+  /* mermaid 图：pele 默认配色只适合浅色，深色在 mermaid.css 里接这组 */
+  --mermaid-bg: #101012;
+  --mermaid-fill: #17171a;
+  --mermaid-line: #2a2a2e;
   --card: #17171a;
   --sidebar-hover: #121728;
   --sidebar-selected: #1a2143;
@@ -350,7 +357,7 @@ html[data-pig-desktop-platform="darwin"] {
 
   --theme-wire-dark: #101012;
   --theme-wire-dark-raised: #17171a;
-  --theme-wire-light: #ffffff;
+  --theme-wire-light: #f4f4f4;
   --theme-wire-light-raised: #f7f8f8;
 }
 

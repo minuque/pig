@@ -5,3 +5,15 @@
   --pele-font-mono: var(--font-mono);
   --pele-radius: var(--radius-control);
 }
+
+/* 深色：pele 默认是浅色配色，接回项目深色 token */
+.dark .mermaid-diagram {
+  --pele-bg: var(--background);
+  --pele-surface: var(--mermaid-bg);
+  --pele-surface-alt: var(--mermaid-fill);
+  --pele-fg: var(--contrast-foreground);
+  --pele-muted: var(--contrast-foreground-faint);
+  --pele-line: var(--mermaid-line);
+  --pele-accent: var(--accent-11);
+  --pele-border: var(--mermaid-line);
+}

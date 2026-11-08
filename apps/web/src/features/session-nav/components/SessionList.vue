@@ -280,7 +280,7 @@ onUpdated(() => {
   height: var(--edge-fade-band);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
-  background: linear-gradient(to bottom, var(--background), transparent);
+  background: linear-gradient(to bottom, var(--sidebar), transparent);
   pointer-events: none;
 }
 
@@ -310,7 +310,7 @@ onUpdated(() => {
 }
 
 .session-edge-bottom {
-  background: linear-gradient(to top, var(--background), transparent);
+  background: linear-gradient(to top, var(--sidebar), transparent);
 }
 
 /* 架子贴底：收件箱再长也不挤出视口，展开超过半屏时在区内滚动。 */
@@ -323,7 +323,7 @@ onUpdated(() => {
   max-height: 60%;
   overflow-x: hidden;
   overflow-y: auto;
-  background: var(--background);
+  background: var(--sidebar);
   scrollbar-width: thin;
   scrollbar-gutter: stable;
   scrollbar-color: transparent transparent;
@@ -333,7 +333,7 @@ onUpdated(() => {
 .session-shelves :deep(.section-head) {
   position: sticky;
   top: 0;
-  background: var(--background);
+  background: var(--sidebar);
 }
 
 /* 没有置顶段时的落点：0 高占位，落点在置顶时撑出虚线框，下面的行让位 */

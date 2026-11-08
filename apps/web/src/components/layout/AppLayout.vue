@@ -91,7 +91,7 @@ function resetWidth() {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--background);
+  background: var(--sidebar);
   border-inline-end: var(--border-width) solid var(--border-soft);
   contain: layout style;
   visibility: hidden;
@@ -232,8 +232,7 @@ main {
     transition:
       transform var(--duration-normal) var(--ease-smooth),
       visibility 0s linear var(--duration-normal);
-    /* 抽屉浮在内容上，半透明窗口下也保持可读 */
-    background: var(--background);
+    background: var(--sidebar);
     border-inline-end: 0;
     box-shadow: var(--shadow-dialog);
   }
