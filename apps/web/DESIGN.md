@@ -5,7 +5,7 @@ colors:
   void-eclipse: "#0B0B0B"
   abyss-blue: "#2B3B79"
   silver-mist: "#E4E4E4"
-  primary: "#2B3B79"
+  primary: "#384B91"
   primary-on: "#E4E4E4"
   link-light: "#364887"
   link-dark: "#A6B5E0"
@@ -85,10 +85,10 @@ spacing:
 
 ### 强调色
 
-`style/abyss.css` 定义 12 级色阶 `abyss`，第 9 级即 `#2B3B79`，其余级由 indigo 刻度按同色相降彩度推得。`index.html` 与 `ThemeRoot` 的 `data-accent-color="abyss"` 把它映射到 `--accent-*`。
+`style/abyss.css` 定义 12 级色阶 `abyss`，由 `#2B3B79` 同色相推得；第 9 级比原色亮一档取 `#384B91`，其余级由 indigo 刻度降彩度推得。`index.html` 与 `ThemeRoot` 的 `data-accent-color="abyss"` 把它映射到 `--accent-*`。
 
-- `--primary`：第 9 级。实心主按钮的底，文字用 `--primary-foreground`（Silver Mist），对比度约 8.5:1。
-- `--link`、`--info`、焦点环：第 11 级。深色下第 9 级在 `#0B0B0B` 上只有约 1.8:1，必须用第 11 级。
+- `--primary`：第 9 级。实心主按钮的底，文字用 `--primary-foreground`（Silver Mist），对比度约 6.4:1。
+- `--link`、`--info`、焦点环：第 11 级。深色下第 9 级在 `#0B0B0B` 上只有约 2.4:1，必须用第 11 级。
 - 一页只出现一个 solid 主按钮，其余用 soft 或 ghost。
 
 ### 中性色
