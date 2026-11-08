@@ -35,10 +35,6 @@
   --default-font-size: var(--text-body);
   color: var(--contrast-foreground);
 
-  /* 描边直接取 radix 的 alpha 灰阶：亮暗与 gray 家族都由色板切，不再维护独立色值。
-     必须写在这里：--gray-* 只在 .radix-themes 作用域内映射。 */
-  --border: var(--gray-a6);
-  --border-soft: var(--gray-a5);
   /* 卡片内的行间分隔：和卡片外环、rt 表格行线同一画法，用内阴影而不是 border，
      非整数缩放下不被取整成一条实线 */
   --divider-top: inset 0 var(--border-width) 0 var(--border-soft);

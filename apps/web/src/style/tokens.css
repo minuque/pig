@@ -45,15 +45,15 @@
   --primary-foreground: var(--accent-contrast);
   --white: #ffffff;
 
-  /* 表面两层：窗口与侧栏是 Silver Mist，主工作区亮一级；卡片、浮层再亮一级 */
-  --background: #e4e4e4;
-  --card: #fafafa;
-  --workbench-surface: #f4f4f4;
+  /* 表面取 Linear 基调：窗口与侧栏一层，主工作区一层，卡片与浮层各抬一档；行的悬停与选中带一点主题色 */
+  --background: #f7f8f8;
+  --card: #f7f8f8;
+  --workbench-surface: #ffffff;
   --sidebar-foreground: var(--foreground);
-  --sidebar-hover: #dadada;
-  --sidebar-selected: #d4d4d4;
+  --sidebar-hover: #f1f2f4;
+  --sidebar-selected: #edeff9;
   --toolbar-foreground: var(--foreground);
-  --code-background: #ebebeb;
+  --code-background: #f7f8f8;
   --code-foreground: var(--foreground);
   /* 代码块语言图标的色相，取自 @pierre/vscode-icons 调色板：浅色 600 档，深色 400 档 */
   --language-gray: #6c6c71;
@@ -69,24 +69,26 @@
   --language-pink: #d32a61;
   /* 行内码：正文色压 10% 的底，深浅主题自动跟随 */
   --inline-code-background: color-mix(in srgb, var(--contrast-foreground) 10%, transparent);
-  --composer-background: #fafafa;
-  --user-prompt-background: #e8e8e8;
-  --popover: #fafafa;
+  --composer-background: #f7f8f8;
+  --user-prompt-background: #f1f2f4;
+  --popover: #fbfbfc;
   --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
 
   /* mermaid 图 */
-  --mermaid-bg: #fafafa;
-  --mermaid-fill: #ebebeb;
+  --mermaid-bg: #ffffff;
+  --mermaid-fill: #f1f2f4;
   --mermaid-fg: var(--foreground);
-  --mermaid-line: #d4d4d4;
+  --mermaid-line: #e4e6ea;
   --mermaid-accent: var(--primary);
 
   /* 文字三级：主、次、弱；弱级只给非必要信息 */
-  --foreground: #0b0b0b;
-  --foreground-secondary: #4a4a4a;
-  --foreground-faint: #6a6a6a;
-  /* 占位文字比最淡一档正文再退一档 */
-  --placeholder: color-mix(in srgb, var(--contrast-foreground-faint) 62%, transparent);
+  --foreground: #282a30;
+  --foreground-secondary: #4c5159;
+  --foreground-faint: #6a7077;
+  --placeholder: #697077;
+  /* 描边两档：卡片、对话框、表格用 border；分隔线与输入框用 border-soft */
+  --border: #e4e6ea;
+  --border-soft: #e8eaec;
 
   /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --foreground 后自动跟随 */
   --contrast-foreground: color-mix(
@@ -114,10 +116,9 @@
   --minimap-marker: color-mix(in srgb, var(--foreground-faint) 35%, transparent);
   --link-underline: color-mix(in srgb, var(--foreground) 38%, transparent);
   --link-underline-hover: color-mix(in srgb, var(--foreground) 72%, transparent);
-  /* 根上派生，不能引用只在 .radix-themes 里定义的 --border-* */
   --effort-track: color-mix(in srgb, var(--foreground) 10%, transparent);
   --link: var(--accent-11);
-  --scrollbar-color: #c4c4c4;
+  --scrollbar-color: #d5d8dd;
 
   /* 滚动边缘渐隐：类只选带宽，颜色由 mask 决定 */
   --edge-fade-band: 24px;
@@ -134,16 +135,16 @@
   --mascot-heat: #f5a896;
   --mascot-heat-snout: #e0735e;
 
-  /* 状态：第 11 级文字配第 3 级底，不用实色填充；深浅由色板自己切 */
+  /* 状态：文字色配同色相浅底，不用实色填充；成功沿用 Radix green */
   --success: var(--green-11);
   --info: var(--accent-11);
-  --warning: var(--orange-11);
-  --danger: var(--red-11);
+  --warning: #8f5f13;
+  --danger: #ae2e38;
   --state-working: var(--info);
   --success-bg: var(--green-a3);
-  --info-bg: var(--accent-a3);
-  --warning-bg: var(--orange-a3);
-  --danger-bg: var(--red-a3);
+  --info-bg: #edeff9;
+  --warning-bg: #f7efdd;
+  --danger-bg: #faeaeb;
 
   /* 代码：等宽字体观感比同号 sans 大一档，13 号与 14 号正文相当 */
   --text-code: 13px;
@@ -219,8 +220,8 @@
   --theme-wire-dark-raised: var(--background);
 
   /* 反色主按钮 */
-  --inverse-background: #0b0b0b;
-  --inverse-background-hover: #262626;
+  --inverse-background: #282a30;
+  --inverse-background-hover: #3a3d45;
   --inverse-foreground: #ffffff;
 
   /* 动效 */
@@ -319,12 +320,12 @@ html[data-pig-desktop-platform="darwin"] {
   --primary-active: var(--accent-10);
   --primary-foreground: var(--accent-contrast);
 
-  --background: #0b0b0b;
-  --card: #181818;
-  --workbench-surface: #121212;
-  --sidebar-hover: #1a1a1a;
-  --sidebar-selected: #212121;
-  --code-background: #1a1a1a;
+  --background: #0b0c0d;
+  --card: #17171a;
+  --workbench-surface: #101012;
+  --sidebar-hover: #121728;
+  --sidebar-selected: #1a2143;
+  --code-background: #0b0c0d;
   --language-gray: #adadb1;
   --language-red: #ff6762;
   --language-orange: #ffa359;
@@ -336,37 +337,46 @@ html[data-pig-desktop-platform="darwin"] {
   --language-indigo: #9d6afb;
   --language-purple: #d568ea;
   --language-pink: #ff678d;
-  --composer-background: #1a1a1a;
-  --user-prompt-background: #1f1f1f;
-  --popover: #1c1c1c;
+  --composer-background: #17171a;
+  --user-prompt-background: #17171a;
+  --popover: #1c1c1f;
   --code-surface: color-mix(in srgb, var(--foreground) 5%, var(--card));
 
   /* mermaid 图 */
-  --mermaid-bg: #121212;
-  --mermaid-fill: #1a1a1a;
-  --mermaid-line: #2e2e2e;
+  --mermaid-bg: #101012;
+  --mermaid-fill: #17171a;
+  --mermaid-line: #2a2a2e;
 
-  --foreground: #e4e4e4;
-  --foreground-secondary: #b0b0b0;
-  --foreground-faint: #8a8a8a;
+  --foreground: #e8eaed;
+  --foreground-secondary: #9da4ae;
+  --foreground-faint: #838993;
+  --placeholder: #8a8f98;
+  --border: #2a2a2e;
+  --border-soft: #1a1a1d;
+
+  --warning: #e8a33d;
+  --danger: #ff7d88;
+  --info-bg: #1a2143;
+  --warning-bg: #251b0d;
+  --danger-bg: #281518;
 
   --effort-track: var(--hover-strong);
   --link: var(--accent-11);
   --mermaid-accent: var(--accent-11);
-  --scrollbar-color: #333333;
+  --scrollbar-color: #2a2a2e;
 
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-popover: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.6);
 
-  --inverse-background: #e4e4e4;
-  --inverse-background-hover: #f0f0f0;
-  --inverse-foreground: #0b0b0b;
+  --inverse-background: #e8eaed;
+  --inverse-background-hover: #ffffff;
+  --inverse-foreground: #101012;
 
-  --theme-wire-dark: #0b0b0b;
-  --theme-wire-dark-raised: #181818;
-  --theme-wire-light: #e4e4e4;
-  --theme-wire-light-raised: #fafafa;
+  --theme-wire-dark: #0b0c0d;
+  --theme-wire-dark-raised: #101012;
+  --theme-wire-light: #f7f8f8;
+  --theme-wire-light-raised: #ffffff;
 }
 
 /* 字号档：辅助、正文、标题与代码同步缩放，页面大标题不动 */

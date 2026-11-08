@@ -8,18 +8,21 @@ colors:
   primary-on: "#FFFFFF"
   link-light: "#3A5BC7"
   link-dark: "#9EB1FF"
-  window-light: "#E4E4E4"
-  workbench-light: "#F4F4F4"
-  card-light: "#FAFAFA"
-  window-dark: "#0B0B0B"
-  workbench-dark: "#121212"
-  card-dark: "#181818"
-  ink-light: "#0B0B0B"
-  ink-secondary-light: "#4A4A4A"
-  ink-faint-light: "#6A6A6A"
-  ink-dark: "#E4E4E4"
-  ink-secondary-dark: "#B0B0B0"
-  ink-faint-dark: "#8A8A8A"
+  window-light: "#F7F8F8"
+  workbench-light: "#FFFFFF"
+  overlay-light: "#FBFBFC"
+  window-dark: "#0B0C0D"
+  workbench-dark: "#101012"
+  card-dark: "#17171A"
+  overlay-dark: "#1C1C1F"
+  ink-light: "#282A30"
+  ink-secondary-light: "#4C5159"
+  ink-faint-light: "#6A7077"
+  ink-dark: "#E8EAED"
+  ink-secondary-dark: "#9DA4AE"
+  ink-faint-dark: "#838993"
+  border-light: "#E4E6EA"
+  border-dark: "#2A2A2E"
 typography:
   heading:
     fontFamily: "anthropic-sans, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
@@ -66,13 +69,13 @@ spacing:
 
 ## 基调
 
-克制、安静、舒服。主题色 Radix indigo，中性色 Radix slate；表面与文字取黑 `#0B0B0B` 与银灰 `#E4E4E4` 两端。
+克制、安静、舒服，表面与文字取 Linear 的冷灰基调。主题色 Radix indigo，中性色 Radix slate。
 
 优先级：解决问题 > 易于使用 > 好看美观。界面靠布局和控件本身说话，不靠说明文字和装饰。
 
 ## 七条规则
 
-1. **一页一个强调色。** 强调色只用于主操作、选中态、焦点、链接。卡片、行、区块不铺强调色。
+1. **一页一个强调色。** 强调色只用于主操作、选中态、焦点、链接。卡片、区块不铺强调色；侧栏行的悬停与选中只带极淡的主题色底。
 2. **一页最多 4 种字号。** 全局只有 4 档，层级靠字重和三级文字色。
 3. **默认扁平。** 不叠阴影、不发光、不加毛玻璃。阴影只给真正浮起来的层。
 4. **不卡片套卡片。** 卡片里的分组用标题加分割线。
@@ -92,27 +95,29 @@ spacing:
 
 ### 中性色
 
-中性色用 Radix 的 `slate`（`data-gray-color="slate"`），描边与 alpha 灰阶带一点蓝调；表面与文字是下表的固定值。
+中性色用 Radix 的 `slate`（`data-gray-color="slate"`），rt 基础件的灰阶跟着它走；表面、文字、描边是下表的固定值，取自 Linear 基调。
 
-| 层                 | 浅色      | 深色                  | token                                          |
-| ------------------ | --------- | --------------------- | ---------------------------------------------- |
-| 窗口与侧栏         | `#E4E4E4` | `#0B0B0B`             | `--background`                                 |
-| 主工作区           | `#F4F4F4` | `#121212`             | `--workbench-surface`                          |
-| 卡片、输入卡、浮层 | `#FAFAFA` | `#181818` / `#1C1C1C` | `--card`、`--composer-background`、`--popover` |
+| 层                 | 浅色                  | 深色                  | token                                   |
+| ------------------ | --------------------- | --------------------- | --------------------------------------- |
+| 窗口、侧栏、代码块 | `#F7F8F8`             | `#0B0C0D`             | `--background`、`--code-background`     |
+| 主工作区           | `#FFFFFF`             | `#101012`             | `--workbench-surface`                   |
+| 卡片、输入卡       | `#F7F8F8`             | `#17171A`             | `--card`、`--composer-background`       |
+| 浮层               | `#FBFBFC`             | `#1C1C1F`             | `--popover`                             |
+| 侧栏行悬停 / 选中  | `#F1F2F4` / `#EDEFF9` | `#121728` / `#1A2143` | `--sidebar-hover`、`--sidebar-selected` |
 
 文字只有三级，都走 `--contrast-foreground*` 派生层：
 
 | 级  | 浅色      | 深色      | 用途              |
 | --- | --------- | --------- | ----------------- |
-| 主  | `#0B0B0B` | `#E4E4E4` | 正文、标题        |
-| 次  | `#4A4A4A` | `#B0B0B0` | 次要信息          |
-| 弱  | `#6A6A6A` | `#8A8A8A` | 非必要信息，≥ 3:1 |
+| 主  | `#282A30` | `#E8EAED` | 正文、标题        |
+| 次  | `#4C5159` | `#9DA4AE` | 次要信息          |
+| 弱  | `#6A7077` | `#838993` | 非必要信息，≥ 3:1 |
 
-描边只有 `--border`（gray-a6）与 `--border-soft`（gray-a5）。分割线只用 1px `--border-soft`。
+描边只有 `--border`（浅 `#E4E6EA` / 深 `#2A2A2E`）与 `--border-soft`（浅 `#E8EAEC` / 深 `#1A1A1D`）。分割线只用 1px `--border-soft`。
 
 ### 状态色
 
-成功、警告、危险取 Radix 的 green、orange、red：第 11 级做文字（`--success`、`--warning`、`--danger`），第 3 级 alpha 做底（`--*-bg`）。不用实色填充，不加光晕。状态色只在真有状态时出现。
+状态色做文字（`--success`、`--warning`、`--danger`），同色相的浅底做底（`--*-bg`）。警告与危险取 Linear 基调的值（浅 `#8F5F13` / `#AE2E38`，深 `#E8A33D` / `#FF7D88`）；成功沿用 Radix green 第 11 级与 a3。不用实色填充，不加光晕。状态色只在真有状态时出现。
 
 ### 例外
 
