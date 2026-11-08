@@ -167,18 +167,15 @@ spacing:
 
 ## 动画
 
-只复用 `motion.css` 的类、`@keyframes` 与 `--duration-*`、`--ease-*`，不新增。浮层进出 140ms / 100ms，只动透明度与位移。动效只表达在跑、层级变化与状态切换，遵守 `prefers-reduced-motion`。
+浮层进出 140ms / 100ms，只动透明度与位移。动效只表达在跑、层级变化与状态切换，遵守 `prefers-reduced-motion`。
 
 ## 组件
 
-- 基础件来自 `components/ui/` 包过的 Radix Themes，外观由 `rt-*` 类与 `data-*` 决定；微调写 scoped 样式。
-- 弹层内容包 `ThemeRoot`，否则飞出文档流后拿不到 rt token。
 - 设置行只有标签和控件，没有说明文字。
 - 项目缩写用灰色 soft Badge；上下文用量图用强调色同色系深浅区分各段。
 
 ## 不要
 
-- 不在 SFC 里写裸 hex、`rgb()`、`color-mix()`，不声明 `--*`；缺档先补 `tokens.css`。
 - 不加第二个强调色、装饰色、渐变、光晕、毛玻璃。
 - 不给静止的卡片、侧栏、工具栏加阴影。
 - 不加第 5 种字号，不加第 4 级文字灰。
