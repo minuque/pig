@@ -161,7 +161,7 @@ const thumb = computed(() => {
   background: transparent;
   color: var(--contrast-foreground-faint);
   font: inherit;
-  font-size: var(--text-meta);
+  font-size: var(--text-code);
   line-height: var(--text-meta--line-height);
   text-align: start;
   cursor: pointer;

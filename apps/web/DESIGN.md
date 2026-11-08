@@ -15,12 +15,12 @@ colors:
   sidebar-dark: "#0E0E10"
   card-dark: "#17171A"
   overlay-dark: "#1C1C1F"
-  ink-light: "#282A30"
-  ink-secondary-light: "#4C5159"
-  ink-faint-light: "#6A7077"
-  ink-dark: "#E8EAED"
-  ink-secondary-dark: "#9DA4AE"
-  ink-faint-dark: "#838993"
+  ink-light: "#292929"
+  ink-secondary-light: "#505050"
+  ink-faint-light: "#6E6E6E"
+  ink-dark: "#E8E8E8"
+  ink-secondary-dark: "#A1A1A1"
+  ink-faint-dark: "#888888"
 typography:
   heading:
     fontFamily: "anthropic-sans, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
@@ -109,9 +109,9 @@ spacing:
 
 | 级  | 浅色      | 深色      | 用途              |
 | --- | --------- | --------- | ----------------- |
-| 主  | `#282A30` | `#E8EAED` | 正文、标题        |
-| 次  | `#4C5159` | `#9DA4AE` | 次要信息          |
-| 弱  | `#6A7077` | `#838993` | 非必要信息，≥ 3:1 |
+| 主  | `#292929` | `#E8E8E8` | 正文、标题        |
+| 次  | `#505050` | `#A1A1A1` | 次要信息          |
+| 弱  | `#6E6E6E` | `#888888` | 非必要信息，≥ 3:1 |
 
 描边只有 `--border`（gray-a6）与 `--border-soft`（gray-a5）。分割线只用 1px `--border-soft`。
 

@@ -78,10 +78,10 @@
   --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
 
   /* 文字三级：主、次、弱；弱级只给非必要信息 */
-  --foreground: #282a30;
-  --foreground-secondary: #4c5159;
-  --foreground-faint: #6a7077;
-  --placeholder: #697077;
+  --foreground: #292929;
+  --foreground-secondary: #505050;
+  --foreground-faint: #6e6e6e;
+  --placeholder: #6d6d6d;
 
   /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --foreground 后自动跟随 */
   --contrast-foreground: color-mix(
@@ -234,8 +234,8 @@
   --theme-wire-dark-raised: var(--background);
 
   /* 反色主按钮 */
-  --inverse-background: #282a30;
-  --inverse-background-hover: #3a3d45;
+  --inverse-background: #292929;
+  --inverse-background-hover: #3c3c3c;
   --inverse-foreground: #ffffff;
 
   /* 动效 */
@@ -357,10 +357,10 @@ html[data-pig-desktop-platform="darwin"] {
   --popover: #1c1c1f;
   --code-surface: color-mix(in srgb, var(--foreground) 5%, var(--card));
 
-  --foreground: #e8eaed;
-  --foreground-secondary: #9da4ae;
-  --foreground-faint: #838993;
-  --placeholder: #8a8f98;
+  --foreground: #e8e8e8;
+  --foreground-secondary: #a1a1a1;
+  --foreground-faint: #888888;
+  --placeholder: #8c8c8c;
 
   --warning: #e8a33d;
   --danger: #ff7d88;
@@ -385,7 +385,7 @@ html[data-pig-desktop-platform="darwin"] {
   --shadow-composer: 0 0 transparent;
   --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03), inset 0 1px 3px rgba(0, 0, 0, 0.2);
 
-  --inverse-background: #e8eaed;
+  --inverse-background: #e8e8e8;
   --inverse-background-hover: #ffffff;
   --inverse-foreground: #101012;
 
