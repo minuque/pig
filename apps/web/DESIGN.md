@@ -9,10 +9,10 @@ colors:
   link-light: "#3A5BC7"
   link-dark: "#9EB1FF"
   window-light: "#F4F4F4"
-  sidebar-light: "#ECECEC"
+  sidebar-light: "#F0F0F0"
   overlay-light: "#FBFBFC"
   window-dark: "#101012"
-  sidebar-dark: "#0B0B0D"
+  sidebar-dark: "#0E0E10"
   card-dark: "#17171A"
   overlay-dark: "#1C1C1F"
   ink-light: "#282A30"
@@ -98,7 +98,7 @@ spacing:
 | 层                             | 浅色                       | 深色                       | token                           |
 | ------------------------------ | -------------------------- | -------------------------- | ------------------------------- |
 | 窗口、主区                     | `#F4F4F4`                  | `#101012`                  | `--background`                  |
-| 侧栏（主侧栏、抽屉、设置导航） | `#ECECEC`（比主区深一档）  | `#0B0B0D`（比主区深一档）  | `--sidebar`                     |
+| 侧栏（主侧栏、抽屉、设置导航） | `#F0F0F0`（比主区深一档）  | `#0E0E10`（比主区深一档）  | `--sidebar`                     |
 | 代码块                         | `#F7F8F8`                  | `#0B0C0D`                  | `--code-background`             |
 | 卡片                           | `#F7F8F8`                  | `#17171A`                  | `--card`                        |
 | 输入卡                         | `#FFFFFF`                  | `#17171A`                  | `--composer-background`         |
