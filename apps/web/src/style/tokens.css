@@ -46,7 +46,7 @@
   --white: #ffffff;
 
   /* 表面取 Linear 基调：窗口与侧栏一层，主工作区一层，卡片与浮层各抬一档；行的悬停与选中带一点主题色 */
-  --background: #f7f8f8;
+  --background: #ffffff;
   --card: #f7f8f8;
   --workbench-surface: var(--background);
   --sidebar-foreground: var(--foreground);
@@ -317,7 +317,7 @@ html[data-pig-desktop-platform="darwin"] {
   --primary-active: var(--accent-10);
   --primary-foreground: var(--accent-contrast);
 
-  --background: #0b0c0d;
+  --background: #101012;
   --card: #17171a;
   --sidebar-hover: #121728;
   --sidebar-selected: #1a2143;
@@ -361,10 +361,10 @@ html[data-pig-desktop-platform="darwin"] {
   --inverse-background-hover: #ffffff;
   --inverse-foreground: #101012;
 
-  --theme-wire-dark: #0b0c0d;
-  --theme-wire-dark-raised: #101012;
-  --theme-wire-light: #f7f8f8;
-  --theme-wire-light-raised: #ffffff;
+  --theme-wire-dark: #101012;
+  --theme-wire-dark-raised: #17171a;
+  --theme-wire-light: #ffffff;
+  --theme-wire-light-raised: #f7f8f8;
 }
 
 /* 字号档：辅助、正文、标题与代码同步缩放，页面大标题不动 */

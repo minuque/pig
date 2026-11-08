@@ -8,9 +8,9 @@ colors:
   primary-on: "#FFFFFF"
   link-light: "#3A5BC7"
   link-dark: "#9EB1FF"
-  window-light: "#F7F8F8"
+  window-light: "#FFFFFF"
   overlay-light: "#FBFBFC"
-  window-dark: "#0B0C0D"
+  window-dark: "#101012"
   card-dark: "#17171A"
   overlay-dark: "#1C1C1F"
   ink-light: "#282A30"
@@ -93,12 +93,13 @@ spacing:
 
 中性色用 Radix 的 `slate`（`data-gray-color="slate"`），描边与 rt 基础件的灰阶跟着它走；表面与文字是下表的固定值，取自 Linear 基调。
 
-| 层                       | 浅色                  | 深色                  | token                                   |
-| ------------------------ | --------------------- | --------------------- | --------------------------------------- |
-| 窗口、侧栏、主区、代码块 | `#F7F8F8`             | `#0B0C0D`             | `--background`、`--code-background`     |
-| 卡片、输入卡             | `#F7F8F8`             | `#17171A`             | `--card`、`--composer-background`       |
-| 浮层                     | `#FBFBFC`             | `#1C1C1F`             | `--popover`                             |
-| 侧栏行悬停 / 选中        | `#F1F2F4` / `#EDEFF9` | `#121728` / `#1A2143` | `--sidebar-hover`、`--sidebar-selected` |
+| 层                | 浅色                  | 深色                  | token                                   |
+| ----------------- | --------------------- | --------------------- | --------------------------------------- |
+| 窗口、侧栏、主区  | `#FFFFFF`             | `#101012`             | `--background`                          |
+| 代码块            | `#F7F8F8`             | `#0B0C0D`             | `--code-background`                     |
+| 卡片、输入卡      | `#F7F8F8`             | `#17171A`             | `--card`、`--composer-background`       |
+| 浮层              | `#FBFBFC`             | `#1C1C1F`             | `--popover`                             |
+| 侧栏行悬停 / 选中 | `#F1F2F4` / `#EDEFF9` | `#121728` / `#1A2143` | `--sidebar-hover`、`--sidebar-selected` |
 
 文字只有三级，都走 `--contrast-foreground*` 派生层：
 
