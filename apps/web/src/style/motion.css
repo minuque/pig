@@ -584,7 +584,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .motion-blur-in {
-    animation: motion-blur-in 180ms var(--ease-out);
+    animation: motion-blur-in 180ms ease-out;
   }
 }
 

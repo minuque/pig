@@ -146,7 +146,7 @@ spacing:
 | `--radius-control`  | 6    | 按钮、输入框、标签、菜单项、侧栏行   |
 | `--radius-card`     | 10   | 卡片、面板、代码块、图片、下拉、浮层 |
 | `--radius-dialog`   | 14   | 对话框                               |
-| `--radius-composer` | 16   | 输入卡                               |
+| `--radius-composer` | 19.2 | 输入卡                               |
 | `--radius-pill`     | 9999 | 胶囊、圆形按钮                       |
 
 - rt 的 `--radius-1..6` 在 `rt.css` 接到这三档。
@@ -158,7 +158,7 @@ spacing:
 | ------------------- | -------------------------------------------------- |
 | `--shadow-popover`  | 下拉、菜单、提示、悬停卡、拖拽中的行、滚动到底按钮 |
 | `--shadow-dialog`   | 对话框、抽屉、图片预览                             |
-| `--shadow-composer` | 输入卡：浅色 1px 轻投影，深色不投影                |
+| `--shadow-composer` | 输入卡：浅色 4px/18px 柔投影，深色 6px/24px 深投影 |
 
 - rt 的 `--shadow-4/5` 接 popover；`--shadow-6` 留 rt 原值，rt 对话框用它画外环与阴影。
 - 浮层底色是实色 `--popover`（`.surface-float`），不透明，不模糊。

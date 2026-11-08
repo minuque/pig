@@ -109,14 +109,19 @@
   --minimap-marker: color-mix(in srgb, var(--foreground-faint) 35%, transparent);
   --link-underline: color-mix(in srgb, var(--foreground) 38%, transparent);
   --link-underline-hover: color-mix(in srgb, var(--foreground) 72%, transparent);
-  --effort-track: color-mix(in srgb, var(--foreground) 10%, transparent);
-  /* 强度滑条：主题色渐变填充 + 顶部高光，白色胶囊滑块，刻度在填充内外各一色 */
+  /* 强度滑条：外壳渐变 + 0.5px 描边，主题色渐变填充，白色胶囊滑块；深色在 .dark 覆盖 */
+  --effort-shell: rgba(230, 230, 232, 0.504);
+  --effort-shell-2: rgba(232, 232, 233, 0.357);
+  --effort-line: rgba(0, 0, 0, 0.084);
+  --effort-label: #1d1d1d;
+  --effort-label-dim: rgba(29, 29, 29, 0.4);
+  --effort-tick: rgba(0, 0, 0, 0.176);
+  --effort-tick-active: var(--accent-8);
+  --effort-tick-on-thumb: rgba(0, 0, 0, 0.45);
   --effort-fill: linear-gradient(90deg, var(--accent-9), var(--accent-10));
   --effort-fill-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.16);
-  --effort-tick: color-mix(in srgb, var(--foreground) 18%, transparent);
-  --effort-tick-on: rgba(255, 255, 255, 0.55);
   --effort-thumb: linear-gradient(180deg, #ffffff, #f5f5f5);
-  --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
   /* 收藏星标：琥珀色，深浅共用 */
   --favorite: #fbbf24;
   --link: var(--accent-11);
@@ -221,7 +226,7 @@
   /* 阴影只给真正浮起来的层：下拉、菜单、提示用 popover，对话框与抽屉用 dialog */
   --shadow-popover: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.18);
-  --shadow-composer: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-composer: 0 4px 18px -6px color-mix(in srgb, var(--foreground) 7%, transparent);
   --theme-wire-light: var(--background);
   --theme-wire-light-raised: var(--card);
   --theme-wire-dark: var(--card);
@@ -304,7 +309,7 @@
   --radius-control: 6px;
   --radius-card: 10px;
   --radius-dialog: 14px;
-  --radius-composer: 16px;
+  --radius-composer: 1.2rem;
   /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
   --radius-pill: 9999px;
 }
@@ -364,14 +369,20 @@ html[data-pig-desktop-platform="darwin"] {
   --warning-bg: #251b0d;
   --danger-bg: #281518;
 
-  --effort-track: var(--hover-strong);
+  --effort-shell: rgba(255, 255, 255, 0.07);
+  --effort-shell-2: rgba(255, 255, 255, 0.1);
+  --effort-line: rgba(255, 255, 255, 0.08);
+  --effort-label: #ffffff;
+  --effort-label-dim: rgba(255, 255, 255, 0.4);
+  --effort-tick: rgba(255, 255, 255, 0.256);
+  --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
   --link: var(--accent-11);
   --scrollbar-color: #2a2a2e;
 
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-popover: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-composer: none;
+  --shadow-composer: 0 6px 24px -10px rgba(0, 0, 0, 0.3);
 
   --inverse-background: #e8eaed;
   --inverse-background-hover: #ffffff;

@@ -27,8 +27,6 @@
                 {{ effortLabel }}
               </span>
             </span>
-
-            <DropdownMenuTriggerIcon />
           </Button>
         </DropdownMenuTrigger>
       </TooltipTrigger>
@@ -149,7 +147,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuTrigger,
-  DropdownMenuTriggerIcon,
 } from "@components/ui/dropdown-menu/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"

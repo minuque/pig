@@ -366,7 +366,7 @@ defineExpose({ focus })
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: var(--border-width) solid var(--border-soft);
+  border: var(--border-width) solid var(--composer-border);
   border-radius: var(--radius-composer);
   background: var(--composer-background);
   box-shadow: var(--shadow-composer);
@@ -407,6 +407,8 @@ defineExpose({ focus })
 .cluster.tools {
   flex: 1 1 auto;
   justify-content: flex-end;
+  /* 模型按钮悬停底色和发送按钮之间留出 12px */
+  margin-inline-end: var(--space-xxs);
 }
 
 .cluster.right {
