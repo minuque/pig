@@ -9,10 +9,8 @@ colors:
   link-light: "#3A5BC7"
   link-dark: "#9EB1FF"
   window-light: "#F7F8F8"
-  workbench-light: "#FFFFFF"
   overlay-light: "#FBFBFC"
   window-dark: "#0B0C0D"
-  workbench-dark: "#101012"
   card-dark: "#17171A"
   overlay-dark: "#1C1C1F"
   ink-light: "#282A30"
@@ -21,8 +19,6 @@ colors:
   ink-dark: "#E8EAED"
   ink-secondary-dark: "#9DA4AE"
   ink-faint-dark: "#838993"
-  border-light: "#E4E6EA"
-  border-dark: "#2A2A2E"
 typography:
   heading:
     fontFamily: "anthropic-sans, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
@@ -95,15 +91,14 @@ spacing:
 
 ### 中性色
 
-中性色用 Radix 的 `slate`（`data-gray-color="slate"`），rt 基础件的灰阶跟着它走；表面、文字、描边是下表的固定值，取自 Linear 基调。
+中性色用 Radix 的 `slate`（`data-gray-color="slate"`），描边与 rt 基础件的灰阶跟着它走；表面与文字是下表的固定值，取自 Linear 基调。
 
-| 层                 | 浅色                  | 深色                  | token                                   |
-| ------------------ | --------------------- | --------------------- | --------------------------------------- |
-| 窗口、侧栏、代码块 | `#F7F8F8`             | `#0B0C0D`             | `--background`、`--code-background`     |
-| 主工作区           | `#FFFFFF`             | `#101012`             | `--workbench-surface`                   |
-| 卡片、输入卡       | `#F7F8F8`             | `#17171A`             | `--card`、`--composer-background`       |
-| 浮层               | `#FBFBFC`             | `#1C1C1F`             | `--popover`                             |
-| 侧栏行悬停 / 选中  | `#F1F2F4` / `#EDEFF9` | `#121728` / `#1A2143` | `--sidebar-hover`、`--sidebar-selected` |
+| 层                       | 浅色                  | 深色                  | token                                   |
+| ------------------------ | --------------------- | --------------------- | --------------------------------------- |
+| 窗口、侧栏、主区、代码块 | `#F7F8F8`             | `#0B0C0D`             | `--background`、`--code-background`     |
+| 卡片、输入卡             | `#F7F8F8`             | `#17171A`             | `--card`、`--composer-background`       |
+| 浮层                     | `#FBFBFC`             | `#1C1C1F`             | `--popover`                             |
+| 侧栏行悬停 / 选中        | `#F1F2F4` / `#EDEFF9` | `#121728` / `#1A2143` | `--sidebar-hover`、`--sidebar-selected` |
 
 文字只有三级，都走 `--contrast-foreground*` 派生层：
 
@@ -113,11 +108,11 @@ spacing:
 | 次  | `#4C5159` | `#9DA4AE` | 次要信息          |
 | 弱  | `#6A7077` | `#838993` | 非必要信息，≥ 3:1 |
 
-描边只有 `--border`（浅 `#E4E6EA` / 深 `#2A2A2E`）与 `--border-soft`（浅 `#E8EAEC` / 深 `#1A1A1D`）。分割线只用 1px `--border-soft`。
+描边只有 `--border`（gray-a6）与 `--border-soft`（gray-a5）。分割线只用 1px `--border-soft`。
 
 ### 状态色
 
-状态色做文字（`--success`、`--warning`、`--danger`），同色相的浅底做底（`--*-bg`）。警告与危险取 Linear 基调的值（浅 `#8F5F13` / `#AE2E38`，深 `#E8A33D` / `#FF7D88`）；成功沿用 Radix green 第 11 级与 a3。不用实色填充，不加光晕。状态色只在真有状态时出现。
+成功、警告、危险取 Radix 的 green、orange、red：第 11 级做文字（`--success`、`--warning`、`--danger`），第 3 级 alpha 做底（`--*-bg`）。不用实色填充，不加光晕。状态色只在真有状态时出现。
 
 ### 例外
 

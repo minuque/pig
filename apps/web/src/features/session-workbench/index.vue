@@ -545,7 +545,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   pointer-events: none;
   background: linear-gradient(
     to top,
-    var(--card) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
+    var(--background) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
     transparent
   );
   mask-image: linear-gradient(

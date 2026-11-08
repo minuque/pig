@@ -193,7 +193,7 @@ main {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--card);
+  background: var(--background);
 }
 
 @media (prefers-reduced-motion: reduce) {
