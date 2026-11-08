@@ -548,7 +548,6 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
     var(--card) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
     transparent
   );
-  backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-saturation, 1.08));
   mask-image: linear-gradient(
     to top,
     black calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),

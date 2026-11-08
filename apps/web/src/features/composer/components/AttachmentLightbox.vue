@@ -48,6 +48,6 @@ const emit = defineEmits<{
   max-width: 100%;
   max-height: 100%;
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-modal);
+  box-shadow: var(--shadow-dialog);
 }
 </style>

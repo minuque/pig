@@ -131,7 +131,7 @@ watch(
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-card);
   corner-shape: var(--corner-shape-composer);
-  box-shadow: var(--shadow-float);
+  box-shadow: var(--shadow-popover);
   scrollbar-width: none;
 }
 

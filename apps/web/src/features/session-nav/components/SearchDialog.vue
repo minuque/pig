@@ -261,7 +261,7 @@ function activate(index: number) {
 }
 
 .search-row.active {
-  background: var(--glass-selected-bg);
+  background: var(--sidebar-selected);
   color: var(--contrast-foreground);
 }
 

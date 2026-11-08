@@ -450,7 +450,7 @@ onUpdated(() => {
   padding-inline: var(--space-xs);
   border-radius: var(--radius-control);
   background: var(--popover);
-  box-shadow: var(--shadow-elevated);
+  box-shadow: var(--shadow-popover);
   color: var(--contrast-foreground);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);

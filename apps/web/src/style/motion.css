@@ -38,7 +38,6 @@
   overflow: hidden;
   border-radius: calc(var(--radius-control) / 2);
   background: var(--brand-mark-bg);
-  box-shadow: var(--shadow-logo);
 }
 
 .startup-logo {
@@ -587,15 +586,11 @@
   from {
     opacity: 1;
     transform: translateY(0) scale(1);
-    -webkit-backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
-    backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
   }
 
   to {
     opacity: 0;
     transform: translateY(4px) scale(0.98);
-    -webkit-backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
-    backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
   }
 }
 
@@ -670,15 +665,11 @@
   from {
     opacity: 1;
     translate: 0 0;
-    -webkit-backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
-    backdrop-filter: blur(var(--menu-exit-blur)) saturate(var(--menu-exit-saturate));
   }
 
   to {
     opacity: 0;
     translate: calc(var(--menu-shift-x) * 0.5) calc(var(--menu-shift-y) * 0.5);
-    -webkit-backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
-    backdrop-filter: blur(0) saturate(var(--menu-exit-saturate));
   }
 }
 

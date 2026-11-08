@@ -39,9 +39,6 @@ contextBridge.exposeInMainWorld("pigDesktop", {
   setThemeColor(color) {
     ipcRenderer.send("pig:theme-color", color)
   },
-  setTranslucent(on) {
-    ipcRenderer.send("pig:window:set-translucent", Boolean(on))
-  },
 })
 
 stamp()

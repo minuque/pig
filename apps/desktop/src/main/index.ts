@@ -16,8 +16,6 @@ import {
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
 import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
 import { createMainWindow } from "./window.js"
-import { registerWindowMaterial } from "./window-material-ipc.js"
-import { createWindowBackground } from "./window-background.js"
 import { loadWithRetry } from "./load-retry.js"
 import { parseThemeColor } from "./theme-color.js"
 import { titleBarOverlayFor } from "./window-chrome.js"
@@ -190,22 +188,15 @@ void app.whenReady().then(async () => {
     const stateFile = windowStatePath(app.getPath("userData"))
     const displays = screen.getAllDisplays().map((display) => display.bounds)
     const frame = restoreWindowFrame(readWindowStateFile(stateFile), displays)
-    const background = createWindowBackground(() => mainWindow)
     ipcMain.on("pig:theme-color", (_event, value: unknown) => {
       const color = parseThemeColor(value)
 
       if (!color) return
-      background.setThemeColor(color)
+      mainWindow?.setBackgroundColor(color)
 
       // 窗控浮在页面右上角：符号色跟着底色深浅换
       if (process.platform === "win32") mainWindow?.setTitleBarOverlay(titleBarOverlayFor(color))
     })
-    registerWindowMaterial(
-      () => mainWindow,
-      (on) => {
-        background.setTranslucent(on)
-      },
-    )
     mainWindow = createMainWindow(preloadPath, {
       ...(isDev ? {} : { gatewayOrigin: httpOrigin }),
       frame,

@@ -69,17 +69,9 @@
   flex: none;
 }
 
-/* 浮层统一底：毛玻璃是项目默认，透明度固定由 --glass-opacity 给，模糊与饱和只按深浅切换 */
+/* 浮层统一底：实色，不透明 */
 .surface-float {
-  background-color: color-mix(in srgb, var(--glass-tint) var(--glass-opacity), transparent);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
-}
-
-/* 浮层退场：blur 随退场进度降到 0 */
-:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
-  --menu-exit-blur: var(--glass-blur);
-  --menu-exit-saturate: var(--glass-saturation);
+  background-color: var(--popover);
 }
 
 /* ------ 基础 reset 与字号档 ------ */
@@ -87,18 +79,6 @@ body {
   background: var(--background);
   color: var(--contrast-foreground);
   font-family: var(--font-sans);
-}
-
-/* 半透明窗口：html 与页面底都让开，窗口底由 --window-surface 画在 shell 上 */
-html[data-translucent-window="on"],
-html[data-translucent-window="on"] body {
-  background: transparent;
-}
-
-/* 侧栏上下渐隐带画的是实底，半透明下会露出两道横条，直接收掉 */
-html[data-translucent-window="on"] .nav-body::before,
-html[data-translucent-window="on"] .session-edge-bottom {
-  display: none;
 }
 
 @layer base {

@@ -80,7 +80,7 @@ function resetWidth() {
   height: 100vh;
   display: flex;
   overflow: hidden;
-  background: var(--window-surface);
+  background: var(--background);
 }
 
 .sidebar {
@@ -185,7 +185,7 @@ html[data-pig-desktop-platform="darwin"] .resizer {
 
 main {
   position: relative;
-  /* 困住栏内 z-index 又不吃掉子树 backdrop-filter：用 z-index:0 而不是 isolation:isolate */
+  /* 困住栏内 z-index：用 z-index:0 而不是 isolation:isolate */
   z-index: 0;
   flex: 1;
   min-width: 0;
@@ -235,7 +235,7 @@ main {
     /* 抽屉浮在内容上，半透明窗口下也保持可读 */
     background: var(--background);
     border-inline-end: 0;
-    box-shadow: var(--shadow-drawer);
+    box-shadow: var(--shadow-dialog);
   }
 
   .sidebar.expanded {

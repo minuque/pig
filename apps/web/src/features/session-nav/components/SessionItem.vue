@@ -505,7 +505,7 @@ function confirmDelete() {
 .session-item:hover .session-card,
 .session-card[data-state="open"],
 .session-card.active {
-  background: var(--glass-selected-bg);
+  background: var(--sidebar-selected);
 }
 
 .project-icon {
@@ -680,7 +680,7 @@ function confirmDelete() {
 .session-item.is-dragging .session-card {
   background: var(--popover);
   color: var(--contrast-foreground);
-  box-shadow: var(--shadow-elevated);
+  box-shadow: var(--shadow-popover);
   cursor: grabbing;
 }
 
@@ -690,7 +690,7 @@ function confirmDelete() {
 
 /* 被扫过的行：铺选中底，行尾动作常亮 */
 .session-item.is-swept .session-card {
-  background: var(--glass-selected-bg);
+  background: var(--sidebar-selected);
 }
 
 .session-item.is-swept .state-mark {

@@ -6,7 +6,7 @@
     data-gray-color="gray"
     :data-is-root-theme="root ? 'true' : undefined"
     data-has-background="false"
-    :data-panel-background="translucentWindow ? 'translucent' : 'solid'"
+    data-panel-background="solid"
     data-radius="medium"
     data-scaling="100%"
   >
@@ -16,7 +16,6 @@
 
 <script setup lang="ts">
 import { useColorScheme } from "@features/theme/index.js"
-import { useGeneralPrefs } from "@features/settings/index.js"
 
 /**
  * Radix Themes 的作用域容器：rt 的面板、阴影、间距与圆角 token 都挂在 .radix-themes 上。
@@ -25,5 +24,4 @@ import { useGeneralPrefs } from "@features/settings/index.js"
  */
 const props = withDefaults(defineProps<{ root?: boolean }>(), { root: false })
 const { isDark } = useColorScheme()
-const { translucentWindow } = useGeneralPrefs()
 </script>

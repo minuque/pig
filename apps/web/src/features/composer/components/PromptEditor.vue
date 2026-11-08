@@ -585,7 +585,6 @@ defineExpose({ focus })
   width: 100%;
   margin-inline: auto;
   border-radius: var(--radius-dialog);
-  box-shadow: var(--composer-shadow);
 }
 
 /* @// 面板浮在输入卡上方，不占布局；菜单自身圆角与描边在组件内。 */
@@ -604,7 +603,6 @@ defineExpose({ focus })
   border: var(--border-width) solid var(--border);
   border-radius: inherit;
   corner-shape: var(--corner-shape-composer);
-  box-shadow: inset 0 1px 0 var(--composer-highlight);
   transition: height var(--duration-composer-flip) var(--ease-fold);
 }
 

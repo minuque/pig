@@ -112,19 +112,6 @@
             </SelectContent>
           </Select>
         </div>
-
-        <div id="setting-translucent" class="row">
-          <div class="copy">
-            <h3 class="label">{{ t("settings.translucentWindow") }}</h3>
-            <p class="hint">{{ t("settings.translucentWindowHint") }}</p>
-          </div>
-
-          <Switch
-            :aria-label="t('settings.translucentWindow')"
-            :model-value="translucentWindow"
-            @update:model-value="setTranslucentWindow"
-          />
-        </div>
       </Card>
     </section>
   </section>
@@ -143,24 +130,13 @@ import {
 import { useColorScheme } from "@features/theme/index.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
-import { Switch } from "@components/ui/switch/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import { Card } from "@components/ui/card/index.js"
 
 const { t } = useI18n()
 const { isDark, scheme, setScheme } = useColorScheme()
-const {
-  locale,
-  fontSize,
-  chatWidth,
-  translucentWindow,
-  userName,
-  setUserName,
-  setLocale,
-  setFontSize,
-  setChatWidth,
-  setTranslucentWindow,
-} = useGeneralPrefs()
+const { locale, fontSize, chatWidth, userName, setUserName, setLocale, setFontSize, setChatWidth } =
+  useGeneralPrefs()
 
 function wireTone(id: ColorScheme): "light" | "dark" | "split" {
   if (id === "light") return "light"

@@ -343,6 +343,6 @@ const thumb = computed(() => {
   max-inline-size: 100%;
   max-block-size: calc(100vh - 2 * var(--space-xl));
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-modal);
+  box-shadow: var(--shadow-dialog);
 }
 </style>

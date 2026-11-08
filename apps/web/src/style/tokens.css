@@ -1,4 +1,4 @@
-/* 全局 token：浅色在 :root，深色只覆盖颜色、阴影与玻璃。
+/* 全局 token：浅色在 :root，深色只覆盖颜色与阴影。
    组件与工具类读同一份；@property 让这些自定义属性可以参与动画与过渡。 */
 
 /* ------ @property 注册 ------ */
@@ -47,8 +47,6 @@
 
   /* 表面两层：窗口与侧栏是 Silver Mist，主工作区亮一级；卡片、浮层再亮一级 */
   --background: #e4e4e4;
-  /* 窗口底：半透明窗口开关打开时换成带 alpha 的同一底色 */
-  --window-surface: var(--background);
   --card: #fafafa;
   --workbench-surface: #f4f4f4;
   --sidebar-foreground: var(--foreground);
@@ -75,14 +73,6 @@
   --user-prompt-background: #e8e8e8;
   --popover: #fafafa;
   --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
-
-  /* 毛玻璃：浮层默认走这一档，模糊与饱和只按深浅切换 */
-  --glass-opacity: 80%;
-  --glass-blur: 16px;
-  --glass-saturation: 1.14;
-  --glass-tint: var(--card);
-  /* 选中态：半透明洗涤，不描边；浅色用黑、深色用白 */
-  --glass-selected-bg: color-mix(in srgb, var(--foreground) 6%, transparent);
 
   /* mermaid 图 */
   --mermaid-bg: #fafafa;
@@ -133,9 +123,6 @@
   --edge-fade-band: 24px;
   --edge-fade-menu-band: 12px;
 
-  /* 输入卡投影：浅色专用的软阴影；深色靠内高光分层 */
-  --composer-shadow: 0 12px 28px -18px rgb(0 0 0 / 40%);
-  --composer-highlight: transparent;
   /* logo 拆层：蓝底图在此，小猪单独一层做探头；主蓝兜底图片未载入 */
   --brand-mark-bg: #5d77d0 url("/logo-bg.png") center / cover;
   /* 吉祥物取 logo 小猪原色，深浅主题共用 */
@@ -223,20 +210,9 @@
   --z-drag: 30;
   --opacity-disabled: 0.55;
 
-  /* 阴影 */
-  --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.2);
-  --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.2);
-  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.18);
-  --shadow-popover:
-    0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 1px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-logo: 0 1px 2px rgba(15, 17, 21, 0.06), 0 8px 20px rgba(15, 17, 21, 0.08);
-  --shadow-soft:
-    0 0.175px 1.041px rgba(0, 0, 0, 0.01), 0 0.8px 2.925px rgba(0, 0, 0, 0.02),
-    0 2.025px 7.847px rgba(0, 0, 0, 0.027), 0 4px 18px rgba(0, 0, 0, 0.04);
-  --shadow-elevated:
-    0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 12px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02),
-    0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 2px 8px rgb(0 0 0 / 0.04);
+  /* 阴影只给真正浮起来的层：下拉、菜单、提示用 popover，对话框与抽屉用 dialog */
+  --shadow-popover: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.18);
   --theme-wire-light: var(--background);
   --theme-wire-light-raised: var(--card);
   --theme-wire-dark: var(--card);
@@ -279,9 +255,6 @@
   --duration-shimmer: 3400ms;
   --ease-icon: cubic-bezier(0.2, 0, 0, 1);
 
-  /* 材质：小面积磨砂（徽标/预览层）。玻璃浮层走 --glass-*，此处只管局部压底。 */
-  --material-blur: 6px;
-  --material-saturate: 1.4;
   /* 焦点环：宽+透明度的统一焦点态，配合 .ring-focus 使用。 */
   --focus-ring: 0 0 0 3px var(--accent-a4);
   --focus-ring-danger: 0 0 0 3px color-mix(in srgb, var(--danger, #e5484d) 45%, transparent);
@@ -328,11 +301,6 @@
   --radius-pill: 9999px;
 }
 
-/* 半透明窗口：窗口底只由 shell 画一层，侧栏与 main 让开，工作台卡片保持实底 */
-html[data-translucent-window="on"] {
-  --window-surface: color-mix(in srgb, var(--background) 90%, transparent);
-}
-
 /* 桌面壳标题条：一处定义，三处消费（侧栏顶距、拖拽带、头部高度）。
    只有 macOS 的浮层标题条占高度；Windows 与 Linux 走原生边框，头部取自然高。 */
 html[data-pig-desktop-platform="darwin"] {
@@ -340,10 +308,8 @@ html[data-pig-desktop-platform="darwin"] {
   --header-height: var(--titlebar-inset);
 }
 
-/* ------ 深色覆盖：只覆盖颜色、阴影、玻璃 ------ */
+/* ------ 深色覆盖：只覆盖颜色与阴影 ------ */
 .dark {
-  --composer-shadow: none;
-  --composer-highlight: rgb(255 255 255 / 3%);
   color-scheme: dark;
 
   /* 深色下向白推，对比度层才朝正确方向生效 */
@@ -375,12 +341,6 @@ html[data-pig-desktop-platform="darwin"] {
   --popover: #1c1c1c;
   --code-surface: color-mix(in srgb, var(--foreground) 5%, var(--card));
 
-  /* 深色浮层比背景抬起一层，不退回纯黑 */
-  --glass-tint: color-mix(in srgb, var(--card) 97%, white);
-  --glass-blur: 16px;
-  --glass-saturation: 1.08;
-  --glass-selected-bg: color-mix(in srgb, var(--foreground) 11%, transparent);
-
   /* mermaid 图 */
   --mermaid-bg: #121212;
   --mermaid-fill: #1a1a1a;
@@ -396,17 +356,8 @@ html[data-pig-desktop-platform="darwin"] {
   --scrollbar-color: #333333;
 
   --scrim: rgba(0, 0, 0, 0.55);
-  --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.45);
-  --shadow-drawer: 0 0 32px rgba(0, 0, 0, 0.5);
-  --shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-logo: 0 1px 2px rgba(0, 0, 0, 0.28), 0 10px 24px rgba(0, 0, 0, 0.36);
-  --shadow-soft:
-    0 0.175px 1.041px rgba(0, 0, 0, 0.3), 0 0.8px 2.925px rgba(0, 0, 0, 0.3),
-    0 2.025px 7.847px rgba(0, 0, 0, 0.32), 0 4px 18px rgba(0, 0, 0, 0.4);
-  --shadow-elevated:
-    0 4px 8px rgba(0, 0, 0, 0.28), 0 8px 12px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.28),
-    0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.07);
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.28);
+  --shadow-popover: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.6);
 
   --inverse-background: #e4e4e4;
   --inverse-background-hover: #f0f0f0;

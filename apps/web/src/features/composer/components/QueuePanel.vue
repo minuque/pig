@@ -106,7 +106,7 @@ onBeforeUnmount(() => reorder.detach())
 .row.is-drag-live {
   z-index: 2;
   background: var(--card);
-  box-shadow: var(--shadow-float);
+  box-shadow: var(--shadow-popover);
   cursor: grabbing;
 }
 

@@ -165,8 +165,6 @@ export const zh = {
     fontSizeS: "小",
     fontSizeM: "中",
     fontSizeL: "大",
-    translucentWindow: "半透明窗口",
-    translucentWindowHint: "侧栏与窗口底色半透明，主工作区保持实底",
     notifications: "通知",
     notifySystem: "系统通知",
     notifySystemHint: "回合完成时发送系统通知",
@@ -477,9 +475,6 @@ export const en: Messages = {
     fontSizeS: "S",
     fontSizeM: "M",
     fontSizeL: "L",
-    translucentWindow: "Translucent window",
-    translucentWindowHint:
-      "Sidebar and window background turn translucent; the workbench keeps a solid surface",
     notifications: "Notifications",
     notifySystem: "System notifications",
     notifySystemHint: "Send a system notification when a turn finishes",

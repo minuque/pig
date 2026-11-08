@@ -49,7 +49,7 @@ const { t } = useI18n()
 }
 
 .banner-alert {
-  box-shadow: var(--shadow-elevated);
+  box-shadow: var(--shadow-popover);
 }
 
 .banner-enter-active,

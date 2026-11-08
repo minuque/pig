@@ -245,7 +245,7 @@ function reset() {
   height: 28px;
   border-radius: var(--radius-pill);
   background: var(--white);
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 0 0 var(--border-width) var(--border);
   transform: translate(-50%, -50%);
   pointer-events: none;
 }

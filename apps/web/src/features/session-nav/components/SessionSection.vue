@@ -267,7 +267,7 @@ function itemBind(session: SidebarSession) {
 }
 
 .more-button:hover {
-  background: var(--glass-selected-bg);
+  background: var(--sidebar-selected);
   color: var(--contrast-foreground);
 }
 
