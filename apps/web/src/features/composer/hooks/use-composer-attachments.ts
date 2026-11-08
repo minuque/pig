@@ -53,16 +53,9 @@ export interface ComposerAttachmentsApi {
 interface AttachmentStash {
   files: Ref<ComposerAttachment[]>
   error: Ref<string>
-  /** 各附件的上传进度 0–100；落地即删键。加附件时是模拟，发送时被真实 stage 接管。 */
+  /** 发送时真实 stage 回写的上传进度 0–100；落地即删键。 */
   progress: Ref<Map<string, number>>
-  /** 模拟上传计时器，按附件 id 记；remove/settle/bucket 释放时清。 */
-  simTimers: Map<string, ReturnType<typeof setTimeout>>
 }
-
-/** 模拟上传的节奏：单个约 1.1s，新加文件排到队尾。 */
-const SIM_STEP_MS = 50
-const SIM_DURATION_MS = 1100
-const SIM_GAP_MS = 240
 
 /** 去重键：同名同大小同类型视为同一个文件。 */
 function attachmentKey(file: File): string {
@@ -104,12 +97,8 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
       files: shallowRef([]),
       error: ref(""),
       progress: ref(new Map()),
-      simTimers: new Map(),
     }),
-    (stash) => {
-      stash.simTimers.forEach((timer) => globalThis.clearTimeout(timer))
-      stash.files.value.forEach(release)
-    },
+    (stash) => stash.files.value.forEach(release),
   )
   const bucket = buckets.current
   // 批次记住来源桶：欢迎页发送后路由已切到新会话，仍要清欢迎页那桶
@@ -129,57 +118,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     if (value === undefined) next.delete(id)
     else next.set(id, value)
     stash.progress.value = next
-  }
-
-  /** 停掉某个附件的模拟计时器（remove / 发送接管时调）。 */
-  function stopSim(stash: AttachmentStash, id: string) {
-    const timer = stash.simTimers.get(id)
-
-    if (timer !== undefined) globalThis.clearTimeout(timer)
-    stash.simTimers.delete(id)
-  }
-
-  /**
-   * 模拟上传：逐个落地，节奏与 BoardUI 一致（时长 + 间隔，进度带随机抖动）。
-   * head 是当前在画环的那个；跑到 100 清键算落地，停一拍再带下一个。
-   */
-  function runSim(stash: AttachmentStash, head: ComposerAttachment) {
-    let shown = Math.max(0, stash.progress.value.get(head.id) ?? 0)
-    const step = 100 / Math.max(1, SIM_DURATION_MS / SIM_STEP_MS)
-    const tick = () => {
-      shown = Math.min(100, shown + step * (0.55 + 0.9 * Math.random()))
-
-      if (shown < 100) {
-        writeProgress(stash, head.id, Math.round(shown))
-        stash.simTimers.set(head.id, globalThis.setTimeout(tick, SIM_STEP_MS))
-        return
-      }
-
-      writeProgress(stash, head.id, undefined)
-      stash.simTimers.delete(head.id)
-      stash.simTimers.set(
-        head.id,
-        globalThis.setTimeout(() => {
-          stash.simTimers.delete(head.id)
-          pumpSim(stash)
-        }, SIM_GAP_MS),
-      )
-    }
-
-    stash.simTimers.set(head.id, globalThis.setTimeout(tick, SIM_STEP_MS))
-  }
-
-  /** 找第一个还在模拟中的文件接着跑；没有就空转。 */
-  function pumpSim(stash: AttachmentStash) {
-    const next = stash.files.value.find((item) => stash.progress.value.has(item.id))
-
-    if (next && !stash.simTimers.has(next.id)) runSim(stash, next)
-  }
-
-  /** 新加的文件标 progress=0 进队列；只在上一个落地后才轮到自己。 */
-  function startSim(stash: AttachmentStash, items: ComposerAttachment[]) {
-    for (const item of items) writeProgress(stash, item.id, 0)
-    pumpSim(stash)
   }
 
   function apply(input: FileList | File[] | null | undefined, folders: readonly string[]) {
@@ -230,7 +168,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
 
     if (added.length) {
       stash.files.value = [...current, ...added]
-      startSim(stash, added)
     }
 
     stash.error.value = skipped.length
@@ -276,7 +213,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     const stash = bucket()
     const kept: ComposerAttachment[] = []
 
-    stopSim(stash, id)
     writeProgress(stash, id, undefined)
 
     for (const item of stash.files.value) {
@@ -285,18 +221,12 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     }
 
     stash.files.value = kept
-    // 被移走的是队首时，把下一个还在等模拟的接上
-    pumpSim(stash)
   }
 
   function consumeForSend(): ComposerAttachmentBatch | undefined {
     const stash = bucket()
 
     if (!stash.files.value.length) return undefined
-
-    // 真实 stage 接管同一份进度：这批文件里还在模拟的全部停掉
-    for (const item of stash.files.value) stopSim(stash, item.id)
-    stash.simTimers.clear()
 
     // 每次发送换新 batch：重试不会往上次的批次里追加，去重移除也真的生效
     const batch: ComposerAttachmentBatch = {
@@ -325,8 +255,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     stash.files.value = kept
     stash.error.value = ""
     stash.progress.value = new Map()
-    stash.simTimers.forEach((timer) => globalThis.clearTimeout(timer))
-    stash.simTimers.clear()
   }
 
   if (getCurrentInstance()) onUnmounted(() => buckets.clearAll())
