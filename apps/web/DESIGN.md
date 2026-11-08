@@ -116,7 +116,7 @@ spacing:
 
 ### 状态色
 
-成功、警告、危险取 Radix 的 green、orange、red：第 11 级做文字（`--success`、`--warning`、`--danger`），第 3 级 alpha 做底（`--*-bg`）。不用实色填充，不加光晕。状态色只在真有状态时出现。
+文字色（`--success`、`--info`、`--warning`、`--danger`）配同色相浅底（`--*-bg`）。成功取 Radix green 第 11 级与第 3 级 alpha，信息文字取 accent 第 11 级；警告、危险与信息底用项目自定色值，深浅各一套。不用实色填充，不加光晕。状态色只在真有状态时出现。
 
 ### 例外
 
@@ -140,12 +140,13 @@ spacing:
 
 ## 圆角
 
-| token              | 值   | 给谁                                 |
-| ------------------ | ---- | ------------------------------------ |
-| `--radius-control` | 6    | 按钮、输入框、标签、菜单项、侧栏行   |
-| `--radius-card`    | 10   | 卡片、面板、代码块、图片、下拉、浮层 |
-| `--radius-dialog`  | 14   | 对话框、输入卡                       |
-| `--radius-pill`    | 9999 | 胶囊、圆形按钮                       |
+| token               | 值   | 给谁                                 |
+| ------------------- | ---- | ------------------------------------ |
+| `--radius-control`  | 6    | 按钮、输入框、标签、菜单项、侧栏行   |
+| `--radius-card`     | 10   | 卡片、面板、代码块、图片、下拉、浮层 |
+| `--radius-dialog`   | 14   | 对话框                               |
+| `--radius-composer` | 32   | 多行输入卡；单行时用 `--radius-pill` |
+| `--radius-pill`     | 9999 | 胶囊、圆形按钮                       |
 
 - rt 的 `--radius-1..6` 在 `rt.css` 接到这三档。
 - 嵌套写 `calc(外层 - 内边距)`；结果太小时用 `max()` 兜到 `--radius-control` 的一半。rt 菜单本身同心：外 10、内边距 4、项 6。
@@ -157,7 +158,7 @@ spacing:
 | `--shadow-popover` | 下拉、菜单、提示、悬停卡、拖拽中的行、滚动到底按钮 |
 | `--shadow-dialog`  | 对话框、抽屉、图片预览                             |
 
-- rt 的 `--shadow-4/5` 接 popover，`--shadow-6` 接 dialog。
+- rt 的 `--shadow-4/5` 接 popover；`--shadow-6` 留 rt 原值，rt 对话框用它画外环与阴影。
 - 浮层底色是实色 `--popover`（`.surface-float`），不透明，不模糊。
 - 卡片用 1px `--border` 描边、不铺底；描边与底色差只用一种。
 - 焦点环：`--focus-ring` = 2px 实色第 11 级；危险态 `--focus-ring-danger`。

@@ -127,16 +127,16 @@
   --mascot-heat: #f5a896;
   --mascot-heat-snout: #e0735e;
 
-  /* 状态：第 11 级文字配第 3 级底，不用实色填充；深浅由色板自己切 */
+  /* 状态：文字色配同色相浅底，不用实色填充；成功沿用 Radix green */
   --success: var(--green-11);
   --info: var(--accent-11);
-  --warning: var(--orange-11);
-  --danger: var(--red-11);
+  --warning: #8f5f13;
+  --danger: #ae2e38;
   --state-working: var(--info);
   --success-bg: var(--green-a3);
-  --info-bg: var(--accent-a3);
-  --warning-bg: var(--orange-a3);
-  --danger-bg: var(--red-a3);
+  --info-bg: #edeff9;
+  --warning-bg: #f7efdd;
+  --danger-bg: #faeaeb;
 
   /* 代码：等宽字体观感比同号 sans 大一档，13 号与 14 号正文相当 */
   --text-code: 13px;
@@ -290,6 +290,8 @@
   --radius-control: 6px;
   --radius-card: 10px;
   --radius-dialog: 14px;
+  /* 输入卡多行时的圆角；单行用 --radius-pill */
+  --radius-composer: 32px;
   /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
   --radius-pill: 9999px;
 }
@@ -342,6 +344,12 @@ html[data-pig-desktop-platform="darwin"] {
   --foreground-secondary: #9da4ae;
   --foreground-faint: #838993;
   --placeholder: #8a8f98;
+
+  --warning: #e8a33d;
+  --danger: #ff7d88;
+  --info-bg: #1a2143;
+  --warning-bg: #251b0d;
+  --danger-bg: #281518;
 
   --effort-track: var(--hover-strong);
   --link: var(--accent-11);

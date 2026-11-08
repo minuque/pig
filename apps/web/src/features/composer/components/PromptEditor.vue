@@ -584,7 +584,7 @@ defineExpose({ focus })
   position: relative;
   width: 100%;
   margin-inline: auto;
-  border-radius: var(--radius-dialog);
+  border-radius: var(--radius-composer);
 }
 
 /* @// 面板浮在输入卡上方，不占布局；菜单自身圆角与描边在组件内。 */
@@ -601,7 +601,7 @@ defineExpose({ focus })
   /* 实底：和代码块、mermaid 卡片同一层，不再用毛玻璃 */
   background: var(--code-background);
   border: var(--border-width) solid var(--border);
-  border-radius: inherit;
+  border-radius: var(--radius-composer);
   corner-shape: var(--corner-shape-composer);
   transition: height var(--duration-composer-flip) var(--ease-fold);
 }
@@ -628,6 +628,10 @@ defineExpose({ focus })
   display: flex;
   align-items: center;
   min-width: 0;
+}
+
+.composer-card.is-compact {
+  border-radius: var(--radius-pill);
 }
 
 .is-compact .main {
